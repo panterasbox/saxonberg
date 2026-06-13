@@ -15,7 +15,6 @@
 
 import type { Stuff } from '../../stuff/Stuff';
 import type { FieldValidator } from '../../../api/command';
-import { DescribeApi } from '../../../api/describe';
 import { MixinApi } from '../../../api/mixin';
 import { MqlApi } from '../../../api/mql';
 
@@ -25,7 +24,7 @@ const validator: FieldValidator = (value, field, _context) => {
   for (const stuff of stuffs) {
     const s = stuff as Stuff;
     if (!MixinApi.isContainer(s) && !MixinApi.isSurfaced(s)) {
-      return `${DescribeApi.getDisplayName(stuff)} can't hold things`;
+      return `${stuff.getPresentation()} can't hold things`;
     }
   }
   return undefined;

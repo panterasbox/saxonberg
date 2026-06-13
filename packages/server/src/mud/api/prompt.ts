@@ -32,7 +32,6 @@ import { MessageApi } from './message';
 import { MixinApi } from './mixin';
 import { StuffApi } from './stuff';
 import { SecurityApi } from './security';
-import { DescribeApi } from './describe';
 import { ProseApi } from './prose';
 
 /**
@@ -275,10 +274,11 @@ export class PromptApi {
     matches: Stuff[],
     opts?: PromptOpts<Stuff | null>,
   ): Promise<Stuff | null> {
-    const viewer = this.#requireViewer(interactive);
+    // Precondition: a prompt target must be a Sensor-bearing holder.
+    this.#requireViewer(interactive);
     const projected = matches.map((s) => ({
       stuffId: s.stuffId,
-      displayName: DescribeApi.getDisplayName(s, viewer),
+      displayName: s.getPresentation(),
     }));
     const foreground = opts?.foreground ?? true;
     return this.#push<Stuff | null>(
@@ -302,10 +302,11 @@ export class PromptApi {
     matches: Stuff[],
     opts?: MqlManyPromptOpts,
   ): Promise<Stuff[]> {
-    const viewer = this.#requireViewer(interactive);
+    // Precondition: a prompt target must be a Sensor-bearing holder.
+    this.#requireViewer(interactive);
     const projected = matches.map((s) => ({
       stuffId: s.stuffId,
-      displayName: DescribeApi.getDisplayName(s, viewer),
+      displayName: s.getPresentation(),
     }));
     const foreground = opts?.foreground ?? true;
     return this.#push<Stuff[]>(

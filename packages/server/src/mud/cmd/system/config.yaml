@@ -1,0 +1,16 @@
+verbs: [config]
+controller: system/ConfigController
+description: "View or set application settings (developer-gated)"
+validators:
+  - /lib/command/validators/requiresDeveloper
+args:
+  # Both optional: `config` lists, `config <key>` shows, `config <key>
+  # <value>` sets. `value` is a single token (a setting value is a path /
+  # scalar, no spaces) — it is NOT greedy, because a greedy arg is treated
+  # as required and a required arg cannot follow the optional `key`.
+  - name: key
+    type: string
+    required: false
+  - name: value
+    type: string
+    required: false

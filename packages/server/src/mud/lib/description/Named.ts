@@ -39,11 +39,11 @@
  * `shortDescription` not a Named name. A proper name stands on its
  * own without an article.
  *
- * **Why the split matters.** `DescribeApi.getDisplayName` uses the
+ * **Why the split matters.** `Stuff.getPresentation()` uses the
  * presence of a Named name as the **highest-precedence** display
  * string — proper names render bare ("Alice"), while
  * shortDescriptions render with articles ("a heavy iron door"). The
- * recognition / DescribeApi v2 pipeline keys off Named presence too.
+ * recognition pipeline keys off Named presence too (it composes on top of `getPresentation()`).
  * Smuggling generic labels into Named blurs the rendering contract
  * and breaks recognition.
  *
@@ -65,7 +65,7 @@
  * introductory register: synthesized as
  * `[honorific, name, surname, nameSuffix].filter(Boolean).join(' ')`.
  * No "Unnamed" fallback — when nothing is set, `getFullName()`
- * returns `''` and `DescribeApi.getDisplayName(obj)` falls through
+ * returns `''` and `obj.getPresentation()` falls through
  * to its baked-in `'something'` default.
  *
  * Transient name effects (memory loss, polymorph, hood/disguise)

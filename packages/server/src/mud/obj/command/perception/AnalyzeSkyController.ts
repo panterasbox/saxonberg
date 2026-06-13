@@ -12,7 +12,6 @@ import type { Stuff } from '../../../lib/stuff/Stuff';
 import { MixinApi } from '../../../api/mixin';
 import { MessageApi } from '../../../api/message';
 import { Mml } from '../../../api/mml';
-import { DescribeApi } from '../../../api/describe';
 import { CelestialApi } from '../../../api/celestial';
 import { DefaultCalendar } from '../../../lib/time/DefaultCalendar';
 
@@ -48,7 +47,7 @@ export default class AnalyzeSkyController extends CommandController<AnalyzeSkyMo
       return;
     }
     if (!MixinApi.isContainer(target.stuff)) {
-      const detail = `${DescribeApi.getDisplayName(target.stuff)} isn't a place`;
+      const detail = `${target.stuff.getPresentation()} isn't a place`;
       ctx.note({ kind: 'controller-rejected', reason: 'not-a-place', detail });
       MessageApi.scene(giver).topic(TOPIC).toSelf(Mml.fromMarkup(detail)).send();
       return;

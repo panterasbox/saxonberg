@@ -20,7 +20,6 @@ import { MixinApi } from '../../../api/mixin';
 import { MessageApi } from '../../../api/message';
 import { Mml } from '../../../api/mml';
 import { MaterialApi } from '../../../api/material';
-import { DescribeApi } from '../../../api/describe';
 
 interface AnalyzeChemistryModel extends CommandModel {
   target?: MqlOneResult;
@@ -43,7 +42,7 @@ export default class AnalyzeChemistryController extends CommandController<Analyz
       return;
     }
     if (!MixinApi.isTangible(target.stuff as Stuff)) {
-      const detail = `there's nothing to analyze on ${DescribeApi.getDisplayName(target.stuff)}`;
+      const detail = `there's nothing to analyze on ${target.stuff.getPresentation()}`;
       MessageApi.scene(giver)
         .topic('world.perception.measurement.analyze-chemistry')
         .toSelf(Mml.fromMarkup(detail))
@@ -57,7 +56,7 @@ export default class AnalyzeChemistryController extends CommandController<Analyz
     }
     const material = MaterialApi.materialOf(target.stuff as Stuff);
     if (!material) {
-      const detail = `there's no material data for ${DescribeApi.getDisplayName(target.stuff)}`;
+      const detail = `there's no material data for ${target.stuff.getPresentation()}`;
       MessageApi.scene(giver)
         .topic('world.perception.measurement.analyze-chemistry')
         .toSelf(Mml.fromMarkup(detail))

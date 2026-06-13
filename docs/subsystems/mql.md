@@ -17,7 +17,7 @@ dispatch (the `scope:` field, `$focus`, `updates_focus`), see
 ```
   text input
     → CommandLineApi.parse()             ─ shell tokenizer
-    → CommandApi.matchVerbContextual()   ─ verb lookup
+    → giver.getAffordances() ⋯ by verb   ─ verb lookup (keeps source)
     → CommandApi.assemble()              ─ binds tokens to YAML, expands shell vars
     → CommandApi.resolveModel()          ─ MQL on type:object[s] fields
         for each MQL field:

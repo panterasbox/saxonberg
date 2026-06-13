@@ -23,21 +23,13 @@ class: /obj/Avatar
 hydratorClass: /lib/persistence/PersistentHydrator
 data:
   pronouns: they
-  # Default spawn for freshly-created avatars: the lounge Warren. Phase 2
-  # `applyStartLocation` resolves the Warren and lands the runtime avatar
-  # in its (lazily-created) host room at clone time. `Avatar.save()`
-  # rewrites this on logout — to the Warren again while in the lounge
-  # (via the WarrenMember save-delegation), or to `container: <room>` once
-  # the player has walked out into the ordinary world — so subsequent
-  # sessions resume in place; only the very first session lands at this
-  # default.
-  #
-  # NOTE: this is deliberately NOT `DEFAULT_STARTING_LOCATION_PATH`
-  # (`mud/config/constants.ts`). That constant is the container-typed
-  # *evacuation* fallback in `Container.cleanupOnDestruct` and must stay a
-  # real Container (the lobby) — a Warren is not a container. Spawn and
-  # evac are separate concerns.
-  startLocation: /domain/lounge/warren
+  # NOTE: `startLocation` is no longer a seed literal. Every avatar-mint
+  # site (EnrollController.commit, Application.createDefaultAvatarTemplate,
+  # Login.mintRandomGuestAvatar) stamps it at clone time from the
+  # `defaultStartLocation` app setting (default the lounge Warren), so an
+  # operator can move the new-player spawn in-game without a deploy. The
+  # separate `evacuationFallback` app setting (default `/domain/void`) is
+  # the container-typed evac target in `Container.cleanupOnDestruct`.
   # Race-build defaults: every freshly-created Avatar template forks
   # these values. Existing per-user templates predate this addition;
   # OrganismMixin's getSpecies() returns null and getLifecycleState()

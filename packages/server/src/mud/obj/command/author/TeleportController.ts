@@ -23,7 +23,6 @@ import { MessageApi } from "../../../api/message";
 import { Mml } from "../../../api/mml";
 import { MixinApi } from "../../../api/mixin";
 import { ContainmentApi, ContainmentError } from "../../../api/containment";
-import { DescribeApi } from "../../../api/describe";
 import { AccessApi } from "../../../api/access";
 import { StuffApi } from "../../../api/stuff";
 import { findActiveCredential } from "../../../lib/fasttravel/TravelCredential";
@@ -90,7 +89,7 @@ export default class TeleportController extends CommandController<TeleportModel>
     if (!dest) {
       return this.fail(
         context,
-        `${DescribeApi.getDisplayName(focused)} is not a container ` +
+        `${focused.getPresentation()} is not a container ` +
           `and has no environment to land in`,
         "bad-destination",
       );
@@ -101,8 +100,8 @@ export default class TeleportController extends CommandController<TeleportModel>
       return this.fail(context, `canTeleport veto: ${veto.reason}`, "vetoed");
     }
 
-    const subjectName = DescribeApi.getDisplayName(subject);
-    const destName = DescribeApi.getDisplayName(dest);
+    const subjectName = subject.getPresentation();
+    const destName = dest.getPresentation();
 
     if (MixinApi.isMobile(subject)) {
       try {

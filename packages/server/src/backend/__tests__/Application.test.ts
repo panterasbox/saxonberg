@@ -25,6 +25,7 @@ import { Template } from '../../mud/lib/stuff/Template';
 import { TemplateApi } from '../../mud/api/template';
 import { User } from '../../mud/lib/identity/User';
 import { StuffApi } from '../../mud/api/stuff';
+import { AppApi } from '../../mud/api/app';
 import type { IBackend } from '../IBackend';
 import type Interactive from '../../mud/obj/Interactive';
 import type { Container } from '../../mud/lib/spatial/Container';
@@ -120,6 +121,9 @@ describe('Application', () => {
     vi.restoreAllMocks();
     // Re-install the destruct stub after the restore: clearAll has run.
     vi.spyOn(StuffApi, 'destruct').mockImplementation(() => {});
+    // The avatar-mint path reads the spawn default from app config; mock
+    // the cached read (no AppSettings boot warm in this unit test).
+    vi.spyOn(AppApi, 'setting').mockReturnValue('/domain/lounge/warren');
   });
 
   afterEach(() => {
@@ -535,6 +539,9 @@ describe('Application', () => {
       expect(user.playerIds).toHaveLength(1);
       expect(user.save).toHaveBeenCalledTimes(1);
       expect(tmplSave).toHaveBeenCalledTimes(1);
+      // Spawn home injected from app config (defaultStartLocation).
+      const savedData = tmplSave.mock.calls[0]![2] as Record<string, unknown>;
+      expect(savedData.startLocation).toBe('/domain/lounge/warren');
     });
 
     it('is idempotent — no-op when the user already has a character', async () => {

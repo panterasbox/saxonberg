@@ -64,6 +64,7 @@ import type { Organism } from '../lib/species/Organism';
 import type { Sexed } from '../lib/character/Sexed';
 import type { Vitals } from '../lib/vitals/Vitals';
 import type { Reserved } from '../lib/reserve';
+import type { LoadBearing } from '../lib/encumbrance/LoadBearing';
 import type { Radioactive } from '../lib/material/Radioactive';
 import type { Workspace } from '../lib/shell/Workspace';
 import type { Author } from '../lib/shell/Author';
@@ -601,6 +602,10 @@ export class MixinApi {
 
   public static isReserved(obj: Stuff): obj is Stuff & Reserved {
     return this.hasMixin(obj, Mixins.Reserved);
+  }
+
+  public static isLoadBearing(obj: Stuff): obj is Stuff & LoadBearing {
+    return this.hasMixin(obj, Mixins.LoadBearing);
   }
 
   public static isRadioactive(obj: Stuff): obj is Stuff & Radioactive {

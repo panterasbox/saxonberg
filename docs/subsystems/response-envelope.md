@@ -453,9 +453,10 @@ with domain-specific wording at the same site they note.
 
 (Prose phrasing lives module-private with the dispatcher, not on
 an Api class. Presentation logic doesn't belong on `mud/api/`
-surfaces — the few historical exceptions, like `DescribeApi`,
-are slated for retirement as the client takes over more of the
-rendering.)
+surfaces — the historical exception, the static `DescribeApi`, was
+retired in favor of `Stuff.getPresentation()` (self-presentation
+lives on the host), and the client takes over more of the rendering
+over time.)
 
 The `system.command.error` topic is defined under
 `TOPICS.system.command.error`. Add it to the client's `renderTopics`

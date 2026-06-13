@@ -22,7 +22,6 @@
 
 import type { Stuff } from '../../lib/stuff/Stuff';
 import { ContainmentApi } from '../containment';
-import { DescribeApi } from '../describe';
 import { MixinApi } from '../mixin';
 import { PathPatternApi } from '../path-pattern';
 import { StuffApi } from '../stuff';
@@ -1366,7 +1365,7 @@ function matchesFromStuff(items: ReadonlyArray<Stuff>): MqlMatch[] {
 }
 
 function nameOf(stuff: Stuff): string {
-  return DescribeApi.getDisplayName(stuff);
+  return stuff.getPresentation();
 }
 
 function keywordsOf(stuff: Stuff): string[] {

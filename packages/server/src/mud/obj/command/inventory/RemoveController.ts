@@ -13,7 +13,6 @@ import type {
   } from '../../../api/command';
 import type { MqlOneResult } from '../../../api/mql';
 import { MessageApi } from '../../../api/message';
-import { DescribeApi } from '../../../api/describe';
 import { MixinApi } from '../../../api/mixin';
 import { Mml } from '../../../api/mml';
 import { SpeciesApi } from '../../../api/species';
@@ -70,7 +69,7 @@ export default class RemoveController extends CommandController<RemoveModel> {
       context.note({
         kind: 'controller-rejected',
         reason: 'not-wearing',
-        detail: `you aren't wearing ${DescribeApi.getDisplayName(target)}`,
+        detail: `you aren't wearing ${target.getPresentation()}`,
       });
       return;
     }

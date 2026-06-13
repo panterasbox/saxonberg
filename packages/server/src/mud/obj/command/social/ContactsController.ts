@@ -23,7 +23,6 @@ import { MessageApi } from '../../../api/message';
 import { MixinApi } from '../../../api/mixin';
 import type { MqlOneResult } from '../../../api/mql';
 import { Mml } from '../../../api/mml';
-import { DescribeApi } from '../../../api/describe';
 import { GrammarApi } from '../../../api/grammar';
 import type { Stuff } from '../../../lib/stuff/Stuff';
 import type { Contacts, ContactEntry } from '../../../lib/social/Contacts';
@@ -101,7 +100,7 @@ export default class ContactsController extends CommandController<ContactsModel>
       if (!tplPath) {
         return this.fail(
           context,
-          `${DescribeApi.getDisplayName(target)} cannot be added — it has no durable identifier.`,
+          `${target.getPresentation()} cannot be added — it has no durable identifier.`,
           'no-template-path',
         );
       }
@@ -112,7 +111,7 @@ export default class ContactsController extends CommandController<ContactsModel>
         source: 'self',
         addedAt: now,
       });
-      const name = DescribeApi.getDisplayName(target);
+      const name = target.getPresentation();
       this.send(
         context,
         added
@@ -136,7 +135,7 @@ export default class ContactsController extends CommandController<ContactsModel>
         addedAt: now,
       });
       (ok ? addedNames : dupeNames).push(
-        DescribeApi.getDisplayName(target),
+        target.getPresentation(),
       );
     } else {
       const user = target.getUser();

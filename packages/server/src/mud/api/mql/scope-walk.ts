@@ -17,7 +17,6 @@
 
 import type { Stuff } from '../../lib/stuff/Stuff';
 import { ContainmentApi } from '../containment';
-import { DescribeApi } from '../describe';
 import { MixinApi } from '../mixin';
 import type { Detail } from '../../lib/description/Detailed';
 import type { BulkAffordance } from '../../lib/bulk/Bulkable';
@@ -168,7 +167,7 @@ export function candidatesForFlat(items: ReadonlyArray<Stuff>): ScopeCandidate[]
 }
 
 function pushDirect(out: ScopeCandidate[], stuff: Stuff): void {
-  const name = DescribeApi.getDisplayName(stuff);
+  const name = stuff.getPresentation();
   const keywords = MixinApi.isPerceptible(stuff) ? stuff.getKeywords() : [];
   out.push({ stuff, name, keywords });
   pushBulkMaterials(out, stuff);

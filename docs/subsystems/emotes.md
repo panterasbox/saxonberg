@@ -248,8 +248,8 @@ at a different door:
 
 **(a) Bare-verb router catalog (`wave iffy`).** Unknown verbs are
 the catalog's main entry point. In `CommandGiver._runChain`, when
-the `CommandApi.matchVerbContextual` match list comes back empty,
-the router checks `MixinApi.isSoul(speaker)` and consults
+the affordance verb-match list (`getAffordances()` filtered by verb)
+comes back empty, the router checks `MixinApi.isSoul(speaker)` and consults
 `SoulApi.resolve(parsed.verb)` before emitting `unknown-verb`. On
 a hit, the router binds slots via `EmoteGrammarRunner.bind`, calls
 `speaker.emote(emote, { target, fills })` inline, and returns —

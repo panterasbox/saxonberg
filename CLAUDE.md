@@ -68,7 +68,7 @@ behavior. Read the relevant doc before editing in its area.
   - [call-security.md](./docs/subsystems/call-security.md) — proxy interception, decorators, policies, shadows, FrameKind, FromController narrow-entry
   - [access.md](./docs/subsystems/access.md) — AccessApi thin facade over AccessRegistry; four predicates, Zone.ownerGroup/accessGroups, narrow-entry pattern
   - [properties.md](./docs/subsystems/properties.md) — PropertiedMixin, Property<T>, transient vs saved storage, access control, masks
-  - [command-routing.md](./docs/subsystems/command-routing.md) — YAML view + controller MVC, per-giver recency stack, dispatch chain, validators, phase-effects
+  - [command-routing.md](./docs/subsystems/command-routing.md) — YAML view + controller MVC, per-giver recency stack, dispatch chain, validators, phase-effects, affordance attribution (`getAffordances`/`commandSource` — what afforded each verb)
   - [command-parsing.md](./docs/subsystems/command-parsing.md) — CommandLineApi tokenizer, RawToken classes, `format()` round-trip, `msh` shell, parser pluggability
   - [command-spec.md](./docs/subsystems/command-spec.md) — author guide for adding a verb: YAML shape, controller conventions, validators, discovery wiring
   - [mql.md](./docs/subsystems/mql.md) — MQL internals: pipeline, AST, scope-walk, predicates, pronoun memory, online provider seam, PathTrie
@@ -91,6 +91,7 @@ behavior. Read the relevant doc before editing in its area.
   - [race.md](./docs/subsystems/race.md) — Material substrate, Clade taxonomic scope, BodyPlan + Species templates, OrganismMixin, SexedMixin, animacy gating
   - [vitals.md](./docs/subsystems/vitals.md) — body-state substrate (no stored health scalar): the `Agent→Creature→Character` body/agency split, `VitalsMixin` (vital-sign Quantity fields, per-species `vitalProfile`, derived `getConditionBand`/`getConsciousness`), `BodyPlan` typed anatomy + tissue composition + slot↔part relations, the two-kind condition type system, death/consciousness seams. Models only — drivers/content/verbs deferred
   - [reserve.md](./docs/subsystems/reserve.md) — generalized `Reserve` capacity-axis substrate (`lib/reserve.ts`, top-level, next to quantity): `ReservedMixin`, decomposed-scalar persistence, biological reserves (endurance/satiation/hydration) + the authored-thematic seam (mana is content, never an engine word)
+  - [encumbrance.md](./docs/subsystems/encumbrance.md) — the carry-weight gauge + consequences (first vitals driver): `LoadBearingMixin` (derived-on-read `getBorneBurden`/`getCarryCapacity`/`getLoadRatio`), the weighted tree-walk over both stores with `Vessel.transmissionFactor` + slot-derived placement coupling, `BodyPlan.baseMass` mass-seeding, `Vessel` reconception (container-object at any scale; `Adornable` narrowed to `ExitableVessel`), the consequence ladder (lift gate in `GetController`, locomotion veto + traversal drain at the `LocomotionApi` seam — move substrate stays agnostic), recovery deferred to metabolism
   - [shell-workspace.md](./docs/subsystems/shell-workspace.md) — WorkspaceMixin cwd state, workspace.tree setting, synthetic vars, read/write verb suite, SourceTreeApi
   - [shell-author.md](./docs/subsystems/shell-author.md) — AuthorMixin lifecycle and code-execution verbs (clone/reload/destruct/eval/teleport), EvalScript sandbox, forceX shape
   - [perceiver.md](./docs/subsystems/perceiver.md) — PerceiverMixin (look/scry/locate verbs on the actor), Sensor/Visible/Perceiver split, ScryableMixin
@@ -104,6 +105,7 @@ behavior. Read the relevant doc before editing in its area.
   - [activity.md](./docs/subsystems/activity.md) — engagement framework: SchedulerApi, EngagedMixin on Character, four engagement slots, AbortReason vocabulary
   - [biome.md](./docs/subsystems/biome.md) — atmospheric substrate: Biome extends Idea, AtmosphericMixin, outward-walking chain resolver, SkyExposedMixin, six instruments
   - [time.md](./docs/subsystems/time.md) — game-time substrate: WorldClockApi, SchedulerApi riding game-time, CelestialApi, DefaultCalendar
+  - [app-settings.md](./docs/subsystems/app-settings.md) — application-managed config: AppSettings singleton Document (`app_settings`, open `values` bag) + the `AppSettingKeys` key vocabulary, values seeded from `mud/config/app-settings.yaml` by a backend `AppSettingsSeeder` (no code defaults), AppApi runtime surface (sync cached reads, no boot method), `AppSettings.warm` at boot, the developer-gated `config` verb; the `defaultStartLocation` + `evacuationFallback` knobs that retired `config/constants.ts`
 
 ## Development Commands
 
@@ -407,7 +409,7 @@ bypass it. Common cases:
 | `item.setContainer(c); c.addContainable(item)` | `ContainmentApi.move(item, c)` |
 | `ContainmentApi.move(item, room); item._setRestingOn(desk)` (manual on-surface placement) | `ContainmentApi.placeOn(item, desk)` — single primitive; resolves the surface's environment, runs `canRest`, moves, restamps `restingOn`. `_setRestingOn` is `FromContainmentApi`-gated; direct calls throw. |
 | `typeof obj.getContents === 'function'` | `MixinApi.isContainer(obj)` (narrow) or `MixinApi.hasMixin(ctor, Mixins.Container)` (introspect) |
-| `obj.fullName ?? obj.name ?? 'something'` | `DescribeApi.getDisplayName(obj, 'something')` |
+| `obj.fullName ?? obj.name ?? 'something'` | `obj.getPresentation()` |
 | `creature.move(loc)` (raw containment) | `LocomotionApi.traverseWithDefault(actor, exit)` (default-mode dispatch via `defaultModeFor` chain) or `LocomotionApi.engageAround(actor, mode, exit, action)` (known mode + engagement bookkeeping) |
 | `actor.setEngagedMode(mode); await actor.traverse(exit, …); if (transient) actor.setEngagedMode(null)` | `LocomotionApi.engageAround(actor, mode, exit, action)` — handles transient/persistent decision + error-path cleanup |
 | `resolveSetting(actor, 'movement.defaultMode') ?? 'walk'` | `LocomotionApi.defaultModeFor(actor)` — three-tier chain: explicit setting → bodyplan default → universe 'walk' (the raw resolveSetting skips the bodyplan layer for NPCs) |
@@ -479,6 +481,8 @@ multiplexing, disconnect): see
 - `users` — auth records (`Document`)
 - `google_profiles` — OAuth profile data (`Document`)
 - `domain` — object templates for the CMS (Avatar, rooms, NPCs, …)
+- `app_settings` — application-managed config singleton (`Document`)
+- `world_state` — world-clock state singleton (`Document`)
 
 ## Session Notes for Claude
 

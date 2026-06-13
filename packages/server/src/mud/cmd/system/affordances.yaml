@@ -1,0 +1,3 @@
+verbs: [affordances]
+controller: system/AffordancesController
+description: "List your available commands and what affords each"

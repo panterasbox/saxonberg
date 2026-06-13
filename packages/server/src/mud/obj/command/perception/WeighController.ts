@@ -16,7 +16,6 @@ import type { Stuff } from '../../../lib/stuff/Stuff';
 import { MixinApi } from '../../../api/mixin';
 import { MessageApi } from '../../../api/message';
 import { Mml } from '../../../api/mml';
-import { DescribeApi } from '../../../api/describe';
 
 interface WeighModel extends CommandModel {
   target?: MqlOneResult;
@@ -36,7 +35,7 @@ export default class WeighController extends CommandController<WeighModel> {
       return;
     }
     if (!MixinApi.isTangible(target.stuff as Stuff)) {
-      const detail = `${DescribeApi.getDisplayName(target.stuff)} can't be weighed`;
+      const detail = `${target.stuff.getPresentation()} can't be weighed`;
       MessageApi.scene(giver)
         .topic('world.perception.measurement.weigh')
         .toSelf(Mml.fromMarkup(detail))

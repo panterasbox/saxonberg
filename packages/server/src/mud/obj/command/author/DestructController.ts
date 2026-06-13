@@ -20,7 +20,6 @@ import type { MqlOneResult } from '../../../api/mql';
 import { MessageApi } from '../../../api/message';
 import { Mml } from '../../../api/mml';
 import { StuffApi } from '../../../api/stuff';
-import { DescribeApi } from '../../../api/describe';
 import { AccessApi } from '../../../api/access';
 import { Zone } from '../../../lib/zone/Zone';
 
@@ -57,7 +56,7 @@ export default class DestructController extends CommandController<DestructModel>
       );
     }
 
-    const name = DescribeApi.getDisplayName(stuff);
+    const name = stuff.getPresentation();
     try {
       const fn = model.force ? StuffApi.forceDestruct : StuffApi.destruct;
       fn(stuff);

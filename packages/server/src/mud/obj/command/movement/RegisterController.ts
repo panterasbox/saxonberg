@@ -13,7 +13,6 @@ import type { CommandContext, CommandModel } from "../../../api/command";
 import { MessageApi } from "../../../api/message";
 import { Mml } from "../../../api/mml";
 import { MixinApi } from "../../../api/mixin";
-import { DescribeApi } from "../../../api/describe";
 import { findActiveCredential } from "../../../lib/fasttravel/TravelCredential";
 import type { FastTravel } from "../../../lib/fasttravel/FastTravel";
 import type { Stuff } from "../../../lib/stuff/Stuff";
@@ -54,7 +53,7 @@ export default class RegisterController extends CommandController<CommandModel> 
         "no-identity",
       );
     }
-    const name = DescribeApi.getDisplayName(node as unknown as Stuff);
+    const name = (node as unknown as Stuff).getPresentation();
     if (cred.isRegistered(ref)) {
       this.tell(context, `\nYou've already registered the ${name}.\n`);
       return;

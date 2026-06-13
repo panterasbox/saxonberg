@@ -313,7 +313,7 @@ nothing to the merge. Subscriptions with `cardinality: 'many'` AND a
 
 | Layer | Flat fields (`read`) | Focus fields (`perDetailRead`) | Dependencies |
 |---|---|---|---|
-| `Stuff` (universal) | `displayName` (routes `DescribeApi.getDisplayName`) | — | `dependsOnFields: ['name', 'shortDescription']`; ShadowChangedEvent in `changes` |
+| `Stuff` (universal) | `displayName` (routes `Stuff.getPresentation()`) | — | `dependsOnFields: ['name', 'shortDescription']`; ShadowChangedEvent in `changes` |
 | NamedMixin | `name` | — | default `dependsOnFields: ['name']`; ShadowChangedEvent |
 | VisibleMixin | `shortDescription`, `longDescription` | — | defaults; ShadowChangedEvent |
 | DetailedMixin | `details` (alias-grouped) | `{ ids, description, hasChildren }` | default `dependsOnFields: ['details']`; ShadowChangedEvent |
@@ -335,7 +335,7 @@ composition. Three observations:
 
 - The concept is **universal**: every Stuff has a renderable identity.
 - There's no "what if this Stuff has no displayable identity?" edge.
-- `DescribeApi.getDisplayName` already encodes the fallback chain
+- `Stuff.getPresentation()` already encodes the fallback chain
   authoritatively.
 
 So the descriptor lives on `Stuff.subscribableFields` directly. The
@@ -519,46 +519,34 @@ extra re-resolves on a quiet codepath; the benefit is no risk of a
 descriptor missing a notification because the index missed a
 discriminator.
 
-## `DescribeApi.getDisplayName` reshape
+## `displayName` routes through `Stuff.getPresentation()`
 
-Old:
-
-```ts
-static getDisplayName(obj: Stuff, fallback: string = ''): string
-```
-
-New:
+The universal `displayName` descriptor's `read` delegates to
+`Stuff.getPresentation()`:
 
 ```ts
-static getDisplayName(obj: Stuff, viewer?: Sensor): string
+{ name: 'displayName', read: (stuff) => stuff.getPresentation(), … }
 ```
 
-Three changes bundled with the subscription substrate:
+`getPresentation()` is the single source of self-presentation policy:
 
-- **Drop `fallback`.** Presentation policy lives in the function, not
-  in 25+ caller-supplied strings (`'that'`, `'door'`, `'somewhere'`,
-  `'instrument'`).
-- **Add `viewer?: Sensor`.** Reserved for the recognition / DescribeApi
-  v2 pipeline. The v1 body explicitly voids the parameter (`void
-  viewer;`) — every viewer sees the same name today — but every
-  caller already threads its `Sensor` through so the per-viewer
-  design lands without a signature change. The subscription
-  substrate's `#projectStuff` walk hands the subscriber's holder
-  to every descriptor's `read` / `perDetailRead`, including this
-  one.
-- **Bake in `DEFAULT_DISPLAY_NAME = 'something'`.** The return type
-  stays `string` (never null); the substrate's
-  `StuffRefRecord.displayName` is non-optional and honored without
-  coercion.
+- **No caller-supplied fallback.** The baked-in `'something'` is the
+  bottom of the chain, so the return type stays `string` (never
+  null) and the substrate's `StuffRefRecord.displayName` is
+  non-optional, honored without coercion.
+- **Viewer-blind.** Every viewer sees the same name today; the
+  recognition pipeline (see
+  `docs/requirements/recognition-requirements.md`) composes the
+  viewer-aware step on top of this baseline rather than overloading
+  the descriptor.
+- **Count folds in.** For a `Globbable` stack `getPresentation()`
+  returns `"30 coins"`; the `quantity` field still rides along
+  separately for clients that want the raw number.
 
-Side-effect: error messages that read "you aren't wielding that"
-now read "you aren't wielding something" for unnamed targets. The
-common case (named targets) is unaffected.
-
-`formatName` follows the same reshape — `(obj: Stuff, viewer?: Sensor)
-=> string`. All three internal callers (`DropController`,
-`GetController`, the `formatRestingSuffix` internal call) drop their
-fallback arg.
+(Historically this lived on a static `DescribeApi.getDisplayName`
+that the subscription reshape took a `viewer?` and dropped a
+caller `fallback` arg; that Api retired when self-presentation
+moved onto `Stuff`.)
 
 ## What ships unfired
 

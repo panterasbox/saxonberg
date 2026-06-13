@@ -17,9 +17,9 @@
  *     handles the rest.
  *
  * Display rendering (`"30 coins"`) lives on
- * {@link DescribeApi.formatName} — presentation concerns belong with
- * the rest of the description Api. `DescribeApi v2` (recognition
- * slate) supersedes the seam.
+ * {@link Stuff.getPresentation} — the count folds in as an affix on
+ * the universal self-presentation render. The viewer-aware
+ * recognition pipeline composes on top of that baseline.
  *
  * Notes use the canonical `@saxonberg/types` shapes — `applyQuantity`
  * stamps `field` from the caller's opts so glob notes drop into

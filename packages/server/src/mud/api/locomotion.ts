@@ -29,6 +29,7 @@ import { SecurityApi } from './security';
 import { SpeciesApi } from './species';
 import { SlotApi } from './slot';
 import type { MixinName } from '../lib/mixin';
+import { LOAD_BEARING_DEFAULTS } from '../lib/encumbrance/LoadBearing';
 import { Postures } from '../lib/slot/Postured';
 import { ownSetting } from '../lib/shell/Environment';
 
@@ -303,6 +304,27 @@ export class LocomotionApi {
         context: { difficulty: host.getDifficulty() },
       };
     }
+    // Load-aware veto — an overloaded body can't engage climb/swim/fly
+    // (the modes with an `enablementMixin`, the only ones this scope
+    // runs for; walk has no enablement mixin so it is never gated). This
+    // is *alongside* the capability check (placed after it so a too-hard
+    // host still reports the difficulty reason first if both fail), and
+    // lives at this LocomotionApi layer rather than `Mobile.traverse` —
+    // a raw/dev traverse skips the veto entirely (the agnostic-substrate
+    // guarantee). Open seam: relocate to `ExitableMixin`/boundary if
+    // desired — the predicate moves unchanged.
+    if (
+      MixinApi.isLoadBearing(actor) &&
+      actor.getLoadRatio() >= LOAD_BEARING_DEFAULTS.HEAVY_LOAD_THRESHOLD
+    ) {
+      return {
+        ok: false,
+        gate: 'encumbrance',
+        mode: mode.getName(),
+        reason: `You're carrying too much to ${mode.getName()}.`,
+        context: { loadRatio: actor.getLoadRatio() },
+      };
+    }
     return { ok: true };
   }
 
@@ -494,7 +516,21 @@ export class LocomotionApi {
   ): Promise<T> {
     actor.setEngagedMode(mode);
     try {
-      return await action();
+      const result = await action();
+      // Loaded-traversal endurance drain — fires only after a *successful*
+      // self-powered traverse (a throw skips this and falls to `finally`).
+      // This is the universal self-powered chokepoint: every player
+      // command, NPC brain, and follow/lead automation routes a self-
+      // powered move through here, so a loaded body tires whatever
+      // initiated the step. Conveyance riders (repositioned by the
+      // vehicle's ripple) and raw/dev/`forceMove` traverses don't reach
+      // `engageAround`, so they never drain — the walked-vs-rode exclusion
+      // is structural, not a coded check. Light loads cost nothing
+      // (guarded inside `drainForTraversal`).
+      if (MixinApi.isLoadBearing(actor)) {
+        actor.drainForTraversal();
+      }
+      return result;
     } finally {
       if (LocomotionApi.isTransientEngagement(mode, exit)) {
         actor.setEngagedMode(null);

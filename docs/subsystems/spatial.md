@@ -29,7 +29,8 @@ Sibling docs cover related ground without overlap:
 - [light.md](./light.md) — the Light & Boundary subsystem that
   layers on top of this one. `Door` is now a `Boundary` (closed
   doors block light, not just movement); `Adornable` composed onto
-  `Location` and `Vessel` is what hosts `BoundaryAnchor` fixtures.
+  `Location` and `ExitableVessel` is what hosts `BoundaryAnchor`
+  fixtures.
 - [properties.md](./properties.md), [mixins.md](./mixins.md) — the
   general mechanics that let mixins carry persistent fields.
 
@@ -44,7 +45,7 @@ substrate in `lib/spatial/`:
 
 | Type | Kind | Role |
 |---|---|---|
-| `Vessel` | top-level branch | A *mobile place* — Container + Containable. Sibling of Thing / Location / Idea / Agent / Shadow; lives in `lib/stuff/`. Concrete vessels: chests, packs, ships, vehicles. Composes `Adornable`, `Tangible`, and `Atmospheric` ([biome.md](./biome.md)). Pure containers (Box, Backpack) do NOT compose Atmospheric and are skipped by the outward-walking biome chain. |
+| `Vessel` | top-level branch | A *container-object* — a Thing that holds things, at any scale (bag → cart → ship). Container + Containable + `Tangible` + `Atmospheric` ([biome.md](./biome.md)); carry/drag/ride is emergent from mass vs. a bearer's capacity ([encumbrance.md](./encumbrance.md)), never a type flag. Sibling of Thing / Location / Idea / Agent / Shadow; lives in `lib/stuff/`. Carries a `transmissionFactor` field (the encumbrance attenuation, default 1.0). `Adornable` is **not** on the base — it lives on `ExitableVessel` (the only subclass needing fixtures). Pure containers (Box, Backpack) do NOT compose Atmospheric and are skipped by the outward-walking biome chain. |
 | `ContainerMixin` | mixin | Inventory side: `addContainable` / `removeContainable` / `getContents`. |
 | `ContainableMixin` | mixin | Lives-inside side: `environment`, `setContainer`. |
 | `SurfacedMixin` | mixin | Surface placement: the auxiliary `restingOn` pointer + `canRest`. |
@@ -70,8 +71,8 @@ Stuff (one of seven top-level branches — see architecture.md)
   │     │     ├── Window            (Sealable + Light/Sight/Smell/Sound Conduits; `attachedHosts` Pattern A)
   │     │     └── Door              (Sealable + Light/Sight/Movement/Sound/Smell Conduits)  ← retrofit
   │     └── BoundaryAnchor          (Adornment)                         ← see light.md
-  ├── Vessel                        (Adornable + Container + Containable)
-  │     └── ExitableVessel          (DoorBearing + Exitable + Visible)
+  ├── Vessel                        (Tangible + Atmospheric + Container + Containable)
+  │     └── ExitableVessel          (DoorBearing + Exitable + Visible + Adornable)
   └── Agent                         (Avatar / NPC / vehicle layer Mobile + … on top)
 ```
 
@@ -367,29 +368,25 @@ Item-side gates intentionally don't exist — the authoring
 intuition is host-side ("this surface rejects X") not item-side
 ("this item refuses Y").
 
-### DescribeApi grouping
+### Surface-resting grouping (not yet built)
 
 Items appear in their enclosing container's contents listing
 naturally (the apple is in the room; `room.getContents()`
-includes it). To render the perceptual grouping ("a wooden
-desk, with a red apple on it"), the describe layer offers two
-helpers:
+includes it). Rendering the perceptual grouping ("a wooden
+desk, with a red apple on it") needs a presentation pass that
+partitions a `getContents()` snapshot into top-level items and
+items grouped under their supporting `Surfaced` host, plus a
+count-aware suffix ("with a red apple on it" / "scattered with
+various items" above a threshold).
 
-- `DescribeApi.groupContentsByResting(contents)` partitions a
-  `getContents()` snapshot into `topLevel` items and a
-  `byHost` map of items grouped under their supporting Surfaced.
-  Items resting on a surface NOT in the same listing fall back
-  to `topLevel`.
-- `DescribeApi.formatRestingSuffix(host, resting)` produces a
-  count-aware suffix string: enumerated for ≤ `SURFACE_ENUMERATE_THRESHOLD`
-  items, summarized ("scattered with various items") above. The
-  threshold is a tunable exported constant.
-
-The grouping is a presentation pass; the underlying contents
-walk is unchanged. v1 has no top-of-`look` content-listing
-caller (`look` doesn't render "you see X, Y, Z" today), so the
-helpers ship ready for the future caller without forcing a
-walker into place.
+An early implementation of this lived as `DescribeApi`
+helpers (`groupContentsByResting` / `formatRestingSuffix`), but
+it had no production caller — `look` doesn't render a
+"you see X, Y, Z" content listing today — so it was removed as
+dead code when `DescribeApi` retired (recoverable from git
+history). The grouping is purely presentational; the underlying
+contents walk is unchanged, so the render pass can be
+reintroduced whenever the listing caller actually lands.
 
 ### Verbs: `put`, `give`
 
@@ -427,9 +424,10 @@ vessel-door's `(vessel, env)` Boundary anchor pair on `setDoor` /
 `onMoved`) — lives in [boundary.md](./boundary.md). Spatial keeps
 the containers; boundary holds what connects them.
 
-Locations and Vessels compose `AdornableMixin` so their
+Locations and `ExitableVessel`s compose `AdornableMixin` so their
 `getFixtures()` collection can host `BoundaryAnchor`s; that is
-the only Boundary detail that lives in this doc.
+the only Boundary detail that lives in this doc. (A bare `Vessel`
+is **not** Adornable — fixtures are an `ExitableVessel` concern.)
 ## Locomotion: `MobileMixin`
 
 `lib/spatial/Mobile.ts`. The mover's side of movement. Composed by
@@ -669,7 +667,7 @@ self-rearranging chambers) can produce many instances per template.
 - **`Zone`:** refuse to destruct while non-empty — caller drains
   rooms first. `CartesianZone` additionally clears
   `derivedCache`.
-- **`AdornableMixin`** (composed on Location and Vessel) walks
+- **`AdornableMixin`** (composed on Location and ExitableVessel) walks
   `getFixtures()` and destructs each. See
   [boundary.md § Adornable / Adornment](./boundary.md#adornable--adornment).
 
@@ -682,8 +680,8 @@ The spatial subsystem is mostly auto-persistent through
 - `SphericalCoordinatesMixin`: `coordinates`, `radius`.
 - `SealableMixin`: `isOpen`.
 - `Zone` subclasses: `name` (and `cellSize` on Cartesian).
-- `Vessel`: empty list — Vessel itself adds nothing persistent beyond
-  what its mixins contribute.
+- `Vessel`: `transmissionFactor` (the encumbrance attenuation; default
+  1.0) — plus whatever its mixins contribute.
 
 Two intentional non-persistents:
 

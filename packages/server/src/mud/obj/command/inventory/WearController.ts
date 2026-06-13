@@ -18,7 +18,6 @@ import type {
   } from '../../../api/command';
 import type { MqlOneResult } from '../../../api/mql';
 import { MessageApi } from '../../../api/message';
-import { DescribeApi } from '../../../api/describe';
 import { MixinApi } from '../../../api/mixin';
 import { Mml } from '../../../api/mml';
 import { SlotApi } from '../../../api/slot';
@@ -74,7 +73,7 @@ export default class WearController extends CommandController<WearModel> {
       context.note({
         kind: 'controller-rejected',
         reason: 'wrong-fit',
-        detail: `${DescribeApi.getDisplayName(target)} doesn't fit your body`,
+        detail: `${target.getPresentation()} doesn't fit your body`,
       });
       return;
     }

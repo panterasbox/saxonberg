@@ -36,7 +36,8 @@ import { MixinApi } from '../../api/mixin';
 import { ContainmentApi } from '../../api/containment';
 import { StuffApi } from '../../api/stuff';
 import type { CommandContributions } from '../../api/command';
-import { DEFAULT_STARTING_LOCATION_PATH } from '../../config/constants';
+import { AppApi } from '../../api/app';
+import { AppSettingKeys } from '../config/AppSettings';
 import {
   MqlSubscriptionApi,
   REF_FIELDS,
@@ -142,20 +143,25 @@ export function ContainerMixin<TBase extends MixinConstructor>(Base: TBase) {
       const outer = MixinApi.isContainable(host)
         ? (host as Stuff & Containable).getContainer()
         : null;
-      // Pre-resolve the void exactly once — only the null-outer
-      // branch needs it, and only when at least one item exists.
-      const voidFallback =
+      // Pre-resolve the evacuation fallback exactly once — only the
+      // null-outer branch needs it, and only when at least one item exists.
+      // The target is the `evacuationFallback` app setting (default
+      // `/domain/void`), read sync from the warmed cache.
+      const evacuationFallback =
         outer === null && snapshot.length > 0
           ? StuffApi.findByTemplatePath<Stuff & Container>(
-              DEFAULT_STARTING_LOCATION_PATH
+              AppApi.setting(AppSettingKeys.evacuationFallback)
             ) ?? null
           : null;
       for (const item of snapshot) {
         try {
           if (outer !== null) {
             ContainmentApi.move(item, outer);
-          } else if (MixinApi.isHasInteractive(item) && voidFallback !== null) {
-            ContainmentApi.move(item, voidFallback);
+          } else if (
+            MixinApi.isHasInteractive(item) &&
+            evacuationFallback !== null
+          ) {
+            ContainmentApi.move(item, evacuationFallback);
           } else {
             StuffApi.destruct(item);
           }

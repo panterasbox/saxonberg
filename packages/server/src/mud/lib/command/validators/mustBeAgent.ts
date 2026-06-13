@@ -16,7 +16,6 @@
 import type { Stuff } from '../../stuff/Stuff';
 import type { FieldValidator } from '../../../api/command';
 import { Agent } from '../../stuff/Agent';
-import { DescribeApi } from '../../../api/describe';
 import { MqlApi } from '../../../api/mql';
 
 const validator: FieldValidator = (value, field, _context) => {
@@ -24,7 +23,7 @@ const validator: FieldValidator = (value, field, _context) => {
   if (stuffs === null) return `${field} must be an object`;
   for (const stuff of stuffs) {
     if (!(stuff instanceof Agent)) {
-      return `${DescribeApi.getDisplayName(stuff as Stuff)} can't accept things`;
+      return `${(stuff as Stuff).getPresentation()} can't accept things`;
     }
   }
   return undefined;

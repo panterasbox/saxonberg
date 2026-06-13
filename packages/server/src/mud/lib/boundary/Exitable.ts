@@ -28,7 +28,6 @@ import { NavigationApi } from '../../api/navigation';
 import { StuffApi } from '../../api/stuff';
 import { MixinApi } from '../../api/mixin';
 import { BoundaryApi } from '../../api/boundary';
-import { DescribeApi } from '../../api/describe';
 import type { Adornable } from './Adornable';
 import type { SubscribableFieldDescriptor } from '../../api/mql-subscription';
 
@@ -230,7 +229,7 @@ export function ExitableMixin<TBase extends MixinConstructor<Stuff & Container>>
                 primaryKeyword?: string;
               } = {
                 stuffId: door.stuffId,
-                displayName: DescribeApi.getDisplayName(door),
+                displayName: door.getPresentation(),
                 open: door.isOpen(),
               };
               // Door is Perceptible via Boundary; primaryKeyword is

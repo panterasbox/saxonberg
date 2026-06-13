@@ -28,7 +28,6 @@ import type { CommandContributions } from "../../api/command";
 import type { CronPattern, ClockHandle } from "../../api/worldclock";
 import { WorldClockApi } from "../../api/worldclock";
 import { StuffApi } from "../../api/stuff";
-import { DescribeApi } from "../../api/describe";
 import { findActiveCredential } from "./TravelCredential";
 
 export type Directionality = "arrival" | "departure" | "both";
@@ -253,7 +252,7 @@ export function FastTravelMixin<TBase extends MixinConstructor<Stuff>>(
       const cred = findActiveCredential(viewer);
       const selected = this.selectedDestinationRef;
       const lines: string[] = [
-        `Departures — ${DescribeApi.getDisplayName(this as unknown as Stuff, viewer)}:`,
+        `Departures — ${(this as unknown as Stuff).getPresentation()}:`,
       ];
       if (this._routes.size === 0) {
         lines.push("  (no destinations)");
@@ -261,7 +260,7 @@ export function FastTravelMixin<TBase extends MixinConstructor<Stuff>>(
       }
       for (const route of this._routes.values()) {
         const node = await StuffApi.singleton<Stuff & Sensor>(route.ref);
-        const name = DescribeApi.getDisplayName(node, viewer);
+        const name = node.getPresentation();
         const active = route.ref === selected ? " «now boarding»" : "";
         const reg =
           cred && !cred.isRegistered(route.ref) ? " — not yet registered" : "";

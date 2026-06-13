@@ -109,8 +109,9 @@ environment + inventory.
   perception verb.
 - [shell-workspace.md](./shell-workspace.md) — sibling shell-tier
   mixin; doesn't intersect with Perceiver.
-- [../verb-provisioning-slate.md](../slates/builds/verb-provisioning-slate.md) —
-  PerceiverMixin's verb contributions are the **innate** path of
-  a broader verb-acquisition taxonomy (innate / skill / instrument
-  / implant / consumable / ambient). The Scryable seam above is
-  the **wielded-instrument** path's first concrete consumer.
+- [command-routing.md § Affordance attribution](./command-routing.md) —
+  PerceiverMixin's verb contributions are an actor's innate
+  affordances; the Scryable seam above is the same mechanism with a
+  wielded instrument as the source. A verb can be afforded by many
+  source objects (innate `'self'`, instrument, future skill / implant);
+  the source object — not a category enum — is the discriminator.

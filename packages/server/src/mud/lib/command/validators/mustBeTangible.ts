@@ -7,7 +7,6 @@
 
 import type { Stuff } from '../../stuff/Stuff';
 import type { FieldValidator } from '../../../api/command';
-import { DescribeApi } from '../../../api/describe';
 import { MixinApi } from '../../../api/mixin';
 import { MqlApi } from '../../../api/mql';
 
@@ -18,7 +17,7 @@ const validator: FieldValidator = (value, field, _context) => {
     if (!MixinApi.isTangible(stuff as Stuff)) {
       // Shape-descriptive — the validator doesn't know which verb
       // is invoking it (weigh / analyze chemistry / future).
-      return `${DescribeApi.getDisplayName(stuff)} isn't tangible`;
+      return `${stuff.getPresentation()} isn't tangible`;
     }
   }
   return undefined;

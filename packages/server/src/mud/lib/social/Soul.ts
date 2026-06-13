@@ -24,7 +24,6 @@ import type { Stuff } from '../stuff/Stuff';
 import { MessageApi } from '../../api/message';
 import { MixinApi } from '../../api/mixin';
 import { Mml } from '../../api/mml';
-import { DescribeApi } from '../../api/describe';
 import type {
   CommandContributions,
 } from '../../api/command';
@@ -183,5 +182,4 @@ export function SoulMixin<TBase extends MixinConstructor>(Base: TBase) {
 
 // Suppress unused-imports / no-unused-vars for symbols the runtime
 // path uses behind narrowing predicates the linter doesn't see.
-void DescribeApi;
 void Mml;

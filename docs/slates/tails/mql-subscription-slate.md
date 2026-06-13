@@ -617,9 +617,10 @@ posture) AND the target's state (mixins, properties). No single
 mixin owns the answer; it's a cross-mixin computation.
 
 The substrate provides the projector for `capabilities` directly.
-The verb-provisioning slate's machinery feeds into it (which
+The recency-stack affordance attribution feeds into it (which
 verbs apply to this composition, given this actor's
-affordances). Coarse category bits on `ref` records, full verb
+affordances — see [command-routing § Affordance attribution](../../subsystems/command-routing.md)).
+Coarse category bits on `ref` records, full verb
 list on `detail` records, per the earlier capability discussion.
 
 Adding ANY other cross-mixin synthetic field in the future would
@@ -1668,11 +1669,13 @@ mechanism alongside the underlying state.
    is simpler than implicit. Document the requirement.
 3. **Capability staleness.** A subscription's `capabilities`
    field reflects the actor's affordances at evaluation time.
-   When the actor's verb-provisioning changes (puts on
-   lockpicks, learns a skill), do all open subscriptions
-   re-emit with refreshed capabilities? Probably yes via a
-   `CapabilitiesChangedEvent` that triggers re-resolution; the
-   verb-provisioning slate owns the event.
+   When the actor's affordances change (puts on lockpicks,
+   learns a skill — i.e. a source pushes/pops on the recency
+   stack), do all open subscriptions re-emit with refreshed
+   capabilities? Probably yes via a `CapabilitiesChangedEvent`
+   that triggers re-resolution; the recency-stack push/pop
+   already fires the underlying schema-change signal (see
+   command-routing § Schema delivery).
 4. **Result identity for non-Stuff records.** PathRecords use
    a synthetic key from the query path. Two subscriptions on
    the same path use the same synthetic key — fine, they
@@ -1783,7 +1786,8 @@ layers on once that's solid.
     re-binds as focus shifts; renders detail records.
 11. **`CapabilityChangedEvent` + full capabilities in detail
     records** — actor-side capability tracking, dependency
-    integration. Lands as verb-provisioning slate matures.
+    integration. Lands when the source-preserving affordance
+    accessor does (command-routing § Affordance attribution).
 12. **Composite queries / joined snapshots** (Tier 2) — when
     a widget needs cross-result consistency.
 13. **Adaptive dependency sets** (Tier 2) — when conservative-

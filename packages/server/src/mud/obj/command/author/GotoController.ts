@@ -22,7 +22,6 @@ import { MessageApi } from '../../../api/message';
 import { Mml } from '../../../api/mml';
 import { MixinApi } from '../../../api/mixin';
 import { ContainmentApi, ContainmentError } from '../../../api/containment';
-import { DescribeApi } from '../../../api/describe';
 import { AccessApi } from '../../../api/access';
 import type { Containable } from '../../../lib/spatial/Containable';
 import type { Stuff } from '../../../lib/stuff/Stuff';
@@ -52,7 +51,7 @@ export default class GotoController extends CommandController<GotoModel> {
     if (!dest) {
       return this.fail(context, 'no-location', 'target has no location');
     }
-    const destName = DescribeApi.getDisplayName(dest);
+    const destName = dest.getPresentation();
 
     if (!MixinApi.isContainable(giver)) {
       return this.fail(context, 'cannot-move', 'cannot move yourself');

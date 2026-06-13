@@ -18,7 +18,6 @@ import type { MqlOneResult } from '../../../api/mql';
 import { MessageApi } from '../../../api/message';
 import { Mml } from '../../../api/mml';
 import { MixinApi } from '../../../api/mixin';
-import { DescribeApi } from '../../../api/describe';
 import { ContainmentApi } from '../../../api/containment';
 import type { Stuff } from '../../../lib/stuff/Stuff';
 import type { Scryable } from '../../../lib/perception/Scryable';
@@ -52,11 +51,11 @@ export default class ScryController extends CommandController<ScryModel> {
     if (!veto.ok) {
       return this.fail(
         context,
-        `the ${DescribeApi.getDisplayName(instrument as unknown as Stuff)} won't scry that: ${veto.reason}`,
+        `the ${(instrument as unknown as Stuff).getPresentation()} won't scry that: ${veto.reason}`,
       );
     }
 
-    const name = DescribeApi.getDisplayName(tgt);
+    const name = tgt.getPresentation();
     const lines = [`\n${name}`];
     if (MixinApi.isVisible(tgt)) {
       lines.push('', tgt.getLong());
@@ -65,7 +64,7 @@ export default class ScryController extends CommandController<ScryModel> {
     }
     const env = MixinApi.isContainable(tgt) ? tgt.getContainer() : null;
     if (env) {
-      lines.push('', `(in ${DescribeApi.getDisplayName(env)})`);
+      lines.push('', `(in ${env.getPresentation()})`);
     }
     this.tell(context, lines.join('\n') + '\n');
     return;

@@ -23,7 +23,6 @@
 
 import { Idea } from '../lib/stuff/Idea';
 import { ConnectionApi } from '../api/connection';
-import { DescribeApi } from '../api/describe';
 import type { Stuff } from '../lib/stuff/Stuff';
 import type { User } from '../lib/identity/User';
 import type { HasInteractive } from '../lib/connection/HasInteractive';
@@ -109,7 +108,7 @@ export default class Interactive extends Idea {
 
   public toString(): string {
     const holderInfo = this.holder
-      ? ` holder=${DescribeApi.getDisplayName(this.holder)}`
+      ? ` holder=${this.holder.getPresentation()}`
       : '';
     return `[Interactive socketId=${this.socketId} userId=${this.getUserId() ?? '(unsaved)'}${holderInfo}]`;
   }

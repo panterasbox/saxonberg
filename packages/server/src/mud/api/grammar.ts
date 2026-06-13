@@ -15,7 +15,6 @@
 
 import { Pronouns } from '@saxonberg/types';
 import type { Stuff } from '../lib/stuff/Stuff';
-import { DescribeApi } from './describe';
 import { MixinApi } from './mixin';
 import { SecurityApi } from './security';
 
@@ -143,10 +142,10 @@ export class GrammarApi {
 
   /**
    * Return the indefinite article (`'a'` / `'an'`) for a Stuff's
-   * display name. Vowel-onset heuristic; not phonetic.
+   * presentation string. Vowel-onset heuristic; not phonetic.
    */
   static article(stuff: Stuff): string {
-    const display = DescribeApi.getDisplayName(stuff).trim();
+    const display = stuff.getPresentation().trim();
     if (!display) return 'a';
     const first = display.charAt(0).toLowerCase();
     return VOWELS.has(first) ? 'an' : 'a';

@@ -76,7 +76,7 @@ avatar.executeCommand(text, { interactive })          ← CommandGiverMixin
    │     (payload kind: 'issued'; see messaging.md)
    │
    ├─ if ParseResult.parsed: _runChain
-   │     CommandApi.matchVerbContextual(verb, available)  → CommandDefinition[]
+   │     this.getAffordances().filter(a => a.command.hasVerb(verb))  → Affordance[]
    │     for each match (newest first):
    │       ctx = CommandApi.createCommandContext({ ... })  ← fresh per attempt
    │       CommandApi.assemble(parsed, command)            → ModelData | error
@@ -147,6 +147,11 @@ interface CommandContext {
   commandId: string;                // attribution id (frame metadata)
   verb: string;                     // populated by matcher
   command: CommandDefinition;       // populated by matcher
+  commandSource: Stuff;             // the Stuff that afforded this command
+                                    // (giver for innate, granting item
+                                    // otherwise; giver fallback on the
+                                    // bound/programmatic paths) — see
+                                    // § Affordance attribution
   aliasExpansion?: AliasExpansionInfo;
 
   // Accumulator:
@@ -344,6 +349,77 @@ layer. The push order is the dispatch order, so the concrete class's
 override of a mixin verb wins. This is the same composition order
 `MixinApi.queryMixins` uses for predicate dispatch.
 
+### Affordance attribution — source, not category
+
+Every binding records the **source Stuff** that afforded it
+(`RecencyEntry.source`). When a verb can be granted by more than one
+kind of source — a wielded instrument, a learned skill object, a worn
+implant, or innate `'self'` — a consumer that wants to vary behaviour
+(prose, precision, cost) inspects *that source object's* own state and
+interface. The source's type **is** the discriminator; there is no
+provisioning-category enum. A skill that grants `analyze` arrives as a
+skill object on `source`; a controller asks the source how to render
+through ordinary polymorphism, never a `switch (kind)`. `bucket` rides
+along as a cheap "where did this flow from" hint — nothing branches on
+it.
+
+This is standing state, not per-execution metadata. "What can I do, and
+what grants me each ability" is answerable with no command running — a
+capability panel, a "why can I do this?" inspector, an NPC reasoning
+about its own kit. Two surfaces read one record:
+
+- **Introspection — `getAffordances(): Affordance[]`.** The
+  source-preserving sibling of `getAvailableCommands()` on
+  `CommandGiverMixin`: the same newest-first recency walk, but each
+  command paired with the resolved affording `source` and its `bucket`:
+
+  ```ts
+  interface Affordance {
+    command: CommandDefinition;
+    source: Stuff;            // resolved: the giver itself when entry.source === 'self'
+    bucket: RecencyBucket;
+  }
+  ```
+
+  The `'self'` sentinel resolves to the giver instance, so every
+  record's `source` is a concrete `Stuff` — a consumer always sees "an
+  object that afforded this." `getAvailableCommands()` is the flattened
+  projection (`getAffordances().map((a) => a.command)`), unchanged from
+  the outside.
+
+- **Dispatch — `CommandContext.commandSource`.** When `_runChain`
+  matches the parsed verb it matches against affordances (not bare
+  defs), so the claiming match arrives paired with its resolved source;
+  that source is threaded onto `CommandContext.commandSource` (beside
+  `command: CommandDefinition`) so the controller reads the affording
+  object directly. On paths with no contextual match step — the
+  LLM-parser `bound` short-circuit, programmatic/cascaded dispatch,
+  pre-match failures — `commandSource` falls back to the giver (the
+  `outer` context carries the giver default). It is always a concrete
+  `Stuff`, never undefined.
+
+Nothing is added to `CommandDefinition`: it is a load-once shared
+flyweight (`CommandApi.#commands`, one instance per YAML), so per-source
+state cannot live on it. There is no central registry of source kinds.
+New kinds are pure additions — a class that contributes commands
+through the existing `pushCommandSource` seam and answers whatever the
+reader asks of its own object.
+
+The live consumer is the server-only `affordances` system verb
+(`obj/command/system/AffordancesController`): it lists the actor's
+available commands annotated by affording source (innate vs the
+granting item, distinguished by identity-comparing `source` to the
+giver — not a tag) and reads its own `ctx.commandSource` to show what
+afforded the listing itself. The first consumer that varies *rendering*
+by source rides the first build that adds a second non-innate source
+kind (a skill, an implant); the seam is in place.
+
+> Supersedes the former `verb-provisioning-slate`, retired 2026-06-12.
+> That slate's `via.kind` taxonomy (innate / skill / instrument /
+> implant / consumable / ambient) re-encoded as an enum the attribution
+> the stack already holds losslessly as `source`; its five "paths" are
+> just source objects of different classes.
+
 ### Ownership: ContainmentApi orchestrates, mixin holds state
 
 The mutation surface (`pushCommandSource`, `popCommandSource`,
@@ -443,10 +519,12 @@ single-quote-as-literal convention, and `format()` round-trip, see
 
 ## Stage 3 — Matching
 
-`CommandApi.matchVerbContextual(verb, available)` filters the giver's
-recency-stack output to the matches whose verb (case-insensitive)
-matches the parsed verb. The dispatcher walks each match in order
-(newest first) calling `CommandApi.assemble`:
+`_runChain` filters the giver's affordances (`getAffordances()`) to
+those whose command verb (case-insensitive) matches the parsed verb —
+keeping each match paired with its affording `source` for
+`CommandContext.commandSource` (see § Affordance attribution). The
+dispatcher walks each match in order (newest first) calling
+`CommandApi.assemble`:
 
 ```ts
 type AssembleResult =

@@ -50,14 +50,16 @@ foundation (the `Creature` split, vital signs, anatomy/tissue, the
 condition type system, the `Reserve` substrate, death/consciousness
 seams) graduated to [vitals.md](../subsystems/vitals.md) +
 [reserve.md](../subsystems/reserve.md); its deferred application waves
-now live in [tails/vitals-slate](./tails/vitals-slate.md). The build
-proper is the two consumers that drive that substrate:
-- [encumbrance-slate](./builds/encumbrance-slate.md) — borne-weight gauge (derived `current` vs physiology-derived `capacity`); the interaction library (packs / carts / augments / bags of holding) is the build, not the gauge. Reads the shipped reserve/mass/embodiment substrate.
-- [metabolism-slate](./builds/metabolism-slate.md) — the body's intake-and-chemistry system, two phases in one slate. **Phase 1 (energy economy):** basal drain (hunger/thirst), **coupled** endurance recovery (the wallet refills by burning fuel), the `ingest` digestion buffer, in-session clock + sleep-as-logout, and the floor-effects → vitals-conditions cascade (metabolism is the first thing to *drive* conditions). **Phase 2 (nutrients & toxicity):** the real-data nutrient ledger + macro routing + curated deficiencies; toxin potency/burden → poisoning + the `vomit` window. Magic ingestion (potions) deferred. Heat seam resolves in the thermal pass.
+now live in [tails/vitals-slate](./tails/vitals-slate.md). The first
+consumer (encumbrance) has now shipped too — graduated to
+[encumbrance.md](../subsystems/encumbrance.md), its surviving design
+surface in [tails/encumbrance-slate](./tails/encumbrance-slate.md). The
+build proper is the remaining consumer that drives the substrate:
+- [metabolism-slate](./builds/metabolism-slate.md) — the body's intake-and-chemistry system, two phases in one slate. **Phase 1 (energy economy):** basal drain (hunger/thirst), **coupled** endurance recovery (the wallet refills by burning fuel — closes the one-way drain encumbrance shipped), the `ingest` digestion buffer, in-session clock + sleep-as-logout, and the floor-effects → vitals-conditions cascade (metabolism is the first thing to *drive* conditions). **Phase 2 (nutrients & toxicity):** the real-data nutrient ledger + macro routing + curated deficiencies; toxin potency/burden → poisoning + the `vomit` window. Magic ingestion (potions) deferred. Heat seam resolves in the thermal pass.
 
 **Depends on** [thermal-slate](./tails/thermal-slate.md) (tails/) graduating conductivity to a real material property.
 
-**Phases:** vitals substrate (built → tails) → encumbrance → metabolism (thermal designed before build).
+**Phases:** vitals substrate (built → tails) → encumbrance (built → tails) → metabolism (thermal designed before build).
 
 ### 4. World places & navigation
 *A long, sequenced content build.* The Warren elastic-graph substrate +
@@ -79,12 +81,16 @@ continues with the content + navigation layers on top:
 - [authoring-intelligence-slate](./builds/authoring-intelligence-slate.md) — compiled `.d.ts` type surface + LSP for authors.
 - [compile-diagnostics-slate](./builds/compile-diagnostics-slate.md) — in-editor compile diagnostics.
 - [scoped-authoring-slate](./builds/scoped-authoring-slate.md) — personal / scoped authoring permissions.
-- [verb-provisioning-slate](./builds/verb-provisioning-slate.md) — scaffold for provisioning verbs onto objects.
 
-**Phases:** type surface + diagnostics → CMS editor core → scoped authoring → verb provisioning.
+**Phases:** type surface + diagnostics → CMS editor core → scoped authoring.
 
-### 6. Game config
-- [game-config-slate](./builds/game-config-slate.md) — singleton `GameConfig` Document + `config` verb + seeded defaults. Sequenced after char-gen merges; small enough to ride another build's branch rather than its own cycle.
+> The former verb-provisioning slate is retired — its one durable idea
+> (a verb may be afforded by many source objects; the source is the
+> discriminator) now lives in
+> [command-routing.md § Affordance attribution](../subsystems/command-routing.md).
+
+### 6. Game config — ✅ shipped
+Shipped as the **app-settings** substrate ([app-settings.md](../subsystems/app-settings.md)): `AppSettings` singleton Document + `AppApi` + the developer-gated `config` verb, values seeded from `app-settings.yaml`. The slate is fully absorbed and retired.
 
 ### 7. Economy
 *Value as physics, not RPG.* Filed here, not in `deferred-rpg/`, on
@@ -121,6 +127,7 @@ extends; none is a fresh build.
 | [chat](./tails/chat-slate.md) | chat.md | moderation / edit-trail |
 | [comms](./tails/comms-slate.md) | comms.md | trust-tiered policy |
 | [console-filtering](./tails/console-filtering-slate.md) | console (core shipped) | search, sender-filter |
+| [encumbrance](./tails/encumbrance-slate.md) | encumbrance.md | cart/conveyance propulsion handoff (the "hinge"), per-item placement refinement (a frame pack beating the worn floor), augment-conferred capacity, environmental (gravity) margins, tissue-derived mass, numeric tuning |
 | [message-rendering](./tails/message-rendering-slate.md) | message-rendering.md | GFM table input-sugar |
 | [mql-subscription](./tails/mql-subscription-slate.md) | mql-subscription.md | client topology cache, bandwidth ceilings |
 | [prompt-stack](./tails/prompt-stack-slate.md) | prompt.md | client format-strings, slider affordances |

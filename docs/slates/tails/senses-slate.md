@@ -115,8 +115,10 @@ See also:
   percept feeds the pane; the pedagogical seam (prose vs instrument)
   is the rendering.
 - [docs/slates/access-slate.md](../tails/access-slate.md) /
-  verb-provisioning — **skills gate revelation *and* afford the verbs**
-  that reveal (two sides of the same capability).
+  [command affordances](../../subsystems/command-routing.md) — **skills
+  gate revelation *and* afford the verbs** that reveal (two sides of the
+  same capability); a skill is just one source object that contributes
+  the revealing verb.
 
 ---
 
@@ -567,8 +569,9 @@ sense-appropriate verb) is a v2 polish; v1 keeps click = look.
 - **perception.md** — the viewer-aware substrate this layers on.
 - **inspection-pane / message-rendering** — the percept render + the
   pedagogical seam.
-- **access / verb-provisioning** — skills gate revelation + afford
-  perception verbs.
+- **access / command affordances** — skills gate revelation + afford
+  perception verbs (a skill is a source object that contributes the
+  verb; see command-routing § Affordance attribution).
 - **messaging / `SensorMixin`** — the unification: `onMessage` reception
   *is* sensing; a frame's channel = the sense. The senses substrate
   becomes the perceptual layer of messaging.
@@ -689,7 +692,9 @@ pedagogical-seam sectioned/measured gestalt mode.
   host scry/detect/aura (the "magic lens"); deferred to the magic
   subsystem, but the substrate accommodates it.
 - **The skill/capability system** that gates revelation + affords verbs
-  — access + verb-provisioning own it; this consumes it.
+  — access + command affordances own it (a skill contributes its verbs
+  as a source object; see command-routing § Affordance attribution);
+  this consumes it.
 - **Consumables/diet mechanics** — vitals owns eat/drink; taste reads
   from it.
 

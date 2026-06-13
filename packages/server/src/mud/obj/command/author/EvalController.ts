@@ -32,7 +32,6 @@ import { Mml } from '../../../api/mml';
 import type { Stuff } from '../../../lib/stuff/Stuff';
 import { StuffApi } from '../../../api/stuff';
 import type { MqlManyResult } from '../../../api/mql';
-import { DescribeApi } from '../../../api/describe';
 import Avatar from '../../Avatar';
 import EvalScript from '../../../lib/script/EvalScript';
 
@@ -111,11 +110,11 @@ export default class EvalController extends CommandController<EvalModel> {
       try {
         const result = await evalStuff.run(t);
         const repr = this._formatResult(result);
-        const name = DescribeApi.getDisplayName(t);
+        const name = t.getPresentation();
         this.tell(context, `\n${name}: ${repr}\n`);
         lastSummary = repr;
       } catch (err) {
-        const name = DescribeApi.getDisplayName(t);
+        const name = t.getPresentation();
         this.tell(
           context,
           `\n${name}: error: ${(err as Error).message}\n`,

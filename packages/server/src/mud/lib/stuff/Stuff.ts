@@ -38,7 +38,8 @@ import { StuffApi } from '../../api/stuff';
 import { ModuleApi } from '../../api/module';
 import { ProxyApi } from '../../api/proxy';
 import { SecurityApi } from '../../api/security';
-import { DescribeApi } from '../../api/describe';
+import { MixinApi } from '../../api/mixin';
+import { GrammarApi } from '../../api/grammar';
 import type { SubscribableFieldDescriptor } from '../../api/mql-subscription';
 import { ShadowChangedEvent } from '../events/ShadowChangedEvent';
 
@@ -58,6 +59,14 @@ export interface DestroyedObjectMetadata {
   stuffId: string;
   destroyedAt: Date;
 }
+
+/**
+ * Baked-in fallback for {@link Stuff.getPresentation} when the target
+ * has no `Named` name and no `Visible` shortDescription. Presentation
+ * policy lives here, not in every caller — `getPresentation` always
+ * returns a string, so call sites never write `??` ceremony.
+ */
+const DEFAULT_PRESENTATION = 'something';
 
 /**
  * `setZone` is callable only from `SpatialZone` and its subclasses.
@@ -83,9 +92,9 @@ export abstract class Stuff {
   /**
    * Universal live-query subscribable fields — fields every Stuff
    * exposes regardless of mixin composition. Currently just
-   * `displayName`, a derived render that pulls from Named's `name`
-   * or Visible's `shortDescription` (or falls through to
-   * `DescribeApi`'s baked-in `'something'`).
+   * `displayName`, a derived render that delegates to
+   * {@link Stuff.getPresentation} (Named's `name` or Visible's
+   * `shortDescription`, falling through to the baked-in `'something'`).
    *
    * Declared here rather than in a substrate-private synthetic
    * table because every Stuff genuinely owns the concept — there is
@@ -109,11 +118,54 @@ export abstract class Stuff {
   static subscribableFields: SubscribableFieldDescriptor[] = [
     {
       name: 'displayName',
-      read: (stuff, viewer) => DescribeApi.getDisplayName(stuff, viewer),
+      read: (stuff) => stuff.getPresentation(),
       dependsOnFields: ['name', 'shortDescription'],
       changes: [{ on: ShadowChangedEvent, by: 'target' }],
     },
   ];
+
+  /**
+   * Self-presentation — the casual-register render string for this
+   * object, the answer to "what does this Stuff call itself?" Three-
+   * step resolution:
+   *
+   *   1. **`Named.name`** if present and non-empty — the object's
+   *      *proper name* ("Alice", "Excalibur", "Town Square").
+   *   2. **`Visible.shortDescription`** if present and non-empty —
+   *      the object's *visual identity* ("a heavy oak door").
+   *   3. The baked-in fallback ({@link DEFAULT_PRESENTATION}).
+   *
+   * For a `Globbable` stack (`quantity !== 1`) the count folds in as
+   * an affix — `"30 coins"` — pluralized via {@link GrammarApi.pluralize}
+   * (which honors host-side `getPluralForm()` overrides for
+   * irregulars). Named takes precedence over Visible so a
+   * Named-with-description renders by its proper name; code that
+   * needs the formal register calls `getFullName()` when typed as
+   * Named.
+   *
+   * **Viewer-blind by design.** This is the shared baseline every
+   * Stuff exposes; the viewer-aware naming step (recognition /
+   * identification — see
+   * `docs/requirements/recognition-requirements.md`) composes on top
+   * of it. Left **shadowable** (NOT `@Final`) so masking / disguise
+   * effects can override the rendered identity via a method shadow.
+   */
+  getPresentation(): string {
+    let base = DEFAULT_PRESENTATION;
+    if (MixinApi.isNamed(this)) {
+      const name = this.getName();
+      if (name) base = name;
+    }
+    if (base === DEFAULT_PRESENTATION && MixinApi.isVisible(this)) {
+      const short = this.getShortDescription();
+      if (short) base = short;
+    }
+    if (MixinApi.isGlobbable(this)) {
+      const n = this.getQuantity();
+      if (n !== 1) return `${n} ${GrammarApi.pluralize(this, base)}`;
+    }
+    return base;
+  }
 
   /**
    * Runtime ID for this object (generated using nanoid).

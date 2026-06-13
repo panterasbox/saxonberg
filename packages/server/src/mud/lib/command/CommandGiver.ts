@@ -136,10 +136,24 @@ export interface RecencyEntry {
 }
 
 /**
+ * A command paired with the resolved Stuff that affords it and the
+ * bucket it flowed from. Unlike `RecencyEntry`, `source` is always a
+ * concrete `Stuff`: the `'self'` sentinel is resolved to the giver
+ * instance, so a consumer always sees "an object that afforded this."
+ * `bucket` is a descriptive hint; nothing is required to branch on it.
+ */
+export interface Affordance {
+  command: CommandDefinition;
+  source: Stuff;
+  bucket: RecencyBucket;
+}
+
+/**
  * Public shape provided by CommandGiverMixin.
  */
 export interface CommandGiver {
   getAvailableCommands(): CommandDefinition[];
+  getAffordances(): Affordance[];
   executeCommand(
     commandText: string,
     opts?: ExecuteCommandOpts
@@ -239,23 +253,40 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
     }
 
     /**
-     * Walk the recency stack newest-first and concatenate every
-     * source's `CommandDefinition`s. The dispatch chain decides; we
-     * don't dedup. Most-recent first is what makes "I just walked
-     * into the room" override "the throne in here".
+     * Walk the recency stack newest-first and pair every command with
+     * the resolved Stuff that affords it and its bucket. The `'self'`
+     * sentinel resolves to the giver instance, so every record's
+     * `source` is a concrete Stuff. Standing state — depends only on
+     * the current stack, not on any command being in flight. The
+     * dispatch chain decides ordering; we don't dedup.
      *
      * Lazily seeds the `'self'` entry on first read so callers that
      * skip `postRegister` (test helpers like `makeStuff`, ad-hoc
      * scripts) still see the giver's own contributions. Production
      * code goes through `postRegister`; this branch is the safety net.
      */
-    getAvailableCommands(): CommandDefinition[] {
+    getAffordances(): Affordance[] {
       this._ensureSelfEntry();
-      const out: CommandDefinition[] = [];
+      const giver = this as unknown as Stuff;
+      const out: Affordance[] = [];
       for (let i = this._commandStack.length - 1; i >= 0; i--) {
-        out.push(...this._commandStack[i]!.commands);
+        const entry = this._commandStack[i]!;
+        const source = entry.source === 'self' ? giver : entry.source;
+        for (const command of entry.commands) {
+          out.push({ command, source, bucket: entry.bucket });
+        }
       }
       return out;
+    }
+
+    /**
+     * Newest-first list of every command the giver can run. The
+     * flattened projection of {@link getAffordances} (which carries the
+     * affording source + bucket); callers that only need the verbs use
+     * this, callers that need attribution use `getAffordances`.
+     */
+    getAvailableCommands(): CommandDefinition[] {
+      return this.getAffordances().map((a) => a.command);
     }
 
     /**
@@ -442,6 +473,11 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
         commandId,
         verb: '',
         command: undefined as unknown as CommandDefinition,
+        // Giver fallback for paths with no contextual match step (the
+        // bound short-circuit, programmatic dispatch, pre-match
+        // failures). A claiming match overrides this with its
+        // affordance's resolved source in `_runChain`.
+        commandSource: giver,
         interactive: opts.interactive,
       });
       ExecutionContextApi.updateCurrentFrameMetadata({
@@ -706,9 +742,11 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
       parsed: ReturnType<typeof CommandLineApi.parsePipeline>['commands'][0],
       outer: CommandContext
     ): Promise<CommandContext> {
-      const matches = CommandApi.matchVerbContextual(
-        parsed.verb,
-        this.getAvailableCommands()
+      // Match against affordances (not bare defs) so each matched
+      // definition arrives paired with its resolved affording source;
+      // the claiming attempt threads that source onto its context.
+      const matches = this.getAffordances().filter((a) =>
+        a.command.hasVerb(parsed.verb)
       );
       if (matches.length === 0) {
         // Catalog-emote fallback: an unknown verb may be an authored
@@ -768,7 +806,8 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
         return outer;
       }
 
-      for (const command of matches) {
+      for (const affordance of matches) {
+        const command = affordance.command;
         const built = CommandApi.assemble(parsed, command, {
           commandGiver: outer.commandGiver,
           location: outer.location,
@@ -808,6 +847,7 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
           commandId: outer.commandId,
           verb: parsed.verb,
           command,
+          commandSource: affordance.source,
           interactive: outer.interactive,
         });
         if (outer.aliasExpansion !== undefined) {
