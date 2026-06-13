@@ -332,7 +332,8 @@ Under `Agent` the hierarchy splits **body** from **agent**:
 `Agent → Creature → Character → Avatar`. `Creature` (`lib/creature/`)
 is the body layer — a living physical thing that can break, with or
 without agency: it carries `OrganismMixin` + `VitalsMixin` +
-`ReservedMixin` + the anatomy-slot / posture / description / containment
+`ReservedMixin` + `LoadBearingMixin` (the encumbrance gauge, outermost) +
+the anatomy-slot / posture / description / containment
 mixins. `Character` extends it with the **agency** mixins (commands,
 perception, speech, movement, engagement) + the social-identity mixins
 (`PersonaMixin`, `GenderedMixin`). The split exists because **vitals are
@@ -463,6 +464,7 @@ registry) lives in `lib/mixin.ts`.
 | `lib/message/` | `AetherMixin` | "this Stuff can transmit and receive over the Aether (non-acoustic comm network)". Augment-gated (`_augmentGated = true`); inert until `AetherImplant` confers it. Grants the `dm` verb (`tell`/`whisper` aliases) and contributes the `verbal-esp` / `emotive-esp` modalities to `PerceptionApi.sensorium`. |
 | `lib/vitals/` | `VitalsMixin` | body-state: vital-sign `Quantity` fields, per-species survivable-band lookup, derived `getConditionBand` / `getConsciousness` (computed, never stored), the anatomy resolver, the active-condition collection, and the death/consciousness seams. Requires `OrganismMixin`. Composed by `Creature`. See [vitals.md](./subsystems/vitals.md). |
 | `lib/reserve.ts` | `ReservedMixin` | a keyed collection of `Reserve` capacity axes (decomposed-scalar persistence). Biological reserves (endurance/satiation/hydration) + the authored-thematic seam (mana is content). Composed by `Creature`. See [reserve.md](./subsystems/reserve.md). |
+| `lib/encumbrance/` | `LoadBearingMixin` | the carry-weight gauge (first vitals driver): derived-on-read `getBorneBurden` (weighted walk over contents + slot occupants with `Vessel.transmissionFactor` + slot-derived placement coupling) / `getCarryCapacity` (body mass × physiology margins) / `getLoadRatio` / `wouldExceedCeiling` / `drainForTraversal`. Requires `Container + Slotted + Tangible + Reserved + Vitals`. Composed outermost by `Creature`. See [encumbrance.md](./subsystems/encumbrance.md). |
 
 ### Mixin Composition Constraints
 

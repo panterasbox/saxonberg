@@ -70,7 +70,12 @@ export default class GetController extends CommandController<GetModel> {
       candidates,
       quantity,
       async (operand, applied) => {
-        this.pickUpOperand(operand, context);
+        if (!this.pickUpOperand(operand, context)) {
+          // Lift gate declined this operand — the decline scene + note
+          // already fired in `pickUpOperand`; report it as a non-applied
+          // result so glob skips it.
+          return { ok: false, reason: 'too-heavy-to-lift' };
+        }
         return { ok: true, payload: { operand, applied } };
       },
       { field: 'targets', query: raw }
@@ -102,8 +107,9 @@ export default class GetController extends CommandController<GetModel> {
       if (!here.some((item) => item.stuffId === target.stuffId)) {
         continue;
       }
-      this.pickUpOperand(target, context);
-      pickedNames.push(target.getPresentation());
+      if (this.pickUpOperand(target, context)) {
+        pickedNames.push(target.getPresentation());
+      }
     }
     if (pickedNames.length === 0) {
       MessageApi.scene(context.commandGiver)
@@ -170,8 +176,13 @@ export default class GetController extends CommandController<GetModel> {
    * per-operand scene. Shared by both the bareword whole-set path
    * and the quantity-bearing `applyQuantity` action callback so the
    * move + scene pair stays in one place.
+   *
+   * Returns `true` when the operand was picked up, `false` when the
+   * encumbrance lift gate declined it — so callers skip a declined item
+   * (it is simply left behind; lighter items in the same `get all`
+   * still succeed).
    */
-  private pickUpOperand(operand: Stuff, context: CommandContext): void {
+  private pickUpOperand(operand: Stuff, context: CommandContext): boolean {
     if (!MixinApi.isContainable(operand)) {
       throw new Error(
         `GetController: operand ${operand.stuffId} is not Containable`
@@ -183,11 +194,32 @@ export default class GetController extends CommandController<GetModel> {
         `GetController: commandGiver ${giver.stuffId} is not a Container`
       );
     }
+
+    // Encumbrance lift gate — only a load-bearing giver (a creature with
+    // the gauge) is gated; non-creature containers (a chest looting into
+    // a bag) skip it. Diegetic decline: an envelope note + a scene line,
+    // no throw, no boolean-result move. An item that pushes burden over
+    // *capacity* but stays under the *strain ceiling* still lifts (now
+    // overloaded — locomotion-gated + drains on traverse).
+    if (MixinApi.isLoadBearing(giver) && giver.wouldExceedCeiling(operand)) {
+      context.note({
+        kind: 'controller-rejected',
+        reason: 'too-heavy-to-lift',
+        detail: `${operand.getPresentation()} won't budge`,
+      });
+      MessageApi.scene(giver)
+        .topic('world.perception.inventory')
+        .toSelf(Mml.compose`You strain, but ${Mml.item(operand)} doesn't budge.`)
+        .send();
+      return false;
+    }
+
     ContainmentApi.move(operand, giver);
     MessageApi.scene(giver)
       .topic('world.perception.inventory')
       .toSelf(Mml.compose`You pick up ${Mml.item(operand)}.`)
       .toPeers(Mml.compose`${Mml.name(giver)} picks up ${Mml.item(operand)}.`)
       .send();
+    return true;
   }
 }

@@ -27,22 +27,31 @@
  * opens). Synthesized exits register themselves in `door.attachedTo`
  * the same way explicit exits do via `addExit`, so `Door.detach()`
  * walks back and clears refs symmetrically.
+ *
+ * **`Adornable` is declared here, not on the `Vessel` base.** The Door →
+ * `BoundaryAnchor` retrofit needs `getFixtures()` so the vessel's defining
+ * Door can surface as a fixture on the vessel side of the (vessel,
+ * environment) Boundary pair (`installVesselDoorBoundary`). That is an
+ * `ExitableVessel`-only need, so the fixture machinery lives here rather
+ * than burdening every bare Vessel (a bag, a cart) with it.
  */
 
 import { Vessel } from '../stuff/Vessel';
 import { ExitableMixin } from './Exitable';
 import { VisibleMixin } from '../description/Visible';
+import { AdornableMixin } from './Adornable';
 import { DoorBearingMixin } from './DoorBearing';
 import Exit from './Exit';
 import type { Stuff } from '../stuff/Stuff';
 import type { Container } from '../spatial/Container';
 import type Door from './Door';
-import type { Adornable } from './Adornable';
 import { StuffApi } from '../../api/stuff';
 import { BoundaryApi } from '../../api/boundary';
 import { MixinApi } from '../../api/mixin';
 
-const ExitableVesselBase = DoorBearingMixin(ExitableMixin(VisibleMixin(Vessel)));
+const ExitableVesselBase = DoorBearingMixin(
+  ExitableMixin(VisibleMixin(AdornableMixin(Vessel)))
+);
 
 export default class ExitableVessel extends ExitableVesselBase {
   /**

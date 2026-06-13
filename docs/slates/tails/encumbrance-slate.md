@@ -1,5 +1,19 @@
 # Encumbrance slate (working doc)
 
+> **Status (2026-06):** the **build has shipped** — the `LoadBearing`
+> gauge (borne burden + carry capacity + load ratio), `BodyPlan.baseMass`
+> mass-seeding, `Vessel.transmissionFactor` + the `Adornable`→`ExitableVessel`
+> narrowing, and the consequence ladder (lift gate / locomotion veto /
+> traversal drain) graduated to [encumbrance.md](../../subsystems/encumbrance.md).
+> What remains here is the deferred design surface: the cart/conveyance
+> propulsion handoff (the "hinge"), the per-item placement refinement (a
+> frame pack beating the worn floor), augment-conferred capacity,
+> environmental (gravity) margins, tissue-derived mass, and numeric
+> tuning. Endurance *recovery* is **not** an encumbrance tail — it lives
+> in the [metabolism-slate](../builds/metabolism-slate.md) (coupled
+> recovery closes the one-way drain this build shipped). This slate stays
+> until those are absorbed.
+
 Working slate for **encumbrance** — the weight a creature bears and
 what bearing it costs. The headline isn't "model carried weight"
 (that's nearly free; the substrate is already under us). It's the

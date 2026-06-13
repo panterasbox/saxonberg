@@ -6,6 +6,11 @@ class: /lib/species/BodyPlan
 hydratorClass: /lib/persistence/PersistentHydrator
 data:
   name: biped
+  # Whole-body default mass (kg). A Creature of this plan seeds its
+  # getMass() from this unless the instance authors its own mass. Shared
+  # body-size signal (encumbrance carry capacity now; metabolism basal
+  # drain + thermal mass later) — see docs/subsystems/encumbrance.md.
+  baseMass: 70
   # Slots reference anatomy where they have a home (the slot↔part
   # relations live on the slot side): `bodyPart` = the part the slot
   # attaches at (lose it → slot disabled); `covers` = parts an occupant
