@@ -45,7 +45,7 @@ explicitly compose.
 ### 3. Vitals & survival
 - [vitals-slate](./builds/vitals-slate.md) — anatomy / conditions / pedagogy substrate; the consumer `race.md` deferred for.
 - [encumbrance-slate](./builds/encumbrance-slate.md) — borne-weight gauge (derived `current` vs physiology-derived `capacity`); the interaction library (packs / carts / augments / bags of holding) is the build, not the gauge. Reads the shipped reserve/mass/embodiment substrate.
-- [metabolism-slate](./builds/metabolism-slate.md) — the body's energy economy: basal drain (hunger/thirst), **coupled** endurance recovery (the wallet refills by burning fuel), the `ingest` seam, and the floor-effects → vitals-conditions cascade (`starvation`/`dehydration`/`collapse`). Closes the recovery loop deferred out of encumbrance. Heat seam resolves in the thermal pass.
+- [metabolism-slate](./builds/metabolism-slate.md) — the body's intake-and-chemistry system, two phases in one slate. **Phase 1 (energy economy):** basal drain (hunger/thirst), **coupled** endurance recovery (the wallet refills by burning fuel), the `ingest` digestion buffer, in-session clock + sleep-as-logout, and the floor-effects → vitals-conditions cascade (metabolism is the first thing to *drive* conditions). **Phase 2 (nutrients & toxicity):** the real-data nutrient ledger + macro routing + curated deficiencies; toxin potency/burden → poisoning + the `vomit` window. Magic ingestion (potions) deferred. Heat seam resolves in the thermal pass.
 
 **Depends on** [thermal-slate](./tails/thermal-slate.md) (tails/) graduating conductivity to a real material property.
 
