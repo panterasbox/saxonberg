@@ -262,7 +262,14 @@ export default class LookController extends CommandController<LookModel> {
     // and any other contributing-mixin augmenters wrap inline —
     // matches the location branch above; both `look <thing>` and
     // bare `look` ship the same affordance-annotated text.
-    const body = Mml.compose`\n${Mml.name(target)}\n\n${Mml.fromMarkup(target.getMarkupLong(actor))}\n`;
+    const long = Mml.fromMarkup(target.getMarkupLong(actor));
+    // Education-by-reference: an edible target surfaces its true
+    // nutrient/toxin profile (data + display, viewer-blind, no body-side
+    // machinery). Independent of the abstract `%` reserves.
+    const profile = this.nutrientProfile(target);
+    const body = profile
+      ? Mml.compose`\n${Mml.name(target)}\n\n${long}\n${profile}\n`
+      : Mml.compose`\n${Mml.name(target)}\n\n${long}\n`;
 
     MessageApi.scene(actor)
       .topic('world.perception.sense.look')
@@ -270,6 +277,34 @@ export default class LookController extends CommandController<LookModel> {
       .send();
 
     return;
+  }
+
+  /**
+   * The inspectable nutrient/toxin profile line for an edible target,
+   * or `null` when the target isn't made of an edible Material. Pure
+   * data + display — reads `Material.nutrientAmounts` + `toxicity`,
+   * surfaces neither the body's reserves nor any per-viewer state.
+   */
+  private nutrientProfile(target: Stuff): string | null {
+    const material = MixinApi.isTangible(target) ? target.getMaterial() : null;
+    if (!material || material.getEdibility() !== true) return null;
+    const lines: string[] = [];
+    const amounts = material.getNutrientAmounts();
+    const nutrientKeys = Object.keys(amounts);
+    if (nutrientKeys.length > 0) {
+      lines.push(
+        'Nutrition: ' +
+          nutrientKeys.map((k) => `${k} ${amounts[k]}mg`).join(', '),
+      );
+    }
+    const toxicity = material.getToxicity();
+    if (toxicity.length > 0) {
+      lines.push(
+        'Contains: ' +
+          toxicity.map((t) => `${t.type} ${t.amount}mg`).join(', '),
+      );
+    }
+    return lines.length > 0 ? lines.join('\n') : null;
   }
 
   private formatExits(exits: Exit[]): Mml | null {

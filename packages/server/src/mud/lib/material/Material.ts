@@ -56,6 +56,7 @@ import { PropertiedMixin } from '../stuff/Propertied';
 import { PerceptibleMixin } from '../description/Perceptible';
 import { Quantity } from '../quantity';
 import { QuantityMarshaller } from '../persistence/QuantityMarshaller';
+import type { ToxinTag } from '../metabolism/Toxin';
 
 /**
  * One constituent in a mixture / alloy. `materialPath` is the
@@ -181,16 +182,33 @@ export default class Material extends SingletonMixin(
   protected edibility: boolean = false;
 
   /**
-   * Tagged nutrient categories (`'protein'`, `'water'`, `'sugar'`).
-   * v1 has no consumer (DietApi is deferred).
+   * Tagged nutrient categories (`'protein'`, `'water'`, `'sugar'`) —
+   * the tags that **drive metabolism's macro routing** (kept as bare
+   * tags for back-compat with existing seeds). The inspectable
+   * per-amount profile lives in {@link nutrientAmounts}.
    */
   protected nutrients: string[] = [];
 
   /**
-   * Tagged toxicity categories (`'iron-poisoning'`, `'lead'`,
-   * `'oxalates'`). v1 has no consumer.
+   * Inspectable nutrient amounts (tag → mg per serving) — the
+   * education-by-reference profile `examine <food>` surfaces. Parallel
+   * to {@link nutrients}: the tags drive routing, these amounts are
+   * data + display only (no body-side machinery). A flat
+   * `Record<string, number>` → default-Hydrator round-trip (the
+   * `reserves` precedent), no marshaller.
    */
-  protected toxicity: string[] = [];
+  protected nutrientAmounts: Record<string, number> = {};
+
+  /**
+   * Per-consumable toxin doses — `{type, amount}[]`. `type` is the toxin
+   * (and its `Condition` key, e.g. `'alcohol'`); `amount` is the dose
+   * per serving (mg for solids / derived for liquids). The per-body rate
+   * params (absorption, clearance, potency, severity bands) live on the
+   * toxin's `Condition` seed, NOT here — the same amount-vs-rate split as
+   * nutrients. A list of flat objects → default-Hydrator round-trip (the
+   * `composition` precedent), no marshaller.
+   */
+  protected toxicity: ToxinTag[] = [];
 
   /**
    * Free-form classification tags. See class header for layer-1
@@ -262,6 +280,7 @@ export default class Material extends SingletonMixin(
     'thermalConductivity',
     'edibility',
     'nutrients',
+    'nutrientAmounts',
     'toxicity',
     'tags',
     'composition',
@@ -323,8 +342,47 @@ export default class Material extends SingletonMixin(
   public getNutrients(): readonly string[] { return this.nutrients; }
   public setNutrients(value: string[]): void { this.nutrients = value; }
 
-  public getToxicity(): readonly string[] { return this.toxicity; }
-  public setToxicity(value: string[]): void { this.toxicity = value; }
+  public getNutrientAmounts(): Readonly<Record<string, number>> {
+    return this.nutrientAmounts;
+  }
+  public setNutrientAmounts(value: Record<string, number>): void {
+    if (value === null || typeof value !== 'object') {
+      throw new TypeError(
+        'Material.setNutrientAmounts: expected a Record<string, number>',
+      );
+    }
+    for (const [k, v] of Object.entries(value)) {
+      if (typeof v !== 'number' || !Number.isFinite(v) || v < 0) {
+        throw new RangeError(
+          `Material.setNutrientAmounts['${k}']: expected a finite number >= 0`,
+        );
+      }
+    }
+    this.nutrientAmounts = { ...value };
+  }
+
+  public getToxicity(): readonly ToxinTag[] { return this.toxicity; }
+  public setToxicity(value: ToxinTag[]): void {
+    if (!Array.isArray(value)) {
+      throw new TypeError('Material.setToxicity: expected a ToxinTag[]');
+    }
+    for (const entry of value) {
+      if (
+        entry === null ||
+        typeof entry !== 'object' ||
+        typeof entry.type !== 'string' ||
+        typeof entry.amount !== 'number' ||
+        !Number.isFinite(entry.amount) ||
+        entry.amount < 0
+      ) {
+        throw new TypeError(
+          'Material.setToxicity: each entry must be ' +
+            '{ type: string, amount: finite number >= 0 }',
+        );
+      }
+    }
+    this.toxicity = value.map((e) => ({ type: e.type, amount: e.amount }));
+  }
 
   // Damage-resistance accessors removed — the combat / mechanism-of-
   // injury material-response seam (`resistance.<type>` props) is deferred

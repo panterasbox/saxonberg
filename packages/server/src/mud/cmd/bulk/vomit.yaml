@@ -1,0 +1,6 @@
+verbs: [vomit]
+controller: bulk/VomitController
+description: "Empty your stomach — dump the un-absorbed contents"
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresConscious

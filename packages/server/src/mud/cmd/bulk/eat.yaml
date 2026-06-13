@@ -1,6 +1,6 @@
-verbs: [drink]
-controller: bulk/DrinkController
-description: "Drink the entire contents of a holder"
+verbs: [eat]
+controller: bulk/EatController
+description: "Eat a discrete edible item"
 validators:
   - /lib/command/validators/requiresAnimate
   - /lib/command/validators/requiresConscious
@@ -11,3 +11,4 @@ args:
     scope: "reachable"
     validators:
       - /lib/command/validators/mustBeVisible
+      - /lib/command/validators/mustBeEdible

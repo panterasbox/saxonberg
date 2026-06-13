@@ -24,6 +24,7 @@ import { Idea } from '../stuff/Idea';
 import { SingletonMixin } from '../stuff/Singleton';
 import { PropertiedMixin } from '../stuff/Propertied';
 import type { Vitals } from './Vitals';
+import type { ToxinBehavior } from '../metabolism/Toxin';
 
 // ---------- the active-condition vocabulary ----------
 
@@ -160,6 +161,15 @@ export default class Condition extends SingletonMixin(
   /** Optional contagion — reserved, no consumer v1. */
   protected contagion: ContagionSpec | null = null;
 
+  /**
+   * Optional toxin behavior — the per-body rate params for a toxin-driven
+   * condition (absorption / clearance / potency / severity bands).
+   * Authored only on the toxin conditions metabolism drives (alcohol,
+   * ptomaine, venom, lead); `null` for every other condition. This is
+   * where a toxin's RATES live (the food carries only the dose amount).
+   */
+  protected toxinBehavior: ToxinBehavior | null = null;
+
   static persistentFields = [
     'name',
     'signature',
@@ -167,6 +177,7 @@ export default class Condition extends SingletonMixin(
     'resolution',
     'observableSigns',
     'contagion',
+    'toxinBehavior',
   ];
 
   public getName(): string {
@@ -209,5 +220,13 @@ export default class Condition extends SingletonMixin(
   }
   public setContagion(value: ContagionSpec | null): void {
     this.contagion = value;
+  }
+
+  /** The toxin behavior block (null for non-toxin conditions). */
+  public getToxinBehavior(): ToxinBehavior | null {
+    return this.toxinBehavior;
+  }
+  public setToxinBehavior(value: ToxinBehavior | null): void {
+    this.toxinBehavior = value;
   }
 }

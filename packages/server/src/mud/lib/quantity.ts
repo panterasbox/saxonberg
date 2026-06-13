@@ -55,6 +55,11 @@ export type Unit =
   | 'dB' | 'Hz'
   // Chemistry / material
   | 'mol' | 'g/mol' | 'mol/L' | 'kg/m³' | 'ppm'
+  // Mass (sub-gram) — toxin / nutrient authored amounts + absorbed dose
+  | 'mg'
+  // Blood-alcohol concentration (mass/volume) — the Widmark BAC read,
+  // carrying the `'bac'` drunk-ladder tag scale
+  | 'g/dL'
   // Pressure / force / energy / power
   | 'Pa' | 'N' | 'J' | 'W'
   // Thermal conductivity (W per metre-kelvin) — real material property,
@@ -128,6 +133,8 @@ const unitOps: Partial<Record<Unit, UnitOps>> = {
   'mol/L': ARITHMETIC_OPS,
   'kg/m³': ARITHMETIC_OPS,
   ppm: ARITHMETIC_OPS,
+  mg: ARITHMETIC_OPS,
+  'g/dL': ARITHMETIC_OPS,
   Pa: ARITHMETIC_OPS,
   N: ARITHMETIC_OPS,
   J: ARITHMETIC_OPS,
@@ -230,6 +237,11 @@ registerConverter('mL', 'L', (n) => n / 1000);
 registerConverter('L', 'mL', (n) => n * 1000);
 registerConverter('cup', 'L', (n) => n * 0.2365882365);
 registerConverter('L', 'cup', (n) => n / 0.2365882365);
+
+// Sub-gram mass: `mg ↔ g` for toxin / nutrient authored amounts and the
+// absorbed-dose math (metabolism).
+registerConverter('mg', 'g', (n) => n / 1000);
+registerConverter('g', 'mg', (n) => n * 1000);
 
 /**
  * Thrown by same-unit math when a cast bypasses the compile-time
@@ -843,3 +855,20 @@ export class Quantity<U extends Unit> {
     }
   }
 }
+
+// ---------- module-load tag-scale registrations ----------
+// Registered here (after the class) rather than from a channel module
+// because the unit + its scale are declared together in this substrate
+// file. The blood-alcohol "drunk ladder" — a `'bac'` scale on `g/dL`
+// (metabolism's alcohol exemplar reads `getBAC()` against it). Ascending
+// thresholds; `Quantity.of(bac, 'g/dL').tag('bac')` names the rung and
+// `compareTag('g/dL', a, b, 'bac')` orders them. Same scale-tag
+// mechanism as the lux light bands / future thermal-K scale.
+Quantity.registerTagTable('g/dL', 'bac', [
+  { tag: 'sober', threshold: 0 },
+  { tag: 'tipsy', threshold: 0.03 },
+  { tag: 'drunk', threshold: 0.08 },
+  { tag: 'very-drunk', threshold: 0.15 },
+  { tag: 'incapacitated', threshold: 0.25 },
+  { tag: 'life-threatening', threshold: 0.4 },
+]);

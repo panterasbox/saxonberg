@@ -99,6 +99,7 @@ export const Mixins = {
   TravelCredential: 'TravelCredentialMixin',
   Fixture: 'FixtureMixin',
   LoadBearing: 'LoadBearingMixin',
+  Metabolic: 'MetabolicMixin',
 } as const;
 
 /**
