@@ -23,7 +23,7 @@ opening a cycle for).
 
 ## Builds (`builds/`)
 
-Six builds. Each lists its member slates in rough phase order and the
+Eight builds. Each lists its member slates in rough phase order and the
 shipped substrate it leans on.
 
 ### 1. Identity & social perception
@@ -39,8 +39,10 @@ explicitly compose.
 *Where the personality lives.*
 - [npc-behavior-slate](./builds/npc-behavior-slate.md) — brains / routines / automation substrate. Absorbs collision's "guards" decomposition.
 - [npc-dialogue-slate](./builds/npc-dialogue-slate.md) — dialogue trees; deferred LLM free-text front-end.
+- [scripting-slate](./builds/scripting-slate.md) — a purpose-built soft-scripting language; promotes npc-behavior's deferred `scripted-behavior` tail to a first-class subsystem (and a human-authored content surface in its own right). **Not near-term** — the remaining design forks (blocks, execution model, the `( )` sublanguage, scope) want a focused learning pass first.
+- [llm-content-slate](./builds/llm-content-slate.md) — the runtime LLM rung npc-behavior left open: a single director agent forces the cast over the command bus and narrates ambient scenes, expressing multi-stage behavior by authoring in the scripting language. **Not near-term.**
 
-**Phases:** behavior substrate → dialogue. (`reactions` in `tails/` and the deferred LLM brain ride later.)
+**Phases:** behavior substrate → dialogue → scripting language → LLM director. (`reactions` in `tails/` rides later.)
 
 ### 3. Vitals & survival
 - [vitals-slate](./builds/vitals-slate.md) — anatomy / conditions / pedagogy substrate; the consumer `race.md` deferred for.
@@ -75,6 +77,24 @@ explicitly compose.
 ### 6. Game config
 - [game-config-slate](./builds/game-config-slate.md) — singleton `GameConfig` Document + `config` verb + seeded defaults. Sequenced after char-gen merges; small enough to ride another build's branch rather than its own cycle.
 
+### 7. Economy
+*Value as physics, not RPG.* Filed here, not in `deferred-rpg/`, on
+purpose: how matter and money enter, move, and leave the world is a
+conservation problem with in-world rules — substrate, the same as light
+or containment. Stats/progression/combat balance stay deferred; the
+physics is buildable now.
+- [economy-slate](./builds/economy-slate.md) — currency, value, crafting inputs, trade. Reads the shipped [glob](../subsystems/glob.md) fungible-stack substrate (coins and raw materials are already modeled). **Currency slice buildable now; macro balance — faucet/sink, inflation, population-scale loops — parked until there's a running game to tune against.**
+
+**Phases:** currency slice → (macro balance deferred to a real game).
+
+### 8. Reading & reference
+*The two halves of the in-game reading substrate — a systems↔content
+pair, split by center of gravity, not a wall.*
+- [help-slate](./builds/help-slate.md) — the **systems** half: the developer-maintained rulebook (commands, taxonomies, mechanics, formulas + numbers, the engine/API surface), harvested from three sources into one uniform `HelpTopic` index. Outgrew its current `HelpController` + TypeDoc scaffold. Governing pillar: transparent by default, hidden only by an explicit spoiler gate.
+- [wiki-slate](./builds/wiki-slate.md) — the **content** half: a community-maintained, client-native wiki of plain `WikiPage` Documents; every page authored, no generation from gamestate. A two-axis spoiler model (appetite dial × capability ceiling) governs reveals.
+
+**Phases:** help (systems index) → wiki (community content). Both lean on the deferred [spoiler](./deferred-rpg/spoiler-slate.md) reveal model.
+
 ---
 
 ## Enhancement tails (`tails/`)
@@ -85,6 +105,8 @@ extends; none is a fresh build.
 | Slate | Extends (shipped) | What's deferred |
 |---|---|---|
 | [access](./tails/access-slate.md) | access.md / call-security.md | actor-aware policy slots |
+| [auth-providers](./tails/auth-providers-slate.md) | connection.md | generalize the Google-only auth spine to multi-provider (Google + Twitch co-equal) + account linking — **the keystone** the chat relay and future name-refraction sit on |
+| [external-chat-relay](./tails/external-chat-relay-slate.md) | chat.md | bind a `Channel` to an external service (Twitch first) — inbound reader + outbound post-as-yourself; **rides the auth-providers keystone** |
 | [augmentation](./tails/augmentation-slate.md) | augmentation.md | Wave 2+ (Wave 1 shipped) |
 | [affordance-verb](./tails/affordance-verb-slate.md) | put/give/Surfaced (shipped) | source-scoping (`::`), command-provenance |
 | [chat](./tails/chat-slate.md) | chat.md | moderation / edit-trail |

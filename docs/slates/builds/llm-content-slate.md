@@ -23,8 +23,8 @@ The load-bearing decisions:
    pipeline is already structured: commands in, `DispatchResponseEnvelope`
    frames out. The client is a *rendering* of that bus. An LLM plugs in at
    the structured layer (verbs ⇄ envelopes), never by driving the React
-   cockpit. See [command-routing.md](../subsystems/command-routing.md),
-   [response-envelope.md](../subsystems/response-envelope.md).
+   cockpit. See [command-routing.md](../../subsystems/command-routing.md),
+   [response-envelope.md](../../subsystems/response-envelope.md).
 
 2. **One director, not per-NPC brains.** The LLM is **never wired to a
    specific entity.** There is a single **director** (= the ambient
@@ -79,7 +79,7 @@ See also:
   expresses multi-stage / scheduled behavior by *authoring scripts* in the
   scripting language, not by emitting a tool-call per beat. This slate says
   *who drives and how*; that slate says *in what language*.
-- [biome.md](../subsystems/biome.md) — the weather/atmosphere push that is
+- [biome.md](../../subsystems/biome.md) — the weather/atmosphere push that is
   one trigger source for ambient director beats (`EventApi` broadcast).
 - [authoring-intelligence-slate.md](./authoring-intelligence-slate.md) —
   **distinct**: LLM-for-*authoring* (completions/validation), not runtime

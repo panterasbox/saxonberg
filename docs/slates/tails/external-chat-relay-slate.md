@@ -31,17 +31,17 @@ See also:
   the **generative axes** (this adds a `binding` value), subscription ≠
   membership, the config block, the `chat <channel> <message>` verb,
   history ring, rendering.
-- [docs/subsystems/chat.md](../subsystems/chat.md) — shipped `Channel`
+- [docs/subsystems/chat.md](../../subsystems/chat.md) — shipped `Channel`
   Document (`lib/social/Channel.ts`), `ChannelCatalogue`, the
   `world.chat.message` topic, the `'verbal-esp'` modality stamp, the
   audience-fanout chokepoint the inbound path reuses.
-- [docs/subsystems/messaging.md](../subsystems/messaging.md) — the
+- [docs/subsystems/messaging.md](../../subsystems/messaging.md) — the
   `MessageApi.scene` pipeline; the inbound path injects a channel frame
   with a **stringly external speaker** (no Stuff), a small new wrinkle.
 - [message-rendering-slate.md](./message-rendering-slate.md) — provenance:
   the `<chan>` label + a service glyph (`<twitch/>`) marking external
   origin, per the layered-presentation principle.
-- [docs/deployment.md](../deployment.md) — Twitch `clientId`/secret and
+- [docs/deployment.md](../../deployment.md) — Twitch `clientId`/secret and
   the worker live with the rest of the server config (SSM/`.env`).
 
 ---
