@@ -7,24 +7,42 @@
  * per-Stuff `Propertied`, and client-UI-state; distinct from infra/secrets
  * (`.env` / Parameter Store).
  *
- * Shape mirrors the {@link ../time/WorldClockState | `WorldClockState`}
- * precedent — one row in its own collection, found via `find({})` with a
- * Mongo-assigned `_id`, seeded with code defaults on first boot — but the
- * persisted state is a SINGLE generic `values` bag, never a field per
- * setting. `persistentFields = ['values']` never grows: adding a setting
- * is a registry entry (`lib/config/keys.ts`) plus a consumer, never a
- * change to this file.
+ * The persisted state is a SINGLE generic `values` bag, never a field per
+ * setting — `persistentFields = ['values']` never grows; adding a setting
+ * is a YAML entry (`mud/config/app-settings.yaml`) plus a consumer.
  *
- * The runtime read/write surface is `AppApi` (operations only). Seeding and
- * cache-warming are backend concerns: `AppBootstrap.run` awaits
- * `loadOrSeed()` once at startup, which seeds the row from the registry on
- * a fresh DB and warms the cache `AppApi.setting` reads synchronously (the
- * evac path cannot await). This Document is pure persistence + that cache.
+ * **The values live in the DB, seeded from YAML — there are no code-side
+ * defaults.** `AppSettingsSeeder` (a backend seeder, like EmoteSeeder)
+ * populates the row from `app-settings.yaml`; this Document is pure
+ * persistence + an in-memory cache. `warm()` loads the seeded row into the
+ * cache at boot so the synchronous read surface (`AppApi`) never awaits.
  */
 
 import { Document } from "../persistence/Document";
 import { SecurityApi } from "../../api/security";
-import { AppSettingDefaults } from "./keys";
+
+/**
+ * The blessed application-setting keys. Consumers reference these constants
+ * (typo → compile error) instead of bare strings. The values themselves
+ * live in `mud/config/app-settings.yaml`; this is just the typed key
+ * vocabulary the engine reads.
+ */
+export const AppSettingKeys = {
+  /**
+   * Where a brand-new avatar's `startLocation` is initialized at mint time
+   * — the post-char-gen / guest / signup spawn default, and nothing else.
+   */
+  defaultStartLocation: "defaultStartLocation",
+
+  /**
+   * Where an orphaned `HasInteractive` evacuates when its container
+   * destructs with no outer (`Container.cleanupOnDestruct`).
+   */
+  evacuationFallback: "evacuationFallback",
+} as const;
+
+export type AppSettingKey =
+  (typeof AppSettingKeys)[keyof typeof AppSettingKeys];
 
 export class AppSettings extends Document {
   static collectionName = "app_settings";
@@ -38,31 +56,22 @@ export class AppSettings extends Document {
   values: Record<string, string> = {};
 
   /**
-   * The in-memory singleton, warmed once at boot by {@link loadOrSeed}.
-   * Held here (not on `AppApi`) so the Api stays a stateless façade and the
-   * cache lives with the record that produces it.
+   * The in-memory singleton, warmed once at boot by {@link warm}. Held here
+   * (not on `AppApi`) so the Api stays a stateless façade and the cache
+   * lives with the record.
    */
   private static _cached: AppSettings | null = null;
 
   /**
-   * Load the singleton row, seeding it from the registry on an empty
-   * collection, and warm the cache. Idempotent: a second boot finds the
-   * existing row and does not re-insert. Called once from `AppBootstrap`.
-   *
-   * Unlike `WorldClockState` (which defers its first save), the freshly
-   * seeded row is persisted here so a fresh DB has exactly one
-   * `app_settings` row immediately.
+   * Load the seeded singleton row into the cache (or an empty instance if
+   * nothing has been seeded/set yet). Does NOT seed values — that is
+   * `AppSettingsSeeder`'s job, which runs earlier in the boot sequence.
+   * Called once from `AppBootstrap`.
    */
-  static async loadOrSeed(): Promise<AppSettings> {
+  static async warm(): Promise<AppSettings> {
     const rows = await AppSettings.find({});
-    let instance = rows[0];
-    if (!instance) {
-      instance = new AppSettings();
-      instance.values = { ...AppSettingDefaults };
-      await instance.save();
-    }
-    AppSettings._cached = instance;
-    return instance;
+    AppSettings._cached = rows[0] ?? new AppSettings();
+    return AppSettings._cached;
   }
 
   /**
@@ -72,8 +81,8 @@ export class AppSettings extends Document {
   static getCached(): AppSettings {
     if (!AppSettings._cached) {
       throw new Error(
-        "AppSettings.getCached: cache not warmed — AppSettings.loadOrSeed() " +
-          "must run at boot (AppBootstrap) before any consumer reads a setting.",
+        "AppSettings.getCached: cache not warmed — AppSettings.warm() must " +
+          "run at boot (AppBootstrap) before any consumer reads a setting.",
       );
     }
     return AppSettings._cached;

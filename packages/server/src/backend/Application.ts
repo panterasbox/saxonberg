@@ -34,7 +34,7 @@ import { User } from '../mud/lib/identity/User';
 import { TemplateApi } from '../mud/api/template';
 import { StuffApi } from '../mud/api/stuff';
 import { AppApi } from '../mud/api/app';
-import { AppSettingKeys } from '../mud/lib/config/keys';
+import { AppSettingKeys } from '../mud/lib/config/AppSettings';
 import Avatar from '../mud/obj/Avatar';
 import { Template } from '../mud/lib/stuff/Template';
 import { nanoid } from 'nanoid';

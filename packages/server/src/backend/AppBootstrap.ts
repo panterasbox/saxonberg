@@ -17,6 +17,7 @@ import { SeederManager } from './SeederManager';
 import { EmoteSeeder } from './EmoteSeeder';
 import { NameBankSeeder } from './NameBankSeeder';
 import { ChannelSeeder } from './ChannelSeeder';
+import { AppSettingsSeeder } from './AppSettingsSeeder';
 import { BootstrapManager } from './BootstrapManager';
 import { CommandApi } from '../mud/api/command';
 import { QuantityApi } from '../mud/api/quantity';
@@ -117,6 +118,7 @@ export class AppBootstrap {
     await EmoteSeeder.run();
     await ChannelSeeder.run();
     await NameBankSeeder.run();
+    await AppSettingsSeeder.run();
 
     const cmd = await CommandApi.preloadAll();
     if (cmd.failed.length > 0) {
@@ -129,15 +131,13 @@ export class AppBootstrap {
 
     await BootstrapManager.run();
 
-    // App settings — seed the `app_settings` bag from the code registry on
-    // a fresh DB and warm the synchronous read cache before any consumer
-    // (the evac path in Container.cleanupOnDestruct cannot await). A
-    // Document-track sibling of the clock's warm step below; not a
-    // domain-template seed, so it lives here, not in SeederManager /
-    // BootstrapManager. Awaits the Document directly — no boot method on
-    // AppApi (its surface is runtime operations only). Runs after the
-    // manifest pins `/domain/void` (the seeded evacuationFallback target).
-    await AppSettings.loadOrSeed();
+    // App settings — warm the synchronous read cache from the seeded
+    // `app_settings` row (AppSettingsSeeder ran in the seeder block above)
+    // before any consumer reads a setting; the evac path in
+    // Container.cleanupOnDestruct cannot await. Warm-only (no seeding here)
+    // — the values come from app-settings.yaml via the seeder. Awaits the
+    // Document directly — no boot method on AppApi (runtime ops only).
+    await AppSettings.warm();
 
     // World clock — restore the persisted game-time anchor (or seed a
     // zero clock on a fresh DB) and start its backstop. A sequencer

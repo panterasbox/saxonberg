@@ -12,8 +12,7 @@ import { fileURLToPath } from "url";
 import YAML from "yaml";
 import ConfigController from "../ConfigController";
 import { AppApi } from "../../../../api/app";
-import { AppSettings } from "../../../../lib/config/AppSettings";
-import { AppSettingKeys } from "../../../../lib/config/keys";
+import { AppSettings, AppSettingKeys } from "../../../../lib/config/AppSettings";
 import { MessageApi } from "../../../../api/message";
 import { Mml } from "../../../../api/mml";
 import { PersistenceManager } from "../../../../../backend/PersistenceManager";
@@ -39,9 +38,18 @@ describe("ConfigController", () => {
   beforeEach(async () => {
     vi.restoreAllMocks();
     const pm = stubPM();
-    pm.setFindResult([]); // fresh DB → seeded from registry
+    // Warm the cache from a seeded row (the seeder's job in real boot).
+    pm.setFindResult([
+      {
+        _id: "r",
+        values: {
+          [AppSettingKeys.defaultStartLocation]: "/domain/lounge/warren",
+          [AppSettingKeys.evacuationFallback]: "/domain/void",
+        },
+      },
+    ]);
     AppSettings._resetForTesting();
-    await AppSettings.loadOrSeed();
+    await AppSettings.warm();
 
     ctrl = makeStuff(() => new ConfigController());
 

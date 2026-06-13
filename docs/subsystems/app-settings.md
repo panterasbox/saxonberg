@@ -18,8 +18,9 @@ Three small pieces, modeled on the `WorldClockState` (Document) ↔
 
 | Piece | File | Role |
 |---|---|---|
-| `AppSettings` | `lib/config/AppSettings.ts` | Singleton `Document` (`app_settings` collection). Pure persistence + the warmed cache. |
-| key registry | `lib/config/keys.ts` | `AppSettingKeys` + `AppSettingDefaults` — the blessed keys and their defaults, declared once. |
+| `AppSettings` | `lib/config/AppSettings.ts` | Singleton `Document` (`app_settings` collection) + the `AppSettingKeys` key vocabulary. Pure persistence + the warmed cache. |
+| seed YAML | `mud/config/app-settings.yaml` | The single source of the settings' **values**. |
+| `AppSettingsSeeder` | `backend/AppSettingsSeeder.ts` | Backend seeder (like `EmoteSeeder`/`ChannelSeeder`) — populates `app_settings` from the YAML. |
 | `AppApi` | `api/app.ts` | The runtime read/write surface (and the future home for app-level ops). |
 | `config` verb | `cmd/system/config.yaml` + `obj/command/system/ConfigController.ts` | Developer-gated in-app editing. |
 
@@ -27,46 +28,49 @@ Three small pieces, modeled on the `WorldClockState` (Document) ↔
 
 `AppSettings` persists a *single* field — `values: Record<string,string>`,
 so `persistentFields = ['values']` and never grows. Adding a setting is a
-registry entry plus a consumer; it never changes the Document's persisted
-shape. The bag round-trips natively through Mongo (no marshaller).
+YAML entry plus a consumer; it never changes the Document's persisted
+shape. The bag round-trips natively through Mongo (no marshaller). The verb
+can set *any* key (open namespace).
 
-The verb can set *any* key (open namespace). The registry indexes only the
-keys the engine itself reads — exactly as `lib/paths.ts` indexes blessed
-template paths while the engine still resolves arbitrary ones.
-`lib/paths.ts`'s own docstring defers spawn/evacuation content-paths "to
-app config" — i.e. to this registry.
+### Values in YAML, keys in code — no code-side defaults
 
-### Keys and defaults live in one registry
+The settings' **values** live only in the DB, seeded from the YAML. There
+is no code defaults map: a code constant duplicating the seeded values
+would just be a second copy on disk of what the seeder already guarantees.
+
+What stays in code is the **key vocabulary** — `AppSettingKeys` (in
+`AppSettings.ts`) — so consumers reference a constant, not a bare string (a
+typo is a compile error):
 
 ```ts
-// lib/config/keys.ts
+// lib/config/AppSettings.ts
 export const AppSettingKeys = {
   defaultStartLocation: "defaultStartLocation",
   evacuationFallback: "evacuationFallback",
 } as const;
-export const AppSettingDefaults: Record<string, string> = {
-  [AppSettingKeys.defaultStartLocation]: "/domain/lounge/warren",
-  [AppSettingKeys.evacuationFallback]: "/domain/void",
-};
 ```
 
-Consumers reference the constant — `AppApi.setting(AppSettingKeys.x)` —
-never a bare string (a typo is then a compile error). A default shared by
-multiple consumers (`defaultStartLocation`, read at every avatar-mint
-site) is written exactly once. The default string for each v1 knob appears
-in exactly one place in the tree: this file.
+```yaml
+# mud/config/app-settings.yaml — the single source of the values
+settings:
+  - key: defaultStartLocation
+    value: /domain/lounge/warren
+  - key: evacuationFallback
+    value: /domain/void
+```
 
 ## The `AppApi` surface — runtime operations only
 
 ```ts
-AppApi.setting(key): string              // sync cached read; values[key] ?? default ?? ""
-AppApi.settings(): Record<string,string> // registry keys ∪ bag keys, for the listing
+AppApi.setting(key): string              // sync cached read; values[key] ?? ""
+AppApi.settings(): Record<string,string> // the whole bag, for the listing
 AppApi.setSetting(key, value): Promise    // write + persist + refresh cache
 ```
 
 - **Reads are synchronous** off the warmed cache — the evacuation path in
-  `Container.cleanupOnDestruct` cannot `await`. `setting` falls back to the
-  registry default for a key a pre-existing row predates.
+  `Container.cleanupOnDestruct` cannot `await`. The seeder guarantees the
+  value is present, so reads just hit the cache — no code-side fallback; an
+  unseeded/unknown key reads `""`.
 - **Reads are ungated**: the internal consumers (evac, avatar-mint) are
   engine code, not developers. **`setSetting` is reached only through the
   developer-gated `config` verb**; the gate lives at the verb (its
@@ -75,10 +79,11 @@ AppApi.setSetting(key, value): Promise    // write + persist + refresh cache
   mutates and saves, so there is no separate re-read.
 - **No boot/seed/warm method.** `AppApi` is the home for app-level
   *operations* (settings now; `shutdown()`, MOTD, maintenance mode later —
-  things an operator invokes). It is deliberately *not* `WorldClockApi`:
-  the clock's `boot()` starts a running subsystem, whereas app settings
-  have nothing to start, so their seed/warm is plain backend
-  infrastructure (below).
+  things an operator invokes). Seeding (`AppSettingsSeeder`) and the boot
+  cache-warm (`AppSettings.warm`) are backend infrastructure (below), not
+  Api methods — deliberately unlike `WorldClockApi.boot()`, because the
+  clock's boot starts a running subsystem whereas app settings have nothing
+  to start.
 
 > **Not the backend `Application`.** `AppApi` (`mud/api/app.ts`) is the
 > in-engine domain surface. The backend `Application` class
@@ -87,20 +92,23 @@ AppApi.setSetting(key, value): Promise    // write + persist + refresh cache
 
 ## Seeding + warming is a backend bootstrap concern
 
-The cache is held on the `AppSettings` Document (a `private static`
-singleton slot). It is seeded and warmed by **`AppBootstrap.run`**, which
-`await`s `AppSettings.loadOrSeed()` once at startup — after the manifest
-pins `/domain/void` (the seeded `evacuationFallback` target) and before the
-clock boots. `loadOrSeed` finds the sole row (`find({})`) or, on an empty
-collection, seeds the bag **from the registry** and saves it, so a fresh DB
-has exactly one `app_settings` row. It is idempotent (an existing row is
-reused, not re-inserted).
+**Seed.** `AppSettingsSeeder.run()` runs in `AppBootstrap`'s seeder block
+(next to `EmoteSeeder`/`ChannelSeeder`/`NameBankSeeder`), reading
+`mud/config/app-settings.yaml`. It is insert / **merge-missing** /
+idempotent: a fresh DB gets the seeded row; on later boots any key *new* to
+the YAML is merged into the existing row, while keys an operator changed via
+`config` are left alone. It lives in a per-collection seeder (not
+`SeederManager`, which seeds *Stuff templates* into `domain`) — same
+reasoning as `EmoteSeeder`.
 
-This lives in `AppBootstrap`, not `SeederManager`: `SeederManager` seeds
-*domain templates from disk*, whereas `app_settings` is a Document-track
-meta row seeded from code — the same reason the clock's warm step lives in
-`AppBootstrap`. Reading a setting before the warm step throws loudly
-(`AppSettings.getCached`) rather than returning a silent `undefined`.
+**Warm.** The cache is held on the `AppSettings` Document (a `private
+static` singleton slot). `AppBootstrap.run` `await`s `AppSettings.warm()`
+once at startup — after the seeder has populated the row and before any
+consumer reads a setting (the evac path can't `await`). `warm` only loads
+the row into the cache (or an empty instance if nothing's been
+seeded/set); it does **not** seed. Reading a setting before the warm step
+throws loudly (`AppSettings.getCached`) rather than returning a silent
+`undefined`.
 
 ## The `config` verb
 
@@ -117,15 +125,15 @@ config defaultStartLocation /domain/lounge   set one (persist + refresh cache)
 Two optional positional args (`key`, `value`); not subcommands. `value` is
 a single token (a setting value is a path/scalar) — not greedy, because a
 greedy arg is treated as required and a required arg cannot follow the
-optional `key`. The listing shows every registry key at its current-or-
-default value plus any ad-hoc keys, flagging ad-hoc ones with `*`. Setting
-a key not in the registry succeeds and round-trips (open namespace) and
+optional `key`. The listing shows every setting and its current value,
+flagging keys outside the `AppSettingKeys` vocabulary with `*`. Setting a
+key not in that vocabulary succeeds and round-trips (open namespace) and
 earns a soft prose note — prose only, status stays `ok` (the write
 succeeded; it is **not** a `controller-rejected` envelope note).
 
 ## The two v1 settings and their consumers
 
-| Key | Default | Read by |
+| Key | Seeded value | Read by |
 |---|---|---|
 | `defaultStartLocation` | `/domain/lounge/warren` | The three avatar-mint sites stamp it into a new avatar's `startLocation` at clone time: `EnrollController.commit`, `Application.createDefaultAvatarTemplate`, `Login.mintRandomGuestAvatar`. |
 | `evacuationFallback` | `/domain/void` | `Container.cleanupOnDestruct` — where an orphaned `HasInteractive` evacuates when its container destructs with no outer. |
@@ -145,13 +153,14 @@ lobby.
 
 ## Adding a setting
 
-1. Add a key + default to `lib/config/keys.ts`.
-2. Read it where it's consumed: `AppApi.setting(AppSettingKeys.yourKey)`.
+1. Add a `key`/`value` entry to `mud/config/app-settings.yaml`.
+2. Add the key constant to `AppSettingKeys` (`lib/config/AppSettings.ts`).
+3. Read it where it's consumed: `AppApi.setting(AppSettingKeys.yourKey)`.
 
 That's it — no change to `AppSettings`' persisted shape, no new Api. The
-next fresh-DB boot seeds it; existing rows fall back to the registry
-default until set. A setting nobody reads is inert, so the consumer is the
-real work; the registry entry is its trivial tail.
+seeder merges the new key into the row on the next boot (existing values
+untouched). A setting nobody reads is inert, so the consumer is the real
+work.
 
 ## Boundaries — what is *not* app settings
 

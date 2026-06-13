@@ -20,7 +20,10 @@ import type { CommandContext, CommandModel } from "../../../api/command";
 import { MessageApi } from "../../../api/message";
 import { Mml } from "../../../api/mml";
 import { AppApi } from "../../../api/app";
-import { AppSettingDefaults } from "../../../lib/config/keys";
+import { AppSettingKeys } from "../../../lib/config/AppSettings";
+
+/** The blessed key vocabulary — used only to flag/soft-note ad-hoc keys. */
+const KNOWN_KEYS = new Set<string>(Object.values(AppSettingKeys));
 
 interface ConfigModel extends CommandModel {
   key?: string;
@@ -37,15 +40,15 @@ export default class ConfigController extends CommandController<ConfigModel> {
 
   private list(context: CommandContext): void {
     const all = AppApi.settings();
-    // Registry (blessed) keys first, then ad-hoc, alphabetical within each.
+    // Blessed keys first, then ad-hoc, alphabetical within each.
     const keys = Object.keys(all).sort((a, b) => {
-      const known = (k: string) => (k in AppSettingDefaults ? 0 : 1);
+      const known = (k: string) => (KNOWN_KEYS.has(k) ? 0 : 1);
       return known(a) - known(b) || a.localeCompare(b);
     });
     const lines = [""];
     for (const k of keys) {
-      // '*' flags an ad-hoc key (not in the registry); ' ' a blessed one.
-      const marker = k in AppSettingDefaults ? " " : "*";
+      // '*' flags an ad-hoc key (not a known setting); ' ' a blessed one.
+      const marker = KNOWN_KEYS.has(k) ? " " : "*";
       lines.push(`  ${marker} ${k} = ${all[k]}`);
     }
     lines.push("");
@@ -63,7 +66,7 @@ export default class ConfigController extends CommandController<ConfigModel> {
   ): Promise<void> {
     await AppApi.setSetting(key, value);
     const lines = ["", `${key} set to ${value}.`];
-    if (!(key in AppSettingDefaults)) {
+    if (!KNOWN_KEYS.has(key)) {
       lines.push(`(note: "${key}" is not a known setting — it was still saved.)`);
     }
     lines.push("");

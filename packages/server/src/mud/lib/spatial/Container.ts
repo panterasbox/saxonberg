@@ -37,7 +37,7 @@ import { ContainmentApi } from '../../api/containment';
 import { StuffApi } from '../../api/stuff';
 import type { CommandContributions } from '../../api/command';
 import { AppApi } from '../../api/app';
-import { AppSettingKeys } from '../config/keys';
+import { AppSettingKeys } from '../config/AppSettings';
 import {
   MqlSubscriptionApi,
   REF_FIELDS,

@@ -29,7 +29,7 @@ import { MessageApi } from "../../../api/message";
 import { Mml } from "../../../api/mml";
 import { StuffApi } from "../../../api/stuff";
 import { AppApi } from "../../../api/app";
-import { AppSettingKeys } from "../../../lib/config/keys";
+import { AppSettingKeys } from "../../../lib/config/AppSettings";
 import { ConnectionApi } from "../../../api/connection";
 import { ContainmentApi } from "../../../api/containment";
 import { MixinApi } from "../../../api/mixin";

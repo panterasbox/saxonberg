@@ -27,7 +27,7 @@ import { nanoid } from "nanoid";
 import { Idea } from "../lib/stuff/Idea";
 import { StuffApi } from "../api/stuff";
 import { AppApi } from "../api/app";
-import { AppSettingKeys } from "../lib/config/keys";
+import { AppSettingKeys } from "../lib/config/AppSettings";
 import { ConnectionApi } from "../api/connection";
 import { PlayerApi } from "../api/player";
 import { MessageApi } from "../api/message";

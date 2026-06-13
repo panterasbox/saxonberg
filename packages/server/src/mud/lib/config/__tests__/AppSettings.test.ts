@@ -1,42 +1,23 @@
 /**
- * AppSettings persistence — fresh-DB seed from the registry, idempotent
- * re-seed, and the unwarmed-cache guard.
- *
- * PersistenceManager is stubbed with hand-built fakes (the
- * `WorldClockState.persistence.test.ts` pattern); no MongoDB.
+ * AppSettings — the cache surface over the seeded singleton row. Seeding
+ * itself is AppSettingsSeeder's job (tested separately); this covers warm /
+ * getCached / the unwarmed guard. PersistenceManager is stubbed (no Mongo).
  */
 
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
-import { AppSettings } from "../AppSettings";
-import { AppSettingKeys, AppSettingDefaults } from "../keys";
+import { AppSettings, AppSettingKeys } from "../AppSettings";
 import { PersistenceManager } from "../../../../backend/PersistenceManager";
 
-interface PMStubs {
-  saves: Array<{ collection: string; doc: Record<string, unknown> }>;
-  setFindResult(docs: Record<string, unknown>[]): void;
-}
-
-function stubPM(): PMStubs {
-  const saves: PMStubs["saves"] = [];
-  let nextFindResult: Record<string, unknown>[] = [];
-
+function stubPM() {
+  let findResult: Record<string, unknown>[] = [];
   const pm = PersistenceManager.get();
-  vi.spyOn(pm, "save").mockImplementation(async (collection, doc) => {
-    saves.push({ collection, doc: doc as Record<string, unknown> });
-    return "inserted-id";
-  });
-  vi.spyOn(pm, "find").mockImplementation(async () => nextFindResult);
-
-  return {
-    saves,
-    setFindResult: (docs) => {
-      nextFindResult = docs;
-    },
-  };
+  vi.spyOn(pm, "save").mockResolvedValue("inserted-id" as never);
+  vi.spyOn(pm, "find").mockImplementation(async () => findResult);
+  return { setFindResult: (d: Record<string, unknown>[]) => (findResult = d) };
 }
 
 describe("AppSettings", () => {
-  let pm: PMStubs;
+  let pm: ReturnType<typeof stubPM>;
 
   beforeEach(() => {
     vi.restoreAllMocks();
@@ -49,37 +30,28 @@ describe("AppSettings", () => {
     AppSettings._resetForTesting();
   });
 
-  it("seeds exactly one row from the registry on a fresh DB and warms the cache", async () => {
-    pm.setFindResult([]);
-    const settings = await AppSettings.loadOrSeed();
-
-    // Bag seeded from the registry, not a second literal.
-    expect(settings.getValues()).toEqual(AppSettingDefaults);
-    // Persisted exactly once, into the right collection.
-    expect(pm.saves).toHaveLength(1);
-    expect(pm.saves[0]!.collection).toBe("app_settings");
-    expect(
-      (pm.saves[0]!.doc as { values: Record<string, string> }).values,
-    ).toEqual(AppSettingDefaults);
-    // Cache warmed → sync getCached returns the same instance.
+  it("warm loads the seeded row into the cache", async () => {
+    pm.setFindResult([
+      {
+        _id: "r",
+        values: {
+          [AppSettingKeys.defaultStartLocation]: "/domain/lounge/warren",
+          [AppSettingKeys.evacuationFallback]: "/domain/void",
+        },
+      },
+    ]);
+    const settings = await AppSettings.warm();
+    expect(settings.getValue(AppSettingKeys.defaultStartLocation)).toBe(
+      "/domain/lounge/warren",
+    );
     expect(AppSettings.getCached()).toBe(settings);
-    expect(
-      AppSettings.getCached().getValue(AppSettingKeys.defaultStartLocation),
-    ).toBe("/domain/lounge/warren");
   });
 
-  it("is idempotent — an existing row is reused and not re-inserted", async () => {
-    pm.setFindResult([
-      { _id: "row1", values: { defaultStartLocation: "/domain/custom" } },
-    ]);
-    const settings = await AppSettings.loadOrSeed();
-
-    expect(settings._id).toBe("row1");
-    expect(settings.getValue(AppSettingKeys.defaultStartLocation)).toBe(
-      "/domain/custom",
-    );
-    // No save on the reuse path.
-    expect(pm.saves).toHaveLength(0);
+  it("warm on an unseeded collection yields an empty cached instance (no write)", async () => {
+    pm.setFindResult([]);
+    const settings = await AppSettings.warm();
+    expect(settings.getValues()).toEqual({});
+    expect(settings._id).toBeUndefined();
   });
 
   it("getCached throws loudly when the cache was never warmed", () => {
