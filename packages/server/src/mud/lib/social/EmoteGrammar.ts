@@ -20,7 +20,6 @@ import { Mml } from '../../api/mml';
 import { ProseApi } from '../../api/prose';
 import { MqlApi } from '../../api/mql';
 import { MixinApi } from '../../api/mixin';
-import { DescribeApi } from '../../api/describe';
 import type { CommandGiver } from '../command/CommandGiver';
 import type { Emote } from './Emote';
 
@@ -116,7 +115,7 @@ export class EmoteGrammarRunner {
           scope,
         });
         if (result.stuff) {
-          fills[name] = DescribeApi.getDisplayName(result.stuff);
+          fills[name] = result.stuff.getPresentation();
           if (!target) target = result.stuff;
           cursor++;
         } else if (spec.optional) {
@@ -215,10 +214,10 @@ function buildRenderContext(
 
 function escapeName(stuff: Stuff): string {
   // Escape the display name in HTML-safe form for the possessive
-  // helpers. `DescribeApi.getDisplayName` returns a plain string;
+  // helpers. `Stuff.getPresentation()` returns a plain string;
   // wrapping in apostrophe-s without escaping would inject any
   // ampersand or angle-bracket lurking in a player name.
-  const raw = DescribeApi.getDisplayName(stuff);
+  const raw = stuff.getPresentation();
   return raw
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')

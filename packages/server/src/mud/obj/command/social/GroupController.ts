@@ -17,7 +17,6 @@ import { MessageApi } from '../../../api/message';
 import { MixinApi } from '../../../api/mixin';
 import type { MqlOneResult } from '../../../api/mql';
 import { Mml } from '../../../api/mml';
-import { DescribeApi } from '../../../api/describe';
 import { Group, type GroupRole } from '../../../lib/social/Group';
 import { GroupApi } from '../../../api/group';
 import { ChatApi } from '../../../api/chat';
@@ -172,7 +171,7 @@ export default class GroupController extends CommandController<GroupModel> {
     }
     this.send(
       context,
-      Mml.compose`\nAdded ${DescribeApi.getDisplayName(target)} to '${name}'.\n`,
+      Mml.compose`\nAdded ${target.getPresentation()} to '${name}'.\n`,
     );
   }
 

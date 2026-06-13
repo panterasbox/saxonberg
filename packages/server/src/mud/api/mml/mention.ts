@@ -14,7 +14,6 @@
 
 import type { Stuff } from '../../lib/stuff/Stuff';
 import { ContainmentApi } from '../containment';
-import { DescribeApi } from '../describe';
 import { MixinApi } from '../mixin';
 
 export interface MentionResolver {
@@ -56,11 +55,11 @@ export class PerceiverMentionResolver implements MentionResolver {
     if (!MixinApi.isContainable(this.speaker)) return null;
     const container = this.speaker.getContainer();
     if (!container || !MixinApi.isContainer(container)) return null;
-    const speakerDisplay = DescribeApi.getDisplayName(this.speaker);
+    const speakerDisplay = this.speaker.getPresentation();
     if (nameMatchesMention(speakerDisplay, word)) return this.speaker.stuffId;
     for (const candidate of container.getContents()) {
       if (candidate.stuffId === this.speaker.stuffId) continue;
-      const display = DescribeApi.getDisplayName(candidate);
+      const display = candidate.getPresentation();
       if (nameMatchesMention(display, word)) return candidate.stuffId;
     }
     return null;
@@ -78,7 +77,7 @@ export class ChannelMentionResolver implements MentionResolver {
 
   resolveMention(word: string): string | null {
     for (const candidate of this.participants) {
-      const display = DescribeApi.getDisplayName(candidate);
+      const display = candidate.getPresentation();
       if (nameMatchesMention(display, word)) return candidate.stuffId;
     }
     return null;

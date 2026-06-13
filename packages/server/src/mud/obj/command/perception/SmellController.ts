@@ -15,7 +15,6 @@ import type { CommandContext } from '../../../api/command';
 import type { Stuff } from '../../../lib/stuff/Stuff';
 import { MixinApi } from '../../../api/mixin';
 import { MessageApi } from '../../../api/message';
-import { DescribeApi } from '../../../api/describe';
 import { Mml } from '../../../api/mml';
 import { SmellModality } from '../../../lib/perception/modalities/SmellModality';
 import type { Smell } from '../../../lib/perception/Smell';
@@ -97,7 +96,7 @@ function renderSmellProse(signal: Smell): Mml {
     .map((s) => {
       const stuff = StuffApi.findById(s.stuffId);
       return stuff
-        ? DescribeApi.getDisplayName(stuff)
+        ? stuff.getPresentation()
         : s.identity || 'something';
     })
     .slice(0, 3);

@@ -18,7 +18,6 @@ import type {
 import type { MqlManyResult } from '../../../api/mql';
 import type { Stuff } from '../../../lib/stuff/Stuff';
 import { ContainmentApi } from '../../../api/containment';
-import { DescribeApi } from '../../../api/describe';
 import { GlobbableApi, type ApplyQuantityResult } from '../../../api/glob';
 import { MessageApi } from '../../../api/message';
 import { MixinApi } from '../../../api/mixin';
@@ -104,7 +103,7 @@ export default class GetController extends CommandController<GetModel> {
         continue;
       }
       this.pickUpOperand(target, context);
-      pickedNames.push(DescribeApi.formatName(target));
+      pickedNames.push(target.getPresentation());
     }
     if (pickedNames.length === 0) {
       MessageApi.scene(context.commandGiver)

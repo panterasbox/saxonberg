@@ -367,29 +367,25 @@ Item-side gates intentionally don't exist — the authoring
 intuition is host-side ("this surface rejects X") not item-side
 ("this item refuses Y").
 
-### DescribeApi grouping
+### Surface-resting grouping (not yet built)
 
 Items appear in their enclosing container's contents listing
 naturally (the apple is in the room; `room.getContents()`
-includes it). To render the perceptual grouping ("a wooden
-desk, with a red apple on it"), the describe layer offers two
-helpers:
+includes it). Rendering the perceptual grouping ("a wooden
+desk, with a red apple on it") needs a presentation pass that
+partitions a `getContents()` snapshot into top-level items and
+items grouped under their supporting `Surfaced` host, plus a
+count-aware suffix ("with a red apple on it" / "scattered with
+various items" above a threshold).
 
-- `DescribeApi.groupContentsByResting(contents)` partitions a
-  `getContents()` snapshot into `topLevel` items and a
-  `byHost` map of items grouped under their supporting Surfaced.
-  Items resting on a surface NOT in the same listing fall back
-  to `topLevel`.
-- `DescribeApi.formatRestingSuffix(host, resting)` produces a
-  count-aware suffix string: enumerated for ≤ `SURFACE_ENUMERATE_THRESHOLD`
-  items, summarized ("scattered with various items") above. The
-  threshold is a tunable exported constant.
-
-The grouping is a presentation pass; the underlying contents
-walk is unchanged. v1 has no top-of-`look` content-listing
-caller (`look` doesn't render "you see X, Y, Z" today), so the
-helpers ship ready for the future caller without forcing a
-walker into place.
+An early implementation of this lived as `DescribeApi`
+helpers (`groupContentsByResting` / `formatRestingSuffix`), but
+it had no production caller — `look` doesn't render a
+"you see X, Y, Z" content listing today — so it was removed as
+dead code when `DescribeApi` retired (recoverable from git
+history). The grouping is purely presentational; the underlying
+contents walk is unchanged, so the render pass can be
+reintroduced whenever the listing caller actually lands.
 
 ### Verbs: `put`, `give`
 

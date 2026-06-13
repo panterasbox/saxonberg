@@ -39,7 +39,6 @@ import { MessageApi } from '../../../api/message';
 import { Mml } from '../../../api/mml';
 import { MixinApi } from '../../../api/mixin';
 import { ContainmentApi, ContainmentError } from '../../../api/containment';
-import { DescribeApi } from '../../../api/describe';
 import { AccessApi } from '../../../api/access';
 import type { Container } from '../../../lib/spatial/Container';
 import type { Containable } from '../../../lib/spatial/Containable';
@@ -83,7 +82,7 @@ export default class TeleportController extends CommandController<TeleportModel>
     if (!dest) {
       return this.fail(
         context,
-        `${DescribeApi.getDisplayName(focused)} is not a container ` +
+        `${focused.getPresentation()} is not a container ` +
           `and has no environment to land in; use \`to <somewhere>\``,
       );
     }
@@ -96,8 +95,8 @@ export default class TeleportController extends CommandController<TeleportModel>
       return this.fail(context, `canTeleport veto: ${veto.reason}`);
     }
 
-    const targetName = DescribeApi.getDisplayName(tgt);
-    const destName = DescribeApi.getDisplayName(dest);
+    const targetName = tgt.getPresentation();
+    const destName = dest.getPresentation();
 
     // 2. Polished path: Mobile.teleport handles announcements +
     // auto-look. Try this first regardless of force; force only

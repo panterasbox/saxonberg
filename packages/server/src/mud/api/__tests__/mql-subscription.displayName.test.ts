@@ -9,7 +9,6 @@
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { collectSubscribableFields } from '../mql-subscription';
-import { DescribeApi } from '../describe';
 import { NamedMixin } from '../../lib/description/Named';
 import { Idea } from '../../lib/stuff/Idea';
 import { Stuff } from '../../lib/stuff/Stuff';
@@ -41,7 +40,7 @@ describe('MQL subscription — displayName on Stuff', () => {
     expect(displayName!.read).toBeDefined();
   });
 
-  it('displayName.read routes through DescribeApi.getDisplayName with viewer', () => {
+  it('displayName.read routes through Stuff.getPresentation()', () => {
     const obj = makeStuff(() => {
       const t = new NamedThing();
       t.setName('Alice');
@@ -49,13 +48,13 @@ describe('MQL subscription — displayName on Stuff', () => {
     });
     const descriptors = collectSubscribableFields(obj);
     const displayName = descriptors.get('displayName')!;
-    const spy = vi.spyOn(DescribeApi, 'getDisplayName');
+    const spy = vi.spyOn(Stuff.prototype, 'getPresentation');
     const value = displayName.read!(
       obj,
       obj as unknown as Parameters<NonNullable<typeof displayName.read>>[1],
     );
     expect(value).toBe('Alice');
-    expect(spy).toHaveBeenCalledWith(obj, expect.anything());
+    expect(spy).toHaveBeenCalled();
     spy.mockRestore();
   });
 

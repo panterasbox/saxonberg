@@ -28,7 +28,6 @@ import type {
 import { nanoid } from 'nanoid';
 import { MixinApi } from './mixin';
 import { SecurityApi } from './security';
-import { DescribeApi } from './describe';
 import { ExecutionContextApi } from './execution-context';
 import { Mml } from './mml';
 
@@ -351,7 +350,7 @@ export class MessageApi {
    * a re-resolution step on the client.
    */
   static refOf(stuff: Stuff): StuffRef {
-    const display = DescribeApi.getDisplayName(stuff);
+    const display = stuff.getPresentation();
     const ref: StuffRef = { stuffId: stuff.stuffId };
     if (display) ref.displayName = display;
     return ref;

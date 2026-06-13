@@ -14,7 +14,6 @@ import { SingleSenseControllerBase } from './SingleSenseControllerBase';
 import type { CommandContext } from '../../../api/command';
 import type { SenseChannel } from '../../../lib/description/Perceiver';
 import { MessageApi } from '../../../api/message';
-import { DescribeApi } from '../../../api/describe';
 import { Mml } from '../../../api/mml';
 import { SoundModality } from '../../../lib/perception/modalities/SoundModality';
 import type { Sound } from '../../../lib/perception/Sound';
@@ -55,7 +54,7 @@ function renderListenProse(signal: Sound): Mml {
       if (s.character === 'ambient') return 'the ambient hum';
       const stuff = StuffApi.findById(s.stuffId);
       const name = stuff
-        ? DescribeApi.getDisplayName(stuff)
+        ? stuff.getPresentation()
         : s.character || 'something';
       return name;
     });

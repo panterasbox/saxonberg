@@ -560,7 +560,7 @@ ceiling succeeds (overloaded but functional).
     context.note({
       kind: 'controller-rejected',
       reason: 'too-heavy-to-lift',
-      detail: `${DescribeApi.formatName(operand)} won't budge`,
+      detail: `${operand.getPresentation()} won't budge`,
     });
     MessageApi.scene(giver)
       .topic('world.perception.inventory')

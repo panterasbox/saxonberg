@@ -207,7 +207,7 @@ describe('Interactive', () => {
       ConnectionApi.transfer(interactive, mockAvatar);
       const str = interactive.toString();
 
-      // toString uses DescribeApi.getDisplayName (casual register),
+      // toString uses getPresentation() (casual register),
       // which returns Named.name, not the fullName form.
       expect(str).toContain('Alice');
     });

@@ -39,7 +39,6 @@ import type { Container } from '../spatial/Container';
 import type Door from './Door';
 import type { Adornable } from './Adornable';
 import { StuffApi } from '../../api/stuff';
-import { DescribeApi } from '../../api/describe';
 import { BoundaryApi } from '../../api/boundary';
 import { MixinApi } from '../../api/mixin';
 
@@ -165,7 +164,7 @@ export default class ExitableVessel extends ExitableVesselBase {
       return this.entryCache;
     }
 
-    const vesselName = DescribeApi.getDisplayName(this as unknown as Stuff);
+    const vesselName = (this as unknown as Stuff).getPresentation();
     const door = this.getDoor();
     const exit = StuffApi.createSync(() => new Exit({
       direction: 'in',
@@ -189,7 +188,7 @@ export default class ExitableVessel extends ExitableVesselBase {
       return this.outCache;
     }
 
-    const vesselName = DescribeApi.getDisplayName(this as unknown as Stuff);
+    const vesselName = (this as unknown as Stuff).getPresentation();
     const door = this.getDoor();
     const exit = StuffApi.createSync(() => new Exit({
       direction: 'out',

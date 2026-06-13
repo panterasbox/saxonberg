@@ -83,7 +83,10 @@ describe('MQL subscription — MqlSubscriptionApi.projectFields (flat)', () => {
     });
     const viewer = obj as unknown as Parameters<typeof MqlSubscriptionApi.projectFields>[2];
     const rec = MqlSubscriptionApi.projectFields(obj, REF_FIELDS, viewer);
-    expect(rec.displayName).toBe('coin');
+    // getPresentation folds the Globbable count in as an affix, so the
+    // displayName render is count-aware; `quantity` still rides along
+    // separately for clients that want the raw number.
+    expect(rec.displayName).toBe('3 coins');
     expect(rec.quantity).toBe(3);
   });
 

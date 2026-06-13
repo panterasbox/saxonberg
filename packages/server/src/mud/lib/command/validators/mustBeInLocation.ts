@@ -23,7 +23,6 @@
 import type { Stuff } from '../../stuff/Stuff';
 import type { FieldValidator } from '../../../api/command';
 import { ContainmentApi } from '../../../api/containment';
-import { DescribeApi } from '../../../api/describe';
 import { MqlApi } from '../../../api/mql';
 
 const validator: FieldValidator = (value, field, context) => {
@@ -42,7 +41,7 @@ const validator: FieldValidator = (value, field, context) => {
 
   for (const stuff of stuffs) {
     if (!locationIds.has((stuff as Stuff).stuffId)) {
-      return `you don't see ${DescribeApi.getDisplayName(stuff)} here`;
+      return `you don't see ${stuff.getPresentation()} here`;
     }
   }
   return undefined;

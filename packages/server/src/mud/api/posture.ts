@@ -19,7 +19,6 @@ import type { Slottable } from '../lib/slot/Slottable';
 import type { Slotted } from '../lib/slot/Slotted';
 import type { Postured } from '../lib/slot/Postured';
 import type { Posed } from '../lib/character/Posed';
-import { DescribeApi } from './describe';
 import { MixinApi } from './mixin';
 import { SlotApi } from './slot';
 import { SecurityApi } from './security';
@@ -79,14 +78,14 @@ export class PostureApi {
           reason: 'no-posture-slot',
           summary:
             `you can't ${verb} on ` +
-            `${DescribeApi.getDisplayName(target)}`,
+            `${target.getPresentation()}`,
         };
       }
       return {
         ok: false,
         reason: 'occupied',
         summary:
-          `${DescribeApi.getDisplayName(target)} is occupied`,
+          `${target.getPresentation()} is occupied`,
       };
     }
 

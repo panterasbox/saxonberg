@@ -111,7 +111,7 @@ the underlying API supplies a last-stitch fallback):
 `name` is strict because there's no honest fallback for "this thing's
 proper name" — wrapping an `'a sword'`-style fallback in `<name>`
 tags would lie about identity. The other Mml-vocabulary filters
-delegate to `DescribeApi.getDisplayName` via `Mml.item` / `.location`
+delegate to `Stuff.getPresentation()` via `Mml.item` / `.location`
 / `.object`, which already drop to sensible defaults (`'an item'`,
 `'somewhere'`, `'something'`) when the Stuff has neither `Named` nor
 `Visible`; the filter lets that fallback surface rather than

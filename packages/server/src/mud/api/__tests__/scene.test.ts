@@ -62,7 +62,7 @@ describe('MessageApi.refOf', () => {
     const obj = makeStuff(() => new Plain());
     const ref = MessageApi.refOf(obj);
     expect(ref.stuffId).toBe(obj.stuffId);
-    // DescribeApi.getDisplayName always returns a string post-reshape;
+    // getPresentation() always returns a string post-reshape;
     // for hosts without Named/Visible state the baked-in `'something'`
     // default flows through.
     expect(ref.displayName).toBe('something');

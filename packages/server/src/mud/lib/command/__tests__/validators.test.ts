@@ -158,7 +158,10 @@ describe('field validators', () => {
       };
       // Fabricate a foreign id to dodge any accidental match.
       const foreignWrapper = {
-        stuff: { stuffId: 'foreign-id-not-in-world' } as Stuff,
+        stuff: {
+          stuffId: 'foreign-id-not-in-world',
+          getPresentation: () => 'a foreign thing',
+        } as unknown as Stuff,
         raw: 'foreign',
       };
       expect(canReach(foreignWrapper, 'target', ctx)).toMatch(/can't reach/);

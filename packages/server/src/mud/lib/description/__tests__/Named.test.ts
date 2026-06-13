@@ -6,7 +6,6 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import { NamedMixin, type AlternateName } from '../Named';
 import { Idea } from '../../stuff/Idea';
 import { MixinApi } from '../../../api/mixin';
-import { DescribeApi } from '../../../api/describe';
 import { makeStuff } from '../../security/__tests__/test-setup';
 
 class NamedThing extends NamedMixin(Idea) {
@@ -193,14 +192,14 @@ describe('NamedMixin', () => {
     });
   });
 
-  describe('DescribeApi.getDisplayName integration', () => {
+  describe('getPresentation() integration', () => {
     it('returns name when set', () => {
       obj.setName('Alice');
-      expect(DescribeApi.getDisplayName(obj)).toBe('Alice');
+      expect(obj.getPresentation()).toBe('Alice');
     });
 
     it('falls back to the baked-in default when name is empty', () => {
-      expect(DescribeApi.getDisplayName(obj)).toBe('something');
+      expect(obj.getPresentation()).toBe('something');
     });
   });
 });

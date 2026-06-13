@@ -133,7 +133,7 @@ describe('ProseApi.format — conditionals and filters', () => {
   it('item filter falls back to the baked-in display-name default for plain stuff', () => {
     const obj = makeStuff(() => new Plain());
     const out = ProseApi.format('[{{ x | item }}]', { x: obj }).toString();
-    // DescribeApi.getDisplayName bakes in 'something' for hosts with
+    // getPresentation() bakes in 'something' for hosts with
     // no Named/Visible state; Mml.item flows that through.
     expect(out).toBe(`[<item stuff-id="${obj.stuffId}">something</item>]`);
   });
