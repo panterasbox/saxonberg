@@ -2,8 +2,8 @@
  * CommandApi cache + YAML-load tests.
  *
  * Production dispatch never queries the cache directly — it walks
- * each giver's recency stack and filters via
- * `CommandApi.matchVerbContextual`. These tests cover the load-once
+ * each giver's recency stack (`CommandGiverMixin.getAffordances()`)
+ * and filters by verb. These tests cover the load-once
  * sharing layer: `getCommand` parses a YAML on first request and
  * returns the cached instance thereafter, `clearCache` drops the
  * memo so the next request reparses, and verb matching itself is

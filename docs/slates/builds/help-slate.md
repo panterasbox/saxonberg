@@ -27,35 +27,35 @@ neighbors (wiki, inspection) cover the rest.
 
 See also:
 
-- [client-shell-slate.md](./client-shell-slate.md) — owns the **shared
+- [client-shell-slate.md](../tails/client-shell-slate.md) — owns the **shared
   reading substrate** (viewer + search + spoiler + transclusion). Help
   is the **Docs** source for the frame's grouped search, and a consumer
   of the **public read-only surface** for its pre-auth face.
-- [spoiler-slate.md](./spoiler-slate.md) — the reveal substrate help
+- [spoiler-slate.md](../deferred-rpg/spoiler-slate.md) — the reveal substrate help
   consumes. Help sets the **transparency-by-default** posture; the
   **capability ceiling** does help's pre-auth gating for free (anonymous
   = the floor tier).
 - [wiki-slate.md](./wiki-slate.md) — the **content** half of the
   systems↔content pair. Cross-transcludes help via `{{help:…}}`; the
   `HelpTopic` is that transclusion unit.
-- [docs/subsystems/command-spec.md](../subsystems/command-spec.md) +
-  [command-routing.md](../subsystems/command-routing.md) — the command
+- [docs/subsystems/command-spec.md](../../subsystems/command-spec.md) +
+  [command-routing.md](../../subsystems/command-routing.md) — the command
   YAML + controllers the command projector reads; the `help` verb +
   `HelpController` follow the standard MVC pattern.
 - the **TypeDoc `api-model.json`** pipeline (see CLAUDE.md → Documentation)
   — the `api` projector's source; today's `HelpController` already
   scaffolds against it.
-- [docs/subsystems/race.md](../subsystems/race.md) +
-  [zone.md](../subsystems/zone.md) +
-  [quantities.md](../subsystems/quantities.md) — the immutable-at-runtime
+- [docs/subsystems/race.md](../../subsystems/race.md) +
+  [zone.md](../../subsystems/zone.md) +
+  [quantities.md](../../subsystems/quantities.md) — the immutable-at-runtime
   definitions help projects (Species/Clade/body plans, taxonomic Zones,
   Unit catalog).
-- [docs/subsystems/messaging.md](../subsystems/messaging.md) +
-  [message-rendering.md](../subsystems/message-rendering.md) — the MML the
+- [docs/subsystems/messaging.md](../../subsystems/messaging.md) +
+  [message-rendering.md](../../subsystems/message-rendering.md) — the MML the
   topic body renders in; the shared renderer + click model.
-- [persistence-architecture-slate.md](./persistence-architecture-slate.md)
+- [persistence-architecture-slate.md](../tails/persistence-architecture-slate.md)
   — standalone help topics are plain `Document`s (a `help` collection).
-- [docs/deployment.md](../deployment.md) — the pre-auth web view the
+- [docs/deployment.md](../../deployment.md) — the pre-auth web view the
   public help face is part of.
 
 ---
@@ -247,9 +247,9 @@ wiki source viewer + the CMS edit handoff).
 - **Mutable-instance data** — inspection (`look`/`analyze`/`identify`)
   and wiki narrative. Help is system/type level only.
 - **The shared reading substrate** (viewer / search / spoiler /
-  transclusion) — owned by [client-shell-slate.md](./client-shell-slate.md).
+  transclusion) — owned by [client-shell-slate.md](../tails/client-shell-slate.md).
 - **The spoiler reveal substrate** — owned by
-  [spoiler-slate.md](./spoiler-slate.md); help consumes it and sets the
+  [spoiler-slate.md](../deferred-rpg/spoiler-slate.md); help consumes it and sets the
   transparency-by-default posture.
 - **The wiki** (content half) — [wiki-slate.md](./wiki-slate.md).
 - **The public read-only surface mechanics** (gather-on-bus /

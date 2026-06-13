@@ -20,11 +20,12 @@ See also:
   record; name to be reconciled); different keying.
 - [docs/subsystems/quantities.md](../../subsystems/quantities.md) —
   measurement-based identification consumes typed quantities.
-- [docs/slates/verb-provisioning-slate.md](../builds/verb-provisioning-slate.md)
-  — the trigger-verb roster (`read scroll of identify`,
-  `analyze`, `taste`, `learn-from-teacher`) is the verb-
-  provisioning taxonomy applied to the identify-an-item verb
-  family.
+- [command-routing.md § Affordance attribution](../../subsystems/command-routing.md)
+  — the trigger-verb roster (`read scroll of identify`, `analyze`,
+  `taste`, `learn-from-teacher`) is the identify verb afforded by
+  different source objects (scroll, instrument, palate, teacher). Each
+  source is a different class landing through `pushCommandSource`; the
+  source object decides how the reveal renders.
 - [docs/subsystems/race.md](../../subsystems/race.md) — Material
   substrate already carries chemistry / composition data.
   Identification reveals it.

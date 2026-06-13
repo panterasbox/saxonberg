@@ -17,19 +17,19 @@ stays two explicit fields.
 
 See also:
 
-- [docs/subsystems/connection.md](../subsystems/connection.md) — the
+- [docs/subsystems/connection.md](../../subsystems/connection.md) — the
   login/logout, WebSocket-upgrade, and session lifecycle this hooks.
 - [docs/slates/persistence-architecture-slate.md](./persistence-architecture-slate.md)
   — `Document` (plain JSON, no Stuff) is what `GoogleProfile` / `User` /
   `TwitchProfile` all are.
-- [docs/slates/char-gen-slate.md](./char-gen-slate.md) — char-gen is
+- [docs/slates/char-gen-slate.md](../char-gen-slate.md) — char-gen is
   **provider-agnostic** (free-text given + roster-defaulted surname); the
   provider name becomes a char-gen *input* only at the deferred
   LLM-refraction stage.
 - [docs/slates/chat-slate.md](./chat-slate.md) — the **Twitch chat relay**
   (downstream of this keystone) extends the `Channel` substrate with an
   external-backed channel.
-- [docs/deployment.md](../deployment.md) — secrets via SSM Parameter
+- [docs/deployment.md](../../deployment.md) — secrets via SSM Parameter
   Store (`SecureString`) / local `.env`; the token-encryption key lives
   here alongside `GOOGLE_CLIENT_SECRET` / `SESSION_SECRET`.
 

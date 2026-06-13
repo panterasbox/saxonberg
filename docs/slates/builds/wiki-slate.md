@@ -34,37 +34,37 @@ external Fandom-style wiki structurally cannot be.
 
 See also:
 
-- [client-shell-slate.md](./client-shell-slate.md) — owns the **shared
+- [client-shell-slate.md](../tails/client-shell-slate.md) — owns the **shared
   reading substrate**: viewer + search + **spoiler gating** + the
   transclusion/embed palette. Wiki (content) and help (systems) are both
   consumers; spoiler is applied per-reader-session across both, not a
   wiki feature. Search shows grouped results (Docs · Wiki).
-- [spoiler-slate.md](./spoiler-slate.md) — the **reveal model** this
+- [spoiler-slate.md](../deferred-rpg/spoiler-slate.md) — the **reveal model** this
   reuses (best-effort, server-side fact-gating, percept
   revelation-conditions). **Delta to flag:** the 0–3 graduated appetite
   dial is a sharper answer to that slate's open question #3 (it currently
   leans "start global") — spoiler-slate should adopt the graduated
   scalar.
-- [docs/subsystems/access.md](../subsystems/access.md) +
-  [access-slate.md](./access-slate.md) — `AccessApi.can` /
+- [docs/subsystems/access.md](../../subsystems/access.md) +
+  [access-slate.md](../tails/access-slate.md) — `AccessApi.can` /
   `canMutateZone` / `isDeveloper`, the zone-anchored slice walk over
   `ownerGroup`/`accessGroups`, and `resolveSourceFolderZone` (the
   namespace-anchoring pattern the wiki mirrors). Reused wholesale.
 - [cms-slate.md](./cms-slate.md) — the **level-3 source** embed is the
   CMS code-editor's *read* side (`SourceTreeApi`); "view the source
   behind this" (wiki) hands off to "edit it" (CMS) → "test it" (game).
-- [docs/subsystems/command-spec.md](../subsystems/command-spec.md) +
-  [command-routing.md](../subsystems/command-routing.md) — the `wiki`
+- [docs/subsystems/command-spec.md](../../subsystems/command-spec.md) +
+  [command-routing.md](../../subsystems/command-routing.md) — the `wiki`
   verb + `WikiController` follow the standard MVC verb pattern; the
   `FromController` narrow-entry gates the mutations.
-- [docs/subsystems/messaging.md](../subsystems/messaging.md) +
-  [message-rendering.md](../subsystems/message-rendering.md) — the MML
+- [docs/subsystems/messaging.md](../../subsystems/messaging.md) +
+  [message-rendering.md](../../subsystems/message-rendering.md) — the MML
   the page body is authored in; the renderer + click model the viewer
   reuses; the `<mql>` sleeper tag the embed palette extends.
-- [persistence-architecture-slate.md](./persistence-architecture-slate.md)
+- [persistence-architecture-slate.md](../tails/persistence-architecture-slate.md)
   — `WikiPage` is a plain `Document` (no Stuff overhead).
-- [docs/subsystems/grouping.md](../subsystems/grouping.md) +
-  [zone.md](../subsystems/zone.md) — Groups + `FolderZone` stamps the
+- [docs/subsystems/grouping.md](../../subsystems/grouping.md) +
+  [zone.md](../../subsystems/zone.md) — Groups + `FolderZone` stamps the
   bootstrap mints (mirrors the shipped lounge group + `/lib/lounge` /
   `/domain/lounge` stamps).
 
@@ -365,9 +365,9 @@ the newcomer/SEO angle without a populated wiki.
 - **Diegetic expression** (librarian/journal) — deferred; function over
   form; a later consumer of the exposed data.
 - **The shared viewer / search / embed-palette substrate** — owned by
-  [client-shell-slate.md](./client-shell-slate.md).
+  [client-shell-slate.md](../tails/client-shell-slate.md).
 - **The spoiler reveal substrate** — owned by
-  [spoiler-slate.md](./spoiler-slate.md); reused here, with the
+  [spoiler-slate.md](../deferred-rpg/spoiler-slate.md); reused here, with the
   graduated-dial delta flagged back to it.
 - **Help-system internals** — the systems-leaning co-consumer (commands,
   taxonomies, mechanics; generated from code + data; gets its *own*

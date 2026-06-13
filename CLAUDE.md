@@ -68,7 +68,7 @@ behavior. Read the relevant doc before editing in its area.
   - [call-security.md](./docs/subsystems/call-security.md) — proxy interception, decorators, policies, shadows, FrameKind, FromController narrow-entry
   - [access.md](./docs/subsystems/access.md) — AccessApi thin facade over AccessRegistry; four predicates, Zone.ownerGroup/accessGroups, narrow-entry pattern
   - [properties.md](./docs/subsystems/properties.md) — PropertiedMixin, Property<T>, transient vs saved storage, access control, masks
-  - [command-routing.md](./docs/subsystems/command-routing.md) — YAML view + controller MVC, per-giver recency stack, dispatch chain, validators, phase-effects
+  - [command-routing.md](./docs/subsystems/command-routing.md) — YAML view + controller MVC, per-giver recency stack, dispatch chain, validators, phase-effects, affordance attribution (`getAffordances`/`commandSource` — what afforded each verb)
   - [command-parsing.md](./docs/subsystems/command-parsing.md) — CommandLineApi tokenizer, RawToken classes, `format()` round-trip, `msh` shell, parser pluggability
   - [command-spec.md](./docs/subsystems/command-spec.md) — author guide for adding a verb: YAML shape, controller conventions, validators, discovery wiring
   - [mql.md](./docs/subsystems/mql.md) — MQL internals: pipeline, AST, scope-walk, predicates, pronoun memory, online provider seam, PathTrie

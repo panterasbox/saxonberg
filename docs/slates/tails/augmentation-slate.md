@@ -191,9 +191,11 @@ issued part is what's load-bearing now, the loadout is designed-for.
 - **capability-magic** — motor/cognitive augments + the effective =
   innate × condition × augments derivation; the deferred RPG layer.
 - **comms / emotes** — the baseline carries verbal + emotive ESP.
-- **access / verb-provisioning** — augments may gate/afford capabilities
-  and verbs (a skill-chip affords its verbs; a sensor affords a perception
-  verb).
+- **access / command affordances** — augments may gate/afford
+  capabilities and verbs (a skill-chip affords its verbs; a sensor
+  affords a perception verb). Each augment is a source object that
+  contributes its verbs through `pushCommandSource`; see
+  [command-routing § Affordance attribution](../../subsystems/command-routing.md).
 - **char-gen** — a customization axis (baseline issued + optional loadout).
 
 ---

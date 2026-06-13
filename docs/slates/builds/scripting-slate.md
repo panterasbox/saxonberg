@@ -40,8 +40,8 @@ The load-bearing decisions:
    forces, force stays bounded by the *target's* perms). The language is a
    sequencing + control-flow layer **over** dispatch, never a side door
    around it. The whole command-security model survives unchanged. See
-   [command-routing.md](../subsystems/command-routing.md),
-   [call-security.md](../subsystems/call-security.md).
+   [command-routing.md](../../subsystems/command-routing.md),
+   [call-security.md](../../subsystems/call-security.md).
 
 3. **Timing is control flow.** `wait 30s`, `every 2m`, `when <cond>` make a
    script a **coroutine the scheduler drives** (`ScheduleApi` already wraps
@@ -53,7 +53,7 @@ The load-bearing decisions:
 
 4. **Conditions are MQL.** `if` / `when` predicates are MQL — an existing,
    bounded, sandboxed query language. Don't reinvent queries. See
-   [mql.md](../subsystems/mql.md).
+   [mql.md](../../subsystems/mql.md).
 
 5. **`improv` is the seam back to live generation.** A primitive that
    re-invokes the LLM mid-script for a line it didn't pre-write. This unifies
@@ -80,17 +80,17 @@ See also:
 - [llm-content-slate.md](./llm-content-slate.md) — *who* authors scripts at
   runtime (the director) and *how they're enacted* (force over the verb bus).
   This slate is the language they're written in.
-- [shell-author.md](../subsystems/shell-author.md) — the existing
+- [shell-author.md](../../subsystems/shell-author.md) — the existing
   `EvalScript` sandbox: the **general** TS surface. The scripting language is
   the **special** surface; same isolation machinery, narrowed grammar.
-- [access-slate.md](./access-slate.md) — isolation / lease-scoped sandboxes;
+- [access-slate.md](../tails/access-slate.md) — isolation / lease-scoped sandboxes;
   who may write/run a script.
-- [mql.md](../subsystems/mql.md) — the condition sublanguage *and* the
+- [mql.md](../../subsystems/mql.md) — the condition sublanguage *and* the
   existing object pipeline (chain operators over Stuff) the pipe generalizes.
-- [command-spec.md](../subsystems/command-spec.md) — the YAML field-`type:`
+- [command-spec.md](../../subsystems/command-spec.md) — the YAML field-`type:`
   vocabulary the pipe binds against, and the pluggable-parser seam (the
   pre-bound `{ command, model }` path piping rides).
-- [response-envelope.md](../subsystems/response-envelope.md) — the
+- [response-envelope.md](../../subsystems/response-envelope.md) — the
   `DispatchResponseEnvelope`: the **effect** channel, distinct from the pipe's
   **value** channel.
 

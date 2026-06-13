@@ -21,20 +21,20 @@ design that rides on top come later.
 
 See also:
 
-- [docs/subsystems/glob.md](../subsystems/glob.md) — fungible stacks.
+- [docs/subsystems/glob.md](../../subsystems/glob.md) — fungible stacks.
   **Coins and raw materials are already modeled.** A coin-stack is one
   `Globbable` Stuff with a `quantity` field; so is a pile of ore.
   Split / merge / `applyQuantity` already work. Currency is the
   simplest possible glob; the economy mints no new money substrate.
-- [docs/subsystems/quantities.md](../subsystems/quantities.md) —
+- [docs/subsystems/quantities.md](../../subsystems/quantities.md) —
   `Quantity<U>` value object. The shipped precedent for "numbers don't
   leak into the fiction as bare scalars."
-- [docs/lenses/endogenous-value.md](../lenses/endogenous-value.md) —
+- [docs/lenses/endogenous-value.md](../../lenses/endogenous-value.md) —
   **this slate's philosophical spine.** Effort-anchored value (skills,
   rank) must trace to real worth; pure-play value (your dorm, a maker's
   pride) may be arbitrary. The economy is where the two can get
   confused — the Goodhart seam.
-- [docs/subsystems/chat.md](../subsystems/chat.md) — Channel substrate.
+- [docs/subsystems/chat.md](../../subsystems/chat.md) — Channel substrate.
   The emergent auction channel rides here (see *Transaction clearing*).
 - [docs/slates/recognition-slate.md](./recognition-slate.md) — a
   vendor's stance varies by *who you are*; that's recognition. The
@@ -43,7 +43,7 @@ See also:
 - [docs/slates/scoped-authoring-slate.md](./scoped-authoring-slate.md) —
   player-owned shops are an authorship surface (the dorm-room
   endogenous-value move pointed at commerce).
-- [docs/roadmap.md](../roadmap.md) — the "Economy / currency" and
+- [docs/roadmap.md](../../roadmap.md) — the "Economy / currency" and
   "Crafting" surfaced-but-deferred entries. This slate is the design
   for that backlog.
 

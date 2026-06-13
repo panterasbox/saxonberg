@@ -448,7 +448,7 @@ registry) lives in `lib/mixin.ts`.
 | `lib/stuff/` | `PopulatesMixin` | declarative content-spawn for Container hosts; `populates:` instruction field lists templatePaths to clone (non-singletons) or singleton-resolve into self. Phase 2 applier. |
 | `lib/message/` | `SensorMixin` | `handleMessage(frame)` notification hook |
 | `lib/message/` | `VocalMixin` | `say(text)` with scope inference |
-| `lib/command/` | `CommandGiverMixin` | `executeCommand`, `getAvailableCommands` |
+| `lib/command/` | `CommandGiverMixin` | `executeCommand`, `getAvailableCommands`, `getAffordances` |
 | `lib/stuff/` | `PropertiedMixin` | controlled dynamic property bag, persistent |
 | `lib/stuff/` | `PostRegistrationMixin` | opt-in `postRegister(context?)` lifecycle hook |
 | `lib/persistence/` | `AroundSaveHookMixin` | middleware-style PM save hook |

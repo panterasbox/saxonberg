@@ -351,8 +351,9 @@ own collection).
 - **Adjacent slates:** [social-graph](../slates/builds/social-graph-slate.md)
   (bucket verbosity, later), [comms](../slates/tails/comms-slate.md),
   [persistence-architecture](../slates/tails/persistence-architecture-slate.md),
-  [verb-provisioning](../slates/builds/verb-provisioning-slate.md) (recognition
-  / identify trigger verbs)
+  [command-routing § Affordance attribution](../subsystems/command-routing.md)
+  (recognition / identify trigger verbs afforded by different source
+  objects)
 - **Subsystems:** [perception](../subsystems/perception.md) (separate
   sensory axis — the visibility gate only),
   [embodiment](../subsystems/embodiment.md),

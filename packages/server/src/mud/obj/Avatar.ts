@@ -86,6 +86,7 @@ export default class Avatar extends AvatarBase {
       "system/ping.yaml",
       "system/help.yaml",
       "system/clear.yaml",
+      "system/affordances.yaml",
       "author/player.yaml",
       "perception/analyze.yaml",
     ],
