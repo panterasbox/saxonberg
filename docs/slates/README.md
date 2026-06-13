@@ -45,24 +45,33 @@ explicitly compose.
 **Phases:** behavior substrate → dialogue → scripting language → LLM director. (`reactions` in `tails/` rides later.)
 
 ### 3. Vitals & survival
-- [vitals-slate](./builds/vitals-slate.md) — anatomy / conditions / pedagogy substrate; the consumer `race.md` deferred for.
+*Substrate shipped; the survival mechanics build on top.* The vitals
+foundation (the `Creature` split, vital signs, anatomy/tissue, the
+condition type system, the `Reserve` substrate, death/consciousness
+seams) graduated to [vitals.md](../subsystems/vitals.md) +
+[reserve.md](../subsystems/reserve.md); its deferred application waves
+now live in [tails/vitals-slate](./tails/vitals-slate.md). The build
+proper is the two consumers that drive that substrate:
 - [encumbrance-slate](./builds/encumbrance-slate.md) — borne-weight gauge (derived `current` vs physiology-derived `capacity`); the interaction library (packs / carts / augments / bags of holding) is the build, not the gauge. Reads the shipped reserve/mass/embodiment substrate.
 - [metabolism-slate](./builds/metabolism-slate.md) — the body's intake-and-chemistry system, two phases in one slate. **Phase 1 (energy economy):** basal drain (hunger/thirst), **coupled** endurance recovery (the wallet refills by burning fuel), the `ingest` digestion buffer, in-session clock + sleep-as-logout, and the floor-effects → vitals-conditions cascade (metabolism is the first thing to *drive* conditions). **Phase 2 (nutrients & toxicity):** the real-data nutrient ledger + macro routing + curated deficiencies; toxin potency/burden → poisoning + the `vomit` window. Magic ingestion (potions) deferred. Heat seam resolves in the thermal pass.
 
 **Depends on** [thermal-slate](./tails/thermal-slate.md) (tails/) graduating conductivity to a real material property.
 
-**Phases:** vitals substrate (built) → encumbrance → metabolism (thermal designed before build).
+**Phases:** vitals substrate (built → tails) → encumbrance → metabolism (thermal designed before build).
 
 ### 4. World places & navigation
-*A long, sequenced content build.*
-- [multilocation-slate](./builds/multilocation-slate.md) — Warren elastic-graph substrate. **Requirements + plan done.**
-- [lounge-slate](./builds/lounge-slate.md) — the spawn lounge content (locked slate); built atop multilocation.
+*A long, sequenced content build.* The Warren elastic-graph substrate +
+a rudimentary lounge shipped (→ [location.md](../subsystems/location.md));
+the slate's deferred procedural/spatial consumers now live in
+[tails/multilocation-slate](./tails/multilocation-slate.md). The build
+continues with the content + navigation layers on top:
+- [lounge-slate](./builds/lounge-slate.md) — the full spawn lounge content (locked slate); the rudimentary lounge that shipped with the substrate is the seed.
 - [fast-travel-slate](./builds/fast-travel-slate.md) — fast-travel network; architecture set, build minimal.
 - [eternal-university-slate](./builds/eternal-university-slate.md) — campus content area; built after char-gen + lounge.
 - [onboarding-slate](./builds/onboarding-slate.md) — new-player onboarding; starts at campus arrival.
 - [map-slate](./builds/map-slate.md) — spatial-visualization client pane; an enhancement built when earned.
 
-**Phases:** multilocation + lounge → fast-travel → eternal-university → onboarding → map.
+**Phases:** multilocation substrate (built → tails) + rudimentary lounge → full lounge → fast-travel → eternal-university → onboarding → map.
 
 ### 5. Authoring & CMS
 *Creator tooling.*
@@ -126,6 +135,8 @@ extends; none is a fresh build.
 | [reactions](./tails/reactions-slate.md) | messaging / emotes | attach-emote-to-message |
 | [persistence-architecture](./tails/persistence-architecture-slate.md) | persistence.md | Wave 3 un-Stuff marshallers (Waves 1-2 shipped) |
 | [thermal](./tails/thermal-slate.md) | race.md | conductivity as a material property (vitals dep) |
+| [vitals](./tails/vitals-slate.md) | vitals.md / reserve.md | application waves — live condition progression, the death-transition driver, assessment / instruments / treatment, consumables, forensics (substrate / Wave 1 shipped) |
+| [multilocation](./tails/multilocation-slate.md) | location.md | deferred procedural / spatial Warren consumers beyond the shipped social-elastic lounge case |
 | [client-shell](./tails/client-shell-slate.md) | client-shell.md | search / command palette, mode switcher + per-mode status, public read-only surface, declarative mode/manifest model, pre-auth device-local client-state tier |
 
 **Near-absorbed — retirement candidates** (kept this pass rather than
