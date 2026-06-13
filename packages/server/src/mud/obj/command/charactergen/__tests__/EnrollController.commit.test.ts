@@ -19,6 +19,7 @@ import { SlottableMixin } from '../../../../lib/slot/Slottable';
 import { ContainableMixin } from '../../../../lib/spatial/Containable';
 import { Idea } from '../../../../lib/stuff/Idea';
 import { StuffApi } from '../../../../api/stuff';
+import { AppApi } from '../../../../api/app';
 import { TemplateApi } from '../../../../api/template';
 import { Template } from '../../../../lib/stuff/Template';
 import { ConnectionApi } from '../../../../api/connection';
@@ -50,6 +51,10 @@ describe('EnrollController.commit', () => {
   beforeEach(() => {
     vi.restoreAllMocks();
     EnrollController.resetConfigCache();
+
+    // The mint path now sources the new avatar's startLocation from app
+    // config; mock the cached read (no AppSettings boot warm in this unit).
+    vi.spyOn(AppApi, 'setting').mockReturnValue('/domain/lounge/warren');
 
     user = { _id: 'u1', playerIds: [], save: vi.fn().mockResolvedValue(undefined) };
     const interactive = makeStuff(
@@ -146,6 +151,9 @@ describe('EnrollController.commit', () => {
     expect(d._speciesPath).toBe(SAPIENS);
     expect(d.pronouns).toBe('she');
     expect(d.aspiration).toBe('healer');
+    // Spawn home injected from app config (defaultStartLocation), not the
+    // seed literal.
+    expect(d.startLocation).toBe('/domain/lounge/warren');
     expect(String(d.bio)).toMatch(/mend/i); // healer bioSeed from char-gen.yaml
     // Species' generic appearance lands on the avatar's longDescription
     // (its look) now that Species speaks the Visible interface.

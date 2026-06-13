@@ -351,8 +351,8 @@ fast-travel (TPA), built later.
 The strategy is the **simplest tunable** one (least-full seat, reap-empty,
 bud-when-all-full; never rebalance a live crowd) — an unproven UX bet,
 built to fail safe (flatten-to-one-room is `N` high + `M` 0) and tune
-cheap (defaults are code constants headed for `GameConfig`). The base
-never imports the lounge.
+cheap (defaults are code constants headed for app settings (`AppApi`)). The
+base never imports the lounge.
 
 ## Landing: the `startLocation` spawn instruction
 

@@ -87,8 +87,8 @@ continues with the content + navigation layers on top:
 > discriminator) now lives in
 > [command-routing.md § Affordance attribution](../subsystems/command-routing.md).
 
-### 6. Game config
-- [game-config-slate](./builds/game-config-slate.md) — singleton `GameConfig` Document + `config` verb + seeded defaults. Sequenced after char-gen merges; small enough to ride another build's branch rather than its own cycle.
+### 6. Game config — ✅ shipped
+Shipped as the **app-settings** substrate ([app-settings.md](../subsystems/app-settings.md)): `AppSettings` singleton Document + `AppApi` + the developer-gated `config` verb, values seeded from `app-settings.yaml`. The slate is fully absorbed and retired.
 
 ### 7. Economy
 *Value as physics, not RPG.* Filed here, not in `deferred-rpg/`, on

@@ -17,10 +17,12 @@ import { SeederManager } from './SeederManager';
 import { EmoteSeeder } from './EmoteSeeder';
 import { NameBankSeeder } from './NameBankSeeder';
 import { ChannelSeeder } from './ChannelSeeder';
+import { AppSettingsSeeder } from './AppSettingsSeeder';
 import { BootstrapManager } from './BootstrapManager';
 import { CommandApi } from '../mud/api/command';
 import { QuantityApi } from '../mud/api/quantity';
 import { WorldClockApi } from '../mud/api/worldclock';
+import { AppSettings } from '../mud/lib/config/AppSettings';
 import { setDocumentMarshallerResolver } from '../mud/lib/persistence/Document';
 import { StuffApi } from '../mud/api/stuff';
 import type { Marshaller } from '../mud/lib/persistence/Marshaller';
@@ -116,6 +118,7 @@ export class AppBootstrap {
     await EmoteSeeder.run();
     await ChannelSeeder.run();
     await NameBankSeeder.run();
+    await AppSettingsSeeder.run();
 
     const cmd = await CommandApi.preloadAll();
     if (cmd.failed.length > 0) {
@@ -127,6 +130,14 @@ export class AppBootstrap {
     console.info(`CommandApi: ${cmd.loaded} command YAML(s) preloaded`);
 
     await BootstrapManager.run();
+
+    // App settings — warm the synchronous read cache from the seeded
+    // `app_settings` row (AppSettingsSeeder ran in the seeder block above)
+    // before any consumer reads a setting; the evac path in
+    // Container.cleanupOnDestruct cannot await. Warm-only (no seeding here)
+    // — the values come from app-settings.yaml via the seeder. Awaits the
+    // Document directly — no boot method on AppApi (runtime ops only).
+    await AppSettings.warm();
 
     // World clock — restore the persisted game-time anchor (or seed a
     // zero clock on a fresh DB) and start its backstop. A sequencer

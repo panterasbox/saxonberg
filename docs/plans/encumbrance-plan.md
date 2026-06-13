@@ -147,8 +147,9 @@ working tree (no `git show` needed).
    `lib/encumbrance/` module** — that would invent a module type outside the
    taxonomy; constants belong in the Api that consumes them (the vitals
    precedent: `UNIVERSE_DEFAULT_VITAL_PROFILE` / `VITAL_UNITS` live in their
-   owning file). **Do not** depend on the unbuilt GameConfig; leave a
-   one-line comment that GameConfig is the eventual home when it lands.
+   owning file). **Do not** wire encumbrance into app settings for v1; leave
+   a one-line comment that app settings (`AppApi`) is the eventual home for
+   the deferred dials.
 
 4. **Enforcement lives at the command layer — the move substrate stays
    encumbrance-agnostic (hard invariant).** Encumbrance is a
@@ -819,7 +820,7 @@ inspection/query surface (acceptance criterion).
     (narrow, `Reserved` only). Recovery deferred to the metabolism build —
     v1 drain is one-way, gentle.
   - Where the engine constants live (`ENCUMBRANCE_DEFAULTS`) and that they are
-    deferred dials, GameConfig the eventual home.
+    deferred dials, app settings (`AppApi`) the eventual home.
   - The deferred tails (cart/conveyance handoff, survival ticks, the collapse
     driver, environmental margins, tissue-derived mass, numeric tuning,
     augment-conferred capacity).

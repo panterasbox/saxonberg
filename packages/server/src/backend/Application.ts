@@ -33,6 +33,8 @@ import { PromptApi } from '../mud/api/prompt';
 import { User } from '../mud/lib/identity/User';
 import { TemplateApi } from '../mud/api/template';
 import { StuffApi } from '../mud/api/stuff';
+import { AppApi } from '../mud/api/app';
+import { AppSettingKeys } from '../mud/lib/config/AppSettings';
 import Avatar from '../mud/obj/Avatar';
 import { Template } from '../mud/lib/stuff/Template';
 import { nanoid } from 'nanoid';
@@ -394,6 +396,9 @@ export class Application {
     const path = Avatar.getTemplatePath(playerId);
     const data: Record<string, unknown> = {
       ...seed.data,
+      // Initial spawn home from app config (the seed YAML no longer
+      // carries a startLocation literal).
+      startLocation: AppApi.setting(AppSettingKeys.defaultStartLocation),
       name,
     };
     if (surname) data.surname = surname;
