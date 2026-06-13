@@ -35,6 +35,13 @@ const AFFORDANCE_HINT =
   "Read the board with `teleport`; step up and name a stop — " +
   "`teleport <place>` — to ride.";
 
+// Shown only on arrival-capable terminals — a departure-only node is one-way
+// out and has nothing to register. Tells a traveller who reached a new stop
+// how to add it to their network.
+const REGISTER_HINT =
+  "New to this stop? `register` adds it to your travel credential, so you can " +
+  "return here from anywhere on the network.";
+
 export default class TpaTerminal extends TpaTerminalBase {
   public override async postRegister(_context?: unknown): Promise<void> {
     // Cascade the rest of the network live off this node, then arm any
@@ -74,6 +81,7 @@ export default class TpaTerminal extends TpaTerminalBase {
       this.longDescription && this.longDescription.length > 0
         ? this.longDescription
         : DEFAULT_FLAVOR;
-    return `${flavor}\n${AFFORDANCE_HINT}`;
+    const register = this.isArrival() ? `\n${REGISTER_HINT}` : "";
+    return `${flavor}\n${AFFORDANCE_HINT}${register}`;
   }
 }
