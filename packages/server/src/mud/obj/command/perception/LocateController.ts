@@ -11,7 +11,6 @@ import type {
 import type { MqlOneResult } from '../../../api/mql';
 import { MessageApi } from '../../../api/message';
 import { Mml } from '../../../api/mml';
-import { DescribeApi } from '../../../api/describe';
 import { MixinApi } from '../../../api/mixin';
 import type { Stuff } from '../../../lib/stuff/Stuff';
 
@@ -28,7 +27,7 @@ export default class LocateController extends CommandController<LocateModel> {
     const chain: string[] = [];
     let cursor: Stuff | null = target.stuff;
     while (cursor) {
-      chain.push(DescribeApi.getDisplayName(cursor));
+      chain.push(cursor.getPresentation());
       const next: Stuff | null = MixinApi.isContainable(cursor)
         ? cursor.getContainer()
         : null;
@@ -36,8 +35,8 @@ export default class LocateController extends CommandController<LocateModel> {
       cursor = next;
       if (cursor === null) {
         const zone = prior.getZone();
-        if (zone && !chain.includes(DescribeApi.getDisplayName(zone))) {
-          chain.push(DescribeApi.getDisplayName(zone));
+        if (zone && !chain.includes(zone.getPresentation())) {
+          chain.push(zone.getPresentation());
         }
       }
     }

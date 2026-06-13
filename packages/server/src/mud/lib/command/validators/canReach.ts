@@ -34,7 +34,6 @@
 import type { Stuff } from '../../stuff/Stuff';
 import type { FieldValidator } from '../../../api/command';
 import { ContainmentApi } from '../../../api/containment';
-import { DescribeApi } from '../../../api/describe';
 import { MixinApi } from '../../../api/mixin';
 import { MqlApi } from '../../../api/mql';
 
@@ -73,7 +72,7 @@ const validator: FieldValidator = (value, field, context) => {
     if (inventoryIds.has(id)) continue;
     if (locationIds.has(id)) continue;
     if (exitDoorIds.has(id)) continue;
-    return `you can't reach ${DescribeApi.getDisplayName(stuff)}`;
+    return `you can't reach ${stuff.getPresentation()}`;
   }
   return undefined;
 };

@@ -33,7 +33,6 @@ import type { MqlOneResult } from '../../../api/mql';
 import type { Stuff } from '../../../lib/stuff/Stuff';
 import { MixinApi } from '../../../api/mixin';
 import { MessageApi } from '../../../api/message';
-import { DescribeApi } from '../../../api/describe';
 import { BulkableApi } from '../../../api/bulk';
 import { Mml } from '../../../api/mml';
 import type Exit from '../../../lib/boundary/Exit';
@@ -247,7 +246,7 @@ export default class LookController extends CommandController<LookModel> {
     // can differentiate "looking at a thing" from "looking at the
     // room".
     if (!MixinApi.isVisible(target)) {
-      const name = DescribeApi.getDisplayName(target);
+      const name = target.getPresentation();
       MessageApi.scene(actor)
         .topic('world.perception.sense.look')
         .toSelf(Mml.compose`You can't see ${name}.`)

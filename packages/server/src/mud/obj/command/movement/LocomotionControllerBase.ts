@@ -32,7 +32,6 @@ import { LocomotionApi } from '../../../api/locomotion';
 import type { LocomotionMode } from '../../../lib/locomotion/LocomotionMode';
 import { MessageApi } from '../../../api/message';
 import { MixinApi } from '../../../api/mixin';
-import { DescribeApi } from '../../../api/describe';
 import { Mml } from '../../../api/mml';
 
 export interface LocomotionModel extends CommandModel {
@@ -117,7 +116,7 @@ export abstract class LocomotionControllerBase extends CommandController<Locomot
     }
 
     const destination = exit.getDestination();
-    const destName = DescribeApi.getDisplayName(destination);
+    const destName = destination.getPresentation();
 
     if (mode.getPassthrough()) {
       const host = LocomotionApi.findConveyanceHost(actor, mode);

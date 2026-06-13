@@ -55,7 +55,6 @@ import type { Stuff } from '../lib/stuff/Stuff';
 import type { Sensor } from '../lib/message/Sensor';
 import type Exit from '../lib/boundary/Exit';
 import type { SenseChannel } from '../lib/description/Perceiver';
-import { DescribeApi } from './describe';
 import { SecurityApi } from './security';
 import { MixinApi } from './mixin';
 import { escapeText, decodeEntity } from './mml/entities';
@@ -243,7 +242,7 @@ export class Mml {
    * rendering, identity overlays) read the id directly.
    */
   static name(stuff: Stuff): Mml {
-    const display = DescribeApi.getDisplayName(stuff);
+    const display = stuff.getPresentation();
     return Mml.fromMarkup(
       `<name stuff-id="${escapeText(stuff.stuffId)}">${escapeText(display)}</name>`
     );
@@ -269,7 +268,7 @@ export class Mml {
    * tags. Same identity-tagging rationale as `name`.
    */
   static location(stuff: Stuff): Mml {
-    const display = DescribeApi.getDisplayName(stuff);
+    const display = stuff.getPresentation();
     return Mml.fromMarkup(
       `<location stuff-id="${escapeText(stuff.stuffId)}">${escapeText(display)}</location>`
     );
@@ -304,7 +303,7 @@ export class Mml {
    * as `name`.
    */
   static object(stuff: Stuff): Mml {
-    const display = DescribeApi.getDisplayName(stuff);
+    const display = stuff.getPresentation();
     return Mml.fromMarkup(
       `<object stuff-id="${escapeText(stuff.stuffId)}">${escapeText(display)}</object>`
     );
@@ -315,7 +314,7 @@ export class Mml {
    * tags. Same identity-tagging rationale as `name`.
    */
   static item(stuff: Stuff): Mml {
-    const display = DescribeApi.getDisplayName(stuff);
+    const display = stuff.getPresentation();
     return Mml.fromMarkup(
       `<item stuff-id="${escapeText(stuff.stuffId)}">${escapeText(display)}</item>`
     );
@@ -354,7 +353,7 @@ export class Mml {
    * the stylesheet's `attribute → bucket` selector.
    */
   static player(stuff: Stuff): Mml {
-    const display = DescribeApi.getDisplayName(stuff);
+    const display = stuff.getPresentation();
     return Mml.fromMarkup(
       `<player stuff-id="${escapeText(stuff.stuffId)}">${escapeText(display)}</player>`
     );
@@ -367,7 +366,7 @@ export class Mml {
    * same way other players are).
    */
   static npc(stuff: Stuff): Mml {
-    const display = DescribeApi.getDisplayName(stuff);
+    const display = stuff.getPresentation();
     return Mml.fromMarkup(
       `<npc stuff-id="${escapeText(stuff.stuffId)}">${escapeText(display)}</npc>`
     );

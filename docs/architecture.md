@@ -226,7 +226,7 @@ Examples: `StuffApi`, `ConnectionApi`, `MixinApi`, `MessageApi`,
 `MudlogApi`, `CommandApi`, `CommandLineApi`, `ProxyApi`,
 `SecurityApi`, `ShadowApi`, `ExecutionContextApi`, `ModuleApi`,
 `NavigationApi`, `PathPatternApi`, `ScheduleApi`, `SchedulerApi`,
-`TemplateApi`, `ZoneApi`, `DescribeApi`, `MmlApi`, `PlayerApi`,
+`TemplateApi`, `ZoneApi`, `MmlApi`, `PlayerApi`,
 `PersistApi`-equivalent (no separate class today — persistence
 helpers live on the relevant Apis directly).
 
@@ -625,7 +625,7 @@ bypass it.
 | `new SomeStuff()` | `await StuffApi.create(() => new SomeStuff())` or `await StuffApi.clone(path)` |
 | `item.setContainer(c); c.addContainable(item)` | `ContainmentApi.move(item, c)` |
 | `typeof obj.getContents === 'function'` | `MixinApi.isContainer(obj)` (narrow) or `MixinApi.hasMixin(ctor, Mixins.Container)` (introspect) |
-| `obj.fullName ?? obj.name ?? 'something'` | `DescribeApi.getDisplayName(obj, 'something')` |
+| `obj.fullName ?? obj.name ?? 'something'` | `obj.getPresentation()` |
 | `creature.move(loc)` (raw containment) | `creature.travel(loc, 'walk')` (locomotion) |
 
 See [antipatterns.md](./antipatterns.md) for the full rule with examples.

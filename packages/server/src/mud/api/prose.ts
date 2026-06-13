@@ -82,7 +82,7 @@ engine.registerFilter('name', (v) => {
 // `| item`, `| location`, `| object` accept any Stuff. The underlying
 // `Mml.*` factories already drop to a sensible last-stitch fallback
 // (`'an item'`, `'somewhere'`, `'something'`) via
-// `DescribeApi.getDisplayName` when neither Named nor Visible is
+// `Stuff.getPresentation()` when neither Named nor Visible is
 // present — so the filter is the right place to let that fallback
 // surface rather than swallowing the call.
 engine.registerFilter('item', (v) => {

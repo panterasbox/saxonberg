@@ -17,7 +17,6 @@
 import type { CommandValidator } from '../../../api/command';
 import { SpeciesApi } from '../../../api/species';
 import { MixinApi } from '../../../api/mixin';
-import { DescribeApi } from '../../../api/describe';
 
 const validator: CommandValidator = (context) => {
   const giver = context.commandGiver;
@@ -25,7 +24,7 @@ const validator: CommandValidator = (context) => {
 
   // Tailor the error message to what's actually wrong: a dead
   // organism gets a different message from a non-organism caller.
-  const name = DescribeApi.getDisplayName(giver);
+  const name = giver.getPresentation();
   if (MixinApi.isOrganism(giver)) {
     const state = giver.getLifecycleState();
     if (state === 'dead' || state === 'destroyed' || state === 'unpowered') {

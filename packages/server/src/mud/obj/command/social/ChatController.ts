@@ -19,7 +19,6 @@ import type {
 } from '../../../api/command';
 import { MessageApi } from '../../../api/message';
 import { Mml } from '../../../api/mml';
-import { DescribeApi } from '../../../api/describe';
 import { ChatApi } from '../../../api/chat';
 import { PlayerApi } from '../../../api/player';
 import type { Channel } from '../../../lib/social/Channel';
@@ -127,7 +126,7 @@ export default class ChatController extends CommandController<ChatModel> {
           id: Math.random().toString(36).slice(2, 12),
           topic: 'world.chat.message',
           tags: ['audience:witness'],
-          body: `[${ad.handle}] ${DescribeApi.getDisplayName(speaker)}: ${body}`,
+          body: `[${ad.handle}] ${speaker.getPresentation()}: ${body}`,
           meta: { timestamp: Date.now(), modality: 'verbal-esp', channelId: ad.handle },
           payload: {
             channelId: ad.handle,
@@ -217,7 +216,7 @@ export default class ChatController extends CommandController<ChatModel> {
     }
     const lines = [`In ${name}:`];
     for (const a of audience) {
-      lines.push(`  ${DescribeApi.getDisplayName(a)}`);
+      lines.push(`  ${a.getPresentation()}`);
     }
     this.send(context, Mml.fromMarkup(`\n${lines.join('\n')}\n`));
   }

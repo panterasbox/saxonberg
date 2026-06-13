@@ -122,7 +122,7 @@ interface StuffRef {
 ```
 
 `MessageApi.refOf(stuff)` builds one. `displayName` is resolved at
-compose time via `DescribeApi.getDisplayName`, so the wire payload
+compose time via `Stuff.getPresentation()`, so the wire payload
 doesn't depend on a re-resolution step on the client.
 
 Frame `id` is a `nanoid()` minted inline at frame construction in

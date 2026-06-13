@@ -284,7 +284,7 @@ export interface TextPromptNote {
 /**
  * Minimal disambiguation-target descriptor sent on `mqlObject` /
  * `mqlMany` prompts. The substrate projects matches at push time
- * (server resolves `displayName` via `DescribeApi.getDisplayName`);
+ * (server resolves `displayName` via `Stuff.getPresentation()`);
  * client never sees a Stuff reference.
  */
 export interface MqlMatchSummary {
@@ -505,7 +505,7 @@ export interface PromptCancelMessage {
  * subscription substrate can grow its record shape independently.
  *
  * `displayName` is non-optional here — the substrate's synthetic
- * descriptor ensures `DescribeApi.getDisplayName` always renders a
+ * descriptor ensures `Stuff.getPresentation()` always renders a
  * usable string. `quantity` rides along for Globbable hosts; absent
  * for non-Globbable. `primaryKeyword` rides along for Perceptible
  * hosts (every in-world Stuff with a keyword pool); absent otherwise.

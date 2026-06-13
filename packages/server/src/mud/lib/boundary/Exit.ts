@@ -43,7 +43,6 @@ import type { Stuff } from '../stuff/Stuff';
 import type { Container } from '../spatial/Container';
 import type { Containable } from '../spatial/Containable';
 import type Door from './Door';
-import { DescribeApi } from '../../api/describe';
 import { StuffApi } from '../../api/stuff';
 import { LocomotionApi } from '../../api/locomotion';
 
@@ -469,7 +468,7 @@ export default class Exit extends Idea {
       };
     }
     if (this.door && !this.door.isOpen()) {
-      const doorName = DescribeApi.getDisplayName(this.door);
+      const doorName = this.door.getPresentation();
       return {
         ok: false,
         gate: 'door',

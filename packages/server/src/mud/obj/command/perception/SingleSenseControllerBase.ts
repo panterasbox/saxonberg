@@ -50,7 +50,6 @@ import type { Stuff } from '../../../lib/stuff/Stuff';
 import type { SenseChannel } from '../../../lib/description/Perceiver';
 import { MixinApi } from '../../../api/mixin';
 import { MessageApi } from '../../../api/message';
-import { DescribeApi } from '../../../api/describe';
 import { Mml } from '../../../api/mml';
 
 export interface SingleSenseModel extends CommandModel {
@@ -172,7 +171,7 @@ export abstract class SingleSenseControllerBase extends CommandController<Single
   private senseTarget(target: Stuff, context: CommandContext): void {
     const actor = context.commandGiver;
     if (!MixinApi.isDetailed(target) && !MixinApi.isVisible(target)) {
-      const name = DescribeApi.getDisplayName(target);
+      const name = target.getPresentation();
       MessageApi.scene(actor)
         .topic(this.sceneTopic)
         .toSelf(
@@ -197,7 +196,7 @@ export abstract class SingleSenseControllerBase extends CommandController<Single
           .replace(/\s+$/, '')
       : '';
     if (!filtered) {
-      const name = DescribeApi.getDisplayName(target);
+      const name = target.getPresentation();
       MessageApi.scene(actor)
         .topic(this.sceneTopic)
         .toSelf(

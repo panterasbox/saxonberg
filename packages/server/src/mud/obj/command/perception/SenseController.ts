@@ -38,7 +38,6 @@ import type { MqlOneResult } from '../../../api/mql';
 import type { Stuff } from '../../../lib/stuff/Stuff';
 import { MixinApi } from '../../../api/mixin';
 import { MessageApi } from '../../../api/message';
-import { DescribeApi } from '../../../api/describe';
 import { Mml } from '../../../api/mml';
 import { PerceptionApi } from '../../../api/perception';
 import { SENSE_CHANNELS, type SenseChannel } from '../../../lib/description/Perceiver';
@@ -207,7 +206,7 @@ export default class SenseController extends CommandController<SenseModel> {
     const actor = context.commandGiver;
     const sensorium = physicalSensorium(actor);
     if (!MixinApi.isVisible(target)) {
-      const name = DescribeApi.getDisplayName(target);
+      const name = target.getPresentation();
       MessageApi.scene(actor)
         .topic(SCENE_TOPIC)
         .toSelf(Mml.compose`You can't perceive ${name}.`)

@@ -43,7 +43,6 @@ import { StuffApi } from '../../../api/stuff';
 import { SourceTreeApi } from '../../../api/source-tree';
 import { ContainmentApi } from '../../../api/containment';
 import type { MqlOneResult } from '../../../api/mql';
-import { DescribeApi } from '../../../api/describe';
 import { AccessApi } from '../../../api/access';
 import type { Stuff } from '../../../lib/stuff/Stuff';
 import { Template } from '../../../lib/stuff/Template';
@@ -114,7 +113,7 @@ export default class CloneController extends CommandController<CloneModel> {
     } catch (err) {
       return this.fail(context, (err as Error).message);
     }
-    const name = DescribeApi.getDisplayName(cloned);
+    const name = cloned.getPresentation();
 
     if (!MixinApi.isContainable(cloned)) {
       // Can't be placed at all. Surface but don't fail the clone —
@@ -142,7 +141,7 @@ export default class CloneController extends CommandController<CloneModel> {
       // Layer 3 hit (hydration placed it); no move needed.
       const where = item.getContainer();
       const destName = where
-        ? DescribeApi.getDisplayName(where)
+        ? where.getPresentation()
         : 'somewhere';
       this.tell(
         context,
@@ -165,7 +164,7 @@ export default class CloneController extends CommandController<CloneModel> {
       );
       return;
     }
-    const destName = DescribeApi.getDisplayName(placement.dest);
+    const destName = placement.dest.getPresentation();
     const overrideNote = movingFromHydration
       ? ` (overrode template's container)`
       : '';
@@ -201,7 +200,7 @@ export default class CloneController extends CommandController<CloneModel> {
       }
       if (!MixinApi.isContainer(stuff)) {
         return {
-          error: `${DescribeApi.getDisplayName(stuff)} is not a container`,
+          error: `${stuff.getPresentation()} is not a container`,
         };
       }
       return { dest: stuff };

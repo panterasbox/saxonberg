@@ -25,7 +25,6 @@ import { Warren } from "../lib/location/Warren";
 import { SpeciesApi } from "../api/species";
 import AetherImplant from "../lib/augmentation/AetherImplant";
 import { MessageApi } from "../api/message";
-import { DescribeApi } from "../api/describe";
 import { Mml } from "../api/mml";
 import { ScheduleApi, type ScheduleHandle } from "../api/schedule";
 import {
@@ -342,7 +341,7 @@ export default class Avatar extends AvatarBase {
       );
     }
     console.info(
-      `Avatar.enter: ${this.getFullName()} in ${DescribeApi.getDisplayName(startingLocation)}`,
+      `Avatar.enter: ${this.getFullName()} in ${startingLocation.getPresentation()}`,
     );
 
     this.startAutoSave();

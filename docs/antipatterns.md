@@ -303,15 +303,15 @@ if (MixinApi.isContainer(obj)) {
 const items = ContainmentApi.getContents(obj); // [] if not a container
 ```
 
-## Display Names — Use DescribeApi
+## Display Names — Use `Stuff.getPresentation()`
 
 Ad-hoc `getObjectName()` helpers that duck-type through `fullName` /
-`name` / `shortDescription` are **not allowed**. The display-name
-resolution chain is centralized in `DescribeApi`:
+`name` / `shortDescription` are **not allowed**. Self-presentation is
+a method every `Stuff` answers:
 
 ```typescript
 // CORRECT — single source of truth for human-readable names
-const name = DescribeApi.getDisplayName(obj);
+const name = obj.getPresentation();
 
 // NOT ALLOWED — ad-hoc fallback chains in controllers/API code
 function getObjectName(obj: any): string {
@@ -322,25 +322,21 @@ function getObjectName(obj: any): string {
 }
 ```
 
-`DescribeApi.getDisplayName(obj, viewer?)` uses `MixinApi.isNamed()` /
-`isVisible()` internally (not duck typing) and falls back in this
-order:
+`Stuff.getPresentation()` uses `MixinApi.isNamed()` / `isVisible()`
+internally (not duck typing) and falls back in this order:
 
 1. `NamedMixin.name`
 2. `VisibleMixin.shortDescription`
 3. Baked-in `'something'` default
 
-The function ALWAYS returns a string; there is no caller-supplied
-fallback. Don't write `DescribeApi.getDisplayName(obj, 'that')` —
-the `fallback` parameter retired with the MQL subscription substrate
-reshape. The optional `viewer?: Sensor` parameter is reserved for
-the recognition / DescribeApi v2 pipeline; v1 ignores it but the
-parameter is plumbed end-to-end so the per-viewer design lights up
-without an API rename.
-
-This is the seed of a broader presentation layer. Any future
-description/short/long/article/list-formatting helpers belong in
-`DescribeApi`, not sprinkled across controllers.
+For a `Globbable` stack the count folds in as an affix (`"30 coins"`).
+The method ALWAYS returns a string; there is no caller-supplied
+fallback. It is **viewer-blind** — the shared baseline. The
+viewer-aware naming step (recognition / identification) composes on
+top of it; see `docs/requirements/recognition-requirements.md`.
+`getPresentation()` is left **shadowable** (not `@Final`) so masking /
+disguise effects can override the rendered identity via a method
+shadow.
 
 ### Rule of thumb
 
@@ -354,7 +350,7 @@ description/short/long/article/list-formatting helpers belong in
 - **Container access** (get contents): use `ContainmentApi.getContents()`
 - **Narrow and call**: use `MixinApi.isX(obj)` type predicates
 - **Introspection only**: use `MixinApi.hasMixin(ctor, Mixins.X)`
-- **Display text** (names/descriptions): use `DescribeApi.getDisplayName()`
+- **Display text** (names/descriptions): use `Stuff.getPresentation()`
 
 ## Persistent Fields Default to Scalars; Marshallers Are the Escape Hatch
 
@@ -970,7 +966,7 @@ prototype links.
   for all other object movement, low-level containment methods only from
   inside `ContainmentApi`.
 - Never duck-type mixins, even for display. Display-name lookup lives in
-  `DescribeApi.getDisplayName()`; mixin presence checks use
+  `Stuff.getPresentation()`; mixin presence checks use
   `MixinApi.isX()` predicates (preferred) or `MixinApi.hasMixin()`
   (introspection only).
 - Per-field invariants go on setters. Cross-field invariants go in a

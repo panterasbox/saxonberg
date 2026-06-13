@@ -21,7 +21,6 @@ import { MessageApi } from '../../../api/message';
 import { PerceptionApi } from '../../../api/perception';
 import { Light } from '../../../lib/perception/Light';
 import { Mml } from '../../../api/mml';
-import { DescribeApi } from '../../../api/describe';
 
 interface MeasureLightModel extends CommandModel {
   location?: MqlOneResult;
@@ -41,7 +40,7 @@ export default class MeasureLightController extends CommandController<MeasureLig
       return;
     }
     if (!MixinApi.isContainer(target.stuff)) {
-      const detail = `${DescribeApi.getDisplayName(target.stuff)} isn't a place`;
+      const detail = `${target.stuff.getPresentation()} isn't a place`;
       MessageApi.scene(giver)
         .topic('world.perception.measurement.measure-light')
         .toSelf(Mml.fromMarkup(detail))

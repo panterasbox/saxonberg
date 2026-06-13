@@ -164,7 +164,10 @@ describe('SmellController', () => {
   });
 
   it('non-Detailed direct target → polite refusal', () => {
-    const fakeStuff = { stuffId: 'fake' } as Stuff;
+    const fakeStuff = {
+      stuffId: 'fake',
+      getPresentation: () => 'a fake',
+    } as unknown as Stuff;
     const target: MqlOneResult = { stuff: fakeStuff, raw: 'fake' };
     const controller = makeStuff(() => new SmellController());
     const ctx = makeContext(fix, 'smell fake');

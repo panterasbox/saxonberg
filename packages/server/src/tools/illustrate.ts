@@ -23,7 +23,6 @@ import { createHash } from "node:crypto";
 import { AppBootstrap } from "../backend/AppBootstrap";
 import { StuffApi } from "../mud/api/stuff";
 import { ContainmentApi } from "../mud/api/containment";
-import { DescribeApi } from "../mud/api/describe";
 import { MediaAsset } from "../mud/lib/media/MediaAsset";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
@@ -81,7 +80,7 @@ function locationPrompt(loc: unknown): { prompt: string; size: string } {
 
   // Composed state #1 — what's actually in the room (the `populates` clones).
   const contents = ContainmentApi.getContents(loc as never)
-    .map((c) => DescribeApi.getDisplayName(c as never))
+    .map((c) => c.getPresentation())
     .filter(Boolean);
 
   // Composed state #2 — exits, and whether their doors stand open.

@@ -18,10 +18,11 @@ Pieces:
 - **`GlobbableApi`** (`api/glob.ts`) — `split`, `merge`, `canMerge`,
   and the `applyQuantity` workhorse used by every quantity-bearing
   controller.
-- **`DescribeApi.formatName`** — count-aware display naming
+- **`Stuff.getPresentation()`** — count-aware display naming
   (`"30 coins"`); pluralization defers to `GrammarApi.pluralize`.
-  Lives on the description Api, not Globbable, because presentation
-  is its concern.
+  The count is an affix on the universal self-presentation render,
+  not a Globbable-owned method, because presentation is every
+  Stuff's concern.
 - **`ContainmentApi.placeDirect`** — fresh-placement primitive used
   by split. Bypasses arrival/leave witnesses, capacity validators,
   and the merge-on-arrival ripple. Gated `ApiOnly`.
@@ -297,18 +298,18 @@ a loud explicit signal; v1 has no such verbs.
 
 ---
 
-## Display rendering — `DescribeApi.formatName`
+## Display rendering — count folds into `Stuff.getPresentation()`
 
-Count-aware naming lives on `DescribeApi`, not `GlobbableApi` —
-presentation belongs with the description Api:
+Count-aware naming is an affix on the universal self-presentation
+render — not a `GlobbableApi` concern and not a separate method:
 
 ```ts
-DescribeApi.formatName(obj: Stuff, viewer?: Sensor): string
+stuff.getPresentation(): string
 ```
 
 Returns `count + " " + plural` when `stuff` is globbable with
-`getQuantity() > 1`; falls through to `DescribeApi.getDisplayName`
-otherwise. Pluralization defers to `GrammarApi.pluralize`, which
+`getQuantity() !== 1`; otherwise the bare name/shortDescription
+chain. Pluralization defers to `GrammarApi.pluralize`, which
 respects host-side `getPluralForm()` overrides for irregulars
 (`"mouse"` → `"mice"`).
 
@@ -319,10 +320,9 @@ respects host-side `getPluralForm()` overrides for irregulars
 non-globbable rock → "rock"
 ```
 
-`DescribeApi v2` (recognition slate) supersedes this — composing the
-count into the identity layer with viewer-side perception and
-recognition state. v1 ships this thin helper so controllers can
-render usable identity now.
+The recognition pipeline (recognition slate) composes on top of
+this baseline — weaving the count into the identity layer with
+viewer-side perception and recognition state.
 
 ---
 
@@ -478,12 +478,12 @@ Trade-offs and deferred work documented for future maintainers:
   bulk share only the `MqlQuantity` discriminated union (glob uses
   `count` / `all`; bulk uses the `measure` variant) and the reused
   response-note kinds. See [bulk.md](./bulk.md).
-- **`DescribeApi v2`** supersedes `DescribeApi.formatName`. v2
-  composes count, perception-filtered visibility, viewer-side
-  recognition, and bucket-keyed verbosity in one pipeline.
-  Globbable contributes data (`getQuantity`, host's
-  `getDisplayName` and optional `getPluralForm`) to the pipeline;
-  it doesn't know about viewer state. See
+- **The recognition pipeline** composes on top of the count affix in
+  `Stuff.getPresentation()`. It weaves count, perception-filtered
+  visibility, viewer-side recognition, and bucket-keyed verbosity in
+  one viewer-aware step. Globbable contributes data (`getQuantity`,
+  the host's presentation and optional `getPluralForm`); it doesn't
+  know about viewer state. See
   [recognition-slate.md](../slates/builds/recognition-slate.md).
 
 ## Antipatterns
@@ -527,5 +527,5 @@ Trade-offs and deferred work documented for future maintainers:
   structured-notes substrate `applyQuantity` emits into; canonical
   shapes for the four glob note kinds.
 - [../slates/builds/recognition-slate.md](../slates/builds/recognition-slate.md) —
-  where `DescribeApi v2` composes count + perception + recognition;
-  this subsystem's `formatName` is the v1 stand-in.
+  where the recognition pipeline composes count + perception +
+  recognition on top of `getPresentation()`'s count affix.

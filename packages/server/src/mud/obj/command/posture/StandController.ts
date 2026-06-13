@@ -17,7 +17,6 @@ import type {
   } from '../../../api/command';
 import type { MqlOneResult } from '../../../api/mql';
 import { MessageApi } from '../../../api/message';
-import { DescribeApi } from '../../../api/describe';
 import { MixinApi } from '../../../api/mixin';
 import { Mml } from '../../../api/mml';
 import { Postures } from '../../../lib/slot/Postured';
@@ -67,7 +66,7 @@ export default class StandController extends CommandController<StandModel> {
         });
         return;
       }
-      const name = DescribeApi.getDisplayName(target);
+      const name = target.getPresentation();
       MessageApi.scene(giver)
         .topic('world.narration.action')
         .toSelf(Mml.compose`You stand on ${Mml.item(target)}.`)

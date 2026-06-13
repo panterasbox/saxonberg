@@ -17,7 +17,6 @@
 import type { Stuff } from '../../stuff/Stuff';
 import type { FieldValidator } from '../../../api/command';
 import { ContainmentApi } from '../../../api/containment';
-import { DescribeApi } from '../../../api/describe';
 import { MixinApi } from '../../../api/mixin';
 import { MqlApi } from '../../../api/mql';
 
@@ -36,7 +35,7 @@ const validator: FieldValidator = (value, field, context) => {
 
   for (const stuff of stuffs) {
     if (!inventoryIds.has((stuff as Stuff).stuffId)) {
-      return `you don't have ${DescribeApi.getDisplayName(stuff)}`;
+      return `you don't have ${stuff.getPresentation()}`;
     }
   }
   return undefined;
