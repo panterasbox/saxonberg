@@ -150,6 +150,23 @@ export default class BodyPlan extends SingletonMixin(PropertiedMixin(Idea)) {
    */
   public bodyParts: BodyPart[] = [];
 
+  /**
+   * Default whole-body mass in kg (plain number — mirrors
+   * `TissueComposition.mass`, keeping `BodyPlan` a flat authoring
+   * flyweight free of any `Quantity` / `lib/material` import). A
+   * `Creature` of this plan seeds its `getMass()` from this default
+   * unless the instance authors its own mass deviation (see
+   * `Creature.getMass`). `0` means "no body-grounded default" (the
+   * sessile plan, a test stub) — readers fall back gracefully.
+   *
+   * **Shared body-size signal, not capacity-private.** Encumbrance
+   * reads it for carry capacity; the metabolism build reads it for
+   * basal drain (Kleiber `mass^0.75`) and thermal for thermal mass —
+   * so author it as a general body property and expect sibling body
+   * fields (e.g. `thermalStrategy`) here later.
+   */
+  protected baseMass: number = 0;
+
   static persistentFields = [
     'name',
     'slots',
@@ -157,10 +174,24 @@ export default class BodyPlan extends SingletonMixin(PropertiedMixin(Idea)) {
     'defaultLocomotionMode',
     'sensoryPorts',
     'bodyParts',
+    'baseMass',
   ];
 
   public getName(): string { return this.name; }
   public setName(value: string): void { this.name = value; }
+
+  public getBaseMass(): number { return this.baseMass; }
+  public setBaseMass(value: number): void {
+    // Per-field invariant on the setter (the project rule): the
+    // Hydrator's Phase-1 `setBaseMass` dispatch is the validation point.
+    if (typeof value !== 'number' || !Number.isFinite(value) || value < 0) {
+      throw new RangeError(
+        `BodyPlan.setBaseMass: must be a finite, non-negative number, ` +
+          `got ${value}`,
+      );
+    }
+    this.baseMass = value;
+  }
 
   public getSlots(): readonly SlotSpec[] { return this.slots; }
   public setSlots(value: SlotSpec[]): void {

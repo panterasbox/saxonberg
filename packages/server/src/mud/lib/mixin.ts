@@ -95,6 +95,7 @@ export const Mixins = {
   Contacts: 'ContactsMixin',
   WarrenMember: 'WarrenMemberMixin',
   Lounge: 'LoungeMixin',
+  LoadBearing: 'LoadBearingMixin',
 } as const;
 
 /**

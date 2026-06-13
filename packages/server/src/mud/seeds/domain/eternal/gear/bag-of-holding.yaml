@@ -1,0 +1,14 @@
+# Bag of holding — a plain Vessel with a very low transmissionFactor.
+# Exercises the encumbrance *transmission* axis: whatever you drop in
+# barely adds to what you bear. No subclass needed — it's just a Vessel
+# whose contents' weight is nearly erased on the way to the bearer.
+class: /lib/stuff/Vessel
+hydratorClass: /lib/persistence/PersistentHydrator
+data:
+  shortDescription: a plain grey bag
+  primaryKeyword: bag
+  longDescription: >
+    An unremarkable grey bag. Far heavier things vanish into it than its
+    slack, weightless hang could possibly explain.
+  mass: 0.5
+  transmissionFactor: 0.05
