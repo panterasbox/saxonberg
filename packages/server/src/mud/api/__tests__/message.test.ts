@@ -2,8 +2,10 @@
  * MessageApi tests
  */
 
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { MessageApi } from '../message';
+import { MessageLogic } from '../../obj/api/MessageLogic';
+import { SecurityError } from '../../lib/security/errors';
 import Location from '../../lib/stuff/Location';
 import { MobileMixin } from '../../lib/spatial/Mobile';
 import { ContainableMixin } from '../../lib/spatial/Containable';
@@ -12,7 +14,10 @@ import { Stuff } from '../../lib/stuff/Stuff';
 import { StuffApi } from '../stuff';
 import { ProxyApi } from '../proxy';
 import { ContainmentApi } from '../containment';
-import { makeStuff } from '../../lib/security/__tests__/test-setup';
+import {
+  makeStuff,
+  makeStuffAtPath,
+} from '../../lib/security/__tests__/test-setup';
 import type { MessageFrame } from '@saxonberg/types';
 import { Idea } from "../../lib/stuff/Idea";
 
@@ -279,5 +284,27 @@ describe('MessageApi', () => {
       expect(sensorInRoom1.lastMessage).toEqual(message);
       expect(sensorInRoom2.lastMessage).toBeUndefined();
     });
+  });
+});
+
+describe('MessageLogic singleton encapsulation', () => {
+  beforeEach(() => {
+    StuffApi.clearAll();
+  });
+  afterEach(() => {
+    StuffApi.clearAll();
+  });
+
+  it('denies a direct logic-method call from a non-MessageApi caller', () => {
+    const logic = makeStuffAtPath(
+      () => new MessageLogic(),
+      '/obj/api/message'
+    );
+    expect(StuffApi.findByTemplatePath('/obj/api/message')).toBe(logic);
+    // The test module is not mud/api/message#MessageApi nor the
+    // singleton itself; the FromModule gate on the logic's own methods
+    // denies the call.
+    const subject = makeStuff(() => new TestSensor());
+    expect(() => logic.refOf(subject)).toThrow(SecurityError);
   });
 });

@@ -93,6 +93,23 @@ export class TemplateApi {
   }
 
   /**
+   * Reject saving a `domain`-collection Template under an engine-
+   * reserved template-path prefix (see `ReservedTemplatePrefixes` in
+   * `lib/paths.ts`). `/obj/api/` is owned by the surface-architecture
+   * logic singletons (`StuffApi.singletonSync`); a Template authored
+   * there would be mis-returned by the singleton lookup as the
+   * wrong-class logic instance, so the namespace must stay DB-free.
+   *
+   * Used by `DomainHook.aroundSave` alongside `validateFolderLeafSave`
+   * and `validateSingletonContainerTarget`.
+   */
+  public static async validateReservedPath(
+    doc: Record<string, unknown>
+  ): Promise<void> {
+    return logic().validateReservedPath(doc);
+  }
+
+  /**
    * Validate a candidate domain-template doc's `data.container`
    * against the singleton-target constraint:
    *

@@ -532,6 +532,24 @@ The per-method gate leaves inherited framework methods on their own
 policies. (This corrects the original plan, which set the gate once at
 class level — that broke `register()`.)
 
+### Logic singletons are `@Unshadowable`
+
+Relocating the logic onto a `Stuff` introduces one surface the former
+static Api did not have: a `Stuff`'s methods can be intercepted via
+`ShadowApi.attach`, whereas a static method cannot be shadowed. So every
+logic singleton carries **class-level `@Unshadowable`** — the dispatch /
+query / registry logic behind an Api face cannot be shadowed. The
+class-form mark covers every method (own + inherited): `isMethodUnshadowable`
+walks the prototype chain checking `#classUnshadowable`. `@Final` is *not*
+applied — it's method-only, the logic classes are never subclassed, and
+injecting a subclass into `singletonSync`'s factory already requires
+code-execution access, so it would add churn without a real threat
+reduction. (State integrity is a non-issue independently: the singletons
+keep their state in module-scope `const`/`let`, not instance fields, so
+it's unreachable — equivalent to `#` — and the singleton instance itself
+is reached only by its own face via `singletonSync`, never by production
+code path-lookup.)
+
 ### The intra-singleton self-call gotcha
 
 A former static that called another static can't become a bare-gated
@@ -583,11 +601,12 @@ Adoption:
   **`mql-subscription`** (pinned registries) — existing gate re-pointed.
 - **`soul`** (`SoulCatalogue`) had **no** gate; one was *added* (with a
   `SelfOnly` arm for its `postRegister`→`warmCache` self-calls).
-- **`access`** (`AccessRegistry`) is the exception: it's in the
-  bootstrap-import-cycle set (below), so it was **not** converted to a
-  logic singleton — `AccessApi` stays static and `AccessRegistry`'s gate
-  stays the plain `FromModule('mud/api/access#AccessApi')` (no re-point,
-  no logic-singleton arm).
+- **`access`** (`AccessRegistry`), **`group`** (`GroupRegistry`),
+  **`belief`**, **`prompt`** (per-Interactive registry) were converted in
+  the bootstrap-cycle-unblock pass (below); their backing-state gates
+  were re-pointed to `AnyOf(FromModule(...), FromTemplate('/obj/api/<feature>'))`
+  where the state object carried a `FromModule` gate (`AccessRegistry`),
+  or left alone where it didn't (`GroupRegistry` is ungated).
 
 Special per-method Api gates (e.g. `SystemRoot` on
 `WorldClockApi.boot/shutdown`) stay on the Api forwarder.
@@ -609,20 +628,39 @@ than falling out of the gate.
 
 ### What stays a static class (not converted)
 
-Two classes of Api keep their logic on static methods:
+The bootstrap-import-cycle set (any `api/` face value-reachable from
+`lib/stuff/Stuff.ts`, where `class XLogic extends Idea` would run while
+`Idea` is still `undefined`) was **unblocked and converted** — the
+keystone `shadow → command` value-edge was severed via a late-bound DI
+seam (`ShadowApi._registerCommandShadowHook`), which freed
+`array, belief, command, command-line, containment, group, message, mql,
+mudlog, prompt, prose, quantity, recognition, shell, access` for
+conversion. See the excluded-api-unblock record in `docs/slates/tails/`.
+
+What remains a **static class** after that:
 
 - **Bootstrap-special (6):** `security`, `module`, `proxy`,
-  `execution-context`, `stuff` (hosts `singletonSync`), `mixin`.
-- **Bootstrap-import-cycle set (~21):** any `api/` face value-reachable
-  from `lib/stuff/Stuff.ts` — `class XLogic extends Idea` would run while
-  `Idea` is still `undefined`. Includes `array, belief, command,
-  command-line, containment, event, grammar, group, message, mml, mql,
-  mudlog, prompt, prose, quantity, recognition, shell`, the
-  framework-internal `path-pattern/shadow/hot-reload`, and `access`
-  (cycle-bound *and* stateful — stays static; its `AccessRegistry` gate
-  is unchanged). This is the same cycle class that excluded `mixin`; a new
-  registry to break it was rejected (forbidden by the no-premature-
-  registries rule).
+  `execution-context`, `stuff` (hosts `singletonSync`), `mixin` — the
+  substrate every Idea is built from.
+- **`event`** — structurally impossible to convert: `EventApi.emit`
+  fires inside `StuffApi.create`/`destruct` on every Stuff creation, so a
+  logic singleton would recurse at its own `singletonSync`→`createSync`→
+  `register`→`emit` creation.
+- **`hot-reload`** — the singleton machinery itself calls
+  `HotReloadApi.getCurrentExport`; a logic singleton can't depend on the
+  thing that builds logic singletons.
+- **`shadow`** — the method-dispatch shadow substrate (every proxied
+  call routes through it).
+- **`path-pattern`** — a `lib/` glob primitive, not an Api shell.
+- **`grammar`** — convertible only behind a DI seam on the core
+  `lib/stuff/Stuff.ts` (`getPresentation`→`pluralize`); deferred as not
+  worth destabilizing the hottest core method for a small utility.
+
+`mml` is **not** in this list because `Mml` is a value class (factory
+statics + instance methods, like `Quantity`/`Prose`), not an `*Api`
+forwarding shell — there is no `MmlApi` to convert.
+
+`schedule` is a deliberate **partial** (see below).
 
 `schedule` is a deliberate **partial**: its surface is frame-mutator-
 bound (`planRun` → `ExecutionContextApi.runRoot` must stay in `mud/api/`

@@ -13,9 +13,35 @@
  * Element equality is `===` (Object.is by way of strict equality).
  * Callers comparing structurally-equal-but-distinct objects need to
  * pre-canonicalize.
+ *
+ * This Api is a thin, security-gated forwarding shell: the logic lives
+ * in the hot-reloadable {@link ArrayLogic} singleton at
+ * `/obj/api/array`, reached synchronously via `StuffApi.singletonSync`.
+ * `dest /obj/api/array` reloads it.
  */
 
+import { StuffApi } from './stuff';
+import { HotReloadApi } from './hot-reload';
 import { SecurityApi } from './security';
+import { ArrayLogic } from '../obj/api/ArrayLogic';
+import { fileURLToPath } from 'url';
+
+const LOGIC_PATH = '/obj/api/array';
+const LOGIC_CLASS_FILE = fileURLToPath(
+  new URL('../obj/api/ArrayLogic', import.meta.url)
+);
+
+/** Resolve the HMR-able ArrayLogic singleton (sync). */
+function logic(): ArrayLogic {
+  return StuffApi.singletonSync(
+    LOGIC_PATH,
+    () =>
+      new ((HotReloadApi.getCurrentExport(
+        LOGIC_CLASS_FILE,
+        'ArrayLogic'
+      ) as typeof ArrayLogic | null) ?? ArrayLogic)()
+  );
+}
 
 export class ArrayApi {
   /**
@@ -26,12 +52,7 @@ export class ArrayApi {
    * skips the per-element walk.
    */
   static equal<T>(a: ReadonlyArray<T>, b: ReadonlyArray<T>): boolean {
-    if (a === b) return true;
-    if (a.length !== b.length) return false;
-    for (let i = 0; i < a.length; i++) {
-      if (a[i] !== b[i]) return false;
-    }
-    return true;
+    return logic().equal(a, b);
   }
 
   /**
@@ -47,11 +68,7 @@ export class ArrayApi {
     prefix: ReadonlyArray<T>,
     full: ReadonlyArray<T>
   ): boolean {
-    if (prefix.length > full.length) return false;
-    for (let i = 0; i < prefix.length; i++) {
-      if (prefix[i] !== full[i]) return false;
-    }
-    return true;
+    return logic().isPrefix(prefix, full);
   }
 }
 

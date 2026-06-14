@@ -82,6 +82,22 @@ async function setup(): Promise<{
   return { avatar, interactive, location, swords: [rusty, iron], envelopes };
 }
 
+/**
+ * Flush microtasks until `pred` holds (or a tick cap is hit). The
+ * dispatcher pushes the disambiguation prompt after a chain of awaited
+ * Api calls (object resolution, access gating, viewer-aware naming);
+ * the exact number of microtask hops is an implementation detail, so we
+ * yield until the envelope lands rather than guessing a fixed count.
+ */
+async function flushUntil(
+  pred: () => boolean,
+  maxTicks = 50,
+): Promise<void> {
+  for (let i = 0; i < maxTicks && !pred(); i++) {
+    await Promise.resolve();
+  }
+}
+
 function makeContext(args: {
   giver: Stuff;
   location: Stuff;
@@ -136,10 +152,9 @@ args:
     const resolvePromise = CommandApi.resolveModel({ target: 'sword' }, ctx);
 
     // Let the prompt push land.
-    await Promise.resolve();
-    await Promise.resolve();
+    await flushUntil(() => envelopes.some((e) => e.type === "prompt"));
 
-    const promptEnvelope = envelopes.find((e) => e.type === 'prompt');
+    const promptEnvelope = envelopes.find((e) => e.type === "prompt");
     expect(promptEnvelope).toBeDefined();
     expect(promptEnvelope!.outcome!.notes[0]!.kind).toBe('prompt-mql-object');
     const promptId = promptEnvelope!.promptId!;
@@ -183,10 +198,9 @@ args:
     });
 
     const resolvePromise = CommandApi.resolveModel({ target: 'sword' }, ctx);
-    await Promise.resolve();
-    await Promise.resolve();
+    await flushUntil(() => envelopes.some((e) => e.type === "prompt"));
 
-    const promptEnvelope = envelopes.find((e) => e.type === 'prompt');
+    const promptEnvelope = envelopes.find((e) => e.type === "prompt");
     expect(promptEnvelope).toBeDefined();
     const promptId = promptEnvelope!.promptId!;
 
@@ -220,8 +234,9 @@ args:
     });
 
     const resolvePromise = CommandApi.resolveModel({ targets: 'sword' }, ctx);
-    await Promise.resolve();
-    await Promise.resolve();
+    await flushUntil(() =>
+      envelopes.some((e) => e.outcome?.notes[0]?.kind === 'prompt-mql-many'),
+    );
 
     const promptEnvelope = envelopes.find(
       (e) => e.outcome?.notes[0]?.kind === 'prompt-mql-many',

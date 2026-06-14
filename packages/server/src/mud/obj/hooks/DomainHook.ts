@@ -21,6 +21,7 @@ export default class DomainHook extends DomainHookBase {
     doc: Record<string, unknown>,
     next: (doc: Record<string, unknown>) => Promise<string>
   ): Promise<string> {
+    await TemplateApi.validateReservedPath(doc);
     await TemplateApi.validateFolderLeafSave(doc);
     await TemplateApi.validateSingletonContainerTarget(doc);
     return next(doc);

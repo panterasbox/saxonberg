@@ -219,3 +219,17 @@ describe('MudlogApi.isEnabled', () => {
     expect(MudlogApi.isEnabled(undefined, 'fatal')).toBe(true);
   });
 });
+
+describe('MudlogLogic singleton encapsulation', () => {
+  it('denies a direct logic-method call from a non-MudlogApi caller', async () => {
+    const { StuffApi } = await import('../stuff');
+    const { SecurityError } = await import('../../lib/security/errors');
+    type MudlogLogic = import('../../obj/api/MudlogLogic').MudlogLogic;
+    // isEnabled is pure (no recipient resolution), so it materializes the
+    // singleton without needing a command context.
+    MudlogApi.isEnabled(undefined, 'info');
+    const logic = StuffApi.findByTemplatePath<MudlogLogic>('/obj/api/mudlog');
+    expect(logic).toBeDefined();
+    expect(() => logic!.isEnabled(undefined, 'info')).toThrow(SecurityError);
+  });
+});

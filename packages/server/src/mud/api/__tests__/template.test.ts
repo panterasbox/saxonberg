@@ -234,6 +234,39 @@ describe('TemplateApi.validateFolderLeafSave', () => {
   });
 });
 
+describe('TemplateApi.validateReservedPath', () => {
+  beforeEach(() => {
+    installInMemoryStore();
+  });
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it('rejects saving a template under the reserved /obj/api/ namespace', async () => {
+    await expect(
+      TemplateApi.validateReservedPath({
+        path: '/obj/api/material',
+        class: '/lib/material/Material',
+      })
+    ).rejects.toThrow(TemplateError);
+  });
+
+  it('rejects the bare reserved prefix itself (no trailing segment)', async () => {
+    await expect(
+      TemplateApi.validateReservedPath({ path: '/obj/api' })
+    ).rejects.toThrow(/reserved/);
+  });
+
+  it('allows ordinary /obj and /domain paths', async () => {
+    await expect(
+      TemplateApi.validateReservedPath({ path: '/obj/SoulCatalogue' })
+    ).resolves.toBeUndefined();
+    await expect(
+      TemplateApi.validateReservedPath({ path: '/domain/lounge/bar' })
+    ).resolves.toBeUndefined();
+  });
+});
+
 describe('TemplateApi.validateFolderLeafDelete', () => {
   beforeEach(() => {
     installInMemoryStore();

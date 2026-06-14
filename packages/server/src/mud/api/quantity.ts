@@ -1,51 +1,45 @@
 /**
- * QuantityApi — load / reload Quantity tag tables from the YAML
- * config file at `mud/config/quantity-tags.yaml`.
+ * QuantityApi — load / reload Quantity tag tables from the YAML config
+ * file at `mud/config/quantity-tags.yaml`, plus the natural-language
+ * unit-token lexicon.
  *
- * Tag tables (`{ tag, threshold }` rows keyed by unit) are pure
- * data with no behavior — the API forces every consumer through
+ * Tag tables (`{ tag, threshold }` rows keyed by unit) are pure data
+ * with no behavior — the API forces every consumer through
  * `Quantity.tag()` / `Quantity.fromTag()` / `Quantity.parse()`.
- * Centralizing them in YAML lets content authors tune thresholds
- * and tag vocabulary without TS edits, and lets the engine reload
- * the registry at runtime.
+ * Centralizing them in YAML lets content authors tune thresholds and
+ * tag vocabulary without TS edits, and lets the engine reload the
+ * registry at runtime.
  *
- * Boot wiring: `AppBootstrap` calls `QuantityApi.loadTagTables()`
- * after `SeederManager.run()`. Tests bypass this and use the
- * `installV1QuantityTagTables` helper from
- * `lib/persistence/__tests__/` (or call `loadTagTables` directly).
+ * Boot wiring: `AppBootstrap` calls `QuantityApi.loadTagTables()` after
+ * `SeederManager.run()`. Tests bypass this and use the
+ * `installV1QuantityTagTables` helper from `lib/persistence/__tests__/`
+ * (or call `loadTagTables` directly).
  *
- * Reload semantics: `reloadTagTables()` re-reads the YAML and
- * applies the changes to the live registry — replacing tables for
- * units present in the new file, deleting tables for units that
- * disappeared. Existing `Quantity` instances see new tags on their
- * next `tag()` call (no caching layer to invalidate).
+ * Reload semantics: `reloadTagTables()` re-reads the YAML and applies
+ * the changes to the live registry — replacing tables for units present
+ * in the new file, deleting tables for units that disappeared. Existing
+ * `Quantity` instances see new tags on their next `tag()` call (no
+ * caching layer to invalidate).
+ *
+ * This Api is a thin forwarding shell: the logic lives in the
+ * hot-reloadable {@link QuantityLogic} singleton at `/obj/api/quantity`,
+ * reached synchronously via `StuffApi.singletonSync`. `dest
+ * /obj/api/quantity` reloads it.
  */
 
-import { readFileSync } from 'fs';
-import { fileURLToPath } from 'url';
-import { dirname, join } from 'path';
-import YAML from 'yaml';
-import Ajv, { type ValidateFunction } from 'ajv';
-import { Quantity } from '../lib/quantity';
-import type { Unit, ScaleName, TagTableEntry } from '../lib/quantity';
+import type { Unit, ScaleName } from '../lib/quantity';
+import { StuffApi } from './stuff';
+import { HotReloadApi } from './hot-reload';
 import { SecurityApi } from './security';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
-
-/** Default config locations. Tests can override via the path arg. */
-const DEFAULT_YAML_PATH = join(__dirname, '../config/quantity-tags.yaml');
-const DEFAULT_SCHEMA_PATH = join(
-  __dirname,
-  '../config/quantity-tags.schema.json'
-);
+import { QuantityLogic } from '../obj/api/QuantityLogic';
+import { fileURLToPath } from 'url';
 
 /**
- * Result of a load / reload run. Surfaces actionable counts for
- * boot logs and the future `tags reload` admin command.
+ * Result of a load / reload run. Surfaces actionable counts for boot
+ * logs and the future `tags reload` admin command.
  *
- * Granularity is per (unit, scaleName) — a single unit with two
- * scales contributes two entries.
+ * Granularity is per (unit, scaleName) — a single unit with two scales
+ * contributes two entries.
  */
 export interface TagTableLoadResult {
   /** (unit, scale) pairs freshly registered (added or replaced). */
@@ -56,90 +50,21 @@ export interface TagTableLoadResult {
   path: string;
 }
 
-/**
- * Natural-language unit-token lexicon → canonical {@link Unit}. The
- * single home for "what does the word `cups` mean as a unit" — consumed
- * by both the formal `:{N unit}` parser (`mql/parser.ts`) and the
- * natural-language measure desugar (`mql/desugar.ts`). Keys are
- * lowercase (the MQL lexer lowercases barewords); singular and plural
- * forms both map.
- *
- * v1 covers the bulk liquid-volume units only. New measurable units add
- * their tokens here as natural-language authoring/play surfaces appear.
- */
-const UNIT_TOKENS: ReadonlyMap<string, Unit> = new Map<string, Unit>([
-  ['l', 'L'],
-  ['liter', 'L'],
-  ['litre', 'L'],
-  ['liters', 'L'],
-  ['litres', 'L'],
-  ['ml', 'mL'],
-  ['milliliter', 'mL'],
-  ['millilitre', 'mL'],
-  ['milliliters', 'mL'],
-  ['millilitres', 'mL'],
-  ['cup', 'cup'],
-  ['cups', 'cup'],
-]);
+const LOGIC_PATH = '/obj/api/quantity';
+const LOGIC_CLASS_FILE = fileURLToPath(
+  new URL('../obj/api/QuantityLogic', import.meta.url)
+);
 
-let _validator: ValidateFunction | null = null;
-
-/**
- * Compile the schema once. Mirrors `CommandDefinition`'s lazy
- * compilation pattern.
- */
-function getSchemaValidator(schemaPath: string): ValidateFunction {
-  if (_validator) return _validator;
-  const schemaJson = JSON.parse(readFileSync(schemaPath, 'utf-8')) as object;
-  const ajv = new Ajv({ allErrors: true, strict: false });
-  _validator = ajv.compile(schemaJson);
-  return _validator;
-}
-
-/**
- * Parse + validate the YAML, returning the per-unit/scale map.
- *
- * Throws on YAML syntax errors, schema violations, or non-object
- * top-level shapes — boot fails loud rather than silently
- * starting with stale tables.
- */
-function parseAndValidate(
-  yamlPath: string,
-  schemaPath: string
-): Record<Unit, Record<ScaleName, TagTableEntry[]>> {
-  let raw: string;
-  try {
-    raw = readFileSync(yamlPath, 'utf-8');
-  } catch (cause) {
-    throw new Error(
-      `QuantityApi.loadTagTables: cannot read '${yamlPath}': ` +
-        (cause instanceof Error ? cause.message : String(cause))
-    );
-  }
-  let parsed: unknown;
-  try {
-    parsed = YAML.parse(raw);
-  } catch (cause) {
-    throw new Error(
-      `QuantityApi.loadTagTables: invalid YAML at '${yamlPath}': ` +
-        (cause instanceof Error ? cause.message : String(cause))
-    );
-  }
-  if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
-    throw new Error(
-      `QuantityApi.loadTagTables: '${yamlPath}' must be a top-level object keyed by unit`
-    );
-  }
-  const validate = getSchemaValidator(schemaPath);
-  if (!validate(parsed)) {
-    const trail = (validate.errors ?? [])
-      .map((e) => `  ${e.instancePath || '/'} ${e.message ?? ''}`)
-      .join('\n');
-    throw new Error(
-      `QuantityApi.loadTagTables: schema validation failed for '${yamlPath}':\n${trail}`
-    );
-  }
-  return parsed as Record<Unit, Record<ScaleName, TagTableEntry[]>>;
+/** Resolve the HMR-able QuantityLogic singleton (sync). */
+function logic(): QuantityLogic {
+  return StuffApi.singletonSync(
+    LOGIC_PATH,
+    () =>
+      new ((HotReloadApi.getCurrentExport(
+        LOGIC_CLASS_FILE,
+        'QuantityLogic'
+      ) as typeof QuantityLogic | null) ?? QuantityLogic)()
+  );
 }
 
 export class QuantityApi {
@@ -151,7 +76,7 @@ export class QuantityApi {
    * measure desugar — no free-floating recognizer module.
    */
   public static resolveUnitToken(token: string): Unit | null {
-    return UNIT_TOKENS.get(token.toLowerCase()) ?? null;
+    return logic().resolveUnitToken(token);
   }
 
   /**
@@ -159,77 +84,41 @@ export class QuantityApi {
    * {@link resolveUnitToken} for the desugar pass's measure guard.
    */
   public static isUnitToken(token: string): boolean {
-    return UNIT_TOKENS.has(token.toLowerCase());
+    return logic().isUnitToken(token);
   }
 
   /**
-   * Read the tag-tables YAML and register each declared
-   * (unit, scaleName) table with `Quantity`. Idempotent —
-   * calling twice with the same file re-registers the same
-   * tables.
+   * Read the tag-tables YAML and register each declared (unit, scaleName)
+   * table with `Quantity`. Idempotent — calling twice with the same file
+   * re-registers the same tables.
    *
-   * Boot path: `AppBootstrap` calls this after `SeederManager.run`
-   * so the tables are available before any code that hits
-   * `tag()` / `parse(tagString)` runs (the marshallers, the
-   * propagation walks, controllers).
+   * Boot path: `AppBootstrap` calls this after `SeederManager.run` so the
+   * tables are available before any code that hits `tag()` /
+   * `parse(tagString)` runs (the marshallers, the propagation walks,
+   * controllers).
    *
    * Tests can pass an explicit path to load fixture files.
    */
   public static loadTagTables(yamlPath?: string): TagTableLoadResult {
-    const path = yamlPath ?? DEFAULT_YAML_PATH;
-    const tables = parseAndValidate(path, DEFAULT_SCHEMA_PATH);
-    const registered: Array<{ unit: Unit; scaleName: ScaleName }> = [];
-    for (const [unitKey, scales] of Object.entries(tables)) {
-      const unit = unitKey as Unit;
-      for (const [scaleName, entries] of Object.entries(scales)) {
-        Quantity.registerTagTable(unit, scaleName, entries);
-        registered.push({ unit, scaleName });
-      }
-    }
-    return { registered, removed: [], path };
+    return logic().loadTagTables(yamlPath);
   }
 
   /**
    * Re-read the YAML and apply the diff to the live registry at
    * (unit, scaleName) granularity:
-   *   - Pairs present in the new file get re-registered (replacing
-   *     any prior table).
-   *   - Pairs present in the registry but absent from the new file
-   *     get cleared.
+   *   - Pairs present in the new file get re-registered (replacing any
+   *     prior table).
+   *   - Pairs present in the registry but absent from the new file get
+   *     cleared.
    *
-   * Removing a unit's default scale promotes the next remaining
-   * scale to default automatically (see
-   * `Quantity._clearTagTable`'s contract).
+   * Removing a unit's default scale promotes the next remaining scale to
+   * default automatically (see `Quantity._clearTagTable`'s contract).
    *
-   * Existing Quantity instances see new tags on their next `tag()`
-   * call — there's no caching layer to invalidate.
+   * Existing Quantity instances see new tags on their next `tag()` call —
+   * there's no caching layer to invalidate.
    */
   public static reloadTagTables(yamlPath?: string): TagTableLoadResult {
-    const path = yamlPath ?? DEFAULT_YAML_PATH;
-    const before = new Set<string>(
-      Quantity._registeredScales().map(
-        ({ unit, scaleName }) => `${unit}\0${scaleName}`
-      )
-    );
-    const tables = parseAndValidate(path, DEFAULT_SCHEMA_PATH);
-    const incoming = new Set<string>();
-    const registered: Array<{ unit: Unit; scaleName: ScaleName }> = [];
-    for (const [unitKey, scales] of Object.entries(tables)) {
-      const unit = unitKey as Unit;
-      for (const [scaleName, entries] of Object.entries(scales)) {
-        Quantity.registerTagTable(unit, scaleName, entries);
-        registered.push({ unit, scaleName });
-        incoming.add(`${unit}\0${scaleName}`);
-      }
-    }
-    const removed: Array<{ unit: Unit; scaleName: ScaleName }> = [];
-    for (const key of before) {
-      if (incoming.has(key)) continue;
-      const [unit, scaleName] = key.split('\0') as [Unit, ScaleName];
-      Quantity._clearTagTable(unit, scaleName);
-      removed.push({ unit, scaleName });
-    }
-    return { registered, removed, path };
+    return logic().reloadTagTables(yamlPath);
   }
 }
 

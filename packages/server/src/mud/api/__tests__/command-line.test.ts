@@ -298,3 +298,18 @@ describe('CommandLineApi.parsePipeline — positions / source slices', () => {
     expect(p.commands[0]?.source).toBe('say  hello   world');
   });
 });
+
+describe('CommandLineLogic singleton encapsulation', () => {
+  it('denies a direct logic-method call from a non-CommandLineApi caller', async () => {
+    const { StuffApi } = await import('../stuff');
+    const { SecurityError } = await import('../../lib/security/errors');
+    type CommandLineLogic =
+      import('../../obj/api/CommandLineLogic').CommandLineLogic;
+    CommandLineApi.parsePipeline('look');
+    const logic = StuffApi.findByTemplatePath<CommandLineLogic>(
+      '/obj/api/command-line'
+    );
+    expect(logic).toBeDefined();
+    expect(() => logic!.parsePipeline('look')).toThrow(SecurityError);
+  });
+});

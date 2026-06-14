@@ -1,5 +1,8 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { ArrayApi } from '../array';
+import { StuffApi } from '../stuff';
+import { SecurityError } from '../../lib/security/errors';
+import type { ArrayLogic } from '../../obj/api/ArrayLogic';
 
 describe('ArrayApi.equal', () => {
   it('returns true for the same array reference', () => {
@@ -63,5 +66,30 @@ describe('ArrayApi.isPrefix', () => {
   it('works on number arrays', () => {
     expect(ArrayApi.isPrefix([1, 2], [1, 2, 3])).toBe(true);
     expect(ArrayApi.isPrefix([1, 3], [1, 2, 3])).toBe(false);
+  });
+});
+
+describe('ArrayLogic singleton encapsulation', () => {
+  beforeEach(() => {
+    StuffApi.clearAll();
+  });
+  afterEach(() => {
+    StuffApi.clearAll();
+  });
+
+  it('lives at /obj/api/array once the facade has materialized it', () => {
+    ArrayApi.equal([], []);
+    const logic = StuffApi.findByTemplatePath('/obj/api/array');
+    expect(logic).toBeDefined();
+    expect(StuffApi.findByPathGlob('/obj/api/*')).toContain(logic);
+  });
+
+  it('denies a direct logic-method call from a non-ArrayApi caller', () => {
+    ArrayApi.equal([], []);
+    const logic = StuffApi.findByTemplatePath<ArrayLogic>('/obj/api/array');
+    expect(logic).toBeDefined();
+    // The test module is not `mud/api/array#ArrayApi`, so the FromModule
+    // gate on the logic's own methods denies the call.
+    expect(() => logic!.equal([], [])).toThrow(SecurityError);
   });
 });
