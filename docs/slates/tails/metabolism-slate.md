@@ -1,5 +1,22 @@
 # Metabolism slate (working doc)
 
+> **Status (2026-06):** the **build has shipped** (both waves) — the
+> digestion buffer + real `ingest`, the lazy reconcile (basal drain,
+> coupled recovery, the cascade-to-conditions), the in-session clock +
+> presence freeze, `restQuality`, the `eat`/`vomit` verbs, the
+> toxin-burden system + alcohol/BAC exemplar, antidote = accelerated
+> clearance, and the `NutritionLabel` render all graduated to
+> [metabolism.md](../../subsystems/metabolism.md). What remains here is the
+> deferred design surface (the tail): wired nutrient deficiencies (scurvy
+> — substrate-ready, no consumer yet), hangover (the one after-effect that
+> can't be a band of the *current* burden), chronic-toxin exposure
+> *content* (the material-leaching pipeline + prodromal staged
+> conditions), spoilage / material-aging (perishability), magic ingestion
+> (potions), the fuller-stomach-slows-absorption coupling, bulk-food-source
+> eating, per-individual rates, recovery-on-relogin, and all numeric
+> tuning. The thermal (two ports) and respiration (spo2-read) couplings are
+> wired-but-inert seams resolved in those builds.
+
 Working slate for **metabolism** — the body's intake-and-chemistry system,
 the consumer the reserve substrate was built for and the convergence point
 for everything the vitals and encumbrance builds left dangling. It

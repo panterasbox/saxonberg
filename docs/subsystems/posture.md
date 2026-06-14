@@ -17,6 +17,19 @@ constants vocabulary. Verb suite: `sit`, `lie`, `kneel`, `stand`.
 on `Stuff` and is composed by `Character`, so every PC and NPC
 carries posture state uniformly.
 
+### `restQuality` (the rest multiplier)
+
+`PosturedMixin` carries **`restQuality: number`** (default `1.0`, strict
+`> 0` setter, persistent) — how much better than open ground this host is
+for recovery. [Metabolism](./metabolism.md)'s coupled recovery reads it
+off the host whose posture slot the body occupies
+(`getOccupiedHost()?.getRestQuality() ?? 1.0`): the floor / standing is
+`1.0`, a bedroll ~1.3×, a four-poster ~2.5× (authored on the furniture
+template). It is **not on `SlotSpec`** — the universal slot record stays a
+pure structural mechanism; `restQuality` is a behavior field on the
+specialized posture-bearing host, the `Vessel.transmissionFactor` pattern
+(the same call the encumbrance build made for its coupling factor).
+
 ## Posture-bearing slot
 
 Definition: a slot is *posture-bearing* iff its `SlotSpec` declares

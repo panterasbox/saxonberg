@@ -27,8 +27,14 @@ follow-on builds:
   state machine + `isAnimate` gating, Vitals drives it. The driver
   itself is deferred there too, but the seams (cause-of-death stamp,
   derived consciousness) ship. See [vitals.md](./vitals.md).
-- Diet (`DietApi`, `Edible`, `Portable`) — the data is authored,
-  but no consumer reads it yet.
+- Diet — `Material`'s edibility data now has a consumer:
+  [metabolism](./metabolism.md). `edibility`/`nutrients` drive intake
+  routing; `nutrients` gained a parallel `nutrientAmounts`
+  (tag → mg/serving) for the inspectable profile, and `toxicity` was
+  reshaped from `string[]` to **`ToxinTag[]`** (`{type, amount}` — the
+  per-consumable dose; a toxin's rate params live on its `Condition` seed,
+  not the food). The label render is `NutritionLabelMixin`, not a
+  `DietApi`.
 - Tissue authoring (named Details with their own descriptions and
   materials) — **partly earned by Vitals**: `BodyPlan.bodyParts`
   carries typed `BodyPart` descriptors with per-part tissue

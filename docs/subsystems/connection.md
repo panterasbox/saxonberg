@@ -423,6 +423,15 @@ All four are **optional**. `Avatar` overrides `onLinkdead` to emit
 the global `Events.PlayerLoggedOut`. Per-device hooks aren't
 currently used.
 
+[Metabolism](./metabolism.md) is a **read-only** consumer of presence and
+adds **no connection-layer work**: its lazy reconcile checks
+`isHasInteractive(self) && isLinkdead()` to freeze the in-session
+metabolic clock (a linkdead body lingers in-world but doesn't tick), and
+logout state rides the existing `Avatar` save/restore (a far-past-gap
+guard drops the away time on relog). There is no `logout` command, no
+sleep flag, and no voluntary-vs-involuntary distinction — both absences
+just stop the clock.
+
 ### Client state
 
 `HasInteractiveMixin` also owns the **persistent UI state**
