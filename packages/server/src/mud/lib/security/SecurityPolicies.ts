@@ -184,18 +184,34 @@ function FromModule(
 }
 
 /**
- * `ApiOnly` — sugar for `FromModule('mud/api/**', { includeSubclasses: true })`.
+ * `ApiOnly` — the Api tier: callers under `mud/api/**` plus the Api's
+ * hot-reloadable logic singletons under `mud/obj/api/**`.
  *
- * Stage 1 shipped a forgeable constructor-name stub; Stage 2 replaces
- * it with the real loader-stamped module-id matcher. Same name, same
- * call sites — the upgrade is invisible to existing decorators on
- * `Stuff.destroy()` and friends.
+ * Stage 1 shipped a forgeable constructor-name stub; Stage 2 replaced
+ * it with the real loader-stamped module-id matcher. The
+ * surface-architecture refactor moved each Api's *guts* into a stateless
+ * `Stuff` logic singleton at `mud/obj/api/<Foo>Logic` (the `FooApi`
+ * statics forward to it). Those singletons ARE the Api implementation,
+ * so they must retain Api-tier calling privileges — e.g. `split` calls
+ * the `ApiOnly`-gated `ContainmentApi.placeDirect`. `mud/obj/api/`
+ * contains nothing BUT those logic singletons, so admitting it widens
+ * the gate to exactly the Api tier and never to content. This only
+ * *adds* admitted callers, so every prior allow/deny decision for
+ * non-logic callers is unchanged.
+ *
+ * The logic singletons are registered `Stuff` at `/obj/api/<feature>`,
+ * so a caller frame resolves to that *template path* (not the module
+ * id) — hence the `/obj/api/**` arm uses `FromTemplate`, not
+ * `FromModule`.
  */
 const ApiOnlyPolicy: SecurityPolicy = (() => {
   const fm = FromModule('mud/api/**', { includeSubclasses: true });
+  const fmLogic = FromTemplate('/obj/api/**');
   return {
     name: 'ApiOnly',
-    allows: fm.allows.bind(fm),
+    allows: (caller, target, method) =>
+      fm.allows(caller, target, method) ||
+      fmLogic.allows(caller, target, method),
   };
 })();
 
