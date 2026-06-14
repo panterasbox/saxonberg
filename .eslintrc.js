@@ -40,6 +40,10 @@ module.exports = {
         'packages/server/src/mud/api/mml.ts',
         'packages/server/src/mud/api/mql/**',
         'packages/server/src/mud/api/mml/**',
+        // The `mql` logic singleton IS the MqlApi's own implementation
+        // (the Api face forwards to it), so it shares the facade's
+        // privilege to import from the sealed `mql/` pipeline.
+        'packages/server/src/mud/obj/api/MqlLogic.ts',
         // White-box pipeline tests exercise the internal stages
         // (lexer / parser / desugar / resolver) directly.
         'packages/server/src/**/__tests__/**'
