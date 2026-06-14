@@ -19,7 +19,7 @@ import { Stuff, type DestroyedObjectMetadata } from '../lib/stuff/Stuff';
 import type { Hydrator } from '../lib/stuff/Hydrator';
 import { MixinApi, type AnyConstructor } from './mixin';
 import { Mixins } from '../lib/mixin';
-import { PathTrie } from './path-pattern';
+import { PathTrie } from '../lib/collections/PathTrie';
 import { ProxyApi } from './proxy';
 import { ExecutionContextApi, FrameKind } from './execution-context';
 // SecurityApi installs its proxy interceptor in a static initializer

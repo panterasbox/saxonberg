@@ -6,7 +6,7 @@
  */
 
 import { describe, it, expect } from 'vitest';
-import { PathTrie } from '../path-pattern';
+import { PathTrie } from '../../lib/collections/PathTrie';
 
 describe('PathTrie', () => {
   describe('exact lookup', () => {
