@@ -61,6 +61,39 @@ const LocomotionApiCallers = SecurityPolicies.AnyOf(
 export class LocomotionLogic extends Idea {
   // ── mode resolution ──────────────────────────────────────────────
 
+  // ── enablement validators ────────────────────────────────────────
+
+  /** See {@link LocomotionApi.assertEnablementAxes}. */
+  @CallSecurity(LocomotionApiCallers)
+  public assertEnablementAxes(value: string[], where: string): void {
+    const seen = new Set<string>();
+    for (const v of value) {
+      if (typeof v !== 'string' || v.length === 0) {
+        throw new TypeError(`${where}: entries must be non-empty strings`);
+      }
+      if (seen.has(v)) {
+        throw new TypeError(`${where}: duplicate entry '${v}'`);
+      }
+      seen.add(v);
+    }
+  }
+
+  /** See {@link LocomotionApi.assertEnablementDifficulty}. */
+  @CallSecurity(LocomotionApiCallers)
+  public assertEnablementDifficulty(
+    value: number | null,
+    where: string,
+  ): void {
+    if (value === null) return;
+    if (!Number.isFinite(value) || value <= 0) {
+      throw new RangeError(
+        `${where}: must be null or a finite positive number; got ${value}`,
+      );
+    }
+  }
+
+  // ── mode resolution ──────────────────────────────────────────────
+
   /** See {@link LocomotionApi.modeOf}. */
   @CallSecurity(LocomotionApiCallers)
   public modeOf(nameOrPath: string): LocomotionMode | null {

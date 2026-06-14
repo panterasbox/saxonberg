@@ -14,13 +14,10 @@
 import type { MixinConstructor } from '../mixin';
 import type { Stuff } from '../stuff/Stuff';
 import type { Propertied } from '../stuff/Propertied';
-import {
-  assertEnablementDifficulty,
-  assertUniqueNonEmptyAxes,
-  type Enablement,
-} from './Enablement';
+import { type Enablement } from './Enablement';
 import { Property } from '../stuff/Propertied';
 import { MixinApi } from '../../api/mixin';
+import { LocomotionApi } from '../../api/locomotion';
 import { Mixins } from '../mixin';
 
 /**
@@ -49,7 +46,7 @@ export function ClimbableMixin<TBase extends MixinConstructor<Stuff>>(
       return this.axes;
     }
     public setAxes(value: string[]): void {
-      assertUniqueNonEmptyAxes(value, 'Climbable.setAxes');
+      LocomotionApi.assertEnablementAxes(value, 'Climbable.setAxes');
       this.axes = value;
     }
 
@@ -62,7 +59,7 @@ export function ClimbableMixin<TBase extends MixinConstructor<Stuff>>(
       return this.difficulty;
     }
     public setDifficulty(value: number | null): void {
-      assertEnablementDifficulty(value, 'Climbable.setDifficulty');
+      LocomotionApi.assertEnablementDifficulty(value, 'Climbable.setDifficulty');
       this.difficulty = value;
     }
 

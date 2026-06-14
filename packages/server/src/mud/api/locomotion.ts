@@ -74,6 +74,30 @@ function logic(): LocomotionLogic {
 }
 
 export class LocomotionApi {
+  // ── enablement validators ────────────────────────────────────────
+
+  /**
+   * Validate an Enablement axes list (Climbable / Swimmable / Flyable
+   * `setAxes`). Throws `TypeError` on a duplicate or empty-string
+   * entry. `where` labels the throw with the calling setter.
+   */
+  public static assertEnablementAxes(value: string[], where: string): void {
+    logic().assertEnablementAxes(value, where);
+  }
+
+  /**
+   * Validate an Enablement difficulty value (Climbable / Swimmable /
+   * Flyable `setDifficulty`). Throws `RangeError` on a non-null,
+   * non-positive, or non-finite value. `where` labels the throw with
+   * the calling setter.
+   */
+  public static assertEnablementDifficulty(
+    value: number | null,
+    where: string,
+  ): void {
+    logic().assertEnablementDifficulty(value, where);
+  }
+
   // ── mode resolution ──────────────────────────────────────────────
 
   /**
