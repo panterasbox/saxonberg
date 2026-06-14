@@ -3,7 +3,7 @@
 // on the reflection TypeDoc emits, not on the module.)
 
 import { Idea } from "../../lib/stuff/Idea";
-import { CallSecurity } from "../../lib/security/decorators";
+import { CallSecurity, Unshadowable } from "../../lib/security/decorators";
 import { SecurityPolicies } from "../../lib/security/SecurityPolicies";
 import type { Stuff } from "../../lib/stuff/Stuff";
 import type { Sensor } from "../../lib/message/Sensor";
@@ -52,6 +52,7 @@ const MessageApiCallers = SecurityPolicies.AnyOf(
  *
  * @internal
  */
+@Unshadowable
 export class MessageLogic extends Idea {
   /** See {@link MessageApi.refOf}. */
   @CallSecurity(MessageApiCallers)

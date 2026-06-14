@@ -2,7 +2,7 @@
 // (Doc comment on the class below so @internal lands on the reflection.)
 
 import { Idea } from '../../lib/stuff/Idea';
-import { CallSecurity } from '../../lib/security/decorators';
+import { CallSecurity, Unshadowable } from '../../lib/security/decorators';
 import { SecurityPolicies } from '../../lib/security/SecurityPolicies';
 import type { Mml } from '../../api/mml';
 import { Prose, type FilterFn } from '../../lib/prose/Prose';
@@ -25,6 +25,7 @@ const ProseApiCallers = SecurityPolicies.FromModule('mud/api/prose#ProseApi');
  *
  * @internal
  */
+@Unshadowable
 export class ProseLogic extends Idea {
   /** See {@link ProseApi.format}. */
   @CallSecurity(ProseApiCallers)

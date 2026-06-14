@@ -3,7 +3,7 @@
 // the reflection.)
 
 import { Idea } from '../../lib/stuff/Idea';
-import { CallSecurity } from '../../lib/security/decorators';
+import { CallSecurity, Unshadowable } from '../../lib/security/decorators';
 import { SecurityPolicies } from '../../lib/security/SecurityPolicies';
 import type {
   RawToken,
@@ -354,6 +354,7 @@ function parsePipelineImpl(input: string): ParsedPipeline {
  *
  * @internal
  */
+@Unshadowable
 export class CommandLineLogic extends Idea {
   /** See {@link CommandLineApi.parsePipeline}. */
   @CallSecurity(CommandLineApiCallers)

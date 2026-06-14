@@ -2,7 +2,7 @@
 // (Doc comment on the class below so @internal lands on the reflection.)
 
 import { Idea } from '../../lib/stuff/Idea';
-import { CallSecurity } from '../../lib/security/decorators';
+import { CallSecurity, Unshadowable } from '../../lib/security/decorators';
 import { SecurityPolicies } from '../../lib/security/SecurityPolicies';
 import { StuffApi } from '../../api/stuff';
 import { TemplatePaths } from '../../lib/paths';
@@ -51,6 +51,7 @@ async function requireRegistry(): Promise<GroupRegistry> {
  *
  * @internal
  */
+@Unshadowable
 export class GroupLogic extends Idea {
   /** See {@link GroupApi.membersOf}. */
   @CallSecurity(GroupApiCallers)

@@ -3,7 +3,7 @@
 // the reflection.)
 
 import { Idea } from '../../lib/stuff/Idea';
-import { CallSecurity } from '../../lib/security/decorators';
+import { CallSecurity, Unshadowable } from '../../lib/security/decorators';
 import { SecurityPolicies } from '../../lib/security/SecurityPolicies';
 import type { Stuff } from '../../lib/stuff/Stuff';
 import type { Sensor } from '../../lib/message/Sensor';
@@ -225,6 +225,7 @@ function learnIdentityImpl(
  *
  * @internal
  */
+@Unshadowable
 export class RecognitionLogic extends Idea {
   /** See {@link RecognitionApi.describe}. */
   @CallSecurity(RecognitionApiCallers)

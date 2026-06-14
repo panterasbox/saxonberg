@@ -7,7 +7,7 @@ import { dirname, join } from 'path';
 import YAML from 'yaml';
 import Ajv, { type ValidateFunction } from 'ajv';
 import { Idea } from '../../lib/stuff/Idea';
-import { CallSecurity } from '../../lib/security/decorators';
+import { CallSecurity, Unshadowable } from '../../lib/security/decorators';
 import { SecurityPolicies } from '../../lib/security/SecurityPolicies';
 import { Quantity } from '../../lib/quantity';
 import type { Unit, ScaleName, TagTableEntry } from '../../lib/quantity';
@@ -125,6 +125,7 @@ function parseAndValidate(
  *
  * @internal
  */
+@Unshadowable
 export class QuantityLogic extends Idea {
   /** See {@link QuantityApi.resolveUnitToken}. */
   @CallSecurity(QuantityApiCallers)

@@ -3,7 +3,7 @@
 // the reflection.)
 
 import { Idea } from '../../lib/stuff/Idea';
-import { CallSecurity } from '../../lib/security/decorators';
+import { CallSecurity, Unshadowable } from '../../lib/security/decorators';
 import { SecurityPolicies } from '../../lib/security/SecurityPolicies';
 import type { Stuff } from '../../lib/stuff/Stuff';
 import type { BeliefRecord } from '../../lib/belief/BeliefStore';
@@ -70,6 +70,7 @@ async function writeRecordImpl(
  *
  * @internal
  */
+@Unshadowable
 export class BeliefStoreLogic extends Idea {
   /** See {@link BeliefStoreApi.hydrate}. */
   @CallSecurity(BeliefStoreApiCallers)
