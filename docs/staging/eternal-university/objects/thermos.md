@@ -24,29 +24,29 @@ from — is the one thing he never does, so it's banked, not faked.
 
 ---
 
-## The resolution — real vessel, described contents, no simulation
+## The resolution — a real `Thermal` + `Bulkable` + `Sealable` vessel
 
-We'd been stuck treating the whole thermos as gated (pour/drink/warmth needs
-the liquid/consume subsystem we don't have). The way out: separate the
-**vessel** (real) from the **contents** (description) from the **consume**
-(banked).
+**Correction (2026-06-12):** the earlier "described contents, no simulation"
+framing was a lazy shortcut — a flavor-only fake, exactly the thing
+props-real-or-cut forbids. Gus's thermos is **real**, built on real substrate;
+it is the **first consumer of the `Thermal` capability**. The coffee is a real
+modeled bulk at a real, cooling temperature.
 
-- **Real as a `Sealable` vessel** — a genuine openable steel flask, same
-  standing as the whistle and paddle (real Tangible objects whose one special
-  capability is banked). **Not an inert prop:** the test for "real" was never
-  "does it simulate physics," it's "real object, honest claims." It's a real
-  container with a real open/close.
-- **The coffee is description, not a modeled entity.** We don't model the
-  liquid (that's the gated subsystem). So you **can't measure the coffee** —
-  there's nothing to measure — and you can only measure the *thermos*, which
-  is just an object at ambient like any other.
-- **No thermal model, no represented vacuum.** Nothing to compute a
-  temperature *of*; and a good vacuum flask is *cool* on the outside anyway
-  (the insulation working — heat trapped inside), so even the physics refuses
-  a "measurably warm" payoff. The vacuum-flask construction is **what the
-  thermos is, described accurately** — not a modeled property.
-- **The consume mechanic is banked** — and it's *exactly* the half Gus never
-  triggers (he never opens it), so banking it costs the character nothing.
+- **Real as a `Sealable` + `Bulkable` vessel** — a genuine openable steel flask
+  holding real coffee as `bulk:{material: coffee, amount}` (the bulkable
+  substrate, **now merged**). Real container, real open/close, real contents.
+- **The coffee is modeled, not described away.** It's a bulk at a temperature
+  that cools (lazy Newton, the `Thermal` capability). You *can* measure and
+  drink it — when it's open (below).
+- **The vacuum is a represented `barrier`.** Sealed, the flask keeps the coffee
+  hot for hours; a good vacuum flask is *cool on the outside* because the
+  insulation is working — and that's now a **modeled read**
+  (`getSurfaceTemperature()` ≈ ambient), not a hand-wave.
+- **What's genuinely banked is narrow and honest:** the `Thermal` mixin itself
+  (the thermal slate's Wave 1 — imminent, this is its first consumer) and the
+  **drink-effect** (alertness — needs metabolism's `ingest` + consumable
+  effects). `Sealable` + `Bulkable` ship today, so the real vessel is buildable
+  now; the temperature lights up with Wave 1, the effect with metabolism.
 
 ---
 
@@ -62,26 +62,37 @@ the liquid/consume subsystem we don't have). The way out: separate the
 
 ---
 
-## The coffee — description only
+## The coffee — a real bulk, sealed hot
 
-Honest description: the faint smell of old coffee, the knowledge it's still
-in there. We **describe** it accurately (a vacuum flask keeps coffee hot for
-hours) without **simulating** it. Not measurable, not drinkable (yet). That's
-not a fake — describing a real kind of object accurately is the opposite of
-faking one; the fake would be claiming a mechanic (measure/drink) that
-doesn't exist, which we don't.
+Real coffee as `bulk:{material: coffee, amount}`, at a real temperature that
+cools via `Thermal`. **Sealed vs unsealed is the whole mechanic:**
+
+- **Sealed** (Gus's default): heat escapes only through the vacuum walls →
+  `τ` in *hours* → the coffee stays hot all shift. The exterior reads ≈ ambient
+  (the insulation observable as the *absence* of outside heat).
+- **Unsealed:** the open mouth is a thermal hole the vacuum can't cover
+  (convection + evaporation) → `τ` drops to *minutes* → it cools fast. You can
+  measure and drink it only when open — and opening it is exactly when it
+  starts going cold.
+
+So a sealed thermos genuinely preserves the coffee, and **measuring it requires
+opening it** (the cool sealed exterior tells you nothing — which *is* the
+insulation working). No fake: the coffee is a real modeled bulk; the only banked
+piece is the drink-*effect* (metabolism).
 
 ---
 
 ## Gus never opens it — the break that never comes
 
-The **won't-open** of the sit/set/open/cross quartet. The character beat
-lives in **fiction, not simulation**: the thermos is *described* as keeping
-the coffee hot, so narratively the break never goes cold — always still
-warm, always available, never taken. The vacuum flask is the perfect vessel
-for a deferral: it makes *later* stay possible forever, and he never takes
-it. (When liquid/consume lands, **even then Gus never opens his** — the cup
-forever saved for a later that doesn't arrive.)
+The **won't-open** of the sit/set/open/cross quartet — and now the beat is
+**backed by simulation, not just fiction.** Because the thermos stays sealed,
+the coffee really does stay hot for hours; the break never goes cold *because he
+never opens it.* The character beat and the thermodynamics reinforce each other:
+every moment he doesn't unseal it he's preserving the heat, and the one time he
+would open it — the break he never takes — is the one moment it would start to
+cool. The vacuum flask is the perfect vessel for a deferral: it makes *later*
+stay possible for hours, and he never takes it — the cup forever saved for a
+later that doesn't arrive.
 
 ---
 
@@ -96,23 +107,24 @@ grouping reads too cute.)
 
 ## What this surfaces / banks
 
-- *(banked)* the **consume tail** — `Drinkable` + open → pour into the cap-cup
-  → drink → a consumable effect-list (alertness/warmth). Drainable fluid →
-  `bulkable-slate.md`; effects → `vitals-slate.md`. Gus never exercises it.
-- *(deep-banked)* a **thermal layer** — the coffee cools, slowly. Full model in
-  *The thermal layer* below; **it needs a substrate-slate home** (see the gap
-  note there) so it's in requirements at build.
-- Reuses, shipped: `Thing`, `Sealable`, `Tangible`, `Detailed`, global
-  `open`/`close`. Built-thermos additions: **`Drinkable`** (bulkable) +
-  **`Thermal`**.
+- *(real now)* the **vessel + contents** — `Sealable` + `Bulkable` holding real
+  coffee bulk; `open`/`close`/`pour`/`drink` all shipped. Buildable today.
+- *(needs `Thermal` — imminent)* the **thermal layer** — the coffee cools,
+  sealed vs unsealed. Full model now lives in
+  `docs/slates/builds/thermal-slate.md`; **Gus's thermos is its named first
+  consumer.** Lights up when the `Thermal` mixin (Wave 1) lands.
+- *(banked — metabolism)* the **drink-effect** — alertness/warmth on drinking,
+  via a consumable effect-list (`ingest` + consumable effects). The one
+  genuinely-deferred piece, and the half Gus never triggers.
+- Reuses, shipped: `Thing`, `Sealable`, `Tangible`, `Detailed`, `Bulkable`,
+  global `open`/`close`/`pour`/`drink`. Adds: **`Thermal`** (Wave 1).
 
 ---
 
-## The thermal layer (deep-banked)
+## The thermal layer (real — the first `Thermal` consumer)
 
-*Only if/when the coffee is a modeled bulk; gated on bulkable + vitals + the
-thermal substrate. Gus never opens it, so it never fires for him — captured so
-the worked model isn't lost.*
+*The coffee is a modeled bulk (bulkable shipped); this lights up with the
+`Thermal` mixin (slate Wave 1). Captured here; owned by the thermal slate.*
 
 **Composition — two orthogonal mixins.** The built thermos composes
 **`Drinkable`** (holds a drainable fluid) **and `Thermal`** (holds a temperature
@@ -136,12 +148,17 @@ never on `Drinkable`.
     differ minutely (lower `k` → marginally better — the original-Dewar reason).
     Materials double-duty: density→mass, conductivity→insulation. No per-instance
     geometry — typical-construction constants at the vessel-*type* level.
+- **Sealed vs unsealed (the mechanic).** `Sealable` state gates the *effective*
+  barrier: sealed → `vacuum` (`τ` in hours); unsealed → ≈`none` (open mouth =
+  convection + evaporation, `τ` in minutes). Open/close is a re-stamp event, so
+  the cooling rate is real physics, not just flavor.
 - **Measurement:** explicit `getContentsTemperature()` / `getSurfaceTemperature()`
-  methods (the contract); open/closed is diegetic flavor (a sealed vessel's
-  contents aren't externally measurable — say so), not the gate.
+  methods (the contract). A sealed flask exposes only its surface (≈ ambient),
+  so checking the coffee means *opening* it — which is exactly when it starts
+  cooling fast. (Checking isn't free.)
 - Fluid-agnostic — a gas bulk cools the same.
 
-**Substrate home.** The full model now lives in **`docs/slates/tails/thermal-slate.md`**
+**Substrate home.** The full model now lives in **`docs/slates/builds/thermal-slate.md`**
 (the generic `Thermal` capability, `τ = R·C`, lazy cooling + re-stamp, the
 material/medium-conductivity extensions). It reuses biome ambient
 (`resolveTemperatureFor`), the `Quantity<'K'>` thermal scale (quantities),

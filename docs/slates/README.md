@@ -43,6 +43,10 @@ remains a build.
   buckets/lists. Storage half already shipped as `ContactsMixin`
   ([../subsystems/contacts.md](../subsystems/contacts.md)); the
   relationship layer remains.
+- [reputation-slate](./builds/reputation-slate.md) — charisma-as-**measured-influence**
+  (regard / renown / susceptibility), notoriety as the signed twin that
+  pierces disguise, per-circle scoping. The platform's "value as physics,
+  not RPG" answer to CHA. **Game-design, deferred.**
 
 **Status:** recognition + identification substrate shipped → `belief.md`;
 social-graph relationship layer remains.
@@ -72,7 +76,12 @@ shipped too (both waves), graduated to
 in [tails/metabolism-slate](./tails/metabolism-slate.md):
 - [metabolism-slate](./tails/metabolism-slate.md) — **shipped.** The body's intake-and-chemistry system, two waves. **Wave 1 (energy economy):** basal drain (hunger/thirst), **coupled** endurance recovery (the wallet refills by burning fuel — closes the one-way drain encumbrance shipped), the `ingest` digestion buffer, in-session clock + presence-freeze (sleep = logout), and the floor-effects → vitals-conditions cascade (metabolism is the first thing to *drive* conditions). **Wave 2 (meal chemistry):** macro routing + inspectable nutrient data (the `NutritionLabel` render); the toxin-burden system + per-toxin banded conditions, alcohol/BAC, the `eat`/`vomit` verbs, antidote = accelerated clearance. Tail: deficiencies, hangover, chronic-toxin content, spoilage, magic ingestion, tuning.
 
-**Phases:** vitals substrate (built → tails) → encumbrance (built → tails) → metabolism (built → tails).
+The remaining consumers + the environment they run against extend the build:
+- [thermal-slate](./builds/thermal-slate.md) — generic `Thermal` cooling capability (lazy Newton, τ=R·C) + body thermoregulation (Option-C thermoneutral dead-band); resolves metabolism's heat seam. `thermalConductivity` already shipped to `Material`. Build with/after metabolism.
+- [respiration-slate](./builds/respiration-slate.md) — oxygen / asphyxiation (drowning, vacuum, smoke); a deferred seam riding shipped vitals (`spo2`) + biome (medium). Build when drowning content lands.
+- [weather-slate](./builds/weather-slate.md) — atmospheric *dynamics* (the procedural driver over biome's static state); thermal's dynamic source. Deferred behind the addressing-locality substrate; global until then.
+
+**Phases:** vitals substrate (built → tails) → encumbrance (built → tails) → metabolism (built → tails) → **thermal** → [respiration · weather — deferred behind content / the addressing substrate].
 
 ### 4. World places & navigation
 *A long, sequenced content build.* The Warren elastic-graph substrate +
@@ -155,7 +164,7 @@ extends; none is a fresh build.
 | [language](./tails/language-slate.md) | comms / perception | comprehension; roleplay flavor |
 | [reactions](./tails/reactions-slate.md) | messaging / emotes | attach-emote-to-message |
 | [persistence-architecture](./tails/persistence-architecture-slate.md) | persistence.md | Wave 3 un-Stuff marshallers (Waves 1-2 shipped) |
-| [thermal](./tails/thermal-slate.md) | race.md | conductivity as a material property (vitals dep) |
+| [surface-architecture](./tails/surface-architecture-slate.md) | architecture.md / call-security.md | api/lib/types public-surface rework — Api guts → HMR Stuff singletons (`singletonSync`), call==doc==import boundary, blanket scriptable migration. **Pre-requirements; next build.** |
 | [vitals](./tails/vitals-slate.md) | vitals.md / reserve.md | application waves — live condition progression, the death-transition driver, assessment / instruments / treatment, consumables, forensics (substrate / Wave 1 shipped) |
 | [multilocation](./tails/multilocation-slate.md) | location.md | deferred procedural / spatial Warren consumers beyond the shipped social-elastic lounge case |
 | [client-shell](./tails/client-shell-slate.md) | client-shell.md | search / command palette, mode switcher + per-mode status, public read-only surface, declarative mode/manifest model, pre-auth device-local client-state tier |
