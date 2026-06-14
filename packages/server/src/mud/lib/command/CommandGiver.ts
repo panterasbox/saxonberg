@@ -34,7 +34,6 @@ import type { Stuff } from '../stuff/Stuff';
 import type { Containable } from '../spatial/Containable';
 import type { Parser } from '../../api/command';
 import {
-  resolveSetting,
   SettingTypes,
   type SettingsSchemaEntry,
 } from '../shell/Environment';
@@ -176,7 +175,7 @@ export interface CommandGiver {
  * @internal
  */
 async function resolveActorParser(actor: Stuff): Promise<Parser> {
-  const spec = resolveSetting<string>(actor, 'shell.parser') ?? 'msh';
+  const spec = ShellApi.resolveSetting<string>(actor, 'shell.parser') ?? 'msh';
   return CommandApi.resolveParser(spec);
 }
 

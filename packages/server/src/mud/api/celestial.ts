@@ -15,7 +15,7 @@
  * wiring into ambient light (D6) — that waits on the perception
  * branch. Geography (latitude / longitude) and the profile are module
  * constants / zone fields, never EnvironmentMixin settings, because
- * `resolveSetting` can't resolve a world-level key with a `Location`
+ * `ShellApi.resolveSetting` can't resolve a world-level key with a `Location`
  * host (plan §2.5 / R8).
  *
  * Conventions for the geometry: angles are radians internally, degrees

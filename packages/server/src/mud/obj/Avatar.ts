@@ -28,9 +28,9 @@ import { Mml } from "../api/mml";
 import { ScheduleApi, type ScheduleHandle } from "../api/schedule";
 import {
   SettingTypes,
-  resolveSetting,
   type SettingsSchemaEntry,
 } from "../lib/shell/Environment";
+import { ShellApi } from "../api/shell";
 import { PostRegistrationMixin } from "../lib/stuff/PostRegistration";
 import { HasInteractiveMixin } from "../lib/connection/HasInteractive";
 import { AetherMixin } from "../lib/message/Aether";
@@ -483,7 +483,8 @@ export default class Avatar extends AvatarBase {
     if (this.isGuest) return; // Guests never persist — no autosave timer.
     if (this.periodicSaveHandle !== null) return;
     const intervalMs =
-      resolveSetting<number>(this, "world.autosave.interval") ?? 5 * 60 * 1000;
+      ShellApi.resolveSetting<number>(this, "world.autosave.interval") ??
+      5 * 60 * 1000;
     this.periodicSaveHandle = ScheduleApi.recurring(
       intervalMs,
       () => {

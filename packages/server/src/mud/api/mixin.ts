@@ -22,6 +22,7 @@
 import type { MixinName } from '../lib/mixin';
 import { Mixins } from '../lib/mixin';
 import type { Stuff } from '../lib/stuff/Stuff';
+import type { SettingsSchemaEntry } from '../lib/shell/Environment';
 import type { Container } from '../lib/spatial/Container';
 import type { Containable } from '../lib/spatial/Containable';
 import type { Surfaced } from '../lib/spatial/Surfaced';
@@ -340,6 +341,50 @@ export class MixinApi {
           // First declaration wins — concrete-class walked first, so
           // subclass overrides base.
           if (!(k in out) && typeof v === 'string') out[k] = v;
+        }
+      }
+      current = Object.getPrototypeOf(current);
+    }
+
+    return out;
+  }
+
+  /**
+   * Collect the settings-schema entries declared across a class's
+   * prototype chain — the raw walk over each layer's own static
+   * `settings` array, one `(entry, sourceMixin)` pair per declared
+   * entry. Picks up `static settings` from both mixin layers (the
+   * common case, provenance = `_mixinName`) AND from substrate
+   * classes whose concept they own (provenance falls back to `name`,
+   * then `<anonymous>`).
+   *
+   * Sibling of {@link getAllFieldMarshallers} — same mixin-static-slot
+   * collection shape. Shared by `EnvironmentMixin` (whose
+   * `collectSchema` wrapper layers duplicate-key validation on top)
+   * and `ShellApi.resolveSetting`'s non-Environment fallback. The
+   * duplicate-key throw is intentionally NOT here — that's settings
+   * validation, which belongs in the Environment wrapper.
+   *
+   * @param constructor - The class constructor to inspect
+   * @returns Array of `(entry, sourceMixin)` pairs in chain order
+   */
+  public static collectSettingsSchema(
+    constructor: AnyConstructor
+  ): Array<{ entry: SettingsSchemaEntry; sourceMixin: string }> {
+    const out: Array<{ entry: SettingsSchemaEntry; sourceMixin: string }> = [];
+    let current: unknown = constructor;
+
+    while (current && current !== Object && (current as MixinClass).prototype) {
+      const c = current as MixinClass & {
+        settings?: SettingsSchemaEntry[];
+      };
+      if (
+        Object.prototype.hasOwnProperty.call(c, 'settings') &&
+        Array.isArray(c.settings)
+      ) {
+        const sourceMixin = c._mixinName ?? c.name ?? '<anonymous>';
+        for (const entry of c.settings) {
+          out.push({ entry, sourceMixin });
         }
       }
       current = Object.getPrototypeOf(current);

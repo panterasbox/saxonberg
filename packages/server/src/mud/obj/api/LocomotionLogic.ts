@@ -19,7 +19,7 @@ import { SlotApi } from '../../api/slot';
 import type { MixinName } from '../../lib/mixin';
 import { LOAD_BEARING_DEFAULTS } from '../../lib/encumbrance/LoadBearing';
 import { Postures } from '../../lib/slot/Postured';
-import { ownSetting } from '../../lib/shell/Environment';
+import { ShellApi } from '../../api/shell';
 import type { EmissionData } from '../../api/locomotion';
 
 /** Hard depth cap for the passthrough chain walk; matches the conveyance ripple. */
@@ -374,7 +374,7 @@ export class LocomotionLogic extends Idea {
   /** See {@link LocomotionApi.defaultModeFor}. */
   @CallSecurity(LocomotionApiCallers)
   public defaultModeFor(actor: Stuff): string {
-    const explicit = ownSetting<string>(actor, 'movement.defaultMode');
+    const explicit = ShellApi.ownSetting<string>(actor, 'movement.defaultMode');
     if (explicit) return explicit;
     if (MixinApi.isOrganism(actor)) {
       const planDefault =

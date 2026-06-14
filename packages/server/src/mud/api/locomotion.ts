@@ -346,10 +346,10 @@ export class LocomotionApi {
    *      for non-Organism actors.
    *   3. Universe default `'walk'`.
    *
-   * `resolveSetting('movement.defaultMode')` is deliberately NOT used —
-   * its built-in schema-default fallback to `'walk'` would short-
-   * circuit the bodyplan layer. `ownSetting` returns the explicit
-   * override only.
+   * `ShellApi.resolveSetting('movement.defaultMode')` is deliberately
+   * NOT used — its built-in schema-default fallback to `'walk'` would
+   * short-circuit the bodyplan layer. `ShellApi.ownSetting` returns the
+   * explicit override only.
    */
   public static defaultModeFor(actor: Stuff): string {
     return logic().defaultModeFor(actor);

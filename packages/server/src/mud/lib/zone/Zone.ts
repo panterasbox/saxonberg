@@ -125,7 +125,7 @@ export abstract class Zone extends Idea {
    * ```ts
    * const profile =
    *   (await zone.lookupField<CelestialProfile>('celestialProfile'))
-   *   ?? resolveSetting(host, 'world.zone.celestialProfile.default');
+   *   ?? ShellApi.resolveSetting(host, 'world.zone.celestialProfile.default');
    * ```
    *
    * Field-read mechanism: prefer `get<PascalCase>()` (the inter-Stuff

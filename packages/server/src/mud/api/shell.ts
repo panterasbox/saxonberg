@@ -48,7 +48,7 @@ import {
   type ParsedCommand,
   type RawToken,
 } from './command-line';
-import { MixinApi } from './mixin';
+import { MixinApi, type AnyConstructor } from './mixin';
 import { Mml } from './mml';
 import { MudlogApi } from './mudlog';
 import { SecurityApi } from './security';
@@ -181,6 +181,36 @@ export class ShellApi {
     };
     if (chain.length > 1) expansion.chain = chain;
     return { parsed: result, expansion };
+  }
+
+  /**
+   * Cross-host setting resolution.
+   *
+   * Settings declared on a mixin that may be composed by hosts without
+   * `EnvironmentMixin` (notably `MobileMixin` settings on NPCs) need a
+   * single resolution entry point so consumers don't branch on the
+   * host type. This walks the schema and falls back to the declared
+   * default when the host can't carry overrides.
+   */
+  public static resolveSetting<T>(host: Stuff, key: string): T | undefined {
+    if (MixinApi.isEnvironment(host)) {
+      return host.getSetting<T>(key);
+    }
+    return MixinApi.collectSettingsSchema(host.constructor as AnyConstructor)
+      .find((x) => x.entry.key === key)?.entry.default as T | undefined;
+  }
+
+  /**
+   * Cross-host explicit-override resolution. Returns the user-explicit
+   * override for `key` (no schema-default fallback), or `undefined`
+   * when the host can't carry overrides (non-Environment) OR hasn't
+   * set the key. Companion to {@link resolveSetting}; chain-resolution
+   * consumers use this to distinguish "user set X" from "schema
+   * default is X".
+   */
+  public static ownSetting<T>(host: Stuff, key: string): T | undefined {
+    if (!MixinApi.isEnvironment(host)) return undefined;
+    return host.getOwnSetting<T>(key);
   }
 }
 
