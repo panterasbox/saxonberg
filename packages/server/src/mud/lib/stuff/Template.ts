@@ -27,7 +27,7 @@
  * The Phase Z2 type split is the primary expression of the invariant;
  * the hook is defense-in-depth at the persistence chokepoint.
  */
-import { Document, preloadFieldMarshallersFor } from '../persistence/Document';
+import { Document } from '../persistence/Document';
 import { PersistenceManager } from '../../../backend/PersistenceManager';
 import { type AnyConstructor } from '../../api/mixin';
 import { ZoneApi } from '../../api/zone';
@@ -93,7 +93,9 @@ export abstract class Template extends Document {
     // `ZoneTemplate` / `LeafTemplate` extension that does would
     // otherwise hit the sync resolver "not registered" throw inside
     // `fromDocument`.
-    await preloadFieldMarshallersFor(instance.constructor as AnyConstructor);
+    await Document.preloadFieldMarshallersFor(
+      instance.constructor as AnyConstructor,
+    );
     // Reflect persisted fields onto the instance via the hydration seam
     // Document provides. (It's protected, so we cast.)
     (instance as unknown as { fromDocument(d: DomainDoc): void }).fromDocument(

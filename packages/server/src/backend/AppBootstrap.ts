@@ -23,7 +23,7 @@ import { CommandApi } from '../mud/api/command';
 import { QuantityApi } from '../mud/api/quantity';
 import { WorldClockApi } from '../mud/api/worldclock';
 import { AppSettings } from '../mud/lib/config/AppSettings';
-import { setDocumentMarshallerResolver } from '../mud/lib/persistence/Document';
+import { Document } from '../mud/lib/persistence/Document';
 import { StuffApi } from '../mud/api/stuff';
 import type { Marshaller } from '../mud/lib/persistence/Marshaller';
 // Side-effecting import: registers the live `online`/`world` provider
@@ -82,7 +82,7 @@ export class AppBootstrap {
     // path can run. Marshallers remain Idea-rooted Stuff (resolved via the
     // registry / singleton lazy-clone); Document stays free of a StuffApi
     // import and reaches them only through this seam.
-    setDocumentMarshallerResolver(
+    Document.setMarshallerResolver(
       (path) => StuffApi.findByTemplatePath<Marshaller<unknown, unknown>>(path),
       (path) => StuffApi.singleton<Marshaller<unknown, unknown>>(path)
     );
