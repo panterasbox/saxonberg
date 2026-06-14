@@ -8,6 +8,8 @@
 
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { ConnectionApi } from '../connection';
+import { ConnectionLogic } from '../../obj/api/ConnectionLogic';
+import { SecurityError } from '../../lib/security/errors';
 import Interactive from '../../obj/Interactive';
 import Avatar from '../../obj/Avatar';
 import { User } from '../../lib/identity/User';
@@ -91,5 +93,26 @@ describe('ConnectionApi', () => {
 
       expect(interactive.getHolder()).toBeNull();
     });
+  });
+});
+
+describe('ConnectionLogic singleton encapsulation', () => {
+  beforeEach(() => {
+    StuffApi.clearAll();
+  });
+  afterEach(() => {
+    StuffApi.clearAll();
+  });
+
+  it('denies a direct logic-method call from a non-ConnectionApi caller', () => {
+    // A facade call lazily creates the logic singleton.
+    ConnectionApi.getConnectionCount();
+    const logic = StuffApi.findByTemplatePath<ConnectionLogic>(
+      '/obj/api/connection'
+    );
+    expect(logic).toBeDefined();
+    // The test module is not `mud/api/connection#ConnectionApi`, so the
+    // FromModule gate on the logic's own methods denies the call.
+    expect(() => logic!.getConnectionCount()).toThrow(SecurityError);
   });
 });

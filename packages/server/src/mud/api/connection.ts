@@ -7,16 +7,37 @@
  * Mudlib code should use this API, not access ConnectionManager directly.
  * With future call security, access to ConnectionManager will be restricted.
  *
- * This is an Api (public) - stateless interface to privileged Manager.
+ * Thin, security-gated forwarding shell: the logic lives in the
+ * hot-reloadable {@link ConnectionLogic} singleton at
+ * `/obj/api/connection`, reached synchronously via
+ * `StuffApi.singletonSync`. `dest /obj/api/connection` reloads it.
  */
 
-import { ConnectionManager } from '../../backend/ConnectionManager';
 import type Interactive from '../obj/Interactive';
 import type { Stuff } from '../lib/stuff/Stuff';
 import type { HasInteractive } from '../lib/connection/HasInteractive';
+import { StuffApi } from './stuff';
+import { HotReloadApi } from './hot-reload';
 import { SecurityApi } from './security';
-import { EventApi } from './event';
-import { Events } from '../lib/events';
+import { ConnectionLogic } from '../obj/api/ConnectionLogic';
+import { fileURLToPath } from 'url';
+
+const LOGIC_PATH = '/obj/api/connection';
+const LOGIC_CLASS_FILE = fileURLToPath(
+  new URL('../obj/api/ConnectionLogic', import.meta.url)
+);
+
+/** Resolve the HMR-able ConnectionLogic singleton (sync). */
+function logic(): ConnectionLogic {
+  return StuffApi.singletonSync(
+    LOGIC_PATH,
+    () =>
+      new ((HotReloadApi.getCurrentExport(
+        LOGIC_CLASS_FILE,
+        'ConnectionLogic'
+      ) as typeof ConnectionLogic | null) ?? ConnectionLogic)()
+  );
+}
 
 /**
  * Static API for connection queries (public interface for mudlib).
@@ -30,7 +51,7 @@ export class ConnectionApi {
    * @returns Interactive or undefined if not found
    */
   public static getInteractive(socketId: string): Interactive | undefined {
-    return ConnectionManager.get().getInteractive(socketId);
+    return logic().getInteractive(socketId);
   }
 
   /**
@@ -40,7 +61,7 @@ export class ConnectionApi {
    * @returns Array of all Interactive objects
    */
   public static getAllInteractives(): Interactive[] {
-    return ConnectionManager.get().getAllInteractives();
+    return logic().getAllInteractives();
   }
 
   /**
@@ -50,7 +71,7 @@ export class ConnectionApi {
    * @returns Number of active connections
    */
   public static getConnectionCount(): number {
-    return ConnectionManager.get().getConnectionCount();
+    return logic().getConnectionCount();
   }
 
   /**
@@ -61,7 +82,7 @@ export class ConnectionApi {
    * @returns True if connection exists
    */
   public static hasConnection(socketId: string): boolean {
-    return ConnectionManager.get().hasConnection(socketId);
+    return logic().hasConnection(socketId);
   }
 
   /**
@@ -71,7 +92,7 @@ export class ConnectionApi {
    * @returns Array of socket IDs
    */
   public static getSocketIds(): string[] {
-    return ConnectionManager.get().getSocketIds();
+    return logic().getSocketIds();
   }
 
   // Note: createInteractive and removeInteractive are NOT exposed here.
@@ -95,38 +116,7 @@ export class ConnectionApi {
     interactive: Interactive,
     target: HasInteractive & Stuff
   ): void {
-    const previous = interactive.getHolder();
-    if (previous === target) return;
-    const previousLinkdead = previous?.isLinkdead() ?? true;
-    const targetLinkdead = target.isLinkdead();
-
-    if (previous) {
-      previous.removeInteractive(interactive);
-    }
-    target.addInteractive(interactive);
-    interactive.setHolder(target);
-
-    // Fire Witness hooks AFTER state mutation. Per-connection
-    // notifications fire for both endpoints; presence transitions
-    // fire only when the count crosses 0.
-    if (previous) {
-      previous.onConnectionDetached?.();
-      if (!previousLinkdead && previous.isLinkdead()) {
-        previous.onLinkdead?.();
-      }
-    }
-    target.onConnectionAttached?.(interactive);
-    if (targetLinkdead && !target.isLinkdead()) {
-      target.onLinkRestored?.();
-    }
-
-    // Cross-cutting global event for any observer that doesn't care
-    // about a specific holder. Fires once per attach regardless of
-    // whether the per-holder Witness hook is implemented.
-    EventApi.emit(Events.ConnectionAttached, {
-      interactiveId: interactive.stuffId,
-      holderId: target.stuffId,
-    });
+    return logic().transfer(interactive, target);
   }
 
   /**
@@ -137,16 +127,7 @@ export class ConnectionApi {
    * No-op when there's no current holder.
    */
   public static detach(interactive: Interactive): void {
-    const previous = interactive.getHolder();
-    if (!previous) return;
-    const wasConnected = !previous.isLinkdead();
-    previous.removeInteractive(interactive);
-    interactive.setHolder(null);
-
-    previous.onConnectionDetached?.();
-    if (wasConnected && previous.isLinkdead()) {
-      previous.onLinkdead?.();
-    }
+    return logic().detach(interactive);
   }
 }
 
