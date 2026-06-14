@@ -1,4 +1,3 @@
-import { SecurityApi } from './security';
 /**
  * BoundaryApi — the public surface for installing and tearing down the
  * `Boundary` runtime triple (boundary + anchorA + anchorB).
@@ -23,13 +22,21 @@ import { SecurityApi } from './security';
  * `StuffApi.destruct` so the proxy / shadow / lifecycle machinery
  * runs, and the Boundary's own `onDestruct` chain detaches and
  * destructs the anchors.
+ *
+ * Thin, security-gated forwarding shell: the install / teardown logic
+ * lives in the hot-reloadable {@link BoundaryLogic} singleton at
+ * `/obj/api/boundary`, reached synchronously via
+ * `StuffApi.singletonSync`. `dest /obj/api/boundary` reloads it.
  */
 
 import type { Stuff } from '../lib/stuff/Stuff';
 import type { Boundary } from '../lib/boundary/Boundary';
 import type { Adornable } from '../lib/boundary/Adornable';
-import { BoundaryAnchor } from '../lib/boundary/BoundaryAnchor';
 import { StuffApi } from './stuff';
+import { HotReloadApi } from './hot-reload';
+import { SecurityApi } from './security';
+import { BoundaryLogic } from '../obj/api/BoundaryLogic';
+import { fileURLToPath } from 'url';
 
 export interface AttachExistingBoundaryOptions<T extends Boundary = Boundary> {
   boundary: T;
@@ -41,6 +48,23 @@ export interface CreateBoundaryOptions<T extends Boundary = Boundary> {
   factory: () => T;
   hostA: Stuff & Adornable;
   hostB: Stuff & Adornable;
+}
+
+const LOGIC_PATH = '/obj/api/boundary';
+const LOGIC_CLASS_FILE = fileURLToPath(
+  new URL('../obj/api/BoundaryLogic', import.meta.url)
+);
+
+/** Resolve the HMR-able BoundaryLogic singleton (sync). */
+function logic(): BoundaryLogic {
+  return StuffApi.singletonSync(
+    LOGIC_PATH,
+    () =>
+      new ((HotReloadApi.getCurrentExport(
+        LOGIC_CLASS_FILE,
+        'BoundaryLogic'
+      ) as typeof BoundaryLogic | null) ?? BoundaryLogic)()
+  );
 }
 
 export class BoundaryApi {
@@ -58,31 +82,7 @@ export class BoundaryApi {
   public static attachExistingBoundary<T extends Boundary>(
     opts: AttachExistingBoundaryOptions<T>
   ): T {
-    const { boundary, hostA, hostB } = opts;
-
-    if (hostA === hostB) {
-      throw new Error(
-        'BoundaryApi.attachExistingBoundary: hostA and hostB must differ.'
-      );
-    }
-    if (boundary.getAnchorA() || boundary.getAnchorB()) {
-      throw new Error(
-        'BoundaryApi.attachExistingBoundary: boundary already has anchors; ' +
-          'destruct or detach the boundary first.'
-      );
-    }
-
-    const anchorA = StuffApi.createSync(() => new BoundaryAnchor('A'));
-    const anchorB = StuffApi.createSync(() => new BoundaryAnchor('B'));
-
-    anchorA._setBoundary(boundary);
-    anchorB._setBoundary(boundary);
-    boundary._setAnchors(anchorA, anchorB);
-
-    hostA.addFixture(anchorA);
-    hostB.addFixture(anchorB);
-
-    return boundary;
+    return logic().attachExistingBoundary(opts);
   }
 
   /**
@@ -94,9 +94,7 @@ export class BoundaryApi {
   public static async create<T extends Boundary>(
     opts: CreateBoundaryOptions<T>
   ): Promise<T> {
-    const { factory, hostA, hostB } = opts;
-    const boundary = await StuffApi.create(factory);
-    return this.attachExistingBoundary({ boundary, hostA, hostB });
+    return logic().create(opts);
   }
 
   /**
@@ -106,7 +104,7 @@ export class BoundaryApi {
    * host's `getFixtures()` and destructs them.
    */
   public static destruct(boundary: Boundary): void {
-    StuffApi.destruct(boundary as unknown as Stuff);
+    logic().destruct(boundary);
   }
 }
 
