@@ -1,8 +1,11 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { SlottedMixin, UNBOUNDED_CAPACITY } from '../../lib/slot/Slotted';
 import { SlottableMixin } from '../../lib/slot/Slottable';
 import { Idea } from '../../lib/stuff/Idea';
 import { SlotApi } from '../slot';
+import { SlotLogic } from '../../obj/api/SlotLogic';
+import { SecurityError } from '../../lib/security/errors';
+import { StuffApi } from '../stuff';
 import { makeStuff } from '../../lib/security/__tests__/test-setup';
 
 class Host extends SlottedMixin(Idea) {}
@@ -252,5 +255,30 @@ describe('SlotApi', () => {
       }
       expect(host.getOccupantCount('g')).toBe(100);
     });
+  });
+});
+
+describe('SlotLogic singleton encapsulation', () => {
+  afterEach(() => {
+    StuffApi.clearAll();
+  });
+
+  it('lives at /obj/api/slot once the facade has materialized it', () => {
+    // A facade call lazily creates the logic singleton.
+    const occ = makeStuff(() => new Occ());
+    SlotApi.findOccupiedSlots(occ);
+    const logic = StuffApi.findByTemplatePath('/obj/api/slot');
+    expect(logic).toBeDefined();
+    expect(StuffApi.findByPathGlob('/obj/api/*')).toContain(logic);
+  });
+
+  it('denies a direct logic-method call from a non-SlotApi caller', () => {
+    const occ = makeStuff(() => new Occ());
+    SlotApi.findOccupiedSlots(occ);
+    const logic = StuffApi.findByTemplatePath<SlotLogic>('/obj/api/slot');
+    expect(logic).toBeDefined();
+    // The test module is not `mud/api/slot#SlotApi`, so the FromModule
+    // gate on the logic's own methods denies the call.
+    expect(() => logic!.findOccupiedSlots(occ)).toThrow(SecurityError);
   });
 });
