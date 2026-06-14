@@ -1,22 +1,6 @@
-/**
- * NavigationLogic — the hot-reloadable logic singleton behind
- * {@link NavigationApi}.
- *
- * Holds the canonical direction table (offsets, aliases, inverses) and
- * the lookup methods. Lives at `/obj/api/navigation`; `NavigationApi`'s
- * statics forward here via `StuffApi.singletonSync`. Each public method
- * is gated `FromModule('mud/api/navigation#NavigationApi')` (per-method,
- * not class-level — see {@link MaterialLogic} for why).
- *
- * The direction constants and the `CardinalDirection` vocabulary are
- * *placed* here (constants are placed, not re-exported); the type is
- * re-exported type-only from the Api face. Internal lookups go through
- * the module-private `normalize` free function rather than
- * `this.normalizeDirection`, so there are no intra-singleton self-calls
- * to trip the gate.
- *
- * @internal
- */
+// NavigationLogic — the hot-reloadable logic singleton behind
+// NavigationApi. (Doc comment lives on the class declaration below so
+// @internal lands on the reflection TypeDoc emits, not on the module.)
 
 import { Idea } from '../../lib/stuff/Idea';
 import { CallSecurity } from '../../lib/security/decorators';
@@ -116,6 +100,25 @@ const NavigationApiCallers = SecurityPolicies.FromModule(
   'mud/api/navigation#NavigationApi'
 );
 
+/**
+ * NavigationLogic — the hot-reloadable logic singleton behind
+ * {@link NavigationApi}.
+ *
+ * Holds the canonical direction table (offsets, aliases, inverses) and
+ * the lookup methods. Lives at `/obj/api/navigation`; `NavigationApi`'s
+ * statics forward here via `StuffApi.singletonSync`. Each public method
+ * is gated `FromModule('mud/api/navigation#NavigationApi')` (per-method,
+ * not class-level — see {@link MaterialLogic} for why).
+ *
+ * The direction constants and the `CardinalDirection` vocabulary are
+ * *placed* here (constants are placed, not re-exported); the type is
+ * re-exported type-only from the Api face. Internal lookups go through
+ * the module-private `normalize` free function rather than
+ * `this.normalizeDirection`, so there are no intra-singleton self-calls
+ * to trip the gate.
+ *
+ * @internal
+ */
 export class NavigationLogic extends Idea {
   /** See {@link NavigationApi.normalizeDirection}. */
   @CallSecurity(NavigationApiCallers)

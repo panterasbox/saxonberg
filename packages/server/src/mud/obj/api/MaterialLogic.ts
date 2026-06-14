@@ -1,13 +1,28 @@
+// MaterialLogic — the hot-reloadable logic singleton behind MaterialApi.
+// (Doc comment lives on the class declaration below so @internal lands
+// on the reflection TypeDoc emits, not on the module.)
+
+import { Idea } from '../../lib/stuff/Idea';
+import { CallSecurity } from '../../lib/security/decorators';
+import { SecurityPolicies } from '../../lib/security/SecurityPolicies';
+import type { Stuff } from '../../lib/stuff/Stuff';
+import type Material from '../../lib/material/Material';
+import type { MaterialComposition } from '../../api/material';
+import { MixinApi } from '../../api/mixin';
+import { StuffApi } from '../../api/stuff';
+
+const MaterialApiCallers = SecurityPolicies.FromModule(
+  'mud/api/material#MaterialApi'
+);
+
 /**
  * MaterialLogic — the hot-reloadable logic singleton behind
  * {@link MaterialApi}.
  *
  * Lives at `/obj/api/material` (a stateless `Stuff` singleton, no
  * backing `Template`); `MaterialApi`'s public statics forward here via
- * `StuffApi.singletonSync`. Every instance method is gated
- * `FromModule('mud/api/material#MaterialApi')` at the class level, so
- * the Api facade is the only legitimate caller — any other module that
- * grabs this singleton and calls a method gets `SecurityError`.
+ * `StuffApi.singletonSync`. Any module that grabs this singleton and
+ * calls a method other than through the Api gets `SecurityError`.
  *
  * Stateless by construction (no `PostRegistrationMixin`): `dest` is the
  * reload invalidator and the next `singletonSync` re-creates against
@@ -26,20 +41,6 @@
  *
  * @internal
  */
-
-import { Idea } from '../../lib/stuff/Idea';
-import { CallSecurity } from '../../lib/security/decorators';
-import { SecurityPolicies } from '../../lib/security/SecurityPolicies';
-import type { Stuff } from '../../lib/stuff/Stuff';
-import type Material from '../../lib/material/Material';
-import type { MaterialComposition } from '../../api/material';
-import { MixinApi } from '../../api/mixin';
-import { StuffApi } from '../../api/stuff';
-
-const MaterialApiCallers = SecurityPolicies.FromModule(
-  'mud/api/material#MaterialApi'
-);
-
 export class MaterialLogic extends Idea {
   /** See {@link MaterialApi.materialOf}. */
   @CallSecurity(MaterialApiCallers)

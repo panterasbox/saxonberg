@@ -1,31 +1,6 @@
-/**
- * LocomotionLogic — the hot-reloadable logic singleton behind
- * {@link LocomotionApi}.
- *
- * Holds mode resolution, eligibility predicates, enablement walks,
- * passthrough-chain resolution, emission resolution, and the
- * engageAround / isTransientEngagement framework-internal helpers.
- * Lives at `/obj/api/locomotion`; `LocomotionApi`'s statics forward
- * here via `StuffApi.singletonSync`. `dest /obj/api/locomotion` reloads
- * it (see hot-reload.md for the in-game demo).
- *
- * All inputs that reference a mode by name accept either the short
- * name (`'walk'`) or the full templatePath (`/lib/locomotion/walk`).
- * Internally the logic normalizes to the full path via the
- * module-private `toModePath` free function so the singleton-cache
- * lookup uses the canonical key.
- *
- * Gating (the guts-variant recipe): every public method carries
- * `AnyOf(FromModule('mud/api/locomotion#LocomotionApi'), SelfOnly)`.
- * `FromModule` admits the Api facade; `SelfOnly` admits the many
- * intra-singleton `this.x()` self-calls (the caller and target are
- * both this singleton). Stateless helpers are module-private free
- * functions — off-class, ungated, un-callable from outside, and (since
- * `#`-private instance methods don't work through the call-security
- * proxy) the only correct home for them.
- *
- * @internal
- */
+// LocomotionLogic — the hot-reloadable logic singleton behind
+// LocomotionApi. (Doc comment lives on the class declaration below so
+// @internal lands on the reflection TypeDoc emits, not on the module.)
 
 import { Idea } from '../../lib/stuff/Idea';
 import { CallSecurity } from '../../lib/security/decorators';
@@ -55,6 +30,34 @@ const LocomotionApiCallers = SecurityPolicies.AnyOf(
   SecurityPolicies.SelfOnly
 );
 
+/**
+ * LocomotionLogic — the hot-reloadable logic singleton behind
+ * {@link LocomotionApi}.
+ *
+ * Holds mode resolution, eligibility predicates, enablement walks,
+ * passthrough-chain resolution, emission resolution, and the
+ * engageAround / isTransientEngagement framework-internal helpers.
+ * Lives at `/obj/api/locomotion`; `LocomotionApi`'s statics forward
+ * here via `StuffApi.singletonSync`. `dest /obj/api/locomotion` reloads
+ * it (see hot-reload.md for the in-game demo).
+ *
+ * All inputs that reference a mode by name accept either the short
+ * name (`'walk'`) or the full templatePath (`/lib/locomotion/walk`).
+ * Internally the logic normalizes to the full path via the
+ * module-private `toModePath` free function so the singleton-cache
+ * lookup uses the canonical key.
+ *
+ * Gating (the guts-variant recipe): every public method carries
+ * `AnyOf(FromModule('mud/api/locomotion#LocomotionApi'), SelfOnly)`.
+ * `FromModule` admits the Api facade; `SelfOnly` admits the many
+ * intra-singleton `this.x()` self-calls (the caller and target are
+ * both this singleton). Stateless helpers are module-private free
+ * functions — off-class, ungated, un-callable from outside, and (since
+ * `#`-private instance methods don't work through the call-security
+ * proxy) the only correct home for them.
+ *
+ * @internal
+ */
 export class LocomotionLogic extends Idea {
   // ── mode resolution ──────────────────────────────────────────────
 
