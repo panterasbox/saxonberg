@@ -60,6 +60,18 @@ module.exports = {
       }
     },
     {
+      // Lint #1 (surface-architecture): every concrete FromModule /
+      // FromController policy string + every *_MODULE_ID const resolves
+      // to a real module + export under packages/server/src. Catches
+      // stale call-security gates after a rename. The rule is loaded via
+      // `--rulesdir packages/server/eslint-rules` (see the root `lint`
+      // script). WARN during the sweep; flips to error at the end of P3.
+      files: ['packages/server/src/**/*.ts'],
+      rules: {
+        'from-module-resolves': 'warn'
+      }
+    },
+    {
       // Apis expose behavior through their Api class. Module-level
       // exported functions are not allowed in api/*.ts — fold them
       // into the owning Api. Types and constants stay exportable.
