@@ -42,6 +42,17 @@ export interface Postured extends Slotted {
   getAcceptedPostures(slot: string): readonly string[];
   /** Slots accepting the given posture (across the whole universe). */
   getSlotsAcceptingPosture(p: string): readonly string[];
+  /**
+   * Rest-quality multiplier for a body resting on this host — how much
+   * better than open ground it is for recovery. Default `1.0` (the
+   * floor / standing); a bedroll authors ~1.3×, a four-poster ~2.5×.
+   * Read by metabolism's coupled-recovery calc off the host whose
+   * posture slot the body occupies. A behavior-specific field on the
+   * specialized posture-bearing host (the `Vessel.transmissionFactor`
+   * pattern), NOT on the universal `SlotSpec`.
+   */
+  getRestQuality(): number;
+  setRestQuality(value: number): void;
 }
 
 export function PosturedMixin<TBase extends MixinConstructor<Stuff & Slotted>>(
@@ -49,6 +60,31 @@ export function PosturedMixin<TBase extends MixinConstructor<Stuff & Slotted>>(
 ) {
   return class PosturedMixin extends Base {
     static _mixinName = 'PosturedMixin';
+
+    static persistentFields = ['restQuality'];
+
+    /**
+     * Recovery multiplier for a body at rest on this host. Default
+     * `1.0` (no better than open ground). Strictly positive — a value
+     * `> 1` speeds recovery (a comfortable bed), values in `(0, 1)` are
+     * legal but reserved (a cramped perch). Per-field invariant on the
+     * setter (finite, `> 0`).
+     */
+    public restQuality: number = 1.0;
+
+    getRestQuality(): number {
+      return this.restQuality;
+    }
+
+    setRestQuality(value: number): void {
+      if (typeof value !== "number" || !Number.isFinite(value) || value <= 0) {
+        throw new RangeError(
+          `PosturedMixin.setRestQuality: expected a finite number > 0, ` +
+            `got ${String(value)}`
+        );
+      }
+      this.restQuality = value;
+    }
 
     getAcceptedPostures(
       this: Stuff & Slotted,

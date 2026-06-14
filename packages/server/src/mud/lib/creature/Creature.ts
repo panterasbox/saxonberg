@@ -48,16 +48,22 @@ import { ContainerMixin } from '../spatial/Container';
 import { VitalsMixin } from '../vitals/Vitals';
 import { ReservedMixin } from '../reserve';
 import { LoadBearingMixin } from '../encumbrance/LoadBearing';
-import type Material from '../material/Material';
+import { MetabolicMixin } from '../metabolism/Metabolic';
 import { Quantity } from '../quantity';
 
 // Body stack (inner → outer):
-//   Container + Containable + Visible + Vitals + Reserved + Posed +
-//   BodyPlanSlots + Slotted + Sexed + Organism + Named + Agent, with
-//   LoadBearing outermost.
+//   Container + Containable + Visible + Metabolic + Vitals + Reserved +
+//   Posed + BodyPlanSlots + Slotted + Sexed + Organism + Named + Agent,
+//   with LoadBearing outermost.
 // VitalsMixin sits outer of Organism/BodyPlanSlots (it reads
 // getSpecies() for the band profile and anatomy/slots). ReservedMixin
 // sits inner of Vitals so the derived band can read the reserve surface.
+// MetabolicMixin sits OUTER of Vitals/Reserved/Posed — it drives all
+// three (basal drain, coupled recovery, the condition cascade) and
+// overrides getReserve/getReserves to reconcile-on-read. It is INNER of
+// LoadBearing so the encumbrance gauge keeps reading the reserve
+// surface metabolism populates (LoadBearing's endurance read dispatches
+// through the proxy to Metabolic's override).
 // LoadBearingMixin sits outermost — the encumbrance gauge reads
 // Container + Slotted + Tangible (Agent) + Reserved + Vitals, so it
 // must compose outer of all of them (same placement logic as Vitals
@@ -66,11 +72,13 @@ const CreatureBase = LoadBearingMixin(
   ContainerMixin(
     ContainableMixin(
       VisibleMixin(
-        VitalsMixin(
-          ReservedMixin(
-            PosedMixin(
-              BodyPlanSlotsMixin(
-                SlottedMixin(SexedMixin(OrganismMixin(NamedMixin(Agent))))
+        MetabolicMixin(
+          VitalsMixin(
+            ReservedMixin(
+              PosedMixin(
+                BodyPlanSlotsMixin(
+                  SlottedMixin(SexedMixin(OrganismMixin(NamedMixin(Agent))))
+                )
               )
             )
           )
@@ -133,22 +141,8 @@ export class Creature extends CreatureBase {
     return null;
   }
 
-  /**
-   * Ingestion seam — a living body consumes `amount` of `material`.
-   *
-   * v1 is a deliberate **no-op**: the socket exists so `drink` / `sip`
-   * (and a future `eat`) have somewhere to hand the consumed
-   * `{ material, amount }`, but nothing is plugged in. A future
-   * `Metabolic` / `Digestive` capability overrides this to apply
-   * nutrition, hydration, or intoxication. Per-entity method by
-   * design — not a global subscription or content-registered hook
-   * (substrate has no content hooks). The first real consequence
-   * lands with Dave's bar.
-   */
-  ingest(material: Material, amount: Quantity<'L'>): void {
-    // No-op terminal. Subclasses / capability mixins override and may
-    // `super.ingest(material, amount)` without ceremony.
-    void material;
-    void amount;
-  }
+  // The `ingest` seam now lives on `MetabolicMixin` (composed into the
+  // body stack above): a living body routes consumed `{ material,
+  // amount, phase }` into its digestion buffer. `drink`/`sip` fill the
+  // liquid sub-volume, `eat` the solid one. See `lib/metabolism/`.
 }

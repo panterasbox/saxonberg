@@ -156,10 +156,16 @@ remains in the near-term Track A queue:
 >   `vitalProfile`, typed anatomy + tissue, the two-kind condition type
 >   system, the generalized `Reserve` substrate, and the death/
 >   consciousness seams ([vitals.md](./subsystems/vitals.md),
->   [reserve.md](./subsystems/reserve.md)). What's deferred to the named
->   next build is the *applications*: the assess / measure-on-patient /
->   treatment verbs + instruments, live condition progression, and the
->   death-transition driver.
+>   [reserve.md](./subsystems/reserve.md)). The first *drivers* on the
+>   substrate have since shipped: **encumbrance** (the carry-weight gauge,
+>   [encumbrance.md](./subsystems/encumbrance.md)) and **metabolism** (the
+>   intake-and-chemistry driver — `eat`/`vomit`, the digestion buffer,
+>   coupled recovery, and the first condition-*driver*: floored reserves
+>   spawn `starvation`/`dehydration`/`collapse` and progress to the death
+>   seam, [metabolism.md](./subsystems/metabolism.md)). Still deferred: the
+>   general assess / measure-on-patient / treatment verbs + instruments,
+>   live (non-metabolism) condition progression, and a *general*
+>   death-transition driver (metabolism drives only its own cascade).
 >   ([vitals-slate.md](./slates/builds/vitals-slate.md))
 > - **Things-here / Inventory chip strips.** Drafted as
 >   tandem-slice training wheels before the inspection pane

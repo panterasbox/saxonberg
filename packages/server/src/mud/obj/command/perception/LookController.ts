@@ -261,7 +261,9 @@ export default class LookController extends CommandController<LookModel> {
     // Run the long through `getMarkupLong(viewer)` so detail keywords
     // and any other contributing-mixin augmenters wrap inline —
     // matches the location branch above; both `look <thing>` and
-    // bare `look` ship the same affordance-annotated text.
+    // bare `look` ship the same affordance-annotated text. (A
+    // consumable's nutrition label rides this augmenter seam via
+    // `NutritionLabelMixin`, not a special-case here.)
     const body = Mml.compose`\n${Mml.name(target)}\n\n${Mml.fromMarkup(target.getMarkupLong(actor))}\n`;
 
     MessageApi.scene(actor)

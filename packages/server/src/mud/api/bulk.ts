@@ -112,11 +112,38 @@ export class BulkableApi {
   static ingest(actor: Stuff, material: Material | null, litres: number): void {
     if (material === null) return;
     const eater = actor as unknown as {
-      ingest?: (m: Material, q: Quantity<'L'>) => void;
+      ingest?: (m: Material, q: Quantity<'L'>, phase?: 'solid' | 'liquid') => void;
     };
     if (typeof eater.ingest === 'function') {
-      eater.ingest(material, Quantity.of(litres, 'L'));
+      eater.ingest(material, Quantity.of(litres, 'L'), 'liquid');
     }
+  }
+
+  /**
+   * Solid analog of {@link ingest} — the `eat` bridge. Routes the
+   * consumed solid through the same `Creature.ingest` seam with the
+   * `'solid'` phase so it fills the digestion buffer's solid
+   * sub-volume. Returns the litres the body actually accepted (the
+   * digestion-buffer cap may refuse the excess of an over-full
+   * stomach), so `eat` can hold to the partial-transfer contract; a
+   * non-Creature giver or `null` material accepts nothing.
+   */
+  static ingestSolid(
+    actor: Stuff,
+    material: Material | null,
+    litres: number,
+  ): number {
+    if (material === null) return 0;
+    const eater = actor as unknown as {
+      ingest?: (
+        m: Material,
+        q: Quantity<'L'>,
+        phase?: 'solid' | 'liquid',
+      ) => number | void;
+    };
+    if (typeof eater.ingest !== 'function') return 0;
+    const accepted = eater.ingest(material, Quantity.of(litres, 'L'), 'solid');
+    return typeof accepted === 'number' ? accepted : litres;
   }
 
   /**

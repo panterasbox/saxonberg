@@ -3,6 +3,7 @@ controller: inventory/GetController
 description: "Pick up objects from your location"
 validators:
   - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresConscious
 args:
   - name: targets
     type: objects

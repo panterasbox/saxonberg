@@ -3,6 +3,7 @@ controller: movement/WalkController
 description: "Walk through a named exit (compass, door, or vessel)."
 validators:
   - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresConscious
 args:
   - name: target
     type: object

@@ -3,6 +3,7 @@ controller: bulk/SipController
 description: "Take a small sip from a holder"
 validators:
   - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresConscious
 args:
   - name: target
     type: object

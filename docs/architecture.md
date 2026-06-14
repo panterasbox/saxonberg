@@ -332,7 +332,8 @@ Under `Agent` the hierarchy splits **body** from **agent**:
 `Agent → Creature → Character → Avatar`. `Creature` (`lib/creature/`)
 is the body layer — a living physical thing that can break, with or
 without agency: it carries `OrganismMixin` + `VitalsMixin` +
-`ReservedMixin` + `LoadBearingMixin` (the encumbrance gauge, outermost) +
+`ReservedMixin` + `MetabolicMixin` (intake/chemistry, outer of those
+three) + `LoadBearingMixin` (the encumbrance gauge, outermost) +
 the anatomy-slot / posture / description / containment
 mixins. `Character` extends it with the **agency** mixins (commands,
 perception, speech, movement, engagement) + the social-identity mixins
@@ -465,6 +466,8 @@ registry) lives in `lib/mixin.ts`.
 | `lib/vitals/` | `VitalsMixin` | body-state: vital-sign `Quantity` fields, per-species survivable-band lookup, derived `getConditionBand` / `getConsciousness` (computed, never stored), the anatomy resolver, the active-condition collection, and the death/consciousness seams. Requires `OrganismMixin`. Composed by `Creature`. See [vitals.md](./subsystems/vitals.md). |
 | `lib/reserve.ts` | `ReservedMixin` | a keyed collection of `Reserve` capacity axes (decomposed-scalar persistence). Biological reserves (endurance/satiation/hydration) + the authored-thematic seam (mana is content). Composed by `Creature`. See [reserve.md](./subsystems/reserve.md). |
 | `lib/encumbrance/` | `LoadBearingMixin` | the carry-weight gauge (first vitals driver): derived-on-read `getBorneBurden` (weighted walk over contents + slot occupants with `Vessel.transmissionFactor` + slot-derived placement coupling) / `getCarryCapacity` (body mass × physiology margins) / `getLoadRatio` / `wouldExceedCeiling` / `drainForTraversal`. Requires `Container + Slotted + Tangible + Reserved + Vitals`. Composed outermost by `Creature`. See [encumbrance.md](./subsystems/encumbrance.md). |
+| `lib/metabolism/` | `MetabolicMixin` | the intake-and-chemistry driver (first condition-driver): the digestion buffer + real `ingest`, the lazy reconcile-on-read over `WorldClock` game-time (absorption / mass-scaled basal drain / coupled recovery / toxin clearance), the cascade spawning `floorEffect` conditions + the death seam, the presence-freeze clock, and the toxin-burden + alcohol/BAC system. Drives `Vitals`/`Reserved`/`Posed`; composed inner of `LoadBearing`, outer of those three, by `Creature`. No Api. See [metabolism.md](./subsystems/metabolism.md). |
+| `lib/metabolism/` | `NutritionLabelMixin` | opt-in consumable affordance: appends an edible `Material`'s inspectable nutrition profile to the host's long description via the `markupAugmenter` seam. Composed by content onto labelled consumables (not every Stuff). See [metabolism.md](./subsystems/metabolism.md). |
 
 ### Mixin Composition Constraints
 
