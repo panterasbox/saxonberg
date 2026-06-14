@@ -1,28 +1,24 @@
 /**
- * SchedulerApi — thin facade over the `SchedulerRegistry` singleton.
+ * SchedulerApi — thin facade over the engagement-framework runtime.
  *
- * Stable caller-facing surface for the engagement framework's runtime.
- * Every state-touching method delegates to the Registry; the Registry's
- * methods carry `@CallSecurity(FromModule('mud/api/scheduler#SchedulerApi'))`
- * so the security gate denies any caller outside this module. External
- * code that grabs the Registry Stuff via `StuffApi.findByTemplatePath`
- * cannot call its methods; this Api is the only legitimate path.
+ * Stable caller-facing surface. The orchestration + registry resolution
+ * live in the hot-reloadable {@link SchedulerLogic} singleton at
+ * `/obj/api/scheduler`, reached synchronously via
+ * `StuffApi.singletonSync`; the Logic resolves the `SchedulerRegistry`
+ * singleton (at `/obj/SchedulerRegistry`) where all engagement state
+ * actually lives. `dest /obj/api/scheduler` reloads the Logic; the
+ * Registry's state is unaffected.
  *
- * State lives on the Registry (engagement by-id index, completion /
- * emission timers, host-destruction subscriptions, activity-class
- * registry). Reload of this file invalidates only the cached pointer;
- * reload of `obj/SchedulerRegistry.ts` re-clones the Stuff per
- * HotReloadApi's pattern (state resets, `postRegister` re-runs
- * idempotently).
+ * The Registry's public methods carry a gate that admits this module
+ * AND the logic singleton (`FromTemplate('/obj/api/scheduler')`), so
+ * external code that grabs the Registry Stuff via
+ * `StuffApi.findByTemplatePath` still cannot call its methods. The
+ * narrow-entry pattern holds: state has one home, and one
+ * structurally-enforced path between callers and it.
  *
- * The narrow-entry pattern: `SchedulerApi` is reachable from anywhere,
- * mediating every call into the Registry. State has one home, one
- * calling surface, and one structurally-enforced path between them.
- *
- * Thin Api-facade methods remain undecorated — the gate is enforced on
- * the Registry side. `SecurityApi.decorateApiClass` at the bottom
- * stamps frame-push wrappers on every static method so downstream
- * `ApiOnly` checks find `SchedulerApi` on the stack.
+ * `SecurityApi.decorateApiClass` at the bottom stamps frame-push
+ * wrappers on every static method so downstream `ApiOnly` checks find
+ * `SchedulerApi` on the stack.
  */
 
 import type {
@@ -35,8 +31,9 @@ import type { Stuff } from '../lib/stuff/Stuff';
 import type { Engaged, EngagementSlot } from '../lib/activity/Engaged';
 import { SecurityApi } from './security';
 import { StuffApi } from './stuff';
-import type SchedulerRegistry from '../obj/SchedulerRegistry';
-import { TemplatePaths } from '../lib/paths';
+import { HotReloadApi } from './hot-reload';
+import { SchedulerLogic } from '../obj/api/SchedulerLogic';
+import { fileURLToPath } from 'url';
 
 /* ─────────────────────────── public surface types ─────────────────────────── */
 
@@ -112,137 +109,100 @@ export type {
   EngagementCancelledNote,
 };
 
-/* ─────────────────────────── SchedulerApi ─────────────────────────── */
+/* ─────────────────────────── logic resolution ─────────────────────────── */
 
-const REGISTRY_PATH = TemplatePaths.schedulerRegistry;
+const LOGIC_PATH = '/obj/api/scheduler';
+const LOGIC_CLASS_FILE = fileURLToPath(
+  new URL('../obj/api/SchedulerLogic', import.meta.url)
+);
+
+/** Resolve the HMR-able SchedulerLogic singleton (sync). */
+function logic(): SchedulerLogic {
+  return StuffApi.singletonSync(
+    LOGIC_PATH,
+    () =>
+      new ((HotReloadApi.getCurrentExport(
+        LOGIC_CLASS_FILE,
+        'SchedulerLogic'
+      ) as typeof SchedulerLogic | null) ?? SchedulerLogic)()
+  );
+}
+
+/* ─────────────────────────── SchedulerApi ─────────────────────────── */
 
 export class SchedulerApi {
   private constructor() {}
 
-  static #registryRef: SchedulerRegistry | null = null;
-  static #registryClass: (new () => SchedulerRegistry) | null = null;
-
-  /** @internal — called from `obj/SchedulerRegistry.ts` module body. */
-  public static _registerRegistryClass(
-    cls: new () => SchedulerRegistry,
-  ): void {
-    SchedulerApi.#registryClass = cls;
-  }
-
-  static #lookupRegistry(): SchedulerRegistry | null {
-    if (SchedulerApi.#registryRef) return SchedulerApi.#registryRef;
-    const reg = StuffApi.findByTemplatePath<SchedulerRegistry>(REGISTRY_PATH);
-    if (reg) SchedulerApi.#registryRef = reg;
-    return reg ?? null;
-  }
-
-  /**
-   * Resolve the Registry, lazy-creating a transient in-memory instance
-   * if `BootstrapManager.run()` hasn't seeded one yet. Production hits
-   * the manifest path; tests fall through here. See WorldClockApi for
-   * the import-cycle rationale behind the class-registration pattern.
-   */
-  static #registry(): SchedulerRegistry {
-    const existing = SchedulerApi.#lookupRegistry();
-    if (existing) return existing;
-    if (!SchedulerApi.#registryClass) {
-      throw new Error(
-        'SchedulerApi: SchedulerRegistry not bootstrapped and its ' +
-          'class is not registered. Either run BootstrapManager.run() ' +
-          "or import '../obj/SchedulerRegistry' so its module-load " +
-          'side effect registers the class.',
-      );
-    }
-    const reg = StuffApi.createSync<SchedulerRegistry>(
-      () => new SchedulerApi.#registryClass!(),
-    );
-    reg.setTemplatePath(REGISTRY_PATH);
-    SchedulerApi.#registryRef = reg;
-    return reg;
-  }
-
   /* ──────────────────── activity-class registry ──────────────────── */
 
   public static registerActivity(type: string, cls: ActivityClass): void {
-    SchedulerApi.#registry().registerActivity(type, cls);
+    logic().registerActivity(type, cls);
   }
 
   public static getActivityClass(type: string): ActivityClass | undefined {
-    return SchedulerApi.#registry().getActivityClass(type);
+    return logic().getActivityClass(type);
   }
 
   public static async reloadActivity(type: string): Promise<void> {
-    await SchedulerApi.#registry().reloadActivity(type);
+    await logic().reloadActivity(type);
   }
 
   /* ──────────────────── lifecycle: start ──────────────────── */
 
   public static start(engagement: Engagement): StartResult {
-    return SchedulerApi.#registry().start(engagement);
+    return logic().start(engagement);
   }
 
   /* ──────────────────── lifecycle: cancel family ──────────────────── */
 
   public static cancel(engagement: Engagement, reason: AbortReason): void {
-    SchedulerApi.#registry().cancel(engagement, reason);
+    logic().cancel(engagement, reason);
   }
 
   public static cancelAll(actor: Stuff & Engaged): void {
-    SchedulerApi.#registry().cancelAll(actor);
+    logic().cancelAll(actor);
   }
 
   public static cancelByType(actor: Stuff & Engaged, type: string): void {
-    SchedulerApi.#registry().cancelByType(actor, type);
+    logic().cancelByType(actor, type);
   }
 
   public static cancelByPredicate(
     actor: Stuff & Engaged,
-    pred: (e: Engagement) => boolean,
+    pred: (e: Engagement) => boolean
   ): void {
-    SchedulerApi.#registry().cancelByPredicate(actor, pred);
+    logic().cancelByPredicate(actor, pred);
   }
 
   /* ──────────────────── introspection ──────────────────── */
 
   public static getEngagements(
-    actor: Stuff & Engaged,
+    actor: Stuff & Engaged
   ): readonly Engagement[] {
-    return actor.getEngagements();
+    return logic().getEngagements(actor);
   }
 
   public static getEngagementBySlot(
     actor: Stuff & Engaged,
-    slot: EngagementSlot,
+    slot: EngagementSlot
   ): Engagement | undefined {
-    return actor.getEngagementBySlot(slot);
+    return logic().getEngagementBySlot(actor, slot);
   }
 
   public static getEngagementById(id: string): Engagement | undefined {
-    return SchedulerApi.#registry().getEngagementById(id);
+    return logic().getEngagementById(id);
   }
 
-  /* ──────────────────── HMR / test seams ──────────────────── */
-
-  /**
-   * HMR seam: drop the cached Registry pointer so the next call
-   * re-resolves. Called when `api/scheduler.ts` is reloaded.
-   * Registry state itself is unaffected.
-   * @internal
-   */
-  public static _resetRegistryRefForReload(): void {
-    SchedulerApi.#registryRef = null;
-  }
+  /* ──────────────────── test seams ──────────────────── */
 
   public static _clearAllForTesting(): void {
     SecurityApi.assertTestOnly('_clearAllForTesting');
-    const reg = SchedulerApi.#lookupRegistry();
-    if (reg) reg._clearAllForTesting();
+    logic()._clearAllForTesting();
   }
 
   public static _unregisterActivityForTesting(type: string): void {
     SecurityApi.assertTestOnly('_unregisterActivityForTesting');
-    const reg = SchedulerApi.#lookupRegistry();
-    if (reg) reg._unregisterActivityForTesting(type);
+    logic()._unregisterActivityForTesting(type);
   }
 }
 
