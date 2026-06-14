@@ -8,34 +8,43 @@
  *   "is this stuff an Avatar?" question
  *
  * This is separate from StuffApi because it's domain-specific functionality.
+ *
+ * Thin, security-gated forwarding shell: the registry + clone-coordination
+ * logic lives in the hot-reloadable {@link PlayerLogic} singleton at
+ * `/obj/api/player`, reached synchronously via `StuffApi.singletonSync`.
+ * `dest /obj/api/player` reloads it.
  */
 
-import Avatar from '../obj/Avatar';
+import type Avatar from '../obj/Avatar';
 import type { User } from '../lib/identity/User';
 import { StuffApi } from './stuff';
+import { HotReloadApi } from './hot-reload';
 import { SecurityApi } from './security';
 import type { Stuff } from '../lib/stuff/Stuff';
+import { PlayerLogic } from '../obj/api/PlayerLogic';
+import { fileURLToPath } from 'url';
+
+const LOGIC_PATH = '/obj/api/player';
+const LOGIC_CLASS_FILE = fileURLToPath(
+  new URL('../obj/api/PlayerLogic', import.meta.url)
+);
+
+/** Resolve the HMR-able PlayerLogic singleton (sync). */
+function logic(): PlayerLogic {
+  return StuffApi.singletonSync(
+    LOGIC_PATH,
+    () =>
+      new ((HotReloadApi.getCurrentExport(
+        LOGIC_CLASS_FILE,
+        'PlayerLogic'
+      ) as typeof PlayerLogic | null) ?? PlayerLogic)()
+  );
+}
 
 /**
  * Static API for Player/Avatar management.
  */
 export class PlayerApi {
-  /**
-   * Registry of avatars by player ID.
-   * This is a specialized index for quick avatar lookup.
-   */
-  static #avatarsByPlayerId: Map<string, Avatar> = new Map();
-
-  /**
-   * Per-playerId in-flight avatar clones. Multiplexing means a user
-   * can open several connections at once (and a dev React StrictMode
-   * remount opens two in the same tick) — the Avatar must be cloned
-   * exactly once and shared. An entry exists only while a clone is in
-   * progress; concurrent connects await it instead of starting a
-   * duplicate clone.
-   */
-  static #inFlightClones: Map<string, Promise<Avatar>> = new Map();
-
   /**
    * Type-guard: is this Stuff an Avatar?
    *
@@ -53,12 +62,7 @@ export class PlayerApi {
    * per the inline-comment guidance in the MR review.
    */
   public static isAvatarStuff(stuff: Stuff): stuff is Avatar {
-    const path = stuff.getTemplatePath();
-    return (
-      path !== undefined &&
-      path !== null &&
-      path.startsWith(Avatar.TEMPLATE_PATH_PREFIX)
-    );
+    return logic().isAvatarStuff(stuff);
   }
 
   /**
@@ -68,19 +72,7 @@ export class PlayerApi {
    * @param avatar - The Avatar object to register
    */
   public static registerAvatar(avatar: Avatar): void {
-    if (!avatar.getPlayerId()) {
-      console.warn('PlayerApi.registerAvatar(): Avatar has no playerId');
-      return;
-    }
-
-    if (this.#avatarsByPlayerId.has(avatar.getPlayerId())) {
-      console.warn(
-        `PlayerApi.registerAvatar(): Avatar already registered for playerId ${avatar.getPlayerId()}`
-      );
-      return;
-    }
-
-    this.#avatarsByPlayerId.set(avatar.getPlayerId(), avatar);
+    return logic().registerAvatar(avatar);
   }
 
   /**
@@ -90,11 +82,7 @@ export class PlayerApi {
    * @param avatar - The Avatar object to unregister
    */
   public static unregisterAvatar(avatar: Avatar): void {
-    if (!avatar.getPlayerId()) {
-      return;
-    }
-
-    this.#avatarsByPlayerId.delete(avatar.getPlayerId());
+    return logic().unregisterAvatar(avatar);
   }
 
   /**
@@ -104,7 +92,7 @@ export class PlayerApi {
    * @returns The avatar, or undefined if not found
    */
   public static findAvatarByPlayerId(playerId: string): Avatar | undefined {
-    return this.#avatarsByPlayerId.get(playerId);
+    return logic().findAvatarByPlayerId(playerId);
   }
 
   /**
@@ -113,14 +101,14 @@ export class PlayerApi {
    * @returns Array of all active avatars
    */
   public static getAllAvatars(): Avatar[] {
-    return Array.from(this.#avatarsByPlayerId.values());
+    return logic().getAllAvatars();
   }
 
   /**
    * Get count of active avatars.
    */
   public static getAvatarCount(): number {
-    return this.#avatarsByPlayerId.size;
+    return logic().getAvatarCount();
   }
 
   /**
@@ -134,35 +122,7 @@ export class PlayerApi {
    * each Avatar's `postRegister` sees its owning user synchronously.
    */
   public static async loadAvatarsForUser(user: User): Promise<Avatar[]> {
-    // Avatar lives in `obj/` (mudlib gameplay), which the `api/` layer
-    // deliberately does not statically depend on — see
-    // [architecture.md § Backend → mudlib import discipline] row 4.
-    // Lazy-load to honor that discipline.
-    const { default: AvatarClass } = await import('../obj/Avatar');
-    const avatars: Avatar[] = [];
-    for (const playerId of user.playerIds) {
-      // Reuse if already in-world (multiplexing).
-      let avatar = this.findAvatarByPlayerId(playerId);
-      if (!avatar) {
-        // Concurrent connections for the same user (multiplexing, or a
-        // dev StrictMode double-mount) can reach here before the first
-        // clone has registered. Coordinate on a per-playerId in-flight
-        // promise so the second connect awaits the first clone instead
-        // of starting a duplicate — a duplicate hits StuffApi's "clone
-        // already in flight" guard and tears down both connections.
-        let pending = this.#inFlightClones.get(playerId);
-        if (!pending) {
-          pending = StuffApi.clone<Avatar>(
-            AvatarClass.getTemplatePath(playerId),
-            { user, playerId }
-          ).finally(() => this.#inFlightClones.delete(playerId));
-          this.#inFlightClones.set(playerId, pending);
-        }
-        avatar = await pending;
-      }
-      avatars.push(avatar);
-    }
-    return avatars;
+    return logic().loadAvatarsForUser(user);
   }
 
   /**
@@ -171,7 +131,7 @@ export class PlayerApi {
    * Only use for testing or shutdown.
    */
   public static clearAll(): void {
-    this.#avatarsByPlayerId.clear();
+    return logic().clearAll();
   }
 }
 

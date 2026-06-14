@@ -10,6 +10,8 @@
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { PlayerApi } from '../player';
+import { PlayerLogic } from '../../obj/api/PlayerLogic';
+import { SecurityError } from '../../lib/security/errors';
 import { StuffApi } from '../stuff';
 import Avatar from '../../obj/Avatar';
 import { User } from '../../lib/identity/User';
@@ -390,5 +392,24 @@ describe('PlayerApi', () => {
       ) as Avatar;
       expect(PlayerApi.isAvatarStuff(stuff)).toBe(true);
     });
+  });
+});
+
+describe('PlayerLogic singleton encapsulation', () => {
+  beforeEach(() => {
+    StuffApi.clearAll();
+  });
+  afterEach(() => {
+    StuffApi.clearAll();
+  });
+
+  it('denies a direct logic-method call from a non-PlayerApi caller', () => {
+    // A facade call lazily creates the logic singleton.
+    PlayerApi.getAvatarCount();
+    const logic = StuffApi.findByTemplatePath<PlayerLogic>('/obj/api/player');
+    expect(logic).toBeDefined();
+    // The test module is not `mud/api/player#PlayerApi`, so the
+    // FromModule gate on the logic's own methods denies the call.
+    expect(() => logic!.getAvatarCount()).toThrow(SecurityError);
   });
 });
