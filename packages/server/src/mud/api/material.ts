@@ -18,18 +18,42 @@
  * detailKey?)` (fire propagation), `canConduct(stuff, kind)`
  * (electrical/thermal puzzles). Each earns a method when its consumer
  * arrives.
+ *
+ * This Api is a thin, security-gated forwarding shell: the logic lives
+ * in the hot-reloadable {@link MaterialLogic} singleton at
+ * `/obj/api/material`, reached synchronously via
+ * `StuffApi.singletonSync`. `dest /obj/api/material` reloads it.
  */
 
 import type { Stuff } from '../lib/stuff/Stuff';
 import type Material from '../lib/material/Material';
-import type { CompositionEntry,  } from '../lib/material/Material';
-import { MixinApi } from './mixin';
+import type { CompositionEntry } from '../lib/material/Material';
 import { StuffApi } from './stuff';
+import { HotReloadApi } from './hot-reload';
 import { SecurityApi } from './security';
+import { MaterialLogic } from '../obj/api/MaterialLogic';
+import { fileURLToPath } from 'url';
 
 // kg + kg/m³ tag tables live in `mud/config/quantity-tags.yaml`
 // and load at boot via `QuantityApi.loadTagTables`. Material doesn't
 // register them locally anymore.
+
+const LOGIC_PATH = '/obj/api/material';
+const LOGIC_CLASS_FILE = fileURLToPath(
+  new URL('../obj/api/MaterialLogic', import.meta.url)
+);
+
+/** Resolve the HMR-able MaterialLogic singleton (sync). */
+function logic(): MaterialLogic {
+  return StuffApi.singletonSync(
+    LOGIC_PATH,
+    () =>
+      new ((HotReloadApi.getCurrentExport(
+        LOGIC_CLASS_FILE,
+        'MaterialLogic'
+      ) as typeof MaterialLogic | null) ?? MaterialLogic)()
+  );
+}
 
 /**
  * Recursive composition expansion. `direct` is the material's own
@@ -70,8 +94,7 @@ export class MaterialApi {
     stuff: Stuff,
     detailKey?: string
   ): Material | null {
-    if (!MixinApi.isTangible(stuff)) return null;
-    return stuff.getMaterial(detailKey);
+    return logic().materialOf(stuff, detailKey);
   }
 
   /**
@@ -86,15 +109,7 @@ export class MaterialApi {
    * shouldn't produce cycles).
    */
   public static compositionOf(material: Material): MaterialComposition {
-    const direct = material.getComposition();
-    const flat: Record<string, number> = {};
-    const visited = new Set<string>();
-    expandInto(material, 1, flat, visited);
-    return {
-      material,
-      direct: direct.map((e) => ({ ...e })),
-      flat,
-    };
+    return logic().compositionOf(material);
   }
 
   /**
@@ -106,8 +121,7 @@ export class MaterialApi {
     material: Material,
     elementSymbol: string
   ): boolean {
-    const flat = MaterialApi.compositionOf(material).flat;
-    return (flat[elementSymbol] ?? 0) > 0;
+    return logic().containsElement(material, elementSymbol);
   }
 
   /**
@@ -116,7 +130,7 @@ export class MaterialApi {
    * Materials that haven't been cloned yet aren't there.
    */
   public static findByTag(tag: string): Material[] {
-    return everyMaterial().filter((m) => m.hasTag(tag));
+    return logic().findByTag(tag);
   }
 
   /**
@@ -125,50 +139,7 @@ export class MaterialApi {
    * `containsElement` over the index.
    */
   public static findByElement(symbol: string): Material[] {
-    return everyMaterial().filter((m) =>
-      MaterialApi.containsElement(m, symbol)
-    );
-  }
-}
-
-function everyMaterial(): Material[] {
-  return StuffApi.findByPathGlob<Material>('/lib/material/**').filter((m) =>
-    isMaterial(m)
-  );
-}
-
-function isMaterial(stuff: Stuff): stuff is Material {
-  // Duck-check via the Material surface. Avoids an instanceof import
-  // cycle and tolerates RadioactiveMaterial / future capability
-  // subclasses uniformly.
-  return (
-    typeof (stuff as Partial<Material>).getDensity === 'function' &&
-    typeof (stuff as Partial<Material>).getTags === 'function'
-  );
-}
-
-function expandInto(
-  material: Material,
-  weight: number,
-  acc: Record<string, number>,
-  visited: Set<string>
-): void {
-  const path = material.getTemplatePath();
-  if (path && visited.has(path)) return;
-  if (path) visited.add(path);
-
-  const direct = material.getComposition();
-  if (direct.length === 0) {
-    // Leaf material — credit its own element symbol if it has one.
-    const symbol = material.getChemistry()?.symbol;
-    if (symbol) acc[symbol] = (acc[symbol] ?? 0) + weight;
-    return;
-  }
-
-  for (const entry of direct) {
-    const child = StuffApi.findByTemplatePath<Material>(entry.materialPath);
-    if (!child) continue;
-    expandInto(child, weight * entry.fraction, acc, visited);
+    return logic().findByElement(symbol);
   }
 }
 

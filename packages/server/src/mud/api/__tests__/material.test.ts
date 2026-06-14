@@ -1,5 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { MaterialApi } from '../material';
+import { MaterialLogic } from '../../obj/api/MaterialLogic';
+import { SecurityError } from '../../lib/security/errors';
 import { StuffApi } from '../stuff';
 import Material from '../../lib/material/Material';
 import Thing from '../../lib/stuff/Thing';
@@ -190,5 +192,33 @@ describe('MaterialApi v2 — classification queries', () => {
       setupSteel();
       expect(MaterialApi.findByElement('Au')).toEqual([]);
     });
+  });
+});
+
+describe('MaterialLogic singleton encapsulation', () => {
+  beforeEach(() => {
+    StuffApi.clearAll();
+  });
+  afterEach(() => {
+    StuffApi.clearAll();
+  });
+
+  it('lives at /obj/api/material once the facade has materialized it', () => {
+    // A facade call lazily creates the logic singleton.
+    MaterialApi.findByTag('nonexistent');
+    const logic = StuffApi.findByTemplatePath('/obj/api/material');
+    expect(logic).toBeDefined();
+    expect(StuffApi.findByPathGlob('/obj/api/*')).toContain(logic);
+  });
+
+  it('denies a direct logic-method call from a non-MaterialApi caller', () => {
+    MaterialApi.findByTag('nonexistent');
+    const logic = StuffApi.findByTemplatePath<MaterialLogic>(
+      '/obj/api/material'
+    );
+    expect(logic).toBeDefined();
+    // The test module is not `mud/api/material#MaterialApi`, so the
+    // FromModule gate on the logic's own methods denies the call.
+    expect(() => logic!.findByTag('iron')).toThrow(SecurityError);
   });
 });
