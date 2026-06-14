@@ -21,10 +21,34 @@
  * by the seeder, so reads just hit the DB-backed cache; there are no
  * code-side defaults. Mutation (`setSetting`) is reached only through the
  * developer-gated `config` verb; the gate lives at the verb.
+ *
+ * Thin, security-gated forwarding shell: the logic lives in the
+ * hot-reloadable {@link AppLogic} singleton at `/obj/api/app`, reached
+ * synchronously via `StuffApi.singletonSync`. `dest /obj/api/app` reloads it.
  */
 
+import { StuffApi } from "./stuff";
+import { HotReloadApi } from "./hot-reload";
 import { SecurityApi } from "./security";
-import { AppSettings } from "../lib/config/AppSettings";
+import { AppLogic } from "../obj/api/AppLogic";
+import { fileURLToPath } from "url";
+
+const LOGIC_PATH = "/obj/api/app";
+const LOGIC_CLASS_FILE = fileURLToPath(
+  new URL("../obj/api/AppLogic", import.meta.url)
+);
+
+/** Resolve the HMR-able AppLogic singleton (sync). */
+function logic(): AppLogic {
+  return StuffApi.singletonSync(
+    LOGIC_PATH,
+    () =>
+      new ((HotReloadApi.getCurrentExport(
+        LOGIC_CLASS_FILE,
+        "AppLogic"
+      ) as typeof AppLogic | null) ?? AppLogic)()
+  );
+}
 
 export class AppApi {
   private constructor() {}
@@ -35,7 +59,7 @@ export class AppApi {
    * from no-await consumers.
    */
   static setting(key: string): string {
-    return AppSettings.getCached().getValue(key) ?? "";
+    return logic().setting(key);
   }
 
   /**
@@ -43,7 +67,7 @@ export class AppApi {
    * (seeded + any operator-set ad-hoc keys). Backs the `config` listing.
    */
   static settings(): Record<string, string> {
-    return AppSettings.getCached().getValues();
+    return logic().settings();
   }
 
   /**
@@ -53,9 +77,7 @@ export class AppApi {
    * for unregistered keys.
    */
   static async setSetting(key: string, value: string): Promise<void> {
-    const row = AppSettings.getCached();
-    row.setValue(key, value);
-    await row.save();
+    return logic().setSetting(key, value);
   }
 }
 

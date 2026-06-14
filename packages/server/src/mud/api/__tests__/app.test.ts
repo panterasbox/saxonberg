@@ -7,6 +7,9 @@
 
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { AppApi } from "../app";
+import { AppLogic } from "../../obj/api/AppLogic";
+import { SecurityError } from "../../lib/security/errors";
+import { StuffApi } from "../stuff";
 import { AppSettings, AppSettingKeys } from "../../lib/config/AppSettings";
 import { PersistenceManager } from "../../../backend/PersistenceManager";
 
@@ -86,5 +89,40 @@ describe("AppApi", () => {
       (pm.saves.at(-1)!.doc as { values: Record<string, string> }).values
         .defaultStartLocation,
     ).toBe("/domain/new");
+  });
+});
+
+describe("AppLogic singleton encapsulation", () => {
+  let pm: ReturnType<typeof stubPM>;
+
+  beforeEach(() => {
+    vi.restoreAllMocks();
+    StuffApi.clearAll();
+    pm = stubPM();
+    AppSettings._resetForTesting();
+  });
+  afterEach(() => {
+    vi.restoreAllMocks();
+    StuffApi.clearAll();
+    AppSettings._resetForTesting();
+  });
+
+  it("lives at /obj/api/app once the facade has materialized it", async () => {
+    await warmWith(pm, {});
+    // A facade call lazily creates the logic singleton.
+    AppApi.setting("nonsense");
+    const logic = StuffApi.findByTemplatePath("/obj/api/app");
+    expect(logic).toBeDefined();
+    expect(StuffApi.findByPathGlob("/obj/api/*")).toContain(logic);
+  });
+
+  it("denies a direct logic-method call from a non-AppApi caller", async () => {
+    await warmWith(pm, {});
+    AppApi.setting("nonsense");
+    const logic = StuffApi.findByTemplatePath<AppLogic>("/obj/api/app");
+    expect(logic).toBeDefined();
+    // The test module is not `mud/api/app#AppApi`, so the FromModule
+    // gate on the logic's own methods denies the call.
+    expect(() => logic!.setting("nonsense")).toThrow(SecurityError);
   });
 });
