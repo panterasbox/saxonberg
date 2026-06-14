@@ -51,7 +51,6 @@ import { ShellApi } from '../api/shell';
 import { FieldChangedEvent } from '../lib/events/FieldChangedEvent';
 import {
   collectSubscribableFields,
-  MqlSubscriptionApi,
   projectFocus,
   resolveFieldSet,
   type FieldSet,
@@ -59,10 +58,17 @@ import {
   type SubscribeRequest,
   type QueryRequest,
 } from '../api/mql-subscription';
+import { registerMqlSubscriptionRegistryClass } from './api/MqlSubscriptionLogic';
 
-/** See WorldClockRegistry — same gate shape, same rationale. */
+/**
+ * See WorldClockRegistry — same gate shape, same rationale. Admits the
+ * Api facade, the `MqlSubscriptionLogic` singleton (caller template path
+ * `/obj/api/mql-subscription`, which actually forwards every
+ * registry-backed call), and internal `this.foo()` self-calls.
+ */
 const MqlSubscriptionApiCallers = SecurityPolicies.AnyOf(
   SecurityPolicies.FromModule('mud/api/mql-subscription#MqlSubscriptionApi'),
+  SecurityPolicies.FromTemplate('/obj/api/mql-subscription'),
   SecurityPolicies.SelfOnly,
 );
 
@@ -819,7 +825,7 @@ export default class MqlSubscriptionRegistry extends Idea {
   }
 }
 
-// Side-effect: hand the class to MqlSubscriptionApi for its lazy-create
-// path. The Api type-imports this class, so the call is safe at module
-// load.
-MqlSubscriptionApi._registerRegistryClass(MqlSubscriptionRegistry);
+// Side-effect: hand the class to MqlSubscriptionLogic for its
+// lazy-create path. The Logic type-imports this class, so the call is
+// safe at module load.
+registerMqlSubscriptionRegistryClass(MqlSubscriptionRegistry);

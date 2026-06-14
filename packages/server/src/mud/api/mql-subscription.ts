@@ -1,25 +1,29 @@
 /**
- * MqlSubscriptionApi — thin facade over the `MqlSubscriptionRegistry`
- * singleton, plus the stateless projection helpers consumed by the
- * substrate.
+ * MqlSubscriptionApi — thin facade over the MQL subscription substrate,
+ * plus the stateless projection helpers consumed by the substrate.
  *
- * State (per-Interactive registry, meta-bus dependency index,
- * listener refcount table, dirty queue) lives on the Registry at
- * `/obj/MqlSubscriptionRegistry`. Its public methods carry
- * `@CallSecurity(FromModule('mud/api/mql-subscription#MqlSubscriptionApi'))`
- * so this Api is the only legitimate path to mutate or query that
+ * The registry-backed orchestration + registry resolution live in the
+ * hot-reloadable {@link MqlSubscriptionLogic} singleton at
+ * `/obj/api/mql-subscription`, reached synchronously via
+ * `StuffApi.singletonSync`; the Logic resolves the
+ * `MqlSubscriptionRegistry` singleton (at `/obj/MqlSubscriptionRegistry`)
+ * where all subscription state (per-Interactive registry, meta-bus
+ * dependency index, listener refcount table, dirty queue) actually
+ * lives. `dest /obj/api/mql-subscription` reloads the Logic; the
+ * Registry's state is unaffected.
+ *
+ * The Registry's public methods carry a gate that admits this module
+ * AND the logic singleton (`FromTemplate('/obj/api/mql-subscription')`),
+ * so this Api remains the only legitimate path to mutate or query that
  * state.
  *
- * Reload of this file invalidates only the cached pointer; reload of
- * the Registry file re-clones the Stuff per HotReloadApi's pattern
- * (state resets — listeners would need to re-register).
- *
- * Wave-3 projection helpers (`SubscribableFieldDescriptor` shape,
- * `collectSubscribableFields`, `projectFields`, `projectFocus`,
- * `REF_FIELDS` / `DETAIL_FIELDS`, `resolveFieldSet`) stay on this
- * module as exported free functions — they're pure projection
- * primitives consumed by both Api callers and the Registry's internal
- * dispatch pipeline, with no state to host on a Stuff.
+ * The stateless projection helpers (`fireFieldChange`, `projectFields`,
+ * and the module-level `SubscribableFieldDescriptor` shape,
+ * `collectSubscribableFields`, `projectFocus`, `REF_FIELDS` /
+ * `DETAIL_FIELDS`, `resolveFieldSet` free functions) stay on this
+ * module — they're pure projection primitives consumed by both Api
+ * callers and the Registry's internal dispatch pipeline, with no state
+ * to host on a Stuff, so they don't move into the Logic.
  */
 
 import type {
@@ -31,6 +35,7 @@ import type { Sensor } from '../lib/message/Sensor';
 import type Interactive from '../obj/Interactive';
 import { SecurityApi } from './security';
 import { StuffApi } from './stuff';
+import { HotReloadApi } from './hot-reload';
 import { MixinApi } from './mixin';
 import { EventApi } from './event';
 import { RecognitionApi } from './recognition';
@@ -38,8 +43,8 @@ import {
   FieldChangedEvent,
   type FieldChangedPayload,
 } from '../lib/events/FieldChangedEvent';
-import type MqlSubscriptionRegistry from '../obj/MqlSubscriptionRegistry';
-import { TemplatePaths } from '../lib/paths';
+import { MqlSubscriptionLogic } from '../obj/api/MqlSubscriptionLogic';
+import { fileURLToPath } from 'url';
 
 void (undefined as unknown as _MqlSubscriptionErrorReason);
 
@@ -162,54 +167,29 @@ export interface QueryRequest {
   detailKey?: string;
 }
 
-/* ─────────────────────── MqlSubscriptionApi ─────────────────── */
+/* ─────────────────────── logic resolution ─────────────────── */
 
-const REGISTRY_PATH = TemplatePaths.mqlSubscriptionRegistry;
+const LOGIC_PATH = '/obj/api/mql-subscription';
+const LOGIC_CLASS_FILE = fileURLToPath(
+  new URL('../obj/api/MqlSubscriptionLogic', import.meta.url)
+);
+
+/** Resolve the HMR-able MqlSubscriptionLogic singleton (sync). */
+function logic(): MqlSubscriptionLogic {
+  return StuffApi.singletonSync(
+    LOGIC_PATH,
+    () =>
+      new ((HotReloadApi.getCurrentExport(
+        LOGIC_CLASS_FILE,
+        'MqlSubscriptionLogic'
+      ) as typeof MqlSubscriptionLogic | null) ?? MqlSubscriptionLogic)()
+  );
+}
+
+/* ─────────────────────── MqlSubscriptionApi ─────────────────── */
 
 export class MqlSubscriptionApi {
   private constructor() {}
-
-  static #registryRef: MqlSubscriptionRegistry | null = null;
-  static #registryClass: (new () => MqlSubscriptionRegistry) | null = null;
-
-  /** @internal — called from `obj/MqlSubscriptionRegistry.ts` module body. */
-  public static _registerRegistryClass(
-    cls: new () => MqlSubscriptionRegistry,
-  ): void {
-    MqlSubscriptionApi.#registryClass = cls;
-  }
-
-  static #lookupRegistry(): MqlSubscriptionRegistry | null {
-    if (MqlSubscriptionApi.#registryRef) return MqlSubscriptionApi.#registryRef;
-    const reg =
-      StuffApi.findByTemplatePath<MqlSubscriptionRegistry>(REGISTRY_PATH);
-    if (reg) MqlSubscriptionApi.#registryRef = reg;
-    return reg ?? null;
-  }
-
-  /**
-   * Resolve the Registry, lazy-creating a transient in-memory instance
-   * if `BootstrapManager.run()` hasn't seeded one yet. See
-   * WorldClockApi for the import-cycle rationale.
-   */
-  static #registry(): MqlSubscriptionRegistry {
-    const existing = MqlSubscriptionApi.#lookupRegistry();
-    if (existing) return existing;
-    if (!MqlSubscriptionApi.#registryClass) {
-      throw new Error(
-        'MqlSubscriptionApi: MqlSubscriptionRegistry not bootstrapped ' +
-          'and its class is not registered. Either run ' +
-          "BootstrapManager.run() or import '../obj/MqlSubscriptionRegistry' " +
-          'so its module-load side effect registers the class.',
-      );
-    }
-    const reg = StuffApi.createSync<MqlSubscriptionRegistry>(
-      () => new MqlSubscriptionApi.#registryClass!(),
-    );
-    reg.setTemplatePath(REGISTRY_PATH);
-    MqlSubscriptionApi.#registryRef = reg;
-    return reg;
-  }
 
   /**
    * Compress the noop-check + capture + assign + fire boilerplate at
@@ -275,55 +255,47 @@ export class MqlSubscriptionApi {
   }
 
   public static handleSubscribe(req: SubscribeRequest): void {
-    MqlSubscriptionApi.#registry().handleSubscribe(req);
+    logic().handleSubscribe(req);
   }
 
   public static handleQuery(
     req: Omit<QueryRequest, 'query' | 'cardinality'> &
       Partial<Pick<QueryRequest, 'query' | 'cardinality'>>,
   ): void {
-    MqlSubscriptionApi.#registry().handleQuery(req);
+    logic().handleQuery(req);
   }
 
   public static handleUnsubscribe(
     interactive: Interactive,
     subscriptionId: string,
   ): void {
-    MqlSubscriptionApi.#registry().handleUnsubscribe(interactive, subscriptionId);
+    logic().handleUnsubscribe(interactive, subscriptionId);
   }
 
   public static cancelAllForInteractive(interactive: Interactive): void {
-    MqlSubscriptionApi.#registry().cancelAllForInteractive(interactive);
+    logic().cancelAllForInteractive(interactive);
   }
 
-  /* ─── HMR / test seams ─── */
-
-  public static _resetRegistryRefForReload(): void {
-    MqlSubscriptionApi.#registryRef = null;
-  }
+  /* ─── test seams ─── */
 
   public static _getRegistrySizeForTesting(): number {
     SecurityApi.assertTestOnly('_getRegistrySizeForTesting');
-    const reg = MqlSubscriptionApi.#lookupRegistry();
-    return reg ? reg._getRegistrySize() : 0;
+    return logic()._getRegistrySize();
   }
 
   public static _getDependencyIndexEntryCountForTesting(): number {
     SecurityApi.assertTestOnly('_getDependencyIndexEntryCountForTesting');
-    const reg = MqlSubscriptionApi.#lookupRegistry();
-    return reg ? reg._getDependencyIndexEntryCount() : 0;
+    return logic()._getDependencyIndexEntryCount();
   }
 
   public static async _drainScheduledForTesting(): Promise<void> {
     SecurityApi.assertTestOnly('_drainScheduledForTesting');
-    const reg = MqlSubscriptionApi.#lookupRegistry();
-    if (reg) await reg._drainScheduled();
+    await logic()._drainScheduled();
   }
 
   public static _clearAllForTesting(): void {
     SecurityApi.assertTestOnly('_clearAllForTesting');
-    const reg = MqlSubscriptionApi.#lookupRegistry();
-    if (reg) reg._clearAll();
+    logic()._clearAll();
   }
 }
 
