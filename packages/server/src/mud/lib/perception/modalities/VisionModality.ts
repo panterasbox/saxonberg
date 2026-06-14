@@ -37,7 +37,7 @@ import { PerceptionApi } from '../../../api/perception';
 import type { LightConduit, BoundarySide } from '../../boundary/Conduit';
 import type { Conduit } from '../../boundary/Conduit';
 import type { Boundary } from '../../boundary/Boundary';
-import { isBoundaryAnchor } from '../../boundary/BoundaryAnchor';
+import { BoundaryAnchor } from '../../boundary/BoundaryAnchor';
 
 const DEFAULT_VISION_PROFILE: VisionProfile = {
   scotopicMin: 'pitch-black',
@@ -320,7 +320,7 @@ function walkFluxAt(
 
     // (d) Cross-boundary propagation.
     for (const fx of loc.getFixtures()) {
-      if (!isBoundaryAnchor(fx)) continue;
+      if (!BoundaryAnchor.is(fx)) continue;
       const anchor = fx;
       const boundary = anchor.getBoundary();
       if (!boundary) continue;

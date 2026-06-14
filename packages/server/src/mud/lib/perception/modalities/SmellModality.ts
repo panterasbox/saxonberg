@@ -24,7 +24,7 @@ import { MAX_HOPS, EXIT_TAU } from '../Modality';
 import { MixinApi } from '../../../api/mixin';
 import { StuffApi } from '../../../api/stuff';
 import { PerceptionApi } from '../../../api/perception';
-import { isBoundaryAnchor } from '../../boundary/BoundaryAnchor';
+import { BoundaryAnchor } from '../../boundary/BoundaryAnchor';
 import type { Boundary } from '../../boundary/Boundary';
 import type { Conduit } from '../../boundary/Conduit';
 import type { SmellConduit } from '../../boundary/SmellConduit';
@@ -144,7 +144,7 @@ function walkAt(
 
     // (d) Cross-boundary propagation.
     for (const fx of loc.getFixtures()) {
-      if (!isBoundaryAnchor(fx)) continue;
+      if (!BoundaryAnchor.is(fx)) continue;
       const anchor = fx;
       const boundary = anchor.getBoundary();
       if (!boundary) continue;
