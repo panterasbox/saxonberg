@@ -129,6 +129,92 @@ the registry is Empty for a path — i.e., the path was statically
 imported by something else first. After the first lazy `reload()` it
 flows through the HMR registry.
 
+### Api logic singletons (`/obj/api/<feature>`)
+
+`Api` classes are static and direct-imported, so they are **not**
+reloadable (see "What's intentionally out of scope"). The
+surface-architecture refactor keeps the `Api` as the stable, typed,
+secured boundary but relocates its **logic** into a stateless `Stuff`
+singleton at `/obj/api/<feature>` (e.g. `MaterialLogic` at
+`/obj/api/material`, `LocomotionLogic` at `/obj/api/locomotion`) — and
+*that* is hot-reloadable. The Api's public statics forward to it.
+
+The seam is `StuffApi.singletonSync(path, factory)` (a sync,
+registry-keyed get-or-create — see
+[the StuffApi source](../../packages/server/src/mud/api/stuff.ts) and
+its unit tests in `api/__tests__/singleton-sync.test.ts`). Each Api
+file resolves its singleton through a `logic()` helper:
+
+```ts
+const LOGIC_PATH = '/obj/api/material';
+const LOGIC_CLASS_FILE = fileURLToPath(
+  new URL('../obj/api/MaterialLogic', import.meta.url)
+);
+function logic(): MaterialLogic {
+  return StuffApi.singletonSync(
+    LOGIC_PATH,
+    () =>
+      new ((HotReloadApi.getCurrentExport(LOGIC_CLASS_FILE, 'MaterialLogic')
+        as typeof MaterialLogic | null) ?? MaterialLogic)()
+  );
+}
+```
+
+The logic class is a stateless `Stuff` (`extends Idea`, **no**
+`PostRegistrationMixin`), marked `@internal` **on the `export class`
+declaration** (a leading file-top comment would become TypeDoc's module
+comment and fail to exclude the class), and each public method carries
+its own `@CallSecurity(FromModule('mud/api/<feature>#<Feature>Api'))`
+gate — per-method, not class-level. The gating recipe (why per-method,
+the intra-singleton self-call gotcha, the `ApiOnly` widening, the
+two-singleton state re-point) lives in
+[call-security.md § The api↔logic-singleton recipe](./call-security.md#the-apilogic-singleton-recipe);
+this doc covers only the reload mechanics.
+
+Two facts make this HMR-correct:
+
+- **The factory resolves the blueprint, not a bare `new`.** The
+  `getCurrentExport(...) ?? StaticClass` line is load-bearing: after a
+  reload it picks up the fresh class; a bare `new MaterialLogic()`
+  would rebuild the stale one. The class-module path (for
+  `getCurrentExport`) and the `/obj/api/<feature>` stamp path (for
+  addressing) are **distinct** — both appear in every conversion.
+- **Reload is `dest`.** The singletons are stateless by construction
+  (no `PostRegistrationMixin`), so destruction is free.
+  `StuffApi.destruct` unregisters the singleton, emptying its
+  `byTemplatePath` bucket; the next `logic()` call re-creates it
+  through the factory against the current blueprint. No automatic
+  invalidation routing — `dest` is the invalidator, same as for any
+  `Stuff`. The stuffId is ephemeral (a new one per recreate); the
+  **path is the stable handle**, MQL-addressable with no `Template`
+  doc.
+
+#### Demonstration (locomotion)
+
+The dest→recreate-fresh-via-`getCurrentExport` cycle is unit-verified
+end-to-end against a real `HotReloadApi.reload` of an on-disk fixture
+in `api/__tests__/singleton-sync.test.ts`. The same cycle is observable
+in-game on `locomotion` through the movement verbs:
+
+1. `pnpm dev:server` and connect a client; confirm `walk west` (or any
+   movement verb) behaves normally — the first `go` lazily materializes
+   `LocomotionLogic` at `/obj/api/locomotion`.
+2. Edit a `LocomotionLogic` method body — e.g. make
+   `defaultModeFor(actor)` return `'fly'`, or have `canTraverseExit`
+   reject with a custom `reason`.
+3. In-game (as a developer): `reload /obj/api/locomotion` to load the
+   new source, then `dest /obj/api/locomotion` to drop the live
+   singleton. (Reloading the *source* alone does not swap the live
+   instance — the cache holds the old one until `dest`.)
+4. Issue a movement verb again. The next `LocomotionApi` call
+   re-creates the singleton through the factory, which resolves the
+   freshly-reloaded `LocomotionLogic` class, and the movement verb
+   exhibits the new behavior.
+
+This is the [hot-reload caveat for hydrators](#hydrators) generalized:
+the `byTemplatePath` index *is* the registry; `dest` + lazy re-create
+is the reload.
+
 ### Hydrators
 
 Hydrators are templated `Idea` Stuff. Unlike controllers, they are
@@ -388,9 +474,14 @@ fresh constructor identities.
 
 ## What's intentionally out of scope
 
-- **Apis are not reloadable.** Direct ESM imports bind callers to a
-  specific class object; reloading an Api file does not update those
-  bindings. Treat Api changes as a server-restart concern.
+- **Api *classes* are not reloadable.** Direct ESM imports bind
+  callers to a specific class object; reloading an Api file does not
+  update those bindings. Treat changes to an Api's *surface* (its
+  static signatures, the forwarding shell) as a server-restart concern.
+  Changes to its *logic*, however, are reloadable: the surface-
+  architecture refactor relocates Api logic into the `/obj/api/<feature>`
+  singletons described under [Integration](#api-logic-singletons-objapifeature),
+  which `dest`-reload like any Stuff.
 - **State preservation across reload.** Existing instances keep
   their old prototype chain. No state migration to a new blueprint.
 - **CLI / HTTP / in-game command surfaces.** No user-facing trigger

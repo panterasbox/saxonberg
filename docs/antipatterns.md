@@ -1499,6 +1499,130 @@ class AetherMixin extends ... {
 }
 ```
 
+## No `types.ts` / `constants.ts` / barrels on the consumed surface
+
+**ANTIPATTERN**: parking an orphan type or constant in a neutral
+`types.ts`, `constants.ts`, or barrel `index.ts` because "no module
+fits." A module exists to define exactly one **named concept**; the
+filename is that concept's name; every other export is a supporting
+member of that concept. A type/constant is never itself the reason a
+module exists — unless the concept genuinely *is* a value object /
+vocabulary / registry, in which case the module is named for it
+(`Light.ts`, `quantity.ts`, `reserve.ts`, `paths.ts`,
+`lib/mixin.ts`'s `Mixins`), the fourth `lib/` category in
+[architecture.md](./architecture.md).
+
+### BAD
+
+```typescript
+// lib/foo/types.ts — a dumping ground; nothing OWNS these.
+export interface FooOptions { ... }
+export type BarResult = ...;
+
+// api/foo/index.ts — a barrel re-flattening the subdir.
+export * from "./resolver";
+export * from "./types";
+```
+
+### GOOD
+
+```typescript
+// The option/result type rides the method that speaks it (its author).
+// In api/foo.ts:
+export class FooApi {
+  static doThing(opts: FooThingOptions): FooThingResult { ... }
+}
+export type { FooThingOptions, FooThingResult };
+```
+
+**Carve-out:** a `types.ts` that *only the parent of a sealed subdir
+imports* (`api/mql/types.ts`) is internal scaffolding, not a
+discoverability problem — the rule governs the navigable/consumed
+surface, which the parent re-exports. `@saxonberg/types` is exempt for a
+different reason: it's a separate *package* (cross-process wire
+contracts), not an in-package `types.ts`.
+
+## Generic exported type names — use `<Concept><Role>`
+
+**ANTIPATTERN**: an exported author-surface type named `Options`,
+`Result`, `Spec`, `Config`, `Data`, `Entry`. A bare name tells a reader
+nothing about which face to import it from. A well-named type encodes its
+concept, and the concept tells you its face.
+
+### BAD
+
+```typescript
+export interface Options { ... }       // options for WHAT?
+export type Result = ...;              // result of WHAT?
+```
+
+### GOOD
+
+```typescript
+export interface TeleportOptions { ... }
+export type ScheduleHandle = ...;
+export interface MessageBroadcastOptions { ... }
+```
+
+The rule applies to the **author surface** (types in a public Api/mixin
+signature). Internal `lib`-to-`lib` types are looser, but the habit is
+cheap and worth keeping everywhere.
+
+## Protect the call, not the import
+
+**ANTIPATTERN**: trying to hide internal logic by *preventing imports* —
+sealing a function away so "nobody can reach it." Import-hiding is
+brittle (a re-export, a deep path, a test can defeat it) and it's the
+wrong layer. Call-security gates at **call time** on the caller's
+execution-context frame, regardless of who imported the symbol.
+
+The rule:
+
+> **Export freely. Anyone may import. Only the owning Api can
+> successfully *call*; everyone else throws `SecurityError`.**
+
+This is *stronger* than import-hiding — runtime, unbypassable,
+`@Final @Unshadowable`, and it survives HMR because the gate matches the
+stamped module URL, not the class object. The catch (and the reason the
+surface-architecture refactor exists): call-security gates **only**
+`Stuff` instance methods and Api statics. A plain exported `lib`
+function — or a static on a plain `lib` class — **can't be gated at
+all**. So protection-needing internal logic must be **`Stuff`-shaped**:
+that's exactly the `/obj/api/<feature>` logic singleton, gated
+`@CallSecurity(FromModule('mud/api/<feature>#<Feature>Api'))`. See
+[call-security.md § The api↔logic-singleton recipe](./subsystems/call-security.md#the-apilogic-singleton-recipe).
+
+Where a plain function genuinely must be shared between `lib` modules
+(undefendable at runtime), complement with the sealed-subdir import lint
+— compile-time, not runtime, but it stops the leak at review.
+
+## Types ride their face; constants are placed
+
+**ANTIPATTERN**: chasing the one "canonical" module a shared type should
+live in (it bottoms out in taste), or — the inverse — re-exporting a
+*constant* the way you'd re-export a type.
+
+A type re-export is **weightless**: erased at compile time, zero runtime
+edge, can't cycle even though `lib` imports Apis at runtime. So an
+author-facing type is re-exported (`export type { ... }`) from **every**
+face that speaks it — you dissolve the need for a unique home rather than
+out-guessing it. The *definition* can sit on a cycle-breaking dependency
+leaf; the *import site* is still the face.
+
+A constant re-export is a **runtime value** — a real `api → definition`
+edge that can cycle. So **constants are placed** (defined at the entry
+point or a dependency leaf), **not re-exported**.
+
+```typescript
+// GOOD — type re-exported from every face that uses it (weightless)
+// api/locomotion.ts
+export type { TraversalGuard, NoiseLevel };   // defined in lib/, re-exported here
+
+// GOOD — constant placed in the logic/concept file, NOT re-exported
+// obj/api/NavigationLogic.ts
+const DIRECTION_OFFSETS = { ... } as const;   // stays put
+```
+
 ## Don't mint a parallel `isFooActive` predicate
 
 `MixinApi.isFoo` uniformly answers the runtime active question for

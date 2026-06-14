@@ -146,8 +146,9 @@ API reference is generated from TSDoc comments by TypeDoc. Scope is
 client + `@saxonberg/types` are platform-level and not yet wired in.
 
 ```bash
-pnpm docs                # generate server API docs (alias for docs:server)
+pnpm docs                # docs:server THEN docs:project
 pnpm docs:server         # TypeDoc over packages/server -> HTML + JSON
+pnpm docs:project        # three-tier author-surface projection over api-model.json
 pnpm docs:clean          # remove generated output
 ```
 
@@ -163,6 +164,55 @@ Config lives in `packages/server/typedoc.json`. It documents
 TypeDoc's `validation` block doubles as the doc-content audit: it warns
 on undocumented exports and broken `{@link}`s. Warnings are not
 build-breaking today.
+
+### The author-surface projection (three tiers)
+
+`pnpm docs:project` (`packages/server/scripts/project-author-surface.ts`)
+reads `api-model.json` and emits `author-surface.json` — the model the
+in-game `help api` browser / web view will read — partitioned into the
+three tiers that realize the **`callable == visible == cared-about`**
+invariant:
+
+- **consumer** — what an author *calls*: public `static` methods of
+  `*Api` classes + public instance *methods* of author-facing
+  Stuff/mixin classes (fields and accessor pairs excluded — the
+  inter-stuff "methods are the contract" rule as a doc filter).
+- **extension** — what an author *implements* and the framework
+  *invokes*: members carrying the **`@hook`** TSDoc block tag (added to
+  `typedoc.json`'s `blockTags`), rendered with their override contract.
+  Override hooks (`onDestruct`, `canDestruct`, `postRegister`,
+  `aroundSave`/`aroundDelete`, `onLinkdead`, the Hydrator `apply<Field>`
+  appliers) are public + ungated + **ungateable** (a subclass's
+  `super.onDestruct()` is author code, so a framework gate would deny
+  the super-chain) — so they need the human-placed `@hook` marker, not a
+  policy. The `@hook` contract is authored **once** on the canonical
+  declaration; the ~190 override sites are matched **by name** in the
+  projection (TypeDoc's `overwrites` link carries no resolvable id), not
+  re-tagged at every site.
+- **internal** — `@internal` reflections (every logic singleton, every
+  framework-primitive Api) — already dropped by TypeDoc
+  (`excludeInternal: true`); the projection drops any stragglers.
+
+The "types" tier is *computed*: the transitive closure of I/O types in
+the consumer + extension signatures, wherever they physically live —
+which is why home-finding for a type is decoupled from its
+discoverability.
+
+### The lint family
+
+- `pnpm lint:gates` (`scripts/check-gate-strings.ts`) — every concrete
+  `FromModule`/`FromController` string and `*_MODULE_ID` constant
+  resolves to a real module + export. CI-gating. Implemented as a
+  **script**, not an ESLint rule, because ESLint 8's legacy config can't
+  load a local rule without `--rulesdir` (which breaks editor / ad-hoc
+  eslint).
+- The projection's **re-export report** (above) — advisory (WARN),
+  scoped to `mud/api/` author faces: flags faces that speak a named type
+  but don't re-export it. Residual gaps are capability/mixin interfaces
+  that ride their own concept's face.
+- **Sealed-subdir isolation** (`.eslintrc.js`, `no-restricted-imports`,
+  error) — only `api/<x>.ts` may import from `api/<x>/**` (`mql`, `mml`
+  today).
 
 ## Tech Stack
 
@@ -233,14 +283,18 @@ import { Location } from './Location.js';
 Saxonberg has a fixed taxonomy of module types. Every TypeScript file
 in `packages/server/src/mud/` falls into one of these. **If a new
 file you're considering doesn't fit, STOP and discuss with the user
-before creating it.** Cross-cutting helpers default to a new or
-existing `Api` class — do not create free-floating helper modules.
+before creating it.** The `Api` is the dev-facing surface — a thin,
+typed, gated forwarding shell; protection-needing internal logic is
+`Stuff`-shaped (the `obj/api/<X>Logic.ts` logic singleton). Do not
+create free-floating helper modules.
 
 | Category | Where | Filename | Purpose |
 |---|---|---|---|
 | Stuff class | `lib/<subsystem>/` or `obj/` | `PascalCase.ts` | Runtime classes extending Stuff/Idea/Thing/etc. |
 | Mixin | `lib/<subsystem>/` | `PascalCase.ts` (no `Mixin` suffix) | Class-factory mixin; export `FooMixin`, marker `_mixinName = 'FooMixin'`. |
-| Api | `api/` | lowercase `feature.ts` | Static utility class `FeatureApi`, ends with `SecurityApi.decorateApiClass(FeatureApi)`. The natural home for cross-cutting static helpers. |
+| Named value-object / vocabulary / registry | `lib/<subsystem>/` (or top-level `lib/`) | `PascalCase.ts` / lowercase | A substrate primitive that isn't an instanceable Stuff but IS the module's one concept: value class (`Light`, `Quantity`), enum-like vocabulary + its validation array, or a platform registry (`lib/mixin.ts`, `lib/paths.ts`). The home that kills the `types.ts` reflex. |
+| Api | `api/` | lowercase `feature.ts` | Static `FeatureApi` — a thin, typed, gated **forwarding shell**; ends with `SecurityApi.decorateApiClass(FeatureApi)`. Exports only the class + its call-shape types (nothing instanceable). |
+| Api logic singleton | `obj/api/` | `PascalCaseLogic.ts` | Stateless `Stuff` (`extends Idea`, no `PostRegistrationMixin`) holding a convertible Api's logic + protected internals; `@internal` on the class, methods gated `FromModule('mud/api/<feature>#<Feature>Api')`; HMR-able at `/obj/api/<feature>`. The `FooApi` statics forward here. |
 | Controller | `obj/command/<category>/` | `PascalCaseController.ts` | Command controller (MVC pair with a YAML view in `mud/cmd/<category>/`). |
 | Command YAML | `mud/cmd/<category>/` | lowercase `verb.yaml` | The view side of a command. |
 | Hook | `obj/hooks/` | `PascalCaseHook.ts` | PM `aroundSave` / `aroundDelete` hooks. |
@@ -250,6 +304,18 @@ dodge the Api pattern — Apis hold static utility methods perfectly
 well, and the security decoration is cheap. Same for refactor splits:
 extracting helpers into a new free-floating file is the same anti-
 pattern as inventing one from scratch.
+
+**The governing invariant: `callable == visible == cared-about`.** An
+author can call exactly what they can see in the generated docs, and
+nothing else — the call-security policy *is* the doc-visibility policy.
+The author surface is three tiers: **consumer** (public Api statics +
+public Stuff/mixin *methods* + the closure of their I/O types — fields
+and accessor pairs excluded), **extension** (framework-invoked override
+hooks, marked `@hook` because they're public-and-ungateable so the gate
+can't classify them), and **internal** (`@internal`, hidden — every
+logic singleton, every framework-primitive Api). See
+[architecture.md § The Api ↔ logic-singleton split](./docs/architecture.md)
+and [call-security.md](./docs/subsystems/call-security.md).
 
 ## File Naming Conventions
 
