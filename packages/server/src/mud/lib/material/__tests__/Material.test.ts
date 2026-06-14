@@ -13,14 +13,14 @@ describe('Material', () => {
     m.setThermalConductivity(Quantity.of(80, 'W/(m·K)'));
     m.setEdibility(false);
     m.setNutrients(['iron']);
-    m.setToxicity(['iron-poisoning']);
+    m.setToxicity([{ type: 'iron-poisoning', amount: 0 }]);
 
     expect(m.getName()).toBe('iron');
     expect(m.getDensity().rawValue()).toBe(7874);
     expect(m.getThermalConductivity().rawValue()).toBe(80);
     expect(m.getEdibility()).toBe(false);
     expect(m.getNutrients()).toEqual(['iron']);
-    expect(m.getToxicity()).toEqual(['iron-poisoning']);
+    expect(m.getToxicity()).toEqual([{ type: 'iron-poisoning', amount: 0 }]);
   });
 
   it('setThermalConductivity is strict on the W/(m·K) unit', () => {

@@ -9,7 +9,7 @@ data:
   thermalConductivity: 80
   edibility: false
   nutrients: ["iron"]
-  toxicity: ["iron-poisoning"]
+  toxicity: [{ type: iron-poisoning, amount: 0 }]
   tags: ["element", "metal", "ferrous", "magnetic", "crystalline", "conductor"]
   composition: []
   symbol: Fe

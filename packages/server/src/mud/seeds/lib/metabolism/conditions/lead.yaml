@@ -1,0 +1,22 @@
+# Lead poisoning — wired but its CHRONIC content is deferred (it needs
+# the material-leaching pipeline + prodromal staged conditions for
+# legibility). v1 ships only a slow clearance + a single acute band; the
+# burden socket already handles chronic mechanically (slow clearance +
+# small repeated doses accumulate on the same scalar). Pure poison.
+class: /lib/vitals/Condition
+hydratorClass: /lib/persistence/PersistentHydrator
+data:
+  name: lead-poisoning
+  signature: []
+  progression: null
+  resolution:
+    by: chelation
+  observableSigns: [pallid, confused, aching]
+  contagion: null
+  toxinBehavior:
+    toxinType: lead
+    absorptionRate: 1
+    clearanceRate: 0.01
+    potency: 1
+    bands:
+      - { threshold: 5, severity: 1 }

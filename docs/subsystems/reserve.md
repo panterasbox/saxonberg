@@ -42,7 +42,7 @@ interface Reserve {
   capacity: Quantity<Unit>; // maximum (typically Quantity<'%'>)
   current: Quantity<Unit>;  // clamped to [0, capacity]
   theme: string;            // 'biological' | a content theme
-  floorEffect: string | null; // named effect at the floor — seam, no consumer
+  floorEffect: string | null; // named effect at the floor — driven by metabolism
 }
 ```
 
@@ -83,6 +83,14 @@ a `Quantity<'%'>` with `theme: 'biological'` and a `floorEffect`
 them at full capacity in the `Creature` constructor
 (`installBiologicalReserves()`, idempotent — hydration overwrites from
 stored values afterward).
+
+The `floorEffect` strings are no longer a dangling seam:
+[metabolism](./metabolism.md) is their consumer. Its lazy reconcile
+drives these reserves (basal drain on satiation/hydration, coupled
+recovery rebuilding endurance) and, when one floors, spawns the
+`floorEffect`-named `Condition` (`starvation` / `dehydration` /
+`collapse`) — clearing it on recovery. Encumbrance drains `endurance`;
+metabolism replenishes it; both layer on the one reserve.
 
 The "what's biological" set is a substrate constant in `Reserve.ts`, not
 auto-installed by `ReservedMixin` itself — so a future non-biological

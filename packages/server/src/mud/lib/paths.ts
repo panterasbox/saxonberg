@@ -39,6 +39,12 @@ export const TemplatePaths = {
   folderZone: "/lib/zone/FolderZone",
   rootBiome: "/lib/biome/universe",
   aetherImplant: "/lib/augmentation/AetherImplant",
+
+  // Metabolism cascade conditions — the `floorEffect`-named `Condition`
+  // Ideas the reconcile spawns/clears off a floored biological reserve.
+  metabolismStarvation: "/lib/metabolism/conditions/starvation",
+  metabolismDehydration: "/lib/metabolism/conditions/dehydration",
+  metabolismCollapse: "/lib/metabolism/conditions/collapse",
 } as const;
 
 /**
@@ -50,4 +56,7 @@ export const TemplatePathPrefixes = {
   species: "/lib/species/",
   topic: "/lib/messaging/Topic/",
   perceptionModalities: "/lib/perception/modalities/",
+  // Metabolism toxin conditions resolve by `<prefix><toxin-type>` (v1
+  // keys the condition by the toxin tag, e.g. `…/conditions/alcohol`).
+  metabolismCondition: "/lib/metabolism/conditions/",
 } as const;

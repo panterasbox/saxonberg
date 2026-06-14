@@ -104,6 +104,8 @@ export const Mixins = {
   DisguiseBearing: 'DisguiseBearingMixin',
   Status: 'StatusMixin',
   Identifiable: 'IdentifiableMixin',
+  Metabolic: 'MetabolicMixin',
+  NutritionLabel: 'NutritionLabelMixin',
 } as const;
 
 /**

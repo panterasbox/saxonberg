@@ -173,8 +173,12 @@ behind one `ActiveCondition` collection (`getConditions` / `afflict` /
   identity-bearing authored content as `Condition extends Idea` templates, resolved
   by `findByTemplatePath` like Materials/Species. The instance record is
   `{ kind: 'affliction', templatePath, stage, elapsed }`; behavior lives
-  on the Idea. **Zero content ships** (no influenza, no venom) — the class
-  + `ConditionTemplate` field shape only.
+  on the Idea. The vitals build shipped **zero content**; the
+  [metabolism](./metabolism.md) build adds the first authored conditions
+  (`starvation`/`dehydration`/`collapse` + the toxin conditions) and a
+  `toxinBehavior?: ToxinBehavior` field on `Condition` (null for non-toxin
+  conditions) carrying a toxin's per-body rate params — read by
+  metabolism's reconcile, the only consumer.
 - **Kind B — trauma** (the `Trauma` value in `lib/vitals/Condition.ts`):
   a parameterized value `{ kind: 'trauma', type, site, severity, bleeding?, dressed? }`
   with a closed `TraumaType` union (`laceration | fracture | contusion |
@@ -188,11 +192,21 @@ marshaller. Progression shapes (`ProgressionSpec`) target
 (a condition occupies no engagement slot — see [activity.md](./activity.md)).
 **Nothing ticks** in this build — `afflict`/`relieve` are pure add/remove.
 
-## Death & consciousness seams (no driver)
+## Death & consciousness seams
+
+> **Update (metabolism build).** These shipped as seams with no driver;
+> [metabolism](./metabolism.md) is now the **first driver** that uses
+> them. Its reconcile cascade spawns/clears conditions off floored
+> biological reserves, stamps `setCauseOfDeath` + flips
+> `setLifecycleState('dead')` when `starvation`/`dehydration` progress
+> past a lethal accrual, and reuses `getConsciousness()` as the surface
+> the `requiresConscious` validator + the acute `collapse` condition gate
+> on. Metabolism drives *only* its own cascade — Vitals still owns no
+> general driver. The seam descriptions below remain accurate.
 
 race.md ships the `lifecycleState` machine (`alive`/`dead`/`undead`) and
-defers the *transition flow*; Vitals will own the driver, but this build
-ships only the **seams**:
+defers the *transition flow*; Vitals will own the general driver, but this
+build shipped only the **seams** (metabolism is the first consumer):
 
 - **Death ≠ destruction.** A corpse is the same Stuff with
   `lifecycleState: 'dead'`; never route death through `StuffApi.destruct`.

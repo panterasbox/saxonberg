@@ -3,6 +3,7 @@ controller: movement/GoController
 description: "Move to a named exit or into a named vessel"
 validators:
   - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresConscious
 args:
   - name: target
     type: object

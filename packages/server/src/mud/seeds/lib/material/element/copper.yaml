@@ -9,7 +9,7 @@ data:
   thermalConductivity: 401
   edibility: false
   nutrients: ["copper"]
-  toxicity: ["copper-poisoning"]
+  toxicity: [{ type: copper-poisoning, amount: 0 }]
   tags: ["element", "metal", "non-ferrous", "crystalline", "conductor"]
   composition: []
   symbol: Cu

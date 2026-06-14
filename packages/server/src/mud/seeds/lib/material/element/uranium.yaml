@@ -19,7 +19,7 @@ data:
   thermalConductivity: 27
   edibility: false
   nutrients: []
-  toxicity: ["radiation", "heavy-metal"]
+  toxicity: [{ type: radiation, amount: 0 }, { type: heavy-metal, amount: 0 }]
   tags: ["element", "metal", "actinide", "radioactive", "heavy"]
   composition: []
   symbol: U
