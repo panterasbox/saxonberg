@@ -13,6 +13,7 @@ import { StuffApi } from '../../api/stuff';
 import { MixinApi } from '../../api/mixin';
 import { Mixins } from '../../lib/mixin';
 import { TemplateError } from '../../lib/stuff/TemplateError';
+import { ReservedTemplatePrefixes } from '../../lib/paths';
 import type { Stuff } from '../../lib/stuff/Stuff';
 import type { Marshaller } from '../../lib/persistence/Marshaller';
 import PersistentHydrator from '../../lib/persistence/PersistentHydrator';
@@ -102,6 +103,24 @@ export class TemplateLogic extends Idea {
       if (children.length > 0) {
         throw new TemplateError(
           `Cannot save leaf template at '${path}'; ${children.length} child template(s) already exist beneath it.`
+        );
+      }
+    }
+  }
+
+  /** See {@link TemplateApi.validateReservedPath}. */
+  @CallSecurity(TemplateApiCallers)
+  public async validateReservedPath(
+    doc: Record<string, unknown>
+  ): Promise<void> {
+    const path = doc.path;
+    if (typeof path !== 'string') return;
+    for (const prefix of ReservedTemplatePrefixes) {
+      if (path === prefix.replace(/\/$/, '') || path.startsWith(prefix)) {
+        throw new TemplateError(
+          `Template path '${path}' is reserved: '${prefix}' is the engine ` +
+            `runtime namespace (Api logic singletons created via ` +
+            `StuffApi.singletonSync); no authored template may live there.`
         );
       }
     }

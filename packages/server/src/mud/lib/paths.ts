@@ -60,3 +60,17 @@ export const TemplatePathPrefixes = {
   // keys the condition by the toxin tag, e.g. `…/conditions/alcohol`).
   metabolismCondition: "/lib/metabolism/conditions/",
 } as const;
+
+/**
+ * Template-path prefixes RESERVED for engine runtime use — no authored
+ * `domain`-collection Template may be saved under them. Enforced at the
+ * domain-save chokepoint (`DomainHook.aroundSave` →
+ * `TemplateApi.validateReservedPath`).
+ *
+ * `/obj/api/` is owned by the surface-architecture logic singletons:
+ * `StuffApi.singletonSync('/obj/api/<feature>', …)` stamps a runtime
+ * instance at that path (never a DB Template). A Template authored there
+ * would be returned by `singletonSync`'s `byTemplatePath` lookup as the
+ * (wrong-class) logic singleton, so the namespace must stay DB-free.
+ */
+export const ReservedTemplatePrefixes = ["/obj/api/"] as const;
