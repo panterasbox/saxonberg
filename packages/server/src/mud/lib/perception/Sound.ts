@@ -44,7 +44,7 @@ export const SOUND_SOURCE_CAP = 3;
  * object treats the floor as 0 dB. Adjust if a sub-silent signal
  * needs surfacing.
  */
-export function coerceDb(value: number | Quantity<'dB'>): Quantity<'dB'> {
+function coerceDb(value: number | Quantity<'dB'>): Quantity<'dB'> {
   if (typeof value === 'number') {
     if (!Number.isFinite(value)) {
       throw new Error(

@@ -29,7 +29,7 @@ import type Material from "../material/Material";
  * Render the nutrition label lines for an edible Material, or `null`
  * when there's nothing to show. Pure data + display.
  */
-export function renderNutritionLabel(material: Material): string | null {
+function renderNutritionLabel(material: Material): string | null {
   if (material.getEdibility() !== true) return null;
   const lines: string[] = [];
   const amounts = material.getNutrientAmounts();
