@@ -64,6 +64,8 @@ import { OrganismMixin } from '../../lib/species/Organism';
 import Species from '../../lib/species/Species';
 import BodyPlan from '../../lib/species/BodyPlan';
 import { StuffApi } from '../stuff';
+import { LocomotionLogic } from '../../obj/api/LocomotionLogic';
+import { SecurityError } from '../../lib/security/errors';
 const OrganismMover = OrganismMixin(MobileMixin(ContainableMixin(Idea)));
 class TestOrganismMover extends OrganismMover {}
 
@@ -519,6 +521,26 @@ describe('LocomotionApi', () => {
     it('falls back to "walk" for an Organism without a species', () => {
       const npc = makeStuff(() => new TestOrganismMover());
       expect(LocomotionApi.defaultModeFor(npc)).toBe('walk');
+    });
+  });
+
+  describe('LocomotionLogic singleton encapsulation', () => {
+    it('lives at /obj/api/locomotion once the facade has materialized it', () => {
+      // A sync facade call lazily creates the logic singleton.
+      LocomotionApi.modeOf('walk');
+      const logic = StuffApi.findByTemplatePath('/obj/api/locomotion');
+      expect(logic).toBeDefined();
+    });
+
+    it('denies a direct logic-method call from a non-LocomotionApi caller', () => {
+      LocomotionApi.modeOf('walk');
+      const logic = StuffApi.findByTemplatePath<LocomotionLogic>(
+        '/obj/api/locomotion',
+      );
+      expect(logic).toBeDefined();
+      // The test module is neither mud/api/locomotion#LocomotionApi nor
+      // the singleton itself, so AnyOf(FromModule, SelfOnly) denies.
+      expect(() => logic!.modeOf('walk')).toThrow(SecurityError);
     });
   });
 });
