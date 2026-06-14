@@ -49,6 +49,7 @@ let _pushImpl: PushImpl | null = null;
  * during boot; tests can call it with a spy to assert push behavior
  * without standing up a real backend.
  */
+// eslint-disable-next-line no-restricted-syntax -- documented exception: DI injection seam (backend → mudlib). Application wires the client-state push at boot; tests inject a spy. See architecture.md § sanctioned-exception registry.
 export function setClientStateUpdatePush(impl: PushImpl | null): void {
   _pushImpl = impl;
 }

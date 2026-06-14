@@ -92,6 +92,43 @@ the mixin's public interface into TypeScript's control-flow narrowing.
 5. **Hook execution**: `ContainmentApi` ensures hooks run correctly.
 6. **Testability**: easy to mock APIs for unit tests.
 
+## Free-Floating Exported Helper Functions — Fold Into a Class/Api
+
+Modules export **classes and types only**. A loose `export function`
+that's just a helper is the antipattern — it's invisible to the
+`callable == visible` surface, doesn't plug into the doc/help system,
+and is exactly the drift the normalized surface architecture closes off.
+
+### BAD (a stray exported helper)
+
+```typescript
+// api/foo.ts
+export function normalizeFooKey(raw: string): string { … }  // ESLint error
+```
+
+### GOOD (fold it into the owning Api / class / value-object)
+
+```typescript
+// api/foo.ts
+export class FooApi {
+  static normalizeKey(raw: string): string { … }  // a real, gated, visible method
+}
+```
+
+The only exported functions that are *not* this antipattern are the
+three recognized categories — **mixin factories** (`export function
+FooMixin`), **decorators** (`lib/security/decorators.ts` +
+`RequiresActive.ts`), and **sealed-subdir pipeline internals**
+(`api/mql/**`, `api/mml/**`) — plus a small, registered set of ad-hoc
+exceptions (test-only white-box exports; backend→mudlib DI seams), each
+marked at its site with `eslint-disable-next-line no-restricted-syntax`
++ a reason. Both ESLint rules (`api/*.ts`, `lib/**/*.ts`) enforce this.
+
+**Adding a new exception requires the user's explicit sign-off first** —
+see [architecture.md § Export discipline & the sanctioned-exception
+registry](./architecture.md) for the rule, the live catalog, and the
+ask-first protocol.
+
 ## Movement Hierarchy
 
 Four levels of movement abstraction, listed from highest to lowest.

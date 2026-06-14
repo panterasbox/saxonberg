@@ -206,6 +206,62 @@ placed, not re-exported**. See [antipatterns.md](./antipatterns.md) for
 the `<Concept><Role>` naming rule that lets you guess a type's face from
 a bare name.
 
+### Export discipline & the sanctioned-exception registry
+
+The surface is now normalized: **every module exports classes and types
+only** — the one concept it defines (a class) plus the types and
+constants its surface speaks. **There are no free-floating exported
+helper functions.** A would-be helper folds into the owning `Api` (as a
+static method), the owning class, or a value-object — never a loose
+`export function`. This is what makes the whole surface discoverable and
+what feeds the `help`/doc system: *callable == visible == cared-about*.
+
+Three kinds of exported function are **recognized categories**, not
+exceptions — they're how those categories are spelled:
+
+1. **Mixin factories** — `export function FooMixin(Base)` in
+   `lib/<subsystem>/`. The mixin module category (the `Mixin` name suffix
+   is the marker the lint keys on).
+2. **Decorators** — the factories in `lib/security/decorators.ts`
+   (`CallSecurity`, `Unshadowable`, `Final`, `Shadowing`,
+   `ShadowSecurity`) and `lib/security/RequiresActive.ts`. A decorator is
+   a function by nature; these two files are the decorator homes.
+3. **Sealed-subdir pipeline internals** — `api/mql/**` and `api/mml/**`
+   are an Api's private impl package: only the parent face (`api/mql.ts`
+   / `api/mml.ts`) may import them (a separate `no-restricted-imports`
+   rule enforces the seal), so inside the seal they're ordinary modules
+   that export functions freely.
+
+Beyond those, a genuine **ad-hoc exception** must be marked **at its
+site** with `eslint-disable-next-line no-restricted-syntax -- <reason>`.
+The disable comments *are* the registry — grep
+`no-restricted-syntax` under `src/mud/{api,lib}` to enumerate the live
+set. Two kinds are recognized:
+
+- **Test-only white-box exports** — a function exported solely so a
+  white-box unit test can exercise an internal stage. Today:
+  `api/prompt.ts#buildPromptContext`,
+  `api/command.ts#validatePhaseEffect`/`collectPhaseEffects`,
+  `api/mql-subscription.ts#resolveFieldSet`/`collectSubscribableFields`/`projectFocus`,
+  `lib/command/parsers/msh.ts#detectEmotePrefix`/`stripEmotePrefix`,
+  `lib/description/Visible.ts#senseStripAugmenter`.
+- **DI injection seams** — a backend→mudlib wiring slot a free function
+  fills at boot. Today: `lib/connection/HasInteractive.ts#setClientStateUpdatePush`.
+
+**Enforcement.** Two ESLint rules (`.eslintrc.js`): `api/*.ts` bans
+exported functions / function-consts; `lib/**/*.ts` bans the same,
+exempting `*Mixin` factories by name and the two decorator files by
+path. Both opt out only via an `eslint-disable` + justification. (The
+gate-string resolver and the sealed-subdir rule round out the
+[lint family](#cross-references).)
+
+**The ask-first rule.** Introducing a *new* exception — anything that
+needs a fresh `eslint-disable no-restricted-syntax`, or a file that
+doesn't fit the [module taxonomy](#) — is a drift risk by definition.
+**Do not add one autonomously: surface it to the user and get explicit
+sign-off first**, then record it here with its reason. The lint failing
+on a new exported helper is the tripwire that forces this conversation.
+
 ### Where types live — colocate with the author
 
 A type's "author" is whoever defines what fields, methods, or

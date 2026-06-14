@@ -298,6 +298,7 @@ create free-floating helper modules.
 | Controller | `obj/command/<category>/` | `PascalCaseController.ts` | Command controller (MVC pair with a YAML view in `mud/cmd/<category>/`). |
 | Command YAML | `mud/cmd/<category>/` | lowercase `verb.yaml` | The view side of a command. |
 | Hook | `obj/hooks/` | `PascalCaseHook.ts` | PM `aroundSave` / `aroundDelete` hooks. |
+| Decorator | `lib/security/` | `decorators.ts` / `PascalCase.ts` | Decorator factories (`CallSecurity`, `Unshadowable`, `Final`, `Shadowing`, `ShadowSecurity`, `RequiresActive`). A decorator is a function by nature — these files are the only home where `export function` is the *concept*, not a stray helper. |
 
 "Pure helper functions that don't need security" is NOT a reason to
 dodge the Api pattern — Apis hold static utility methods perfectly
@@ -316,6 +317,35 @@ can't classify them), and **internal** (`@internal`, hidden — every
 logic singleton, every framework-primitive Api). See
 [architecture.md § The Api ↔ logic-singleton split](./docs/architecture.md)
 and [call-security.md](./docs/subsystems/call-security.md).
+
+### Export discipline — classes & types only
+
+The surface is **normalized**: every module exports the one concept it
+defines (a class) plus the types and constants its surface speaks.
+**No free-floating exported helper functions** — a would-be helper folds
+into an `Api` static method, the owning class, or a value-object. Three
+kinds of exported function are *recognized categories*, not loopholes:
+**mixin factories** (`export function FooMixin`), **decorators**
+(`lib/security/decorators.ts` + `RequiresActive.ts`), and **sealed-subdir
+pipeline internals** (`api/mql/**`, `api/mml/**`). Enforced by two
+ESLint rules (`no-restricted-syntax` on `api/*.ts` and `lib/**/*.ts`).
+
+A handful of genuine **ad-hoc exceptions** exist (test-only white-box
+exports; backend→mudlib DI seams). Each is marked at its site with
+`eslint-disable-next-line no-restricted-syntax -- <reason>` — those
+markers are the live registry; the full catalog + rationale lives in
+[architecture.md § Export discipline & the sanctioned-exception
+registry](./docs/architecture.md).
+
+**Ask first before adding any new exception.** Introducing a fresh
+`eslint-disable no-restricted-syntax`, or any file that doesn't fit the
+[Module Categories](#module-categories--do-not-invent-new-ones) above, is
+drift by definition. **STOP and get the user's explicit sign-off before
+creating it** — do not add the disable / new module autonomously. The
+lint failing on a new exported helper is the intended tripwire that
+forces this conversation; the answer is almost always "fold it in," not
+"add an exception." Once approved, record it in the registry with its
+reason.
 
 ## File Naming Conventions
 

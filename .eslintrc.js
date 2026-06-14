@@ -94,6 +94,50 @@ module.exports = {
           }
         ]
       }
+    },
+    {
+      // lib/ modules export the ONE concept they define — a class, a
+      // mixin factory, or a named value-object/vocabulary/registry —
+      // plus the types and constants its surface speaks. Never a
+      // free-floating helper function. Two recognized function
+      // categories are exempt: **mixin factories** (`export function
+      // FooMixin` — exempt by the `Mixin` name suffix) and **decorators**
+      // (`lib/security/decorators.ts` + `RequiresActive.ts` — exempt by
+      // path; a decorator IS a function by nature). A genuine ad-hoc
+      // exception (a test-only white-box export, a DI injection seam) may
+      // opt out with `eslint-disable-next-line no-restricted-syntax` +
+      // a justification — but introducing a NEW exception must be cleared
+      // with the user first (CLAUDE.md § Export discipline & the
+      // sanctioned-exception registry; architecture.md catalogs the set).
+      files: ['packages/server/src/mud/lib/**/*.ts'],
+      excludedFiles: [
+        'packages/server/src/mud/lib/**/__tests__/**',
+        'packages/server/src/mud/lib/security/decorators.ts',
+        'packages/server/src/mud/lib/security/RequiresActive.ts'
+      ],
+      rules: {
+        'no-restricted-syntax': [
+          'error',
+          {
+            selector:
+              'ExportNamedDeclaration > FunctionDeclaration[id.name!=/Mixin$/]',
+            message:
+              'No free-floating exported functions in lib/ — fold it into the owning class/Api/value-object, name it `*Mixin` if it is a mixin factory, or (a documented exception only) add an eslint-disable with a justification and clear the new exception with the user first (see CLAUDE.md § Export discipline).'
+          },
+          {
+            selector:
+              'ExportNamedDeclaration > VariableDeclaration > VariableDeclarator[init.type="ArrowFunctionExpression"]',
+            message:
+              'No exported function-valued consts in lib/ — fold it into the owning class/Api/value-object (see CLAUDE.md § Export discipline).'
+          },
+          {
+            selector:
+              'ExportNamedDeclaration > VariableDeclaration > VariableDeclarator[init.type="FunctionExpression"]',
+            message:
+              'No exported function-valued consts in lib/ — fold it into the owning class/Api/value-object (see CLAUDE.md § Export discipline).'
+          }
+        ]
+      }
     }
   ],
   ignorePatterns: ['node_modules/', 'dist/', 'build/', '*.log']
