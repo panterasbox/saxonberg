@@ -9,7 +9,7 @@ import type {
   TargetDeclinedNote,
 } from '@saxonberg/types';
 import { Idea } from '../../lib/stuff/Idea';
-import { CallSecurity } from '../../lib/security/decorators';
+import { CallSecurity, Unshadowable } from '../../lib/security/decorators';
 import { SecurityPolicies } from '../../lib/security/SecurityPolicies';
 import type { Stuff } from '../../lib/stuff/Stuff';
 import type { Container } from '../../lib/spatial/Container';
@@ -78,6 +78,7 @@ const GlobbableApiCallers = SecurityPolicies.AnyOf(
  *
  * @internal
  */
+@Unshadowable
 export class GlobbableLogic extends Idea {
   /** See {@link GlobbableApi.canMerge}. */
   @CallSecurity(GlobbableApiCallers)

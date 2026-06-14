@@ -3,7 +3,7 @@
 // on the reflection TypeDoc emits, not on the module.)
 
 import { Idea } from '../../lib/stuff/Idea';
-import { CallSecurity } from '../../lib/security/decorators';
+import { CallSecurity, Unshadowable } from '../../lib/security/decorators';
 import { SecurityPolicies } from '../../lib/security/SecurityPolicies';
 import { StuffApi } from '../../api/stuff';
 import { Template } from '../../lib/stuff/Template';
@@ -67,6 +67,7 @@ const ZoneApiCallers = SecurityPolicies.AnyOf(
  *
  * @internal
  */
+@Unshadowable
 export class ZoneLogic extends Idea {
   /** See {@link ZoneApi.isFolderClass}. */
   @CallSecurity(ZoneApiCallers)

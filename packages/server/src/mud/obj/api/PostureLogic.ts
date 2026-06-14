@@ -3,7 +3,7 @@
 // on the reflection TypeDoc emits, not on the module.)
 
 import { Idea } from '../../lib/stuff/Idea';
-import { CallSecurity } from '../../lib/security/decorators';
+import { CallSecurity, Unshadowable } from '../../lib/security/decorators';
 import { SecurityPolicies } from '../../lib/security/SecurityPolicies';
 import type { Stuff } from '../../lib/stuff/Stuff';
 import type { Slottable } from '../../lib/slot/Slottable';
@@ -40,6 +40,7 @@ const PostureApiCallers = SecurityPolicies.FromModule(
  *
  * @internal
  */
+@Unshadowable
 export class PostureLogic extends Idea {
   /** See {@link PostureApi.transferPosture}. */
   @CallSecurity(PostureApiCallers)

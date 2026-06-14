@@ -3,7 +3,7 @@
 // on the reflection TypeDoc emits, not on the module.)
 
 import { Idea } from '../../lib/stuff/Idea';
-import { CallSecurity } from '../../lib/security/decorators';
+import { CallSecurity, Unshadowable } from '../../lib/security/decorators';
 import { SecurityPolicies } from '../../lib/security/SecurityPolicies';
 import type { Stuff } from '../../lib/stuff/Stuff';
 import type { Boundary } from '../../lib/boundary/Boundary';
@@ -40,6 +40,7 @@ const BoundaryApiCallers = SecurityPolicies.FromModule(
  *
  * @internal
  */
+@Unshadowable
 export class BoundaryLogic extends Idea {
   /** See {@link BoundaryApi.attachExistingBoundary}. */
   @CallSecurity(BoundaryApiCallers)

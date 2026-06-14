@@ -3,7 +3,7 @@
 // on the reflection TypeDoc emits, not on the module.)
 
 import { Idea } from '../../lib/stuff/Idea';
-import { CallSecurity } from '../../lib/security/decorators';
+import { CallSecurity, Unshadowable } from '../../lib/security/decorators';
 import { SecurityPolicies } from '../../lib/security/SecurityPolicies';
 import type { Stuff } from '../../lib/stuff/Stuff';
 import type Material from '../../lib/material/Material';
@@ -41,6 +41,7 @@ const MaterialApiCallers = SecurityPolicies.FromModule(
  *
  * @internal
  */
+@Unshadowable
 export class MaterialLogic extends Idea {
   /** See {@link MaterialApi.materialOf}. */
   @CallSecurity(MaterialApiCallers)

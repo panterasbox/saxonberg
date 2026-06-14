@@ -6,7 +6,7 @@ import { promises as fs } from 'node:fs';
 import * as path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { Idea } from '../../lib/stuff/Idea';
-import { CallSecurity } from '../../lib/security/decorators';
+import { CallSecurity, Unshadowable } from '../../lib/security/decorators';
 import { SecurityPolicies } from '../../lib/security/SecurityPolicies';
 import { SourceTreeSandboxError } from '../../lib/shell/SourceTreeSandboxError';
 import type { DirEntry } from '../../api/source-tree';
@@ -46,6 +46,7 @@ let rootCache: string | null = null;
  *
  * @internal
  */
+@Unshadowable
 export class SourceTreeLogic extends Idea {
   /** See {@link SourceTreeApi.getSandboxRoot}. */
   @CallSecurity(SourceTreeApiCallers)

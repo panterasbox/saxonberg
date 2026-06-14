@@ -3,7 +3,7 @@
 // @internal lands on the reflection TypeDoc emits, not on the module.)
 
 import { Idea } from '../../lib/stuff/Idea';
-import { CallSecurity } from '../../lib/security/decorators';
+import { CallSecurity, Unshadowable } from '../../lib/security/decorators';
 import { SecurityPolicies } from '../../lib/security/SecurityPolicies';
 import type { Stuff } from '../../lib/stuff/Stuff';
 import { Quantity } from '../../lib/quantity';
@@ -114,6 +114,7 @@ function resolveRegistry(): WorldClockRegistry {
  *
  * @internal
  */
+@Unshadowable
 export class WorldClockLogic extends Idea {
   /* ──────────────────── core queries / control ──────────────────── */
 

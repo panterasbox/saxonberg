@@ -3,7 +3,7 @@
 // @internal lands on the reflection TypeDoc emits, not on the module.)
 
 import { Idea } from '../../lib/stuff/Idea';
-import { CallSecurity } from '../../lib/security/decorators';
+import { CallSecurity, Unshadowable } from '../../lib/security/decorators';
 import { SecurityPolicies } from '../../lib/security/SecurityPolicies';
 
 /** Canonical direction names (long form). */
@@ -119,6 +119,7 @@ const NavigationApiCallers = SecurityPolicies.FromModule(
  *
  * @internal
  */
+@Unshadowable
 export class NavigationLogic extends Idea {
   /** See {@link NavigationApi.normalizeDirection}. */
   @CallSecurity(NavigationApiCallers)

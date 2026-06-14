@@ -3,7 +3,7 @@
 // on the reflection TypeDoc emits, not on the module.)
 
 import { Idea } from '../../lib/stuff/Idea';
-import { CallSecurity } from '../../lib/security/decorators';
+import { CallSecurity, Unshadowable } from '../../lib/security/decorators';
 import { SecurityPolicies } from '../../lib/security/SecurityPolicies';
 import type { Stuff } from '../../lib/stuff/Stuff';
 import type { Organism } from '../../lib/species/Organism';
@@ -49,6 +49,7 @@ const SpeciesApiCallers = SecurityPolicies.FromModule(
  *
  * @internal
  */
+@Unshadowable
 export class SpeciesLogic extends Idea {
   /** See {@link SpeciesApi.getKingdom}. */
   @CallSecurity(SpeciesApiCallers)

@@ -3,7 +3,7 @@
 // on the reflection TypeDoc emits, not on the module.)
 
 import { Idea } from '../../lib/stuff/Idea';
-import { CallSecurity } from '../../lib/security/decorators';
+import { CallSecurity, Unshadowable } from '../../lib/security/decorators';
 import { SecurityPolicies } from '../../lib/security/SecurityPolicies';
 import Avatar from '../Avatar';
 import type { User } from '../../lib/identity/User';
@@ -43,6 +43,7 @@ const PlayerApiCallers = SecurityPolicies.AnyOf(
  *
  * @internal
  */
+@Unshadowable
 export class PlayerLogic extends Idea {
   /**
    * Registry of avatars by player ID. A specialized index for quick

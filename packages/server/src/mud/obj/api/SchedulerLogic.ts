@@ -3,7 +3,7 @@
 // @internal lands on the reflection TypeDoc emits, not on the module.)
 
 import { Idea } from '../../lib/stuff/Idea';
-import { CallSecurity } from '../../lib/security/decorators';
+import { CallSecurity, Unshadowable } from '../../lib/security/decorators';
 import { SecurityPolicies } from '../../lib/security/SecurityPolicies';
 import type { Stuff } from '../../lib/stuff/Stuff';
 import type { AbortReason } from '@saxonberg/types';
@@ -95,6 +95,7 @@ function resolveRegistry(): SchedulerRegistry {
  *
  * @internal
  */
+@Unshadowable
 export class SchedulerLogic extends Idea {
   /* ──────────────────── activity-class registry ──────────────────── */
 

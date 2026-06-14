@@ -3,7 +3,7 @@
 // on the reflection TypeDoc emits, not on the module.)
 
 import { Idea } from '../../lib/stuff/Idea';
-import { CallSecurity } from '../../lib/security/decorators';
+import { CallSecurity, Unshadowable } from '../../lib/security/decorators';
 import { SecurityPolicies } from '../../lib/security/SecurityPolicies';
 import { AppSettings } from '../../lib/config/AppSettings';
 
@@ -26,6 +26,7 @@ const AppApiCallers = SecurityPolicies.FromModule('mud/api/app#AppApi');
  *
  * @internal
  */
+@Unshadowable
 export class AppLogic extends Idea {
   /** See {@link AppApi.setting}. */
   @CallSecurity(AppApiCallers)

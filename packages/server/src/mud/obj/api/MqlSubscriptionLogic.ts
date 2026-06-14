@@ -4,7 +4,7 @@
 // emits, not on the module.)
 
 import { Idea } from '../../lib/stuff/Idea';
-import { CallSecurity } from '../../lib/security/decorators';
+import { CallSecurity, Unshadowable } from '../../lib/security/decorators';
 import { SecurityPolicies } from '../../lib/security/SecurityPolicies';
 import type Interactive from '../Interactive';
 import { StuffApi } from '../../api/stuff';
@@ -97,6 +97,7 @@ function resolveRegistry(): MqlSubscriptionRegistry {
  *
  * @internal
  */
+@Unshadowable
 export class MqlSubscriptionLogic extends Idea {
   /* ─── public surface ─── */
 

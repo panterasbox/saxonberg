@@ -3,7 +3,7 @@
 // on the reflection TypeDoc emits, not on the module.)
 
 import { Idea } from '../../lib/stuff/Idea';
-import { CallSecurity } from '../../lib/security/decorators';
+import { CallSecurity, Unshadowable } from '../../lib/security/decorators';
 import { SecurityPolicies } from '../../lib/security/SecurityPolicies';
 import { ZoneApi } from '../../api/zone';
 import { Template } from '../../lib/stuff/Template';
@@ -42,6 +42,7 @@ const TemplateApiCallers = SecurityPolicies.FromModule(
  *
  * @internal
  */
+@Unshadowable
 export class TemplateLogic extends Idea {
   /** See {@link TemplateApi.saveTemplate}. */
   @CallSecurity(TemplateApiCallers)
