@@ -1,5 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { SpeciesApi } from '../species';
+import { SpeciesLogic } from '../../obj/api/SpeciesLogic';
+import { SecurityError } from '../../lib/security/errors';
 import { StuffApi } from '../stuff';
 import Species from '../../lib/species/Species';
 import Clade from '../../lib/species/Clade';
@@ -158,4 +160,34 @@ describe('SpeciesApi', () => {
 
   // deriveSensorium was retired in favor of PerceptionApi.sensorium —
   // see `api/__tests__/perception.test.ts` for the new coverage.
+});
+
+describe('SpeciesLogic singleton encapsulation', () => {
+  beforeEach(() => {
+    StuffApi.clearAll();
+  });
+  afterEach(() => {
+    StuffApi.clearAll();
+  });
+
+  it('lives at /obj/api/species once the facade has materialized it', () => {
+    // A facade call lazily creates the logic singleton. A non-Organism
+    // Stuff returns false without touching the taxonomy walk.
+    SpeciesApi.isAnimate(makeStuff(() => new Idea()));
+    const logic = StuffApi.findByTemplatePath('/obj/api/species');
+    expect(logic).toBeDefined();
+    expect(StuffApi.findByPathGlob('/obj/api/*')).toContain(logic);
+  });
+
+  it('denies a direct logic-method call from a non-SpeciesApi caller', () => {
+    const idea = makeStuff(() => new Idea());
+    SpeciesApi.isAnimate(idea);
+    const logic = StuffApi.findByTemplatePath<SpeciesLogic>(
+      '/obj/api/species'
+    );
+    expect(logic).toBeDefined();
+    // The test module is not `mud/api/species#SpeciesApi`, so the
+    // FromModule gate on the logic's own methods denies the call.
+    expect(() => logic!.isAnimate(idea)).toThrow(SecurityError);
+  });
 });
