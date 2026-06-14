@@ -175,6 +175,12 @@ export function FastTravelMixin<TBase extends MixinConstructor<Stuff>>(
 
     /* ── routes (instruction field) ─────────────────────────────── */
 
+    /**
+     * @hook Invoked by the `Hydrator`'s Phase-2 instruction dispatch
+     *   from a template's `routes` field. **Instruction applier** —
+     *   consumes the declaration to (re)build the runtime route table;
+     *   no paired getter (not a property); idempotent across re-clone.
+     */
     applyRoutes(raw: RawRoute[]): void {
       this._routes.clear();
       for (const r of raw ?? []) {

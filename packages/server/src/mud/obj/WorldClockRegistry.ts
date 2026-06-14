@@ -48,18 +48,21 @@ import type {
   WorldClockSnapshot,
 } from '../api/worldclock';
 import { WorldClockApi } from '../api/worldclock';
+import { registerWorldClockRegistryClass } from './api/WorldClockLogic';
 
 /**
- * Gate every public Registry method to either the Api facade OR an
- * internal `this.foo()` call from within the Registry itself. The
- * proxy intercepts ALL method dispatches (including `this`-calls
- * inside method bodies), so a method like `boot()` that delegates to
- * `this.restore(...)` would otherwise be denied — caller and target
- * are both this Registry's proxy on internal calls, which `SelfOnly`
- * permits.
+ * Gate every public Registry method to the Api facade, the
+ * `WorldClockLogic` singleton (caller template path `/obj/api/worldclock`,
+ * which actually forwards every call), OR an internal `this.foo()` call
+ * from within the Registry itself. The proxy intercepts ALL method
+ * dispatches (including `this`-calls inside method bodies), so a method
+ * like `boot()` that delegates to `this.restore(...)` would otherwise
+ * be denied — caller and target are both this Registry's proxy on
+ * internal calls, which `SelfOnly` permits.
  */
 const WorldClockApiCallers = SecurityPolicies.AnyOf(
   SecurityPolicies.FromModule('mud/api/worldclock#WorldClockApi'),
+  SecurityPolicies.FromTemplate('/obj/api/worldclock'),
   SecurityPolicies.SelfOnly,
 );
 
@@ -674,8 +677,9 @@ export default class WorldClockRegistry extends Idea {
   }
 }
 
-// Side-effect: hand the class to WorldClockApi so its lazy-create path
-// can mint a fresh in-memory Registry for test harnesses (production
-// gets the cloned singleton via the bootstrap manifest). See
-// `WorldClockApi.#registryClass` for the cycle-avoidance rationale.
-WorldClockApi._registerRegistryClass(WorldClockRegistry);
+// Side-effect: hand the class to WorldClockLogic so its lazy-create
+// path can mint a fresh in-memory Registry for test harnesses
+// (production gets the cloned singleton via the bootstrap manifest).
+// See `registerWorldClockRegistryClass` for the cycle-avoidance
+// rationale.
+registerWorldClockRegistryClass(WorldClockRegistry);

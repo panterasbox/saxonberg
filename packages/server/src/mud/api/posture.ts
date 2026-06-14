@@ -12,6 +12,11 @@
  * slot on the target, occupy it, set the actor's `Posed` posture
  * string. Returns a discriminated result so callers can shape their
  * own failure summary.
+ *
+ * Thin, security-gated forwarding shell: the logic lives in the
+ * hot-reloadable {@link PostureLogic} singleton at `/obj/api/posture`,
+ * reached synchronously via `StuffApi.singletonSync`.
+ * `dest /obj/api/posture` reloads it.
  */
 
 import type { Stuff } from '../lib/stuff/Stuff';
@@ -19,9 +24,11 @@ import type { Slottable } from '../lib/slot/Slottable';
 import type { Slotted } from '../lib/slot/Slotted';
 import type { Postured } from '../lib/slot/Postured';
 import type { Posed } from '../lib/character/Posed';
-import { MixinApi } from './mixin';
-import { SlotApi } from './slot';
+import { StuffApi } from './stuff';
+import { HotReloadApi } from './hot-reload';
 import { SecurityApi } from './security';
+import { PostureLogic } from '../obj/api/PostureLogic';
+import { fileURLToPath } from 'url';
 
 /**
  * Outcome of `transferPosture`. On success the controller emits its
@@ -41,6 +48,23 @@ import { SecurityApi } from './security';
 export type PostureTransferResult =
   | { ok: true; host: Stuff & Slotted; slot: string }
   | { ok: false; reason: string; summary: string };
+
+const LOGIC_PATH = '/obj/api/posture';
+const LOGIC_CLASS_FILE = fileURLToPath(
+  new URL('../obj/api/PostureLogic', import.meta.url)
+);
+
+/** Resolve the HMR-able PostureLogic singleton (sync). */
+function logic(): PostureLogic {
+  return StuffApi.singletonSync(
+    LOGIC_PATH,
+    () =>
+      new ((HotReloadApi.getCurrentExport(
+        LOGIC_CLASS_FILE,
+        'PostureLogic'
+      ) as typeof PostureLogic | null) ?? PostureLogic)()
+  );
+}
 
 export class PostureApi {
   /**
@@ -62,50 +86,7 @@ export class PostureApi {
     posture: string,
     verb: string
   ): PostureTransferResult {
-    // Find a slot on the target accepting this posture.
-    const candidates = target.getSlotsAcceptingPosture(posture);
-    let chosen: string | null = null;
-    for (const slot of candidates) {
-      if (target.isSlotFull(slot)) continue;
-      if (!target.canOccupy(actor, slot)) continue;
-      chosen = slot;
-      break;
-    }
-    if (!chosen) {
-      if (candidates.length === 0) {
-        return {
-          ok: false,
-          reason: 'no-posture-slot',
-          summary:
-            `you can't ${verb} on ` +
-            `${target.getPresentation()}`,
-        };
-      }
-      return {
-        ok: false,
-        reason: 'occupied',
-        summary:
-          `${target.getPresentation()} is occupied`,
-      };
-    }
-
-    const from = PostureApi.findCurrentPostureBearingSlot(actor);
-
-    try {
-      SlotApi.transferOccupancy(
-        actor,
-        from,
-        { host: target, slot: chosen }
-      );
-    } catch (err) {
-      return {
-        ok: false,
-        reason: 'transfer-failed',
-        summary: (err as Error).message,
-      };
-    }
-    actor.setPosture(posture);
-    return { ok: true, host: target, slot: chosen };
+    return logic().transferPosture(actor, target, posture, verb);
   }
 
   /**
@@ -116,17 +97,7 @@ export class PostureApi {
    * separately so the value is explicit at the call site.
    */
   public static vacatePostureBearingSlots(actor: Stuff & Posed): number {
-    if (!MixinApi.isSlottable(actor)) return 0;
-    const occupied = SlotApi.findOccupiedSlots(actor);
-    let vacated = 0;
-    for (const [host, slotNames] of occupied.entries()) {
-      for (const slotName of slotNames) {
-        const spec = host.getSlotSpec(slotName);
-        if (!spec?.postures || spec.postures.length === 0) continue;
-        if (host.vacate(slotName, actor)) vacated++;
-      }
-    }
-    return vacated;
+    return logic().vacatePostureBearingSlots(actor);
   }
 
   /**
@@ -141,16 +112,7 @@ export class PostureApi {
   public static findCurrentPostureBearingSlot(
     candidate: Stuff & Slottable
   ): { host: Stuff & Slotted; slot: string } | null {
-    const occupied = SlotApi.findOccupiedSlots(candidate);
-    for (const [host, slotNames] of occupied.entries()) {
-      for (const slotName of slotNames) {
-        const spec = host.getSlotSpec(slotName);
-        if (spec?.postures && spec.postures.length > 0) {
-          return { host, slot: slotName };
-        }
-      }
-    }
-    return null;
+    return logic().findCurrentPostureBearingSlot(candidate);
   }
 }
 

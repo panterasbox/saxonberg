@@ -10,14 +10,21 @@
  * walk the global Stuff registry. Slot occupancy is runtime-only
  * (per slot.md), so the walk is O(N) — acceptable for v1's world
  * sizes; an inverse index can land later if profiling demands.
+ *
+ * Thin, security-gated forwarding shell: the logic lives in the
+ * hot-reloadable {@link SlotLogic} singleton at `/obj/api/slot`,
+ * reached synchronously via `StuffApi.singletonSync`.
+ * `dest /obj/api/slot` reloads it.
  */
 
 import type { Stuff } from '../lib/stuff/Stuff';
 import type { Slotted } from '../lib/slot/Slotted';
 import type { Slottable } from '../lib/slot/Slottable';
-import { MixinApi } from './mixin';
 import { StuffApi } from './stuff';
+import { HotReloadApi } from './hot-reload';
 import { SecurityApi } from './security';
+import { SlotLogic } from '../obj/api/SlotLogic';
+import { fileURLToPath } from 'url';
 
 /**
  * Discriminated input to `SlotApi.resolveSlot`.
@@ -31,6 +38,23 @@ export type SlotResolutionQuery =
   | { detail: string }
   | { accepts: string };
 
+const LOGIC_PATH = '/obj/api/slot';
+const LOGIC_CLASS_FILE = fileURLToPath(
+  new URL('../obj/api/SlotLogic', import.meta.url)
+);
+
+/** Resolve the HMR-able SlotLogic singleton (sync). */
+function logic(): SlotLogic {
+  return StuffApi.singletonSync(
+    LOGIC_PATH,
+    () =>
+      new ((HotReloadApi.getCurrentExport(
+        LOGIC_CLASS_FILE,
+        'SlotLogic'
+      ) as typeof SlotLogic | null) ?? SlotLogic)()
+  );
+}
+
 export class SlotApi {
   /**
    * Multi-slot claim (transactional). Either every slot is claimed
@@ -43,25 +67,7 @@ export class SlotApi {
     candidate: Stuff & Slottable,
     slots: readonly string[]
   ): void {
-    const claimed: string[] = [];
-    try {
-      for (const slot of slots) {
-        host.occupy(candidate, slot);
-        claimed.push(slot);
-      }
-    } catch (err) {
-      // Rollback in reverse order.
-      for (let i = claimed.length - 1; i >= 0; i--) {
-        try {
-          const s = claimed[i];
-          if (s) host.vacate(s, candidate);
-        } catch {
-          // Swallow rollback failures — the original error is the one
-          // the caller cares about.
-        }
-      }
-      throw err;
-    }
+    logic().occupyAll(host, candidate, slots);
   }
 
   /**
@@ -74,7 +80,7 @@ export class SlotApi {
     candidate: Stuff & Slottable,
     slots: readonly string[]
   ): readonly ((Stuff & Slottable) | null)[] {
-    return slots.map(s => host.vacate(s, candidate));
+    return logic().vacateAll(host, candidate, slots);
   }
 
   /**
@@ -86,11 +92,7 @@ export class SlotApi {
     host: Stuff & Slotted,
     candidate: Stuff & Slottable
   ): string | null {
-    for (const name of host.getSlotNames()) {
-      if (host.isSlotFull(name)) continue;
-      if (host.canOccupy(candidate, name)) return name;
-    }
-    return null;
+    return logic().findOpenSlotFor(host, candidate);
   }
 
   /**
@@ -102,18 +104,7 @@ export class SlotApi {
   public static findOccupiedSlots(
     candidate: Stuff & Slottable
   ): ReadonlyMap<Stuff & Slotted, readonly string[]> {
-    // O(N) over the global Stuff registry — fine for v1's world sizes;
-    // promote to an inverse index if profiling demands.
-    const out = new Map<Stuff & Slotted, string[]>();
-    for (const obj of StuffApi.getAllObjects()) {
-      if (!MixinApi.isSlotted(obj)) continue;
-      const slotNames: string[] = [];
-      for (const [name, occupants] of obj.getAllOccupants().entries()) {
-        if (occupants.has(candidate)) slotNames.push(name);
-      }
-      if (slotNames.length > 0) out.set(obj, slotNames);
-    }
-    return out;
+    return logic().findOccupiedSlots(candidate);
   }
 
   /**
@@ -126,16 +117,7 @@ export class SlotApi {
   public static findOccupiedHost(
     candidate: Stuff & Slottable
   ): (Stuff & Slotted) | null {
-    const occupied = SlotApi.findOccupiedSlots(candidate);
-    if (occupied.size === 0) return null;
-    if (occupied.size > 1) {
-      throw new Error(
-        `SlotApi.findOccupiedHost: candidate occupies slots on ` +
-        `${occupied.size} distinct hosts; use findOccupiedSlots() ` +
-        `for the full breakdown`
-      );
-    }
-    return occupied.keys().next().value as Stuff & Slotted;
+    return logic().findOccupiedHost(candidate);
   }
 
   /**
@@ -147,20 +129,7 @@ export class SlotApi {
     host: Stuff & Slotted,
     by: SlotResolutionQuery
   ): string | null {
-    if ('detail' in by) {
-      const detail = by.detail;
-      for (const name of host.getSlotNames()) {
-        const spec = host.getSlotSpec(name);
-        if (spec?.userFacingDetail === detail) return name;
-      }
-      return null;
-    }
-    const accepts = by.accepts;
-    for (const name of host.getSlotNames()) {
-      const spec = host.getSlotSpec(name);
-      if (spec?.accepts === accepts) return name;
-    }
-    return null;
+    return logic().resolveSlot(host, by);
   }
 
   /**
@@ -182,23 +151,7 @@ export class SlotApi {
       occupant: Stuff & Slottable
     ) => void
   ): void {
-    const visitedHosts = new Set<Stuff & Slotted>();
-    const visitedOccupants = new Set<Stuff & Slottable>();
-    function walk(host: Stuff & Slotted): void {
-      if (visitedHosts.has(host)) return;
-      visitedHosts.add(host);
-      for (const [slotName, occupants] of host.getAllOccupants().entries()) {
-        for (const occupant of occupants) {
-          if (visitedOccupants.has(occupant)) continue;
-          visitedOccupants.add(occupant);
-          visit(host, slotName, occupant);
-          if (MixinApi.isSlotted(occupant)) {
-            walk(occupant);
-          }
-        }
-      }
-    }
-    walk(root);
+    logic().walkOccupants(root, visit);
   }
 
   /**
@@ -217,25 +170,8 @@ export class SlotApi {
     from: { host: Stuff & Slotted; slot: string } | null,
     to: { host: Stuff & Slotted; slot: string }
   ): void {
-    if (from && from.host === to.host && from.slot === to.slot) {
-      return;
-    }
-    const vacated = from ? from.host.vacate(from.slot, candidate) : null;
-    try {
-      to.host.occupy(candidate, to.slot);
-    } catch (err) {
-      // Rollback — re-occupy `from`.
-      if (from && vacated) {
-        try {
-          from.host.occupy(candidate, from.slot);
-        } catch {
-          // Rollback failure — surface the original error.
-        }
-      }
-      throw err;
-    }
+    logic().transferOccupancy(candidate, from, to);
   }
-
 }
 
 SecurityApi.decorateApiClass(SlotApi);

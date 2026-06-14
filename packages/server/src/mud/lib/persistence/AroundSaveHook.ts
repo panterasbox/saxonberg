@@ -21,6 +21,13 @@ import type { Stuff } from '../stuff/Stuff';
  * Public shape added by AroundSaveHookMixin.
  */
 export interface AroundSaveHook {
+  /**
+   * @hook Invoked by `PersistenceManager` around every save to the
+   *   hook's collection, middleware-style. **Around** — you MUST call
+   *   `next(doc)` (with the original or a transformed doc) to proceed,
+   *   and return its result (the saved id); validate/transform before,
+   *   or throw to reject the save. Default is pass-through.
+   */
   aroundSave(
     collection: string,
     doc: Record<string, unknown>,

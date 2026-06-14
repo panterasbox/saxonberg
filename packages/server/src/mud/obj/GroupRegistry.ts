@@ -19,7 +19,8 @@
 
 import { Idea } from '../lib/stuff/Idea';
 import { PostRegistrationMixin } from '../lib/stuff/PostRegistration';
-import { parseGroupRef, type GroupProvider, type GroupRef, type GroupChangeHandle, type GroupChangeListener } from '../lib/social/GroupProvider';
+import type { GroupProvider, GroupRef, GroupChangeHandle, GroupChangeListener } from '../lib/social/GroupProvider';
+import { GroupApi } from '../api/group';
 import { ManagedGroupProvider } from '../lib/social/providers/ManagedGroupProvider';
 import { MqlGroupProvider } from '../lib/social/providers/MqlGroupProvider';
 import { ContactsGroupProvider } from '../lib/social/providers/ContactsGroupProvider';
@@ -54,7 +55,7 @@ export default class GroupRegistry extends GroupRegistryBase {
   }
 
   public async membersOf(ref: GroupRef): Promise<Stuff[]> {
-    const { source, id } = parseGroupRef(ref);
+    const { source, id } = GroupApi.parseRef(ref);
     const provider = this.providers.get(source);
     if (!provider) {
       throw new Error(`GroupRegistry: no provider for source '${source}'`);
@@ -66,7 +67,7 @@ export default class GroupRegistry extends GroupRegistryBase {
     playerId: string,
     ref: GroupRef,
   ): Promise<GroupRole | null> {
-    const { source, id } = parseGroupRef(ref);
+    const { source, id } = GroupApi.parseRef(ref);
     const provider = this.providers.get(source);
     if (!provider) return null;
     return provider.roleOf(playerId, id);
@@ -76,7 +77,7 @@ export default class GroupRegistry extends GroupRegistryBase {
     playerId: string,
     ref: GroupRef,
   ): Promise<boolean> {
-    const { source, id } = parseGroupRef(ref);
+    const { source, id } = GroupApi.parseRef(ref);
     const provider = this.providers.get(source);
     if (!provider) return false;
     if (provider.isMember) return provider.isMember(playerId, id);
@@ -87,7 +88,7 @@ export default class GroupRegistry extends GroupRegistryBase {
     ref: GroupRef,
     cb: GroupChangeListener,
   ): GroupChangeHandle {
-    const { source, id } = parseGroupRef(ref);
+    const { source, id } = GroupApi.parseRef(ref);
     const provider = this.providers.get(source);
     if (!provider || !provider.onChange) {
       return { cancel: () => undefined };

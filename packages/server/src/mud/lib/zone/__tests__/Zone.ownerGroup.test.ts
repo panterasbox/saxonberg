@@ -10,8 +10,8 @@ import { makeStuff } from '../../security/__tests__/test-setup';
  * persistent, inheritable ownership fields used by the access
  * substrate's flat-union walk.
  *
- * - `setOwnerGroup` validates the GroupRef shape via `parseGroupRef`;
- *   malformed refs throw.
+ * - `setOwnerGroup` validates the GroupRef shape (inlined `source:id`
+ *   check, mirroring `GroupApi.parseRef`); malformed refs throw.
  * - The fields are inheritable: `lookupAncestorField('ownerGroup')`
  *   walks the template-tree ancestry and returns the nearest
  *   stamped value.

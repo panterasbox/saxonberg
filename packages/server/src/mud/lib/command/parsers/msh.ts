@@ -31,6 +31,7 @@ import type { Parser, ParseResult } from '../../../api/command';
  * character. Whitespace, punctuation, or end-of-input after the
  * sigil all reject the dispatch.
  */
+// eslint-disable-next-line no-restricted-syntax -- documented exception: test-only export (white-box parser test); the msh Parser below uses it internally. See architecture.md § sanctioned-exception registry.
 export function detectEmotePrefix(s: string): boolean {
   const trimmed = s.replace(/^[\s]+/, '');
   if (trimmed.length < 2) return false;
@@ -45,6 +46,7 @@ export function detectEmotePrefix(s: string): boolean {
  * detected as emote-prefixed. Returns the message with the sigil
  * removed (along with any leading whitespace before it).
  */
+// eslint-disable-next-line no-restricted-syntax -- documented exception: test-only export (white-box parser test); the msh Parser below uses it internally. See architecture.md § sanctioned-exception registry.
 export function stripEmotePrefix(s: string): string {
   return s.replace(/^[\s]*[:;]/, '');
 }

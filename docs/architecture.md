@@ -114,6 +114,15 @@ adding.
 - **Value objects** — pure data + small per-instance math (`Light`,
   `Quantity`). Not Stuff. Lives in `lib/` because it's a domain
   primitive the Api layer consumes.
+- **Named value-object / vocabulary / registry modules** — the
+  sanctioned home for a substrate primitive that isn't an instanceable
+  `Stuff` but is still *the concept the module exists for*: a value
+  class (`Light`, `Quantity`, `Reserve`), an enum-like vocabulary plus
+  its validation array, or a platform-wide registry (`lib/mixin.ts`'s
+  `Mixins`, `lib/paths.ts`'s `TemplatePaths`). This is the fourth
+  category named so that an orphan type/constant has a home other than
+  the forbidden `types.ts` / `constants.ts` reflex — see
+  "One concept per module" below.
 
 `api/` holds:
 - **Pure utilities** — no Manager, just functions
@@ -124,6 +133,134 @@ adding.
 - **Stuff orchestration** — operates on Stuff, threads polymorphic
   steps (`StuffApi`, `ContainmentApi`, `LocomotionApi`, `ZoneApi`).
   This is where the orchestration-vs-step decision bites.
+
+> **`api/` is functions + the types they speak — nothing instanceable.**
+> An `api/` file exports its static `FooApi` class and the call-shape
+> types its signatures use, and nothing else. Value/builder classes,
+> collections, and error classes that once lived in `api/` are `lib/`'s
+> domain, concept-colocated, re-exported (value re-export) from the
+> face so callers still reach them through the Api: `Scene` →
+> `lib/message/Scene.ts`, `Mml` → `lib/message/Mml.ts`, `Prose` →
+> `lib/prose/Prose.ts`, `PathTrie` → `lib/collections/PathTrie.ts`, and
+> the error classes (`ContainmentError`, `PromptCancelledError`,
+> `SourceTreeSandboxError`, `TemplateError`) to their concept's `lib/`
+> module. Domain-concept *types* are likewise *defined* in `lib/` with
+> their concept and re-exported type-only from the face; only pure
+> call-shapes with no domain home (the `ScheduleHandle` precedent) are
+> defined in the api file.
+
+### The Api ↔ logic-singleton split
+
+An `Api` carries identity three ways an unsettled organizational layer
+shouldn't — it holds the logic, it anchors the generated docs, and it's
+where types live. The surface-architecture refactor relocates all three
+so the `Api` becomes what it actually is: a **thin, typed, secured
+forwarding shell**. Each convertible Api's public statics forward to a
+stateless `Stuff` **logic singleton** that holds the implementation:
+
+```
+FooApi (api/foo.ts)              static forwarders + decorateApiClass + types
+   ↓  StuffApi.singletonSync('/obj/api/foo', factory)
+FooLogic (obj/api/FooLogic.ts)   the logic — a stateless Stuff, @internal,
+                                 instance methods gated to FooApi, HMR-able
+```
+
+The logic singleton is a `Stuff` (a runtime class, so `obj/api/`),
+extends `Idea`, composes **no** `PostRegistrationMixin` (statelessness
+is load-bearing — `dest` is the reload invalidator), is marked
+`@internal` *on the class declaration*, and gates each public method
+`@CallSecurity(FromModule('mud/api/<feature>#<Feature>Api'))`. Protected
+internal logic that used to crowd the Api's TypeDoc surface now lives
+here, off the documented surface. See
+[hot-reload.md § Api logic singletons](./subsystems/hot-reload.md#api-logic-singletons-objapifeature)
+for the HMR mechanics and
+[call-security.md § The api↔logic-singleton recipe](./subsystems/call-security.md#the-apilogic-singleton-recipe)
+for the gating recipe (per-method gate, self-call gotcha, the `ApiOnly`
+widening). A handful of bootstrap-cycle and bootstrap-special Apis stay
+static classes (documented in call-security.md).
+
+### One concept per module — definition site vs import site
+
+A module exists to define exactly one **named concept**; the filename is
+that concept's name; the concept is the primary export. Every other
+export is a supporting member of that one concept — the types its surface
+speaks, the constants it's parameterized by. A type or constant is never
+itself the reason a module exists (unless the concept *is* a value object
+/ registry — then the module is named for it). `types.ts`,
+`constants.ts`, and barrel `index.ts` are forbidden by construction on
+the consumed surface.
+
+This separates two questions that the old "where does this type live?"
+debate conflated:
+
+- **Definition site** is dependency-driven — a type may be *defined* on a
+  cycle-breaking dependency leaf, wherever the runtime graph forces it.
+- **Import site** is the *face*: any author-facing type is re-exported
+  (type-only — erased, no runtime edge, can't cycle) from *every* Api or
+  mixin whose signature speaks it. "Look where you'd use it" always
+  finds it; you never have to out-guess a canonical home.
+
+Constants are the asymmetry: a re-exported constant is a runtime value
+(a real `api → definition` edge that *can* cycle), so **constants are
+placed, not re-exported**. See [antipatterns.md](./antipatterns.md) for
+the `<Concept><Role>` naming rule that lets you guess a type's face from
+a bare name.
+
+### Export discipline & the sanctioned-exception registry
+
+The surface is now normalized: **every module exports classes and types
+only** — the one concept it defines (a class) plus the types and
+constants its surface speaks. **There are no free-floating exported
+helper functions.** A would-be helper folds into the owning `Api` (as a
+static method), the owning class, or a value-object — never a loose
+`export function`. This is what makes the whole surface discoverable and
+what feeds the `help`/doc system: *callable == visible == cared-about*.
+
+Three kinds of exported function are **recognized categories**, not
+exceptions — they're how those categories are spelled:
+
+1. **Mixin factories** — `export function FooMixin(Base)` in
+   `lib/<subsystem>/`. The mixin module category (the `Mixin` name suffix
+   is the marker the lint keys on).
+2. **Decorators** — the factories in `lib/security/decorators.ts`
+   (`CallSecurity`, `Unshadowable`, `Final`, `Shadowing`,
+   `ShadowSecurity`) and `lib/security/RequiresActive.ts`. A decorator is
+   a function by nature; these two files are the decorator homes.
+3. **Sealed-subdir pipeline internals** — `api/mql/**` and `api/mml/**`
+   are an Api's private impl package: only the parent face (`api/mql.ts`
+   / `api/mml.ts`) may import them (a separate `no-restricted-imports`
+   rule enforces the seal), so inside the seal they're ordinary modules
+   that export functions freely.
+
+Beyond those, a genuine **ad-hoc exception** must be marked **at its
+site** with `eslint-disable-next-line no-restricted-syntax -- <reason>`.
+The disable comments *are* the registry — grep
+`no-restricted-syntax` under `src/mud/{api,lib}` to enumerate the live
+set. Two kinds are recognized:
+
+- **Test-only white-box exports** — a function exported solely so a
+  white-box unit test can exercise an internal stage. Today:
+  `api/prompt.ts#buildPromptContext`,
+  `api/command.ts#validatePhaseEffect`/`collectPhaseEffects`,
+  `api/mql-subscription.ts#resolveFieldSet`/`collectSubscribableFields`/`projectFocus`,
+  `lib/command/parsers/msh.ts#detectEmotePrefix`/`stripEmotePrefix`,
+  `lib/description/Visible.ts#senseStripAugmenter`.
+- **DI injection seams** — a backend→mudlib wiring slot a free function
+  fills at boot. Today: `lib/connection/HasInteractive.ts#setClientStateUpdatePush`.
+
+**Enforcement.** Two ESLint rules (`.eslintrc.js`): `api/*.ts` bans
+exported functions / function-consts; `lib/**/*.ts` bans the same,
+exempting `*Mixin` factories by name and the two decorator files by
+path. Both opt out only via an `eslint-disable` + justification. (The
+gate-string resolver and the sealed-subdir rule round out the
+[lint family](#cross-references).)
+
+**The ask-first rule.** Introducing a *new* exception — anything that
+needs a fresh `eslint-disable no-restricted-syntax`, or a file that
+doesn't fit the [module taxonomy](#) — is a drift risk by definition.
+**Do not add one autonomously: surface it to the user and get explicit
+sign-off first**, then record it here with its reason. The lint failing
+on a new exported helper is the tripwire that forces this conversation.
 
 ### Where types live — colocate with the author
 
@@ -141,6 +278,13 @@ shared barrel.
 No `types/` folder under `mud/`. The colocation rule keeps the contract
 next to whoever can evolve it; a barrel would let any file scatter
 new types anywhere and rot the authorship signal.
+
+> **Definition vs import, restated for types.** The table above is the
+> *definition* site (the author's module). The *import* site for any
+> author-facing type is the **face** — re-exported type-only from every
+> Api/mixin that speaks it (see "One concept per module" above). Where a
+> dependency cycle forces a type's definition off its conceptual home,
+> it still re-exports from the face, so consumers never chase it.
 
 The recurring mistake to avoid: a type drifts to `api/` because
 "the Api uses it first" — but the type describes a `lib/` concept

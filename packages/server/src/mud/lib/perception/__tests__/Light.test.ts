@@ -1,9 +1,8 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { Light, LIGHT_SOURCE_CAP } from '../Light';
 import { Quantity } from '../../quantity';
-// `bandFor` lives in `Light.ts` next to the `LightBand` vocabulary —
+// `Light.bandFor` lives next to the `LightBand` vocabulary —
 // vision-modality domain.
-import { bandFor } from '../Light';
 import { installV1QuantityTagTables } from '../../persistence/__tests__/quantity-marshaller-test-helpers';
 
 describe('Light value object', () => {
@@ -121,17 +120,17 @@ describe('bandFor (threshold table)', () => {
     installV1QuantityTagTables();
   });
   it('maps the canonical thresholds', () => {
-    expect(bandFor(0)).toBe('pitch-black');
-    expect(bandFor(0.5)).toBe('pitch-black');
-    expect(bandFor(1)).toBe('very-dim');
-    expect(bandFor(4.99)).toBe('very-dim');
-    expect(bandFor(5)).toBe('dim');
-    expect(bandFor(19.99)).toBe('dim');
-    expect(bandFor(20)).toBe('lit');
-    expect(bandFor(59.99)).toBe('lit');
-    expect(bandFor(60)).toBe('bright');
-    expect(bandFor(199.99)).toBe('bright');
-    expect(bandFor(200)).toBe('blinding');
-    expect(bandFor(1000)).toBe('blinding');
+    expect(Light.bandFor(0)).toBe('pitch-black');
+    expect(Light.bandFor(0.5)).toBe('pitch-black');
+    expect(Light.bandFor(1)).toBe('very-dim');
+    expect(Light.bandFor(4.99)).toBe('very-dim');
+    expect(Light.bandFor(5)).toBe('dim');
+    expect(Light.bandFor(19.99)).toBe('dim');
+    expect(Light.bandFor(20)).toBe('lit');
+    expect(Light.bandFor(59.99)).toBe('lit');
+    expect(Light.bandFor(60)).toBe('bright');
+    expect(Light.bandFor(199.99)).toBe('bright');
+    expect(Light.bandFor(200)).toBe('blinding');
+    expect(Light.bandFor(1000)).toBe('blinding');
   });
 });

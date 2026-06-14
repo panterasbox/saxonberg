@@ -87,6 +87,11 @@ export interface Exitable {
    * matching existing exit → no-op; mismatching exit → throws with a
    * diagnostic naming both seed paths. Per declarative-content-slate
    * § exits on ExitableMixin.
+   *
+   * @hook Invoked by the `Hydrator`'s Phase-2 instruction dispatch from
+   *   a template's `exits` field. **Instruction applier** — consumes a
+   *   declaration to produce derived runtime state; no paired getter
+   *   (not a property). Per-direction idempotent across re-clone.
    */
   applyExits(map: Record<string, ExitInstruction>): Promise<void>;
   verifyOutboundExits(): void;

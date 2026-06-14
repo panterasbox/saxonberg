@@ -24,16 +24,16 @@
  * entries with `private: true`, the call throws unless `actor` is
  * reference-equal to the host instance. Reads are unrestricted (D8).
  *
- * Cross-host resolution: `resolveSetting(host, key)` is the public
- * entry point for code that may hold a host that doesn't compose
- * `EnvironmentMixin` (e.g. NPCs reading templates declared on
+ * Cross-host resolution: `ShellApi.resolveSetting(host, key)` is the
+ * public entry point for code that may hold a host that doesn't
+ * compose `EnvironmentMixin` (e.g. NPCs reading templates declared on
  * `MobileMixin`). It transparently falls back to walking the host's
  * mixin chain for the schema default.
  */
 
 import type { MixinConstructor } from '../mixin';
 import type { Stuff } from '../stuff/Stuff';
-import { MixinApi } from '../../api/mixin';
+import { MixinApi, type AnyConstructor } from '../../api/mixin';
 import { Unshadowable } from '../security/decorators';
 import type { CommandContributions } from '../../api/command';
 
@@ -124,72 +124,35 @@ export interface Environment {
 }
 
 /**
- * Shape of any prototype-chain layer that may carry settings — a
- * mixin layer (`_mixinName` present) or a substrate class
- * (`name` only). `settings` is read via `hasOwnProperty` to avoid
- * pulling in inherited entries.
- */
-interface MixinLayerWithSettings {
-  _mixinName?: string;
-  name?: string;
-  settings?: SettingsSchemaEntry[];
-}
-
-/**
  * Walk the host constructor's full prototype chain and return one
- * `(entry, sourceMixin)` pair per declared key. Picks up `static
- * settings` from both mixin layers (the common case) AND from
- * substrate classes whose concept they own (e.g., `Avatar.settings`
- * declares `world.autosave.interval`). The schema-on-mixin pattern
- * generalizes to schema-on-owner: each setting lives wherever the
- * concept lives. Throws on duplicate keys across layers — defensive:
- * a setting can only legitimately exist in one place.
+ * `(entry, sourceMixin)` pair per declared key. The raw prototype-chain
+ * walk lives on `MixinApi.collectSettingsSchema` (sibling of
+ * `getAllFieldMarshallers`); this wrapper layers the duplicate-key
+ * validation on top — defensive: a setting can only legitimately exist
+ * in one place, so a key declared on two layers is a config bug.
  */
 function collectSchema(host: object): Array<{
   entry: SettingsSchemaEntry;
   sourceMixin: string;
 }> {
-  // eslint-disable-next-line @typescript-eslint/ban-types
   const ctor = (host as { constructor: unknown }).constructor as
-    // eslint-disable-next-line @typescript-eslint/ban-types
-    | (Function & { prototype: unknown })
+    | AnyConstructor
     | undefined;
   if (!ctor) return [];
 
-  const out: Array<{ entry: SettingsSchemaEntry; sourceMixin: string }> = [];
-  const seen = new Map<string, string>();
+  const out = MixinApi.collectSettingsSchema(ctor);
 
-  // Walk the full prototype chain. We collect any layer that declares
-  // an own `settings` array — mixin layers (carry `_mixinName`) and
-  // substrate classes alike. Falls back to `name` for non-mixin
-  // classes' provenance string.
-  let current: unknown = ctor;
-  while (
-    current &&
-    current !== Object &&
-    (current as MixinLayerWithSettings & { prototype: unknown }).prototype
-  ) {
-    const layer = current as MixinLayerWithSettings;
-    if (Object.prototype.hasOwnProperty.call(layer, 'settings')) {
-      const entries = layer.settings;
-      if (Array.isArray(entries)) {
-        const sourceMixin =
-          layer._mixinName ?? layer.name ?? '<anonymous>';
-        for (const entry of entries) {
-          const prev = seen.get(entry.key);
-          if (prev) {
-            throw new Error(
-              `EnvironmentMixin: setting '${entry.key}' is declared on ` +
-                `both '${prev}' and '${sourceMixin}'. Each setting may ` +
-                `only be declared once across the host's mixin chain.`,
-            );
-          }
-          seen.set(entry.key, sourceMixin);
-          out.push({ entry, sourceMixin });
-        }
-      }
+  const seen = new Map<string, string>();
+  for (const { entry, sourceMixin } of out) {
+    const prev = seen.get(entry.key);
+    if (prev) {
+      throw new Error(
+        `EnvironmentMixin: setting '${entry.key}' is declared on ` +
+          `both '${prev}' and '${sourceMixin}'. Each setting may ` +
+          `only be declared once across the host's mixin chain.`,
+      );
     }
-    current = Object.getPrototypeOf(current);
+    seen.set(entry.key, sourceMixin);
   }
   return out;
 }
@@ -438,32 +401,4 @@ export function EnvironmentMixin<TBase extends MixinConstructor>(Base: TBase) {
     }
   }
   return EnvironmentMixin;
-}
-
-/**
- * Cross-host setting resolution.
- *
- * Settings declared on a mixin that may be composed by hosts without
- * `EnvironmentMixin` (notably `MobileMixin` settings on NPCs) need a
- * single resolution entry point so consumers don't branch on the
- * host type. This walks the schema and falls back to the declared
- * default when the host can't carry overrides.
- */
-export function resolveSetting<T>(host: Stuff, key: string): T | undefined {
-  if (MixinApi.isEnvironment(host)) {
-    return host.getSetting<T>(key);
-  }
-  return findSchema(host, key)?.entry.default as T | undefined;
-}
-
-/**
- * Cross-host explicit-override resolution. Returns the user-explicit
- * override for `key` (no schema-default fallback), or `undefined` when
- * the host can't carry overrides (non-Environment) OR hasn't set the
- * key. Companion to `resolveSetting`; chain-resolution consumers use
- * this to distinguish "user set X" from "schema default is X".
- */
-export function ownSetting<T>(host: Stuff, key: string): T | undefined {
-  if (!MixinApi.isEnvironment(host)) return undefined;
-  return host.getOwnSetting<T>(key);
 }

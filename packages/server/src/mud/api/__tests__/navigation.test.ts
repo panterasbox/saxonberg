@@ -9,6 +9,9 @@
 
 import { describe, it, expect } from 'vitest';
 import { NavigationApi } from '../navigation';
+import { NavigationLogic } from '../../obj/api/NavigationLogic';
+import { SecurityError } from '../../lib/security/errors';
+import { StuffApi } from '../stuff';
 
 describe('NavigationApi.normalizeDirection', () => {
   it.each([
@@ -175,5 +178,22 @@ describe('NavigationApi.cardinalDirections', () => {
     for (const dir of NavigationApi.cardinalDirections()) {
       expect(NavigationApi.normalizeDirection(dir)).toBe(dir);
     }
+  });
+});
+
+describe('NavigationLogic singleton encapsulation', () => {
+  it('lives at /obj/api/navigation once the facade has materialized it', () => {
+    NavigationApi.normalizeDirection('n');
+    const logic = StuffApi.findByTemplatePath('/obj/api/navigation');
+    expect(logic).toBeDefined();
+  });
+
+  it('denies a direct logic-method call from a non-NavigationApi caller', () => {
+    NavigationApi.normalizeDirection('n');
+    const logic = StuffApi.findByTemplatePath<NavigationLogic>(
+      '/obj/api/navigation'
+    );
+    expect(logic).toBeDefined();
+    expect(() => logic!.normalizeDirection('n')).toThrow(SecurityError);
   });
 });

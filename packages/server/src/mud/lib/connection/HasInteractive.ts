@@ -28,7 +28,7 @@
 import type { MixinConstructor } from '../mixin';
 import type Interactive from '../../obj/Interactive';
 import type { CommandContributions } from '../../api/command';
-import { resolveSetting } from '../shell/Environment';
+import { ShellApi } from '../../api/shell';
 import { GoogleProfile } from '../identity/GoogleProfile';
 
 /**
@@ -49,6 +49,7 @@ let _pushImpl: PushImpl | null = null;
  * during boot; tests can call it with a spy to assert push behavior
  * without standing up a real backend.
  */
+// eslint-disable-next-line no-restricted-syntax -- documented exception: DI injection seam (backend → mudlib). Application wires the client-state push at boot; tests inject a spy. See architecture.md § sanctioned-exception registry.
 export function setClientStateUpdatePush(impl: PushImpl | null): void {
   _pushImpl = impl;
 }
@@ -335,12 +336,13 @@ export function HasInteractiveMixin<TBase extends MixinConstructor>(Base: TBase)
     static DEFAULT_PORTRAIT = '';
 
     public async getPortraitUrl(): Promise<string> {
-      // 1. The per-character setting (Persona-declared). `resolveSetting`
-      //    returns '' (the schema default) when unset on an Avatar, and
-      //    `undefined` on a Login that has no such setting — both fall
-      //    through. No per-layer override needed.
-      const set = resolveSetting<string>(
-        this as unknown as Parameters<typeof resolveSetting>[0],
+      // 1. The per-character setting (Persona-declared).
+      //    `ShellApi.resolveSetting` returns '' (the schema default)
+      //    when unset on an Avatar, and `undefined` on a Login that has
+      //    no such setting — both fall through. No per-layer override
+      //    needed.
+      const set = ShellApi.resolveSetting<string>(
+        this as unknown as Parameters<typeof ShellApi.resolveSetting>[0],
         'identity.portrait',
       );
       if (set) return set;

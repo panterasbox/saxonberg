@@ -16,11 +16,6 @@
  *      permissive.
  */
 
-import type { PropAccessCheck, PropValue } from './stuff/Propertied';
-import { EventApi } from '../api/event';
-import { StuffApi } from '../api/stuff';
-import { HotReloadApi } from '../api/hot-reload';
-
 /**
  * Well-known engine event names.
  *
@@ -107,40 +102,3 @@ export interface EventPayloads {
   [Events.ModuleReloadFailed]: ReloadEvent;
 }
 
-/**
- * Resolve the default policy for an event name. Falls back to a
- * permissive (no-allowlist) `EventApi.emittableBy()` for unknown names so a
- * custom event registered ad-hoc still gets the EventApi-mediated
- * defense without requiring this map to be edited.
- *
- * Lazily initialised on first call so we don't run `EventApi.emittableBy(...)`
- * at module-top: this file participates in a cycle with `api/event`
- * (which owns `EventApi.emittableBy`) and `api/stuff` (the StuffApi
- * binding the policy references). At module-load time those
- * imports may resolve to partial modules; deferring the table
- * construction to first-call avoids the trap.
- */
-export function defaultPolicyFor(eventName: string): PropAccessCheck<PropValue> {
-  const policy = getPolicies()[eventName as EventName];
-  return policy ?? EventApi.emittableBy();
-}
-
-let _policies: Record<EventName, PropAccessCheck<PropValue>> | null = null;
-function getPolicies(): Record<EventName, PropAccessCheck<PropValue>> {
-  if (_policies) return _policies;
-  _policies = {
-    [Events.StuffCreated]: EventApi.emittableBy(StuffApi),
-    [Events.StuffDestructed]: EventApi.emittableBy(StuffApi),
-    [Events.StuffFieldChanged]: EventApi.emittableBy(),
-    [Events.StuffPropertyChanged]: EventApi.emittableBy(),
-    [Events.StuffShadowChanged]: EventApi.emittableBy(),
-    [Events.ConnectionAttached]: EventApi.emittableBy(),
-    [Events.PlayerLoggedIn]: EventApi.emittableBy(),
-    [Events.PlayerLoggedOut]: EventApi.emittableBy(),
-    [Events.ModuleReloaded]: EventApi.emittableBy(HotReloadApi),
-    [Events.ModuleRolledBack]: EventApi.emittableBy(HotReloadApi),
-    [Events.ModuleUnloaded]: EventApi.emittableBy(HotReloadApi),
-    [Events.ModuleReloadFailed]: EventApi.emittableBy(HotReloadApi),
-  };
-  return _policies;
-}

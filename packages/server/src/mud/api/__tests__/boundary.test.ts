@@ -12,6 +12,8 @@
 
 import { describe, it, expect, afterEach } from 'vitest';
 import { BoundaryApi } from '../boundary';
+import { BoundaryLogic } from '../../obj/api/BoundaryLogic';
+import { SecurityError } from '../../lib/security/errors';
 import { StuffApi } from '../stuff';
 import { Boundary } from '../../lib/boundary/Boundary';
 import CartesianLocation from '../../lib/location/CartesianLocation';
@@ -138,5 +140,32 @@ describe('BoundaryApi.attachExistingBoundary — edge cases not covered by lib-l
       hostB: b,
     });
     expect(result).toBe(boundary);
+  });
+});
+
+describe('BoundaryLogic singleton encapsulation', () => {
+  afterEach(() => {
+    StuffApi.clearAll();
+  });
+
+  it('lives at /obj/api/boundary once the facade has materialized it', () => {
+    const boundary = makeStuff(() => new Boundary());
+    // A facade call lazily creates the logic singleton.
+    BoundaryApi.destruct(boundary);
+    const logic = StuffApi.findByTemplatePath('/obj/api/boundary');
+    expect(logic).toBeDefined();
+  });
+
+  it('denies a direct logic-method call from a non-BoundaryApi caller', () => {
+    const boundary = makeStuff(() => new Boundary());
+    BoundaryApi.destruct(boundary);
+    const logic = StuffApi.findByTemplatePath<BoundaryLogic>(
+      '/obj/api/boundary'
+    );
+    expect(logic).toBeDefined();
+    // The test module is not `mud/api/boundary#BoundaryApi`, so the
+    // FromModule gate on the logic's own methods denies the call.
+    const victim = makeStuff(() => new Boundary());
+    expect(() => logic!.destruct(victim)).toThrow(SecurityError);
   });
 });

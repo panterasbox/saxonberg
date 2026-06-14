@@ -5,11 +5,14 @@
  * group-DM-to-channel promotion path, and future consumers
  * (permission checks, targeting, effects).
  *
- * Cross-cutting Api: ends with `SecurityApi.decorateApiClass` so
- * external calls run through the security gate.
+ * Thin forwarding shell: the registry-resolution + forwarding live in
+ * the hot-reloadable {@link GroupLogic} singleton at `/obj/api/group`,
+ * reached synchronously via `StuffApi.singletonSync`; the state lives on
+ * the pinned `/obj/GroupRegistry`. `dest /obj/api/group` reloads it.
  */
 
 import { StuffApi } from './stuff';
+import { HotReloadApi } from './hot-reload';
 import { SecurityApi } from './security';
 import type { Stuff } from '../lib/stuff/Stuff';
 import type {
@@ -19,30 +22,56 @@ import type {
 } from '../lib/social/GroupProvider';
 import type { GroupRole } from '../lib/social/Group';
 import type GroupRegistry from '../obj/GroupRegistry';
-import { TemplatePaths } from '../lib/paths';
+import { GroupLogic } from '../obj/api/GroupLogic';
+import { fileURLToPath } from 'url';
 
-const REGISTRY_PATH = TemplatePaths.groupRegistry;
+const LOGIC_PATH = '/obj/api/group';
+const LOGIC_CLASS_FILE = fileURLToPath(
+  new URL('../obj/api/GroupLogic', import.meta.url)
+);
+
+/** Resolve the HMR-able GroupLogic singleton (sync). */
+function logic(): GroupLogic {
+  return StuffApi.singletonSync(
+    LOGIC_PATH,
+    () =>
+      new ((HotReloadApi.getCurrentExport(
+        LOGIC_CLASS_FILE,
+        'GroupLogic'
+      ) as typeof GroupLogic | null) ?? GroupLogic)()
+  );
+}
 
 export class GroupApi {
-  static #registryRef: GroupRegistry | null = null;
-
   static async membersOf(ref: GroupRef): Promise<Stuff[]> {
-    return (await GroupApi.#registry()).membersOf(ref);
+    return logic().membersOf(ref);
   }
 
-  static async roleOf(playerId: string, ref: GroupRef): Promise<GroupRole | null> {
-    return (await GroupApi.#registry()).roleOf(playerId, ref);
+  static async roleOf(
+    playerId: string,
+    ref: GroupRef
+  ): Promise<GroupRole | null> {
+    return logic().roleOf(playerId, ref);
   }
 
   static async isMember(playerId: string, ref: GroupRef): Promise<boolean> {
-    return (await GroupApi.#registry()).isMember(playerId, ref);
+    return logic().isMember(playerId, ref);
   }
 
   static async onMembershipChange(
     ref: GroupRef,
-    cb: GroupChangeListener,
+    cb: GroupChangeListener
   ): Promise<GroupChangeHandle> {
-    return (await GroupApi.#registry()).onMembershipChange(ref, cb);
+    return logic().onMembershipChange(ref, cb);
+  }
+
+  /**
+   * Parse a `GroupRef` into `{ source, id }`. The source is the
+   * segment before the first colon; the id is everything after.
+   * Pure string parse — no registry access.
+   */
+  static parseRef(ref: GroupRef): { source: string; id: string } {
+    return logic().parseRef(ref);
   }
 
   /**
@@ -51,19 +80,7 @@ export class GroupApi {
    * notifications after CRUD verbs.
    */
   static async registry(): Promise<GroupRegistry> {
-    return GroupApi.#registry();
-  }
-
-  static async #registry(): Promise<GroupRegistry> {
-    if (GroupApi.#registryRef) return GroupApi.#registryRef;
-    const reg = StuffApi.findByTemplatePath<GroupRegistry>(REGISTRY_PATH);
-    if (reg) {
-      GroupApi.#registryRef = reg;
-      return reg;
-    }
-    const lazy = await StuffApi.singleton<GroupRegistry>(REGISTRY_PATH);
-    GroupApi.#registryRef = lazy;
-    return lazy;
+    return logic().registry();
   }
 }
 

@@ -103,6 +103,14 @@ export abstract class SpatialZone extends Zone {
    *
    * Witness shape: `canDestruct` returns `VetoResult` per the
    * destruct hook contract in `StuffApi.destruct`.
+   *
+   * @hook Invoked by `StuffApi.destruct` first, before `onDestruct`.
+   *   **Veto** — return `{ ok: false, reason }` to refuse destruction
+   *   (raises `DestructError`) or `{ ok: true }` to allow.
+   *   `forceDestruct` still fires it (so observers run) but ignores the
+   *   veto. There is no base declaration on `Stuff`; implement on any
+   *   subclass that guards its own destruction — this declaration is
+   *   the canonical contract for the optional hook.
    */
   public canDestruct(): VetoResult {
     if (this.locations.size > 0) {

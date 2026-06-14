@@ -10,14 +10,11 @@
 import type { MixinConstructor } from '../mixin';
 import type { Stuff } from '../stuff/Stuff';
 import type { Propertied } from '../stuff/Propertied';
-import {
-  assertEnablementDifficulty,
-  assertUniqueNonEmptyAxes,
-  type Enablement,
-} from './Enablement';
+import { type Enablement } from './Enablement';
 import { Property } from '../stuff/Propertied';
 import { MixinApi } from '../../api/mixin';
 import { Mixins } from '../mixin';
+import { LocomotionApi } from '../../api/locomotion';
 
 /**
  * Property an actor sets to expose its current swimming capability.
@@ -42,7 +39,7 @@ export function SwimmableMixin<TBase extends MixinConstructor<Stuff>>(
       return this.axes;
     }
     public setAxes(value: string[]): void {
-      assertUniqueNonEmptyAxes(value, 'Swimmable.setAxes');
+      LocomotionApi.assertEnablementAxes(value, 'Swimmable.setAxes');
       this.axes = value;
     }
 
@@ -55,7 +52,7 @@ export function SwimmableMixin<TBase extends MixinConstructor<Stuff>>(
       return this.difficulty;
     }
     public setDifficulty(value: number | null): void {
-      assertEnablementDifficulty(value, 'Swimmable.setDifficulty');
+      LocomotionApi.assertEnablementDifficulty(value, 'Swimmable.setDifficulty');
       this.difficulty = value;
     }
 

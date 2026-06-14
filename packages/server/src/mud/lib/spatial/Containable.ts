@@ -74,6 +74,12 @@ export interface Containable {
    * to the declared path; no-op when they match. The compare-and-
    * move shape supports both fresh-clone placement AND
    * `Avatar.restore()` re-move semantics with no flag.
+   *
+   * @hook Invoked by the `Hydrator`'s Phase-2 instruction dispatch from
+   *   a template's `container` field (self-placement during the clone
+   *   cascade). **Instruction applier** — no paired getter (not a
+   *   property); idempotent (compare-and-move, no-op when already in
+   *   the declared container).
    */
   applyContainer(path: string): Promise<void>;
 
@@ -126,9 +132,16 @@ export interface Containable {
   ): void;
 }
 
-const FromContainmentApi = SecurityPolicies.FromModule(
-  'mud/api/containment#ContainmentApi',
-  { includeSubclasses: false }
+// ContainmentApi's logic now lives in the /obj/api/containment logic
+// singleton (the Api face is a thin forwarding shell). Admit both the
+// face module and the logic singleton's template path so the
+// `setContainer` / `_setRestingOn` chokepoints stay reachable only
+// through the containment subsystem.
+const FromContainmentApi = SecurityPolicies.AnyOf(
+  SecurityPolicies.FromModule('mud/api/containment#ContainmentApi', {
+    includeSubclasses: false,
+  }),
+  SecurityPolicies.FromTemplate('/obj/api/containment'),
 );
 
 export function ContainableMixin<TBase extends MixinConstructor>(Base: TBase) {

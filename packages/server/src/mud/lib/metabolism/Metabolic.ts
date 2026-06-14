@@ -33,8 +33,8 @@
 import type { MixinConstructor } from "../mixin";
 import type { Stuff } from "../stuff/Stuff";
 import { Quantity } from "../quantity";
-import type { Reserve, Reserved } from "../reserve";
-import { reserveFromStored } from "../reserve";
+import type { Reserved } from "../reserve";
+import { Reserve } from "../reserve";
 import type { Vitals } from "../vitals/Vitals";
 import type { Organism } from "../species/Organism";
 import type { Posed } from "../character/Posed";
@@ -369,13 +369,13 @@ export function MetabolicMixin<TBase extends MixinConstructor>(Base: TBase) {
     // These override the inner `ReservedMixin` accessors. Because the
     // proxy dispatches `this.getReserve` to this outermost override,
     // they read the inner decomposed-scalar storage (`reserves`)
-    // directly via `reserveFromStored` rather than recursing — the same
+    // directly via `Reserve.fromStored` rather than recursing — the same
     // reconstruction `ReservedMixin.getReserve` performs.
 
     public getReserve(key: string): Reserve | undefined {
       if (!this._reconciling) this.reconcileMetabolism();
       const s = (this as unknown as Reserved).reserves[key];
-      return s ? reserveFromStored(key, s) : undefined;
+      return s ? Reserve.fromStored(key, s) : undefined;
     }
 
     public getReserves(): ReadonlyMap<string, Reserve> {
@@ -384,7 +384,7 @@ export function MetabolicMixin<TBase extends MixinConstructor>(Base: TBase) {
       for (const [key, s] of Object.entries(
         (this as unknown as Reserved).reserves,
       )) {
-        map.set(key, reserveFromStored(key, s));
+        map.set(key, Reserve.fromStored(key, s));
       }
       return map;
     }

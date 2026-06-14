@@ -19,12 +19,20 @@
  *
  * v1 surface deliberately does NOT include streaming or large-payload
  * framing — those land alongside the client-side editor handoff.
+ *
+ * Thin, security-gated forwarding shell: the logic lives in the
+ * hot-reloadable {@link SourceTreeLogic} singleton at
+ * `/obj/api/source-tree`, reached synchronously via
+ * `StuffApi.singletonSync`. `dest /obj/api/source-tree` reloads it.
  */
 
-import { promises as fs } from 'node:fs';
-import * as path from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { StuffApi } from './stuff';
+import { HotReloadApi } from './hot-reload';
 import { SecurityApi } from './security';
+import { SourceTreeLogic } from '../obj/api/SourceTreeLogic';
+import { fileURLToPath } from 'url';
+
+export { SourceTreeSandboxError } from '../lib/shell/SourceTreeSandboxError';
 
 /**
  * Anatomy of one entry returned by `list()`. Mirrors the slice of
@@ -40,51 +48,34 @@ export interface DirEntry {
   isDir: boolean;
 }
 
-/**
- * Thrown when an operation's resolved path escapes the configured
- * sandbox root.
- */
-export class SourceTreeSandboxError extends Error {
-  constructor(message: string) {
-    super(message);
-    this.name = 'SourceTreeSandboxError';
-  }
+const LOGIC_PATH = '/obj/api/source-tree';
+const LOGIC_CLASS_FILE = fileURLToPath(
+  new URL('../obj/api/SourceTreeLogic', import.meta.url)
+);
+
+/** Resolve the HMR-able SourceTreeLogic singleton (sync). */
+function logic(): SourceTreeLogic {
+  return StuffApi.singletonSync(
+    LOGIC_PATH,
+    () =>
+      new ((HotReloadApi.getCurrentExport(
+        LOGIC_CLASS_FILE,
+        'SourceTreeLogic'
+      ) as typeof SourceTreeLogic | null) ?? SourceTreeLogic)()
+  );
 }
 
 export class SourceTreeApi {
   /**
-   * Cached sandbox root. Computed once per process from the location
-   * of this module — `dist/` and `src/` both resolve to the same
-   * `packages/` ancestor, so the cache is correct across both build
-   * artifacts and dev mode.
-   */
-  static #root: string | null = null;
-
-  /**
    * Return the absolute path to the sandbox root. Memoised.
    *
-   * Discovery: walk up from `__dirname` (this module's directory)
-   * until we find a directory named `packages`; its parent is the
-   * sandbox root. The walk stops at the filesystem root if no
-   * `packages` ancestor is found, in which case we throw — the
-   * shell's code tree is meaningless without one.
+   * Discovery: walk up until we find a directory named `packages`;
+   * its parent is the sandbox root. The walk stops at the filesystem
+   * root if no `packages` ancestor is found, in which case we throw —
+   * the shell's code tree is meaningless without one.
    */
   public static getSandboxRoot(): string {
-    if (SourceTreeApi.#root !== null) return SourceTreeApi.#root;
-    const here = path.dirname(fileURLToPath(import.meta.url));
-    let dir = here;
-    while (path.basename(dir) !== 'packages') {
-      const parent = path.dirname(dir);
-      if (parent === dir) {
-        throw new Error(
-          `SourceTreeApi: could not locate a 'packages' ancestor of ` +
-            `${here} — sandbox root is undefined`,
-        );
-      }
-      dir = parent;
-    }
-    SourceTreeApi.#root = dir;
-    return dir;
+    return logic().getSandboxRoot();
   }
 
   /**
@@ -106,36 +97,7 @@ export class SourceTreeApi {
     input: string,
     opts: { home?: string } = {},
   ): string {
-    const home = opts.home ?? '/';
-    let candidate = input;
-    if (candidate === '~') {
-      candidate = home;
-    } else if (candidate.startsWith('~/')) {
-      candidate = path.posix.join(home, candidate.slice(2));
-    }
-    const root = SourceTreeApi.getSandboxRoot();
-    const isAbsolute =
-      candidate.startsWith('/') || path.isAbsolute(candidate);
-    // Inside the sandbox, paths are always rooted at `root` — a
-    // leading '/' means "relative to the sandbox root," not OS
-    // root. Strip it before joining so `path.resolve` doesn't
-    // treat it as absolute.
-    const stripped = candidate.startsWith('/')
-      ? candidate.slice(1)
-      : candidate;
-    const cwdRelative = isAbsolute
-      ? path.resolve(root, stripped)
-      : path.resolve(root, stripCwdLeadingSlash(cwd), stripped);
-    const normalised = path.resolve(cwdRelative);
-    if (
-      normalised !== root &&
-      !normalised.startsWith(root + path.sep)
-    ) {
-      throw new SourceTreeSandboxError(
-        `path '${input}' resolves outside the sandbox root`,
-      );
-    }
-    return normalised;
+    return logic().resolvePath(cwd, input, opts);
   }
 
   /**
@@ -154,21 +116,7 @@ export class SourceTreeApi {
     input: string,
     opts: { home?: string } = {},
   ): string {
-    const home = opts.home ?? '/';
-    let candidate = input;
-    if (candidate === '~') {
-      candidate = home;
-    } else if (candidate.startsWith('~/')) {
-      candidate = path.posix.join(home, candidate.slice(2));
-    }
-    const joined = candidate.startsWith('/')
-      ? candidate
-      : path.posix.join(cwd === '' ? '/' : cwd, candidate);
-    const normalised = path.posix.normalize(joined);
-    // path.posix.normalize('//') → '//', collapse to '/'.
-    if (normalised === '/.' || normalised === '') return '/';
-    if (normalised === '//') return '/';
-    return normalised;
+    return logic().joinLogical(cwd, input, opts);
   }
 
   /**
@@ -178,101 +126,54 @@ export class SourceTreeApi {
    * path back to the player.
    */
   public static toDisplayPath(absolute: string): string {
-    const root = SourceTreeApi.getSandboxRoot();
-    if (absolute === root) return '/';
-    if (!absolute.startsWith(root + path.sep)) {
-      throw new SourceTreeSandboxError(
-        `'${absolute}' is not inside the sandbox root`,
-      );
-    }
-    const tail = absolute.slice(root.length).replaceAll(path.sep, '/');
-    return tail.startsWith('/') ? tail : '/' + tail;
+    return logic().toDisplayPath(absolute);
   }
 
   public static async exists(absolutePath: string): Promise<boolean> {
-    try {
-      await fs.access(absolutePath);
-      return true;
-    } catch {
-      return false;
-    }
+    return logic().exists(absolutePath);
   }
 
   public static async isFile(absolutePath: string): Promise<boolean> {
-    try {
-      const stat = await fs.stat(absolutePath);
-      return stat.isFile();
-    } catch {
-      return false;
-    }
+    return logic().isFile(absolutePath);
   }
 
   public static async isDir(absolutePath: string): Promise<boolean> {
-    try {
-      const stat = await fs.stat(absolutePath);
-      return stat.isDirectory();
-    } catch {
-      return false;
-    }
+    return logic().isDir(absolutePath);
   }
 
   public static async read(absolutePath: string): Promise<string> {
-    return fs.readFile(absolutePath, 'utf8');
+    return logic().read(absolutePath);
   }
 
   public static async list(absolutePath: string): Promise<DirEntry[]> {
-    const ents = await fs.readdir(absolutePath, { withFileTypes: true });
-    return ents.map((ent) => ({
-      name: ent.name,
-      absolutePath: path.join(absolutePath, ent.name),
-      isFile: ent.isFile(),
-      isDir: ent.isDirectory(),
-    }));
+    return logic().list(absolutePath);
   }
 
   public static async write(
     absolutePath: string,
     content: string,
   ): Promise<void> {
-    await fs.mkdir(path.dirname(absolutePath), { recursive: true });
-    await fs.writeFile(absolutePath, content, 'utf8');
+    return logic().write(absolutePath, content);
   }
 
   public static async mkdir(absolutePath: string): Promise<void> {
-    await fs.mkdir(absolutePath, { recursive: true });
+    return logic().mkdir(absolutePath);
   }
 
   public static async rm(
     absolutePath: string,
     opts: { recursive?: boolean } = {},
   ): Promise<void> {
-    await fs.rm(absolutePath, {
-      recursive: !!opts.recursive,
-      force: true,
-    });
+    return logic().rm(absolutePath, opts);
   }
 
-  public static async cp(
-    src: string,
-    dst: string,
-  ): Promise<void> {
-    await fs.cp(src, dst, { recursive: true });
+  public static async cp(src: string, dst: string): Promise<void> {
+    return logic().cp(src, dst);
   }
 
   public static async mv(src: string, dst: string): Promise<void> {
-    await fs.rename(src, dst);
+    return logic().mv(src, dst);
   }
-}
-
-/**
- * Strip a leading `/` from a cwd value before joining onto the
- * sandbox root with `path.resolve`. Sandbox cwds use leading `/`
- * for "relative to sandbox root" semantics; the resolver uses OS
- * conventions where a leading `/` means absolute.
- */
-function stripCwdLeadingSlash(cwd: string): string {
-  if (cwd.startsWith('/')) return cwd.slice(1);
-  return cwd;
 }
 
 SecurityApi.decorateApiClass(SourceTreeApi);

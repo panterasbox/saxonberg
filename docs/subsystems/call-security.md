@@ -493,6 +493,181 @@ The class-form `@CallSecurity` decorator does the same thing under the
 hood (sets the policy, then calls `_wrapStaticMethods` to do the
 descriptor wrapping).
 
+## The api↔logic-singleton recipe
+
+The surface-architecture refactor relocated each convertible Api's
+*logic* into a stateless `Stuff` **logic singleton** at
+`/obj/api/<feature>` (e.g. `MaterialLogic` at `/obj/api/material`); the
+`FooApi` statics became thin forwarders. The HMR side lives in
+[hot-reload.md](./hot-reload.md); the **gating** side is here, because it
+exercises a specific caller/callee shape.
+
+### The caller/callee shape (verified)
+
+The forward is a **static-Api caller → instance-singleton callee**. Both
+halves are supported:
+
+- **Callee** is a proxy-wrapped `Stuff` instance method — the ordinary
+  gateable shape.
+- **Caller** is the static Api class. `resolveCallerPath`'s branch *2b*
+  (`if (typeof caller === 'function') return ModuleApi.lookup(caller)`)
+  treats a static-method synthesised frame's class as a first-class
+  caller identity, and `decorateApiClass`'s static wrapper runs the
+  forwarder body with frame **target = the Api class**. So when
+  `MaterialApi.materialOf()` calls `logic().materialOf(...)`, the
+  singleton sees `MaterialApi` as its caller.
+
+Each logic method therefore carries
+`@CallSecurity(FromModule('mud/api/<feature>#<Feature>Api'))` — the Api
+forwards through, anything else is denied.
+
+### Gate per method, not at class level
+
+The gate is applied **per public method**, not as a class-level default.
+A class-level default would also cover the inherited `Stuff`/`Idea`
+framework methods (`getTemplatePath`, `isDestroyed`, …) that the
+*framework itself* invokes during `register()` and lifecycle — whose
+caller is `StuffApi`, not `FooApi`, and which the gate would then deny.
+The per-method gate leaves inherited framework methods on their own
+policies. (This corrects the original plan, which set the gate once at
+class level — that broke `register()`.)
+
+### Logic singletons are `@Unshadowable`
+
+Relocating the logic onto a `Stuff` introduces one surface the former
+static Api did not have: a `Stuff`'s methods can be intercepted via
+`ShadowApi.attach`, whereas a static method cannot be shadowed. So every
+logic singleton carries **class-level `@Unshadowable`** — the dispatch /
+query / registry logic behind an Api face cannot be shadowed. The
+class-form mark covers every method (own + inherited): `isMethodUnshadowable`
+walks the prototype chain checking `#classUnshadowable`. `@Final` is *not*
+applied — it's method-only, the logic classes are never subclassed, and
+injecting a subclass into `singletonSync`'s factory already requires
+code-execution access, so it would add churn without a real threat
+reduction. (State integrity is a non-issue independently: the singletons
+keep their state in module-scope `const`/`let`, not instance fields, so
+it's unreachable — equivalent to `#` — and the singleton instance itself
+is reached only by its own face via `singletonSync`, never by production
+code path-lookup.)
+
+### The intra-singleton self-call gotcha
+
+A former static that called another static can't become a bare-gated
+`this.x()`: inside the singleton, the caller of `this.x()` *is* the
+singleton (its `/obj/api/<feature>` template path), **not** the Api — so
+`FromModule(own Api)` denies it. Two fixes, in preference order:
+
+1. **Extract a module-private free function** both methods call. Free
+   functions are off-class and un-gated, but un-callable from outside the
+   module, so they carry no protection cost. This is the default — most
+   shared sub-logic is stateless (see `MaterialLogic`'s
+   `computeComposition` / `everyMaterial`).
+2. **Gate the method `AnyOf(FromModule(own Api), SelfOnly)`** when the
+   helper genuinely must be an instance method needing `this`. `SelfOnly`
+   (caller === target) passes for `this.x()` since the caller and target
+   are both the singleton.
+
+`#`-private instance methods are **not** an option on a `Stuff`: the
+call-security proxy makes `this.#x()` throw (the slot lives on the raw
+target, not the proxy) — hence the free-function route.
+
+### The `ApiOnly` widening
+
+A logic singleton's caller identity resolves to its `/obj/api/<feature>`
+**template path**, not a `mud/api/` module id. So `ApiOnly`-gated
+downstream calls (e.g. `ContainmentApi.move`, `placeDirect`) made *from*
+a logic singleton would fail the old `FromModule('mud/api/**')` matcher.
+`ApiOnly` was therefore widened (`lib/security/SecurityPolicies.ts`) to:
+
+```
+FromModule('mud/api/**', { includeSubclasses: true })  OR  FromTemplate('/obj/api/**')
+```
+
+`/obj/api/` holds *nothing but* logic singletons, so the new arm admits
+exactly the Api tier and never content — it only **adds** admitted
+callers; every prior allow/deny decision for non-logic callers is
+unchanged.
+
+### Two-singleton (stateful) Apis
+
+Where an Api has state, a stateless logic singleton sits **between** the
+Api statics and the pinned state singleton (the state survives reload;
+the logic `dest`-reloads). Inserting the layer **re-points the state
+singleton's caller** — its `FromModule('mud/api/<feature>#<Api>')` gate
+becomes `AnyOf(FromModule(...), FromTemplate('/obj/api/<feature>'))`.
+Adoption:
+
+- **`scheduler`** (`SchedulerRegistry`), **`worldclock`**,
+  **`mql-subscription`** (pinned registries) — existing gate re-pointed.
+- **`soul`** (`SoulCatalogue`) had **no** gate; one was *added* (with a
+  `SelfOnly` arm for its `postRegister`→`warmCache` self-calls).
+- **`access`** (`AccessRegistry`), **`group`** (`GroupRegistry`),
+  **`belief`**, **`prompt`** (per-Interactive registry) were converted in
+  the bootstrap-cycle-unblock pass (below); their backing-state gates
+  were re-pointed to `AnyOf(FromModule(...), FromTemplate('/obj/api/<feature>'))`
+  where the state object carried a `FromModule` gate (`AccessRegistry`),
+  or left alone where it didn't (`GroupRegistry` is ungated).
+
+Special per-method Api gates (e.g. `SystemRoot` on
+`WorldClockApi.boot/shutdown`) stay on the Api forwarder.
+
+### Override hooks are ungateable — `@hook`, not policy
+
+The recipe gates everything the consumer *calls*. There's a second tier
+the author *implements* and the framework *invokes* — override hooks
+(`onDestruct`, `canDestruct`, `postRegister`, `aroundSave`/`aroundDelete`,
+`onLinkdead`, `save`, the Hydrator `apply<Field>` appliers). These are
+**public, ungated, and ungateable**: a subclass's `super.onDestruct()`
+is *author code calling the hook*, so a `FromModule(framework)` gate
+would deny the legitimate super-chain. The consumer/extension split is
+therefore **not** policy-derivable for these — they're marked with a
+human-placed TSDoc **`@hook`** tag instead (see the doc-projection in
+[the doc-gen section of CLAUDE.md](../../CLAUDE.md)). This is the one
+spot where *callable == visible == cared-about* needs a marker rather
+than falling out of the gate.
+
+### What stays a static class (not converted)
+
+The bootstrap-import-cycle set (any `api/` face value-reachable from
+`lib/stuff/Stuff.ts`, where `class XLogic extends Idea` would run while
+`Idea` is still `undefined`) was **unblocked and converted** — the
+keystone `shadow → command` value-edge was severed via a late-bound DI
+seam (`ShadowApi._registerCommandShadowHook`), which freed
+`array, belief, command, command-line, containment, group, message, mql,
+mudlog, prompt, prose, quantity, recognition, shell, access` for
+conversion.
+
+What remains a **static class** after that:
+
+- **Bootstrap-special (6):** `security`, `module`, `proxy`,
+  `execution-context`, `stuff` (hosts `singletonSync`), `mixin` — the
+  substrate every Idea is built from.
+- **`event`** — structurally impossible to convert: `EventApi.emit`
+  fires inside `StuffApi.create`/`destruct` on every Stuff creation, so a
+  logic singleton would recurse at its own `singletonSync`→`createSync`→
+  `register`→`emit` creation.
+- **`hot-reload`** — the singleton machinery itself calls
+  `HotReloadApi.getCurrentExport`; a logic singleton can't depend on the
+  thing that builds logic singletons.
+- **`shadow`** — the method-dispatch shadow substrate (every proxied
+  call routes through it).
+- **`path-pattern`** — a `lib/` glob primitive, not an Api shell.
+- **`grammar`** — convertible only behind a DI seam on the core
+  `lib/stuff/Stuff.ts` (`getPresentation`→`pluralize`); deferred as not
+  worth destabilizing the hottest core method for a small utility.
+
+`mml` is **not** in this list because `Mml` is a value class (factory
+statics + instance methods, like `Quantity`/`Prose`), not an `*Api`
+forwarding shell — there is no `MmlApi` to convert.
+
+`schedule` is a deliberate **partial** (see below).
+
+`schedule` is a deliberate **partial**: its surface is frame-mutator-
+bound (`planRun` → `ExecutionContextApi.runRoot` must stay in `mud/api/`
+per the [frame-mutator allowlist](#frame-mutator-allowlist)) and its
+timers are per-handle closures (no shared state to pin), so it stays
+Api-static.
+
 ## Why Some Api Files Don't Self-Decorate
 
 Four Api classes deliberately skip `SecurityApi.decorateApiClass` on

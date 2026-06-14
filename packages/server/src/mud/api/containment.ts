@@ -19,26 +19,51 @@
  *
  * Detach: `ContainmentApi.move(item, null)`. A direct
  * `setContainer(null)` is rejected by the policy.
+ *
+ * This Api is a thin, security-gated forwarding shell: the logic lives
+ * in the hot-reloadable {@link ContainmentLogic} singleton at
+ * `/obj/api/containment`, reached synchronously via
+ * `StuffApi.singletonSync`. `dest /obj/api/containment` reloads it. The
+ * narrow-entry guards on `forceMove` (FromController) and `placeDirect`
+ * (ApiOnly) stay on these face statics — the face is the security
+ * boundary.
  */
 
 import type { Stuff } from '../lib/stuff/Stuff';
 import type { Container } from '../lib/spatial/Container';
 import type { Containable } from '../lib/spatial/Containable';
 import type { Surfaced } from '../lib/spatial/Surfaced';
-import type { VetoResult } from '../lib/errors';
 import type { Warren } from '../lib/location/Warren';
-import { CommandApi } from './command';
-import { MixinApi } from './mixin';
 import { StuffApi } from './stuff';
+import { HotReloadApi } from './hot-reload';
 import { SecurityApi } from './security';
 import { CallSecurity } from '../lib/security/decorators';
 import { SecurityPolicies } from '../lib/security/SecurityPolicies';
+import { ContainmentLogic } from '../obj/api/ContainmentLogic';
+import { fileURLToPath } from 'url';
 // `TeleportController` / `GotoController` are reached lazily via
 // string module ids to avoid a value-level static-import cycle
 // (api/containment → controller → ContainmentApi).
 
 type ContainerStuff = Stuff & Container;
 type ContainableStuff = Stuff & Containable;
+
+const LOGIC_PATH = '/obj/api/containment';
+const LOGIC_CLASS_FILE = fileURLToPath(
+  new URL('../obj/api/ContainmentLogic', import.meta.url)
+);
+
+/** Resolve the HMR-able ContainmentLogic singleton (sync). */
+function logic(): ContainmentLogic {
+  return StuffApi.singletonSync(
+    LOGIC_PATH,
+    () =>
+      new ((HotReloadApi.getCurrentExport(
+        LOGIC_CLASS_FILE,
+        'ContainmentLogic'
+      ) as typeof ContainmentLogic | null) ?? ContainmentLogic)()
+  );
+}
 
 /**
  * Programmatic-contract violation thrown by `ContainmentApi.move()`.
@@ -68,12 +93,10 @@ export class ContainmentError extends Error {
  * the arrival before the absorbed Stuff destructs. Hook implementor
  * is responsible for the `MixinApi.isGlobbable` skip path.
  */
-type MergeOnArrivalHook = (
+export type MergeOnArrivalHook = (
   moved: Stuff,
   to: Stuff & Container
 ) => void;
-
-let _mergeOnArrivalHook: MergeOnArrivalHook | null = null;
 
 /**
  * Static API for containment and movement operations.
@@ -87,7 +110,7 @@ export class ContainmentApi {
    * @internal
    */
   public static _registerMergeOnArrivalHook(hook: MergeOnArrivalHook): void {
-    _mergeOnArrivalHook = hook;
+    logic()._registerMergeOnArrivalHook(hook);
   }
 
   /**
@@ -112,7 +135,7 @@ export class ContainmentApi {
     item: ContainableStuff,
     to: ContainerStuff | null
   ): void {
-    ContainmentApi.#moveCore(item, to, false);
+    logic().move(item, to);
   }
 
   /**
@@ -143,101 +166,7 @@ export class ContainmentApi {
     item: ContainableStuff,
     to: ContainerStuff | null
   ): void {
-    ContainmentApi.#moveCore(item, to, true);
-  }
-
-  /**
-   * Shared implementation for `move` / `forceMove`. Pre-flight
-   * invariants and witness invocation are uniform across both
-   * paths so any side effects the hooks attach observe every call;
-   * `force=true` skips only the veto-result enforcement.
-   */
-  static #moveCore(
-    item: ContainableStuff,
-    to: ContainerStuff | null,
-    force: boolean
-  ): void {
-    if (to !== null) {
-      // PRE-FLIGHT (1): Exitables may only land in Exitables.
-      if (MixinApi.isExitable(item) && !MixinApi.isExitable(to)) {
-        throw new ContainmentError(
-          'Exitables can only be placed inside other exitables.'
-        );
-      }
-      // PRE-FLIGHT (2): Exitables cannot cross zones via containment.
-      if (MixinApi.isExitable(item) && item.getZone() && item.getZone() !== to.getZone()) {
-        throw new ContainmentError(
-          'Cannot move an exitable into a different zone.'
-        );
-      }
-      // PRE-FLIGHT (3): Adornments attached to a host cannot be moved
-      // into a Container's contents while still adorning. The
-      // not-portable invariant — wall sconces, BoundaryAnchors, and
-      // similar fixtures are reachable through `Adornable.getFixtures()`,
-      // not `getContents()`. Detaching first
-      // (`host.removeFixture(item)`) is the prerequisite for moving
-      // the Adornment as inventory; same shape as `Door.detach()` for
-      // a broken door.
-      if (MixinApi.isAdornment(item) && item.getAdornedTo() !== null) {
-        throw new ContainmentError(
-          'Cannot move an adornment that is still attached to a host; ' +
-            'detach it first.'
-        );
-      }
-    }
-
-    const from = item.getContainer();
-    if (from === to) return;
-
-    // VETO HOOKS — invoked uniformly; only the assert is conditional.
-    // Witnesses fire on every call (observability) so the force path
-    // matches the polished path's side effects.
-    const moveVeto = callHook<VetoResult>(item, 'canMove', [to]);
-    const removeVeto = from
-      ? callHook<VetoResult>(from, 'canRemoveContainable', [item])
-      : undefined;
-    const addVeto = to
-      ? callHook<VetoResult>(to, 'canAddContainable', [item])
-      : undefined;
-    if (!force) {
-      assertVetoOk(moveVeto, 'canMove');
-      assertVetoOk(removeVeto, 'canRemoveContainable');
-      assertVetoOk(addVeto, 'canAddContainable');
-    }
-
-    // STATE MUTATION through the chokepoint. setContainer handles
-    // the three cross-object updates atomically.
-    item.setContainer(to);
-
-    // Auxiliary-pointer invariant: when the container actually
-    // changes, the `restingOn` auxiliary pointer can no longer be
-    // valid (the apple is now in the chest; whatever desk it was on
-    // can't still be supporting it). Clearing here keeps the
-    // move-as-container-change contract clean. `placeOn` re-stamps
-    // restingOn after this move() call, so the on-surface case is
-    // unaffected.
-    if (from !== to && item.getRestingOn() !== null) {
-      item._setRestingOn(null);
-    }
-
-    // Recency-stack bookkeeping. Runs BEFORE the on-hooks so anything
-    // those hooks observe (e.g. peers' getAvailableCommands) reflects
-    // the new contributions.
-    CommandApi.applyContainmentDelta(item, from, to);
-
-    // NOTIFICATION HOOKS. Single onMoved per item; per-container
-    // hooks for source and destination separately.
-    if (from) callHook(from, 'onContainableRemoved', [item]);
-    if (to) callHook(to, 'onContainableAdded', [item]);
-    callHook(item, 'onMoved', [from, to]);
-
-    // Merge-on-arrival ripple (globbable substrate). Fires after the
-    // arrival witnesses so subscribers see the arriving Stuff before
-    // it's absorbed and destructed. The hook is responsible for its
-    // own `isGlobbable` skip path.
-    if (to !== null && _mergeOnArrivalHook !== null) {
-      _mergeOnArrivalHook(item, to);
-    }
+    logic().forceMove(item, to);
   }
 
   /**
@@ -286,23 +215,7 @@ export class ContainmentApi {
     item: ContainableStuff,
     env: ContainerStuff
   ): void {
-    if (!MixinApi.isContainable(item)) {
-      throw new ContainmentError(
-        'ContainmentApi.placeDirect: item is not Containable.'
-      );
-    }
-    if (!MixinApi.isContainer(env)) {
-      throw new ContainmentError(
-        'ContainmentApi.placeDirect: env is not a Container.'
-      );
-    }
-    if (item.getContainer() !== null) {
-      throw new ContainmentError(
-        'ContainmentApi.placeDirect: item already has a container; ' +
-          'use ContainmentApi.move for relocations.'
-      );
-    }
-    item.setContainer(env);
+    logic().placeDirect(item, env);
   }
 
   /**
@@ -334,46 +247,21 @@ export class ContainmentApi {
     item: ContainableStuff,
     surface: Stuff & Surfaced,
   ): void {
-    // Resolve target environment: the surface's container.
-    const surfaceAsContainable = surface as unknown as Containable;
-    const targetEnv = surfaceAsContainable.getContainer();
-    if (!targetEnv) {
-      throw new ContainmentError(
-        `placeOn: surface ${(surface as Stuff).stuffId} has no ` +
-          `environment to place items into`,
-      );
-    }
-    if (!surface.canRest(item)) {
-      throw new ContainmentError(
-        `placeOn: surface ${(surface as Stuff).stuffId} rejects ` +
-          `${item.stuffId}`,
-      );
-    }
-    // Move item into the surface's environment first (fires existing
-    // containment hooks); then set the auxiliary restingOn pointer.
-    // move() clears restingOn as part of its container-change
-    // invariant when the container differs from the previous one;
-    // setting restingOn AFTER move ensures the new support pointer
-    // survives. When the container is unchanged (apple already in
-    // the room, just moving from one desk to another in the same
-    // room), move is a no-op and we go straight to the restingOn
-    // update.
-    ContainmentApi.move(item, targetEnv);
-    item._setRestingOn(surface);
+    logic().placeOn(item, surface);
   }
 
   /**
    * Check if an object is contained in a specific container
    */
   public static isContainedIn(item: Stuff, container: ContainerStuff): boolean {
-    return container.getContents().some((obj) => obj.stuffId === item.stuffId);
+    return logic().isContainedIn(item, container);
   }
 
   /**
    * Get the container that holds an item
    */
   public static getContainer(item: ContainableStuff): ContainerStuff | null {
-    return item.getContainer();
+    return logic().getContainer(item);
   }
 
   /**
@@ -386,7 +274,7 @@ export class ContainmentApi {
    * ```
    */
   public static getContents(container: ContainerStuff): ContainableStuff[] {
-    return container.getContents();
+    return logic().getContents(container);
   }
 
   /**
@@ -409,27 +297,7 @@ export class ContainmentApi {
     location: ContainerStuff | null,
     predicate: (s: Stuff) => s is Stuff & T,
   ): (Stuff & T) | null {
-    // 1. Installed augmentations — slot occupants ("on your person").
-    if (MixinApi.isSlotted(actor)) {
-      for (const occupants of actor.getAllOccupants().values()) {
-        for (const occ of occupants) {
-          if (predicate(occ)) return occ;
-        }
-      }
-    }
-    // 2. Carried inventory.
-    if (MixinApi.isContainer(actor)) {
-      for (const item of actor.getContents()) {
-        if (predicate(item)) return item;
-      }
-    }
-    // 3. Surrounding location contents.
-    if (location) {
-      for (const item of location.getContents()) {
-        if (predicate(item)) return item;
-      }
-    }
-    return null;
+    return logic().findReachable(actor, location, predicate);
   }
 
   /**
@@ -453,44 +321,8 @@ export class ContainmentApi {
   public static async resolveLanding(
     ref: string
   ): Promise<{ container: Stuff & Container; warren: Warren | null }> {
-    const { Warren } = await import('../lib/location/Warren');
-    const cls = await StuffApi.classForRef(ref);
-    if ((cls.prototype as object) instanceof Warren) {
-      const warren = await StuffApi.singleton<Warren>(ref);
-      return { container: await warren.getHost(), warren };
-    }
-    return {
-      container: await StuffApi.singletonOrClone<Stuff & Container>(ref),
-      warren: null,
-    };
+    return logic().resolveLanding(ref);
   }
-}
-
-/**
- * Call an optional Witness hook by name. The dispatcher uses
- * `typeof === 'function'` so the proxy resolves through any shadow
- * stack naturally — a shadow that defines `onEntered` participates
- * without needing a `MixinApi.hasMixin` precheck on the host.
- *
- * Returns the hook's return value (or `undefined` if no hook present).
- */
-function callHook<T>(
-  obj: object,
-  hookName: string,
-  args: unknown[]
-): T | undefined {
-  const fn = (obj as Record<string, unknown>)[hookName];
-  if (typeof fn !== 'function') return undefined;
-  return (fn as (...a: unknown[]) => T).apply(obj, args);
-}
-
-function assertVetoOk(result: VetoResult | undefined, hookName: string): void {
-  if (!result) return;
-  if (result.ok) return;
-  throw new ContainmentError(
-    `${hookName} veto: ${result.reason}`,
-    { cause: { hookVeto: result, hookName } }
-  );
 }
 
 SecurityApi.decorateApiClass(ContainmentApi);

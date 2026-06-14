@@ -36,7 +36,7 @@
  * ```
  *
  * Marshaller resolution (for the rare marshalled field) is provided via an
- * injected seam — see {@link setDocumentMarshallerResolver} — so the
+ * injected seam — see {@link Document.setMarshallerResolver} — so the
  * persistence core stays free of any `StuffApi` import. Marshallers remain
  * Idea-rooted Stuff (for HMR) and are reached through the injected resolver.
  */
@@ -60,30 +60,14 @@ type AsyncMarshallerResolver = (path: string) => Promise<unknown>;
 
 let resolveMarshaller: SyncMarshallerResolver = () => {
   throw new Error(
-    'Document: marshaller resolver not wired (call setDocumentMarshallerResolver at boot)'
+    'Document: marshaller resolver not wired (call Document.setMarshallerResolver at boot)'
   );
 };
 let preloadMarshaller: AsyncMarshallerResolver = () => {
   throw new Error(
-    'Document: marshaller resolver not wired (call setDocumentMarshallerResolver at boot)'
+    'Document: marshaller resolver not wired (call Document.setMarshallerResolver at boot)'
   );
 };
-
-/**
- * Wire the marshaller-resolution seam once at boot (and in tests). Keeps
- * `Document` free of a `StuffApi` import while still reaching the
- * Idea-rooted marshaller instances. `sync` mirrors
- * `StuffApi.findByTemplatePath` (returns the registered instance or
- * `undefined`); `async` mirrors `StuffApi.singleton` (resolves /
- * lazy-clones the instance, warming the cache `sync` then hits).
- */
-export function setDocumentMarshallerResolver(
-  sync: SyncMarshallerResolver,
-  async: AsyncMarshallerResolver
-): void {
-  resolveMarshaller = sync;
-  preloadMarshaller = async;
-}
 
 /**
  * Interface for Document constructors. Used by the static `findById` /
@@ -250,7 +234,7 @@ export class Document {
 
   /**
    * Pre-warm the marshaller cache for this instance's class via the async
-   * resolver. Static counterpart {@link preloadFieldMarshallersFor} is used
+   * resolver. Static counterpart {@link Document.preloadFieldMarshallersFor} is used
    * by the `findById` / `find` paths.
    */
   protected async preloadFieldMarshallers(): Promise<void> {
@@ -296,7 +280,7 @@ export class Document {
     }
     const doc = await PersistenceManager.get().findById(this.collectionName, id);
     if (!doc) return null;
-    await preloadFieldMarshallersFor(this as AnyConstructor);
+    await Document.preloadFieldMarshallersFor(this as AnyConstructor);
     const instance = new this() as T;
     instance.fromDocument(doc);
     return instance;
@@ -315,7 +299,7 @@ export class Document {
       );
     }
     const docs = await PersistenceManager.get().find(this.collectionName, query);
-    await preloadFieldMarshallersFor(this as AnyConstructor);
+    await Document.preloadFieldMarshallersFor(this as AnyConstructor);
     return docs.map((doc) => {
       const instance = new this() as T;
       instance.fromDocument(doc);
@@ -323,21 +307,37 @@ export class Document {
     });
   }
 
+  /**
+   * Wire the marshaller-resolution seam once at boot (and in tests).
+   * Keeps `Document` free of a `StuffApi` import while still reaching
+   * the Idea-rooted marshaller instances. `sync` mirrors
+   * `StuffApi.findByTemplatePath` (returns the registered instance or
+   * `undefined`); `async` mirrors `StuffApi.singleton` (resolves /
+   * lazy-clones the instance, warming the cache `sync` then hits).
+   */
+  public static setMarshallerResolver(
+    sync: SyncMarshallerResolver,
+    async: AsyncMarshallerResolver
+  ): void {
+    resolveMarshaller = sync;
+    preloadMarshaller = async;
+  }
+
+  /**
+   * Static-context preload helper. Used by `findById` / `find` where
+   * there's no instance to call `preloadFieldMarshallers` on yet, and
+   * by `Template._materialize` for the same reason. Symmetric with the
+   * protected instance method.
+   */
+  public static async preloadFieldMarshallersFor(
+    ctor: AnyConstructor
+  ): Promise<void> {
+    const paths = Object.values(MixinApi.getAllFieldMarshallers(ctor));
+    if (paths.length === 0) return;
+    await Promise.all(paths.map((p) => preloadMarshaller(p)));
+  }
+
   public toString(): string {
     return `[${this.constructor.name} ${this._id ?? '(unsaved)'}]`;
   }
-}
-
-/**
- * Static-context preload helper. Used by `findById` / `find` where there's
- * no instance to call `preloadFieldMarshallers` on yet, and by
- * `Template._materialize` for the same reason. Symmetric with the protected
- * instance method.
- */
-export async function preloadFieldMarshallersFor(
-  ctor: AnyConstructor
-): Promise<void> {
-  const paths = Object.values(MixinApi.getAllFieldMarshallers(ctor));
-  if (paths.length === 0) return;
-  await Promise.all(paths.map((p) => preloadMarshaller(p)));
 }

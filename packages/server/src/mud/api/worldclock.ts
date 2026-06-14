@@ -1,22 +1,24 @@
 /**
- * WorldClockApi — thin facade over the `WorldClockRegistry` singleton.
+ * WorldClockApi — thin facade over the world-clock substrate.
  *
- * Stable caller-facing surface for the world-clock substrate. Every
- * state-touching method delegates to the Registry; the Registry's
- * methods carry `@CallSecurity(FromModule('mud/api/worldclock#WorldClockApi'))`
- * so the security gate denies any caller outside this module. External
- * code that grabs the Registry Stuff via `StuffApi.findByTemplatePath`
- * cannot call its methods; this Api is the only legitimate path.
+ * Stable caller-facing surface. The orchestration + registry resolution
+ * live in the hot-reloadable {@link WorldClockLogic} singleton at
+ * `/obj/api/worldclock`, reached synchronously via
+ * `StuffApi.singletonSync`; the Logic resolves the
+ * `WorldClockRegistry` singleton (at `/obj/WorldClockRegistry`) where
+ * all clock state actually lives. `dest /obj/api/worldclock` reloads
+ * the Logic; the Registry's state is unaffected.
  *
- * State lives on the Registry (anchor pair + scale + pause flag,
- * injectable real clock, schedule registry, heartbeat handle). Reload
- * of this file invalidates only the cached Registry pointer; reload
- * of `obj/WorldClockRegistry.ts` re-clones the Stuff per HotReloadApi's
- * pattern (state resets, `postRegister` re-runs idempotently).
+ * The Registry's public methods carry a gate that admits this module
+ * AND the logic singleton (`FromTemplate('/obj/api/worldclock')`), so
+ * external code that grabs the Registry Stuff via
+ * `StuffApi.findByTemplatePath` still cannot call its methods. The
+ * narrow-entry pattern holds: state has one home, and one
+ * structurally-enforced path between callers and it.
  *
- * The narrow-entry pattern: `WorldClockApi` is reachable from anywhere,
- * mediating every call into the Registry. State has one home, one
- * calling surface, and one structurally-enforced path between them.
+ * `boot()` / `shutdown()` keep their `SystemRoot` gate on this
+ * forwarder so the null-caller process-boundary requirement is
+ * unchanged.
  */
 
 import type { Stuff } from '../lib/stuff/Stuff';
@@ -24,10 +26,11 @@ import { Quantity } from '../lib/quantity';
 import type { Calendar, CalendarDate } from '../lib/time/Calendar';
 import { SecurityApi } from './security';
 import { StuffApi } from './stuff';
+import { HotReloadApi } from './hot-reload';
 import { CallSecurity } from '../lib/security/decorators';
 import { SecurityPolicies } from '../lib/security/SecurityPolicies';
-import type WorldClockRegistry from '../obj/WorldClockRegistry';
-import { TemplatePaths } from '../lib/paths';
+import { WorldClockLogic } from '../obj/api/WorldClockLogic';
+import { fileURLToPath } from 'url';
 
 /* ─────────────────────────── public surface types ─────────────────────────── */
 
@@ -71,9 +74,26 @@ export interface CronPattern {
   minute?: number;
 }
 
-/* ─────────────────────────── WorldClockApi ─────────────────────────── */
+/* ─────────────────────────── logic resolution ─────────────────────────── */
 
-const REGISTRY_PATH = TemplatePaths.worldClockRegistry;
+const LOGIC_PATH = '/obj/api/worldclock';
+const LOGIC_CLASS_FILE = fileURLToPath(
+  new URL('../obj/api/WorldClockLogic', import.meta.url)
+);
+
+/** Resolve the HMR-able WorldClockLogic singleton (sync). */
+function logic(): WorldClockLogic {
+  return StuffApi.singletonSync(
+    LOGIC_PATH,
+    () =>
+      new ((HotReloadApi.getCurrentExport(
+        LOGIC_CLASS_FILE,
+        'WorldClockLogic'
+      ) as typeof WorldClockLogic | null) ?? WorldClockLogic)()
+  );
+}
+
+/* ─────────────────────────── WorldClockApi ─────────────────────────── */
 
 export class WorldClockApi {
   private constructor() {}
@@ -84,94 +104,40 @@ export class WorldClockApi {
   /** Crash-backstop snapshot cadence (module constant, not a setting). */
   static readonly SNAPSHOT_INTERVAL_MS = 5 * 60 * 1000;
 
-  /** Cached pointer to the Registry singleton. Pure lookup cache. */
-  static #registryRef: WorldClockRegistry | null = null;
-
-  /**
-   * Registry class slot. Set as a module-side-effect at the bottom of
-   * `obj/WorldClockRegistry.ts` so the Api doesn't have to value-import
-   * the Registry class (which would create an `api/stuff` → `api/event`
-   * → `obj/EventSubscriptions` → `lib/stuff/Idea` cycle for Registries
-   * that ride EventApi). With the class registered, `#registry()` can
-   * lazy-create an in-memory instance for test harnesses that haven't
-   * run `BootstrapManager.run()`.
-   */
-  static #registryClass: (new () => WorldClockRegistry) | null = null;
-
-  /** @internal — called from `obj/WorldClockRegistry.ts` module body. */
-  public static _registerRegistryClass(
-    cls: new () => WorldClockRegistry,
-  ): void {
-    WorldClockApi.#registryClass = cls;
-  }
-
-  static #lookupRegistry(): WorldClockRegistry | null {
-    if (WorldClockApi.#registryRef) return WorldClockApi.#registryRef;
-    const reg = StuffApi.findByTemplatePath<WorldClockRegistry>(REGISTRY_PATH);
-    if (reg) WorldClockApi.#registryRef = reg;
-    return reg ?? null;
-  }
-
-  /**
-   * Resolve the Registry, lazy-creating a transient in-memory instance
-   * if `BootstrapManager.run()` hasn't seeded one yet. The bootstrap
-   * manifest entry at `/obj/WorldClockRegistry` is the production path;
-   * the lazy-create branch covers test harnesses. Throws when the
-   * class hasn't been registered (the Registry module wasn't loaded).
-   */
-  static #registry(): WorldClockRegistry {
-    const existing = WorldClockApi.#lookupRegistry();
-    if (existing) return existing;
-    if (!WorldClockApi.#registryClass) {
-      throw new Error(
-        'WorldClockApi: WorldClockRegistry not bootstrapped and its ' +
-          'class is not registered. Either run BootstrapManager.run() ' +
-          "or import '../obj/WorldClockRegistry' so its module-load " +
-          'side effect registers the class.',
-      );
-    }
-    const reg = StuffApi.createSync<WorldClockRegistry>(
-      () => new WorldClockApi.#registryClass!(),
-    );
-    reg.setTemplatePath(REGISTRY_PATH);
-    WorldClockApi.#registryRef = reg;
-    return reg;
-  }
-
   /* ──────────────────── core queries / control ──────────────────── */
 
   public static getNow(): Quantity<'s'> {
-    return WorldClockApi.#registry().getNow();
+    return logic().getNow();
   }
 
   public static getScale(): number {
-    return WorldClockApi.#registry().getScale();
+    return logic().getScale();
   }
 
   public static setScale(scale: number): void {
-    WorldClockApi.#registry().setScale(scale);
+    logic().setScale(scale);
   }
 
   public static pause(): void {
-    WorldClockApi.#registry().pauseClock();
+    logic().pause();
   }
 
   public static resume(): void {
-    WorldClockApi.#registry().resumeClock();
+    logic().resume();
   }
 
   public static isPaused(): boolean {
-    return WorldClockApi.#registry().isPaused();
+    return logic().isPaused();
   }
 
   /* ──────────────────── persistence (own-thing model) ──────────────────── */
 
   public static snapshot(): WorldClockSnapshot {
-    return WorldClockApi.#registry().snapshot();
+    return logic().snapshot();
   }
 
   public static restore(snap: WorldClockSnapshot): void {
-    WorldClockApi.#registry().restore(snap);
+    logic().restore(snap);
   }
 
   /**
@@ -188,7 +154,7 @@ export class WorldClockApi {
    */
   @CallSecurity(SecurityPolicies.SystemRoot)
   public static async boot(): Promise<void> {
-    await WorldClockApi.#registry().boot();
+    await logic().boot();
   }
 
   /**
@@ -198,7 +164,7 @@ export class WorldClockApi {
    */
   @CallSecurity(SecurityPolicies.SystemRoot)
   public static async shutdown(): Promise<void> {
-    await WorldClockApi.#registry().shutdown();
+    await logic().shutdown();
   }
 
   /* ──────────────────── scheduling primitives ──────────────────── */
@@ -206,38 +172,38 @@ export class WorldClockApi {
   public static after(
     delay: Quantity<'s'> | string,
     cb: ClockCallback,
-    opts?: ScheduleOpts,
+    opts?: ScheduleOpts
   ): ClockHandle {
-    return WorldClockApi.#registry().after(delay, cb, opts);
+    return logic().after(delay, cb, opts);
   }
 
   public static at(
     deadline: Quantity<'s'>,
     cb: ClockCallback,
-    opts?: ScheduleOpts,
+    opts?: ScheduleOpts
   ): ClockHandle {
-    return WorldClockApi.#registry().at(deadline, cb, opts);
+    return logic().at(deadline, cb, opts);
   }
 
   public static every(
     interval: Quantity<'s'> | string,
     cb: ClockCallback,
-    opts?: ScheduleOpts & { startAt?: Quantity<'s'>; runs?: number },
+    opts?: ScheduleOpts & { startAt?: Quantity<'s'>; runs?: number }
   ): ClockHandle {
-    return WorldClockApi.#registry().every(interval, cb, opts);
+    return logic().every(interval, cb, opts);
   }
 
   public static cancel(handle: ClockHandle): void {
-    handle.cancel();
+    logic().cancel(handle);
   }
 
   /** Cancel every schedule with `tag`; if `host` given, AND on host identity. */
   public static cancelByTag(tag: string, host?: Stuff): number {
-    return WorldClockApi.#registry().cancelByTag(tag, host);
+    return logic().cancelByTag(tag, host);
   }
 
   public static cancelByHost(host: Stuff): number {
-    return WorldClockApi.#registry().cancelByHost(host);
+    return logic().cancelByHost(host);
   }
 
   /* ──────────────────── calendar-aware scheduling ──────────────────── */
@@ -250,9 +216,9 @@ export class WorldClockApi {
   public static onDate(
     date: CalendarDate | string,
     cb: ClockCallback,
-    opts?: ScheduleOpts & { calendar?: Calendar },
+    opts?: ScheduleOpts & { calendar?: Calendar }
   ): ClockHandle {
-    return WorldClockApi.#registry().onDate(date, cb, opts);
+    return logic().onDate(date, cb, opts);
   }
 
   /**
@@ -262,26 +228,16 @@ export class WorldClockApi {
   public static cron(
     pattern: CronPattern,
     cb: ClockCallback,
-    opts?: ScheduleOpts & { calendar?: Calendar },
+    opts?: ScheduleOpts & { calendar?: Calendar }
   ): ClockHandle {
-    return WorldClockApi.#registry().cron(pattern, cb, opts);
+    return logic().cron(pattern, cb, opts);
   }
 
-  /* ──────────────────── HMR / test seams ──────────────────── */
-
-  /**
-   * HMR seam: drop the cached Registry pointer so the next call
-   * re-resolves. Called when `api/worldclock.ts` is reloaded.
-   * Registry state itself is unaffected.
-   * @internal
-   */
-  public static _resetRegistryRefForReload(): void {
-    WorldClockApi.#registryRef = null;
-  }
+  /* ──────────────────── test seams ──────────────────── */
 
   static _setNowProviderForTesting(fn: () => number): void {
     SecurityApi.assertTestOnly('_setNowProviderForTesting');
-    WorldClockApi.#registry()._setNowProvider(fn);
+    logic()._setNowProvider(fn);
   }
 
   static _resetForTesting(): void {
@@ -289,12 +245,12 @@ export class WorldClockApi {
     // Force the lazy-create when no Registry exists yet, so callers
     // get a freshly-reset clock instead of one that the next access
     // would mint with `Date.now()` already baked into the anchor.
-    WorldClockApi.#registry()._resetForTesting();
+    logic()._resetForTesting();
   }
 
   static _advanceForTesting(realMs: number): void {
     SecurityApi.assertTestOnly('_advanceForTesting');
-    WorldClockApi.#registry()._advanceForTesting(realMs);
+    logic()._advanceForTesting(realMs);
   }
 }
 

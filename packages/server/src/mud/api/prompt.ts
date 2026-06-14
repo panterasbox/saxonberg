@@ -7,32 +7,29 @@
  * backend inbound handler table (`backend/inbound/prompt.ts`); tests
  * drive them directly too.
  *
+ * This Api is a thin forwarding shell: the registry + push lifecycle
+ * live in the hot-reloadable {@link PromptLogic} singleton at
+ * `/obj/api/prompt`, reached synchronously via `StuffApi.singletonSync`.
+ * `dest /obj/api/prompt` reloads it.
+ *
  * See:
  *   - `docs/subsystems/prompt.md`
  *   - `docs/slates/tails/prompt-stack-slate.md`
  */
 
-import { nanoid } from 'nanoid';
 import type {
-  ChoicePromptNote,
-  ConfirmPromptNote,
-  TextPromptNote,
-  MqlObjectPromptNote,
-  MqlManyPromptNote,
   PromptChoice,
-  PromptDismissedNote,
-  PromptEnvelope,
   PromptRefreshNote,
 } from '@saxonberg/types';
 import type { Stuff } from '../lib/stuff/Stuff';
 import type Interactive from '../obj/Interactive';
-import type { Sensor } from '../lib/message/Sensor';
 import type { Mml } from './mml';
-import { MessageApi } from './message';
 import { MixinApi } from './mixin';
 import { StuffApi } from './stuff';
+import { HotReloadApi } from './hot-reload';
 import { SecurityApi } from './security';
-import { ProseApi } from './prose';
+import { PromptLogic } from '../obj/api/PromptLogic';
+import { fileURLToPath } from 'url';
 
 /**
  * Awaiting prompt promises reject with this when the prompt is
@@ -134,68 +131,35 @@ export interface MqlManyPromptOpts extends PromptOpts<Stuff[]> {
   max?: number;
 }
 
-/* ─────────────────────── Internal record types ─────────────────── */
-
-/**
- * Per-prompt resolver record. The `kind` discriminator drives the
- * wire-response decode in `handleResponse`. `cancelled` is the
- * race-safety flag: a late validator result on an already-cancelled
- * record short-circuits before calling `resolve`.
- */
-interface ResolverRecord {
-  promptId: string;
-  interactive: Interactive;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  resolve: (value: any) => void;
-  reject: (err: Error) => void;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  validate?: PromptValidator<any>;
-  kind: 'choice' | 'confirm' | 'text' | 'mqlObject' | 'mqlMany';
-  // mqlMany-only:
-  min?: number;
-  max?: number;
-  cancelled: boolean;
-}
-
 /* ─────────────────────────── PromptApi ─────────────────────────── */
 
+const LOGIC_PATH = '/obj/api/prompt';
+const LOGIC_CLASS_FILE = fileURLToPath(
+  new URL('../obj/api/PromptLogic', import.meta.url)
+);
+
+/** Resolve the HMR-able PromptLogic singleton (sync). */
+function logic(): PromptLogic {
+  return StuffApi.singletonSync(
+    LOGIC_PATH,
+    () =>
+      new ((HotReloadApi.getCurrentExport(
+        LOGIC_CLASS_FILE,
+        'PromptLogic'
+      ) as typeof PromptLogic | null) ?? PromptLogic)()
+  );
+}
+
 /**
- * `PromptApi` — owns the per-Interactive prompt stack server-side.
+ * `PromptApi` — owns the per-Interactive prompt stack server-side
+ * (state lives in the {@link PromptLogic} singleton).
  *
- * Five Tier 1 methods:
- *
- *   - `choice<T>(iact, label, choices, opts?)` → `Promise<T>`
- *   - `confirm(iact, label, defaultAnswer?, opts?)` → `Promise<boolean>`
- *   - `text(iact, label, opts?)` → `Promise<string>`
- *   - `mqlObject(iact, label, matches, opts?)` → `Promise<Stuff | null>`
- *   - `mqlMany(iact, label, matches, opts?)` → `Promise<Stuff[]>`
- *
- * Inbound entry points: `handleResponse` (called by the inbound
- * handler `backend/inbound/prompt.ts` on `prompt-response` wire
- * messages), `handleCancel` (on `prompt-cancel`). Both are public so
- * tests can drive the substrate directly without routing through the
- * inbound handler table.
- *
- * Server-side cancellation: `cancel(promptId, reason?)` cancels one
- * pending prompt; `cancelAll(interactive, reason)` cancels every
- * prompt held by an Interactive (called from the controller of the
- * `prompt cancel` verb and from `Application.handleUserDisconnect`).
- *
- * Outbound envelopes ride `MessageApi.sendEnvelope(holder, template)` —
- * the same Sensor pipeline `MqlSubscriptionApi` uses. Shadow filters
- * and audit observers see prompt envelopes on the same channel they
- * see dispatch responses and subscription deltas.
- *
- * Substrate state is static (no instance methods, no Stuff-host
- * concerns); `#`-private fine on the class. Tests reset via
- * `_clearAllForTesting()`.
+ * Five Tier 1 methods (`choice`/`confirm`/`text`/`mqlObject`/`mqlMany`),
+ * inbound entry points (`handleResponse`/`handleCancel`), and
+ * server-side cancellation (`cancel`/`cancelAll`). Outbound envelopes
+ * ride `MessageApi.sendEnvelope`. Tests reset via `_clearAllForTesting`.
  */
 export class PromptApi {
-  /** promptId → ResolverRecord */
-  static #resolvers = new Map<string, ResolverRecord>();
-  /** Interactive → Set<promptId>. O(N) cancelAll. */
-  static #byInteractive = new Map<Interactive, Set<string>>();
-
   /* ────────────────── Tier 1: choice ────────────────── */
 
   public static choice<T extends string = string>(
@@ -204,21 +168,7 @@ export class PromptApi {
     choices: PromptChoice[],
     opts?: ChoicePromptOpts<T>,
   ): Promise<T> {
-    const foreground = opts?.foreground ?? true;
-    return this.#push<T>(
-      interactive,
-      'choice',
-      (): ChoicePromptNote => ({
-        kind: 'prompt-choice',
-        label,
-        choices,
-        foreground,
-        ...(opts?.defaultChoice !== undefined
-          ? { defaultChoice: opts.defaultChoice }
-          : {}),
-      }),
-      opts,
-    );
+    return logic().choice(interactive, label, choices, opts);
   }
 
   /* ────────────────── Tier 1: confirm ────────────────── */
@@ -229,18 +179,7 @@ export class PromptApi {
     defaultAnswer: 'yes' | 'no' = 'no',
     opts?: PromptOpts<boolean>,
   ): Promise<boolean> {
-    const foreground = opts?.foreground ?? true;
-    return this.#push<boolean>(
-      interactive,
-      'confirm',
-      (): ConfirmPromptNote => ({
-        kind: 'prompt-confirm',
-        label,
-        defaultAnswer,
-        foreground,
-      }),
-      opts,
-    );
+    return logic().confirm(interactive, label, defaultAnswer, opts);
   }
 
   /* ────────────────── Tier 1: text ────────────────── */
@@ -250,20 +189,7 @@ export class PromptApi {
     label: string,
     opts?: TextPromptOpts,
   ): Promise<string> {
-    const foreground = opts?.foreground ?? true;
-    return this.#push<string>(
-      interactive,
-      'text',
-      (): TextPromptNote => ({
-        kind: 'prompt-text',
-        label,
-        foreground,
-        ...(opts?.placeholder !== undefined
-          ? { placeholder: opts.placeholder }
-          : {}),
-      }),
-      opts,
-    );
+    return logic().text(interactive, label, opts);
   }
 
   /* ────────────────── Tier 1: mqlObject ────────────────── */
@@ -274,24 +200,7 @@ export class PromptApi {
     matches: Stuff[],
     opts?: PromptOpts<Stuff | null>,
   ): Promise<Stuff | null> {
-    // Precondition: a prompt target must be a Sensor-bearing holder.
-    this.#requireViewer(interactive);
-    const projected = matches.map((s) => ({
-      stuffId: s.stuffId,
-      displayName: s.getPresentation(),
-    }));
-    const foreground = opts?.foreground ?? true;
-    return this.#push<Stuff | null>(
-      interactive,
-      'mqlObject',
-      (): MqlObjectPromptNote => ({
-        kind: 'prompt-mql-object',
-        label,
-        matches: projected,
-        foreground,
-      }),
-      opts,
-    );
+    return logic().mqlObject(interactive, label, matches, opts);
   }
 
   /* ────────────────── Tier 1: mqlMany ────────────────── */
@@ -302,109 +211,22 @@ export class PromptApi {
     matches: Stuff[],
     opts?: MqlManyPromptOpts,
   ): Promise<Stuff[]> {
-    // Precondition: a prompt target must be a Sensor-bearing holder.
-    this.#requireViewer(interactive);
-    const projected = matches.map((s) => ({
-      stuffId: s.stuffId,
-      displayName: s.getPresentation(),
-    }));
-    const foreground = opts?.foreground ?? true;
-    return this.#push<Stuff[]>(
-      interactive,
-      'mqlMany',
-      (): MqlManyPromptNote => ({
-        kind: 'prompt-mql-many',
-        label,
-        matches: projected,
-        foreground,
-        ...(opts?.min !== undefined ? { min: opts.min } : {}),
-        ...(opts?.max !== undefined ? { max: opts.max } : {}),
-      }),
-      opts,
-      { min: opts?.min, max: opts?.max },
-    );
+    return logic().mqlMany(interactive, label, matches, opts);
   }
 
   /* ────────────────── Inbound entry points ────────────────── */
 
   /**
    * Route a `prompt-response` wire message. Looks up the resolver,
-   * decodes the response per the prompt kind, runs the validator
-   * (if any), and either resolves the await or emits
+   * decodes the response per the prompt kind, runs the validator (if
+   * any), and either resolves the await or emits
    * `prompt-validation-failed` and keeps the prompt alive.
-   *
-   * The inbound handler (`backend/inbound/prompt.ts`) calls this on
-   * inbound `prompt-response`. Public so tests can drive it.
    */
   public static handleResponse(
     interactive: Interactive,
     payload: { promptId: string; response: string },
   ): void {
-    const record = this.#resolvers.get(payload.promptId);
-    if (!record) return;
-    if (record.interactive !== interactive) return;  // tampered
-
-    let typed: unknown;
-    switch (record.kind) {
-      case 'choice':
-      case 'text':
-        typed = payload.response;
-        break;
-      case 'confirm':
-        // Decode wire string → boolean before validators run, so
-        // user-supplied validators see the typed value.
-        typed = payload.response === 'yes';
-        break;
-      case 'mqlObject':
-        typed = StuffApi.findById(payload.response) ?? null;
-        break;
-      case 'mqlMany': {
-        let ids: unknown;
-        try {
-          ids = JSON.parse(payload.response);
-        } catch {
-          this.#emitValidationFailed(
-            record,
-            'response is not valid JSON',
-          );
-          return;
-        }
-        if (
-          !Array.isArray(ids) ||
-          ids.some((x) => typeof x !== 'string')
-        ) {
-          this.#emitValidationFailed(
-            record,
-            'response must be a JSON array of stuffIds',
-          );
-          return;
-        }
-        if (record.max !== undefined && ids.length > record.max) {
-          this.#emitValidationFailed(
-            record,
-            `selected ${ids.length}, max is ${record.max}`,
-          );
-          return;
-        }
-        if (record.min !== undefined && ids.length < record.min) {
-          this.#emitValidationFailed(
-            record,
-            `selected ${ids.length}, min is ${record.min}`,
-          );
-          return;
-        }
-        typed = (ids as string[])
-          .map((id) => StuffApi.findById(id))
-          .filter((s): s is Stuff => s !== undefined);
-        break;
-      }
-    }
-
-    if (record.validate) {
-      void this.#runValidateAndResolve(record, typed);
-      return;
-    }
-    this.#dismissAndResolve(record, typed);
+    logic().handleResponse(interactive, payload);
   }
 
   /**
@@ -416,330 +238,83 @@ export class PromptApi {
     interactive: Interactive,
     payload: { promptId: string },
   ): void {
-    const record = this.#resolvers.get(payload.promptId);
-    if (!record) return;
-    if (record.interactive !== interactive) return;
-    this.#cancelOne(record, 'cancelled');
+    logic().handleCancel(interactive, payload);
   }
 
   /**
-   * Server-side single-prompt cancel. Returns `true` if a record
-   * was found and cancelled; `false` for unknown ids.
+   * Server-side single-prompt cancel. Returns `true` if a record was
+   * found and cancelled; `false` for unknown ids.
    */
   public static cancel(
     promptId: string,
     reason: 'cancelled' | 'host-disconnected' = 'cancelled',
   ): boolean {
-    const record = this.#resolvers.get(promptId);
-    if (!record) return false;
-    this.#cancelOne(record, reason);
-    return true;
+    return logic().cancel(promptId, reason);
   }
 
   /**
-   * Server-side wholesale cancel — every prompt held by
-   * `interactive`. Returns the count cancelled.
-   *
-   * Called from the `prompt cancel` verb controller (reason
-   * `'cancelled'`) and from `Application.handleUserDisconnect`
-   * (reason `'host-disconnected'`).
+   * Server-side wholesale cancel — every prompt held by `interactive`.
+   * Returns the count cancelled. Called from the `prompt cancel` verb
+   * controller and `Application.handleUserDisconnect`.
    */
   public static cancelAll(
     interactive: Interactive,
     reason: 'cancelled' | 'host-disconnected',
   ): number {
-    const bucket = this.#byInteractive.get(interactive);
-    if (!bucket) return 0;
-    const count = bucket.size;
-    // Snapshot ids first — `#cancelOne` mutates the bucket.
-    for (const id of [...bucket]) {
-      const record = this.#resolvers.get(id);
-      if (record) this.#cancelOne(record, reason);
-    }
-    return count;
+    return logic().cancelAll(interactive, reason);
   }
 
   /* ────────────────── Test seams ────────────────── */
 
   public static _getResolverCountForTesting(): number {
+    // The test-only assertion inspects the caller's stack; it must run
+    // at the face (where the test is the direct caller), not inside the
+    // logic singleton (whose forwarding frames push the .test.ts frame
+    // past assertTestOnly's stack window).
     SecurityApi.assertTestOnly('_getResolverCountForTesting');
-    return this.#resolvers.size;
+    return logic()._getResolverCountForTesting();
   }
 
   public static _getInteractivePromptCountForTesting(
     interactive: Interactive,
   ): number {
-    SecurityApi.assertTestOnly(
-      '_getInteractivePromptCountForTesting',
-    );
-    return this.#byInteractive.get(interactive)?.size ?? 0;
+    SecurityApi.assertTestOnly('_getInteractivePromptCountForTesting');
+    return logic()._getInteractivePromptCountForTesting(interactive);
   }
 
   public static _clearAllForTesting(): void {
     SecurityApi.assertTestOnly('_clearAllForTesting');
-    this.#resolvers.clear();
-    this.#byInteractive.clear();
-  }
-
-  /* ─────────────── Internals ─────────────── */
-
-  /**
-   * Push lifecycle shared by every Tier 1 method. Generates a
-   * `promptId`, stores a resolver record, ships the body
-   * `MessageFrame` (if `opts.body` is set), and pushes the
-   * `PromptEnvelope`.
-   *
-   * Returns a Promise that resolves on `handleResponse` →
-   * validate-pass, or rejects on `handleCancel` / `cancel*` with
-   * `PromptCancelledError`.
-   */
-  static #push<T>(
-    interactive: Interactive,
-    kind: ResolverRecord['kind'],
-    buildNote: () => Note,
-    opts?: PromptOpts<T>,
-    extras?: { min?: number; max?: number },
-  ): Promise<T> {
-    const holder = this.#requireViewer(interactive);
-    const promptId = nanoid();
-
-    return new Promise<T>((resolve, reject) => {
-      const record: ResolverRecord = {
-        promptId,
-        interactive,
-        resolve: resolve as (v: unknown) => void,
-        reject,
-        validate: opts?.validate as PromptValidator<unknown> | undefined,
-        kind,
-        cancelled: false,
-        ...(extras?.min !== undefined ? { min: extras.min } : {}),
-        ...(extras?.max !== undefined ? { max: extras.max } : {}),
-      };
-      this.#resolvers.set(promptId, record);
-      let bucket = this.#byInteractive.get(interactive);
-      if (!bucket) {
-        bucket = new Set();
-        this.#byInteractive.set(interactive, bucket);
-      }
-      bucket.add(promptId);
-
-      // Body MessageFrame — correlated by promptId so the client
-      // can associate the long-form terminal prose with the prompt
-      // envelope. Carried on the per-frame payload slot
-      // (`Scene.toSelf(body, payload?)`).
-      if (opts?.body !== undefined) {
-        MessageApi.scene(holder)
-          .topic('world.prompt')
-          .toSelf(opts.body, { promptId })
-          .send();
-      }
-
-      const note = buildNote();
-      const template: Omit<PromptEnvelope, 'frameId'> = {
-        type: 'prompt',
-        promptId,
-        outcome: { notes: [note] },
-      };
-      MessageApi.sendEnvelope(holder, template);
-    });
-  }
-
-  /**
-   * Resolve the Interactive's holder + assert it's a Sensor (so
-   * `MessageApi.sendEnvelope` and the `world.prompt` MessageFrame
-   * delivery can address it).
-   */
-  static #requireViewer(interactive: Interactive): Stuff & Sensor {
-    const holder = interactive.getHolder();
-    if (!holder) {
-      throw new Error(
-        'PromptApi: Interactive has no holder; cannot push prompt',
-      );
-    }
-    if (!MixinApi.isSensor(holder)) {
-      throw new Error(
-        'PromptApi: Interactive holder is not a Sensor; cannot push prompt',
-      );
-    }
-    return holder as Stuff & Sensor;
-  }
-
-  /**
-   * Run the validator (sync or async). If it returns `true`,
-   * dismiss the prompt and resolve the await with the typed
-   * response. If it returns a string, emit
-   * `prompt-validation-failed` and keep the prompt alive. If the
-   * validator throws, emit validation-failed with the error
-   * message.
-   *
-   * Cancellation safety: a prompt cancelled mid-validate has its
-   * `cancelled` flag set by `#cancelOne` (which also already
-   * rejected the await). The post-await guard here short-circuits
-   * so the late validator result doesn't call `resolve` on an
-   * already-rejected Promise.
-   */
-  static async #runValidateAndResolve(
-    record: ResolverRecord,
-    typed: unknown,
-  ): Promise<void> {
-    let result: true | string;
-    try {
-      const r = await record.validate!(typed);
-      result = r;
-    } catch (err) {
-      this.#emitValidationFailed(
-        record,
-        err instanceof Error ? err.message : String(err),
-      );
-      return;
-    }
-    if (record.cancelled) return;
-    if (result === true) {
-      this.#dismissAndResolve(record, typed);
-    } else {
-      this.#emitValidationFailed(record, result);
-    }
-  }
-
-  static #dismissAndResolve(
-    record: ResolverRecord,
-    typed: unknown,
-  ): void {
-    this.#cleanup(record);
-    this.#emitDismissed(record, 'answered');
-    record.resolve(typed);
-  }
-
-  static #cancelOne(
-    record: ResolverRecord,
-    reason: 'cancelled' | 'host-disconnected',
-  ): void {
-    record.cancelled = true;
-    this.#cleanup(record);
-    this.#emitDismissed(record, reason);
-    record.reject(new PromptCancelledError(reason));
-  }
-
-  static #cleanup(record: ResolverRecord): void {
-    this.#resolvers.delete(record.promptId);
-    const bucket = this.#byInteractive.get(record.interactive);
-    if (bucket) {
-      bucket.delete(record.promptId);
-      if (bucket.size === 0) {
-        this.#byInteractive.delete(record.interactive);
-      }
-    }
-  }
-
-  static #emitValidationFailed(
-    record: ResolverRecord,
-    message: string,
-  ): void {
-    const holder = record.interactive.getHolder();
-    if (!holder || !MixinApi.isSensor(holder)) return;
-    const template: Omit<PromptEnvelope, 'frameId'> = {
-      type: 'prompt',
-      promptId: record.promptId,
-      outcome: {
-        notes: [{ kind: 'prompt-validation-failed', message }],
-      },
-    };
-    MessageApi.sendEnvelope(holder, template);
-  }
-
-  static #emitDismissed(
-    record: ResolverRecord,
-    reason: PromptDismissedNote['reason'],
-  ): void {
-    const holder = record.interactive.getHolder();
-    if (!holder || !MixinApi.isSensor(holder)) return;
-    const template: Omit<PromptEnvelope, 'frameId'> = {
-      type: 'prompt',
-      promptId: record.promptId,
-      outcome: {
-        notes: [{ kind: 'prompt-dismissed', reason }],
-      },
-    };
-    MessageApi.sendEnvelope(holder, template);
+    logic()._clearAllForTesting();
   }
 
   /**
    * Render the giver's `prompt.format` template into a
-   * `PromptRefreshNote` for inclusion in a
-   * `DispatchResponseEnvelope`. Reads the template via
-   * `giver.getSetting('prompt.format')` when the giver composes
-   * `EnvironmentMixin`; otherwise uses the bare default
-   * (`'{{ focus }}>'`).
-   *
-   * Called from `CommandGiverMixin.executeCommand`'s dispatch-
-   * response composition site so every command response carries an
-   * up-to-date base prompt. Also from
-   * `Application.handleCommandMessage`'s empty-command short-circuit.
-   *
-   * Template render failures (Liquid syntax errors, runtime errors)
-   * fall through to the default — the player still gets a usable
-   * prompt rather than a broken response.
+   * `PromptRefreshNote` for inclusion in a `DispatchResponseEnvelope`.
+   * Reads the template via `giver.getSetting('prompt.format')` when the
+   * giver composes `EnvironmentMixin`; otherwise the bare default
+   * (`'{{ focus }}>'`). Render failures fall through to the default.
    */
   public static renderPromptRefresh(giver: Stuff): PromptRefreshNote {
-    let template = DEFAULT_PROMPT_FORMAT;
-    if (MixinApi.isEnvironment(giver)) {
-      const fromSetting = giver.getSetting<string>('prompt.format');
-      if (typeof fromSetting === 'string' && fromSetting.length > 0) {
-        template = fromSetting;
-      }
-    }
-    let rendered: string;
-    try {
-      rendered = ProseApi.format(
-        template,
-        buildPromptContext(giver),
-      ).toString();
-    } catch {
-      try {
-        rendered = ProseApi.format(
-          DEFAULT_PROMPT_FORMAT,
-          buildPromptContext(giver),
-        ).toString();
-      } catch {
-        rendered = '>';
-      }
-    }
-    return { kind: 'prompt-refresh', rendered };
+    return logic().renderPromptRefresh(giver);
   }
 }
 
 SecurityApi.decorateApiClass(PromptApi);
 
-// Local note alias to keep the buildNote signatures compact.
-type Note =
-  | ChoicePromptNote
-  | ConfirmPromptNote
-  | TextPromptNote
-  | MqlObjectPromptNote
-  | MqlManyPromptNote;
-
 /* ─────────────────── Base-prompt rendering ─────────────────── */
 
 /**
- * Default `prompt.format` Liquid template. Returns `here>` or
- * `the brass kettle>` after rendering. Mirrored on
- * `EnvironmentMixin.settings` so the schema validator sees the
- * same default.
- */
-const DEFAULT_PROMPT_FORMAT = '{{ focus }}>';
-
-/**
- * Build the Liquid render context for the base-prompt template.
- * v1 exposes a single variable, `focus`, sourced from
- * `FocusedMixin.getFocus()` when present (otherwise the empty
- * string). Future tokens (`posture`, `location.name`, `time`)
- * land additively here.
+ * Build the Liquid render context for the base-prompt template. v1
+ * exposes a single variable, `focus`, sourced from
+ * `FocusedMixin.getFocus()` when present (otherwise the empty string).
+ * Future tokens (`posture`, `location.name`, `time`) land additively
+ * here.
  *
- * Module-local helper for `PromptApi.renderPromptRefresh`; exported
+ * Module-local helper for `PromptLogic.renderPromptRefresh`; exported
  * solely so the prompt-format unit test can exercise it in isolation
- * (no production consumer outside this file).
+ * (no production consumer outside the prompt subsystem).
  */
-// eslint-disable-next-line no-restricted-syntax -- test-only export (white-box unit test); no production consumer outside this file
+// eslint-disable-next-line no-restricted-syntax -- test-only export (white-box unit test); consumed only inside the prompt subsystem
 export function buildPromptContext(
   giver: Stuff,
 ): Record<string, unknown> {

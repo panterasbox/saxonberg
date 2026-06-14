@@ -30,20 +30,6 @@ import type { Unit } from './quantity';
 
 // ---------- value shape ----------
 
-/** The runtime value — a reserve with real-units capacity + current. */
-export interface Reserve {
-  /** Identity within a host's reserve collection (= the Record map key). */
-  key: string;
-  /** Maximum. */
-  capacity: Quantity<Unit>;
-  /** Current level (always clamped to `[0, capacity]`). */
-  current: Quantity<Unit>;
-  /** `'biological'` for the body's reserves; a content theme otherwise. */
-  theme: string;
-  /** Named effect when current hits the floor. Seam — no consumer v1. */
-  floorEffect: string | null;
-}
-
 /** The decomposed persistence form held in the host's keyed Record. */
 export interface ReserveStored {
   capacityValue: number;
@@ -60,52 +46,77 @@ export const BIOLOGICAL_RESERVE_KEYS = [
   'hydration',
 ] as const;
 
-export function reserveToStored(r: Reserve): ReserveStored {
-  if (r.capacity.unit !== r.current.unit) {
-    throw new TypeError(
-      `Reserve '${r.key}': capacity unit '${r.capacity.unit}' != current ` +
-        `unit '${r.current.unit}'`,
+/**
+ * The runtime value — a reserve with real-units capacity + current.
+ * A value class (peer of `Quantity` / `Light`): immutable readonly
+ * fields set through the constructor. Built via `new Reserve(...)` or
+ * `Reserve.fromStored(...)`; decomposed for persistence via
+ * `toStored()`.
+ */
+export class Reserve {
+  constructor(
+    /** Identity within a host's reserve collection (= the Record map key). */
+    public readonly key: string,
+    /** Maximum. */
+    public readonly capacity: Quantity<Unit>,
+    /** Current level (always clamped to `[0, capacity]`). */
+    public readonly current: Quantity<Unit>,
+    /** `'biological'` for the body's reserves; a content theme otherwise. */
+    public readonly theme: string,
+    /** Named effect when current hits the floor. Seam — no consumer v1. */
+    public readonly floorEffect: string | null,
+  ) {}
+
+  /** Decompose to the scalar persistence form. */
+  public toStored(): ReserveStored {
+    if (this.capacity.unit !== this.current.unit) {
+      throw new TypeError(
+        `Reserve '${this.key}': capacity unit '${this.capacity.unit}' != ` +
+          `current unit '${this.current.unit}'`,
+      );
+    }
+    const cap = this.capacity.rawValue();
+    const cur = Math.max(0, Math.min(this.current.rawValue(), cap));
+    return {
+      capacityValue: cap,
+      currentValue: cur,
+      unit: this.capacity.unit,
+      theme: this.theme,
+      floorEffect: this.floorEffect,
+    };
+  }
+
+  /** Reconstruct a `Reserve` instance from the stored scalar form. */
+  public static fromStored(key: string, s: ReserveStored): Reserve {
+    return new Reserve(
+      key,
+      Quantity.of(s.capacityValue, s.unit),
+      Quantity.of(s.currentValue, s.unit),
+      s.theme,
+      s.floorEffect,
     );
   }
-  const cap = r.capacity.rawValue();
-  const cur = Math.max(0, Math.min(r.current.rawValue(), cap));
-  return {
-    capacityValue: cap,
-    currentValue: cur,
-    unit: r.capacity.unit,
-    theme: r.theme,
-    floorEffect: r.floorEffect,
-  };
-}
 
-export function reserveFromStored(key: string, s: ReserveStored): Reserve {
-  return {
-    key,
-    capacity: Quantity.of(s.capacityValue, s.unit),
-    current: Quantity.of(s.currentValue, s.unit),
-    theme: s.theme,
-    floorEffect: s.floorEffect,
-  };
-}
-
-/**
- * The default biological reserves at full capacity (`%`). Installed on
- * every living body (Creature) at construction. Their floor effects
- * feed the derived condition band (a floored reserve degrades the body).
- */
-export function defaultBiologicalReserves(): Record<string, ReserveStored> {
-  const full = (floorEffect: string): ReserveStored => ({
-    capacityValue: 100,
-    currentValue: 100,
-    unit: '%',
-    theme: 'biological',
-    floorEffect,
-  });
-  return {
-    endurance: full('collapse'),
-    satiation: full('starvation'),
-    hydration: full('dehydration'),
-  };
+  /**
+   * The default biological reserves at full capacity (`%`). Installed
+   * on every living body (Creature) at construction. Their floor
+   * effects feed the derived condition band (a floored reserve
+   * degrades the body).
+   */
+  public static defaultBiological(): Record<string, ReserveStored> {
+    const full = (floorEffect: string): ReserveStored => ({
+      capacityValue: 100,
+      currentValue: 100,
+      unit: '%',
+      theme: 'biological',
+      floorEffect,
+    });
+    return {
+      endurance: full('collapse'),
+      satiation: full('starvation'),
+      hydration: full('dehydration'),
+    };
+  }
 }
 
 // ---------- the mixin ----------
@@ -135,21 +146,21 @@ export function ReservedMixin<TBase extends MixinConstructor>(Base: TBase) {
 
     public getReserve(key: string): Reserve | undefined {
       const s = this.reserves[key];
-      return s ? reserveFromStored(key, s) : undefined;
+      return s ? Reserve.fromStored(key, s) : undefined;
     }
 
     public getReserves(): ReadonlyMap<string, Reserve> {
       const map = new Map<string, Reserve>();
       for (const [key, s] of Object.entries(this.reserves)) {
-        map.set(key, reserveFromStored(key, s));
+        map.set(key, Reserve.fromStored(key, s));
       }
       return map;
     }
 
     public setReserve(reserve: Reserve): void {
       // Per-field invariant on the setter: unit match + current clamped
-      // to [0, capacity] (reserveToStored enforces both).
-      this.reserves[reserve.key] = reserveToStored(reserve);
+      // to [0, capacity] (Reserve.toStored enforces both).
+      this.reserves[reserve.key] = reserve.toStored();
     }
 
     public adjustReserve(key: string, delta: Quantity<Unit>): void {
@@ -182,7 +193,7 @@ export function ReservedMixin<TBase extends MixinConstructor>(Base: TBase) {
     }
 
     public installBiologicalReserves(): void {
-      for (const [key, s] of Object.entries(defaultBiologicalReserves())) {
+      for (const [key, s] of Object.entries(Reserve.defaultBiological())) {
         if (!this.hasReserve(key)) this.reserves[key] = s;
       }
     }

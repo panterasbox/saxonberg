@@ -773,6 +773,13 @@ export abstract class Stuff {
    * Override (not extend with `super`) at any layer that wants
    * cleanup; chain to `super.onDestruct()` from the override so
    * intermediate layers in a mixin chain run too.
+   *
+   * @hook Invoked by `StuffApi.destruct` (and `forceDestruct`) while
+   *   the target is still live, after `canDestruct` passes and before
+   *   shadow-detach + `destroy()`. **Witness** — the return value is
+   *   ignored (it cannot veto; `canDestruct` is the veto seam). Override
+   *   to release resources/listeners and **chain `super.onDestruct()`**
+   *   so mixin layers run.
    */
   public onDestruct(): void {}
 

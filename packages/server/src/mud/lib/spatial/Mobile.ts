@@ -50,10 +50,10 @@ import type { DefaultAliasEntry } from '../shell/Alias';
 import { LocomotionApi } from '../../api/locomotion';
 import type { CommandGiver } from '../command/CommandGiver';
 import {
-  resolveSetting,
   SettingTypes,
   type SettingsSchemaEntry,
 } from '../shell/Environment';
+import { ShellApi } from '../../api/shell';
 
 /**
  * Public shape provided by MobileMixin.
@@ -665,7 +665,7 @@ export function MobileMixin<TBase extends MixinConstructor<Stuff & Containable>>
     // ───────── Default body factories ─────────
 
     protected defaultDepartureSelf(exit: Exit): Mml {
-      const tpl = resolveSetting<string>(
+      const tpl = ShellApi.resolveSetting<string>(
         this as unknown as Stuff,
         'messages.movement.departSelf',
       ) ?? '';
@@ -673,7 +673,7 @@ export function MobileMixin<TBase extends MixinConstructor<Stuff & Containable>>
     }
 
     protected defaultDeparturePeers(exit: Exit): Mml {
-      const tpl = resolveSetting<string>(
+      const tpl = ShellApi.resolveSetting<string>(
         this as unknown as Stuff,
         'messages.movement.departPeers',
       ) ?? '';
@@ -684,7 +684,7 @@ export function MobileMixin<TBase extends MixinConstructor<Stuff & Containable>>
     }
 
     protected defaultArrivalSelf(exit: Exit): Mml {
-      const tpl = resolveSetting<string>(
+      const tpl = ShellApi.resolveSetting<string>(
         this as unknown as Stuff,
         'messages.movement.arriveSelf',
       ) ?? '';
@@ -693,7 +693,7 @@ export function MobileMixin<TBase extends MixinConstructor<Stuff & Containable>>
     }
 
     protected defaultArrivalPeers(exit: Exit): Mml {
-      const tpl = resolveSetting<string>(
+      const tpl = ShellApi.resolveSetting<string>(
         this as unknown as Stuff,
         'messages.movement.arrivePeers',
       ) ?? '';
@@ -706,7 +706,7 @@ export function MobileMixin<TBase extends MixinConstructor<Stuff & Containable>>
     }
 
     protected defaultTeleportOutSelf(): Mml {
-      const tpl = resolveSetting<string>(
+      const tpl = ShellApi.resolveSetting<string>(
         this as unknown as Stuff,
         'messages.movement.teleportOutSelf',
       ) ?? '';
@@ -714,7 +714,7 @@ export function MobileMixin<TBase extends MixinConstructor<Stuff & Containable>>
     }
 
     protected defaultTeleportOutPeers(): Mml {
-      const tpl = resolveSetting<string>(
+      const tpl = ShellApi.resolveSetting<string>(
         this as unknown as Stuff,
         'messages.movement.teleportOutPeers',
       ) ?? '';
@@ -722,7 +722,7 @@ export function MobileMixin<TBase extends MixinConstructor<Stuff & Containable>>
     }
 
     protected defaultTeleportInSelf(): Mml {
-      const tpl = resolveSetting<string>(
+      const tpl = ShellApi.resolveSetting<string>(
         this as unknown as Stuff,
         'messages.movement.teleportInSelf',
       ) ?? '';
@@ -730,7 +730,7 @@ export function MobileMixin<TBase extends MixinConstructor<Stuff & Containable>>
     }
 
     protected defaultTeleportInPeers(): Mml {
-      const tpl = resolveSetting<string>(
+      const tpl = ShellApi.resolveSetting<string>(
         this as unknown as Stuff,
         'messages.movement.teleportInPeers',
       ) ?? '';

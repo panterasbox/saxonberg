@@ -28,9 +28,9 @@ import { Mml } from "../api/mml";
 import { ScheduleApi, type ScheduleHandle } from "../api/schedule";
 import {
   SettingTypes,
-  resolveSetting,
   type SettingsSchemaEntry,
 } from "../lib/shell/Environment";
+import { ShellApi } from "../api/shell";
 import { PostRegistrationMixin } from "../lib/stuff/PostRegistration";
 import { HasInteractiveMixin } from "../lib/connection/HasInteractive";
 import { AetherMixin } from "../lib/message/Aether";
@@ -272,6 +272,13 @@ export default class Avatar extends AvatarBase {
    * ordering as last-write-wins. See
    * `docs/subsystems/templates.md` § Persist-Back for the
    * snapshot-before-await ordering invariant the substrate honors.
+   *
+   * @hook Invoked by the backend lifecycle (periodic autosave timer,
+   *   the linkdead hook, and manual `eval`) to persist the avatar's
+   *   full state back to its template. **Witness** (async) — snapshots
+   *   before the first `await` so concurrent saves each write a valid
+   *   full-state snapshot (last-write-wins). The only v1 persist-back
+   *   consumer; not a general mixin surface.
    */
   public async save(): Promise<void> {
     // Guests persist nothing — no per-character template to write back.
@@ -476,7 +483,8 @@ export default class Avatar extends AvatarBase {
     if (this.isGuest) return; // Guests never persist — no autosave timer.
     if (this.periodicSaveHandle !== null) return;
     const intervalMs =
-      resolveSetting<number>(this, "world.autosave.interval") ?? 5 * 60 * 1000;
+      ShellApi.resolveSetting<number>(this, "world.autosave.interval") ??
+      5 * 60 * 1000;
     this.periodicSaveHandle = ScheduleApi.recurring(
       intervalMs,
       () => {
@@ -581,6 +589,12 @@ export default class Avatar extends AvatarBase {
    * HasInteractive Witness hook — fires when the last live
    * connection drops (count crosses 1 → 0). Engine-level event
    * for observers that care about player presence.
+   *
+   * @hook Invoked by the backend connection layer when an avatar's
+   *   last live Interactive disconnects (the 1 → 0 presence edge).
+   *   **Witness** — react to the player going linkdead (reap a guest
+   *   body, freeze in-session clocks, persist, etc.). Override and
+   *   chain `super.onLinkdead()` to keep base presence handling.
    */
   public onLinkdead(): void {
     // A guest body has nothing to resume — reap it the moment its last

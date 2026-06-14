@@ -1,7 +1,7 @@
 import { describe, it, expect, afterEach, beforeEach } from 'vitest';
 import { Marshaller } from '../Marshaller';
 import { Idea } from '../../stuff/Idea';
-import { Document, setDocumentMarshallerResolver } from '../Document';
+import { Document } from '../Document';
 import PersistentHydrator from '../PersistentHydrator';
 import { MixinApi } from '../../../api/mixin';
 import { StuffApi } from '../../../api/stuff';
@@ -120,7 +120,7 @@ describe('Marshaller framework', () => {
     // Wire the Document marshaller-resolution seam to the Stuff registry
     // (production wires this at boot in AppBootstrap). Without it the
     // Document toDocument/fromDocument path throws "resolver not wired".
-    setDocumentMarshallerResolver(
+    Document.setMarshallerResolver(
       (path) => StuffApi.findByTemplatePath<Marshaller<unknown, unknown>>(path),
       (path) => StuffApi.singleton<Marshaller<unknown, unknown>>(path)
     );

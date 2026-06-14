@@ -8,5 +8,5 @@ test.use({ storageState: { cookies: [], origins: [] } });
 
 test('an unauthenticated visitor sees the login screen', async ({ page }) => {
   await page.goto('/');
-  await expect(page.getByText('Login with Google')).toBeVisible();
+  await expect(page.getByText('Sign in with Google')).toBeVisible();
 });

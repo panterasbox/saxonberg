@@ -7,6 +7,9 @@
 
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { WorldClockApi } from '../../../api/worldclock';
+import { WorldClockLogic } from '../../../obj/api/WorldClockLogic';
+import { StuffApi } from '../../../api/stuff';
+import { SecurityError } from '../../security/errors';
 
 describe('WorldClockApi advance + scale (AC1)', () => {
   let real: number;
@@ -98,5 +101,33 @@ describe('WorldClockApi pause / resume (AC2)', () => {
     WorldClockApi.resume();
     real = 10000;
     expect(WorldClockApi.getNow().rawValue()).toBe(24);
+  });
+});
+
+describe('WorldClockLogic singleton encapsulation', () => {
+  beforeEach(() => {
+    WorldClockApi._resetForTesting();
+  });
+  afterEach(() => {
+    WorldClockApi._resetForTesting();
+  });
+
+  it('lives at /obj/api/worldclock once the facade has materialized it', () => {
+    // A facade call lazily creates the logic singleton.
+    WorldClockApi.getScale();
+    const logic = StuffApi.findByTemplatePath('/obj/api/worldclock');
+    expect(logic).toBeDefined();
+    expect(StuffApi.findByPathGlob('/obj/api/*')).toContain(logic);
+  });
+
+  it('denies a direct logic-method call from a non-WorldClockApi caller', () => {
+    WorldClockApi.getScale();
+    const logic = StuffApi.findByTemplatePath<WorldClockLogic>(
+      '/obj/api/worldclock'
+    );
+    expect(logic).toBeDefined();
+    // The test module is not `mud/api/worldclock#WorldClockApi`, so the
+    // FromModule gate on the logic's own methods denies the call.
+    expect(() => logic!.getScale()).toThrow(SecurityError);
   });
 });

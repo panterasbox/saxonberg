@@ -12,9 +12,9 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import { Idea } from '../../stuff/Idea';
 import {
   EnvironmentMixin,
-  resolveSetting,
   type SettingsSchemaEntry,
 } from '../Environment';
+import { ShellApi } from '../../../api/shell';
 import type { MixinConstructor } from '../../mixin';
 import { Stuff } from '../../stuff/Stuff';
 import { makeStuff } from '../../security/__tests__/test-setup';
@@ -315,22 +315,22 @@ describe('EnvironmentMixin', () => {
   describe('resolveSetting', () => {
     it('returns the stored override on an Environment host', () => {
       host.setSetting<string>('feature.greeting', 'howdy', host);
-      expect(resolveSetting<string>(host, 'feature.greeting')).toBe('howdy');
+      expect(ShellApi.resolveSetting<string>(host, 'feature.greeting')).toBe('howdy');
     });
 
     it('returns the schema default on an Environment host with no override', () => {
-      expect(resolveSetting<string>(host, 'feature.greeting')).toBe('hello');
+      expect(ShellApi.resolveSetting<string>(host, 'feature.greeting')).toBe('hello');
     });
 
     it('returns the schema default on a non-Environment host', () => {
       const npc = makeStuff(() => new NonEnvHost());
-      expect(resolveSetting<string>(npc, 'feature.greeting')).toBe('hello');
+      expect(ShellApi.resolveSetting<string>(npc, 'feature.greeting')).toBe('hello');
     });
 
     it('returns undefined on any host for an undeclared key', () => {
       const npc = makeStuff(() => new NonEnvHost());
-      expect(resolveSetting<string>(host, 'nope')).toBeUndefined();
-      expect(resolveSetting<string>(npc, 'nope')).toBeUndefined();
+      expect(ShellApi.resolveSetting<string>(host, 'nope')).toBeUndefined();
+      expect(ShellApi.resolveSetting<string>(npc, 'nope')).toBeUndefined();
     });
   });
 });

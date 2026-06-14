@@ -52,6 +52,7 @@ import { ModuleApi } from '../api/module';
 import { WorldClockApi, type ClockHandle } from '../api/worldclock';
 import { Quantity } from '../lib/quantity';
 import { SchedulerApi } from '../api/scheduler';
+import { registerSchedulerRegistryClass } from './api/SchedulerLogic';
 import type {
   ActivityClass,
   DurativeActivity,
@@ -60,9 +61,15 @@ import type {
   StartResult,
 } from '../api/scheduler';
 
-/** See WorldClockRegistry — same gate shape, same rationale. */
+/**
+ * See WorldClockRegistry — same gate shape, same rationale. Admits the
+ * Api facade, the `SchedulerLogic` singleton (caller template path
+ * `/obj/api/scheduler`, which actually forwards every call), and
+ * internal `this.foo()` self-calls.
+ */
 const SchedulerApiCallers = SecurityPolicies.AnyOf(
   SecurityPolicies.FromModule('mud/api/scheduler#SchedulerApi'),
+  SecurityPolicies.FromTemplate('/obj/api/scheduler'),
   SecurityPolicies.SelfOnly,
 );
 
@@ -551,5 +558,5 @@ export default class SchedulerRegistry extends Idea {
   }
 }
 
-// Side-effect: hand the class to SchedulerApi for its lazy-create path.
-SchedulerApi._registerRegistryClass(SchedulerRegistry);
+// Side-effect: hand the class to SchedulerLogic for its lazy-create path.
+registerSchedulerRegistryClass(SchedulerRegistry);

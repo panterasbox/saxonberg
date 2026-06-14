@@ -18,6 +18,13 @@ import type { Stuff } from '../stuff/Stuff';
  * Public shape added by AroundDeleteHookMixin.
  */
 export interface AroundDeleteHook {
+  /**
+   * @hook Invoked by `PersistenceManager` around every delete from the
+   *   hook's collection, middleware-style. **Around** — you MUST call
+   *   `next(id)` to proceed; validate before (e.g. reject deletes that
+   *   break an invariant by throwing) or run side-effects after.
+   *   Default is pass-through.
+   */
   aroundDelete(
     collection: string,
     id: string,

@@ -12,6 +12,8 @@
 
 import { describe, it, expect, beforeEach } from 'vitest';
 import { PerceptionApi } from '../perception';
+import { PerceptionLogic } from '../../obj/api/PerceptionLogic';
+import { SecurityError } from '../../lib/security/errors';
 import { StuffApi } from '../stuff';
 import Species from '../../lib/species/Species';
 import BodyPlan from '../../lib/species/BodyPlan';
@@ -240,5 +242,25 @@ describe('PerceptionApi', () => {
       expect(second).not.toBe(first);
       expect(second.getName()).toBe('vision');
     });
+  });
+});
+
+describe('PerceptionLogic singleton encapsulation', () => {
+  beforeEach(() => {
+    StuffApi.clearAll();
+  });
+
+  it('denies a direct logic-method call from a non-PerceptionApi caller', () => {
+    // A facade call lazily creates the logic singleton.
+    PerceptionApi.sensorium(makeStuff(() => new Thing()));
+    const logic = StuffApi.findByTemplatePath<PerceptionLogic>(
+      '/obj/api/perception'
+    );
+    expect(logic).toBeDefined();
+    // The test module is not `mud/api/perception#PerceptionApi`, so the
+    // FromModule gate on the logic's own methods denies the call.
+    expect(() =>
+      logic!.sensorium(makeStuff(() => new Thing()))
+    ).toThrow(SecurityError);
   });
 });

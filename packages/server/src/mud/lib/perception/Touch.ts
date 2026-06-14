@@ -59,16 +59,6 @@ const BAND_THRESHOLDS_K: Record<TouchBand, number> = {
   scalding: Number.POSITIVE_INFINITY,
 };
 
-/**
- * Map a Kelvin temperature to a TouchBand.
- */
-export function bandFor(temperatureK: number): TouchBand {
-  for (const band of TOUCH_BANDS) {
-    if (temperatureK < BAND_THRESHOLDS_K[band]) return band;
-  }
-  return 'scalding';
-}
-
 export class Touch {
   public readonly temperature: Quantity<'K'>;
   public readonly band: TouchBand;
@@ -78,13 +68,23 @@ export class Touch {
     this.band = band;
   }
 
+  /**
+   * Map a Kelvin temperature to a TouchBand.
+   */
+  public static bandFor(temperatureK: number): TouchBand {
+    for (const band of TOUCH_BANDS) {
+      if (temperatureK < BAND_THRESHOLDS_K[band]) return band;
+    }
+    return 'scalding';
+  }
+
   public static of(temperature: Quantity<'K'>): Touch {
     if (!(temperature instanceof Quantity) || temperature.unit !== 'K') {
       throw new TypeError(
         `Touch.of: temperature must be Quantity<'K'>`,
       );
     }
-    return new Touch(temperature, bandFor(temperature.rawValue()));
+    return new Touch(temperature, Touch.bandFor(temperature.rawValue()));
   }
 
   public toJSON(): {

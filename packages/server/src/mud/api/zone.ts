@@ -14,9 +14,7 @@
  * 2. **`getEnclosingZone`** — nearest Zone-class template ancestor
  *    for any zone instance. The orchestration step that
  *    `Zone.lookupAncestorField` (the polymorphic field-inheritance
- *    walk in `lib/zone/Zone.ts`) delegates to. Lives here, not on
- *    Zone, because the walk is pure plumbing through `Template` +
- *    `StuffApi.singleton` — no override seam needed.
+ *    walk in `lib/zone/Zone.ts`) delegates to.
  *
  * 3. **`isFolderClass` / `isSpatialZoneClass`** — structural
  *    predicates that load a class by path and check
@@ -24,46 +22,34 @@
  *    Content devs add folder/spatial-zone classes by extending
  *    those bases — no central allow-list to edit.
  *
- * Caching is delegated to `StuffApi.singleton()` (for runtime
- * instances) and to a per-classPath result map below (for the
- * structural checks). The dynamic import itself is also cached by
- * the JS module cache; the local maps just save the prototype walk.
- *
- * Cycle note: `SpatialZone` is *not* statically imported here. It's
- * lazy-loaded inside `isSpatialZoneClass`. The reason — `SpatialZone
- * extends Zone` is eagerly evaluated at SpatialZone's module-load,
- * and `Zone.ts` static-imports `ZoneApi` for its
- * `lookupAncestorField` orchestration. Eager `SpatialZone` here
- * would form a Zone → ZoneApi → SpatialZone → Zone cycle whose
- * middle step blows up because Zone's class binding isn't ready
- * yet. Dynamic-loading SpatialZone inside the predicate body keeps
- * the static graph clean.
+ * Thin, security-gated forwarding shell: the logic (and the
+ * structural-check caches) live in the hot-reloadable {@link ZoneLogic}
+ * singleton at `/obj/api/zone`, reached synchronously via
+ * `StuffApi.singletonSync`. `dest /obj/api/zone` reloads it.
  */
 
 import { StuffApi } from './stuff';
-import { Template } from '../lib/stuff/Template';
-import { Zone } from '../lib/zone/Zone';
+import type { Zone } from '../lib/zone/Zone';
 import type { SpatialZone } from '../lib/zone/SpatialZone';
+import { HotReloadApi } from './hot-reload';
 import { SecurityApi } from './security';
+import { ZoneLogic } from '../obj/api/ZoneLogic';
+import { fileURLToPath } from 'url';
 
-/**
- * Cache of `classPath → prototype instanceof Zone` results. The check
- * is structural and stable across the process lifetime — a class
- * that extends Zone today still extends it tomorrow. Cleared by
- * `_clearClassCaches` for tests.
- */
-const folderClassCache = new Map<string, boolean>();
-const spatialZoneClassCache = new Map<string, boolean>();
+const LOGIC_PATH = '/obj/api/zone';
+const LOGIC_CLASS_FILE = fileURLToPath(
+  new URL('../obj/api/ZoneLogic', import.meta.url)
+);
 
-interface ClassWithPrototype {
-  prototype: object;
-}
-
-function hasPrototype(value: unknown): value is ClassWithPrototype {
-  return (
-    typeof value === 'function' &&
-    typeof (value as { prototype?: unknown }).prototype === 'object' &&
-    (value as { prototype?: unknown }).prototype !== null
+/** Resolve the HMR-able ZoneLogic singleton (sync). */
+function logic(): ZoneLogic {
+  return StuffApi.singletonSync(
+    LOGIC_PATH,
+    () =>
+      new ((HotReloadApi.getCurrentExport(
+        LOGIC_CLASS_FILE,
+        'ZoneLogic'
+      ) as typeof ZoneLogic | null) ?? ZoneLogic)()
   );
 }
 
@@ -79,17 +65,7 @@ export class ZoneApi {
    * the caller's path validation surfaces those errors separately.
    */
   public static async isFolderClass(classPath: string): Promise<boolean> {
-    const cached = folderClassCache.get(classPath);
-    if (cached !== undefined) return cached;
-    let result = false;
-    try {
-      const cls = await StuffApi.loadClassByPath(classPath);
-      result = hasPrototype(cls) && cls.prototype instanceof Zone;
-    } catch {
-      result = false;
-    }
-    folderClassCache.set(classPath, result);
-    return result;
+    return logic().isFolderClass(classPath);
   }
 
   /**
@@ -97,24 +73,9 @@ export class ZoneApi {
    * subset of folder classes that stamp `Stuff.zone`. Non-spatial
    * Zones (Clade) return `false` here even though `isFolderClass`
    * returns `true` for them.
-   *
-   * `SpatialZone` is lazy-loaded inside the body — see the module
-   * header for the cycle reasoning. The JS module cache makes
-   * second-and-later resolution effectively free.
    */
   public static async isSpatialZoneClass(classPath: string): Promise<boolean> {
-    const cached = spatialZoneClassCache.get(classPath);
-    if (cached !== undefined) return cached;
-    const { SpatialZone } = await import('../lib/zone/SpatialZone');
-    let result = false;
-    try {
-      const cls = await StuffApi.loadClassByPath(classPath);
-      result = hasPrototype(cls) && cls.prototype instanceof SpatialZone;
-    } catch {
-      result = false;
-    }
-    spatialZoneClassCache.set(classPath, result);
-    return result;
+    return logic().isSpatialZoneClass(classPath);
   }
 
   /**
@@ -131,15 +92,7 @@ export class ZoneApi {
    * subclass should reshape it.
    */
   public static async getEnclosingZone(zone: Zone): Promise<Zone | null> {
-    const ownPath = zone.getTemplatePath();
-    if (!ownPath) return null;
-    for (const ancestor of Template.ancestorPaths(ownPath)) {
-      const tpl = await Template.findByPath(ancestor);
-      if (!tpl) continue;
-      if (!(await ZoneApi.isFolderClass(tpl.class))) continue;
-      return await StuffApi.singleton<Zone>(ancestor);
-    }
-    return null;
+    return logic().getEnclosingZone(zone);
   }
 
   /**
@@ -149,9 +102,7 @@ export class ZoneApi {
    * @internal
    */
   public static _clearClassCaches(): void {
-    SecurityApi.assertTestOnly('_clearClassCaches');
-    folderClassCache.clear();
-    spatialZoneClassCache.clear();
+    logic()._clearClassCaches();
   }
 
   /**
@@ -177,18 +128,7 @@ export class ZoneApi {
   public static async resolveZoneForPath(
     templatePath: string
   ): Promise<SpatialZone | null> {
-    const selfTemplate = await Template.findByPath(templatePath);
-    if (selfTemplate && (await ZoneApi.isSpatialZoneClass(selfTemplate.class))) {
-      return null;
-    }
-
-    for (const ancestor of Template.ancestorPaths(templatePath)) {
-      const ancestorTpl = await Template.findByPath(ancestor);
-      if (!ancestorTpl) continue;
-      if (!(await ZoneApi.isSpatialZoneClass(ancestorTpl.class))) continue;
-      return await StuffApi.singleton<SpatialZone>(ancestor);
-    }
-    return null;
+    return logic().resolveZoneForPath(templatePath);
   }
 }
 

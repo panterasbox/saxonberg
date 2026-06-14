@@ -47,7 +47,7 @@ import { StuffApi } from '../../api/stuff';
 import { SlottedMixin } from '../slot/Slotted';
 
 import type { Boundary } from './Boundary';
-import { isBoundaryAnchor } from './BoundaryAnchor';
+import { BoundaryAnchor } from './BoundaryAnchor';
 
 /** Public shape added by AdornableMixin. */
 export interface Adornable {
@@ -135,7 +135,7 @@ export function AdornableMixin<TBase extends MixinConstructor<Stuff & Container>
       const seen = new Set<string>();
       const out: Boundary[] = [];
       for (const f of this.fixtureSlots.values()) {
-        if (!isBoundaryAnchor(f)) continue;
+        if (!BoundaryAnchor.is(f)) continue;
         const boundary = f.getBoundary();
         if (!boundary) continue;
         const id = (boundary as unknown as Stuff).stuffId;

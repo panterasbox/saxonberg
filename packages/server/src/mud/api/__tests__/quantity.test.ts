@@ -288,3 +288,17 @@ lumen:
     );
   });
 });
+
+describe('QuantityLogic singleton encapsulation', () => {
+  it('denies a direct logic-method call from a non-QuantityApi caller', async () => {
+    const { StuffApi } = await import('../stuff');
+    const { SecurityError } = await import('../../lib/security/errors');
+    type QuantityLogic = import('../../obj/api/QuantityLogic').QuantityLogic;
+    QuantityApi.isUnitToken('cups');
+    const logic = StuffApi.findByTemplatePath<QuantityLogic>(
+      '/obj/api/quantity'
+    );
+    expect(logic).toBeDefined();
+    expect(() => logic!.isUnitToken('cups')).toThrow(SecurityError);
+  });
+});

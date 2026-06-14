@@ -8,7 +8,7 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { Creature } from '../creature/Creature';
 import { Quantity } from '../quantity';
-import { BIOLOGICAL_RESERVE_KEYS } from '../reserve';
+import { BIOLOGICAL_RESERVE_KEYS, Reserve } from '../reserve';
 import { StuffApi } from '../../api/stuff';
 import { makeStuff } from '../security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '../persistence/__tests__/quantity-marshaller-test-helpers';
@@ -53,13 +53,15 @@ describe('ReservedMixin — authored-thematic seam', () => {
 
   it('defines a non-biological reserve on the same axis and round-trips it', () => {
     const c = makeStuff(() => new Creature());
-    c.setReserve({
-      key: 'charge',
-      capacity: Quantity.of(50, '%'),
-      current: Quantity.of(30, '%'),
-      theme: 'arcane',
-      floorEffect: null,
-    });
+    c.setReserve(
+      new Reserve(
+        'charge',
+        Quantity.of(50, '%'),
+        Quantity.of(30, '%'),
+        'arcane',
+        null,
+      ),
+    );
     const charge = c.getReserve('charge');
     expect(charge?.theme).toBe('arcane');
     expect(charge?.current.rawValue()).toBe(30);
@@ -70,13 +72,9 @@ describe('ReservedMixin — authored-thematic seam', () => {
 
   it('setReserve clamps current to capacity', () => {
     const c = makeStuff(() => new Creature());
-    c.setReserve({
-      key: 'x',
-      capacity: Quantity.of(10, '%'),
-      current: Quantity.of(50, '%'),
-      theme: 't',
-      floorEffect: null,
-    });
+    c.setReserve(
+      new Reserve('x', Quantity.of(10, '%'), Quantity.of(50, '%'), 't', null),
+    );
     expect(c.getReserve('x')?.current.rawValue()).toBe(10);
   });
 });

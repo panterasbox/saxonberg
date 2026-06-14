@@ -7,8 +7,12 @@
  *
  * All inputs that reference a mode by name accept either the short
  * name (`'walk'`) or the full templatePath (`/lib/locomotion/walk`).
- * Internally the API normalizes to the full path via `#toModePath` so
- * the singleton-cache lookup uses the canonical key.
+ *
+ * Thin, security-gated forwarding shell: the logic lives in the
+ * hot-reloadable {@link LocomotionLogic} singleton at
+ * `/obj/api/locomotion`, reached synchronously via
+ * `StuffApi.singletonSync`. `dest /obj/api/locomotion` reloads it
+ * (HMR demo in hot-reload.md).
  */
 
 import type { Stuff } from '../lib/stuff/Stuff';
@@ -16,22 +20,27 @@ import type { Containable } from '../lib/spatial/Containable';
 import type { Mobile } from '../lib/spatial/Mobile';
 import type Exit from '../lib/boundary/Exit';
 import type { TraversalGuard } from '../lib/boundary/Exit';
-import {
+import type {
   LocomotionMode,
-  type BodyProfile,
-  type GroundContact,
-  type NoiseLevel,
+  BodyProfile,
+  GroundContact,
+  NoiseLevel,
 } from '../lib/locomotion/LocomotionMode';
 import type { Enablement } from '../lib/locomotion/Enablement';
 import { StuffApi } from './stuff';
-import { MixinApi } from './mixin';
+import { HotReloadApi } from './hot-reload';
 import { SecurityApi } from './security';
-import { SpeciesApi } from './species';
-import { SlotApi } from './slot';
-import type { MixinName } from '../lib/mixin';
-import { LOAD_BEARING_DEFAULTS } from '../lib/encumbrance/LoadBearing';
-import { Postures } from '../lib/slot/Postured';
-import { ownSetting } from '../lib/shell/Environment';
+import { LocomotionLogic } from '../obj/api/LocomotionLogic';
+import { fileURLToPath } from 'url';
+
+// Author-surface types ride this face (type-only re-exports — weightless).
+export type {
+  TraversalGuard,
+  Enablement,
+  BodyProfile,
+  GroundContact,
+  NoiseLevel,
+};
 
 /**
  * Aggregated emission data exposed to trap / detection / sound
@@ -47,10 +56,48 @@ export interface EmissionData {
   resolvedHostChain: Stuff[];
 }
 
-/** Hard depth cap for the passthrough chain walk; matches the conveyance ripple. */
-const MAX_PASSTHROUGH_DEPTH = 16;
+const LOGIC_PATH = '/obj/api/locomotion';
+const LOGIC_CLASS_FILE = fileURLToPath(
+  new URL('../obj/api/LocomotionLogic', import.meta.url)
+);
+
+/** Resolve the HMR-able LocomotionLogic singleton (sync). */
+function logic(): LocomotionLogic {
+  return StuffApi.singletonSync(
+    LOGIC_PATH,
+    () =>
+      new ((HotReloadApi.getCurrentExport(
+        LOGIC_CLASS_FILE,
+        'LocomotionLogic'
+      ) as typeof LocomotionLogic | null) ?? LocomotionLogic)()
+  );
+}
 
 export class LocomotionApi {
+  // ── enablement validators ────────────────────────────────────────
+
+  /**
+   * Validate an Enablement axes list (Climbable / Swimmable / Flyable
+   * `setAxes`). Throws `TypeError` on a duplicate or empty-string
+   * entry. `where` labels the throw with the calling setter.
+   */
+  public static assertEnablementAxes(value: string[], where: string): void {
+    logic().assertEnablementAxes(value, where);
+  }
+
+  /**
+   * Validate an Enablement difficulty value (Climbable / Swimmable /
+   * Flyable `setDifficulty`). Throws `RangeError` on a non-null,
+   * non-positive, or non-finite value. `where` labels the throw with
+   * the calling setter.
+   */
+  public static assertEnablementDifficulty(
+    value: number | null,
+    where: string,
+  ): void {
+    logic().assertEnablementDifficulty(value, where);
+  }
+
   // ── mode resolution ──────────────────────────────────────────────
 
   /**
@@ -60,18 +107,11 @@ export class LocomotionApi {
    * singletons in the bootstrap manifest).
    */
   public static modeOf(nameOrPath: string): LocomotionMode | null {
-    const path = LocomotionApi.#toModePath(nameOrPath);
-    return StuffApi.findByTemplatePath<LocomotionMode>(path) ?? null;
+    return logic().modeOf(nameOrPath);
   }
 
   public static modeOfOrThrow(nameOrPath: string): LocomotionMode {
-    const mode = LocomotionApi.modeOf(nameOrPath);
-    if (!mode) {
-      throw new Error(
-        `LocomotionMode not loaded: ${LocomotionApi.#toModePath(nameOrPath)}`,
-      );
-    }
-    return mode;
+    return logic().modeOfOrThrow(nameOrPath);
   }
 
   /**
@@ -86,8 +126,7 @@ export class LocomotionApi {
    * with the sync `modeOf` family.
    */
   public static async loadMode(nameOrPath: string): Promise<LocomotionMode> {
-    const path = LocomotionApi.#toModePath(nameOrPath);
-    return await StuffApi.singleton<LocomotionMode>(path);
+    return logic().loadMode(nameOrPath);
   }
 
   /**
@@ -106,20 +145,7 @@ export class LocomotionApi {
    * Idiomatically paired with `loadMode` at locomotion entry points.
    */
   public static async preloadActorAnatomy(actor: Stuff): Promise<void> {
-    // Thin delegate — kept as a locomotion-domain entry point but the
-    // anatomy-load itself lives on `SpeciesApi.preloadAnatomy` (the
-    // home where species + clade + body plan are the substrate it
-    // serves). Sense / ESP validators call `SpeciesApi.preloadAnatomy`
-    // directly; locomotion verbs still go through here so the
-    // `loadMode` / `preloadActorAnatomy` pairing at locomotion entry
-    // points reads cleanly.
-    await SpeciesApi.preloadAnatomy(actor);
-  }
-
-  /** Short name → full path; full path passes through. */
-  static #toModePath(nameOrPath: string): string {
-    if (nameOrPath.startsWith('/')) return nameOrPath;
-    return `/lib/locomotion/${nameOrPath}`;
+    return logic().preloadActorAnatomy(actor);
   }
 
   /**
@@ -127,11 +153,7 @@ export class LocomotionApi {
    * registry; v1's universe is small enough that this is acceptable.
    */
   public static allModes(): readonly LocomotionMode[] {
-    const out: LocomotionMode[] = [];
-    for (const obj of StuffApi.getAllObjects()) {
-      if (obj instanceof LocomotionMode) out.push(obj);
-    }
-    return out;
+    return logic().allModes();
   }
 
   /**
@@ -148,51 +170,21 @@ export class LocomotionApi {
    *      where walk is the sensible neutral.
    */
   public static resolveHostMode(host: Stuff & Mobile): LocomotionMode {
-    const engaged = host.getEngagedMode();
-    if (engaged) return engaged;
-    if (MixinApi.isDrivable(host)) {
-      const veh = host.getVehicularMode();
-      if (veh) return veh;
-      throw new Error(
-        `LocomotionApi.resolveHostMode: Drivable host ${host.stuffId} has ` +
-          `no vehicularMode authored — set one via setVehicularMode at ` +
-          `template-time (e.g., wheeled for carts, sailed for boats)`,
-      );
-    }
-    return LocomotionApi.modeOfOrThrow('walk');
+    return logic().resolveHostMode(host);
   }
 
   // ── eligibility predicates ───────────────────────────────────────
 
   public static bodyPlanAllows(actor: Stuff, mode: LocomotionMode): boolean {
-    const required = mode.getRequiresBodyPlanMode();
-    if (required.length === 0) return true;
-    // Non-Organism actors have no body-plan to consult. The body-plan
-    // gate exists to model anatomy constraints (sessile plants can't
-    // walk, fish can't fly, etc.); something without a body-plan
-    // (vehicle, abstract entity, test fixture Mobile) is outside that
-    // model — treat it as "no anatomy constraint applies" rather than
-    // a blanket reject. The plan's Q12.3 sessile-plant case stays
-    // covered: sessile plants ARE organisms with an empty
-    // locomotionModes list.
-    if (!MixinApi.isOrganism(actor)) return true;
-    const species = actor.getSpecies();
-    const bodyPlan = species?.getBodyPlan();
-    const planModes = bodyPlan?.getLocomotionModes() ?? [];
-    return required.some((m) => planModes.includes(m));
+    return logic().bodyPlanAllows(actor, mode);
   }
 
   public static postureAllows(actor: Stuff, mode: LocomotionMode): boolean {
-    const required = mode.getRequiresPosture();
-    if (required.length === 0) return true;
-    const posture = MixinApi.isPosed(actor)
-      ? actor.getPosture()
-      : Postures.Stand;
-    return required.includes(posture);
+    return logic().postureAllows(actor, mode);
   }
 
   public static exitAllowsMode(exit: Exit, mode: LocomotionMode): boolean {
-    return exit.allowsMode(mode.getName());
+    return logic().exitAllowsMode(exit, mode);
   }
 
   /**
@@ -200,10 +192,7 @@ export class LocomotionApi {
    * enablement / conveyance — those live in `canTraverseExit`.
    */
   public static canEngage(actor: Stuff, mode: LocomotionMode): boolean {
-    return (
-      LocomotionApi.bodyPlanAllows(actor, mode) &&
-      LocomotionApi.postureAllows(actor, mode)
-    );
+    return logic().canEngage(actor, mode);
   }
 
   /**
@@ -223,25 +212,7 @@ export class LocomotionApi {
     mode: LocomotionMode,
     direction: string,
   ): TraversalGuard {
-    if (!LocomotionApi.bodyPlanAllows(actor, mode)) {
-      return {
-        ok: false,
-        gate: 'bodyPlan',
-        mode: mode.getName(),
-        reason: `Your body can't ${mode.getName()}.`,
-      };
-    }
-    if (!LocomotionApi.postureAllows(actor, mode)) {
-      return {
-        ok: false,
-        gate: 'posture',
-        mode: mode.getName(),
-        reason: `You can't ${mode.getName()} from this posture.`,
-      };
-    }
-    const exitGuard = exit.canTraverse(actor, mode.getName());
-    if (!exitGuard.ok) return exitGuard;
-    return LocomotionApi.checkEnablement(actor, mode, direction);
+    return logic().canTraverseExit(actor, exit, mode, direction);
   }
 
   // ── enablement walk ──────────────────────────────────────────────
@@ -262,145 +233,7 @@ export class LocomotionApi {
     mode: LocomotionMode,
     direction: string,
   ): TraversalGuard {
-    if (mode.getPassthrough()) {
-      return LocomotionApi.#checkConveyance(actor, mode);
-    }
-    const mixinName = mode.getEnablementMixin();
-    if (!mixinName) return { ok: true };
-    return LocomotionApi.#checkEnablementScope(
-      actor,
-      mode,
-      direction,
-      mixinName,
-    );
-  }
-
-  static #checkEnablementScope(
-    actor: Stuff & Containable,
-    mode: LocomotionMode,
-    direction: string,
-    mixinName: string,
-  ): TraversalGuard {
-    const host = LocomotionApi.#findEnablementHost(
-      actor,
-      mixinName,
-      direction,
-    );
-    if (!host) {
-      return {
-        ok: false,
-        gate: 'enablement',
-        mode: mode.getName(),
-        reason: `There's no way to ${mode.getName()} ${direction}.`,
-        context: { missing: mixinName },
-      };
-    }
-    if (!host.canBeEngagedBy(actor)) {
-      return {
-        ok: false,
-        gate: 'capability',
-        mode: mode.getName(),
-        reason: `That's too hard for you.`,
-        context: { difficulty: host.getDifficulty() },
-      };
-    }
-    // Load-aware veto — an overloaded body can't engage climb/swim/fly
-    // (the modes with an `enablementMixin`, the only ones this scope
-    // runs for; walk has no enablement mixin so it is never gated). This
-    // is *alongside* the capability check (placed after it so a too-hard
-    // host still reports the difficulty reason first if both fail), and
-    // lives at this LocomotionApi layer rather than `Mobile.traverse` —
-    // a raw/dev traverse skips the veto entirely (the agnostic-substrate
-    // guarantee). Open seam: relocate to `ExitableMixin`/boundary if
-    // desired — the predicate moves unchanged.
-    if (
-      MixinApi.isLoadBearing(actor) &&
-      actor.getLoadRatio() >= LOAD_BEARING_DEFAULTS.HEAVY_LOAD_THRESHOLD
-    ) {
-      return {
-        ok: false,
-        gate: 'encumbrance',
-        mode: mode.getName(),
-        reason: `You're carrying too much to ${mode.getName()}.`,
-        context: { loadRatio: actor.getLoadRatio() },
-      };
-    }
-    return { ok: true };
-  }
-
-  /**
-   * Generic scope walk: find any host in the actor's container (or any
-   * Containable inside that container) that composes `mixinName` and
-   * accepts `direction`. No mode name appears — dispatch is by mixin
-   * registry constant, per the substrate-uniform shape.
-   */
-  static #findEnablementHost(
-    actor: Stuff & Containable,
-    mixinName: string,
-    direction: string,
-  ): (Stuff & Enablement) | null {
-    const container = actor.getContainer();
-    if (!container) return null;
-    const candidates: Stuff[] = [container];
-    if (MixinApi.isContainer(container)) {
-      for (const item of container.getContents()) candidates.push(item);
-    }
-    for (const c of candidates) {
-      const enablement = LocomotionApi.#asEnablement(c, mixinName);
-      if (enablement && enablement.canEngageAxis(direction)) {
-        return enablement;
-      }
-    }
-    return null;
-  }
-
-  /**
-   * Runtime-checked narrow from `Stuff` to `Stuff & Enablement`.
-   * The runtime check is `MixinApi.hasMixin(c, mixinName)`; the cast
-   * is safe by construction because the only mixin names passed here
-   * come from `LocomotionMode.getEnablementMixin()` — a field whose
-   * values are guaranteed (by spec) to name mixins that implement the
-   * `Enablement` interface (Climbable / Swimmable / Flyable today;
-   * future enablement mixins must as well).
-   *
-   * Cast on `mixinName`: the stored value is plain `string`, but
-   * `MixinName` is a union of registry-branded literals. Casting to
-   * the union is the conventional way to bridge that gap; the runtime
-   * check still rejects strings that don't name a real mixin.
-   */
-  static #asEnablement(
-    c: Stuff,
-    mixinName: string,
-  ): (Stuff & Enablement) | null {
-    if (!MixinApi.hasMixin(c, mixinName as MixinName)) return null;
-    return c as Stuff & Enablement;
-  }
-
-  // Passthrough conveyance check (ride / drive).
-  static #checkConveyance(
-    actor: Stuff,
-    mode: LocomotionMode,
-  ): TraversalGuard {
-    const conveyance = mode.getConveyanceMixin();
-    if (!conveyance) return { ok: true };
-    if (!MixinApi.isSlottable(actor)) {
-      return {
-        ok: false,
-        gate: 'noConveyance',
-        mode: mode.getName(),
-        reason: `You're not ${mode.getName()}ing anything.`,
-      };
-    }
-    const occupied = SlotApi.findOccupiedSlots(actor);
-    for (const [host] of occupied.entries()) {
-      if (MixinApi.hasMixin(host, conveyance as MixinName)) return { ok: true };
-    }
-    return {
-      ok: false,
-      gate: 'noConveyance',
-      mode: mode.getName(),
-      reason: `You're not ${mode.getName()}ing anything.`,
-    };
+    return logic().checkEnablement(actor, mode, direction);
   }
 
   // ── passthrough chain ────────────────────────────────────────────
@@ -415,20 +248,7 @@ export class LocomotionApi {
     actor: Stuff,
     mode: LocomotionMode,
   ): Stuff | null {
-    if (!mode.getPassthrough()) {
-      throw new Error(
-        `LocomotionApi.findConveyanceHost: '${mode.getName()}' is not a ` +
-          `passthrough mode (programmatic misuse)`,
-      );
-    }
-    if (!MixinApi.isSlottable(actor)) return null;
-    const mixinName = mode.getConveyanceMixin();
-    if (!mixinName) return null;
-    const occupied = SlotApi.findOccupiedSlots(actor);
-    for (const [host] of occupied.entries()) {
-      if (MixinApi.hasMixin(host, mixinName as MixinName)) return host;
-    }
-    return null;
+    return logic().findConveyanceHost(actor, mode);
   }
 
   /**
@@ -450,26 +270,7 @@ export class LocomotionApi {
    * road, etc.) are nowhere near that bound.
    */
   public static emissionAt(mover: Stuff): EmissionData | null {
-    if (!MixinApi.isMobile(mover)) return null;
-    const chain: Stuff[] = [];
-    let cursor: Stuff & Mobile = mover;
-    let mode = cursor.getEngagedMode();
-    let guard = MAX_PASSTHROUGH_DEPTH;
-    while (mode && mode.getPassthrough() && guard-- > 0) {
-      chain.push(cursor);
-      const host = LocomotionApi.findConveyanceHost(cursor, mode);
-      if (!host || !MixinApi.isMobile(host)) return null;
-      cursor = host;
-      mode = cursor.getEngagedMode() ?? LocomotionApi.resolveHostMode(cursor);
-    }
-    if (!mode) return null;
-    return {
-      modeName: mode.getName(),
-      noiseLevel: mode.getNoiseLevel(),
-      bodyProfile: mode.getBodyProfile(),
-      groundContact: mode.getGroundContact(),
-      resolvedHostChain: chain,
-    };
+    return logic().emissionAt(mover);
   }
 
   // ── eligibility queries ──────────────────────────────────────────
@@ -480,9 +281,7 @@ export class LocomotionApi {
    * scope (those are per-traversal concerns).
    */
   public static eligibleModes(actor: Stuff): readonly LocomotionMode[] {
-    return LocomotionApi.allModes().filter((mode) =>
-      LocomotionApi.canEngage(actor, mode),
-    );
+    return logic().eligibleModes(actor);
   }
 
   // ── engaged-mode introspection (untyped-safe) ────────────────────
@@ -492,8 +291,7 @@ export class LocomotionApi {
    * engaged in, if any?"). Returns `null` for non-Mobile Stuff.
    */
   public static engagedMode(actor: Stuff): LocomotionMode | null {
-    if (!MixinApi.isMobile(actor)) return null;
-    return actor.getEngagedMode();
+    return logic().engagedMode(actor);
   }
 
   // ── engagement lifecycle ─────────────────────────────────────────
@@ -514,28 +312,7 @@ export class LocomotionApi {
     exit: Exit,
     action: () => Promise<T>,
   ): Promise<T> {
-    actor.setEngagedMode(mode);
-    try {
-      const result = await action();
-      // Loaded-traversal endurance drain — fires only after a *successful*
-      // self-powered traverse (a throw skips this and falls to `finally`).
-      // This is the universal self-powered chokepoint: every player
-      // command, NPC brain, and follow/lead automation routes a self-
-      // powered move through here, so a loaded body tires whatever
-      // initiated the step. Conveyance riders (repositioned by the
-      // vehicle's ripple) and raw/dev/`forceMove` traverses don't reach
-      // `engageAround`, so they never drain — the walked-vs-rode exclusion
-      // is structural, not a coded check. Light loads cost nothing
-      // (guarded inside `drainForTraversal`).
-      if (MixinApi.isLoadBearing(actor)) {
-        actor.drainForTraversal();
-      }
-      return result;
-    } finally {
-      if (LocomotionApi.isTransientEngagement(mode, exit)) {
-        actor.setEngagedMode(null);
-      }
-    }
+    return logic().engageAround(actor, mode, exit, action);
   }
 
   /**
@@ -554,17 +331,7 @@ export class LocomotionApi {
     mode: LocomotionMode,
     exit: Exit,
   ): boolean {
-    if (mode.getPassthrough()) return false;
-    const mixinName = mode.getEnablementMixin();
-    if (!mixinName) return true;
-    const dest = exit.getDestination();
-    if (MixinApi.hasMixin(dest, mixinName as MixinName)) return false;
-    if (MixinApi.isContainer(dest)) {
-      for (const item of dest.getContents()) {
-        if (MixinApi.hasMixin(item, mixinName as MixinName)) return false;
-      }
-    }
-    return true;
+    return logic().isTransientEngagement(mode, exit);
   }
 
   // ── default-mode resolution ──────────────────────────────────────
@@ -579,20 +346,13 @@ export class LocomotionApi {
    *      for non-Organism actors.
    *   3. Universe default `'walk'`.
    *
-   * `resolveSetting('movement.defaultMode')` is deliberately NOT used —
-   * its built-in schema-default fallback to `'walk'` would short-
-   * circuit the bodyplan layer. `ownSetting` returns the explicit
-   * override only.
+   * `ShellApi.resolveSetting('movement.defaultMode')` is deliberately
+   * NOT used — its built-in schema-default fallback to `'walk'` would
+   * short-circuit the bodyplan layer. `ShellApi.ownSetting` returns the
+   * explicit override only.
    */
   public static defaultModeFor(actor: Stuff): string {
-    const explicit = ownSetting<string>(actor, 'movement.defaultMode');
-    if (explicit) return explicit;
-    if (MixinApi.isOrganism(actor)) {
-      const planDefault =
-        actor.getSpecies()?.getBodyPlan()?.getDefaultLocomotionMode();
-      if (planDefault) return planDefault;
-    }
-    return 'walk';
+    return logic().defaultModeFor(actor);
   }
 
   // ── default-mode convenience ─────────────────────────────────────
@@ -611,19 +371,7 @@ export class LocomotionApi {
     actor: Stuff & Mobile & Containable,
     exit: Exit,
   ): Promise<void> {
-    // Lazy-load the actor's anatomy (species + bodyplan) and the
-    // locomotion mode singleton before the sync eligibility cascade
-    // runs. Both `getBodyPlan()` and `modeOf` are sync registry
-    // lookups; on a fresh server the first `go` would otherwise
-    // fail at the body-plan gate (null bodyplan ⇒ empty planModes)
-    // or at the mode resolution (LocomotionMode not loaded).
-    await LocomotionApi.preloadActorAnatomy(actor);
-    const mode = await LocomotionApi.loadMode(
-      LocomotionApi.defaultModeFor(actor),
-    );
-    await LocomotionApi.engageAround(actor, mode, exit, () =>
-      actor.traverse(exit, mode.getName()),
-    );
+    return logic().traverseWithDefault(actor, exit);
   }
 }
 

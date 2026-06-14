@@ -30,7 +30,6 @@ import type { MixinConstructor } from '../mixin';
 import type { Stuff } from '../stuff/Stuff';
 import type { Container } from '../spatial/Container';
 import type { Warren } from './Warren';
-import { MixinApi } from '../../api/mixin';
 
 /**
  * Public shape provided by WarrenMemberMixin.
@@ -98,13 +97,4 @@ export function WarrenMemberMixin<TBase extends MixinConstructor<Stuff & Contain
       this._warren = value;
     }
   };
-}
-
-/**
- * Narrow `stuff` to a `WarrenMember` host. Thin wrapper over
- * `MixinApi.isWarrenMember` re-exported for symmetry with the other
- * subsystem predicates; callers may use either.
- */
-export function isWarrenMember(stuff: Stuff): stuff is Stuff & WarrenMember {
-  return MixinApi.isWarrenMember(stuff);
 }

@@ -36,6 +36,9 @@ import { SensorMixin } from '../../message/Sensor';
 import { Idea } from '../../stuff/Idea';
 import type { Stuff } from '../../stuff/Stuff';
 import { makeStuff } from '../../security/__tests__/test-setup';
+import { SchedulerLogic } from '../../../obj/api/SchedulerLogic';
+import { StuffApi } from '../../../api/stuff';
+import { SecurityError } from '../../security/errors';
 
 /* ─────────────────────────── Fixtures ─────────────────────────── */
 
@@ -892,5 +895,30 @@ describe('SchedulerApi NPC without Sensor (envelope path no-op)', () => {
     });
     expect(() => SchedulerApi.start(e)).not.toThrow();
     expect(() => WorldClockApi._advanceForTesting(1000)).not.toThrow();
+  });
+});
+
+describe('SchedulerLogic singleton encapsulation', () => {
+  afterEach(() => {
+    SchedulerApi._clearAllForTesting();
+  });
+
+  it('lives at /obj/api/scheduler once the facade has materialized it', () => {
+    // A facade call lazily creates the logic singleton.
+    SchedulerApi.getActivityClass('nonexistent');
+    const logic = StuffApi.findByTemplatePath('/obj/api/scheduler');
+    expect(logic).toBeDefined();
+    expect(StuffApi.findByPathGlob('/obj/api/*')).toContain(logic);
+  });
+
+  it('denies a direct logic-method call from a non-SchedulerApi caller', () => {
+    SchedulerApi.getActivityClass('nonexistent');
+    const logic = StuffApi.findByTemplatePath<SchedulerLogic>(
+      '/obj/api/scheduler'
+    );
+    expect(logic).toBeDefined();
+    // The test module is not `mud/api/scheduler#SchedulerApi`, so the
+    // FromModule gate on the logic's own methods denies the call.
+    expect(() => logic!.getActivityClass('foo')).toThrow(SecurityError);
   });
 });

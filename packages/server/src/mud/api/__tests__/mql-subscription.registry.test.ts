@@ -6,6 +6,8 @@
 
 import { describe, it, expect, beforeEach } from 'vitest';
 import { MqlSubscriptionApi } from '../mql-subscription';
+import { MqlSubscriptionLogic } from '../../obj/api/MqlSubscriptionLogic';
+import { SecurityError } from '../../lib/security/errors';
 import { EventApi } from '../event';
 import { StuffApi } from '../stuff';
 import { ShadowApi } from '../shadow';
@@ -128,5 +130,30 @@ describe('MqlSubscriptionApi — registry surface', () => {
       detailKey: 'foo',
     });
     expect(MqlSubscriptionApi._getRegistrySizeForTesting()).toBe(0);
+  });
+});
+
+describe('MqlSubscriptionLogic singleton encapsulation', () => {
+  beforeEach(() => {
+    StuffApi.clearAll();
+  });
+
+  it('lives at /obj/api/mql-subscription once the facade has materialized it', () => {
+    // A facade call lazily creates the logic singleton.
+    MqlSubscriptionApi._getRegistrySizeForTesting();
+    const logic = StuffApi.findByTemplatePath('/obj/api/mql-subscription');
+    expect(logic).toBeDefined();
+    expect(StuffApi.findByPathGlob('/obj/api/*')).toContain(logic);
+  });
+
+  it('denies a direct logic-method call from a non-MqlSubscriptionApi caller', () => {
+    MqlSubscriptionApi._getRegistrySizeForTesting();
+    const logic = StuffApi.findByTemplatePath<MqlSubscriptionLogic>(
+      '/obj/api/mql-subscription'
+    );
+    expect(logic).toBeDefined();
+    // The test module is not `mud/api/mql-subscription#MqlSubscriptionApi`,
+    // so the FromModule gate on the logic's own methods denies the call.
+    expect(() => logic!._getRegistrySize()).toThrow(SecurityError);
   });
 });

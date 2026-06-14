@@ -1,5 +1,8 @@
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
 import { TemplateApi, TemplateError } from '../template';
+import { TemplateLogic } from '../../obj/api/TemplateLogic';
+import { SecurityError } from '../../lib/security/errors';
+import { StuffApi } from '../stuff';
 import { PersistenceManager, Collections } from '../../../backend/PersistenceManager';
 
 type Doc = Record<string, unknown> & {
@@ -231,6 +234,39 @@ describe('TemplateApi.validateFolderLeafSave', () => {
   });
 });
 
+describe('TemplateApi.validateReservedPath', () => {
+  beforeEach(() => {
+    installInMemoryStore();
+  });
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it('rejects saving a template under the reserved /obj/api/ namespace', async () => {
+    await expect(
+      TemplateApi.validateReservedPath({
+        path: '/obj/api/material',
+        class: '/lib/material/Material',
+      })
+    ).rejects.toThrow(TemplateError);
+  });
+
+  it('rejects the bare reserved prefix itself (no trailing segment)', async () => {
+    await expect(
+      TemplateApi.validateReservedPath({ path: '/obj/api' })
+    ).rejects.toThrow(/reserved/);
+  });
+
+  it('allows ordinary /obj and /domain paths', async () => {
+    await expect(
+      TemplateApi.validateReservedPath({ path: '/obj/SoulCatalogue' })
+    ).resolves.toBeUndefined();
+    await expect(
+      TemplateApi.validateReservedPath({ path: '/domain/lounge/bar' })
+    ).resolves.toBeUndefined();
+  });
+});
+
 describe('TemplateApi.validateFolderLeafDelete', () => {
   beforeEach(() => {
     installInMemoryStore();
@@ -277,5 +313,28 @@ describe('TemplateApi.validateFolderLeafDelete', () => {
 
   it('is a no-op when the doc is missing', async () => {
     await expect(TemplateApi.validateFolderLeafDelete('does-not-exist')).resolves.toBeUndefined();
+  });
+});
+
+describe('TemplateLogic singleton encapsulation', () => {
+  beforeEach(() => {
+    StuffApi.clearAll();
+  });
+  afterEach(() => {
+    StuffApi.clearAll();
+  });
+
+  it('denies a direct logic-method call from a non-TemplateApi caller', () => {
+    // A facade call lazily creates the logic singleton (ancestorPaths is
+    // pure-synchronous, no DB needed).
+    TemplateApi.ancestorPaths('/a/b/c');
+    const logic = StuffApi.findByTemplatePath<TemplateLogic>(
+      '/obj/api/template'
+    );
+    expect(logic).toBeDefined();
+    // The test module is not `mud/api/template#TemplateApi`, so the
+    // FromModule gate on the logic's own methods denies the call. The
+    // gate fires synchronously even for async methods.
+    expect(() => logic!.ancestorPaths('/a/b/c')).toThrow(SecurityError);
   });
 });

@@ -291,6 +291,7 @@ export function VisibleMixin<TBase extends MixinConstructor>(Base: TBase) {
  * function is easy to identify by name in stack traces, mirroring
  * the `wrapDetailKeysAugmenter` pattern in `Detailed.ts`.
  */
+// eslint-disable-next-line no-restricted-syntax -- documented exception: a markup-augmenter registered on the sense substrate, exported so it is named in stack traces and unit-testable in isolation. See architecture.md § sanctioned-exception registry.
 export function senseStripAugmenter(
   text: string,
   _host: Stuff,

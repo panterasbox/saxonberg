@@ -40,7 +40,7 @@ export const SMELL_SOURCE_CAP = 3;
  * Numeric inputs are interpreted as canonical ppm. Negative or
  * non-finite values throw — same shape as `coerceLux` for light.
  */
-export function coercePpm(value: number | Quantity<'ppm'>): Quantity<'ppm'> {
+function coercePpm(value: number | Quantity<'ppm'>): Quantity<'ppm'> {
   if (typeof value === 'number') {
     if (!Number.isFinite(value) || value < 0) {
       throw new Error(

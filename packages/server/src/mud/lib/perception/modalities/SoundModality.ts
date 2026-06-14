@@ -30,7 +30,7 @@ import { MixinApi } from '../../../api/mixin';
 import { StuffApi } from '../../../api/stuff';
 import { PerceptionApi } from '../../../api/perception';
 import { BiomeApi } from '../../../api/biome';
-import { isBoundaryAnchor } from '../../boundary/BoundaryAnchor';
+import { BoundaryAnchor } from '../../boundary/BoundaryAnchor';
 import type { Boundary } from '../../boundary/Boundary';
 import type { Conduit } from '../../boundary/Conduit';
 import type { SoundConduit } from '../../boundary/SoundConduit';
@@ -166,7 +166,7 @@ function walkAt(
 
     // (d) Cross-boundary propagation.
     for (const fx of loc.getFixtures()) {
-      if (!isBoundaryAnchor(fx)) continue;
+      if (!BoundaryAnchor.is(fx)) continue;
       const anchor = fx;
       const boundary = anchor.getBoundary();
       if (!boundary) continue;

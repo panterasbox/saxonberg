@@ -10,7 +10,9 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "docs": "typedoc",
-    "docs:clean": "rm -rf docs/api"
+    "docs:project": "tsx scripts/project-author-surface.ts",
+    "docs:clean": "rm -rf docs/api",
+    "lint:gates": "tsx scripts/check-gate-strings.ts"
   },
   "dependencies": {
     "@saxonberg/types": "workspace:*",

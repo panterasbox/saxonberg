@@ -26,6 +26,9 @@ import {
   SourceTreeApi,
   SourceTreeSandboxError,
 } from '../source-tree';
+import { SourceTreeLogic } from '../../obj/api/SourceTreeLogic';
+import { SecurityError } from '../../lib/security/errors';
+import { StuffApi } from '../stuff';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 // The Api computes its own sandbox root by walking up to a `packages`
@@ -356,5 +359,33 @@ describe('SourceTreeApi filesystem ops', () => {
       await SourceTreeApi.write(resolved, 'made');
       expect(await fs.readFile(resolved, 'utf8')).toBe('made');
     });
+  });
+});
+
+describe('SourceTreeLogic singleton encapsulation', () => {
+  beforeEach(() => {
+    StuffApi.clearAll();
+  });
+  afterEach(() => {
+    StuffApi.clearAll();
+  });
+
+  it('lives at /obj/api/source-tree once the facade has materialized it', () => {
+    // A facade call lazily creates the logic singleton.
+    SourceTreeApi.getSandboxRoot();
+    const logic = StuffApi.findByTemplatePath('/obj/api/source-tree');
+    expect(logic).toBeDefined();
+    expect(StuffApi.findByPathGlob('/obj/api/*')).toContain(logic);
+  });
+
+  it('denies a direct logic-method call from a non-SourceTreeApi caller', () => {
+    SourceTreeApi.getSandboxRoot();
+    const logic = StuffApi.findByTemplatePath<SourceTreeLogic>(
+      '/obj/api/source-tree'
+    );
+    expect(logic).toBeDefined();
+    // The test module is not `mud/api/source-tree#SourceTreeApi`, so the
+    // FromModule gate on the logic's own methods denies the call.
+    expect(() => logic!.getSandboxRoot()).toThrow(SecurityError);
   });
 });

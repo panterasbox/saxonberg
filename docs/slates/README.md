@@ -164,7 +164,6 @@ extends; none is a fresh build.
 | [language](./tails/language-slate.md) | comms / perception | comprehension; roleplay flavor |
 | [reactions](./tails/reactions-slate.md) | messaging / emotes | attach-emote-to-message |
 | [persistence-architecture](./tails/persistence-architecture-slate.md) | persistence.md | Wave 3 un-Stuff marshallers (Waves 1-2 shipped) |
-| [surface-architecture](./tails/surface-architecture-slate.md) | architecture.md / call-security.md | api/lib/types public-surface rework — Api guts → HMR Stuff singletons (`singletonSync`), call==doc==import boundary, blanket scriptable migration. **Pre-requirements; next build.** |
 | [vitals](./tails/vitals-slate.md) | vitals.md / reserve.md | application waves — live condition progression, the death-transition driver, assessment / instruments / treatment, consumables, forensics (substrate / Wave 1 shipped) |
 | [multilocation](./tails/multilocation-slate.md) | location.md | deferred procedural / spatial Warren consumers beyond the shipped social-elastic lounge case |
 | [fast-travel](./tails/fast-travel-slate.md) | fasttravel.md | living-infrastructure wave (terminals break down / disruption, Authority wear-maintenance, the inert `status` seam) + cross-restart credential durability |
