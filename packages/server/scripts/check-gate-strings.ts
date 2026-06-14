@@ -33,7 +33,7 @@ import { readFileSync, readdirSync, existsSync, statSync } from "fs";
 import { fileURLToPath } from "url";
 import { dirname, join, relative } from "path";
 
-const EXIT_ON_FINDINGS = false; // flip to true at end of P3
+const EXIT_ON_FINDINGS = true; // CI-gating (flipped at end of P3)
 
 const here = dirname(fileURLToPath(import.meta.url));
 const SERVER_SRC = join(here, "..", "src");

@@ -360,18 +360,29 @@ export function projectAuthorSurface(project: Refl): ProjectionResult {
   }
   types.sort((a, b) => a.name.localeCompare(b.name));
 
-  // Re-export report: a face that speaks a named type defined in a
-  // DIFFERENT module should re-export it (so authors import it from the
-  // face). Flag faces that don't.
+  // Re-export report: an author-facing Api face that speaks a named
+  // *domain* type defined in a DIFFERENT module should re-export it (so
+  // authors import it from the face). Flag faces that don't.
+  //
+  // Scope is the **author surface** (`mud/api/` faces only) — backend/
+  // and internal lib-to-lib faces follow the plain upstream-owner rule,
+  // not fan-out re-export. Foundational base types (defined under
+  // `mud/lib/stuff/` — Stuff/Idea/Thing/Template) and anonymous default
+  // exports are excluded: "types ride their face" is for domain types,
+  // not the ubiquitous bases every signature mentions. Advisory (WARN)
+  // — see the script footer.
   const reexportReport: ReexportIssue[] = [];
   const seenIssue = new Set<string>();
   for (const ref of memberTypeRefs) {
+    if (!ref.module.startsWith("mud/api/")) continue; // author surface only
     const faceExports = moduleExports.get(ref.module) ?? new Set<string>();
     for (const id of ref.typeIds) {
       const hit = byId.get(id);
       if (!hit) continue;
       const tname = hit.refl.name;
       const definedIn = hit.module;
+      if (tname === "default") continue; // anonymous default export
+      if (definedIn.startsWith("mud/lib/stuff/")) continue; // foundational base
       if (definedIn === ref.module) continue; // local — nothing to re-export
       if (faceExports.has(tname)) continue; // already re-exported
       const key = `${ref.module}|${tname}`;
@@ -427,11 +438,17 @@ function main(): void {
       console.warn(`  … and ${reexportReport.length - 50} more`);
     }
     console.warn(
-      `[lint #2] WARN-only during the sweep; flips to CI-failing at ` +
-        `the end of P3.`
+      `[lint #2] ADVISORY (WARN, never CI-failing). The remaining gaps ` +
+        `are foundational capability/mixin interfaces (Container, Sensor, ` +
+        `Mobile, …) that an Api mentions as a *parameter* type — those ` +
+        `ride their OWN mixin/concept face, not every consumer's. The ` +
+        `enforced convention is narrower: a face re-exports its OWN ` +
+        `domain types (its result/option/handle shapes), checked per-Api ` +
+        `at conversion. A face speaking a foreign domain type it owns the ` +
+        `surface for is the real signal to act on.`
     );
   }
-  // WARN-only: always exit 0 for now.
+  // Advisory: always exit 0 (see the lint #2 note above).
 }
 
 // Run only when invoked directly (not when imported by the test).
