@@ -1,4 +1,3 @@
-import { SecurityApi } from './security';
 /**
  * NavigationApi — canonical direction table, aliases, and cartesian offsets.
  *
@@ -11,92 +10,40 @@ import { SecurityApi } from './security';
  * `'kitchen'`, `'out'`) that live outside this table — callers treat an
  * `undefined` result from `normalizeDirection()` / `invertDirection()` as
  * "not cardinal".
- */
-
-/** Canonical direction names (long form). */
-export type CardinalDirection =
-  | 'north'
-  | 'south'
-  | 'east'
-  | 'west'
-  | 'northeast'
-  | 'northwest'
-  | 'southeast'
-  | 'southwest'
-  | 'up'
-  | 'down';
-
-/**
- * Offsets keyed by long-form direction name.
  *
- * y grows north (matches "map up"); z grows up (standard).
+ * Thin, security-gated forwarding shell: the direction table and lookups
+ * live in the hot-reloadable {@link NavigationLogic} singleton at
+ * `/obj/api/navigation`, reached synchronously via
+ * `StuffApi.singletonSync`. `dest /obj/api/navigation` reloads it.
  */
-const DIRECTION_OFFSETS: Record<CardinalDirection, [number, number, number]> = {
-  north: [0, 1, 0],
-  south: [0, -1, 0],
-  east: [1, 0, 0],
-  west: [-1, 0, 0],
-  northeast: [1, 1, 0],
-  northwest: [-1, 1, 0],
-  southeast: [1, -1, 0],
-  southwest: [-1, -1, 0],
-  up: [0, 0, 1],
-  down: [0, 0, -1],
-};
 
-/**
- * Alias → canonical long form. Keys are lower-cased tokens the parser will
- * see (`n`, `ne`, `u`, `d`, ...).
- */
-const DIRECTION_ALIASES: Record<string, CardinalDirection> = {
-  n: 'north',
-  north: 'north',
-  s: 'south',
-  south: 'south',
-  e: 'east',
-  east: 'east',
-  w: 'west',
-  west: 'west',
-  ne: 'northeast',
-  northeast: 'northeast',
-  nw: 'northwest',
-  northwest: 'northwest',
-  se: 'southeast',
-  southeast: 'southeast',
-  sw: 'southwest',
-  southwest: 'southwest',
-  u: 'up',
-  up: 'up',
-  d: 'down',
-  down: 'down',
-};
+import { StuffApi } from './stuff';
+import { HotReloadApi } from './hot-reload';
+import { SecurityApi } from './security';
+import {
+  NavigationLogic,
+  type CardinalDirection,
+} from '../obj/api/NavigationLogic';
+import { fileURLToPath } from 'url';
 
-/** Inverses for the 10 cardinals (used for arrival messages). */
-const DIRECTION_INVERSES: Record<CardinalDirection, CardinalDirection> = {
-  north: 'south',
-  south: 'north',
-  east: 'west',
-  west: 'east',
-  northeast: 'southwest',
-  northwest: 'southeast',
-  southeast: 'northwest',
-  southwest: 'northeast',
-  up: 'down',
-  down: 'up',
-};
+export type { CardinalDirection } from '../obj/api/NavigationLogic';
 
-const CARDINALS: readonly CardinalDirection[] = [
-  'north',
-  'south',
-  'east',
-  'west',
-  'northeast',
-  'northwest',
-  'southeast',
-  'southwest',
-  'up',
-  'down',
-];
+const LOGIC_PATH = '/obj/api/navigation';
+const LOGIC_CLASS_FILE = fileURLToPath(
+  new URL('../obj/api/NavigationLogic', import.meta.url)
+);
+
+/** Resolve the HMR-able NavigationLogic singleton (sync). */
+function logic(): NavigationLogic {
+  return StuffApi.singletonSync(
+    LOGIC_PATH,
+    () =>
+      new ((HotReloadApi.getCurrentExport(
+        LOGIC_CLASS_FILE,
+        'NavigationLogic'
+      ) as typeof NavigationLogic | null) ?? NavigationLogic)()
+  );
+}
 
 export class NavigationApi {
   /**
@@ -106,8 +53,10 @@ export class NavigationApi {
    * callers should treat that as "not a direction, try it as a vessel keyword
    * / semantic label" (see GoController).
    */
-  public static normalizeDirection(input: string): CardinalDirection | undefined {
-    return DIRECTION_ALIASES[input.trim().toLowerCase()];
+  public static normalizeDirection(
+    input: string
+  ): CardinalDirection | undefined {
+    return logic().normalizeDirection(input);
   }
 
   /**
@@ -117,10 +66,10 @@ export class NavigationApi {
    * vessel-synthesized `'out'` have no structural inverse; arrival messages
    * degrade to "Alice arrives." for those cases).
    */
-  public static invertDirection(direction: string): CardinalDirection | undefined {
-    const canonical = this.normalizeDirection(direction);
-    if (!canonical) return undefined;
-    return DIRECTION_INVERSES[canonical];
+  public static invertDirection(
+    direction: string
+  ): CardinalDirection | undefined {
+    return logic().invertDirection(direction);
   }
 
   /**
@@ -128,22 +77,21 @@ export class NavigationApi {
    *
    * Returns `undefined` for non-cardinals.
    */
-  public static directionOffset(direction: string): [number, number, number] | undefined {
-    const canonical = this.normalizeDirection(direction);
-    if (!canonical) return undefined;
-    return DIRECTION_OFFSETS[canonical];
+  public static directionOffset(
+    direction: string
+  ): [number, number, number] | undefined {
+    return logic().directionOffset(direction);
   }
 
   /** Is `direction` (or its alias) one of the 10 canonical cardinals? */
   public static isCardinalDirection(direction: string): boolean {
-    return this.normalizeDirection(direction) !== undefined;
+    return logic().isCardinalDirection(direction);
   }
 
   /** List of canonical cardinal directions (useful for tests / iteration). */
   public static cardinalDirections(): readonly CardinalDirection[] {
-    return CARDINALS;
+    return logic().cardinalDirections();
   }
 }
-
 
 SecurityApi.decorateApiClass(NavigationApi);
