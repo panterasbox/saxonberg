@@ -30,6 +30,14 @@ import type { Stuff } from './Stuff';
  * Public shape added by PostRegistrationMixin.
  */
 export interface PostRegistration {
+  /**
+   * @hook Invoked once by `StuffApi.create`/`clone` after the instance
+   *   is registered (so self-resolving lookups during setup see it),
+   *   inside the synthetic constructor frame. **Witness** (async
+   *   allowed) — runs class-specific async setup; a throw unregisters
+   *   the half-built object. Override and **chain `super.postRegister()`**
+   *   so mixin layers initialize. Default is a no-op.
+   */
   postRegister(context?: unknown): Promise<void> | void;
 }
 

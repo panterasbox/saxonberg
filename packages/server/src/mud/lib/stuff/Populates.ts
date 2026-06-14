@@ -49,6 +49,12 @@ import { ContainmentApi } from '../../api/containment';
  * during Phase 2 hydration and not retained.
  */
 export interface Populates {
+  /**
+   * @hook Invoked by the `Hydrator`'s Phase-2 instruction dispatch from
+   *   a template's `populates` field. **Instruction applier** — consumes
+   *   the spec during hydration to spawn/populate; the spec is not
+   *   retained and there is no paired getter (not a property).
+   */
   applyPopulates(specs: string[]): Promise<void>;
 }
 

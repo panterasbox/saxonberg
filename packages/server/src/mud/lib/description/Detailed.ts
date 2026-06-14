@@ -164,6 +164,11 @@ export interface Detailed {
    * map key as the first alias. Idempotent: resets the Map up
    * front so re-application during template re-clone replaces, not
    * appends. Quietly skips malformed entries.
+   *
+   * @hook Invoked by the `Hydrator`'s Phase-2 instruction dispatch from
+   *   a template's `details` field. **Instruction applier** — consumes
+   *   a declaration to produce derived runtime state; no paired getter
+   *   (not a property). Must be idempotent across template re-clone.
    */
   applyDetails(data: Record<string, unknown>): void;
 

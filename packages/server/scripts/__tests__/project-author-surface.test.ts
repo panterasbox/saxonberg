@@ -108,9 +108,22 @@ const FIXTURE: Refl = {
             { name: "size", kind: Kind.Property, flags: {} },
             { name: "label", kind: Kind.Accessor, flags: {} },
             method("helper", { isProtected: true }),
+            // Canonical hook: @hook + a known hook name.
             method("onDestruct", { isStatic: false }, {
               hook: "Invoked by StuffApi.destruct. Call super.onDestruct(). Witness.",
             }),
+            // Known hook name, NO @hook tag → extension by name.
+            method("postRegister", { isStatic: false }),
+          ],
+        },
+        {
+          name: "SubWidget",
+          kind: Kind.Class,
+          children: [
+            // Inherited copy (not new surface) → skipped entirely.
+            { ...method("poke", { isStatic: false }), inheritedFrom: { name: "Widget.poke" } },
+            // Untagged onDestruct override → extension by name, not consumer.
+            method("onDestruct", { isStatic: false }),
           ],
         },
       ],
@@ -136,7 +149,7 @@ const FIXTURE: Refl = {
 describe("projectAuthorSurface", () => {
   const { surface, reexportReport } = projectAuthorSurface(FIXTURE);
   const consumerNames = surface.consumer.map((c) => c.qualified);
-  const extensionNames = surface.extension.map((e) => e.qualified);
+  const hookNames = surface.extension.map((e) => e.name);
   const typeNames = surface.types.map((t) => t.name);
 
   it("puts Api static methods in consumer", () => {
@@ -158,11 +171,26 @@ describe("projectAuthorSurface", () => {
     expect(consumerNames.some((n) => n.endsWith(".helper"))).toBe(false);
   });
 
-  it("routes @hook members to extension (not consumer), with contract text", () => {
-    expect(extensionNames).toContain("mud/lib/widget#Widget.onDestruct");
-    expect(consumerNames).not.toContain("mud/lib/widget#Widget.onDestruct");
+  it("routes @hook members to extension (not consumer), grouped by hook with contract text", () => {
+    expect(hookNames).toContain("onDestruct");
+    expect(consumerNames.some((n) => n.endsWith(".onDestruct"))).toBe(false);
     const hook = surface.extension.find((e) => e.name === "onDestruct");
     expect(hook?.contract).toMatch(/super\.onDestruct\(\)/);
+    // Both the canonical and the untagged override land under the hook.
+    expect(hook?.faces).toContain("mud/lib/widget#Widget.onDestruct");
+    expect(hook?.faces).toContain("mud/lib/widget#SubWidget.onDestruct");
+  });
+
+  it("routes a known hook-name method with no @hook tag into extension", () => {
+    expect(hookNames).toContain("postRegister");
+    expect(consumerNames.some((n) => n.endsWith(".postRegister"))).toBe(false);
+  });
+
+  it("skips inheritedFrom members (no duplicate surface)", () => {
+    // SubWidget.poke is an inherited copy of Widget.poke → only the
+    // declaring Widget.poke appears.
+    const pokes = consumerNames.filter((n) => n.endsWith(".poke"));
+    expect(pokes).toEqual(["mud/lib/widget#Widget.poke"]);
   });
 
   it("forms the type closure from signature I/O types", () => {

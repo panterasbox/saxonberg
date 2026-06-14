@@ -74,6 +74,12 @@ export interface Containable {
    * to the declared path; no-op when they match. The compare-and-
    * move shape supports both fresh-clone placement AND
    * `Avatar.restore()` re-move semantics with no flag.
+   *
+   * @hook Invoked by the `Hydrator`'s Phase-2 instruction dispatch from
+   *   a template's `container` field (self-placement during the clone
+   *   cascade). **Instruction applier** — no paired getter (not a
+   *   property); idempotent (compare-and-move, no-op when already in
+   *   the declared container).
    */
   applyContainer(path: string): Promise<void>;
 

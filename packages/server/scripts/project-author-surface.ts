@@ -12,8 +12,12 @@
  *     `Stuff`/mixin classes (fields and accessor pairs are excluded —
  *     the inter-stuff "methods are the contract" rule as a doc filter).
  *   - **extension** — what an author *implements* and the framework
- *     *invokes*: members whose comment carries the `@hook` tag,
- *     rendered with their override-contract text.
+ *     *invokes*: members whose comment carries the `@hook` tag, plus
+ *     every member that overrides a known framework hook by name (the
+ *     `@hook` contract lives once on the canonical declaration; the
+ *     ~190 `onDestruct` overrides etc. are recognized by name rather
+ *     than re-tagged at every site, since TypeDoc's `overwrites` link
+ *     carries no resolvable id). Grouped one entry per hook.
  *   - **types** — the transitive closure of input/output types named in
  *     the signatures of the consumer + extension members, wherever they
  *     physically live.
@@ -68,6 +72,9 @@ export interface Refl {
   type?: TdType;
   children?: Refl[];
   target?: number | unknown;
+  // Set by TypeDoc on members copied from / overriding an ancestor.
+  inheritedFrom?: unknown;
+  overwrites?: unknown;
 }
 
 interface TextPart {
@@ -94,12 +101,34 @@ export interface ConsumerMember {
   qualified: string; // module#Face.name
 }
 
-export interface ExtensionMember {
-  module: string;
-  face: string;
+/**
+ * Framework-invoked override hooks recognized by name. The `@hook`
+ * contract is authored once on each hook's canonical declaration; these
+ * names let the projection route the (many) overrides into the
+ * extension tier without re-tagging every site. `save` / `onLinkdead`
+ * etc. that are too generic to match by name are instead tagged
+ * `@hook` directly on their canonical reflection and caught by the
+ * comment branch.
+ */
+export const HOOK_NAMES: ReadonlySet<string> = new Set([
+  "onDestruct",
+  "canDestruct",
+  "postRegister",
+  "aroundSave",
+  "aroundDelete",
+  "onLinkdead",
+  "applyExits",
+  "applyDetails",
+  "applyContainer",
+  "applyPopulates",
+  "applyRoutes",
+]);
+
+/** One distinct extension hook + the faces that implement it. */
+export interface ExtensionHook {
   name: string;
-  qualified: string;
-  contract: string; // the @hook tag body
+  contract: string; // the @hook contract (from the canonical declaration)
+  faces: string[]; // qualified names of declaring/overriding members
 }
 
 export interface TypeEntry {
@@ -118,7 +147,7 @@ export interface ReexportIssue {
 
 export interface AuthorSurface {
   consumer: ConsumerMember[];
-  extension: ExtensionMember[];
+  extension: ExtensionHook[];
   types: TypeEntry[];
 }
 
@@ -180,7 +209,8 @@ function signatureTypeRefs(member: Refl, into: Set<number>): void {
  */
 export function projectAuthorSurface(project: Refl): ProjectionResult {
   const consumer: ConsumerMember[] = [];
-  const extension: ExtensionMember[] = [];
+  // hook name → { contract, faces } accumulated across the codebase.
+  const extensionByName = new Map<string, { contract: string; faces: string[] }>();
   const referencedTypeIds = new Set<number>();
 
   // id → { refl, module } for every reflection, so type refs resolve.
@@ -239,6 +269,18 @@ export function projectAuthorSurface(project: Refl): ProjectionResult {
     moduleExports.set(mod.name, exportNames);
   }
 
+  // Helper: record an extension hook occurrence (deduped by name; the
+  // first non-empty contract wins — that's the canonical @hook decl).
+  function addExtension(name: string, contract: string, qualified: string): void {
+    let entry = extensionByName.get(name);
+    if (!entry) {
+      entry = { contract: "", faces: [] };
+      extensionByName.set(name, entry);
+    }
+    if (!entry.contract && contract) entry.contract = contract;
+    entry.faces.push(qualified);
+  }
+
   // Second pass: classify members into tiers.
   for (const mod of modules) {
     for (const cls of mod.children ?? []) {
@@ -247,18 +289,17 @@ export function projectAuthorSurface(project: Refl): ProjectionResult {
       for (const member of cls.children ?? []) {
         if (member.kind === Kind.Constructor) continue;
         if (member.flags?.isPrivate) continue;
+        // Inherited copies aren't new surface — the declaring face
+        // documents them. Skip to avoid ~11.7k duplicate entries.
+        if (member.inheritedFrom) continue;
 
-        const contract = hookContract(member);
+        const ownContract = hookContract(member);
+        const isHookName = HOOK_NAMES.has(member.name);
         const qualified = `${mod.name}#${cls.name}.${member.name}`;
 
-        if (contract !== null) {
-          extension.push({
-            module: mod.name,
-            face: cls.name,
-            name: member.name,
-            qualified,
-            contract,
-          });
+        // Extension tier: explicit @hook OR a known framework-hook name.
+        if (ownContract !== null || isHookName) {
+          addExtension(member.name, ownContract ?? "", qualified);
           const ids = new Set<number>();
           signatureTypeRefs(member, ids);
           for (const id of ids) referencedTypeIds.add(id);
@@ -289,6 +330,10 @@ export function projectAuthorSurface(project: Refl): ProjectionResult {
       }
     }
   }
+
+  const extension: ExtensionHook[] = [...extensionByName.entries()]
+    .map(([name, e]) => ({ name, contract: e.contract, faces: e.faces.sort() }))
+    .sort((a, b) => a.name.localeCompare(b.name));
 
   // Resolve referenced type ids to their reflections (the type closure).
   const types: TypeEntry[] = [];
@@ -342,7 +387,6 @@ export function projectAuthorSurface(project: Refl): ProjectionResult {
   }
 
   consumer.sort((a, b) => a.qualified.localeCompare(b.qualified));
-  extension.sort((a, b) => a.qualified.localeCompare(b.qualified));
   reexportReport.sort((a, b) => a.face.localeCompare(b.face));
 
   return { surface: { consumer, extension, types }, reexportReport };
