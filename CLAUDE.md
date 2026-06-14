@@ -102,6 +102,7 @@ behavior. Read the relevant doc before editing in its area.
   - [posture.md](./docs/subsystems/posture.md) — Postured (host) + Posed (actor) + Postures vocabulary, posture-bearing slot, sit/lie/stand/kneel
   - [conveyance.md](./docs/subsystems/conveyance.md) — Mountable/Drivable/SeatedDrivableMixin, Mobile.traverse conveyance ripple, mount/dismount, vehicle design space
   - [locomotion.md](./docs/subsystems/locomotion.md) — LocomotionMode singletons, Climbable/Swimmable/Flyable enablement, LocomotionApi, per-mode verb controllers
+  - [fasttravel.md](./docs/subsystems/fasttravel.md) — teleport-transit network (the Teleport Authority): `FastTravelMixin` node (directed routes, per-terminal authoring, live-singleton reads, departures board, world-clock timetable) + `TravelCredentialMixin` (card + implant, registered-set, born-with University Avenue floor, session-durable), dual-mode `teleport` verb (self-powered privileged vs TPA ride) + terminal-contributed `register`, scan-to-register unlock; distinct from locomotion
   - [glob.md](./docs/subsystems/glob.md) — fungible stacks: GlobbableMixin (quantity), GlobbableApi (split/merge/applyQuantity), MQL quantity surface
   - [response-envelope.md](./docs/subsystems/response-envelope.md) — DispatchResponseEnvelope wire frame, 16 Note kinds, Status auto-escalation, CommandContext accumulator
   - [activity.md](./docs/subsystems/activity.md) — engagement framework: SchedulerApi, EngagedMixin on Character, four engagement slots, AbortReason vocabulary

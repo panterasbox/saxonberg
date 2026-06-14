@@ -1,11 +1,15 @@
 # Fast-travel slate (working doc)
 
-> **Status: architecture set, build it minimal; living-infra deferred.**
+> **Status: SHIPPED (v1) → graduated to
+> [../../subsystems/fasttravel.md](../../subsystems/fasttravel.md). This
+> slate is now a TAIL holding the deferred surface.**
 > A directed network of public **terminals** you teleport between, gated
-> by a **scan-to-register** credential. Designed to be living
-> infrastructure (breaks down, gets disrupted) — but that dynamism is a
-> later wave; v1 is the network + credential + on-demand travel, with the
-> lounge-exit as the first use.
+> by a **scan-to-register** credential. v1 (network + credential +
+> on-demand travel + the lounge→campus hop) shipped and graduated; the
+> **living-infrastructure** wave (terminals break down / get disrupted,
+> the Authority wear-maintenance loop, the inert `status` seam) +
+> cross-restart credential durability remain deferred. The design record
+> below is retained for that tail.
 
 Working slate for **fast travel** — the *Eternal City Teleport Authority*
 network. Teleport-based transit across the world, distinct from the

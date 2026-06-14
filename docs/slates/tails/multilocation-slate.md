@@ -87,7 +87,7 @@ See also:
 - [docs/slates/lounge-slate.md](../builds/lounge-slate.md) *(forthcoming)* — the
   v1 consumer: the social-elastic lounge, the preference-vector
   matchmaking, Dave's Bar. It *consumes* this substrate.
-- [docs/slates/fast-travel-slate.md](../builds/fast-travel-slate.md) — the
+- [docs/slates/fast-travel-slate.md](../tails/fast-travel-slate.md) — the
   lounge's TPA terminal lives on the **host** (the stable commons), which
   is exactly why the host must be the permanent, never-reaped root.
 
@@ -362,7 +362,7 @@ seams admit it.
   slate** (the v1 consumer). This slate is the substrate it rides.
 - **The dungeon / desert consumers** — their own slates and cycles; only
   the seams they'll need are validated here.
-- **Fast travel / TPA** → [fast-travel-slate.md](../builds/fast-travel-slate.md);
+- **Fast travel / TPA** → [fast-travel-slate.md](../tails/fast-travel-slate.md);
   the terminal merely *lives on the host*.
 - **Zone internals** → [zone.md](../../subsystems/zone.md). MultiLocation is
   orthogonal to it.

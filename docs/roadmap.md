@@ -461,7 +461,7 @@ onboarding → dorm + authoring), each thin-engine / content-heavy:
 - [docs/slates/builds/onboarding-slate.md](./slates/builds/onboarding-slate.md) —
   learn-by-doing journey (lounge → fast-TP to campus → signs/greeter →
   dorm lobby → room → customization); the scoped-authoring on-ramp.
-- [docs/slates/builds/fast-travel-slate.md](./slates/builds/fast-travel-slate.md) — the
+- [docs/slates/tails/fast-travel-slate.md](./slates/tails/fast-travel-slate.md) — the
   Eternal City Teleport Authority: a directed public-terminal network,
   **scan-to-register** credential (implant/card), on-demand teleport;
   living-infrastructure seam (maintenance/economy deferred).

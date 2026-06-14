@@ -38,7 +38,7 @@ See also:
 
 - [docs/subsystems/char-gen.md](../../subsystems/char-gen.md) — hands off here
   (you spawn in the lounge post-intake).
-- [docs/slates/fast-travel-slate.md](../builds/fast-travel-slate.md) — the lounge
+- [docs/slates/fast-travel-slate.md](../tails/fast-travel-slate.md) — the lounge
   and the dorm **lobby** are terminals; the lounge-exit + home-routing
   ride this network.
 - [docs/slates/scoped-authoring-slate.md](../builds/scoped-authoring-slate.md) —
@@ -378,7 +378,7 @@ onboarding beats as content grows.
 ## What this slate does NOT cover
 
 - **Char-gen intake** → [docs/subsystems/char-gen.md](../../subsystems/char-gen.md).
-- **The fast-travel network** → [fast-travel-slate.md](../builds/fast-travel-slate.md);
+- **The fast-travel network** → [fast-travel-slate.md](../tails/fast-travel-slate.md);
   the lounge/lobby terminals + routing ride it.
 - **The author/workspace shell internals** → shell-author/shell-workspace;
   scoped personal authoring *consumes* them.

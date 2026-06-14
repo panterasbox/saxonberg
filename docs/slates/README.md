@@ -90,12 +90,12 @@ the slate's deferred procedural/spatial consumers now live in
 [tails/multilocation-slate](./tails/multilocation-slate.md). The build
 continues with the content + navigation layers on top:
 - [lounge-slate](./builds/lounge-slate.md) — the full spawn lounge content (locked slate); the rudimentary lounge that shipped with the substrate is the seed.
-- [fast-travel-slate](./builds/fast-travel-slate.md) — fast-travel network; architecture set, build minimal.
+- [fast-travel-slate](./tails/fast-travel-slate.md) — **shipped (v1)** → [fasttravel.md](../subsystems/fasttravel.md); the Teleport Authority network (terminals + scan-to-register credential + dual-mode `teleport`). Slate now a tail holding the living-infrastructure wave.
 - [eternal-university-slate](./builds/eternal-university-slate.md) — campus content area; built after char-gen + lounge.
 - [onboarding-slate](./builds/onboarding-slate.md) — new-player onboarding; starts at campus arrival.
 - [map-slate](./builds/map-slate.md) — spatial-visualization client pane; an enhancement built when earned.
 
-**Phases:** multilocation substrate (built → tails) + rudimentary lounge → full lounge → fast-travel → eternal-university → onboarding → map.
+**Phases:** multilocation substrate (built → tails) + rudimentary lounge → full lounge → **fast-travel (built → tail)** → eternal-university → onboarding → map.
 
 ### 5. Authoring & CMS
 *Creator tooling.*
@@ -167,6 +167,7 @@ extends; none is a fresh build.
 | [surface-architecture](./tails/surface-architecture-slate.md) | architecture.md / call-security.md | api/lib/types public-surface rework — Api guts → HMR Stuff singletons (`singletonSync`), call==doc==import boundary, blanket scriptable migration. **Pre-requirements; next build.** |
 | [vitals](./tails/vitals-slate.md) | vitals.md / reserve.md | application waves — live condition progression, the death-transition driver, assessment / instruments / treatment, consumables, forensics (substrate / Wave 1 shipped) |
 | [multilocation](./tails/multilocation-slate.md) | location.md | deferred procedural / spatial Warren consumers beyond the shipped social-elastic lounge case |
+| [fast-travel](./tails/fast-travel-slate.md) | fasttravel.md | living-infrastructure wave (terminals break down / disruption, Authority wear-maintenance, the inert `status` seam) + cross-restart credential durability |
 | [client-shell](./tails/client-shell-slate.md) | client-shell.md | search / command palette, mode switcher + per-mode status, public read-only surface, declarative mode/manifest model, pre-auth device-local client-state tier |
 
 **Near-absorbed — retirement candidates** (kept this pass rather than

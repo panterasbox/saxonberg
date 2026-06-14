@@ -69,7 +69,7 @@ See also:
 - [docs/subsystems/char-gen.md](../../subsystems/char-gen.md) — the **services**
   here are where char-gen's deferred choices get made (registrar / clinic /
   housing / outfitter); intake hands off to the lounge → here.
-- [docs/slates/fast-travel-slate.md](../builds/fast-travel-slate.md) — the **2–3
+- [docs/slates/fast-travel-slate.md](../tails/fast-travel-slate.md) — the **2–3
   terminals** (arrival, Duncan Hall lobby, optional Quad) are this
   network's campus nodes; last-mile on foot is the rule.
 - [docs/slates/augmentation-slate.md](../tails/augmentation-slate.md) — the
@@ -521,7 +521,7 @@ buildings, more named roads); richer onboarding beats as content grows.
 
 - **The lounge** → [lounge-slate.md](../builds/lounge-slate.md). The disconnected
   landing you arrive *from*; the campus is downstream of its TPA exit.
-- **The fast-travel network internals** → [fast-travel-slate.md](../builds/fast-travel-slate.md).
+- **The fast-travel network internals** → [fast-travel-slate.md](../tails/fast-travel-slate.md).
   The campus just *places* 2–3 terminals on it.
 - **Char-gen intake internals** → [docs/subsystems/char-gen.md](../../subsystems/char-gen.md).
   The campus *hosts the services* its deferred choices point at.

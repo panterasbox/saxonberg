@@ -62,7 +62,7 @@ See also:
   substrate the lounge rides.** `LoungeWarren extends Warren`; the
   host/commons seats it; members are ephemeral satellites; start-location
   recall resolves members → host. The lounge is its v1 driver.
-- [docs/slates/fast-travel-slate.md](../builds/fast-travel-slate.md) — **the exit.**
+- [docs/slates/fast-travel-slate.md](../tails/fast-travel-slate.md) — **the exit.**
   The TPA terminal lives on the commons host (comped, `both`-direction,
   pre-imprinted); its state-routing sends first-timers → campus, returners
   → home. The lounge has the network's first terminal.
@@ -265,7 +265,7 @@ with the service-robot fallback labor.
   flow delivers them to the commons host, and the `LoungeWarren` **admits**
   (seats) them. Quiet/unflavored → the commons.
 - **Onward routing** — first-time vs returning is the **TPA terminal's**
-  state-routing ([fast-travel](../builds/fast-travel-slate.md)): onboarded flag →
+  state-routing ([fast-travel](../tails/fast-travel-slate.md)): onboarded flag →
   campus entry (first login) or home/dorm-lobby (returning). The lounge
   doesn't own this; it hosts the terminal that does.
 - **Recall** — a player who quit *in the lounge* resumes via the **host**
@@ -364,7 +364,7 @@ Wave 3). Richer flavor mechanics (weighted toppings; weighted aggregation).
 - **Drink effects** (intoxication, hydration, the consumable delivery) →
   [vitals-slate.md](../builds/vitals-slate.md). The bar authors only the menu.
 - **The fast-travel network** (terminals, routes, scan-to-register, the
-  credential) → [fast-travel-slate.md](../builds/fast-travel-slate.md); the lounge
+  credential) → [fast-travel-slate.md](../tails/fast-travel-slate.md); the lounge
   merely hosts the first terminal.
 - **NPC dialogue internals** (responder seam, trees, scripted matching,
   the LLM front-end) → [npc-dialogue-slate.md](../builds/npc-dialogue-slate.md);
