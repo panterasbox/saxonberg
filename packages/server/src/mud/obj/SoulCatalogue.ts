@@ -19,10 +19,26 @@
 
 import { Idea } from '../lib/stuff/Idea';
 import { PostRegistrationMixin } from '../lib/stuff/PostRegistration';
+import { CallSecurity } from '../lib/security/decorators';
+import { SecurityPolicies } from '../lib/security/SecurityPolicies';
 import { Emote } from '../lib/social/Emote';
 import type { VetoResult } from '../lib/errors';
 
 const SoulCatalogueBase = PostRegistrationMixin(Idea);
+
+// The catalogue's surface is reachable only through SoulApi → the
+// SoulLogic singleton (the surface-architecture two-singleton shape):
+// `FromModule('mud/api/soul#SoulApi')` admits the facade, `FromTemplate
+// ('/obj/api/soul')` admits the logic singleton (its actual caller after
+// the conversion), and `SelfOnly` admits the internal self-calls
+// (`postRegister`/`ensureCache` → `warmCache`). Any other caller is
+// denied. Mirrors the AccessRegistry encapsulation pattern (soul had no
+// gate before this build).
+const SoulApiCallers = SecurityPolicies.AnyOf(
+  SecurityPolicies.FromModule('mud/api/soul#SoulApi'),
+  SecurityPolicies.FromTemplate('/obj/api/soul'),
+  SecurityPolicies.SelfOnly
+);
 
 export interface EmoteSpec {
   verb: string;
@@ -52,6 +68,7 @@ export default class SoulCatalogue extends SoulCatalogueBase {
    * Reload the cache from Mongo. Called at boot via `postRegister` and
    * by external authors after bulk YAML changes. Idempotent.
    */
+  @CallSecurity(SoulApiCallers)
   public async warmCache(): Promise<void> {
     const records = await Emote.find({});
     const map = new Map<string, Emote>();
@@ -66,6 +83,7 @@ export default class SoulCatalogue extends SoulCatalogueBase {
    * Drop the cache. Next access rebuilds from Mongo. Fired by the
    * `reload` author verb when explicitly requested.
    */
+  @CallSecurity(SoulApiCallers)
   public invalidateCache(): void {
     this.cache = null;
   }
@@ -75,11 +93,13 @@ export default class SoulCatalogue extends SoulCatalogueBase {
    * `null` when nothing matches. Auto-warms the cache on first access
    * — safe to call from the dispatcher hot path.
    */
+  @CallSecurity(SoulApiCallers)
   public async resolve(verb: string): Promise<Emote | null> {
     const map = await this.ensureCache();
     return map.get(verb.toLowerCase()) ?? null;
   }
 
+  @CallSecurity(SoulApiCallers)
   public async all(): Promise<Emote[]> {
     const map = await this.ensureCache();
     const seen = new Set<Emote>();
@@ -93,6 +113,7 @@ export default class SoulCatalogue extends SoulCatalogueBase {
    * checking against the player verb namespace is the caller's
    * responsibility (the controller does it).
    */
+  @CallSecurity(SoulApiCallers)
   public async mint(spec: EmoteSpec): Promise<Emote> {
     const map = await this.ensureCache();
     if (map.has(spec.verb.toLowerCase())) {
@@ -115,6 +136,7 @@ export default class SoulCatalogue extends SoulCatalogueBase {
    * `slots` / `verbForm` fields are nested inside `grammar` — pass the
    * whole grammar object to replace it. Returns the updated Emote.
    */
+  @CallSecurity(SoulApiCallers)
   public async edit(
     verb: string,
     patch: Partial<EmoteSpec>,
@@ -146,6 +168,7 @@ export default class SoulCatalogue extends SoulCatalogueBase {
     return existing;
   }
 
+  @CallSecurity(SoulApiCallers)
   public async delete(verb: string): Promise<boolean> {
     const map = await this.ensureCache();
     const existing = map.get(verb.toLowerCase());
