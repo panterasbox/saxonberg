@@ -166,3 +166,30 @@ describe('GrammarApi.joinList', () => {
     ).toBe('Iffy, Bobalu, Jane, and Charlie');
   });
 });
+
+describe('GrammarApi.articleFor', () => {
+  it('picks "a" before a consonant onset, "an" before a vowel', () => {
+    expect(GrammarApi.articleFor('human')).toBe('a');
+    expect(GrammarApi.articleFor('elf')).toBe('an');
+  });
+  it('is case-insensitive and trims', () => {
+    expect(GrammarApi.articleFor('  Ogre ')).toBe('an');
+    expect(GrammarApi.articleFor('Goblin')).toBe('a');
+  });
+  it('defaults to "a" for empty input', () => {
+    expect(GrammarApi.articleFor('   ')).toBe('a');
+  });
+});
+
+describe('GrammarApi.tokenize', () => {
+  it('splits to lowercase atoms, dropping articles and single chars', () => {
+    expect(GrammarApi.tokenize('a tall stranger')).toEqual(['tall', 'stranger']);
+    expect(GrammarApi.tokenize('Bob')).toEqual(['bob']);
+  });
+  it('splits on punctuation and drops the article "the"', () => {
+    expect(GrammarApi.tokenize('the city-guard')).toEqual(['city', 'guard']);
+  });
+  it('returns [] for empty / article-only input', () => {
+    expect(GrammarApi.tokenize('  a an the ')).toEqual([]);
+  });
+});

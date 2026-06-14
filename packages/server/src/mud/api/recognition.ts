@@ -47,6 +47,7 @@ import type { Sensor } from '../lib/message/Sensor';
 import type { Perception } from '../lib/perception/Perception';
 import { MixinApi } from './mixin';
 import { StuffApi } from './stuff';
+import { GrammarApi } from './grammar';
 import { TemplatePathPrefixes } from '../lib/paths';
 // Type-only — the value is resolved lazily at call time via the
 // registered singleton (see `canSeeGate`). A *static* import of any
@@ -194,7 +195,7 @@ export class RecognitionApi {
         MixinApi.isOrganism(target)
           ? target.getSpecies()?.getCommonNames()[0]
           : undefined;
-      stem = species ? `${articleFor(species)} ${species}` : 'someone';
+      stem = species ? `${GrammarApi.articleFor(species)} ${species}` : 'someone';
     }
 
     // Most-notable worn item (v1: the first worn Wearable), unless the
@@ -228,7 +229,7 @@ export class RecognitionApi {
    */
   public static perceivedKeywords(viewer: Stuff, target: Stuff): string[] {
     if (MixinApi.isOrganism(target)) {
-      return tokenizeName(this.describe(viewer, target));
+      return GrammarApi.tokenize(this.describe(viewer, target));
     }
     return MixinApi.isPerceptible(target) ? target.getKeywords() : [];
   }
@@ -294,26 +295,6 @@ export class RecognitionApi {
 
 /** Shared empty coverage set — avoids per-call allocation. */
 const EMPTY_COVERAGE: ReadonlySet<string> = new Set<string>();
-
-/** Naïve a/an selector for a generated species stem. */
-function articleFor(word: string): string {
-  return /^[aeiou]/i.test(word) ? 'an' : 'a';
-}
-
-/** Articles dropped from a tokenized perceived name. */
-const KEYWORD_STOPWORDS: ReadonlySet<string> = new Set(['a', 'an', 'the']);
-
-/**
- * Tokenize a perceived name into lowercase keyword atoms — split on
- * non-alphanumerics, drop articles and single chars. "a tall stranger"
- * → `['tall', 'stranger']`; "Bob" → `['bob']`.
- */
-function tokenizeName(name: string): string[] {
-  return name
-    .toLowerCase()
-    .split(/[^a-z0-9]+/)
-    .filter((t) => t.length > 1 && !KEYWORD_STOPWORDS.has(t));
-}
 
 /**
  * The most-notable worn item on `target`, rendered by its viewer-blind

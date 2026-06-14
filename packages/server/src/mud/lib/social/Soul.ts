@@ -82,7 +82,10 @@ export function SoulMixin<TBase extends MixinConstructor>(Base: TBase) {
     ];
 
     static commandContributions: CommandContributions = {
-      self: ['social/emote.yaml'],
+      // `introduce` rides Soul (social expression on every Character),
+      // NOT Vocal — you can introduce yourself by sign, gesture, or any
+      // modality the audience perceives, not only speech.
+      self: ['social/emote.yaml', 'social/introduce.yaml'],
       environment: [],
       inventory: [],
       peers: [],

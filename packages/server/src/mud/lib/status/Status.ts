@@ -33,8 +33,9 @@ const MAX_STATUS_LENGTH = 100;
  * Per-field invariant: collapse whitespace/newlines to single spaces and
  * trim. Throws on an over-long status (the setter rejects bad input
  * rather than silently truncating). Returns the cleaned one-liner.
+ * Module-private — reached only through {@link StatusMixin}'s setters.
  */
-export function sanitizeStatus(value: string): string {
+function sanitizeStatus(value: string): string {
   const cleaned = value.replace(/\s+/g, ' ').trim();
   if (cleaned.length > MAX_STATUS_LENGTH) {
     throw new Error(

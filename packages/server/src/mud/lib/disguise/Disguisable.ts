@@ -26,7 +26,7 @@
 import type { MixinConstructor } from '../mixin';
 import type { Stuff } from '../stuff/Stuff';
 import { MixinApi } from '../../api/mixin';
-import { type Disguise, mergeDisguises } from './Disguise';
+import type { Disguise } from './Disguise';
 
 /** Wearer-side surface. */
 export interface Disguisable {
@@ -73,4 +73,25 @@ export function DisguisableMixin<TBase extends MixinConstructor>(Base: TBase) {
       this._imposedDisguise = null;
     }
   };
+}
+
+/**
+ * Merge several disguises into one effective covering: union the
+ * `covers`, take `appearsAs` from the broadest (most-covering) source,
+ * mask identity if any source does. v1 ships one hood, so this is
+ * usually the identity; the merge exists so layered coverings (mask +
+ * cloak) compose without rework. Module-private — the resolver above is
+ * its only caller.
+ */
+function mergeDisguises(disguises: readonly Disguise[]): Disguise | null {
+  if (disguises.length === 0) return null;
+  let broadest = disguises[0]!;
+  const covers = new Set<string>();
+  let masksIdentity = false;
+  for (const d of disguises) {
+    for (const c of d.covers) covers.add(c);
+    if (d.masksIdentity) masksIdentity = true;
+    if (d.covers.length > broadest.covers.length) broadest = d;
+  }
+  return { appearsAs: broadest.appearsAs, covers: [...covers], masksIdentity };
 }

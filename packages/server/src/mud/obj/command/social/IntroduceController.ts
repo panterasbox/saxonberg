@@ -2,23 +2,28 @@
  * IntroduceController — the recognition instance-axis trigger.
  *
  * `introduce` (self) or `introduce <subject>` (third-party) emits a
- * public spoken line on the Vocal scene spine and, in the same earshot,
- * writes each in-earshot listener's recognition record so they learn the
- * introducee's name. After "Mara says, 'I'm Mara.'", everyone who heard
- * it renders Mara's record by name thereafter.
+ * public scene line and, in the same perception range, writes each
+ * recipient's recognition record so they learn the introducee's name.
+ * After "Mara introduces herself as Mara", everyone who perceived it
+ * renders Mara's record by name thereafter.
+ *
+ * **Modality-neutral.** Introduction is a social act, not an acoustic
+ * one — afforded by `SoulMixin` (on every Character), not `VocalMixin`.
+ * You can introduce yourself by speech, sign, or gesture; the scene
+ * routes by perception, so the controller doesn't gate on speech.
  *
  * Constraints honored:
- *  - **No content hook in the speech substrate.** The controller owns
- *    the write — it iterates the scene's own earshot (`getSensors(env)`)
- *    and calls the single `RecognitionApi.learnIdentity` sink. The
- *    speech substrate stays a dumb channel.
- *  - **Spoken, in earshot.** Gated on `VocalMixin`; the write covers the
- *    whole earshot (public speech → "knowing is knowing"). The `--to`
- *    audience is addressing flavor, not a privacy scope (v1 decision).
- *  - **Third-party requires recognition.** You can only introduce
- *    someone whose name you already know (the speaker's own recognition
- *    record). This is the same gate Wave 5 enforces at the targeting
- *    layer; here it's a direct check.
+ *  - **No content hook in the messaging substrate.** The controller owns
+ *    the write — it iterates the scene's own recipient set
+ *    (`getSensors(env)`) and calls the single
+ *    `RecognitionApi.learnIdentity` sink. The substrate stays a dumb
+ *    channel.
+ *  - **Whole-audience write** (everyone who perceives it learns →
+ *    "knowing is knowing"). The `--to` audience is addressing flavor,
+ *    not a privacy scope (v1 decision).
+ *  - **Third-party requires recognition.** You can only introduce someone
+ *    whose name you already know (the actor's own recognition record).
+ *    Same gate Wave 5 enforces at the targeting layer; here it's direct.
  */
 
 import { CommandController } from '../../../lib/command/CommandController';
@@ -31,6 +36,9 @@ import type { MqlOneResult } from '../../../api/mql';
 import { Mml } from '../../../api/mml';
 import type { Stuff } from '../../../lib/stuff/Stuff';
 
+/** Diegetic world-action topic — modality-neutral, not a speech channel. */
+const TOPIC = 'world.narration.action';
+
 interface IntroduceModel extends CommandModel {
   /** Positional: who to introduce. Omit ⇒ self. */
   subject?: MqlOneResult;
@@ -40,34 +48,29 @@ interface IntroduceModel extends CommandModel {
 
 export default class IntroduceController extends CommandController<IntroduceModel> {
   execute(model: IntroduceModel, context: CommandContext): void {
-    const speaker = context.commandGiver;
-    if (!MixinApi.isVocal(speaker)) {
-      MessageApi.scene(speaker)
-        .topic('world.speech.say')
-        .toSelf(Mml.compose`You cannot speak.`)
-        .send();
-      context.note({ kind: 'mixin-missing', mixin: 'VocalMixin' });
-      return;
-    }
+    const actor = context.commandGiver;
 
     const subject = model.subject?.stuff ?? null;
-    const selfIntro = subject === null || subject.stuffId === speaker.stuffId;
-    const introducee = selfIntro ? speaker : subject!;
+    const selfIntro = subject === null || subject.stuffId === actor.stuffId;
+    const introducee = selfIntro ? actor : subject!;
 
-    // Resolve the name to announce.
+    // Resolve the name to convey.
     let name: string | null;
     if (selfIntro) {
-      name = properName(speaker);
+      // Your own proper name — `getName()`, the clean identity with no
+      // presentation affixes (status / wielded / posture). Null when the
+      // actor has no proper name (rejected below).
+      name = MixinApi.isNamed(actor) ? actor.getName() || null : null;
     } else {
-      // Third-party: the speaker can only vouch for a name they know.
+      // Third-party: the actor can only vouch for a name they know.
       const referent = introducee.getTemplatePath();
       name =
-        referent && MixinApi.isBeliefStore(speaker)
-          ? (speaker.recall(RECOGNITION, referent)?.knownAs ?? null)
+        referent && MixinApi.isBeliefStore(actor)
+          ? (actor.recall(RECOGNITION, referent)?.knownAs ?? null)
           : null;
       if (!name) {
-        MessageApi.scene(speaker)
-          .topic('world.speech.say')
+        MessageApi.scene(actor)
+          .topic(TOPIC)
           .toSelf(
             Mml.compose`You don't know ${Mml.name(introducee)} well enough to introduce them.`,
           )
@@ -82,40 +85,40 @@ export default class IntroduceController extends CommandController<IntroduceMode
     }
 
     if (!name) {
-      MessageApi.scene(speaker)
-        .topic('world.speech.say')
+      MessageApi.scene(actor)
+        .topic(TOPIC)
         .toSelf(Mml.compose`You have no name to give.`)
         .send();
       context.note({
         kind: 'controller-rejected',
         reason: 'no-name',
-        detail: speaker.stuffId,
+        detail: actor.stuffId,
       });
       return;
     }
 
-    // The spoken line is literal — NOT run through the say markdown /
-    // mention parser (this is a controlled announcement, not user prose).
-    const spoken = selfIntro ? `I'm ${name}.` : `This is ${name}.`;
+    // Modality-neutral: the introduction reaches everyone who can
+    // perceive the actor (spoken, signed, gestured — the scene routes by
+    // perception, not by speech). Peers render the actor by *their own*
+    // current perception (a stranger reads "a tall stranger introduces
+    // themselves as Mara") — the learning below upgrades that next time.
     const selfBody = selfIntro
       ? Mml.compose`You introduce yourself as ${name}.`
       : Mml.compose`You introduce ${Mml.name(introducee)} as ${name}.`;
+    const peerBody = selfIntro
+      ? Mml.compose`${Mml.name(actor)} introduces themselves as ${name}.`
+      : Mml.compose`${Mml.name(actor)} introduces ${Mml.name(introducee)} as ${name}.`;
 
-    // Public utterance. Peers render the speaker by *their own* current
-    // perception (so a stranger reads "a tall stranger says, 'I'm
-    // Mara.'") — the learning below upgrades that for next time.
-    MessageApi.scene(speaker)
-      .topic('world.speech.say')
+    MessageApi.scene(actor)
+      .topic(TOPIC)
       .toSelf(selfBody)
-      .toPeers(Mml.compose`${Mml.name(speaker)} says, ${Mml.speech(spoken)}`)
+      .toPeers(peerBody)
       .send();
 
-    // Record the learned identity for everyone in earshot — the same
-    // sensor set the scene reached. Skip the introducee (no self-
+    // Record the learned identity for everyone in perception range — the
+    // same sensor set the scene reached. Skip the introducee (no self-
     // recognition); non-belief-holding sensors no-op in the sink.
-    const env = MixinApi.isContainable(speaker)
-      ? speaker.getContainer()
-      : null;
+    const env = MixinApi.isContainable(actor) ? actor.getContainer() : null;
     if (env) {
       for (const sensor of MessageApi.getSensors(env)) {
         const listener = sensor as unknown as Stuff;
@@ -124,13 +127,4 @@ export default class IntroduceController extends CommandController<IntroduceMode
       }
     }
   }
-}
-
-/** The introducee's own proper name (Named), else its presentation. */
-function properName(stuff: Stuff): string | null {
-  if (MixinApi.isNamed(stuff)) {
-    const n = stuff.getName();
-    if (n) return n;
-  }
-  return stuff.getPresentation() || null;
 }

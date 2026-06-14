@@ -82,23 +82,3 @@ export function DisguiseBearingMixin<TBase extends MixinConstructor>(
     }
   };
 }
-
-/**
- * Merge several disguises into one effective covering: union the
- * `covers`, take `appearsAs` from the broadest (most-covering) source,
- * and mask identity if any source does. v1 ships one hood, so this is
- * usually the identity; the merge exists so layered coverings (mask +
- * cloak) compose without rework.
- */
-export function mergeDisguises(disguises: readonly Disguise[]): Disguise | null {
-  if (disguises.length === 0) return null;
-  let broadest = disguises[0]!;
-  const covers = new Set<string>();
-  let masksIdentity = false;
-  for (const d of disguises) {
-    for (const c of d.covers) covers.add(c);
-    if (d.masksIdentity) masksIdentity = true;
-    if (d.covers.length > broadest.covers.length) broadest = d;
-  }
-  return { appearsAs: broadest.appearsAs, covers: [...covers], masksIdentity };
-}
