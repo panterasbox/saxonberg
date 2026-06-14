@@ -1,5 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { ZoneApi } from '../zone';
+import { ZoneLogic } from '../../obj/api/ZoneLogic';
+import { SecurityError } from '../../lib/security/errors';
 import { StuffApi } from '../stuff';
 import { ContainmentApi } from '../containment';
 import { PersistenceManager, Collections } from '../../../backend/PersistenceManager';
@@ -211,5 +213,30 @@ describe('Zone is set at clone time, not on move', () => {
 
     ContainmentApi.move(sword, park);
     expect(sword.getZone()).toBeNull();
+  });
+});
+
+describe('ZoneLogic singleton encapsulation', () => {
+  afterEach(() => {
+    StuffApi.clearAll();
+  });
+
+  it('lives at /obj/api/zone once the facade has materialized it', async () => {
+    // A facade call lazily creates the logic singleton.
+    await ZoneApi.isFolderClass('/no/such/class');
+    const logic = StuffApi.findByTemplatePath('/obj/api/zone');
+    expect(logic).toBeDefined();
+    expect(StuffApi.findByPathGlob('/obj/api/*')).toContain(logic);
+  });
+
+  it('denies a direct logic-method call from a non-ZoneApi caller', async () => {
+    await ZoneApi.isFolderClass('/no/such/class');
+    const logic = StuffApi.findByTemplatePath<ZoneLogic>('/obj/api/zone');
+    expect(logic).toBeDefined();
+    // The test module is not `mud/api/zone#ZoneApi`, so the FromModule
+    // gate on the logic's own methods denies the call. The gate denies
+    // synchronously inside the proxy (before the async body runs), so
+    // the throw is synchronous even though the method is async.
+    expect(() => logic!.isFolderClass('/no/such/class')).toThrow(SecurityError);
   });
 });
