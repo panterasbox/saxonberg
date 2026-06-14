@@ -18,6 +18,7 @@ import type { Containable } from '../lib/spatial/Containable';
 import type { CommandGiver } from '../lib/command/CommandGiver';
 import type { Focused } from '../lib/command/Focused';
 import { ArrayApi } from './array';
+import { ShadowApi } from './shadow';
 import { ShellApi } from './shell';
 import { PromptApi } from './prompt';
 import type Interactive from '../obj/Interactive';
@@ -3508,3 +3509,11 @@ function resolvePronounFragment(
 
 
 SecurityApi.decorateApiClass(CommandApi);
+
+// Inject the command-recency-stack delta into the shadow subsystem.
+// `shadow.ts` no longer statically imports `command` (that edge was a
+// layering inversion that pulled the whole command closure onto the
+// boot path); instead `ShadowApi.attach`/`detach` call this hook
+// synchronously. Requires `command` to be eager-imported at boot — see
+// `bootstrap.ts` / the test-registry setup.
+ShadowApi._registerCommandShadowHook(CommandApi.applyShadowDelta);

@@ -38,7 +38,6 @@
 
 import type { Stuff } from '../lib/stuff/Stuff';
 import type { Shadow } from '../lib/stuff/Shadow';
-import { CommandApi } from './command';
 import {
   ShadowError,
   DestroyedObjectError,
@@ -66,10 +65,44 @@ interface DispatchState {
 
 const _dispatchALS = new AsyncLocalStorage<DispatchState>();
 
+/**
+ * The command-recency-stack delta a shadow attach/detach drives.
+ * Implemented by `CommandApi.applyShadowDelta`, injected via
+ * {@link ShadowApi._registerCommandShadowHook} so the shadow subsystem
+ * doesn't statically import `command` (a layering inversion that would
+ * pull the whole command closure onto the boot path).
+ */
+export type CommandShadowHook = (
+  host: Stuff,
+  shadow: Shadow,
+  op: 'attach' | 'detach'
+) => void;
+
 export class ShadowApi {
   static #hostShadows: WeakMap<Stuff, Map<string, Shadow[]>> = new WeakMap();
   static #shadowHost: WeakMap<Shadow, Stuff> = new WeakMap();
   static #shadowMethods: WeakMap<Shadow, ReadonlySet<string>> = new WeakMap();
+
+  /**
+   * Late-bound command-delta hook. `command.ts` calls
+   * `ShadowApi._registerCommandShadowHook(CommandApi.applyShadowDelta)`
+   * at its module-bottom; `attach`/`detach` invoke it **synchronously**
+   * so a command issued right after an attach sees the updated
+   * affordances. The slot is read at call-time only, so the
+   * shadow↔command edge stays acyclic at module-eval time. A no-op
+   * default lets shadows that carry no command contributions work even
+   * before `command` has loaded (e.g. narrow unit tests).
+   */
+  static #commandShadowHook: CommandShadowHook | null = null;
+
+  /**
+   * Slot for `CommandApi` to register its `applyShadowDelta` with the
+   * shadow subsystem. Called once at `command.ts`'s module-bottom;
+   * idempotent. @internal
+   */
+  public static _registerCommandShadowHook(fn: CommandShadowHook): void {
+    ShadowApi.#commandShadowHook = fn;
+  }
 
   /* ─────────────────────────── Public API ─────────────────────────── */
 
@@ -144,7 +177,7 @@ export class ShadowApi {
     // contributions, push them onto the host's stack (and reachable
     // peer/holder stacks). Schema-delivery emits piggy-back on the
     // sealed push surface, so attach surfaces as `commands.added`.
-    CommandApi.applyShadowDelta(host, shadow, 'attach');
+    ShadowApi.#commandShadowHook?.(host, shadow, 'attach');
   }
 
   /**
@@ -175,7 +208,7 @@ export class ShadowApi {
     // contributed to. Order matters — pop BEFORE the shadow
     // detaches from the host, so containment lookups (which use
     // `host.getContainer()`) still see the right neighborhood.
-    CommandApi.applyShadowDelta(host, shadow, 'detach');
+    ShadowApi.#commandShadowHook?.(host, shadow, 'detach');
 
     ShadowApi.#removeAtomic(shadow, host, methods);
   }
