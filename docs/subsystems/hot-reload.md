@@ -188,6 +188,16 @@ Two facts make this HMR-correct:
   `Stuff`. The stuffId is ephemeral (a new one per recreate); the
   **path is the stable handle**, MQL-addressable with no `Template`
   doc.
+- **Lazy materialization — un-materialized singletons aren't
+  enumerable.** A `/obj/api/<feature>` singleton doesn't exist until its
+  first `logic()` call; before that there's no live instance and no
+  `Template` doc to fall back on, so it won't appear in a
+  `findByPathGlob('/obj/api/*')` sweep. Enumerating the *un*-materialized
+  set would need a static path list (a mild registry) — **deferred until
+  it bites**: glob-over-live covers every real case (you only care about
+  singletons that have actually been used), and the no-premature-registry
+  rule argues against standing one up speculatively. (Graduated from the
+  retired surface-architecture slate.)
 
 #### Demonstration (locomotion)
 

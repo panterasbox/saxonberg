@@ -474,8 +474,10 @@ are composition errors, not user-input errors — a controller that asks
 for `.toPeers` on a non-Containable actor has a bug, not a recoverable
 condition.
 
-The Scene class lives inside `mud/api/message.ts` — there is no
-`scene.ts` and no top-level `Scene` export. Construction goes through
+The Scene class lives in `mud/lib/message/Scene.ts` (relocated there in
+the surface-architecture refactor's DP.1 — value classes live in `lib/`,
+not `api/`) and is re-exported from `mud/api/message.ts`, so callers
+still reach it through the face. Construction goes through
 `MessageApi.scene(actor)` only; Scene's constructor is sentinel-gated
 and rejects all other callers.
 

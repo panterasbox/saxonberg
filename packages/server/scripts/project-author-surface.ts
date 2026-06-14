@@ -27,8 +27,10 @@
  *
  * It also emits the **re-export report** (lint #2): faces (Api/mixin
  * modules) that speak a named type in a signature but do not re-export
- * it from the face. WARN-only for now (see the surface-architecture
- * plan's lint sequencing); flipped to CI-failing at the end of P3.
+ * it from the face. Advisory (WARN): the residual gaps are
+ * capability/mixin interfaces that legitimately ride their own
+ * concept's face, so this report stays informational rather than
+ * CI-gating (only lint #1, the gate-string resolver, gates CI).
  *
  * Pure logic (`projectAuthorSurface`) is exported for unit testing on a
  * small fixture model; the CLI tail reads/writes the real files.

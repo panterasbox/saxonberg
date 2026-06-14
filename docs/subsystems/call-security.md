@@ -635,7 +635,7 @@ keystone `shadow → command` value-edge was severed via a late-bound DI
 seam (`ShadowApi._registerCommandShadowHook`), which freed
 `array, belief, command, command-line, containment, group, message, mql,
 mudlog, prompt, prose, quantity, recognition, shell, access` for
-conversion. See the excluded-api-unblock record in `docs/slates/tails/`.
+conversion.
 
 What remains a **static class** after that:
 
