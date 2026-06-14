@@ -216,3 +216,15 @@ describe('ProseApi quantity filters (Step C)', () => {
     expect(out).toBe('x: ');
   });
 });
+
+describe('ProseLogic singleton encapsulation', () => {
+  it('denies a direct logic-method call from a non-ProseApi caller', async () => {
+    const { StuffApi } = await import('../stuff');
+    const { SecurityError } = await import('../../lib/security/errors');
+    type ProseLogic = import('../../obj/api/ProseLogic').ProseLogic;
+    ProseApi.format('x', {});
+    const logic = StuffApi.findByTemplatePath<ProseLogic>('/obj/api/prose');
+    expect(logic).toBeDefined();
+    expect(() => logic!.format('x', {})).toThrow(SecurityError);
+  });
+});

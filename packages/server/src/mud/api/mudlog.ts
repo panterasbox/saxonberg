@@ -14,17 +14,23 @@
  * explicitly and doesn't need Scene's per-audience plumbing. It does
  * stamp `meta.commandId` and `meta.causingCommandId` from
  * ExecutionContext, same as Scene.
+ *
+ * This Api is a thin forwarding shell: the logic lives in the
+ * hot-reloadable {@link MudlogLogic} singleton at `/obj/api/mudlog`,
+ * reached synchronously via `StuffApi.singletonSync`. The author-facing
+ * overload pairs live here; the logic methods take the resolved
+ * implementation signature. `dest /obj/api/mudlog` reloads it.
  */
 
 import type { Stuff } from '../lib/stuff/Stuff';
 import type { Sensor } from '../lib/message/Sensor';
-import type { LogLevel, MessageFrame } from '@saxonberg/types';
-import { nanoid } from 'nanoid';
-import { ExecutionContextApi } from './execution-context';
+import type { LogLevel } from '@saxonberg/types';
+import { StuffApi } from './stuff';
+import { HotReloadApi } from './hot-reload';
 import { SecurityApi } from './security';
-import { MessageApi } from './message';
-import { MixinApi } from './mixin';
+import { MudlogLogic } from '../obj/api/MudlogLogic';
 import { Mml } from './mml';
+import { fileURLToPath } from 'url';
 
 type SensorStuff = Stuff & Sensor;
 
@@ -42,78 +48,21 @@ const LEVELS: ReadonlyArray<LogLevel> = [
   'fatal',
 ];
 
-/**
- * Build the topic string for a (category?, level) pair.
- *   no category → `system.log.<level>`
- *   with category → `system.log.<category>.<level>`
- */
-function topicFor(category: string | undefined, level: LogLevel): string {
-  return category
-    ? `system.log.${category}.${level}`
-    : `system.log.${level}`;
-}
+const LOGIC_PATH = '/obj/api/mudlog';
+const LOGIC_CLASS_FILE = fileURLToPath(
+  new URL('../obj/api/MudlogLogic', import.meta.url)
+);
 
-function resolveRecipients(opts: MudlogOptions | undefined): SensorStuff[] {
-  if (opts?.to) {
-    return Array.isArray(opts.to) ? opts.to : [opts.to];
-  }
-  const ctx = ExecutionContextApi.getCurrentCommandContext();
-  const giver = ctx?.commandGiver;
-  if (giver && MixinApi.isSensor(giver)) return [giver];
-  throw new Error(
-    'MudlogApi: no recipient — pass opts.to, or call inside a command ' +
-      'execution where the command giver is a Sensor'
+/** Resolve the HMR-able MudlogLogic singleton (sync). */
+function logic(): MudlogLogic {
+  return StuffApi.singletonSync(
+    LOGIC_PATH,
+    () =>
+      new ((HotReloadApi.getCurrentExport(
+        LOGIC_CLASS_FILE,
+        'MudlogLogic'
+      ) as typeof MudlogLogic | null) ?? MudlogLogic)()
   );
-}
-
-/**
- * Compose and dispatch one frame at the given level/category to the
- * resolved recipients. Internal — call sites use the level methods
- * (info/warn/etc.) and let TypeScript pick the overload.
- */
-function emit(
-  level: LogLevel,
-  category: string | undefined,
-  body: Mml,
-  opts: MudlogOptions | undefined
-): void {
-  const recipients = resolveRecipients(opts);
-  const cmdCtx = ExecutionContextApi.getCurrentCommandContext();
-  const meta: MessageFrame['meta'] = { timestamp: Date.now() };
-  if (cmdCtx?.commandId) meta.commandId = cmdCtx.commandId;
-  const causing = ExecutionContextApi.getCurrentCausingCommandId();
-  if (causing) meta.causingCommandId = causing;
-
-  for (const recipient of recipients) {
-    const frame: MessageFrame = {
-      id: nanoid(),
-      topic: topicFor(category, level),
-      tags: [`level:${level}`, ...(category ? [`category:${category}`] : [])],
-      body: body.toString(),
-      meta: { ...meta },
-    };
-    if (opts?.payload !== undefined) frame.payload = opts.payload;
-    MessageApi.sendMessage(recipient, frame);
-  }
-}
-
-/**
- * Resolve which overload was invoked. Body-only:
- *   info(body, opts?)
- * Categorized:
- *   info(category, body, opts?)
- */
-function dispatch(
-  level: LogLevel,
-  a: string | Mml,
-  b?: Mml | MudlogOptions,
-  c?: MudlogOptions
-): void {
-  if (typeof a === 'string') {
-    emit(level, a, b as Mml, c);
-  } else {
-    emit(level, undefined, a, b as MudlogOptions | undefined);
-  }
 }
 
 export class MudlogApi {
@@ -126,7 +75,7 @@ export class MudlogApi {
     b?: Mml | MudlogOptions,
     c?: MudlogOptions
   ): void {
-    dispatch('trace', a, b, c);
+    logic().trace(a, b, c);
   }
 
   static debug(body: Mml, opts?: MudlogOptions): void;
@@ -136,7 +85,7 @@ export class MudlogApi {
     b?: Mml | MudlogOptions,
     c?: MudlogOptions
   ): void {
-    dispatch('debug', a, b, c);
+    logic().debug(a, b, c);
   }
 
   static info(body: Mml, opts?: MudlogOptions): void;
@@ -146,7 +95,7 @@ export class MudlogApi {
     b?: Mml | MudlogOptions,
     c?: MudlogOptions
   ): void {
-    dispatch('info', a, b, c);
+    logic().info(a, b, c);
   }
 
   static warn(body: Mml, opts?: MudlogOptions): void;
@@ -156,7 +105,7 @@ export class MudlogApi {
     b?: Mml | MudlogOptions,
     c?: MudlogOptions
   ): void {
-    dispatch('warn', a, b, c);
+    logic().warn(a, b, c);
   }
 
   static error(body: Mml, opts?: MudlogOptions): void;
@@ -166,7 +115,7 @@ export class MudlogApi {
     b?: Mml | MudlogOptions,
     c?: MudlogOptions
   ): void {
-    dispatch('error', a, b, c);
+    logic().error(a, b, c);
   }
 
   static fatal(body: Mml, opts?: MudlogOptions): void;
@@ -176,7 +125,7 @@ export class MudlogApi {
     b?: Mml | MudlogOptions,
     c?: MudlogOptions
   ): void {
-    dispatch('fatal', a, b, c);
+    logic().fatal(a, b, c);
   }
 
   /**
@@ -184,8 +133,8 @@ export class MudlogApi {
    * always returns true; future enhancements (per-category levels,
    * dynamic config) plug in here.
    */
-  static isEnabled(_category: string | undefined, _level: LogLevel): boolean {
-    return true;
+  static isEnabled(category: string | undefined, level: LogLevel): boolean {
+    return logic().isEnabled(category, level);
   }
 }
 
