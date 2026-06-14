@@ -10,6 +10,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "docs": "typedoc",
+    "docs:project": "tsx scripts/project-author-surface.ts",
     "docs:clean": "rm -rf docs/api"
   },
   "dependencies": {

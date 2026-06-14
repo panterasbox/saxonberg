@@ -10,8 +10,9 @@
     "dev:server": "pnpm --filter @saxonberg/server dev",
     "dev:client": "pnpm --filter @saxonberg/client dev",
     "dev": "concurrently \"pnpm dev:server\" \"pnpm dev:client\"",
-    "docs": "pnpm run docs:server",
+    "docs": "pnpm run docs:server && pnpm run docs:project",
     "docs:server": "pnpm --filter @saxonberg/server run docs",
+    "docs:project": "pnpm --filter @saxonberg/server run docs:project",
     "docs:clean": "pnpm --filter @saxonberg/server run docs:clean"
   },
   "devDependencies": {
