@@ -24,39 +24,53 @@
  * is a reference new moon (full moon at synodic/2).
  *
  * Profile-resolving queries are async: `Zone.lookupField` is async.
+ *
+ * Thin, security-gated forwarding shell: the logic + the pure geometry
+ * live in the hot-reloadable {@link CelestialLogic} singleton at
+ * `/obj/api/celestial`, reached synchronously via
+ * `StuffApi.singletonSync`. `dest /obj/api/celestial` reloads it.
  */
 
 import type { Stuff } from '../lib/stuff/Stuff';
-import type { Zone } from '../lib/zone/Zone';
 import { Quantity } from '../lib/quantity';
+import { type CelestialProfile, type Season } from '../lib/time/CelestialProfile';
 import {
-  type CelestialProfile,
-  type Season,
-  EARTH_LIKE,
-} from '../lib/time/CelestialProfile';
-import {
-  WorldClockApi,
   type ClockCallback,
   type ScheduleOpts,
   type ClockHandle,
 } from './worldclock';
+import { StuffApi } from './stuff';
+import { HotReloadApi } from './hot-reload';
 import { SecurityApi } from './security';
+import {
+  CelestialLogic,
+  CAMPUS_LATITUDE,
+  CAMPUS_LONGITUDE,
+} from '../obj/api/CelestialLogic';
+import { fileURLToPath } from 'url';
 
-const DEG_PER_TURN = 360;
-const TWO_PI = Math.PI * 2;
+const LOGIC_PATH = '/obj/api/celestial';
+const LOGIC_CLASS_FILE = fileURLToPath(
+  new URL('../obj/api/CelestialLogic', import.meta.url)
+);
 
-const toRad = (deg: number): number => (deg * Math.PI) / 180;
-const toDeg = (rad: number): number => (rad * 180) / Math.PI;
-const clamp = (x: number, lo: number, hi: number): number =>
-  Math.max(lo, Math.min(hi, x));
+/** Resolve the HMR-able CelestialLogic singleton (sync). */
+function logic(): CelestialLogic {
+  return StuffApi.singletonSync(
+    LOGIC_PATH,
+    () =>
+      new ((HotReloadApi.getCurrentExport(
+        LOGIC_CLASS_FILE,
+        'CelestialLogic'
+      ) as typeof CelestialLogic | null) ?? CelestialLogic)()
+  );
+}
 
 export class CelestialApi {
-  private constructor() {}
-
   /** Campus latitude (°N). Single-region v1; per-zone latitude is future work. */
-  static readonly CAMPUS_LATITUDE = 42;
+  static readonly CAMPUS_LATITUDE = CAMPUS_LATITUDE;
   /** Campus longitude (°E). Reserved for future time-zone work. */
-  static readonly CAMPUS_LONGITUDE = 0;
+  static readonly CAMPUS_LONGITUDE = CAMPUS_LONGITUDE;
 
   /* ──────────────────── profile resolution ──────────────────── */
 
@@ -67,13 +81,7 @@ export class CelestialApi {
    * authoring is required for v1 — the fallback covers the campus.
    */
   public static async profileFor(location: Stuff): Promise<CelestialProfile> {
-    const zone = (
-      location as Stuff & { getZone?: () => Zone | null }
-    ).getZone?.();
-    const profile = zone
-      ? await zone.lookupField<CelestialProfile>('celestialProfile')
-      : null;
-    return profile ?? EARTH_LIKE;
+    return logic().profileFor(location);
   }
 
   /* ──────────────────── instantaneous queries ──────────────────── */
@@ -82,50 +90,28 @@ export class CelestialApi {
     location: Stuff,
     time?: Quantity<'s'>
   ): Promise<boolean> {
-    const profile = await CelestialApi.profileFor(location);
-    return CelestialApi.isDay(
-      profile,
-      CelestialApi.CAMPUS_LATITUDE,
-      CelestialApi.#t(time)
-    );
+    return logic().isDayAt(location, time);
   }
 
   public static async sunAltitude(
     location: Stuff,
     time?: Quantity<'s'>
   ): Promise<Quantity<'degrees'>> {
-    const profile = await CelestialApi.profileFor(location);
-    return Quantity.of(
-      CelestialApi.solarAltitudeDeg(
-        profile,
-        CelestialApi.CAMPUS_LATITUDE,
-        CelestialApi.#t(time)
-      ),
-      'degrees'
-    );
+    return logic().sunAltitude(location, time);
   }
 
   public static async sunAzimuth(
     location: Stuff,
     time?: Quantity<'s'>
   ): Promise<Quantity<'degrees'>> {
-    const profile = await CelestialApi.profileFor(location);
-    return Quantity.of(
-      CelestialApi.solarAzimuthDeg(
-        profile,
-        CelestialApi.CAMPUS_LATITUDE,
-        CelestialApi.#t(time)
-      ),
-      'degrees'
-    );
+    return logic().sunAzimuth(location, time);
   }
 
   public static async currentSeason(
     location: Stuff,
     time?: Quantity<'s'>
   ): Promise<Season> {
-    const profile = await CelestialApi.profileFor(location);
-    return CelestialApi.seasonFor(profile, CelestialApi.#t(time));
+    return logic().currentSeason(location, time);
   }
 
   /* ──────────────────── event times ──────────────────── */
@@ -134,85 +120,38 @@ export class CelestialApi {
     location: Stuff,
     time?: Quantity<'s'>
   ): Promise<Quantity<'s'>> {
-    const profile = await CelestialApi.profileFor(location);
-    const next = CelestialApi.nextSolarEvent(
-      profile,
-      CelestialApi.CAMPUS_LATITUDE,
-      CelestialApi.#t(time),
-      'sunrise'
-    );
-    return Quantity.of(next ?? CelestialApi.#t(time), 's');
+    return logic().nextSunrise(location, time);
   }
 
   public static async nextSunset(
     location: Stuff,
     time?: Quantity<'s'>
   ): Promise<Quantity<'s'>> {
-    const profile = await CelestialApi.profileFor(location);
-    const next = CelestialApi.nextSolarEvent(
-      profile,
-      CelestialApi.CAMPUS_LATITUDE,
-      CelestialApi.#t(time),
-      'sunset'
-    );
-    return Quantity.of(next ?? CelestialApi.#t(time), 's');
+    return logic().nextSunset(location, time);
   }
 
   /** Next full moon. Uses the universe-default lunar profile (no location). */
   public static nextFullMoon(time?: Quantity<'s'>): Quantity<'s'> {
-    return Quantity.of(
-      CelestialApi.nextFullMoonFor(
-        EARTH_LIKE,
-        CelestialApi.#synodic(),
-        CelestialApi.#t(time)
-      ),
-      's'
-    );
+    return logic().nextFullMoon(time);
   }
 
   /** Moon phase in [0, 1): 0 = new, 0.5 = full. */
   public static moonPhase(time?: Quantity<'s'>): number {
-    return CelestialApi.moonPhaseFor(
-      EARTH_LIKE,
-      CelestialApi.#synodic(),
-      CelestialApi.#t(time)
-    );
+    return logic().moonPhase(time);
   }
 
   public static async moonAltitude(
     location: Stuff,
     time?: Quantity<'s'>
   ): Promise<Quantity<'degrees'>> {
-    const profile = await CelestialApi.profileFor(location);
-    const synodic =
-      profile.moons[0]?.synodicPeriodDays ?? CelestialApi.#synodic();
-    return Quantity.of(
-      CelestialApi.moonAltitudeDeg(
-        profile,
-        CelestialApi.CAMPUS_LATITUDE,
-        synodic,
-        CelestialApi.#t(time)
-      ),
-      'degrees'
-    );
+    return logic().moonAltitude(location, time);
   }
 
   public static async moonAzimuth(
     location: Stuff,
     time?: Quantity<'s'>
   ): Promise<Quantity<'degrees'>> {
-    const profile = await CelestialApi.profileFor(location);
-    const synodic =
-      profile.moons[0]?.synodicPeriodDays ?? CelestialApi.#synodic();
-    return Quantity.of(
-      CelestialApi.moonAzimuthDeg(
-        profile,
-        CelestialApi.CAMPUS_LATITUDE,
-        synodic,
-        CelestialApi.#t(time)
-      ),
-      'degrees'
-    );
+    return logic().moonAzimuth(location, time);
   }
 
   /* ──────────────────── astronomical scheduling ──────────────────── */
@@ -222,8 +161,7 @@ export class CelestialApi {
     cb: ClockCallback,
     opts?: ScheduleOpts
   ): Promise<ClockHandle> {
-    const deadline = await CelestialApi.nextSunrise(location);
-    return WorldClockApi.at(deadline, cb, opts);
+    return logic().atNextSunrise(location, cb, opts);
   }
 
   public static async atNextSunset(
@@ -231,31 +169,26 @@ export class CelestialApi {
     cb: ClockCallback,
     opts?: ScheduleOpts
   ): Promise<ClockHandle> {
-    const deadline = await CelestialApi.nextSunset(location);
-    return WorldClockApi.at(deadline, cb, opts);
+    return logic().atNextSunset(location, cb, opts);
   }
 
   public static atNextFullMoon(
     cb: ClockCallback,
     opts?: ScheduleOpts
   ): ClockHandle {
-    return WorldClockApi.at(CelestialApi.nextFullMoon(), cb, opts);
+    return logic().atNextFullMoon(cb, opts);
   }
 
   /* ──────────────────── pure geometry ──────────────────── */
 
   /** 0-based day-of-year in `[0, yearLengthDays)`. */
   public static dayOfYear(profile: CelestialProfile, t: number): number {
-    const D = profile.dayLengthSeconds;
-    const Y = profile.yearLengthDays;
-    const dayIndex = Math.floor(t / D);
-    return ((dayIndex % Y) + Y) % Y;
+    return logic().dayOfYear(profile, t);
   }
 
   /** Seconds elapsed since local midnight, in `[0, dayLengthSeconds)`. */
   public static secondOfDay(profile: CelestialProfile, t: number): number {
-    const D = profile.dayLengthSeconds;
-    return ((t % D) + D) % D;
+    return logic().secondOfDay(profile, t);
   }
 
   /**
@@ -263,10 +196,7 @@ export class CelestialApi {
    * 0 at the equinoxes, ±tilt at the solstices.
    */
   public static declinationDeg(profile: CelestialProfile, t: number): number {
-    const tilt = profile.axialTiltDegrees.rawValue();
-    const Y = profile.yearLengthDays;
-    const dayIndex = CelestialApi.dayOfYear(profile, t);
-    return tilt * Math.sin((TWO_PI * dayIndex) / Y);
+    return logic().declinationDeg(profile, t);
   }
 
   /**
@@ -274,8 +204,7 @@ export class CelestialApi {
    * is 0 and the afternoon is positive.
    */
   public static hourAngleDeg(profile: CelestialProfile, t: number): number {
-    const D = profile.dayLengthSeconds;
-    return (CelestialApi.secondOfDay(profile, t) / D) * DEG_PER_TURN - 180;
+    return logic().hourAngleDeg(profile, t);
   }
 
   /**
@@ -287,13 +216,7 @@ export class CelestialApi {
     decDegrees: number,
     hourAngleDegrees: number
   ): number {
-    const lat = toRad(latitudeDegrees);
-    const dec = toRad(decDegrees);
-    const H = toRad(hourAngleDegrees);
-    const sinAlt =
-      Math.sin(lat) * Math.sin(dec) +
-      Math.cos(lat) * Math.cos(dec) * Math.cos(H);
-    return toDeg(Math.asin(clamp(sinAlt, -1, 1)));
+    return logic().altitudeFor(latitudeDegrees, decDegrees, hourAngleDegrees);
   }
 
   /**
@@ -307,23 +230,7 @@ export class CelestialApi {
     decDegrees: number,
     hourAngleDegrees: number
   ): number {
-    const lat = toRad(latitudeDegrees);
-    const dec = toRad(decDegrees);
-    const altDeg = CelestialApi.altitudeFor(
-      latitudeDegrees,
-      decDegrees,
-      hourAngleDegrees
-    );
-    const alt = toRad(altDeg);
-    const denom = Math.cos(lat) * Math.cos(alt);
-    if (Math.abs(denom) < 1e-12) {
-      // Body at the zenith / pole — azimuth is degenerate; report north.
-      return 0;
-    }
-    const cosAz = (Math.sin(dec) - Math.sin(lat) * Math.sin(alt)) / denom;
-    let az = toDeg(Math.acos(clamp(cosAz, -1, 1)));
-    if (hourAngleDegrees > 0) az = DEG_PER_TURN - az;
-    return az;
+    return logic().azimuthFor(latitudeDegrees, decDegrees, hourAngleDegrees);
   }
 
   /** Solar altitude in degrees. */
@@ -332,11 +239,7 @@ export class CelestialApi {
     latitudeDegrees: number,
     t: number
   ): number {
-    return CelestialApi.altitudeFor(
-      latitudeDegrees,
-      CelestialApi.declinationDeg(profile, t),
-      CelestialApi.hourAngleDeg(profile, t)
-    );
+    return logic().solarAltitudeDeg(profile, latitudeDegrees, t);
   }
 
   /** Solar azimuth in degrees, from north clockwise. */
@@ -345,11 +248,7 @@ export class CelestialApi {
     latitudeDegrees: number,
     t: number
   ): number {
-    return CelestialApi.azimuthFor(
-      latitudeDegrees,
-      CelestialApi.declinationDeg(profile, t),
-      CelestialApi.hourAngleDeg(profile, t)
-    );
+    return logic().solarAzimuthDeg(profile, latitudeDegrees, t);
   }
 
   /** True when the sun is above the horizon (altitude > 0). */
@@ -358,7 +257,7 @@ export class CelestialApi {
     latitudeDegrees: number,
     t: number
   ): boolean {
-    return CelestialApi.solarAltitudeDeg(profile, latitudeDegrees, t) > 0;
+    return logic().isDay(profile, latitudeDegrees, t);
   }
 
   /**
@@ -372,12 +271,7 @@ export class CelestialApi {
     latitudeDegrees: number,
     t: number
   ): number | 'polar-day' | 'polar-night' {
-    const lat = toRad(latitudeDegrees);
-    const dec = toRad(CelestialApi.declinationDeg(profile, t));
-    const cosH0 = -Math.tan(lat) * Math.tan(dec);
-    if (cosH0 < -1) return 'polar-day';
-    if (cosH0 > 1) return 'polar-night';
-    return toDeg(Math.acos(clamp(cosH0, -1, 1)));
+    return logic().sunriseHourAngleDeg(profile, latitudeDegrees, t);
   }
 
   /** Second-of-day of sunrise, or null on a polar day / night. */
@@ -386,9 +280,7 @@ export class CelestialApi {
     latitudeDegrees: number,
     t: number
   ): number | null {
-    const H0 = CelestialApi.sunriseHourAngleDeg(profile, latitudeDegrees, t);
-    if (typeof H0 !== 'number') return null;
-    return (profile.dayLengthSeconds * (180 - H0)) / DEG_PER_TURN;
+    return logic().sunriseSecOfDay(profile, latitudeDegrees, t);
   }
 
   /** Second-of-day of sunset, or null on a polar day / night. */
@@ -397,9 +289,7 @@ export class CelestialApi {
     latitudeDegrees: number,
     t: number
   ): number | null {
-    const H0 = CelestialApi.sunriseHourAngleDeg(profile, latitudeDegrees, t);
-    if (typeof H0 !== 'number') return null;
-    return (profile.dayLengthSeconds * (180 + H0)) / DEG_PER_TURN;
+    return logic().sunsetSecOfDay(profile, latitudeDegrees, t);
   }
 
   /**
@@ -414,30 +304,12 @@ export class CelestialApi {
     t: number,
     which: 'sunrise' | 'sunset'
   ): number | null {
-    const D = profile.dayLengthSeconds;
-    const Y = profile.yearLengthDays;
-    const startDay = Math.floor(t / D);
-    for (let offset = 0; offset <= Y; offset++) {
-      const dayStart = (startDay + offset) * D;
-      const secOfDay =
-        which === 'sunrise'
-          ? CelestialApi.sunriseSecOfDay(profile, latitudeDegrees, dayStart)
-          : CelestialApi.sunsetSecOfDay(profile, latitudeDegrees, dayStart);
-      if (secOfDay === null) continue;
-      const candidate = dayStart + secOfDay;
-      if (candidate > t) return candidate;
-    }
-    return null;
+    return logic().nextSolarEvent(profile, latitudeDegrees, t, which);
   }
 
   /** Season from day-of-year quarter (vernal equinox = day 0 = spring). */
   public static seasonFor(profile: CelestialProfile, t: number): Season {
-    const dayIndex = CelestialApi.dayOfYear(profile, t);
-    const Y = profile.yearLengthDays;
-    if (dayIndex < Y / 4) return 'spring';
-    if (dayIndex < Y / 2) return 'summer';
-    if (dayIndex < (3 * Y) / 4) return 'fall';
-    return 'winter';
+    return logic().seasonFor(profile, t);
   }
 
   /** Moon phase in `[0, 1)`: 0 = new, 0.5 = full. */
@@ -446,11 +318,7 @@ export class CelestialApi {
     synodicPeriodDays: number,
     t: number
   ): number {
-    const synodicSeconds = synodicPeriodDays * profile.dayLengthSeconds;
-    return (
-      (((t % synodicSeconds) + synodicSeconds) % synodicSeconds) /
-      synodicSeconds
-    );
+    return logic().moonPhaseFor(profile, synodicPeriodDays, t);
   }
 
   /** First game-time strictly after `t` at which the moon is full. */
@@ -459,11 +327,7 @@ export class CelestialApi {
     synodicPeriodDays: number,
     t: number
   ): number {
-    const synodicSeconds = synodicPeriodDays * profile.dayLengthSeconds;
-    const cycleStart = Math.floor(t / synodicSeconds) * synodicSeconds;
-    let full = cycleStart + synodicSeconds / 2;
-    if (full <= t) full += synodicSeconds;
-    return full;
+    return logic().nextFullMoonFor(profile, synodicPeriodDays, t);
   }
 
   /**
@@ -474,9 +338,7 @@ export class CelestialApi {
     profile: CelestialProfile,
     t: number
   ): number {
-    const yearSeconds = profile.yearLengthDays * profile.dayLengthSeconds;
-    const frac = ((t % yearSeconds) + yearSeconds) % yearSeconds;
-    return (frac / yearSeconds) * DEG_PER_TURN;
+    return logic().solarEclipticLongitudeDeg(profile, t);
   }
 
   public static moonDeclinationDeg(
@@ -484,13 +346,7 @@ export class CelestialApi {
     synodicPeriodDays: number,
     t: number
   ): number {
-    const tilt = profile.axialTiltDegrees.rawValue();
-    const lambda = CelestialApi.#moonEclipticLongitudeDeg(
-      profile,
-      synodicPeriodDays,
-      t
-    );
-    return tilt * Math.sin(toRad(lambda));
+    return logic().moonDeclinationDeg(profile, synodicPeriodDays, t);
   }
 
   /** Hour angle of the moon: the sun's, lagged by 360° · phase. */
@@ -499,11 +355,7 @@ export class CelestialApi {
     synodicPeriodDays: number,
     t: number
   ): number {
-    const phase = CelestialApi.moonPhaseFor(profile, synodicPeriodDays, t);
-    let H = CelestialApi.hourAngleDeg(profile, t) - DEG_PER_TURN * phase;
-    // Normalize into [-180, 180].
-    H = ((((H + 180) % DEG_PER_TURN) + DEG_PER_TURN) % DEG_PER_TURN) - 180;
-    return H;
+    return logic().moonHourAngleDeg(profile, synodicPeriodDays, t);
   }
 
   public static moonAltitudeDeg(
@@ -512,11 +364,7 @@ export class CelestialApi {
     synodicPeriodDays: number,
     t: number
   ): number {
-    return CelestialApi.altitudeFor(
-      latitudeDegrees,
-      CelestialApi.moonDeclinationDeg(profile, synodicPeriodDays, t),
-      CelestialApi.moonHourAngleDeg(profile, synodicPeriodDays, t)
-    );
+    return logic().moonAltitudeDeg(profile, latitudeDegrees, synodicPeriodDays, t);
   }
 
   public static moonAzimuthDeg(
@@ -525,44 +373,7 @@ export class CelestialApi {
     synodicPeriodDays: number,
     t: number
   ): number {
-    return CelestialApi.azimuthFor(
-      latitudeDegrees,
-      CelestialApi.moonDeclinationDeg(profile, synodicPeriodDays, t),
-      CelestialApi.moonHourAngleDeg(profile, synodicPeriodDays, t)
-    );
-  }
-
-  /* ──────────────────── internals ──────────────────── */
-
-  static #t(time?: Quantity<'s'>): number {
-    return (time ?? WorldClockApi.getNow()).rawValue();
-  }
-
-  /** Universe-default lunar synodic period (days). */
-  static #synodic(): number {
-    return EARTH_LIKE.moons[0]?.synodicPeriodDays ?? 30;
-  }
-
-  /**
-   * First-order lunar model (honest but simplified): the moon is a
-   * point on the ecliptic whose longitude leads the sun's by
-   * `360° · phase` (new moon shares the sun's longitude; full moon
-   * sits opposite). Declination follows the ecliptic via the axial
-   * tilt; the hour angle lags the sun's by the same separation, so a
-   * full moon rides high at local midnight. Ignores the 5° lunar
-   * inclination and orbital eccentricity — first order, not an
-   * ephemeris.
-   */
-  static #moonEclipticLongitudeDeg(
-    profile: CelestialProfile,
-    synodicPeriodDays: number,
-    t: number
-  ): number {
-    const phase = CelestialApi.moonPhaseFor(profile, synodicPeriodDays, t);
-    return (
-      CelestialApi.solarEclipticLongitudeDeg(profile, t) +
-      DEG_PER_TURN * phase
-    );
+    return logic().moonAzimuthDeg(profile, latitudeDegrees, synodicPeriodDays, t);
   }
 }
 
