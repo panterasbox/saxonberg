@@ -2,8 +2,10 @@
  * ContainmentApi tests
  */
 
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { ContainmentApi } from '../containment';
+import { ContainmentLogic } from '../../obj/api/ContainmentLogic';
+import { SecurityError } from '../../lib/security/errors';
 import Location from '../../lib/stuff/Location';
 import { ContainerMixin } from '../../lib/spatial/Container';
 import { ContainableMixin } from '../../lib/spatial/Containable';
@@ -372,5 +374,37 @@ describe('ContainmentApi', () => {
       ContainmentApi.move(rejecting, location1);
       expect(() => ContainmentApi.placeOn(item, rejecting)).toThrow(/rejects/);
     });
+  });
+});
+
+describe('ContainmentLogic singleton encapsulation', () => {
+  beforeEach(() => {
+    StuffApi.clearAll();
+  });
+  afterEach(() => {
+    StuffApi.clearAll();
+  });
+
+  it('lives at /obj/api/containment once the facade has materialized it', () => {
+    // A facade call lazily creates the logic singleton.
+    const probe = makeStuff(() => new TestContainer());
+    ContainmentApi.getContents(probe);
+    const found = StuffApi.findByTemplatePath('/obj/api/containment');
+    expect(found).toBeDefined();
+    expect(StuffApi.findByPathGlob('/obj/api/*')).toContain(found);
+  });
+
+  it('denies a direct logic-method call from a non-ContainmentApi caller', () => {
+    const probe = makeStuff(() => new TestContainer());
+    ContainmentApi.getContents(probe);
+    const logic = StuffApi.findByTemplatePath<ContainmentLogic>(
+      '/obj/api/containment'
+    );
+    expect(logic).toBeDefined();
+    // The test module is not `mud/api/containment#ContainmentApi`, so the
+    // FromModule gate on the logic's own methods denies the call. The
+    // gate throws synchronously even for async-bodied methods, so a
+    // direct call to the void getContents path is sufficient.
+    expect(() => logic!.getContents(probe)).toThrow(SecurityError);
   });
 });

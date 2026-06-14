@@ -14,6 +14,13 @@
  * recipient selection (Scene's .toX methods) are layered on top of
  * the routing primitives, which stay generic ("deliver this object
  * to every Sensor inside this Container").
+ *
+ * This Api is a thin, security-gated forwarding shell: the logic lives
+ * in the hot-reloadable {@link MessageLogic} singleton at
+ * `/obj/api/message`, reached synchronously via
+ * `StuffApi.singletonSync`. `dest /obj/api/message` reloads it. The
+ * `Tags` audience constants and the `Scene` value class stay on this
+ * face (frame metadata / a composer value object, not routing logic).
  */
 
 import type { Stuff } from '../lib/stuff/Stuff';
@@ -25,13 +32,33 @@ import type {
   MessageFrame,
   StuffRef,
 } from '@saxonberg/types';
-import { MixinApi } from './mixin';
+import { StuffApi } from './stuff';
+import { HotReloadApi } from './hot-reload';
 import { SecurityApi } from './security';
-import { Scene } from '../lib/message/Scene';
+import { MessageLogic } from '../obj/api/MessageLogic';
+import type { Scene } from '../lib/message/Scene';
+import { fileURLToPath } from 'url';
 
 export { Scene } from '../lib/message/Scene';
 
 type SensorStuff = Stuff & Sensor;
+
+const LOGIC_PATH = '/obj/api/message';
+const LOGIC_CLASS_FILE = fileURLToPath(
+  new URL('../obj/api/MessageLogic', import.meta.url)
+);
+
+/** Resolve the HMR-able MessageLogic singleton (sync). */
+function logic(): MessageLogic {
+  return StuffApi.singletonSync(
+    LOGIC_PATH,
+    () =>
+      new ((HotReloadApi.getCurrentExport(
+        LOGIC_CLASS_FILE,
+        'MessageLogic'
+      ) as typeof MessageLogic | null) ?? MessageLogic)()
+  );
+}
 
 /**
  * Options for low-level broadcast helpers.
@@ -75,10 +102,7 @@ export class MessageApi {
    * a re-resolution step on the client.
    */
   static refOf(stuff: Stuff): StuffRef {
-    const display = stuff.getPresentation();
-    const ref: StuffRef = { stuffId: stuff.stuffId };
-    if (display) ref.displayName = display;
-    return ref;
+    return logic().refOf(stuff);
   }
 
   /**
@@ -88,16 +112,14 @@ export class MessageApi {
    * builder.
    */
   static scene(actor: Stuff): Scene {
-    return Scene._construct(actor);
+    return logic().scene(actor);
   }
 
   /**
    * Get all sensors (objects with SensorMixin) inside a container.
    */
   static getSensors(container: Stuff & Container): SensorStuff[] {
-    return container.getContents().filter((obj): obj is typeof obj & Sensor =>
-      MixinApi.isSensor(obj)
-    );
+    return logic().getSensors(container);
   }
 
   /**
@@ -109,7 +131,7 @@ export class MessageApi {
    * level filters, etc.) hook in exactly once.
    */
   static sendMessage(recipient: SensorStuff, frame: MessageFrame): void {
-    recipient.onMessage(frame);
+    return logic().sendMessage(recipient, frame);
   }
 
   /**
@@ -126,7 +148,7 @@ export class MessageApi {
     recipient: SensorStuff,
     template: EnvelopeTemplate
   ): void {
-    recipient.onEnvelope(template);
+    return logic().sendEnvelope(recipient, template);
   }
 
   /**
@@ -141,11 +163,7 @@ export class MessageApi {
     frame: MessageFrame,
     opts: MessageBroadcastOptions = {}
   ): void {
-    const exclude = opts.exclude ?? null;
-    for (const sensor of this.getSensors(container)) {
-      if (exclude && (sensor as Stuff) === exclude) continue;
-      this.sendMessage(sensor, frame);
-    }
+    return logic().messageContents(container, frame, opts);
   }
 
   /**
@@ -160,14 +178,8 @@ export class MessageApi {
     frame: MessageFrame,
     opts: MessageBroadcastOptions = {}
   ): void {
-    const container = source.getContainer();
-    if (!container) {
-      console.warn('MessageApi.messageContainer: Source not in a container');
-      return;
-    }
-    this.messageContents(container, frame, opts);
+    return logic().messageContainer(source, frame, opts);
   }
 }
-
 
 SecurityApi.decorateApiClass(MessageApi);

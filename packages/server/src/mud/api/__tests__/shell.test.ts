@@ -16,8 +16,12 @@
  * `$me` / `$here` / etc.
  */
 
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { Idea } from '../../lib/stuff/Idea';
+import { ShellLogic } from '../../obj/api/ShellLogic';
+import { SecurityError } from '../../lib/security/errors';
+import { StuffApi } from '../stuff';
+import { makeStuffAtPath } from '../../lib/security/__tests__/test-setup';
 import { CommandGiverMixin } from '../../lib/command/CommandGiver';
 import { FocusedMixin } from '../../lib/command/Focused';
 import { ContainableMixin } from '../../lib/spatial/Containable';
@@ -356,5 +360,33 @@ describe('CommandApi.resolveAndValidate — YAML scope[] fallback', () => {
       '<test>',
     );
     expect(stringForm.args[0]!.scope).toEqual(['inventory, here']);
+  });
+});
+
+describe('ShellLogic singleton encapsulation', () => {
+  beforeEach(() => {
+    StuffApi.clearAll();
+  });
+  afterEach(() => {
+    StuffApi.clearAll();
+  });
+
+  it('lives at /obj/api/shell once the facade has materialized it', () => {
+    // A facade call lazily creates the logic singleton.
+    const giver = makeStuff(() => new TestGiver());
+    ShellApi.expandVariables('hello', giver);
+    const logic = StuffApi.findByTemplatePath('/obj/api/shell');
+    expect(logic).toBeDefined();
+    expect(StuffApi.findByPathGlob('/obj/api/*')).toContain(logic);
+  });
+
+  it('denies a direct logic-method call from a non-ShellApi caller', () => {
+    const logic = makeStuffAtPath(() => new ShellLogic(), '/obj/api/shell');
+    expect(StuffApi.findByTemplatePath('/obj/api/shell')).toBe(logic);
+    // The test module is not `mud/api/shell#ShellApi` nor the singleton
+    // itself; the FromModule gate on the logic's own methods denies the
+    // call.
+    const giver = makeStuff(() => new TestGiver());
+    expect(() => logic.expandVariables('hello', giver)).toThrow(SecurityError);
   });
 });
