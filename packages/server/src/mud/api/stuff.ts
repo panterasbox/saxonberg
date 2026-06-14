@@ -549,6 +549,65 @@ export class StuffApi {
   }
 
   /**
+   * Synchronous get-or-create for a path-keyed, **stateless** Stuff
+   * singleton — the home for relocated Api logic (the
+   * `/obj/api/<feature>` logic singletons of the surface-architecture
+   * refactor).
+   *
+   * Returns the unique live instance for `path` if one is already in
+   * the `byTemplatePath` index; otherwise builds one via `createSync`,
+   * stamps `path`, inserts it into `byTemplatePath`, and returns it.
+   * Entirely synchronous — no template doc, no hydration, no
+   * `postRegister` — so an Api method can reach its logic without
+   * becoming `async`. That is exactly what a stateless, data-less
+   * logic singleton allows (see {@link createSync}).
+   *
+   * `factory` MUST resolve the current hot-reloaded blueprint, not a
+   * bare `new`, so that `dest`→next-call picks up an edit:
+   *
+   * ```ts
+   * StuffApi.singletonSync('/obj/api/foo', () =>
+   *   new (HotReloadApi.getCurrentExport(FILE, 'FooLogic') ?? FooLogic)());
+   * ```
+   *
+   * Reload is `dest`: `StuffApi.destruct` unregisters the singleton (it
+   * leaves `byTemplatePath` empty for `path`), and the next call
+   * re-creates through `factory`, which resolves the fresh class. The
+   * stuffId is ephemeral (a new one per recreate); the path is the
+   * stable handle.
+   *
+   * @param path - Address handle, by convention `/obj/api/<feature>`.
+   * @param factory - Blueprint-resolving constructor closure.
+   * @throws if the index already holds more than one instance for
+   *   `path` (a singleton-contract violation), mirroring
+   *   {@link singleton}.
+   * @internal
+   */
+  public static singletonSync<T extends Stuff>(
+    path: string,
+    factory: () => T
+  ): T {
+    const bucket = this.#indexes.byTemplatePath.exact(path);
+    if (bucket.length > 0) {
+      if (bucket.length > 1) {
+        throw new Error(
+          `StuffApi.singletonSync('${path}'): expected at most one ` +
+            `instance, found ${bucket.length}.`
+        );
+      }
+      return bucket[0] as T;
+    }
+    // createSync registers into byId only (the factory has not stamped
+    // a path). Stamp the path on the raw slot, then insert into
+    // byTemplatePath so the instance is MQL-addressable and a `dest`
+    // empties the bucket for re-creation.
+    const raw = this.createSync(factory);
+    Stuff._stampTemplatePath(raw, path);
+    this._reindexTemplatePath(raw, null, path);
+    return raw;
+  }
+
+  /**
    * Shared register / hydrate / postRegister sequence used by both
    * `clone()` and `create()`. `hydrate` is `null` for the create path
    * (no template, no hydrator); `clone()` passes a closure that captures
