@@ -532,6 +532,24 @@ The per-method gate leaves inherited framework methods on their own
 policies. (This corrects the original plan, which set the gate once at
 class level — that broke `register()`.)
 
+### Logic singletons are `@Unshadowable`
+
+Relocating the logic onto a `Stuff` introduces one surface the former
+static Api did not have: a `Stuff`'s methods can be intercepted via
+`ShadowApi.attach`, whereas a static method cannot be shadowed. So every
+logic singleton carries **class-level `@Unshadowable`** — the dispatch /
+query / registry logic behind an Api face cannot be shadowed. The
+class-form mark covers every method (own + inherited): `isMethodUnshadowable`
+walks the prototype chain checking `#classUnshadowable`. `@Final` is *not*
+applied — it's method-only, the logic classes are never subclassed, and
+injecting a subclass into `singletonSync`'s factory already requires
+code-execution access, so it would add churn without a real threat
+reduction. (State integrity is a non-issue independently: the singletons
+keep their state in module-scope `const`/`let`, not instance fields, so
+it's unreachable — equivalent to `#` — and the singleton instance itself
+is reached only by its own face via `singletonSync`, never by production
+code path-lookup.)
+
 ### The intra-singleton self-call gotcha
 
 A former static that called another static can't become a bare-gated
