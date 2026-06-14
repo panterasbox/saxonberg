@@ -19,7 +19,11 @@ import type { Container } from '../../spatial/Container';
 import Location from '../../stuff/Location';
 import type { Sensor } from '../../message/Sensor';
 import type { Perception } from '../Perception';
-import { Light, type LightSourceRef } from '../Light';
+import {
+  Light,
+  REQUIRED_BAND_FOR_DETAIL,
+  type LightSourceRef,
+} from '../Light';
 import type {
   LightBand,
   ShadowQuality,
@@ -34,12 +38,6 @@ import type { LightConduit, BoundarySide } from '../../boundary/Conduit';
 import type { Conduit } from '../../boundary/Conduit';
 import type { Boundary } from '../../boundary/Boundary';
 import { isBoundaryAnchor } from '../../boundary/BoundaryAnchor';
-import {
-  bandFor,
-  applyBandShift,
-  compareBand,
-  REQUIRED_BAND_FOR_DETAIL,
-} from '../Light';
 
 const DEFAULT_VISION_PROFILE: VisionProfile = {
   scotopicMin: 'pitch-black',
@@ -100,9 +98,9 @@ export class VisionModality extends Modality {
     loc: Stuff & Container,
     signal: Light,
   ): VisionPercept {
-    const raw = bandFor(signal.intensity.rawValue());
+    const raw = Light.bandFor(signal.intensity.rawValue());
     const profile = VisionModality.viewerVisionProfile(viewer);
-    const shifted = applyBandShift(raw, profile.bandShift);
+    const shifted = Light.applyBandShift(raw, profile.bandShift);
     const final = isPerception(viewer)
       ? viewer.perceivedBandModifier(shifted, loc)
       : shifted;
@@ -159,7 +157,7 @@ export class VisionModality extends Modality {
     }
     const band = VisionModality.perceivedBand(viewer, env);
     const required = REQUIRED_BAND_FOR_DETAIL[detail];
-    const raw = compareBand(band, required) >= 0;
+    const raw = Light.compareBand(band, required) >= 0;
     return viewer.canSeeOverride(target, detail, raw);
   }
 
@@ -181,7 +179,7 @@ export class VisionModality extends Modality {
    * per-viewer band-shift — for that, call `perceivedBand`.
    */
   public static bandAt(loc: Stuff & Container): LightBand {
-    return bandFor(VisionModality.lightAt(loc).intensity.rawValue());
+    return Light.bandFor(VisionModality.lightAt(loc).intensity.rawValue());
   }
 
   /**
@@ -190,7 +188,7 @@ export class VisionModality extends Modality {
    */
   public static shadowsAt(loc: Stuff & Container): ShadowQuality {
     const signal = vision().signalAt(loc);
-    const band = bandFor(signal.intensity.rawValue());
+    const band = Light.bandFor(signal.intensity.rawValue());
     switch (band) {
       case 'pitch-black':
         return 'absolute';

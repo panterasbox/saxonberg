@@ -36,7 +36,7 @@ import type { MixinConstructor } from '../mixin';
 import type { Stuff } from '../stuff/Stuff';
 import { MixinApi } from '../../api/mixin';
 import { Quantity } from '../quantity';
-import { coerceColorTemperature } from './Light';
+import { Light } from './Light';
 
 /** Public shape added by LightSourceMixin. */
 export interface LightSource {
@@ -238,7 +238,7 @@ function coerceColorTempInput(
   value: Quantity<'K'> | string | number
 ): Quantity<'K'> {
   if (value instanceof Quantity) {
-    return coerceColorTemperature(value)!;
+    return Light.coerceColorTemperature(value)!;
   }
   if (typeof value === 'number') {
     return Quantity.of(value, 'K');

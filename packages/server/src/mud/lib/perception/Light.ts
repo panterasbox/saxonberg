@@ -153,47 +153,6 @@ const LUX_SCALE = 'default';
  */
 const LIGHT_BAND_SET: ReadonlySet<LightBand> = new Set<LightBand>(LIGHT_BANDS);
 
-/**
- * Map a lux numeric value to a `LightBand`. Consults the live
- * `Quantity` tag-table registry — the lux thresholds live in
- * `mud/config/quantity-tags.yaml` and load at boot via
- * `QuantityApi.loadTagTables`. `bandFor` is a thin typed adapter
- * over `Quantity.tag()` for the lux unit; reload of the YAML
- * propagates here transparently.
- *
- * Throws if the lux table isn't registered (test setup gap) or if
- * the registered tags don't match `LightBand` (content-side bug —
- * the YAML tag list must equal the typed union by construction).
- */
-export function bandFor(luxValue: number): LightBand {
-  const tag = Quantity.of(luxValue, 'lux').tag();
-  if (!LIGHT_BAND_SET.has(tag as LightBand)) {
-    throw new Error(
-      `bandFor: lux value ${luxValue} produced unexpected tag '${tag}'. ` +
-        `Either the lux tag table is not registered (call ` +
-        `QuantityApi.loadTagTables / installV1QuantityTagTables) ` +
-        `or the registered entries don't match the LightBand union.`,
-    );
-  }
-  return tag as LightBand;
-}
-
-/**
- * Band shift arithmetic delegates to the generic `Quantity.shiftTag`
- * machinery applied to the lux unit.
- */
-export function applyBandShift(band: LightBand, shift: number): LightBand {
-  return Quantity.shiftTag('lux', band, shift, LUX_SCALE) as LightBand;
-}
-
-/**
- * Band compare arithmetic delegates to the generic
- * `Quantity.compareTag` machinery applied to the lux unit.
- */
-export function compareBand(a: LightBand, b: LightBand): number {
-  return Quantity.compareTag('lux', a, b, LUX_SCALE);
-}
-
 /** Detail level → minimum band required to discern at that level. */
 export const REQUIRED_BAND_FOR_DETAIL: Record<VisibilityDetail, LightBand> = {
   shape: 'very-dim',
@@ -203,37 +162,11 @@ export const REQUIRED_BAND_FOR_DETAIL: Record<VisibilityDetail, LightBand> = {
 };
 
 /**
- * Coerce a tag string, a `Quantity<'K'>`, or null into a
- * `Quantity<'K'> | null`. Used by `Light.of` and the mixin setters.
- * String input resolves through the registered `KELVIN_TAGS` table
- * (in `api/light.ts`), so author-friendly tags like `'warm'` and
- * `'cool'` round-trip to their canonical Kelvin values.
- */
-export function coerceColorTemperature(
-  value: string | Quantity<'K'> | null | undefined
-): Quantity<'K'> | null {
-  if (value === null || value === undefined) return null;
-  if (value instanceof Quantity) {
-    if (value.unit !== 'K') {
-      throw new TypeError(
-        `Light color temperature must be Quantity<'K'>, got Quantity<'${value.unit}'>`
-      );
-    }
-    return value;
-  }
-  if (typeof value === 'string') {
-    return Quantity.parse(value, 'K');
-  }
-  throw new TypeError(
-    `Light color temperature must be a string tag, Quantity<'K'>, or null; got ${typeof value}`
-  );
-}
-
-/**
  * Coerce a `number` (lux) or `Quantity<'lux'>` into a
  * `Quantity<'lux'>`. Numeric inputs are interpreted as canonical lux.
+ * Module-private — only `Light`'s own constructors use it.
  */
-export function coerceLux(value: number | Quantity<'lux'>): Quantity<'lux'> {
+function coerceLux(value: number | Quantity<'lux'>): Quantity<'lux'> {
   if (typeof value === 'number') {
     if (!Number.isFinite(value) || value < 0) {
       throw new Error(
@@ -256,6 +189,74 @@ export function coerceLux(value: number | Quantity<'lux'>): Quantity<'lux'> {
 }
 
 export class Light {
+  /**
+   * Map a lux numeric value to a `LightBand`. Consults the live
+   * `Quantity` tag-table registry — the lux thresholds live in
+   * `mud/config/quantity-tags.yaml` and load at boot via
+   * `QuantityApi.loadTagTables`. A thin typed adapter over
+   * `Quantity.tag()` for the lux unit; reload of the YAML propagates
+   * here transparently.
+   *
+   * Throws if the lux table isn't registered (test setup gap) or if
+   * the registered tags don't match `LightBand` (content-side bug —
+   * the YAML tag list must equal the typed union by construction).
+   */
+  public static bandFor(luxValue: number): LightBand {
+    const tag = Quantity.of(luxValue, 'lux').tag();
+    if (!LIGHT_BAND_SET.has(tag as LightBand)) {
+      throw new Error(
+        `bandFor: lux value ${luxValue} produced unexpected tag '${tag}'. ` +
+          `Either the lux tag table is not registered (call ` +
+          `QuantityApi.loadTagTables / installV1QuantityTagTables) ` +
+          `or the registered entries don't match the LightBand union.`,
+      );
+    }
+    return tag as LightBand;
+  }
+
+  /**
+   * Band shift arithmetic delegates to the generic `Quantity.shiftTag`
+   * machinery applied to the lux unit.
+   */
+  public static applyBandShift(band: LightBand, shift: number): LightBand {
+    return Quantity.shiftTag('lux', band, shift, LUX_SCALE) as LightBand;
+  }
+
+  /**
+   * Band compare arithmetic delegates to the generic
+   * `Quantity.compareTag` machinery applied to the lux unit.
+   */
+  public static compareBand(a: LightBand, b: LightBand): number {
+    return Quantity.compareTag('lux', a, b, LUX_SCALE);
+  }
+
+  /**
+   * Coerce a tag string, a `Quantity<'K'>`, or null into a
+   * `Quantity<'K'> | null`. Used by `Light.of` and the mixin setters.
+   * String input resolves through the registered `KELVIN_TAGS` table
+   * (in `api/light.ts`), so author-friendly tags like `'warm'` and
+   * `'cool'` round-trip to their canonical Kelvin values.
+   */
+  public static coerceColorTemperature(
+    value: string | Quantity<'K'> | null | undefined
+  ): Quantity<'K'> | null {
+    if (value === null || value === undefined) return null;
+    if (value instanceof Quantity) {
+      if (value.unit !== 'K') {
+        throw new TypeError(
+          `Light color temperature must be Quantity<'K'>, got Quantity<'${value.unit}'>`
+        );
+      }
+      return value;
+    }
+    if (typeof value === 'string') {
+      return Quantity.parse(value, 'K');
+    }
+    throw new TypeError(
+      `Light color temperature must be a string tag, Quantity<'K'>, or null; got ${typeof value}`
+    );
+  }
+
   /** The zero-light singleton. */
   public static readonly ZERO: Light = new Light(
     Quantity.of(0, 'lux'),
@@ -274,7 +275,7 @@ export class Light {
     source?: LightSourceRef
   ): Light {
     const intensityQ = coerceLux(intensity);
-    const colorTempQ = coerceColorTemperature(colorTemperature);
+    const colorTempQ = Light.coerceColorTemperature(colorTemperature);
     if (
       intensityQ.rawValue() === 0 &&
       colorTempQ === null &&
@@ -305,7 +306,9 @@ export class Light {
     }
     const data = value as LightDataShape;
     const intensityQ = coerceLux(data.intensity);
-    const colorTempQ = coerceColorTemperature(data.colorTemperature ?? null);
+    const colorTempQ = Light.coerceColorTemperature(
+      data.colorTemperature ?? null
+    );
     const sources: LightSourceRef[] = data.sources
       ? Array.from(data.sources)
       : [];
@@ -373,7 +376,7 @@ export class Light {
   public withColorTemperature(
     colorTemperature: string | Quantity<'K'> | null
   ): Light {
-    const c = coerceColorTemperature(colorTemperature);
+    const c = Light.coerceColorTemperature(colorTemperature);
     if (c === null && this.colorTemperature === null) return this;
     if (
       c !== null &&
