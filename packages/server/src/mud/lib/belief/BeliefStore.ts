@@ -1,0 +1,295 @@
+/**
+ * BeliefStoreMixin — a per-viewer **memory of identity**: what a given
+ * viewer (an `Avatar` or an NPC) knows about the things around it.
+ *
+ * This is the **spine** of the recognition / identification substrate
+ * (`docs/requirements/recognition-requirements.md`). It is a dumb,
+ * realm-namespaced keyed bag of {@link BeliefRecord}s — pure CRUD, no
+ * per-realm intelligence. All the cleverness (the viewer-aware naming
+ * step, the introduction trigger, disguise gating) lives in *consumers*;
+ * the store just holds what's been learned.
+ *
+ * ## Two realms, one store
+ *
+ * Records are keyed `` `${realm}:${referent}` ``. Two realms ship:
+ *
+ *   - {@link RECOGNITION} — *instance continuity*: "have I met this
+ *     specific individual, and do I know who they are?" Keyed by the
+ *     target's **`templatePath`** (avatars + singleton NPCs have a
+ *     unique one).
+ *   - {@link IDENTIFICATION} — *type knowledge*: "do I know what kind of
+ *     thing this is?" Keyed by the type's **`templatePath`** (generic
+ *     clones share one).
+ *
+ * The instance/type split falls out of the keying for free: a unique
+ * `templatePath` is a recognition referent; a shared one is a type
+ * referent. The store doesn't care — it's the same mechanism, and the
+ * shared substrate "demonstrably carries both key kinds" (a build
+ * constraint) by construction.
+ *
+ * ## Why `templatePath`, not `stuffId`
+ *
+ * `stuffId` is reboot-ephemeral and would imply the viewer "knows which
+ * runtime Stuff" — which it doesn't; it knows an *identity*.
+ * `templatePath` is durable across reboots and the engine always has it.
+ *
+ * ## Not persistent on the host
+ *
+ * `_beliefs` is **not** a `persistentField`. Records are their own
+ * Documents in a dedicated collection (Wave 8 — `api/belief.ts`), lazily
+ * hydrated into this in-memory map on session establish and written
+ * through per-record. The map is a session working set, never part of
+ * the Avatar document (whole-document fsync is the wrong shape — cf.
+ * `ContactsMixin`, the cautionary precedent).
+ *
+ * ## NOT for
+ *
+ * NPC *behavior* that reads this memory (greetings, gates, gossip) —
+ * that's npc-behavior territory. The store lets a Character *hold*
+ * memory; reading it to drive behavior is a separate concern. Also not
+ * for place-memory ("an unfamiliar room") — a future third realm.
+ */
+
+import type { MixinConstructor } from '../mixin';
+import type { Stuff } from '../stuff/Stuff';
+import { StuffApi } from '../../api/stuff';
+import { BeliefStoreApi } from '../../api/belief';
+
+/**
+ * Realm constant: instance-continuity memory. Keyed by the target's
+ * `templatePath`. A string convention, NOT a registry — per-realm
+ * intelligence lives entirely in consumers.
+ */
+export const RECOGNITION = 'recognition';
+
+/**
+ * Realm constant: type-knowledge memory. Keyed by the type's
+ * `templatePath` (generic clones share one).
+ */
+export const IDENTIFICATION = 'identification';
+
+/**
+ * The thin, axis-specific payload riding on a {@link BeliefRecord}.
+ *
+ * **Payload rule (the slate's): flag by default, value only for planned
+ * divergence.** `knownAs` is a *value* on the record spine because
+ * faking / nicknames are planned divergences from the live name. The
+ * identification realm stores a `typeKnown` *flag* — the known type name
+ * is read live off the referent, never snapshotted. Do not snapshot
+ * referent state into the payload.
+ */
+export interface BeliefPayload {
+  /**
+   * Identification realm: the viewer knows what *kind* of thing the
+   * referent is. Binary in v1 (unidentified ↔ identified); partial
+   * levels defer. Read the actual type name live; this is just the gate.
+   */
+  typeKnown?: boolean;
+}
+
+/**
+ * One thing a viewer knows about one referent in one realm. The shared
+ * record spine across both axes; the axis-specific extra is the thin
+ * {@link BeliefPayload}, not a god-record.
+ *
+ * Plain-JSON shape (no methods) so Wave 8 can round-trip it to a Mongo
+ * Document with no marshalling.
+ */
+export interface BeliefRecord {
+  /** {@link RECOGNITION} | {@link IDENTIFICATION}. */
+  realm: string;
+  /** The referent's `templatePath` (durable) — the engine's key. */
+  referent: string;
+  /**
+   * The recognition/place value-payload: the name the viewer would
+   * render for this referent. `null` = a tracked stranger (known to
+   * exist, name not learned). Only a non-null upsert raises it; the
+   * explicit downgrade is {@link BeliefStore.forgetField}.
+   */
+  knownAs: string | null;
+  /** ms-since-epoch, first encounter. Stable across coalescing. */
+  firstSeen: number;
+  /** ms-since-epoch, most recent encounter. Advances on every upsert. */
+  lastSeen: number;
+  /** Thin axis-specific extra (e.g. `{ typeKnown: true }`). */
+  payload: BeliefPayload;
+}
+
+/**
+ * The bag passed to {@link BeliefStore.know}: a partial record update.
+ * Carries the spine-level `knownAs` alongside any payload flags so a
+ * single upsert can raise a name and/or set a flag.
+ */
+export interface BeliefUpdate extends BeliefPayload {
+  /**
+   * The name to learn. Omit (or pass `null`) for a bare sighting that
+   * only advances `lastSeen` — a non-null value is never *downgraded*
+   * to null by `know` (use {@link BeliefStore.forgetField} for that).
+   */
+  knownAs?: string | null;
+}
+
+/** A field {@link BeliefStore.forgetField} can clear — spine or payload. */
+export type BeliefField = 'knownAs' | keyof BeliefPayload;
+
+/** Build the flat map key for a `(realm, referent)` pair. */
+function keyOf(realm: string, referent: string): string {
+  return `${realm}:${referent}`;
+}
+
+/**
+ * The public surface of {@link BeliefStoreMixin}. Dumb CRUD; O(1)
+ * point-get on the naming path (no Mongo read — that's the whole point
+ * of the in-memory working set).
+ */
+export interface BeliefStore {
+  /**
+   * Upsert what the viewer knows about `referent` in `realm`. A new
+   * record stamps `firstSeen`/`lastSeen`; an existing one advances
+   * `lastSeen` (preserving `firstSeen`) and **coalesces**: a non-null
+   * `update.knownAs` raises the name, an absent/null one leaves a
+   * learned name intact. Payload flags merge.
+   */
+  know(realm: string, referent: string, update?: BeliefUpdate): void;
+  /**
+   * Point-get, O(1). Returns `null` for an unknown referent. **Lazy
+   * liveness-GC:** a record whose referent no longer resolves to any
+   * live Stuff is dropped and `null` returned.
+   */
+  recall(realm: string, referent: string): BeliefRecord | null;
+  /** Every record in `realm`, keyed by referent. Read-only snapshot. */
+  recallRealm(realm: string): ReadonlyMap<string, BeliefRecord>;
+  /** Drop the record entirely. */
+  forget(realm: string, referent: string): void;
+  /**
+   * Partial forget — clear one field, keep the record. `'knownAs'` nulls
+   * the name (familiar-face-lost-name); a payload field is removed. No-op
+   * when the record doesn't exist.
+   */
+  forgetField(realm: string, referent: string, field: BeliefField): void;
+  /**
+   * Every record across all realms, as a flat read-only snapshot. The
+   * persistence layer's evict/flush path iterates this; the naming path
+   * never does.
+   */
+  allBeliefs(): readonly BeliefRecord[];
+  /**
+   * Install a hydrated record directly (the persistence hydrate path).
+   * Bypasses the upsert/coalesce logic AND the write-through — the record
+   * is the stored truth. NOT for consumer use; consumers go through
+   * {@link know}.
+   */
+  loadBelief(record: BeliefRecord): void;
+  /** Drop the whole in-memory working set (persistence evict). */
+  clearBeliefs(): void;
+}
+
+export function BeliefStoreMixin<TBase extends MixinConstructor>(Base: TBase) {
+  return class BeliefStoreMixin extends Base implements BeliefStore {
+    static _mixinName = 'BeliefStoreMixin';
+
+    /**
+     * The session working set. TS `private` (not `#`) — the host is
+     * call-security-proxy-wrapped, so `this` inside a method is the
+     * proxy and a `#` slot would throw. Deliberately NOT a
+     * `persistentField`: records persist as their own Documents (Wave
+     * 8), not as a field of the host.
+     */
+    private _beliefs = new Map<string, BeliefRecord>();
+
+    know(realm: string, referent: string, update: BeliefUpdate = {}): void {
+      const k = keyOf(realm, referent);
+      const now = Date.now();
+      const existing = this._beliefs.get(k);
+      if (existing) {
+        existing.lastSeen = now;
+        // Coalesce: only ever raise the name, never downgrade to null.
+        if (update.knownAs != null) existing.knownAs = update.knownAs;
+        if (update.typeKnown !== undefined) {
+          existing.payload.typeKnown = update.typeKnown;
+        }
+        this._writeThrough(existing);
+        return;
+      }
+      const payload: BeliefPayload = {};
+      if (update.typeKnown !== undefined) payload.typeKnown = update.typeKnown;
+      const record: BeliefRecord = {
+        realm,
+        referent,
+        knownAs: update.knownAs ?? null,
+        firstSeen: now,
+        lastSeen: now,
+        payload,
+      };
+      this._beliefs.set(k, record);
+      this._writeThrough(record);
+    }
+
+    recall(realm: string, referent: string): BeliefRecord | null {
+      const k = keyOf(realm, referent);
+      const record = this._beliefs.get(k);
+      if (!record) return null;
+      // Lazy liveness-GC: if nothing in the world carries this referent
+      // anymore, the memory is dead. `findAllByTemplatePath` is the
+      // non-throwing multi-instance lookup (type referents are shared
+      // across clones; the singleton variant would throw on those).
+      if (StuffApi.findAllByTemplatePath(referent).length === 0) {
+        this._beliefs.delete(k);
+        return null;
+      }
+      return record;
+    }
+
+    recallRealm(realm: string): ReadonlyMap<string, BeliefRecord> {
+      const out = new Map<string, BeliefRecord>();
+      for (const record of this._beliefs.values()) {
+        if (record.realm === realm) out.set(record.referent, record);
+      }
+      return out;
+    }
+
+    forget(realm: string, referent: string): void {
+      this._beliefs.delete(keyOf(realm, referent));
+      void BeliefStoreApi.deleteRecord(
+        this as unknown as Stuff,
+        realm,
+        referent,
+      ).catch(() => {});
+    }
+
+    forgetField(realm: string, referent: string, field: BeliefField): void {
+      const record = this._beliefs.get(keyOf(realm, referent));
+      if (!record) return;
+      if (field === 'knownAs') {
+        record.knownAs = null;
+      } else {
+        delete record.payload[field];
+      }
+      this._writeThrough(record);
+    }
+
+    allBeliefs(): readonly BeliefRecord[] {
+      return [...this._beliefs.values()];
+    }
+
+    loadBelief(record: BeliefRecord): void {
+      this._beliefs.set(keyOf(record.realm, record.referent), record);
+    }
+
+    clearBeliefs(): void {
+      this._beliefs.clear();
+    }
+
+    /**
+     * Fire-and-forget per-record write-through. Sync `know`/`forget`
+     * can't await; the Api no-ops when persistence is closed (tests,
+     * pre-boot) or the record/viewer isn't persistable, so this stays
+     * inert off the Mongo path.
+     */
+    private _writeThrough(record: BeliefRecord): void {
+      void BeliefStoreApi.writeRecord(this as unknown as Stuff, record).catch(
+        () => {},
+      );
+    }
+  };
+}

@@ -48,6 +48,7 @@ import { ContainerMixin } from '../spatial/Container';
 import { VitalsMixin } from '../vitals/Vitals';
 import { ReservedMixin } from '../reserve';
 import { LoadBearingMixin } from '../encumbrance/LoadBearing';
+import { DisguisableMixin } from '../disguise/Disguisable';
 import type Material from '../material/Material';
 import { Quantity } from '../quantity';
 
@@ -65,12 +66,14 @@ import { Quantity } from '../quantity';
 const CreatureBase = LoadBearingMixin(
   ContainerMixin(
     ContainableMixin(
-      VisibleMixin(
-        VitalsMixin(
-          ReservedMixin(
-            PosedMixin(
-              BodyPlanSlotsMixin(
-                SlottedMixin(SexedMixin(OrganismMixin(NamedMixin(Agent))))
+      DisguisableMixin(
+        VisibleMixin(
+          VitalsMixin(
+            ReservedMixin(
+              PosedMixin(
+                BodyPlanSlotsMixin(
+                  SlottedMixin(SexedMixin(OrganismMixin(NamedMixin(Agent))))
+                )
               )
             )
           )

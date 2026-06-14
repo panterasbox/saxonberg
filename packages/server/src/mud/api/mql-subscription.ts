@@ -33,6 +33,7 @@ import { SecurityApi } from './security';
 import { StuffApi } from './stuff';
 import { MixinApi } from './mixin';
 import { EventApi } from './event';
+import { RecognitionApi } from './recognition';
 import {
   FieldChangedEvent,
   type FieldChangedPayload,
@@ -256,7 +257,17 @@ export class MqlSubscriptionApi {
     for (const name of fieldNames) {
       const d = descriptors.get(name);
       if (!d || !d.read) continue;
-      const value = d.read(stuff, viewer);
+      // `displayName` is the universal identity field. Render it
+      // viewer-aware (recognition / identification / disguise) here, at
+      // the client-data projection seam — its descriptor `read` stays
+      // viewer-blind so the perception/belief dependency never enters
+      // the root `Stuff` module (cycle avoidance). Same
+      // `RecognitionApi.describe` routine the prose path uses, so the
+      // pane and the scrollback can't show different names.
+      const value =
+        name === 'displayName'
+          ? RecognitionApi.describe(viewer, stuff)
+          : d.read(stuff, viewer);
       if (value === undefined) continue;
       out[name] = value;
     }

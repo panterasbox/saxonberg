@@ -88,6 +88,11 @@ import type { SkyExposed } from '../lib/biome/SkyExposed';
 import type { Contacts } from '../lib/social/Contacts';
 import type { Soul } from '../lib/social/Soul';
 import type { WarrenMember } from '../lib/location/WarrenMember';
+import type { BeliefStore } from '../lib/belief/BeliefStore';
+import type { Disguisable } from '../lib/disguise/Disguisable';
+import type { DisguiseBearing } from '../lib/disguise/Disguise';
+import type { Status } from '../lib/status/Status';
+import type { Identifiable } from '../lib/identification/Identifiable';
 import { SecurityApi } from './security';
 import { ShadowApi } from './shadow';
 
@@ -674,6 +679,26 @@ export class MixinApi {
 
   public static isWarrenMember(obj: Stuff): obj is Stuff & WarrenMember {
     return this.hasMixin(obj, Mixins.WarrenMember);
+  }
+
+  public static isBeliefStore(obj: Stuff): obj is Stuff & BeliefStore {
+    return this.hasMixin(obj, Mixins.BeliefStore);
+  }
+
+  public static isDisguisable(obj: Stuff): obj is Stuff & Disguisable {
+    return this.hasMixin(obj, Mixins.Disguisable);
+  }
+
+  public static isDisguiseBearing(obj: Stuff): obj is Stuff & DisguiseBearing {
+    return this.hasMixin(obj, Mixins.DisguiseBearing);
+  }
+
+  public static isStatus(obj: Stuff): obj is Stuff & Status {
+    return this.hasMixin(obj, Mixins.Status);
+  }
+
+  public static isIdentifiable(obj: Stuff): obj is Stuff & Identifiable {
+    return this.hasMixin(obj, Mixins.Identifiable);
   }
 
   /**

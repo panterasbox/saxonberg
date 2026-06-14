@@ -34,6 +34,7 @@ import type { Stuff } from '../../../lib/stuff/Stuff';
 import { MixinApi } from '../../../api/mixin';
 import { MessageApi } from '../../../api/message';
 import { BulkableApi } from '../../../api/bulk';
+import { RecognitionApi } from '../../../api/recognition';
 import { Mml } from '../../../api/mml';
 import type Exit from '../../../lib/boundary/Exit';
 
@@ -222,6 +223,17 @@ export default class LookController extends CommandController<LookModel> {
       }
     }
     if (visibleContents.length > 0) {
+      // Repeat-perception: seeing a being tracks it. First sight of an
+      // unknown creates a null-`knownAs` stranger record; later sightings
+      // coalesce and advance `lastSeen` (not a record per sighting). The
+      // null-name write never overwrites a learned name. Fired here on
+      // the look *controller*, never inside the naming step (which runs
+      // on every projection) — see `RecognitionApi.describe`.
+      for (const item of visibleContents) {
+        if (MixinApi.isOrganism(item)) {
+          RecognitionApi.learnIdentity(actor, item, null);
+        }
+      }
       const items = visibleContents.map((item) => Mml.item(item));
       const list = Mml.list(items);
       body = Mml.compose`${body}\n── You also see: ${list}.`;
@@ -257,6 +269,11 @@ export default class LookController extends CommandController<LookModel> {
         detail: name,
       });
       return;
+    }
+    // Repeat-perception: a deliberate look at a being tracks it (same
+    // coalescing stranger-record write as the room listing above).
+    if (MixinApi.isOrganism(target)) {
+      RecognitionApi.learnIdentity(actor, target, null);
     }
     // Run the long through `getMarkupLong(viewer)` so detail keywords
     // and any other contributing-mixin augmenters wrap inline —

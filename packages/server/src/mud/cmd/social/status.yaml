@@ -1,0 +1,10 @@
+verbs: [status]
+controller: social/StatusController
+description: "Set your activity status — what others see you doing (omit to clear)"
+validators:
+  - /lib/command/validators/requiresAnimate
+args:
+  - name: text
+    type: string
+    required: false
+    greedy: true

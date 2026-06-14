@@ -99,6 +99,11 @@ export const Mixins = {
   TravelCredential: 'TravelCredentialMixin',
   Fixture: 'FixtureMixin',
   LoadBearing: 'LoadBearingMixin',
+  BeliefStore: 'BeliefStoreMixin',
+  Disguisable: 'DisguisableMixin',
+  DisguiseBearing: 'DisguiseBearingMixin',
+  Status: 'StatusMixin',
+  Identifiable: 'IdentifiableMixin',
 } as const;
 
 /**

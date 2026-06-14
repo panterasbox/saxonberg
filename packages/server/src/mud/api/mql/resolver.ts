@@ -576,7 +576,7 @@ function candidatesForScopePart(
   if (lower === 'online') {
     // Ungated for the same reason as the seed promotion above —
     // who's online is normal social fabric, not privacy-tier info.
-    return candidatesForFlat(allOnlineCommandGivers());
+    return candidatesForFlat(allOnlineCommandGivers(), ctx.commandGiver);
   }
   if (lower === 'world') {
     try {
@@ -584,7 +584,7 @@ function candidatesForScopePart(
     } catch {
       return [];
     }
-    return candidatesForFlat(StuffApi.getAllObjects());
+    return candidatesForFlat(StuffApi.getAllObjects(), ctx.commandGiver);
   }
   if (lower === 'me') {
     return [
@@ -601,7 +601,7 @@ function candidatesForScopePart(
     } catch {
       return [];
     }
-    return candidatesForFlat(StuffApi.findByPathGlob(part));
+    return candidatesForFlat(StuffApi.findByPathGlob(part), ctx.commandGiver);
   }
   if (part.startsWith('#') && part.length > 1) {
     try {
@@ -610,7 +610,7 @@ function candidatesForScopePart(
       return [];
     }
     const found = StuffApi.findById(part.slice(1));
-    return found ? candidatesForFlat([found]) : [];
+    return found ? candidatesForFlat([found], ctx.commandGiver) : [];
   }
   return null;
 }
@@ -619,7 +619,7 @@ function candidatesForHereScope(ctx: MqlContext): ScopeCandidate[] {
   if (!MixinApi.isContainable(ctx.commandGiver)) return [];
   const env = ctx.commandGiver.getContainer();
   if (!env) return [];
-  return candidatesForHere(env);
+  return candidatesForHere(env, ctx.commandGiver);
 }
 
 function scopeKeywordSearch(words: string[], ctx: MqlContext): MqlMatch[] {

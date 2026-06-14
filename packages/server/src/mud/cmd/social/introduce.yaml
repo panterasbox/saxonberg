@@ -1,0 +1,23 @@
+verbs: [introduce]
+controller: social/IntroduceController
+description: "Introduce yourself — or someone you know — to those nearby"
+validators:
+  - /lib/command/validators/requiresAnimate
+options:
+  to:
+    short: t
+    type: object
+    scope: "online"
+    field: audience
+    description: "Address the introduction to a particular person (the whole room still hears, and everyone learns the name)."
+    validators:
+      - /lib/command/validators/mustBeAgent
+    onExcess: prompt
+args:
+  - name: subject
+    type: object
+    required: false
+    scope: "reachable"
+    validators:
+      - /lib/command/validators/mustBeAgent
+    onExcess: prompt
