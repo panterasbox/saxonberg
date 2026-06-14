@@ -223,7 +223,7 @@ on the conversation/channel identity comms surfaces.
 Deferred game-design layered on the shipped substrates, not a new
 mechanism. The kernel: **recognition is a security primitive.** How
 familiar a sender is to a receiver — read off the recognition substrate
-([recognition-slate.md](../builds/recognition-slate.md)) plus the receiver's
+([recognition-slate.md](../tails/recognition-slate.md)) plus the receiver's
 social buckets ([contacts.md](../../subsystems/contacts.md)) — gates *what
 kinds* of messages that sender may direct at them. A stranger's reach is
 narrow; a friend's is wide. The point is protecting players from

@@ -333,10 +333,11 @@ Under `Agent` the hierarchy splits **body** from **agent**:
 is the body layer — a living physical thing that can break, with or
 without agency: it carries `OrganismMixin` + `VitalsMixin` +
 `ReservedMixin` + `LoadBearingMixin` (the encumbrance gauge, outermost) +
-the anatomy-slot / posture / description / containment
-mixins. `Character` extends it with the **agency** mixins (commands,
-perception, speech, movement, engagement) + the social-identity mixins
-(`PersonaMixin`, `GenderedMixin`). The split exists because **vitals are
+`DisguisableMixin` (creature masking) + the anatomy-slot / posture /
+description / containment mixins. `Character` extends it with the
+**agency** mixins (commands, perception, speech, movement, engagement) +
+the social-identity mixins (`PersonaMixin`, `GenderedMixin`) + the
+per-viewer concerns (`BeliefStoreMixin`, `StatusMixin`). The split exists because **vitals are
 body-state, not agent-state** (a corpse / sessile animal is a body with
 reduced agency) — see [vitals.md](./subsystems/vitals.md). The identity
 line is sex (body, `SexedMixin` on Creature) vs. gender/persona (social,
@@ -465,6 +466,10 @@ registry) lives in `lib/mixin.ts`.
 | `lib/vitals/` | `VitalsMixin` | body-state: vital-sign `Quantity` fields, per-species survivable-band lookup, derived `getConditionBand` / `getConsciousness` (computed, never stored), the anatomy resolver, the active-condition collection, and the death/consciousness seams. Requires `OrganismMixin`. Composed by `Creature`. See [vitals.md](./subsystems/vitals.md). |
 | `lib/reserve.ts` | `ReservedMixin` | a keyed collection of `Reserve` capacity axes (decomposed-scalar persistence). Biological reserves (endurance/satiation/hydration) + the authored-thematic seam (mana is content). Composed by `Creature`. See [reserve.md](./subsystems/reserve.md). |
 | `lib/encumbrance/` | `LoadBearingMixin` | the carry-weight gauge (first vitals driver): derived-on-read `getBorneBurden` (weighted walk over contents + slot occupants with `Vessel.transmissionFactor` + slot-derived placement coupling) / `getCarryCapacity` (body mass × physiology margins) / `getLoadRatio` / `wouldExceedCeiling` / `drainForTraversal`. Requires `Container + Slotted + Tangible + Reserved + Vitals`. Composed outermost by `Creature`. See [encumbrance.md](./subsystems/encumbrance.md). |
+| `lib/belief/` | `BeliefStoreMixin` | per-viewer identity memory: a realm-namespaced (`recognition` / `identification`) keyed bag of `BeliefRecord`s, dumb CRUD, keyed by referent `templatePath`. The in-memory working set behind `RecognitionApi.describe`; backed by `BeliefDocument` rows (`api/belief.ts`). Composed by `Character`. See [belief.md](./subsystems/belief.md). |
+| `lib/status/` | `StatusMixin` | settable activity-status line feeding the presentation decoration ("Gus, the crossing guard, watching the empty road"); verb / runtime-setter / static-authored-default sources, only the default persists. Composed by `Character`. See [belief.md](./subsystems/belief.md). |
+| `lib/disguise/` | `DisguisableMixin` / `DisguiseBearingMixin` | creature masking. `DisguisableMixin` (on `Creature`) resolves a viewer-blind `getDisguise()` over worn `DisguiseBearing` garments + a transient imposed slot; `Stuff.getPresentation()` defers to it. `DisguiseBearingMixin` (on a `Garment` → `DisguiseGarment`) carries the `{ appearsAs, covers, masksIdentity }` descriptor. See [belief.md](./subsystems/belief.md). |
+| `lib/identification/` | `IdentifiableMixin` | the type axis: an item whose true type (`identifiedName`) is hidden behind its unidentified appearance until a viewer identifies it. Composed by `IdentifiableThing`; the `IdentifyScroll` carries the `identify` verb. See [belief.md](./subsystems/belief.md). |
 
 ### Mixin Composition Constraints
 

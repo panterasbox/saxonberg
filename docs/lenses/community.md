@@ -54,7 +54,7 @@ community isn't ambiance here, it's load-bearing.
   ([chat.md](../subsystems/chat.md)), per-Avatar contact lists
   ([contacts.md](../subsystems/contacts.md)), and recognition (the world
   and its people remember you,
-  [recognition](../slates/builds/recognition-slate.md)) — the mechanisms
+  [recognition](../slates/tails/recognition-slate.md)) — the mechanisms
   friendships need to form and persist.
 - **Belonging without division.** Academic Houses unify (prosocial,
   campus-wide), while competitive affiliations are gated "past the gate"

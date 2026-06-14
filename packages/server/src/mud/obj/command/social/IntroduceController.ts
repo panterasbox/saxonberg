@@ -23,7 +23,7 @@
  *    not a privacy scope (v1 decision).
  *  - **Third-party requires recognition.** You can only introduce someone
  *    whose name you already know (the actor's own recognition record).
- *    Same gate Wave 5 enforces at the targeting layer; here it's direct.
+ *    Same gate the viewer-relative targeting layer enforces; here direct.
  */
 
 import { CommandController } from '../../../lib/command/CommandController';
@@ -34,7 +34,6 @@ import { RecognitionApi } from '../../../api/recognition';
 import { RECOGNITION } from '../../../lib/belief/BeliefStore';
 import type { MqlOneResult } from '../../../api/mql';
 import { Mml } from '../../../api/mml';
-import type { Stuff } from '../../../lib/stuff/Stuff';
 
 /** Diegetic world-action topic — modality-neutral, not a speech channel. */
 const TOPIC = 'world.narration.action';
@@ -120,8 +119,8 @@ export default class IntroduceController extends CommandController<IntroduceMode
     // recognition); non-belief-holding sensors no-op in the sink.
     const env = MixinApi.isContainable(actor) ? actor.getContainer() : null;
     if (env) {
-      for (const sensor of MessageApi.getSensors(env)) {
-        const listener = sensor as unknown as Stuff;
+      // `getSensors` returns `Stuff & Sensor`, so each is already a Stuff.
+      for (const listener of MessageApi.getSensors(env)) {
         if (listener.stuffId === introducee.stuffId) continue;
         RecognitionApi.learnIdentity(listener, introducee, name);
       }

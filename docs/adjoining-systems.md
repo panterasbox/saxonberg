@@ -40,7 +40,7 @@ slates:
 1. [Time and sustained actions](#1-time-and-sustained-actions-graduated) — **GRADUATED to [subsystems/activity.md](./subsystems/activity.md)** (Wave 1 substrate shipped; locomotion-as-activity and host-slot activities deferred — see [locomotion-as-activity-slate.md](./slates/tails/locomotion-as-activity-slate.md) and [host-slot-activities-slate.md](./slates/tails/host-slot-activities-slate.md))
 2. [Sound propagation as a physics channel](#3-sound-propagation-as-a-physics-channel-graduated) — **GRADUATED to [subsystems/senses.md](./subsystems/senses.md)** (the *hearing* instance; deep acoustic spec retained in [senses-slate.md](./slates/tails/senses-slate.md); also spun out the cross-cutting [subsystems/quantities.md](./subsystems/quantities.md), shipped)
 3. [Collisions, blocking, and pushing](#2-collisions-blocking-and-pushing-graduated) — **GRADUATED to [collision-slate.md](./slates/deferred-rpg/collision-slate.md)** (also spun out [design-philosophy.md](./design-philosophy.md))
-4. [Recognition, disguise, and strangers](#5-recognition-disguise-and-strangers-graduated) — **GRADUATED to [recognition-slate.md](./slates/builds/recognition-slate.md)** (also spun out [social-graph-slate.md](./slates/builds/social-graph-slate.md), [identification-slate.md](./slates/builds/identification-slate.md); trust-tiered moderation folded into [comms-slate.md § Moderation](./slates/tails/comms-slate.md))
+4. [Recognition, disguise, and strangers](#5-recognition-disguise-and-strangers-graduated) — **GRADUATED to [recognition-slate.md](./slates/tails/recognition-slate.md)** (also spun out [social-graph-slate.md](./slates/builds/social-graph-slate.md), [identification-slate.md](./slates/tails/identification-slate.md); trust-tiered moderation folded into [comms-slate.md § Moderation](./slates/tails/comms-slate.md))
 
 Tier 2 — extends established patterns; can land after Tier 1
 without churn:
@@ -188,7 +188,7 @@ machinery (does this share infrastructure with #9?).
 ## 5. Recognition, disguise, and strangers — GRADUATED
 
 **Status**: graduated to its own slate at
-[docs/slates/builds/recognition-slate.md](./slates/builds/recognition-slate.md), with three
+[docs/slates/tails/recognition-slate.md](./slates/tails/recognition-slate.md), with three
 sibling slates spun out from the social-game / multi-user-scale
 discussion:
 
@@ -202,7 +202,7 @@ discussion:
   recognition + contacts) narrows a sender's reach; untrusted-zone NPCs
   are treated as strangers (zone trust via AccessApi); authority
   overrides for warnings.
-- [docs/slates/builds/identification-slate.md](./slates/builds/identification-slate.md) —
+- [docs/slates/tails/identification-slate.md](./slates/tails/identification-slate.md) —
   parallel pattern for *items*: blue potion → potion of
   healing after `read scroll of identify`. The pedagogical
   seam runs deepest here (chemistry experiments ARE

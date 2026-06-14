@@ -3,7 +3,7 @@
  * viewer (an `Avatar` or an NPC) knows about the things around it.
  *
  * This is the **spine** of the recognition / identification substrate
- * (`docs/requirements/recognition-requirements.md`). It is a dumb,
+ * (`docs/subsystems/belief.md`). It is a dumb,
  * realm-namespaced keyed bag of {@link BeliefRecord}s — pure CRUD, no
  * per-realm intelligence. All the cleverness (the viewer-aware naming
  * step, the introduction trigger, disguise gating) lives in *consumers*;
@@ -36,7 +36,8 @@
  * ## Not persistent on the host
  *
  * `_beliefs` is **not** a `persistentField`. Records are their own
- * Documents in a dedicated collection (Wave 8 — `api/belief.ts`), lazily
+ * Documents in a dedicated collection (`api/belief.ts` /
+ * `BeliefDocument`), lazily
  * hydrated into this in-memory map on session establish and written
  * through per-record. The map is a session working set, never part of
  * the Avatar document (whole-document fsync is the wrong shape — cf.
@@ -92,7 +93,7 @@ export interface BeliefPayload {
  * record spine across both axes; the axis-specific extra is the thin
  * {@link BeliefPayload}, not a god-record.
  *
- * Plain-JSON shape (no methods) so Wave 8 can round-trip it to a Mongo
+ * Plain-JSON shape (no methods) so it round-trips to a Mongo
  * Document with no marshalling.
  */
 export interface BeliefRecord {

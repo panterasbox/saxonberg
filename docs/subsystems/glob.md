@@ -484,7 +484,7 @@ Trade-offs and deferred work documented for future maintainers:
   one viewer-aware step. Globbable contributes data (`getQuantity`,
   the host's presentation and optional `getPluralForm`); it doesn't
   know about viewer state. See
-  [recognition-slate.md](../slates/builds/recognition-slate.md).
+  [recognition-slate.md](../slates/tails/recognition-slate.md).
 
 ## Antipatterns
 
@@ -526,6 +526,6 @@ Trade-offs and deferred work documented for future maintainers:
 - [response-envelope.md](./response-envelope.md) — the
   structured-notes substrate `applyQuantity` emits into; canonical
   shapes for the four glob note kinds.
-- [../slates/builds/recognition-slate.md](../slates/builds/recognition-slate.md) —
+- [../slates/tails/recognition-slate.md](../slates/tails/recognition-slate.md) —
   where the recognition pipeline composes count + perception +
   recognition on top of `getPresentation()`'s count affix.

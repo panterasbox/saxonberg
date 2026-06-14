@@ -153,7 +153,7 @@ export abstract class Stuff {
    * **Viewer-blind by design.** This is the shared baseline every
    * Stuff exposes; the viewer-aware naming step (recognition /
    * identification — see
-   * `docs/requirements/recognition-requirements.md`) composes on top
+   * `docs/subsystems/belief.md`) composes on top
    * of it. Left **shadowable** (NOT `@Final`) so masking / disguise
    * effects can override the rendered identity via a method shadow.
    */

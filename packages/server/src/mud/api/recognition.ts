@@ -6,7 +6,7 @@
  * (`Stuff.getPresentation()`).
  *
  * This is the "(B) routine" of the recognition / identification
- * substrate (`docs/requirements/recognition-requirements.md`). It is the
+ * substrate (`docs/subsystems/belief.md`). It is the
  * consumer-intelligence layer over the dumb belief-store spine: the
  * spine holds records, this Api decides how a name bends around them.
  *
@@ -16,7 +16,7 @@
  * see T?") but is its own concern — instance/type identity memory, not
  * sensory channels. The requirements fix that it is **not** homed on
  * `PerceptionApi`; this Api is the natural home, and it also hosts the
- * `learnIdentity` write-sink (Wave 3) that the `introduce` verb and
+ * `learnIdentity` write-sink that the `introduce` verb and
  * future ambient triggers share.
  *
  * ## The algorithm (per target)
@@ -27,19 +27,19 @@
  *      visibility filtering happens upstream in `look`/scope-walk).
  *   3. **Recognition** (instance axis) applies to living beings
  *      (`OrganismMixin`) — the things you *meet* and learn names for.
- *      A masked target (Wave 4 disguise) withholds any known name. A
+ *      A masked target (disguise) withholds any known name. A
  *      record with a non-null `knownAs` renders that name; an unknown
  *      being renders a generated {@link salientFeatures} string ("a tall
  *      stranger"), never its true name.
  *   4. **Identification** (type axis) applies to everything else
- *      (items, substances) — Wave 7 fills {@link identificationName} in;
- *      until then it's a no-op and the baseline shows.
- *   5. Status decoration (Wave 6) weaves in last.
+ *      (items, substances) — {@link identificationName} renders a known
+ *      type over the unidentified baseline.
+ *   5. Status decoration weaves in last.
  *
  * **Pure — no record mutation.** `describe` runs for every perceived
  * target × viewer on every look / listing / MQL projection; a write here
  * would corrupt memory on every read. The repeat-perception write fires
- * on the perceive *controller* path (Wave 3), never in `describe`.
+ * on the perceive *controller* path, never in `describe`.
  */
 
 import type { Stuff } from '../lib/stuff/Stuff';
@@ -110,7 +110,7 @@ export class RecognitionApi {
     }
 
     // A masked being: the baseline already reflects the disguise's
-    // `appearsAs` (Wave 4's `getPresentation` deferral); the known name
+    // `appearsAs` (`getPresentation`'s disguise deferral); the known name
     // is withheld by *not* consulting recognition.
     if (this.isMasked(target)) return baseline;
 
@@ -167,7 +167,7 @@ export class RecognitionApi {
    * Generate a salient-feature description for a being the viewer
    * doesn't recognize — "a tall human in a lab hoodie", "a hooded
    * figure". Viewer-independent (features are objective; only the *name*
-   * is unknown). Reused by Wave 5 to derive viewer-relative targeting
+   * is unknown). Reused by the viewer-relative targeting layer to derive its
    * keywords for unknowns, so naming and targeting can't diverge.
    *
    * v1 sources, in order: the authored generic appearance

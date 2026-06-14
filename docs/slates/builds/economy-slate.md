@@ -36,7 +36,7 @@ See also:
   confused — the Goodhart seam.
 - [docs/subsystems/chat.md](../../subsystems/chat.md) — Channel substrate.
   The emergent auction channel rides here (see *Transaction clearing*).
-- [docs/slates/recognition-slate.md](./recognition-slate.md) — a
+- [docs/slates/tails/recognition-slate.md](../tails/recognition-slate.md) — a
   vendor's stance varies by *who you are*; that's recognition. The
   economy forward-links to it but does not depend on it (v1 stances are
   flat).

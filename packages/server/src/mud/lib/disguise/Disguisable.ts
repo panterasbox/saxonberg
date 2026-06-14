@@ -20,7 +20,7 @@
  *     is objective.
  *
  * Composed on `Creature` (a body concern). NOT on items — item-identity
- * illusion is the type axis (Wave 7), not creature disguise.
+ * illusion is the type axis (identification), not creature disguise.
  */
 
 import type { MixinConstructor } from '../mixin';

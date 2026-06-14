@@ -77,7 +77,7 @@ different kinds*:
 - **Pure-play value** — the dorm room you authored
   ([eternal-university](../slates/builds/eternal-university-slate.md)),
   recognition by NPCs who remember you
-  ([recognition](../slates/builds/recognition-slate.md)), emotes, the drinks
+  ([recognition](../slates/tails/recognition-slate.md)), emotes, the drinks
   at Dave's bar. The dorm is the clean exemplar: it's valuable purely
   *because you made it* — the onboarding climax. This value answers to
   nothing real and shouldn't have to; ownership and expression are

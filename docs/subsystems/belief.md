@@ -117,25 +117,28 @@ change to the ~56 call sites. The client-data path
 universal `displayName` field, so the inspection pane and the scrollback
 can't diverge.
 
-## Recognition triggers — `introduce` + repeat-perception (Wave 3)
+## Recognition triggers — `introduce` + repeat-perception
 
 `RecognitionApi.learnIdentity(viewer, subject, name)` is the single
 identity-learning sink (non-null name = introduction; null = a bare
 sighting). All triggers funnel through it.
 
 - **`introduce`** (`cmd/social/introduce.yaml` +
-  `IntroduceController`): spoken, in earshot (gated on `VocalMixin`).
-  `introduce` (self) or `introduce <subject>` (third-party — requires the
-  speaker already recognize the subject). The controller emits a public
-  scene line and, in the same earshot (`MessageApi.getSensors(env)`),
-  writes each in-earshot listener's record. **No content hook in the
-  speech substrate** — the controller owns the write.
+  `IntroduceController`): a social act, afforded by `SoulMixin` (on every
+  Character), **NOT** `VocalMixin` — you can introduce yourself by speech,
+  sign, or gesture, so it's modality-neutral and routes by perception, not
+  earshot. `introduce` (self) or `introduce <subject>` (third-party —
+  requires the actor already recognize the subject). The controller emits
+  a public scene line on `world.narration.action` and, over the same
+  recipient set (`MessageApi.getSensors(env)`), writes each recipient's
+  record. **No content hook in the messaging substrate** — the controller
+  owns the write.
 - **Repeat-perception**: `LookController` fires `learnIdentity(actor,
   target, null)` for each perceived being on the look chokepoint (never in
   `describe`). First sight creates a null-`knownAs` stranger record; later
   sightings coalesce and advance `lastSeen`.
 
-## Disguise — `Disguisable` + `getDisguise` (Wave 4, `lib/disguise/`)
+## Disguise — `Disguisable` + `getDisguise` (`lib/disguise/`)
 
 - `DisguiseBearingMixin` (worn-side, on a `Garment` → `DisguiseGarment`)
   carries a `Disguise` descriptor `{ appearsAs, covers, masksIdentity }`.
@@ -152,7 +155,7 @@ sighting). All triggers funnel through it.
   recognition for free (the worn-scan simply finds nothing).
 - Ships one content item — a **hood** (`covers: [face]`, slot `head`).
 
-## Viewer-relative targeting — the name-leak gate (Wave 5, `api/mql/scope-walk.ts`)
+## Viewer-relative targeting — the name-leak gate (`api/mql/scope-walk.ts`)
 
 Keyword resolution shares the naming step's source. `pushDirect` builds
 each candidate's `name` from `RecognitionApi.describe(viewer, stuff)` and
@@ -168,7 +171,7 @@ ordinary keywords). The true name is never a keyword unless revealed, so
 - Ordinal disambiguation (`stranger:[2]`) is an index into the current
   candidate snapshot and carries no identity.
 
-## `StatusMixin` (Wave 6, `lib/status/Status.ts`)
+## `StatusMixin` (`lib/status/Status.ts`)
 
 A settable activity-status line feeding the **decoration** slice — "Gus,
 the crossing guard, watching the empty road." Three sources: the `status`
@@ -180,7 +183,7 @@ status-flags** (poisoned, glowing) — don't merge. It rides
 `getPresentation()`'s decoration (viewer-independent) and is re-woven by
 `describe` onto the recognized/salient name (no double-decoration).
 
-## Identification (Wave 7, type axis, thin — `lib/identification/`)
+## Identification — type axis, thin (`lib/identification/`)
 
 - `IdentifiableMixin` marks an item whose **type** is hidden until
   identified. Its presentation (`shortDescription`) is the *unidentified*
@@ -199,7 +202,7 @@ status-flags** (poisoned, glowing) — don't merge. It rides
   demo. The masking mechanism supports item-identity *illusion* by design
   but no illusion content ships.
 
-## Persistence — lazily-hydrated working set (Wave 8, `api/belief.ts`)
+## Persistence — lazily-hydrated working set (`api/belief.ts`)
 
 `BeliefStoreApi` over `BeliefDocument extends Document` — a dedicated
 **`beliefs`** collection, one document per `{viewerId, realm, referent}`,
@@ -230,7 +233,7 @@ holds; sequential single-viewer commands keep the race benign).
 
 ## Deferred tails
 
-- **Aether id-aug + anonymity** (Wave 9) — an `AugmentMixin` broadcast over
+- **Aether id-aug + anonymity** (deferred) — an `AugmentMixin` broadcast over
   the aether to attuned receivers, calling the same `learnIdentity` sink,
   anonymity via an `identity.broadcast` setting. **Not built**: the design
   axes (reception attunement-vs-innate, disguise orthogonal-vs-pierce) are

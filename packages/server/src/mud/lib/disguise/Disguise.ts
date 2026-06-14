@@ -12,7 +12,7 @@
  * "a hooded figure" to everyone). Viewer-relativity lives one layer up
  * in `RecognitionApi.describe`, which withholds a *known* name when the
  * target is masked. NOT item-identity illusion (a potion masking its own
- * type) — that's the type axis (Wave 7), class-keyed, no per-instance
+ * type) — that's the type axis (identification), class-keyed, no per-instance
  * masking host in v1.
  */
 

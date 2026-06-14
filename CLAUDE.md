@@ -484,6 +484,7 @@ multiplexing, disconnect): see
 - `domain` — object templates for the CMS (Avatar, rooms, NPCs, …)
 - `app_settings` — application-managed config singleton (`Document`)
 - `world_state` — world-clock state singleton (`Document`)
+- `beliefs` — per-viewer identity-memory working set (`BeliefDocument`, one doc per `{viewerId, realm, referent}`)
 
 ## Session Notes for Claude
 

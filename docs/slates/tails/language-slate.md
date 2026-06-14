@@ -30,7 +30,7 @@ See also:
   lives.
 - [docs/subsystems/prose.md](../../subsystems/prose.md) — the
   prose pipeline through which language rendering composes.
-- [docs/slates/recognition-slate.md](../builds/recognition-slate.md) —
+- [docs/slates/recognition-slate.md](../tails/recognition-slate.md) —
   per-viewer perception state. Language proficiency is a
   parallel per-viewer state; the rendering pattern (shadow /
   scope) is identical.

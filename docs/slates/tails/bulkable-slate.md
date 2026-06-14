@@ -524,7 +524,7 @@ unidentified state, multi-dose draughts, decant-still-heals, coat-a-blade
 poison, and craftable/throwable potions from the same parts. **Potions
 are exactly where the recognition work and the bulkable work converge** —
 the decomposition gives the expressiveness, identification gives back the
-clean name. See [recognition-requirements](../../requirements/recognition-requirements.md).
+clean name. See [belief.md](../../subsystems/belief.md).
 
 ---
 

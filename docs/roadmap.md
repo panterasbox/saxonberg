@@ -264,11 +264,16 @@ Ordered by leverage + dependency:
    So don't re-surface collision as "what's next": its live half is a
    brain owned by npc-behavior; the rest waits on content.
    ([collision-slate.md](./slates/deferred-rpg/collision-slate.md))
-5. **Recognition family** — recognition + identification +
-   social-graph; `DescribeApi v2`. Ships best as a unit.
-   ([recognition](./slates/builds/recognition-slate.md) /
-   [identification](./slates/builds/identification-slate.md) /
-   [social-graph](./slates/builds/social-graph-slate.md))
+5. **Recognition family** — recognition (full) + identification
+   (substrate) + the viewer-aware naming step (the realized
+   `DescribeApi v2`) **shipped 2026-06** as the belief subsystem; see
+   [belief.md](./subsystems/belief.md). Remaining tails:
+   **social-graph** (crowd-bucket verbosity), identification's
+   **pedagogical instrument seam** (`analyze X with Y`, real Material
+   chemistry) + partial-ID + misidentification, and the **aether
+   id-aug** ambient trigger (axes unresolved + aug substrate retooling).
+   ([social-graph](./slates/builds/social-graph-slate.md) /
+   [identification](./slates/tails/identification-slate.md))
 6. **Augmentation Wave 2+ + npc-dialogue** — Wave 1 augmentation
    shipped 2026-06 (substrate + AetherImplant; see
    [augmentation.md](./subsystems/augmentation.md)); Wave 2+ adds
@@ -373,14 +378,14 @@ requirements.
 
 ### Social / perception slates
 
-- [docs/slates/builds/recognition-slate.md](./slates/builds/recognition-slate.md) — per-
+- [docs/slates/tails/recognition-slate.md](./slates/tails/recognition-slate.md) — per-
   viewer perception state; `DescribeApi v2` pipeline; disguise
   as Wearable shadow; salient-feature rendering.
 - [docs/slates/builds/social-graph-slate.md](./slates/builds/social-graph-slate.md) —
   per-viewer buckets (friends/foes/custom); notification policies;
   bucket-keyed display verbosity. **One *source* into the grouping
   facade** (below), not the same layer.
-- [docs/slates/builds/identification-slate.md](./slates/builds/identification-slate.md) —
+- [docs/slates/tails/identification-slate.md](./slates/tails/identification-slate.md) —
   parallel pattern for items; experiment-based identification;
   the pedagogical seam at its richest.
 
@@ -598,7 +603,7 @@ opportunistically.
   `CallstackApi`, `FileApi`, `AssertApi`. Take on demand.
   `MudlogApi` exists but is incomplete.
 - **Recognition / viewer-aware presentation** — implements the design
-  from [recognition-slate.md](./slates/builds/recognition-slate.md).
+  from [recognition-slate.md](./slates/tails/recognition-slate.md).
   Wave 0 (the viewer-blind `Stuff.getPresentation()` baseline +
   retirement of the static `DescribeApi`) **shipped**; what remains is
   the viewer-aware composition pipeline: per-viewer recognition /
