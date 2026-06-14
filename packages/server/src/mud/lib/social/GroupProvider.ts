@@ -79,15 +79,3 @@ export interface GroupProvider {
   isMember?(playerId: string, id: string): Promise<boolean>;
   onChange?(id: string, cb: GroupChangeListener): GroupChangeHandle;
 }
-
-/**
- * Parse a `GroupRef` into `{ source, id }`. The source is the segment
- * before the first colon; the id is everything after.
- */
-export function parseGroupRef(ref: GroupRef): { source: string; id: string } {
-  const idx = ref.indexOf(':');
-  if (idx < 0) {
-    throw new Error(`GroupProvider: malformed ref '${ref}' — expected 'source:id'`);
-  }
-  return { source: ref.slice(0, idx), id: ref.slice(idx + 1) };
-}

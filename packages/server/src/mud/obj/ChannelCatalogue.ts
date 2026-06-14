@@ -48,7 +48,6 @@ import { MessageApi } from '../api/message';
 import { Mml } from '../api/mml';
 import { PlayerApi } from '../api/player';
 import { GroupApi } from '../api/group';
-import { parseGroupRef } from '../lib/social/GroupProvider';
 import type Avatar from './Avatar';
 import type { MessageFrame } from '@saxonberg/types';
 import type { VetoResult } from '../lib/errors';
@@ -569,7 +568,7 @@ function avatarPlayerIdOf(s: Stuff): string {
 function backingGroupIdOf(c: Channel): string | null {
   if (!c.groupRef) return null;
   try {
-    const { source, id } = parseGroupRef(c.groupRef);
+    const { source, id } = GroupApi.parseRef(c.groupRef);
     if (source !== 'managed') return null;
     return id;
   } catch {

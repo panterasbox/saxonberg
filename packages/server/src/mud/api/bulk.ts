@@ -32,7 +32,11 @@ import type {
   TargetDeclinedNote,
 } from '@saxonberg/types';
 import type { Stuff } from '../lib/stuff/Stuff';
-import type { BulkSlot, BulkAffordance } from '../lib/bulk/Bulkable';
+import type {
+  BulkSlot,
+  BulkAffordance,
+  ClosureLevel,
+} from '../lib/bulk/Bulkable';
 import type Material from '../lib/material/Material';
 import type { MqlQuantity } from './mql';
 import { StuffApi } from './stuff';
@@ -115,6 +119,24 @@ export class BulkableApi {
     affordance: BulkAffordance | undefined,
   ): BulkSlot | null {
     return logic().slotFor(holder, affordance);
+  }
+
+  /**
+   * Sign-only comparison of two closure levels by rank — same shape
+   * as `Array.prototype.sort`'s comparator. Negative when `a` is the
+   * looser closure.
+   */
+  static compareClosure(a: ClosureLevel, b: ClosureLevel): number {
+    return logic().compareClosure(a, b);
+  }
+
+  /**
+   * The closure level a contained `material` requires to be retained.
+   * v1: every bulk material is liquid → `'liquidTight'`. The gas /
+   * granular branches are the documented extension point.
+   */
+  static requiredClosureFor(material: Material | null): ClosureLevel {
+    return logic().requiredClosureFor(material);
   }
 
   /**

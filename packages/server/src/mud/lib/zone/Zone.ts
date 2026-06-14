@@ -33,8 +33,8 @@ import { ZoneApi } from '../../api/zone';
 import type { GroupRef } from '../social/GroupProvider';
 
 /**
- * Validate a `GroupRef` shape. Inlined here (instead of importing
- * `parseGroupRef` from `../social/GroupProvider`) to avoid pulling
+ * Validate a `GroupRef` shape. Inlined here (instead of calling
+ * `GroupApi.parseRef`) to avoid pulling
  * the `Group` Document into Zone's module graph — that would
  * lengthen the load cycle through Document at a point where Zone
  * is reached early by `api/zone.ts`. The shape check is trivial: a

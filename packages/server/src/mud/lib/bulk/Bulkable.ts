@@ -55,8 +55,8 @@ import type Material from '../material/Material';
 /**
  * Ordered liquid-retention scale on a bulk holder. The vessel retains
  * matter when its `closure` meets-or-exceeds the matter's required
- * level. v1 bulk is all liquid (requires {@link requiredClosureFor} →
- * `'liquidTight'`), so an `open` vessel does not retain it — it drains
+ * level. v1 bulk is all liquid (requires `BulkableApi.requiredClosureFor`
+ * → `'liquidTight'`), so an `open` vessel does not retain it — it drains
  * through to the surface below. `sealed` (gas) and the
  * phase→required-level mapping are defined here but unexercised until
  * gas content lands.
@@ -70,15 +70,6 @@ export const CLOSURE_ORDER: Record<ClosureLevel, number> = {
   sealed: 2,
 };
 
-/**
- * Sign-only comparison of two closure levels by rank — same shape as
- * `Array.prototype.sort`'s comparator. `retains` is the readable
- * predicate built on it.
- */
-export function compareClosure(a: ClosureLevel, b: ClosureLevel): number {
-  return CLOSURE_ORDER[a] - CLOSURE_ORDER[b];
-}
-
 /** Which bulk slot a holder offers / a match arrived through. */
 export type BulkAffordance = 'interior' | 'surface';
 
@@ -89,19 +80,6 @@ export type BulkAffordance = 'interior' | 'surface';
  */
 export const BULK_VOLUME_UNIT = 'L' as const;
 
-/**
- * The closure level a contained `material` requires to be retained.
- * v1: every bulk material is liquid → `'liquidTight'`. The gas /
- * granular branches are the documented extension point (gas →
- * `'sealed'`, granular → `'open'`); a future per-`Material` phase
- * descriptor drives the mapping. The parameter is accepted now so the
- * call sites don't churn when phases land.
- */
-export function requiredClosureFor(_material: Material | null): ClosureLevel {
-  // Gas extension point: when a Material carries a 'gas' phase, return
-  // 'sealed'; 'granular' → 'open'. v1 has only liquid.
-  return 'liquidTight';
-}
 
 // `via.bulk` facet — declaration-merged onto MqlMatchVia, colocated
 // with the owning subsystem (mirrors `via.detailPath` / `via.exit`).

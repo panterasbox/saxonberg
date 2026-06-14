@@ -46,6 +46,21 @@ export class GroupApi {
   }
 
   /**
+   * Parse a `GroupRef` into `{ source, id }`. The source is the
+   * segment before the first colon; the id is everything after.
+   * Pure string parse — no registry access.
+   */
+  static parseRef(ref: GroupRef): { source: string; id: string } {
+    const idx = ref.indexOf(':');
+    if (idx < 0) {
+      throw new Error(
+        `GroupApi.parseRef: malformed ref '${ref}' — expected 'source:id'`,
+      );
+    }
+    return { source: ref.slice(0, idx), id: ref.slice(idx + 1) };
+  }
+
+  /**
    * Hard reference for callers that need the registry instance
    * directly — the ContactsController uses this to fire change
    * notifications after CRUD verbs.

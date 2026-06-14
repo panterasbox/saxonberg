@@ -6,8 +6,12 @@ import { Idea } from '../../lib/stuff/Idea';
 import { CallSecurity } from '../../lib/security/decorators';
 import { SecurityPolicies } from '../../lib/security/SecurityPolicies';
 import type { Stuff } from '../../lib/stuff/Stuff';
-import type { BulkSlot, BulkAffordance } from '../../lib/bulk/Bulkable';
-import { compareClosure, requiredClosureFor } from '../../lib/bulk/Bulkable';
+import type {
+  BulkSlot,
+  BulkAffordance,
+  ClosureLevel,
+} from '../../lib/bulk/Bulkable';
+import { CLOSURE_ORDER } from '../../lib/bulk/Bulkable';
 import type Material from '../../lib/material/Material';
 import type { MqlQuantity } from '../../api/mql';
 import { Quantity } from '../../lib/quantity';
@@ -65,6 +69,20 @@ export class BulkableLogic extends Idea {
     } catch {
       return null;
     }
+  }
+
+  /** See {@link BulkableApi.compareClosure}. */
+  @CallSecurity(BulkableApiCallers)
+  public compareClosure(a: ClosureLevel, b: ClosureLevel): number {
+    return CLOSURE_ORDER[a] - CLOSURE_ORDER[b];
+  }
+
+  /** See {@link BulkableApi.requiredClosureFor}. */
+  @CallSecurity(BulkableApiCallers)
+  public requiredClosureFor(_material: Material | null): ClosureLevel {
+    // Gas extension point: when a Material carries a 'gas' phase, return
+    // 'sealed'; 'granular' → 'open'. v1 has only liquid.
+    return 'liquidTight';
   }
 
   /** See {@link BulkableApi.ingest}. */
@@ -147,7 +165,8 @@ export class BulkableLogic extends Idea {
     if (
       to !== null &&
       to.affordance === 'interior' &&
-      compareClosure(to.getClosure(), requiredClosureFor(material)) < 0
+      this.compareClosure(to.getClosure(), this.requiredClosureFor(material)) <
+        0
     ) {
       const floor = this.floorSurfaceNear(to.getHolder());
       if (floor === null) {

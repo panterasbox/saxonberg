@@ -9,8 +9,6 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import { BulkableApi } from '../../../api/bulk';
 import {
   BulkableMixin,
-  compareClosure,
-  requiredClosureFor,
   type ClosureLevel,
   type Bulkable,
 } from '../Bulkable';
@@ -105,14 +103,16 @@ function makeVessel(opts: {
 
 describe('Bulkable — closure scale', () => {
   it('orders open < liquidTight < sealed', () => {
-    expect(compareClosure('open', 'liquidTight')).toBeLessThan(0);
-    expect(compareClosure('liquidTight', 'sealed')).toBeLessThan(0);
-    expect(compareClosure('liquidTight', 'liquidTight')).toBe(0);
+    expect(BulkableApi.compareClosure('open', 'liquidTight')).toBeLessThan(0);
+    expect(BulkableApi.compareClosure('liquidTight', 'sealed')).toBeLessThan(0);
+    expect(BulkableApi.compareClosure('liquidTight', 'liquidTight')).toBe(0);
   });
 
   it('liquid requires liquidTight', () => {
     const water = makeMaterial('/lib/material/bulk/water', 'water', ['water']);
-    expect(requiredClosureFor(water as unknown as Material)).toBe('liquidTight');
+    expect(BulkableApi.requiredClosureFor(water as unknown as Material)).toBe(
+      'liquidTight',
+    );
   });
 });
 

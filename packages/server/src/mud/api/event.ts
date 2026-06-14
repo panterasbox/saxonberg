@@ -29,7 +29,9 @@
 import { ExecutionContextApi, FrameKind } from './execution-context';
 import { SecurityApi } from './security';
 import { StuffApi } from './stuff';
+import { HotReloadApi } from './hot-reload';
 import { SecurityError } from '../lib/security/errors';
+import { Events, type EventName } from '../lib/events';
 import {
   Property,
   PropOperations,
@@ -265,6 +267,49 @@ export class EventApi {
       }
       return emitGate(prop, op, special);
     };
+  }
+
+  /**
+   * Resolve the default policy for an event name. Falls back to a
+   * permissive (no-allowlist) `emittableBy()` for unknown names so a
+   * custom event registered ad-hoc still gets the EventApi-mediated
+   * defense without requiring the well-known map to be edited.
+   *
+   * The policy table is lazily initialised on first call so we don't
+   * run `emittableBy(...)` at module-top: `api/event` participates in
+   * a cycle with `lib/events` (the event vocabulary) and `api/stuff`
+   * (the StuffApi binding the policy references). Deferring the table
+   * construction to first-call avoids resolving partial modules.
+   */
+  public static defaultPolicyFor(
+    eventName: string,
+  ): PropAccessCheck<PropValue> {
+    const policy = EventApi.#policies()[eventName as EventName];
+    return policy ?? EventApi.emittableBy();
+  }
+
+  static #defaultPolicies: Record<
+    EventName,
+    PropAccessCheck<PropValue>
+  > | null = null;
+
+  static #policies(): Record<EventName, PropAccessCheck<PropValue>> {
+    if (EventApi.#defaultPolicies) return EventApi.#defaultPolicies;
+    EventApi.#defaultPolicies = {
+      [Events.StuffCreated]: EventApi.emittableBy(StuffApi),
+      [Events.StuffDestructed]: EventApi.emittableBy(StuffApi),
+      [Events.StuffFieldChanged]: EventApi.emittableBy(),
+      [Events.StuffPropertyChanged]: EventApi.emittableBy(),
+      [Events.StuffShadowChanged]: EventApi.emittableBy(),
+      [Events.ConnectionAttached]: EventApi.emittableBy(),
+      [Events.PlayerLoggedIn]: EventApi.emittableBy(),
+      [Events.PlayerLoggedOut]: EventApi.emittableBy(),
+      [Events.ModuleReloaded]: EventApi.emittableBy(HotReloadApi),
+      [Events.ModuleRolledBack]: EventApi.emittableBy(HotReloadApi),
+      [Events.ModuleUnloaded]: EventApi.emittableBy(HotReloadApi),
+      [Events.ModuleReloadFailed]: EventApi.emittableBy(HotReloadApi),
+    };
+    return EventApi.#defaultPolicies;
   }
 
   /**

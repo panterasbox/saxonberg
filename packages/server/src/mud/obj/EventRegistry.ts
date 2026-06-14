@@ -26,7 +26,7 @@ import {
 } from '../lib/stuff/Propertied';
 import { PostRegistrationMixin } from '../lib/stuff/PostRegistration';
 import { Events } from '../lib/events';
-import { defaultPolicyFor } from '../lib/events';
+import { EventApi } from '../api/event';
 import type { VetoResult } from '../lib/errors';
 
 const EventRegistryBase = PostRegistrationMixin(PropertiedMixin(Idea));
@@ -47,7 +47,7 @@ export default class EventRegistry extends EventRegistryBase {
     for (const eventName of Object.values(Events)) {
       this.initProp(Property.of<PropValue>(eventName), {
         transient: true,
-        checkAccess: defaultPolicyFor(eventName),
+        checkAccess: EventApi.defaultPolicyFor(eventName),
       });
     }
   }
