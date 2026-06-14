@@ -9,8 +9,8 @@
  * `Creature` (`lib/creature/Creature.ts`).
  *
  * Composition (agency, inner→outer on `Creature`):
- *   Persona + Gendered + Sensor + Perceiver + Perception + Vocal +
- *   Soul + Engaged + Mobile + CommandGiver
+ *   BeliefStore + Persona + Gendered + Sensor + Perceiver + Perception +
+ *   Vocal + Soul + Engaged + Mobile + CommandGiver
  *
  * Commands are inherited from mixins and subclasses:
  * - ContainerMixin (on Creature) provides: inventory, get, drop
@@ -42,6 +42,8 @@ import { VocalMixin } from '../message/Vocal';
 import { SoulMixin } from '../social/Soul';
 import { CommandGiverMixin } from '../command/CommandGiver';
 import { EngagedMixin } from '../activity/Engaged';
+import { BeliefStoreMixin } from '../belief/BeliefStore';
+import { StatusMixin } from '../status/Status';
 
 // Compose the agency mixins on top of the Creature body layer.
 // Order matters:
@@ -60,6 +62,10 @@ import { EngagedMixin } from '../activity/Engaged';
 //   the body/agency boundary.
 // - PersonaMixin + GenderedMixin (narrative + social identity) sit
 //   innermost on the agency stack, above the Creature body.
+// - BeliefStoreMixin (per-viewer identity memory) sits innermost of
+//   all — it reads nothing from the other mixins, so position is free;
+//   placing it at the base of the agency stack keeps every PC and NPC
+//   (the viewer types) carrying it.
 const CharacterBase = CommandGiverMixin(
   MobileMixin(
     EngagedMixin(
@@ -67,7 +73,11 @@ const CharacterBase = CommandGiverMixin(
         VocalMixin(
           PerceptionMixin(
             PerceiverMixin(
-              SensorMixin(GenderedMixin(PersonaMixin(Creature)))
+              SensorMixin(
+                GenderedMixin(
+                  PersonaMixin(StatusMixin(BeliefStoreMixin(Creature)))
+                )
+              )
             )
           )
         )

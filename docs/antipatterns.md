@@ -333,7 +333,7 @@ For a `Globbable` stack the count folds in as an affix (`"30 coins"`).
 The method ALWAYS returns a string; there is no caller-supplied
 fallback. It is **viewer-blind** — the shared baseline. The
 viewer-aware naming step (recognition / identification) composes on
-top of it; see `docs/requirements/recognition-requirements.md`.
+top of it; see `docs/subsystems/belief.md`.
 `getPresentation()` is left **shadowable** (not `@Final`) so masking /
 disguise effects can override the rendered identity via a method
 shadow.

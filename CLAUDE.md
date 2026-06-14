@@ -86,6 +86,7 @@ behavior. Read the relevant doc before editing in its area.
   - [senses.md](./docs/subsystems/senses.md) — multi-sense perception substrate: SenseChannel vocabulary, Modality singletons, PerceptionApi
   - [quantities.md](./docs/subsystems/quantities.md) — Quantity<U> substrate (Unit catalog, parse/Mml emission), QuantityMarshaller, fieldMarshallers integration
   - [perception.md](./docs/subsystems/perception.md) — viewer-aware-query pattern (`Stuff & Sensor` always explicit), Shadow seam for per-viewer overrides
+  - [belief.md](./docs/subsystems/belief.md) — per-viewer identity memory: the `BeliefStoreMixin` keyed bag (recognition + identification realms, `templatePath`-keyed, flag-vs-value payload) + the `RecognitionApi.describe` compose seam (viewer-aware naming, perception-gated, the central viewer-aware `Mml` ref hook) + recognition triggers (`introduce` + repeat-perception via `learnIdentity`) + `Disguisable`/`getDisguise` (creature masking, `getPresentation` deferral) + viewer-relative targeting / name-leak gate + `StatusMixin` decoration + the thin identification type axis (`IdentifiableMixin`, scroll-carried `identify`) + lazily-hydrated `beliefs`-collection persistence
   - [collections.md](./docs/subsystems/collections.md) — canonical surfaces for collection-shaped mixins (Set/keyed Map/ordered list/property bag), naming axes
   - [hot-reload.md](./docs/subsystems/hot-reload.md) — HotReloadApi state machine, StuffApi.clone integration, lifecycle events, controller dispatch
   - [race.md](./docs/subsystems/race.md) — Material substrate, Clade taxonomic scope, BodyPlan + Species templates, OrganismMixin, SexedMixin, animacy gating
@@ -484,6 +485,7 @@ multiplexing, disconnect): see
 - `domain` — object templates for the CMS (Avatar, rooms, NPCs, …)
 - `app_settings` — application-managed config singleton (`Document`)
 - `world_state` — world-clock state singleton (`Document`)
+- `beliefs` — per-viewer identity-memory working set (`BeliefDocument`, one doc per `{viewerId, realm, referent}`)
 
 ## Session Notes for Claude
 

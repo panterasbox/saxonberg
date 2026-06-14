@@ -332,6 +332,19 @@ Vocabulary helpers always re-escape raw string arguments. Calling
 fragments explicitly. Pass-through is not a feature; it's the bug
 surface this design closes.
 
+**Identity helpers are viewer-aware.** The
+`name`/`item`/`object`/`player`/`npc`/`location` helpers don't bake their
+display text at compose time — they emit a late-bound fragment whose
+inner text resolves at `toString(viewer)` via
+`RecognitionApi.describe(viewer, stuff)`, falling back to the viewer-blind
+`getPresentation()` when no viewer is threaded. Since `Scene.send`
+materializes each frame body against its recipient
+(`body.toString(recipient)`), one composed line renders the *right name
+per recipient* — "Bob" to a friend, "a hooded figure" to a stranger — for
+free. See [belief.md](./belief.md). (`MessageApi.refOf`'s `displayName`,
+above, is the one viewer-blind exception: the wire ref is composed before
+any recipient is known.)
+
 For prose stored outside the source — schema-declared settings,
 CMS-authored room/NPC/item descriptions, eventually prompts — reach
 for `ProseApi.format` (see [prose.md](./prose.md)). Liquid-syntax

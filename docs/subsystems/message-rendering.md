@@ -521,7 +521,7 @@ sweep distilled them to:
   stylesheets) parked there.
 - [docs/slates/builds/social-graph-slate.md](../slates/builds/social-graph-slate.md)
   — real `BucketResolver` source (stubbed neutral in v1).
-- [docs/slates/builds/recognition-slate.md](../slates/builds/recognition-slate.md)
+- [docs/slates/tails/recognition-slate.md](../slates/tails/recognition-slate.md)
   — `DescribeApi` v2 names; the renderer is forward-compat.
 - [docs/slates/tails/emotes-slate.md](../slates/tails/emotes-slate.md) — future
   emote build; honors the SoulMixin + AetherMixin composition gate

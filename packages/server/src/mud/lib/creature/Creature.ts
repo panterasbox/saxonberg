@@ -49,12 +49,16 @@ import { VitalsMixin } from '../vitals/Vitals';
 import { ReservedMixin } from '../reserve';
 import { LoadBearingMixin } from '../encumbrance/LoadBearing';
 import { MetabolicMixin } from '../metabolism/Metabolic';
+import { DisguisableMixin } from '../disguise/Disguisable';
 import { Quantity } from '../quantity';
 
 // Body stack (inner → outer):
-//   Container + Containable + Visible + Metabolic + Vitals + Reserved +
-//   Posed + BodyPlanSlots + Slotted + Sexed + Organism + Named + Agent,
-//   with LoadBearing outermost.
+//   Container + Containable + Disguisable + Visible + Metabolic + Vitals +
+//   Reserved + Posed + BodyPlanSlots + Slotted + Sexed + Organism + Named +
+//   Agent, with LoadBearing outermost.
+// DisguisableMixin sits outer of Visible (it scans worn slots and reads
+// shortDescription to resolve the masking presentation); Stuff's
+// getPresentation defers to it.
 // VitalsMixin sits outer of Organism/BodyPlanSlots (it reads
 // getSpecies() for the band profile and anatomy/slots). ReservedMixin
 // sits inner of Vitals so the derived band can read the reserve surface.
@@ -71,13 +75,15 @@ import { Quantity } from '../quantity';
 const CreatureBase = LoadBearingMixin(
   ContainerMixin(
     ContainableMixin(
-      VisibleMixin(
-        MetabolicMixin(
-          VitalsMixin(
-            ReservedMixin(
-              PosedMixin(
-                BodyPlanSlotsMixin(
-                  SlottedMixin(SexedMixin(OrganismMixin(NamedMixin(Agent))))
+      DisguisableMixin(
+        VisibleMixin(
+          MetabolicMixin(
+            VitalsMixin(
+              ReservedMixin(
+                PosedMixin(
+                  BodyPlanSlotsMixin(
+                    SlottedMixin(SexedMixin(OrganismMixin(NamedMixin(Agent))))
+                  )
                 )
               )
             )

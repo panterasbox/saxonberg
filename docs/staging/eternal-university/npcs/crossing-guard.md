@@ -108,7 +108,7 @@ we lavished his gear and skipped him.
 
 **Identity — name + status, no name-gating.** His presentation composes as
 **name + status** (the `getPresentation()` model — see
-`docs/slates/builds/recognition-slate.md`): `Named` = **"Gus"** + a `StatusMixin`
+`docs/slates/tails/recognition-slate.md`): `Named` = **"Gus"** + a `StatusMixin`
 **status** = *"the crossing guard, watching the empty road"* → **"Gus, the
 crossing guard, watching the empty road."** No known/unknown reveal: his whole
 behavior is talking + emoting, and attribution carries the `Named` name, so

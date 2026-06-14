@@ -1,0 +1,95 @@
+/**
+ * StatusMixin (Wave 6) — the settable activity-status feeding the
+ * decoration slice.
+ *
+ * Covers: the three sources (verb-style setStatus / authored default /
+ * clearing); the setter invariant; and that the status shows up in
+ * `getPresentation()` and in `RecognitionApi.describe` (both the
+ * recognized and unknown branches), without double-decorating.
+ */
+
+import { describe, it, expect } from 'vitest';
+import { StatusMixin } from '../Status';
+import { RecognitionApi } from '../../../api/recognition';
+import { RECOGNITION } from '../../belief/BeliefStore';
+import { BeliefStoreMixin } from '../../belief/BeliefStore';
+import { PerceptionMixin } from '../../perception/Perception';
+import { SensorMixin } from '../../message/Sensor';
+import { NamedMixin } from '../../description/Named';
+import { VisibleMixin } from '../../description/Visible';
+import { OrganismMixin } from '../../species/Organism';
+import { ContainableMixin } from '../../spatial/Containable';
+import { Idea } from '../../stuff/Idea';
+import {
+  makeStuff,
+  makeStuffAtPath,
+} from '../../security/__tests__/test-setup';
+
+// A being with status (mirrors a Character: Status + Organism + naming).
+class Gus extends StatusMixin(
+  OrganismMixin(VisibleMixin(NamedMixin(ContainableMixin(Idea)))),
+) {}
+
+class Viewer extends BeliefStoreMixin(PerceptionMixin(SensorMixin(Idea))) {}
+
+let counter = 0;
+function makeGus(): InstanceType<typeof Gus> {
+  const g = makeStuffAtPath(() => new Gus(), `/obj/npc/gus-${counter++}`);
+  g.setName('Gus');
+  g.setShortDescription('a stout man');
+  return g;
+}
+
+describe('StatusMixin', () => {
+  it('setStatus sets the runtime status; getStatus reads it', () => {
+    const g = makeGus();
+    g.setStatus('watching the empty road');
+    expect(g.getStatus()).toBe('watching the empty road');
+  });
+
+  it('falls back to the authored default; runtime overrides it', () => {
+    const g = makeGus();
+    g.setAuthoredStatus('standing at his post');
+    expect(g.getStatus()).toBe('standing at his post');
+    g.setStatus('chasing a stray dog');
+    expect(g.getStatus()).toBe('chasing a stray dog');
+    // Clearing reverts to the authored default.
+    g.setStatus('');
+    expect(g.getStatus()).toBe('standing at his post');
+  });
+
+  it('the setter invariant rejects an over-long status', () => {
+    const g = makeGus();
+    expect(() => g.setStatus('x'.repeat(200))).toThrow(/too long/i);
+  });
+
+  it('collapses whitespace on set', () => {
+    const g = makeGus();
+    g.setStatus('  watching   the\n road  ');
+    expect(g.getStatus()).toBe('watching the road');
+  });
+
+  it('decorates getPresentation', () => {
+    const g = makeGus();
+    expect(g.getPresentation()).toBe('Gus');
+    g.setStatus('watching the road');
+    expect(g.getPresentation()).toBe('Gus, watching the road');
+  });
+
+  it('decorates a recognized name in describe (no double-decoration)', () => {
+    const viewer = makeStuff(() => new Viewer());
+    const g = makeGus();
+    g.setStatus('watching the road');
+    viewer.know(RECOGNITION, g.getTemplatePath()!, { knownAs: 'Gus' });
+    expect(RecognitionApi.describe(viewer, g)).toBe('Gus, watching the road');
+  });
+
+  it('decorates the salient-feature name for an unknown', () => {
+    const viewer = makeStuff(() => new Viewer());
+    const g = makeGus();
+    g.setStatus('watching the road');
+    expect(RecognitionApi.describe(viewer, g)).toBe(
+      'a stout man, watching the road',
+    );
+  });
+});

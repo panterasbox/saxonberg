@@ -16,6 +16,7 @@ import { ConnectionApi } from "../api/connection";
 import { EventApi } from "../api/event";
 import { TemplateApi } from "../api/template";
 import { StuffApi } from "../api/stuff";
+import { BeliefStoreApi } from "../api/belief";
 import { ContainmentApi } from "../api/containment";
 import { MixinApi } from "../api/mixin";
 import type { Containable } from "../lib/spatial/Containable";
@@ -344,6 +345,11 @@ export default class Avatar extends AvatarBase {
 
     this.startAutoSave();
 
+    // Lazy-hydrate this avatar's identity memory (recognition /
+    // identification) into its in-memory belief store. Serves the naming
+    // path from memory thereafter — no Mongo read on look/listing.
+    await BeliefStoreApi.hydrate(this);
+
     // Welcome scene: actor frame at system.connection.established
     // carries the bootstrap payload the client needs.
     // Welcome is the introductory moment — explicitly the formal
@@ -550,6 +556,15 @@ export default class Avatar extends AvatarBase {
     void this.save().catch((err) => {
       console.error(
         `Avatar.onDestruct: final save failed for playerId=${this.playerId}:`,
+        err,
+      );
+    });
+
+    // Final-flush + evict the identity-memory working set (fire-and-
+    // forget, mirroring the save above — `onDestruct` is synchronous).
+    void BeliefStoreApi.evictAndFlush(this).catch((err) => {
+      console.error(
+        `Avatar.onDestruct: belief flush failed for playerId=${this.playerId}:`,
         err,
       );
     });

@@ -58,7 +58,7 @@ wants a world with its *own* unmistakable character.
   designed to host both curated and emergent stories
   ([vision.md](../vision.md)).
 - **A world that reacts.** Recognition means the world remembers you
-  ([recognition](../slates/builds/recognition-slate.md)); NPC routines and
+  ([recognition](../slates/tails/recognition-slate.md)); NPC routines and
   reactions make it feel inhabited rather than staged.
 - **Transmedia-ready.** Text renders down to AI illustration, video, and
   maps; the fast-travel route map is itself "a content surface for

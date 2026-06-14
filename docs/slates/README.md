@@ -27,13 +27,25 @@ Eight builds. Each lists its member slates in rough phase order and the
 shipped substrate it leans on.
 
 ### 1. Identity & social perception
-*Who you are, who others recognize, how you relate.* The three slates
-explicitly compose.
-- [recognition-slate](./builds/recognition-slate.md) — per-viewer identity memory (recognize-on-sight). **Requirements drafted** (`../requirements/recognition-requirements.md`).
-- [identification-slate](./builds/identification-slate.md) — type-level identification ("what kind of thing is this"); the second, composable axis.
-- [social-graph-slate](./builds/social-graph-slate.md) — relationship buckets/lists. Storage half already shipped as `ContactsMixin` ([../subsystems/contacts.md](../subsystems/contacts.md)); the relationship layer remains.
+*Who you are, who others recognize, how you relate.* The per-viewer
+identity substrate **shipped 2026-06** — recognition (full) +
+identification (substrate) + the viewer-aware naming step, graduated to
+[../subsystems/belief.md](../subsystems/belief.md). The two shipped slates
+moved to `tails/`, holding their deferred surface; the relationship layer
+remains a build.
+- [recognition-slate](./tails/recognition-slate.md) *(tail)* — deferred
+  recognition surface: player-set nicknames, memory decay, voice/scent
+  recognition, the aether id-aug ambient trigger.
+- [identification-slate](./tails/identification-slate.md) *(tail)* — the
+  deferred pedagogical instrument seam (`analyze X with Y`, real Material
+  chemistry), partial identification, misidentification.
+- [social-graph-slate](./builds/social-graph-slate.md) — relationship
+  buckets/lists. Storage half already shipped as `ContactsMixin`
+  ([../subsystems/contacts.md](../subsystems/contacts.md)); the
+  relationship layer remains.
 
-**Phases:** recognition core → identification substrate → social-graph relationship layer.
+**Status:** recognition + identification substrate shipped → `belief.md`;
+social-graph relationship layer remains.
 
 ### 2. NPCs
 *Where the personality lives.*

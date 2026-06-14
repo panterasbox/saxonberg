@@ -520,13 +520,17 @@ enum Collections {
   Emotes = 'emotes',
   Groups = 'groups',
   Channels = 'channels',
+  Beliefs = 'beliefs',
 }
 ```
 
-`Domain` is the templates collection. The three social-cluster
-collections (`emotes`, `groups`, `channels`) hold `Document`
-subclasses (`Emote`, `Group`, `Channel`) — see the corresponding
-subsystem docs.
+`Domain` is the templates collection. The social-cluster collections
+(`emotes`, `groups`, `channels`) hold `Document` subclasses (`Emote`,
+`Group`, `Channel`) — see the corresponding subsystem docs. `beliefs`
+holds `BeliefDocument` rows (one per `{viewerId, realm, referent}`) — the
+per-viewer identity-memory working set, a lazily-hydrated keyed set rather
+than a singleton or a one-doc-per-owner blob; see
+[belief.md](./belief.md).
 
 Indexes are created on connect:
 
@@ -541,6 +545,8 @@ Indexes are created on connect:
 - `channels.name` — unique
 - `channels.memberIds` — non-unique (powers "channels I'm in" lookups)
 - `channels.kind` — non-unique
+- `beliefs.viewerId` — non-unique (powers per-viewer hydrate + the
+  future per-player cleanup cascade)
 
 Index creation is best-effort (logs and continues on failure).
 

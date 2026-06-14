@@ -1,0 +1,8 @@
+class: /lib/identification/IdentifyScroll
+hydratorClass: /lib/persistence/PersistentHydrator
+data:
+  shortDescription: a scroll of identify
+  primaryKeyword: scroll
+  longDescription: >
+    A tight roll of vellum dense with shifting glyphs. Read it upon a
+    thing and its true nature surfaces in the margins for a moment.

@@ -65,7 +65,7 @@ it were built to:
   become is earned") restated as an intrinsic need met.
 - **Relatedness** — "text-first is social-first"; the lounge seats you
   with your people before anything else; NPCs *remember* you
-  ([recognition](../slates/builds/recognition-slate.md)). "Among others who
+  ([recognition](../slates/tails/recognition-slate.md)). "Among others who
   remember you" is the relatedness need, named in the ratified platform
   essence.
 

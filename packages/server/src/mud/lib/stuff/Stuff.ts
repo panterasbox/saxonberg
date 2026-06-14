@@ -118,6 +118,13 @@ export abstract class Stuff {
   static subscribableFields: SubscribableFieldDescriptor[] = [
     {
       name: 'displayName',
+      // Viewer-blind baseline here; the viewer-aware re-point lives in
+      // the projection layer (`MqlSubscriptionApi.projectFields`), which
+      // threads the subscriber and applies `RecognitionApi.describe`.
+      // Keeping the perception/belief dependency out of the root `Stuff`
+      // module avoids a module-eval cycle (Stuff → recognition →
+      // VisionModality → … → Stuff). Same routine the prose path uses,
+      // so the surfaces can't diverge.
       read: (stuff) => stuff.getPresentation(),
       dependsOnFields: ['name', 'shortDescription'],
       changes: [{ on: ShadowChangedEvent, by: 'target' }],
@@ -146,13 +153,24 @@ export abstract class Stuff {
    * **Viewer-blind by design.** This is the shared baseline every
    * Stuff exposes; the viewer-aware naming step (recognition /
    * identification — see
-   * `docs/requirements/recognition-requirements.md`) composes on top
+   * `docs/subsystems/belief.md`) composes on top
    * of it. Left **shadowable** (NOT `@Final`) so masking / disguise
    * effects can override the rendered identity via a method shadow.
    */
   getPresentation(): string {
     let base = DEFAULT_PRESENTATION;
-    if (MixinApi.isNamed(this)) {
+    // Disguise defers FIRST and at the baseline (not via a shadow on
+    // the synthesizer): a masked creature presents its covering's
+    // `appearsAs` ("a hooded figure") in place of its true identity, so
+    // every reader — prose, MQL projection, logs — sees the disguise
+    // uniformly. The viewer-relative half (withholding a *known* name
+    // from someone who'd recognize the wearer) lives in
+    // `RecognitionApi.describe`; this layer is viewer-blind.
+    if (MixinApi.isDisguisable(this)) {
+      const disguise = this.getDisguise();
+      if (disguise) base = disguise.appearsAs;
+    }
+    if (base === DEFAULT_PRESENTATION && MixinApi.isNamed(this)) {
       const name = this.getName();
       if (name) base = name;
     }
@@ -160,11 +178,20 @@ export abstract class Stuff {
       const short = this.getShortDescription();
       if (short) base = short;
     }
+    let identity = base;
     if (MixinApi.isGlobbable(this)) {
       const n = this.getQuantity();
-      if (n !== 1) return `${n} ${GrammarApi.pluralize(this, base)}`;
+      if (n !== 1) identity = `${n} ${GrammarApi.pluralize(this, base)}`;
     }
-    return base;
+    // Authored activity-status decoration (Character-tier `StatusMixin`):
+    // "Gus, the crossing guard" → "Gus, …, watching the empty road".
+    // Viewer-independent, so it rides the baseline; `RecognitionApi`
+    // re-weaves it onto a recognized name the same way.
+    if (MixinApi.isStatus(this)) {
+      const status = this.getStatus();
+      if (status) return `${identity}, ${status}`;
+    }
+    return identity;
   }
 
   /**

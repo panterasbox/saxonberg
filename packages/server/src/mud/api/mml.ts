@@ -67,6 +67,7 @@ import {
 } from './mml/mention';
 import { parseMarkdown } from './mml/markdown';
 import { parseToTree, type MmlNode } from './mml/tree';
+import { RecognitionApi } from './recognition';
 
 // Re-export the MentionResolver interface so consumers can keep
 // `import { MentionResolver } from '../mml'`.
@@ -191,7 +192,8 @@ function renderValue(value: unknown, viewer?: Stuff & Sensor): string {
  */
 type MmlPayload =
   | { kind: 'eager'; raw: string }
-  | { kind: 'lazy'; strings: readonly string[]; values: readonly unknown[] };
+  | { kind: 'lazy'; strings: readonly string[]; values: readonly unknown[] }
+  | { kind: 'ref'; tag: string; stuff: Stuff };
 
 /**
  * `Mml.list(items)` switches from inline (comma + "and") to block
@@ -234,18 +236,41 @@ export class Mml {
   }
 
   /**
+   * Build a viewer-aware identity-reference fragment. The display text
+   * is bound **late** — at `toString(viewer)` time — so a single
+   * composed line renders the *right name per recipient*: a scene
+   * broadcast to a room names the same target "Bob" to a friend, "a
+   * hooded figure" to someone he's hiding from, "a tall stranger" to
+   * someone who's never met him. With no viewer (logs, `refOf`, a
+   * viewer-less `toString()`) it falls back to the viewer-blind
+   * `getPresentation()` baseline.
+   *
+   * This is the single seam that makes the whole prose name path
+   * viewer-aware: every `Mml.name/item/object/player/npc/location`
+   * caller (and there are many) keeps composing exactly as before —
+   * the per-recipient resolution rides `Scene.send`'s existing
+   * `body.toString(recipient)` materialization. See
+   * `RecognitionApi.describe`.
+   */
+  private static ref(tag: string, stuff: Stuff): Mml {
+    return new Mml({ kind: 'ref', tag, stuff });
+  }
+
+  /**
    * Render an entity reference inside `<name stuff-id="...">` tags.
    * The `stuff-id` attribute carries the runtime identity through to
    * the wire — server-side disambiguation walks bodies for these
    * tokens to pick the minimal-distinguishing form per recipient,
    * and client-side features (right-click → tell, social-graph
    * rendering, identity overlays) read the id directly.
+   *
+   * The inner display text is **viewer-aware** (see {@link ref}): it
+   * resolves through `RecognitionApi.describe(viewer, stuff)` per
+   * recipient, falling back to the viewer-blind baseline absent a
+   * viewer.
    */
   static name(stuff: Stuff): Mml {
-    const display = stuff.getPresentation();
-    return Mml.fromMarkup(
-      `<name stuff-id="${escapeText(stuff.stuffId)}">${escapeText(display)}</name>`
-    );
+    return Mml.ref('name', stuff);
   }
 
   /**
@@ -268,10 +293,7 @@ export class Mml {
    * tags. Same identity-tagging rationale as `name`.
    */
   static location(stuff: Stuff): Mml {
-    const display = stuff.getPresentation();
-    return Mml.fromMarkup(
-      `<location stuff-id="${escapeText(stuff.stuffId)}">${escapeText(display)}</location>`
-    );
+    return Mml.ref('location', stuff);
   }
 
   /** Render a direction (e.g., 'north') inside `<direction>` tags. */
@@ -303,10 +325,7 @@ export class Mml {
    * as `name`.
    */
   static object(stuff: Stuff): Mml {
-    const display = stuff.getPresentation();
-    return Mml.fromMarkup(
-      `<object stuff-id="${escapeText(stuff.stuffId)}">${escapeText(display)}</object>`
-    );
+    return Mml.ref('object', stuff);
   }
 
   /**
@@ -314,10 +333,7 @@ export class Mml {
    * tags. Same identity-tagging rationale as `name`.
    */
   static item(stuff: Stuff): Mml {
-    const display = stuff.getPresentation();
-    return Mml.fromMarkup(
-      `<item stuff-id="${escapeText(stuff.stuffId)}">${escapeText(display)}</item>`
-    );
+    return Mml.ref('item', stuff);
   }
 
   /**
@@ -353,10 +369,7 @@ export class Mml {
    * the stylesheet's `attribute → bucket` selector.
    */
   static player(stuff: Stuff): Mml {
-    const display = stuff.getPresentation();
-    return Mml.fromMarkup(
-      `<player stuff-id="${escapeText(stuff.stuffId)}">${escapeText(display)}</player>`
-    );
+    return Mml.ref('player', stuff);
   }
 
   /**
@@ -366,10 +379,7 @@ export class Mml {
    * same way other players are).
    */
   static npc(stuff: Stuff): Mml {
-    const display = stuff.getPresentation();
-    return Mml.fromMarkup(
-      `<npc stuff-id="${escapeText(stuff.stuffId)}">${escapeText(display)}</npc>`
-    );
+    return Mml.ref('npc', stuff);
   }
 
   /**
@@ -722,6 +732,16 @@ export class Mml {
    */
   toString(viewer?: Stuff & Sensor): string {
     if (this.payload.kind === 'eager') return this.payload.raw;
+    if (this.payload.kind === 'ref') {
+      const { tag, stuff } = this.payload;
+      // Late-bound, viewer-aware display: the recipient's perceived
+      // name for this target, or the viewer-blind baseline when no
+      // recipient is in play (logs, persistence snapshots).
+      const display = viewer
+        ? RecognitionApi.describe(viewer, stuff)
+        : stuff.getPresentation();
+      return `<${tag} stuff-id="${escapeText(stuff.stuffId)}">${escapeText(display)}</${tag}>`;
+    }
     let out = '';
     const { strings, values } = this.payload;
     for (let i = 0; i < strings.length; i++) {

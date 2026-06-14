@@ -84,7 +84,7 @@ in any vertical:
 Every cross-cutting subsystem feeds that sentence with no reference to
 school:
 
-- **"Seen / persists."** [recognition](../slates/builds/recognition-slate.md)
+- **"Seen / persists."** [recognition](../slates/tails/recognition-slate.md)
   tracks you as a stranger and upgrades you to a known name once
   introduced — symmetric, per-viewer, persistent. What you author (the
   dorm room) stays authored.

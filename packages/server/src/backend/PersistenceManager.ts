@@ -34,6 +34,7 @@ export enum Collections {
   Emotes = 'emotes',
   Groups = 'groups',
   Channels = 'channels',
+  Beliefs = 'beliefs',
 }
 
 /**
@@ -578,6 +579,15 @@ export class PersistenceManager {
         memberIds: 1,
       });
       await this.getCollection(Collections.Channels).createIndex({ kind: 1 });
+
+      // Beliefs: per-viewer identity-memory working set (one doc per
+      // {viewerId, realm, referent}). Indexed on `viewerId` so a
+      // session's lazy-hydrate (`BeliefDocument.find({ viewerId })`) and
+      // the future per-player cleanup cascade (`deleteMany({ viewerId })`)
+      // are O(rows-for-this-viewer), not a full scan.
+      await this.getCollection(Collections.Beliefs).createIndex({
+        viewerId: 1,
+      });
 
       console.info('PersistenceManager: Indexes created successfully');
     } catch (error) {

@@ -145,10 +145,31 @@ export class GrammarApi {
    * presentation string. Vowel-onset heuristic; not phonetic.
    */
   static article(stuff: Stuff): string {
-    const display = stuff.getPresentation().trim();
-    if (!display) return 'a';
-    const first = display.charAt(0).toLowerCase();
-    return VOWELS.has(first) ? 'an' : 'a';
+    return this.articleFor(stuff.getPresentation());
+  }
+
+  /**
+   * Indefinite article (`'a'` / `'an'`) for a raw word or phrase by
+   * vowel onset — the string-level core of {@link article}. Not
+   * phonetic (`a unicorn` / `an honest` need per-stuff overrides).
+   */
+  static articleFor(text: string): string {
+    const trimmed = text.trim();
+    if (!trimmed) return 'a';
+    return VOWELS.has(trimmed.charAt(0).toLowerCase()) ? 'an' : 'a';
+  }
+
+  /**
+   * Split text into lowercase word atoms — on runs of non-alphanumerics,
+   * dropping articles (`a` / `an` / `the`) and single characters.
+   * `"a tall stranger"` → `['tall', 'stranger']`; `"Bob"` → `['bob']`.
+   * Used for keyword derivation from a rendered/perceived name.
+   */
+  static tokenize(text: string): string[] {
+    return text
+      .toLowerCase()
+      .split(/[^a-z0-9]+/)
+      .filter((t) => t.length > 1 && !ARTICLES.has(t));
   }
 
   /**

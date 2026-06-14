@@ -1,5 +1,17 @@
 # Identification slate (working doc)
 
+> **Status (2026-06):** the **substrate has shipped** — type-keyed belief
+> memory (the `IDENTIFICATION` realm), the `IdentifiableMixin` type axis,
+> the scroll-carried `identify` trigger (binary), and the two-axis compose
+> in `RecognitionApi.describe` graduated to
+> [belief.md](../../subsystems/belief.md). What remains here is the
+> genuinely large deferred surface: the **pedagogical instrument seam**
+> (`analyze X with Y` — spectrometer / pH-meter / hardness-kit, real
+> Material-substrate chemistry), partial identification
+> (`identificationLevel`, "probably a healing potion"), experience-/social-
+> ID verbs (`taste` / `drink` / `learn from teacher`), and
+> misidentification (belief-vs-truth, cursed items, illusion content).
+
 Working slate for item identification — the parallel of
 recognition for *items* rather than *actors*. A blue potion is
 "a blue potion" until identified; thereafter it's "a potion of
@@ -14,7 +26,7 @@ compound by experiment IS science.
 
 See also:
 
-- [docs/slates/recognition-slate.md](../builds/recognition-slate.md) — the
+- [docs/slates/recognition-slate.md](../tails/recognition-slate.md) — the
   parallel substrate for actors. Same `PerceptionMemoryRecord`
   shape (recognition-slate calls this `RecognitionRecord` — same
   record; name to be reconciled); different keying.

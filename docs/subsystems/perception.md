@@ -88,10 +88,15 @@ any query Api method called for that viewer:
 - `NightVisionShadow` on a cat-NPC → band shifts up.
 - `DarknessShadow` on a cursed avatar → `VisionModality.lightAt` from
   this viewer's perspective is capped at zero.
-- `RecognitionShadow` on Bob → `getDisplayName(Bob,
-  hooded-stranger)` returns "Phil" because Bob has met Phil before.
 - `LanguageShadow` on Alice → `understandsSpeech(Alice, …, msg)`
   returns true for messages in languages Alice has learned.
+
+> **Recognition is NOT a Shadow.** Per-viewer *identity* memory ("Bob has
+> met Phil, so a hooded stranger reads as Phil") is its own subsystem —
+> the `BeliefStoreMixin` on the viewer plus the explicit
+> `RecognitionApi.describe(viewer, target)` naming step, not a shadow on a
+> visibility query. It *consults* this perception layer only for its
+> visibility gate. See [belief.md](./belief.md).
 
 Shadow overrides are *per-viewer-per-query*. They don't fight the
 contract; they're how the contract gets specialized.
@@ -221,8 +226,8 @@ error messages, stamina deduction, billing-style accounting.
   perception query. Use the explicit viewer parameter.
 - Caching per-viewer state on the *target* instead of the viewer.
   "Bob has seen this NPC, so the NPC remembers Bob" — that
-  recognition state is on the *viewer* (Bob's `RecognitionShadow`
-  or equivalent), not on the NPC.
+  recognition state is on the *viewer* (Bob's `BeliefStoreMixin` —
+  see [belief.md](./belief.md)), not on the NPC.
 - Defaulting to a "current viewer" when none is passed. Refuse to
   compile instead — make the type system enforce that callers know
   who they're querying for.

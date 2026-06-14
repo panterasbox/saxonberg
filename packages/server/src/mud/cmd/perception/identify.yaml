@@ -1,0 +1,11 @@
+verbs: [identify]
+controller: perception/IdentifyController
+description: "Read a scroll of identify on something to learn what it is"
+validators:
+  - /lib/command/validators/requiresAnimate
+args:
+  - name: target
+    type: object
+    required: true
+    scope: "reachable"
+    onExcess: prompt

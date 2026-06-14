@@ -31,7 +31,7 @@ See also:
   **shipped** bucket storage + membership-verb layer (`ContactsMixin`,
   `contacts` verb suite, `ContactsGroupProvider`). This slate's
   Wave-1/Wave-2 work landed here.
-- [docs/slates/recognition-slate.md](../builds/recognition-slate.md) — the
+- [docs/slates/recognition-slate.md](../tails/recognition-slate.md) — the
   substrate this slate builds on. Bucket data lives on
   recognition records.
 - [docs/slates/comms-slate.md](../tails/comms-slate.md)

@@ -60,7 +60,7 @@ Ethical instincts are wired into specific decisions, not just principles:
 - Reactions are ephemeral, not persisted — "social texture, not
   surveillance" ([reactions](../slates/tails/reactions-slate.md)).
 - Recognition is per-viewer and in-world, not a central dossier
-  ([recognition](../slates/builds/recognition-slate.md)).
+  ([recognition](../slates/tails/recognition-slate.md)).
 
 Minor individually; together they show a design that *defaults toward
 not-collecting* — the right default for this lens.

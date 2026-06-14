@@ -18,6 +18,7 @@
 import type { Stuff } from '../../lib/stuff/Stuff';
 import { ContainmentApi } from '../containment';
 import { MixinApi } from '../mixin';
+import { RecognitionApi } from '../recognition';
 import type { Detail } from '../../lib/description/Detailed';
 import type { BulkAffordance } from '../../lib/bulk/Bulkable';
 import type { MqlMatch, MqlMatchVia } from './types';
@@ -55,10 +56,13 @@ export interface ScopeCandidate {
  * {@link candidatesForPeers}. `here` is the location's own surface,
  * not the room's inhabitants.
  */
-export function candidatesForHere(location: Stuff): ScopeCandidate[] {
+export function candidatesForHere(
+  location: Stuff,
+  viewer: Stuff,
+): ScopeCandidate[] {
   const out: ScopeCandidate[] = [];
 
-  pushDirect(out, location);
+  pushDirect(out, location, viewer);
   pushDetails(out, location);
 
   if (MixinApi.isExitable(location)) {
@@ -66,7 +70,7 @@ export function candidatesForHere(location: Stuff): ScopeCandidate[] {
     for (const door of location.getExitDoors()) {
       if (seenDoors.has(door.stuffId)) continue;
       seenDoors.add(door.stuffId);
-      pushDirect(out, door);
+      pushDirect(out, door, viewer);
       pushDetails(out, door);
     }
     // Use `getObviousExits()` so synthesized exits (an
@@ -101,7 +105,7 @@ export function candidatesForInventory(giver: Stuff): ScopeCandidate[] {
   if (!MixinApi.isContainer(giver)) return [];
   const out: ScopeCandidate[] = [];
   for (const item of ContainmentApi.getContents(giver)) {
-    pushDirect(out, item);
+    pushDirect(out, item, giver);
   }
   return out;
 }
@@ -118,7 +122,7 @@ export function candidatesForPeers(giver: Stuff): ScopeCandidate[] {
   const out: ScopeCandidate[] = [];
   for (const item of ContainmentApi.getContents(env)) {
     if (item.stuffId === giver.stuffId) continue;
-    pushDirect(out, item);
+    pushDirect(out, item, giver);
     pushDetails(out, item);
   }
   return out;
@@ -143,11 +147,11 @@ export function candidatesForPeers(giver: Stuff): ScopeCandidate[] {
  */
 export function candidatesForReachable(giver: Stuff): ScopeCandidate[] {
   const out: ScopeCandidate[] = [];
-  pushDirect(out, giver);
+  pushDirect(out, giver, giver);
   if (MixinApi.isContainable(giver)) {
     const env = giver.getContainer();
     if (env) {
-      for (const c of candidatesForHere(env)) out.push(c);
+      for (const c of candidatesForHere(env, giver)) out.push(c);
     }
   }
   for (const c of candidatesForPeers(giver)) out.push(c);
@@ -160,15 +164,24 @@ export function candidatesForReachable(giver: Stuff): ScopeCandidate[] {
  * `online` and `world` scopes where each Stuff is a candidate on its
  * own merits (no sub-features expanded).
  */
-export function candidatesForFlat(items: ReadonlyArray<Stuff>): ScopeCandidate[] {
+export function candidatesForFlat(
+  items: ReadonlyArray<Stuff>,
+  viewer: Stuff,
+): ScopeCandidate[] {
   const out: ScopeCandidate[] = [];
-  for (const item of items) pushDirect(out, item);
+  for (const item of items) pushDirect(out, item, viewer);
   return out;
 }
 
-function pushDirect(out: ScopeCandidate[], stuff: Stuff): void {
-  const name = stuff.getPresentation();
-  const keywords = MixinApi.isPerceptible(stuff) ? stuff.getKeywords() : [];
+function pushDirect(out: ScopeCandidate[], stuff: Stuff, viewer: Stuff): void {
+  // Viewer-relative name + keywords: a target resolves only by what the
+  // viewer can perceive — its `knownAs` if recognized, salient features
+  // if not, the disguise's descriptors if masked — never its true name.
+  // The same `describe` routine drives the rendered name, so `look bob`
+  // works iff "Bob" is also what the room view shows the viewer. Items
+  // and inert things keep their ordinary keywords (no identity gate).
+  const name = RecognitionApi.describe(viewer, stuff);
+  const keywords = RecognitionApi.perceivedKeywords(viewer, stuff);
   out.push({ stuff, name, keywords });
   pushBulkMaterials(out, stuff);
 }

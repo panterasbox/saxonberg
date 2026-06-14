@@ -534,11 +534,14 @@ The universal `displayName` descriptor's `read` delegates to
   bottom of the chain, so the return type stays `string` (never
   null) and the substrate's `StuffRefRecord.displayName` is
   non-optional, honored without coercion.
-- **Viewer-blind.** Every viewer sees the same name today; the
-  recognition pipeline (see
-  `docs/requirements/recognition-requirements.md`) composes the
-  viewer-aware step on top of this baseline rather than overloading
-  the descriptor.
+- **Viewer-aware at the projection seam.** The `displayName` descriptor's
+  own `read` stays viewer-blind (`getPresentation()`), but `projectFields`
+  renders the universal `displayName` field through
+  `RecognitionApi.describe(viewer, stuff)` — so each subscriber sees its
+  *own* perceived name (recognition / identification / disguise), the same
+  routine the prose path uses. The descriptor isn't overloaded; the
+  viewer-aware step is applied at projection. See
+  [belief.md](./belief.md).
 - **Count folds in.** For a `Globbable` stack `getPresentation()`
   returns `"30 coins"`; the `quantity` field still rides along
   separately for clients that want the raw number.

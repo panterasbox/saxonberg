@@ -112,7 +112,7 @@ illustration }`) — the dossier from `SpeciesApi`, the illustration from
   v1 ships it as a flat projected field — safe, because v1 content (rooms,
   species-*kind* portraits) doesn't disguise. Retrofit when recognition
   lands and per-instance NPC portraits exist. See
-  [recognition slate](../slates/builds/recognition-slate.md).
+  [recognition slate](../slates/tails/recognition-slate.md).
 - **Cohesion post-process** — a shared palette LUT + paper-grain pass over
   every generated image. Trigger: only if generated cohesion visibly
   drifts at library scale.
