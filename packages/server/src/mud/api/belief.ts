@@ -36,42 +36,46 @@
  * have one (`/obj/Avatar/<playerId>`); generic NPC clones share / lack
  * one and are session-ephemeral by construction — they simply don't
  * persist, which falls out of the keying.
+ *
+ * This Api is a thin forwarding shell: the logic lives in the
+ * hot-reloadable {@link BeliefStoreLogic} singleton at `/obj/api/belief`,
+ * reached synchronously via `StuffApi.singletonSync`. `dest
+ * /obj/api/belief` reloads it.
  */
 
 import type { Stuff } from '../lib/stuff/Stuff';
 import type { BeliefRecord } from '../lib/belief/BeliefStore';
-import BeliefDocument from '../lib/belief/BeliefDocument';
-import { MixinApi } from './mixin';
-import { PersistenceManager } from '../../backend/PersistenceManager';
+import { StuffApi } from './stuff';
+import { HotReloadApi } from './hot-reload';
 import { SecurityApi } from './security';
+import { BeliefStoreLogic } from '../obj/api/BeliefStoreLogic';
+import { fileURLToPath } from 'url';
 
-/** Has this record learned anything worth persisting? */
-function isLearned(record: BeliefRecord): boolean {
-  return record.knownAs !== null || record.payload.typeKnown === true;
+const LOGIC_PATH = '/obj/api/belief';
+const LOGIC_CLASS_FILE = fileURLToPath(
+  new URL('../obj/api/BeliefStoreLogic', import.meta.url)
+);
+
+/** Resolve the HMR-able BeliefStoreLogic singleton (sync). */
+function logic(): BeliefStoreLogic {
+  return StuffApi.singletonSync(
+    LOGIC_PATH,
+    () =>
+      new ((HotReloadApi.getCurrentExport(
+        LOGIC_CLASS_FILE,
+        'BeliefStoreLogic'
+      ) as typeof BeliefStoreLogic | null) ?? BeliefStoreLogic)()
+  );
 }
 
 export class BeliefStoreApi {
-  /** Persistence is a no-op unless Mongo is connected (tests, pre-boot). */
-  static #active(): boolean {
-    return PersistenceManager.get().isConnected();
-  }
-
-  /** The durable per-viewer key, or `null` for a session-ephemeral viewer. */
-  static #viewerKey(viewer: Stuff): string | null {
-    return viewer.getTemplatePath();
-  }
-
   /**
    * Lazy-hydrate `viewer`'s persisted beliefs into its in-memory map.
    * Called on session establish (`Avatar.enter`). No-op without a durable
    * viewer key or an active connection.
    */
   public static async hydrate(viewer: Stuff): Promise<void> {
-    if (!this.#active() || !MixinApi.isBeliefStore(viewer)) return;
-    const viewerId = this.#viewerKey(viewer);
-    if (!viewerId) return;
-    const docs = await BeliefDocument.find({ viewerId });
-    for (const doc of docs) viewer.loadBelief(doc.toRecord());
+    return logic().hydrate(viewer);
   }
 
   /**
@@ -82,32 +86,18 @@ export class BeliefStoreApi {
    */
   public static async writeRecord(
     viewer: Stuff,
-    record: BeliefRecord,
+    record: BeliefRecord
   ): Promise<void> {
-    if (!this.#active()) return;
-    const viewerId = this.#viewerKey(viewer);
-    if (!viewerId || !isLearned(record)) return;
-    const [existing] = await BeliefDocument.find({
-      viewerId,
-      realm: record.realm,
-      referent: record.referent,
-    });
-    const doc = existing ?? new BeliefDocument();
-    doc.applyRecord(viewerId, record);
-    await doc.save();
+    return logic().writeRecord(viewer, record);
   }
 
   /** Drop a persisted record (mirrors the mixin's `forget`). */
   public static async deleteRecord(
     viewer: Stuff,
     realm: string,
-    referent: string,
+    referent: string
   ): Promise<void> {
-    if (!this.#active()) return;
-    const viewerId = this.#viewerKey(viewer);
-    if (!viewerId) return;
-    const docs = await BeliefDocument.find({ viewerId, realm, referent });
-    for (const doc of docs) await doc.delete();
+    return logic().deleteRecord(viewer, realm, referent);
   }
 
   /**
@@ -116,16 +106,7 @@ export class BeliefStoreApi {
    * write-through still in flight; clearing releases the working set.
    */
   public static async evictAndFlush(viewer: Stuff): Promise<void> {
-    if (!MixinApi.isBeliefStore(viewer)) return;
-    if (this.#active()) {
-      const viewerId = this.#viewerKey(viewer);
-      if (viewerId) {
-        for (const record of viewer.allBeliefs()) {
-          if (isLearned(record)) await this.writeRecord(viewer, record);
-        }
-      }
-    }
-    viewer.clearBeliefs();
+    return logic().evictAndFlush(viewer);
   }
 }
 

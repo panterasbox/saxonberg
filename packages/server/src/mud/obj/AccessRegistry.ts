@@ -43,8 +43,13 @@ import { TemplatePaths } from '../lib/paths';
 
 const AccessRegistryBase = PostRegistrationMixin(Idea);
 
-const AccessApiCallers = SecurityPolicies.FromModule(
-  'mud/api/access#AccessApi',
+// AccessApi's logic now lives in the /obj/api/access logic singleton
+// (the Api face is a thin forwarding shell). Admit both the face module
+// and the logic singleton's template path so the Registry's methods stay
+// callable only through the access subsystem.
+const AccessApiCallers = SecurityPolicies.AnyOf(
+  SecurityPolicies.FromModule('mud/api/access#AccessApi'),
+  SecurityPolicies.FromTemplate('/obj/api/access'),
 );
 
 const FOLDER_ZONE_CLASS = TemplatePaths.folderZone;

@@ -21,6 +21,8 @@ import { StuffApi } from '../stuff';
 import { PersistenceManager, Collections } from '../../../backend/PersistenceManager';
 import { SecurityError } from '../../lib/security/errors';
 import { ModuleApi } from '../module';
+import { AccessLogic } from '../../obj/api/AccessLogic';
+import { makeStuffAtPath } from '../../lib/security/__tests__/test-setup';
 
 interface Doc extends Record<string, unknown> {
   _id?: string;
@@ -145,5 +147,23 @@ describe('AccessApi facade', () => {
     await expect(reg.can(null, 'destruct', null)).rejects.toBeInstanceOf(
       SecurityError,
     );
+  });
+});
+
+describe('AccessLogic singleton encapsulation', () => {
+  beforeEach(() => {
+    StuffApi.clearAll();
+  });
+  afterEach(() => {
+    StuffApi.clearAll();
+  });
+
+  it('denies a direct logic-method call from a non-AccessApi caller', () => {
+    const logic = makeStuffAtPath(() => new AccessLogic(), '/obj/api/access');
+    expect(StuffApi.findByTemplatePath('/obj/api/access')).toBe(logic);
+    // The test module is not mud/api/access#AccessApi nor the singleton
+    // itself; the gate denies synchronously (before the async body / the
+    // early null-guard), so the args are never touched.
+    expect(() => logic.can(null, 'destruct', null)).toThrow(SecurityError);
   });
 });
