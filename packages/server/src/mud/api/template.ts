@@ -16,29 +16,38 @@
  * Phase 7 Decision 12 — folder/leaf invariant:
  *   - Folders = Zone templates. MAY have descendant templates.
  *   - Leaves  = any non-Zone template. MUST NOT have descendant templates.
+ *
+ * Thin, security-gated forwarding shell: the upsert + validation +
+ * snapshot/restore logic lives in the hot-reloadable {@link TemplateLogic}
+ * singleton at `/obj/api/template`, reached synchronously via
+ * `StuffApi.singletonSync`. `dest /obj/api/template` reloads it.
  */
 
-import { ZoneApi } from './zone';
-import { Template } from '../lib/stuff/Template';
-import { ZoneTemplate } from '../lib/stuff/ZoneTemplate';
-import { LeafTemplate } from '../lib/stuff/LeafTemplate';
-import { SecurityApi } from './security';
 import { StuffApi } from './stuff';
-import { MixinApi } from './mixin';
-import { Mixins } from '../lib/mixin';
+import { HotReloadApi } from './hot-reload';
+import { SecurityApi } from './security';
 import type { Stuff } from '../lib/stuff/Stuff';
-import type { Marshaller } from '../lib/persistence/Marshaller';
-import PersistentHydrator from '../lib/persistence/PersistentHydrator';
+import type { Template } from '../lib/stuff/Template';
+import { TemplateLogic } from '../obj/api/TemplateLogic';
+import { fileURLToPath } from 'url';
 
-/**
- * Thrown when a domain-collection write would violate the folder/leaf
- * invariant.
- */
-export class TemplateError extends Error {
-  constructor(message: string) {
-    super(message);
-    this.name = 'TemplateError';
-  }
+export { TemplateError } from '../lib/stuff/TemplateError';
+
+const LOGIC_PATH = '/obj/api/template';
+const LOGIC_CLASS_FILE = fileURLToPath(
+  new URL('../obj/api/TemplateLogic', import.meta.url)
+);
+
+/** Resolve the HMR-able TemplateLogic singleton (sync). */
+function logic(): TemplateLogic {
+  return StuffApi.singletonSync(
+    LOGIC_PATH,
+    () =>
+      new ((HotReloadApi.getCurrentExport(
+        LOGIC_CLASS_FILE,
+        'TemplateLogic'
+      ) as typeof TemplateLogic | null) ?? TemplateLogic)()
+  );
 }
 
 export class TemplateApi {
@@ -57,22 +66,7 @@ export class TemplateApi {
     data: Record<string, unknown>,
     hydratorClassPath?: string
   ): Promise<string> {
-    const tpl =
-      (await Template.findByPath(path)) ??
-      ((await ZoneApi.isFolderClass(classPath))
-        ? new ZoneTemplate()
-        : new LeafTemplate());
-    tpl.path = path;
-    tpl.class = classPath;
-    tpl.data = data;
-    if (hydratorClassPath !== undefined) {
-      tpl.hydratorClass = hydratorClassPath;
-    } else {
-      // Explicitly clear so updates can drop a previously-set hydrator.
-      delete tpl.hydratorClass;
-    }
-    await tpl.save();
-    return tpl._id!;
+    return logic().saveTemplate(path, classPath, data, hydratorClassPath);
   }
 
   /**
@@ -95,36 +89,7 @@ export class TemplateApi {
   public static async validateFolderLeafSave(
     doc: Record<string, unknown>
   ): Promise<void> {
-    const path = doc.path;
-    const classPath = doc.class;
-    if (typeof path !== 'string' || typeof classPath !== 'string') {
-      throw new TemplateError(
-        `Domain template must have string 'path' and 'class' fields`
-      );
-    }
-    if (!path.startsWith('/')) {
-      throw new TemplateError(`Template path must start with '/': ${path}`);
-    }
-
-    const isZone = await ZoneApi.isFolderClass(classPath);
-
-    for (const ancestor of Template.ancestorPaths(path)) {
-      const ancestorTpl = await Template.findByPath(ancestor);
-      if (ancestorTpl && !(await ZoneApi.isFolderClass(ancestorTpl.class))) {
-        throw new TemplateError(
-          `Ancestor '${ancestor}' is a leaf template, not a zone folder; cannot place children under it.`
-        );
-      }
-    }
-
-    if (!isZone) {
-      const children = await Template.findDescendants(path);
-      if (children.length > 0) {
-        throw new TemplateError(
-          `Cannot save leaf template at '${path}'; ${children.length} child template(s) already exist beneath it.`
-        );
-      }
-    }
+    return logic().validateFolderLeafSave(doc);
   }
 
   /**
@@ -148,46 +113,7 @@ export class TemplateApi {
   public static async validateSingletonContainerTarget(
     doc: Record<string, unknown>
   ): Promise<void> {
-    const data = doc.data as Record<string, unknown> | undefined;
-    if (!data || typeof data.container !== 'string') return;
-    const targetPath = data.container;
-    const sourcePath =
-      typeof doc.path === 'string' ? doc.path : '(unknown source)';
-
-    // 1. Source class must compose ContainableMixin.
-    const sourceClass = doc.class;
-    if (typeof sourceClass !== 'string') return; // folder-leaf validator handles
-    const sourceCtor = (await StuffApi.loadClassByPath(sourceClass)) as new (
-      ...args: unknown[]
-    ) => unknown;
-    if (!MixinApi.hasMixin(sourceCtor, Mixins.Containable)) {
-      throw new TemplateError(
-        `Template '${sourcePath}' declares 'data.container' but its ` +
-          `class '${sourceClass}' does not compose ContainableMixin.`
-      );
-    }
-
-    // 2. Target template must exist.
-    const targetTpl = await Template.findByPath(targetPath);
-    if (!targetTpl) {
-      throw new TemplateError(
-        `Template '${sourcePath}' declares 'data.container: ${targetPath}' ` +
-          `but no template exists at that path.`
-      );
-    }
-
-    // 3. Target class must compose SingletonMixin.
-    const targetCtor = (await StuffApi.loadClassByPath(targetTpl.class)) as new (
-      ...args: unknown[]
-    ) => unknown;
-    if (!MixinApi.hasMixin(targetCtor, Mixins.Singleton)) {
-      throw new TemplateError(
-        `Template '${sourcePath}' declares 'data.container: ${targetPath}' ` +
-          `but the target's class '${targetTpl.class}' does not compose ` +
-          `SingletonMixin. The container: target must be singleton-shaped ` +
-          `(see declarative-content-slate § container:).`
-      );
-    }
+    return logic().validateSingletonContainerTarget(doc);
   }
 
   /**
@@ -199,15 +125,7 @@ export class TemplateApi {
    * discover its path and class — the delete primitive only carries an id.
    */
   public static async validateFolderLeafDelete(id: string): Promise<void> {
-    const tpl = await Template.loadById(id);
-    if (!tpl) return;
-    if (!(await ZoneApi.isFolderClass(tpl.class))) return;
-    const children = await Template.findDescendants(tpl.path);
-    if (children.length > 0) {
-      throw new TemplateError(
-        `Cannot delete zone template at '${tpl.path}'; ${children.length} descendant template(s) still reference it.`
-      );
-    }
+    return logic().validateFolderLeafDelete(id);
   }
 
   /**
@@ -216,7 +134,7 @@ export class TemplateApi {
    * symmetry with the validators that use it.
    */
   static ancestorPaths(path: string): string[] {
-    return Template.ancestorPaths(path);
+    return logic().ancestorPaths(path);
   }
 
   /**
@@ -255,86 +173,8 @@ export class TemplateApi {
    * Template exists at the resolved path, or when a marshalled
    * field references an unregistered marshaller.
    */
-  public static async snapshotToTemplate(
-    stuff: Stuff
-  ): Promise<Template> {
-    const path = stuff.getTemplatePath();
-    if (!path) {
-      throw new Error(
-        `TemplateApi.snapshotToTemplate: Stuff has no templatePath stamp`
-      );
-    }
-
-    // Synchronous snapshot — captures field values + container ref
-    // BEFORE any event-loop yield. Load-bearing for onDestruct-
-    // driven saves.
-    const ctor = stuff.constructor as new (...args: unknown[]) => Stuff;
-    const fields = MixinApi.getAllPersistentFields(ctor);
-    const marshallerPaths = MixinApi.getAllFieldMarshallers(ctor);
-    const self = stuff as unknown as Record<string, unknown>;
-    const snapshot: Record<string, unknown> = {};
-    for (const field of fields) {
-      if (!(field in stuff)) continue;
-      snapshot[field] = self[field];
-    }
-    // Durable-location capture (synchronous, before the first await).
-    // Save-delegation: when the live container is a Warren member (a
-    // lounge room), the avatar's *durable* spawn/recall reference is the
-    // **Warren**, not the transient room clone — so we persist
-    // `data.startLocation: <Warren>` and drop `data.container`. The
-    // consult rides the existing `WarrenMember.getWarren()` back-ref; no
-    // extra capability mixin. Otherwise the host keeps the ordinary
-    // `data.container` behavior (byte-identical for non-Warren-member
-    // containers). Both keys are reconciled so a session in the lounge
-    // followed by one in an ordinary room never leaves a stale key.
-    const hostIsContainable = MixinApi.isContainable(stuff);
-    const env = hostIsContainable ? stuff.getContainer() : null;
-    const warrenPath =
-      env && MixinApi.isWarrenMember(env)
-        ? env.getWarren()?.getTemplatePath() ?? null
-        : null;
-    const containerPath = env?.getTemplatePath() ?? null;
-
-    const tpl = await Template.findByPath(path);
-    if (!tpl) {
-      throw new Error(
-        `TemplateApi.snapshotToTemplate: no template at '${path}'`
-      );
-    }
-
-    const data: Record<string, unknown> = { ...(tpl.data ?? {}) };
-    for (const field of fields) {
-      if (!(field in snapshot)) continue;
-      const value = snapshot[field];
-      const mPath = marshallerPaths[field];
-      if (mPath) {
-        // Lazy-create via singleton: marshaller seeds live at
-        // `pathFor(unit)` and are content-style templates rather than
-        // bootstrap entries, so the first save touching a unit
-        // instantiates its marshaller on demand. Subsequent saves
-        // hit the live ref in the byTemplatePath index.
-        const m = await StuffApi.singleton<Marshaller<unknown, unknown>>(mPath);
-        data[field] = m.toStored(value);
-      } else {
-        data[field] = value;
-      }
-    }
-    if (hostIsContainable) {
-      if (warrenPath !== null) {
-        // In a Warren-managed room → persist the durable Warren ref.
-        data.startLocation = warrenPath;
-        delete data.container;
-      } else if (containerPath !== null) {
-        data.container = containerPath;
-        delete data.startLocation;
-      } else {
-        delete data.container;
-        delete data.startLocation;
-      }
-    }
-
-    tpl.data = data;
-    return tpl; // Caller commits via tpl.save().
+  public static async snapshotToTemplate(stuff: Stuff): Promise<Template> {
+    return logic().snapshotToTemplate(stuff);
   }
 
   /**
@@ -351,22 +191,7 @@ export class TemplateApi {
    * hydration failure.
    */
   public static async restoreFromTemplate(stuff: Stuff): Promise<void> {
-    const path = stuff.getTemplatePath();
-    if (!path) {
-      throw new Error(
-        `TemplateApi.restoreFromTemplate: Stuff has no templatePath stamp`
-      );
-    }
-    const tpl = await Template.findByPath(path);
-    if (!tpl) {
-      throw new Error(
-        `TemplateApi.restoreFromTemplate: no template at '${path}'`
-      );
-    }
-    const hydrator = await StuffApi.singleton<PersistentHydrator>(
-      PersistentHydrator.templatePath
-    );
-    await hydrator.hydrate(stuff, tpl.data ?? {});
+    return logic().restoreFromTemplate(stuff);
   }
 }
 
