@@ -142,6 +142,12 @@ A leaf `extends Idea`. Nine persistent fields:
   `SmellSourceMixin` emitters in the room rather than a typed biome
   field.
 
+The thermal build added a `_defaultWind` field (with `_wind` /
+`_detailWinds` on `AtmosphericMixin`) — a mechanical clone of the
+humidity spine, mandatory on the universe-root seed, static-authored
+for now and read by the body's wind-chill transform (weather will
+drive it dynamically later). See [thermal.md](./thermal.md).
+
 `null` on a Quantity / string default means "fall through to my
 extends parent." A leaf biome carrying only `_ambientSoundMml`
 inherits all four Quantity defaults from the chain.
@@ -287,6 +293,13 @@ v1 ships **three** tags from a private const map in `BiomeApi`:
 | `water`  | 1000  kg/m³                    |
 | `vacuum` | 0     kg/m³                    |
 
+A parallel thermal-conductivity column ships with the thermal build:
+`BiomeApi.conductivityOf(tag): Quantity<'W/(m·K)'>` reads
+`ATMOSPHERE_CONDUCTIVITIES` (air ≈ 0.026, water ≈ 0.6, vacuum ≈ 1e-4 —
+a tiny-nonzero floor so insulated vessels cool slowly, not never), the
+dominant `R` term in the Thermal capability's τ = R·C. See
+[thermal.md](./thermal.md).
+
 `BiomeApi.densityOf(tag)` reads the map; throws on unknown tag.
 `AtmosphericMixin.setAtmosphere(value)` accepts any string silently
 — validation is the read-side concern (the density lookup or the
@@ -329,6 +342,7 @@ Static surface:
 ```ts
 findByPath(path: string): Biome | null
 densityOf(tag: string): Quantity<'kg/m³'>        // throws on unknown tag
+conductivityOf(tag: string): Quantity<'W/(m·K)'> // throws on unknown tag (thermal build)
 getRootBiome(): Biome                             // cached; HMR invalidates
 invalidateRootBiomeCache(): void
 
@@ -337,13 +351,19 @@ resolvePressureFor(scope, detailKey?): Promise<Quantity<'Pa'>>
 resolveHumidityFor(scope, detailKey?): Promise<Quantity<'%'>>
 resolveGravityFor(scope, detailKey?): Promise<Quantity<'m/s²'>>
 resolveAtmosphereFor(scope, detailKey?): Promise<string>
+resolveWindFor(scope, detailKey?): Promise<Quantity<'m/s'>>  // thermal build
 
 traceResolveTemperatureFor(scope, detailKey?): Promise<AtmosphericTrace<…>>
-// + four sibling trace variants, and traceResolveAll which returns
-// a typed bag of all five for the `analyze atmosphere` verb.
+// + sibling trace variants (incl. traceResolveWindFor), and
+// traceResolveAll which returns a typed bag for the `analyze
+// atmosphere` verb.
 
 isSkyExposed(scope): boolean
 ```
+
+`resolveWindFor` / `traceResolveWindFor` walk the same override chain
+as the other resolvers; wind feeds the body's wind-chill transform.
+See [thermal.md](./thermal.md).
 
 `AtmosphericTrace<V>` carries `{ value, source, sourcePath,
 ancestorChain }` — provenance for verb rendering and tests.

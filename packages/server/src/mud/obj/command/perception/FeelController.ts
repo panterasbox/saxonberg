@@ -107,17 +107,8 @@ export default class FeelController extends SingleSenseControllerBase {
    * toucher has no vitals to wound.
    */
   protected burnOnContact(actor: Stuff, surfaceK: number): void {
-    if (Touch.bandFor(surfaceK) !== 'scalding') return;
-    if (!MixinApi.isVitals(actor)) return;
-    // Severity rises with how far past the scalding floor the surface
-    // sits; a tuning detail, not a plan decision.
-    const severity = Math.min(1, 0.5 + (surfaceK - 345) / 80);
-    actor.afflict({
-      kind: 'trauma',
-      type: 'burn',
-      site: 'body.hand',
-      severity,
-    });
+    const trauma = Touch.contactBurn(surfaceK);
+    if (trauma && MixinApi.isVitals(actor)) actor.afflict(trauma);
   }
 
   private async feelAmbient(context: CommandContext): Promise<void> {

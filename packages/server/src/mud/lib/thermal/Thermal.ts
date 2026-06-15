@@ -91,19 +91,6 @@ export const THERMAL_DEFAULTS = {
    */
   SURFACE_EXPOSURE_K: 0.01,
 
-  /**
-   * Lumped effective resistivities by vessel type — the **documented
-   * fallback** when an object authors a vessel-type tag rather than a
-   * computable medium/wall conductivity. v1 computes from conductivities
-   * (the honest model) and never consults this; it is kept as the dial
-   * the geometry-free path would read. (Decision in the plan: compute
-   * when present, fall back to the table.)
-   */
-  R_BY_VESSEL_TYPE: { thermos: 8.0, mug: 0.3, open: 0.1 } as Record<
-    string,
-    number
-  >,
-
   // ── Phase-2 thermoregulation (the living body) ──
   /** Integration slice (game-seconds) for the regulation reconcile. */
   REG_STEP_SEC: 60,
@@ -116,8 +103,6 @@ export const THERMAL_DEFAULTS = {
    * ambient inside `[setpoint ± this]` costs nothing (Option C).
    */
   BAND_HALF_WIDTH_K: 8,
-  /** Body specific heat (J/(kg·K)) for the passive-drift `C` (≈ water). */
-  BODY_SPECIFIC_HEAT: 3500,
   /** Cold-side fuel spend (satiation %-points per game-min per K of gap). */
   COLD_SPEND_PER_DEGREE: 0.05,
   /** Hot-side water spend (hydration %-points per game-min per K of gap). */
@@ -128,8 +113,6 @@ export const THERMAL_DEFAULTS = {
   WET_BULB_CEILING_K: 308,
   /** Wind-chill: each m/s of wind cools effective ambient this many K. */
   WIND_CHILL_PER_MS: 0.6,
-  /** Ectotherm core below this (K) → torpor (immobile but alive). */
-  TORPOR_BAND_K: 288,
   /** Lethal dwell (game-seconds) before hypo/hyperthermia kills. */
   THERMAL_LETHAL_SEC: 3 * 3600,
   /** Hysteresis: clear a thermal condition once core re-enters this margin (K). */

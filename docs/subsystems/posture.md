@@ -30,6 +30,11 @@ pure structural mechanism; `restQuality` is a behavior field on the
 specialized posture-bearing host, the `Vessel.transmissionFactor` pattern
 (the same call the encumbrance build made for its coupling factor).
 
+The thermal build added a sibling field on the same host —
+**`warmth`** (default `0`), an additive-Kelvin bump to a slot
+occupant's effective ambient (a campfire log-seat authors both
+`restQuality` and `warmth`). See [thermal.md](./thermal.md).
+
 ## Posture-bearing slot
 
 Definition: a slot is *posture-bearing* iff its `SlotSpec` declares

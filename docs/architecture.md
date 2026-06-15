@@ -477,9 +477,11 @@ Under `Agent` the hierarchy splits **body** from **agent**:
 is the body layer — a living physical thing that can break, with or
 without agency: it carries `OrganismMixin` + `VitalsMixin` +
 `ReservedMixin` + `MetabolicMixin` (intake/chemistry driver, outer of
-vitals/reserve) + `LoadBearingMixin` (the encumbrance gauge, outermost) +
-`DisguisableMixin` (creature masking, outer of `Visible`) + the
-anatomy-slot / posture / description / containment mixins. `Character`
+vitals/reserve) + `ThermalMixin` + `ThermalRegulationMixin` (the
+heat-exchange substrate + Option-C body driver, outer of metabolism;
+drives `coreTemperature`) + `LoadBearingMixin` (the encumbrance gauge,
+outermost) + `DisguisableMixin` (creature masking, outer of `Visible`) +
+the anatomy-slot / posture / description / containment mixins. `Character`
 extends it with the **agency** mixins (commands, perception, speech,
 movement, engagement) + the social-identity mixins (`PersonaMixin`,
 `GenderedMixin`) + the per-viewer concerns (`BeliefStoreMixin`,
@@ -618,6 +620,8 @@ registry) lives in `lib/mixin.ts`.
 | `lib/identification/` | `IdentifiableMixin` | the type axis: an item whose true type (`identifiedName`) is hidden behind its unidentified appearance until a viewer identifies it. Composed by `IdentifiableThing`; the `IdentifyScroll` carries the `identify` verb. See [belief.md](./subsystems/belief.md). |
 | `lib/metabolism/` | `MetabolicMixin` | the intake-and-chemistry driver (first condition-driver): the digestion buffer + real `ingest`, the lazy reconcile-on-read over `WorldClock` game-time (absorption / mass-scaled basal drain / coupled recovery / toxin clearance), the cascade spawning `floorEffect` conditions + the death seam, the presence-freeze clock, and the toxin-burden + alcohol/BAC system. Drives `Vitals`/`Reserved`/`Posed`; composed inner of `LoadBearing`, outer of those three, by `Creature`. No Api. See [metabolism.md](./subsystems/metabolism.md). |
 | `lib/metabolism/` | `NutritionLabelMixin` | opt-in consumable affordance: appends an edible `Material`'s inspectable nutrition profile to the host's long description via the `markupAugmenter` seam. Composed by content onto labelled consumables (not every Stuff). See [metabolism.md](./subsystems/metabolism.md). |
+| `lib/thermal/` | `ThermalMixin` | the generic heat-exchange capability: lazy Newton's-cooling-on-read (mirrors `Metabolic`) with a **sync** `getTemperature()` via a cached ambient refreshed at re-stamp events (`onMoved` / ambient-shift fan-out / seal toggle / bulk transfer); τ = R·C from `Tangible` mass × `Material` specific heat + the medium/wall conductivity series; a sealed `Sealable` host → vacuum barrier. Composed by any Tangible+Containable Stuff (`Receptacle`/`Flask`/`Campfire`) and by `Creature` (corpse algor mortis). No Api. See [thermal.md](./subsystems/thermal.md). |
+| `lib/thermal/` | `ThermalRegulationMixin` | the Option-C body driver: overrides `getVitalSign` (sync, cached effective ambient) to **drive** `coreTemperature` — pin at setpoint within the thermoneutral band, else spend satiation (cold) / hydration (hot, wet-bulb-capped) to defend it, fail into passive `Thermal` drift; endo/ecto split (`BodyPlan.thermalStrategy`) + Q10; the hypothermia/hyperthermia/torpor cascade → death seam. Composed over `ThermalMixin`/`Metabolic`, inner of `LoadBearing`, by `Creature`. No Api. See [thermal.md](./subsystems/thermal.md). |
 
 ### Mixin Composition Constraints
 

@@ -38,7 +38,11 @@ into fixed `STEP_SEC` slices (capped at `MAX_STEPS`, remainder collapsed)
 so the coupled flows stay honest; the per-slice order is fixed:
 
 1. **Digestion absorption** — drain each pooled tag toward its target.
-2. **Basal drain** — satiation + hydration down, mass-scaled.
+2. **Basal drain** — satiation + hydration down, mass-scaled × the Q10
+   `thermalMultiplier()` (now lit by the thermal build: `Q10 ^ ((core −
+   reference)/10)` off the driven `coreTemperature` — ≈1 for an endotherm
+   pinned at setpoint, swings for an ectotherm whose core floats; dials in
+   `METABOLIC_DEFAULTS`). See [thermal.md](./thermal.md).
 3. **Coupled recovery** — spend both tanks to rebuild endurance (at rest).
 4. **Burden clearance** — toxin burdens fall at their clearance rate.
 
@@ -241,8 +245,6 @@ See [quantities.md](./quantities.md).
 
 - **spo2 read** (respiration): `spo2Throttle()` reads `getVitalSign('spo2')`
   and returns 1.0 — lights up when respiration drives spo2.
-- **Thermal**: `thermalMultiplier()` (basal heat-out) returns 1.0; the
-  endotherm/ectotherm species trait doesn't exist yet.
 - **Protein → healing**: routed into an inert pool that drains nowhere.
 - **Wired nutrient deficiencies** (scurvy): a deficiency *is* just a
   `Reserve` (the substrate supports it); deferred to a documented seam —
