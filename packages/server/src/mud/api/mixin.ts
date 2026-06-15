@@ -91,6 +91,7 @@ import type { Globbable } from '../lib/stuff/Globbable';
 import type { Bulkable } from '../lib/bulk/Bulkable';
 import type { Engaged } from '../lib/activity/Engaged';
 import type { Atmospheric } from '../lib/biome/Atmospheric';
+import type { Addressable } from '../lib/address/Addressable';
 import type { SkyExposed } from '../lib/biome/SkyExposed';
 import type { Contacts } from '../lib/social/Contacts';
 import type { Soul } from '../lib/social/Soul';
@@ -753,6 +754,10 @@ export class MixinApi {
 
   public static isAtmospheric(obj: Stuff): obj is Stuff & Atmospheric {
     return this.hasMixin(obj, Mixins.Atmospheric);
+  }
+
+  public static isAddressable(obj: Stuff): obj is Stuff & Addressable {
+    return this.hasMixin(obj, Mixins.Addressable);
   }
 
   public static isSkyExposed(obj: Stuff): obj is Stuff & SkyExposed {
