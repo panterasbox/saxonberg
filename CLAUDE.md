@@ -59,7 +59,7 @@ behavior. Read the relevant doc before editing in its area.
   - [topics.md](./docs/subsystems/topics.md) — `Topic` template docs, TopicCatalogue singleton, three-tier resolution, session-establish wire push
   - [emotes.md](./docs/subsystems/emotes.md) — SoulMixin on every Character, Emote Document + EmoteGrammar, SoulCatalogue + SoulApi, three dispatch paths
   - [grouping.md](./docs/subsystems/grouping.md) — GroupApi facade over three GroupProvider impls (managed/MQL/contacts), GroupRef typed strings
-  - [comms.md](./docs/subsystems/comms.md) — two-transport speech substrate: acoustic VocalMixin (say/whisper/shout + `--to`, acousticDb) vs implant AetherMixin (dm/tell), verb surface, ties to messaging/chat
+  - [comms.md](./docs/subsystems/comms.md) — two-transport speech substrate: acoustic VocalMixin (say/whisper/shout + `--to`, acousticDb) vs implant comms (dm/tell on a hosted `CommsMixin`/`CommsUpdate`; `AetherMixin` = attunement + host), verb surface, ties to messaging/chat
   - [chat.md](./docs/subsystems/chat.md) — Channel Document with groupRef, three kinds, ChannelCatalogue, chat.yaml subcommand fallthrough
   - [contacts.md](./docs/subsystems/contacts.md) — ContactsMixin on Avatar, per-Avatar named lists, durable identifiers only, owner-only privacy
   - [shell-environment.md](./docs/subsystems/shell-environment.md) — EnvironmentMixin settings keyspace, schema-on-mixin, lookup chain, `settings`/`var`
@@ -82,7 +82,7 @@ behavior. Read the relevant doc before editing in its area.
   - [boundary.md](./docs/subsystems/boundary.md) — exits, doors, Adornable/Adornment, Boundary substrate, Window, ExitableVessel
   - [bulk.md](./docs/subsystems/bulk.md) — continuous matter as a holder attribute (BulkableMixin interior/surface slots, closure scale, BulkableApi.transfer + drain-through, via.bulk + `:b` + material-keyword + `:{N unit}` measure grammar, Floor surface-bulk, fill/pour/spill/drink/sip, Creature.ingest seam)
   - [light.md](./docs/subsystems/light.md) — Light value object, VisionModality.signalAt, AmbientLitMixin, LightSourceMixin, per-viewer perception
-  - [augmentation.md](./docs/subsystems/augmentation.md) — augment-confers-mixin substrate: AugmentMixin.confers(), getActiveMixins/isActive, @RequiresActive
+  - [augmentation.md](./docs/subsystems/augmentation.md) — augment-confers-mixin substrate: AugmentMixin.confers(), getActiveMixins/isActive, @RequiresActive; the **three-base capability model** + aether-as-host (the AetherMixin host ⊕ AetherHostedMixin update hosting relation, findReachable self + host-descent legs, Species.innateMixins intrinsic conferral)
   - [senses.md](./docs/subsystems/senses.md) — multi-sense perception substrate: SenseChannel vocabulary, Modality singletons, PerceptionApi
   - [quantities.md](./docs/subsystems/quantities.md) — Quantity<U> substrate (Unit catalog, parse/Mml emission), QuantityMarshaller, fieldMarshallers integration
   - [perception.md](./docs/subsystems/perception.md) — viewer-aware-query pattern (`Stuff & Sensor` always explicit), Shadow seam for per-viewer overrides

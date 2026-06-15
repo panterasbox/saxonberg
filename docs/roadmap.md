@@ -238,7 +238,8 @@ Ordered by leverage + dependency:
    chat substrate with `Channel` Documents, `ChannelCatalogue`
    singleton, and the Phase 1 opt-in `fallthrough: true` command
    framework flag; DM hardening (multi-target via collapsed
-   `tell` surface, reply/reply-all, cohort state on AetherMixin);
+   `tell` surface, reply/reply-all, cohort state — later moved to
+   the hosted comms update by the capability-hosting build);
    `broadcast` verb. See [emotes.md](./subsystems/emotes.md),
    [grouping.md](./subsystems/grouping.md),
    [chat.md](./subsystems/chat.md),
@@ -285,11 +286,15 @@ Ordered by leverage + dependency:
    [identification](./slates/tails/identification-slate.md))
 6. **Augmentation Wave 2+ + npc-dialogue** — Wave 1 augmentation
    shipped 2026-06 (substrate + AetherImplant; see
-   [augmentation.md](./subsystems/augmentation.md)); Wave 2+ adds
-   the install/remove medical procedure, char-gen loadout, other
-   augment Stuff (translation, prosthetics, sensor packages,
-   motor / cognitive), and failure modes. Npc-dialogue still leans
-   on the shipped prompt + slot substrate.
+   [augmentation.md](./subsystems/augmentation.md)); the
+   capability-hosting build (2026-06) then shipped the **three-base
+   capability model** + aether-as-host (comms + travel credential as
+   hosted updates, `findReachable` self + host-descent legs, species
+   intrinsic conferral). Wave 2+ adds the install/remove medical
+   procedure, char-gen loadout, other augment Stuff (translation,
+   prosthetics, sensor packages, motor / cognitive), and failure
+   modes. Npc-dialogue still leans on the shipped prompt + slot
+   substrate.
    ([augmentation](./slates/tails/augmentation-slate.md) /
    [npc-dialogue](./slates/builds/npc-dialogue-slate.md))
 
