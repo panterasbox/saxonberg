@@ -703,6 +703,30 @@ export interface MqlQueryErrorEnvelope {
   detail?: string;
 }
 
+/**
+ * Live broadcast state — the public, read-only overlay projection
+ * served to `service:broadcast` connections (OBS browser sources).
+ * Deliberately tiny in Phase 1; later gains active scene, lower-third
+ * text, camera focus, and the alert queue. `awayUntil` is absolute
+ * epoch-ms so the overlay ticks locally and survives reconnects.
+ */
+export interface StreamStateSnapshot {
+  mode: "live" | "standby";
+  awayUntil: number | null; // epoch ms; null when live
+}
+
+/**
+ * Server→broadcast push of the whole {@link StreamStateSnapshot}. A
+ * dedicated lightweight envelope (not modeled as Stuff+MQL): the
+ * broadcast principal isn't a normal player, the state is tiny, and
+ * re-sending the full snapshot on every change is simpler than diffing.
+ */
+export interface StreamStateEnvelope {
+  type: "stream-state";
+  frameId: number;
+  state: StreamStateSnapshot;
+}
+
 export type Envelope =
   | DispatchResponseEnvelope
   | ActivityUpdateEnvelope
@@ -711,7 +735,8 @@ export type Envelope =
   | MqlSubscriptionDeltaEnvelope
   | MqlSubscriptionErrorEnvelope
   | MqlQueryResultEnvelope
-  | MqlQueryErrorEnvelope;
+  | MqlQueryErrorEnvelope
+  | StreamStateEnvelope;
 
 /**
  * Envelope shape pre-`frameId`-stamp. Producers build this; the
@@ -725,7 +750,8 @@ export type EnvelopeTemplate =
   | Omit<MqlSubscriptionDeltaEnvelope, 'frameId'>
   | Omit<MqlSubscriptionErrorEnvelope, 'frameId'>
   | Omit<MqlQueryResultEnvelope, 'frameId'>
-  | Omit<MqlQueryErrorEnvelope, 'frameId'>;
+  | Omit<MqlQueryErrorEnvelope, 'frameId'>
+  | Omit<StreamStateEnvelope, 'frameId'>;
 
 // ============================================================================
 // Identity Types (Persistent Objects)

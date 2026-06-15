@@ -308,6 +308,9 @@ export class EventApi {
       [Events.ModuleRolledBack]: EventApi.emittableBy(HotReloadApi),
       [Events.ModuleUnloaded]: EventApi.emittableBy(HotReloadApi),
       [Events.ModuleReloadFailed]: EventApi.emittableBy(HotReloadApi),
+      // Open emit — the `stream` verb (StreamController) and StreamState
+      // are the v1 emitters; no tighter allowlist needed in Phase 1.
+      [Events.StreamStateChanged]: EventApi.emittableBy(),
     };
     return EventApi.#defaultPolicies;
   }

@@ -151,13 +151,19 @@ export class Backend implements IBackend {
    * Called by WebSocketService when a new connection is established.
    *
    * @param ws - WebSocket connection
-   * @param userId - User ID from session
+   * @param userId - User ID from session (sentinel `service:broadcast`
+   *   for the read-only broadcast principal)
    * @param sessionId - Session ID
+   * @param isBroadcast - true for the read-only livestream broadcast
+   *   principal: no User/Login/Avatar is created — Application routes it
+   *   straight to the `BroadcastFeed` as a pure push target, so it can't
+   *   run commands by construction.
    */
   public handleWebSocketConnect(
     ws: WebSocket,
     userId: string,
-    sessionId: string
+    sessionId: string,
+    isBroadcast = false
   ): void {
     // Generate socket ID
     const socketId = `socket_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
@@ -186,7 +192,7 @@ export class Backend implements IBackend {
     if (this.application) {
       const app = this.application;
       ExecutionContextApi.runRoot(Backend, 'handleUserConnect', () =>
-        app.handleUserConnect(userId, sessionId, socketId)
+        app.handleUserConnect(userId, sessionId, socketId, isBroadcast)
       );
     }
   }

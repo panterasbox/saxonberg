@@ -45,10 +45,18 @@ export const bootstrapManifest: BootstrapEntry[] = [
   // byHandle / history maps; warms its `byName` cache from the
   // `channels` collection (populated by `ChannelSeeder.run`).
   { templatePath: '/obj/ChannelCatalogue' },
-  // AccessRegistry — access substrate singleton holding the four
-  // predicates (`can`, `canMutateZone`, `isAuthor`, `isDeveloper`)
-  // and the bootstrap seeding for the three v1 groups (`'core'`,
-  // `'lounge'`, `'developers'`) plus the lounge FolderZones. Depends
+  // StreamState — livestream overlay-state singleton (mode + awayUntil).
+  // Mutated by the `stream` verb; mutations fire `Events.StreamStateChanged`
+  // which the backend-layer `BroadcastFeed` re-pushes to broadcast
+  // connections. No persisted state (in-memory for the process lifetime),
+  // so no dependency ordering beyond the EventRegistry being live (which
+  // the first manifest entry guarantees).
+  { templatePath: '/obj/StreamState' },
+  // AccessRegistry — access substrate singleton holding the access
+  // predicates (`can`, `canMutateZone`, `isAuthor`, `isDeveloper`,
+  // `isStreamer`) and the bootstrap seeding for the v1 groups
+  // (`'core'`, `'lounge'`, `'developers'`, `'streamers'`) plus the
+  // lounge FolderZones. Depends
   // on `GroupRegistry` (the seeding uses `GroupApi.registry().managed()`
   // to mint Groups via the managed provider). Idempotent —
   // re-running boot against a populated DB is a no-op.

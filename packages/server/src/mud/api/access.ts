@@ -91,6 +91,17 @@ export class AccessApi {
   }
 
   /**
+   * Orthogonal streamer axis. True iff `subject` is an Avatar whose
+   * playerId is in the `'streamers'` group. Gates the livestream
+   * control plane (the `stream` verb). Distinct from the developer
+   * axis — a streamer drives the broadcast overlay without holding
+   * TypeScript-escape capability.
+   */
+  public static async isStreamer(subject: Stuff | null): Promise<boolean> {
+    return logic().isStreamer(subject);
+  }
+
+  /**
    * Walk a source-tree path against the template tree
    * most-specific-first, returning the closest extant FolderZone
    * instance. Workspace controllers in source/mirror mode pass the

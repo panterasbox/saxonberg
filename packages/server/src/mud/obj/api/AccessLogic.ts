@@ -110,6 +110,16 @@ export class AccessLogic extends Idea {
     return reg.isDeveloper(subject);
   }
 
+  /** See {@link AccessApi.isStreamer}. */
+  @CallSecurity(AccessApiCallers)
+  public async isStreamer(subject: Stuff | null): Promise<boolean> {
+    if (subject === null) return false;
+    const reg = lookupRegistry();
+    if (!reg) return true;
+    if (playerIdOfQuick(subject) === null) return false;
+    return reg.isStreamer(subject);
+  }
+
   /** See {@link AccessApi.resolveSourceFolderZone}. */
   @CallSecurity(AccessApiCallers)
   public async resolveSourceFolderZone(

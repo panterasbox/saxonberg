@@ -13,9 +13,10 @@
  * (this Stuff), one calling surface (`AccessApi`), and one
  * structurally-enforced path between them.
  *
- * `postRegister` runs idempotent bootstrap seeding: mint the three
- * groups (`'core'`, `'lounge'`, `'developers'`) if absent and stamp
- * the lounge FolderZones at `/lib/lounge` and `/domain/lounge`. Caches
+ * `postRegister` runs idempotent bootstrap seeding: mint the four
+ * groups (`'core'`, `'lounge'`, `'developers'`, `'streamers'`) if
+ * absent and stamp the lounge FolderZones at `/lib/lounge` and
+ * `/domain/lounge`. Caches
  * (cached GroupRefs, developer playerId Set, author-groups list) warm
  * lazily on first read and live as instance fields — reload of
  * `api/access.ts` doesn't affect them; reload of this file re-clones
@@ -67,6 +68,13 @@ export default class AccessRegistry extends AccessRegistryBase {
   private cachedDeveloperPlayerIds: ReadonlySet<string> | null = null;
   /** Cancellation handle for the developer onChange subscription. */
   private developerCacheCancel: (() => void) | null = null;
+  private cachedStreamersRef: GroupRef | null = null;
+  /** Set of playerIds in `'streamers'` — the livestream-control axis.
+   *  Warmed lazily, invalidated via the managed provider's onChange
+   *  callback. Mirrors the developer cache exactly. */
+  private cachedStreamerPlayerIds: ReadonlySet<string> | null = null;
+  /** Cancellation handle for the streamer onChange subscription. */
+  private streamerCacheCancel: (() => void) | null = null;
   /** Set of GroupRefs that count as "author scope" — every group
    *  referenced by some Zone's `ownerGroup` or `accessGroups`, plus
    *  `'core'`. Warmed lazily on first `isAuthor` read. */
@@ -76,6 +84,7 @@ export default class AccessRegistry extends AccessRegistryBase {
     await this.seedCoreGroup();
     await this.seedLoungeSlice();
     await this.seedDevelopersGroup();
+    await this.seedStreamersGroup();
   }
 
   /**
@@ -189,6 +198,22 @@ export default class AccessRegistry extends AccessRegistryBase {
   }
 
   /**
+   * Orthogonal streamer axis — is the actor in `'streamers'`? Gates
+   * the livestream control plane (the `stream` verb and, later, the
+   * scene / lower-third / afk mutators). Distinct from the developer
+   * axis: a streamer drives the broadcast overlay without necessarily
+   * holding TypeScript-escape capability.
+   */
+  @CallSecurity(AccessApiCallers)
+  public async isStreamer(subject: Stuff | null): Promise<boolean> {
+    if (subject === null) return false;
+    const playerId = this.playerIdOf(subject);
+    if (playerId === null) return false;
+    const cache = await this.ensureStreamerCache();
+    return cache.has(playerId);
+  }
+
+  /**
    * Walk a source-tree path against the template tree
    * most-specific-first, returning the closest extant FolderZone
    * instance. Used by workspace controllers in source/mirror mode to
@@ -287,6 +312,26 @@ export default class AccessRegistry extends AccessRegistryBase {
     return cache;
   }
 
+  private async ensureStreamerCache(): Promise<ReadonlySet<string>> {
+    if (this.cachedStreamerPlayerIds) return this.cachedStreamerPlayerIds;
+    const reg = await GroupApi.registry();
+    const provider = reg.managed();
+    const streamers = await provider.findByName('streamers');
+    if (!streamers || !streamers._id) {
+      this.cachedStreamerPlayerIds = new Set();
+      return this.cachedStreamerPlayerIds;
+    }
+    this.cachedStreamersRef = `managed:${streamers._id}`;
+    const cache = new Set(streamers.memberIds);
+    this.cachedStreamerPlayerIds = cache;
+    this.streamerCacheCancel?.();
+    const handle = provider.onChange?.(streamers._id, () => {
+      this.cachedStreamerPlayerIds = null;
+    });
+    this.streamerCacheCancel = handle?.cancel ?? null;
+    return cache;
+  }
+
   // ── Seeding (idempotent; called from postRegister) ──
 
   private async seedCoreGroup(): Promise<void> {
@@ -353,9 +398,48 @@ export default class AccessRegistry extends AccessRegistryBase {
     if (g._id) this.cachedDevelopersRef = `managed:${g._id}`;
   }
 
+  private async seedStreamersGroup(): Promise<void> {
+    const reg = await GroupApi.registry();
+    const provider = reg.managed();
+    let streamers = await provider.findByName('streamers');
+    if (!streamers) {
+      const g = new Group();
+      g.name = 'streamers';
+      g.owner = 'system';
+      await g.save();
+      streamers = g;
+    }
+    if (!streamers._id) return;
+    this.cachedStreamersRef = `managed:${streamers._id}`;
+
+    // Seed membership from STREAMER_PLAYER_IDS (comma-separated Avatar
+    // playerIds) — deploy-time config alongside BROADCAST_TOKEN, read
+    // straight from the env so there's no boot-ordering dependency on
+    // AppSettings. Additive + idempotent (never removes), matching the
+    // merge-missing philosophy of the lounge/core seeding; drop a
+    // member via the `group` verb. Runs before any `isStreamer` read,
+    // so the lazy member cache picks the seeded ids up on first use.
+    const ids = (process.env.STREAMER_PLAYER_IDS ?? '')
+      .split(',')
+      .map((s) => s.trim())
+      .filter((s) => s.length > 0);
+    let changed = false;
+    for (const id of ids) {
+      if (streamers.addMember(id)) changed = true;
+    }
+    if (changed) {
+      await streamers.save();
+      // Drop the (possibly already-warmed) member cache so the next
+      // isStreamer read reflects the freshly-seeded members.
+      this.cachedStreamerPlayerIds = null;
+    }
+  }
+
   public override onDestruct(): void {
     this.developerCacheCancel?.();
     this.developerCacheCancel = null;
+    this.streamerCacheCancel?.();
+    this.streamerCacheCancel = null;
     super.onDestruct();
   }
 }

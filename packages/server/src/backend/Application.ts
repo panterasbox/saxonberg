@@ -25,6 +25,7 @@ import type {
 } from '@saxonberg/types';
 import { PersistenceManager, Collections } from './PersistenceManager';
 import { ConnectionManager } from './ConnectionManager';
+import { BroadcastFeed } from './BroadcastFeed';
 import { setClientStateUpdatePush } from '../mud/lib/connection/HasInteractive';
 import type Interactive from '../mud/obj/Interactive';
 import Login from '../mud/obj/Login';
@@ -152,14 +153,30 @@ export class Application {
   /**
    * Handle user connection. Loads the authenticated User, spins up an
    * Interactive, and hands off to Login to run the entry procedure.
+   *
+   * The read-only broadcast principal (`isBroadcast`) short-circuits
+   * before any of that: no User load, no Interactive, no Login, no
+   * Avatar — it's registered with the `BroadcastFeed` as a pure push
+   * target. With no Interactive in the connection registry it can never
+   * run a command (`processUserMessage` finds no holder) and is never
+   * routed game traffic.
    */
   public async handleUserConnect(
     userId: string,
     sessionId: string,
-    socketId: string
+    socketId: string,
+    isBroadcast = false
   ): Promise<void> {
     if (!this.backend) {
       console.error('Application: Backend not initialized');
+      return;
+    }
+
+    if (isBroadcast) {
+      console.info(
+        `Application: broadcast connection - userId=${userId}, socketId=${socketId}`,
+      );
+      BroadcastFeed.get().addConnection(socketId);
       return;
     }
 
@@ -208,6 +225,10 @@ export class Application {
 
   public handleUserDisconnect(socketId: string): void {
     console.info(`Application: User disconnecting - socketId=${socketId}`);
+
+    // Broadcast connections live only in the feed's set (no Interactive).
+    // Cheap no-op for normal sockets.
+    BroadcastFeed.get().removeConnection(socketId);
 
     // Tear down per-Interactive substrate state BEFORE removing the
     // Interactive so any final substrate-side delivery still has a
