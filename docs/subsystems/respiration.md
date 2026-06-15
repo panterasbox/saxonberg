@@ -243,3 +243,18 @@ Each rides an existing seam when wanted; none is blocked by v1's shape.
   `seeds/domain/eternal/duncan-hall/cistern.yaml` — proof content.
 - `cmd/posture/{inhale,exhale}.yaml` +
   `obj/command/posture/{Inhale,Exhale}Controller.ts` — the verbs.
+
+## History
+
+The build landed on the `feature/respiration` branch (W1 crisis core +
+W2 carried supply in one feature commit, followed by a cast-cleanup
+refactor). The plan (`docs/plans/respiration-plan.md`) was written against
+**pre-refactor** master; the build adapted it to the merged
+surface-architecture refactor — most visibly, the biome media table now
+lives in the `BiomeLogic` logic singleton, so the `breathable` column
+landed there with a `BiomeApi` facade forwarder (`Mml`/`MessageApi` stayed
+in `api/`, so the player-cue path was unchanged). The
+[respiration-slate](../slates/tails/respiration-slate.md) moved from
+`builds/` to `tails/` at sweep, holding the deferred surface (gills /
+confer-based breathing, the inhaled-toxin and strangulation channels,
+CO₂ / rebreather, the airlock interlock, pressure / altitude).

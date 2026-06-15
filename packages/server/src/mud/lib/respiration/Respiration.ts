@@ -301,6 +301,12 @@ export function RespirationMixin<TBase extends MixinConstructor>(Base: TBase) {
         Engaged &
         Respiration;
 
+      // The drain/recovery occupy the `'body'` slot. We cancel our own
+      // sibling (synchronously, below) before starting, so the slot is
+      // free for our `start` — respiration is the only `'body'`-slot
+      // producer today. When another lands, it must declare itself
+      // `replaceableBy` respiration (or this start would no-op on
+      // conflict, silently suppressing the crisis).
       const { exchanging, cause } = await this.assessExchange();
       const drain = engaged.getEngagementByType('respiration-drain');
       const recovery = engaged.getEngagementByType('respiration-recovery');
