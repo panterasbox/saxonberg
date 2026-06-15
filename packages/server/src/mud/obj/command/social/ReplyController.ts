@@ -1,10 +1,11 @@
 /**
  * ReplyController — send to the cohort of the last-inbound DM.
  *
- * Pronoun verb: no first-arg target. Cohort comes from
- * `AetherMixin.getLastInboundCohort()` on the speaker. For a 1:1
- * inbound the cohort is just the original speaker; for a multi-party
- * inbound it's everyone on the conversation.
+ * Pronoun verb: no first-arg target. Cohort comes from the operator's
+ * hosted comms update (`Comms.getLastInboundCohort()`), reached via the
+ * `commandSource` that afforded the verb or a `findReachable` fallback.
+ * For a 1:1 inbound the cohort is just the original speaker; for a
+ * multi-party inbound it's everyone on the conversation.
  *
  * Default is reply-all. `--one` / `-o` narrows the reply to the
  * original sender (cohort[0]) and skips the rest of the cohort.
@@ -17,9 +18,11 @@ import type {
 } from '../../../api/command';
 import { MessageApi } from '../../../api/message';
 import { MixinApi } from '../../../api/mixin';
+import { ContainmentApi } from '../../../api/containment';
 import { Mml } from '../../../api/mml';
 import { ChatApi } from '../../../api/chat';
 import type { Stuff } from '../../../lib/stuff/Stuff';
+import type { Comms } from '../../../lib/comms/Comms';
 
 interface ReplyModel extends CommandModel {
   message: string;
@@ -29,10 +32,11 @@ interface ReplyModel extends CommandModel {
 export default class ReplyController extends CommandController<ReplyModel> {
   async execute(model: ReplyModel, context: CommandContext): Promise<void> {
     const speaker = context.commandGiver;
-    if (!MixinApi.isAether(speaker)) {
+    const comms = this.resolveComms(context);
+    if (!comms) {
       return this.fail(context, 'You have no way to send a thought.', 'mixin-missing');
     }
-    const inbound = speaker.getLastInboundCohort();
+    const inbound = comms.getLastInboundCohort();
     if (!inbound || inbound.length === 0) {
       return this.fail(
         context,
@@ -41,18 +45,29 @@ export default class ReplyController extends CommandController<ReplyModel> {
       );
     }
     // `--one` reply: just the original sender. Cohort[0] is the
-    // sender per the AetherMixin.tell convention (inbound cohort is
+    // sender per the Comms.tell convention (inbound cohort is
     // `[sender, ...siblings]`).
     const targets: readonly Stuff[] = model.one
       ? [inbound[0]!]
       : inbound;
 
     if (targets.length === 1) {
-      speaker.tell(targets[0]!, model.message);
+      comms.tell(targets[0]!, model.message);
       return;
     }
     const ad = await ChatApi.openAdHoc(speaker, [speaker, ...targets]);
-    speaker.tell(targets, model.message, { channelId: ad.handle });
+    comms.tell(targets, model.message, { channelId: ad.handle });
+  }
+
+  /** Resolve the operator's hosted comms update (commandSource, else findReachable). */
+  private resolveComms(context: CommandContext): (Stuff & Comms) | null {
+    const source = context.commandSource;
+    if (source && MixinApi.isComms(source)) return source;
+    return ContainmentApi.findReachable(
+      context.commandGiver,
+      null,
+      (s: Stuff): s is Stuff & Comms => MixinApi.isComms(s),
+    );
   }
 
   private fail(

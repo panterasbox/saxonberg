@@ -1,32 +1,32 @@
 /**
- * AetherMixin — capability for transmitting over the Aether.
+ * AetherMixin — **attunement**: the capability to perceive the Aether
+ * and to *host* aether software (capability updates).
  *
- * The Aether is the in-fiction comm-network — the medium that
- * carries non-acoustic communications (tell, future chat channels,
- * future remote emote). Diegetically it can be reflavored per
- * campus zone: a high-tech implant network, a magical resonance
- * field, or both (a hybrid mesh) depending on the setting. The
- * mixin codifies "this Stuff can transmit and receive over the
- * Aether"; the campus-specific narrative is content.
+ * The Aether is the in-fiction comm-network — the medium that carries
+ * non-acoustic communications. Diegetically it can be reflavored per
+ * campus zone: a high-tech implant network, a magical resonance field,
+ * or both. AetherMixin codifies "this Stuff is attuned to the Aether":
+ * it can *sense* aether transmissions (the ESP modalities below, which
+ * reception-gating rides) and it *hosts* capability updates (the
+ * hosting relation — see {@link AetherHost}).
+ *
+ * **Attunement ≠ transmission.** Transmission moved to `CommsMixin`
+ * (the hosted comms update — `lib/comms/Comms`): the `tell` send, the
+ * `dm`/`reply`/`broadcast`/`chat` verb family, and the DM cohort state.
+ * Net: attunement = perceive the aether + host software; the comms
+ * update = transmit on it. A recipient who is attuned but lacks the
+ * comms update still *receives* dms (the reception gate passes), they
+ * just can't *send*.
+ *
+ * Attunement is conferred by the cranial implant (`AetherImplant`,
+ * `confers() → ['AetherMixin']`) **or** intrinsically by the actor's
+ * species (`Species.innateMixins`). `MixinApi.getActiveMixins` unions
+ * both conferral sources, so a born-attuned species is attuned with no
+ * implant.
  *
  * Distinct from `VocalMixin` (acoustic transport — say, whisper,
- * shout). A character can be Vocal without being Aetheric (mute
- * implanted, or pre-augmentation), and Aetheric without being
- * Vocal (post-vocal-loss with an implant). Both compose
- * independently onto the host.
- *
- * Verbs gated by this mixin:
- *   - `dm` / `tell` — 1:N private message (1 or more recipients)
- *   - `reply` / `dm .` — pronoun verbs consuming the cohort state
- *   - `broadcast` — one-to-many over the implant network
- *   - `chat` — channel-scoped broadcast
- *
- * DM cohort state lives on this mixin (NOT on Avatar): the last-
- * inbound and last-outbound recipient lists. Runtime-only — never
- * persisted; reset implicitly when the host destructs (logout for
- * Avatars). Read by `reply` / `dm .`; written by `tell` on send.
- * Any Aether-capable being (Avatars with the baseline implant; NPCs
- * with implants when content adds them) participates uniformly.
+ * shout). A character can be Vocal without being Aetheric and vice
+ * versa; both compose independently onto the host.
  *
  * **Composition note for the future emotes slate**: SoulMixin alone
  * grants LOCAL emote (in-room, no network involved). The REMOTE
@@ -38,53 +38,71 @@
 
 import type { MixinConstructor } from '../mixin';
 import type { Stuff } from '../stuff/Stuff';
-import { MessageApi } from '../../api/message';
-import { Mml } from '../../api/mml';
-import type { CommandContributions } from '../../api/command';
-import {
-  InactiveCapabilityError,
-} from '../security/RequiresActive';
-import { MixinApi } from '../../api/mixin';
+import { CommandApi } from '../../api/command';
+import { StuffApi } from '../../api/stuff';
+import { Final, Unshadowable } from '../security/decorators';
+import type { AetherHosted } from '../augmentation/AetherHosted';
 
-export interface Aether {
-  /**
-   * Send a private message to one or more targets over the Aether.
-   * Single-target produces the classic `tell` rendering ("X → Y: msg"
-   * to self, "X → you: msg" to target). Multi-target stamps the full
-   * cohort + (optional) `meta.channelId` and adds a "(also to: ...)"
-   * cohort hint to per-recipient frames.
-   */
-  tell(
-    target: Stuff | readonly Stuff[],
-    text: string,
-    opts?: { channelId?: string },
-  ): void;
+/**
+ * Residual `AetherMixin` surface = **attunement**: the aether host (the
+ * hosted-update collection — see {@link AetherHost}) plus the ESP
+ * perception modalities (`verbal-esp` / `emotive-esp`, declared as the
+ * static `_grantsModalities`, not on this instance interface).
+ *
+ * Transmission moved out: `tell` and the DM cohort state now live on
+ * `CommsMixin` (the hosted comms update). Attunement = perceive the
+ * aether + host software; the comms update = transmit on it.
+ */
+export interface Aether extends AetherHost {}
 
+/**
+ * The host side of the aether hosting relation. An attunement-active
+ * entity (an actor via implant/species conferral, or a corporeal
+ * `Thing` like the future radio via intrinsic composition) holds a
+ * collection of capability *update* `Idea`s (`AetherHosted`), distinct
+ * from corporeal containment.
+ *
+ * The host collection is the **source of truth** for membership — a
+ * stray `setHost` on an update can neither forge nor hide membership.
+ * The collection is gated active by attunement: a host with the
+ * collection populated but `AetherMixin` inactive (no implant, not
+ * born-attuned) hosts nothing usable.
+ *
+ * Finding a hosted update is NOT a bespoke method here — it rides
+ * `ContainmentApi.findReachable` (the self + host-descent legs). A
+ * caller that needs "this actor's comms update" uses
+ * `ContainmentApi.findReachable(actor, null, MixinApi.isComms)`.
+ */
+export interface AetherHost {
+  /** The updates currently hosted on this attunement (live-ref). */
+  getHostedUpdates(): readonly (Stuff & AetherHosted)[];
   /**
-   * Most-recent cohort of recipients addressed by this Aether host.
-   * Read by the `dm .` pronoun verb. `null` until the host has sent.
+   * Plug an update into this host. The single consistency chokepoint:
+   * pushes onto the collection, sets the update's back-ref, and
+   * notifies command routing. Idempotent. Sealed.
    */
-  getLastOutboundCohort(): readonly Stuff[] | null;
-
+  hostUpdate(update: Stuff & AetherHosted): void;
   /**
-   * Most-recent cohort that addressed this Aether host. For a 1:1
-   * inbound this is `[sender]`; for a multi-party DM it's the full
-   * `[sender, ...siblings]` set so a reply-all has every party. Read
-   * by `reply`.
+   * Remove an update from this host. Retires its command
+   * contributions and — enforcing the must-be-hosted invariant — if
+   * the update is now hosted nowhere, destroys it. Returns whether it
+   * was hosted. Sealed.
    */
-  getLastInboundCohort(): readonly Stuff[] | null;
-
+  unhostUpdate(update: Stuff & AetherHosted): boolean;
+  /** Is `update` in this host's hosted set? */
+  hostsUpdate(update: Stuff): boolean;
   /**
-   * Stamp the host's inbound cohort. Called by the sending Aether on
-   * each recipient after `tell` composes the frames. Public on the
-   * methods-only contract (an inter-Stuff method) — never invoked
-   * externally outside the Aether send path.
+   * Raw removal used only by an update's `cleanupOnDestruct` when it is
+   * destructed directly while still hosted: splice it out and retire
+   * its contributions, with NO destruct (the update is already dying).
+   * Not external surface.
+   * @internal
    */
-  recordInboundCohort(cohort: readonly Stuff[]): void;
+  _dropHostedUpdate(update: Stuff): void;
 }
 
 export function AetherMixin<TBase extends MixinConstructor>(Base: TBase) {
-  return class AetherMixin extends Base {
+  class AetherMixin extends Base {
     static _mixinName = 'AetherMixin';
 
     /**
@@ -109,159 +127,94 @@ export function AetherMixin<TBase extends MixinConstructor>(Base: TBase) {
       'emotive-esp',
     ];
 
-    /**
-     * Verbs the Aether grants. Tell currently rides here (was
-     * temporarily on VocalMixin while the diegetic story was
-     * unresolved). Chat and remote-emote will join when their
-     * slates ship.
-     */
-    static commandContributions: CommandContributions = {
-      self: ['social/dm.yaml', 'social/reply.yaml', 'social/broadcast.yaml', 'social/chat.yaml'],
-      environment: [],
-      inventory: [],
-      peers: [],
-    };
+    // Transmission (`tell` + the DM cohort state + the `dm`/`reply`/
+    // `broadcast`/`chat` command contributions) moved to `CommsMixin`
+    // (the hosted comms update). Residual `AetherMixin` is attunement:
+    // the ESP modalities above + the host side below.
 
-    /**
-     * Cohort state. Runtime-only — NOT in `persistentFields`. Resets
-     * implicitly on host destruct (the mixin instance dies with the
-     * Stuff). TypeScript `private` per the domain-code rule (the
-     * call-security proxy receiver can't reach `#`-private slots from
-     * inside mixin methods).
-     */
-    private _lastInboundDmCohort: Stuff[] | null = null;
-    private _lastOutboundDmCohort: Stuff[] | null = null;
+    // ─── Host side of the aether hosting relation ──────────────────
+    //
+    // Runtime live-ref collection of hosted update Ideas. NOT
+    // persisted — re-injected each session by the host's default
+    // loadout. TS-`private` per the proxy-receiver constraint; the
+    // sealed chokepoints (`hostUpdate`/`unhostUpdate`) are the sole
+    // mutators, and this collection — not the per-update back-ref — is
+    // the source of truth for membership.
+    private _hostedUpdates: (Stuff & AetherHosted)[] = [];
 
-    getLastInboundCohort(): readonly Stuff[] | null {
-      return this._lastInboundDmCohort;
+    getHostedUpdates(): readonly (Stuff & AetherHosted)[] {
+      return this._hostedUpdates;
     }
 
-    getLastOutboundCohort(): readonly Stuff[] | null {
-      return this._lastOutboundDmCohort;
+    hostsUpdate(update: Stuff): boolean {
+      return this._hostedUpdates.some((u) => u === update);
     }
 
-    recordInboundCohort(cohort: readonly Stuff[]): void {
-      this._lastInboundDmCohort = [...cohort];
+    @Final
+    @Unshadowable
+    hostUpdate(update: Stuff & AetherHosted): void {
+      if (this._hostedUpdates.includes(update)) return;
+      this._hostedUpdates.push(update);
+      update.setHost(this as unknown as Stuff & AetherHost);
+      // Surface the update's command contributions on the host's
+      // recency stack (gain-post-spawn).
+      CommandApi.applyHostedUpdateDelta(this as unknown as Stuff, update, 'host');
     }
 
-    /**
-     * Send a private message to `target` (a single Stuff) or
-     * `targets` (a readonly Stuff[] — multi-party). Self IS a valid
-     * target in the 1:1 case (you can DM yourself).
-     *
-     * User-supplied text runs through the markdown→MML pipeline so
-     * `**bold**`, `*italic*`, `` `@name` ``, and
-     * `[label](mudcmd:…)` all work in the body. Mention scope =
-     * the speaker's perceivable neighbors (same room) — the
-     * Aether-side mention pool (who's on the call) is the chat-
-     * slate's concern.
-     */
-    tell(
-      target: Stuff | readonly Stuff[],
-      text: string,
-      opts?: { channelId?: string },
-    ): void {
-      // Manual `@RequiresActive('AetherMixin')` — the substrate's
-      // augment-gated capability check. TS decorator syntax inside
-      // class-factory mixins triggers TS1206, so this guard inlines
-      // the same check the decorator would perform. Drop the inline
-      // when stage-3 decorators land in tsc + tooling.
-      const speaker = this as unknown as Stuff;
-      if (!MixinApi.isActive(speaker, 'AetherMixin')) {
-        throw new InactiveCapabilityError('AetherMixin', 'tell');
-      }
-
-      const targets: readonly Stuff[] = Array.isArray(target)
-        ? target
-        : [target as Stuff];
-      if (targets.length === 0) return;
-
-      const parsed = Mml.markdownToMml(
-        text,
-        Mml.perceiverMentionResolver(speaker),
+    @Final
+    @Unshadowable
+    unhostUpdate(update: Stuff & AetherHosted): boolean {
+      const i = this._hostedUpdates.indexOf(update);
+      if (i < 0) return false;
+      this._hostedUpdates.splice(i, 1);
+      update.setHost(null);
+      CommandApi.applyHostedUpdateDelta(
+        this as unknown as Stuff,
+        update,
+        'unhost',
       );
-      const isMulti = targets.length > 1;
-      const channelMeta = opts?.channelId
-        ? { channelId: opts.channelId }
-        : {};
-      const recipientRefs = targets.map((t) => MessageApi.refOf(t));
+      // Must-be-hosted invariant: an update hosted nowhere cannot
+      // persist or exist. We cleared its back-ref above, so the
+      // update's own cleanup no-ops (no re-entry into this host).
+      StuffApi.destruct(update);
+      return true;
+    }
 
-      // Self-frame body. Single-target: "X → Y: msg". Multi: cohort
-      // names spelled out so the sender sees who they hit.
-      const selfBody = isMulti
-        ? Mml.compose`${Mml.name(speaker)} → ${Mml.fromMarkup(
-            targets.map((t) => Mml.name(t).toString()).join(', '),
-          )}: ${parsed}`
-        : Mml.compose`${Mml.name(speaker)} → ${Mml.name(targets[0]!)}: ${parsed}`;
+    /** @internal — see {@link AetherHost._dropHostedUpdate}. */
+    _dropHostedUpdate(update: Stuff): void {
+      const i = this._hostedUpdates.findIndex((u) => u === update);
+      if (i < 0) return;
+      this._hostedUpdates.splice(i, 1);
+      CommandApi.applyHostedUpdateDelta(
+        this as unknown as Stuff,
+        update,
+        'unhost',
+      );
+    }
 
-      MessageApi.scene(speaker)
-        .topic('world.speech.dm')
-        .modality('verbal-esp')
-        .meta(channelMeta)
-        .toSelf(selfBody)
-        .payload(
-          isMulti
-            ? {
-                speaker: MessageApi.refOf(speaker),
-                recipients: recipientRefs,
-                text,
-              }
-            : {
-                speaker: MessageApi.refOf(speaker),
-                target: MessageApi.refOf(targets[0]!),
-                text,
-              },
-        )
-        .send();
-
-      // Per-target frames (one Scene per target — Scene.toTarget caps
-      // at one per call; the cohort case needs N).
-      for (const t of targets) {
-        if (!MixinApi.isSensor(t)) continue;
-        let targetBody;
-        if (isMulti) {
-          const others = targets
-            .filter((other) => other !== t)
-            .map((other) => Mml.name(other).toString())
-            .join(', ');
-          const cohortHint = others
-            ? Mml.fromMarkup(` (also to: ${others})`)
-            : Mml.fromMarkup('');
-          targetBody = Mml.compose`${Mml.name(speaker)} → you${cohortHint}: ${parsed}`;
-        } else {
-          targetBody = Mml.compose`${Mml.name(speaker)} → you: ${parsed}`;
-        }
-        MessageApi.scene(speaker)
-          .topic('world.speech.dm')
-          .modality('verbal-esp')
-          .meta(channelMeta)
-          .toTarget(t, targetBody)
-          .payload(
-            isMulti
-              ? {
-                  speaker: MessageApi.refOf(speaker),
-                  recipients: recipientRefs,
-                  text,
-                }
-              : {
-                  speaker: MessageApi.refOf(speaker),
-                  target: MessageApi.refOf(t),
-                  text,
-                },
-          )
-          .send();
-        // Stamp the recipient's inbound cohort. For 1:1 the cohort is
-        // just [speaker]; for multi-party it's [speaker + everyone
-        // else on the call] so a reply-all reaches the whole cohort.
-        if (MixinApi.isAether(t)) {
-          const inbound = isMulti
-            ? [speaker, ...targets.filter((o) => o !== t)]
-            : [speaker];
-          t.recordInboundCohort(inbound);
+    /**
+     * R2.x live-ref cleanup on the host side. When an attuned host
+     * destructs (Avatar logout), its hosted updates are host-bound —
+     * destroy each. Clears each update's back-ref first so the
+     * update's own cleanup doesn't re-enter this (being-destroyed)
+     * host. No command-delta is fired — the host's recency stack dies
+     * with it.
+     */
+    static cleanupOnDestruct(host: Stuff): void {
+      const h = host as Stuff & AetherHost;
+      for (const u of [...h.getHostedUpdates()]) {
+        try {
+          u.setHost(null);
+          StuffApi.destruct(u);
+        } catch (err) {
+          console.error(
+            `AetherMixin.cleanupOnDestruct: failed to destruct hosted ` +
+              `update ${u.stuffId} for host ${host.stuffId}`,
+            err,
+          );
         }
       }
-
-      this._lastOutboundDmCohort = [...targets];
     }
-  };
+  }
+  return AetherMixin;
 }

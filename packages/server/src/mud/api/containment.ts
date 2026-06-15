@@ -285,12 +285,32 @@ export class ContainmentApi {
    *
    * The reach surface mirrors the `canReach` validator's criteria
    * (inventory + location contents), extended with slot occupants so
-   * an installed implant counts as on-person. No global index — scans
-   * only the actor and the given location.
+   * an installed implant counts as on-person, plus two legs for the
+   * three-base capability model: the **self leg** (a capability
+   * composed directly on the actor / its species) and the
+   * **descend-into-host leg** (an incorporeal update Idea hosted on an
+   * attunement host — the actor itself, an installed implant, or a
+   * carried attuned Thing). No global index — scans only the actor and
+   * the given location.
+   *
+   * Order (on-your-person first): self → self's hosted updates → slot
+   * occupants (+ their hosted updates) → carried (+ carried hosts'
+   * hosted updates) → location contents.
    *
    * Generalizes the old check-inventory-and-augs scans: fast travel
-   * uses it to find a credential (card or implant) or the node you're
-   * standing at, but it is deliberately predicate-agnostic.
+   * uses it to find a credential (card Thing, or hosted credential
+   * update) or the node you're standing at, but it is deliberately
+   * predicate-agnostic.
+   *
+   * **Guardrail — `findReachable` vs. MQL.** This answers exactly one
+   * question: *is there a reachable bearer of capability-**type** X for
+   * the engine to route behavior through?* — keyed on a mixin type,
+   * first-match, returning a type-narrowed `Stuff & T`. It is NOT a
+   * query engine. Anything keyed on identity / keywords / properties /
+   * user input — argument resolution, choosing among matches,
+   * filtering, live/subscribable results — belongs to MQL, never here.
+   * The host-descent leg is bounded to a single concept and a single
+   * level; do not teach this helper another leg.
    */
   public static findReachable<T>(
     actor: Stuff,

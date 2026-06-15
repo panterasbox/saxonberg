@@ -1,12 +1,18 @@
 /**
  * AetherImplant — Wave 1 implantable Stuff template.
  *
- * The default cybernetic implant every Avatar bootstrap-installs.
- * Taps the aether so the bearer can send and receive dms (and
- * future emote/chat) over the implant network. Composes:
+ * The default cybernetic implant every un-attuned Avatar bootstrap-
+ * installs. Taps the aether so the bearer becomes **attuned** — able to
+ * perceive aether transmissions and to *host* capability updates (comms,
+ * the travel credential), which `Avatar.installDefaultLoadout` injects.
+ * Composes:
  *   - SlottableMixin → can be placed in a Slotted host's slot.
  *   - TangibleMixin → small physical object with mass + material.
- *   - AugmentMixin → confers `AetherMixin` when installed.
+ *   - AugmentMixin → confers `AetherMixin` (attunement) when installed.
+ *
+ * The implant is purely the attunement conferrer now — it no longer
+ * carries the travel credential directly (that became a hosted
+ * `TravelCredentialUpdate`).
  *
  * Hardened (per the augmentation slate's Wave 1 framing): no power
  * state, no fuel, no failure modes, no removal procedure in v1. A
@@ -23,16 +29,14 @@ import Thing from '../stuff/Thing';
 import { SlottableMixin } from '../slot/Slottable';
 import { TangibleMixin } from '../material/Tangible';
 import { AugmentMixin } from './Augment';
-import { TravelCredentialMixin } from '../fasttravel/TravelCredential';
 import { TemplatePaths } from '../paths';
 
-// The baseline implant also carries the Teleport Authority travel credential
-// (the registered-node set, born with University Avenue) — so every avatar
-// "leaves with their implant" and can ride the TPA without carrying a card.
-// One device, many functions; this is where slot scarcity pushes us (see the
-// augmentation slate's slot-model open question).
+// The baseline implant confers attunement only — the travel credential
+// is no longer carried here. It became a hosted `TravelCredentialUpdate`
+// that `Avatar.installDefaultLoadout` injects into the host alongside
+// the comms update. One conferrer, two hosted updates.
 const AetherImplantBase = AugmentMixin(
-  TravelCredentialMixin(SlottableMixin(TangibleMixin(Thing))),
+  SlottableMixin(TangibleMixin(Thing)),
 );
 
 export default class AetherImplant extends AetherImplantBase {

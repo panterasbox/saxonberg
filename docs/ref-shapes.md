@@ -242,7 +242,11 @@ holder's `onDestruct` destructs each owned thing before chaining
 - **Enforcement**: convention. Failure-mode is "owned objects
   leak" — caught later by GC; doesn't corrupt invariants.
 - **Exemplars**: `Exitable.onDestruct` (outbound Exits),
-  `Adornable.onDestruct` (fixtures).
+  `Adornable.onDestruct` (fixtures). `AetherMixin.cleanupOnDestruct`
+  destructs every hosted update (`AetherHosted` Ideas) — the
+  must-be-hosted invariant gives updates no independent existence, so
+  this owning cascade is framework-enforced (`cleanupOnDestruct`)
+  rather than convention.
 
 #### R2.2 — Symmetric two-way pair
 
@@ -301,6 +305,9 @@ etc.).
   - `Slottable.cleanupOnDestruct` → `Slotted.slots` on every host
   - `Slotted.cleanupOnDestruct` → active vacate of every occupant
   - `Spawned.cleanupOnDestruct` → `Spawner._spawned`
+  - `AetherHosted.cleanupOnDestruct` → host's `_hostedUpdates` (via
+    the `_dropHostedUpdate` chokepoint, when destructed standalone
+    while still hosted)
   - `Species.onDestruct` (concrete-class form) → `Clade.species`
 
 R2.4 is the load-bearing rule of the cleanup story — it's the

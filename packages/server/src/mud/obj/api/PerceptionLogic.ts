@@ -238,13 +238,27 @@ function walkAugmentedModalities(viewer: Stuff): Modality[] {
   // Viewers with no active augment-conferring mixins (e.g. test
   // fixtures, or hosts before any augment is installed) get an
   // empty grant set.
-  const activeMixins = MixinApi.getActiveMixins(viewer);
   const grants = new Set<string>();
-  for (const mixin of activeMixins) {
-    const list = (mixin as { _grantsModalities?: readonly string[] })
-      ._grantsModalities;
-    if (!list) continue;
-    for (const name of list) grants.add(name);
+  const addGrants = (
+    mixins: ReturnType<typeof MixinApi.getActiveMixins>,
+  ): void => {
+    for (const mixin of mixins) {
+      if (mixin._grantsModalities) {
+        for (const name of mixin._grantsModalities) grants.add(name);
+      }
+    }
+  };
+  addGrants(MixinApi.getActiveMixins(viewer));
+  // Hosted-update modality grants (the single generalization point —
+  // the augment-contribution walks include a host's hosted updates
+  // alongside its slot occupants). No update grants a modality in v1
+  // (comms grants none; attunement does), so this is substrate-only —
+  // it proves the symmetry without changing behavior today. `isAether`
+  // narrows the viewer to an `AetherHost`, so no cast is needed.
+  if (MixinApi.isAether(viewer)) {
+    for (const u of viewer.getHostedUpdates()) {
+      addGrants(MixinApi.getActiveMixins(u));
+    }
   }
   const out: Modality[] = [];
   for (const name of grants) {

@@ -1166,6 +1166,39 @@ export class CommandApi {
   }
 
   /**
+   * Recency-stack delta for a hosted-update host/unhost (the aether
+   * hosting relation). A hosted update contributes its
+   * `self`-bucket command definitions to its host's stack with the
+   * update Stuff as the recency source, so `getAffordances()` resolves
+   * `commandSource` to the update (the "verb dispatch routes through
+   * the augment/update" pattern). Hosting surfaces the verbs;
+   * unhosting retires them — gain/lose-post-spawn live.
+   *
+   * Called by `AetherMixin.hostUpdate` / `unhostUpdate`.
+   */
+  static applyHostedUpdateDelta(
+    host: Stuff,
+    update: Stuff,
+    op: 'host' | 'unhost'
+  ): void {
+    logic().applyHostedUpdateDelta(host, update, op);
+  }
+
+  /**
+   * Collect each hosted update's `self`-bucket command definitions for
+   * a host, paired with the update as the affording source. Used by
+   * `CommandGiverMixin`'s self-seeding (both `postRegister` and the
+   * lazy `_ensureSelfEntry` safety net) so a host that gained updates
+   * outside a delta (e.g. a test that hosts then reads affordances)
+   * still surfaces their verbs. Returns `[]` for a non-host.
+   */
+  static collectHostedUpdateDefs(
+    host: Stuff
+  ): Array<{ source: Stuff; defs: CommandDefinition[] }> {
+    return logic().collectHostedUpdateDefs(host);
+  }
+
+  /**
    * Resolve a parser spec to a `Parser` instance.
    *
    * Spec conventions:

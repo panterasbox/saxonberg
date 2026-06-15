@@ -161,21 +161,49 @@ export class ContainmentLogic extends Idea {
     location: ContainerStuff | null,
     predicate: (s: Stuff) => s is Stuff & T,
   ): (Stuff & T) | null {
-    // 1. Installed augmentations — slot occupants ("on your person").
+    // Descend-into-host helper: when `h` is an attunement host, test
+    // each of its hosted update Ideas (the incorporeal capability
+    // base). One level only — matching the one-flat-level discipline
+    // of the corporeal legs (findReachable stays a thin
+    // first-match-by-type scan, not a query engine).
+    const scanHost = (h: Stuff): (Stuff & T) | null => {
+      // `isAether` narrows `h` to an `AetherHost` — no cast needed.
+      if (!MixinApi.isAether(h)) return null;
+      for (const u of h.getHostedUpdates()) {
+        if (u === actor) continue; // defensive — no self-recursion
+        if (predicate(u)) return u;
+      }
+      return null;
+    };
+
+    // 1. Self (intrinsic leg) — a capability composed directly on the
+    //    actor (or its species). On-your-person, so it goes first.
+    if (predicate(actor)) return actor;
+    // 2. Self's hosted updates — the implant-hosted comms / credential
+    //    updates plugged into the actor's own attunement.
+    const onSelf = scanHost(actor);
+    if (onSelf) return onSelf;
+    // 3. Installed augmentations — slot occupants ("on your person"),
+    //    plus each attuned occupant's hosted updates.
     if (MixinApi.isSlotted(actor)) {
       for (const occupants of actor.getAllOccupants().values()) {
         for (const occ of occupants) {
           if (predicate(occ)) return occ;
+          const hosted = scanHost(occ);
+          if (hosted) return hosted;
         }
       }
     }
-    // 2. Carried inventory.
+    // 4. Carried inventory, plus each carried attuned host's hosted
+    //    updates (the future radio: a carried Thing hosting comms).
     if (MixinApi.isContainer(actor)) {
       for (const item of actor.getContents()) {
         if (predicate(item)) return item;
+        const hosted = scanHost(item);
+        if (hosted) return hosted;
       }
     }
-    // 3. Surrounding location contents.
+    // 5. Surrounding location contents.
     if (location) {
       for (const item of location.getContents()) {
         if (predicate(item)) return item;

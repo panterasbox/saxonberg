@@ -25,11 +25,20 @@ travellers land — the node's own container).
 
 **`TravelCredentialMixin`** (`lib/fasttravel/TravelCredential.ts`) — the
 **credential**: a registered-node set plus the register/authorize
-surface. Composed by **both** a carryable travel card
-(`/domain/common/tpa/TravelCard`) and a cranial-slot travel implant
-(`/domain/common/tpa/TravelImplant`). State lives on the credential
-Stuff, which is what makes the card transferable — lend the card, lend
-its routes.
+surface. Base-agnostic (no corporeal assumption), so it composes around
+two bases — the Thing/Idea symmetry of the three-base capability model
+(see [augmentation.md](./augmentation.md)):
+
+- a carryable **`TravelCard`** `Thing` (`/domain/common/tpa/TravelCard`)
+  — the transferable half: lend the card, lend its routes;
+- an incorporeal **`TravelCredentialUpdate`**
+  (`TravelCredentialMixin(AetherHostedMixin(Idea))`) — a hosted update
+  injected into the avatar's aether attunement by
+  `Avatar.installDefaultLoadout`. This **replaced the implant's
+  directly-carried credential**: the `AetherImplant` now confers
+  attunement only and no longer composes `TravelCredentialMixin`.
+
+State lives on the credential Stuff in either base.
 
 ## The network model
 
@@ -81,7 +90,11 @@ the fork so it never blocks the privileged path:
   can reach (`ContainmentApi.findReachable` for the node + the credential).
   Checks departure-capable → keyword selection → **credential
   registration** → travels to the destination node's `getArrivalRoom()`
-  via `Mobile.teleport`.
+  via `Mobile.teleport`. The credential lookup is unchanged in intent:
+  `findReachable(..., isTravelCredential)` returns whichever credential
+  is reachable — a **carried `TravelCard`** (the carried-inventory leg)
+  or the **hosted `TravelCredentialUpdate`** (the host-descent leg added
+  for the three-base model). One scan, either base, no controller change.
 
 **`register`** (`RegisterController`, `cmd/movement/register.yaml`) —
 records the terminal here onto your credential so you can `teleport` to
@@ -121,10 +134,11 @@ handles):
 
 Credential registration is **session-durable, not cross-restart**:
 `Avatar.save()` persists only the avatar's own fields (no inventory
-persist-back; the implant is re-cloned each session), so the registered
-set does not survive a server restart yet. Cross-restart durability rides
-future persistence work (aug-state colocation; inventory persist-back) —
-see [persistence](./persistence.md).
+persist-back; the hosted credential update is re-cloned each session by
+`installDefaultLoadout`, so `registered` resets to the born-with floor
+each login), so the registered set does not survive a server restart
+yet. Cross-restart durability rides future persistence work (aug-state
+colocation; inventory persist-back) — see [persistence](./persistence.md).
 
 ## Seams & deferred surface
 
