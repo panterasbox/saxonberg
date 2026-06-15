@@ -168,6 +168,17 @@ export default class BodyPlan extends SingletonMixin(PropertiedMixin(Idea)) {
   protected baseMass: number = 0;
 
   /**
+   * Thermoregulatory strategy. `endotherm` (the default) defends a
+   * setpoint by spending metabolism's reserves (the mammal/bird path);
+   * `ectotherm` lets its core float to the effective ambient (the
+   * reptile/amphibian path — cold → torpor, hot → critical-thermal-max
+   * death). Read by the Phase-2 `ThermalRegulationMixin` strategy branch
+   * and by metabolism's Q10 `thermalMultiplier`. A robot / construct /
+   * unset body is a passive drifter regardless.
+   */
+  protected thermalStrategy: 'endotherm' | 'ectotherm' = 'endotherm';
+
+  /**
    * The atmosphere tags this body plan exchanges gas in — the
    * respiration driver's medium-trigger determinant. Default
    * `['air']` (the air-breathing biped); a species **inverts** by
@@ -197,12 +208,26 @@ export default class BodyPlan extends SingletonMixin(PropertiedMixin(Idea)) {
     'sensoryPorts',
     'bodyParts',
     'baseMass',
+    'thermalStrategy',
     'breathableMedia',
     'respires',
   ];
 
   public getName(): string { return this.name; }
   public setName(value: string): void { this.name = value; }
+
+  public getThermalStrategy(): 'endotherm' | 'ectotherm' {
+    return this.thermalStrategy;
+  }
+  public setThermalStrategy(value: 'endotherm' | 'ectotherm'): void {
+    if (value !== 'endotherm' && value !== 'ectotherm') {
+      throw new RangeError(
+        `BodyPlan.setThermalStrategy: expected 'endotherm' | 'ectotherm', ` +
+          `got ${String(value)}`,
+      );
+    }
+    this.thermalStrategy = value;
+  }
 
   public getBaseMass(): number { return this.baseMass; }
   public setBaseMass(value: number): void {

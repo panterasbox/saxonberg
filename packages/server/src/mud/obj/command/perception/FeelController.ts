@@ -7,9 +7,12 @@
  * (e.g. `feel stove`) prepends a per-detail temperature line on top
  * of the per-Detail `touch` slot read.
  *
- * Per the requirements doc: vitals burn damage on scalding contact
- * is an explicit non-goal — the prose surfaces "scalding" without a
- * damage hook.
+ * A `feel <object>` against a Thermal object reads the object's own
+ * *surface* temperature (≈ ambient for a sealed, well-insulated vessel —
+ * the insulation observable as the absence of exterior heat) and, on a
+ * scalding surface, afflicts a `burn` trauma. This retires the vitals-
+ * era "scalding without a damage hook" non-goal: the burn is the general
+ * scalding-band contact hook, not a feel-local mechanic.
  */
 
 import { SingleSenseControllerBase } from './SingleSenseControllerBase';
@@ -22,6 +25,8 @@ import { MixinApi } from '../../../api/mixin';
 import { MessageApi } from '../../../api/message';
 import { Mml } from '../../../api/mml';
 import { TouchModality } from '../../../lib/perception/modalities/TouchModality';
+import { Touch } from '../../../lib/perception/Touch';
+import type { Thermal } from '../../../lib/thermal/Thermal';
 
 interface FeelModel extends CommandModel {
   target?: MqlOneResult;
@@ -59,7 +64,51 @@ export default class FeelController extends SingleSenseControllerBase {
       await this.feelAmbient(context);
       return;
     }
+    // `feel <thermal object>` — read the object's own SURFACE
+    // temperature (sync, cached-ambient). A sealed, well-insulated
+    // vessel reads ~ambient though its contents scald: insulation is
+    // observable as the absence of exterior heat (the surface-vs-
+    // contents sensory gate). Contact with a scalding surface burns.
+    if (
+      target &&
+      target.stuff !== null &&
+      MixinApi.isThermal(target.stuff)
+    ) {
+      this.feelThermalObject(target.stuff, context);
+      return;
+    }
     super.execute(model, context);
+  }
+
+  /**
+   * Report a Thermal object's surface band, and afflict a `burn` trauma
+   * on the toucher when that surface is scalding (the general scalding-
+   * band contact hook — shared with bare-handed `get`/`wield`).
+   */
+  private feelThermalObject(
+    object: Stuff & Thermal,
+    context: CommandContext,
+  ): void {
+    const actor = context.commandGiver;
+    const surface = object.getSurfaceTemperature();
+    const band = Touch.bandFor(surface.rawValue());
+    MessageApi.scene(actor)
+      .topic(this.sceneTopic)
+      .toSelf(Mml.compose`The ${object.getPresentation()} feels ${band}.`)
+      .send();
+    this.burnOnContact(actor, surface.rawValue());
+  }
+
+  /**
+   * The scalding-band burn hook. Any contact with a surface in the
+   * `scalding` touch band (>= 345 K) afflicts a `burn` trauma on the
+   * toucher — a kettle, a forged blade, the campfire (Step 2.3 is one
+   * consumer, not its own mechanic). No-op below the band, or when the
+   * toucher has no vitals to wound.
+   */
+  protected burnOnContact(actor: Stuff, surfaceK: number): void {
+    const trauma = Touch.contactBurn(surfaceK);
+    if (trauma && MixinApi.isVitals(actor)) actor.afflict(trauma);
   }
 
   private async feelAmbient(context: CommandContext): Promise<void> {

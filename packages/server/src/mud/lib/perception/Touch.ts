@@ -23,6 +23,7 @@
  */
 
 import { Quantity } from '../quantity';
+import type { Trauma } from '../vitals/Condition';
 
 export type TouchBand =
   | 'cold'
@@ -85,6 +86,27 @@ export class Touch {
       );
     }
     return new Touch(temperature, Touch.bandFor(temperature.rawValue()));
+  }
+
+  /**
+   * The `burn` trauma a bare-handed contact with a surface at
+   * `temperatureK` inflicts, or `null` when the surface isn't in the
+   * `scalding` band. **Pure** — returns the value; the caller afflicts it
+   * and emits its own verb-specific prose. The single home for the
+   * scalding-band burn rule the contact verbs share (`feel`, `get`), so
+   * the threshold + severity ramp aren't duplicated per controller.
+   * Severity rises with how far past the scalding floor the surface sits
+   * (a tuning detail, not a plan decision).
+   */
+  public static contactBurn(temperatureK: number): Trauma | null {
+    if (Touch.bandFor(temperatureK) !== 'scalding') return null;
+    const scaldingFloor = BAND_THRESHOLDS_K.hot; // < this is `hot`, ≥ scalds
+    return {
+      kind: 'trauma',
+      type: 'burn',
+      site: 'body.hand',
+      severity: Math.min(1, 0.5 + (temperatureK - scaldingFloor) / 80),
+    };
   }
 
   public toJSON(): {

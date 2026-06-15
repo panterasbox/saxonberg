@@ -69,6 +69,7 @@ import type { Vitals } from '../lib/vitals/Vitals';
 import type { Reserved } from '../lib/reserve';
 import type { LoadBearing } from '../lib/encumbrance/LoadBearing';
 import type { Metabolic } from '../lib/metabolism/Metabolic';
+import type { Thermal } from '../lib/thermal/Thermal';
 import type { Respiration } from '../lib/respiration/Respiration';
 import type { Radioactive } from '../lib/material/Radioactive';
 import type { Workspace } from '../lib/shell/Workspace';
@@ -679,6 +680,10 @@ export class MixinApi {
 
   public static isMetabolic(obj: Stuff): obj is Stuff & Metabolic {
     return this.hasMixin(obj, Mixins.Metabolic);
+  }
+
+  public static isThermal(obj: Stuff): obj is Stuff & Thermal {
+    return this.hasMixin(obj, Mixins.Thermal);
   }
 
   public static isRespiration(obj: Stuff): obj is Stuff & Respiration {

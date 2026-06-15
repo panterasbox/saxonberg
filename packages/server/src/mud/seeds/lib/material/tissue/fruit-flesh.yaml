@@ -6,6 +6,7 @@ hydratorClass: /lib/persistence/PersistentHydrator
 data:
   name: fruit-flesh
   density: 870
+  specificHeat: 3700
   thermalConductivity: 0.5
   edibility: true
   nutrients: ["sugar", "water", "fiber"]

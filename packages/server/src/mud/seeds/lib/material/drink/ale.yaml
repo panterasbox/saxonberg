@@ -11,6 +11,8 @@ data:
   appearance: a foamy amber ale
   keywords: [ale, beer, brew]
   density: 1010
+  thermalConductivity: 0.6
+  specificHeat: 4000
   edibility: true
   nutrients: [carb, water]
   nutrientAmounts:

@@ -21,6 +21,8 @@ import type { Containable } from '../spatial/Containable';
 import type { Slottable } from './Slottable';
 import type { Slotted } from './Slotted';
 import { SpeciesApi } from '../../api/species';
+import { Quantity } from '../quantity';
+import { QuantityMarshaller } from '../persistence/QuantityMarshaller';
 
 export interface Wearable extends Slottable {
   getSlotClaim(bodyPlanPath: string): readonly string[];
@@ -30,6 +32,18 @@ export interface Wearable extends Slottable {
   // Persistence-shape accessor pair (default Hydrator).
   getSlotClaims(): Readonly<Record<string, readonly string[]>>;
   setSlotClaims(value: Record<string, string[]>): void;
+
+  /**
+   * Thermal insulation this garment contributes (the `clo` unit) when
+   * worn. Default `0` — a bare garment insulates nothing; a parka
+   * authors ~4. Summed body-wide by the Phase-2 thermoregulation layer's
+   * worn-slot walk and folded into effective ambient (widening the
+   * comfort band downward, shrinking fuel spend in the cold). Surface-
+   * weighted per-region coverage is a deferred fidelity tier — v1 is a
+   * simple additive sum.
+   */
+  getClo(): Quantity<'clo'>;
+  setClo(value: Quantity<'clo'>): void;
 }
 
 export function WearableMixin<
@@ -37,13 +51,33 @@ export function WearableMixin<
 >(Base: TBase) {
   return class WearableMixin extends Base {
     static _mixinName = 'WearableMixin';
-    static persistentFields = ['slotClaims'];
+    static persistentFields = ['slotClaims', 'clo'];
+    static fieldMarshallers = {
+      clo: QuantityMarshaller.pathFor('clo'),
+    };
 
     /**
      * Per-body-plan slot claims. `bodyPlanPath` → ordered list of slot
      * names. Empty / absent = ineligible on that body plan.
      */
     public slotClaims: Record<string, string[]> = {};
+
+    /** Thermal insulation contributed when worn (default 0 clo). */
+    public clo: Quantity<'clo'> = Quantity.of(0, 'clo');
+
+    public getClo(): Quantity<'clo'> {
+      return this.clo;
+    }
+    public setClo(value: Quantity<'clo'>): void {
+      if (!(value instanceof Quantity) || value.unit !== 'clo') {
+        throw new TypeError(
+          `WearableMixin.setClo must be a Quantity<'clo'>; got ${
+            value instanceof Quantity ? `Quantity<'${value.unit}'>` : typeof value
+          }`,
+        );
+      }
+      this.clo = value;
+    }
 
     public getSlotClaims(): Readonly<Record<string, readonly string[]>> {
       return this.slotClaims;

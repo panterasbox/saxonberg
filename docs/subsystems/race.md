@@ -53,8 +53,12 @@ follow-on builds:
 ## Material substrate
 
 `Material` is a singleton-by-templatePath `Idea` carrying physical
-properties — `density` (`Quantity<'kg/m³'>`) and `thermalConductivity`
-(`Quantity<'W/(m·K)'>`), the two real measured quantities — plus three
+properties — `density` (`Quantity<'kg/m³'>`), `thermalConductivity`
+(`Quantity<'W/(m·K)'>`), and `specificHeat` (`Quantity<'J/(kg·K)'>`,
+added by the thermal build — the C = m·c half of the Thermal
+capability's τ = R·C, seeded with real values across the material tree
+plus new glass / ceramic / wool / down leaves; see
+[thermal.md](./thermal.md)), the real measured quantities — plus three
 orthogonal layers of classification. (The old fake 0–1 `hardness` /
 `flammability` / `opacity` / electrical / magnetic fields and the
 `resistance.<type>` damage seam were removed: normalized scales with
@@ -343,6 +347,10 @@ deferred until a sub-clade lands and earns the inheritance machinery.
   [augmentation.md](./augmentation.md)). A future telepath species
   (magical empath, alien biological aether receiver) MAY declare an
   ESP modality on its BodyPlan; the substrate handles it.
+- `thermalStrategy: 'endotherm' | 'ectotherm'` — added by the thermal
+  build (default `'endotherm'`). Read by `ThermalRegulationMixin` (an
+  endotherm defends its setpoint; an ectotherm floats to ambient) and
+  by metabolism's Q10 basal scaling. See [thermal.md](./thermal.md).
 - `breathableMedia` — the atmosphere tags an organism of this body plan
   exchanges gas in (the [respiration](./respiration.md) medium
   determinant). Default `['air']`; a species **inverts** by authoring

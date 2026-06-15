@@ -96,6 +96,9 @@ export default class AnalyzeAtmosphereController extends CommandController<Analy
       Mml.compose`  humidity:    ${traces.humidity.value.formatMml()} (${traces.humidity.value.tag()}) — ${describeSource(traces.humidity)}`,
     );
     lines.push(
+      Mml.compose`  wind:        ${traces.wind.value.formatMml()} — ${describeSource(traces.wind)}`,
+    );
+    lines.push(
       Mml.compose`  gravity:     ${traces.gravity.value.formatMml()} (${traces.gravity.value.tag()}) — ${describeSource(traces.gravity)}`,
     );
     lines.push(

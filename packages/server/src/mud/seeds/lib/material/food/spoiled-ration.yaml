@@ -11,6 +11,8 @@ data:
   appearance: a greying, sour-smelling ration
   keywords: [ration, food, spoiled]
   density: 900
+  thermalConductivity: 0.3
+  specificHeat: 2500
   edibility: true
   nutrients: [carb]
   nutrientAmounts:

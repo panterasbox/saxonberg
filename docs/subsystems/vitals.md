@@ -220,8 +220,11 @@ build shipped only the **seams** (metabolism is the first consumer):
   there for a future forensics wave.
 - **Derived readouts** — `getConditionBand()` reflects the substrate:
   a corpse reads `dead`, and a floored vital reads `critical`/`dead`
-  **with no lifecycle transition** (the reading is a view; the deferred
-  driver owns transitions). `getConsciousness()` →
+  **with no lifecycle transition** (the reading is a view; a *driver*
+  owns transitions). `coreTemperature` is now driven by the Thermal
+  build's `ThermalRegulationMixin` (a SYNC `getVitalSign` override) —
+  hypothermia/hyperthermia/torpor cascade to the death seam; see
+  [thermal.md](./thermal.md). `getConsciousness()` →
   `conscious`/`unconscious`/`dead` from blood volume + SpO₂ + head trauma;
   unconsciousness gates animate verbs like death but is recoverable.
 - **`spo2` is now driven** — [respiration](./respiration.md) is the first

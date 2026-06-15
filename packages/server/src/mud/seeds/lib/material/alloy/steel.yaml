@@ -7,6 +7,7 @@ hydratorClass: /lib/persistence/PersistentHydrator
 data:
   name: steel
   density: 7850
+  specificHeat: 466
   thermalConductivity: 50
   edibility: false
   nutrients: []

@@ -49,6 +49,8 @@ import { VitalsMixin } from '../vitals/Vitals';
 import { ReservedMixin } from '../reserve';
 import { LoadBearingMixin } from '../encumbrance/LoadBearing';
 import { MetabolicMixin } from '../metabolism/Metabolic';
+import { ThermalMixin } from '../thermal/Thermal';
+import { ThermalRegulationMixin } from '../thermal/ThermalRegulation';
 import { RespirationMixin } from '../respiration/Respiration';
 import { DisguisableMixin } from '../disguise/Disguisable';
 import { Quantity } from '../quantity';
@@ -76,6 +78,14 @@ import { Quantity } from '../quantity';
 // non-Character Creature carries the breathable config + engine but,
 // lacking an Engaged slot, holds no scheduled drain (the documented
 // degenerate — the proof drownable is a Character).
+// ThermalMixin sits OUTER of Respiration/Metabolic (it reads mass/material;
+// the Phase-2 ThermalRegulationMixin wraps it to drive coreTemperature)
+// and INNER of LoadBearing. A bare Creature is a plain Thermal object — a
+// corpse cools toward ambient (algor mortis) as a passive drift; the
+// living regulation layer (Phase 2) pins coreTemperature instead.
+// (Thermal and Respiration are independent: respiration is schedule-
+// driven and drives `spo2`; thermal overrides getVitalSign for
+// `coreTemperature` only — neither reads the other's sign.)
 // LoadBearingMixin sits outermost — the encumbrance gauge reads
 // Container + Slotted + Tangible (Agent) + Reserved + Vitals, so it
 // must compose outer of all of them (same placement logic as Vitals
@@ -85,14 +95,18 @@ const CreatureBase = LoadBearingMixin(
     ContainableMixin(
       DisguisableMixin(
         VisibleMixin(
-          RespirationMixin(
-            MetabolicMixin(
-              VitalsMixin(
-                ReservedMixin(
-                  PosedMixin(
-                    BodyPlanSlotsMixin(
-                      SlottedMixin(
-                        SexedMixin(OrganismMixin(NamedMixin(Agent)))
+          ThermalRegulationMixin(
+            ThermalMixin(
+              RespirationMixin(
+                MetabolicMixin(
+                  VitalsMixin(
+                    ReservedMixin(
+                      PosedMixin(
+                        BodyPlanSlotsMixin(
+                          SlottedMixin(
+                            SexedMixin(OrganismMixin(NamedMixin(Agent)))
+                          )
+                        )
                       )
                     )
                   )

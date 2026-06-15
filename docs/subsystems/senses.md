@@ -24,8 +24,9 @@ This doc covers BOTH halves of the substrate:
 
 The slate's deferred items — smell trails / temporal persistence,
 active-sense (echolocation), full ESP field walk, per-species
-hearing / tactile / gustatory profiles, vitals burn-damage on
-scalding contact — remain Wave 3+.
+hearing / tactile / gustatory profiles — remain Wave 3+. (Vitals
+burn-damage on scalding contact, listed deferred here originally,
+shipped with the thermal build — see [thermal.md](./thermal.md).)
 
 ## Substrate consumed
 
@@ -517,9 +518,16 @@ two surfaces:
 / `comfortable` / `warm` / `hot` / `scalding`) calibrated against
 the universe-baseline 295 K. Bare `feel` prepends "The air feels
 <band>."; detail-via `feel <target>` prepends "It feels <band>."
-above the per-Detail `touch` slot prose. Vitals burn-damage on
-scalding contact is an explicit non-goal — the prose surfaces
-"scalding" without a damage hook.
+above the per-Detail `touch` slot prose.
+
+The thermal build connected the contact senses to the heat-exchange
+layer: `feel <object>` on a Thermal object now reports the object's
+own **surface** temperature band (a sealed insulated vessel reads
+~ambient though its contents scald — the surface-vs-contents sensory
+gate), and the previously-deferred burn hook went live —
+`Touch.contactBurn` afflicts a burn trauma on scalding-band (≥ 345 K)
+contact via `feel` and a bare-handed `get`. See
+[thermal.md](./thermal.md).
 
 ### Per-frame modality attribution
 

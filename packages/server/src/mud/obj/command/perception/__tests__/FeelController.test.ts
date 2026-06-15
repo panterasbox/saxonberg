@@ -35,6 +35,12 @@ import BodyPlan from '../../../../lib/species/BodyPlan';
 import { Idea } from '../../../../lib/stuff/Idea';
 import { StuffApi } from '../../../../api/stuff';
 import { ContainmentApi } from '../../../../api/containment';
+import Thing from '../../../../lib/stuff/Thing';
+import { ThermalMixin } from '../../../../lib/thermal/Thermal';
+
+class ThermalMug extends ThermalMixin(Thing) {
+  static _mixinName = 'ThermalMugFeel';
+}
 
 const Base = OrganismMixin(
   ContainerMixin(
@@ -135,6 +141,26 @@ describe('FeelController', () => {
     const f = fix.giver.received.at(-1);
     expect(f?.topic).toBe('world.perception.sense.feel');
     expect(f?.body).toContain('rough oak');
+  });
+
+  it('feel <thermal object> reports the object surface band', () => {
+    const mug = makeStuff(() => {
+      const m = new ThermalMug();
+      m.setShortDescription('a mug');
+      m.setStampedTemperatureK(330); // hot
+      m.setLastAmbientK(295);
+      return m;
+    });
+    ContainmentApi.move(
+      mug as unknown as Parameters<typeof ContainmentApi.move>[0],
+      fix.location as unknown as Parameters<typeof ContainmentApi.move>[1],
+    );
+    const target: MqlOneResult = { stuff: mug as unknown as Stuff, raw: 'mug' };
+    const c = makeStuff(() => new FeelController());
+    c.execute(modelOf(target), ctxOf(fix));
+    const f = fix.giver.received.at(-1);
+    expect(f?.topic).toBe('world.perception.sense.feel');
+    expect(f?.body).toMatch(/feels (warm|hot)/);
   });
 
   it('bare feel on a vision-only location → polite refusal', () => {

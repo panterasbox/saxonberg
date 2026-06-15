@@ -57,6 +57,7 @@ describe('Biome', () => {
     b.setDefaultPressure(Quantity.of(101000, 'Pa'));
     b.setDefaultHumidity(Quantity.of(60, '%'));
     b.setDefaultGravity(Quantity.of(9.81, 'm/s²'));
+    b.setDefaultWind(Quantity.of(0, 'm/s'));
     b.setDefaultAtmosphere('air');
 
     expect(b.getDefaultTemperature()?.rawValue()).toBe(290);

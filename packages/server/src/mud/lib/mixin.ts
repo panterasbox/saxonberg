@@ -108,6 +108,8 @@ export const Mixins = {
   Identifiable: 'IdentifiableMixin',
   Metabolic: 'MetabolicMixin',
   NutritionLabel: 'NutritionLabelMixin',
+  Thermal: 'ThermalMixin',
+  ThermalRegulation: 'ThermalRegulationMixin',
   Respiration: 'RespirationMixin',
 } as const;
 

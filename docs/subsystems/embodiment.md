@@ -31,6 +31,11 @@ slotClaims:
 A body plan that doesn't appear in `slotClaims` is ineligible —
 `fitsSlot` returns false.
 
+The thermal build added `clo: Quantity<'clo'>` to `WearableMixin`
+(default `0`) — the thermal insulation a worn garment contributes,
+summed body-wide by `ThermalRegulationMixin`'s worn-slot walk (a parka
+authors ~4). See [thermal.md](./thermal.md).
+
 ## `fitsSlot` overrides
 
 `Slottable` ships a default `fitsSlot(host, slot) => true`.

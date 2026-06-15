@@ -118,9 +118,9 @@ the one seam that makes mass honest for *every* reader of *every* Creature
 subclass.
 
 > `baseMass` is a **shared body-size signal**, not encumbrance-private.
-> The metabolism build will read it for basal drain (Kleiber `mass^0.75`)
-> and thermal for thermal mass / the endotherm strategy. Expect `BodyPlan`
-> to gain sibling body fields (`thermalStrategy`, …) from those builds.
+> Metabolism reads it for basal drain and thermal for the body's thermal
+> mass; `BodyPlan` has since gained the sibling `thermalStrategy` field
+> (endotherm / ectotherm) the thermal build added.
 
 ## `Vessel` — the container-object
 

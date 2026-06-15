@@ -31,11 +31,24 @@ const validator: CommandValidator = (context) => {
       c.kind === "affliction" &&
       c.templatePath === TemplatePaths.metabolismCollapse,
   );
-  if (giver.getConsciousness() === "conscious" && !collapsed) return undefined;
+  // Torpor — the ectotherm cold-consequence: alive but immobile. Read it
+  // here the same way `collapse` is read, so a torpid reptile can't run
+  // exertion verbs until it rewarms.
+  const torpid = giver.hasCondition(
+    (c) =>
+      c.kind === "affliction" &&
+      c.templatePath === TemplatePaths.thermalTorpor,
+  );
+  if (giver.getConsciousness() === "conscious" && !collapsed && !torpid) {
+    return undefined;
+  }
 
   const name = giver.getPresentation();
   if (collapsed) {
     return `${name} has collapsed from exhaustion and can't do that.`;
+  }
+  if (torpid) {
+    return `${name} is too cold and torpid to do that.`;
   }
   return `${name} is not conscious enough to do that.`;
 };

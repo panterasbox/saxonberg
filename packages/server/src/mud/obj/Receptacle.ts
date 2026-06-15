@@ -24,7 +24,13 @@
 
 import Thing from '../lib/stuff/Thing';
 import { BulkableMixin } from '../lib/bulk/Bulkable';
+import { ThermalMixin } from '../lib/thermal/Thermal';
 
-const ReceptacleBase = BulkableMixin(Thing);
+// ThermalMixin outer of Bulkable: a fluid holder's Thermal capacity
+// derives from its contents (more liquid → larger C → slower cooling),
+// so the coffee in any receptacle has a real, drifting temperature. An
+// open holder (a mug) has no sealing barrier → it cools in minutes; the
+// sealable Flask switches to a vacuum barrier when closed (τ in hours).
+const ReceptacleBase = ThermalMixin(BulkableMixin(Thing));
 
 export default class Receptacle extends ReceptacleBase {}

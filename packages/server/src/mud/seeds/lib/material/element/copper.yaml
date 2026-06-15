@@ -6,6 +6,7 @@ hydratorClass: /lib/persistence/PersistentHydrator
 data:
   name: copper
   density: 8960
+  specificHeat: 385
   thermalConductivity: 401
   edibility: false
   nutrients: ["copper"]

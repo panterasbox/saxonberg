@@ -12,6 +12,7 @@ hydratorClass: /lib/persistence/PersistentHydrator
 data:
   name: oak
   density: 750
+  specificHeat: 2000
   thermalConductivity: 0.17
   edibility: false
   nutrients: ["cellulose"]

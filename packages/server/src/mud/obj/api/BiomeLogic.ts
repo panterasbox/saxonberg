@@ -28,6 +28,21 @@ const ATMOSPHERE_DENSITIES: Record<string, Quantity<'kg/m³'>> = {
 };
 
 /**
+ * Per-atmosphere thermal conductivity (`W/(m·K)`) — the surrounding
+ * medium's term in a Thermal object's heat-exchange resistance `R`.
+ * Water conducts ~25× faster than air (the cold-water-immersion
+ * danger); `vacuum` is a deliberately tiny non-zero so an insulated
+ * vessel cools *slowly*, not *never* (radiation + neck-leak lumped in).
+ * Parallel to {@link ATMOSPHERE_DENSITIES}; same three v1 tags, grows
+ * by one line when content needs it.
+ */
+const ATMOSPHERE_CONDUCTIVITIES: Record<string, Quantity<'W/(m·K)'>> = {
+  air: Quantity.of(0.026, 'W/(m·K)'),
+  water: Quantity.of(0.6, 'W/(m·K)'),
+  vacuum: Quantity.of(1e-4, 'W/(m·K)'),
+};
+
+/**
  * Per-atmosphere breathability — whether a default air-breather
  * exchanges gas in this medium. The respiration driver's medium
  * trigger reads this column; air-breathers drown in `water`/`vacuum`.
@@ -127,6 +142,19 @@ export class BiomeLogic extends Idea {
     return d;
   }
 
+  /** See {@link BiomeApi.conductivityOf}. */
+  @CallSecurity(BiomeApiCallers)
+  public conductivityOf(tag: string): Quantity<'W/(m·K)'> {
+    const k = ATMOSPHERE_CONDUCTIVITIES[tag];
+    if (!k) {
+      throw new Error(
+        `BiomeApi.conductivityOf: unknown atmosphere tag '${tag}' ` +
+          `(known: air, water, vacuum)`
+      );
+    }
+    return k;
+  }
+
   /** See {@link BiomeApi.breathableOf}. */
   @CallSecurity(BiomeApiCallers)
   public breathableOf(tag: string): boolean {
@@ -199,6 +227,22 @@ export class BiomeLogic extends Idea {
       (b) => b.getDefaultHumidity(),
       (a, k) => readDetailMap<Quantity<'%'>>(a._detailHumidities, k),
       (a) => a._humidity,
+    );
+  }
+
+  /** See {@link BiomeApi.resolveWindFor}. */
+  @CallSecurity(BiomeApiCallers)
+  public async resolveWindFor(
+    scope: Stuff & Container,
+    detailKey?: string
+  ): Promise<Quantity<'m/s'>> {
+    return resolveQuantityFor<'m/s'>(
+      scope,
+      detailKey,
+      'wind',
+      (b) => b.getDefaultWind(),
+      (a, k) => readDetailMap<Quantity<'m/s'>>(a._detailWinds, k),
+      (a) => a._wind,
     );
   }
 
@@ -284,6 +328,22 @@ export class BiomeLogic extends Idea {
     );
   }
 
+  /** See {@link BiomeApi.traceResolveWindFor}. */
+  @CallSecurity(BiomeApiCallers)
+  public async traceResolveWindFor(
+    scope: Stuff & Container,
+    detailKey?: string
+  ): Promise<AtmosphericTrace<Quantity<'m/s'>>> {
+    return traceResolveQuantityFor<'m/s'>(
+      scope,
+      detailKey,
+      'wind',
+      (b) => b.getDefaultWind(),
+      (a, k) => readDetailMap<Quantity<'m/s'>>(a._detailWinds, k),
+      (a) => a._wind,
+    );
+  }
+
   /** See {@link BiomeApi.traceResolveGravityFor}. */
   @CallSecurity(BiomeApiCallers)
   public async traceResolveGravityFor(
@@ -325,18 +385,20 @@ export class BiomeLogic extends Idea {
     temperature: AtmosphericTrace<Quantity<'K'>>;
     pressure: AtmosphericTrace<Quantity<'Pa'>>;
     humidity: AtmosphericTrace<Quantity<'%'>>;
+    wind: AtmosphericTrace<Quantity<'m/s'>>;
     gravity: AtmosphericTrace<Quantity<'m/s²'>>;
     atmosphere: AtmosphericTrace<string>;
   }> {
-    const [temperature, pressure, humidity, gravity, atmosphere] =
+    const [temperature, pressure, humidity, wind, gravity, atmosphere] =
       await Promise.all([
         this.traceResolveTemperatureFor(scope, detailKey),
         this.traceResolvePressureFor(scope, detailKey),
         this.traceResolveHumidityFor(scope, detailKey),
+        this.traceResolveWindFor(scope, detailKey),
         this.traceResolveGravityFor(scope, detailKey),
         this.traceResolveAtmosphereFor(scope, detailKey),
       ]);
-    return { temperature, pressure, humidity, gravity, atmosphere };
+    return { temperature, pressure, humidity, wind, gravity, atmosphere };
   }
 
   // ---------- Wave 5 — sky exposure ----------

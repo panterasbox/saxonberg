@@ -1,0 +1,18 @@
+# Down — the loft fill of a parka. The lowest-conductivity common
+# insulator (near still air): a thin down layer authors a high `clo`.
+class: /lib/material/Material
+hydratorClass: /lib/persistence/PersistentHydrator
+data:
+  name: down
+  appearance: soft lofted down
+  keywords: [down]
+  density: 30
+  thermalConductivity: 0.025
+  specificHeat: 1700
+  edibility: false
+  nutrients: []
+  toxicity: []
+  tags: ["textile", "feather", "organic", "insulating", "once-living"]
+  composition: []
+  chemistry: null
+  biologicalSource: null

@@ -6,6 +6,7 @@ hydratorClass: /lib/persistence/PersistentHydrator
 data:
   name: plant-tissue
   density: 600
+  specificHeat: 2500
   thermalConductivity: 0.3
   edibility: true
   nutrients: ["cellulose", "water"]

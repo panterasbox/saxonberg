@@ -1,0 +1,19 @@
+# Wool — animal-fibre textile. Low conductivity (it traps air): the
+# insulating cloth a warm garment is woven from. Its low
+# thermalConductivity is why a wool layer authors meaningful `clo`.
+class: /lib/material/Material
+hydratorClass: /lib/persistence/PersistentHydrator
+data:
+  name: wool
+  appearance: thick woven wool
+  keywords: [wool]
+  density: 1310
+  thermalConductivity: 0.04
+  specificHeat: 1360
+  edibility: false
+  nutrients: []
+  toxicity: []
+  tags: ["textile", "fibre", "organic", "insulating", "once-living"]
+  composition: []
+  chemistry: null
+  biologicalSource: null

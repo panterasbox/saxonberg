@@ -8,6 +8,7 @@ hydratorClass: /lib/persistence/PersistentHydrator
 data:
   name: muscle
   density: 1060
+  specificHeat: 3500
   thermalConductivity: 0.49
   edibility: true
   nutrients: ["protein", "water"]

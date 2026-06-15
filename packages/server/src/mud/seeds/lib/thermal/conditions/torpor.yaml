@@ -1,0 +1,15 @@
+# Torpor — the ectotherm cold-consequence: alive but immobile (NOT
+# lethal). Spawned when a cold-blooded body's driven `coreTemperature`
+# falls below its survivable floor; cleared on rewarming. The
+# `requiresConscious` validator reads it to gate exertion verbs, exactly
+# as it reads metabolism's `collapse` — alive, immobile, not dead.
+class: /lib/vitals/Condition
+hydratorClass: /lib/persistence/PersistentHydrator
+data:
+  name: torpor
+  signature: []
+  progression: null
+  resolution:
+    by: warmth
+  observableSigns: [torpid, motionless, cold-to-the-touch]
+  contagion: null

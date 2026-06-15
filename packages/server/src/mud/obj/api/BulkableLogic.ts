@@ -198,11 +198,45 @@ export class BulkableLogic extends Idea {
       return { applied: 0, status: 'declined', notes };
     }
 
+    // Capture pre-transfer thermal state for the calorimetric blend
+    // (Step 1.7) — the fidelity tier on the primitive. Gated on both
+    // holders being Thermal so non-thermal transfers are unchanged.
+    const fromHolder = from.getHolder();
+    const toHolder = to?.getHolder() ?? null;
+    const toAmountBefore = to !== null ? to.getAmount().rawValue() : 0;
+    const blendFromK =
+      toHolder !== null && MixinApi.isThermal(fromHolder)
+        ? fromHolder.getTemperature().rawValue()
+        : null;
+    const blendToK =
+      toHolder !== null && MixinApi.isThermal(toHolder)
+        ? toHolder.getTemperature().rawValue()
+        : null;
+
     // 5. Apply.
     from.debit(applied);
     if (to !== null) {
       if (to.isEmpty()) to.setMaterial(material);
       to.setAmount(to.getAmount().add(Quantity.of(applied, 'L')));
+    }
+
+    // 6. Thermal coupling (gated). Same material both sides (enforced at
+    // step 2), so specific heats cancel — the blend is a volume-weighted
+    // average. Refill into an empty vessel adopts the incoming
+    // temperature; a partial pour leaves the source hotter-per-unit but
+    // re-anchors so its now-smaller heat capacity cools the remainder
+    // faster.
+    if (toHolder !== null && MixinApi.isThermal(toHolder) && blendFromK !== null) {
+      const newK =
+        toAmountBefore <= 0 || blendToK === null
+          ? blendFromK
+          : (applied * blendFromK + toAmountBefore * blendToK) /
+            (applied + toAmountBefore);
+      toHolder.setContentsTemperature(newK);
+    }
+    if (MixinApi.isThermal(fromHolder)) {
+      // Freeze-and-re-anchor at the reduced capacity (pour cools faster).
+      fromHolder.setContentsTemperature(fromHolder.getTemperature().rawValue());
     }
 
     const clampedShort =

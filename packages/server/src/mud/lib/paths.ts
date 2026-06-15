@@ -51,6 +51,12 @@ export const TemplatePaths = {
   metabolismDehydration: "/lib/metabolism/conditions/dehydration",
   metabolismCollapse: "/lib/metabolism/conditions/collapse",
 
+  // Thermal cascade conditions — spawned/cleared by the thermoregulation
+  // reconcile when driven `coreTemperature` crosses the survivable band.
+  thermalHypothermia: "/lib/thermal/conditions/hypothermia",
+  thermalHyperthermia: "/lib/thermal/conditions/hyperthermia",
+  thermalTorpor: "/lib/thermal/conditions/torpor",
+
   // Respiration anoxia condition — the affliction the drain accrues
   // dwell-time on toward the death seam (asphyxiation: drowning/vacuum).
   respirationAsphyxiation: "/lib/respiration/conditions/asphyxiation",

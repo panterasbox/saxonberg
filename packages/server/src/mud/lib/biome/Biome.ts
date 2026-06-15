@@ -59,6 +59,14 @@ export default class Biome extends Idea {
   /** Default relative humidity. `null` falls through. */
   protected _defaultHumidity: Quantity<'%'> | null = null;
 
+  /**
+   * Default wind speed (`m/s`). Static-authored — there is no weather
+   * subsystem; a windy pass or open plain authors a non-zero default,
+   * sheltered biomes leave it calm. Read by the body's effective-ambient
+   * resolver as the wind-chill input. `null` falls through.
+   */
+  protected _defaultWind: Quantity<'m/s'> | null = null;
+
   /** Default gravitational acceleration. `null` falls through. */
   protected _defaultGravity: Quantity<'m/s²'> | null = null;
 
@@ -93,6 +101,7 @@ export default class Biome extends Idea {
     '_defaultTemperature',
     '_defaultPressure',
     '_defaultHumidity',
+    '_defaultWind',
     '_defaultGravity',
     '_defaultAtmosphere',
     '_defaultAmbientSoundLevel',
@@ -104,6 +113,7 @@ export default class Biome extends Idea {
     _defaultTemperature: QuantityMarshaller.pathFor('K'),
     _defaultPressure: QuantityMarshaller.pathFor('Pa'),
     _defaultHumidity: QuantityMarshaller.pathFor('%'),
+    _defaultWind: QuantityMarshaller.pathFor('m/s'),
     _defaultGravity: QuantityMarshaller.pathFor('m/s²'),
     _defaultAmbientSoundLevel: QuantityMarshaller.pathFor('dB'),
   };
@@ -183,6 +193,18 @@ export default class Biome extends Idea {
     }
     Biome.assertQuantity(value, '%', 'defaultHumidity');
     this._defaultHumidity = value;
+  }
+
+  public getDefaultWind(): Quantity<'m/s'> | null {
+    return this._defaultWind;
+  }
+  public setDefaultWind(value: Quantity<'m/s'> | null): void {
+    if (value === null) {
+      this._defaultWind = null;
+      return;
+    }
+    Biome.assertQuantity(value, 'm/s', 'defaultWind');
+    this._defaultWind = value;
   }
 
   public getDefaultGravity(): Quantity<'m/s²'> | null {
