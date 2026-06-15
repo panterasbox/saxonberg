@@ -275,15 +275,17 @@ export function ThermalMixin<TBase extends MixinConstructor>(Base: TBase) {
      * a vessel.
      */
     protected thermalCapacity(): number {
+      // ThermalHost is `Stuff & Tangible & Containable`, so it serves the
+      // MixinApi / MaterialApi calls directly; `isBulkable` narrows it in
+      // place for the contents path.
       const self = this as unknown as ThermalHost;
-      const stuff = self as unknown as Stuff;
-      if (MixinApi.isBulkable(stuff) && stuff.hasInteriorBulk()) {
-        const c = this.contentsCapacity(stuff as unknown as Bulkable);
+      if (MixinApi.isBulkable(self) && self.hasInteriorBulk()) {
+        const c = this.contentsCapacity(self);
         if (c > 0) return c;
         // empty vessel → fall through to the wall's own heat capacity
       }
       const massKg = self.getMass().rawValue();
-      const mat = MaterialApi.materialOf(stuff);
+      const mat = MaterialApi.materialOf(self);
       let c = mat ? mat.getSpecificHeat().rawValue() : 0;
       if (c <= 0) c = THERMAL_DEFAULTS.DEFAULT_SPECIFIC_HEAT;
       return massKg * c;
@@ -422,16 +424,17 @@ export function ThermalMixin<TBase extends MixinConstructor>(Base: TBase) {
       // Freeze current T under the OLD ambient first (drift up to now).
       this.reconcileThermal();
 
-      // Resolve the new scope's ambient.
+      // Resolve the new scope's ambient. `isContainable` narrows `self`,
+      // and `getContainer()` already returns `(Stuff & Container) | null`
+      // — no further casts needed.
       let ambientK = this.lastAmbientK;
       if (MixinApi.isContainable(self)) {
-        const container = (self as unknown as Containable).getContainer();
-        if (container && MixinApi.isContainer(container)) {
+        const container = self.getContainer();
+        if (container !== null) {
           try {
-            const t = await BiomeApi.resolveTemperatureFor(
-              container as Stuff & Container,
-            );
-            ambientK = t.rawValue();
+            ambientK = (
+              await BiomeApi.resolveTemperatureFor(container)
+            ).rawValue();
           } catch {
             // keep the cached ambient on any resolution failure
           }

@@ -32,12 +32,10 @@
 
 import type { MixinConstructor } from "../mixin";
 import type { Stuff } from "../stuff/Stuff";
-import type { Container } from "../spatial/Container";
 import type { Containable } from "../spatial/Containable";
 import type { Reserved } from "../reserve";
 import type { Vitals, VitalSign } from "../vitals/Vitals";
 import type { Organism } from "../species/Organism";
-import type { Slottable } from "../slot/Slottable";
 import type { Thermal } from "./Thermal";
 import type { AfflictionRecord } from "../vitals/Condition";
 import { Quantity } from "../quantity";
@@ -161,6 +159,19 @@ export function ThermalRegulationMixin<TBase extends MixinConstructor>(
       if (sign === "coreTemperature" && !this._thermalRegReconciling) {
         this.reconcileThermalRegulation();
       }
+      return this.innerVitalSign(sign);
+    }
+
+    /**
+     * Read a vital straight from the inner `VitalsMixin` storage,
+     * bypassing this override (so the cascade / core helpers don't
+     * re-trigger the reconcile). The `super.getVitalSign` cast is the
+     * mixin-super idiom — `Base` is generic, so the inherited method
+     * isn't visible to the type system; it resolves to `VitalsMixin`'s
+     * implementation at runtime. Centralised here so it lives in exactly
+     * one place.
+     */
+    private innerVitalSign(sign: VitalSign): Quantity<Unit> {
       return (super.getVitalSign as (s: VitalSign) => Quantity<Unit>).call(
         this,
         sign,
@@ -300,30 +311,31 @@ export function ThermalRegulationMixin<TBase extends MixinConstructor>(
      */
     protected async effectiveAmbient(): Promise<Quantity<"K">> {
       const host = this as unknown as RegulationHost;
+      // `getContainer()` already returns `(Stuff & Container) | null`, so
+      // the resolved scope needs no narrowing cast.
       const scope = host.getContainer();
       let ambientK = this.setpointK;
       let humidity = 50;
       let windMs = 0;
       let mediumTag = "air";
-      if (scope && MixinApi.isContainer(scope)) {
-        const c = scope as Stuff & Container;
+      if (scope !== null) {
         try {
-          ambientK = (await BiomeApi.resolveTemperatureFor(c)).rawValue();
+          ambientK = (await BiomeApi.resolveTemperatureFor(scope)).rawValue();
         } catch {
           /* keep default */
         }
         try {
-          humidity = (await BiomeApi.resolveHumidityFor(c)).rawValue();
+          humidity = (await BiomeApi.resolveHumidityFor(scope)).rawValue();
         } catch {
           /* keep default */
         }
         try {
-          windMs = (await BiomeApi.resolveWindFor(c)).rawValue();
+          windMs = (await BiomeApi.resolveWindFor(scope)).rawValue();
         } catch {
           /* keep default */
         }
         try {
-          mediumTag = await BiomeApi.resolveAtmosphereFor(c);
+          mediumTag = await BiomeApi.resolveAtmosphereFor(scope);
         } catch {
           /* keep default */
         }
@@ -331,11 +343,11 @@ export function ThermalRegulationMixin<TBase extends MixinConstructor>(
       this.cachedHumidity = humidity;
 
       // Occupied warming-slot warmth (a campfire log-seat). Read like
-      // metabolism reads restQuality.
+      // metabolism reads restQuality — `isSlottable` narrows in place.
       let warmth = 0;
-      const slf = this as unknown as Stuff;
-      if (MixinApi.isSlottable(slf)) {
-        const seat = (slf as Stuff & Slottable).getOccupiedHost();
+      const self = this as unknown as Stuff;
+      if (MixinApi.isSlottable(self)) {
+        const seat = self.getOccupiedHost();
         if (seat && MixinApi.isPostured(seat)) warmth = seat.getWarmth();
       }
       ambientK += warmth;
@@ -470,9 +482,7 @@ export function ThermalRegulationMixin<TBase extends MixinConstructor>(
     // ---------- helpers ----------
 
     protected readCore(): number {
-      return (super.getVitalSign as (s: VitalSign) => Quantity<Unit>)
-        .call(this, "coreTemperature")
-        .rawValue();
+      return this.innerVitalSign("coreTemperature").rawValue();
     }
     protected setCore(k: number): void {
       const host = this as unknown as RegulationHost;
@@ -492,16 +502,14 @@ export function ThermalRegulationMixin<TBase extends MixinConstructor>(
 
     /** Worn-slot `clo` sum, expressed as a Kelvin band-widening. */
     protected wornInsulationKelvin(): number {
-      const slf = this as unknown as Stuff;
-      if (!MixinApi.isSlotted(slf)) return 0;
+      const self = this as unknown as Stuff;
+      if (!MixinApi.isSlotted(self)) return 0;
       let clo = 0;
-      for (const [, occupants] of slf.getAllOccupants()) {
+      // `getAllOccupants()` yields `Stuff & Slottable`; `isWearable`
+      // narrows each occupant in place, so `getClo()` is a typed call.
+      for (const occupants of self.getAllOccupants().values()) {
         for (const occ of occupants) {
-          if (MixinApi.isWearable(occ as Stuff)) {
-            clo += (occ as unknown as { getClo(): Quantity<"clo"> })
-              .getClo()
-              .rawValue();
-          }
+          if (MixinApi.isWearable(occ)) clo += occ.getClo().rawValue();
         }
       }
       return clo * THERMAL_DEFAULTS.CLO_TO_KELVIN;
