@@ -3,6 +3,7 @@ import { Canvas } from '@react-three/fiber';
 import Banner from './Banner';
 import ErrorBoundary from './ErrorBoundary';
 import useAwayTimer from '../../hooks/useAwayTimer';
+import useStreamState from '../../hooks/useStreamState';
 import { palette } from '../../tokens/palette';
 import { FACE_STACKS } from '../../tokens/faces';
 
@@ -38,7 +39,12 @@ function BannerScene() {
 }
 
 export default function StandbyOverlay() {
-  const timer = useAwayTimer();
+  // When the broadcast feed is connected, drive the countdown off
+  // saxonberg's StreamState.awayUntil; otherwise fall back to ?until=
+  // / demo (undefined override).
+  const feed = useStreamState();
+  const override = feed.connected ? feed.state?.awayUntil ?? null : undefined;
+  const timer = useAwayTimer(override);
   const [quote, setQuote] = useState(APHORISMS[0]);
 
   useEffect(() => {

@@ -1,12 +1,17 @@
 import { useEffect, useState } from 'react';
 
 /**
- * Countdown to an absolute "away until" timestamp. The server (saxonberg) will
- * eventually push `awayUntil` over WebSocket; for now it reads a `?until=<epoch_ms>`
- * URL param (so OBS/tests can set it) and falls back to a 15-minute demo.
+ * Countdown to an absolute "away until" timestamp.
  *
- * Ticking is purely local off the absolute target — no per-second network churn,
- * and it survives reconnects because the target is absolute.
+ * Driven by saxonberg's `StreamState.awayUntil` (pushed over WebSocket;
+ * see `useStreamState`) when an `override` is supplied. When `override`
+ * is `undefined` (feed not connected / not configured) it falls back to
+ * a `?until=<epoch_ms>` URL param, then a 15-minute demo. An `override`
+ * of `null` means the stream is live (no countdown).
+ *
+ * Ticking is purely local off the absolute target — no per-second
+ * network churn, and it survives reconnects because the target is
+ * absolute.
  */
 export interface AwayTimer {
   remainingMs: number;
@@ -31,8 +36,9 @@ function format(ms: number): string {
   return h > 0 ? `${h}:${pad(m)}:${pad(s)}` : `${pad(m)}:${pad(s)}`;
 }
 
-export default function useAwayTimer(): AwayTimer {
-  const [target] = useState(resolveTarget);
+export default function useAwayTimer(override?: number | null): AwayTimer {
+  // The offline fallback target (?until= or demo), resolved once.
+  const [fallback] = useState(resolveTarget);
   const [now, setNow] = useState(() => Date.now());
 
   useEffect(() => {
@@ -40,6 +46,10 @@ export default function useAwayTimer(): AwayTimer {
     return () => clearInterval(id);
   }, []);
 
+  // Precedence: live feed (number) → live feed says live (null → no
+  // countdown, expired now) → offline fallback (undefined).
+  const target =
+    override === undefined ? fallback : override === null ? now : override;
   const remainingMs = Math.max(0, target - now);
   return {
     remainingMs,

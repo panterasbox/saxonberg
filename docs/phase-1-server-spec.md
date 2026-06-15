@@ -103,12 +103,58 @@ is never delivered DMs/private channels.
 
 ---
 
-## Open questions for owner
+## Open questions for owner — RESOLVED (2026-06-15)
 
-1. `StreamState` home: singleton Idea vs service doc? (lean: Idea)
-2. Protocol: dedicated `stream-state` envelope vs Stuff+MQL? (lean: dedicated)
-3. Token delivery: query param vs WS subprotocol? (lean: query param)
-4. Include the minimal `stream away/back` command in Phase 1, or set `awayUntil`
-   another way for the first demo?
-5. Validator for streamer-gated commands: reuse `requiresDeveloper` or add
-   `requiresStreamer`?
+1. `StreamState` home → **singleton Idea** at `/obj/StreamState` (registered in
+   `bootstrap.ts`). Mutations fire `Events.StreamStateChanged` (a new well-known
+   event carrying the full snapshot); the feed hangs off that. In-memory only in
+   Phase 1 (reboot resets to `live`); durable round-trip deferred.
+2. Protocol → **dedicated `stream-state` envelope** (`StreamStateEnvelope` +
+   `StreamStateSnapshot` in `@saxonberg/types`, added to the `Envelope` union).
+3. Token delivery → **query param** `?broadcast=<token>`, checked in
+   `WebSocketService.handleUpgrade` *before* session auth (so a cookieless OBS
+   source isn't 401'd). Constant-time compare; `BROADCAST_TOKEN` must be ≥ 16
+   chars or the feed stays disabled (fail-loud), with a boot-time warn when
+   enabled.
+4. Minimal mutation → **built `stream away <dur>` / `stream back`** (one verb,
+   two subcommands; `mud/cmd/stream/stream.yaml` + `obj/command/stream/StreamController.ts`).
+   Duration is shell-style (`15m`, `1h30m`, `90s`; bare number = minutes).
+5. Validator → **new `requiresStreamer`** (+ `AccessApi.isStreamer()` + a
+   `streamers` managed group, seeded idempotently in `AccessRegistry`). Mirrors
+   the `developers` axis exactly. Membership is seeded from the
+   `STREAMER_PLAYER_IDS` env var (comma-separated Avatar playerIds, additive +
+   idempotent) so the smoke is runnable without DB poking; drop a member via the
+   `group` verb.
+
+### Implementation notes (where reality refined the spec)
+
+- **Broadcast principal has *no* Interactive at all** — stronger than the spec's
+  "Interactive with no Avatar/CommandGiver". It's registered straight with the
+  `BroadcastFeed` as a pure push target, so it's absent from the connection
+  registry: `processUserMessage` finds no holder and commands are rejected by
+  construction. Connect/disconnect flow through `Backend.handleWebSocketConnect`
+  → `Application.handleUserConnect(..., isBroadcast)` and a matching
+  `removeConnection` on disconnect.
+- **`BroadcastFeed`** lives in `backend/` (peer to `ConnectionManager`), reaches
+  the wire via `Backend.sendEnvelopeToSocket`, owns a per-socket frame counter,
+  and installs its `Events.StreamStateChanged` listener lazily on first connect.
+- **Affordance vs authorization split**: the `stream` verb rides `AuthorMixin`'s
+  self bucket (operator command surface), but authorization is the orthogonal
+  `requiresStreamer` gate — an author who isn't a streamer sees the verb but
+  can't run it.
+
+### Verify status
+
+Static + unit verification all green: types build, server typecheck, gate lint,
+existing access/event/command/author suites (no regressions), the
+"every command YAML loads" check (covers `stream.yaml` + `requiresStreamer`),
+new `StreamState` + duration-parser tests, overlay typecheck + prod build.
+The live end-to-end smoke remains a manual step on a running stack:
+
+1. Server `.env`: `BROADCAST_TOKEN=<≥16-char secret>` and
+   `STREAMER_PLAYER_IDS=<your playerId>`; restart the server.
+2. Overlay `.env`: `VITE_SAXONBERG_WS=ws://localhost:2010` +
+   `VITE_BROADCAST_TOKEN=<same secret>`; run the overlay; open `/standby.html`.
+3. In-game as the streamer avatar: `stream away 15m` → standby countdown
+   updates live; `stream back` → clears. Confirm a broadcast connection can't
+   run a real command and is never delivered DMs/private channels.

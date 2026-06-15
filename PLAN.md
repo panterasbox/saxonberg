@@ -134,7 +134,7 @@ Rules:
 Each phase is end-to-end. 🔒 = server-side, needs owner approval before implementation.
 
 - **Phase 0 ✅** — Standby overlay vertical slice (done; proves the engine + composition + tokens).
-- **Phase 1 🔒** — *Make the countdown real.* Broadcast token auth (`service:broadcast`), minimal `BroadcastFeed` pushing `StreamState` (incl. `awayUntil`); wire `useAwayTimer` to it. Smallest possible proof of auth + feed + the whole loop.
+- **Phase 1 ✅** — *Make the countdown real.* Broadcast token auth (`service:broadcast`), minimal `BroadcastFeed` pushing `StreamState` (incl. `awayUntil`); wire `useAwayTimer` to it. Smallest possible proof of auth + feed + the whole loop. *(Built — server: `StreamState` singleton + `stream-state` envelope + `?broadcast=` auth + `BroadcastFeed` + `requiresStreamer`/`streamers` group + `stream away`/`back`; overlay: `useStreamState` WS client → `useAwayTimer`. Live smoke pending a running stack — see `docs/phase-1-server-spec.md`.)*
 - **Phase 2 🔒** — *Public chat over the feed.* Forward `world.chat.message`; build the chat lower-third off `payload`.
 - **Phase 3** — *Control plane.* `StreamState`-mutating commands (scene / lower-third / afk) drivable from CLI → then React streamer-mode → then Stream Deck (`pblive` `OverlayController`).
 - **Phase 4** — *World Ticker + Agent Board.*
@@ -149,7 +149,7 @@ Phase 1 is explicitly designed so the feed extends toward inbound viewer command
 
 ## 9. Open decisions
 
-- 🔒 **Approve Phase-1 server changes** (broadcast token mechanism, `BroadcastFeed`, `StreamState`) — owner gates all saxonberg server work. Implement behind a config flag echoing the existing `AUTH_MODE` pattern.
+- ✅ **Phase-1 server changes approved + built** (broadcast token mechanism, `BroadcastFeed`, `StreamState`) — enabled behind the `BROADCAST_TOKEN` env flag (echoing the `AUTH_MODE` pattern). See `docs/phase-1-server-spec.md` for the resolved decisions.
 - **Twitch vs YouTube** as the broadcast platform — still open; native-HUD interactivity makes it non-blocking for the app, but it affects the chat bridge and account-linking.
 - **Latency model** for HUD/interaction (act-on-live vs delay-to-video) — per-feature, decide as we build the HUD.
 - Banner final tuning + pennant/normal-map polish.
