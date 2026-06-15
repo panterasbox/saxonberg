@@ -430,8 +430,14 @@ has-receiver, no address. Open: the **ambient aether field** uniform vs
 Not an ordering — the natural seams, to be sequenced when build strategy is
 discussed:
 
-- **Addressing foundation** — the namespace, anchors, the upward-walk,
-  off-grid resolution.
+- **Addressing foundation** — **shipped** (the namespace + the
+  Locality tier + the upward longest-prefix walk) →
+  [../../subsystems/address.md](../../subsystems/address.md). Carved to
+  exactly the weather-enabling core; resolves Q4 (named `address` /
+  `AddressApi` / `Locality`, `lib/address/`) and Q6 (the **Locality**
+  tier is reified, finer/coarser segments stay implied) for this unit.
+  Anchors + provider-grade off-grid remain deferred (they belong with
+  providers/conveyance, not the namespace).
 - **Providers + coverage + one *source* service end-to-end** (power or
   aether) — metering, presence-gating, the two-level override.
 - **The aether-line ↔ comms unification** (ambient field + municipal feed).
