@@ -116,6 +116,19 @@ export function ThermalRegulationMixin<TBase extends MixinConstructor>(
     private _shiverNoted = false;
     private _sweatNoted = false;
 
+    /**
+     * This host, typed for the sibling-mixin members the call-security
+     * proxy resolves at runtime. The cast is **load-bearing, not
+     * cosmetic**: the body composes `ThermalRegulation` over
+     * `Thermal`/`Metabolic`/`Vitals`/`Reserved` (inner) while `Container`/
+     * `Containable` wrap it from *outside*, so no single static `Base`
+     * type captures the full intersection — only the runtime proxy
+     * unifies it. Centralised here so the assertion lives in one place.
+     */
+    private get regHost(): RegulationHost {
+      return this as unknown as RegulationHost;
+    }
+
     // ---------- setters ----------
 
     public setSetpointK(value: number): void {
@@ -190,7 +203,7 @@ export function ThermalRegulationMixin<TBase extends MixinConstructor>(
         return;
       }
 
-      const self = this as unknown as Stuff;
+      const self = this.regHost;
       if (MixinApi.isHasInteractive(self) && self.isLinkdead()) {
         this.thermalRegStamp = nowS;
         return;
@@ -232,7 +245,7 @@ export function ThermalRegulationMixin<TBase extends MixinConstructor>(
      * regimes.
      */
     protected integrateThermalSlice(sliceSec: number): void {
-      const host = this as unknown as RegulationHost;
+      const host = this.regHost;
       const D = THERMAL_DEFAULTS;
       const ambient = this.effectiveAmbientK;
       const setpoint = this.setpointK;
@@ -310,7 +323,7 @@ export function ThermalRegulationMixin<TBase extends MixinConstructor>(
      * applied as a band-widening in `integrateThermalSlice`, not here.)
      */
     protected async effectiveAmbient(): Promise<Quantity<"K">> {
-      const host = this as unknown as RegulationHost;
+      const host = this.regHost;
       // `getContainer()` already returns `(Stuff & Container) | null`, so
       // the resolved scope needs no narrowing cast.
       const scope = host.getContainer();
@@ -345,7 +358,7 @@ export function ThermalRegulationMixin<TBase extends MixinConstructor>(
       // Occupied warming-slot warmth (a campfire log-seat). Read like
       // metabolism reads restQuality — `isSlottable` narrows in place.
       let warmth = 0;
-      const self = this as unknown as Stuff;
+      const self = this.regHost;
       if (MixinApi.isSlottable(self)) {
         const seat = self.getOccupiedHost();
         if (seat && MixinApi.isPostured(seat)) warmth = seat.getWarmth();
@@ -400,7 +413,7 @@ export function ThermalRegulationMixin<TBase extends MixinConstructor>(
      * death seam on lethal accrual. Mirrors metabolism's cascade.
      */
     protected reconcileThermalCascade(elapsedSec: number): void {
-      const host = this as unknown as RegulationHost;
+      const host = this.regHost;
       const D = THERMAL_DEFAULTS;
       const band = host.getVitalBand("coreTemperature");
       const core = this.readCore();
@@ -442,7 +455,7 @@ export function ThermalRegulationMixin<TBase extends MixinConstructor>(
     }
 
     protected ensureAffliction(path: string): AfflictionRecord {
-      const host = this as unknown as RegulationHost;
+      const host = this.regHost;
       const existing = this.findAffliction(path);
       if (existing) return existing;
       const rec: AfflictionRecord = {
@@ -457,7 +470,7 @@ export function ThermalRegulationMixin<TBase extends MixinConstructor>(
 
     /** Clear `path` once `value` re-enters `threshold` by the hysteresis margin. */
     protected clearAffliction(path: string, value: number, threshold: number): void {
-      const host = this as unknown as RegulationHost;
+      const host = this.regHost;
       const existing = this.findAffliction(path);
       if (existing && value >= threshold + THERMAL_DEFAULTS.CONDITION_CLEAR_MARGIN_K) {
         host.relieve(existing);
@@ -465,7 +478,7 @@ export function ThermalRegulationMixin<TBase extends MixinConstructor>(
     }
 
     protected findAffliction(path: string): AfflictionRecord | null {
-      const host = this as unknown as RegulationHost;
+      const host = this.regHost;
       for (const c of host.getConditions()) {
         if (c.kind === "affliction" && c.templatePath === path) return c;
       }
@@ -473,7 +486,7 @@ export function ThermalRegulationMixin<TBase extends MixinConstructor>(
     }
 
     protected applyDeath(cause: string): void {
-      const host = this as unknown as RegulationHost;
+      const host = this.regHost;
       if (host.getLifecycleState() === "dead") return;
       host.setCauseOfDeath(cause);
       host.setLifecycleState("dead");
@@ -485,16 +498,16 @@ export function ThermalRegulationMixin<TBase extends MixinConstructor>(
       return this.innerVitalSign("coreTemperature").rawValue();
     }
     protected setCore(k: number): void {
-      const host = this as unknown as RegulationHost;
+      const host = this.regHost;
       host.setVitalSign("coreTemperature", Quantity.of(Math.max(0, k), "K"));
     }
 
     protected reserveCurrent(key: string): number {
-      return (this as unknown as Reserved).reserves[key]?.currentValue ?? 0;
+      return this.regHost.reserves[key]?.currentValue ?? 0;
     }
 
     protected strategy(): "endotherm" | "ectotherm" {
-      const host = this as unknown as RegulationHost;
+      const host = this.regHost;
       return (
         host.getSpecies()?.getBodyPlan()?.getThermalStrategy() ?? "endotherm"
       );
@@ -502,7 +515,7 @@ export function ThermalRegulationMixin<TBase extends MixinConstructor>(
 
     /** Worn-slot `clo` sum, expressed as a Kelvin band-widening. */
     protected wornInsulationKelvin(): number {
-      const self = this as unknown as Stuff;
+      const self = this.regHost;
       if (!MixinApi.isSlotted(self)) return 0;
       let clo = 0;
       // `getAllOccupants()` yields `Stuff & Slottable`; `isWearable`
@@ -522,7 +535,7 @@ export function ThermalRegulationMixin<TBase extends MixinConstructor>(
      * resistance); a heavier body drifts slower.
      */
     protected bodyTau(): number {
-      return (this as unknown as Thermal).getTau().rawValue();
+      return this.regHost.getTau().rawValue();
     }
 
     /** Wet-bulb temperature (K) — the simplified Stull approximation. */
@@ -549,7 +562,7 @@ export function ThermalRegulationMixin<TBase extends MixinConstructor>(
       this.emitCue("You're sweating.");
     }
     protected emitCue(text: string): void {
-      const host = this as unknown as Stuff;
+      const host = this.regHost;
       try {
         MessageApi.scene(host)
           .topic("world.sensation.interoception")

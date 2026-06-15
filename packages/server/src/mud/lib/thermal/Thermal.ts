@@ -210,6 +210,19 @@ export function ThermalMixin<TBase extends MixinConstructor>(Base: TBase) {
      */
     private _thermalReconciling = false;
 
+    /**
+     * This host, typed for the sibling-mixin members the call-security
+     * proxy resolves at runtime. The cast is **load-bearing, not
+     * cosmetic**: siblings like `Containable` are composed *outer* of
+     * this mixin on some stacks (the `Creature` body wraps `Container`/
+     * `Containable` around `Thermal`), so they are not in the static
+     * `Base` type — only the runtime proxy unifies them. Centralised here
+     * so the assertion lives in exactly one place instead of per method.
+     */
+    private get thermalHost(): ThermalHost {
+      return this as unknown as ThermalHost;
+    }
+
     // ---------- setters (invariants on the setter) ----------
 
     public setStampedTemperatureK(value: number): void {
@@ -275,10 +288,8 @@ export function ThermalMixin<TBase extends MixinConstructor>(Base: TBase) {
      * a vessel.
      */
     protected thermalCapacity(): number {
-      // ThermalHost is `Stuff & Tangible & Containable`, so it serves the
-      // MixinApi / MaterialApi calls directly; `isBulkable` narrows it in
-      // place for the contents path.
-      const self = this as unknown as ThermalHost;
+      // `isBulkable` narrows the host in place for the contents path.
+      const self = this.thermalHost;
       if (MixinApi.isBulkable(self) && self.hasInteriorBulk()) {
         const c = this.contentsCapacity(self);
         if (c > 0) return c;
@@ -325,7 +336,7 @@ export function ThermalMixin<TBase extends MixinConstructor>(Base: TBase) {
      * resolved immersion medium in Phase 2).
      */
     protected mediumConductivity(): number {
-      const self = this as unknown as Stuff;
+      const self = this.thermalHost;
       let tag: string;
       if (MixinApi.isSealable(self) && !self.isOpen()) {
         tag = "vacuum";
@@ -344,7 +355,7 @@ export function ThermalMixin<TBase extends MixinConstructor>(Base: TBase) {
     /** Series heat-exchange resistance `R` (K/W). */
     protected effectiveR(): number {
       const D = THERMAL_DEFAULTS;
-      const self = this as unknown as Stuff;
+      const self = this.thermalHost;
       const kMedium = this.mediumConductivity();
       const mat = MaterialApi.materialOf(self);
       const kWall =
@@ -373,7 +384,7 @@ export function ThermalMixin<TBase extends MixinConstructor>(Base: TBase) {
 
       // Linkdead freeze (only meaningful for an interactive body, but
       // cheap and uniform): re-stamp, integrate nothing.
-      const self = this as unknown as Stuff;
+      const self = this.thermalHost;
       if (MixinApi.isHasInteractive(self) && self.isLinkdead()) {
         this.thermalClockStamp = nowS;
         return;
@@ -420,24 +431,20 @@ export function ThermalMixin<TBase extends MixinConstructor>(Base: TBase) {
      * path. Seeds `lastAmbientK` at first placement.
      */
     public async restamp(): Promise<void> {
-      const self = this as unknown as Stuff;
       // Freeze current T under the OLD ambient first (drift up to now).
       this.reconcileThermal();
 
-      // Resolve the new scope's ambient. `isContainable` narrows `self`,
-      // and `getContainer()` already returns `(Stuff & Container) | null`
-      // — no further casts needed.
+      // Resolve the new scope's ambient. The host is `Containable`, and
+      // `getContainer()` already returns `(Stuff & Container) | null`.
       let ambientK = this.lastAmbientK;
-      if (MixinApi.isContainable(self)) {
-        const container = self.getContainer();
-        if (container !== null) {
-          try {
-            ambientK = (
-              await BiomeApi.resolveTemperatureFor(container)
-            ).rawValue();
-          } catch {
-            // keep the cached ambient on any resolution failure
-          }
+      const container = this.thermalHost.getContainer();
+      if (container !== null) {
+        try {
+          ambientK = (
+            await BiomeApi.resolveTemperatureFor(container)
+          ).rawValue();
+        } catch {
+          // keep the cached ambient on any resolution failure
         }
       }
       this.lastAmbientK = ambientK;
