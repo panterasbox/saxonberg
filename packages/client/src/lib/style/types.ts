@@ -24,6 +24,19 @@ export interface BucketResolver {
 }
 
 /**
+ * Font register roles — the three-voice typography model:
+ * **serif = the world speaks · sans = the app chrome · mono = you +
+ * the machine.** A register is resolved from a frame's `topic` (via
+ * the same longest-prefix cascade as topic treatments) and then mapped
+ * to a CSS font-family stack through {@link Theme.fontRoles}.
+ *
+ * This is client-presentation only — it is NOT a wire type. The server
+ * never names a register; classification lives entirely in the
+ * client `Theme.registers` table keyed off the existing `Frame.topic`.
+ */
+export type FontRole = 'narrative' | 'chrome' | 'command';
+
+/**
  * A theme is a stylesheet bundle — default treatments across every
  * selector kind the engine recognizes. The user overlay layers on
  * top via `Stylesheet`'s cascade order (theme → overlay → plain).
@@ -62,4 +75,23 @@ export interface Theme {
 
   /** Mention treatments — self-match vs other-match. */
   mention: { match: StyleTreatment; other: StyleTreatment };
+
+  /**
+   * Explicit topic-prefix → font register. Resolved by the **same
+   * longest-prefix cascade** as {@link Theme.topic} treatments (deepest
+   * matching prefix wins); unmapped topics default to `'command'`
+   * (mono). This is the register-classification table — keyed off the
+   * existing `Frame.topic`, NOT a wire field. Font-by-register is a
+   * treatment on the existing topic cascade, expressed as a sibling
+   * table, not a parallel prefix-checking mechanism.
+   */
+  registers: Record<string, FontRole>;
+
+  /**
+   * Register role → CSS font-family stack. The swappable-faces layer:
+   * re-skinning a register (e.g. narrative serif → Literata) is editing
+   * one entry here plus dropping the woff2 in — no controller, topic,
+   * template, or content change.
+   */
+  fontRoles: Record<FontRole, string>;
 }

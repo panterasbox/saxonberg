@@ -75,8 +75,37 @@ describe('Default theme — basic shape', () => {
     // Per-tag treatment (StrongSpan = bold, EmSpan = italic, etc.) is
     // baked into the renderer. The theme tables are present for
     // future divergence but stay empty in v1 so per-word markers
-    // don't get erased by frame-level claims.
+    // don't get erased by frame-level claims. Font-by-register adds
+    // SIBLING fields (registers / fontRoles), NOT topic/element
+    // entries — so this invariant is unaffected.
     expect(DEFAULT_THEME.element).toEqual({});
     expect(DEFAULT_THEME.topic).toEqual({});
+  });
+});
+
+describe('Both themes expose font registers + role tokens', () => {
+  for (const theme of [DEFAULT_THEME, HIGH_CONTRAST_THEME]) {
+    describe(theme.name, () => {
+      it('declares all three FontRole face stacks', () => {
+        for (const role of ['narrative', 'chrome', 'command'] as const) {
+          expect(typeof theme.fontRoles[role]).toBe('string');
+          expect(theme.fontRoles[role].length).toBeGreaterThan(0);
+        }
+      });
+
+      it('narrative and command faces differ (serif vs mono)', () => {
+        expect(theme.fontRoles.narrative).not.toBe(theme.fontRoles.command);
+      });
+
+      it('the register table maps world prose to narrative, system to command', () => {
+        expect(theme.registers['world.speech']).toBe('narrative');
+        expect(theme.registers['system']).toBe('command');
+      });
+    });
+  }
+
+  it('both themes share the identical register mapping (orthogonal to contrast)', () => {
+    expect(HIGH_CONTRAST_THEME.registers).toEqual(DEFAULT_THEME.registers);
+    expect(HIGH_CONTRAST_THEME.fontRoles).toEqual(DEFAULT_THEME.fontRoles);
   });
 });

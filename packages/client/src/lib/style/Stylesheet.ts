@@ -31,6 +31,7 @@ import type {
   StyleTreatment,
   Theme,
   BucketResolver,
+  FontRole,
 } from './types';
 
 interface StylesheetOptions {
@@ -158,6 +159,39 @@ export class Stylesheet {
       return this.resolveMentionRule('other');
     }
     return this.resolveMentionRule(isSelf ? 'match' : 'other');
+  }
+
+  /**
+   * Font-family stack for a frame topic. Longest-prefix cascade over
+   * the theme's `registers` table — the **same walk** `topicTreatment`
+   * uses — resolved through the `fontRoles` role→family token table.
+   * Defaults to the `command` (mono) role when no prefix matches (the
+   * conservative MUD-throwback default).
+   *
+   * Deliberately does NOT honor `isPlain()`: plain mode collapses
+   * *decorative* treatments (color / weight / italic) to identity, but
+   * font register is a legibility/structural choice and the failsafe
+   * message string is unchanged regardless — so reader sovereignty is
+   * intact (the string is complete; font is presentation only) without
+   * forcing plain-mode readers back into mono. (Reversible: to make
+   * plain mode full-mono, return `this.theme.fontRoles.command` when
+   * `this.isPlain()`.)
+   */
+  fontFamilyForTopic(topic: string): string {
+    return this.theme.fontRoles[this.registerForTopic(topic)];
+  }
+
+  /** Longest-prefix cascade over `theme.registers` — deepest matching
+   *  prefix wins; `command` (mono) on a miss. Mirrors `topicTreatment`. */
+  private registerForTopic(topic: string): FontRole {
+    let role: FontRole = 'command';
+    const segments = topic.split('.');
+    for (let depth = 1; depth <= segments.length; depth++) {
+      const prefix = segments.slice(0, depth).join('.');
+      const mapped = this.theme.registers[prefix];
+      if (mapped) role = mapped; // deeper prefix overrides shallower
+    }
+    return role;
   }
 
   private resolveMentionRule(kind: 'match' | 'other'): StyleTreatment {

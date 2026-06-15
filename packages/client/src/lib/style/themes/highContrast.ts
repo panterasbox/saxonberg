@@ -6,6 +6,7 @@
  */
 
 import type { Theme } from '../types';
+import { BASE_REGISTERS, BASE_FONT_ROLES } from './registers';
 
 export const HIGH_CONTRAST_THEME: Theme = {
   name: 'high-contrast',
@@ -58,4 +59,8 @@ export const HIGH_CONTRAST_THEME: Theme = {
     },
     other: { fg: '#ffffff', weight: 'bold' },
   },
+  // Identical font register mapping as the default theme — typography
+  // register is orthogonal to the contrast axis.
+  registers: BASE_REGISTERS,
+  fontRoles: BASE_FONT_ROLES,
 };
