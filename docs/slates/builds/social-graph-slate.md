@@ -4,7 +4,14 @@ Working slate for the social-graph layer — notification rules and
 bucket-keyed display verbosity over named lists of other characters.
 Built on top of recognition; consumed by comms.
 
-**Status — storage half SHIPPED.** The bucket *storage* + *membership
+> **Status: still a build — the relationship layer is unbuilt.** Only the
+> storage *substrate* shipped (see below); the feature this slate is
+> really about — per-bucket **notification policy**, per-viewer **display
+> verbosity / density-aware aggregation** (the "200-player tavern renders
+> manageably" thesis), and **recognition-state coupling** — has **not**
+> been built. Stays in `builds/`, not a deferred tail.
+
+**Storage half SHIPPED.** The bucket *storage* + *membership
 verbs* this slate originally proposed (`SocialBucket` shape,
 `SocialGraphApi`, the `bucket` verb family) shipped as `ContactsMixin`
 — per-Avatar named lists of durable identifiers, the `contacts` verb

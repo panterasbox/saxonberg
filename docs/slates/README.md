@@ -33,7 +33,7 @@ identification (substrate) + the viewer-aware naming step, graduated to
 [../subsystems/belief.md](../subsystems/belief.md). The two shipped slates
 moved to `tails/`, holding their deferred surface; the relationship layer
 remains a build.
-- [chronicle-slate](./builds/chronicle-slate.md) — the append-only
+- [chronicle-slate](./tails/chronicle-slate.md) *(tail)* — the append-only
   identity **ledger** (witnessed deeds + authored prologue claims) that
   every future identity readout (recognition, reputation, alignment,
   traits, achievements) projects from — the common dumb-store root the
