@@ -25,8 +25,13 @@ operational burden, not for scale.
   - **prod** — an *immutable* box: the server runs from a **Docker image
     built from a stable git tag**. No live editing; deploy = pull a new
     image + restart; rollback = a prior image tag.
-  - The dev box is the immediate target; prod follows when there's a
-    stable release to cut.
+  - **Current state (2026-06-15): only the dev box is stood up, and it
+    *is* the live public instance** — it serves players at the canonical
+    host **`mud.panterasbox.com`** (with `dev.saxonberg.panterasbox.net`
+    as an alias that redirects to it). The immutable prod box has not
+    been built yet; the prod material below (`deploy/prod/`, the
+    `/saxonberg/production` SSM tree, `build-image`/`deploy-prod`) is the
+    forward plan, not running infrastructure.
 - **No ALB, no CodeDeploy, no enterprise networking.** Those were the
   cost and complexity traps in the previous project (`panterasbot`).
 
@@ -48,6 +53,15 @@ instance. Most of that was scaffolding around a long-dead deployment.
 This deployment deletes all of it. See [Cost](#cost).
 
 ## Two instances: dev (mutable) vs prod (immutable)
+
+> **Reality check (2026-06-15):** this two-box design is the target
+> shape, but only **one** box exists today — the **dev** (mutable) box,
+> which doubles as the live public instance at `mud.panterasbox.com`.
+> There is no prod box and **no `/saxonberg/production` or
+> `/saxonberg/default` SSM tree** — only `/saxonberg/dev/*`, so
+> `materialize-env.sh production` would currently render an empty file.
+> The prod column below is the plan to execute when there's a stable
+> release to cut.
 
 The two boxes run the **same code** two different ways, because they
 have opposite jobs. This split is load-bearing — it's why the engine
@@ -90,7 +104,7 @@ is materialized from SSM in CI and shipped in (see *Configuration*).
 | Database | **MongoDB Atlas M0** (free) | Not self-hosted, not DocumentDB. The server tests are DB-free, but the running app needs `MONGODB_URI`. |
 | Secrets | **SSM Parameter Store** `SecureString` (free) | Flat keys: `MONGODB_URI`, `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GOOGLE_CALLBACK_URL`, `SESSION_SECRET`, … No Secrets Manager — nothing needs rotation. |
 | Client + docs | **Served by the Node app** (`CLIENT_DIST` → built bundle); docs additionally on GitLab Pages. | Single origin, so Caddy is a dumb TLS proxy and the client resolves its endpoints from `window.location`. |
-| DNS | Route 53 | `dev.saxonberg.panterasbox.net` (dev) / `saxonberg.panterasbox.net` (prod) → each box's static IP. Each env's `GOOGLE_CALLBACK_URL` matches its host. |
+| DNS | Route 53 | **Live (dev box):** `mud.panterasbox.com` (canonical) + `dev.saxonberg.panterasbox.net` (alias) → the box's static IP. **Planned prod:** its own host on its own IP. Each env's `CLIENT_URL` **and** `GOOGLE_CALLBACK_URL` must match the canonical host it serves — a mismatch breaks login (the `Secure`, host-scoped session cookie won't reach the WebSocket upgrade). |
 | Image registry | GitLab Container Registry | **prod only** — the prod box pulls the tagged release image with a deploy token. dev needs no registry (runs from the checkout). |
 
 ### The jumphost
@@ -347,16 +361,27 @@ Two layers, keyed off the deploy target (this mirrors the old
 `panterasbot` layout):
 
 ```
-/saxonberg/default/<KEY>        ← shared base, both instances
-/saxonberg/dev/<KEY>            ← dev-instance overlay
-/saxonberg/production/<KEY>     ← prod-instance overlay
+/saxonberg/default/<KEY>        ← shared base, both instances   (NOT YET CREATED)
+/saxonberg/dev/<KEY>            ← dev-instance overlay           (the only tree that exists today)
+/saxonberg/production/<KEY>     ← prod-instance overlay          (NOT YET CREATED)
 ```
+
+> **Reality (2026-06-15):** only `/saxonberg/dev/*` exists. There is no
+> `default` or `production` tree yet, so the dev overlay is currently
+> self-contained (it carries *all* keys, not just the differing ones)
+> and `materialize-env.sh production` would render an empty file. Since
+> the dev box is the live public instance, its host keys point at the
+> canonical host: `CLIENT_URL=https://mud.panterasbox.com` and
+> `GOOGLE_CALLBACK_URL=https://mud.panterasbox.com/auth/google/callback`.
+> Standing up prod means creating the `default` + `production` trees
+> (splitting shared keys into `default`).
 
 Keys are flat env-var names (`MONGODB_URI`, `SESSION_SECRET`, the
 `GOOGLE_*` set, `MONGODB_DATABASE`, `CLIENT_URL`). The script reads
 `default/` then the env tree, appending both; the later (env) value
 wins. Each instance's overlay carries the values that differ — most
-importantly `GOOGLE_CALLBACK_URL` and `MONGODB_DATABASE`. The
+importantly `GOOGLE_CALLBACK_URL`, `CLIENT_URL`, and `MONGODB_DATABASE`.
+The
 environment is chosen by the **CI job** (`deploy-dev` → `dev`,
 `deploy-prod` → `production`), not by the box — one deploy target maps
 to one tree, so the box can't self-select the wrong environment.
