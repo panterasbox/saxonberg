@@ -1,0 +1,16 @@
+# Asphyxiation — the anoxia affliction the respiration drain accrues
+# dwell-time on once `spo2` floors. Drowning (a hostile breathing medium)
+# or vacuum; the supply-exhausted tank suffocation shares it. Resolved by
+# air — reaching a breathable medium cancels the drain and the recovery
+# clears the affliction above the lethal floor. Sustained dwell at the
+# floor fires the death seam (cause-of-death `asphyxiation`).
+class: /lib/vitals/Condition
+hydratorClass: /lib/persistence/PersistentHydrator
+data:
+  name: asphyxiation
+  signature: []
+  progression: null
+  resolution:
+    by: air
+  observableSigns: [gasping, blue-lipped, unconscious]
+  contagion: null

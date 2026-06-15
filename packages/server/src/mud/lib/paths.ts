@@ -40,6 +40,11 @@ export const TemplatePaths = {
   rootBiome: "/lib/biome/universe",
   aetherImplant: "/lib/augmentation/AetherImplant",
 
+  // Hosted capability updates (aether hosting relation) — incorporeal
+  // Ideas cloned into an attunement host by the default loadout.
+  commsUpdate: "/lib/comms/CommsUpdate",
+  travelCredentialUpdate: "/lib/fasttravel/TravelCredentialUpdate",
+
   // Metabolism cascade conditions — the `floorEffect`-named `Condition`
   // Ideas the reconcile spawns/clears off a floored biological reserve.
   metabolismStarvation: "/lib/metabolism/conditions/starvation",
@@ -51,6 +56,10 @@ export const TemplatePaths = {
   thermalHypothermia: "/lib/thermal/conditions/hypothermia",
   thermalHyperthermia: "/lib/thermal/conditions/hyperthermia",
   thermalTorpor: "/lib/thermal/conditions/torpor",
+
+  // Respiration anoxia condition — the affliction the drain accrues
+  // dwell-time on toward the death seam (asphyxiation: drowning/vacuum).
+  respirationAsphyxiation: "/lib/respiration/conditions/asphyxiation",
 } as const;
 
 /**

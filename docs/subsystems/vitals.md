@@ -227,6 +227,12 @@ build shipped only the **seams** (metabolism is the first consumer):
   [thermal.md](./thermal.md). `getConsciousness()` →
   `conscious`/`unconscious`/`dead` from blood volume + SpO₂ + head trauma;
   unconsciousness gates animate verbs like death but is recoverable.
+- **`spo2` is now driven** — [respiration](./respiration.md) is the first
+  driver to move a vital sign to the death seam: its crisis drain lowers
+  `spo2` (the consciousness-blackout below `survivableMin` falls out for
+  free, this seam reused untouched), spawns the `asphyxiation` condition,
+  and fires the cause-of-death/lifecycle transition on sustained anoxia.
+  The other signs remain substrate-only, awaiting their drivers.
 
 ## Reserves
 

@@ -209,6 +209,26 @@ export default class Species extends SingletonMixin(
    */
   protected nameBankKeys: string[] = [];
 
+  /**
+   * Gated mixins this species **intrinsically confers** (activates) —
+   * the *innate* leg of conferral, the mirror of `AugmentMixin.confers()`.
+   * `getActiveMixins` / `collectAugmentConferralNames` union these names
+   * with the actor's slot-augment conferrals, so a gated mixin is active
+   * when composed AND (an augment confers it OR the species confers it).
+   * A born-attuned species declares `['AetherMixin']`, giving attunement
+   * with no implant — the same innate⊕acquired union the sensorium does
+   * for bodyplan senses and `defaultModeFor` does for locomotion.
+   *
+   * **Scope**: this *activates a gated mixin already composed on the
+   * shared `Creature`/`Avatar` class* — it cannot compose a new mixin
+   * onto an instance (the compose-everything-gated vs. per-species-
+   * subclass question is deferred; nothing needs it yet).
+   *
+   * Home is `Species`, not `BodyPlan` — a capability divergence among
+   * species sharing a body plan.
+   */
+  protected innateMixins: string[] = [];
+
   static persistentFields = [
     'binomial',
     'commonNames',
@@ -226,6 +246,7 @@ export default class Species extends SingletonMixin(
     'olfactoryProfile',
     'vitalProfile',
     'nameBankKeys',
+    'innateMixins',
   ];
   // `shortDescription` / `longDescription` (the species' generic
   // appearance) come from VisibleMixin's own persistentFields. The
@@ -374,6 +395,19 @@ export default class Species extends SingletonMixin(
       throw new TypeError('Species.setNameBankKeys: must be a string array');
     }
     this.nameBankKeys = value;
+  }
+
+  public getInnateMixins(): readonly string[] { return this.innateMixins; }
+  public setInnateMixins(value: string[]): void {
+    if (!Array.isArray(value)) {
+      throw new TypeError('Species.setInnateMixins: must be a string array');
+    }
+    // Per-field invariant: dedup + drop empties (authored data may
+    // carry duplicates or stray whitespace-only entries).
+    const cleaned = value
+      .map((s) => (typeof s === 'string' ? s.trim() : ''))
+      .filter((s) => s.length > 0);
+    this.innateMixins = [...new Set(cleaned)];
   }
 
   /**

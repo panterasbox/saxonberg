@@ -30,6 +30,8 @@ import type { Mobile } from '../lib/spatial/Mobile';
 import type { Sensor } from '../lib/message/Sensor';
 import type { Vocal } from '../lib/message/Vocal';
 import type { Aether } from '../lib/message/Aether';
+import type { AetherHosted } from '../lib/augmentation/AetherHosted';
+import type { Comms } from '../lib/comms/Comms';
 import type { Named } from '../lib/description/Named';
 import type { Gendered } from '../lib/character/Gendered';
 import type { Visible } from '../lib/description/Visible';
@@ -68,6 +70,7 @@ import type { Reserved } from '../lib/reserve';
 import type { LoadBearing } from '../lib/encumbrance/LoadBearing';
 import type { Metabolic } from '../lib/metabolism/Metabolic';
 import type { Thermal } from '../lib/thermal/Thermal';
+import type { Respiration } from '../lib/respiration/Respiration';
 import type { Radioactive } from '../lib/material/Radioactive';
 import type { Workspace } from '../lib/shell/Workspace';
 import type { Author } from '../lib/shell/Author';
@@ -120,6 +123,13 @@ interface MixinClass {
   _mixinName?: string;
   name?: string;
   persistentFields?: string[];
+  /**
+   * Modalities a mixin contributes to the sensorium when active.
+   * Declared here (a known mixin static marker) so consumers —
+   * `PerceptionLogic.walkAugmentedModalities` — read it off the
+   * `getActiveMixins` result without a structural cast.
+   */
+  _grantsModalities?: readonly string[];
   prototype: unknown;
 }
 
@@ -490,6 +500,14 @@ export class MixinApi {
     return this.hasMixin(obj, Mixins.Aether);
   }
 
+  public static isAetherHosted(obj: Stuff): obj is Stuff & AetherHosted {
+    return this.hasMixin(obj, Mixins.AetherHosted);
+  }
+
+  public static isComms(obj: Stuff): obj is Stuff & Comms {
+    return this.hasMixin(obj, Mixins.Comms);
+  }
+
   public static isNamed(obj: Stuff): obj is Stuff & Named {
     return this.hasMixin(obj, Mixins.Named);
   }
@@ -666,6 +684,10 @@ export class MixinApi {
 
   public static isThermal(obj: Stuff): obj is Stuff & Thermal {
     return this.hasMixin(obj, Mixins.Thermal);
+  }
+
+  public static isRespiration(obj: Stuff): obj is Stuff & Respiration {
+    return this.hasMixin(obj, Mixins.Respiration);
   }
 
   public static isRadioactive(obj: Stuff): obj is Stuff & Radioactive {
@@ -1011,14 +1033,17 @@ export class MixinApi {
 
 
 /**
- * Walk `stuff`'s slot occupants (when it composes SlottedMixin) and
- * collect every mixin-name conferred by an installed augment. Used
- * by `getActiveMixins` to resolve gated mixins' activation state.
+ * Collect every gated-mixin name *conferred* onto `stuff`, from BOTH
+ * conferral sources — the innate⊕acquired union:
+ *   - **acquired**: installed slot augments (`AugmentMixin.confers()`),
+ *     walked via the SlottedMixin `getAllOccupants` surface;
+ *   - **innate**: the actor's species (`Species.innateMixins`), reached
+ *     via the structural `getSpecies()` surface.
  *
- * Non-Slotted hosts have no augments — returns an empty set.
- *
- * Imported lazily to avoid a startup cycle through `SlotApi`; the
- * indirection costs nothing once warm.
+ * Used by `getActiveMixins` to resolve gated mixins' activation state.
+ * A non-Slotted host simply contributes no augment names; a host with
+ * no species contributes no innate names. Both surfaces are duck-typed
+ * to avoid a startup import cycle through `SlotApi` / `Species`.
  */
 function collectAugmentConferralNames(stuff: Stuff): Set<string> {
   const out = new Set<string>();
@@ -1031,28 +1056,51 @@ function collectAugmentConferralNames(stuff: Stuff): Set<string> {
     getAllOccupants?: () => ReadonlyMap<string, ReadonlySet<Stuff>>;
   };
   const getter = slotted.getAllOccupants;
-  if (typeof getter !== 'function') return out;
-  let occupantsByslot: ReadonlyMap<string, ReadonlySet<Stuff>>;
-  try {
-    occupantsByslot = getter.call(stuff);
-  } catch {
-    return out;
-  }
-  for (const occupantSet of occupantsByslot.values()) {
-    for (const occupant of occupantSet) {
-      if (!MixinApi.hasMixin(occupant, 'AugmentMixin' as MixinName)) continue;
-      const augment = occupant as unknown as {
-        confers?: () => readonly string[];
-      };
-      if (typeof augment.confers !== 'function') continue;
-      let names: readonly string[];
-      try {
-        names = augment.confers();
-      } catch {
-        continue;
-      }
-      for (const name of names) out.add(name);
+  if (typeof getter === 'function') {
+    let occupantsByslot: ReadonlyMap<string, ReadonlySet<Stuff>> | undefined;
+    try {
+      occupantsByslot = getter.call(stuff);
+    } catch {
+      occupantsByslot = undefined;
     }
+    if (occupantsByslot) {
+      for (const occupantSet of occupantsByslot.values()) {
+        for (const occupant of occupantSet) {
+          if (!MixinApi.hasMixin(occupant, 'AugmentMixin' as MixinName)) {
+            continue;
+          }
+          const augment = occupant as unknown as {
+            confers?: () => readonly string[];
+          };
+          if (typeof augment.confers !== 'function') continue;
+          let names: readonly string[];
+          try {
+            names = augment.confers();
+          } catch {
+            continue;
+          }
+          for (const name of names) out.add(name);
+        }
+      }
+    }
+  }
+  // Intrinsic (innate) conferral: union the actor's species
+  // `innateMixins`, the mirror of `AugmentMixin.confers()`. Reached by
+  // the same structural-shape lookup as `getAllOccupants` to avoid an
+  // import cycle through Species. A born-attuned species confers
+  // `AetherMixin` with no implant. Hot-path cost is one `getSpecies()`
+  // templatePath lookup, run only when a gated mixin is hit.
+  const speciesHost = stuff as unknown as {
+    getSpecies?: () => { getInnateMixins?: () => readonly string[] } | null;
+  };
+  if (typeof speciesHost.getSpecies === 'function') {
+    let innate: readonly string[] | undefined;
+    try {
+      innate = speciesHost.getSpecies()?.getInnateMixins?.();
+    } catch {
+      innate = undefined;
+    }
+    if (innate) for (const name of innate) out.add(name);
   }
   return out;
 }

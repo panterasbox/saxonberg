@@ -78,10 +78,17 @@ The active-mixin substrate query:
 active set = {
   m | hasMixin(stuff, m) AND (
     NOT m._augmentGated  OR
-    exists augment in slots with m._mixinName in augment.confers()
+    exists augment in slots with m._mixinName in augment.confers()  OR
+    m._mixinName in stuff.getSpecies().innateMixins
   )
 }
 ```
+
+The conferral set is the **innate⊕acquired union**: a gated mixin is
+active when composed AND (a slot augment confers it **OR** the actor's
+species confers it intrinsically — see *Species intrinsic conferral*
+below). This mirrors what the sensorium already does for bodyplan senses
+and `defaultModeFor` does for the bodyplan locomotion tier.
 
 For un-gated mixins the behavior is identical to today's
 `hasMixin`. For gated ones the predicate reflects the
@@ -128,11 +135,14 @@ equivalent inlined check) is the late-catch for any direct caller
 programmatically).
 
 **Implementation note:** TS decorator syntax (TS1206) doesn't apply
-inside the class expression returned from a class-factory mixin
-under the current tsc. v1 inlines the same check at the top of
-`AetherMixin.tell` as a workaround; the decorator stays the
-canonical form for non-mixin call sites and may apply on
-mixin-member methods when the toolchain lifts the restriction.
+inside the *class expression* returned from a class-factory mixin, but
+it DOES apply on a *named class declaration* the factory then returns
+(`class Foo extends Base { … } return Foo;`) — `AetherMixin` and
+`CommandGiverMixin` use that form for their `@Final @Unshadowable`
+chokepoints. The transmission guard moved to `CommsMixin.tell` (the
+hosted comms update), which checks its operator (`getHost()`) is an
+aether host. The decorator stays the canonical form for non-mixin call
+sites.
 
 ## The cranial slot
 
@@ -168,12 +178,19 @@ export class AetherImplant
 ```
 
 Hardened per the slate: no power state, no failure modes, no fuel.
-Diegetically a small brass-and-silicon device. Every Avatar
-installs one in the cranial slot via `Avatar.installDefaultLoadout`,
-dispatched from `postRegister` during the clone cascade (runs once
-per clone = once per session, since the runtime Avatar is destructed
-at logout). Idempotent on a single clone: re-entry on an Avatar
-already carrying anything cranial is a no-op.
+Diegetically a small brass-and-silicon device. The implant is purely
+the **attunement conferrer** now — it no longer carries the travel
+credential directly (that became a hosted `TravelCredentialUpdate`).
+
+`Avatar.installDefaultLoadout` (dispatched from `postRegister` during
+the clone cascade, once per session) keys off **whether the avatar is
+attuned by any source**: if `AetherMixin` isn't already active (a
+born-attuned species confers it intrinsically — see below), it occupies
+the implant in the cranial slot to confer it; otherwise it skips the
+implant. Either way the avatar is now an `AetherHost`, so the loadout
+injects the two default updates (comms + the travel credential) onto it.
+Idempotency keys off **"already hosts a comms update"** — correct for
+both the implanted and born-attuned paths.
 
 ## How other augment kinds plug in (substrate proof)
 
@@ -191,6 +208,86 @@ framework change, only:
 1. a new Thing template composing `AugmentMixin` whose `confers`
    names the relevant mixin, and
 2. that mixin declaring its grants.
+
+## The three-base capability model + the aether hosting relation
+
+> **Canonical statement.** A **capability is a mixin bundle
+> manifestable around three bases** — a corporeal **`Thing`** (carried),
+> an incorporeal **`Idea`** (an *update* hosted on aether attunement),
+> or **intrinsically** on a Creature / species — and **one reachability
+> scan (`ContainmentApi.findReachable`) finds it in any form.**
+
+`AetherMixin` is no longer a comms-carrying mixin: it is the aether
+**host**. *Attunement* is the conferred (implant) or intrinsic (species)
+capability whose payload is a host that aether `Idea`s (updates) plug
+into. Comms and the travel credential are hosted updates; the physical
+`TravelCard` (and a future radio) are their corporeal twins.
+
+### The hosting relation (distinct from containment)
+
+- **Update side** — `AetherHostedMixin` (`lib/augmentation/AetherHosted.ts`)
+  composes around an `Idea`: a `getHost()`/`setHost()` back-ref and the
+  must-be-hosted invariant. The capability mixin (`CommsMixin`,
+  `TravelCredentialMixin`) co-composes on the same update class
+  (`CommsUpdate`, `TravelCredentialUpdate`).
+- **Host side** — `AetherMixin` carries `_hostedUpdates` (the
+  source-of-truth collection) and the sealed chokepoints
+  `hostUpdate` / `unhostUpdate` (`@Final @Unshadowable`).
+  `hostUpdate` pushes + back-refs + notifies command routing;
+  `unhostUpdate` removes + retires contributions + **destroys an
+  orphaned update** (the must-be-hosted invariant).
+- **The invariant lives on the relation, NOT on `Idea`.** A bare `Idea`
+  (Biome / Zone / Controller) composes no `AetherHostedMixin` and is
+  unaffected — it stays free-standing-capable. There is **no hosting
+  Api**: the relation is orchestrated by the host mixin methods plus
+  `findReachable` for lookups (a narrow `IdeaHost` mixin would graduate
+  only if a *second* incorporeal-host concept appears).
+- **Lifecycle** — a hosted update is host-bound: `AetherMixin`'s
+  `cleanupOnDestruct` destroys every hosted update when the host dies
+  (Avatar logout), mirroring how the implant clone died with the avatar.
+
+### Reachability: the self + host-descent legs
+
+`ContainmentApi.findReachable` gained two legs on top of the slot →
+inventory → location walk, preserving on-your-person-first order:
+
+1. **Self leg** — `predicate(actor)` (a capability composed directly on
+   the actor / its species).
+2. **Descend-into-host leg** — for the actor itself and each carried /
+   slotted attuned host, also test its hosted updates (the implant-hosted
+   comms / credential on self; the future carried radio's comms).
+
+One scan finds the capability whether it is a carried `Thing`, a hosted
+update, or composed intrinsically. The helper stays a thin
+first-match-by-type scan — **not** a query engine; anything keyed on
+identity / keywords / filtering / live results belongs to MQL. The
+host-descent leg is bounded to a single concept and a single level; do
+not teach `findReachable` another leg.
+
+### The contribution walks generalize (no parallel path)
+
+The surfaces that already aggregate slotted-augment contributions extend
+to include a host's hosted updates:
+
+- **Command-source** — `CommandApi.collectHostedUpdateDefs` +
+  `applyHostedUpdateDelta` push each hosted update's `self`-bucket verbs
+  onto the host's recency stack with the update as `commandSource`.
+  `CommandGiverMixin` seeds them in `postRegister` and the lazy
+  `_ensureSelfEntry` safety net; host/unhost surfaces/retires them live
+  (gain-/lose-post-spawn).
+- **Sensorium** — `walkAugmentedModalities` unions `_grantsModalities`
+  from the host's hosted updates' active mixins. Substrate-only in v1
+  (no update grants a modality; attunement does).
+
+### Species intrinsic conferral (the innate leg)
+
+`Species` declares `innateMixins: string[]` — authored data, the mirror
+of `AugmentMixin.confers()`. `collectAugmentConferralNames` unions it
+with slot-augment conferral, so a born-attuned species activates
+`AetherMixin` with no implant. **Scope**: this *activates a gated mixin
+already composed on the shared `Creature`/`Avatar` class* — it cannot
+compose a new mixin onto an instance (deferred). A throwaway test
+species (`homo/sensitivus`) exercises the path.
 
 ## Wave 1 boundary
 
@@ -215,10 +312,14 @@ What's reserved for Wave 2+ (see slate):
 - Magic-flavor augments.
 - The generalized "contribute capability" surface beyond modality
   grants (verbs, motor, vital functions).
-- Methods / state CONFERRED by augments — today they live on the
+- ~~Methods / state CONFERRED by augments — today they live on the
   natively composed mixin, with the augment acting as the activation
   flag. Future refactor moves AetherMixin off Avatar and onto the
-  implant Stuff itself (verb dispatch routes through the augment).
+  implant Stuff itself (verb dispatch routes through the augment).~~
+  **Realized (capability-hosting build):** the comms capability moved
+  off `AetherMixin` onto a hosted `CommsUpdate`; verb dispatch routes
+  through the update as `commandSource`. See *The three-base capability
+  model* above. `AetherMixin` is now the host, not the carrier.
 
 ## Conventions
 
@@ -238,8 +339,15 @@ What's reserved for Wave 2+ (see slate):
 ```
 lib/augmentation/
 ├── Augment.ts                  AugmentMixin
-├── AetherImplant.ts      Wave 1 implant template
-└── __tests__/Augment.test.ts
+├── AetherHosted.ts             AetherHostedMixin (update side of hosting)
+├── AetherImplant.ts      Wave 1 implant template (attunement only)
+└── __tests__/Augment.test.ts, AetherHosted.test.ts
+
+lib/comms/
+├── Comms.ts                    CommsMixin (transmission, hosted update)
+└── CommsUpdate.ts              CommsMixin(AetherHostedMixin(Idea))
+
+lib/message/Aether.ts           AetherMixin = attunement + host side
 
 lib/security/
 ├── RequiresActive.ts           Decorator + InactiveCapabilityError
@@ -263,10 +371,31 @@ lib/mixin.ts                    Mixins.Augment registry constant
   quadruped body plans.
 - [slot.md](./slot.md) — the unified slot universe the cranial slot
   uses; no parallel `implantSlots` field.
-- [messaging.md](./messaging.md) — `AetherMixin.tell` is the v1
-  conferred capability; gated reception via per-frame
-  `meta.modality`.
+- [messaging.md](./messaging.md) — gated reception via per-frame
+  `meta.modality`; transmission now rides the hosted `CommsUpdate`.
+- [comms.md](./comms.md) — comms-as-update (`CommsMixin` on
+  `CommsUpdate`), `tell` sends from `getHost()`.
+- [fasttravel.md](./fasttravel.md) — credential-as-update
+  (`TravelCredentialUpdate`) + the `TravelCard` Thing twin.
 - [perception.md](./perception.md) — viewer-aware-query pattern;
   augment activations flow into the sensorium walk transparently.
 - [antipatterns.md](../antipatterns.md) — augment-modeling
   antipatterns this substrate forbids.
+
+## History
+
+Wave 1 (substrate + `AetherImplant`, 2026-06) shipped `AetherMixin` as
+a comms-*carrying* mixin composed natively on `Avatar`, gated active by
+the implant. The **capability-hosting build** (2026-06) then realized
+the reserved Wave-2 item — *"move AetherMixin off Avatar; verb dispatch
+routes through the augment"* — by introducing the **three-base
+capability model**: `AetherMixin` demoted to the aether *host* (host
+collection + ESP modalities), comms transmission moved out to a
+`CommsMixin` hosted on a `CommsUpdate` `Idea`, the travel credential
+became a `TravelCredentialUpdate` (the implant stopped carrying it), and
+`Species.innateMixins` added the intrinsic conferral leg. The plan
+proposed a possible `AetherHostApi`; implementation rejected it — the
+relation is orchestrated entirely by the `AetherMixin` host methods plus
+`ContainmentApi.findReachable`, per the no-new-Apis rule. See the
+`feat(augmentation): capability hosting` commit and its review-cleanup
+follow-up.

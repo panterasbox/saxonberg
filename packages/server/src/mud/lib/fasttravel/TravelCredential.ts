@@ -1,9 +1,12 @@
 /**
  * TravelCredentialMixin — the fast-travel credential: a registered-node
- * set plus the register/authorize surface, composed by BOTH a carryable
- * travel card (`/domain/common/tpa/TravelCard`) and a cranial-slot travel implant
- * (`/domain/common/tpa/TravelImplant`). State lives on the credential Stuff, which
- * is what makes the card transferable — lend the card, lend its routes.
+ * set plus the register/authorize surface. Base-agnostic (no corporeal
+ * assumption), so it composes around BOTH a carryable travel card Thing
+ * (`/domain/common/tpa/TravelCard`) and an incorporeal hosted update
+ * (`TravelCredentialUpdate`, a `TravelCredentialMixin(AetherHostedMixin(Idea))`
+ * injected into aether attunement by `Avatar.installDefaultLoadout`).
+ * State lives on the credential Stuff in either base — which is what
+ * makes the card transferable: lend the card, lend its routes.
  *
  * A node's network identity is its own singleton template path; the
  * registered set is a set of those paths. `register` writes one; the

@@ -340,6 +340,24 @@ export class CommandLogic extends Idea {
     applyShadowDeltaImpl(host, shadow, op);
   }
 
+  /** See {@link CommandApi.applyHostedUpdateDelta}. */
+  @CallSecurity(CommandApiCallers)
+  public applyHostedUpdateDelta(
+    host: Stuff,
+    update: Stuff,
+    op: 'host' | 'unhost'
+  ): void {
+    applyHostedUpdateDeltaImpl(host, update, op);
+  }
+
+  /** See {@link CommandApi.collectHostedUpdateDefs}. */
+  @CallSecurity(CommandApiCallers)
+  public collectHostedUpdateDefs(
+    host: Stuff
+  ): Array<{ source: Stuff; defs: CommandDefinition[] }> {
+    return collectHostedUpdateDefsImpl(host);
+  }
+
   /** See {@link CommandApi.createCommandContext}. */
   @CallSecurity(CommandApiCallers)
   public createCommandContext(
@@ -2164,6 +2182,40 @@ function applyShadowDeltaImpl(
     if (!MixinApi.isCommandGiver(sibling)) continue;
     (sibling as Stuff & CommandGiver).popCommandSource(shadow);
   }
+}
+
+function applyHostedUpdateDeltaImpl(
+  host: Stuff,
+  update: Stuff,
+  op: 'host' | 'unhost'
+): void {
+  if (!MixinApi.isCommandGiver(host)) return;
+  const cg = host as Stuff & CommandGiver;
+  if (op === 'host') {
+    // Keep `'self'` at index 0 — seed the giver's own self entry
+    // before layering the update's contributions on top.
+    cg._ensureSelfEntry();
+    const defs = collectBucketDefs(update.constructor, 'self');
+    if (defs.length > 0) cg.pushCommandSource(update, 'self', defs);
+    return;
+  }
+  cg.popCommandSource(update);
+}
+
+function collectHostedUpdateDefsImpl(
+  host: Stuff
+): Array<{ source: Stuff; defs: CommandDefinition[] }> {
+  // `isAether` is the composition check (and narrows `host` to an
+  // `AetherHost`). Transmission-time gating (attunement active) rides
+  // the validators / controller / `tell` guard, mirroring how
+  // augment-gated verbs surfaced-but-refused before this build.
+  if (!MixinApi.isAether(host)) return [];
+  const out: Array<{ source: Stuff; defs: CommandDefinition[] }> = [];
+  for (const u of host.getHostedUpdates()) {
+    const defs = collectBucketDefs(u.constructor, 'self');
+    if (defs.length > 0) out.push({ source: u, defs });
+  }
+  return out;
 }
 
 /** Path resolver for validator specs. See `CommandApi.resolveValidator`. */

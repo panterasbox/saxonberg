@@ -121,6 +121,16 @@ export class BiomeApi {
   }
 
   /**
+   * Whether a default air-breather exchanges gas in an atmosphere
+   * tag. Throws on unknown tag — the same validation seam as
+   * {@link BiomeApi.densityOf}. The respiration driver's medium
+   * trigger reads this: air-breathers drown in `water`/`vacuum`.
+   */
+  public static breathableOf(tag: string): boolean {
+    return logic().breathableOf(tag);
+  }
+
+  /**
    * Cached accessor for the root universe biome at `/lib/biome/`.
    * Used by chain step 6 (universe terminal) and by `Altimeter`'s
    * sea-level reference. Throws when the root biome isn't loaded —

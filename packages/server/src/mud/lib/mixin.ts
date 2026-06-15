@@ -35,6 +35,8 @@ export const Mixins = {
   Sensor: 'SensorMixin',
   Vocal: 'VocalMixin',
   Aether: 'AetherMixin',
+  AetherHosted: 'AetherHostedMixin',
+  Comms: 'CommsMixin',
   Perceptible: 'PerceptibleMixin',
   Detailed: 'DetailedMixin',
   Propertied: 'PropertiedMixin',
@@ -108,6 +110,7 @@ export const Mixins = {
   NutritionLabel: 'NutritionLabelMixin',
   Thermal: 'ThermalMixin',
   ThermalRegulation: 'ThermalRegulationMixin',
+  Respiration: 'RespirationMixin',
 } as const;
 
 /**

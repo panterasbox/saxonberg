@@ -178,6 +178,28 @@ export default class BodyPlan extends SingletonMixin(PropertiedMixin(Idea)) {
    */
   protected thermalStrategy: 'endotherm' | 'ectotherm' = 'endotherm';
 
+  /**
+   * The atmosphere tags this body plan exchanges gas in — the
+   * respiration driver's medium-trigger determinant. Default
+   * `['air']` (the air-breathing biped); a species **inverts** by
+   * authoring `['water']` (a fish drowns in air, breathes water).
+   * Sibling of {@link locomotionModes}. An empty array is the
+   * crisis-everywhere trap, NOT an opt-out — {@link respires} is the
+   * opt-out. Read via `getBreathableMedia()`; the engine resolves the
+   * surrounding medium against this set.
+   */
+  protected breathableMedia: string[] = ['air'];
+
+  /**
+   * Whether a body of this plan respires at all — the respiration
+   * opt-out. Default `true` (a body breathes unless authored
+   * otherwise). A `respires: false` plan (construct, undead, a corpse
+   * archetype) makes the respiration engine never engage a drain: no
+   * medium ever threatens it. Boolean noun-form field per the project
+   * rule (`isRespiring()` predicate getter, `setRespires()` setter).
+   */
+  protected respires: boolean = true;
+
   static persistentFields = [
     'name',
     'slots',
@@ -187,6 +209,8 @@ export default class BodyPlan extends SingletonMixin(PropertiedMixin(Idea)) {
     'bodyParts',
     'baseMass',
     'thermalStrategy',
+    'breathableMedia',
+    'respires',
   ];
 
   public getName(): string { return this.name; }
@@ -248,6 +272,41 @@ export default class BodyPlan extends SingletonMixin(PropertiedMixin(Idea)) {
   public getLocomotionModes(): readonly string[] { return this.locomotionModes; }
   public setLocomotionModes(value: string[]): void {
     this.locomotionModes = value;
+  }
+
+  public getBreathableMedia(): readonly string[] {
+    return this.breathableMedia;
+  }
+  public setBreathableMedia(value: string[]): void {
+    // Per-field invariant (the project rule): non-empty strings, no
+    // duplicates — the `assertUniqueNonEmpty` shape from LocomotionMode.
+    // (An EMPTY array is permitted and meaningful: a body that breathes
+    // *nothing*. The opt-out is `respires: false`, not `[]`.)
+    const seen = new Set<string>();
+    for (const v of value) {
+      if (typeof v !== 'string' || v.length === 0) {
+        throw new TypeError(
+          'BodyPlan.setBreathableMedia: entries must be non-empty strings',
+        );
+      }
+      if (seen.has(v)) {
+        throw new TypeError(
+          `BodyPlan.setBreathableMedia: duplicate entry '${v}'`,
+        );
+      }
+      seen.add(v);
+    }
+    this.breathableMedia = value;
+  }
+
+  public isRespiring(): boolean { return this.respires; }
+  public setRespires(value: boolean): void {
+    if (typeof value !== 'boolean') {
+      throw new TypeError(
+        `BodyPlan.setRespires: must be a boolean, got ${typeof value}`,
+      );
+    }
+    this.respires = value;
   }
 
   public getDefaultLocomotionMode(): string | null {

@@ -51,13 +51,14 @@ import { LoadBearingMixin } from '../encumbrance/LoadBearing';
 import { MetabolicMixin } from '../metabolism/Metabolic';
 import { ThermalMixin } from '../thermal/Thermal';
 import { ThermalRegulationMixin } from '../thermal/ThermalRegulation';
+import { RespirationMixin } from '../respiration/Respiration';
 import { DisguisableMixin } from '../disguise/Disguisable';
 import { Quantity } from '../quantity';
 
 // Body stack (inner → outer):
-//   Container + Containable + Disguisable + Visible + Metabolic + Vitals +
-//   Reserved + Posed + BodyPlanSlots + Slotted + Sexed + Organism + Named +
-//   Agent, with LoadBearing outermost.
+//   Container + Containable + Disguisable + Visible + Respiration +
+//   Metabolic + Vitals + Reserved + Posed + BodyPlanSlots + Slotted +
+//   Sexed + Organism + Named + Agent, with LoadBearing outermost.
 // DisguisableMixin sits outer of Visible (it scans worn slots and reads
 // shortDescription to resolve the masking presentation); Stuff's
 // getPresentation defers to it.
@@ -70,11 +71,21 @@ import { Quantity } from '../quantity';
 // LoadBearing so the encumbrance gauge keeps reading the reserve
 // surface metabolism populates (LoadBearing's endurance read dispatches
 // through the proxy to Metabolic's override).
-// ThermalMixin sits OUTER of Metabolic (it reads mass/material; the
-// Phase-2 ThermalRegulationMixin wraps it to drive coreTemperature) and
-// INNER of LoadBearing. A bare Creature is a plain Thermal object — a
+// RespirationMixin sits immediately OUTER of Metabolic — it drives
+// Vitals (`spo2`) only, reading the same vital surface. It is the first
+// concrete engagement producer: at runtime it narrows the Character-tier
+// Engaged/Mobile surfaces (the crisis drain + the move reassess). A bare
+// non-Character Creature carries the breathable config + engine but,
+// lacking an Engaged slot, holds no scheduled drain (the documented
+// degenerate — the proof drownable is a Character).
+// ThermalMixin sits OUTER of Respiration/Metabolic (it reads mass/material;
+// the Phase-2 ThermalRegulationMixin wraps it to drive coreTemperature)
+// and INNER of LoadBearing. A bare Creature is a plain Thermal object — a
 // corpse cools toward ambient (algor mortis) as a passive drift; the
 // living regulation layer (Phase 2) pins coreTemperature instead.
+// (Thermal and Respiration are independent: respiration is schedule-
+// driven and drives `spo2`; thermal overrides getVitalSign for
+// `coreTemperature` only — neither reads the other's sign.)
 // LoadBearingMixin sits outermost — the encumbrance gauge reads
 // Container + Slotted + Tangible (Agent) + Reserved + Vitals, so it
 // must compose outer of all of them (same placement logic as Vitals
@@ -86,13 +97,15 @@ const CreatureBase = LoadBearingMixin(
         VisibleMixin(
           ThermalRegulationMixin(
             ThermalMixin(
-              MetabolicMixin(
-                VitalsMixin(
-                  ReservedMixin(
-                    PosedMixin(
-                      BodyPlanSlotsMixin(
-                        SlottedMixin(
-                          SexedMixin(OrganismMixin(NamedMixin(Agent)))
+              RespirationMixin(
+                MetabolicMixin(
+                  VitalsMixin(
+                    ReservedMixin(
+                      PosedMixin(
+                        BodyPlanSlotsMixin(
+                          SlottedMixin(
+                            SexedMixin(OrganismMixin(NamedMixin(Agent)))
+                          )
                         )
                       )
                     )

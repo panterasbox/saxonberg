@@ -301,6 +301,16 @@ dominant `R` term in the Thermal capability's τ = R·C. See
 [thermal.md](./thermal.md).
 
 `BiomeApi.densityOf(tag)` reads the map; throws on unknown tag.
+
+A parallel **`breathable` column** (`ATMOSPHERE_BREATHABLE`: `air` true,
+`water`/`vacuum` false) is read via **`BiomeApi.breathableOf(tag)`** — the
+sibling of `densityOf`, throwing on unknown tags — the known-medium gate
+the [respiration](./respiration.md) driver's medium trigger consults (an
+air-breather drowns where it reads false). A third **`contaminant`
+column** (`ATMOSPHERE_CONTAMINANT`, all `null` in v1) is **laid unread**:
+the breathable≠safe / inhaled-toxin seam, gated on metabolism's
+toxin-burden — no reader ships, no engine consults it.
+
 `AtmosphericMixin.setAtmosphere(value)` accepts any string silently
 — validation is the read-side concern (the density lookup or the
 verb consumer's typed surface). If content authoring grows past the
