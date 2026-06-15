@@ -412,11 +412,15 @@ register table (`Theme.fontRoles`) and the UI design tokens
 (`components/ui/tokens.ts`) resolve through it, so a face swap is one
 edit there. The three-voice model is applied **across the whole client**,
 not just the transcript: `tokens.font.family` defaults to **sans** (the
-chrome voice — nav, tabs, inspection pane, start/char-gen screens, menus,
-buttons), `GlobalFonts` sets a `body` sans base for unstyled/portaled
-text, the command console (`CommandBar`) and `<pre>`/`<code>`
-(`MmlRenderer`) opt into **mono** (`tokens.font.mono` / `FACE_STACKS.mono`),
-and the transcript paints **serif**/**mono** per register. Faces are a
+chrome voice — nav, tabs, start/char-gen screens, menus, buttons, and the
+inspection-pane chrome: breadcrumbs, header, Refresh), `GlobalFonts` sets
+a `body` sans base for unstyled/portaled text, the command console
+(`CommandBar`) and `<pre>`/`<code>` (`MmlRenderer`) opt into **mono**
+(`tokens.font.mono` / `FACE_STACKS.mono`), and the transcript paints
+**serif**/**mono** per register. The **inspection-pane body** (its
+`Body` content — description, exits, contents) paints **serif** too, so
+the pane reads like the transcript's look frame while its surrounding
+chrome stays sans. Faces are a
 swappable default theme, not load-bearing: re-skinning narrative to
 Literata is editing the one `FACE_STACKS.serif` line plus dropping the
 woff2 in — no controller, topic, template, token, or content change.
