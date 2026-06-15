@@ -19,7 +19,6 @@ import { ThermalMixin } from "../Thermal";
 import { Quantity } from "../../quantity";
 import { WorldClockApi } from "../../../api/worldclock";
 import "../../../obj/WorldClockRegistry"; // register the registry class
-import { StuffApi } from "../../../api/stuff";
 import {
   makeStuff,
   makeStuffAtPath,
