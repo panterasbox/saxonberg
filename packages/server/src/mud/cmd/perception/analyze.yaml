@@ -47,3 +47,14 @@ subcommands:
         scope: ["reachable"]
         validators:
           - /lib/command/validators/mustBeContainer
+  address:
+    description: "Resolve the addressing namespace at a place: declared/inherited address, provenance, and the covering Locality (longest-prefix chain)"
+    controller: perception/AnalyzeAddressController
+    args:
+      - name: location
+        type: object
+        required: false
+        default: "here"
+        scope: ["reachable"]
+        validators:
+          - /lib/command/validators/mustBeContainer
