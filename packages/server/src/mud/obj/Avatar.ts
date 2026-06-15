@@ -17,6 +17,7 @@ import { EventApi } from "../api/event";
 import { TemplateApi } from "../api/template";
 import { StuffApi } from "../api/stuff";
 import { BeliefStoreApi } from "../api/belief";
+import { ChronicleApi } from "../api/chronicle";
 import { ContainmentApi } from "../api/containment";
 import { MixinApi } from "../api/mixin";
 import type { Containable } from "../lib/spatial/Containable";
@@ -358,6 +359,19 @@ export default class Avatar extends AvatarBase {
     // identification) into its in-memory belief store. Serves the naming
     // path from memory thereafter — no Mongo read on look/listing.
     await BeliefStoreApi.hydrate(this);
+
+    // First-arrival deed — minted once, ever. Called unconditionally
+    // (not gated on `opts.firstArrival`): the greeting flag only selects
+    // prose, while the `recordOnce` key is the dedup authority, so the
+    // first ever arrival mints and every re-login `enter` no-ops.
+    // `startingLocation` is non-null here (the throw above guarantees it).
+    await ChronicleApi.recordOnce(this, "first-arrival", {
+      kind: "deed",
+      template: "Arrived at {{ place | location }}.",
+      vars: { place: startingLocation },
+      where: startingLocation.getTemplatePath() ?? null,
+      tags: ["arrival"],
+    });
 
     // Welcome scene: actor frame at system.connection.established
     // carries the bootstrap payload the client needs.

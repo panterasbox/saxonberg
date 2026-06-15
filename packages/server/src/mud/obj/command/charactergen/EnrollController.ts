@@ -35,6 +35,7 @@ import { ContainmentApi } from "../../../api/containment";
 import { MixinApi } from "../../../api/mixin";
 import { SlotApi } from "../../../api/slot";
 import { TemplateApi } from "../../../api/template";
+import { ChronicleApi } from "../../../api/chronicle";
 import { Template } from "../../../lib/stuff/Template";
 import Avatar from "../../Avatar";
 import Login from "../../Login";
@@ -77,6 +78,9 @@ interface AspirationRosterEntry {
   label: string;
   description: string;
   bioSeed: string;
+  /** Author-trusted prologue lines the chronicle mints as `claim`s at
+   * enroll — distinct from `bioSeed`. */
+  claimSeeds?: { text: string; order: number }[];
   outfit: string[];
   /** Optional illustration URL; absent until image assets ship. */
   image?: string;
@@ -555,6 +559,23 @@ export default class EnrollController extends CommandController<EnrollModel> {
         }
       }
     }
+
+    // 5b. Seed the chronicle from the chosen aspiration — the prologue
+    //     (author-trusted `claim`s) plus a founding `deed`. Kept strictly
+    //     separate from the `bio` seed above; both read the same
+    //     aspiration, neither touches the other. The avatar is cloned +
+    //     registered (step 3), so `getTemplatePath()` resolves. The
+    //     founding deed is event-singular by trigger (enroll fires once
+    //     per character by construction), so it needs no dedup `key`.
+    await ChronicleApi.seedClaims(avatar, aspiration?.claimSeeds ?? []);
+    await ChronicleApi.recordDeed(avatar, {
+      template: "Enrolled as {{ name }}, {{ aspirationLabel }}.",
+      vars: {
+        name: draft.name,
+        aspirationLabel: aspiration?.label ?? "a newcomer",
+      },
+      tags: ["founding", "enroll"],
+    });
 
     // 6. Hand off to the avatar's session, then destruct Login.
     ConnectionApi.transfer(interactive, avatar);

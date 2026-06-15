@@ -33,6 +33,12 @@ identification (substrate) + the viewer-aware naming step, graduated to
 [../subsystems/belief.md](../subsystems/belief.md). The two shipped slates
 moved to `tails/`, holding their deferred surface; the relationship layer
 remains a build.
+- [chronicle-slate](./builds/chronicle-slate.md) — the append-only
+  identity **ledger** (witnessed deeds + authored prologue claims) that
+  every future identity readout (recognition, reputation, alignment,
+  traits, achievements) projects from — the common dumb-store root the
+  reputation / social-graph slates read. **Substrate shipped 2026-06**,
+  graduated to [../subsystems/chronicle.md](../subsystems/chronicle.md).
 - [recognition-slate](./tails/recognition-slate.md) *(tail)* — deferred
   recognition surface: player-set nicknames, memory decay, voice/scent
   recognition, the aether id-aug ambient trigger.
@@ -49,7 +55,8 @@ remains a build.
   not RPG" answer to CHA. **Game-design, deferred.**
 
 **Status:** recognition + identification substrate shipped → `belief.md`;
-social-graph relationship layer remains.
+chronicle ledger substrate shipped → `chronicle.md`; social-graph
+relationship layer remains.
 
 ### 2. NPCs
 *Where the personality lives.*
@@ -190,5 +197,4 @@ Behind the platform-vs-game-design line. Captured, not near-term.
 - [alignment-religion](./deferred-rpg/alignment-religion-slate.md) — alignment & religion (very preliminary).
 - [affiliation](./deferred-rpg/affiliation-slate.md) — guild / corp social organization (guild = the class system).
 - [spoiler](./deferred-rpg/spoiler-slate.md) — spoilers & secrets; deferred to the assessment system.
-- [breadcrumb](./deferred-rpg/breadcrumb-slate.md) — narrative-trace breadcrumbs; deferred until the advancement system.
 - [collision](./deferred-rpg/collision-slate.md) — **decomposed (resolved 2026-06-10):** intentional blocking → the npc-behavior "guards" brain; capacity + pushing → defer-til-content; diegetic prohibition is already ~80% in-engine. Retained for reference; not a standalone build.

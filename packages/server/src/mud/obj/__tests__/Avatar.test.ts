@@ -669,6 +669,7 @@ describe('Avatar', () => {
       const fakeLocation = {
         stuffId: 'pre-set-stuffId',
         getPresentation: () => 'somewhere',
+        getTemplatePath: () => null,
       } as never;
       const avatar = makeAvatar('enter-1');
       vi.spyOn(avatar, 'getContainer').mockReturnValue(fakeLocation);
@@ -727,6 +728,7 @@ describe('Avatar', () => {
       vi.spyOn(avatar, 'getContainer').mockReturnValue({
         stuffId: 's',
         getPresentation: () => 'somewhere',
+        getTemplatePath: () => null,
       } as never);
       const startSpy = vi
         .spyOn(avatar, 'startAutoSave')
@@ -758,6 +760,7 @@ describe('Avatar', () => {
       vi.spyOn(avatar, 'getContainer').mockReturnValue({
         stuffId: 's',
         getPresentation: () => 'somewhere',
+        getTemplatePath: () => null,
       } as never);
       vi.spyOn(avatar, 'startAutoSave').mockImplementation(() => {});
       const emitSpy = vi
@@ -816,6 +819,7 @@ describe('Avatar', () => {
       vi.spyOn(avatar, 'getContainer').mockReturnValue({
         stuffId: 's',
         getPresentation: () => 'somewhere',
+        getTemplatePath: () => null,
       } as never);
       vi.spyOn(avatar, 'startAutoSave').mockImplementation(() => {});
       vi.spyOn(EventApi, 'emit').mockImplementation(() => {});

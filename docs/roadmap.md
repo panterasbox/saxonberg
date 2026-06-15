@@ -464,8 +464,10 @@ onboarding → dorm + authoring), each thin-engine / content-heavy:
   `enroll`/`play` MVC verbs, `EnrollmentDraft` accumulator, `PersonaMixin`,
   `NameBank` suggester, 7-species roster, the cockpit char-gen phase. See
   [docs/subsystems/char-gen.md](./subsystems/char-gen.md). Deferred to
-  later waves: the `records` verb (bio editing), breadcrumbs/vitals/
-  language, the lounge handoff, onboarding, the name sanitizer.
+  later waves: the `records` verb (bio *editing* — its *view* role shipped
+  as the `chronicle` verb), vitals/language, the lounge handoff,
+  onboarding, the name sanitizer. (Breadcrumbs shipped, renamed, as the
+  [chronicle](./subsystems/chronicle.md) identity ledger.)
 - [docs/slates/builds/onboarding-slate.md](./slates/builds/onboarding-slate.md) —
   learn-by-doing journey (lounge → fast-TP to campus → signs/greeter →
   dorm lobby → room → customization); the scoped-authoring on-ramp.
