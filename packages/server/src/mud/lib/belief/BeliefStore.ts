@@ -48,7 +48,8 @@
  * NPC *behavior* that reads this memory (greetings, gates, gossip) —
  * that's npc-behavior territory. The store lets a Character *hold*
  * memory; reading it to drive behavior is a separate concern. Also not
- * for place-memory ("an unfamiliar room") — a future third realm.
+ * for place-memory ("an unfamiliar room") — a future realm (alongside
+ * the shipped recognition / identification / regard trio).
  */
 
 import type { MixinConstructor } from '../mixin';
@@ -70,6 +71,17 @@ export const RECOGNITION = 'recognition';
 export const IDENTIFICATION = 'identification';
 
 /**
+ * Realm constant: **attitude memory** — how the viewer *regards* a
+ * subject (likes / trusts / esteems). Keyed by the subject's
+ * `templatePath`, exactly like {@link RECOGNITION} — "the same Bob, three
+ * realms at one referent key." The third belief realm; a string
+ * convention, NOT a registry. All attitude intelligence (aggregation into
+ * renown, decay, trust-weighting) lives in consumers — the store just
+ * holds the per-pair scalar. See `docs/subsystems/belief.md`.
+ */
+export const REGARD = 'regard';
+
+/**
  * The thin, axis-specific payload riding on a {@link BeliefRecord}.
  *
  * **Payload rule (the slate's): flag by default, value only for planned
@@ -86,6 +98,15 @@ export interface BeliefPayload {
    * levels defer. Read the actual type name live; this is just the gate.
    */
   typeKnown?: boolean;
+  /**
+   * Regard realm: the viewer's signed attitude toward the referent
+   * (`-100..+100`; absent or `0` = no opinion). A **value**, not a flag —
+   * a planned divergence under the payload rule, exactly as `knownAs` is a
+   * value on the spine. Unlike `knownAs`'s raise-only coalesce, `know`
+   * **overwrites** this on set: the delta arithmetic + range clamp live in
+   * the consumer (`RegardApi`/`RegardLogic`), never in the store.
+   */
+  regard?: number;
 }
 
 /**
@@ -209,11 +230,15 @@ export function BeliefStoreMixin<TBase extends MixinConstructor>(Base: TBase) {
         if (update.typeKnown !== undefined) {
           existing.payload.typeKnown = update.typeKnown;
         }
+        // Regard overwrites (not raise-only): the consumer computes the
+        // new value before calling.
+        if (update.regard !== undefined) existing.payload.regard = update.regard;
         this._writeThrough(existing);
         return;
       }
       const payload: BeliefPayload = {};
       if (update.typeKnown !== undefined) payload.typeKnown = update.typeKnown;
+      if (update.regard !== undefined) payload.regard = update.regard;
       const record: BeliefRecord = {
         realm,
         referent,

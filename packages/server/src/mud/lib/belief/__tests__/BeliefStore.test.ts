@@ -8,6 +8,7 @@ import {
   BeliefStoreMixin,
   RECOGNITION,
   IDENTIFICATION,
+  REGARD,
 } from '../BeliefStore';
 import { Idea } from '../../stuff/Idea';
 import {
@@ -134,6 +135,49 @@ describe('BeliefStoreMixin', () => {
     expect(viewer.recall(RECOGNITION, '/obj/npc/ghost')).toBeNull();
     // And it's been GC'd out of the store, not just hidden.
     expect(viewer.allBeliefs()).toHaveLength(0);
+  });
+
+  it('regard realm: know/recall roundtrip carries the scalar payload', () => {
+    const viewer = makeStuff(() => new Knower());
+    referentAt('/obj/npc/bob');
+    viewer.know(REGARD, '/obj/npc/bob', { regard: 5 });
+    const rec = viewer.recall(REGARD, '/obj/npc/bob');
+    expect(rec).not.toBeNull();
+    expect(rec!.payload.regard).toBe(5);
+    expect(rec!.realm).toBe(REGARD);
+    expect(rec!.knownAs).toBeNull(); // a bare regard record has no name
+  });
+
+  it('regard OVERWRITES on set (not raise-only like knownAs)', () => {
+    const viewer = makeStuff(() => new Knower());
+    referentAt('/obj/npc/bob');
+    viewer.know(REGARD, '/obj/npc/bob', { regard: 5 });
+    viewer.know(REGARD, '/obj/npc/bob', { regard: 2 });
+    expect(viewer.recall(REGARD, '/obj/npc/bob')!.payload.regard).toBe(2);
+    // A bare sighting (no regard in the update) leaves it intact.
+    viewer.know(REGARD, '/obj/npc/bob', {});
+    expect(viewer.recall(REGARD, '/obj/npc/bob')!.payload.regard).toBe(2);
+  });
+
+  it('forgetField(regard) clears the scalar, keeping the record', () => {
+    const viewer = makeStuff(() => new Knower());
+    referentAt('/obj/npc/bob');
+    viewer.know(REGARD, '/obj/npc/bob', { regard: 7 });
+    viewer.forgetField(REGARD, '/obj/npc/bob', 'regard');
+    const rec = viewer.recall(REGARD, '/obj/npc/bob');
+    expect(rec).not.toBeNull();
+    expect(rec!.payload.regard).toBeUndefined();
+  });
+
+  it('regard coexists with recognition on the same referent key', () => {
+    const viewer = makeStuff(() => new Knower());
+    referentAt('/obj/npc/bob');
+    // Same Bob, two realms — distinct records at one referent key.
+    viewer.know(RECOGNITION, '/obj/npc/bob', { knownAs: 'Bob' });
+    viewer.know(REGARD, '/obj/npc/bob', { regard: 10 });
+    expect(viewer.recall(RECOGNITION, '/obj/npc/bob')!.knownAs).toBe('Bob');
+    expect(viewer.recall(REGARD, '/obj/npc/bob')!.payload.regard).toBe(10);
+    expect(viewer.allBeliefs()).toHaveLength(2);
   });
 
   it('loadBelief installs a hydrated record verbatim', () => {

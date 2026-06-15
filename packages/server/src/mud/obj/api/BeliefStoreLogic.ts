@@ -17,7 +17,13 @@ const BeliefStoreApiCallers = SecurityPolicies.FromModule(
 
 /** Has this record learned anything worth persisting? */
 function isLearned(record: BeliefRecord): boolean {
-  return record.knownAs !== null || record.payload.typeKnown === true;
+  return (
+    record.knownAs !== null ||
+    record.payload.typeKnown === true ||
+    // A bare regard record (null knownAs) is still worth persisting; a
+    // neutral/absent regard is not (matches "absent or 0 = no opinion").
+    (record.payload.regard !== undefined && record.payload.regard !== 0)
+  );
 }
 
 /** Persistence is a no-op unless Mongo is connected (tests, pre-boot). */

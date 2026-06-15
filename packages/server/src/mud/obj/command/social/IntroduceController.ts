@@ -31,6 +31,7 @@ import type { CommandContext, CommandModel } from '../../../api/command';
 import { MessageApi } from '../../../api/message';
 import { MixinApi } from '../../../api/mixin';
 import { RecognitionApi } from '../../../api/recognition';
+import { RegardApi } from '../../../api/regard';
 import { ChronicleApi } from '../../../api/chronicle';
 import { RECOGNITION } from '../../../lib/belief/BeliefStore';
 import type { MqlOneResult } from '../../../api/mql';
@@ -38,6 +39,14 @@ import { Mml } from '../../../api/mml';
 
 /** Diegetic world-action topic — modality-neutral, not a speech channel. */
 const TOPIC = 'world.narration.action';
+
+/**
+ * Demo regard mutator: being introduced to someone warms each recipient
+ * to them slightly. **Illustrative and replaceable** — proves the regard
+ * seam end-to-end (adjust → overwrite → write-through → reverse query),
+ * not the real trigger model (that lands with reputation / npc-behavior).
+ */
+const REGARD_INTRODUCE_BUMP = 1;
 
 interface IntroduceModel extends CommandModel {
   /** Positional: who to introduce. Omit ⇒ self. */
@@ -127,6 +136,8 @@ export default class IntroduceController extends CommandController<IntroduceMode
       for (const listener of MessageApi.getSensors(env)) {
         if (listener.stuffId === introducee.stuffId) continue;
         RecognitionApi.learnIdentity(listener, introducee, name);
+        // Demo regard seam: warm each recipient to the introducee.
+        RegardApi.adjustRegard(listener, introducee, REGARD_INTRODUCE_BUMP);
       }
     }
 

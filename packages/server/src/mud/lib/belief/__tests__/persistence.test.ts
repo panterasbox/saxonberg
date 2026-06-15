@@ -13,8 +13,10 @@ import { BeliefStoreApi } from '../../../api/belief';
 import {
   BeliefStoreMixin,
   RECOGNITION,
+  REGARD,
   type BeliefRecord,
 } from '../BeliefStore';
+import BeliefDocument from '../BeliefDocument';
 import { Idea } from '../../stuff/Idea';
 import { StuffApi } from '../../../api/stuff';
 import { PersistenceManager } from '../../../../backend/PersistenceManager';
@@ -150,5 +152,85 @@ describe('BeliefStoreApi persistence', () => {
     viewer.forget(RECOGNITION, '/obj/npc/mara');
     await flush();
     expect(store.size).toBe(0);
+  });
+});
+
+describe('BeliefStoreApi persistence — regard realm', () => {
+  it('writes through a BARE regard record (null knownAs survives isLearned)', async () => {
+    const viewer = makeViewerAt();
+    registerReferent('/obj/npc/bob');
+    await BeliefStoreApi.writeRecord(viewer, {
+      realm: REGARD,
+      referent: '/obj/npc/bob',
+      knownAs: null,
+      firstSeen: 1,
+      lastSeen: 2,
+      payload: { regard: 5 },
+    });
+    expect(store.size).toBe(1);
+    const doc = [...store.values()][0]!;
+    expect((doc.payload as { regard?: number }).regard).toBe(5);
+    expect(doc.knownAs).toBeNull();
+  });
+
+  it('does NOT write through a neutral (regard: 0) record', async () => {
+    const viewer = makeViewerAt();
+    registerReferent('/obj/npc/bob');
+    await BeliefStoreApi.writeRecord(viewer, {
+      realm: REGARD,
+      referent: '/obj/npc/bob',
+      knownAs: null,
+      firstSeen: 1,
+      lastSeen: 1,
+      payload: { regard: 0 },
+    });
+    expect(store.size).toBe(0);
+  });
+
+  it('player (Avatar) holder round-trips regard through evict/re-hydrate', async () => {
+    registerReferent('/obj/npc/bob');
+    const path = '/obj/Avatar/regard-roundtrip';
+    const s1 = makeStuffAtPath(() => new Viewer(), path);
+    s1.know(REGARD, '/obj/npc/bob', { regard: 12 });
+    await flush();
+    expect(store.size).toBe(1);
+
+    await BeliefStoreApi.evictAndFlush(s1);
+    expect(s1.allBeliefs()).toHaveLength(0);
+    StuffApi.unregister(s1);
+
+    const s2 = makeStuffAtPath(() => new Viewer(), path);
+    await BeliefStoreApi.hydrate(s2);
+    expect(s2.recall(REGARD, '/obj/npc/bob')?.payload.regard).toBe(12);
+  });
+
+  it('named-NPC holder write-through reaches the collection (no hydrate asserted)', async () => {
+    registerReferent('/obj/npc/bob');
+    // A durable-keyed NPC viewer (not an Avatar path). Write-through
+    // persists; NPC hydrate is not wired (Avatar.enter only) — not tested.
+    const npc = makeStuffAtPath(() => new Viewer(), '/obj/npc/gus');
+    npc.know(REGARD, '/obj/npc/bob', { regard: -8 });
+    await flush();
+    const rows = await BeliefDocument.find({ viewerId: '/obj/npc/gus' });
+    expect(rows).toHaveLength(1);
+    expect(rows[0]!.payload.regard).toBe(-8);
+  });
+
+  it('reverse {realm, referent} query returns all viewers regarding a subject', async () => {
+    registerReferent('/obj/npc/bob');
+    const a = makeStuffAtPath(() => new Viewer(), '/obj/Avatar/alice');
+    const c = makeStuffAtPath(() => new Viewer(), '/obj/Avatar/carol');
+    a.know(REGARD, '/obj/npc/bob', { regard: 4 });
+    c.know(REGARD, '/obj/npc/bob', { regard: 9 });
+    await flush();
+
+    const toward = await BeliefDocument.find({
+      realm: REGARD,
+      referent: '/obj/npc/bob',
+    });
+    expect(toward).toHaveLength(2);
+    expect(toward.map((d) => d.payload.regard).sort((x, y) => x! - y!)).toEqual([
+      4, 9,
+    ]);
   });
 });

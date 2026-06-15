@@ -39,7 +39,7 @@ NPC carries it). Pure CRUD; all per-realm intelligence lives in consumers.
 
 - Storage: `Map<string, BeliefRecord>` keyed `` `${realm}:${referent}` ``.
 - Realms are string conventions, not a registry: `RECOGNITION`,
-  `IDENTIFICATION` exported consts.
+  `IDENTIFICATION`, `REGARD` exported consts.
 - **Keyed on `referent.getTemplatePath()`**, never `stuffId` — `stuffId`
   is reboot-ephemeral and would imply the viewer "knows which runtime
   Stuff"; `templatePath` is durable and the engine always has it. The
@@ -202,12 +202,62 @@ status-flags** (poisoned, glowing) — don't merge. It rides
   demo. The masking mechanism supports item-identity *illusion* by design
   but no illusion content ships.
 
+## Regard — attitude axis, the third realm (`api/regard.ts`)
+
+A **third belief realm** (`REGARD`), a sibling of recognition and
+identification: the viewer's *attitude* toward a subject — how much it
+likes / trusts / esteems them — stored as one **signed scalar**
+(`payload.regard`, `-100..+100`; absent or `0` = no opinion) per directed
+`(viewer → subject)` pair. Keyed by the subject's `templatePath`, exactly
+like recognition — "the same Bob, three realms at one referent key": a
+separate record from recognition's, not a field on it. Regard is the
+per-viewer leg D&D charisma unbundles into (regard + renown +
+susceptibility — see the reputation slate) and the *reciprocation /
+social-embeddedness* primitive of the future reputation / cooperative-
+polity Sybil keystone.
+
+- **Overwrite, not raise-only.** `know` *raises* `knownAs` and merges
+  flags, but for `regard` it **overwrites** the scalar — the read-modify-
+  write delta arithmetic and the normative clamp live in the consumer,
+  never in the dumb store.
+- **`RegardApi` / `RegardLogic` — the gated arithmetic seam.** `api/regard.ts`
+  is a thin forwarding shell to the hot-reloadable `RegardLogic` singleton
+  at `/obj/api/regard` (`StuffApi.singletonSync`; methods gated
+  `FromModule('mud/api/regard#RegardApi')`), mirroring
+  `RecognitionApi`→`RecognitionLogic`. Surface: `getRegard` (absent → 0),
+  `adjustRegard` (the clamped accumulator), `setRegard`, `clearRegard`
+  (`forgetField`), `regardsHeldBy` (a `recallRealm(REGARD)` projection).
+  The clamp + the eventual read-time decay (off `lastSeen`) live here; the
+  store stays dumb CRUD.
+- **Kind-agnostic edges.** The substrate stores no player/NPC marker and
+  the same path serves player↔player, player↔NPC, NPC↔player, NPC↔NPC.
+  The player/NPC distinction (trust-weighting, susceptibility) is a
+  deferred *consumer* concern, never the edge's.
+- **Orthogonal to `ContactsMixin`.** Contacts is *categorical* (which
+  named list — `friends`/`foes`); regard is *scalar* (how much). Separate
+  layers, bridgeable but not merged (a `foes` membership may later *seed*
+  negative regard); see [contacts.md](./contacts.md).
+- **Demo mutator.** `IntroduceController` warms each in-earshot recipient
+  toward the introducee by a small bump — illustrative, riding a moment
+  that already fires (the chronicle's demo-minter discipline). The real
+  triggers (thanks / gifts / slights, NPC reactions) land with
+  reputation / npc-behavior.
+- **Deferred consumers (none built here).** Renown aggregation, per-circle
+  vectoring, trust-weighting / eigenvector, social-graph display, NPC
+  susceptibility, decay tuning, and verbs all project *from* this scalar
+  later. The substrate ships designed-for-them but ships none of them.
+
 ## Persistence — lazily-hydrated working set (`api/belief.ts`)
 
 `BeliefStoreApi` over `BeliefDocument extends Document` — a dedicated
 **`beliefs`** collection, one document per `{viewerId, realm, referent}`,
-indexed on `viewerId` (declared centrally in
-`PersistenceManager.createIndexes`). NOT one-big-doc-per-viewer (the
+indexed on `viewerId` **and** on `{realm, referent}` (both declared
+centrally in `PersistenceManager.createIndexes`). The `viewerId` index
+serves the forward direction (a viewer's lazy-hydrate + cleanup cascade);
+the `{realm, referent}` index serves the **reverse** direction — "all
+beliefs held *toward* subject X," the regard realm's renown / Sybil-
+keystone data path (no consumer reads it yet). NOT one-big-doc-per-viewer
+(the
 `ContactsMixin` anti-precedent — 16MB cap, whole-array rewrites). Goes
 through the `Document` wrapper (`find`/`save`/`delete`), not raw Mongo;
 upsert keys on `{viewerId, realm, referent}` via a find-then-save (a read
@@ -243,7 +293,8 @@ holds; sequential single-viewer commands keep the race benign).
   real Material-substrate chemistry), **partial identification**,
   experience-/social-ID verbs, **misidentification** (belief-vs-truth,
   cursed items, illusion content).
-- **Place-memory** (a future third realm), social-graph crowd verbosity,
+- **Place-memory** (a future realm, alongside the shipped recognition /
+  identification / regard trio), social-graph crowd verbosity,
   player-set **nicknames**, memory **decay**, voice/scent recognition, MQL
   compound feature-handles (`talk to tall-stranger`).
 
