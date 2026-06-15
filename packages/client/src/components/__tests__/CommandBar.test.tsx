@@ -65,8 +65,12 @@ describe('CommandBar — command register stays monospace [8e]', () => {
   // the transcript's global mono rule must not make the input
   // proportional. Guard the token so a future edit can't silently
   // regress it.
-  it('the shared font token resolves to a monospace stack', () => {
-    expect(tokens.font.family).toMatch(/monospace/);
+  it('the command-register token resolves to a monospace stack', () => {
+    // The CommandBar reads `tokens.font.mono` (the command register).
+    // The chrome default `tokens.font.family` is now sans, so this
+    // guards the right token.
+    expect(tokens.font.mono).toMatch(/monospace/);
+    expect(tokens.font.family).not.toMatch(/monospace/);
   });
 
   it('the input row renders with the monospace font token', () => {

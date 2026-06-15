@@ -22,8 +22,19 @@
  */
 
 import { createGlobalStyle } from 'styled-components';
+import { FACE_STACKS } from './faces';
 
 export const GlobalFonts = createGlobalStyle`
+  /* App-wide base voice: sans (the chrome register). Everything
+     inherits this unless it opts into a register — the transcript
+     overrides per-frame (serif/mono), the command console overrides to
+     mono. Without this, unstyled or portaled text (dropdowns, menus
+     rendered outside a font-set ancestor) would fall back to the
+     browser default serif. */
+  body {
+    font-family: ${FACE_STACKS.sans};
+  }
+
   @font-face {
     font-family: 'Source Serif 4';
     src: url('/fonts/source-serif-4-latin.woff2') format('woff2');

@@ -400,11 +400,26 @@ the failsafe message string is unchanged (reader sovereignty intact).
 regular + italic), Source Sans 3 (chrome), Source Code Pro (command) —
 self-hosted as subset OFL woff2 under `public/fonts/`, declared by the
 `createGlobalStyle` `@font-face` block in `styles/GlobalFonts.ts`
-(`font-display: swap`, mounted once in `main.tsx`). **No Google Fonts /
-third-party CDN request at runtime.** Faces are a swappable default
-theme, not load-bearing: re-skinning narrative to Literata is editing
-the one `fontRoles.narrative` line plus dropping the woff2 in — no
-controller, topic, template, or content change.
+(`font-display: swap`). `GlobalFonts` is mounted in `main.tsx` **outside
+`React.StrictMode`** — a `createGlobalStyle` under StrictMode is injected
+then removed by the simulated mount→unmount→remount and never re-added
+(styled-components #3601), so its `@font-face` block silently never
+lands. **No Google Fonts / third-party CDN request at runtime.**
+
+**Single source, app-wide.** The three face stacks live once in
+`styles/faces.ts` (`FACE_STACKS.serif/sans/mono`); both the transcript
+register table (`Theme.fontRoles`) and the UI design tokens
+(`components/ui/tokens.ts`) resolve through it, so a face swap is one
+edit there. The three-voice model is applied **across the whole client**,
+not just the transcript: `tokens.font.family` defaults to **sans** (the
+chrome voice — nav, tabs, inspection pane, start/char-gen screens, menus,
+buttons), `GlobalFonts` sets a `body` sans base for unstyled/portaled
+text, the command console (`CommandBar`) and `<pre>`/`<code>`
+(`MmlRenderer`) opt into **mono** (`tokens.font.mono` / `FACE_STACKS.mono`),
+and the transcript paints **serif**/**mono** per register. Faces are a
+swappable default theme, not load-bearing: re-skinning narrative to
+Literata is editing the one `FACE_STACKS.serif` line plus dropping the
+woff2 in — no controller, topic, template, token, or content change.
 
 ### Friend/foe stub
 

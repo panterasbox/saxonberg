@@ -15,6 +15,7 @@
  */
 
 import type { FontRole } from '../types';
+import { FACE_STACKS } from '../../../styles/faces';
 
 /**
  * Topic-prefix → register. The three-voice model — serif = the world
@@ -51,7 +52,7 @@ export const BASE_REGISTERS: Record<string, FontRole> = {
  * only the `narrative` line.
  */
 export const BASE_FONT_ROLES: Record<FontRole, string> = {
-  narrative: "'Source Serif 4', Georgia, serif",
-  chrome: "'Source Sans 3', system-ui, sans-serif",
-  command: "'Source Code Pro', 'Courier New', monospace",
+  narrative: FACE_STACKS.serif,
+  chrome: FACE_STACKS.sans,
+  command: FACE_STACKS.mono,
 };
