@@ -34,11 +34,11 @@
 
 import type { MixinConstructor } from '../mixin';
 import type { Stuff } from '../stuff/Stuff';
-import type { Container } from '../spatial/Container';
 import { Quantity } from '../quantity';
 import type { Vitals } from '../vitals/Vitals';
 import type { Organism } from '../species/Organism';
 import type { Engaged } from '../activity/Engaged';
+import type Exit from '../boundary/Exit';
 import type { AfflictionRecord } from '../vitals/Condition';
 import type { BulkSlot } from '../bulk/Bulkable';
 import { MixinApi } from '../../api/mixin';
@@ -117,8 +117,8 @@ export interface Respiration {
 
   /** The central event-driven re-resolve: engage/cancel the crisis drain. */
   reassess(): Promise<void>;
-  /** The duck-typed traverse hook — fires `reassess` on every move. */
-  onTraversed(exit: unknown): void;
+  /** The traverse hook (the `Mobile.onTraversed` shape) — fires `reassess` on every move. */
+  onTraversed(via: Exit): void;
 
   /** Emission body of the drain engagement (delegated from `RespirationDrain`). */
   respirationDrainTick(drain: RespirationDrain): void;
@@ -202,9 +202,12 @@ export function RespirationMixin<TBase extends MixinConstructor>(Base: TBase) {
         const m = self.getEngagedMode()?.getMedium();
         if (m) return m;
       }
-      // Not placed in a container → no environment to threaten it.
+      // Not placed in a container → no environment to threaten it. A body
+      // is both Containable (it has a container) and a Container (the scope
+      // the atmosphere chain walks outward from) — narrow to both.
       if (!MixinApi.isContainable(self) || !self.getContainer()) return 'air';
-      return BiomeApi.resolveAtmosphereFor(self as unknown as Stuff & Container);
+      if (!MixinApi.isContainer(self)) return 'air';
+      return BiomeApi.resolveAtmosphereFor(self);
     }
 
     /**
@@ -290,9 +293,13 @@ export function RespirationMixin<TBase extends MixinConstructor>(Base: TBase) {
       }
 
       // A body without an engagement slot (a bare non-Character Creature,
-      // Risk #4) resolves the medium but holds no scheduled drain.
+      // Risk #4) resolves the medium but holds no scheduled drain. Past
+      // the guard the host is Engaged; it is also this Respiration mixin's
+      // host, so the engagement constructors take it directly.
       if (!MixinApi.isEngaged(self)) return;
-      const engaged = self;
+      const engaged: Stuff & Engaged & Respiration = self as Stuff &
+        Engaged &
+        Respiration;
 
       const { exchanging, cause } = await this.assessExchange();
       const drain = engaged.getEngagementByType('respiration-drain');
@@ -306,11 +313,7 @@ export function RespirationMixin<TBase extends MixinConstructor>(Base: TBase) {
           const spo2 = host.getVitalSign('spo2').rawValue();
           if (spo2 < baseline) {
             this.seedClock();
-            SchedulerApi.start(
-              new RespirationRecovery(
-                engaged as unknown as Stuff & Engaged & Respiration,
-              ),
-            );
+            SchedulerApi.start(new RespirationRecovery(engaged));
           }
         }
         return;
@@ -320,17 +323,12 @@ export function RespirationMixin<TBase extends MixinConstructor>(Base: TBase) {
       if (recovery) SchedulerApi.cancelByType(engaged, 'respiration-recovery');
       if (!drain) {
         this.armDrain();
-        SchedulerApi.start(
-          new RespirationDrain(
-            engaged as unknown as Stuff & Engaged & Respiration,
-            cause ?? 'medium',
-          ),
-        );
+        SchedulerApi.start(new RespirationDrain(engaged, cause ?? 'medium'));
       }
     }
 
-    public onTraversed(exit: unknown): void {
-      void exit;
+    public onTraversed(via: Exit): void {
+      void via;
       // Fire-and-forget — the move reassess seam (#7, Risk #1).
       void this.reassess();
     }

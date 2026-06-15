@@ -70,14 +70,13 @@ export class RespirationDrain implements SustainedEngagement {
   constructor(actor: Stuff & Engaged & Respiration, cause: RespirationCause) {
     this.actor = actor;
     this.cause = cause;
+    // Close over the typed host + this engagement — the thin delegate the
+    // emission fires (the drain math lives on the mixin). No casts: `actor`
+    // is the Respiration host, `this` is the RespirationDrain it ticks.
     this.emissions = [
       {
         intervalMs: RESPIRATION_DEFAULTS.EMISSION_INTERVAL_MS,
-        event: ({ engagement, actor }): void => {
-          (actor as unknown as Respiration).respirationDrainTick(
-            engagement as RespirationDrain,
-          );
-        },
+        event: (): void => actor.respirationDrainTick(this),
       },
     ];
   }
@@ -92,7 +91,7 @@ export class RespirationDrain implements SustainedEngagement {
   }
 
   getHost(): Stuff | null {
-    return this.actor as unknown as Stuff;
+    return this.actor;
   }
 }
 
@@ -121,11 +120,7 @@ export class RespirationRecovery implements SustainedEngagement {
     this.emissions = [
       {
         intervalMs: RESPIRATION_DEFAULTS.EMISSION_INTERVAL_MS,
-        event: ({ engagement, actor }): void => {
-          (actor as unknown as Respiration).respirationRecoverTick(
-            engagement as RespirationRecovery,
-          );
-        },
+        event: (): void => actor.respirationRecoverTick(this),
       },
     ];
   }
@@ -139,7 +134,7 @@ export class RespirationRecovery implements SustainedEngagement {
   }
 
   getHost(): Stuff | null {
-    return this.actor as unknown as Stuff;
+    return this.actor;
   }
 }
 

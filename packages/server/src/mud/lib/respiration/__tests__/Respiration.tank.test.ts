@@ -29,6 +29,7 @@ import { SchedulerApi } from '../../../api/scheduler';
 import { ContainmentApi } from '../../../api/containment';
 import { SlotApi } from '../../../api/slot';
 import { BulkableApi } from '../../../api/bulk';
+import { MixinApi } from '../../../api/mixin';
 import { ExecutionContextApi } from '../../../api/execution-context';
 import { EventApi } from '../../../api/event';
 import EventRegistry from '../../../obj/EventRegistry';
@@ -73,7 +74,7 @@ function makeTank(amount: number, capacity = 6): AirTank {
   tank.setBulkAmount('interior', L(amount));
   // Bypass the Organism/body-plan fit check — we test the respiration
   // tap, not slot eligibility (the Wearable suite owns that).
-  (tank as unknown as { fitsSlot: () => boolean }).fitsSlot = () => true;
+  tank.fitsSlot = () => true;
   return tank;
 }
 
@@ -86,11 +87,10 @@ function makeDiver(): Character {
 
 /** Wear `tank` on the diver's torso and place the diver in `where`. */
 function wearAndPlace(diver: Character, tank: AirTank, where: TestLocation): void {
-  SlotApi.occupyAll(
-    diver as unknown as Parameters<typeof SlotApi.occupyAll>[0],
-    tank as unknown as Parameters<typeof SlotApi.occupyAll>[1],
-    ['torso'],
-  );
+  if (!MixinApi.isSlotted(diver) || !MixinApi.isSlottable(tank)) {
+    throw new Error('test setup: diver must be Slotted and tank Slottable');
+  }
+  SlotApi.occupyAll(diver, tank, ['torso']);
   ContainmentApi.move(diver, where);
 }
 
