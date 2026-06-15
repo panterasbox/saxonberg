@@ -343,6 +343,14 @@ deferred until a sub-clade lands and earns the inheritance machinery.
   [augmentation.md](./augmentation.md)). A future telepath species
   (magical empath, alien biological aether receiver) MAY declare an
   ESP modality on its BodyPlan; the substrate handles it.
+- `breathableMedia` — the atmosphere tags an organism of this body plan
+  exchanges gas in (the [respiration](./respiration.md) medium
+  determinant). Default `['air']`; a species **inverts** by authoring
+  `['water']` (a fish drowns in air, breathes water). An empty array is
+  the breathe-nothing trap, not an opt-out.
+- `respires` — the respiration opt-out (boolean noun-form: `isRespiring()`
+  / `setRespires()`). Default `true`; `false` (a construct, undead) makes
+  the respiration engine never engage a drain — no medium threatens it.
 
 The biped and quadruped body plans also declare a `cranial` slot
 (`accepts: SlottableMixin`) — the v1 implant slot the baseline comm

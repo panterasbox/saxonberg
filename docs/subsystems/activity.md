@@ -18,6 +18,15 @@ framework lands inert, ready for genuinely-durative content
 (spellcasting, forging, brewing, ritual, summoning) when it
 arrives.
 
+**The first real consumer has since landed:**
+[respiration](./respiration.md) is the first concrete engagement
+producer — its `RespirationDrain` / `RespirationRecovery`
+`SustainedEngagement`s, each with a recurring `ScheduledEmission`
+delegating back to the host mixin, are the worked exemplar of the
+substrate below (start/cancel, the emission cadence on game-time, the
+`getHost` host-destruction hook). The crisis drain occupies the `'body'`
+slot; the deferred strangulation channel reserves `'voice'`.
+
 Three claims drive the design:
 
 1. **Verbs that have duration become activities.** A controller's

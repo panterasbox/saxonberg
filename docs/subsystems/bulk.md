@@ -238,6 +238,12 @@ deliberate **no-op** — the socket exists; nothing is plugged in. A
 future `Metabolic` / `Digestive` capability overrides it. Per-entity
 method, not a registry (substrate has no content hooks).
 
+The [respiration](./respiration.md) **air tank** (`obj/AirTank.ts`, a worn
+`Bulkable` whose `interior` is `air`) is another consumer of this surface:
+the body taps the tank with `BulkSlot.debit` as a depleting carried supply
+while submerged, and a depleted tank is refilled via `BulkableApi.transfer`
+from an air source — no new bulk machinery.
+
 ## Demo content
 
 - Materials: `coffee`, `water` (`seeds/lib/material/bulk/`).

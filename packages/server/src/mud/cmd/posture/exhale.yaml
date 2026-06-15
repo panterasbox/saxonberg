@@ -1,0 +1,6 @@
+verbs: [exhale]
+controller: posture/ExhaleController
+description: "Let your breath out — release a held breath."
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresConscious

@@ -43,4 +43,11 @@ describe('Creature — the body layer', () => {
   it('Character sits above Creature in the hierarchy', () => {
     expect(Character.prototype instanceof Creature).toBe(true);
   });
+
+  it('composes RespirationMixin with the default air-breathing config', () => {
+    const creature = makeStuff(() => new Creature());
+    expect(MixinApi.isRespiration(creature)).toBe(true);
+    expect(creature.getBreathableMedia()).toEqual(['air']);
+    expect(creature.isRespiring()).toBe(true);
+  });
 });

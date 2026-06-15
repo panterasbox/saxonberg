@@ -41,6 +41,11 @@ traverses, the actor rides along via the conveyance ripple. Wheeled /
 sailed / aerial are vehicular modes — hosts declare them on
 `Drivable.vehicularMode` and engage them when driven.
 
+A mode's `medium` is also a [respiration](./respiration.md) reassess
+input: while swimming, the engaged-mode medium (`water`) wins over the
+ambient atmosphere — you breathe (or drown in) the medium you move
+through — so surfacing/diving re-resolves the air-exchange state.
+
 ## Two parallel mode vocabularies
 
 The substrate juggles two string vocabularies for the same conceptual
