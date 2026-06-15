@@ -250,10 +250,15 @@ single internal hyphen/apostrophe, no digits/spaces).
 self-narrative** layer — two persistent fields on `Character` (so PCs
 and any future storied NPC have them): `bio` (free-form authored prose)
 and `aspiration` (the closed-choice of who you're becoming). The
-aspiration seeds the starter `bio` and selects the themed outfit at
-commit. `Persona` is **not** for witnessed deeds, perceived body
-description (`Visible`), or proper-name identity (`Named`). `bio`
-editing defers to Wave 2 (a `records` verb).
+aspiration seeds the starter `bio`, selects the themed outfit, **and
+seeds the chronicle's `claim` prologue** (a parallel `claimSeeds` field,
+distinct from `bioSeed`) at commit. `Persona` also affords the
+**`chronicle`** self-view verb (the partitioned bio → prologue → deeds
+readout — see [chronicle.md](./chronicle.md)). `Persona` is **not** for
+witnessed deeds (those are chronicle `deed`s), perceived body description
+(`Visible`), or proper-name identity (`Named`). `bio` *editing* still
+defers to Wave 2 (a `records` verb); the deferred `records` *view* role
+shipped as `chronicle`.
 
 ## The cockpit phases (client)
 
@@ -286,6 +291,8 @@ concern. That commit also added per-socket inbound serialization (the
 concurrency fix the single-controller dispatch surface needs) and the
 first-arrival greeting / terminal-clear-on-handoff polish.
 
-Deferred to later waves: the `records` verb (bio editing),
-breadcrumbs/vitals/language, the lounge and onboarding flow, and the
-name sanitizer (the denylist is a seeded stub today).
+Deferred to later waves: the `records` verb (bio *editing* — its *view*
+role shipped as the `chronicle` verb, see [chronicle.md](./chronicle.md)),
+vitals/language, the lounge and onboarding flow, and the name sanitizer
+(the denylist is a seeded stub today). (Breadcrumbs were renamed and
+shipped as the chronicle identity ledger.)

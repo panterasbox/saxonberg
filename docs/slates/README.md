@@ -197,5 +197,4 @@ Behind the platform-vs-game-design line. Captured, not near-term.
 - [alignment-religion](./deferred-rpg/alignment-religion-slate.md) — alignment & religion (very preliminary).
 - [affiliation](./deferred-rpg/affiliation-slate.md) — guild / corp social organization (guild = the class system).
 - [spoiler](./deferred-rpg/spoiler-slate.md) — spoilers & secrets; deferred to the assessment system.
-- [breadcrumb](./deferred-rpg/breadcrumb-slate.md) — narrative-trace breadcrumbs; deferred until the advancement system.
 - [collision](./deferred-rpg/collision-slate.md) — **decomposed (resolved 2026-06-10):** intentional blocking → the npc-behavior "guards" brain; capacity + pushing → defer-til-content; diegetic prohibition is already ~80% in-engine. Retained for reference; not a standalone build.

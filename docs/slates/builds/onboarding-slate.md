@@ -200,9 +200,9 @@ event subscription** (the mql-subscription / `EventApi` bus — *notified* on
 a flip, not watching). **Narrated** as "the college's records," but the
 bytes live on the player — no separate institutional database in v1, a thin
 fiction-wrap over the same data. This is **not** a quest engine and **not**
-the breadcrumb substrate (both deferred game-design —
-[breadcrumb-slate](../deferred-rpg/breadcrumb-slate.md), the advancement/gamification
-layer). It's the first concrete instance the eventual objective/trace
+the [chronicle](../../subsystems/chronicle.md) identity ledger (which has
+shipped; the advancement/gamification layer it will feed remains deferred
+game-design). It's the first concrete instance the eventual objective/trace
 system will generalize from; v1 stays three booleans and a subscription,
 forward-compatible. *Resist building the framework off N=1.*
 

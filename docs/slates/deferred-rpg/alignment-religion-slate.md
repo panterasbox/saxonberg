@@ -2,7 +2,7 @@
 
 > **Status: VERY preliminary — RPG-layer, deferred.** Captured because
 > char-gen is the right time to think about identity. Alignment rides the
-> **advancement / breadcrumb layer**, so the real design waits for that.
+> **advancement / chronicle-readout layer**, so the real design waits for that.
 > *Everything here is tentative.* Actual demigods are **content**, to be
 > designed later.
 
@@ -30,7 +30,7 @@ Authors still place every NPC/faction/location on the full grid (the memes
 survive); players just can't *be* the bottom rows.
 
 **Alignment is derived/witnessed, not chosen.** It emerges from your
-**deeds** (your [breadcrumbs](../deferred-rpg/breadcrumb-slate.md)) — the breadcrumb
+**deeds** (your [chronicle](../../subsystems/chronicle.md)) — the chronicle
 model applied to morality. So there is **no alignment pick at char-gen**
 (the claimed-lean idea was dropped — "don't care what they lean"). The
 claimed-vs-witnessed tension still applies if a deity is involved (your
@@ -65,7 +65,7 @@ load-bearing for the eventual combat/quest/wilderness design.)
 diverge.** Choosing a god is an *affiliation/relationship* (like picking an
 origin), not a stat, so it doesn't violate earned-not-chosen. The richness
 is the **interplay**: a **deity is a reactive character** who watches your
-deeds (breadcrumbs) and responds *in personality* to the harmony or tension
+deeds (chronicle deeds) and responds *in personality* to the harmony or tension
 between its values and your **witnessed** alignment. Your **chosen god** =
 declared aspiration; your **deeds** = reality; the gap *talks back*. This
 makes worship a live relationship (props-real), and deities the
@@ -135,7 +135,7 @@ offer maybe the starting standing and let the rest deepen.
 
 ## Connections
 
-[breadcrumb-slate](../deferred-rpg/breadcrumb-slate.md) (alignment derives from it; the
+[chronicle](../../subsystems/chronicle.md) (alignment derives from it; the
 deity reads it) · [char-gen](../../subsystems/char-gen.md) (the patron-demigod
 pick) · the **aspiration archetypes** (complementary roles) ·
 recognition / social-graph (the good-floor consequences) ·
