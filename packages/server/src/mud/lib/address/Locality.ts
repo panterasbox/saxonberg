@@ -32,6 +32,7 @@
 
 import { Idea } from '../stuff/Idea';
 import { PostRegistrationMixin } from '../stuff/PostRegistration';
+import { AddressApi } from '../../api/address';
 
 export default class Locality extends PostRegistrationMixin(Idea) {
   /** Display name (e.g. `'Narnia'`, `'Cair Paravel'`). */
@@ -64,5 +65,24 @@ export default class Locality extends PostRegistrationMixin(Idea) {
   }
   public setAddress(value: string): void {
     this._address = value;
+  }
+
+  // ---------- coverage-index lifecycle ----------
+
+  /**
+   * Self-register the claimed prefix into the `AddressRegistry`
+   * coverage index. Fires once on clone (leaf Ideas clone lazily), and
+   * again on HMR re-clone, so the index never holds a stale node. The
+   * Registry's own boot rebuild covers never-accessed Localities.
+   */
+  public override async postRegister(context?: unknown): Promise<void> {
+    await super.postRegister(context);
+    if (this._address.length > 0) AddressApi.registerLocality(this);
+  }
+
+  /** Deregister from the coverage index on destruct / HMR re-clone. */
+  public override onDestruct(): void {
+    AddressApi.deregisterLocality(this);
+    super.onDestruct();
   }
 }

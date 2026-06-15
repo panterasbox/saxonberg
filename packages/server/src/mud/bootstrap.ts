@@ -64,6 +64,12 @@ export const bootstrapManifest: BootstrapEntry[] = [
     templatePath: '/obj/AccessRegistry',
     dependsOn: ['/obj/GroupRegistry'],
   },
+  // AddressRegistry — addressing-substrate singleton holding the
+  // PathTrie coverage index (claimed-address-prefix → Locality). Its
+  // postRegister eagerly clones the Locality roster under
+  // `/lib/address/` so the index warms at boot. No dependsOn — it
+  // self-clones its roster and leans on no other singleton.
+  { templatePath: '/obj/AddressRegistry' },
   // EventSubscriptions — runtime listener registry + bounded history
   // for the EventApi bus. Distinct from `/obj/EventRegistry` (which
   // holds event-property declarations + per-prop `checkAccess`); this
