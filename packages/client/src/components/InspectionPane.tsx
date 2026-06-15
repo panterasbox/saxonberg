@@ -128,6 +128,13 @@ const Body = styled.div`
   padding: ${tokens.space.lg};
   white-space: pre-wrap;
   line-height: 1.5;
+  /* The inspected-content body is world prose — render it in the
+     narrative serif so the pane reads like the transcript's look frame
+     (description + exits + contents). The pane chrome (breadcrumbs,
+     header, Refresh) sits OUTSIDE this Body and stays sans. Children
+     (BodyProse/MmlRenderer, EntityName, Button) all font:inherit, so
+     they pick this up; pre/code keep mono by element-level specificity. */
+  font-family: ${tokens.font.serif};
 `;
 
 const Illustration = styled.img`

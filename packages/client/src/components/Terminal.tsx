@@ -32,8 +32,14 @@ const TerminalContainer = styled.div`
   padding: 1rem;
   background: #1e1e1e;
   color: #d4d4d4;
-  font-family: 'Courier New', monospace;
   font-size: 14px;
+  /* The cross-register rhythm anchor — keep line-height HERE on the
+     common ancestor, never per-register on Body, so a serif frame and
+     a mono frame both advance the baseline at 1.5 × font-size and
+     switching register can't jolt the vertical rhythm. font-size is
+     likewise uniform across registers. (Bump this single value if the
+     serif's x-height reads loose; it moves both registers together.)
+     No font-family here: each frame's Body sets its own per register. */
   line-height: 1.5;
 `;
 
@@ -43,9 +49,16 @@ const FrameRow = styled.div`
   margin-bottom: 0.5rem;
 `;
 
-const Body = styled.div`
+// Per-frame font register: the family is resolved from the frame's
+// topic via the stylesheet's longest-prefix cascade and applied on this
+// per-frame ancestor, so the template's inner spans inherit it. An
+// element with its own font-family (`<pre>`/`<code>` in MmlRenderer)
+// keeps that rule by CSS specificity, so code stays mono inside a
+// proportional frame.
+const Body = styled.div<{ $fontFamily: string }>`
   flex: 1;
   white-space: pre-wrap;
+  font-family: ${(p) => p.$fontFamily};
 `;
 
 interface TerminalProps {
@@ -81,7 +94,7 @@ export function Terminal({
       {frames.map((frame) => (
         <FrameRow key={frame.id}>
           <GutterStripe topic={frame.topic} timestamp={frame.timestamp} />
-          <Body>
+          <Body $fontFamily={stylesheet.fontFamilyForTopic(frame.topic)}>
             {frame.sigil ? `${frame.sigil} ` : ''}
             <FrameBody
               frame={frame}

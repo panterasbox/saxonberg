@@ -355,6 +355,76 @@ per-word marker becomes invisible. Speech is already marked by the
 quote characters in the body and the framing "You say,"; no extra
 typographic claim is needed at the frame level.
 
+### Font-by-register typography
+
+The transcript renders **font-by-register**: world/social prose in a
+proportional literary serif, the command/code register in monospace.
+This is a **treatment on the existing topic cascade**, not a parallel
+mechanism — and it is **client-only**: `StyleTreatment` is a shared
+wire type with a fixed key set (no `font` key), so the font indirection
+lives entirely on the client `Theme` via two sibling tables:
+
+- **`Theme.registers: Record<string, FontRole>`** — the explicit
+  topic-prefix → register map (`FontRole = 'narrative' | 'chrome' |
+  'command'`). Resolved by the **same longest-prefix cascade** as
+  `topicTreatment` (deepest matching prefix wins).
+- **`Theme.fontRoles: Record<FontRole, string>`** — the role → CSS
+  font-family stack. The swappable-faces layer.
+
+`Stylesheet.fontFamilyForTopic(topic)` composes them: walk the dotted
+topic, pick the deepest matching register, return `fontRoles[role]`.
+Unmapped topics default to **`command` (mono)** — the conservative
+MUD-throwback default, so an unclassified future topic stays mono.
+
+The **three-voice model**: *serif = the world speaks · sans = the app
+chrome · mono = you + the machine.* `world.*` prose maps to `narrative`
+(serif); `system.*` and command echo (`system.log.command.*`) map to
+`command` (mono). The `chrome` (sans) role is the client-shell frame
+voice — declared and self-hosted, but intentionally **not mapped to any
+transcript topic**. Both shipped themes share the identical mapping
+(typography register is orthogonal to the contrast axis); the tables
+are factored into `themes/registers.ts` to avoid drift.
+
+**Where the font is applied.** `Terminal.tsx` sets the per-frame family
+on the `Body` ancestor (`stylesheet.fontFamilyForTopic(frame.topic)`),
+so template spans inherit it with no per-template plumbing. `<pre>` /
+`<code>` keep their element-level monospace (`MmlRenderer`) by CSS
+specificity — an element's own `font-family` wins over an inherited
+one. `line-height` stays on the `TerminalContainer` as the shared
+cross-register **rhythm anchor** (never per-register on `Body`), so
+switching register produces no baseline jolt. Plain mode does **not**
+strip the register — font is structural legibility, not decoration, and
+the failsafe message string is unchanged (reader sovereignty intact).
+
+**The faces** are the Source superfamily — Source Serif 4 (narrative,
+regular + italic), Source Sans 3 (chrome), Source Code Pro (command) —
+self-hosted as subset OFL woff2 under `public/fonts/`, declared by the
+`createGlobalStyle` `@font-face` block in `styles/GlobalFonts.ts`
+(`font-display: swap`). `GlobalFonts` is mounted in `main.tsx` **outside
+`React.StrictMode`** — a `createGlobalStyle` under StrictMode is injected
+then removed by the simulated mount→unmount→remount and never re-added
+(styled-components #3601), so its `@font-face` block silently never
+lands. **No Google Fonts / third-party CDN request at runtime.**
+
+**Single source, app-wide.** The three face stacks live once in
+`styles/faces.ts` (`FACE_STACKS.serif/sans/mono`); both the transcript
+register table (`Theme.fontRoles`) and the UI design tokens
+(`components/ui/tokens.ts`) resolve through it, so a face swap is one
+edit there. The three-voice model is applied **across the whole client**,
+not just the transcript: `tokens.font.family` defaults to **sans** (the
+chrome voice — nav, tabs, start/char-gen screens, menus, buttons, and the
+inspection-pane chrome: breadcrumbs, header, Refresh), `GlobalFonts` sets
+a `body` sans base for unstyled/portaled text, the command console
+(`CommandBar`) and `<pre>`/`<code>` (`MmlRenderer`) opt into **mono**
+(`tokens.font.mono` / `FACE_STACKS.mono`), and the transcript paints
+**serif**/**mono** per register. The **inspection-pane body** (its
+`Body` content — description, exits, contents) paints **serif** too, so
+the pane reads like the transcript's look frame while its surrounding
+chrome stays sans. Faces are a
+swappable default theme, not load-bearing: re-skinning narrative to
+Literata is editing the one `FACE_STACKS.serif` line plus dropping the
+woff2 in — no controller, topic, template, token, or content change.
+
 ### Friend/foe stub
 
 `packages/client/src/lib/style/BucketResolver.ts` exposes the

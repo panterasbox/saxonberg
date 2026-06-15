@@ -25,6 +25,7 @@ import React from 'react';
 import styled from 'styled-components';
 import { useStore } from '../store';
 import { parseMml, type MmlNode } from '../lib/mml/parseMml';
+import { FACE_STACKS } from '../styles/faces';
 
 interface MmlRendererProps {
   text: string;
@@ -166,7 +167,7 @@ const EmSpan = styled.span`
 `;
 
 const CodeSpan = styled.span`
-  font-family: monospace;
+  font-family: ${FACE_STACKS.mono};
   background: #2a2a2a;
   padding: 0 3px;
   border-radius: 2px;
@@ -178,7 +179,7 @@ const StrikeSpan = styled.span`
 
 const PreBlock = styled.pre`
   margin: 0;
-  font-family: monospace;
+  font-family: ${FACE_STACKS.mono};
   background: #2a2a2a;
   padding: 4px 6px;
   border-radius: 3px;

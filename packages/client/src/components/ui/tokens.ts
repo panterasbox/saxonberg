@@ -12,6 +12,8 @@
  * here, add a token rather than inlining.
  */
 
+import { FACE_STACKS } from "../../styles/faces";
+
 export const tokens = {
   color: {
     surface: "#252526",
@@ -45,7 +47,15 @@ export const tokens = {
     xl: "1rem",
   },
   font: {
-    family: "'Courier New', monospace",
+    // `family` is the app-chrome default voice — sans (Source Sans 3).
+    // Every chrome component (`tokens.font.family`) reads sans; the
+    // command register (CommandBar input/echo, `<pre>`/`<code>`) opts
+    // into `mono` explicitly. The three stacks come from the single
+    // face-stack source so a swap is one edit in `styles/faces`.
+    family: FACE_STACKS.sans,
+    sans: FACE_STACKS.sans,
+    serif: FACE_STACKS.serif,
+    mono: FACE_STACKS.mono,
     body: "13px",
     small: "12px",
     micro: "11px",

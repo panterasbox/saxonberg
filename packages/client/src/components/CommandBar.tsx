@@ -136,7 +136,7 @@ const Input = styled.input<{ $flashing?: boolean; $promptMode?: boolean }>`
         ? tokens.color.accent
         : tokens.color.border};
   border-left: none;
-  font-family: ${tokens.font.family};
+  font-family: ${tokens.font.mono};
   font-size: ${tokens.font.body};
   transition: background 150ms, border-color 150ms;
 
@@ -159,7 +159,7 @@ const SendButton = styled.button<{ $promptMode: boolean }>`
     p.$promptMode ? tokens.color.surfaceSunken : 'white'};
   border: none;
   cursor: pointer;
-  font-family: ${tokens.font.family};
+  font-family: ${tokens.font.mono};
   font-size: ${tokens.font.body};
   white-space: nowrap;
 
@@ -197,7 +197,7 @@ const SlotPicker = styled.button<{ $expanded: boolean; $promptMode: boolean }>`
       p.$promptMode ? tokens.color.accent : tokens.color.border};
   border-right: none;
   border-radius: 0;
-  font-family: ${tokens.font.family};
+  font-family: ${tokens.font.mono};
   font-size: ${tokens.font.body};
   cursor: pointer;
   white-space: nowrap;
@@ -308,7 +308,7 @@ const XButton = styled.button`
   color: ${tokens.color.fgMuted};
   border: 1px solid ${tokens.color.borderMuted};
   border-radius: ${tokens.radius.sm};
-  font-family: ${tokens.font.family};
+  font-family: ${tokens.font.mono};
   font-size: ${tokens.font.micro};
   cursor: pointer;
 
@@ -343,7 +343,7 @@ const Chip = styled.button<{ $primary?: boolean; $selected?: boolean }>`
   border: 1px solid
     ${(p) => (p.$primary ? tokens.color.primary : tokens.color.borderEmphasis)};
   border-radius: ${tokens.radius.sm};
-  font-family: ${tokens.font.family};
+  font-family: ${tokens.font.mono};
   font-size: ${tokens.font.small};
   cursor: pointer;
 

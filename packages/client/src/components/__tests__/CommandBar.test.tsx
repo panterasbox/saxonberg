@@ -3,6 +3,7 @@ import { act } from 'react';
 import { fireEvent, render, screen } from '@testing-library/react';
 import { useStore, BASE_SLOT, type PromptEntry } from '../../store/index';
 import { CommandBar } from '../CommandBar';
+import { tokens } from '../ui/tokens';
 
 /**
  * CommandBar component tests. Drives the slot-multiplexed input:
@@ -56,6 +57,36 @@ function renderBar(spies: Spies, baseValue = '') {
 function pushPrompt(entry: PromptEntry) {
   useStore.getState().pushPrompt(entry);
 }
+
+describe('CommandBar — command register stays monospace [8e]', () => {
+  // The input line / prompt / local echo are the command register
+  // ("you + the machine"). The CommandBar is a client-shell component
+  // outside the transcript, driven by `tokens.font.family`; removing
+  // the transcript's global mono rule must not make the input
+  // proportional. Guard the token so a future edit can't silently
+  // regress it.
+  it('the command-register token resolves to a monospace stack', () => {
+    // The CommandBar reads `tokens.font.mono` (the command register).
+    // The chrome default `tokens.font.family` is now sans, so this
+    // guards the right token.
+    expect(tokens.font.mono).toMatch(/monospace/);
+    expect(tokens.font.family).not.toMatch(/monospace/);
+  });
+
+  it('the input row renders with the monospace font token', () => {
+    resetStore();
+    renderBar(makeSpies());
+    const input = screen.getByPlaceholderText(
+      'Enter command...',
+    ) as HTMLInputElement;
+    // styled-components injects the rule; assert the token feeds it.
+    const css = Array.from(document.querySelectorAll('style'))
+      .map((s) => s.textContent ?? '')
+      .join('');
+    expect(css).toContain('monospace');
+    expect(input).toBeTruthy();
+  });
+});
 
 describe('CommandBar — base / command mode', () => {
   beforeEach(() => {

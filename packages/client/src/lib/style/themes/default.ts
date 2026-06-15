@@ -7,6 +7,7 @@
  */
 
 import type { Theme } from '../types';
+import { BASE_REGISTERS, BASE_FONT_ROLES } from './registers';
 
 export const DEFAULT_THEME: Theme = {
   name: 'default',
@@ -55,4 +56,8 @@ export const DEFAULT_THEME: Theme = {
     },
     other: { fg: '#a89bd8' },
   },
+  // Font-by-register: topic→register map + role→family stacks, shared
+  // with the high-contrast theme (typography is orthogonal to contrast).
+  registers: BASE_REGISTERS,
+  fontRoles: BASE_FONT_ROLES,
 };

@@ -30,6 +30,42 @@ const REGISTRY_PATH = TemplatePaths.schedulerRegistry;
 let registryClass: (new () => SchedulerRegistry) | null = null;
 
 /**
+ * Pending activity-class registrations, buffered at module level so they
+ * survive ordering and HMR. Activity modules self-register at
+ * module-load (the HMR seam — see {@link SchedulerApi.registerActivity}),
+ * but the Registry isn't seeded until `BootstrapManager.run()` clones it
+ * from the manifest — which happens AFTER the eager import graph that
+ * pulls those activity modules in (e.g. `Creature` → `RespirationMixin`
+ * → `RespirationDrain`). Rather than couple registration to that order
+ * (or land it on a throwaway transient the manifest clone would
+ * replace), every registration is recorded here and {@link flushPending}
+ * replays them onto whatever Registry is live whenever one is resolved.
+ * Module-level so it outlives the logic singleton's destruct/recreate
+ * and a Registry re-seed.
+ */
+const pendingActivities = new Map<string, ActivityClass>();
+
+/** Replay every buffered registration onto `reg` (idempotent — plain
+ *  `Map.set`s, so re-seed / HMR re-flush is safe and cheap). */
+function flushPending(reg: SchedulerRegistry): SchedulerRegistry {
+  for (const [type, cls] of pendingActivities) reg.registerActivity(type, cls);
+  return reg;
+}
+
+/**
+ * Buffer an activity-class registration and write it through to a live
+ * Registry if one already exists. Safe to call before bootstrap: when
+ * no Registry is seeded yet it simply buffers, and {@link resolveRegistry}
+ * flushes the buffer the first time the seeded Registry is resolved.
+ * @internal
+ */
+function bufferActivity(type: string, cls: ActivityClass): void {
+  pendingActivities.set(type, cls);
+  const live = lookupRegistry();
+  if (live) live.registerActivity(type, cls);
+}
+
+/**
  * Called from `obj/SchedulerRegistry.ts` module body so this file
  * doesn't have to value-import the Registry class (cycle avoidance —
  * see WorldClockLogic for the rationale).
@@ -49,12 +85,15 @@ function lookupRegistry(): SchedulerRegistry | null {
 /**
  * Resolve the Registry, lazy-creating a transient in-memory instance if
  * `BootstrapManager.run()` hasn't seeded one yet. Production hits the
- * manifest path; tests fall through here. Throws when the class hasn't
- * been registered (the Registry module wasn't loaded).
+ * manifest path; tests fall through here. Either way the buffered
+ * activity registrations are flushed onto the resolved Registry, so
+ * module-load self-registration lands regardless of boot order. Throws
+ * only when the class hasn't been registered (the Registry module wasn't
+ * loaded at all).
  */
 function resolveRegistry(): SchedulerRegistry {
   const existing = lookupRegistry();
-  if (existing) return existing;
+  if (existing) return flushPending(existing);
   if (!registryClass) {
     throw new Error(
       'SchedulerLogic: SchedulerRegistry not bootstrapped and its ' +
@@ -65,7 +104,7 @@ function resolveRegistry(): SchedulerRegistry {
   }
   const reg = StuffApi.createSync<SchedulerRegistry>(() => new registryClass!());
   reg.setTemplatePath(REGISTRY_PATH);
-  return reg;
+  return flushPending(reg);
 }
 
 /**
@@ -102,7 +141,12 @@ export class SchedulerLogic extends Idea {
   /** See {@link SchedulerApi.registerActivity}. */
   @CallSecurity(SchedulerApiCallers)
   public registerActivity(type: string, cls: ActivityClass): void {
-    resolveRegistry().registerActivity(type, cls);
+    // Buffer-and-write-through: tolerates registration before the
+    // Registry is seeded (activity modules self-register at module-load,
+    // ahead of `BootstrapManager.run()`). The buffer is replayed onto
+    // the Registry whenever it's resolved — see `bufferActivity` /
+    // `flushPending`.
+    bufferActivity(type, cls);
   }
 
   /** See {@link SchedulerApi.getActivityClass}. */
@@ -182,6 +226,10 @@ export class SchedulerLogic extends Idea {
   /** See {@link SchedulerApi._clearAllForTesting}. */
   @CallSecurity(SchedulerApiCallers)
   public _clearAllForTesting(): void {
+    // Clear the module-level buffer too, else a buffered registration
+    // from an earlier test replays onto the next test's fresh Registry
+    // via `flushPending` and breaks isolation.
+    pendingActivities.clear();
     const reg = lookupRegistry();
     if (reg) reg._clearAllForTesting();
   }
@@ -189,6 +237,8 @@ export class SchedulerLogic extends Idea {
   /** See {@link SchedulerApi._unregisterActivityForTesting}. */
   @CallSecurity(SchedulerApiCallers)
   public _unregisterActivityForTesting(type: string): void {
+    // Drop from the buffer so `flushPending` can't re-add it.
+    pendingActivities.delete(type);
     const reg = lookupRegistry();
     if (reg) reg._unregisterActivityForTesting(type);
   }
