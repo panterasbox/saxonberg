@@ -22,6 +22,7 @@ import { GlobbableApi, type ApplyQuantityResult } from '../../../api/glob';
 import { MessageApi } from '../../../api/message';
 import { MixinApi } from '../../../api/mixin';
 import { Mml } from '../../../api/mml';
+import { Touch } from '../../../lib/perception/Touch';
 
 interface GetModel extends CommandModel {
   targets: MqlManyResult;
@@ -220,6 +221,31 @@ export default class GetController extends CommandController<GetModel> {
       .toSelf(Mml.compose`You pick up ${Mml.item(operand)}.`)
       .toPeers(Mml.compose`${Mml.name(giver)} picks up ${Mml.item(operand)}.`)
       .send();
+    this.burnOnGrab(operand, giver);
     return true;
+  }
+
+  /**
+   * The scalding-band burn hook applied to a bare-handed grab. Any
+   * Thermal object whose surface sits in the `scalding` touch band
+   * (>= 345 K) afflicts a `burn` trauma on the grabber — the general
+   * contact hook (shared in spirit with `feel`), not a get-local
+   * mechanic. No-op below the band or on a giver with no vitals.
+   */
+  private burnOnGrab(operand: Stuff, giver: Stuff): void {
+    if (!MixinApi.isThermal(operand)) return;
+    const surfaceK = operand.getSurfaceTemperature().rawValue();
+    if (Touch.bandFor(surfaceK) !== 'scalding') return;
+    if (!MixinApi.isVitals(giver)) return;
+    giver.afflict({
+      kind: 'trauma',
+      type: 'burn',
+      site: 'body.hand',
+      severity: Math.min(1, 0.5 + (surfaceK - 345) / 80),
+    });
+    MessageApi.scene(giver)
+      .topic('world.perception.inventory')
+      .toSelf(Mml.compose`It scalds your hand!`)
+      .send();
   }
 }
