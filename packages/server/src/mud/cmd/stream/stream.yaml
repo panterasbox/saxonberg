@@ -1,0 +1,14 @@
+verbs: [stream]
+controller: stream/StreamController
+description: "Drive the livestream overlay (standby countdown / go live)"
+validators:
+  - /lib/command/validators/requiresStreamer
+subcommands:
+  away:
+    description: "Enter standby with a countdown (e.g. `stream away 15m`)"
+    args:
+      - name: duration
+        type: string
+        required: true
+  back:
+    description: "Clear standby and go live"

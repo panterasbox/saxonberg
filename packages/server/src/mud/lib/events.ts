@@ -16,6 +16,8 @@
  *      permissive.
  */
 
+import type { StreamStateSnapshot } from '@saxonberg/types';
+
 /**
  * Well-known engine event names.
  *
@@ -42,6 +44,7 @@ export const Events = {
   ModuleRolledBack: 'module.rolledBack',
   ModuleUnloaded: 'module.unloaded',
   ModuleReloadFailed: 'module.reloadFailed',
+  StreamStateChanged: 'stream.stateChanged',
 } as const;
 
 export type EventName = (typeof Events)[keyof typeof Events];
@@ -100,5 +103,13 @@ export interface EventPayloads {
   [Events.ModuleRolledBack]: ReloadEvent;
   [Events.ModuleUnloaded]: ReloadEvent;
   [Events.ModuleReloadFailed]: ReloadEvent;
+  /**
+   * Full overlay-state snapshot, fired whenever `StreamState` mutates
+   * (the `stream` verb is the v1 emitter). The `BroadcastFeed`
+   * projection listens and re-pushes to broadcast connections. Carries
+   * the whole snapshot so the listener never has to re-read the
+   * singleton.
+   */
+  [Events.StreamStateChanged]: StreamStateSnapshot;
 }
 
