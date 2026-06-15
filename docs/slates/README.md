@@ -33,6 +33,12 @@ identification (substrate) + the viewer-aware naming step, graduated to
 [../subsystems/belief.md](../subsystems/belief.md). The two shipped slates
 moved to `tails/`, holding their deferred surface; the relationship layer
 remains a build.
+- [chronicle-slate](./builds/chronicle-slate.md) — the append-only
+  identity **ledger** (witnessed deeds + authored prologue claims) that
+  every future identity readout (recognition, reputation, alignment,
+  traits, achievements) projects from — the common dumb-store root the
+  reputation / social-graph slates read. **Substrate shipped 2026-06**,
+  graduated to [../subsystems/chronicle.md](../subsystems/chronicle.md).
 - [recognition-slate](./tails/recognition-slate.md) *(tail)* — deferred
   recognition surface: player-set nicknames, memory decay, voice/scent
   recognition, the aether id-aug ambient trigger.
@@ -49,7 +55,8 @@ remains a build.
   not RPG" answer to CHA. **Game-design, deferred.**
 
 **Status:** recognition + identification substrate shipped → `belief.md`;
-social-graph relationship layer remains.
+chronicle ledger substrate shipped → `chronicle.md`; social-graph
+relationship layer remains.
 
 ### 2. NPCs
 *Where the personality lives.*

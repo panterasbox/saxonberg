@@ -50,7 +50,11 @@ species:
 # independent of sex; free-text is deferred (grammar-engine cost).
 
 # Aspirations — what you want to *become*. Each seeds a starter bio +
-# selects a themed starting outfit. (Breadcrumb-seeding is deferred.)
+# selects a themed starting outfit + a short prologue (`claimSeeds`):
+# author-trusted `claim` entries the chronicle mints at enroll, distinct
+# from `bioSeed` (both read the same aspiration, neither touches the
+# other). `order` places each prologue line. (Breadcrumb-seeding is
+# deferred.)
 aspirations:
   - key: something-better
     label: Something Better
@@ -63,6 +67,11 @@ aspirations:
       - /domain/eternal/clothes/student-shirt
       - /domain/eternal/clothes/student-trousers
       - /domain/eternal/clothes/canvas-shoes
+    claimSeeds:
+      - order: 1
+        text: "Left home with little but resolve and a one-way ticket."
+      - order: 2
+        text: "Enrolled at the University, chasing a life that fits."
   - key: healer
     label: Healer
     description: To mend bodies and minds. Nursing, counseling, care.
@@ -73,6 +82,11 @@ aspirations:
       - /domain/eternal/clothes/white-coat
       - /domain/eternal/clothes/student-trousers
       - /domain/eternal/clothes/canvas-shoes
+    claimSeeds:
+      - order: 1
+        text: "Was always the one others came to when something broke."
+      - order: 2
+        text: "Came to the University to learn how to mend."
   - key: teacher
     label: Teacher
     description: To pass the torch. Certification, classrooms, kids.
@@ -83,6 +97,11 @@ aspirations:
       - /domain/eternal/clothes/tweed-jacket
       - /domain/eternal/clothes/student-trousers
       - /domain/eternal/clothes/canvas-shoes
+    claimSeeds:
+      - order: 1
+        text: "Remembers the teacher who finally made it click."
+      - order: 2
+        text: "Came to the University to pass the torch."
   - key: guardian
     label: Guardian
     description: To stand the watch. Service, discipline, protection.
@@ -93,6 +112,11 @@ aspirations:
       - /domain/eternal/clothes/field-jacket
       - /domain/eternal/clothes/student-trousers
       - /domain/eternal/clothes/canvas-shoes
+    claimSeeds:
+      - order: 1
+        text: "Learned early to stand between people and the worst of it."
+      - order: 2
+        text: "Came to the University to stand the watch."
   - key: founder
     label: Founder
     description: To build something. Business, finance, ventures.
@@ -103,6 +127,11 @@ aspirations:
       - /domain/eternal/clothes/blazer
       - /domain/eternal/clothes/student-trousers
       - /domain/eternal/clothes/canvas-shoes
+    claimSeeds:
+      - order: 1
+        text: "Thinks in deals and in years."
+      - order: 2
+        text: "Came to the University to build something of one's own."
   - key: seeker
     label: Seeker
     description: To know how it works. Science, computation, the deep questions.
@@ -113,3 +142,8 @@ aspirations:
       - /domain/eternal/clothes/lab-hoodie
       - /domain/eternal/clothes/student-trousers
       - /domain/eternal/clothes/canvas-shoes
+    claimSeeds:
+      - order: 1
+        text: "Took the truth over the comfort, always."
+      - order: 2
+        text: "Came to the University for the questions underneath."

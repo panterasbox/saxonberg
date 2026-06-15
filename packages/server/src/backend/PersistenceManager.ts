@@ -35,6 +35,7 @@ export enum Collections {
   Groups = 'groups',
   Channels = 'channels',
   Beliefs = 'beliefs',
+  Chronicles = 'chronicles',
 }
 
 /**
@@ -587,6 +588,15 @@ export class PersistenceManager {
       // are O(rows-for-this-viewer), not a full scan.
       await this.getCollection(Collections.Beliefs).createIndex({
         viewerId: 1,
+      });
+
+      // Chronicles: per-character append-only identity ledger (one doc
+      // per entry). Indexed on `owner` so an owner-scoped read
+      // (`ChronicleEntry.find({ owner })`) and the future per-player
+      // cleanup cascade (`deleteMany({ owner })`) are
+      // O(rows-for-this-owner), not a full scan.
+      await this.getCollection(Collections.Chronicles).createIndex({
+        owner: 1,
       });
 
       console.info('PersistenceManager: Indexes created successfully');

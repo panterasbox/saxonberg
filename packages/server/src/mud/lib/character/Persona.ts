@@ -24,6 +24,7 @@
  */
 
 import type { MixinConstructor } from '../mixin';
+import type { CommandContributions } from '../../api/command';
 import { SettingTypes, type SettingsSchemaEntry } from '../shell/Environment';
 
 /** Public shape provided by PersonaMixin. */
@@ -38,6 +39,22 @@ export function PersonaMixin<TBase extends MixinConstructor>(Base: TBase) {
   return class PersonaMixin extends Base {
     static _mixinName = 'PersonaMixin';
     static persistentFields = ['bio', 'aspiration'];
+
+    /**
+     * Self-only verbs Persona affords. `chronicle` is a zero-arg
+     * read-only self-view over the Persona-owned identity (bio +
+     * aspiration-seeded prologue + the character's deeds) — so Persona,
+     * which already owns bio/aspiration, is its conceptual home. The
+     * mixin-level static is collected by the command affordance walk
+     * (`collectBucketDefs` → `MixinApi.queryMixins`), exactly like
+     * `PerceiverMixin`'s self verbs.
+     */
+    static commandContributions: CommandContributions = {
+      self: ['charactergen/chronicle.yaml'],
+      environment: [],
+      inventory: [],
+      peers: [],
+    };
 
     /**
      * Per-character portrait override. Schema-on-owner: the portrait is

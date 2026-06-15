@@ -34,6 +34,7 @@ import type { AetherHosted } from '../lib/augmentation/AetherHosted';
 import type { Comms } from '../lib/comms/Comms';
 import type { Named } from '../lib/description/Named';
 import type { Gendered } from '../lib/character/Gendered';
+import type { Persona } from '../lib/character/Persona';
 import type { Visible } from '../lib/description/Visible';
 import type { Perceptible } from '../lib/description/Perceptible';
 import type { Detailed } from '../lib/description/Detailed';
@@ -514,6 +515,10 @@ export class MixinApi {
 
   public static isGendered(obj: Stuff): obj is Stuff & Gendered {
     return this.hasMixin(obj, Mixins.Gendered);
+  }
+
+  public static isPersona(obj: Stuff): obj is Stuff & Persona {
+    return this.hasMixin(obj, Mixins.Persona);
   }
 
   public static isVisible(obj: Stuff): obj is Stuff & Visible {
