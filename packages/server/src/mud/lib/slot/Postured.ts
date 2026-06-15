@@ -53,6 +53,19 @@ export interface Postured extends Slotted {
    */
   getRestQuality(): number;
   setRestQuality(value: number): void;
+  /**
+   * Warming bonus (Kelvin) a body occupying this host's posture slot
+   * adds to its effective ambient. Default `0` (neutral). A campfire
+   * log-seat authors both `restQuality` (recover) and `warmth` (stay
+   * warm); read by the Phase-2 effective-ambient resolver off the host
+   * whose posture slot the body occupies, exactly as recovery reads
+   * `restQuality`. The radiant warmth enters through this CONSTANT slot
+   * attribute (refreshed on occupy/leave), not the live fire
+   * temperature, so the body's effective ambient stays piecewise-
+   * constant between discrete events.
+   */
+  getWarmth(): number;
+  setWarmth(value: number): void;
 }
 
 export function PosturedMixin<TBase extends MixinConstructor<Stuff & Slotted>>(
@@ -61,7 +74,7 @@ export function PosturedMixin<TBase extends MixinConstructor<Stuff & Slotted>>(
   return class PosturedMixin extends Base {
     static _mixinName = 'PosturedMixin';
 
-    static persistentFields = ['restQuality'];
+    static persistentFields = ['restQuality', 'warmth'];
 
     /**
      * Recovery multiplier for a body at rest on this host. Default
@@ -84,6 +97,27 @@ export function PosturedMixin<TBase extends MixinConstructor<Stuff & Slotted>>(
         );
       }
       this.restQuality = value;
+    }
+
+    /**
+     * Warming bonus (Kelvin, additive to a slot-occupant's effective
+     * ambient). Default `0` (neutral). Per-field invariant on the setter
+     * (finite, `>= 0`).
+     */
+    public warmth: number = 0;
+
+    getWarmth(): number {
+      return this.warmth;
+    }
+
+    setWarmth(value: number): void {
+      if (typeof value !== "number" || !Number.isFinite(value) || value < 0) {
+        throw new RangeError(
+          `PosturedMixin.setWarmth: expected a finite number >= 0, ` +
+            `got ${String(value)}`
+        );
+      }
+      this.warmth = value;
     }
 
     getAcceptedPostures(

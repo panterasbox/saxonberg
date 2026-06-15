@@ -222,6 +222,17 @@ export const METABOLIC_DEFAULTS = {
    * accelerated-clearance crash) — far faster than natural clearance.
    */
   ANTIDOTE_CRASH_FRACTION: 0.9,
+
+  /**
+   * Q10 temperature coefficient for basal metabolic rate — the factor
+   * by which the rate changes per 10 K of core-temperature shift. ~2.5
+   * is the typical biological range (2–3). Consumed by
+   * `thermalMultiplier`; the dial lives here (metabolism owns its
+   * rates) even though the thermal build lights it up.
+   */
+  Q10_COEFFICIENT: 2.5,
+  /** Reference core temperature (K) at which the Q10 multiplier is 1. */
+  Q10_REFERENCE_TEMP_K: 310,
 } as const;
 
 /**
@@ -906,12 +917,24 @@ export function MetabolicMixin<TBase extends MixinConstructor>(Base: TBase) {
     }
 
     /**
-     * Thermal-strategy basal multiplier (endotherm/ectotherm). The
-     * `thermalStrategy` species trait doesn't exist yet; defaults to
-     * 1.0 (endotherm). Lights up with the thermal build.
+     * Q10 temperature coefficient on basal metabolic rate. Reads the
+     * driven `coreTemperature` (the thermal build's `getVitalSign`
+     * override drives it) and scales basal drain by
+     * `Q10 ^ ((core − reference) / 10)`. For an endotherm pinned at its
+     * setpoint this is ≈ 1 (the core sits at the reference); for an
+     * ectotherm whose core floats to the weather, basal drain swings —
+     * a cold reptile burns far less fuel. The strategy difference falls
+     * out of where the core sits, so no branch is needed here. The dials
+     * live in `METABOLIC_DEFAULTS` (metabolism owns its rates).
      */
     protected thermalMultiplier(): number {
-      return 1.0;
+      const self = this as unknown as MetabolicHost;
+      const D = METABOLIC_DEFAULTS;
+      const coreK = self.getVitalSign("coreTemperature").rawValue();
+      return Math.pow(
+        D.Q10_COEFFICIENT,
+        (coreK - D.Q10_REFERENCE_TEMP_K) / 10,
+      );
     }
 
     // ---------- internal reads ----------
