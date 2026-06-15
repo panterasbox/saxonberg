@@ -19,6 +19,7 @@ function installRootBiome(): void {
     b.setDefaultPressure(Quantity.of(101325, 'Pa'));
     b.setDefaultHumidity(Quantity.of(50, '%'));
     b.setDefaultGravity(Quantity.of(9.81, 'm/s²'));
+    b.setDefaultWind(Quantity.of(0, 'm/s'));
     b.setDefaultAtmosphere('air');
     return b;
   }, '/lib/biome/universe');

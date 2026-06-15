@@ -110,6 +110,17 @@ export class BiomeApi {
   }
 
   /**
+   * Thermal conductivity of an atmosphere tag — the surrounding
+   * medium's term in a Thermal object's heat-exchange resistance.
+   * Throws on unknown tag (mirrors {@link densityOf}). Water conducts
+   * far faster than air; `vacuum` is tiny but non-zero so insulated
+   * vessels cool slowly rather than never.
+   */
+  public static conductivityOf(tag: string): Quantity<'W/(m·K)'> {
+    return logic().conductivityOf(tag);
+  }
+
+  /**
    * Cached accessor for the root universe biome at `/lib/biome/`.
    * Used by chain step 6 (universe terminal) and by `Altimeter`'s
    * sea-level reference. Throws when the root biome isn't loaded —
@@ -146,6 +157,13 @@ export class BiomeApi {
     detailKey?: string
   ): Promise<Quantity<'%'>> {
     return logic().resolveHumidityFor(scope, detailKey);
+  }
+
+  public static async resolveWindFor(
+    scope: Stuff & Container,
+    detailKey?: string
+  ): Promise<Quantity<'m/s'>> {
+    return logic().resolveWindFor(scope, detailKey);
   }
 
   public static async resolveGravityFor(
@@ -185,6 +203,13 @@ export class BiomeApi {
     return logic().traceResolveHumidityFor(scope, detailKey);
   }
 
+  public static async traceResolveWindFor(
+    scope: Stuff & Container,
+    detailKey?: string
+  ): Promise<AtmosphericTrace<Quantity<'m/s'>>> {
+    return logic().traceResolveWindFor(scope, detailKey);
+  }
+
   public static async traceResolveGravityFor(
     scope: Stuff & Container,
     detailKey?: string
@@ -210,6 +235,7 @@ export class BiomeApi {
     temperature: AtmosphericTrace<Quantity<'K'>>;
     pressure: AtmosphericTrace<Quantity<'Pa'>>;
     humidity: AtmosphericTrace<Quantity<'%'>>;
+    wind: AtmosphericTrace<Quantity<'m/s'>>;
     gravity: AtmosphericTrace<Quantity<'m/s²'>>;
     atmosphere: AtmosphericTrace<string>;
   }> {

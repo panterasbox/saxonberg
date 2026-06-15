@@ -16,6 +16,7 @@ hydratorClass: /lib/persistence/PersistentHydrator
 data:
   name: uranium
   density: 19050
+  specificHeat: 116
   thermalConductivity: 27
   edibility: false
   nutrients: []

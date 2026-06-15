@@ -178,6 +178,32 @@ export default class Material extends SingletonMixin(
     this._thermalConductivity = value;
   }
 
+  /**
+   * Specific heat capacity (`J/(kg·K)`) — a real, tabulated material
+   * property, Quantity-typed (strict on unit) like `thermalConductivity`.
+   * The `C = m·c` half of the Thermal capability's `τ = R·C`: a body of
+   * water (≈ 4186) holds far more heat per kilogram than steel (≈ 466),
+   * so a full thermos cools slower than an empty mug. Consumed by
+   * `ThermalMixin.thermalCapacity()`; falls back to a dial when a
+   * material authors none.
+   */
+  private _specificHeat: Quantity<'J/(kg·K)'> = Quantity.of(
+    0,
+    'J/(kg·K)',
+  );
+
+  protected get specificHeat(): Quantity<'J/(kg·K)'> {
+    return this._specificHeat;
+  }
+  protected set specificHeat(value: Quantity<'J/(kg·K)'>) {
+    if (!(value instanceof Quantity) || value.unit !== 'J/(kg·K)') {
+      throw new TypeError(
+        `Material.specificHeat must be a Quantity<'J/(kg·K)'>; got ${value instanceof Quantity ? `Quantity<'${value.unit}'>` : typeof value}`
+      );
+    }
+    this._specificHeat = value;
+  }
+
   /** Whether this material can be eaten. v1 has no consumer. */
   protected edibility: boolean = false;
 
@@ -278,6 +304,7 @@ export default class Material extends SingletonMixin(
     'appearance',
     'density',
     'thermalConductivity',
+    'specificHeat',
     'edibility',
     'nutrients',
     'nutrientAmounts',
@@ -299,6 +326,7 @@ export default class Material extends SingletonMixin(
   static fieldMarshallers = {
     density: QuantityMarshaller.pathFor('kg/m³'),
     thermalConductivity: QuantityMarshaller.pathFor('W/(m·K)'),
+    specificHeat: QuantityMarshaller.pathFor('J/(kg·K)'),
     molarMass: QuantityMarshaller.pathFor('g/mol'),
   };
 
@@ -334,6 +362,13 @@ export default class Material extends SingletonMixin(
   }
   public setThermalConductivity(value: Quantity<'W/(m·K)'>): void {
     this.thermalConductivity = value;
+  }
+
+  public getSpecificHeat(): Quantity<'J/(kg·K)'> {
+    return this._specificHeat;
+  }
+  public setSpecificHeat(value: Quantity<'J/(kg·K)'>): void {
+    this.specificHeat = value;
   }
 
   public getEdibility(): boolean { return this.edibility; }

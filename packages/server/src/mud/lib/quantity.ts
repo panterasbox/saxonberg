@@ -65,6 +65,15 @@ export type Unit =
   // Thermal conductivity (W per metre-kelvin) — real material property,
   // tabulated; consumed by the Thermal capability (heat flow / algor mortis)
   | 'W/(m·K)'
+  // Specific heat capacity (joules per kilogram-kelvin) — real material
+  // property; the `C = m·c` half of the Thermal capability's τ = R·C
+  | 'J/(kg·K)'
+  // Clothing insulation (the clo unit) — its own thermal-resistance axis,
+  // summed across worn garments by the body's thermoregulation layer
+  | 'clo'
+  // Wind speed (metres per second) — static-authored atmospheric field,
+  // the wind-chill input to the body's effective-ambient resolver
+  | 'm/s'
   // Ratio (humidity, etc.) — bare percent string
   | '%'
   // Vitals (rate / pressure / volume)
@@ -140,6 +149,9 @@ const unitOps: Partial<Record<Unit, UnitOps>> = {
   J: ARITHMETIC_OPS,
   W: ARITHMETIC_OPS,
   'W/(m·K)': ARITHMETIC_OPS,
+  'J/(kg·K)': ARITHMETIC_OPS,
+  clo: ARITHMETIC_OPS,
+  'm/s': ARITHMETIC_OPS,
   '%': ARITHMETIC_OPS,
   bpm: ARITHMETIC_OPS,
   mmHg: ARITHMETIC_OPS,

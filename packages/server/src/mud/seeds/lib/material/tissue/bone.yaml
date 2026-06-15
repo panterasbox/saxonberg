@@ -8,6 +8,7 @@ hydratorClass: /lib/persistence/PersistentHydrator
 data:
   name: bone
   density: 1900
+  specificHeat: 1300
   thermalConductivity: 0.32
   edibility: false
   nutrients: ["calcium"]

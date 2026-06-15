@@ -12,6 +12,7 @@ hydratorClass: /lib/persistence/PersistentHydrator
 data:
   name: granite
   density: 2750
+  specificHeat: 790
   thermalConductivity: 2.9
   edibility: false
   nutrients: []

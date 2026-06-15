@@ -1,8 +1,9 @@
 # /lib/biome/universe — the root of the biome inheritance hierarchy.
 # `_extendsBiomePath: null` (omitted). Every other biome's
 # `_extendsBiomePath` chain bottoms out here; `BiomeApi.getRootBiome()`
-# returns this template. All five `_defaultX` fields are mandatory
+# returns this template. All six `_defaultX` fields are mandatory
 # at boot — the chain's terminal step (step 6) consults this biome.
+# `_defaultWind` is calm (0 m/s) by default; windy biomes override.
 class: /lib/biome/Biome
 hydratorClass: /lib/persistence/PersistentHydrator
 data:
@@ -10,5 +11,6 @@ data:
   _defaultTemperature: { value: 295, unit: K }
   _defaultPressure:    { value: 101325, unit: Pa }
   _defaultHumidity:    { value: 50, unit: "%" }
+  _defaultWind:        { value: 0, unit: "m/s" }
   _defaultGravity:     { value: 9.81, unit: "m/s²" }
   _defaultAtmosphere:  air

@@ -10,6 +10,7 @@ hydratorClass: /lib/persistence/PersistentHydrator
 data:
   name: flesh
   density: 1060
+  specificHeat: 3500
   thermalConductivity: 0.4
   edibility: true
   nutrients: ["protein", "fat", "water"]

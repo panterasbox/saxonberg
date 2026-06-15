@@ -9,6 +9,7 @@ hydratorClass: /lib/persistence/PersistentHydrator
 data:
   name: carbon
   density: 2200
+  specificHeat: 710
   thermalConductivity: 130
   edibility: false
   nutrients: []

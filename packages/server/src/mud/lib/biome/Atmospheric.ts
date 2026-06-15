@@ -70,6 +70,9 @@ export interface Atmospheric {
   getHumidity(detailKey?: string): Promise<Quantity<'%'>>;
   setHumidity(value: Quantity<'%'> | null, detailKey?: string): void;
 
+  getWind(detailKey?: string): Promise<Quantity<'m/s'>>;
+  setWind(value: Quantity<'m/s'> | null, detailKey?: string): void;
+
   getGravity(detailKey?: string): Promise<Quantity<'m/s²'>>;
   setGravity(value: Quantity<'m/s²'> | null, detailKey?: string): void;
 
@@ -104,11 +107,13 @@ export interface Atmospheric {
   _temperature: Quantity<'K'> | null;
   _pressure: Quantity<'Pa'> | null;
   _humidity: Quantity<'%'> | null;
+  _wind: Quantity<'m/s'> | null;
   _gravity: Quantity<'m/s²'> | null;
   _atmosphere: string | null;
   _detailTemperatures: Record<string, Quantity<'K'>>;
   _detailPressures: Record<string, Quantity<'Pa'>>;
   _detailHumidities: Record<string, Quantity<'%'>>;
+  _detailWinds: Record<string, Quantity<'m/s'>>;
   _detailGravities: Record<string, Quantity<'m/s²'>>;
   _detailAtmospheres: Record<string, string>;
 }
@@ -124,11 +129,13 @@ export function AtmosphericMixin<
       '_temperature',
       '_pressure',
       '_humidity',
+      '_wind',
       '_gravity',
       '_atmosphere',
       '_detailTemperatures',
       '_detailPressures',
       '_detailHumidities',
+      '_detailWinds',
       '_detailGravities',
       '_detailAtmospheres',
     ];
@@ -143,6 +150,7 @@ export function AtmosphericMixin<
       _temperature: QuantityMarshaller.pathFor('K'),
       _pressure: QuantityMarshaller.pathFor('Pa'),
       _humidity: QuantityMarshaller.pathFor('%'),
+      _wind: QuantityMarshaller.pathFor('m/s'),
       _gravity: QuantityMarshaller.pathFor('m/s²'),
     };
 
@@ -152,12 +160,14 @@ export function AtmosphericMixin<
     public _temperature: Quantity<'K'> | null = null;
     public _pressure: Quantity<'Pa'> | null = null;
     public _humidity: Quantity<'%'> | null = null;
+    public _wind: Quantity<'m/s'> | null = null;
     public _gravity: Quantity<'m/s²'> | null = null;
     public _atmosphere: string | null = null;
 
     public _detailTemperatures: Record<string, Quantity<'K'>> = {};
     public _detailPressures: Record<string, Quantity<'Pa'>> = {};
     public _detailHumidities: Record<string, Quantity<'%'>> = {};
+    public _detailWinds: Record<string, Quantity<'m/s'>> = {};
     public _detailGravities: Record<string, Quantity<'m/s²'>> = {};
     public _detailAtmospheres: Record<string, string> = {};
 
@@ -250,6 +260,30 @@ export function AtmosphericMixin<
       }
       assertQuantity(value, '%', 'humidity');
       this._humidity = value;
+    }
+
+    // ---------- wind ----------
+
+    public async getWind(detailKey?: string): Promise<Quantity<'m/s'>> {
+      const self = this as unknown as Stuff & Container;
+      return BiomeApi.resolveWindFor(self, detailKey);
+    }
+    public setWind(value: Quantity<'m/s'> | null, detailKey?: string): void {
+      if (detailKey !== undefined) {
+        if (value === null) {
+          delete this._detailWinds[detailKey];
+          return;
+        }
+        assertQuantity(value, 'm/s', 'wind');
+        this._detailWinds[detailKey] = value;
+        return;
+      }
+      if (value === null) {
+        this._wind = null;
+        return;
+      }
+      assertQuantity(value, 'm/s', 'wind');
+      this._wind = value;
     }
 
     // ---------- gravity ----------

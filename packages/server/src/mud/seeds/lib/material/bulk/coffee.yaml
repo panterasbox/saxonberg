@@ -10,6 +10,8 @@ data:
   appearance: dark, steaming coffee
   keywords: [coffee, brew, java]
   density: 1000
+  thermalConductivity: 0.6
+  specificHeat: 4186
   edibility: true
   nutrients: [caffeine, water]
   toxicity: []
