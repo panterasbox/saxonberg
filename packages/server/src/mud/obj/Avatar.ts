@@ -23,6 +23,8 @@ import type { Containable } from "../lib/spatial/Containable";
 import type { Stuff } from "../lib/stuff/Stuff";
 import { SpeciesApi } from "../api/species";
 import AetherImplant from "../lib/augmentation/AetherImplant";
+import CommsUpdate from "../lib/comms/CommsUpdate";
+import TravelCredentialUpdate from "../lib/fasttravel/TravelCredentialUpdate";
 import { MessageApi } from "../api/message";
 import { Mml } from "../api/mml";
 import { ScheduleApi, type ScheduleHandle } from "../api/schedule";
@@ -425,46 +427,78 @@ export default class Avatar extends AvatarBase {
   private periodicSaveHandle: ScheduleHandle | null = null;
 
   /**
-   * Install the v1 default loadout — currently the AetherImplant in
-   * the cranial slot. Called from `postRegister`, runs once per clone
-   * (every login, since the runtime Avatar is destructed at logout
-   * and re-cloned on the next session).
+   * Install the v1 default loadout — attune the avatar, then inject the
+   * default hosted updates (comms + the travel credential). Called from
+   * `postRegister`, runs once per clone (every login, since the runtime
+   * Avatar is destructed at logout and re-cloned on the next session).
    *
-   * Stand-in for char-gen's baseline-implant issuance; when char-gen
-   * ships, the loadout install moves there. Required for the Avatar's
-   * ESP modalities to land in `PerceptionApi.sensorium` (AetherMixin
-   * is augment-gated; the implant confers it).
+   * Keys off **whether the avatar is attuned by any source**: if
+   * `AetherMixin` isn't already active (a born-attuned species confers
+   * it intrinsically), occupy the `AetherImplant` in the cranial slot to
+   * confer it. Either way the avatar is then an `AetherHost`, so inject
+   * the two default updates onto it.
    *
-   * Idempotent on a single clone: if the cranial slot is already
-   * occupied (test fixtures, future loadouts that pre-populate the
-   * slot), the install short-circuits. Defensive wrapper around the
-   * whole body so a missing seed / species / body plan in a fresh
-   * dev DB doesn't crash the clone cascade — failures log and the
-   * sense / dm verbs surface their own polite refusals downstream.
+   * Idempotency keys off **"already hosts a comms update"** — correct
+   * for both paths (a born-attuned avatar never occupies cranial).
+   * Session-durable persistence is preserved: the credential update is
+   * re-cloned each session, so `registered` resets to the born-with
+   * floor each login.
+   *
+   * Stand-in for char-gen's baseline issuance; when char-gen ships, the
+   * loadout install moves there. Defensive wrapper around the whole body
+   * so a missing seed / species / body plan in a fresh dev DB doesn't
+   * crash the clone cascade — failures log and the sense / dm verbs
+   * surface their own polite refusals downstream.
    */
   private async installDefaultLoadout(): Promise<void> {
     try {
       if (!MixinApi.isSlotted(this)) return;
       // Ensure species + body plan are loaded so the BodyPlanSlots
-      // override sees the cranial slot when we query it. Without
-      // this preload, `getSlotNames()` returns [] until the species
-      // singleton is first touched by another verb, and the install
-      // throws "unknown slot 'cranial'" on the very first clone.
+      // override sees the cranial slot when we query it (and so species
+      // intrinsic conferral resolves).
       await SpeciesApi.preloadAnatomy(this);
-      try {
-        const existing = this.getOccupants("cranial");
-        if (existing.size > 0) return;
-      } catch {
-        // No cranial slot on this body plan (sessile etc.).
+
+      // Avatar composes AetherMixin, so the host surface
+      // (`getHostedUpdates` / `hostUpdate`) is on `this` directly — no
+      // cast. The `isAether` guards stay as cheap runtime checks.
+
+      // Idempotency: already hosting a comms update means the loadout
+      // ran on this clone.
+      if (
+        MixinApi.isAether(this) &&
+        this.getHostedUpdates().some((u) => MixinApi.isComms(u))
+      ) {
         return;
       }
-      // The baseline implant also carries the Teleport Authority travel
-      // credential, so installing it gives the avatar their default
-      // credential — they "leave with their implant", no card needed.
-      const implant = await StuffApi.clone<AetherImplant>(
-        AetherImplant.TEMPLATE_PATH,
+
+      // Attune by some source. A born-attuned species already has
+      // AetherMixin active — skip the implant. Otherwise occupy the
+      // cranial implant to confer attunement.
+      if (!MixinApi.isActive(this, "AetherMixin")) {
+        try {
+          if (this.getOccupants("cranial").size === 0) {
+            const implant = await StuffApi.clone<AetherImplant>(
+              AetherImplant.TEMPLATE_PATH,
+            );
+            this.occupy(implant, "cranial");
+          }
+        } catch {
+          // No cranial slot on this body plan (sessile etc.) — can't
+          // attune via implant; nothing to host.
+        }
+      }
+
+      // Inject the default updates — only if attunement made this a
+      // usable host (implant occupied or species-born).
+      if (!MixinApi.isAether(this)) return;
+      const comms = await StuffApi.clone<CommsUpdate>(
+        CommsUpdate.TEMPLATE_PATH,
       );
-      this.occupy(implant, "cranial");
+      this.hostUpdate(comms);
+      const cred = await StuffApi.clone<TravelCredentialUpdate>(
+        TravelCredentialUpdate.TEMPLATE_PATH,
+      );
+      this.hostUpdate(cred);
     } catch (err) {
       console.warn(
         `Avatar.installDefaultLoadout skipped for ${this.stuffId}:`,

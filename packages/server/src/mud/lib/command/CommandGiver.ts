@@ -164,6 +164,13 @@ export interface CommandGiver {
   ): void;
   popCommandSource(source: RecencySource): void;
   resetCommandSources(reason: 'self-moved'): void;
+  /**
+   * Idempotent self-entry seed. On the interface so command-routing
+   * orchestration (the hosted-update delta) can guarantee the `'self'`
+   * entry exists before layering other sources on the stack.
+   * @internal
+   */
+  _ensureSelfEntry(): void;
 }
 
 /**
@@ -249,6 +256,7 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
       }
       const defs = CommandApi.collectSelfDefs(this.constructor);
       this.pushCommandSource('self', 'self', defs);
+      this._seedHostedUpdateSources();
     }
 
     /**
@@ -300,9 +308,33 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
       const exists = this._commandStack.some(
         (e) => e.source === 'self' && e.bucket === 'self'
       );
-      if (exists) return;
-      const defs = CommandApi.collectSelfDefs(this.constructor);
-      this.pushCommandSource('self', 'self', defs);
+      if (!exists) {
+        const defs = CommandApi.collectSelfDefs(this.constructor);
+        this.pushCommandSource('self', 'self', defs);
+      }
+      // Safety net for the no-`postRegister` construction path (test
+      // helpers, ad-hoc scripts): surface any hosted updates' verbs
+      // even when the host gained them outside a host/unhost delta.
+      // Idempotent — `pushCommandSource` dedupes by (source, bucket).
+      this._seedHostedUpdateSources();
+    }
+
+    /**
+     * Push each hosted update's `self`-bucket command contributions
+     * onto this giver's recency stack, with the update Stuff as the
+     * affording source (so `getAffordances()` resolves `commandSource`
+     * to the update — the "verb dispatch routes through the
+     * augment/update" pattern). Idempotent. No-op for a non-host.
+     *
+     * @internal
+     */
+    private _seedHostedUpdateSources(): void {
+      const giver = this as unknown as Stuff;
+      for (const { source, defs } of CommandApi.collectHostedUpdateDefs(
+        giver
+      )) {
+        this.pushCommandSource(source, 'self', defs);
+      }
     }
 
     /**

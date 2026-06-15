@@ -1,0 +1,156 @@
+/**
+ * Avatar.installDefaultLoadout — attune-by-any-source + inject the
+ * default hosted updates (comms + travel credential).
+ *
+ * Covers: an ordinary-species avatar attunes via the cranial implant
+ * then hosts both updates; a born-attuned-species avatar skips the
+ * implant but still hosts both updates and is attuned; idempotency on
+ * re-entry; the implant no longer composes TravelCredentialMixin.
+ */
+
+import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
+import Avatar from "../Avatar";
+import Species from "../../lib/species/Species";
+import BodyPlan from "../../lib/species/BodyPlan";
+import AetherImplant from "../../lib/augmentation/AetherImplant";
+import CommsUpdate from "../../lib/comms/CommsUpdate";
+import TravelCredentialUpdate from "../../lib/fasttravel/TravelCredentialUpdate";
+import { StuffApi } from "../../api/stuff";
+import { SpeciesApi } from "../../api/species";
+import { MixinApi } from "../../api/mixin";
+import { ContainmentApi } from "../../api/containment";
+import type { AetherHost } from "../../lib/message/Aether";
+import type { Comms } from "../../lib/comms/Comms";
+import type { TravelCredential } from "../../lib/fasttravel/TravelCredential";
+import {
+  makeStuff,
+  stampTemplatePathForTest,
+} from "../../lib/security/__tests__/test-setup";
+import type { Stuff } from "../../lib/stuff/Stuff";
+
+function withPath<T extends Stuff>(obj: T, path: string): T {
+  stampTemplatePathForTest(obj, path);
+  return obj;
+}
+
+let seq = 0;
+function makeAvatarOfSpecies(innate: string[]): Avatar {
+  const biped = withPath(
+    makeStuff(() => new BodyPlan()),
+    `/lib/body-plans/biped-loadout-${seq}`,
+  );
+  biped.setSensoryPorts([
+    { modality: "vision", count: 2, position: "frontal" },
+    { modality: "hearing", count: 2, position: "lateral" },
+  ]);
+  biped.setSlots([{ name: "cranial", accepts: "SlottableMixin" }]);
+  const species = withPath(
+    makeStuff(() => new Species()),
+    `/lib/species/animalia/loadout-test-${seq}`,
+  );
+  seq += 1;
+  species.setBodyPlan(biped);
+  species.setInnateMixins(innate);
+  const avatar = makeStuff(() => new Avatar());
+  avatar.setPlayerId(`loadout-${seq}`);
+  (avatar as unknown as { setSpecies: (s: Species) => void }).setSpecies(
+    species,
+  );
+  return avatar;
+}
+
+function runLoadout(avatar: Avatar): Promise<void> {
+  return (
+    avatar as unknown as { installDefaultLoadout(): Promise<void> }
+  ).installDefaultLoadout();
+}
+
+function hostedUpdates(avatar: Avatar): Stuff[] {
+  return (avatar as unknown as AetherHost).getHostedUpdates() as unknown as Stuff[];
+}
+
+function hostedComms(avatar: Avatar): (Stuff & Comms)[] {
+  return hostedUpdates(avatar).filter((u): u is Stuff & Comms =>
+    MixinApi.isComms(u),
+  );
+}
+
+function hostedCredentials(avatar: Avatar): (Stuff & TravelCredential)[] {
+  return hostedUpdates(avatar).filter((u): u is Stuff & TravelCredential =>
+    MixinApi.isTravelCredential(u),
+  );
+}
+
+describe("Avatar.installDefaultLoadout", () => {
+  beforeEach(() => {
+    vi.spyOn(SpeciesApi, "preloadAnatomy").mockResolvedValue(undefined);
+    vi.spyOn(StuffApi, "clone").mockImplementation(
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (async (path: string): Promise<any> => {
+        if (path === AetherImplant.TEMPLATE_PATH) {
+          return makeStuff(() => new AetherImplant());
+        }
+        if (path === CommsUpdate.TEMPLATE_PATH) {
+          return makeStuff(() => new CommsUpdate());
+        }
+        if (path === TravelCredentialUpdate.TEMPLATE_PATH) {
+          return makeStuff(() => new TravelCredentialUpdate());
+        }
+        throw new Error(`unexpected clone: ${path}`);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      }) as any,
+    );
+  });
+  afterEach(() => {
+    vi.restoreAllMocks();
+    StuffApi.clearAll();
+  });
+
+  it("ordinary species: attunes via the implant, hosts both updates", async () => {
+    const avatar = makeAvatarOfSpecies([]);
+    await runLoadout(avatar);
+
+    expect(avatar.getOccupants("cranial").size).toBe(1); // implant installed
+    expect(MixinApi.isActive(avatar as unknown as Stuff, "AetherMixin")).toBe(
+      true,
+    );
+    expect(hostedComms(avatar)).toHaveLength(1);
+    expect(hostedCredentials(avatar)).toHaveLength(1);
+  });
+
+  it("born-attuned species: skips the implant but still hosts both updates", async () => {
+    const avatar = makeAvatarOfSpecies(["AetherMixin"]);
+    expect(MixinApi.isActive(avatar as unknown as Stuff, "AetherMixin")).toBe(
+      true,
+    );
+    await runLoadout(avatar);
+
+    expect(avatar.getOccupants("cranial").size).toBe(0); // no implant
+    expect(hostedComms(avatar)).toHaveLength(1);
+    expect(hostedCredentials(avatar)).toHaveLength(1);
+  });
+
+  it("the hosted comms update is reachable for dm dispatch", async () => {
+    const avatar = makeAvatarOfSpecies(["AetherMixin"]);
+    await runLoadout(avatar);
+    const comms = ContainmentApi.findReachable(
+      avatar as unknown as Stuff,
+      null,
+      (s: Stuff): s is Stuff & Comms => MixinApi.isComms(s),
+    );
+    expect(comms).not.toBeNull();
+  });
+
+  it("is idempotent on re-entry (keyed on already-hosts-comms)", async () => {
+    const avatar = makeAvatarOfSpecies([]);
+    await runLoadout(avatar);
+    await runLoadout(avatar);
+    expect(hostedComms(avatar)).toHaveLength(1);
+    expect(hostedCredentials(avatar)).toHaveLength(1);
+  });
+
+  it("the implant no longer composes TravelCredentialMixin", () => {
+    const implant = makeStuff(() => new AetherImplant());
+    expect(MixinApi.isTravelCredential(implant)).toBe(false);
+  });
+});
