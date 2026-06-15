@@ -1,5 +1,10 @@
 # Compile diagnostics slate (working doc)
 
+> **Status: design-exploration, pre-requirements — unbuilt.** Proposes
+> the wiring to surface TypeScript compile errors to in-game developers;
+> a formal requirements doc follows once the open questions at the bottom
+> are resolved.
+
 Working slate for surfacing TypeScript compile errors to in-game
 developers in a way that fits Saxonberg's existing subsystems
 (hot reload, mudlog, workspace, environment settings). The

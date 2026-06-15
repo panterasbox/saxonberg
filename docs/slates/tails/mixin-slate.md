@@ -1,5 +1,10 @@
 # Mixin Slate (working doc)
 
+> **Status: living checklist — ongoing, partially shipped.** Tracks the
+> standing standard-model mixin buildout; many entries are already in the
+> tree (marked `(have)` / "Shipped" with subsystem links). Not a single
+> build — the register of what to commit to next as content pulls it.
+
 Working slate for the standard-model buildout, post first paring
 pass. Tracks mixins to commit to, properties to expose on `Thing`,
 and the open design threads we need to think through.

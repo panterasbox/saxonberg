@@ -1,5 +1,10 @@
 # Reputation slate — charisma, renown, notoriety (working doc)
 
+> **Status: game-design layer, deferred — not near-term.** Design is
+> settled in shape and load-bearing for NPC behaviour, the substance
+> economy (brand trust), and the anonymity/disguise system (notoriety as
+> its counterweight); captured but not queued.
+
 Working slate for the platform's answer to the D&D **charisma** stat —
 and its dark twin, **notoriety**. The short version: charisma here is
 **measured, never assigned**. It's an *output* derived from real social
@@ -11,11 +16,6 @@ Built on [recognition](../tails/recognition-slate.md) + the
 [social-graph](./social-graph-slate.md) circles; measured via the
 [reactions](../tails/reactions-slate.md) substrate; consumed by
 [npc-behavior](./npc-behavior-slate.md), economy, and comms.
-
-**Phase: game-design, deferred.** Captured because the design is settled
-in shape and load-bearing for NPC behaviour, the substance economy
-(brand trust), and the anonymity/disguise system (notoriety is its
-counterweight). Not near-term.
 
 ---
 

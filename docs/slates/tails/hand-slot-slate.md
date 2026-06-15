@@ -1,5 +1,10 @@
 # Hand-slot redesign slate (working doc)
 
+> **Status: deferred — design exploration, unbuilt.** The current v1
+> hand-slot shape works but carries conceptual tension; flagged during
+> locomotion-plan review and explicitly parked for a future embodiment
+> MR. Catalogs the problem and sketches candidate redesigns.
+
 Working slate for revisiting the biped body-plan's hand-slot
 design. The current shape works for v1 content but has conceptual
 tension that will bite as content authoring picks up. This slate

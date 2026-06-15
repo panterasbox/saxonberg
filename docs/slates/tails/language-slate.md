@@ -1,5 +1,11 @@
 # Language (working slate)
 
+> **Status: design captured, deferred — unbuilt.** v1 shape is proposed
+> (language tags gating `read`, NPC fantasy-language rendering, proficiency-
+> mediated comprehension); leans on the shipped `Perceiver` + `Character`
+> surfaces but is not yet queued. Several richer extensions explicitly
+> marked future/deferred in-body.
+
 Working slate for the language substrate — how the game models
 distinct languages, how NPCs speak them, how written content is
 gated by them, and how player proficiency mediates comprehension.
