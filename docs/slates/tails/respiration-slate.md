@@ -11,11 +11,13 @@ The headline finding: the substrate already pre-built **both halves** and
 they're simply not wired together. This is closer to a **wiring job** than a
 new system.
 
-> **Demand-driven — deferred until content reads it.** No drowning / vacuum /
-> gas content exists yet (locomotion has `swim`, but no "underwater = can't
-> breathe" consequence). Build the driver when the first consumer lands;
-> **drowning** is the obvious one. This slate captures the shape so it's a
-> known build, not a surprise.
+> **Status: SHIPPED 2026-06 — graduated to
+> [docs/subsystems/respiration.md](../../subsystems/respiration.md).** The
+> air-exchange substrate and the asphyxiation crisis driver
+> (event-triggered scheduled engagement, driving `spo2`; drowning/vacuum)
+> are live. This slate stays as the tail register for the deferred
+> surface captured below — richer hostile-medium content (smoke, gas,
+> strangulation), carried-air tanks, contaminant reads.
 
 See also (the substrate this leans on — already present):
 

@@ -10,6 +10,13 @@ ambient lives in biome, the `K` thermal scale in quantities, corpse-cooling
 inline in vitals — with **no generic object-thermal capability**. This slate
 is that home.
 
+> **Status: SHIPPED 2026-06 — graduated to
+> [docs/subsystems/thermal.md](../../subsystems/thermal.md).** The generic
+> `Thermal` heat-exchange capability (lazy Newton's-cooling-on-read) and
+> Option-C thermoregulation (the third vitals driver, driving
+> `coreTemperature`) are live, with `Flask`/`Campfire` content. This slate
+> stays as the tail register for the deferred surface captured below.
+
 > **Surfaced by:** `docs/staging/eternal-university/objects/thermos.md`
 > (the worked model lives there as content; this is its substrate home).
 > **Audit (2026-06-07):** confirmed gaps below against bulkable / vitals /

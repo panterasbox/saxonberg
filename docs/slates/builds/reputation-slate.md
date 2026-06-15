@@ -6,8 +6,8 @@ and its dark twin, **notoriety**. The short version: charisma here is
 behaviour, not an *input* die-roll. This is the "value as physics, not
 RPG" stance applied to social standing.
 
-Built on [recognition](./recognition-slate.md) + the
-[belief store](./belief-store-slate.md); scopes through
+Built on [recognition](../tails/recognition-slate.md) + the
+[belief store](../../subsystems/belief.md); scopes through
 [social-graph](./social-graph-slate.md) circles; measured via the
 [reactions](../tails/reactions-slate.md) substrate; consumed by
 [npc-behavior](./npc-behavior-slate.md), economy, and comms.
@@ -230,9 +230,9 @@ sophistication, keep the shape.**
 
 ## Cross-references
 
-- **Substrate:** [belief-store-slate](./belief-store-slate.md) (regard +
+- **Substrate:** [belief](../../subsystems/belief.md) (regard +
   the `watch-for` wanted-profile realm),
-  [recognition-slate](./recognition-slate.md) (recognition-by-description,
+  [recognition-slate](../tails/recognition-slate.md) (recognition-by-description,
   the anonymity/disguise system notoriety inverts),
   [social-graph-slate](./social-graph-slate.md) (circles)
 - **Measurement:** [reactions-slate](../tails/reactions-slate.md)

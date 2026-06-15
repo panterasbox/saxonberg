@@ -1,5 +1,11 @@
 # Emotes slate (working doc)
 
+> **Status: SHIPPED 2026-06 — substrate graduated to
+> [docs/subsystems/emotes.md](../../subsystems/emotes.md).** `SoulMixin` on
+> every `Character`, the `Emote` Document catalog, the `SoulCatalogue`
+> singleton, and the `SoulApi` facade are live. This slate stays as the
+> register of design space not yet built.
+
 Working slate for **emotes** — diegetic, non-verbal expression between
 beings in the world. A player (or an NPC) `smile`s, `wave`s, `bogleg`s,
 or free-form `emote`s, and everyone in earshot sees a natural-language
