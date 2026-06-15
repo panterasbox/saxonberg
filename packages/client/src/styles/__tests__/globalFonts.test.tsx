@@ -9,9 +9,11 @@
  */
 
 import { describe, it, expect } from 'vitest';
+import { render } from '@testing-library/react';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, resolve } from 'node:path';
+import { GlobalFonts } from '../GlobalFonts';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const globalFontsSrc = readFileSync(
@@ -22,6 +24,7 @@ const indexHtml = readFileSync(
   resolve(here, '../../../index.html'),
   'utf8',
 );
+const mainSrc = readFileSync(resolve(here, '../../main.tsx'), 'utf8');
 
 describe('GlobalFonts — self-hosted, no third-party CDN', () => {
   it('declares the three functional faces', () => {
@@ -54,5 +57,40 @@ describe('GlobalFonts — self-hosted, no third-party CDN', () => {
 
   it('uses font-display: swap so first paint is not blocked', () => {
     expect(globalFontsSrc).toMatch(/font-display:\s*swap/);
+  });
+});
+
+describe('GlobalFonts — actually injects @font-face when rendered', () => {
+  // The source-string checks above can't catch a runtime injection
+  // failure. Render the component and assert styled-components emits the
+  // @font-face rules into the document (the gap that let a non-injecting
+  // mount ship: the faces declared but never registered → zero
+  // @font-face rules → prose silently fell back to the generic serif).
+  it('emits @font-face rules naming all three faces', () => {
+    render(<GlobalFonts />);
+    const css = Array.from(document.querySelectorAll('style'))
+      .map((s) => s.textContent ?? '')
+      .join('');
+    expect(css).toContain('@font-face');
+    expect(css).toContain('Source Serif 4');
+    expect(css).toContain('Source Sans 3');
+    expect(css).toContain('Source Code Pro');
+  });
+});
+
+describe('main.tsx — GlobalFonts mounted OUTSIDE StrictMode', () => {
+  // Regression guard for the styled-components #3601 trap: a
+  // createGlobalStyle nested under React 18 StrictMode is injected then
+  // removed by the simulated mount→unmount→remount and never re-added,
+  // so its @font-face block silently never lands. GlobalFonts must sit
+  // outside <React.StrictMode>. Assert structurally on the entry source.
+  it('renders <GlobalFonts /> before / outside <React.StrictMode>', () => {
+    expect(mainSrc).toContain('<GlobalFonts />');
+    const fontsIdx = mainSrc.indexOf('<GlobalFonts />');
+    const strictIdx = mainSrc.indexOf('<React.StrictMode>');
+    expect(fontsIdx).toBeGreaterThanOrEqual(0);
+    expect(strictIdx).toBeGreaterThanOrEqual(0);
+    // GlobalFonts appears before StrictMode opens (i.e. not nested in it).
+    expect(fontsIdx).toBeLessThan(strictIdx);
   });
 });
