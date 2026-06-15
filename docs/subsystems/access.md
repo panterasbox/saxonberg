@@ -1,7 +1,7 @@
 # Access
 
 The access subsystem is the permission seam that `call-security`
-explicitly reserved: a thin **`AccessApi`** facade with four
+explicitly reserved: a thin **`AccessApi`** facade with five
 predicates plus a path-resolver helper, plus a new **narrow-entry
 pattern** for privileged mutations. The substrate lands on top of
 the existing `grouping` (membership) and `zone` (inheritance walk)
@@ -15,9 +15,9 @@ the only legitimate calling path is through the Api — external code
 that grabs the Registry instance via `StuffApi.findByTemplatePath`
 gets a reference but `SecurityError` thrown on any method call.
 
-## The four axes
+## The five axes
 
-The build ships four orthogonal predicates:
+The build ships five orthogonal predicates:
 
 1. **`AccessApi.can(subject, action, resource)`** — resource-
    targeted slice walk. Walks `resource.getZone()` upward via
@@ -43,6 +43,12 @@ The build ships four orthogonal predicates:
    can write TypeScript source, run `eval`, or `reload` modules.
    Doesn't matter what slices you own; the question is whether
    you have escape capability.
+5. **`AccessApi.isStreamer(subject)`** — orthogonal streamer axis.
+   True iff `subject` is in `'streamers'`. Gates the livestream
+   control plane (the `stream` verb; later scene / lower-third /
+   afk). Distinct from the developer axis — a streamer drives the
+   broadcast overlay without holding TS-escape capability. See
+   [livestream.md](./livestream.md).
 
 Plus one helper for slice-aware workspace verbs:
 
@@ -57,16 +63,18 @@ Plus one helper for slice-aware workspace verbs:
 The Registry is an `Idea + PostRegistrationMixin` singleton at
 `/obj/AccessRegistry`. Instance state:
 
-- `cachedCoreRef` / `cachedLoungeRef` / `cachedDevelopersRef` —
-  resolved `GroupRef`s for the three bootstrap-seeded groups.
-- `cachedDeveloperPlayerIds` — Set of playerIds in `'developers'`;
-  warmed lazily on first `isDeveloper` call, invalidated via the
+- `cachedCoreRef` / `cachedLoungeRef` / `cachedDevelopersRef` /
+  `cachedStreamersRef` — resolved `GroupRef`s for the
+  bootstrap-seeded groups.
+- `cachedDeveloperPlayerIds` / `cachedStreamerPlayerIds` — Sets of
+  playerIds in `'developers'` / `'streamers'`; warmed lazily on
+  first `isDeveloper` / `isStreamer` call, invalidated via the
   managed provider's `onChange` callback.
 - `cachedAuthorGroups` — list of `GroupRef`s that count as
   "author scope"; every group referenced by some Zone's
   `ownerGroup` or `accessGroups`, plus `'core'`.
-- `developerCacheCancel` — onChange cancellation handle, cleared
-  on destruct.
+- `developerCacheCancel` / `streamerCacheCancel` — onChange
+  cancellation handles, cleared on destruct.
 
 `postRegister` runs idempotent bootstrap seeding:
 
@@ -77,9 +85,14 @@ The Registry is an `Idea + PostRegistrationMixin` singleton at
 3. Mint `'developers'` Group if absent (no FolderZone stamp —
    it's a tag-like group whose only role is gating the
    `isDeveloper` axis).
+4. Mint `'streamers'` Group if absent (no FolderZone stamp —
+   tag-like, gates the `isStreamer` axis), then add any playerIds
+   from the `STREAMER_PLAYER_IDS` env var (comma-separated,
+   additive + idempotent — never removes).
 
 Re-running boot against a populated DB is a no-op (existing
-Groups + existing FolderZone stamps are not overwritten).
+Groups + existing FolderZone stamps are not overwritten; member
+seeding only adds missing ids).
 
 ## Ownership on the Zone tree
 
@@ -157,10 +170,11 @@ cases:
   `'core'`. Used by `soul` and `broadcast`.
 - **`requiresDeveloper`** — `isDeveloper(giver)`. Used by `eval`
   and `reload`.
+- **`requiresStreamer`** — `isStreamer(giver)`. Used by `stream`.
 
-Both follow the typed-preload pattern documented on
+All follow the typed-preload pattern documented on
 `CommandValidator<T>`: the async preload returns the boolean
-decision (`AccessApi.can(...)` or `AccessApi.isDeveloper(...)`); the
+decision (`AccessApi.can(...)` / `isDeveloper(...)` / `isStreamer(...)`); the
 dispatcher captures it in a per-dispatch `ValidatorPreloads` map and
 passes it back to the sync validator body as its second argument
 (`preloaded`). No module-level state, no manual cleanup.
@@ -185,6 +199,7 @@ tree mode, etc.) we revisit.
 | `SoulController` | `requiresCoreAccess` (validator) — `can(giver, 'soul', null)` via the verb-name action. |
 | `BroadcastController` | `requiresCoreAccess` (validator) — `can(giver, 'broadcast', null)`. |
 | `EvalController` | `requiresDeveloper` (validator) — `isDeveloper(giver)`; no slice (eval is TS execution). |
+| `StreamController` | `requiresStreamer` (validator) — `isStreamer(giver)`; no slice (livestream control plane). |
 | `CloneController` | `can(giver, 'clone', sourceResource)` — slice walk on source path. |
 | `ReloadController` | `requiresDeveloper` (validator) — `isDeveloper(giver)`; no slice. |
 | `WriteController` content | Zone target: `canMutateZone(giver, target)`. Else: `can(giver, 'write', target)`. |
@@ -252,18 +267,20 @@ synchronously:
 `api/mql/permissions.ts` and `_MqlAdminFlag` test seam are
 retired.
 
-## The three bootstrap-seeded groups
+## The four bootstrap-seeded groups
 
 | Group | Owner | FolderZone stamps | Purpose |
 |---|---|---|---|
 | `'core'` | `'system'` | none (universal fallback) | Default owner when the zone walk finds no stamped owner. Members authorize broadcast, soul, and any action against null-resource targets. |
 | `'lounge'` | `'system'` | `/lib/lounge`, `/domain/lounge` | Content slice owner for the lounge subsystem. Members can author lounge content. |
 | `'developers'` | `'system'` | none (orthogonal axis) | TS escape capability. Members can `eval`, `reload`, and write source. The slice walk constrains WHICH source area — see source-tree mode below. |
+| `'streamers'` | `'system'` | none (orthogonal axis) | Livestream control plane. Members can run the `stream` verb. Seeded from `STREAMER_PLAYER_IDS`. See [livestream.md](./livestream.md). |
 
-All three start empty. With no members, every gated path denies
-— the secure default. Adding a new scoped group later is two
-records (Group + FolderZone stamp); adding a new TS-developer is
-a single member-add to `'developers'`.
+All four start empty (bar any `STREAMER_PLAYER_IDS` seeds). With
+no members, every gated path denies — the secure default. Adding
+a new scoped group later is two records (Group + FolderZone
+stamp); adding a new TS-developer or streamer is a single
+member-add to `'developers'` / `'streamers'`.
 
 ## Action vocabulary
 
@@ -286,8 +303,9 @@ The vocabulary in use today: `'destruct'` / `'force-destruct'` /
 - Reload of `obj/AccessRegistry.ts` re-clones the Stuff per
   HotReloadApi's pattern. State resets; `postRegister` re-runs
   idempotently; caches re-warm lazily on first read. The
-  `developerCacheCancel` handle is cleared in `onDestruct` so
-  the leaked subscription doesn't survive.
+  `developerCacheCancel` / `streamerCacheCancel` handles are
+  cleared in `onDestruct` so the leaked subscriptions don't
+  survive.
 - `ManagedGroupProvider.findByName` is the by-name lookup used
   by both bootstrap seeding and the developer-cache warm path.
 - **`'core'` deleted at runtime** is benign: the cached

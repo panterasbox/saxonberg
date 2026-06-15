@@ -199,9 +199,18 @@ httpServer.on('upgrade', (request, socket, head) => {
 The session middleware runs against the upgrade request **before**
 `handleUpgrade` decides whether to accept. `handleUpgrade` reads
 `req.session.passport.user.id`; if absent, writes `401` and destroys
-the socket (`WebSocketService.ts:78-85`). Otherwise, it calls
-`wss.handleUpgrade` and on success delegates to
-`Backend.handleWebSocketConnect(ws, userId, sessionId)`.
+the socket. Otherwise, it calls `wss.handleUpgrade` and on success
+delegates to `Backend.handleWebSocketConnect(ws, userId, sessionId)`.
+
+**Broadcast principal short-circuit.** Before the session check,
+`handleUpgrade` looks for a `?broadcast=<token>` query param (OBS
+browser sources can't set WS headers). On a constant-time match
+against `BROADCAST_TOKEN`, the upgrade is accepted as the sentinel
+`service:broadcast` principal —
+`handleWebSocketConnect(ws, 'service:broadcast', …, isBroadcast=true)`
+— which routes to the read-only `BroadcastFeed` with **no
+`Interactive`** (a pure push target; commands rejected by
+construction). See [livestream.md](./livestream.md).
 
 The `WebSocketServer` is configured with `noServer: true` and
 `maxPayload: 50MB` (`WebSocketService.ts:44-48`). `ws` does not bind
