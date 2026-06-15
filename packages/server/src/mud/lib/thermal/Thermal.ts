@@ -371,6 +371,34 @@ export function ThermalMixin<TBase extends MixinConstructor>(Base: TBase) {
       if (nowS !== null) this.thermalClockStamp = nowS;
     }
 
+    // ---------- re-stamp triggers ----------
+
+    /**
+     * Containment-move witness — the `onMoved` hook `ContainmentApi.move`
+     * fires on every mover (carried items, dropped corpses, vessels,
+     * bodies). Re-stamps so the object freezes its current temperature
+     * under the old scope's ambient and starts drifting toward the new
+     * scope's. **Load-bearing under the cached-ambient model** (Step 1.6
+     * trigger 1): with a sync read there is no lazy re-resolve, so a
+     * move that didn't re-stamp would drift toward a stale ambient
+     * forever. This is the one event thermal listens to (the genuine
+     * divergence from metabolism's pure-lazy model). Chains any inner
+     * `onMoved` witness first.
+     */
+    public onMoved(
+      from: (Stuff & Container) | null,
+      to: (Stuff & Container) | null,
+    ): void {
+      const sup = (Base.prototype as {
+        onMoved?: (
+          f: (Stuff & Container) | null,
+          t: (Stuff & Container) | null,
+        ) => void;
+      }).onMoved;
+      if (typeof sup === "function") sup.call(this, from, to);
+      void this.restamp();
+    }
+
     // ---------- internal reads ----------
 
     /**

@@ -49,6 +49,7 @@ import { VitalsMixin } from '../vitals/Vitals';
 import { ReservedMixin } from '../reserve';
 import { LoadBearingMixin } from '../encumbrance/LoadBearing';
 import { MetabolicMixin } from '../metabolism/Metabolic';
+import { ThermalMixin } from '../thermal/Thermal';
 import { DisguisableMixin } from '../disguise/Disguisable';
 import { Quantity } from '../quantity';
 
@@ -68,6 +69,11 @@ import { Quantity } from '../quantity';
 // LoadBearing so the encumbrance gauge keeps reading the reserve
 // surface metabolism populates (LoadBearing's endurance read dispatches
 // through the proxy to Metabolic's override).
+// ThermalMixin sits OUTER of Metabolic (it reads mass/material; the
+// Phase-2 ThermalRegulationMixin wraps it to drive coreTemperature) and
+// INNER of LoadBearing. A bare Creature is a plain Thermal object — a
+// corpse cools toward ambient (algor mortis) as a passive drift; the
+// living regulation layer (Phase 2) pins coreTemperature instead.
 // LoadBearingMixin sits outermost — the encumbrance gauge reads
 // Container + Slotted + Tangible (Agent) + Reserved + Vitals, so it
 // must compose outer of all of them (same placement logic as Vitals
@@ -77,12 +83,16 @@ const CreatureBase = LoadBearingMixin(
     ContainableMixin(
       DisguisableMixin(
         VisibleMixin(
-          MetabolicMixin(
-            VitalsMixin(
-              ReservedMixin(
-                PosedMixin(
-                  BodyPlanSlotsMixin(
-                    SlottedMixin(SexedMixin(OrganismMixin(NamedMixin(Agent))))
+          ThermalMixin(
+            MetabolicMixin(
+              VitalsMixin(
+                ReservedMixin(
+                  PosedMixin(
+                    BodyPlanSlotsMixin(
+                      SlottedMixin(
+                        SexedMixin(OrganismMixin(NamedMixin(Agent)))
+                      )
+                    )
                   )
                 )
               )

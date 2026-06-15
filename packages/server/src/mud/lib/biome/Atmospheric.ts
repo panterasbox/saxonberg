@@ -38,6 +38,7 @@ import { Quantity } from '../quantity';
 import type { Unit } from '../quantity';
 import { QuantityMarshaller } from '../persistence/QuantityMarshaller';
 import { BiomeApi } from '../../api/biome';
+import { MixinApi } from '../../api/mixin';
 import type Biome from './Biome';
 
 export interface Atmospheric {
@@ -208,10 +209,32 @@ export function AtmosphericMixin<
       }
       if (value === null) {
         this._temperature = null;
+        this.restampThermalContents();
         return;
       }
       assertQuantity(value, 'K', 'temperature');
       this._temperature = value;
+      // Ambient shift in place (Step 1.6 trigger 2): fan-out a re-stamp
+      // over the scope's Thermal contents so each freezes-and-continues
+      // toward the new ambient. Load-bearing under the cached-ambient
+      // model — with no lazy read, nothing would otherwise pick the
+      // change up. Room-scope only; per-detail shifts are rare and the
+      // detail-keyed contents aren't enumerable here.
+      this.restampThermalContents();
+    }
+
+    /**
+     * Fire a re-stamp on every Thermal object directly contained in this
+     * scope. Fire-and-forget (the setter is sync; `restamp` is async).
+     * A thermal-listens-to-biome witness, not a dependency the other way.
+     */
+    private restampThermalContents(): void {
+      const self = this as unknown as Stuff & Container;
+      for (const content of self.getContents()) {
+        if (MixinApi.isThermal(content)) {
+          void content.restamp();
+        }
+      }
     }
 
     // ---------- pressure ----------
