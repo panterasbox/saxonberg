@@ -589,6 +589,13 @@ export class PersistenceManager {
       await this.getCollection(Collections.Beliefs).createIndex({
         viewerId: 1,
       });
+      // Reverse direction: "all beliefs held *toward* subject X" — the
+      // regard realm's renown / Sybil-keystone data path ("what does the
+      // community feel about Bob"). Additive; no consumer reads it yet.
+      await this.getCollection(Collections.Beliefs).createIndex({
+        realm: 1,
+        referent: 1,
+      });
 
       // Chronicles: per-character append-only identity ledger (one doc
       // per entry). Indexed on `owner` so an owner-scoped read

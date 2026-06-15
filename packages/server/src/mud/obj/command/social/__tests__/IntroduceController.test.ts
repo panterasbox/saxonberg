@@ -11,7 +11,8 @@
 import { describe, it, expect } from 'vitest';
 import IntroduceController from '../IntroduceController';
 import { RecognitionApi } from '../../../../api/recognition';
-import { RECOGNITION } from '../../../../lib/belief/BeliefStore';
+import { RegardApi } from '../../../../api/regard';
+import { RECOGNITION, REGARD } from '../../../../lib/belief/BeliefStore';
 import { BeliefStoreMixin } from '../../../../lib/belief/BeliefStore';
 import { PerceptionMixin } from '../../../../lib/perception/Perception';
 import { SensorMixin } from '../../../../lib/message/Sensor';
@@ -170,6 +171,22 @@ describe('IntroduceController', () => {
     expect(rec?.knownAs).toBeNull(); // stranger, name not learned
     // Still renders salient features, not a record-less crash.
     expect(RecognitionApi.describe(watcher, subject)).toBe('a tall stranger');
+  });
+
+  it('demo regard seam: a self-introduce warms in-earshot listeners toward the speaker', async () => {
+    const room = makeStuff(() => new Room());
+    const mara = makePerson('Mara', 'a tall stranger');
+    const listener = makePerson('Pat', 'a short person');
+    ContainmentApi.move(mara, room);
+    ContainmentApi.move(listener, room);
+
+    const controller = makeStuff(() => new IntroduceController());
+    await controller.execute(model(), context(mara, room));
+
+    // Listener's regard toward Mara ticked up (the demo bump).
+    expect(RegardApi.getRegard(listener, mara)).toBeGreaterThan(0);
+    // The introducee holds no self-regard (skipped in the loop).
+    expect(mara.recall(REGARD, mara.getTemplatePath()!)).toBeNull();
   });
 
   it('an introduce after repeat-perception upgrades the same record', () => {
