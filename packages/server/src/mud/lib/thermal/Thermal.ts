@@ -38,6 +38,7 @@ import type { Stuff } from "../stuff/Stuff";
 import type { Tangible } from "../material/Tangible";
 import type { Containable } from "../spatial/Containable";
 import type { Container } from "../spatial/Container";
+import type { Bulkable } from "../bulk/Bulkable";
 import { Quantity } from "../quantity";
 import { MixinApi } from "../../api/mixin";
 import { StuffApi } from "../../api/stuff";
@@ -137,6 +138,8 @@ export interface Thermal {
   getSurfaceTemperature(): Quantity<"K">;
   /** Held-fluid temperature (vessels) — the object's own temperature in v1. */
   getContentsTemperature(): Quantity<"K">;
+  /** Set the fluid temperature directly + re-anchor (bulk coupling). */
+  setContentsTemperature(k: number): void;
   /** Time constant τ = R·C. */
   getTau(): Quantity<"s">;
   /** Lazy reconcile — drift the stamped temperature over elapsed game-time. */
@@ -232,14 +235,53 @@ export function ThermalMixin<TBase extends MixinConstructor>(Base: TBase) {
       return Quantity.of(this.effectiveR() * this.thermalCapacity(), "s");
     }
 
-    /** Heat capacity `C = mass × specificHeat` (J/K). */
+    /**
+     * Heat capacity `C = mass × specificHeat` (J/K). For a vessel whose
+     * Thermal IS its contents (`Bulkable` interior with fluid), `C`
+     * derives from the held fluid — more contents → larger `C` → slower
+     * cooling, free (a full thermos holds heat longer than a near-empty
+     * one). Falls back to the host's own mass × material when empty / not
+     * a vessel.
+     */
     protected thermalCapacity(): number {
       const self = this as unknown as ThermalHost;
+      const stuff = self as unknown as Stuff;
+      if (MixinApi.isBulkable(stuff) && stuff.hasInteriorBulk()) {
+        const c = this.contentsCapacity(stuff as unknown as Bulkable);
+        if (c > 0) return c;
+        // empty vessel → fall through to the wall's own heat capacity
+      }
       const massKg = self.getMass().rawValue();
-      const mat = MaterialApi.materialOf(self as unknown as Stuff);
+      const mat = MaterialApi.materialOf(stuff);
       let c = mat ? mat.getSpecificHeat().rawValue() : 0;
       if (c <= 0) c = THERMAL_DEFAULTS.DEFAULT_SPECIFIC_HEAT;
       return massKg * c;
+    }
+
+    /** Heat capacity (J/K) of a vessel's interior fluid, or 0 if empty. */
+    protected contentsCapacity(vessel: Bulkable): number {
+      const litres = vessel.getBulkAmount("interior").rawValue();
+      const mat = vessel.getBulkMaterial("interior");
+      if (litres <= 0 || mat === null) return 0;
+      const massKg = (litres / 1000) * mat.getDensity().rawValue();
+      let c = mat.getSpecificHeat().rawValue();
+      if (c <= 0) c = THERMAL_DEFAULTS.DEFAULT_SPECIFIC_HEAT;
+      return massKg * c;
+    }
+
+    /**
+     * Set the fluid temperature directly and re-anchor the drift clock
+     * — the bulk-coupling primitive (refill to incoming, calorimetric
+     * mix blend, pour-preserve-at-reduced-C). Freezes the current
+     * temperature to now under the existing ambient first, then adopts
+     * the supplied value and restarts drift from it.
+     */
+    public setContentsTemperature(k: number): void {
+      assertFiniteNonNeg(k, "ThermalMixin.setContentsTemperature");
+      if (!this._thermalReconciling) this.reconcileThermal();
+      this.stampedTemperatureK = k;
+      const nowS = this.thermalNowSeconds();
+      if (nowS !== null) this.thermalClockStamp = nowS;
     }
 
     /**
