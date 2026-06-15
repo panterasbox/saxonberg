@@ -277,12 +277,18 @@ Ordered by leverage + dependency:
 5. **Recognition family** — recognition (full) + identification
    (substrate) + the viewer-aware naming step (the realized
    `DescribeApi v2`) **shipped 2026-06** as the belief subsystem; see
-   [belief.md](./subsystems/belief.md). Remaining tails:
-   **social-graph** (crowd-bucket verbosity), identification's
+   [belief.md](./subsystems/belief.md). The **`regard` facet** (the third
+   belief realm — per-viewer signed attitude, `RegardApi`/`RegardLogic`,
+   the reverse `{realm,referent}` index) then **shipped 2026-06** as the
+   first brick toward reputation / the cooperative-polity Sybil keystone;
+   regard's consumers (renown aggregation, per-circle vectoring,
+   trust-weighting, NPC susceptibility, decay) stay deferred. Remaining
+   tails: **social-graph** (crowd-bucket verbosity), identification's
    **pedagogical instrument seam** (`analyze X with Y`, real Material
    chemistry) + partial-ID + misidentification, and the **aether
    id-aug** ambient trigger (axes unresolved + aug substrate retooling).
-   ([social-graph](./slates/builds/social-graph-slate.md) /
+   ([reputation](./slates/builds/reputation-slate.md) /
+   [social-graph](./slates/builds/social-graph-slate.md) /
    [identification](./slates/tails/identification-slate.md))
 6. **Augmentation Wave 2+ + npc-dialogue** — Wave 1 augmentation
    shipped 2026-06 (substrate + AetherImplant; see
