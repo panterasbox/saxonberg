@@ -162,10 +162,13 @@ remains in the near-term Track A queue:
 >   intake-and-chemistry driver — `eat`/`vomit`, the digestion buffer,
 >   coupled recovery, and the first condition-*driver*: floored reserves
 >   spawn `starvation`/`dehydration`/`collapse` and progress to the death
->   seam, [metabolism.md](./subsystems/metabolism.md)). Still deferred: the
+>   seam, [metabolism.md](./subsystems/metabolism.md)), and **respiration**
+>   (the air-exchange driver that finally drives `spo2` to an anoxia death
+>   seam on drowning / vacuum, plus the carried-air scuba loop,
+>   [respiration.md](./subsystems/respiration.md)). Still deferred: the
 >   general assess / measure-on-patient / treatment verbs + instruments,
 >   live (non-metabolism) condition progression, and a *general*
->   death-transition driver (metabolism drives only its own cascade).
+>   death-transition driver (each driver drives only its own cascade).
 >   ([vitals-slate.md](./slates/builds/vitals-slate.md))
 > - **Things-here / Inventory chip strips.** Drafted as
 >   tandem-slice training wheels before the inspection pane

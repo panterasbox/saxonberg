@@ -1,0 +1,20 @@
+# Air tank — the carried-supply proof for respiration. Worn on the
+# torso; its interior bulk is compressed `air` the respiration driver
+# taps while submerged. Capacity 6 L of air budget, seeded full. When it
+# empties underwater the body falls into the supply-exhausted crisis.
+# Refill via `BulkableApi.transfer` from a dive-shop air source.
+class: /obj/AirTank
+hydratorClass: /lib/persistence/PersistentHydrator
+data:
+  shortDescription: an air tank
+  primaryKeyword: tank
+  longDescription: >
+    A scuffed aluminium diving cylinder on a webbing harness, fitted with
+    a regulator. A gauge on the manifold reads the air remaining.
+  mass: 8
+  interiorBulk: true
+  interiorMaterial: /lib/material/bulk/air
+  interiorCapacity: 6
+  interiorAmount: 6
+  slotClaims:
+    "/lib/body-plans/biped": [torso]

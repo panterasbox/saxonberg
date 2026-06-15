@@ -477,7 +477,8 @@ Under `Agent` the hierarchy splits **body** from **agent**:
 is the body layer — a living physical thing that can break, with or
 without agency: it carries `OrganismMixin` + `VitalsMixin` +
 `ReservedMixin` + `MetabolicMixin` (intake/chemistry driver, outer of
-vitals/reserve) + `LoadBearingMixin` (the encumbrance gauge, outermost) +
+vitals/reserve) + `RespirationMixin` (the air-exchange / `spo2` death
+driver, outer of metabolism) + `LoadBearingMixin` (the encumbrance gauge, outermost) +
 `DisguisableMixin` (creature masking, outer of `Visible`) + the
 anatomy-slot / posture / description / containment mixins. `Character`
 extends it with the **agency** mixins (commands, perception, speech,
@@ -618,6 +619,7 @@ registry) lives in `lib/mixin.ts`.
 | `lib/identification/` | `IdentifiableMixin` | the type axis: an item whose true type (`identifiedName`) is hidden behind its unidentified appearance until a viewer identifies it. Composed by `IdentifiableThing`; the `IdentifyScroll` carries the `identify` verb. See [belief.md](./subsystems/belief.md). |
 | `lib/metabolism/` | `MetabolicMixin` | the intake-and-chemistry driver (first condition-driver): the digestion buffer + real `ingest`, the lazy reconcile-on-read over `WorldClock` game-time (absorption / mass-scaled basal drain / coupled recovery / toxin clearance), the cascade spawning `floorEffect` conditions + the death seam, the presence-freeze clock, and the toxin-burden + alcohol/BAC system. Drives `Vitals`/`Reserved`/`Posed`; composed inner of `LoadBearing`, outer of those three, by `Creature`. No Api. See [metabolism.md](./subsystems/metabolism.md). |
 | `lib/metabolism/` | `NutritionLabelMixin` | opt-in consumable affordance: appends an edible `Material`'s inspectable nutrition profile to the host's long description via the `markupAugmenter` seam. Composed by content onto labelled consumables (not every Stuff). See [metabolism.md](./subsystems/metabolism.md). |
+| `lib/respiration/` | `RespirationMixin` | the air-exchange driver and the first concrete engagement producer: an event-triggered bounded `RespirationDrain`/`RespirationRecovery` `SustainedEngagement` that drives `Vitals.spo2` past the consciousness floor to the anoxia death seam when the surrounding medium is unbreathable (drowning / vacuum), then recovers on return to air. Reads `BodyPlan.breathableMedia` (water-breather inversion) + the biome `breathable` column; W2 taps a worn `AirTank` `Bulkable`. Composed outer of `Metabolic` by `Creature`. No Api. See [respiration.md](./subsystems/respiration.md). |
 
 ### Mixin Composition Constraints
 

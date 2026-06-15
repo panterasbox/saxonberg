@@ -45,6 +45,10 @@ export const TemplatePaths = {
   metabolismStarvation: "/lib/metabolism/conditions/starvation",
   metabolismDehydration: "/lib/metabolism/conditions/dehydration",
   metabolismCollapse: "/lib/metabolism/conditions/collapse",
+
+  // Respiration anoxia condition — the affliction the drain accrues
+  // dwell-time on toward the death seam (asphyxiation: drowning/vacuum).
+  respirationAsphyxiation: "/lib/respiration/conditions/asphyxiation",
 } as const;
 
 /**

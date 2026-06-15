@@ -28,6 +28,32 @@ const ATMOSPHERE_DENSITIES: Record<string, Quantity<'kg/m³'>> = {
 };
 
 /**
+ * Per-atmosphere breathability — whether a default air-breather
+ * exchanges gas in this medium. The respiration driver's medium
+ * trigger reads this column; air-breathers drown in `water`/`vacuum`.
+ * Sibling of {@link ATMOSPHERE_DENSITIES}; grows by one line with it.
+ */
+const ATMOSPHERE_BREATHABLE: Record<string, boolean> = {
+  air: true,
+  water: false,
+  vacuum: false,
+};
+
+/**
+ * Per-atmosphere contaminant tag — the breathable≠safe axis (an
+ * atmosphere a body *can* exchange gas in but which carries an
+ * inhaled toxin). Laid unread in v1: no reader ships, no engine
+ * consults it. The inhaled-toxin lung channel (gated on metabolism's
+ * toxin-burden) is the future consumer. All v1 tags are clean.
+ */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars -- laid-unread seam; see respiration.md
+const ATMOSPHERE_CONTAMINANT: Record<string, string | null> = {
+  air: null,
+  water: null,
+  vacuum: null,
+};
+
+/**
  * Depth guard for the chain walk. Real content shouldn't approach
  * this; the cap is defensive against pathological nesting.
  */
@@ -99,6 +125,19 @@ export class BiomeLogic extends Idea {
       );
     }
     return d;
+  }
+
+  /** See {@link BiomeApi.breathableOf}. */
+  @CallSecurity(BiomeApiCallers)
+  public breathableOf(tag: string): boolean {
+    const b = ATMOSPHERE_BREATHABLE[tag];
+    if (b === undefined) {
+      throw new Error(
+        `BiomeApi.breathableOf: unknown atmosphere tag '${tag}' ` +
+          `(known: air, water, vacuum)`
+      );
+    }
+    return b;
   }
 
   /** See {@link BiomeApi.getRootBiome}. */

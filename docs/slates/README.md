@@ -78,10 +78,10 @@ in [tails/metabolism-slate](./tails/metabolism-slate.md):
 
 The remaining consumers + the environment they run against extend the build:
 - [thermal-slate](./builds/thermal-slate.md) — generic `Thermal` cooling capability (lazy Newton, τ=R·C) + body thermoregulation (Option-C thermoneutral dead-band); resolves metabolism's heat seam. `thermalConductivity` already shipped to `Material`. Build with/after metabolism.
-- [respiration-slate](./builds/respiration-slate.md) — oxygen / asphyxiation (drowning, vacuum, smoke); a deferred seam riding shipped vitals (`spo2`) + biome (medium). Build when drowning content lands.
+- [respiration-slate](./tails/respiration-slate.md) *(tail)* — oxygen / asphyxiation. **Shipped 2026-06** — the air-exchange + `spo2` death driver + the carried-air tank, graduated to [../subsystems/respiration.md](../subsystems/respiration.md). Deferred surface holding here: gills / confer-based water access, the inhaled-toxin (smoke / gas) channel, the strangulation channel, CO₂ / rebreather buildup, the airlock interlock, pressure / altitude.
 - [weather-slate](./builds/weather-slate.md) — atmospheric *dynamics* (the procedural driver over biome's static state); thermal's dynamic source. Deferred behind the addressing-locality substrate; global until then.
 
-**Phases:** vitals substrate (built → tails) → encumbrance (built → tails) → metabolism (built → tails) → **thermal** → [respiration · weather — deferred behind content / the addressing substrate].
+**Phases:** vitals substrate (built → tails) → encumbrance (built → tails) → metabolism (built → tails) → respiration (built → tails) → **thermal** → [weather — deferred behind the addressing substrate].
 
 ### 4. World places & navigation
 *A long, sequenced content build.* The Warren elastic-graph substrate +
