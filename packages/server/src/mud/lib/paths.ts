@@ -45,6 +45,12 @@ export const TemplatePaths = {
   metabolismStarvation: "/lib/metabolism/conditions/starvation",
   metabolismDehydration: "/lib/metabolism/conditions/dehydration",
   metabolismCollapse: "/lib/metabolism/conditions/collapse",
+
+  // Thermal cascade conditions — spawned/cleared by the thermoregulation
+  // reconcile when driven `coreTemperature` crosses the survivable band.
+  thermalHypothermia: "/lib/thermal/conditions/hypothermia",
+  thermalHyperthermia: "/lib/thermal/conditions/hyperthermia",
+  thermalTorpor: "/lib/thermal/conditions/torpor",
 } as const;
 
 /**
