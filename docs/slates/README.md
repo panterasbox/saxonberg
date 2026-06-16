@@ -23,7 +23,7 @@ opening a cycle for).
 
 ## Builds (`builds/`)
 
-Eight builds. Each lists its member slates in rough phase order and the
+Nine builds. Each lists its member slates in rough phase order and the
 shipped substrate it leans on.
 
 ### 1. Identity & social perception
@@ -128,8 +128,9 @@ conservation problem with in-world rules — substrate, the same as light
 or containment. Stats/progression/combat balance stay deferred; the
 physics is buildable now.
 - [economy-slate](./builds/economy-slate.md) — currency, value, crafting inputs, trade. Reads the shipped [glob](../subsystems/glob.md) fungible-stack substrate (coins and raw materials are already modeled). **Currency slice buildable now; macro balance — faucet/sink, inflation, population-scale loops — parked until there's a running game to tune against.**
+- [crafting-slate](./builds/crafting-slate.md) — the economy's **transformation** stage (where value is minted), the piece economy-slate deferred. The **venue model** (Dave's Bar four-tuple: inputs + tools + recipes + labor; place-based crafting; buy-vs-DIY; NPC floor / player apex) is settled enough for a first venue slice; the core mechanics (recipes, the skill seam's far side, the quality verdict) are open design space, advancement-adjacent and largely deferred. Crystallized in the economy slate's employment/venue section.
 
-**Phases:** currency slice → (macro balance deferred to a real game).
+**Phases:** currency slice → crafting venue slice (Dave's Bar) → (skill / quality / recipe-spread deferred with the advancement layer) · (macro balance deferred to a real game).
 
 ### 8. Reading & reference
 *The two halves of the in-game reading substrate — a systems↔content
@@ -138,6 +139,88 @@ pair, split by center of gravity, not a wall.*
 - [wiki-slate](./builds/wiki-slate.md) — the **content** half: a community-maintained, client-native wiki of plain `WikiPage` Documents; every page authored, no generation from gamestate. A two-axis spoiler model (appetite dial × capability ceiling) governs reveals.
 
 **Phases:** help (systems index) → wiki (community content). Both lean on the deferred [spoiler](./deferred-rpg/spoiler-slate.md) reveal model.
+
+### 9. Cooperative & governance
+*The people who fund Saxonberg are the people who govern its world —
+real funding and in-world citizenship as the same act, separated by one
+hard membrane.* Also a **native-digital governance** thesis: drop the
+logistical artifacts of meatspace government, keep the protective
+functions, and tie influence to costly contribution because that's the
+Sybil floor (the novel polity is educational *payload*, not overhead).
+New substrate; no shipped subsystem. Prioritized to stand up a funding
+stream for dev. Sibling to the **economy** build
+(value-physics) — this governs over that value, and its in-world reserve
+closes economy's open "deliberate faucet without inflation" thread.
+- [cooperative-slate](./builds/cooperative-slate.md) — the full governance
+  design (authoritative; this is only a hook): **stake-is-not-stock** (the
+  lawyer-free firewall) + **influence** (three non-fungible kinds = three
+  contributions — creation / patronage / participation) → three co-equal
+  chambers → a parliamentary executive of chartered institutions → a
+  judiciary that runs **one async process** from operator-pool-of-one to a
+  **sortition** jury (verification + spirit, structured verdicts) → a
+  tamper-evident **archive** (integrity by construction, not a separate
+  operator) → a hard **firewall** between the real budget and the in-world
+  reserve (the economy itself left to legislation), with **deliberation**
+  (social-forum / polling / argument-map) and **amendment** (tiers + eternity
+  clauses + fork). Held together by recurring
+  throughlines: **graceful degradation** (NPC/automation floor everywhere),
+  the **membranes** (no cash-out, no pay-to-win), **no-number-as-authority**,
+  **conduct→reputation**, **engagement-is-the-substrate** (the game is the
+  engine apathy-prone DAOs lacked), and the **founder self-binding** so the
+  *structure*, not the person, is entrenched. Adoption rides **moderation as
+  the on-ramp**. **Stake-ledger slice buildable now**; the full republic
+  parked until there's a member body to govern.
+- [draft-constitution](./builds/draft-constitution.md) — the slate
+  consolidated into normative articles (Preamble + 13 Articles + a **Schedule
+  of Parameters**). Reframed as a **bare-bones kernel that ships to every
+  community**: a **three-floor test** (the *firewall* — the no-lawyer floor;
+  the *machine* + its provided tools; everything else *deferred*) decides
+  what's constitutional, so rights move to ratification, the economy +
+  institution roster + trial procedure to legislation. Keystone: **rights are
+  bindings on tools, not new machinery** — *due process = "you must use the
+  judicial machinery."* Treated as **code with a config block**: the articles
+  are logic; every tunable value (quorum, thresholds, lifespans, regen rates,
+  the amendment supermajorities…) lives once in the Schedule, each with a
+  change-tier and a value **set at ratification** (game-balance rows
+  *calibrated at launch*). Status: **draft, not ratified**; five points marked
+  `[OPEN]` (membership · rights · founding/ratification · emergency powers ·
+  interpretation).
+- [amendment-library-slate](./builds/amendment-library-slate.md) — the layer
+  *on top* of the kernel: a shared **library of model amendments** — pre-
+  drafted, vetted, composable **"political legos"** a community adopts (via the
+  kernel's ordinary Art. X path) instead of re-solving due process / monetary
+  policy / term limits from scratch. *Model legislation meets a package
+  registry meets the CC license picker.* Every choice the constitution defers
+  is a **module slot**; most modules are *bindings on tools the kernel already
+  built*. Catalog (rights / economy / roster / executive / judiciary /
+  membership modules) + **presets-as-distros** (Operator's table → Creator
+  collective → Full republic). **A few hand-authored modules buildable now**;
+  the package-manager conflict-resolution + curation tiers deferred to scale.
+- [founding-charter](./builds/founding-charter.md) — the founder's
+  **self-binding commitment**, in force from the first dollar (the
+  instance-specific instrument the constitution's Art. XI founding-stake bound
+  requires; *not* kernel text). The fiat-phase formula: **sole producer**
+  (~100%, diluting) · **0% consumer** (players' house ceded) · **patron-match
+  + 1** (a working majority that erodes as the community grows) · **the
+  *granted* control sunsets at ratification** — but the founder's *earned*
+  producer influence persists like any member's (only the patron-match + margin
+  end), leaving ordinary contribution + legislated wage. The binding isn't law
+  (there's none
+  yet) but **code + publication + exit** — it ships with the **stake-ledger
+  slice** as the first test of code-first self-binding.
+- [argument-map-slate](./builds/argument-map-slate.md) — the polity's
+  load-bearing **deliberation surface**, split out from the cooperative
+  slate's *Deliberation* section as its own thing because it's *distinct from
+  forums*: a navigable **typed claim-graph** (bill-as-spine, claims →
+  objections → rebuttals; Kialo / IBIS / Deliberatorium lineage) organized by
+  the argument's *structure*, not by ranking (the only ungameable organizer).
+  Dissent is a node not a downvote; contribute-as-equals, decide-by-weight;
+  it's the legislative history in the archive. **Small-scale claim-tree
+  buildable now**; the *scale* problems — claim dedup/canonicalization
+  (assisted curation) + integrity-grade map-summarization — are the open
+  work.
+
+**Phases:** stake ledger (buildable now) → (the republic — chambers, executive, treasuries — deferred to a real member body) · argument-map (small-scale claim-tree buildable; mass-scale dedup/summarization deferred).
 
 ---
 
