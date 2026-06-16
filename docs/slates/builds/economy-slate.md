@@ -46,6 +46,14 @@ See also:
 - [docs/roadmap.md](../../roadmap.md) — the "Economy / currency" and
   "Crafting" surfaced-but-deferred entries. This slate is the design
   for that backlog.
+- [docs/slates/builds/cooperative-slate.md](./cooperative-slate.md) — the
+  **governed macro layer** that rides on this physics. The deferred
+  macro-economics below (faucet/sink balance, inflation, deliberate
+  value-injection) is handled there by the **reserve + legislature** as
+  ongoing monetary policy (the reserve is the *only* mint → the money
+  supply is governed and auditable; central banking as governance, not
+  dev-patching). Capital injection + producer-influence both measured
+  along the authorial subdivision (Locality/zone/group/access).
 
 ---
 
@@ -375,6 +383,202 @@ same decision seen from both ends: get the physics honest and the
 *world* falls out of it instead of being bolted on.
 
 ---
+
+## Employment & economic engagement
+
+The diegetic concept is plain: **a business needs labor, and labor is
+satisfied by whoever's available.** Player-to-player markets for goods and
+services stay **ad-hoc and lightly touched** — the economy slate's "build
+the handshake, not the exchange"; don't codify a labor market until
+players force it. The canonical case is an **NPC business** (Dave's Bar)
+hiring **players** to staff it. But the load-bearing generalization is:
+
+> An employment relationship is a **role-slot whose both ends are fillable
+> by either an NPC or an interactive player.**
+
+| Relationship | Role |
+|---|---|
+| **NPC → NPC** | the **bootstrap floor** — the economy runs on NPCs before there's a single player |
+| **NPC → player** | the **job** — a player takes a role from the NPC layer (the coin **faucet**: working for an NPC business is how players earn) |
+| **player → NPC** | the **offline/scale** case — NPC staff run a player's business while they're logged off (offline-vending generalized to services; a coin **sink**) |
+| **player → player** | the emergent P2P case — kept ad-hoc and light |
+
+### NPCs are both bootstrap scaffold and disengagement backstop
+
+Because every role is an **agent-agnostic slot**, the NPC layer plays two
+roles, forward and backward:
+
+- **Bootstrap (forward).** Genesis is a **fully NPC-staffed living
+  economy** — businesses staffed, goods made, services rendered, before
+  there's a single player. The first players don't hit a dead empty
+  server; they walk onto a populated stage and *progressively inhabit it*,
+  taking jobs and starting businesses until the lattice of role-slots is
+  as player-filled as the population supports.
+- **Backstop (backward).** NPCs **backfill dropped player roles.** A
+  player tending the bar logs off → the NPC bartender returns → the bar
+  keeps running; a player shop whose owner disengages → the NPC clerk
+  keeps it open. **Player presence is additive and replaceable, not
+  load-bearing and fragile** — the economy can't die from an exodus, it
+  just gets more NPC-run (less vibrant, still functional) and re-vivifies
+  as players return.
+
+This is the **economic twin of the graceful-degradation philosophy** that
+runs through the governance design (the separation-of-powers population
+ladder, the moderation on-ramp): players present → richer and alive;
+players absent → the NPC floor holds. The economic death spiral is caught
+the same way quorum-to-status-quo catches the political one — dropped
+roles are *caught*, not lost.
+
+### Idle activities — the low-attention bottom tier
+
+A big fraction of MUD logins were people parked in the lounge to *chat*,
+not play. **Idle activities** give that socializer segment a low-attention
+thing to accumulate — a retention hook distinct from the role/employment
+hook for active players. Generalized: not just mining but a **family** of
+little idle games, each a slow trickle of a different reward (ore, herbs,
+fish, a little coin, progress, even study in the education vertical) — the
+framework general, the activities + rewards content (the meaning-free-event
+decoupling of the standard model's Part II).
+
+The load-bearing rule, or it becomes a mandatory grind: **idle is a
+retention garnish, not a production faucet.** Active play is always the
+*efficient* path (need ore now → go mine, fast); idle is a *slow background
+trickle* you can never *need* — so nothing is ever gated behind hours of
+idling, and the deliberately-small output doesn't distort the economy as a
+free faucet (Law 2: never tax absence — and never reward it richly either).
+
+And it **converges with the employment model**: idle and hired NPC labor
+are the same idea — automating the boring bottom tier — at two scales. Idle
+mining is the *solo, early* form; **hiring NPC miners is the *scaled*
+form.** No permanent separate idle system is needed — the personal trickle
+graduates into "hire NPCs to work the bottom of your supply chain" (see the
+crafting slate's *Supply chains & tiers*).
+
+### The reserve-governed labor faucet/sink
+
+The NPC labor market is a reserve-backed **faucet/sink pair**:
+NPC-employs-player pays wages *out* (the faucet — earned coin),
+player-employs-NPC takes coin *in* (the sink). Both ride NPC-business
+liquidity, which the reserve floats the way it floats NPC vendors. So
+"managing unemployment" is concrete and counter-cyclical: when engagement
+dips, keep the NPC businesses **hiring** (faucet open, jobs available) —
+governed and auditable, the same only-mint discipline. And the broader
+rule holds, identical to political engagement: **economic participation is
+optional but rewarding** — income is *aspirational, not survival* (no
+upkeep treadmill; Law 2), so unemployment costs nice things, never your
+existence, and the real churn risk is **rolelessness, not unemployment.**
+
+### When is employment viable? — the value-add rule
+
+A fixed wage below the value of what you produce is **dominated by
+self-employment**: told to mine a *commons* gold vein for less than the
+gold is worth, a min/maxer just mines it and keeps 100%. That degenerate
+deal is correctly a non-starter. Employment is viable only when the
+**employer adds value beyond the labor**, and takes a margin for it:
+**access** to an *owned* resource (Dave's claim — you can't mine it
+without him; he rents the means of production as wages), **capital/tools**
+the worker lacks, **risk absorption** (a certain wage vs volatile
+self-employment), **market/coordination** (he sells what you make), or **a
+role** without entrepreneurial overhead.
+
+So min/maxing doesn't break employment — the economy **sorts**: optimizers
+become *self-employed entrepreneurs* (own a claim, keep the margin, eat
+the risk — "player business is the apex"); employees are the risk-averse,
+capital-poor, and role-seekers; **NPCs backfill the jobs players won't
+take.** Two corollaries:
+
+- **Contract structure dissolves "output > wage."** Pay a **share/royalty**
+  ("keep 60% of what you mine, I take 40% rent for the claim"), not a flat
+  wage — even an optimizer takes that, keeping most of the value and
+  paying the owner only for access. Sharecropping/commission is the
+  classic fix.
+- **Employment concentrates where it's strong.** Raw extraction from a
+  commons is the *weakest* case (self-employment dominates); employment is
+  strongest in **transformation and services** (the workshop, the bar),
+  where the employer's tools/recipes/venue/customers add value a lone
+  worker can't replicate — where the economy slate already puts value.
+
+The rule: **an employer must add value beyond the labor (access, capital,
+risk, market, or role), or the job is dominated and only NPCs will fill
+it** — and a min/maxer refusing a job is the correct signal that it should
+be NPC-run or restructured as a profit-share.
+
+### Crafting venues — the concrete value-add (Dave's Bar)
+
+> A full crafting design is a **separate future doc**; this is only the
+> economy-relevant hook.
+
+Dave's Bar is the concrete form of "the employer adds value beyond the
+labor." A **crafting venue** aggregates the four things a substantial
+craft needs — **inputs, tools, recipes, and (optional) skilled labor** —
+so the output is feasible *there* and infeasible *at home*: spirits +
+mixers, shaker + glassware, cocktail recipes, bartenders. Generalize the
+four-tuple per domain (smithy, kitchen, alchemy lab, loom) and it's the
+spine of the whole crafting subsystem.
+
+Why it crystallizes the economy: the venue **is** the employer's
+value-add (why you buy a cocktail instead of making one at home, and why
+Dave employing a bartender beats self-employment, have the *same*
+answer); it's the **transformation-margin node** (buy inputs wholesale →
+transform → sell retail); and it rides substrate you have (an owned
+**locality**, the liquids as **bulk**, staff as **employment** slots). It
+commits you to **place-based crafting** — you craft *at venues*, scaled by
+complexity (trivial crafts anywhere, substantial crafts at the venue) —
+which makes the *world* the economy's substrate rather than a backpack
+menu. And it offers two paths at every venue: **buy the output** (the
+bartender makes it — the employment path) or **rent the means and DIY**
+(use the bar's stock yourself — the self-employment path), the
+employ-vs-self-employ sort made concrete. NPC Dave is the bootstrap floor;
+player-owned venues are the apex that grows on top.
+
+### Wages as monetary policy — the dual mandate, and paying for roles
+
+Once wages are the dominant coin **faucet** (working for NPC businesses is
+how most players earn), the reserve inherits a **dual mandate** — the
+Fed's exact pair: pay more (higher wages/bounties/role-incentives) → *more
+participation* but *more coin injected* (inflation); pay less → *less
+inflation* but *weaker incentive to show up.* The reserve can't minimize
+inflation (it'd starve participation) or maximize participation (it'd
+inflate); it **balances** them, with the **wage/incentive rate as the
+policy instrument** — "managing unemployment" and "managing inflation" are
+the same dial turned opposite ways. The NPC wage must also clear the
+**self-employment floor** (below the value of self-employment, optimizers
+won't take NPC jobs and NPCs backfill them).
+
+**Paying for governance roles cuts both ways.** Paying gamecoin to fill
+roles (mods included) is itself a monetary operation — and moderation is
+the worst place for naive pay:
+
+- **Pay-per-action is poison** — pay per ban and you've put a bounty on
+  punishment (over-moderation); tie the wage to rule-breaking and you've
+  made a constituency that *wants more crime.*
+- **Money crowds out care** — pay turns a labor-of-love into a grind and
+  draws power-seekers; the motivation-crowding effect can *lower* quality
+  for trust roles.
+
+So if you pay for roles, structure it not to break:
+
+- **reward service, not enforcement** — a stipend for being on-duty /
+  clearing the queue, decoupled from how many you punished; never
+  piece-rate;
+- **tie performance reward to *upheld* actions** — reward enforcement that
+  survives appeal, claw back / ding reputation for what's overturned (the
+  appeals judiciary + archive become the governor on the pay loop,
+  aligning toward *correct* moderation, not *more*);
+- **lead with standing, not coin** — reputation/honor primary, coin a
+  modest honorarium, keeping money from dominating a legitimacy role.
+
+### Substrate
+
+Minimal: NPCs and players are both **Agents**, so the relationship is a
+role with two *agent-typed* ends, indifferent to which side a connection
+vs a routine drives. NPCs actually *performing* jobs depend on the
+**[npc-behavior](./npc-behavior-slate.md)** brains (the real dependency,
+deferred); **access/groups** handle who-may-act-where; the role-slot is a
+small engine primitive, and the P2P case rides it informally — **no labor
+market to build.** And where employment exists, so do **labor disputes**
+(→ the appeals judiciary) and **labor policy** (→ a legislative domain):
+employment is one of the seams where the economy and the polity touch.
 
 ## Buildable now — the currency slice (v1)
 
