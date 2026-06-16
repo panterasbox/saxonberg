@@ -36,6 +36,7 @@ import { SecurityPolicies } from '../lib/security/SecurityPolicies';
 import { PathTrie } from '../lib/collections/PathTrie';
 import { StuffApi } from '../api/stuff';
 import { Template } from '../lib/stuff/Template';
+import { TemplatePathPrefixes } from '../lib/paths';
 import type Locality from '../lib/address/Locality';
 
 const AddressRegistryBase = PostRegistrationMixin(Idea);
@@ -43,10 +44,10 @@ const AddressRegistryBase = PostRegistrationMixin(Idea);
 /** Only the AddressLogic singleton at `/obj/api/address` may call in. */
 const AddressLogicCaller = SecurityPolicies.FromTemplate('/obj/api/address');
 
-/** The addressing admin folder; its Locality leaves live beneath it. */
-const ADDRESS_FOLDER = '/lib/address';
+/** The addressing prefix; its Locality leaves live beneath it. */
+const ADDRESS_PREFIX = TemplatePathPrefixes.address; // '/lib/address/'
 /** The Locality class template path — the filter for the roster walk. */
-const LOCALITY_CLASS = '/lib/address/Locality';
+const LOCALITY_CLASS = `${ADDRESS_PREFIX}Locality`;
 
 export default class AddressRegistry extends AddressRegistryBase {
   /**
@@ -128,7 +129,7 @@ export default class AddressRegistry extends AddressRegistryBase {
    */
   private async rebuildIndex(): Promise<void> {
     this.coverage.clear();
-    const templates = await Template.findDescendants(ADDRESS_FOLDER);
+    const templates = await Template.findDescendants(ADDRESS_PREFIX);
     for (const t of templates) {
       if (t.class !== LOCALITY_CLASS) continue;
       const loc = await StuffApi.singleton<Locality>(t.path);

@@ -220,6 +220,3 @@ simplification.
 - [ref-shapes.md](../ref-shapes.md) — Pattern A for the `_address`
   declaration.
 - `lib/collections/PathTrie` — the coverage-index machinery.
-- [requirements](../requirements/addressing-foundation-requirements.md)
-  / [plan](../plans/addressing-foundation-plan.md) — this build's
-  artifacts.
