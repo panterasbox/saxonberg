@@ -25,9 +25,10 @@ import { ContainerMixin } from '../spatial/Container';
 import { AdornableMixin } from '../boundary/Adornable';
 import { TangibleMixin } from '../material/Tangible';
 import { AtmosphericMixin } from '../biome/Atmospheric';
+import { AddressableMixin } from '../address/Addressable';
 
-const LocationBase = AtmosphericMixin(
-  TangibleMixin(AdornableMixin(ContainerMixin(Stuff))),
+const LocationBase = AddressableMixin(
+  AtmosphericMixin(TangibleMixin(AdornableMixin(ContainerMixin(Stuff)))),
 );
 
 export default class Location extends LocationBase {

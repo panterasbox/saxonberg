@@ -193,4 +193,70 @@ describe('PathTrie', () => {
       expect(trie.glob('/obj/Avatar/*').sort()).toEqual(['a', 'b']);
     });
   });
+
+  describe('longestPrefix (nearest-ancestor match)', () => {
+    function makeCoverage(): PathTrie<string> {
+      // Address-namespace convention: no leading slash.
+      const trie = new PathTrie<string>();
+      trie.insert('narnia', 'narnia');
+      trie.insert('narnia/castle', 'cair-paravel');
+      trie.insert('narnia/wild', 'lantern-waste');
+      return trie;
+    }
+
+    it('returns the exact bucket when the path is itself a stored prefix', () => {
+      const trie = makeCoverage();
+      expect(trie.longestPrefix('narnia/castle')).toEqual(['cair-paravel']);
+    });
+
+    it('returns the deepest ancestor prefix (more-specific wins)', () => {
+      const trie = makeCoverage();
+      // A scope deeper than any stored prefix resolves to the longest.
+      expect(trie.longestPrefix('narnia/castle/closet')).toEqual([
+        'cair-paravel',
+      ]);
+    });
+
+    it('falls back to a shallower prefix when no deeper one is stored', () => {
+      const trie = makeCoverage();
+      // narnia/other is not stored, so the nearest ancestor is narnia.
+      expect(trie.longestPrefix('narnia/other/room')).toEqual(['narnia']);
+    });
+
+    it('distinguishes siblings', () => {
+      const trie = makeCoverage();
+      expect(trie.longestPrefix('narnia/wild/glade')).toEqual([
+        'lantern-waste',
+      ]);
+    });
+
+    it('returns [] when no prefix is stored (outside the tree)', () => {
+      const trie = makeCoverage();
+      expect(trie.longestPrefix('elsewhere/void')).toEqual([]);
+    });
+
+    it('returns [] on an empty trie', () => {
+      const trie = new PathTrie<string>();
+      expect(trie.longestPrefix('narnia/castle')).toEqual([]);
+    });
+
+    it('enumerates a multi-value bucket at the winning prefix', () => {
+      const trie = new PathTrie<string>();
+      trie.insert('narnia/castle', 'a');
+      trie.insert('narnia/castle', 'b');
+      expect(trie.longestPrefix('narnia/castle/closet').sort()).toEqual([
+        'a',
+        'b',
+      ]);
+    });
+
+    it('longestPrefixPath reports the matched prefix string', () => {
+      const trie = makeCoverage();
+      expect(trie.longestPrefixPath('narnia/castle/closet')).toBe(
+        'narnia/castle'
+      );
+      expect(trie.longestPrefixPath('narnia/other/room')).toBe('narnia');
+      expect(trie.longestPrefixPath('elsewhere/void')).toBeNull();
+    });
+  });
 });

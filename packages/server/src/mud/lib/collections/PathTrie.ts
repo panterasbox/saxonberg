@@ -112,6 +112,40 @@ export class PathTrie<T> {
   }
 
   /**
+   * Return the values stored at the longest path that is a prefix of
+   * `path` (segment-wise) and carries values — the nearest-ancestor
+   * (or exact) match. Walks segment-by-segment from the root,
+   * remembering the deepest node along the way that owns a value
+   * bucket. Returns `[]` when no ancestor-or-exact path has values.
+   *
+   * Reuses the same `/`-split segment discipline as the other walks —
+   * it introduces no parallel path syntax and carries no glob
+   * semantics (matching is exact-per-segment). O(depth) literal
+   * descent.
+   */
+  public longestPrefix(path: string): T[] {
+    const best = this.#longestPrefixNode(path);
+    return best && best.values ? [...best.values] : [];
+  }
+
+  /**
+   * The path string of the longest value-carrying prefix of `path`, or
+   * `null` when none. Companion to {@link longestPrefix} for callers
+   * that need the matched prefix itself (e.g. provenance rendering).
+   */
+  public longestPrefixPath(path: string): string | null {
+    const best = this.#longestPrefixNode(path);
+    if (!best || !best.values) return null;
+    const segs: string[] = [];
+    let node: PathTrieNode<T> | null = best;
+    while (node && node.parent) {
+      segs.push(node.segment!);
+      node = node.parent;
+    }
+    return segs.reverse().join('/');
+  }
+
+  /**
    * Remove every entry from the trie. Restores a never-used state.
    */
   public clear(): void {
@@ -142,6 +176,18 @@ export class PathTrie<T> {
       if (node === null) return null;
     }
     return node;
+  }
+
+  #longestPrefixNode(path: string): PathTrieNode<T> | null {
+    let node: PathTrieNode<T> = this.#root;
+    let best: PathTrieNode<T> | null = this.#root.values ? this.#root : null;
+    for (const seg of path.split('/')) {
+      const next = node.children.get(seg);
+      if (!next) break;
+      node = next;
+      if (node.values) best = node;
+    }
+    return best;
   }
 
   #walkOrCreate(path: string): PathTrieNode<T> {

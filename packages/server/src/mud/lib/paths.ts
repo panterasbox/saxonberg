@@ -21,6 +21,7 @@
 export const TemplatePaths = {
   // Singleton registries.
   accessRegistry: "/obj/AccessRegistry",
+  addressRegistry: "/obj/AddressRegistry",
   groupRegistry: "/obj/GroupRegistry",
   schedulerRegistry: "/obj/SchedulerRegistry",
   worldClockRegistry: "/obj/WorldClockRegistry",
@@ -71,6 +72,9 @@ export const TemplatePathPrefixes = {
   species: "/lib/species/",
   topic: "/lib/messaging/Topic/",
   perceptionModalities: "/lib/perception/modalities/",
+  // Addressing — the Locality leaf roster lives under this prefix; the
+  // AddressRegistry enumerates it to build the coverage index.
+  address: "/lib/address/",
   // Metabolism toxin conditions resolve by `<prefix><toxin-type>` (v1
   // keys the condition by the toxin tag, e.g. `…/conditions/alcohol`).
   metabolismCondition: "/lib/metabolism/conditions/",

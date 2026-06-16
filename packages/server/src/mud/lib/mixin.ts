@@ -92,6 +92,7 @@ export const Mixins = {
   UnboundedSource: 'UnboundedSourceMixin',
   Engaged: 'EngagedMixin',
   Atmospheric: 'AtmosphericMixin',
+  Addressable: 'AddressableMixin',
   SkyExposed: 'SkyExposedMixin',
   Soul: 'SoulMixin',
   Contacts: 'ContactsMixin',
