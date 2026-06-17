@@ -34,6 +34,7 @@ export const TemplatePaths = {
   // Persistence infra (declared as `static templatePath` on these classes).
   persistentHydrator: "/lib/persistence/PersistentHydrator",
   quantityMarshaller: "/lib/persistence/QuantityMarshaller",
+  encryptedStringMarshaller: "/lib/persistence/EncryptedStringMarshaller",
 
   // Class refs / defaults.
   idea: "/lib/stuff/Idea",
