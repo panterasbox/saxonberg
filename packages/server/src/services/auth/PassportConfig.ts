@@ -98,7 +98,9 @@ export class PassportConfig {
     passport.use(
       'google',
       new GoogleStrategy(
-        { clientID, clientSecret, callbackURL },
+        // state: true → CSRF protection (session-stored nonce) on the
+        // OAuth round-trip; guards login + account-linking.
+        { clientID, clientSecret, callbackURL, state: true },
         async (
           _accessToken: string,
           _refreshToken: string,
@@ -120,7 +122,7 @@ export class PassportConfig {
     passport.use(
       'google-link',
       new GoogleStrategy(
-        { clientID, clientSecret, callbackURL: linkCallbackURL },
+        { clientID, clientSecret, callbackURL: linkCallbackURL, state: true },
         async (
           _accessToken: string,
           _refreshToken: string,
@@ -165,6 +167,7 @@ export class PassportConfig {
           clientID,
           clientSecret,
           callbackURL,
+          state: true,
         },
         async (
           accessToken: string,
@@ -210,6 +213,7 @@ export class PassportConfig {
           clientID,
           clientSecret,
           callbackURL: linkCallbackURL,
+          state: true,
         },
         async (
           accessToken: string,
