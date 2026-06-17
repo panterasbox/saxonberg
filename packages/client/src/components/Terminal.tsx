@@ -20,7 +20,7 @@
 import { useEffect, useMemo, useRef } from 'react';
 import styled from 'styled-components';
 import { GutterStripe } from './GutterStripe';
-import { ReactionBar } from './ReactionBar';
+import { ReactionBar, REVEAL_REACTION_ADD } from './ReactionBar';
 import { useStore } from '../store';
 import type { Frame } from '../store/index';
 import { parseMml } from '../lib/mml/parseMml';
@@ -50,14 +50,12 @@ const FrameRow = styled.div`
   margin-bottom: 0.5rem;
 
   /* The reaction "+" affordance is hover-revealed (Slack/Discord model):
-     it occupies no space at rest and fades in only when the row is
-     hovered, so reactable lines don't carry a persistent widget. The
-     reaction chips themselves (when present) render inline regardless. */
-  & .reaction-add {
-    display: none;
-  }
+     it is visually hidden + focusable at rest (no footprint, but kept in
+     the tab order — see ReactionBar's AddWrap), and reveals on row hover.
+     Keyboard focus (:focus-within) and the open palette reveal it via
+     AddWrap's own rules. The reaction chips render inline regardless. */
   &:hover .reaction-add {
-    display: inline-flex;
+    ${REVEAL_REACTION_ADD}
   }
 `;
 

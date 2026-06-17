@@ -126,17 +126,41 @@ const MiniButton = styled.button`
   }
 `;
 
-// Carries the `reaction-add` class so FrameRow's `:hover` rule reveals
-// it (display:none → inline-flex). `$open` force-shows it while the
-// palette is open, so moving the mouse to pick an emoji can't hide it.
-const AddWrap = styled.span<{ $open: boolean }>`
+/**
+ * The revealed state of the react "+" affordance. Shared so `FrameRow`'s
+ * `:hover` rule and the focus/open states here stay in lockstep.
+ */
+export const REVEAL_REACTION_ADD = css`
   position: relative;
+  width: auto;
+  height: auto;
+  overflow: visible;
+  clip: auto;
+  clip-path: none;
+  white-space: nowrap;
+`;
+
+// Carries the `reaction-add` class. At rest it is **visually hidden but
+// focusable** (clipped to 1px, kept in the layout-out-of-flow so it adds
+// no inline footprint — NOT `display:none`, which would drop it from the
+// tab order). It reveals on row hover (FrameRow's rule), on keyboard
+// focus (`:focus-within` — so Tab reaches the "+"), or while the palette
+// is open (`$open`, so moving the mouse to pick an emoji can't hide it).
+const AddWrap = styled.span<{ $open: boolean }>`
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
   align-items: center;
-  ${(p) =>
-    p.$open &&
-    css`
-      display: inline-flex !important;
-    `}
+
+  &:focus-within {
+    ${REVEAL_REACTION_ADD}
+  }
+  ${(p) => p.$open && REVEAL_REACTION_ADD}
 `;
 
 const Palette = styled.div`
