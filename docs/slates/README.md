@@ -65,7 +65,7 @@ relationship layer remains.
 - [scripting-slate](./builds/scripting-slate.md) — a purpose-built soft-scripting language; promotes npc-behavior's deferred `scripted-behavior` tail to a first-class subsystem (and a human-authored content surface in its own right). **Not near-term** — the remaining design forks (blocks, execution model, the `( )` sublanguage, scope) want a focused learning pass first.
 - [llm-content-slate](./builds/llm-content-slate.md) — the runtime LLM rung npc-behavior left open: a single director agent forces the cast over the command bus and narrates ambient scenes, expressing multi-stage behavior by authoring in the scripting language. **Not near-term.**
 
-**Phases:** behavior substrate → dialogue → scripting language → LLM director. (`reactions` in `tails/` rides later.)
+**Phases:** behavior substrate → dialogue → scripting language → LLM director. (`reactions` core shipped; its `tails/` tail rides later.)
 
 ### 3. Vitals & survival
 *Substrate shipped; the survival mechanics build on top.* The vitals
@@ -169,7 +169,7 @@ extends; none is a fresh build.
 | [bulkable](./tails/bulkable-slate.md) | bulk.md | thermos slice shipped; deferred: mixing/solutions, gas (`sealed`), `Container`+`Bulkable`, amount-aware appearance |
 | [client-cockpit](./tails/client-cockpit-slate.md) | cockpit (several tracks shipped) | remaining client-track umbrella |
 | [language](./tails/language-slate.md) | comms / perception | comprehension; roleplay flavor |
-| [reactions](./tails/reactions-slate.md) | messaging / emotes | attach-emote-to-message |
+| [reactions](./tails/reactions-slate.md) | reactions.md / emotes | core shipped (act-scoped emote + aggregate-delta + `react` + chips); deferred: per-user controls wiring, analytics event-tap, emote-flood salvage |
 | [persistence-architecture](./tails/persistence-architecture-slate.md) | persistence.md | Wave 3 un-Stuff marshallers (Waves 1-2 shipped) |
 | [vitals](./tails/vitals-slate.md) | vitals.md / reserve.md | application waves — live condition progression, the death-transition driver, assessment / instruments / treatment, consumables, forensics (substrate / Wave 1 shipped) |
 | [multilocation](./tails/multilocation-slate.md) | location.md | deferred procedural / spatial Warren consumers beyond the shipped social-elastic lounge case |

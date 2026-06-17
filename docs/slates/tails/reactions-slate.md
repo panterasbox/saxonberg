@@ -1,9 +1,22 @@
 # Reactions & aggregation slate (working doc)
 
-> **Status: architecture set, forks resolved.** Lightweight reactions
-> (attach an emote to a message) built to survive **hundreds of
-> concurrent users on a channel**. A reaction is just an emote aimed at a
-> message; the work is the *aggregation/scale layer* over it.
+> **Status: core SHIPPED (see [docs/subsystems/reactions.md](../../subsystems/reactions.md)); this slate keeps the deferred tail.**
+> The Wave-1/2 substrate is built: act-scoped emote, the fixed-cadence
+> aggregate-delta broadcaster, threshold flip, tag-grouped chips, expand,
+> the quick-react palette, the renown event, ring-tied ephemeral state.
+> Two decisions below shifted in the build: **(a)** reacting is
+> **add-only + an explicit `--remove`**, not toggle-once (toggle-on-
+> re-react surprised); **(b)** reactions aggregate **by glyph** for now —
+> emoji-less / free-form reacts render as prose, not chips. Still on the
+> tail: per-user controls *applied* to the widget (keys defined, not yet
+> consumed), the analytics event-stream tap, and the emote-flood salvage
+> (Future direction, below).
+>
+> _Original framing follows (design surface, not all of it shipped):_
+> Lightweight reactions (attach an emote to a message) built to survive
+> **hundreds of concurrent users on a channel**. A reaction is just an
+> emote aimed at a message; the work is the *aggregation/scale layer*
+> over it.
 
 Working slate for **reactions** — `react 113 ;agree` and the aggregation
 that keeps it from drowning a busy channel. The thing the emote and chat

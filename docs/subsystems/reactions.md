@@ -235,12 +235,19 @@ clickable in the client; it never sends a websocket frame directly.
 
 ### Per-user controls
 
-`SoulMixin.settings` — `social.react.intensity`, `.muteChannels`,
-`.alwaysAggregate`, `.tagGroup`, `.collapseThreshold`. Read client-side
-from the settings sync and applied to the rendered widget. In v1 these
-are **client-render preferences**: the server always emits both the
-below-threshold line and the above-threshold delta; honoring
-`muteChannels`/`alwaysAggregate` server-side is a later refinement.
+`SoulMixin.settings` defines the keys — `social.react.intensity`,
+`.muteChannels`, `.alwaysAggregate`, `.tagGroup`, `.collapseThreshold` —
+and they ride the existing settings sync to the client. They are
+intended as **client-render preferences** (the server always emits both
+the below-threshold line and the above-threshold delta; server-side
+honoring of `muteChannels`/`alwaysAggregate` is a later refinement).
+
+**Status:** the keys are defined and synced, but the `ReactionBar`
+widget does **not yet consume them** — applying intensity / tag-group /
+collapse / mute to the rendered widget is deferred (it's UI-design work
+that wants to settle against the inline/hover render). Tracked in
+[reactions-slate.md](../slates/tails/reactions-slate.md) (Input &
+controls).
 
 ## What this build deliberately is NOT
 

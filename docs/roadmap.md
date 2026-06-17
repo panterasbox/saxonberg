@@ -240,11 +240,14 @@ Ordered by leverage + dependency:
    framework flag; DM hardening (multi-target via collapsed
    `tell` surface, reply/reply-all, cohort state — later moved to
    the hosted comms update by the capability-hosting build);
-   `broadcast` verb. See [emotes.md](./subsystems/emotes.md),
+   `broadcast` verb; **act-scoped emote reactions** (the
+   aggregate-delta substrate + `react` verb + chip UI — see
+   [reactions.md](./subsystems/reactions.md)). See
+   [emotes.md](./subsystems/emotes.md),
    [grouping.md](./subsystems/grouping.md),
    [chat.md](./subsystems/chat.md),
-   [contacts.md](./subsystems/contacts.md). Still ahead: emote
-   reactions / Layer 3 entitlements; chat Wave 2+ (role overlay,
+   [contacts.md](./subsystems/contacts.md). Still ahead: Layer 3
+   entitlements; chat Wave 2+ (role overlay,
    config block, edit/delete, mentions, pinned, directory);
    broadcast permission gate (waits on access slate); rate
    limiting; vitals-aware acoustic dB; recognition-family

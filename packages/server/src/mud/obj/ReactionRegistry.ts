@@ -600,14 +600,10 @@ export default class ReactionRegistry extends Idea {
   }
 
   /** Auto-subscribe a reacting holder's channel sink so it sees the act. */
-  private ensureScopeSeenByReactor(reactor: Stuff & Sensor, scope: string): void {
+  private ensureScopeSeenByReactor(reactor: Stuff, scope: string): void {
     if (!scope.startsWith('channel:')) return; // location handled by co-presence
-    const withI = reactor as unknown as {
-      getInteractives?: () => ReadonlySet<Interactive>;
-    };
-    if (typeof withI.getInteractives !== 'function') return;
-    const interactives = withI.getInteractives();
-    for (const interactive of interactives) {
+    if (!MixinApi.isHasInteractive(reactor)) return;
+    for (const interactive of reactor.getInteractives()) {
       let sink = this.interactiveSinks.get(interactive);
       if (!sink) {
         sink = new InteractiveReactionSink(interactive);

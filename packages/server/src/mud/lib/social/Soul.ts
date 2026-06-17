@@ -26,7 +26,6 @@ import { MixinApi } from '../../api/mixin';
 import { Mml } from '../../api/mml';
 import { ReactionApi } from '../../api/reaction';
 import { ExecutionContextApi } from '../../api/execution-context';
-import type { Sensor } from '../message/Sensor';
 import type {
   CommandContributions,
 } from '../../api/command';
@@ -220,7 +219,7 @@ export function SoulMixin<TBase extends MixinConstructor>(Base: TBase) {
       // regress-stopper.
       if (opts?.inReactionTo !== undefined) {
         const decision = ReactionApi.onScopedEmote({
-          reactor: actor as unknown as Stuff & Sensor,
+          reactor: actor,
           inReactionTo: opts.inReactionTo,
           verb: emote.verb,
           ...(emote.emoji !== undefined ? { emoji: emote.emoji } : {}),
@@ -259,7 +258,7 @@ export function SoulMixin<TBase extends MixinConstructor>(Base: TBase) {
 
       if (inReactionTo !== undefined) {
         const decision = ReactionApi.onScopedEmote({
-          reactor: actor as unknown as Stuff & Sensor,
+          reactor: actor,
           inReactionTo,
           verb: 'free-form',
           tags: [],

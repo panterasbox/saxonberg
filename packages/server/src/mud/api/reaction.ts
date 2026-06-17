@@ -20,10 +20,7 @@
  * See docs/subsystems/reactions.md.
  */
 
-import type {
-  ReactionDeltaEnvelope,
-  ReactionExpandResultEnvelope as _ReactionExpandResultEnvelope,
-} from '@saxonberg/types';
+import type { ReactionDeltaEnvelope } from '@saxonberg/types';
 import type { Stuff } from '../lib/stuff/Stuff';
 import type { Sensor } from '../lib/message/Sensor';
 import type Interactive from '../obj/Interactive';
@@ -35,8 +32,6 @@ import { SecurityApi } from './security';
 import { StuffApi } from './stuff';
 import { MixinApi } from './mixin';
 import { TemplatePaths } from '../lib/paths';
-
-void (undefined as unknown as _ReactionExpandResultEnvelope);
 
 /* ─────────────────────────── public surface ─────────────────────── */
 
@@ -55,7 +50,10 @@ const REACTABLE_TOPICS: ReadonlySet<string> = new Set([
  * returns whether the per-emote fan-out line should be suppressed.
  */
 export interface ScopedEmoteRequest {
-  reactor: Stuff & Sensor;
+  /** The reactor. Only its `stuffId` (and HasInteractive, if present) is
+   *  read by the registry — no Sensor surface needed, so a plain `Stuff`
+   *  keeps callers cast-free. */
+  reactor: Stuff;
   inReactionTo: string;
   /** Canonical emote verb, or a free-form marker. */
   verb: string;

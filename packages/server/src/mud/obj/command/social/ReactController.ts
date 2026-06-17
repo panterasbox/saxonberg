@@ -20,7 +20,6 @@ import type {
 } from '../../../api/command';
 import type { EmoteOptions } from '../../../lib/social/Soul';
 import type { Stuff } from '../../../lib/stuff/Stuff';
-import type { Sensor } from '../../../lib/message/Sensor';
 import { MixinApi } from '../../../api/mixin';
 import { ReactionApi } from '../../../api/reaction';
 import { SoulApi } from '../../../api/soul';
@@ -109,7 +108,7 @@ export default class ReactController extends CommandController<ReactModel> {
       const emote = await SoulApi.resolve(verb);
       const canonicalVerb = emote ? emote.verb : 'free-form';
       ReactionApi.removeReaction({
-        reactor: reactor as unknown as Stuff & Sensor,
+        reactor,
         inReactionTo: commandId,
         verb: canonicalVerb,
         tags: [],
