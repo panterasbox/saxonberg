@@ -188,6 +188,38 @@ describe("ReactionRegistry", () => {
     expect(after.total).toBe(2);
   });
 
+  it("tag-grouping (default pref) collapses shared-tag emotes into one bucket", () => {
+    ReactionApi.noteReactableAct({
+      commandId: "cmd-1",
+      subject: fakeReactor("s"),
+      scope: LOC,
+    });
+    // Two DISTINCT emotes that share a tag → one bucket under the
+    // default tagGroup pref (vs the per-verb buckets when tags differ).
+    ReactionApi.onScopedEmote({
+      reactor: fakeReactor("r1"),
+      inReactionTo: "cmd-1",
+      verb: "agree",
+      emoji: "👍",
+      tags: ["approval"],
+    });
+    ReactionApi.onScopedEmote({
+      reactor: fakeReactor("r2"),
+      inReactionTo: "cmd-1",
+      verb: "nod",
+      emoji: "🙂",
+      tags: ["approval"],
+    });
+    const state = ReactionApi._actStateForTesting("cmd-1") as {
+      total: number;
+      buckets: { tag: string; count: number }[];
+    };
+    expect(state.total).toBe(2);
+    expect(state.buckets).toHaveLength(1); // grouped under "approval"
+    expect(state.buckets[0]!.tag).toBe("approval");
+    expect(state.buckets[0]!.count).toBe(2);
+  });
+
   it("delta carries the recipient's own reactions in `mine`", () => {
     const SCOPE = "location:hall";
     const viewer = fakeReactor("viewer-1") as unknown as Stuff & Sensor;

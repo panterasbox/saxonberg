@@ -7,10 +7,11 @@
 > Two decisions below shifted in the build: **(a)** reacting is
 > **add-only + an explicit `--remove`**, not toggle-once (toggle-on-
 > re-react surprised); **(b)** reactions aggregate **by glyph** for now —
-> emoji-less / free-form reacts render as prose, not chips. Still on the
-> tail: per-user controls *applied* to the widget (keys defined, not yet
-> consumed), the analytics event-stream tap, and the emote-flood salvage
-> (Future direction, below).
+> emoji-less / free-form reacts render as prose, not chips. Per-user
+> controls are now wired (tagGroup/collapse server-side; intensity/
+> alwaysAggregate/muteChannels client-side via the connect payload).
+> Still on the tail: the analytics event-stream tap, the emote-flood
+> salvage (Future direction, below), and reactability beyond chat-first.
 >
 > _Original framing follows (design surface, not all of it shipped):_
 > Lightweight reactions (attach an emote to a message) built to survive

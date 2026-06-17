@@ -201,6 +201,7 @@ function App() {
   const connectionPhase = useStore((state) => state.connectionPhase);
   const frames = useStore((state) => state.frames);
   const clientState = useStore((state) => state.clientState);
+  const reactionPrefs = useStore((state) => state.reactionPrefs);
   // Filter frames by the active tab's muted set. The 'All' default
   // mutes nothing, so a fresh player sees the full firehose.
   const activeTabName =
@@ -208,7 +209,14 @@ function App() {
   const tabs = (clientState["console.tabs"] as ConsoleTab[] | undefined) ?? [];
   const activeTab = tabs.find((t) => t.name === activeTabName);
   const mutedSet = new Set(activeTab?.muted ?? []);
-  const visibleFrames = frames.filter((f) => !mutedSet.has(f.topic));
+  // `social.react.alwaysAggregate` — hide reaction prose lines (frames
+  // carrying `inReactionTo`); the chip on the target message carries the
+  // aggregate instead.
+  const visibleFrames = frames.filter(
+    (f) =>
+      !mutedSet.has(f.topic) &&
+      !(reactionPrefs.alwaysAggregate && f.inReactionTo !== undefined),
+  );
   // Single display value for the input. Three sources can drive it:
   //   1. The user typing (kept in userTypedRef as the canonical text).
   //   2. A hover preview from a clickable affordance (transient).

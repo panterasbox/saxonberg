@@ -379,6 +379,12 @@ interface StoreState {
     commandId: string,
     reactors: ReactionSampleEntry[],
   ) => void;
+  /**
+   * The viewer's client-honored reaction render prefs, from the
+   * connection-established payload (intensity / alwaysAggregate /
+   * muteChannels). Defaults until the payload arrives.
+   */
+  reactionPrefs: NonNullable<ConnectionEstablishedPayload["reactionPrefs"]>;
 
   // Inspection-pane slice ---------------------------------------------
   /**
@@ -840,6 +846,9 @@ export const useStore = create<StoreState>((set, get) => ({
       selfAvatarId: payload.avatarStuffId,
       topicCatalogue: topicMap,
       clientState: { ...(payload.clientState ?? {}) },
+      ...(payload.reactionPrefs
+        ? { reactionPrefs: payload.reactionPrefs }
+        : {}),
       auth: {
         isAuthenticated: true,
         user: {
@@ -1264,6 +1273,11 @@ export const useStore = create<StoreState>((set, get) => ({
   reactions: {},
   reactionMoved: {},
   reactionExpansions: {},
+  reactionPrefs: {
+    intensity: "normal",
+    alwaysAggregate: false,
+    muteChannels: false,
+  },
 
   applyReactionDelta: (acts, at) =>
     set((state) => {

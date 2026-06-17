@@ -235,19 +235,27 @@ clickable in the client; it never sends a websocket frame directly.
 
 ### Per-user controls
 
-`SoulMixin.settings` defines the keys — `social.react.intensity`,
-`.muteChannels`, `.alwaysAggregate`, `.tagGroup`, `.collapseThreshold` —
-and they ride the existing settings sync to the client. They are
-intended as **client-render preferences** (the server always emits both
-the below-threshold line and the above-threshold delta; server-side
-honoring of `muteChannels`/`alwaysAggregate` is a later refinement).
+`SoulMixin.settings` defines five keys; each is **honored where its data
+lives**, split between the server (delta-shaping) and the client
+(pure render / transcript):
 
-**Status:** the keys are defined and synced, but the `ReactionBar`
-widget does **not yet consume them** — applying intensity / tag-group /
-collapse / mute to the rendered widget is deferred (it's UI-design work
-that wants to settle against the inline/hover render). Tracked in
-[reactions-slate.md](../slates/tails/reactions-slate.md) (Input &
-controls).
+| Setting | Honored | How |
+|---|---|---|
+| `social.react.tagGroup` | **server** | `ReactionRegistry.buildActState` reads it per-recipient (`viewerPrefs` → `ShellApi.resolveSetting`); picks the bucket key — tag group vs per-verb. |
+| `social.react.collapseThreshold` | **server** | the per-bucket `reactors` name list rides the delta only while a bucket's count ≤ this (else the chip shows just the count). |
+| `social.react.intensity` | **client** | scales the chip/counter pulse animation (`off`→none … `vivid`→big). |
+| `social.react.alwaysAggregate` | **client** | `App` drops reaction prose frames (those carrying `meta.inReactionTo`) from the transcript — the chip carries the aggregate. |
+| `social.react.muteChannels` | **client** | `ReactionBar` renders nothing on `world.chat.message` lines. |
+
+The three client-honored prefs are resolved server-side at connect
+(`ShellApi.resolveSetting`) and shipped in
+`ConnectionEstablishedPayload.reactionPrefs` (the store seeds them in
+`setConnected`, defaulting until the payload lands). There is no live
+mid-session re-read — a settings change applies on the next connect.
+The two server-honored prefs need no wire surface; they shape the
+per-recipient delta directly. (The server still always emits both the
+below-threshold line and the above-threshold delta — `alwaysAggregate`
+is a client-side hide, not a server-side suppression.)
 
 ## What this build deliberately is NOT
 

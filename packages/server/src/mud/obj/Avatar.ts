@@ -400,6 +400,22 @@ export default class Avatar extends AvatarBase {
       },
       topicCatalogue: catalogue?.getSnapshot() ?? [],
       clientState: this.snapshotClientState(),
+      reactionPrefs: {
+        intensity:
+          ShellApi.resolveSetting<
+            "off" | "subtle" | "normal" | "vivid"
+          >(this, "social.react.intensity") ?? "normal",
+        alwaysAggregate:
+          ShellApi.resolveSetting<boolean>(
+            this,
+            "social.react.alwaysAggregate",
+          ) ?? false,
+        muteChannels:
+          ShellApi.resolveSetting<boolean>(
+            this,
+            "social.react.muteChannels",
+          ) ?? false,
+      },
     };
     // First arrival (just created in char-gen) gets a fresh greeting;
     // a returning player gets the welcome-back register.

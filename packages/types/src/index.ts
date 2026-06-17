@@ -1088,6 +1088,23 @@ export interface ConnectionEstablishedPayload {
    * `ClientStateMixin`-contributing mixins on the holder.
    */
   clientState: Record<string, unknown>;
+  /**
+   * The viewer's reaction render preferences — the client-honored subset
+   * of the `social.react.*` settings, resolved server-side at connect.
+   * The *delta-shaping* prefs (`tagGroup`, `collapseThreshold`) are
+   * honored server-side in the per-recipient reaction delta and so are
+   * NOT sent here; these three are pure render/transcript choices the
+   * client applies. See docs/subsystems/reactions.md. Optional on the
+   * wire — the client falls back to defaults when absent.
+   */
+  reactionPrefs?: {
+    /** `social.react.intensity` — counter/train animation level. */
+    intensity: 'off' | 'subtle' | 'normal' | 'vivid';
+    /** `social.react.alwaysAggregate` — hide reaction prose lines (chip only). */
+    alwaysAggregate: boolean;
+    /** `social.react.muteChannels` — no reaction widgets on chat lines. */
+    muteChannels: boolean;
+  };
 }
 
 /**

@@ -64,11 +64,25 @@ const QUICK = [
   { verb: "agree", emoji: "👍" },
 ];
 
-const pulse = keyframes`
+// Pulse strength is the `social.react.intensity` setting: `off` plays
+// nothing, the rest scale the bump. (`vivid` is the "train"ّ end.)
+type Intensity = "off" | "subtle" | "normal" | "vivid";
+const mkPulse = (peak: number) => keyframes`
   0%   { transform: scale(1); }
-  35%  { transform: scale(1.22); }
+  35%  { transform: scale(${peak}); }
   100% { transform: scale(1); }
 `;
+const PULSES: Record<Exclude<Intensity, "off">, ReturnType<typeof mkPulse>> = {
+  subtle: mkPulse(1.1),
+  normal: mkPulse(1.22),
+  vivid: mkPulse(1.45),
+};
+const pulseCss = (intensity: Intensity, on: boolean) =>
+  on && intensity !== "off"
+    ? css`
+        animation: ${PULSES[intensity]} 320ms ease-out;
+      `
+    : null;
 
 // Inline trailing widget — flows after the message text on the SAME
 // line (no dedicated row). Children space themselves with a leading
@@ -84,7 +98,11 @@ const Bar = styled.span`
   }
 `;
 
-const Chip = styled.button<{ $pulse: boolean; $mine: boolean }>`
+const Chip = styled.button<{
+  $pulse: boolean;
+  $mine: boolean;
+  $intensity: Intensity;
+}>`
   appearance: none;
   display: inline-flex;
   align-items: center;
@@ -103,24 +121,16 @@ const Chip = styled.button<{ $pulse: boolean; $mine: boolean }>`
     border-color: ${tokens.color.accent};
     background: ${tokens.color.actionBgHover};
   }
-  ${(p) =>
-    p.$pulse &&
-    css`
-      animation: ${pulse} 320ms ease-out;
-    `}
+  ${(p) => pulseCss(p.$intensity, p.$pulse)}
 `;
 
-const Counter = styled.span<{ $pulse: boolean }>`
+const Counter = styled.span<{ $pulse: boolean; $intensity: Intensity }>`
   display: inline-flex;
   align-items: center;
   gap: ${tokens.space.xs};
   font-weight: 600;
   color: ${tokens.color.accent};
-  ${(p) =>
-    p.$pulse &&
-    css`
-      animation: ${pulse} 320ms ease-out;
-    `}
+  ${(p) => pulseCss(p.$intensity, p.$pulse)}
 `;
 
 const Names = styled.span`
@@ -229,6 +239,7 @@ export function ReactionBar({
   const expanded = useStore((s) =>
     commandId ? s.reactionExpansions[commandId] : undefined,
   );
+  const prefs = useStore((s) => s.reactionPrefs);
   const [open, setOpen] = useState(false);
 
   // Pulse the counts briefly whenever the act moves.
@@ -253,6 +264,11 @@ export function ReactionBar({
     frame.inReactionTo !== undefined ||
     !isReactableTopic(frame.topic)
   ) {
+    return null;
+  }
+
+  // `social.react.muteChannels` — no reaction widgets on chat lines.
+  if (prefs.muteChannels && frame.topic.startsWith("world.chat.message")) {
     return null;
   }
 
@@ -281,7 +297,11 @@ export function ReactionBar({
   return (
     <Bar>
       {aggregated && (
-        <Counter $pulse={pulsing} title="Reactions on this act">
+        <Counter
+          $pulse={pulsing}
+          $intensity={prefs.intensity}
+          title="Reactions on this act"
+        >
           ✦ {total} reactions
         </Counter>
       )}
@@ -290,6 +310,7 @@ export function ReactionBar({
         <Chip
           key={b.tag}
           $pulse={pulsing}
+          $intensity={prefs.intensity}
           $mine={isMine(b.emote)}
           title={chipTitle(b, isMine(b.emote))}
           onClick={() => send(b.emote)}

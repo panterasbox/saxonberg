@@ -41,6 +41,7 @@ import { EventApi } from '../api/event';
 import { AppApi } from '../api/app';
 import { StuffApi } from '../api/stuff';
 import { RecognitionApi } from '../api/recognition';
+import { ShellApi } from '../api/shell';
 import { ScheduleApi, type ScheduleHandle } from '../api/schedule';
 import { AppSettingKeys } from '../lib/config/AppSettings';
 import { ReactionFiredEvent } from '../lib/events/ReactionFiredEvent';
@@ -92,12 +93,19 @@ const DEFAULTS = {
 };
 
 /**
- * A reaction bucket lists its reactors by name (for the chip hover) only
- * while it's this small; above it, the chip shows just the count — "who
- * reacted" stops being displayable. The full set is still a pull away
- * (`handleExpand`).
+ * Per-recipient delta-shaping preferences, resolved from the viewer's
+ * `social.react.*` settings once per flush per sink. `tagGroup` chooses
+ * the bucket key (tag group vs per-verb); `nameCap` (the
+ * `collapseThreshold` setting) is the count below which a bucket still
+ * lists its reactors by name for the chip hover — above it the chip
+ * shows just the count and the full set is a pull away (`handleExpand`).
  */
-const NAME_LIST_CAP = 12;
+interface ViewerPrefs {
+  tagGroup: boolean;
+  nameCap: number;
+}
+
+const DEFAULT_PREFS: ViewerPrefs = { tagGroup: true, nameCap: 25 };
 
 /** Clamp the flush cadence to the bounded design range. */
 function clampCadence(ms: number): number {
@@ -447,7 +455,11 @@ export default class ReactionRegistry extends Idea {
       const visible = moved.filter((a) => sink.seesScope(a.scope));
       if (visible.length === 0) continue;
       const viewer = sink.viewer ?? null;
-      const acts = visible.map((a) => this.buildActState(a, viewer));
+      // Delta-shaping prefs are per-recipient — resolve once per sink
+      // (not per act). `tagGroup` picks the bucket key; the collapse
+      // threshold caps how many reactor names ride the delta.
+      const prefs = this.viewerPrefs(viewer);
+      const acts = visible.map((a) => this.buildActState(a, viewer, prefs));
       sink.emitDelta({ type: 'reaction-delta', acts });
     }
 
@@ -471,15 +483,42 @@ export default class ReactionRegistry extends Idea {
     return n;
   }
 
+  /** Resolve a viewer's delta-shaping reaction prefs (defaults when none). */
+  private viewerPrefs(viewer: (Stuff & Sensor) | null): ViewerPrefs {
+    if (!viewer) return DEFAULT_PREFS;
+    try {
+      const tagGroup = ShellApi.resolveSetting<boolean>(
+        viewer,
+        'social.react.tagGroup',
+      );
+      const cap = ShellApi.resolveSetting<number>(
+        viewer,
+        'social.react.collapseThreshold',
+      );
+      return {
+        tagGroup: tagGroup ?? DEFAULT_PREFS.tagGroup,
+        nameCap:
+          typeof cap === 'number' && cap > 0 ? cap : DEFAULT_PREFS.nameCap,
+      };
+    } catch {
+      // A sink viewer that isn't a settings host — fall back to defaults.
+      return DEFAULT_PREFS;
+    }
+  }
+
   private buildActState(
     act: ActRecord,
     viewer: (Stuff & Sensor) | null,
+    prefs: ViewerPrefs = DEFAULT_PREFS,
   ): ReactionActState {
     const buckets = new Map<string, ReactionBucket>();
     const bucketReactorIds = new Map<string, string[]>();
     for (const r of act.reactions.values()) {
       if (!r.present) continue;
-      const key = r.tags.length > 0 ? r.tags[0]! : r.emote;
+      // `tagGroup` (per-viewer) picks the bucket key: a tag group
+      // (`agree`/`ok`/`nod` → one chip) or per-verb when off.
+      const key =
+        prefs.tagGroup && r.tags.length > 0 ? r.tags[0]! : r.emote;
       const b = buckets.get(key);
       if (b) {
         b.count += 1;
@@ -501,7 +540,7 @@ export default class ReactionRegistry extends Idea {
     if (viewer) {
       const vid = (viewer as Stuff).stuffId;
       for (const [key, b] of buckets) {
-        if (b.count > NAME_LIST_CAP) continue;
+        if (b.count > prefs.nameCap) continue;
         const names: string[] = [];
         for (const id of bucketReactorIds.get(key) ?? []) {
           const reactor = StuffApi.findById(id);
