@@ -142,6 +142,37 @@ describe('ReactionRegistry', () => {
     expect(state.total).toBe(0);
   });
 
+  it('one reactor holds DISTINCT emotes simultaneously (key is reactor+emote)', () => {
+    ReactionApi.noteReactableAct({
+      commandId: 'cmd-1',
+      subject: fakeReactor('s'),
+      scope: LOC,
+    });
+    for (const verb of ['applaud', 'smile', 'nod']) {
+      ReactionApi.onScopedEmote({
+        reactor: fakeReactor('r1'),
+        inReactionTo: 'cmd-1',
+        verb,
+        tags: [],
+      });
+    }
+    const state = ReactionApi._actStateForTesting('cmd-1') as {
+      total: number;
+      buckets: { tag: string }[];
+    };
+    expect(state.total).toBe(3); // three distinct reactions, not overwritten
+    expect(state.buckets).toHaveLength(3); // ungrouped → per-verb buckets
+    // Toggling one emote off leaves the others intact.
+    ReactionApi.onScopedEmote({
+      reactor: fakeReactor('r1'),
+      inReactionTo: 'cmd-1',
+      verb: 'smile',
+      tags: [],
+    });
+    const after = ReactionApi._actStateForTesting('cmd-1') as { total: number };
+    expect(after.total).toBe(2);
+  });
+
   it('renown event: fires once on flip-on, never on un-react', async () => {
     const fired: ReactionFiredPayload[] = [];
     EventApi.on<ReactionFiredPayload>(ReactionFiredEvent.KIND, (p) => {

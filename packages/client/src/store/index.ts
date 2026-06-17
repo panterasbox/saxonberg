@@ -187,6 +187,12 @@ export interface Frame {
    * onto the target message's always-on indicator with no extra wire.
    */
   inReactionTo?: string;
+  /**
+   * The per-Interactive gutter number (`meta.frameId`). Used as the
+   * `react --msg <#>` selector for the per-row quick-react affordance;
+   * the server resolves the gutter → commandId.
+   */
+  frameId?: number;
 }
 
 /**

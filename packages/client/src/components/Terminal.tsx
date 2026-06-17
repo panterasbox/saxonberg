@@ -20,6 +20,7 @@
 import { useEffect, useMemo, useRef } from 'react';
 import styled from 'styled-components';
 import { GutterStripe } from './GutterStripe';
+import { ReactionBar } from './ReactionBar';
 import { useStore } from '../store';
 import type { Frame } from '../store/index';
 import { parseMml } from '../lib/mml/parseMml';
@@ -92,19 +93,22 @@ export function Terminal({
   return (
     <TerminalContainer ref={containerRef}>
       {frames.map((frame) => (
-        <FrameRow key={frame.id}>
-          <GutterStripe topic={frame.topic} timestamp={frame.timestamp} />
-          <Body $fontFamily={stylesheet.fontFamilyForTopic(frame.topic)}>
-            {frame.sigil ? `${frame.sigil} ` : ''}
-            <FrameBody
-              frame={frame}
-              onCommandClick={onCommandClick}
-              onCommandPreview={onCommandPreview}
-              viewerStuffId={effectiveViewerId}
-              stylesheet={stylesheet}
-            />
-          </Body>
-        </FrameRow>
+        <div key={frame.id}>
+          <FrameRow>
+            <GutterStripe topic={frame.topic} timestamp={frame.timestamp} />
+            <Body $fontFamily={stylesheet.fontFamilyForTopic(frame.topic)}>
+              {frame.sigil ? `${frame.sigil} ` : ''}
+              <FrameBody
+                frame={frame}
+                onCommandClick={onCommandClick}
+                onCommandPreview={onCommandPreview}
+                viewerStuffId={effectiveViewerId}
+                stylesheet={stylesheet}
+              />
+            </Body>
+          </FrameRow>
+          <ReactionBar frame={frame} />
+        </div>
       ))}
     </TerminalContainer>
   );

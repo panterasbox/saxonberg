@@ -297,6 +297,9 @@ function App() {
         ...(frame.meta?.inReactionTo !== undefined
           ? { inReactionTo: frame.meta.inReactionTo }
           : {}),
+        ...(frame.meta?.frameId !== undefined
+          ? { frameId: frame.meta.frameId }
+          : {}),
       });
     };
     websocketClient.onAnyTopic(handle);
