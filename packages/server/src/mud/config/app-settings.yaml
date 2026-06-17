@@ -14,3 +14,15 @@ settings:
   # destruct-refusing fallback.
   - key: evacuationFallback
     value: /domain/void
+  # Reactions — act-scoped-emote aggregation. See
+  # docs/subsystems/reactions.md. At/above `threshold` reactions on one
+  # act, the per-emote fan-out line is suppressed in favour of the
+  # batched counter. `cadenceMs` is the fixed-cadence flush window
+  # (clamped to [150, 250] in the registry). `sampleCap` bounds the
+  # per-recipient familiar-biased attributed sample.
+  - key: reactions.threshold
+    value: "10"
+  - key: reactions.cadenceMs
+    value: "200"
+  - key: reactions.sampleCap
+    value: "5"

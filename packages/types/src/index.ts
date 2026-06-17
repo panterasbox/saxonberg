@@ -80,6 +80,16 @@ export interface MessageFrame<T = unknown> {
      * emote, and channel-management responses.
      */
     channelId?: string;
+    /**
+     * Reaction scope. Present on a frame that is itself a *reaction* —
+     * an emote aimed at a prior act — carrying the `meta.commandId` of
+     * the act being reacted to. The client uses it for render-correlation
+     * (grouping reaction prose lines onto the target message's always-on
+     * indicator). A reaction's own frame is never itself reactable, so
+     * `inReactionTo` and "is this act reactable" are orthogonal. See
+     * docs/subsystems/reactions.md.
+     */
+    inReactionTo?: string;
   };
 }
 
@@ -470,6 +480,20 @@ export interface MqlQueryMessage {
 }
 
 /**
+ * Client pull for the full reactor-set behind one reactable act. The
+ * fixed-cadence {@link ReactionDeltaEnvelope} ships only a capped,
+ * per-recipient familiar-biased sample; expand requests the complete
+ * (still recognition-named) list on demand — e.g. when the player opens
+ * the reaction tray on a message. Correlated by `requestId`; the act is
+ * keyed by `commandId`. See docs/subsystems/reactions.md.
+ */
+export interface ReactionExpandMessage {
+  type: 'reaction-expand';
+  requestId: string;
+  commandId: string;
+}
+
+/**
  * Inbound response to a server-pushed prompt. The substrate looks
  * up the resolver by `promptId`, decodes `response` per the prompt
  * kind (string for `choice` / `text`; `'yes'` / `'no'` for
@@ -703,6 +727,96 @@ export interface MqlQueryErrorEnvelope {
   detail?: string;
 }
 
+// ============================================================================
+// Reactions (act-scoped emote aggregation)
+// ============================================================================
+
+/**
+ * One emote-or-tag bucket's running count on one act. Counts are
+ * **absolute running totals**, never deltas — the client replaces its
+ * bucket count on receipt and synthesizes animation from the change.
+ */
+export interface ReactionBucket {
+  /** Tag-group key (e.g. `'approval'`) OR the verb when the act is ungrouped. */
+  tag: string;
+  /** Canonical emote verb that dominates the bucket. */
+  emote: string;
+  emoji?: string;
+  /** Authoritative running total (NOT a delta). */
+  count: number;
+  /**
+   * Viewer-named reactors for this bucket, present only when the bucket
+   * is **small enough to display** (count ≤ the name cap). Drives the
+   * "who reacted" hover on the chip. Omitted on large buckets (the chip
+   * shows just the count). Per-recipient (recognition-named).
+   */
+  reactors?: string[];
+}
+
+/**
+ * A capped, per-recipient attributed sample entry — one named reactor
+ * the recipient recognizes / has in contacts. Strangers stay in the
+ * count, unnamed. `reactorName` is `RecognitionApi.describe(viewer,
+ * reactor)`, so two recipients may see the same reactor named
+ * differently.
+ */
+export interface ReactionSampleEntry {
+  /** Durable stuffId. */
+  reactorId: string;
+  /** Viewer-aware name (recognition / disguise resolved per recipient). */
+  reactorName: string;
+  emote: string;
+  emoji?: string;
+  /** Free-form / fill text inherited from the underlying emote. */
+  customText?: string;
+}
+
+/** Per-act aggregate state as it stands this tick (counts are absolute). */
+export interface ReactionActState {
+  /** The act key — `meta.commandId` of the act being reacted to. */
+  commandId: string;
+  /** `payload.speaker.stuffId` of the act's author. */
+  subjectId: string;
+  /** Audience-scope key: `'channel:<groupRef>' | 'location:<stuffId>'`. */
+  scope: string;
+  buckets: ReactionBucket[];
+  /** Capped, familiar-biased, per-recipient. */
+  sample: ReactionSampleEntry[];
+  total: number;
+  /** True once at/above threshold (client switches prose → counter). */
+  aggregated: boolean;
+  /**
+   * The recipient's OWN present reactions on this act (the emote verbs).
+   * Per-recipient. The client marks these chips active and clicks them
+   * to `react --remove` (un-react) rather than add — reacting is
+   * add-only, so removal is the explicit op.
+   */
+  mine?: string[];
+}
+
+/**
+ * Fixed-cadence delta: one per recipient per tick, carrying only the
+ * acts that *moved in that recipient's view* this window. This is the
+ * bounded backbone — per-tick wire cost is `audience × cadence`, never a
+ * function of reaction throughput. The "delta" framing is *which acts
+ * moved*, not arithmetic deltas; the counts inside are absolute.
+ */
+export interface ReactionDeltaEnvelope {
+  type: 'reaction-delta';
+  frameId: number;
+  acts: ReactionActState[];
+}
+
+/** Result of a {@link ReactionExpandMessage}: the FULL reactor set. */
+export interface ReactionExpandResultEnvelope {
+  type: 'reaction-expand-result';
+  frameId: number;
+  requestId: string;
+  commandId: string;
+  /** Every present reactor, still recognition-named per viewer. */
+  reactors: ReactionSampleEntry[];
+}
+
 /**
  * Live broadcast state — the public, read-only overlay projection
  * served to `service:broadcast` connections (OBS browser sources).
@@ -736,6 +850,8 @@ export type Envelope =
   | MqlSubscriptionErrorEnvelope
   | MqlQueryResultEnvelope
   | MqlQueryErrorEnvelope
+  | ReactionDeltaEnvelope
+  | ReactionExpandResultEnvelope
   | StreamStateEnvelope;
 
 /**
@@ -751,6 +867,8 @@ export type EnvelopeTemplate =
   | Omit<MqlSubscriptionErrorEnvelope, 'frameId'>
   | Omit<MqlQueryResultEnvelope, 'frameId'>
   | Omit<MqlQueryErrorEnvelope, 'frameId'>
+  | Omit<ReactionDeltaEnvelope, 'frameId'>
+  | Omit<ReactionExpandResultEnvelope, 'frameId'>
   | Omit<StreamStateEnvelope, 'frameId'>;
 
 // ============================================================================
@@ -970,6 +1088,23 @@ export interface ConnectionEstablishedPayload {
    * `ClientStateMixin`-contributing mixins on the holder.
    */
   clientState: Record<string, unknown>;
+  /**
+   * The viewer's reaction render preferences — the client-honored subset
+   * of the `social.react.*` settings, resolved server-side at connect.
+   * The *delta-shaping* prefs (`tagGroup`, `collapseThreshold`) are
+   * honored server-side in the per-recipient reaction delta and so are
+   * NOT sent here; these three are pure render/transcript choices the
+   * client applies. See docs/subsystems/reactions.md. Optional on the
+   * wire — the client falls back to defaults when absent.
+   */
+  reactionPrefs?: {
+    /** `social.react.intensity` — counter/train animation level. */
+    intensity: 'off' | 'subtle' | 'normal' | 'vivid';
+    /** `social.react.alwaysAggregate` — hide reaction prose lines (chip only). */
+    alwaysAggregate: boolean;
+    /** `social.react.muteChannels` — no reaction widgets on chat lines. */
+    muteChannels: boolean;
+  };
 }
 
 /**

@@ -235,7 +235,12 @@ audience-fanout chokepoint for persistent channels. The shape:
 3. Fan out to the audience. Scene's `toTarget` is single-recipient;
    chat needs N, so the post path emits per-recipient frames directly
    via `MessageApi.sendMessage` with `audience:witness` tags and the
-   same channel meta.
+   same channel meta. **The manual witness + history frames also stamp
+   `meta.commandId`** (read once from the ambient command context) — the
+   self frame got it free from Scene, but the hand-built frames omitted
+   it until the reactions build, which made chat posts un-correlatable
+   client-side. With it, a chat post is a reactable act (scope
+   `channel:<groupRef>`); see [reactions.md](./reactions.md).
 4. Append the rendered self-frame to the per-channel history ring.
 
 The reason for the split between Scene (self) and direct sends

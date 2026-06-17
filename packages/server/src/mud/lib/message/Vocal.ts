@@ -33,6 +33,8 @@ import type { Stuff } from '../stuff/Stuff';
 import { MessageApi } from '../../api/message';
 import { MixinApi } from '../../api/mixin';
 import { Mml } from '../../api/mml';
+import { ReactionApi } from '../../api/reaction';
+import { ExecutionContextApi } from '../../api/execution-context';
 import type { CommandContributions } from '../../api/command';
 
 export interface Vocal {
@@ -166,6 +168,18 @@ function vocalEmit(
     throw new Error(
       'VocalMixin requires composition with Container or Containable'
     );
+  }
+
+  // Reactability capture: say/whisper/shout are reactable acts. A
+  // whisper is just as reactable as a say/shout — it fans a peers frame
+  // to in-range overhearers who share the one commandId. Skip
+  // command-less background speech (no commandId → not reactable).
+  const commandId = ExecutionContextApi.getCurrentCommandContext()?.commandId;
+  if (commandId) {
+    const scope = ReactionApi.locationScopeFor(speaker);
+    if (scope) {
+      ReactionApi.noteReactableAct({ commandId, subject: speaker, scope });
+    }
   }
 
   scene.send();

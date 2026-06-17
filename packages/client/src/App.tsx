@@ -10,6 +10,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import styled from "styled-components";
 import { useStore, type PromptEntry } from "./store/index";
+import { registerReactionHandlers } from "./store/reactionActions";
 import { SERVER_URL, WS_URL } from "./config";
 import { websocketClient } from "./services/websocket";
 import { Frame } from "./components/frame/Frame";
@@ -200,6 +201,7 @@ function App() {
   const connectionPhase = useStore((state) => state.connectionPhase);
   const frames = useStore((state) => state.frames);
   const clientState = useStore((state) => state.clientState);
+  const reactionPrefs = useStore((state) => state.reactionPrefs);
   // Filter frames by the active tab's muted set. The 'All' default
   // mutes nothing, so a fresh player sees the full firehose.
   const activeTabName =
@@ -207,7 +209,14 @@ function App() {
   const tabs = (clientState["console.tabs"] as ConsoleTab[] | undefined) ?? [];
   const activeTab = tabs.find((t) => t.name === activeTabName);
   const mutedSet = new Set(activeTab?.muted ?? []);
-  const visibleFrames = frames.filter((f) => !mutedSet.has(f.topic));
+  // `social.react.alwaysAggregate` — hide reaction prose lines (frames
+  // carrying `inReactionTo`); the chip on the target message carries the
+  // aggregate instead.
+  const visibleFrames = frames.filter(
+    (f) =>
+      !mutedSet.has(f.topic) &&
+      !(reactionPrefs.alwaysAggregate && f.inReactionTo !== undefined),
+  );
   // Single display value for the input. Three sources can drive it:
   //   1. The user typing (kept in userTypedRef as the canonical text).
   //   2. A hover preview from a clickable affordance (transient).
@@ -290,9 +299,19 @@ function App() {
         body: frame.body,
         timestamp: frame.meta?.timestamp ?? Date.now(),
         ...(sigil !== undefined ? { sigil } : {}),
+        ...(frame.meta?.commandId !== undefined
+          ? { commandId: frame.meta.commandId }
+          : {}),
+        ...(frame.meta?.inReactionTo !== undefined
+          ? { inReactionTo: frame.meta.inReactionTo }
+          : {}),
+        ...(frame.meta?.frameId !== undefined
+          ? { frameId: frame.meta.frameId }
+          : {}),
       });
     };
     websocketClient.onAnyTopic(handle);
+    registerReactionHandlers();
     return () => {
       websocketClient.offAnyTopic(handle);
     };

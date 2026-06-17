@@ -24,6 +24,8 @@ import type { Stuff } from '../stuff/Stuff';
 import { MessageApi } from '../../api/message';
 import { MixinApi } from '../../api/mixin';
 import { Mml } from '../../api/mml';
+import { ReactionApi } from '../../api/reaction';
+import { ExecutionContextApi } from '../../api/execution-context';
 import type {
   CommandContributions,
 } from '../../api/command';
@@ -37,6 +39,14 @@ import { EmoteGrammarRunner } from './EmoteGrammar';
 export interface EmoteOptions {
   target?: Stuff;
   fills?: Record<string, string>;
+  /**
+   * The `commandId` of a prior act this emote is reacting to. When set,
+   * the emote rides the reaction layer: it is tallied against that act,
+   * may toggle, and — at/above the volume threshold — has its diegetic
+   * fan-out suppressed in favour of the batched counter. Absent for an
+   * ordinary emote. See docs/subsystems/reactions.md.
+   */
+  inReactionTo?: string;
 }
 
 export interface EmoteBodies {
@@ -53,7 +63,7 @@ export interface Soul {
   /** In-room catalog emote: render + compose Scene + send. */
   emote(emote: Emote, opts?: EmoteOptions): void;
   /** In-room free-form emote: render + compose Scene + send. */
-  emoteFree(text: string, target?: Stuff): void;
+  emoteFree(text: string, target?: Stuff, inReactionTo?: string): void;
 }
 
 export function SoulMixin<TBase extends MixinConstructor>(Base: TBase) {
@@ -79,13 +89,61 @@ export function SoulMixin<TBase extends MixinConstructor>(Base: TBase) {
           '`both` = glyph alongside prose. The server emits both shapes ' +
           'on every frame; the client picks.',
       },
+      // Per-user reaction display controls. Read client-side from the
+      // settings sync and applied to the rendered widget. In v1 these
+      // are client-render preferences: the server always emits both the
+      // below-threshold line and the above-threshold delta; honoring
+      // `muteChannels`/`alwaysAggregate` server-side is a later
+      // refinement. See docs/subsystems/reactions.md § Per-user controls.
+      {
+        key: 'social.react.intensity',
+        type: SettingTypes.Enum,
+        default: 'normal',
+        enumValues: ['off', 'subtle', 'normal', 'vivid'],
+        description:
+          'Animation intensity for reaction counters/trains. `off` ' +
+          'renders a static count; `vivid` plays the full train.',
+      },
+      {
+        key: 'social.react.muteChannels',
+        type: SettingTypes.Boolean,
+        default: false,
+        description:
+          'Suppress the reaction counter widget on chat-channel ' +
+          'messages (client-side render preference in v1).',
+      },
+      {
+        key: 'social.react.alwaysAggregate',
+        type: SettingTypes.Boolean,
+        default: false,
+        description:
+          'Always show the compact counter instead of individual ' +
+          'reaction prose lines, even below the volume threshold.',
+      },
+      {
+        key: 'social.react.tagGroup',
+        type: SettingTypes.Boolean,
+        default: true,
+        description:
+          'Group reactions into tag buckets (e.g. approval) rather ' +
+          'than per-verb buckets in the counter widget.',
+      },
+      {
+        key: 'social.react.collapseThreshold',
+        type: SettingTypes.Number,
+        default: 25,
+        description:
+          'Client-side count at which the reaction sample collapses ' +
+          'behind a single expandable summary.',
+      },
     ];
 
     static commandContributions: CommandContributions = {
       // `introduce` rides Soul (social expression on every Character),
       // NOT Vocal — you can introduce yourself by sign, gesture, or any
-      // modality the audience perceives, not only speech.
-      self: ['social/emote.yaml', 'social/introduce.yaml'],
+      // modality the audience perceives, not only speech. `react` rides
+      // Soul too: a reaction dispatches an emote, so it requires Soul.
+      self: ['social/emote.yaml', 'social/introduce.yaml', 'social/react.yaml'],
       environment: [],
       inventory: [],
       peers: [],
@@ -153,10 +211,29 @@ export function SoulMixin<TBase extends MixinConstructor>(Base: TBase) {
           'SoulMixin requires composition with Container or Containable for in-room emote',
         );
       }
+
+      // Reaction layer: a scoped emote is tallied against the prior act
+      // and — at/above threshold — has its diegetic line suppressed. A
+      // NON-reaction emote is itself a reactable act (the else branch);
+      // a reaction's own frame is NEVER noted reactable — the
+      // regress-stopper.
+      if (opts?.inReactionTo !== undefined) {
+        const decision = ReactionApi.onScopedEmote({
+          reactor: actor,
+          inReactionTo: opts.inReactionTo,
+          verb: emote.verb,
+          ...(emote.emoji !== undefined ? { emoji: emote.emoji } : {}),
+          tags: emote.tags,
+        });
+        if (decision.suppressFanOut) return; // counter only, no line
+        scene.meta({ inReactionTo: opts.inReactionTo });
+      } else {
+        noteEmoteReactable(actor);
+      }
       scene.send();
     }
 
-    emoteFree(text: string, target?: Stuff): void {
+    emoteFree(text: string, target?: Stuff, inReactionTo?: string): void {
       const actor = this as unknown as Stuff;
       const bodies = this.renderFreeForm(text, target);
       const scene = MessageApi.scene(actor)
@@ -178,9 +255,38 @@ export function SoulMixin<TBase extends MixinConstructor>(Base: TBase) {
           'SoulMixin requires composition with Container or Containable for in-room emote',
         );
       }
+
+      if (inReactionTo !== undefined) {
+        const decision = ReactionApi.onScopedEmote({
+          reactor: actor,
+          inReactionTo,
+          verb: 'free-form',
+          tags: [],
+          customText: text,
+        });
+        if (decision.suppressFanOut) return;
+        scene.meta({ inReactionTo });
+      } else {
+        noteEmoteReactable(actor);
+      }
       scene.send();
     }
   };
+}
+
+/**
+ * Note a non-reaction emote as a reactable act, keyed by the active
+ * command's `commandId` and scoped to the actor's co-present circle.
+ * Skips command-less background emotes. A reaction's own frame never
+ * reaches here — that's the regress-stopper.
+ */
+function noteEmoteReactable(actor: Stuff): void {
+  const commandId = ExecutionContextApi.getCurrentCommandContext()?.commandId;
+  if (!commandId) return;
+  const scope = ReactionApi.locationScopeFor(actor);
+  if (scope) {
+    ReactionApi.noteReactableAct({ commandId, subject: actor, scope });
+  }
 }
 
 // Suppress unused-imports / no-unused-vars for symbols the runtime

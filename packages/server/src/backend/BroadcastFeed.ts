@@ -21,12 +21,20 @@
  * This is a singleton - only one instance exists per application.
  */
 
-import type { StreamStateSnapshot, StreamStateEnvelope } from '@saxonberg/types';
+import type {
+  StreamStateSnapshot,
+  StreamStateEnvelope,
+  ReactionDeltaEnvelope,
+} from '@saxonberg/types';
 import { Backend } from './Backend';
 import { EventApi } from '../mud/api/event';
 import { Events } from '../mud/lib/events';
 import { StuffApi } from '../mud/api/stuff';
 import StreamState from '../mud/obj/StreamState';
+import {
+  ReactionScopeDeltaEvent,
+  type ReactionScopeDeltaPayload,
+} from '../mud/lib/events/ReactionScopeDeltaEvent';
 
 const LIVE_DEFAULT: StreamStateSnapshot = { mode: 'live', awayUntil: null };
 
@@ -86,13 +94,38 @@ export class BroadcastFeed {
     return this.connections.size;
   }
 
-  /** Install the StreamState change listener exactly once. */
+  /** Install the StreamState + reaction-delta listeners exactly once. */
   private ensureSubscribed(): void {
     if (this.subscribed) return;
     EventApi.on<StreamStateSnapshot>(Events.StreamStateChanged, (snapshot) => {
       this.pushToAll(snapshot);
     });
+    // Overlay-ready reaction seam: the registry's fixed-cadence flush
+    // fires one ReactionScopeDeltaEvent per moved scope (server-numbers
+    // projection — buckets/total, no per-viewer sample). Forward each as
+    // a reaction-delta to every broadcast socket. v1 forwards all scopes;
+    // per-scope overlay filtering is a later refinement.
+    EventApi.on<ReactionScopeDeltaPayload>(
+      ReactionScopeDeltaEvent.KIND,
+      (payload) => {
+        this.pushReactionDeltaToAll(payload);
+      },
+    );
     this.subscribed = true;
+  }
+
+  private pushReactionDeltaToAll(payload: ReactionScopeDeltaPayload): void {
+    if (this.connections.size === 0) return;
+    for (const socketId of this.connections) {
+      const frameId = (this.frameCounters.get(socketId) ?? 0) + 1;
+      this.frameCounters.set(socketId, frameId);
+      const envelope: ReactionDeltaEnvelope = {
+        type: 'reaction-delta',
+        frameId,
+        acts: payload.acts,
+      };
+      Backend.get().sendEnvelopeToSocket(socketId, envelope);
+    }
   }
 
   /** Read the live StreamState, defaulting to `live` before boot. */

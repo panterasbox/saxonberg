@@ -20,6 +20,7 @@
 import { useEffect, useMemo, useRef } from 'react';
 import styled from 'styled-components';
 import { GutterStripe } from './GutterStripe';
+import { ReactionBar, REVEAL_REACTION_ADD } from './ReactionBar';
 import { useStore } from '../store';
 import type { Frame } from '../store/index';
 import { parseMml } from '../lib/mml/parseMml';
@@ -47,6 +48,15 @@ const FrameRow = styled.div`
   display: flex;
   align-items: stretch;
   margin-bottom: 0.5rem;
+
+  /* The reaction "+" affordance is hover-revealed (Slack/Discord model):
+     it is visually hidden + focusable at rest (no footprint, but kept in
+     the tab order — see ReactionBar's AddWrap), and reveals on row hover.
+     Keyboard focus (:focus-within) and the open palette reveal it via
+     AddWrap's own rules. The reaction chips render inline regardless. */
+  &:hover .reaction-add {
+    ${REVEAL_REACTION_ADD}
+  }
 `;
 
 // Per-frame font register: the family is resolved from the frame's
@@ -102,6 +112,11 @@ export function Terminal({
               onCommandPreview={onCommandPreview}
               viewerStuffId={effectiveViewerId}
               stylesheet={stylesheet}
+            />
+            <ReactionBar
+              frame={frame}
+              onCommandClick={onCommandClick}
+              onCommandPreview={onCommandPreview}
             />
           </Body>
         </FrameRow>

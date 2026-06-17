@@ -72,7 +72,9 @@ convention is to leave it empty. `grammar` carries the Liquid
 template plus per-slot metadata (see next section). `echo` reserves
 the future remote-emote echo policy. `emoji` is the optional single
 glyph, surfaced on the payload alongside the failsafe prose body.
-`tags` reserves the reactions / classification hook.
+`tags` is the reactions / classification hook — now consumed: the
+reaction layer groups chips by `tags[0]` (see
+[reactions.md](./reactions.md)).
 
 `Emote` is a **catalog record, not a Stuff**. Plain data records
 that don't participate in the clone pipeline live on the Document
@@ -153,9 +155,17 @@ export interface Soul {
   renderEmote(emote: Emote, opts?: EmoteOptions): EmoteBodies;
   renderFreeForm(text: string, target?: Stuff): EmoteBodies;
   emote(emote: Emote, opts?: EmoteOptions): void;
-  emoteFree(text: string, target?: Stuff): void;
+  emoteFree(text: string, target?: Stuff, inReactionTo?: string): void;
 }
 ```
+
+`EmoteOptions` carries an optional `inReactionTo?: string` (and
+`emoteFree` a matching 3rd arg): the `commandId` of a prior act this
+emote *reacts to*. When set, the send pokes the reaction layer
+(tally/threshold/suppression) before composing the Scene; absent, it's
+an ordinary emote. A non-reaction emote is itself a reactable act. The
+reaction substrate rides this one send path wholesale — see
+[reactions.md](./reactions.md).
 
 `EmoteBodies` is the per-audience triple `{ self: Mml, peer: Mml,
 target?: Mml }`. `renderEmote` runs the grammar renderer three

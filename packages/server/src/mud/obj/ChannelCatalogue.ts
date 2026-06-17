@@ -45,6 +45,8 @@ import type { Stuff } from '../lib/stuff/Stuff';
 import { Property, type PropValue } from '../lib/stuff/Propertied';
 import { MixinApi } from '../api/mixin';
 import { MessageApi } from '../api/message';
+import { ReactionApi } from '../api/reaction';
+import { ExecutionContextApi } from '../api/execution-context';
 import { Mml } from '../api/mml';
 import { PlayerApi } from '../api/player';
 import { GroupApi } from '../api/group';
@@ -228,6 +230,14 @@ export default class ChannelCatalogue extends ChannelCatalogueBase {
     }
     const channelId = channel._id ?? channel.name;
     const audience = await this.audienceFor(channel);
+    // Chat posts are reactable acts. The self frame rides Scene and so
+    // picks up `commandId` for free; the manual witness + history frames
+    // built below historically OMITTED it, which would leave chat acts
+    // un-correlatable client-side and the act key missing. Read it once
+    // and stamp it onto baseMeta below; note the act reactable when
+    // present (command-less posts aren't reactable).
+    const commandId = ExecutionContextApi.getCurrentCommandContext()?.commandId;
+    const reactionScope = 'channel:' + (channel.groupRef || channelId);
     const speakerName = Mml.name(speaker);
     const safeBody = Mml.markdownToMml(body, Mml.perceiverMentionResolver(speaker));
     const selfBody = Mml.compose`[${channel.name}] You: ${safeBody}`;
@@ -256,6 +266,7 @@ export default class ChannelCatalogue extends ChannelCatalogueBase {
       timestamp: Date.now(),
       modality: 'verbal-esp',
       channelId,
+      ...(commandId !== undefined ? { commandId } : {}),
     };
     const basePayload = {
       channelId,
@@ -285,6 +296,15 @@ export default class ChannelCatalogue extends ChannelCatalogueBase {
       meta: { ...baseMeta },
       payload: basePayload,
     });
+
+    // Register the act reactable (idempotent on commandId).
+    if (commandId) {
+      ReactionApi.noteReactableAct({
+        commandId,
+        subject: speaker,
+        scope: reactionScope,
+      });
+    }
   }
 
   /** Append a frame to a channel's history ring (FIFO, capped). */

@@ -43,6 +43,7 @@ import {
 } from './mql';
 import { handlePromptResponse, handlePromptCancel } from './prompt';
 import { handleClientStateWrite } from './clientState';
+import { handleReactionExpand } from './reaction';
 
 export const inboundHandlers: Record<string, InboundHandler> = {
   ping: handlePing,
@@ -53,4 +54,5 @@ export const inboundHandlers: Record<string, InboundHandler> = {
   'prompt-response': handlePromptResponse,
   'prompt-cancel': handlePromptCancel,
   'client-state-write': handleClientStateWrite,
+  'reaction-expand': handleReactionExpand,
 };
