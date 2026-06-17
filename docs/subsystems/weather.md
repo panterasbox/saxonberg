@@ -5,7 +5,7 @@ weather field that makes biome's static atmospheric *state* vary over
 time, coherently, per locality. Weather is to biome what metabolism /
 thermal are to vitals — biome is the state, weather is the thin driver
 that deviates its reads
-([weather-slate](../slates/builds/weather-slate.md)).
+([weather-slate](../slates/tails/weather-slate.md)).
 
 The defining property: **weather stores no state.**
 `WeatherApi.weatherAt(time, locality)` is a pure deterministic function —
@@ -254,7 +254,7 @@ whole backend.
 
 ## Cross-references
 
-- [weather-slate](../slates/builds/weather-slate.md) — the seeding slate;
+- [weather-slate](../slates/tails/weather-slate.md) — the seeding slate;
   this build is its Wave 1. Its open questions (the grammar, scalar wind,
   additive-deviation coupling, the Locality tier) are resolved here for
   Wave 1.
