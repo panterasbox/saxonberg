@@ -62,6 +62,13 @@ split into waves.
 - **The architecture is bounded by audience × cadence, not reaction
   throughput.** 1,000 reactions/sec on a 300-user channel costs the same
   on the wire as 100/sec.
+- **Reacting is as low-friction as a bare emote.** Load-bearing, not
+  polish: if `react` is clunkier than typing `;smile iffy`, dramatic
+  high-volume responses route to bare emotes and forfeit *both*
+  aggregation (the channel floods anyway) *and* the renown signal (no
+  event fires). So the implicit "react to what was just said" path must
+  be at least as cheap as the bare emote — `react ;emote` with no
+  selector, a short verb alias, and the one-key palette.
 - **The full client surface is observable** — prose events, the animated
   counter/train, attributed reactors, expand-to-see-who, tag-grouped
   buckets, a quick-react palette, per-user controls.
@@ -95,6 +102,19 @@ split into waves.
   begins emitting acts.
 - **Machine-generated aggregate prose.** The threshold flips between
   individual emote lines and a counter; no NL crowd-summary tier.
+- **Room-readability / repetition control.** The threshold is a
+  *wire-scale* safety valve (the 300-user channel), **per-context**
+  tunable — not a room-readability dial. A room-scale pile-on (5–8 people
+  reacting at once) renders in full **by design**: that drama is the
+  point, not spam to collapse. Per-user collapse of repetitive lines is
+  the console-filtering domain, orthogonal to this build.
+- **Collapsing emote-floods into reactions.** The future bridge — at chat
+  scale, folding a flood of the same bare emote at one target into a
+  reaction aggregate (salvaging the intent, not merely filtering it) — is
+  a named direction in
+  [reactions-slate.md](../slates/tails/reactions-slate.md), deferred. It
+  needs an emote-convergence detector atop this build's reaction
+  substrate.
 - **Pre-interpreted valence / polarity.** The event carries the raw emote
   + `tags`; mapping to a signed/weighted renown contribution is the
   aggregator's job.
