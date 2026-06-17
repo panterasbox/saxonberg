@@ -202,6 +202,17 @@ an act between:
 - **At/above → counter + train.** Per-emote fan-out is suppressed; the
   act flips to the aggregate. No generated crowd-prose.
 
+**A reacted-to message carries an always-on reaction affordance** at any
+volume — even one reaction shows a small count/cluster on the target
+message, so the act-binding and accrual are visible from the *first*
+reaction, not only at scale. Below threshold this is **client-derived for
+free**: reaction prose frames carry `meta.inReactionTo`, so the client
+groups them onto the target message — no extra wire. The train animation
+and counts-only delta are the *above-threshold* behaviors; the *existence*
+of a per-message indicator is always-on. This is what keeps a reaction
+visibly more than a bare emote in the common small-room case — the
+transparency that drives use.
+
 A reaction is **never itself reactable** (its frame isn't stamped), which
 stops any regress.
 
@@ -342,6 +353,10 @@ in the `EnvironmentMixin` keyspace.
 - **Toggle:** re-reacting the same emote removes; count drops.
 - **Below threshold:** the reaction is a diegetic emote line (not a
   counter), and is itself not reactable.
+- **Always-on affordance:** even one below-threshold reaction makes the
+  target message show a count/cluster, derived client-side from the
+  `meta.inReactionTo` frames — no `reaction-delta` required at that
+  volume.
 - **Above threshold:** per-emote fan-out is suppressed; deltas carry
   tag-grouped counts + a familiar-biased attributed sample; the full
   reactor-set is pull-only on expand.

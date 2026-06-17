@@ -649,16 +649,18 @@ the existing transcript/console.
    and record a "moved" marker the widget animates from. On
    `reaction-expand-result`, store the full reactor list for that act.
 
-4. **The counter/train widget** attached to a transcript message: a
-   component keyed by the message's `commandId` that reads
-   `reactions.get(commandId)`. Below threshold (`aggregated === false`)
-   the reactions already rendered as ordinary emote lines (inherited,
-   free — no new path); above threshold it renders the **counter +
-   train**: animate the rising total from successive deltas (synthesize
-   the burst client-side from sparse absolute counts), show **tag-grouped
-   buckets**, and the **attributed sample** (recognized reactors by
-   name). **Expand** sends `reaction-expand` and renders the full set.
-   Observable behaviors required by acceptance: rising counter from
+4. **The reaction affordance + counter/train widget**, attached to a
+   transcript message and keyed by `commandId`. **Always-on at any
+   volume:** even below threshold the target message shows a small
+   count/cluster, **client-derived for free** by grouping the reaction
+   prose frames the client already receives (each carries
+   `meta.inReactionTo`) — no extra wire; reactions render as emote lines
+   *and* accrue onto the message. Above threshold the widget switches to
+   the **counter + train** fed by `reaction-delta`: animate the rising
+   total from successive (absolute) counts, show **tag-grouped buckets**
+   and the **attributed sample** (recognized reactors by name). **Expand**
+   sends `reaction-expand` for the full set. Observable behaviors required
+   by acceptance: the always-on per-message indicator, rising counter from
    deltas, named sample, tag buckets, expand, per-user controls.
 
 5. **Quick-react palette** in the input area: frequent/recent emotes +
