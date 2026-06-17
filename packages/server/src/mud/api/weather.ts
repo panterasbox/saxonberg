@@ -124,7 +124,7 @@ export class WeatherApi {
    * this **before** any address walk, so weather-absent costs nothing.
    */
   public static isActive(): boolean {
-    return StuffApi.findByTemplatePath<WeatherLogic>(LOGIC_PATH) !== null;
+    return (StuffApi.findByTemplatePath<WeatherLogic>(LOGIC_PATH) ?? null) !== null;
   }
 
   /**

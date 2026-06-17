@@ -16,6 +16,21 @@ import { StuffApi } from '../../api/stuff';
 import { MixinApi } from '../../api/mixin';
 import { TemplatePaths } from '../../lib/paths';
 import type { AtmosphericTrace } from '../../api/biome';
+import { WeatherApi } from '../../api/weather';
+import { AddressApi } from '../../api/address';
+import { WorldClockApi } from '../../api/worldclock';
+import {
+  WEATHER_FIELDS,
+  type WeatherField,
+} from '../../lib/weather/WeatherType';
+
+/**
+ * The four atmospheric fields weather deviates (D5). Gravity / atmosphere
+ * are excluded — they carry no weather meaning. The seam in
+ * `resolveQuantityFor` gates on this set so the deviation never touches
+ * gravity reads.
+ */
+const WEATHER_DEVIATED_FIELDS = new Set<string>(WEATHER_FIELDS);
 
 /**
  * Per-atmosphere density at standard conditions (1 atm, 295 K).
@@ -416,19 +431,31 @@ export class BiomeLogic extends Idea {
   /** See {@link BiomeApi.isSkyExposed}. */
   @CallSecurity(BiomeApiCallers)
   public isSkyExposed(scope: Stuff & Container): boolean {
-    let cursor: (Stuff & Container) | null = scope;
-    let depth = CONTAINMENT_DEPTH_CAP;
-    while (cursor !== null && depth-- > 0) {
-      if (MixinApi.isAtmospheric(cursor)) {
-        const biome = (cursor as Stuff & Container & Atmospheric).getBiome();
-        if (biome !== null) {
-          return MixinApi.isSkyExposed(biome);
-        }
-      }
-      cursor = stepOutward(cursor);
-    }
-    return false;
+    return skyExposedWalk(scope);
   }
+}
+
+/**
+ * Sky-exposure containment walk (module-private so both the public
+ * `isSkyExposed` method and the weather-deviation seam in
+ * `resolveQuantityFor` can call it without an intra-singleton self-call).
+ * Walks outward to the nearest atmospheric ancestor with a biome ref and
+ * returns whether that biome composes `SkyExposedMixin`; `false` when no
+ * biome resolves.
+ */
+function skyExposedWalk(scope: Stuff & Container): boolean {
+  let cursor: (Stuff & Container) | null = scope;
+  let depth = CONTAINMENT_DEPTH_CAP;
+  while (cursor !== null && depth-- > 0) {
+    if (MixinApi.isAtmospheric(cursor)) {
+      const biome = (cursor as Stuff & Container & Atmospheric).getBiome();
+      if (biome !== null) {
+        return MixinApi.isSkyExposed(biome);
+      }
+    }
+    cursor = stepOutward(cursor);
+  }
+  return false;
 }
 
 // ---------- cache helpers (module-private) ----------
@@ -557,7 +584,30 @@ async function resolveQuantityFor<U extends Unit>(
     detailGetter,
     ownGetter,
   );
-  return trace.value;
+  const base = trace.value;
+
+  // Weather deviation (D2). Enrichment, not a gate: the cheap sync checks
+  // come FIRST (D-E), so weather-absent or indoor scopes do zero extra
+  // work and read byte-identical to pre-weather. Only when all three
+  // pass do we resolve the covering Locality (one address walk) and fold
+  // the additive per-field deviation. Gravity / atmosphere never route
+  // here (WEATHER_DEVIATED_FIELDS excludes them). Trace variants are left
+  // un-weathered: they report biome-chain provenance; weather is a
+  // separate additive surfaced by `analyze weather`.
+  if (
+    WEATHER_DEVIATED_FIELDS.has(fieldBare) &&
+    WeatherApi.isActive() &&
+    skyExposedWalk(scope)
+  ) {
+    const locality = await AddressApi.resolveLocalityFor(scope);
+    const dev = WeatherApi.deviationFor(
+      locality,
+      fieldBare as WeatherField,
+      WorldClockApi.getNow(),
+    );
+    return base.add(dev as unknown as Quantity<U>);
+  }
+  return base;
 }
 
 async function resolveStringFor(
