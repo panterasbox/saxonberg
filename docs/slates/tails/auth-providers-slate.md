@@ -1,6 +1,15 @@
 # Auth providers & account linking slate (working doc)
 
-> **Status: shape proposed — the keystone.** Generalize the Google-only
+> **Status: Waves 1+2 shipped (2026-06) → [connection.md](../../subsystems/connection.md).**
+> The multi-provider spine, Twitch login, account link/unlink, and
+> token-at-rest encryption shipped (Phase 1 of the
+> [broadcast-patronage track](../../tracks/broadcast-patronage-track.md)).
+> Deferred design surface holding here: incremental chat scopes
+> (`user:write:chat` / `user:read:chat`, the relay's), account merge,
+> provider-side token revocation, LLM name-refraction, and YouTube. The
+> original proposal follows.
+>
+> Generalize the Google-only
 > auth spine into a multi-provider one (Google + Twitch as **co-equal
 > login providers**), add a `TwitchProfile` Document that holds provider
 > identity **plus** chat tokens, let an authenticated user **link** the

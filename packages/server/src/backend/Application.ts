@@ -504,6 +504,30 @@ export class Application {
   }
 
   /**
+   * Resolve the persisted profile id for a provider identity **without**
+   * creating or mutating it — used by {@link linkProvider} so the
+   * collision check runs before any upsert. Returns null if no profile
+   * exists for that identity yet.
+   */
+  private async findProfileIdByIdentity(
+    provider: AuthProvider,
+    profile: ProviderProfile
+  ): Promise<string | null> {
+    if (provider === 'twitch') {
+      const existing = await TwitchProfile.findByTwitchUserId(
+        (profile as PassportTwitchProfileWithTokens).id
+      );
+      return existing?._id ?? null;
+    }
+    const existing = await PersistenceManager.get().find(
+      Collections.GoogleProfiles,
+      { googleId: (profile as PassportGoogleProfile).id }
+    );
+    const first = existing[0];
+    return first ? (first._id as string) : null;
+  }
+
+  /**
    * Attach a provider profile to an existing `User` (authenticated link
    * flow). Data-integrity logic lives here, not in a route handler:
    *   - profile unowned        → attach          → `linked`
@@ -516,18 +540,29 @@ export class Application {
     provider: AuthProvider,
     profile: ProviderProfile
   ): Promise<LinkResult> {
-    const profileId = await this.findOrCreateProfile(provider, profile);
     const field = User.profileFieldFor(provider);
 
-    const owners = await User.find({ [field]: profileId });
-    const owner = owners[0];
-    if (owner && owner._id !== userId) {
-      return {
-        status: 'collision',
-        message: 'That account is already linked to another login.',
-      };
+    // Resolve the EXISTING profile by provider identity and check
+    // ownership *before* any upsert, so a collision never overwrites
+    // another user's profile or tokens (the requirement's "no merge, no
+    // data mutation").
+    const existingProfileId = await this.findProfileIdByIdentity(
+      provider,
+      profile
+    );
+    if (existingProfileId) {
+      const owners = await User.find({ [field]: existingProfileId });
+      const owner = owners[0];
+      if (owner && owner._id !== userId) {
+        return {
+          status: 'collision',
+          message: 'That account is already linked to another login.',
+        };
+      }
     }
 
+    // Safe to upsert: the profile is unowned or already this user's.
+    const profileId = await this.findOrCreateProfile(provider, profile);
     const user = await User.findById(userId);
     if (!user) {
       throw new Error(`Application.linkProvider: no user ${userId}`);

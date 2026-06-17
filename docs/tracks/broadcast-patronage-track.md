@@ -72,7 +72,7 @@ The track inherits a real head start:
 Stops at a genuinely interactive Twitch broadcast, **before** any funding
 plumbing. Three phases.
 
-#### Phase 1 — Auth-providers keystone *(blocks everything)*
+#### Phase 1 — Auth-providers keystone ✅ *shipped 2026-06* *(blocks everything)*
 - **Slate:** [auth-providers-slate.md](../slates/tails/auth-providers-slate.md)
 - **Extends:** [connection.md](../subsystems/connection.md) (Google-only spine)
 - **Build (Waves 1+2):** multi-provider Passport spine (Google + Twitch

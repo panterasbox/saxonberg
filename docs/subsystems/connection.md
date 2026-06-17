@@ -26,14 +26,30 @@ this is the operational summary.
 | Class | Layer | Persisted? | Lifetime |
 |---|---|---|---|
 | `User` | auth identity | yes (`users` collection) | account |
-| `GoogleProfile` | OAuth cache | yes (`google_profiles`) | account |
+| `GoogleProfile` | OAuth cache (identity only) | yes (`google_profiles`) | account |
+| `TwitchProfile` | OAuth cache + **credentials** | yes (`twitch_profiles`) | per provider link |
 | `Avatar` | game-world character | template (`/obj/Avatar/<playerId>`) | from first connection until explicit destruct |
 | `Interactive` | live connection | **no** | one WebSocket session |
 | `Login` | entry-procedure scratch object | **no** | one entry — destructed when `enter()` finishes |
 
 **`User`** owns a `playerIds: string[]` — the authoritative "which
-characters does this user own?" list (`User.ts:23,37`). Each id is a
+characters does this user own?" list (`User.ts`). Each id is a
 character slot; the matching template lives at `/obj/Avatar/<playerId>`.
+
+**Providers are co-equal.** `User` carries two optional FK fields —
+`googleProfileId?` and `twitchProfileId?` — with an **at-least-one**
+invariant (`User.hasAnyProvider()`). A login through either provider
+resolves to the same `User`; an authenticated user can **link** the
+other and **unlink** either (but not their last one). The spine is
+provider-parameterized — `User.profileFieldFor(provider)` is the single
+source of truth for the FK field name — rather than a generic
+`identities[]` map (premature at N=2). `GoogleProfile` stores **identity
+only** (login mints a session and discards the token); `TwitchProfile`
+additionally persists OAuth **access/refresh tokens** because the game
+calls Twitch *as the user* for the life of the link — those two token
+fields are **encrypted at rest** via the `EncryptedStringMarshaller` (see
+[§ Phase 1](#phase-1-http-auth--user-creation) and
+[persistence.md](./persistence.md)).
 
 **`Avatar`** is what walks around the world. Composes
 `HasInteractiveMixin` so it can carry zero, one, or many connected
@@ -62,24 +78,24 @@ There is no `Player` class. The id is "still called `playerId`" — see
 ## Login Flow at a Glance
 
 ```
-HTTP /auth/google
+HTTP /auth/{google,twitch}
        │
        ▼
-Google OAuth ──▶ /auth/google/callback
+Provider OAuth ──▶ /auth/{provider}/callback
                           │
                           ▼
-              Backend.handleAuthenticationSuccess
+              Backend.handleProviderAuth(provider, …)
                           │   (runRoot frame)
                           ▼
-              Application.findOrCreateUserFromGoogle
-                  ├─ findOrCreateGoogleProfile  (google_profiles)
-                  └─ findOrCreateUser           (users)
+              Application.findOrCreateUserFromProvider(provider, …)
+                  ├─ findOrCreateProfile(provider)  (google_profiles | twitch_profiles)
+                  └─ findOrCreateUser(provider, …)  (users)
                        └─ first time? → createDefaultAvatarTemplate
                                          (forks /obj/Avatar/seed →
                                           /obj/Avatar/<new playerId>)
                           │
                           ▼
-                  Passport serializes { id: userId } into session
+                  Passport serializes { id, authProvider } into session
                           │
                           ▼
                 Client redirected to ${CLIENT_URL}/?auth=success
@@ -134,40 +150,83 @@ const sessionMiddleware = session({
 });
 ```
 
-`PassportConfig` registers a `GoogleStrategy` whose verify callback
-hands off to `Backend.handleAuthenticationSuccess(profile, done)`.
+`PassportConfig` registers, per provider that has credentials in the
+env, a **login** strategy and a **link** strategy:
+
+- **Google** — `passport-google-oauth20`, names `'google'` /
+  `'google-link'`.
+- **Twitch** — a hand-rolled `passport-oauth2` `OAuth2Strategy` pointed
+  at Twitch's endpoints (the verify callback does a Helix `/users` fetch
+  to build the profile), names `'twitch'` / `'twitch-link'`. Chosen over
+  the lightly-maintained `passport-twitch-*` wrappers. The login scope is
+  identity-only (`user:read:email`); chat scopes are deferred.
+
+Each strategy is **gated on its provider's `*_CLIENT_ID/SECRET`
+presence**, independent of `AUTH_MODE` — CI / e2e run without those vars,
+so the strategy is skipped there and the test-auth seam handles login.
+The login verify callbacks hand off to
+`Backend.handleProviderAuth(provider, profile, done)`; the link verify
+callbacks to `Backend.handleProviderLink(provider, userId, profile,
+done)`.
+
 Routes (`AuthRoutes.ts`):
 
-- `GET /auth/google` — kicks off OAuth (scope `profile`, `email`).
-- `GET /auth/google/callback` — Passport runs verify, then redirects
+- `GET /auth/{google,twitch}` — kick off login OAuth.
+- `GET /auth/{provider}/callback` — Passport runs verify, then redirects
   to `${CLIENT_URL}/?auth=success` (or `?auth=failure`).
+- `GET /auth/{provider}/link` + `/link/callback` — **authenticated**
+  (`AuthMiddleware.requireAuth`) account linking.
+- `POST /auth/{provider}/unlink` — **authenticated** unlinking.
 - `GET /auth/status` — `{ isAuthenticated, user? }`.
 - `POST /auth/logout` — `req.logout()` + `req.session.destroy()`.
 
-`Backend.handleAuthenticationSuccess` (`Backend.ts:207-232`) wraps
-the User creation call in a security root frame:
+`Backend.handleProviderAuth` (mirrored by `handleProviderLink` /
+`handleProviderUnlink`) wraps the call in a security root frame and
+serializes `{ id, authProvider }` into the session:
 
 ```typescript
-// Backend.ts:220-224
 const userId = await ExecutionContextApi.runRoot(
   Backend,
-  'findOrCreateUserFromGoogle',
-  () => app.findOrCreateUserFromGoogle(profile)
+  'findOrCreateUserFromProvider',
+  () => app.findOrCreateUserFromProvider(provider, profile)
 );
-done(null, { id: userId });
+done(null, { id: userId, authProvider: provider });
 ```
 
-`Application.findOrCreateUserFromGoogle` runs two upserts:
+`Application.findOrCreateUserFromProvider(provider, profile)` runs two
+upserts:
 
-1. **`findOrCreateGoogleProfile`** — keyed on `googleId`. Stores
-   email, displayName, names, photo, raw profile, timestamps. Either
-   creates or updates.
+1. **`findOrCreateProfile(provider, profile)`** — upserts the right
+   collection by provider (`google_profiles` keyed on `googleId` /
+   `twitch_profiles` keyed on `twitchUserId`). The Twitch path routes
+   through `TwitchProfile.save()` so the `EncryptedStringMarshaller`
+   encrypts the token fields — plaintext tokens never reach Mongo.
 
-2. **`findOrCreateUser`** — keyed on `googleProfileId`. If new,
-   constructs a `User` via `await StuffApi.create(() => new User())`,
-   saves it, then calls `createDefaultAvatarTemplate` and pushes the
-   new `playerId` onto `user.playerIds`. **Avatar templates are
-   seeded at account creation; they are NOT lazy.**
+2. **`findOrCreateUser(provider, profileId)`** — resolves via the
+   computed key `User.find({ [User.profileFieldFor(provider)]: id })`.
+   If new, constructs a `User` via `await StuffApi.create(() => new
+   User())`, sets the right `*ProfileId`, saves, then calls
+   `createDefaultAvatarTemplate` (seeding the default name via the
+   provider-agnostic `Application.defaultAvatarNameFor`) and pushes the
+   new `playerId` onto `user.playerIds`. **Avatar templates are seeded
+   at account creation; they are NOT lazy.**
+
+**Linking & unlinking.** `Application.linkProvider(userId, provider,
+profile)` upserts the profile, then: attaches it if unowned
+(`linked`); no-ops if already on this user (`already-linked`); or
+**refuses** if owned by a *different* user (`collision` — no merge).
+`Application.unlinkProvider(userId, provider)` clears the FK and
+**deletes the orphaned Profile Document** (removing the stored encrypted
+tokens), but **refuses removing the user's only provider**
+(`only-provider`, defending the at-least-one invariant) and no-ops when
+not linked. Both are data-integrity operations on the persistence layer,
+not the route handler.
+
+**Token refresh.** `TwitchProfile.applyRefreshedToken(...)` is the
+`RefreshingAuthProvider.onRefresh` write-back target: it re-`save()`s the
+rotated tokens, which re-encrypts them through the marshaller. (The relay
+that *spends* the tokens is a downstream build; this build only stores
+them and proves the write-back.)
 
 `createDefaultAvatarTemplate` forks from the seed avatar at
 `Avatar.SEED_TEMPLATE_PATH` (`/obj/Avatar/seed`), generates a fresh
@@ -742,7 +801,9 @@ Every entry from the network into Application is wrapped in
 | WebSocket connect | `handleWebSocketConnect` | `handleUserConnect` |
 | WebSocket message | `handleWebSocketMessage` | `processUserMessage` |
 | WebSocket close | `handleWebSocketClose` | `handleUserDisconnect` |
-| OAuth callback | `handleAuthenticationSuccess` | `findOrCreateUserFromGoogle` |
+| OAuth login callback | `handleProviderAuth` | `findOrCreateUserFromProvider` |
+| OAuth link callback | `handleProviderLink` | `linkProvider` |
+| Unlink (POST) | `handleProviderUnlink` | `unlinkProvider` |
 
 These root frames give the call-stack a well-defined bottom: when a
 mudlib method later checks `ExecutionContext`, it sees `Backend` as
@@ -835,4 +896,23 @@ taxonomy and how `FrameKind`/`runRoot` plant frames.
 - [call-security.md](./call-security.md) — `ExecutionContextApi.runRoot`,
   `FrameKind`, policy taxonomy
 - [persistence.md](./persistence.md) — the `Document` track that
-  `User` and `GoogleProfile` ride on
+  `User`, `GoogleProfile`, and `TwitchProfile` ride on; the
+  `EncryptedStringMarshaller` (token fields encrypted at rest) rides the
+  `fieldMarshallers` seam there
+- [broadcast-patronage-track.md](../tracks/broadcast-patronage-track.md)
+  — this multi-provider build is Phase 1 of the go-live track (the
+  keystone the Twitch chat relay and patronage→stake ledger depend on)
+
+## History
+
+- **Multi-provider auth (auth-providers build, 2026-06).** The
+  Google-only spine was generalized to be provider-parameterized and
+  Twitch added as a co-equal login provider: `handleAuthenticationSuccess`
+  → `handleProviderAuth` (+ `handleProviderLink`/`handleProviderUnlink`),
+  `findOrCreateUserFromGoogle` → `findOrCreateUserFromProvider`, `User`
+  FKs made optional with an at-least-one invariant, `TwitchProfile`
+  (credential-bearing, token fields encrypted via
+  `EncryptedStringMarshaller`), account link/unlink routes, and
+  `session.authProvider`. Deferred: chat scopes, account merge,
+  provider-side token revocation, name-refraction, YouTube. Seeding slate:
+  [auth-providers-slate.md](../slates/tails/auth-providers-slate.md).

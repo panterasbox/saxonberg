@@ -214,22 +214,26 @@ describe('Application provider spine', () => {
 
     it('refuses a profile owned by a different User → collision, no mutation', async () => {
       const store = fakeUserStore();
-      // tp-1 is already owned by another user.
+      // tp-1 already EXISTS and is owned by another user — the real
+      // collision scenario (an existing profile, not a fresh grant).
       store.addUser({ _id: 'u-other', twitchProfileId: 'tp-1' });
       const me = store.addUser({ _id: 'u-1', googleProfileId: 'gp-1' });
-      vi.spyOn(TwitchProfile, 'findByTwitchUserId').mockResolvedValue(null);
-      vi.spyOn(TwitchProfile.prototype, 'save').mockImplementation(
-        async function (this: TwitchProfile) {
-          this._id = 'tp-1';
-        }
-      );
+      vi.spyOn(TwitchProfile, 'findByTwitchUserId').mockResolvedValue({
+        _id: 'tp-1',
+      } as unknown as TwitchProfile);
+      // The collided profile must NOT be written — ownership is checked
+      // before any upsert, so save() is never reached.
+      const save = vi
+        .spyOn(TwitchProfile.prototype, 'save')
+        .mockResolvedValue(undefined as never);
 
       const result = await app.linkProvider('u-1', 'twitch', twitchProfile());
       expect(result.status).toBe('collision');
       if (result.status === 'collision') {
         expect(result.message).toMatch(/already linked to another login/i);
       }
-      // No mutation on my user.
+      // No write to the collided profile, no mutation on my user.
+      expect(save).not.toHaveBeenCalled();
       expect((me as Record<string, unknown>).twitchProfileId).toBeUndefined();
     });
   });

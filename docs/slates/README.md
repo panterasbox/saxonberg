@@ -232,7 +232,7 @@ extends; none is a fresh build.
 | Slate | Extends (shipped) | What's deferred |
 |---|---|---|
 | [access](./tails/access-slate.md) | access.md / call-security.md | actor-aware policy slots |
-| [auth-providers](./tails/auth-providers-slate.md) | connection.md | generalize the Google-only auth spine to multi-provider (Google + Twitch co-equal) + account linking — **the keystone** the chat relay and future name-refraction sit on |
+| [auth-providers](./tails/auth-providers-slate.md) | connection.md | **Waves 1+2 shipped 2026-06** (multi-provider spine + Twitch login + account link/unlink + token encryption → connection.md); deferred: chat scopes, account merge, provider-side revocation, name-refraction, YouTube |
 | [external-chat-relay](./tails/external-chat-relay-slate.md) | chat.md | bind a `Channel` to an external service (Twitch first) — inbound reader + outbound post-as-yourself; **rides the auth-providers keystone** |
 | [augmentation](./tails/augmentation-slate.md) | augmentation.md | Wave 2+ (Wave 1 shipped) |
 | [affordance-verb](./tails/affordance-verb-slate.md) | put/give/Surfaced (shipped) | source-scoping (`::`), command-provenance |

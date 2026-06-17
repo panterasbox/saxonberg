@@ -545,7 +545,7 @@ points readers here.
 | `Agent` | `Stuff` | Subclasses (Character → Avatar) layer on Mobile / Container / Containable / Sensor / Vocal / etc. |
 | `Shadow` | `Stuff` (abstract) | Framework-internal — not in-world Stuff. See [call-security.md](./subsystems/call-security.md). |
 
-Persisted records (`User`, `GoogleProfile`, `Template`) are **not**
+Persisted records (`User`, `GoogleProfile`, `TwitchProfile`, `Template`) are **not**
 Stuff — they extend the standalone `Document` base
 (`lib/persistence/`), loaded via `findById` / `find` rather than the
 template/clone/hydrate pipeline, with none of the proxy/registry/
