@@ -504,12 +504,16 @@ export default class ReactionRegistry extends Idea {
         if (b.count > NAME_LIST_CAP) continue;
         const names: string[] = [];
         for (const id of bucketReactorIds.get(key) ?? []) {
-          if (id === vid) {
-            names.push("you");
-            continue;
-          }
           const reactor = StuffApi.findById(id);
-          if (reactor) names.push(RecognitionApi.describe(viewer, reactor));
+          if (!reactor) continue;
+          // Self gets its own name (recognition describes *others*, so
+          // it would otherwise read as salient features for an
+          // unrecognized self); everyone else is recognition-named.
+          names.push(
+            id === vid
+              ? reactor.getPresentation()
+              : RecognitionApi.describe(viewer, reactor),
+          );
         }
         if (names.length > 0) b.reactors = names;
       }
