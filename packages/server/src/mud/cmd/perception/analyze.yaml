@@ -58,3 +58,14 @@ subcommands:
         scope: ["reachable"]
         validators:
           - /lib/command/validators/mustBeContainer
+  weather:
+    description: "Report the current weather type, per-field deviations, the covering Locality, and a short forecast"
+    controller: perception/AnalyzeWeatherController
+    args:
+      - name: location
+        type: object
+        required: false
+        default: "here"
+        scope: ["reachable"]
+        validators:
+          - /lib/command/validators/mustBeContainer
