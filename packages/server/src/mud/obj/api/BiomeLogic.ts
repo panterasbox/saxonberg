@@ -403,6 +403,16 @@ export class BiomeLogic extends Idea {
 
   // ---------- Wave 5 — sky exposure ----------
 
+  /** See {@link BiomeApi.restampThermalContentsOf}. */
+  @CallSecurity(BiomeApiCallers)
+  public restampThermalContentsOf(room: Stuff & Container): void {
+    for (const content of room.getContents()) {
+      if (MixinApi.isThermal(content)) {
+        void content.restamp();
+      }
+    }
+  }
+
   /** See {@link BiomeApi.isSkyExposed}. */
   @CallSecurity(BiomeApiCallers)
   public isSkyExposed(scope: Stuff & Container): boolean {
