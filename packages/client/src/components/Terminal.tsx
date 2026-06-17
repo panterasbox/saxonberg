@@ -17,7 +17,7 @@
  * (hover tooltip + click-action popover).
  */
 
-import { Fragment, useEffect, useMemo, useRef } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import styled from 'styled-components';
 import { GutterStripe } from './GutterStripe';
 import { ReactionBar } from './ReactionBar';
@@ -48,6 +48,17 @@ const FrameRow = styled.div`
   display: flex;
   align-items: stretch;
   margin-bottom: 0.5rem;
+
+  /* The reaction "+" affordance is hover-revealed (Slack/Discord model):
+     it occupies no space at rest and fades in only when the row is
+     hovered, so reactable lines don't carry a persistent widget. The
+     reaction chips themselves (when present) render inline regardless. */
+  & .reaction-add {
+    display: none;
+  }
+  &:hover .reaction-add {
+    display: inline-flex;
+  }
 `;
 
 // Per-frame font register: the family is resolved from the frame's
@@ -93,26 +104,24 @@ export function Terminal({
   return (
     <TerminalContainer ref={containerRef}>
       {frames.map((frame) => (
-        <Fragment key={frame.id}>
-          <FrameRow>
-            <GutterStripe topic={frame.topic} timestamp={frame.timestamp} />
-            <Body $fontFamily={stylesheet.fontFamilyForTopic(frame.topic)}>
-              {frame.sigil ? `${frame.sigil} ` : ''}
-              <FrameBody
-                frame={frame}
-                onCommandClick={onCommandClick}
-                onCommandPreview={onCommandPreview}
-                viewerStuffId={effectiveViewerId}
-                stylesheet={stylesheet}
-              />
-            </Body>
-          </FrameRow>
-          <ReactionBar
-            frame={frame}
-            onCommandClick={onCommandClick}
-            onCommandPreview={onCommandPreview}
-          />
-        </Fragment>
+        <FrameRow key={frame.id}>
+          <GutterStripe topic={frame.topic} timestamp={frame.timestamp} />
+          <Body $fontFamily={stylesheet.fontFamilyForTopic(frame.topic)}>
+            {frame.sigil ? `${frame.sigil} ` : ''}
+            <FrameBody
+              frame={frame}
+              onCommandClick={onCommandClick}
+              onCommandPreview={onCommandPreview}
+              viewerStuffId={effectiveViewerId}
+              stylesheet={stylesheet}
+            />
+            <ReactionBar
+              frame={frame}
+              onCommandClick={onCommandClick}
+              onCommandPreview={onCommandPreview}
+            />
+          </Body>
+        </FrameRow>
       ))}
     </TerminalContainer>
   );

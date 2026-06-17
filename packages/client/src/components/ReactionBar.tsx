@@ -53,15 +53,18 @@ const pulse = keyframes`
   100% { transform: scale(1); }
 `;
 
-const Bar = styled.div`
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: ${tokens.space.sm};
-  margin: ${tokens.space.xs} 0 ${tokens.space.sm} 2.4rem;
+// Inline trailing widget — flows after the message text on the SAME
+// line (no dedicated row). Children space themselves with a leading
+// margin so an empty bar (no chips + hover-only "+") adds zero footprint
+// after the message.
+const Bar = styled.span`
   font-family: ${tokens.font.family};
   font-size: ${tokens.font.small};
   color: ${tokens.color.fgMuted};
+  & > * {
+    margin-left: 0.4em;
+    vertical-align: middle;
+  }
 `;
 
 const Chip = styled.button<{ $pulse: boolean; $mine: boolean }>`
@@ -123,9 +126,17 @@ const MiniButton = styled.button`
   }
 `;
 
-const AddWrap = styled.span`
+// Carries the `reaction-add` class so FrameRow's `:hover` rule reveals
+// it (display:none → inline-flex). `$open` force-shows it while the
+// palette is open, so moving the mouse to pick an emoji can't hide it.
+const AddWrap = styled.span<{ $open: boolean }>`
   position: relative;
-  display: inline-flex;
+  align-items: center;
+  ${(p) =>
+    p.$open &&
+    css`
+      display: inline-flex !important;
+    `}
 `;
 
 const Palette = styled.div`
@@ -280,7 +291,7 @@ export function ReactionBar({
       )}
 
       {isReactableTopic(frame.topic) && frame.frameId !== undefined && (
-        <AddWrap>
+        <AddWrap className="reaction-add" $open={open}>
           <MiniButton onClick={() => setOpen((o) => !o)} title="React">
             ＋
           </MiniButton>
