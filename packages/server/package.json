@@ -16,6 +16,7 @@
   },
   "dependencies": {
     "@saxonberg/types": "workspace:*",
+    "@twurple/auth": "^8.1.4",
     "ajv": "^8.20.0",
     "cookie-parser": "^1.4.6",
     "cors": "^2.8.5",
@@ -27,6 +28,7 @@
     "nanoid": "^5.0.0",
     "passport": "^0.7.0",
     "passport-google-oauth20": "^2.0.0",
+    "passport-oauth2": "^1.8.0",
     "ws": "^8.16.0",
     "yaml": "^2.8.2"
   },
@@ -38,6 +40,7 @@
     "@types/node": "^20.0.0",
     "@types/passport": "^1.0.16",
     "@types/passport-google-oauth20": "^2.0.14",
+    "@types/passport-oauth2": "^1.8.0",
     "@types/supertest": "^6.0.0",
     "@types/ws": "^8.5.10",
     "fast-check": "^4.7.0",

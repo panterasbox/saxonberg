@@ -22,19 +22,43 @@ describe('User', () => {
       expect(User.persistentFields).toContain('googleProfileId');
     });
 
+    it('should include twitchProfileId (the second provider FK)', () => {
+      expect(User.persistentFields).toContain('twitchProfileId');
+    });
+
     it('should include playerIds (authoritative character-ownership list)', () => {
       expect(User.persistentFields).toContain('playerIds');
     });
 
-    it('should be exactly [googleProfileId, playerIds]', () => {
-      expect(User.persistentFields).toEqual(['googleProfileId', 'playerIds']);
+    it('should be exactly [googleProfileId, twitchProfileId, playerIds]', () => {
+      expect(User.persistentFields).toEqual([
+        'googleProfileId',
+        'twitchProfileId',
+        'playerIds',
+      ]);
     });
   });
 
   describe('User instance', () => {
-    it('should initialize googleProfileId to empty string', () => {
+    it('should leave both provider FKs unset by default', () => {
       const user = new User();
-      expect(user.googleProfileId).toBe('');
+      expect(user.googleProfileId).toBeUndefined();
+      expect(user.twitchProfileId).toBeUndefined();
+    });
+
+    it('hasAnyProvider reflects the at-least-one invariant', () => {
+      const user = new User();
+      expect(user.hasAnyProvider()).toBe(false);
+      user.googleProfileId = 'gp-1';
+      expect(user.hasAnyProvider()).toBe(true);
+      user.googleProfileId = undefined;
+      user.twitchProfileId = 'tp-1';
+      expect(user.hasAnyProvider()).toBe(true);
+    });
+
+    it('profileFieldFor maps providers to FK field names', () => {
+      expect(User.profileFieldFor('google')).toBe('googleProfileId');
+      expect(User.profileFieldFor('twitch')).toBe('twitchProfileId');
     });
 
     it('should initialize playerIds to an empty array', () => {

@@ -30,6 +30,7 @@ import YAML from 'yaml';
 export enum Collections {
   Users = 'users',
   GoogleProfiles = 'google_profiles',
+  TwitchProfiles = 'twitch_profiles',
   Domain = 'domain',
   Emotes = 'emotes',
   Groups = 'groups',
@@ -542,6 +543,18 @@ export class PersistenceManager {
       // Users: index on googleProfileId
       await this.getCollection(Collections.Users).createIndex(
         { googleProfileId: 1 }
+      );
+
+      // Users: index on twitchProfileId (the second provider FK).
+      await this.getCollection(Collections.Users).createIndex(
+        { twitchProfileId: 1 }
+      );
+
+      // Twitch Profiles: unique index on twitchUserId (the stable Helix
+      // identifier the returning-login resolve keys on).
+      await this.getCollection(Collections.TwitchProfiles).createIndex(
+        { twitchUserId: 1 },
+        { unique: true }
       );
 
       // Domain: unique index on `path` — every Template doc carries a

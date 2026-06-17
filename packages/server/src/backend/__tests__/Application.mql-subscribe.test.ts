@@ -24,7 +24,7 @@ function makeFakeBackend(): FakeBackend {
       sent.push({ socketId, message });
     },
     sendEnvelopeToSocket() {},
-    async handleAuthenticationSuccess() {},
+    async handleProviderAuth() {},
   };
 }
 

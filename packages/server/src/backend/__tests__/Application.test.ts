@@ -52,7 +52,7 @@ function makeFakeBackend(): FakeBackend {
     sendEnvelopeToSocket(socketId, envelope) {
       envelopes.push({ socketId, envelope });
     },
-    async handleAuthenticationSuccess() {
+    async handleProviderAuth() {
       // unused in Application tests
     },
   };

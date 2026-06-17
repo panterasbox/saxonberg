@@ -17,7 +17,16 @@
 
 import type { WebSocket } from 'ws';
 import type { IBackend } from './IBackend';
-import type { Envelope, PassportGoogleProfile } from '@saxonberg/types';
+import type {
+  AuthProvider,
+  Envelope,
+  PassportGoogleProfile,
+} from '@saxonberg/types';
+import type {
+  LinkResult,
+  ProviderProfile,
+  UnlinkResult,
+} from './Application';
 import { Application } from './Application';
 import type { InboundClientMessage } from './inbound/index';
 import { ExecutionContextApi } from '../mud/api/execution-context';
@@ -278,35 +287,106 @@ export class Backend implements IBackend {
   }
 
   /**
-   * Handle successful Google authentication.
-   * Called by Passport strategy after Google OAuth succeeds.
+   * Handle a successful provider authentication (login). Called by a
+   * Passport strategy's verify callback after the provider OAuth
+   * succeeds. Provider-parameterized: the verify callback passes its
+   * `provider` argument so the find-or-create routes to the right
+   * collection/key. `runRoot` lives here because only `backend/**` may
+   * push call frames — `services/` may not.
    *
-   * @param profile - Google profile data from Passport
-   * @param done - Passport callback
+   * @param provider - which login provider authenticated
+   * @param profile - normalized profile (Google) / profile+tokens (Twitch)
+   * @param done - Passport callback (session principal carries authProvider)
    */
-  public async handleAuthenticationSuccess(
-    profile: PassportGoogleProfile,
-    done: (error: unknown, user?: { id: string }) => void
+  public async handleProviderAuth(
+    provider: AuthProvider,
+    profile: ProviderProfile,
+    done: (
+      error: unknown,
+      user?: { id: string; authProvider: AuthProvider }
+    ) => void
   ): Promise<void> {
     try {
-      // Delegate to Application for user/player creation
       if (!this.application) {
         throw new Error('Backend: Application not initialized');
       }
-
-      // OAuth callback path also enters Application from the network
-      // boundary, so plant the same root frame here.
       const app = this.application;
       const userId = await ExecutionContextApi.runRoot(
         Backend,
-        'findOrCreateUserFromGoogle',
-        () => app.findOrCreateUserFromGoogle(profile)
+        'findOrCreateUserFromProvider',
+        () => app.findOrCreateUserFromProvider(provider, profile)
       );
-
-      // Return user object for session serialization
-      done(null, { id: userId });
+      // Session principal carries authProvider for downstream
+      // name-refraction (reserved this build).
+      done(null, { id: userId, authProvider: provider });
     } catch (error) {
-      console.error('Backend: Error in handleAuthenticationSuccess:', error);
+      console.error('Backend: Error in handleProviderAuth:', error);
+      done(error);
+    }
+  }
+
+  /**
+   * Handle a provider *link* — the authenticated link OAuth round-trip
+   * attaches the second provider's profile to the current `User` rather
+   * than minting a session. The `services/`-layer route never calls
+   * `Application` across the frame boundary directly; this seam plants
+   * the root frame (only `backend/**` may push call frames).
+   *
+   * @param provider - which provider is being linked
+   * @param userId - the currently-authenticated user's id
+   * @param profile - the link OAuth's resolved profile
+   * @param done - callback delivered the {@link LinkResult}
+   */
+  public async handleProviderLink(
+    provider: AuthProvider,
+    userId: string,
+    profile: ProviderProfile,
+    done: (error: unknown, result?: LinkResult) => void
+  ): Promise<void> {
+    try {
+      if (!this.application) {
+        throw new Error('Backend: Application not initialized');
+      }
+      const app = this.application;
+      const result = await ExecutionContextApi.runRoot(
+        Backend,
+        'linkProvider',
+        () => app.linkProvider(userId, provider, profile)
+      );
+      done(null, result);
+    } catch (error) {
+      console.error('Backend: Error in handleProviderLink:', error);
+      done(error);
+    }
+  }
+
+  /**
+   * Handle a provider *unlink* — clears the FK on the current `User` and
+   * deletes the orphaned profile. No OAuth round-trip; plain
+   * authenticated operation behind the same root-frame discipline.
+   *
+   * @param provider - which provider to unlink
+   * @param userId - the currently-authenticated user's id
+   * @param done - callback delivered the {@link UnlinkResult}
+   */
+  public async handleProviderUnlink(
+    provider: AuthProvider,
+    userId: string,
+    done: (error: unknown, result?: UnlinkResult) => void
+  ): Promise<void> {
+    try {
+      if (!this.application) {
+        throw new Error('Backend: Application not initialized');
+      }
+      const app = this.application;
+      const result = await ExecutionContextApi.runRoot(
+        Backend,
+        'unlinkProvider',
+        () => app.unlinkProvider(userId, provider)
+      );
+      done(null, result);
+    } catch (error) {
+      console.error('Backend: Error in handleProviderUnlink:', error);
       done(error);
     }
   }
@@ -314,8 +394,8 @@ export class Backend implements IBackend {
   /**
    * TEST-ONLY authentication. Mints a session user for a deterministic
    * synthetic profile, bypassing Google OAuth. Mirrors
-   * `handleAuthenticationSuccess` exactly — same `runRoot` root frame,
-   * same `findOrCreateUserFromGoogle` creation path, same
+   * `handleProviderAuth('google', …)` exactly — same `runRoot` root
+   * frame, same provider-parameterized creation path, same
    * `done(null, { id })` shape — so the resulting session and Avatar
    * are indistinguishable from a real login.
    *
@@ -348,7 +428,9 @@ export class Backend implements IBackend {
         Backend,
         'handleTestAuthentication',
         async () => {
-          const id = await app.findOrCreateUserFromGoogle(profile);
+          // Test seam stays Google-shaped — passes provider: 'google'
+          // through the same provider-parameterized creation path.
+          const id = await app.findOrCreateUserFromProvider('google', profile);
           // Optionally provision a ready character so in-world E2E tests
           // skip char-gen. char-gen specs omit this (0 chars → intake).
           if (withCharacter) await app.provisionTestCharacter(id, handle);

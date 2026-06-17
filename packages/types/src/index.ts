@@ -787,8 +787,14 @@ export const PRONOUN_LABELS: Record<Pronouns, string> = {
 export interface User {
   /** MongoDB ObjectId */
   _id?: string;
-  /** Associated Google profile ID */
-  googleProfileId: string;
+  /**
+   * Associated Google profile ID. Optional: a Twitch-origin account may
+   * carry only `twitchProfileId`. An at-least-one-provider invariant
+   * holds across the two FK fields.
+   */
+  googleProfileId?: string;
+  /** Associated Twitch profile ID (the credential-bearing provider). */
+  twitchProfileId?: string;
   /** Account creation timestamp */
   createdAt: Date;
   /** Last updated timestamp */
@@ -837,9 +843,50 @@ export interface GoogleProfile {
   updatedAt: Date;
 }
 
+/**
+ * Twitch OAuth profile data (persistent), credential-bearing. Mirrors
+ * {@link GoogleProfile} for identity, plus the OAuth tokens the chat
+ * relay later spends. The token fields are **encrypted at rest** by an
+ * `EncryptedStringMarshaller` and transparently decrypted on read; the
+ * plaintext lives only in memory and on the wire to/from the marshaller.
+ */
+export interface TwitchProfile {
+  /** MongoDB ObjectId */
+  _id?: string;
+  /** Twitch user id (unique, stable identifier from Helix). */
+  twitchUserId: string;
+  /** Twitch login (lowercased handle). */
+  login: string;
+  /** Display name from Twitch. */
+  displayName: string;
+  /** Email address (when the `user:read:email` scope was granted). */
+  email?: string;
+  /** Raw Helix identity payload (for future use). */
+  rawProfile: Record<string, unknown>;
+  /** OAuth access token (encrypted at rest). */
+  accessToken: string;
+  /** OAuth refresh token (encrypted at rest). */
+  refreshToken: string;
+  /** Access-token expiry as epoch ms. */
+  expiresAt: number;
+  /** Granted OAuth scopes. */
+  scopes: string[];
+  /** Created timestamp */
+  createdAt: Date;
+  /** Last updated timestamp */
+  updatedAt: Date;
+}
+
 // ============================================================================
 // Authentication Types
 // ============================================================================
+
+/**
+ * The login providers the auth spine is parameterized over. Adding a
+ * provider is a procedure argument, not a code fork. YouTube grows
+ * `GoogleProfile` (it's Google OAuth), not a third value.
+ */
+export type AuthProvider = 'google' | 'twitch';
 
 /**
  * Session user data stored in express-session.
@@ -847,6 +894,37 @@ export interface GoogleProfile {
 export interface SessionUser {
   /** User ID from database */
   id: string;
+  /**
+   * Which provider authenticated *this* session. Reserved for
+   * downstream name-refraction; unused by char-gen this build.
+   */
+  authProvider?: AuthProvider;
+}
+
+/**
+ * Normalized Twitch identity the verify callback produces from the
+ * Helix `/users` fetch, parallel to {@link PassportGoogleProfile}. The
+ * OAuth tokens ride alongside on a {@link PassportTwitchProfileWithTokens}
+ * before reaching the find-or-create path.
+ */
+export interface PassportTwitchProfile {
+  id: string;
+  login: string;
+  displayName: string;
+  email?: string;
+  _json: Record<string, unknown>;
+}
+
+/**
+ * {@link PassportTwitchProfile} plus the OAuth credentials harvested in
+ * the verify callback. This is what the find-or-create / link paths
+ * persist into a `TwitchProfile`.
+ */
+export interface PassportTwitchProfileWithTokens extends PassportTwitchProfile {
+  accessToken: string;
+  refreshToken: string;
+  expiresAt: number;
+  scopes: string[];
 }
 
 /**
