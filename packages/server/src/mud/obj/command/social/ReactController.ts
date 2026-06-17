@@ -20,6 +20,7 @@ import type {
 } from '../../../api/command';
 import type { EmoteOptions } from '../../../lib/social/Soul';
 import type { Stuff } from '../../../lib/stuff/Stuff';
+import type { Sensor } from '../../../lib/message/Sensor';
 import { MixinApi } from '../../../api/mixin';
 import { ReactionApi } from '../../../api/reaction';
 import { SoulApi } from '../../../api/soul';
@@ -33,6 +34,8 @@ interface ReactModel extends CommandModel {
   toPerson?: MqlOneResult;
   /** From `--msg <#>` (kept as string; parsed here). */
   msgNum?: string;
+  /** From `--remove`: un-react instead of add. */
+  remove?: boolean;
 }
 
 export default class ReactController extends CommandController<ReactModel> {
@@ -98,8 +101,24 @@ export default class ReactController extends CommandController<ReactModel> {
       return;
     }
 
-    // 4. Dispatch with the scope. The mixin hook does the
-    //    tally/toggle/suppression/renown.
+    // 4a. `--remove`: un-react. This is a pure tally op — NOT an emote
+    //     dispatch (no diegetic "You applaud" line when you're removing
+    //     your applause). Resolve the emote verb canonically (so the key
+    //     matches what `react` stored) and drop it.
+    if (model.remove === true) {
+      const emote = await SoulApi.resolve(verb);
+      const canonicalVerb = emote ? emote.verb : 'free-form';
+      ReactionApi.removeReaction({
+        reactor: reactor as unknown as Stuff & Sensor,
+        inReactionTo: commandId,
+        verb: canonicalVerb,
+        tags: [],
+      });
+      return;
+    }
+
+    // 4b. Add: dispatch through the emote path. The mixin hook does the
+    //     (add-only) tally / suppression / renown.
     const emote = await SoulApi.resolve(verb);
     if (emote) {
       const bound = await EmoteGrammarRunner.bind(emote, words.slice(1), reactor);

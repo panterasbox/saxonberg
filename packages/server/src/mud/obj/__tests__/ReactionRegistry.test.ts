@@ -15,6 +15,7 @@ import { StuffApi } from '../../api/stuff';
 import { ShadowApi } from '../../api/shadow';
 import { ConnectionApi } from '../../api/connection';
 import { Stuff } from '../../lib/stuff/Stuff';
+import type { Sensor } from '../../lib/message/Sensor';
 import {
   ReactionFiredEvent,
   type ReactionFiredPayload,
@@ -118,21 +119,28 @@ describe('ReactionRegistry', () => {
     expect(d.suppressFanOut).toBe(false);
   });
 
-  it('toggle: same (reactor, emote) twice flips present off, total drops', () => {
+  it('react is add-only/idempotent; removeReaction is the explicit un-react', () => {
     ReactionApi.noteReactableAct({
       commandId: 'cmd-1',
       subject: fakeReactor('s'),
       scope: LOC,
     });
-    ReactionApi.onScopedEmote({
-      reactor: fakeReactor('r1'),
-      inReactionTo: 'cmd-1',
-      verb: 'nod',
-      tags: [],
-    });
+    const react = () =>
+      ReactionApi.onScopedEmote({
+        reactor: fakeReactor('r1'),
+        inReactionTo: 'cmd-1',
+        verb: 'nod',
+        tags: [],
+      });
+    react();
     let state = ReactionApi._actStateForTesting('cmd-1') as { total: number };
     expect(state.total).toBe(1);
-    ReactionApi.onScopedEmote({
+    // Re-reacting the same emote does NOT toggle it off — idempotent.
+    react();
+    state = ReactionApi._actStateForTesting('cmd-1') as { total: number };
+    expect(state.total).toBe(1);
+    // Explicit removal drops it.
+    ReactionApi.removeReaction({
       reactor: fakeReactor('r1'),
       inReactionTo: 'cmd-1',
       verb: 'nod',
@@ -162,8 +170,8 @@ describe('ReactionRegistry', () => {
     };
     expect(state.total).toBe(3); // three distinct reactions, not overwritten
     expect(state.buckets).toHaveLength(3); // ungrouped → per-verb buckets
-    // Toggling one emote off leaves the others intact.
-    ReactionApi.onScopedEmote({
+    // Removing one emote leaves the others intact.
+    ReactionApi.removeReaction({
       reactor: fakeReactor('r1'),
       inReactionTo: 'cmd-1',
       verb: 'smile',
@@ -173,7 +181,45 @@ describe('ReactionRegistry', () => {
     expect(after.total).toBe(2);
   });
 
-  it('renown event: fires once on flip-on, never on un-react', async () => {
+  it("delta carries the recipient's own reactions in `mine`", () => {
+    const SCOPE = 'location:hall';
+    const viewer = fakeReactor('viewer-1') as unknown as Stuff & Sensor;
+    let captured: ReactionDeltaEnvelope['acts'] | null = null;
+    const sink: ReactionSink = {
+      id: 'v',
+      viewer,
+      seesScope: (s) => s === SCOPE,
+      emitDelta: (env) => {
+        captured = env.acts;
+      },
+    };
+    ReactionApi.subscribeScope(sink, SCOPE);
+    ReactionApi.noteReactableAct({
+      commandId: 'cmd-1',
+      subject: fakeReactor('s'),
+      scope: SCOPE,
+    });
+    // The viewer reacts with applaud; a stranger reacts with nod.
+    ReactionApi.onScopedEmote({
+      reactor: viewer,
+      inReactionTo: 'cmd-1',
+      verb: 'applaud',
+      tags: [],
+    });
+    ReactionApi.onScopedEmote({
+      reactor: fakeReactor('other'),
+      inReactionTo: 'cmd-1',
+      verb: 'nod',
+      tags: [],
+    });
+    ReactionApi._flushNowForTesting();
+    expect(captured).not.toBeNull();
+    const mine = captured![0]!.mine ?? [];
+    expect(mine).toContain('applaud'); // the viewer's own
+    expect(mine).not.toContain('nod'); // the stranger's
+  });
+
+  it('renown event: fires once on flip-on, never on re-react or un-react', async () => {
     const fired: ReactionFiredPayload[] = [];
     EventApi.on<ReactionFiredPayload>(ReactionFiredEvent.KIND, (p) => {
       fired.push(p);
@@ -183,20 +229,21 @@ describe('ReactionRegistry', () => {
       subject: fakeReactor('subject-1'),
       scope: LOC,
     });
-    // flip-on
-    ReactionApi.onScopedEmote({
+    const smirk = () =>
+      ReactionApi.onScopedEmote({
+        reactor: fakeReactor('subject-1'),
+        inReactionTo: 'cmd-1',
+        verb: 'smirk',
+        tags: ['amusement'],
+      });
+    smirk(); // flip-on → fires
+    smirk(); // idempotent re-react → no fire
+    ReactionApi.removeReaction({
       reactor: fakeReactor('subject-1'),
       inReactionTo: 'cmd-1',
       verb: 'smirk',
       tags: ['amusement'],
-    });
-    // un-react (toggle off)
-    ReactionApi.onScopedEmote({
-      reactor: fakeReactor('subject-1'),
-      inReactionTo: 'cmd-1',
-      verb: 'smirk',
-      tags: ['amusement'],
-    });
+    }); // un-react → no fire
     // Listeners fire on the next microtask; let them drain.
     await new Promise((r) => setTimeout(r, 0));
     expect(fired).toHaveLength(1);

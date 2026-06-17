@@ -158,11 +158,23 @@ export class ReactionApi {
 
   /**
    * Called synchronously from `SoulMixin.emote`/`emoteFree` on a scoped
-   * emote. Tally/toggle + renown + threshold; returns the suppression
-   * decision so the caller knows whether to skip its diegetic line.
+   * emote. Add-only tally (idempotent re-react) + renown + threshold;
+   * returns the suppression decision so the caller knows whether to skip
+   * its diegetic line.
    */
   public static onScopedEmote(req: ScopedEmoteRequest): ScopedEmoteDecision {
     return resolveRegistry().onScopedEmote(req);
+  }
+
+  /**
+   * Explicitly remove the reactor's `(reactor, emote)` reaction — the
+   * un-react op. No renown, no diegetic line; the count just drops.
+   * Reacting itself is add-only/idempotent, so this is the only way to
+   * decrement a reaction (GUI click on an active chip / `react
+   * --remove`).
+   */
+  public static removeReaction(req: ScopedEmoteRequest): void {
+    resolveRegistry().removeReaction(req);
   }
 
   /**

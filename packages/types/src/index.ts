@@ -778,6 +778,13 @@ export interface ReactionActState {
   total: number;
   /** True once at/above threshold (client switches prose → counter). */
   aggregated: boolean;
+  /**
+   * The recipient's OWN present reactions on this act (the emote verbs).
+   * Per-recipient. The client marks these chips active and clicks them
+   * to `react --remove` (un-react) rather than add — reacting is
+   * add-only, so removal is the explicit op.
+   */
+  mine?: string[];
 }
 
 /**

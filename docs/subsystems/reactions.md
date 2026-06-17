@@ -98,10 +98,18 @@ createdAt, reactions: Map<reactorId, ReactorReaction>, aggregated }`),
 `lastBySubject` (for `--to`), the per-Interactive gutter ring
 (`frameId → commandId`, for `--msg`), and the flush `ScheduleHandle`.
 
-- **`onScopedEmote`** (sync): tally/toggle on `(reactorId, emote)` — a
-  repeat flips `present = false` (no renown on un-reacting); a new
-  reaction flips on and fires `ReactionFiredEvent`. Recomputes
-  `aggregated`. Returns `{ suppressFanOut }`.
+- **`onScopedEmote`** (sync): **add-only / idempotent** tally on
+  `(reactorId, emote)` — a new reaction flips on and fires
+  `ReactionFiredEvent`; re-firing the same emote is a no-op tally-wise
+  (no renown re-fire, though the diegetic line still fans out below
+  threshold). Reacting never toggles off. Recomputes `aggregated`,
+  returns `{ suppressFanOut }`.
+- **`removeReaction`** (sync): the explicit un-react — drops the
+  reactor's `(reactor, emote)` reaction. No renown, no diegetic line;
+  the count just falls. This is the *only* way to decrement a reaction,
+  so it's GUI-driven (clicking an active chip) and exposed on the CLI as
+  `react --remove`. The split exists because toggle-on-re-react
+  surprised; an explicit removal is unambiguous.
 - **`noteReactableAct`** (idempotent on `commandId`): captures
   `subjectId` + `scope` the first time a producer composes a reactable
   frame. **Never keys on `causingCommandId`** (that fans one cause into
@@ -138,7 +146,7 @@ contributed via `SoulMixin.commandContributions.self` (reacting
 dispatches an emote, so it requires Soul).
 
 ```
-react [--to <person>] [--msg <#>] <emote-expression>
+react [--to <person>] [--msg <#>] [--remove] <emote-expression>
 ```
 
 - selector-less (`re ;smile`) → the most recent act delivered in view
@@ -147,15 +155,20 @@ react [--to <person>] [--msg <#>] <emote-expression>
 - `--to <person>` (parser-typed `object`) → that subject's most-recent
   reactable act (`lastReactableActBy`);
 - `--msg <#>` → a specific gutter number → `commandId` via the
-  per-Interactive ring (`resolveGutter`).
+  per-Interactive ring (`resolveGutter`);
+- `--remove` → un-react: drop your `<emote-expression>` reaction from
+  the act instead of adding it. Routes to `ReactionApi.removeReaction`
+  (NOT the emote path — no diegetic line). Mostly GUI-driven; rarely
+  typed.
 
 The act-selector is parser-typed — the controller never string-sniffs.
-The emote-expression is the sole greedy positional, dispatched opaquely
-through the existing emote path (`SoulApi.resolve` →
+The emote-expression is the sole greedy positional; on an **add** it is
+dispatched opaquely through the existing emote path (`SoulApi.resolve` →
 `EmoteGrammarRunner.bind`, or `emoteFree` on a free-form miss) with
-`inReactionTo` set. The controller validates reactability + audience
-membership, then goes through the emote path — it does **not** touch the
-registry to mutate tallies. The `re` alias completes the cheap surface.
+`inReactionTo` set, so the controller does **not** touch the registry to
+mutate tallies. On `--remove` the controller resolves the canonical verb
+and calls `removeReaction` directly. The `re` alias completes the cheap
+surface.
 
 ### Gutter → commandId (server-side)
 
@@ -192,13 +205,21 @@ is only the typed substrate a later aggregator subscribes to.
 `store/index.ts` `reactions: Record<commandId, ReactionActState>` slice
 + `applyReactionDelta` (**replace, never sum**) /
 `applyReactionExpandResult`; `store/reactionActions.ts` wires the
-envelope handlers and the outbound ops (`react --msg <#>` /
-`reaction-expand`). The `Frame` carries `commandId` / `inReactionTo` for
-render-correlation only. The always-on per-message indicator is
-client-derived for free by grouping the reaction prose frames (each
-carries `meta.inReactionTo`); above threshold the widget switches to the
-delta-fed counter + tag buckets + named sample, with expand for the full
-set.
+envelope handlers + the `reaction-expand` pull. The `Frame` carries
+`commandId` / `inReactionTo` / `frameId` (the gutter) for
+render-correlation + the per-row react selector.
+
+The **`ReactionBar`** component (`components/ReactionBar.tsx`, wired into
+the `Terminal` transcript) renders the chips + counter + sample from the
+delta. Each act-state's **`mine`** field (the recipient's own reactions)
+drives the chip command: an active chip (`mine` contains its emote)
+sends `react --remove --msg <#> ;<verb>` (un-react), an inactive chip or
+the quick-react palette sends `react --msg <#> ;<verb>` (add). Crucially,
+every reaction affordance is a **clickable command** — it routes through
+the shared `onCommandClick` / `onCommandPreview` handlers (preview the
+command in the command bar on hover, send on click) exactly like every
+other clickable in the client; it never sends a websocket frame
+directly.
 
 ### Per-user controls
 

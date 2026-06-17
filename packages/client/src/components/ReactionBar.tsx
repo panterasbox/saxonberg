@@ -64,15 +64,17 @@ const Bar = styled.div`
   color: ${tokens.color.fgMuted};
 `;
 
-const Chip = styled.button<{ $pulse: boolean }>`
+const Chip = styled.button<{ $pulse: boolean; $mine: boolean }>`
   appearance: none;
   display: inline-flex;
   align-items: center;
   gap: ${tokens.space.xs};
   padding: 1px ${tokens.space.sm};
-  border: 1px solid ${tokens.color.borderMuted};
+  border: 1px solid
+    ${(p) => (p.$mine ? tokens.color.accent : tokens.color.borderMuted)};
   border-radius: 999px;
-  background: ${tokens.color.surfaceAlt};
+  background: ${(p) =>
+    p.$mine ? tokens.color.primaryActive : tokens.color.surfaceAlt};
   color: ${tokens.color.fg};
   line-height: 1.4;
   font-size: ${tokens.font.small};
@@ -202,10 +204,16 @@ export function ReactionBar({
     return null;
   }
 
+  const mine = act?.mine ?? [];
+  const isMine = (verb: string) => mine.includes(verb);
+
   // The command a reaction affordance sends, routed through the global
   // command-bus handlers (preview-on-hover, send-on-click) like every
   // other clickable in the client — never a direct websocket send.
-  const cmd = (verb: string) => `react --msg ${frame.frameId} ;${verb}`;
+  // Reacting is add-only; an emote the viewer already reacted with
+  // toggles OFF via `--remove` (the explicit un-react op).
+  const cmd = (verb: string) =>
+    `react ${isMine(verb) ? "--remove " : ""}--msg ${frame.frameId} ;${verb}`;
   const send = (verb: string) => {
     onCommandClick(cmd(verb));
     setOpen(false);
@@ -230,7 +238,12 @@ export function ReactionBar({
         <Chip
           key={b.tag}
           $pulse={pulsing}
-          title={`${b.emote} ×${b.count} — click to toggle your ${b.emote}`}
+          $mine={isMine(b.emote)}
+          title={
+            isMine(b.emote)
+              ? `${b.emote} ×${b.count} — you reacted; click to remove`
+              : `${b.emote} ×${b.count} — click to react`
+          }
           onClick={() => send(b.emote)}
           onMouseEnter={() => preview(b.emote)}
           onMouseLeave={() => preview(null)}

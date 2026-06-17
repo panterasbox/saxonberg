@@ -28,6 +28,13 @@ options:
     type: string
     field: msgNum
     description: "React to a specific message by its gutter number."
+  remove:
+    type: boolean
+    description: >
+      Remove (un-react) your <emote-expression> reaction from the act
+      instead of adding it. Reacting is otherwise add-only — re-reacting
+      the same emote is idempotent. Mostly GUI-driven (click an active
+      chip); rarely typed.
 args:
   - name: expression
     type: string
