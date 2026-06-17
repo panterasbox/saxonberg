@@ -116,7 +116,12 @@ const seasonCache = new Map<number, Season>();
  * Wave 1 season is global (single `CAMPUS_LATITUDE`), so the pure
  * `CelestialApi.seasonFor(EARTH_LIKE, t)` is sufficient and keeps
  * `weatherAt` process-stable with no clock. Memoized per year-relative
- * segment to keep the per-read cost off the gated proxy.
+ * segment to keep the per-read cost off the gated proxy. Season is
+ * exactly periodic with `SEGMENTS_PER_YEAR`, so we both key AND compute
+ * from the normalized non-negative residue — the computed value always
+ * matches its key, and negative segments (the `seg - 1` interpolation
+ * lookback at segment 0) never depend on `dayOfYear`'s negative-time
+ * handling.
  */
 function seasonAtSegment(seg: number): Season {
   const key =
@@ -127,7 +132,7 @@ function seasonAtSegment(seg: number): Season {
   if (hit !== undefined) return hit;
   const season = CelestialApi.seasonFor(
     EARTH_LIKE,
-    seg * WEATHER_DEFAULTS.SEGMENT_LENGTH_S,
+    key * WEATHER_DEFAULTS.SEGMENT_LENGTH_S,
   );
   seasonCache.set(key, season);
   return season;
