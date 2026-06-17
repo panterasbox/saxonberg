@@ -330,8 +330,15 @@ concrete subclass outdoor biome leaves extend (parallel to
 `RadioactiveMaterial`).
 
 `isSkyExposed(): boolean` — the predicate is the entire substrate
-in v1. Future `getCelestialBodies()` / `getWeather()` methods land
-with their consuming subsystems.
+in v1. Future `getCelestialBodies()` lands with its consuming
+subsystem. The planned `getWeather()` seam **shipped not as a mixin
+method** but as the `BiomeLogic` deviation seam (the
+[weather](./weather.md) build): `resolveQuantityFor` folds
+`WeatherApi.deviationFor` into the four weather-deviated fields
+(temperature / humidity / wind / pressure) **for SkyExposed scopes
+only**, zero-when-absent. `isSkyExposed` is the gate that seam
+consults — weather is felt through biome's existing reads, not a new
+biome method.
 
 `BiomeApi.isSkyExposed(scope)` walks the containment chain outward
 looking for the nearest atmospheric ancestor with a biome ref, then
@@ -369,11 +376,20 @@ traceResolveTemperatureFor(scope, detailKey?): Promise<AtmosphericTrace<…>>
 // atmosphere` verb.
 
 isSkyExposed(scope): boolean
+restampThermalContentsOf(room): void   // weather build (D-F)
 ```
 
 `resolveWindFor` / `traceResolveWindFor` walk the same override chain
 as the other resolvers; wind feeds the body's wind-chill transform.
 See [thermal.md](./thermal.md).
+
+The four **non-trace** Quantity resolvers
+(`resolve{Temperature,Humidity,Wind,Pressure}For`) fold the active
+weather deviation for SkyExposed scopes (the trace variants do not —
+they report biome-chain provenance; weather is a separate additive).
+`restampThermalContentsOf(room)` is the gated fan-out wrapper the
+weather segment-boundary coupling calls to refresh thermal's cached
+ambient. See [weather.md](./weather.md).
 
 `AtmosphericTrace<V>` carries `{ value, source, sourcePath,
 ancestorChain }` — provenance for verb rendering and tests.
