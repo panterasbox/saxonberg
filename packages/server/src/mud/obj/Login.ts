@@ -385,6 +385,7 @@ export default class Login extends LoginBase {
   }> {
     try {
       const user = this.interactive.getUser();
+      if (!user.googleProfileId) return {};
       const profile = await GoogleProfile.findById(user.googleProfileId);
       const given = profile?.givenName;
       const display = profile?.displayName;

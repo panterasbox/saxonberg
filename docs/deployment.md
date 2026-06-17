@@ -102,7 +102,7 @@ is materialized from SSM in CI and shipped in (see *Configuration*).
 | Compute | **Lightsail 2 GB instance(s)** (~$10/mo flat each) | Bundles a static IP + 3 TB transfer; no separate IPv4 / EBS / transfer metering. One box per instance (dev first; prod later). |
 | TLS | **Caddy + Let's Encrypt** | Auto-issue + auto-renew; reverse-proxies `wss` → `:2010`. dev: Caddy native (apt) → `localhost:2010`. prod: Caddy container → `app:2010`. No ALB, no ACM. |
 | Database | **MongoDB Atlas M0** (free) | Not self-hosted, not DocumentDB. The server tests are DB-free, but the running app needs `MONGODB_URI`. |
-| Secrets | **SSM Parameter Store** `SecureString` (free) | Flat keys: `MONGODB_URI`, `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GOOGLE_CALLBACK_URL`, `SESSION_SECRET`, … No Secrets Manager — nothing needs rotation. |
+| Secrets | **SSM Parameter Store** `SecureString` (free) | Flat keys: `MONGODB_URI`, `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GOOGLE_CALLBACK_URL`, `SESSION_SECRET`, `TOKEN_ENC_KEY`, `TWITCH_CLIENT_ID`, `TWITCH_CLIENT_SECRET`, `TWITCH_CALLBACK_URL`, … No Secrets Manager — nothing needs rotation. |
 | Client + docs | **Served by the Node app** (`CLIENT_DIST` → built bundle); docs additionally on GitLab Pages. | Single origin, so Caddy is a dumb TLS proxy and the client resolves its endpoints from `window.location`. |
 | DNS | Route 53 | **Live (dev box):** `mud.panterasbox.com` (canonical) + `dev.saxonberg.panterasbox.net` (alias) → the box's static IP. **Planned prod:** its own host on its own IP. Each env's `CLIENT_URL` **and** `GOOGLE_CALLBACK_URL` must match the canonical host it serves — a mismatch breaks login (the `Secure`, host-scoped session cookie won't reach the WebSocket upgrade). |
 | Image registry | GitLab Container Registry | **prod only** — the prod box pulls the tagged release image with a deploy token. dev needs no registry (runs from the checkout). |
@@ -313,6 +313,14 @@ GOOGLE_CLIENT_ID         # not needed when AUTH_MODE=test (strategy skipped)
 GOOGLE_CLIENT_SECRET     #   "
 GOOGLE_CALLBACK_URL      #   "
 SESSION_SECRET
+TOKEN_ENC_KEY            # 32-byte key for encrypting OAuth tokens at rest
+                         #   (TwitchProfile access/refresh). Generate with
+                         #   `openssl rand -base64 32`. Validated lazily on
+                         #   first Twitch token round-trip, so it's only
+                         #   required where Twitch login/link is exercised.
+TWITCH_CLIENT_ID         # not needed when the Twitch strategy is unused
+TWITCH_CLIENT_SECRET     #   (strategy skipped if any TWITCH_* is absent)
+TWITCH_CALLBACK_URL      #   e.g. https://mud.panterasbox.com/auth/twitch/callback
 ```
 
 Test/E2E-only (never set in production):
@@ -403,7 +411,8 @@ Lightsail cost target, deploy-time materialization is the better fit.)
 
 ### What goes where
 
-- **Secrets** (`MONGODB_URI`, `SESSION_SECRET`, the OAuth pair) → SSM
-  `SecureString` (deploy job decrypts with `--with-decryption`).
+- **Secrets** (`MONGODB_URI`, `SESSION_SECRET`, the Google + Twitch OAuth
+  credentials, `TOKEN_ENC_KEY`) → SSM `SecureString` (deploy job decrypts
+  with `--with-decryption`).
 - **Non-secret config** → SSM `String`, or just the env file.
 - **Local dev** → `packages/server/.env`. Never touches SSM.

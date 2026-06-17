@@ -1,0 +1,2 @@
+class: /lib/persistence/EncryptedStringMarshaller
+hydratorClass: /lib/persistence/PersistentHydrator

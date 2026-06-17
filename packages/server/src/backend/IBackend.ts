@@ -9,7 +9,8 @@
  * - User authentication callbacks
  */
 
-import type { Envelope, PassportGoogleProfile } from '@saxonberg/types';
+import type { AuthProvider, Envelope } from '@saxonberg/types';
+import type { ProviderProfile } from './Application';
 
 /**
  * Backend interface for Application callbacks.
@@ -31,14 +32,20 @@ export interface IBackend {
   sendEnvelopeToSocket(socketId: string, envelope: Envelope): void;
 
   /**
-   * Handle successful Google authentication.
-   * Called by Passport strategy after Google OAuth succeeds.
+   * Handle a successful provider authentication (login). Called by a
+   * Passport strategy's verify callback after the provider OAuth
+   * succeeds; the find-or-create path is parameterized by `provider`.
    *
-   * @param profile - Google profile data from Passport
-   * @param done - Passport callback
+   * @param provider - which login provider authenticated
+   * @param profile - normalized profile (Google) / profile+tokens (Twitch)
+   * @param done - Passport callback (principal carries authProvider)
    */
-  handleAuthenticationSuccess(
-    profile: PassportGoogleProfile,
-    done: (error: unknown, user?: { id: string }) => void
+  handleProviderAuth(
+    provider: AuthProvider,
+    profile: ProviderProfile,
+    done: (
+      error: unknown,
+      user?: { id: string; authProvider: AuthProvider }
+    ) => void
   ): Promise<void>;
 }

@@ -87,8 +87,9 @@ const Divider = styled.div`
   }
 `;
 
-/** Sign-in providers. Google is live; Twitch is a rendered-but-inert
- *  slot (the auth-providers slate wires it later). */
+/** Sign-in providers. Google and Twitch are co-equal login providers
+ *  (the auth-providers build wired Twitch). The list stays data-shaped so
+ *  a future provider is one more entry. */
 const PROVIDERS: ReadonlyArray<{
   key: string;
   label: string;
@@ -101,7 +102,12 @@ const PROVIDERS: ReadonlyArray<{
     href: "/auth/google",
     enabled: true,
   },
-  { key: "twitch", label: "Sign in with Twitch (soon)", enabled: false },
+  {
+    key: "twitch",
+    label: "Sign in with Twitch",
+    href: "/auth/twitch",
+    enabled: true,
+  },
 ];
 
 const DevBox = styled.div`

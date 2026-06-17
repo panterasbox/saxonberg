@@ -11,7 +11,7 @@
  */
 
 import { Document } from '../persistence/Document';
-import type { User as IUser } from '@saxonberg/types';
+import type { AuthProvider, User as IUser } from '@saxonberg/types';
 
 export class User extends Document implements IUser {
   static collectionName = 'users';
@@ -29,7 +29,24 @@ export class User extends Document implements IUser {
   /**
    * Persistent fields copied to/from the MongoDB document.
    */
-  static persistentFields = ['googleProfileId', 'playerIds'];
+  static persistentFields = [
+    'googleProfileId',
+    'twitchProfileId',
+    'playerIds',
+  ];
+
+  /**
+   * Map a provider to its FK field name — the single source of truth
+   * for the computed-key access the provider-parameterized spine uses
+   * (`User.find({ [User.profileFieldFor(provider)]: id })`) and the
+   * at-least-one invariant. Two explicit fields, not a generic
+   * `identities[]` map (premature at N=2).
+   */
+  public static profileFieldFor(
+    provider: AuthProvider
+  ): 'googleProfileId' | 'twitchProfileId' {
+    return provider === 'google' ? 'googleProfileId' : 'twitchProfileId';
+  }
 
   /**
    * Runtime-only marker: this is an anonymous (guest) session with no
@@ -42,8 +59,15 @@ export class User extends Document implements IUser {
 
   /**
    * Associated Google profile ID (MongoDB _id of the GoogleProfile doc).
+   * Optional: a Twitch-origin account may carry only `twitchProfileId`.
    */
-  googleProfileId: string = '';
+  googleProfileId?: string;
+
+  /**
+   * Associated Twitch profile ID (MongoDB _id of the TwitchProfile doc).
+   * Optional: a Google-origin account may carry only `googleProfileId`.
+   */
+  twitchProfileId?: string;
 
   /**
    * IDs of this user's character slots. Each corresponds to an Avatar
@@ -53,4 +77,14 @@ export class User extends Document implements IUser {
    * Appended on character creation; removed on character deletion.
    */
   playerIds: string[] = [];
+
+  /**
+   * The at-least-one-provider invariant predicate — true iff the
+   * account is reachable through at least one login provider. Lives on
+   * the data object; the link/unlink paths defend the invariant by
+   * checking it.
+   */
+  public hasAnyProvider(): boolean {
+    return !!(this.googleProfileId || this.twitchProfileId);
+  }
 }

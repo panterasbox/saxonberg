@@ -274,28 +274,37 @@ describe('Backend', () => {
     });
   });
 
-  describe('handleAuthenticationSuccess', () => {
-    it('calls done(null, { id }) on happy path', async () => {
-      vi.spyOn(app, 'findOrCreateUserFromGoogle').mockResolvedValue(
-        'user-123',
-      );
+  describe('handleProviderAuth', () => {
+    it('calls done(null, { id, authProvider }) on happy path', async () => {
+      const spy = vi
+        .spyOn(app, 'findOrCreateUserFromProvider')
+        .mockResolvedValue('user-123');
       let result: { err: unknown; user: unknown } | null = null;
-      await backend.handleAuthenticationSuccess(fakeProfile(), (err, user) => {
-        result = { err, user };
-      });
+      await backend.handleProviderAuth(
+        'google',
+        fakeProfile(),
+        (err: unknown, user?: unknown) => {
+          result = { err, user };
+        },
+      );
+      expect(spy).toHaveBeenCalledWith('google', expect.anything());
       expect(result).not.toBeNull();
       expect(result!.err).toBeNull();
-      expect(result!.user).toEqual({ id: 'user-123' });
+      expect(result!.user).toEqual({ id: 'user-123', authProvider: 'google' });
     });
 
     it('calls done(error) when Application throws', async () => {
-      vi.spyOn(app, 'findOrCreateUserFromGoogle').mockRejectedValue(
+      vi.spyOn(app, 'findOrCreateUserFromProvider').mockRejectedValue(
         new Error('db down'),
       );
       let result: { err: unknown; user: unknown } | null = null;
-      await backend.handleAuthenticationSuccess(fakeProfile(), (err, user) => {
-        result = { err, user };
-      });
+      await backend.handleProviderAuth(
+        'google',
+        fakeProfile(),
+        (err: unknown, user?: unknown) => {
+          result = { err, user };
+        },
+      );
       expect((result!.err as Error).message).toBe('db down');
       expect(result!.user).toBeUndefined();
     });

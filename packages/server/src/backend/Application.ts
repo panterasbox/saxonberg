@@ -18,10 +18,12 @@
 
 import type { IBackend } from './IBackend';
 import type {
+  AuthProvider,
   Envelope,
   EnvelopeTemplate,
   MessageFrame,
   PassportGoogleProfile,
+  PassportTwitchProfileWithTokens,
 } from '@saxonberg/types';
 import { PersistenceManager, Collections } from './PersistenceManager';
 import { ConnectionManager } from './ConnectionManager';
@@ -33,6 +35,8 @@ import { MqlSubscriptionApi } from '../mud/api/mql-subscription';
 import { ReactionApi } from '../mud/api/reaction';
 import { PromptApi } from '../mud/api/prompt';
 import { User } from '../mud/lib/identity/User';
+import { TwitchProfile } from '../mud/lib/identity/TwitchProfile';
+import { GoogleProfile } from '../mud/lib/identity/GoogleProfile';
 import { TemplateApi } from '../mud/api/template';
 import { StuffApi } from '../mud/api/stuff';
 import { AppApi } from '../mud/api/app';
@@ -46,6 +50,33 @@ import {
   inboundHandlers,
   type InboundClientMessage,
 } from './inbound/index';
+
+/**
+ * The OAuth profile shapes the provider-parameterized find-or-create /
+ * link paths accept — one per provider. The spine branches on the
+ * `provider` argument, narrowing the union at the profile-upsert seam.
+ */
+export type ProviderProfile =
+  | PassportGoogleProfile
+  | PassportTwitchProfileWithTokens;
+
+/**
+ * Outcome of {@link Application.linkProvider}. `collision` carries the
+ * clear refusal message; the route surfaces it on the redirect.
+ */
+export type LinkResult =
+  | { status: 'linked' }
+  | { status: 'already-linked' }
+  | { status: 'collision'; message: string };
+
+/**
+ * Outcome of {@link Application.unlinkProvider}. `only-provider` carries
+ * the at-least-one-invariant message.
+ */
+export type UnlinkResult =
+  | { status: 'unlinked' }
+  | { status: 'not-linked' }
+  | { status: 'only-provider'; message: string };
 
 /**
  * Sets the class-default policy for Application's instance methods to
@@ -325,21 +356,55 @@ export class Application {
   }
 
   /**
-   * Find or create User + GoogleProfile from a Google OAuth profile. For
-   * new users, seed a default avatar template and append its playerId to
-   * `user.playerIds`.
+   * Find or create User + provider profile from an OAuth profile. The
+   * provider-parameterized spine: adding a provider is this argument,
+   * not a code fork. For new users, the roster starts empty (char-gen
+   * owns character creation). Returns the User's id.
+   */
+  public async findOrCreateUserFromProvider(
+    provider: AuthProvider,
+    profile: ProviderProfile
+  ): Promise<string> {
+    try {
+      const profileId = await this.findOrCreateProfile(provider, profile);
+      const userId = await this.findOrCreateUser(provider, profileId);
+      return userId;
+    } catch (error) {
+      console.error(
+        'Application: Error in findOrCreateUserFromProvider:',
+        error
+      );
+      throw error;
+    }
+  }
+
+  /**
+   * Backwards-compatible Google delegate — the test-auth seam and any
+   * Google-specific caller route through here. Forwards to the
+   * provider-parameterized path with `provider: 'google'`.
    */
   public async findOrCreateUserFromGoogle(
     profile: PassportGoogleProfile
   ): Promise<string> {
-    try {
-      const googleProfileId = await this.findOrCreateGoogleProfile(profile);
-      const userId = await this.findOrCreateUser(googleProfileId, profile);
-      return userId;
-    } catch (error) {
-      console.error('Application: Error in findOrCreateUserFromGoogle:', error);
-      throw error;
+    return this.findOrCreateUserFromProvider('google', profile);
+  }
+
+  /**
+   * Upsert the provider profile and return its id. Google goes through
+   * raw PM saves (login-only, no secrets). Twitch routes through the
+   * `TwitchProfile` Document so the `EncryptedStringMarshaller` runs and
+   * the OAuth tokens never reach Mongo in plaintext.
+   */
+  private async findOrCreateProfile(
+    provider: AuthProvider,
+    profile: ProviderProfile
+  ): Promise<string> {
+    if (provider === 'twitch') {
+      return this.findOrCreateTwitchProfile(
+        profile as PassportTwitchProfileWithTokens
+      );
     }
+    return this.findOrCreateGoogleProfile(profile as PassportGoogleProfile);
   }
 
   private async findOrCreateGoogleProfile(
@@ -381,11 +446,42 @@ export class Application {
     return id;
   }
 
-  private async findOrCreateUser(
-    googleProfileId: string,
-    profile: PassportGoogleProfile
+  /**
+   * Upsert a `TwitchProfile`. Routes through the Document (not a raw PM
+   * save) so the token fields run through `EncryptedStringMarshaller` —
+   * the access/refresh tokens are written ciphertext-at-rest.
+   */
+  private async findOrCreateTwitchProfile(
+    profile: PassportTwitchProfileWithTokens
   ): Promise<string> {
-    const existing = await User.find({ googleProfileId });
+    const existing = await TwitchProfile.findByTwitchUserId(profile.id);
+    const doc = existing ?? new TwitchProfile();
+
+    doc.twitchUserId = profile.id;
+    doc.login = profile.login;
+    doc.displayName = profile.displayName;
+    doc.email = profile.email;
+    doc.rawProfile = profile._json;
+    doc.accessToken = profile.accessToken;
+    doc.refreshToken = profile.refreshToken;
+    doc.expiresAt = profile.expiresAt;
+    doc.scopes = profile.scopes;
+
+    await doc.save();
+    if (existing) {
+      console.debug(`Application: Updated TwitchProfile ${doc._id}`);
+    } else {
+      console.info(`Application: Created new TwitchProfile ${doc._id}`);
+    }
+    return doc._id!;
+  }
+
+  private async findOrCreateUser(
+    provider: AuthProvider,
+    profileId: string
+  ): Promise<string> {
+    const field = User.profileFieldFor(provider);
+    const existing = await User.find({ [field]: profileId });
 
     if (existing.length > 0) {
       const user = existing[0]!;
@@ -394,7 +490,7 @@ export class Application {
     }
 
     const user = new User();
-    user.googleProfileId = googleProfileId;
+    user[field] = profileId;
     await user.save();
     console.info(`Application: Created new User ${user._id}`);
 
@@ -402,9 +498,155 @@ export class Application {
     // A new user starts with an empty roster (`playerIds: []`); on first
     // login the empty roster routes them into char-gen (the `enroll`
     // flow), which forks the per-character template at commit. The
-    // Google profile name survives on the User/GoogleProfile only as the
+    // provider profile name survives on the User/Profile only as the
     // seed for the name suggester. See docs/plans/char-gen-plan.md (A1).
     return user._id!;
+  }
+
+  /**
+   * Provider-agnostic default avatar name read at account creation. A
+   * throwaway (char-gen overwrites it), but a Twitch-origin user must
+   * not fall to `'Unnamed'`. Google: `givenName ?? displayName`;
+   * Twitch: `displayName ?? login`.
+   */
+  public static defaultAvatarNameFor(
+    provider: AuthProvider,
+    profile: ProviderProfile
+  ): string {
+    if (provider === 'twitch') {
+      const t = profile as PassportTwitchProfileWithTokens;
+      return t.displayName || t.login || 'Unnamed';
+    }
+    const g = profile as PassportGoogleProfile;
+    return g.name?.givenName || g.displayName || 'Unnamed';
+  }
+
+  /**
+   * Resolve the persisted profile id for a provider identity **without**
+   * creating or mutating it — used by {@link linkProvider} so the
+   * collision check runs before any upsert. Returns null if no profile
+   * exists for that identity yet.
+   */
+  private async findProfileIdByIdentity(
+    provider: AuthProvider,
+    profile: ProviderProfile
+  ): Promise<string | null> {
+    if (provider === 'twitch') {
+      const existing = await TwitchProfile.findByTwitchUserId(
+        (profile as PassportTwitchProfileWithTokens).id
+      );
+      return existing?._id ?? null;
+    }
+    const existing = await PersistenceManager.get().find(
+      Collections.GoogleProfiles,
+      { googleId: (profile as PassportGoogleProfile).id }
+    );
+    const first = existing[0];
+    return first ? (first._id as string) : null;
+  }
+
+  /**
+   * Attach a provider profile to an existing `User` (authenticated link
+   * flow). Data-integrity logic lives here, not in a route handler:
+   *   - profile unowned        → attach          → `linked`
+   *   - profile already on user → no-op           → `already-linked`
+   *   - profile owned elsewhere → refuse, no write → `collision`
+   * No merge: a collision is refused with a clear message.
+   */
+  public async linkProvider(
+    userId: string,
+    provider: AuthProvider,
+    profile: ProviderProfile
+  ): Promise<LinkResult> {
+    const field = User.profileFieldFor(provider);
+
+    // Resolve the EXISTING profile by provider identity and check
+    // ownership *before* any upsert, so a collision never overwrites
+    // another user's profile or tokens (the requirement's "no merge, no
+    // data mutation").
+    const existingProfileId = await this.findProfileIdByIdentity(
+      provider,
+      profile
+    );
+    if (existingProfileId) {
+      const owners = await User.find({ [field]: existingProfileId });
+      const owner = owners[0];
+      if (owner && owner._id !== userId) {
+        return {
+          status: 'collision',
+          message: 'That account is already linked to another login.',
+        };
+      }
+    }
+
+    // Safe to upsert: the profile is unowned or already this user's.
+    const profileId = await this.findOrCreateProfile(provider, profile);
+    const user = await User.findById(userId);
+    if (!user) {
+      throw new Error(`Application.linkProvider: no user ${userId}`);
+    }
+    if (user[field] === profileId) {
+      return { status: 'already-linked' };
+    }
+
+    user[field] = profileId;
+    await user.save();
+    console.info(
+      `Application: Linked ${provider} profile ${profileId} to User ${userId}`
+    );
+    return { status: 'linked' };
+  }
+
+  /**
+   * Detach a provider from an existing `User` and delete the orphaned
+   * profile (with its stored tokens). The collision-refuse rule
+   * guarantees single ownership, so deletion is safe.
+   *   - not linked              → no-op           → `not-linked`
+   *   - removal would orphan    → refuse           → `only-provider`
+   *   - otherwise clear + delete                   → `unlinked`
+   */
+  public async unlinkProvider(
+    userId: string,
+    provider: AuthProvider
+  ): Promise<UnlinkResult> {
+    const user = await User.findById(userId);
+    if (!user) {
+      throw new Error(`Application.unlinkProvider: no user ${userId}`);
+    }
+    const field = User.profileFieldFor(provider);
+    const profileId = user[field];
+
+    if (!profileId) {
+      return { status: 'not-linked' };
+    }
+
+    // At-least-one invariant: refuse to remove the sole provider.
+    const otherField =
+      field === 'googleProfileId' ? 'twitchProfileId' : 'googleProfileId';
+    if (!user[otherField]) {
+      return {
+        status: 'only-provider',
+        message:
+          'Cannot unlink your only login provider — link another first.',
+      };
+    }
+
+    user[field] = undefined;
+    await user.save();
+
+    // Delete the orphaned Profile Document (removes the stored tokens).
+    if (provider === 'twitch') {
+      const doc = await TwitchProfile.findById(profileId);
+      if (doc) await doc.delete();
+    } else {
+      const doc = await GoogleProfile.findById(profileId);
+      if (doc) await doc.delete();
+    }
+
+    console.info(
+      `Application: Unlinked ${provider} profile ${profileId} from User ${userId}`
+    );
+    return { status: 'unlinked' };
   }
 
   /**
