@@ -48,6 +48,8 @@ import type {
   WorldClockSnapshot,
 } from '../api/worldclock';
 import { WorldClockApi } from '../api/worldclock';
+import { WeatherApi } from '../api/weather';
+import { WEATHER_DEFAULTS } from '../lib/weather/WeatherType';
 import { registerWorldClockRegistryClass } from './api/WorldClockLogic';
 
 /**
@@ -435,7 +437,23 @@ export default class WorldClockRegistry extends Idea {
   }
 
   private registerSystemSchedules(): void {
-    // intentionally empty for v1
+    // Weather segment-boundary coupling (D4). At each segment boundary
+    // weather fires a presence-gated restamp fan-out over occupied
+    // SkyExposed rooms so thermal's cached ambient picks up the new
+    // weather (cache invalidation, not a simulation tick — no weather
+    // state is stored or advanced). The scheduler owns the handle;
+    // weather holds nothing. Computing the first boundary forces the
+    // WeatherLogic singleton into existence (the "weather configured"
+    // signal), and the callback targets the stable WeatherApi.onBoundary
+    // facade so it survives WeatherLogic HMR. `every` re-arms against
+    // pause/scale internally; the boundary is recomputed from game-time
+    // on every boot, never persisted.
+    const nextBoundary = WeatherApi.nextBoundaryAfter(this.getNow());
+    this.every(
+      Quantity.of(WEATHER_DEFAULTS.SEGMENT_LENGTH_S, 's'),
+      () => WeatherApi.onBoundary(),
+      { startAt: nextBoundary, tag: 'weather:boundary' },
+    );
   }
 
   private parseDelayToSeconds(d: Quantity<'s'> | string): number {

@@ -1,6 +1,13 @@
-# Weather slate (working doc — design direction set, build deferred)
+# Weather slate (tail — Wave 1 shipped, Wave 2 teeth deferred)
 
-**Status: design direction settled, build deferred — nothing depends on it.**
+**Status: Wave 1 SHIPPED 2026-06** → [weather.md](../../subsystems/weather.md).
+The procedural field (the grammar + segment model + per-locality seed), the
+biome-deviation seam (SkyExposed-gated, zero-when-absent), the thermal coupling
+(presence-gated segment-boundary restamp), and the `analyze weather` read surface
+are live. The four open design questions below are **resolved for Wave 1** (see
+annotations). What remains here is the deferred **Wave 2 "teeth"** + far-economy
+surface — this slate is now a tail holding that.
+
 Surfaced while folding wind + humidity into the thermal pass: those atmospheric
 properties only matter if something makes them *vary*, and that "something" is
 weather. This is a **full build** (new substrate, no shipped subsystem) but a
@@ -149,26 +156,34 @@ pass — the conveyance / path-constraint family).
 - **Spoilage / perishability**, **light** (overcast), and downstream
   (travel, NPC mood, farming) — none driving yet.
 
-## Open design questions (deferred)
+## Open design questions
 
-- **The weather grammar** — the type library + transition model + how authored
-  overrides drop into the procedural field.
-- **Wind representation** — scalar speed vs vector + direction (direction matters
-  for sailing, fire spread, scent, precipitation drift).
-- **The baseline coupling** — how the weather deviation perturbs the celestial /
-  seasonal baseline rather than overriding it.
-- **Locality tier** — which addressing tier weather authors at (Region vs
-  Locality), pinned when the addressing substrate is built.
+**All four resolved for Wave 1** (see [weather.md](../../subsystems/weather.md)):
+
+- **The weather grammar** — ✅ **resolved.** Six-type vocabulary + season-biased
+  transition table + warmup-anchor segment model shipped (`lib/weather/WeatherType`
+  + `WeatherLogic`). *Deferred (Wave 2):* how **authored** overrides drop into the
+  procedural field (the authored climate-bias seam).
+- **Wind representation** — ✅ **resolved for Wave 1: scalar** `Quantity<'m/s'>`
+  (what thermal's wind-chill consumes). *Deferred:* vector wind + direction
+  (sailing, fire spread, scent, precipitation drift).
+- **The baseline coupling** — ✅ **resolved: additive per-field deviation** folded
+  into biome's SkyExposed reads (D2), zero-when-absent so it perturbs rather than
+  overrides the celestial/seasonal baseline.
+- **Locality tier** — ✅ **resolved: the seed derives from the covering Locality's
+  claimed address** (D1), no field added to `Locality`; weather is felt at whatever
+  tier a Locality claims. *Deferred:* the authored climate-bias field on `Locality`.
 
 ## Cross-references
 
+- [weather.md](../../subsystems/weather.md) — **the shipped subsystem** (Wave 1).
 - [thermal-slate](./thermal-slate.md) — the forcing consumer (the feels-like
   transforms) and where this seam surfaced.
 - [biome.md](../../subsystems/biome.md) — the atmospheric state weather drives;
-  the planned `getWeather()` seam; `SkyExposedMixin` (the weather gate).
-- [time.md](../../subsystems/time.md) / [world-clock-slate](../tails/world-clock-slate.md)
+  the `getWeather()` seam (shipped as the `BiomeLogic` deviation seam);
+  `SkyExposedMixin` (the weather gate).
+- [time.md](../../subsystems/time.md) / [world-clock-slate](./world-clock-slate.md)
   — the celestial layer (seasons / day-night) weather rides on top of.
-- [delivery-slate](./delivery-slate.md) — the **delivery / addressing substrate**
-  (post-office / utilities); the locality namespace weather's coherence rides.
-  Design-only, build deferred.
-</content>
+- [address.md](../../subsystems/address.md) / [delivery-slate](../builds/delivery-slate.md)
+  — the **addressing substrate** (the locality namespace weather's coherence rides);
+  the addressing foundation shipped, the wider delivery build remains deferred.

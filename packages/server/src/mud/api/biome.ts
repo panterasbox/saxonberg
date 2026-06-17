@@ -263,6 +263,20 @@ export class BiomeApi {
   public static isSkyExposed(scope: Stuff & Container): boolean {
     return logic().isSkyExposed(scope);
   }
+
+  /**
+   * Re-stamp every Thermal object directly contained in `room` so each
+   * re-resolves its cached ambient (`lastAmbientK`) against the room's
+   * current — now possibly weather-deviated — temperature. The gated
+   * wrapper (D-F) over the same fan-out `AtmosphericMixin` runs on an
+   * ambient-shift; the weather segment-boundary coupling
+   * (`WeatherApi.onBoundary`) calls this for occupied SkyExposed rooms so
+   * a weather change reaches thermal without touching its sync read path.
+   * Fire-and-forget — `restamp` is async; the room scope stays sync.
+   */
+  public static restampThermalContentsOf(room: Stuff & Container): void {
+    logic().restampThermalContentsOf(room);
+  }
 }
 
 SecurityApi.decorateApiClass(BiomeApi);
