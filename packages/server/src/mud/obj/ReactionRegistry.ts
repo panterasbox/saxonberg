@@ -91,6 +91,14 @@ const DEFAULTS = {
   gutterRing: 256,
 };
 
+/**
+ * A reaction bucket lists its reactors by name (for the chip hover) only
+ * while it's this small; above it, the chip shows just the count — "who
+ * reacted" stops being displayable. The full set is still a pull away
+ * (`handleExpand`).
+ */
+const NAME_LIST_CAP = 12;
+
 /** Clamp the flush cadence to the bounded design range. */
 function clampCadence(ms: number): number {
   if (!Number.isFinite(ms)) return DEFAULTS.cadenceMs;
@@ -198,6 +206,14 @@ export default class ReactionRegistry extends Idea {
       // The act was never noted reactable. Defence in depth — the
       // controller validates reactability before dispatching.
       return { suppressFanOut: false, reactable: false };
+    }
+
+    // Reactions aggregate by GLYPH for now: an emote with no emoji (and
+    // free-form text) isn't tallied or chipped — it just renders as its
+    // diegetic line. Keeps the chip rail emoji-only and `total` == the
+    // sum of the visible chips. See docs/subsystems/reactions.md.
+    if (req.emoji === undefined) {
+      return { suppressFanOut: false, reactable: true };
     }
 
     const reactorId = (req.reactor as Stuff).stuffId;
@@ -460,6 +476,7 @@ export default class ReactionRegistry extends Idea {
     viewer: (Stuff & Sensor) | null,
   ): ReactionActState {
     const buckets = new Map<string, ReactionBucket>();
+    const bucketReactorIds = new Map<string, string[]>();
     for (const r of act.reactions.values()) {
       if (!r.present) continue;
       const key = r.tags.length > 0 ? r.tags[0]! : r.emote;
@@ -473,6 +490,28 @@ export default class ReactionRegistry extends Idea {
           ...(r.emoji !== undefined ? { emoji: r.emoji } : {}),
           count: 1,
         });
+      }
+      const ids = bucketReactorIds.get(key);
+      if (ids) ids.push(r.reactorId);
+      else bucketReactorIds.set(key, [r.reactorId]);
+    }
+    // Per-bucket "who reacted" names for the chip hover — only when the
+    // bucket is small enough to display, and only for a real viewer
+    // (recognition-named, so strangers read as salient features).
+    if (viewer) {
+      const vid = (viewer as Stuff).stuffId;
+      for (const [key, b] of buckets) {
+        if (b.count > NAME_LIST_CAP) continue;
+        const names: string[] = [];
+        for (const id of bucketReactorIds.get(key) ?? []) {
+          if (id === vid) {
+            names.push("you");
+            continue;
+          }
+          const reactor = StuffApi.findById(id);
+          if (reactor) names.push(RecognitionApi.describe(viewer, reactor));
+        }
+        if (names.length > 0) b.reactors = names;
       }
     }
     const cap = this.config().sampleCap;

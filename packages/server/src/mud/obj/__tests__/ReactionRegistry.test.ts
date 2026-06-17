@@ -8,34 +8,34 @@
  * familiar-biased sampling, and TTL GC.
  */
 
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { ReactionApi, type ReactionSink } from '../../api/reaction';
-import { EventApi } from '../../api/event';
-import { StuffApi } from '../../api/stuff';
-import { ShadowApi } from '../../api/shadow';
-import { ConnectionApi } from '../../api/connection';
-import { Stuff } from '../../lib/stuff/Stuff';
-import type { Sensor } from '../../lib/message/Sensor';
+import { describe, it, expect, beforeEach, afterEach } from "vitest";
+import { ReactionApi, type ReactionSink } from "../../api/reaction";
+import { EventApi } from "../../api/event";
+import { StuffApi } from "../../api/stuff";
+import { ShadowApi } from "../../api/shadow";
+import { ConnectionApi } from "../../api/connection";
+import { Stuff } from "../../lib/stuff/Stuff";
+import type { Sensor } from "../../lib/message/Sensor";
 import {
   ReactionFiredEvent,
   type ReactionFiredPayload,
-} from '../../lib/events/ReactionFiredEvent';
+} from "../../lib/events/ReactionFiredEvent";
 import {
   ReactionScopeDeltaEvent,
   type ReactionScopeDeltaPayload,
-} from '../../lib/events/ReactionScopeDeltaEvent';
-import EventRegistry from '../EventRegistry';
+} from "../../lib/events/ReactionScopeDeltaEvent";
+import EventRegistry from "../EventRegistry";
 // Import for the module-load side effect: registers the EventSubscriptions
 // class so EventApi.#subs() can lazy-create it (listener delivery needs it).
-import '../EventSubscriptions';
-import Interactive from '../Interactive';
-import Avatar from '../Avatar';
-import type { ReactionDeltaEnvelope } from '@saxonberg/types';
+import "../EventSubscriptions";
+import Interactive from "../Interactive";
+import Avatar from "../Avatar";
+import type { ReactionDeltaEnvelope } from "@saxonberg/types";
 
 async function bootEventRegistry(): Promise<void> {
   const reg = await StuffApi.create(() => {
     const r = new EventRegistry();
-    Stuff._stampTemplatePath(r, '/obj/EventRegistry');
+    Stuff._stampTemplatePath(r, "/obj/EventRegistry");
     return r;
   });
   StuffApi.unregister(reg);
@@ -48,14 +48,14 @@ function fakeReactor(id: string): never {
   return { stuffId: id } as unknown as never;
 }
 
-const LOC = 'location:room-1';
+const LOC = "location:room-1";
 
 /** A counting test sink that sees one scope. */
 function countingSink(
   id: string,
   scope: string,
-): ReactionSink & { deltas: ReactionDeltaEnvelope['acts'][] } {
-  const deltas: ReactionDeltaEnvelope['acts'][] = [];
+): ReactionSink & { deltas: ReactionDeltaEnvelope["acts"][] } {
+  const deltas: ReactionDeltaEnvelope["acts"][] = [];
   return {
     id,
     viewer: null,
@@ -65,7 +65,7 @@ function countingSink(
   };
 }
 
-describe('ReactionRegistry', () => {
+describe("ReactionRegistry", () => {
   beforeEach(async () => {
     StuffApi.clearAll();
     ShadowApi._clearAllForTesting();
@@ -79,92 +79,98 @@ describe('ReactionRegistry', () => {
     ReactionApi._clearAllForTesting();
   });
 
-  it('cross-viewer aggregation: two reactors, one act, one tally', () => {
+  it("cross-viewer aggregation: two reactors, one act, one tally", () => {
     ReactionApi.noteReactableAct({
-      commandId: 'cmd-1',
-      subject: fakeReactor('speaker-1'),
+      commandId: "cmd-1",
+      subject: fakeReactor("speaker-1"),
       scope: LOC,
     });
     const d1 = ReactionApi.onScopedEmote({
-      reactor: fakeReactor('r1'),
-      inReactionTo: 'cmd-1',
-      verb: 'nod',
-      tags: ['approval'],
+      reactor: fakeReactor("r1"),
+      inReactionTo: "cmd-1",
+      verb: "nod",
+      emoji: "🙂",
+      tags: ["approval"],
     });
     const d2 = ReactionApi.onScopedEmote({
-      reactor: fakeReactor('r2'),
-      inReactionTo: 'cmd-1',
-      verb: 'cheer',
-      tags: ['approval'],
+      reactor: fakeReactor("r2"),
+      inReactionTo: "cmd-1",
+      verb: "cheer",
+      emoji: "🙂",
+      tags: ["approval"],
     });
     expect(d1.reactable).toBe(true);
     expect(d2.reactable).toBe(true);
-    const state = ReactionApi._actStateForTesting('cmd-1') as {
+    const state = ReactionApi._actStateForTesting("cmd-1") as {
       total: number;
       subjectId: string;
     } | null;
     expect(state?.total).toBe(2);
-    expect(state?.subjectId).toBe('speaker-1');
+    expect(state?.subjectId).toBe("speaker-1");
     expect(ReactionApi._actCountForTesting()).toBe(1);
   });
 
-  it('an unknown act is not reactable (defence in depth)', () => {
+  it("an unknown act is not reactable (defence in depth)", () => {
     const d = ReactionApi.onScopedEmote({
-      reactor: fakeReactor('r1'),
-      inReactionTo: 'never-noted',
-      verb: 'nod',
+      reactor: fakeReactor("r1"),
+      inReactionTo: "never-noted",
+      verb: "nod",
+      emoji: "🙂",
       tags: [],
     });
     expect(d.reactable).toBe(false);
     expect(d.suppressFanOut).toBe(false);
   });
 
-  it('react is add-only/idempotent; removeReaction is the explicit un-react', () => {
+  it("react is add-only/idempotent; removeReaction is the explicit un-react", () => {
     ReactionApi.noteReactableAct({
-      commandId: 'cmd-1',
-      subject: fakeReactor('s'),
+      commandId: "cmd-1",
+      subject: fakeReactor("s"),
       scope: LOC,
     });
     const react = () =>
       ReactionApi.onScopedEmote({
-        reactor: fakeReactor('r1'),
-        inReactionTo: 'cmd-1',
-        verb: 'nod',
+        reactor: fakeReactor("r1"),
+        inReactionTo: "cmd-1",
+        verb: "nod",
+        emoji: "🙂",
         tags: [],
       });
     react();
-    let state = ReactionApi._actStateForTesting('cmd-1') as { total: number };
+    let state = ReactionApi._actStateForTesting("cmd-1") as { total: number };
     expect(state.total).toBe(1);
     // Re-reacting the same emote does NOT toggle it off — idempotent.
     react();
-    state = ReactionApi._actStateForTesting('cmd-1') as { total: number };
+    state = ReactionApi._actStateForTesting("cmd-1") as { total: number };
     expect(state.total).toBe(1);
     // Explicit removal drops it.
     ReactionApi.removeReaction({
-      reactor: fakeReactor('r1'),
-      inReactionTo: 'cmd-1',
-      verb: 'nod',
+      reactor: fakeReactor("r1"),
+      inReactionTo: "cmd-1",
+      verb: "nod",
+      emoji: "🙂",
       tags: [],
     });
-    state = ReactionApi._actStateForTesting('cmd-1') as { total: number };
+    state = ReactionApi._actStateForTesting("cmd-1") as { total: number };
     expect(state.total).toBe(0);
   });
 
-  it('one reactor holds DISTINCT emotes simultaneously (key is reactor+emote)', () => {
+  it("one reactor holds DISTINCT emotes simultaneously (key is reactor+emote)", () => {
     ReactionApi.noteReactableAct({
-      commandId: 'cmd-1',
-      subject: fakeReactor('s'),
+      commandId: "cmd-1",
+      subject: fakeReactor("s"),
       scope: LOC,
     });
-    for (const verb of ['applaud', 'smile', 'nod']) {
+    for (const verb of ["applaud", "smile", "nod"]) {
       ReactionApi.onScopedEmote({
-        reactor: fakeReactor('r1'),
-        inReactionTo: 'cmd-1',
+        reactor: fakeReactor("r1"),
+        inReactionTo: "cmd-1",
         verb,
+        emoji: "🙂",
         tags: [],
       });
     }
-    const state = ReactionApi._actStateForTesting('cmd-1') as {
+    const state = ReactionApi._actStateForTesting("cmd-1") as {
       total: number;
       buckets: { tag: string }[];
     };
@@ -172,21 +178,22 @@ describe('ReactionRegistry', () => {
     expect(state.buckets).toHaveLength(3); // ungrouped → per-verb buckets
     // Removing one emote leaves the others intact.
     ReactionApi.removeReaction({
-      reactor: fakeReactor('r1'),
-      inReactionTo: 'cmd-1',
-      verb: 'smile',
+      reactor: fakeReactor("r1"),
+      inReactionTo: "cmd-1",
+      verb: "smile",
+      emoji: "🙂",
       tags: [],
     });
-    const after = ReactionApi._actStateForTesting('cmd-1') as { total: number };
+    const after = ReactionApi._actStateForTesting("cmd-1") as { total: number };
     expect(after.total).toBe(2);
   });
 
   it("delta carries the recipient's own reactions in `mine`", () => {
-    const SCOPE = 'location:hall';
-    const viewer = fakeReactor('viewer-1') as unknown as Stuff & Sensor;
-    let captured: ReactionDeltaEnvelope['acts'] | null = null;
+    const SCOPE = "location:hall";
+    const viewer = fakeReactor("viewer-1") as unknown as Stuff & Sensor;
+    let captured: ReactionDeltaEnvelope["acts"] | null = null;
     const sink: ReactionSink = {
-      id: 'v',
+      id: "v",
       viewer,
       seesScope: (s) => s === SCOPE,
       emitDelta: (env) => {
@@ -195,73 +202,139 @@ describe('ReactionRegistry', () => {
     };
     ReactionApi.subscribeScope(sink, SCOPE);
     ReactionApi.noteReactableAct({
-      commandId: 'cmd-1',
-      subject: fakeReactor('s'),
+      commandId: "cmd-1",
+      subject: fakeReactor("s"),
       scope: SCOPE,
     });
     // The viewer reacts with applaud; a stranger reacts with nod.
     ReactionApi.onScopedEmote({
       reactor: viewer,
-      inReactionTo: 'cmd-1',
-      verb: 'applaud',
+      inReactionTo: "cmd-1",
+      verb: "applaud",
+      emoji: "🙂",
       tags: [],
     });
     ReactionApi.onScopedEmote({
-      reactor: fakeReactor('other'),
-      inReactionTo: 'cmd-1',
-      verb: 'nod',
+      reactor: fakeReactor("other"),
+      inReactionTo: "cmd-1",
+      verb: "nod",
+      emoji: "🙂",
       tags: [],
     });
     ReactionApi._flushNowForTesting();
     expect(captured).not.toBeNull();
     const mine = captured![0]!.mine ?? [];
-    expect(mine).toContain('applaud'); // the viewer's own
-    expect(mine).not.toContain('nod'); // the stranger's
+    expect(mine).toContain("applaud"); // the viewer's own
+    expect(mine).not.toContain("nod"); // the stranger's
   });
 
-  it('renown event: fires once on flip-on, never on re-react or un-react', async () => {
+  it("a glyph-less reaction is NOT tallied (prose only)", () => {
+    ReactionApi.noteReactableAct({
+      commandId: "cmd-1",
+      subject: fakeReactor("s"),
+      scope: LOC,
+    });
+    // No `emoji` → not aggregated; it just renders as the diegetic line.
+    const d = ReactionApi.onScopedEmote({
+      reactor: fakeReactor("r1"),
+      inReactionTo: "cmd-1",
+      verb: "ponders",
+      tags: [],
+    });
+    expect(d.reactable).toBe(true);
+    expect(d.suppressFanOut).toBe(false); // line always fans out
+    const state = ReactionApi._actStateForTesting("cmd-1") as {
+      total: number;
+      buckets: unknown[];
+    };
+    expect(state.total).toBe(0); // nothing tallied
+    expect(state.buckets).toHaveLength(0); // no chip
+  });
+
+  it("a small bucket lists its reactors by name for the chip hover", async () => {
+    const SCOPE = "location:hall";
+    const viewer = await StuffApi.create(() => new Avatar());
+    viewer.setName("Viewer");
+    const ann = await StuffApi.create(() => new Avatar());
+    ann.setName("Annora");
+    const bo = await StuffApi.create(() => new Avatar());
+    bo.setName("Bofur");
+    let captured: ReactionDeltaEnvelope["acts"] | null = null;
+    const sink: ReactionSink = {
+      id: "v",
+      viewer: viewer as never,
+      seesScope: (s) => s === SCOPE,
+      emitDelta: (env) => {
+        captured = env.acts;
+      },
+    };
+    ReactionApi.subscribeScope(sink, SCOPE);
+    ReactionApi.noteReactableAct({
+      commandId: "cmd-1",
+      subject: fakeReactor("s"),
+      scope: SCOPE,
+    });
+    for (const reactor of [ann, bo]) {
+      ReactionApi.onScopedEmote({
+        reactor: reactor as never,
+        inReactionTo: "cmd-1",
+        verb: "applaud",
+        emoji: "👏",
+        tags: [],
+      });
+    }
+    ReactionApi._flushNowForTesting();
+    const bucket = captured![0]!.buckets[0]!;
+    expect(bucket.count).toBe(2);
+    // Small bucket → both reactors named for the hover tooltip.
+    expect(bucket.reactors).toHaveLength(2);
+  });
+
+  it("renown event: fires once on flip-on, never on re-react or un-react", async () => {
     const fired: ReactionFiredPayload[] = [];
     EventApi.on<ReactionFiredPayload>(ReactionFiredEvent.KIND, (p) => {
       fired.push(p);
     });
     ReactionApi.noteReactableAct({
-      commandId: 'cmd-1',
-      subject: fakeReactor('subject-1'),
+      commandId: "cmd-1",
+      subject: fakeReactor("subject-1"),
       scope: LOC,
     });
     const smirk = () =>
       ReactionApi.onScopedEmote({
-        reactor: fakeReactor('subject-1'),
-        inReactionTo: 'cmd-1',
-        verb: 'smirk',
-        tags: ['amusement'],
+        reactor: fakeReactor("subject-1"),
+        inReactionTo: "cmd-1",
+        verb: "smirk",
+        emoji: "🙂",
+        tags: ["amusement"],
       });
     smirk(); // flip-on → fires
     smirk(); // idempotent re-react → no fire
     ReactionApi.removeReaction({
-      reactor: fakeReactor('subject-1'),
-      inReactionTo: 'cmd-1',
-      verb: 'smirk',
-      tags: ['amusement'],
+      reactor: fakeReactor("subject-1"),
+      inReactionTo: "cmd-1",
+      verb: "smirk",
+      emoji: "🙂",
+      tags: ["amusement"],
     }); // un-react → no fire
     // Listeners fire on the next microtask; let them drain.
     await new Promise((r) => setTimeout(r, 0));
     expect(fired).toHaveLength(1);
     expect(fired[0]).toMatchObject({
-      reactorId: 'subject-1',
-      subjectId: 'subject-1',
-      commandId: 'cmd-1',
-      emote: 'smirk',
-      tags: ['amusement'],
+      reactorId: "subject-1",
+      subjectId: "subject-1",
+      commandId: "cmd-1",
+      emote: "smirk",
+      tags: ["amusement"],
       scope: LOC,
       selfReaction: true,
     });
   });
 
-  it('threshold flip: below renders a line, the crossing reaction suppresses', () => {
+  it("threshold flip: below renders a line, the crossing reaction suppresses", () => {
     ReactionApi.noteReactableAct({
-      commandId: 'cmd-1',
-      subject: fakeReactor('s'),
+      commandId: "cmd-1",
+      subject: fakeReactor("s"),
       scope: LOC,
     });
     // default threshold is 10. Reactions 1..9 render; the 10th suppresses.
@@ -269,20 +342,22 @@ describe('ReactionRegistry', () => {
     for (let i = 1; i <= 9; i++) {
       lastDecision = ReactionApi.onScopedEmote({
         reactor: fakeReactor(`r${i}`),
-        inReactionTo: 'cmd-1',
-        verb: 'cheer',
-        tags: ['approval'],
+        inReactionTo: "cmd-1",
+        verb: "cheer",
+        emoji: "🙂",
+        tags: ["approval"],
       });
       expect(lastDecision.suppressFanOut).toBe(false);
     }
     const crossing = ReactionApi.onScopedEmote({
-      reactor: fakeReactor('r10'),
-      inReactionTo: 'cmd-1',
-      verb: 'cheer',
-      tags: ['approval'],
+      reactor: fakeReactor("r10"),
+      inReactionTo: "cmd-1",
+      verb: "cheer",
+      emoji: "🙂",
+      tags: ["approval"],
     });
     expect(crossing.suppressFanOut).toBe(true);
-    const state = ReactionApi._actStateForTesting('cmd-1') as {
+    const state = ReactionApi._actStateForTesting("cmd-1") as {
       aggregated: boolean;
       total: number;
     };
@@ -290,8 +365,8 @@ describe('ReactionRegistry', () => {
     expect(state.total).toBe(10);
   });
 
-  it('scale bound: one delta per recipient per tick, independent of reaction count', () => {
-    const SCOPE = 'location:arena';
+  it("scale bound: one delta per recipient per tick, independent of reaction count", () => {
+    const SCOPE = "location:arena";
     const SINKS = 150;
     const sinks = Array.from({ length: SINKS }, (_, i) =>
       countingSink(`sink-${i}`, SCOPE),
@@ -314,8 +389,9 @@ describe('ReactionRegistry', () => {
       ReactionApi.onScopedEmote({
         reactor: fakeReactor(`reactor-${n}`),
         inReactionTo: `act-${n % ACTS}`,
-        verb: 'clap',
-        tags: ['approval'],
+        verb: "clap",
+        emoji: "🙂",
+        tags: ["approval"],
       });
     }
 
@@ -329,7 +405,7 @@ describe('ReactionRegistry', () => {
     }
   });
 
-  it('overlay seam: flush fires one ReactionScopeDeltaEvent per moved scope', async () => {
+  it("overlay seam: flush fires one ReactionScopeDeltaEvent per moved scope", async () => {
     const events: ReactionScopeDeltaPayload[] = [];
     EventApi.on<ReactionScopeDeltaPayload>(
       ReactionScopeDeltaEvent.KIND,
@@ -338,39 +414,41 @@ describe('ReactionRegistry', () => {
       },
     );
     ReactionApi.noteReactableAct({
-      commandId: 'cmd-a',
-      subject: fakeReactor('sa'),
-      scope: 'location:r1',
+      commandId: "cmd-a",
+      subject: fakeReactor("sa"),
+      scope: "location:r1",
     });
     ReactionApi.noteReactableAct({
-      commandId: 'cmd-b',
-      subject: fakeReactor('sb'),
-      scope: 'channel:general',
+      commandId: "cmd-b",
+      subject: fakeReactor("sb"),
+      scope: "channel:general",
     });
     ReactionApi.onScopedEmote({
-      reactor: fakeReactor('x'),
-      inReactionTo: 'cmd-a',
-      verb: 'nod',
+      reactor: fakeReactor("x"),
+      inReactionTo: "cmd-a",
+      verb: "nod",
+      emoji: "🙂",
       tags: [],
     });
     ReactionApi.onScopedEmote({
-      reactor: fakeReactor('y'),
-      inReactionTo: 'cmd-b',
-      verb: 'nod',
+      reactor: fakeReactor("y"),
+      inReactionTo: "cmd-b",
+      verb: "nod",
+      emoji: "🙂",
       tags: [],
     });
     ReactionApi._flushNowForTesting();
     await new Promise((r) => setTimeout(r, 0));
     const scopes = events.map((e) => e.scope).sort();
-    expect(scopes).toEqual(['channel:general', 'location:r1']);
+    expect(scopes).toEqual(["channel:general", "location:r1"]);
   });
 
-  it('GC: an act past its TTL is dropped on a flush pass', () => {
+  it("GC: an act past its TTL is dropped on a flush pass", () => {
     let now = 1_000_000;
     ReactionApi._setNowForTesting(() => now);
     ReactionApi.noteReactableAct({
-      commandId: 'old',
-      subject: fakeReactor('s'),
+      commandId: "old",
+      subject: fakeReactor("s"),
       scope: LOC,
     });
     expect(ReactionApi._actCountForTesting()).toBe(1);
@@ -380,26 +458,26 @@ describe('ReactionRegistry', () => {
     expect(ReactionApi._actCountForTesting()).toBe(0);
   });
 
-  it('per-recipient sample: a contact is named, a stranger stays counted', async () => {
+  it("per-recipient sample: a contact is named, a stranger stays counted", async () => {
     const viewer = await StuffApi.create(() => new Avatar());
-    viewer.setName('Viewer');
+    viewer.setName("Viewer");
     const reactorA = await StuffApi.create(() => new Avatar());
-    reactorA.setName('Aldous');
+    reactorA.setName("Aldous");
     const reactorB = await StuffApi.create(() => new Avatar());
-    reactorB.setName('Bryn');
+    reactorB.setName("Bryn");
     // Viewer knows A (contact), not B.
     (viewer as unknown as Avatar).addContact({
-      kind: 'avatar',
+      kind: "avatar",
       playerId: reactorA.stuffId,
-      label: 'Aldous',
-      source: 'self',
+      label: "Aldous",
+      source: "self",
       addedAt: 0,
     });
 
-    const SCOPE = 'location:hall';
-    let captured: ReactionDeltaEnvelope['acts'] | null = null;
+    const SCOPE = "location:hall";
+    let captured: ReactionDeltaEnvelope["acts"] | null = null;
     const sink: ReactionSink = {
-      id: 'viewer-sink',
+      id: "viewer-sink",
       viewer: viewer as never,
       seesScope: (s) => s === SCOPE,
       emitDelta: (env) => {
@@ -409,21 +487,23 @@ describe('ReactionRegistry', () => {
     ReactionApi.subscribeScope(sink, SCOPE);
 
     ReactionApi.noteReactableAct({
-      commandId: 'cmd-1',
-      subject: fakeReactor('speaker'),
+      commandId: "cmd-1",
+      subject: fakeReactor("speaker"),
       scope: SCOPE,
     });
     ReactionApi.onScopedEmote({
       reactor: reactorA as never,
-      inReactionTo: 'cmd-1',
-      verb: 'nod',
-      tags: ['approval'],
+      inReactionTo: "cmd-1",
+      verb: "nod",
+      emoji: "🙂",
+      tags: ["approval"],
     });
     ReactionApi.onScopedEmote({
       reactor: reactorB as never,
-      inReactionTo: 'cmd-1',
-      verb: 'nod',
-      tags: ['approval'],
+      inReactionTo: "cmd-1",
+      verb: "nod",
+      emoji: "🙂",
+      tags: ["approval"],
     });
 
     ReactionApi._flushNowForTesting();
@@ -436,19 +516,19 @@ describe('ReactionRegistry', () => {
     expect(sampledIds).not.toContain(reactorB.stuffId); // stranger: unnamed
   });
 
-  it('disconnect cleanup drops the per-Interactive gutter ring', async () => {
+  it("disconnect cleanup drops the per-Interactive gutter ring", async () => {
     const avatar = await StuffApi.create(() => new Avatar());
     const interactive = await StuffApi.create(
-      () => new Interactive('sock-1', 'sess-1', { _id: 'u1' } as never),
+      () => new Interactive("sock-1", "sess-1", { _id: "u1" } as never),
     );
     ConnectionApi.transfer(interactive, avatar);
     ReactionApi.noteReactableAct({
-      commandId: 'cmd-1',
-      subject: fakeReactor('s'),
+      commandId: "cmd-1",
+      subject: fakeReactor("s"),
       scope: LOC,
     });
-    ReactionApi.noteDeliveredFrame(interactive, 42, 'cmd-1');
-    expect(ReactionApi.resolveGutter(interactive, 42)).toBe('cmd-1');
+    ReactionApi.noteDeliveredFrame(interactive, 42, "cmd-1");
+    expect(ReactionApi.resolveGutter(interactive, 42)).toBe("cmd-1");
     ReactionApi.cancelAllForInteractive(interactive);
     expect(ReactionApi.resolveGutter(interactive, 42)).toBeNull();
   });

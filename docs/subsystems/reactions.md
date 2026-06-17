@@ -103,7 +103,11 @@ createdAt, reactions: Map<reactorId, ReactorReaction>, aggregated }`),
   `ReactionFiredEvent`; re-firing the same emote is a no-op tally-wise
   (no renown re-fire, though the diegetic line still fans out below
   threshold). Reacting never toggles off. Recomputes `aggregated`,
-  returns `{ suppressFanOut }`.
+  returns `{ suppressFanOut }`. **Glyph-gated:** an emote with no emoji
+  (and free-form text) is *not tallied* — it returns immediately and
+  just renders as its diegetic line. Reactions aggregate by glyph for
+  now, so the chip rail stays emoji-only and `total` equals the sum of
+  the visible chips.
 - **`removeReaction`** (sync): the explicit un-react — drops the
   reactor's `(reactor, emote)` reaction. No renown, no diegetic line;
   the count just falls. This is the *only* way to decrement a reaction,
@@ -209,17 +213,25 @@ envelope handlers + the `reaction-expand` pull. The `Frame` carries
 `commandId` / `inReactionTo` / `frameId` (the gutter) for
 render-correlation + the per-row react selector.
 
-The **`ReactionBar`** component (`components/ReactionBar.tsx`, wired into
-the `Terminal` transcript) renders the chips + counter + sample from the
-delta. Each act-state's **`mine`** field (the recipient's own reactions)
-drives the chip command: an active chip (`mine` contains its emote)
-sends `react --remove --msg <#> ;<verb>` (un-react), an inactive chip or
-the quick-react palette sends `react --msg <#> ;<verb>` (add). Crucially,
-every reaction affordance is a **clickable command** — it routes through
-the shared `onCommandClick` / `onCommandPreview` handlers (preview the
-command in the command bar on hover, send on click) exactly like every
-other clickable in the client; it never sends a websocket frame
-directly.
+The **`ReactionBar`** component (`components/ReactionBar.tsx`) renders
+**inline at the end of the message body** (not a dedicated row): the
+emoji chips trail the text only when reactions exist, and the react
+**`+`** is hover-revealed (visually-hidden-but-focusable at rest — zero
+footprint, but keyboard-reachable via `:focus-within`; the shared
+`REVEAL_REACTION_ADD` block reveals it on `FrameRow:hover`, focus, or
+open palette).
+
+Each act-state's **`mine`** field (the recipient's own reactions) drives
+the chip command: an active chip (`mine` contains its emote) sends
+`react --remove --msg <#> ;<verb>` (un-react), an inactive chip or the
+quick-react palette sends `react --msg <#> ;<verb>` (add). Each
+bucket's **`reactors`** (viewer-named, present only while the bucket is
+small enough — ≤ `NAME_LIST_CAP`) powers the **"who reacted" hover** on
+the chip; large buckets show just the count. Crucially, every reaction
+affordance is a **clickable command** — it routes through the shared
+`onCommandClick` / `onCommandPreview` handlers (preview the command in
+the command bar on hover, send on click) exactly like every other
+clickable in the client; it never sends a websocket frame directly.
 
 ### Per-user controls
 

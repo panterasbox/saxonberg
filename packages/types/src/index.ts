@@ -744,6 +744,13 @@ export interface ReactionBucket {
   emoji?: string;
   /** Authoritative running total (NOT a delta). */
   count: number;
+  /**
+   * Viewer-named reactors for this bucket, present only when the bucket
+   * is **small enough to display** (count ≤ the name cap). Drives the
+   * "who reacted" hover on the chip. Omitted on large buckets (the chip
+   * shows just the count). Per-recipient (recognition-named).
+   */
+  reactors?: string[];
 }
 
 /**

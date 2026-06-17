@@ -23,6 +23,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import styled, { keyframes, css } from "styled-components";
+import type { ReactionBucket } from "@saxonberg/types";
 import { useStore, type Frame } from "../store/index";
 import { tokens } from "./ui";
 import { expandReactors } from "../store/reactionActions";
@@ -38,13 +39,29 @@ function isReactableTopic(topic: string): boolean {
   return REACTABLE_PREFIXES.some((p) => topic.startsWith(p));
 }
 
-/** The quick-react palette — verb + glyph the affordance offers. */
+/**
+ * Chip hover text: the names of who reacted when the bucket is small
+ * enough that the server sent them, otherwise just the count — plus the
+ * click affordance.
+ */
+function chipTitle(b: ReactionBucket, mine: boolean): string {
+  const who =
+    b.reactors && b.reactors.length > 0
+      ? b.reactors.join(", ")
+      : `${b.count} reacted`;
+  return `${who} — ${mine ? "click to remove yours" : "click to react"}`;
+}
+
+// The quick-react palette — glyphs match the server emote's emoji so the
+// button you click is the chip you get. Only emoji-bearing emotes belong
+// here (glyph-less reacts render as prose, never a chip).
 const QUICK = [
-  { verb: "smile", emoji: "😄" },
-  { verb: "laugh", emoji: "😂" },
+  { verb: "smile", emoji: "😊" },
+  { verb: "laugh", emoji: "😆" },
   { verb: "applaud", emoji: "👏" },
-  { verb: "nod", emoji: "👍" },
-  { verb: "frown", emoji: "🙁" },
+  { verb: "nod", emoji: "🙂" },
+  { verb: "cheer", emoji: "🎉" },
+  { verb: "agree", emoji: "👍" },
 ];
 
 const pulse = keyframes`
@@ -274,18 +291,14 @@ export function ReactionBar({
           key={b.tag}
           $pulse={pulsing}
           $mine={isMine(b.emote)}
-          title={
-            isMine(b.emote)
-              ? `${b.emote} ×${b.count} — you reacted; click to remove`
-              : `${b.emote} ×${b.count} — click to react`
-          }
+          title={chipTitle(b, isMine(b.emote))}
           onClick={() => send(b.emote)}
           onMouseEnter={() => preview(b.emote)}
           onMouseLeave={() => preview(null)}
           onFocus={() => preview(b.emote)}
           onBlur={() => preview(null)}
         >
-          {b.emoji ? b.emoji : b.emote} {b.count}
+          {b.emoji ?? b.emote} {b.count}
         </Chip>
       ))}
 
