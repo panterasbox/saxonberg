@@ -17,7 +17,7 @@
  * (hover tooltip + click-action popover).
  */
 
-import { useEffect, useMemo, useRef } from 'react';
+import { Fragment, useEffect, useMemo, useRef } from 'react';
 import styled from 'styled-components';
 import { GutterStripe } from './GutterStripe';
 import { ReactionBar } from './ReactionBar';
@@ -93,7 +93,7 @@ export function Terminal({
   return (
     <TerminalContainer ref={containerRef}>
       {frames.map((frame) => (
-        <div key={frame.id}>
+        <Fragment key={frame.id}>
           <FrameRow>
             <GutterStripe topic={frame.topic} timestamp={frame.timestamp} />
             <Body $fontFamily={stylesheet.fontFamilyForTopic(frame.topic)}>
@@ -107,8 +107,12 @@ export function Terminal({
               />
             </Body>
           </FrameRow>
-          <ReactionBar frame={frame} />
-        </div>
+          <ReactionBar
+            frame={frame}
+            onCommandClick={onCommandClick}
+            onCommandPreview={onCommandPreview}
+          />
+        </Fragment>
       ))}
     </TerminalContainer>
   );

@@ -25,7 +25,7 @@ import { useEffect, useRef, useState } from "react";
 import styled, { keyframes, css } from "styled-components";
 import { useStore, type Frame } from "../store/index";
 import { tokens } from "./ui";
-import { reactToGutter, expandReactors } from "../store/reactionActions";
+import { expandReactors } from "../store/reactionActions";
 
 /** Topics whose frames are reactable acts (mirrors REACTABLE_TOPICS). */
 const REACTABLE_PREFIXES = [
@@ -64,7 +64,8 @@ const Bar = styled.div`
   color: ${tokens.color.fgMuted};
 `;
 
-const Chip = styled.span<{ $pulse: boolean }>`
+const Chip = styled.button<{ $pulse: boolean }>`
+  appearance: none;
   display: inline-flex;
   align-items: center;
   gap: ${tokens.space.xs};
@@ -74,6 +75,12 @@ const Chip = styled.span<{ $pulse: boolean }>`
   background: ${tokens.color.surfaceAlt};
   color: ${tokens.color.fg};
   line-height: 1.4;
+  font-size: ${tokens.font.small};
+  cursor: pointer;
+  &:hover {
+    border-color: ${tokens.color.accent};
+    background: ${tokens.color.actionBgHover};
+  }
   ${(p) =>
     p.$pulse &&
     css`
@@ -145,7 +152,19 @@ const PaletteBtn = styled.button`
   }
 `;
 
-export function ReactionBar({ frame }: { frame: Frame }) {
+interface ReactionBarProps {
+  frame: Frame;
+  /** Same command-bus handlers every clickable in the client uses: the
+   *  preview fills the command bar on hover, the click sends. */
+  onCommandClick: (command: string) => void;
+  onCommandPreview: (command: string | null) => void;
+}
+
+export function ReactionBar({
+  frame,
+  onCommandClick,
+  onCommandPreview,
+}: ReactionBarProps) {
   const commandId = frame.commandId;
   const act = useStore((s) =>
     commandId ? s.reactions[commandId] : undefined,
@@ -183,10 +202,16 @@ export function ReactionBar({ frame }: { frame: Frame }) {
     return null;
   }
 
-  const react = (verb: string) => {
-    if (frame.frameId !== undefined) reactToGutter(frame.frameId, `;${verb}`);
+  // The command a reaction affordance sends, routed through the global
+  // command-bus handlers (preview-on-hover, send-on-click) like every
+  // other clickable in the client — never a direct websocket send.
+  const cmd = (verb: string) => `react --msg ${frame.frameId} ;${verb}`;
+  const send = (verb: string) => {
+    onCommandClick(cmd(verb));
     setOpen(false);
   };
+  const preview = (verb: string | null) =>
+    onCommandPreview(verb === null ? null : cmd(verb));
 
   const total = act?.total ?? 0;
   const buckets = act?.buckets ?? [];
@@ -202,7 +227,16 @@ export function ReactionBar({ frame }: { frame: Frame }) {
       )}
 
       {buckets.map((b) => (
-        <Chip key={b.tag} $pulse={pulsing} title={`${b.emote} ×${b.count}`}>
+        <Chip
+          key={b.tag}
+          $pulse={pulsing}
+          title={`${b.emote} ×${b.count} — click to toggle your ${b.emote}`}
+          onClick={() => send(b.emote)}
+          onMouseEnter={() => preview(b.emote)}
+          onMouseLeave={() => preview(null)}
+          onFocus={() => preview(b.emote)}
+          onBlur={() => preview(null)}
+        >
           {b.emoji ? b.emoji : b.emote} {b.count}
         </Chip>
       ))}
@@ -242,7 +276,11 @@ export function ReactionBar({ frame }: { frame: Frame }) {
               {QUICK.map((q) => (
                 <PaletteBtn
                   key={q.verb}
-                  onClick={() => react(q.verb)}
+                  onClick={() => send(q.verb)}
+                  onMouseEnter={() => preview(q.verb)}
+                  onMouseLeave={() => preview(null)}
+                  onFocus={() => preview(q.verb)}
+                  onBlur={() => preview(null)}
                   title={q.verb}
                 >
                   {q.emoji}

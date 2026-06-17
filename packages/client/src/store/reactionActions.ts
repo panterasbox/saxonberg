@@ -37,31 +37,11 @@ export function registerReactionHandlers(): void {
   });
 }
 
-/**
- * React to a displayed message by its gutter number, with an emote
- * expression (`;smile`, `nod`, `cheer happily`). Emits an ordinary
- * `react --msg <#> <expr>` command — the server resolves the gutter →
- * commandId and runs the emote with the reaction scope. Input never
- * carries a commandId; gutter→commandId stays server-side.
- */
-export function reactToGutter(gutterFrameId: number, expression: string): void {
-  const expr = expression.trim();
-  if (!expr) return;
-  websocketClient.send({
-    type: "command",
-    payload: { text: `react --msg ${gutterFrameId} ${expr}` },
-  });
-}
-
-/** React to the most recent act in view (the frictionless default path). */
-export function reactLatest(expression: string): void {
-  const expr = expression.trim();
-  if (!expr) return;
-  websocketClient.send({
-    type: "command",
-    payload: { text: `react ${expr}` },
-  });
-}
+// Reaction COMMANDS (`react --msg <#> ;<verb>`) are built and dispatched
+// by the ReactionBar widget through the shared command-bus handlers
+// (`onCommandClick` / `onCommandPreview`) — like every other clickable
+// affordance, so they preview in the command bar before sending. They
+// are deliberately NOT sent directly from here.
 
 /** Pull the full reactor-set behind one act (expand). */
 export function expandReactors(commandId: string, requestId: string): void {
