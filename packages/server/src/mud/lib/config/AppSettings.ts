@@ -39,6 +39,19 @@ export const AppSettingKeys = {
    * destructs with no outer (`Container.cleanupOnDestruct`).
    */
   evacuationFallback: "evacuationFallback",
+
+  /**
+   * Reactions — at/above this many reactions on one act, the per-emote
+   * fan-out line is suppressed in favour of the batched counter. See
+   * docs/subsystems/reactions.md.
+   */
+  reactionsThreshold: "reactions.threshold",
+
+  /** Reactions — the fixed-cadence flush window in ms (clamped 150–250). */
+  reactionsCadenceMs: "reactions.cadenceMs",
+
+  /** Reactions — cap on the per-recipient familiar-biased sample. */
+  reactionsSampleCap: "reactions.sampleCap",
 } as const;
 
 export type AppSettingKey =

@@ -1,0 +1,35 @@
+verbs: [react, re]
+controller: social/ReactController
+description: >
+  React to something someone just said or did. A reaction is an emote
+  aimed at a specific prior act — it is PUBLIC and ATTRIBUTED, counted
+  against that act, and (eventually) folded into the actor's standing.
+
+  Grammar:  react [--to <person>] [--msg <#>] <emote-expression>
+
+  With no selector you react to the most recent act in view; --to picks
+  a person's most-recent act; --msg picks a specific message by its
+  gutter number. The <emote-expression> is any ordinary emote, exactly
+  as you'd type it bare (`;wave`, `nod`, `cheer happily`), and may carry
+  its own target: `react --msg 113 ;wave bob` waves at bob in response
+  to message 113. The selector-less form (`re ;smile`) is the primary,
+  frictionless path.
+validators:
+  - /lib/command/validators/requiresAnimate
+options:
+  to:
+    short: t
+    type: object
+    scope: online
+    field: toPerson
+    description: "React to this person's most-recent reactable act."
+  msg:
+    short: m
+    type: string
+    field: msgNum
+    description: "React to a specific message by its gutter number."
+args:
+  - name: expression
+    type: string
+    required: true
+    greedy: true

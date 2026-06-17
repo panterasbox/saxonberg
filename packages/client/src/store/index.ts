@@ -24,6 +24,8 @@ import type {
   ConsoleTab,
   MqlMatchSummary,
   PromptChoice,
+  ReactionActState,
+  ReactionSampleEntry,
   StuffDetailRecord,
   StuffRefRecord,
   TopicDescriptor,
@@ -171,6 +173,20 @@ export interface Frame {
   body: string;
   sigil?: string;
   timestamp: number;
+  /**
+   * The act key (`meta.commandId`). Carried for reaction render-
+   * correlation: an incoming `reaction-delta` keyed by `commandId`
+   * finds the displayed message so the counter renders on the right
+   * line. NOT used for input (a clicked/typed reaction emits `react
+   * --msg <gutter#>`; gutter→commandId stays server-side).
+   */
+  commandId?: string;
+  /**
+   * Set on a frame that is itself a reaction (`meta.inReactionTo` =
+   * the act's `commandId`). Lets the client group reaction prose lines
+   * onto the target message's always-on indicator with no extra wire.
+   */
+  inReactionTo?: string;
 }
 
 /**
@@ -329,6 +345,34 @@ interface StoreState {
    * delta does not clobber detail data previously cached).
    */
   upsertStuffMetadata: (records: StuffMetadata[]) => void;
+
+  // Reactions slice ---------------------------------------------------
+  /**
+   * `Record<commandId, ReactionActState>` — the live aggregate per
+   * reactable act, keyed by the act's `commandId`. Replaced (NOT summed)
+   * on each `reaction-delta`: counts are authoritative absolute totals.
+   */
+  reactions: Record<string, ReactionActState>;
+  /**
+   * `Record<commandId, epochMs>` — a "moved this tick" marker the
+   * counter/train widget animates from. Stamped on every delta.
+   */
+  reactionMoved: Record<string, number>;
+  /**
+   * `Record<commandId, ReactionSampleEntry[]>` — the FULL reactor set
+   * for an expanded act, populated by `reaction-expand-result`.
+   */
+  reactionExpansions: Record<string, ReactionSampleEntry[]>;
+  /**
+   * Replace each act's aggregate from a `reaction-delta`. Counts are
+   * authoritative — the widget replaces and animates, never sums.
+   */
+  applyReactionDelta: (acts: ReactionActState[], at?: number) => void;
+  /** Store the full reactor set from a `reaction-expand-result`. */
+  applyReactionExpandResult: (
+    commandId: string,
+    reactors: ReactionSampleEntry[],
+  ) => void;
 
   // Inspection-pane slice ---------------------------------------------
   /**
@@ -1209,4 +1253,31 @@ export const useStore = create<StoreState>((set, get) => ({
       }
       return { stuffRegistry: registry };
     }),
+
+  // Reactions slice
+  reactions: {},
+  reactionMoved: {},
+  reactionExpansions: {},
+
+  applyReactionDelta: (acts, at) =>
+    set((state) => {
+      if (acts.length === 0) return {};
+      const stamp = at ?? Date.now();
+      const reactions = { ...state.reactions };
+      const reactionMoved = { ...state.reactionMoved };
+      for (const act of acts) {
+        // Replace, never sum — counts are authoritative absolute totals.
+        reactions[act.commandId] = act;
+        reactionMoved[act.commandId] = stamp;
+      }
+      return { reactions, reactionMoved };
+    }),
+
+  applyReactionExpandResult: (commandId, reactors) =>
+    set((state) => ({
+      reactionExpansions: {
+        ...state.reactionExpansions,
+        [commandId]: reactors,
+      },
+    })),
 }));

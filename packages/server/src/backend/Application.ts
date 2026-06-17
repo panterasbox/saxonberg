@@ -30,6 +30,7 @@ import { setClientStateUpdatePush } from '../mud/lib/connection/HasInteractive';
 import type Interactive from '../mud/obj/Interactive';
 import Login from '../mud/obj/Login';
 import { MqlSubscriptionApi } from '../mud/api/mql-subscription';
+import { ReactionApi } from '../mud/api/reaction';
 import { PromptApi } from '../mud/api/prompt';
 import { User } from '../mud/lib/identity/User';
 import { TemplateApi } from '../mud/api/template';
@@ -102,11 +103,27 @@ export class Application {
   ): void {
     const socketId = interactive.getSocketId();
     if (!this.backend || !socketId) return;
+    const frameId = interactive.nextFrameId();
     const stamped: MessageFrame = {
       ...frame,
-      meta: { ...frame.meta, frameId: interactive.nextFrameId() },
+      meta: { ...frame.meta, frameId },
     };
     this.backend.sendMessageToSocket(socketId, stamped);
+
+    // Reaction gutter ring: when a reactable-act frame lands, remember
+    // its (frameId → commandId) for this Interactive so `react --msg <n>`
+    // resolves server-side, and register the per-player reaction sink so
+    // the fixed-cadence delta can reach this witness. Cheap map lookups;
+    // skips every non-reactable frame.
+    const commandId = frame.meta.commandId;
+    if (
+      commandId !== undefined &&
+      ReactionApi.isReactableTopic(frame.topic) &&
+      ReactionApi.isReactableAct(commandId)
+    ) {
+      ReactionApi.registerInteractive(interactive);
+      ReactionApi.noteDeliveredFrame(interactive, frameId, commandId);
+    }
   }
 
   /**
@@ -245,6 +262,7 @@ export class Application {
     const interactive = ConnectionManager.get().getInteractive(socketId);
     if (interactive) {
       MqlSubscriptionApi.cancelAllForInteractive(interactive);
+      ReactionApi.cancelAllForInteractive(interactive);
       PromptApi.cancelAll(interactive, 'host-disconnected');
     }
 

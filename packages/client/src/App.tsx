@@ -10,6 +10,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import styled from "styled-components";
 import { useStore, type PromptEntry } from "./store/index";
+import { registerReactionHandlers } from "./store/reactionActions";
 import { SERVER_URL, WS_URL } from "./config";
 import { websocketClient } from "./services/websocket";
 import { Frame } from "./components/frame/Frame";
@@ -290,9 +291,16 @@ function App() {
         body: frame.body,
         timestamp: frame.meta?.timestamp ?? Date.now(),
         ...(sigil !== undefined ? { sigil } : {}),
+        ...(frame.meta?.commandId !== undefined
+          ? { commandId: frame.meta.commandId }
+          : {}),
+        ...(frame.meta?.inReactionTo !== undefined
+          ? { inReactionTo: frame.meta.inReactionTo }
+          : {}),
       });
     };
     websocketClient.onAnyTopic(handle);
+    registerReactionHandlers();
     return () => {
       websocketClient.offAnyTopic(handle);
     };

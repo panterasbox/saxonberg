@@ -106,6 +106,17 @@ export const bootstrapManifest: BootstrapEntry[] = [
     templatePath: '/obj/MqlSubscriptionRegistry',
     dependsOn: ['/obj/EventSubscriptions'],
   },
+  // ReactionRegistry — the act-scoped-emote aggregation substrate: the
+  // per-act tallies, the fixed-cadence sink-agnostic broadcaster, the
+  // per-recipient familiar-biased sampler, and the TTL GC. In-memory
+  // authority, nothing persisted. The flush tick installs lazily on the
+  // first reactable act, so no awaitInit is needed; seeding the
+  // singleton here just gives the Api a stable `findByTemplatePath`
+  // target. Depends on WorldClock (the flush rides `ScheduleApi`).
+  {
+    templatePath: '/obj/ReactionRegistry',
+    dependsOn: ['/obj/WorldClockRegistry'],
+  },
   // Lounge TPA terminal — the eager root of the Teleport Authority
   // network. Its `postRegister` self-seats into the lounge Warren's host
   // (standing the lounge host up) and cascades the rest of the network

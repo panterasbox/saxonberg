@@ -25,6 +25,7 @@ export const TemplatePaths = {
   schedulerRegistry: "/obj/SchedulerRegistry",
   worldClockRegistry: "/obj/WorldClockRegistry",
   mqlSubscriptionRegistry: "/obj/MqlSubscriptionRegistry",
+  reactionRegistry: "/obj/ReactionRegistry",
 
   // Singleton catalogues.
   channelCatalogue: "/obj/ChannelCatalogue",
