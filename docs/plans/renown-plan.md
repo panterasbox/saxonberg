@@ -21,7 +21,7 @@ mirror map (build against these, don't invent):
 | `RenownApi` / `RenownLogic` | `ChronicleApi`/`ChronicleLogic`, `WeatherApi`/`WeatherLogic` | `mud/api/chronicle.ts` + `mud/obj/api/ChronicleLogic.ts` |
 | Ingestion tap | `SchedulerRegistry` `EventApi.on(...)` | `mud/obj/SchedulerRegistry.ts:330` |
 | Soft import (no static cycle) | `WeatherLogic` `await import('../../api/biome')` | `mud/obj/api/WeatherLogic.ts:272` |
-| Recompute schedule | `WorldClockRegistry.registerSystemSchedules` → `this.every(...)` on a stable facade | `mud/obj/WorldClockRegistry.ts:439-457` |
+| Recompute schedule | `ScheduleApi.recurring` self-registered at boot (real-time, wraps `runRoot`) | CLAUDE.md antipatterns — `ScheduleApi` over bare timers |
 | Value-function params | `AppSettings.values` bag + `AppSettingKeys` + `app-settings.yaml` seeder | `mud/lib/config/AppSettings.ts`, `mud/config/app-settings.yaml`, `backend/AppSettingsSeeder.ts` |
 | Collections + indexes | `Collections` enum + `createIndexes()` | `backend/PersistenceManager.ts:30`, `:530-620` |
 | Boot warm | `await AppSettings.warm()` / `await WorldClockApi.boot()` | `backend/AppBootstrap.ts:140-148` |
@@ -31,9 +31,9 @@ mirror map (build against these, don't invent):
 1. **Nothing wires reaction→regard today.** `ReactionFiredEvent` has zero
    consumers; `RegardApi.adjustRegard`'s only caller is
    `IntroduceController`. AC#1 ("a regard update **and** a renown event,
-   independently") therefore needs the regard poke *produced* — see
-   Risk 1. (The renown *recompute* never reads belief either way, so AC#6
-   is safe regardless.)
+   independently") therefore needs the regard poke *produced* — by a
+   separate `RegardLogic` tap (decision 1, §6). The renown *recompute*
+   never reads belief either way, so AC#6 is safe regardless.
 2. **`GroupApi` has no "groups shared by two players" method** (only
    `membersOf`/`isMember`/`roleOf`/`parseRef`). The managed `groups`
    collection is already indexed on `memberIds`
@@ -138,8 +138,11 @@ append/read green; `dest /obj/api/renown` HMR resolves.
 
 ### Phase 3 — ingestion tap: `ReactionFiredEvent` → `RenownEvent`
 
-A reaction independently produces a scope-tagged `RenownEvent` (and the
-sibling regard update — Risk 1). First full acceptance criterion.
+A reaction produces a scope-tagged `RenownEvent`. **Two *independent*
+subscribers to the one event** (decision 1 — the sibling model): renown's
+tap appends the `RenownEvent`; a separate regard tap (homed in belief,
+below) applies the regard poke. **Renown never imports `RegardApi`**, so
+the siblings stay genuinely decoupled.
 
 - **Modify** `mud/obj/api/RenownLogic.ts` — add a one-time subscription
   installer mirroring `SchedulerRegistry.ts:330` (`EventApi.on<...>`
@@ -149,19 +152,24 @@ sibling regard update — Risk 1). First full acceptance criterion.
   2. resolves scope tags (Phase 4 — stub `{ locality: null, groups: [] }`
      here so the phase lands alone);
   3. `append`s a `RenownEvent` (`kind: 'reaction'`, `signal: { emote,
-     tags }`, `at: WorldClockApi.getNow().rawValue()`);
-  4. **sibling regard poke** via `RegardApi.adjustRegard(...)` so AC#1's
-     "independently" holds end-to-end (Risk 1).
-  - **Imports:** `EventApi`/`WorldClockApi`/`RegardApi` static (already in
-    the api graph); `ReactionFiredEvent` from `lib/events/` (pure DTO).
-    `selfReaction` events are appended but flagged (recompute flat-weights
-    or drops later).
+     tags }`, `at: WorldClockApi.getNow().rawValue()`).
+  - **Imports:** `EventApi`/`WorldClockApi` static; `ReactionFiredEvent`
+    from `lib/events/` (pure DTO). **No `RegardApi` import** (that's the
+    other tap's job). `selfReaction` events are appended but flagged
+    (recompute flat-weights or drops later).
+- **Modify** `mud/obj/api/RegardLogic.ts` (belief side) — add its **own**
+  one-time `EventApi.on(ReactionFiredEvent)` installer that calls
+  `RegardApi.adjustRegard(reactor, subject, …)`. This is the small,
+  necessary belief-subsystem sibling; it is the *only* belief-side change
+  in the build and lives where regard lives, not in renown.
 - **Create** `mud/obj/api/__tests__/RenownLogic.test.ts` — fire a
   synthetic `ReactionFiredEvent` via `EventApi.fire`; assert exactly one
-  raw `RenownEvent` lands (tags retained, no score) **and**
-  `RegardApi.adjustRegard` was invoked (independent fan-out). Use the
+  raw `RenownEvent` lands (tags retained, no score). Use the
   `EventApi._clearAllForTesting`/`_setRegistryForTesting` seams
   (`api/event.ts:531-556`).
+- **Create/extend** a `RegardLogic` test — fire the same event; assert
+  `RegardApi.adjustRegard` ran. The two taps are asserted separately,
+  proving the independent fan-out (AC#1).
 
 **AC#1.**
 
@@ -228,7 +236,9 @@ time**, warmed at boot, read by `RenownApi.renownOf`.
   Expose as the stable facade `RenownApi.recompute()` so the schedule
   survives HMR (mirror `WeatherApi.onBoundary`).
 - **5d — reads.** `RenownApi.renownOf(subject, scope): number` — sync read
-  off the warmed `RenownStanding` cache (mirror `AppApi.setting`).
+  off the warmed `RenownStanding` cache (mirror `AppApi.setting`); a
+  non-materialized scope returns null/0 (decision 4 — arbitrary on-demand
+  slicing is deferred; the retained log makes it a later additive reader).
 - **Create/extend** tests: `RenownStanding.test.ts` (warm/getCached);
   `RenownLogic.test.ts` — AC#2 (recompute materializes a signed standing),
   AC#3 (one stream → different standings per scope), AC#4 (mutate valence
@@ -245,18 +255,25 @@ cache warmed at boot; ingestion live.
 
 - **Modify** `backend/AppBootstrap.ts` (near `AppSettings.warm()` `:140` /
   `WorldClockApi.boot()` `:148`) — add `await RenownStanding.warm()` and a
-  `RenownApi.boot()`/`activate()` that resolves the singleton and installs
-  the ingestion subscription (mirror weather forcing its singleton into
-  existence, `WeatherLogic.ts:303`, and `WorldClockApi.boot()` as a named
-  boot seam).
-- **Modify** `mud/obj/WorldClockRegistry.ts` `registerSystemSchedules()`
-  (`:439`) — register the recompute as game-time `this.every(interval, ()
-  => RenownApi.recompute(), { tag: 'renown:recompute' })`, mirroring the
-  weather boundary registration above it (`:452`). Game-time `every`
-  matches the decay-is-game-time framing (Risk 3 covers cadence source).
+  `RenownApi.boot()` that resolves the singleton and, in one place,
+  **(a)** installs the renown ingestion subscription, **(b)** installs the
+  RegardLogic regard-tap (or RegardLogic self-installs at its own boot),
+  and **(c)** self-registers the recompute schedule (below). Mirrors
+  weather forcing its singleton into existence (`WeatherLogic.ts:303`) and
+  `WorldClockApi.boot()` as a named boot seam.
+- **Recompute schedule (decision 3): renown self-registers a *real-time*
+  `ScheduleApi.recurring`** inside `RenownApi.boot()` —
+  `ScheduleApi.recurring(RENOWN_RECOMPUTE_MS, () => RenownApi.recompute(),
+  { tag: 'renown:recompute' })`. Cache refresh is a real-time concern, so
+  real-time `ScheduleApi.recurring` (which wraps the callback in
+  `ExecutionContextApi.runRoot`) is the right primitive — **not** game-time
+  `WorldClockApi.every`, and **not** a `WorldClockRegistry` edit; renown
+  stays self-contained. The interval is a **code constant**
+  (`RENOWN_RECOMPUTE_MS` in `lib/renown/`) — cadence is mechanism, not a
+  legislated value. Decay math still uses game-time `at` deltas internally.
 - **Create/extend** test — after the boot path, firing a reaction lands a
   row with no manual subscription setup; the `renown:recompute` schedule
-  tag is registered.
+  handle is registered.
 
 **AC:** full end-to-end through the real boot seam (re-confirms AC#1–#6).
 
@@ -285,8 +302,9 @@ chronicle/belief tests already use.
   facade-targeted schedule.
 - `mud/lib/config/AppSettings.ts` + `mud/config/app-settings.yaml` +
   `backend/AppBootstrap.ts` — param storage, seeding, boot-warm.
-- `backend/PersistenceManager.ts` + `mud/obj/WorldClockRegistry.ts` —
-  Collections/indexes; `registerSystemSchedules` recompute registration.
+- `backend/PersistenceManager.ts` — Collections enum + indexes.
+- `mud/api/schedule.ts` (`ScheduleApi.recurring`) — the real-time recompute
+  handle renown self-registers at boot.
 
 ## 5. Trickiest integration points (get these right)
 
@@ -307,33 +325,49 @@ chronicle/belief tests already use.
   eigenvector recursion is a pure `recompute()` upgrade later — no schema
   or migration. Don't drop `source`.
 
-## 6. Risks / decisions needed
+## 6. Decisions (locked) & build-time checks
 
-1. **Sibling regard-poke ownership (touches AC#1).** Nothing wires
-   reaction→regard today. **Decision:** renown's tap fires the regard poke
-   itself (simplest; keeps AC#1 self-contained, couples the build to
-   `RegardApi`) **or** a separate reaction→regard subscriber is expected
-   elsewhere. *Recommended:* renown tap fires both independently — they're
-   "siblings fed by the same event," and renown is the first reaction
-   consumer. (Recompute stays belief-free either way.)
-2. **`GroupApi.sharedManagedGroups` is a new method** on a shipped
-   subsystem. Small and well-scoped (intersection over the `memberIds`
-   index), no new module category. Lands with its own test + a
-   grouping.md note at sweep.
-3. **Recompute cadence + scheduler.** Game-time `WorldClockApi.every`
-   (decay is game-time) over real-time `ScheduleApi.recurring`.
-   **Decision:** interval as a code constant (mechanism — *recommended*)
-   vs an AppSettings key (tunable); and register in
-   `WorldClockRegistry.registerSystemSchedules` vs a renown-owned `every`
-   handle.
-4. **Which scopes materialize (spec open question).** Cooperative-wide +
-   registered Groups + localities materialized; arbitrary slices on
-   demand from the log. **Decision:** does v1 ship the on-demand path for
-   non-materialized scopes, or only the named set? *Recommended:*
-   materialize the named set, compute arbitrary slices on demand.
-5. **Verify the cycle at build.** Run `pnpm build` to confirm whether
-   `RenownLogic → AddressApi/GroupApi` actually closes a static cycle; if
-   so, soft-import per `WeatherLogic.ts:272`.
+The four open decisions are locked below; #5 is a build-time verification,
+not a decision.
+
+1. **Regard-poke → two *independent* sibling taps** (refines the plan's
+   first lean). Renown's tap appends the `RenownEvent` and **does not
+   touch `RegardApi`**; a separate `RegardLogic` tap applies the regard
+   poke off the same event. This honors the sibling model (the
+   requirements data-flow: *reaction → regard **and** renown,
+   independently*), keeps renown uncoupled from belief, and keeps the
+   recompute belief-free (AC#6). AC#1 holds via the two taps. The regard
+   tap is the only belief-side change in the build. *Rejected:* one
+   combined subscriber (simpler, but couples renown ingestion to
+   `RegardApi`); descoping the regard half (contradicts the sibling
+   diagram we just affirmed).
+2. **`GroupApi.sharedManagedGroups` → add it.** Small read method
+   intersecting two players' managed memberships over the
+   `memberIds`-indexed `groups` collection; no new module category. Lands
+   with its own test (Phase 4) + a `grouping.md` note at sweep.
+3. **Recompute → real-time `ScheduleApi.recurring`, code-constant
+   interval, renown self-registered** (refines the plan's game-time lean).
+   Cache refresh is a real-time concern, so `ScheduleApi.recurring` (wraps
+   `runRoot`) is the right primitive — **not** game-time
+   `WorldClockApi.every`, and **not** a `WorldClockRegistry` edit;
+   `RenownApi.boot()` self-registers the handle, keeping renown
+   self-contained. Interval = `RENOWN_RECOMPUTE_MS` code constant (cadence
+   is mechanism, not a legislated value). Decay math uses game-time `at`
+   deltas internally.
+4. **Scopes → materialize the named set; defer arbitrary on-demand.** v1
+   materializes cooperative-wide + registered Groups + localities;
+   `renownOf(subject, scope)` is the sync cached read (non-materialized
+   scope → null/0). Arbitrary retroactive slicing is **deferred** — no
+   consumer needs it yet (consumers are deferred wholesale), and the
+   retained scope-tagged log makes it a pure additive upgrade (a future
+   async reader), no migration.
+
+### Build-time check (not a decision)
+
+5. **Verify the import cycle.** Run `pnpm build` to confirm whether
+   `RenownLogic → AddressApi/GroupApi` closes a static cycle; if so,
+   soft-import per `WeatherLogic.ts:272`. The sync `renownOf` read must
+   never close a cycle — it reads only the warmed cache + `AppApi`.
 
 ## Explicitly deferred — seams left open, nothing planned
 
