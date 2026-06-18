@@ -12,8 +12,14 @@ import type {
 import { WorldClockApi } from '../../api/worldclock';
 import { EventApi } from '../../api/event';
 import type { Subscription } from '../../api/event';
+import { StuffApi } from '../../api/stuff';
+import { AddressApi } from '../../api/address';
+import { GroupApi } from '../../api/group';
 import { ReactionFiredEvent } from '../../lib/events/ReactionFiredEvent';
 import type { ReactionFiredPayload } from '../../lib/events/ReactionFiredEvent';
+import type { Stuff } from '../../lib/stuff/Stuff';
+import type { Container } from '../../lib/spatial/Container';
+import type { GroupRef } from '../../lib/social/GroupProvider';
 import { PersistenceManager } from '../../../backend/PersistenceManager';
 
 const RenownApiCallers = SecurityPolicies.FromModule(
@@ -63,13 +69,65 @@ function inScope(ev: RenownEvent, scope: RenownScope): boolean {
 }
 
 /**
+ * Resolve the two scope axes for a fired reaction at ingestion:
+ *   - **locality** — for a `location:<stuffId>` reaction, the address
+ *     prefix the covering `Locality` claims (or `null` = global); for a
+ *     channel reaction, `null`.
+ *   - **groups** — the objective `Group`s the signal occurred within: a
+ *     channel reaction's own `groupRef`, plus the managed `Group`s the
+ *     reactor & subject share.
+ *
+ * Every leg degrades to empty/`null` when its registry is absent (tests,
+ * pre-boot) — scope tagging is best-effort and never blocks the append.
+ */
+async function resolveScope(
+  p: ReactionFiredPayload
+): Promise<{ locality: string | null; groups: GroupRef[] }> {
+  const groups = new Set<GroupRef>();
+
+  // A channel reaction carries its objective group directly.
+  if (p.scope.startsWith('channel:')) {
+    groups.add(p.scope.slice('channel:'.length) as GroupRef);
+  }
+  // The managed circles the reactor & subject share.
+  try {
+    for (const g of await GroupApi.sharedManagedGroups(
+      p.reactorId,
+      p.subjectId
+    )) {
+      groups.add(g);
+    }
+  } catch {
+    /* group registry absent — no group scope */
+  }
+
+  // The locality covering a room-scoped reaction.
+  let locality: string | null = null;
+  if (p.scope.startsWith('location:')) {
+    const loc = StuffApi.findById(p.scope.slice('location:'.length));
+    if (loc) {
+      try {
+        const covered = await AddressApi.resolveLocalityFor(
+          loc as Stuff & Container
+        );
+        locality = covered ? covered.getAddress() : null;
+      } catch {
+        locality = null;
+      }
+    }
+  }
+
+  return { locality, groups: [...groups] };
+}
+
+/**
  * Map a fired reaction into a renown signal row and append it. The RAW
- * emote + tags are stored verbatim (scored only at recompute). Scope is
- * stubbed `{ locality: null, groups: [] }` here; Phase 4 resolves the
- * locality + shared Groups at ingestion. `at` defaults to the game-time
- * witness inside {@link appendImpl}.
+ * emote + tags are stored verbatim (scored only at recompute); the scope
+ * axes are resolved by {@link resolveScope}; `at` defaults to the
+ * game-time witness inside {@link appendImpl}.
  */
 async function appendFromReaction(p: ReactionFiredPayload): Promise<void> {
+  const { locality, groups } = await resolveScope(p);
   await appendImpl({
     subject: p.subjectId,
     source: p.reactorId,
@@ -80,8 +138,8 @@ async function appendFromReaction(p: ReactionFiredPayload): Promise<void> {
       commandId: p.commandId,
       ...(p.customText !== undefined ? { customText: p.customText } : {}),
     },
-    locality: null,
-    groups: [],
+    locality,
+    groups,
   });
 }
 

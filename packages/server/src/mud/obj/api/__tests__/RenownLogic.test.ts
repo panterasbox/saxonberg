@@ -36,8 +36,10 @@ async function makeRegistry(): Promise<void> {
 }
 
 async function flush(): Promise<void> {
-  await Promise.resolve();
-  await Promise.resolve();
+  // The tap handler is fire-and-forget and now awaits scope resolution
+  // (group + locality lookups), so settle past the macrotask boundary.
+  await new Promise((r) => setTimeout(r, 0));
+  await new Promise((r) => setTimeout(r, 0));
 }
 
 function fireReaction(over: Partial<ConstructorParameters<typeof ReactionFiredEvent>[0]> = {}): void {
