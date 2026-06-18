@@ -37,6 +37,7 @@ export const Mixins = {
   Aether: 'AetherMixin',
   AetherHosted: 'AetherHostedMixin',
   Comms: 'CommsMixin',
+  Forums: 'ForumsMixin',
   Perceptible: 'PerceptibleMixin',
   Detailed: 'DetailedMixin',
   Propertied: 'PropertiedMixin',

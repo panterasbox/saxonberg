@@ -638,6 +638,22 @@ export class PersistenceManager {
         parentSubject: 1,
       });
 
+      // Forum boards: resolved board-by-subject (a Subject's
+      // popularity-forum manifestation points at the Board, and the
+      // reverse "board for this subject" read is owner-scoped).
+      await this.getCollection(Collections.ForumBoards).createIndex({
+        subject: 1,
+      });
+
+      // Forum entries: the reply tree. `board` scopes a board's threads;
+      // `parent` scopes a thread's posts (null = thread roots).
+      await this.getCollection(Collections.ForumEntries).createIndex({
+        board: 1,
+      });
+      await this.getCollection(Collections.ForumEntries).createIndex({
+        parent: 1,
+      });
+
       console.info('PersistenceManager: Indexes created successfully');
     } catch (error) {
       console.error('PersistenceManager: Error creating indexes:', error);

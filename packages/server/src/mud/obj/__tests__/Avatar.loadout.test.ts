@@ -15,6 +15,7 @@ import BodyPlan from "../../lib/species/BodyPlan";
 import AetherImplant from "../../lib/augmentation/AetherImplant";
 import CommsUpdate from "../../lib/comms/CommsUpdate";
 import TravelCredentialUpdate from "../../lib/fasttravel/TravelCredentialUpdate";
+import ForumsUpdate from "../../lib/forum/ForumsUpdate";
 import { StuffApi } from "../../api/stuff";
 import { SpeciesApi } from "../../api/species";
 import { MixinApi } from "../../api/mixin";
@@ -22,6 +23,7 @@ import { ContainmentApi } from "../../api/containment";
 import type { AetherHost } from "../../lib/message/Aether";
 import type { Comms } from "../../lib/comms/Comms";
 import type { TravelCredential } from "../../lib/fasttravel/TravelCredential";
+import type { Forums } from "../../lib/forum/Forums";
 import {
   makeStuff,
   stampTemplatePathForTest,
@@ -81,6 +83,12 @@ function hostedCredentials(avatar: Avatar): (Stuff & TravelCredential)[] {
   );
 }
 
+function hostedForums(avatar: Avatar): (Stuff & Forums)[] {
+  return hostedUpdates(avatar).filter((u): u is Stuff & Forums =>
+    MixinApi.isForums(u),
+  );
+}
+
 describe("Avatar.installDefaultLoadout", () => {
   beforeEach(() => {
     vi.spyOn(SpeciesApi, "preloadAnatomy").mockResolvedValue(undefined);
@@ -95,6 +103,9 @@ describe("Avatar.installDefaultLoadout", () => {
         }
         if (path === TravelCredentialUpdate.TEMPLATE_PATH) {
           return makeStuff(() => new TravelCredentialUpdate());
+        }
+        if (path === ForumsUpdate.TEMPLATE_PATH) {
+          return makeStuff(() => new ForumsUpdate());
         }
         throw new Error(`unexpected clone: ${path}`);
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -116,6 +127,7 @@ describe("Avatar.installDefaultLoadout", () => {
     );
     expect(hostedComms(avatar)).toHaveLength(1);
     expect(hostedCredentials(avatar)).toHaveLength(1);
+    expect(hostedForums(avatar)).toHaveLength(1);
   });
 
   it("born-attuned species: skips the implant but still hosts both updates", async () => {
@@ -128,6 +140,7 @@ describe("Avatar.installDefaultLoadout", () => {
     expect(avatar.getOccupants("cranial").size).toBe(0); // no implant
     expect(hostedComms(avatar)).toHaveLength(1);
     expect(hostedCredentials(avatar)).toHaveLength(1);
+    expect(hostedForums(avatar)).toHaveLength(1);
   });
 
   it("the hosted comms update is reachable for dm dispatch", async () => {
@@ -141,12 +154,32 @@ describe("Avatar.installDefaultLoadout", () => {
     expect(comms).not.toBeNull();
   });
 
+  it("the hosted forum update is reachable for forum dispatch; absent when never loaded", async () => {
+    const avatar = makeAvatarOfSpecies(["AetherMixin"]);
+    // Before the loadout runs, no forum update is reachable.
+    const before = ContainmentApi.findReachable(
+      avatar as unknown as Stuff,
+      null,
+      (s: Stuff): s is Stuff & Forums => MixinApi.isForums(s),
+    );
+    expect(before).toBeNull();
+
+    await runLoadout(avatar);
+    const after = ContainmentApi.findReachable(
+      avatar as unknown as Stuff,
+      null,
+      (s: Stuff): s is Stuff & Forums => MixinApi.isForums(s),
+    );
+    expect(after).not.toBeNull();
+  });
+
   it("is idempotent on re-entry (keyed on already-hosts-comms)", async () => {
     const avatar = makeAvatarOfSpecies([]);
     await runLoadout(avatar);
     await runLoadout(avatar);
     expect(hostedComms(avatar)).toHaveLength(1);
     expect(hostedCredentials(avatar)).toHaveLength(1);
+    expect(hostedForums(avatar)).toHaveLength(1);
   });
 
   it("the implant no longer composes TravelCredentialMixin", () => {

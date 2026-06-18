@@ -190,16 +190,11 @@ export class SubjectLogic extends Idea {
 // Helpers (module-private, off-class, not part of the public surface).
 // ---------------------------------------------------------------------------
 
-let catalogueRef: SubjectCatalogue | null = null;
-
+// No module-level memo: the registry lookup is a cheap sync map hit, and
+// memoizing would pin a stale catalogue across an HMR reseed (and break
+// test isolation, where each case registers a fresh singleton).
 async function requireCatalogue(): Promise<SubjectCatalogue> {
-  if (catalogueRef) return catalogueRef;
   const cat = StuffApi.findByTemplatePath<SubjectCatalogue>(CATALOGUE_PATH);
-  if (cat) {
-    catalogueRef = cat;
-    return cat;
-  }
-  const lazy = await StuffApi.singleton<SubjectCatalogue>(CATALOGUE_PATH);
-  catalogueRef = lazy;
-  return lazy;
+  if (cat) return cat;
+  return StuffApi.singleton<SubjectCatalogue>(CATALOGUE_PATH);
 }

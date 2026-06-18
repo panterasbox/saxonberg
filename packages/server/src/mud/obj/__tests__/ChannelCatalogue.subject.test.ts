@@ -206,10 +206,10 @@ describe('ChannelCatalogue subscription (per-subject mapping + migration)', () =
 
     // Seed a legacy per-channel subscription (muted, tuned out).
     const channelId = channel._id ?? channel.name;
-    av.setProp(Property.of<PropValue>(`chat.subscription.${channelId}`), {
-      tunedIn: false,
-      muted: true,
-    } as unknown as PropValue);
+    (av as unknown as FakeAvatar).setProp(
+      Property.of<PropValue>(`chat.subscription.${channelId}`),
+      { tunedIn: false, muted: true } as unknown as PropValue,
+    );
 
     // First read migrates it onto the per-subject store.
     const sub = channels.getSubscription(av, channel);

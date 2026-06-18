@@ -1,0 +1,149 @@
+/**
+ * ForumsApi end-to-end (Wave 1): the board substrate through the gated
+ * facade + the Subject layer.
+ *
+ *   - `makeForum` mints a Subject + a popularity Board (the subject lights
+ *     up its `popularity-forum` manifestation).
+ *   - a thread + replies form a reply-tree; `readBoard` / `readThread`
+ *     return them.
+ *   - `promoteThread` mints a board-scoped thread-subject (addressable by
+ *     `board/thread`) inheriting the parent's audience binding.
+ *
+ * Mongo is faked in-memory; the SubjectCatalogue singleton is registered
+ * at its templatePath; players are treated as non-avatars (author =
+ * stuffId) to skip the PlayerLogic dependency. Open subjects avoid the
+ * group machinery.
+ */
+
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { ForumsApi } from '../forums';
+import SubjectCatalogue from '../../obj/SubjectCatalogue';
+import { SubjectApi } from '../subject';
+import { Idea } from '../../lib/stuff/Idea';
+import {
+  makeStuff,
+  makeStuffAtPath,
+} from '../../lib/security/__tests__/test-setup';
+import { PersistenceManager } from '../../../backend/PersistenceManager';
+import { StuffApi } from '../stuff';
+import { PlayerApi } from '../player';
+import type { Stuff } from '../../lib/stuff/Stuff';
+
+let store: Map<string, Map<string, Record<string, unknown>>>;
+let idCounter = 0;
+
+function col(name: string): Map<string, Record<string, unknown>> {
+  let c = store.get(name);
+  if (!c) {
+    c = new Map();
+    store.set(name, c);
+  }
+  return c;
+}
+
+class Actor extends Idea {}
+function makeActor(): Stuff {
+  return makeStuff(() => new Actor());
+}
+
+beforeEach(() => {
+  StuffApi.clearAll();
+  store = new Map();
+  idCounter = 0;
+  const pm = PersistenceManager.get();
+  vi.spyOn(pm, 'isConnected').mockReturnValue(true);
+  vi.spyOn(pm, 'save').mockImplementation(
+    async (c: string, doc: Record<string, unknown>) => {
+      const id = (doc._id as string | undefined) ?? `id-${idCounter++}`;
+      col(c).set(id, { ...doc, _id: id });
+      return id;
+    }
+  );
+  vi.spyOn(pm, 'find').mockImplementation(
+    async (c: string, query: Record<string, unknown>) =>
+      [...col(c).values()].filter((d) =>
+        Object.entries(query).every(([k, v]) => d[k] === v)
+      ) as never
+  );
+  vi.spyOn(pm, 'findById').mockImplementation(
+    async (c: string, id: string) => (col(c).get(id) ?? null) as never
+  );
+  // Treat actors as non-avatars: author / owner resolve to stuffId.
+  vi.spyOn(PlayerApi, 'isAvatarStuff').mockReturnValue(false as never);
+  // Register the SubjectCatalogue singleton the logic chain resolves.
+  makeStuffAtPath(() => new SubjectCatalogue(), '/obj/SubjectCatalogue');
+});
+
+afterEach(() => {
+  vi.restoreAllMocks();
+  StuffApi.clearAll();
+});
+
+describe('ForumsApi.makeForum', () => {
+  it('mints a Subject + popularity Board and lights the manifestation', async () => {
+    const creator = makeActor();
+    const { board, subject } = await ForumsApi.makeForum(creator, 'Gossip', {
+      open: true,
+    });
+    expect(board.getOrganizer()).toBe('popularity');
+    expect(board.getSubject()).toBe(subject._id);
+    expect(subject.hasManifestation('popularity-forum')).toBe(true);
+    expect(subject.manifestationRef('popularity-forum')).toBe(board._id);
+
+    // Resolvable by its flat handle.
+    const view = await ForumsApi.resolveBoardByHandle('GOSSIP');
+    expect(view?.board._id).toBe(board._id);
+  });
+});
+
+describe('ForumsApi threads + replies', () => {
+  it('builds a reply tree readable via readBoard / readThread', async () => {
+    const creator = makeActor();
+    const { board } = await ForumsApi.makeForum(creator, 'Gossip', {
+      open: true,
+    });
+    const thread = await ForumsApi.postThread(
+      creator,
+      board,
+      'Best soup?',
+      'What is the best soup?'
+    );
+    const reply = await ForumsApi.reply(creator, thread, 'Tomato, obviously.');
+
+    const threads = await ForumsApi.readBoard(board);
+    expect(threads).toHaveLength(1);
+    expect(threads[0]!.getTitle()).toBe('Best soup?');
+
+    const { root, posts } = await ForumsApi.readThread(thread);
+    expect(root._id).toBe(thread._id);
+    expect(posts).toHaveLength(1);
+    expect(posts[0]!._id).toBe(reply._id);
+  });
+});
+
+describe('ForumsApi.promoteThread', () => {
+  it('mints a board-scoped thread-subject inheriting the parent binding', async () => {
+    const creator = makeActor();
+    const { board, subject } = await ForumsApi.makeForum(creator, 'Gossip', {
+      open: true,
+    });
+    const thread = await ForumsApi.postThread(creator, board, 'Best soup?', 'body');
+
+    const threadSubject = await ForumsApi.promoteThread(
+      creator,
+      thread,
+      'best-soup'
+    );
+    expect(threadSubject.getGrain()).toBe('topic');
+    expect(threadSubject.getTitle()).toBe('Gossip/best-soup');
+    expect(threadSubject.getParentSubject()).toBe(subject._id);
+    // Inherits the parent's (open) audience binding.
+    expect(threadSubject.isOpen()).toBe(true);
+
+    // The thread now carries its thread-subject; addressable board-scoped.
+    const reloaded = await ForumsApi.getEntry(thread._id!);
+    expect(reloaded!.getSubject()).toBe(threadSubject._id);
+    const byHandle = await SubjectApi.resolveBoardScoped('Gossip', 'best-soup');
+    expect(byHandle?._id).toBe(threadSubject._id);
+  });
+});

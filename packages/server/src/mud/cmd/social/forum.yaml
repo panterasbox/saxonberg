@@ -1,0 +1,103 @@
+verbs: [forum]
+controller: social/ForumController
+description: "Read and post on forum boards (list / make / on / post / reply / read / promote / follow)"
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresVerbalESP
+fallthrough: true
+subcommands:
+  list:
+    description: "List boards visible to you"
+  make:
+    description: "Create a subject + popularity board (you become the owner)"
+    options:
+      open:
+        type: boolean
+        field: open
+        description: "Leave the audience open to every player"
+      group:
+        short: g
+        type: string
+        field: group
+        description: "Bind an existing guild:/mql:/contacts:/managed: ref"
+      argument:
+        type: boolean
+        field: argument
+        description: "Use the argument (structure) organizer (deferred; reserved)"
+    args:
+      - name: name
+        type: string
+        required: true
+      - name: description
+        type: string
+        required: false
+        greedy: true
+  on:
+    description: "Attach a popularity board to an existing subject you own"
+    options:
+      argument:
+        type: boolean
+        field: argument
+        description: "Use the argument (structure) organizer (deferred; reserved)"
+    args:
+      - name: name
+        type: string
+        required: true
+  post:
+    description: "Start a thread on a board"
+    options:
+      title:
+        short: t
+        type: string
+        field: title
+        description: "Thread title (otherwise derived from the body)"
+    args:
+      - name: board
+        type: string
+        required: true
+      - name: body
+        type: string
+        required: true
+        greedy: true
+  reply:
+    description: "Reply to a thread or post by its id"
+    args:
+      - name: entry
+        type: string
+        required: true
+      - name: body
+        type: string
+        required: true
+        greedy: true
+  read:
+    description: "Read a board's thread-list, or a thread's tree"
+    args:
+      - name: board
+        type: string
+        required: true
+      - name: thread
+        type: string
+        required: false
+  promote:
+    description: "Promote a thread into a thread-subject with its own chat"
+    args:
+      - name: board
+        type: string
+        required: true
+      - name: thread
+        type: string
+        required: true
+      - name: name
+        type: string
+        required: true
+  follow:
+    description: "Follow a subject (tunes you into all its lit surfaces)"
+    args:
+      - name: name
+        type: string
+        required: true
+args:
+  # Fallthrough: `forum <board>` with no subcommand reads the board.
+  - name: board
+    type: string
+    required: true

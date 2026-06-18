@@ -26,6 +26,7 @@ import { SpeciesApi } from "../api/species";
 import AetherImplant from "../lib/augmentation/AetherImplant";
 import CommsUpdate from "../lib/comms/CommsUpdate";
 import TravelCredentialUpdate from "../lib/fasttravel/TravelCredentialUpdate";
+import ForumsUpdate from "../lib/forum/ForumsUpdate";
 import { MessageApi } from "../api/message";
 import { Mml } from "../api/mml";
 import { ScheduleApi, type ScheduleHandle } from "../api/schedule";
@@ -530,6 +531,10 @@ export default class Avatar extends AvatarBase {
         TravelCredentialUpdate.TEMPLATE_PATH,
       );
       this.hostUpdate(cred);
+      const forums = await StuffApi.clone<ForumsUpdate>(
+        ForumsUpdate.TEMPLATE_PATH,
+      );
+      this.hostUpdate(forums);
     } catch (err) {
       console.warn(
         `Avatar.installDefaultLoadout skipped for ${this.stuffId}:`,
