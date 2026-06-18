@@ -303,7 +303,7 @@ Subject "Gossip"  (standing; ref: open/all)
 | **Chat `logged` retention + `chat_log` collection** | **new** (chat extension) |
 | Reactions on entries | **reused** (reactions) |
 | **Writes: command string + structured body side-channel** | existing `command` inbound + optional `fields` payload (no string-less path) |
-| **Reads: subscription engine** (listens on `EventApi`) | **new** (extracted from MQL-sub; shared platform — forums/wiki/CMS) |
+| **Reads: forum document-change observer** (listens on `EventApi`) | **new** (forum-scoped; MQL-sub's pattern, none of its code; MQL untouched) |
 | **`forum_events` append-only log** (durable twin: audit + archive) | **new** (forum-owned; `chronicle` pattern) |
 | **`ForumEventFired` live notify** | **reused bus** (`EventApi`; new event class) |
 | Bus primacy / validators / response envelope | **reused** (command dispatch chain) |
@@ -362,23 +362,25 @@ it with a string-less dispatch path.
   `enroll species elf` string-building is the **intended** pattern, not a hack —
   only its free-text fields would ever use the side-channel.
 
-### Reads — a generic subscription *engine*, fed by a dedicated event *log*
+### Reads — a forum document-change observer, fed by a dedicated event *log*
 
-Forum content is Document-backed and tree/graph-shaped; the live MQL
-subscription is **Stuff-only**. The reactive-read path splits into **two
-layers** so the reusable part and the forum-specific part don't fight:
-
-- **The engine (generic, shared).** Extract the MQL-subscription machinery
-  (per-Interactive registry, batched re-resolve, snapshot + delta wire, client
-  store) into a reusable **subscription engine** that **forums, wiki, and CMS
-  all share**. Platform infra — should graduate to its own
-  `docs/subsystems/` doc; [wiki](./wiki-slate.md) + [cms](./cms-slate.md) are
-  downstream consumers that bind it rather than each rolling their own.
-- **The trigger (the in-process `EventApi` bus).** The engine does **not**
+Forum content is Document-backed; the live MQL subscription is **Stuff-only**
+(it observes the world-tree, a *different* domain). Forums need a
+**document-change observer** — `ForumSubscriptionRegistry`. It is its own
+thing: it shares only the **observer pattern** with MQL-sub, **none of its
+code**, and **MQL-sub is not touched**. (*Latent abstraction, deliberately
+deferred:* there's a generic "observe a Mongo collection for changes" layer to
+be had — forums is instance #1 and likely not the only future watcher — but we
+don't build the generic version now, with no second consumer to shape the seam;
+the forum instance is kept clean to seed it later. This is **not** a generalized
+MQL engine and **not** a shared forums/wiki/CMS engine — CMS/wiki are
+request-response authoring/reference, *not* live subscribers.)
+- **The trigger (the in-process `EventApi` bus).** The observer does **not**
   detect change by instrumenting every Document setter, **nor by tailing
   Mongo**. A mutation **fires a transient `ForumEventFired` on `EventApi`** and
-  the engine listens (`EventApi.on`) — exactly how `fireFieldChange` →
-  `EventApi.fire` drives MQL-sub today. Forum event kinds: `post-created`,
+  the observer listens (`EventApi.on`) — the same shape by which
+  `fireFieldChange` → `EventApi.fire` drives MQL-sub (a *parallel* observer,
+  not a shared one). Forum event kinds: `post-created`,
   `vote-cast`, `claim-attached`, `thread-locked`, ….
 - **The durable twin (`forum_events`).** The *same* mutation also **appends a
   faithful row** to the append-only **`forum_events`** collection. This is the
@@ -505,14 +507,13 @@ Both source slates get a one-line supersession pointer at their top; their
   Branch `feature/forums-build` off `origin/master`. The `organizer` field and
   the typed-edge storage ship from day 1 (so structure boards are a later
   *organizer*, not a later *schema migration*).
-- **Shared pieces land in cycle 1 but serve more than forums:** the **generic
-  subscription engine** (the big one — shared by wiki + CMS) and the **generic
-  body side-channel** (any verb may declare a body-typed arg filled by the
-  `command` payload's optional `fields` — benefits wiki/CMS post-like surfaces;
-  command strings stay canonical, no string-less path). The **`forum_events`
-  log** is forum-owned (chronicle-shaped) but each Document subsystem will own a
-  sibling. Size cycle 1 accordingly — the subscription engine may want its own
-  sub-plan / subsystem doc.
+- **One genuinely-generic piece lands in cycle 1:** the **body side-channel**
+  (any verb may declare a body-typed arg filled by the `command` payload's
+  optional `fields` — benefits any post-like surface; command strings stay
+  canonical, no string-less path). The **forum document-change observer** and
+  the **`forum_events` log** are **forum-scoped**, not shared infra (the
+  "generic collection-watch" abstraction is acknowledged but deferred — no
+  second consumer yet; CMS/wiki are request-response, not live subscribers).
 - **Cycle 2+ (deferred):** the structure organizer's small-scale slice
   (per argument-map-slate § *Buildable now*), then its scale machinery.
 
@@ -530,12 +531,13 @@ debate is **unified** per body. The chat **`procedure`** mode
 (`free` / `rules-of-order`) is a parked surface policy (design deferred). The
 **client architecture** is settled: GUI + CLI co-equal clients; **writes** via
 canonical **command strings** + an optional structured **body side-channel**
-(`{text, fields}`; no string-less path); **reads** via a generic
-**subscription engine** (extracted from MQL-subscription, shared with wiki/CMS)
-that **listens on the in-process `EventApi` bus** and re-resolves current-state
-docs, fed by a forum-owned append-only **`forum_events` log** (chronicle-shaped
-— the durable audit trail + archive, not the live feed; CRUD
-docs stay the source of truth, dual-write); **notify** via aether frames.
+(`{text, fields}`; no string-less path); **reads** via a **forum-scoped
+document-change observer** (`ForumSubscriptionRegistry` — MQL-sub's pattern,
+none of its code, MQL untouched; a generic collection-watch abstraction is
+acknowledged but deferred) that **listens on the in-process `EventApi` bus** and
+re-resolves current-state docs, fed by a forum-owned append-only **`forum_events`
+log** (chronicle-shaped — the durable audit trail + archive, not the live feed;
+CRUD docs stay the source of truth, dual-write); **notify** via aether frames.
 
 - **Subscription query/pagination model** — the Document-subscription
   substrate must serve both *live deltas on a viewed set* and *navigate /

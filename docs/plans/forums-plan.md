@@ -8,16 +8,17 @@ Post`) with a per-board `organizer` axis, cycle 1 building `organizer:
 `Subject` Document layer *between* a surface and its `GroupRef` audience and
 retrofits chat onto it (chat's `owner`+`groupRef` move up to the Subject).
 Waves 1–4 add the forum board substrate, the append-only `forum_events` log
-with persist-then-fire, the extracted generic subscription engine + command
-body side-channel, and the React GUI. Three invariants thread every wave and
+with persist-then-fire, the forum-specific document-change subscription +
+command body side-channel, and the React GUI. Three invariants thread every wave and
 must never be violated: **persist-then-fire** (a mutation appends the durable
 `forum_events` row *and* fires a transient `ForumEventFired` on `EventApi` as
 independent siblings — neither causes the other; `Document.save()` is silent
 and `EventApi.fire` persists nothing), **no string-less dispatch path** (the
 client `{type:'command', payload:{text, fields?}}` always carries a real
 command string; `assembleFromStructured`'s string-less mode stays internal),
-and **no MQL-subscription regression** (the engine extraction must keep MQL-sub
-+ the inspection pane working unchanged).
+and **no MQL-subscription regression** (the forum observer is a *separate*
+registry sharing no code with `MqlSubscriptionRegistry` and never touching it —
+so MQL-sub + the inspection pane stay unchanged *structurally*, not by care).
 
 A note on naming the new subsystem: per the constraints, `Subject` + `Board` +
 `Entry` + `ForumsMixin` + `ForumsUpdate` live in a **new `lib/forum/`
@@ -171,8 +172,8 @@ thread promotion (board-scoped thread-subject + its own chat).
   (Wave 2) `vote` + sort selectors. `forum make`/`forum on <subject>` default to
   the **popularity** organizer; `--argument` selects the structure organizer
   (reserved/deferred — flag ships, behavior doesn't). `fallthrough: true`.
-  `post`/`reply` declare a body-typed arg (greedy text in CLI; Wave 3 lights up
-  the `fields` side-channel).
+  `post`/`reply` take a greedy markdown **body** field (string in CLI; Wave 3
+  adds the `fields` channel + the `compose` prompt for it).
 - **Modify** `obj/Avatar.ts` (~line 524, default loadout) — after
   `hostUpdate(comms)` + `hostUpdate(cred)`, clone a `ForumsUpdate` and
   `this.hostUpdate(forums)`. Extend the idempotency guard so a re-run doesn't
@@ -193,8 +194,8 @@ fires; a holder is reached via `ContainmentApi.findReachable(actor, null,
 MixinApi.isForums)` (the `DmController` pattern). Board→Thread→Post: a Thread
 is a root `Entry` (`parent: null`); a Post is a child `Entry` with `relation:
 'reply'` (strict tree for popularity). Every Board belongs to a Subject;
-`forum make` is sugar (subject-make + board light-up + a `{kind:'board'}`
-manifestation). **Thread promotion**: `forum <board> promote <thread>` mints a
+`forum make` is sugar (subject-make + board light-up + a
+`{surface:'popularity-forum'}` manifestation). **Thread promotion**: `forum <board> promote <thread>` mints a
 thread-subject (board-scoped handle `board/thread`, `parentSubject` = the
 board's subject), stamps `Entry.subject`, and `chat on <thread>` lights its
 thread-scoped chat — the `promoteAdHocToManaged` precedent. All mutations route
@@ -298,35 +299,42 @@ aggregate + auto-upvote + sorts + anti-snowball gate all pass;
 
 ---
 
-## Wave 3 — subscription engine + command body side-channel
+## Wave 3 — forum document-change subscription + command body side-channel
 
-**Goal.** Extract/generalize the MQL-subscription machinery into a reusable
-Document subscription engine that listens on `EventApi` and re-resolves
-current-state docs (NOT a Mongo tail; MUST NOT regress MQL-sub/inspection-pane).
-Light up the command **body side-channel** (`{text, fields}` → fill YAML
-body-typed args; no string-less path).
+**Goal.** Build a **forum-specific document-change observer**
+(`ForumSubscriptionRegistry`) that listens on `EventApi(ForumEventFired)` and
+re-resolves current-state docs → diff → delta (NOT a Mongo tail). It is
+conceptually distinct from MQL-subscription (which observes the Stuff
+world-tree); they share only the observer *pattern* — **no code coupling, and
+`MqlSubscriptionRegistry` is not touched** (so the no-regression constraint is
+trivially met). A generic "watch a collection for changes" abstraction is
+**latent and deliberately deferred** (no second consumer yet; see Risks). Also
+light up the command **body side-channel** (`{text, fields}` → fill the
+designated `payload`/body fields; no string-less path) + the **`compose`
+prompt**.
 
 **Files.**
 
-- **Create** `obj/DocSubscriptionRegistry.ts` (singleton `Idea`, the
-  generalized sibling of `MqlSubscriptionRegistry`). Holds the per-Interactive
-  registry, the three-level dependency index (`KIND → by → value → Set<state>`),
-  the refcounted `EventApi.on` listener table, the `setImmediate`-batched dirty
-  queue + `reresolveAndEmit` — lifted from `MqlSubscriptionRegistry` but
-  parameterized over a **resolver** (re-resolve a Document set given the
-  subscription's scope) and a **projector** (Document → wire record) instead of
-  MQL/Stuff-specific `MqlApi.resolveOne/Many` + `projectStuffInto`. Forums
-  register a resolver that re-reads the current-state `Board`/`Entry` docs (the
-  subscription scope = a board's thread-list or a thread's post-tree) and
-  projects them with the denormalized vote aggregate + `displayScoreFor`.
-- **Create** `api/doc-subscription.ts` (`DocSubscriptionApi`, self-decorates) +
-  `obj/api/DocSubscriptionLogic.ts` (HMR-able at `/obj/api/doc-subscription`),
-  mirroring the `MqlSubscriptionApi`/`MqlSubscriptionLogic`/registry three-tier
+- **Create** `obj/ForumSubscriptionRegistry.ts` (singleton `Idea`,
+  **forum-scoped**). Holds the per-Interactive registry, a dependency index
+  (`board`/`thread`/`entry`/`subject` → `Set<state>`), the refcounted
+  `EventApi.on(ForumEventFired)` listener, the `setImmediate`-batched dirty
+  queue + a `reresolveAndEmit` that re-reads the current-state `Board`/`Entry`
+  docs for the subscription scope (a board's thread-list or a thread's
+  post-tree) and projects them with the denormalized vote aggregate +
+  `displayScoreFor`. It is **informed by `MqlSubscriptionRegistry`'s pattern but
+  shares no code** with it (MQL observes the world-tree; this observes
+  Documents). A genuinely-pure helper (a keyed-set **diff** `(old, new, keyFn,
+  eqFn) → ops`) may be a standalone util if it falls out cleanly, but it is
+  **not** "MQL's diff" — just a generic function.
+- **Create** `api/forum-subscription.ts` (`ForumSubscriptionApi`,
+  self-decorates) + `obj/api/ForumSubscriptionLogic.ts` (HMR-able at
+  `/obj/api/forum-subscription`), the standard Api/Logic/registry three-tier
   split.
 - **Modify** `backend/inbound/index.ts` + add
   `backend/inbound/forumSubscription.ts` — register
   `forum-subscribe`/`forum-unsubscribe` inbound handlers calling
-  `DocSubscriptionApi`.
+  `ForumSubscriptionApi`.
 - **Wire** the engine listener: `ensureListener` subscribes via
   `EventApi.on(ForumEventFired, …)`; `routeFire` reads `board`/`thread`/`entry`
   keys off the payload, marks matching subscriptions dirty, `drainDirty`
@@ -335,29 +343,50 @@ body-typed args; no string-less path).
   `{type:'command', payload:{text, fields?}}` and thread it into
   `executeCommand` as `ExecuteCommandOpts.bodyFields`.
 - **Modify** `lib/command/CommandGiver.ts` (`executeCommand`) — after the parser
-  produces `parsed` (the normal string path), if `opts.bodyFields` is present,
-  overlay them onto the bound model's body-typed args before resolve/validate:
-  parse `text` normally → bind → overlay `fields` only onto YAML args declared
-  body-typed → run the **same** resolve → validate → controller → envelope
-  chain. This reuses the *internal* `assembleFromStructured` coercion (field-name
-  legality + coercion) for the *overlay only* — the string is always parsed
-  first; the string-less mode is never exposed as a client inbound.
-- **Modify** `cmd/social/forum.yaml` — mark `post`/`reply`/`edit` body args as
-  body-typed (a `body: true` flag) so the side-channel knows which args `fields`
-  may fill.
+  produces `parsed` (the normal string path), if `opts.bodyFields` is present
+  call `overlayBodyFields(model, fields, command)` (below) before
+  `resolveModel`: parse `text` normally → bind → overlay `fields` **only onto
+  the command's `payload`/designated body fields** → run the **same** resolve →
+  validate → controller → envelope chain. The string is always parsed first;
+  `assembleFromStructured`'s string-less mode is never exposed as a client
+  inbound.
+- **No command-spec schema change** — the **`payload:` block** + **`struct`
+  type already exist** (precedent: `write.yaml` ships `payload: {data: struct,
+  body: string}`, consumed by `WriteController`). Structured-only fields go in
+  the `payload:` block (filled via `fields`, never text-sourced). The forum post
+  **body** is a single **dual-source** field: greedy **markdown** on the command
+  string (CLI / scripting / quick) *or* the structured `fields` channel (GUI)
+  *or* the `compose` prompt (interactive). It is stored as **MML**
+  (`Mml.markdownToMml` server-side; `MmlRenderer` displays).
+- **Add** `CommandLogic.overlayBodyFields(model, fields, command)` (co-located
+  with the private `coerceStructuredValue` it reuses) — overlays `fields` onto
+  the bound model **restricted to the command's `payload`/designated body fields
+  only** (`command.payload` keys are a cleanly-separated set; positionals +
+  options stay string-sourced). This is the structural narrowness: `fields`
+  *cannot* reach selectors/flags. Called from `CommandGiver.executeCommand`
+  after the bound model, before `resolveModel`. Tiebreak when both greedy-inline
+  and `fields` supply the body: pick one (lean `fields` wins / exactly one).
+- **Add a `compose` PromptApi kind** — `PromptApi.compose(iact, label, opts?)`
+  (server, ~the existing `text` method) + a `ComposePromptNote` wire type in
+  `packages/types`. The interactive body-input prompt; the command prompts for
+  the body when it isn't supplied inline. *Shared capability* (forums first;
+  CMS/wiki later), not forum-only.
+- **Modify** `cmd/social/forum.yaml` — `post`/`reply` body = a greedy markdown
+  field (string-sourceable) also fillable via `fields`; declare a `payload:`
+  block only if structured-only extras are added.
 
-**Approach.** The engine is the `MqlSubscriptionRegistry` pattern generalized:
-it **listens on the in-process `EventApi` bus** (`EventApi.on(ForumEventFired)`),
-routes via the dependency index, batches on `setImmediate`, and **re-resolves
-current-state docs** to diff → delta. It does **not** tail `forum_events` (the
-durable twin, read only for history/audit). Because `MqlSubscriptionRegistry`
-is left untouched and the new `DocSubscriptionRegistry` is a parallel singleton,
-**MQL-sub + the inspection pane are not regressed** — the extraction is by
-parameterization of a copy, not by mutating the existing registry (a later
-refactor can collapse the two once both are proven; cycle 1 does not). The
-persist-then-fire invariant is what makes the live delta correct: the engine
-only ever re-reads committed CRUD docs, so a delta can never reflect an event
-whose row hasn't landed. The **body side-channel** keeps the command string
+**Approach.** `ForumSubscriptionRegistry` is a **document-change observer**, its
+own thing — *not* a generalization of MQL-sub. It **listens on the in-process
+`EventApi` bus** (`EventApi.on(ForumEventFired)`), routes via the dependency
+index, batches on `setImmediate`, and **re-resolves current-state docs** to
+diff → delta. It does **not** tail `forum_events` (the durable twin, read only
+for history/audit). It borrows MQL-sub's *pattern* (observer + dirty-batch +
+diff) but **shares no code** and **does not touch `MqlSubscriptionRegistry`** —
+which is what makes MQL-sub / inspection-pane regression structurally
+impossible (they're independent observers over different data; the only overlap
+is the observer pattern itself). The persist-then-fire invariant is what makes
+the live delta correct: the registry only ever re-reads committed CRUD docs, so
+a delta can never reflect an event whose row hasn't landed. The **body side-channel** keeps the command string
 canonical: `text` is always present and parsed; `fields` fills only
 YAML-designated body args, overlaid *after* the parse; the dispatcher runs the
 identical validate → controller → envelope chain. Used sparingly
@@ -375,8 +404,9 @@ identical validate → controller → envelope chain. Used sparingly
 - MQL-sub / inspection-pane tests still pass — assert `MqlSubscriptionRegistry`
   untouched.
 - Body side-channel: a `{text, fields}` command parses the string and overlays
-  `fields` onto body-typed args, running the same validate → controller →
-  envelope chain; a body-bearing verb behaves identically whether the body is
+  `fields` onto the designated `payload`/body fields only, running the same
+  validate → controller → envelope chain; a body-bearing verb behaves
+  identically whether the body is
   inline (CLI) or via `fields` (GUI); no string-less dispatch path is exposed; a
   malformed payload is rejected without bypassing validation.
 
@@ -391,7 +421,7 @@ and rejects malformed payloads; CLI and GUI body paths are behavior-identical.
 **Goal.** The forum is a **primary view inside the in-world cockpit** (a
 `Terminal | Forum` main-area switch — **not** a new `connectionPhase`); Frame +
 CommandBar persist, the right column is view-sensitive, live scene events still
-surface. Board→thread→post-tree rendered live via the subscription engine;
+surface. Board→thread→post-tree rendered live via the forum subscription;
 votes via plain command strings; post/reply via string + body side-channel; the
 nested chat sidecar (subject-path stack).
 
@@ -418,6 +448,15 @@ nested chat sidecar (subject-path stack).
   `BoardList`, `ThreadList`, `PostTree`, `VoteControls`, `ComposeBox`) — browse
   boards → threads → post-trees, sortable by the popularity orderings. Mounts in
   the LeftColumn content slot.
+- **Render the `compose` prompt** in `CommandBar.tsx` — when the active prompt
+  is `kind: 'compose'`, render a **multiline `<textarea>`** (markdown; ⌘/Ctrl+
+  Enter submits, Enter = newline) in the existing prompt slot (the slot's
+  draft-persistence is already generic). Optional cheap win: a **live MML
+  preview** beside it (the client `parseMml`/`MmlRenderer` already exist). Add a
+  stubbed **"open in editor" escalation hook** — wired to the CMS rich editor
+  *when it ships* (SLATED/unbuilt today), so the seam exists but the cycle-1
+  ceiling is textarea + preview. The GUI `ComposeBox` reuses this same compose
+  UI and submits via `fields`.
 - **Create** `packages/client/src/components/ForumChatSidecar.tsx` — the
   contextual chat rail stacking subjects on the current path (board's chat at
   the board; thread's chat when a promoted thread is open, parent still
@@ -483,22 +522,27 @@ stacks subjects on the path.
 ## Finalize (out of band)
 
 At sweep, `docs/subsystems/forums.md` graduates documenting the substrate,
-organizer model, Subject/hierarchy, the event-log + subscription engine, and
-the client channels. The plan + requirements docs retire per the workflow rules.
+organizer model, Subject/hierarchy, the event-log + forum subscription observer,
+and the client channels. The plan + requirements docs retire per the workflow
+rules.
 
 ---
 
 ## Risks / open implementation questions
 
-- **Engine extraction vs. collapse.** Cycle 1 ships `DocSubscriptionRegistry`
-  as a *parallel copy* of `MqlSubscriptionRegistry` parameterized over
-  resolver/projector, deliberately leaving MQL-sub untouched to satisfy the
-  no-regression invariant. This duplicates the dirty-queue/index/listener
-  machinery. A later refactor can collapse the two onto one core; do **not**
-  attempt the collapse in cycle 1 (regression risk). Open: whether the shared
-  core lives in `lib/forum/` or a neutral `lib/subscription/` — recommend a
-  neutral folder if the collapse is foreseen, but parking next to forums is
-  acceptable since wiki/CMS are downstream-not-yet-built.
+- **The latent "watch a collection for changes" abstraction (deferred, on
+  purpose).** `ForumSubscriptionRegistry` is a **document-change observer** —
+  conceptually independent of MQL-sub (which observes the Stuff world-tree); the
+  two share only the observer *pattern*, no code, and MQL-sub is **not touched**.
+  Forums is *instance #1* of a possible generic "observe a Mongo collection for
+  changes" layer, and likely not the only future watcher — but the generic
+  version is **deliberately not built now** (no second consumer yet to shape the
+  seam correctly; speculative generality risks the wrong abstraction). Build
+  forums' instance cleanly (its registry, the re-resolve/diff logic, and a pure
+  keyed-set diff util) so it *can* seed the abstraction later — but it is
+  **not** "a generalized MQL engine" and **not** a shared forums/wiki/CMS engine
+  (CMS/wiki are request-response authoring, not live subscribers). When a second
+  real watcher appears, extract the generic layer from the two concretes then.
 - **`Channel.kind` rename → data migration.** Existing channel docs persist
   `kind: 'player-created' | 'open-join-standalone'`. **Keep those strings** and
   map them to subject types at read, OR add a one-shot `kind` migration in Wave
@@ -508,13 +552,24 @@ the client channels. The plan + requirements docs retire per the workflow rules.
   questions). The engine must serve both live deltas on a viewed set and
   navigate/paginate/lazy-load deep trees. Cycle 1 scopes a subscription to a
   single board's thread-list or a single thread's post-tree; deep-subtree paging
-  is a structured query (`DocSubscriptionApi` query path) and the boundary
+  is a structured query (`ForumSubscriptionApi` query path) and the boundary
   between a live-subscribed window and a paged window needs a concrete cut at
   build time.
-- **Body-typed arg marking.** The YAML needs a `body: true` flag the dispatcher
-  reads to know which args `fields` may fill. Confirm `CommandDefinition`'s
-  field shape can carry it without a parser change; if not, a small
-  `command-spec` extension lands in Wave 3.
+- **Body input (settled — reuses existing machinery, no schema change).** The
+  `payload:` block + `struct` type already exist (precedent `write.yaml`), so
+  structured-only fields need no new schema. The post **body** is a single
+  dual-source field reachable three ways → one MML value: greedy markdown on the
+  command string (CLI/scripting), the structured `fields` channel (GUI), or the
+  new **`compose` prompt** (interactive multiline textarea). `overlayBodyFields`
+  restricts `fields` to `payload`/designated fields (structural "fields can't
+  reach selectors"). The **full editor is SLATED/unbuilt** (CMS) — cycle-1
+  ceiling is textarea + optional live MML preview; an "open in editor" hook is
+  stubbed for when it lands. Open only: the greedy-inline-vs-`fields` tiebreak.
+- **`compose` prompt kind is new (shared capability).** ~200–300 LOC: a
+  `ComposePromptNote` wire type + `PromptApi.compose` (server, ~the `text`
+  method) + a `<textarea>` render path in `CommandBar` (the slot machinery is
+  generic). Serves forums first, then CMS/wiki — scope it as a small platform
+  add, not forum-only.
 - **`ForumEventFired` payload keys.** `routeFire` reads dependency keys off the
   payload (`board`/`thread`/`entry`/`subject`). `record` must populate all four
   on every event so the index routes correctly even for events that nominally
@@ -526,11 +581,10 @@ the client channels. The plan + requirements docs retire per the workflow rules.
   `chat.subscription.<channelId>` keys to `subject.subscription.<subjectId>`.
   Lazy-on-read (idempotent) is safer than one-shot-at-warm (no boot-time write
   storm).
-- **`setImmediate` vs `ScheduleApi`.** The copied engine uses `setImmediate`
-  for dirty-batching, matching `MqlSubscriptionRegistry`'s existing pattern.
-  This follows precedent rather than the `ScheduleApi`-over-bare-timers rule;
-  keep it consistent with the source registry (a divergence here would be a
-  gratuitous difference from the thing being generalized).
+- **`setImmediate` vs `ScheduleApi`.** `ForumSubscriptionRegistry` uses
+  `setImmediate` for dirty-batching, matching `MqlSubscriptionRegistry`'s
+  existing pattern (the sibling observer). This follows precedent rather than
+  the `ScheduleApi`-over-bare-timers rule; keep the two observers consistent.
 
 ## Inter-wave dependencies
 

@@ -4,7 +4,7 @@ The first build of the **forums** subsystem
 ([forums-slate.md](../slates/builds/forums-slate.md)): durable,
 addressable, multi-author boards on the aether implant. Cycle 1 delivers the
 **shared board substrate**, the **popularity organizer**, the **full client**
-(generic subscription engine + a structured body side-channel + React GUI), and
+(a forum document-change subscription + a structured body side-channel + React GUI), and
 **chat↔forum linking** — everything except the *structure* (deliberation /
 argument-map) organizer, which is a later cycle. The governing thesis: one
 board primitive (`Subject → Board → Thread → Post`) with a per-board
@@ -72,19 +72,27 @@ Subject); forums then add a Board surface on top.
   point of exposing it). Input that can't sit on a command line — a multi-line
   post **body**, form fields — rides an **optional structured payload alongside
   the string** (HTTP method+path vs body): the existing `{type:'command',
-  payload:{ text, fields? }}`, where `fields` fills only **YAML-designated
-  body-typed args**. The dispatcher parses `text` normally, overlays the body
+  payload:{ text, fields? }}`, where `fields` fills only the command's
+  **`payload`/designated body fields** (reusing the existing `payload:` block —
+  no schema change). The dispatcher parses `text` normally, overlays those
   fields, then runs the same resolve → validate → controller → envelope chain.
   **Used sparingly** (only body-bearing verbs — post/reply/edit) and **always a
   side channel, never a replacement** — no string-less dispatch path is exposed
   (`assembleFromStructured`'s string-less mode stays an internal helper).
-- **Subscription engine (generic, reusable).** Extract the MQL-subscription
-  machinery (per-Interactive registry, dependency index, `setImmediate` batched
-  re-resolve, snapshot + delta wire, client store) into a reusable
-  **subscription engine** that **listens on the in-process `EventApi` bus**
-  (`EventApi.on(ForumEventFired)`), re-resolves current-state docs, and pushes
-  snapshot + deltas. It does **not** tail Mongo; `forum_events` is the durable
-  twin, not the live feed. Built so wiki/CMS can bind it later.
+- **Forum live-read = a document-change observer (its own thing, not MQL).**
+  A per-viewer reactive read over forum **Document** changes:
+  `ForumSubscriptionRegistry` **listens on the in-process `EventApi` bus**
+  (`EventApi.on(ForumEventFired)`), dirty-batches, re-resolves current-state
+  docs, and pushes snapshot + deltas. This is **conceptually distinct from
+  MQL-subscription** (which observes the Stuff world-tree by re-resolving a
+  query) — they share only the *observer pattern*; **no code coupling, MQL-sub
+  is not touched**. It does **not** tail Mongo; `forum_events` is the durable
+  twin, not the live feed. *Note:* there is a latent generic abstraction here —
+  *observe a Mongo collection for changes* — and forums likely won't be the only
+  watcher; the generic version is **deliberately not built now** (no second
+  consumer yet to shape it), but forums' instance is kept clean so it can seed
+  it later. **Not** a shared forums/wiki/CMS engine (CMS/wiki are
+  request-response authoring/reference, not live subscribers).
 - **React forum GUI — a primary view *inside* the cockpit.** The forum is a
   `Terminal | Forum` main-area view-switch (not a separate phase): the **Frame +
   CommandBar persist**, the **right column swaps** from the inspection pane to
@@ -224,13 +232,19 @@ independent siblings — the write doesn't fire the event (no change-stream;
 Persist-then-fire so no listener observes a live event whose durable row is
 missing. Mirrors the existing `fireFieldChange` → `EventApi.fire` pattern.
 
-### Reads: a subscription engine on the bus (not a Mongo tail)
-The extracted engine **listens on `EventApi`** (`EventApi.on(ForumEventFired)`),
-routes via a dependency index, batches on `setImmediate`, and **re-resolves
-current-state docs** to diff → delta — the `MqlSubscriptionRegistry` pattern. It
-does **not** tail `forum_events` (that's the durable twin, read only for
-history/backfill/audit). Reads = subscription deltas + structured query for
-pagination/lazy subtree. The engine is shared platform infra (wiki/CMS later).
+### Reads: a forum-specific document-change observer (not MQL, not a Mongo tail)
+`ForumSubscriptionRegistry` **listens on `EventApi`**
+(`EventApi.on(ForumEventFired)`), routes via a dependency index, batches on
+`setImmediate`, and **re-resolves current-state docs** to diff → delta. It
+**does not** tail `forum_events` (the durable twin, read only for
+history/backfill/audit). It is a **document-change observer** — conceptually
+independent of MQL-subscription (Stuff world-tree query re-resolve); they share
+only the observer pattern, no code, and **MQL-sub is untouched** (so its
+no-regression constraint is trivially met). Reads = subscription deltas +
+structured query for pagination/lazy subtree. A **generic "watch a collection
+for changes" abstraction** is latent (forums = instance #1; other collections
+may want it) but **not built now** — the forum instance is shaped to seed it.
+**Not** shared with wiki/CMS (request-response authoring, not live subscribers).
 
 ### Writes: command string canonical + a structured body side-channel
 The command **string is the canonical channel** — the GUI builds **real command
@@ -247,6 +261,19 @@ stays an internal/test helper). The CLI supplies body args inline / via prompt;
 the GUI via `fields` — same parsed command either way. (Char-gen's
 `enroll species elf` string-building is the *intended* pattern, not a hack —
 only its free-text fields would ever use the side-channel.)
+
+### Body input: three routes to one MML field
+A post body is **MML** (authored as markdown → `Mml.markdownToMml` server-side →
+stored MML → `MmlRenderer` displays). One body field, reachable three ways: (1)
+greedy **markdown on the command string** (CLI / scripting / quick), (2) the
+structured **`fields`** channel (GUI), (3) a new **`compose` prompt** —
+interactive multiline textarea (markdown; optional live MML preview). Reuses the
+**existing `payload:` block + `struct` type** (precedent `write.yaml`) — *no
+command-spec schema change*; structured-only extras (if any) go in the payload
+block. The **full rich editor is deferred** (the CMS editor is slated/unbuilt) —
+cycle-1 ceiling is textarea + preview, with an "open in editor" escalation hook
+stubbed for when it lands. The `compose` prompt kind is a **shared
+PromptApi/client capability** (forums first; CMS/wiki later), not forum-only.
 
 ### Vote mechanics
 Up/down **toggle** (up → none → down), one row per `(entry, voter)` in
@@ -350,10 +377,14 @@ layer (board-local bans/pins) is aspirational in chat and **not built in v1**.
   `SecurityApi.decorateApiClass`). `ForumsLogic` in `obj/api/ForumsLogic.ts`.
   Verb YAML in `mud/cmd/social/`, controllers in `obj/command/social/`. The
   structured **body side-channel** rides the existing `command` inbound in
-  `backend/inbound/` (an optional `fields` payload overlaid onto body-typed
-  args — *not* a new string-less inbound). The extracted
-  subscription engine generalizes the existing `MqlSubscriptionRegistry`
-  (placement: planner's call — must not regress it).
+  `backend/inbound/` (an optional `fields` payload overlaid onto the designated
+  `payload`/body fields — *not* a new string-less inbound). The post body uses
+  the existing `payload:` block + `struct` type (no command-spec schema change);
+  the `compose` prompt kind is the one new PromptApi/client addition.
+  `ForumSubscriptionRegistry` is a
+  forum-scoped document-change observer (singleton `Idea` in `obj/`), informed
+  by `MqlSubscriptionRegistry`'s *pattern* but sharing no code with it (MQL-sub
+  observes the world-tree; this observes Documents) — MQL-sub is not touched.
 - **Chat retrofit touchpoints.** Moving `owner`+`groupRef` off `Channel` onto
   `Subject` + adding a `subject` ref touches `Channel`, `ChannelCatalogue`
   (subsumed by / delegating to `SubjectCatalogue`), the per-channel subscription
@@ -415,18 +446,21 @@ layer (board-local bans/pins) is aspirational in chat and **not built in v1**.
 - **CLI.** An implanted player can `forum make`, post a thread, `reply`, `vote`,
   `list`/sort, and `read` — each observable through the dispatch-response
   envelope.
-- **Body side-channel.** A `{text, fields}` command parses the string and
-  overlays `fields` onto body-typed args, running the same validate → controller
-  → envelope chain; a body-bearing verb behaves identically whether the body is
-  supplied inline (CLI) or via `fields` (GUI); **no string-less dispatch path is
-  exposed** to clients; a malformed payload is rejected without bypassing
-  validation.
-- **Subscription engine.** A client opens a forum subscription and receives an
+- **Body input (three routes, one MML field).** The post body is reachable via
+  greedy markdown on the command string (CLI/scripting), the `fields` channel
+  (GUI), and a `compose` prompt (interactive textarea) — all yielding the same
+  stored MML. The `{text, fields}` overlay restricts `fields` to
+  `payload`/designated body fields only (no string-less path; `fields` can't
+  reach selectors); a malformed payload is rejected without bypassing
+  validation. The `compose` prompt renders as a multiline textarea (editor
+  escalation stubbed; CMS editor deferred).
+- **Forum subscription.** A client opens a forum subscription and receives an
   initial snapshot then deltas as the underlying entries change; a forum
   mutation both appends a `forum_events` row **and** fires an in-process
   `ForumEventFired` that drives the delta (persist-then-fire; neither is a
-  side-effect of the other); the engine listens on `EventApi`, not a Mongo tail;
-  MQL-sub / inspection-pane tests still pass (no regression).
+  side-effect of the other); `ForumSubscriptionRegistry` listens on `EventApi`,
+  not a Mongo tail; `MqlSubscriptionRegistry` is not touched (MQL-sub /
+  inspection-pane tests still pass).
 - **GUI.** The React forum view renders a board → thread → post-tree live;
   casting a vote sends a plain command string (`forum vote …`) and the score
   updates via subscription without a manual refresh; posting/replying sends a
