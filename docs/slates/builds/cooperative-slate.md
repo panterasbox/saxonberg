@@ -1891,6 +1891,42 @@ which answers *to what accounts*:
   cannot hold a vote. There is no "group's influence." (Same instinct as
   stake-is-not-stock: standing never becomes a transferable asset.)
 
+### Institutions are private actors, not a tier of government
+
+A guild, a company, a locality-as-development is **a private institution
+inside the one polity — not a sub-government.** This is the institutional
+model, not a federal one: a single sovereign (the cooperative), with
+everything else a voluntary association operating *under* its law. The
+distinction is sovereignty vs. autonomy — a federal sub-unit would hold a
+*slice of governmental power* (its own jurisdiction, citizenship tier,
+representation upward, conflict-of-law); a private institution holds only
+**autonomy under the one sovereign** (its own members, treasury, property,
+and internal bylaws — never a franchise).
+
+The substrate already encodes this. **Influence individuates** (only
+persons vote; no group holds a vote) is exactly "an institution has a
+board and assets but no franchise." The **treasuries** above are
+institutional assets — poolable, fungible, politically inert. The **zone /
+access** stack (`ownerGroup` / `accessGroups`) is *property rights
+enforced by the one polity* — "no X in my tavern" is house rules, not a
+local ordinance. And **"how the chamber wields it is its own bylaw"** is
+private internal governance.
+
+Two consequences, both small and neither structural:
+
+- **The private↔public power boundary is *legislation*, not a
+  constitutional tier.** A guild that comes to own half the map is the
+  civil-society problem (private power rivalling the state); the remedy is
+  ordinary law from the one legislature (the antitrust analogue), not a
+  new layer of government.
+- **Internal institutional governance, if wanted, is a *library*.** The
+  cooperative's own influence / delegation / voting primitives can be
+  instantiated *privately* by any institution that wants to run its own
+  votes — making the polity the **reference institution** and largest
+  tenant of a reusable governance kit, never a federal head. (This is what
+  the earlier "cooperative as the federal layer" framing was reaching for,
+  corrected.)
+
 ### The authorial subdivision is the shared coordinate
 
 The world is subdivided into **authorial units**, and the substrate
@@ -1933,11 +1969,18 @@ no-life grind* (raw hours, bots, AFK); **engagement × reputation** demands
 both — substantial participation *and* regard for it. Two further
 properties fall out:
 
-- **Per-circle scoping *is* the subdivision.** Both axes scope to circles
-  (communities, guilds, localities) — your consumer standing in a circle
-  is *engagement-in-circle × regard-in-circle.* The "where you
-  participate" structure survives as the quantity dimension; nothing to
-  invent.
+- **Governance renown is cooperative-level; per-circle is a *social*
+  signal, not a governance subdivision.** The standing that feeds the
+  consumer chamber is `engagement × regard` measured against **one circle
+  — the polity itself**, rolling up into the single, individuated
+  influence stock every member spends on the one central floor (no
+  *per-circle vote*, just as there is no *group's influence*). Renown
+  *within* a community, guild, or locality is real and load-bearing — but
+  for **game and social outcomes** (trust inside the institution, NPC
+  behaviour, the bandits-esteem / lawful-notoriety split), riding
+  `GroupApi` on its own timeline. It is deliberately **not** an input to
+  the governance stock: letting per-institution standing mint governance
+  weight would make every private institution a venue to farm the vote.
 - **Turnout-free.** Both axes are continuous, so the chamber most exposed
   to apathy gets a standing source that doesn't hinge on an election day —
   it tracks ongoing valued presence (an engagement signal, not a turnout
@@ -1951,9 +1994,7 @@ the well-engaged-and-regarded accumulate weight and *become* the de-facto
 council, continuously and revocably). Recommended default: **emergent
 delegation** (native — no turnout, instant revocation, no campaign
 machines), with **elections an option** the rules committee may adopt;
-don't constitutionalize the form. (A locality that measures both who
-*builds* and who *frequents* it is still a natural seed for **local
-government**, the cooperative as the federal layer.)
+don't constitutionalize the form.
 
 Two guards, because the people's house is the one most prone to going
 pathological:
@@ -1963,10 +2004,16 @@ pathological:
   tricameral check tempers the rest (a popular faction still needs the
   creation and patronage houses).
 - **Goodhart** — once standing buys governance power, people farm both
-  axes for politics, not just play. Keep both **per-circle** (no single
-  global score to conquer), let reputation *inform* rather than *solely
-  determine* standing, and lean on the signed twin (notoriety) +
-  susceptibility as counterweights.
+  axes for politics, not just play. The defense is the **product itself**
+  (engagement × regard needs real presence *and* peer regard), the
+  **conduct → bounded weight, never → authority** rule (regard multiplies
+  earned participation, never mints standalone weight — so renown ×
+  no-participation = nothing), and the **tricameral check**; let
+  reputation *inform* rather than *solely determine* standing, and lean on
+  the signed twin (notoriety) + susceptibility as counterweights.
+  Goodhart-by-circle-conquest doesn't arise: governance renown is one
+  cooperative-level score (no patchwork of small circles to pick off), and
+  the per-circle social renown buys no vote.
 
 ---
 
@@ -2227,7 +2274,9 @@ citizen. Parked until there's a population to govern:
   governance surfaces distinct from forums).
 - **The consumer fault line — resolved: engaged consumption.** Consumer
   influence is **consumption itself**, measured **quantity × quality =
-  engagement × reputation** (per-circle scoping = the subdivision) — the
+  engagement × reputation**, scored cooperative-wide (governance renown is
+  *not* per-circle — per-circle standing is a social/game signal that buys
+  no vote) — the
   *participation* third of three kinds of contribution (creation /
   patronage / participation), and the foundational one (without the
   audience the other houses have no charter). The product beats both the
