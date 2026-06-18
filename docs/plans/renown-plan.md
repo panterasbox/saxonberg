@@ -28,12 +28,13 @@ mirror map (build against these, don't invent):
 
 ### Two constraints the investigation surfaced
 
-1. **Nothing wires reaction→regard today.** `ReactionFiredEvent` has zero
-   consumers; `RegardApi.adjustRegard`'s only caller is
-   `IntroduceController`. AC#1 ("a regard update **and** a renown event,
-   independently") therefore needs the regard poke *produced* — by a
-   separate `RegardLogic` tap (decision 1, §6). The renown *recompute*
-   never reads belief either way, so AC#6 is safe regardless.
+1. **Nothing wires reaction→regard today, and it can't be wired cleanly
+   yet.** `ReactionFiredEvent` has zero consumers; `RegardApi.adjustRegard`
+   takes resident `Stuff` (subject often offline) and there is no
+   principled *signed* regard delta for a raw reaction without the
+   value-function. So the reaction→regard poke is **descoped** (decision 1,
+   §6); this build wires only the renown tap. AC#1 is the renown half; the
+   recompute never reads belief regardless (AC#6).
 2. **`GroupApi` has no "groups shared by two players" method** (only
    `membersOf`/`isMember`/`roleOf`/`parseRef`). The managed `groups`
    collection is already indexed on `memberIds`
@@ -138,11 +139,11 @@ append/read green; `dest /obj/api/renown` HMR resolves.
 
 ### Phase 3 — ingestion tap: `ReactionFiredEvent` → `RenownEvent`
 
-A reaction produces a scope-tagged `RenownEvent`. **Two *independent*
-subscribers to the one event** (decision 1 — the sibling model): renown's
-tap appends the `RenownEvent`; a separate regard tap (homed in belief,
-below) applies the regard poke. **Renown never imports `RegardApi`**, so
-the siblings stay genuinely decoupled.
+A reaction produces a scope-tagged `RenownEvent`. **Renown's tap only**
+(decision 1, revised at build time): the sibling reaction→regard poke is
+**descoped** — a reaction has no principled signed regard delta without the
+value-function (and `regard` has no recompute to apply it). Renown never
+imports `RegardApi`; the recompute never reads belief.
 
 - **Modify** `mud/obj/api/RenownLogic.ts` — add a one-time subscription
   installer mirroring `SchedulerRegistry.ts:330` (`EventApi.on<...>`
@@ -157,11 +158,9 @@ the siblings stay genuinely decoupled.
     from `lib/events/` (pure DTO). **No `RegardApi` import** (that's the
     other tap's job). `selfReaction` events are appended but flagged
     (recompute flat-weights or drops later).
-- **Modify** `mud/obj/api/RegardLogic.ts` (belief side) — add its **own**
-  one-time `EventApi.on(ReactionFiredEvent)` installer that calls
-  `RegardApi.adjustRegard(reactor, subject, …)`. This is the small,
-  necessary belief-subsystem sibling; it is the *only* belief-side change
-  in the build and lives where regard lives, not in renown.
+- **Descoped:** no `RegardLogic` reaction tap. Reaction→regard is a
+  belief-side decision (how a raw reaction maps to a *signed* regard delta)
+  deferred to a belief build. This build makes **no** belief-side change.
 - **Create** `mud/obj/api/__tests__/RenownLogic.test.ts` — fire a
   synthetic `ReactionFiredEvent` via `EventApi.fire`; assert exactly one
   raw `RenownEvent` lands (tags retained, no score). Use the
@@ -330,17 +329,19 @@ chronicle/belief tests already use.
 The four open decisions are locked below; #5 is a build-time verification,
 not a decision.
 
-1. **Regard-poke → two *independent* sibling taps** (refines the plan's
-   first lean). Renown's tap appends the `RenownEvent` and **does not
-   touch `RegardApi`**; a separate `RegardLogic` tap applies the regard
-   poke off the same event. This honors the sibling model (the
-   requirements data-flow: *reaction → regard **and** renown,
-   independently*), keeps renown uncoupled from belief, and keeps the
-   recompute belief-free (AC#6). AC#1 holds via the two taps. The regard
-   tap is the only belief-side change in the build. *Rejected:* one
-   combined subscriber (simpler, but couples renown ingestion to
-   `RegardApi`); descoping the regard half (contradicts the sibling
-   diagram we just affirmed).
+1. **Regard-poke → descoped (revised at build time).** Renown's tap is the
+   only reaction subscriber this build adds; it appends the `RenownEvent`
+   and **never touches `RegardApi`**. The reaction→regard poke is deferred
+   to a belief build, because building it surfaced that it can't be done
+   cleanly: a reaction has **no principled signed regard delta** without
+   the value-function (and `regard`, unlike renown, has *no recompute* to
+   apply valence later — a fixed `+1` hard-codes "reactions are positive"),
+   and `RegardApi.adjustRegard` needs resident `Stuff` while the subject is
+   often offline. Renown is unaffected — it aggregates the event log, never
+   `regard` (siblings, not parent/child); the recompute stays belief-free
+   (AC#6). AC#1 was rescoped to the renown half. *(Earlier leans — one
+   combined subscriber, or a separate `RegardLogic` tap — both founder on
+   the no-principled-delta problem above.)*
 2. **`GroupApi.sharedManagedGroups` → add it.** Small read method
    intersecting two players' managed memberships over the
    `memberIds`-indexed `groups` collection; no new module category. Lands

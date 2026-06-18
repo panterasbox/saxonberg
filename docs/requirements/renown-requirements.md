@@ -64,9 +64,12 @@ acyclicity *is* the anti-capture guarantee:
   notoriety/recognition for display, never produce standing. (The
   severed arrow — contacts are unilateral self-declaration, zero
   objective signal.)
-- **Reaction → regard *and* renown (siblings)** — the same event feeds
-  both independently; **renown → influence**, but only ever *multiplies a
-  bounded* influence (conduct → weight, never → authority).
+- **Reaction → regard *and* renown (siblings)** — conceptually the same
+  event feeds both, independently. *This build wires only the renown
+  arrow*; reaction→regard is deferred (no principled signed regard delta
+  without the value-function — see non-goals). **Renown → influence**, but
+  only ever *multiplies a bounded* influence (conduct → weight, never →
+  authority).
 - **Alignment → coalition/parties, never vote-weight.**
 - **Renown reads only its own log** — never the belief store (see "sibling
   to regard").
@@ -116,6 +119,14 @@ acyclicity *is* the anti-capture guarantee:
   1). The log retains `source`, so the recursion is a pure recompute-time
   upgrade, no migration.
 - **Contacts as a renown input** — severed by design.
+- **The reaction→regard poke** — wiring a reaction into the per-pair
+  `regard` belief scalar. A reaction has no principled *signed* regard
+  delta without the value-function (and `regard`, unlike renown, has no
+  recompute to apply valence later — a fixed `+1` would hard-code
+  "reactions are positive"), and `RegardApi.adjustRegard` needs resident
+  `Stuff` while the subject is often offline. So reaction→regard is a
+  belief-side decision, deferred. Renown is unaffected — it aggregates the
+  event log, never `regard` (siblings, not parent/child).
 
 ## Surface decisions
 
@@ -241,8 +252,9 @@ it only ever removes rows that already contribute ~0.
 
 ## Acceptance criteria
 
-- A reaction produces, independently: a regard update in the belief store
-  **and** a scope-tagged `RenownEvent` in `renown_events`.
+- A reaction appends exactly one scope-tagged `RenownEvent` to
+  `renown_events` (the raw, unscored signal). *(The sibling regard update
+  is deferred — see non-goals.)*
 - The batch recompute materializes a signed per-`{subject, scope}`
   aggregate that `RenownApi.renownOf(subject, scope)` returns.
 - The same subject reads different standings in different scopes
