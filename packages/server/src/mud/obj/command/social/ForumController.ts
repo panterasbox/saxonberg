@@ -32,6 +32,7 @@ import { ContainmentApi } from '../../../api/containment';
 import { ForumsApi } from '../../../api/forums';
 import { SubjectApi } from '../../../api/subject';
 import { PlayerApi } from '../../../api/player';
+import { PromptApi } from '../../../api/prompt';
 import type { Forums } from '../../../lib/forum/Forums';
 import type { Stuff } from '../../../lib/stuff/Stuff';
 import type Subject from '../../../lib/forum/Subject';
@@ -180,8 +181,9 @@ export default class ForumController extends CommandController<ForumModel> {
   ): Promise<void> {
     const actor = context.commandGiver;
     const handle = (model.board ?? '').trim();
-    const body = (model.body ?? '').trim();
     if (!handle) return this.fail(context, 'board required', 'board-required');
+    // Body: inline-greedy / fields side-channel / interactive compose prompt.
+    const body = await this.resolveBody(model, context, 'Compose your post:');
     if (!body) return this.fail(context, 'body required', 'body-required');
     const view = await ForumsApi.resolveBoardByHandle(handle);
     if (!view) return this.fail(context, `No board '${handle}'.`, 'no-such-board');
@@ -202,8 +204,8 @@ export default class ForumController extends CommandController<ForumModel> {
   ): Promise<void> {
     const actor = context.commandGiver;
     const entryId = (model.entry ?? '').trim();
-    const body = (model.body ?? '').trim();
     if (!entryId) return this.fail(context, 'entry required', 'entry-required');
+    const body = await this.resolveBody(model, context, 'Compose your reply:');
     if (!body) return this.fail(context, 'body required', 'body-required');
     const parent = await ForumsApi.getEntry(entryId);
     if (!parent) return this.fail(context, `No entry '${entryId}'.`, 'no-such-entry');
@@ -330,6 +332,33 @@ export default class ForumController extends CommandController<ForumModel> {
     if (!subject) return this.fail(context, `No subject '${title}'.`, 'no-such-subject');
     await SubjectApi.follow(actor, subject._id!, true);
     this.send(context, Mml.compose`\nFollowing '${subject.getTitle()}'.\n`);
+  }
+
+  /**
+   * Resolve the post/reply body from the three routes to one field:
+   * greedy markdown on the command string (CLI) or the `fields`
+   * side-channel (GUI) — both already overlaid into `model.body` by the
+   * dispatcher — else an interactive `compose` prompt (multiline textarea).
+   */
+  private async resolveBody(
+    model: ForumModel,
+    context: CommandContext,
+    label: string,
+  ): Promise<string> {
+    const inline = (model.body ?? '').trim();
+    if (inline) return inline;
+    if (context.interactive) {
+      try {
+        const composed = await PromptApi.compose(context.interactive, label, {
+          placeholder: 'Markdown — ⌘/Ctrl+Enter to submit',
+          allowEditorEscalation: true,
+        });
+        return composed.trim();
+      } catch {
+        return '';
+      }
+    }
+    return '';
   }
 
   private async boardViewFor(boardId: string) {

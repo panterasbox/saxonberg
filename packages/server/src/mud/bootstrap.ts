@@ -123,6 +123,17 @@ export const bootstrapManifest: BootstrapEntry[] = [
     templatePath: '/obj/MqlSubscriptionRegistry',
     dependsOn: ['/obj/EventSubscriptions'],
   },
+  // ForumSubscriptionRegistry — the forum document-change observer. Holds
+  // the per-Interactive registry, the board/thread dependency index, and
+  // the setImmediate-batched dirty queue. Listens on EventApi for
+  // `ForumEventFired` (fired by ForumsLogic.record), so it depends on
+  // EventSubscriptions being live. Distinct from MqlSubscriptionRegistry
+  // (shares the observer pattern, no code) — observes Documents, not the
+  // Stuff world-tree.
+  {
+    templatePath: '/obj/ForumSubscriptionRegistry',
+    dependsOn: ['/obj/EventSubscriptions'],
+  },
   // ReactionRegistry — the act-scoped-emote aggregation substrate: the
   // per-act tallies, the fixed-cadence sink-agnostic broadcaster, the
   // per-recipient familiar-biased sampler, and the TTL GC. In-memory

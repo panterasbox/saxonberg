@@ -6,6 +6,7 @@ import type {
   ChoicePromptNote,
   ConfirmPromptNote,
   TextPromptNote,
+  ComposePromptNote,
   MqlObjectPromptNote,
   MqlManyPromptNote,
   PromptChoice,
@@ -30,6 +31,7 @@ import {
   type PromptOpts,
   type ChoicePromptOpts,
   type TextPromptOpts,
+  type ComposePromptOpts,
   type MqlManyPromptOpts,
 } from '../../api/prompt';
 
@@ -49,6 +51,7 @@ type Note =
   | ChoicePromptNote
   | ConfirmPromptNote
   | TextPromptNote
+  | ComposePromptNote
   | MqlObjectPromptNote
   | MqlManyPromptNote;
 
@@ -66,7 +69,7 @@ interface ResolverRecord {
   reject: (err: Error) => void;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   validate?: PromptValidator<any>;
-  kind: 'choice' | 'confirm' | 'text' | 'mqlObject' | 'mqlMany';
+  kind: 'choice' | 'confirm' | 'text' | 'compose' | 'mqlObject' | 'mqlMany';
   // mqlMany-only:
   min?: number;
   max?: number;
@@ -326,6 +329,32 @@ export class PromptLogic extends Idea {
     );
   }
 
+  /** See {@link PromptApi.compose}. */
+  @CallSecurity(PromptApiCallers)
+  public compose(
+    interactive: Interactive,
+    label: string,
+    opts?: ComposePromptOpts
+  ): Promise<string> {
+    const foreground = opts?.foreground ?? true;
+    return push<string>(
+      interactive,
+      'compose',
+      (): ComposePromptNote => ({
+        kind: 'prompt-compose',
+        label,
+        foreground,
+        ...(opts?.placeholder !== undefined
+          ? { placeholder: opts.placeholder }
+          : {}),
+        ...(opts?.allowEditorEscalation !== undefined
+          ? { allowEditorEscalation: opts.allowEditorEscalation }
+          : {}),
+      }),
+      opts
+    );
+  }
+
   /** See {@link PromptApi.mqlObject}. */
   @CallSecurity(PromptApiCallers)
   public mqlObject(
@@ -397,6 +426,7 @@ export class PromptLogic extends Idea {
     switch (record.kind) {
       case 'choice':
       case 'text':
+      case 'compose':
         typed = payload.response;
         break;
       case 'confirm':

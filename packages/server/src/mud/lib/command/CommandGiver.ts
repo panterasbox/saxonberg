@@ -510,6 +510,7 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
         // affordance's resolved source in `_runChain`.
         commandSource: giver,
         interactive: opts.interactive,
+        bodyFields: opts.bodyFields,
       });
       ExecutionContextApi.updateCurrentFrameMetadata({
         commandContext: outer,
@@ -843,6 +844,12 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
           commandGiver: outer.commandGiver,
           location: outer.location,
         });
+        if (!('error' in built) && outer.bodyFields) {
+          // Body side-channel: overlay the structured fields onto the
+          // bound model's payload/designated body fields ONLY (never
+          // selectors/flags), after the string parse, before resolve.
+          CommandApi.overlayBodyFields(built.model, outer.bodyFields, command);
+        }
         if ('error' in built) {
           if (built.error === 'shape') continue; // fall through
           // Bind / unknown-subcommand errors stop the chain. Emit on

@@ -124,6 +124,12 @@ export interface TextPromptOpts extends PromptOpts<string> {
   placeholder?: string;
 }
 
+export interface ComposePromptOpts extends PromptOpts<string> {
+  placeholder?: string;
+  /** Hint the client may show an "open in editor" escalation affordance. */
+  allowEditorEscalation?: boolean;
+}
+
 export interface MqlManyPromptOpts extends PromptOpts<Stuff[]> {
   /** Minimum selection count. Default 0. */
   min?: number;
@@ -190,6 +196,22 @@ export class PromptApi {
     opts?: TextPromptOpts,
   ): Promise<string> {
     return logic().text(interactive, label, opts);
+  }
+
+  /* ────────────────── Tier 1: compose ────────────────── */
+
+  /**
+   * Multiline body-composition prompt — the interactive route to a post
+   * body. The client renders a `<textarea>` (markdown; optional live MML
+   * preview). A shared capability (forums first; CMS/wiki later); the
+   * response is the raw markdown string.
+   */
+  public static compose(
+    interactive: Interactive,
+    label: string,
+    opts?: ComposePromptOpts,
+  ): Promise<string> {
+    return logic().compose(interactive, label, opts);
   }
 
   /* ────────────────── Tier 1: mqlObject ────────────────── */
