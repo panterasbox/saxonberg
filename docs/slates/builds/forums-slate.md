@@ -179,14 +179,16 @@ new construction — the genuinely-new surface is small.
   subsystem extensions, not new machinery; `procedure` is a parked surface
   policy — design deferred.)
 - **`forum_events`** (`Document`, append-only, indexed by `subject` / `thread`)
-  — the **event log of record**: one row per mutation (`post-created`,
+  — the **durable event log**: one row per mutation (`post-created`,
   `vote-cast`, `claim-attached`, `thread-locked`, …). Chronicle-shaped (dumb
-  store / smart consumers). Every mutation **dual-writes** — update the
-  current-state Document *and* append the event. Serves three roles at once:
-  feeds the live subscription engine, is the **tamper-evident audit trail**,
-  and is the **archive / legislative history**. CRUD docs remain the source of
-  truth; the log is a faithful mirror, not a rebuild source (see Client
-  architecture § Reads).
+  store / smart consumers, silent append). Every mutation **dual-writes** —
+  update the current-state Document, then `record` the event (append this row
+  **and** fire a transient `ForumEventFired` on `EventApi`). The row is the
+  **tamper-evident audit trail** + the **archive / legislative history** — the
+  **durable twin, not the live feed** (the live feed is the `EventApi` fire; the
+  engine re-resolves current-state docs). CRUD docs remain the source of truth;
+  the log is a faithful mirror, not a rebuild source (see Client architecture
+  § Reads).
 - **`SubjectCatalogue`** (singleton `Idea` at `/obj/SubjectCatalogue`,
   `PostRegistrationMixin`) — named after its **root entity** the way
   `ChannelCatalogue` / `SoulCatalogue` / `TopicCatalogue` are (chat's `Channel`
@@ -258,12 +260,13 @@ Subject "Gossip"  (standing; ref: open/all)
   chat split exactly. Logic resolves the Catalogue, mediates board/entry CRUD,
   vote application, tree reads.
 - **The aether capability** — a `ForumsMixin` hosted-update riding
-  `AetherHostedMixin` on the universal implant (CommsUpdate precedent):
+  `AetherHostedMixin` on the existing aether implant (CommsUpdate precedent):
   resolves `getHost()`, gates on `MixinApi.isAether(operator)`, contributes
-  the `forum` verb via `commandContributions`. *(Open: a distinct
-  `ForumsUpdate`/implant vs. folding the capability onto the existing comms
-  implant — lean "same universal implant, forum is another frequency on it,"
-  per delivery-slate.)*
+  the `forum` verb via `commandContributions`. *(Resolved: a **distinct
+  `ForumsUpdate`** = `ForumsMixin(AetherHostedMixin(Idea))`, sibling to
+  `CommsUpdate`, hosted on the existing aether implant — **not** a separate
+  physical implant; **born-with** via the Avatar loadout's `hostUpdate`,
+  alongside comms + travel-credential.)*
 - **Notifications over aether** — replies to your entries / activity on
   boards you follow arrive as ESP frames (`world.forum.*` Topic), gated by the
   attunement modality (emote-reception precedent); an offline digest on next
@@ -289,9 +292,10 @@ Subject "Gossip"  (standing; ref: open/all)
 | **Async-browse views + organizer ordering** | **new** |
 | **Chat `logged` retention + `chat_log` collection** | **new** (chat extension) |
 | Reactions on entries | **reused** (reactions) |
-| **Writes: generic structured-command inbound** | **wire existing** `assembleFromStructured` (unwired today) |
-| **Reads: subscription engine** | **new** (extracted from MQL-sub; shared platform — forums/wiki/CMS) |
-| **`forum_events` append-only log** (feed + audit + archive) | **new** (forum-owned; `chronicle` pattern) |
+| **Writes: command string + structured body side-channel** | existing `command` inbound + optional `fields` payload (no string-less path) |
+| **Reads: subscription engine** (listens on `EventApi`) | **new** (extracted from MQL-sub; shared platform — forums/wiki/CMS) |
+| **`forum_events` append-only log** (durable twin: audit + archive) | **new** (forum-owned; `chronicle` pattern) |
+| **`ForumEventFired` live notify** | **reused bus** (`EventApi`; new event class) |
 | Bus primacy / validators / response envelope | **reused** (command dispatch chain) |
 
 ---
@@ -305,24 +309,30 @@ server-owns-draft / client-owns-layout principle). The GUI is **not** built on
 the CLI — no synthesizing command strings, no scraping text output. Three
 structured channels by concern, plus the CLI as a parallel string client.
 
-### Writes — structured command dispatch (reuse the dispatch chain)
+### Writes — command string canonical + a structured body side-channel
 
-Mutations ride the **command bus** (bus primacy — NPCs / quests / systems
-observe forum actions), but via **structured dispatch, not string synthesis**:
+Mutations ride the **command bus** (bus primacy), and the **command string is
+the canonical channel**: the GUI builds **real command strings** (verb +
+selectors), so every action stays scriptable / aliasable / replayable and
+legible to future string-riding capabilities (scripting). Exposing the command
+spec so the client constructs real strings *is the point* — we don't undermine
+it with a string-less dispatch path.
 
-- The substrate already exists, **unwired**: `CommandApi.assembleFromStructured(
-  { verb, subcommand?, fields })` (`mud/api/command.ts`) skips the tokenizer
-  and feeds the same resolve → preload → validate → controller →
-  response-envelope chain — documented as "for widget input where the client
-  has already chosen the verb."
-- Wire it to a **generic** structured-command inbound message type (beside
-  `command` in `backend/inbound/`), **not** forum-specific. The GUI sends
-  `{ verb:'vote', fields:{ entry, dir } }` → validators + bus + envelope, no
-  escaping. This **also retires the char-gen cockpit's string-synthesis hack**
-  (it currently builds `enroll species elf` strings and re-parses them).
-- **The CLI** (the explicit requirement) uses the raw-string path → tokenizer
-  → the *same* forum controllers. First-class; the GUI is its sibling, not its
-  wrapper.
+- For input that can't sit on a command line (a multi-line post **body**, form
+  fields), the string carries an **optional structured payload** — HTTP
+  method+path vs body. Wire: the existing `{ type:'command', payload:{ text,
+  fields? } }`; `text` is always present and parsed normally; `fields` fills
+  only **YAML-designated body-typed args**, overlaid after the parse, then the
+  same resolve → validate → controller → envelope chain runs.
+- **Sparingly, never a replacement.** Only body-bearing verbs (post/reply/edit)
+  declare a side-channel arg; `vote`/`follow`/sort/navigate are plain strings.
+  **No string-less dispatch path is exposed** to clients
+  (`CommandApi.assembleFromStructured`'s string-less mode stays an internal/test
+  helper, not a client inbound).
+- **The CLI** uses the raw-string path → tokenizer → the *same* controllers;
+  the GUI builds the same strings (+ body payload). Char-gen's
+  `enroll species elf` string-building is the **intended** pattern, not a hack —
+  only its free-text fields would ever use the side-channel.
 
 ### Reads — a generic subscription *engine*, fed by a dedicated event *log*
 
@@ -336,31 +346,37 @@ layers** so the reusable part and the forum-specific part don't fight:
   all share**. Platform infra — should graduate to its own
   `docs/subsystems/` doc; [wiki](./wiki-slate.md) + [cms](./cms-slate.md) are
   downstream consumers that bind it rather than each rolling their own.
-- **The feed (per-subsystem event log).** The engine does **not** detect
-  change by instrumenting every Document setter (the invasive, magic route).
-  Instead each subsystem **explicitly emits domain events to its own
-  append-only collection**, and the engine **tails** it. Forums own
-  **`forum_events`** (`post-created`, `vote-cast`, `claim-attached`,
-  `thread-locked`, …).
+- **The trigger (the in-process `EventApi` bus).** The engine does **not**
+  detect change by instrumenting every Document setter, **nor by tailing
+  Mongo**. A mutation **fires a transient `ForumEventFired` on `EventApi`** and
+  the engine listens (`EventApi.on`) — exactly how `fireFieldChange` →
+  `EventApi.fire` drives MQL-sub today. Forum event kinds: `post-created`,
+  `vote-cast`, `claim-attached`, `thread-locked`, ….
+- **The durable twin (`forum_events`).** The *same* mutation also **appends a
+  faithful row** to the append-only **`forum_events`** collection. This is the
+  **audit/tamper-evident trail** *and* the **archive itself** (the legislative
+  history) — the **`chronicle` pattern** (append-only ledger, dumb store /
+  smart consumers), satisfying the already-committed tamper-evident-archive
+  requirement (cooperative-slate + argument-map-slate). It is **not** the live
+  feed — it's read only for history / backfill / audit.
 
-**`forum_events` earns its keep three ways at once:** it is the live
-change-feed, the audit/**tamper-evident** trail, *and* the **archive itself**
-(the legislative history). This is the **`chronicle` pattern** — an
-append-only ledger, dumb store / smart consumers — applied to forums, and it
-satisfies the already-committed tamper-evident-archive requirement
-(cooperative-slate + argument-map-slate) rather than bolting it on later.
+**Persist-then-fire; neither causes the other.** `Document.save()` fires no
+event (chronicle appends silently; no change-stream anywhere) and `EventApi`
+events persist nothing (transient, microtask fan-out). So the mutation emits
+**both explicitly** via one `record(event)` helper: append the durable row,
+then fire the transient event. The write isn't a side-effect of the event (not
+event-sourced) and the event isn't a side-effect of the write (no tail).
 
 **Source of record: CRUD docs as truth + the log alongside** (not full
 event-sourcing). A mutation **updates the current-state Document** (the truth
-the GUI reads) **and appends a faithful event** to `forum_events` (the feed +
-archive). The log is a faithful mirror, not the rebuild source — so reads stay
-simple (query the docs) while audit/replay/live-feed come from the log.
+the GUI reads), then `record`s the event (durable row + live fire). The log is
+a faithful mirror, not the rebuild source.
 
 - Reads therefore = **subscription** (live deltas on the viewed set: a board's
-  thread list, a thread's posts, vote counts — the engine tailing
-  `forum_events`) **+ structured query** (navigate / paginate / lazy-load a
-  subtree or a large claim-graph, over the current-state docs). Both
-  structured; neither scrapes CLI text.
+  thread list, a thread's posts, vote counts — the engine **re-resolving
+  current-state docs** when a `ForumEventFired` lands) **+ structured query**
+  (navigate / paginate / lazy-load a subtree or a large claim-graph, over the
+  current-state docs). Both structured; neither scrapes CLI text.
 
 ### Notify — aether push frames
 
@@ -461,11 +477,12 @@ Both source slates get a one-line supersession pointer at their top; their
   Branch `feature/forums-build` off `origin/master`. The `organizer` field and
   the typed-edge storage ship from day 1 (so structure boards are a later
   *organizer*, not a later *schema migration*).
-- **Two platform investments land in cycle 1 but serve more than forums:**
-  the **generic structured-command inbound** (wiring the existing
-  `assembleFromStructured` — benefits char-gen, wiki, CMS) and the **generic
-  subscription engine** (shared by wiki + CMS). The **`forum_events` log** is
-  forum-owned (chronicle-shaped) but each Document subsystem will own a
+- **Shared pieces land in cycle 1 but serve more than forums:** the **generic
+  subscription engine** (the big one — shared by wiki + CMS) and the **generic
+  body side-channel** (any verb may declare a body-typed arg filled by the
+  `command` payload's optional `fields` — benefits wiki/CMS post-like surfaces;
+  command strings stay canonical, no string-less path). The **`forum_events`
+  log** is forum-owned (chronicle-shaped) but each Document subsystem will own a
   sibling. Size cycle 1 accordingly — the subscription engine may want its own
   sub-plan / subsystem doc.
 - **Cycle 2+ (deferred):** the structure organizer's small-scale slice
@@ -484,10 +501,12 @@ binding that thread + a chat (subjects manifest at board *or* thread grain);
 debate is **unified** per body. The chat **`procedure`** mode
 (`free` / `rules-of-order`) is a parked surface policy (design deferred). The
 **client architecture** is settled: GUI + CLI co-equal clients; **writes** via
-the existing `assembleFromStructured` on a generic structured-command inbound;
-**reads** via a generic **subscription engine** (extracted from
-MQL-subscription, shared with wiki/CMS) **tailing a forum-owned append-only
-`forum_events` log** (chronicle-shaped — also the audit trail + archive; CRUD
+canonical **command strings** + an optional structured **body side-channel**
+(`{text, fields}`; no string-less path); **reads** via a generic
+**subscription engine** (extracted from MQL-subscription, shared with wiki/CMS)
+that **listens on the in-process `EventApi` bus** and re-resolves current-state
+docs, fed by a forum-owned append-only **`forum_events` log** (chronicle-shaped
+— the durable audit trail + archive, not the live feed; CRUD
 docs stay the source of truth, dual-write); **notify** via aether frames.
 
 - **Subscription query/pagination model** — the Document-subscription
