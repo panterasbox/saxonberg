@@ -633,6 +633,14 @@ export class PersistenceManager {
         at: 1,
       });
 
+      // Renown standings: the materialized per-{subject, scope} aggregate
+      // (a rebuildable cache). Indexed on `{ subject, scope }` — the
+      // recompute's upsert key and the warm() load shape.
+      await this.getCollection(Collections.Renown).createIndex({
+        subject: 1,
+        scope: 1,
+      });
+
       console.info('PersistenceManager: Indexes created successfully');
     } catch (error) {
       console.error('PersistenceManager: Error creating indexes:', error);

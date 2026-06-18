@@ -9,6 +9,11 @@ import type {
   RenownEventFields,
   RenownScope,
 } from '../../lib/renown/RenownEvent';
+import RenownStanding, {
+  COOPERATIVE_WIDE,
+} from '../../lib/renown/RenownStanding';
+import { AppApi } from '../../api/app';
+import { AppSettingKeys } from '../../lib/config/AppSettings';
 import { WorldClockApi } from '../../api/worldclock';
 import { EventApi } from '../../api/event';
 import type { Subscription } from '../../api/event';
@@ -143,6 +148,157 @@ async function appendFromReaction(p: ReactionFiredPayload): Promise<void> {
   });
 }
 
+/* ───────── value-function scoring (applied only at recompute) ───────── */
+
+interface ValueFunction {
+  valence: Record<string, number>;
+  esteemHalfLife: number;
+  notorietyHalfLife: number;
+  contextMult: Record<string, number>;
+  qualityWeight: number;
+}
+
+/** Read the legislated value-function params (governance-owned AppSettings). */
+function loadValueFunction(): ValueFunction {
+  const json = <T>(key: string, fallback: T): T => {
+    const raw = AppApi.setting(key);
+    if (!raw) return fallback;
+    try {
+      return JSON.parse(raw) as T;
+    } catch {
+      return fallback;
+    }
+  };
+  const halfLives = json<{ esteem?: number; notoriety?: number }>(
+    AppSettingKeys.renownDecayHalfLives,
+    {}
+  );
+  const qwRaw = AppApi.setting(AppSettingKeys.renownQualityWeight);
+  const qw = qwRaw ? Number(qwRaw) : 1;
+  return {
+    valence: json<Record<string, number>>(AppSettingKeys.renownValenceMap, {}),
+    esteemHalfLife: halfLives.esteem ?? Infinity,
+    notorietyHalfLife: halfLives.notoriety ?? Infinity,
+    contextMult: json<Record<string, number>>(
+      AppSettingKeys.renownContextMultipliers,
+      {}
+    ),
+    qualityWeight: Number.isFinite(qw) ? qw : 1,
+  };
+}
+
+/** The tags carried by a reaction signal (the valence / context keys). */
+function signalTags(ev: RenownEvent): string[] {
+  const t = (ev.signal as { tags?: unknown }).tags;
+  return Array.isArray(t) ? (t as string[]) : [];
+}
+
+/** Half-life decay 0.5^(age/halfLife); 1 for a non-positive / ∞ half-life. */
+function decayWeight(ageS: number, halfLife: number): number {
+  if (!Number.isFinite(halfLife) || halfLife <= 0 || ageS <= 0) return 1;
+  return Math.pow(0.5, ageS / halfLife);
+}
+
+/**
+ * Sum the value-function over a scope-slice of events — the whole scoring.
+ * Per event: signed valence (sum of tag weights) × signed-decay (esteem
+ * half-life when positive, notoriety when negative) × context multiplier;
+ * the total is scaled by the quality weight. Zero-valence events drop out.
+ */
+function scoreEvents(
+  events: RenownEvent[],
+  nowS: number,
+  vf: ValueFunction
+): number {
+  let total = 0;
+  for (const ev of events) {
+    const tags = signalTags(ev);
+    let valence = 0;
+    for (const t of tags) valence += vf.valence[t] ?? 0;
+    if (valence === 0) continue;
+    let context = 1;
+    for (const t of tags) {
+      const c = vf.contextMult[t];
+      if (c !== undefined) context *= c;
+    }
+    const halfLife = valence >= 0 ? vf.esteemHalfLife : vf.notorietyHalfLife;
+    total +=
+      valence * decayWeight(Math.max(0, nowS - ev.at), halfLife) * context;
+  }
+  return total * vf.qualityWeight;
+}
+
+/** Map a query scope to its stored key (`null` → cooperative-wide sentinel). */
+function scopeKey(scope: RenownScope): string {
+  return scope ?? COOPERATIVE_WIDE;
+}
+
+/** Upsert one materialized standing row (find-or-insert by {subject, scope}). */
+async function upsertStanding(
+  subject: string,
+  scope: string,
+  value: number,
+  nowS: number
+): Promise<void> {
+  const [existing] = await RenownStanding.find({ subject, scope });
+  const row = existing ?? new RenownStanding();
+  row.subject = subject;
+  row.scope = scope;
+  row.value = value;
+  row.recomputedAt = nowS;
+  await row.save();
+}
+
+/**
+ * The batch recompute: re-score every subject's standing from the raw
+ * event log through the current value-function into the materialized
+ * aggregate. Reads ONLY the renown log + AppSettings — never the belief
+ * store. The materialized scope set per subject is derived from that
+ * subject's own events: {cooperative-wide} ∪ its groups ∪ its localities.
+ */
+async function recomputeImpl(): Promise<void> {
+  if (!active()) return;
+  const vf = loadValueFunction();
+  const nowS = WorldClockApi.getNow().rawValue();
+
+  const all = await RenownEvent.find({});
+  const bySubject = new Map<string, RenownEvent[]>();
+  for (const ev of all) {
+    const list = bySubject.get(ev.subject);
+    if (list) list.push(ev);
+    else bySubject.set(ev.subject, [ev]);
+  }
+
+  for (const [subject, events] of bySubject) {
+    const scopes = new Set<RenownScope>([null]);
+    for (const ev of events) {
+      for (const g of ev.groups) scopes.add(g);
+      if (ev.locality !== null) scopes.add(ev.locality);
+    }
+    for (const scope of scopes) {
+      const slice = events.filter((e) => inScope(e, scope));
+      await upsertStanding(
+        subject,
+        scopeKey(scope),
+        scoreEvents(slice, nowS, vf),
+        nowS
+      );
+    }
+  }
+
+  // Refresh the read cache from the rebuilt rows.
+  await RenownStanding.warm();
+}
+
+/** Sync read off the warmed standing cache; neutral 0 for a missing scope. */
+function renownOfImpl(subjectId: string, scope: RenownScope): number {
+  return (
+    RenownStanding.cached().get(
+      RenownStanding.key(subjectId, scopeKey(scope))
+    ) ?? 0
+  );
+}
+
 /**
  * RenownLogic — the hot-reloadable logic singleton behind
  * {@link RenownApi}.
@@ -196,6 +352,18 @@ export class RenownLogic extends Idea {
   @CallSecurity(RenownApiCallers)
   public async append(fields: RenownEventFields): Promise<void> {
     return appendImpl(fields);
+  }
+
+  /** See {@link RenownApi.recompute}. */
+  @CallSecurity(RenownApiCallers)
+  public async recompute(): Promise<void> {
+    return recomputeImpl();
+  }
+
+  /** See {@link RenownApi.renownOf}. */
+  @CallSecurity(RenownApiCallers)
+  public renownOf(subjectId: string, scope: RenownScope = null): number {
+    return renownOfImpl(subjectId, scope);
   }
 
   /**

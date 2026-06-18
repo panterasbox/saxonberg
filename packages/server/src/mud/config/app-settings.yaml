@@ -26,3 +26,18 @@ settings:
     value: "200"
   - key: reactions.sampleCap
     value: "5"
+  # Renown — the value-function parameters (GOVERNANCE-OWNED ordinary law,
+  # NOT deployment config). The engine ships the scoring algorithm; these
+  # numbers are the polity's declared values, re-scored over history on each
+  # recompute. The entrenched invariants (notoriety→zero governance weight,
+  # the engagement×renown form, renown×no-participation=nothing) are CODE,
+  # never keys. See docs/requirements/renown-requirements.md.
+  - key: renown.valenceMap
+    value: '{"cheer":1,"applaud":1,"laugh":1,"agree":1,"boo":-1,"jeer":-1,"disagree":-1}'
+  # esteem fast/fragile (7d), notoriety slow/sticky (30d), in game-seconds.
+  - key: renown.decayHalfLives
+    value: '{"esteem":604800,"notoriety":2592000}'
+  - key: renown.contextMultipliers
+    value: '{}'
+  - key: renown.qualityWeight
+    value: "1"

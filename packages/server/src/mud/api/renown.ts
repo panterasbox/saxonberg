@@ -76,14 +76,35 @@ export class RenownApi {
   /**
    * The raw, scope-filtered log reader — the substrate read. Returns the
    * subject's signal rows within `scope` (default: cooperative-wide).
-   * Consumers should read the materialized aggregate (`renownOf`, later);
-   * this is the unscored substrate seam.
+   * Consumers should read the materialized aggregate (`renownOf`); this is
+   * the unscored substrate seam.
    */
   public static async eventsFor(
     subjectId: string,
     scope?: RenownScope
   ): Promise<RenownEvent[]> {
     return logic().eventsFor(subjectId, scope ?? null);
+  }
+
+  /**
+   * Re-score every subject's standing from the raw event log through the
+   * current value-function into the materialized aggregate — the batch the
+   * recompute schedule fires (and the `renownOf` cache is refreshed from).
+   * Applies the value-function at recompute time, so re-legislating it
+   * re-scores history; reads only the log + AppSettings, never belief.
+   */
+  public static async recompute(): Promise<void> {
+    return logic().recompute();
+  }
+
+  /**
+   * The sync cached read — the signed standing (esteem ↔ notoriety) of
+   * `subject` within `scope` (default cooperative-wide, the scope
+   * governance reads). Returns the neutral 0 for a non-materialized scope.
+   * The seam future consumers (governance / NPC / disguise) call.
+   */
+  public static renownOf(subjectId: string, scope?: RenownScope): number {
+    return logic().renownOf(subjectId, scope ?? null);
   }
 }
 

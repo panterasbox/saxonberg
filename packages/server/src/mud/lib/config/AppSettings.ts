@@ -52,6 +52,24 @@ export const AppSettingKeys = {
 
   /** Reactions — cap on the per-recipient familiar-biased sample. */
   reactionsSampleCap: "reactions.sampleCap",
+
+  /**
+   * Renown — the value-function parameters (GOVERNANCE-OWNED ordinary law,
+   * not deployment config). The engine ships the scoring algorithm; these
+   * numbers are the polity's *declared values*, applied at recompute time
+   * so re-legislating them re-scores history without rewriting the log.
+   * The entrenched invariants (notoriety→zero governance weight, the
+   * `engagement × renown` form, `renown × no-participation = nothing`) are
+   * CODE, never keys. See docs/requirements/renown-requirements.md.
+   */
+  /** Renown — JSON `{tag: weight}` valence map (signed reaction values). */
+  renownValenceMap: "renown.valenceMap",
+  /** Renown — JSON `{esteem, notoriety}` decay half-lives in game-seconds. */
+  renownDecayHalfLives: "renown.decayHalfLives",
+  /** Renown — JSON `{tag: multiplier}` context/act weighting (default 1). */
+  renownContextMultipliers: "renown.contextMultipliers",
+  /** Renown — scalar quality weight applied to the standing. */
+  renownQualityWeight: "renown.qualityWeight",
 } as const;
 
 export type AppSettingKey =
