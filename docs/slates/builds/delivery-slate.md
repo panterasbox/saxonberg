@@ -9,6 +9,17 @@
 > names the whole design so the eventual builds don't fragment; it does
 > **not** prescribe a build sequence (that's deferred by decision).
 
+> **Forum factoring superseded by [forums-slate.md](./forums-slate.md)
+> (2026-06):** the § *Layer 2* "social forum is a chat facet" framing is
+> replaced by a first-class forum primitive (`Board`/`Entry` Documents +
+> Catalogue). Everything else this slate establishes for the forum — aether
+> transport, `GroupRef` audience, `world.forum.*` Topic, per-surface override
+> — is retained by that slate. Two specific § L2 calls are **reversed**
+> there: "there is no 'Subject' entity" (a thin `Subject` Document is
+> reinstated to link a subject's surfaces, since ephemeral subjects/bills
+> share audiences) and chat-as-ring-only (an opt-in `logged` retention is
+> added). The rest of this slate (mail, utilities, broadcast) is unaffected.
+
 See also:
 
 - [comms-slate.md](../tails/comms-slate.md) — the **shipped instance** of the
