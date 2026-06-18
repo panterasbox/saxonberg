@@ -18,6 +18,8 @@ import EventRegistry from '../../EventRegistry';
 import { StuffApi } from '../../../api/stuff';
 import { Stuff } from '../../../lib/stuff/Stuff';
 import { WorldClockApi } from '../../../api/worldclock';
+import { ScheduleApi } from '../../../api/schedule';
+import type { ScheduleHandle } from '../../../api/schedule';
 import { PersistenceManager } from '../../../../backend/PersistenceManager';
 import { ReactionFiredEvent } from '../../../lib/events/ReactionFiredEvent';
 
@@ -78,6 +80,10 @@ beforeEach(async () => {
     }
   );
   WorldClockApi._setNowProviderForTesting(() => 4242);
+  // Stub the scheduler so boot() doesn't leave a real 60s timer running.
+  vi.spyOn(ScheduleApi, 'recurring').mockReturnValue({
+    id: 'test-handle',
+  } as unknown as ScheduleHandle);
   await makeRegistry();
 });
 
@@ -121,5 +127,11 @@ describe('RenownLogic reaction tap', () => {
     fireReaction();
     await flush();
     expect(await RenownApi.eventsFor('/obj/Avatar/author')).toHaveLength(0);
+  });
+
+  it('boot self-registers the recompute schedule, once', () => {
+    RenownApi.boot();
+    RenownApi.boot();
+    expect(ScheduleApi.recurring).toHaveBeenCalledTimes(1);
   });
 });

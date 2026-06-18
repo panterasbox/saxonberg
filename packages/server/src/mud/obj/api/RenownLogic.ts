@@ -17,6 +17,8 @@ import { AppSettingKeys } from '../../lib/config/AppSettings';
 import { WorldClockApi } from '../../api/worldclock';
 import { EventApi } from '../../api/event';
 import type { Subscription } from '../../api/event';
+import { ScheduleApi } from '../../api/schedule';
+import type { ScheduleHandle } from '../../api/schedule';
 import { StuffApi } from '../../api/stuff';
 import { AddressApi } from '../../api/address';
 import { GroupApi } from '../../api/group';
@@ -30,6 +32,14 @@ import { PersistenceManager } from '../../../backend/PersistenceManager';
 const RenownApiCallers = SecurityPolicies.FromModule(
   'mud/api/renown#RenownApi'
 );
+
+/**
+ * Recompute cadence — a code constant (cadence is *mechanism*, not a
+ * legislated value, per renown-plan §6 decision 3). Cache refresh is a
+ * real-time concern, so the recompute rides real-time `ScheduleApi`; the
+ * decay math inside still uses game-time `at` deltas.
+ */
+const RENOWN_RECOMPUTE_MS = 60_000;
 
 /** Persistence is a no-op unless Mongo is connected (tests, pre-boot). */
 function active(): boolean {
@@ -324,6 +334,9 @@ export class RenownLogic extends Idea {
    */
   private reactionSub: Subscription<ReactionFiredPayload> | null = null;
 
+  /** The recurring recompute handle — retained so re-install is a no-op. */
+  private recomputeHandle: ScheduleHandle | null = null;
+
   /**
    * Install the reaction → renown ingestion tap (idempotent). Subscribes
    * to `ReactionFiredEvent` and appends a scope-tagged `RenownEvent` per
@@ -352,6 +365,22 @@ export class RenownLogic extends Idea {
   @CallSecurity(RenownApiCallers)
   public async append(fields: RenownEventFields): Promise<void> {
     return appendImpl(fields);
+  }
+
+  /**
+   * Self-register the real-time recompute schedule (idempotent). Each
+   * fire re-scores all standings off the log. Cancellable via the retained
+   * `ScheduleHandle`. Renown owns its own cadence — no `WorldClockRegistry`
+   * coupling (decision 3).
+   */
+  @CallSecurity(RenownApiCallers)
+  public installRecomputeSchedule(): void {
+    if (this.recomputeHandle) return;
+    this.recomputeHandle = ScheduleApi.recurring(RENOWN_RECOMPUTE_MS, () => {
+      void recomputeImpl().catch((err) =>
+        console.error('RenownLogic: scheduled recompute failed', err)
+      );
+    });
   }
 
   /** See {@link RenownApi.recompute}. */
