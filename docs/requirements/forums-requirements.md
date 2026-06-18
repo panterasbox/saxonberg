@@ -22,10 +22,11 @@ Subject); forums then add a Board surface on top.
   into one Document: `title` (the handle), `owner` (playerId, mutation gate),
   `groupRef` (audience binding — *mint* a managed group for the curated case,
   *bind* an existing `guild:`/`mql:`/`contacts:` ref, or *open* via empty ref),
-  the lit **manifestations** (`{kind:'chat'|'board'|'thread', ref}`), and
-  lifecycle. Cycle 1 exercises **standing** subjects at **board, thread, and
-  chat grain** (incl. promote-a-thread); only the **ephemeral lifecycle +
-  archive cascade** (bills) + the governance trigger remain deferred.
+  the lit **manifestations** (up to one each of the **four surfaces** — see
+  *The four surfaces* below), and lifecycle. Cycle 1 exercises **standing**
+  subjects at **board and thread grain** (incl. promote-a-thread); only the
+  **ephemeral lifecycle + archive cascade** (bills) + the governance trigger
+  remain deferred.
 - **The hierarchy is `Board → Thread → Post`.** A `Board` is a persisted
   long-lived venue (popularity organizer) holding many Threads; a `Thread` is a
   persisted root `Entry` (a submission); a `Post` is a persisted child `Entry`
@@ -84,7 +85,12 @@ Subject); forums then add a Board surface on top.
   (`EventApi.on(ForumEventFired)`), re-resolves current-state docs, and pushes
   snapshot + deltas. It does **not** tail Mongo; `forum_events` is the durable
   twin, not the live feed. Built so wiki/CMS can bind it later.
-- **React forum GUI.** Browse boards → threads → post-trees driven **live** by
+- **React forum GUI — a primary view *inside* the cockpit.** The forum is a
+  `Terminal | Forum` main-area view-switch (not a separate phase): the **Frame +
+  CommandBar persist**, the **right column swaps** from the inspection pane to
+  the chat sidecar, and live **scene events surface as a peek/toast** so you
+  never leave live play. The `forum` verb flips the view + navigates (diegetic;
+  CLI and GUI converge). Browse boards → threads → post-trees driven **live** by
   the subscription engine; cast votes and post/reply via **real command
   strings** (vote/sort inline; post/reply carry the body on the structured
   side-channel); sort by the popularity orderings. Reads = subscription (live
@@ -108,8 +114,10 @@ Subject); forums then add a Board surface on top.
 - **Verb model + discovery.** A `subject` verb owns identity + audience
   (`subject make <name>` mints a managed-backed curated subject by default;
   `--group <ref>` / `--open` for the rest). Surfaces light up with **`forum on
-  <subject>` / `chat on <subject>`**. `chat make` / `forum make` survive as
-  **sugar** (subject-make + light-up in one step). `make` = create-new (errors
+  <subject> [--argument]`** (default popularity) / **`chat on <subject>
+  [--rules]`** (default free) — the type flag selects which of the four. `chat
+  make` / `forum make` survive as **sugar** (subject-make + light-up in one
+  step; default popularity/free). `make` = create-new (errors
   if the name's taken); `on` = attach-to-existing (gated by `Subject.owner`).
   A **board-subject's title is a flat-global handle** (case-insensitive,
   unique; `RESERVED_NAMES` carries over); a **thread-subject's handle is
@@ -130,11 +138,13 @@ Subject); forums then add a Board surface on top.
 
 ## Non-goals
 
-- **The structure organizer / argument-map** (typed claim-graph, `supports` /
-  `objects-to` / `responds-to` edges, deliberation verbs, structure GUI) — the
-  next cycle ([argument-map-slate.md](../slates/builds/argument-map-slate.md)).
-  Cycle 1 ships the `organizer` field + generic typed-edge *storage shape* so
-  this is a later organizer, but builds no structure behavior.
+- **The argument-forum surface (structure organizer / argument-map)** — typed
+  claim-graph, `supports`/`objects-to`/`responds-to` edges, deliberation verbs,
+  structure GUI — the next cycle
+  ([argument-map-slate.md](../slates/builds/argument-map-slate.md)). It's
+  declarable in the four-surface taxonomy and cycle 1 ships the `organizer`
+  field + generic typed-edge *storage shape* so it's a later surface, not a
+  schema migration; **no structure behavior is built**.
 - **Ephemeral-subject lifecycle** — the bill/event auto-archive: the external
   lifecycle trigger + the **archive cascade** (on-floor → passed → archived).
   Thread-grain manifestation itself is now *in scope* (promote-a-thread), but
@@ -144,8 +154,9 @@ Subject); forums then add a Board surface on top.
   the legislative lifecycle (cooperative-slate).
 - **Trust-weighted votes; votes → producer-standing / co-op money** — the
   cooperative-slate's feedback-economy wiring. v1 votes drive discovery only.
-- **Procedure mode (`rules-of-order`); chat `logged` retention + `chat_log`** —
-  deferred with ephemeral debates.
+- **The rules-of-order chat surface (`procedure: 'rules-of-order'`); chat
+  `logged` retention + `chat_log`** — deferred (parked); cycle 1 chat is
+  free-procedure only. (Declarable in the taxonomy; behavior deferred.)
 - **A string-less structured dispatch path** as a general write channel — the
   structured payload is **always** a side channel attached to a real command
   string, never a replacement. (Char-gen's command-string construction is the
@@ -170,12 +181,34 @@ All three are `Entry`-or-container Documents: a Thread is a root `Entry`
 Threads. (One root proposal per thread is a *structure*-organizer rule, not
 relevant to popularity.)
 
-### Subject grain-polymorphic; board + thread + chat grain in cycle 1
-A Subject manifests as `{kind:'chat'|'board'|'thread', ref}`. Cycle 1 exercises
-**all three grains**: board + chat (standing subjects: gossip, guild) and
-**thread** (promote-a-thread → thread-subject + chat). Promoted thread-subjects
-are **standing**; only the **ephemeral lifecycle + archive cascade** (bills) +
-governance trigger remain deferred.
+### The four surfaces (a subject lights up 1–4)
+A subject declares **any non-empty subset of four surfaces**, at most one of
+each:
+- **popularity forum** — a `Board`, `organizer: 'popularity'` (vote-ranked
+  reply tree). **[cycle 1]**
+- **argument forum** — a `Board`, `organizer: 'structure'` (typed claim-graph /
+  argument-map). **[deferred — Part 2]**
+- **free chat** — a `Channel`, `procedure: 'free'` (free-flowing stream; the
+  existing chat). **[cycle 1]**
+- **rules-of-order chat** — a `Channel`, `procedure: 'rules-of-order'`
+  (recognized-speaker discipline). **[deferred — parked]**
+
+So *forum* = {popularity, argument} (the two organizers) and *chat* = {free,
+rules} (the two procedures); a subject may hold **both** organizers and/or
+**both** chat procedures at once (e.g. a bill: argument forum + rules-of-order
+chat + a free chat). The per-board organizer axis still holds — each `Board` is
+one organizer; a subject just composes up to two boards + two channels. Cycle 1
+**implements popularity-forum + free-chat**; argument-forum + rules-chat are
+reserved surface types built later (the taxonomy ships now).
+
+### Subject grain-polymorphic; board + thread grain in cycle 1
+A surface manifests at the subject's grain: a **venue** (board-grain: a `Board`
+/ board-wide `Channel`) or a **promoted topic** (thread-grain: a `Thread` on a
+parent board / thread-scoped `Channel`). Cycle 1 exercises both grains — board
+(standing subjects: gossip, guild) and **thread** (promote-a-thread →
+thread-subject + its own surfaces). Promoted thread-subjects are **standing**;
+only the **ephemeral lifecycle + archive cascade** (bills) + governance trigger
+remain deferred.
 
 ### Source of record: CRUD + `forum_events` (dual-write)
 Documents are truth; `forum_events` is an append-only faithful mirror serving
@@ -256,8 +289,10 @@ cycle-1's foundational wave; forums add a Board surface on the same layer.
 ### Verb model: `subject` + `on`, with `make` as sugar
 `subject make <name>` owns identity + audience binding (default: mint a managed
 group — the curated case; `--group <ref>` / `--open` otherwise). `forum on
-<subject>` / `chat on <subject>` light up surfaces. `chat make` / `forum make`
-are one-step sugar (create-subject + light-up) preserving today's ergonomics.
+<subject> [--argument]` (default popularity) / `chat on <subject> [--rules]`
+(default free) light up one of the four surfaces. `chat make` / `forum make`
+are one-step sugar (create-subject + light-up, default popularity/free)
+preserving today's ergonomics.
 `make` create-new (name-collision = error); `on` attach-to-existing (gated by
 `Subject.owner`). A plain thread is **promoted** to a thread-subject (its own
 chat) via `forum <board> promote <thread>` → `chat on <thread>` — precedent:
@@ -282,6 +317,22 @@ A plain thread is a child Entry under the board-subject (no chat of its own); a
 chat at the board, the thread's chat when you open a promoted thread (parent
 still reachable). Promoted thread-subjects are **standing** in cycle 1 (no
 auto-archive).
+
+### Client IA: forum is a primary view in the cockpit (not a phase)
+The shell has no router — a `connectionPhase` machine + a terminal-centric
+cockpit (Frame / LeftColumn[TabStrip+Terminal+CommandBar] / 360px
+InspectionPane). The forum is **not** a new phase (that would hide the
+terminal/command-bar — a leave-the-game context switch). It's a **new
+primary-view axis inside the in-world cockpit**: a `mainView: 'terminal' |
+'forum'` switch renders `Terminal` or `ForumView` in the LeftColumn content
+slot, while **Frame + CommandBar persist** and the **right column is
+view-sensitive** (terminal → `InspectionPane`; forum → the chat sidecar).
+**Live awareness persists** in the forum view (scene says/emotes/DMs surface as
+a peek/toast). The existing `TabStrip` is filter-tabs and stays *inside* the
+Terminal view (a different axis). Navigation is **verb-driven** (`forum` /
+`forum <board>` sets `mainView` + the forum nav target) and click-driven (the
+view switch). This encodes the diegetic split: **forum = in-cockpit view;
+out-of-fiction tools (CMS / wiki / settings) = a separate phase/overlay.**
 
 ### Roles & moderation: base roles from the ref; no override in v1
 Base roles come from the bound `GroupRef` provider (managed groups carry
@@ -406,6 +457,11 @@ layer (board-local bans/pins) is aspirational in chat and **not built in v1**.
 - **Nested chat (GUI).** Opening a promoted thread surfaces its thread-scoped
   chat *alongside* the still-reachable board chat (the subject-path stack), not
   replacing it.
+- **Client IA.** Switching to the Forum view keeps the Frame + CommandBar
+  mounted (a command can still be typed) and swaps the right column to the chat
+  sidecar; the terminal is one switch away; the `forum` verb flips `mainView` to
+  the forum and navigates; a live scene event surfaces while the Forum view is
+  active (live awareness not severed). It is **not** a `connectionPhase` swap.
 - **Docs.** `docs/subsystems/forums.md` exists and documents the substrate,
   organizer model, Subject/hierarchy, the event-log + subscription engine, and
   the client channels.

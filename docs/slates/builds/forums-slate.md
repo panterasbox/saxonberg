@@ -77,16 +77,21 @@ discard their content — it absorbs it as organizer modes):
      posts collapse to a strict reply-tree; the Reddit shape.
    - `organizer: 'structure'` → the **typed edge graph organizes**; votes are
      advisory sensing only and never reorder; the Kialo / argument-map shape.
-2. **Surfaces link through a Subject — at board *or* thread grain.** Chat,
-   popularity-forum, and deliberation are **sibling manifestations of a shared
-   `Subject`** — none nests in another. A `Subject` is a thin Document:
-   identity (title) + an audience `GroupRef` (kept *separate* from identity) +
-   the set of lit manifestations + lifecycle. Crucially a manifestation may be
-   a **Channel**, a whole **Board**, *or* a single **Thread on a board** —
-   surfaces bind a subject at their own grain. That is what lets a **body** be
-   a standing Subject (a venue Board + a general chat) while **each bill** is
-   an ephemeral Subject (a Thread on that board + its own chat): one venue,
-   unified debate, yet per-bill chat. Two lifecycle classes: **standing**
+2. **Surfaces link through a Subject — 1–4 of four, at board *or* thread
+   grain.** A subject lights up **any non-empty subset of four surfaces**, at
+   most one each: **popularity forum** + **argument forum** (the two `Board`
+   organizers) and **free chat** + **rules-of-order chat** (the two `Channel`
+   procedures) — so a subject may hold both organizers and/or both chat
+   procedures at once. They are **sibling manifestations of a shared `Subject`**
+   — none nests in another. A `Subject` is a thin Document: identity (title) +
+   an audience `GroupRef` (kept *separate* from identity) + the set of lit
+   manifestations + a **grain** + lifecycle. Each surface resolves at the
+   subject's grain — a **venue** (board-grain `Board`/`Channel`) or a
+   **promoted topic** (thread-grain: a `Thread` on a parent board + a
+   thread-scoped `Channel`). That lets a **body** be a venue Subject (a board +
+   a general chat) while **each bill** is a topic Subject (a Thread + its own
+   chat, plus — being a bill — an argument forum + a rules-of-order chat): one
+   venue, unified debate, yet per-bill surfaces. Two lifecycle classes: **standing**
    (gossip / a guild / a legislature — long-lived) and **ephemeral** (a bill /
    event — spun up on a trigger, archived on completion; many can share one
    *audience* yet stay distinct subjects). Standing body-subjects ⊃ ephemeral
@@ -133,11 +138,16 @@ new construction — the genuinely-new surface is small.
   roles, via `GroupApi`, **separate from identity** — many ephemeral subjects
   may share one audience ref yet stay distinct subjects), `lifecycleClass`
   (`'standing' | 'ephemeral'`), `state` (`'active' | 'archived'`), the **lit
-  manifestations**, and `owner`. A manifestation is **grain-polymorphic**: a
-  `Channel`, a whole `Board`, *or* a single **root `Entry` (Thread) on a
-  board** — `{ kind: 'chat' | 'board' | 'thread', ref }`. This is what lets a
-  *body* be a standing Subject (a venue Board + a general chat) while *each
-  bill* is an ephemeral Subject (a Thread on that board + its own chat). The
+  manifestations**, and `owner`. A subject lights up **1–4 of the four
+  surfaces** (at most one each): **popularity forum** (`Board`
+  organizer=popularity), **argument forum** (`Board` organizer=structure),
+  **free chat** (`Channel` procedure=free), **rules-of-order chat** (`Channel`
+  procedure=rules) — `{ surface, ref }`. Each resolves at the subject's
+  **grain** (`'venue'` board-grain or `'topic'` thread-grain — a topic-grain
+  forum is a `Thread` on a parent board). This lets a *body* be a venue Subject
+  (a board + a general chat) while *each bill* is a topic Subject (a Thread +
+  its own chat — and, being a bill, an argument forum + a rules-of-order chat).
+  The
   Subject owns the à-la-carte light-up and the **archive cascade** (flip
   `state` → each manifestation goes read-only: a board locks, a thread locks,
   a chat seals its log). For ephemeral subjects the lifecycle is *driven
@@ -308,6 +318,24 @@ owns data + action semantics, client owns layout** (the established
 server-owns-draft / client-owns-layout principle). The GUI is **not** built on
 the CLI — no synthesizing command strings, no scraping text output. Three
 structured channels by concern, plus the CLI as a parallel string client.
+
+### Shell IA — a primary view *inside* the cockpit (diegetic, not a tool)
+
+Forums are in-fiction (aether boards), so they live **inside the game cockpit**,
+not as a leave-the-game tool. The client shell has no router — a
+`connectionPhase` machine + a terminal-centric cockpit (Frame / LeftColumn
+[TabStrip + Terminal + CommandBar] / 360px InspectionPane). The forum is **not**
+a new phase (that hides the terminal/command-bar — a context switch out of the
+game). It is a **new primary-view axis inside `in-world`**: a `mainView:
+'terminal' | 'forum'` switch renders `Terminal` or `ForumView` in the LeftColumn
+slot, while **Frame + CommandBar persist** and the **right column is
+view-sensitive** (terminal → InspectionPane; forum → the chat sidecar). **Live
+awareness persists** — scene says/emotes/DMs surface as a peek while you read.
+Navigation is **verb-driven** (`forum` / `forum <board>` flips `mainView` +
+target) and click-driven. This encodes the diegetic split: **forum = in-cockpit
+view; out-of-fiction tools (CMS / wiki / settings) = a separate phase/overlay.**
+(The existing `TabStrip` is filter-tabs and stays *inside* the Terminal view —
+a different axis.)
 
 ### Writes — command string canonical + a structured body side-channel
 
