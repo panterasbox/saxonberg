@@ -37,6 +37,8 @@ export enum Collections {
   Channels = 'channels',
   Beliefs = 'beliefs',
   Chronicles = 'chronicles',
+  RenownEvents = 'renown_events',
+  Renown = 'renown',
 }
 
 /**
@@ -617,6 +619,18 @@ export class PersistenceManager {
       // O(rows-for-this-owner), not a full scan.
       await this.getCollection(Collections.Chronicles).createIndex({
         owner: 1,
+      });
+
+      // Renown events: append-only, scope-tagged signal log (one doc per
+      // signal). Indexed on `subject` (the hot read partition) and
+      // `{ subject, at }` (the decay-ordered slice the recompute walks),
+      // so both stay O(rows-for-this-subject), not a full scan.
+      await this.getCollection(Collections.RenownEvents).createIndex({
+        subject: 1,
+      });
+      await this.getCollection(Collections.RenownEvents).createIndex({
+        subject: 1,
+        at: 1,
       });
 
       console.info('PersistenceManager: Indexes created successfully');
