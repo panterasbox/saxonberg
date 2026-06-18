@@ -71,6 +71,12 @@ subcommands:
         greedy: true
   read:
     description: "Read a board's thread-list, or a thread's tree"
+    options:
+      sort:
+        short: s
+        type: string
+        field: sort
+        description: "Sort order: new | top | hot | controversial (default new)"
     args:
       - name: board
         type: string
@@ -78,6 +84,15 @@ subcommands:
       - name: thread
         type: string
         required: false
+  vote:
+    description: "Up/down vote an entry (toggles off if you repeat the same direction)"
+    args:
+      - name: entry
+        type: string
+        required: true
+      - name: direction
+        type: string
+        required: true
   promote:
     description: "Promote a thread into a thread-subject with its own chat"
     args:

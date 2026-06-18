@@ -35,6 +35,8 @@ import { PlayerApi } from '../../../api/player';
 import type { Forums } from '../../../lib/forum/Forums';
 import type { Stuff } from '../../../lib/stuff/Stuff';
 import type Subject from '../../../lib/forum/Subject';
+import type { EntrySort } from '../../../obj/api/ForumsLogic';
+import type { VoteValue } from '../../../lib/forum/Vote';
 
 interface ForumModel extends CommandModel {
   board?: string;
@@ -47,7 +49,11 @@ interface ForumModel extends CommandModel {
   open?: boolean;
   group?: string;
   argument?: boolean;
+  sort?: string;
+  direction?: string;
 }
+
+const VALID_SORTS = new Set<EntrySort>(['new', 'top', 'hot', 'controversial']);
 
 /** Resolve the operator's hosted forum update — commandSource or findReachable. */
 function resolveForums(context: CommandContext): (Stuff & Forums) | null {
@@ -90,6 +96,8 @@ export default class ForumController extends CommandController<ForumModel> {
         return this.executeReply(model, context);
       case 'read':
         return this.executeRead(model, context);
+      case 'vote':
+        return this.executeVote(model, context);
       case 'promote':
         return this.executePromote(model, context);
       case 'follow':
@@ -219,31 +227,64 @@ export default class ForumController extends CommandController<ForumModel> {
     if (!handle) return this.fail(context, 'board required', 'board-required');
     const view = await ForumsApi.resolveBoardByHandle(handle);
     if (!view) return this.fail(context, `No board '${handle}'.`, 'no-such-board');
+    const sort = parseSort(model.sort);
 
     const threadId = (model.thread ?? '').trim();
     if (threadId) {
       const root = await ForumsApi.getEntry(threadId);
       if (!root) return this.fail(context, `No thread '${threadId}'.`, 'no-such-thread');
-      const { posts } = await ForumsApi.readThread(root);
-      const lines = [`${root.getTitle()} (#${root._id})  [${root.getScore()}]`, ''];
+      const { posts } = await ForumsApi.readThread(root, sort);
+      const lines = [
+        `${root.getTitle()} (#${root._id})  ${await scoreLabel(root)}`,
+        '',
+      ];
       lines.push(`  ${stripMml(root.getBody())}`);
       for (const p of posts) {
-        lines.push(`    ↳ #${p._id} [${p.getScore()}] ${stripMml(p.getBody())}`);
+        lines.push(`    ↳ #${p._id} ${await scoreLabel(p)} ${stripMml(p.getBody())}`);
       }
       this.send(context, Mml.fromMarkup(`\n${lines.join('\n')}\n`));
       return;
     }
 
-    const threads = await ForumsApi.readBoard(view.board);
+    const threads = await ForumsApi.readBoard(view.board, sort);
     if (threads.length === 0) {
       this.send(context, Mml.fromMarkup(`\nNo threads in ${handle}.\n`));
       return;
     }
-    const lines = [`Threads in ${handle}:`];
+    const lines = [`Threads in ${handle} (by ${sort}):`];
     for (const t of threads) {
-      lines.push(`  #${t._id} [${t.getScore()}] ${t.getTitle()}`);
+      lines.push(`  #${t._id} ${await scoreLabel(t)} ${t.getTitle()}`);
     }
     this.send(context, Mml.fromMarkup(`\n${lines.join('\n')}\n`));
+  }
+
+  private async executeVote(
+    model: ForumModel,
+    context: CommandContext,
+  ): Promise<void> {
+    const actor = context.commandGiver;
+    const entryId = (model.entry ?? '').trim();
+    const dir = (model.direction ?? '').trim().toLowerCase();
+    if (!entryId) return this.fail(context, 'entry required', 'entry-required');
+    if (dir !== 'up' && dir !== 'down') {
+      return this.fail(context, 'direction must be up or down', 'bad-direction');
+    }
+    const entry = await ForumsApi.getEntry(entryId);
+    if (!entry) return this.fail(context, `No entry '${entryId}'.`, 'no-such-entry');
+    // Audience gate — only board members may vote.
+    const view = await this.boardViewFor(entry.getBoard());
+    if (view && !(await SubjectApi.isAudienceMember(actor, view.subject))) {
+      return this.fail(context, 'You are not in this board’s audience.', 'not-member');
+    }
+    try {
+      const updated = await ForumsApi.castVote(actor, entry, dir as VoteValue);
+      this.send(
+        context,
+        Mml.compose`\nVoted. Score now ${String(updated.getScore())}.\n`,
+      );
+    } catch (err) {
+      return this.fail(context, (err as Error).message, 'vote-failed');
+    }
   }
 
   private async executePromote(
@@ -317,6 +358,17 @@ function ownsSubject(actor: Stuff, subject: Subject): boolean {
     ? actor.getPlayerId()
     : actor.stuffId;
   return subject.getOwner() === playerId;
+}
+
+function parseSort(raw: string | undefined): EntrySort {
+  const s = (raw ?? '').trim().toLowerCase() as EntrySort;
+  return VALID_SORTS.has(s) ? s : 'new';
+}
+
+/** Score label honoring the anti-snowball display gate (`···` = hidden). */
+async function scoreLabel(entry: import('../../../lib/forum/Entry').default): Promise<string> {
+  const display = await ForumsApi.displayScoreFor(entry);
+  return display === null ? '[···]' : `[${display}]`;
 }
 
 function deriveTitle(body: string): string {

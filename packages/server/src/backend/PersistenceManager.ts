@@ -654,6 +654,30 @@ export class PersistenceManager {
         parent: 1,
       });
 
+      // Forum votes: one row per (entry, voter) — unique compound index
+      // enforces one-account-one-vote per entry; `entry` alone serves the
+      // aggregate recompute.
+      await this.getCollection(Collections.ForumVotes).createIndex(
+        { entry: 1, voter: 1 },
+        { unique: true }
+      );
+
+      // Forum events: the append-only audit/archive log. Indexed on each
+      // dependency key so the Wave 3 subscription's history/backfill reads
+      // (and the deferred audit tooling) are scoped, not full scans.
+      await this.getCollection(Collections.ForumEvents).createIndex({
+        subject: 1,
+      });
+      await this.getCollection(Collections.ForumEvents).createIndex({
+        board: 1,
+      });
+      await this.getCollection(Collections.ForumEvents).createIndex({
+        thread: 1,
+      });
+      await this.getCollection(Collections.ForumEvents).createIndex({
+        entry: 1,
+      });
+
       console.info('PersistenceManager: Indexes created successfully');
     } catch (error) {
       console.error('PersistenceManager: Error creating indexes:', error);

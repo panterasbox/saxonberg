@@ -22,7 +22,10 @@ import type {
   BoardView,
   ThreadView,
   MakeForumOptions,
+  EntrySort,
+  VoteState,
 } from '../obj/api/ForumsLogic';
+import type { VoteValue } from '../lib/forum/Vote';
 import { ForumsLogic } from '../obj/api/ForumsLogic';
 import { fileURLToPath } from 'url';
 
@@ -87,12 +90,28 @@ export class ForumsApi {
     return logic().getEntry(id);
   }
 
-  static async readBoard(board: Board): Promise<Entry[]> {
-    return logic().readBoard(board);
+  static async readBoard(board: Board, sort?: EntrySort): Promise<Entry[]> {
+    return logic().readBoard(board, sort ?? 'new');
   }
 
-  static async readThread(root: Entry): Promise<ThreadView> {
-    return logic().readThread(root);
+  static async readThread(root: Entry, sort?: EntrySort): Promise<ThreadView> {
+    return logic().readThread(root, sort ?? 'new');
+  }
+
+  static async castVote(
+    actor: Stuff,
+    entry: Entry,
+    direction: VoteValue,
+  ): Promise<Entry> {
+    return logic().castVote(actor, entry, direction);
+  }
+
+  static async getVoteState(entry: Entry, voter: string): Promise<VoteState> {
+    return logic().getVoteState(entry, voter);
+  }
+
+  static async displayScoreFor(entry: Entry): Promise<number | null> {
+    return logic().displayScoreFor(entry);
   }
 
   static async promoteThread(
