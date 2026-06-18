@@ -19,6 +19,18 @@
 > authoritative spec for the structure organizer (data model, principles,
 > scale problems).
 
+> **Update (2026-06-18) — substrate mapping + consumption model.** Two
+> refinements landed in design conversation, both additive: (1) the data
+> model is now pinned to the **cycle-1 forum substrate** — the structure
+> organizer is an *interpretation + verb mode over the same `Board`/`Entry`
+> store*, not new storage (the seams already ship inert: `Board.organizer:
+> 'structure'`, the `Entry.relation` enum, the `'argument-forum'`
+> manifestation, the `--argument` flag); see **The substrate** below. (2) The
+> reading half is sharpened into a **store/lens split** — the record and the
+> *default* lens stay neutral; *your* lens is free — which supersedes the flat
+> "never rank" framing; see **Reading the map** below. This is the documented
+> **follow-on to forums cycle 1** (builds once the cycle-1 substrate lands).
+
 Working slate for the **argument-map** — the structured-argumentation
 surface where the legislature deliberates. The governing claim, and the
 reason it isn't a forum: **load-bearing deliberation must be organized by the
@@ -105,8 +117,54 @@ The artifact is a **graph of typed nodes**, rooted at a proposal:
 
 Recursion is the point: every node can carry its own pros and cons, so nuance
 lives in *depth* (the objection-to-the-objection), not in a flat pile. The
-Kialo / IBIS shape. (Tree by default; a DAG once a claim is reused under
-multiple parents — open whether to allow reuse or keep it a strict tree.)
+Kialo / IBIS shape. (**Strict tree in v1** — see *The substrate* below; the
+DAG case — one canonical claim reused under many parents — ≡ the deferred
+dedup problem, so it defers with it.)
+
+## The substrate — the structure organizer over `Board`/`Entry`
+
+The claim-graph is **not new storage.** It is the `organizer: 'structure'`
+*reading* of the same cycle-1 forum substrate the popularity organizer uses —
+the seams ship inert in cycle 1 and this build lights them up:
+
+- **`Board.organizer: 'structure'`** — the per-board axis (cycle 1 always
+  `'popularity'`; the field is already there).
+- **`Entry.relation`** — the typed-edge field (`'reply'` for popularity;
+  `'supports' | 'objects-to' | 'responds-to'` here). **The node "type" is
+  derivable from its edge — there is no separate node-type field.** A *pro* is
+  an `Entry` attached via `supports`; a *con* via `objects-to`; a *rebuttal*
+  is just a pro/con one level deeper (its parent is an argument, not the
+  spine). The **root spine** is the `parent: null` `Entry` — the proposal as
+  prose. The four node-kinds above are a *taxonomy of roles*, all carried by
+  the one `relation` field.
+- **The `'argument-forum'` manifestation + the `--argument` flag** — already
+  reserved on `Subject` and the `forum` verb.
+- **The vote aggregate is inert here.** `Entry.up`/`down` (the Wave-2
+  popularity aggregate) is never read under `'structure'`; nothing ranks, so
+  there is nothing to game — principle 1, made concrete.
+
+**Verb surface — reuse `reply`, don't invent.** Contribution is the existing
+`forum reply <node>` with valence flags: `--pro` → `supports`, `--con` →
+`objects-to`, `--rebut` → `responds-to`. The spine is `forum make … --argument`
++ the root post. (The structure organizer is a verb *mode*, not a new verb.)
+
+**Three provisional model decisions** (settled in conversation; flagged to
+revisit):
+
+1. **`responds-to` = the neutral edge** — questions / clarifications / "what
+   does X mean" that take *no side*. `supports`/`objects-to` carry all valence
+   (pro/con/rebuttal-by-depth), so the third edge holds non-adversarial moves
+   rather than duplicating them.
+2. **Strict tree in v1.** `Entry.parent` is a single ref → tree for free. The
+   DAG case (canonical-claim reuse) **is** the dedup problem below — deferring
+   DAG and deferring dedup are the *same* deferral.
+3. **The spine is any prose thesis.** Decoupled from the bill lifecycle, the
+   root is just "the thing being argued." Consequence: **the argument forum is
+   independently valuable *before* governance exists** — the polity can run a
+   structured argument about *what government to have*, no measure/docket
+   required. The only governance seam reserved is a **`mature → vote` event**
+   (see *Convergence*), emitted at convergence; the vote itself is the
+   deferred measure/docket layer that consumes it.
 
 ## Standard-model situation
 
@@ -125,7 +183,8 @@ why this fits a text polity rather than fighting it.
 - **Navigation is structural.** You read the map by walking its logic — drill
   into a claim's objections, their rebuttals — not a ranked feed.
   Personalized triage comes from **delegated attention** (what the people you
-  trust on this topic flagged), never a global ranking.
+  trust on this topic flagged), never a global ranking. (Expanded into the
+  **store/lens split** in *Reading the map* below.)
 - **Contribution = attach a typed node** to a claim (a pro, a con, a
   rebuttal). The graph grows by argument, not by posting.
 - **Convergence-detection + a time-box** ends deliberation: the map *matures*
@@ -135,6 +194,81 @@ why this fits a text polity rather than fighting it.
 - **The map informs; it doesn't decide.** Reasoning is structured here; the
   binding decision is the separate weighted ballot. Polling may sense
   agreement on claims (advisory), never rank them.
+
+## Reading the map — the store/lens split (the consumption model)
+
+How we *store* the graph must not bake in how it's *read*, and the "never
+rank" principle governs the **record and the shared default view** — *not*
+your personal navigation. Three tiers, kept strictly apart:
+
+- **The record — no ranking, lossless.** A *dumb store* of pure typed
+  relations + prose + provenance (`node, parent, relation, author, body,
+  timestamps`) — **nothing about traversal.** No display-order field, no
+  score, no precomputed view welded onto the `Entry`. Store the least, so the
+  artifact stays open to explorers not yet imagined. (The house idiom: **dumb
+  store, smart consumers** — the chronicle / belief-store precedent.) Dissent
+  stays reachable forever.
+- **The default lens — neutral, shared.** What a stranger with no circle and
+  no chosen sort sees: **structural** (spine, valence-grouped, open-objections
+  flagged). This is the *one* view everyone shares, so it is the *only* read
+  surface that must stay ungameable. Keep it boring.
+- **Your lens — free.** Sort, filter, reorder, collapse, tour, summarize —
+  **anything** — computed on read, owned by you, stored nowhere, binding
+  nothing.
+
+**Why a free personal lens is *not* the gameability hole.** Gaming needs a
+**shared target** — one ranking the whole audience climbs, so manipulation
+pays off across everyone. A per-viewer, self-chosen, computed-on-read lens has
+*no shared target*: to "game" my lens you must manipulate *my* circle or *my*
+chosen sort — i.e. persuade me, or watch me choose badly — with no leverage
+multiplier. **Capture attaches only to shared surfaces** (a stored order, or a
+default everyone inherits). So personalization is safe *exactly up to* the
+point it becomes a default. The line runs between *shared* and *yours* — not
+between *highlight* and *sort* (an earlier over-statement, now corrected).
+
+### The two triage sources (both non-ranking)
+
+- **Structural salience — intrinsic to the graph.** Properties the structure
+  itself exposes, no user signal: **open objection** (an `objects-to` with no
+  answering child — a literal hole in the argument, the single best cue);
+  **contested** (many cons vs pros); **depth / unexplored**. You cannot *farm*
+  these — the only way to move "open objection" is to *answer* it, which
+  improves the argument. Attacking the metric and improving the map are the
+  same act.
+- **Delegated attention — per-viewer, opt-in, non-reordering.** A *highlight*
+  layer ("N in your circle engaged here"), never a re-sort. "People you trust
+  on this topic" reuses `contacts` / a `GroupRef` / a per-topic circle (regard
+  the obvious feeder); the v1 engagement signal is the **authorship you
+  already store** (`Entry.author` × your circle) — zero new data. This is the
+  *safe place for delegation*: you delegate **attention, not votes** — a
+  captured trust-set can only mis-route *what you read*, never *what binds*,
+  and every node stays fully present. Liquid democracy's benefit (expertise
+  scales triage) with its risk defused by construction.
+
+### One metric, two jobs
+
+**Open-objection count is dual-use.** As a *reading* aid it is the triage
+worklist ("go here"); as a *convergence* signal it is the time-box's companion
+(trending to ~0 + claim-novelty drying = maturing). Model it once; it serves
+both. (Automated convergence stays deferred — but the signal it will read is
+the one the default lens already renders.)
+
+### The explorer is plural
+
+Because the store is just relations + prose, *every* read is a query or a
+traversal — so the "argument explorer" is not one screen but an **open-ended
+family of lenses**, extensible forever without touching the artifact: multiple
+**ways in** ("drop me at the open objections / where my circle is arguing"),
+**guided tours** (steelman tour, skeptic's tour), **question-lenses** ("what's
+the case against?" → the con-subtree; "what's unresolved?" → open objections),
+**diffs** ("what changed since I last looked" — free from the event-log /
+subscription seam), and **linear vs. spatial** renders. Precomputed artifacts
+(LLM summary, salience index) live as **derived caches keyed by lens**, never
+as fields on the canonical `Entry`.
+
+**The split as a build boundary.** Cycle-2 ships the **relation-store + the
+neutral default lens** — small and safe. The **explorer** is then its own
+open-ended track, *because* the substrate was built to be read a hundred ways.
 
 ## The hard problems (the open work)
 
@@ -170,14 +304,18 @@ The model is simple; *scale* is where the work is:
 
 A **basic claim-tree** without the scale machinery:
 
-- the typed nodes (claim / pro / con / rebuttal) + relations, rooted at a
-  proposal;
+- the typed nodes carried by `Entry.relation` over a `'structure'` `Board`
+  (no new storage — see *The substrate*), rooted at a prose spine;
+- the **`reply --pro/--con/--rebut`** verb mode + the **neutral default lens**
+  (spine, valence-grouped, open-objections flagged) + the author-×-circle
+  attention highlight;
 - structural navigation + attach-a-node contribution, audience via a
   `GroupRef`;
 - egalitarian contribution (one-person-one-voice);
-- archived (the deliberation record);
+- archived (the deliberation record — the dumb relation-store);
 - convergence by **time-box** (no automated maturity-detection yet);
-- the hand-off to the weighted vote.
+- the **`mature → vote` event seam** — decoupled: emitted at convergence, with
+  the vote itself the deferred measure/docket layer that consumes it.
 
 This works for a *small* deliberation (a few dozen participants) — the
 population-ladder pattern again: small bodies deliberate fine on the bare
