@@ -1961,7 +1961,8 @@ on **two axes** — quantity and quality — never one alone:
 - **Quality — reputation.** How *valued* that participation is: regard
   among peers, drawn from the reputation system already on the board
   ([reputation-slate](./reputation-slate.md): regard / renown /
-  susceptibility / notoriety, **per-circle scoping**).
+  susceptibility / notoriety; scoped cooperative-wide for governance —
+  see below).
 
 The **product** is the point. Reputation alone is a *popularity contest*
 (charisma wins, presence doesn't); engagement alone is an *idle-farm /
@@ -2006,7 +2007,7 @@ pathological:
 - **Goodhart** — once standing buys governance power, people farm both
   axes for politics, not just play. The defense is the **product itself**
   (engagement × regard needs real presence *and* peer regard), the
-  **conduct → bounded weight, never → authority** rule (regard multiplies
+  **conduct → bounded weight, never → authority** rule (renown multiplies
   earned participation, never mints standalone weight — so renown ×
   no-participation = nothing), and the **tricameral check**; let
   reputation *inform* rather than *solely determine* standing, and lean on

@@ -1,10 +1,11 @@
 # Renown — requirements
 
 **Renown is the measured aggregate of social standing — the "quality"
-half of the consumer-influence thesis (`engagement × regard`).** It is an
+half of the consumer-influence thesis (`engagement × renown`).** It is an
 *output you observe*, never an *input you assign*: a signed scalar
 (esteem ↔ notoriety) computed from how others actually react to you,
-scoped to whatever circle is asked about. This build delivers the
+computed for any scope — a Group, a locality, or the whole polity — that
+is asked about. This build delivers the
 *substrate* — a dedicated event store, the per-scope aggregation, and a
 read-only API — and **emits no consumers**: governance influence, NPC
 behaviour, and the disguise/notoriety system all read renown later. It is
@@ -23,10 +24,13 @@ governance semantics are fixed by
 
 > **What this build is *not* about: morality.** The engine holds exactly
 > one value — a thriving participatory community — and measures
-> contribution against it (your marginal effect on others' engagement).
-> Every *object-value* (is PKilling good? is this conduct rewarded?) is
-> **content a polity legislates**, never engine-shipped. Renown aggregates
-> revealed + declared preference; it never adjudicates ethics.
+> contribution against it: your *marginal effect on others' engagement*
+> (v1: via the reaction proxy — see non-goals). Mind the two senses of
+> "engagement": **quantity** is *your own* participation; **quality**
+> (renown) is your *effect on others'* participation. Every *object-value*
+> (is PKilling good? is this conduct rewarded?) is **content a polity
+> legislates**, never engine-shipped. Renown aggregates revealed +
+> declared preference; it never adjudicates ethics.
 
 ## Where renown sits — the reputation family
 
@@ -42,6 +46,10 @@ aggregate), fed by two **substrates**:
 | **Susceptibility** | esteem · authored | how easily *this NPC* is swayed | authored NPC knob | deferred |
 | **Alignment** | orientation · aggregate | your *stance* (Law axis) | the **chronicle** (deeds) | deferred |
 
+There is no **reputation** row on purpose: *reputation* is the family name
+for the esteem axis (regard + renown + notoriety + susceptibility), not a
+separate quantity.
+
 Two dumb stores, smart consumers — the same pattern twice:
 
 - **chronicle** = narrative deeds → identity readouts (alignment,
@@ -56,7 +64,8 @@ acyclicity *is* the anti-capture guarantee:
   notoriety/recognition for display, never produce standing. (The
   severed arrow — contacts are unilateral self-declaration, zero
   objective signal.)
-- **Regard → renown → influence**, but renown only ever *multiplies a
+- **Reaction → regard *and* renown (siblings)** — the same event feeds
+  both independently; **renown → influence**, but only ever *multiplies a
   bounded* influence (conduct → weight, never → authority).
 - **Alignment → coalition/parties, never vote-weight.**
 - **Renown reads only its own log** — never the belief store (see "sibling
@@ -82,8 +91,10 @@ acyclicity *is* the anti-capture guarantee:
   function aggregated over a scope-filtered slice. Scope is an *index on
   the data*, never a per-place parameter.
 - **Two projections of one quantity.** Governance reads the single
-  **cooperative-wide roll-up** (`engagement × regard`); NPC/social/disguise
-  read the **per-`Group` / per-locality vector**. Same machine, two views.
+  **cooperative-wide roll-up** (`engagement × renown` — the cooperative
+  slate writes this `engagement × regard`/`× reputation`, using those
+  terms colloquially for the renown aggregate); NPC/social/disguise read
+  the **per-`Group` / per-locality vector**. Same machine, two views.
 - **Read-only this build; consumers deferred.** Ship `RenownApi` reads
   and the recompute; wire no consumer.
 
@@ -153,14 +164,14 @@ the tiering *is* the anti-capture mechanism:
 
 - **Entrenched (fixed in code / amendment-tier — not ordinary knobs):**
   notoriety contributes **zero** governance influence; the
-  `engagement × regard` *form* + the eigenvector principle;
+  `engagement × renown` *form* + the eigenvector principle;
   `renown × no-participation = nothing`.
 - **Legislated knobs (ordinary law — the declared values):** the
   reaction **valence map** `{reaction-type → weight}`; **decay
   half-lives** (esteem fast/fragile, notoriety slow/sticky); a small
   **context/act multiplier table** `{act-or-zone-tag → ×}`, default 1
-  (where "PKilling in town ×−2" lives); the **quality weight** (amendment-
-  tier — it reshapes the whole franchise).
+  (where "PKilling in town ×−2" lives); the **quality weight**
+  (amendment-tier — it reshapes the whole franchise).
 
 Values become an **auditable config diff**, version-controlled by the
 legislative ledger. Storage is the **AppSettings shape**
@@ -171,10 +182,10 @@ deployment-owned.
 ### Derive-don't-track — per-scope as a partition
 
 `RenownApi.renownOf(subject, scope)` filters the log to events whose
-`scope ⊇ scope`, aggregates through the one value-function. Scope is
-multi-axis (locality **and** Group), so "quality by area" and "quality by
-guild" are two projections of one tagged stream — every slice free, even
-retroactive ones.
+scope contains the queried scope, aggregates through the one
+value-function. Scope is multi-axis (locality **and** Group), so "quality
+by area" and "quality by guild" are two projections of one tagged stream —
+every slice free, even retroactive ones.
 
 ### Ingestion — tap `ReactionFiredEvent`
 
@@ -247,7 +258,7 @@ it only ever removes rows that already contribute ~0.
 - **Seed / semantics:**
   [reputation-slate](../slates/builds/reputation-slate.md),
   [cooperative-slate](../slates/builds/cooperative-slate.md) (the
-  `engagement × regard` franchise + entrenchment tiers)
+  `engagement × renown` franchise + entrenchment tiers)
 - **Sibling / inputs:** [belief.md](../subsystems/belief.md) (regard
   realm), [reactions.md](../subsystems/reactions.md)
   (`ReactionFiredEvent`)

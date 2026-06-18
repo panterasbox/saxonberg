@@ -1,9 +1,11 @@
 # Reputation slate — charisma, renown, notoriety (working doc)
 
-> **Status: game-design layer, deferred — not near-term.** Design is
-> settled in shape and load-bearing for NPC behaviour, the substance
-> economy (brand trust), and the anonymity/disguise system (notoriety as
-> its counterweight); captured but not queued.
+> **Status: game-design layer, partly active.** The **renown leg has
+> split into active design** — see
+> [renown-requirements.md](../../requirements/renown-requirements.md)
+> (branch `feature/renown`). The rest (susceptibility, NPC consumers, the
+> substance economy's brand-trust, the anonymity/disguise counterweight)
+> stays deferred: settled in shape, captured but not queued.
 
 Working slate for the platform's answer to the D&D **charisma** stat —
 and its dark twin, **notoriety**. The short version: charisma here is
@@ -39,7 +41,8 @@ And once you commit to "measure, don't assign," D&D's single scalar
   record for Bob; `regard` is the next).
 - **Renown** — the global/aggregate standing (Bob is broadly
   influential). **Measured** from real outcomes; **signed** (esteem ↔
-  notoriety); **per-circle** (see below). Feeds **fame**, which is a
+  notoriety); **per-circle** for social/game, with a single
+  cooperative-wide roll-up for governance (see below). Feeds **fame**, which is a
   recognition *trigger* (the famous are pre-known to all). Renown and
   recognition close a loop.
 - **Susceptibility** — how easily a *particular NPC* is swayed. The one
