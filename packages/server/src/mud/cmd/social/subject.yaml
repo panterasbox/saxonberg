@@ -1,0 +1,24 @@
+verbs: [subject]
+controller: social/SubjectController
+description: "Own a subject's identity + audience (make / list); light up surfaces with `chat on` / `forum on`"
+validators:
+  - /lib/command/validators/requiresAnimate
+subcommands:
+  make:
+    description: "Create a subject (default mints a managed group; --group binds a ref; --open is audience-open)"
+    options:
+      group:
+        short: g
+        type: string
+        field: group
+        description: "Bind an existing guild:/mql:/contacts:/managed: ref (mints nothing)"
+      open:
+        type: boolean
+        field: open
+        description: "Leave the audience open to every player"
+    args:
+      - name: name
+        type: string
+        required: true
+  list:
+    description: "List subjects visible to you, with their lit surfaces"

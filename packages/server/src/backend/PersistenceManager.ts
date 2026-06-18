@@ -37,6 +37,11 @@ export enum Collections {
   Channels = 'channels',
   Beliefs = 'beliefs',
   Chronicles = 'chronicles',
+  ForumSubjects = 'forum_subjects',
+  ForumBoards = 'forum_boards',
+  ForumEntries = 'forum_entries',
+  ForumVotes = 'forum_votes',
+  ForumEvents = 'forum_events',
 }
 
 /**
@@ -617,6 +622,20 @@ export class PersistenceManager {
       // O(rows-for-this-owner), not a full scan.
       await this.getCollection(Collections.Chronicles).createIndex({
         owner: 1,
+      });
+
+      // Forum subjects: the linking spine. A board-subject's `title` is a
+      // flat-global handle (unique, case-insensitive via a collation), so
+      // `SubjectCatalogue.resolveByTitle` and the `make`-on-taken-name
+      // guard are O(1). A thread-subject's handle is board-scoped, so
+      // `parentSubject` is indexed for the board-scoped resolve + the
+      // "threads promoted under this board" reverse read.
+      await this.getCollection(Collections.ForumSubjects).createIndex(
+        { title: 1 },
+        { unique: true, collation: { locale: 'en', strength: 2 } }
+      );
+      await this.getCollection(Collections.ForumSubjects).createIndex({
+        parentSubject: 1,
       });
 
       console.info('PersistenceManager: Indexes created successfully');

@@ -20,6 +20,7 @@ import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 import YAML from 'yaml';
 import { Channel, type ChannelKind } from '../mud/lib/social/Channel';
+import Subject from '../mud/lib/forum/Subject';
 
 interface ChannelSeedEntry {
   name: string;
@@ -56,11 +57,28 @@ export class ChannelSeeder {
       }
       const existing = await Channel.find({ name: entry.name });
       if (existing.length > 0) continue;
+      // Identity + audience live on a Subject now. Seeded standalones are
+      // open (empty groupRef); mint the open Subject, then a free-chat
+      // Channel that manifests it. Idempotent: an existing same-title
+      // Subject is reused (a prior partial seed).
+      const subjectTitle = entry.name;
+      let subject = (await Subject.find({ title: subjectTitle }))[0];
+      if (!subject) {
+        subject = new Subject();
+        subject.title = subjectTitle;
+        subject.owner = entry.owner ?? '';
+        subject.groupRef = '';
+        subject.grain = 'venue';
+        await subject.save();
+      }
       const c = new Channel();
       c.name = entry.name;
       c.kind = entry.kind ?? 'open-join-standalone';
-      c.owner = entry.owner ?? '';
+      c.subject = subject._id ?? '';
+      c.procedure = 'free';
       await c.save();
+      subject.addManifestation('free-chat', c._id ?? '');
+      await subject.save();
       inserted++;
     }
     console.info(

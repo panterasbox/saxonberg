@@ -8,6 +8,7 @@ import { SecurityPolicies } from '../../lib/security/SecurityPolicies';
 import { StuffApi } from '../../api/stuff';
 import type { Stuff } from '../../lib/stuff/Stuff';
 import type { Channel } from '../../lib/social/Channel';
+import type Subject from '../../lib/forum/Subject';
 import type { AdHocChannel } from '../../lib/social/AdHocChannel';
 import type ChannelCatalogue from '../ChannelCatalogue';
 import type { ChannelSubscription } from '../ChannelCatalogue';
@@ -81,6 +82,15 @@ export class ChatLogic extends Idea {
     name: string
   ): Promise<Channel> {
     return (await requireCatalogue()).createPlayerChannel(owner, name);
+  }
+
+  /** See {@link ChatApi.attachChatToSubject}. */
+  @CallSecurity(ChatApiCallers)
+  public async attachChatToSubject(
+    subject: Subject,
+    procedure?: 'free' | 'rules-of-order'
+  ): Promise<Channel> {
+    return (await requireCatalogue()).attachChatToSubject(subject, procedure);
   }
 
   /** See {@link ChatApi.disbandPlayerChannel}. */

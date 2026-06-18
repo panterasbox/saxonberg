@@ -41,10 +41,21 @@ export const bootstrapManifest: BootstrapEntry[] = [
   // postRegister; downstream consumers (chat audience, future
   // permission gates) reach in via `GroupApi`.
   { templatePath: '/obj/GroupRegistry' },
+  // SubjectCatalogue — the Subject-layer runtime view (identity +
+  // audience + per-subject subscriptions, the linking spine under chat +
+  // forums). Warms from the `forum_subjects` collection (populated by
+  // `ChannelSeeder.run`, which now mints an open Subject per standalone
+  // channel). Must precede `ChannelCatalogue`, which resolves it
+  // synchronously to read audience + subscriptions.
+  { templatePath: '/obj/SubjectCatalogue' },
   // ChannelCatalogue — chat substrate singleton. Owns the byName /
   // byHandle / history maps; warms its `byName` cache from the
-  // `channels` collection (populated by `ChannelSeeder.run`).
-  { templatePath: '/obj/ChannelCatalogue' },
+  // `channels` collection (populated by `ChannelSeeder.run`). Reads
+  // identity + audience through `SubjectCatalogue` (above).
+  {
+    templatePath: '/obj/ChannelCatalogue',
+    dependsOn: ['/obj/SubjectCatalogue'],
+  },
   // StreamState — livestream overlay-state singleton (mode + awayUntil).
   // Mutated by the `stream` verb; mutations fire `Events.StreamStateChanged`
   // which the backend-layer `BroadcastFeed` re-pushes to broadcast

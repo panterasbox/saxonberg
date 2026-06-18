@@ -1,36 +1,33 @@
 /**
  * ChannelCatalogue — singleton Idea owning all chat runtime state.
  *
- * Holds three maps:
+ * Post-retrofit, identity + audience live on the {@link Subject} layer
+ * (`Channel.subject` → `Subject.owner` + `Subject.groupRef`). This
+ * catalogue owns the chat-specific runtime: the `Channel` cache, the
+ * ad-hoc registry, the history rings, and the audience-fanout
+ * chokepoint. Subject resolution, group minting, and the per-subject
+ * subscription store live on `SubjectCatalogue` (reached via the peer
+ * singleton); chat reads them through here.
+ *
+ * Holds:
  *   - `byName: Map<string, Channel>` — persistent channel cache,
  *     warmed at `postRegister` via `Channel.find({})`.
  *   - `byHandle: Map<string, AdHocChannel>` — runtime-only ad-hoc
- *     registry. Entries live until disbanded or promoted to a
- *     persistent Channel.
- *   - `history: Map<channelId, MessageFrame[]>` — per-channel
- *     history rings (FIFO cap 200), shared for persistent +
- *     ad-hoc channels.
+ *     registry (no subject — `'ad-hoc'` stays runtime-only in v1).
+ *   - `history: Map<channelId, MessageFrame[]>` — per-channel history
+ *     rings (FIFO cap 200).
  *
- * Subscription state (tunedIn / muted) for persistent channels rides
- * `PropertiedMixin` on Avatar (`chat.subscription.<channelId>` key).
- * Ad-hoc channel subscriptions are ephemeral — implicit membership
- * via the `byHandle` entry's `members` set.
+ * Subscription state moved from per-channel to **per-subject**
+ * (`SubjectCatalogue`); `getSubscription`/`setSubscription` here map the
+ * chat-facing `{tunedIn, muted}` shape onto the subject's `{followed,
+ * mutedSurfaces}` (`free-chat` surface), migrating any legacy
+ * `chat.subscription.<channelId>` key on first read.
  *
- * `postToChannel` is the single audience-fanout chokepoint:
- *   1. Resolve members (player-created: read via
- *      `GroupApi.membersOf(channel.groupRef)` — chat is a CONSUMER of
- *      the group substrate, not a provider; standalone: tuned-in
- *      subscribers; ad-hoc: byHandle entry's members set).
- *   2. Compose a Scene with `meta.channelId` stamped on every frame.
- *   3. Append the frame to the history ring.
- *
- * Player-created channels mint a backing managed Group at creation
- * time. The channel doc's `groupRef` is stamped with the resulting
- * `'managed:<groupId>'` reference, and disband cascades to delete
- * the backing Group. The chat substrate is the OWNER of those Groups
- * — `getBackingGroupIds` exposes the set so the user-facing
- * `group list` view can filter them out. The Group model knows
- * nothing about chat.
+ * `postToChannel` is the single audience-fanout chokepoint: resolve
+ * members (open: tuned-in subscribers; player-created: backing-group
+ * members via the Subject's `groupRef`; ad-hoc: byHandle members),
+ * compose a Scene with `meta.channelId` on every frame, append to the
+ * history ring.
  *
  * Not persisted itself; seed YAML is `{ class: /obj/ChannelCatalogue,
  * data: {} }`.
@@ -38,8 +35,8 @@
 
 import { Idea } from '../lib/stuff/Idea';
 import { PostRegistrationMixin } from '../lib/stuff/PostRegistration';
-import { Channel, type ChannelKind } from '../lib/social/Channel';
-import { Group, type GroupRole } from '../lib/social/Group';
+import { Channel } from '../lib/social/Channel';
+import type { GroupRole } from '../lib/social/Group';
 import { AdHocChannel } from '../lib/social/AdHocChannel';
 import type { Stuff } from '../lib/stuff/Stuff';
 import { Property, type PropValue } from '../lib/stuff/Propertied';
@@ -50,12 +47,17 @@ import { ExecutionContextApi } from '../api/execution-context';
 import { Mml } from '../api/mml';
 import { PlayerApi } from '../api/player';
 import { GroupApi } from '../api/group';
+import { StuffApi } from '../api/stuff';
 import type Avatar from './Avatar';
+import type SubjectCatalogue from './SubjectCatalogue';
+import type Subject from '../lib/forum/Subject';
 import type { MessageFrame } from '@saxonberg/types';
 import type { VetoResult } from '../lib/errors';
 
 const HISTORY_CAP = 200;
+const SUBJECTS_PATH = '/obj/SubjectCatalogue';
 
+/** Chat-facing subscription shape, mapped from the per-subject store. */
 export interface ChannelSubscription {
   tunedIn: boolean;
   muted: boolean;
@@ -72,14 +74,7 @@ export default class ChannelCatalogue extends ChannelCatalogueBase {
   private byName: Map<string, Channel> | null = null;
   private byHandle: Map<string, AdHocChannel> = new Map();
   private history: Map<string, MessageFrame[]> = new Map();
-  /**
-   * Set of Group `_id`s that back channels in this catalogue. The
-   * user-facing `group list` view consults `getBackingGroupIds()`
-   * to exclude these from the display. Warmed alongside `byName`
-   * at `postRegister` and maintained inline by create / promote /
-   * disband.
-   */
-  private backedGroupIds: Set<string> = new Set();
+  private subjectsRef: SubjectCatalogue | null = null;
 
   public override async postRegister(_context?: unknown): Promise<void> {
     await this.warmCache();
@@ -88,39 +83,61 @@ export default class ChannelCatalogue extends ChannelCatalogueBase {
   public async warmCache(): Promise<void> {
     const channels = await Channel.find({});
     const map = new Map<string, Channel>();
-    const backed = new Set<string>();
     for (const c of channels) {
       map.set(c.name.toLowerCase(), c);
-      const backingId = backingGroupIdOf(c);
-      if (backingId) backed.add(backingId);
     }
     this.byName = map;
-    this.backedGroupIds = backed;
   }
 
   public invalidateCache(): void {
     this.byName = null;
   }
 
-  /**
-   * Resolve a persistent channel by name (case-insensitive).
-   */
+  // --- Subject-layer access -----------------------------------------
+
+  /** The peer SubjectCatalogue singleton (sync; throws if unregistered). */
+  private subjectsSync(): SubjectCatalogue {
+    if (this.subjectsRef) return this.subjectsRef;
+    const s = StuffApi.findByTemplatePath<SubjectCatalogue>(SUBJECTS_PATH);
+    if (!s) {
+      throw new Error(
+        'ChannelCatalogue: SubjectCatalogue singleton not registered ' +
+          '(bootstrap order: SubjectCatalogue must precede ChannelCatalogue).',
+      );
+    }
+    this.subjectsRef = s;
+    return s;
+  }
+
+  private async requireSubjects(): Promise<SubjectCatalogue> {
+    if (this.subjectsRef) return this.subjectsRef;
+    const sync = StuffApi.findByTemplatePath<SubjectCatalogue>(SUBJECTS_PATH);
+    if (sync) {
+      this.subjectsRef = sync;
+      return sync;
+    }
+    this.subjectsRef = await StuffApi.singleton<SubjectCatalogue>(SUBJECTS_PATH);
+    return this.subjectsRef;
+  }
+
+  /** Resolve the Subject a channel manifests, or null. */
+  public async subjectFor(channel: Channel): Promise<Subject | null> {
+    if (!channel.subject) return null;
+    const subjects = await this.requireSubjects();
+    return subjects.resolveById(channel.subject);
+  }
+
+  // --- Channel resolution -------------------------------------------
+
   public async resolveByName(name: string): Promise<Channel | null> {
     const map = await this.ensureNameCache();
     return map.get(name.toLowerCase()) ?? null;
   }
 
-  /** Resolve an ad-hoc channel by handle. */
   public resolveHandle(handle: string): AdHocChannel | null {
     return this.byHandle.get(handle) ?? null;
   }
 
-  /**
-   * True when `handle` is an ad-hoc channel handle that `actor` is a
-   * member of. The DM controller calls this to decide between
-   * forwarding to chat (handle path) vs. resolving as Avatar
-   * (target path).
-   */
   public resolveHandleForActor(actor: Stuff, handle: string): AdHocChannel | null {
     const ad = this.byHandle.get(handle);
     if (!ad) return null;
@@ -128,10 +145,6 @@ export default class ChannelCatalogue extends ChannelCatalogueBase {
     return ad;
   }
 
-  /**
-   * Create a new ad-hoc channel with the supplied member set. Returns
-   * the AdHocChannel and registers it under its handle.
-   */
   public openAdHoc(creator: Stuff, members: Iterable<Stuff>): AdHocChannel {
     const ad = new AdHocChannel({
       createdBy: avatarPlayerIdOf(creator),
@@ -148,38 +161,40 @@ export default class ChannelCatalogue extends ChannelCatalogueBase {
   }
 
   /**
-   * List every channel name visible to `actor`:
-   *   - All persistent channels (open standalones, plus player-created
-   *     channels they're in).
-   *   - Ad-hoc handles they're a member of.
-   *
-   * The filter for "is in the channel" lives here so callers don't
-   * have to re-implement it. v1 simplification: standalone channels
-   * are listed for everyone; player-created channels are listed only
-   * when the asker is in the channel's backing group.
+   * List every channel visible to `actor`: persistent channels whose
+   * Subject audience includes the actor (open: everyone), plus ad-hoc
+   * handles they're a member of.
    */
   public async visibleChannels(actor: Stuff): Promise<{
     persistent: Channel[];
     adHoc: AdHocChannel[];
   }> {
     const map = await this.ensureNameCache();
+    const subjects = await this.requireSubjects();
     const persistent: Channel[] = [];
-    const playerId = PlayerApi.isAvatarStuff(actor)
-      ? actor.getPlayerId()
-      : '';
     for (const c of map.values()) {
-      if (c.kind === 'open-join-standalone') {
+      const subj = c.subject ? await subjects.resolveById(c.subject) : null;
+      if (!subj) {
+        // Unbound legacy channel — treat as open.
         persistent.push(c);
         continue;
       }
-      // player-created: ask the group substrate.
-      if (!playerId || !c.groupRef) continue;
-      if (await GroupApi.isMember(playerId, c.groupRef)) persistent.push(c);
+      if (subj.isOpen()) {
+        persistent.push(c);
+        continue;
+      }
+      if (await subjects.isAudienceMember(actor, subj)) persistent.push(c);
     }
+    const playerId = PlayerApi.isAvatarStuff(actor) ? actor.getPlayerId() : '';
     const adHoc: AdHocChannel[] = [];
     for (const ad of this.byHandle.values()) {
       if (ad.members.has(actor)) adHoc.push(ad);
-      else if (playerId && [...ad.members].some((m) => PlayerApi.isAvatarStuff(m) && m.getPlayerId() === playerId)) {
+      else if (
+        playerId &&
+        [...ad.members].some(
+          (m) => PlayerApi.isAvatarStuff(m) && m.getPlayerId() === playerId,
+        )
+      ) {
         adHoc.push(ad);
       }
     }
@@ -188,28 +203,27 @@ export default class ChannelCatalogue extends ChannelCatalogueBase {
 
   /**
    * Compute the live audience for a persistent channel — tuned-in
-   * subscribers (open-join-standalone) or backing-group members
-   * (player-created), filtered to those NOT muted.
+   * subscribers (open) or backing-group members (player-created via the
+   * Subject's `groupRef`), filtered to those NOT muted.
    */
   public async audienceFor(channel: Channel): Promise<Stuff[]> {
-    if (channel.kind === 'open-join-standalone') {
+    const subject = await this.subjectFor(channel);
+    if (channel.kind === 'open-join-standalone' || !subject || subject.isOpen()) {
       const out: Stuff[] = [];
       for (const av of PlayerApi.getAllAvatars()) {
-        const sub = readSubscription(av, channel);
+        const sub = this.getSubscription(av, channel);
         if (sub.tunedIn && !sub.muted) out.push(av);
       }
       return out;
     }
-    // player-created: route through the group substrate. The ref can
-    // point at any GroupProvider source — `managed` today, but the
-    // chat layer doesn't care; that's the whole reason it consumes
-    // the facade.
-    if (!channel.groupRef) return [];
-    const members = await GroupApi.membersOf(channel.groupRef);
+    // player-created: route through the group substrate via the Subject.
+    const members = subject.getGroupRef()
+      ? await GroupApi.membersOf(subject.getGroupRef())
+      : [];
     const out: Stuff[] = [];
     for (const m of members) {
       if (!PlayerApi.isAvatarStuff(m)) continue;
-      const sub = readSubscription(m, channel);
+      const sub = this.getSubscription(m, channel);
       if (sub.tunedIn && !sub.muted) out.push(m);
     }
     return out;
@@ -217,8 +231,8 @@ export default class ChannelCatalogue extends ChannelCatalogueBase {
 
   /**
    * Post a chat frame to a persistent channel. Composes the Scene
-   * (toSelf + toAudience), stamps `meta.channelId`, and pushes the
-   * frame into the channel's history ring.
+   * (toSelf + toAudience), stamps `meta.channelId`, and pushes the frame
+   * into the channel's history ring.
    */
   public async postToChannel(
     speaker: Stuff,
@@ -229,22 +243,16 @@ export default class ChannelCatalogue extends ChannelCatalogueBase {
       throw new Error('ChannelCatalogue.postToChannel: speaker must be a Sensor');
     }
     const channelId = channel._id ?? channel.name;
+    const subject = await this.subjectFor(channel);
     const audience = await this.audienceFor(channel);
-    // Chat posts are reactable acts. The self frame rides Scene and so
-    // picks up `commandId` for free; the manual witness + history frames
-    // built below historically OMITTED it, which would leave chat acts
-    // un-correlatable client-side and the act key missing. Read it once
-    // and stamp it onto baseMeta below; note the act reactable when
-    // present (command-less posts aren't reactable).
     const commandId = ExecutionContextApi.getCurrentCommandContext()?.commandId;
-    const reactionScope = 'channel:' + (channel.groupRef || channelId);
+    const reactionScope =
+      'channel:' + (subject?.getGroupRef() || channelId);
     const speakerName = Mml.name(speaker);
     const safeBody = Mml.markdownToMml(body, Mml.perceiverMentionResolver(speaker));
     const selfBody = Mml.compose`[${channel.name}] You: ${safeBody}`;
     const peerBody = Mml.compose`[${channel.name}] ${speakerName}: ${safeBody}`;
 
-    // Send self frame via Scene (carries commandId / causingCommandId
-    // attribution; auto-stamps the actor as a Sensor).
     MessageApi.scene(speaker)
       .topic('world.chat.message')
       .modality('verbal-esp')
@@ -258,10 +266,6 @@ export default class ChannelCatalogue extends ChannelCatalogueBase {
       })
       .send();
 
-    // Fan-out to the audience: Scene doesn't carry an arbitrary multi-
-    // recipient channel, so emit per-recipient frames directly via the
-    // MessageApi chokepoint. Bodies render per-viewer via toString(a)
-    // so any per-recipient Mml unwrapping fires.
     const baseMeta: MessageFrame['meta'] = {
       timestamp: Date.now(),
       modality: 'verbal-esp',
@@ -297,7 +301,6 @@ export default class ChannelCatalogue extends ChannelCatalogueBase {
       payload: basePayload,
     });
 
-    // Register the act reactable (idempotent on commandId).
     if (commandId) {
       ReactionApi.noteReactableAct({
         commandId,
@@ -307,7 +310,6 @@ export default class ChannelCatalogue extends ChannelCatalogueBase {
     }
   }
 
-  /** Append a frame to a channel's history ring (FIFO, capped). */
   public appendToHistory(channelId: string, frame: MessageFrame): void {
     let ring = this.history.get(channelId);
     if (!ring) {
@@ -318,18 +320,29 @@ export default class ChannelCatalogue extends ChannelCatalogueBase {
     if (ring.length > HISTORY_CAP) ring.shift();
   }
 
-  /** Snapshot of the channel's history ring (oldest → newest). */
   public historyFor(channelId: string): readonly MessageFrame[] {
     return this.history.get(channelId) ?? [];
   }
 
+  // --- Subscription (mapped onto the per-subject store) -------------
+
   /**
-   * Read a player's subscription state for a persistent channel.
-   * Falls through to `DEFAULT_SUBSCRIPTION` when nothing is set
-   * — open standalones are tuned-in by default for everyone.
+   * Read a player's chat subscription for a channel. Resolves through the
+   * channel's Subject (`free-chat` surface), porting any legacy
+   * `chat.subscription.<channelId>` key on first read.
    */
   public getSubscription(avatar: Avatar, channel: Channel): ChannelSubscription {
-    return readSubscription(avatar, channel);
+    if (!channel.subject) return { ...DEFAULT_SUBSCRIPTION };
+    const subjects = this.subjectsSync();
+    const legacy = readLegacyChannelSub(avatar, channel._id ?? channel.name);
+    if (legacy) {
+      subjects.migrateLegacySubscription(avatar, channel.subject, legacy);
+    }
+    const sub = subjects.getSubscription(avatar, channel.subject);
+    return {
+      tunedIn: sub.followed,
+      muted: sub.mutedSurfaces.includes('free-chat'),
+    };
   }
 
   public setSubscription(
@@ -337,24 +350,27 @@ export default class ChannelCatalogue extends ChannelCatalogueBase {
     channel: Channel,
     next: Partial<ChannelSubscription>,
   ): ChannelSubscription {
-    const current = readSubscription(avatar, channel);
-    const merged: ChannelSubscription = {
-      tunedIn: next.tunedIn ?? current.tunedIn,
-      muted: next.muted ?? current.muted,
-    };
-    if (MixinApi.isPropertied(avatar)) {
-      avatar.setProp(
-        subscriptionProperty(channel._id ?? channel.name),
-        merged as unknown as PropValue,
-      );
+    if (!channel.subject) return { ...DEFAULT_SUBSCRIPTION, ...next };
+    const subjects = this.subjectsSync();
+    if (next.tunedIn !== undefined) {
+      subjects.follow(avatar, channel.subject, next.tunedIn);
     }
-    return merged;
+    if (next.muted !== undefined) {
+      subjects.mute(avatar, channel.subject, 'free-chat', next.muted);
+    }
+    const sub = subjects.getSubscription(avatar, channel.subject);
+    return {
+      tunedIn: sub.followed,
+      muted: sub.mutedSurfaces.includes('free-chat'),
+    };
   }
 
+  // --- Lifecycle: create / promote / disband / rename ---------------
+
   /**
-   * Promote an ad-hoc channel into a persistent player-created
-   * channel + backing managed Group. Members + history transfer; the
-   * ad-hoc entry is disbanded.
+   * Promote an ad-hoc channel into a persistent player-created channel +
+   * a curated Subject (managed group from the cohort). Members + history
+   * transfer; the ad-hoc entry is disbanded.
    */
   public async promoteAdHocToManaged(
     handle: string,
@@ -368,39 +384,34 @@ export default class ChannelCatalogue extends ChannelCatalogueBase {
       throw new Error(`A channel named '${newName}' already exists.`);
     }
 
-    // Collect membership from the ad-hoc cohort. Promoter becomes
-    // owner; everyone else lands as `member`.
-    const memberIds: string[] = [];
-    const memberRoles: GroupRole[] = [];
+    const curatedMembers: { id: string; role: GroupRole }[] = [];
     for (const m of ad.members) {
       if (!PlayerApi.isAvatarStuff(m)) continue;
-      const pid = m.getPlayerId();
-      memberIds.push(pid);
-      memberRoles.push(m === promoter ? 'owner' : 'member');
+      if (m === promoter) continue;
+      curatedMembers.push({ id: m.getPlayerId(), role: 'member' });
     }
 
-    const promoterId = avatarPlayerIdOf(promoter);
-    const group = await this.mintBackingGroup(newName, promoterId, memberIds, memberRoles);
+    const subjects = await this.requireSubjects();
+    const subject = await subjects.makeSubject(promoter, newName, {
+      curatedMembers,
+    });
 
     const c = new Channel();
     c.name = newName;
     c.kind = 'player-created';
-    c.owner = promoterId;
-    c.groupRef = `managed:${group._id}`;
+    c.subject = subject._id!;
+    c.procedure = 'free';
     await c.save();
-    if (c._id) this.backedGroupIds.add(group._id!);
+    await subjects.addManifestation(subject, 'free-chat', c._id!);
 
-    // Update cache.
     const map = await this.ensureNameCache();
     map.set(newName.toLowerCase(), c);
 
-    // Migrate history ring.
     const oldRing = this.history.get(handle) ?? [];
     this.history.set(c._id ?? c.name, [...oldRing]);
     this.history.delete(handle);
     this.byHandle.delete(handle);
 
-    // Notify members on the new channel.
     await this.postToChannel(
       promoter,
       c,
@@ -410,14 +421,12 @@ export default class ChannelCatalogue extends ChannelCatalogueBase {
   }
 
   /**
-   * Create a new player-created channel + its backing managed Group.
-   * The channel's `groupRef` points at the new Group; chat audience
-   * reads route through `GroupApi.membersOf(groupRef)`.
+   * Create a new player-created channel + its curated Subject (managed
+   * group). The Subject owns identity + audience; the channel is its
+   * `free-chat` surface.
    */
-  public async createPlayerChannel(
-    owner: Stuff,
-    name: string,
-  ): Promise<Channel> {
+  public async createPlayerChannel(owner: Stuff, name: string): Promise<Channel> {
+    const subjects = await this.requireSubjects();
     if (RESERVED_NAMES.has(name.toLowerCase())) {
       throw new Error(`Reserved name '${name}' — pick another.`);
     }
@@ -425,29 +434,62 @@ export default class ChannelCatalogue extends ChannelCatalogueBase {
     if (existing) {
       throw new Error(`A channel named '${name}' already exists.`);
     }
-    const ownerId = avatarPlayerIdOf(owner);
-    const group = await this.mintBackingGroup(name, ownerId, [ownerId], ['owner']);
+    // makeSubject mints the managed group + enforces the global handle.
+    const subject = await subjects.makeSubject(owner, name, {});
     const c = new Channel();
     c.name = name;
     c.kind = 'player-created';
-    c.owner = ownerId;
-    c.groupRef = `managed:${group._id}`;
+    c.subject = subject._id!;
+    c.procedure = 'free';
     await c.save();
-    this.backedGroupIds.add(group._id!);
+    await subjects.addManifestation(subject, 'free-chat', c._id!);
 
     const map = await this.ensureNameCache();
     map.set(name.toLowerCase(), c);
     return c;
   }
 
+  /**
+   * Attach a chat surface to an existing Subject (`chat on <subject>`).
+   * Only the Subject owner may attach. The channel takes the Subject's
+   * title as its name.
+   */
+  public async attachChatToSubject(
+    subject: Subject,
+    procedure: 'free' | 'rules-of-order' = 'free',
+  ): Promise<Channel> {
+    const subjects = await this.requireSubjects();
+    const surface = procedure === 'free' ? 'free-chat' : 'rules-chat';
+    if (subject.hasManifestation(surface)) {
+      const existingId = subject.manifestationRef(surface);
+      const existing = existingId
+        ? (await Channel.findById(existingId)) ?? null
+        : null;
+      if (existing) {
+        const map = await this.ensureNameCache();
+        map.set(existing.name.toLowerCase(), existing);
+        return existing;
+      }
+    }
+    const c = new Channel();
+    c.name = subject.getTitle();
+    c.kind = subject.isOpen() ? 'open-join-standalone' : 'player-created';
+    c.subject = subject._id!;
+    c.procedure = procedure;
+    await c.save();
+    await subjects.addManifestation(subject, surface, c._id!);
+    const map = await this.ensureNameCache();
+    map.set(c.name.toLowerCase(), c);
+    return c;
+  }
+
   public async disbandPlayerChannel(name: string): Promise<boolean> {
     const c = await this.resolveByName(name);
     if (!c) return false;
-    const backingId = backingGroupIdOf(c);
-    if (backingId) {
-      const g = await Group.findById(backingId);
-      if (g) await g.delete();
-      this.backedGroupIds.delete(backingId);
+    if (c.subject) {
+      const subjects = await this.requireSubjects();
+      const subj = await subjects.resolveById(c.subject);
+      if (subj) await subjects.deleteSubject(subj);
     }
     await c.delete();
     const map = await this.ensureNameCache();
@@ -469,16 +511,11 @@ export default class ChannelCatalogue extends ChannelCatalogueBase {
     if (clash) throw new Error(`Channel '${newName}' already exists.`);
     c.name = newName;
     await c.save();
-    // Rename the backing Group to match — the Group name is the
-    // friendly handle a future `chat invite` / membership-tool path
-    // would surface.
-    const backingId = backingGroupIdOf(c);
-    if (backingId) {
-      const g = await Group.findById(backingId);
-      if (g) {
-        g.name = newName;
-        await g.save();
-      }
+    // Rename the Subject handle (and its backing group) to match.
+    if (c.subject) {
+      const subjects = await this.requireSubjects();
+      const subj = await subjects.resolveById(c.subject);
+      if (subj) await subjects.renameSubject(subj, newName);
     }
     const map = await this.ensureNameCache();
     map.delete(oldName.toLowerCase());
@@ -487,38 +524,16 @@ export default class ChannelCatalogue extends ChannelCatalogueBase {
   }
 
   /**
-   * Ids of every managed Group this catalogue minted to back a
-   * channel. The `group list` view consults this set to exclude
-   * channel-backing Groups from the user-facing display (Groups
-   * themselves know nothing about chat — chat owns the bookkeeping).
+   * Ids of every managed Group backing a chat channel — now owned by the
+   * Subject layer. Delegates to `SubjectCatalogue.getBackingGroupIds` so
+   * the user-facing `group list` view still filters channel-backing
+   * Groups out.
    */
-  public getBackingGroupIds(): ReadonlySet<string> {
-    return this.backedGroupIds;
+  public async getBackingGroupIds(): Promise<ReadonlySet<string>> {
+    const subjects = await this.requireSubjects();
+    return subjects.getBackingGroupIds();
   }
 
-  /**
-   * Mint a fresh managed Group with the supplied membership. Caller
-   * threads the returned Group's `_id` into the Channel's `groupRef`.
-   */
-  private async mintBackingGroup(
-    name: string,
-    ownerId: string,
-    memberIds: string[],
-    memberRoles: GroupRole[],
-  ): Promise<Group> {
-    const g = new Group();
-    g.name = name;
-    g.owner = ownerId;
-    g.memberIds = [...memberIds];
-    g.memberRoles = [...memberRoles];
-    await g.save();
-    return g;
-  }
-
-  /**
-   * Returns the set of reserved subcommand words on `chat.yaml` that a
-   * new channel name MUST NOT collide with.
-   */
   public reservedNames(): ReadonlySet<string> {
     return RESERVED_NAMES;
   }
@@ -547,30 +562,31 @@ const RESERVED_NAMES: ReadonlySet<string> = new Set([
   'unmute',
   'who',
   'make',
+  'on',
   'rename',
   'disband',
   'history',
   'promote',
 ]);
 
-function subscriptionProperty(channelId: string): Property<PropValue> {
-  return Property.of<PropValue>(`chat.subscription.${channelId}`);
-}
-
-function readSubscription(
+/**
+ * Read a legacy per-channel `chat.subscription.<channelId>` value, if any,
+ * for one-time migration onto the per-subject store. Returns null when no
+ * legacy key is set.
+ */
+function readLegacyChannelSub(
   avatar: Avatar,
-  channel: Channel,
-): ChannelSubscription {
-  if (!MixinApi.isPropertied(avatar)) {
-    return { ...DEFAULT_SUBSCRIPTION };
-  }
-  const key = channel._id ?? channel.name;
-  const raw = avatar.getProp(subscriptionProperty(key));
-  if (!raw || typeof raw !== 'object') return { ...DEFAULT_SUBSCRIPTION };
-  const r = raw as Partial<ChannelSubscription>;
+  channelId: string,
+): { tunedIn: boolean; muted: boolean } | null {
+  if (!MixinApi.isPropertied(avatar)) return null;
+  const raw = avatar.getProp(
+    Property.of<PropValue>(`chat.subscription.${channelId}`),
+  );
+  if (!raw || typeof raw !== 'object') return null;
+  const r = raw as { tunedIn?: boolean; muted?: boolean };
   return {
-    tunedIn: typeof r.tunedIn === 'boolean' ? r.tunedIn : DEFAULT_SUBSCRIPTION.tunedIn,
-    muted: typeof r.muted === 'boolean' ? r.muted : DEFAULT_SUBSCRIPTION.muted,
+    tunedIn: typeof r.tunedIn === 'boolean' ? r.tunedIn : true,
+    muted: typeof r.muted === 'boolean' ? r.muted : false,
   };
 }
 
@@ -579,25 +595,6 @@ function avatarPlayerIdOf(s: Stuff): string {
   return s.stuffId;
 }
 
-/**
- * Extract the backing-Group `_id` from a Channel's `groupRef`. Returns
- * null when the ref is empty (open-join-standalone) or points at a
- * non-managed source (future: mql / contacts-backed channels — those
- * groups aren't owned by chat).
- */
-function backingGroupIdOf(c: Channel): string | null {
-  if (!c.groupRef) return null;
-  try {
-    const { source, id } = GroupApi.parseRef(c.groupRef);
-    if (source !== 'managed') return null;
-    return id;
-  } catch {
-    return null;
-  }
-}
-
 function cryptoId(): string {
-  // Lightweight per-frame id. Real impl uses nanoid; avoid a new
-  // dependency by composing the timestamp + a counter-ish slice.
   return Math.random().toString(36).slice(2, 12);
 }
