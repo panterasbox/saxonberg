@@ -40,6 +40,48 @@ mirror map (build against these, don't invent):
    (`PersistenceManager.ts:584`); scope tagging needs a new intersection
    method (Phase 4).
 
+### Ingestion seam: `EventApi` bus, not a witness hook (decided)
+
+Phase 3 ingests via `EventApi.on(ReactionFiredEvent)`, **not** a
+witness/`@hook` mixin (the `callHook(item, 'onMoved', …)` idiom
+`ContainmentLogic.ts:320` → `ThermalMixin.onMoved`). The witness idiom was
+considered and rejected *for this seam* — the distinguishing principle:
+
+> **Witness hooks are for instance-local state changes on a resident
+> object; a bus is for decoupled aggregation of id-keyed signals.** Renown
+> is the latter.
+
+Three grounded reasons:
+
+1. **The signal is id-keyed and the subject is often offline.**
+   `ReactionFiredPayload` carries `subjectId` — the credited author of a
+   *past* act, frequently logged off by reaction time
+   (`ReactionFiredEvent.ts:18`). A witness hook on the subject
+   (`callHook(subject, …)`) needs the subject resident, so reactions to
+   departed actors would be **silently dropped → renown undercounts**. The
+   bus logs an id and doesn't care.
+2. **`ReactionFiredEvent` was purpose-built as "the renown seam"** — a
+   decoupled DTO mirroring `FieldChangedEvent` (`ReactionFiredEvent.ts:1-10`).
+   The reactions build already made this architectural choice.
+3. **Renown's state is singleton/collection, not instance-local.** Thermal's
+   `onMoved` updates the moved thing's *own* cached temperature — the mixin
+   owns the state it mutates, which is what makes the hook pay off. A renown
+   witness mixin would only **forward to `RenownApi.append`** — a thin
+   pass-through holding no state. The idiom's benefit doesn't apply.
+
+The coupling that decides it: **singleton storage ⟹ bus ingestion;
+instance-local standing ⟹ witness hook.** We chose singleton (for
+derive-don't-track per scope, offline tolerance, and the batch recompute),
+so the bus follows; the bus also gives free multi-consumer fan-out (the
+reactions slate's overlay/analytics taps) that a point-to-point hook
+wouldn't. The bus's one real cost — discoverability vs an author-surface
+`@hook` — is mitigated by installing the subscription in one obvious place
+(`RenownApi.boot()`, Phase 6). The idiomatic fallback if ever revisited is
+a **reactor-side** hook (the reactor is always resident, hung off
+`SoulMixin`), accepting the inverted semantics. This is a Phase-3-only
+seam; storage, scope, value-function, and recompute are identical either
+way, so it is swappable later.
+
 ## 2. File-by-file changes, sequenced
 
 Each phase is independently landable with an acceptance check tied to the
