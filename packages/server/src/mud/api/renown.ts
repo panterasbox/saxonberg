@@ -56,6 +56,15 @@ function logic(): RenownLogic {
 
 export class RenownApi {
   /**
+   * Boot seam: install the reaction → renown ingestion tap (idempotent).
+   * Later phases also warm the aggregate cache and register the recompute
+   * schedule here. Called from `AppBootstrap`.
+   */
+  public static boot(): void {
+    logic().installReactionTap();
+  }
+
+  /**
    * Append one raw, scope-tagged signal row to the log. Stores the
    * pre-valence signal verbatim (no score); `at` defaults to the
    * game-time witness. No-op without an active connection.

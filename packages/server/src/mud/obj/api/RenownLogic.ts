@@ -10,6 +10,10 @@ import type {
   RenownScope,
 } from '../../lib/renown/RenownEvent';
 import { WorldClockApi } from '../../api/worldclock';
+import { EventApi } from '../../api/event';
+import type { Subscription } from '../../api/event';
+import { ReactionFiredEvent } from '../../lib/events/ReactionFiredEvent';
+import type { ReactionFiredPayload } from '../../lib/events/ReactionFiredEvent';
 import { PersistenceManager } from '../../../backend/PersistenceManager';
 
 const RenownApiCallers = SecurityPolicies.FromModule(
@@ -59,6 +63,29 @@ function inScope(ev: RenownEvent, scope: RenownScope): boolean {
 }
 
 /**
+ * Map a fired reaction into a renown signal row and append it. The RAW
+ * emote + tags are stored verbatim (scored only at recompute). Scope is
+ * stubbed `{ locality: null, groups: [] }` here; Phase 4 resolves the
+ * locality + shared Groups at ingestion. `at` defaults to the game-time
+ * witness inside {@link appendImpl}.
+ */
+async function appendFromReaction(p: ReactionFiredPayload): Promise<void> {
+  await appendImpl({
+    subject: p.subjectId,
+    source: p.reactorId,
+    kind: 'reaction',
+    signal: {
+      emote: p.emote,
+      tags: p.tags,
+      commandId: p.commandId,
+      ...(p.customText !== undefined ? { customText: p.customText } : {}),
+    },
+    locality: null,
+    groups: [],
+  });
+}
+
+/**
  * RenownLogic — the hot-reloadable logic singleton behind
  * {@link RenownApi}.
  *
@@ -76,6 +103,37 @@ function inScope(ev: RenownEvent, scope: RenownScope): boolean {
  */
 @Unshadowable
 export class RenownLogic extends Idea {
+  /**
+   * The reaction ingestion subscription — retained so a re-install is a
+   * no-op. Transient instance state on the singleton (not persisted); a
+   * fresh singleton (post-HMR or post-`clearAll`) re-installs cleanly.
+   */
+  private reactionSub: Subscription<ReactionFiredPayload> | null = null;
+
+  /**
+   * Install the reaction → renown ingestion tap (idempotent). Subscribes
+   * to `ReactionFiredEvent` and appends a scope-tagged `RenownEvent` per
+   * fired reaction. Called once at boot (`RenownApi.boot`).
+   *
+   * The sibling *regard* update is deliberately NOT installed here — a
+   * reaction has no principled signed regard delta without the
+   * value-function (which renown applies at recompute, but regard has no
+   * recompute), so reaction→regard is left to a belief-side build. The
+   * renown recompute never reads belief regardless.
+   */
+  @CallSecurity(RenownApiCallers)
+  public installReactionTap(): void {
+    if (this.reactionSub) return;
+    this.reactionSub = EventApi.on<ReactionFiredPayload>(
+      ReactionFiredEvent.KIND,
+      (p) => {
+        void appendFromReaction(p).catch((err) =>
+          console.error('RenownLogic: reaction signal append failed', err)
+        );
+      }
+    );
+  }
+
   /** See {@link RenownApi.append}. */
   @CallSecurity(RenownApiCallers)
   public async append(fields: RenownEventFields): Promise<void> {
