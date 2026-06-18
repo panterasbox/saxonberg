@@ -40,6 +40,17 @@ export type RenownEventKind =
   | 'recognition-spread';
 
 /**
+ * A renown scope — the circle a standing is asked about.
+ *   - `null` = cooperative-wide (the global polity scope; matches every
+ *     event). This is the scope governance reads.
+ *   - a `Group` ref (e.g. `'contacts:thieves-guild'`) — matches events
+ *     whose `groups` axis contains it.
+ *   - a locality address prefix (e.g. `'/university-avenue'`) — matches
+ *     events whose `locality` is that prefix or nested under it.
+ */
+export type RenownScope = string | null;
+
+/**
  * The fields a caller supplies to append one renown signal — the
  * `RenownApi.append` call shape. `subject`/`source` are required; `kind`
  * defaults to `reaction`, `signal` to `{}`, `locality` to `null`,
