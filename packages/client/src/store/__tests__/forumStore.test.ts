@@ -1,0 +1,93 @@
+/**
+ * Forum store slice (Wave 4) — the live record set fed by
+ * `forum-subscription-result` / `-delta`, the mainView axis, and the
+ * forum nav target.
+ */
+
+import { describe, it, expect, beforeEach } from "vitest";
+import { useStore } from "../index";
+import type { ForumEntryRecord } from "@saxonberg/types";
+
+function rec(id: string, over: Partial<ForumEntryRecord> = {}): ForumEntryRecord {
+  return {
+    id,
+    parent: null,
+    board: "b1",
+    author: "p1",
+    title: `t-${id}`,
+    body: "body",
+    up: 1,
+    down: 0,
+    score: 1,
+    displayScore: 1,
+    state: "active",
+    subject: null,
+    createdAt: 1000,
+    ...over,
+  };
+}
+
+beforeEach(() => {
+  useStore.setState({
+    mainView: "terminal",
+    forumNav: { boardHandle: null, threadId: null },
+    forumRecords: {},
+    forumScopes: {},
+  });
+});
+
+describe("forum store slice", () => {
+  it("mainView toggles terminal ↔ forum (not a phase)", () => {
+    expect(useStore.getState().mainView).toBe("terminal");
+    expect(useStore.getState().connectionPhase).not.toBe("forum");
+    useStore.getState().setMainView("forum");
+    expect(useStore.getState().mainView).toBe("forum");
+  });
+
+  it("applyForumResult stores the snapshot under the subscription", () => {
+    useStore
+      .getState()
+      .applyForumResult("s1", { kind: "board", id: "b1" }, [rec("e1"), rec("e2")]);
+    expect(useStore.getState().forumRecords["s1"]).toHaveLength(2);
+    expect(useStore.getState().forumScopes["s1"]).toEqual({ kind: "board", id: "b1" });
+  });
+
+  it("applyForumDelta upserts (add/replace) and removes", () => {
+    const s = useStore.getState();
+    s.applyForumResult("s1", { kind: "board", id: "b1" }, [rec("e1")]);
+    // replace e1 (new score) + add e2.
+    s.applyForumDelta("s1", [
+      { op: "replace", key: "e1", fields: rec("e1", { score: 5, up: 5 }) },
+      { op: "add", key: "e2", fields: rec("e2") },
+    ]);
+    const recs = useStore.getState().forumRecords["s1"]!;
+    expect(recs).toHaveLength(2);
+    expect(recs.find((r) => r.id === "e1")!.score).toBe(5);
+
+    // remove e1.
+    useStore.getState().applyForumDelta("s1", [{ op: "remove", key: "e1" }]);
+    const after = useStore.getState().forumRecords["s1"]!;
+    expect(after.map((r) => r.id)).toEqual(["e2"]);
+  });
+
+  it("setForumNav patches board/thread independently", () => {
+    useStore.getState().setForumNav({ boardHandle: "gossip" });
+    expect(useStore.getState().forumNav).toEqual({
+      boardHandle: "gossip",
+      threadId: null,
+    });
+    useStore.getState().setForumNav({ threadId: "e1" });
+    expect(useStore.getState().forumNav).toEqual({
+      boardHandle: "gossip",
+      threadId: "e1",
+    });
+  });
+
+  it("clearForumSubscription drops the cache", () => {
+    const s = useStore.getState();
+    s.applyForumResult("s1", { kind: "board", id: "b1" }, [rec("e1")]);
+    s.clearForumSubscription("s1");
+    expect(useStore.getState().forumRecords["s1"]).toBeUndefined();
+    expect(useStore.getState().forumScopes["s1"]).toBeUndefined();
+  });
+});

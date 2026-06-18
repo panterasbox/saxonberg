@@ -22,6 +22,9 @@ import type {
   ConnectionEstablishedPayload,
   ConnectionState,
   ConsoleTab,
+  ForumChange,
+  ForumEntryRecord,
+  ForumSubscriptionScope,
   MqlMatchSummary,
   PromptChoice,
   ReactionActState,
@@ -95,6 +98,15 @@ export type PromptEntry =
       promptId: string;
       label: string;
       placeholder?: string;
+      foreground: boolean;
+      validationError?: string;
+    }
+  | {
+      kind: "compose";
+      promptId: string;
+      label: string;
+      placeholder?: string;
+      allowEditorEscalation?: boolean;
       foreground: boolean;
       validationError?: string;
     }
@@ -236,6 +248,40 @@ interface StoreState {
   connectionPhase: ConnectionPhase;
   /** Set the top-level phase directly (idempotent no-op on no change). */
   setConnectionPhase: (phase: ConnectionPhase) => void;
+
+  /**
+   * In-world primary-view axis — `'terminal'` (the classic cockpit) or
+   * `'forum'` (the forum board view). NOT a `connectionPhase`: the player
+   * stays `in-world`; Frame + CommandBar persist across both; only the
+   * LeftColumn content slot + the view-sensitive right column swap.
+   */
+  mainView: "terminal" | "forum";
+  setMainView: (view: "terminal" | "forum") => void;
+
+  /**
+   * The forum view's current navigation target. `boardHandle` is the
+   * subject-title handle of the open board; `threadId` is the open
+   * thread's entry id (null at the board's thread-list level).
+   */
+  forumNav: { boardHandle: string | null; threadId: string | null };
+  setForumNav: (nav: { boardHandle?: string | null; threadId?: string | null }) => void;
+
+  /**
+   * Live forum records keyed by subscriptionId — fed by
+   * `forum-subscription-result` (snapshot) + `forum-subscription-delta`
+   * (live changes). Mirrors the MQL feed-registry pattern but for forum
+   * Documents. See `store/forumActions.ts`.
+   */
+  forumRecords: Record<string, ForumEntryRecord[]>;
+  /** The scope each subscription watches (board/thread + id). */
+  forumScopes: Record<string, ForumSubscriptionScope>;
+  applyForumResult: (
+    subscriptionId: string,
+    scope: ForumSubscriptionScope,
+    records: ForumEntryRecord[],
+  ) => void;
+  applyForumDelta: (subscriptionId: string, changes: ForumChange[]) => void;
+  clearForumSubscription: (subscriptionId: string) => void;
 
   /**
    * Dev-only one-shot: set by the dev "Skip to world" button so that,
@@ -787,6 +833,59 @@ export const useStore = create<StoreState>((set, get) => ({
     set((state) =>
       state.connectionPhase === phase ? {} : { connectionPhase: phase },
     ),
+
+  // In-world primary-view axis (terminal | forum). Not a phase.
+  mainView: "terminal",
+  setMainView: (view) =>
+    set((state) => (state.mainView === view ? {} : { mainView: view })),
+
+  forumNav: { boardHandle: null, threadId: null },
+  setForumNav: (nav) =>
+    set((state) => ({
+      forumNav: {
+        boardHandle:
+          nav.boardHandle !== undefined
+            ? nav.boardHandle
+            : state.forumNav.boardHandle,
+        threadId:
+          nav.threadId !== undefined ? nav.threadId : state.forumNav.threadId,
+      },
+    })),
+
+  forumRecords: {},
+  forumScopes: {},
+  applyForumResult: (subscriptionId, scope, records) =>
+    set((state) => ({
+      forumRecords: { ...state.forumRecords, [subscriptionId]: records },
+      forumScopes: { ...state.forumScopes, [subscriptionId]: scope },
+    })),
+  applyForumDelta: (subscriptionId, changes) =>
+    set((state) => {
+      const current = state.forumRecords[subscriptionId] ?? [];
+      const byId = new Map(current.map((r) => [r.id, r]));
+      for (const change of changes) {
+        if (change.op === "remove") {
+          byId.delete(change.key);
+        } else if (change.fields) {
+          // add / replace both upsert the full record.
+          byId.set(change.key, change.fields);
+        }
+      }
+      return {
+        forumRecords: {
+          ...state.forumRecords,
+          [subscriptionId]: [...byId.values()],
+        },
+      };
+    }),
+  clearForumSubscription: (subscriptionId) =>
+    set((state) => {
+      const records = { ...state.forumRecords };
+      const scopes = { ...state.forumScopes };
+      delete records[subscriptionId];
+      delete scopes[subscriptionId];
+      return { forumRecords: records, forumScopes: scopes };
+    }),
 
   autoEnterPending: false,
   setAutoEnterPending: (pending) => set({ autoEnterPending: pending }),

@@ -32,6 +32,7 @@ import type {
   ConnectionEstablishedPayload,
   DispatchResponseEnvelope,
   Envelope,
+  ForumSubscriptionScope,
   MessageFrame,
   MqlSubscriptionDeltaEnvelope,
   MqlSubscriptionResultEnvelope,
@@ -123,6 +124,13 @@ class WebSocketClient {
    * reconnects without consumer involvement.
    */
   private mqlSubscriptions: Map<string, MqlSubscriptionEntry> = new Map();
+
+  /**
+   * Live forum subscriptions: subscriptionId → scope. Re-issued on every
+   * `connection-established` like MQL subscriptions. Distinct map so the
+   * two substrates' bookkeeping never collide.
+   */
+  private forumSubscriptions: Map<string, ForumSubscriptionScope> = new Map();
 
   constructor() {
     this.registerBuiltinHandlers();
@@ -502,6 +510,13 @@ class WebSocketClient {
         },
       });
     }
+    // Re-issue every active forum subscription too (same reconnect story).
+    for (const [subscriptionId, scope] of this.forumSubscriptions) {
+      this.send({
+        type: "forum-subscribe",
+        payload: { subscriptionId, scope },
+      });
+    }
   }
 
   /**
@@ -540,6 +555,47 @@ class WebSocketClient {
         payload: { subscriptionId },
       });
     }
+  }
+
+  /**
+   * Open a `forum-subscribe` watching a board's thread-list or a
+   * thread's post-tree. Tracked locally + re-issued on reconnect, like
+   * `subscribeMql`. Returns the subscriptionId.
+   */
+  public subscribeForum(scope: ForumSubscriptionScope): string {
+    const subscriptionId = makeSubscriptionId();
+    this.forumSubscriptions.set(subscriptionId, scope);
+    if (this.isConnected()) {
+      this.send({
+        type: "forum-subscribe",
+        payload: { subscriptionId, scope },
+      });
+    }
+    return subscriptionId;
+  }
+
+  /** Tear down a forum subscription opened via `subscribeForum`. */
+  public unsubscribeForum(subscriptionId: string): void {
+    const had = this.forumSubscriptions.delete(subscriptionId);
+    if (had && this.isConnected()) {
+      this.send({
+        type: "forum-unsubscribe",
+        payload: { subscriptionId },
+      });
+    }
+  }
+
+  /**
+   * Send a real command string, optionally with a structured body
+   * side-channel (`fields`). The GUI builds the SAME strings the CLI
+   * types — every action stays scriptable/aliasable; `fields` only fills
+   * the command's designated body field, never selectors/flags.
+   */
+  public sendCommand(text: string, fields?: Record<string, unknown>): void {
+    this.send({
+      type: "command",
+      payload: fields ? { text, fields } : { text },
+    });
   }
 
   /**
@@ -639,6 +695,19 @@ class WebSocketClient {
           foreground: note.foreground,
           ...(note.placeholder !== undefined
             ? { placeholder: note.placeholder }
+            : {}),
+        };
+      case "prompt-compose":
+        return {
+          kind: "compose",
+          promptId,
+          label: note.label,
+          foreground: note.foreground,
+          ...(note.placeholder !== undefined
+            ? { placeholder: note.placeholder }
+            : {}),
+          ...(note.allowEditorEscalation !== undefined
+            ? { allowEditorEscalation: note.allowEditorEscalation }
             : {}),
         };
       case "prompt-mql-object":

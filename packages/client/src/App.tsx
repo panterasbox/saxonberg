@@ -11,6 +11,9 @@ import React, { useEffect, useRef, useState } from "react";
 import styled from "styled-components";
 import { useStore, type PromptEntry } from "./store/index";
 import { registerReactionHandlers } from "./store/reactionActions";
+import { registerForumHandlers } from "./store/forumActions";
+import { ForumView } from "./components/ForumView";
+import { ForumChatSidecar } from "./components/ForumChatSidecar";
 import { SERVER_URL, WS_URL } from "./config";
 import { websocketClient } from "./services/websocket";
 import { Frame } from "./components/frame/Frame";
@@ -68,6 +71,46 @@ const LeftColumn = styled.div`
   flex-direction: column;
   flex: 1;
   min-width: 0;
+`;
+
+/**
+ * The in-world primary-view switch (Terminal | Forum). Distinct from the
+ * TabStrip (which is a filter axis *inside* the Terminal view) — this
+ * swaps the whole LeftColumn content slot + the view-sensitive right
+ * column, while Frame + CommandBar persist.
+ */
+const ViewSwitch = styled.div`
+  display: flex;
+  gap: 0.25rem;
+  padding: 0.25rem 0.5rem;
+`;
+
+const ViewTab = styled.button<{ $active: boolean }>`
+  background: ${(p) =>
+    p.$active ? "rgba(255,255,255,0.14)" : "transparent"};
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 4px;
+  color: inherit;
+  cursor: pointer;
+  padding: 0.15rem 0.6rem;
+  font: inherit;
+`;
+
+/**
+ * A live-scene peek so the player never goes dark on live play while the
+ * Forum view is active — the most recent scene frame surfaces as a toast.
+ */
+const ScenePeek = styled.div`
+  position: absolute;
+  bottom: 4.5rem;
+  right: 1rem;
+  max-width: 22rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: 6px;
+  background: rgba(20, 20, 28, 0.92);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  font-size: 0.85rem;
+  pointer-events: none;
 `;
 
 /**
@@ -152,6 +195,7 @@ function formatResponseEcho(promptId: string, response: string): string | null {
   let resolved: string;
   switch (entry.kind) {
     case "text":
+    case "compose":
       resolved = response;
       break;
     case "confirm":
@@ -192,6 +236,40 @@ function formatResponseEcho(promptId: string, response: string): string | null {
   return `${entry.label} → ${resolved}`;
 }
 
+const FORUM_SUBCOMMANDS = new Set([
+  "list",
+  "make",
+  "on",
+  "post",
+  "reply",
+  "read",
+  "promote",
+  "follow",
+  "vote",
+]);
+
+/**
+ * Recognize a `forum` / `forum <board>` invocation and flip the cockpit
+ * to the forum view + set the nav target. Subcommand forms (post / vote /
+ * make …) leave the view alone — the server handles them and any live
+ * subscription updates the already-open view. This is the client side of
+ * the CLI⇄GUI convergence; the command still goes to the server too.
+ */
+function recognizeForumNavigation(text: string): void {
+  const tokens = text.trim().split(/\s+/);
+  if (tokens[0] !== "forum") return;
+  const store = useStore.getState();
+  if (tokens.length === 1) {
+    store.setMainView("forum");
+    return;
+  }
+  const arg = tokens[1]!;
+  if (FORUM_SUBCOMMANDS.has(arg.toLowerCase())) return;
+  // A bare `forum <board>` reads a board → open it in the forum view.
+  store.setMainView("forum");
+  store.setForumNav({ boardHandle: arg, threadId: null });
+}
+
 /**
  * App component.
  */
@@ -199,6 +277,8 @@ function App() {
   const auth = useStore((state) => state.auth);
   const connection = useStore((state) => state.connection);
   const connectionPhase = useStore((state) => state.connectionPhase);
+  const mainView = useStore((state) => state.mainView);
+  const setMainView = useStore((state) => state.setMainView);
   const frames = useStore((state) => state.frames);
   const clientState = useStore((state) => state.clientState);
   const reactionPrefs = useStore((state) => state.reactionPrefs);
@@ -217,6 +297,18 @@ function App() {
       !mutedSet.has(f.topic) &&
       !(reactionPrefs.alwaysAggregate && f.inReactionTo !== undefined),
   );
+  // Live-scene peek for the forum view — the most recent in-world scene
+  // frame, stripped of MML, so the player keeps live awareness without
+  // leaving the forum. Recomputed as frames arrive.
+  const scenePeek = React.useMemo(() => {
+    for (let i = visibleFrames.length - 1; i >= 0; i--) {
+      const f = visibleFrames[i]!;
+      if (f.topic.startsWith("world.")) {
+        return f.body.replace(/<[^>]+>/g, "").trim().slice(0, 160);
+      }
+    }
+    return null;
+  }, [visibleFrames]);
   // Single display value for the input. Three sources can drive it:
   //   1. The user typing (kept in userTypedRef as the canonical text).
   //   2. A hover preview from a clickable affordance (transient).
@@ -312,6 +404,7 @@ function App() {
     };
     websocketClient.onAnyTopic(handle);
     registerReactionHandlers();
+    registerForumHandlers();
     return () => {
       websocketClient.offAnyTopic(handle);
     };
@@ -353,6 +446,11 @@ function App() {
     // deltas continue to update the cached result and the live
     // header regardless of which verb triggered them.
     applyOutgoingCommandToPane(text);
+
+    // Verb-driven navigation: `forum` / `forum <board>` flips the cockpit
+    // to the forum view and sets the nav target (CLI ⇄ GUI converge). The
+    // forum subcommands that aren't board handles are left to the server.
+    recognizeForumNavigation(text);
 
     // Push an echo-pairing snapshot for non-empty commands. The
     // server's empty-command short-circuit doesn't fire an input-
@@ -570,15 +668,40 @@ function App() {
           <ReconnectBanner />
           <Cockpit>
             <LeftColumn>
-              <TabStrip onToggleDrawer={() => setDrawerOpen((v) => !v)} />
-              <Terminal
-                frames={visibleFrames}
-                onCommandClick={handleCommandClick}
-                onCommandPreview={handleCommandPreview}
-              />
-              {drawerOpen && (
-                <FilterDrawer onClose={() => setDrawerOpen(false)} />
+              {/* Primary-view switch — Terminal | Forum (not a phase). */}
+              <ViewSwitch>
+                <ViewTab
+                  $active={mainView === "terminal"}
+                  onClick={() => setMainView("terminal")}
+                >
+                  Terminal
+                </ViewTab>
+                <ViewTab
+                  $active={mainView === "forum"}
+                  onClick={() => setMainView("forum")}
+                >
+                  Forum
+                </ViewTab>
+              </ViewSwitch>
+              {mainView === "terminal" ? (
+                <>
+                  <TabStrip onToggleDrawer={() => setDrawerOpen((v) => !v)} />
+                  <Terminal
+                    frames={visibleFrames}
+                    onCommandClick={handleCommandClick}
+                    onCommandPreview={handleCommandPreview}
+                  />
+                  {drawerOpen && (
+                    <FilterDrawer onClose={() => setDrawerOpen(false)} />
+                  )}
+                </>
+              ) : (
+                <ForumView
+                  onSendCommand={sendCommand}
+                  onCommandPreview={handleCommandPreview}
+                />
               )}
+              {/* Frame + CommandBar persist across both views. */}
               <CommandBar
                 baseValue={inputValue}
                 onBaseChange={handleInputChange}
@@ -588,11 +711,20 @@ function App() {
                 flashing={flashing}
               />
             </LeftColumn>
-            <InspectionPane
-              onSendCommand={sendCommand}
-              onCommandPreview={handleCommandPreview}
-            />
+            {/* View-sensitive right column. */}
+            {mainView === "terminal" ? (
+              <InspectionPane
+                onSendCommand={sendCommand}
+                onCommandPreview={handleCommandPreview}
+              />
+            ) : (
+              <ForumChatSidecar onSendCommand={sendCommand} />
+            )}
           </Cockpit>
+          {/* Live-scene peek so forum-view players keep live awareness. */}
+          {mainView === "forum" && scenePeek && (
+            <ScenePeek>{scenePeek}</ScenePeek>
+          )}
         </AppContainer>
       );
   }

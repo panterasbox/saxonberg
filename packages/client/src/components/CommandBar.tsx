@@ -118,6 +118,27 @@ const PickerAnchor = styled.div`
   align-items: stretch;
 `;
 
+/**
+ * Multiline body-composition input for the `compose` prompt kind. Shares
+ * the Input look but is a resizable textarea; ⌘/Ctrl+Enter submits.
+ */
+const ComposeArea = styled.textarea`
+  flex: 1;
+  padding: ${tokens.space.md};
+  background: ${tokens.color.surfaceSunken};
+  color: ${tokens.color.fg};
+  border: 1px solid ${tokens.color.accent};
+  border-left: none;
+  font-family: ${tokens.font.mono};
+  font-size: ${tokens.font.body};
+  resize: vertical;
+
+  &:focus {
+    outline: none;
+    border-color: ${tokens.color.accent};
+  }
+`;
+
 const Input = styled.input<{ $flashing?: boolean; $promptMode?: boolean }>`
   flex: 1;
   padding: ${tokens.space.md};
@@ -380,6 +401,7 @@ function parseConfirmInput(text: string): 'yes' | 'no' | null {
 
 function submitButtonLabel(entry: PromptEntry | undefined): string {
   if (!entry) return 'Send';
+  if (entry.kind === 'compose') return 'Post';
   if (entry.kind === 'text' || entry.kind === 'confirm') return 'Respond';
   return 'Respond';
 }
@@ -492,7 +514,8 @@ export function CommandBar({
     }
     const draft = promptDrafts[activeSlot] ?? '';
     switch (activeEntry.kind) {
-      case 'text': {
+      case 'text':
+      case 'compose': {
         if (!draft) return;
         onSendPromptResponse(activeEntry.promptId, draft);
         // Draft drops in dismissPrompt; clear locally as a UI
@@ -748,32 +771,53 @@ export function CommandBar({
           ) : null}
         </PickerAnchor>
 
-        <Input
-          value={inputValue}
-          onChange={(e) => {
-            if (activeSlot === BASE_SLOT) {
-              onBaseChange(e.target.value);
-            } else {
-              setDraft(activeSlot, e.target.value);
+        {activeEntry && activeEntry.kind === 'compose' ? (
+          // Multiline body composition — markdown; ⌘/Ctrl+Enter submits,
+          // Enter inserts a newline. (A live MML preview + "open in editor"
+          // escalation are the next increment; the slot machinery here is
+          // already generic.)
+          <ComposeArea
+            value={inputValue}
+            onChange={(e) => setDraft(activeSlot, e.target.value)}
+            onKeyDown={(e) => {
+              if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
+                e.preventDefault();
+                submitActive();
+              }
+            }}
+            disabled={offline}
+            placeholder={activeEntry.placeholder ?? 'Compose (Markdown)…'}
+            autoFocus
+            rows={4}
+          />
+        ) : (
+          <Input
+            value={inputValue}
+            onChange={(e) => {
+              if (activeSlot === BASE_SLOT) {
+                onBaseChange(e.target.value);
+              } else {
+                setDraft(activeSlot, e.target.value);
+              }
+            }}
+            onKeyDown={handleKeyDown}
+            disabled={offline}
+            placeholder={
+              offline
+                ? 'Disconnected — reconnecting…'
+                : promptMode
+                ? activeEntry && activeEntry.kind === 'text'
+                  ? activeEntry.placeholder ?? 'Type your answer...'
+                  : activeEntry && activeEntry.kind === 'confirm'
+                  ? 'y / n (or click)'
+                  : 'Click a choice above, or Esc to return to commands'
+                : 'Enter command...'
             }
-          }}
-          onKeyDown={handleKeyDown}
-          disabled={offline}
-          placeholder={
-            offline
-              ? 'Disconnected — reconnecting…'
-              : promptMode
-              ? activeEntry && activeEntry.kind === 'text'
-                ? activeEntry.placeholder ?? 'Type your answer...'
-                : activeEntry && activeEntry.kind === 'confirm'
-                ? 'y / n (or click)'
-                : 'Click a choice above, or Esc to return to commands'
-              : 'Enter command...'
-          }
-          autoFocus
-          $flashing={flashing}
-          $promptMode={promptMode}
-        />
+            autoFocus
+            $flashing={flashing}
+            $promptMode={promptMode}
+          />
+        )}
         <SendButton
           $promptMode={promptMode}
           onClick={submitActive}

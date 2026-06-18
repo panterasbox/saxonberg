@@ -104,9 +104,18 @@ export default class ForumSubscriptionRegistry extends Idea {
       return;
     }
 
+    // Normalize a board scope's `id`, which may be a board `_id` OR a
+    // flat subject-title handle (the GUI knows handles), to the canonical
+    // board `_id` so the dependency index keys match the event payloads.
+    const canonical = await this.normalizeScope(scope);
+    if (!canonical) {
+      this.emitError(interactive, subscriptionId, 'resolve', 'no such board/thread');
+      return;
+    }
+
     let records: ForumEntryRecord[];
     try {
-      records = await this.projectScope(scope);
+      records = await this.projectScope(canonical);
     } catch (err) {
       this.emitError(
         interactive,
@@ -123,7 +132,12 @@ export default class ForumSubscriptionRegistry extends Idea {
 
     const lastResult = new Map<string, ForumEntryRecord>();
     for (const r of records) lastResult.set(r.id, r);
-    const state: ForumSubState = { interactive, subscriptionId, scope, lastResult };
+    const state: ForumSubState = {
+      interactive,
+      subscriptionId,
+      scope: canonical,
+      lastResult,
+    };
 
     let bucket = this.registry.get(interactive);
     if (!bucket) {
@@ -137,10 +151,29 @@ export default class ForumSubscriptionRegistry extends Idea {
     const template: Omit<ForumSubscriptionResultEnvelope, 'frameId'> = {
       type: 'forum-subscription-result',
       subscriptionId,
-      scope,
+      scope: canonical,
       records,
     };
     MessageApi.sendEnvelope(viewer, template);
+  }
+
+  /**
+   * Resolve a scope's `id` to its canonical Document `_id`. A board
+   * scope's `id` may be a board `_id` or a flat board-title handle; a
+   * thread scope's `id` is a thread-root entry `_id`. Returns null when
+   * the target doesn't exist.
+   */
+  private async normalizeScope(
+    scope: ForumSubscriptionScope,
+  ): Promise<ForumSubscriptionScope | null> {
+    if (scope.kind === 'thread') {
+      const root = await ForumsApi.getEntry(scope.id);
+      return root ? scope : null;
+    }
+    const board = await ForumsApi.getBoard(scope.id);
+    if (board) return scope;
+    const view = await ForumsApi.resolveBoardByHandle(scope.id);
+    return view ? { kind: 'board', id: view.board._id! } : null;
   }
 
   /** See {@link ForumSubscriptionApi.handleUnsubscribe}. */
