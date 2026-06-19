@@ -17,6 +17,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import SubjectCatalogue from '../SubjectCatalogue';
 import { Idea } from '../../lib/stuff/Idea';
 import { PropertiedMixin } from '../../lib/stuff/Propertied';
+import { SubjectSubscriberMixin } from '../../lib/forum/SubjectSubscriber';
 import { makeStuff } from '../../lib/security/__tests__/test-setup';
 import { PersistenceManager } from '../../../backend/PersistenceManager';
 import { StuffApi } from '../../api/stuff';
@@ -40,7 +41,7 @@ function col(name: string): Map<string, Record<string, unknown>> {
 
 // ---- Propertied avatar double ---------------------------------------
 
-class FakeAvatar extends PropertiedMixin(Idea) {
+class FakeAvatar extends SubjectSubscriberMixin(PropertiedMixin(Idea)) {
   private _playerId: string;
   constructor(playerId = 'p-anon') {
     super();

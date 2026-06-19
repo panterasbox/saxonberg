@@ -97,6 +97,7 @@ export const Mixins = {
   SkyExposed: 'SkyExposedMixin',
   Soul: 'SoulMixin',
   Contacts: 'ContactsMixin',
+  SubjectSubscriber: 'SubjectSubscriberMixin',
   WarrenMember: 'WarrenMemberMixin',
   Lounge: 'LoungeMixin',
   FastTravel: 'FastTravelMixin',

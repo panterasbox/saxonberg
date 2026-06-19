@@ -32,21 +32,22 @@ import { PostRegistrationMixin } from '../lib/stuff/PostRegistration';
 import Subject, {
   type SubjectSurface,
 } from '../lib/forum/Subject';
+import type { SubjectSubscription } from '../lib/forum/SubjectSubscriber';
 import { Group, type GroupRole } from '../lib/social/Group';
 import type { GroupRef } from '../lib/social/GroupProvider';
 import type { Stuff } from '../lib/stuff/Stuff';
-import { Property, type PropValue } from '../lib/stuff/Propertied';
-import { MixinApi } from '../api/mixin';
 import { PlayerApi } from '../api/player';
 import { GroupApi } from '../api/group';
 import type Avatar from './Avatar';
 import type { VetoResult } from '../lib/errors';
 
-/** Per-subject subscription: one `follow` toggle + a per-surface mute set. */
-export interface SubjectSubscription {
-  followed: boolean;
-  mutedSurfaces: SubjectSurface[];
-}
+/**
+ * Per-subject subscription state lives on the owner via
+ * {@link SubjectSubscriberMixin} (typed keyed store, persisted with the
+ * Avatar). Re-exported here so callers keep importing it from the
+ * SubjectCatalogue surface.
+ */
+export type { SubjectSubscription };
 
 const DEFAULT_SUBSCRIPTION: SubjectSubscription = {
   followed: true,
@@ -260,12 +261,7 @@ export default class SubjectCatalogue extends SubjectCatalogueBase {
       followed: next.followed ?? current.followed,
       mutedSurfaces: next.mutedSurfaces ?? current.mutedSurfaces,
     };
-    if (MixinApi.isPropertied(avatar)) {
-      avatar.setProp(
-        subscriptionProperty(subjectId),
-        merged as unknown as PropValue,
-      );
-    }
+    avatar.setSubjectSubscription(subjectId, merged);
     return merged;
   }
 
@@ -303,9 +299,7 @@ export default class SubjectCatalogue extends SubjectCatalogueBase {
     subjectId: string,
     legacy: { tunedIn: boolean; muted: boolean },
   ): SubjectSubscription {
-    if (!MixinApi.isPropertied(avatar)) return { ...DEFAULT_SUBSCRIPTION };
-    const existing = avatar.getProp(subscriptionProperty(subjectId));
-    if (existing && typeof existing === 'object') {
+    if (avatar.hasSubjectSubscription(subjectId)) {
       return readSubscription(avatar, subjectId);
     }
     return this.setSubscription(avatar, subjectId, {
@@ -424,26 +418,18 @@ const RESERVED_NAMES: ReadonlySet<string> = new Set([
   'vote',
 ]);
 
-function subscriptionProperty(subjectId: string): Property<PropValue> {
-  return Property.of<PropValue>(`subject.subscription.${subjectId}`);
-}
-
 function readSubscription(avatar: Avatar, subjectId: string): SubjectSubscription {
-  if (!MixinApi.isPropertied(avatar)) {
+  const raw = avatar.getSubjectSubscription(subjectId);
+  if (!raw) {
     return { followed: DEFAULT_SUBSCRIPTION.followed, mutedSurfaces: [] };
   }
-  const raw = avatar.getProp(subscriptionProperty(subjectId));
-  if (!raw || typeof raw !== 'object') {
-    return { followed: DEFAULT_SUBSCRIPTION.followed, mutedSurfaces: [] };
-  }
-  const r = raw as Partial<SubjectSubscription>;
   return {
     followed:
-      typeof r.followed === 'boolean'
-        ? r.followed
+      typeof raw.followed === 'boolean'
+        ? raw.followed
         : DEFAULT_SUBSCRIPTION.followed,
-    mutedSurfaces: Array.isArray(r.mutedSurfaces)
-      ? [...r.mutedSurfaces]
+    mutedSurfaces: Array.isArray(raw.mutedSurfaces)
+      ? [...raw.mutedSurfaces]
       : [],
   };
 }

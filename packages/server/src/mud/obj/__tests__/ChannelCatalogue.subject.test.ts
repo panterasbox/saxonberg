@@ -18,6 +18,7 @@ import ChannelCatalogue from '../ChannelCatalogue';
 import SubjectCatalogue from '../SubjectCatalogue';
 import { Idea } from '../../lib/stuff/Idea';
 import { PropertiedMixin, Property, type PropValue } from '../../lib/stuff/Propertied';
+import { SubjectSubscriberMixin } from '../../lib/forum/SubjectSubscriber';
 import {
   makeStuff,
   makeStuffAtPath,
@@ -41,7 +42,7 @@ function col(name: string): Map<string, Record<string, unknown>> {
   return c;
 }
 
-class FakeAvatar extends PropertiedMixin(Idea) {
+class FakeAvatar extends SubjectSubscriberMixin(PropertiedMixin(Idea)) {
   private _playerId: string;
   constructor(playerId = 'p-anon') {
     super();
