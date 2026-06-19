@@ -1,11 +1,14 @@
 # Reputation slate — charisma, renown, notoriety (working doc)
 
-> **Status: game-design layer, partly active.** The **renown leg has
-> split into active design** — see
-> [renown-requirements.md](../../requirements/renown-requirements.md)
-> (branch `feature/renown`). The rest (susceptibility, NPC consumers, the
-> substance economy's brand-trust, the anonymity/disguise counterweight)
-> stays deferred: settled in shape, captured but not queued.
+> **Status: game-design layer, renown leg SHIPPED.** The **renown
+> substrate has shipped** — see
+> [renown.md](../../subsystems/renown.md) (measured per-scope signed
+> standing, the reaction + reception signal generators, the per-emote +
+> AppSettings value-function, log-saturation). The rest (susceptibility,
+> NPC consumers, governance influence, the substance economy's
+> brand-trust, the anonymity/disguise counterweight, per-circle consumers,
+> the eigenvector trust-weighting) stays deferred: settled in shape,
+> captured but not queued.
 
 Working slate for the platform's answer to the D&D **charisma** stat —
 and its dark twin, **notoriety**. The short version: charisma here is

@@ -184,13 +184,24 @@ delivered (and registers the player's sink). `react --msg <n>` resolves
 through that ring; a client-UI click emits the same gutter number.
 **Input never carries a client-supplied `commandId`.**
 
-## The renown event
+## The renown event + the reception seam
 
 `lib/events/ReactionFiredEvent.ts` — fired on a **flip-on** only,
 carrying raw, **uninterpreted** emote + tags (no valence/polarity, no
-score), `scope`, and a `selfReaction` flag. **No consumer** is built:
-the reputation build is the trap the non-goals warn against. The event
-is only the typed substrate a later aggregator subscribes to.
+score), `scope`, and a `selfReaction` flag. **The renown build is now its
+consumer** (the aggregator the event was shaped for) — `RenownLogic` taps
+it into the durable `renown_events` log; `ReactionRegistry` itself stays
+ephemeral. See [renown.md](./renown.md).
+
+Renown's *second* input — passive **reception** ("being heard") — also
+hangs off the reactable-act machinery, on the **receive** side. The
+producer-site `noteReactableAct` (Vocal/Soul/ChannelCatalogue) records the
+act's `subjectId` + `scope`, exposed by `ReactionApi.actInfo(commandId)`;
+`SensorMixin.onMessage` fires `CommReceivedEvent` for genuinely-perceived
+communication frames (topic-gated via `MessageApi.isCommunicative`), and
+renown recovers the speaker from `actInfo`. Distinct from a reaction (an
+*active* signed signal) — reception is *passive*, small, and
+log-saturated.
 
 ## Wire envelopes (`@saxonberg/types`)
 

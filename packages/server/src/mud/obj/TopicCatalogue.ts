@@ -56,7 +56,8 @@ export default class TopicCatalogue extends TopicCatalogueBase {
    * Topics flagged `communicative: true` in their template data — the
    * say/whisper/shout/emote/chat acts that generate renown when heard
    * (NOT dm / narration / system). Built alongside {@link cache}; the
-   * `SensorMixin.onMessage` reception gate consults it via `TopicApi`.
+   * `SensorMixin.onMessage` reception gate consults it via
+   * `MessageApi.isCommunicative`.
    */
   private communicative: Set<string> = new Set();
 
