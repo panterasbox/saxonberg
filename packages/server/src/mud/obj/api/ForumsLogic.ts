@@ -42,6 +42,17 @@ export interface ThreadView {
   posts: Entry[];
 }
 
+/**
+ * A node in the computed **argument lens** — the entry plus the one
+ * structural fact the neutral default lens derives: whether it is an
+ * **open objection** (an `objects-to` with no answering child). The lens
+ * reads pure relations; it never reads `up`/`down` and stores no order.
+ */
+export interface ArgumentLensNode {
+  entry: Entry;
+  openObjection: boolean;
+}
+
 /** Options for `makeForum` — passthrough to the subject mint + board meta. */
 export interface MakeForumOptions extends MakeSubjectOptions {
   description?: string;
@@ -389,6 +400,22 @@ export class ForumsLogic extends Idea {
     return displayScoreFor(entry);
   }
 
+  // --- The argument lens (the neutral default reading) ---------------
+
+  /** See {@link ForumsApi.readArgumentLens}. The whole board's claim-graph. */
+  @CallSecurity(ForumsApiCallers)
+  public async readArgumentLens(board: Board): Promise<ArgumentLensNode[]> {
+    const all = await Entry.find({ board: board._id });
+    return buildArgumentLens(all, null);
+  }
+
+  /** See {@link ForumsApi.readArgumentThread}. The subtree rooted at `root`. */
+  @CallSecurity(ForumsApiCallers)
+  public async readArgumentThread(root: Entry): Promise<ArgumentLensNode[]> {
+    const all = await Entry.find({ board: root.board });
+    return buildArgumentLens(all, root._id ?? null);
+  }
+
   // --- Thread promotion ---------------------------------------------
 
   /** See {@link ForumsApi.promoteThread}. */
@@ -514,6 +541,66 @@ function sortEntries(entries: Entry[], mode: EntrySort): Entry[] {
         (a, b) => b.createdAt.getTime() - a.createdAt.getTime(),
       );
   }
+}
+
+/** Valence display order within a parent's children (structural, not ranked). */
+const VALENCE_ORDER: Record<EntryRelation, number> = {
+  supports: 0,
+  'objects-to': 1,
+  'responds-to': 2,
+  reply: 3,
+};
+
+/**
+ * Build the **neutral default lens** from a flat entry set: the spine /
+ * root(s) first, then each node's children **grouped by valence**
+ * (Supporting → Objections → Questions), chronological within a group —
+ * **never by score**. Parent-before-child so the client nests in one pass.
+ * `openObjection` is an `objects-to` with no answering child (the triage
+ * cue + convergence signal). The "dumb store, smart consumers" idiom:
+ * everything is derived from pure relations, nothing read from `up`/`down`
+ * and no display-order stored on the Entry.
+ *
+ * `fromId === null` → the whole board (every root + its subtree);
+ * otherwise the subtree rooted at `fromId` (inclusive).
+ */
+function buildArgumentLens(
+  all: Entry[],
+  fromId: string | null,
+): ArgumentLensNode[] {
+  const childrenOf = new Map<string, Entry[]>();
+  for (const e of all) {
+    if (e.parent === null) continue;
+    const arr = childrenOf.get(e.parent) ?? [];
+    arr.push(e);
+    childrenOf.set(e.parent, arr);
+  }
+  const sortChildren = (list: Entry[]): Entry[] =>
+    [...list].sort(
+      (a, b) =>
+        VALENCE_ORDER[a.relation] - VALENCE_ORDER[b.relation] ||
+        a.createdAt.getTime() - b.createdAt.getTime(),
+    );
+  const isOpenObjection = (e: Entry): boolean =>
+    e.relation === 'objects-to' &&
+    (childrenOf.get(e._id!)?.length ?? 0) === 0;
+
+  const out: ArgumentLensNode[] = [];
+  const emit = (e: Entry): void => {
+    out.push({ entry: e, openObjection: isOpenObjection(e) });
+    for (const child of sortChildren(childrenOf.get(e._id!) ?? [])) emit(child);
+  };
+
+  if (fromId === null) {
+    const roots = all
+      .filter((e) => e.parent === null)
+      .sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime());
+    for (const root of roots) emit(root);
+  } else {
+    const root = all.find((e) => e._id === fromId);
+    if (root) emit(root);
+  }
+  return out;
 }
 
 function hotScore(e: Entry): number {

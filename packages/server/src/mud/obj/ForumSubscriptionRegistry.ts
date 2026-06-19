@@ -37,6 +37,7 @@ import { PlayerApi } from '../api/player';
 import { Template } from '../lib/stuff/Template';
 import { TemplatePathPrefixes } from '../lib/paths';
 import { ForumEventFired } from '../lib/forum/ForumEvent';
+import type { ArgumentLensNode } from './api/ForumsLogic';
 import type Interactive from './Interactive';
 import type { Subscription } from '../api/event';
 import type { Stuff } from '../lib/stuff/Stuff';
@@ -243,13 +244,68 @@ export default class ForumSubscriptionRegistry extends Idea {
     if (scope.kind === 'board') {
       const board = await ForumsApi.getBoard(scope.id);
       if (!board) return null;
+      // Organizer-aware branch — the ONLY place the registry knows about
+      // the argument organizer. The scope-kind plumbing, dependency index,
+      // dirty-batch and diff are all reused verbatim; only the per-scope
+      // projection function changes. (MqlSubscriptionRegistry untouched.)
+      if (board.getOrganizer() === 'argument') {
+        const nodes = await ForumsApi.readArgumentLens(board);
+        return this.projectArgumentNodes(nodes, viewer);
+      }
       const threads = await ForumsApi.readBoard(board, 'new');
       return this.projectEntries(threads);
     }
     const root = await ForumsApi.getEntry(scope.id);
     if (!root) return null;
+    const board = await ForumsApi.getBoard(root.getBoard());
+    if (board?.getOrganizer() === 'argument') {
+      const nodes = await ForumsApi.readArgumentThread(root);
+      return this.projectArgumentNodes(nodes, viewer);
+    }
     const { posts } = await ForumsApi.readThread(root, 'new');
     return this.projectEntries([root, ...posts]);
+  }
+
+  /**
+   * Project argument-lens nodes into `ForumEntryRecord`s: the registry
+   * stays the record-assembler (author names batched, the per-viewer
+   * circle resolved once for the `inCircle` highlight), while the
+   * structural facts (lens order + `openObjection`) come from the logic
+   * singleton. Reputation-blind: `up`/`down`/`score` are zeroed and
+   * `displayScore` is null — the argument view never reads or shows votes.
+   */
+  private async projectArgumentNodes(
+    nodes: ArgumentLensNode[],
+    viewer: Stuff & Sensor,
+  ): Promise<ForumEntryRecord[]> {
+    const names = await resolveAuthorNames(nodes.map((n) => n.entry.getAuthor()));
+    const circle = resolveCircle(viewer);
+    return nodes.map((n) => {
+      const e = n.entry;
+      const author = e.getAuthor();
+      const edited = e.getEditedAt();
+      return {
+        id: e._id ?? '',
+        parent: e.getParent(),
+        board: e.getBoard(),
+        author,
+        authorName: names.get(author) ?? '',
+        title: e.getTitle(),
+        body: e.getBody(),
+        up: 0,
+        down: 0,
+        score: 0,
+        displayScore: null,
+        state: e.getState(),
+        subject: e.getSubject(),
+        createdAt: e.createdAt.getTime(),
+        editedAt: edited ? edited.getTime() : null,
+        organizer: 'argument',
+        relation: e.getRelation(),
+        openObjection: n.openObjection,
+        inCircle: author !== '' && circle.has(author),
+      };
+    });
   }
 
   /**
@@ -284,6 +340,7 @@ export default class ForumSubscriptionRegistry extends Idea {
       state: entry.getState(),
       subject: entry.getSubject(),
       createdAt: entry.createdAt.getTime(),
+      editedAt: entry.getEditedAt() ? entry.getEditedAt()!.getTime() : null,
     };
   }
 
@@ -484,7 +541,26 @@ function projectBoard(
     state: 'active',
     subject: subject._id ?? null,
     createdAt: board.createdAt.getTime(),
+    // The index row carries the organizer so the client picks its render
+    // mode (and can badge argument boards) without inferring.
+    organizer: board.getOrganizer(),
   };
+}
+
+/**
+ * The viewer's circle for the delegated-attention highlight: the
+ * playerIds of their avatar contacts (any label), resolved once per
+ * projection. A non-reordering overlay — it only sets `inCircle`, never
+ * changes order. v1 signal is the already-stored authorship × `contacts`;
+ * per-topic circles / regard-as-feeder are deferred.
+ */
+function resolveCircle(viewer: Stuff & Sensor): Set<string> {
+  if (!MixinApi.isContacts(viewer)) return new Set();
+  const out = new Set<string>();
+  for (const c of viewer.allContacts()) {
+    if (c.kind === 'avatar') out.add(c.playerId);
+  }
+  return out;
 }
 
 /**
@@ -534,6 +610,14 @@ function recordsEqual(a: ForumEntryRecord, b: ForumEntryRecord): boolean {
     a.title === b.title &&
     a.body === b.body &&
     a.state === b.state &&
-    a.subject === b.subject
+    a.subject === b.subject &&
+    // Argument-mode fields — so a delta fires when an open-objection
+    // clears (a child attaches → the parent flips false), a body is
+    // edited, or a per-viewer highlight changes.
+    a.editedAt === b.editedAt &&
+    a.relation === b.relation &&
+    a.openObjection === b.openObjection &&
+    a.inCircle === b.inCircle &&
+    a.organizer === b.organizer
   );
 }

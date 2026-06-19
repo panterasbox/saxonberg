@@ -28,6 +28,7 @@ import type {
   EntrySort,
   VoteState,
   ArgumentRelation,
+  ArgumentLensNode,
 } from '../obj/api/ForumsLogic';
 import type { BoardOrganizer } from '../lib/forum/Board';
 import type { VoteValue } from '../lib/forum/Vote';
@@ -142,6 +143,16 @@ export class ForumsApi {
 
   static async readThread(root: Entry, sort?: EntrySort): Promise<ThreadView> {
     return logic().readThread(root, sort ?? 'new');
+  }
+
+  /** The neutral default lens over a whole argument board (spine + tree). */
+  static async readArgumentLens(board: Board): Promise<ArgumentLensNode[]> {
+    return logic().readArgumentLens(board);
+  }
+
+  /** The neutral default lens over a subtree rooted at `root`. */
+  static async readArgumentThread(root: Entry): Promise<ArgumentLensNode[]> {
+    return logic().readArgumentThread(root);
   }
 
   static async castVote(
