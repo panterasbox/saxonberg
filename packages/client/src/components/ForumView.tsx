@@ -162,6 +162,40 @@ const Meta = styled.div`
   font-size: 0.8rem;
 `;
 
+const ComposeRow = styled.div`
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 0.4rem;
+`;
+
+const PostButton = styled.button`
+  background: ${tokens.color.accent};
+  color: #11201b;
+  border: none;
+  border-radius: ${tokens.radius.sm};
+  padding: 0.3rem 0.9rem;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  &:disabled {
+    background: ${tokens.color.borderEmphasis};
+    color: ${tokens.color.fgMuted};
+    cursor: default;
+  }
+  &:hover:not(:disabled) {
+    background: ${tokens.color.accentHover};
+  }
+`;
+
+/** A hover-preview hook: show the command the control will send. */
+type Preview = (command: string | null) => void;
+function hoverPreview(cmd: string, onPreview: Preview) {
+  return {
+    onMouseEnter: () => onPreview(cmd),
+    onMouseLeave: () => onPreview(null),
+  };
+}
+
 function scoreText(r: ForumEntryRecord): string {
   return r.displayScore === null ? "···" : String(r.displayScore);
 }
@@ -192,14 +226,28 @@ const controversy = (r: ForumEntryRecord) =>
     ? (r.up + r.down) * (Math.min(r.up, r.down) / Math.max(r.up, r.down))
     : 0;
 
-function VoteControls({ entry }: { entry: ForumEntryRecord }): JSX.Element {
+function VoteControls({
+  entry,
+  onPreview,
+}: {
+  entry: ForumEntryRecord;
+  onPreview: Preview;
+}): JSX.Element {
   return (
     <Votes>
-      <VoteBtn aria-label="upvote" onClick={() => castForumVote(entry.id, "up")}>
+      <VoteBtn
+        aria-label="upvote"
+        onClick={() => castForumVote(entry.id, "up")}
+        {...hoverPreview(`forum vote ${entry.id} up`, onPreview)}
+      >
         ▲
       </VoteBtn>
       <Score $hidden={entry.displayScore === null}>{scoreText(entry)}</Score>
-      <VoteBtn aria-label="downvote" onClick={() => castForumVote(entry.id, "down")}>
+      <VoteBtn
+        aria-label="downvote"
+        onClick={() => castForumVote(entry.id, "down")}
+        {...hoverPreview(`forum vote ${entry.id} down`, onPreview)}
+      >
         ▼
       </VoteBtn>
     </Votes>
@@ -209,13 +257,24 @@ function VoteControls({ entry }: { entry: ForumEntryRecord }): JSX.Element {
 function ComposeBox({
   onSubmit,
   label,
+  previewVerb,
+  onPreview,
 }: {
   onSubmit: (body: string, title?: string) => void;
   label: string;
+  /** The command this box sends (the body rides the fields side-channel). */
+  previewVerb: string;
+  onPreview: Preview;
 }): JSX.Element {
   const [body, setBody] = useState("");
   const [title, setTitle] = useState("");
   const showTitle = label === "thread";
+  const submit = () => {
+    if (!body.trim()) return;
+    onSubmit(body.trim(), showTitle ? title.trim() || undefined : undefined);
+    setBody("");
+    setTitle("");
+  };
   return (
     <Card>
       <Body>
@@ -230,18 +289,27 @@ function ComposeBox({
         )}
         <BodyArea
           aria-label={`${label} body`}
-          placeholder="Markdown body — ⌘/Ctrl+Enter to submit"
+          placeholder={
+            showTitle
+              ? "Write a new thread (Markdown)…"
+              : "Write a reply (Markdown)…"
+          }
           value={body}
           onChange={(e) => setBody(e.target.value)}
           onKeyDown={(e) => {
-            if ((e.metaKey || e.ctrlKey) && e.key === "Enter" && body.trim()) {
-              onSubmit(body.trim(), showTitle ? title.trim() || undefined : undefined);
-              setBody("");
-              setTitle("");
-            }
+            if ((e.metaKey || e.ctrlKey) && e.key === "Enter") submit();
           }}
           rows={3}
         />
+        <ComposeRow>
+          <PostButton
+            onClick={submit}
+            disabled={!body.trim()}
+            {...hoverPreview(previewVerb, onPreview)}
+          >
+            {showTitle ? "Post thread" : "Reply"} ⌘⏎
+          </PostButton>
+        </ComposeRow>
       </Body>
     </Card>
   );
@@ -326,6 +394,7 @@ export function ForumView({
               key={b.id}
               as="button"
               onClick={() => openForumBoard(b.id)}
+              {...hoverPreview(`forum ${b.id}`, onCommandPreview)}
               style={{
                 cursor: "pointer",
                 textAlign: "left",
@@ -367,6 +436,8 @@ export function ForumView({
         <>
           <ComposeBox
             label="thread"
+            previewVerb={`forum post ${forumNav.boardHandle}`}
+            onPreview={onCommandPreview}
             onSubmit={(body, title) =>
               postForumThread(forumNav.boardHandle!, body, title)
             }
@@ -374,9 +445,17 @@ export function ForumView({
           {threads.length === 0 && <Meta>No threads yet.</Meta>}
           {threads.map((t) => (
             <Card key={t.id}>
-              <VoteControls entry={t} />
+              <VoteControls entry={t} onPreview={onCommandPreview} />
               <Body>
-                <TitleLine onClick={() => openForumThread(t.id)}>{t.title}</TitleLine>
+                <TitleLine
+                  onClick={() => openForumThread(t.id)}
+                  {...hoverPreview(
+                    `forum ${forumNav.boardHandle} ${t.id}`,
+                    onCommandPreview,
+                  )}
+                >
+                  {t.title}
+                </TitleLine>
                 <Meta>by {t.authorName || "someone"}</Meta>
               </Body>
             </Card>
@@ -386,20 +465,22 @@ export function ForumView({
         <>
           {root && (
             <Card>
-              <VoteControls entry={root} />
+              <VoteControls entry={root} onPreview={onCommandPreview} />
               <Body>
-                <TitleLine>{root.title}</TitleLine>
+                <TitleLine as="div">{root.title}</TitleLine>
                 <MmlRenderer text={root.body} onCommandClick={onSendCommand} onCommandPreview={onCommandPreview} />
               </Body>
             </Card>
           )}
           <ComposeBox
             label="reply"
+            previewVerb={`forum reply ${forumNav.threadId}`}
+            onPreview={onCommandPreview}
             onSubmit={(body) => replyForumEntry(forumNav.threadId!, body)}
           />
           {posts.map((p) => (
             <Card key={p.id} style={{ marginLeft: "1rem" }}>
-              <VoteControls entry={p} />
+              <VoteControls entry={p} onPreview={onCommandPreview} />
               <Body>
                 <MmlRenderer text={p.body} onCommandClick={onSendCommand} onCommandPreview={onCommandPreview} />
                 <Meta>by {p.authorName || "someone"}</Meta>
