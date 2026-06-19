@@ -106,9 +106,10 @@ const ScenePeek = styled.div`
   right: 1rem;
   max-width: 22rem;
   padding: 0.5rem 0.75rem;
-  border-radius: 6px;
-  background: rgba(20, 20, 28, 0.92);
-  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: ${tokens.radius.md};
+  background: ${tokens.color.surfaceAlt};
+  border: 1px solid ${tokens.color.borderEmphasis};
+  color: ${tokens.color.fgMuted};
   font-size: 0.85rem;
   pointer-events: none;
 `;

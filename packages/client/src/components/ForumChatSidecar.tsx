@@ -14,6 +14,7 @@
 import { useState } from "react";
 import styled from "styled-components";
 import { useStore } from "../store";
+import { tokens } from "./ui";
 
 const Rail = styled.div`
   display: flex;
@@ -21,7 +22,18 @@ const Rail = styled.div`
   height: 100%;
   padding: 0.75rem;
   gap: 0.75rem;
-  border-left: 1px solid rgba(255, 255, 255, 0.1);
+  background: ${tokens.color.surfaceMuted};
+  color: ${tokens.color.fg};
+  font-size: ${tokens.font.body};
+  border-left: 1px solid ${tokens.color.borderMuted};
+`;
+
+const RailTitle = styled.div`
+  font-weight: 600;
+  color: ${tokens.color.fgMuted};
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-size: 0.75rem;
 `;
 
 const Stack = styled.div`
@@ -32,15 +44,37 @@ const Stack = styled.div`
 
 const Entry = styled.div<{ $depth: number }>`
   margin-left: ${(p) => p.$depth * 0.75}rem;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: 6px;
+  border: 1px solid ${tokens.color.borderMuted};
+  background: ${tokens.color.surface};
+  border-radius: ${tokens.radius.md};
   padding: 0.5rem;
 `;
 
 const Handle = styled.div`
   font-weight: 600;
-  opacity: 0.85;
+  color: ${tokens.color.accent};
   margin-bottom: 0.3rem;
+`;
+
+const ChatInput = styled.input`
+  width: 100%;
+  background: ${tokens.color.surfaceSunken};
+  color: ${tokens.color.fg};
+  border: 1px solid ${tokens.color.border};
+  border-radius: ${tokens.radius.sm};
+  padding: 0.35rem 0.5rem;
+  font: inherit;
+  &::placeholder {
+    color: ${tokens.color.fgMuted};
+  }
+  &:focus {
+    outline: none;
+    border-color: ${tokens.color.accent};
+  }
+`;
+
+const Empty = styled.div`
+  color: ${tokens.color.fgMuted};
 `;
 
 interface SidecarProps {
@@ -60,7 +94,7 @@ function ChatEntry({
   return (
     <Entry $depth={depth}>
       <Handle>#{handle}</Handle>
-      <input
+      <ChatInput
         aria-label={`chat ${handle}`}
         placeholder="Say something…"
         value={msg}
@@ -71,7 +105,6 @@ function ChatEntry({
             setMsg("");
           }
         }}
-        style={{ width: "100%" }}
       />
     </Entry>
   );
@@ -107,9 +140,9 @@ export function ForumChatSidecar({ onSendCommand }: SidecarProps): JSX.Element {
 
   return (
     <Rail>
-      <Handle>Chat</Handle>
+      <RailTitle>Chat</RailTitle>
       <Stack>
-        {path.length === 0 && <div style={{ opacity: 0.6 }}>Open a board.</div>}
+        {path.length === 0 && <Empty>Open a board.</Empty>}
         {path.map((handle, i) => (
           <ChatEntry
             key={handle}

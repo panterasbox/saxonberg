@@ -25,6 +25,7 @@ import {
   openForumThread,
 } from "../store/forumActions";
 import { MmlRenderer } from "./MmlRenderer";
+import { tokens } from "./ui";
 
 type Sort = "new" | "top" | "hot" | "controversial";
 
@@ -35,6 +36,9 @@ const Wrap = styled.div`
   overflow-y: auto;
   padding: 0.75rem 1rem;
   gap: 0.5rem;
+  background: ${tokens.color.surfaceMuted};
+  color: ${tokens.color.fg};
+  font-size: ${tokens.font.body};
 `;
 
 const Bar = styled.div`
@@ -42,21 +46,71 @@ const Bar = styled.div`
   align-items: center;
   gap: 0.5rem;
   flex-wrap: wrap;
+  color: ${tokens.color.fgMuted};
 `;
 
 const Crumb = styled.button`
   background: none;
   border: none;
-  color: inherit;
+  color: ${tokens.color.accent};
   cursor: pointer;
-  text-decoration: underline;
   padding: 0;
+  font: inherit;
+  font-weight: 600;
+  &:hover {
+    color: ${tokens.color.accentHover};
+  }
+`;
+
+const Select = styled.select`
+  background: ${tokens.color.surfaceSunken};
+  color: ${tokens.color.fg};
+  border: 1px solid ${tokens.color.border};
+  border-radius: ${tokens.radius.sm};
+  padding: 0.1rem 0.3rem;
   font: inherit;
 `;
 
+const Field = styled.input`
+  width: 100%;
+  background: ${tokens.color.surfaceSunken};
+  color: ${tokens.color.fg};
+  border: 1px solid ${tokens.color.border};
+  border-radius: ${tokens.radius.sm};
+  padding: 0.4rem 0.5rem;
+  font: inherit;
+  &::placeholder {
+    color: ${tokens.color.fgMuted};
+  }
+  &:focus {
+    outline: none;
+    border-color: ${tokens.color.accent};
+  }
+`;
+
+const BodyArea = styled.textarea`
+  width: 100%;
+  resize: vertical;
+  background: ${tokens.color.surfaceSunken};
+  color: ${tokens.color.fg};
+  border: 1px solid ${tokens.color.border};
+  border-radius: ${tokens.radius.sm};
+  padding: 0.4rem 0.5rem;
+  font-family: ${tokens.font.mono};
+  font-size: ${tokens.font.body};
+  &::placeholder {
+    color: ${tokens.color.fgMuted};
+  }
+  &:focus {
+    outline: none;
+    border-color: ${tokens.color.accent};
+  }
+`;
+
 const Card = styled.div`
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: 6px;
+  border: 1px solid ${tokens.color.borderMuted};
+  background: ${tokens.color.surface};
+  border-radius: ${tokens.radius.md};
   padding: 0.5rem 0.75rem;
   display: flex;
   gap: 0.6rem;
@@ -74,23 +128,36 @@ const VoteBtn = styled.button<{ $active?: boolean }>`
   background: none;
   border: none;
   cursor: pointer;
-  font-size: 1rem;
-  line-height: 1;
-  color: ${(p) => (p.$active ? "#e8a" : "inherit")};
+  font-size: 0.9rem;
+  line-height: 1.4;
+  color: ${(p) => (p.$active ? tokens.color.accent : tokens.color.fgMuted)};
+  &:hover {
+    color: ${tokens.color.accentHover};
+  }
+`;
+
+const Score = styled.span<{ $hidden: boolean }>`
+  font-weight: 600;
+  color: ${(p) => (p.$hidden ? tokens.color.fgMuted : tokens.color.fgEmphasis)};
 `;
 
 const Body = styled.div`
   flex: 1;
   min-width: 0;
+  color: ${tokens.color.fg};
 `;
 
 const TitleLine = styled.div`
   font-weight: 600;
+  color: ${tokens.color.fg};
   cursor: pointer;
+  &:hover {
+    color: ${tokens.color.accentHover};
+  }
 `;
 
 const Meta = styled.div`
-  opacity: 0.6;
+  color: ${tokens.color.fgMuted};
   font-size: 0.8rem;
 `;
 
@@ -130,7 +197,7 @@ function VoteControls({ entry }: { entry: ForumEntryRecord }): JSX.Element {
       <VoteBtn aria-label="upvote" onClick={() => castForumVote(entry.id, "up")}>
         ▲
       </VoteBtn>
-      <span>{scoreText(entry)}</span>
+      <Score $hidden={entry.displayScore === null}>{scoreText(entry)}</Score>
       <VoteBtn aria-label="downvote" onClick={() => castForumVote(entry.id, "down")}>
         ▼
       </VoteBtn>
@@ -152,15 +219,15 @@ function ComposeBox({
     <Card>
       <Body>
         {showTitle && (
-          <input
+          <Field
             aria-label="thread title"
             placeholder="Title"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            style={{ width: "100%", marginBottom: "0.4rem" }}
+            style={{ marginBottom: "0.4rem" }}
           />
         )}
-        <textarea
+        <BodyArea
           aria-label={`${label} body`}
           placeholder="Markdown body — ⌘/Ctrl+Enter to submit"
           value={body}
@@ -173,7 +240,6 @@ function ComposeBox({
             }
           }}
           rows={3}
-          style={{ width: "100%", resize: "vertical" }}
         />
       </Body>
     </Card>
@@ -242,12 +308,12 @@ export function ForumView({
         <span style={{ flex: 1 }} />
         <label>
           sort{" "}
-          <select value={sort} onChange={(e) => setSort(e.target.value as Sort)}>
+          <Select value={sort} onChange={(e) => setSort(e.target.value as Sort)}>
             <option value="new">new</option>
             <option value="top">top</option>
             <option value="hot">hot</option>
             <option value="controversial">controversial</option>
-          </select>
+          </Select>
         </label>
       </Bar>
 
