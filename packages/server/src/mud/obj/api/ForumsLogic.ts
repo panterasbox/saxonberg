@@ -480,5 +480,16 @@ async function buildBoard(
   board.description = opts.description ?? '';
   await board.save();
   await SubjectApi.addManifestation(subject, 'popularity-forum', board._id!);
+  // Wake any forum-index subscriptions so a freshly-created board shows up
+  // live on the landing list (board creation has no entry to drive it).
+  await recordEvent({
+    kind: 'board-created',
+    subject: subject._id!,
+    board: board._id!,
+    thread: '',
+    entry: '',
+    actor: subject.getOwner(),
+    data: { name: board.name },
+  });
   return board;
 }

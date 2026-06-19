@@ -23,6 +23,7 @@ import {
   postForumThread,
   replyForumEntry,
   openForumThread,
+  openForumBoard,
 } from "../store/forumActions";
 import { MmlRenderer } from "./MmlRenderer";
 import { tokens } from "./ui";
@@ -260,6 +261,19 @@ export function ForumView({
   const [sort, setSort] = useState<Sort>("hot");
   const [boardSub, setBoardSub] = useState<string | null>(null);
   const [threadSub, setThreadSub] = useState<string | null>(null);
+  const [indexSub, setIndexSub] = useState<string | null>(null);
+
+  // Board-index subscription — live list of the boards you can see, open
+  // whenever no specific board is selected (the forum landing).
+  useEffect(() => {
+    if (forumNav.boardHandle) {
+      setIndexSub(null);
+      return;
+    }
+    const id = subscribeForumScope({ kind: "index", id: "" });
+    setIndexSub(id);
+    return () => unsubscribeForumScope(id);
+  }, [forumNav.boardHandle]);
 
   // Board subscription — re-opened when the board handle changes.
   useEffect(() => {
@@ -291,9 +305,41 @@ export function ForumView({
   );
 
   if (!forumNav.boardHandle) {
+    const boards = indexSub ? forumRecords[indexSub] ?? [] : [];
     return (
       <Wrap>
-        <Meta>Type `forum &lt;board&gt;` or open a board to browse.</Meta>
+        <Bar>
+          <strong style={{ color: "inherit" }}>Boards</strong>
+          <span style={{ flex: 1 }} />
+          <Meta>`forum make &lt;name&gt;` to start one</Meta>
+        </Bar>
+        {boards.length === 0 && (
+          <Meta>
+            No boards yet. Create one with `forum make &lt;name&gt;` (add
+            `--open` so anyone can join).
+          </Meta>
+        )}
+        {[...boards]
+          .sort((a, b) => b.createdAt - a.createdAt)
+          .map((b) => (
+            <Card
+              key={b.id}
+              as="button"
+              onClick={() => openForumBoard(b.id)}
+              style={{
+                cursor: "pointer",
+                textAlign: "left",
+                width: "100%",
+                font: "inherit",
+                color: "inherit",
+              }}
+            >
+              <Body>
+                <TitleLine>{b.title}</TitleLine>
+                {b.body && <Meta>{b.body}</Meta>}
+              </Body>
+            </Card>
+          ))}
       </Wrap>
     );
   }

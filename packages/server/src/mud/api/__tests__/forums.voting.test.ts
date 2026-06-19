@@ -104,19 +104,24 @@ describe('forum event log (dual-write, persist-then-fire)', () => {
     const voter = makeActor();
     await ForumsApi.castVote(voter, thread, 'up');
 
-    const rows = col(Collections.ForumEvents);
-    // post-created + vote-cast (makeForum mints no event).
-    expect(rows.size).toBe(2);
-    const kinds = [...rows.values()].map((r) => r.kind);
+    // makeForum mints a `board-created` event; the mutations under test
+    // are the post + the vote. Filter the setup event out.
+    const mutationRows = [...col(Collections.ForumEvents).values()].filter(
+      (r) => r.kind !== 'board-created'
+    );
+    expect(mutationRows).toHaveLength(2);
+    const kinds = mutationRows.map((r) => r.kind);
     expect(kinds).toContain('post-created');
     expect(kinds).toContain('vote-cast');
 
-    // Persist-then-fire: each fire saw its row already in the store.
-    expect(firedEvents).toHaveLength(2);
-    expect(rowsPersistedAtFire).toEqual([1, 2]);
+    // Persist-then-fire: each fire saw its own durable row already in the
+    // store (board-created=1, post=2, vote=3 → the row count at fire N is N).
+    expect(firedEvents).toHaveLength(3);
+    rowsPersistedAtFire.forEach((n, i) => expect(n).toBe(i + 1));
 
-    // Every event carries all four dependency keys.
+    // Every entry-level event carries all four dependency keys.
     for (const ev of firedEvents) {
+      if (ev.payload.kind === 'board-created') continue;
       expect(ev.payload.subject).toBeTruthy();
       expect(ev.payload.board).toBe(board._id);
       expect(ev.payload.thread).toBe(thread._id);
@@ -131,8 +136,8 @@ describe('forum event log (dual-write, persist-then-fire)', () => {
     await ForumsApi.castVote(voter, thread, 'up'); // up
     await ForumsApi.castVote(voter, thread, 'up'); // toggle off
     await ForumsApi.castVote(voter, thread, 'down'); // down
-    // post + 3 votes = 4 rows, none rewritten.
-    expect(col(Collections.ForumEvents).size).toBe(4);
+    // board-created + post + 3 votes = 5 rows, none rewritten.
+    expect(col(Collections.ForumEvents).size).toBe(5);
   });
 });
 

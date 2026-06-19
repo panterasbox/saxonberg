@@ -71,6 +71,8 @@ export default class ForumSubscriptionRegistry extends Idea {
   private registry: Map<Interactive, Map<string, ForumSubState>> = new Map();
   private byBoard: Map<string, Set<ForumSubState>> = new Map();
   private byThread: Map<string, Set<ForumSubState>> = new Map();
+  /** Board-index subscriptions — re-resolved on any forum event. */
+  private indexSubs: Set<ForumSubState> = new Set();
 
   private listener: Subscription<unknown> | null = null;
   private listenerRefcount = 0;
@@ -89,7 +91,11 @@ export default class ForumSubscriptionRegistry extends Idea {
       this.emitError(interactive, subscriptionId, 'parse', 'duplicate subscriptionId');
       return;
     }
-    if (!scope || (scope.kind !== 'board' && scope.kind !== 'thread') || !scope.id) {
+    const validScope =
+      scope &&
+      ((scope.kind === 'index') ||
+        ((scope.kind === 'board' || scope.kind === 'thread') && !!scope.id));
+    if (!validScope) {
       this.emitError(interactive, subscriptionId, 'parse', 'scope required');
       return;
     }
@@ -115,7 +121,7 @@ export default class ForumSubscriptionRegistry extends Idea {
 
     let records: ForumEntryRecord[];
     try {
-      records = await this.projectScope(canonical);
+      records = await this.projectScope(canonical, viewer);
     } catch (err) {
       this.emitError(
         interactive,
@@ -166,6 +172,10 @@ export default class ForumSubscriptionRegistry extends Idea {
   private async normalizeScope(
     scope: ForumSubscriptionScope,
   ): Promise<ForumSubscriptionScope | null> {
+    if (scope.kind === 'index') {
+      // No backing doc — the index watches the whole visible board set.
+      return { kind: 'index', id: '' };
+    }
     if (scope.kind === 'thread') {
       // `findById` THROWS a BSONError on a non-ObjectId string rather than
       // returning null — swallow it so a malformed id resolves to null,
@@ -213,7 +223,15 @@ export default class ForumSubscriptionRegistry extends Idea {
   /** Re-read the scope's current-state docs and project them. */
   private async projectScope(
     scope: ForumSubscriptionScope,
+    viewer: Stuff & Sensor,
   ): Promise<ForumEntryRecord[]> {
+    if (scope.kind === 'index') {
+      // The forum landing: the boards this viewer can see, each projected
+      // as a record whose `id` is the board's flat title handle (so the
+      // client opens it with `forum <handle>`).
+      const boards = await ForumsApi.listBoards(viewer);
+      return boards.map((v) => projectBoard(v.board, v.subject));
+    }
     if (scope.kind === 'board') {
       const board = await ForumsApi.getBoard(scope.id);
       if (!board) return null as unknown as ForumEntryRecord[];
@@ -250,6 +268,10 @@ export default class ForumSubscriptionRegistry extends Idea {
   /* ─── private: dependency index + listener ─── */
 
   private indexAdd(state: ForumSubState): void {
+    if (state.scope.kind === 'index') {
+      this.indexSubs.add(state);
+      return;
+    }
     const map = state.scope.kind === 'board' ? this.byBoard : this.byThread;
     let set = map.get(state.scope.id);
     if (!set) {
@@ -260,6 +282,10 @@ export default class ForumSubscriptionRegistry extends Idea {
   }
 
   private indexRemove(state: ForumSubState): void {
+    if (state.scope.kind === 'index') {
+      this.indexSubs.delete(state);
+      return;
+    }
     const map = state.scope.kind === 'board' ? this.byBoard : this.byThread;
     const set = map.get(state.scope.id);
     if (!set) return;
@@ -287,6 +313,11 @@ export default class ForumSubscriptionRegistry extends Idea {
   private routeFire(payload: unknown): void {
     if (payload == null || typeof payload !== 'object') return;
     const p = payload as { board?: string; thread?: string };
+    // Index subscriptions watch the whole board set — any forum event
+    // (a new board, a new thread, a vote that changes a board's tallies)
+    // can affect the landing list, so re-resolve them all. The board set
+    // is small, so this is cheap.
+    for (const s of this.indexSubs) this.markDirty(s);
     if (p.board) {
       for (const s of this.byBoard.get(p.board) ?? []) this.markDirty(s);
     }
@@ -327,7 +358,7 @@ export default class ForumSubscriptionRegistry extends Idea {
 
     let records: ForumEntryRecord[];
     try {
-      records = await this.projectScope(state.scope);
+      records = await this.projectScope(state.scope, viewer);
     } catch {
       return;
     }
@@ -368,6 +399,34 @@ export default class ForumSubscriptionRegistry extends Idea {
     };
     MessageApi.sendEnvelope(viewer, template);
   }
+}
+
+/**
+ * Project a board into the shared `ForumEntryRecord` shape for the
+ * landing index. The record's `id` is the subject's flat title handle, so
+ * the client opens it with `forum <handle>` / `openForumBoard(id)`;
+ * `title` is the board name. Vote/score fields are inert (a board isn't
+ * votable) — the client renders index rows as boards, not entries.
+ */
+function projectBoard(
+  board: import('../lib/forum/Board').default,
+  subject: import('../lib/forum/Subject').default,
+): ForumEntryRecord {
+  return {
+    id: subject.getTitle(),
+    parent: null,
+    board: board._id ?? '',
+    author: subject.getOwner(),
+    title: board.getName() || subject.getTitle(),
+    body: board.getDescription(),
+    up: 0,
+    down: 0,
+    score: 0,
+    displayScore: 0,
+    state: 'active',
+    subject: subject._id ?? null,
+    createdAt: board.createdAt.getTime(),
+  };
 }
 
 /**

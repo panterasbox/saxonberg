@@ -24,6 +24,7 @@ import { Document } from '../persistence/Document';
 import { Collections } from '../../../backend/PersistenceManager';
 
 export type ForumEventKind =
+  | 'board-created'
   | 'post-created'
   | 'reply-created'
   | 'vote-cast'

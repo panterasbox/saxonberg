@@ -749,10 +749,16 @@ export interface MqlQueryErrorEnvelope {
 // Forum subscription (document-change observer — distinct from MQL-sub)
 // ============================================================================
 
-/** What a forum subscription watches: a board's thread-list or a thread's post-tree. */
+/**
+ * What a forum subscription watches:
+ *   - `index` — the set of boards the viewer can see (the forum landing
+ *     list); `id` is unused.
+ *   - `board` — a board's thread-list; `id` is the board `_id` or its flat
+ *     title handle.
+ *   - `thread` — a thread's post-tree; `id` is the thread-root entry `_id`.
+ */
 export interface ForumSubscriptionScope {
-  kind: 'board' | 'thread';
-  /** The board `_id` (kind 'board') or the thread-root entry `_id` (kind 'thread'). */
+  kind: 'index' | 'board' | 'thread';
   id: string;
 }
 

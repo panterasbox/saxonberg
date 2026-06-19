@@ -18,7 +18,9 @@ export const handleForumSubscribe: InboundHandler = (ctx, message) => {
   const scope = payload.scope;
   if (
     !scope ||
-    (scope.kind !== 'board' && scope.kind !== 'thread') ||
+    (scope.kind !== 'index' &&
+      scope.kind !== 'board' &&
+      scope.kind !== 'thread') ||
     typeof scope.id !== 'string'
   ) {
     return;
