@@ -23,10 +23,14 @@ export const handleForumSubscribe: InboundHandler = (ctx, message) => {
   ) {
     return;
   }
-  void ForumSubscriptionApi.handleSubscribe({
+  // Guard the async handler: a rejection here would otherwise surface as
+  // an unhandled rejection (which the server treats as fatal).
+  ForumSubscriptionApi.handleSubscribe({
     interactive: ctx.interactive,
     subscriptionId: payload.subscriptionId,
     scope,
+  }).catch((err) => {
+    console.error("forum-subscribe handler error:", err);
   });
 };
 

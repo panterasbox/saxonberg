@@ -55,9 +55,14 @@ subcommands:
       - name: board
         type: string
         required: true
+      # Body is OPTIONAL on the command string: it is dual-source — greedy
+      # markdown inline (CLI), the `fields` side-channel (GUI), or the
+      # `compose` prompt (interactive). A required arg would make the
+      # parser reject `forum post <board>` before the side-channel overlay
+      # runs; the controller enforces body presence after the overlay.
       - name: body
         type: string
-        required: true
+        required: false
         greedy: true
   reply:
     description: "Reply to a thread or post by its id"
@@ -65,9 +70,10 @@ subcommands:
       - name: entry
         type: string
         required: true
+      # Optional for the same dual-source reason as `post` above.
       - name: body
         type: string
-        required: true
+        required: false
         greedy: true
   read:
     description: "Read a board's thread-list, or a thread's tree"

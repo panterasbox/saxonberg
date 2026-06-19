@@ -167,10 +167,16 @@ export default class ForumSubscriptionRegistry extends Idea {
     scope: ForumSubscriptionScope,
   ): Promise<ForumSubscriptionScope | null> {
     if (scope.kind === 'thread') {
-      const root = await ForumsApi.getEntry(scope.id);
+      // `findById` THROWS a BSONError on a non-ObjectId string rather than
+      // returning null — swallow it so a malformed id resolves to null,
+      // not an unhandled rejection.
+      const root = await safeFind(() => ForumsApi.getEntry(scope.id));
       return root ? scope : null;
     }
-    const board = await ForumsApi.getBoard(scope.id);
+    // A board scope's `id` may be a board `_id` OR a flat title handle (the
+    // GUI knows handles). Try as an `_id` first (guarded against the
+    // BSONError), then fall back to the title-handle resolve.
+    const board = await safeFind(() => ForumsApi.getBoard(scope.id));
     if (board) return scope;
     const view = await ForumsApi.resolveBoardByHandle(scope.id);
     return view ? { kind: 'board', id: view.board._id! } : null;
@@ -386,6 +392,20 @@ function diffRecords(
     if (!newMap.has(key)) changes.push({ op: 'remove', key });
   }
   return changes;
+}
+
+/**
+ * Run a `findById`-style lookup, returning null on the BSONError that
+ * Mongo throws when an id string isn't a valid ObjectId (e.g. a board
+ * title handle reaching `getBoard`). Without this the rejection would
+ * propagate out of the async subscribe handler as an unhandled rejection.
+ */
+async function safeFind<T>(fn: () => Promise<T | null>): Promise<T | null> {
+  try {
+    return await fn();
+  } catch {
+    return null;
+  }
 }
 
 function recordsEqual(a: ForumEntryRecord, b: ForumEntryRecord): boolean {
