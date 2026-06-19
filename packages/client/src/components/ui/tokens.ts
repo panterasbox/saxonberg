@@ -25,6 +25,7 @@ export const tokens = {
     fgEmphasis: "#d7ba7d",
     accent: "#4ec9b0",
     accentHover: "#7fdfc8",
+    onAccent: "#11201b",
     primary: "#007acc",
     primaryHover: "#005a9e",
     primaryActive: "#004578",

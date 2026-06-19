@@ -49,7 +49,8 @@ The shape lives in:
 
 ```
 [client] CommandBar onSend(text)
-   │  websocketClient.send({ type: 'command', payload: { text } })
+   │  websocketClient.send({ type: 'command',
+   │                         payload: { text, fields? } })  ← fields = body side-channel
    ▼
 [server] Backend → Application.processUserMessage → backend/inbound/command.ts handleCommand
    │  resolves Interactive → Avatar → Location
@@ -126,6 +127,34 @@ consults `HotReloadApi` automatically — see
 [hot-reload.md](./hot-reload.md)) and destructs after `execute`
 resolves. The clone-per-execution semantic isolates state across
 commands; the destruct keeps `StuffApi`'s indexes from accumulating.
+
+### The command body side-channel
+
+The inbound command frame carries an optional structured companion to
+the typed line:
+
+```typescript
+{ type: 'command', payload: { text: string, fields?: Record<string, unknown> } }
+```
+
+`text` is the command line, parsed and matched exactly as above; `fields`
+is a **body side-channel** the client supplies out-of-band (e.g. a forum
+composer's multi-line body that has no clean single-line form — see
+[forums.md](./forums.md)). After a command binds its model,
+`executeCommand` calls `CommandApi.overlayBodyFields(model, fields,
+command)` to overlay the side-channel onto the bound model.
+
+The overlay is **structurally narrow by design**: a `fields` entry can
+only reach a `payload:`-block field (structured-only) or a *designated
+body field* — a `greedy: true` `string` positional arg. Options (flags)
+and `object` / MQL selectors are **unreachable** — `overlayBodyFields`
+skips any key that isn't a payload field or the greedy-string body arg,
+so the side-channel can never fill a selector or toggle a flag. There is
+no string-less dispatch path: the verb still comes from `text`, and only
+the prose body rides the side-channel. When both an inline greedy body
+and a side-channel body are supplied, the side-channel wins
+(`model[k]` is overwritten); values that fail coercion are left unset so
+downstream validation rejects them.
 
 ## Concepts
 

@@ -96,7 +96,10 @@ export default class SubjectCatalogue extends SubjectCatalogueBase {
   }
 
   public invalidateCache(): void {
+    // Null the gate (byId) AND clear byTitle so neither map can be read
+    // stale before the next ensureCache re-warms both.
     this.byId = null;
+    this.byTitle.clear();
   }
 
   /** Resolve a subject by its flat-global title handle (case-insensitive). */
@@ -380,8 +383,11 @@ export default class SubjectCatalogue extends SubjectCatalogueBase {
     const g = new Group();
     g.name = name;
     g.owner = ownerId;
-    g.memberIds = [...memberIds];
-    g.memberRoles = [...memberRoles];
+    // Go through addMember (not bulk field-writes) so each role is
+    // validated and the two parallel arrays stay index-aligned.
+    for (let i = 0; i < memberIds.length; i++) {
+      g.addMember(memberIds[i]!, memberRoles[i]);
+    }
     await g.save();
     return g;
   }

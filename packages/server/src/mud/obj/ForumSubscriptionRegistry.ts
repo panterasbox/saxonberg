@@ -122,7 +122,7 @@ export default class ForumSubscriptionRegistry extends Idea {
       return;
     }
 
-    let records: ForumEntryRecord[];
+    let records: ForumEntryRecord[] | null;
     try {
       records = await this.projectScope(canonical, viewer);
     } catch (err) {
@@ -223,11 +223,16 @@ export default class ForumSubscriptionRegistry extends Idea {
     return holder as Stuff & Sensor;
   }
 
-  /** Re-read the scope's current-state docs and project them. */
+  /**
+   * Re-read the scope's current-state docs and project them. Returns
+   * `null` when the scope's backing Document was deleted between
+   * normalize and project (board/thread gone) — callers emit a resolve
+   * error / skip the flush.
+   */
   private async projectScope(
     scope: ForumSubscriptionScope,
     viewer: Stuff & Sensor,
-  ): Promise<ForumEntryRecord[]> {
+  ): Promise<ForumEntryRecord[] | null> {
     if (scope.kind === 'index') {
       // The forum landing: the boards this viewer can see, each projected
       // as a record whose `id` is the board's flat title handle (so the
@@ -237,12 +242,12 @@ export default class ForumSubscriptionRegistry extends Idea {
     }
     if (scope.kind === 'board') {
       const board = await ForumsApi.getBoard(scope.id);
-      if (!board) return null as unknown as ForumEntryRecord[];
+      if (!board) return null;
       const threads = await ForumsApi.readBoard(board, 'new');
       return this.projectEntries(threads);
     }
     const root = await ForumsApi.getEntry(scope.id);
-    if (!root) return null as unknown as ForumEntryRecord[];
+    if (!root) return null;
     const { posts } = await ForumsApi.readThread(root, 'new');
     return this.projectEntries([root, ...posts]);
   }
@@ -373,7 +378,7 @@ export default class ForumSubscriptionRegistry extends Idea {
       return;
     }
 
-    let records: ForumEntryRecord[];
+    let records: ForumEntryRecord[] | null;
     try {
       records = await this.projectScope(state.scope, viewer);
     } catch {

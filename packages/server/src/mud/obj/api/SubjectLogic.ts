@@ -6,6 +6,7 @@ import { Idea } from '../../lib/stuff/Idea';
 import { CallSecurity, Unshadowable } from '../../lib/security/decorators';
 import { SecurityPolicies } from '../../lib/security/SecurityPolicies';
 import { StuffApi } from '../../api/stuff';
+import { TemplatePaths } from '../../lib/paths';
 import type { Stuff } from '../../lib/stuff/Stuff';
 import type Subject from '../../lib/forum/Subject';
 import type { SubjectSurface } from '../../lib/forum/Subject';
@@ -16,7 +17,7 @@ import type {
 } from '../SubjectCatalogue';
 import type Avatar from '../Avatar';
 
-const CATALOGUE_PATH = '/obj/SubjectCatalogue';
+const CATALOGUE_PATH = TemplatePaths.subjectCatalogue;
 
 const SubjectApiCallers = SecurityPolicies.FromModule(
   'mud/api/subject#SubjectApi',

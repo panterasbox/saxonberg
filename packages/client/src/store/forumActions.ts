@@ -13,6 +13,7 @@
 import type {
   ForumSubscriptionResultEnvelope,
   ForumSubscriptionDeltaEnvelope,
+  ForumSubscriptionErrorEnvelope,
   ForumSubscriptionScope,
 } from "@saxonberg/types";
 import { useStore } from "./index";
@@ -34,8 +35,11 @@ export function registerForumHandlers(): void {
   });
   // Errors are non-fatal for v1 — log + drop the dead subscription's cache.
   websocketClient.onEnvelope("forum-subscription-error", (env) => {
-    const e = env as { subscriptionId: string; reason: string; detail?: string };
-    console.warn(`forum subscription ${e.subscriptionId} error: ${e.reason}`, e.detail);
+    const e = env as ForumSubscriptionErrorEnvelope;
+    console.warn(
+      `forum subscription ${e.subscriptionId} error: ${e.reason}`,
+      e.detail,
+    );
     useStore.getState().clearForumSubscription(e.subscriptionId);
   });
 }

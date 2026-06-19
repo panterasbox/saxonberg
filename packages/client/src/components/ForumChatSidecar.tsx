@@ -52,7 +52,7 @@ const HandleName = styled.div`
 const TalkButton = styled.button<{ $active: boolean }>`
   margin-left: auto;
   background: ${(p) => (p.$active ? tokens.color.accent : "transparent")};
-  color: ${(p) => (p.$active ? "#11201b" : tokens.color.accent)};
+  color: ${(p) => (p.$active ? tokens.color.onAccent : tokens.color.accent)};
   border: 1px solid ${tokens.color.accent};
   border-radius: ${tokens.radius.sm};
   padding: 0.1rem 0.55rem;

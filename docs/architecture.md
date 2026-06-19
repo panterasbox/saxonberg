@@ -373,7 +373,9 @@ Examples: `StuffApi`, `ConnectionApi`, `MixinApi`, `MessageApi`,
 `TemplateApi`, `ZoneApi`, `MmlApi`, `PlayerApi`,
 `PersistApi` (the gated chokepoint over `PersistenceManager`,
 `lint:pm`-locked — see [persistence.md](./subsystems/persistence.md)),
-`RenownApi`.
+`RenownApi`, `ForumsApi`, `SubjectApi` (the latter two each forwarding
+to a `ForumsLogic` / `SubjectLogic` logic singleton; see
+[forums.md](./subsystems/forums.md)).
 
 `MqlSubscriptionApi` is the second wire channel alongside prose /
 dispatch-response. Inbound `mql-subscribe` / `mql-unsubscribe`
@@ -546,12 +548,17 @@ points readers here.
 | `Agent` | `Stuff` | Subclasses (Character → Avatar) layer on Mobile / Container / Containable / Sensor / Vocal / etc. |
 | `Shadow` | `Stuff` (abstract) | Framework-internal — not in-world Stuff. See [call-security.md](./subsystems/call-security.md). |
 
-Persisted records (`User`, `GoogleProfile`, `TwitchProfile`, `Template`) are **not**
-Stuff — they extend the standalone `Document` base
-(`lib/persistence/`), loaded via `findById` / `find` rather than the
+Persisted records (`User`, `GoogleProfile`, `TwitchProfile`, `Template`,
+and the forums-build records `Subject` / `Board` / `Entry` / `Vote` /
+`ForumEvent`) are **not** Stuff — they extend the standalone `Document`
+base (`lib/persistence/`), loaded via `findById` / `find` rather than the
 template/clone/hydrate pipeline, with none of the proxy/registry/
 lifecycle machinery. See
-[subsystems/persistence.md](./subsystems/persistence.md).
+[subsystems/persistence.md](./subsystems/persistence.md). The forums
+build also adds two singleton registries — `SubjectCatalogue` (the
+Subject-layer index) and `ForumSubscriptionRegistry` (the `forum_events`
+document-change observer) — and the `ForumsUpdate` `AetherHosted`
+implant carrying `ForumsMixin`; see [forums.md](./subsystems/forums.md).
 
 ## Mixin Organization
 
@@ -629,6 +636,8 @@ registry) lives in `lib/mixin.ts`.
 | `lib/respiration/` | `RespirationMixin` | the air-exchange driver and the first concrete engagement producer: an event-triggered bounded `RespirationDrain`/`RespirationRecovery` `SustainedEngagement` that drives `Vitals.spo2` past the consciousness floor to the anoxia death seam when the surrounding medium is unbreathable (drowning / vacuum), then recovers on return to air. Reads `BodyPlan.breathableMedia` (water-breather inversion) + the biome `breathable` column; W2 taps a worn `AirTank` `Bulkable`. Composed outer of `Metabolic` by `Creature`. No Api. See [respiration.md](./subsystems/respiration.md). |
 | `lib/thermal/` | `ThermalMixin` | the generic heat-exchange capability: lazy Newton's-cooling-on-read (mirrors `Metabolic`) with a **sync** `getTemperature()` via a cached ambient refreshed at re-stamp events (`onMoved` / ambient-shift fan-out / seal toggle / bulk transfer); τ = R·C from `Tangible` mass × `Material` specific heat + the medium/wall conductivity series; a sealed `Sealable` host → vacuum barrier. Composed by any Tangible+Containable Stuff (`Receptacle`/`Flask`/`Campfire`) and by `Creature` (corpse algor mortis). No Api. See [thermal.md](./subsystems/thermal.md). |
 | `lib/thermal/` | `ThermalRegulationMixin` | the Option-C body driver: overrides `getVitalSign` (sync, cached effective ambient) to **drive** `coreTemperature` — pin at setpoint within the thermoneutral band, else spend satiation (cold) / hydration (hot, wet-bulb-capped) to defend it, fail into passive `Thermal` drift; endo/ecto split (`BodyPlan.thermalStrategy`) + Q10; the hypothermia/hyperthermia/torpor cascade → death seam. Composed over `ThermalMixin`/`Metabolic`, inner of `LoadBearing`, by `Creature`. No Api. See [thermal.md](./subsystems/thermal.md). |
+| `lib/forums/` | `ForumsMixin` | the forums transmission capability (post / reply / vote / subscribe verb family), composed on a hosted update (`ForumsUpdate`). Born-with: the `ForumsUpdate` is an `AetherHosted` implant conferring this mixin, granted at intake. Acts on behalf of its host via `getHost()`. See [forums.md](./subsystems/forums.md). |
+| `lib/forums/` | `SubjectSubscriberMixin` | per-Avatar forum-subscription storage: the keyed set of subscribed `Subject`s feeding the `ForumSubscriptionRegistry` fan-out. Composed by `Avatar`. See [forums.md](./subsystems/forums.md). |
 
 ### Mixin Composition Constraints
 

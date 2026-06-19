@@ -194,7 +194,7 @@ const ReplyLink = styled.button`
 
 const PostButton = styled.button`
   background: ${tokens.color.accent};
-  color: #11201b;
+  color: ${tokens.color.onAccent};
   border: none;
   border-radius: ${tokens.radius.sm};
   padding: 0.3rem 0.9rem;
@@ -232,19 +232,35 @@ function scoreText(r: ForumEntryRecord): string {
   return r.displayScore === null ? "···" : String(r.displayScore);
 }
 
+/**
+ * Recency window (seconds, ~12.5h) for the Reddit-ish "hot" rank: an
+ * entry's age contributes `createdAt_seconds / WINDOW`, so a ~12.5h
+ * gap is worth ~1 unit of log10(score).
+ */
+const HOT_RECENCY_WINDOW_SECONDS = 45_000;
+
+/**
+ * Stable empty fallback so `boardRecords`/`threadRecords` keep a steady
+ * reference when a subscription has no data yet — otherwise a fresh `[]`
+ * each render would defeat the downstream `useMemo`s.
+ */
+const EMPTY_RECORDS: ForumEntryRecord[] = [];
+
+/** Reddit-ish hot score: log-scaled votes + a linear recency term. */
+function hotRank(r: ForumEntryRecord): number {
+  return (
+    sign(r.score) * Math.log10(Math.max(Math.abs(r.score), 1)) +
+    r.createdAt / 1000 / HOT_RECENCY_WINDOW_SECONDS
+  );
+}
+
 function sortRecords(records: ForumEntryRecord[], mode: Sort): ForumEntryRecord[] {
   const list = [...records];
   switch (mode) {
     case "top":
       return list.sort((a, b) => b.score - a.score);
     case "hot":
-      return list.sort(
-        (a, b) =>
-          sign(b.score) * Math.log10(Math.max(Math.abs(b.score), 1)) +
-          b.createdAt / 1000 / 45000 -
-          (sign(a.score) * Math.log10(Math.max(Math.abs(a.score), 1)) +
-            a.createdAt / 1000 / 45000),
-      );
+      return list.sort((a, b) => hotRank(b) - hotRank(a));
     case "controversial":
       return list.sort((a, b) => controversy(b) - controversy(a));
     case "new":
@@ -475,7 +491,10 @@ export function ForumView({
 
   // Board subscription — re-opened when the board handle changes.
   useEffect(() => {
-    if (!forumNav.boardHandle) return;
+    if (!forumNav.boardHandle) {
+      setBoardSub(null);
+      return;
+    }
     const id = subscribeForumScope({ kind: "board", id: forumNav.boardHandle });
     setBoardSub(id);
     return () => unsubscribeForumScope(id);
@@ -492,8 +511,12 @@ export function ForumView({
     return () => unsubscribeForumScope(id);
   }, [forumNav.threadId]);
 
-  const boardRecords = boardSub ? forumRecords[boardSub] ?? [] : [];
-  const threadRecords = threadSub ? forumRecords[threadSub] ?? [] : [];
+  const boardRecords = boardSub
+    ? forumRecords[boardSub] ?? EMPTY_RECORDS
+    : EMPTY_RECORDS;
+  const threadRecords = threadSub
+    ? forumRecords[threadSub] ?? EMPTY_RECORDS
+    : EMPTY_RECORDS;
 
   const threads = useMemo(() => sortRecords(boardRecords, sort), [boardRecords, sort]);
   const root = threadRecords.find((r) => r.id === forumNav.threadId) ?? null;

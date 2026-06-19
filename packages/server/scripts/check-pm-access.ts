@@ -16,7 +16,7 @@
  *   - `api/hot-reload.ts` — the HMR hook-manifest reload (PM lifecycle, not
  *     data);
  *   - the `api/persist.ts` facade itself;
- *   - tests (`**​/__tests__/**`).
+ *   - tests (`**/__tests__/**`).
  *
  * CI-gating (exits 1 on findings). A standalone script, not an ESLint
  * rule, for the same ESLint-8-legacy reason as `check-gate-strings`.

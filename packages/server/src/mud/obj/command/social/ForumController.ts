@@ -115,7 +115,7 @@ export default class ForumController extends CommandController<ForumModel> {
       return;
     }
     const lines = ['Boards:'];
-    for (const { board, subject } of boards) {
+    for (const { subject } of boards) {
       const audience = subject.isOpen() ? 'open' : 'members';
       lines.push(`  ${subject.getTitle()}  [${audience}]`);
     }

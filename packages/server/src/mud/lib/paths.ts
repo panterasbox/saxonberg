@@ -31,6 +31,7 @@ export const TemplatePaths = {
 
   // Singleton catalogues.
   channelCatalogue: "/obj/ChannelCatalogue",
+  subjectCatalogue: "/obj/SubjectCatalogue",
   soulCatalogue: "/obj/SoulCatalogue",
 
   // Persistence infra (declared as `static templatePath` on these classes).
