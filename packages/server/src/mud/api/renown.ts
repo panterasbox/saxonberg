@@ -64,6 +64,7 @@ export class RenownApi {
    */
   public static boot(): void {
     logic().installReactionTap();
+    logic().installReceptionTap();
     logic().installRecomputeSchedule();
   }
 

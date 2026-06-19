@@ -33,9 +33,18 @@
 import { Document } from '../persistence/Document';
 import { Collections } from '../../../backend/PersistenceManager';
 
-/** The signal sources that feed renown. Open vocabulary (Wave-1: reaction). */
+/**
+ * The signal sources that feed renown. Open vocabulary.
+ *   - `reaction` — a witness's active, signed signal (emote valence).
+ *   - `reception` — a witness *passively heard* a communication act: a
+ *     small positive engagement signal for the speaker, per listener,
+ *     rate-limited and log-saturated at recompute (reward public
+ *     engagement without rewarding spam).
+ *   - `engagement-sample` / `recognition-spread` — deferred kinds.
+ */
 export type RenownEventKind =
   | 'reaction'
+  | 'reception'
   | 'engagement-sample'
   | 'recognition-spread';
 

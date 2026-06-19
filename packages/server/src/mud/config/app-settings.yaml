@@ -41,3 +41,11 @@ settings:
     value: '{}'
   - key: renown.qualityWeight
     value: "1"
+  # Being heard: a small per-listener engagement reward for the speaker,
+  # well below a reaction (1). Contribution log-saturates over the count,
+  # and a listener only counts once per receptionWindowS (5 min) — reward
+  # reaching new people, not spamming the same ones.
+  - key: renown.receptionValence
+    value: "0.1"
+  - key: renown.receptionWindowS
+    value: "300"

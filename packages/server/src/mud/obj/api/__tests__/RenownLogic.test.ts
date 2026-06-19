@@ -17,11 +17,13 @@ import { EventApi } from '../../../api/event';
 import EventRegistry from '../../EventRegistry';
 import { StuffApi } from '../../../api/stuff';
 import { Stuff } from '../../../lib/stuff/Stuff';
+import { GroupApi } from '../../../api/group';
 import { WorldClockApi } from '../../../api/worldclock';
 import { ScheduleApi } from '../../../api/schedule';
 import type { ScheduleHandle } from '../../../api/schedule';
 import { PersistenceManager } from '../../../../backend/PersistenceManager';
 import { ReactionFiredEvent } from '../../../lib/events/ReactionFiredEvent';
+import { CommActEmittedEvent } from '../../../lib/events/CommActEmittedEvent';
 
 let store: Map<string, Record<string, unknown>>;
 let idCounter = 0;
@@ -133,5 +135,50 @@ describe('RenownLogic reaction tap', () => {
     RenownApi.boot();
     RenownApi.boot();
     expect(ScheduleApi.recurring).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe('RenownLogic reception tap', () => {
+  const member = (id: string): Stuff => ({ stuffId: id }) as unknown as Stuff;
+
+  function fireComm(): void {
+    EventApi.fire(
+      new CommActEmittedEvent({
+        subjectId: '/obj/Avatar/speaker',
+        scope: 'channel:study-group',
+        commandId: 'c1',
+      })
+    );
+  }
+
+  it('mints per-listener reception signals, excludes the speaker, dedups', async () => {
+    vi.spyOn(GroupApi, 'membersOf').mockResolvedValue([
+      member('/obj/Avatar/L1'),
+      member('/obj/Avatar/L2'),
+      member('/obj/Avatar/speaker'), // the speaker is in the channel too
+    ]);
+    vi.spyOn(GroupApi, 'sharedManagedGroups').mockResolvedValue([]);
+    RenownApi.boot();
+
+    fireComm();
+    await flush();
+    const events = await RenownApi.eventsFor('/obj/Avatar/speaker');
+    expect(events).toHaveLength(2); // L1, L2 — speaker excluded
+    expect(events.every((e) => e.kind === 'reception')).toBe(true);
+    expect(events.map((e) => e.source).sort()).toEqual([
+      '/obj/Avatar/L1',
+      '/obj/Avatar/L2',
+    ]);
+
+    // Dedup: same speaker→listeners within the window mints nothing new.
+    EventApi.fire(
+      new CommActEmittedEvent({
+        subjectId: '/obj/Avatar/speaker',
+        scope: 'channel:study-group',
+        commandId: 'c2',
+      })
+    );
+    await flush();
+    expect(await RenownApi.eventsFor('/obj/Avatar/speaker')).toHaveLength(2);
   });
 });

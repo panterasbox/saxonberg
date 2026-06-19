@@ -45,6 +45,7 @@ import { ShellApi } from '../api/shell';
 import { ScheduleApi, type ScheduleHandle } from '../api/schedule';
 import { AppSettingKeys } from '../lib/config/AppSettings';
 import { ReactionFiredEvent } from '../lib/events/ReactionFiredEvent';
+import { CommActEmittedEvent } from '../lib/events/CommActEmittedEvent';
 import { ReactionScopeDeltaEvent } from '../lib/events/ReactionScopeDeltaEvent';
 import type {
   ScopedEmoteRequest,
@@ -313,6 +314,17 @@ export default class ReactionRegistry extends Idea {
       aggregated: false,
     });
     this.ensureTimer();
+    // The renown *reception* seam: one event per utterance. The renown tap
+    // resolves the audience-scope to listeners and mints a small passive
+    // engagement signal for the speaker. Decoupled — the messaging layer
+    // ships the event, not the consumer.
+    EventApi.fire(
+      new CommActEmittedEvent({
+        subjectId,
+        scope: req.scope,
+        commandId: req.commandId,
+      }),
+    );
   }
 
   @CallSecurity(ReactionApiCallers)

@@ -61,6 +61,7 @@ const VF: Record<string, string> = {
   'renown.decayHalfLives': '{"esteem":1000000000000,"notoriety":1000000000000}',
   'renown.contextMultipliers': '{}',
   'renown.qualityWeight': '1',
+  'renown.receptionValence': '0.1',
 };
 
 async function seedAppSettings(values: Record<string, string>): Promise<void> {
@@ -164,6 +165,43 @@ describe('RenownLogic.recompute', () => {
     await RenownApi.recompute();
     expect(RenownApi.renownOf(S)).toBe(before);
     expect(RenownApi.renownOf(S, 'managed:g1')).toBe(beforeG1);
+  });
+
+  it('reception standing is log-saturated (1st message ≫ 1000th)', async () => {
+    // 10 distinct listeners heard the subject (already deduped at ingest).
+    for (let i = 0; i < 10; i++) {
+      await RenownApi.append({
+        subject: S,
+        source: `/obj/Avatar/L${i}`,
+        kind: 'reception',
+        signal: {},
+      });
+    }
+    await RenownApi.recompute();
+    // receptionValence × ln(1 + 10), decay ≈ 0 at age 0.
+    expect(RenownApi.renownOf(S)).toBeCloseTo(0.1 * Math.log(11), 6);
+  });
+
+  it('reception saturates: 10× the messages is far less than 10× the renown', async () => {
+    const renownAfter = async (n: number): Promise<number> => {
+      stores.clear();
+      RenownStanding._resetForTesting();
+      for (let i = 0; i < n; i++) {
+        await RenownApi.append({
+          subject: S,
+          source: `/obj/Avatar/L${i}`,
+          kind: 'reception',
+          signal: {},
+        });
+      }
+      await RenownApi.recompute();
+      return RenownApi.renownOf(S);
+    };
+    const one = await renownAfter(1);
+    const hundred = await renownAfter(100);
+    // 100× the activity yields well under 10× the renown (log curve).
+    expect(hundred).toBeGreaterThan(one);
+    expect(hundred).toBeLessThan(one * 10);
   });
 
   it('AC#6 the recompute never reads the belief store', async () => {

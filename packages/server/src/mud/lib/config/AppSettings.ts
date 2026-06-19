@@ -68,6 +68,20 @@ export const AppSettingKeys = {
   renownContextMultipliers: "renown.contextMultipliers",
   /** Renown — scalar quality weight applied to the standing. */
   renownQualityWeight: "renown.qualityWeight",
+  /**
+   * Renown — the per-listener worth of *being heard* (a passive
+   * reception). Small and positive; far below a reaction. The reception
+   * contribution to a scope is `receptionValence × log(1 + Σ decayed
+   * receptions)` — log-saturating, so the first public messages matter far
+   * more than the thousandth.
+   */
+  renownReceptionValence: "renown.receptionValence",
+  /**
+   * Renown — the per-`(speaker, listener)` dedup window in GAME-seconds:
+   * hearing the same speaker again within the window mints no new
+   * reception signal (reward reaching *new* people, not repetition / spam).
+   */
+  renownReceptionWindowS: "renown.receptionWindowS",
 } as const;
 
 export type AppSettingKey =
