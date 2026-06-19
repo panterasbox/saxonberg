@@ -61,6 +61,17 @@ describe('Board', () => {
     expect(f!.getName()).toBe('Gossip');
     expect(f!.getDescription()).toBe('idle chatter');
   });
+
+  it('round-trips the argument organizer', async () => {
+    const b = new Board();
+    b.subject = 'subj-2';
+    b.organizer = 'argument';
+    b.name = 'Ranked-choice voting';
+    await b.save();
+
+    const [f] = await Board.find({ subject: 'subj-2' });
+    expect(f!.getOrganizer()).toBe('argument');
+  });
 });
 
 describe('Entry', () => {
@@ -96,5 +107,19 @@ describe('Entry', () => {
     e.up = 5;
     e.down = 2;
     expect(e.getScore()).toBe(3);
+  });
+
+  it('round-trips a typed argument edge', async () => {
+    const claim = new Entry();
+    claim.board = 'board-2';
+    claim.parent = 'spine-1';
+    claim.author = 'p3';
+    claim.relation = 'objects-to';
+    claim.body = 'Ballots are harder to count.';
+    await claim.save();
+
+    const [f] = await Entry.find({ board: 'board-2' });
+    expect(f!.getRelation()).toBe('objects-to');
+    expect(f!.isRoot()).toBe(false);
   });
 });

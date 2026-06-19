@@ -1,6 +1,6 @@
 verbs: [forum]
 controller: social/ForumController
-description: "Read and post on forum boards (list / make / on / post / reply / read / promote / follow)"
+description: "Read and post on forum boards (list / make / on / post / reply / edit / read / vote / promote / follow)"
 validators:
   - /lib/command/validators/requiresAnimate
   - /lib/command/validators/requiresVerbalESP
@@ -9,7 +9,7 @@ subcommands:
   list:
     description: "List boards visible to you"
   make:
-    description: "Create a subject + popularity board (you become the owner)"
+    description: "Create a subject + board (you become the owner)"
     options:
       open:
         type: boolean
@@ -23,7 +23,7 @@ subcommands:
       argument:
         type: boolean
         field: argument
-        description: "Use the argument (structure) organizer (deferred; reserved)"
+        description: "Use the argument organizer (a typed claim-graph, not a ranked feed)"
     args:
       - name: name
         type: string
@@ -33,12 +33,12 @@ subcommands:
         required: false
         greedy: true
   on:
-    description: "Attach a popularity board to an existing subject you own"
+    description: "Attach a board to an existing subject you own"
     options:
       argument:
         type: boolean
         field: argument
-        description: "Use the argument (structure) organizer (deferred; reserved)"
+        description: "Use the argument organizer (a typed claim-graph, not a ranked feed)"
     args:
       - name: name
         type: string
@@ -65,7 +65,31 @@ subcommands:
         required: false
         greedy: true
   reply:
-    description: "Reply to a thread or post by its id"
+    description: "Reply (popularity) or attach a typed claim (argument: --pro/--con/--rebut)"
+    options:
+      pro:
+        type: boolean
+        field: pro
+        description: "Argument board: attach a supporting claim (supports edge)"
+      con:
+        type: boolean
+        field: con
+        description: "Argument board: attach an objection (objects-to edge)"
+      rebut:
+        type: boolean
+        field: rebut
+        description: "Argument board: attach a neutral question/clarification (responds-to edge)"
+    args:
+      - name: entry
+        type: string
+        required: true
+      # Optional for the same dual-source reason as `post` above.
+      - name: body
+        type: string
+        required: false
+        greedy: true
+  edit:
+    description: "Edit a body in place (author or board owner); keeps a lossless trail"
     args:
       - name: entry
         type: string

@@ -4,10 +4,14 @@
  *
  * **Board → Thread → Post.** A **Thread** is a root `Entry` (`parent:
  * null`) — a submission carrying a `title` + `body`. A **Post** is a
- * child `Entry` (`parent` = another entry's `_id`) with `relation:
- * 'reply'` — a comment. Cycle 1's popularity organizer is a strict reply
- * tree; the `relation` field ships generically (typed edges) for the
- * deferred structure organizer.
+ * child `Entry` (`parent` = another entry's `_id`). The `relation` edge
+ * is **organizer-scoped**: a `'popularity'` board uses only `'reply'`
+ * (the Reddit comment tree); an `'argument'` board uses only the typed
+ * claim-graph edges `'supports'` (pro) / `'objects-to'` (con) /
+ * `'responds-to'` (neutral question/clarification). The node's *role* in
+ * the argument is derived from its edge — there is no separate node-type
+ * field. A root Entry (the popularity thread or the argument **spine**)
+ * carries no meaningful edge; it is identified by `parent === null`.
  *
  * **Votes.** Every entry (thread roots + posts) is votable; the
  * `up`/`down` denormalized aggregate (populated in Wave 2 from the
@@ -24,7 +28,11 @@
 import { Document } from '../persistence/Document';
 import { Collections } from '../../../backend/PersistenceManager';
 
-export type EntryRelation = 'reply';
+export type EntryRelation =
+  | 'reply'
+  | 'supports'
+  | 'objects-to'
+  | 'responds-to';
 export type EntryState = 'active' | 'locked';
 
 export default class Entry extends Document {
@@ -49,7 +57,11 @@ export default class Entry extends Document {
   /** Parent entry `_id`, or null for a root Thread. */
   parent: string | null = null;
 
-  /** Edge kind. `'reply'` for the popularity tree (the only v1 relation). */
+  /**
+   * Edge kind, organizer-scoped: `'reply'` on a popularity board; one of
+   * `'supports'` / `'objects-to'` / `'responds-to'` on an argument board.
+   * Meaningless on a root Entry (`parent === null`).
+   */
   relation: EntryRelation = 'reply';
 
   /**
@@ -88,6 +100,16 @@ export default class Entry extends Document {
 
   getParent(): string | null {
     return this.parent;
+  }
+
+  /** The typed edge to this entry's parent (organizer-scoped). */
+  getRelation(): EntryRelation {
+    return this.relation;
+  }
+
+  /** Last-edit timestamp, or null if never edited. */
+  getEditedAt(): Date | null {
+    return this.editedAt;
   }
 
   /** True for a root Thread (no parent). */

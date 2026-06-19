@@ -10,12 +10,16 @@
  * Subcommands (subcommand-first, `fallthrough: true` for a bare
  * `forum <board>` read):
  *   - `list` — visible boards.
- *   - `make <name>` — create a subject + popularity board (sugar);
- *     `--open`/`--group` pick the audience; `--argument` (deferred).
- *   - `on <subject>` — attach a popularity board to an owned subject.
- *   - `post <board> <body>` — start a thread (`--title` or derived).
- *   - `reply <entry> <body>` — reply to a thread/post.
+ *   - `make <name>` — create a subject + board (sugar); `--open`/`--group`
+ *     pick the audience; `--argument` lights the argument organizer.
+ *   - `on <subject>` — attach a board to an owned subject (`--argument`).
+ *   - `post <board> <body>` — start a thread / the argument **spine**.
+ *   - `reply <entry> <body>` — reply (popularity) or attach a typed claim
+ *     on an argument board with `--pro` / `--con` / `--rebut`.
+ *   - `edit <entry> <body>` — edit a body in place (author/owner;
+ *     lossless `'entry-edited'` trail).
  *   - `read <board> [thread]` — board thread-list or a thread's tree.
+ *   - `vote <entry> up|down` — vote (popularity only; refused on argument).
  *   - `promote <board> <thread> <name>` — mint a thread-subject + chat.
  *   - `follow <subject>` — follow all the subject's lit surfaces.
  *
@@ -36,7 +40,7 @@ import { PromptApi } from '../../../api/prompt';
 import type { Forums } from '../../../lib/forum/Forums';
 import type { Stuff } from '../../../lib/stuff/Stuff';
 import type Subject from '../../../lib/forum/Subject';
-import type { EntrySort } from '../../../obj/api/ForumsLogic';
+import type { EntrySort, ArgumentRelation } from '../../../obj/api/ForumsLogic';
 import type { VoteValue } from '../../../lib/forum/Vote';
 
 interface ForumModel extends CommandModel {
@@ -50,6 +54,9 @@ interface ForumModel extends CommandModel {
   open?: boolean;
   group?: string;
   argument?: boolean;
+  pro?: boolean;
+  con?: boolean;
+  rebut?: boolean;
   sort?: string;
   direction?: string;
 }
@@ -95,6 +102,8 @@ export default class ForumController extends CommandController<ForumModel> {
         return this.executePost(model, context);
       case 'reply':
         return this.executeReply(model, context);
+      case 'edit':
+        return this.executeEdit(model, context);
       case 'read':
         return this.executeRead(model, context);
       case 'vote':
@@ -128,21 +137,23 @@ export default class ForumController extends CommandController<ForumModel> {
   ): Promise<void> {
     const name = (model.name ?? '').trim();
     if (!name) return this.fail(context, 'forum name required', 'name-required');
-    if (model.argument) {
-      return this.fail(
-        context,
-        'The argument (structure) organizer is not available yet.',
-        'argument-deferred',
-      );
-    }
     const group = (model.group ?? '').trim();
+    const argument = model.argument === true;
     try {
       const { subject } = await ForumsApi.makeForum(context.commandGiver, name, {
         open: model.open === true,
+        organizer: argument ? 'argument' : 'popularity',
         ...(group ? { groupRef: group } : {}),
         ...(model.description ? { description: model.description } : {}),
       });
-      this.send(context, Mml.compose`\nCreated forum '${subject.getTitle()}'.\n`);
+      const kind = argument ? 'argument forum' : 'forum';
+      const hint = argument
+        ? ` Post the proposal with \`forum post ${subject.getTitle()} <thesis>\`.`
+        : '';
+      this.send(
+        context,
+        Mml.compose`\nCreated ${kind} '${subject.getTitle()}'.${hint}\n`,
+      );
     } catch (err) {
       return this.fail(context, (err as Error).message, 'make-failed');
     }
@@ -155,21 +166,21 @@ export default class ForumController extends CommandController<ForumModel> {
     const actor = context.commandGiver;
     const title = (model.name ?? '').trim();
     if (!title) return this.fail(context, 'subject name required', 'name-required');
-    if (model.argument) {
-      return this.fail(
-        context,
-        'The argument (structure) organizer is not available yet.',
-        'argument-deferred',
-      );
-    }
     const subject = await SubjectApi.resolveByTitle(title);
     if (!subject) return this.fail(context, `No subject '${title}'.`, 'no-such-subject');
     if (!ownsSubject(actor, subject)) {
       return this.fail(context, 'Only the subject owner may attach a surface.', 'not-owner');
     }
+    const argument = model.argument === true;
     try {
-      await ForumsApi.createBoardOnSubject(subject, {});
-      this.send(context, Mml.compose`\nAttached a forum to '${subject.getTitle()}'.\n`);
+      await ForumsApi.createBoardOnSubject(subject, {
+        organizer: argument ? 'argument' : 'popularity',
+      });
+      const kind = argument ? 'an argument forum' : 'a forum';
+      this.send(
+        context,
+        Mml.compose`\nAttached ${kind} to '${subject.getTitle()}'.\n`,
+      );
     } catch (err) {
       return this.fail(context, (err as Error).message, 'attach-failed');
     }
@@ -205,19 +216,77 @@ export default class ForumController extends CommandController<ForumModel> {
     const actor = context.commandGiver;
     const entryId = (model.entry ?? '').trim();
     if (!entryId) return this.fail(context, 'entry required', 'entry-required');
-    const body = await this.resolveBody(model, context, 'Compose your reply:');
-    if (!body) return this.fail(context, 'body required', 'body-required');
     const parent = await ForumsApi.getEntry(entryId);
     if (!parent) return this.fail(context, `No entry '${entryId}'.`, 'no-such-entry');
     const view = await this.boardViewFor(parent.getBoard());
     if (view && !(await SubjectApi.isAudienceMember(actor, view.subject))) {
       return this.fail(context, 'You are not in this board’s audience.', 'not-member');
     }
+
+    const isArgument = view?.board.getOrganizer() === 'argument';
+    const { relation, count } = valence(model);
+
+    if (isArgument) {
+      // A typed claim: exactly one valence flag selects the edge.
+      if (count !== 1 || !relation) {
+        return this.fail(
+          context,
+          'On an argument board, attach a claim with exactly one of --pro, --con, or --rebut.',
+          'valence-required',
+        );
+      }
+      const body = await this.resolveBody(model, context, 'Compose your claim:');
+      if (!body) return this.fail(context, 'body required', 'body-required');
+      try {
+        const entry = await ForumsApi.attachClaim(actor, parent, relation, body);
+        this.send(context, Mml.compose`\nAttached (#${entry._id ?? '?'}).\n`);
+      } catch (err) {
+        return this.fail(context, (err as Error).message, 'reply-failed');
+      }
+      return;
+    }
+
+    // Popularity reply — valence flags are not allowed here.
+    if (count > 0) {
+      return this.fail(
+        context,
+        'The --pro / --con / --rebut flags apply only to argument boards.',
+        'valence-not-allowed',
+      );
+    }
+    const body = await this.resolveBody(model, context, 'Compose your reply:');
+    if (!body) return this.fail(context, 'body required', 'body-required');
     try {
       const entry = await ForumsApi.reply(actor, parent, body);
       this.send(context, Mml.compose`\nReplied (#${entry._id ?? '?'}).\n`);
     } catch (err) {
       return this.fail(context, (err as Error).message, 'reply-failed');
+    }
+  }
+
+  private async executeEdit(
+    model: ForumModel,
+    context: CommandContext,
+  ): Promise<void> {
+    const actor = context.commandGiver;
+    const entryId = (model.entry ?? '').trim();
+    if (!entryId) return this.fail(context, 'entry required', 'entry-required');
+    const entry = await ForumsApi.getEntry(entryId);
+    if (!entry) return this.fail(context, `No entry '${entryId}'.`, 'no-such-entry');
+    // Authorization: the author, or the board-subject owner.
+    const view = await this.boardViewFor(entry.getBoard());
+    const isAuthor = entry.getAuthor() === actorId(actor);
+    const isOwner = view ? ownsSubject(actor, view.subject) : false;
+    if (!isAuthor && !isOwner) {
+      return this.fail(context, 'Only the author or board owner may edit.', 'not-author');
+    }
+    const body = await this.resolveBody(model, context, 'Edit the body:');
+    if (!body) return this.fail(context, 'body required', 'body-required');
+    try {
+      await ForumsApi.editBody(actor, entry, body);
+      this.send(context, Mml.compose`\nEdited (#${entry._id ?? '?'}).\n`);
+    } catch (err) {
+      return this.fail(context, (err as Error).message, 'edit-failed');
     }
   }
 
@@ -273,8 +342,15 @@ export default class ForumController extends CommandController<ForumModel> {
     }
     const entry = await ForumsApi.getEntry(entryId);
     if (!entry) return this.fail(context, `No entry '${entryId}'.`, 'no-such-entry');
-    // Audience gate — only board members may vote.
     const view = await this.boardViewFor(entry.getBoard());
+    if (view?.board.getOrganizer() === 'argument') {
+      return this.fail(
+        context,
+        'Voting is not available on an argument board — nothing is ranked here.',
+        'vote-not-allowed',
+      );
+    }
+    // Audience gate — only board members may vote.
     if (view && !(await SubjectApi.isAudienceMember(actor, view.subject))) {
       return this.fail(context, 'You are not in this board’s audience.', 'not-member');
     }
@@ -382,11 +458,32 @@ export default class ForumController extends CommandController<ForumModel> {
   }
 }
 
+/** The actor's durable id (playerId for an Avatar, else stuffId). */
+function actorId(actor: Stuff): string {
+  return PlayerApi.isAvatarStuff(actor) ? actor.getPlayerId() : actor.stuffId;
+}
+
 function ownsSubject(actor: Stuff, subject: Subject): boolean {
-  const playerId = PlayerApi.isAvatarStuff(actor)
-    ? actor.getPlayerId()
-    : actor.stuffId;
-  return subject.getOwner() === playerId;
+  return subject.getOwner() === actorId(actor);
+}
+
+/**
+ * Map the valence flags to a typed argument edge. `--pro` → `supports`,
+ * `--con` → `objects-to`, `--rebut` → `responds-to` (the neutral
+ * question/clarification edge). `count` is how many flags were set, so the
+ * caller can require exactly one.
+ */
+function valence(model: ForumModel): {
+  relation: ArgumentRelation | null;
+  count: number;
+} {
+  const flags: Array<[boolean | undefined, ArgumentRelation]> = [
+    [model.pro, 'supports'],
+    [model.con, 'objects-to'],
+    [model.rebut, 'responds-to'],
+  ];
+  const set = flags.filter(([on]) => on === true);
+  return { relation: set[0]?.[1] ?? null, count: set.length };
 }
 
 function parseSort(raw: string | undefined): EntrySort {

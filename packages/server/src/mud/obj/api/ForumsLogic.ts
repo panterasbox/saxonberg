@@ -10,8 +10,8 @@ import { SubjectApi } from '../../api/subject';
 import { PlayerApi } from '../../api/player';
 import { EventApi } from '../../api/event';
 import { AppApi } from '../../api/app';
-import Board from '../../lib/forum/Board';
-import Entry from '../../lib/forum/Entry';
+import Board, { type BoardOrganizer } from '../../lib/forum/Board';
+import Entry, { type EntryRelation } from '../../lib/forum/Entry';
 import Vote, { type VoteValue } from '../../lib/forum/Vote';
 import ForumEvent, {
   ForumEventFired,
@@ -45,7 +45,12 @@ export interface ThreadView {
 /** Options for `makeForum` — passthrough to the subject mint + board meta. */
 export interface MakeForumOptions extends MakeSubjectOptions {
   description?: string;
+  /** Which organizer to light (default `'popularity'`). */
+  organizer?: BoardOrganizer;
 }
+
+/** The typed edges legal for the `'argument'` organizer (pro/con/neutral). */
+export type ArgumentRelation = 'supports' | 'objects-to' | 'responds-to';
 
 /**
  * ForumsLogic — the hot-reloadable logic singleton behind {@link ForumsApi}.
@@ -68,7 +73,7 @@ export class ForumsLogic extends Idea {
   @CallSecurity(ForumsApiCallers)
   public async createBoardOnSubject(
     subject: Subject,
-    opts: { description?: string } = {},
+    opts: { description?: string; organizer?: BoardOrganizer } = {},
   ): Promise<Board> {
     return buildBoard(subject, opts);
   }
@@ -84,9 +89,9 @@ export class ForumsLogic extends Idea {
     // the caller would be this logic module, not the Api). Both the
     // public method and this sugar route through the off-class
     // `buildBoard` helper, the ChatLogic precedent.
-    const { description, ...subjectOpts } = opts;
+    const { description, organizer, ...subjectOpts } = opts;
     const subject = await SubjectApi.makeSubject(creator, name, subjectOpts);
-    const board = await buildBoard(subject, { description });
+    const board = await buildBoard(subject, { description, organizer });
     return { board, subject };
   }
 
@@ -95,7 +100,12 @@ export class ForumsLogic extends Idea {
   public async resolveBoardByHandle(handle: string): Promise<BoardView | null> {
     const subject = await SubjectApi.resolveByTitle(handle);
     if (!subject) return null;
-    const ref = subject.manifestationRef('popularity-forum');
+    // A subject lights at most one forum surface in v1 practice; resolve
+    // whichever exists (the board carries its own organizer for callers
+    // that need to branch). Popularity wins the rare both-lit case.
+    const ref =
+      subject.manifestationRef('popularity-forum') ??
+      subject.manifestationRef('argument-forum');
     if (!ref) return null;
     const board = await Board.findById(ref);
     if (!board) return null;
@@ -114,7 +124,9 @@ export class ForumsLogic extends Idea {
     const subjects = await SubjectApi.visibleSubjects(actor);
     const out: BoardView[] = [];
     for (const subject of subjects) {
-      const ref = subject.manifestationRef('popularity-forum');
+      const ref =
+        subject.manifestationRef('popularity-forum') ??
+        subject.manifestationRef('argument-forum');
       if (!ref) continue;
       const board = await Board.findById(ref);
       if (board) out.push({ board, subject });
@@ -133,6 +145,9 @@ export class ForumsLogic extends Idea {
     body: string,
   ): Promise<Entry> {
     const author = authorIdOf(actor);
+    // On an argument board a root Entry is the prose **spine** — reputation-
+    // blind, so it is never vote-seeded; the popularity thread is.
+    const isArgument = board.getOrganizer() === 'argument';
     const entry = new Entry();
     entry.board = board._id!;
     entry.parent = null;
@@ -140,9 +155,9 @@ export class ForumsLogic extends Idea {
     entry.author = author;
     entry.title = title;
     entry.body = Mml.markdownToMml(body).toString();
-    entry.up = 1; // auto-upvote own (Reddit-style; the author's row is locked).
+    entry.up = isArgument ? 0 : 1; // auto-upvote own (popularity only).
     await entry.save();
-    await seedAuthorVote(entry._id!, author);
+    if (!isArgument) await seedAuthorVote(entry._id!, author);
     await recordEvent({
       kind: 'post-created',
       subject: board.getSubject(),
@@ -164,6 +179,14 @@ export class ForumsLogic extends Idea {
   ): Promise<Entry> {
     if (parent.getState() === 'locked') {
       throw new Error('That thread is locked.');
+    }
+    const board = await Board.findById(parent.board);
+    if (board && board.getOrganizer() === 'argument') {
+      // Organizer-scoped vocabulary: a popularity `'reply'` is illegal on
+      // an argument board — contribute with --pro/--con/--ask instead.
+      throw new Error(
+        'Use --pro / --con / --ask to contribute on an argument board.',
+      );
     }
     const author = authorIdOf(actor);
     const entry = new Entry();
@@ -187,6 +210,73 @@ export class ForumsLogic extends Idea {
     return entry;
   }
 
+  /** See {@link ForumsApi.attachClaim}. */
+  @CallSecurity(ForumsApiCallers)
+  public async attachClaim(
+    actor: Stuff,
+    parent: Entry,
+    relation: ArgumentRelation,
+    body: string,
+  ): Promise<Entry> {
+    if (parent.getState() === 'locked') {
+      throw new Error('That claim is locked.');
+    }
+    const board = await Board.findById(parent.board);
+    if (!board) throw new Error('The claim has no board.');
+    // The single organizer-scoped vocabulary gate (contribution-time).
+    if (!legalRelationsFor(board.getOrganizer()).includes(relation)) {
+      throw new Error(
+        `Relation '${relation}' is not valid on a ${board.getOrganizer()} board.`,
+      );
+    }
+    const author = authorIdOf(actor);
+    const entry = new Entry();
+    entry.board = parent.board;
+    entry.parent = parent._id!;
+    entry.relation = relation;
+    entry.author = author;
+    entry.body = Mml.markdownToMml(body).toString();
+    // No vote seeding — argument entries are reputation-blind (up/down are
+    // never read under the argument organizer).
+    await entry.save();
+    await recordEvent({
+      kind: 'argument-attached',
+      subject: await subjectIdOfBoard(parent.board),
+      board: parent.board,
+      thread: await threadRootId(parent),
+      entry: entry._id!,
+      actor: author,
+      data: { parent: parent._id, relation },
+    });
+    return entry;
+  }
+
+  /** See {@link ForumsApi.editBody}. */
+  @CallSecurity(ForumsApiCallers)
+  public async editBody(
+    actor: Stuff,
+    entry: Entry,
+    body: string,
+  ): Promise<Entry> {
+    // Edit-in-place on the Entry; the prior body is captured into the
+    // append-only `'entry-edited'` event so the trail is lossless (the
+    // grounded source the deferred dedup/summarization LLM layer reads).
+    const priorBody = entry.getBody();
+    entry.body = Mml.markdownToMml(body).toString();
+    entry.editedAt = new Date();
+    await entry.save();
+    await recordEvent({
+      kind: 'entry-edited',
+      subject: await subjectIdOfBoard(entry.board),
+      board: entry.board,
+      thread: await threadRootId(entry),
+      entry: entry._id!,
+      actor: authorIdOf(actor),
+      data: { priorBody },
+    });
+    return entry;
+  }
+
   // --- Voting -------------------------------------------------------
 
   /** See {@link ForumsApi.castVote}. */
@@ -196,6 +286,12 @@ export class ForumsLogic extends Idea {
     entry: Entry,
     direction: VoteValue,
   ): Promise<Entry> {
+    const board = await Board.findById(entry.board);
+    if (board && board.getOrganizer() === 'argument') {
+      // Principle 1: nothing is ranked under the argument organizer, so
+      // there is no vote to cast (up/down are never read here).
+      throw new Error('Voting is not available on an argument board.');
+    }
     const voter = authorIdOf(actor);
     if (voter === entry.author) {
       // The author's auto-upvote row is locked.
@@ -481,20 +577,23 @@ function settingNumber(key: string, fallback: number): number {
  */
 async function buildBoard(
   subject: Subject,
-  opts: { description?: string },
+  opts: { description?: string; organizer?: BoardOrganizer },
 ): Promise<Board> {
-  if (subject.hasManifestation('popularity-forum')) {
-    const ref = subject.manifestationRef('popularity-forum');
+  const organizer: BoardOrganizer = opts.organizer ?? 'popularity';
+  const surface =
+    organizer === 'argument' ? 'argument-forum' : 'popularity-forum';
+  if (subject.hasManifestation(surface)) {
+    const ref = subject.manifestationRef(surface);
     const existing = ref ? await Board.findById(ref) : null;
     if (existing) return existing;
   }
   const board = new Board();
   board.subject = subject._id!;
-  board.organizer = 'popularity';
+  board.organizer = organizer;
   board.name = subject.getTitle();
   board.description = opts.description ?? '';
   await board.save();
-  await SubjectApi.addManifestation(subject, 'popularity-forum', board._id!);
+  await SubjectApi.addManifestation(subject, surface, board._id!);
   // Wake any forum-index subscriptions so a freshly-created board shows up
   // live on the landing list (board creation has no entry to drive it).
   await recordEvent({
@@ -504,7 +603,19 @@ async function buildBoard(
     thread: '',
     entry: '',
     actor: subject.getOwner(),
-    data: { name: board.name },
+    data: { name: board.name, organizer },
   });
   return board;
+}
+
+/**
+ * The organizer-scoped relation vocabulary — the single source of truth
+ * for which edges a board accepts. Popularity uses only `'reply'`;
+ * argument uses the three typed claim-graph edges. Enforced at
+ * contribution time (`reply` / `attachClaim`).
+ */
+function legalRelationsFor(organizer: BoardOrganizer): EntryRelation[] {
+  return organizer === 'argument'
+    ? ['supports', 'objects-to', 'responds-to']
+    : ['reply'];
 }

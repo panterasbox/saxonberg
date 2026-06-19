@@ -7,10 +7,9 @@
  * `popularity-forum` / `argument-forum` manifestation).
  *
  * **Per-board organizer axis.** `organizer` selects ordering + vote
- * semantics: `'popularity'` (vote-ranked reply tree — cycle 1) or
- * `'structure'` (typed claim-graph / argument-map — deferred). The field
- * ships now so the structure organizer is a later *organizer*, not a
- * later *schema migration*.
+ * semantics: `'popularity'` (vote-ranked reply tree) or `'argument'`
+ * (typed claim-graph / argument-map — the neutral structural lens, no
+ * ranking). Two organizers over one board primitive, not two subsystems.
  *
  * `override` is a designed-in but inert bag for the per-board moderation
  * override layer (bans/pins/mods-beyond-rank) — not built in v1.
@@ -19,7 +18,7 @@
 import { Document } from '../persistence/Document';
 import { Collections } from '../../../backend/PersistenceManager';
 
-export type BoardOrganizer = 'popularity' | 'structure';
+export type BoardOrganizer = 'popularity' | 'argument';
 
 export default class Board extends Document {
   static collectionName = Collections.ForumBoards;
@@ -34,7 +33,7 @@ export default class Board extends Document {
   /** The `_id` of the {@link Subject} this board manifests. */
   subject = '';
 
-  /** Ordering + vote semantics. Cycle 1 is always `'popularity'`. */
+  /** Ordering + vote semantics: `'popularity'` or `'argument'`. */
   organizer: BoardOrganizer = 'popularity';
 
   /** Display name (mirrors the Subject title). */
