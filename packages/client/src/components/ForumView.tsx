@@ -168,6 +168,30 @@ const ComposeRow = styled.div`
   margin-top: 0.4rem;
 `;
 
+/** A comment's children, nested under a thread line (Reddit-style). */
+const Nest = styled.div`
+  margin-left: 0.75rem;
+  padding-left: 0.6rem;
+  border-left: 1px solid ${tokens.color.borderMuted};
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+`;
+
+const ReplyLink = styled.button`
+  background: none;
+  border: none;
+  padding: 0;
+  margin-top: 0.25rem;
+  font: inherit;
+  font-size: 0.8rem;
+  color: ${tokens.color.accent};
+  cursor: pointer;
+  &:hover {
+    color: ${tokens.color.accentHover};
+  }
+`;
+
 const PostButton = styled.button`
   background: ${tokens.color.accent};
   color: #11201b;
@@ -334,6 +358,93 @@ function ComposeBox({
   );
 }
 
+/** Group the subtree's posts by parent id, for nested rendering. */
+function buildChildren(
+  records: ForumEntryRecord[],
+): Map<string, ForumEntryRecord[]> {
+  const map = new Map<string, ForumEntryRecord[]>();
+  for (const r of records) {
+    if (r.parent == null) continue;
+    const arr = map.get(r.parent) ?? [];
+    arr.push(r);
+    map.set(r.parent, arr);
+  }
+  return map;
+}
+
+interface CommentProps {
+  entry: ForumEntryRecord;
+  childrenMap: Map<string, ForumEntryRecord[]>;
+  sort: Sort;
+  preview: Preview;
+  submitted: () => void;
+  onSendCommand: (text: string) => void;
+  onCommandPreview: (command: string | null) => void;
+}
+
+/** One comment + its nested reply subtree (recursive). */
+function CommentNode({
+  entry,
+  childrenMap,
+  sort,
+  preview,
+  submitted,
+  onSendCommand,
+  onCommandPreview,
+}: CommentProps): JSX.Element {
+  const [replying, setReplying] = useState(false);
+  const kids = sortRecords(childrenMap.get(entry.id) ?? [], sort);
+  return (
+    <div>
+      <Card>
+        <VoteControls entry={entry} onPreview={preview} onSubmitted={submitted} />
+        <Body>
+          <MmlRenderer
+            text={entry.body}
+            onCommandClick={onSendCommand}
+            onCommandPreview={onCommandPreview}
+          />
+          <Meta>by {entry.authorName || "someone"}</Meta>
+          <ReplyLink
+            onClick={() => setReplying((v) => !v)}
+            {...hoverPreview(`forum reply ${entry.id}`, preview)}
+          >
+            {replying ? "Cancel" : "Reply"}
+          </ReplyLink>
+          {replying && (
+            <ComposeBox
+              label="reply"
+              previewVerb={`forum reply ${entry.id}`}
+              onPreview={preview}
+              onSubmitted={() => {
+                submitted();
+                setReplying(false);
+              }}
+              onSubmit={(body) => replyForumEntry(entry.id, body)}
+            />
+          )}
+        </Body>
+      </Card>
+      {kids.length > 0 && (
+        <Nest>
+          {kids.map((k) => (
+            <CommentNode
+              key={k.id}
+              entry={k}
+              childrenMap={childrenMap}
+              sort={sort}
+              preview={preview}
+              submitted={submitted}
+              onSendCommand={onSendCommand}
+              onCommandPreview={onCommandPreview}
+            />
+          ))}
+        </Nest>
+      )}
+    </div>
+  );
+}
+
 interface ForumViewProps {
   onSendCommand: (text: string) => void;
   onCommandPreview: (command: string | null) => void;
@@ -386,9 +497,15 @@ export function ForumView({
 
   const threads = useMemo(() => sortRecords(boardRecords, sort), [boardRecords, sort]);
   const root = threadRecords.find((r) => r.id === forumNav.threadId) ?? null;
-  const posts = useMemo(
-    () => sortRecords(threadRecords.filter((r) => r.parent !== null), sort),
-    [threadRecords, sort],
+  // The post-tree, grouped by parent for nested rendering; siblings are
+  // sorted per level (the chosen ordering applies at every depth).
+  const childrenMap = useMemo(
+    () => buildChildren(threadRecords.filter((r) => r.parent !== null)),
+    [threadRecords],
+  );
+  const topComments = useMemo(
+    () => sortRecords(childrenMap.get(root?.id ?? "") ?? [], sort),
+    [childrenMap, root, sort],
   );
 
   // Hover previews trigger on `mousemove` (see `hoverPreview`), so a
@@ -512,14 +629,18 @@ export function ForumView({
             onSubmitted={submitted}
             onSubmit={(body) => replyForumEntry(forumNav.threadId!, body)}
           />
-          {posts.map((p) => (
-            <Card key={p.id} style={{ marginLeft: "1rem" }}>
-              <VoteControls entry={p} onPreview={preview} onSubmitted={submitted} />
-              <Body>
-                <MmlRenderer text={p.body} onCommandClick={onSendCommand} onCommandPreview={onCommandPreview} />
-                <Meta>by {p.authorName || "someone"}</Meta>
-              </Body>
-            </Card>
+          {topComments.length === 0 && <Meta>No replies yet.</Meta>}
+          {topComments.map((c) => (
+            <CommentNode
+              key={c.id}
+              entry={c}
+              childrenMap={childrenMap}
+              sort={sort}
+              preview={preview}
+              submitted={submitted}
+              onSendCommand={onSendCommand}
+              onCommandPreview={onCommandPreview}
+            />
           ))}
         </>
       )}

@@ -264,11 +264,26 @@ export class ForumsLogic extends Idea {
     root: Entry,
     sort: EntrySort = 'new',
   ): Promise<ThreadView> {
+    // The post-tree is the subtree of entries DESCENDED from this root —
+    // not every comment in the board. Collect descendants by walking the
+    // parent edges, then sort siblings within each parent. Order is
+    // parent-before-child so the client can build the nesting in one pass.
     const all = await Entry.find({ board: root.board });
-    const posts = sortEntries(
-      all.filter((e) => e._id !== root._id && e.parent !== null),
-      sort,
-    );
+    const childrenOf = new Map<string, Entry[]>();
+    for (const e of all) {
+      if (e.parent === null) continue;
+      const arr = childrenOf.get(e.parent) ?? [];
+      arr.push(e);
+      childrenOf.set(e.parent, arr);
+    }
+    const posts: Entry[] = [];
+    const walk = (parentId: string): void => {
+      for (const child of sortEntries(childrenOf.get(parentId) ?? [], sort)) {
+        posts.push(child);
+        walk(child._id!);
+      }
+    };
+    walk(root._id!);
     return { root, posts };
   }
 

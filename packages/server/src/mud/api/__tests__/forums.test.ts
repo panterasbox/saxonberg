@@ -119,6 +119,31 @@ describe('ForumsApi threads + replies', () => {
     expect(posts).toHaveLength(1);
     expect(posts[0]!._id).toBe(reply._id);
   });
+
+  it('readThread returns the nested subtree only, scoped to this thread', async () => {
+    const creator = makeActor();
+    const { board } = await ForumsApi.makeForum(creator, 'Gossip', {
+      open: true,
+    });
+    // Thread A with a comment and a nested reply-to-the-comment.
+    const a = await ForumsApi.postThread(creator, board, 'A', 'a');
+    const c1 = await ForumsApi.reply(creator, a, 'comment on A');
+    const c2 = await ForumsApi.reply(creator, c1, 'nested reply to the comment');
+    // A SEPARATE thread B (same board) with its own reply.
+    const b = await ForumsApi.postThread(creator, board, 'B', 'b');
+    const bReply = await ForumsApi.reply(creator, b, 'comment on B');
+
+    const { posts } = await ForumsApi.readThread(a);
+    const ids = posts.map((p) => p._id);
+    // A's subtree = the comment + the nested reply; NOT B's reply or B.
+    expect(ids).toEqual(expect.arrayContaining([c1._id, c2._id]));
+    expect(ids).not.toContain(bReply._id);
+    expect(ids).not.toContain(b._id);
+    expect(posts).toHaveLength(2);
+    // The nesting edge: c2 hangs off c1, c1 off the thread root.
+    expect(c2.getParent()).toBe(c1._id);
+    expect(c1.getParent()).toBe(a._id);
+  });
 });
 
 describe('ForumsApi.promoteThread', () => {
