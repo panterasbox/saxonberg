@@ -25,7 +25,7 @@ import type { EnvelopeTemplate, MessageFrame } from '@saxonberg/types';
 import type { Stuff } from '../stuff/Stuff';
 import { PerceptionApi } from '../../api/perception';
 import { EventApi } from '../../api/event';
-import { TopicApi } from '../../api/topic';
+import { MessageApi } from '../../api/message';
 import { CommReceivedEvent } from '../events/CommReceivedEvent';
 
 /**
@@ -57,7 +57,10 @@ export function SensorMixin<TBase extends MixinConstructor>(Base: TBase) {
       // skips self-receipt. Fire-and-forget; a later debounce can coalesce
       // this hot path.
       const commandId = transformed.meta?.commandId;
-      if (commandId !== undefined && TopicApi.isCommunicative(transformed.topic)) {
+      if (
+        commandId !== undefined &&
+        MessageApi.isCommunicative(transformed.topic)
+      ) {
         EventApi.fire(
           new CommReceivedEvent({
             perceiverId: (this as unknown as Stuff).stuffId,

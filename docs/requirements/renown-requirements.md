@@ -216,7 +216,7 @@ fires from `SensorMixin.onMessage`, *after* `filterMessage`, so it's
 never fires it) and un-farmable by monologue. The fire is gated to
 **communication topics** via a data-driven `communicative` flag on the
 `Topic` (say/whisper/shout/emote/chat — **not** dm/narration/system),
-consulted through `TopicApi.isCommunicative` so non-comm frames never hit
+consulted through `MessageApi.isCommunicative` so non-comm frames never hit
 the bus. The event carries only the
 **perceiver** + the frame's `meta.commandId`; the reception tap recovers
 the speaker + scope from the reactable-act registry
