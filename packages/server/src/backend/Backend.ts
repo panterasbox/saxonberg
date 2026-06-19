@@ -16,6 +16,7 @@
  */
 
 import type { WebSocket } from 'ws';
+import { nanoid } from 'nanoid';
 import type { IBackend } from './IBackend';
 import type {
   AuthProvider,
@@ -175,7 +176,7 @@ export class Backend implements IBackend {
     isBroadcast = false
   ): void {
     // Generate socket ID
-    const socketId = `socket_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    const socketId = `socket_${nanoid()}`;
 
     // Store WebSocket connection
     this.socketsBySocketId.set(socketId, ws);

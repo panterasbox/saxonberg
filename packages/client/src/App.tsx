@@ -8,6 +8,7 @@
  */
 
 import React, { useEffect, useRef, useState } from "react";
+import { nanoid } from "nanoid";
 import styled from "styled-components";
 import { useStore, type PromptEntry } from "./store/index";
 import { registerReactionHandlers } from "./store/reactionActions";
@@ -508,7 +509,7 @@ function App() {
     const echo = formatResponseEcho(promptId, response);
     if (echo) {
       useStore.getState().appendFrame({
-        id: `prompt-echo-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+        id: `prompt-echo-${nanoid()}`,
         topic: "system.log.command.info",
         body: echo,
         timestamp: Date.now(),
@@ -625,7 +626,7 @@ function App() {
     w.__injectMessage = (text: string) => {
       console.info("__injectMessage:", text);
       useStore.getState().appendFrame({
-        id: `inject-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+        id: `inject-${nanoid()}`,
         topic: "world.narration.action",
         body: text,
         timestamp: Date.now(),

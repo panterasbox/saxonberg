@@ -12,6 +12,7 @@
  * dispatch shape, fewer files.
  */
 
+import { nanoid } from 'nanoid';
 import { CommandController } from '../../../lib/command/CommandController';
 import type {
   CommandContext,
@@ -127,7 +128,7 @@ export default class ChatController extends CommandController<ChatModel> {
           .send();
         // Append to history
         cat.appendToHistory(ad.handle, {
-          id: Math.random().toString(36).slice(2, 12),
+          id: nanoid(),
           topic: 'world.chat.message',
           tags: ['audience:witness'],
           body: `[${ad.handle}] ${speaker.getPresentation()}: ${body}`,

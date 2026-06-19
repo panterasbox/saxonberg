@@ -41,6 +41,7 @@ import type {
   StuffDetailRecord,
   StuffRefRecord,
 } from "@saxonberg/types";
+import { nanoid } from "nanoid";
 import { useStore, type PromptEntry, type StuffMetadata } from "../store/index";
 
 interface OutboundClientMessage {
@@ -77,20 +78,12 @@ interface MqlSubscriptionEntry {
 
 /**
  * Generates a process-local subscriptionId. The substrate only
- * requires per-Interactive uniqueness, but a UUID-shape string keeps
- * collisions impossible across reconnects within the same client
- * session.
+ * requires per-Interactive uniqueness, but a nanoid keeps collisions
+ * impossible across reconnects within the same client session. nanoid
+ * is the project-wide id mint (server + client).
  */
 function makeSubscriptionId(): string {
-  // crypto.randomUUID is available in modern browsers + jsdom (vitest).
-  if (
-    typeof crypto !== "undefined" &&
-    typeof crypto.randomUUID === "function"
-  ) {
-    return crypto.randomUUID();
-  }
-  // Fallback for environments without crypto.randomUUID.
-  return `sub-${Date.now()}-${Math.floor(Math.random() * 1e9)}`;
+  return nanoid();
 }
 
 class WebSocketClient {
