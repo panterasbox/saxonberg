@@ -206,6 +206,23 @@ chips) — unchanged. One event, two consumers: one ephemeral, one durable.
 Scope tags are resolved at ingestion from the act's location +
 `GroupApi`.
 
+### Reception — reward *being heard* (the second input)
+
+A passive engagement input alongside reactions: **being heard on a public
+comm act** (say/shout/whisper/emote/chat) mints a small renown signal for
+the speaker — measured on the *receiving* end, so it's audience-weighted
+and un-farmable by monologue. `CommActEmittedEvent` fires once per
+utterance at `ReactionRegistry.noteReactableAct`; the reception tap
+resolves the audience-scope to listeners (location occupants / channel
+members), excludes the speaker, and appends one `kind:'reception'` event
+per listener — **deduped per `(speaker, listener)`** within
+`renown.receptionWindowS` (reward reaching *new* people, not repetition).
+At recompute, receptions are **log-saturated** —
+`receptionValence × ln(1 + Σ decayed)` (≪ a reaction; first messages ≫ the
+thousandth), while reactions stay linear. Dials: `renown.receptionValence`,
+`renown.receptionWindowS`. True engagement-*effect* (the causal Facebook
+metric) remains the deferred richer kind.
+
 ### Decay — a recompute weighting, not a mutation
 
 Events fade by age **when summed**; the log is untouched, so decay is
