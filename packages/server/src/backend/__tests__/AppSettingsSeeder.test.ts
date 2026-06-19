@@ -41,7 +41,7 @@ describe("AppSettingsSeeder", () => {
     pm.setFindResult([]);
     const added = await AppSettingsSeeder.run();
 
-    expect(added).toBe(9);
+    expect(added).toBe(8);
     expect(pm.saves).toHaveLength(1);
     expect(pm.saves[0]!.collection).toBe("app_settings");
     const values = savedValues(pm);
@@ -52,7 +52,6 @@ describe("AppSettingsSeeder", () => {
     expect(values[AppSettingKeys.reactionsThreshold]).toBe("10");
     expect(values[AppSettingKeys.reactionsCadenceMs]).toBe("200");
     expect(values[AppSettingKeys.reactionsSampleCap]).toBe("5");
-    expect(values[AppSettingKeys.renownValenceMap]).toContain('"cheer":1');
     expect(values[AppSettingKeys.renownQualityWeight]).toBe("1");
   });
 
@@ -66,7 +65,6 @@ describe("AppSettingsSeeder", () => {
           [AppSettingKeys.reactionsThreshold]: "10",
           [AppSettingKeys.reactionsCadenceMs]: "200",
           [AppSettingKeys.reactionsSampleCap]: "5",
-          [AppSettingKeys.renownValenceMap]: "{}",
           [AppSettingKeys.renownDecayHalfLives]: "{}",
           [AppSettingKeys.renownContextMultipliers]: "{}",
           [AppSettingKeys.renownQualityWeight]: "1",
@@ -88,8 +86,8 @@ describe("AppSettingsSeeder", () => {
     ]);
     const added = await AppSettingsSeeder.run();
 
-    // Missing keys seeded: evacuationFallback + 3 reaction + 4 renown.
-    expect(added).toBe(8);
+    // Missing keys seeded: evacuationFallback + 3 reaction + 3 renown.
+    expect(added).toBe(7);
     expect(pm.saves).toHaveLength(1);
     const values = savedValues(pm);
     // operator value preserved, missing keys seeded

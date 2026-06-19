@@ -62,8 +62,6 @@ export const AppSettingKeys = {
    * `engagement × renown` form, `renown × no-participation = nothing`) are
    * CODE, never keys. See docs/requirements/renown-requirements.md.
    */
-  /** Renown — JSON `{tag: weight}` valence map (signed reaction values). */
-  renownValenceMap: "renown.valenceMap",
   /** Renown — JSON `{esteem, notoriety}` decay half-lives in game-seconds. */
   renownDecayHalfLives: "renown.decayHalfLives",
   /** Renown — JSON `{tag: multiplier}` context/act weighting (default 1). */

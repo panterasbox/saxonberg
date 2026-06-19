@@ -14,6 +14,7 @@ import RenownStanding, {
 } from '../../lib/renown/RenownStanding';
 import { AppApi } from '../../api/app';
 import { AppSettingKeys } from '../../lib/config/AppSettings';
+import { SoulApi } from '../../api/soul';
 import { WorldClockApi } from '../../api/worldclock';
 import { EventApi } from '../../api/event';
 import type { Subscription } from '../../api/event';
@@ -161,14 +162,18 @@ async function appendFromReaction(p: ReactionFiredPayload): Promise<void> {
 /* ───────── value-function scoring (applied only at recompute) ───────── */
 
 interface ValueFunction {
-  valence: Record<string, number>;
   esteemHalfLife: number;
   notorietyHalfLife: number;
   contextMult: Record<string, number>;
   qualityWeight: number;
 }
 
-/** Read the legislated value-function params (governance-owned AppSettings). */
+/**
+ * Read the legislated *scalar* value-function params (governance-owned
+ * AppSettings). Per-emote **valence is NOT here** — it lives on the emote
+ * (`Emote.valence`, read via {@link loadEmoteValences}); these are the
+ * dials that genuinely belong in central config (decay, context, quality).
+ */
 function loadValueFunction(): ValueFunction {
   const json = <T>(key: string, fallback: T): T => {
     const raw = AppApi.setting(key);
@@ -186,7 +191,6 @@ function loadValueFunction(): ValueFunction {
   const qwRaw = AppApi.setting(AppSettingKeys.renownQualityWeight);
   const qw = qwRaw ? Number(qwRaw) : 1;
   return {
-    valence: json<Record<string, number>>(AppSettingKeys.renownValenceMap, {}),
     esteemHalfLife: halfLives.esteem ?? Infinity,
     notorietyHalfLife: halfLives.notoriety ?? Infinity,
     contextMult: json<Record<string, number>>(
@@ -197,7 +201,23 @@ function loadValueFunction(): ValueFunction {
   };
 }
 
-/** The tags carried by a reaction signal (the valence / context keys). */
+/**
+ * The verb → signed-valence map from the emote catalogue — the polity's
+ * declared value *per emote*. Read once per recompute via `SoulApi.all()`.
+ */
+async function loadEmoteValences(): Promise<Map<string, number>> {
+  const map = new Map<string, number>();
+  for (const emote of await SoulApi.all()) map.set(emote.verb, emote.valence);
+  return map;
+}
+
+/** The emote verb a reaction signal carries (the valence key). */
+function signalEmote(ev: RenownEvent): string {
+  const e = (ev.signal as { emote?: unknown }).emote;
+  return typeof e === 'string' ? e : '';
+}
+
+/** The tags carried by a reaction signal (the context keys). */
 function signalTags(ev: RenownEvent): string[] {
   const t = (ev.signal as { tags?: unknown }).tags;
   return Array.isArray(t) ? (t as string[]) : [];
@@ -218,16 +238,15 @@ function decayWeight(ageS: number, halfLife: number): number {
 function scoreEvents(
   events: RenownEvent[],
   nowS: number,
-  vf: ValueFunction
+  vf: ValueFunction,
+  emoteValences: Map<string, number>
 ): number {
   let total = 0;
   for (const ev of events) {
-    const tags = signalTags(ev);
-    let valence = 0;
-    for (const t of tags) valence += vf.valence[t] ?? 0;
+    const valence = emoteValences.get(signalEmote(ev)) ?? 0;
     if (valence === 0) continue;
     let context = 1;
-    for (const t of tags) {
+    for (const t of signalTags(ev)) {
       const c = vf.contextMult[t];
       if (c !== undefined) context *= c;
     }
@@ -269,6 +288,7 @@ async function upsertStanding(
 async function recomputeImpl(): Promise<void> {
   if (!active()) return;
   const vf = loadValueFunction();
+  const emoteValences = await loadEmoteValences();
   const nowS = WorldClockApi.getNow().rawValue();
 
   const all = await RenownEvent.find({});
@@ -290,7 +310,7 @@ async function recomputeImpl(): Promise<void> {
       await upsertStanding(
         subject,
         scopeKey(scope),
-        scoreEvents(slice, nowS, vf),
+        scoreEvents(slice, nowS, vf, emoteValences),
         nowS
       );
     }
