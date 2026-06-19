@@ -64,6 +64,12 @@ interface CommandBarProps {
   onCancelPrompt: (promptId: string) => void;
   /** Post-click flash signal forwarded from App. */
   flashing?: boolean;
+  /**
+   * True while a clickable affordance's command is previewed in the input.
+   * Hides the input-mode chip so a previewed direct command (a forum vote
+   * etc.) doesn't read as if it'll be wrapped by the active chat mode.
+   */
+  previewing?: boolean;
 }
 
 const HISTORY_KEY = 'saxonberg-command-history';
@@ -116,6 +122,57 @@ const PickerAnchor = styled.div`
   position: relative;
   display: flex;
   align-items: stretch;
+`;
+
+/**
+ * Multiline body-composition input for the `compose` prompt kind. Shares
+ * the Input look but is a resizable textarea; ⌘/Ctrl+Enter submits.
+ */
+const ComposeArea = styled.textarea`
+  flex: 1;
+  padding: ${tokens.space.md};
+  background: ${tokens.color.surfaceSunken};
+  color: ${tokens.color.fg};
+  border: 1px solid ${tokens.color.accent};
+  border-left: none;
+  font-family: ${tokens.font.mono};
+  font-size: ${tokens.font.body};
+  resize: vertical;
+
+  &:focus {
+    outline: none;
+    border-color: ${tokens.color.accent};
+  }
+`;
+
+/**
+ * The active-input-mode pill shown left of the command input (e.g. the
+ * channel you're scoped to). Visual sibling of a prompt slot chip.
+ */
+const ModeChip = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0 ${tokens.space.sm};
+  background: ${tokens.color.surfaceAlt};
+  border: 1px solid ${tokens.color.accent};
+  border-right: none;
+  color: ${tokens.color.accent};
+  font-family: ${tokens.font.mono};
+  font-size: ${tokens.font.body};
+  white-space: nowrap;
+`;
+
+const ModeChipX = styled.button`
+  background: none;
+  border: none;
+  color: ${tokens.color.fgMuted};
+  cursor: pointer;
+  padding: 0;
+  font-size: 0.8rem;
+  &:hover {
+    color: ${tokens.color.fg};
+  }
 `;
 
 const Input = styled.input<{ $flashing?: boolean; $promptMode?: boolean }>`
@@ -380,6 +437,7 @@ function parseConfirmInput(text: string): 'yes' | 'no' | null {
 
 function submitButtonLabel(entry: PromptEntry | undefined): string {
   if (!entry) return 'Send';
+  if (entry.kind === 'compose') return 'Post';
   if (entry.kind === 'text' || entry.kind === 'confirm') return 'Respond';
   return 'Respond';
 }
@@ -393,8 +451,13 @@ export function CommandBar({
   onSendPromptResponse,
   onCancelPrompt,
   flashing,
+  previewing,
 }: CommandBarProps) {
   const prompts = useStore((s) => s.prompts);
+  // The active scope is this view's mode (the bars are per-view).
+  const inputMode = useStore((s) => s.inputMode[s.mainView]);
+  const setInputMode = useStore((s) => s.setInputMode);
+  const clearInputMode = useStore((s) => s.clearInputMode);
   const activeSlot = useStore((s) => s.activeSlot);
   const promptDrafts = useStore((s) => s.promptDrafts);
   const basePrompt = useStore((s) => s.basePrompt);
@@ -472,8 +535,34 @@ export function CommandBar({
 
   const submitBase = () => {
     if (offline) return; // bus down — no send, no queue
-    onSendCommand(baseValue);
     const trimmed = baseValue.trim();
+
+    // Client-only `mode` control — intercepted, never sent to the server
+    // (the scoped-input prefix is a client filter, like the console tabs).
+    if (trimmed === 'mode' || trimmed === 'mode off') {
+      clearInputMode();
+      onBaseChange('');
+      setHistoryIndex(-1);
+      return;
+    }
+    if (!inputMode && trimmed.startsWith('mode ')) {
+      const prefix = trimmed.slice(5).trim();
+      if (prefix) setInputMode({ prefix, label: prefix });
+      onBaseChange('');
+      setHistoryIndex(-1);
+      return;
+    }
+
+    // Apply the active mode prefix. A leading `/` escapes for a one-off
+    // raw command; otherwise the bare input is wrapped into the real
+    // command string `<prefix> <text>` (which is what reaches the bus).
+    let toSend = baseValue;
+    if (inputMode && trimmed) {
+      toSend = trimmed.startsWith('/')
+        ? trimmed.slice(1)
+        : `${inputMode.prefix} ${trimmed}`;
+    }
+    onSendCommand(toSend);
     if (trimmed) {
       setHistory((prev) => {
         const filtered = prev[0] === trimmed ? prev : [trimmed, ...prev];
@@ -492,7 +581,8 @@ export function CommandBar({
     }
     const draft = promptDrafts[activeSlot] ?? '';
     switch (activeEntry.kind) {
-      case 'text': {
+      case 'text':
+      case 'compose': {
         if (!draft) return;
         onSendPromptResponse(activeEntry.promptId, draft);
         // Draft drops in dismissPrompt; clear locally as a UI
@@ -559,6 +649,12 @@ export function CommandBar({
       // the input (legacy behavior).
       if (promptMode) {
         setActiveSlot(BASE_SLOT);
+        return;
+      }
+      // Esc backs out of an active input mode first; a second Esc (or Esc
+      // with no mode) clears the input.
+      if (inputMode) {
+        clearInputMode();
         return;
       }
       onBaseChange('');
@@ -748,32 +844,67 @@ export function CommandBar({
           ) : null}
         </PickerAnchor>
 
-        <Input
-          value={inputValue}
-          onChange={(e) => {
-            if (activeSlot === BASE_SLOT) {
-              onBaseChange(e.target.value);
-            } else {
-              setDraft(activeSlot, e.target.value);
+        {inputMode && !promptMode && !previewing && (
+          <ModeChip title="Esc to exit">
+            <span>{inputMode.label}</span>
+            <ModeChipX
+              aria-label="exit mode"
+              onClick={() => clearInputMode()}
+            >
+              ✕
+            </ModeChipX>
+          </ModeChip>
+        )}
+
+        {activeEntry && activeEntry.kind === 'compose' ? (
+          // Multiline body composition — markdown; ⌘/Ctrl+Enter submits,
+          // Enter inserts a newline. (A live MML preview + "open in editor"
+          // escalation are the next increment; the slot machinery here is
+          // already generic.)
+          <ComposeArea
+            value={inputValue}
+            onChange={(e) => setDraft(activeSlot, e.target.value)}
+            onKeyDown={(e) => {
+              if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
+                e.preventDefault();
+                submitActive();
+              }
+            }}
+            disabled={offline}
+            placeholder={activeEntry.placeholder ?? 'Compose (Markdown)…'}
+            autoFocus
+            rows={4}
+          />
+        ) : (
+          <Input
+            value={inputValue}
+            onChange={(e) => {
+              if (activeSlot === BASE_SLOT) {
+                onBaseChange(e.target.value);
+              } else {
+                setDraft(activeSlot, e.target.value);
+              }
+            }}
+            onKeyDown={handleKeyDown}
+            disabled={offline}
+            placeholder={
+              offline
+                ? 'Disconnected — reconnecting…'
+                : promptMode
+                ? activeEntry && activeEntry.kind === 'text'
+                  ? activeEntry.placeholder ?? 'Type your answer...'
+                  : activeEntry && activeEntry.kind === 'confirm'
+                  ? 'y / n (or click)'
+                  : 'Click a choice above, or Esc to return to commands'
+                : inputMode
+                ? `${inputMode.prefix} … (/ for a raw command, Esc to exit)`
+                : 'Enter command...'
             }
-          }}
-          onKeyDown={handleKeyDown}
-          disabled={offline}
-          placeholder={
-            offline
-              ? 'Disconnected — reconnecting…'
-              : promptMode
-              ? activeEntry && activeEntry.kind === 'text'
-                ? activeEntry.placeholder ?? 'Type your answer...'
-                : activeEntry && activeEntry.kind === 'confirm'
-                ? 'y / n (or click)'
-                : 'Click a choice above, or Esc to return to commands'
-              : 'Enter command...'
-          }
-          autoFocus
-          $flashing={flashing}
-          $promptMode={promptMode}
-        />
+            autoFocus
+            $flashing={flashing}
+            $promptMode={promptMode}
+          />
+        )}
         <SendButton
           $promptMode={promptMode}
           onClick={submitActive}

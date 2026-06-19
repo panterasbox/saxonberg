@@ -44,6 +44,10 @@ import {
 import { handlePromptResponse, handlePromptCancel } from './prompt';
 import { handleClientStateWrite } from './clientState';
 import { handleReactionExpand } from './reaction';
+import {
+  handleForumSubscribe,
+  handleForumUnsubscribe,
+} from './forumSubscription';
 
 export const inboundHandlers: Record<string, InboundHandler> = {
   ping: handlePing,
@@ -51,6 +55,8 @@ export const inboundHandlers: Record<string, InboundHandler> = {
   'mql-subscribe': handleMqlSubscribe,
   'mql-unsubscribe': handleMqlUnsubscribe,
   'mql-query': handleMqlQuery,
+  'forum-subscribe': handleForumSubscribe,
+  'forum-unsubscribe': handleForumUnsubscribe,
   'prompt-response': handlePromptResponse,
   'prompt-cancel': handlePromptCancel,
   'client-state-write': handleClientStateWrite,

@@ -26,7 +26,7 @@
  * idempotently) per HotReloadApi's pattern.
  */
 
-import { nanoid } from 'nanoid';
+import { SecurityApi } from '../api/security';
 import type {
   ActivityUpdateEnvelope,
   AbortReason,
@@ -187,7 +187,7 @@ export default class SchedulerRegistry extends Idea {
     }
 
     if (!engagement.engagementId) {
-      engagement.engagementId = nanoid();
+      engagement.engagementId = SecurityApi.uuid();
     }
     if (this.engagementsById.has(engagement.engagementId)) {
       throw new Error(

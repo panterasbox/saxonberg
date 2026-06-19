@@ -32,6 +32,7 @@ import type { Vocal } from '../lib/message/Vocal';
 import type { Aether } from '../lib/message/Aether';
 import type { AetherHosted } from '../lib/augmentation/AetherHosted';
 import type { Comms } from '../lib/comms/Comms';
+import type { Forums } from '../lib/forum/Forums';
 import type { Named } from '../lib/description/Named';
 import type { Gendered } from '../lib/character/Gendered';
 import type { Persona } from '../lib/character/Persona';
@@ -508,6 +509,10 @@ export class MixinApi {
 
   public static isComms(obj: Stuff): obj is Stuff & Comms {
     return this.hasMixin(obj, Mixins.Comms);
+  }
+
+  public static isForums(obj: Stuff): obj is Stuff & Forums {
+    return this.hasMixin(obj, Mixins.Forums);
   }
 
   public static isNamed(obj: Stuff): obj is Stuff & Named {

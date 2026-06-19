@@ -44,6 +44,17 @@ subcommands:
       - name: name
         type: string
         required: true
+  on:
+    description: "Attach a chat surface to an existing subject you own (default free)"
+    options:
+      rules:
+        type: boolean
+        field: rules
+        description: "Attach the rules-of-order surface (deferred; reserved)"
+    args:
+      - name: name
+        type: string
+        required: true
   rename:
     description: "Rename a player-created channel you own"
     args:

@@ -16,6 +16,7 @@ import { HotReloadApi } from './hot-reload';
 import { SecurityApi } from './security';
 import type { Stuff } from '../lib/stuff/Stuff';
 import type { Channel } from '../lib/social/Channel';
+import type Subject from '../lib/forum/Subject';
 import type { AdHocChannel } from '../lib/social/AdHocChannel';
 import type ChannelCatalogue from '../obj/ChannelCatalogue';
 import type { ChannelSubscription } from '../obj/ChannelCatalogue';
@@ -72,6 +73,13 @@ export class ChatApi {
     name: string,
   ): Promise<Channel> {
     return logic().createPlayerChannel(owner, name);
+  }
+
+  static async attachChatToSubject(
+    subject: Subject,
+    procedure?: 'free' | 'rules-of-order',
+  ): Promise<Channel> {
+    return logic().attachChatToSubject(subject, procedure);
   }
 
   static async disbandPlayerChannel(name: string): Promise<boolean> {

@@ -33,7 +33,6 @@
  *   guarantee `StuffApi.unregister()` always runs (essential for GC).
  */
 
-import { nanoid } from 'nanoid';
 import { StuffApi } from '../../api/stuff';
 import { ModuleApi } from '../../api/module';
 import { ProxyApi } from '../../api/proxy';
@@ -617,7 +616,7 @@ export abstract class Stuff {
     }
     Stuff.#expectingConstruction = false;
     Stuff.#assertTopLevelBranch(this.constructor as AnyClassRef);
-    this.stuffId = nanoid();
+    this.stuffId = SecurityApi.uuid();
   }
 
   /**

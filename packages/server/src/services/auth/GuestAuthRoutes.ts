@@ -23,8 +23,8 @@
  */
 
 import type { Express, Request, Response } from "express";
-import { nanoid } from "nanoid";
 import { User } from "../../mud/lib/identity/User";
+import { SecurityApi } from "../../mud/api/security";
 
 export class GuestAuthRoutes {
   /**
@@ -42,7 +42,7 @@ export class GuestAuthRoutes {
         res.status(403).json({ error: "guest play unavailable" });
         return;
       }
-      const principal = { id: `${User.ANONYMOUS_PREFIX}${nanoid()}` };
+      const principal = { id: `${User.ANONYMOUS_PREFIX}${SecurityApi.uuid()}` };
       req.login(principal as Express.User, (err) => {
         if (err) {
           console.error("GuestAuthRoutes: req.login failed:", err);

@@ -59,16 +59,28 @@ shapes are distinct classes:
 // lib/social/Channel.ts
 export class Channel extends Document {
   static collectionName = 'channels';
-  static persistentFields = ['name', 'kind', 'owner', 'groupRef'];
+  static persistentFields = ['name', 'kind', 'subject', 'procedure'];
 
   name: string = '';
   kind: ChannelKind = 'player-created';
-  owner: string = '';
-  groupRef: GroupRef = '';
+  subject: string = '';                 // _id of the owning Subject
+  procedure: ChannelProcedure = 'free'; // 'free' (cycle 1) | 'rules-of-order'
 }
 
 export type ChannelKind = 'player-created' | 'open-join-standalone';
+export type ChannelProcedure = 'free' | 'rules-of-order';
 ```
+
+> **Since forums cycle-1:** `Channel` no longer carries its own
+> `owner` / `groupRef`. Identity (the mutation gate) and audience (the
+> membership binding) moved onto a shared **`Subject`** record (see
+> [forums.md](./forums.md)); a chat channel is now just *one surface*
+> on a Subject, addressed via `Channel.subject` (the Subject's `_id`).
+> The Channel additionally carries a `procedure` — `'free'` (cycle 1)
+> or the deferred `'rules-of-order'` (recognized-speaker discipline; the
+> flag ships, the behavior doesn't). `Subject.owner` and
+> `Subject.groupRef` are the fields that `Channel.owner` /
+> `Channel.groupRef` lifted into. See [§ History](#history).
 
 ```ts
 // lib/social/AdHocChannel.ts
@@ -93,19 +105,20 @@ without a runtime flag check.
 
 This is the load-bearing architectural decision in the v1 chat
 substrate. Player-created channels do not store membership inline;
-instead, the Channel document carries a `groupRef: GroupRef`
-pointing at the channel's membership source, and audience reads
-route through `GroupApi.membersOf(groupRef)`. Chat is a **consumer**
+instead, the channel's `Subject` carries a `groupRef: GroupRef`
+(since forums cycle-1; formerly inline on `Channel`) pointing at the
+channel's membership source, and audience reads route through
+`GroupApi.membersOf(subject.getGroupRef())`. Chat is a **consumer**
 of the [grouping](./grouping.md) facade, not a provider — the same
 indirection that lets a future channel be backed by an MQL query
 ("everyone in this guild"), a contacts list ("my friends"), or any
 other `GroupProvider` source without the chat layer caring.
 
 For the v1 wave, `chat make <name>` mints a fresh **managed Group**
-at create time, stamps the channel's `groupRef` with
-`'managed:<groupId>'`, and saves both documents. `chat disband`
-cascade-deletes the backing Group. Standalones leave `groupRef`
-empty — they have no membership concept at all; audience is
+at create time, stamps the owning `Subject`'s `groupRef` with
+`'managed:<groupId>'`, and saves the documents. `chat disband`
+cascade-deletes the backing Group. Standalones leave the Subject's
+`groupRef` empty — they have no membership concept at all; audience is
 computed from per-player subscriptions, not a group.
 
 The chat substrate **owns** the backing Groups it mints. The Group
@@ -135,10 +148,10 @@ The two states have different storage and different consumers:
 
 | Concern         | Where it lives                                  | Who reads it             |
 |-----------------|-------------------------------------------------|--------------------------|
-| Membership      | Backing Group via `Channel.groupRef` (player-created); n/a (standalone); `AdHocChannel.members` (ad-hoc) | `audienceFor` / `visibleChannels` via `GroupApi`, the post path |
-| Subscription    | `PropertiedMixin` on Avatar, key `chat.subscription.<channelId>` | `audienceFor`, `chat join` / `leave` / `mute` / `unmute` |
+| Membership      | Backing Group via the `Subject`'s `groupRef` (player-created); n/a (standalone); `AdHocChannel.members` (ad-hoc) | `audienceFor` / `visibleChannels` via `GroupApi`, the post path |
+| Subscription    | `SubjectSubscriberMixin` on Avatar, **per-subject** (not per-channel) | `audienceFor`, `chat join` / `leave` / `mute` / `unmute` |
 
-The shape of the subscription record is small:
+The chat-facing subscription record is small:
 
 ```ts
 export interface ChannelSubscription {
@@ -146,6 +159,17 @@ export interface ChannelSubscription {
   muted: boolean;
 }
 ```
+
+Since forums cycle-1, subscription state moved off a per-channel
+`PropertiedMixin` key (`chat.subscription.<channelId>`) onto a
+**per-subject** store on `SubjectSubscriberMixin` (keyed
+`subjectId → { followed, mutedSurfaces }`). `ChannelCatalogue`'s
+`getSubscription` / `setSubscription` map the chat-facing
+`{ tunedIn, muted }` shape onto the subject's `{ followed,
+mutedSurfaces }` (`muted` ⇔ the `'free-chat'` surface being in
+`mutedSurfaces`), and migrate any legacy `chat.subscription.<channelId>`
+property on first read. See [forums.md](./forums.md) and
+[§ History](#history).
 
 Different channel kinds use the two states differently. Open-join
 standalones have no member roster at all — every player is eligible
@@ -157,8 +181,8 @@ membership in the in-memory `Set` is the only check, and the cohort
 is implicitly tuned-in until the channel disbands.
 
 Persistent-channel subscriptions survive logout (they live on the
-Avatar's persistent property bag); ad-hoc subscriptions die with the
-channel.
+Avatar's persistent per-subject `SubjectSubscriberMixin` store);
+ad-hoc subscriptions die with the channel.
 
 ## `ChannelCatalogue` — the chat runtime chokepoint
 
@@ -224,9 +248,9 @@ that does the actual work.
 audience-fanout chokepoint for persistent channels. The shape:
 
 1. Resolve audience via `audienceFor(channel)` — for `open-join-
-   standalone`, walk every online avatar and keep
+   standalone` (or any open Subject), walk every online avatar and keep
    `(tunedIn && !muted)`; for `player-created`, read membership via
-   `GroupApi.membersOf(channel.groupRef)` (a `'managed:<groupId>'`
+   `GroupApi.membersOf(subject.getGroupRef())` (a `'managed:<groupId>'`
    ref today, but any `GroupProvider` source tomorrow) and apply the
    same tunedIn/!muted filter.
 2. Compose the speaker's self frame through `MessageApi.scene` so it
@@ -240,7 +264,8 @@ audience-fanout chokepoint for persistent channels. The shape:
    self frame got it free from Scene, but the hand-built frames omitted
    it until the reactions build, which made chat posts un-correlatable
    client-side. With it, a chat post is a reactable act (scope
-   `channel:<groupRef>`); see [reactions.md](./reactions.md).
+   `channel:<subject's groupRef, else channelId>`); see
+   [reactions.md](./reactions.md).
 4. Append the rendered self-frame to the per-channel history ring.
 
 The reason for the split between Scene (self) and direct sends
@@ -442,14 +467,35 @@ in the design space that v1 deliberately defers:
 All of these live in the slate's open design space and graduate
 into this doc as they ship.
 
+## History
+
+- **Subject retrofit (forums cycle-1, 2026-06).** Chat was retrofitted
+  onto the shared **`Subject`** layer the forums build introduced. The
+  `Channel` document shed its own `owner` / `groupRef` fields; identity
+  (the mutation gate) and audience (the membership binding) now live on
+  `Subject` (`Subject.owner` + `Subject.groupRef`), and a chat channel is
+  one *surface* on a Subject (`Channel.subject` → `Subject._id`).
+  `Channel` gained a `procedure` field (`'free'` cycle-1, `'rules-of-
+  order'` deferred). Subscription state moved from a per-channel
+  `PropertiedMixin` key (`chat.subscription.<channelId>`) to a
+  **per-subject** store on `SubjectSubscriberMixin` (`{ followed,
+  mutedSurfaces }`); `ChannelCatalogue.getSubscription` /
+  `setSubscription` map the chat-facing `{ tunedIn, muted }` shape onto
+  it and migrate any legacy key on first read. See
+  [forums.md](./forums.md).
+
 ## Related
 
 - [messaging.md](./messaging.md) — the Scene composer, the lone
   `MessageApi.sendMessage` delivery chokepoint, modality stamping,
   and `SensorMixin.filterMessage` (the reception gate that drops
   chat frames for implant-less recipients).
+- [forums.md](./forums.md) — the `Subject` layer chat was retrofitted
+  onto: identity + audience (`Subject.owner` / `Subject.groupRef`) and
+  the per-subject `SubjectSubscriberMixin` subscription store a chat
+  channel is now one surface on.
 - [grouping.md](./grouping.md) — the `GroupApi` facade that chat
-  consumes for channel-membership reads via `Channel.groupRef`.
+  consumes for channel-membership reads via the Subject's `groupRef`.
 - [topics.md](./topics.md) — the `TopicCatalogue` source of truth
   for player-facing topic descriptors; `world.chat.message` is
   authored under `seeds/lib/messaging/Topic/`.

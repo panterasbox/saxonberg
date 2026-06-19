@@ -27,17 +27,23 @@
  */
 
 import { Document } from '../persistence/Document';
-import type { GroupRef } from './GroupProvider';
 
 export type ChannelKind = 'player-created' | 'open-join-standalone';
+
+/**
+ * Chat procedure — the two `chat` surfaces a Subject can light up.
+ * Cycle 1 is `'free'`-only; `'rules-of-order'` (recognized-speaker
+ * discipline) is the deferred surface (the flag ships, behavior doesn't).
+ */
+export type ChannelProcedure = 'free' | 'rules-of-order';
 
 export class Channel extends Document {
   static collectionName = 'channels';
   static persistentFields = [
     'name',
     'kind',
-    'owner',
-    'groupRef',
+    'subject',
+    'procedure',
   ];
 
   /** Human-readable name. Unique-indexed at the collection level. */
@@ -46,16 +52,13 @@ export class Channel extends Document {
   /** Channel kind — `'player-created' | 'open-join-standalone'`. */
   kind: ChannelKind = 'player-created';
 
-  /** Player reference of the creator. Empty for engine-seeded standalones. */
-  owner: string = '';
-
   /**
-   * Membership source. For `'player-created'`, points at a managed
-   * Group (`'managed:<groupId>'`) created alongside this channel. For
-   * `'open-join-standalone'`, empty — audience is computed from
-   * subscriptions, not membership. Future kinds (guild-backed,
-   * zone-scoped) can point at any other `GroupProvider` source via
-   * the same field.
+   * The `_id` of the {@link Subject} this channel manifests. Identity +
+   * audience (`owner` + `groupRef`) live on the Subject now; this channel
+   * is one of its lit chat surfaces. Empty only for legacy / unbound rows.
    */
-  groupRef: GroupRef = '';
+  subject: string = '';
+
+  /** Which chat surface — `'free'` (cycle 1) or `'rules-of-order'` (deferred). */
+  procedure: ChannelProcedure = 'free';
 }

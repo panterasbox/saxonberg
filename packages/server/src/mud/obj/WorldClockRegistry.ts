@@ -27,7 +27,7 @@
  * Inter-Stuff Contract (only methods are external surface).
  */
 
-import { nanoid } from 'nanoid';
+import { SecurityApi } from '../api/security';
 import { Idea } from '../lib/stuff/Idea';
 import { CallSecurity } from '../lib/security/decorators';
 import { SecurityPolicies } from '../lib/security/SecurityPolicies';
@@ -309,7 +309,7 @@ export default class WorldClockRegistry extends Idea {
     let fireCount = 0;
 
     const wrapper: ClockHandle = {
-      id: nanoid(),
+      id: SecurityApi.uuid(),
       get nextFireAt(): Quantity<'s'> | null {
         return inner ? inner.nextFireAt : null;
       },
@@ -485,7 +485,7 @@ export default class WorldClockRegistry extends Idea {
     cb: ClockCallback;
     opts?: ScheduleOpts;
   }): ClockHandle {
-    const id = nanoid();
+    const id = SecurityApi.uuid();
     const s: Schedule = {
       id,
       nextFireAtS: spec.nextFireAtS,

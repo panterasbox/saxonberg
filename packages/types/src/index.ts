@@ -292,6 +292,23 @@ export interface TextPromptNote {
 }
 
 /**
+ * Multiline body-composition prompt — the interactive route to a post
+ * body (forums first; CMS/wiki later). The client renders a multiline
+ * `<textarea>` (markdown; ⌘/Ctrl+Enter submits) with an optional live MML
+ * preview; an "open in editor" escalation is stubbed for when the CMS
+ * rich editor ships. A *shared* PromptApi/client capability, not
+ * forum-only. The response is a plain string (the markdown body).
+ */
+export interface ComposePromptNote {
+  kind: 'prompt-compose';
+  label: string;
+  placeholder?: string;
+  /** Hint the client may show an "open in editor" escalation affordance. */
+  allowEditorEscalation?: boolean;
+  foreground: boolean;
+}
+
+/**
  * Minimal disambiguation-target descriptor sent on `mqlObject` /
  * `mqlMany` prompts. The substrate projects matches at push time
  * (server resolves `displayName` via `Stuff.getPresentation()`);
@@ -377,6 +394,7 @@ export type Note =
   | ChoicePromptNote
   | ConfirmPromptNote
   | TextPromptNote
+  | ComposePromptNote
   | MqlObjectPromptNote
   | MqlManyPromptNote
   | PromptValidationFailedNote
@@ -728,6 +746,91 @@ export interface MqlQueryErrorEnvelope {
 }
 
 // ============================================================================
+// Forum subscription (document-change observer — distinct from MQL-sub)
+// ============================================================================
+
+/**
+ * What a forum subscription watches:
+ *   - `index` — the set of boards the viewer can see (the forum landing
+ *     list); `id` is unused.
+ *   - `board` — a board's thread-list; `id` is the board `_id` or its flat
+ *     title handle.
+ *   - `thread` — a thread's post-tree; `id` is the thread-root entry `_id`.
+ */
+export interface ForumSubscriptionScope {
+  kind: 'index' | 'board' | 'thread';
+  id: string;
+}
+
+/** One forum entry projected for the client (thread root or post). */
+export interface ForumEntryRecord {
+  id: string;
+  /** Parent entry id, or null for a thread root. */
+  parent: string | null;
+  board: string;
+  /** Author player reference (durable id; empty for anonymous guests). */
+  author: string;
+  /** Author display name captured at post time (the byline). */
+  authorName: string;
+  title: string;
+  /** Body as MML markup (the client `parseMml`/`MmlRenderer` displays it). */
+  body: string;
+  up: number;
+  down: number;
+  /** True net score; the client may prefer `displayScore` for the gate. */
+  score: number;
+  /** Anti-snowball display gate: the net score, or null while suppressed. */
+  displayScore: number | null;
+  state: 'active' | 'locked';
+  /** Promoted thread-subject id, or null. */
+  subject: string | null;
+  /** Creation time (ms since epoch). */
+  createdAt: number;
+}
+
+export interface ForumSubscribeMessage {
+  type: 'forum-subscribe';
+  subscriptionId: string;
+  scope: ForumSubscriptionScope;
+}
+
+export interface ForumUnsubscribeMessage {
+  type: 'forum-unsubscribe';
+  subscriptionId: string;
+}
+
+export interface ForumSubscriptionResultEnvelope {
+  type: 'forum-subscription-result';
+  frameId: number;
+  subscriptionId: string;
+  scope: ForumSubscriptionScope;
+  records: ForumEntryRecord[];
+}
+
+export interface ForumChange {
+  op: 'add' | 'replace' | 'remove';
+  key: string;
+  fields?: ForumEntryRecord;
+}
+
+export interface ForumSubscriptionDeltaEnvelope {
+  type: 'forum-subscription-delta';
+  frameId: number;
+  subscriptionId: string;
+  changes: ForumChange[];
+}
+
+export type ForumSubscriptionErrorReason = 'parse' | 'resolve' | 'closed';
+
+export interface ForumSubscriptionErrorEnvelope {
+  type: 'forum-subscription-error';
+  frameId: number;
+  subscriptionId: string;
+  reason: ForumSubscriptionErrorReason;
+  detail?: string;
+}
+
+// ============================================================================
 // Reactions (act-scoped emote aggregation)
 // ============================================================================
 
@@ -850,6 +953,9 @@ export type Envelope =
   | MqlSubscriptionErrorEnvelope
   | MqlQueryResultEnvelope
   | MqlQueryErrorEnvelope
+  | ForumSubscriptionResultEnvelope
+  | ForumSubscriptionDeltaEnvelope
+  | ForumSubscriptionErrorEnvelope
   | ReactionDeltaEnvelope
   | ReactionExpandResultEnvelope
   | StreamStateEnvelope;
@@ -867,6 +973,9 @@ export type EnvelopeTemplate =
   | Omit<MqlSubscriptionErrorEnvelope, 'frameId'>
   | Omit<MqlQueryResultEnvelope, 'frameId'>
   | Omit<MqlQueryErrorEnvelope, 'frameId'>
+  | Omit<ForumSubscriptionResultEnvelope, 'frameId'>
+  | Omit<ForumSubscriptionDeltaEnvelope, 'frameId'>
+  | Omit<ForumSubscriptionErrorEnvelope, 'frameId'>
   | Omit<ReactionDeltaEnvelope, 'frameId'>
   | Omit<ReactionExpandResultEnvelope, 'frameId'>
   | Omit<StreamStateEnvelope, 'frameId'>;

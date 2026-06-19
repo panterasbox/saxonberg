@@ -26,6 +26,7 @@ import { SpeciesApi } from "../api/species";
 import AetherImplant from "../lib/augmentation/AetherImplant";
 import CommsUpdate from "../lib/comms/CommsUpdate";
 import TravelCredentialUpdate from "../lib/fasttravel/TravelCredentialUpdate";
+import ForumsUpdate from "../lib/forum/ForumsUpdate";
 import { MessageApi } from "../api/message";
 import { Mml } from "../api/mml";
 import { ScheduleApi, type ScheduleHandle } from "../api/schedule";
@@ -38,6 +39,7 @@ import { PostRegistrationMixin } from "../lib/stuff/PostRegistration";
 import { HasInteractiveMixin } from "../lib/connection/HasInteractive";
 import { AetherMixin } from "../lib/message/Aether";
 import { ContactsMixin } from "../lib/social/Contacts";
+import { SubjectSubscriberMixin } from "../lib/forum/SubjectSubscriber";
 import { Events } from "../lib/events";
 import type { User } from "../lib/identity/User";
 import type {
@@ -75,7 +77,9 @@ export interface AvatarInitContext {
 // per-class by composing AetherMixin themselves when content requires
 // it. The mixin gates `tell` and (future) chat / remote-emote.
 const AvatarBase = PostRegistrationMixin(
-  HasInteractiveMixin(AetherMixin(ContactsMixin(ShelledCharacter))),
+  HasInteractiveMixin(
+    AetherMixin(ContactsMixin(SubjectSubscriberMixin(ShelledCharacter))),
+  ),
 );
 
 export default class Avatar extends AvatarBase {
@@ -90,6 +94,7 @@ export default class Avatar extends AvatarBase {
       "system/affordances.yaml",
       "author/player.yaml",
       "perception/analyze.yaml",
+      "social/subject.yaml",
     ],
     environment: [],
     inventory: [],
@@ -529,6 +534,10 @@ export default class Avatar extends AvatarBase {
         TravelCredentialUpdate.TEMPLATE_PATH,
       );
       this.hostUpdate(cred);
+      const forums = await StuffApi.clone<ForumsUpdate>(
+        ForumsUpdate.TEMPLATE_PATH,
+      );
+      this.hostUpdate(forums);
     } catch (err) {
       console.warn(
         `Avatar.installDefaultLoadout skipped for ${this.stuffId}:`,

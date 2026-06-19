@@ -41,10 +41,21 @@ export const bootstrapManifest: BootstrapEntry[] = [
   // postRegister; downstream consumers (chat audience, future
   // permission gates) reach in via `GroupApi`.
   { templatePath: '/obj/GroupRegistry' },
+  // SubjectCatalogue — the Subject-layer runtime view (identity +
+  // audience + per-subject subscriptions, the linking spine under chat +
+  // forums). Warms from the `forum_subjects` collection (populated by
+  // `ChannelSeeder.run`, which now mints an open Subject per standalone
+  // channel). Must precede `ChannelCatalogue`, which resolves it
+  // synchronously to read audience + subscriptions.
+  { templatePath: '/obj/SubjectCatalogue' },
   // ChannelCatalogue — chat substrate singleton. Owns the byName /
   // byHandle / history maps; warms its `byName` cache from the
-  // `channels` collection (populated by `ChannelSeeder.run`).
-  { templatePath: '/obj/ChannelCatalogue' },
+  // `channels` collection (populated by `ChannelSeeder.run`). Reads
+  // identity + audience through `SubjectCatalogue` (above).
+  {
+    templatePath: '/obj/ChannelCatalogue',
+    dependsOn: ['/obj/SubjectCatalogue'],
+  },
   // StreamState — livestream overlay-state singleton (mode + awayUntil).
   // Mutated by the `stream` verb; mutations fire `Events.StreamStateChanged`
   // which the backend-layer `BroadcastFeed` re-pushes to broadcast
@@ -110,6 +121,17 @@ export const bootstrapManifest: BootstrapEntry[] = [
   // listeners per `(KIND, by)` pair to dispatch dirty marks.
   {
     templatePath: '/obj/MqlSubscriptionRegistry',
+    dependsOn: ['/obj/EventSubscriptions'],
+  },
+  // ForumSubscriptionRegistry — the forum document-change observer. Holds
+  // the per-Interactive registry, the board/thread dependency index, and
+  // the setImmediate-batched dirty queue. Listens on EventApi for
+  // `ForumEventFired` (fired by ForumsLogic.record), so it depends on
+  // EventSubscriptions being live. Distinct from MqlSubscriptionRegistry
+  // (shares the observer pattern, no code) — observes Documents, not the
+  // Stuff world-tree.
+  {
+    templatePath: '/obj/ForumSubscriptionRegistry',
     dependsOn: ['/obj/EventSubscriptions'],
   },
   // ReactionRegistry — the act-scoped-emote aggregation substrate: the

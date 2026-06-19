@@ -12,6 +12,7 @@
  * dispatch shape, fewer files.
  */
 
+import { SecurityApi } from '../../../api/security';
 import { CommandController } from '../../../lib/command/CommandController';
 import type {
   CommandContext,
@@ -20,6 +21,7 @@ import type {
 import { MessageApi } from '../../../api/message';
 import { Mml } from '../../../api/mml';
 import { ChatApi } from '../../../api/chat';
+import { SubjectApi } from '../../../api/subject';
 import { PlayerApi } from '../../../api/player';
 import type { Channel } from '../../../lib/social/Channel';
 
@@ -30,6 +32,7 @@ interface ChatModel extends CommandModel {
   old_name?: string;
   new_name?: string;
   handle?: string;
+  rules?: boolean;
 }
 
 export default class ChatController extends CommandController<ChatModel> {
@@ -54,6 +57,8 @@ export default class ChatController extends CommandController<ChatModel> {
         return this.executeWho(model, context);
       case 'make':
         return this.executeMake(model, context);
+      case 'on':
+        return this.executeOn(model, context);
       case 'rename':
         return this.executeRename(model, context);
       case 'disband':
@@ -123,7 +128,7 @@ export default class ChatController extends CommandController<ChatModel> {
           .send();
         // Append to history
         cat.appendToHistory(ad.handle, {
-          id: Math.random().toString(36).slice(2, 12),
+          id: SecurityApi.uuid(),
           topic: 'world.chat.message',
           tags: ['audience:witness'],
           body: `[${ad.handle}] ${speaker.getPresentation()}: ${body}`,
@@ -247,6 +252,38 @@ export default class ChatController extends CommandController<ChatModel> {
     }
   }
 
+  private async executeOn(
+    model: ChatModel,
+    context: CommandContext,
+  ): Promise<void> {
+    const actor = context.commandGiver;
+    if (!PlayerApi.isAvatarStuff(actor)) {
+      return this.fail(context, 'Only Avatars attach surfaces in v1.', 'avatar-required');
+    }
+    const title = (model.name ?? '').trim();
+    if (!title) return this.fail(context, 'subject name required', 'name-required');
+    if (model.rules) {
+      return this.fail(
+        context,
+        'The rules-of-order chat surface is not available yet.',
+        'rules-deferred',
+      );
+    }
+    const subject = await SubjectApi.resolveByTitle(title);
+    if (!subject) {
+      return this.fail(context, `No subject '${title}'.`, 'no-such-subject');
+    }
+    if (subject.getOwner() !== actor.getPlayerId()) {
+      return this.fail(context, 'Only the subject owner may attach a surface.', 'not-owner');
+    }
+    try {
+      const c = await ChatApi.attachChatToSubject(subject, 'free');
+      this.send(context, Mml.compose`\nAttached chat to '${c.name}'.\n`);
+    } catch (err) {
+      return this.fail(context, (err as Error).message, 'attach-failed');
+    }
+  }
+
   private async executeRename(
     model: ChatModel,
     context: CommandContext,
@@ -290,7 +327,10 @@ export default class ChatController extends CommandController<ChatModel> {
         'not-disbandable',
       );
     }
-    if (channel.owner !== actor.getPlayerId()) {
+    const subject = channel.subject
+      ? await SubjectApi.resolveById(channel.subject)
+      : null;
+    if (subject && subject.getOwner() !== actor.getPlayerId()) {
       return this.fail(context, 'Only the owner may disband.', 'not-owner');
     }
     await ChatApi.disbandPlayerChannel(name);

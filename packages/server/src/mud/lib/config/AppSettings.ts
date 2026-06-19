@@ -54,6 +54,18 @@ export const AppSettingKeys = {
   reactionsSampleCap: "reactions.sampleCap",
 
   /**
+   * Forums anti-snowball (display-only) — the displayed vote score is
+   * suppressed until an entry has at least this many votes OR has aged
+   * `forums.antiSnowball.minMinutes`. Server ranking always uses true
+   * scores; this gates only the rendered number. See
+   * docs/subsystems/forums.md.
+   */
+  forumsAntiSnowballMinVotes: "forums.antiSnowball.minVotes",
+
+  /** Forums anti-snowball — minutes-since-creation that reveals the score. */
+  forumsAntiSnowballMinMinutes: "forums.antiSnowball.minMinutes",
+
+  /**
    * Renown — the value-function parameters (GOVERNANCE-OWNED ordinary law,
    * not deployment config). The engine ships the scoring algorithm; these
    * numbers are the polity's *declared values*, applied at recompute time

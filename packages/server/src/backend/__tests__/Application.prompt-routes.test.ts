@@ -35,6 +35,7 @@ function makeFakeInteractive(socketId: string): Interactive {
     getSocketId: () => socketId,
     getHolder: () => null,
     nextFrameId: () => ++counter,
+    teardownSubstrateState: () => {},
   } as unknown as Interactive;
 }
 
@@ -118,37 +119,33 @@ describe('Application — prompt routes', () => {
     spy.mockRestore();
   });
 
-  it('handleUserDisconnect cancels MQL then prompts then removes', () => {
+  it('handleUserDisconnect tears down substrate state then removes', () => {
+    // Teardown (incl. the MQL→…→prompt cancellation order) lives on
+    // Interactive.teardownSubstrateState; Application triggers it before
+    // removal. The cancellation order is asserted in Interactive's test.
     const interactive = makeFakeInteractive('sock-d');
+    const teardownSpy = vi.fn();
+    (
+      interactive as unknown as { teardownSubstrateState: () => void }
+    ).teardownSubstrateState = teardownSpy;
     const getSpy = vi
       .spyOn(ConnectionManager.get(), 'getInteractive')
       .mockReturnValue(interactive);
-    const mqlSpy = vi
-      .spyOn(MqlSubscriptionApi, 'cancelAllForInteractive')
-      .mockImplementation(() => {});
-    const promptSpy = vi
-      .spyOn(PromptApi, 'cancelAll')
-      .mockImplementation(() => 0);
     const removeSpy = vi
       .spyOn(ConnectionManager.get(), 'removeInteractive')
       .mockReturnValue(true);
 
     app.handleUserDisconnect('sock-d');
 
-    expect(mqlSpy).toHaveBeenCalledWith(interactive);
-    expect(promptSpy).toHaveBeenCalledWith(interactive, 'host-disconnected');
+    expect(teardownSpy).toHaveBeenCalled();
     expect(removeSpy).toHaveBeenCalledWith('sock-d');
 
-    // Order: MQL → Prompt → remove.
-    const mqlOrder = mqlSpy.mock.invocationCallOrder[0]!;
-    const promptOrder = promptSpy.mock.invocationCallOrder[0]!;
+    // Order: teardown → remove.
+    const teardownOrder = teardownSpy.mock.invocationCallOrder[0]!;
     const removeOrder = removeSpy.mock.invocationCallOrder[0]!;
-    expect(mqlOrder).toBeLessThan(promptOrder);
-    expect(promptOrder).toBeLessThan(removeOrder);
+    expect(teardownOrder).toBeLessThan(removeOrder);
 
     getSpy.mockRestore();
-    mqlSpy.mockRestore();
-    promptSpy.mockRestore();
     removeSpy.mockRestore();
   });
 });

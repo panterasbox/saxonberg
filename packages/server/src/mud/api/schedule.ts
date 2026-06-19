@@ -17,7 +17,6 @@
  * scheduling, calendar-aware fires, "reset" mechanics layer on top.
  */
 
-import { nanoid } from 'nanoid';
 import { ExecutionContextApi } from './execution-context';
 import { SecurityApi } from './security';
 
@@ -103,7 +102,7 @@ export class ScheduleApi {
     const causing = propagate
       ? ExecutionContextApi.getCurrentCausingCommandId()
       : null;
-    const id = nanoid();
+    const id = SecurityApi.uuid();
     let cancelled = false;
 
     const timer = setTimeout(() => {
@@ -140,7 +139,7 @@ export class ScheduleApi {
       : null;
     const initialDelay = opts?.initialDelayMs ?? intervalMs;
     const mode = opts?.mode ?? 'fixed-delay';
-    const id = nanoid();
+    const id = SecurityApi.uuid();
     let cancelled = false;
 
     let timeout: ReturnType<typeof setTimeout> | null = null;

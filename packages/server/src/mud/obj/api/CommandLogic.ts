@@ -25,7 +25,7 @@ import {
   sep,
 } from 'path';
 import { readdirSync } from 'fs';
-import { nanoid } from 'nanoid';
+import { SecurityApi } from '../../api/security';
 import Ajv, { type ValidateFunction } from 'ajv';
 import type { MessageFrame, Note, Status } from '@saxonberg/types';
 import {
@@ -158,6 +158,7 @@ class CommandContextImpl implements CommandContext {
   public commandSource: Stuff;
   public interactive?: Interactive;
   public aliasExpansion?: AliasExpansionInfo;
+  public bodyFields?: Record<string, unknown>;
   public _mqlPermission?: {
     isAuthor: boolean;
     coreMemberIds?: ReadonlySet<string>;
@@ -179,6 +180,7 @@ class CommandContextImpl implements CommandContext {
     // Production dispatch always passes commandSource explicitly.
     this.commandSource = args.commandSource ?? args.commandGiver;
     if (args.interactive !== undefined) this.interactive = args.interactive;
+    if (args.bodyFields !== undefined) this.bodyFields = args.bodyFields;
   }
 
   note(n: Note): void {
@@ -645,6 +647,41 @@ export class CommandLogic extends Idea {
     }
 
     return { model: fields };
+  }
+
+  /** See {@link CommandApi.overlayBodyFields}. */
+  @CallSecurity(CommandApiCallers)
+  public overlayBodyFields(
+    model: CommandModel,
+    fields: Record<string, unknown>,
+    command: CommandDefinition,
+  ): void {
+    const subcommand =
+      typeof model[SUBCOMMAND_FIELD] === 'string'
+        ? (model[SUBCOMMAND_FIELD] as string)
+        : undefined;
+    for (const [k, v] of Object.entries(fields)) {
+      // Structural narrowness: `fields` may ONLY reach the command's
+      // `payload:`-block fields (structured-only) or a designated body
+      // field — a greedy `string` positional arg. Options (flags) and
+      // object/MQL selectors are unreachable, so the side-channel can
+      // never fill a selector or toggle a flag.
+      const payloadDef = lookupPayloadField(command, k);
+      const argDef = lookupFieldDefinition(command, subcommand, k);
+      const isBodyArg =
+        argDef !== undefined &&
+        argDef.type === 'string' &&
+        argDef.greedy === true;
+      if (!payloadDef && !isBodyArg) continue; // can't reach selectors/flags.
+
+      const type = payloadDef?.type ?? argDef?.type;
+      const schema = payloadDef?.schema ?? argDef?.schema;
+      const coerced = coerceStructuredValue(type, v, schema, k);
+      if (!coerced.ok) continue; // leave unset → downstream validation rejects.
+      // Lean `fields` wins when both inline-greedy and the side-channel
+      // supply the body.
+      model[k] = coerced.value;
+    }
   }
 
   /** See {@link CommandApi.preloadValidatorDeps}. */
@@ -1249,7 +1286,7 @@ export class CommandLogic extends Idea {
     if (causing) meta.causingCommandId = causing;
 
     const frame: MessageFrame = {
-      id: nanoid(),
+      id: SecurityApi.uuid(),
       topic,
       tags: [],
       body: '',
@@ -1784,6 +1821,21 @@ function lookupFieldDefinition(
     return (sub?.args ?? []).find((a) => a.name === fname);
   }
   return command.args.find((a) => a.name === fname);
+}
+
+/**
+ * Resolve a `payload:`-block field by its model name (the structured-only
+ * fields the body side-channel may fill). Returns undefined when `fname`
+ * is not a payload field.
+ */
+function lookupPayloadField(
+  command: CommandDefinition,
+  fname: string
+): OptionDefinition | undefined {
+  for (const [name, def] of Object.entries(command.payload)) {
+    if ((def.field ?? name) === fname) return def;
+  }
+  return undefined;
 }
 
 function lookupOptionDefinition(

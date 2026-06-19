@@ -9,9 +9,9 @@
  * dispatcher.
  */
 
-import { nanoid } from 'nanoid';
 import type { EnvelopeTemplate } from '@saxonberg/types';
 import { PlayerApi } from '../../mud/api/player';
+import { SecurityApi } from '../../mud/api/security';
 import { MixinApi } from '../../mud/api/mixin';
 import { PromptApi } from '../../mud/api/prompt';
 import type { Stuff } from '../../mud/lib/stuff/Stuff';
@@ -35,7 +35,15 @@ export const handleCommand: InboundHandler = async (ctx, message) => {
     return;
   }
 
-  const commandText = (message.payload as { text: string }).text?.trim();
+  const rawPayload = message.payload as {
+    text: string;
+    fields?: Record<string, unknown>;
+  };
+  const commandText = rawPayload.text?.trim();
+  const bodyFields =
+    rawPayload.fields && typeof rawPayload.fields === 'object'
+      ? rawPayload.fields
+      : undefined;
   if (!commandText) {
     // Empty line: Avatar gets a bare prompt-refresh envelope (MUD-style
     // "press Enter"). For a Login (char-gen/roster) there's nothing to
@@ -44,7 +52,7 @@ export const handleCommand: InboundHandler = async (ctx, message) => {
       const refresh = PromptApi.renderPromptRefresh(holder);
       const template: EnvelopeTemplate = {
         type: 'dispatch-response',
-        dispatchId: nanoid(),
+        dispatchId: SecurityApi.uuid(),
         outcome: { status: 'ok', notes: [refresh] },
       };
       application.sendEnvelopeToInteractive(interactive, template);
@@ -71,7 +79,7 @@ export const handleCommand: InboundHandler = async (ctx, message) => {
   // to see "something went wrong" rather than have the dispatcher
   // log silently.
   try {
-    await giver.executeCommand(commandText, { interactive });
+    await giver.executeCommand(commandText, { interactive, bodyFields });
   } catch (error) {
     console.error(`Command error for socket ${socketId}:`, error);
     backend.sendMessageToSocket(socketId, {

@@ -70,7 +70,7 @@
 
 import type { MixinConstructor } from '../mixin';
 import { Stuff } from './Stuff';
-import { nanoid } from 'nanoid';
+import { SecurityApi } from '../../api/security';
 import { Unshadowable } from '../security/decorators';
 import { ExecutionContextApi } from '../../api/execution-context';
 import { StuffApi } from '../../api/stuff';
@@ -916,7 +916,7 @@ export function PropertiedMixin<TBase extends MixinConstructor>(Base: TBase) {
 
       // Keep generating until we find a unique name
       do {
-        name = `${prefix}.${nanoid(8)}`;
+        name = `${prefix}.${SecurityApi.uuid(8)}`;
       } while (this.propOptions[name]);
 
       return Property.of<T>(name);

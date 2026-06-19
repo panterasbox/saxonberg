@@ -26,6 +26,14 @@ settings:
     value: "200"
   - key: reactions.sampleCap
     value: "5"
+  # Forums — anti-snowball display gate. The displayed vote score is
+  # suppressed (the client shows a placeholder) until an entry reaches
+  # `minVotes` votes OR ages `minMinutes` minutes. Server-side ranking
+  # always uses true scores; this gates only the rendered number.
+  - key: forums.antiSnowball.minVotes
+    value: "5"
+  - key: forums.antiSnowball.minMinutes
+    value: "30"
   # Renown — the *scalar* value-function parameters (GOVERNANCE-OWNED
   # ordinary law, NOT deployment config). The engine ships the scoring
   # algorithm; these numbers are the polity's declared values, re-scored

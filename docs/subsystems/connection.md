@@ -682,6 +682,9 @@ ws 'close' → Backend.handleWebSocketClose(socketId)
                        ▼
               Application.handleUserDisconnect(socketId)
                        │
+                       ├─ interactive.teardownSubstrateState()
+                       │     (cancel MQL + forum subs, reaction
+                       │      streams, reject pending prompts) ← before remove
                        ▼
               ConnectionManager.removeInteractive(socketId)
                        │
@@ -698,6 +701,22 @@ ws 'close' → Backend.handleWebSocketClose(socketId)
                        │
                        └─ interactivesBySocketId.delete(socketId)
 ```
+
+### Per-Interactive substrate teardown
+
+Before the Interactive is removed, `handleUserDisconnect` calls
+`interactive.teardownSubstrateState()`. The per-Interactive teardown
+list — cancel live subscriptions (MQL **and** forum), cancel reaction
+streams, reject pending prompts (`'host-disconnected'`) — **lives on
+`Interactive` itself**, not enumerated at the network boundary.
+Application just triggers it. It runs *before* `removeInteractive` so
+any final substrate-side delivery still has a live Interactive to
+address (and a controller's prompt-catch block can react while the
+Interactive is still around). Each subsystem exposes its own
+`cancelAllForInteractive(this)` (`MqlSubscriptionApi`, `ForumsApi`,
+`ReactionApi`) and `PromptApi.cancelAll`; adding a new per-Interactive
+substrate means appending one call in `teardownSubstrateState`, not
+touching Application.
 
 ### What survives the disconnect
 
@@ -919,3 +938,14 @@ taxonomy and how `FrameKind`/`runRoot` plant frames.
   `session.authProvider`. Deferred: chat scopes, account merge,
   provider-side token revocation, name-refraction, YouTube. Seeding slate:
   [auth-providers-slate.md](../slates/tails/auth-providers-slate.md).
+
+- **Disconnect teardown moved onto `Interactive` (forums build,
+  2026-06).** The per-Interactive substrate teardown (cancel MQL + forum
+  subscriptions, reaction streams, reject pending prompts) was lifted off
+  `Application.handleUserDisconnect`, where the cancellations were
+  enumerated inline, onto a new `Interactive.teardownSubstrateState()`.
+  Application now just triggers it (before removing the Interactive). The
+  forums build was the trigger — adding forum-subscription teardown to the
+  list made the case for one home on the Interactive that each subsystem
+  appends to via its own `cancelAllForInteractive`. See
+  [forums.md](./forums.md).

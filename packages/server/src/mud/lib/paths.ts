@@ -26,10 +26,12 @@ export const TemplatePaths = {
   schedulerRegistry: "/obj/SchedulerRegistry",
   worldClockRegistry: "/obj/WorldClockRegistry",
   mqlSubscriptionRegistry: "/obj/MqlSubscriptionRegistry",
+  forumSubscriptionRegistry: "/obj/ForumSubscriptionRegistry",
   reactionRegistry: "/obj/ReactionRegistry",
 
   // Singleton catalogues.
   channelCatalogue: "/obj/ChannelCatalogue",
+  subjectCatalogue: "/obj/SubjectCatalogue",
   soulCatalogue: "/obj/SoulCatalogue",
 
   // Persistence infra (declared as `static templatePath` on these classes).
@@ -47,6 +49,7 @@ export const TemplatePaths = {
   // Ideas cloned into an attunement host by the default loadout.
   commsUpdate: "/lib/comms/CommsUpdate",
   travelCredentialUpdate: "/lib/fasttravel/TravelCredentialUpdate",
+  forumsUpdate: "/lib/forum/ForumsUpdate",
 
   // Metabolism cascade conditions — the `floorEffect`-named `Condition`
   // Ideas the reconcile spawns/clears off a floored biological reserve.

@@ -53,6 +53,20 @@ remains a build.
   (regard / renown / susceptibility), notoriety as the signed twin that
   pierces disguise, per-circle scoping. The platform's "value as physics,
   not RPG" answer to CHA. **Game-design, deferred.**
+- [forums-slate](./builds/forums-slate.md) — durable multi-author boards on
+  the aether implant, unifying **popularity forums + structured-argument
+  deliberation as two organizers over one primitive** (`organizer:
+  'popularity' | 'structure'`). Consciously **supersedes the factoring** of
+  [delivery-slate](./builds/delivery-slate.md) (social-forum-as-chat-facet)
+  and [argument-map-slate](./builds/argument-map-slate.md) (which becomes the
+  `'structure'` organizer); preserves the deliberation-ungameability principle
+  (structure boards: votes sense, never order). **Part-0 substrate + Part-1
+  popularity SHIPPED** (cycle 1, `feature/forums-build`), graduated to
+  [../subsystems/forums.md](../subsystems/forums.md); kept in `builds/` for
+  the **structure organizer** (designed-for, deferred — its full design is
+  [argument-map-slate](./builds/argument-map-slate.md)) plus the ephemeral
+  bill lifecycle, the procedure modes, and the latent collection-watch
+  abstraction.
 
 **Status:** recognition + identification substrate shipped → `belief.md`;
 chronicle ledger substrate shipped → `chronicle.md`; social-graph

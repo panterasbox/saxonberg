@@ -43,6 +43,15 @@ export interface ExecuteCommandOpts {
   interactive?: Interactive;
 
   /**
+   * Optional structured body side-channel from the `command` inbound
+   * (`{type:'command', payload:{ text, fields? }}`). Overlaid onto the
+   * bound model's `payload:`/designated body fields after the string
+   * parses, via {@link CommandApi.overlayBodyFields}. The command string
+   * is always parsed first; this never bypasses the parse/validate chain.
+   */
+  bodyFields?: Record<string, unknown>;
+
+  /**
    * Set by {@link CommandApi.forceCommand} when the runtime fires a
    * command on behalf of the player (auto-look on arrival, NPC
    * scripts, scheduled triggers). The flag rides through to the
@@ -107,6 +116,14 @@ export interface CommandContext {
   aliasExpansion?: AliasExpansionInfo;
 
   /**
+   * Structured body side-channel carried from `ExecuteCommandOpts`. When
+   * present, the dispatcher overlays it onto the bound model's
+   * `payload:`/designated body fields (via
+   * {@link CommandApi.overlayBodyFields}) before `resolveModel`.
+   */
+  bodyFields?: Record<string, unknown>;
+
+  /**
    * Precomputed permission snapshot used by MQL pre-resolution
    * gates. Populated by the dispatcher per command via
    * `AccessApi.isAuthor` + (when admin) a `'core'` membership read;
@@ -159,6 +176,8 @@ export interface CreateCommandContextArgs {
    */
   commandSource?: Stuff;
   interactive?: Interactive;
+  /** Structured body side-channel; see {@link CommandContext.bodyFields}. */
+  bodyFields?: Record<string, unknown>;
 }
 
 /**
@@ -1300,6 +1319,28 @@ export class CommandApi {
     ctx: { commandGiver: Stuff & CommandGiver; location: (Stuff & Container) | null }
   ): { model: CommandModel } | { error: string } {
     return logic().assembleFromStructured(payload, command, ctx);
+  }
+
+  /**
+   * Overlay a structured body side-channel (`fields`) onto an
+   * already-bound model, **restricted to the command's `payload:`-block
+   * fields + the designated body field** (a greedy `string` positional
+   * arg). Options/flags and object/MQL selectors are unreachable — the
+   * structural narrowness that keeps `fields` from filling a selector.
+   *
+   * Called by `CommandGiver.executeCommand` after the model is bound from
+   * the parsed string and BEFORE `resolveModel`, so the same resolve →
+   * validate → controller → envelope chain runs. The command string is
+   * always parsed first; this is purely additive, never a string-less
+   * dispatch path. Tiebreak: `fields` wins when both inline-greedy and
+   * the side-channel supply the body.
+   */
+  static overlayBodyFields(
+    model: CommandModel,
+    fields: Record<string, unknown>,
+    command: CommandDefinition,
+  ): void {
+    return logic().overlayBodyFields(model, fields, command);
   }
 
   /**

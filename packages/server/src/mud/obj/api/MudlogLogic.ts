@@ -7,7 +7,7 @@ import { SecurityPolicies } from '../../lib/security/SecurityPolicies';
 import type { Stuff } from '../../lib/stuff/Stuff';
 import type { Sensor } from '../../lib/message/Sensor';
 import type { LogLevel, MessageFrame } from '@saxonberg/types';
-import { nanoid } from 'nanoid';
+import { SecurityApi } from '../../api/security';
 import { ExecutionContextApi } from '../../api/execution-context';
 import { MessageApi } from '../../api/message';
 import { MixinApi } from '../../api/mixin';
@@ -61,7 +61,7 @@ function emit(
 
   for (const recipient of recipients) {
     const frame: MessageFrame = {
-      id: nanoid(),
+      id: SecurityApi.uuid(),
       topic: topicFor(category, level),
       tags: [`level:${level}`, ...(category ? [`category:${category}`] : [])],
       body: body.toString(),

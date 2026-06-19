@@ -34,6 +34,7 @@ function makeFakeInteractive(socketId: string): Interactive {
     getSocketId: () => socketId,
     getHolder: () => null,
     nextFrameId: () => ++counter,
+    teardownSubstrateState: () => {},
   } as unknown as Interactive;
 }
 
@@ -185,29 +186,33 @@ describe('Application — MQL subscription routes', () => {
     spy.mockRestore();
   });
 
-  it('handleUserDisconnect calls cancelAllForInteractive BEFORE removing the Interactive', () => {
+  it('handleUserDisconnect tears down substrate state BEFORE removing the Interactive', () => {
+    // The teardown list (MQL/forum subs, reactions, prompts) lives on
+    // Interactive.teardownSubstrateState; Application only triggers it
+    // before removal. (The cancellations themselves are covered in
+    // Interactive's own test.)
     const interactive = makeFakeInteractive('sock-x');
+    const teardownSpy = vi.fn();
+    (
+      interactive as unknown as { teardownSubstrateState: () => void }
+    ).teardownSubstrateState = teardownSpy;
     const getSpy = vi
       .spyOn(ConnectionManager.get(), 'getInteractive')
       .mockReturnValue(interactive);
-    const cancelSpy = vi
-      .spyOn(MqlSubscriptionApi, 'cancelAllForInteractive')
-      .mockImplementation(() => {});
     const removeSpy = vi
       .spyOn(ConnectionManager.get(), 'removeInteractive')
       .mockReturnValue(true);
 
     app.handleUserDisconnect('sock-x');
 
-    expect(cancelSpy).toHaveBeenCalledWith(interactive);
+    expect(teardownSpy).toHaveBeenCalled();
     expect(removeSpy).toHaveBeenCalledWith('sock-x');
-    // Ordering: cancel runs strictly before remove.
-    const cancelOrder = cancelSpy.mock.invocationCallOrder[0]!;
+    // Ordering: teardown runs strictly before remove.
+    const teardownOrder = teardownSpy.mock.invocationCallOrder[0]!;
     const removeOrder = removeSpy.mock.invocationCallOrder[0]!;
-    expect(cancelOrder).toBeLessThan(removeOrder);
+    expect(teardownOrder).toBeLessThan(removeOrder);
 
     getSpy.mockRestore();
-    cancelSpy.mockRestore();
     removeSpy.mockRestore();
   });
 });

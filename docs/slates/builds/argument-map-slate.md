@@ -11,6 +11,14 @@
 > three-surface taxonomy, the workflow — lives in the cooperative slate's
 > *Deliberation* section; this slate specs the **surface itself.**
 
+> **Factoring superseded by [forums-slate.md](./forums-slate.md) (2026-06):**
+> the argument-map is no longer "not a forum" — it is the
+> `organizer: 'structure'` mode of the one forum primitive, sharing that
+> slate's Part-0 substrate. The "distinct from forums" framing below is
+> retained as the *organizer-level rationale*; this slate remains the
+> authoritative spec for the structure organizer (data model, principles,
+> scale problems).
+
 Working slate for the **argument-map** — the structured-argumentation
 surface where the legislature deliberates. The governing claim, and the
 reason it isn't a forum: **load-bearing deliberation must be organized by the

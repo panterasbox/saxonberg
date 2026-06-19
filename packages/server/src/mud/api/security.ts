@@ -27,6 +27,7 @@
  * push noise frames onto every policy lookup.
  */
 
+import { nanoid } from 'nanoid';
 import type { SecurityPolicy } from '../lib/security/SecurityPolicies';
 import { ExecutionContextApi } from './execution-context';
 import { ModuleApi } from './module';
@@ -96,6 +97,21 @@ const PUBLIC_FALLBACK: SecurityPolicy = {
 
 export class SecurityApi {
   private constructor() {}
+
+  /* ─────────────────────────── Identity ─────────────────────────── */
+
+  /**
+   * Mint a fresh, URL-safe, collision-resistant identifier — the
+   * project-wide id source. Server code calls this instead of importing
+   * `nanoid` directly, so id generation routes through one Api seam (the
+   * client mints its own ids browser-side). Despite the name it returns
+   * a nanoid (21 chars by default), not an RFC-4122 UUID.
+   *
+   * @param size optional length override (e.g. short handles).
+   */
+  public static uuid(size?: number): string {
+    return size === undefined ? nanoid() : nanoid(size);
+  }
 
   /* ─────────────────────────── Storage ─────────────────────────── */
 

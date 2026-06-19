@@ -23,7 +23,7 @@
  * home for the in-progress `EnrollmentDraft`.
  */
 
-import { nanoid } from "nanoid";
+import { SecurityApi } from "../api/security";
 import { Idea } from "../lib/stuff/Idea";
 import { StuffApi } from "../api/stuff";
 import { AppApi } from "../api/app";
@@ -257,7 +257,7 @@ export default class Login extends LoginBase {
 
     // Transient template at a unique guest path. Pronouns are NOT
     // overridden — the seed's `they` carries through (always they/them).
-    const path = `${Avatar.TEMPLATE_PATH_PREFIX}guest-${nanoid()}`;
+    const path = `${Avatar.TEMPLATE_PATH_PREFIX}guest-${SecurityApi.uuid()}`;
     const data: Record<string, unknown> = {
       ...seed.data,
       // Guests spawn at the same app-config default as enrolled avatars

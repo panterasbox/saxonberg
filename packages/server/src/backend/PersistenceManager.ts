@@ -37,6 +37,11 @@ export enum Collections {
   Channels = 'channels',
   Beliefs = 'beliefs',
   Chronicles = 'chronicles',
+  ForumSubjects = 'forum_subjects',
+  ForumBoards = 'forum_boards',
+  ForumEntries = 'forum_entries',
+  ForumVotes = 'forum_votes',
+  ForumEvents = 'forum_events',
   RenownEvents = 'renown_events',
   Renown = 'renown',
 }
@@ -619,6 +624,60 @@ export class PersistenceManager {
       // O(rows-for-this-owner), not a full scan.
       await this.getCollection(Collections.Chronicles).createIndex({
         owner: 1,
+      });
+
+      // Forum subjects: the linking spine. A board-subject's `title` is a
+      // flat-global handle (unique, case-insensitive via a collation), so
+      // `SubjectCatalogue.resolveByTitle` and the `make`-on-taken-name
+      // guard are O(1). A thread-subject's handle is board-scoped, so
+      // `parentSubject` is indexed for the board-scoped resolve + the
+      // "threads promoted under this board" reverse read.
+      await this.getCollection(Collections.ForumSubjects).createIndex(
+        { title: 1 },
+        { unique: true, collation: { locale: 'en', strength: 2 } }
+      );
+      await this.getCollection(Collections.ForumSubjects).createIndex({
+        parentSubject: 1,
+      });
+
+      // Forum boards: resolved board-by-subject (a Subject's
+      // popularity-forum manifestation points at the Board, and the
+      // reverse "board for this subject" read is owner-scoped).
+      await this.getCollection(Collections.ForumBoards).createIndex({
+        subject: 1,
+      });
+
+      // Forum entries: the reply tree. `board` scopes a board's threads;
+      // `parent` scopes a thread's posts (null = thread roots).
+      await this.getCollection(Collections.ForumEntries).createIndex({
+        board: 1,
+      });
+      await this.getCollection(Collections.ForumEntries).createIndex({
+        parent: 1,
+      });
+
+      // Forum votes: one row per (entry, voter) — unique compound index
+      // enforces one-account-one-vote per entry; `entry` alone serves the
+      // aggregate recompute.
+      await this.getCollection(Collections.ForumVotes).createIndex(
+        { entry: 1, voter: 1 },
+        { unique: true }
+      );
+
+      // Forum events: the append-only audit/archive log. Indexed on each
+      // dependency key so the Wave 3 subscription's history/backfill reads
+      // (and the deferred audit tooling) are scoped, not full scans.
+      await this.getCollection(Collections.ForumEvents).createIndex({
+        subject: 1,
+      });
+      await this.getCollection(Collections.ForumEvents).createIndex({
+        board: 1,
+      });
+      await this.getCollection(Collections.ForumEvents).createIndex({
+        thread: 1,
+      });
+      await this.getCollection(Collections.ForumEvents).createIndex({
+        entry: 1,
       });
 
       // Renown events: append-only, scope-tagged signal log (one doc per
