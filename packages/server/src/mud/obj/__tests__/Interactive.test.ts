@@ -9,7 +9,7 @@
  * respectively — those have their own tests.
  */
 
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import Interactive from '../Interactive';
 import Avatar from '../Avatar';
 import { User } from '../../lib/identity/User';
@@ -17,6 +17,10 @@ import { StuffApi } from '../../api/stuff';
 import { ProxyApi } from '../../api/proxy';
 import { ConnectionApi } from '../../api/connection';
 import { PlayerApi } from '../../api/player';
+import { MqlSubscriptionApi } from '../../api/mql-subscription';
+import { ForumsApi } from '../../api/forums';
+import { ReactionApi } from '../../api/reaction';
+import { PromptApi } from '../../api/prompt';
 import { makeStuff } from '../../lib/security/__tests__/test-setup';
 
 function makeUser(id: string, playerIds: string[] = []): User {
@@ -184,6 +188,50 @@ describe('Interactive', () => {
       expect(interactive.getHolder()).toBeNull();
       expect(() => StuffApi.destruct(interactive)).not.toThrow();
       expect(interactive.isDestroyed()).toBe(true);
+    });
+  });
+
+  describe('teardownSubstrateState', () => {
+    beforeEach(() => {
+      interactive = makeStuff(
+        () => new Interactive(testSocketId, testSessionId, makeUser(testUserId)),
+      );
+    });
+
+    it('cancels MQL + forum subscriptions, reactions, then prompts', () => {
+      const mql = vi
+        .spyOn(MqlSubscriptionApi, 'cancelAllForInteractive')
+        .mockImplementation(() => {});
+      const forum = vi
+        .spyOn(ForumsApi, 'cancelAllForInteractive')
+        .mockImplementation(() => {});
+      const reaction = vi
+        .spyOn(ReactionApi, 'cancelAllForInteractive')
+        .mockImplementation(() => {});
+      const prompt = vi
+        .spyOn(PromptApi, 'cancelAll')
+        .mockImplementation(() => 0);
+
+      interactive.teardownSubstrateState();
+
+      // Each cancellation receives this Interactive (the proxy identity
+      // used as the subscription/registry key).
+      expect(mql).toHaveBeenCalledWith(interactive);
+      expect(forum).toHaveBeenCalledWith(interactive);
+      expect(reaction).toHaveBeenCalledWith(interactive);
+      expect(prompt).toHaveBeenCalledWith(interactive, 'host-disconnected');
+
+      // Prompts reject last so a controller's catch can react while the
+      // Interactive is still live.
+      const order = [mql, forum, reaction, prompt].map(
+        (s) => s.mock.invocationCallOrder[0]!,
+      );
+      expect(order).toEqual([...order].sort((a, b) => a - b));
+
+      mql.mockRestore();
+      forum.mockRestore();
+      reaction.mockRestore();
+      prompt.mockRestore();
     });
   });
 

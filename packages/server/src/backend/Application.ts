@@ -31,10 +31,7 @@ import { BroadcastFeed } from './BroadcastFeed';
 import { setClientStateUpdatePush } from '../mud/lib/connection/HasInteractive';
 import type Interactive from '../mud/obj/Interactive';
 import Login from '../mud/obj/Login';
-import { MqlSubscriptionApi } from '../mud/api/mql-subscription';
-import { ForumsApi } from '../mud/api/forums';
 import { ReactionApi } from '../mud/api/reaction';
-import { PromptApi } from '../mud/api/prompt';
 import { User } from '../mud/lib/identity/User';
 import { TwitchProfile } from '../mud/lib/identity/TwitchProfile';
 import { GoogleProfile } from '../mud/lib/identity/GoogleProfile';
@@ -280,23 +277,13 @@ export class Application {
     BroadcastFeed.get().removeConnection(socketId);
 
     // Tear down per-Interactive substrate state BEFORE removing the
-    // Interactive so any final substrate-side delivery still has a
-    // live Interactive to address.
-    //
-    // Order:
-    //   1. MQL subscriptions (silent in v1; cancelled-reason
-    //      envelopes ship from a later subsystem).
-    //   2. Prompts (PromptApi rejects pending awaits with
-    //      PromptCancelledError { reason: 'host-disconnected' };
-    //      controllers' try/catch can react before the Interactive
-    //      goes away).
-    //   3. removeInteractive (below).
+    // Interactive so any final substrate-side delivery still has a live
+    // Interactive to address. The teardown list lives on Interactive
+    // itself (subscriptions, reactions, prompts) — Application just
+    // triggers it at the network boundary, then removes (below).
     const interactive = ConnectionManager.get().getInteractive(socketId);
     if (interactive) {
-      MqlSubscriptionApi.cancelAllForInteractive(interactive);
-      ForumsApi.cancelAllForInteractive(interactive);
-      ReactionApi.cancelAllForInteractive(interactive);
-      PromptApi.cancelAll(interactive, 'host-disconnected');
+      interactive.teardownSubstrateState();
     }
 
     const removed = ConnectionManager.get().removeInteractive(socketId);

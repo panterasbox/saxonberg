@@ -23,6 +23,10 @@
 
 import { Idea } from '../lib/stuff/Idea';
 import { ConnectionApi } from '../api/connection';
+import { MqlSubscriptionApi } from '../api/mql-subscription';
+import { ForumsApi } from '../api/forums';
+import { ReactionApi } from '../api/reaction';
+import { PromptApi } from '../api/prompt';
 import type { Stuff } from '../lib/stuff/Stuff';
 import type { User } from '../lib/identity/User';
 import type { HasInteractive } from '../lib/connection/HasInteractive';
@@ -100,6 +104,26 @@ export default class Interactive extends Idea {
 
   public getConnectionDuration(): number {
     return Date.now() - this.connectedAt.getTime();
+  }
+
+  /**
+   * Tear down all per-Interactive substrate state on disconnect: live
+   * subscriptions (MQL + forum), reaction streams, and pending prompts.
+   * This is the one home for the per-Interactive teardown list — each
+   * subsystem's `cancelAllForInteractive` is invoked from here rather
+   * than enumerated at the network boundary (Application).
+   *
+   * Called by `Application.handleUserDisconnect` BEFORE the Interactive
+   * is removed, so any final substrate-side delivery still has a live
+   * Interactive to address. Prompts reject last (`host-disconnected`)
+   * so a controller's catch block can react while the Interactive is
+   * still around.
+   */
+  public teardownSubstrateState(): void {
+    MqlSubscriptionApi.cancelAllForInteractive(this);
+    ForumsApi.cancelAllForInteractive(this);
+    ReactionApi.cancelAllForInteractive(this);
+    PromptApi.cancelAll(this, 'host-disconnected');
   }
 
   public onDestruct(): void {
