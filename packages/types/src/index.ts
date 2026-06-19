@@ -768,7 +768,10 @@ export interface ForumEntryRecord {
   /** Parent entry id, or null for a thread root. */
   parent: string | null;
   board: string;
+  /** Author player reference (durable id; empty for anonymous guests). */
   author: string;
+  /** Author display name captured at post time (the byline). */
+  authorName: string;
   title: string;
   /** Body as MML markup (the client `parseMml`/`MmlRenderer` displays it). */
   body: string;

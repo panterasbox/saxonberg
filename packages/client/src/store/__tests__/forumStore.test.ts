@@ -14,6 +14,7 @@ function rec(id: string, over: Partial<ForumEntryRecord> = {}): ForumEntryRecord
     parent: null,
     board: "b1",
     author: "p1",
+    authorName: "Player One",
     title: `t-${id}`,
     body: "body",
     up: 1,

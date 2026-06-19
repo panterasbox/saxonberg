@@ -377,7 +377,7 @@ export function ForumView({
               <VoteControls entry={t} />
               <Body>
                 <TitleLine onClick={() => openForumThread(t.id)}>{t.title}</TitleLine>
-                <Meta>by {t.author}</Meta>
+                <Meta>by {t.authorName || "someone"}</Meta>
               </Body>
             </Card>
           ))}
@@ -402,7 +402,7 @@ export function ForumView({
               <VoteControls entry={p} />
               <Body>
                 <MmlRenderer text={p.body} onCommandClick={onSendCommand} onCommandPreview={onCommandPreview} />
-                <Meta>by {p.author}</Meta>
+                <Meta>by {p.authorName || "someone"}</Meta>
               </Body>
             </Card>
           ))}

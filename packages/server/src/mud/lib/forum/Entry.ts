@@ -52,7 +52,13 @@ export default class Entry extends Document {
   /** Edge kind. `'reply'` for the popularity tree (the only v1 relation). */
   relation: EntryRelation = 'reply';
 
-  /** Author player reference. */
+  /**
+   * Author player reference — the durable id link (playerId for an
+   * Avatar; empty for anonymous guests). The display name is resolved
+   * FROM this id at read time (live avatar → durable Avatar template),
+   * never frozen here, so a rename reflects and the byline can be made
+   * viewer-aware later.
+   */
   author = '';
 
   /** Thread title (root entries); empty for posts. */

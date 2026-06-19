@@ -33,6 +33,9 @@ import { EventApi } from '../api/event';
 import { MessageApi } from '../api/message';
 import { MixinApi } from '../api/mixin';
 import { ForumsApi } from '../api/forums';
+import { PlayerApi } from '../api/player';
+import { Template } from '../lib/stuff/Template';
+import { TemplatePathPrefixes } from '../lib/paths';
 import { ForumEventFired } from '../lib/forum/ForumEvent';
 import type Interactive from './Interactive';
 import type { Subscription } from '../api/event';
@@ -236,16 +239,29 @@ export default class ForumSubscriptionRegistry extends Idea {
       const board = await ForumsApi.getBoard(scope.id);
       if (!board) return null as unknown as ForumEntryRecord[];
       const threads = await ForumsApi.readBoard(board, 'new');
-      return Promise.all(threads.map((e) => this.projectEntry(e)));
+      return this.projectEntries(threads);
     }
     const root = await ForumsApi.getEntry(scope.id);
     if (!root) return null as unknown as ForumEntryRecord[];
     const { posts } = await ForumsApi.readThread(root, 'new');
-    return Promise.all([root, ...posts].map((e) => this.projectEntry(e)));
+    return this.projectEntries([root, ...posts]);
+  }
+
+  /**
+   * Project a set of entries, resolving each author id → its current
+   * display name in ONE batched lookup (live avatar, else the durable
+   * Avatar template) rather than per-entry.
+   */
+  private async projectEntries(
+    entries: import('../lib/forum/Entry').default[],
+  ): Promise<ForumEntryRecord[]> {
+    const names = await resolveAuthorNames(entries.map((e) => e.getAuthor()));
+    return Promise.all(entries.map((e) => this.projectEntry(e, names)));
   }
 
   private async projectEntry(
     entry: import('../lib/forum/Entry').default,
+    names: Map<string, string>,
   ): Promise<ForumEntryRecord> {
     const displayScore = await ForumsApi.displayScoreFor(entry);
     return {
@@ -253,6 +269,7 @@ export default class ForumSubscriptionRegistry extends Idea {
       parent: entry.getParent(),
       board: entry.getBoard(),
       author: entry.getAuthor(),
+      authorName: names.get(entry.getAuthor()) ?? '',
       title: entry.getTitle(),
       body: entry.getBody(),
       up: entry.up,
@@ -402,6 +419,41 @@ export default class ForumSubscriptionRegistry extends Idea {
 }
 
 /**
+ * Resolve author player ids → current display names, batched. Tries the
+ * live avatar first (its current presentation), then the durable Avatar
+ * template (for offline authors). Empty ids (anonymous guests) resolve to
+ * '' — the client renders a generic byline. The name is NEVER stored on
+ * the entry; the entry links by id and this resolves on read, so renames
+ * reflect and the byline can become viewer-aware later (RecognitionApi).
+ */
+async function resolveAuthorNames(
+  ids: readonly string[],
+): Promise<Map<string, string>> {
+  const out = new Map<string, string>();
+  const offline: string[] = [];
+  for (const id of new Set(ids)) {
+    if (!id) {
+      out.set(id, '');
+      continue;
+    }
+    const live = PlayerApi.findAvatarByPlayerId(id);
+    if (live) out.set(id, live.getPresentation());
+    else offline.push(id);
+  }
+  if (offline.length > 0) {
+    const prefix = TemplatePathPrefixes.avatar;
+    const templates = await Template.findByPaths(offline.map((id) => prefix + id));
+    for (const tpl of templates) {
+      const id = tpl.path.slice(prefix.length);
+      const data = tpl.data as { name?: unknown } | undefined;
+      out.set(id, typeof data?.name === 'string' ? data.name : id);
+    }
+    for (const id of offline) if (!out.has(id)) out.set(id, '');
+  }
+  return out;
+}
+
+/**
  * Project a board into the shared `ForumEntryRecord` shape for the
  * landing index. The record's `id` is the subject's flat title handle, so
  * the client opens it with `forum <handle>` / `openForumBoard(id)`;
@@ -417,6 +469,7 @@ function projectBoard(
     parent: null,
     board: board._id ?? '',
     author: subject.getOwner(),
+    authorName: '',
     title: board.getName() || subject.getTitle(),
     body: board.getDescription(),
     up: 0,
