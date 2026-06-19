@@ -80,6 +80,27 @@ export function replyForumEntry(entryId: string, body: string): void {
   websocketClient.sendCommand(`forum reply ${entryId}`, { body });
 }
 
+/** The three argument-board contribution valences → reply flags. */
+export type ArgumentValence = "pro" | "con" | "rebut";
+
+/**
+ * Attach a typed claim on an argument board — a real
+ * `forum reply <parent> --pro|--con|--rebut` string with the body on the
+ * `fields` side-channel (the same path the CLI types).
+ */
+export function attachArgumentClaim(
+  parentId: string,
+  valence: ArgumentValence,
+  body: string,
+): void {
+  websocketClient.sendCommand(`forum reply ${parentId} --${valence}`, { body });
+}
+
+/** Mark an argument deliberation matured (owner-gated server-side). */
+export function matureArgument(boardHandle: string): void {
+  websocketClient.sendCommand(`forum mature ${boardHandle}`);
+}
+
 /** Navigate to a board's thread-list (also flips mainView via App's recognizer). */
 export function openForumBoard(boardHandle: string): void {
   useStore.getState().setMainView("forum");
