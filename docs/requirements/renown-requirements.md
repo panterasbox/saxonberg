@@ -213,7 +213,11 @@ comm act** (say/shout/whisper/emote/chat) mints a small renown signal for
 the speaker. It's measured on the **receiving end** — `CommReceivedEvent`
 fires from `SensorMixin.onMessage`, *after* `filterMessage`, so it's
 **genuinely perception-gated** (a deaf / shadowed / disconnected listener
-never fires it) and un-farmable by monologue. The event carries only the
+never fires it) and un-farmable by monologue. The fire is gated to
+**communication topics** via a data-driven `communicative` flag on the
+`Topic` (say/whisper/shout/emote/chat — **not** dm/narration/system),
+consulted through `TopicApi.isCommunicative` so non-comm frames never hit
+the bus. The event carries only the
 **perceiver** + the frame's `meta.commandId`; the reception tap recovers
 the speaker + scope from the reactable-act registry
 (`ReactionApi.actInfo`), skips non-comm frames (`null`) and self-receipt,

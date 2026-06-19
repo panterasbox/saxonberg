@@ -2,6 +2,7 @@ class: /lib/messaging/Topic
 hydratorClass: /lib/persistence/PersistentHydrator
 data:
   topic: world.speech.shout
+  communicative: true
   family: world.speech
   label: Shout
   description: A loud, multi-room utterance. The voice carries across rooms — anyone within acoustic range hears it.

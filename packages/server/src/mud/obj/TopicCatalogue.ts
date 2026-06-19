@@ -53,6 +53,14 @@ export default class TopicCatalogue extends TopicCatalogueBase {
   private cache: Map<string, TopicDescriptor> | null = null;
 
   /**
+   * Topics flagged `communicative: true` in their template data — the
+   * say/whisper/shout/emote/chat acts that generate renown when heard
+   * (NOT dm / narration / system). Built alongside {@link cache}; the
+   * `SensorMixin.onMessage` reception gate consults it via `TopicApi`.
+   */
+  private communicative: Set<string> = new Set();
+
+  /**
    * Lookup contract: ALWAYS returns a populated descriptor.
    *
    *   1. Cache hit (authored) — return verbatim.
@@ -89,6 +97,18 @@ export default class TopicCatalogue extends TopicCatalogueBase {
    */
   public invalidateCache(): void {
     this.cache = null;
+    this.communicative = new Set();
+  }
+
+  /**
+   * Whether `topic` is a communication act (the data-driven
+   * `communicative` flag). Consulted on the message hot path by the
+   * renown reception gate; `false` for any topic not flagged (dm,
+   * narration, system, …) and before the cache is warmed.
+   */
+  public isCommunicative(topic: string): boolean {
+    this.ensureCache();
+    return this.communicative.has(topic);
   }
 
   /**
@@ -135,6 +155,7 @@ export default class TopicCatalogue extends TopicCatalogueBase {
       Topic.TEMPLATE_PATH_PREFIX,
     );
     const map = new Map<string, TopicDescriptor>();
+    const communicative = new Set<string>();
     for (const tpl of templates) {
       const data = tpl.data as
         | {
@@ -142,9 +163,11 @@ export default class TopicCatalogue extends TopicCatalogueBase {
             family?: unknown;
             label?: unknown;
             description?: unknown;
+            communicative?: unknown;
           }
         | undefined;
       if (!data || typeof data.topic !== 'string') continue;
+      if (data.communicative === true) communicative.add(data.topic);
       map.set(data.topic, {
         topic: data.topic,
         family: typeof data.family === 'string' ? data.family : '',
@@ -157,6 +180,7 @@ export default class TopicCatalogue extends TopicCatalogueBase {
       });
     }
     this.cache = map;
+    this.communicative = communicative;
   }
 
   /**
