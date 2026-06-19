@@ -18,12 +18,13 @@ import EventRegistry from '../../EventRegistry';
 import { StuffApi } from '../../../api/stuff';
 import { Stuff } from '../../../lib/stuff/Stuff';
 import { GroupApi } from '../../../api/group';
+import { ReactionApi } from '../../../api/reaction';
 import { WorldClockApi } from '../../../api/worldclock';
 import { ScheduleApi } from '../../../api/schedule';
 import type { ScheduleHandle } from '../../../api/schedule';
 import { PersistenceManager } from '../../../../backend/PersistenceManager';
 import { ReactionFiredEvent } from '../../../lib/events/ReactionFiredEvent';
-import { CommActEmittedEvent } from '../../../lib/events/CommActEmittedEvent';
+import { CommReceivedEvent } from '../../../lib/events/CommReceivedEvent';
 
 let store: Map<string, Record<string, unknown>>;
 let idCounter = 0;
@@ -138,47 +139,48 @@ describe('RenownLogic reaction tap', () => {
   });
 });
 
-describe('RenownLogic reception tap', () => {
-  const member = (id: string): Stuff => ({ stuffId: id }) as unknown as Stuff;
+describe('RenownLogic reception tap (receive-side)', () => {
+  const SPEAKER = '/obj/Avatar/speaker';
 
-  function fireComm(): void {
-    EventApi.fire(
-      new CommActEmittedEvent({
-        subjectId: '/obj/Avatar/speaker',
-        scope: 'channel:study-group',
-        commandId: 'c1',
-      })
-    );
+  function received(perceiverId: string, commandId: string): void {
+    EventApi.fire(new CommReceivedEvent({ perceiverId, commandId }));
   }
 
-  it('mints per-listener reception signals, excludes the speaker, dedups', async () => {
-    vi.spyOn(GroupApi, 'membersOf').mockResolvedValue([
-      member('/obj/Avatar/L1'),
-      member('/obj/Avatar/L2'),
-      member('/obj/Avatar/speaker'), // the speaker is in the channel too
-    ]);
+  beforeEach(() => {
+    // The act registry resolves a reactable comm act → speaker + scope;
+    // an unknown commandId (non-comm frame) resolves to null.
+    vi.spyOn(ReactionApi, 'actInfo').mockImplementation((commandId) =>
+      commandId === 'c1' || commandId === 'c2'
+        ? { subjectId: SPEAKER, scope: 'channel:study-group' }
+        : null
+    );
     vi.spyOn(GroupApi, 'sharedManagedGroups').mockResolvedValue([]);
+  });
+
+  it('credits the speaker once per genuine listener, skips self + non-comm', async () => {
     RenownApi.boot();
 
-    fireComm();
+    received('/obj/Avatar/L1', 'c1');
+    received('/obj/Avatar/L2', 'c1');
+    received(SPEAKER, 'c1'); // self-receipt — skipped
+    received('/obj/Avatar/L3', 'not-an-act'); // non-comm frame — skipped
     await flush();
-    const events = await RenownApi.eventsFor('/obj/Avatar/speaker');
-    expect(events).toHaveLength(2); // L1, L2 — speaker excluded
+
+    const events = await RenownApi.eventsFor(SPEAKER);
+    expect(events).toHaveLength(2); // L1, L2 only
     expect(events.every((e) => e.kind === 'reception')).toBe(true);
     expect(events.map((e) => e.source).sort()).toEqual([
       '/obj/Avatar/L1',
       '/obj/Avatar/L2',
     ]);
+  });
 
-    // Dedup: same speaker→listeners within the window mints nothing new.
-    EventApi.fire(
-      new CommActEmittedEvent({
-        subjectId: '/obj/Avatar/speaker',
-        scope: 'channel:study-group',
-        commandId: 'c2',
-      })
-    );
+  it('dedups a listener hearing the same speaker again within the window', async () => {
+    RenownApi.boot();
+    received('/obj/Avatar/L1', 'c1');
     await flush();
-    expect(await RenownApi.eventsFor('/obj/Avatar/speaker')).toHaveLength(2);
+    received('/obj/Avatar/L1', 'c2'); // same speaker→L1, within window
+    await flush();
+    expect(await RenownApi.eventsFor(SPEAKER)).toHaveLength(1);
   });
 });

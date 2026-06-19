@@ -24,6 +24,8 @@ import type { MixinConstructor } from '../mixin';
 import type { EnvelopeTemplate, MessageFrame } from '@saxonberg/types';
 import type { Stuff } from '../stuff/Stuff';
 import { PerceptionApi } from '../../api/perception';
+import { EventApi } from '../../api/event';
+import { CommReceivedEvent } from '../events/CommReceivedEvent';
 
 /**
  * Public shape provided by SensorMixin.
@@ -47,6 +49,19 @@ export function SensorMixin<TBase extends MixinConstructor>(Base: TBase) {
       const transformed = this.filterMessage(frame);
       if (transformed === null) return;
       this.handleMessage(transformed);
+      // Renown reception (receive-side): a genuinely-perceived command
+      // frame credits the speaker. Renown recovers the speaker from the
+      // act registry and filters non-comm acts (→ no-op) + self-receipt.
+      // Fire-and-forget; a later debounce can coalesce this hot path.
+      const commandId = transformed.meta?.commandId;
+      if (commandId !== undefined) {
+        EventApi.fire(
+          new CommReceivedEvent({
+            perceiverId: (this as unknown as Stuff).stuffId,
+            commandId,
+          })
+        );
+      }
     }
 
     /**

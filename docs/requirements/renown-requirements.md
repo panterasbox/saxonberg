@@ -210,14 +210,18 @@ Scope tags are resolved at ingestion from the act's location +
 
 A passive engagement input alongside reactions: **being heard on a public
 comm act** (say/shout/whisper/emote/chat) mints a small renown signal for
-the speaker — measured on the *receiving* end, so it's audience-weighted
-and un-farmable by monologue. `CommActEmittedEvent` fires once per
-utterance at `ReactionRegistry.noteReactableAct`; the reception tap
-resolves the audience-scope to listeners (location occupants / channel
-members), excludes the speaker, and appends one `kind:'reception'` event
-per listener — **deduped per `(speaker, listener)`** within
-`renown.receptionWindowS` (reward reaching *new* people, not repetition).
-At recompute, receptions are **log-saturated** —
+the speaker. It's measured on the **receiving end** — `CommReceivedEvent`
+fires from `SensorMixin.onMessage`, *after* `filterMessage`, so it's
+**genuinely perception-gated** (a deaf / shadowed / disconnected listener
+never fires it) and un-farmable by monologue. The event carries only the
+**perceiver** + the frame's `meta.commandId`; the reception tap recovers
+the speaker + scope from the reactable-act registry
+(`ReactionApi.actInfo`), skips non-comm frames (`null`) and self-receipt,
+and appends one `kind:'reception'` event — **deduped per
+`(speaker, listener)`** within `renown.receptionWindowS` (reward reaching
+*new* people, not repetition). It fires **per genuine receipt** (N per
+utterance — the receive-side cost; a debounce can coalesce it later). At
+recompute, receptions are **log-saturated** —
 `receptionValence × ln(1 + Σ decayed)` (≪ a reaction; first messages ≫ the
 thousandth), while reactions stay linear. Dials: `renown.receptionValence`,
 `renown.receptionWindowS`. True engagement-*effect* (the causal Facebook

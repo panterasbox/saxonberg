@@ -23,13 +23,11 @@ import type { ScheduleHandle } from '../../api/schedule';
 import { StuffApi } from '../../api/stuff';
 import { AddressApi } from '../../api/address';
 import { GroupApi } from '../../api/group';
-import { ContainmentApi } from '../../api/containment';
-import { MixinApi } from '../../api/mixin';
-import { Mixins } from '../../lib/mixin';
+import { ReactionApi } from '../../api/reaction';
 import { ReactionFiredEvent } from '../../lib/events/ReactionFiredEvent';
 import type { ReactionFiredPayload } from '../../lib/events/ReactionFiredEvent';
-import { CommActEmittedEvent } from '../../lib/events/CommActEmittedEvent';
-import type { CommActEmittedPayload } from '../../lib/events/CommActEmittedEvent';
+import { CommReceivedEvent } from '../../lib/events/CommReceivedEvent';
+import type { CommReceivedPayload } from '../../lib/events/CommReceivedEvent';
 import type { Stuff } from '../../lib/stuff/Stuff';
 import type { Container } from '../../lib/spatial/Container';
 import type { GroupRef } from '../../lib/social/GroupProvider';
@@ -168,37 +166,6 @@ async function appendFromReaction(p: ReactionFiredPayload): Promise<void> {
   });
 }
 
-/**
- * Resolve a comm act's audience-scope to its listeners' ids (excluding the
- * speaker). A `location:` scope → the co-present Sensors; a `channel:`
- * scope → the channel's members. Best-effort: empty when the scope can't
- * be resolved (pre-boot / absent registry).
- */
-async function resolveAudience(
-  subjectId: string,
-  scope: string
-): Promise<string[]> {
-  if (scope.startsWith('location:')) {
-    const loc = StuffApi.findById(scope.slice('location:'.length));
-    if (!loc || !MixinApi.isContainer(loc)) return [];
-    return ContainmentApi.getContents(loc)
-      .filter((c) => MixinApi.hasMixin(c, Mixins.Sensor))
-      .map((c) => c.stuffId)
-      .filter((id) => id !== subjectId);
-  }
-  if (scope.startsWith('channel:')) {
-    try {
-      const members = await GroupApi.membersOf(
-        scope.slice('channel:'.length) as GroupRef
-      );
-      return members.map((m) => m.stuffId).filter((id) => id !== subjectId);
-    } catch {
-      return [];
-    }
-  }
-  return [];
-}
-
 /** The per-`(speaker, listener)` dedup window in game-seconds (default 300). */
 function receptionWindowS(): number {
   try {
@@ -211,38 +178,47 @@ function receptionWindowS(): number {
 }
 
 /**
- * Mint passive **reception** signals for one comm act: a small per-listener
- * engagement reward for the speaker, **deduped** per `(speaker, listener)`
- * within `receptionWindowS` (reward reaching new people, not repetition).
- * `seen` is the ephemeral per-singleton dedup map (`key → last game-time`).
+ * Mint a passive **reception** signal from one genuine receipt
+ * (`CommReceivedEvent`, fired on the receive side *after* perception
+ * filtering — so a deaf / shadowed listener never reaches here). The
+ * speaker + scope are recovered from the reactable-act registry by
+ * `commandId` (`ReactionApi.actInfo`); non-comm frames (`null`) and
+ * self-receipt are skipped. Deduped per `(speaker, listener)` within
+ * `receptionWindowS` (reward reaching new people, not repetition). `seen`
+ * is the ephemeral per-singleton dedup map (`key → last game-time`).
  */
 async function appendFromReception(
-  p: CommActEmittedPayload,
+  p: CommReceivedPayload,
   seen: Map<string, number>
 ): Promise<void> {
   if (!active()) return;
+  const act = ReactionApi.actInfo(p.commandId);
+  if (!act) return; // not a reactable comm act (look result, system notice, …)
+  const subjectId = act.subjectId;
+  const listenerId = p.perceiverId;
+  if (listenerId === subjectId) return; // you don't earn renown hearing yourself
+
   const windowS = receptionWindowS();
   const nowS = WorldClockApi.getNow().rawValue();
-  for (const listenerId of await resolveAudience(p.subjectId, p.scope)) {
-    const key = `${p.subjectId}|${listenerId}`;
-    const last = seen.get(key);
-    if (last !== undefined && nowS - last < windowS) continue; // within window
-    seen.set(key, nowS);
-    const { locality, groups } = await resolveScope(
-      listenerId,
-      p.subjectId,
-      p.scope
-    );
-    await appendImpl({
-      subject: p.subjectId,
-      source: listenerId,
-      kind: 'reception',
-      signal: { commandId: p.commandId },
-      locality,
-      groups,
-      at: nowS,
-    });
-  }
+  const key = `${subjectId}|${listenerId}`;
+  const last = seen.get(key);
+  if (last !== undefined && nowS - last < windowS) return; // within window
+  seen.set(key, nowS);
+
+  const { locality, groups } = await resolveScope(
+    listenerId,
+    subjectId,
+    act.scope
+  );
+  await appendImpl({
+    subject: subjectId,
+    source: listenerId,
+    kind: 'reception',
+    signal: { commandId: p.commandId },
+    locality,
+    groups,
+    at: nowS,
+  });
 }
 
 /* ───────── value-function scoring (applied only at recompute) ───────── */
@@ -468,7 +444,7 @@ export class RenownLogic extends Idea {
   private reactionSub: Subscription<ReactionFiredPayload> | null = null;
 
   /** The comm-act reception subscription — retained so re-install is a no-op. */
-  private receptionSub: Subscription<CommActEmittedPayload> | null = null;
+  private receptionSub: Subscription<CommReceivedPayload> | null = null;
 
   /**
    * Ephemeral per-`(speaker, listener)` dedup map (`key → last game-time
@@ -511,17 +487,17 @@ export class RenownLogic extends Idea {
   }
 
   /**
-   * Install the comm-act → renown *reception* tap (idempotent). Subscribes
-   * to `CommActEmittedEvent` and mints a small, rate-limited per-listener
-   * engagement signal for the speaker (passive "being heard"). Sibling to
-   * the reaction tap; called once at boot.
+   * Install the comm-reception → renown tap (idempotent). Subscribes to
+   * `CommReceivedEvent` (fired on the receive side, per genuine receipt)
+   * and mints a small, rate-limited engagement signal for the speaker
+   * (passive "being heard"). Sibling to the reaction tap; called at boot.
    */
   @CallSecurity(RenownApiCallers)
   public installReceptionTap(): void {
     if (this.receptionSub) return;
     const seen = this.receptionSeen;
-    this.receptionSub = EventApi.on<CommActEmittedPayload>(
-      CommActEmittedEvent.KIND,
+    this.receptionSub = EventApi.on<CommReceivedPayload>(
+      CommReceivedEvent.KIND,
       (p) => {
         void appendFromReception(p, seen).catch((err) =>
           console.error('RenownLogic: reception signal append failed', err)
