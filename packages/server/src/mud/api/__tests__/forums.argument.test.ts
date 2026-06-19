@@ -229,3 +229,27 @@ describe('edit-in-place with a lossless trail', () => {
     expect(data.priorBody).toBe(priorBody);
   });
 });
+
+describe('the mature → vote seam', () => {
+  it('emits a decoupled mature event with the board/subject keys and no consumer', async () => {
+    const creator = makeActor();
+    const { board, subject, spine } = await makeArgumentBoard(creator);
+    const entriesBefore = col('forum_entries').size;
+
+    await ForumsApi.matureArgument(creator, board);
+
+    const mature = eventsOfKind('mature');
+    expect(mature).toHaveLength(1);
+    expect(mature[0]!.board).toBe(board._id);
+    expect(mature[0]!.subject).toBe(subject._id);
+    // Keys carry the spine so a thread subscription re-resolves too.
+    expect(mature[0]!.thread).toBe(spine._id);
+    expect(mature[0]!.entry).toBe(spine._id);
+
+    // No consumer: nothing was bound — no entry created, no measure/vote
+    // collection materialized; the board is otherwise unchanged.
+    expect(col('forum_entries').size).toBe(entriesBefore);
+    expect(store.get('measures')).toBeUndefined();
+    expect(store.get('ballots')).toBeUndefined();
+  });
+});

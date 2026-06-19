@@ -179,6 +179,14 @@ export class ForumsApi {
     return logic().promoteThread(actor, thread, threadName);
   }
 
+  /**
+   * Mark an argument deliberation matured — emits a decoupled `mature`
+   * event the deferred vote layer will consume; binds nothing in v1.
+   */
+  static async matureArgument(actor: Stuff, board: Board): Promise<void> {
+    return logic().matureArgument(actor, board);
+  }
+
   /* ─── Live subscriptions (the forum document-change observer) ───
    * Forwards to the ForumSubscriptionRegistry singleton, mirroring
    * MqlSubscriptionApi. Consumed by the `forum-subscribe` /

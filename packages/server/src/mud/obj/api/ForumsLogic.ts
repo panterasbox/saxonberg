@@ -454,6 +454,31 @@ export class ForumsLogic extends Idea {
     });
     return threadSubject;
   }
+
+  // --- The mature → vote seam ---------------------------------------
+
+  /** See {@link ForumsApi.matureArgument}. */
+  @CallSecurity(ForumsApiCallers)
+  public async matureArgument(actor: Stuff, board: Board): Promise<void> {
+    // The decoupled handoff: emit a `mature` event and bind NOTHING. The
+    // vote / measure / docket consumer is the deferred governance layer;
+    // v1 fires the event into no consumer. Keys carry the spine (the
+    // earliest root) so a thread subscription re-resolves too.
+    const roots = await Entry.find({ board: board._id, parent: null });
+    const spine =
+      roots.sort(
+        (a, b) => a.createdAt.getTime() - b.createdAt.getTime(),
+      )[0] ?? null;
+    await recordEvent({
+      kind: 'mature',
+      subject: board.getSubject(),
+      board: board._id!,
+      thread: spine?._id ?? '',
+      entry: spine?._id ?? '',
+      actor: authorIdOf(actor),
+      data: {},
+    });
+  }
 }
 
 // ---------------------------------------------------------------------------

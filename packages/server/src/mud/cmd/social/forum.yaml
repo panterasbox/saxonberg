@@ -123,6 +123,12 @@ subcommands:
       - name: direction
         type: string
         required: true
+  mature:
+    description: "Mark an argument forum matured (owner only); hands it to the deferred vote layer"
+    args:
+      - name: board
+        type: string
+        required: true
   promote:
     description: "Promote a thread into a thread-subject with its own chat"
     args:

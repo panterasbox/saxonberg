@@ -20,6 +20,8 @@
  *     lossless `'entry-edited'` trail).
  *   - `read <board> [thread]` — board thread-list or a thread's tree.
  *   - `vote <entry> up|down` — vote (popularity only; refused on argument).
+ *   - `mature <board>` — mark an argument forum matured (owner;
+ *     emits the decoupled `mature` event, no consumer in v1).
  *   - `promote <board> <thread> <name>` — mint a thread-subject + chat.
  *   - `follow <subject>` — follow all the subject's lit surfaces.
  *
@@ -108,6 +110,8 @@ export default class ForumController extends CommandController<ForumModel> {
         return this.executeRead(model, context);
       case 'vote':
         return this.executeVote(model, context);
+      case 'mature':
+        return this.executeMature(model, context);
       case 'promote':
         return this.executePromote(model, context);
       case 'follow':
@@ -362,6 +366,41 @@ export default class ForumController extends CommandController<ForumModel> {
       );
     } catch (err) {
       return this.fail(context, (err as Error).message, 'vote-failed');
+    }
+  }
+
+  private async executeMature(
+    model: ForumModel,
+    context: CommandContext,
+  ): Promise<void> {
+    const actor = context.commandGiver;
+    const handle = (model.board ?? '').trim();
+    if (!handle) return this.fail(context, 'board required', 'board-required');
+    const view = await ForumsApi.resolveBoardByHandle(handle);
+    if (!view) return this.fail(context, `No board '${handle}'.`, 'no-such-board');
+    if (view.board.getOrganizer() !== 'argument') {
+      return this.fail(
+        context,
+        'Only an argument forum can be matured.',
+        'not-argument',
+      );
+    }
+    if (!ownsSubject(actor, view.subject)) {
+      return this.fail(
+        context,
+        'Only the owner may mature this deliberation.',
+        'not-owner',
+      );
+    }
+    try {
+      await ForumsApi.matureArgument(actor, view.board);
+      // The vote consumer is the deferred governance layer; be honest.
+      this.send(
+        context,
+        Mml.compose`\nMatured '${view.subject.getTitle()}'. The vote layer will pick it up when it ships.\n`,
+      );
+    } catch (err) {
+      return this.fail(context, (err as Error).message, 'mature-failed');
     }
   }
 
