@@ -32,7 +32,7 @@ import { setClientStateUpdatePush } from '../mud/lib/connection/HasInteractive';
 import type Interactive from '../mud/obj/Interactive';
 import Login from '../mud/obj/Login';
 import { MqlSubscriptionApi } from '../mud/api/mql-subscription';
-import { ForumSubscriptionApi } from '../mud/api/forum-subscription';
+import { ForumsApi } from '../mud/api/forums';
 import { ReactionApi } from '../mud/api/reaction';
 import { PromptApi } from '../mud/api/prompt';
 import { User } from '../mud/lib/identity/User';
@@ -294,7 +294,7 @@ export class Application {
     const interactive = ConnectionManager.get().getInteractive(socketId);
     if (interactive) {
       MqlSubscriptionApi.cancelAllForInteractive(interactive);
-      ForumSubscriptionApi.cancelAllForInteractive(interactive);
+      ForumsApi.cancelAllForInteractive(interactive);
       ReactionApi.cancelAllForInteractive(interactive);
       PromptApi.cancelAll(interactive, 'host-disconnected');
     }

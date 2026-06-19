@@ -14,7 +14,6 @@
  */
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { ForumSubscriptionApi } from '../../api/forum-subscription';
 import { ForumsApi } from '../../api/forums';
 import ForumSubscriptionRegistry from '../ForumSubscriptionRegistry';
 import SubjectCatalogue from '../SubjectCatalogue';
@@ -133,7 +132,7 @@ describe('ForumSubscriptionRegistry', () => {
     const thread = await ForumsApi.postThread(creator, board, 'Best soup?', 'body');
 
     const interactive = fakeInteractive();
-    await ForumSubscriptionApi.handleSubscribe({
+    await ForumsApi.handleSubscribe({
       interactive,
       subscriptionId: 'b1',
       scope: { kind: 'board', id: board._id! },
@@ -171,7 +170,7 @@ describe('ForumSubscriptionRegistry', () => {
     const creator = makeActor();
     const { board } = await ForumsApi.makeForum(creator, 'Gossip', { open: true });
     const interactive = fakeInteractive();
-    await ForumSubscriptionApi.handleSubscribe({
+    await ForumsApi.handleSubscribe({
       interactive,
       subscriptionId: 'b1',
       scope: { kind: 'board', id: board._id! },
@@ -191,12 +190,12 @@ describe('ForumSubscriptionRegistry', () => {
     const { board } = await ForumsApi.makeForum(creator, 'Gossip', { open: true });
     const thread = await ForumsApi.postThread(creator, board, 'T', 'body');
     const interactive = fakeInteractive();
-    await ForumSubscriptionApi.handleSubscribe({
+    await ForumsApi.handleSubscribe({
       interactive,
       subscriptionId: 'b1',
       scope: { kind: 'board', id: board._id! },
     });
-    ForumSubscriptionApi.handleUnsubscribe(interactive, 'b1');
+    ForumsApi.handleUnsubscribe(interactive, 'b1');
     envelopes.length = 0;
 
     await ForumsApi.castVote(makeActor(), thread, 'up');

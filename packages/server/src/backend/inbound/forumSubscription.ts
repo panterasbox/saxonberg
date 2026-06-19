@@ -1,11 +1,11 @@
 /**
  * Forum subscription handlers — the document-change observer's inbound
  * surface. `forum-subscribe` / `forum-unsubscribe` route into
- * `ForumSubscriptionApi`; structural payload shape-checks only (the Api
- * does the substrate-level validation + error envelopes).
+ * `ForumsApi`; structural payload shape-checks only (the Api does the
+ * substrate-level validation + error envelopes).
  */
 
-import { ForumSubscriptionApi } from '../../mud/api/forum-subscription';
+import { ForumsApi } from '../../mud/api/forums';
 import type {
   ForumSubscribeMessage,
   ForumUnsubscribeMessage,
@@ -27,7 +27,7 @@ export const handleForumSubscribe: InboundHandler = (ctx, message) => {
   }
   // Guard the async handler: a rejection here would otherwise surface as
   // an unhandled rejection (which the server treats as fatal).
-  ForumSubscriptionApi.handleSubscribe({
+  ForumsApi.handleSubscribe({
     interactive: ctx.interactive,
     subscriptionId: payload.subscriptionId,
     scope,
@@ -39,5 +39,5 @@ export const handleForumSubscribe: InboundHandler = (ctx, message) => {
 export const handleForumUnsubscribe: InboundHandler = (ctx, message) => {
   const payload = message.payload as ForumUnsubscribeMessage | undefined;
   if (!payload || typeof payload.subscriptionId !== 'string') return;
-  ForumSubscriptionApi.handleUnsubscribe(ctx.interactive, payload.subscriptionId);
+  ForumsApi.handleUnsubscribe(ctx.interactive, payload.subscriptionId);
 };

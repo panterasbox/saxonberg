@@ -3,7 +3,10 @@
  *
  * Stable caller-facing surface for the `forum` controller and the Wave 3
  * subscription engine. Board/Entry CRUD + thread promotion; identity +
- * audience defer to the {@link Subject} layer (`SubjectApi`).
+ * audience defer to the {@link Subject} layer (`SubjectApi`). The live
+ * subscription surface (subscribe/unsubscribe/cancel) is folded in here
+ * too — one forum-facing Api — forwarding to the separate
+ * {@link ForumSubscriptionRegistry} runtime singleton.
  *
  * Thin, security-gated forwarding shell: the logic lives in the
  * hot-reloadable {@link ForumsLogic} singleton at `/obj/api/forums`,
@@ -27,6 +30,11 @@ import type {
 } from '../obj/api/ForumsLogic';
 import type { VoteValue } from '../lib/forum/Vote';
 import { ForumsLogic } from '../obj/api/ForumsLogic';
+import ForumSubscriptionRegistry, {
+  type ForumSubscribeRequest,
+} from '../obj/ForumSubscriptionRegistry';
+import { TemplatePaths } from '../lib/paths';
+import type Interactive from '../obj/Interactive';
 import { fileURLToPath } from 'url';
 
 const LOGIC_PATH = '/obj/api/forums';
@@ -42,6 +50,23 @@ function logic(): ForumsLogic {
         LOGIC_CLASS_FILE,
         'ForumsLogic',
       ) as typeof ForumsLogic | null) ?? ForumsLogic)(),
+  );
+}
+
+const REGISTRY_PATH = TemplatePaths.forumSubscriptionRegistry;
+const REGISTRY_CLASS_FILE = fileURLToPath(
+  new URL('../obj/ForumSubscriptionRegistry', import.meta.url),
+);
+
+function subscriptions(): ForumSubscriptionRegistry {
+  return StuffApi.singletonSync(
+    REGISTRY_PATH,
+    () =>
+      new ((HotReloadApi.getCurrentExport(
+        REGISTRY_CLASS_FILE,
+        'default',
+      ) as typeof ForumSubscriptionRegistry | null) ??
+        ForumSubscriptionRegistry)(),
   );
 }
 
@@ -120,6 +145,26 @@ export class ForumsApi {
     threadName: string,
   ): Promise<Subject> {
     return logic().promoteThread(actor, thread, threadName);
+  }
+
+  /* ─── Live subscriptions (the forum document-change observer) ───
+   * Forwards to the ForumSubscriptionRegistry singleton, mirroring
+   * MqlSubscriptionApi. Consumed by the `forum-subscribe` /
+   * `forum-unsubscribe` inbound handlers and the disconnect teardown. */
+
+  static handleSubscribe(req: ForumSubscribeRequest): Promise<void> {
+    return subscriptions().handleSubscribe(req);
+  }
+
+  static handleUnsubscribe(
+    interactive: Interactive,
+    subscriptionId: string,
+  ): void {
+    subscriptions().handleUnsubscribe(interactive, subscriptionId);
+  }
+
+  static cancelAllForInteractive(interactive: Interactive): void {
+    subscriptions().cancelAllForInteractive(interactive);
   }
 }
 

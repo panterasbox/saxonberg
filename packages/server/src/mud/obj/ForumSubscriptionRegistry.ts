@@ -52,7 +52,7 @@ import type {
 } from '@saxonberg/types';
 
 const ForumSubscriptionApiCallers = SecurityPolicies.FromModule(
-  'mud/api/forum-subscription#ForumSubscriptionApi',
+  'mud/api/forums#ForumsApi',
 );
 
 /** A live forum subscription's server-side state. */
@@ -85,7 +85,7 @@ export default class ForumSubscriptionRegistry extends Idea {
 
   /* ─── public surface (gated) ─── */
 
-  /** See {@link ForumSubscriptionApi.handleSubscribe}. */
+  /** See {@link ForumsApi.handleSubscribe}. */
   @CallSecurity(ForumSubscriptionApiCallers)
   public async handleSubscribe(req: ForumSubscribeRequest): Promise<void> {
     const { interactive, subscriptionId, scope } = req;
@@ -195,7 +195,7 @@ export default class ForumSubscriptionRegistry extends Idea {
     return view ? { kind: 'board', id: view.board._id! } : null;
   }
 
-  /** See {@link ForumSubscriptionApi.handleUnsubscribe}. */
+  /** See {@link ForumsApi.handleUnsubscribe}. */
   @CallSecurity(ForumSubscriptionApiCallers)
   public handleUnsubscribe(interactive: Interactive, subscriptionId: string): void {
     const bucket = this.registry.get(interactive);
@@ -206,7 +206,7 @@ export default class ForumSubscriptionRegistry extends Idea {
     if (bucket.size === 0) this.registry.delete(interactive);
   }
 
-  /** See {@link ForumSubscriptionApi.cancelAllForInteractive}. */
+  /** See {@link ForumsApi.cancelAllForInteractive}. */
   @CallSecurity(ForumSubscriptionApiCallers)
   public cancelAllForInteractive(interactive: Interactive): void {
     const bucket = this.registry.get(interactive);
