@@ -6,6 +6,8 @@ import { CallSecurity, Unshadowable } from '../../lib/security/decorators';
 import { SecurityPolicies } from '../../lib/security/SecurityPolicies';
 import { StuffApi } from '../../api/stuff';
 import { TemplatePaths } from '../../lib/paths';
+import { PersistApi } from '../../api/persist';
+import { Group } from '../../lib/social/Group';
 import type { Stuff } from '../../lib/stuff/Stuff';
 import type {
   GroupRef,
@@ -93,6 +95,21 @@ export class GroupLogic extends Idea {
       );
     }
     return { source: ref.slice(0, idx), id: ref.slice(idx + 1) };
+  }
+
+  /** See {@link GroupApi.sharedManagedGroups}. */
+  @CallSecurity(GroupApiCallers)
+  public async sharedManagedGroups(
+    playerIdA: string,
+    playerIdB: string
+  ): Promise<GroupRef[]> {
+    if (!PersistApi.isConnected()) return [];
+    // The `groups` collection is indexed on `memberIds`; the array-contains
+    // query is the hot path. Intersect by filtering for the second member.
+    const groups = await Group.find({ memberIds: playerIdA });
+    return groups
+      .filter((g) => g._id !== undefined && g.isMember(playerIdB))
+      .map((g) => `managed:${g._id}` as GroupRef);
   }
 
   /** See {@link GroupApi.registry}. */

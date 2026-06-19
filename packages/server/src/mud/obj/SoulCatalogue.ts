@@ -47,6 +47,8 @@ export interface EmoteSpec {
   echo?: Emote['echo'];
   emoji?: string;
   tags?: string[];
+  /** Signed renown valence (esteem + / notoriety −; default 0). */
+  valence?: number;
 }
 
 export default class SoulCatalogue extends SoulCatalogueBase {
@@ -126,6 +128,7 @@ export default class SoulCatalogue extends SoulCatalogueBase {
     record.echo = spec.echo ?? 'default';
     if (spec.emoji !== undefined) record.emoji = spec.emoji;
     record.tags = spec.tags ?? [];
+    record.valence = spec.valence ?? 0;
     await record.save();
     this.indexEmoteIntoCache(record, map);
     return record;
@@ -162,6 +165,7 @@ export default class SoulCatalogue extends SoulCatalogueBase {
     if (patch.echo !== undefined) existing.echo = patch.echo;
     if (patch.emoji !== undefined) existing.emoji = patch.emoji;
     if (patch.tags !== undefined) existing.tags = patch.tags;
+    if (patch.valence !== undefined) existing.valence = patch.valence;
 
     await existing.save();
     this.indexEmoteIntoCache(existing, map);

@@ -37,6 +37,7 @@ export class Emote extends Document {
     'echo',
     'emoji',
     'tags',
+    'valence',
   ];
 
   /** Canonical verb word; unique-indexed at the collection level. */
@@ -56,4 +57,13 @@ export class Emote extends Document {
 
   /** Free-form classification / reactions hook. */
   tags: string[] = [];
+
+  /**
+   * Signed renown valence: how this expressive act reads as a *reaction*
+   * to another's act — positive = esteem, negative = notoriety, 0 =
+   * neutral (the default; most emotes don't move standing). This is the
+   * polity's declared value *for the emote*, read by the renown recompute
+   * (`SoulApi.all()`), not a central config map.
+   */
+  valence: number = 0;
 }

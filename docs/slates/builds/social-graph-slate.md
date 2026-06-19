@@ -71,6 +71,14 @@ The result: **a 200-player tavern renders as a manageable
 social scene** because the framework knows whose attention to
 spend on.
 
+> **Buckets are a *private attention lens*, never a reputation
+> input.** Membership is unilateral self-declaration, so it carries
+> no objective signal about anyone but its owner — it shapes *how
+> you see the world* (verbosity, notifications), never another
+> player's standing. Renown aggregates only over **objective
+> `Group`s** (`GroupApi`), not contacts. See
+> [reputation-slate](./reputation-slate.md).
+
 ---
 
 ## Bucket shape

@@ -283,9 +283,12 @@ Ordered by leverage + dependency:
    [belief.md](./subsystems/belief.md). The **`regard` facet** (the third
    belief realm — per-viewer signed attitude, `RegardApi`/`RegardLogic`,
    the reverse `{realm,referent}` index) then **shipped 2026-06** as the
-   first brick toward reputation / the cooperative-polity Sybil keystone;
-   regard's consumers (renown aggregation, per-circle vectoring,
-   trust-weighting, NPC susceptibility, decay) stay deferred. Remaining
+   first brick toward reputation / the cooperative-polity Sybil keystone.
+   The **renown aggregation substrate** then **shipped 2026-06**
+   ([renown.md](./subsystems/renown.md): per-scope signed standing, decay,
+   the reaction + reception signal generators, log-saturation); its
+   consumers (governance influence, NPC susceptibility,
+   trust-weighting/eigenvector) stay deferred. Remaining
    tails: **social-graph** (crowd-bucket verbosity), identification's
    **pedagogical instrument seam** (`analyze X with Y`, real Material
    chemistry) + partial-ID + misidentification, and the **aether

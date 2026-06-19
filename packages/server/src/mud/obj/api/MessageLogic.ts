@@ -15,8 +15,10 @@ import type {
   StuffRef,
 } from "@saxonberg/types";
 import { MixinApi } from "../../api/mixin";
+import { StuffApi } from "../../api/stuff";
 import { Scene } from "../../lib/message/Scene";
 import type { MessageBroadcastOptions } from "../../api/message";
+import type TopicCatalogue from "../TopicCatalogue";
 
 type SensorStuff = Stuff & Sensor;
 
@@ -119,5 +121,14 @@ export class MessageLogic extends Idea {
       return;
     }
     this.messageContents(container, frame, opts);
+  }
+
+  /** See {@link MessageApi.isCommunicative}. */
+  @CallSecurity(MessageApiCallers)
+  public isCommunicative(topic: string): boolean {
+    const cat = StuffApi.findByTemplatePath<TopicCatalogue>(
+      "/obj/TopicCatalogue"
+    );
+    return cat ? cat.isCommunicative(topic) : false;
   }
 }

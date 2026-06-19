@@ -23,6 +23,8 @@ import { CommandApi } from '../mud/api/command';
 import { QuantityApi } from '../mud/api/quantity';
 import { WorldClockApi } from '../mud/api/worldclock';
 import { AppSettings } from '../mud/lib/config/AppSettings';
+import { RenownApi } from '../mud/api/renown';
+import RenownStanding from '../mud/lib/renown/RenownStanding';
 import { Document } from '../mud/lib/persistence/Document';
 import { StuffApi } from '../mud/api/stuff';
 import type { Marshaller } from '../mud/lib/persistence/Marshaller';
@@ -146,6 +148,14 @@ export class AppBootstrap {
     // Stuff from the manifest, and the clock state is a Document, not
     // a clonable template.)
     await WorldClockApi.boot();
+
+    // Renown — warm the standing read-cache from the materialized
+    // aggregate, then install the reaction ingestion tap + self-register
+    // the real-time recompute schedule. Warm before boot so the first
+    // `renownOf` reads are populated. Activation = the singleton's
+    // presence; no consumer is wired this build.
+    await RenownStanding.warm();
+    RenownApi.boot();
   }
 
   /**

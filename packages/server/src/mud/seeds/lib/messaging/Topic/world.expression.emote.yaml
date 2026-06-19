@@ -2,6 +2,7 @@ class: /lib/messaging/Topic
 hydratorClass: /lib/persistence/PersistentHydrator
 data:
   topic: world.expression.emote
+  communicative: true
   family: world.expression
   label: Emote
   description: A character performs an expressive act conveyed via the ESP modality. Catalog (wave, smile, bow, …) and free-form emotes share this leaf; the payload distinguishes.

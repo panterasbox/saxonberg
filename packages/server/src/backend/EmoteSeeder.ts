@@ -35,6 +35,7 @@ interface EmoteSeedEntry {
   echo?: 'default' | 'always' | 'never';
   emoji?: string;
   tags?: string[];
+  valence?: number;
 }
 
 interface EmoteSeedOptions {
@@ -78,6 +79,7 @@ export class EmoteSeeder {
       e.echo = entry.echo ?? 'default';
       if (entry.emoji !== undefined) e.emoji = entry.emoji;
       e.tags = entry.tags ?? [];
+      e.valence = entry.valence ?? 0;
       await e.save();
       inserted++;
     }

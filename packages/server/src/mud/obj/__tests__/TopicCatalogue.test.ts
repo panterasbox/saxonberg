@@ -16,6 +16,7 @@ interface TopicSeedData {
   family: string;
   label: string;
   description: string;
+  communicative?: boolean;
 }
 
 /**
@@ -71,6 +72,27 @@ describe('TopicCatalogue', () => {
       label: 'Say',
       description: 'Speaking aloud.',
     });
+  });
+
+  it('isCommunicative reflects the data flag (and excludes the rest)', async () => {
+    const cat = await warmCatalogue([
+      {
+        topic: 'world.speech.say',
+        family: 'world.speech',
+        label: 'Say',
+        description: '',
+        communicative: true,
+      },
+      {
+        topic: 'world.speech.dm',
+        family: 'world.speech',
+        label: 'DM',
+        description: '',
+      },
+    ]);
+    expect(cat.isCommunicative('world.speech.say')).toBe(true);
+    expect(cat.isCommunicative('world.speech.dm')).toBe(false); // private
+    expect(cat.isCommunicative('unseeded.topic')).toBe(false);
   });
 
   it('inherits from the nearest authored family ancestor when the leaf is unseeded', async () => {

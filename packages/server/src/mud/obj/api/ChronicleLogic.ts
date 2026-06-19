@@ -13,7 +13,7 @@ import type {
 } from '../../lib/chronicle/ChronicleEntry';
 import { ProseApi } from '../../api/prose';
 import { WorldClockApi } from '../../api/worldclock';
-import { PersistenceManager } from '../../../backend/PersistenceManager';
+import { PersistApi } from '../../api/persist';
 
 const ChronicleApiCallers = SecurityPolicies.FromModule(
   'mud/api/chronicle#ChronicleApi'
@@ -21,7 +21,7 @@ const ChronicleApiCallers = SecurityPolicies.FromModule(
 
 /** Persistence is a no-op unless Mongo is connected (tests, pre-boot). */
 function active(): boolean {
-  return PersistenceManager.get().isConnected();
+  return PersistApi.isConnected();
 }
 
 /** The durable owner key, or `null` for a session-ephemeral owner. */

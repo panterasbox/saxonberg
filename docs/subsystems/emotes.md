@@ -54,7 +54,7 @@ to the `Collections` enum). The shape is deliberately flat:
 export class Emote extends Document {
   static collectionName = 'emotes';
   static persistentFields = [
-    'verb', 'aliases', 'grammar', 'echo', 'emoji', 'tags',
+    'verb', 'aliases', 'grammar', 'echo', 'emoji', 'tags', 'valence',
   ];
 
   verb: string = '';
@@ -63,6 +63,7 @@ export class Emote extends Document {
   echo: EmoteEcho = 'default';
   emoji?: string;
   tags: string[] = [];
+  valence: number = 0;
 }
 ```
 
@@ -74,7 +75,13 @@ the future remote-emote echo policy. `emoji` is the optional single
 glyph, surfaced on the payload alongside the failsafe prose body.
 `tags` is the reactions / classification hook — now consumed: the
 reaction layer groups chips by `tags[0]` (see
-[reactions.md](./reactions.md)).
+[reactions.md](./reactions.md)). `valence` is the **signed renown value**
+of the emote *as a reaction* (esteem `+` / notoriety `−`; default `0` =
+neutral) — the renown recompute reads the verb→valence map via
+`SoulApi.all()`. Per-emote valence lives here, on the emote, deliberately
+*not* as a central config map (seeded in `emotes.yaml`: cheer/applaud/
+clap/laugh/grin/agree `+1`, scowl/glare/frown/disagree/groan `−1`). See
+[renown.md](./renown.md).
 
 `Emote` is a **catalog record, not a Stuff**. Plain data records
 that don't participate in the clone pipeline live on the Document

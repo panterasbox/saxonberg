@@ -1,9 +1,14 @@
 # Reputation slate — charisma, renown, notoriety (working doc)
 
-> **Status: game-design layer, deferred — not near-term.** Design is
-> settled in shape and load-bearing for NPC behaviour, the substance
-> economy (brand trust), and the anonymity/disguise system (notoriety as
-> its counterweight); captured but not queued.
+> **Status: game-design layer, renown leg SHIPPED.** The **renown
+> substrate has shipped** — see
+> [renown.md](../../subsystems/renown.md) (measured per-scope signed
+> standing, the reaction + reception signal generators, the per-emote +
+> AppSettings value-function, log-saturation). The rest (susceptibility,
+> NPC consumers, governance influence, the substance economy's
+> brand-trust, the anonymity/disguise counterweight, per-circle consumers,
+> the eigenvector trust-weighting) stays deferred: settled in shape,
+> captured but not queued.
 
 Working slate for the platform's answer to the D&D **charisma** stat —
 and its dark twin, **notoriety**. The short version: charisma here is
@@ -39,7 +44,8 @@ And once you commit to "measure, don't assign," D&D's single scalar
   record for Bob; `regard` is the next).
 - **Renown** — the global/aggregate standing (Bob is broadly
   influential). **Measured** from real outcomes; **signed** (esteem ↔
-  notoriety); **per-circle** (see below). Feeds **fame**, which is a
+  notoriety); **per-circle** for social/game, with a single
+  cooperative-wide roll-up for governance (see below). Feeds **fame**, which is a
   recognition *trigger* (the famous are pre-known to all). Renown and
   recognition close a loop.
 - **Susceptibility** — how easily a *particular NPC* is swayed. The one
@@ -146,21 +152,31 @@ Each crime enriches the profile (witnesses add the limp). Arms race.
 
 Renown is **not** one global number; it's a **vector over circles**. The
 same kill is **esteem** among the bandits and **notoriety** among the
-lawful, because renown is aggregated from each circle's reactions. Two
-kinds of circle, plugging in at two layers (see social-graph):
+lawful, because renown is aggregated from each circle's reactions. (This
+per-circle vector is the **social / game** renown; *governance* renown is
+a single cooperative-wide roll-up — only persons vote, and they vote in
+one polity. See the [cooperative slate](./cooperative-slate.md).) Two
+kinds of circle — but only **one** is a renown scope:
 
-- **Egocentric circles** (my friends/foes/guildmates-as-I-see-them) — a
-  **belief-store facet** (a bucket tag on each subject, per-viewer; the
-  shipped `ContactsMixin`). They feed recognition's render-verbosity and
-  *my weight* in others' renown.
 - **Objective groups** (the Thieves' Guild, a class cohort — real shared
-  `Group`s via `GroupApi`) — the **scope renown is aggregated over**, and
-  the membership that *seeds* egocentric recognition (guildmates vouch
-  for / introduce each other). The belief store only *references* them.
+  `Group`s via `GroupApi`, where membership is *conferred*, not
+  self-declared) are the **only scope renown aggregates over.** Renown
+  partitions by the objective groups you and the subject *share* —
+  objective membership is the only circle carrying information about
+  anyone but its own declarer.
+- **Egocentric circles** (my friends/foes-as-I-see-them; the shipped
+  `ContactsMixin`) are **NOT a renown input.** Membership is unilateral
+  self-declaration — zero objective signal — so it can never weight
+  another player's standing without reopening the self-dealing / Sybil
+  hole. Their only job is **my own attention lens** (recognition
+  render-verbosity, notification policy). The weight my reaction carries
+  in your renown is **my own renown** (system-derived), never a function
+  of my contacts list.
 
-The bridge: **my egocentric reaction to you counts toward your
-allocentric reputation, partitioned by our shared groups.** One reaction
-stream → a vector of reputations, one per circle.
+The bridge: **my reaction to you counts toward your reputation, weighted
+by my own renown and partitioned by the objective groups we share.** One
+reaction stream → a vector of reputations, one per social circle (plus the
+single cooperative-wide roll-up that governance reads).
 
 ---
 

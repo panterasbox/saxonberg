@@ -180,6 +180,17 @@ export class MessageApi {
   ): void {
     return logic().messageContainer(source, frame, opts);
   }
+
+  /**
+   * Whether `topic` is a **communication act** (say/whisper/shout/emote/
+   * chat — the topic's data-driven `communicative` flag; NOT dm /
+   * narration / system). Consulted by the renown reception gate on the
+   * receive path so non-comm frames never hit the bus. `false` before the
+   * `TopicCatalogue` is warmed.
+   */
+  static isCommunicative(topic: string): boolean {
+    return logic().isCommunicative(topic);
+  }
 }
 
 SecurityApi.decorateApiClass(MessageApi);
