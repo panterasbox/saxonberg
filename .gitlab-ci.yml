@@ -85,6 +85,9 @@ lint:
   # warnings (e.g. unused vars) that don't fail the build.
   script:
     - pnpm lint
+    # Persistence-gating lockdown: PersistenceManager.get() only via the
+    # PersistApi facade / sanctioned framework boundary.
+    - pnpm -C packages/server lint:pm
 
 test:
   extends: [.node, .mr-only]

@@ -27,7 +27,7 @@ import type { ReactionFiredPayload } from '../../lib/events/ReactionFiredEvent';
 import type { Stuff } from '../../lib/stuff/Stuff';
 import type { Container } from '../../lib/spatial/Container';
 import type { GroupRef } from '../../lib/social/GroupProvider';
-import { PersistenceManager } from '../../../backend/PersistenceManager';
+import { PersistApi } from '../../api/persist';
 
 const RenownApiCallers = SecurityPolicies.FromModule(
   'mud/api/renown#RenownApi'
@@ -43,7 +43,7 @@ const RENOWN_RECOMPUTE_MS = 60_000;
 
 /** Persistence is a no-op unless Mongo is connected (tests, pre-boot). */
 function active(): boolean {
-  return PersistenceManager.get().isConnected();
+  return PersistApi.isConnected();
 }
 
 /**
