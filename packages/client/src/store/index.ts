@@ -865,7 +865,11 @@ export const useStore = create<StoreState>((set, get) => ({
   // In-world primary-view axis (terminal | forum). Not a phase.
   mainView: "terminal",
   setMainView: (view) =>
-    set((state) => (state.mainView === view ? {} : { mainView: view })),
+    set((state) =>
+      // Switching the primary view resets the input mode — a scope set in
+      // the forum chat sidecar must not follow you back to the terminal.
+      state.mainView === view ? {} : { mainView: view, inputMode: null },
+    ),
 
   // Input mode (client-only scoped-input prefix).
   inputMode: null,

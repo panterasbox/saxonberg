@@ -319,6 +319,11 @@ function App() {
   // clickables. The restore is deferred by one tick so a leave →
   // enter sequence can cancel the pending restore.
   const [inputValue, setInputValue] = useState("");
+  // True while a clickable affordance's command is previewed in the bar.
+  // The command bar hides the input-mode chip during a preview so a
+  // previewed direct command (e.g. `forum vote …`) doesn't read as though
+  // it'll be wrapped by the active chat mode.
+  const [previewing, setPreviewing] = useState(false);
   const [flashing, setFlashing] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const userTypedRef = useRef("");
@@ -550,11 +555,13 @@ function App() {
     if (command === null) {
       restoreTimerRef.current = window.setTimeout(() => {
         previewActiveRef.current = false;
+        setPreviewing(false);
         setInputValue(userTypedRef.current);
         restoreTimerRef.current = null;
       }, 0);
     } else {
       previewActiveRef.current = true;
+      setPreviewing(true);
       setInputValue(command);
     }
   };
@@ -717,6 +724,7 @@ function App() {
                 onSendPromptResponse={sendPromptResponse}
                 onCancelPrompt={cancelPrompt}
                 flashing={flashing}
+                previewing={previewing}
               />
             </LeftColumn>
             {/* View-sensitive right column. */}

@@ -64,6 +64,12 @@ interface CommandBarProps {
   onCancelPrompt: (promptId: string) => void;
   /** Post-click flash signal forwarded from App. */
   flashing?: boolean;
+  /**
+   * True while a clickable affordance's command is previewed in the input.
+   * Hides the input-mode chip so a previewed direct command (a forum vote
+   * etc.) doesn't read as if it'll be wrapped by the active chat mode.
+   */
+  previewing?: boolean;
 }
 
 const HISTORY_KEY = 'saxonberg-command-history';
@@ -445,6 +451,7 @@ export function CommandBar({
   onSendPromptResponse,
   onCancelPrompt,
   flashing,
+  previewing,
 }: CommandBarProps) {
   const prompts = useStore((s) => s.prompts);
   const inputMode = useStore((s) => s.inputMode);
@@ -836,7 +843,7 @@ export function CommandBar({
           ) : null}
         </PickerAnchor>
 
-        {inputMode && !promptMode && (
+        {inputMode && !promptMode && !previewing && (
           <ModeChip title="Esc to exit">
             <span>{inputMode.label}</span>
             <ModeChipX
