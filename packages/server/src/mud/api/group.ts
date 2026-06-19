@@ -58,6 +58,18 @@ export class GroupApi {
     return logic().isMember(playerId, ref);
   }
 
+  /**
+   * The managed `Group`s that contain BOTH players — the objective circles
+   * two members share. Used by renown to scope a signal to the circles it
+   * occurred within. Empty when disconnected or no shared managed group.
+   */
+  static async sharedManagedGroups(
+    playerIdA: string,
+    playerIdB: string
+  ): Promise<GroupRef[]> {
+    return logic().sharedManagedGroups(playerIdA, playerIdB);
+  }
+
   static async onMembershipChange(
     ref: GroupRef,
     cb: GroupChangeListener

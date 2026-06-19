@@ -185,6 +185,18 @@ export class ReactionApi {
   }
 
   /**
+   * Speaker + audience-scope of a reactable act by `commandId`, or `null`
+   * if none is registered. The renown reception consumer uses this to
+   * recover the speaker from a receiver's `CommReceivedEvent` (and to
+   * filter out non-comm frames, which return `null`).
+   */
+  public static actInfo(
+    commandId: string
+  ): { subjectId: string; scope: string } | null {
+    return resolveRegistry().actInfo(commandId);
+  }
+
+  /**
    * Record that a reactable-act frame was delivered to an Interactive,
    * keying its gutter `frameId` → the act's `commandId` so `react
    * --msg <n>` resolves server-side. Bounded ring.

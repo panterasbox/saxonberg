@@ -163,10 +163,20 @@ data:
   family: world.speech
   label: Say
   description: A character speaks aloud to everyone in the room.
+  communicative: true
 ```
 
 System-owned at v1. Revisit FolderZone admin scoping when a doc team
 emerges that needs scoped editing rights.
+
+The optional **`communicative: true`** flag marks a topic as a
+*communication act* (say/whisper/shout/emote/chat — **not** dm /
+narration / system). `TopicCatalogue` builds a server-side `Set` of these
+during its template scan (no `TopicDescriptor` wire change) and exposes
+`isCommunicative(topic)`, surfaced through `MessageApi.isCommunicative`.
+The renown reception gate (`SensorMixin.onMessage`) consults it so only
+genuine comm frames mint a being-heard signal — the first data-driven
+capability hung on a topic. See [renown.md](./renown.md).
 
 ## Boot sequence
 

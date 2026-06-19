@@ -62,6 +62,7 @@ emotes:
       template: "{{ actor }} smile{{ s }}{% if target %} at {{ target }}{% endif %}."
 
   - verb: laugh
+    valence: 1
     emoji: "😆"
     aliases: [haha, lol]
     tags: [joy]
@@ -71,6 +72,7 @@ emotes:
       template: "{{ actor }} laugh{{ s }}{% if target %} at {{ target }}{% endif %}."
 
   - verb: grin
+    valence: 1
     emoji: "😁"
     tags: [joy]
     grammar:
@@ -79,6 +81,7 @@ emotes:
       template: "{{ actor }} grin{{ s }}{% if target %} at {{ target }}{% endif %}."
 
   - verb: cheer
+    valence: 1
     emoji: "🎉"
     tags: [joy, approval]
     grammar:
@@ -87,6 +90,7 @@ emotes:
       template: "{{ actor }} cheer{{ s }}{% if target %} for {{ target }}{% endif %}!"
 
   - verb: clap
+    valence: 1
     emoji: "👏"
     tags: [approval]
     grammar:
@@ -95,6 +99,7 @@ emotes:
       template: "{{ actor }} clap{{ s }}{% if target %} for {{ target }}{% endif %}."
 
   - verb: applaud
+    valence: 1
     emoji: "👏"
     tags: [approval, formal]
     grammar:
@@ -104,6 +109,7 @@ emotes:
 
   # ── Displeasure ───────────────────────────────────────────────
   - verb: frown
+    valence: -1
     emoji: "😠"
     tags: [displeasure]
     grammar:
@@ -112,6 +118,7 @@ emotes:
       template: "{{ actor }} frown{{ s }}{% if target %} at {{ target }}{% endif %}."
 
   - verb: scowl
+    valence: -1
     emoji: "😠"
     tags: [displeasure]
     grammar:
@@ -120,6 +127,7 @@ emotes:
       template: "{{ actor }} scowl{{ s }}{% if target %} at {{ target }}{% endif %}."
 
   - verb: glare
+    valence: -1
     tags: [displeasure]
     grammar:
       slots:
@@ -136,6 +144,7 @@ emotes:
       template: "{{ actor }} sigh{{ s }}{% if manner %} {{ manner }}{% endif %}{% if target %} at {{ target }}{% endif %}."
 
   - verb: groan
+    valence: -1
     emoji: "😩"
     tags: [displeasure]
     grammar:
@@ -233,6 +242,7 @@ emotes:
 
   # ── Abstraction / agreement ───────────────────────────────────
   - verb: agree
+    valence: 1
     emoji: "👍"
     aliases: [yes, yep, yeah]
     tags: [affirmative]
@@ -242,6 +252,7 @@ emotes:
       template: "{{ actor }} agree{{ s }}{% if target %} with {{ target }}{% endif %}."
 
   - verb: disagree
+    valence: -1
     emoji: "👎"
     aliases: [no, nope]
     tags: [negative]

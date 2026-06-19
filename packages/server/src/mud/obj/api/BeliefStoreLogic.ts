@@ -9,7 +9,7 @@ import type { Stuff } from '../../lib/stuff/Stuff';
 import type { BeliefRecord } from '../../lib/belief/BeliefStore';
 import BeliefDocument from '../../lib/belief/BeliefDocument';
 import { MixinApi } from '../../api/mixin';
-import { PersistenceManager } from '../../../backend/PersistenceManager';
+import { PersistApi } from '../../api/persist';
 
 const BeliefStoreApiCallers = SecurityPolicies.FromModule(
   'mud/api/belief#BeliefStoreApi'
@@ -28,7 +28,7 @@ function isLearned(record: BeliefRecord): boolean {
 
 /** Persistence is a no-op unless Mongo is connected (tests, pre-boot). */
 function active(): boolean {
-  return PersistenceManager.get().isConnected();
+  return PersistApi.isConnected();
 }
 
 /** The durable per-viewer key, or `null` for a session-ephemeral viewer. */

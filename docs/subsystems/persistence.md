@@ -137,6 +137,28 @@ The dispatch keeps a `Set<string>` of currently-active
 its own dispatch throws `HookReentryError`. Loud failure beats a silent
 loop.
 
+## `PersistApi` — the gated chokepoint + `lint:pm` lockdown
+
+`PersistenceManager` is an **ungated process singleton** — reaching it via
+`PersistenceManager.get()` from domain / logic code bypasses the security
+layer entirely. `PersistApi` (`api/persist.ts`) is the sanctioned,
+call-security-decorated facade over it (`isConnected` + the document
+data-ops `find` / `findById` / `save` / `delete`); non-framework code
+flows through here and picks up the Api security treatment.
+
+The lockdown is enforced by **`lint:pm`** (`scripts/check-pm-access.ts`,
+CI-gating, mirrors `check-gate-strings`): `PersistenceManager.get()` is
+forbidden everywhere except the persistence framework itself
+(`lib/persistence/**` = `Document`, `lib/stuff/Template.ts`), the backend
+(`backend/**` — it owns PM's lifecycle: connect / seed / hooks),
+`api/hot-reload.ts` (the HMR hook-manifest reload — PM lifecycle, not
+data), the facade, and tests. The logic-layer callers
+(`Renown` / `Group` / `Chronicle` / `Belief` `active()` guards) migrated to
+`PersistApi.isConnected()`. Caller policy starts permissive — the value is
+the single decorated chokepoint plus the lint, both tightenable later;
+`Document` / `Template` stay the sanctioned low-level boundary
+(allowlisted), so the facade's data-ops have no callers yet in v1.
+
 ## Around-Save / Around-Delete Hooks
 
 Hooks are middleware. Two mixins compose the capability onto an `Idea`

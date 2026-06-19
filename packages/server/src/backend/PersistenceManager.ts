@@ -42,6 +42,8 @@ export enum Collections {
   ForumEntries = 'forum_entries',
   ForumVotes = 'forum_votes',
   ForumEvents = 'forum_events',
+  RenownEvents = 'renown_events',
+  Renown = 'renown',
 }
 
 /**
@@ -676,6 +678,26 @@ export class PersistenceManager {
       });
       await this.getCollection(Collections.ForumEvents).createIndex({
         entry: 1,
+      });
+
+      // Renown events: append-only, scope-tagged signal log (one doc per
+      // signal). Indexed on `subject` (the hot read partition) and
+      // `{ subject, at }` (the decay-ordered slice the recompute walks),
+      // so both stay O(rows-for-this-subject), not a full scan.
+      await this.getCollection(Collections.RenownEvents).createIndex({
+        subject: 1,
+      });
+      await this.getCollection(Collections.RenownEvents).createIndex({
+        subject: 1,
+        at: 1,
+      });
+
+      // Renown standings: the materialized per-{subject, scope} aggregate
+      // (a rebuildable cache). Indexed on `{ subject, scope }` — the
+      // recompute's upsert key and the warm() load shape.
+      await this.getCollection(Collections.Renown).createIndex({
+        subject: 1,
+        scope: 1,
       });
 
       console.info('PersistenceManager: Indexes created successfully');

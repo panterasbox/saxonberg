@@ -995,6 +995,18 @@ wardrobe's speech than the things stuffed inside it. Mixin sugar
 checks Containable first; pure-Container actors (a haunted location)
 fall through to `toContents`.
 
+## The renown reception seam (`onMessage` + `MessageApi.isCommunicative`)
+
+`SensorMixin.onMessage` is the receive-side hook the renown **reception**
+generator taps: after `filterMessage` passes (so it's perception-gated),
+a *communication* command frame fires `CommReceivedEvent` to credit the
+speaker with a small being-heard signal. The gate is
+`MessageApi.isCommunicative(topic)` (forwarding to `MessageLogic` →
+`TopicCatalogue`'s `communicative` set), so only say/whisper/shout/emote/
+chat frames — not dm/narration/system — reach the bus. Renown recovers
+the speaker from the act registry (`ReactionApi.actInfo`). See
+[renown.md](./renown.md).
+
 ## Cross-References
 
 - [message-rendering.md](./message-rendering.md) — full MML vocabulary

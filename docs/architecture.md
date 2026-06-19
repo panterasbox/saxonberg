@@ -129,7 +129,7 @@ adding.
   (`NavigationApi.parseDirection`, `MmlApi.escape`,
   `PathPatternApi.match`).
 - **Manager wrappers** — gates to a privileged singleton
-  (`PersistApi`-equivalent helpers behind `PersistenceManager`).
+  (`PersistApi`, the call-security chokepoint over `PersistenceManager`).
 - **Stuff orchestration** — operates on Stuff, threads polymorphic
   steps (`StuffApi`, `ContainmentApi`, `LocomotionApi`, `ZoneApi`).
   This is where the orchestration-vs-step decision bites.
@@ -371,8 +371,9 @@ Examples: `StuffApi`, `ConnectionApi`, `MixinApi`, `MessageApi`,
 `SecurityApi`, `ShadowApi`, `ExecutionContextApi`, `ModuleApi`,
 `NavigationApi`, `PathPatternApi`, `ScheduleApi`, `SchedulerApi`,
 `TemplateApi`, `ZoneApi`, `MmlApi`, `PlayerApi`,
-`PersistApi`-equivalent (no separate class today — persistence
-helpers live on the relevant Apis directly).
+`PersistApi` (the gated chokepoint over `PersistenceManager`,
+`lint:pm`-locked — see [persistence.md](./subsystems/persistence.md)),
+`RenownApi`.
 
 `MqlSubscriptionApi` is the second wire channel alongside prose /
 dispatch-response. Inbound `mql-subscribe` / `mql-unsubscribe`
