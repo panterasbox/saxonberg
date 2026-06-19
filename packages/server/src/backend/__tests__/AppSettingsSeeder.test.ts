@@ -41,7 +41,7 @@ describe("AppSettingsSeeder", () => {
     pm.setFindResult([]);
     const added = await AppSettingsSeeder.run();
 
-    expect(added).toBe(5);
+    expect(added).toBe(7);
     expect(pm.saves).toHaveLength(1);
     expect(pm.saves[0]!.collection).toBe("app_settings");
     const values = savedValues(pm);
@@ -52,6 +52,8 @@ describe("AppSettingsSeeder", () => {
     expect(values[AppSettingKeys.reactionsThreshold]).toBe("10");
     expect(values[AppSettingKeys.reactionsCadenceMs]).toBe("200");
     expect(values[AppSettingKeys.reactionsSampleCap]).toBe("5");
+    expect(values[AppSettingKeys.forumsAntiSnowballMinVotes]).toBe("5");
+    expect(values[AppSettingKeys.forumsAntiSnowballMinMinutes]).toBe("30");
   });
 
   it("is idempotent — a fully-populated row is left alone (no save)", async () => {
@@ -64,6 +66,8 @@ describe("AppSettingsSeeder", () => {
           [AppSettingKeys.reactionsThreshold]: "10",
           [AppSettingKeys.reactionsCadenceMs]: "200",
           [AppSettingKeys.reactionsSampleCap]: "5",
+          [AppSettingKeys.forumsAntiSnowballMinVotes]: "5",
+          [AppSettingKeys.forumsAntiSnowballMinMinutes]: "30",
         },
       },
     ]);
@@ -82,8 +86,9 @@ describe("AppSettingsSeeder", () => {
     ]);
     const added = await AppSettingsSeeder.run();
 
-    // Missing keys seeded: evacuationFallback + the three reaction keys.
-    expect(added).toBe(4);
+    // Missing keys seeded: evacuationFallback + the three reaction keys +
+    // the two forum anti-snowball keys.
+    expect(added).toBe(6);
     expect(pm.saves).toHaveLength(1);
     const values = savedValues(pm);
     // operator value preserved, missing keys seeded
