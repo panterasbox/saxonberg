@@ -187,11 +187,19 @@ const PostButton = styled.button`
   }
 `;
 
-/** A hover-preview hook: show the command the control will send. */
+/**
+ * A hover-preview hook: show the command the control will send.
+ *
+ * Triggers on `mousemove`, NOT `mouseenter` — a live list that re-orders
+ * (after a vote/post delta) slides a new control under a *stationary*
+ * cursor, which fires `mouseenter` but not `mousemove`. Keying on movement
+ * means only a genuine hover previews; a reorder under a still cursor
+ * doesn't re-stick a command in the bar. `mouseleave` clears.
+ */
 type Preview = (command: string | null) => void;
 function hoverPreview(cmd: string, onPreview: Preview) {
   return {
-    onMouseEnter: () => onPreview(cmd),
+    onMouseMove: () => onPreview(cmd),
     onMouseLeave: () => onPreview(null),
   };
 }
@@ -229,15 +237,20 @@ const controversy = (r: ForumEntryRecord) =>
 function VoteControls({
   entry,
   onPreview,
+  onSubmitted,
 }: {
   entry: ForumEntryRecord;
   onPreview: Preview;
+  onSubmitted: () => void;
 }): JSX.Element {
   return (
     <Votes>
       <VoteBtn
         aria-label="upvote"
-        onClick={() => castForumVote(entry.id, "up")}
+        onClick={() => {
+          castForumVote(entry.id, "up");
+          onSubmitted();
+        }}
         {...hoverPreview(`forum vote ${entry.id} up`, onPreview)}
       >
         ▲
@@ -245,7 +258,10 @@ function VoteControls({
       <Score $hidden={entry.displayScore === null}>{scoreText(entry)}</Score>
       <VoteBtn
         aria-label="downvote"
-        onClick={() => castForumVote(entry.id, "down")}
+        onClick={() => {
+          castForumVote(entry.id, "down");
+          onSubmitted();
+        }}
         {...hoverPreview(`forum vote ${entry.id} down`, onPreview)}
       >
         ▼
@@ -259,12 +275,14 @@ function ComposeBox({
   label,
   previewVerb,
   onPreview,
+  onSubmitted,
 }: {
   onSubmit: (body: string, title?: string) => void;
   label: string;
   /** The command this box sends (the body rides the fields side-channel). */
   previewVerb: string;
   onPreview: Preview;
+  onSubmitted: () => void;
 }): JSX.Element {
   const [body, setBody] = useState("");
   const [title, setTitle] = useState("");
@@ -274,6 +292,7 @@ function ComposeBox({
     onSubmit(body.trim(), showTitle ? title.trim() || undefined : undefined);
     setBody("");
     setTitle("");
+    onSubmitted(); // clear + suppress the post-action re-hover.
   };
   return (
     <Card>
@@ -372,6 +391,13 @@ export function ForumView({
     [threadRecords, sort],
   );
 
+  // Hover previews trigger on `mousemove` (see `hoverPreview`), so a
+  // vote/post delta re-ordering the list under a still cursor can't
+  // re-stick a command. `submitted` just clears on click; with no
+  // subsequent movement the bar stays clear.
+  const preview: Preview = onCommandPreview;
+  const submitted = () => onCommandPreview(null);
+
   if (!forumNav.boardHandle) {
     const boards = indexSub ? forumRecords[indexSub] ?? [] : [];
     return (
@@ -393,8 +419,11 @@ export function ForumView({
             <Card
               key={b.id}
               as="button"
-              onClick={() => openForumBoard(b.id)}
-              {...hoverPreview(`forum ${b.id}`, onCommandPreview)}
+              onClick={() => {
+                openForumBoard(b.id);
+                submitted();
+              }}
+              {...hoverPreview(`forum ${b.id}`, preview)}
               style={{
                 cursor: "pointer",
                 textAlign: "left",
@@ -437,7 +466,8 @@ export function ForumView({
           <ComposeBox
             label="thread"
             previewVerb={`forum post ${forumNav.boardHandle}`}
-            onPreview={onCommandPreview}
+            onPreview={preview}
+            onSubmitted={submitted}
             onSubmit={(body, title) =>
               postForumThread(forumNav.boardHandle!, body, title)
             }
@@ -445,13 +475,16 @@ export function ForumView({
           {threads.length === 0 && <Meta>No threads yet.</Meta>}
           {threads.map((t) => (
             <Card key={t.id}>
-              <VoteControls entry={t} onPreview={onCommandPreview} />
+              <VoteControls entry={t} onPreview={preview} onSubmitted={submitted} />
               <Body>
                 <TitleLine
-                  onClick={() => openForumThread(t.id)}
+                  onClick={() => {
+                    openForumThread(t.id);
+                    submitted();
+                  }}
                   {...hoverPreview(
                     `forum ${forumNav.boardHandle} ${t.id}`,
-                    onCommandPreview,
+                    preview,
                   )}
                 >
                   {t.title}
@@ -465,7 +498,7 @@ export function ForumView({
         <>
           {root && (
             <Card>
-              <VoteControls entry={root} onPreview={onCommandPreview} />
+              <VoteControls entry={root} onPreview={preview} onSubmitted={submitted} />
               <Body>
                 <TitleLine as="div">{root.title}</TitleLine>
                 <MmlRenderer text={root.body} onCommandClick={onSendCommand} onCommandPreview={onCommandPreview} />
@@ -475,12 +508,13 @@ export function ForumView({
           <ComposeBox
             label="reply"
             previewVerb={`forum reply ${forumNav.threadId}`}
-            onPreview={onCommandPreview}
+            onPreview={preview}
+            onSubmitted={submitted}
             onSubmit={(body) => replyForumEntry(forumNav.threadId!, body)}
           />
           {posts.map((p) => (
             <Card key={p.id} style={{ marginLeft: "1rem" }}>
-              <VoteControls entry={p} onPreview={onCommandPreview} />
+              <VoteControls entry={p} onPreview={preview} onSubmitted={submitted} />
               <Body>
                 <MmlRenderer text={p.body} onCommandClick={onSendCommand} onCommandPreview={onCommandPreview} />
                 <Meta>by {p.authorName || "someone"}</Meta>
