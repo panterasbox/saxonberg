@@ -1,17 +1,18 @@
 /**
- * ForumChatSidecar — the contextual chat rail that replaces the
- * InspectionPane in the forum view. It stacks the subjects on the current
- * path: the board's chat at the board, the thread's chat when a promoted
- * thread is open (the parent board chat stays reachable above it). Each
- * stack entry posts to that subject's chat via a real `chat <handle>`
- * command string (the same surface the CLI uses); incoming chat frames
- * surface in the cockpit's Terminal feed as usual.
+ * ForumChatSidecar — the contextual chat rail beside the forum view.
  *
- * v1 is intentionally light: a per-subject input that sends to the chat
- * surface. The promoted-thread handle is board-scoped (`board/thread`).
+ * Per the reframe: chat is just the terminal feed filtered to a channel,
+ * plus your input scoped to a verb. So this rail is a CLIENT-side filtered
+ * slice of the message feed (the chat frames whose `channelName` matches
+ * the board) + a "Talk here" affordance that puts the command bar into a
+ * `chat <handle>` input mode. Nothing here rides the bus beyond the
+ * ordinary chat command the command bar builds when you type.
+ *
+ * v1 scopes to the board's chat. (The promoted-thread chat — the
+ * subject-path stack — wants the thread-subject's board-scoped handle,
+ * which the client doesn't carry yet; deferred.)
  */
 
-import { useState } from "react";
 import styled from "styled-components";
 import { useStore } from "../store";
 import { tokens } from "./ui";
@@ -20,8 +21,9 @@ const Rail = styled.div`
   display: flex;
   flex-direction: column;
   height: 100%;
+  min-height: 0;
   padding: 0.75rem;
-  gap: 0.75rem;
+  gap: 0.5rem;
   background: ${tokens.color.surfaceMuted};
   color: ${tokens.color.fg};
   font-size: ${tokens.font.body};
@@ -36,129 +38,99 @@ const RailTitle = styled.div`
   font-size: 0.75rem;
 `;
 
-const Stack = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: 0.6rem;
-`;
-
-const Entry = styled.div<{ $depth: number }>`
-  margin-left: ${(p) => p.$depth * 0.75}rem;
-  border: 1px solid ${tokens.color.borderMuted};
-  background: ${tokens.color.surface};
-  border-radius: ${tokens.radius.md};
-  padding: 0.5rem;
-`;
-
 const Handle = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+`;
+
+const HandleName = styled.div`
   font-weight: 600;
   color: ${tokens.color.accent};
-  margin-bottom: 0.3rem;
 `;
 
-const ChatInput = styled.input`
-  width: 100%;
-  background: ${tokens.color.surfaceSunken};
-  color: ${tokens.color.fg};
-  border: 1px solid ${tokens.color.border};
+const TalkButton = styled.button<{ $active: boolean }>`
+  margin-left: auto;
+  background: ${(p) => (p.$active ? tokens.color.accent : "transparent")};
+  color: ${(p) => (p.$active ? "#11201b" : tokens.color.accent)};
+  border: 1px solid ${tokens.color.accent};
   border-radius: ${tokens.radius.sm};
-  padding: 0.35rem 0.5rem;
+  padding: 0.1rem 0.55rem;
   font: inherit;
-  &::placeholder {
-    color: ${tokens.color.fgMuted};
-  }
-  &:focus {
-    outline: none;
-    border-color: ${tokens.color.accent};
-  }
+  font-size: 0.78rem;
+  cursor: pointer;
+`;
+
+const Feed = styled.div`
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  margin-top: 0.25rem;
+`;
+
+const Line = styled.div`
+  font-family: ${tokens.font.mono};
+  font-size: 0.82rem;
+  line-height: 1.35;
+  word-break: break-word;
 `;
 
 const Empty = styled.div`
   color: ${tokens.color.fgMuted};
+  font-size: 0.82rem;
 `;
 
-interface SidecarProps {
-  onSendCommand: (text: string) => void;
+/** Crude MML→text for the compact rail (the main terminal renders MML). */
+function plain(body: string): string {
+  return body.replace(/<[^>]+>/g, "").trim();
 }
 
-function ChatEntry({
-  handle,
-  depth,
-  onSendCommand,
-}: {
-  handle: string;
-  depth: number;
-  onSendCommand: (text: string) => void;
-}): JSX.Element {
-  const [msg, setMsg] = useState("");
-  return (
-    <Entry $depth={depth}>
-      <Handle>#{handle}</Handle>
-      <ChatInput
-        aria-label={`chat ${handle}`}
-        placeholder="Say something…"
-        value={msg}
-        onChange={(e) => setMsg(e.target.value)}
-        onKeyDown={(e) => {
-          if (e.key === "Enter" && msg.trim()) {
-            onSendCommand(`chat ${handle} ${msg.trim()}`);
-            setMsg("");
-          }
-        }}
-      />
-    </Entry>
-  );
-}
-
-export function ForumChatSidecar({ onSendCommand }: SidecarProps): JSX.Element {
+export function ForumChatSidecar(): JSX.Element {
   const forumNav = useStore((s) => s.forumNav);
-  const forumRecords = useStore((s) => s.forumRecords);
-  const forumScopes = useStore((s) => s.forumScopes);
+  const frames = useStore((s) => s.frames);
+  const inputMode = useStore((s) => s.inputMode);
+  const setInputMode = useStore((s) => s.setInputMode);
 
-  // The subject-path stack: the board's chat always; the open thread's
-  // chat (if it's a promoted thread carrying its own thread-subject)
-  // stacked beneath it, parent still reachable.
-  const path: string[] = [];
-  if (forumNav.boardHandle) path.push(forumNav.boardHandle);
-
-  // A promoted thread exposes its board-scoped handle once it carries a
-  // thread-subject; surface it from the live thread record if present.
-  if (forumNav.threadId) {
-    for (const [subId, scope] of Object.entries(forumScopes)) {
-      if (scope.kind !== "thread") continue;
-      const root = (forumRecords[subId] ?? []).find(
-        (r) => r.id === forumNav.threadId,
-      );
-      if (root?.subject && forumNav.boardHandle) {
-        // The thread-subject's board-scoped handle is `board/<thread>`; we
-        // don't carry the thread's slug client-side, so address it by the
-        // promoted thread's title under the board.
-        path.push(`${forumNav.boardHandle}/${slug(root.title)}`);
-      }
-    }
+  const handle = forumNav.boardHandle;
+  if (!handle) {
+    return (
+      <Rail>
+        <RailTitle>Chat</RailTitle>
+        <Empty>Open a board.</Empty>
+      </Rail>
+    );
   }
+
+  const prefix = `chat ${handle}`;
+  const active = inputMode?.prefix === prefix;
+  const lines = frames.filter((f) => f.channelName === handle);
 
   return (
     <Rail>
       <RailTitle>Chat</RailTitle>
-      <Stack>
-        {path.length === 0 && <Empty>Open a board.</Empty>}
-        {path.map((handle, i) => (
-          <ChatEntry
-            key={handle}
-            handle={handle}
-            depth={i}
-            onSendCommand={onSendCommand}
-          />
-        ))}
-      </Stack>
+      <Handle>
+        <HandleName>#{handle}</HandleName>
+        <TalkButton
+          $active={active}
+          onClick={() => setInputMode({ prefix, label: handle })}
+          title="Scope the command bar to this channel"
+        >
+          {active ? "Talking…" : "Talk here"}
+        </TalkButton>
+      </Handle>
+      <Feed>
+        {lines.length === 0 ? (
+          <Empty>
+            No messages yet. Click “Talk here”, then type — your input sends
+            to <code>chat {handle}</code>.
+          </Empty>
+        ) : (
+          lines.map((f) => <Line key={f.id}>{plain(f.body)}</Line>)
+        )}
+      </Feed>
     </Rail>
   );
-}
-
-function slug(title: string): string {
-  return title
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "");
 }

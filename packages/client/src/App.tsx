@@ -401,6 +401,13 @@ function App() {
         ...(frame.meta?.frameId !== undefined
           ? { frameId: frame.meta.frameId }
           : {}),
+        ...(typeof (frame.payload as { channelName?: unknown } | undefined)
+          ?.channelName === "string"
+          ? {
+              channelName: (frame.payload as { channelName: string })
+                .channelName,
+            }
+          : {}),
       });
     };
     websocketClient.onAnyTopic(handle);
@@ -719,7 +726,7 @@ function App() {
                 onCommandPreview={handleCommandPreview}
               />
             ) : (
-              <ForumChatSidecar onSendCommand={sendCommand} />
+              <ForumChatSidecar />
             )}
           </Cockpit>
           {/* Live-scene peek so forum-view players keep live awareness. */}

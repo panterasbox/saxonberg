@@ -84,6 +84,17 @@ describe("forum store slice", () => {
     });
   });
 
+  it("inputMode (scoped input) is client-only set/clear state", () => {
+    expect(useStore.getState().inputMode).toBeNull();
+    useStore.getState().setInputMode({ prefix: "chat devtalk", label: "devtalk" });
+    expect(useStore.getState().inputMode).toEqual({
+      prefix: "chat devtalk",
+      label: "devtalk",
+    });
+    useStore.getState().clearInputMode();
+    expect(useStore.getState().inputMode).toBeNull();
+  });
+
   it("clearForumSubscription drops the cache", () => {
     const s = useStore.getState();
     s.applyForumResult("s1", { kind: "board", id: "b1" }, [rec("e1")]);

@@ -205,6 +205,26 @@ export interface Frame {
    * the server resolves the gutter → commandId.
    */
   frameId?: number;
+  /**
+   * Chat channel name (`payload.channelName`), when this is a chat frame.
+   * Lets a client-side view (the forum chat sidecar) filter the feed to a
+   * single channel — a CLIENT filter, like the console tabs; nothing
+   * server-side keys on it.
+   */
+  channelName?: string;
+}
+
+/**
+ * A client-side input scope ("mode"): a sticky verb/alias prefix the
+ * command bar wraps bare input with. PURELY client state — like the
+ * console filters, it never rides the command bus. Typing `foo` while a
+ * mode is set submits the real command `<prefix> foo`; a leading `/`
+ * escapes for a one-off raw command. Set by the chat sidecar's "talk
+ * here" (or `mode <prefix>`), cleared by Esc / the chip / `mode off`.
+ */
+export interface InputMode {
+  prefix: string;
+  label: string;
 }
 
 /**
@@ -257,6 +277,14 @@ interface StoreState {
    */
   mainView: "terminal" | "forum";
   setMainView: (view: "terminal" | "forum") => void;
+
+  /**
+   * The active input mode (client-only scoped-input prefix), or null. See
+   * {@link InputMode}.
+   */
+  inputMode: InputMode | null;
+  setInputMode: (mode: InputMode) => void;
+  clearInputMode: () => void;
 
   /**
    * The forum view's current navigation target. `boardHandle` is the
@@ -838,6 +866,11 @@ export const useStore = create<StoreState>((set, get) => ({
   mainView: "terminal",
   setMainView: (view) =>
     set((state) => (state.mainView === view ? {} : { mainView: view })),
+
+  // Input mode (client-only scoped-input prefix).
+  inputMode: null,
+  setInputMode: (mode) => set({ inputMode: mode }),
+  clearInputMode: () => set({ inputMode: null }),
 
   forumNav: { boardHandle: null, threadId: null },
   setForumNav: (nav) =>

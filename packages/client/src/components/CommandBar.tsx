@@ -139,6 +139,36 @@ const ComposeArea = styled.textarea`
   }
 `;
 
+/**
+ * The active-input-mode pill shown left of the command input (e.g. the
+ * channel you're scoped to). Visual sibling of a prompt slot chip.
+ */
+const ModeChip = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0 ${tokens.space.sm};
+  background: ${tokens.color.surfaceAlt};
+  border: 1px solid ${tokens.color.accent};
+  border-right: none;
+  color: ${tokens.color.accent};
+  font-family: ${tokens.font.mono};
+  font-size: ${tokens.font.body};
+  white-space: nowrap;
+`;
+
+const ModeChipX = styled.button`
+  background: none;
+  border: none;
+  color: ${tokens.color.fgMuted};
+  cursor: pointer;
+  padding: 0;
+  font-size: 0.8rem;
+  &:hover {
+    color: ${tokens.color.fg};
+  }
+`;
+
 const Input = styled.input<{ $flashing?: boolean; $promptMode?: boolean }>`
   flex: 1;
   padding: ${tokens.space.md};
@@ -417,6 +447,9 @@ export function CommandBar({
   flashing,
 }: CommandBarProps) {
   const prompts = useStore((s) => s.prompts);
+  const inputMode = useStore((s) => s.inputMode);
+  const setInputMode = useStore((s) => s.setInputMode);
+  const clearInputMode = useStore((s) => s.clearInputMode);
   const activeSlot = useStore((s) => s.activeSlot);
   const promptDrafts = useStore((s) => s.promptDrafts);
   const basePrompt = useStore((s) => s.basePrompt);
@@ -494,8 +527,34 @@ export function CommandBar({
 
   const submitBase = () => {
     if (offline) return; // bus down — no send, no queue
-    onSendCommand(baseValue);
     const trimmed = baseValue.trim();
+
+    // Client-only `mode` control — intercepted, never sent to the server
+    // (the scoped-input prefix is a client filter, like the console tabs).
+    if (trimmed === 'mode' || trimmed === 'mode off') {
+      clearInputMode();
+      onBaseChange('');
+      setHistoryIndex(-1);
+      return;
+    }
+    if (!inputMode && trimmed.startsWith('mode ')) {
+      const prefix = trimmed.slice(5).trim();
+      if (prefix) setInputMode({ prefix, label: prefix });
+      onBaseChange('');
+      setHistoryIndex(-1);
+      return;
+    }
+
+    // Apply the active mode prefix. A leading `/` escapes for a one-off
+    // raw command; otherwise the bare input is wrapped into the real
+    // command string `<prefix> <text>` (which is what reaches the bus).
+    let toSend = baseValue;
+    if (inputMode && trimmed) {
+      toSend = trimmed.startsWith('/')
+        ? trimmed.slice(1)
+        : `${inputMode.prefix} ${trimmed}`;
+    }
+    onSendCommand(toSend);
     if (trimmed) {
       setHistory((prev) => {
         const filtered = prev[0] === trimmed ? prev : [trimmed, ...prev];
@@ -582,6 +641,12 @@ export function CommandBar({
       // the input (legacy behavior).
       if (promptMode) {
         setActiveSlot(BASE_SLOT);
+        return;
+      }
+      // Esc backs out of an active input mode first; a second Esc (or Esc
+      // with no mode) clears the input.
+      if (inputMode) {
+        clearInputMode();
         return;
       }
       onBaseChange('');
@@ -771,6 +836,18 @@ export function CommandBar({
           ) : null}
         </PickerAnchor>
 
+        {inputMode && !promptMode && (
+          <ModeChip title="Esc to exit">
+            <span>{inputMode.label}</span>
+            <ModeChipX
+              aria-label="exit mode"
+              onClick={() => clearInputMode()}
+            >
+              ✕
+            </ModeChipX>
+          </ModeChip>
+        )}
+
         {activeEntry && activeEntry.kind === 'compose' ? (
           // Multiline body composition — markdown; ⌘/Ctrl+Enter submits,
           // Enter inserts a newline. (A live MML preview + "open in editor"
@@ -811,6 +888,8 @@ export function CommandBar({
                   : activeEntry && activeEntry.kind === 'confirm'
                   ? 'y / n (or click)'
                   : 'Click a choice above, or Esc to return to commands'
+                : inputMode
+                ? `${inputMode.prefix} … (/ for a raw command, Esc to exit)`
                 : 'Enter command...'
             }
             autoFocus
