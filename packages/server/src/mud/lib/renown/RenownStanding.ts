@@ -24,7 +24,13 @@ export const COOPERATIVE_WIDE = '*';
 
 export default class RenownStanding extends Document {
   static collectionName = Collections.Renown;
-  static persistentFields = ['subject', 'scope', 'value', 'recomputedAt'];
+  static persistentFields = [
+    'subject',
+    'scope',
+    'value',
+    'recomputedAt',
+    'recomputedRealAt',
+  ];
 
   /** Durable subject id the standing is about. */
   subject = "";
@@ -32,8 +38,10 @@ export default class RenownStanding extends Document {
   scope = COOPERATIVE_WIDE;
   /** The signed standing (esteem positive ↔ notoriety negative). */
   value = 0;
-  /** Game-time SECONDS of the recompute that produced this row. */
+  /** Game-time SECONDS of the recompute that produced this row (world clock). */
   recomputedAt = 0;
+  /** Real-time epoch MILLISECONDS of that recompute (wall clock). */
+  recomputedRealAt = 0;
 
   /**
    * The warmed read cache: `key(subject, scope) → value`. Always a Map

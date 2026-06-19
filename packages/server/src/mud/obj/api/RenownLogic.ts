@@ -72,6 +72,7 @@ async function appendImpl(fields: RenownEventFields): Promise<void> {
   ev.locality = fields.locality ?? null;
   ev.groups = fields.groups ?? [];
   ev.at = fields.at ?? WorldClockApi.getNow().rawValue();
+  ev.realAt = fields.realAt ?? Date.now();
   await ev.save();
 }
 
@@ -375,7 +376,8 @@ async function upsertStanding(
   subject: string,
   scope: string,
   value: number,
-  nowS: number
+  nowS: number,
+  realNow: number
 ): Promise<void> {
   const [existing] = await RenownStanding.find({ subject, scope });
   const row = existing ?? new RenownStanding();
@@ -383,6 +385,7 @@ async function upsertStanding(
   row.scope = scope;
   row.value = value;
   row.recomputedAt = nowS;
+  row.recomputedRealAt = realNow;
   await row.save();
 }
 
@@ -398,6 +401,7 @@ async function recomputeImpl(): Promise<void> {
   const vf = loadValueFunction();
   const emoteValences = await loadEmoteValences();
   const nowS = WorldClockApi.getNow().rawValue();
+  const realNow = Date.now();
 
   const all = await RenownEvent.find({});
   const bySubject = new Map<string, RenownEvent[]>();
@@ -419,7 +423,8 @@ async function recomputeImpl(): Promise<void> {
         subject,
         scopeKey(scope),
         scoreEvents(slice, nowS, vf, emoteValences),
-        nowS
+        nowS,
+        realNow
       );
     }
   }

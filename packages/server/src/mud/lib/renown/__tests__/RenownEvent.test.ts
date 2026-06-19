@@ -50,7 +50,8 @@ describe('RenownEvent', () => {
     ev.signal = { emote: 'applaud', tags: ['cheer'], commandId: 'cmd-1' };
     ev.locality = '/university-avenue';
     ev.groups = ['contacts:thieves-guild', 'contacts:cohort-7'];
-    ev.at = 4242;
+    ev.at = 4242; // game-time seconds
+    ev.realAt = 1_700_000_000_000; // wall-time epoch ms
     await ev.save();
 
     const found = await RenownEvent.find({ subject: '/obj/Avatar/p1' });
@@ -65,7 +66,8 @@ describe('RenownEvent', () => {
     });
     expect(f.locality).toBe('/university-avenue');
     expect(f.groups).toEqual(['contacts:thieves-guild', 'contacts:cohort-7']);
-    expect(f.at).toBe(4242);
+    expect(f.at).toBe(4242); // game time
+    expect(f.realAt).toBe(1_700_000_000_000); // real time
     // selfReaction is derivable, never stored.
     expect(f.source === f.subject).toBe(false);
   });

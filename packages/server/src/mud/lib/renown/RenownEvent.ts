@@ -78,8 +78,10 @@ export interface RenownEventFields {
   locality?: string | null;
   /** Objective `Group`s shared by source & subject. */
   groups?: string[];
-  /** Game-time SECONDS magnitude (for decay). */
+  /** Game-time SECONDS magnitude (the world clock — drives decay). */
   at?: number;
+  /** Real-time epoch MILLISECONDS (wall clock — analytics / correlation). */
+  realAt?: number;
 }
 
 export default class RenownEvent extends Document {
@@ -92,6 +94,7 @@ export default class RenownEvent extends Document {
     'locality',
     'groups',
     'at',
+    'realAt',
   ];
 
   /** Durable subject id (what the signal is about) — indexed. */
@@ -106,6 +109,8 @@ export default class RenownEvent extends Document {
   locality: string | null = null;
   /** Objective `Group` refs shared by source & subject (scope axis). */
   groups: string[] = [];
-  /** Game-time SECONDS magnitude (for decay weighting at recompute). */
+  /** Game-time SECONDS magnitude — the world clock; drives decay. */
   at = 0;
+  /** Real-time epoch MILLISECONDS — the wall clock; analytics / correlation. */
+  realAt = 0;
 }

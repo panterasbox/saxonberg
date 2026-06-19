@@ -63,6 +63,7 @@ describe('RenownApi append + read', () => {
     expect(ev!.signal).toEqual({ emote: 'applaud', tags: ['cheer'] });
     expect(ev!.at).toBe(WorldClockApi.getNow().rawValue()); // game-clock witness
     expect(typeof ev!.at).toBe('number');
+    expect(ev!.realAt).toBeGreaterThan(0); // wall-clock stamp (Date.now)
   });
 
   it('honors an explicit `at` over the clock default', async () => {
