@@ -91,7 +91,8 @@ function plain(body: string): string {
 export function ForumChatSidecar(): JSX.Element {
   const forumNav = useStore((s) => s.forumNav);
   const frames = useStore((s) => s.frames);
-  const inputMode = useStore((s) => s.inputMode);
+  // The sidecar lives in the forum view, so it reads/sets the forum bar's mode.
+  const forumMode = useStore((s) => s.inputMode.forum);
   const setInputMode = useStore((s) => s.setInputMode);
 
   const handle = forumNav.boardHandle;
@@ -105,7 +106,7 @@ export function ForumChatSidecar(): JSX.Element {
   }
 
   const prefix = `chat ${handle}`;
-  const active = inputMode?.prefix === prefix;
+  const active = forumMode?.prefix === prefix;
   const lines = frames.filter((f) => f.channelName === handle);
 
   return (

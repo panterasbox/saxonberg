@@ -340,6 +340,15 @@ function App() {
     };
   }, []);
 
+  // The Terminal and Forum command bars are conceptually separate bars.
+  // Their scope (mode) is held per-view in the store; the typed draft is
+  // transient, so it starts fresh on each view switch rather than carrying
+  // a half-typed line from one context into the other.
+  useEffect(() => {
+    setInputValue("");
+    userTypedRef.current = "";
+  }, [mainView]);
+
   useEffect(() => {
     // Check auth status on mount
     checkAuthStatus();

@@ -279,10 +279,13 @@ interface StoreState {
   setMainView: (view: "terminal" | "forum") => void;
 
   /**
-   * The active input mode (client-only scoped-input prefix), or null. See
-   * {@link InputMode}.
+   * The input mode (client-only scoped-input prefix) PER primary view —
+   * the Terminal and Forum bars are conceptually separate bars and each
+   * keeps its own scope, so a chat mode set in the forum never follows you
+   * to the terminal. `setInputMode`/`clearInputMode` target the *current*
+   * view; read the active one as `inputMode[mainView]`. See {@link InputMode}.
    */
-  inputMode: InputMode | null;
+  inputMode: { terminal: InputMode | null; forum: InputMode | null };
   setInputMode: (mode: InputMode) => void;
   clearInputMode: () => void;
 
@@ -862,19 +865,23 @@ export const useStore = create<StoreState>((set, get) => ({
       state.connectionPhase === phase ? {} : { connectionPhase: phase },
     ),
 
-  // In-world primary-view axis (terminal | forum). Not a phase.
+  // In-world primary-view axis (terminal | forum). Not a phase. Each view
+  // is its own command bar — switching just shows the other bar with its
+  // own state intact (the mode is per-view; nothing to clear here).
   mainView: "terminal",
   setMainView: (view) =>
-    set((state) =>
-      // Switching the primary view resets the input mode — a scope set in
-      // the forum chat sidecar must not follow you back to the terminal.
-      state.mainView === view ? {} : { mainView: view, inputMode: null },
-    ),
+    set((state) => (state.mainView === view ? {} : { mainView: view })),
 
-  // Input mode (client-only scoped-input prefix).
-  inputMode: null,
-  setInputMode: (mode) => set({ inputMode: mode }),
-  clearInputMode: () => set({ inputMode: null }),
+  // Input mode (client-only scoped-input prefix), held per primary view.
+  inputMode: { terminal: null, forum: null },
+  setInputMode: (mode) =>
+    set((state) => ({
+      inputMode: { ...state.inputMode, [state.mainView]: mode },
+    })),
+  clearInputMode: () =>
+    set((state) => ({
+      inputMode: { ...state.inputMode, [state.mainView]: null },
+    })),
 
   forumNav: { boardHandle: null, threadId: null },
   setForumNav: (nav) =>

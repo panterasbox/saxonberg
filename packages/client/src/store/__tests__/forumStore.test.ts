@@ -34,6 +34,7 @@ beforeEach(() => {
     forumNav: { boardHandle: null, threadId: null },
     forumRecords: {},
     forumScopes: {},
+    inputMode: { terminal: null, forum: null },
   });
 });
 
@@ -84,15 +85,18 @@ describe("forum store slice", () => {
     });
   });
 
-  it("inputMode (scoped input) is client-only set/clear state", () => {
-    expect(useStore.getState().inputMode).toBeNull();
+  it("inputMode is client-only scoped-input state, held per view", () => {
+    useStore.setState({ mainView: "forum" });
+    expect(useStore.getState().inputMode.forum).toBeNull();
     useStore.getState().setInputMode({ prefix: "chat devtalk", label: "devtalk" });
-    expect(useStore.getState().inputMode).toEqual({
+    // Set on the active (forum) view only — the terminal bar is untouched.
+    expect(useStore.getState().inputMode.forum).toEqual({
       prefix: "chat devtalk",
       label: "devtalk",
     });
+    expect(useStore.getState().inputMode.terminal).toBeNull();
     useStore.getState().clearInputMode();
-    expect(useStore.getState().inputMode).toBeNull();
+    expect(useStore.getState().inputMode.forum).toBeNull();
   });
 
   it("clearForumSubscription drops the cache", () => {
