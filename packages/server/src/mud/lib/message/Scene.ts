@@ -16,7 +16,7 @@
 import type { Stuff } from '../stuff/Stuff';
 import type { Sensor } from './Sensor';
 import type { MessageFrame } from '@saxonberg/types';
-import { nanoid } from 'nanoid';
+import { SecurityApi } from '../../api/security';
 import { MixinApi } from '../../api/mixin';
 import { ExecutionContextApi } from '../../api/execution-context';
 import { Mml } from '../../api/mml';
@@ -238,7 +238,7 @@ export class Scene {
         const body =
           af.body instanceof Mml ? af.body.toString(recipient) : af.body;
         const frame: MessageFrame = {
-          id: nanoid(),
+          id: SecurityApi.uuid(),
           topic: this.#topic!,
           tags,
           body,

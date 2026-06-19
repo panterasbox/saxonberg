@@ -25,7 +25,7 @@ import {
   sep,
 } from 'path';
 import { readdirSync } from 'fs';
-import { nanoid } from 'nanoid';
+import { SecurityApi } from '../../api/security';
 import Ajv, { type ValidateFunction } from 'ajv';
 import type { MessageFrame, Note, Status } from '@saxonberg/types';
 import {
@@ -1286,7 +1286,7 @@ export class CommandLogic extends Idea {
     if (causing) meta.causingCommandId = causing;
 
     const frame: MessageFrame = {
-      id: nanoid(),
+      id: SecurityApi.uuid(),
       topic,
       tags: [],
       body: '',

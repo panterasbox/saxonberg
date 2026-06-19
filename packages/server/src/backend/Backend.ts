@@ -16,7 +16,6 @@
  */
 
 import type { WebSocket } from 'ws';
-import { nanoid } from 'nanoid';
 import type { IBackend } from './IBackend';
 import type {
   AuthProvider,
@@ -31,6 +30,7 @@ import type {
 import { Application } from './Application';
 import type { InboundClientMessage } from './inbound/index';
 import { ExecutionContextApi } from '../mud/api/execution-context';
+import { SecurityApi } from '../mud/api/security';
 
 /**
  * Build a deterministic synthetic Google profile for test-mode login.
@@ -176,7 +176,7 @@ export class Backend implements IBackend {
     isBroadcast = false
   ): void {
     // Generate socket ID
-    const socketId = `socket_${nanoid()}`;
+    const socketId = `socket_${SecurityApi.uuid()}`;
 
     // Store WebSocket connection
     this.socketsBySocketId.set(socketId, ws);

@@ -12,7 +12,6 @@
  * This is the central registry for all runtime objects in the game.
  */
 
-import { nanoid } from 'nanoid';
 import { existsSync } from 'fs';
 import { fileURLToPath } from 'url';
 import { Stuff, type DestroyedObjectMetadata } from '../lib/stuff/Stuff';
@@ -130,7 +129,7 @@ export class StuffApi {
    * Uses base58-encoded nanoid for short, URL-safe IDs.
    */
   public static generateId(): string {
-    return nanoid();
+    return SecurityApi.uuid();
   }
 
   /**

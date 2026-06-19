@@ -12,7 +12,7 @@
  * dispatch shape, fewer files.
  */
 
-import { nanoid } from 'nanoid';
+import { SecurityApi } from '../../../api/security';
 import { CommandController } from '../../../lib/command/CommandController';
 import type {
   CommandContext,
@@ -128,7 +128,7 @@ export default class ChatController extends CommandController<ChatModel> {
           .send();
         // Append to history
         cat.appendToHistory(ad.handle, {
-          id: nanoid(),
+          id: SecurityApi.uuid(),
           topic: 'world.chat.message',
           tags: ['audience:witness'],
           body: `[${ad.handle}] ${speaker.getPresentation()}: ${body}`,

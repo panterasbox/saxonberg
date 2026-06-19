@@ -21,7 +21,7 @@
 import { readFileSync } from "fs";
 import { fileURLToPath } from "url";
 import { dirname, join } from "path";
-import { nanoid } from "nanoid";
+import { SecurityApi } from "../../../api/security";
 import YAML from "yaml";
 import { CommandController } from "../../../lib/command/CommandController";
 import type { CommandContext, CommandModel } from "../../../api/command";
@@ -495,7 +495,7 @@ export default class EnrollController extends CommandController<EnrollModel> {
     if (!seed) {
       throw new Error(`EnrollController.commit: no Avatar seed template.`);
     }
-    const playerId = nanoid();
+    const playerId = SecurityApi.uuid();
     const path = Avatar.getTemplatePath(playerId);
     const data: Record<string, unknown> = {
       ...seed.data,

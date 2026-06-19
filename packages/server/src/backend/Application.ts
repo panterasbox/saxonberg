@@ -44,7 +44,7 @@ import { AppApi } from '../mud/api/app';
 import { AppSettingKeys } from '../mud/lib/config/AppSettings';
 import Avatar from '../mud/obj/Avatar';
 import { Template } from '../mud/lib/stuff/Template';
-import { nanoid } from 'nanoid';
+import { SecurityApi } from '../mud/api/security';
 import { CallSecurity } from '../mud/lib/security/decorators';
 import { SecurityPolicies } from '../mud/lib/security/SecurityPolicies';
 import {
@@ -675,7 +675,7 @@ export class Application {
       );
     }
 
-    const playerId = nanoid();
+    const playerId = SecurityApi.uuid();
     const path = Avatar.getTemplatePath(playerId);
     const data: Record<string, unknown> = {
       ...seed.data,

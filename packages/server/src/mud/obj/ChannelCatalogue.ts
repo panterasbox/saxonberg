@@ -33,7 +33,7 @@
  * data: {} }`.
  */
 
-import { nanoid } from 'nanoid';
+import { SecurityApi } from '../api/security';
 import { Idea } from '../lib/stuff/Idea';
 import { PostRegistrationMixin } from '../lib/stuff/PostRegistration';
 import { Channel } from '../lib/social/Channel';
@@ -284,7 +284,7 @@ export default class ChannelCatalogue extends ChannelCatalogueBase {
       if (a === speaker) continue;
       if (!MixinApi.isSensor(a)) continue;
       MessageApi.sendMessage(a, {
-        id: nanoid(),
+        id: SecurityApi.uuid(),
         topic: 'world.chat.message',
         tags: ['audience:witness'],
         body: peerBody.toString(a),
@@ -294,7 +294,7 @@ export default class ChannelCatalogue extends ChannelCatalogueBase {
     }
 
     this.appendToHistory(channelId, {
-      id: nanoid(),
+      id: SecurityApi.uuid(),
       topic: 'world.chat.message',
       tags: ['audience:witness'],
       body: selfBody.toString(speaker),

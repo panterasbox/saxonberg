@@ -37,7 +37,7 @@ import {
   SettingTypes,
   type SettingsSchemaEntry,
 } from '../shell/Environment';
-import { nanoid } from 'nanoid';
+import { SecurityApi } from '../../api/security';
 import { CommandLineApi } from '../../api/command-line';
 import {
   CommandApi,
@@ -494,13 +494,13 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
       const location = MixinApi.isContainable(giver)
         ? giver.getContainer()
         : null;
-      const commandId = nanoid();
+      const commandId = SecurityApi.uuid();
       const originInteractiveId = opts.interactive?.stuffId;
       const outer = CommandApi.createCommandContext({
         commandGiver: giver,
         location,
         commandText,
-        executionId: nanoid(),
+        executionId: SecurityApi.uuid(),
         commandId,
         verb: '',
         command: undefined as unknown as CommandDefinition,

@@ -9,9 +9,9 @@
  * dispatcher.
  */
 
-import { nanoid } from 'nanoid';
 import type { EnvelopeTemplate } from '@saxonberg/types';
 import { PlayerApi } from '../../mud/api/player';
+import { SecurityApi } from '../../mud/api/security';
 import { MixinApi } from '../../mud/api/mixin';
 import { PromptApi } from '../../mud/api/prompt';
 import type { Stuff } from '../../mud/lib/stuff/Stuff';
@@ -52,7 +52,7 @@ export const handleCommand: InboundHandler = async (ctx, message) => {
       const refresh = PromptApi.renderPromptRefresh(holder);
       const template: EnvelopeTemplate = {
         type: 'dispatch-response',
-        dispatchId: nanoid(),
+        dispatchId: SecurityApi.uuid(),
         outcome: { status: 'ok', notes: [refresh] },
       };
       application.sendEnvelopeToInteractive(interactive, template);

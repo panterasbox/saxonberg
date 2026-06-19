@@ -14,7 +14,7 @@
  * Avatar's PropertiedMixin per the design.)
  */
 
-import { nanoid } from 'nanoid';
+import { SecurityApi } from '../../api/security';
 import type { Stuff } from '../stuff/Stuff';
 
 export class AdHocChannel {
@@ -45,6 +45,6 @@ export class AdHocChannel {
    * combinations — comfortable for ephemeral lifetimes.
    */
   static generateHandle(): string {
-    return nanoid(6);
+    return SecurityApi.uuid(6);
   }
 }

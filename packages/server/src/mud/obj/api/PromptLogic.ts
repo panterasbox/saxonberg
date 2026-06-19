@@ -1,7 +1,7 @@
 // PromptLogic — the hot-reloadable logic singleton behind PromptApi.
 // (Doc comment on the class below so @internal lands on the reflection.)
 
-import { nanoid } from 'nanoid';
+import { SecurityApi } from '../../api/security';
 import type {
   ChoicePromptNote,
   ConfirmPromptNote,
@@ -102,7 +102,7 @@ function push<T>(
   extras?: { min?: number; max?: number }
 ): Promise<T> {
   const holder = requireViewer(interactive);
-  const promptId = nanoid();
+  const promptId = SecurityApi.uuid();
 
   return new Promise<T>((resolve, reject) => {
     const record: ResolverRecord = {
