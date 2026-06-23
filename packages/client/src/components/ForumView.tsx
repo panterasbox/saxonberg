@@ -22,8 +22,11 @@ import {
   castForumVote,
   postForumThread,
   replyForumEntry,
+  attachArgumentClaim,
+  matureArgument,
   openForumThread,
   openForumBoard,
+  type ArgumentValence,
 } from "../store/forumActions";
 import { MmlRenderer } from "./MmlRenderer";
 import { tokens } from "./ui";
@@ -461,6 +464,213 @@ function CommentNode({
   );
 }
 
+/* ── Argument organizer (cycle 2) — the neutral default lens render ── */
+
+const SpineCard = styled.div`
+  border: 1px solid ${tokens.color.accent};
+  background: ${tokens.color.surface};
+  border-radius: ${tokens.radius.md};
+  padding: 0.6rem 0.85rem;
+`;
+
+const SpineTitle = styled.div`
+  font-weight: 700;
+  color: ${tokens.color.fgEmphasis};
+  margin-bottom: 0.3rem;
+`;
+
+const ClaimCard = styled.div<{ $circle?: boolean }>`
+  border: 1px solid ${tokens.color.borderMuted};
+  background: ${tokens.color.surface};
+  border-radius: ${tokens.radius.md};
+  padding: 0.45rem 0.7rem;
+  box-shadow: ${(p) =>
+    p.$circle ? `inset 3px 0 0 ${tokens.color.accent}` : "none"};
+`;
+
+const ClaimHead = styled.div`
+  display: flex;
+  align-items: baseline;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+`;
+
+const Marker = styled.span<{ $rel?: string }>`
+  font-weight: 700;
+  color: ${(p) =>
+    p.$rel === "supports"
+      ? tokens.color.accent
+      : p.$rel === "objects-to"
+        ? tokens.color.danger
+        : tokens.color.fgMuted};
+`;
+
+const OpenBadge = styled.span`
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: ${tokens.color.warning};
+  border: 1px solid ${tokens.color.warning};
+  border-radius: ${tokens.radius.sm};
+  padding: 0 0.3rem;
+`;
+
+const EditedTag = styled.span`
+  font-size: 0.7rem;
+  color: ${tokens.color.fgMuted};
+  font-style: italic;
+`;
+
+const CircleDot = styled.span`
+  font-size: 0.7rem;
+  color: ${tokens.color.accent};
+`;
+
+const GroupLabel = styled.div`
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: ${tokens.color.fgMuted};
+  margin: 0.35rem 0 0.15rem;
+`;
+
+const ValenceBar = styled.div`
+  display: flex;
+  gap: 0.7rem;
+  margin-top: 0.25rem;
+`;
+
+/** Per-relation glyph + the heading its children group under. */
+const VALENCE_META: Record<string, { glyph: string; group: string }> = {
+  supports: { glyph: "+", group: "Supporting" },
+  "objects-to": { glyph: "−", group: "Objections" },
+  "responds-to": { glyph: "?", group: "Questions" },
+};
+
+/** The three contribution affordances → reply valence flags. */
+const VALENCE_CHOICES: { v: ArgumentValence; label: string }[] = [
+  { v: "pro", label: "＋ Support" },
+  { v: "con", label: "− Object" },
+  { v: "rebut", label: "? Ask" },
+];
+
+/** A parent's already-lens-ordered children, split by valence for headings. */
+function groupByValence(kids: ForumEntryRecord[]) {
+  return [
+    { key: "supports", label: "Supporting", list: kids.filter((k) => k.relation === "supports") },
+    { key: "objects-to", label: "Objections", list: kids.filter((k) => k.relation === "objects-to") },
+    { key: "responds-to", label: "Questions", list: kids.filter((k) => k.relation === "responds-to") },
+  ];
+}
+
+interface ArgNodeProps {
+  entry: ForumEntryRecord;
+  childrenMap: Map<string, ForumEntryRecord[]>;
+  preview: Preview;
+  submitted: () => void;
+  onSendCommand: (text: string) => void;
+  onCommandPreview: (command: string | null) => void;
+}
+
+/**
+ * One claim (or the spine) + its valence-grouped children (recursive).
+ * No vote controls and no score — reputation-blind. Children arrive in the
+ * server's lens order (Supporting → Objections → Questions); we only add
+ * the group headings. The open-objection badge, the circle highlight, and
+ * the "edited" marker ride the projected record fields.
+ */
+function ArgumentNode({
+  entry,
+  childrenMap,
+  preview,
+  submitted,
+  onSendCommand,
+  onCommandPreview,
+}: ArgNodeProps): JSX.Element {
+  const [valence, setValence] = useState<ArgumentValence | null>(null);
+  const isSpine = entry.parent === null;
+  const kids = childrenMap.get(entry.id) ?? [];
+  const meta = entry.relation ? VALENCE_META[entry.relation] : undefined;
+
+  const inner = (
+    <>
+      <ClaimHead>
+        {meta && <Marker $rel={entry.relation}>{meta.glyph}</Marker>}
+        {entry.openObjection && <OpenBadge>⚠ open</OpenBadge>}
+        {entry.inCircle && (
+          <CircleDot title="someone in your circle is here">●</CircleDot>
+        )}
+        {entry.editedAt != null && <EditedTag>edited</EditedTag>}
+      </ClaimHead>
+      <Body>
+        <MmlRenderer
+          text={entry.body}
+          onCommandClick={onSendCommand}
+          onCommandPreview={onCommandPreview}
+        />
+        <Meta>by {entry.authorName || "someone"}</Meta>
+        <ValenceBar>
+          {VALENCE_CHOICES.map((c) => (
+            <ReplyLink
+              key={c.v}
+              onClick={() => setValence((cur) => (cur === c.v ? null : c.v))}
+              {...hoverPreview(`forum reply ${entry.id} --${c.v}`, preview)}
+            >
+              {c.label}
+            </ReplyLink>
+          ))}
+        </ValenceBar>
+        {valence && (
+          <ComposeBox
+            label="claim"
+            previewVerb={`forum reply ${entry.id} --${valence}`}
+            onPreview={preview}
+            onSubmitted={() => {
+              submitted();
+              setValence(null);
+            }}
+            onSubmit={(body) => attachArgumentClaim(entry.id, valence, body)}
+          />
+        )}
+      </Body>
+    </>
+  );
+
+  return (
+    <div>
+      {isSpine ? (
+        <SpineCard>
+          <SpineTitle>{entry.title || "Proposal"}</SpineTitle>
+          {inner}
+        </SpineCard>
+      ) : (
+        <ClaimCard $circle={entry.inCircle}>{inner}</ClaimCard>
+      )}
+      {kids.length > 0 && (
+        <Nest>
+          {groupByValence(kids).map((g) =>
+            g.list.length === 0 ? null : (
+              <div key={g.key}>
+                <GroupLabel>{g.label}</GroupLabel>
+                {g.list.map((k) => (
+                  <ArgumentNode
+                    key={k.id}
+                    entry={k}
+                    childrenMap={childrenMap}
+                    preview={preview}
+                    submitted={submitted}
+                    onSendCommand={onSendCommand}
+                    onCommandPreview={onCommandPreview}
+                  />
+                ))}
+              </div>
+            ),
+          )}
+        </Nest>
+      )}
+    </div>
+  );
+}
+
 interface ForumViewProps {
   onSendCommand: (text: string) => void;
   onCommandPreview: (command: string | null) => void;
@@ -574,10 +784,56 @@ export function ForumView({
             >
               <Body>
                 <TitleLine>{b.title}</TitleLine>
+                {b.organizer === "argument" && <Meta>⚖ argument forum</Meta>}
                 {b.body && <Meta>{b.body}</Meta>}
               </Body>
             </Card>
           ))}
+      </Wrap>
+    );
+  }
+
+  // Organizer-gated fork: an argument board renders the neutral default
+  // lens (a single claim-graph from the board scope), NOT the ranked
+  // thread-list/post-tree. Additive — the popularity view below is
+  // untouched. Detected from the projected records' `organizer`.
+  const argumentMode = boardRecords.some((r) => r.organizer === "argument");
+  if (argumentMode) {
+    const spine = boardRecords.find((r) => r.parent === null) ?? null;
+    const argChildren = buildChildren(boardRecords);
+    return (
+      <Wrap>
+        <Bar>
+          <Crumb onClick={() => { openForumBoard(""); submitted(); }}>
+            Boards
+          </Crumb>
+          <span>/ {forumNav.boardHandle}</span>
+          <span style={{ flex: 1 }} />
+          <ReplyLink
+            onClick={() => {
+              matureArgument(forumNav.boardHandle!);
+              submitted();
+            }}
+            {...hoverPreview(`forum mature ${forumNav.boardHandle}`, preview)}
+          >
+            Mature ✓
+          </ReplyLink>
+        </Bar>
+        {!spine ? (
+          <Meta>
+            No proposal yet — the owner posts one with `forum post{" "}
+            {forumNav.boardHandle} &lt;thesis&gt;`.
+          </Meta>
+        ) : (
+          <ArgumentNode
+            entry={spine}
+            childrenMap={argChildren}
+            preview={preview}
+            submitted={submitted}
+            onSendCommand={onSendCommand}
+            onCommandPreview={onCommandPreview}
+          />
+        )}
       </Wrap>
     );
   }

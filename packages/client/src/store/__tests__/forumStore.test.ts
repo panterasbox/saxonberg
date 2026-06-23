@@ -99,6 +99,42 @@ describe("forum store slice", () => {
     expect(useStore.getState().inputMode.forum).toBeNull();
   });
 
+  it("carries argument-mode fields and clears an open-objection via a replace delta", () => {
+    const s = useStore.getState();
+    const con = rec("c1", {
+      parent: "spine",
+      organizer: "argument",
+      relation: "objects-to",
+      openObjection: true,
+      inCircle: true,
+      up: 0,
+      down: 0,
+      score: 0,
+      displayScore: null,
+    });
+    s.applyForumResult("a1", { kind: "board", id: "b1" }, [con]);
+    const first = useStore.getState().forumRecords["a1"]![0]!;
+    expect(first.organizer).toBe("argument");
+    expect(first.relation).toBe("objects-to");
+    expect(first.openObjection).toBe(true);
+    expect(first.inCircle).toBe(true);
+
+    // Answered live → the badge clears via a replace delta (no refetch).
+    s.applyForumDelta("a1", [
+      {
+        op: "replace",
+        key: "c1",
+        fields: rec("c1", {
+          parent: "spine",
+          organizer: "argument",
+          relation: "objects-to",
+          openObjection: false,
+        }),
+      },
+    ]);
+    expect(useStore.getState().forumRecords["a1"]![0]!.openObjection).toBe(false);
+  });
+
   it("clearForumSubscription drops the cache", () => {
     const s = useStore.getState();
     s.applyForumResult("s1", { kind: "board", id: "b1" }, [rec("e1")]);

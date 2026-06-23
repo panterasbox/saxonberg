@@ -56,17 +56,17 @@ remains a build.
 - [forums-slate](./builds/forums-slate.md) — durable multi-author boards on
   the aether implant, unifying **popularity forums + structured-argument
   deliberation as two organizers over one primitive** (`organizer:
-  'popularity' | 'structure'`). Consciously **supersedes the factoring** of
+  'popularity' | 'argument'`). Consciously **supersedes the factoring** of
   [delivery-slate](./builds/delivery-slate.md) (social-forum-as-chat-facet)
-  and [argument-map-slate](./builds/argument-map-slate.md) (which becomes the
-  `'structure'` organizer); preserves the deliberation-ungameability principle
-  (structure boards: votes sense, never order). **Part-0 substrate + Part-1
-  popularity SHIPPED** (cycle 1, `feature/forums-build`), graduated to
-  [../subsystems/forums.md](../subsystems/forums.md); kept in `builds/` for
-  the **structure organizer** (designed-for, deferred — its full design is
-  [argument-map-slate](./builds/argument-map-slate.md)) plus the ephemeral
-  bill lifecycle, the procedure modes, and the latent collection-watch
-  abstraction.
+  and [argument-map-slate](./tails/argument-map-slate.md) (which becomes the
+  `'argument'` organizer); preserves the deliberation-ungameability principle
+  (argument boards: no ranking at all). **Part-0 substrate + Part-1
+  popularity SHIPPED** (cycle 1, `feature/forums-build`) and the **argument
+  organizer SHIPPED** (cycle 2, `feature/argument-map-build`), both graduated
+  to [../subsystems/forums.md](../subsystems/forums.md); kept in `builds/` for
+  the ephemeral bill lifecycle, the procedure modes, and the latent
+  collection-watch abstraction (the argument organizer's *scale* tail moved to
+  [tails/argument-map-slate](./tails/argument-map-slate.md)).
 
 **Status:** recognition + identification substrate shipped → `belief.md`;
 chronicle ledger substrate shipped → `chronicle.md`; social-graph
@@ -222,19 +222,21 @@ closes economy's open "deliberate faucet without inflation" thread.
   (there's none
   yet) but **code + publication + exit** — it ships with the **stake-ledger
   slice** as the first test of code-first self-binding.
-- [argument-map-slate](./builds/argument-map-slate.md) — the polity's
-  load-bearing **deliberation surface**, split out from the cooperative
-  slate's *Deliberation* section as its own thing because it's *distinct from
-  forums*: a navigable **typed claim-graph** (bill-as-spine, claims →
-  objections → rebuttals; Kialo / IBIS / Deliberatorium lineage) organized by
-  the argument's *structure*, not by ranking (the only ungameable organizer).
-  Dissent is a node not a downvote; contribute-as-equals, decide-by-weight;
-  it's the legislative history in the archive. **Small-scale claim-tree
-  buildable now**; the *scale* problems — claim dedup/canonicalization
-  (assisted curation) + integrity-grade map-summarization — are the open
+- [argument-map-slate](./tails/argument-map-slate.md) *(tail)* — the polity's
+  load-bearing **deliberation surface**: a navigable **typed claim-graph**
+  (proposal-as-spine, claims → objections → rebuttals; Kialo / IBIS /
+  Deliberatorium lineage) organized by the argument's *structure*, not by
+  ranking (the only ungameable organizer). Dissent is a node not a downvote;
+  contribute-as-equals, decide-by-weight; it's the legislative history in the
+  archive. **v1 SHIPPED (2026-06, forums cycle 2)** as the `organizer:
+  'argument'` reading over the shared Board/Entry store, graduated to
+  [../subsystems/forums.md § The argument organizer](../subsystems/forums.md#the-argument-organizer-cycle-2);
+  moved to `tails/`. The *scale* problems — claim dedup/canonicalization
+  (assisted curation) + integrity-grade map-summarization + automated
+  convergence + the vote consumer + the plural-lens explorer — are the open
   work.
 
-**Phases:** stake ledger (buildable now) → (the republic — chambers, executive, treasuries — deferred to a real member body) · argument-map (small-scale claim-tree buildable; mass-scale dedup/summarization deferred).
+**Phases:** stake ledger (buildable now) → (the republic — chambers, executive, treasuries — deferred to a real member body) · **argument-map (v1 shipped → tail; mass-scale dedup/summarization deferred)**.
 
 ---
 
@@ -246,6 +248,7 @@ extends; none is a fresh build.
 | Slate | Extends (shipped) | What's deferred |
 |---|---|---|
 | [access](./tails/access-slate.md) | access.md / call-security.md | actor-aware policy slots |
+| [argument-map](./tails/argument-map-slate.md) | forums.md | **v1 shipped 2026-06** (the `organizer: 'argument'` claim-graph + neutral lens + open-objection + circle highlight + mature seam + client mode → forums.md); deferred: claim dedup/canonicalization, integrity-grade summarization, automated convergence, proposal version-control, the vote consumer, the plural-lens explorer |
 | [auth-providers](./tails/auth-providers-slate.md) | connection.md | **Waves 1+2 shipped 2026-06** (multi-provider spine + Twitch login + account link/unlink + token encryption → connection.md); deferred: chat scopes, account merge, provider-side revocation, name-refraction, YouTube |
 | [external-chat-relay](./tails/external-chat-relay-slate.md) | chat.md | bind a `Channel` to an external service (Twitch first) — inbound reader + outbound post-as-yourself; **rides the auth-providers keystone** |
 | [augmentation](./tails/augmentation-slate.md) | augmentation.md | Wave 2+ (Wave 1 shipped) |

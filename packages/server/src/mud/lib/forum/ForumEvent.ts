@@ -29,7 +29,11 @@ export type ForumEventKind =
   | 'reply-created'
   | 'vote-cast'
   | 'thread-promoted'
-  | 'thread-locked';
+  | 'thread-locked'
+  // Argument organizer (cycle 2):
+  | 'argument-attached' // a typed-edge claim attached (pro/con/question)
+  | 'entry-edited' // a body edit (data.priorBody carries the lossless trail)
+  | 'mature'; // the decoupled mature→vote handoff (no consumer in v1)
 
 /** The dependency keys + provenance an event carries (shared with the DTO). */
 export interface ForumEventPayload {

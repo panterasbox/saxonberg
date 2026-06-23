@@ -786,6 +786,30 @@ export interface ForumEntryRecord {
   subject: string | null;
   /** Creation time (ms since epoch). */
   createdAt: number;
+  /** Last-edit time (ms since epoch), or null — drives the "edited" marker. */
+  editedAt?: number | null;
+
+  // ── Argument organizer (cycle 2) — all optional, so a popularity
+  // projection is byte-identical when they are absent. ──
+  /**
+   * The board's organizer, stamped so the client picks its render mode
+   * explicitly rather than inferring. Present on every argument record;
+   * absent (or `'popularity'`) for the popularity view.
+   */
+  organizer?: 'popularity' | 'argument';
+  /** The typed edge to the parent (argument boards): pro/con/neutral. */
+  relation?: 'reply' | 'supports' | 'objects-to' | 'responds-to';
+  /**
+   * True on an `objects-to` claim with no answering child — the
+   * open-objection flag (the triage cue + convergence signal). Computed
+   * from relations only; never read from `up`/`down`.
+   */
+  openObjection?: boolean;
+  /**
+   * Per-viewer highlight: the author is in the viewer's circle. A
+   * non-reordering overlay (it never changes node order).
+   */
+  inCircle?: boolean;
 }
 
 export interface ForumSubscribeMessage {

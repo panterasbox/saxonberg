@@ -27,7 +27,10 @@ import type {
   MakeForumOptions,
   EntrySort,
   VoteState,
+  ArgumentRelation,
+  ArgumentLensNode,
 } from '../obj/api/ForumsLogic';
+import type { BoardOrganizer } from '../lib/forum/Board';
 import type { VoteValue } from '../lib/forum/Vote';
 import { ForumsLogic } from '../obj/api/ForumsLogic';
 import ForumSubscriptionRegistry, {
@@ -73,7 +76,7 @@ function subscriptions(): ForumSubscriptionRegistry {
 export class ForumsApi {
   static async createBoardOnSubject(
     subject: Subject,
-    opts?: { description?: string },
+    opts?: { description?: string; organizer?: BoardOrganizer },
   ): Promise<Board> {
     return logic().createBoardOnSubject(subject, opts ?? {});
   }
@@ -111,6 +114,25 @@ export class ForumsApi {
     return logic().reply(actor, parent, body);
   }
 
+  /** Attach a typed claim (pro/con/question) on an argument board. */
+  static async attachClaim(
+    actor: Stuff,
+    parent: Entry,
+    relation: ArgumentRelation,
+    body: string,
+  ): Promise<Entry> {
+    return logic().attachClaim(actor, parent, relation, body);
+  }
+
+  /** Edit a claim/post body in place (lossless `'entry-edited'` trail). */
+  static async editBody(
+    actor: Stuff,
+    entry: Entry,
+    body: string,
+  ): Promise<Entry> {
+    return logic().editBody(actor, entry, body);
+  }
+
   static async getEntry(id: string): Promise<Entry | null> {
     return logic().getEntry(id);
   }
@@ -121,6 +143,16 @@ export class ForumsApi {
 
   static async readThread(root: Entry, sort?: EntrySort): Promise<ThreadView> {
     return logic().readThread(root, sort ?? 'new');
+  }
+
+  /** The neutral default lens over a whole argument board (spine + tree). */
+  static async readArgumentLens(board: Board): Promise<ArgumentLensNode[]> {
+    return logic().readArgumentLens(board);
+  }
+
+  /** The neutral default lens over a subtree rooted at `root`. */
+  static async readArgumentThread(root: Entry): Promise<ArgumentLensNode[]> {
+    return logic().readArgumentThread(root);
   }
 
   static async castVote(
@@ -145,6 +177,14 @@ export class ForumsApi {
     threadName: string,
   ): Promise<Subject> {
     return logic().promoteThread(actor, thread, threadName);
+  }
+
+  /**
+   * Mark an argument deliberation matured — emits a decoupled `mature`
+   * event the deferred vote layer will consume; binds nothing in v1.
+   */
+  static async matureArgument(actor: Stuff, board: Board): Promise<void> {
+    return logic().matureArgument(actor, board);
   }
 
   /* ─── Live subscriptions (the forum document-change observer) ───

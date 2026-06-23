@@ -58,6 +58,19 @@ function fakeInteractive(): Interactive {
   return { getHolder: () => holder } as unknown as Interactive;
 }
 
+/**
+ * A fake Interactive whose holder exposes a contacts circle (the avatar
+ * playerIds), for the per-viewer `inCircle` highlight. `MixinApi.isContacts`
+ * must be mocked true alongside this.
+ */
+function interactiveWithCircle(playerIds: string[]): Interactive {
+  const holder = {
+    allContacts: () =>
+      playerIds.map((id) => ({ kind: 'avatar', playerId: id, label: 'friends' })),
+  };
+  return { getHolder: () => holder } as unknown as Interactive;
+}
+
 beforeEach(() => {
   StuffApi.clearAll();
   store = new Map();
@@ -201,5 +214,121 @@ describe('ForumSubscriptionRegistry', () => {
     await ForumsApi.castVote(makeActor(), thread, 'up');
     await flush();
     expect(envelopes.find((e) => e.type === 'forum-subscription-delta')).toBeUndefined();
+  });
+});
+
+describe('ForumSubscriptionRegistry — argument organizer', () => {
+  interface ArgRecord {
+    id: string;
+    organizer?: string;
+    displayScore: number | null;
+    openObjection?: boolean;
+    inCircle?: boolean;
+  }
+
+  async function makeArgumentBoard(creator: Stuff) {
+    const { board } = await ForumsApi.makeForum(creator, 'RCV', {
+      open: true,
+      organizer: 'argument',
+    });
+    const spine = await ForumsApi.postThread(
+      creator,
+      board,
+      'RCV',
+      'Adopt ranked-choice voting.'
+    );
+    return { board, spine };
+  }
+
+  it('projects the lens and clears an open-objection badge live when answered', async () => {
+    const creator = makeActor();
+    const { board, spine } = await makeArgumentBoard(creator);
+    const con = await ForumsApi.attachClaim(
+      creator,
+      spine,
+      'objects-to',
+      'Harder to count.'
+    );
+
+    const interactive = fakeInteractive();
+    await ForumsApi.handleSubscribe({
+      interactive,
+      subscriptionId: 'a1',
+      scope: { kind: 'board', id: board._id! },
+    });
+
+    const snapshot = envelopes.find((e) => e.type === 'forum-subscription-result');
+    const records = (snapshot as unknown as { records: ArgRecord[] }).records;
+    const conRec = records.find((r) => r.id === con._id)!;
+    // Argument projection: organizer stamped, reputation-blind (no score),
+    // and the childless objection is flagged open.
+    expect(conRec.organizer).toBe('argument');
+    expect(conRec.displayScore).toBeNull();
+    expect(conRec.openObjection).toBe(true);
+
+    envelopes.length = 0;
+    // Answer the objection — attach any child. The badge must clear live.
+    const answer = await ForumsApi.attachClaim(
+      creator,
+      con,
+      'objects-to',
+      'Software counts fine.'
+    );
+    await flush();
+
+    const delta = envelopes.find((e) => e.type === 'forum-subscription-delta');
+    const changes = (delta as unknown as {
+      changes: Array<{ op: string; key: string; fields?: ArgRecord }>;
+    }).changes;
+    // The con flips to answered (replace, openObjection false); the new
+    // claim arrives (add).
+    const conChange = changes.find((c) => c.key === con._id);
+    expect(conChange?.op).toBe('replace');
+    expect(conChange?.fields?.openObjection).toBe(false);
+    expect(changes.some((c) => c.op === 'add' && c.key === answer._id)).toBe(true);
+  });
+
+  it('two viewers with different circles see different highlights over one structure', async () => {
+    const creator = makeActor();
+    const { board, spine } = await makeArgumentBoard(creator);
+    const claim = await ForumsApi.attachClaim(
+      creator,
+      spine,
+      'supports',
+      'Reduces spoilers.'
+    );
+    const claimAuthor = claim.getAuthor(); // = creator.stuffId in this harness.
+
+    // The circle highlight reads the holder's contacts.
+    vi.spyOn(MixinApi, 'isContacts').mockReturnValue(true as never);
+
+    // Viewer A has the claim's author in their circle; viewer B does not.
+    const viewerA = interactiveWithCircle([claimAuthor]);
+    const viewerB = interactiveWithCircle([]);
+
+    await ForumsApi.handleSubscribe({
+      interactive: viewerA,
+      subscriptionId: 'va',
+      scope: { kind: 'board', id: board._id! },
+    });
+    await ForumsApi.handleSubscribe({
+      interactive: viewerB,
+      subscriptionId: 'vb',
+      scope: { kind: 'board', id: board._id! },
+    });
+
+    const snapshots = envelopes.filter(
+      (e) => e.type === 'forum-subscription-result'
+    ) as unknown as Array<{ subscriptionId: string; records: ArgRecord[] }>;
+    const recA = snapshots.find((s) => s.subscriptionId === 'va')!.records;
+    const recB = snapshots.find((s) => s.subscriptionId === 'vb')!.records;
+
+    const claimA = recA.find((r) => r.id === claim._id)!;
+    const claimB = recB.find((r) => r.id === claim._id)!;
+
+    // Identical structure (same ids/order), different per-viewer highlight.
+    expect(recA.map((r) => r.id)).toEqual(recB.map((r) => r.id));
+    expect(claimA.inCircle).toBe(true);
+    expect(claimB.inCircle).toBe(false);
   });
 });
