@@ -105,14 +105,12 @@ export default class EvalController extends CommandController<EvalModel> {
     }
 
     // Iterate.
-    let lastSummary = '';
     for (const t of targets) {
       try {
         const result = await evalStuff.run(t);
         const repr = this._formatResult(result);
         const name = t.getPresentation();
         this.tell(context, `\n${name}: ${repr}\n`);
-        lastSummary = repr;
       } catch (err) {
         const name = t.getPresentation();
         this.tell(

@@ -7,12 +7,10 @@ import { ContainmentApi, ContainmentError } from '../../../api/containment';
 import { ContainerMixin } from '../../spatial/Container';
 import { ContainableMixin } from '../../spatial/Containable';
 import { Stuff } from '../../stuff/Stuff';
-import { StuffApi } from '../../../api/stuff';
 import { MixinApi } from '../../../api/mixin';
 import { makeStuff } from '../../security/__tests__/test-setup';
 import { Idea } from "../../stuff/Idea";
 
-class PlainItem extends ContainableMixin(Idea) {}
 class PlainContainer extends ContainerMixin(ContainableMixin(Idea)) {}
 
 describe('ExitableVessel', () => {

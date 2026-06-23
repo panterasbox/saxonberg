@@ -68,7 +68,7 @@ describe('LookController — detail rendering', () => {
     expect(target.via?.detailPath).toEqual(['bookcase']);
 
     const controller = makeStuff(() => new LookController());
-    const result: void = controller.execute(
+    controller.execute(
       makeModel(target),
       makeContext(world, 'look bookcase'),
     );

@@ -25,7 +25,7 @@ import type { MqlOneResult } from '../../../api/mql';
 import { Mml } from '../../../api/mml';
 import { GrammarApi } from '../../../api/grammar';
 import type { Stuff } from '../../../lib/stuff/Stuff';
-import type { Contacts, ContactEntry } from '../../../lib/social/Contacts';
+import type { Contacts } from '../../../lib/social/Contacts';
 import Avatar from '../../Avatar';
 import { User } from '../../../lib/identity/User';
 import { Template } from '../../../lib/stuff/Template';

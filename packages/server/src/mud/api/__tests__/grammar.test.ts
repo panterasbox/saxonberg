@@ -1,7 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { Pronouns } from '@saxonberg/types';
 import { GrammarApi } from '../grammar';
-import { Stuff } from '../../lib/stuff/Stuff';
 import { NamedMixin } from '../../lib/description/Named';
 import { VisibleMixin } from '../../lib/description/Visible';
 import { GenderedMixin } from '../../lib/character/Gendered';

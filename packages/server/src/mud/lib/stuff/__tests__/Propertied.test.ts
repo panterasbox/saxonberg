@@ -12,7 +12,6 @@ import {
   type PropOperation,
   type PropValueMask,
 } from '../Propertied';
-import { Stuff } from '../Stuff';
 import { StuffApi } from '../../../api/stuff';
 import { MixinApi } from '../../../api/mixin';
 import { makeStuff } from '../../security/__tests__/test-setup';
@@ -180,7 +179,7 @@ describe('PropertiedMixin', () => {
     });
 
     it('should support custom checkAccess function', () => {
-      const checkAccess: PropAccessCheck<string> = (prop, op, special) => {
+      const checkAccess: PropAccessCheck<string> = (prop, op, _special) => {
         return op === PropOperations.Get; // Only allow Get
       };
 
@@ -264,7 +263,7 @@ describe('PropertiedMixin', () => {
     });
 
     it('should change access control function', () => {
-      const newAccess: PropAccessCheck<string> = (prop, op, special) => false;
+      const newAccess: PropAccessCheck<string> = (_prop, _op, _special) => false;
 
       obj.configureProp(new Property('test'), { checkAccess: newAccess });
 
@@ -362,7 +361,7 @@ describe('PropertiedMixin', () => {
     });
 
     it('should respect custom access control', () => {
-      const checkAccess: PropAccessCheck<string> = (prop, op, special) => {
+      const checkAccess: PropAccessCheck<string> = (prop, op, _special) => {
         // Only allow Get operations
         return op === PropOperations.Get;
       };
@@ -441,7 +440,7 @@ describe('PropertiedMixin', () => {
     });
 
     it('should auto-cleanup failed masks', () => {
-      const failingMask: PropValueMask<number> = (prop, value) => {
+      const failingMask: PropValueMask<number> = (_prop, _value) => {
         throw new Error('Mask failed');
       };
       const workingMask: PropValueMask<number> = (prop, value) => value + 5;
@@ -621,7 +620,7 @@ describe('PropertiedMixin', () => {
 
     it('can be overridden in subclass', () => {
       class RestrictedPropertied extends PropertiedMixin(Idea) {
-        defaultPropAccess(property: Property, op: PropOperation, special: unknown): boolean {
+        defaultPropAccess(property: Property, op: PropOperation, _special: unknown): boolean {
           return op === PropOperations.Get; // Only allow Get
         }
       }
@@ -662,7 +661,7 @@ describe('PropertiedMixin', () => {
 
   describe('Access control on mask operations', () => {
     it('should check Mask access when adding mask', () => {
-      const checkAccess: PropAccessCheck<number> = (prop, op, special) => {
+      const checkAccess: PropAccessCheck<number> = (prop, op, _special) => {
         // Deny Mask operations
         if (op === PropOperations.Mask) return false;
         return true;
@@ -683,7 +682,7 @@ describe('PropertiedMixin', () => {
     });
 
     it('should check Unmask access when removing mask', () => {
-      const checkAccess: PropAccessCheck<number> = (prop, op, special) => {
+      const checkAccess: PropAccessCheck<number> = (prop, op, _special) => {
         // Deny Unmask operations
         if (op === PropOperations.Unmask) return false;
         return true;
@@ -709,7 +708,7 @@ describe('PropertiedMixin', () => {
     });
 
     it('should check Configure access when reconfiguring', () => {
-      const checkAccess: PropAccessCheck<string> = (prop, op, special) => {
+      const checkAccess: PropAccessCheck<string> = (prop, op, _special) => {
         // Deny Configure operations
         if (op === PropOperations.Configure) return false;
         return true;
@@ -862,11 +861,11 @@ describe('PropertiedMixin', () => {
     it('should change both transient status and checkAccess at once', () => {
       obj.initProp(new Property<string>('test'), {
         transient: true,
-        checkAccess: (prop, op, special) => true
+        checkAccess: (_prop, _op, _special) => true
       });
       obj.setProp(new Property<string>('test'), 'value');
 
-      const newAccess: PropAccessCheck<string> = (prop, op, special) => {
+      const newAccess: PropAccessCheck<string> = (prop, op, _special) => {
         return op === PropOperations.Get; // Only allow Get
       };
 
@@ -890,7 +889,7 @@ describe('PropertiedMixin', () => {
       obj.initProp(new Property('test'), { transient: true });
       obj.setProp(new Property('test'), 'original');
 
-      const newAccess: PropAccessCheck<string> = (prop, op, special) => false;
+      const newAccess: PropAccessCheck<string> = (_prop, _op, _special) => false;
       obj.configureProp(new Property('test'), { checkAccess: newAccess });
 
       // Value should be preserved (access control prevents getting it though)
@@ -922,7 +921,7 @@ describe('PropertiedMixin', () => {
       const owner = makeOwner();
       // Deliberately violates the `=> number` contract to exercise the
       // runtime's null-tolerance; the cast keeps the type-level lie local.
-      const mask: PropValueMask<number> = (prop, value) =>
+      const mask: PropValueMask<number> = (_prop, _value) =>
         null as unknown as number;
       obj.maskProp(new Property<number>('stat'), mask, owner);
 
@@ -932,7 +931,7 @@ describe('PropertiedMixin', () => {
     it('should handle mask that returns undefined', () => {
       const owner = makeOwner();
       // Same deliberate contract violation, for the undefined case.
-      const mask: PropValueMask<number> = (prop, value) =>
+      const mask: PropValueMask<number> = (_prop, _value) =>
         undefined as unknown as number;
       obj.maskProp(new Property<number>('stat'), mask, owner);
 
@@ -1055,7 +1054,7 @@ describe('PropertiedMixin', () => {
 
   describe('Interaction between access control and masks', () => {
     it('should deny getProp if access control fails, even with masks', () => {
-      const checkAccess: PropAccessCheck<number> = (prop, op, special) => {
+      const checkAccess: PropAccessCheck<number> = (prop, op, _special) => {
         return op !== PropOperations.Get; // Deny Get
       };
 
@@ -1076,7 +1075,7 @@ describe('PropertiedMixin', () => {
     });
 
     it('should allow getProp with access control, and masks apply', () => {
-      const checkAccess: PropAccessCheck<number> = (prop, op, special) => {
+      const checkAccess: PropAccessCheck<number> = (prop, op, _special) => {
         return op === PropOperations.Get || op === PropOperations.Mask;
       };
 

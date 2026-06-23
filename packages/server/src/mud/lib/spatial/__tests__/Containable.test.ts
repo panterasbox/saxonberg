@@ -11,7 +11,6 @@ import { ContainerMixin } from '../Container';
 import { SurfacedMixin } from '../Surfaced';
 import { SingletonMixin } from '../../stuff/Singleton';
 import { ContainmentApi } from '../../../api/containment';
-import { Stuff } from '../../stuff/Stuff';
 import { StuffApi } from '../../../api/stuff';
 import { MixinApi } from '../../../api/mixin';
 import {

@@ -12,7 +12,6 @@ import {
   expect,
   beforeEach,
   afterEach,
-  vi,
 } from 'vitest';
 import type { AbortReason } from '@saxonberg/types';
 import type { Engaged, EngagementSlot } from '../Engaged';

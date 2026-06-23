@@ -20,7 +20,6 @@ import { ContainerMixin } from '../../lib/spatial/Container';
 import { SensorMixin } from '../../lib/message/Sensor';
 import { ContainmentApi } from '../containment';
 import { CommandApi } from '../command';
-import { MessageApi } from '../message';
 import { makeStuff } from '../../lib/security/__tests__/test-setup';
 import type Interactive from '../../obj/Interactive';
 import type { MessageFrame } from '@saxonberg/types';

@@ -11,7 +11,6 @@
  */
 
 import { describe, it, expect } from 'vitest';
-import { Stuff } from '../../stuff/Stuff';
 import { ContainableMixin } from '../../spatial/Containable';
 import { ContainerMixin } from '../../spatial/Container';
 import { SensorMixin } from '../Sensor';

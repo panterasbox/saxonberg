@@ -9,7 +9,6 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { Application } from '../Application';
 import { ConnectionManager } from '../ConnectionManager';
 import { PromptApi } from '../../mud/api/prompt';
-import { MqlSubscriptionApi } from '../../mud/api/mql-subscription';
 import type { IBackend } from '../IBackend';
 import type Interactive from '../../mud/obj/Interactive';
 

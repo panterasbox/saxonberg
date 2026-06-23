@@ -16,7 +16,6 @@ import {
 } from '../Environment';
 import { ShellApi } from '../../../api/shell';
 import type { MixinConstructor } from '../../mixin';
-import { Stuff } from '../../stuff/Stuff';
 import { makeStuff } from '../../security/__tests__/test-setup';
 
 /* ───────── Test mixins ─────────

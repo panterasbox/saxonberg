@@ -2,7 +2,6 @@ import { describe, it, expect } from 'vitest';
 import { Pronouns } from '@saxonberg/types';
 import { Prose, ProseApi } from '../prose';
 import { Mml } from '../mml';
-import { Stuff } from '../../lib/stuff/Stuff';
 import { NamedMixin } from '../../lib/description/Named';
 import { GenderedMixin } from '../../lib/character/Gendered';
 import { makeStuff } from '../../lib/security/__tests__/test-setup';

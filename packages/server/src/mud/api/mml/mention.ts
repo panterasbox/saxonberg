@@ -13,7 +13,6 @@
  */
 
 import type { Stuff } from '../../lib/stuff/Stuff';
-import { ContainmentApi } from '../containment';
 import { MixinApi } from '../mixin';
 
 export interface MentionResolver {

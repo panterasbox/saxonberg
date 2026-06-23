@@ -11,7 +11,6 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import { ContainerMixin } from '../Container';
 import { ContainableMixin } from '../Containable';
 import { ContainmentApi } from '../../../api/containment';
-import { Stuff } from '../../stuff/Stuff';
 import { makeStuff } from '../../security/__tests__/test-setup';
 import { Idea } from "../../stuff/Idea";
 

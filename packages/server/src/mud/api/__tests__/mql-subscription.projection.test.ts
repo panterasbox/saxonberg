@@ -13,7 +13,6 @@ import {
 import { NamedMixin } from '../../lib/description/Named';
 import { VisibleMixin } from '../../lib/description/Visible';
 import { DetailedMixin } from '../../lib/description/Detailed';
-import { TangibleMixin } from '../../lib/material/Tangible';
 import { GlobbableMixin } from '../../lib/stuff/Globbable';
 import Material from '../../lib/material/Material';
 import { Quantity } from '../../lib/quantity';

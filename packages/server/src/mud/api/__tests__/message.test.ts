@@ -10,7 +10,6 @@ import Location from '../../lib/stuff/Location';
 import { MobileMixin } from '../../lib/spatial/Mobile';
 import { ContainableMixin } from '../../lib/spatial/Containable';
 import { SensorMixin } from '../../lib/message/Sensor';
-import { Stuff } from '../../lib/stuff/Stuff';
 import { StuffApi } from '../stuff';
 import { ProxyApi } from '../proxy';
 import { ContainmentApi } from '../containment';

@@ -1,7 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import CartesianZone from '../CartesianZone';
 import CartesianLocation from '../CartesianLocation';
-import { StuffApi } from '../../../api/stuff';
 import { makeStuff } from '../../security/__tests__/test-setup';
 
 describe('CartesianZone', () => {

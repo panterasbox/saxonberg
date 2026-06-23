@@ -23,12 +23,10 @@ import type { VetoResult } from '../errors';
 import type Door from './Door';
 import type { Mobile, MovementBodies } from '../spatial/Mobile';
 import Exit from './Exit';
-import CartesianZone from '../location/CartesianZone';
 import { NavigationApi } from '../../api/navigation';
 import { StuffApi } from '../../api/stuff';
 import { MixinApi } from '../../api/mixin';
 import { BoundaryApi } from '../../api/boundary';
-import type { Adornable } from './Adornable';
 import type { SubscribableFieldDescriptor } from '../../api/mql-subscription';
 
 /**
