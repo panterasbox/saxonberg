@@ -1,6 +1,17 @@
 verbs: [cat]
 controller: shell/CatController
 description: "Print a content-tree template (default) or source-tree file"
+help: |
+  Dump the contents of one path to your screen. By default `cat`
+  reads from the content tree — the authored game world, where
+  paths name templates like `/obj/Avatar/foo`. Point it at a
+  source-tree path with `-s` to read an engine file instead.
+
+  Which tree it reaches first follows your `workspace.tree`
+  setting; `-c` and `-s` override that per call. Long output is
+  capped by your `workspace.pageSize` setting. Pass an `--mql`
+  expression in place of a literal path to print whatever the
+  query resolves to.
 args:
   - name: path
     type: string

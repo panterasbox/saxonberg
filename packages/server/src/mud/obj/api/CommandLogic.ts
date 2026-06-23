@@ -1314,6 +1314,8 @@ export class CommandLogic extends Idea {
       controller: cmd.controller,
       description: cmd.description,
     };
+    if (cmd.help) out.help = cmd.help;
+    if (cmd.examples && cmd.examples.length > 0) out.examples = cmd.examples;
     if (cmd.args.length > 0) out.args = cmd.args;
     if (Object.keys(cmd.subcommands).length > 0) out.subcommands = cmd.subcommands;
     if (Object.keys(cmd.verbOptions).length > 0) out.options = cmd.verbOptions;

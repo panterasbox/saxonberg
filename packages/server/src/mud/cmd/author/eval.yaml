@@ -1,6 +1,14 @@
 verbs: [eval]
 controller: author/EvalController
 description: "Run a code snippet against the avatar (or --on target)"
+help: |
+  Execute a code snippet in the sandbox, with `this` bound to your
+  avatar by default. This is a developer escape hatch for poking at
+  live objects directly — it requires developer access.
+
+  Use `--on <target>` to bind `this` to something else you can
+  reach. When the query matches more than one object, add `--all`
+  to run the snippet once against each match in turn.
 validators:
   - /lib/command/validators/requiresDeveloper
 args:

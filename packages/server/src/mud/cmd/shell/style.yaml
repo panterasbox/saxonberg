@@ -1,14 +1,33 @@
 verbs: [style]
 controller: shell/StyleController
 description: "Customize cockpit appearance: theme, per-channel color, plain mode, mention prefs."
+help: |
+  Tune how the cockpit looks and reads. `style` collects every
+  visual preference — your overall theme, the color a given chat
+  channel shows in, whether your own name gets highlighted, and
+  whether output drops to plain unstyled text.
+
+  Each preference lives under a subcommand. Use `style show` to see
+  everything in effect, and `style reset` to wipe your overlay back
+  to defaults if you've tangled things up.
 validators:
   - /lib/command/validators/requiresHasInteractive
 subcommands:
   show:
     description: "Print the current style overlay"
-
+    help: |
+      Print every style choice currently layered on top of the
+      defaults — your theme, channel colors, mention setting, and
+      plain-mode toggles in one view.
   theme:
     description: "Set the cockpit theme (default | high-contrast)"
+    help: |
+      Choose the overall color scheme for the cockpit. Pick
+      `default` for the standard look or `high-contrast` for a
+      starker palette that's easier on some screens and eyes.
+    examples:
+      - cmd: style theme high-contrast
+        note: Switch to the high-contrast theme
     args:
       - name: name
         type: string
@@ -16,6 +35,13 @@ subcommands:
 
   channel:
     description: "Per-channel color / clear (e.g. `style channel gossip color blue`, `style channel gossip clear`)"
+    help: |
+      Recolor one chat channel so it stands out from the rest.
+      Name the channel, then `color <name>` to tint it or `clear`
+      to drop the tint and let it fall back to the theme default.
+    examples:
+      - cmd: style channel gossip color blue
+        note: Tint the gossip channel blue
     args:
       - name: channelKey
         type: string
@@ -29,6 +55,10 @@ subcommands:
 
   mention:
     description: "Toggle own-name highlight (`style mention self on|off`)"
+    help: |
+      Control whether your own name lights up when it appears in
+      the stream, so messages that mention you are easy to catch.
+      Turn the self-highlight `on` or `off`.
     args:
       - name: target
         type: string
@@ -39,6 +69,11 @@ subcommands:
 
   plain:
     description: "Plain-mode toggle: `style plain on|off` (global) or `style plain channel <k> on|off`"
+    help: |
+      Strip styling down to plain text. `style plain on` flattens
+      everything globally; `style plain off` restores it. Scope it
+      to a single channel with `style plain channel <key> on|off`
+      to plain just that one stream.
     args:
       - name: a
         type: string
@@ -52,3 +87,7 @@ subcommands:
 
   reset:
     description: "Clear the overlay to {} (theme falls back to default)"
+    help: |
+      Wipe every style override at once, returning the cockpit to
+      its stock appearance with the default theme. Your fresh
+      start when customizations have gone sideways.

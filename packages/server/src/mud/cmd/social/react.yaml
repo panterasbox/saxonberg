@@ -14,6 +14,18 @@ description: >
   its own target: `react --msg 113 ;wave bob` waves at bob in response
   to message 113. The selector-less form (`re ;smile`) is the primary,
   frictionless path.
+help: |
+  React to something someone just said or did. A reaction is an
+  ordinary emote aimed at a specific earlier act — it's public,
+  attributed to you, and counted against that act. With no selector
+  you react to the most recent thing in view, which is the quick,
+  everyday path: `re ;smile`.
+
+  Use `--to <person>` to react to that person's latest act, or
+  `--msg <#>` to point at a specific line by its gutter number. The
+  emote part is any normal emote and can carry its own target, so
+  `react --msg 113 ;wave bob` waves at bob in response to message
+  113. `re` is the short alias.
 validators:
   - /lib/command/validators/requiresAnimate
 options:

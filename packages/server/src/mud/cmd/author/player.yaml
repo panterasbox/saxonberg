@@ -1,11 +1,22 @@
 verbs: [player, me]
 controller: author/PlayerController
 description: "Manage your player character settings"
+help: |
+  Adjust the basics of who your character is. Use the subcommands
+  to set your name, choose your pronouns, or review what's
+  currently set. `me` is a shorthand alias for `player`.
 validators:
   - /lib/command/validators/requiresAvatar
 subcommands:
   name:
     description: "Set your character name"
+    help: |
+      Set the name others see for your character. Pass a single
+      given name, or add a surname as a second word for a fuller
+      name.
+    examples:
+      - cmd: player name Aria Vance
+        note: Set a given name and surname
     args:
       - name: name
         type: string
@@ -16,6 +27,13 @@ subcommands:
 
   pronouns:
     description: "Set your pronouns"
+    help: |
+      Choose the pronouns the game uses when referring to you in
+      its prose. Set them once and they thread through every
+      message about your character.
+    examples:
+      - cmd: player pronouns she/her
+        note: Set your pronouns
     args:
       - name: pronouns
         type: string
@@ -23,3 +41,6 @@ subcommands:
 
   show:
     description: "Show your current player settings"
+    help: |
+      Print your character's current settings — name and pronouns —
+      so you can check what's set before changing anything.

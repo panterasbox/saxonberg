@@ -1,6 +1,15 @@
 verbs: [drink]
 controller: bulk/DrinkController
 description: "Drink the entire contents of a holder"
+help: |
+  Drains a holder dry in one go — point `drink` at a cup, flask,
+  or bottle and you swallow everything in it. Reach for this when
+  you mean to finish a drink, not nurse it; the vessel comes back
+  empty.
+
+  You can name the container or the liquid itself, so
+  `drink coffee` works as well as `drink mug`. If you only want a
+  taste, use `sip` instead, which leaves the rest behind.
 validators:
   - /lib/command/validators/requiresAnimate
   - /lib/command/validators/requiresConscious

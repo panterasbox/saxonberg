@@ -1,14 +1,32 @@
 verbs: [alias]
 controller: shell/AliasController
 description: "Manage your command aliases"
+help: |
+  Aliases are personal shortcuts that rewrite the start of a
+  command line into something longer. Once you set one, typing the
+  alias expands to its body before the verb runs. Use them to
+  collapse a command you reach for constantly into a couple of
+  keystrokes.
+
+  Bare `alias` (or `alias list`) shows every alias in effect, with
+  markers for whether each comes from a built-in default, your
+  saved set, or just this session. The subcommands set, unset,
+  get, and describe manage individual entries.
 validators:
   - /lib/command/validators/requiresAlias
 subcommands:
   list:
     description: "List effective aliases (defaults + persistent + session) with source markers"
-
+    help: |
+      Show every alias currently in effect, each tagged with where
+      it comes from — a built-in default, your saved set, or this
+      session only. This is what bare `alias` shows too.
   get:
     description: "Show one alias's body and source"
+    help: |
+      Print just the body one alias expands to, plus where it
+      comes from. Use it to check what a shortcut actually does
+      before you rely on it.
     args:
       - name: name
         type: string
@@ -16,6 +34,14 @@ subcommands:
 
   set:
     description: "Set an alias body (persistent by default; --session for transient)"
+    help: |
+      Create or replace an alias. Name it, then give the text it
+      should expand to. By default the alias is saved and persists
+      across logins; pass `--session` to keep it only until you
+      disconnect.
+    examples:
+      - cmd: alias set --session k kill
+        note: Set an alias for this session only
     options:
       session:
         type: boolean
@@ -31,6 +57,13 @@ subcommands:
 
   unset:
     description: "Drop an override (or tombstone a default)"
+    help: |
+      Remove an alias you set. If you unset a name that matches a
+      built-in default, the default is suppressed too — so `unset`
+      is also how you turn off a shortcut you didn't create.
+    examples:
+      - cmd: alias unset gg
+        note: Suppress a built-in default by its name
     args:
       - name: name
         type: string
@@ -38,6 +71,10 @@ subcommands:
 
   describe:
     description: "Show the full entry — body, source, description if any"
+    help: |
+      Show everything known about one alias: its body, where it
+      comes from, and any description attached to it. Fuller than
+      `get`, which prints only the body and source.
     args:
       - name: name
         type: string

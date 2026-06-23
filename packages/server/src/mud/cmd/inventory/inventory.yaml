@@ -1,5 +1,12 @@
 verbs: [inventory, inv, i]
 controller: inventory/InventoryController
 description: "List items you are carrying"
+help: |
+  Take stock of everything you're carrying. `inventory` lists what's
+  in your hands and packs, including anything you've got worn or
+  wielded.
+
+  Reach for it whenever you've lost track of what you've picked up.
+  Short on typing? `inv` and plain `i` do the same thing.
 validators:
   - /lib/command/validators/requiresAnimate

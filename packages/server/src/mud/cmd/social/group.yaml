@@ -1,23 +1,42 @@
 verbs: [group]
 controller: social/GroupController
 description: "Manage persistent named groups of players (managed-provider source for grouping facade)"
+help: |
+  Build and run persistent named groups of players — a guild, a
+  study cohort, a raiding party. Unlike a private contacts list, a
+  group has real members with roles, and other features (channels,
+  access) can target it.
+
+  Create one with `group make` and you become its owner. Add people
+  with `group add`, hand out roles with `group role`, and check the
+  roster with `group show`.
 validators:
   - /lib/command/validators/requiresAnimate
 subcommands:
   make:
     description: "Create a new group with the caller as owner"
+    help: |
+      Start a new group with you as its owner. Pick a name that
+      isn't already in use; you can then add members and assign
+      roles.
     args:
       - name: name
         type: string
         required: true
   delete:
     description: "Disband a group (owner-only)"
+    help: |
+      Permanently disband a group. All membership is dropped and the
+      name frees up. Owner-only and not reversible.
     args:
       - name: name
         type: string
         required: true
   rename:
     description: "Rename a group (owner-only)"
+    help: |
+      Change a group's name. Members and roles are untouched; only
+      the label changes. Owner-only.
     args:
       - name: old_name
         type: string
@@ -27,6 +46,13 @@ subcommands:
         required: true
   add:
     description: "Add a player to a group"
+    help: |
+      Bring a player into a group. Name the group first, then the
+      person. They join as an ordinary member; use `group role` to
+      promote them later.
+    examples:
+      - cmd: group add wardens alice
+        note: Name the group first, then the person to add
     args:
       - name: name
         type: string
@@ -40,6 +66,9 @@ subcommands:
         onExcess: prompt
   remove:
     description: "Remove a player from a group"
+    help: |
+      Take a player out of a group. Match them by name against the
+      current roster.
     args:
       - name: name
         type: string
@@ -49,6 +78,13 @@ subcommands:
         required: true
   role:
     description: "Set a member's role (owner/admin/member)"
+    help: |
+      Change what a member can do in the group. Roles are `owner`,
+      `admin`, and `member` — admins can manage membership, members
+      just belong.
+    examples:
+      - cmd: group role wardens alice admin
+        note: Group, then member, then the role to assign
     args:
       - name: name
         type: string
@@ -61,9 +97,15 @@ subcommands:
         required: true
   show:
     description: "Show a group's membership"
+    help: |
+      List a group's members along with their roles, so you can see
+      who belongs and who runs it.
     args:
       - name: name
         type: string
         required: true
   list:
     description: "List groups you belong to"
+    help: |
+      Show every group you're a member of — your quick index into
+      the groups you can act on.

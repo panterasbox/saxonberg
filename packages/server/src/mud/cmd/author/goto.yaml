@@ -1,6 +1,14 @@
 verbs: [goto]
 controller: author/GotoController
 description: "Move yourself to <target>'s location"
+help: |
+  Jump straight to wherever a target is. Name an online player, an
+  object path, or anything you can reach, and you'll be moved to
+  that target's location.
+
+  Use `--look` (`-l`) to auto-look on arrival when the move falls
+  back to a raw relocation. `--force` (`-f`) bypasses containment
+  vetoes, but it's admin-only and the v1 stub always denies it.
 args:
   - name: target
     type: object

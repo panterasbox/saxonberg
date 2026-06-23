@@ -1,3 +1,10 @@
 verbs: [ping]
 controller: system/PingController
 description: "Test command - responds with pong"
+help: |
+  Sends a `pong` straight back to you. It does nothing to the world
+  — it's a quick way to confirm your connection is alive and the
+  server is answering.
+
+  If you type `ping` and see nothing come back, your link to the
+  game has likely dropped.

@@ -35,6 +35,7 @@ import type {
   OptionDefinition,
   PositionalDefinition,
   CommandValidator,
+  ExampleDefinition,
 } from '../../api/command';
 import { SUBCOMMAND_FIELD } from '../../api/command';
 
@@ -68,6 +69,10 @@ export class CommandDefinition {
    */
   public readonly controller: string | undefined;
   public readonly description: string;
+  /** Multi-line authored help prose for the verb (optional). */
+  public readonly help: string | undefined;
+  /** Worked invocations shown under an Examples heading (optional). */
+  public readonly examples: ExampleDefinition[];
   /** Top-level positionals for flat verbs. Empty array for zero-arg verbs and subcommanded verbs. */
   public readonly args: PositionalDefinition[];
   public readonly subcommands: Record<string, SubcommandDefinition>;
@@ -105,6 +110,8 @@ export class CommandDefinition {
     this.verbs = view.verbs || [];
     this.controller = view.controller;
     this.description = view.description || '';
+    this.help = view.help;
+    this.examples = view.examples ?? [];
     this.args = view.args || [];
     this.subcommands = view.subcommands || {};
     this.fallthrough = view.fallthrough === true;
@@ -371,7 +378,8 @@ export class CommandDefinition {
     lines.push('');
 
     if (this.verbs.length > 1) {
-      lines.push(`Aliases: ${this.verbs.join(', ')}`);
+      // Primary verb is the header; list only the alternates.
+      lines.push(`Aliases: ${this.verbs.slice(1).join(', ')}`);
       lines.push('');
     }
 
@@ -382,6 +390,17 @@ export class CommandDefinition {
         ? `${this.getPrimaryVerb()} ${rendered}`
         : this.getPrimaryVerb();
       lines.push(`  ${usage}`);
+      const optionLines = renderOptionLines(this.verbOptions, '  ');
+      if (optionLines.length > 0) {
+        lines.push('Options:');
+        optionLines.forEach((l) => lines.push(l));
+      }
+      lines.push('');
+    }
+
+    // Authored verb-level prose, below the synthesized syntax.
+    if (this.help) {
+      lines.push(this.help.trimEnd());
       lines.push('');
     }
 
@@ -396,7 +415,33 @@ export class CommandDefinition {
         if (sub?.description) {
           lines.push(`    ${sub.description}`);
         }
+        if (sub?.help) {
+          for (const line of sub.help.trimEnd().split('\n')) {
+            lines.push(line ? `    ${line}` : '');
+          }
+        }
+        renderOptionLines(sub?.options, '    ').forEach((l) => lines.push(l));
+        renderExampleLines(sub?.examples, '    ').forEach((l) => lines.push(l));
       });
+      lines.push('');
+    }
+
+    // Verb-level options on a subcommanded verb bind before the
+    // subcommand word — surface them after the subcommand list.
+    if (this.hasSubcommands()) {
+      const optionLines = renderOptionLines(this.verbOptions, '  ');
+      if (optionLines.length > 0) {
+        lines.push('Options:');
+        optionLines.forEach((l) => lines.push(l));
+        lines.push('');
+      }
+    }
+
+    // Verb-level examples close the entry.
+    const exampleLines = renderExampleLines(this.examples, '  ');
+    if (exampleLines.length > 0) {
+      lines.push('Examples:');
+      exampleLines.forEach((l) => lines.push(l));
       lines.push('');
     }
 
@@ -405,6 +450,47 @@ export class CommandDefinition {
 }
 
 /* ────────────────────── helpers ────────────────────── */
+
+/**
+ * Render an `examples` list to aligned `<indent><cmd>  — <note>` lines.
+ * Returns `[]` for an absent / empty list so callers can gate a heading.
+ */
+function renderExampleLines(
+  examples: ExampleDefinition[] | undefined,
+  indent: string
+): string[] {
+  if (!examples || examples.length === 0) return [];
+  const width = Math.max(...examples.map((e) => e.cmd.length));
+  return examples.map((e) =>
+    e.note
+      ? `${indent}${e.cmd.padEnd(width)}  — ${e.note}`
+      : `${indent}${e.cmd}`
+  );
+}
+
+/**
+ * Render an options map to aligned `<indent>-x, --name <val>   desc`
+ * lines. Booleans carry no value placeholder; everything else shows
+ * `<field>`. Returns `[]` for an empty map so callers can gate a
+ * heading.
+ */
+function renderOptionLines(
+  options: Record<string, OptionDefinition> | undefined,
+  indent: string
+): string[] {
+  if (!options) return [];
+  const entries = Object.entries(options);
+  if (entries.length === 0) return [];
+  const forms = entries.map(([name, def]) => {
+    const flag = def.short ? `-${def.short}, --${name}` : `--${name}`;
+    const val = def.type === 'boolean' ? '' : ` <${def.field ?? name}>`;
+    return { form: `${flag}${val}`, desc: def.description ?? '' };
+  });
+  const width = Math.max(...forms.map((f) => f.form.length));
+  return forms.map((f) =>
+    f.desc ? `${indent}${f.form.padEnd(width)}   ${f.desc}` : `${indent}${f.form}`
+  );
+}
 
 function normaliseOptions(
   raw: Record<string, OptionDefinition> | undefined
@@ -464,15 +550,24 @@ function optionFieldName(
 }
 
 /**
- * Render an args array as `<req> [opt] <greedy...>` form.
+ * Render an args array as `[at] <req> [opt] <greedy...>` form. A
+ * field's `prepositions` render as a leading `[at]` / `[at|on]` marker
+ * (always optional — the matcher consumes them only if present).
  */
 function renderArgs(args: PositionalDefinition[] | undefined): string {
   if (!args || args.length === 0) return '';
   return args
     .map((def) => {
-      if (def.greedy) return `<${def.name}...>`;
-      if (def.required) return `<${def.name}>`;
-      return `[${def.name}]`;
+      const core = def.greedy
+        ? `<${def.name}...>`
+        : def.required
+          ? `<${def.name}>`
+          : `[${def.name}]`;
+      const preps =
+        def.prepositions && def.prepositions.length > 0
+          ? `[${def.prepositions.join('|')}] `
+          : '';
+      return `${preps}${core}`;
     })
     .join(' ');
 }

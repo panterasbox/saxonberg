@@ -1,6 +1,15 @@
 verbs: [sense]
 controller: perception/SenseController
 description: "Take in your surroundings across every sense you possess"
+help: |
+  Open every sense at once. `sense` gathers sight, sound, smell,
+  touch, and taste into a single report — the full perceptual
+  picture of where you are. Use it when you want everything, not
+  just one channel.
+
+  Name a target to take it in across all your senses at once,
+  rather than running `look`, `listen`, and `smell` one after
+  another. Senses you've lost simply drop out of the report.
 args:
   - name: target
     type: object

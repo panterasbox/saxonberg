@@ -1,6 +1,14 @@
 verbs: [mount]
 controller: movement/MountController
 description: "Mount a rideable creature or vehicle"
+help: |
+  Climb aboard something you can ride — a horse, a cart, any mount
+  or vehicle that takes a rider. Name what you want to get on
+  (`mount horse`, `mount the wagon`).
+
+  Once mounted you travel with your mount: use `ride` (or `drive`
+  for a vehicle) to take it through exits, and `dismount` to get
+  back off. The target must be in reach and able to carry a rider.
 validators:
   - /lib/command/validators/requiresAnimate
   - /lib/command/validators/requiresPosed

@@ -1,8 +1,25 @@
 verbs: [analyze]
 description: "Analyze a physical channel in detail"
+help: |
+  Go deeper than a glance. Where `measure` reads a single number
+  off an instrument, `analyze` breaks a channel down and shows
+  you the working — which sources contribute what, where a value
+  comes from, the full provenance behind the reading.
+
+  Pick a channel as a subcommand: `light`, `chemistry`,
+  `atmosphere`, `time`, `sky`, `address`, or `weather`. Most
+  default to where you stand, so the bare subcommand usually does
+  what you want.
 subcommands:
   light:
     description: "Analyze light at a location with source breakdown"
+    help: |
+      Break the light at a place into its parts: every source
+      contributing, how much each adds, and the total you'd read.
+      Defaults to where you stand if you name no location.
+    examples:
+      - cmd: analyze light the cellar
+        note: Analyze light at another place
     controller: perception/AnalyzeLightController
     args:
       - name: location
@@ -14,6 +31,10 @@ subcommands:
           - /lib/command/validators/mustBeContainer
   chemistry:
     description: "Analyze the chemistry of a target"
+    help: |
+      Inspect what a thing is made of — its chemistry, the
+      substances and proportions that compose it. The target must
+      be tangible and within reach.
     controller: perception/AnalyzeChemistryController
     args:
       - name: target
@@ -24,6 +45,11 @@ subcommands:
           - /lib/command/validators/mustBeTangible
   atmosphere:
     description: "Dump the resolved atmospheric state at your immediate scope with full provenance"
+    help: |
+      Dump the full atmospheric state around you — every resolved
+      field with the provenance of where each value came from.
+      Reach for it when a plain `measure` reading surprises you and
+      you want to see why.
     controller: perception/AnalyzeAtmosphereController
     args:
       - name: detail
@@ -31,6 +57,9 @@ subcommands:
         required: false
   time:
     description: "Report game-time, scale, and the current date in your calendar"
+    help: |
+      Report the game clock: the current world time, how fast it
+      runs against real time, and today's date in your calendar.
     controller: perception/AnalyzeTimeController
     args:
       - name: detail
@@ -38,6 +67,13 @@ subcommands:
         required: false
   sky:
     description: "Full celestial state for a location (sun, season, moon, day/night)"
+    help: |
+      Read the heavens over a place: the sun's position, the
+      season, the moon's phase, and whether it's day or night.
+      Defaults to where you stand if you name no location.
+    examples:
+      - cmd: analyze sky the rooftop
+        note: Check the sky over another place
     controller: perception/AnalyzeSkyController
     args:
       - name: location
@@ -49,6 +85,10 @@ subcommands:
           - /lib/command/validators/mustBeContainer
   address:
     description: "Resolve the addressing namespace at a place: declared/inherited address, provenance, and the covering Locality (longest-prefix chain)"
+    help: |
+      Resolve where a place sits in the address namespace: its
+      declared or inherited address, where that came from, and the
+      Locality that covers it. Defaults to where you stand.
     controller: perception/AnalyzeAddressController
     args:
       - name: location
@@ -60,6 +100,10 @@ subcommands:
           - /lib/command/validators/mustBeContainer
   weather:
     description: "Report the current weather type, per-field deviations, the covering Locality, and a short forecast"
+    help: |
+      Report the weather at a place: the current weather type, how
+      it nudges each atmospheric field, the Locality it belongs to,
+      and a short forecast. Defaults to where you stand.
     controller: perception/AnalyzeWeatherController
     args:
       - name: location

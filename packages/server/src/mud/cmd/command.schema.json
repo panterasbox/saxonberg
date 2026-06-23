@@ -20,7 +20,16 @@
     },
     "description": {
       "type": "string",
-      "description": "One-line human-readable command description."
+      "description": "One-line human-readable command description. Shown in verb lists and as the help header."
+    },
+    "help": {
+      "type": "string",
+      "description": "Multi-line authored help prose for the verb — what it does, when to reach for it, gotchas. Rendered below the synthesized syntax block by `getHelpText()`. Plain text (MML-safe); blank lines separate paragraphs."
+    },
+    "examples": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/example" },
+      "description": "Worked invocations shown under an Examples heading. Sparing by convention — only where a concrete invocation teaches something the generated usage cannot. Each is an individually searchable {cmd, note} pair."
     },
     "args": {
       "type": "array",
@@ -56,11 +65,36 @@
   "then": { "required": ["args", "subcommands"] },
   "else": { "not": { "required": ["args", "subcommands"] } },
   "$defs": {
+    "example": {
+      "type": "object",
+      "required": ["cmd"],
+      "additionalProperties": false,
+      "properties": {
+        "cmd": {
+          "type": "string",
+          "minLength": 1,
+          "description": "The literal command line a player would type."
+        },
+        "note": {
+          "type": "string",
+          "description": "Short gloss explaining what the example does or demonstrates."
+        }
+      }
+    },
     "subcommand": {
       "type": "object",
       "additionalProperties": false,
       "properties": {
         "description": { "type": "string" },
+        "help": {
+          "type": "string",
+          "description": "Multi-line authored help prose for this subcommand, rendered under the subcommand's usage line in `help <verb>`."
+        },
+        "examples": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/example" },
+          "description": "Worked invocations specific to this subcommand. Sparing by convention."
+        },
         "controller": {
           "type": "string",
           "minLength": 1,

@@ -1,6 +1,19 @@
 verbs: [say, "'"]
 controller: social/SayController
 description: "Say something to everyone in your location"
+help: |
+  Speak aloud. Everyone in your location hears it. Speech is
+  acoustic — it carries to the room you're standing in, not across
+  the world (use `tell` or a channel for that).
+
+  The apostrophe is a shortcut: `'hello` is the same as `say hello`.
+  Add `--to <someone>` to address a person directly; everyone still
+  hears you, but the line is marked as aimed at them.
+examples:
+  - cmd: "'good morning"
+    note: Shortcut — the apostrophe stands in for `say`
+  - cmd: say --to bob are you coming?
+    note: Address Bob; the room still overhears
 validators:
   - /lib/command/validators/requiresAnimate
 options:

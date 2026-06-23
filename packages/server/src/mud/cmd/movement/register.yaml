@@ -5,6 +5,15 @@
 verbs: [register]
 controller: movement/RegisterController
 description: "Register the Teleport Authority terminal here onto your travel credential."
+help: |
+  Record the Teleport Authority terminal you're standing at onto
+  your travel credential, so you can `teleport` straight back here
+  later. No target — it registers wherever you currently are.
+
+  `register` only appears when you're actually at a fast-travel
+  node, and only at one you can arrive at — a departures-only
+  platform won't let you set it as a destination. You need your
+  travel credential on you for it to take.
 validators:
   - /lib/command/validators/requiresAnimate
   - /lib/command/validators/requiresTravelCredential

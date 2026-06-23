@@ -1,6 +1,14 @@
 verbs: [rm]
 controller: shell/RmController
 description: "Remove a content-tree template (default) or source-tree file"
+help: |
+  Delete a path. In the content tree `rm` removes a template; in
+  the source tree it removes a file. It acts on the content tree by
+  default — pass `-s` to target the source tree.
+
+  Use `-r` to remove a directory and everything inside it.
+  Deletion is permanent, so check with `ls` first. Pass `--mql` to
+  remove whatever a query resolves to instead of a literal path.
 args:
   - name: path
     type: string

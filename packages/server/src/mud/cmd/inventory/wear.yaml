@@ -1,6 +1,14 @@
 verbs: [wear]
 controller: inventory/WearController
 description: "Put on a wearable item from your inventory"
+help: |
+  Put on clothing, armor, or any wearable you're carrying. `wear`
+  slots the item onto the right part of your body and keeps it on
+  until you take it off.
+
+  The item has to be in your inventory and has to be something that
+  can actually be worn. If the body slot it needs is already taken,
+  take off what's there first with `remove`.
 validators:
   - /lib/command/validators/requiresAnimate
   - /lib/command/validators/requiresSlotted

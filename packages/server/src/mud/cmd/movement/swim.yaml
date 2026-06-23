@@ -1,6 +1,15 @@
 verbs: [swim]
 controller: movement/SwimController
 description: "Swim through a named exit (must be Swimmable-enabled)."
+help: |
+  Cross water by swimming through an exit that leads into or through
+  it — a river, a flooded passage, an open channel. Name the exit
+  you want (`swim across`, `swim channel`).
+
+  Only exits marked as swimmable accept this. While you swim, the
+  water around you is the medium you're breathing — so an
+  air-breather who lingers underwater can run out of air. Surface
+  or reach the far side before that becomes a problem.
 validators:
   - /lib/command/validators/requiresAnimate
   - /lib/command/validators/requiresConscious

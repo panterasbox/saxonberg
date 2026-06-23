@@ -1,6 +1,17 @@
 verbs: [write]
 controller: shell/WriteController
 description: "Author a content-tree template or source-tree file (uses workspace.tree default; require -c / -s under mirror mode)"
+help: |
+  Create or replace authored material at a path. A content-tree
+  write lands a template, taking a per-field `data` map plus an
+  optional backing `--class` and `--hydrator`; a source-tree write
+  lands file bytes. The body and data payloads come through a
+  structured form, not bare text on the command line.
+
+  `write` follows your `workspace.tree` default, but under mirror
+  mode it can't guess — pass `-c` for content or `-s` for source
+  explicitly. The two flags are mutually exclusive. Pass `--mql`
+  to target wherever a query resolves.
 args:
   - name: path
     type: string

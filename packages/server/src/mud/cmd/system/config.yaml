@@ -1,6 +1,20 @@
 verbs: [config]
 controller: system/ConfigController
 description: "View or set application settings (developer-gated)"
+help: |
+  Inspects and changes the game's application-wide settings. Plain
+  `config` lists every setting and its current value. `config <key>`
+  shows just one. `config <key> <value>` changes it.
+
+  This is a developer-only tool — it tunes the running world, not
+  your personal preferences. A value is a single token with no
+  spaces (a path or a scalar). For your own shell settings, use
+  `settings` or `var` instead.
+examples:
+  - cmd: config defaultStartLocation
+    note: Show one setting's current value
+  - cmd: config defaultStartLocation /obj/Lounge
+    note: Set a setting to a new value
 validators:
   - /lib/command/validators/requiresDeveloper
 args:

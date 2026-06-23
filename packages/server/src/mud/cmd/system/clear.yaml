@@ -1,3 +1,10 @@
 verbs: [clear]
 controller: system/ClearController
 description: "Clear the terminal scrollback"
+help: |
+  Wipes your terminal's scrollback, leaving you with a clean,
+  empty screen. Nothing in the world changes — this only tidies
+  your own view.
+
+  Handy when the screen has filled with chatter and you want a
+  fresh slate before your next move.

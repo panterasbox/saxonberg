@@ -1,6 +1,18 @@
 verbs: [fill]
 controller: bulk/FillController
 description: "Fill a vessel to capacity from a liquid source"
+help: |
+  Tops a vessel right up from a source of liquid. Name the empty
+  thing first, then the thing you're drawing from with `from`:
+  `fill the flask from the urn`. The vessel fills to its brim — no
+  measuring, no leftovers to carry.
+
+  Some sources, like a public urn or a fountain, never run dry, so
+  you can refill as often as you like. When you want to move a
+  precise amount between two holders instead, use `pour`.
+examples:
+  - cmd: fill the flask from the urn
+    note: Top a vessel up from a source
 validators:
   - /lib/command/validators/requiresAnimate
 args:

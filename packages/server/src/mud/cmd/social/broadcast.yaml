@@ -1,6 +1,14 @@
 verbs: [broadcast]
 controller: social/BroadcastController
 description: "Send a message to every online player (or an MQL-refined subset)"
+help: |
+  Reach every online player at once with a single line. This is a
+  staff-grade announcement channel, not ordinary chatter — it goes
+  out cooperative-wide, so use it sparingly and with intent.
+
+  By default the message hits `* with online` (everyone connected).
+  Pass `--to <query>` to narrow the audience with an MQL query when
+  you only want a slice to hear it.
 validators:
   - /lib/command/validators/requiresAnimate
   - /lib/command/validators/requiresVerbalESP

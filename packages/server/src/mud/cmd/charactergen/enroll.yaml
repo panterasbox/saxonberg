@@ -1,6 +1,23 @@
 verbs: [enroll]
 controller: charactergen/EnrollController
 description: "Create a new character. Field-named subcommands: enroll <field> <value> (species / sex / name / pronouns / aspiration / confirm). Bare `enroll` re-emits the current draft state."
+help: |
+  Build a new character. Enrollment isn't a fixed sequence of steps —
+  it's a draft you fill in field by field, in any order. Each
+  `enroll <field> <value>` sets one choice and shows you the whole
+  draft again: what you've picked, what's still open, and the options
+  for each.
+
+  The fields are `species`, `sex`, `name`, `pronouns`, and
+  `aspiration`. (Pick a species first — `sex` only appears for
+  species that have one, and your species shapes the suggested
+  names.) For `name`, type a given name and an optional surname, or
+  use `enroll name reroll` to get a fresh species-themed suggestion.
+
+  Run bare `enroll` any time to re-show the current draft. When every
+  required field is filled, `enroll confirm` commits the character
+  and drops you into the world; if anything is still missing, it
+  tells you what's left instead.
 args:
   - name: rest
     type: string

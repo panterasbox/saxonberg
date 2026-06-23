@@ -1,6 +1,16 @@
 verbs: [feel]
 controller: perception/FeelController
 description: "Feel your surroundings or a specific thing"
+help: |
+  Reach out and touch. With no target, `feel` reports the tactile
+  sense of where you are — warmth, drafts, the texture of the
+  surfaces around you. Name a thing to feel it directly: its
+  temperature, its surface, whether it's hot enough to hurt.
+
+  `feel` needs a working sense of touch, so it can fail if you've
+  been numbed. For an object that holds something — a flask, a
+  pot — feeling it tells you about the vessel; the contents are
+  reported separately when they matter.
 validators:
   - /lib/command/validators/requiresTouch
 args:

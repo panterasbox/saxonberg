@@ -1,8 +1,21 @@
 verbs: [prompt]
 description: "Manage active prompts. v1 subcommands: cancel (cancels every pending prompt on this connection)."
+help: |
+  Manages the prompts the game asks you — the choice, confirm, and
+  text questions that pop up while you play. Right now it has one
+  job: clearing them.
+
+  Use `prompt cancel` when a question is stuck or you'd rather not
+  answer it.
 controller: system/PromptController
 validators:
   - /lib/command/validators/requiresHasInteractive
 subcommands:
   cancel:
     description: "Cancel every pending prompt on this connection."
+    help: |
+      Dismisses every question currently waiting on your
+      connection at once, leaving them all unanswered.
+    examples:
+      - cmd: prompt cancel
+        note: Clear all pending prompts

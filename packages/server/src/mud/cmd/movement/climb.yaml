@@ -1,6 +1,15 @@
 verbs: [climb]
 controller: movement/ClimbController
 description: "Climb through a named exit (must be Climbable-enabled)."
+help: |
+  Haul yourself up, down, or across an exit that has to be climbed —
+  a ladder, a rope, a cliff face, a chimney. Name the exit you want
+  to take (`climb ladder`, `climb up`).
+
+  Only exits marked as climbable accept this; a flat hallway won't.
+  Climbing can demand more of your body than walking, and some
+  climbs gate on whether you're up to them, so a route that's an
+  easy stroll on foot may be a real effort to climb.
 validators:
   - /lib/command/validators/requiresAnimate
   - /lib/command/validators/requiresConscious

@@ -1,6 +1,20 @@
 verbs: [look, l]
 controller: perception/LookController
 description: "Examine your surroundings or an object"
+help: |
+  With no target, `look` surveys your whole location — its
+  description, exits, and what's lying around. Give it a target to
+  examine one thing closely; the target also becomes your focus, so
+  follow-up commands can refer to it without naming it again.
+
+  `look at` reads the same as plain `look` — the preposition is
+  optional. Use `--peek` to read something without disturbing your
+  focus trail.
+examples:
+  - cmd: look at the brass lantern
+    note: Examine one object up close
+  - cmd: look --peek sign
+    note: Read the sign without changing focus
 args:
   - name: target
     type: object

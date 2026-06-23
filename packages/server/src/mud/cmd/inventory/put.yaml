@@ -1,6 +1,19 @@
 verbs: [put, place]
 controller: inventory/PutController
 description: "Place an item from your inventory in or on a target"
+help: |
+  Stow something you're carrying into a container or rest it on a
+  surface. Name the item, then `in` to drop it inside a box, bag, or
+  chest, or `on` to set it atop a table, shelf, or other surface.
+
+  The target has to be here with you and has to actually accept the
+  item — you can't put a thing inside something that isn't a
+  container. `place` is an alias for the same verb.
+examples:
+  - cmd: put coin in the pouch
+    note: Tuck an item into a container
+  - cmd: put the vase on the table
+    note: Rest an item on a surface
 validators:
   - /lib/command/validators/requiresAnimate
 args:
