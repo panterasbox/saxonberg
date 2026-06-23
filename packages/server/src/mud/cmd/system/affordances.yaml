@@ -1,3 +1,13 @@
 verbs: [affordances]
 controller: system/AffordancesController
 description: "List your available commands and what affords each"
+help: |
+  Lists every command you can run right now, and beside each one
+  the source that grants it. Verbs that are simply yours show
+  `(innate)`; verbs you only have because you're holding or wearing
+  something show that object's name instead.
+
+  Reach for this when a command works in one moment and not the
+  next — it tells you which item is doing the granting, so you know
+  what to keep on you. The last line names whatever afforded the
+  `affordances` command itself.

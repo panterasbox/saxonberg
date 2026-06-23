@@ -61,6 +61,12 @@ load-time error. `options` is optional at every level.
 verbs: [look, l]              # primary verb first; rest are aliases
 controller: perception/LookController  # category/Name; resolves to /obj/command/perception/LookController
 description: "Examine your surroundings or an object"
+help: |                       # optional; multi-line player-facing prose
+  With no target, `look` surveys your whole location. Give it a
+  target to examine one thing closely.
+examples:                     # optional; sparing — see "Help content"
+  - cmd: look at the lantern
+    note: Examine one object up close
 args:                         # OR `subcommands:` — never both
   - name: target
     type: object
@@ -78,6 +84,56 @@ options:                      # optional; verb-scoped
 
 A zero-arg verb (e.g. `inventory`, `ping`) has neither `args` nor
 `subcommands` — that's fine.
+
+## Help content — `description` / `help` / `examples`
+
+Three authored fields feed the in-game `help` browser
+(`HelpController` → `CommandDefinition.getHelpText()`). The governing
+rule: **author intent, generate mechanics.** Anything the spec already
+encodes — syntax, options, prepositions, aliases, the subcommand list
+— is rendered automatically; authored prose must not restate it.
+
+| Field | Scope | What goes in it |
+|---|---|---|
+| `description` | verb + subcommand | One line. The verb-list summary and the help header. |
+| `help` | verb + subcommand | Multi-line prose: what the verb does, *when* a player reaches for it, gotchas. Hard-wrap ~68 cols (the renderer does not wrap). Blank lines separate paragraphs. Backticks render literally. |
+| `examples` | verb + subcommand | A list of `{cmd, note}` worked invocations. **Sparing by convention.** |
+
+### What `getHelpText()` generates for free
+
+Don't hand-write any of this into `help` prose or `examples` — it's
+synthesized from the model on every render:
+
+- **Syntax** — `verb [at] <target>` from `args` (positional
+  optionality, greedy, and each field's `prepositions` as a leading
+  `[at]` / `[at|on]` marker).
+- **Options** — an `Options:` block listing each option's short/long
+  forms, value placeholder, and `description` (verb-level and
+  per-subcommand).
+- **Aliases** — the `Aliases:` line (alternates only; the primary verb
+  is the header).
+- **Subcommands** — the `Subcommands:` block with each subcommand's
+  usage + `description` + `help`.
+
+### When `examples` earns its place
+
+Because syntax/options/prepositions/aliases are generated, an example
+is only worth authoring when a **concrete** invocation teaches
+something the skeleton can't — the convention is **at most ~2 per
+command file**:
+
+- multi-object ordering (`give the lantern to bob`, `put coin in pouch`);
+- two-arg phrasing where order matters (`whisper bob meet me at noon`);
+- non-obvious subcommand / option argument shapes
+  (`settings set workspace.tree source`, `chat join gossip`).
+
+A single-target verb whose `help` + generated syntax already says it
+all (`drop`, `stand`, `ping`) carries **no** examples. For a
+subcommanded verb, place each kept example on the subcommand it
+illustrates, not at the top level.
+
+`help search` indexes `verbs` + `description` + `help` + every
+example's `cmd`/`note`, so authored prose is full-text discoverable.
 
 ## Positional fields (`args:`)
 

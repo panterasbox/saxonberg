@@ -1,6 +1,15 @@
 verbs: [clone]
 controller: author/CloneController
 description: "Clone a fresh instance from a template"
+help: |
+  Spin up a brand-new runtime object from an existing template.
+  Name the template by its path, or use `--mql` to pick one out
+  with a query when you don't know the exact path.
+
+  The clone has to land somewhere. By default it self-places per
+  the template's own instructions; `--into <container>` overrides
+  that to drop it in a specific holder, and `--here` is shorthand
+  for landing it right where you're standing.
 args:
   - name: template
     type: string

@@ -1,6 +1,15 @@
 verbs: [ls]
 controller: shell/LsController
 description: "List children of <path> (or cwd) in the content or source tree"
+help: |
+  See what lives under a path. With no argument `ls` lists the
+  children of your current working directory; give it a path to
+  list somewhere else. It reads the content tree by default — the
+  authored world of templates.
+
+  Use `-l` for a long-form listing with one entry per line, `-R`
+  to recurse into subdirectories, and `-s` to list the source tree
+  instead. Pass `--mql` to list whatever a query resolves to.
 args:
   - name: path
     type: string

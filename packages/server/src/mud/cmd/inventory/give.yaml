@@ -1,6 +1,19 @@
 verbs: [give, hand]
 controller: inventory/GiveController
 description: "Give an item from your inventory to another actor"
+help: |
+  Hand something you're carrying to someone else in the room. Name
+  the item, then `to` and whoever should receive it. The item leaves
+  your inventory and lands in theirs.
+
+  Both you and the recipient have to be here together, and the
+  recipient has to be an actor who can hold things — you can't give
+  to scenery. `hand` is an alias for the same verb.
+examples:
+  - cmd: give coin to the merchant
+    note: Hand over a single item
+  - cmd: hand the letter to alice
+    note: Pass something using the alias
 validators:
   - /lib/command/validators/requiresAnimate
 args:

@@ -1,6 +1,15 @@
 verbs: [listen]
 controller: perception/ListenController
 description: "Listen to your surroundings or a specific source"
+help: |
+  Stop and hear what's around you. With no target, `listen`
+  reports the soundscape of your location — voices, machinery,
+  wind, the hum of the room. Name a source to listen to it in
+  particular.
+
+  Both `listen to` and `listen at` read the same as the bare
+  form; the preposition is optional. You need working hearing for
+  any of it.
 validators:
   - /lib/command/validators/requiresHearing
 args:

@@ -952,8 +952,25 @@ export interface OptionDefinition {
  * (`settings`, `alias`, `var`, `help`, `player`) leave it absent
  * and continue to share their verb-level controller.
  */
+/**
+ * A worked invocation for the help surface. `cmd` is the literal
+ * command line a player would type; `note` is a short gloss. Authored
+ * under `examples:` on a verb or subcommand; surfaced individually so
+ * the help system can search and render each one. Sparing by
+ * convention — only where a concrete invocation teaches something the
+ * generated usage cannot.
+ */
+export interface ExampleDefinition {
+  cmd: string;
+  note?: string;
+}
+
 export interface SubcommandDefinition {
   description?: string;
+  /** Multi-line authored help prose for this subcommand. */
+  help?: string;
+  /** Worked invocations specific to this subcommand. */
+  examples?: ExampleDefinition[];
   controller?: string;
   args?: PositionalDefinition[];
   options?: Record<string, OptionDefinition>;
@@ -981,6 +998,13 @@ export interface CommandView {
    */
   controller?: string;
   description: string;
+  /**
+   * Multi-line authored help prose for the verb — rendered below the
+   * synthesized syntax block by `CommandDefinition.getHelpText()`.
+   */
+  help?: string;
+  /** Worked invocations shown under an Examples heading. */
+  examples?: ExampleDefinition[];
   args?: PositionalDefinition[];
   subcommands?: Record<string, SubcommandDefinition>;
   options?: Record<string, OptionDefinition>;
@@ -1020,6 +1044,10 @@ export interface CommandSchemaPayload {
   verbs: string[];
   controller?: string;
   description: string;
+  /** Authored help prose (see `CommandView.help`). */
+  help?: string;
+  /** Worked invocations (see `CommandView.examples`). */
+  examples?: ExampleDefinition[];
   args?: PositionalDefinition[];
   subcommands?: Record<string, SubcommandDefinition>;
   options?: Record<string, OptionDefinition>;

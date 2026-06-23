@@ -1,6 +1,14 @@
 verbs: [exhale]
 controller: posture/ExhaleController
 description: "Let your breath out — release a held breath."
+help: |
+  Release a breath you were holding. If you set up a breath-hold
+  with `inhale` — say, to cross a flooded stretch — `exhale` ends
+  that grace early and lets your body breathe normally again.
+
+  Out of water it's just a beat of flavor. The pairing matters
+  when air is scarce: `inhale` buys you time, `exhale` gives it
+  back.
 validators:
   - /lib/command/validators/requiresAnimate
   - /lib/command/validators/requiresConscious

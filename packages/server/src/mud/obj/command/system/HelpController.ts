@@ -84,28 +84,10 @@ export default class HelpController extends CommandController<HelpModel> {
       });
       return;
     }
-    const lines: string[] = ['', `Command: ${command.getPrimaryVerb()}`, ''];
-    if (command.description) {
-      lines.push(`Description: ${command.description}`);
-      lines.push('');
-    }
-    const verbs = command.verbs || [command.getPrimaryVerb()];
-    if (verbs.length > 1) {
-      lines.push(`Aliases: ${verbs.slice(1).join(', ')}`);
-      lines.push('');
-    }
-    const usage = command.getUsage();
-    if (usage) {
-      lines.push('Usage:');
-      lines.push(`  ${usage}`);
-      lines.push('');
-    }
-    const helpText = command.getHelpText();
-    if (helpText) {
-      lines.push(helpText);
-      lines.push('');
-    }
-    this.tell(context, Mml.fromMarkup(lines.join('\n')));
+    // `getHelpText()` is the single source of the full rendering:
+    // header, aliases, syntax, options, authored prose, subcommands,
+    // examples.
+    this.tell(context, Mml.fromMarkup(`\n${command.getHelpText()}`));
     return;
   }
 
@@ -152,7 +134,12 @@ export default class HelpController extends CommandController<HelpModel> {
     const needle = query.toLowerCase();
     const commands = context.commandGiver.getAvailableCommands();
     const hits = commands.filter((cmd) => {
-      const blob = `${cmd.getPrimaryVerb()} ${cmd.description ?? ''}`;
+      const exampleBlob = cmd.examples
+        .map((e) => `${e.cmd} ${e.note ?? ''}`)
+        .join(' ');
+      const blob = `${cmd.verbs.join(' ')} ${cmd.description ?? ''} ${
+        cmd.help ?? ''
+      } ${exampleBlob}`;
       return blob.toLowerCase().includes(needle);
     });
     if (hits.length === 0) {

@@ -1,6 +1,15 @@
 verbs: [grep]
 controller: shell/GrepController
 description: "Search for <pattern> in the content (default) or source tree"
+help: |
+  Hunt for text. Give `grep` a pattern and it scans the content
+  tree for matches, reporting where each one lives. Add an optional
+  path to narrow the search to one subtree instead of starting from
+  your current position.
+
+  Use `-i` to ignore case and `-r` to descend into subdirectories.
+  Pass `-s` to search the engine source tree instead of the
+  authored world.
 args:
   - name: pattern
     type: string

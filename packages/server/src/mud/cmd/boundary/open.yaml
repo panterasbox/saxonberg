@@ -1,6 +1,15 @@
 verbs: [open]
 controller: boundary/OpenController
 description: "Open a door (by direction or by name)"
+help: |
+  Open anything that can be sealed — a door blocking an exit, a
+  chest, a cabinet. Name a direction to open the door on that exit
+  (`open north`), or name the thing directly (`open oak door`,
+  `open chest`).
+
+  The target has to be within reach, so you can't open a door from
+  across the room. If it's already open, or it isn't something that
+  opens at all, the game tells you so and nothing happens.
 validators:
   - /lib/command/validators/requiresAnimate
 args:

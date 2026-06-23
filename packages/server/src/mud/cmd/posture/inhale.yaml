@@ -1,6 +1,15 @@
 verbs: [inhale]
 controller: posture/InhaleController
 description: "Take a deep breath and hold it — extend how long you can go without air before a dive."
+help: |
+  Draw a deep breath and hold it. While you hold, your body coasts
+  on the stored air, so you can cross water or other airless space
+  that would otherwise start to choke you.
+
+  Reach for this just before a dive or a dash through a flooded
+  passage. Release it with `exhale`, or simply let it lapse — the
+  grace runs out on its own. A blacked-out body can't hold its
+  breath at all.
 validators:
   - /lib/command/validators/requiresAnimate
   - /lib/command/validators/requiresConscious

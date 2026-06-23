@@ -13,6 +13,25 @@
 verbs: [teleport, tp]
 controller: author/TeleportController
 description: "Teleport yourself (or --target something) — self-powered if able, else via the Teleport Authority."
+help: |
+  Cross the world in a single step. How `teleport` behaves depends
+  on what you're allowed to do. If you have the privilege, it
+  self-powers: name any destination and you go, and `--target
+  <obj>` sends something else there instead of you.
+
+  Without that privilege, the same verb rides the Teleport
+  Authority from the node you're standing at. Here the destination
+  is a route keyword, and a bare `teleport` just reads the
+  departures board for the routes you can take.
+
+  `--force` (`-f`) bypasses teleport and containment vetoes, but
+  it's admin-only and the v1 stub always denies it. `tp` is a
+  shorthand alias.
+examples:
+  - cmd: teleport University Avenue
+    note: Travel to a destination or route
+  - cmd: teleport --target Bob fountain
+    note: Send another being to a destination
 validators:
   - /lib/command/validators/requiresAnimate
 args:

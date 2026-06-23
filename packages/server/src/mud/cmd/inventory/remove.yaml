@@ -1,6 +1,13 @@
 verbs: [remove, doff]
 controller: inventory/RemoveController
 description: "Take off a worn item"
+help: |
+  Take off something you're wearing. `remove` frees up the body slot
+  the item occupied and leaves the garment in your inventory, ready
+  to drop, stow, or wear again later.
+
+  It only works on things you currently have on — to set down a
+  weapon you're holding, use `unwield` instead. `doff` is an alias.
 validators:
   - /lib/command/validators/requiresAnimate
   - /lib/command/validators/requiresSlotted

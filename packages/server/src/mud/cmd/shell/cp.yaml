@@ -1,6 +1,15 @@
 verbs: [cp]
 controller: shell/CpController
 description: "Copy <src> to <dst> in the content (default) or source tree"
+help: |
+  Duplicate a path. Name a source and a destination and `cp`
+  copies one to the other within a single tree. Relative and
+  absolute paths both work, resolved against your current
+  position.
+
+  It operates on the content tree by default; pass `-s` to copy
+  within the source tree, or `-c` to force content when your
+  `workspace.tree` default points elsewhere.
 args:
   - name: src
     type: string

@@ -1,6 +1,13 @@
 verbs: [pwd]
 controller: shell/PwdController
 description: "Print the avatar's current working directory"
+help: |
+  Print where you are. `pwd` reports your current working
+  directory in the active tree — handy when a relative path stops
+  behaving and you've lost track of your position.
+
+  Pass `-a` to print both working directories at once, the content
+  tree's and the source tree's, side by side.
 options:
   all:
     short: a

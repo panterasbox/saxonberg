@@ -1,11 +1,28 @@
 verbs: [contacts]
 controller: social/ContactsController
 description: "Manage personal named lists of other characters (friends, study-group, ignore — labels are free-form)"
+help: |
+  Keep your own private lists of other characters. The labels are
+  free-form — `friends`, `study-group`, `rivals`, whatever you find
+  useful — and nobody else can see them. Use them to remember people
+  and to feed group-aware features.
+
+  `contacts add` puts someone on a list and `contacts show` reads it
+  back with their current names. Lists are durable: they remember a
+  person even if they change how they look.
 validators:
   - /lib/command/validators/requiresAnimate
 subcommands:
   add:
     description: "Add a player or NPC to a labeled list. Default expands to every character of the target's user; --char stores only the matched character."
+    help: |
+      File someone under a label. By default this remembers every
+      character belonging to that person's account, so they're
+      recognized no matter which one they're playing. Pass `--char`
+      to store only the exact character you matched.
+    examples:
+      - cmd: contacts add --char bob rivals
+        note: Store just this character, not their siblings
     options:
       char:
         short: c
@@ -24,6 +41,10 @@ subcommands:
         required: true
   remove:
     description: "Remove a single entry from a labeled list (matches against entries already in your list)"
+    help: |
+      Take one person off a label. The name is matched against the
+      entries already on that list, so you can target someone even
+      if they aren't online.
     args:
       - name: target
         type: string
@@ -33,20 +54,36 @@ subcommands:
         required: true
   show:
     description: "Show the entries on a labeled list, with current names"
+    help: |
+      List everyone filed under a label, shown with their current
+      names so you can tell who's who at a glance.
+    examples:
+      - cmd: contacts show friends
+        note: Read back who is on a labeled list
     args:
       - name: label
         type: string
         required: true
   list:
     description: "Show the distinct labels you've used"
+    help: |
+      Show all the labels you've created, so you can remember what
+      lists you're keeping before you `show` one.
   clear:
     description: "Remove every entry of a labeled list"
+    help: |
+      Empty a whole label at once, removing every entry on it. The
+      label itself goes away when it has no entries left.
     args:
       - name: label
         type: string
         required: true
   rename:
     description: "Relabel every entry from one label to another"
+    help: |
+      Move every entry from one label to another in a single step —
+      handy when you want to reorganize your lists without re-adding
+      people one by one.
     args:
       - name: old_label
         type: string

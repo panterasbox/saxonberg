@@ -1,6 +1,19 @@
 verbs: [forum]
 controller: social/ForumController
 description: "Read and post on forum boards (list / make / on / post / reply / edit / read / vote / promote / follow)"
+help: |
+  Forums are the game's persistent, asynchronous discussion boards —
+  threads that outlast the moment, unlike room chat. Each board hangs
+  off a subject (see `subject`) that owns who can see it.
+
+  A board has one of two organizers. The default is a popularity feed:
+  threads and replies, sorted by votes. The other is an argument
+  board (`--argument`) — a typed claim-graph where replies are
+  supporting (`--pro`), objecting (`--con`), or clarifying (`--rebut`)
+  edges rather than a ranked list.
+
+  Bare `forum <board>` reads a board. The subcommands below manage and
+  post to them.
 validators:
   - /lib/command/validators/requiresAnimate
   - /lib/command/validators/requiresVerbalESP
@@ -8,8 +21,19 @@ fallthrough: true
 subcommands:
   list:
     description: "List boards visible to you"
+    help: |
+      Show every board you're allowed to see, across all subjects.
+      Your starting point for finding a board's name.
   make:
     description: "Create a subject + board (you become the owner)"
+    help: |
+      Spin up a new board and the subject that owns it in one step,
+      with you as owner. The audience is your contacts by default;
+      `--open` makes it world-visible, or `--group` binds an existing
+      ref. Add `--argument` for a claim-graph board instead of a feed.
+    examples:
+      - cmd: forum make proposals --argument Town charter debate
+        note: Create an argument board with a description
     options:
       open:
         type: boolean
@@ -34,6 +58,9 @@ subcommands:
         greedy: true
   on:
     description: "Attach a board to an existing subject you own"
+    help: |
+      Add another board to a subject you already own — e.g. give a
+      guild subject both a feed board and an argument board.
     options:
       argument:
         type: boolean
@@ -45,6 +72,10 @@ subcommands:
         required: true
   post:
     description: "Start a thread on a board"
+    help: |
+      Open a new thread on a board. Type the body inline, or leave it
+      off to compose in the editor. `--title` names the thread;
+      without one, the title is drawn from the body.
     options:
       title:
         short: t
@@ -66,6 +97,13 @@ subcommands:
         greedy: true
   reply:
     description: "Reply (popularity) or attach a typed claim (argument: --pro/--con/--rebut)"
+    help: |
+      Respond to an entry. On a feed board this is a plain reply. On
+      an argument board, pick the edge your reply forms: `--pro`
+      supports it, `--con` objects, `--rebut` asks a neutral question.
+    examples:
+      - cmd: forum reply 7 --con costs are understated
+        note: Attach an objection on an argument board
     options:
       pro:
         type: boolean
@@ -90,6 +128,10 @@ subcommands:
         greedy: true
   edit:
     description: "Edit a body in place (author or board owner); keeps a lossless trail"
+    help: |
+      Revise an entry you wrote (or any entry, if you own the board).
+      The prior text is kept in a lossless history — edits are
+      transparent, not silent overwrites.
     args:
       - name: entry
         type: string
@@ -101,6 +143,10 @@ subcommands:
         greedy: true
   read:
     description: "Read a board's thread-list, or a thread's tree"
+    help: |
+      With just a board, list its threads; add a thread to read the
+      whole tree. `--sort` orders the list — new, top, hot, or
+      controversial.
     options:
       sort:
         short: s
@@ -116,6 +162,9 @@ subcommands:
         required: false
   vote:
     description: "Up/down vote an entry (toggles off if you repeat the same direction)"
+    help: |
+      Cast an up or down vote on an entry. Voting the same direction
+      again clears your vote — there's no separate unvote.
     args:
       - name: entry
         type: string
@@ -125,12 +174,20 @@ subcommands:
         required: true
   mature:
     description: "Mark an argument forum matured (owner only); hands it to the deferred vote layer"
+    help: |
+      Owner-only: declare an argument board's debate settled enough to
+      hand off to the (deferred) voting layer. Closes the claim-graph
+      to further structural change.
     args:
       - name: board
         type: string
         required: true
   promote:
     description: "Promote a thread into a thread-subject with its own chat"
+    help: |
+      Lift a hot thread into its own subject — giving it a dedicated
+      chat surface and a name — when a single thread outgrows its
+      board.
     args:
       - name: board
         type: string
@@ -143,6 +200,9 @@ subcommands:
         required: true
   follow:
     description: "Follow a subject (tunes you into all its lit surfaces)"
+    help: |
+      Subscribe to a subject so its boards and chats light up for you —
+      one follow covers every surface the subject owns.
     args:
       - name: name
         type: string

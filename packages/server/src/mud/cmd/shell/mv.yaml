@@ -1,6 +1,14 @@
 verbs: [mv]
 controller: shell/MvController
 description: "Move/rename <src> to <dst> in the content (default) or source tree"
+help: |
+  Relocate or rename a path. `mv` moves the source to the
+  destination within one tree — give a new name to rename in place,
+  or a new parent path to relocate. Relative and absolute paths
+  both work.
+
+  It acts on the content tree by default; pass `-s` to move within
+  the source tree, or `-c` to force content.
 args:
   - name: src
     type: string
