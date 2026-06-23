@@ -11,7 +11,6 @@ import Location from '../Location';
 import { StuffApi } from '../../../api/stuff';
 import { ContainmentApi } from '../../../api/containment';
 import { ContainableMixin } from '../../spatial/Containable';
-import { Stuff } from '../Stuff';
 import { makeStuff } from '../../security/__tests__/test-setup';
 import { Idea } from "../Idea";
 

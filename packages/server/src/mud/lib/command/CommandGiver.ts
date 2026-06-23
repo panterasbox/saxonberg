@@ -31,7 +31,6 @@
 
 import type { MixinConstructor } from '../mixin';
 import type { Stuff } from '../stuff/Stuff';
-import type { Containable } from '../spatial/Containable';
 import type { Parser } from '../../api/command';
 import {
   SettingTypes,

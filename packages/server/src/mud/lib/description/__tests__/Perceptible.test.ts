@@ -6,7 +6,6 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { PerceptibleMixin } from '../Perceptible';
 import { NamedMixin } from '../Named';
 import { VisibleMixin } from '../Visible';
-import { Stuff } from '../../stuff/Stuff';
 import { makeStuff } from '../../security/__tests__/test-setup';
 import { Idea } from "../../stuff/Idea";
 import {

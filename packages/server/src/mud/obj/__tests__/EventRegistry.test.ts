@@ -59,7 +59,7 @@ describe('EventRegistry', () => {
   });
 
   it('postRegister installs a prop for every well-known event', async () => {
-    const reg = await bootstrapEventRegistry();
+    await bootstrapEventRegistry();
     for (const name of Object.values(Events)) {
       // EventApi.on succeeds for every well-known event — implies the
       // prop is present and the per-event policy mediates subscribe.

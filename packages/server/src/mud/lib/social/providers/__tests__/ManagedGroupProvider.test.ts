@@ -5,7 +5,7 @@
  * threading their `_id`s.
  */
 
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { describe, it, expect, afterEach, vi } from 'vitest';
 import { ManagedGroupProvider } from '../ManagedGroupProvider';
 import { Group } from '../../Group';
 import { PersistenceManager, Collections } from '../../../../../backend/PersistenceManager';

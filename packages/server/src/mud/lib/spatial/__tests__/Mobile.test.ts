@@ -5,9 +5,7 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { MobileMixin } from '../Mobile';
 import { ContainableMixin } from '../Containable';
-import { Stuff } from '../../stuff/Stuff';
 import Location from '../../stuff/Location';
-import { StuffApi } from '../../../api/stuff';
 import { makeStuff } from '../../security/__tests__/test-setup';
 import { Idea } from "../../stuff/Idea";
 

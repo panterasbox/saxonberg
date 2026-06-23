@@ -85,6 +85,11 @@ import { PropertyChangedEvent } from '../events/PropertyChangedEvent';
  * Prefer the `Property.of<T>(name)` factory over `new Property<T>(name)` —
  * shorter at the call site and keeps room for future interning.
  */
+// `T` is a phantom type parameter: the class body never references it,
+// but it threads the value type through the property-access API
+// (`Property.of<number>('gold')` → `getProp(p: Property<T>): T`), so it
+// cannot be removed without breaking inference at every call site.
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export class Property<T extends PropValue = PropValue> extends String {
   constructor(name: string) {
     super(name);

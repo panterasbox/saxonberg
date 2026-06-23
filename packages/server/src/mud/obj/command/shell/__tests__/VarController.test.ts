@@ -12,7 +12,6 @@ import {
   type SettingsSchemaEntry,
 } from '../../../../lib/shell/Environment';
 import type { MixinConstructor } from '../../../../lib/mixin';
-import { Stuff } from '../../../../lib/stuff/Stuff';
 import { SensorMixin } from '../../../../lib/message/Sensor';
 import { CommandGiverMixin } from '../../../../lib/command/CommandGiver';
 import { ContainableMixin } from '../../../../lib/spatial/Containable';

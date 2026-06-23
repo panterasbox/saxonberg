@@ -4,8 +4,6 @@
 
 import { describe, it, expect, beforeEach } from 'vitest';
 import { DetailedMixin, type Detail, type DetailMap } from '../Detailed';
-import { Stuff } from '../../stuff/Stuff';
-import { StuffApi } from '../../../api/stuff';
 import { MixinApi } from '../../../api/mixin';
 import { makeStuff } from '../../security/__tests__/test-setup';
 import { Idea } from "../../stuff/Idea";

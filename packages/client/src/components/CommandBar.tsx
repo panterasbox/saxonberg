@@ -41,7 +41,7 @@
  * plain text-edit keys.
  */
 
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import styled from 'styled-components';
 import {
   useStore,
@@ -419,11 +419,6 @@ const ValidationMessage = styled.div`
 
 /* --- Helpers ------------------------------------------------------ */
 
-function slotLabelFor(slot: string, base: string, entry?: PromptEntry): string {
-  if (slot === BASE_SLOT) return base;
-  return entry ? entry.label : '(dismissed)';
-}
-
 function kindLabelFor(entry: PromptEntry): string {
   return entry.kind;
 }
@@ -762,6 +757,11 @@ export function CommandBar({
         // Text uses the input row; no chips.
         return null;
     }
+    // The prompt-chip handlers close only over stable state setters and
+    // the entry passed in as an argument, so leaving them out of the dep
+    // array is intentional — the memo already recomputes on the inputs
+    // that actually affect its output.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeEntry, mqlManySelection]);
 
   // Slot picker is ALWAYS rendered. The base/command slot is just

@@ -11,7 +11,6 @@ import { ContainableMixin } from '../../lib/spatial/Containable';
 import { ContainerMixin } from '../../lib/spatial/Container';
 import { SensorMixin } from '../../lib/message/Sensor';
 import { NamedMixin } from '../../lib/description/Named';
-import { Stuff } from '../../lib/stuff/Stuff';
 import { ExecutionContextApi, FrameKind } from '../execution-context';
 import { ContainmentApi } from '../containment';
 import { makeStuff } from '../../lib/security/__tests__/test-setup';

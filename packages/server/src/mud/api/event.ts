@@ -40,10 +40,7 @@ import {
 } from '../lib/stuff/Propertied';
 import type EventRegistry from '../obj/EventRegistry';
 import type EventSubscriptions from '../obj/EventSubscriptions';
-import type {
-  SubscriptionRecord,
-  HistoryRecord,
-} from '../obj/EventSubscriptions';
+import type { SubscriptionRecord } from '../obj/EventSubscriptions';
 
 /**
  * A class reference used in emit/subscribe allowlists. Entries are

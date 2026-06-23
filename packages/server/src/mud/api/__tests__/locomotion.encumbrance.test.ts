@@ -20,7 +20,6 @@ import { PropertiedMixin } from '../../lib/stuff/Propertied';
 import { Creature } from '../../lib/creature/Creature';
 import { ContainmentApi } from '../containment';
 import { StuffApi } from '../stuff';
-import { Quantity } from '../../lib/quantity';
 import { makeStuff } from '../../lib/security/__tests__/test-setup';
 import { buildMode } from '../../lib/locomotion/__tests__/test-helpers';
 import { installV1QuantityMarshallers } from '../../lib/persistence/__tests__/quantity-marshaller-test-helpers';

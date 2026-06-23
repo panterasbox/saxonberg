@@ -580,10 +580,6 @@ export function InspectionPane({
     onSendCommand("look");
   };
 
-  const handleBreadcrumbClick = (fragment: string) => {
-    onSendCommand(`look ${fragment}`);
-  };
-
   const handleRowClick = (row: StuffRefRecord) => {
     onSendCommand(commandForRow(row));
   };

@@ -14,7 +14,6 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { ShadowApi } from '../shadow';
 import { Shadow } from '../../lib/stuff/Shadow';
-import { Stuff } from '../../lib/stuff/Stuff';
 import { StuffApi } from '../stuff';
 import { NamedMixin } from '../../lib/description/Named';
 import { Shadowing, ShadowSecurity } from '../../lib/security/decorators';

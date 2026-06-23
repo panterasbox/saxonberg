@@ -9,7 +9,6 @@ import { MudlogApi } from '../mudlog';
 import { Mml } from '../mml';
 import { ScheduleApi } from '../schedule';
 import { ExecutionContextApi, FrameKind } from '../execution-context';
-import { Stuff } from '../../lib/stuff/Stuff';
 import { SensorMixin } from '../../lib/message/Sensor';
 import { ContainableMixin } from '../../lib/spatial/Containable';
 import { makeStuff } from '../../lib/security/__tests__/test-setup';

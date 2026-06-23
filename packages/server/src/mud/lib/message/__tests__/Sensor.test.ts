@@ -11,7 +11,6 @@
 
 import { describe, it, expect, beforeEach } from 'vitest';
 import { SensorMixin } from '../Sensor';
-import { Stuff } from '../../stuff/Stuff';
 import { Shadow } from '../../stuff/Shadow';
 import { ShadowApi } from '../../../api/shadow';
 import { StuffApi } from '../../../api/stuff';

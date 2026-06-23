@@ -18,7 +18,6 @@ import type { ConsoleTab } from '@saxonberg/types';
 import {
   addTab,
   deleteTab,
-  getActiveTab,
   renameTab,
   setActiveTab,
 } from '../store/consoleActions';

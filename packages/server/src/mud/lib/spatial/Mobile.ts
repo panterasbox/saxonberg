@@ -35,7 +35,6 @@ import type { Stuff } from '../stuff/Stuff';
 import type { Container } from './Container';
 import type { Containable } from './Containable';
 import type { VetoResult } from '../errors';
-import type { Exitable } from '../boundary/Exitable';
 import type Exit from '../boundary/Exit';
 import type { Slotted } from '../slot/Slotted';
 import type { LocomotionMode } from '../locomotion/LocomotionMode';

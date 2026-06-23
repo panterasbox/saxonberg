@@ -8,7 +8,6 @@ import { projectFocus } from '../mql-subscription';
 import { NamedMixin } from '../../lib/description/Named';
 import { VisibleMixin } from '../../lib/description/Visible';
 import { DetailedMixin } from '../../lib/description/Detailed';
-import { TangibleMixin } from '../../lib/material/Tangible';
 import Material from '../../lib/material/Material';
 import Thing from '../../lib/stuff/Thing';
 import { Idea } from '../../lib/stuff/Idea';

@@ -4,15 +4,12 @@
 
 import { describe, it, expect } from 'vitest';
 import { Mml } from '../mml';
-import { Stuff } from '../../lib/stuff/Stuff';
 import { NamedMixin } from '../../lib/description/Named';
-import { VisibleMixin } from '../../lib/description/Visible';
 import { makeStuff } from '../../lib/security/__tests__/test-setup';
 import { Idea } from "../../lib/stuff/Idea";
 
 class Plain extends Idea {}
 class NamedThing extends NamedMixin(Idea) {}
-class VisibleThing extends VisibleMixin(Idea) {}
 
 describe('Mml.compose', () => {
   it('emits literal text verbatim', () => {

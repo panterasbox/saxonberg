@@ -21,7 +21,6 @@ import { DestructError, type VetoResult } from '../../lib/errors';
 import { ContainerMixin, type Container } from '../../lib/spatial/Container';
 import { ExitableMixin, type Exitable } from '../../lib/boundary/Exitable';
 import { MobileMixin, type Mobile } from '../../lib/spatial/Mobile';
-import Location from '../../lib/stuff/Location';
 import Exit from '../../lib/boundary/Exit';
 import { HasInteractiveMixin } from '../../lib/connection/HasInteractive';
 import Interactive from '../../obj/Interactive';
@@ -36,7 +35,7 @@ class HookableThing extends ContainableMixin(Idea) {
   ]> = [];
   public veto: VetoResult | null = null;
 
-  canMove?(to: (Stuff & Container) | null): VetoResult {
+  canMove?(_to: (Stuff & Container) | null): VetoResult {
     return this.veto ?? { ok: true };
   }
   onMoved?(
@@ -53,10 +52,10 @@ class HookableBox extends ContainableMixin(ContainerMixin(Idea)) {
   public addVeto: VetoResult | null = null;
   public removeVeto: VetoResult | null = null;
 
-  canAddContainable?(item: Stuff & Containable): VetoResult {
+  canAddContainable?(_item: Stuff & Containable): VetoResult {
     return this.addVeto ?? { ok: true };
   }
-  canRemoveContainable?(item: Stuff & Containable): VetoResult {
+  canRemoveContainable?(_item: Stuff & Containable): VetoResult {
     return this.removeVeto ?? { ok: true };
   }
   onContainableAdded?(item: Stuff & Containable): void {
@@ -147,7 +146,7 @@ describe('Traversal Witness hooks (Mobile.traverse)', () => {
     public exited: Array<[unknown, Exit]> = [];
     public enterVeto: VetoResult | null = null;
 
-    canEnter?(mover: Stuff & Mobile & Containable, via: Exit): VetoResult {
+    canEnter?(_mover: Stuff & Mobile & Containable, _via: Exit): VetoResult {
       return this.enterVeto ?? { ok: true };
     }
     onEntered?(mover: Stuff & Mobile & Containable, via: Exit): void {
@@ -162,7 +161,7 @@ describe('Traversal Witness hooks (Mobile.traverse)', () => {
     public traverses: Array<Exit> = [];
     public traverseVeto: VetoResult | null = null;
 
-    canTraverse?(via: Exit): VetoResult {
+    canTraverse?(_via: Exit): VetoResult {
       return this.traverseVeto ?? { ok: true };
     }
     onTraversed?(via: Exit): void {
