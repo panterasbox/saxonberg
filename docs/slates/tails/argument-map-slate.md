@@ -1,5 +1,16 @@
 # Argument-map slate (working doc)
 
+> **v1 SHIPPED (2026-06, forums cycle 2)** — the small-scale claim-tree
+> graduated to [../../subsystems/forums.md § The argument organizer](../../subsystems/forums.md#the-argument-organizer-cycle-2):
+> the `organizer: 'argument'` typed claim-graph over the shared Board/Entry
+> store, the neutral default lens + open-objection + circle highlight, the
+> `reply --pro|--con|--rebut` + `edit` + `mature` verbs, edit-in-place with
+> a lossless trail, and the client argument mode. This slate is now a
+> **tail of forums.md**, retained for the deferred *scale* surface below
+> (claim dedup/canonicalization, integrity-grade summarization, automated
+> convergence, proposal version-control, the vote consumer, the plural-lens
+> explorer). The build's requirements + plan retired at the cycle-2 sweep.
+
 > **Status: the model and the load-bearing principle are settled; the
 > *scale* problems (claim dedup, map-summarization) are the open work.** The
 > **argument-map** is the load-bearing **deliberation surface** of the

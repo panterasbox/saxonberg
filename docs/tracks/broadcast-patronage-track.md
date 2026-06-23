@@ -161,7 +161,7 @@ first push by choice.
   the wiki-style `FolderZone` namespace.
 - **Scope note:** this is the **social forum** (comms-owned, casual). It
   is *not* the governance **deliberation** surface — the typed claim-graph
-  [argument-map](../slates/builds/argument-map-slate.md) is a separate
+  [argument-map](../slates/tails/argument-map-slate.md) is a separate
   thing, organized by argument structure rather than recency. Don't
   conflate them.
 - **Why last:** the live loop comes first (most engagement is during

@@ -1,11 +1,19 @@
 # Forums slate (working doc)
 
-> **Status: unifying decision made; Part-0 substrate + Part-1 (popularity)
-> are the near-term build, Part-2 (structure) is designed-for but deferred.**
+> **Status: SHIPPED. Part-0 substrate + Part-1 (popularity) shipped cycle 1;
+> Part-2 (the argument organizer, renamed `'structure'` → `'argument'`)
+> shipped cycle 2 — both graduated to
+> [../../subsystems/forums.md](../../subsystems/forums.md). The argument
+> organizer's deferred *scale* surface moved to
+> [../tails/argument-map-slate.md](../tails/argument-map-slate.md). This slate
+> is retained for the still-deferred ephemeral bill lifecycle, the
+> rules-of-order procedure mode, and the latent collection-watch abstraction.
+> Historical `'structure'` references below = the shipped `'argument'`
+> organizer.**
 > This slate **consciously overrides** the prior factoring in which the
 > *social forum* was a chat facet ([delivery-slate](./delivery-slate.md) § L2)
 > and the *argument-map* was declared **not a forum**
-> ([argument-map-slate](./argument-map-slate.md)). The new thesis: **one forum
+> ([argument-map-slate](../tails/argument-map-slate.md)). The new thesis: **one forum
 > primitive with a per-board `organizer` axis** — `'popularity'` boards rank
 > by votes; `'structure'` boards are organized by argument logic and **votes
 > sense but never order**. Same substrate, dialed per board. The override
@@ -28,7 +36,7 @@ discard their content — it absorbs it as organizer modes):
   that section established: rides the aether/implant transport, binds a
   `GroupRef` audience via `GroupApi`, carries a `world.forum.*` engine `Topic`
   (L0), and the per-surface override layer (L1+) generalizes here.
-- [argument-map-slate.md](./argument-map-slate.md) — the **structure
+- [argument-map-slate.md](../tails/argument-map-slate.md) — the **structure
   organizer** in full. **Superseded only in framing:** the argument-map is no
   longer "not a forum" — it is the `organizer: 'structure'` specialization of
   this primitive. Its data model (typed claim-graph), its six load-bearing
@@ -443,7 +451,7 @@ The Reddit-shaped board. `organizer: 'popularity'`.
 ## Part 2 — the structure organizer (deferred; designed-for)
 
 `organizer: 'structure'` **is** the argument-map. The full spec lives in
-[argument-map-slate.md](./argument-map-slate.md) and carries over unchanged;
+[argument-map-slate.md](../tails/argument-map-slate.md) and carries over unchanged;
 folded into the forum primitive it means:
 
 - **Grain** — a structure **Board is a venue** (the legislative Floor, a guild

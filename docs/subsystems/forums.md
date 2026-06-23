@@ -4,18 +4,21 @@ Forums are durable, addressable, multi-author boards riding the aether
 implant — the persistent twin of [chat](./chat.md). Where a chat channel
 is an ephemeral 200-frame ring, a forum board, every entry, and the vote
 tally **persist** as Documents in their own collections; the board *is*
-the archive. Cycle 1 ships one board primitive (`Subject → Board →
-Thread → Post`) with a per-board **organizer** axis, building
-`organizer: 'popularity'` (the Reddit shape) and reserving
-`organizer: 'structure'` (the argument-map) for a later cycle as a
-field, not a schema migration.
+the archive. One board primitive (`Subject → Board → Thread → Post`)
+carries a per-board **organizer** axis: `organizer: 'popularity'` (the
+Reddit shape — cycle 1) and `organizer: 'argument'` (the **argument-map**
+— a typed claim-graph read by a neutral structural lens, no ranking;
+cycle 2). Both organizers persist into the same collections; the axis is
+a field, never a schema migration.
 
 The governing thesis: **popularity forums and structured-argument
 deliberation are two organizers over one board primitive, not two
 subsystems.** What separates them is how sibling entries are ordered and
 how votes are read — not the bones (persistence, audience, access,
 threading, command surface). This doc is the source of truth for the
-area; read it before editing.
+area (both organizers); read it before editing. The argument organizer
+has its own section below ([The argument organizer](#the-argument-organizer-cycle-2));
+the cooperative slate's *Deliberation* section is its governance framing.
 
 ## The Subject layer — the linking spine
 
@@ -54,15 +57,16 @@ one of each (`SubjectSurface`):
 
 | Surface | Backing doc | Cycle 1 |
 |---|---|---|
-| `popularity-forum` | `Board`, `organizer: 'popularity'` | **shipped** |
-| `argument-forum` | `Board`, `organizer: 'structure'` | reserved (deferred) |
+| `popularity-forum` | `Board`, `organizer: 'popularity'` | **shipped** (cycle 1) |
+| `argument-forum` | `Board`, `organizer: 'argument'` | **shipped** (cycle 2) |
 | `free-chat` | `Channel`, `procedure: 'free'` | **shipped** |
 | `rules-chat` | `Channel`, `procedure: 'rules-of-order'` | reserved (parked) |
 
 So *forum* = {popularity, argument} (the two `Board` organizers) and
 *chat* = {free, rules} (the two `Channel` procedures). A subject may hold
-both organizers and/or both chat procedures at once. The taxonomy ships
-now; cycle 1 implements `popularity-forum` + `free-chat` only.
+both organizers and/or both chat procedures at once. Both forum surfaces
+now ship (`popularity-forum` cycle 1, `argument-forum` cycle 2); `free-chat`
+ships, `rules-chat` is parked.
 
 ### Subject grain — venue vs topic
 
@@ -136,16 +140,18 @@ idempotently (`tunedIn → followed`, `muted → 'free-chat'` in
 
 - **`Board`** (`lib/forum/Board.ts`, `forum_boards`) — a long-lived venue
   holding many Threads. Fields: `subject` ref (every board belongs to a
-  Subject — the universal root), `organizer: 'popularity' | 'structure'`
-  (cycle 1 always `'popularity'`), `name`, `description`, and an `override`
-  bag (designed-in but inert — the deferred per-board moderation layer).
+  Subject — the universal root), `organizer: 'popularity' | 'argument'`,
+  `name`, `description`, and an `override` bag (designed-in but inert —
+  the deferred per-board moderation layer).
 - **`Entry`** (`lib/forum/Entry.ts`, `forum_entries`) — a node in a
   board's reply tree. A **Thread** is a root Entry (`parent: null`)
   carrying a `title` + `body`; a **Post** is a child Entry (`parent` =
-  another entry's `_id`) with `relation: 'reply'`. Cycle 1's popularity
-  organizer is a strict reply-tree, **Reddit-style nested** (a `parent`
-  edge to any entry, arbitrary depth); the `relation` field ships
-  generically (typed edges) for the deferred structure organizer.
+  another entry's `_id`). The `relation` edge is **organizer-scoped**: a
+  `'popularity'` board uses only `'reply'` (a strict reply-tree,
+  **Reddit-style nested** — a `parent` edge to any entry, arbitrary
+  depth); an `'argument'` board uses only the typed claim-graph edges
+  `'supports' | 'objects-to' | 'responds-to'` (see [The argument
+  organizer](#the-argument-organizer-cycle-2)).
 
 Entry also carries `author` (the durable id link — **never** a frozen
 name; the display name resolves FROM the id at read time so renames
@@ -164,9 +170,12 @@ twin**; the live feed is the in-process `EventApi` bus.
 `ForumEvent` (`lib/forum/ForumEvent.ts`, `forum_events`) is the
 append-only log — the `ChronicleEntry` precedent: a plain Document, the
 row IS the event, **never mutated or deleted in normal operation** (the
-tamper-evident substrate the deferred structure organizer needs). Kinds:
+tamper-evident substrate the argument organizer needs). Kinds:
 `board-created`, `post-created`, `reply-created`, `vote-cast`,
-`thread-promoted`, `thread-locked`. Every row populates **all four**
+`thread-promoted`, `thread-locked`, and the argument-organizer kinds
+`argument-attached` (a typed claim), `entry-edited` (a body edit —
+`data.priorBody` carries the lossless trail), `mature` (the decoupled
+mature→vote handoff). Every row populates **all four**
 dependency keys (`subject`/`board`/`thread`/`entry`) so the subscription
 dependency index routes correctly even for events that nominally touch
 one level (a `vote-cast` carries its entry's board + thread so a
@@ -302,6 +311,141 @@ comment-sibling levels): `new` (newest first), `top` (net desc), `hot`
 tuning), `controversial` (high volume × balanced up/down). Votes are
 **discovery-only** — never wired to standing/money; flat
 one-account-one-vote; trust-weighting deferred.
+
+## The argument organizer (cycle 2)
+
+The **argument-map** is the `organizer: 'argument'` reading of the same
+`Board`/`Entry` store — the polity's load-bearing **deliberation
+surface**, where a proposal is reasoned through before a vote. It is
+**not new storage**: a typed claim-graph interpretation + verb mode + a
+computed read projection over the documents the popularity organizer
+uses. The governing principle (from the cooperative slate): **load-bearing
+deliberation must be organized by the argument's structure, not by any
+user-signal ranking** — in a gamified polity any outcome-affecting ranking
+decays to popularity/exploit, so the only ungameable organizer is the
+logic of the argument itself. Nothing is ranked here.
+
+### The typed claim-graph
+
+An argument board's tree is rooted at a `parent: null` **spine** (the
+proposal, as prose — `forum post <board> <thesis>`). Every other `Entry`
+is a typed claim carried by its `relation` edge — the node's *role* is
+**derived from the edge**, there is no separate node-type field:
+
+- `'supports'` — a pro (argues *for* its parent),
+- `'objects-to'` — a con (argues *against* its parent),
+- `'responds-to'` — the **neutral** edge: a question / clarification that
+  takes no side.
+
+Recursion is the point — a claim whose parent is itself a claim is a
+*rebuttal* (a pro/con of an argument). Depth carries nuance; the graph
+stays a **strict tree** in v1 (`Entry.parent` is a single ref — the DAG
+case, a canonical claim reused under many parents, is the deferred
+claim-dedup problem). The vocabulary is **organizer-scoped** and enforced
+at contribution time by the off-class `legalRelationsFor(organizer)`:
+`reply()` rejects on an argument board, `attachClaim()` rejects on a
+popularity board. Claims are **reputation-blind** — never vote-seeded;
+`up`/`down` are never read under this organizer (no `castVote` —
+`ForumsLogic.castVote` and the `forum vote` verb both refuse).
+
+### Store / lens split — the neutral default lens
+
+How the graph is *stored* must not bake in how it's *read*. The store is
+the dumb relation tree (the chronicle / belief-store idiom); the reading
+is a **computed lens** (`ForumsLogic.readArgumentLens` /
+`readArgumentThread` → `ArgumentLensNode[]`). The one shared read surface
+is the **neutral default lens**: spine first, then each node's children
+**grouped by valence** (Supporting → Objections → Questions),
+chronological within a group — **never by score**, computed from pure
+relations with no display-order or score field welded onto the `Entry`.
+Because the only shared surface is structural, there is no shared target
+to game (per-viewer lenses would be safe; v1 ships only the default lens
++ the highlight below).
+
+**Open objection — the one dual-use metric.** A node is an *open
+objection* when it is an `objects-to` with **no answering child** — a
+literal hole in the argument, computed by `buildArgumentLens`. It is both
+the best reading-triage cue and the convergence signal; it is unfarmable
+(the only way to clear it is to *answer* it, which improves the map).
+Answering = attaching any child; the flag clears live (the registry
+re-resolves and `recordsEqual` fires a `replace`).
+
+**Delegated attention — the circle highlight.** A per-viewer,
+**non-reordering** overlay: a node is flagged `inCircle` when its author
+is in the viewer's `contacts` circle (resolved read-only via `GroupApi`,
+batched once per projection in `ForumSubscriptionRegistry.resolveCircle`).
+You delegate *attention, not votes* — a captured trust-set can only
+mis-route what you read, never what binds, and every node stays fully
+present. Two viewers see different highlights over the **identical**
+structural projection.
+
+### Live reads — the organizer-aware projection
+
+Argument boards ride the **same** `ForumSubscriptionRegistry` — the
+single organizer-aware branch is in `projectScope`: when the resolved
+board's `getOrganizer() === 'argument'` it routes through
+`readArgumentLens`/`readArgumentThread` and `projectArgumentNodes`
+instead of the popularity `readBoard`/`readThread`. The scope kinds, the
+dependency index, the dirty-batch, and `diffRecords` are reused verbatim;
+`MqlSubscriptionRegistry` is untouched. `projectArgumentNodes` zeroes
+`up`/`down`/`score` and nulls `displayScore` (reputation-blind) and
+stamps the argument-only `ForumEntryRecord` fields (`organizer`,
+`relation`, `openObjection`, `inCircle`, `editedAt`) — all optional, so a
+popularity projection is byte-identical when they're absent. `recordsEqual`
+compares them so the open-objection badge, the edited marker, and the
+highlight update live.
+
+### Editing — edit-in-place with a lossless trail
+
+Claims refine in place: `ForumsLogic.editBody` (author or board-subject
+owner) re-MMLs the body and stamps `editedAt`, **and** records an
+`'entry-edited'` event whose `data.priorBody` captures the prior text —
+the read stays clean (one current claim) while the append-only log keeps
+the lossless history (the grounded source the deferred dedup/summarization
+LLM layer reads; the log is never compacted). The rendered claim carries
+an **"edited" marker**; history surfaces through the deferred diff-lens,
+not inlined. Body-only — re-parent / merge / split / delete are deferred
+with claim dedup. **No edit notifications** (there is no notification
+inbox yet and `follow` is passive); edits surface via the live delta + the
+marker.
+
+### The mature → vote seam
+
+`forum mature <board>` (owner-gated, argument-only) calls
+`ForumsLogic.matureArgument`, which records a `'mature'` event carrying
+the board/subject keys (and the spine as `thread`/`entry`) and **binds
+nothing** — the decoupled handoff the deferred vote / measure / docket
+layer will consume. v1 emits the event into no consumer.
+
+### The verbs + the client mode
+
+Contribution reuses `reply` as a verb *mode*: `forum reply <node>
+--pro|--con|--rebut` → `supports`/`objects-to`/`responds-to`
+(`ForumController` maps the flags via `valence()`, requiring exactly one
+on an argument board and rejecting them on a popularity board); `forum
+edit <node>`; `forum mature <board>`. The React client renders an
+**organizer-gated argument mode** in `ForumView` (additive — the
+popularity thread-list/post-tree path is untouched): a prominent spine,
+the recursive valence-grouped tree (`ArgumentNode`) with +/−/? markers,
+the open-objection badge, the circle highlight, the edited marker, a
+three-way contribution affordance, and the owner "Mature" action. No vote
+controls, no scores, no popularity sorts. Every affordance builds a real
+`forum …` command string through the shared command-click/preview path;
+contributions render live via the subscription. The board index badges
+argument forums (`⚖ argument forum`).
+
+### Deferred (the scale problems)
+
+The v1 slice is the small-and-safe claim-tree. The *scale* work is
+deferred (see the [argument-map slate](../slates/tails/argument-map-slate.md)):
+**claim dedup / canonicalization** (assisted curation — the make-or-break
+problem, and the DAG case), **integrity-grade map-summarization**
+(grounded, drillable), **automated convergence-detection** (+ the
+anti-railroad floor), **proposal version-control** + map re-anchoring (and
+response version-anchoring with it), node refactoring, the **vote
+consumer** of the `mature` event, edit **notifications** + an inbox, and
+the rich plural-lens **explorer** (guided tours, question-lenses, diffs,
+spatial renders).
 
 ## The aether capability — a born-with `ForumsUpdate`
 
@@ -495,13 +639,14 @@ the nav target) and click-driven; the player stays in
   and **not** a shared forums/wiki/CMS engine (CMS/wiki are
   request-response authoring, not live subscribers). When a second real
   watcher appears, extract the generic layer from the two concretes.
-- **The structure organizer / argument-forum** — the typed claim-graph,
-  `supports`/`objects-to`/`responds-to` edges, deliberation verbs,
-  structure GUI — is a **separate build**
-  ([argument-map-slate.md](../slates/builds/argument-map-slate.md)). Cycle
-  1 ships the `organizer` field + the generic typed-edge `relation` storage
-  shape so it's a later *organizer*, not a schema migration; no structure
-  behavior is built.
+- **The argument organizer / argument-forum** — the typed claim-graph,
+  `supports`/`objects-to`/`responds-to` edges, the neutral default lens,
+  open-objection, the circle highlight, the mature seam, and the client
+  argument mode — **shipped (cycle 2)**; see [The argument
+  organizer](#the-argument-organizer-cycle-2) above. Its *scale* problems
+  (claim dedup, summarization, convergence, version-control, the vote
+  consumer, the plural-lens explorer) remain deferred — see the
+  [argument-map slate](../slates/tails/argument-map-slate.md).
 - **Subscription query/pagination model.** Cycle 1 scopes a subscription
   to a single board's thread-list or a single thread's post-tree;
   deep-subtree paging is a structured query and the boundary between a
@@ -573,7 +718,19 @@ refactors reshaped the surface mid-cycle:
 - The forum subscription **teardown moved onto `Interactive`** (the
   Interactive owns its own disconnect teardown; commit `2b75d931`).
 
-The slate ([forums-slate.md](../slates/builds/forums-slate.md)) is
-retained for the deferred design space (the structure organizer, the
-ephemeral lifecycle, the procedure modes, the latent collection-watch
-abstraction).
+The **argument organizer (cycle 2)** landed on `feature/argument-map-build`
+as four independently-testable waves over the cycle-1 substrate: relation/
+organizer widening + contribution verbs (the `'structure'` → `'argument'`
+rename, `EntryRelation` widened, `attachClaim`/`editBody`); the neutral
+default lens + open-objection + circle highlight + the organizer-aware
+`projectScope` branch; the decoupled `mature` seam; and the client argument
+rendering mode in `ForumView`. The single behavioral change to the cycle-1
+surface was the organizer value rename (no data migration — no board ever
+persisted `'structure'`); everything else is additive. Its requirements +
+plan retired at the cycle-2 sweep.
+
+The forums-slate ([forums-slate.md](../slates/builds/forums-slate.md)) is
+retained for the remaining deferred design space (the ephemeral lifecycle,
+the procedure modes, the latent collection-watch abstraction); the
+argument organizer's scale tail lives in the
+[argument-map slate](../slates/tails/argument-map-slate.md).

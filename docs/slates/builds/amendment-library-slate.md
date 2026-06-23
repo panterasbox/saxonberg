@@ -23,7 +23,7 @@ See also:
 - [economy-slate.md](./economy-slate.md) — the reserve / central-bank design,
   packaged here as the **economy module** (the kernel mandates only the
   firewall; *which* economy is a lego).
-- [argument-map-slate.md](./argument-map-slate.md) — the deliberation surface a
+- [argument-map-slate.md](../tails/argument-map-slate.md) — the deliberation surface a
   **free-expression** module compels.
 
 ---
