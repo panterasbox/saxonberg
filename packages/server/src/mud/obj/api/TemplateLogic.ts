@@ -14,6 +14,7 @@ import { MixinApi } from '../../api/mixin';
 import { Mixins } from '../../lib/mixin';
 import { TemplateError } from '../../lib/stuff/TemplateError';
 import { ReservedTemplatePrefixes } from '../../lib/paths';
+import { ProvenanceApi } from '../../api/provenance';
 import type { Stuff } from '../../lib/stuff/Stuff';
 import type { Marshaller } from '../../lib/persistence/Marshaller';
 import PersistentHydrator from '../../lib/persistence/PersistentHydrator';
@@ -51,7 +52,8 @@ export class TemplateLogic extends Idea {
     path: string,
     classPath: string,
     data: Record<string, unknown>,
-    hydratorClassPath?: string
+    hydratorClassPath?: string,
+    author?: string
   ): Promise<string> {
     const tpl =
       (await Template.findByPath(path)) ??
@@ -68,6 +70,14 @@ export class TemplateLogic extends Idea {
       delete tpl.hydratorClass;
     }
     await tpl.save();
+    // Authorship ledger — append one row per authoring act, attributed to
+    // the authenticated giver threaded from the gated write path. Append
+    // only AFTER the save commits, and only when an author is supplied
+    // (programmatic / system saves pass none and record nothing). The author
+    // is never the client-controlled `data` blob. See ProvenanceApi.
+    if (author !== undefined) {
+      await ProvenanceApi.recordAuthoring({ path, author, kind: 'save' });
+    }
     return tpl._id!;
   }
 

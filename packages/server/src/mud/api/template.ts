@@ -58,15 +58,27 @@ export class TemplateApi {
    * folder/leaf invariant fires through `DomainHook` against the PM
    * chokepoint — direct `template.save()` is equivalent.
    *
+   * @param author When supplied (the authenticated giver's durable
+   *   `templatePath`, threaded from the gated write path), records one
+   *   append-only `AuthoringEvent` for `path` after the save commits — the
+   *   authorship ledger the producer stock reads. Programmatic / system
+   *   saves omit it and record nothing.
    * @returns The saved Template's MongoDB `_id`.
    */
   public static async saveTemplate(
     path: string,
     classPath: string,
     data: Record<string, unknown>,
-    hydratorClassPath?: string
+    hydratorClassPath?: string,
+    author?: string
   ): Promise<string> {
-    return logic().saveTemplate(path, classPath, data, hydratorClassPath);
+    return logic().saveTemplate(
+      path,
+      classPath,
+      data,
+      hydratorClassPath,
+      author
+    );
   }
 
   /**

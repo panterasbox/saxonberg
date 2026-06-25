@@ -154,11 +154,16 @@ export default class WriteController extends CommandController<WriteModel> {
       );
       if (schemaErr !== null) return this.fail(context, schemaErr);
       try {
+        // Attribute the authoring act to the authenticated giver (the
+        // access check above already gated this write). The author is the
+        // giver's durable templatePath — never client input, never the
+        // `data` blob; the ledger append rides inside saveTemplate.
         await TemplateApi.saveTemplate(
           target,
           classPath,
           model.data,
           hydratorPath,
+          giver.getTemplatePath() ?? undefined,
         );
       } catch (err) {
         return this.fail(context, (err as Error).message);
