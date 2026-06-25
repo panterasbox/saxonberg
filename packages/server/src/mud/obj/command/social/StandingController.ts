@@ -27,7 +27,7 @@ const TOPIC = 'world.identity';
 export default class StandingController extends CommandController<CommandModel> {
   async execute(_model: CommandModel, context: CommandContext): Promise<void> {
     const actor = context.commandGiver;
-    const subjectId = (actor as unknown as { stuffId: string }).stuffId;
+    const subjectId = actor.stuffId;
 
     const participation = ConsumerApi.participationOf(subjectId);
     const renown = RenownApi.renownOf(subjectId);

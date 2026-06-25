@@ -375,7 +375,11 @@ Examples: `StuffApi`, `ConnectionApi`, `MixinApi`, `MessageApi`,
 `lint:pm`-locked — see [persistence.md](./subsystems/persistence.md)),
 `RenownApi`, `ForumsApi`, `SubjectApi` (the latter two each forwarding
 to a `ForumsLogic` / `SubjectLogic` logic singleton; see
-[forums.md](./subsystems/forums.md)).
+[forums.md](./subsystems/forums.md)), `ConsumerApi` (forwarding to
+`ConsumerLogic`; the consumer influence stock — see
+[participation.md](./subsystems/participation.md)). `InfluenceApi` is a
+thin cross-stock *dispatcher* with no logic singleton (it delegates to the
+per-stock Apis).
 
 `MqlSubscriptionApi` is the second wire channel alongside prose /
 dispatch-response. Inbound `mql-subscribe` / `mql-unsubscribe`

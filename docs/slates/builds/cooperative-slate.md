@@ -2283,10 +2283,14 @@ citizen. Parked until there's a population to govern:
   audience the other houses have no charter). The product beats both the
   popularity contest (reputation alone) and the idle grind (engagement
   alone). Representational form (emergent delegation by default, elections
-  optional) is a chamber bylaw. Open: the engagement metric (what counts,
-  anti-bot/anti-AFK), the Goodhart dial on reputation
-  (determines-vs-informs), and the reputation system's own design (still a
-  deferred slate).
+  optional) is a chamber bylaw. The engagement metric's **quantity axis is
+  now built** — active-time-buckets (anti-AFK: idle buckets score nothing;
+  anti-spam: a burst credits one), the consumer influence stock's
+  participation faucet (see
+  [participation.md](../../subsystems/participation.md)). Still open: the
+  Goodhart dial on reputation (determines-vs-informs — provisionally
+  *informs/gate*, see [polity-decision-register.md](../../polity-decision-register.md)
+  D4), second-order engagement (D2), and the remaining reputation design.
 - **The producer-contribution metric.** Usage/quality-weighted, not raw
   count (decided, to dodge content-spam farming) — but *how* to weight
   (quality-is-a-verdict measurement, patronage signals, anti-Goodhart) is

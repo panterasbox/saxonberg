@@ -1327,6 +1327,36 @@ hour debugging it. The legitimate read path is
 `EventApi.on(EventClass, listener)` (class-based). Both route through
 the same gate and receive the same dispatch.
 
+### Sensitive activity events MUST receive-gate their subscribe side
+
+`EventApi` subscribe (`Get`) is **open by default** and `EventApi.on`
+is author-reachable. So an event whose payload carries a **per-actor
+activity signal** — who issued a command, who heard what, who reacted to
+whom — is a **snooping side-channel** if left open: any mudlib code can
+subscribe and watch every player's cadence, including acts that aren't
+in-world-observable.
+
+When you fire such an event for a single internal consumer (an ingestion
+tap), lock its receive side at the consumer's tap-install:
+
+```ts
+// CORRECT — only ConsumerLogic may subscribe; emit stays open
+EventApi.restrictSubscribe(CommandDispatchedEvent.KIND, ConsumerLogic);
+this.dispatchSub = EventApi.on(CommandDispatchedEvent.KIND, (p) => …);
+
+// WRONG — fires a per-subject signal on the open-subscribe bus
+EventApi.fire(new CommandDispatchedEvent({ subjectId, … }));
+// …with no restrictSubscribe anywhere → any author can snoop it
+```
+
+Pass the consumer's **own in-module class** (so a hot-reload re-asserts
+the claim); ownership is tracked by class name, so a different class
+can't hijack the tap. Exemplars: `ConsumerLogic` (`command.dispatched`),
+`RenownLogic` (`reaction.fired`, `comm.received`). The general bus stays
+the right tool — `restrictSubscribe` keeps its producer-ignorant
+decoupling while closing the leak. See
+[participation.md](./subsystems/participation.md).
+
 ## Prompts — `PromptApi`, not bespoke prompt-shaped flows
 
 Server callers needing player input go through `PromptApi`. Don't
