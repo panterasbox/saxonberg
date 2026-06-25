@@ -54,15 +54,21 @@ mirrors and extends), [renown.md](../subsystems/renown.md),
   load-bearing defense against farming the *creation* act — and why
   authoring-without-measured-engagement is rewarded only through the
   deferred, human-judged merit-pay channel.)
-- **Authorship is a property of the Template, stamped at authoring
-  time.** Creation is *designing a definition* — a `Template` in the
-  `domain` CMS — so the routing key is a `createdByPlayerId` recorded on
-  the Template when its author first saves it (the content-tree `write`
-  path), not on any instance. **Instantiating (cloning) is not
-  authorship** — it spawns a copy of someone else's design and is, if
-  anything, a *consumption* of that work; the cloner never becomes an
-  author. v1 records a **single owner** (the original author); the
-  multi-recipient team split is deferred (Non-goals).
+- **Authorship is an append-only ledger, derived — not a stored field.**
+  Creation is *designing a definition* — a `Template` in the `domain`
+  CMS — and each authoring act (a save through the gated `write` path)
+  **appends** an `AuthoringEvent` attributed to the authenticated author.
+  "Who authored this" is **derived** from that log (v1: the original /
+  earliest author), the same append-only "dumb store, smart consumer"
+  pattern as `renown_events` / `chronicle`. It is **not** a mutable
+  `createdByPlayerId` prop — a free-floating `domain` field is not an
+  authority (Art. I §4), is silently overwritable, and would ship a
+  re-stamp hole on an *educational* platform. This is the **first brick of
+  the provenance substrate** (`lib/standing/`). **Instantiating
+  (cloning) is not authorship** — it spawns a copy of someone else's
+  design (a *consumption*); the cloner appends no authoring act. v1
+  derives a **single owner** (the original author); the multi-recipient
+  team split is deferred (Non-goals).
 - **Only *released* content earns.** Producer credit flows from
   engagement with content in the **general domain** (released to the
   commons), never from a personal **homedir** or **team sandbox** —
@@ -73,9 +79,9 @@ mirrors and extends), [renown.md](../subsystems/renown.md),
   recognized in-world engagement *inside released content authored by
   another player* credits **producer** standing to that author — "the
   engagement your content draws." The engagement is resolved to the
-  author through the Template: actor's location → covering zone
-  (`ZoneApi.resolveZoneForPath`) → the zone's `Template` →
-  `createdByPlayerId`. Self-engagement (author acting in their own zone)
+  author through the authoring ledger: actor's location → covering zone
+  (`ZoneApi.resolveZoneForPath`) → the zone's template path →
+  `ProvenanceApi.authorOf(path)`. Self-engagement (author acting in their own zone)
   earns nothing (`A ≠ P`). The signal is the same recognized-command
   engagement the consumer faucet already taps; producer routes it to the
   *author of the content engaged* instead of the actor — so the very act
@@ -208,6 +214,14 @@ mirrors and extends), [renown.md](../subsystems/renown.md),
   **deferred, not built**: it is a second resource (the slate warns this
   doubles the hoardable surface) and a new gameable surface, warranted
   only once there is a live electorate to measure the need against.
+- **The User-level rollup (the franchise/voting gate).** Standing banks
+  per-Player; summing a User's Players into one human's weight (the Sybil
+  anchor — one human, one franchise) is deferred to the voting gate, which
+  doesn't exist this build.
+- **Permissions-at-User.** Making the *trust principal* the human (so a
+  User's avatars don't hold different authority) is a real direction but a
+  separate refactor — `AccessApi`/groups key on `playerId` today. Out of
+  scope; logged.
 
 ## Surface decisions
 
@@ -242,49 +256,57 @@ event's subscribe side is locked to `ConsumerLogic` via
 participation.md). Producer's tap is a second blessed consumer:
 `ProducerLogic` joins the allowlist. No third party gains the signal.
 
-### Authorship lives on the Template (authoring time); attribution is zone-capped (engagement signal)
+### Authorship is an append-only ledger (provenance); attribution is zone-capped (engagement signal)
 
 **Question.** Nothing records who authored game-world content. Where does
-the authorship stamp come from, on what unit, and at what granularity can
-engagement be attributed back to it?
+authorship come from, on what unit, at what granularity can engagement be
+attributed back to it — and how is it made *trustworthy* (it routes a real
+faucet)?
 
-**Decision — authorship is per-Template, stamped at save.** The act of
-*creation* is designing a **Template** (the definition in the `domain`
-CMS), so authorship is a **`createdByPlayerId` field on `Template`**,
-stamped when the author **first saves** it. The author identity is
-available at the content-tree `write` path (`WriteController` →
-`context.commandGiver` → Avatar `playerId`) and threads through
-`TemplateApi.saveTemplate` → `TemplateLogic`, stamped on insert only so
-later edits don't overwrite the original author. **Cloning/instantiating
-is explicitly *not* an authoring event** — it spawns a copy of an
-existing design and carries no author of its own; the cloner is a
-*consumer* of the work. (This corrects an earlier draft that wrongly
-stamped authorship at clone time.) The stamp is distinct from
-`Zone.ownerGroup` (multi-member *access control*, not authorship), and it
-is recorded on **every** authored template (zone, item, NPC), cheaply, at
-save — forward-compatible even where v1 cannot yet attribute to it.
+**Decision — authorship is an append-only authoring ledger, derived, not
+a stored prop.** A mutable `createdByPlayerId` field was rejected: a
+free-floating `domain` prop is **not an authority** (Art. I §4), is
+silently overwritable (`PersistApi`, delete-and-recreate), and shipping
+that on an *educational* platform is a worked example of the wrong thing.
+Instead, each authoring act — a `Template` save through the gated `write`
+path — **appends** an `AuthoringEvent` (`{path, author, kind, at,
+realAt}`) attributed to the **authenticated giver**
+(`giver.getTemplatePath()`; never client-supplied, never read from the
+author-controlled `data`), and `ProvenanceApi.authorOf(path)` **derives**
+the author (v1: the earliest event). Append-only → no overwrite, full
+history, the audit trail *is* the store — closing the re-stamp /
+first-save / no-audit holes. **Cloning is not an authoring act** (it
+appends nothing; it's a *consumption* of the design). This is the same
+"dumb store, smart consumer" pattern as `renown_events` — **the same
+trust grade** (the residual "a developer could forge rows" is the
+identical irreducible operator-trust boundary every ledger here has,
+answered by tamper-evidence + transparency + exit later, *not* lowered).
+The ledger is the **first brick of the provenance substrate**
+(`lib/standing/`), which the in-runtime VCS later subsumes (its commit
+log *is* this ledger, plus diffs + signatures). Distinct from
+`Zone.ownerGroup` (multi-member *access control*, not authorship).
 
 **Decision — v1 attribution is zone-granularity, and that is an
 *attribution* limit, not an authorship one.** Authorship is fine-grained
 (per template); but the engagement signal can resolve only *where* an
 action happened, not *which object* it targeted. So v1 credits the author
 of the **zone** an engagement occurs in (location → covering zone → zone
-`Template` → `createdByPlayerId`) — a faithful realization of the slate's
+template path → `ProvenanceApi.authorOf`) — a faithful realization of the slate's
 "author a zone, measure the engagement it draws." **Per-object
 attribution** ("the engagement your *sword* draws") is **deferred**: it
 needs the engagement signal to carry the *target* object → its template →
 author, a larger change to the shared signal.
 
-**Reasoning.** The Template is the unit that holds the hours of work, so
-it is the correct home for authorship; the `write`/save seam is where the
-authoring player is known and where creation actually happens.
-Zone-granularity attribution is the honest most-we-can-measure-now from a
-location-only engagement signal, and it matches the canonical authored
-unit (a place people spend time in) rather than under-delivering.
+**Reasoning.** The Template is the unit that holds the hours of work, and
+the gated `write`/save seam is where the authenticated author is known and
+where creation actually happens — so it is where the authoring act is
+recorded. Zone-granularity attribution is the honest most-we-can-measure-
+now from a location-only engagement signal, and it matches the canonical
+authored unit (a place people spend time in) rather than under-delivering.
 
 **Decision — authorship is a routing key, earning is gated to *released*
-content, and v1 routes to a single owner.** The stamp earns nothing on
-its own; it only directs the *engagement* faucet (above). Two scope
+content, and v1 routes to a single owner.** An authoring-ledger entry
+earns nothing on its own; it only directs the *engagement* faucet (above). Two scope
 boundaries fall out: (1) credit flows only from content in the **general
 domain** — engagement inside a personal **homedir** or **team sandbox**
 earns nothing (unreleased work the author is still testing), with
@@ -296,6 +318,35 @@ flat-not-federal, static between fixed global adjustment windows,
 redirect-the-faucet semantics). Together with `A ≠ P` and bucket-dedup,
 the released gate removes the self-/ring-farm surface that an
 author-grants-credit model would have.
+
+### Identity: standing banks per-Player on the durable `templatePath`
+
+**Question.** At what principal is influence held — User (the human
+account), Player (an avatar a User owns, 1+), or Avatar instance? And on
+what durable id?
+
+**Decision.** Standing **banks per-Player**, keyed on the durable
+**`templatePath`** (`/obj/Avatar/<playerId>` for an avatar — so per-Player,
+≡ the playerId; a real template path for NPC subjects), the belief-store
+precedent. This applies uniformly to renown, participation (consumer), and
+producer. The **User-level rollup** — summing a User's Players into one
+human's weight, the Sybil anchor — is **deferred to the franchise/voting
+gate**, not stored. Rationale: consumer participation is genuinely
+time-divided across a User's avatars (dilution is the player's business),
+while producer is *not* (a sum doesn't dilute creation — playing multiple
+avatars costs a producer nothing), and both fall out of one mechanism
+(bank per-Player, sum-to-human-at-the-gate). The **User as the trust
+principal for *permissions*** (a human's avatars shouldn't hold different
+authority) is a real, separate future direction, **out of scope here**.
+
+**Prerequisite — the durability fix.** The shipped cluster (renown +
+participation + the `standing` verb) currently keys on the Avatar
+instance's **`stuffId`**, which is re-minted on re-clone (reboot/relog) —
+so standing silently resets. This is a **bug**, and it is fixed **first**,
+as a prerequisite, re-keying the cluster `stuffId → templatePath` (renown
+and participation must move together — the consumer projection multiplies
+them on one key). Producer is then built on the durable id from day one.
+See the plan's *Phase 0*.
 
 ### Full weight per bill — there is no reservoir to draw down
 
@@ -394,20 +445,23 @@ here.
   the conviction-position substrate as an `Api` + logic-singleton if it
   needs protected internals. **No free-floating helpers.** Value objects
   (`Position`, conviction weight) are named value-object modules.
-- **Cross-stock home.** The shipped value objects (`InfluenceStanding`,
-  `Band`) live in `lib/participation/` — a consumer-flavored home now
-  carrying cross-stock primitives. Whether producer + conviction
-  primitives join there or motivate a new `lib/influence/` subsystem
-  folder is an architecture call for the planner; if a new folder is
-  proposed it must clear the "don't invent module categories" bar
-  (a new *subsystem* folder is permitted; a new module *type* is not).
+- **Single home: `lib/standing/`.** Renown, participation, provenance
+  (the authoring ledger), and influence (producer + conviction + the
+  `InfluenceStanding`/`Band` contract) are **one system** — how
+  contribution and conduct become governance standing — so they share
+  **one** directory. Consolidate `lib/participation/` + `lib/renown/` (and
+  the new value objects) into `lib/standing/`. Named `standing` (not
+  `influence`) because the value objects already *are* `*Standing` and
+  **renown is not subordinate to influence** (it has non-influence
+  readers). The `*Api`/`*Logic` faces keep their taxonomy homes
+  (`api/`, `obj/api/`). No proliferation of one-file directories.
 - **Routing seam is forward-compatible (Layer 1 / Layer 2 split).** The
   producer faucet (engagement → credit) reads authorship through a
   **routing resolver** — "given engaged content, who earns and in what
   shares." v1's resolver returns a single owner; the deferred team split
   is a Layer-1 enrichment behind the *same* resolver, so the faucet
   (Layer 2) is built once and untouched when splits arrive. Build the
-  resolver as the seam, not an inline `createdByPlayerId` lookup.
+  resolver as the seam, not an inline `ProvenanceApi.authorOf` call.
 - **Rebuildable-cache invariant.** Producer standing and conviction
   weight are both derive-on-read / replay-from-log; no stored value is
   authoritative. Persistence goes through the `PersistApi` chokepoint
@@ -459,7 +513,7 @@ here.
   live, patron defined-zero) as bands, never raw scalars.
 - A subsystem doc exists (`docs/subsystems/` — extend
   participation.md or a sibling) describing the producer faucet, the
-  authorship stamp, and the conviction-voting substrate, with the
+  authoring ledger (provenance), and the conviction-voting substrate, with the
   reservoir-reconciliation decision recorded.
 - `pnpm test`, `pnpm lint` (incl. `lint:gates`, `lint:pm`), and
   `pnpm build` pass.
@@ -474,14 +528,16 @@ here.
   contract this extends)
 - **Read, not owned:** [renown.md](../subsystems/renown.md) (the quality
   multiplier; producer does *not* use it)
-- **Authorship inputs:** the template-authoring path
-  (`WriteController` → `TemplateApi.saveTemplate` → `TemplateLogic`,
-  stamping `createdByPlayerId` on `Template`),
+- **Authoring ledger (provenance):** the gated authoring path
+  (`WriteController` → `TemplateApi.saveTemplate` → `TemplateLogic`
+  appends an `AuthoringEvent` via `ProvenanceApi`), homed in
+  `lib/standing/`; the first brick of
+  [provenance-slate.md](../slates/builds/provenance-slate.md);
   [templates.md](../subsystems/templates.md),
   [persistence.md](../subsystems/persistence.md);
   [access.md](../subsystems/access.md) (`Zone.ownerGroup` is access
-  control, *not* the authorship stamp); instance→template→author
-  resolution via `Template.findByPath` + `ZoneApi.resolveZoneForPath`
+  control, *not* authorship); zone→template→author resolution via
+  `ZoneApi.resolveZoneForPath` + `ProvenanceApi.authorOf`
 - **Engagement signal:** `lib/events/CommandDispatchedEvent.ts`,
   `CommandGiver._emitInputEcho`, `EventApi.restrictSubscribe`
 - **Video target:** `docs/manifesto/constitution-video.md` (Ch. 2 — lives
