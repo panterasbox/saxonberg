@@ -1,13 +1,15 @@
 /**
  * InfluenceApi — the common cross-stock dispatcher. Covers that
- * `'consumer'` delegates to `ConsumerApi`, that a reserved stock
- * (`'patron'`/`'producer'`) returns a defined zero standing tagged with
- * that stock (never a throw), and that `bandOf` reads the delegated band.
+ * `'consumer'` delegates to `ConsumerApi` and `'producer'` to `ProducerApi`,
+ * that the still-reserved `'patron'` stock returns a defined zero standing
+ * tagged with that stock (never a throw), and that `bandOf` reads the
+ * delegated band.
  */
 
 import { describe, it, expect, afterEach, vi } from 'vitest';
 import { InfluenceApi } from '../influence';
 import { ConsumerApi } from '../consumer';
+import { ProducerApi } from '../producer';
 import { InfluenceStanding } from '../../lib/standing/InfluenceStanding';
 import { Band } from '../../lib/standing/Band';
 
@@ -26,12 +28,20 @@ describe('InfluenceApi', () => {
     expect(InfluenceApi.bandOf(S, 'consumer').name).toBe('familiar'); // 7 ≥ familiar(5)
   });
 
-  it('returns a defined zero standing for a reserved stock (no throw)', () => {
-    for (const stock of ['patron', 'producer'] as const) {
-      const st = InfluenceApi.standingOf(S, stock);
-      expect(st.stock).toBe(stock);
-      expect(st.scalar).toBe(0);
-      expect(st.band.name).toBe('dormant');
-    }
+  it('delegates the producer stock to ProducerApi', () => {
+    const stub = new InfluenceStanding(S, 'producer', 20, Band.fromScalar(20));
+    vi.spyOn(ProducerApi, 'standingOf').mockReturnValue(stub);
+
+    const st = InfluenceApi.standingOf(S, 'producer');
+    expect(st).toBe(stub);
+    expect(st.stock).toBe('producer');
+    expect(InfluenceApi.bandOf(S, 'producer').name).toBe('established'); // 20 ≥ established(20)
+  });
+
+  it('returns a defined zero standing for the reserved patron stock (no throw)', () => {
+    const st = InfluenceApi.standingOf(S, 'patron');
+    expect(st.stock).toBe('patron');
+    expect(st.scalar).toBe(0);
+    expect(st.band.name).toBe('dormant');
   });
 });

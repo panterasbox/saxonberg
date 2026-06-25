@@ -17,6 +17,7 @@
  */
 
 import { ConsumerApi } from './consumer';
+import { ProducerApi } from './producer';
 import { SecurityApi } from './security';
 import { InfluenceStanding } from '../lib/standing/InfluenceStanding';
 import type { Stock } from '../lib/standing/InfluenceStanding';
@@ -27,11 +28,13 @@ export type { Stock };
 export class InfluenceApi {
   /**
    * A subject's measured standing in `stock`, carrying the `stock` tag and
-   * its band. `'consumer'` delegates to {@link ConsumerApi}; reserved
-   * stocks return a defined zero standing tagged with that stock.
+   * its band. `'consumer'` delegates to {@link ConsumerApi}, `'producer'` to
+   * {@link ProducerApi}; the still-reserved `'patron'` stock returns a
+   * defined zero standing tagged with that stock.
    */
   public static standingOf(subjectId: string, stock: Stock): InfluenceStanding {
     if (stock === 'consumer') return ConsumerApi.standingOf(subjectId);
+    if (stock === 'producer') return ProducerApi.standingOf(subjectId);
     return InfluenceStanding.zero(subjectId, stock);
   }
 

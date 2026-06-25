@@ -27,6 +27,8 @@ import { RenownApi } from '../mud/api/renown';
 import RenownStanding from '../mud/lib/standing/RenownStanding';
 import { ConsumerApi } from '../mud/api/consumer';
 import ParticipationStanding from '../mud/lib/standing/ParticipationStanding';
+import { ProducerApi } from '../mud/api/producer';
+import ProducerStanding from '../mud/lib/standing/ProducerStanding';
 import { Document } from '../mud/lib/persistence/Document';
 import { StuffApi } from '../mud/api/stuff';
 import type { Marshaller } from '../mud/lib/persistence/Marshaller';
@@ -166,6 +168,14 @@ export class AppBootstrap {
     // are populated. Reads renown (already booted above) for the projection.
     await ParticipationStanding.warm();
     ConsumerApi.boot();
+
+    // Producer (the make faucet — the third influence stock) — warm the
+    // standing read-cache from the materialized aggregate, then self-register
+    // the recompute schedule. Engagement-only (reads no renown). The
+    // live-engagement tap is installed by the shared-signal seam, not here;
+    // this boot leaves the faucet provable via direct `ProducerApi.append`.
+    await ProducerStanding.warm();
+    ProducerApi.boot();
   }
 
   /**
