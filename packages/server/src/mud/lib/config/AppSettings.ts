@@ -94,6 +94,32 @@ export const AppSettingKeys = {
    * reception signal (reward reaching *new* people, not repetition / spam).
    */
   renownReceptionWindowS: "renown.receptionWindowS",
+
+  /**
+   * Participation — the consumer-influence QUANTITY axis (the sibling of
+   * renown's quality axis). The engine ships the active-bucket mechanism;
+   * these are the tunable dials. The entrenched invariants (the
+   * `engagement × renown` form, the `max(0, renown)` clamp, derive-don't-
+   * track) are CODE, never keys. See docs/subsystems/participation.md.
+   */
+  /**
+   * Participation — the active-bucket width in REAL seconds. A member is
+   * credited once per bucket in which they take a recognized action
+   * (anti-AFK: idle buckets score nothing; anti-spam: a burst credits one).
+   */
+  participationBucketSeconds: "participation.bucketSeconds",
+  /**
+   * Participation — the recency-decay half-life in REAL seconds (the
+   * divergence from renown's game-time decay: participation measures a
+   * human showing up). "Present and contributing *now*."
+   */
+  participationDecayHalfLife: "participation.decayHalfLife",
+  /**
+   * Influence — JSON `[{name, min}]` band cutoffs mapping the influence
+   * scalar to its qualitative tier (display-only; register D6). Stock-
+   * agnostic — the same bands serve every stock.
+   */
+  influenceBandThresholds: "influence.bandThresholds",
 } as const;
 
 export type AppSettingKey =

@@ -25,6 +25,8 @@ import { WorldClockApi } from '../mud/api/worldclock';
 import { AppSettings } from '../mud/lib/config/AppSettings';
 import { RenownApi } from '../mud/api/renown';
 import RenownStanding from '../mud/lib/renown/RenownStanding';
+import { ConsumerApi } from '../mud/api/consumer';
+import ParticipationStanding from '../mud/lib/participation/ParticipationStanding';
 import { Document } from '../mud/lib/persistence/Document';
 import { StuffApi } from '../mud/api/stuff';
 import type { Marshaller } from '../mud/lib/persistence/Marshaller';
@@ -156,6 +158,14 @@ export class AppBootstrap {
     // presence; no consumer is wired this build.
     await RenownStanding.warm();
     RenownApi.boot();
+
+    // Participation (the consumer-influence quantity faucet) — warm the
+    // standing read-cache from the materialized aggregate, then install the
+    // command-dispatch tap + self-register the recompute schedule. Warm
+    // before boot so the first `participationOf` / consumer-standing reads
+    // are populated. Reads renown (already booted above) for the projection.
+    await ParticipationStanding.warm();
+    ConsumerApi.boot();
   }
 
   /**

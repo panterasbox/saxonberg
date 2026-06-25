@@ -89,7 +89,12 @@ Surface:
 - `renownOf(subject, scope?)` — the **sync cached read** consumers call;
   neutral `0` for a non-materialized scope.
 - `boot()` — installs both ingestion taps + self-registers the recompute
-  schedule (idempotent).
+  schedule (idempotent). Each tap **receive-gates** its event
+  (`EventApi.restrictSubscribe`): `ReactionFiredEvent` and
+  `CommReceivedEvent` carry per-actor activity (who-reacted-to-whom,
+  who-heard-what), so their subscribe side is locked to `RenownLogic` — an
+  open-subscribe broadcast would be a snooping side-channel. Emit stays
+  open. See [participation.md](./participation.md) for the apparatus.
 
 ## The two signal kinds
 

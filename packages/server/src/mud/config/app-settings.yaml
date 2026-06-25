@@ -57,3 +57,17 @@ settings:
     value: "0.1"
   - key: renown.receptionWindowS
     value: "300"
+
+  # Participation — the consumer-influence QUANTITY axis. A member is
+  # credited once per active bucket (10 min real time) in which they take a
+  # recognized action; the decayed bucket count is the quantity half of
+  # `engagement × renown`. Decay is REAL-time (participation = a human
+  # showing up): half-life 14 days, so standing reflects who is present now.
+  - key: participation.bucketSeconds
+    value: "600"
+  - key: participation.decayHalfLife
+    value: "1209600"
+  # Influence band cutoffs (display-only; the scalar maps to the highest
+  # tier whose `min` it meets). Stock-agnostic — same bands for every stock.
+  - key: influence.bandThresholds
+    value: '[{"name":"dormant","min":0},{"name":"nascent","min":1},{"name":"familiar","min":5},{"name":"established","min":20},{"name":"pillar","min":100}]'

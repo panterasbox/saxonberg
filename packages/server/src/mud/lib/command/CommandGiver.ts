@@ -58,6 +58,9 @@ import { Final, Unshadowable } from '../security/decorators';
 import { ExecutionContextApi, FrameKind } from '../../api/execution-context';
 import { MudlogApi } from '../../api/mudlog';
 import { Mml } from '../../api/mml';
+import { EventApi } from '../../api/event';
+import { WorldClockApi } from '../../api/worldclock';
+import { CommandDispatchedEvent } from '../events/CommandDispatchedEvent';
 import type { Sensor } from '../message/Sensor';
 import type Interactive from '../../obj/Interactive';
 import type { LogLevel, Note } from '@saxonberg/types';
@@ -720,6 +723,29 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
     }): void {
       const giverAsStuff = this as unknown as Stuff;
       if (!MixinApi.isSensor(giverAsStuff)) return;
+
+      // Participation capture (consumer-influence quantity faucet): a
+      // RECOGNIZED command (a verb bound — parse failures carry no `verb`)
+      // from an INTERACTIVE origin (a real player, never NPC / programmatic
+      // / cascaded dispatch) credits the giver an active time-bucket. The
+      // per-(subject, bucket) dedup at the faucet collapses bursts. Fire-and-
+      // forget; never blocks dispatch.
+      //
+      // The event's RECEIVE side is locked to ConsumerLogic via
+      // `EventApi.restrictSubscribe` (it fires on private commands too —
+      // inventory / settings / whisper / dm / char-gen — so an open-subscribe
+      // broadcast would be a snooping side-channel). Emit stays open; only
+      // the blessed consumer may listen. See docs/subsystems/participation.md.
+      if (args.verb !== undefined && args.originInteractiveId !== undefined) {
+        EventApi.fire(
+          new CommandDispatchedEvent({
+            subjectId: giverAsStuff.stuffId,
+            commandId: args.dispatchId,
+            at: WorldClockApi.getNow().rawValue(),
+            realAt: Date.now(),
+          })
+        );
+      }
 
       const level: LogLevel = args.parseError !== undefined ? 'warn' : 'info';
       const body =

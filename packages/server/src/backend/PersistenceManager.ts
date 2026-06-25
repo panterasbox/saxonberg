@@ -44,6 +44,8 @@ export enum Collections {
   ForumEvents = 'forum_events',
   RenownEvents = 'renown_events',
   Renown = 'renown',
+  ParticipationEvents = 'participation_events',
+  Participation = 'participation',
 }
 
 /**
@@ -696,6 +698,26 @@ export class PersistenceManager {
       // (a rebuildable cache). Indexed on `{ subject, scope }` — the
       // recompute's upsert key and the warm() load shape.
       await this.getCollection(Collections.Renown).createIndex({
+        subject: 1,
+        scope: 1,
+      });
+
+      // Participation events: append-only active-bucket log (one doc per
+      // (subject, bucket)). Indexed on `subject` (the recompute group) and
+      // `{ subject, bucket }` (the per-append dedup lookup), so both stay
+      // O(rows-for-this-subject), not a full scan.
+      await this.getCollection(Collections.ParticipationEvents).createIndex({
+        subject: 1,
+      });
+      await this.getCollection(Collections.ParticipationEvents).createIndex({
+        subject: 1,
+        bucket: 1,
+      });
+
+      // Participation standings: the materialized per-subject aggregate (a
+      // rebuildable cache). Indexed on `{ subject, scope }` — the upsert key
+      // and the warm() load shape (scope is always the cooperative-wide '*').
+      await this.getCollection(Collections.Participation).createIndex({
         subject: 1,
         scope: 1,
       });
