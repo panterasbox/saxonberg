@@ -18,9 +18,9 @@
 
 import { ConsumerApi } from './consumer';
 import { SecurityApi } from './security';
-import { InfluenceStanding } from '../lib/participation/InfluenceStanding';
-import type { Stock } from '../lib/participation/InfluenceStanding';
-import type { Band } from '../lib/participation/Band';
+import { InfluenceStanding } from '../lib/standing/InfluenceStanding';
+import type { Stock } from '../lib/standing/InfluenceStanding';
+import type { Band } from '../lib/standing/Band';
 
 export type { Stock };
 

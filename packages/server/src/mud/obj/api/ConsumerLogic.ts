@@ -4,17 +4,17 @@
 import { Idea } from '../../lib/stuff/Idea';
 import { CallSecurity, Unshadowable } from '../../lib/security/decorators';
 import { SecurityPolicies } from '../../lib/security/SecurityPolicies';
-import ParticipationEvent from '../../lib/participation/ParticipationEvent';
-import type { ParticipationEventFields } from '../../lib/participation/ParticipationEvent';
+import ParticipationEvent from '../../lib/standing/ParticipationEvent';
+import type { ParticipationEventFields } from '../../lib/standing/ParticipationEvent';
 import ParticipationStanding, {
   PARTICIPATION_WIDE,
-} from '../../lib/participation/ParticipationStanding';
+} from '../../lib/standing/ParticipationStanding';
 import {
   Band,
   DEFAULT_BAND_THRESHOLDS,
-} from '../../lib/participation/Band';
-import type { BandThreshold } from '../../lib/participation/Band';
-import { InfluenceStanding } from '../../lib/participation/InfluenceStanding';
+} from '../../lib/standing/Band';
+import type { BandThreshold } from '../../lib/standing/Band';
+import { InfluenceStanding } from '../../lib/standing/InfluenceStanding';
 import { AppApi } from '../../api/app';
 import { AppSettingKeys } from '../../lib/config/AppSettings';
 import { WorldClockApi } from '../../api/worldclock';

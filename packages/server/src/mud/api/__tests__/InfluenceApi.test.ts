@@ -8,8 +8,8 @@
 import { describe, it, expect, afterEach, vi } from 'vitest';
 import { InfluenceApi } from '../influence';
 import { ConsumerApi } from '../consumer';
-import { InfluenceStanding } from '../../lib/participation/InfluenceStanding';
-import { Band } from '../../lib/participation/Band';
+import { InfluenceStanding } from '../../lib/standing/InfluenceStanding';
+import { Band } from '../../lib/standing/Band';
 
 afterEach(() => vi.restoreAllMocks());
 

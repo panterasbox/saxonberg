@@ -13,7 +13,7 @@ import StandingController from '../StandingController';
 import { ConsumerApi } from '../../../../api/consumer';
 import { RenownApi } from '../../../../api/renown';
 import { InfluenceApi } from '../../../../api/influence';
-import { Band } from '../../../../lib/participation/Band';
+import { Band } from '../../../../lib/standing/Band';
 import { MessageApi } from '../../../../api/message';
 import { Mml } from '../../../../api/mml';
 import { Idea } from '../../../../lib/stuff/Idea';
