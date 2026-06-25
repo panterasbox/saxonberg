@@ -115,11 +115,37 @@ export const AppSettingKeys = {
    */
   participationDecayHalfLife: "participation.decayHalfLife",
   /**
+   * Producer — the third influence stock, the MAKE faucet (the sibling of
+   * the consumer PLAY faucet). The engine ships the attributed-engagement
+   * mechanism; these are the tunable dials. The entrenched invariants
+   * (engagement-only formula — no `× regard`, derive-don't-track, the
+   * released-content gate) are CODE, never keys. See
+   * docs/subsystems/participation.md.
+   */
+  /**
+   * Producer — the attributed-engagement bucket width in REAL seconds. An
+   * author is credited once per `{author, actor, bucket}` (anti-inflation:
+   * one player engaging one author's content can't pad a bucket).
+   */
+  producerBucketSeconds: "producer.bucketSeconds",
+  /**
+   * Producer — the recency-decay half-life in REAL seconds (real-time, the
+   * participation divergence: production standing measures *current* draw).
+   */
+  producerDecayHalfLife: "producer.decayHalfLife",
+  /**
    * Influence — JSON `[{name, min}]` band cutoffs mapping the influence
    * scalar to its qualitative tier (display-only; register D6). Stock-
    * agnostic — the same bands serve every stock.
    */
   influenceBandThresholds: "influence.bandThresholds",
+  /**
+   * Conviction — the linear build-up period in REAL seconds. A held
+   * position's weight ramps `clamp01((now − heldSince) / buildPeriod)`;
+   * full conviction is reached after one period of unbroken hold. A flip
+   * resets the clock (the spend half of influence; no verb yet).
+   */
+  convictionBuildPeriodSeconds: "conviction.buildPeriodSeconds",
 } as const;
 
 export type AppSettingKey =
