@@ -24,6 +24,7 @@ import type { Subscription } from '../../api/event';
 import { ScheduleApi } from '../../api/schedule';
 import type { ScheduleHandle } from '../../api/schedule';
 import { PersistApi } from '../../api/persist';
+import { StuffApi } from '../../api/stuff';
 import { CommandDispatchedEvent } from '../../lib/events/CommandDispatchedEvent';
 import type { CommandDispatchedPayload } from '../../lib/events/CommandDispatchedEvent';
 
@@ -42,6 +43,20 @@ const CONSUMER_RECOMPUTE_MS = 60_000;
 /** Persistence is a no-op unless Mongo is connected (tests, pre-boot). */
 function active(): boolean {
   return PersistApi.isConnected();
+}
+
+/**
+ * Resolve a live `stuffId` to its **durable** identity key — the
+ * `templatePath` participation banks on (`/obj/Avatar/<playerId>` for an
+ * avatar). The giver's `stuffId` is re-minted on re-clone (reboot / relog),
+ * so keying the bucket log on it silently resets standing; the durable
+ * templatePath is the same key renown re-keys to, so the consumer product
+ * (`renownOf × participationOf`) stays aligned. Falls back to the raw id
+ * when no template stamp resolves — never drops a signal. (Mirrors
+ * `RenownLogic.durableKey`; the substrate shares no code.)
+ */
+function durableKey(stuffId: string): string {
+  return StuffApi.findById(stuffId)?.getTemplatePath() ?? stuffId;
 }
 
 /** Read a numeric AppSetting with a pre-boot/tests fallback. */
@@ -113,7 +128,8 @@ async function appendImpl(fields: ParticipationEventFields): Promise<void> {
 /** Map a captured dispatch into a participation signal and append it. */
 async function appendFromDispatch(p: CommandDispatchedPayload): Promise<void> {
   await appendImpl({
-    subject: p.subjectId,
+    // The live giver id keys storage on the durable templatePath (Phase 0).
+    subject: durableKey(p.subjectId),
     kind: 'command',
     at: p.at,
     realAt: p.realAt,

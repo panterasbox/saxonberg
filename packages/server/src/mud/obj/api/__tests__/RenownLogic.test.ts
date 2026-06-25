@@ -17,6 +17,7 @@ import { EventApi } from '../../../api/event';
 import EventRegistry from '../../EventRegistry';
 import { StuffApi } from '../../../api/stuff';
 import { Stuff } from '../../../lib/stuff/Stuff';
+import { Idea } from '../../../lib/stuff/Idea';
 import { GroupApi } from '../../../api/group';
 import { ReactionApi } from '../../../api/reaction';
 import { WorldClockApi } from '../../../api/worldclock';
@@ -182,5 +183,68 @@ describe('RenownLogic reception tap (receive-side)', () => {
     received('/obj/Avatar/L1', 'c2'); // same speaker→L1, within window
     await flush();
     expect(await RenownApi.eventsFor(SPEAKER)).toHaveLength(1);
+  });
+});
+
+/**
+ * Phase 0 — durable identity re-key. A fired reaction carries the live,
+ * ephemeral `stuffId` of subject + reactor; the store must bank under the
+ * durable `templatePath` so standing survives re-clone (reboot / relog),
+ * which re-mints the `stuffId`. (The earlier tap tests pass templatePath-
+ * shaped strings as fake `stuffId`s; here the ids are genuinely distinct
+ * from the templatePath, so the conversion is observable.)
+ */
+describe('RenownLogic durable identity re-key (stuffId → templatePath)', () => {
+  /** Mint a registered Stuff at `path` with an auto-assigned, distinct stuffId. */
+  async function mint(path: string): Promise<Stuff> {
+    return StuffApi.create(() => {
+      const s = new Idea();
+      Stuff._stampTemplatePath(s, path);
+      return s;
+    });
+  }
+
+  it('stores reaction subject + source under the templatePath, not the stuffId', async () => {
+    RenownApi.boot();
+    const author = await mint('/obj/Avatar/p-author');
+    const reactor = await mint('/obj/Avatar/p-reactor');
+    expect(author.stuffId).not.toBe('/obj/Avatar/p-author'); // genuinely ephemeral
+
+    fireReaction({ subjectId: author.stuffId, reactorId: reactor.stuffId });
+    await flush();
+
+    // Nothing banks under the ephemeral stuffId…
+    expect(await RenownApi.eventsFor(author.stuffId)).toHaveLength(0);
+    // …everything banks under the durable templatePath.
+    const events = await RenownApi.eventsFor('/obj/Avatar/p-author');
+    expect(events).toHaveLength(1);
+    expect(events[0]!.subject).toBe('/obj/Avatar/p-author');
+    expect(events[0]!.source).toBe('/obj/Avatar/p-reactor');
+  });
+
+  it('aggregates across re-clone — a new stuffId at the same templatePath keeps the standing', async () => {
+    RenownApi.boot();
+    const before = await mint('/obj/Avatar/p1');
+    fireReaction({
+      subjectId: before.stuffId,
+      reactorId: '/obj/Avatar/fan',
+      commandId: 'c-a',
+    });
+    await flush();
+
+    // Simulate a reboot/relog: the old instance is reaped, a fresh clone
+    // mints a NEW stuffId at the SAME templatePath.
+    StuffApi.unregister(before);
+    const after = await mint('/obj/Avatar/p1');
+    expect(after.stuffId).not.toBe(before.stuffId);
+    fireReaction({
+      subjectId: after.stuffId,
+      reactorId: '/obj/Avatar/fan',
+      commandId: 'c-b',
+    });
+    await flush();
+
+    // Both signals land under one durable key — standing did not reset.
+    expect(await RenownApi.eventsFor('/obj/Avatar/p1')).toHaveLength(2);
   });
 });
