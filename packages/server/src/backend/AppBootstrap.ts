@@ -170,10 +170,11 @@ export class AppBootstrap {
     ConsumerApi.boot();
 
     // Producer (the make faucet — the third influence stock) — warm the
-    // standing read-cache from the materialized aggregate, then self-register
-    // the recompute schedule. Engagement-only (reads no renown). The
-    // live-engagement tap is installed by the shared-signal seam, not here;
-    // this boot leaves the faucet provable via direct `ProducerApi.append`.
+    // standing read-cache, then install the command-dispatch engagement tap
+    // (it reuses the consumer's signal; both taps assert the same
+    // consumer+producer restrictSubscribe allowlist) + self-register the
+    // recompute schedule. Engagement-only (reads no renown). Booted AFTER the
+    // consumer so the shared signal's allowlist is asserted in a stable order.
     await ProducerStanding.warm();
     ProducerApi.boot();
   }

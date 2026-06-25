@@ -18,6 +18,15 @@ import { WorldClockApi } from '../../api/worldclock';
 import { ScheduleApi } from '../../api/schedule';
 import type { ScheduleHandle } from '../../api/schedule';
 import { PersistApi } from '../../api/persist';
+import { EventApi } from '../../api/event';
+import type { Subscription } from '../../api/event';
+import { CommandDispatchedEvent } from '../../lib/events/CommandDispatchedEvent';
+import type { CommandDispatchedPayload } from '../../lib/events/CommandDispatchedEvent';
+import { CreditRouting } from '../../lib/standing/CreditRouting';
+// Referenced only inside installEngagementTap (the restrictSubscribe
+// allowlist), so the ConsumerLogic ↔ ProducerLogic import cycle is
+// runtime-only / safe.
+import { ConsumerLogic } from './ConsumerLogic';
 
 const ProducerApiCallers = SecurityPolicies.FromModule(
   'mud/api/producer#ProducerApi'
@@ -105,6 +114,35 @@ async function appendImpl(fields: ProducerEventFields): Promise<void> {
   ev.at = fields.at ?? WorldClockApi.getNow().rawValue();
   ev.realAt = realAt;
   await ev.save();
+}
+
+/**
+ * Map a captured dispatch into producer credit and append it. Resolves the
+ * credit shares for the engaged location (`CreditRouting.resolve` — covering
+ * zone author, released-content gated), then for each share credits the
+ * author UNLESS it is the engaging player (`author !== actor` — the **A≠P**
+ * exclusion: engaging your own released content earns you nothing). The
+ * `{author, actor, bucket}` dedup lives in {@link appendImpl}. Skipped when
+ * the signal carries no location / actor templatePath (an incorporeal or
+ * un-templated giver).
+ */
+async function appendFromEngagement(p: CommandDispatchedPayload): Promise<void> {
+  if (!active()) return;
+  const location = p.locationTemplatePath;
+  const actor = p.actorTemplatePath;
+  if (!location || !actor) return;
+  const shares = await CreditRouting.resolve(location);
+  for (const share of shares) {
+    if (share.author === actor) continue; // A≠P self-credit exclusion
+    await appendImpl({
+      author: share.author,
+      actor,
+      zonePath: location,
+      weight: share.weight,
+      at: p.at,
+      realAt: p.realAt,
+    });
+  }
 }
 
 /** Half-life decay 0.5^(age/halfLife); 1 for a non-positive / ∞ half-life. */
@@ -223,10 +261,10 @@ function standingOfImpl(authorId: string): InfluenceStanding {
  * projection (engagement-only — no renown read).
  *
  * The live-engagement tap (`appendFromEngagement` on `CommandDispatchedEvent`)
- * is NOT installed here — it needs the location-carrying signal *and*
- * `ProducerLogic` in the event's `restrictSubscribe` allowlist, both of
- * which land in the shared-signal commit. This commit is provable via direct
- * `ProducerApi.append`.
+ * reuses the consumer's recognized-dispatch signal, routing producer credit
+ * from its location/actor templatePaths via `CreditRouting`. Its receive side
+ * is locked to the shared consumer+producer `restrictSubscribe` allowlist
+ * (both taps assert the same pair so an HMR re-assert never evicts the other).
  *
  * Internal sub-logic lives in module-private free functions, so there are no
  * intra-singleton `this.x()` calls to trip the gate. Each public method
@@ -238,6 +276,36 @@ function standingOfImpl(authorId: string): InfluenceStanding {
 export class ProducerLogic extends Idea {
   /** The recurring recompute handle — retained so re-install is a no-op. */
   private recomputeHandle: ScheduleHandle | null = null;
+
+  /** The engagement-capture subscription — retained so re-install is a no-op. */
+  private engagementSub: Subscription<CommandDispatchedPayload> | null = null;
+
+  /**
+   * Install the command-dispatch → producer tap (idempotent). Reuses the
+   * consumer's `CommandDispatchedEvent` signal — the same recognized,
+   * interactive dispatch — and routes producer credit from its
+   * location/actor templatePaths. Asserts the FULL consumer+producer
+   * allowlist (both taps assert the same pair so an HMR re-assert never
+   * evicts the other — see `ConsumerLogic.installDispatchTap`). Called at
+   * boot (`ProducerApi.boot`).
+   */
+  @CallSecurity(ProducerApiCallers)
+  public installEngagementTap(): void {
+    if (this.engagementSub) return;
+    EventApi.restrictSubscribe(
+      CommandDispatchedEvent.KIND,
+      ConsumerLogic,
+      ProducerLogic
+    );
+    this.engagementSub = EventApi.on<CommandDispatchedPayload>(
+      CommandDispatchedEvent.KIND,
+      (p) => {
+        void appendFromEngagement(p).catch((err) =>
+          console.error('ProducerLogic: engagement append failed', err)
+        );
+      }
+    );
+  }
 
   /** See {@link ProducerApi.append}. */
   @CallSecurity(ProducerApiCallers)

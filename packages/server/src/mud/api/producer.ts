@@ -52,13 +52,13 @@ function logic(): ProducerLogic {
 
 export class ProducerApi {
   /**
-   * Boot seam (idempotent): self-register the real-time recompute schedule.
-   * The standing cache is warmed separately by `ProducerStanding.warm()`
-   * (awaited in `AppBootstrap` before this). The live-engagement tap is
-   * installed by the shared-signal commit, NOT here — this faucet is
-   * provable via direct {@link append}.
+   * Boot seam (idempotent): install the receive-gated command-dispatch →
+   * producer engagement tap and self-register the real-time recompute
+   * schedule. The standing cache is warmed separately by
+   * `ProducerStanding.warm()` (awaited in `AppBootstrap` before this).
    */
   public static boot(): void {
+    logic().installEngagementTap();
     logic().installRecomputeSchedule();
   }
 
