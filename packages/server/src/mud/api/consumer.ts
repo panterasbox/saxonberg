@@ -51,10 +51,11 @@ function logic(): ConsumerLogic {
 
 export class ConsumerApi {
   /**
-   * Boot seam (idempotent): install the command-dispatch → participation
-   * tap and self-register the real-time recompute schedule. The standing
-   * cache is warmed separately by `ParticipationStanding.warm()` (awaited
-   * in `AppBootstrap` before this, so the first reads are populated).
+   * Boot seam (idempotent): install the receive-gated command-dispatch →
+   * participation tap and self-register the real-time recompute schedule.
+   * The standing cache is warmed separately by `ParticipationStanding.warm()`
+   * (awaited in `AppBootstrap` before this, so the first reads are
+   * populated).
    */
   public static boot(): void {
     logic().installDispatchTap();
@@ -63,8 +64,9 @@ export class ConsumerApi {
 
   /**
    * Append one raw active-bucket signal (find-or-skip on `{subject,
-   * bucket}`). No-op without an active connection. The capture tap is the
-   * usual caller; exposed for tests and programmatic crediting.
+   * bucket}`). No-op without an active connection. The receive-gated
+   * dispatch tap is the usual caller; exposed for tests and programmatic
+   * crediting.
    */
   public static async append(fields: ParticipationEventFields): Promise<void> {
     return logic().append(fields);

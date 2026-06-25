@@ -4,20 +4,24 @@
  *
  * Fired from `CommandGiverMixin._emitInputEcho` (the single-fire,
  * sensor-gated dispatch tail) when a giver issues a **recognized** command
- * — i.e. the parser bound a verb (a parse failure carries no `verb`, so it
- * never fires) and the dispatch carries an interactive origin (a real
- * player, never NPC / programmatic / cascaded dispatch). The consumer
- * faucet (`ConsumerLogic`) taps this and credits the giver an *active time
- * bucket*; the per-`(subject, bucket)` dedup at the faucet collapses
- * bursts, so this fires freely per command.
+ * (a verb bound — a parse failure carries no `verb`, so it never fires)
+ * from an **interactive** origin (a real player, never NPC / programmatic /
+ * cascaded). `ConsumerLogic.installDispatchTap` taps it and credits the
+ * giver an *active time bucket*; the per-`{subject, bucket}` dedup at the
+ * faucet collapses bursts.
+ *
+ * **Receive-gated.** This event's payload is a per-subject activity signal
+ * that fires on *private* commands too (inventory / settings / whisper / dm
+ * / char-gen), so its subscribe side is locked to `ConsumerLogic` via
+ * `EventApi.restrictSubscribe` — no other subscriber may watch it (snoop
+ * prevention). Emit stays open; the bus still gives producer-ignorant
+ * decoupling, but only the blessed consumer can listen.
  *
  * Carries the giver's `stuffId` as `subjectId` — the same durable id
  * renown's reaction/reception signals key on, so the consumer-influence
- * projection (`max(0, renownOf) × participationOf`) combines the two
- * faucets on one key. `at` is the game-time witness; `realAt` is the wall
- * clock the active-bucket key and the real-time decay key on (the
- * deliberate divergence from renown's game-time decay — participation
- * measures a *human showing up*).
+ * projection combines the two faucets on one key. `at` is the game-time
+ * witness; `realAt` is the wall clock the active-bucket key + real-time
+ * decay key on.
  */
 
 export interface CommandDispatchedPayload {

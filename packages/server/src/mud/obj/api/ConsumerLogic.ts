@@ -235,6 +235,12 @@ function standingOfImpl(subjectId: string): InfluenceStanding {
  * projection (`max(0, renownOf) × participationOf`); reads `RenownApi` as a
  * shared input, never owning renown.
  *
+ * Capture taps `CommandDispatchedEvent` on the EventApi bus — but its
+ * **receive side is locked to this consumer** via
+ * `EventApi.restrictSubscribe` (the event fires on private commands too, so
+ * an open-subscribe broadcast would be a snooping side-channel). The bus
+ * still gives producer-ignorant decoupling; only `ConsumerLogic` may listen.
+ *
  * Internal sub-logic lives in module-private free functions, so there are
  * no intra-singleton `this.x()` calls to trip the gate. Each public method
  * carries the `FromModule` gate.
@@ -250,14 +256,15 @@ export class ConsumerLogic extends Idea {
   private recomputeHandle: ScheduleHandle | null = null;
 
   /**
-   * Install the command-dispatch → participation tap (idempotent).
-   * Subscribes to `CommandDispatchedEvent` (fired once per recognized
-   * interactive command) and credits the giver an active bucket. Called at
-   * boot (`ConsumerApi.boot`).
+   * Install the command-dispatch → participation tap (idempotent). Locks
+   * the event's receive side to this consumer (`restrictSubscribe`), then
+   * subscribes. `ConsumerLogic` is the in-module class, so a hot-reload
+   * re-asserts with the reloaded class. Called at boot (`ConsumerApi.boot`).
    */
   @CallSecurity(ConsumerApiCallers)
   public installDispatchTap(): void {
     if (this.dispatchSub) return;
+    EventApi.restrictSubscribe(CommandDispatchedEvent.KIND, ConsumerLogic);
     this.dispatchSub = EventApi.on<CommandDispatchedPayload>(
       CommandDispatchedEvent.KIND,
       (p) => {

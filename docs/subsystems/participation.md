@@ -20,7 +20,7 @@ and the [polity decision register](../polity-decision-register.md) (D2/D4/D5/D6)
 
 ```
 CommandDispatchedEvent ─► participation_events ─► participation ─► InfluenceStanding
-   (capture seam)          (append-only log)       (rebuildable      (max(0,renown)
+   (receive-gated tap)      (append-only log)       (rebuildable      (max(0,renown)
                                                      aggregate)        × participation,
                                                                        banded)
 ```
@@ -29,9 +29,27 @@ CommandDispatchedEvent ─► participation_events ─► participation ─► I
   sensor-gated dispatch tail) fires `CommandDispatchedEvent` once per
   **recognized** command (a verb bound — parse failures carry no `verb`)
   from an **interactive** origin (a real player, never NPC / programmatic /
-  cascaded). `ConsumerLogic.installDispatchTap` taps it. This mirrors renown
-  tapping `CommReceivedEvent` rather than reaching into the command
-  framework — the chokepoint stays ignorant of participation.
+  cascaded). `ConsumerLogic.installDispatchTap` taps it. Mirrors renown
+  tapping `CommReceivedEvent` — the command framework stays ignorant of
+  participation.
+
+  **The event's receive side is locked to `ConsumerLogic`** via
+  `EventApi.restrictSubscribe`. `command.dispatched` fires on *private*
+  commands too — `inventory`, `settings`, a private `look`, a whisper, a DM,
+  char-gen inputs — none in-world-observable. EventApi's subscribe is open
+  by default and `on` is author-reachable, so an ungated broadcast would be
+  a per-subject activity **snooping** side-channel (any mudlib subscriber
+  watching every player's command cadence). Restricting the receive side to
+  the one blessed consumer closes that while keeping the bus's
+  producer-ignorant decoupling.
+
+  The mechanism is `EventApi.restrictSubscribe(name, ...consumerClasses)` —
+  the first use of the EventRegistry prop-access apparatus's **receive**
+  (`Get`) half (emit = `Set` = transmit; subscribe = `Get` = receive). It
+  locks an event's subscribe side to an allowlist, tracks ownership by class
+  *name* (a hot-reload re-asserts; a different class can't hijack), and now
+  also gates renown's `reaction.fired` and `comm.received` taps (which carry
+  the same per-actor activity signal).
 
 - **`participation_events`** (`ParticipationEvent`) — the append-only log,
   **one row per active time-bucket**: a member is credited *once per coarse

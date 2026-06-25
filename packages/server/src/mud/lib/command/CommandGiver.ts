@@ -728,8 +728,14 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
       // RECOGNIZED command (a verb bound — parse failures carry no `verb`)
       // from an INTERACTIVE origin (a real player, never NPC / programmatic
       // / cascaded dispatch) credits the giver an active time-bucket. The
-      // per-(subject, bucket) dedup at the faucet collapses bursts. Fire-
-      // and-forget; never blocks dispatch. See docs/subsystems/participation.md.
+      // per-(subject, bucket) dedup at the faucet collapses bursts. Fire-and-
+      // forget; never blocks dispatch.
+      //
+      // The event's RECEIVE side is locked to ConsumerLogic via
+      // `EventApi.restrictSubscribe` (it fires on private commands too —
+      // inventory / settings / whisper / dm / char-gen — so an open-subscribe
+      // broadcast would be a snooping side-channel). Emit stays open; only
+      // the blessed consumer may listen. See docs/subsystems/participation.md.
       if (args.verb !== undefined && args.originInteractiveId !== undefined) {
         EventApi.fire(
           new CommandDispatchedEvent({

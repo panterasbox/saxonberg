@@ -470,6 +470,11 @@ export class RenownLogic extends Idea {
   @CallSecurity(RenownApiCallers)
   public installReactionTap(): void {
     if (this.reactionSub) return;
+    // Lock the receive side to renown: a reaction signal carries reactor +
+    // subject ids, so an open-subscribe bus would let any mudlib snoop who
+    // reacts to whom. (`RenownLogic` is the in-module class, so a hot-reload
+    // re-asserts with the reloaded class.)
+    EventApi.restrictSubscribe(ReactionFiredEvent.KIND, RenownLogic);
     this.reactionSub = EventApi.on<ReactionFiredPayload>(
       ReactionFiredEvent.KIND,
       (p) => {
@@ -495,6 +500,11 @@ export class RenownLogic extends Idea {
   @CallSecurity(RenownApiCallers)
   public installReceptionTap(): void {
     if (this.receptionSub) return;
+    // Lock the receive side to renown: a reception signal reveals which
+    // listener heard which act, so an open-subscribe bus would be a
+    // who-heard-what snooping channel (broadcast reaches subscribers who
+    // weren't even present). Receive-gate it to the sole consumer.
+    EventApi.restrictSubscribe(CommReceivedEvent.KIND, RenownLogic);
     const seen = this.receptionSeen;
     this.receptionSub = EventApi.on<CommReceivedPayload>(
       CommReceivedEvent.KIND,

@@ -149,6 +149,15 @@ export class EventApi {
   static #subsRef: EventSubscriptions | null = null;
   static #subsClass: (new () => EventSubscriptions) | null = null;
 
+  /**
+   * Subscribe-ownership ledger for `restrictSubscribe`: event name → the
+   * set of owner class *names* that have claimed its receive side. Keyed by
+   * name (not class identity) so a hot-reload — which mints a fresh class
+   * object of the same name — re-asserts its own claim, while a different
+   * class (an author trying to hijack a sensitive tap) is refused.
+   */
+  static #subscribeOwners = new Map<string, Set<string>>();
+
   /** @internal — called from `obj/EventSubscriptions.ts` module body. */
   public static _registerSubsClass(cls: new () => EventSubscriptions): void {
     EventApi.#subsClass = cls;
@@ -226,6 +235,15 @@ export class EventApi {
         // originator class isn't gated by default.
         return true;
       }
+      if (op === PropOperations.Configure) {
+        // Reconfigure an event's own access policy — allowed iff
+        // EventApi-mediated (the defense above already requires the
+        // EventApi frame). The only mediated caller is
+        // `restrictSubscribe`, which always tightens; no general
+        // "configure" surface is exposed. Lets a consumer re-assert its
+        // subscribe restriction after a hot-reload changes its class.
+        return true;
+      }
       if (op !== PropOperations.Set) {
         return false;
       }
@@ -264,6 +282,55 @@ export class EventApi {
       }
       return emitGate(prop, op, special);
     };
+  }
+
+  /**
+   * Restrict the **receive** (subscribe) side of an event to an allowlist
+   * of consumer classes — the first use of the EventRegistry prop-access
+   * apparatus's `Get` half. Emit stays open (`emit: []`); only the listed
+   * classes may `EventApi.on(name, …)`. Everyone else's subscribe throws.
+   *
+   * For **sensitive activity taps** whose payload carries a per-actor id
+   * (`comm.received`, `reaction.fired`, `command.dispatched`): broadcasting
+   * those on the open-subscribe bus would let any mudlib subscriber snoop a
+   * player's command/utterance cadence. Locking subscribe to the single
+   * blessed consumer closes that side-channel while keeping the bus's
+   * producer-ignorant decoupling.
+   *
+   * Call from the consumer's tap-install (with the consumer's own class) so
+   * the policy is in place before the first subscribe, and re-asserts after
+   * a hot-reload (the reloaded install passes the reloaded class). Ownership
+   * is tracked by class *name*: a same-named reload re-asserts; a different
+   * class is refused (no hijacking another consumer's tap).
+   */
+  public static restrictSubscribe(
+    name: string,
+    ...consumers: OriginatorRef[]
+  ): void {
+    const reg = this.#registry();
+    if (!reg) return; // pre-bootstrap; the event isn't declared yet
+    const names = consumers.map(
+      (c) => (c as { name?: string }).name ?? ''
+    );
+    const owners = EventApi.#subscribeOwners.get(name);
+    if (owners && !names.some((n) => owners.has(n))) {
+      console.warn(
+        `EventApi.restrictSubscribe('${name}'): refused — already owned ` +
+          `by {${[...owners].join(', ')}}, not {${names.join(', ')}}`
+      );
+      return;
+    }
+    const prop = Property.of<PropValue>(name);
+    const policy = EventApi.eventPolicy({ emit: [], subscribe: consumers });
+    if (!reg.initProp(prop, { transient: true, checkAccess: policy })) {
+      // Already declared (open default, or a prior same-named owner) —
+      // reconfigure to the (possibly reloaded) consumer class.
+      reg.configureProp(prop, { checkAccess: policy });
+    }
+    EventApi.#subscribeOwners.set(
+      name,
+      new Set([...(owners ?? []), ...names])
+    );
   }
 
   /**
@@ -531,6 +598,7 @@ export class EventApi {
     if (subs) subs._clearAll();
     this.#registryRef = null;
     this.#subsRef = null;
+    this.#subscribeOwners = new Map();
   }
 
   /**
