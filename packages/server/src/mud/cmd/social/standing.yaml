@@ -1,0 +1,16 @@
+verbs: [standing]
+controller: social/StandingController
+description: "See where you stand — your participation, regard, and influence band."
+help: |
+  `standing` reads back your own social standing in the cooperative: how
+  much you show up and take part (participation), how others have received
+  you (renown), and the influence band those combine into.
+
+  Influence is `engagement × renown` — both matter. Showing up with nobody
+  valuing it, or being valued while absent, leaves you near the bottom; the
+  band rises only when real participation meets real regard. Net-negative
+  regard zeroes it out (the polity stops listening), never drives it below
+  nothing.
+
+  It's a read-only, self-only view — your own standing, shown as a band,
+  not a precise score, and the verb takes no arguments.
