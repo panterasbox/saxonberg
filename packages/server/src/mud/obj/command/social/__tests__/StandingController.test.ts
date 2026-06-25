@@ -84,4 +84,26 @@ describe('StandingController render', () => {
     expect(body).toContain('not yet shown up');
     expect(body).toContain('yet to form a view');
   });
+
+  it('shows all three stocks (play / make / fund) as distinct bands', async () => {
+    vi.spyOn(ConsumerApi, 'participationOf').mockReturnValue(3);
+    vi.spyOn(RenownApi, 'renownOf').mockReturnValue(1);
+    // Stock-aware: consumer (play) vs producer (make) read different bands.
+    vi.spyOn(InfluenceApi, 'bandOf').mockImplementation((_id, stock) =>
+      stock === 'producer' ? Band.of('pillar') : Band.of('familiar')
+    );
+
+    const actor = makeStuffAtPath(() => new Actor(), '/obj/Avatar/three');
+    const ctrl = makeStuff(() => new StandingController());
+    await ctrl.execute({} as CommandModel, ctxFor(actor));
+
+    const body = captured!.toString();
+    expect(body).toContain('Play');
+    expect(body).toContain('familiar'); // consumer (play) band
+    expect(body).toContain('Make');
+    expect(body).toContain('pillar'); // producer (make) band
+    expect(body).toContain('Fund');
+    expect(body).toContain('not yet earnable'); // patron intake-gated
+    expect(/\d/.test(body)).toBe(false); // still no raw scalar
+  });
 });

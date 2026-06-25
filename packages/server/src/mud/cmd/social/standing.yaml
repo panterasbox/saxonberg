@@ -1,16 +1,22 @@
 verbs: [standing]
 controller: social/StandingController
-description: "See where you stand — your participation, regard, and influence band."
+description: "See where you stand — your influence across all three stocks."
 help: |
-  `standing` reads back your own social standing in the cooperative: how
-  much you show up and take part (participation), how others have received
-  you (renown), and the influence band those combine into.
+  `standing` reads back your own influence standing in the cooperative
+  across its three stocks — three dimensions of every member, each earned
+  independently:
 
-  Influence is `engagement × renown` — both matter. Showing up with nobody
-  valuing it, or being valued while absent, leaves you near the bottom; the
-  band rises only when real participation meets real regard. Net-negative
-  regard zeroes it out (the polity stops listening), never drives it below
-  nothing.
+  - **Play** (engagement): `engagement × renown` — how much you show up and
+    take part, times how others have received you. Showing up with nobody
+    valuing it, or being valued while absent, leaves you near the bottom;
+    the band rises only when real participation meets real regard.
+    Net-negative regard zeroes it out (the polity stops listening), never
+    below nothing.
+  - **Make** (creation): the engagement your released content draws — others
+    spending time with what you built. Engagement-only; you earn nothing for
+    engaging your own content.
+  - **Fund** (patronage): not yet earnable — patron standing arrives with
+    paid patronage.
 
-  It's a read-only, self-only view — your own standing, shown as a band,
-  not a precise score, and the verb takes no arguments.
+  It's a read-only, self-only view — each stock shown as a band, not a
+  precise score, and the verb takes no arguments.
