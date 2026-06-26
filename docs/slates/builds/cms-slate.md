@@ -429,6 +429,58 @@ So the draft-overlay + atomic-publish is built by us, uniform across both
 trees; git/Mongo are just where *published* state lands. (Open detail: how
 external editors push into *our* draft workflow.)
 
+### The review gate — publish as deliberation (law == code)
+
+A founding thesis: **law and code are the same kind of thing — a rule —
+differing only in enforcement (human vs machine).** So **code/template
+review is not a separate Gerrit-style tool; it is the governance
+deliberation surface pointed at machine-enforced rules.** A changeset is a
+*proposal to amend the shared ruleset*; reviewing it is deliberation;
+convergence is enactment. This makes the CMS and the polity one system, not
+two.
+
+**It composes with publish as a second gate.** Publish (above) is the
+**machine gate** — recompile + lint + lease + invariants → atomic promote.
+The review gate is the **human gate** layered on the same step: a changeset
+goes live only when it clears **both** — validation *and*
+deliberation-convergence — on the same artifact. That two-gate composition
+over one artifact *is* law == code made concrete.
+
+**It rides the forums substrate — genuine reuse, in the grain** (assessed:
+~6 files, zero changes to forums core). The seams already exist:
+
+- A review is a **fifth `SubjectSurface`** lit on the existing **Subject
+  layer** — identity + audience (the lease-scoped team) for free.
+- The **argument organizer's claim-graph maps onto review verbatim**:
+  `supports` / `objects-to` / `responds-to` are the edge types; an **open
+  objection** (a childless `objects-to`) is already the "unresolved concern
+  blocking convergence" signal. Review comments are argument edges; a
+  request-for-changes is an open objection.
+- The convergence signal is the forums **`mature` event** — which today
+  *fires into no consumer* ("the decoupled handoff… the deferred governance
+  layer"). It was built waiting for exactly this.
+- **Apply-on-mature lives outside forums**: a new consumer
+  (`EventApi.on(ForumEventFired)`, filtering `kind === 'mature'`) fires the
+  atomic publish — the established deferred-consumer pattern, no coupling
+  back into forums.
+- The change payload rides a **sibling `Entry.codeRef { backend, path,
+  revision }`** field — the prose body stays prose; the diff metadata sits
+  beside it (the reviewable unit is the changeset; the storage backend is an
+  adapter, per *Storage & versioning* — review is storage-agnostic).
+
+**The two-tier split carries through.** Direct-to-live personal/light
+authoring (dorm theming) needs no review. Collaborative world content (the
+zone changeset) is what the review gate governs — the same world-vs-personal
+line as drafts and versioning. New CLI affordances are a fourth
+organizer-scoped verb mode (`--approve` / `--request-changes` vs the
+argument organizer's `--pro` / `--con` / `--rebut`).
+
+**Sequencing: this lands *after* changesets exist** — it gates publish, so
+the edit loop + draft/changeset model (Wave 1 + the access slate's
+draft/publish) come first. Captured here while sharp; it is its own wave,
+not a Wave 1 dependency. (Hierarchical sign-off — code-owners, multi-level
+approval — is governance-layer work *atop* this gate, deferred.)
+
 ### Forward hooks (game-phase, deferred): gamified authoring & cost
 
 Authoring is meant to be **gamified** — reward people for making cool
