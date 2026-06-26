@@ -4,17 +4,17 @@
 import { Idea } from '../../lib/stuff/Idea';
 import { CallSecurity, Unshadowable } from '../../lib/security/decorators';
 import { SecurityPolicies } from '../../lib/security/SecurityPolicies';
-import ParticipationEvent from '../../lib/participation/ParticipationEvent';
-import type { ParticipationEventFields } from '../../lib/participation/ParticipationEvent';
+import ParticipationEvent from '../../lib/standing/ParticipationEvent';
+import type { ParticipationEventFields } from '../../lib/standing/ParticipationEvent';
 import ParticipationStanding, {
   PARTICIPATION_WIDE,
-} from '../../lib/participation/ParticipationStanding';
+} from '../../lib/standing/ParticipationStanding';
 import {
   Band,
   DEFAULT_BAND_THRESHOLDS,
-} from '../../lib/participation/Band';
-import type { BandThreshold } from '../../lib/participation/Band';
-import { InfluenceStanding } from '../../lib/participation/InfluenceStanding';
+} from '../../lib/standing/Band';
+import type { BandThreshold } from '../../lib/standing/Band';
+import { InfluenceStanding } from '../../lib/standing/InfluenceStanding';
 import { AppApi } from '../../api/app';
 import { AppSettingKeys } from '../../lib/config/AppSettings';
 import { WorldClockApi } from '../../api/worldclock';
@@ -27,6 +27,9 @@ import { PersistApi } from '../../api/persist';
 import { StuffApi } from '../../api/stuff';
 import { CommandDispatchedEvent } from '../../lib/events/CommandDispatchedEvent';
 import type { CommandDispatchedPayload } from '../../lib/events/CommandDispatchedEvent';
+// Referenced only inside installDispatchTap (the restrictSubscribe allowlist),
+// so the ConsumerLogic ↔ ProducerLogic import cycle is runtime-only / safe.
+import { ProducerLogic } from './ProducerLogic';
 
 const ConsumerApiCallers = SecurityPolicies.FromModule(
   'mud/api/consumer#ConsumerApi'
@@ -272,15 +275,24 @@ export class ConsumerLogic extends Idea {
   private recomputeHandle: ScheduleHandle | null = null;
 
   /**
-   * Install the command-dispatch → participation tap (idempotent). Locks
-   * the event's receive side to this consumer (`restrictSubscribe`), then
-   * subscribes. `ConsumerLogic` is the in-module class, so a hot-reload
-   * re-asserts with the reloaded class. Called at boot (`ConsumerApi.boot`).
+   * Install the command-dispatch → participation tap (idempotent). Locks the
+   * event's receive side to the consumer+producer allowlist
+   * (`restrictSubscribe`), then subscribes. Called at boot
+   * (`ConsumerApi.boot`); a hot-reload re-asserts with the reloaded classes.
    */
   @CallSecurity(ConsumerApiCallers)
   public installDispatchTap(): void {
     if (this.dispatchSub) return;
-    EventApi.restrictSubscribe(CommandDispatchedEvent.KIND, ConsumerLogic);
+    // Assert the FULL consumer+producer allowlist (not just ConsumerLogic):
+    // `restrictSubscribe` clobbers the policy with the latest call's list and
+    // its owner-guard refuses a subset, so a single-class re-assert (after
+    // HMR, in any order) would silently evict the producer tap. Both taps
+    // assert the same pair so every re-assert is the full set (HMR-safe).
+    EventApi.restrictSubscribe(
+      CommandDispatchedEvent.KIND,
+      ConsumerLogic,
+      ProducerLogic
+    );
     this.dispatchSub = EventApi.on<CommandDispatchedPayload>(
       CommandDispatchedEvent.KIND,
       (p) => {

@@ -4,14 +4,14 @@
 import { Idea } from '../../lib/stuff/Idea';
 import { CallSecurity, Unshadowable } from '../../lib/security/decorators';
 import { SecurityPolicies } from '../../lib/security/SecurityPolicies';
-import RenownEvent from '../../lib/renown/RenownEvent';
+import RenownEvent from '../../lib/standing/RenownEvent';
 import type {
   RenownEventFields,
   RenownScope,
-} from '../../lib/renown/RenownEvent';
+} from '../../lib/standing/RenownEvent';
 import RenownStanding, {
   COOPERATIVE_WIDE,
-} from '../../lib/renown/RenownStanding';
+} from '../../lib/standing/RenownStanding';
 import { AppApi } from '../../api/app';
 import { AppSettingKeys } from '../../lib/config/AppSettings';
 import { SoulApi } from '../../api/soul';

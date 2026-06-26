@@ -67,7 +67,24 @@ settings:
     value: "600"
   - key: participation.decayHalfLife
     value: "1209600"
+
+  # Producer — the MAKE faucet (the third influence stock). An author is
+  # credited once per (author, actor, 10-min bucket) of attributed
+  # engagement with their released content; the decayed bucket count is the
+  # standing. Engagement-only (no `× regard`); decay is REAL-time (current
+  # draw): half-life 14 days, matching participation.
+  - key: producer.bucketSeconds
+    value: "600"
+  - key: producer.decayHalfLife
+    value: "1209600"
+
   # Influence band cutoffs (display-only; the scalar maps to the highest
   # tier whose `min` it meets). Stock-agnostic — same bands for every stock.
   - key: influence.bandThresholds
     value: '[{"name":"dormant","min":0},{"name":"nascent","min":1},{"name":"familiar","min":5},{"name":"established","min":20},{"name":"pillar","min":100}]'
+
+  # Conviction — the spend half. A held position's weight ramps linearly to
+  # full over one build period of unbroken hold (a flip resets it). 7 days
+  # real-time, so conviction rewards sustained commitment over a snap vote.
+  - key: conviction.buildPeriodSeconds
+    value: "604800"

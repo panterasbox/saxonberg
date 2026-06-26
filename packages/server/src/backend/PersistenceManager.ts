@@ -46,6 +46,10 @@ export enum Collections {
   Renown = 'renown',
   ParticipationEvents = 'participation_events',
   Participation = 'participation',
+  ProducerEvents = 'producer_events',
+  Producer = 'producer',
+  AuthoringEvents = 'authoring_events',
+  Positions = 'positions',
 }
 
 /**
@@ -720,6 +724,50 @@ export class PersistenceManager {
       await this.getCollection(Collections.Participation).createIndex({
         subject: 1,
         scope: 1,
+      });
+
+      // Producer events: append-only attributed-engagement log (one doc per
+      // (author, actor, bucket)). Indexed on `author` (the routing key + the
+      // recompute group) and `{ author, actor, bucket }` (the per-append
+      // dedup lookup), so both stay O(rows-for-this-author).
+      await this.getCollection(Collections.ProducerEvents).createIndex({
+        author: 1,
+      });
+      await this.getCollection(Collections.ProducerEvents).createIndex({
+        author: 1,
+        actor: 1,
+        bucket: 1,
+      });
+
+      // Producer standings: the materialized per-author aggregate (a
+      // rebuildable cache). Indexed on `{ subject, scope }` — the upsert key
+      // and the warm() load shape (subject is the author, scope the '*').
+      await this.getCollection(Collections.Producer).createIndex({
+        subject: 1,
+        scope: 1,
+      });
+
+      // Authoring events: the append-only authorship ledger (one doc per
+      // authoring act; nothing overwritten). Indexed on `path` (derive the
+      // author of a content path) and `author` (a creator's body of work).
+      await this.getCollection(Collections.AuthoringEvents).createIndex({
+        path: 1,
+      });
+      await this.getCollection(Collections.AuthoringEvents).createIndex({
+        author: 1,
+      });
+
+      // Positions: held conviction, one doc per (subject, stock, target).
+      // Indexed on `{ subject, stock, target }` (the upsert / positionOf key)
+      // and `{ stock, target }` (the tally read over every holder).
+      await this.getCollection(Collections.Positions).createIndex({
+        subject: 1,
+        stock: 1,
+        target: 1,
+      });
+      await this.getCollection(Collections.Positions).createIndex({
+        stock: 1,
+        target: 1,
       });
 
       console.info('PersistenceManager: Indexes created successfully');

@@ -21,9 +21,9 @@
  * reached synchronously via `StuffApi.singletonSync`.
  */
 
-import type ParticipationEvent from '../lib/participation/ParticipationEvent';
-import type { ParticipationEventFields } from '../lib/participation/ParticipationEvent';
-import type { InfluenceStanding } from '../lib/participation/InfluenceStanding';
+import type ParticipationEvent from '../lib/standing/ParticipationEvent';
+import type { ParticipationEventFields } from '../lib/standing/ParticipationEvent';
+import type { InfluenceStanding } from '../lib/standing/InfluenceStanding';
 import { StuffApi } from './stuff';
 import { HotReloadApi } from './hot-reload';
 import { SecurityApi } from './security';

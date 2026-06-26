@@ -1,0 +1,101 @@
+/**
+ * ProvenanceApi — the authorship-ledger surface: who authored a content
+ * path, derived from an append-only ledger rather than read from a mutable
+ * stamp.
+ *
+ * The **first concrete brick of the provenance substrate** (see
+ * docs/slates/builds/provenance-slate.md). Its immediate consumer is the
+ * producer influence stock: `resolveCredit` asks `authorOf(zonePath)` to
+ * route attributed-engagement credit. Authorship as a ledger (not a
+ * `createdByPlayerId` field) is deliberate — a mutable field is not an
+ * authority (the author owns the `data` blob), is re-stampable on every
+ * save, and is audit-gapped. The ledger answers all three: append-only, one
+ * row per authoring act, `authorOf` **derives** the original author as the
+ * earliest row.
+ *
+ * **Dumb store, smart consumer** (the renown / chronicle precedent). The
+ * author on each row is **derived from the dispatched execution context**
+ * (`ExecutionContextApi.getActingAuthor`) — never a caller-supplied value,
+ * never read from the author-controlled `data` blob — so it cannot be
+ * spoofed. The write is **centralized**: `recordAuthoring` is gated to the
+ * single `TemplateApi.saveTemplate` chokepoint that every authoring
+ * transport (the in-world verbs and the REST CMS) funnels through. The
+ * operator-trust residue (a developer forging rows) is the *same*
+ * irreducible boundary as `renown_events`, answered by tamper-evidence +
+ * transparency + exit later — it meets the existing bar, doesn't lower it.
+ *
+ * This Api is a thin forwarding shell: the logic lives in the hot-reloadable
+ * {@link ProvenanceLogic} singleton at `/obj/api/provenance`, reached
+ * synchronously via `StuffApi.singletonSync`.
+ */
+
+import type AuthoringEvent from '../lib/standing/AuthoringEvent';
+import type { AuthoringEventFields } from '../lib/standing/AuthoringEvent';
+import { StuffApi } from './stuff';
+import { HotReloadApi } from './hot-reload';
+import { SecurityApi } from './security';
+import { CallSecurity } from '../lib/security/decorators';
+import { SecurityPolicies } from '../lib/security/SecurityPolicies';
+import { ProvenanceLogic } from '../obj/api/ProvenanceLogic';
+import { fileURLToPath } from 'url';
+
+export type { AuthoringEventFields };
+
+const LOGIC_PATH = '/obj/api/provenance';
+const LOGIC_CLASS_FILE = fileURLToPath(
+  new URL('../obj/api/ProvenanceLogic', import.meta.url)
+);
+
+/** Resolve the HMR-able ProvenanceLogic singleton (sync). */
+function logic(): ProvenanceLogic {
+  return StuffApi.singletonSync(
+    LOGIC_PATH,
+    () =>
+      new ((HotReloadApi.getCurrentExport(
+        LOGIC_CLASS_FILE,
+        'ProvenanceLogic'
+      ) as typeof ProvenanceLogic | null) ?? ProvenanceLogic)()
+  );
+}
+
+export class ProvenanceApi {
+  /**
+   * Record one authoring act for `path` (append-only). The author is NOT a
+   * parameter — it is derived from the dispatched execution context inside
+   * the logic (`ExecutionContextApi.getActingAuthor`), so it cannot be
+   * spoofed. The **write is gated to the template save chokepoint**
+   * (`TemplateLogic`): every legitimate authoring path — the in-world
+   * authoring verbs and the REST CMS — funnels through
+   * `TemplateApi.saveTemplate`, so that is the single, centralized writer of
+   * provenance; nothing else may append a row. No-op without an active
+   * connection or an attributable context.
+   *
+   * Gated `FromTemplate('/obj/api/template')`: the sole legitimate caller is
+   * the `TemplateLogic` save singleton (a registered Stuff, so its caller
+   * frame resolves to its template path, not a module id). Every authoring
+   * transport — the in-world verbs and the REST CMS — reaches provenance only
+   * through that one chokepoint.
+   */
+  @CallSecurity(SecurityPolicies.FromTemplate('/obj/api/template'))
+  public static async recordAuthoring(
+    fields: AuthoringEventFields
+  ): Promise<void> {
+    return logic().recordAuthoring(fields);
+  }
+
+  /**
+   * Derive the author of a content path — the original author (the earliest
+   * authoring row). `null` for engine / unauthored paths. The producer
+   * credit router's routing seam.
+   */
+  public static async authorOf(path: string): Promise<string | null> {
+    return logic().authorOf(path);
+  }
+
+  /** The raw, per-path authoring-log reader — the unscored substrate seam. */
+  public static async eventsFor(path: string): Promise<AuthoringEvent[]> {
+    return logic().eventsFor(path);
+  }
+}
+
+SecurityApi.decorateApiClass(ProvenanceApi);

@@ -286,9 +286,14 @@ Ordered by leverage + dependency:
    first brick toward reputation / the cooperative-polity Sybil keystone.
    The **renown aggregation substrate** then **shipped 2026-06**
    ([renown.md](./subsystems/renown.md): per-scope signed standing, decay,
-   the reaction + reception signal generators, log-saturation); its
-   consumers (governance influence, NPC susceptibility,
-   trust-weighting/eigenvector) stay deferred. Remaining
+   the reaction + reception signal generators, log-saturation). The
+   **influence stocks** then **shipped 2026-06** as its first consumer
+   ([influence.md](./subsystems/influence.md)): the consumer (engagement
+   meter), **producer** (make) faucet, the **conviction** spend substrate
+   (abstain/quorum, no verb yet), the durable-`templatePath` re-key, and the
+   **authorship ledger** ([provenance.md](./subsystems/provenance.md)) — the
+   patron faucet, the ballot/chambers, and NPC-susceptibility / eigenvector
+   weighting stay deferred. Remaining
    tails: **social-graph** (crowd-bucket verbosity), identification's
    **pedagogical instrument seam** (`analyze X with Y`, real Material
    chemistry) + partial-ID + misidentification, and the **aether

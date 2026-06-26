@@ -573,6 +573,7 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
             verb: parsed.verb,
             dispatchId: outer.commandId,
             originInteractiveId,
+            location: outer.location,
           });
           claimingCtx = await this._runChain(parsed, outer);
         } else if (parseResult.bound) {
@@ -585,6 +586,7 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
             verb: outer.verb,
             dispatchId: outer.commandId,
             originInteractiveId,
+            location: outer.location,
           });
           const resolved = await CommandApi.resolveModel(
             parseResult.bound.model,
@@ -720,6 +722,7 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
       parseError?: string;
       dispatchId: string;
       originInteractiveId?: string;
+      location?: Stuff | null;
     }): void {
       const giverAsStuff = this as unknown as Stuff;
       if (!MixinApi.isSensor(giverAsStuff)) return;
@@ -731,11 +734,13 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
       // per-(subject, bucket) dedup at the faucet collapses bursts. Fire-and-
       // forget; never blocks dispatch.
       //
-      // The event's RECEIVE side is locked to ConsumerLogic via
-      // `EventApi.restrictSubscribe` (it fires on private commands too —
+      // The event's RECEIVE side is locked to ConsumerLogic + ProducerLogic
+      // via `EventApi.restrictSubscribe` (it fires on private commands too —
       // inventory / settings / whisper / dm / char-gen — so an open-subscribe
       // broadcast would be a snooping side-channel). Emit stays open; only
-      // the blessed consumer may listen. See docs/subsystems/participation.md.
+      // the blessed consumers may listen. The optional location/actor
+      // templatePaths feed the producer faucet's credit routing; the consumer
+      // tap ignores them. See docs/subsystems/participation.md.
       if (args.verb !== undefined && args.originInteractiveId !== undefined) {
         EventApi.fire(
           new CommandDispatchedEvent({
@@ -743,6 +748,9 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
             commandId: args.dispatchId,
             at: WorldClockApi.getNow().rawValue(),
             realAt: Date.now(),
+            locationTemplatePath:
+              args.location?.getTemplatePath() ?? undefined,
+            actorTemplatePath: giverAsStuff.getTemplatePath() ?? undefined,
           })
         );
       }

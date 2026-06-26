@@ -50,7 +50,7 @@ The data-flow is **acyclic in the dangerous direction** — that acyclicity
 
 ## The two-layer store
 
-- **`RenownEvent`** (`lib/renown/RenownEvent.ts`, collection
+- **`RenownEvent`** (`lib/standing/RenownEvent.ts`, collection
   `renown_events`) — the append-only, **scope-tagged** signal log; the
   source of truth. One `Document` row per signal, storing the **raw,
   pre-valence** signal (no score) so re-legislating the value-function
@@ -61,7 +61,13 @@ The data-flow is **acyclic in the dangerous direction** — that acyclicity
   (`reaction` | `reception` | …), `signal` (raw kind-specific payload),
   `locality` + `groups` (the two scope axes), and **both clocks** — `at`
   (game-time seconds, drives decay) and `realAt` (epoch ms, analytics).
-- **`RenownStanding`** (`lib/renown/RenownStanding.ts`, collection
+  `subject`/`source` are the durable `templatePath` (`/obj/Avatar/<playerId>`
+  for an avatar), **not** the ephemeral `stuffId` — the influence build's
+  Phase 0 durability re-key: the `stuffId` is re-minted on re-clone, so it
+  stays a live-resolution handle (scope resolution) while the *stored* key is
+  the templatePath. (Value objects now live in `lib/standing/` — the
+  consolidated home; see [influence.md](./influence.md).)
+- **`RenownStanding`** (`lib/standing/RenownStanding.ts`, collection
   `renown`) — the materialized per-`{subject, scope}` aggregate; a
   **rebuildable cache**, never authoritative (drop it, replay the log,
   identical standings). Reads hit an always-a-`Map` in-memory cache

@@ -11,7 +11,7 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { ConsumerApi } from '../../../api/consumer';
 import { RenownApi } from '../../../api/renown';
-import ParticipationStanding, { PARTICIPATION_WIDE } from '../../../lib/participation/ParticipationStanding';
+import ParticipationStanding, { PARTICIPATION_WIDE } from '../../../lib/standing/ParticipationStanding';
 import { StuffApi } from '../../../api/stuff';
 import { PersistenceManager } from '../../../../backend/PersistenceManager';
 

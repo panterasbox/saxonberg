@@ -88,3 +88,71 @@ describe('EventApi.restrictSubscribe', () => {
     expect(intruder.trySubscribe()).toBe(false);
   });
 });
+
+/**
+ * Two-consumer allowlist (the producer-faucet regression). The dispatch
+ * signal feeds BOTH the consumer and producer taps, so its receive side is
+ * locked to a PAIR. Both taps must assert the full pair: `restrictSubscribe`
+ * clobbers the policy with the latest call's list, so a single-class
+ * re-assert (after HMR, in any order) would silently evict the other tap.
+ */
+class PairA extends Idea {
+  claimPair(): void {
+    EventApi.restrictSubscribe(EVT, PairA, PairB);
+  }
+  subscribe(): boolean {
+    try {
+      EventApi.on(EVT, () => {});
+      return true;
+    } catch {
+      return false;
+    }
+  }
+}
+class PairB extends Idea {
+  claimPair(): void {
+    EventApi.restrictSubscribe(EVT, PairA, PairB);
+  }
+  subscribe(): boolean {
+    try {
+      EventApi.on(EVT, () => {});
+      return true;
+    } catch {
+      return false;
+    }
+  }
+}
+
+describe('EventApi.restrictSubscribe — two-consumer pair (producer regression)', () => {
+  beforeEach(() => {
+    StuffApi.clearAll();
+    ShadowApi._clearAllForTesting();
+    EventApi._clearAllForTesting();
+  });
+
+  it('admits BOTH paired consumers and still refuses a third', async () => {
+    await bootRegistry();
+    const a = await StuffApi.create(() => new PairA());
+    const b = await StuffApi.create(() => new PairB());
+    a.claimPair();
+    b.claimPair();
+    expect(a.subscribe()).toBe(true);
+    expect(b.subscribe()).toBe(true);
+
+    const intruder = await StuffApi.create(() => new Intruder());
+    expect(intruder.trySubscribe()).toBe(false);
+  });
+
+  it('a re-assert of the full pair keeps BOTH subscribable (no clobber)', async () => {
+    await bootRegistry();
+    const a = await StuffApi.create(() => new PairA());
+    const b = await StuffApi.create(() => new PairB());
+    a.claimPair();
+    b.claimPair();
+    // Simulate an HMR re-assert by A (the bug: a single-class re-assert here
+    // would evict B; asserting the full pair keeps both).
+    a.claimPair();
+    expect(b.subscribe()).toBe(true);
+    expect(a.subscribe()).toBe(true);
+  });
+});

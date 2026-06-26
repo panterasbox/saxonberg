@@ -24,11 +24,11 @@
  * reloads it.
  */
 
-import type RenownEvent from '../lib/renown/RenownEvent';
+import type RenownEvent from '../lib/standing/RenownEvent';
 import type {
   RenownEventFields,
   RenownScope,
-} from '../lib/renown/RenownEvent';
+} from '../lib/standing/RenownEvent';
 import { StuffApi } from './stuff';
 import { HotReloadApi } from './hot-reload';
 import { SecurityApi } from './security';

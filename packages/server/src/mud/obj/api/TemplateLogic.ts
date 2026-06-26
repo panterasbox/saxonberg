@@ -14,6 +14,7 @@ import { MixinApi } from '../../api/mixin';
 import { Mixins } from '../../lib/mixin';
 import { TemplateError } from '../../lib/stuff/TemplateError';
 import { ReservedTemplatePrefixes } from '../../lib/paths';
+import { ProvenanceApi } from '../../api/provenance';
 import type { Stuff } from '../../lib/stuff/Stuff';
 import type { Marshaller } from '../../lib/persistence/Marshaller';
 import PersistentHydrator from '../../lib/persistence/PersistentHydrator';
@@ -68,6 +69,13 @@ export class TemplateLogic extends Idea {
       delete tpl.hydratorClass;
     }
     await tpl.save();
+    // Authorship ledger — this is the single centralized writer of
+    // provenance (`recordAuthoring` is gated to this module). The author is
+    // NOT passed: `ProvenanceLogic` derives it from the dispatched execution
+    // context (`getActingAuthor`), so it can't be spoofed and is never the
+    // client-controlled `data` blob. An unattributable context (programmatic
+    // / system save, forced, non-avatar principal) records nothing.
+    await ProvenanceApi.recordAuthoring({ path });
     return tpl._id!;
   }
 

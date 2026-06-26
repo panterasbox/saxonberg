@@ -1,16 +1,20 @@
 /**
- * StandingController — the self-view over a character's consumer-influence
- * standing.
+ * StandingController — the self-view over a character's influence standing
+ * across all three stocks.
  *
  * A single-token, zero-arg, self-only, read-only verb. It reads the three
- * inputs that make up `engagement × renown` — participation (the quantity
- * faucet), renown (the quality faucet), and the resulting consumer
- * influence band — and renders them as a fixed readout. It emits the
- * **band**, never the raw scalar (register D6: standing is shown
- * qualitatively; the precise number is reserved for the eventual ballot).
+ * influence stocks — **play** (consumer = `engagement × renown`), **make**
+ * (producer = attributed engagement on released content), and **fund**
+ * (patron, intake-gated → not yet earnable) — and renders each as a band,
+ * with the two inputs to the play band (participation + regard) described
+ * qualitatively. It emits **bands**, never raw scalars (register D6:
+ * standing is shown qualitatively; the precise number is reserved for the
+ * eventual ballot). The three stocks are three dimensions of every member,
+ * each earned independently.
  *
- * Keyed on the giver's `stuffId`, the same durable id renown and
- * participation both record under, so the projection combines on one key.
+ * Keyed on the giver's durable `templatePath` (post the durability re-key) —
+ * the same id every faucet banks under, so reads and the projection combine
+ * on one key. Falls back to the `stuffId` for an un-templated actor.
  */
 
 import { CommandController } from '../../../lib/command/CommandController';
@@ -33,13 +37,19 @@ export default class StandingController extends CommandController<CommandModel> 
     // faucet's own fallback so the key always agrees.
     const subjectId = actor.getTemplatePath() ?? actor.stuffId;
 
+    // The three influence stocks — make / fund / play — are three
+    // dimensions of every member, each earned and shown independently.
+    // Bands throughout, never raw scalars (register D6: standing is shown
+    // qualitatively; the precise number is reserved for the eventual ballot).
+    const playBand = InfluenceApi.bandOf(subjectId, 'consumer');
+    const makeBand = InfluenceApi.bandOf(subjectId, 'producer');
+    // Patron (fund) is intake-gated — a defined zero until Twitch patronage
+    // lands; shown as not-yet-earnable rather than a misleading 'dormant'.
+
+    // The two inputs to the play (consumer) band, described in words so
+    // there is no precise number to grind.
     const participation = ConsumerApi.participationOf(subjectId);
     const renown = RenownApi.renownOf(subjectId);
-    const band = InfluenceApi.bandOf(subjectId, 'consumer');
-
-    // Qualitative throughout — band for the headline; the two faucets
-    // described in words, not raw scalars beyond a coarse presence/regard
-    // read, so there is no precise number to grind (register D6).
     const presence =
       participation <= 0
         ? 'You have not yet shown up.'
@@ -53,9 +63,10 @@ export default class StandingController extends CommandController<CommandModel> 
 
     const blocks: string[] = [
       Mml.strong('Your standing').toString(),
-      Mml.escape(`Influence: ${band.name}.`),
-      Mml.escape(presence),
-      Mml.escape(regard),
+      Mml.escape(`Play (engagement): ${playBand.name}.`),
+      Mml.escape(`${presence} ${regard}`),
+      Mml.escape(`Make (creation): ${makeBand.name}.`),
+      Mml.escape('Fund (patronage): not yet earnable.'),
     ];
 
     const body = Mml.fromMarkup(blocks.join('\n\n'));

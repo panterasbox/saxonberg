@@ -9,7 +9,7 @@
  * produced `scalar` differ. The contract lives here at the standing/band
  * layer — never at the formula layer (patron is `concave($)`, not
  * `engagement × quality`, so a shared formula would not fit). Homed in
- * `lib/participation/` (the consumer-influence measurement substrate)
+ * `lib/standing/` (the consumer-influence measurement substrate)
  * rather than a single-module `lib/influence/`.
  *
  * Immutable value object. `scalar` is the raw influence magnitude (host-

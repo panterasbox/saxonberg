@@ -21,7 +21,7 @@ import { RenownApi } from '../../../api/renown';
 import { SoulApi } from '../../../api/soul';
 import { Emote } from '../../../lib/social/Emote';
 import { AppSettings } from '../../../lib/config/AppSettings';
-import RenownStanding from '../../../lib/renown/RenownStanding';
+import RenownStanding from '../../../lib/standing/RenownStanding';
 import { WorldClockApi } from '../../../api/worldclock';
 import { PersistenceManager } from '../../../../backend/PersistenceManager';
 
