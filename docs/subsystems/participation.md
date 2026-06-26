@@ -33,15 +33,19 @@ CommandDispatchedEvent ─► participation_events ─► participation ─► I
   tapping `CommReceivedEvent` — the command framework stays ignorant of
   participation.
 
-  **The event's receive side is locked to `ConsumerLogic`** via
-  `EventApi.restrictSubscribe`. `command.dispatched` fires on *private*
-  commands too — `inventory`, `settings`, a private `look`, a whisper, a DM,
-  char-gen inputs — none in-world-observable. EventApi's subscribe is open
-  by default and `on` is author-reachable, so an ungated broadcast would be
-  a per-subject activity **snooping** side-channel (any mudlib subscriber
-  watching every player's command cadence). Restricting the receive side to
-  the one blessed consumer closes that while keeping the bus's
-  producer-ignorant decoupling.
+  **The event's receive side is locked to the `ConsumerLogic` +
+  `ProducerLogic` pair** via `EventApi.restrictSubscribe`.
+  `command.dispatched` fires on *private* commands too — `inventory`,
+  `settings`, a private `look`, a whisper, a DM, char-gen inputs — none
+  in-world-observable. EventApi's subscribe is open by default and `on` is
+  author-reachable, so an ungated broadcast would be a per-subject activity
+  **snooping** side-channel (any mudlib subscriber watching every player's
+  command cadence). Restricting the receive side to the two blessed
+  consumers closes that while keeping the bus's producer-ignorant
+  decoupling. The producer faucet **shares this same signal** (the event now
+  also carries optional `locationTemplatePath`/`actorTemplatePath` for credit
+  routing); both taps must assert the *full pair* so an HMR re-assert never
+  evicts the other — the clobber trap detailed in [influence.md](./influence.md).
 
   The mechanism is `EventApi.restrictSubscribe(name, ...consumerClasses)` —
   the first use of the EventRegistry prop-access apparatus's **receive**
@@ -102,8 +106,10 @@ patron / producer). It is built consumer-only, but against a shared
   shown as a band, never a grindable number; the scalar is reserved for the
   ballot). Cutoffs are an AppSettings dial.
 - **`InfluenceApi`** — the thin common dispatcher: `standingOf(subject,
-  stock)` delegates `'consumer'` to `ConsumerApi`; `'patron'`/`'producer'`
-  are reserved values returning a defined zero standing, never a throw.
+  stock)` delegates `'consumer'` to `ConsumerApi` and `'producer'` to
+  `ProducerApi` (both now live — see [influence.md](./influence.md));
+  `'patron'` is the one reserved value, returning a defined zero standing,
+  never a throw.
 
 The symmetry lives at the standing/band layer; the **asymmetry stays at
 the source** — each stock's faucet and formula differ (patron is
@@ -124,11 +130,21 @@ fit). Raw logs stay per-faucet.
   governance reads the cooperative-wide roll-up; NPC/social/disguise read
   the per-circle vector — not a consumer-chamber thing).
 
-Value-objects live in `lib/participation/` (`ParticipationEvent`,
-`ParticipationStanding`, `Band`, `InfluenceStanding`); the capture event in
+Value-objects live in `lib/standing/` (`ParticipationEvent`,
+`ParticipationStanding`, `Band`, `InfluenceStanding`) — the consolidated
+home shared with renown's value objects and the producer/conviction
+substrate (the influence build folded `lib/participation/` + `lib/renown/`
+into one `lib/standing/`; renown is *not* subordinate, hence the neutral
+name — see [influence.md](./influence.md)). The capture event is in
 `lib/events/CommandDispatchedEvent.ts`. Named **Participation** (not
 "engagement") to avoid colliding with `lib/activity/`'s in-session
 `EngagedMixin` — a different concept (sustained in-session actions).
+
+Standing banks on the durable `templatePath` (`/obj/Avatar/<playerId>`),
+**not** the ephemeral `stuffId` (re-minted on re-clone) — the durability
+re-key the influence build's Phase 0 landed across the whole engagement
+cluster. The `stuffId` stays a live-resolution handle; only the stored key
+is the templatePath.
 
 ## Tuning (AppSettings, no code defaults)
 
@@ -149,9 +165,11 @@ resulting influence **band** — qualitatively, never the raw scalar.
 
 ## Deferred (named, not built)
 
-The ballot / chambers / voting; the patron faucet (Twitch subs) and
-producer faucet (CMS/AOP authortime × runtime-usage); **second-order
-engagement** (register D2 — "the engagement you cause in others", the
-population-dependent quality enrichment; this build measures the
-solo-observable quantity); the player/human-level rollup for enfranchisement;
-per-faucet saturation.
+The ballot / chambers / voting (though the **conviction spend substrate** is
+now built — `ConvictionApi`, no verb yet; see [influence.md](./influence.md));
+the patron faucet (Twitch subs); **second-order engagement** (register D2 —
+"the engagement you cause in others", the population-dependent quality
+enrichment; this build measures the solo-observable quantity); the
+player/human-level rollup for enfranchisement; per-faucet saturation. The
+**producer faucet is now built** (the make stock — see
+[influence.md](./influence.md)).
