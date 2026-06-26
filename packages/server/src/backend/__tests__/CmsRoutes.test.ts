@@ -144,15 +144,16 @@ describe('CmsRoutes', () => {
       fakeAvatar('p-1')
     );
 
-    // Write to a real temp file inside the sandbox root so the source
-    // path resolves; spy the go-live reload.
+    // The CMS source backend is rooted at the mudlib, so write to a real
+    // temp file under mud/ and use a mud-relative source path; spy the
+    // go-live reload.
     const sandbox = SourceTreeApi.getSandboxRoot();
     const relDir = 'cms-routes-test';
-    const absDir = path.join(sandbox, relDir);
+    const absDir = path.join(sandbox, 'server', 'src', 'mud', relDir);
     fs.mkdirSync(absDir, { recursive: true });
     const fileName = `r-${Date.now()}.txt`;
     const absFile = path.join(absDir, fileName);
-    const displayPath = SourceTreeApi.toDisplayPath(absFile);
+    const cmsPath = `/${relDir}/${fileName}`;
 
     const reloadSpy = vi
       .spyOn(HotReloadApi, 'reload')
@@ -167,7 +168,7 @@ describe('CmsRoutes', () => {
       const res = await agent
         .post('/api/cms/write')
         .set('X-CMS-CSRF', token)
-        .send({ backend: 'source', path: displayPath, body: 'hello cms' });
+        .send({ backend: 'source', path: cmsPath, body: 'hello cms' });
 
       expect(res.status).toBe(200);
       expect(res.body.reloaded).toBe(true);

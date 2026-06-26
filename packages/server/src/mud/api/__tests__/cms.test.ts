@@ -252,9 +252,12 @@ describe('CmsApi — source backend', () => {
 
   beforeEach(async () => {
     StuffApi.clearAll();
-    tempDir = path.join(SANDBOX_ROOT, 'server', `.tmp-cms-${Date.now()}`);
+    // The CMS source backend is rooted at the mudlib, so the temp tree
+    // must live under mud/ and CMS paths are mud-relative.
+    const name = `.tmp-cms-${Date.now()}`;
+    tempDir = path.join(SANDBOX_ROOT, 'server', 'src', 'mud', name);
     await fs.mkdir(tempDir, { recursive: true });
-    tempLogical = SourceTreeApi.toDisplayPath(tempDir);
+    tempLogical = `/${name}`;
   });
 
   afterEach(async () => {
@@ -289,10 +292,29 @@ describe('CmsApi — source backend', () => {
     ).rejects.toMatchObject({ code: 'not-found' });
   });
 
-  it('read on a "../" escape throws a sandbox error', async () => {
+  it('read on a "../" escape out of the mud root throws', async () => {
     await expect(
       CmsApi.read(null, 'source', '/../../etc/passwd')
-    ).rejects.toThrow(/outside the sandbox/);
+    ).rejects.toThrow(/outside the source root/);
+  });
+
+  it('source root is the mudlib, not the monorepo', async () => {
+    const listing = await CmsApi.listTree(null, 'source', '/');
+    const names = listing.entries.map((e) => e.name);
+    // mud/ top-level dirs; the old monorepo root would have had these.
+    expect(names).toContain('api');
+    expect(names).toContain('obj');
+    expect(names).not.toContain('server');
+    expect(names).not.toContain('client');
+  });
+
+  it('hides __tests__ folders from source listings', async () => {
+    await fs.mkdir(path.join(tempDir, '__tests__'));
+    await fs.writeFile(path.join(tempDir, 'real.ts'), 'export {}');
+    const listing = await CmsApi.listTree(null, 'source', tempLogical);
+    const names = listing.entries.map((e) => e.name);
+    expect(names).toContain('real.ts');
+    expect(names).not.toContain('__tests__');
   });
 
   it('write (developer) writes bytes + invokes HotReloadApi.reload, reloaded:true', async () => {

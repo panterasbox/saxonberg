@@ -34,11 +34,17 @@ Two backends, one navigation model:
 
 - **`content`** — `Template` docs in the `domain` collection (you edit
   `data`), via `TemplateApi`.
-- **`source`** — sandboxed files under `packages/`, via `SourceTreeApi`.
+- **`source`** — sandboxed files via `SourceTreeApi`, **rooted at the
+  mudlib** (`packages/server/src/mud`). Authors edit game content, not
+  client/build scaffolding, so the source root is mud — not the monorepo —
+  and colocated **`__tests__` folders are hidden** from the tree. Source
+  paths are mud-relative (`/api/cms.ts`, not `/server/src/mud/api/cms.ts`),
+  and `..` that climbs out of mud throws (mud is a hard boundary, enforced
+  in `CmsLogic` via `sourceAbs`, on top of the `SourceTreeApi` sandbox).
 
 A **node ref** is `{ backend: 'content' | 'source'; path }`. `path` is the
 canonical identifier *within that backend* (a template path
-`/obj/Avatar/foo` for content; a sandbox display path `/server/src/...` for
+`/obj/Avatar/foo` for content; a mud-relative path `/api/cms.ts` for
 source). **There is no merged namespace** — the unified-ness is that one
 `CmsApi` and one explorer drive both, discriminated by `backend`. The
 explorer shows two fixed roots ("content" / "source"); a synthetic merged

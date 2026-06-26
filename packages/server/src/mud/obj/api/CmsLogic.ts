@@ -56,6 +56,51 @@ function immediateChildPath(parent: string, descendant: string): boolean {
 }
 
 /**
+ * The CMS source backend is rooted at the **mudlib** (`packages/server/
+ * src/mud`) — authors edit game content, not client/build scaffolding.
+ * Source paths in the CMS are relative to this root (`/api/cms.ts`, not
+ * `/server/src/mud/api/cms.ts`), and colocated `__tests__` folders are
+ * hidden from the tree.
+ */
+const SOURCE_ROOT_DISPLAY = '/server/src/mud';
+
+/** Hidden in the CMS source tree: colocated test folders. */
+function isHiddenSourceEntry(name: string): boolean {
+  return name === '__tests__';
+}
+
+/**
+ * Resolve a CMS-relative source path (rooted at the mudlib) to an absolute
+ * filesystem path, enforcing it stays within the mud root. A `..` that
+ * climbs out of mud throws `SourceTreeSandboxError` (REST → 400), the same
+ * shape as a sandbox escape — mud is a hard boundary, not just the start
+ * folder.
+ */
+function sourceAbs(cmsPath: string): string {
+  const display =
+    cmsPath === '/' ? SOURCE_ROOT_DISPLAY : SOURCE_ROOT_DISPLAY + cmsPath;
+  const abs = SourceTreeApi.resolvePath('/', display, { home: '/' });
+  const rootAbs = SourceTreeApi.resolvePath('/', SOURCE_ROOT_DISPLAY, {
+    home: '/',
+  });
+  if (abs !== rootAbs && !abs.startsWith(rootAbs + '/')) {
+    throw new SourceTreeSandboxError(
+      `path '${cmsPath}' resolves outside the source root`
+    );
+  }
+  return abs;
+}
+
+/** Map an absolute path under the mud root back to a CMS-relative path. */
+function sourceCmsPath(abs: string): string {
+  const display = SourceTreeApi.toDisplayPath(abs);
+  if (display === SOURCE_ROOT_DISPLAY) return '/';
+  return display.startsWith(SOURCE_ROOT_DISPLAY + '/')
+    ? display.slice(SOURCE_ROOT_DISPLAY.length)
+    : display;
+}
+
+/**
  * Content-tree write gate — verbatim from
  * `WriteController._gateContentWrite`. Live-at-path Zone →
  * `canMutateZone`; else `can(actor, 'write', liveAtTarget)`.
@@ -142,15 +187,17 @@ export class CmsLogic extends Idea {
       }
       return { backend, path, entries };
     }
-    // source
-    const abs = SourceTreeApi.resolvePath('/', path, { home: '/' });
+    // source — rooted at the mudlib; test folders hidden
+    const abs = sourceAbs(path);
     const dirEntries = await SourceTreeApi.list(abs);
-    const entries: CmsTreeEntry[] = dirEntries.map((ent) => ({
-      backend: 'source' as const,
-      path: SourceTreeApi.toDisplayPath(ent.absolutePath),
-      name: ent.name,
-      kind: (ent.isDir ? 'folder' : 'leaf') as CmsNodeKind,
-    }));
+    const entries: CmsTreeEntry[] = dirEntries
+      .filter((ent) => !isHiddenSourceEntry(ent.name))
+      .map((ent) => ({
+        backend: 'source' as const,
+        path: sourceCmsPath(ent.absolutePath),
+        name: ent.name,
+        kind: (ent.isDir ? 'folder' : 'leaf') as CmsNodeKind,
+      }));
     return { backend, path, entries };
   }
 
@@ -186,8 +233,8 @@ export class CmsLogic extends Idea {
         },
       };
     }
-    // source
-    const abs = SourceTreeApi.resolvePath('/', path, { home: '/' });
+    // source — rooted at the mudlib
+    const abs = sourceAbs(path);
     if (await SourceTreeApi.isDir(abs)) {
       throw new CmsError(
         'invalid',
@@ -225,8 +272,8 @@ export class CmsLogic extends Idea {
         kind: isFolder ? 'folder' : 'leaf',
       };
     }
-    // source
-    const abs = SourceTreeApi.resolvePath('/', path, { home: '/' });
+    // source — rooted at the mudlib
+    const abs = sourceAbs(path);
     if (await SourceTreeApi.isDir(abs)) {
       return { backend, path, exists: true, kind: 'folder' };
     }
@@ -319,12 +366,16 @@ export class CmsLogic extends Idea {
     path: string,
     body: string
   ): Promise<CmsWriteResult> {
-    const denial = await gateSourceWrite(actor, path);
+    // Gate on the mud-rooted source location (isDeveloper is checked
+    // first, so non-developers are denied before any filesystem work).
+    const display =
+      path === '/' ? SOURCE_ROOT_DISPLAY : SOURCE_ROOT_DISPLAY + path;
+    const denial = await gateSourceWrite(actor, display);
     if (denial) throw new CmsError('denied', denial);
 
-    // resolvePath throws SourceTreeSandboxError on escape — let it
-    // propagate; the REST layer maps it to 400 {error:'sandbox'}.
-    const abs = SourceTreeApi.resolvePath('/', path, { home: '/' });
+    // sourceAbs throws SourceTreeSandboxError on escape (mud boundary or
+    // sandbox) — let it propagate; the REST layer maps it to 400.
+    const abs = sourceAbs(path);
     await SourceTreeApi.write(abs, body);
 
     try {
