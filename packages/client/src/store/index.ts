@@ -33,6 +33,7 @@ import type {
   StuffRefRecord,
   TopicDescriptor,
 } from "@saxonberg/types";
+import { createCmsSlice, type CmsSlice } from "./cmsSlice";
 
 /**
  * The mutually-exclusive top-level UI phase. Derived from the auth /
@@ -228,9 +229,10 @@ export interface InputMode {
 }
 
 /**
- * Combined store state.
+ * Combined store state. Extends {@link CmsSlice} (the CMS editor's
+ * state + actions) — composed in via `createCmsSlice` in the store body.
  */
-interface StoreState {
+interface StoreState extends CmsSlice {
   // Auth state
   auth: AuthState;
   setAuth: (auth: Partial<AuthState>) => void;
@@ -295,7 +297,10 @@ interface StoreState {
    * thread's entry id (null at the board's thread-list level).
    */
   forumNav: { boardHandle: string | null; threadId: string | null };
-  setForumNav: (nav: { boardHandle?: string | null; threadId?: string | null }) => void;
+  setForumNav: (nav: {
+    boardHandle?: string | null;
+    threadId?: string | null;
+  }) => void;
 
   /**
    * Live forum records keyed by subscriptionId — fed by
@@ -818,6 +823,14 @@ const initialConnectionState: ConnectionState = {
  * Zustand store.
  */
 export const useStore = create<StoreState>((set, get) => ({
+  // CMS editor slice (state + REST-driven actions). Composed first; it
+  // only touches the `cms.*` keys, so the slice's narrower `set`/`get`
+  // are structurally compatible with the store's.
+  ...createCmsSlice(
+    set as Parameters<typeof createCmsSlice>[0],
+    get as Parameters<typeof createCmsSlice>[1],
+  ),
+
   // Auth state
   auth: initialAuthState,
 

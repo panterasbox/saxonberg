@@ -27,6 +27,7 @@ import { CommandBar } from "./components/CommandBar";
 import { InspectionPane } from "./components/InspectionPane";
 import { CharacterSelect } from "./components/CharacterSelect";
 import { CharGenStage } from "./components/CharGenStage";
+import { CmsSurface } from "./components/cms/CmsSurface";
 import { tokens } from "./components/ui";
 import type { ConsoleTab } from "@saxonberg/types";
 
@@ -87,8 +88,7 @@ const ViewSwitch = styled.div`
 `;
 
 const ViewTab = styled.button<{ $active: boolean }>`
-  background: ${(p) =>
-    p.$active ? "rgba(255,255,255,0.14)" : "transparent"};
+  background: ${(p) => (p.$active ? "rgba(255,255,255,0.14)" : "transparent")};
   border: 1px solid rgba(255, 255, 255, 0.14);
   border-radius: 4px;
   color: inherit;
@@ -273,6 +273,17 @@ function recognizeForumNavigation(text: string): void {
 }
 
 /**
+ * Read once at module load: is this tab the CMS surface (`?surface=cms`)?
+ * The CMS opens in its own browser tab sharing the session; when this is
+ * true, `App` renders a full-screen `<CmsSurface/>` takeover bypassing
+ * the cockpit and — crucially — opens NO WebSocket connection (the CMS
+ * is REST-only; see plan §5). The query is fixed for the tab's life, so
+ * reading it once at module load is sufficient.
+ */
+const IS_CMS_SURFACE =
+  new URLSearchParams(window.location.search).get("surface") === "cms";
+
+/**
  * App component.
  */
 function App() {
@@ -306,7 +317,10 @@ function App() {
     for (let i = visibleFrames.length - 1; i >= 0; i--) {
       const f = visibleFrames[i]!;
       if (f.topic.startsWith("world.")) {
-        return f.body.replace(/<[^>]+>/g, "").trim().slice(0, 160);
+        return f.body
+          .replace(/<[^>]+>/g, "")
+          .trim()
+          .slice(0, 160);
       }
     }
     return null;
@@ -371,7 +385,9 @@ function App() {
   }, []);
 
   useEffect(() => {
-    // Connect to WebSocket when authenticated
+    // Connect to WebSocket when authenticated — EXCEPT on the CMS
+    // surface, which is REST-only and must never open a WS (plan §5).
+    if (IS_CMS_SURFACE) return;
     if (auth.isAuthenticated && !connection.isConnected) {
       console.info("App: Authenticated - connecting to WebSocket...");
       websocketClient.connect(WS_URL);
@@ -446,6 +462,9 @@ function App() {
           isAuthenticated: true,
           user: data.user || null,
           player: data.player || null,
+          // Non-authoritative developer-tier hint — drives only the CMS
+          // launcher visibility; the REST CMS gates are the authority.
+          isDeveloper: data.isDeveloper === true,
         });
       }
     } catch (error) {
@@ -653,6 +672,16 @@ function App() {
       delete w.__store;
     };
   }, []);
+
+  // CMS surface takeover (`?surface=cms`). Its own tab, full-screen,
+  // bypassing the cockpit and the connection-phase switch entirely — no
+  // WebSocket, REST-only. Show the start screen until the shared session
+  // is confirmed (the CMS needs the cookie + the developer flag); once
+  // authenticated, render the CMS shell.
+  if (IS_CMS_SURFACE) {
+    if (!auth.isAuthenticated) return <StartScreen />;
+    return <CmsSurface />;
+  }
 
   // Mutually-exclusive top-level screen, switched on the connection
   // phase. `unauthenticated` → login takeover; `character-select` →
