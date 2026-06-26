@@ -4,16 +4,21 @@
  *
  * Proves the transport contract, not the gating internals (those are
  * `CmsLogic`'s, covered in cms.test.ts):
- *   - authenticated read → 200
+ *   - authenticated read → 200 (gate spied open — the bridge resolved an
+ *     avatar and the route returned the listing)
  *   - unauthenticated → 401
  *   - write without CSRF → 403
- *   - write with a NON-developer session (no loaded Avatar → actor=null
- *     → AccessApi fails closed) → 403 — the "same gated op denies" proof
+ *   - write with a session that has NO loaded Avatar → the bridge yields
+ *     actingActor=null → the gate fails closed → 403. The real
+ *     transport-level proof: the acting principal comes from the bridge,
+ *     not the request body, so a no-avatar session can't write.
  *   - write with a developer session → 200 + reloaded
  *
- * The bridge's avatar resolution is stubbed (User.findById +
- * PlayerApi.findAvatarByPlayerId); the source go-live (HotReloadApi.reload)
- * is spied. No Mongo, no live world.
+ * The CMS API takes no actor argument — the bridge stamps the resolved
+ * session avatar, and CmsLogic derives it from context. These tests stub
+ * the avatar resolution (User.findById + PlayerApi.findAvatarByPlayerId)
+ * and spy the access gates (their logic is cms.test.ts's job); the source
+ * go-live (HotReloadApi.reload) is spied. No Mongo, no live world.
  */
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
@@ -29,6 +34,7 @@ import { User } from '../../mud/lib/identity/User';
 import { PlayerApi } from '../../mud/api/player';
 import { SourceTreeApi } from '../../mud/api/source-tree';
 import { HotReloadApi } from '../../mud/api/hot-reload';
+import { AccessApi } from '../../mud/api/access';
 import type Avatar from '../../mud/obj/Avatar';
 
 /** Minimal app mirroring Server's auth middleware + CmsRoutes. */
@@ -76,13 +82,15 @@ describe('CmsRoutes', () => {
   });
 
   it('authenticated read returns 200', async () => {
-    // Bridge resolves an actor; reads aren't gated so any actor is fine.
+    // Bridge resolves an actor; source reads are developer-gated, so spy
+    // the gate open (its logic is cms.test.ts's job).
     const user = new User();
     user.playerIds = ['p-1'];
     vi.spyOn(User, 'findById').mockResolvedValue(user);
     vi.spyOn(PlayerApi, 'findAvatarByPlayerId').mockReturnValue(
       fakeAvatar('p-1')
     );
+    vi.spyOn(AccessApi, 'isDeveloper').mockResolvedValue(true);
 
     const agent = request.agent(makeApp());
     await agent.post('/test-login').expect(200);
@@ -135,14 +143,17 @@ describe('CmsRoutes', () => {
   });
 
   it('developer write returns 200 and reloads', async () => {
-    // A developer-capable actor (non-null playerId; no AccessRegistry
-    // seeded → AccessApi.isDeveloper/can fail OPEN for a real actor).
+    // The bridge resolves a developer avatar; spy the source write gate
+    // open (its logic is cms.test.ts's job).
     const user = new User();
     user.playerIds = ['p-1'];
     vi.spyOn(User, 'findById').mockResolvedValue(user);
     vi.spyOn(PlayerApi, 'findAvatarByPlayerId').mockReturnValue(
       fakeAvatar('p-1')
     );
+    vi.spyOn(AccessApi, 'isDeveloper').mockResolvedValue(true);
+    vi.spyOn(AccessApi, 'can').mockResolvedValue(true);
+    vi.spyOn(AccessApi, 'resolveSourceFolderZone').mockResolvedValue(null);
 
     // The CMS source backend is rooted at the mudlib, so write to a real
     // temp file under mud/ and use a mud-relative source path; spy the

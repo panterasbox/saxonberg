@@ -3,14 +3,15 @@
  *
  * The Api composes four existing Apis over two backends:
  *   - content (Template docs in `domain`) and
- *   - source  (sandboxed files under `packages/`).
+ *   - source  (sandboxed files under the mudlib).
  *
- * Content ops run against an in-memory PersistenceManager store (the
- * `template.test.ts` pattern). Source ops run against a temp dir under
- * the sandbox root (the `source-tree.test.ts` pattern). The access
- * gates and the go-live steps (`restoreFromTemplate` / `reload`) are
- * driven via `vi.spyOn` so the deny / allow / invoked assertions don't
- * need a full AccessRegistry bootstrap.
+ * SECURITY MODEL UNDER TEST: the API takes **no `actor` argument**. The
+ * acting principal is resolved from the execution context
+ * (`ExecutionContextApi.getActingAuthor`), never a caller-supplied value,
+ * so a privileged-Avatar reference can't be substituted for the gate's
+ * subject. Tests drive the context by spying `getActingAuthor`, and the
+ * access gates / go-live steps via `vi.spyOn`, so the deny / allow /
+ * invoked assertions don't need a full AccessRegistry bootstrap.
  */
 
 import {
@@ -31,6 +32,7 @@ import { SourceTreeApi } from '../source-tree';
 import { TemplateApi } from '../template';
 import { HotReloadApi } from '../hot-reload';
 import { AccessApi } from '../access';
+import { ExecutionContextApi } from '../execution-context';
 import { StuffApi } from '../stuff';
 import { SecurityError } from '../../lib/security/errors';
 import { makeStuffAtPath } from '../../lib/security/__tests__/test-setup';
@@ -38,9 +40,15 @@ import {
   PersistenceManager,
   Collections,
 } from '../../../backend/PersistenceManager';
+import type { Stuff } from '../../lib/stuff/Stuff';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const SANDBOX_ROOT = findPackagesRoot(HERE);
+
+/** A stand-in acting principal. Its identity is irrelevant — the access
+ *  gates are spied — but it must be the value the context yields, so the
+ *  tests can assert the gate's subject came from context. */
+const ACTOR = { stuffId: 'ctx-actor' } as unknown as Stuff;
 
 function findPackagesRoot(start: string): string {
   let dir = start;
@@ -114,6 +122,9 @@ describe('CmsApi — content backend', () => {
 
   beforeEach(() => {
     StuffApi.clearAll();
+    // Context yields an author; content reads are author-gated.
+    vi.spyOn(ExecutionContextApi, 'getActingAuthor').mockReturnValue(ACTOR);
+    vi.spyOn(AccessApi, 'isAuthor').mockResolvedValue(true);
     tmpStore = installInMemoryStore([
       { path: '/cmstest', class: ZONE_CLASS, data: {} },
       { path: '/cmstest/alpha', class: LEAF_CLASS, data: { hp: 1 } },
@@ -132,7 +143,7 @@ describe('CmsApi — content backend', () => {
   });
 
   it('listTree returns immediate children with correct kinds', async () => {
-    const listing = await CmsApi.listTree(null, 'content', '/cmstest');
+    const listing = await CmsApi.listTree('content', '/cmstest');
     expect(listing.backend).toBe('content');
     expect(listing.path).toBe('/cmstest');
     const byPath = new Map(listing.entries.map((e) => [e.path, e]));
@@ -151,17 +162,17 @@ describe('CmsApi — content backend', () => {
 
   it('synthesizes a browsable namespace folder for an intermediate path', async () => {
     // /cmstest/ghost has no template doc, only /cmstest/ghost/leaf below it.
-    const parent = await CmsApi.listTree(null, 'content', '/cmstest');
+    const parent = await CmsApi.listTree('content', '/cmstest');
     const ghost = parent.entries.find((e) => e.path === '/cmstest/ghost');
     expect(ghost?.kind).toBe('folder');
     // It drills in to the real leaf below.
-    const inside = await CmsApi.listTree(null, 'content', '/cmstest/ghost');
+    const inside = await CmsApi.listTree('content', '/cmstest/ghost');
     expect(inside.entries.map((e) => e.path)).toEqual(['/cmstest/ghost/leaf']);
     expect(inside.entries[0]?.kind).toBe('leaf');
   });
 
   it('read on a leaf returns JSON body + templateMeta', async () => {
-    const res = await CmsApi.read(null, 'content', '/cmstest/alpha');
+    const res = await CmsApi.read('content', '/cmstest/alpha');
     expect(res.kind).toBe('leaf');
     expect(res.language).toBe('json');
     expect(JSON.parse(res.body)).toEqual({ hp: 1 });
@@ -169,32 +180,33 @@ describe('CmsApi — content backend', () => {
   });
 
   it('read on a folder throws CmsError(invalid)', async () => {
-    await expect(
-      CmsApi.read(null, 'content', '/cmstest')
-    ).rejects.toMatchObject({ code: 'invalid' });
+    await expect(CmsApi.read('content', '/cmstest')).rejects.toMatchObject({
+      code: 'invalid',
+    });
   });
 
   it('read on a missing path throws CmsError(not-found)', async () => {
     await expect(
-      CmsApi.read(null, 'content', '/cmstest/nope')
+      CmsApi.read('content', '/cmstest/nope')
     ).rejects.toMatchObject({ code: 'not-found' });
   });
 
   it('stat reports existence + kind', async () => {
-    expect(await CmsApi.stat(null, 'content', '/cmstest/alpha')).toMatchObject(
-      { exists: true, kind: 'leaf' }
-    );
-    expect(await CmsApi.stat(null, 'content', '/cmstest')).toMatchObject({
+    expect(await CmsApi.stat('content', '/cmstest/alpha')).toMatchObject({
+      exists: true,
+      kind: 'leaf',
+    });
+    expect(await CmsApi.stat('content', '/cmstest')).toMatchObject({
       exists: true,
       kind: 'folder',
     });
-    expect(await CmsApi.stat(null, 'content', '/cmstest/nope')).toMatchObject({
+    expect(await CmsApi.stat('content', '/cmstest/nope')).toMatchObject({
       exists: false,
     });
   });
 
   it('write (allowed) updates data + invokes restoreFromTemplate go-live', async () => {
-    // Allow the gate.
+    // Allow the write gate.
     vi.spyOn(AccessApi, 'can').mockResolvedValue(true);
     vi.spyOn(AccessApi, 'canMutateZone').mockResolvedValue(true);
     // A live clone at the path: spy restoreFromTemplate to observe go-live.
@@ -207,7 +219,6 @@ describe('CmsApi — content backend', () => {
       .mockResolvedValue(undefined);
 
     const out = await CmsApi.write(
-      { stuffId: 'dev' } as never,
       'content',
       '/cmstest/alpha',
       JSON.stringify({ hp: 99 })
@@ -225,19 +236,14 @@ describe('CmsApi — content backend', () => {
   it('write with malformed JSON throws CmsError(invalid)', async () => {
     vi.spyOn(AccessApi, 'can').mockResolvedValue(true);
     await expect(
-      CmsApi.write({ stuffId: 'dev' } as never, 'content', '/cmstest/alpha', '{ not json')
+      CmsApi.write('content', '/cmstest/alpha', '{ not json')
     ).rejects.toMatchObject({ code: 'invalid' });
   });
 
   it('write to a missing template throws CmsError(not-found)', async () => {
     vi.spyOn(AccessApi, 'can').mockResolvedValue(true);
     await expect(
-      CmsApi.write(
-        { stuffId: 'dev' } as never,
-        'content',
-        '/cmstest/nope',
-        JSON.stringify({ hp: 1 })
-      )
+      CmsApi.write('content', '/cmstest/nope', JSON.stringify({ hp: 1 }))
     ).rejects.toMatchObject({ code: 'not-found' });
   });
 
@@ -245,19 +251,35 @@ describe('CmsApi — content backend', () => {
     vi.spyOn(AccessApi, 'can').mockResolvedValue(false);
     vi.spyOn(AccessApi, 'canMutateZone').mockResolvedValue(false);
     await expect(
-      CmsApi.write(
-        { stuffId: 'nodev' } as never,
-        'content',
-        '/cmstest/alpha',
-        JSON.stringify({ hp: 1 })
-      )
+      CmsApi.write('content', '/cmstest/alpha', JSON.stringify({ hp: 1 }))
     ).rejects.toBeInstanceOf(CmsError);
   });
 
-  it('write with actor=null fails closed (denied)', async () => {
-    // No spies — the real AccessApi fails closed for null subject.
+  // ---- the anti-spoof / context-derivation security model ----
+
+  it('gates on the CONTEXT-derived actor, never a passed value', async () => {
+    // The gate subject must be exactly what getActingAuthor yields — there
+    // is no actor parameter for a caller to substitute.
+    const isAuthor = vi.spyOn(AccessApi, 'isAuthor').mockResolvedValue(true);
+    await CmsApi.listTree('content', '/cmstest');
+    expect(isAuthor).toHaveBeenCalledWith(ACTOR);
+  });
+
+  it('read is denied for a non-author context', async () => {
+    vi.spyOn(AccessApi, 'isAuthor').mockResolvedValue(false);
     await expect(
-      CmsApi.write(null, 'content', '/cmstest/alpha', JSON.stringify({ hp: 1 }))
+      CmsApi.read('content', '/cmstest/alpha')
+    ).rejects.toMatchObject({ code: 'denied' });
+  });
+
+  it('fails closed when the context has no acting principal', async () => {
+    vi.spyOn(ExecutionContextApi, 'getActingAuthor').mockReturnValue(null);
+    // Real fail-closed shape: a null subject is never an author.
+    vi.spyOn(AccessApi, 'isAuthor').mockImplementation(
+      async (s) => s != null
+    );
+    await expect(
+      CmsApi.listTree('content', '/cmstest')
     ).rejects.toMatchObject({ code: 'denied' });
   });
 });
@@ -268,6 +290,9 @@ describe('CmsApi — source backend', () => {
 
   beforeEach(async () => {
     StuffApi.clearAll();
+    // Context yields a developer; source is developer-gated.
+    vi.spyOn(ExecutionContextApi, 'getActingAuthor').mockReturnValue(ACTOR);
+    vi.spyOn(AccessApi, 'isDeveloper').mockResolvedValue(true);
     // The CMS source backend is rooted at the mudlib, so the temp tree
     // must live under mud/ and CMS paths are mud-relative.
     const name = `.tmp-cms-${Date.now()}`;
@@ -287,7 +312,7 @@ describe('CmsApi — source backend', () => {
     await fs.writeFile(path.join(tempDir, 'b.json'), '{}');
     await fs.mkdir(path.join(tempDir, 'sub'));
 
-    const listing = await CmsApi.listTree(null, 'source', tempLogical);
+    const listing = await CmsApi.listTree('source', tempLogical);
     const byName = new Map(listing.entries.map((e) => [e.name, e]));
     expect(byName.get('a.ts')?.kind).toBe('leaf');
     expect(byName.get('sub')?.kind).toBe('folder');
@@ -296,7 +321,7 @@ describe('CmsApi — source backend', () => {
 
   it('read on a file returns raw body + language hint', async () => {
     await fs.writeFile(path.join(tempDir, 'a.ts'), 'export const x = 1;');
-    const res = await CmsApi.read(null, 'source', `${tempLogical}/a.ts`);
+    const res = await CmsApi.read('source', `${tempLogical}/a.ts`);
     expect(res.body).toBe('export const x = 1;');
     expect(res.language).toBe('typescript');
     expect(res.kind).toBe('leaf');
@@ -304,18 +329,18 @@ describe('CmsApi — source backend', () => {
 
   it('read on a missing file throws CmsError(not-found)', async () => {
     await expect(
-      CmsApi.read(null, 'source', `${tempLogical}/missing.ts`)
+      CmsApi.read('source', `${tempLogical}/missing.ts`)
     ).rejects.toMatchObject({ code: 'not-found' });
   });
 
   it('read on a "../" escape out of the mud root throws', async () => {
     await expect(
-      CmsApi.read(null, 'source', '/../../etc/passwd')
+      CmsApi.read('source', '/../../etc/passwd')
     ).rejects.toThrow(/outside the source root/);
   });
 
   it('source root is the mudlib, not the monorepo', async () => {
-    const listing = await CmsApi.listTree(null, 'source', '/');
+    const listing = await CmsApi.listTree('source', '/');
     const names = listing.entries.map((e) => e.name);
     // mud/ top-level dirs; the old monorepo root would have had these.
     expect(names).toContain('api');
@@ -327,14 +352,20 @@ describe('CmsApi — source backend', () => {
   it('hides __tests__ folders from source listings', async () => {
     await fs.mkdir(path.join(tempDir, '__tests__'));
     await fs.writeFile(path.join(tempDir, 'real.ts'), 'export {}');
-    const listing = await CmsApi.listTree(null, 'source', tempLogical);
+    const listing = await CmsApi.listTree('source', tempLogical);
     const names = listing.entries.map((e) => e.name);
     expect(names).toContain('real.ts');
     expect(names).not.toContain('__tests__');
   });
 
+  it('source read is denied for a non-developer context', async () => {
+    vi.spyOn(AccessApi, 'isDeveloper').mockResolvedValue(false);
+    await expect(CmsApi.listTree('source', '/')).rejects.toMatchObject({
+      code: 'denied',
+    });
+  });
+
   it('write (developer) writes bytes + invokes HotReloadApi.reload, reloaded:true', async () => {
-    vi.spyOn(AccessApi, 'isDeveloper').mockResolvedValue(true);
     vi.spyOn(AccessApi, 'can').mockResolvedValue(true);
     vi.spyOn(AccessApi, 'resolveSourceFolderZone').mockResolvedValue(null);
     const reload = vi
@@ -342,7 +373,6 @@ describe('CmsApi — source backend', () => {
       .mockResolvedValue(undefined);
 
     const out = await CmsApi.write(
-      { stuffId: 'dev' } as never,
       'source',
       `${tempLogical}/new.ts`,
       'export const y = 2;'
@@ -355,7 +385,6 @@ describe('CmsApi — source backend', () => {
   });
 
   it('write when reload throws persists the file but reports reloaded:false', async () => {
-    vi.spyOn(AccessApi, 'isDeveloper').mockResolvedValue(true);
     vi.spyOn(AccessApi, 'can').mockResolvedValue(true);
     vi.spyOn(AccessApi, 'resolveSourceFolderZone').mockResolvedValue(null);
     vi.spyOn(HotReloadApi, 'reload').mockRejectedValue(
@@ -363,10 +392,9 @@ describe('CmsApi — source backend', () => {
     );
 
     const out = await CmsApi.write(
-      { stuffId: 'dev' } as never,
       'source',
       `${tempLogical}/bad.ts`,
-      'syntax(((',
+      'syntax((('
     );
     expect(out.reloaded).toBe(false);
     expect(out.reloadDetail).toBe('compile boom');
@@ -379,12 +407,7 @@ describe('CmsApi — source backend', () => {
   it('write by a non-developer throws CmsError(denied)', async () => {
     vi.spyOn(AccessApi, 'isDeveloper').mockResolvedValue(false);
     await expect(
-      CmsApi.write(
-        { stuffId: 'nodev' } as never,
-        'source',
-        `${tempLogical}/x.ts`,
-        'export {}'
-      )
+      CmsApi.write('source', `${tempLogical}/x.ts`, 'export {}')
     ).rejects.toMatchObject({ code: 'denied' });
   });
 });
@@ -402,6 +425,6 @@ describe('CmsLogic singleton encapsulation', () => {
     expect(StuffApi.findByTemplatePath('/obj/api/cms')).toBe(logic);
     // The test module is not mud/api/cms#CmsApi; the FromModule gate on
     // the logic's own methods denies synchronously.
-    expect(() => logic.listTree(null, 'content', '/')).toThrow(SecurityError);
+    expect(() => logic.listTree('content', '/')).toThrow(SecurityError);
   });
 });

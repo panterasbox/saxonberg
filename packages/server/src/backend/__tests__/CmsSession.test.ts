@@ -47,13 +47,15 @@ describe('CmsSession.runAsSessionPlayer', () => {
       pid === 'p-1' ? avatar : undefined
     );
 
-    let seenActor: Avatar | null = null;
+    let seenActor: unknown = undefined;
     let rootSeen = false;
     const out = await CmsSession.runAsSessionPlayer(
       reqWithUser('u-1'),
       'cms.test',
-      async (actor) => {
-        seenActor = actor;
+      async () => {
+        // The fn gets NO actor argument — it derives the acting principal
+        // from context (the bridge stamped it via tagActingAuthor).
+        seenActor = ExecutionContextApi.getActingAuthor();
         rootSeen =
           ExecutionContextApi.findFrame(FrameKind.Root) !== null;
         return 'ok';
@@ -73,7 +75,7 @@ describe('CmsSession.runAsSessionPlayer', () => {
     const actor = await CmsSession.runAsSessionPlayer(
       reqWithUser('u-1'),
       'cms.test',
-      async (a) => a
+      async () => ExecutionContextApi.getActingAuthor()
     );
     expect(actor).toBeNull();
   });
@@ -83,7 +85,7 @@ describe('CmsSession.runAsSessionPlayer', () => {
     const actor = await CmsSession.runAsSessionPlayer(
       reqWithUser(null),
       'cms.test',
-      async (a) => a
+      async () => ExecutionContextApi.getActingAuthor()
     );
     expect(actor).toBeNull();
     expect(findById).not.toHaveBeenCalled();
@@ -94,7 +96,7 @@ describe('CmsSession.runAsSessionPlayer', () => {
     const actor = await CmsSession.runAsSessionPlayer(
       reqWithUser(`${User.ANONYMOUS_PREFIX}abc`),
       'cms.test',
-      async (a) => a
+      async () => ExecutionContextApi.getActingAuthor()
     );
     expect(actor).toBeNull();
     expect(findById).not.toHaveBeenCalled();
@@ -110,7 +112,7 @@ describe('CmsSession.runAsSessionPlayer', () => {
     const actor = await CmsSession.runAsSessionPlayer(
       reqWithUser('u-1'),
       'cms.test',
-      async (a) => a
+      async () => ExecutionContextApi.getActingAuthor()
     );
     expect(actor).toBe(avatar);
   });

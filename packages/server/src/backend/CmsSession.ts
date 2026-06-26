@@ -50,21 +50,23 @@ export class CmsSession {
   public static async runAsSessionPlayer<T>(
     req: Request,
     method: string,
-    fn: (actor: Avatar | null) => Promise<T>
+    fn: () => Promise<T>
   ): Promise<T> {
     const actor = await CmsSession.resolveSessionAvatar(req);
     return ExecutionContextApi.runRoot(Backend, method, () => {
-      // Name the acting Avatar in frame metadata (NOT the frame target,
+      // Stamp the acting Avatar onto frame metadata (NOT the frame target,
       // which stays `Backend`, so downstream @CallSecurity gates are
-      // unchanged) so `ProvenanceLogic.getActingAuthor` attributes CMS
-      // template saves to the author. A REST boundary plants a caller=null
-      // root with no command-giver, so it must stamp explicitly — unlike
-      // the command path, which derives the author from the command frame.
-      // Null actor (no in-world avatar) → no tag → unattributed (the
-      // anti-spoof / unattributable case). Gated to backend/ + framework
-      // callers; CmsSession qualifies.
+      // unchanged). The CMS API takes NO `actor` argument — it resolves the
+      // acting principal from this stamp via `getActingAuthor`, for BOTH
+      // access gating AND provenance attribution. That's the anti-spoof
+      // guarantee: a caller can't substitute a privileged Avatar; the only
+      // channel is this backend-only stamp. A REST boundary plants a
+      // caller=null root with no command-giver, so it must stamp
+      // explicitly. Null actor (no in-world avatar) → no tag → every gate
+      // fails closed. Gated to backend/ + framework callers; CmsSession
+      // qualifies.
       if (actor) ExecutionContextApi.tagActingAuthor(actor);
-      return fn(actor);
+      return fn();
     });
   }
 

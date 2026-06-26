@@ -74,19 +74,27 @@ to the hot-reloadable `CmsLogic` singleton at `/obj/api/cms` (reached
 synchronously via `StuffApi.singletonSync`):
 
 ```
-listTree(actor, backend, path) → CmsTreeListing   // immediate children
-read(actor, backend, path)     → CmsReadResult     // a leaf's body + language
-stat(actor, backend, path)     → CmsStatResult     // existence/kind probe
-write(actor, backend, path, body) → CmsWriteResult // gated + go-live
+listTree(backend, path)       → CmsTreeListing   // immediate children
+read(backend, path)           → CmsReadResult     // a leaf's body + language
+stat(backend, path)           → CmsStatResult     // existence/kind probe
+write(backend, path, body)    → CmsWriteResult    // gated + go-live
 ```
 
-`actor` is the resolved session Avatar (from the bridge), threaded as the
-`subject` into `AccessApi`. **All cross-backend dispatch lives in
-`CmsLogic`**, never in the REST handlers — the write gates are
-module-private functions mirroring `WriteController._gateContentWrite` /
-`_gateSourceWrite` verbatim. Every public `CmsLogic` method carries
-`@CallSecurity(FromModule('mud/api/cms#CmsApi'))`: anything that grabs the
-singleton and calls it other than through `CmsApi` gets `SecurityError`.
+**There is no `actor` parameter — by design (the anti-spoof property).**
+The acting principal is resolved *inside* `CmsLogic` from the execution
+context (`ExecutionContextApi.getActingAuthor`): the command-frame giver on
+the in-game path, or the `tagActingAuthor` stamp a backend boundary planted
+on the REST path. A caller who holds a reference to a privileged Avatar
+(via MQL / `findByTemplatePath` / `self`) **cannot** substitute it for the
+gate's subject, because there is no argument to pass it through — exactly
+the provenance/standing rule (*derive from context, never trust the call
+argument*). A context with no derivable actor → `null` → every gate fails
+closed. **All cross-backend dispatch lives in `CmsLogic`**, never in the
+REST handlers — the write gates are module-private functions mirroring
+`WriteController._gateContentWrite` / `_gateSourceWrite` verbatim. Every
+public `CmsLogic` method carries `@CallSecurity(FromModule('mud/api/cms#CmsApi'))`:
+anything that grabs the singleton and calls it other than through `CmsApi`
+gets `SecurityError`.
 
 The wire types (`Cms*`) live in `@saxonberg/types`. The one
 application-level error, **`CmsError`** (with a `code: 'denied' |
@@ -150,25 +158,30 @@ WS command path establishes. The bridge supplies it:
 
 This is the same mechanism `Backend.processUserMessage` uses for WS and
 `ScheduleApi` uses for deferred work; the bridge lives in `backend/` because
-only `backend/**` may push call frames. Because the actor is threaded as the
-`subject`, `can()` resolves the acting player and the same gating that
-guards the in-world `write` verb guards REST writes. A `null` actor fails
-closed (`AccessApi` denies a null subject) → **writes require an in-world
-Avatar in the session** (a CMS tab with no game tab in-world can read but
-not write — correct: you must be in-world to author).
+only `backend/**` may push call frames (so only a backend boundary can
+stamp `tagActingAuthor`). The stamp is the **single channel** by which a
+REST op learns who is acting — feeding both the access gates and provenance
+attribution via `getActingAuthor`. A `null` actor (no in-world Avatar) fails
+closed → **CMS ops require an in-world Avatar in the session** (a CMS tab
+with no game tab in-world is denied — correct: you must be in-world to
+author).
 
 ## Gating
 
-Developer-tier, server-authoritative, mirrored verbatim from
-`WriteController`:
+Server-authoritative, on the **context-derived** actor (never a passed
+value — see *§ `CmsApi` / `CmsLogic`*). The whole surface is
+authoring-tier: source (engine TS) is developer-only; content (templates)
+is author-tier. Writes mirror `WriteController` verbatim:
 
-| Op | Gate |
+| Op | Gate (subject = `getActingAuthor()`) |
 |---|---|
-| Source write | `isDeveloper(actor)` **and** `can(actor, 'write', resolveSourceFolderZone(path))` |
-| Template write | live Zone → `canMutateZone(actor, zone)`; else `can(actor, 'write', liveAtPath)` |
+| Source read / list / stat | `isAuthor`? no — **`isDeveloper`** |
+| Content read / list / stat | **`isAuthor`** |
+| Source write | `isDeveloper` **and** `can('write', resolveSourceFolderZone(path))` |
+| Content write | live Zone → `canMutateZone(zone)`; else `can('write', liveAtPath)` |
 
-**Reads are not access-gated** in this build (the whole surface is
-developer-tier; a dev session sees everything). Denials surface as `CmsError('denied')` → HTTP 403 → an inline error in the editor, never a
+A `null` (unattributable) context fails every gate closed. Denials surface
+as `CmsError('denied')` → HTTP 403 → an inline error in the editor, never a
 silent no-op.
 
 `/auth/status` carries a top-level **`isDeveloper`** boolean (read via
@@ -240,10 +253,11 @@ What this build does **not** do, and where it lands:
 - **Git** → deferred entirely; GitLab becomes a future *runtime* integration,
   not the authoring workflow (the source-agnostic review model is the VCS
   spine).
-- **Anon read-only** → deferred; a one-line later toggle (drop `requireAuth`
-  from the GET routes — the bridge already yields `actor=null` → reads work,
-  writes fail closed), **scoped to the content tree only**, never the source
-  FS.
+- **Anon read-only** → deferred, and now harder than a flag flip: reads are
+  author-gated on the context-derived actor, so an anon reader has no actor
+  → denied. A future anon-browse would need an explicit unauthenticated
+  read path (its own gate decision), **scoped to the content tree only**,
+  never the source FS — not just dropping `requireAuth`.
 - **Cross-tab live-state sync** (SharedWorker / BroadcastChannel) → later.
 
 **Forward constraint (decision A):** the eventual review/versioning model is

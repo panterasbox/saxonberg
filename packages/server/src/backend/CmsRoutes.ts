@@ -93,10 +93,8 @@ export class CmsRoutes {
       }
       const path = String(req.query.path ?? '/');
       try {
-        const out = await CmsSession.runAsSessionPlayer(
-          req,
-          'cms.listTree',
-          (actor) => CmsApi.listTree(actor, backend, path)
+        const out = await CmsSession.runAsSessionPlayer(req, 'cms.listTree', () =>
+          CmsApi.listTree(backend, path)
         );
         res.json(out);
       } catch (e) {
@@ -112,8 +110,8 @@ export class CmsRoutes {
       }
       const path = String(req.query.path ?? '/');
       try {
-        const out = await CmsSession.runAsSessionPlayer(req, 'cms.read', (actor) =>
-          CmsApi.read(actor, backend, path)
+        const out = await CmsSession.runAsSessionPlayer(req, 'cms.read', () =>
+          CmsApi.read(backend, path)
         );
         res.json(out);
       } catch (e) {
@@ -129,8 +127,8 @@ export class CmsRoutes {
       }
       const path = String(req.query.path ?? '/');
       try {
-        const out = await CmsSession.runAsSessionPlayer(req, 'cms.stat', (actor) =>
-          CmsApi.stat(actor, backend, path)
+        const out = await CmsSession.runAsSessionPlayer(req, 'cms.stat', () =>
+          CmsApi.stat(backend, path)
         );
         res.json(out);
       } catch (e) {
@@ -157,10 +155,8 @@ export class CmsRoutes {
       const { path } = body;
       const content = typeof body.body === 'string' ? body.body : '';
       try {
-        const out = await CmsSession.runAsSessionPlayer(
-          req,
-          'cms.write',
-          (actor) => CmsApi.write(actor, backend, path, content)
+        const out = await CmsSession.runAsSessionPlayer(req, 'cms.write', () =>
+          CmsApi.write(backend, path, content)
         );
         res.json(out);
       } catch (e) {

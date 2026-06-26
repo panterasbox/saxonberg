@@ -9,6 +9,7 @@ import { SourceTreeApi, SourceTreeSandboxError } from '../../api/source-tree';
 import { TemplateApi } from '../../api/template';
 import { HotReloadApi } from '../../api/hot-reload';
 import { AccessApi } from '../../api/access';
+import { ExecutionContextApi } from '../../api/execution-context';
 import { ZoneApi } from '../../api/zone';
 import { StuffApi } from '../../api/stuff';
 import { Template } from '../../lib/stuff/Template';
@@ -131,6 +132,45 @@ async function gateSourceWrite(
 }
 
 /**
+ * The acting principal for a CMS operation — resolved from the **execution
+ * context** (`ExecutionContextApi.getActingAuthor`: the command-frame giver
+ * on the in-game path, or the `tagActingAuthor` stamp a backend transport
+ * boundary planted on the REST path), **NEVER a caller-supplied argument**.
+ *
+ * This is the load-bearing anti-spoof property: the CMS API takes no
+ * `actor` parameter, so a caller who holds a reference to a privileged
+ * Avatar (via MQL / `findByTemplatePath` / `self`) cannot substitute it for
+ * the gate's subject. A context with no derivable actor (no command frame,
+ * no stamp, or a forced / cross-actor chain) yields `null` → every gate
+ * fails closed. Mirrors the provenance/standing pattern (derive from
+ * context, never trust the call argument).
+ */
+function actingActor(): Stuff | null {
+  return (ExecutionContextApi.getActingAuthor() as Stuff | null) ?? null;
+}
+
+/**
+ * Read/list gate on the context-derived actor. The CMS is authoring-tier:
+ * source (engine TS) is developer-only; content (templates) is author-tier.
+ * Throws `CmsError('denied')` on failure (null actor fails closed).
+ */
+async function gateRead(backend: CmsBackend): Promise<void> {
+  const actor = actingActor();
+  const ok =
+    backend === 'source'
+      ? await AccessApi.isDeveloper(actor)
+      : await AccessApi.isAuthor(actor);
+  if (!ok) {
+    throw new CmsError(
+      'denied',
+      backend === 'source'
+        ? 'you must be a developer to browse source'
+        : 'you must be an author to browse content'
+    );
+  }
+}
+
+/**
  * CmsLogic — the hot-reloadable logic singleton behind {@link CmsApi}.
  *
  * Lives at `/obj/api/cms` (a stateless `Stuff` singleton, no backing
@@ -155,10 +195,10 @@ export class CmsLogic extends Idea {
   /** See {@link CmsApi.listTree}. */
   @CallSecurity(CmsApiCallers)
   public async listTree(
-    _actor: Stuff | null,
     backend: CmsBackend,
     path: string
   ): Promise<CmsTreeListing> {
+    await gateRead(backend);
     if (backend === 'content') {
       // Immediate children of `path`. A child is either a real template doc
       // at depth+1, or a SYNTHETIC namespace folder for an intermediate
@@ -224,10 +264,10 @@ export class CmsLogic extends Idea {
   /** See {@link CmsApi.read}. */
   @CallSecurity(CmsApiCallers)
   public async read(
-    _actor: Stuff | null,
     backend: CmsBackend,
     path: string
   ): Promise<CmsReadResult> {
+    await gateRead(backend);
     if (backend === 'content') {
       const tpl = await Template.findByPath(path);
       if (!tpl) {
@@ -277,10 +317,10 @@ export class CmsLogic extends Idea {
   /** See {@link CmsApi.stat}. */
   @CallSecurity(CmsApiCallers)
   public async stat(
-    _actor: Stuff | null,
     backend: CmsBackend,
     path: string
   ): Promise<CmsStatResult> {
+    await gateRead(backend);
     if (backend === 'content') {
       const tpl = await Template.findByPath(path);
       if (!tpl) return { backend, path, exists: false };
@@ -306,11 +346,13 @@ export class CmsLogic extends Idea {
   /** See {@link CmsApi.write}. */
   @CallSecurity(CmsApiCallers)
   public async write(
-    actor: Stuff | null,
     backend: CmsBackend,
     path: string,
     body: string
   ): Promise<CmsWriteResult> {
+    // The acting principal is derived from context inside the private
+    // writers (via the gate helpers), never passed by the caller.
+    const actor = actingActor();
     if (backend === 'content') {
       return this._writeContent(actor, path, body);
     }

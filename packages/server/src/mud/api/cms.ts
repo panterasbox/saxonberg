@@ -26,7 +26,6 @@ import { HotReloadApi } from './hot-reload';
 import { SecurityApi } from './security';
 import { CmsLogic } from '../obj/api/CmsLogic';
 import { fileURLToPath } from 'url';
-import type { Stuff } from '../lib/stuff/Stuff';
 import type {
   CmsBackend,
   CmsTreeListing,
@@ -87,56 +86,59 @@ function logic(): CmsLogic {
 
 export class CmsApi {
   /**
-   * List the immediate children of one node. `path` is `/` for a
-   * backend root. Reads are not access-gated in this build (the whole
-   * CMS surface is developer-tier); writes are.
+   * List the immediate children of one node. `path` is `/` for a backend
+   * root. Reads are gated on the **context-derived** actor (source →
+   * developer, content → author); throws `CmsError('denied')` otherwise.
+   *
+   * Takes **no `actor` argument by design** — the acting principal is
+   * resolved from the execution context (`getActingAuthor`), never from a
+   * caller-supplied value, so a privileged-Avatar reference can't be
+   * substituted for the gate's subject.
    */
   public static listTree(
-    actor: Stuff | null,
     backend: CmsBackend,
     path: string
   ): Promise<CmsTreeListing> {
-    return logic().listTree(actor, backend, path);
+    return logic().listTree(backend, path);
   }
 
   /**
-   * Read the editable body of one leaf. Content → pretty-printed JSON
-   * of `template.data` + `templateMeta`; source → raw file bytes +
-   * a language hint. Throws `CmsError('not-found')` / `('invalid')`
-   * for missing/folder targets; lets `SourceTreeSandboxError`
-   * propagate.
+   * Read the editable body of one leaf. Content → pretty-printed JSON of
+   * `template.data` + `templateMeta`; source → raw file bytes + a language
+   * hint. Read-gated on the context-derived actor. Throws
+   * `CmsError('not-found')` / `('invalid')` for missing/folder targets;
+   * lets `SourceTreeSandboxError` propagate.
    */
   public static read(
-    actor: Stuff | null,
     backend: CmsBackend,
     path: string
   ): Promise<CmsReadResult> {
-    return logic().read(actor, backend, path);
+    return logic().read(backend, path);
   }
 
-  /** Lightweight existence/kind probe (no body). */
+  /** Lightweight existence/kind probe (no body); read-gated. */
   public static stat(
-    actor: Stuff | null,
     backend: CmsBackend,
     path: string
   ): Promise<CmsStatResult> {
-    return logic().stat(actor, backend, path);
+    return logic().stat(backend, path);
   }
 
   /**
-   * Author one leaf — save-is-authoritative. Gates verbatim from
-   * `WriteController`, persists, then runs the per-backend go-live
-   * step. Throws `CmsError('denied')` on access denial,
-   * `('not-found')` for an absent content template, `('invalid')` for
-   * malformed JSON; lets `SourceTreeSandboxError` propagate.
+   * Author one leaf — save-is-authoritative. The acting principal is
+   * derived from context (never passed); gates verbatim from
+   * `WriteController` (source → developer, content → write-permission),
+   * persists, then runs the per-backend go-live step. Throws
+   * `CmsError('denied')` on access denial, `('not-found')` for an absent
+   * content template, `('invalid')` for malformed JSON; lets
+   * `SourceTreeSandboxError` propagate.
    */
   public static write(
-    actor: Stuff | null,
     backend: CmsBackend,
     path: string,
     body: string
   ): Promise<CmsWriteResult> {
-    return logic().write(actor, backend, path, body);
+    return logic().write(backend, path, body);
   }
 }
 
