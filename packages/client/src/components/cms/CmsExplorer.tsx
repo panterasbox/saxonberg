@@ -20,9 +20,11 @@ const ROOTS: CmsTreeEntry[] = [
   { backend: "source", path: "/", name: "source", kind: "folder" },
 ];
 
+// A plain block scroll container — NOT a flex column. Rows are a flat
+// fragment of <button>s, so as flex children they would all flex-shrink to
+// fit the panel height and overlap on long listings; as block children they
+// keep their natural height and the panel scrolls instead.
 const Panel = styled.div`
-  display: flex;
-  flex-direction: column;
   height: 100%;
   overflow-y: auto;
   background: ${tokens.color.surfaceMuted};
@@ -30,12 +32,16 @@ const Panel = styled.div`
 `;
 
 const Heading = styled.div`
+  position: sticky;
+  top: 0;
+  z-index: 1;
   padding: ${tokens.space.sm} ${tokens.space.md};
   color: ${tokens.color.fgMuted};
   font-family: ${tokens.font.family};
   font-size: ${tokens.font.micro};
   text-transform: uppercase;
   letter-spacing: 0.05em;
+  background: ${tokens.color.surfaceMuted};
   border-bottom: 1px solid ${tokens.color.borderMuted};
 `;
 
