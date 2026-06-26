@@ -271,7 +271,7 @@ not entangle the review model with a specific store.
   requirement said "save → `HotReloadApi.reload`"; in practice `reload`
   applies only to source files (it reads a filesystem path). Templates go
   live by re-hydrating their live clones — the correct, behavior-equivalent
-  mechanism. (Plan §4 / §9.)
+  mechanism.
 - **`isDeveloper` landed top-level on `/auth/status`, not on its `player`
   payload** — that route doesn't populate `player` today (the WS
   connection-established path does), so a top-level flag was the minimal

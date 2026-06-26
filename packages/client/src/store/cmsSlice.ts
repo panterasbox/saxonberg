@@ -5,7 +5,7 @@
  * The CMS surface is REST-only (no WebSocket), so unlike `forumActions` /
  * `reactionActions` this slice owns its own async IO directly via
  * `cmsClient`: actions fetch + mutate store state in one place. The slice
- * shape mirrors the plan §7.3 — a CSRF token, the lazily-cached explorer
+ * shape: a CSRF token, the lazily-cached explorer
  * tree (`expanded` + `children`), the currently-open leaf (`open` +
  * `draft` + `dirty`), and the save lifecycle (`saving` + `error`).
  *

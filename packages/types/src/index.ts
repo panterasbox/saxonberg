@@ -20,7 +20,7 @@ export interface StuffRef {
 /**
  * MudlogApi log level.
  */
-export type LogLevel = "trace" | "debug" | "info" | "warn" | "error" | "fatal";
+export type LogLevel = 'trace' | 'debug' | 'info' | 'warn' | 'error' | 'fatal';
 
 /**
  * Outbound wire envelope. One per audience.
@@ -101,39 +101,39 @@ export interface MessageFrame<T = unknown> {
  * Dispatch outcome status. Auto-escalation table lives in
  * `DispatchApi.autoEscalation` on the server.
  */
-export type Status = "ok" | "partial" | "declined" | "error";
+export type Status = 'ok' | 'partial' | 'declined' | 'error';
 
 /* ---- Glob / quantity notes -------------------------------------- */
 
 export interface QuantityClampedNote {
-  kind: "quantity-clamped";
+  kind: 'quantity-clamped';
   field: string;
   requested: number;
   applied: number;
 }
 
 export interface QuantityClampedRejectedNote {
-  kind: "quantity-clamped-rejected";
+  kind: 'quantity-clamped-rejected';
   field: string;
   requested: number;
   available: number;
 }
 
 export interface MatchAmbiguousNote {
-  kind: "match-ambiguous";
+  kind: 'match-ambiguous';
   field: string;
   query: string;
   candidates: StuffRef[];
 }
 
 export interface EmptyResultNote {
-  kind: "empty-result";
+  kind: 'empty-result';
   field: string;
   query: string;
 }
 
 export interface TargetDeclinedNote {
-  kind: "target-declined";
+  kind: 'target-declined';
   target: StuffRef;
   /** open-enum, per controller */
   reason: string;
@@ -142,35 +142,35 @@ export interface TargetDeclinedNote {
 /* ---- Controller-side failure notes (from v1 audit) -------------- */
 
 export interface ControllerRejectedNote {
-  kind: "controller-rejected";
+  kind: 'controller-rejected';
   /** open-enum, per controller */
   reason: string;
   detail?: string;
 }
 
 export interface MixinMissingNote {
-  kind: "mixin-missing";
+  kind: 'mixin-missing';
   /** e.g. 'WorkspaceMixin', 'BodyPlanMixin', 'ContainerMixin' */
   mixin: string;
 }
 
 export interface LocomotionGateFailedNote {
-  kind: "locomotion-gate-failed";
+  kind: 'locomotion-gate-failed';
   gate:
-    | "exit-mode"
-    | "posture"
-    | "body-plan"
-    | "enablement"
-    | "capability"
-    | "no-conveyance"
-    | "blocked"
-    | "door";
+    | 'exit-mode'
+    | 'posture'
+    | 'body-plan'
+    | 'enablement'
+    | 'capability'
+    | 'no-conveyance'
+    | 'blocked'
+    | 'door';
   /** 'walk', 'climb', 'swim', etc. */
   mode: string;
 }
 
 export interface SlotOccupiedNote {
-  kind: "slot-occupied";
+  kind: 'slot-occupied';
   host: StuffRef;
   slot: string;
   occupant?: StuffRef;
@@ -179,26 +179,26 @@ export interface SlotOccupiedNote {
 /* ---- Pre-controller dispatcher-emitted notes -------------------- */
 
 export interface CommandRejectedNote {
-  kind: "command-rejected";
+  kind: 'command-rejected';
   reason:
-    | "parse-failed"
-    | "unknown-verb"
-    | "shape-fall-through"
-    | "bind-failed"
-    | "missing-subcommand"
-    | "unknown-subcommand";
+    | 'parse-failed'
+    | 'unknown-verb'
+    | 'shape-fall-through'
+    | 'bind-failed'
+    | 'missing-subcommand'
+    | 'unknown-subcommand';
   detail?: string;
 }
 
 export interface MqlErrorNote {
-  kind: "mql-error";
+  kind: 'mql-error';
   field: string;
-  stage: "desugar" | "lex" | "parse" | "resolve";
+  stage: 'desugar' | 'lex' | 'parse' | 'resolve';
   detail: string;
 }
 
 export interface ValidatorFailedNote {
-  kind: "validator-failed";
+  kind: 'validator-failed';
   /** present for field validators */
   field?: string;
   /** resolved path or name */
@@ -207,7 +207,7 @@ export interface ValidatorFailedNote {
 }
 
 export interface ControllerErrorNote {
-  kind: "controller-error";
+  kind: 'controller-error';
   controller: string;
   detail: string;
 }
@@ -215,7 +215,7 @@ export interface ControllerErrorNote {
 /* ---- Engagement lifecycle (reserved; no v1 producer) ------------ */
 
 export interface EngagementStartedNote {
-  kind: "engagement-started";
+  kind: 'engagement-started';
   engagementId: string;
   engagementType: string;
   startedAt: number;
@@ -225,12 +225,12 @@ export interface EngagementStartedNote {
 }
 
 export interface EngagementCompletedNote {
-  kind: "engagement-completed";
+  kind: 'engagement-completed';
   engagementId: string;
 }
 
 export interface EngagementCancelledNote {
-  kind: "engagement-cancelled";
+  kind: 'engagement-cancelled';
   engagementId: string;
   reason: AbortReason;
 }
@@ -270,7 +270,7 @@ export interface PromptChoice {
  * this field carries that decision onto the wire.
  */
 export interface ChoicePromptNote {
-  kind: "prompt-choice";
+  kind: 'prompt-choice';
   label: string;
   choices: PromptChoice[];
   defaultChoice?: string;
@@ -278,14 +278,14 @@ export interface ChoicePromptNote {
 }
 
 export interface ConfirmPromptNote {
-  kind: "prompt-confirm";
+  kind: 'prompt-confirm';
   label: string;
-  defaultAnswer: "yes" | "no";
+  defaultAnswer: 'yes' | 'no';
   foreground: boolean;
 }
 
 export interface TextPromptNote {
-  kind: "prompt-text";
+  kind: 'prompt-text';
   label: string;
   placeholder?: string;
   foreground: boolean;
@@ -300,7 +300,7 @@ export interface TextPromptNote {
  * forum-only. The response is a plain string (the markdown body).
  */
 export interface ComposePromptNote {
-  kind: "prompt-compose";
+  kind: 'prompt-compose';
   label: string;
   placeholder?: string;
   /** Hint the client may show an "open in editor" escalation affordance. */
@@ -320,14 +320,14 @@ export interface MqlMatchSummary {
 }
 
 export interface MqlObjectPromptNote {
-  kind: "prompt-mql-object";
+  kind: 'prompt-mql-object';
   label: string;
   matches: MqlMatchSummary[];
   foreground: boolean;
 }
 
 export interface MqlManyPromptNote {
-  kind: "prompt-mql-many";
+  kind: 'prompt-mql-many';
   label: string;
   matches: MqlMatchSummary[];
   /** Substrate-enforced minimum selection count (default 0). */
@@ -343,7 +343,7 @@ export interface MqlManyPromptNote {
  * awaits a fresh response on the same `promptId`.
  */
 export interface PromptValidationFailedNote {
-  kind: "prompt-validation-failed";
+  kind: 'prompt-validation-failed';
   message: string;
   /** Multi-field prompts (future) carry which field failed. */
   field?: string;
@@ -358,8 +358,8 @@ export interface PromptValidationFailedNote {
  *                             rejected the await.
  */
 export interface PromptDismissedNote {
-  kind: "prompt-dismissed";
-  reason: "answered" | "cancelled" | "host-disconnected";
+  kind: 'prompt-dismissed';
+  reason: 'answered' | 'cancelled' | 'host-disconnected';
 }
 
 /**
@@ -370,7 +370,7 @@ export interface PromptDismissedNote {
  * `ProseApi.format` against the standard prompt Liquid context.
  */
 export interface PromptRefreshNote {
-  kind: "prompt-refresh";
+  kind: 'prompt-refresh';
   rendered: string;
 }
 
@@ -411,21 +411,21 @@ export interface NoteOnlyOutcome {
 }
 
 export interface DispatchResponseEnvelope {
-  type: "dispatch-response";
+  type: 'dispatch-response';
   frameId: number;
   dispatchId: string;
   outcome: DispatchOutcome;
 }
 
 export interface ActivityUpdateEnvelope {
-  type: "activity-update";
+  type: 'activity-update';
   frameId: number;
   engagementId: string;
   outcome: NoteOnlyOutcome;
 }
 
 export interface PromptEnvelope {
-  type: "prompt";
+  type: 'prompt';
   frameId: number;
   promptId: string;
   outcome: NoteOnlyOutcome;
@@ -458,18 +458,18 @@ export interface PromptEnvelope {
  * query like `here`).
  */
 export interface MqlSubscribeMessage {
-  type: "mql-subscribe";
+  type: 'mql-subscribe';
   subscriptionId: string;
   query: string;
-  cardinality: "one" | "many";
-  fields?: string[] | "ref" | "detail";
+  cardinality: 'one' | 'many';
+  fields?: string[] | 'ref' | 'detail';
   detailKey?: string;
   focusDependent?: boolean;
   locationDependent?: boolean;
 }
 
 export interface MqlUnsubscribeMessage {
-  type: "mql-unsubscribe";
+  type: 'mql-unsubscribe';
   subscriptionId: string;
 }
 
@@ -489,11 +489,11 @@ export interface MqlUnsubscribeMessage {
  * reads (no subscription state to wake) and are NOT carried.
  */
 export interface MqlQueryMessage {
-  type: "mql-query";
+  type: 'mql-query';
   queryId: string;
   query: string;
-  cardinality: "one" | "many";
-  fields?: string[] | "ref" | "detail";
+  cardinality: 'one' | 'many';
+  fields?: string[] | 'ref' | 'detail';
   detailKey?: string;
 }
 
@@ -506,7 +506,7 @@ export interface MqlQueryMessage {
  * keyed by `commandId`. See docs/subsystems/reactions.md.
  */
 export interface ReactionExpandMessage {
-  type: "reaction-expand";
+  type: 'reaction-expand';
   requestId: string;
   commandId: string;
 }
@@ -525,7 +525,7 @@ export interface ReactionExpandMessage {
  * direct.
  */
 export interface PromptResponseMessage {
-  type: "prompt-response";
+  type: 'prompt-response';
   payload: { promptId: string; response: string };
 }
 
@@ -537,7 +537,7 @@ export interface PromptResponseMessage {
  * command bus via `prompt cancel`, not this channel.
  */
 export interface PromptCancelMessage {
-  type: "prompt-cancel";
+  type: 'prompt-cancel';
   payload: { promptId: string };
 }
 
@@ -606,7 +606,7 @@ export interface StuffDetailRecord extends StuffRefRecord {
   illustration?: string;
   details?: WireDetailEntry[];
   bulkMaterial?: MaterialSummary | null;
-  mass?: { value: number; unit: "kg" };
+  mass?: { value: number; unit: 'kg' };
   contents?: StuffRefRecord[];
   /**
    * Obvious exits for Exitable hosts — what `look` would surface as
@@ -678,7 +678,7 @@ export interface StuffDetailFocusRecord {
 }
 
 export interface MqlSubscriptionResultEnvelope {
-  type: "mql-subscription-result";
+  type: 'mql-subscription-result';
   frameId: number;
   subscriptionId: string;
   /**
@@ -690,26 +690,26 @@ export interface MqlSubscriptionResultEnvelope {
 }
 
 export interface Change {
-  op: "replace" | "update" | "add" | "remove";
+  op: 'replace' | 'update' | 'add' | 'remove';
   key: string;
   fields?: Partial<StuffRefRecord | StuffDetailRecord | StuffDetailFocusRecord>;
 }
 
 export interface MqlSubscriptionDeltaEnvelope {
-  type: "mql-subscription-delta";
+  type: 'mql-subscription-delta';
   frameId: number;
   subscriptionId: string;
   changes: Change[];
 }
 
 export type MqlSubscriptionErrorReason =
-  | "parse"
-  | "resolve"
-  | "permission"
-  | "closed";
+  | 'parse'
+  | 'resolve'
+  | 'permission'
+  | 'closed';
 
 export interface MqlSubscriptionErrorEnvelope {
-  type: "mql-subscription-error";
+  type: 'mql-subscription-error';
   frameId: number;
   subscriptionId: string;
   reason: MqlSubscriptionErrorReason;
@@ -726,7 +726,7 @@ export interface MqlSubscriptionErrorEnvelope {
  * follows: queries are one-shot reads.
  */
 export interface MqlQueryResultEnvelope {
-  type: "mql-query-result";
+  type: 'mql-query-result';
   frameId: number;
   queryId: string;
   result: (StuffRefRecord | StuffDetailRecord | StuffDetailFocusRecord)[];
@@ -738,7 +738,7 @@ export interface MqlQueryResultEnvelope {
  * subscribes and queries.
  */
 export interface MqlQueryErrorEnvelope {
-  type: "mql-query-error";
+  type: 'mql-query-error';
   frameId: number;
   queryId: string;
   reason: MqlSubscriptionErrorReason;
@@ -758,7 +758,7 @@ export interface MqlQueryErrorEnvelope {
  *   - `thread` — a thread's post-tree; `id` is the thread-root entry `_id`.
  */
 export interface ForumSubscriptionScope {
-  kind: "index" | "board" | "thread";
+  kind: 'index' | 'board' | 'thread';
   id: string;
 }
 
@@ -781,7 +781,7 @@ export interface ForumEntryRecord {
   score: number;
   /** Anti-snowball display gate: the net score, or null while suppressed. */
   displayScore: number | null;
-  state: "active" | "locked";
+  state: 'active' | 'locked';
   /** Promoted thread-subject id, or null. */
   subject: string | null;
   /** Creation time (ms since epoch). */
@@ -796,9 +796,9 @@ export interface ForumEntryRecord {
    * explicitly rather than inferring. Present on every argument record;
    * absent (or `'popularity'`) for the popularity view.
    */
-  organizer?: "popularity" | "argument";
+  organizer?: 'popularity' | 'argument';
   /** The typed edge to the parent (argument boards): pro/con/neutral. */
-  relation?: "reply" | "supports" | "objects-to" | "responds-to";
+  relation?: 'reply' | 'supports' | 'objects-to' | 'responds-to';
   /**
    * True on an `objects-to` claim with no answering child — the
    * open-objection flag (the triage cue + convergence signal). Computed
@@ -813,18 +813,18 @@ export interface ForumEntryRecord {
 }
 
 export interface ForumSubscribeMessage {
-  type: "forum-subscribe";
+  type: 'forum-subscribe';
   subscriptionId: string;
   scope: ForumSubscriptionScope;
 }
 
 export interface ForumUnsubscribeMessage {
-  type: "forum-unsubscribe";
+  type: 'forum-unsubscribe';
   subscriptionId: string;
 }
 
 export interface ForumSubscriptionResultEnvelope {
-  type: "forum-subscription-result";
+  type: 'forum-subscription-result';
   frameId: number;
   subscriptionId: string;
   scope: ForumSubscriptionScope;
@@ -832,22 +832,22 @@ export interface ForumSubscriptionResultEnvelope {
 }
 
 export interface ForumChange {
-  op: "add" | "replace" | "remove";
+  op: 'add' | 'replace' | 'remove';
   key: string;
   fields?: ForumEntryRecord;
 }
 
 export interface ForumSubscriptionDeltaEnvelope {
-  type: "forum-subscription-delta";
+  type: 'forum-subscription-delta';
   frameId: number;
   subscriptionId: string;
   changes: ForumChange[];
 }
 
-export type ForumSubscriptionErrorReason = "parse" | "resolve" | "closed";
+export type ForumSubscriptionErrorReason = 'parse' | 'resolve' | 'closed';
 
 export interface ForumSubscriptionErrorEnvelope {
-  type: "forum-subscription-error";
+  type: 'forum-subscription-error';
   frameId: number;
   subscriptionId: string;
   reason: ForumSubscriptionErrorReason;
@@ -929,14 +929,14 @@ export interface ReactionActState {
  * moved*, not arithmetic deltas; the counts inside are absolute.
  */
 export interface ReactionDeltaEnvelope {
-  type: "reaction-delta";
+  type: 'reaction-delta';
   frameId: number;
   acts: ReactionActState[];
 }
 
 /** Result of a {@link ReactionExpandMessage}: the FULL reactor set. */
 export interface ReactionExpandResultEnvelope {
-  type: "reaction-expand-result";
+  type: 'reaction-expand-result';
   frameId: number;
   requestId: string;
   commandId: string;
@@ -989,20 +989,20 @@ export type Envelope =
  * delivery layer stamps `frameId` per-Interactive at send-time.
  */
 export type EnvelopeTemplate =
-  | Omit<DispatchResponseEnvelope, "frameId">
-  | Omit<ActivityUpdateEnvelope, "frameId">
-  | Omit<PromptEnvelope, "frameId">
-  | Omit<MqlSubscriptionResultEnvelope, "frameId">
-  | Omit<MqlSubscriptionDeltaEnvelope, "frameId">
-  | Omit<MqlSubscriptionErrorEnvelope, "frameId">
-  | Omit<MqlQueryResultEnvelope, "frameId">
-  | Omit<MqlQueryErrorEnvelope, "frameId">
-  | Omit<ForumSubscriptionResultEnvelope, "frameId">
-  | Omit<ForumSubscriptionDeltaEnvelope, "frameId">
-  | Omit<ForumSubscriptionErrorEnvelope, "frameId">
-  | Omit<ReactionDeltaEnvelope, "frameId">
-  | Omit<ReactionExpandResultEnvelope, "frameId">
-  | Omit<StreamStateEnvelope, "frameId">;
+  | Omit<DispatchResponseEnvelope, 'frameId'>
+  | Omit<ActivityUpdateEnvelope, 'frameId'>
+  | Omit<PromptEnvelope, 'frameId'>
+  | Omit<MqlSubscriptionResultEnvelope, 'frameId'>
+  | Omit<MqlSubscriptionDeltaEnvelope, 'frameId'>
+  | Omit<MqlSubscriptionErrorEnvelope, 'frameId'>
+  | Omit<MqlQueryResultEnvelope, 'frameId'>
+  | Omit<MqlQueryErrorEnvelope, 'frameId'>
+  | Omit<ForumSubscriptionResultEnvelope, 'frameId'>
+  | Omit<ForumSubscriptionDeltaEnvelope, 'frameId'>
+  | Omit<ForumSubscriptionErrorEnvelope, 'frameId'>
+  | Omit<ReactionDeltaEnvelope, 'frameId'>
+  | Omit<ReactionExpandResultEnvelope, 'frameId'>
+  | Omit<StreamStateEnvelope, 'frameId'>;
 
 // ============================================================================
 // Identity Types (Persistent Objects)
@@ -1012,10 +1012,10 @@ export type EnvelopeTemplate =
  * Pronouns enum for gendered references.
  */
 export enum Pronouns {
-  He = "he",
-  She = "she",
-  They = "they",
-  It = "it",
+  He = 'he',
+  She = 'she',
+  They = 'they',
+  It = 'it',
 }
 
 /**
@@ -1025,10 +1025,10 @@ export enum Pronouns {
  * labels). Keyed by `Pronouns` value.
  */
 export const PRONOUN_LABELS: Record<Pronouns, string> = {
-  [Pronouns.They]: "they/them",
-  [Pronouns.She]: "she/her",
-  [Pronouns.He]: "he/him",
-  [Pronouns.It]: "it/its",
+  [Pronouns.They]: 'they/them',
+  [Pronouns.She]: 'she/her',
+  [Pronouns.He]: 'he/him',
+  [Pronouns.It]: 'it/its',
 };
 
 /**
@@ -1056,12 +1056,12 @@ export interface User {
  * Categories for `AlternateName.kind` — see NamedMixin.
  */
 export type NameKind =
-  | "nickname"
-  | "title"
-  | "credential"
-  | "middle"
-  | "maiden"
-  | "alias";
+  | 'nickname'
+  | 'title'
+  | 'credential'
+  | 'middle'
+  | 'maiden'
+  | 'alias';
 
 export interface AlternateName {
   kind: NameKind;
@@ -1137,7 +1137,7 @@ export interface TwitchProfile {
  * provider is a procedure argument, not a code fork. YouTube grows
  * `GoogleProfile` (it's Google OAuth), not a third value.
  */
-export type AuthProvider = "google" | "twitch";
+export type AuthProvider = 'google' | 'twitch';
 
 /**
  * Session user data stored in express-session.
@@ -1310,7 +1310,7 @@ export interface ConnectionEstablishedPayload {
    */
   reactionPrefs?: {
     /** `social.react.intensity` — counter/train animation level. */
-    intensity: "off" | "subtle" | "normal" | "vivid";
+    intensity: 'off' | 'subtle' | 'normal' | 'vivid';
     /** `social.react.alwaysAggregate` — hide reaction prose lines (chip only). */
     alwaysAggregate: boolean;
     /** `social.react.muteChannels` — no reaction widgets on chat lines. */
@@ -1332,11 +1332,11 @@ export interface ConnectionEstablishedPayload {
  * screen, grouped, or all on one page) — the server is layout-agnostic.
  */
 export type CharGenField =
-  | "species"
-  | "sex"
-  | "name"
-  | "pronouns"
-  | "aspiration";
+  | 'species'
+  | 'sex'
+  | 'name'
+  | 'pronouns'
+  | 'aspiration';
 
 /** One closed-choice option for the current char-gen step. */
 export interface CharGenOption {
@@ -1448,7 +1448,7 @@ export interface CharGenRosterPayload {
  * `setClientState`, then `save()` to persist.
  */
 export interface ClientStateWriteMessage {
-  type: "client-state-write";
+  type: 'client-state-write';
   payload: { key: string; value: unknown };
 }
 
@@ -1465,7 +1465,7 @@ export interface ClientStateWriteMessage {
  * a request, update is an authoritative push.
  */
 export interface ClientStateUpdateMessage {
-  type: "client-state-update";
+  type: 'client-state-update';
   payload: { key: string; value: unknown };
 }
 
@@ -1484,11 +1484,11 @@ export interface ClientStateUpdateMessage {
 export interface StyleTreatment {
   fg?: string;
   bg?: string;
-  weight?: "normal" | "bold";
+  weight?: 'normal' | 'bold';
   italic?: boolean;
   prefix?: string;
   chip?: boolean;
-  indent?: "hang" | "block" | "none";
+  indent?: 'hang' | 'block' | 'none';
 }
 
 /**
@@ -1535,11 +1535,11 @@ export interface ApiResponse<T = unknown> {
 export interface AuthStatusResponse {
   isAuthenticated: boolean;
   /**
-   * Non-authoritative developer-tier hint: true iff the session's
-   * loaded Avatar is a developer (`AccessApi.isDeveloper`). The client
-   * uses it only to hide the CMS launcher for non-developers; the REST
-   * CMS gates remain the server-side authority. Absent/false when no
-   * in-world Avatar is loaded for the session.
+   * Non-authoritative developer-tier hint: true iff the session's loaded
+   * Avatar is a developer (`AccessApi.isDeveloper`). The client uses it
+   * only to hide the CMS launcher for non-developers; the REST CMS gates
+   * remain the server-side authority. Absent/false when no in-world Avatar
+   * is loaded for the session.
    */
   isDeveloper?: boolean;
   user?: {
@@ -1637,8 +1637,8 @@ export interface PersistableConstructor<T extends Persistable> {
 // CMS data surface (REST: explorer tree + read/write/stat)
 // ============================================================================
 
-export type CmsBackend = "content" | "source";
-export type CmsNodeKind = "folder" | "leaf";
+export type CmsBackend = 'content' | 'source';
+export type CmsNodeKind = 'folder' | 'leaf';
 
 /** One entry in a directory/folder listing. */
 export interface CmsTreeEntry {
@@ -1689,7 +1689,7 @@ export interface CmsWriteResult {
   backend: CmsBackend;
   path: string;
   reloaded: boolean; // did the go-live step run
-  reloadDetail?: string; // human note, e.g. "re-hydrated 1 live instance"
+  reloadDetail?: string; // human note, e.g. 're-hydrated 1 live instance'
 }
 
 /** Uniform error body for the REST surface. */

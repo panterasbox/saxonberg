@@ -17,7 +17,7 @@
  * REST layer adds no new authz surface.
  *
  * Every route is `requireAuth` this build (anon read-only is deferred —
- * see the CMS plan §3.2). Writes additionally require a CSRF
+ * see docs/subsystems/cms.md). Writes additionally require a CSRF
  * double-submit token: the client fetches `/api/cms/csrf` once, then
  * sends the token back in the `X-CMS-CSRF` header on every write, where
  * it is compared against `req.session.cmsCsrf`.

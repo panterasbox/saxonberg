@@ -3,7 +3,7 @@
  *
  * Rendered by `App.tsx` when `?surface=cms` is present and the session is
  * authenticated, bypassing the cockpit entirely. This surface opens NO
- * WebSocket — it is REST-only (plan §5): the explorer + editor speak the
+ * WebSocket — it is REST-only (see docs/subsystems/cms.md): the explorer + editor speak the
  * `/api/cms/*` routes, and the live effect of a save is observed in a
  * separate in-world game tab via its existing subscriptions.
  *

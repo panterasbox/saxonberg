@@ -28,7 +28,6 @@ import { fileURLToPath } from 'node:url';
 
 import { CmsApi, CmsError } from '../cms';
 import { CmsLogic } from '../../obj/api/CmsLogic';
-import { SourceTreeApi } from '../source-tree';
 import { TemplateApi } from '../template';
 import { HotReloadApi } from '../hot-reload';
 import { AccessApi } from '../access';

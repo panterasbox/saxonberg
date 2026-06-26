@@ -1,8 +1,8 @@
 /**
  * CmsExplorer — the dual-root CMS tree.
  *
- * Two fixed top-level roots, listed independently (no merged namespace,
- * per the plan §2.1): "content" (`{backend:'content',path:'/'}`) and
+ * Two fixed top-level roots, listed independently (no merged namespace —
+ * see docs/subsystems/cms.md): "content" (`{backend:'content',path:'/'}`) and
  * "source" (`{backend:'source',path:'/'}`). Each is a synthetic folder
  * {@link CmsTreeEntry} the recursive {@link CmsTreeNode} expands the same
  * way as any other folder, so the lazy-load + cache path is uniform from

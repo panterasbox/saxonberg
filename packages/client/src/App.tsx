@@ -277,7 +277,7 @@ function recognizeForumNavigation(text: string): void {
  * The CMS opens in its own browser tab sharing the session; when this is
  * true, `App` renders a full-screen `<CmsSurface/>` takeover bypassing
  * the cockpit and — crucially — opens NO WebSocket connection (the CMS
- * is REST-only; see plan §5). The query is fixed for the tab's life, so
+ * is REST-only; see docs/subsystems/cms.md). The query is fixed for the tab's life, so
  * reading it once at module load is sufficient.
  */
 const IS_CMS_SURFACE =
@@ -386,7 +386,7 @@ function App() {
 
   useEffect(() => {
     // Connect to WebSocket when authenticated — EXCEPT on the CMS
-    // surface, which is REST-only and must never open a WS (plan §5).
+    // surface, which is REST-only and must never open a WS (cms.md).
     if (IS_CMS_SURFACE) return;
     if (auth.isAuthenticated && !connection.isConnected) {
       console.info("App: Authenticated - connecting to WebSocket...");
