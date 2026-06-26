@@ -120,6 +120,9 @@ describe('CmsApi — content backend', () => {
       { path: '/cmstest/beta', class: LEAF_CLASS, data: { hp: 2 } },
       { path: '/cmstest/sub', class: ZONE_CLASS, data: {} },
       { path: '/cmstest/sub/deep', class: LEAF_CLASS, data: { hp: 3 } },
+      // No template at /cmstest/ghost — only this deep leaf. The tree must
+      // still synthesize a browsable `ghost` namespace folder.
+      { path: '/cmstest/ghost/leaf', class: LEAF_CLASS, data: { hp: 4 } },
     ]);
   });
 
@@ -133,15 +136,28 @@ describe('CmsApi — content backend', () => {
     expect(listing.backend).toBe('content');
     expect(listing.path).toBe('/cmstest');
     const byPath = new Map(listing.entries.map((e) => [e.path, e]));
-    // /cmstest/sub/deep is a grandchild — excluded.
+    // Grandchildren (/cmstest/sub/deep) are excluded; /cmstest/ghost is a
+    // synthesized namespace folder (no template doc there).
     expect([...byPath.keys()].sort()).toEqual([
       '/cmstest/alpha',
       '/cmstest/beta',
+      '/cmstest/ghost',
       '/cmstest/sub',
     ]);
     expect(byPath.get('/cmstest/alpha')?.kind).toBe('leaf');
     expect(byPath.get('/cmstest/sub')?.kind).toBe('folder');
     expect(byPath.get('/cmstest/alpha')?.name).toBe('alpha');
+  });
+
+  it('synthesizes a browsable namespace folder for an intermediate path', async () => {
+    // /cmstest/ghost has no template doc, only /cmstest/ghost/leaf below it.
+    const parent = await CmsApi.listTree(null, 'content', '/cmstest');
+    const ghost = parent.entries.find((e) => e.path === '/cmstest/ghost');
+    expect(ghost?.kind).toBe('folder');
+    // It drills in to the real leaf below.
+    const inside = await CmsApi.listTree(null, 'content', '/cmstest/ghost');
+    expect(inside.entries.map((e) => e.path)).toEqual(['/cmstest/ghost/leaf']);
+    expect(inside.entries[0]?.kind).toBe('leaf');
   });
 
   it('read on a leaf returns JSON body + templateMeta', async () => {

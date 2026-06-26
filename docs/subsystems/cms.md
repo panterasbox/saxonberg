@@ -57,6 +57,15 @@ template, or a directory. The folder/leaf split rides
 `ZoneApi.isFolderClass(tpl.class)` for content and `isDir`/`isFile` for
 source.
 
+For **content**, `listTree` also **synthesizes namespace folders** for
+intermediate path segments that have no template doc of their own —
+`/obj` and `/lib` are browsable even though only `/obj/X` / `/lib/Y`
+templates exist. Without this most engine content is unreachable from the
+root (the `domain` collection has templates at `/obj/Avatar/<id>`,
+`/lib/lounge/...` etc., but no literal `/obj` or `/lib` doc). A child is a
+real template at depth+1, or a synthetic folder implied by deeper
+descendants; entries sort folders-first, then alphabetically.
+
 ## `CmsApi` / `CmsLogic`
 
 `CmsApi` (`mud/api/cms.ts`) is a thin, security-gated forwarding shell —

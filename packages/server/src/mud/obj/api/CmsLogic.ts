@@ -43,19 +43,6 @@ function languageForPath(path: string): string {
 }
 
 /**
- * Keep only the *immediate* children of `parent` from a descendant
- * listing: a descendant `/a/b/c` is an immediate child of `/a/b` iff
- * its remainder after the `parent + '/'` prefix has no further `/`.
- * Root `/` treats every top-level template `/x` as immediate.
- */
-function immediateChildPath(parent: string, descendant: string): boolean {
-  const prefix = parent === '/' ? '/' : parent + '/';
-  if (!descendant.startsWith(prefix)) return false;
-  const remainder = descendant.slice(prefix.length);
-  return remainder.length > 0 && !remainder.includes('/');
-}
-
-/**
  * The CMS source backend is rooted at the **mudlib** (`packages/server/
  * src/mud`) — authors edit game content, not client/build scaffolding.
  * Source paths in the CMS are relative to this root (`/api/cms.ts`, not
@@ -173,18 +160,51 @@ export class CmsLogic extends Idea {
     path: string
   ): Promise<CmsTreeListing> {
     if (backend === 'content') {
+      // Immediate children of `path`. A child is either a real template doc
+      // at depth+1, or a SYNTHETIC namespace folder for an intermediate
+      // segment that has no template of its own (e.g. `/obj` is browsable
+      // even though only `/obj/X` templates exist) — without this, most
+      // engine content is unreachable from the root.
       const descendants = await Template.findDescendants(path);
-      const entries: CmsTreeEntry[] = [];
+      const prefix = path === '/' ? '/' : path + '/';
+      const realAtChild = new Map<string, Template>();
+      const hasDeeper = new Set<string>();
       for (const tpl of descendants) {
-        if (!immediateChildPath(path, tpl.path)) continue;
-        const isFolder = await ZoneApi.isFolderClass(tpl.class);
+        if (!tpl.path.startsWith(prefix)) continue;
+        const remainder = tpl.path.slice(prefix.length);
+        if (remainder.length === 0) continue;
+        const slash = remainder.indexOf('/');
+        const seg = slash === -1 ? remainder : remainder.slice(0, slash);
+        const childPath = (path === '/' ? '' : path) + '/' + seg;
+        if (slash === -1) realAtChild.set(childPath, tpl);
+        else hasDeeper.add(childPath);
+      }
+      const entries: CmsTreeEntry[] = [];
+      for (const childPath of new Set([
+        ...realAtChild.keys(),
+        ...hasDeeper,
+      ])) {
+        const tpl = realAtChild.get(childPath);
+        const kind: CmsNodeKind = !tpl
+          ? 'folder' // synthetic namespace node — no template doc here
+          : (await ZoneApi.isFolderClass(tpl.class)) || hasDeeper.has(childPath)
+            ? 'folder'
+            : 'leaf';
         entries.push({
           backend: 'content',
-          path: tpl.path,
-          name: lastSegment(tpl.path),
-          kind: isFolder ? 'folder' : 'leaf',
+          path: childPath,
+          name: lastSegment(childPath),
+          kind,
         });
       }
+      // Folders first, then leaves; alphabetical within each.
+      entries.sort((a, b) =>
+        a.kind === b.kind
+          ? a.name.localeCompare(b.name)
+          : a.kind === 'folder'
+            ? -1
+            : 1
+      );
       return { backend, path, entries };
     }
     // source — rooted at the mudlib; test folders hidden
