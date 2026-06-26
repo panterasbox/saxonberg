@@ -19,6 +19,10 @@ import type {
   PassportTwitchProfileWithTokens,
 } from '@saxonberg/types';
 import { Backend } from '../../backend/Backend';
+import { CmsSession } from '../../backend/CmsSession';
+import { AccessApi } from '../../mud/api/access';
+import { ExecutionContextApi } from '../../mud/api/execution-context';
+import type { Stuff } from '../../mud/lib/stuff/Stuff';
 import { AuthMiddleware } from './AuthMiddleware';
 import { TWITCH_IDENTITY_SCOPE } from './PassportConfig';
 
@@ -83,7 +87,7 @@ export class AuthRoutes {
     AuthRoutes.setupUnlinkRoute(app, 'twitch');
 
     // Check authentication status
-    app.get('/auth/status', (req: Request, res: Response) => {
+    app.get('/auth/status', async (req: Request, res: Response) => {
       const response: AuthStatusResponse = {
         isAuthenticated: req.isAuthenticated(),
       };
@@ -95,6 +99,26 @@ export class AuthRoutes {
           email: '',
           displayName: '',
         };
+
+        // Non-authoritative developer-tier hint so the client can hide
+        // the CMS launcher. Resolves the session's loaded Avatar through
+        // the same bridge the REST CMS routes use; null avatar → false.
+        // Gates remain server-side (this flag is UX only).
+        try {
+          response.isDeveloper = await CmsSession.runAsSessionPlayer(
+            req,
+            'auth.status.isDeveloper',
+            // Derive the avatar from context (the bridge stamps it) — the
+            // same context-only channel the CMS gates use; no passed actor.
+            () =>
+              AccessApi.isDeveloper(
+                ExecutionContextApi.getActingAuthor() as Stuff | null
+              )
+          );
+        } catch (err) {
+          console.error('AuthRoutes: isDeveloper resolution failed:', err);
+          response.isDeveloper = false;
+        }
       }
 
       res.json(response);

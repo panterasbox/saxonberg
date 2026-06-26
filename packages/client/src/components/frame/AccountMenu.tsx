@@ -84,6 +84,7 @@ const Item = styled.button`
 export const AccountMenu: React.FC = () => {
   const player = useStore((s) => s.auth.player);
   const displayName = useStore((s) => s.auth.user?.displayName);
+  const isDeveloper = useStore((s) => s.auth.isDeveloper === true);
   const [open, setOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
 
@@ -122,6 +123,14 @@ export const AccountMenu: React.FC = () => {
     window.location.href = `${SERVER_URL}/auth/google`;
   };
 
+  // Open the CMS editor in its own tab (REST-only, shares the session
+  // cookie). Visible only to developers — a non-authoritative UX gate;
+  // the REST CMS routes remain the server-side authority.
+  const openCms = () => {
+    setOpen(false);
+    window.open("/?surface=cms", "_blank", "noopener");
+  };
+
   return (
     <Root ref={rootRef}>
       <Trigger
@@ -143,6 +152,11 @@ export const AccountMenu: React.FC = () => {
           ) : (
             <Item role="menuitem" onClick={switchCharacter}>
               Switch character
+            </Item>
+          )}
+          {isDeveloper && (
+            <Item role="menuitem" onClick={openCms}>
+              CMS editor
             </Item>
           )}
           <Item role="menuitem" onClick={handleSignOut}>

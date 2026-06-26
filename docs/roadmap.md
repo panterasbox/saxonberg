@@ -791,9 +791,14 @@ slate flags them as separate projects):
   `MediaAsset` provenance, S3 serving. *Remaining*: on-demand /
   in-CMS generation with a quota system, external embeds
   (Twitch / video), and the cohesion post-process pass.
-- **Dedicated content CMS** — content authors use the player
-  client + in-game shell until shell strain justifies it. Own
-  project when the time comes.
+- **Dedicated content CMS** — Wave 1 shipped: a REST-only CMS surface
+  of the SPA (`?surface=cms`) with a unified file/template explorer and
+  a lazy-loaded Monaco code editor over the existing source/template
+  backends, dev-tier and context-gated (see
+  [cms.md](./subsystems/cms.md)). *Remaining* (per
+  [cms-slate.md](./slates/builds/cms-slate.md)): schema-driven content
+  editors, the external-editor/LSP path, drafts/publish + the law==code
+  forums-review gate, and versioning.
 - **Mobile cockpit** — different layout (stream + button bar), same
   wire model. Own slate when prioritized.
 

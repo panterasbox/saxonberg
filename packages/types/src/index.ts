@@ -1534,6 +1534,14 @@ export interface ApiResponse<T = unknown> {
  */
 export interface AuthStatusResponse {
   isAuthenticated: boolean;
+  /**
+   * Non-authoritative developer-tier hint: true iff the session's loaded
+   * Avatar is a developer (`AccessApi.isDeveloper`). The client uses it
+   * only to hide the CMS launcher for non-developers; the REST CMS gates
+   * remain the server-side authority. Absent/false when no in-world Avatar
+   * is loaded for the session.
+   */
+  isDeveloper?: boolean;
   user?: {
     id: string;
     email: string;
@@ -1561,6 +1569,14 @@ export interface AuthStatusResponse {
  */
 export interface AuthState {
   isAuthenticated: boolean;
+  /**
+   * Non-authoritative developer-tier hint, mirrored from the
+   * {@link AuthStatusResponse.isDeveloper} field of `/auth/status`. The
+   * client uses it only to decide whether to show the CMS launcher; the
+   * REST CMS gates remain the server-side authority. Absent/false when no
+   * developer Avatar is loaded for the session.
+   */
+  isDeveloper?: boolean;
   user: {
     id: string;
     email: string;
@@ -1615,4 +1631,69 @@ export interface PersistableConstructor<T extends Persistable> {
   new (...args: never[]): T;
   findById(id: string): Promise<T | null>;
   find(query: Record<string, unknown>): Promise<T[]>;
+}
+
+// ============================================================================
+// CMS data surface (REST: explorer tree + read/write/stat)
+// ============================================================================
+
+export type CmsBackend = 'content' | 'source';
+export type CmsNodeKind = 'folder' | 'leaf';
+
+/** One entry in a directory/folder listing. */
+export interface CmsTreeEntry {
+  backend: CmsBackend;
+  path: string; // backend-local canonical path
+  name: string; // last segment, for display
+  kind: CmsNodeKind;
+}
+
+/** Result of listTree — the children of one node. */
+export interface CmsTreeListing {
+  backend: CmsBackend;
+  path: string; // the listed node
+  entries: CmsTreeEntry[];
+}
+
+/** Result of read — the editable body of one leaf. */
+export interface CmsReadResult {
+  backend: CmsBackend;
+  path: string;
+  kind: CmsNodeKind; // always 'leaf' on success
+  /** Content: pretty-printed JSON of template.data. Source: raw file bytes. */
+  body: string;
+  /** Editor language hint: 'json' | 'typescript' | 'yaml' | 'plaintext'. */
+  language: string;
+  /** Content-only: the template's backing class + hydrator, echoed back so
+   *  write can round-trip them unchanged. Absent for source. */
+  templateMeta?: { class: string; hydratorClass?: string };
+}
+
+/** stat — lightweight existence/kind probe (no body). */
+export interface CmsStatResult {
+  backend: CmsBackend;
+  path: string;
+  exists: boolean;
+  kind?: CmsNodeKind;
+}
+
+/** write request body (REST POST). */
+export interface CmsWriteRequest {
+  backend: CmsBackend;
+  path: string;
+  body: string; // JSON (content) | raw bytes (source)
+}
+
+/** write result — what went live. */
+export interface CmsWriteResult {
+  backend: CmsBackend;
+  path: string;
+  reloaded: boolean; // did the go-live step run
+  reloadDetail?: string; // human note, e.g. 're-hydrated 1 live instance'
+}
+
+/** Uniform error body for the REST surface. */
+export interface CmsErrorBody {
+  error: string; // machine code: 'denied' | 'not-found' | 'invalid' | 'sandbox' | 'internal'
+  message: string; // human detail
 }
