@@ -10,10 +10,11 @@
  * `CreditShare[]` seam, so Layer 2 (the faucet) is built once and untouched.
  *
  * **Released-content gate.** Only content in the released namespace earns:
- * a player's personal homedir (`/home/…`) and the engine runtime (`/obj/…`)
- * earn nothing; the rest of the `domain` tree is "released". This is the
- * zero-new-infra v1 gate (a path prefix); the richer team-sandbox + explicit
- * `release` action is deferred with the team split.
+ * a player's personal homedir (`/home/…`) earns nothing (an unreleased
+ * sandbox). Everything else — `/domain/…` content AND `/obj/…` (which is
+ * released, core content) — is released. This is the zero-new-infra v1 gate
+ * (a path prefix); the richer team-sandbox + explicit `release` action is
+ * deferred with the team split.
  *
  * Pure routing — reads the gated `ZoneApi` (covering zone) and
  * `ProvenanceApi` (the authorship ledger), no side effects, no stored state.
@@ -31,13 +32,13 @@ export interface CreditShare {
 }
 
 /** Namespace prefixes that earn no producer credit (unreleased content). */
-const UNRELEASED_PREFIXES = ['/home/', '/obj/'] as const;
+const UNRELEASED_PREFIXES = ['/home/'] as const;
 
 export class CreditRouting {
   /**
-   * Whether a content path is in the released namespace (earns credit).
-   * `/home/…` (personal sandbox) and `/obj/…` (engine) are unreleased; the
-   * rest of `domain` is released.
+   * Whether a content path is in the released namespace (earns credit). Only
+   * a player's personal homedir (`/home/…`) is unreleased; `/domain/…` and
+   * `/obj/…` (released core content) both earn.
    */
   static isReleased(path: string): boolean {
     return !UNRELEASED_PREFIXES.some((p) => path.startsWith(p));

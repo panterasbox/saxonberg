@@ -26,10 +26,10 @@ const AUTHOR = '/obj/Avatar/maker';
 const LOC = '/domain/gallery/room';
 
 describe('CreditRouting.isReleased', () => {
-  it('treats domain content as released and home/engine as unreleased', () => {
+  it('treats only the personal homedir as unreleased; domain + obj are released', () => {
     expect(CreditRouting.isReleased('/domain/gallery')).toBe(true);
+    expect(CreditRouting.isReleased('/obj/SoulCatalogue')).toBe(true); // obj is released core content
     expect(CreditRouting.isReleased('/home/alice/studio')).toBe(false);
-    expect(CreditRouting.isReleased('/obj/SoulCatalogue')).toBe(false);
   });
 });
 
@@ -54,11 +54,14 @@ describe('CreditRouting.resolve', () => {
     expect(authorOf).not.toHaveBeenCalled(); // gated before the ledger read
   });
 
-  it('earns nothing for engine (/obj) content', async () => {
+  it('credits released /obj (core) content with a recorded author', async () => {
     vi.spyOn(ZoneApi, 'resolveZoneForPath').mockResolvedValue(
       zoneAt('/obj/EngineZone')
     );
-    expect(await CreditRouting.resolve('/obj/EngineZone/loc')).toEqual([]);
+    vi.spyOn(ProvenanceApi, 'authorOf').mockResolvedValue(AUTHOR);
+    expect(await CreditRouting.resolve('/obj/EngineZone/loc')).toEqual([
+      { author: AUTHOR, weight: 1 },
+    ]);
   });
 
   it('earns nothing when no zone covers the path', async () => {

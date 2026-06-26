@@ -1,20 +1,33 @@
 /**
- * ProvenanceLogic — the authorship ledger. Covers: a recorded act appends
- * one row; `authorOf` derives the EARLIEST author (the original); a later
- * save by a different player does NOT change `authorOf` (append-only,
- * original-author derivation); a disconnected store is a no-op.
+ * ProvenanceLogic — the authorship ledger. Covers the read derivation
+ * (`authorOf` = the EARLIEST row; append-only so a later save by another
+ * player never changes it) and the **write lockdown**: `recordAuthoring`
+ * is gated to the template save chokepoint, so a direct call from anywhere
+ * else throws. The write+attribution path (author derived from the
+ * execution context) is covered end-to-end in `template.authoring.test.ts`.
  *
- * Mongo is faked with the single-collection harness; the game-clock pinned.
+ * Rows are seeded DIRECTLY (the reader is ungated); Mongo is faked.
  */
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { ProvenanceApi } from '../../../api/provenance';
+import AuthoringEvent from '../../../lib/standing/AuthoringEvent';
 import { WorldClockApi } from '../../../api/worldclock';
 import { StuffApi } from '../../../api/stuff';
 import { PersistenceManager } from '../../../../backend/PersistenceManager';
 
 let store: Map<string, Record<string, unknown>>;
 let idCounter = 0;
+
+/** Seed one authoring row directly (bypassing the gated writer). */
+async function seed(path: string, author: string, realAt: number): Promise<void> {
+  const ev = new AuthoringEvent();
+  ev.path = path;
+  ev.author = author;
+  ev.at = 1;
+  ev.realAt = realAt;
+  await ev.save();
+}
 
 beforeEach(() => {
   store = new Map();
@@ -47,55 +60,37 @@ const PATH = '/domain/lounge/painting';
 const ALICE = '/obj/Avatar/alice';
 const BOB = '/obj/Avatar/bob';
 
-describe('ProvenanceLogic authorship ledger', () => {
-  it('records one row per authoring act and derives the author', async () => {
-    await ProvenanceApi.recordAuthoring({
-      path: PATH,
-      author: ALICE,
-      realAt: 1000,
-    });
-    expect(await ProvenanceApi.eventsFor(PATH)).toHaveLength(1);
-    expect(await ProvenanceApi.authorOf(PATH)).toBe(ALICE);
-  });
-
+describe('ProvenanceLogic.authorOf (derivation)', () => {
   it('derives the EARLIEST author — a later save by another player does not change it', async () => {
-    await ProvenanceApi.recordAuthoring({
-      path: PATH,
-      author: ALICE,
-      realAt: 1000,
-    });
-    await ProvenanceApi.recordAuthoring({
-      path: PATH,
-      author: BOB,
-      realAt: 2000,
-    });
-    // Both rows retained (append-only); the original author wins.
-    expect(await ProvenanceApi.eventsFor(PATH)).toHaveLength(2);
+    await seed(PATH, ALICE, 1000);
+    await seed(PATH, BOB, 2000);
+    expect(await ProvenanceApi.eventsFor(PATH)).toHaveLength(2); // append-only
     expect(await ProvenanceApi.authorOf(PATH)).toBe(ALICE);
   });
 
   it('is order-independent — earliest is by realAt, not insertion order', async () => {
-    await ProvenanceApi.recordAuthoring({
-      path: PATH,
-      author: BOB,
-      realAt: 2000,
-    });
-    await ProvenanceApi.recordAuthoring({
-      path: PATH,
-      author: ALICE,
-      realAt: 1000,
-    }); // earlier wall-clock, inserted second
+    await seed(PATH, BOB, 2000);
+    await seed(PATH, ALICE, 1000); // earlier wall-clock, inserted second
     expect(await ProvenanceApi.authorOf(PATH)).toBe(ALICE);
   });
 
   it('returns null for an unauthored path', async () => {
     expect(await ProvenanceApi.authorOf('/obj/Engine/thing')).toBeNull();
   });
+});
 
-  it('is a no-op when the store is disconnected', async () => {
-    const pm = PersistenceManager.get();
-    vi.spyOn(pm, 'isConnected').mockReturnValue(false);
-    await ProvenanceApi.recordAuthoring({ path: PATH, author: ALICE });
-    expect(await ProvenanceApi.authorOf(PATH)).toBeNull();
+describe('ProvenanceLogic.recordAuthoring (write lockdown)', () => {
+  it('refuses a direct call from outside the template save chokepoint', async () => {
+    // The test module is not `mud/obj/api/TemplateLogic`, so the FromModule
+    // gate denies the write — only the save chokepoint may append provenance.
+    let threw = false;
+    try {
+      await ProvenanceApi.recordAuthoring({ path: PATH });
+    } catch {
+      threw = true;
+    }
+    expect(threw).toBe(true);
+    // Nothing was written.
+    expect(await ProvenanceApi.eventsFor(PATH)).toHaveLength(0);
   });
 });

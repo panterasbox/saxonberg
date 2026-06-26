@@ -15,6 +15,15 @@
  *   - **Derived, not stored** — `positionOf` / `tally` recompute conviction
  *     from dwell time on every read; no stored weight is authoritative.
  *
+ * **Present vs absent (quorum).** Holding *any* position — directional or an
+ * **abstain** (`abstain`, a present net-zero stake) — counts as a vote cast:
+ * `quorumWeight` sums the **full standing** of present holders
+ * (conviction-independent), the participation numerator a passage rule
+ * measures against the total possible. Not voting (no position) is absent and
+ * counts for neither. So a heavyweight can abstain — counting for quorum
+ * without forcing the outcome — while `tally` (the decision) still reads its
+ * net as zero. Conviction scales only the decision weight, never quorum.
+ *
  * No verb consumes this yet (the chambers / ballot are population-deferred);
  * this is the substrate + its tested clock seam. Every method takes an
  * optional `now` (real-time MS) defaulting to the wall clock — the seam tests
@@ -70,6 +79,22 @@ export class ConvictionApi {
     return logic().hold(subject, stock, target, split, now ?? Date.now());
   }
 
+  /**
+   * Abstain on `{stock, target}` — a present, net-zero position. Distinct
+   * from {@link drop} (not voting / absent): an abstain counts toward quorum
+   * at the holder's full standing (see {@link quorumWeight}) while
+   * contributing 0 to the decision. Lets a heavyweight decline to take a
+   * side without starving quorum.
+   */
+  public static async abstain(
+    subject: string,
+    stock: Stock,
+    target: string,
+    now?: number
+  ): Promise<void> {
+    return logic().abstain(subject, stock, target, now ?? Date.now());
+  }
+
   /** Reverse a held position (swap yea/nay) and reset its conviction clock. */
   public static async flip(
     subject: string,
@@ -112,6 +137,20 @@ export class ConvictionApi {
     now?: number
   ): Promise<ConvictionTally> {
     return logic().tally(stock, target, now ?? Date.now());
+  }
+
+  /**
+   * The quorum weight cast on `{stock, target}` — `Σ standingOf(holder,
+   * stock).scalar` over every *present* position (directional or abstain).
+   * The participation numerator a passage rule measures against the total
+   * possible. Conviction-independent and undirected: showing up counts at
+   * full standing; not voting (no position) does not.
+   */
+  public static async quorumWeight(
+    stock: Stock,
+    target: string
+  ): Promise<number> {
+    return logic().quorumWeight(stock, target);
   }
 }
 

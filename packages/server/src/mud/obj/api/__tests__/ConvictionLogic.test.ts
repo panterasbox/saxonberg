@@ -219,3 +219,55 @@ describe('ConvictionLogic.tally', () => {
     expect(tally.value).toBeCloseTo(101, 5);
   });
 });
+
+describe('ConvictionLogic abstain + quorum', () => {
+  it('abstain is a present, net-zero position: 0 to the decision, full standing to quorum', async () => {
+    stubStanding(10);
+    const t0 = 5_000_000;
+    await ConvictionApi.abstain(HOLDER, 'consumer', TARGET, t0);
+
+    const pos = await ConvictionApi.positionOf(HOLDER, 'consumer', TARGET, t0 + BUILD_MS);
+    expect(pos).not.toBeNull();
+    expect(pos!.yea).toBe(0);
+    expect(pos!.nay).toBe(0);
+    // Decision: net-zero → contributes nothing even at full conviction.
+    expect((await ConvictionApi.tally('consumer', TARGET, t0 + BUILD_MS)).value).toBe(0);
+    // Quorum: present at the holder's full standing.
+    expect(await ConvictionApi.quorumWeight('consumer', TARGET)).toBeCloseTo(10, 5);
+  });
+
+  it('quorum counts present positions (abstain + directional), never non-voters', async () => {
+    stubStanding(10);
+    const t0 = 5_000_000;
+    await ConvictionApi.abstain('/obj/Avatar/abstainer', 'consumer', TARGET, t0);
+    await ConvictionApi.hold('/obj/Avatar/voter', 'consumer', TARGET, { yea: 1, nay: 0 }, t0);
+    // A third member never holds a position → no row → not counted.
+    expect(await ConvictionApi.quorumWeight('consumer', TARGET)).toBeCloseTo(20, 5);
+  });
+
+  it('quorum weight is conviction-independent (full standing even at conviction 0)', async () => {
+    stubStanding(10);
+    const t0 = 5_000_000;
+    await ConvictionApi.hold(HOLDER, 'consumer', TARGET, { yea: 1, nay: 0 }, t0);
+    // At t0 conviction is 0 → the decision tally is ~0…
+    expect((await ConvictionApi.tally('consumer', TARGET, t0)).value).toBeCloseTo(0, 5);
+    // …but the holder is present, so quorum counts full standing.
+    expect(await ConvictionApi.quorumWeight('consumer', TARGET)).toBeCloseTo(10, 5);
+  });
+
+  it('abstain is distinct from drop (present vs absent)', async () => {
+    const t0 = 5_000_000;
+    await ConvictionApi.abstain(HOLDER, 'consumer', TARGET, t0);
+    expect(await ConvictionApi.positionOf(HOLDER, 'consumer', TARGET, t0)).not.toBeNull();
+    await ConvictionApi.drop(HOLDER, 'consumer', TARGET);
+    expect(await ConvictionApi.positionOf(HOLDER, 'consumer', TARGET, t0)).toBeNull();
+  });
+
+  it('is non-fungible: an abstain in one stock does not feed another stock quorum', async () => {
+    stubStanding(10);
+    const t0 = 5_000_000;
+    await ConvictionApi.abstain(HOLDER, 'consumer', TARGET, t0);
+    expect(await ConvictionApi.quorumWeight('consumer', TARGET)).toBeCloseTo(10, 5);
+    expect(await ConvictionApi.quorumWeight('producer', TARGET)).toBe(0);
+  });
+});

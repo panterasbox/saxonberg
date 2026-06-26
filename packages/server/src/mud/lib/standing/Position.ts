@@ -18,6 +18,16 @@
  * and a producer stake on the same target are distinct rows, tallied
  * separately). `yea` / `nay` are the holder's allocated split (full support
  * is `{yea:1, nay:0}`); the tally weighs the net `(yea − nay)`.
+ *
+ * **Present vs absent (the quorum distinction).** The *existence* of a row
+ * means the holder **cast a vote** — it counts toward quorum (participation).
+ * Absence of a row means **not voting** (absent), which does not. An
+ * **abstain** is a present, net-zero position (`yea = nay = 0`): it counts
+ * for quorum at the holder's full standing but contributes 0 to the
+ * decision — so a founder with a supermajority can decline to take a side
+ * without starving quorum. Quorum presence is **conviction-independent**
+ * (you don't build conviction to show up); conviction scales only the
+ * decision weight. See `ConvictionApi.quorumWeight` vs `tally`.
  */
 
 import { Document } from '../persistence/Document';

@@ -13,10 +13,12 @@
  * (see docs/slates/builds/provenance-slate.md); the contributor-set / team
  * split is the deferred enrichment behind the same derivation seam.
  *
- * `author` is the authenticated author's durable `templatePath`, threaded
- * from the gated, access-checked write path — never client-supplied, never
- * read from the author-controlled `data` blob. `path` is the authored
- * template path; the collection is indexed on both.
+ * `author` is the authenticated author's durable `templatePath` — but it is
+ * **never supplied by the caller**: the `ProvenanceLogic` write derives it
+ * from the dispatched execution context (`ExecutionContextApi.getActingAuthor`),
+ * so it cannot be spoofed and is never read from the author-controlled `data`
+ * blob. `path` is the authored template path; the collection is indexed on
+ * both.
  */
 
 import { Document } from '../persistence/Document';
@@ -27,15 +29,14 @@ export type AuthoringEventKind = 'save';
 
 /**
  * The fields a caller supplies to record one authoring act — the
- * `ProvenanceApi.recordAuthoring` call shape. `path` + `author` are
- * required; `kind` defaults to `save`, `at` to the game-time witness,
- * `realAt` to the wall clock (resolved by the `ProvenanceLogic` seam).
+ * `ProvenanceApi.recordAuthoring` call shape. Only `path` is given; the
+ * **author is derived from the execution context, never passed** (the
+ * anti-spoof contract). `kind` defaults to `save`, `at` to the game-time
+ * witness, `realAt` to the wall clock (resolved by the `ProvenanceLogic` seam).
  */
 export interface AuthoringEventFields {
   /** The authored template path. */
   path: string;
-  /** The authenticated author's durable `templatePath`. */
-  author: string;
   kind?: AuthoringEventKind;
   /** Game-time SECONDS witness. */
   at?: number;

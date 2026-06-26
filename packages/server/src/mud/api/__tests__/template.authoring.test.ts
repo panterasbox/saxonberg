@@ -1,25 +1,36 @@
 /**
- * TemplateApi.saveTemplate → authorship ledger (commit 4). Covers:
- *   - a save WITH an author appends exactly one AuthoringEvent for the path,
- *     attributed to the passed (authenticated) author;
- *   - the author is NOT spoofable from the `data` blob — a `data.author`
- *     field is ignored; the ledger records the threaded param only;
- *   - a save WITHOUT an author records nothing (programmatic / system saves);
- *   - `authorOf(path)` then derives that author.
+ * TemplateApi.saveTemplate → authorship ledger (the attribution end-to-end).
+ * The author is NEVER passed — it is derived from the dispatched execution
+ * context (`ExecutionContextApi.getActingAuthor`). Covers:
+ *   - a save dispatched as an Avatar (the CMS/`runRoot` shape) attributes the
+ *     row to that Avatar's templatePath;
+ *   - the author is NOT spoofable from the `data` blob;
+ *   - an unattributable context records nothing — no acting principal, or a
+ *     non-Avatar principal (e.g. today's pre-contract CMS Root = Backend, or
+ *     a system save).
  *
- * Mongo is faked with a COLLECTION-AWARE store so the domain +
- * authoring_events writes don't bleed.
+ * `withRootContext(target, …)` plants the Root frame whose principal
+ * `getActingAuthor` reads — exactly how the CMS dispatches "as an avatar".
+ * Mongo is faked collection-aware (domain + authoring_events).
  */
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { TemplateApi } from '../template';
 import { ProvenanceApi } from '../provenance';
+import { ExecutionContextApi } from '../execution-context';
 import { WorldClockApi } from '../worldclock';
 import { StuffApi } from '../stuff';
+import { Idea } from '../../lib/stuff/Idea';
+import {
+  makeStuffAtPath,
+  withRootContext,
+} from '../../lib/security/__tests__/test-setup';
 import {
   Collections,
   PersistenceManager,
 } from '../../../backend/PersistenceManager';
+
+class FakeAvatar extends Idea {}
 
 let stores: Map<string, Record<string, unknown>[]>;
 let nextId = 1;
@@ -53,11 +64,7 @@ beforeEach(() => {
   vi.spyOn(pm, 'save').mockImplementation(
     async (c: string, doc: Record<string, unknown>) => {
       const id = (doc._id as string | undefined) ?? String(nextId++);
-      const arr = col(c);
-      const idx = arr.findIndex((d) => d._id === id);
-      const copy = { ...doc, _id: id };
-      if (idx >= 0) arr[idx] = copy;
-      else arr.push(copy);
+      col(c).push({ ...doc, _id: id });
       return id;
     }
   );
@@ -70,9 +77,13 @@ afterEach(() => {
   StuffApi.clearAll();
 });
 
-describe('TemplateApi.saveTemplate authorship ledger', () => {
-  it('appends one AuthoringEvent attributed to the authenticated author', async () => {
-    await TemplateApi.saveTemplate(PATH, LEAF, {}, undefined, ALICE);
+describe('TemplateApi.saveTemplate authorship (context-derived)', () => {
+  it('attributes the save to the tagged acting Avatar (CMS/runRoot shape)', async () => {
+    const avatar = makeStuffAtPath(() => new FakeAvatar(), ALICE);
+    await withRootContext(null, 'cms.write', () => {
+      ExecutionContextApi.tagActingAuthor(avatar);
+      return TemplateApi.saveTemplate(PATH, LEAF, {});
+    });
 
     const ledger = col(Collections.AuthoringEvents);
     expect(ledger).toHaveLength(1);
@@ -82,20 +93,29 @@ describe('TemplateApi.saveTemplate authorship ledger', () => {
   });
 
   it('does NOT read the author from the client-controlled data blob', async () => {
-    // A malicious payload tries to claim a different author via `data`.
-    await TemplateApi.saveTemplate(
-      PATH,
-      LEAF,
-      { author: '/obj/Avatar/impostor', createdByPlayerId: 'evil' },
-      undefined,
-      ALICE
-    );
-    expect(await ProvenanceApi.authorOf(PATH)).toBe(ALICE); // threaded param wins
+    const avatar = makeStuffAtPath(() => new FakeAvatar(), ALICE);
+    await withRootContext(null, 'cms.write', () => {
+      ExecutionContextApi.tagActingAuthor(avatar);
+      return TemplateApi.saveTemplate(PATH, LEAF, {
+        author: '/obj/Avatar/impostor',
+        createdByPlayerId: 'evil',
+      });
+    });
+    expect(await ProvenanceApi.authorOf(PATH)).toBe(ALICE); // context wins
   });
 
-  it('records nothing when no author is supplied (programmatic save)', async () => {
+  it('records nothing when there is no acting principal (programmatic save)', async () => {
     await TemplateApi.saveTemplate(PATH, LEAF, {});
     expect(col(Collections.AuthoringEvents)).toHaveLength(0);
     expect(await ProvenanceApi.authorOf(PATH)).toBeNull();
+  });
+
+  it('records nothing when no acting author is tagged (e.g. pre-contract CMS / system)', async () => {
+    // A REST boundary that has not yet tagged its avatar — a safe no-op
+    // (today's CMS dispatches without the tag) until the contract lands.
+    await withRootContext(null, 'cms.write', () =>
+      TemplateApi.saveTemplate(PATH, LEAF, {})
+    );
+    expect(col(Collections.AuthoringEvents)).toHaveLength(0);
   });
 });

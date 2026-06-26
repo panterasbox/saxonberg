@@ -88,6 +88,33 @@ async function holdImpl(
   await row.save();
 }
 
+/**
+ * Record an **abstain** — a present, net-zero position (`yea = nay = 0`).
+ * Distinct from `drop` (which removes the row → not voting): an abstain row
+ * exists, so it counts toward quorum at the holder's full standing, while
+ * contributing 0 to the decision. A new abstain stamps the clock; an
+ * existing position converted to abstain keeps its `realSince` (conviction
+ * is irrelevant to a net-zero position).
+ */
+async function abstainImpl(
+  subject: string,
+  stock: Stock,
+  target: string,
+  nowMs: number
+): Promise<void> {
+  if (!active()) return;
+  const [existing] = await Position.find({ subject, stock, target });
+  const row = existing ?? new Position();
+  row.subject = subject;
+  row.stock = stock;
+  row.target = target;
+  row.yea = 0;
+  row.nay = 0;
+  row.since = WorldClockApi.getNow().rawValue();
+  if (existing === undefined) row.realSince = nowMs;
+  await row.save();
+}
+
 /** Reverse a held position (swap yea/nay) and reset its conviction clock. */
 async function flipImpl(
   subject: string,
@@ -161,6 +188,27 @@ async function tallyImpl(
 }
 
 /**
+ * The **quorum weight** cast on `{stock, target}`: `Σ standingOf(holder,
+ * stock).scalar` over every *present* position (directional OR abstain).
+ * This is the participation numerator — "votes cast" — that a passage rule
+ * measures against the total possible. Deliberately **conviction-independent
+ * and undirected**: showing up (any position) counts at full standing; not
+ * voting (no row) does not. The decision direction/strength is `tally`'s job.
+ */
+async function quorumWeightImpl(
+  stock: Stock,
+  target: string
+): Promise<number> {
+  if (!active()) return 0;
+  const positions = await Position.find({ stock, target });
+  let weight = 0;
+  for (const p of positions) {
+    weight += InfluenceApi.standingOf(p.subject, stock).scalar;
+  }
+  return weight;
+}
+
+/**
  * ConvictionLogic — the hot-reloadable logic singleton behind
  * {@link ConvictionApi}.
  *
@@ -189,6 +237,17 @@ export class ConvictionLogic extends Idea {
     nowMs: number
   ): Promise<void> {
     return holdImpl(subject, stock, target, split.yea, split.nay, nowMs);
+  }
+
+  /** See {@link ConvictionApi.abstain}. */
+  @CallSecurity(ConvictionApiCallers)
+  public async abstain(
+    subject: string,
+    stock: Stock,
+    target: string,
+    nowMs: number
+  ): Promise<void> {
+    return abstainImpl(subject, stock, target, nowMs);
   }
 
   /** See {@link ConvictionApi.flip}. */
@@ -231,5 +290,11 @@ export class ConvictionLogic extends Idea {
     nowMs: number
   ): Promise<ConvictionTally> {
     return tallyImpl(stock, target, nowMs);
+  }
+
+  /** See {@link ConvictionApi.quorumWeight}. */
+  @CallSecurity(ConvictionApiCallers)
+  public async quorumWeight(stock: Stock, target: string): Promise<number> {
+    return quorumWeightImpl(stock, target);
   }
 }

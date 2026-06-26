@@ -52,8 +52,7 @@ export class TemplateLogic extends Idea {
     path: string,
     classPath: string,
     data: Record<string, unknown>,
-    hydratorClassPath?: string,
-    author?: string
+    hydratorClassPath?: string
   ): Promise<string> {
     const tpl =
       (await Template.findByPath(path)) ??
@@ -70,14 +69,13 @@ export class TemplateLogic extends Idea {
       delete tpl.hydratorClass;
     }
     await tpl.save();
-    // Authorship ledger — append one row per authoring act, attributed to
-    // the authenticated giver threaded from the gated write path. Append
-    // only AFTER the save commits, and only when an author is supplied
-    // (programmatic / system saves pass none and record nothing). The author
-    // is never the client-controlled `data` blob. See ProvenanceApi.
-    if (author !== undefined) {
-      await ProvenanceApi.recordAuthoring({ path, author, kind: 'save' });
-    }
+    // Authorship ledger — this is the single centralized writer of
+    // provenance (`recordAuthoring` is gated to this module). The author is
+    // NOT passed: `ProvenanceLogic` derives it from the dispatched execution
+    // context (`getActingAuthor`), so it can't be spoofed and is never the
+    // client-controlled `data` blob. An unattributable context (programmatic
+    // / system save, forced, non-avatar principal) records nothing.
+    await ProvenanceApi.recordAuthoring({ path });
     return tpl._id!;
   }
 

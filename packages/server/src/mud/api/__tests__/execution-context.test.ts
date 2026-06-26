@@ -485,4 +485,80 @@ describe('ExecutionContextApi', () => {
       ).toThrow(SecurityError);
     });
   });
+
+  describe('getActingAuthor (transport-agnostic attribution)', () => {
+    function cmd(commandGiver: unknown): {
+      kind: typeof FrameKind.Command;
+      metadata: { commandContext: { commandGiver: unknown }; forced: boolean };
+    } {
+      return {
+        kind: FrameKind.Command,
+        metadata: { commandContext: { commandGiver }, forced: false },
+      };
+    }
+
+    it('returns the command giver for a single non-forced command frame', () => {
+      const player = { name: 'player' };
+      ExecutionContextApi.runRoot(null, 'root', () => {
+        ExecutionContextApi.run(null, player, 'executeCommand', cmd(player), () => {
+          expect(ExecutionContextApi.getActingAuthor()).toBe(player);
+        });
+      });
+    });
+
+    it('returns the tagged acting author when there is no command frame (CMS/runRoot)', () => {
+      const avatar = { getTemplatePath: () => '/obj/Avatar/cms' };
+      ExecutionContextApi.runRoot(null, 'cms.write', () => {
+        // The REST boundary names its author in metadata, NOT as the frame
+        // target (which stays the boundary's own principal).
+        ExecutionContextApi.tagActingAuthor(avatar);
+        expect(ExecutionContextApi.getActingAuthor()).toBe(avatar);
+      });
+    });
+
+    it('a command frame takes precedence over a stray acting-author tag', () => {
+      const player = { name: 'player' };
+      const other = { getTemplatePath: () => '/obj/Avatar/other' };
+      ExecutionContextApi.runRoot(null, 'root', () => {
+        ExecutionContextApi.tagActingAuthor(other);
+        ExecutionContextApi.run(null, player, 'executeCommand', cmd(player), () => {
+          expect(ExecutionContextApi.getActingAuthor()).toBe(player);
+        });
+      });
+    });
+
+    it('fails closed (null) for a forced command frame', () => {
+      const player = { name: 'player' };
+      ExecutionContextApi.runRoot(null, 'root', () => {
+        ExecutionContextApi.run(
+          null,
+          player,
+          'executeCommand',
+          {
+            kind: FrameKind.Command,
+            metadata: { commandContext: { commandGiver: player }, forced: true },
+          },
+          () => {
+            expect(ExecutionContextApi.getActingAuthor()).toBeNull();
+          }
+        );
+      });
+    });
+
+    it('fails closed (null) for a cross-actor cascade (two different givers)', () => {
+      const a = { name: 'a' };
+      const b = { name: 'b' };
+      ExecutionContextApi.runRoot(null, 'root', () => {
+        ExecutionContextApi.run(null, a, 'executeCommand', cmd(a), () => {
+          ExecutionContextApi.run(a, b, 'executeCommand', cmd(b), () => {
+            expect(ExecutionContextApi.getActingAuthor()).toBeNull();
+          });
+        });
+      });
+    });
+
+    it('returns null outside any frame', () => {
+      expect(ExecutionContextApi.getActingAuthor()).toBeNull();
+    });
+  });
 });

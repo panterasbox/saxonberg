@@ -14,9 +14,12 @@
  * earliest row.
  *
  * **Dumb store, smart consumer** (the renown / chronicle precedent). The
- * author on each row is the authenticated giver threaded from the gated,
- * access-checked write path (`TemplateApi.saveTemplate`) — never
- * client-supplied, never read from the author-controlled `data` blob. The
+ * author on each row is **derived from the dispatched execution context**
+ * (`ExecutionContextApi.getActingAuthor`) — never a caller-supplied value,
+ * never read from the author-controlled `data` blob — so it cannot be
+ * spoofed. The write is **centralized**: `recordAuthoring` is gated to the
+ * single `TemplateApi.saveTemplate` chokepoint that every authoring
+ * transport (the in-world verbs and the REST CMS) funnels through. The
  * operator-trust residue (a developer forging rows) is the *same*
  * irreducible boundary as `renown_events`, answered by tamper-evidence +
  * transparency + exit later — it meets the existing bar, doesn't lower it.
@@ -31,6 +34,8 @@ import type { AuthoringEventFields } from '../lib/standing/AuthoringEvent';
 import { StuffApi } from './stuff';
 import { HotReloadApi } from './hot-reload';
 import { SecurityApi } from './security';
+import { CallSecurity } from '../lib/security/decorators';
+import { SecurityPolicies } from '../lib/security/SecurityPolicies';
 import { ProvenanceLogic } from '../obj/api/ProvenanceLogic';
 import { fileURLToPath } from 'url';
 
@@ -55,10 +60,23 @@ function logic(): ProvenanceLogic {
 
 export class ProvenanceApi {
   /**
-   * Record one authoring act (append-only). The `author` is the
-   * authenticated giver, supplied by the gated write path — never from
-   * client input or the `data` blob. No-op without an active connection.
+   * Record one authoring act for `path` (append-only). The author is NOT a
+   * parameter — it is derived from the dispatched execution context inside
+   * the logic (`ExecutionContextApi.getActingAuthor`), so it cannot be
+   * spoofed. The **write is gated to the template save chokepoint**
+   * (`TemplateLogic`): every legitimate authoring path — the in-world
+   * authoring verbs and the REST CMS — funnels through
+   * `TemplateApi.saveTemplate`, so that is the single, centralized writer of
+   * provenance; nothing else may append a row. No-op without an active
+   * connection or an attributable context.
+   *
+   * Gated `FromTemplate('/obj/api/template')`: the sole legitimate caller is
+   * the `TemplateLogic` save singleton (a registered Stuff, so its caller
+   * frame resolves to its template path, not a module id). Every authoring
+   * transport — the in-world verbs and the REST CMS — reaches provenance only
+   * through that one chokepoint.
    */
+  @CallSecurity(SecurityPolicies.FromTemplate('/obj/api/template'))
   public static async recordAuthoring(
     fields: AuthoringEventFields
   ): Promise<void> {

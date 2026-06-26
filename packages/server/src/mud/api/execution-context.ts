@@ -315,6 +315,78 @@ export class ExecutionContextApi {
   }
 
   /**
+   * The principal on whose behalf the current work runs — the **acting
+   * author** — resolved **transport-agnostically** for authorship
+   * attribution, NEVER taken from a caller-supplied value (the only inputs
+   * are frames the framework itself stamps):
+   *
+   *   - **in-game (command) path** — the command-frame stack's giver, but
+   *     only when the chain is *non-forced* and a *single, consistent*
+   *     giver. A forced dispatch (`CommandApi.forceCommand`) or a
+   *     cross-actor cascade (A's command triggering B) fails closed →
+   *     `null`. This is "look at the giver AND the stack around it": the
+   *     bare top giver is not trusted on its own.
+   *   - **REST / CMS path** — no Command frame, so the dispatched principal
+   *     is whatever a transport boundary stamped via {@link tagActingAuthor}
+   *     (the Avatar a session ran the op as). The stamp rides frame
+   *     *metadata*, decoupled from the frame's security `target`, so a REST
+   *     boundary can name its author without disturbing what downstream
+   *     `@CallSecurity` gates resolve as the caller.
+   *
+   * Returns the principal object (a `Stuff`) or `null`. The caller validates
+   * it is a real authoring identity (a durable `templatePath`). The
+   * deliberate centralization the provenance write relies on: one resolver,
+   * both transports, no trust in a passed argument.
+   */
+  public static getActingAuthor(): unknown | null {
+    const commands = ExecutionContextApi.getCommandStack();
+    if (commands.length > 0) {
+      // Any forced frame in the chain → unattributable.
+      if (commands.some((c) => c.forced)) return null;
+      // A single, consistent giver across the chain, or unattributable.
+      const givers = new Set(commands.map((c) => c.context.commandGiver));
+      if (givers.size !== 1) return null;
+      return commands[0]!.context.commandGiver;
+    }
+    // No command frame — a REST/`runRoot` dispatch. Read the nearest
+    // `tagActingAuthor` stamp (the boundary names its Avatar in metadata).
+    const stack = _als.getStore();
+    if (stack) {
+      for (let i = stack.length - 1; i >= 0; i--) {
+        const author = stack[i]!.metadata?.actingAuthor;
+        if (author != null) return author;
+      }
+    }
+    return null;
+  }
+
+  /**
+   * Stamp the **acting author** — the principal (an Avatar) on whose behalf
+   * a non-command transport boundary is running — onto the current frame's
+   * metadata, where {@link getActingAuthor} reads it for the REST/CMS path.
+   *
+   * The seam a REST boundary calls right after planting its `runRoot` frame
+   * (e.g. the CMS `run-as-session-player` bridge): it dispatches the
+   * execution context *as a specific Avatar* for authorship, WITHOUT making
+   * that Avatar the frame's security `target` (so downstream `@CallSecurity`
+   * gates are unaffected). Gated by the same frame-mutator allowlist as
+   * {@link updateCurrentFrameMetadata} — only framework / `backend/` code may
+   * stamp. Throws when called outside any frame.
+   */
+  public static tagActingAuthor(principal: unknown): void {
+    _assertFrameMutatorAllowed('tagActingAuthor');
+    const stack = _als.getStore();
+    if (!stack || stack.length === 0) {
+      throw new SecurityError(
+        'tagActingAuthor: no frame on the stack to tag'
+      );
+    }
+    const top = stack[stack.length - 1]!;
+    if (!top.metadata) top.metadata = {};
+    top.metadata.actingAuthor = principal;
+  }
+
+  /**
    * Walk the call stack outermost-to-innermost and return every
    * Command frame's contextual data. The returned tuples carry the
    * frame's `CommandContext` (already includes `commandId` and
