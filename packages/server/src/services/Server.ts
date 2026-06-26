@@ -19,6 +19,7 @@ import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import { Backend } from '../backend/Backend';
 import { Application } from '../backend/Application';
+import { CmsRoutes } from '../backend/CmsRoutes';
 import { PassportConfig } from './auth/PassportConfig';
 import { AuthRoutes } from './auth/AuthRoutes';
 import { TestAuthRoutes } from './auth/TestAuthRoutes';
@@ -162,6 +163,11 @@ export class Server {
         uptime: process.uptime(),
       });
     });
+
+    // CMS REST data surface. Mounted after session/passport middleware
+    // (live since setupMiddleware ran) and before the SPA `*` fallback
+    // so the /api/cms/* routes match first.
+    CmsRoutes.setup(this.app);
 
     // In production the server serves the built client from its own
     // origin — set CLIENT_DIST to the client's `dist/`. When it's unset

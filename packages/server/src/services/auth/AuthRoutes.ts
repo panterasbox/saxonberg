@@ -19,6 +19,8 @@ import type {
   PassportTwitchProfileWithTokens,
 } from '@saxonberg/types';
 import { Backend } from '../../backend/Backend';
+import { CmsSession } from '../../backend/CmsSession';
+import { AccessApi } from '../../mud/api/access';
 import { AuthMiddleware } from './AuthMiddleware';
 import { TWITCH_IDENTITY_SCOPE } from './PassportConfig';
 
@@ -83,7 +85,7 @@ export class AuthRoutes {
     AuthRoutes.setupUnlinkRoute(app, 'twitch');
 
     // Check authentication status
-    app.get('/auth/status', (req: Request, res: Response) => {
+    app.get('/auth/status', async (req: Request, res: Response) => {
       const response: AuthStatusResponse = {
         isAuthenticated: req.isAuthenticated(),
       };
@@ -95,6 +97,21 @@ export class AuthRoutes {
           email: '',
           displayName: '',
         };
+
+        // Non-authoritative developer-tier hint so the client can hide
+        // the CMS launcher. Resolves the session's loaded Avatar through
+        // the same bridge the REST CMS routes use; null avatar → false.
+        // Gates remain server-side (this flag is UX only).
+        try {
+          response.isDeveloper = await CmsSession.runAsSessionPlayer(
+            req,
+            'auth.status.isDeveloper',
+            (actor) => AccessApi.isDeveloper(actor)
+          );
+        } catch (err) {
+          console.error('AuthRoutes: isDeveloper resolution failed:', err);
+          response.isDeveloper = false;
+        }
       }
 
       res.json(response);

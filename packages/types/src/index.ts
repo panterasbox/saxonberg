@@ -1534,6 +1534,14 @@ export interface ApiResponse<T = unknown> {
  */
 export interface AuthStatusResponse {
   isAuthenticated: boolean;
+  /**
+   * Non-authoritative developer-tier hint: true iff the session's
+   * loaded Avatar is a developer (`AccessApi.isDeveloper`). The client
+   * uses it only to hide the CMS launcher for non-developers; the REST
+   * CMS gates remain the server-side authority. Absent/false when no
+   * in-world Avatar is loaded for the session.
+   */
+  isDeveloper?: boolean;
   user?: {
     id: string;
     email: string;
