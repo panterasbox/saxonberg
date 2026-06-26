@@ -53,6 +53,14 @@ export class CmsSession {
     fn: (actor: Avatar | null) => Promise<T>
   ): Promise<T> {
     const actor = await CmsSession.resolveSessionAvatar(req);
+    // TODO(post-!86 rebase): inside this runRoot callback, before `fn`, call
+    // `if (actor) ExecutionContextApi.tagActingAuthor(actor);` — names the
+    // acting Avatar in frame metadata (NOT the frame target, which stays
+    // `Backend` so downstream @CallSecurity gates are unchanged) so
+    // `ProvenanceLogic.getActingAuthor` attributes CMS saves. `tagActingAuthor`
+    // is gated to backend/ + framework callers (CmsSession qualifies). It does
+    // not exist on build-2's ExecutionContextApi until !86 merges to master and
+    // cms-editor rebases; until then CMS writes are unattributed (safe no-op).
     return ExecutionContextApi.runRoot(Backend, method, () => fn(actor));
   }
 
