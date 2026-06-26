@@ -41,7 +41,7 @@ describe("AppSettingsSeeder", () => {
     pm.setFindResult([]);
     const added = await AppSettingsSeeder.run();
 
-    expect(added).toBe(15);
+    expect(added).toBe(18);
     expect(pm.saves).toHaveLength(1);
     expect(pm.saves[0]!.collection).toBe("app_settings");
     const values = savedValues(pm);
@@ -76,7 +76,10 @@ describe("AppSettingsSeeder", () => {
           [AppSettingKeys.renownReceptionWindowS]: "300",
           [AppSettingKeys.participationBucketSeconds]: "600",
           [AppSettingKeys.participationDecayHalfLife]: "1209600",
+          [AppSettingKeys.producerBucketSeconds]: "600",
+          [AppSettingKeys.producerDecayHalfLife]: "1209600",
           [AppSettingKeys.influenceBandThresholds]: "[]",
+          [AppSettingKeys.convictionBuildPeriodSeconds]: "604800",
         },
       },
     ]);
@@ -96,8 +99,9 @@ describe("AppSettingsSeeder", () => {
     const added = await AppSettingsSeeder.run();
 
     // Missing keys seeded: evacuationFallback + 3 reaction + 2 forum
-    // anti-snowball + 5 renown + 2 participation + 1 influence.
-    expect(added).toBe(14);
+    // anti-snowball + 5 renown + 2 participation + 2 producer + 1 influence
+    // + 1 conviction.
+    expect(added).toBe(17);
     expect(pm.saves).toHaveLength(1);
     const values = savedValues(pm);
     // operator value preserved, missing keys seeded

@@ -33,6 +33,19 @@ export interface CommandDispatchedPayload {
   at: number;
   /** Real-time epoch MILLISECONDS — the bucket key + decay clock. */
   realAt: number;
+  /**
+   * OPTIONAL — the durable `templatePath` of the giver's location (the
+   * container holding them at dispatch), for the producer faucet's credit
+   * routing. Absent for an incorporeal / location-less giver. The consumer
+   * tap ignores it, so its rows are byte-identical whether present or not.
+   */
+  locationTemplatePath?: string;
+  /**
+   * OPTIONAL — the giver's own durable `templatePath` (the engaging player's
+   * id, same space as the credited author), for the producer faucet's A≠P
+   * self-credit exclusion. Absent for an un-templated giver.
+   */
+  actorTemplatePath?: string;
 }
 
 export class CommandDispatchedEvent {

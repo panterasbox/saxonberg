@@ -377,8 +377,13 @@ Examples: `StuffApi`, `ConnectionApi`, `MixinApi`, `MessageApi`,
 to a `ForumsLogic` / `SubjectLogic` logic singleton; see
 [forums.md](./subsystems/forums.md)), `ConsumerApi` (forwarding to
 `ConsumerLogic`; the consumer influence stock — see
-[participation.md](./subsystems/participation.md)). `InfluenceApi` is a
-thin cross-stock *dispatcher* with no logic singleton (it delegates to the
+[participation.md](./subsystems/participation.md)), `ProducerApi` (→
+`ProducerLogic`; the producer/make stock), `ConvictionApi` (→
+`ConvictionLogic`; the conviction spend half), `ProvenanceApi` (→
+`ProvenanceLogic`; the authorship ledger) — see
+[influence.md](./subsystems/influence.md) and
+[provenance.md](./subsystems/provenance.md). `InfluenceApi` is a thin
+cross-stock *dispatcher* with no logic singleton (it delegates to the
 per-stock Apis).
 
 `MqlSubscriptionApi` is the second wire channel alongside prose /

@@ -154,6 +154,10 @@ export default class WriteController extends CommandController<WriteModel> {
       );
       if (schemaErr !== null) return this.fail(context, schemaErr);
       try {
+        // The authoring act is attributed inside saveTemplate from the
+        // dispatched execution context (this verb's command giver) — the
+        // controller passes no author; it can't be spoofed. The access check
+        // above already gated this write.
         await TemplateApi.saveTemplate(
           target,
           classPath,

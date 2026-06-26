@@ -14,7 +14,7 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { ConsumerApi } from '../../../api/consumer';
 import { AppSettings } from '../../../lib/config/AppSettings';
-import ParticipationStanding from '../../../lib/participation/ParticipationStanding';
+import ParticipationStanding from '../../../lib/standing/ParticipationStanding';
 import { WorldClockApi } from '../../../api/worldclock';
 import { Collections, PersistenceManager } from '../../../../backend/PersistenceManager';
 

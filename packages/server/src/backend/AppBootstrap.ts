@@ -24,9 +24,11 @@ import { QuantityApi } from '../mud/api/quantity';
 import { WorldClockApi } from '../mud/api/worldclock';
 import { AppSettings } from '../mud/lib/config/AppSettings';
 import { RenownApi } from '../mud/api/renown';
-import RenownStanding from '../mud/lib/renown/RenownStanding';
+import RenownStanding from '../mud/lib/standing/RenownStanding';
 import { ConsumerApi } from '../mud/api/consumer';
-import ParticipationStanding from '../mud/lib/participation/ParticipationStanding';
+import ParticipationStanding from '../mud/lib/standing/ParticipationStanding';
+import { ProducerApi } from '../mud/api/producer';
+import ProducerStanding from '../mud/lib/standing/ProducerStanding';
 import { Document } from '../mud/lib/persistence/Document';
 import { StuffApi } from '../mud/api/stuff';
 import type { Marshaller } from '../mud/lib/persistence/Marshaller';
@@ -166,6 +168,15 @@ export class AppBootstrap {
     // are populated. Reads renown (already booted above) for the projection.
     await ParticipationStanding.warm();
     ConsumerApi.boot();
+
+    // Producer (the make faucet — the third influence stock) — warm the
+    // standing read-cache, then install the command-dispatch engagement tap
+    // (it reuses the consumer's signal; both taps assert the same
+    // consumer+producer restrictSubscribe allowlist) + self-register the
+    // recompute schedule. Engagement-only (reads no renown). Booted AFTER the
+    // consumer so the shared signal's allowlist is asserted in a stable order.
+    await ProducerStanding.warm();
+    ProducerApi.boot();
   }
 
   /**
