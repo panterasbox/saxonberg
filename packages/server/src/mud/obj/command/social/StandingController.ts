@@ -27,7 +27,11 @@ const TOPIC = 'world.identity';
 export default class StandingController extends CommandController<CommandModel> {
   async execute(_model: CommandModel, context: CommandContext): Promise<void> {
     const actor = context.commandGiver;
-    const subjectId = actor.stuffId;
+    // Read under the durable templatePath the faucets re-key storage to
+    // (Phase 0) — the live stuffId is re-minted on re-clone. Falls back to
+    // the stuffId for an un-templated actor (e.g. a guest), matching the
+    // faucet's own fallback so the key always agrees.
+    const subjectId = actor.getTemplatePath() ?? actor.stuffId;
 
     const participation = ConsumerApi.participationOf(subjectId);
     const renown = RenownApi.renownOf(subjectId);

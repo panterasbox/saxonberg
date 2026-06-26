@@ -8,15 +8,15 @@
  *
  * This script forbids `PersistenceManager.get(` everywhere EXCEPT the
  * sanctioned set:
- *   - the persistence framework — `lib/persistence/**` (Document) and
+ *   - the persistence framework — `lib/persistence` (Document) and
  *     `lib/stuff/Template.ts` (the template primitive): it *is* the data
  *     layer;
- *   - the backend — `backend/**`: it owns PM's lifecycle (connect / seed /
+ *   - the backend — `backend`: it owns PM's lifecycle (connect / seed /
  *     hooks);
  *   - `api/hot-reload.ts` — the HMR hook-manifest reload (PM lifecycle, not
  *     data);
  *   - the `api/persist.ts` facade itself;
- *   - tests (`**/__tests__/**`).
+ *   - tests (any `__tests__` directory).
  *
  * CI-gating (exits 1 on findings). A standalone script, not an ESLint
  * rule, for the same ESLint-8-legacy reason as `check-gate-strings`.

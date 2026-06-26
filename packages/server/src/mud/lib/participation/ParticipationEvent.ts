@@ -18,8 +18,11 @@
  * coarse time bucket* in which they take ≥1 recognized action; the append
  * path is find-or-skip on `{subject, bucket}` (anti-AFK: idle buckets
  * never appear; anti-spam: a macro spamming a bucket earns the one row the
- * bucket already has). `subject` is the giver's durable `stuffId`; the
- * collection is indexed on `{subject}` and `{subject, bucket}` (the dedup
+ * bucket already has). `subject` is the giver's durable `templatePath`
+ * (`/obj/Avatar/<playerId>`), not the re-minted `stuffId` — the
+ * `ConsumerLogic` dispatch tap converts at the storage boundary so standing
+ * survives re-clone; the collection is indexed on `{subject}` and
+ * `{subject, bucket}` (the dedup
  * lookup) so both stay O(rows-for-this-subject).
  *
  * `bucket` is the real-time bucket key (`floor(realAt / bucketMs)`) —
@@ -45,7 +48,7 @@ export type ParticipationEventKind = 'command';
  * (resolved by the `ConsumerLogic` append seam when omitted).
  */
 export interface ParticipationEventFields {
-  /** Durable subject id (the giver's `stuffId`). */
+  /** Durable subject id (the giver's `templatePath`). */
   subject: string;
   kind?: ParticipationEventKind;
   /** Game-time SECONDS witness (parity only). */
@@ -58,7 +61,7 @@ export default class ParticipationEvent extends Document {
   static collectionName = Collections.ParticipationEvents;
   static persistentFields = ['subject', 'bucket', 'kind', 'at', 'realAt'];
 
-  /** Durable subject id (the giver's `stuffId`) — indexed. */
+  /** Durable subject id (the giver's `templatePath`) — indexed. */
   subject = '';
   /** The real-time bucket key (`floor(realAt / bucketMs)`) — the dedup key. */
   bucket = 0;

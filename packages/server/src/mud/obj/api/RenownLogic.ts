@@ -51,6 +51,21 @@ function active(): boolean {
 }
 
 /**
+ * Resolve a live `stuffId` to its **durable** identity key — the
+ * `templatePath` standing banks on (`/obj/Avatar/<playerId>` for an avatar,
+ * a real template path for an NPC). The id is dual-use: a live-resolution
+ * *handle* (passed to {@link resolveScope} / `ReactionApi.actInfo` as-is) and
+ * a stored aggregation *key*. Only the stored key converts; an Avatar's
+ * `stuffId` is re-minted on re-clone (reboot / relog), so keying storage on
+ * it silently resets standing. Falls back to the raw id when no template
+ * stamp resolves (an un-templated subject, or one already gone) — never
+ * drops a signal.
+ */
+function durableKey(stuffId: string): string {
+  return StuffApi.findById(stuffId)?.getTemplatePath() ?? stuffId;
+}
+
+/**
  * Append one raw, scope-tagged signal row. The value-function is NOT
  * applied here — the row stores the pre-valence signal; scoring happens
  * only at recompute. `at` defaults to the game-time witness so callers
@@ -152,8 +167,10 @@ async function appendFromReaction(p: ReactionFiredPayload): Promise<void> {
     p.scope
   );
   await appendImpl({
-    subject: p.subjectId,
-    source: p.reactorId,
+    // Scope resolved above with the live ids; storage keys on the durable
+    // templatePath so standing survives re-clone (Phase 0).
+    subject: durableKey(p.subjectId),
+    source: durableKey(p.reactorId),
     kind: 'reaction',
     signal: {
       emote: p.emote,
@@ -194,8 +211,12 @@ async function appendFromReception(
   if (!active()) return;
   const act = ReactionApi.actInfo(p.commandId);
   if (!act) return; // not a reactable comm act (look result, system notice, …)
-  const subjectId = act.subjectId;
-  const listenerId = p.perceiverId;
+  // Live ids stay the resolution handles; durable templatePaths are the
+  // stored keys + the dedup/self-check identity (Phase 0).
+  const subjectStuffId = act.subjectId;
+  const listenerStuffId = p.perceiverId;
+  const subjectId = durableKey(subjectStuffId);
+  const listenerId = durableKey(listenerStuffId);
   if (listenerId === subjectId) return; // you don't earn renown hearing yourself
 
   const windowS = receptionWindowS();
@@ -206,8 +227,8 @@ async function appendFromReception(
   seen.set(key, nowS);
 
   const { locality, groups } = await resolveScope(
-    listenerId,
-    subjectId,
+    listenerStuffId,
+    subjectStuffId,
     act.scope
   );
   await appendImpl({
