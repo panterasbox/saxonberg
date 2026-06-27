@@ -46,6 +46,7 @@ import { SchedulerApi } from '../../api/scheduler';
 import { MixinApi } from '../../api/mixin';
 import { ReactionApi } from '../../api/reaction';
 import { SoulApi } from '../../api/soul';
+import { TraitApi, type ClaimSeed } from '../../api/trait';
 import type { Container } from '../spatial/Container';
 import type { Containable } from '../spatial/Containable';
 import type { Engaged, EngagementSlot } from '../activity/Engaged';
@@ -88,8 +89,19 @@ export function BehavedMixin<TBase extends MixinConstructor<Stuff>>(
     static _mixinName = 'BehavedMixin';
 
     /** The declarative spec list — pure data, persisted as-is. */
-    static persistentFields = ['behaviors'];
+    static persistentFields = ['behaviors', 'dispositions'];
     public behaviors: BehaviorSpec[] = [];
+
+    /**
+     * An authored host's established character, as disposition `claim`
+     * seeds — pure data, persisted as-is. Seeded into the trait ledger
+     * once at spawn (`postRegister`) so derive-on-read yields the host's
+     * defining traits immediately, while keeping personality
+     * derive-don't-track (it came from a seeded history, not a stat). The
+     * behavior→trait edge this introduces is the same one the trait-aware
+     * brains already establish.
+     */
+    public dispositions: ClaimSeed[] = [];
 
     // ───────── runtime-only live wiring ─────────
     private _wiring: BehaviorWiring[] = [];
@@ -114,6 +126,21 @@ export function BehavedMixin<TBase extends MixinConstructor<Stuff>>(
       // re-hydrate / re-clone) before installing fresh.
       this._teardownBehaviors();
       await this._wireBehaviors();
+      await this._seedDispositions();
+    }
+
+    /**
+     * Seed the host's authored `dispositions:` into the trait ledger as
+     * `claim` evidence — once. Idempotent across re-clone / reboot: skips
+     * if any `claim` row already exists for this host (claims persist).
+     */
+    private async _seedDispositions(): Promise<void> {
+      const seeds = this.dispositions ?? [];
+      if (!seeds.length) return;
+      const host = this as unknown as Stuff;
+      const existing = await TraitApi.entriesFor(host);
+      if (existing.some((e) => e.kind === 'claim')) return;
+      await TraitApi.seedClaims(host, seeds);
     }
 
     public onDestruct(): void {

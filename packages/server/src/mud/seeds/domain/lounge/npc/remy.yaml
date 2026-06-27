@@ -16,6 +16,12 @@ data:
     He works the rail like a stage — a wink here, a refill there, a rumor
     always half-told — and knows everyone's name by the second visit and
     most of their business by the third.
+  # Established character: gregarious, bold, a harmless gossip — the
+  # Connector. Slate-pinned gregarious.
+  dispositions:
+    - { disposition: sociability, valence: 70 }
+    - { disposition: boldness, valence: 70 }
+    - { disposition: honesty, valence: -70 }
   behaviors:
     - brain: /lib/behavior/shifts
       trigger: cadence:30s
@@ -53,3 +59,13 @@ data:
         reactions:
           - { respond: "Ha! That's the spirit." }
           - { respond: "Now you're talking." }
+    # Trait-aware chatter: Remy's gregarious sociability keeps this loud.
+    - brain: /lib/behavior/converses
+      trigger: cadence:17s
+      config:
+        chatty:
+          - "So get this — you'll love this one."
+          - "Stick around, it only gets better."
+          - "Between us? Big doings up the avenue."
+        terse:
+          - "Mm. Busy one."
