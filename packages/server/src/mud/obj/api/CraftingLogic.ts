@@ -46,15 +46,17 @@ interface MatchedInput {
   measureL: number;
 }
 
-/** Cached catalogue handle (survives the logic singleton's lifetime). */
+/** Cached catalogue handle (a fallback; the live registered one wins). */
 let catalogueRef: RecipeCatalogue | null = null;
 async function requireCatalogue(): Promise<RecipeCatalogue> {
-  if (catalogueRef) return catalogueRef;
+  // Prefer the currently-registered singleton (HMR-replaced or test-reset
+  // instances supersede the cache); fall back to the cache, then clone.
   const found = StuffApi.findByTemplatePath<RecipeCatalogue>(CATALOGUE_PATH);
   if (found) {
     catalogueRef = found;
     return found;
   }
+  if (catalogueRef) return catalogueRef;
   catalogueRef = await StuffApi.singleton<RecipeCatalogue>(CATALOGUE_PATH);
   return catalogueRef;
 }
