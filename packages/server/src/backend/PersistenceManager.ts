@@ -53,6 +53,9 @@ export enum Collections {
   AuthoringEvents = 'authoring_events',
   Positions = 'positions',
   Recipes = 'recipes',
+  BankLedger = 'bank_ledger',
+  BankAccounts = 'bank_accounts',
+  BankSupply = 'bank_supply',
 }
 
 /**
@@ -796,6 +799,36 @@ export class PersistenceManager {
         stock: 1,
         target: 1,
       });
+
+      // Bank ledger: the append-only system of record (one doc per transfer
+      // leg). Indexed on `fromAccount` / `toAccount` (the per-account replay
+      // + reads), `kind` (the supply / report scans), and `at` (time-ordered
+      // slices) — the `renown_events` block, two-sided for double-entry.
+      await this.getCollection(Collections.BankLedger).createIndex({
+        fromAccount: 1,
+      });
+      await this.getCollection(Collections.BankLedger).createIndex({
+        toAccount: 1,
+      });
+      await this.getCollection(Collections.BankLedger).createIndex({ kind: 1 });
+      await this.getCollection(Collections.BankLedger).createIndex({ at: 1 });
+
+      // Bank accounts: the materialized account registry + balance (a
+      // rebuildable cache). Unique on `accountId` (the ledger key + warm()
+      // load), indexed on `owner` / `bankPath` (identity resolution).
+      await this.getCollection(Collections.BankAccounts).createIndex(
+        { accountId: 1 },
+        { unique: true }
+      );
+      await this.getCollection(Collections.BankAccounts).createIndex({
+        owner: 1,
+      });
+      await this.getCollection(Collections.BankAccounts).createIndex({
+        bankPath: 1,
+      });
+
+      // Bank supply: the single-row running money-supply headline
+      // (rebuildable from the ledger). One row — no index needed.
 
       console.info('PersistenceManager: Indexes created successfully');
     } catch (error) {

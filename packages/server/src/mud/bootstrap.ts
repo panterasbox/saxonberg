@@ -60,6 +60,11 @@ export const bootstrapManifest: BootstrapEntry[] = [
   // postRegister; downstream consumers (chat audience, future
   // permission gates) reach in via `GroupApi`.
   { templatePath: '/obj/GroupRegistry' },
+  // CentralBank singleton — the monetary mint/sink and world-presence
+  // anchor for the banking substrate. Holds the central bank's own account
+  // identity; its mint/drain/float logic is surfaced (developer-gated)
+  // through `BankingApi`. No field state; a plain singleton clone.
+  { templatePath: '/obj/CentralBank' },
   // SubjectCatalogue — the Subject-layer runtime view (identity +
   // audience + per-subject subscriptions, the linking spine under chat +
   // forums). Warms from the `forum_subjects` collection (populated by
