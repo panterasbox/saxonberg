@@ -45,7 +45,9 @@ import { MixinApi } from "../../api/mixin";
 import { Expression } from "./Expression";
 import { Block } from "./Block";
 import { Scope } from "./Scope";
+import { ScriptValues } from "./Value";
 import type { ScriptValue } from "./Value";
+import { ScriptBuiltins } from "./builtins";
 import type { Script, Pipeline, Command, Arg } from "./ast";
 import type { Stuff } from "../stuff/Stuff";
 import type { CommandGiver } from "../command/CommandGiver";
@@ -113,11 +115,52 @@ export class ResourceLimitError extends Error {
 
 const NEEDS_QUOTING_RE = /[\s"\\|]/;
 
+/** A `def`'d command — captured params, body, and definition scope. */
+interface ScriptDef {
+  params: string[];
+  body: Script;
+  scope: Scope;
+}
+
+/**
+ * Coerce a value into the item list `each` iterates: a `StuffList` is
+ * itself, a single Stuff is a one-element list, and a scalar / void /
+ * empty set yields zero iterations (an empty MQL set → no iterations,
+ * the falsiness rule applied to iteration).
+ */
+function itemsOf(value: ScriptValue): ScriptValue[] {
+  if (Array.isArray(value)) return value;
+  if (
+    value !== undefined &&
+    typeof value === "object" &&
+    !(value instanceof Block)
+  ) {
+    return [value]; // a single Stuff
+  }
+  return [];
+}
+
+/** Extract `def` param names from a `($a $b)` island source. */
+function parseParams(source: string): string[] {
+  return source
+    .trim()
+    .split(/\s+/)
+    .filter((token) => token.length > 0)
+    .map((token) => (token.startsWith("$") ? token.slice(1) : token));
+}
+
 export class Interpreter {
   private steps = 0;
   private dispatches = 0;
   private depth = 0;
   private readonly notes: Note[] = [];
+  /**
+   * `def`'d commands, in-memory for the duration of this run. Invoked by
+   * name like any verb. Cross-prompt session persistence (a `def` at one
+   * prompt invoked at the next) is the named-scripts surface (P6); a
+   * single multi-statement script can `def f …; f …` today.
+   */
+  private readonly defs = new Map<string, ScriptDef>();
 
   constructor(
     private readonly actor: Stuff & CommandGiver,
@@ -196,9 +239,16 @@ export class Interpreter {
 
   private *evalCommand(command: Command, scope: Scope): Eval<ScriptValue> {
     yield* this.step();
-    // (P3) builtins — if/each/def/while/set — branch here on the verb,
-    // taking raw (unevaluated) block/condition args. v1: every command
-    // goes over the bus.
+    // Builtins (if/each/def/while/set) are interpreter-intrinsic: they
+    // take raw (unevaluated) block/condition args, so they can't ride
+    // the eager-arg dispatch path. A `def`'d name invokes its body.
+    // Everything else goes over the bus.
+    if (ScriptBuiltins.isBuiltin(command.word)) {
+      return yield* this.evalBuiltin(command, scope);
+    }
+    if (this.defs.has(command.word)) {
+      return yield* this.invokeDef(command, scope);
+    }
     const bound = this.bindCommand(command, scope);
     if (bound === null) return undefined; // unknown verb / bind shape — noted
     if (++this.dispatches > this.limits.maxDispatch) {
@@ -211,6 +261,178 @@ export class Interpreter {
       prep: bound.prep,
     };
     return undefined; // the command value channel is deferred with piping
+  }
+
+  /* ─────────────────── control-flow builtins ─────────────────── */
+  //
+  // Each is syntactically still `word arg*` ("everything is a command")
+  // but the interpreter owns its evaluation, taking raw AST args so
+  // blocks stay unevaluated and conditions evaluate lazily.
+
+  /** Route an intrinsic builtin to its handler. */
+  private *evalBuiltin(command: Command, scope: Scope): Eval<ScriptValue> {
+    switch (command.word) {
+      case "set":
+        return this.evalSet(command, scope);
+      case "if":
+        return yield* this.evalIf(command, scope);
+      case "each":
+        return yield* this.evalEach(command, scope);
+      case "while":
+        return yield* this.evalWhile(command, scope);
+      case "def":
+        return this.evalDef(command, scope);
+      default:
+        return undefined;
+    }
+  }
+
+  /**
+   * `set <name> <value>` — assign a frame variable (nearest existing
+   * binding or a new one in this frame), yielding the assigned value.
+   */
+  private evalSet(command: Command, scope: Scope): ScriptValue {
+    const nameArg = command.args[0];
+    if (!nameArg || nameArg.kind !== "literal") {
+      this.note({
+        kind: "command-rejected",
+        reason: "bind-failed",
+        detail: "set: expected a variable name",
+      });
+      return undefined;
+    }
+    const valueArg = command.args[1];
+    const value =
+      valueArg !== undefined ? this.evalArg(valueArg, scope) : undefined;
+    scope.set(nameArg.value, value);
+    return value;
+  }
+
+  /**
+   * `if (cond) {then} [else {else}]` — evaluates the condition's
+   * truthiness (an empty MQL set is false) and invokes the chosen
+   * block, yielding its value (so `if` works in value position).
+   */
+  private *evalIf(command: Command, scope: Scope): Eval<ScriptValue> {
+    const cond =
+      command.args[0] !== undefined
+        ? this.evalArg(command.args[0], scope)
+        : undefined;
+    if (ScriptValues.isTruthy(cond)) {
+      const thenBlock = this.blockArg(command.args[1], scope);
+      return thenBlock !== null ? yield* this.invokeBlock(thenBlock) : undefined;
+    }
+    const elseBlock = this.elseBlockOf(command.args, scope);
+    return elseBlock !== null ? yield* this.invokeBlock(elseBlock) : undefined;
+  }
+
+  /**
+   * `each (set) {block}` — invoke the block once per item, binding the
+   * item as `it` in the per-iteration scope (so `$it` reads it). An
+   * empty set runs zero iterations. (Resolving a *bareword* `it` as an
+   * object inside a sub-command's MQL field — `collect it` — needs the
+   * MQL-pronoun wiring, the same object-into-args frontier piping owns;
+   * deferred.)
+   */
+  private *evalEach(command: Command, scope: Scope): Eval<ScriptValue> {
+    const value =
+      command.args[0] !== undefined
+        ? this.evalArg(command.args[0], scope)
+        : undefined;
+    const bodyArg = command.args[1];
+    let last: ScriptValue = undefined;
+    for (const item of itemsOf(value)) {
+      yield* this.step();
+      const child = scope.child();
+      child.define("it", item);
+      const body = this.blockArg(bodyArg, child);
+      if (body !== null) last = yield* this.invokeBlock(body);
+    }
+    return last;
+  }
+
+  /**
+   * `while (cond) {block}` — loop while the condition is truthy. Each
+   * iteration takes a `step()`, so a no-suspension loop is preempted
+   * (sliced) and bounded by the step ceiling — a `while (true) { }`
+   * cannot freeze the event loop, it aborts with `resource-limit`.
+   */
+  private *evalWhile(command: Command, scope: Scope): Eval<ScriptValue> {
+    const condArg = command.args[0];
+    const bodyArg = command.args[1];
+    let last: ScriptValue = undefined;
+    for (;;) {
+      yield* this.step();
+      const cond =
+        condArg !== undefined ? this.evalArg(condArg, scope) : undefined;
+      if (!ScriptValues.isTruthy(cond)) break;
+      const body = this.blockArg(bodyArg, scope);
+      if (body !== null) last = yield* this.invokeBlock(body);
+    }
+    return last;
+  }
+
+  /**
+   * `def name ($p…) {block}` — register an invocable named command. The
+   * `($p…)` island's source supplies the positional param names; the
+   * body + the definition scope are captured (the closure). In-memory
+   * for this run (cross-prompt session binding is P6).
+   */
+  private evalDef(command: Command, scope: Scope): ScriptValue {
+    const nameArg = command.args[0];
+    if (!nameArg || nameArg.kind !== "literal") {
+      this.note({
+        kind: "command-rejected",
+        reason: "bind-failed",
+        detail: "def: expected a command name",
+      });
+      return undefined;
+    }
+    const bodyArg = command.args.find((a) => a.kind === "block");
+    if (!bodyArg || bodyArg.kind !== "block") {
+      this.note({
+        kind: "command-rejected",
+        reason: "bind-failed",
+        detail: `def ${nameArg.value}: missing { body }`,
+      });
+      return undefined;
+    }
+    const paramsArg = command.args.find((a) => a.kind === "expr");
+    const params =
+      paramsArg && paramsArg.kind === "expr"
+        ? parseParams(paramsArg.source)
+        : [];
+    this.defs.set(nameArg.value, { params, body: bodyArg.body, scope });
+    return undefined;
+  }
+
+  /** Invoke a `def`'d command: bind call args to params in a child of
+   *  the definition scope, then run the body (one recursion level). */
+  private *invokeDef(command: Command, scope: Scope): Eval<ScriptValue> {
+    const def = this.defs.get(command.word)!;
+    const callScope = def.scope.child();
+    def.params.forEach((param, i) => {
+      const argNode = command.args[i];
+      const value =
+        argNode !== undefined ? this.evalArg(argNode, scope) : undefined;
+      callScope.define(param, value);
+    });
+    return yield* this.invokeBlock(new Block(def.body, callScope));
+  }
+
+  /** Evaluate an arg that must be a `{block}` to its `Block` value. */
+  private blockArg(arg: Arg | undefined, scope: Scope): Block | null {
+    if (arg !== undefined && arg.kind === "block") {
+      const value = this.evalArg(arg, scope);
+      if (value instanceof Block) return value;
+    }
+    return null;
+  }
+
+  /** Find the `else { … }` block following an `else` literal, if any. */
+  private elseBlockOf(args: Arg[], scope: Scope): Block | null {
+    const i = args.findIndex((a) => a.kind === "literal" && a.value === "else");
+    return i >= 0 ? this.blockArg(args[i + 1], scope) : null;
   }
 
   /**

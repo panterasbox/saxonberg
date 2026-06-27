@@ -49,6 +49,7 @@
 
 import type { Parser, ParseResult, ParserContext } from "../../../api/command";
 import type { Script, Pipeline, Command, Arg } from "../../script/ast";
+import { ScriptBuiltins } from "../../script/builtins";
 import msh, { detectEmotePrefix } from "./msh";
 
 /* ──────────────────────────── lexer ──────────────────────────── */
@@ -334,12 +335,18 @@ const script: Parser = {
 
     const hasSep = lexed.tokens.some((t) => t.kind === "sep");
     const hasBlock = lexed.tokens.some((t) => t.kind === "block");
+    // A leading intrinsic builtin (`set` / `if` / `each` / `while` /
+    // `def`) routes to the interpreter even as a lone statement — a
+    // bare `set x (5)` is script, not a bus command.
+    const firstWord = lexed.tokens.find((t) => t.kind === "word");
+    const leadsWithBuiltin =
+      firstWord?.kind === "word" && ScriptBuiltins.isBuiltin(firstWord.value);
 
     // Bare-command fast path: no statement separator, no standalone
-    // block → msh parses it byte-identically. `( )` / `$` in a plain
-    // command ride msh / `expandVariables` exactly as today; only the
-    // genuinely-script shapes enter the interpreter.
-    if (!hasSep && !hasBlock) {
+    // block, not builtin-led → msh parses it byte-identically. `( )` /
+    // `$` in a plain command ride msh / `expandVariables` exactly as
+    // today; only the genuinely-script shapes enter the interpreter.
+    if (!hasSep && !hasBlock && !leadsWithBuiltin) {
       return msh.parse(text, context);
     }
 
