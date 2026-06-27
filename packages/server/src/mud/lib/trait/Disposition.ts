@@ -20,7 +20,11 @@
  *
  * **Polarity convention:** a **positive** valence drives toward the
  * `positive` pole; a negative valence toward the `negative` pole. The
- * roster lists each pair as `positive / negative`.
+ * `positive` pole is chosen to match the **axis key's natural direction**
+ * so authoring reads intuitively (a `+ambition` act makes you "Ambitious",
+ * `+constancy` makes you "Stubborn" / steadfast). For two CK3 pairs this
+ * inverts the slate's listed-first order on purpose — do not "correct" it
+ * back, or `ambition`/`constancy` valences would read backwards.
  */
 
 /** One opposed-pair axis: a durable `key` and its two pole labels. */
@@ -43,7 +47,7 @@ export interface DispositionAxis {
 export const DISPOSITION_AXES: readonly DispositionAxis[] = [
   // ── direct keepers ──
   { key: "composure", positive: "Calm", negative: "Wrathful" },
-  { key: "ambition", positive: "Content", negative: "Ambitious" },
+  { key: "ambition", positive: "Ambitious", negative: "Content" },
   { key: "diligence", positive: "Diligent", negative: "Lazy" },
   { key: "generosity", positive: "Generous", negative: "Greedy" },
   { key: "sociability", positive: "Gregarious", negative: "Shy" },
@@ -54,7 +58,7 @@ export const DISPOSITION_AXES: readonly DispositionAxis[] = [
   { key: "trust", positive: "Trusting", negative: "Paranoid" },
   { key: "compassion", positive: "Compassionate", negative: "Callous" },
   { key: "forgiveness", positive: "Forgiving", negative: "Vengeful" },
-  { key: "constancy", positive: "Fickle", negative: "Stubborn" },
+  { key: "constancy", positive: "Stubborn", negative: "Fickle" },
   // ── reframed for this world ──
   { key: "boldness", positive: "Bold", negative: "Cautious" },
   { key: "fairness", positive: "Fair", negative: "Arbitrary" },

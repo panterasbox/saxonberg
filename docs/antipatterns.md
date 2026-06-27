@@ -1674,7 +1674,18 @@ edge, can't cycle even though `lib` imports Apis at runtime. So an
 author-facing type is re-exported (`export type { ... }`) from **every**
 face that speaks it — you dissolve the need for a unique home rather than
 out-guessing it. The *definition* can sit on a cycle-breaking dependency
-leaf; the *import site* is still the face.
+leaf (a `lib/` value-object); the *import site* is still the face.
+
+**One leaf is off-limits: the `obj/api/*Logic` singleton.** Nothing
+imports from a logic module except its own facade (the
+`no-restricted-imports` rule — see
+[architecture.md](./architecture.md#export-discipline--the-sanctioned-exception-registry)),
+so a logic method's **call-shape type is *defined on the facade*** (`api/*.ts`),
+not in the logic singleton and re-exported. The logic module imports it
+back **type-only** from its facade (weightless, no cycle even though the
+facade value-imports the logic class for resolution). Exemplars:
+`RecordOptions`/`ClaimSeed` on `api/trait.ts`, `CardinalDirection` on
+`api/navigation.ts`.
 
 A constant re-export is a **runtime value** — a real `api → definition`
 edge that can cycle. So **constants are placed** (defined at the entry
