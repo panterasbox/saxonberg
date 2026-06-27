@@ -290,7 +290,9 @@ ubiquitous — so the in-world question "is this person real?" is not a
 mirror held up to the AI anxiety; it **is** the AI anxiety, and it's the
 same question the human at the keyboard is already asking about the table.
 This is the rarest thing fiction can do: an allegory where the metaphor
-and the referent are the same object. The phantoms wear the AI face; the
+and the referent are the same object. **The most literal instance is each player's own dorm
+roommate** — a procedural agent you cohabit with from orientation (§17.H). The
+phantoms wear the AI face; the
 **uncounted underclass** is agents that participate but don't count
 (which fuses cleanly with the reservation allegory). See
 [llm-content-slate](./llm-content-slate.md),
@@ -997,6 +999,39 @@ community assembles the truth a lone decoder can't) as literal co-op.
 Deduction stays knowledge-gated (Obra Dinn / Outer Wilds): the real lock is
 *understanding*, not the door. Forcing function on perception / locks /
 locomotion / dialogue+regard / stealth / advancement.
+
+**H. The dorm roommate — the thesis planted at orientation (design, 2026-06-27;
+firm in concept, deferred in execution).** The onboarding climax hands every new
+player a Duncan Hall room (the elastic Warren, allocated via Katie's manifest,
+§4), and rooms are **shared, two to a pair.** The model (decided): a **real
+player is always paired with a procedural NPC roommate** — never two real players
+(uniform, since everyone passes through the dorm before homesteading out);
+NPC+NPC rooms hold the ambient floor (Dunny/Wren and the rest). So from night one
+**you cohabit with an agent** — named, *sometimes-home* (§17.A made literal),
+routined, real enough to matter.
+
+The thesis lives here *before* the murder, but not where you'd first guess.
+Because the rule is uniform the community will *learn* it, so the unease is
+**not** "is my roommate real?" (that collapses) — it is the §17.B indictment set
+up intimately: you bond with a *known* agent, and the murder later makes you
+realize you could never tell about *anyone else* (the people down the hall, the
+victims — where players and NPCs genuinely mix and the can't-tell ambiguity truly
+lives). The murder doesn't *introduce* who-counts; it weaponizes what you've
+cohabited with since orientation. The structure even rhymes — you ↔ your roommate
+is Dunny ↔ Wren, so investigating a victim and his surviving roommate is a mirror
+of your own room. This is §7's zero-distance allegory at its purest: the roommate
+**literally is** the LLM agent the engine is built for.
+
+The implications are in-bounds but real. The roommates are **generated, not
+carved** — a *system* (NameBank + traits + species-cast + behavior-brain +
+presence patterns), distinct from the hand-built named cast, so the
+expensive-carve discipline doesn't apply. The **quality bar is the catch**:
+believable enough to *bond with* points at good **LLM-driven agents**, a **tech
+dependency** on §16's not-near-term rungs — so plant a thinner roommate early
+(present, named, lightly interactive) and let the gut-punch mature as the tech
+lands, keeping the rule **soft / unannounced** (§17.D) so "my roommate's an
+agent" *dawns* rather than gets stated. The procedural-roommate pipeline is
+onboarding / llm-content territory, not this slate's to build.
 
 ---
 

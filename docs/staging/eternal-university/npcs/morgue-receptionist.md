@@ -48,6 +48,11 @@
   (below). Bespoke dialogue deferred to npc-dialogue.
 - **Regard baseline:** **warm/high** — the *opposite gate* to Vance: he *wants*
   to chat. (Getting past him is easy; the trick is that Vance is the real wall.)
+- **Carries / on his person:** worn — a cozy mismatched cardigan, comfortable,
+  not a scrap of the morbid; carried — the **stamp he loves**, the intake
+  logbook, a pen, and a **tin of something homemade.** Tidy, pleasant little
+  things. Implant: a chatty comms he'd happily overuse. Brands: homey,
+  independent.
 
 ## The defining contrast (why he exists beside Vance)
 

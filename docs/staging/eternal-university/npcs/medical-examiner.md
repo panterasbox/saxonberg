@@ -53,6 +53,13 @@ destination.
   deflection of inquiry. Bespoke responder/dialogue deferred to npc-dialogue.
 - **Regard baseline:** **cool/low** for most players (Callous + Cynical +
   Cautious). The lever is **professional shame**, not regard-farming (the knife).
+- **Carries / on her person:** worn — tired scrubs and a lab coat, a little
+  stained, practical (she runs cool, so the morgue's chill suits her); carried —
+  a **pen and a stack of case files** (the throughput) and almost nothing
+  personal (the de-personed life). The **fine loupe she no longer carries**
+  (turned to the wall in the exam room) is the tell — what she *stopped* carrying
+  is the curdle. Implant: a basic comms (the upstream deference). Brands:
+  institutional issue, unremarkable.
 
 ## The two-number portrait (why this format earns its keep)
 

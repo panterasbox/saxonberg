@@ -59,6 +59,13 @@ Authored *target* positions — the trait system seeds dispositions via
 - **Regard baseline:** **warm/high** for most players (Compassionate +
   gregarious) — the *opposite* of Vance. But the **room-gate** (letting you in)
   needs more than baseline warmth: it needs the personal knife (below).
+- **Carries / on her person:** the **master keys** (her sound) and the
+  **manifest** — a physical ledger/clipboard, the Warren's room-roster you can
+  actually hold (a micro-census, and a later **clue-surface**: a room listed with
+  no one ever seen in it = a phantom); plus a multitool (always mid-fix), a rag,
+  treats for tenants. Worn — lived-in practical work clothes, a tool-belt, shoes
+  worn from the rounds. Implant: a basic comms (parents, maintenance). Brands:
+  durable, independent, no-name — not flashy.
 
 ## The defining tension
 
@@ -132,6 +139,57 @@ pressure). **This absorbs the "physical access" function the inherited §12 gave
 to Pidge.** This is the **social route** into the room — the clean-but-slow door,
 one of several (§17.G immsim access) — and the *gentle* introduction to access-
 literacy that the city morgue (#7) later escalates.
+
+## The clearing-hand (her complicity, made operational)
+
+Post-murder, her routine gains a task — and it's **executing the cover-up's
+erasure at ground level.** *She* sealed Dunny's room; *she* relocated Wren "to
+preserve evidence"; *she* clears the room on the schedule (the sealed-room
+clearing clock is **Katie's hand**). So §1's procedural horror — "a nice person
+doing her job" — becomes literal: the local erasure-by-routine is her daily work,
+done warmly, over a kid who was one of the few who ever saw her. Her complicity
+stops being abstract; it's in her rounds. And it sharpens the social route:
+you're asking the woman *executing the erasure* to let you into the room she's
+erasing.
+
+## Her role: orientation → on-ramp (and the manifest)
+
+Katie is **the one character a player has already met** when they decide to
+investigate — which is why she's load-bearing. Every player meets her **day one**
+(the onboarding climax at Duncan Hall): she greets you and **assigns your room
+from the manifest** — and her manifest *is* the Warren (Duncan Hall is an elastic
+graph of dynamically-generated rooms; her clipboard is its **diegetic face** —
+when she "finds you a room," the engine buds a node). She is the building's
+**intake of the living** — the warm mirror of Vance's intake of the dead. That
+day-one warmth is the point: it makes her later complicity *cost* something, and
+it's the same warmth she gave Dunny. (The roommate she assigns from the manifest
+— a procedural agent — plants the who-counts thesis on night one; bible §17.H.)
+
+## Her domain (the space she inhabits)
+
+- **Her apartment by the lobby — the warm heart.** Ground-floor, on-prem, door
+  half-open; the kettle, the plants, a **corkboard of decades of tenants**
+  (photos, parents' numbers, kids she's looked after for thirty years), a wall of
+  labeled keys. The room *is* her thesis: rootedness, memory, care.
+- **The lobby — her station and the building's threshold.** Where she greets
+  every arrival and watches everyone come and go (she misses nothing — her
+  `Curious`). The troll at the bridge, literally.
+- **The building as territory.** The halls she patrols and fixes, the basement
+  workshop (the boiler, the master keys to *everything*), the floors she knows by
+  name — and **the service stairs where Dunny was "found"** are hers too (she
+  maintains them; she may even have been the one who found him — a dial).
+
+## Her routine (runs without the player)
+
+The morgue's "the place runs without you" principle, but warm. Her loop
+(npc-behavior brains: greets, a maintenance wander, enforcement triggers, lobby
+idle): **opens up and walks the rounds** (fixes the overnight breakages — she
+can't pass a flickering light, her `Diligent`); **greets and assigns** new
+tenants (calls home if a kid's struggling); **holds court** (the warm gossip hub
+— where Pim is incurious-cheerful, she is curious-and-caring); **enforces** (quiet
+hours, sign-your-guests, the petty rule with relish); **closes up, back to the
+kettle.** The player always meets her *mid-rounds*, interrupting a super with a
+building to keep.
 
 ## How she pairs with Vance
 
