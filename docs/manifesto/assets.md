@@ -58,11 +58,20 @@ Reveal: **pamphlet → (dissolve) → map-1 (spine) → (build) → map-2 (full)
 | `ch3-beat2-map-1` | `ch3-beat2-map-1.excalidraw` | 1/2 | claim-graph **spine only** (the proposal) | "…the proposal as the spine" |
 | `ch3-beat2-map-2` | `ch3-beat2-map-2.excalidraw` | 2/2 (final) | full graph: 2 supports (green), 1 objection (red), 1 response (neutral), typed arrows + labels | "…support, an objection, or a question" |
 
-### Beat 3 — reputation-blind  ⬜ not built
-Reuses the Beat-2 map; names/authorship absent (a "nobody" node = a "big name" node). *Plan: a variant of `map-2`.*
+### Beat 3 — reputation-blind  ✅ built
+Cross-dissolve from `map-2` (shares its extent/anchors → map stays still, the redaction bars + caption fade in).
 
-### Beat 4 — dissent can't be buried / the unfarmable metric  ⬜ not built
-Reuses the map with an **unanswered objection flagged ⚠ open** + an open-objection counter ticking to zero only as objections are answered.
+| PNG | Source | State | Shows | Lands on cue |
+|---|---|---|---|---|
+| `ch3-beat3-blind` | `ch3-beat3-blind.excalidraw` | — | the full map + a **curtain-pull**: dashed callouts reveal one support is from *"the biggest name here · 1.2M"* and the objection from *"a first-day nobody"* + caption "the map can't tell them apart" | "the map doesn't know who you are… a nobody sits in the same place as the biggest name" |
+
+### Beat 4 — dissent can't be buried / the unfarmable metric  ✅ built
+Reveal: **open-1 → (response slides in) → open-2**.
+
+| PNG | Source | State | Shows | Lands on cue |
+|---|---|---|---|---|
+| `ch3-beat4-open-1` | `ch3-beat4-open-1.excalidraw` | 1/2 | objection flagged **OPEN** (red badge), no response yet, counter **"1 open objection"** | "an unanswered objection just sits there, flagged, in the open" |
+| `ch3-beat4-open-2` | `ch3-beat4-open-2.excalidraw` | 2/2 | the response slides in → badge flips to **ANSWERED** (green), counter **"0 open objections"** | "the only way to clear the flag is to answer it" |
 
 ### Beat 5 — the live floor  ⬜ not built
 Debate stage: floor-bot, speakers, gallery; arrow carrying claims *down* into the map.
