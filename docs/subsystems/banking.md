@@ -109,6 +109,41 @@ venue owns state" resolution). The branch is authored as **city content**:
 one cell north of the arrival plaza (reachable from the born-with University
 Avenue fast-travel node), affiliated to **Goodkin** (the retail bank).
 
+## Uniform settlement + the credential ladder (Phase 3)
+
+Settlement is **one primitive** — `BankingApi.settle(charge, method)` — across
+every transaction kind and every method (the method is a *parameter*, the
+`ContainmentApi.move` uniform-surface / polymorphic-internals pattern). The
+thing owed is a `Charge` (`amount + payee + reason`, **presented** vs
+**stated**); mechanism is polymorphic underneath:
+
+- **cash** → coin handover off the governed ledger (coins split from the
+  payer to `charge.payeeContainer`; no account touched; supply unchanged).
+- **credential** → an on-ledger `payment` posting routed through the
+  credential's account (with optional **remittance splits** — a cut to a
+  third-party account alongside the main leg: payer −X, payee +(X−Σsplits),
+  each split +its cut; conservation holds across all legs). `--from <corpo>`
+  routes one payment from a specific linked account without disturbing the
+  active setting. Returns a `SettlementReceipt` the scene reads.
+
+The **credential** is the dual-base `TravelCredential` shape:
+`PaymentCredentialMixin` (linked-account set + active pointer + `spendCap` +
+`frozen` + `authorize`) over BOTH `PaymentCard` (`= mixin(Thing)`, a 1:1
+bearer instrument you can lose) and `PaymentImplantUpdate`
+(`= mixin(AetherHostedMixin(Idea))`, the wallet linking all accounts, one
+active — installed once by `Avatar.installDefaultLoadout`, body-bound).
+Reached via `ContainmentApi.findReachable` (implant-first — the self-hosted
+leg precedes carried cards), which **skips frozen** credentials so a reissued
+card is found in place of a revoked one. `openAccount` auto-links each new
+account to the owner's implant (first opened → active).
+
+The **risk ladder + recourse**: cash = bearer, no recourse; implant =
+body-bound (not a carryable Thing); card = bearer, bounded by `freeze`
+(report-lost → `frozen`, account/balance untouched, reissue via `issueCard`)
+and a per-credential `spendCap` (`authorize` refuses over-cap or frozen — a
+security cap, never a fee). Verbs: `pay` (stated transfer; `--cash`/`--from`),
+`wallet` (show/switch active account), `freeze` (report-lost + reissue).
+
 ## Module layout
 
 `lib/banking/` (the new subsystem folder):
@@ -161,8 +196,13 @@ The plan flagged 6 open implementation choices; settled as reached:
    `Account.ts` is a pure id-vocabulary value-object, not a Document.
    (Phase 1.)
 3. **Tab persistence** — *(deferred to Phase 4.)*
-4. **Crafting price source for the presented Charge** — *(deferred to
-   Phase 3.)*
+4. **Crafting price source for the presented Charge** — confirmed crafting's
+   `order`/`serve` exposes **no** price stance (it crafts the drink free), so
+   per the requirements' "authored flat stances" the bar's drink prices will
+   be an **authored price field on the `Menu`**, built into a presented
+   `Charge` and settled via `settle`. The settle primitive + Charge ship in
+   Phase 3; the Menu price field + the order→charge wiring land with the bar
+   loop in Phase 5 (the integration point). (Phase 3.)
 5. **Verb category** — chose **one `banking/` category** for the whole
    surface (player + operator verbs together), per the plan's proposal.
    Operator verbs are gated by developer-access at the controller, not by a

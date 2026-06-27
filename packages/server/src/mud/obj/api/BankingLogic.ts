@@ -13,12 +13,21 @@ import { Money } from "../../lib/banking/Money";
 import { BankTransaction } from "../../lib/banking/Transaction";
 import type { LedgerLeg } from "../../lib/banking/Transaction";
 import type { Bank } from "../../lib/banking/Bank";
+import type { PaymentCredential } from "../../lib/banking/PaymentCredential";
+import PaymentCard from "../../lib/banking/PaymentCard";
+import type {
+  Charge,
+  SettlementMethod,
+  SettlementReceipt,
+} from "../../lib/banking/Charge";
 import { WorldClockApi } from "../../api/worldclock";
 import { PersistApi } from "../../api/persist";
 import { ExecutionContextApi } from "../../api/execution-context";
 import { ContainmentApi } from "../../api/containment";
 import { GlobbableApi } from "../../api/glob";
 import { MixinApi } from "../../api/mixin";
+import { StuffApi } from "../../api/stuff";
+import { TemplatePaths } from "../../lib/paths";
 import type { Stuff } from "../../lib/stuff/Stuff";
 import type { Container } from "../../lib/spatial/Container";
 import type { Containable } from "../../lib/spatial/Containable";
@@ -130,17 +139,25 @@ async function openAccountImpl(
   row.balance = 0;
   await row.save();
   AccountBalance.putCached(row.accountId, 0);
+  // Auto-register the new account onto the owner's implant wallet (the
+  // implant links all the owner's accounts; first opened becomes active).
+  autoLinkToWallet(actingPrincipal(), row.accountId);
   return row.accountId;
 }
 
-/** Move `count` coins (value-1 units) out of the vault to `to`. */
-async function withdrawCoins(
-  bank: Stuff & Bank & Container,
+/**
+ * Move `count` coins (value-1 units) from `from`'s contents to `to`,
+ * splitting a stack when it holds more than needed. Used for both withdrawal
+ * (vault → owner) and cash settlement (payer → payee). v1 assumes face value
+ * 1 (count === minor units); denomination change-making is deferred.
+ */
+async function moveCoins(
+  from: Stuff & Container,
   to: Stuff & Container,
   count: number
-): Promise<void> {
+): Promise<boolean> {
   let remaining = count;
-  for (const item of [...ContainmentApi.getContents(bank)]) {
+  for (const item of [...ContainmentApi.getContents(from)]) {
     if (remaining <= 0) break;
     if (!isCashLike(item)) continue;
     const have = item.getQuantity();
@@ -153,11 +170,134 @@ async function withdrawCoins(
       remaining = 0;
     }
   }
-  if (remaining > 0) {
+  return remaining === 0;
+}
+
+/**
+ * The actor's routing payment credential (implant-first via findReachable's
+ * self-hosted leg, then carried cards). A **frozen** credential is skipped —
+ * a revoked card is not a usable routing credential, so a reissued card is
+ * found in its place even while the dead one is still carried.
+ */
+function reachableCredential(actor: Stuff): (Stuff & PaymentCredential) | null {
+  return ContainmentApi.findReachable(
+    actor,
+    null,
+    (s: Stuff): s is Stuff & PaymentCredential => {
+      if (!MixinApi.isPaymentCredential(s)) return false;
+      return !s.isFrozen();
+    }
+  );
+}
+
+/** Link a freshly-opened account onto the owner's implant wallet (best-effort). */
+function autoLinkToWallet(actor: Stuff | null, accountId: string): void {
+  if (!actor) return;
+  const cred = reachableCredential(actor);
+  if (cred) cred.linkAccount(accountId);
+}
+
+/**
+ * The uniform settlement primitive: one Charge, one method-as-parameter,
+ * polymorphic underneath (cash = coin handover off the governed ledger;
+ * credential = a ledger debit/credit routed through the owning corpo bank).
+ * Returns a receipt the scene reads to name what was tapped.
+ */
+async function settleImpl(
+  charge: Charge,
+  method: SettlementMethod
+): Promise<SettlementReceipt> {
+  const payer = actingPrincipal();
+  if (!payer) throw new Error("BankingLogic.settle: no acting payer");
+
+  if (method.kind === "cash") {
+    if (!charge.payeeContainer) {
+      throw new Error("BankingLogic.settle: cash needs someone to hand coin to");
+    }
+    if (!MixinApi.isContainer(payer)) {
+      throw new Error("BankingLogic.settle: the payer can't hold coin");
+    }
+    const ok = await moveCoins(
+      payer as Stuff & Container,
+      charge.payeeContainer,
+      charge.amount.minor
+    );
+    if (!ok) throw new Error("BankingLogic.settle: not enough cash on hand");
+    return { method: "cash" };
+  }
+
+  // credential method
+  const cred = reachableCredential(payer);
+  if (!cred) throw new Error("BankingLogic.settle: you have no payment credential");
+  let routingAccount: string | null;
+  if (method.fromBankPath) {
+    const acct = await accountAtImpl(actingActorKey(), method.fromBankPath);
+    routingAccount = acct?.accountId ?? null;
+    if (!routingAccount) {
+      throw new Error("BankingLogic.settle: no account at the override bank");
+    }
+  } else {
+    routingAccount = cred.getActiveAccount();
+  }
+  if (!routingAccount) {
+    throw new Error("BankingLogic.settle: the credential has no active account");
+  }
+  if (!cred.authorize(charge.amount)) {
     throw new Error(
-      `BankingLogic.withdraw: vault short ${remaining} after till check (race)`
+      "BankingLogic.settle: the credential declined (frozen or over its cap)"
     );
   }
+  if (AccountBalance.cachedBalance(routingAccount) < charge.amount.minor) {
+    throw new Error("BankingLogic.settle: insufficient balance");
+  }
+
+  const splits = charge.splits ?? [];
+  const splitTotal = splits.reduce((s, x) => s + x.amount.minor, 0);
+  if (splitTotal > charge.amount.minor) {
+    throw new Error("BankingLogic.settle: splits exceed the charge");
+  }
+  const legs: LedgerLeg[] = [];
+  const mainAmount = charge.amount.minor - splitTotal;
+  if (mainAmount > 0) {
+    legs.push({
+      from: routingAccount,
+      to: charge.payeeAccountId,
+      amount: mainAmount,
+      category: charge.category ?? "sales",
+      memo: charge.reason,
+    });
+  }
+  for (const sp of splits) {
+    legs.push({
+      from: routingAccount,
+      to: sp.accountId,
+      amount: sp.amount.minor,
+      category: sp.category ?? "other",
+      memo: charge.reason,
+    });
+  }
+  await postTransaction("payment", legs);
+  const corpoKey = (await accountByIdImpl(routingAccount))?.corpoKey ?? "";
+  return { method: "credential", accountId: routingAccount, corpoKey };
+}
+
+/**
+ * Issue a fresh payment card linked 1:1 to `accountId`, placed in the
+ * acting owner's inventory. The reissue path after a report-lost freeze.
+ */
+async function issueCardImpl(
+  accountId: string,
+  capMinor: number
+): Promise<Stuff & PaymentCredential> {
+  const principal = actingPrincipal();
+  const card = await StuffApi.clone<PaymentCard>(TemplatePaths.paymentCard);
+  card.linkAccount(accountId);
+  card.setActiveAccount(accountId);
+  card.setSpendCap(capMinor);
+  if (principal && MixinApi.isContainer(principal)) {
+    ContainmentApi.move(card as unknown as Stuff & Containable, principal);
+  }
+  return card as Stuff & PaymentCredential;
 }
 
 /**
@@ -476,8 +616,8 @@ export class BankingLogic extends Idea {
     await postTransaction("withdraw", [
       { from: account.accountId, to: Account.CASH_BRIDGE, amount: amount.minor },
     ]);
-    await withdrawCoins(
-      bank as unknown as Stuff & Bank & Container,
+    await moveCoins(
+      bank as unknown as Stuff & Container,
       principal,
       amount.minor
     );
@@ -506,5 +646,44 @@ export class BankingLogic extends Idea {
     await postTransaction("transfer", [
       { from: fromAccountId, to: toAccountId, amount: amount.minor, memo },
     ]);
+  }
+
+  /* ──────────────── settlement + the credential ladder ──────────────── */
+
+  /** See {@link BankingApi.settle}. The uniform settlement primitive. */
+  @CallSecurity(BankingApiCallers)
+  public async settle(
+    charge: Charge,
+    method: SettlementMethod
+  ): Promise<SettlementReceipt> {
+    return settleImpl(charge, method);
+  }
+
+  /** See {@link BankingApi.setActiveAccount}. Switch the wallet's active acct. */
+  @CallSecurity(BankingApiCallers)
+  public setActiveAccount(credential: Stuff & PaymentCredential, accountId: string): void {
+    credential.setActiveAccount(accountId);
+  }
+
+  /** See {@link BankingApi.activeCredential}. The actor's routing credential. */
+  @CallSecurity(BankingApiCallers)
+  public activeCredential(): (Stuff & PaymentCredential) | null {
+    const actor = actingPrincipal();
+    return actor ? reachableCredential(actor) : null;
+  }
+
+  /** See {@link BankingApi.freezeCredential}. Report-lost — revoke a credential. */
+  @CallSecurity(BankingApiCallers)
+  public freezeCredential(credential: Stuff & PaymentCredential): void {
+    credential.setFrozen(true);
+  }
+
+  /** See {@link BankingApi.issueCard}. Issue/reissue a card for an account. */
+  @CallSecurity(BankingApiCallers)
+  public async issueCard(
+    accountId: string,
+    capMinor: number
+  ): Promise<Stuff & PaymentCredential> {
+    return issueCardImpl(accountId, capMinor);
   }
 }

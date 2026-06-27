@@ -29,6 +29,13 @@ import type {
 } from "../lib/banking/LedgerEntry";
 import type { LedgerLeg } from "../lib/banking/Transaction";
 import type { Bank } from "../lib/banking/Bank";
+import type { PaymentCredential } from "../lib/banking/PaymentCredential";
+import type {
+  Charge,
+  SettlementMethod,
+  RemittanceSplit,
+  SettlementReceipt,
+} from "../lib/banking/Charge";
 import type AccountBalance from "../lib/banking/AccountBalance";
 import type { Stuff } from "../lib/stuff/Stuff";
 import type { Globbable } from "../lib/stuff/Globbable";
@@ -45,6 +52,11 @@ export type {
   PnlCategory,
   LedgerEntryFields,
   LedgerLeg,
+  Charge,
+  SettlementMethod,
+  RemittanceSplit,
+  SettlementReceipt,
+  PaymentCredential,
 };
 
 const LOGIC_PATH = "/obj/api/banking";
@@ -198,6 +210,48 @@ export class BankingApi {
     memo = ""
   ): Promise<void> {
     return logic().transfer(fromAccountId, toAccountId, amount, memo);
+  }
+
+  /* ──────────────── settlement + the credential ladder ──────────────── */
+
+  /**
+   * The uniform settlement primitive — one Charge, one method-as-parameter.
+   * Cash hands coin to the payee (off the governed ledger); credential
+   * authorizes an on-ledger debit/credit routed through the owning corpo
+   * bank (with optional remittance splits). Returns a receipt the scene
+   * reads to name what cleared.
+   */
+  public static async settle(
+    charge: Charge,
+    method: SettlementMethod
+  ): Promise<SettlementReceipt> {
+    return logic().settle(charge, method);
+  }
+
+  /** The acting owner's routing payment credential (implant-first), or null. */
+  public static activeCredential(): (Stuff & PaymentCredential) | null {
+    return logic().activeCredential();
+  }
+
+  /** Switch a credential's active account (the `wallet` verb; persists). */
+  public static setActiveAccount(
+    credential: Stuff & PaymentCredential,
+    accountId: string
+  ): void {
+    return logic().setActiveAccount(credential, accountId);
+  }
+
+  /** Report-lost: freeze a credential (account + balance untouched). */
+  public static freezeCredential(credential: Stuff & PaymentCredential): void {
+    return logic().freezeCredential(credential);
+  }
+
+  /** Issue/reissue a payment card linked 1:1 to `accountId`, into inventory. */
+  public static async issueCard(
+    accountId: string,
+    capMinor: number
+  ): Promise<Stuff & PaymentCredential> {
+    return logic().issueCard(accountId, capMinor);
   }
 }
 

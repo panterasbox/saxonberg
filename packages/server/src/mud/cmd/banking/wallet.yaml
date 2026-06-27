@@ -1,0 +1,13 @@
+verbs: [wallet]
+controller: banking/WalletController
+description: "Show or switch your implant's active account"
+help: |
+  Your payment implant links all your accounts and pays from one active
+  account. `wallet` shows which; `wallet <corpo>` switches it (persists),
+  changing which bank a default `pay` routes through.
+validators:
+  - /lib/command/validators/requiresAnimate
+args:
+  - name: corpo
+    type: string
+    required: false

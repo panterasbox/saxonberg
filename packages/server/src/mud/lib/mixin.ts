@@ -122,6 +122,7 @@ export const Mixins = {
   Crafted: 'CraftedMixin',
   Maker: 'MakerMixin',
   Bank: 'BankMixin',
+  PaymentCredential: 'PaymentCredentialMixin',
 } as const;
 
 /**

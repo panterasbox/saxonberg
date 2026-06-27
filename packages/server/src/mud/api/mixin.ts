@@ -107,6 +107,7 @@ import type { Tooled } from '../lib/craft/Tooled';
 import type { Crafted } from '../lib/craft/Crafted';
 import type { Maker } from '../lib/craft/Maker';
 import type { Bank } from '../lib/banking/Bank';
+import type { PaymentCredential } from '../lib/banking/PaymentCredential';
 import { SecurityApi } from './security';
 import { ShadowApi } from './shadow';
 
@@ -816,6 +817,12 @@ export class MixinApi {
 
   public static isBank(obj: Stuff): obj is Stuff & Bank {
     return this.hasMixin(obj, Mixins.Bank);
+  }
+
+  public static isPaymentCredential(
+    obj: Stuff
+  ): obj is Stuff & PaymentCredential {
+    return this.hasMixin(obj, Mixins.PaymentCredential);
   }
 
   /**
