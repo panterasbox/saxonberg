@@ -1,0 +1,9 @@
+# Dave's Bar menu — the offer. References recipe ids; decoupled from the
+# maker and the room. Its presence lights up the crafting verb surface.
+class: /obj/Menu
+hydratorClass: /lib/persistence/PersistentHydrator
+data:
+  shortDescription: a chalkboard menu
+  longDescription: A chalkboard propped behind the bar, cocktails listed in a tidy hand.
+  keywords: [menu, chalkboard, board]
+  offeredRecipes: [martini, daiquiri]

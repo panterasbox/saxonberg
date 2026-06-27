@@ -86,11 +86,19 @@ function resolveMaker(mode: MakerMode): Stuff | null {
   return null;
 }
 
-/** Gather the reachable graded bulk inputs + tools co-located with `maker`. */
-function gatherMatter(location: Stuff): {
+/**
+ * Gather the reachable graded bulk inputs + tools co-located with `maker`.
+ *
+ * Each bottle's bulk Material is **ensure-loaded** via `StuffApi.singleton`
+ * (not the sync `slot.getMaterial()`): a Material singleton is created
+ * lazily on first reference, and crafting is the first live in-room bulk-
+ * material consumer, so the registry may not hold it yet. Loading it here
+ * also makes the later sync reads (the drinker's `drink`) resolve.
+ */
+async function gatherMatter(location: Stuff): Promise<{
   bottles: BottleCandidate[];
   tools: (Stuff & Tooled)[];
-} {
+}> {
   const bottles: BottleCandidate[] = [];
   const tools: (Stuff & Tooled)[] = [];
   if (!MixinApi.isContainer(location)) return { bottles, tools };
@@ -99,12 +107,11 @@ function gatherMatter(location: Stuff): {
     if (MixinApi.isBulkable(c) && MixinApi.isGraded(c)) {
       const slot = BulkableApi.slotFor(c, undefined);
       if (!slot) continue;
-      bottles.push({
-        stuff: c,
-        slot,
-        material: slot.getMaterial(),
-        grade: c.getGrade(),
-      });
+      const mpath = slot.getMaterialPath();
+      const material = mpath
+        ? await StuffApi.singleton<Material>(mpath)
+        : null;
+      bottles.push({ stuff: c, slot, material, grade: c.getGrade() });
     }
   }
   return { bottles, tools };
@@ -211,7 +218,7 @@ async function craftImpl(req: CraftRequest): Promise<CraftOutcome> {
     return { ok: false, reason: 'insufficient-input', detail: 'no-location' };
   }
 
-  const { bottles, tools } = gatherMatter(location);
+  const { bottles, tools } = await gatherMatter(location);
 
   // Match input slots (per-bottle no-double-claim).
   const claimed = new Map<Stuff, number>();

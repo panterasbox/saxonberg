@@ -17,10 +17,18 @@ import { VisibleMixin } from '../../lib/description/Visible';
 import { DetailedMixin } from '../../lib/description/Detailed';
 import { ExitableMixin } from '../../lib/boundary/Exitable';
 import { PostRegistrationMixin } from '../../lib/stuff/PostRegistration';
+import { PopulatesMixin } from '../../lib/stuff/Populates';
 import { SingletonMixin } from '../../lib/stuff/Singleton';
 
+// PopulatesMixin lets the bar stock itself declaratively from the seed's
+// `populates:` list (the bartender, bottles, tools, menu) — content that is
+// cloned in fresh each boot (transient runtime). The bar is otherwise a
+// plain room: crafting is location-agnostic, so there is NO venue mixin —
+// "Dave's Bar" is emergent from the matter and the maker present in it.
 const BarBase = SingletonMixin(
-  PostRegistrationMixin(ExitableMixin(DetailedMixin(VisibleMixin(Location)))),
+  PostRegistrationMixin(
+    PopulatesMixin(ExitableMixin(DetailedMixin(VisibleMixin(Location)))),
+  ),
 );
 
 export default class Bar extends BarBase {

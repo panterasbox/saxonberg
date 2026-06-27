@@ -1,0 +1,9 @@
+# A cocktail shaker — a tool offering the `shaker` capability (shaken drinks).
+class: /obj/ToolItem
+hydratorClass: /lib/persistence/PersistentHydrator
+data:
+  shortDescription: a cocktail shaker
+  longDescription: A dented steel cocktail shaker, cold to the touch.
+  keywords: [shaker]
+  capabilities: [shaker]
+  condition: 1

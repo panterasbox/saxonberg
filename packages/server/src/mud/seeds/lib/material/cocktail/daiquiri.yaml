@@ -1,0 +1,16 @@
+# Daiquiri — the authored cocktail substance a crafted daiquiri glass holds.
+class: /lib/material/Material
+hydratorClass: /lib/persistence/PersistentHydrator
+data:
+  name: daiquiri
+  appearance: a pale, frothy daiquiri
+  keywords: [daiquiri, cocktail]
+  density: 980
+  thermalConductivity: 0.4
+  specificHeat: 3400
+  edibility: true
+  toxicity:
+    - { type: alcohol, amount: 18 }
+  tags: [liquid, beverage, drinkable, alcoholic, cocktail]
+  composition: []
+  biologicalSource: null
