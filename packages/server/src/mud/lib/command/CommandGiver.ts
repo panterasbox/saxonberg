@@ -60,6 +60,7 @@ import { MudlogApi } from '../../api/mudlog';
 import { Mml } from '../../api/mml';
 import { EventApi } from '../../api/event';
 import { WorldClockApi } from '../../api/worldclock';
+import { ScriptApi } from '../../api/script';
 import { CommandDispatchedEvent } from '../events/CommandDispatchedEvent';
 import type { Sensor } from '../message/Sensor';
 import type Interactive from '../../obj/Interactive';
@@ -173,6 +174,18 @@ export interface CommandGiver {
    * @internal
    */
   _ensureSelfEntry(): void;
+  /**
+   * Run a pre-bound `{ command, model }` through the dispatcher's bound
+   * tail — resolve → validator-preload → validators → execute — minting
+   * a fresh per-command `CommandContext` and returning it (with its
+   * notes). The scripting interpreter's dispatch primitive.
+   * @internal
+   */
+  _dispatchBound(
+    command: CommandDefinition,
+    model: CommandModel,
+    prep?: Record<string, string>
+  ): Promise<CommandContext>;
 }
 
 /**
@@ -209,10 +222,13 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
         key: 'shell.parser',
         type: SettingTypes.Enum,
         default: 'msh',
-        enumValues: ['msh'],
+        enumValues: ['msh', 'script'],
         description:
-          'Parser used to turn raw input into commands. ' +
-          '`msh` is the default tokenizer-driven shell.',
+          'Parser used to turn raw input into commands. `msh` is the ' +
+          'default tokenizer-driven shell; `script` is the command-native ' +
+          'scripting parser (multi-statement, blocks, $vars) that wraps ' +
+          'msh for bare commands. The prompt-as-interpreter default flip ' +
+          'lands with the scripting surfaces.',
       },
     ];
 
@@ -617,6 +633,21 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
               );
             }
           }
+        } else if (parseResult.script) {
+          // Multi-statement / block-bearing input: hand the parsed AST
+          // to the interpreter, which dispatches each command over this
+          // same bus (gated, attributed, scope-re-checked). The actor is
+          // derived from the ambient command frame's giver; the run's
+          // notes are threaded back onto `outer` so they ride the
+          // dispatch-response envelope assembled below.
+          this._emitInputEcho({
+            rawText: commandText,
+            verb: 'script',
+            dispatchId: outer.commandId,
+            originInteractiveId,
+            location: outer.location,
+          });
+          await ScriptApi.runAst(parseResult.script.ast);
         } else {
           outer.note({
             kind: 'command-rejected',
@@ -1007,6 +1038,63 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
       } finally {
         if (controller) StuffApi.destruct(controller);
       }
+    }
+
+    /**
+     * Run a pre-bound `{ command, model }` through the dispatcher's
+     * bound tail — resolve → validator-preload → validators → execute —
+     * minting a fresh per-command `CommandContext` and returning it
+     * (with its accumulated notes). This is the scripting interpreter's
+     * dispatch primitive: a scripted command is resolved (scope
+     * re-checked), validated, and executed exactly like a typed one,
+     * but the envelope is the script driver's to assemble (the run
+     * aggregates per-statement notes), not this method's.
+     *
+     * Distinct from the inline `bound` branch in `executeCommand` (which
+     * runs on the outer ctx and emits the envelope); this mints its own
+     * ctx so each scripted statement carries its own attribution + note
+     * set. Mirrors that branch's resolve/validate/execute sequence.
+     */
+    async _dispatchBound(
+      command: CommandDefinition,
+      model: CommandModel,
+      prep: Record<string, string> = {}
+    ): Promise<CommandContext> {
+      const giver = this as unknown as Stuff & CommandGiver;
+      const location = MixinApi.isContainable(giver)
+        ? giver.getContainer()
+        : null;
+      const ctx = CommandApi.createCommandContext({
+        commandGiver: giver,
+        location,
+        commandText: '',
+        executionId: SecurityApi.uuid(),
+        commandId: SecurityApi.uuid(),
+        verb: command.getPrimaryVerb(),
+        command,
+        commandSource: giver,
+      });
+      const resolved = await CommandApi.resolveModel(model, ctx, prep);
+      if ('result' in resolved) return ctx;
+      const subcommand =
+        typeof (resolved.resolved as { subcommand?: unknown }).subcommand ===
+        'string'
+          ? (resolved.resolved as { subcommand?: string }).subcommand
+          : undefined;
+      const preloads = await CommandApi.preloadValidatorDeps(
+        command,
+        ctx,
+        resolved.resolved,
+        subcommand
+      );
+      const validated = CommandApi.runValidators(
+        resolved.resolved,
+        ctx,
+        preloads
+      );
+      if ('result' in validated) return ctx;
+      await this._executeOne(command, resolved.resolved, ctx);
+      return ctx;
     }
   }
   return CommandGiverMixin;

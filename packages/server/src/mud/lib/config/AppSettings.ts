@@ -179,6 +179,30 @@ export const AppSettingKeys = {
   chargenNameMaxLength: "chargen.nameMaxLength",
   /** Status — max rendered length (chars) of a Character's status one-liner. */
   statusMaxLength: "status.maxLength",
+
+  /**
+   * Scripting — resource governance. The interpreter is non-blocking by
+   * construction (every engaged/`wait` step suspends and yields); these
+   * bound the one pathological shape — a no-suspension tight loop — plus
+   * runaway fan-out. The *values* are operator knobs; the **tier**
+   * selection (player-home/inline = tight, released `/obj/` + `/domain/`
+   * = large) is mechanical (authorship), not a key. See
+   * docs/subsystems/scripting.md § Resource governance.
+   */
+  /** Scripting — preemption slice: yield the event loop every K steps. */
+  scriptSliceSteps: "script.sliceSteps",
+  /** Scripting — lifetime step ceiling, player/inline-authored (tight). */
+  scriptMaxStepsPlayer: "script.maxSteps.player",
+  /** Scripting — lifetime step ceiling, platform-authored (large). */
+  scriptMaxStepsPlatform: "script.maxSteps.platform",
+  /** Scripting — lifetime dispatch-count ceiling, player/inline (tight). */
+  scriptMaxDispatchPlayer: "script.maxDispatch.player",
+  /** Scripting — lifetime dispatch-count ceiling, platform (large). */
+  scriptMaxDispatchPlatform: "script.maxDispatch.platform",
+  /** Scripting — recursion-depth ceiling, player/inline (tight). */
+  scriptMaxDepthPlayer: "script.maxDepth.player",
+  /** Scripting — recursion-depth ceiling, platform (large). */
+  scriptMaxDepthPlatform: "script.maxDepth.platform",
 } as const;
 
 export type AppSettingKey =
