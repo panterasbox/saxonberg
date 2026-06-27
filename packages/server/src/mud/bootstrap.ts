@@ -36,6 +36,11 @@ export const bootstrapManifest: BootstrapEntry[] = [
   // `EmoteSeeder.run` earlier in the boot sequence). Resolvable via
   // `SoulApi.resolve` after this entry's postRegister fires.
   { templatePath: '/obj/SoulCatalogue' },
+  // RecipeCatalogue singleton — the runtime recipe index. Warmed at
+  // postRegister from the `recipes` collection (populated by
+  // `RecipeSeeder.run` earlier in the boot sequence). Resolvable via
+  // `CraftingApi` after this entry's postRegister fires.
+  { templatePath: '/obj/RecipeCatalogue' },
   // DisciplineCatalogue singleton — the advancement Catalog: the authored,
   // typed field-of-study graph. Warms its descriptor cache in postRegister
   // from the per-Discipline leaf templates under `/lib/advancement/

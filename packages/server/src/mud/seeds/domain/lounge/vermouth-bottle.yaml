@@ -1,0 +1,12 @@
+# A working bottle of dry vermouth — a graded bulk input on the bar.
+class: /domain/lounge/GradedReceptacle
+hydratorClass: /lib/persistence/PersistentHydrator
+data:
+  shortDescription: a bottle of dry vermouth
+  longDescription: A slim bottle of dry vermouth.
+  keywords: [vermouth, bottle]
+  interiorBulk: true
+  interiorCapacity: 0.75
+  interiorMaterial: /lib/material/spirit/vermouth
+  interiorAmount: 0.7
+  gradeBand: fair

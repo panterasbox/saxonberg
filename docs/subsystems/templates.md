@@ -227,10 +227,17 @@ Two distinct field shapes ride on the Hydrator's two-phase dispatch
     Target must be singleton-shaped (validated at template-save
     time by `TemplateApi.validateSingletonContainerTarget`).
   - `applyPopulates` on `PopulatesMixin` — iterates a list of
-    templatePaths, dispatching per-entry by source-template
-    singleton-shape: singletons resolved via `StuffApi.singleton`
-    (skip-when-already-elsewhere); non-singletons cloned via
-    `StuffApi.clone` and moved into self.
+    entries, each either a bare templatePath or a
+    `{template, onto}` object. Dispatches per-entry by
+    source-template singleton-shape: singletons resolved via
+    `StuffApi.singleton` (skip-when-already-elsewhere);
+    non-singletons cloned via `StuffApi.clone`. A bare entry is
+    moved into self (`ContainmentApi.move`); an `{template, onto}`
+    entry is placed on an already-populated sibling surface
+    (`ContainmentApi.placeOn`), keyed by the `onto` source path —
+    so the surface fixture must be listed before its resting
+    items (the back-bar before its bottles). See
+    [crafting.md](./crafting.md).
 
 The two shapes split apart cleanly: properties have symmetric shape
 and storage IS the value; instructions are commands whose outcome

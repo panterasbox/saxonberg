@@ -20,9 +20,13 @@ import { PostRegistrationMixin } from '../../lib/stuff/PostRegistration';
 import { PopulatesMixin } from '../../lib/stuff/Populates';
 import { SingletonMixin } from '../../lib/stuff/Singleton';
 
-// `PopulatesMixin` lets the bar spawn its cast (the `populates:` list in
-// bar.yaml) into itself on hydration — each NPC is a non-singleton clone
-// moved in. See docs/subsystems/behavior.md.
+// `PopulatesMixin` lets the bar stock itself declaratively from the seed's
+// `populates:` list on hydration — the crafting fixtures (back-bar, bottles
+// + tools placed `onto` it, the menu) and the cast (each NPC a non-singleton
+// clone moved in), all fresh each boot (transient runtime). The bar is
+// otherwise a plain room: crafting is location-agnostic, so there is NO
+// venue mixin — "Dave's Bar" is emergent from the matter and the maker
+// present in it. See docs/subsystems/behavior.md and crafting.md.
 const BarBase = SingletonMixin(
   PostRegistrationMixin(
     PopulatesMixin(ExitableMixin(DetailedMixin(VisibleMixin(Location)))),

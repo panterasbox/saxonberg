@@ -37,6 +37,7 @@ import type {
 import type { MqlOneResult } from '../../../api/mql';
 import type { Stuff } from '../../../lib/stuff/Stuff';
 import { MixinApi } from '../../../api/mixin';
+import { ContainmentApi } from '../../../api/containment';
 import { MessageApi } from '../../../api/message';
 import { Mml } from '../../../api/mml';
 import { PerceptionApi } from '../../../api/perception';
@@ -190,9 +191,12 @@ export default class SenseController extends CommandController<SenseModel> {
         body = Mml.compose`${body}\n${exitsLine}`;
       }
     }
-    if (visibleContents.length > 0) {
-      const items = visibleContents.map((item) => Mml.item(item));
-      const list = Mml.list(items);
+    // Surface-resting items (the back-bar's bottles) aren't loose room
+    // contents — represented by their surface, found by examining it. Shared
+    // rule with `look` + the inspection pane.
+    const topLevel = ContainmentApi.looseContents(visibleContents);
+    if (topLevel.length > 0) {
+      const list = Mml.list(topLevel.map((item) => Mml.item(item)));
       body = Mml.compose`${body}\n── You also see: ${list}.`;
     }
 
@@ -219,7 +223,17 @@ export default class SenseController extends CommandController<SenseModel> {
       return;
     }
     const filteredText = target.getMarkupLong(actor, { filter: sensorium });
-    const body = Mml.compose`\n${Mml.name(target)}\n\n${Mml.fromMarkup(filteredText)}\n`;
+    let body = Mml.compose`\n${Mml.name(target)}\n\n${Mml.fromMarkup(filteredText)}\n`;
+    // Drill-in: sensing a surface reveals what rests on it — mirrors
+    // `LookController.lookAtTarget`, the discovery path that keeps resting
+    // items out of the room view.
+    if (MixinApi.isSurfaced(target)) {
+      const resting = target.getResting();
+      if (resting.length > 0) {
+        const list = Mml.list(resting.map((r) => Mml.item(r)));
+        body = Mml.compose`${body}── On it: ${list}.`;
+      }
+    }
     MessageApi.scene(actor)
       .topic(SCENE_TOPIC)
       .toSelf(body)

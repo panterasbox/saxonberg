@@ -1,0 +1,12 @@
+# A working bottle of house gin — a graded bulk input on the bar.
+class: /domain/lounge/GradedReceptacle
+hydratorClass: /lib/persistence/PersistentHydrator
+data:
+  shortDescription: a bottle of house gin
+  longDescription: A working bottle of house gin, label scuffed from the rail.
+  keywords: [gin, bottle]
+  interiorBulk: true
+  interiorCapacity: 0.75
+  interiorMaterial: /lib/material/spirit/gin
+  interiorAmount: 0.7
+  gradeBand: fine

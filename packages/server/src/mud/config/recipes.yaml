@@ -1,0 +1,41 @@
+# Crafting recipes — authored knowledge loaded into the `recipes` collection
+# by RecipeSeeder at boot (NOT Stuff templates; not under mud/seeds/).
+#
+# v1 ships two transform recipes for Dave's Bar — one stirred, one shaken
+# (the shaken one exercises the missing-shaker rejection path). `category`
+# on each input slot is the Material tag the chosen bottle must carry;
+# `outputTemplate` is a real cloneable glass; `outputMaterial` is the
+# authored cocktail substance the glass holds (the mixture derivation
+# strategy). Amounts are litres (v1 bulk-only).
+recipes:
+  - recipeId: martini
+    name: Gin Martini
+    keywords: [martini, gin-martini]
+    inputSlots:
+      - slot: base
+        category: gin
+        minGrade: fair
+        measureL: 0.06
+      - slot: modifier
+        category: vermouth
+        minGrade: fair
+        measureL: 0.01
+    toolCapabilities: [mixing-glass]
+    outputTemplate: /domain/lounge/cocktail-glass
+    outputMaterial: /lib/material/cocktail/martini
+
+  - recipeId: daiquiri
+    name: Daiquiri
+    keywords: [daiquiri]
+    inputSlots:
+      - slot: base
+        category: rum
+        minGrade: fair
+        measureL: 0.06
+      - slot: sour
+        category: lime
+        minGrade: fair
+        measureL: 0.02
+    toolCapabilities: [shaker]
+    outputTemplate: /domain/lounge/cocktail-glass
+    outputMaterial: /lib/material/cocktail/daiquiri

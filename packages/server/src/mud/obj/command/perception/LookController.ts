@@ -32,6 +32,7 @@ import type {
 import type { MqlOneResult } from '../../../api/mql';
 import type { Stuff } from '../../../lib/stuff/Stuff';
 import { MixinApi } from '../../../api/mixin';
+import { ContainmentApi } from '../../../api/containment';
 import { MessageApi } from '../../../api/message';
 import { BulkableApi } from '../../../api/bulk';
 import { RecognitionApi } from '../../../api/recognition';
@@ -234,9 +235,15 @@ export default class LookController extends CommandController<LookModel> {
           RecognitionApi.learnIdentity(actor, item, null);
         }
       }
-      const items = visibleContents.map((item) => Mml.item(item));
-      const list = Mml.list(items);
-      body = Mml.compose`${body}\n── You also see: ${list}.`;
+      // Items resting on a listed surface (the bottles on the back-bar) are
+      // not loose room contents — they're represented by their surface and
+      // discovered by examining it (`look back-bar`). Shared with `sense` and
+      // the inspection pane via `ContainmentApi.looseContents`.
+      const topLevel = ContainmentApi.looseContents(visibleContents);
+      if (topLevel.length > 0) {
+        const list = Mml.list(topLevel.map((item) => Mml.item(item)));
+        body = Mml.compose`${body}\n── You also see: ${list}.`;
+      }
     }
 
     MessageApi.scene(actor)
@@ -281,7 +288,18 @@ export default class LookController extends CommandController<LookModel> {
     // bare `look` ship the same affordance-annotated text. (A
     // consumable's nutrition label rides this augmenter seam via
     // `NutritionLabelMixin`, not a special-case here.)
-    const body = Mml.compose`\n${Mml.name(target)}\n\n${Mml.fromMarkup(target.getMarkupLong(actor))}\n`;
+    let body = Mml.compose`\n${Mml.name(target)}\n\n${Mml.fromMarkup(target.getMarkupLong(actor))}\n`;
+
+    // Drill-in: examining a surface reveals what rests on it (the back-bar's
+    // bottles + tools) — the discovery path that keeps them out of the room
+    // view.
+    if (MixinApi.isSurfaced(target)) {
+      const resting = target.getResting();
+      if (resting.length > 0) {
+        const list = Mml.list(resting.map((r) => Mml.item(r)));
+        body = Mml.compose`${body}── On it: ${list}.`;
+      }
+    }
 
     MessageApi.scene(actor)
       .topic('world.perception.sense.look')

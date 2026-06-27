@@ -1,7 +1,7 @@
 # Augie — the Veteran (weekend cover). Semi-retired; patient, wry,
 # generous, a storyteller. Weekends taste different — slower, storied,
 # the old guard. The keeper of the bar's history (and its succession).
-class: /lib/character/NPC
+class: /lib/character/Crafter
 hydratorClass: /lib/persistence/PersistentHydrator
 data:
   name: Augie

@@ -1,0 +1,16 @@
+verbs: [menu]
+controller: crafting/MenuController
+description: "Read the menu of cocktails on offer here"
+help: |
+  Read what's on offer. `menu` lists the cocktails this place serves —
+  order one with `order <cocktail>`. The menu is a thing in the room;
+  if there's no menu where you are, there's nothing to read.
+validators:
+  - /lib/command/validators/requiresAnimate
+args:
+  - name: target
+    type: object
+    required: false
+    scope: "reachable"
+    validators:
+      - /lib/command/validators/mustBeVisible

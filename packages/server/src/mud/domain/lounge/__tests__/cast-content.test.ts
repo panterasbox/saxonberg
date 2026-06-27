@@ -1,6 +1,8 @@
 /**
  * Content-integrity tests for Dave's Bar cast seeds. Validates that the
- * authored NPC templates reference the thin NPC class and that every
+ * authored NPC templates reference a shared archetype class (the thin
+ * `NPC`, or its `Crafter` maker-subclass for the bar staff — the
+ * crafting lane made the bartenders order-fulfillers) and that every
  * `behaviors[].brain` path resolves to a real brain module — the same
  * `StuffApi.resolveExport` check the CMS save-gate runs, so a typo'd
  * brain path in content is caught here rather than silently at spawn.
@@ -44,9 +46,13 @@ describe("Dave's Bar cast seeds", () => {
     expect(names).toEqual(['Augie', 'Dave', 'Mara', 'Remy', 'Sloane']);
   });
 
-  it('every cast member is the thin NPC class', () => {
+  it('every cast member uses a shared archetype class (no bespoke per-NPC subclass)', () => {
+    // The cast composes behavior as data over a shared class — the thin
+    // `NPC`, or `Crafter` (`MakerMixin(NPC)`) for the bar staff, whom the
+    // crafting lane made order-fulfillers. Never a per-NPC subclass.
+    const allowed = ['/lib/character/NPC', '/lib/character/Crafter'];
     for (const f of castFiles()) {
-      expect(load(f).class).toBe('/lib/character/NPC');
+      expect(allowed, f).toContain(load(f).class);
     }
   });
 
@@ -68,16 +74,24 @@ describe("Dave's Bar cast seeds", () => {
     }
   });
 
-  it('the bar populates exactly the five cast templates', () => {
+  it('the bar populates the five cast templates (alongside the crafting fixtures)', () => {
     const bar = YAML.parse(readFileSync(BAR_YAML, 'utf8')) as {
-      data: { populates?: string[] };
+      data: { populates?: (string | { template: string })[] };
     };
-    expect(bar.data.populates?.sort()).toEqual([
+    // populates now carries the crafting fixtures (back-bar + bottles/
+    // tools `onto` it + the menu) as well as the cast; assert the cast is
+    // wired in, not that it's the whole list.
+    const paths = (bar.data.populates ?? []).map((e) =>
+      typeof e === 'string' ? e : e.template
+    );
+    for (const npc of [
       '/domain/lounge/npc/augie',
       '/domain/lounge/npc/dave',
       '/domain/lounge/npc/mara',
       '/domain/lounge/npc/remy',
       '/domain/lounge/npc/sloane',
-    ]);
+    ]) {
+      expect(paths, npc).toContain(npc);
+    }
   });
 });

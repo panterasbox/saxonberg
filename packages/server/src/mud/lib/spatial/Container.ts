@@ -221,14 +221,18 @@ export function ContainerMixin<TBase extends MixinConstructor>(Base: TBase) {
         name: 'contents',
         read: (stuff, viewer) => {
           const host = stuff as Stuff & Container;
-          const out: Record<string, unknown>[] = [];
-          for (const child of host.getContents()) {
-            if (child.stuffId === viewer.stuffId) continue;
-            if (MixinApi.isAdornment(child)) continue;
-            if (!MixinApi.isVisible(child)) continue;
-            out.push(MqlSubscriptionApi.projectFields(child, REF_FIELDS, viewer));
-          }
-          return out;
+          const visible = host.getContents().filter(
+            (child) =>
+              child.stuffId !== viewer.stuffId &&
+              !MixinApi.isAdornment(child) &&
+              MixinApi.isVisible(child),
+          );
+          // Surface-resting items (the back-bar's bottles) render under their
+          // surface, not as loose contents — the same rule `look`/`sense` use
+          // (`ContainmentApi.looseContents`), so the inspection pane agrees.
+          return ContainmentApi.looseContents(visible).map((child) =>
+            MqlSubscriptionApi.projectFields(child, REF_FIELDS, viewer),
+          );
         },
       },
     ];

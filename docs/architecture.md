@@ -627,7 +627,7 @@ registry) lives in `lib/mixin.ts`.
 | `lib/spatial/` | `SealableMixin` | open/closed state (doors) |
 | `lib/spatial/` | `DoorBearingMixin` | adds `door: Door \| null` for hosts whose exits are synthesized rather than authored (`ExitableVessel`). Constrained to `Stuff & Exitable`. |
 | `lib/stuff/` | `SingletonMixin` | class-level uniqueness — refuses a second `clone()` for the same templatePath. Composed by `CartesianZone` / `SphericalZone`. |
-| `lib/stuff/` | `PopulatesMixin` | declarative content-spawn for Container hosts; `populates:` instruction field lists templatePaths to clone (non-singletons) or singleton-resolve into self. Phase 2 applier. |
+| `lib/stuff/` | `PopulatesMixin` | declarative content-spawn for Container hosts; `populates:` instruction field lists entries to clone (non-singletons) or singleton-resolve into self — each a bare templatePath (moved in) or a `{template, onto}` object (placed on an already-populated sibling surface via `placeOn`). Phase 2 applier. |
 | `lib/message/` | `SensorMixin` | `handleMessage(frame)` notification hook |
 | `lib/message/` | `VocalMixin` | `say(text)` with scope inference |
 | `lib/command/` | `CommandGiverMixin` | `executeCommand`, `getAvailableCommands`, `getAffordances` |
@@ -662,6 +662,10 @@ registry) lives in `lib/mixin.ts`.
 | `lib/forums/` | `SubjectSubscriberMixin` | per-Avatar forum-subscription storage: the keyed set of subscribed `Subject`s feeding the `ForumSubscriptionRegistry` fan-out. Composed by `Avatar`. See [forums.md](./subsystems/forums.md). |
 | `lib/behavior/` | `BehavedMixin` | the NPC automation layer (first behavior consumer of the activity substrate): runs a declarative `behaviors:` data-spec list, path-resolving + re-resolving "brain" code modules per fire (HMR), wiring cadence (jittered, presence-gated) + `handleMessage`-witness triggers, with slot contention over `EngagedMixin`. Branch-agnostic; composed by the thin `NPC` class. See [behavior.md](./subsystems/behavior.md). |
 | `lib/corpo/` | `BrandedMixin` | the per-product corpo **mark**: a `_brandKey` durable join resolving on read (via `CorpoApi`) to a `Brand` and its owning `Corpo` (or a null corpo for an independent). MQL-visible via a `subscribableFields` `brand`/`corpo` projection; appends a derived "a product of <Corpo>" `markupAugmenter` line. Composed by content onto branded objects (`BrandedBottle` = `BrandedMixin(Thing)`), not every Stuff. See [corpo.md](./subsystems/corpo.md). |
+| `lib/craft/` | `GradedMixin` | the ordinal-quality carrier: a persisted `gradeBand` word + the `Grade` value-object contract (`getGrade`/`setGrade`/`getGradeBand`/`setGradeBand`). Composed by input bottles (`GradedReceptacle`) and inherited by `CraftedMixin`. See [crafting.md](./subsystems/crafting.md). |
+| `lib/craft/` | `ToolMixin` | the durable-good substrate: `capabilities: string[]` (matched by recipe-required capability) + a `condition` (0..1) that `wear()`s on use, not the clock. Composed by `ToolItem`. See [crafting.md](./subsystems/crafting.md). |
+| `lib/craft/` | `CraftedMixin` | the per-instance maker's mark (composes `GradedMixin`): `{maker, recipe, craftedAt}` stamped once at craft-resolve + the DF-style `renderVerdict()` (band-word + prose + maker, never a number). Un-spoofable (maker derived from context). Composed by `CraftedDrink`. See [crafting.md](./subsystems/crafting.md). |
+| `lib/craft/` | `MakerMixin` | minimal role marker (`isMaker()`) identifying an agent that can fulfill an `order` (the bartender). Not used to gate `serve`/`mix`. Composed by `Crafter`. See [crafting.md](./subsystems/crafting.md). |
 
 ### Mixin Composition Constraints
 

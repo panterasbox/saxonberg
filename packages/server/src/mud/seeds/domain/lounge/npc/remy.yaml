@@ -1,7 +1,7 @@
 # Remy — the Connector (swing shift, weekdays). Gregarious, charming, a
 # harmless gossip; the buzz and the rumor-mill. Holds court (more
 # chatter) and reacts to what he sees in the room.
-class: /lib/character/NPC
+class: /lib/character/Crafter
 hydratorClass: /lib/persistence/PersistentHydrator
 data:
   name: Remy

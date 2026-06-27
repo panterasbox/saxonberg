@@ -7,7 +7,7 @@
 # does drift out front the old stage habits (a wink, a polished glass,
 # that impression) resurface — the "annoying script" as fond homage.
 # Human (canon).
-class: /lib/character/NPC
+class: /lib/character/Crafter
 hydratorClass: /lib/persistence/PersistentHydrator
 data:
   name: Dave

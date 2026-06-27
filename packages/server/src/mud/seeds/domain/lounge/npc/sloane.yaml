@@ -1,7 +1,7 @@
 # Sloane — the Confessor (night shift, weekdays; wraps past midnight).
 # Brooding, perceptive, secretive. Says little, sees everything, keeper
 # of the after-hours. Two schedule entries cover the midnight wrap.
-class: /lib/character/NPC
+class: /lib/character/Crafter
 hydratorClass: /lib/persistence/PersistentHydrator
 data:
   name: Sloane

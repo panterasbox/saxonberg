@@ -37,6 +37,37 @@ class TestItem extends ContainableBase {}
 const ContainerBase = ContainerMixin(ContainableMixin(Idea));
 class TestContainer extends ContainerBase {}
 
+const SurfaceBase = SurfacedMixin(ContainableMixin(Idea));
+class TestSurface extends SurfaceBase {}
+
+describe('ContainmentApi.looseContents', () => {
+  it('drops items resting on a listed surface, keeps the surface + loose items', () => {
+    const room = makeStuff(() => new TestContainer());
+    const surface = makeStuff(() => new TestSurface());
+    const onSurface = makeStuff(() => new TestItem());
+    const loose = makeStuff(() => new TestItem());
+    ContainmentApi.move(surface, room);
+    ContainmentApi.move(loose, room);
+    ContainmentApi.placeOn(onSurface, surface);
+
+    const result = ContainmentApi.looseContents([surface, onSurface, loose]);
+    expect(result).toContain(surface);
+    expect(result).toContain(loose);
+    expect(result).not.toContain(onSurface);
+  });
+
+  it('keeps an item whose surface is not in the set (e.g. on the floor)', () => {
+    const room = makeStuff(() => new TestContainer());
+    const surface = makeStuff(() => new TestSurface());
+    const onSurface = makeStuff(() => new TestItem());
+    ContainmentApi.move(surface, room);
+    ContainmentApi.placeOn(onSurface, surface);
+
+    // The surface isn't in the listing → the resting item stays top-level.
+    expect(ContainmentApi.looseContents([onSurface])).toContain(onSurface);
+  });
+});
+
 describe('ContainmentApi', () => {
   let item: TestItem;
   let container1: TestContainer;
