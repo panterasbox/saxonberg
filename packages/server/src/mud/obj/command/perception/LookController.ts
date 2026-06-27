@@ -234,36 +234,23 @@ export default class LookController extends CommandController<LookModel> {
           RecognitionApi.learnIdentity(actor, item, null);
         }
       }
-      // Surface-resting grouping: an item resting on a *listed* surface is
-      // rendered under that surface ("the back-bar, with a bottle of gin …
-      // on it"), not as a loose item. Items resting on an unlisted surface
+      // Items resting on a *listed* surface (the bottles on the back-bar)
+      // are NOT loose room contents — listing them here is the clutter we're
+      // avoiding. They're represented by their surface and discovered by
+      // examining it (`look back-bar`). Items resting on an unlisted surface
       // (e.g. the Adornment floor) stay top-level. The containment walk is
-      // unchanged — this is purely how the snapshot is presented.
+      // unchanged — purely a presentation filter.
       const visibleIds = new Set(visibleContents.map((i) => i.stuffId));
-      const restingBySurface = new Map<string, Stuff[]>();
-      const topLevel: Stuff[] = [];
-      for (const item of visibleContents) {
+      const topLevel = visibleContents.filter((item) => {
         const surface = MixinApi.isContainable(item)
           ? item.getRestingOn()
           : null;
-        if (surface && visibleIds.has(surface.stuffId)) {
-          const group = restingBySurface.get(surface.stuffId) ?? [];
-          group.push(item);
-          restingBySurface.set(surface.stuffId, group);
-        } else {
-          topLevel.push(item);
-        }
-      }
-      const rendered = topLevel.map((item) => {
-        const resting = restingBySurface.get(item.stuffId);
-        if (resting && resting.length > 0) {
-          const onIt = Mml.list(resting.map((r) => Mml.item(r)));
-          return Mml.compose`${Mml.item(item)} (with ${onIt} on it)`;
-        }
-        return Mml.item(item);
+        return !(surface && visibleIds.has(surface.stuffId));
       });
-      const list = Mml.list(rendered);
-      body = Mml.compose`${body}\n── You also see: ${list}.`;
+      if (topLevel.length > 0) {
+        const list = Mml.list(topLevel.map((item) => Mml.item(item)));
+        body = Mml.compose`${body}\n── You also see: ${list}.`;
+      }
     }
 
     MessageApi.scene(actor)
@@ -308,7 +295,18 @@ export default class LookController extends CommandController<LookModel> {
     // bare `look` ship the same affordance-annotated text. (A
     // consumable's nutrition label rides this augmenter seam via
     // `NutritionLabelMixin`, not a special-case here.)
-    const body = Mml.compose`\n${Mml.name(target)}\n\n${Mml.fromMarkup(target.getMarkupLong(actor))}\n`;
+    let body = Mml.compose`\n${Mml.name(target)}\n\n${Mml.fromMarkup(target.getMarkupLong(actor))}\n`;
+
+    // Drill-in: examining a surface reveals what rests on it (the back-bar's
+    // bottles + tools) — the discovery path that keeps them out of the room
+    // view.
+    if (MixinApi.isSurfaced(target)) {
+      const resting = target.getResting();
+      if (resting.length > 0) {
+        const list = Mml.list(resting.map((r) => Mml.item(r)));
+        body = Mml.compose`${body}── On it: ${list}.`;
+      }
+    }
 
     MessageApi.scene(actor)
       .topic('world.perception.sense.look')
