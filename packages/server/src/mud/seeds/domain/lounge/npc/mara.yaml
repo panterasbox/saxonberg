@@ -1,0 +1,47 @@
+# Mara — the Anchor (day shift, weekdays). Diligent, patient, reserved.
+# The spine of the place; she does inventory (the clipboard — later wave).
+# Built entirely from data: class NPC + behaviors, no bespoke code.
+class: /lib/character/NPC
+hydratorClass: /lib/persistence/PersistentHydrator
+data:
+  name: Mara
+  pronouns: she
+  _speciesPath: /lib/species/animalia/chordata/mammalia/primates/hominidae/homo/sapiens
+  lifecycleState: alive
+  primaryKeyword: mara
+  shortDescription: a quiet, watchful bartender
+  longDescription: |
+    She moves with the economy of someone who has counted these bottles
+    ten thousand times — no wasted gesture, a cloth never far from her
+    hand. Dark eyes that listen better than they speak.
+  behaviors:
+    - brain: /lib/behavior/shifts
+      trigger: cadence:30s
+      config:
+        behindBar: /domain/lounge/bar
+        railStool: /domain/lounge/bar
+        offstage: /domain/lounge/offstage
+        schedule:
+          - { days: [0, 1, 2, 3, 4], hours: [6, 14], state: on-shift }
+    - brain: /lib/behavior/idles
+      trigger: cadence:11s
+      config:
+        pool:
+          - { kind: free, value: "runs a cloth slowly down the rail." }
+          - { kind: free, value: "holds a glass to the light, then sets it down." }
+          - { kind: free, value: "straightens a row of bottles without looking." }
+          - { kind: say, value: "Mm." }
+    - brain: /lib/behavior/random-chatter
+      trigger: cadence:41s
+      config:
+        lines:
+          - "What'll it be."
+          - "Long day?"
+          - "This one's on the house."
+    - brain: /lib/behavior/greets
+      trigger: arrival
+      config:
+        lines:
+          - "Evening."
+          - "Welcome in."
+          - "Sit anywhere you like."

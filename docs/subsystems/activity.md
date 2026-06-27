@@ -27,6 +27,14 @@ substrate below (start/cancel, the emission cadence on game-time, the
 `getHost` host-destruction hook). The crisis drain occupies the `'body'`
 slot; the deferred strangulation channel reserves `'voice'`.
 
+The first *behavior* consumer has also landed:
+[NPC behavior](./behavior.md) is the activity substrate's first
+non-physiological consumer — `wanders`/`patrols` cadence brains traverse
+on a jittered schedule, and the generic `BehaviorBeat` `DurativeActivity`
+rides the scheduler purely to occupy an engagement slot for a contention
+window (so a wandering NPC yields `'body'`/`'attention'` while it greets
+an arrival). See [behavior.md](./behavior.md).
+
 Three claims drive the design:
 
 1. **Verbs that have duration become activities.** A controller's

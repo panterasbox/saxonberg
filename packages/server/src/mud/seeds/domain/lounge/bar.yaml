@@ -17,3 +17,12 @@ data:
     A narrow, warm room that smells of citrus peel and old wood. The bar itself is a single slab of something dark and scarred, lit from beneath so the bottles ranked behind it throw long colored shadows up the wall. Stools wait in a patient row. Behind the taps a chalkboard menu has been wiped and rewritten so many times it's gone soft and grey.
 
     The lounge is back through the doorway to the south.
+  # The cast spawns here on hydration (PopulatesMixin). Each is a plain
+  # NPC template + behavior data; the `shifts` brain then sorts them by
+  # the game clock — whoever's on shift stays, the rest step out back.
+  populates:
+    - /domain/lounge/npc/mara
+    - /domain/lounge/npc/remy
+    - /domain/lounge/npc/sloane
+    - /domain/lounge/npc/augie
+    - /domain/lounge/npc/dave

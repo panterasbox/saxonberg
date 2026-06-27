@@ -94,6 +94,31 @@ function sourceCmsPath(abs: string): string {
  * `canMutateZone`; else `can(actor, 'write', liveAtTarget)`.
  * Returns null on allow, a human-readable reason on deny.
  */
+/**
+ * Validate that every `behaviors[].brain` path in a content template's
+ * `data` resolves to a real brain module (`export const brain`). The
+ * **save-gate half** of brain-path validation (the other half is
+ * resolution-time, in `BehavedMixin`): a typo'd or dangling brain path
+ * is rejected at author time rather than silently no-op'ing at spawn.
+ * No-op for templates without a `behaviors:` list.
+ */
+async function validateBehaviorPaths(
+  data: Record<string, unknown>
+): Promise<void> {
+  const behaviors = data.behaviors;
+  if (!Array.isArray(behaviors)) return;
+  for (const entry of behaviors) {
+    if (!entry || typeof entry !== 'object') continue;
+    const brainPath = (entry as { brain?: unknown }).brain;
+    if (typeof brainPath !== 'string') continue;
+    // 'brain' is the brain category's marker export (see lib/behavior).
+    const resolved = await StuffApi.resolveExport(brainPath, 'brain');
+    if (!resolved) {
+      throw new CmsError('invalid', `unresolvable brain path: ${brainPath}`);
+    }
+  }
+}
+
 async function gateContentWrite(
   actor: Stuff | null,
   target: string
@@ -382,6 +407,10 @@ export class CmsLogic extends Idea {
     } catch (err) {
       throw new CmsError('invalid', (err as Error).message);
     }
+
+    // Reject content that references a non-existent brain before it
+    // can go live (the save-gate half of brain-path validation).
+    await validateBehaviorPaths(data);
 
     const existing = await Template.findByPath(path);
     if (!existing) {

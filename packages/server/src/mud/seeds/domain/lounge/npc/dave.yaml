@@ -1,0 +1,38 @@
+# Dave — owner, master-emeritus. He doesn't pour anymore; he works the
+# room and the books. The endgame made flesh (learn → master → run). A
+# broad daily presence; idles and holds the place together.
+class: /lib/character/NPC
+hydratorClass: /lib/persistence/PersistentHydrator
+data:
+  name: Dave
+  pronouns: he
+  _speciesPath: /lib/species/animalia/chordata/mammalia/primates/hominidae/homo/sapiens
+  lifecycleState: alive
+  primaryKeyword: dave
+  shortDescription: the proprietor
+  longDescription: |
+    He doesn't work the taps so much as preside over them — a nod that
+    settles a tab, a word that ends an argument. Mastery worn so lightly
+    you'd miss it, until you watch the room arrange itself around him.
+  behaviors:
+    - brain: /lib/behavior/shifts
+      trigger: cadence:30s
+      config:
+        behindBar: /domain/lounge/bar
+        railStool: /domain/lounge/bar
+        offstage: /domain/lounge/offstage
+        schedule:
+          - { days: [0, 1, 2, 3, 4, 5, 6], hours: [8, 24], state: on-shift }
+    - brain: /lib/behavior/idles
+      trigger: cadence:17s
+      config:
+        pool:
+          - { kind: free, value: "surveys the room with a slow, proprietary calm." }
+          - { kind: free, value: "exchanges a quiet word with one of the staff." }
+          - { kind: say, value: "Good crowd tonight." }
+    - brain: /lib/behavior/greets
+      trigger: arrival
+      config:
+        lines:
+          - "Welcome to my bar."
+          - "Glad you came by."

@@ -1,0 +1,12 @@
+# Offstage — the no-exit holding room where the `shifts` brain parks
+# off-duty cast. Materialized on demand by shifts (singletonOrClone).
+# Players cannot reach it (no Exitable).
+class: /domain/lounge/Offstage
+hydratorClass: /lib/persistence/PersistentHydrator
+data:
+  shortDescription: the back of house
+  primaryKeyword: backofhouse
+  longDescription: |
+    A dim service corridor that smells of bleach and coffee grounds —
+    coats on pegs, a punch-clock, the hum of the walk-in cooler. Where
+    the staff are when they're not on the floor.
