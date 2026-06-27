@@ -204,12 +204,23 @@ exercisable standalone:
   contribution, so seeing it appear IS the demonstration that advancement
   opened a door.
 
-Seed Catalog (`seeds/lib/advancement/Discipline/`): a 6-node Dave's-Bar
-slice — `bartending` (school), `mixology` (`requires` recipe-knowledge,
-`specializes` bartending, confers flourish at `competent`),
-`recipe-knowledge` (knowledge), `appraisal` (`synergizes` mixology),
-`darts` (standalone leaf), `alcohol-tolerance` (conditioning) — spanning
-all three channels and all three edge kinds.
+Seed Catalog (`seeds/lib/advancement/Discipline/`): the Dave's-Bar
+practiced leaves — `bartending` (school), `mixology` (`requires`
+recipe-knowledge, `specializes` bartending, confers flourish at
+`competent`), `recipe-knowledge`, `appraisal` (`synergizes` mixology),
+`darts`, `alcohol-tolerance` (conditioning) — hung under a real **ISCED-F
+spine** of structural field nodes: a Services branch
+(`services` 10 → `personal-services` 101 → `hospitality-catering` 1013 +
+`sports` 1014) and a Business branch (`business-admin-law` 04 →
+`business-administration` 041 → `retail-sales` 0416). The result spans all
+three channels, all three edge kinds, and a five-grain chain
+(`mixology` → `bartending` → `hospitality-catering` → `personal-services`
+→ `services`) — the reality-seeded taxonomy made visible. The structural
+field nodes carry `channel: knowledge` (a field of study is a knowledge
+domain; the skill / conditioning distinction is a leaf attribute) and the
+`alcohol-tolerance` conditioning leaf carries no ISCED-F code (bodily
+adaptation isn't a field of study). The slice is illustrative, **not
+exhaustive** — the full ISCED-F is content authored over time.
 
 ## Deferred (seams left open)
 

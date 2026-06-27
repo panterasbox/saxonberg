@@ -1,0 +1,10 @@
+class: /lib/advancement/Discipline
+hydratorClass: /lib/persistence/PersistentHydrator
+data:
+  key: hospitality-catering
+  channel: knowledge
+  label: Hotel, restaurants and catering
+  iscedf: "1013"  # ISCED-F 2013 field-of-education code
+  specializes:
+    - personal-services
+  description: ISCED-F detailed field — where the bartending craft classifies.
