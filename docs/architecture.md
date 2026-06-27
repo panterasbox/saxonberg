@@ -504,7 +504,10 @@ body-state, not agent-state** (a corpse / sessile animal is a body with
 reduced agency) — see [vitals.md](./subsystems/vitals.md). The identity
 line is sex (body, `SexedMixin` on Creature) vs. gender/persona (social,
 on Character). `Creature` is concrete, so a bare non-agent body (a frog,
-a corpse) is valid.
+a corpse) is valid. `Character` has two leaf subclasses: `Avatar`
+(player-driven, in `obj/`) and the thin `NPC` (`lib/character/NPC.ts` =
+`Character` + `BehavedMixin`) for authored, automation-driven characters —
+which keeps `Behaved` off players. See [behavior.md](./subsystems/behavior.md).
 
 Each branch lives in `lib/stuff/` and registers itself with `Stuff` at
 module load via `Stuff._registerTopLevelBranch(BranchClass)`. The
@@ -647,6 +650,7 @@ registry) lives in `lib/mixin.ts`.
 | `lib/thermal/` | `ThermalRegulationMixin` | the Option-C body driver: overrides `getVitalSign` (sync, cached effective ambient) to **drive** `coreTemperature` — pin at setpoint within the thermoneutral band, else spend satiation (cold) / hydration (hot, wet-bulb-capped) to defend it, fail into passive `Thermal` drift; endo/ecto split (`BodyPlan.thermalStrategy`) + Q10; the hypothermia/hyperthermia/torpor cascade → death seam. Composed over `ThermalMixin`/`Metabolic`, inner of `LoadBearing`, by `Creature`. No Api. See [thermal.md](./subsystems/thermal.md). |
 | `lib/forums/` | `ForumsMixin` | the forums transmission capability (post / reply / vote / subscribe verb family), composed on a hosted update (`ForumsUpdate`). Born-with: the `ForumsUpdate` is an `AetherHosted` implant conferring this mixin, granted at intake. Acts on behalf of its host via `getHost()`. See [forums.md](./subsystems/forums.md). |
 | `lib/forums/` | `SubjectSubscriberMixin` | per-Avatar forum-subscription storage: the keyed set of subscribed `Subject`s feeding the `ForumSubscriptionRegistry` fan-out. Composed by `Avatar`. See [forums.md](./subsystems/forums.md). |
+| `lib/behavior/` | `BehavedMixin` | the NPC automation layer (first behavior consumer of the activity substrate): runs a declarative `behaviors:` data-spec list, path-resolving + re-resolving "brain" code modules per fire (HMR), wiring cadence (jittered, presence-gated) + `handleMessage`-witness triggers, with slot contention over `EngagedMixin`. Branch-agnostic; composed by the thin `NPC` class. See [behavior.md](./subsystems/behavior.md). |
 
 ### Mixin Composition Constraints
 

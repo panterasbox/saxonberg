@@ -1,0 +1,55 @@
+# Remy — the Connector (swing shift, weekdays). Gregarious, charming, a
+# harmless gossip; the buzz and the rumor-mill. Holds court (more
+# chatter) and reacts to what he sees in the room.
+class: /lib/character/NPC
+hydratorClass: /lib/persistence/PersistentHydrator
+data:
+  name: Remy
+  pronouns: he
+  _speciesPath: /lib/species/animalia/chordata/mammalia/primates/hominidae/homo/infernalis
+  lifecycleState: alive
+  primaryKeyword: remy
+  shortDescription: a grinning, fast-talking tiefling
+  longDescription: |
+    All motion and warmth, a crooked grin under a neat pair of swept-back
+    horns and a tail that punctuates his stories when his hands are busy.
+    He works the rail like a stage — a wink here, a refill there, a rumor
+    always half-told — and knows everyone's name by the second visit and
+    most of their business by the third.
+  behaviors:
+    - brain: /lib/behavior/shifts
+      trigger: cadence:30s
+      config:
+        behindBar: /domain/lounge/bar
+        railStool: /domain/lounge/bar
+        offstage: /domain/lounge/offstage
+        schedule:
+          - { days: [0, 1, 2, 3, 4], hours: [14, 22], state: on-shift }
+    - brain: /lib/behavior/idles
+      trigger: cadence:9s
+      config:
+        pool:
+          - { kind: free, value: "spins a coaster across the bar and catches it." }
+          - { kind: free, value: "leans in, mid-story, eyes bright." }
+          - { kind: say, value: "— so anyway, there I was." }
+          - { kind: say, value: "You hear about the corpo lot up the avenue?" }
+    - brain: /lib/behavior/random-chatter
+      trigger: cadence:23s
+      config:
+        lines:
+          - "Good to see a friendly face!"
+          - "I'm just saying, you didn't hear it from me."
+          - "First round's the important one, that's my philosophy."
+    - brain: /lib/behavior/greets
+      trigger: arrival
+      config:
+        lines:
+          - "Hey hey — welcome in, friend!"
+          - "There they are! Pull up a stool."
+          - "Look who it is!"
+    - brain: /lib/behavior/reacts
+      trigger: emote
+      config:
+        reactions:
+          - { respond: "Ha! That's the spirit." }
+          - { respond: "Now you're talking." }

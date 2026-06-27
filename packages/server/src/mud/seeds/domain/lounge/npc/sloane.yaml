@@ -1,0 +1,48 @@
+# Sloane — the Confessor (night shift, weekdays; wraps past midnight).
+# Brooding, perceptive, secretive. Says little, sees everything, keeper
+# of the after-hours. Two schedule entries cover the midnight wrap.
+class: /lib/character/NPC
+hydratorClass: /lib/persistence/PersistentHydrator
+data:
+  name: Sloane
+  pronouns: they
+  _speciesPath: /lib/species/animalia/chordata/mammalia/primates/hominidae/homo/sensitivus
+  lifecycleState: alive
+  primaryKeyword: sloane
+  shortDescription: a still, attentive bartender
+  longDescription: |
+    Quiet at the dark end of the bar, polishing nothing in particular,
+    watching the room over the rim of a glass they never quite drink
+    from. There's an uncanny attentiveness to them — one of the
+    attuned-born, who seem to read the air itself — so they always seem
+    to know who needs another and who just needs someone to listen.
+  behaviors:
+    - brain: /lib/behavior/shifts
+      trigger: cadence:30s
+      config:
+        behindBar: /domain/lounge/bar
+        railStool: /domain/lounge/bar
+        offstage: /domain/lounge/offstage
+        schedule:
+          - { days: [0, 1, 2, 3, 4], hours: [22, 24], state: on-shift }
+          - { days: [0, 1, 2, 3, 4], hours: [0, 6], state: on-shift }
+    - brain: /lib/behavior/idles
+      trigger: cadence:14s
+      config:
+        pool:
+          - { kind: free, value: "wipes the same spot on the bar, slowly." }
+          - { kind: free, value: "watches the door without seeming to." }
+          - { kind: free, value: "pours a measure with unhurried precision." }
+    - brain: /lib/behavior/random-chatter
+      trigger: cadence:53s
+      config:
+        lines:
+          - "Rough one?"
+          - "We're open a while yet."
+          - "..."
+    - brain: /lib/behavior/greets
+      trigger: arrival
+      config:
+        lines:
+          - "Hey."
+          - "Take your time."

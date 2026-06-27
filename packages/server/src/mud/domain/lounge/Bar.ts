@@ -17,10 +17,16 @@ import { VisibleMixin } from '../../lib/description/Visible';
 import { DetailedMixin } from '../../lib/description/Detailed';
 import { ExitableMixin } from '../../lib/boundary/Exitable';
 import { PostRegistrationMixin } from '../../lib/stuff/PostRegistration';
+import { PopulatesMixin } from '../../lib/stuff/Populates';
 import { SingletonMixin } from '../../lib/stuff/Singleton';
 
+// `PopulatesMixin` lets the bar spawn its cast (the `populates:` list in
+// bar.yaml) into itself on hydration — each NPC is a non-singleton clone
+// moved in. See docs/subsystems/behavior.md.
 const BarBase = SingletonMixin(
-  PostRegistrationMixin(ExitableMixin(DetailedMixin(VisibleMixin(Location)))),
+  PostRegistrationMixin(
+    PopulatesMixin(ExitableMixin(DetailedMixin(VisibleMixin(Location)))),
+  ),
 );
 
 export default class Bar extends BarBase {

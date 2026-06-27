@@ -1,0 +1,47 @@
+# Augie — the Veteran (weekend cover). Semi-retired; patient, wry,
+# generous, a storyteller. Weekends taste different — slower, storied,
+# the old guard. The keeper of the bar's history (and its succession).
+class: /lib/character/NPC
+hydratorClass: /lib/persistence/PersistentHydrator
+data:
+  name: Augie
+  pronouns: he
+  _speciesPath: /lib/species/animalia/chordata/mammalia/primates/hominidae/homo/semiorcus
+  lifecycleState: alive
+  primaryKeyword: augie
+  shortDescription: an old, easy-handed half-orc
+  longDescription: |
+    Broad-shouldered and grey at the temples, with a tusked, weathered
+    grin and hands like worn saddle-leather. He pours like the bar is an
+    old friend's kitchen — unhurried, generous to a fault — and there's a
+    story behind every bottle. He'll tell you the good ones if you stay
+    long enough.
+  behaviors:
+    - brain: /lib/behavior/shifts
+      trigger: cadence:30s
+      config:
+        behindBar: /domain/lounge/bar
+        railStool: /domain/lounge/bar
+        offstage: /domain/lounge/offstage
+        schedule:
+          - { days: [5, 6], hours: [10, 24], state: on-shift }
+    - brain: /lib/behavior/idles
+      trigger: cadence:13s
+      config:
+        pool:
+          - { kind: free, value: "polishes a glass and holds it up, satisfied." }
+          - { kind: free, value: "hums something old and tuneless." }
+          - { kind: say, value: "Now, the fella who used to own this place..." }
+    - brain: /lib/behavior/random-chatter
+      trigger: cadence:31s
+      config:
+        lines:
+          - "No rush in here, friend."
+          - "I ever tell you how Dave got this bar?"
+          - "Weekends are for the regulars."
+    - brain: /lib/behavior/greets
+      trigger: arrival
+      config:
+        lines:
+          - "Well, come on in."
+          - "Good to see you. Sit, sit."

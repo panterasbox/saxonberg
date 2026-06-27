@@ -115,6 +115,7 @@ export const Mixins = {
   Thermal: 'ThermalMixin',
   ThermalRegulation: 'ThermalRegulationMixin',
   Respiration: 'RespirationMixin',
+  Behaved: 'BehavedMixin',
 } as const;
 
 /**
