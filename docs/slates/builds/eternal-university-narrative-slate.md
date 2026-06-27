@@ -9,7 +9,12 @@
 > **place**, and [onboarding-slate](./onboarding-slate.md) owns the
 > **journey mechanics**. Nothing here is built; the five structural forks
 > were resolved in a design pass on 2026-06-27 (recorded in §14, with §9–§11
-> tightened to match). Only the names remain open.
+> tightened to match). Only the names remain open. A second pass that day
+> refined the **census model** (§6: never-arriving / per-person /
+> asymptotic, stakes in the live roll), added the **roll-clock kill-list**
+> (§9) and the **un-erasable win-loop** (§10), and parked the still-molten
+> **AI/presence metaphysics + the questline abstraction** in §16 (live
+> threads, not yet canon).
 >
 > **Provenance:** distilled from a design conversation (2026-06-25).
 > Character names marked *(provisional)* are inventions awaiting your
@@ -181,12 +186,19 @@ Reasons it's strictly better:
   legibility, the first thing power does (Scott, *Seeing Like a State*).
   The election is downstream of the roll; the census *makes* the roll. In
   a game built on who-counts, the census is the foundational civic event.
-- **It restores the clock that conviction voting lacks.** Our governance
+- **It relocates the clock from the world to the person.** Our governance
   uses **conviction voting** — a continuous flow, no election night, bad
-  for drama. The census is the discrete, dated, everyone-feels-it *beat*;
-  conviction voting is the slow churn of fighting over what the count
-  *meant*. Census = the beat. Conviction voting = the long tail.
-  Complementary, not competing.
+  for drama. A census *as a global event* would supply a discrete beat —
+  but in a managed-record digital world a global enumeration day is the
+  silly part (the record is already live; the state isn't blind, so it
+  never has to "go count"). So **the census never completes globally** —
+  it's *asymptotic*: always coming, never arrived. The discrete, dated,
+  everyone-feels-it beat lives instead at **two smaller scales** — the
+  **killings** (a body found: sudden, dated, public) and **your own
+  enumeration** (the day your number comes up to be counted — see §9's
+  roll-clock). Conviction voting stays the slow churn of fighting over
+  what the rolls *mean*. Beats from murder + counting; long tail from the
+  vote.
 - **It's the upstream attack surface** — the true-to-life one. You don't
   rig the ballots; you rig *who's on the roll the ballots draw from.* The
   rolls are the battlefield, not the booth. So the census is where the
@@ -199,17 +211,32 @@ Reasons it's strictly better:
   census is also a reason to *move*, gather, cross the seam — a built-in
   quest-giver and migration engine.)
 
-**The census is also the cohesion spine for a multi-author world.** You
+**The census is the cohesion spine for a multi-author world — and the
+never-arriving form makes it a *better* spine, not a worse one.** You
 can't enforce plot continuity across many contributors (and players pick
-their own canon anyway). So enforce a *shared frame* instead. A census is
-a world-wide event with a runup, a peak, and an aftermath that touches
-every location and character at once — like weather (which we already
-model as ambient shared state). Any contributor, anywhere, writes "the
-census is coming" as the air everyone breathes and handles it *locally*,
-and it **rhymes** with everyone else's content with zero coordination.
-And it's **renewable**: a census recurs, so every cycle re-synchronizes
-the whole sprawl on a clock and re-opens the who-counts question with
-fresh stakes. This is the most important structural idea in the bible.
+their own canon anyway), so enforce a *shared frame* instead. A recurring
+census-as-event would force contributors to agree on *when* it lands; an
+**eternal, never-completing** census means anyone, anywhere, any time can
+write "the census is coming" and it is *always true* — zero coordination,
+no clock to sync — the air everyone breathes, like weather (already
+modeled as ambient shared state). It's renewable precisely because it's
+never renewed: it's just always. This is the most important structural
+idea in the bible.
+
+**Where the stakes live (the correction that keeps it from going hollow):
+the roll, not the count.** "Never arrives" is *not* "isn't real" — the
+record is **live and brutally consequential every day.** Being on the
+roll or off it decides who gets recognized, who gets access, who counts
+as a person — and the recognition/belief substrate makes that
+*mechanically* real (to be unrecognized is an actual state, not a
+metaphor). So the stakes don't wait for a census day; they're cashed out
+continuously. Being **counted happens to you**: the enumerator comes, you
+face the form, and it's a real, dated, high-stakes scene (§13's
+miscounted / uncounted / over-counted). The *aggregate* never closes
+because the population is **open** — in an MMO, literally: someone new
+walks into the dorm every day — so the census is "always coming" not
+because it's fake but because it can't *finish*. Real per person;
+asymptotic in the whole.
 
 ## 7. The deep engine + the AI synchronicity (zero-distance allegory)
 
@@ -329,18 +356,43 @@ forces the realization that the motive is **structural**. The serial-ness
    victims — someone who might really have been a phantom — so the pattern
    never reads as a clean innocent-martyrs tale; the player should be
    unsure whether a given grave was a person erased or a fake corrected.
-3. **The world = an open, distributed, recurring pattern.** The "Census
-   Killer" — or the *kind* of killing — is a **shared content primitive**:
-   any contributor can author a victim into it, anywhere, as long as it
-   fits (categorical victim + administrative M.O. + who-counts motive).
-   It renews every census cycle. A crime that is also a multi-author
-   engine that runs for years.
+3. **The world = an open, distributed, self-renewing pattern.** The
+   "Census Killer" — or the *kind* of killing — is a **shared content
+   primitive**: any contributor can author a victim into it, anywhere, as
+   long as it fits (categorical victim + administrative M.O. + who-counts
+   motive). It renews not on a census *cycle* (there is none — the count
+   never completes, §6) but on the **ever-open roll**: there is always a
+   next name coming up, so there is always a next killing. A crime that is
+   also a multi-author engine that runs for years.
 
 **The signature is administrative, not theatrical** — this is how it
 stays grounded (Heroes, not Hannibal) *and* on-theme. Not an artist-killer
 leaving riddles: a killer who treats murder like **record-keeping**,
 styling deaths as *corrections to the rolls*, striking a name because the
 name shouldn't be on the list. The violence of legibility, made literal.
+
+**The roll *is* the kill-list — the M.O. made concrete.** The killer
+doesn't *choose* in any theatrical sense; he **works the queue.** Victims
+are struck *in roll order, as their name comes up to be counted* — being
+enumerated is being put under the lens, and the lens is what licenses the
+kill. This is the administrative signature in its purest form: the handler
+(§11) doesn't even select, it just **reads the roll**; the bureaucracy's
+own ordering is the murder weapon, and the kill-list is a routine
+artifact nobody had to author. A queue can't be arrested. Two payoffs fall
+out:
+- **The deducible signature.** The victims share no personal tie — but
+  their deaths cluster around their *enumeration dates*. That's the fair,
+  Encyclopedia-Brown-solvable pattern (§3): the player works out that the
+  killer follows the count, not a grudge.
+- **The personal dread-clock.** Because *you* are on the roll, and you can
+  see your number rising, every player carries a private countdown to
+  their own examination — and has watched what happens to the people whose
+  number already came up. The discrete dated beat §6 relocates to the
+  individual. The hidden filter stays unknowable: is it everyone
+  eventually, random, or only the uncountable (§14.2)? So the dread is
+  *universal* even if the selection isn't — the roll decides *when* you go
+  under the lens; your countability decides whether it condemns you, and
+  you can't know which you are.
 
 **The killer may not, at bottom, be a person.** There's a literal hand to
 corner (a satisfying-ish capstone), but behind it the realization that
@@ -390,6 +442,22 @@ data**, because you can fake a database row but not being recognized by a
 room of real people — and by then a whole circle and a whole forum can see
 it too. *A lone genius gets killed; a community is harder to silence.*
 That is the narrative justification for the multiplayer/argument-map core.
+
+**The thesis becomes the win condition (via the §9 roll-clock).** Your
+enumeration date is a **deadline to become un-erasable** — and the way you
+become un-erasable is *the same activity as solving the murder*: get
+recognized, build a circle, leave social exhaust no deletion can fake
+away. Dunny failed his counting because he was alone — one name, one room,
+easy to strike. You pass yours because by the time your number comes up, a
+circle and a forum can witness you're real, and you can't quietly erase
+someone a room full of people knows. So §10's thesis stops being a theme
+and becomes literal: **you investigate to survive; you become known to
+survive; being witnessed *is* safety.** (Design caution for later: "your
+date is coming up" must read as *dread*, not a grief-timer — don't make
+logging off lethal or punish players who can't be online for a clock. The
+examination's mechanical outcome — erasure / a mark / a choice under
+pressure — is a real open question, deferred. The *feeling* works long
+before the mechanic is settled.)
 
 **The sealed room pays this off literally:** behind the proctor's tape is
 Dunny's *work* — notebooks, the reconciliation, the flag-the-unreal
@@ -572,6 +640,83 @@ Only Fork 5 (names) stays open.
   LLM-agent rungs ([llm-content-slate](./llm-content-slate.md) et al.),
   which are *not near-term*. The fiction can run ahead of them; the
   payoff deepens as they land.
+
+## 16. Live threads (exploratory — not yet canon)
+
+> Captured from the design conversation of 2026-06-27, *after* the §14
+> forks were resolved. These are molten — strong enough to keep, not yet
+> decided. The §6/§9/§10 edits above (the never-arriving census, the
+> roll-clock, the un-erasable win-loop) graduated *out* of this pile once
+> they firmed; what's left here is the AI/presence metaphysics and the
+> design abstraction it implies. Promote a thread into the body when it
+> settles; cut it if it doesn't.
+
+**A. Realness = presence = "someone home" — grounded in the engine.** The
+thing that makes a player avatar real is that a human is home *right now*:
+interactivity, presence. That's not a metaphor — it's how the engine works
+(the linkdead / presence-freeze machinery; avatars freeze when the human
+disconnects). So the personhood spectrum the plot is about is a literal
+engine fact: NPC = *sometimes*-home (an AI is running), player =
+home-when-logged-in, **corpse = never-home.** Which means **your own
+avatar goes corpse-like every night when you log off** — the thing you're
+investigating is the thing you become. The killer's "method" is, at
+bottom, a *presence detector*, and presence flickers. This is the §8
+discipline (the in-fiction power can only do what the engine implements)
+applied to personhood itself.
+
+**B. The recursive killer: wrong → right → so what.** He thinks he's
+culling AIs (so it isn't murder). He's *wrong* — they're people (so he's a
+monster). Except he's *right* — they were AI. And "he's right" doesn't
+absolve him; it indicts the *player*, who grieved these dorm-mates and
+could never tell which were real either. His being right detonates the
+question on the player's side of the screen instead of settling it inside
+the fiction. This is the §7 zero-distance allegory *staged* — landing on
+the human at the keyboard, who is themselves, from inside the game,
+indistinguishable from an LLM.
+
+**C. The corpse twist (use once, surgically).** A body is normally the one
+incontrovertible fact a mystery rests on — *corpus delicti*. The move:
+paint a victim as "the killer finally got it wrong and killed a real
+person" — then peel: not real; peel again: not even an NPC; it was *only
+ever a corpse*, staged. A body becomes a forgeable record, rhyming exactly
+with a cooked roll — teaching the player, viscerally, that a body is no
+more proof of a person than a registry row is. Pulls the floor out of the
+genre's bedrock. Devastating once; a gag if repeated. (Who *plants* a
+victim, and why — manufacturing a murder to drive the §11 panic — is the
+thread to pull.)
+
+**D. Ambient, not Blade Runner.** Wired for LLMs *today*, not a future
+cyberscape. The aether is old, known, lived-with (§8), so the AI-ness of
+NPCs should be mundane and unremarked: everyone half-knows some of the
+people around them aren't home, nobody can always tell which, and that's
+just life on the rolls. The killer weaponizes a thing the campus already
+quietly lives with — no "robots among us" reveal, because there was never
+a secret. Scarier for it.
+
+**E. Salem with teeth (the presence-paranoia mechanic).** "You can't prove
+you're real" (§11) gains a netcode edge: the only proof of realness is
+presence, and presence is exactly what you lose when you go linkdead, lag,
+or AFK. So the safest way to *look* guilty is to go quiet — disconnection
+reads as not-home reads as suspect. Paranoia falls out of the transport
+layer. (Same caution as §10's win-loop: dread, not griefing — don't
+mechanically punish disconnection.)
+
+**F. The questline abstraction (design — deferred, flagged not specced).**
+The multiplayer reset problem (a whodunit is *closed*, a dorm is *open* —
+newcomers daily) wants a real design object, and the arc keeps gesturing
+at its shape. Do **not** instance the murder per-player (that kills the
+§3/§5 thesis — the Quad argument-map only matters if real players reason
+about the *same* body). Instead, a questline that is: (1) **backed by a
+shared world event**, not per-player instanced; (2) **joinable
+mid-stream** — a newcomer walks into the crisis *in progress*, at whatever
+phase it's at, like a freshman arriving mid-scandal; (3) **bound to the
+shared world clock** (the same ambient machinery as weather); (4) authored
+as a **closable case + a persistent antagonist** — which is exactly the
+§14.3 capstone (the *pawn* is the closable unit, caught each time; the
+*handler* is the renewable one, never arrested). Anthology-season,
+Heroes-shaped: close a case without closing the world. These four
+properties are general, not murder-specific — but they're *design*, and
+they wait until the narrative tells us what beats they must carry.
 
 ---
 
