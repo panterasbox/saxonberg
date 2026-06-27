@@ -88,3 +88,22 @@ settings:
   # real-time, so conviction rewards sustained commitment over a snap vote.
   - key: conviction.buildPeriodSeconds
     value: "604800"
+
+  # Traits — the disposition estimator dials (the personality layer). A
+  # trait-position is the game-time-decayed signed sum of an axis's
+  # valenced acts (clamped -100..+100); its evidence mass drives the
+  # form→define→entrench band. Decay is GAME-time (character forms over a
+  # lifetime): half-life 180 game-days. `defined`/`entrenched` are mass
+  # cutoffs; `pronouncedThreshold` is the |position| an axis must reach to
+  # count as a defining trait; `compatibilityScale` divides the raw
+  # position dot-product into the regard range. See docs/subsystems/trait.md.
+  - key: traits.decayHalfLifeDays
+    value: "180"
+  - key: traits.definedThreshold
+    value: "20"
+  - key: traits.entrenchedThreshold
+    value: "60"
+  - key: traits.pronouncedThreshold
+    value: "25"
+  - key: traits.compatibilityScale
+    value: "100"

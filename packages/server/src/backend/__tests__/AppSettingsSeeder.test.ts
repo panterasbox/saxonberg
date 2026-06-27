@@ -41,7 +41,7 @@ describe("AppSettingsSeeder", () => {
     pm.setFindResult([]);
     const added = await AppSettingsSeeder.run();
 
-    expect(added).toBe(18);
+    expect(added).toBe(23);
     expect(pm.saves).toHaveLength(1);
     expect(pm.saves[0]!.collection).toBe("app_settings");
     const values = savedValues(pm);
@@ -80,6 +80,11 @@ describe("AppSettingsSeeder", () => {
           [AppSettingKeys.producerDecayHalfLife]: "1209600",
           [AppSettingKeys.influenceBandThresholds]: "[]",
           [AppSettingKeys.convictionBuildPeriodSeconds]: "604800",
+          [AppSettingKeys.traitsDecayHalfLifeDays]: "180",
+          [AppSettingKeys.traitsDefinedThreshold]: "20",
+          [AppSettingKeys.traitsEntrenchedThreshold]: "60",
+          [AppSettingKeys.traitsPronouncedThreshold]: "25",
+          [AppSettingKeys.traitsCompatibilityScale]: "100",
         },
       },
     ]);
@@ -100,8 +105,8 @@ describe("AppSettingsSeeder", () => {
 
     // Missing keys seeded: evacuationFallback + 3 reaction + 2 forum
     // anti-snowball + 5 renown + 2 participation + 2 producer + 1 influence
-    // + 1 conviction.
-    expect(added).toBe(17);
+    // + 1 conviction + 5 traits.
+    expect(added).toBe(22);
     expect(pm.saves).toHaveLength(1);
     const values = savedValues(pm);
     // operator value preserved, missing keys seeded

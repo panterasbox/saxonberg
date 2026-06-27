@@ -38,6 +38,7 @@ export enum Collections {
   Beliefs = 'beliefs',
   Chronicles = 'chronicles',
   Transcripts = 'transcripts',
+  DispositionEvents = 'disposition_events',
   ForumSubjects = 'forum_subjects',
   ForumBoards = 'forum_boards',
   ForumEntries = 'forum_entries',
@@ -639,6 +640,15 @@ export class PersistenceManager {
       // Competence estimator and the self-view consume) and the future
       // per-player cleanup cascade are O(rows-for-this-owner).
       await this.getCollection(Collections.Transcripts).createIndex({
+        owner: 1,
+      });
+
+      // Disposition events: per-character append-only disposition-valenced
+      // -act ledger (one doc per sub-check) — the sibling of the Transcript
+      // that the derive-on-read trait-position reads. Indexed on `owner` so
+      // the owner-scoped read (`DispositionEntry.find({ owner })`) and the
+      // future per-player cleanup cascade are O(rows-for-this-owner).
+      await this.getCollection(Collections.DispositionEvents).createIndex({
         owner: 1,
       });
 
