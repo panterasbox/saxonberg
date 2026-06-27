@@ -49,14 +49,28 @@ import { Mml } from '../api/mml';
 import { PlayerApi } from '../api/player';
 import { GroupApi } from '../api/group';
 import { StuffApi } from '../api/stuff';
+import { AppApi } from '../api/app';
+import { AppSettingKeys } from '../lib/config/AppSettings';
 import type Avatar from './Avatar';
 import type SubjectCatalogue from './SubjectCatalogue';
 import type Subject from '../lib/forum/Subject';
 import type { MessageFrame } from '@saxonberg/types';
 import type { VetoResult } from '../lib/errors';
 
-const HISTORY_CAP = 200;
+/** Fallback when app-settings is unread (pre-warm / tests); the seeded
+ * `chat.historyCap` is authoritative at runtime. */
+const DEFAULT_HISTORY_CAP = 200;
 const SUBJECTS_PATH = '/obj/SubjectCatalogue';
+
+/** The per-channel history ring cap (operator-tunable via `chat.historyCap`). */
+function historyCap(): number {
+  try {
+    const n = Number(AppApi.setting(AppSettingKeys.chatHistoryCap));
+    return Number.isFinite(n) && n > 0 ? n : DEFAULT_HISTORY_CAP;
+  } catch {
+    return DEFAULT_HISTORY_CAP;
+  }
+}
 
 /** Chat-facing subscription shape, mapped from the per-subject store. */
 export interface ChannelSubscription {
@@ -318,7 +332,7 @@ export default class ChannelCatalogue extends ChannelCatalogueBase {
       this.history.set(channelId, ring);
     }
     ring.push(frame);
-    if (ring.length > HISTORY_CAP) ring.shift();
+    if (ring.length > historyCap()) ring.shift();
   }
 
   public historyFor(channelId: string): readonly MessageFrame[] {

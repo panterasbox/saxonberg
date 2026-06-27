@@ -1,0 +1,13 @@
+class: /lib/corpo/Corpo
+hydratorClass: /lib/persistence/PersistentHydrator
+data:
+  key: aevex
+  label: Aevex
+  sector: tech / augments / synthetics
+  ethos: The Disruptor — innovation, "the future, now," slightly evangelical.
+  aesthetic: sleek white-and-neon, lowercase, glassy
+  temperament: early adopters, futurists
+  description: |
+    aevex is certain the future is better and is already selling it to you, lowercase and frictionless. Whether you asked for the future is not a question aevex finds interesting.
+  rivals:
+    - veshko

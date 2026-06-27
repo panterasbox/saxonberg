@@ -107,3 +107,22 @@ settings:
     value: "25"
   - key: traits.compatibilityScale
     value: "100"
+  # Operator policy knobs lifted out of scattered module constants (the
+  # pre-app-settings sweep). Each was a hardcoded literal in its owning
+  # module; the consumer now reads it here, falling back to this same value
+  # if read before the cache is warmed.
+  #
+  # Chat — how many recent frames each channel keeps in its in-memory
+  # history ring (the storage/bandwidth-vs-scrollback tradeoff).
+  - key: chat.historyCap
+    value: "200"
+  # Char-gen — the inclusive min/max length (characters) of a chosen
+  # character name token (the name-policy bounds).
+  - key: chargen.nameMinLength
+    value: "2"
+  - key: chargen.nameMaxLength
+    value: "24"
+  # Status — the max rendered length (characters) of a Character's status
+  # one-liner (a one-liner, not a paragraph).
+  - key: status.maxLength
+    value: "100"
