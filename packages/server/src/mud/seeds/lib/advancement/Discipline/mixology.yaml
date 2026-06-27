@@ -1,0 +1,15 @@
+class: /lib/advancement/Discipline
+hydratorClass: /lib/persistence/PersistentHydrator
+data:
+  key: mixology
+  channel: skill
+  label: Mixology
+  description: Control at the rail — technique, balance, and speed in building a drink. Improves by doing, in context.
+  requires:
+    - recipe-knowledge
+  specializes:
+    - bartending
+  conferrals:
+    - band: competent
+      verbs:
+        - flourish

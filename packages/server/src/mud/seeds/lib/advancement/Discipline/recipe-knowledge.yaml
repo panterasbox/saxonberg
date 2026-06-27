@@ -1,0 +1,7 @@
+class: /lib/advancement/Discipline
+hydratorClass: /lib/persistence/PersistentHydrator
+data:
+  key: recipe-knowledge
+  channel: knowledge
+  label: Recipe Knowledge
+  description: Which cocktails are which — banked one drink at a time by making it. The know-what that mixology builds technique on top of.

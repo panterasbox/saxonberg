@@ -1,0 +1,9 @@
+class: /lib/advancement/Discipline
+hydratorClass: /lib/persistence/PersistentHydrator
+data:
+  key: appraisal
+  channel: skill
+  label: Appraisal
+  description: Judging quality and value at a glance — a merchant's eye. Synergizes with mixology: knowing what's good in the glass and what it's worth reinforce each other.
+  synergizes:
+    - mixology

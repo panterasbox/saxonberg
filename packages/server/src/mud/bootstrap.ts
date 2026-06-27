@@ -36,6 +36,13 @@ export const bootstrapManifest: BootstrapEntry[] = [
   // `EmoteSeeder.run` earlier in the boot sequence). Resolvable via
   // `SoulApi.resolve` after this entry's postRegister fires.
   { templatePath: '/obj/SoulCatalogue' },
+  // DisciplineCatalogue singleton — the advancement Catalog: the authored,
+  // typed field-of-study graph. Warms its descriptor cache in postRegister
+  // from the per-Discipline leaf templates under `/lib/advancement/
+  // Discipline/` in the `domain` collection (same lazy-template pattern as
+  // the topic catalogue). Resolvable via the catalogue singleton after this
+  // entry's postRegister fires.
+  { templatePath: '/obj/DisciplineCatalogue' },
   // GroupRegistry — provider table for managed / MQL / contacts
   // group sources. Registers the three v1 provider instances in
   // postRegister; downstream consumers (chat audience, future

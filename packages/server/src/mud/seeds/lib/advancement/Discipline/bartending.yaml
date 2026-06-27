@@ -1,0 +1,7 @@
+class: /lib/advancement/Discipline
+hydratorClass: /lib/persistence/PersistentHydrator
+data:
+  key: bartending
+  channel: skill
+  label: Bartending
+  description: The craft of running the rail — the parent school the cocktail crafts specialize under.
