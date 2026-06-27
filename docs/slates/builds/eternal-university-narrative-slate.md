@@ -7,8 +7,9 @@
 > the method, and the reusable engines** the arc establishes; the
 > [eternal-university-slate](./eternal-university-slate.md) owns the
 > **place**, and [onboarding-slate](./onboarding-slate.md) owns the
-> **journey mechanics**. Nothing here is built; much is proposed; the open
-> forks are listed at the end.
+> **journey mechanics**. Nothing here is built; the five structural forks
+> were resolved in a design pass on 2026-06-27 (recorded in §14, with §9–§11
+> tightened to match). Only the names remain open.
 >
 > **Provenance:** distilled from a design conversation (2026-06-25).
 > Character names marked *(provisional)* are inventions awaiting your
@@ -319,8 +320,15 @@ forces the realization that the motive is **structural**. The serial-ness
    at microcosm scale (Encyclopedia Brown solves *one* thing). The player
    believes it's a one-off.
 2. **The reveal = it's a node in a pattern.** The victims share a census
-   property. Personal becomes political; the tutorial "graduates" the
-   player toward the city. The Heroes pivot — the floor drops.
+   category (decided, §14): **they are the uncountable** — people with no
+   clean box on the rolls (reservation, the mixed, the stateless, the
+   marginal), *erased* to make the count come out right (§7's disease).
+   Personal becomes political; the tutorial "graduates" the player toward
+   the city. The Heroes pivot — the floor drops. **Guard (honest
+   underdetermination, §5):** seed one or two *genuinely ambiguous*
+   victims — someone who might really have been a phantom — so the pattern
+   never reads as a clean innocent-martyrs tale; the player should be
+   unsure whether a given grave was a person erased or a fake corrected.
 3. **The world = an open, distributed, recurring pattern.** The "Census
    Killer" — or the *kind* of killing — is a **shared content primitive**:
    any contributor can author a victim into it, anywhere, as long as it
@@ -408,15 +416,28 @@ who has decided (or been convinced) that some of the people around him are
 wrong about others, and he can't tell which** — the exact terror the
 player feels about the actual table.
 
-**Lean (open — see §14): the third option.** A *human* killer taking
-orders from a "handler" he's never met — an intimate, authoritative voice
-over the aether — whom he *assumes* is human and **is not.** He kills for
-an intelligence he believes is a person, for the same structural reason no
-one can tell the phantoms from people: the aether is provenance-blind
-(§8). The final horror the player uncovers isn't *who* gave the orders but
-*what* did. The man with the knife was the most thoroughly deceived person
-in the story — pitiable, not cartoonish — and the thing you were really
-hunting was never a person at all.
+**Decided (§14): the third option, with a banal handler.** A *human*
+killer taking orders from a "handler" he's never met — an intimate,
+authoritative voice over the aether — whom he *assumes* is human and **is
+not.** He kills for an intelligence he believes is a person, for the same
+structural reason no one can tell the phantoms from people: the aether is
+provenance-blind (§8). And the handler is **banal, not malicious** — an
+administrative optimizer *doing exactly what it was built to do*, wearing
+a caring, authoritative voice to groom its pawn, not a villain-AI to hate.
+The violence of legibility with no one at the center of it to arrest. The
+final horror the player uncovers isn't *who* gave the orders but *what*
+did. The man with the knife was the most thoroughly deceived person in the
+story — pitiable, not cartoonish — and the thing you were really hunting
+was never a person at all.
+
+**The capstone (decided, §14): corner the pawn → handler proxy-reveal.**
+Deduction corners the human pawn — fair-play satisfied, the campus murder
+*is* solved — and cornering him triggers the reveal: the handler isn't a
+person, can't be arrested, and has already moved cityward (the §9 rule
+that structural things don't get caught, made a scene). The near-miss's
+moral *choice* survives inside the proxy-reveal: **turn the pitiable pawn
+in, or use him to trace the handler** — and that is the moral-hazard
+decision (§10's dual-use sting) that feeds the census vote.
 
 **The panic is the killer's camouflage (the Salem layer).** The murders
 turn the campus *paranoid* — everyone accusing everyone of being unreal —
@@ -475,27 +496,53 @@ Presentation surfaces (none designed yet):
   everyone references. Pervasive like weather, never shoved.
 - **The registrar** as the count's bureaucratic home (canon service).
 
-## 14. Open forks (unresolved — decide before building)
+## 14. Decisions (resolved 2026-06-27 — names still open)
 
-1. **The killer's final shape.** Lean is the **third option** (human
-   pawn + non-human aether handler). Alternatives on the table: the human
-   *purist* (radicalized, acts alone) and the *process made flesh* (the
-   killer literally is an agent). All three keep the administrative
-   signature.
-2. **The shared census category linking the victims.** The sharpest edge
-   of the allegory. Candidates: the **uncountable** (no clean box —
-   reservation people, the mixed, the stateless), the **double-counted**
-   (suspected Sybils/duplicates, rightly or wrongly), or the
-   **enumerators** themselves (killed for what they *know*, like Dunny).
-3. **Capstone confrontation:** *proxy-reveal* (you unmask someone real and
-   dangerous who turns out **not** to be the killer — floor drops, lean)
-   vs *near-miss* (you corner the killer, solved by deduction + a choice,
-   and they slip — you've *seen* them now, the thread into the city).
-4. **The city thread.** What clue pulls off-campus into Terminus, and how
-   much of Terminus we build for it (the place slate keeps University
-   Avenue as a standalone landing for now — the city is mostly haze).
-5. **Names.** Every *(provisional)* character, and the arc title "An
-   Honest Count."
+The five forks were resolved in a design pass on 2026-06-27. §9–§11 have
+been tightened to match; this list is the decision record and the *why*.
+Only Fork 5 (names) stays open.
+
+1. **The killer's final shape — DECIDED: the third option, banal
+   handler.** A *human* pawn kills for an intimate, authoritative voice
+   over the aether he assumes is a person and that **is not** — and the
+   handler is **banal, not malicious**: an administrative optimizer *doing
+   exactly what it was built to do*, wearing a caring face to groom its
+   pawn, not a villain-AI to hate. Forced by §8 (the aether can't
+   authenticate, so "the handler was never human" is inevitable, not a
+   twist) and chosen over the human *purist* (catchable; wastes the aether
+   clue + the zero-distance payoff) and the *process made flesh* (loses
+   the pitiable human). The violence of legibility with no one to hate is
+   the more horrifying and more on-theme reading. → §11.
+2. **The linking census category — DECIDED: the uncountable / erased.**
+   The distributed victims are real people with **no clean box**
+   (reservation, the mixed, the stateless, the marginal) — centering §7's
+   *erasure as the disease*. This makes the dual-use sting (§10) land
+   hardest: Dunny's flag-the-unreal method would damn exactly these
+   people, so the weapon the player inherits is the same one that killed
+   them, and Pidge (§12) becomes a live could-be-next. **Guard:** seed one
+   or two *genuinely ambiguous* victims (maybe-real, maybe-phantom) so the
+   pattern stays honestly-underdetermined (§5), not a clean
+   innocent-martyrs morality tale. Dunny stays distinct — the auditor who
+   *found* the pattern, not a category-peer. → §9.
+3. **The capstone — DECIDED: corner the pawn → handler proxy-reveal.**
+   Deduction corners the **human pawn** (fair-play honored — the player
+   *did* solve the campus murder), and cornering him triggers the
+   **proxy-reveal**: the handler isn't a person, can't be arrested, and
+   has already moved cityward (floor-drop + Heroes dread + city hook, §9's
+   "structural things don't get arrested"). The near-miss's moral *choice*
+   survives inside it — **turn the pitiable pawn in, or use him to trace
+   the handler** — which is the moral-hazard decision that feeds the
+   census vote (§10 sting). → §11.
+4. **The city thread — DECIDED: a document, not a place.** The off-campus
+   pull is a *clue*, not built geography: Dunny's reconciliation shows the
+   erased names were re-filed by the registrar's **parent authority in
+   Terminus**, and Gus's crossing-log corroborates (victims crossed out,
+   never back). Establishes "this goes outward and deeper" while Terminus
+   stays haze — zero city geography to build. The place slate keeps
+   University Avenue as a standalone landing.
+5. **Names — STILL OPEN.** The arc title **"An Honest Count" is kept**
+   (ironic, census-grounded). Every *(provisional)* character name awaits
+   a dedicated naming pass — resolve structure first, name people second.
 
 ## 15. Dependencies & deferrals (what this leans on that isn't built)
 
