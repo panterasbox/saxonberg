@@ -6,10 +6,12 @@
 #
 # SingletonMixin pins it to one instance (the host-fixture wiring resolves
 # it via StuffApi.singleton). `populates:` stocks it each boot — Dave, the
-# menu, and the back-bar (which in turn stocks the bottles + tools *inside*
-# itself, so they nest under it rather than sit loose among the room's
-# occupants). All cloned fresh (transient runtime). Crafting needs no venue
-# flag: the bar "works" because the maker + matter are present/reachable here.
+# menu, the back-bar (a Surfaced fixture), and the working bottles + tools
+# placed ON the back-bar (`onto`), so they read "on the back-bar," visible
+# and reachable, not loose among the room's occupants. The back-bar must be
+# listed before its `onto` items. All cloned fresh (transient runtime).
+# Crafting needs no venue flag: the bar "works" because the maker + matter
+# are present/reachable here.
 class: /domain/lounge/Bar
 hydratorClass: /lib/persistence/PersistentHydrator
 data:
@@ -18,6 +20,12 @@ data:
   illustration: location/bar.png
   populates:
     - /obj/back-bar
+    - { template: /obj/vessel/gin-bottle, onto: /obj/back-bar }
+    - { template: /obj/vessel/vermouth-bottle, onto: /obj/back-bar }
+    - { template: /obj/vessel/rum-bottle, onto: /obj/back-bar }
+    - { template: /obj/vessel/lime-bottle, onto: /obj/back-bar }
+    - { template: /obj/tool/shaker, onto: /obj/back-bar }
+    - { template: /obj/tool/mixing-glass, onto: /obj/back-bar }
     - /obj/Npc/dave
     - /obj/Menu/bar-menu
   longDescription: |

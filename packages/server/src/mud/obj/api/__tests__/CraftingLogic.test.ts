@@ -25,7 +25,6 @@ import Material from '../../../lib/material/Material';
 import GradedReceptacle from '../../GradedReceptacle';
 import ToolItem from '../../ToolItem';
 import CraftedDrink from '../../CraftedDrink';
-import Cabinet from '../../Cabinet';
 import RecipeCatalogue from '../../RecipeCatalogue';
 import { Idea } from '../../../lib/stuff/Idea';
 import { ContainerMixin } from '../../../lib/spatial/Container';
@@ -238,26 +237,6 @@ describe('CraftingLogic.craft', () => {
       makerMode: 'self',
     });
     expect(outcome).toMatchObject({ ok: false, reason: 'no-maker' });
-  });
-
-  it('reaches into an open container in the room for inputs (the back-bar)', async () => {
-    // Move both bottles into a back-bar cabinet sitting in the room, so they
-    // are nested (not loose). Craft must still find them.
-    const cabinet = makeStuff(() => new Cabinet());
-    ContainmentApi.move(cabinet, room);
-    for (const c of ContainmentApi.getContents(room)) {
-      if (MixinApi.isGraded(c)) ContainmentApi.move(c, cabinet);
-    }
-    // The bottles are no longer direct room contents.
-    expect(
-      ContainmentApi.getContents(room).some((c) => MixinApi.isGraded(c)),
-    ).toBe(false);
-
-    const outcome = await craftAs(bartender, {
-      recipeRef: 'martini',
-      makerMode: 'self',
-    });
-    expect(outcome.ok).toBe(true);
   });
 
   it('order (fulfilling-bartender): maker is the present bartender, not the patron', async () => {

@@ -234,8 +234,35 @@ export default class LookController extends CommandController<LookModel> {
           RecognitionApi.learnIdentity(actor, item, null);
         }
       }
-      const items = visibleContents.map((item) => Mml.item(item));
-      const list = Mml.list(items);
+      // Surface-resting grouping: an item resting on a *listed* surface is
+      // rendered under that surface ("the back-bar, with a bottle of gin …
+      // on it"), not as a loose item. Items resting on an unlisted surface
+      // (e.g. the Adornment floor) stay top-level. The containment walk is
+      // unchanged — this is purely how the snapshot is presented.
+      const visibleIds = new Set(visibleContents.map((i) => i.stuffId));
+      const restingBySurface = new Map<string, Stuff[]>();
+      const topLevel: Stuff[] = [];
+      for (const item of visibleContents) {
+        const surface = MixinApi.isContainable(item)
+          ? item.getRestingOn()
+          : null;
+        if (surface && visibleIds.has(surface.stuffId)) {
+          const group = restingBySurface.get(surface.stuffId) ?? [];
+          group.push(item);
+          restingBySurface.set(surface.stuffId, group);
+        } else {
+          topLevel.push(item);
+        }
+      }
+      const rendered = topLevel.map((item) => {
+        const resting = restingBySurface.get(item.stuffId);
+        if (resting && resting.length > 0) {
+          const onIt = Mml.list(resting.map((r) => Mml.item(r)));
+          return Mml.compose`${Mml.item(item)} (with ${onIt} on it)`;
+        }
+        return Mml.item(item);
+      });
+      const list = Mml.list(rendered);
       body = Mml.compose`${body}\n── You also see: ${list}.`;
     }
 

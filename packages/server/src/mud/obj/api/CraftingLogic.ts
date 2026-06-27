@@ -89,37 +89,9 @@ function resolveMaker(mode: MakerMode): Stuff | null {
 }
 
 /**
- * Reachable matter co-located with the maker: the room's direct contents
- * **plus one level into open containers present in the room** (so bottles
- * and tools stored *in* the back-bar — nested, not loose — are still
- * reachable to pour from). A sealed-and-closed container's contents are out
- * of reach. v1 walks one level; deeper nesting is a future refinement.
- */
-function reachableMatter(location: Stuff): Stuff[] {
-  if (!MixinApi.isContainer(location)) return [];
-  const out: Stuff[] = [];
-  for (const c of ContainmentApi.getContents(location)) {
-    out.push(c);
-    if (MixinApi.isContainer(c) && isOpenStorage(c)) {
-      for (const inner of ContainmentApi.getContents(c)) out.push(inner);
-    }
-  }
-  return out;
-}
-
-/**
- * Whether to reach into a container for inputs: open storage — NOT a
- * creature's inventory (you don't pour from a patron's pockets, so mobile
- * containers are excluded) and NOT a Sealable that's shut.
- */
-function isOpenStorage(c: Stuff): boolean {
-  if (MixinApi.isMobile(c)) return false;
-  if (MixinApi.isSealable(c) && !c.isOpen()) return false;
-  return true;
-}
-
-/**
- * Gather the reachable graded bulk inputs + tools.
+ * Gather the reachable graded bulk inputs + tools in the room. Items resting
+ * on a surface (the back-bar) have `container = the room`, so the room's
+ * direct contents already include them — no descent needed.
  *
  * Each bottle's bulk Material is **ensure-loaded** via `StuffApi.singleton`
  * (not the sync `slot.getMaterial()`): a Material singleton is created
@@ -133,7 +105,8 @@ async function gatherMatter(location: Stuff): Promise<{
 }> {
   const bottles: BottleCandidate[] = [];
   const tools: (Stuff & Tooled)[] = [];
-  for (const c of reachableMatter(location)) {
+  if (!MixinApi.isContainer(location)) return { bottles, tools };
+  for (const c of ContainmentApi.getContents(location)) {
     if (MixinApi.isTool(c)) tools.push(c);
     if (MixinApi.isBulkable(c) && MixinApi.isGraded(c)) {
       const slot = BulkableApi.slotFor(c, undefined);
