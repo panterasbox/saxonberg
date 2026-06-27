@@ -143,8 +143,9 @@ or containment. Stats/progression/combat balance stay deferred; the
 physics is buildable now.
 - [economy-slate](./builds/economy-slate.md) — currency, value, crafting inputs, trade. Reads the shipped [glob](../subsystems/glob.md) fungible-stack substrate (coins and raw materials are already modeled). **Currency slice buildable now; macro balance — faucet/sink, inflation, population-scale loops — parked until there's a running game to tune against.**
 - [crafting-slate](./builds/crafting-slate.md) — the economy's **transformation** stage (where value is minted), the piece economy-slate deferred. The **venue model** (Dave's Bar four-tuple: inputs + tools + recipes + labor; place-based crafting; buy-vs-DIY; NPC floor / player apex) is settled enough for a first venue slice; the core mechanics (recipes, the skill seam's far side, the quality verdict) are open design space, advancement-adjacent and largely deferred. Crystallized in the economy slate's employment/venue section.
+- [corpos-slate](./builds/corpos-slate.md) — the fictional megacorps that own the private sector: a cross-cutting **affiliation/competition fault line** + a **mark** on the goods of the world. **Phase 1 (marks + booze portfolios) shipped** → [corpo.md](../subsystems/corpo.md) — the five corpos + their brands as authored reference-identities, brand→corpo resolution, the per-product `Branded` mark. Kept in `builds/` for the deferred phase 2: the player-facing **faction gameplay** (the multipolar approval vector, competition, sponsorship, portfolios beyond booze) — a build's worth of design, not a tail.
 
-**Phases:** currency slice → crafting venue slice (Dave's Bar) → (skill / quality / recipe-spread deferred with the advancement layer) · (macro balance deferred to a real game).
+**Phases:** currency slice → crafting venue slice (Dave's Bar) → (skill / quality / recipe-spread deferred with the advancement layer) · (macro balance deferred to a real game). Corpos: marks (shipped) → faction gameplay (deferred).
 
 ### 8. Reading & reference
 *The two halves of the in-game reading substrate — a systems↔content
