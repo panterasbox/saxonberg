@@ -4,6 +4,7 @@ data:
   key: mixology
   channel: skill
   label: Mixology
+  iscedf: "1013"  # ISCED-F 2013 field-of-education code
   description: Control at the rail — technique, balance, and speed in building a drink. Improves by doing, in context.
   requires:
     - recipe-knowledge

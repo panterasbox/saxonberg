@@ -40,6 +40,21 @@ templatePath — so re-pathing / re-parenting the Catalog (additive
 evolution) leaves edges and recorded evidence valid. Precedent:
 `Topic.topic` / `Emote.verb` are domain keys separate from the path.
 
+**Reality-seeded — the `iscedf` anchor.** A Discipline carries an optional
+`iscedf` field: the UNESCO **ISCED-F 2013** field-of-education code it
+classifies under (e.g. `'1013'` Hotel, restaurants and catering for the
+bartending cluster; `'1014'` Sports for darts; `'0416'` Wholesale and
+retail sales for appraisal). This is the same reality-seeded pattern
+materials (`formula`) and species (`binomial`) follow — the impersonal
+canon references the standard the world's learning institutions actually
+use. `''` when there is no field-of-education anchor (a `conditioning`
+Discipline like alcohol-tolerance is bodily adaptation, not a field of
+study). Authored and stored; **inert in v1** (designed in for the academy /
+LMS bridge, which will map real coursework onto Disciplines by code).
+Authoring the *full* ISCED-F parent spine — broad → narrow → detailed field
+nodes the bar leaves `specializes` under — is deferred content; v1 anchors
+the leaves to the standard via the code.
+
 **Edges are fields on the node** (`requires` / `specializes` /
 `synergizes`, each a list of Discipline `key`s) — mirroring `Entry.relation`,
 no separate edge documents. They are **authored and stored**; their runtime

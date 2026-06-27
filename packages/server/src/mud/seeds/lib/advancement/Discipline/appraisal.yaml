@@ -4,6 +4,7 @@ data:
   key: appraisal
   channel: skill
   label: Appraisal
+  iscedf: "0416"  # ISCED-F 2013 field-of-education code
   description: Judging quality and value at a glance — a merchant's eye. Synergizes with mixology: knowing what's good in the glass and what it's worth reinforce each other.
   synergizes:
     - mixology

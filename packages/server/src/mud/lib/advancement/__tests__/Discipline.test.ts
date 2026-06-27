@@ -21,6 +21,7 @@ describe("Discipline", () => {
     const d = newDiscipline();
     expect(d.getKey()).toBe("");
     expect(d.getChannel()).toBe("skill");
+    expect(d.getIscedf()).toBe("");
     expect(d.getRequires()).toEqual([]);
     expect(d.getSpecializes()).toEqual([]);
     expect(d.getSynergizes()).toEqual([]);

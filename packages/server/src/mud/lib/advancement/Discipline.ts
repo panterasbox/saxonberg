@@ -65,6 +65,8 @@ export interface DisciplineDescriptor {
   channel: DisciplineChannel;
   label: string;
   description: string;
+  /** ISCED-F field-of-education code (the real-taxonomy anchor); `''` if none. */
+  iscedf: string;
   requires: string[];
   specializes: string[];
   synergizes: string[];
@@ -83,6 +85,18 @@ export default class Discipline extends Idea {
   public label: string = "";
   /** Authored prose description. */
   public description: string = "";
+  /**
+   * Real-taxonomy anchor: the UNESCO **ISCED-F 2013** field-of-education
+   * code this Discipline classifies under (e.g. `'1013'` = Hotel,
+   * restaurants and catering; `'1014'` = Sports). The reality-seeded
+   * pattern materials (`formula`) and species (`binomial`) follow — the
+   * impersonal canon references the standard the world's institutions use.
+   * `''` when there is no field-of-education anchor (e.g. a `conditioning`
+   * Discipline is bodily adaptation, not a field of study). Authored and
+   * stored; inert in v1 (designed in for the academy / LMS bridge that
+   * will map real coursework onto Disciplines by code).
+   */
+  public iscedf: string = "";
   /** Prerequisite Discipline `key`s (the `requires` edge). */
   public requires: string[] = [];
   /** Parent-discipline `key`s this specializes under (the `specializes` edge). */
@@ -97,6 +111,7 @@ export default class Discipline extends Idea {
     "channel",
     "label",
     "description",
+    "iscedf",
     "requires",
     "specializes",
     "synergizes",
@@ -143,6 +158,10 @@ export default class Discipline extends Idea {
       throw new TypeError("Discipline.description must be a string");
     }
     this.description = value;
+  }
+
+  public getIscedf(): string {
+    return this.iscedf;
   }
 
   public getRequires(): string[] {

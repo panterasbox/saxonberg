@@ -174,6 +174,7 @@ function buildDescriptor(data: unknown): DisciplineDescriptor | null {
     channel?: unknown;
     label?: unknown;
     description?: unknown;
+    iscedf?: unknown;
     requires?: unknown;
     specializes?: unknown;
     synergizes?: unknown;
@@ -189,6 +190,7 @@ function buildDescriptor(data: unknown): DisciplineDescriptor | null {
     label:
       typeof d.label === "string" && d.label.length > 0 ? d.label : d.key,
     description: typeof d.description === "string" ? d.description : "",
+    iscedf: typeof d.iscedf === "string" ? d.iscedf : "",
     requires: stringArray(d.requires),
     specializes: stringArray(d.specializes),
     synergizes: stringArray(d.synergizes),

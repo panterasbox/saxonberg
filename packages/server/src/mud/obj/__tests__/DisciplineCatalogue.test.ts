@@ -40,6 +40,7 @@ const SEED: Loose[] = [
     key: "mixology",
     channel: "skill",
     label: "Mixology",
+    iscedf: "1013",
     requires: ["recipe-knowledge"],
     specializes: ["bartending"],
     conferrals: [{ band: "competent", verbs: ["flourish"] }],
@@ -65,6 +66,13 @@ describe("DisciplineCatalogue", () => {
     expect(d?.key).toBe("mixology");
     expect(d?.channel).toBe("skill");
     expect(d?.label).toBe("Mixology");
+  });
+
+  it("carries the ISCED-F real-taxonomy anchor (defaulting to empty)", async () => {
+    const cat = await warmCatalogue(SEED);
+    expect(cat.getDiscipline("mixology")?.iscedf).toBe("1013");
+    // Unanchored Disciplines default to '' (e.g. conditioning channels).
+    expect(cat.getDiscipline("alcohol-tolerance")?.iscedf).toBe("");
   });
 
   it("seeds all three channels", async () => {
