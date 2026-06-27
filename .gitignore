@@ -23,3 +23,6 @@ out/
 # Vitest writes ephemeral compiled-config copies next to vitest.config.ts
 # during runs. Don't track them.
 *.timestamp-*.mjs
+
+# Windows/WSL mark-of-the-web cruft
+*:Zone.Identifier
