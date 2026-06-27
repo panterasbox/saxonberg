@@ -121,6 +121,46 @@ argued. Changing any of these is changing *what we are building*.
   multiplicative form are load-bearing; how each axis is measured is
   Interim — see D2/D4.*
 
+### Resource & territory — the tenure floor
+
+The kernel cluster that makes "authority over a subdivision" mean
+something. Source: cooperative-slate.md § *Institutions are private
+actors* + § *How territory is held*; [economy-slate](./slates/builds/economy-slate.md)
+§ *The two scarcities*; [advancement-slate](./slates/builds/advancement-slate.md).
+The split principle: **the kernel is the procedural floor that makes
+authority real and capture hard; every substantive who-gets-what choice
+is a module** (see the tenure / compute / federalism module in the
+[amendment library](./slates/builds/amendment-library-slate.md)).
+
+- **Compute is the only real scarcity, and the firewall covers it.**
+  Content is non-rival (freely copyable; never enclosed past the
+  no-pay-to-win firewall — full CC-vs-proprietary is a *module*). The one
+  rival resource is **mem/compute**; real money sizes the compute pool and
+  buys **no** in-world power.
+- **Presence is never the meter.** No mechanic may make a player's
+  *attendance* the thing that staves off loss — the true, narrow floor
+  under "respect people's time" (broader than the economy slate's Law 2
+  "no rent on owned space," and the part that is actually inviolable). It
+  is what *permits* metering the real compute substrate by use:
+  the bill is paid in engagement + patronage, never in showing up.
+- **Rule-of-law over resources.** The executive may *oversee* any
+  subdivision but may not seize or override a holder's rights except by
+  **due process / published standards / legislated reason.** Authority is
+  the *protection*, not exclusivity of access (access is necessarily
+  non-exclusive — oversight reaches everywhere).
+- **The executive is functional, never territorial.** No "Department of
+  Narnia"; the executive reaches a subdivision only through system-wide
+  functional charters (publishing, enforcement, provisioning). This keeps
+  *oversight* from silently becoming *ownership*.
+- **A protected-rights floor for resource-holders — federal-by-
+  construction.** Every instance guarantees a subdivision-holder a
+  non-empty, due-process-protected core of authority over what they hold.
+  *That a floor exists* is kernel; *how far above it the dial sits* (how
+  centralized vs. federal) is a module. Chosen **kernel for uniformity**:
+  a common floor is the **interop protocol** for a future inter-instance
+  ("UN") federation — you cannot federate instances that don't share a
+  basic structure (see Tier 3).
+
 ---
 
 ## Tier 2 — interim decisions (provisional)
@@ -227,9 +267,16 @@ flagged for the polity to revisit.
 - **Decision.** One verified human = one consumer-chamber seat, regardless
   of how many avatars accrue engagement. In-game defenses (D1, D2,
   log-saturation, decay, conviction voting) raise the *cost* of gaming
-  but are not the floor — human verification is. Influence banks at the
-  human level; the anchor is the enfranchisement gate, not per-character
-  storage.
+  but are not the floor — human verification is. **Measurement is
+  per-character; enfranchisement is per-human.** Renown and engagement
+  accrue to the player-*character* — a human may spread effort across
+  several characters and thereby *dilute their own standing*, which is
+  their choice. What anchors to the one verified human is the **seat**
+  (the enfranchisement gate), never per-character storage. (Corrects an
+  earlier "banks at the human level" phrasing that conflated measurement
+  with enfranchisement; consistent with Tier 1 *influence individuates /
+  no cross-character transfer* — you earn separately on each character,
+  never move standing between them.)
 - **Rationale (evidence).** Paid chambers are Sybil-resistant by cost.
   Consumer engagement costs only *time*, so no in-game mechanic alone
   stops a patient adversary running many engaging characters (Douceur's
@@ -242,6 +289,29 @@ flagged for the polity to revisit.
   observed Sybil capture forces it.
 - **Tier.** Interim (the verification *mechanism* itself is *Open* — see
   below).
+
+### D8 — The default tenure regime is *homestead* ("Frontier")
+
+- **Decision.** The bootstrap default for how a group comes to *hold* a
+  subdivision is **homestead**: build in unclaimed namespace → hold it.
+  Compute is **metered as use** (paid in engagement + patronage, never in
+  presence); inert/never-built claims **revert by abandonment** (not a
+  holding tax — Law 2); content stays free/CC. The two alternative regimes
+  (**chartered grant**, **commons**) ship as the other settings of the
+  tenure module.
+- **Rationale (evidence).** Lowest activation energy for a tiny pilot —
+  one person can homestead day one, where a commons needs a quorum and
+  chartering needs a bureaucracy. Lockean (build-to-hold), and it counters
+  the two failure modes of the founder's prior over-centralized world:
+  single-point dependence (distributes the world-building labor) and
+  ossification (abandonment-reversion self-cleans). Degrades gracefully
+  *into* the other regimes by ordinary amendment.
+- **Tradeoff accepted.** Frontier land-rush dynamics and name-squatting on
+  inert claims (mitigated by abandonment-reversion + CC-forkability, never
+  by a presence-paid rent).
+- **Revisitation trigger.** A community adopts a different distro
+  (Federation / Commons); or the polity revisits.
+- **Tier.** Interim.
 
 ---
 
@@ -263,6 +333,21 @@ marked as such so an empty seam is never mistaken for a settled answer.
   game (cooperative-slate.md:2229, 2249).
 - **The proof-of-personhood mechanism (D7)** — the actual verification
   method.
+- **The compute meter's currency + the precise presence-exclusion line**
+  — *that* compute is metered by use is settled; the exact unit
+  (engagement-subsidy vs. patron-allocation vs. a rule-bound market) and
+  the precise line that keeps player *presence* out of the meter are not.
+- **The rights-bundle composition + per-right protection levels** — *that*
+  a protected floor exists is kernel (Tier 1); *which* rights a holder
+  gets (author / admit-exclude / house-rules / develop / earn-credit /
+  transfer / guaranteed-compute) and *how protected* each is — the
+  federalism dial, set per-right — is the open module surface.
+- **Inter-instance ("UN") governance — the layer above.** Federalism
+  *between* instances: a compact governing anyone running the platform.
+  The kernel-uniformity choice (Tier 1, the tenure floor) deliberately
+  keeps this door open — a federation needs members that share a basic
+  structure — but the layer itself is **not designed**; parked as a future
+  exploration, not a near-term build.
 
 ## The deliberation hand-off
 
