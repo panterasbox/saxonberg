@@ -137,8 +137,9 @@ describe('CommandBar — prompt arrival and slot switching', () => {
     });
     expect(useStore.getState().activeSlot).toBe('p1');
     expect(screen.getByPlaceholderText('Type your answer...')).toBeTruthy();
-    // Slot picker now shows the prompt's question.
-    expect(screen.getByText('Name?')).toBeTruthy();
+    // The prompt's question shows in both the pinned context line and the
+    // slot-picker pill.
+    expect(screen.getAllByText('Name?').length).toBeGreaterThanOrEqual(1);
   });
 
   it('background prompt leaves the input on base', () => {

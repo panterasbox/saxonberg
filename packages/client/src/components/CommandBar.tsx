@@ -99,6 +99,23 @@ const ChipsRow = styled.div`
   padding: ${tokens.space.md} ${tokens.space.xl} 0;
 `;
 
+/**
+ * The active prompt's question, pinned directly above the chips so the
+ * line you're answering stays put while the room feed scrolls. For a
+ * dialogue tree this is the NPC's current beat (also spoken aloud in the
+ * feed); for a disambiguation/confirm it's the question. Wraps freely —
+ * the slot-picker pill can't, which is why a long beat needs a home here.
+ */
+const PromptContext = styled.div`
+  padding: ${tokens.space.md} ${tokens.space.xl} 0;
+  color: ${tokens.color.accent};
+  font-family: ${tokens.font.mono};
+  font-size: ${tokens.font.body};
+  font-style: italic;
+  line-height: 1.4;
+  white-space: pre-wrap;
+`;
+
 const InputRow = styled.div<{ $hasChips: boolean }>`
   display: flex;
   align-items: stretch;
@@ -769,12 +786,22 @@ export function CommandBar({
   // Label = active slot's label (basePrompt for base; prompt
   // question for a prompt). Click opens the dropdown to switch
   // active slot.
-  const slotPickerLabel = activeEntry ? activeEntry.label : basePrompt;
+  // The pill can't wrap, so a long prompt label (a dialogue beat) is
+  // truncated here — its full text lives in the pinned PromptContext.
+  const slotPickerLabel = activeEntry
+    ? activeEntry.label.length > 28
+      ? `${activeEntry.label.slice(0, 27)}…`
+      : activeEntry.label
+    : basePrompt;
   const hasChips = activeEntry !== undefined && activeEntry.kind !== 'text';
   const hasValidationError = activeEntry?.validationError !== undefined;
 
   return (
     <BarContainer $promptMode={promptMode}>
+      {promptMode && activeEntry?.label ? (
+        <PromptContext>{activeEntry.label}</PromptContext>
+      ) : null}
+
       {hasChips || hasValidationError ? (
         <ChipsRow>
           {hasChips ? activeChips : null}
