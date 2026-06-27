@@ -51,7 +51,7 @@ describe("BankTransaction.assertConserving — the throwing rule", () => {
       BankTransaction.assertConserving("mint", [
         { from: "acct-a", to: "acct-b", amount: 100 },
       ])
-    ).toThrow(/'mint' leg must be issuance/);
+    ).toThrow(/'mint' leg must be sourced from issuance/);
   });
 
   it("accepts a well-formed transfer / mint / drain / deposit / withdraw", () => {

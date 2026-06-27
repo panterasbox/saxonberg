@@ -1,0 +1,13 @@
+# Coin — the one physical cash object (v1: a single 'credit' denomination,
+# face value 1 minor unit). Cloned per cash issuance / withdrawal split; a
+# massed Globbable, so a large stack blows past carry capacity through the
+# shipped encumbrance gauge (the honest cap on cash). data.mass is the
+# per-coin mass; the stack's borne mass is per-coin × quantity.
+class: /obj/Coin
+hydratorClass: /lib/persistence/PersistentHydrator
+data:
+  shortDescription: a credit coin
+  keywords: [coin, coins, credit, cash, money]
+  denomination: credit
+  mass: 0.008
+  quantity: 1

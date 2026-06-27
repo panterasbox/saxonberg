@@ -27,7 +27,9 @@ import type {
   PnlCategory,
   LedgerEntryFields,
   ProfitAndLoss,
+  ReconcileResult,
 } from "../lib/banking/LedgerEntry";
+import type { Container } from "../lib/spatial/Container";
 import type { LedgerLeg } from "../lib/banking/Transaction";
 import type { Bank } from "../lib/banking/Bank";
 import type { PaymentCredential } from "../lib/banking/PaymentCredential";
@@ -53,6 +55,7 @@ export type {
   PnlCategory,
   LedgerEntryFields,
   ProfitAndLoss,
+  ReconcileResult,
   LedgerLeg,
   Charge,
   SettlementMethod,
@@ -292,6 +295,41 @@ export class BankingApi {
     saleAmount: Money
   ): Promise<Money> {
     return logic().remitDemoTax(sellerAccountId, saleAmount);
+  }
+
+  /* ──────────────── reporting consumers ──────────────── */
+
+  /**
+   * Mint physical cash into `into` — the central-bank cash faucet (the
+   * genesis of circulating coin; supply grows). Returns the coin stack.
+   */
+  public static async issueCash(
+    into: Stuff & Container,
+    amount: Money
+  ): Promise<Stuff> {
+    return logic().issueCash(into, amount);
+  }
+
+  /**
+   * The conservation audit: top-down supply vs bottom-up (Σ account balances
+   * + Σ circulating coins). `balanced` is the reconciliation invariant; one
+   * of the two and only two reporting consumers (with the bar P&L).
+   */
+  public static reconcile(): ReconcileResult {
+    return logic().reconcile();
+  }
+
+  /**
+   * Ensure a venue's P&L account exists (owner = the venue's durable path),
+   * creating a primary one if absent — lazily, on first banking interaction
+   * at the venue. The bar's account the order/pnl/payroll flows resolve.
+   */
+  public static async ensureVenueAccount(
+    ownerPath: string,
+    bankPath: string,
+    corpoKey: string
+  ): Promise<string> {
+    return logic().ensureVenueAccount(ownerPath, bankPath, corpoKey);
   }
 }
 

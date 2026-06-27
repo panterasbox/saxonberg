@@ -7,3 +7,10 @@ data:
   longDescription: A chalkboard propped behind the bar, cocktails listed in a tidy hand.
   keywords: [menu, chalkboard, board]
   offeredRecipes: [martini, daiquiri]
+  # Authored flat prices (minor units / credits) — the bartender's
+  # willingness. Ordering a priced drink settles a presented Charge from the
+  # patron's credential to the bar's account (banking); unpriced drinks are
+  # served free. The bar's deficit P&L wants these.
+  prices:
+    martini: 12
+    daiquiri: 10

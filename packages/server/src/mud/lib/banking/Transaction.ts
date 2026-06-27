@@ -80,18 +80,33 @@ export class BankTransaction {
         }
         break;
       case "mint":
-        if (leg.from !== Account.ISSUANCE || toSentinel) {
+        // Issuance → a real account (credit a balance) OR the cash bridge
+        // (mint physical coin into the world). Both grow supply.
+        if (leg.from !== Account.ISSUANCE) {
           throw new Error(
-            `BankTransaction: a 'mint' leg must be issuance → a real ` +
-              `account (got ${leg.from} → ${leg.to}).`
+            `BankTransaction: a 'mint' leg must be sourced from issuance ` +
+              `(got ${leg.from} → ${leg.to}).`
+          );
+        }
+        if (toSentinel && leg.to !== Account.CASH_BRIDGE) {
+          throw new Error(
+            `BankTransaction: a 'mint' leg may target a real account or the ` +
+              `cash bridge, not ${leg.to}.`
           );
         }
         break;
       case "drain":
-        if (leg.to !== Account.ISSUANCE || fromSentinel) {
+        // A real account OR the cash bridge → issuance. Both shrink supply.
+        if (leg.to !== Account.ISSUANCE) {
           throw new Error(
-            `BankTransaction: a 'drain' leg must be a real account → ` +
-              `issuance (got ${leg.from} → ${leg.to}).`
+            `BankTransaction: a 'drain' leg must sink to issuance ` +
+              `(got ${leg.from} → ${leg.to}).`
+          );
+        }
+        if (fromSentinel && leg.from !== Account.CASH_BRIDGE) {
+          throw new Error(
+            `BankTransaction: a 'drain' leg may come from a real account or ` +
+              `the cash bridge, not ${leg.from}.`
           );
         }
         break;

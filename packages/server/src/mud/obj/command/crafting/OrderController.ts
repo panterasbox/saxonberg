@@ -15,6 +15,8 @@ import { MixinApi } from '../../../api/mixin';
 import { MessageApi } from '../../../api/message';
 import { Mml } from '../../../api/mml';
 import Menu from '../../../domain/lounge/Menu';
+import { BankingApi, Money } from '../../../api/banking';
+import type { Charge } from '../../../api/banking';
 
 const TOPIC = 'world.narration.action';
 
@@ -64,11 +66,57 @@ export default class OrderController extends CraftController<OrderModel> {
     if (MixinApi.isContainable(drink) && MixinApi.isContainer(giver)) {
       ContainmentApi.move(drink, giver);
     }
+    // The drink purchase: if the menu prices this recipe, settle a presented
+    // Charge from the patron's credential (the bar prices it; silent pay from
+    // the active account — the time-respect valve) and the bar remits demo
+    // tax. Unpriced recipes are served free (backward-compatible). A failed
+    // settlement still serves the drink (the bar eats it / runs a tab later).
+    const price = menu.priceFor(recipeId);
+    const paid = price != null ? await this.charge(menu, price, context) : null;
+
+    const tail = paid ? ` ${paid}` : '';
     MessageApi.scene(giver)
       .topic(TOPIC)
-      .toSelf(Mml.compose`${Mml.item(drink)} is set down in front of you.`)
+      .toSelf(Mml.compose`${Mml.item(drink)} is set down in front of you.${tail}`)
       .toPeers(Mml.compose`${Mml.name(giver)} is served ${Mml.item(drink)}.`)
       .send();
+  }
+
+  /**
+   * Settle the drink's price as a presented Charge to the venue's account,
+   * then remit the demo sales tax from it. Returns a short "you tap…" tail
+   * for the scene, or null when there's no credential / venue account
+   * (served free / on the house). The venue account is ensured lazily.
+   */
+  private async charge(
+    menu: Menu,
+    price: number,
+    context: CommandContext
+  ): Promise<string | null> {
+    const venuePath = context.location?.getTemplatePath();
+    if (!venuePath) return null;
+    let venueAccount: string;
+    try {
+      venueAccount = await BankingApi.ensureVenueAccount(venuePath, venuePath, '');
+    } catch {
+      return null;
+    }
+    const charge: Charge = {
+      amount: Money.of(price),
+      reason: 'a drink',
+      presented: true,
+      payeeAccountId: venueAccount,
+      category: 'sales',
+    };
+    try {
+      const receipt = await BankingApi.settle(charge, { kind: 'credential' });
+      await BankingApi.remitDemoTax(venueAccount, Money.of(price));
+      return receipt.corpoKey
+        ? `(${Money.of(price).render()}, ${receipt.corpoKey})`
+        : `(${Money.of(price).render()})`;
+    } catch {
+      return null; // no credential / insufficient — the bar floats it
+    }
   }
 }
 

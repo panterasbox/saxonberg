@@ -1,0 +1,10 @@
+verbs: [supply]
+controller: banking/SupplyController
+description: "Money supply + reconciliation audit (operator)"
+help: |
+  Read the money supply and the conservation audit — `supply`. Σ(mints) −
+  Σ(drains), split into accounts vs circulation, with the reconciliation
+  invariant (top-down minted == bottom-up balances + coin). Operator-gated.
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresDeveloper

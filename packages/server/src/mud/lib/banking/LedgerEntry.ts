@@ -78,6 +78,25 @@ export interface ProfitAndLoss {
   balance: number;
 }
 
+/**
+ * The conservation audit — the reconciliation invariant. Top-down minted
+ * supply must equal bottom-up (Σ account balances + Σ circulating coins, the
+ * coins outside bank vaults). `cashInExistence = supply − accountTotal` is
+ * the cash-in-hand figure even though cash transactions are off-ledger.
+ */
+export interface ReconcileResult {
+  /** Σ mints − Σ drains over the central-bank log. */
+  supply: number;
+  /** Σ of every materialized account balance. */
+  accountTotal: number;
+  /** Σ face value of coins NOT resting in a bank vault. */
+  circulatingCoin: number;
+  /** `supply − accountTotal` — cash in existence (held outside accounts). */
+  cashInExistence: number;
+  /** Whether `supply === accountTotal + circulatingCoin`. */
+  balanced: boolean;
+}
+
 export interface LedgerEntryFields {
   kind: LedgerKind;
   /** Debited account (or a sentinel — issuance / cash bridge). */

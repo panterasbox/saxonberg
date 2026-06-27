@@ -9,6 +9,7 @@ import type {
   LedgerKind,
   PnlCategory,
   ProfitAndLoss,
+  ReconcileResult,
 } from "../../lib/banking/LedgerEntry";
 import AccountBalance from "../../lib/banking/AccountBalance";
 import SupplyAggregate from "../../lib/banking/SupplyAggregate";
@@ -48,6 +49,9 @@ function active(): boolean {
 
 /** Monotonic per-process counter making each transaction id unique. */
 let txSeq = 0;
+
+/** The Coin template — the one cash object; cloned per cash issuance. */
+const COIN_PATH = "/obj/Coin";
 
 /**
  * Derive the acting principal's durable `templatePath` from the dispatched
@@ -148,6 +152,36 @@ async function openAccountImpl(
   // Auto-register the new account onto the owner's implant wallet (the
   // implant links all the owner's accounts; first opened becomes active).
   autoLinkToWallet(actingPrincipal(), row.accountId);
+  return row.accountId;
+}
+
+/**
+ * Ensure a **venue** account exists (owner = the venue's durable path, not
+ * an acting principal — a resource identity), creating a primary one if
+ * absent. The bar's P&L account: lazily created on first banking interaction
+ * at the venue (order / pnl / payroll), so no boot seeder is needed.
+ */
+async function ensureVenueAccountImpl(
+  ownerPath: string,
+  bankPath: string,
+  corpoKey: string
+): Promise<string> {
+  if (!active()) {
+    throw new Error("BankingLogic.ensureVenueAccount: no persistence");
+  }
+  const owned = await accountsOfImpl(ownerPath);
+  const existing = owned.find((a) => a.bankPath === bankPath) ?? owned[0];
+  if (existing) return existing.accountId;
+  const row = new AccountBalance();
+  row.accountId = Account.newId(acctSeq++);
+  row.owner = ownerPath;
+  row.bankPath = bankPath;
+  row.corpoKey = corpoKey;
+  row.isPrimary = true;
+  row.isActive = true;
+  row.balance = 0;
+  await row.save();
+  AccountBalance.putCached(row.accountId, 0);
   return row.accountId;
 }
 
@@ -357,6 +391,59 @@ async function remitDemoTaxImpl(
     },
   ]);
   return Money.of(tax);
+}
+
+/**
+ * Mint physical cash into the world — the central-bank cash faucet (the only
+ * way coins come into existence beyond a withdrawal). Supply grows by
+ * `amount` (mint issuance → cash bridge, no account touched), and a Coin
+ * stack of that value appears in `into`. The genesis of circulating cash.
+ */
+async function issueCashImpl(
+  into: Stuff & Container,
+  amount: Money
+): Promise<Stuff> {
+  await postTransaction("mint", [
+    {
+      from: Account.ISSUANCE,
+      to: Account.CASH_BRIDGE,
+      amount: amount.minor,
+      memo: "cash issuance",
+      category: "float",
+    },
+  ]);
+  const coin = await StuffApi.clone(COIN_PATH);
+  (coin as unknown as Globbable).setQuantity(amount.minor);
+  ContainmentApi.move(coin as unknown as Stuff & Containable, into);
+  return coin;
+}
+
+/**
+ * The conservation audit: top-down supply vs bottom-up (Σ balances + Σ
+ * circulating coins outside vaults). A sync read over the warmed caches +
+ * the live coin instances — the reconciliation invariant the operator
+ * dogfaods the deficit with.
+ */
+function reconcileImpl(): ReconcileResult {
+  const supply = SupplyAggregate.cachedSupply();
+  let accountTotal = 0;
+  for (const v of AccountBalance.cached().values()) accountTotal += v;
+  let circulatingCoin = 0;
+  for (const coin of StuffApi.findAllByTemplatePath(COIN_PATH)) {
+    if (!isCashLike(coin)) continue;
+    const container = (
+      coin as unknown as { getContainer?(): Stuff | null }
+    ).getContainer?.();
+    if (container && MixinApi.isBank(container)) continue; // vault cash
+    circulatingCoin += stackValue(coin);
+  }
+  return {
+    supply,
+    accountTotal,
+    circulatingCoin,
+    cashInExistence: supply - accountTotal,
+    balanced: supply === accountTotal + circulatingCoin,
+  };
 }
 
 /** A categorized read of one account's ledger — the bar's P&L instrument. */
@@ -801,5 +888,27 @@ export class BankingLogic extends Idea {
     saleAmount: Money
   ): Promise<Money> {
     return remitDemoTaxImpl(sellerAccountId, saleAmount);
+  }
+
+  /** See {@link BankingApi.issueCash}. The central-bank physical cash faucet. */
+  @CallSecurity(BankingApiCallers)
+  public async issueCash(into: Stuff & Container, amount: Money): Promise<Stuff> {
+    return issueCashImpl(into, amount);
+  }
+
+  /** See {@link BankingApi.reconcile}. The conservation audit (sync). */
+  @CallSecurity(BankingApiCallers)
+  public reconcile(): ReconcileResult {
+    return reconcileImpl();
+  }
+
+  /** See {@link BankingApi.ensureVenueAccount}. Lazily create a venue account. */
+  @CallSecurity(BankingApiCallers)
+  public async ensureVenueAccount(
+    ownerPath: string,
+    bankPath: string,
+    corpoKey: string
+  ): Promise<string> {
+    return ensureVenueAccountImpl(ownerPath, bankPath, corpoKey);
   }
 }

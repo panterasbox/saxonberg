@@ -93,6 +93,7 @@ export function AuthorMixin<TBase extends MixinConstructor>(Base: TBase) {
         'banking/mint.yaml',
         'banking/payroll.yaml',
         'banking/pnl.yaml',
+        'banking/supply.yaml',
       ],
       environment: [],
       inventory: [],

@@ -1,7 +1,7 @@
 # Banking — the monetary substrate
 
-> **Status:** building on `feature/banking-build`. This doc is the source of
-> truth for the banking substrate and grows phase by phase; the
+> **Status:** built on `feature/banking-build` (phases 1–5). This doc is the
+> source of truth for the banking substrate; the
 > [requirements](../requirements/banking-requirements.md) and
 > [plan](../plans/banking-plan.md) are the spec/how. Sections marked
 > *(deferred)* name parked seams.
@@ -175,6 +175,40 @@ security cap, never a fee). Verbs: `pay` (stated transfer; `--cash`/`--from`),
   (operator-gated). The `mint` verb (operator-gated CB faucet) mints
   `subsidy` into the venue account to cover the red — a logged, visible,
   accountable faucet.
+
+## Reporting consumers + the bar loop (Phase 5)
+
+Queryability is a property of the architecture, not a feature: the typed
+append-only ledger + conservation + only-the-CB-mints means the two and only
+two consumers are derive-on-read with no backfill:
+
+- **The P&L** (Phase 4) — `profitAndLoss`.
+- **Money supply + reconciliation** — `moneySupply()` (Σ mints − Σ drains,
+  O(1) off `SupplyAggregate`) and `reconcile()`: the conservation audit
+  (`supply === Σ account balances + Σ circulating coin`, the coins outside
+  bank vaults; `cashInExistence = supply − Σ balances`). The `supply` verb
+  (operator-gated) renders both.
+
+**Cash genesis** — `issueCash(into, amount)` is the CB physical-cash faucet:
+a `mint` issuance → cash bridge (supply grows, no account touched) plus a
+`Coin` stack cloned into the world. The only ways coin enters circulation are
+`issueCash` and a `withdraw`; both keep `reconcile` balanced.
+
+**The bar loop** — open an account → deposit cash → order a drink → pay (or
+tab + settle) → the bar's ledger accrues sales/wages → it runs red → the CB
+mints subsidy to cover it → the P&L shows the deficit; `reconcile` holds
+throughout. The drink purchase is wired live: `OrderController`, after
+crafting, settles a **presented Charge** at the Menu's authored `priceFor`
+(silent pay from the credential's active account) and the bar `remitDemoTax`;
+an unpriced recipe is served free (backward-compatible). The bar's P&L
+account is **lazily ensured** (`ensureVenueAccount`, owner = the venue's
+durable path) on first order/pnl/payroll — no boot seeder.
+
+**Law compliance** — Law 1: no good carries a readable worth (a coin has a
+`denomination`; face value is a currency property, `Money.faceValueOf`). Law
+2: banking installs **no** scheduled recompute touching balances/coin (the
+renown divergence), so nothing decays — an idle balance/stack is unchanged
+over a game-clock advance.
 
 ## Module layout
 
