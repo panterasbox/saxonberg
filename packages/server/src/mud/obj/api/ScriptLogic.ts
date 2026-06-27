@@ -5,7 +5,7 @@ import { Idea } from "../../lib/stuff/Idea";
 import { CallSecurity, Unshadowable } from "../../lib/security/decorators";
 import { SecurityPolicies } from "../../lib/security/SecurityPolicies";
 import { CommandLineApi } from "../../api/command-line";
-import type { Script } from "../../lib/script/ast";
+import type { Script, Pipeline, Command, Arg } from "../../lib/script/ast";
 
 const ScriptApiCallers = SecurityPolicies.FromModule("mud/api/script#ScriptApi");
 
@@ -33,6 +33,39 @@ async function runImpl(text: string): Promise<void> {
   });
 }
 
+/* ──────────────────────── format (AST → source) ──────────────── */
+//
+// The inverse of the script parser: walk the AST and emit canonical
+// language source. Statements join with `; `, pipeline stages with
+// ` | `; a block renders `{ … }` recursively. Literals carry their
+// verbatim source slice (quotes intact), so the round-trip is exact.
+
+function formatScript(ast: Script): string {
+  return ast.statements.map(formatPipeline).join("; ");
+}
+
+function formatPipeline(pipeline: Pipeline): string {
+  return pipeline.commands.map(formatCommand).join(" | ");
+}
+
+function formatCommand(command: Command): string {
+  const parts = [command.word, ...command.args.map(formatArg)];
+  return parts.join(" ");
+}
+
+function formatArg(arg: Arg): string {
+  switch (arg.kind) {
+    case "literal":
+      return arg.value;
+    case "var":
+      return `$${arg.name}`;
+    case "expr":
+      return `(${arg.source})`;
+    case "block":
+      return `{ ${formatScript(arg.body)} }`;
+  }
+}
+
 /**
  * ScriptLogic — the hot-reloadable logic singleton behind
  * {@link ScriptApi}.
@@ -58,5 +91,11 @@ export class ScriptLogic extends Idea {
   @CallSecurity(ScriptApiCallers)
   public async run(text: string): Promise<void> {
     return runImpl(text);
+  }
+
+  /** See {@link ScriptApi.format}. */
+  @CallSecurity(ScriptApiCallers)
+  public format(ast: Script): string {
+    return formatScript(ast);
   }
 }

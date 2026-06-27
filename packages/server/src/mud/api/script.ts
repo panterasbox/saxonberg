@@ -60,6 +60,17 @@ export class ScriptApi {
   static run(text: string): Promise<void> {
     return logic().run(text);
   }
+
+  /**
+   * Serialize a `Script` AST back to canonical language source. The
+   * round-trip property is `parse(format(parse(t)))` ≡ `parse(t)`. This
+   * is the substrate demonstration capture (P8) emits real source
+   * through — the recorded artifact is language source, not an opaque
+   * trace.
+   */
+  static format(ast: Script): string {
+    return logic().format(ast);
+  }
 }
 
 SecurityApi.decorateApiClass(ScriptApi);
