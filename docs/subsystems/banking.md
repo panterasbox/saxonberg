@@ -144,6 +144,38 @@ and a per-credential `spendCap` (`authorize` refuses over-cap or frozen — a
 security cap, never a fee). Verbs: `pay` (stated transfer; `--cash`/`--from`),
 `wallet` (show/switch active account), `freeze` (report-lost + reissue).
 
+## Tabs, wages, demo tax, the P&L (Phase 4)
+
+- **Tabs** — `TabMixin` on the **venue `Location`** (the Bar): per-patron
+  accrued unsettled charges, owned by the house so the tab outlives shift
+  changes (the bartender acts on the venue's behalf). **Recognition-gated**
+  via `RecognitionApi.recognizes(recognizer, patron)` (a new boolean read on
+  the recognition surface) — a tab is a privilege of being *known*.
+  **Skipping** is priced, not prevented: `skipTab` applies a `RegardApi`
+  regard hit from the creditor and revokes the privilege; the unpaid balance
+  stays on the books. State on the mixin (decision 3: session-durable). The
+  `tab [settle|skip]` verb is afforded by the bar's Menu (the affordance
+  carrier in the room) and records against the venue's `TabMixin`.
+- **Wages** — `BankingApi.payWage(employerAccount, workerKey, amount)` moves
+  coin to the worker's primary account as a `wage`/`wages` line. *Who* is
+  employed is authored (out of scope); this is the payment only. **No
+  employer-solvency check** — the venue runs its P&L red by design (subsidy
+  covers). The `payroll` verb (operator-gated via `AuthorMixin` +
+  `requiresDeveloper`) pays from the present venue's account.
+- **Demo sales tax** — `BankingApi.remitDemoTax(sellerAccount, saleAmount)`:
+  a **seller-collected** `tax`/`tax` posting seller → placeholder treasury at
+  the authored, **inert** rate (`banking.salesTaxRate` AppSetting; recorded,
+  not governed — the corpo-affiliation-edge precedent), so the tax shows in
+  the *seller's* P&L (a `tax` line) and the treasury merely accumulates (no
+  appropriation path). (The general payer-side remittance-split seam from
+  Phase 3 stays for tips/fees.)
+- **The P&L** — `BankingApi.profitAndLoss(account)`: a derive-on-read
+  categorized read (per-category signed net + running balance) — the
+  deficit-as-target instrument, red by design. The `pnl` verb
+  (operator-gated). The `mint` verb (operator-gated CB faucet) mints
+  `subsidy` into the venue account to cover the red — a logged, visible,
+  accountable faucet.
+
 ## Module layout
 
 `lib/banking/` (the new subsystem folder):
@@ -195,7 +227,10 @@ The plan flagged 6 open implementation choices; settled as reached:
    `RenownStanding` precedent (one collection carries both key and value);
    `Account.ts` is a pure id-vocabulary value-object, not a Document.
    (Phase 1.)
-3. **Tab persistence** — *(deferred to Phase 4.)*
+3. **Tab persistence** — chose the **mixin** (state on `TabMixin`,
+   session-durable, the credential precedent) over a `Tab` Document. v1
+   tabs don't need to survive a restart; the cross-restart `Tab` Document is
+   the deferred option if required. (Phase 4.)
 4. **Crafting price source for the presented Charge** — confirmed crafting's
    `order`/`serve` exposes **no** price stance (it crafts the drink free), so
    per the requirements' "authored flat stances" the bar's drink prices will

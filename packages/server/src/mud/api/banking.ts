@@ -26,6 +26,7 @@ import type {
   LedgerKind,
   PnlCategory,
   LedgerEntryFields,
+  ProfitAndLoss,
 } from "../lib/banking/LedgerEntry";
 import type { LedgerLeg } from "../lib/banking/Transaction";
 import type { Bank } from "../lib/banking/Bank";
@@ -51,6 +52,7 @@ export type {
   LedgerKind,
   PnlCategory,
   LedgerEntryFields,
+  ProfitAndLoss,
   LedgerLeg,
   Charge,
   SettlementMethod,
@@ -252,6 +254,44 @@ export class BankingApi {
     capMinor: number
   ): Promise<Stuff & PaymentCredential> {
     return logic().issueCard(accountId, capMinor);
+  }
+
+  /* ──────────────── wages + reporting ──────────────── */
+
+  /**
+   * Pay a wage from an employer account to a worker's primary account — the
+   * P&L's labor line (`wage`/`wages`). *Who* is employed is authored; this
+   * is the payment only. Developer/employer-gated at the verb layer.
+   */
+  public static async payWage(
+    employerAccountId: string,
+    workerKey: string,
+    amount: Money
+  ): Promise<void> {
+    return logic().payWage(employerAccountId, workerKey, amount);
+  }
+
+  /**
+   * A categorized read of an account's ledger — the bar's P&L: per-category
+   * signed net flow + a running balance that sits red by design (Law 1: a
+   * count, not a worth-assertion). A derive-on-read consumer, no backfill.
+   */
+  public static async profitAndLoss(accountId: string): Promise<ProfitAndLoss> {
+    return logic().profitAndLoss(accountId);
+  }
+
+  /**
+   * Remit the demo sales tax on a sale from the seller's account to the
+   * placeholder treasury at the authored, inert rate — seller-collected, so
+   * it shows in the seller's P&L as a `tax` line; the treasury merely
+   * accumulates (no appropriation path). Returns the tax remitted (zero when
+   * the rate is absent). The bar loop calls this at point of sale.
+   */
+  public static async remitDemoTax(
+    sellerAccountId: string,
+    saleAmount: Money
+  ): Promise<Money> {
+    return logic().remitDemoTax(sellerAccountId, saleAmount);
   }
 }
 

@@ -1,0 +1,14 @@
+verbs: [tab]
+controller: banking/TabController
+description: "Run, settle, or skip a tab at the venue"
+help: |
+  See your tab here — `tab`. Settle what you owe with `tab settle` (clears
+  from your account), or `tab skip` to walk out on it. A tab is a privilege
+  of being known to the house; skipping is remembered, and it's not free.
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresConscious
+args:
+  - name: action
+    type: string
+    required: false

@@ -82,6 +82,17 @@ export class RecognitionApi {
   }
 
   /**
+   * Whether `viewer` recognizes `target` — i.e. holds an instance-axis
+   * recognition belief about it (knows them, even if the name was learned
+   * by bare repeat-perception). The boolean read consumers gate on (e.g. a
+   * tab is a privilege of being *known*). False for a non-belief-holder
+   * viewer, a non-organism target, or a stranger.
+   */
+  public static recognizes(viewer: Stuff, target: Stuff): boolean {
+    return logic().recognizes(viewer, target);
+  }
+
+  /**
    * The single identity-learning write-sink. Records that `viewer` now
    * knows `subject` as `name` (a non-null name from an introduction; a
    * `null` name from a bare repeat-perception). Every recognition

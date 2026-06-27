@@ -19,6 +19,7 @@ import { ExitableMixin } from '../../lib/boundary/Exitable';
 import { PostRegistrationMixin } from '../../lib/stuff/PostRegistration';
 import { PopulatesMixin } from '../../lib/stuff/Populates';
 import { SingletonMixin } from '../../lib/stuff/Singleton';
+import { TabMixin } from '../../lib/banking/Tab';
 
 // `PopulatesMixin` lets the bar stock itself declaratively from the seed's
 // `populates:` list on hydration — the crafting fixtures (back-bar, bottles
@@ -27,9 +28,16 @@ import { SingletonMixin } from '../../lib/stuff/Singleton';
 // otherwise a plain room: crafting is location-agnostic, so there is NO
 // venue mixin — "Dave's Bar" is emergent from the matter and the maker
 // present in it. See docs/subsystems/behavior.md and crafting.md.
+// `TabMixin` makes the bar the house that extends credit: the tab is the
+// establishment's receivable, owned by the venue Location so it outlives
+// shift changes (see docs/subsystems/banking.md). It is purely the additive
+// credit layer — the bar still receives pay-as-you-go through its account +
+// the priced Menu; the tab lights up only because this venue extends credit.
 const BarBase = SingletonMixin(
   PostRegistrationMixin(
-    PopulatesMixin(ExitableMixin(DetailedMixin(VisibleMixin(Location)))),
+    PopulatesMixin(
+      TabMixin(ExitableMixin(DetailedMixin(VisibleMixin(Location)))),
+    ),
   ),
 );
 

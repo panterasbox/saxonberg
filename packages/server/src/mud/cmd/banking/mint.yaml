@@ -1,0 +1,14 @@
+verbs: [mint]
+controller: banking/MintController
+description: "Central-bank: mint subsidy into the house account (operator)"
+help: |
+  Mint subsidy to cover the house's red — `mint 200`. A logged, visible,
+  accountable central-bank mint into the present venue's account. The only
+  faucet for money. Operator-gated.
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresDeveloper
+args:
+  - name: amount
+    type: string
+    required: true

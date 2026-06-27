@@ -1,0 +1,17 @@
+verbs: [payroll]
+controller: banking/PayrollController
+description: "Pay a worker a wage from the house account (operator)"
+help: |
+  Pay a wage — `payroll wenna 50`. Moves coin from the venue's account to
+  the worker's account; appears as the labor line on the P&L. Operator-gated.
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresDeveloper
+args:
+  - name: worker
+    type: object
+    required: true
+    scope: ["reachable", "online"]
+  - name: amount
+    type: string
+    required: true

@@ -5,7 +5,11 @@ import { Idea } from "../../lib/stuff/Idea";
 import { CallSecurity, Unshadowable } from "../../lib/security/decorators";
 import { SecurityPolicies } from "../../lib/security/SecurityPolicies";
 import LedgerEntry from "../../lib/banking/LedgerEntry";
-import type { LedgerKind, PnlCategory } from "../../lib/banking/LedgerEntry";
+import type {
+  LedgerKind,
+  PnlCategory,
+  ProfitAndLoss,
+} from "../../lib/banking/LedgerEntry";
 import AccountBalance from "../../lib/banking/AccountBalance";
 import SupplyAggregate from "../../lib/banking/SupplyAggregate";
 import { Account } from "../../lib/banking/Account";
@@ -20,6 +24,8 @@ import type {
   SettlementMethod,
   SettlementReceipt,
 } from "../../lib/banking/Charge";
+import { AppApi } from "../../api/app";
+import { AppSettingKeys } from "../../lib/config/AppSettings";
 import { WorldClockApi } from "../../api/worldclock";
 import { PersistApi } from "../../api/persist";
 import { ExecutionContextApi } from "../../api/execution-context";
@@ -279,6 +285,89 @@ async function settleImpl(
   await postTransaction("payment", legs);
   const corpoKey = (await accountByIdImpl(routingAccount))?.corpoKey ?? "";
   return { method: "credential", accountId: routingAccount, corpoKey };
+}
+
+/**
+ * Pay a wage from an employer account to a worker's primary account — the
+ * P&L's labor line. A `wage`/`wages` posting; *who* is employed is authored
+ * (out of scope). Throws if the worker has no account or the employer is
+ * short.
+ */
+async function payWageImpl(
+  employerAccountId: string,
+  workerKey: string,
+  amount: Money
+): Promise<void> {
+  const owned = await accountsOfImpl(workerKey);
+  const workerAccount = (owned.find((a) => a.isPrimary) ?? owned[0])?.accountId;
+  if (!workerAccount) {
+    throw new Error("BankingLogic.payWage: the worker has no account");
+  }
+  // No employer-solvency check: a venue runs its P&L red by design (the
+  // deficit-as-target), with the CB subsidy covering it. The wage is owed
+  // regardless; blocking it would defeat the deficit model. (A future
+  // employment build can gate player employers on solvency.)
+  await postTransaction("wage", [
+    {
+      from: employerAccountId,
+      to: workerAccount,
+      amount: amount.minor,
+      category: "wages",
+      memo: "wage",
+    },
+  ]);
+}
+
+/** The authored/inert demo tax rate + treasury account, or rate 0 if absent. */
+function demoTaxConfig(): { rate: number; treasury: string } {
+  try {
+    const r = AppApi.setting(AppSettingKeys.bankingSalesTaxRate);
+    const rate = r ? Number(r) : 0;
+    const treasury =
+      AppApi.setting(AppSettingKeys.bankingTreasuryAccount) || "treasury";
+    return { rate: Number.isFinite(rate) && rate > 0 ? rate : 0, treasury };
+  } catch {
+    return { rate: 0, treasury: "treasury" }; // AppSettings not warmed
+  }
+}
+
+/**
+ * Remit the demo sales tax on a sale of `saleAmount` from the seller's
+ * account to the placeholder treasury — a `tax`/`tax` posting at the
+ * authored, inert rate. The seller-collected model: the tax shows in the
+ * seller's P&L (a `tax` line) and the treasury merely accumulates (no
+ * appropriation path). Returns the tax remitted (zero when the rate is
+ * absent). No solvency check — the venue may run red (the CB subsidizes).
+ */
+async function remitDemoTaxImpl(
+  sellerAccountId: string,
+  saleAmount: Money
+): Promise<Money> {
+  const { rate, treasury } = demoTaxConfig();
+  if (rate <= 0) return Money.zero();
+  const tax = Math.floor(saleAmount.minor * rate);
+  if (tax <= 0) return Money.zero();
+  await postTransaction("tax", [
+    {
+      from: sellerAccountId,
+      to: treasury,
+      amount: tax,
+      category: "tax",
+      memo: "sales tax",
+    },
+  ]);
+  return Money.of(tax);
+}
+
+/** A categorized read of one account's ledger — the bar's P&L instrument. */
+async function profitAndLossImpl(accountId: string): Promise<ProfitAndLoss> {
+  const rows = await entriesForImpl(accountId);
+  const lines: Partial<Record<PnlCategory, number>> = {};
+  for (const r of rows) {
+    const signed = r.toAccount === accountId ? r.amount : -r.amount;
+    lines[r.category] = (lines[r.category] ?? 0) + signed;
+  }
+  return { account: accountId, lines, balance: AccountBalance.cachedBalance(accountId) };
 }
 
 /**
@@ -685,5 +774,32 @@ export class BankingLogic extends Idea {
     capMinor: number
   ): Promise<Stuff & PaymentCredential> {
     return issueCardImpl(accountId, capMinor);
+  }
+
+  /* ──────────────── wages + reporting ──────────────── */
+
+  /** See {@link BankingApi.payWage}. Employer account → worker (labor line). */
+  @CallSecurity(BankingApiCallers)
+  public async payWage(
+    employerAccountId: string,
+    workerKey: string,
+    amount: Money
+  ): Promise<void> {
+    return payWageImpl(employerAccountId, workerKey, amount);
+  }
+
+  /** See {@link BankingApi.profitAndLoss}. Categorized ledger read. */
+  @CallSecurity(BankingApiCallers)
+  public async profitAndLoss(accountId: string): Promise<ProfitAndLoss> {
+    return profitAndLossImpl(accountId);
+  }
+
+  /** See {@link BankingApi.remitDemoTax}. Seller → treasury at the inert rate. */
+  @CallSecurity(BankingApiCallers)
+  public async remitDemoTax(
+    sellerAccountId: string,
+    saleAmount: Money
+  ): Promise<Money> {
+    return remitDemoTaxImpl(sellerAccountId, saleAmount);
   }
 }

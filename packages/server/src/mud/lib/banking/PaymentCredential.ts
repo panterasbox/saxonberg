@@ -27,6 +27,7 @@
 
 import type { MixinConstructor } from "../mixin";
 import type { Stuff } from "../stuff/Stuff";
+import type { CommandContributions } from "../../api/command";
 import { Money } from "./Money";
 
 /** A credential with no explicit cap admits any amount (the implant default). */
@@ -66,6 +67,23 @@ export function PaymentCredentialMixin<TBase extends MixinConstructor<Stuff>>(
       "spendCap",
       "frozen",
     ];
+
+    /**
+     * The credential carries the settlement verbs wherever it goes: the
+     * implant confers them to its host (the `self` bucket — the hosted-update
+     * path), a carried card via the `inventory` bucket. So you can `pay`
+     * anywhere you hold a credential, not only at a bank counter.
+     */
+    static commandContributions: CommandContributions = {
+      self: ["banking/pay.yaml", "banking/wallet.yaml", "banking/freeze.yaml"],
+      environment: [],
+      inventory: [
+        "banking/pay.yaml",
+        "banking/wallet.yaml",
+        "banking/freeze.yaml",
+      ],
+      peers: [],
+    };
 
     /** The accounts this credential may route from. */
     private _linkedAccounts: Set<string> = new Set();

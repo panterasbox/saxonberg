@@ -63,6 +63,21 @@ export type PnlCategory =
  * units; `fromAccount`/`toAccount` are real account ids or {@link Account}
  * sentinels.
  */
+/**
+ * A categorized read of one account's ledger — the bar's P&L instrument. A
+ * derive-on-read consumer (the rich tagging means no backfill): per-category
+ * signed net (money in − money out, in minor units) plus the running
+ * `balance` that sits red by design (a count, never a worth-assertion).
+ */
+export interface ProfitAndLoss {
+  /** The account this P&L is for. */
+  account: string;
+  /** Per-category signed net flow (positive = net in), minor units. */
+  lines: Partial<Record<PnlCategory, number>>;
+  /** The running balance (materialized), minor units — red by design. */
+  balance: number;
+}
+
 export interface LedgerEntryFields {
   kind: LedgerKind;
   /** Debited account (or a sentinel — issuance / cash bridge). */
