@@ -50,6 +50,7 @@ export enum Collections {
   Producer = 'producer',
   AuthoringEvents = 'authoring_events',
   Positions = 'positions',
+  Recipes = 'recipes',
 }
 
 /**
@@ -591,6 +592,12 @@ export class PersistenceManager {
         { unique: true }
       );
       await this.getCollection(Collections.Emotes).createIndex({ aliases: 1 });
+
+      // Recipes: unique recipeId for catalogue resolve.
+      await this.getCollection(Collections.Recipes).createIndex(
+        { recipeId: 1 },
+        { unique: true }
+      );
 
       // Groups: queryable owner / member shape (Phase 2B).
       await this.getCollection(Collections.Groups).createIndex({ owner: 1 });
