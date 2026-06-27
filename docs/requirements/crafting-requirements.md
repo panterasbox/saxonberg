@@ -23,26 +23,32 @@ it's modeled*).
 
 ## Goals
 
-- **Craft-resolve is a general force.** A gated `CraftingApi` transforms
-  input `Tangible` matter (consumed) + venue tools into a new `Tangible`
-  output `Thing`, cloned from an output template via the existing
-  template/clone pipeline, stamped with material grade + maker provenance.
-  Conservation holds: inputs are debited; the output is a new stamped thing;
-  nothing is minted from nothing.
+- **Craft-resolve is a general, location-agnostic force.** A gated
+  `CraftingApi` transforms input `Tangible` matter (consumed) + tools into a
+  new `Tangible` output `Thing`, cloned from an output template via the
+  existing template/clone pipeline, stamped with material grade + maker
+  provenance. The primitive is `recipe + maker + reachable tools/inputs →
+  output`; it knows nothing of "venues." Conservation holds: inputs are
+  debited; the output is a new stamped thing; nothing is minted from nothing.
+- **Feasibility is emergent, not a place-flag.** "Can I craft this here?" =
+  "are the required tools + inputs reachable from the maker?" — the slate's
+  complexity gate. There is **no venue capability** to detect or compose;
+  a place is "a venue" only because the tools and inputs happen to be
+  co-located there. A missing tool / understocked input yields a diegetic
+  decline, never a silent gate.
 - **Recipes are authored knowledge.** A recipe is authored reference data —
   a `Document` (the `Emote` precedent), **not** a Stuff and **not** a
   template — naming input slots **by constraint** (category + min grade),
   required tools **by capability**, an output `Template` (the form to
   clone), and property-derivation rules (output material/grade from the
   chosen inputs). A `RecipeCatalogue` singleton manages the `recipes`
-  collection (the `SoulCatalogue`↔`Emote` relationship). Recipes are
-  **venue-known** in v1 (the venue carries its recipe book).
-- **A crafting venue aggregates the four-tuple.** A `CraftingVenueMixin` on a
-  `Location` carries the **known-recipe book**; the venue's **tools** and
-  **input stock** are the `Tangible` matter physically present in the room
-  (working bottles on the back-bar, the shaker, glassware). Crafting is
-  feasible *there* and infeasible at home because the venue aggregates what
-  you can't replicate.
+  collection (the `SoulCatalogue`↔`Emote` relationship).
+- **The offer is a `Menu` — its own object, not a place property.** A
+  curated list of *offered* recipes is a distinct concept from craftability
+  (a place can offer things it doesn't make; the same drink can be made in a
+  kitchen and ordered at a table). v1 models the offer as a **`Menu` thing**
+  (a `Tangible` you `read`/`order` from), referencing recipe documents,
+  decoupled from where crafting happens and from who makes it.
 - **Provenance is stamped per instance.** A new reusable instance-level
   `CraftedMixin` carries `{maker, grade, recipe, craftedAt}`, stamped at
   craft-resolve, un-spoofable (maker derived from world state / execution
@@ -58,15 +64,18 @@ it's modeled*).
   capability** (a "shaker" capability, satisfied by any present tool that
   offers it); tools carry a `condition` that **wears on use, not the clock**.
   Establishes the first durable-good sink shape (repair deferred).
-- **The served path works end to end.** A patron `order`s a cocktail from
-  the `menu`; the on-duty bartender NPC crafts and hands it over (the
-  vending-machine floor, no behavior brain); a player-bartender can `serve`
-  a patron or `mix` one solo. The drink carries honest ABV, so `drink`/`sip`
-  feed metabolism → `getBAC`.
+- **The served path works end to end.** A patron `order`s a cocktail off the
+  `Menu`; the order routes to a maker who can fulfill it — for v1, the
+  present bartender NPC (the vending-machine floor, no behavior brain) — who
+  `craft`s and hands it over; a maker can also `serve` a patron or `mix` one
+  solo. The drink carries honest alcohol, so `drink`/`sip` feed metabolism →
+  `getBAC`.
 - **Dave's Bar is stocked and staffed at genesis.** The existing bare `Bar`
   room is filled with authored content: a bartender NPC, working spirit
-  bottles, the shaker + glassware, a small cocktail recipe book, and a menu —
-  all authored templates over general substrate.
+  bottles, the shaker + glassware, and a `Menu` — all over general substrate
+  (templates for the things, `recipes`-collection documents for the recipe
+  knowledge). The bar is **emergent**: a room that happens to hold a menu, a
+  maker, and the matter — not a flagged "venue."
 
 ## Non-goals
 
@@ -75,10 +84,12 @@ it's modeled*).
   scatter/mastery/defects/extremes). The skill system is
   [advancement](../slates/builds/advancement-slate.md) / the gamification
   layer (Lane 3 and beyond) and must not leak in.
-- **Recipe knowledge, spread & the make-to-know learning loop.** v1 is
-  venue-known only. Crafter-known recipes, recipe-items, the
-  taught/earned/discovered spread vectors, and the make-it-once-to-bank-it
-  loop are deferred (advancement-adjacent;
+- **Recipe knowledge as a gated, learnable thing.** v1 does **not** model
+  *who knows* a recipe: a catalogued recipe is makeable given the matter, and
+  the `Menu` is what's *offered*, not a per-agent knowledge gate. The player
+  knowledge economy — crafter-known recipes, recipe-items, the
+  taught/earned/discovered spread vectors, the make-it-once-to-bank-it loop —
+  is deferred (advancement-adjacent;
   [daves-bar-slate](../slates/builds/daves-bar-slate.md) § *recipe-learning
   loop*). v1's served verbs are nonetheless built **script-shaped** (a linear
   recipe + one input-selection parameter) so the later loop rebuilds nothing.
@@ -89,9 +100,9 @@ it's modeled*).
   ([corpos-slate](../slates/builds/corpos-slate.md), marks deferred). **Do
   not pull marks in early.**
 - **The DIY / rent-the-means path.** v1 ships the **maker verbs**
-  (`serve`/`mix`, used by staff or a player-bartender) and the customer
-  `order`. The customer-DIY economic gating (access control to venue stock,
-  paying for access) is deferred to the economy lane.
+  (`serve`/`mix`, used by a bartender or a player-maker) and the customer
+  `order`. The customer-DIY economic gating (access control to the bar's
+  stock, paying for access) is deferred to the economy lane.
 - **Deconstruction / melt-down.** The reverse operation (and its entropy
   sink) is not part of the served path; deferred.
 - **Payments, tabs, wages, the P&L ledger.** The demo drink is "on the
@@ -125,28 +136,56 @@ field (no general substrate). The crafted instance's `templatePath` continues
 to point at the shared **output template**; the maker's mark is the
 per-instance overlay.
 
+### Crafting is location-agnostic; the offer is a `Menu` object
+
+The thing crafting represents is **transformation**, which has nothing to do
+with place. The primitive is `recipe + maker + reachable tools/inputs →
+stamped output`; `CraftingApi` has no "venue" concept. Feasibility is
+**emergent** — are the required tools + inputs reachable from the maker? — so
+the slate's "venue requirement is the complexity gate" falls out for free,
+and there is **no `CraftingVenueMixin`** (an earlier draft's mistake: it
+fused recipe-knowledge, the maker, the means-of-production, and the offer
+onto one Location flag).
+
+Each of those is its own concept with its own home:
+
+- **Recipe** — the transform spec (a `Document`; see below).
+- **Maker** — the agent who performs the craft and is stamped as
+  provenance (a present bartender for v1).
+- **Tools + inputs** — ordinary `Tangible` matter, wherever it physically
+  sits; reachability is the only feasibility gate.
+- **Offer / `Menu`** — a *curated* list of offered recipes, modeled as its
+  own `Tangible` object you `read`/`order` from. Decoupled from craftability
+  (a place can offer what it doesn't make), from where crafting happens, and
+  from the maker — so "order at the table, made in the kitchen" and a
+  reseller's menu both fit without re-architecting. v1 places one `Menu` in
+  the bar.
+
+"Dave's Bar" is therefore **emergent**: a room that contains a `Menu`, a
+maker, and the matter. Remove any and you can't get a drink there — with a
+diegetic reason, not a flag flip.
+
 ### Maker attribution is un-spoofable
 
 Per the gated-API rule (actor from context, never a passed argument), the
 maker is **never user-supplied**. For `serve`/`mix` the maker is the command
-giver (the bartender, resolved from the execution context). For `order` the
-maker is the **on-duty bartender NPC** the controller resolves from world
-state (the patron is the giver, not the maker). The planner picks the
-mechanism — running the craft frame in the bartender's execution context
-(`ExecutionContextApi.runRoot`-style, mirroring `CmsSession.runAsSessionPlayer`)
-is preferred over a trusted-controller parameter — but the **constraint is
-fixed**: the maker is either the frame giver or a world-resolved staff member,
-never a value off the wire.
+giver (the maker themselves, resolved from the execution context). For
+`order` the giver is the *patron*, not the maker, so the order routes to a
+**present maker able to fulfill it** (the bartender), resolved from world
+state. The planner picks the mechanism, but the **constraint is fixed**: the
+maker is either the frame giver or a world-resolved fulfilling agent, never a
+value off the wire (a `CraftRequest` carries a maker-resolution *mode*, not a
+principal).
 
 ### The served path needs no behavior brain (Lane 1 decoupling)
 
-`order <cocktail>` resolves the present on-duty bartender NPC and the **order
-controller** runs craft-resolve, attributing the maker to that NPC and handing
-the drink to the patron. This is the "vending-machine floor" the slate
-explicitly accepts for v1 — the bartender NPC is a **static authored
-Character** with no `Behaved` mixin, no scheduled repertoire. Lane 1's full
-NPC behavior wraps this later; the single serve-on-order reflex is a **verb**,
-not NPC behavior, so there is zero file collision with Lane 1.
+`order <item>` resolves the present fulfilling maker (the bartender NPC) and
+the **order controller** runs craft-resolve, attributing the maker to that
+NPC and handing the drink to the patron. This is the "vending-machine floor"
+the slate explicitly accepts for v1 — the bartender NPC is a **static
+authored Character** with no `Behaved` mixin, no scheduled repertoire. Lane
+1's full NPC behavior wraps this later; the single serve-on-order reflex is a
+**verb**, not NPC behavior, so there is zero file collision with Lane 1.
 
 ### Recipe = a `Document`, managed by `RecipeCatalogue` (the `Emote` pattern)
 
@@ -229,7 +268,7 @@ verdict (a `Grade`), never a number.
 
 - **No bar-specific classes.** Dave's Bar is authored *content* (templates
   composing general mixins). Genuinely-new substrate (`CraftingApi`,
-  `Recipe`, `CraftedMixin`, `Grade`, tool capabilities, the venue mixin) is
+  `Recipe`, `CraftedMixin`, `Grade`, tool capabilities, the `Menu`) is
   built general and reusable; the bar is the first consumer. (CLAUDE.md
   "fold into substrate, don't invent special cases.")
 - **Module taxonomy.** New substrate lives in a new `lib/craft/` subsystem
@@ -267,16 +306,17 @@ verdict (a `Grade`), never a number.
 ## Acceptance criteria
 
 - A `CraftingApi.craft(...)` (gated, forwarding to `CraftingLogic`) resolves
-  recipe + venue inputs + tool capabilities + fixed control into a cloned,
-  stamped output `Thing`, consuming the inputs. Unit tests cover: happy
-  path, missing-tool rejection, insufficient-input rejection, grade
-  derivation, ABV derivation, conservation (inputs debited exactly).
+  recipe + maker + reachable tools/inputs + fixed control into a cloned,
+  stamped output `Thing`, consuming the inputs — with no "venue" concept.
+  Unit tests cover: happy path, missing-tool rejection, insufficient/
+  out-of-reach-input rejection, grade derivation, conservation (inputs
+  debited exactly).
 - `CraftedMixin` stamps `{maker, grade, recipe, craftedAt}` at resolve; tests
   confirm the maker matches the resolving character (giver for `serve`/`mix`;
-  the bartender NPC for `order`) and is not settable off the wire.
+  the fulfilling bartender for `order`) and is not settable off the wire.
 - `Recipe` Documents load from the `recipes` collection via
-  `RecipeCatalogue`; `CraftingVenueMixin.getKnownRecipes()` returns the
-  venue's book; tests cover catalogue load + venue lookup.
+  `RecipeCatalogue`; a `Menu` lists its offered recipes and resolves an
+  ordered item to a recipe; tests cover catalogue load + menu lookup.
 - The `Grade` value-object orders the five bands and renders a band-word;
   tests cover ordering and band-word output.
 - Tool capability matching + wear-on-use: a recipe requiring "shaker" rejects
