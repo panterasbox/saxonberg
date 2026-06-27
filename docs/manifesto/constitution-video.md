@@ -109,22 +109,28 @@ How the video gets made (applies to every chapter; Ch 1 is the worked exemplar
   presence continuously); **no-face** (diagram full-frame, voice-over) during
   dense hero builds so the visual breathes; **full-screen face** (direct
   address) reserved for the **intro and outro only** — the two genuine
-  person-to-person bookends. Promote a mid-video line to full-screen only if it
-  truly earns a "look at me"; when unsure, stay corner. Scarcity is what makes
-  full-screen land.
+  person-to-person bookends, now their own discrete segments (`intro.md` +
+  `outro.md`), full-screen start to finish. Everything between them — Ch 0
+  through Ch 6 — is corner/no-face. Promote a mid-video line to full-screen only
+  if it truly earns a "look at me"; when unsure, stay corner. Scarcity is what
+  makes full-screen land.
 - **Title cards (between chapters).** A hand-drawn, full-screen **no-face** card
   between sections — ~2–3s, a punctuation beat (not a pause), aligned with the
   YouTube chapter stops. Cards are **declarative** — the chapter's *thesis*,
   asserted; never an objection or question. (The doubt-cascade stays behind the
   scenes — it surfaces only in the spoken hand-forwards, in the narrator's own
   voice.) **Locked set:**
+  - Intro — **A modest proposal for gamified government** (the main video title
+    card; full-screen segment `intro.md`)
+  - Ch 0 — **A government in a game**
   - Ch 1 — **Three voices, none supreme**
   - Ch 2 — **Earned and spent, never owned**
   - Ch 3 — **The argument, not the crowd**
   - Ch 4 — **Governing is shipping software**
   - Ch 5 — **Don't trust — verify**
   - Ch 6 — **A dial on an honest floor**
-  - (Ch 0 = the main video title card; a closing card after Ch 6.)
+  - Outro — **How to get involved** (full-screen segment `outro.md`; the closing
+    card / bookend)
 - **AI discipline — name the job + the limit, never AI-wash.** "AI will do it"
   is a wave of the hand, and a debate crowd smells it instantly. Invoke AI only
   where you can state the **specific job** *and* its **guardrail**; otherwise
@@ -185,27 +191,36 @@ operator-aimed, scale-driven frame:**
 
 Voice: **assert, don't defend.** Chapter hinges are **curiosity** ("so how does
 that work?"), not objections to rebut. Terse — recognition over explanation;
-more examples, fewer words each. Ch 1 is drafted under this frame in
-`chapter-1.md`; **Ch 0's scaffold below still shows the old grievance — fix on
-the revision pass.**
+more examples, fewer words each. **All segments now have canonical files** —
+`intro.md`, `chapter-0.md`..`chapter-6.md`, `outro.md` — each with narration
+beats + cue sheet + notes; **those files supersede the per-segment entries
+below** (kept as the index/map). Full-screen camera lives ONLY in `intro.md` and
+`outro.md`; everything between is corner/no-face.
 
 ## The chapters
 
-### Ch 0 — A better government, and it lives in a game *(frame)*
-- **Claim:** a digital world can host a *real* government — a fairer,
-  livelier one than we have.
-- **Closes:** — (opener)
-- **Opens:** "Real? It's pretend. And why a *game*?"
-- **Anchor (provisional):** Preamble — *"a digital polity, freed of the
-  distances and frictions of physical assembly, can govern better than its
-  forebears — keeping what those systems protected and discarding only what
-  they merely endured."*
-- **Rides along:** the two diseases (plutocracy + apathy); **engagement** —
-  the game manufactures the participation real democracies starve for (this
-  is the answer to *apathy*, delivered in the frame); **text-medium
-  orientation** ("a text world — that's the point: ideas and argument, not
-  spectacle"); the platform framing ("infrastructure any community can
-  adopt").
+### Intro — A modest proposal for gamified government *(full-screen hook)*
+- **Segment:** `intro.md` — full-screen, direct-to-camera cold open; the opening
+  bookend to the Outro. Full-screen camera appears ONLY here and in the Outro.
+- **The hook:** "a new system of government I've designed for digital
+  communities… and it runs inside a game." Hard cut to Ch 0 (corner).
+- **Build-dependency:** stable now.
+
+### Ch 0 — A government in a game *(frame; corner throughout)*
+- **Canonical:** `chapter-0.md` (supersedes this entry). Corner/no-face from its
+  first beat — the full-screen hook moved to `intro.md`.
+- **Claim:** a digital world can host a *real* government, and a game is the
+  engine that makes it actually run.
+- **Closes:** — (opener; picks up from the Intro cut)
+- **Opens (hands Ch 1):** "it runs on money — so who gets a say, and what stops
+  the biggest wallet owning it?"
+- **Rides along:** the **origin** (MUDs + livestreaming); the game (MMO +
+  educational core; the people run it); **why a game** — the apathy graveyard
+  (DAOs / online democracies built the rules and nobody came) and *the game is
+  the engine they never had*; **the record** (everything is information,
+  unfakeable → seeds Ch 5); the **gaming lineage** (EVE; the difference is
+  dial-compatible); the platform framing; *educated electorate = functioning
+  electorate*.
 - **Build-dependency:** stable now (philosophy).
 
 ### Ch 1 — Three voices, none supreme *(tricameral + firewall)*
@@ -349,27 +364,33 @@ the revision pass.**
   with the firewall (no coin, no cash-out).
 - **Build-dependency:** substrate; firms as the archive is built.
 
-### Ch 6 — The dial, and the floor beneath it *(platform + exit + call)*
+### Ch 6 — A dial on an honest floor *(platform + exit)*
+- **Canonical:** `chapter-6.md`. Corner/no-face throughout; **lands on "that's
+  the design" and hard-cuts to the Outro** (the call moved out of this chapter).
 - **Claim:** any community can adopt this and tune it — from operator-fiat to
   full republic — but the floor is guaranteed *everywhere*: the firewall, the
   verifiable record, and the right to fork and walk.
 - **Closes:** "the operator controls the rules — so it's just benevolent
   dictatorship."
-- **Opens:** → **the call.**
+- **Opens:** → hands to the **Outro**.
 - **Anchors (provisional):** Art. XI *"the structure, not the founder, is
   what is entrenched"*; Art. X §4 (the only change to an eternity clause is
   to **found anew** — fork); the eternity clauses (Art. I, the firewall,
   co-equality, record integrity, judicial egalitarianism).
-- **Rides along:** kernel + amendment-library **"distros"** (operator's-table
-  / creator-collective / full-republic); **founder self-binding** — our own
-  offboarding as the *example*: published formula, code-enforced,
-  auto-sunset at ratification (binding = code + publication + exit); one
-  sentence each on the economy and rights.
-- **[OPEN] throws:** the rights set (Art. IX), the ratification threshold
-  (Art. XI), emergency powers (Art. XII).
-- **The call:** adopt it, tune it, fork it — *and* "I'll be live on [venue]
-  to defend this; bring your hardest objections."
+- **Rides along:** **you already run a government — you call it moderation**
+  (rule-of-law as a gift to the operator); kernel + amendment-library
+  **"distros"**; **founder self-binding** + ratification (autocrat is a valid
+  config); graduated participation; the floor = firewall + record + exit.
 - **Build-dependency:** structure / philosophy stable now.
+
+### Outro — How to get involved *(full-screen close)*
+- **Segment:** `outro.md` — full-screen, direct-to-camera; the closing bookend to
+  the Intro. Picks up Ch 6's hard cut and holds to the last frame.
+- **The ask (state, don't sell):** honest early-stage stance (lots still to
+  build, but a constitution to deliberate + a model to design against); **make /
+  fund / play** — three ways to take part; take-it-for-a-test-drive. No plea, no
+  founder-as-beneficiary.
+- **Build-dependency:** stable now.
 
 ## Cross-cutting threads (woven, not chaptered)
 

@@ -1,62 +1,51 @@
-# Chapter 0 — "A modest proposal for gamified government"
+# Chapter 0 — "A government in a game"
 
-> **Rewritten after the full first draft** (per process — openings get
-> reworked once we can see everything they lead into). Voice: personal /
-> witnessed, **modest-proposal register** (wry, humble-but-confident, "I know
-> how this sounds, hear me out" — NOT "I cracked it / a better way"). Ch 0 is
-> the intro: it introduces the game, makes the claim, answers *participation*
-> on the spot, and hands *money* to Ch 1. **No grievance. No supplication** —
-> the deal is *for you*; no favor asked, and the founder stays out of frame.
-> Not gated on any build. Spine + doubt-hinges live in `constitution-video.md`.
+> **The first content chapter — corner / no-face throughout.** Voice: personal /
+> witnessed. The full-screen cold-open hook now lives in `intro.md`; Ch 0 picks
+> up from that cut and runs in corner/cutaways like the rest of the video. It
+> introduces the game, answers *participation* on the spot (the apathy graveyard
+> → the game is the engine they never had), seeds the record (→ Ch 5), credits
+> the gaming lineage (EVE), and hands *money* to Ch 1. No grievance; the founder
+> stays out of frame. Spine + doubt-hinges live in `constitution-video.md`.
 
-## What changed (latest pass)
+## Structure note (the full-screen split)
 
-- **Opening is introductory, not a cold pitch.** Leads with *"in this video I'm
-  going to describe a new system of government I've designed for digital
-  communities"* — orienting, warm, forward-leaning; then *it runs inside a game*;
-  then the human origin (the MUDs cut-my-teeth-on + livestreaming communities).
-  Dropped the defensive "I know how that sounds / give me a few minutes." The
-  "modest proposal" framing lives in the title + Reddit post, not the narration.
-- **The game gets introduced.** It's an MMO with a *very different model* and an
-  **educational core** — and the education isn't a tangent: *an educated
-  electorate is a functioning electorate* is the bridge to the governance thesis.
-- **"Nothing but words" was wrong** — the world has images, video, typography,
-  color. The record beat now rests on *everything is information / captured
-  exactly*, not "made of text."
-- **Not about the founder — at all.** No flagship instance, no "the one I run,"
-  no "I benefit." It's the platform and the apparatus; every adopting community
-  is a peer, none privileged. (Earlier draft floated honest self-interest; cut
-  per "I don't want any of this to be about me.")
-- **Lost "I'd love for you to tear it apart."** They'll do that regardless; the
-  "do this for me" register is gone. Replaced with *for-you*, no founder in frame.
-- **Prior art = games, not political theory.** The "government in a game" reflex
-  is *"so, EVE?"* — so the lineage beat names **EVE Online** (player corps,
-  alliances, an elected council) + worlds where players vote on the rules. The
-  difference is framed **dial-compatibly** (games do politics *emergent* or
-  *advisory*; here it's real machinery on a dial run as tight/loose as wanted) —
-  NOT "we hand over power," which would contradict Ch 6's valid autocrat config.
-  Tone is assert-don't-defend (no "before anyone says it"). Civic mechanisms
-  (votes-you-can't-buy, sortition, the verifiable record) are the borrowed
-  *ingredients*, kept light.
+The opening direct-to-camera hook was pulled into its own **`intro.md`** segment
+(full-screen), which bookends **`outro.md`** (full-screen). Full-screen is now
+reserved for intro + outro ONLY; Ch 0 is corner/no-face from its first beat. The
+hook — *"a new system of government for digital communities… and it runs inside a
+game"* — is `intro.md`; Ch 0 opens on the origin.
+
+## What changed (carried forward)
+
+- **The game gets introduced** — an MMO with a *very different model* + an
+  **educational core**; the bridge is *an educated electorate is a functioning
+  electorate*.
+- **Why-a-game is the keystone** — name the apathy graveyard (DAOs / online
+  democracies built the rules and nobody came) and make *the game is the engine
+  they never had* explicit.
+- **"Nothing but words" corrected** — the world has images, video, typography,
+  color; the record beat rests on *everything is information*, not "made of text."
+- **Not about the founder — at all.** No flagship instance, no "I benefit"; every
+  adopting community is a peer, none privileged.
+- **Prior art = games** (EVE named); the distinction is **dial-compatible**
+  (games do politics *emergent* or *advisory*; here it's real machinery on a dial
+  run as tight/loose as wanted), NOT "we hand over power" (would contradict Ch 6).
 
 ## Narration (draft)
 
-**[Beat 1 — what this is]**
-"In this video, I'm going to describe a new system of government I've designed
-for digital communities — a real way for a community to write its own rules,
-settle its own disputes, and decide where its resources go. It runs inside a
-game. And the ideas behind it didn't come from political theory; they came from
-watching online communities actually self-organize — the text-based MUDs I cut
-my teeth on in the early internet, and the livestreaming communities of today.
+**[Beat 1 — where it comes from]**
+"The ideas behind it didn't come from political theory; they came from watching
+online communities actually self-organize — the text-based MUDs I cut my teeth on
+in the early internet, and the livestreaming communities of today.
 
 **[Beat 2 — what the game is]**
 On the surface it's an MMO — a big persistent world you log into with other
-people — but the model underneath is pretty different
-from the usual one. Two things set it apart. First, it's built to actually teach
-you something — there's a real educational core, not just a level grind. And
-second, the people who live in it *run* it. Real power over a real, shared
-world: they write its laws, they hold its treasury, they sit its courts. A
-working government — inside a game.
+people — but the model underneath is pretty different from the usual one. Two
+things set it apart. First, it's built to actually teach you something — there's a
+real educational core, not just a level grind. And second, the people who live in
+it *run* it. Real power over a real, shared world: they write its laws, they hold
+its treasury, they sit its courts. A working government — inside a game.
 
 **[Beat 3 — why a game (and why education isn't a side-quest)]**
 Why put a government inside a game? Because a game dissolves the one thing that
@@ -110,26 +99,20 @@ Hands Ch 1 the next doubt: *who gets a voice — and what stops the biggest wall
 from owning the whole thing?* (matches Ch 1 Beats 2–4: three kinds of say +
 the firewall).
 
-**Kickers:** *"a new system of government for digital communities — and it runs
-inside a game"*; *"participation isn't the price of admission — it's the fun"*; *"an
+**Kickers:** *"participation isn't the price of admission — it's the fun"*; *"an
 educated electorate is a functioning electorate"*; *"games have been laboratories
 for this for years — what's new is the assembly, and the moment"*; *"run your
 own, fork it, make it yours — it's built to be yours."*
 
-**Author check (only you can make these true):** Beat 1's opener is the single
-most likely line to re-tune.
-
 ## Visual cue sheet
 
-Ch 0 is the **intro**, so it earns the rare full-screen treatment — but only at
-the two direct-address moments (the opening proposal, the closing pitch); the
-explanatory middle (Beats 2–5) is **corner / no-face** like the rest of the
-video. Client never shown.
+**Framing: corner / no-face throughout.** The full-screen hook is `intro.md`; the
+full-screen close is `outro.md`. Ch 0 carries no full-screen face. Client never
+shown.
 
-- **Beat 1 — face, full-frame.** Open to camera. On "it runs inside a game," a
-  light cutaway to a game window; on the origin, two small motifs — an old **MUD**
-  terminal and a **livestream** chat scrolling — then back to face. Plants the
-  human origin (MUDs + streaming) that the lineage beat later builds on.
+- **Beat 1 — corner.** The origin: an old **MUD** terminal and a **livestream**
+  chat scrolling, side by side — "where the ideas came from." Plants the human
+  origin (MUDs + streaming) that the lineage beat later builds on.
 - **Beat 2 — corner / no-face.** A **designed evocation** of the world — NOT the
   client — showing it's *not* pure text: stylized prose alongside a bit of art,
   typography, color. Then two glyphs for the two differentiators: an
@@ -143,9 +126,8 @@ video. Client never shown.
   zero-turnout** — built, but nobody came. Then the participation contrast: a
   podium *begging* (↑ "please vote") while people walk away, vs. a game *pulling
   people in.* Then the **layered stack** — base "what people already do — play,"
-  slab
-  "governance" settling on top, on "participation *is* the fun." Close the beat
-  with an **informed-voter** glyph on "educated electorate."
+  slab "governance" settling on top, on "participation *is* the fun." Close the
+  beat with an **informed-voter** glyph on "educated electorate."
   - *Asset:* "governance rides on engagement" layered diagram, staged.
 - **Beat 4 — corner / no-face.** Varied content — a line of prose, an image, an
   action — all **collapsing into one row of data / a ledger entry**: *everything
@@ -158,35 +140,36 @@ video. Client never shown.
   can't buy) and a lot-drawn jury. Tone: building on giants, not bracing.
   - *Asset:* "predecessors → assembly" sketch (EVE named in the lower-third, not
     the client).
-- **Beat 6 — machine-underneath + draft card → face.** A base labeled "the
+- **Beat 6 — corner / no-face.** Machine-underneath: a base labeled "the
   machine," then **ghosted boxes** (Discord / guild / stream) dropping onto the
   same base — many communities, one apparatus, none privileged. A doc title card
-  with a **"DRAFT" stamp** on "unfinished constitution." Cut to **full-frame
-  face** on "it's built to be *yours.*"
+  with a **"DRAFT" stamp** on "unfinished constitution." (No full-frame face —
+  that register is the Outro's now.)
   - *Assets:* "machine-underneath" sketch (staged, peers equal); draft card.
-- **Beat 7 — hand-forward.** A **money-bag looming over the apparatus with a
-  "?"** — the rich-own-it worry that opens Ch 1.
+- **Beat 7 — corner.** A **money-bag looming over the apparatus with a "?"** —
+  the rich-own-it worry that opens Ch 1.
 
-Rhythm: face → world card → contrast + stack → record → lineage → machine +
-draft → money inset. Visual change ~every 10–15s. **Motifs planted:** three functions
-(→ branches, Ch 4), engagement-rides-on-play (→ throughout), education / educated
-electorate, the record (→ Ch 5), machine-underneath (→ Ch 6 platform/dial), the
-money-worry (→ Ch 1 firewall).
+Rhythm: origin motifs → world card → graveyard + contrast + stack → record →
+lineage → machine + draft → money inset. Visual change ~every 10–15s. **Motifs
+planted:** three functions (→ branches, Ch 4), engagement-rides-on-play (→
+throughout), education / educated electorate, the record (→ Ch 5),
+machine-underneath (→ Ch 6 platform/dial), the money-worry (→ Ch 1 firewall).
 
 ## Notes
 
-- **Title now mirrors the Reddit framing** (*"a modest proposal for gamified
-  government"*). If the chapter wants a punchier on-card title later, fine — but
-  the modest-proposal register is the anchor.
-- **Not about the founder.** No flagship/"the instance I run"/"I benefit"
-  content — the video stays off the author entirely. It's the platform and the
-  apparatus; every community that adopts it is a peer, none privileged. The
-  closing register is *for-you* — the founder is not a party to the deal and
-  never appears as one ("I'm a willing partner" cut for this reason).
-- **Education ↔ governance bridge** is the single load-bearing connection
-  between the two halves of the project: *educated electorate = functioning
-  electorate.* The educational system is otherwise orthogonal and stays mostly
-  out of the governance video.
+- **Full-screen split:** the hook → `intro.md` (full-screen), the close →
+  `outro.md` (full-screen); Ch 0 is corner throughout. Ch 0 was too long to hold
+  full-screen the whole time, and the closing direct-address register belongs to
+  the Outro now, so the old Beat 6 "cut to full-frame face" was dropped.
+- **Title:** Ch 0 is now "A government in a game" (the modest-proposal framing
+  moved to `intro.md` and the Reddit post). Adjustable — flag if you want a
+  different on-card title.
+- **Not about the founder.** The video stays off the author entirely; every
+  adopting community is a peer. First person is presenter voice only.
+- **Education ↔ governance bridge** is the single load-bearing connection between
+  the two halves of the project: *educated electorate = functioning electorate.*
+  The educational system is otherwise orthogonal and stays mostly out of the
+  governance video.
 - **"Nothing but words" corrected** — the game is text-forward but has images,
   video, typography, color. The Ch 5 record payoff rests on *information*, not
   *text*; Beat 4 reflects that.
@@ -194,10 +177,6 @@ money-worry (→ Ch 1 firewall).
   redeemed in **Ch 5** (*the record IS reality; we made it unfakeable*).
 - **"Of the moment" stays vague — LLMs are NOT named here.** AI is named exactly
   once in the whole video (Ch 3, librarian-not-judge). Ch 0's "the tools to run
-  it caught up" is the unnamed gesture Ch 3 cashes out; naming LLMs here would
-  spend the card early and break the anti-hype discipline.
-- **Handoff matches Ch 1.** Ch 0 hands forward both "who gets a say" (Ch 1
-  Beats 2–3) and "what stops the biggest wallet owning it" (Ch 1 Beat 4).
-- **Tone guard:** for-you, not for-me; willing partner, not supplicant; modest,
-  not grandiose. (Re-check Ch 6's "come tell me where I'm wrong" against this —
-  it reads invitational, not supplicating, so likely fine.)
+  it caught up" is the unnamed gesture Ch 3 cashes out.
+- **Handoff matches Ch 1.** Ch 0 hands forward both "who gets a say" (Ch 1 Beats
+  2–3) and "what stops the biggest wallet owning it" (Ch 1 Beat 4).
