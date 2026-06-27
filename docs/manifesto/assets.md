@@ -149,12 +149,26 @@ All single static assets (no staged reveals).
 
 ---
 
+## Ch 2 — "Power is earned and spent, never owned"  *(all beats built ✅)*
+
+| PNG | Source | State | Shows | Lands on cue |
+|---|---|---|---|---|
+| `ch2-beat1-standing` | `ch2-beat1-standing.excalidraw` | — | one meter labeled STANDING (callback to Ch1's meters) | "your voice in this is something we call standing" |
+| `ch2-beat2-conferred-1` | `ch2-beat2-conferred-1.excalidraw` | 1/2 | other people's engagement arrows fill YOUR make meter | "standing is conferred by other people" |
+| `ch2-beat2-conferred-2` | `ch2-beat2-conferred-2.excalidraw` | 2/2 | + a cluster of ghost accounts whose arrows land empty | "a thousand fake accounts earn you nothing" |
+| `ch2-beat3-conviction-1` | `ch2-beat3-conviction-1.excalidraw` | 1/3 | a YES stance committed at day 1 — "weight: 1×" | "the way you use it is conviction" |
+| `ch2-beat3-conviction-2` | `ch2-beat3-conviction-2.excalidraw` | 2/3 | the same stance held to day 7, grown bold — "weight: 5×" | "the longer you hold it, the more it weighs" |
+| `ch2-beat3-conviction-3` | `ch2-beat3-conviction-3.excalidraw` | 3/3 | a flip → NO snaps back to "weight: 1×" | "flip, and the weight starts over… a last-second swing doesn't" |
+| `ch2-beat3-fullweight` | `ch2-beat3-fullweight.excalidraw` | — | full weight on Issues A/B/C at once vs a crossed-out sliced pie | "full weight on every question, not a budget you spread thin" |
+| `ch2-beat4-teaser` | `ch2-beat4-teaser.excalidraw` | — | a proposal + two claim nodes — "how does a community argue it out?" | "none of it says how a community actually argues something out" |
+
+---
+
 ## Other segments — not built yet
 
 Build order TBD. Each segment's per-beat visual spec lives in its own cue sheet:
 
 - **Intro** (`intro.md`) — full-screen face, no diagrams.
-- **Ch 2** (`chapter-2.md`) — meter callback, conferred-by-others + ghost accounts, the conviction "weight that gets heavier" hero.
 - **Ch 4** (`chapter-4.md`) — code/human split, the lifecycle pipeline, the administration, build-it-it's-yours/property, judiciary two faces.
 - **Ch 5** (`chapter-5.md`) — real-world-vs-digital contrast, the tamper-evident chain hero, crypto-minus-casino, sealed-by-math, detectable-not-impossible + fork.
 - **Ch 6** (`chapter-6.md`) — already-a-government overlay, the floor (three slabs), the dial, graduated participation, the founder mechanism + ratification.
