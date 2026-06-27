@@ -28,6 +28,10 @@ import type {
   LedgerEntryFields,
 } from "../lib/banking/LedgerEntry";
 import type { LedgerLeg } from "../lib/banking/Transaction";
+import type { Bank } from "../lib/banking/Bank";
+import type AccountBalance from "../lib/banking/AccountBalance";
+import type { Stuff } from "../lib/stuff/Stuff";
+import type { Globbable } from "../lib/stuff/Globbable";
 import { StuffApi } from "./stuff";
 import { HotReloadApi } from "./hot-reload";
 import { SecurityApi } from "./security";
@@ -130,6 +134,70 @@ export class BankingApi {
   /** Rebuild the supply aggregate from a full ledger scan — the audit/repair. */
   public static async recomputeSupply(): Promise<void> {
     return logic().recomputeSupply();
+  }
+
+  /* ───────────────────────── custodial bank ops ───────────────────────── */
+
+  /**
+   * Open the acting owner's account at a branch (idempotent). The first
+   * account an owner opens becomes their primary (receive-by-identity
+   * default); the bank's `corpoKey` affiliation is recorded on the row. The
+   * owner is the context-derived author, never a parameter. Returns the
+   * durable account id.
+   */
+  public static async openAccount(
+    bankPath: string,
+    corpoKey: string
+  ): Promise<string> {
+    return logic().openAccount(bankPath, corpoKey);
+  }
+
+  /** The acting owner's account id at `bankPath` (no number typed). */
+  public static async myAccountAt(bankPath: string): Promise<string | null> {
+    return logic().myAccountAt(bankPath);
+  }
+
+  /** Every account the acting owner holds (the multi-account read). */
+  public static async accountsOf(): Promise<AccountBalance[]> {
+    return logic().accountsOf();
+  }
+
+  /** The `ownerKey`'s primary account id — the receive-by-identity target. */
+  public static async primaryAccountIdOf(
+    ownerKey: string
+  ): Promise<string | null> {
+    return logic().primaryAccountIdOf(ownerKey);
+  }
+
+  /** The corpo affiliation recorded on an account (readable via corpo). */
+  public static async corpoKeyOf(accountId: string): Promise<string | null> {
+    return logic().corpoKeyOf(accountId);
+  }
+
+  /** Deposit a coin stack: coin → vault, balance credited 1:1 (custodial). */
+  public static async deposit(
+    bank: Stuff & Bank,
+    coinStack: Stuff & Globbable
+  ): Promise<void> {
+    return logic().deposit(bank, coinStack);
+  }
+
+  /** Withdraw cash: balance → coin, bounded by the branch till liquidity. */
+  public static async withdraw(
+    bank: Stuff & Bank,
+    amount: Money
+  ): Promise<void> {
+    return logic().withdraw(bank, amount);
+  }
+
+  /** Transfer balance → balance (conserving); only from your own account. */
+  public static async transfer(
+    fromAccountId: string,
+    toAccountId: string,
+    amount: Money,
+    memo = ""
+  ): Promise<void> {
+    return logic().transfer(fromAccountId, toAccountId, amount, memo);
   }
 }
 

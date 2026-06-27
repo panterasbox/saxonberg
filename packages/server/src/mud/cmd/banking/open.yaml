@@ -1,0 +1,11 @@
+verbs: [open]
+controller: banking/OpenController
+description: "Open an account at the bank here"
+help: |
+  Open an account at the bank you're standing in — `open`. The branch's
+  affiliation becomes your account's, and the account receives payments
+  addressed to you by name. Opening again here just names the account you
+  already have.
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresConscious

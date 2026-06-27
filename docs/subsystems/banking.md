@@ -72,6 +72,43 @@ single rebuildable row) and reconstructable by a full ledger scan
 `supply == Σ account balances + Σ circulating coins` — is the conservation
 audit (the coin term lands with the cash bridge in Phase 2+).
 
+## Custodial bank ops (Phase 2)
+
+A **bank** bridges cash and accounts 1:1 and can't fail. The capability is
+`BankMixin` (`lib/banking/Bank.ts`), hosted on a **teller-counter `Thing`
+fixture** (`BankCounter` = `BankMixin(ContainerMixin(Thing))`) *inside* the
+branch Location — NOT on the Location, because a Location's own
+`commandContributions` don't reach its occupants (only sibling *contents*
+feed the `environment` bucket; the `Menu` precedent). The counter's contents
+*are* the cash vault; `getTillLiquidity()` = Σ vault coin face-values.
+
+- **Affiliation** rides a plain `corpoKey` resolved on read via `CorpoApi`
+  (a bank is *affiliated to* a corpo, not a branded product). `openAccount`
+  records that key on the account row — the readable affiliation edge.
+- **Resolution by identity** — accounts key on `{owner, bankPath}` (owner =
+  the context-derived `templatePath`, bankPath = the counter's templatePath).
+  No number is ever typed: `myAccountAt(bankPath)` resolves "your account
+  here"; `primaryAccountIdOf(ownerKey)` is the receive-by-identity target;
+  the first account an owner opens is their **primary**. Multi-account is
+  native (per `{owner, bankPath}`); per-branch context selects.
+- **deposit** moves the coin into the vault and credits the balance 1:1
+  (`deposit` row, supply-neutral cash bridge). **withdraw** debits and hands
+  out coin (split from the vault), bounded by **both** the balance (solvency)
+  and the **till** (physical cash, AC#13 — a CB mint to a balance with no
+  backing coin is what lets the till bind). **transfer** moves balance→balance
+  (conserving), only from your *own* account (anti-spoof; actor from context).
+- The **1:1 invariant** (vault coin value == Σ branch balances) holds across
+  deposit / withdraw / same-bank transfer. Cross-bank settlement of physical
+  cash is deferred (a cross-bank transfer moves ledger balances only).
+
+Verbs (`open` / `deposit` / `withdraw` / `transfer` / `balance`, in one
+`banking/` category) are thin MVC triples over `BankController.resolveBank`
+(the affording counter, else the room scan — the crafting "agent performs,
+venue owns state" resolution). The branch is authored as **city content**:
+`seeds/domain/eternal/university-avenue/{bank,bank-counter,npc/teller}.yaml`,
+one cell north of the arrival plaza (reachable from the born-with University
+Avenue fast-travel node), affiliated to **Goodkin** (the retail bank).
+
 ## Module layout
 
 `lib/banking/` (the new subsystem folder):
@@ -126,10 +163,16 @@ The plan flagged 6 open implementation choices; settled as reached:
 3. **Tab persistence** — *(deferred to Phase 4.)*
 4. **Crafting price source for the presented Charge** — *(deferred to
    Phase 3.)*
-5. **Verb category** — *(deferred to Phase 2, when the first verbs land.)*
-6. **Branch/teller homing** — resolved by the plan (city content under
-   `seeds/domain/eternal/`); sub-choice (BankMixin on the Location vs a
-   teller-counter fixture) deferred to Phase 2.
+5. **Verb category** — chose **one `banking/` category** for the whole
+   surface (player + operator verbs together), per the plan's proposal.
+   Operator verbs are gated by developer-access at the controller, not by a
+   separate category. (Phase 2.)
+6. **Branch/teller homing** — city content under `seeds/domain/eternal/`
+   (resolved by the plan). Sub-choice settled: **`BankMixin` on a
+   teller-counter `Thing` fixture**, NOT on the branch Location — a
+   Location's own `commandContributions` don't reach its occupants, so the
+   affordance must come from a fixture in the room (the `Menu` precedent).
+   (Phase 2.)
 
 ## Deferred seams
 

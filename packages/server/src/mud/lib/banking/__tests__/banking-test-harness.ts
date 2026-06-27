@@ -10,6 +10,7 @@ import { PersistenceManager } from "../../../../backend/PersistenceManager";
 import AccountBalance from "../AccountBalance";
 import SupplyAggregate from "../SupplyAggregate";
 import { WorldClockApi } from "../../../api/worldclock";
+import { StuffApi } from "../../../api/stuff";
 
 let stores: Map<string, Map<string, Record<string, unknown>>>;
 let idCounter = 0;
@@ -56,6 +57,7 @@ export function installBankingHarness(): void {
   WorldClockApi._setNowProviderForTesting(() => 4242);
   AccountBalance._resetForTesting();
   SupplyAggregate._resetForTesting();
+  StuffApi.clearAll();
 }
 
 /** Tear down the harness (mirror of {@link installBankingHarness}). */
@@ -64,4 +66,5 @@ export function teardownBankingHarness(): void {
   WorldClockApi._resetForTesting();
   AccountBalance._resetForTesting();
   SupplyAggregate._resetForTesting();
+  StuffApi.clearAll();
 }

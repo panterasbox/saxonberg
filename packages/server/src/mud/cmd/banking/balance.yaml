@@ -1,0 +1,8 @@
+verbs: [balance, bal]
+controller: banking/BalanceController
+description: "Check your balance at the bank here"
+help: |
+  Read the balance on your account at this branch — `balance`. A count,
+  nothing more; no account number to remember.
+validators:
+  - /lib/command/validators/requiresAnimate

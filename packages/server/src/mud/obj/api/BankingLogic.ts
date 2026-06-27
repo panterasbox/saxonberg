@@ -12,9 +12,17 @@ import { Account } from "../../lib/banking/Account";
 import { Money } from "../../lib/banking/Money";
 import { BankTransaction } from "../../lib/banking/Transaction";
 import type { LedgerLeg } from "../../lib/banking/Transaction";
+import type { Bank } from "../../lib/banking/Bank";
 import { WorldClockApi } from "../../api/worldclock";
 import { PersistApi } from "../../api/persist";
 import { ExecutionContextApi } from "../../api/execution-context";
+import { ContainmentApi } from "../../api/containment";
+import { GlobbableApi } from "../../api/glob";
+import { MixinApi } from "../../api/mixin";
+import type { Stuff } from "../../lib/stuff/Stuff";
+import type { Container } from "../../lib/spatial/Container";
+import type { Containable } from "../../lib/spatial/Containable";
+import type { Globbable } from "../../lib/stuff/Globbable";
 
 const BankingApiCallers = SecurityPolicies.FromModule("mud/api/banking#BankingApi");
 
@@ -38,6 +46,118 @@ function actingActorKey(): string {
     getTemplatePath?(): string | null;
   } | null;
   return principal?.getTemplatePath?.() ?? "system";
+}
+
+/** The acting principal as a Stuff (for moving coin to/from it), or null. */
+function actingPrincipal(): Stuff | null {
+  return (ExecutionContextApi.getActingAuthor() as Stuff | null) ?? null;
+}
+
+/** Monotonic per-process counter making each minted account id unique. */
+let acctSeq = 0;
+
+/** Coin-shaped duck type — avoids importing the Coin class here. */
+interface CashLike {
+  getDenomination(): string;
+  getQuantity(): number;
+}
+
+function isCashLike(stuff: unknown): stuff is Stuff & Globbable & CashLike {
+  const s = stuff as Partial<CashLike>;
+  return (
+    typeof s?.getDenomination === "function" &&
+    typeof s?.getQuantity === "function"
+  );
+}
+
+/** The face value (minor units) of a coin stack. */
+function stackValue(stack: CashLike): number {
+  return Money.faceValueOf(stack.getDenomination()) * stack.getQuantity();
+}
+
+/** Find every account owned by `ownerKey`. */
+async function accountsOfImpl(ownerKey: string): Promise<AccountBalance[]> {
+  if (!active()) return [];
+  return AccountBalance.find<AccountBalance>({ owner: ownerKey });
+}
+
+/** The `ownerKey`'s account at `bankPath`, or null. */
+async function accountAtImpl(
+  ownerKey: string,
+  bankPath: string
+): Promise<AccountBalance | null> {
+  if (!active()) return null;
+  const [row] = await AccountBalance.find<AccountBalance>({
+    owner: ownerKey,
+    bankPath,
+  });
+  return row ?? null;
+}
+
+/** Resolve an account row by its durable id, or null. */
+async function accountByIdImpl(accountId: string): Promise<AccountBalance | null> {
+  if (!active()) return null;
+  const [row] = await AccountBalance.find<AccountBalance>({ accountId });
+  return row ?? null;
+}
+
+/**
+ * Open the acting owner's account at a branch — idempotent (returns the
+ * existing account id if one is already open here). The first account an
+ * owner opens is their primary (the receive-by-identity default). Records
+ * the bank's corpo affiliation on the row (readable via the corpo
+ * substrate). The actor is the context-derived author, never a parameter.
+ */
+async function openAccountImpl(
+  bankPath: string,
+  corpoKey: string
+): Promise<string> {
+  if (!active()) {
+    throw new Error("BankingLogic.openAccount: no persistence connection");
+  }
+  const owner = actingActorKey();
+  const owned = await accountsOfImpl(owner);
+  const already = owned.find((a) => a.bankPath === bankPath);
+  if (already) return already.accountId;
+
+  const row = new AccountBalance();
+  row.accountId = Account.newId(acctSeq++);
+  row.owner = owner;
+  row.bankPath = bankPath;
+  row.corpoKey = corpoKey;
+  row.isPrimary = owned.length === 0;
+  row.isActive = true;
+  row.balance = 0;
+  await row.save();
+  AccountBalance.putCached(row.accountId, 0);
+  return row.accountId;
+}
+
+/** Move `count` coins (value-1 units) out of the vault to `to`. */
+async function withdrawCoins(
+  bank: Stuff & Bank & Container,
+  to: Stuff & Container,
+  count: number
+): Promise<void> {
+  let remaining = count;
+  for (const item of [...ContainmentApi.getContents(bank)]) {
+    if (remaining <= 0) break;
+    if (!isCashLike(item)) continue;
+    const have = item.getQuantity();
+    if (have <= remaining) {
+      ContainmentApi.move(item, to);
+      remaining -= have;
+    } else {
+      const piece = await GlobbableApi.split(item, remaining);
+      ContainmentApi.move(piece as unknown as Stuff & Containable, to);
+      remaining = 0;
+    }
+  }
+  if (remaining > 0) {
+    throw new Error(
+      `BankingLogic.withdraw: vault short ${remaining} after till check (race)`
+    );
+  }
 }
 
 /**
@@ -262,5 +382,129 @@ export class BankingLogic extends Idea {
   @CallSecurity(BankingApiCallers)
   public async recomputeSupply(): Promise<void> {
     return recomputeSupplyImpl();
+  }
+
+  /* ───────────────────────── custodial bank ops ───────────────────────── */
+
+  /** See {@link BankingApi.openAccount}. */
+  @CallSecurity(BankingApiCallers)
+  public async openAccount(bankPath: string, corpoKey: string): Promise<string> {
+    return openAccountImpl(bankPath, corpoKey);
+  }
+
+  /** See {@link BankingApi.myAccountAt}. The actor's account id at a branch. */
+  @CallSecurity(BankingApiCallers)
+  public async myAccountAt(bankPath: string): Promise<string | null> {
+    const account = await accountAtImpl(actingActorKey(), bankPath);
+    return account?.accountId ?? null;
+  }
+
+  /** See {@link BankingApi.accountsOf}. Every account the actor holds. */
+  @CallSecurity(BankingApiCallers)
+  public async accountsOf(): Promise<AccountBalance[]> {
+    return accountsOfImpl(actingActorKey());
+  }
+
+  /** See {@link BankingApi.primaryAccountIdOf}. Receive-by-identity target. */
+  @CallSecurity(BankingApiCallers)
+  public async primaryAccountIdOf(ownerKey: string): Promise<string | null> {
+    const owned = await accountsOfImpl(ownerKey);
+    const primary = owned.find((a) => a.isPrimary) ?? owned[0];
+    return primary?.accountId ?? null;
+  }
+
+  /** See {@link BankingApi.corpoKeyOf}. The account's recorded affiliation. */
+  @CallSecurity(BankingApiCallers)
+  public async corpoKeyOf(accountId: string): Promise<string | null> {
+    const account = await accountByIdImpl(accountId);
+    return account?.corpoKey ?? null;
+  }
+
+  /** See {@link BankingApi.deposit}. Coin → vault, balance credited (1:1). */
+  @CallSecurity(BankingApiCallers)
+  public async deposit(
+    bank: Stuff & Bank,
+    coinStack: Stuff & Globbable
+  ): Promise<void> {
+    if (!isCashLike(coinStack)) {
+      throw new Error("BankingLogic.deposit: that isn't cash");
+    }
+    const owner = actingActorKey();
+    const account = await accountAtImpl(owner, bank.getBankPath());
+    if (!account) {
+      throw new Error(
+        "BankingLogic.deposit: no account here — open one first"
+      );
+    }
+    const value = stackValue(coinStack);
+    // Coin physically enters the vault (merges with any resting stack); the
+    // balance is credited — the two cancel (supply-neutral cash bridge).
+    ContainmentApi.move(
+      coinStack as unknown as Stuff & Containable,
+      bank as unknown as Stuff & Container
+    );
+    await postTransaction("deposit", [
+      { from: Account.CASH_BRIDGE, to: account.accountId, amount: value },
+    ]);
+  }
+
+  /** See {@link BankingApi.withdraw}. Balance → cash, bounded by the till. */
+  @CallSecurity(BankingApiCallers)
+  public async withdraw(bank: Stuff & Bank, amount: Money): Promise<void> {
+    const owner = actingActorKey();
+    const account = await accountAtImpl(owner, bank.getBankPath());
+    if (!account) {
+      throw new Error("BankingLogic.withdraw: no account here");
+    }
+    if (AccountBalance.cachedBalance(account.accountId) < amount.minor) {
+      throw new Error(
+        `BankingLogic.withdraw: your balance is under ${amount.render()}`
+      );
+    }
+    // The diegetic limit (AC#13): a branch can run low on physical coin even
+    // when the account is solvent — bounded by the actual till, not a gate.
+    if (bank.getTillLiquidity().minor < amount.minor) {
+      throw new Error(
+        `BankingLogic.withdraw: the branch can't cover ${amount.render()} ` +
+          `in cash right now (till low)`
+      );
+    }
+    const principal = actingPrincipal();
+    if (!principal || !MixinApi.isContainer(principal)) {
+      throw new Error("BankingLogic.withdraw: nowhere to hand the cash");
+    }
+    await postTransaction("withdraw", [
+      { from: account.accountId, to: Account.CASH_BRIDGE, amount: amount.minor },
+    ]);
+    await withdrawCoins(
+      bank as unknown as Stuff & Bank & Container,
+      principal,
+      amount.minor
+    );
+  }
+
+  /** See {@link BankingApi.transfer}. Balance → balance (conserving). */
+  @CallSecurity(BankingApiCallers)
+  public async transfer(
+    fromAccountId: string,
+    toAccountId: string,
+    amount: Money,
+    memo = ""
+  ): Promise<void> {
+    const from = await accountByIdImpl(fromAccountId);
+    if (!from) throw new Error("BankingLogic.transfer: no such source account");
+    // You may only transfer from your OWN account (anti-spoof; the actor is
+    // context-derived, the source must belong to them).
+    if (from.owner !== actingActorKey()) {
+      throw new Error("BankingLogic.transfer: that isn't your account");
+    }
+    if (AccountBalance.cachedBalance(fromAccountId) < amount.minor) {
+      throw new Error(
+        `BankingLogic.transfer: balance under ${amount.render()}`
+      );
+    }
+    await postTransaction("transfer", [
+      { from: fromAccountId, to: toAccountId, amount: amount.minor, memo },
+    ]);
   }
 }
