@@ -524,19 +524,36 @@ That's the point.
 
 A small, specific starting cluster; each is a *kind of access* the player
 lacks alone (the Heroes ensemble pattern), plus the slot where the next
-real player lands.
+real player lands. **Cast is carved just-in-time, not rostered** — a name
+gets a full profile only when the work needs them; the inherited list below
+is being pruned, not built out wholesale.
 
-- **Mira Sok** *(prov.)* — the one who *brings the problem* ("you notice
-  things — tell me I'm not crazy"). Knew Dunny better than she's saying.
-  The Encyclopedia-Brown client.
+> **On-ramp revised (2026-06-27): organic discovery, no quest-giver.** The
+> player isn't handed the murder by a client; they get their own room in the
+> massive dorm, *notice* the wrongness (a hushed floor, a taped door nobody
+> discusses, the half-furnished room, the moved roommate — §13 ambient
+> pressure, not a marker), and go ask. This **cuts Mira** — her "brings the
+> problem" function is replaced; her "knew him well" function is deferred (the
+> content lives in the sealed-room work, or a just-in-time confidant later if
+> the investigation needs one). And this is an **investigation-against-a-
+> cover-up, not an everyone's-a-suspect** story (see §14).
+
+- **Katie, the dorm property manager** *(carved — see
+  `staging/eternal-university/npcs/property-manager.md`)* — the **onboarding
+  touchpoint** (every player meets her day one for a room) and the **organic
+  on-ramp** (you come back with questions; she gives the official accident
+  line). Live-in caretaker / building enforcer — *gang when she wants, boss
+  when she has to.* Holds the master keys → the keyed **gate** to the
+  victim's room (one route of several, §14); an obstacle that can become an
+  ally. **Not a suspect.**
 - **Theo Brandt** *(prov.)* — gregarious, knows everyone, can't keep a
   confidence → a *fantastic source*. How rumor enters the system; tells
   you six things, one of them true.
-- **"Pidge" / Priya Ghosh** *(prov.)* — quiet, fixes the building, has
-  keys she shouldn't, has *been* in the basement → physical access. Scared
-  in a way the others aren't, and won't say why. (Candidate for the
-  borderline-real: someone the flag-the-unreal detector would wrongly
-  damn — the human face on the dual-use hazard.)
+- **Pidge** *(deferred — likely cut)* — the inherited "physical access" role
+  (keys, the basement) is **absorbed by Katie**, who legitimately holds them.
+  Pidge's *separate* value — the **borderline-real**, the human face of the
+  dual-use hazard — is a different question, summoned just-in-time only if the
+  investigation ever needs it. Not carved now.
 - **The empty chair** — the next real player. The dorm makes room.
 - **Proctor Halvers** *(prov.)* — the authority who carries the player
   witness → deputized. *Not* a villain: tired, over his head, quietly
@@ -879,6 +896,31 @@ as a **closable case + a persistent antagonist** — which is exactly the
 Heroes-shaped: close a case without closing the world. These four
 properties are general, not murder-specific — but they're *design*, and
 they wait until the narrative tells us what beats they must carry.
+
+**G. Investigation design — immersive-sim, not whodunit-parlor (2026-06-27).**
+Two linked decisions. **(1) Not an everyone's-a-suspect story** — the frame
+is *investigation-against-a-cover-up* (Disco Elysium / All the President's
+Men / *Return of the Obra Dinn*), not suspect-elimination. The opposition is
+**structural** (the locked door, the official story, the disposal clock, the
+institution), not a guilty face in the cast; NPCs are systemic
+actors (obstacle / ally / source), never red herrings. **(2) Immersive-sim
+access** — *author the obstacle's **properties**, not its **solutions**.* The
+victim's room is `locked + Katie-keyed + windowed + adjoining Wren's vacated
+half + actively-being-cleared-on-a-clock`, and routes fall out: convince
+Katie (social, slow, clean), break in (force, fast, **loud** — noise,
+evidence, suspicion, accelerated clearing), time the cleaners (opportunity),
+or go around (spatial). Each route **costs differently** and the world
+*remembers* (belief/regard) — the consequences are the gameplay, not the
+doors. And the room is **not a gate**: the truth is over-determined across a
+**web** of redundant nodes (room / morgue / registrar / Wren's boxes /
+testimony — the §14 triangle + the smuggled fragment), which (a) gives
+multiple paths, (b) removes the multiplayer chokepoint, and (c) makes
+investigation *cooperative* — one player charms Katie, another reads the
+body, a third pulls the records, pooled on the Quad: the §10 thesis (a
+community assembles the truth a lone decoder can't) as literal co-op.
+Deduction stays knowledge-gated (Obra Dinn / Outer Wilds): the real lock is
+*understanding*, not the door. Forcing function on perception / locks /
+locomotion / dialogue+regard / stealth / advancement.
 
 ---
 
