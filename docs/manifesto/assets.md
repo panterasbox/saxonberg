@@ -39,7 +39,7 @@ source of truth for the Descript edit.
 
 ---
 
-## Ch 3 — "The argument, not the crowd"  *(exemplar — in progress)*
+## Ch 3 — "The argument, not the crowd"  *(exemplar — all beats built ✅)*
 
 ### Beat 1 — the four rooms (2×2 grid)  ✅ built
 Reveal: **grid-1 → (dissolve) → grid-2**.
@@ -73,14 +73,27 @@ Reveal: **open-1 → (response slides in) → open-2**.
 | `ch3-beat4-open-1` | `ch3-beat4-open-1.excalidraw` | 1/2 | objection flagged **OPEN** (red badge), no response yet, counter **"1 open objection"** | "an unanswered objection just sits there, flagged, in the open" |
 | `ch3-beat4-open-2` | `ch3-beat4-open-2.excalidraw` | 2/2 | the response slides in → badge flips to **ANSWERED** (green), counter **"0 open objections"** | "the only way to clear the flag is to answer it" |
 
-### Beat 5 — the live floor  ⬜ not built
-Debate stage: floor-bot, speakers, gallery; arrow carrying claims *down* into the map.
+### Beat 5 — the live floor  ✅ built
+Reveal: **floor-1 (the room) → floor-2 (+ it feeds the record)**.
 
-### Beat 6 — the scale frontier  ⬜ not built
-Map drowning in near-duplicates → an AI "librarian" proposes a merge (human confirms ✓); originals persist. *(AI named exactly once — here.)*
+| PNG | Source | State | Shows | Lands on cue |
+|---|---|---|---|---|
+| `ch3-beat5-floor-1` | `ch3-beat5-floor-1.excalidraw` | 1/2 | THE LIVE FLOOR: floor-bot + speaking queue, two neutral speaker heads, the gallery row | "a bot runs the floor… a few debate, everyone else watches from the gallery" |
+| `ch3-beat5-floor-2` | `ch3-beat5-floor-2.excalidraw` | 2/2 | + down-arrow → mini argument-map (the durable record) + caption "live surfaces; async decides" | "what the debate does is surface claims into the map… live surfaces, async decides" |
 
-### Beat 7 — land + hand forward  ⬜ not built
-The 2×2 grid again with "match the mode to the moment."
+### Beat 6 — the scale frontier (AI librarian)  ✅ built
+Reveal: **scale-1 (the flood) → scale-2 (librarian proposes a merge, human confirms)**. *(The one place AI is named in the whole video.)*
+
+| PNG | Source | State | Shows | Lands on cue |
+|---|---|---|---|---|
+| `ch3-beat6-scale-1` | `ch3-beat6-scale-1.excalidraw` | 1/2 | a cluster of ~6 near-duplicate claim nodes — "the same claim, a thousand times; the map drowns" | "ten thousand, and it drowns in near-identical claims" |
+| `ch3-beat6-scale-2` | `ch3-beat6-scale-2.excalidraw` | 2/2 | a dashed "AI librarian" cluster → **proposes** one merged claim (×6); "a human confirms — not the AI; originals kept"; caption "AI as a librarian, never a judge" | "a model proposes a merge… a person confirms… librarian, never a judge" |
+
+### Beat 7 — land + hand forward  ✅ built
+
+| PNG | Source | State | Shows | Lands on cue |
+|---|---|---|---|---|
+| `ch3-beat7-callback` | `ch3-beat7-callback.excalidraw` | — | the 2×2 grid recalled (structured cells lit) + creed "match the mode to the moment" | "chat where it's casual, argue where it counts… match the mode to the moment" |
 
 ---
 
