@@ -614,7 +614,7 @@ registry) lives in `lib/mixin.ts`.
 | `lib/spatial/` | `SealableMixin` | open/closed state (doors) |
 | `lib/spatial/` | `DoorBearingMixin` | adds `door: Door \| null` for hosts whose exits are synthesized rather than authored (`ExitableVessel`). Constrained to `Stuff & Exitable`. |
 | `lib/stuff/` | `SingletonMixin` | class-level uniqueness — refuses a second `clone()` for the same templatePath. Composed by `CartesianZone` / `SphericalZone`. |
-| `lib/stuff/` | `PopulatesMixin` | declarative content-spawn for Container hosts; `populates:` instruction field lists templatePaths to clone (non-singletons) or singleton-resolve into self. Phase 2 applier. |
+| `lib/stuff/` | `PopulatesMixin` | declarative content-spawn for Container hosts; `populates:` instruction field lists entries to clone (non-singletons) or singleton-resolve into self — each a bare templatePath (moved in) or a `{template, onto}` object (placed on an already-populated sibling surface via `placeOn`). Phase 2 applier. |
 | `lib/message/` | `SensorMixin` | `handleMessage(frame)` notification hook |
 | `lib/message/` | `VocalMixin` | `say(text)` with scope inference |
 | `lib/command/` | `CommandGiverMixin` | `executeCommand`, `getAvailableCommands`, `getAffordances` |
@@ -647,6 +647,10 @@ registry) lives in `lib/mixin.ts`.
 | `lib/thermal/` | `ThermalRegulationMixin` | the Option-C body driver: overrides `getVitalSign` (sync, cached effective ambient) to **drive** `coreTemperature` — pin at setpoint within the thermoneutral band, else spend satiation (cold) / hydration (hot, wet-bulb-capped) to defend it, fail into passive `Thermal` drift; endo/ecto split (`BodyPlan.thermalStrategy`) + Q10; the hypothermia/hyperthermia/torpor cascade → death seam. Composed over `ThermalMixin`/`Metabolic`, inner of `LoadBearing`, by `Creature`. No Api. See [thermal.md](./subsystems/thermal.md). |
 | `lib/forums/` | `ForumsMixin` | the forums transmission capability (post / reply / vote / subscribe verb family), composed on a hosted update (`ForumsUpdate`). Born-with: the `ForumsUpdate` is an `AetherHosted` implant conferring this mixin, granted at intake. Acts on behalf of its host via `getHost()`. See [forums.md](./subsystems/forums.md). |
 | `lib/forums/` | `SubjectSubscriberMixin` | per-Avatar forum-subscription storage: the keyed set of subscribed `Subject`s feeding the `ForumSubscriptionRegistry` fan-out. Composed by `Avatar`. See [forums.md](./subsystems/forums.md). |
+| `lib/craft/` | `GradedMixin` | the ordinal-quality carrier: a persisted `gradeBand` word + the `Grade` value-object contract (`getGrade`/`setGrade`/`getGradeBand`/`setGradeBand`). Composed by input bottles (`GradedReceptacle`) and inherited by `CraftedMixin`. See [crafting.md](./subsystems/crafting.md). |
+| `lib/craft/` | `ToolMixin` | the durable-good substrate: `capabilities: string[]` (matched by recipe-required capability) + a `condition` (0..1) that `wear()`s on use, not the clock. Composed by `ToolItem`. See [crafting.md](./subsystems/crafting.md). |
+| `lib/craft/` | `CraftedMixin` | the per-instance maker's mark (composes `GradedMixin`): `{maker, recipe, craftedAt}` stamped once at craft-resolve + the DF-style `renderVerdict()` (band-word + prose + maker, never a number). Un-spoofable (maker derived from context). Composed by `CraftedDrink`. See [crafting.md](./subsystems/crafting.md). |
+| `lib/craft/` | `MakerMixin` | minimal role marker (`isMaker()`) identifying an agent that can fulfill an `order` (the bartender). Not used to gate `serve`/`mix`. Composed by `Crafter`. See [crafting.md](./subsystems/crafting.md). |
 
 ### Mixin Composition Constraints
 

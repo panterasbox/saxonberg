@@ -11,7 +11,7 @@
  * Deliberately tiny — no behavior, no state. It is **not** used to gate
  * `serve`/`mix` (those are general agent verbs; maker = the giver); it is
  * only the order-fulfiller signal. Composed onto a maker NPC — see
- * `obj/Crafter.ts`.
+ * `lib/character/Crafter.ts`.
  */
 
 import type { MixinConstructor } from '../mixin';

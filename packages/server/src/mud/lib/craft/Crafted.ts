@@ -43,12 +43,10 @@ function resolveMakerName(maker: string): string | null {
   if (!maker) return null;
   const stuff = StuffApi.findByTemplatePath<Stuff>(maker);
   if (!stuff) return null;
-  const named = stuff as unknown as { getPresentation?: () => string };
-  if (typeof named.getPresentation === 'function') {
-    const name = named.getPresentation();
-    if (name) return name;
-  }
-  return null;
+  // getPresentation() is on the Stuff base — the resolve-on-read display
+  // name (fullName ?? name ?? short ?? "something"), so it never returns
+  // empty.
+  return stuff.getPresentation();
 }
 
 export interface CraftedStamp {

@@ -298,9 +298,10 @@ geometry classes documented above):**
 | File | Role |
 |---|---|
 | `Lounge.ts` | The one room template every lounge instance clones from. |
-| `Bar.ts` | Singleton external-neighbor shell (Dave's Bar). |
+| `Bar.ts` | Singleton external-neighbor shell (Dave's Bar); self-stocks crafting content via `populates:` (the back-bar fixture + bottles/tools `onto` it, plus Dave + the menu). |
 | `LoungeWarren.ts` | Concrete singleton Warren — the lounge *policy*. |
 | `LoungeMixin.ts` | `LoungeMixin` — lounge-room behavior + the home for future room functionality. |
+| `Menu.ts` / `CraftedDrink.ts` / `GradedReceptacle.ts` | Bar crafting content (the offer object, the crafted-drink output glass, the stock bottle) — composed over the general `lib/craft/` substrate. See [crafting.md](./crafting.md). |
 
 Content classes live under `/domain/lounge/` — a managed area's own
 class namespace, mirroring its template namespace (the class-path
@@ -309,7 +310,10 @@ Warren substrate stays in `/lib/`.
 
 Content seeds: `seeds/domain/lounge/{warren,lounge,bar}.yaml` (templates
 at `/domain/lounge/{warren,lounge,bar}`, leaves under the
-`/domain/lounge` FolderZone).
+`/domain/lounge` FolderZone), plus the bar's crafting fixtures
+(`back-bar`, the four bottles, `shaker`/`mixing-glass`,
+`cocktail-glass`, `bar-menu`, `dave`) the `Bar` self-stocks via
+`populates:`. See [crafting.md](./crafting.md).
 
 ## Core model
 

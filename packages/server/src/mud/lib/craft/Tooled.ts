@@ -11,7 +11,7 @@
  *   (economy Law 2: you dull the knife by cutting, never by time on the wall).
  *   The first durable-good sink shape; opt-in repair is a later increment.
  *
- * Composed on a `Thing` (Tangible + Visible) — see `obj/ToolItem.ts`.
+ * Composed on a `Thing` (Tangible + Visible) — see `ToolItem.ts`.
  */
 
 import type { MixinConstructor } from '../mixin';

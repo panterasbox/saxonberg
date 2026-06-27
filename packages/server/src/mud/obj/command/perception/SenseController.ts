@@ -223,7 +223,17 @@ export default class SenseController extends CommandController<SenseModel> {
       return;
     }
     const filteredText = target.getMarkupLong(actor, { filter: sensorium });
-    const body = Mml.compose`\n${Mml.name(target)}\n\n${Mml.fromMarkup(filteredText)}\n`;
+    let body = Mml.compose`\n${Mml.name(target)}\n\n${Mml.fromMarkup(filteredText)}\n`;
+    // Drill-in: sensing a surface reveals what rests on it — mirrors
+    // `LookController.lookAtTarget`, the discovery path that keeps resting
+    // items out of the room view.
+    if (MixinApi.isSurfaced(target)) {
+      const resting = target.getResting();
+      if (resting.length > 0) {
+        const list = Mml.list(resting.map((r) => Mml.item(r)));
+        body = Mml.compose`${body}── On it: ${list}.`;
+      }
+    }
     MessageApi.scene(actor)
       .topic(SCENE_TOPIC)
       .toSelf(body)

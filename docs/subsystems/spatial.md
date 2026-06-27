@@ -368,25 +368,37 @@ Item-side gates intentionally don't exist — the authoring
 intuition is host-side ("this surface rejects X") not item-side
 ("this item refuses Y").
 
-### Surface-resting grouping (not yet built)
+### Surface-resting presentation: `ContainmentApi.looseContents`
 
 Items appear in their enclosing container's contents listing
 naturally (the apple is in the room; `room.getContents()`
-includes it). Rendering the perceptual grouping ("a wooden
-desk, with a red apple on it") needs a presentation pass that
-partitions a `getContents()` snapshot into top-level items and
-items grouped under their supporting `Surfaced` host, plus a
-count-aware suffix ("with a red apple on it" / "scattered with
-various items" above a threshold).
+includes it). But a room-contents *listing* shouldn't repeat an
+item that's already represented by the surface it rests on — the
+back-bar's bottles read "on the back-bar," not as loose room
+clutter beside the patrons.
 
-An early implementation of this lived as `DescribeApi`
-helpers (`groupContentsByResting` / `formatRestingSuffix`), but
-it had no production caller — `look` doesn't render a
-"you see X, Y, Z" content listing today — so it was removed as
-dead code when `DescribeApi` retired (recoverable from git
-history). The grouping is purely presentational; the underlying
-contents walk is unchanged, so the render pass can be
-reintroduced whenever the listing caller actually lands.
+`ContainmentApi.looseContents(items)` is the shared presentation
+filter: given a contents snapshot, it drops any item whose
+`getRestingOn()` is itself in the set. It's a pure static (no
+mutation of the walk) applied by **three** callers so the rule is
+uniform: `look` and `sense` (the room branch) and the inspection
+pane (`Container.contents`).
+
+The complementary half is the **drill-in**: examining a
+`Surfaced` host (`look back-bar` / `sense back-bar`) reveals what
+rests on it via an "── On it:" line built from
+`Surfaced.getResting()`. So the resting items are out of the room
+view but one examination away — the discovery path that keeps the
+stock reachable without cluttering the room. (The earlier
+count-aware "a desk, with a red apple on it" inline suffix —
+once a dead `DescribeApi` helper — remains unbuilt; this is the
+listing-partition shape that actually shipped, driven by the
+crafting build's back-bar. See [crafting.md](./crafting.md).)
+
+A concrete **`Surface`** class (`lib/spatial/Surface.ts`,
+`SurfacedMixin(DetailedMixin(Thing))`) is the generic fixture you
+set things on — a shelf, counter, table, or the bar's back-bar —
+the first authored consumer of the surface substrate.
 
 ### Verbs: `put`, `give`
 
