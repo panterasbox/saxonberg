@@ -6,14 +6,16 @@ hydratorClass: /lib/persistence/PersistentHydrator
 data:
   name: Remy
   pronouns: he
-  _speciesPath: /lib/species/animalia/chordata/mammalia/primates/hominidae/homo/sapiens
+  _speciesPath: /lib/species/animalia/chordata/mammalia/primates/hominidae/homo/infernalis
   lifecycleState: alive
   primaryKeyword: remy
-  shortDescription: a grinning, fast-talking bartender
+  shortDescription: a grinning, fast-talking tiefling
   longDescription: |
-    All motion and warmth, working the rail like a stage — a wink here, a
-    refill there, a story always half-told. He knows everyone's name by
-    the second visit and most of their business by the third.
+    All motion and warmth, a crooked grin under a neat pair of swept-back
+    horns and a tail that punctuates his stories when his hands are busy.
+    He works the rail like a stage — a wink here, a refill there, a rumor
+    always half-told — and knows everyone's name by the second visit and
+    most of their business by the third.
   behaviors:
     - brain: /lib/behavior/shifts
       trigger: cadence:30s

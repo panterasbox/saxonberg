@@ -1,6 +1,11 @@
-# Dave — owner, master-emeritus. He doesn't pour anymore; he works the
-# room and the books. The endgame made flesh (learn → master → run). A
-# broad daily presence; idles and holds the place together.
+# Dave — the owner, and the bar's namesake. A nod to the original EotL
+# "Dave the Barkeep": a retired performer who drifted through odd jobs
+# and finally settled down to open his own place. The overt gag (a
+# cancelled-TV-show / impressionist bit) is buried — left subtle enough
+# that an old-school superfan catches it from the description. He keeps
+# to the back office these days; when he does drift out front, the old
+# stage habits (a wink, a polished glass, a half-sung tune) resurface —
+# the "annoying script" as a fond homage. Human (canon).
 class: /lib/character/NPC
 hydratorClass: /lib/persistence/PersistentHydrator
 data:
@@ -9,12 +14,20 @@ data:
   _speciesPath: /lib/species/animalia/chordata/mammalia/primates/hominidae/homo/sapiens
   lifecycleState: alive
   primaryKeyword: dave
-  shortDescription: the proprietor
+  alternateNames:
+    - barkeep
+    - bartender
+  shortDescription: Dave the Barkeep
   longDescription: |
-    He doesn't work the taps so much as preside over them — a nod that
-    settles a tab, a word that ends an argument. Mastery worn so lightly
-    you'd miss it, until you watch the room arrange itself around him.
+    Dave keeps to the back these days and lets the staff run the rail.
+    When he does drift out front he can't quite help himself — a glass
+    polished that didn't need it, a wink at no one in particular, a few
+    bars of some old theme tune nobody can place. He's got the easy,
+    slightly-too-rehearsed charm of a man who was on a screen somewhere
+    once and has decided not to bring it up. He opened this place to
+    settle down. Mostly, it took.
   behaviors:
+    # Dave rarely leaves the office — a short evening turn about the floor.
     - brain: /lib/behavior/shifts
       trigger: cadence:30s
       config:
@@ -22,17 +35,19 @@ data:
         railStool: /domain/lounge/bar
         offstage: /domain/lounge/offstage
         schedule:
-          - { days: [0, 1, 2, 3, 4, 5, 6], hours: [8, 24], state: on-shift }
+          - { days: [0, 1, 2, 3, 4, 5, 6], hours: [21, 23], state: on-shift }
     - brain: /lib/behavior/idles
-      trigger: cadence:17s
+      trigger: cadence:15s
       config:
         pool:
-          - { kind: free, value: "surveys the room with a slow, proprietary calm." }
-          - { kind: free, value: "exchanges a quiet word with one of the staff." }
-          - { kind: say, value: "Good crowd tonight." }
+          - { kind: free, value: "polishes a glass that didn't need polishing." }
+          - { kind: free, value: "winks knowingly at no one in particular." }
+          - { kind: free, value: "sniffs the air, considering." }
+          - { kind: say, value: "There she was, just a-walkin' down the street..." }
     - brain: /lib/behavior/greets
       trigger: arrival
       config:
         lines:
           - "Welcome to my bar."
-          - "Glad you came by."
+          - "What're we drinking?"
+          - "Glad you came by, friend."

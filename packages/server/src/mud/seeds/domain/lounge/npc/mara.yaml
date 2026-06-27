@@ -6,14 +6,16 @@ hydratorClass: /lib/persistence/PersistentHydrator
 data:
   name: Mara
   pronouns: she
-  _speciesPath: /lib/species/animalia/chordata/mammalia/primates/hominidae/homo/sapiens
+  _speciesPath: /lib/species/animalia/chordata/mammalia/primates/hominidae/homo/khazadicus
   lifecycleState: alive
   primaryKeyword: mara
-  shortDescription: a quiet, watchful bartender
+  shortDescription: a steady, watchful dwarf tending bar
   longDescription: |
-    She moves with the economy of someone who has counted these bottles
-    ten thousand times — no wasted gesture, a cloth never far from her
-    hand. Dark eyes that listen better than they speak.
+    Stocky and unhurried, with dark eyes that listen better than they
+    speak and broad, capable hands never far from a cloth. She moves with
+    the economy of someone who has counted these bottles ten thousand
+    times — and the thick iron-grey braid over one shoulder says she's
+    earned the right to be unimpressed by most things.
   behaviors:
     - brain: /lib/behavior/shifts
       trigger: cadence:30s

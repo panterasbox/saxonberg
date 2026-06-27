@@ -6,14 +6,16 @@ hydratorClass: /lib/persistence/PersistentHydrator
 data:
   name: Sloane
   pronouns: they
-  _speciesPath: /lib/species/animalia/chordata/mammalia/primates/hominidae/homo/sapiens
+  _speciesPath: /lib/species/animalia/chordata/mammalia/primates/hominidae/homo/sensitivus
   lifecycleState: alive
   primaryKeyword: sloane
   shortDescription: a still, attentive bartender
   longDescription: |
     Quiet at the dark end of the bar, polishing nothing in particular,
     watching the room over the rim of a glass they never quite drink
-    from. The kind of calm that makes people tell them things.
+    from. There's an uncanny attentiveness to them — one of the
+    attuned-born, who seem to read the air itself — so they always seem
+    to know who needs another and who just needs someone to listen.
   behaviors:
     - brain: /lib/behavior/shifts
       trigger: cadence:30s

@@ -4,9 +4,10 @@
 class: /domain/lounge/Offstage
 hydratorClass: /lib/persistence/PersistentHydrator
 data:
-  shortDescription: the back of house
-  primaryKeyword: backofhouse
+  shortDescription: Dave's Bar — Back office
+  primaryKeyword: backoffice
   longDescription: |
-    A dim service corridor that smells of bleach and coffee grounds —
-    coats on pegs, a punch-clock, the hum of the walk-in cooler. Where
-    the staff are when they're not on the floor.
+    A cramped back office that doubles as the staff's bolt-hole: a desk
+    buried under receipts, coats on pegs, a punch-clock, and the steady
+    hum of the walk-in cooler through the wall. Where the cast are when
+    they're not on the floor — and where Dave mostly is, full stop.

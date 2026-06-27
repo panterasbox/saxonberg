@@ -26,7 +26,7 @@ interface Spec {
 }
 interface CastDoc {
   class: string;
-  data: { name?: string; behaviors?: Spec[] };
+  data: { name?: string; _speciesPath?: string; behaviors?: Spec[] };
 }
 
 function castFiles(): string[] {
@@ -48,6 +48,13 @@ describe("Dave's Bar cast seeds", () => {
     for (const f of castFiles()) {
       expect(load(f).class).toBe('/lib/character/NPC');
     }
+  });
+
+  it('the cast spans multiple species (not all human)', () => {
+    const species = new Set(
+      castFiles().map((f) => load(f).data._speciesPath)
+    );
+    expect(species.size).toBeGreaterThanOrEqual(3);
   });
 
   it('every behavior brain path resolves to a real brain', async () => {

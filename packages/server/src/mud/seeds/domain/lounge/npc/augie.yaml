@@ -6,14 +6,16 @@ hydratorClass: /lib/persistence/PersistentHydrator
 data:
   name: Augie
   pronouns: he
-  _speciesPath: /lib/species/animalia/chordata/mammalia/primates/hominidae/homo/sapiens
+  _speciesPath: /lib/species/animalia/chordata/mammalia/primates/hominidae/homo/semiorcus
   lifecycleState: alive
   primaryKeyword: augie
-  shortDescription: an old, easy-handed bartender
+  shortDescription: an old, easy-handed half-orc
   longDescription: |
-    Grey at the temples and slow to hurry, he pours like the bar is an
-    old friend's kitchen. There's a story behind every bottle and he'll
-    tell you the good ones if you stay long enough.
+    Broad-shouldered and grey at the temples, with a tusked, weathered
+    grin and hands like worn saddle-leather. He pours like the bar is an
+    old friend's kitchen — unhurried, generous to a fault — and there's a
+    story behind every bottle. He'll tell you the good ones if you stay
+    long enough.
   behaviors:
     - brain: /lib/behavior/shifts
       trigger: cadence:30s
