@@ -247,13 +247,23 @@ set. Two kinds are recognized:
   `lib/description/Visible.ts#senseStripAugmenter`.
 - **DI injection seams** — a backend→mudlib wiring slot a free function
   fills at boot. Today: `lib/connection/HasInteractive.ts#setClientStateUpdatePush`.
+- **Logic-singleton sibling cross-imports** (`no-restricted-imports`) — two
+  logic singletons in one subsystem that must reference each other's class
+  *identity* for a framework allowlist, which the facade can't broker.
+  Today: `obj/api/ConsumerLogic.ts` ↔ `obj/api/ProducerLogic.ts` (the
+  class identities feed `EventApi.restrictSubscribe`'s subscriber
+  allowlist for the shared `CommandDispatchedEvent` consumer/producer
+  tap; cycle-safe). Each opts out with
+  `eslint-disable-next-line no-restricted-imports -- <reason>`.
 
-**Enforcement.** Two ESLint rules (`.eslintrc.js`): `api/*.ts` bans
-exported functions / function-consts; `lib/**/*.ts` bans the same,
-exempting `*Mixin` factories by name and the two decorator files by
-path. Both opt out only via an `eslint-disable` + justification. (The
-gate-string resolver and the sealed-subdir rule round out the
-[lint family](#cross-references).)
+**Enforcement.** ESLint rules (`.eslintrc.js`): `api/*.ts` bans exported
+functions / function-consts; `lib/**/*.ts` bans the same, exempting
+`*Mixin` factories by name and the two decorator files by path; a
+`no-restricted-imports` rule forbids importing `obj/api/*Logic`
+singletons anywhere except each logic's own `api/*.ts` facade (and
+`__tests__`, which white-box logic internals). All opt out only via an
+`eslint-disable` + justification. (The gate-string resolver and the
+sealed-subdir rule round out the [lint family](#cross-references).)
 
 **The ask-first rule.** Introducing a *new* exception — anything that
 needs a fresh `eslint-disable no-restricted-syntax`, or a file that

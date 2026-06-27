@@ -5,19 +5,7 @@
 import { Idea } from '../../lib/stuff/Idea';
 import { CallSecurity, Unshadowable } from '../../lib/security/decorators';
 import { SecurityPolicies } from '../../lib/security/SecurityPolicies';
-
-/** Canonical direction names (long form). */
-export type CardinalDirection =
-  | 'north'
-  | 'south'
-  | 'east'
-  | 'west'
-  | 'northeast'
-  | 'northwest'
-  | 'southeast'
-  | 'southwest'
-  | 'up'
-  | 'down';
+import type { CardinalDirection } from '../../api/navigation';
 
 /**
  * Offsets keyed by long-form direction name.

@@ -50,7 +50,11 @@ export function PersonaMixin<TBase extends MixinConstructor>(Base: TBase) {
      * `PerceiverMixin`'s self verbs.
      */
     static commandContributions: CommandContributions = {
-      self: ['charactergen/chronicle.yaml', 'social/standing.yaml'],
+      self: [
+        'charactergen/chronicle.yaml',
+        'charactergen/traits.yaml',
+        'social/standing.yaml',
+      ],
       environment: [],
       inventory: [],
       peers: [],

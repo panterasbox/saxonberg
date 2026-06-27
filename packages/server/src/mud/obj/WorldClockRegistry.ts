@@ -50,7 +50,7 @@ import type {
 import { WorldClockApi } from '../api/worldclock';
 import { WeatherApi } from '../api/weather';
 import { WEATHER_DEFAULTS } from '../lib/weather/WeatherType';
-import { registerWorldClockRegistryClass } from './api/WorldClockLogic';
+import { registerWorldClockRegistryClass } from '../api/worldclock';
 
 /**
  * Gate every public Registry method to the Api facade, the

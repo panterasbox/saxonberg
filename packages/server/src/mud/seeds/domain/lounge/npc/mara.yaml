@@ -16,6 +16,14 @@ data:
     the economy of someone who has counted these bottles ten thousand
     times — and the thick iron-grey braid over one shoulder says she's
     earned the right to be unimpressed by most things.
+  # Established character (seeded as claim evidence at spawn): steady,
+  # watchful, reserved — the Anchor. Slate-pinned reserved & temperate.
+  dispositions:
+    - { disposition: diligence, valence: 70 }
+    - { disposition: patience, valence: 70 }
+    - { disposition: composure, valence: 70 }
+    - { disposition: temperance, valence: 70 }
+    - { disposition: sociability, valence: -70 }
   behaviors:
     - brain: /lib/behavior/shifts
       trigger: cadence:30s
@@ -47,3 +55,13 @@ data:
           - "Evening."
           - "Welcome in."
           - "Sit anywhere you like."
+    # Trait-aware chatter: Mara's reserved sociability keeps this sparse —
+    # mostly silence, the occasional clipped word.
+    - brain: /lib/behavior/converses
+      trigger: cadence:19s
+      config:
+        chatty:
+          - "Good to have you in."
+        terse:
+          - "Mm."
+          - "Hm."

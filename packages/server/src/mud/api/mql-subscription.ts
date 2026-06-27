@@ -46,6 +46,12 @@ import {
 import { MqlSubscriptionLogic } from '../obj/api/MqlSubscriptionLogic';
 import { fileURLToPath } from 'url';
 
+// DI seam: re-exported so `MqlSubscriptionRegistry` registers its class
+// through this facade rather than importing the logic singleton directly
+// (the no-import-from-*Logic rule). The load-time mechanism lives in
+// `MqlSubscriptionLogic`; this is a pure pass-through re-export.
+export { registerMqlSubscriptionRegistryClass } from '../obj/api/MqlSubscriptionLogic';
+
 void (undefined as unknown as _MqlSubscriptionErrorReason);
 
 /* ───────────────────── Public descriptor surface ────────────────── */

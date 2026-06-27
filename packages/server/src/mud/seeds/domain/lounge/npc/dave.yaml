@@ -28,6 +28,12 @@ data:
     charm of a man who did a little acting once, drifted through a lot of
     odd jobs, and finally settled down to open his own bar. Mostly, it
     took.
+  # Established character: content (settled), a bold performer, the
+  # rehearsed charm — the owner, mostly offstage.
+  dispositions:
+    - { disposition: ambition, valence: -70 }
+    - { disposition: boldness, valence: 70 }
+    - { disposition: humility, valence: -70 }
   behaviors:
     # Dave rarely leaves the office — a short evening turn about the floor.
     - brain: /lib/behavior/shifts

@@ -42,7 +42,7 @@ import { PromptApi } from '../../../api/prompt';
 import type { Forums } from '../../../lib/forum/Forums';
 import type { Stuff } from '../../../lib/stuff/Stuff';
 import type Subject from '../../../lib/forum/Subject';
-import type { EntrySort, ArgumentRelation } from '../../../obj/api/ForumsLogic';
+import type { EntrySort, ArgumentRelation } from '../../../api/forums';
 import type { VoteValue } from '../../../lib/forum/Vote';
 
 interface ForumModel extends CommandModel {

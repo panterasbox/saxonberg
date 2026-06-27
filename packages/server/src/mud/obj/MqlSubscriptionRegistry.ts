@@ -58,7 +58,7 @@ import {
   type SubscribeRequest,
   type QueryRequest,
 } from '../api/mql-subscription';
-import { registerMqlSubscriptionRegistryClass } from './api/MqlSubscriptionLogic';
+import { registerMqlSubscriptionRegistryClass } from '../api/mql-subscription';
 
 /**
  * See WorldClockRegistry — same gate shape, same rationale. Admits the

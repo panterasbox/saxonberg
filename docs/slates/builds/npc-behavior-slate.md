@@ -323,6 +323,13 @@ palette-discoverable.
 
 ## Traits — the personality layer (the roster)
 
+> **STATUS:** the trait **substrate + jobs 1 & 2** (the roster, the
+> derive-on-read ledger/estimator, the demonstrator brain, compatibility →
+> regard baseline) **shipped** — see [trait.md](../../subsystems/trait.md).
+> This section is retained for the **deferred stress / composure work**
+> (job 3, the `traits-stress` follow-on); its open questions below are that
+> build's surface.
+
 CK3-style **personality traits** — opposed-pair dispositions — are the
 **personality input the brains read** and a **baseline input to `regard`.**
 Decided: **adopt CK3's *personality* traits (universal human dispositions); use

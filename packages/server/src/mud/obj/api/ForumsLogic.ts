@@ -19,49 +19,18 @@ import ForumEvent, {
   type ForumEventPayload,
 } from '../../lib/forum/ForumEvent';
 import type Subject from '../../lib/forum/Subject';
-import type { MakeSubjectOptions } from '../SubjectCatalogue';
 import type { Stuff } from '../../lib/stuff/Stuff';
-
-/** Sort orders for the popularity organizer. */
-export type EntrySort = 'new' | 'top' | 'hot' | 'controversial';
-
-/** The current vote state of an entry for one voter (`null` = no vote). */
-export type VoteState = VoteValue | null;
+import type {
+  EntrySort,
+  VoteState,
+  BoardView,
+  ThreadView,
+  ArgumentLensNode,
+  MakeForumOptions,
+  ArgumentRelation,
+} from '../../api/forums';
 
 const ForumsApiCallers = SecurityPolicies.FromModule('mud/api/forums#ForumsApi');
-
-/** A board paired with its owning subject — the common forum read unit. */
-export interface BoardView {
-  board: Board;
-  subject: Subject;
-}
-
-/** A thread root plus its full reply tree (flat, parent-linked). */
-export interface ThreadView {
-  root: Entry;
-  posts: Entry[];
-}
-
-/**
- * A node in the computed **argument lens** — the entry plus the one
- * structural fact the neutral default lens derives: whether it is an
- * **open objection** (an `objects-to` with no answering child). The lens
- * reads pure relations; it never reads `up`/`down` and stores no order.
- */
-export interface ArgumentLensNode {
-  entry: Entry;
-  openObjection: boolean;
-}
-
-/** Options for `makeForum` — passthrough to the subject mint + board meta. */
-export interface MakeForumOptions extends MakeSubjectOptions {
-  description?: string;
-  /** Which organizer to light (default `'popularity'`). */
-  organizer?: BoardOrganizer;
-}
-
-/** The typed edges legal for the `'argument'` organizer (pro/con/neutral). */
-export type ArgumentRelation = 'supports' | 'objects-to' | 'responds-to';
 
 /**
  * ForumsLogic — the hot-reloadable logic singleton behind {@link ForumsApi}.

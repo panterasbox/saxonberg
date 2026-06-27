@@ -26,6 +26,7 @@ import { CreditRouting } from '../../lib/standing/CreditRouting';
 // Referenced only inside installEngagementTap (the restrictSubscribe
 // allowlist), so the ConsumerLogic ↔ ProducerLogic import cycle is
 // runtime-only / safe.
+// eslint-disable-next-line no-restricted-imports -- sibling logic singletons in one subsystem; class identities feed EventApi.restrictSubscribe's subscriber allowlist (cycle-safe, see comment)
 import { ConsumerLogic } from './ConsumerLogic';
 
 const ProducerApiCallers = SecurityPolicies.FromModule(

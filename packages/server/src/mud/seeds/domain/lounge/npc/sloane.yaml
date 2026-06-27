@@ -16,6 +16,13 @@ data:
     from. There's an uncanny attentiveness to them — one of the
     attuned-born, who seem to read the air itself — so they always seem
     to know who needs another and who just needs someone to listen.
+  # Established character: still, watchful, secretive, a keeper of
+  # confidences — the Confessor.
+  dispositions:
+    - { disposition: sociability, valence: -70 }
+    - { disposition: composure, valence: 70 }
+    - { disposition: honesty, valence: -70 }
+    - { disposition: compassion, valence: 70 }
   behaviors:
     - brain: /lib/behavior/shifts
       trigger: cadence:30s
@@ -46,3 +53,12 @@ data:
         lines:
           - "Hey."
           - "Take your time."
+    # Trait-aware chatter: Sloane's deep reserve keeps this near-silent.
+    - brain: /lib/behavior/converses
+      trigger: cadence:19s
+      config:
+        chatty:
+          - "You came back."
+        terse:
+          - "..."
+          - "Mm."

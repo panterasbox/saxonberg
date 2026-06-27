@@ -20,13 +20,21 @@
 import { StuffApi } from './stuff';
 import { HotReloadApi } from './hot-reload';
 import { SecurityApi } from './security';
-import {
-  NavigationLogic,
-  type CardinalDirection,
-} from '../obj/api/NavigationLogic';
+import { NavigationLogic } from '../obj/api/NavigationLogic';
 import { fileURLToPath } from 'url';
 
-export type { CardinalDirection } from '../obj/api/NavigationLogic';
+/** Canonical direction names (long form). */
+export type CardinalDirection =
+  | 'north'
+  | 'south'
+  | 'east'
+  | 'west'
+  | 'northeast'
+  | 'northwest'
+  | 'southeast'
+  | 'southwest'
+  | 'up'
+  | 'down';
 
 const LOGIC_PATH = '/obj/api/navigation';
 const LOGIC_CLASS_FILE = fileURLToPath(
