@@ -180,11 +180,25 @@ All single static assets.
 
 ---
 
+## Ch 5 — "Don't trust — verify"  *(all beats built ✅)*
+
+| PNG | Source | State | Shows | Lands on cue |
+|---|---|---|---|---|
+| `ch5-beat1-levers` | `ch5-beat1-levers.excalidraw` | — | THE EXECUTIVE holding every lever (votes/records/courts) + "what stops them lying?" | "an enormous amount of power in one place… what stops them lying?" |
+| `ch5-beat2-contrast` | `ch5-beat2-contrast.excalidraw` | — | the real world (witnesses/paper/footage) vs a digital world (only 1s and 0s, no outside) → control the record = control what happened | "we have no outside… the writing-down IS the vote" |
+| `ch5-beat3-chain-1` | `ch5-beat3-chain-1.excalidraw` | 1/2 | a tamper-evident chain intact → "check it yourself → 60–40 ✓" | "you check it yourself, from the raw record" |
+| `ch5-beat3-chain-2` | `ch5-beat3-chain-2.excalidraw` | 2/2 | a past block altered (70–30) → the chain visibly breaks red | "change a single past entry and the whole thing visibly breaks" |
+| `ch5-beat4-casino` | `ch5-beat4-casino.excalidraw` | — | KEEP the verifiable ledger ✓ / DISCARD the casino (coins·charts·pump) ✗ crossed out | "the idea crypto was built on, minus the casino" |
+| `ch5-beat5-sealed` | `ch5-beat5-sealed.excalidraw` | — | the keeper reaching for the archive, blocked by a padlock — "sealed by math" | "its honesty comes from math… the keeper can't forge the books" |
+| `ch5-beat6-detectable` | `ch5-beat6-detectable.excalidraw` | — | operator deletes/hides/forks → an ALARM (always visible) → you take your stuff and leave | "detectable, not impossible — they can't get away with it" |
+| `ch5-beat7-handforward` | `ch5-beat7-handforward.excalidraw` | — | the liar → caught ✓; the honest holder of all the power → ? | "can a community ever be free of the person who runs it?" |
+
+---
+
 ## Other segments — not built yet
 
 Build order TBD. Each segment's per-beat visual spec lives in its own cue sheet:
 
 - **Intro** (`intro.md`) — full-screen face, no diagrams.
-- **Ch 5** (`chapter-5.md`) — real-world-vs-digital contrast, the tamper-evident chain hero, crypto-minus-casino, sealed-by-math, detectable-not-impossible + fork.
 - **Ch 6** (`chapter-6.md`) — already-a-government overlay, the floor (three slabs), the dial, graduated participation, the founder mechanism + ratification.
 - **Outro** (`outro.md`) — full-screen face; light insets only (callback montage, make/fund/play, draft card).
