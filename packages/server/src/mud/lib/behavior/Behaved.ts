@@ -250,12 +250,7 @@ export function BehavedMixin<TBase extends MixinConstructor<Stuff>>(
           for (const w of arrivals) {
             const d = this._resolveBrain(w.spec.brain);
             if (d) {
-              void this._runAct(
-                d,
-                w,
-                { frame, subject: p as unknown as Stuff },
-                'witness'
-              );
+              void this._runAct(d, w, { frame, subject: p }, 'witness');
             }
           }
         }

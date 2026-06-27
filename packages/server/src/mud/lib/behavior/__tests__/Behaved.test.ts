@@ -16,6 +16,7 @@ import { SensorMixin } from '../../message/Sensor';
 import { EngagedMixin } from '../../activity/Engaged';
 import type { Engagement } from '../../../api/scheduler';
 import { SchedulerApi } from '../../../api/scheduler';
+import { ScheduleApi } from '../../../api/schedule';
 import { StuffApi } from '../../../api/stuff';
 import { ContainmentApi } from '../../../api/containment';
 import { BehavedMixin } from '../Behaved';
@@ -108,6 +109,29 @@ describe('cadence wiring + presence gating', () => {
     await vi.advanceTimersByTimeAsync(3000);
     expect(fires().length).toBeGreaterThan(0);
     expect(fires()[0]?.source).toBe('cadence');
+  });
+
+  it('jitters the cadence interval (no lockstep)', async () => {
+    vi.useFakeTimers();
+    const delays = vi.spyOn(ScheduleApi, 'schedule');
+    const room = makeStuff(() => new TestRoom());
+    const npc = makeStuff(() => new TestNPC()) as unknown as NPC;
+    const player = makeStuff(() => new TestPlayer());
+    ContainmentApi.move(npc as never, room as never);
+    ContainmentApi.move(player as never, room as never);
+    npc.behaviors = [{ brain: PROBE, trigger: 'cadence:1s' }];
+    await npc.postRegister();
+
+    await vi.advanceTimersByTimeAsync(6000);
+    const seen = delays.mock.calls.map((c) => c[0]);
+    expect(seen.length).toBeGreaterThan(2);
+    // All within ±25% of the 1000ms base...
+    for (const d of seen) {
+      expect(d).toBeGreaterThanOrEqual(750);
+      expect(d).toBeLessThanOrEqual(1250);
+    }
+    // ...but not all identical — jitter is live.
+    expect(new Set(seen).size).toBeGreaterThan(1);
   });
 
   it('re-resolves the brain on every fire (HMR seam)', async () => {

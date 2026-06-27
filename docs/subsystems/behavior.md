@@ -287,6 +287,17 @@ dangling brain path is caught at author time, not silently at spawn.
   game-clock guard `shifts` reads.
 - [cms.md](./cms.md) — the content surface NPC templates are authored in;
   the deferred holodeck / sandbox / publish gate.
-- Seeding slate: `docs/slates/builds/npc-behavior-slate.md`; requirements:
-  `docs/requirements/npc-behavior-requirements.md`; plan:
-  `docs/plans/npc-behavior-plan.md`.
+- Seeding slate: [npc-behavior-slate.md](../slates/builds/npc-behavior-slate.md)
+  (Waves 2/3, the Traits build, and the LLM/scripted brain tails live
+  here). The Wave 1 requirements + plan were retired into this doc at the
+  pre-merge sweep.
+
+## History
+
+Wave 1 — the `Behaved` mixin, the seven canned brains, the path-resolved
+brain category + `StuffApi.resolveExport`, the thin `NPC` class, the
+CMS save-gate, and the Dave's Bar cast — landed on
+`feature/npc-behavior-build` (MR !90). It is the first **behavior**
+consumer of the activity substrate (respiration was the first engagement
+producer). The requirements and plan docs were retired into this
+subsystem doc at sweep time per the workflow's artifact-retirement rule.
