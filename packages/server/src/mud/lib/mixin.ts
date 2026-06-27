@@ -71,6 +71,7 @@ export const Mixins = {
   Vitals: 'VitalsMixin',
   Reserved: 'ReservedMixin',
   Radioactive: 'RadioactiveMixin',
+  Branded: 'BrandedMixin',
   Workspace: 'WorkspaceMixin',
   Author: 'AuthorMixin',
   Perceiver: 'PerceiverMixin',

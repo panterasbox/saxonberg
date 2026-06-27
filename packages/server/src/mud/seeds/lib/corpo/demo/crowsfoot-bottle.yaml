@@ -1,0 +1,14 @@
+# Proof-demo bottle: an independent brand (Crowsfoot Gin) that resolves to
+# NO corpo — the legible absence of a mark. Same caveat as volk-bottle: not
+# Bulkable, exists to prove the independent path resolves end-to-end.
+class: /lib/corpo/BrandedBottle
+hydratorClass: /lib/persistence/PersistentHydrator
+data:
+  shortDescription: a bottle of Crowsfoot Gin
+  primaryKeyword: bottle
+  keywords:
+    - crowsfoot
+    - gin
+  longDescription: |
+    A slender, hand-labeled bottle of Crowsfoot Gin. The label was clearly printed in small numbers — a little crooked, a little proud, the mark of a place that signs its own work.
+  _brandKey: crowsfoot-gin
