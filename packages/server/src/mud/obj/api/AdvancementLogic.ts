@@ -12,8 +12,19 @@ import type {
   ActSignature,
   Subcheck,
 } from "../../lib/advancement/ActSignature";
+import { Competence } from "../../lib/advancement/Competence";
+import {
+  CompetenceBand,
+  type CompetenceBandName,
+} from "../../lib/advancement/CompetenceBand";
 import { WorldClockApi } from "../../api/worldclock";
 import { PersistApi } from "../../api/persist";
+
+/** A Discipline the owner has evidence in, with its current band. */
+export interface DisciplineBand {
+  discipline: string;
+  band: CompetenceBandName;
+}
 
 const AdvancementApiCallers = SecurityPolicies.FromModule(
   "mud/api/advancement#AdvancementApi"
@@ -139,5 +150,39 @@ export class AdvancementLogic extends Idea {
         ? { owner: ownerId }
         : { owner: ownerId, discipline };
     return TranscriptEntry.find(query);
+  }
+
+  /** See {@link AdvancementApi.bandFor}. */
+  @CallSecurity(AdvancementApiCallers)
+  public async bandFor(
+    owner: Stuff,
+    discipline: string
+  ): Promise<CompetenceBandName> {
+    if (!active()) return CompetenceBand.FLOOR;
+    const ownerId = ownerKey(owner);
+    if (!ownerId) return CompetenceBand.FLOOR;
+    const entries = await TranscriptEntry.find({ owner: ownerId, discipline });
+    return Competence.bandOf(entries);
+  }
+
+  /** See {@link AdvancementApi.bandsFor}. */
+  @CallSecurity(AdvancementApiCallers)
+  public async bandsFor(owner: Stuff): Promise<DisciplineBand[]> {
+    if (!active()) return [];
+    const ownerId = ownerKey(owner);
+    if (!ownerId) return [];
+    const entries = await TranscriptEntry.find({ owner: ownerId });
+    const byDiscipline = new Map<string, TranscriptEntry[]>();
+    for (const e of entries) {
+      const bucket = byDiscipline.get(e.discipline) ?? [];
+      bucket.push(e);
+      byDiscipline.set(e.discipline, bucket);
+    }
+    return [...byDiscipline.entries()]
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([discipline, rows]) => ({
+        discipline,
+        band: Competence.bandOf(rows),
+      }));
   }
 }

@@ -36,10 +36,12 @@ import { SecurityApi } from "./security";
 import {
   AdvancementLogic,
   type RecordOptions,
+  type DisciplineBand,
 } from "../obj/api/AdvancementLogic";
+import type { CompetenceBandName } from "../lib/advancement/CompetenceBand";
 import { fileURLToPath } from "url";
 
-export type { TranscriptEntryFields, RecordOptions };
+export type { TranscriptEntryFields, RecordOptions, DisciplineBand };
 
 const LOGIC_PATH = "/obj/api/advancement";
 const LOGIC_CLASS_FILE = fileURLToPath(
@@ -96,6 +98,29 @@ export class AdvancementApi {
     discipline?: string
   ): Promise<TranscriptEntry[]> {
     return logic().entriesFor(owner, discipline);
+  }
+
+  /**
+   * The owner's current competence **band** in one Discipline — derived on
+   * read over (Discipline × Transcript), never stored. **Bands only**: the
+   * internal scalar never crosses this surface (the honesty firewall).
+   * Returns the floor band without a durable owner key or when
+   * disconnected.
+   */
+  public static async bandFor(
+    owner: Stuff,
+    discipline: string
+  ): Promise<CompetenceBandName> {
+    return logic().bandFor(owner, discipline);
+  }
+
+  /**
+   * Every Discipline the owner has evidence in, with its current band —
+   * the read the self-view renders. Disciplines with no evidence are
+   * absent (the floor is implicit).
+   */
+  public static async bandsFor(owner: Stuff): Promise<DisciplineBand[]> {
+    return logic().bandsFor(owner);
   }
 }
 

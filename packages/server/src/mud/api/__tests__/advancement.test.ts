@@ -182,3 +182,69 @@ describe("AdvancementApi Transcript append + read", () => {
     expect(store.size).toBe(0);
   });
 });
+
+describe("AdvancementApi Competence derive-on-read", () => {
+  it("bandFor derives a band from the Transcript", async () => {
+    const owner = makeOwnerAt();
+    expect(await AdvancementApi.bandFor(owner, "mixology")).toBe("untrained");
+    for (let i = 0; i < 3; i++) {
+      await AdvancementApi.recordDeed(owner, {
+        discipline: "mixology",
+        difficulty: "hard",
+        outcome: "success",
+      });
+    }
+    const band = await AdvancementApi.bandFor(owner, "mixology");
+    expect(band).not.toBe("untrained");
+  });
+
+  it("bandFor never surfaces a number (the honesty firewall)", async () => {
+    const owner = makeOwnerAt();
+    await AdvancementApi.recordDeed(owner, {
+      discipline: "mixology",
+      difficulty: "hard",
+      outcome: "success",
+    });
+    const band = await AdvancementApi.bandFor(owner, "mixology");
+    expect(typeof band).toBe("string");
+    expect(Number.isNaN(Number(band))).toBe(true);
+  });
+
+  it("derive-on-read persists nothing — reads never write a row", async () => {
+    const owner = makeOwnerAt();
+    await AdvancementApi.recordDeed(owner, {
+      discipline: "darts",
+      difficulty: "standard",
+      outcome: "success",
+    });
+    const sizeAfterWrite = store.size;
+    const saveSpy = vi.spyOn(PersistenceManager.get(), "save");
+    await AdvancementApi.bandFor(owner, "darts");
+    await AdvancementApi.bandsFor(owner);
+    await AdvancementApi.bandFor(owner, "darts");
+    expect(saveSpy).not.toHaveBeenCalled();
+    expect(store.size).toBe(sizeAfterWrite);
+  });
+
+  it("bandsFor reports one band per Discipline with evidence", async () => {
+    const owner = makeOwnerAt();
+    await AdvancementApi.recordDeed(owner, {
+      discipline: "mixology",
+      difficulty: "standard",
+      outcome: "success",
+    });
+    await AdvancementApi.recordDeed(owner, {
+      discipline: "darts",
+      difficulty: "easy",
+      outcome: "failure",
+    });
+    const bands = await AdvancementApi.bandsFor(owner);
+    expect(bands.map((b) => b.discipline)).toEqual(["darts", "mixology"]);
+    for (const b of bands) expect(typeof b.band).toBe("string");
+  });
+
+  it("bandsFor is empty for a character with no evidence", async () => {
+    const owner = makeOwnerAt();
+    expect(await AdvancementApi.bandsFor(owner)).toEqual([]);
+  });
+});
