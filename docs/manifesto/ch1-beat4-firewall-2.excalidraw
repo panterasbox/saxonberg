@@ -7,7 +7,7 @@
       "id": "e8326",
       "type": "ellipse",
       "x": 115,
-      "y": 110,
+      "y": 120,
       "width": 30,
       "height": 30,
       "angle": 0,
@@ -34,7 +34,7 @@
       "id": "r8328",
       "type": "rectangle",
       "x": 106,
-      "y": 144,
+      "y": 154,
       "width": 48,
       "height": 42,
       "angle": 0,
@@ -341,9 +341,9 @@
     {
       "id": "t8348",
       "type": "text",
-      "x": 60,
-      "y": 400,
-      "width": 500,
+      "x": 190,
+      "y": 408,
+      "width": 380,
       "height": 16,
       "angle": 0,
       "strokeColor": "#868e96",
@@ -376,9 +376,9 @@
     {
       "id": "t8350",
       "type": "text",
-      "x": 150,
+      "x": 140,
       "y": 150,
-      "width": 160,
+      "width": 150,
       "height": 32,
       "angle": 0,
       "strokeColor": "#69db7c",
@@ -412,9 +412,9 @@
       "id": "a8352",
       "type": "arrow",
       "x": 210,
-      "y": 170,
-      "width": 40,
-      "height": 30,
+      "y": 180,
+      "width": 45,
+      "height": 32,
       "angle": 0,
       "strokeColor": "#69db7c",
       "backgroundColor": "transparent",
@@ -442,8 +442,8 @@
           0
         ],
         [
-          40,
-          30
+          45,
+          32
         ]
       ],
       "lastCommittedPoint": null,
@@ -456,9 +456,9 @@
       "id": "a8354",
       "type": "arrow",
       "x": 210,
-      "y": 170,
-      "width": 430,
-      "height": 20,
+      "y": 150,
+      "width": 405,
+      "height": 55,
       "angle": 0,
       "strokeColor": "#69db7c",
       "backgroundColor": "transparent",
@@ -486,8 +486,8 @@
           0
         ],
         [
-          430,
-          -20
+          405,
+          -55
         ]
       ],
       "lastCommittedPoint": null,
@@ -499,10 +499,10 @@
     {
       "id": "t8356",
       "type": "text",
-      "x": 630,
-      "y": 120,
-      "width": 210,
-      "height": 45,
+      "x": 628,
+      "y": 80,
+      "width": 220,
+      "height": 30,
       "angle": 0,
       "strokeColor": "#868e96",
       "backgroundColor": "transparent",
@@ -522,13 +522,13 @@
       "updated": 1,
       "link": null,
       "locked": false,
-      "text": "+ compute\n(grows the world\nfor everyone)",
+      "text": "+ compute \u2014 grows the\nworld for everyone",
       "fontSize": 12,
       "fontFamily": 1,
       "textAlign": "left",
       "verticalAlign": "top",
       "containerId": null,
-      "originalText": "+ compute\n(grows the world\nfor everyone)",
+      "originalText": "+ compute \u2014 grows the\nworld for everyone",
       "lineHeight": 1.25
     },
     {
@@ -562,7 +562,7 @@
       "id": "r8302",
       "type": "rectangle",
       "x": 860,
-      "y": 470,
+      "y": 492,
       "width": 2,
       "height": 2,
       "angle": 0,
