@@ -60,14 +60,18 @@ working government — inside a game.
 
 **[Beat 3 — why a game (and why education isn't a side-quest)]**
 Why put a government inside a game? Because a game dissolves the one thing that
-kills self-government everywhere else: getting people to show up. Real
-democracies *beg* you to take part — vote, read the proposal, sit on the
-committee — and you don't, because it's a chore. A game has the opposite
-problem: people show up because they *want* to. Participation isn't the price of
-admission; it *is* the fun. And that's exactly where the educational part stops
-being a side-quest — because an educated electorate is a functioning electorate.
-A community that shows up *and* knows what it's doing is the thing
-self-government always needs and almost never gets.
+kills self-government everywhere else: getting people to show up. Almost every
+earnest attempt at this — the online democracies, the DAOs, the token-voting
+experiments — built the rules and then waited for a crowd that never came. They
+didn't die because the ideas were bad. They died of apathy. Real democracies
+*beg* you to take part — vote, read the proposal, sit on the committee — and you
+don't, because it's a chore. A game has the opposite problem: people show up
+because they *want* to. Participation isn't the price of admission; it *is* the
+fun. And that's exactly where the educational part stops being a side-quest —
+because an educated electorate is a functioning electorate. A community that
+shows up *and* knows what it's doing is the thing self-government always needs and
+almost never gets. That's what the game is here: not a coat of paint on politics,
+but the engine every one of those experiments was missing.
 
 **[Beat 4 — why digital: the record]**
 And there's one more thing being digital buys you — bigger than it looks.
@@ -134,9 +138,12 @@ video. Client never shown.
   pre-seed the three branches (Ch 4).
   - *Assets:* 1 stylized world card (rich, not the client); education glyph; 3
     function icons.
-- **Beat 3 — corner / no-face.** The participation contrast: a podium *begging*
-  (↑ "please vote") while people walk away, vs. a game *pulling people in.* Then
-  the **layered stack** — base "what people already do — play," slab
+- **Beat 3 — corner / no-face.** On the graveyard line, a quick row of prior
+  attempts (DAO / online-democracy / token-vote) drawn as **empty rooms /
+  zero-turnout** — built, but nobody came. Then the participation contrast: a
+  podium *begging* (↑ "please vote") while people walk away, vs. a game *pulling
+  people in.* Then the **layered stack** — base "what people already do — play,"
+  slab
   "governance" settling on top, on "participation *is* the fun." Close the beat
   with an **informed-voter** glyph on "educated electorate."
   - *Asset:* "governance rides on engagement" layered diagram, staged.

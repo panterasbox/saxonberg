@@ -70,8 +70,12 @@ doesn't decide what's true here. The argument does.**"
 downvoted into the basement and vanishes. Here there's no voting to bury it with
 — so an unanswered objection just *sits there*, flagged, in the open, until
 someone actually answers it. **You don't get past a hard question by burying it.
-You get past it by answering it.** Dissent isn't noise to silence; it's a
-permanent part of the map."
+You get past it by answering it.** And that's the one thing the map keeps score
+of — the open objections, the unanswered holes in a case. The only way to clear
+that flag is to *answer* the strongest version of the objection. So the single
+number that matters can't be gamed: running it down and making the argument
+*better* are the same move. Dissent isn't noise to silence; it's a permanent part
+of the map."
 
 **[Beat 5 — the live floor]**
 "The other structured room is live — and honestly it's the fun one. Picture a
@@ -124,7 +128,9 @@ the creed *"contribute as equals; decide by weight."*
 - **Beat 3 — no-face.** Same map, **names/avatars stripped** — a "nobody" node
   and a "big name" node identical.
 - **Beat 4 — no-face.** An objection flagged **⚠ open**, sitting in the open; no
-  vote buttons anywhere.
+  vote buttons anywhere. Then an **open-objection counter** on the map ticking
+  **down toward zero** *only* as objections get answered — the one score, and the
+  only way to move it is to improve the case.
 - **Beat 5 — no-face.** A **debate stage**: a floor-bot rationing speaking turns,
   a few speakers, a **gallery** reacting; an arrow carrying claims *down* into
   the argument-map (it feeds the record). *Live surfaces; async decides.*

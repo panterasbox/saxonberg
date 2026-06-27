@@ -40,7 +40,15 @@ most heavy-handed operator alike.
 **[Beat 3 — the dial / it's a platform]**
 Everything *above* the floor is a dial — and here's what makes this bigger than
 my game. It's a **machine any community can pick up.** Your Discord, your guild,
-your stream. You adopt the floor for free, then turn the dial as far as you trust
+your stream. And here's the part worth sitting with: you're already running a
+government — you just call it moderation. The operator's the executive, the mods
+are the police, the unwritten rules are the law, the ban appeals are the courts,
+the mod-log is the record. This doesn't drop a government on a blank slate; it
+formalizes the one every community already has. And rule-of-law is a *gift* to
+whoever runs the place — "you broke rule four, here's the log, you can appeal"
+lets the rules take the heat instead of you. Discretion stops scaling the moment
+you get big; this doesn't. You adopt the floor for free, then turn the dial as
+far as you trust
 your people: from *'the operator decides everything'* — a streamer running their
 own show, their own moderation, their own calls — all the way to *'full
 republic,'* where the community decides everything. Most start near the operator
@@ -115,10 +123,13 @@ line.
 - **Beat 2 — hero, no-face.** The **floor**: three bedrock slabs — money ⊘→
   power, an unfakeable record, an always-open exit door — drawn *identical under
   several different communities* (same floor in every copy).
-- **Beat 3 — hero, no-face.** The **dial**: a slider "operator decides
-  everything" ←→ "full republic," sitting *on* the floor; ghosted other
-  communities (Discord / guild / stream) each adopting the floor and setting
-  their own dial.
+- **Beat 3 — hero, no-face.** First, the **already-a-government** overlay on a
+  generic community: operator→executive, mods→police, rules→law, ban-appeals→
+  courts, mod-log→record (label each) — "you already run one; this formalizes
+  it," with a "rule 4 → log → appeal" chip showing the rules taking the heat.
+  Then the **dial**: a slider "operator decides everything" ←→ "full republic,"
+  sitting *on* the floor; ghosted other communities (Discord / guild / stream)
+  each adopting the floor and setting their own dial.
 - **Beat 4 — no-face.** Graduated participation: an operator handing some
   decisions *down*; a member handing their vote to a trusted delegate (revocable).
   *Nobody carries the whole load.*
