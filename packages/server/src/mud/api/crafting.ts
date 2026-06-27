@@ -24,6 +24,7 @@
 
 import type { Stuff } from '../lib/stuff/Stuff';
 import type { Grade } from '../lib/craft/Grade';
+import type { BuildContribution, BuildMethod } from '../lib/craft/ManualBuild';
 import { StuffApi } from './stuff';
 import { HotReloadApi } from './hot-reload';
 import { SecurityApi } from './security';
@@ -86,6 +87,33 @@ export interface RecipeView {
   keywords: readonly string[];
 }
 
+/**
+ * The manual-build terminal-mint request. The shaker's accumulated
+ * buffer is reverse-matched to a recipe (for the output material + grade
+ * floor + recipe id) and the destination glass is filled + stamped. The
+ * maker is derived from execution context, never the wire (as with
+ * {@link CraftRequest}); the inputs were already debited off the bottles
+ * at pour-time, so the mint does not re-consume.
+ */
+export interface BuildMintRequest {
+  /** The destination glass — a Crafted + Bulkable empty cocktail glass. */
+  glass: Stuff;
+  /** The accumulated build buffer (banked contributions). */
+  contributions: BuildContribution[];
+  /** How the build was worked (recorded; not yet quality-affecting in v1). */
+  method?: BuildMethod | null;
+  /**
+   * The maker's `templatePath`, **captured from `getActingAuthor` at the
+   * strain command's dispatch** (a genuine command frame) and carried
+   * because the mint runs at engaged-completion, *outside* that frame —
+   * the same capture-at-dispatch / use-at-completion pattern
+   * `ScheduleApi` uses for `causingCommandId`. The mint still prefers a
+   * live `getActingAuthor` when one is present (completed-sync / tests);
+   * this is the fallback, never a wire value.
+   */
+  makerPath?: string;
+}
+
 const LOGIC_PATH = '/obj/api/crafting';
 const LOGIC_CLASS_FILE = fileURLToPath(
   new URL('../obj/api/CraftingLogic', import.meta.url),
@@ -112,6 +140,21 @@ export class CraftingApi {
    */
   public static async craft(request: CraftRequest): Promise<CraftOutcome> {
     return logic().craft(request);
+  }
+
+  /**
+   * Mint a drink from a completed manual build — the terminal-step
+   * sibling of {@link craft}. Reverse-matches the accumulated buffer to a
+   * recipe (generic `mixed drink` if none), derives the weakest-link
+   * grade, fills the destination glass, and stamps it with the maker's
+   * mark — reusing the **one** quality model (`Grade` +
+   * `CraftedMixin.stamp`). The inputs were debited at pour-time, so this
+   * does not re-consume. See {@link CraftingLogic.mintFromBuild}.
+   */
+  public static async mintFromBuild(
+    request: BuildMintRequest,
+  ): Promise<CraftOutcome> {
+    return logic().mintFromBuild(request);
   }
 
   /** Resolve a recipe id/keyword to a display view, or null. */

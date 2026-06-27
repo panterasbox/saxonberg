@@ -23,7 +23,9 @@ import type {
   CraftOutcome,
   RecipeView,
   MakerMode,
+  BuildMintRequest,
 } from '../../api/crafting';
+import type { BuildContribution } from '../../lib/craft/ManualBuild';
 
 const CraftingApiCallers = SecurityPolicies.FromModule(
   'mud/api/crafting#CraftingApi',
@@ -31,6 +33,9 @@ const CraftingApiCallers = SecurityPolicies.FromModule(
 
 const CATALOGUE_PATH = '/obj/RecipeCatalogue';
 const EPS = 1e-9;
+
+/** The generic substance an off-spec (recipe-unmatched) build mints. */
+const GENERIC_MIXED_MATERIAL = '/lib/material/cocktail/mixed';
 
 /** A reachable, graded bulk input candidate. */
 interface BottleCandidate {
@@ -207,6 +212,112 @@ function consumeBulkInputs(matched: MatchedInput[]): void {
   }
 }
 
+/**
+ * Reverse-match a manual-build buffer to a recipe: a recipe is satisfied
+ * when each of its input slots is covered by a **distinct** contribution
+ * (same category, measure at/above the slot, grade at/above the floor)
+ * AND no contribution is left over — a faithful build is exactly the
+ * recipe, not a superset. Returns the first satisfied recipe, or null
+ * (an off-spec build → the generic mint). The knowledge/deed gate (P9)
+ * rides on top of this match.
+ */
+function matchBuild(
+  recipes: readonly Recipe[],
+  contributions: readonly BuildContribution[],
+): Recipe | null {
+  for (const recipe of recipes) {
+    const slots = recipe.getInputSlots();
+    if (slots.length !== contributions.length) continue; // no leftovers/shortfall
+    const used = new Set<number>();
+    let allCovered = true;
+    for (const slot of slots) {
+      const minGrade = Grade.of(slot.minGrade);
+      let found = -1;
+      for (let i = 0; i < contributions.length; i++) {
+        if (used.has(i)) continue;
+        const c = contributions[i]!;
+        if (
+          c.category === slot.category &&
+          c.measureL >= slot.measureL - EPS &&
+          Grade.of(c.gradeBand).compareTo(minGrade) >= 0
+        ) {
+          found = i;
+          break;
+        }
+      }
+      if (found < 0) {
+        allCovered = false;
+        break;
+      }
+      used.add(found);
+    }
+    if (allCovered) return recipe;
+  }
+  return null;
+}
+
+/**
+ * Mint a drink from a completed manual build. See
+ * {@link CraftingApi.mintFromBuild}. Reuses the craft quality model —
+ * weakest-link `Grade`, the `applyBulkOutput` fill shape, and
+ * `CraftedMixin.stamp` — but draws its inputs from the already-debited
+ * build buffer (no re-consume) and fills the player's destination glass
+ * rather than cloning a fresh output.
+ */
+async function mintFromBuildImpl(req: BuildMintRequest): Promise<CraftOutcome> {
+  const glass = req.glass;
+  if (req.contributions.length === 0) {
+    return { ok: false, reason: 'insufficient-input', detail: 'empty-build' };
+  }
+  if (!MixinApi.isBulkable(glass)) {
+    return { ok: false, reason: 'no-output', detail: 'glass-not-bulkable' };
+  }
+  if (!MixinApi.isCrafted(glass)) {
+    return { ok: false, reason: 'no-output', detail: 'glass-not-crafted' };
+  }
+  const outSlot = BulkableApi.slotFor(glass, undefined);
+  if (!outSlot) {
+    return { ok: false, reason: 'no-output', detail: 'glass-no-slot' };
+  }
+
+  const catalogue = await requireCatalogue();
+  const recipe = matchBuild(catalogue.allRecipes(), req.contributions);
+
+  // Weakest-link grade over the buffer, floored at a matched recipe's base.
+  let grade = Grade.deriveAtFixedControl(
+    req.contributions.map((c) => Grade.of(c.gradeBand)),
+  );
+  let outputMaterialPath = GENERIC_MIXED_MATERIAL;
+  let recipeId = '';
+  if (recipe) {
+    const base = recipe.getBaseGrade();
+    if (base) grade = grade.max(base);
+    outputMaterialPath = recipe.getOutputMaterial();
+    recipeId = recipe.getRecipeId();
+  }
+
+  // Fill the glass (conservation: Σ buffer measures → glass volume).
+  const material = await StuffApi.singleton<Material>(outputMaterialPath);
+  const totalL = req.contributions.reduce((sum, c) => sum + c.measureL, 0);
+  outSlot.setMaterial(material);
+  outSlot.setAmount(Quantity.of(totalL, 'L'));
+
+  // Stamp the maker's mark. Prefer a live acting author (completed-sync /
+  // tests); fall back to the dispatch-captured `makerPath` for the normal
+  // engaged-completion case, where the command frame is already gone.
+  // Both are context-derived, never a wire value.
+  const liveMaker = (ExecutionContextApi.getActingAuthor() ?? null) as Stuff | null;
+  const makerPath = liveMaker?.getTemplatePath() ?? req.makerPath ?? '';
+  glass.stamp({
+    maker: makerPath,
+    grade,
+    recipe: recipeId,
+    craftedAt: WorldClockApi.getNow().rawValue(),
+  });
+
+  return { ok: true, output: glass, grade };
+}
+
 /** The craft-resolve algorithm. See {@link CraftingApi.craft}. */
 async function craftImpl(req: CraftRequest): Promise<CraftOutcome> {
   const catalogue = await requireCatalogue();
@@ -314,6 +425,12 @@ export class CraftingLogic extends Idea {
   @CallSecurity(CraftingApiCallers)
   public async craft(request: CraftRequest): Promise<CraftOutcome> {
     return craftImpl(request);
+  }
+
+  /** See {@link CraftingApi.mintFromBuild}. */
+  @CallSecurity(CraftingApiCallers)
+  public async mintFromBuild(request: BuildMintRequest): Promise<CraftOutcome> {
+    return mintFromBuildImpl(request);
   }
 
   /** See {@link CraftingApi.lookupRecipe}. */

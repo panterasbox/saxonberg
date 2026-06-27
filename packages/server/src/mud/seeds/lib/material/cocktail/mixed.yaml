@@ -1,0 +1,19 @@
+# Mixed drink — the generic cocktail substance a manual build mints when its
+# accumulated buffer matches no known recipe (an off-spec build still yields
+# *a* drink — honest matter — just not a named one). The recipe reverse-match
+# in CraftingLogic.mintFromBuild falls back to this material.
+class: /lib/material/Material
+hydratorClass: /lib/persistence/PersistentHydrator
+data:
+  name: mixed drink
+  appearance: a cloudy, improvised mixed drink
+  keywords: [drink, mixed, cocktail]
+  density: 950
+  thermalConductivity: 0.2
+  specificHeat: 2800
+  edibility: true
+  toxicity:
+    - { type: alcohol, amount: 18 }
+  tags: [liquid, beverage, drinkable, alcoholic, cocktail]
+  composition: []
+  biologicalSource: null

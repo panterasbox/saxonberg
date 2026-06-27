@@ -1,0 +1,19 @@
+verbs: [garnish]
+controller: crafting/GarnishController
+description: "Garnish a finished drink (the finishing flourish)"
+help: |
+  Finish a drink off — `garnish glass with olive`. A flourish that takes
+  a moment.
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresConscious
+args:
+  - name: glass
+    type: object
+    required: true
+    scope: "reachable"
+  - name: garnish
+    type: object
+    required: true
+    scope: "reachable"
+    prepositions: [with]

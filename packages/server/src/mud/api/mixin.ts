@@ -106,6 +106,7 @@ import type { Graded } from '../lib/craft/Graded';
 import type { Tooled } from '../lib/craft/Tooled';
 import type { Crafted } from '../lib/craft/Crafted';
 import type { Maker } from '../lib/craft/Maker';
+import type { Builds } from '../lib/craft/ManualBuild';
 import { SecurityApi } from './security';
 import { ShadowApi } from './shadow';
 
@@ -811,6 +812,11 @@ export class MixinApi {
 
   public static isMaker(obj: Stuff): obj is Stuff & Maker {
     return this.hasMixin(obj, Mixins.Maker);
+  }
+
+  /** A manual-build vessel — the shaker/mixing-glass that buffers a build. */
+  public static isBuildVessel(obj: Stuff): obj is Stuff & Builds {
+    return this.hasMixin(obj, Mixins.ManualBuild);
   }
 
   /**

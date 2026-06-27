@@ -121,6 +121,7 @@ export const Mixins = {
   Tool: 'ToolMixin',
   Crafted: 'CraftedMixin',
   Maker: 'MakerMixin',
+  ManualBuild: 'ManualBuildMixin',
 } as const;
 
 /**

@@ -29,8 +29,10 @@ export default class Menu extends MenuBase {
 
   /**
    * The crafting verb surface lights up wherever a Menu is present (in the
-   * room, or carried). `serve`/`mix` are general maker verbs (maker = the
-   * giver); `order` routes to a present fulfilling maker.
+   * room, or carried). `serve`/`mix` are the atomic maker verbs (maker =
+   * the giver); `order` routes to a present fulfilling maker. The
+   * manual-build verbs (`pour`/`add`/`stir`/`shake`/`strain`/`garnish`)
+   * are the step-by-step path — engaged activities over a build vessel.
    */
   static commandContributions: CommandContributions = {
     self: [],
@@ -39,12 +41,20 @@ export default class Menu extends MenuBase {
       'crafting/order.yaml',
       'crafting/serve.yaml',
       'crafting/mix.yaml',
+      'crafting/pour.yaml',
+      'crafting/stir.yaml',
+      'crafting/strain.yaml',
+      'crafting/garnish.yaml',
     ],
     inventory: [
       'crafting/menu.yaml',
       'crafting/order.yaml',
       'crafting/serve.yaml',
       'crafting/mix.yaml',
+      'crafting/pour.yaml',
+      'crafting/stir.yaml',
+      'crafting/strain.yaml',
+      'crafting/garnish.yaml',
     ],
     peers: [],
   };
