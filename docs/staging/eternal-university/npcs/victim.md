@@ -50,7 +50,8 @@ killed.
 Different people knew different Dunnys, and the player's first real work is
 reconciling them — so *we* hold the truth:
 
-- **To Mira** (who brings you in): a kind friend who actually listened.
+- **To the people he looked out for** (the night janitor, the quiet kids he
+  greeted): a kind friend who actually listened.
 - **To the gossip layer:** shady, a *dealer*, always angling.
 - **To the proctors:** an odd kid, coming and going at all hours, a bit of a
   problem.
@@ -129,10 +130,10 @@ unreal, sitting there waiting for someone less kind to pick it up.
 ## The hole he left (the negative-space summary)
 
 The floor's quieter. The people he greeted go unacknowledged again — and a
-couple of them are frightened, or already gone. Mira can't shake that the
-silence is *wrong*, so she finds the one person who notices things. The
-proctors want the room sealed and the story soft. That absence,
-campus-shaped, is the carve.
+couple of them are frightened, or already gone. A new arrival — you — gets the
+room down the hall, feels the silence is *wrong*, and can't stop poking at it
+(the organic on-ramp; no quest-giver — see the bible's §12). The proctors want
+the room sealed and the story soft. That absence, campus-shaped, is the carve.
 
 ---
 

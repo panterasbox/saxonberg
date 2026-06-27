@@ -106,6 +106,32 @@ un-genred rule and fair-play detective fiction. Guard against it.
   reasoning together is harder to kill.** (This is why the player succeeds
   where the victim died — see §8.)
 
+**The first-quest teaching mandate (governing constraint for the opening).**
+"An Honest Count" is most likely the *first* thing a new player engages, so its
+opening carries a **dual mandate: a genuine investigation *and* the tutorial for
+how investigation works here** — and the two pull against each other. The
+reconciliation is a discipline, not a rail:
+
+1. **Ramp the difficulty.** The first body's evidence is trivially reachable —
+   it teaches the examine→derive→commit loop (the first forensic win); only
+   *later* obstacles test route-finding.
+2. **NPCs narrate the affordances.** A locked door is never a dead end — it's a
+   character who tells you its *rule*, and the same line hands you your next
+   goal and a route. The immersive-sim's *properties* (§17.G) become learnable,
+   diegetic guidance, so a new player discovers the route space *in fiction*
+   rather than being handed it (or hitting a wall).
+3. **The breadcrumb is the next question, never a quest marker** (§13). The
+   inspection pane and MQL (the magnifying glass) always surface a thread to
+   pull, with a parallel records track so the player is never hard-stuck on any
+   one route.
+
+The five-route breadth (§17.G) is the **replay / co-op / veteran** layer —
+*discovered*, never front-loaded. What the opening is really teaching is
+**immersive-sim literacy itself**: that here you read an obstacle's properties
+and find a route, rather than hunt for the one key. Introduced gently at the
+sealed room (§14, the in-dorm access puzzle) and escalated hard at the city
+morgue (§14, across the gate).
+
 ## 4. The campus as a polity in miniature
 
 The campus is not a setting to tour; it is a **scale model of the whole
@@ -636,11 +662,18 @@ the laundering happens.** A death's journey is clinic → morgue → registrar
 forgery lives. That's the morgue's reason to exist — not "a room with
 bodies" but the physical site of the body-vs-record discrepancy that *is*
 the case. A player doing forensics here is auditing the precise seam the
-handler exploits: the morgue is the corpse-factory's front office. Place it
-adjoining the canon **clinic on Silver Street**, but make it
-**institutionally the registrar's** (death-filing owns the body) — which
-buys the drama for free, since the institution that wants to call it an
-accident *controls the corpse* (§4):
+handler exploits: the morgue is the corpse-factory's front office. It is the
+**city medical examiner's, across Gus's gate in Terminus** — where a suspicious
+death belongs (a young person found at the foot of a stairwell is a coroner's
+case; the campus clinic on Silver Street only *pronounces* the death, and the
+body is transported out). This is correct, not a concession: bodies go where
+bodies go, and it seats the morgue at the **municipal seam** — the ME plus the
+registrar's parent authority in Terminus (§15.4's thread). The drama needs no
+invented sovereignty, just a **complicit examiner**: the office that autopsies
+the body and signs its certificate is the one rigging the finding, so "the
+institution that wants to call it an accident *controls the corpse*" (§4) holds
+— at the city end, with the campus cover-up (Katie, the proctors) as its
+smaller local arm. The body crossing the gate is the player crossing it:
 
 - **Contested access** — a tame official examiner rubber-stamps "accident";
   a closer look runs through a relationship (Pidge's keys §12, a
@@ -784,13 +817,21 @@ Only Fork 5 (names) stays open.
    survives inside it — **turn the pitiable pawn in, or use him to trace
    the handler** — which is the moral-hazard decision that feeds the
    census vote (§10 sting). → §11.
-4. **The city thread — DECIDED: a document, not a place.** The off-campus
-   pull is a *clue*, not built geography: Dunny's reconciliation shows the
-   erased names were re-filed by the registrar's **parent authority in
-   Terminus**, and Gus's crossing-log corroborates (victims crossed out,
-   never back). Establishes "this goes outward and deeper" while Terminus
-   stays haze — zero city geography to build. The place slate keeps
-   University Avenue as a standalone landing.
+4. **The city thread — UPDATED 2026-06-27: a place, built in sequence.**
+   Originally decided "a document, not a place" (zero city geography) to keep
+   the arc playable before the city existed — now superseded: building out
+   Terminus as a real city map is the intended trajectory, so the off-campus
+   pull *graduates to built geography*, beginning with the **city medical
+   examiner's morgue** (§14), where the body actually goes. What survives is
+   the **sequencing**, not the prohibition: the arc fills in in layers and
+   stays playable as the city grows — the campus-side beats (the scene, the
+   first forensic win) stand alone; the city morgue is the additive next
+   layer, never a blocker. The clue-substance is unchanged: Dunny's
+   reconciliation shows the erased names were re-filed by the registrar's
+   **parent authority in Terminus**, Gus's crossing-log corroborates (victims
+   crossed out, never back), and the rot lives at the municipal seam the
+   player now crosses the gate to reach. University Avenue stays the
+   standalone landing and the threshold.
 5. **Names — STILL OPEN.** The arc title **"An Honest Count" is kept**
    (ironic, census-grounded). Every *(provisional)* character name awaits
    a dedicated naming pass — resolve structure first, name people second.
