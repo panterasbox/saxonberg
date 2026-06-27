@@ -18,7 +18,7 @@ this doc notes the seams they plug into.
 
 ```yaml
 # an NPC template — behavior is pure data, no code
-class: /lib/character/NPC
+class: /lib/npc/NPC
 data:
   behaviors:
     - { brain: /lib/behavior/shifts, trigger: cadence:60s, config: { schedule: [...] } }
@@ -166,7 +166,7 @@ next-tick re-start, not a suspended-engagement resume.
 ## The `NPC` class
 
 ```ts
-// lib/character/NPC.ts
+// lib/npc/NPC.ts
 export class NPC extends BehavedMixin(PostRegistrationMixin(Character)) {}
 ```
 
@@ -266,7 +266,7 @@ dangling brain path is caught at author time, not silently at spawn.
 | `BehaviorSpec` / `BrainContext` / `BrainStatics` / `parseTrigger` vocab | `lib/behavior/brain.ts` | The brain category contract + trigger alias table |
 | `BehaviorBeat` | `lib/behavior/BehaviorBeat.ts` | Generic short `DurativeActivity` that holds a slot for the contention window |
 | The seven brains | `lib/behavior/{idles,random-chatter,wanders,patrols,greets,reacts,shifts}.ts` | Path-resolved strategy modules |
-| `NPC` | `lib/character/NPC.ts` | `Character` + `Behaved` archetype |
+| `NPC` | `lib/npc/NPC.ts` | `Character` + `Behaved` archetype |
 | `StuffApi.resolveExport` / `resolveExportSync` | `api/stuff.ts` | Path → fs → hot-reload registry brain-export seam |
 | `validateBehaviorPaths` | `obj/api/CmsLogic.ts` | Save-gate brain-path validation |
 | `Mixins.Behaved` | `lib/mixin.ts` | Mixin registry marker |

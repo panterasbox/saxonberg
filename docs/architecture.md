@@ -515,7 +515,7 @@ reduced agency) — see [vitals.md](./subsystems/vitals.md). The identity
 line is sex (body, `SexedMixin` on Creature) vs. gender/persona (social,
 on Character). `Creature` is concrete, so a bare non-agent body (a frog,
 a corpse) is valid. `Character` has two leaf subclasses: `Avatar`
-(player-driven, in `obj/`) and the thin `NPC` (`lib/character/NPC.ts` =
+(player-driven, in `obj/`) and the thin `NPC` (`lib/npc/NPC.ts` =
 `Character` + `BehavedMixin`) for authored, automation-driven characters —
 which keeps `Behaved` off players. See [behavior.md](./subsystems/behavior.md).
 
