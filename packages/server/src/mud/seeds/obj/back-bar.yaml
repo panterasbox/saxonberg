@@ -1,0 +1,18 @@
+# The back-bar — a container fixture behind the bar holding the working
+# bottles and bar tools. Self-stocks via `populates:` (each cloned in fresh
+# each boot, contained in the back-bar — so they nest under it rather than
+# sit loose among the room's occupants). CraftingLogic reaches into it for
+# inputs/tools.
+class: /obj/Cabinet
+hydratorClass: /lib/persistence/PersistentHydrator
+data:
+  shortDescription: the back-bar
+  longDescription: A mirrored back-bar lined with working bottles, a shaker and a mixing glass ranked along the rail.
+  keywords: [back-bar, backbar, bar, shelf, bottles, rail]
+  populates:
+    - /obj/vessel/gin-bottle
+    - /obj/vessel/vermouth-bottle
+    - /obj/vessel/rum-bottle
+    - /obj/vessel/lime-bottle
+    - /obj/tool/shaker
+    - /obj/tool/mixing-glass

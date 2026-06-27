@@ -6,9 +6,10 @@
 #
 # SingletonMixin pins it to one instance (the host-fixture wiring resolves
 # it via StuffApi.singleton). `populates:` stocks it each boot — Dave, the
-# working bottles, the shaker + mixing glass, and the menu — cloned in fresh
-# (transient runtime). Crafting needs no venue flag: the bar "works" because
-# the maker + matter are present here.
+# menu, and the back-bar (which in turn stocks the bottles + tools *inside*
+# itself, so they nest under it rather than sit loose among the room's
+# occupants). All cloned fresh (transient runtime). Crafting needs no venue
+# flag: the bar "works" because the maker + matter are present/reachable here.
 class: /domain/lounge/Bar
 hydratorClass: /lib/persistence/PersistentHydrator
 data:
@@ -16,14 +17,9 @@ data:
   primaryKeyword: bar
   illustration: location/bar.png
   populates:
+    - /obj/back-bar
     - /obj/Npc/dave
     - /obj/Menu/bar-menu
-    - /obj/vessel/gin-bottle
-    - /obj/vessel/vermouth-bottle
-    - /obj/vessel/rum-bottle
-    - /obj/vessel/lime-bottle
-    - /obj/tool/shaker
-    - /obj/tool/mixing-glass
   longDescription: |
     A narrow, warm room that smells of citrus peel and old wood. The bar itself is a single slab of something dark and scarred, lit from beneath so the bottles ranked behind it throw long colored shadows up the wall. Stools wait in a patient row. Behind the taps a chalkboard menu has been wiped and rewritten so many times it's gone soft and grey.
 
