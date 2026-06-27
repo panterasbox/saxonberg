@@ -1927,6 +1927,52 @@ Two consequences, both small and neither structural:
   the earlier "cooperative as the federal layer" framing was reaching for,
   corrected.)
 
+### How territory is held — the tenure floor (federal-by-construction)
+
+The section above rejected a **territorial executive** — a "Department of
+Narnia," the executive organizing itself around *places* instead of
+*functions*. That rejection stands: executive institutions are functional
+(publishing, enforcement, provisioning), system-wide, and reach into any
+subdivision only through those charters. But it left a real question
+dangling — *how **is** a territory held, if not by a government tier?* —
+and "its owner-group has write-access" hand-waves it, because access is
+**never exclusive** (oversight reaches everywhere).
+
+The answer is **property, not politics** (the anthropology of resource
+access, not a political franchise): a territory is **held**, not
+*governed*. A holder's authority is a **protected bundle of resource-
+rights** — author, admit/exclude, set house-rules, develop, earn the
+producer-credit, transfer, and a guaranteed share of the one real scarcity
+(compute) — and it is real not because access is exclusive but because the
+bundle **binds even the executive**: the executive may oversee, but may not
+seize or override those rights except by *due process / published
+standards / legislated reason*. **Authority is the protection, not the
+exclusivity.** Raw access with no protection is revocable permission — no
+authority at all; access plus rights-that-bind-the-executive is the real
+thing. (Just as fee-simple title was never absolute — eminent domain,
+police power, code enforcement — yet is still *yours*.)
+
+Which forces a correction to the bright line above: "autonomy vs.
+sovereignty" is not a clean binary but a **dial with a kernel floor.** A
+*non-empty, due-process-protected* core of holder authority is
+**kernel** — guaranteed in every instance — so the holder layer **is
+federal-by-construction**; *how far above that floor* the dial sits (how
+much authority, how hard to revoke) is a **module** — centralized-by-
+degree. What stays rejected is the *territorial executive*; what is now
+kernel is the *protected holder-floor*. (The floor is chosen kernel for
+**uniformity**: a common floor is the interop protocol for a future
+inter-instance — "UN" — federation; you cannot federate instances that
+don't share a basic structure. That upper layer is parked, not designed —
+see [polity-decision-register](../../polity-decision-register.md) Tier 3.)
+
+The mechanics of the holding — the two scarcities (non-rival content vs.
+the rival compute substrate), use-metered compute, the homestead / charter
+/ commons tenure regimes — are **resource-physics**, owned by the
+[economy slate](./economy-slate.md) § *The two scarcities* and packaged as
+the tenure module in the
+[amendment library](./amendment-library-slate.md); the kernel/module split
+is recorded in the register's Tier 1 *Resource & territory* cluster.
+
 ### The authorial subdivision is the shared coordinate
 
 The world is subdivided into **authorial units**, and the substrate

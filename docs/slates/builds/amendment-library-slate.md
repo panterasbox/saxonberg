@@ -75,12 +75,29 @@ Everything this build *deferred* is a slot. The starting set:
     the operator may override* are what move.
   - **Free political expression** — compels the deliberation surface; bars
     sanction for protected speech; bars judging by reputation over merits.
-  - **Property** — in one's creations and holdings (depends on a records module).
+  - **Property** — in one's creations and holdings (depends on a records
+    module). *A non-empty floor of this is now **kernel*** — every instance
+    guarantees a holder a due-process-protected core the executive cannot
+    seize at will ([polity-decision-register](../../polity-decision-register.md)
+    Tier 1, *Resource & territory*). The module sets only *how far above the
+    floor* the bundle extends.
   - **Privacy** — record-gating policy (integrity preserved, access by due process).
 - **Economy module** — the reserve / central-bank from the economy slate:
   quantity-not-price monetary policy, the dual mandate, treasury-execution
   wiring. The *big* lego; a community may instead adopt a gift-economy module,
   or none (kernel requires only the firewall).
+- **Tenure & compute-allocation module** — *how* a group comes to **hold** a
+  subdivision, and how the one real scarcity (compute) is allocated. Three
+  regimes as the module's settings: **homestead** (build-to-hold; the
+  *Frontier* default — register D8), **chartered grant** (the legislature
+  grants territory + a compute quota), **commons** (no private title;
+  Ostrom-style collective pool). Pairs with a compute-allocation mechanism
+  (market / quota / commons-pool) riding the kernel rule that allocation be
+  *rule-bound, not discretionary*. The **centralization↔federalism dial**
+  lives here: the kernel guarantees a protected holder-floor
+  (federal-by-construction); this module sets how far above it a community
+  sits (centralized-by-degree). Where uniform structure matters most — for a
+  future inter-instance federation — is why that floor is kernel, not a lego.
 - **Institution-roster module** — charters for operations / treasury-execution
   / enforcement / onboarding / content-stewardship (Art. V §4's default roster,
   packaged). Sub-modules per institution so a small community charters only
@@ -107,7 +124,9 @@ Everything this build *deferred* is a slot. The starting set:
 
 - **Operator's table** — the default made explicit: the judicial process run at
   a **jury pool of one**, overridable — a streamer's own ban-appeal flow, no
-  discretion yet surrendered. The shape a streamer starts in.
+  discretion yet surrendered. The shape a streamer starts in. Pairs with the
+  **homestead / Frontier** tenure setting (register D8) — the lowest-activation
+  on-ramp.
 - **Creator collective** — producer-weighted, light economy, due process on,
   property on; expression compelled.
 - **Full republic** — every right compelled, full economy, full institution

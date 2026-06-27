@@ -321,6 +321,105 @@ palette-discoverable.
 
 ---
 
+## Traits — the personality layer (the roster)
+
+CK3-style **personality traits** — opposed-pair dispositions — are the
+**personality input the brains read** and a **baseline input to `regard`.**
+Decided: **adopt CK3's *personality* traits (universal human dispositions); use
+Saxonberg's own systems for everything CK3 handled via its *other* trait
+categories** (education → the advancement Catalog; congenital → race/body; health
+→ vitals; faith/court/government → not our environment / deferred; childhood → no
+dynasty arc). Importing those would duplicate or fight systems we already have.
+
+**The roster (opposed pairs):**
+
+- **Direct keepers:** Calm/Wrathful · Content/Ambitious · Diligent/Lazy ·
+  Generous/Greedy · Gregarious/Shy · Honest/Deceitful · Humble/Arrogant ·
+  Patient/Impatient · Temperate/Gluttonous · Trusting/Paranoid ·
+  Compassionate/Callous · Forgiving/Vengeful · Fickle/Stubborn.
+- **Reframed for our world:** **Brave/Craven** → *risk-taking* (social/economic
+  nerve, not the battlefield); **Just/Arbitrary** → *fairness in dealings* (not a
+  ruler's justice); **Cynical/Zealous** → *worldview* (cynical/idealistic, no
+  faith hook).
+- **Dropped:** Chaste/Lustful (load-bearing in CK3 only via marriage/dynasty;
+  low fit).
+- **Native addition:** **Curious/Incurious** (love of learning) — central in a
+  *learning* game (only a throwaway childhood trait in CK3); shapes
+  propensity-to-practice → feeds the advancement loop.
+
+~15 pairs — CK3's personality core, three reframed, one dropped, one added; a
+tight characterful roster, not a reinvention.
+
+**What traits do — three jobs:**
+
+1. **Drive behavior** — the brains read traits → behavior (a Gregarious NPC runs
+   more chatter; a Brooding one broods).
+2. **Set the `regard` baseline** — **trait compatibility** sets the *starting*
+   regard between two characters (compatible → high, opposed → low); interaction
+   moves it from there. The innate input to the (shipped) regard substrate
+   ([belief](../../subsystems/belief.md)) — *why Mara likes Sloane* = compatible
+   Reserved/Temperate. Traits → regard → social skills
+   ([advancement-slate](./advancement-slate.md) § *Sensing the social Subjects*).
+3. **Cost divergence as stress** — acting against your nature hurts (below).
+
+### Traits are *competence for dispositions* (the architecture)
+
+The model is the **same as the advancement Transcript**, applied to dispositions
+instead of skills. A skill is a derived aggregate over a ledger of *deeds*; a
+**trait is a derived aggregate over a ledger of *disposition-valenced acts.***
+Each act carries a **disposition-valence** (a lie is +Deceitful/−Honest; a
+generous tip +Generous/−Greedy; overdrinking +Gluttonous/−Temperate) — riding
+the **same act-signature** that carries the skill-Subjects, so you **instrument
+once** and both fall out (and only the *dispositionally significant* acts need a
+valence — the neutral majority carries none). So **traits are derive-don't-track,
+never assigned** — the project's derive-from-behavior thesis applied to
+*character itself*. Consequences:
+
+- **A position on every axis, not 3 slots.** You sit *somewhere* on each
+  opposed-pair (Generous↔Greedy: a signed **magnitude**, not a binary) — most
+  near neutral, a few pronounced. Your **pronounced axes are your *defining*
+  traits** (the labels people call you by). No cap.
+- **Form-then-entrench lifecycle** (and this is why no-death is *fine*, not a
+  problem). A new character starts near-neutral (unformed); behavior accumulates
+  → pronounced axes emerge (**defined**); the aggregate gets **heavy** → it
+  **resists drift** (**entrenched** — old characters are literally "set in their
+  ways," young ones change easily). Character crystallizes over a lifetime, and
+  CK's "rare trait change" falls out free (a strong event can *shock* an
+  entrenched trait; inertia holds it otherwise). **Drift + inertia replaces CK's
+  lock-at-maturity** — better for long-lived characters.
+
+### Stress — the divergence signal (one mechanism, two thresholds)
+
+Stress and trait-drift **read the same signal** (an act's disposition-valence vs.
+your *current* disposition) at two timescales: **instant divergence → stress**
+(you acted against your nature); **accumulated → trait drift** (you become what
+you repeatedly do). One instrumented signal, not two mechanisms.
+
+Stress rides shipped substrate: a **composure / equanimity reserve** (the
+[Reserve](../../subsystems/reserve.md) substrate) that **drains** on
+trait-divergent acts and **refills** by acting *in* character + **coping** — and
+the prime coping venue is **the bar** (drink + socialize + the third place;
+belonging refills composure — the SDT relatedness payoff; *this is the bar's
+social function*). Floored composure → a **break condition** via the conditions
+cascade — *the same pattern metabolism uses* (floored endurance → collapse). The
+break is **transient on the flagship** (a *frazzled* deficit you climb out of —
+no permanent scar, respect-time), **permanent on a roguelike distro** (a vice
+trait). Cope-drinking carries an honest, un-preachy tradeoff: relief now, but
+BAC/hangover + habitual reliance builds **tolerance** → the *Gluttonous* spiral.
+For **players** it's **opt-in pressure, never a wall** — you can always act
+against type (transient stress), and acting *in* type *relieves* it: a soft
+incentive to roleplay, never a punishment.
+
+**Open:** the break's exact consequence (a *frazzled* condition vs. a forced
+coping-*behavior*); how deep to run the cope-drinking → tolerance spiral; the
+**mechanism** (where the disposition-ledger + derived trait live — a mixin? the
+same store as competence? — and the compatibility → regard computation); the
+numbers. (The *chosen-vs-earned* fork is **resolved: earned/derived**, not
+chosen.) **Prototyped on the bar cast** (Mara/Remy/Sloane/Augie/Dave —
+[daves-bar-slate](./daves-bar-slate.md)).
+
+---
+
 ## Open questions
 
 1. **The trigger vocabulary** — *resolved: two sources (cadence | event); no

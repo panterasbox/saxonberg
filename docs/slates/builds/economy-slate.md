@@ -115,6 +115,45 @@ fine. The latter is banned. **No property tax, no rent on owned space,
 no upkeep-or-it-decays.** Service fees only at the point of a service
 rendered.
 
+### The two scarcities — and the one Law 2 doesn't govern
+
+Law 2 governs **in-game property** — a game-design conceit to respect
+player time. But there is a second resource that isn't in-game matter at
+all: the **real substrate** the world runs on. Two scarcities, opposite
+in nature:
+
+- **Content is non-rival.** Infinitely copyable; CC by default (on this
+  instance). It is *never* the scarce thing and is never enclosed past the
+  no-pay-to-win firewall — you can fork anything, make a generic, build
+  your own. Idle content is cheap storage: free, per Law 2.
+- **Compute / memory is rival.** The one *real* scarcity (alongside the
+  self-imposed scarcity of in-game coin). This is the actual "land" — your
+  running process eats RAM/CPU no one else can use at that instant.
+
+Because compute is *real* scarcity, allocating it optimally is an
+engineering necessity, and the right tools apply (a rule-bound market /
+quota — see the tenure module in the
+[amendment library](./amendment-library-slate.md)). Law 2's surface rule
+("no rent on owned space") was written for in-game property and does **not**
+straitjacket the compute substrate. The narrower kernel that *does* govern
+compute is **presence is never the meter**: compute is metered by **use**
+(a running zone consumes the rival resource, the way a torch burns only
+while lit), and the bill is paid in **engagement + patronage**, never in
+player attendance — a loved zone earns its own compute; you never log in to
+feed a meter.
+
+A clean consequence: idle/inert holdings consume ~nothing, so they cost
+~nothing (Law 2's "mere ownership is free," preserved) — which means you
+**cannot hoard the scarce thing by squatting inert namespace**, and no
+holding-tax is ever needed; the rival resource **self-rations through use.**
+The only residual is name-squatting on inert claims, handled by
+**abandonment-reversion**, not a fee. The *governance* of all this (the
+protected tenure floor; the homestead / charter / commons regimes) is the
+cooperative's job
+([cooperative-slate.md](./cooperative-slate.md) § *How territory is held*);
+the **physics** is just these three rules — content free, compute
+metered-by-use, presence never the meter.
+
 ---
 
 ## The economy is a closed conservation loop
@@ -175,6 +214,65 @@ authored / carried things are exempt.
 Chosen over both pure-commodity (PoE-style "currency *is* reagents" —
 maximally anti-inflation but illegible to newcomers) and abstract-coin-
 only (simplest, but the lineage that reliably inflates).
+
+---
+
+## Banking — cash, accounts, and the central-bank firewall
+
+The money model is **two-tier**, and deliberately **real-finance-accurate** (the
+educational bet, applied to money — it should exercise *what makes banking work,
+and notably what makes it fail*).
+
+**Cash vs. accounts — and large cash is untenable by *physics*, not rule.**
+
+- **Cash** — the soft coin is **physical matter** (`Globbable`, with per-coin
+  **mass**): hand-to-hand, immersive, small, **off-ledger**, **robbable**, and
+  **self-limiting** — a big enough stack blows past your carry capacity (the
+  shipped `LoadBearing`/encumbrance), so you *can't* practically haul a fortune
+  in coins. No arbitrary cash cap; the honest physics *is* the cap. The
+  **denomination ceiling** is the tuning dial (keep it modest → large value =
+  large mass → cash stays small).
+- **Accounts** — weightless **balances** on the **auditable ledger**, where the
+  real economy lives (payroll, large purchases, the till, the reserve). A
+  **bank** bridges the two (`deposit` cash → balance, `withdraw` → cash).
+- **The payoff:** discouraging large cash *forces the big economy onto the
+  governed, auditable ledger* — **anti-laundering by mass**, no rule required.
+  "Off the books" means off the in-world *governed ledger* (dodges in-world
+  taxation/recourse) — **never** secret from devs/system logs; a roadblock, not
+  privacy. Portable stores of value (gems, metals) *will* enable an off-books
+  grey market — don't fight it (you can't); make it **frictional**
+  (illiquid/indivisible, robbable, uninsured, not legal tender) so the on-ledger
+  economy wins on convenience.
+
+**Two kinds of bank, firewalled.**
+
+- **Central bank = the reserve**, operated **totally independently** from the
+  commercial banks: monetary policy, the **only mint**, the auditable supply,
+  and the **insurer / lender of last resort**
+  ([cooperative-slate](./cooperative-slate.md) § *The reserve as central bank*).
+- **Commercial banks = corpo-run** — a **competitive, ethos-flavored vertical**
+  (Goodkin's warm retail bank · Vionne's elite private bank · Aevex's fintech ·
+  Veshko's ruthless lender — [corpos-slate](./corpos-slate.md)). Because your
+  bank is *where your money lives*, **choosing a bank is a standing
+  corpo-affiliation** (passive approval, with character). **Player-run banks are
+  the deferred apex / independent-finance path** — gated on a stable economy
+  *and* the reputation system (no lending without creditworthiness); don't lead
+  with them.
+
+**Phasing — safe rails now, the real finance science later.**
+
+- **v1: custodial + payments.** Banks hold deposits 1:1 and move money. No
+  lending, no creditworthiness needed — and a purely-custodial bank **can't
+  fail** (your money's in the vault). The rails.
+- **Later: lending** (gated on the reputation system → creditworthiness):
+  fractional reserve, interest, the spread, credit creation — and with it the
+  **real finance science: bank runs, insolvency, failure.** A bank *can* fail,
+  and the **causes are the lesson** (over-lending, bad loans, the maturity-
+  mismatch run). The **consequence lands on the operator** (a corpo's banking
+  arm collapsing is a *world event*; a player banker loses their bank) — but
+  **depositors are insured by the reserve** (FDIC-style), so the drama never
+  costs ordinary players their savings. Real science *and* fun-preserving — and
+  the reserve's backstop role is *why* it's the independent central bank.
 
 ---
 
@@ -628,6 +726,14 @@ game with real players to measure:
   directory.** Held off (per "don't port classic MUD ergonomics" and
   "build when a real player demands it") rather than pre-built. Watch
   item, not a build.
+- **Banking beyond custodial rails** (see *Banking* above). v1 ships
+  custodial accounts + payments (can't fail). Deferred: **lending** (gated
+  on the reputation system → creditworthiness), and with it the real
+  finance science — **interest/the spread, bank runs, insolvency, failure,
+  and deposit insurance**; **player-run banks** (the apex/independent path);
+  the **denomination ceiling** (the cash-disincentive dial); and whether to
+  lean into an off-books **grey market** as gameplay (smuggling/tax-dodging)
+  or leave it inert friction.
 
 The throughline: **build the honest substrate, tune the balance against
 reality.** Or, in the user's framing — you need a real game to solve the

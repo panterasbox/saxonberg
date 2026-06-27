@@ -23,7 +23,7 @@ opening a cycle for).
 
 ## Builds (`builds/`)
 
-Nine builds. Each lists its member slates in rough phase order and the
+Ten builds. Each lists its member slates in rough phase order and the
 shipped substrate it leans on.
 
 ### 1. Identity & social perception
@@ -237,6 +237,39 @@ closes economy's open "deliberate faucet without inflation" thread.
   work.
 
 **Phases:** stake ledger (buildable now) → (the republic — chambers, executive, treasuries — deferred to a real member body) · **argument-map (v1 shipped → tail; mass-scale dedup/summarization deferred)**.
+
+### 10. Advancement & learning
+*Learning as a science — how a character grows.* The **game-system** half
+of "learning as adventure": advancement modeled so it *feels* like real
+learning even when it's the character doing the studying, not the player.
+New substrate; no shipped subsystem (though ~40% of the supporting pieces —
+Reserve, Activity, affordance attribution, Persona, templatePath keying,
+zones/access — already ship). The hard constraint: **a character must be
+able to advance without ever entering a classroom** — a real RPG first,
+the academic vertical optional fuel.
+- [advancement-slate](./builds/advancement-slate.md) — the build: gamify
+  the **metacognition** of learning (the player coaches; the character does
+  the rote), the six build-crafting translations of the XP-model's
+  failures, **capacity-not-decay** (the loadout + savings effect; never tax
+  inactivity), skills as an extensible **content-graph** (typed nodes/edges,
+  fork-in-`/home` → governed-canonize, templatePath-durable progress),
+  **guilds as institutions over the taxonomy** (map vs. institution;
+  membership-as-affordance; brands fork the institution not the knowledge;
+  corp-sponsored branches), the **three orthogonal social axes**
+  (guild/party/corp — the wall that keeps guild ≠ party), and the
+  **endgame as lifecycle** (cap on expression not accumulation;
+  competence-not-power as a *constitutional* requirement; the emergent
+  learn → master → make/teach/govern drift, no ascension mechanic). Leans on
+  [capability-magic](./deferred-rpg/capability-magic-slate.md) (the three
+  ability channels) and [affiliation](./deferred-rpg/affiliation-slate.md)
+  (guilds / houses), grounded in [lenses/motivation.md](../lenses/motivation.md)
+  (SDT). **First vertical slice buildable now** (one combat + one craft
+  path, two seed guilds); the learning-platform sensor bridge + merge/balance
+  of player-authored trees deferred.
+
+**Phases:** first slice (two paths, two guilds, the loadout) → guild
+institution model → player-extensible content-graph + governed canonization
+→ (the education-vertical sensor bridge deferred).
 
 ---
 
