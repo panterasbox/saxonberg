@@ -22,6 +22,13 @@ source of truth for the Descript edit.
   there).
 - **Animating a build:** place state `-1`, then cross-dissolve to `-2`, `-3`… at
   the cue line. Identical coords → only the new/changed parts move.
+- **Export anchors (critical for staged builds).** Excalidraw export **crops to
+  the content bounding box** — so if a later state is bigger, an earlier state
+  exports at a different size/position and the dissolve jumps. Every state of a
+  build whose extent grows includes two invisible, locked corner-anchor rects
+  (opacity 0) at the **full diagram's extent**, so all states export at identical
+  dimensions and shared elements stay pixel-aligned. (Single-extent builds like
+  the Beat-1 grid don't need them; the claim-graph states do.)
 
 ## Palette (dark chalkboard)
 
