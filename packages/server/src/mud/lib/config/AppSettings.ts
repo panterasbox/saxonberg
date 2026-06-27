@@ -146,6 +146,39 @@ export const AppSettingKeys = {
    * resets the clock (the spend half of influence; no verb yet).
    */
   convictionBuildPeriodSeconds: "conviction.buildPeriodSeconds",
+
+  /**
+   * Traits — the disposition estimator dials (the personality layer). The
+   * engine ships the derive-on-read accumulator + the form→define→entrench
+   * lifecycle; these are the tunable numbers. The entrenched invariants
+   * (derive-don't-track, game-time decay, the clamped-sum position) are
+   * CODE, never keys. See docs/subsystems/trait.md.
+   */
+  /** Traits — evidence-weight decay half-life in GAME days. */
+  traitsDecayHalfLifeDays: "traits.decayHalfLifeDays",
+  /** Traits — evidence mass at or above which an axis is `defined`. */
+  traitsDefinedThreshold: "traits.definedThreshold",
+  /** Traits — evidence mass at or above which an axis is `entrenched`. */
+  traitsEntrenchedThreshold: "traits.entrenchedThreshold",
+  /** Traits — |position| at or above which an axis counts as "defining". */
+  traitsPronouncedThreshold: "traits.pronouncedThreshold",
+  /** Traits — scalar mapping raw compatibility into the regard range. */
+  traitsCompatibilityScale: "traits.compatibilityScale",
+
+  /**
+   * Operator policy knobs lifted out of scattered module constants (the
+   * pre-app-settings sweep). Each is a single-source limit an operator may
+   * want to tune live; consumers read with a try/catch fallback to the
+   * historical literal so a pre-warm/test read is still safe.
+   */
+  /** Chat — per-channel in-memory history ring cap (`ChannelCatalogue`). */
+  chatHistoryCap: "chat.historyCap",
+  /** Char-gen — minimum length (chars) of a chosen character name token. */
+  chargenNameMinLength: "chargen.nameMinLength",
+  /** Char-gen — maximum length (chars) of a chosen character name token. */
+  chargenNameMaxLength: "chargen.nameMaxLength",
+  /** Status — max rendered length (chars) of a Character's status one-liner. */
+  statusMaxLength: "status.maxLength",
 } as const;
 
 export type AppSettingKey =

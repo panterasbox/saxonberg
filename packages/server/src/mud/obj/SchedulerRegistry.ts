@@ -52,7 +52,7 @@ import { ModuleApi } from '../api/module';
 import { WorldClockApi, type ClockHandle } from '../api/worldclock';
 import { Quantity } from '../lib/quantity';
 import { SchedulerApi } from '../api/scheduler';
-import { registerSchedulerRegistryClass } from './api/SchedulerLogic';
+import { registerSchedulerRegistryClass } from '../api/scheduler';
 import type {
   ActivityClass,
   DurativeActivity,

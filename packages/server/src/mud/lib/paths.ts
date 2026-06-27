@@ -33,6 +33,8 @@ export const TemplatePaths = {
   channelCatalogue: "/obj/ChannelCatalogue",
   subjectCatalogue: "/obj/SubjectCatalogue",
   soulCatalogue: "/obj/SoulCatalogue",
+  disciplineCatalogue: "/obj/DisciplineCatalogue",
+  corpoCatalogue: "/obj/CorpoCatalogue",
 
   // Persistence infra (declared as `static templatePath` on these classes).
   persistentHydrator: "/lib/persistence/PersistentHydrator",
@@ -76,6 +78,11 @@ export const TemplatePathPrefixes = {
   avatar: "/obj/Avatar/",
   species: "/lib/species/",
   topic: "/lib/messaging/Topic/",
+  discipline: "/lib/advancement/Discipline/",
+  // Corpos — the two reference-identity leaf rosters the CorpoCatalogue
+  // scans at boot (the megacorps and their product brands).
+  corpo: "/lib/corpo/Corpo/",
+  brand: "/lib/corpo/Brand/",
   perceptionModalities: "/lib/perception/modalities/",
   // Addressing — the Locality leaf roster lives under this prefix; the
   // AddressRegistry enumerates it to build the coverage index.

@@ -1,0 +1,61 @@
+# Dave — the owner, and the bar's namesake. A nod to the original EotL
+# "Dave the Barkeep": a washed-up actor who drifted through odd jobs
+# (most notably Bruce Willis impressions) before settling down to open
+# his own place. The Bruce Willis bit is kept direct — it's the part
+# people actually recognize — while the obscure cancelled-TV-show
+# specifics stay buried. He keeps to the back office these days; when he
+# does drift out front the old stage habits (a wink, a polished glass,
+# that impression) resurface — the "annoying script" as fond homage.
+# Human (canon).
+class: /lib/character/Crafter
+hydratorClass: /lib/persistence/PersistentHydrator
+data:
+  name: Dave
+  pronouns: he
+  _speciesPath: /lib/species/animalia/chordata/mammalia/primates/hominidae/homo/sapiens
+  lifecycleState: alive
+  primaryKeyword: dave
+  alternateNames:
+    - barkeep
+    - bartender
+  shortDescription: Dave the Barkeep
+  longDescription: |
+    Dave keeps to the back these days and lets the staff run the rail.
+    When he does drift out front he can't quite help himself — a glass
+    polished that didn't need it, a wink at no one in particular, and, if
+    the mood takes him, a startlingly good Bruce Willis impression he
+    swears he's retired from. He's got the easy, slightly-too-rehearsed
+    charm of a man who did a little acting once, drifted through a lot of
+    odd jobs, and finally settled down to open his own bar. Mostly, it
+    took.
+  # Established character: content (settled), a bold performer, the
+  # rehearsed charm — the owner, mostly offstage.
+  dispositions:
+    - { disposition: ambition, valence: -70 }
+    - { disposition: boldness, valence: 70 }
+    - { disposition: humility, valence: -70 }
+  behaviors:
+    # Dave rarely leaves the office — a short evening turn about the floor.
+    - brain: /lib/behavior/shifts
+      trigger: cadence:30s
+      config:
+        behindBar: /domain/lounge/bar
+        railStool: /domain/lounge/bar
+        offstage: /domain/lounge/offstage
+        schedule:
+          - { days: [0, 1, 2, 3, 4, 5, 6], hours: [21, 23], state: on-shift }
+    - brain: /lib/behavior/idles
+      trigger: cadence:15s
+      config:
+        pool:
+          - { kind: free, value: "polishes a glass that didn't need polishing." }
+          - { kind: free, value: "winks knowingly at no one in particular." }
+          - { kind: free, value: "drops into a gravelly Bruce Willis drawl, then waves it off." }
+          - { kind: say, value: "Yippee-ki-yay. Anyway. What'll it be." }
+    - brain: /lib/behavior/greets
+      trigger: arrival
+      config:
+        lines:
+          - "Welcome to my bar."
+          - "What're we drinking?"
+          - "Glad you came by, friend."

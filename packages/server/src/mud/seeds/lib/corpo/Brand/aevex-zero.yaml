@@ -1,0 +1,9 @@
+class: /lib/corpo/Brand
+hydratorClass: /lib/persistence/PersistentHydrator
+data:
+  key: aevex-zero
+  name: aevex zero
+  owner: aevex
+  category: synthetic spirit
+  positioning: lab-engineered, divisive
+  descriptor: A lab-engineered synthetic spirit, uncanny-perfect and divisive — purists recoil, futurists evangelize.

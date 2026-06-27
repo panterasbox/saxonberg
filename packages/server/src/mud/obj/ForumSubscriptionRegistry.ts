@@ -37,7 +37,7 @@ import { PlayerApi } from '../api/player';
 import { Template } from '../lib/stuff/Template';
 import { TemplatePathPrefixes } from '../lib/paths';
 import { ForumEventFired } from '../lib/forum/ForumEvent';
-import type { ArgumentLensNode } from './api/ForumsLogic';
+import type { ArgumentLensNode } from '../api/forums';
 import type Interactive from './Interactive';
 import type { Subscription } from '../api/event';
 import type { Stuff } from '../lib/stuff/Stuff';

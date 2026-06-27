@@ -22,7 +22,7 @@ build; it is not itself a module. (See [daves-bar-slate](../slates/builds/daves-
 
 | Build | What | Status | Slate |
 |---|---|---|---|
-| **npc-behavior Wave 1** | `Behaved` + canned brains + wiring; lights up the inert Activity substrate | **design done** ("model set") | [npc-behavior](../slates/builds/npc-behavior-slate.md) |
+| **npc-behavior Wave 1** | `Behaved` + canned brains + wiring + cast; lights up the inert Activity substrate | **BUILT** (MR !90; subsystem doc [behavior.md](../subsystems/behavior.md)) | [npc-behavior](../slates/builds/npc-behavior-slate.md) |
 | **Traits** | derived-from-behavior personality (= competence-for-dispositions); stress-as-divergence | **designed** | [npc-behavior § Traits](../slates/builds/npc-behavior-slate.md) |
 | **npc-dialogue Wave 1** | responder seam + branching trees + scripted banter; voices from traits, warmth from regard | **direction set** | [npc-dialogue](../slates/builds/npc-dialogue-slate.md) |
 | **Advancement** | Catalog / Transcript / Competence (the *learning core* — NOT deferred) | **designed**, increment-1 standalone | [advancement](../slates/builds/advancement-slate.md) |

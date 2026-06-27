@@ -1,0 +1,67 @@
+# Mara — the Anchor (day shift, weekdays). Diligent, patient, reserved.
+# The spine of the place; she does inventory (the clipboard — later wave).
+# Built entirely from data: class NPC + behaviors, no bespoke code.
+class: /lib/character/Crafter
+hydratorClass: /lib/persistence/PersistentHydrator
+data:
+  name: Mara
+  pronouns: she
+  _speciesPath: /lib/species/animalia/chordata/mammalia/primates/hominidae/homo/khazadicus
+  lifecycleState: alive
+  primaryKeyword: mara
+  shortDescription: a steady, watchful dwarf tending bar
+  longDescription: |
+    Stocky and unhurried, with dark eyes that listen better than they
+    speak and broad, capable hands never far from a cloth. She moves with
+    the economy of someone who has counted these bottles ten thousand
+    times — and the thick iron-grey braid over one shoulder says she's
+    earned the right to be unimpressed by most things.
+  # Established character (seeded as claim evidence at spawn): steady,
+  # watchful, reserved — the Anchor. Slate-pinned reserved & temperate.
+  dispositions:
+    - { disposition: diligence, valence: 70 }
+    - { disposition: patience, valence: 70 }
+    - { disposition: composure, valence: 70 }
+    - { disposition: temperance, valence: 70 }
+    - { disposition: sociability, valence: -70 }
+  behaviors:
+    - brain: /lib/behavior/shifts
+      trigger: cadence:30s
+      config:
+        behindBar: /domain/lounge/bar
+        railStool: /domain/lounge/bar
+        offstage: /domain/lounge/offstage
+        schedule:
+          - { days: [0, 1, 2, 3, 4], hours: [6, 14], state: on-shift }
+    - brain: /lib/behavior/idles
+      trigger: cadence:11s
+      config:
+        pool:
+          - { kind: free, value: "runs a cloth slowly down the rail." }
+          - { kind: free, value: "holds a glass to the light, then sets it down." }
+          - { kind: free, value: "straightens a row of bottles without looking." }
+          - { kind: say, value: "Mm." }
+    - brain: /lib/behavior/random-chatter
+      trigger: cadence:41s
+      config:
+        lines:
+          - "What'll it be."
+          - "Long day?"
+          - "This one's on the house."
+    - brain: /lib/behavior/greets
+      trigger: arrival
+      config:
+        lines:
+          - "Evening."
+          - "Welcome in."
+          - "Sit anywhere you like."
+    # Trait-aware chatter: Mara's reserved sociability keeps this sparse —
+    # mostly silence, the occasional clipped word.
+    - brain: /lib/behavior/converses
+      trigger: cadence:19s
+      config:
+        chatty:
+          - "Good to have you in."
+        terse:
+          - "Mm."
+          - "Hm."

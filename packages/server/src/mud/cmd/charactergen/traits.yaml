@@ -1,0 +1,13 @@
+verbs: [traits]
+controller: charactergen/TraitsController
+description: "Read your own defining traits — the dispositions you've grown into."
+help: |
+  Your defining traits, as the dispositions your behavior has made
+  pronounced — shown by *pole and band* (e.g. "Generous — defined"),
+  never as a number. The view lists only the axes you've grown into; the
+  near-neutral majority simply don't appear (the unformed floor is
+  implicit).
+
+  Character is earned, not assigned: you become what you repeatedly do,
+  and an old hand is harder to budge than a newcomer. It's a read-only,
+  self-only view, and takes no arguments.

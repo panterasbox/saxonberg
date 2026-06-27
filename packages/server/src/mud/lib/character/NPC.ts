@@ -1,19 +1,29 @@
 /**
- * NPC — the first concrete `Character` (the base is abstract).
+ * NPC — the thin archetype class for authored, non-player characters:
+ * `Character` + `Behaved` (+ the `PostRegistration` marker so the clone
+ * pipeline invokes `postRegister`, where `Behaved` wires its
+ * `behaviors:` spec list).
  *
- * Minimal and behavior-free: a body + agency, authored entirely from seed
- * data (species, name, description). The NPC *behavior* layer (a `Behaved`
- * mixin + brains) is the npc-behavior lane's and wraps this later.
+ * Keeping `Behaved` on this subclass — rather than on base `Character` —
+ * keeps automated behavior **off player Avatars** (which extend
+ * `ShelledCharacter`, not `NPC`) and off the base. Cast templates set
+ * `class: /lib/character/NPC` and compose behavior entirely as data; no
+ * per-NPC subclass is needed (see docs/subsystems/behavior.md).
  *
- * **Cross-lane note:** the npc-behavior worktree mints the richer `NPC` at
- * this same path (`Character` + `Behaved` + the `PostRegistration` marker).
- * This deliberately tiny version keeps the crafting lane standalone; the
- * add/add merge resolves to that fuller class, which `Crafter` composes over
- * unchanged.
+ * Composition order is load-bearing: `BehavedMixin` is **outermost** so
+ * the single `postRegister` the clone pipeline calls resolves to it
+ * (which then wires behaviors); `PostRegistrationMixin` sits just below
+ * to supply the marker + the terminal no-op. (`CommandGiver`'s own
+ * `postRegister` deeper in the chain is shadowed, but it self-seeds
+ * lazily — and NPCs emit through Apis directly, not the command system.)
  */
 
 import { Character } from './Character';
+import { PostRegistrationMixin } from '../stuff/PostRegistration';
+import { BehavedMixin } from '../behavior/Behaved';
 
-export class NPC extends Character {}
+const NPCBase = BehavedMixin(PostRegistrationMixin(Character));
+
+export class NPC extends NPCBase {}
 
 export default NPC;

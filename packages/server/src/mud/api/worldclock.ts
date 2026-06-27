@@ -32,6 +32,12 @@ import { SecurityPolicies } from '../lib/security/SecurityPolicies';
 import { WorldClockLogic } from '../obj/api/WorldClockLogic';
 import { fileURLToPath } from 'url';
 
+// DI seam: re-exported so `WorldClockRegistry` registers its class through
+// this facade rather than importing the logic singleton directly (the
+// no-import-from-*Logic rule). The load-time mechanism lives in
+// `WorldClockLogic`; this is a pure pass-through re-export.
+export { registerWorldClockRegistryClass } from '../obj/api/WorldClockLogic';
+
 /* ─────────────────────────── public surface types ─────────────────────────── */
 
 export type ClockCallback = (handle: ClockHandle) => void;

@@ -239,6 +239,37 @@ describe('CmsApi — content backend', () => {
     ).rejects.toMatchObject({ code: 'invalid' });
   });
 
+  it('write rejects an unresolvable brain path (behavior save-gate)', async () => {
+    vi.spyOn(AccessApi, 'can').mockResolvedValue(true);
+    await expect(
+      CmsApi.write(
+        'content',
+        '/cmstest/alpha',
+        JSON.stringify({
+          behaviors: [
+            { brain: '/lib/behavior/does-not-exist', trigger: 'cadence:1s' },
+          ],
+        })
+      )
+    ).rejects.toMatchObject({ code: 'invalid' });
+  });
+
+  it('write accepts a resolvable brain path', async () => {
+    vi.spyOn(AccessApi, 'can').mockResolvedValue(true);
+    vi.spyOn(AccessApi, 'canMutateZone').mockResolvedValue(true);
+    vi.spyOn(StuffApi, 'findAllByTemplatePath').mockReturnValue([]);
+    const out = await CmsApi.write(
+      'content',
+      '/cmstest/alpha',
+      JSON.stringify({
+        behaviors: [
+          { brain: '/lib/behavior/idles', trigger: 'cadence:9s', config: {} },
+        ],
+      })
+    );
+    expect(out.backend).toBe('content');
+  });
+
   it('write to a missing template throws CmsError(not-found)', async () => {
     vi.spyOn(AccessApi, 'can').mockResolvedValue(true);
     await expect(

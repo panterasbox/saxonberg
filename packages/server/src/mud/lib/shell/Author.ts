@@ -68,6 +68,11 @@ export function AuthorMixin<TBase extends MixinConstructor>(Base: TBase) {
         'author/destruct.yaml',
         'author/eval.yaml',
         'author/teleport.yaml',
+        // Advancement developer harness — fabricate Transcript deeds so
+        // the derive-on-read Competence loop + band conferrals are
+        // exercisable without lane-2's real craft verbs. Developer-gated
+        // (requiresDeveloper) on top of this AuthorMixin visibility.
+        'author/practice.yaml',
         // Soul authoring — emote catalog mint / edit / delete / show /
         // list. Gated identically to the rest of the AuthorMixin suite:
         // non-authors don't see the verb in their recency stack.

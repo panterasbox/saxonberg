@@ -247,13 +247,23 @@ set. Two kinds are recognized:
   `lib/description/Visible.ts#senseStripAugmenter`.
 - **DI injection seams** — a backend→mudlib wiring slot a free function
   fills at boot. Today: `lib/connection/HasInteractive.ts#setClientStateUpdatePush`.
+- **Logic-singleton sibling cross-imports** (`no-restricted-imports`) — two
+  logic singletons in one subsystem that must reference each other's class
+  *identity* for a framework allowlist, which the facade can't broker.
+  Today: `obj/api/ConsumerLogic.ts` ↔ `obj/api/ProducerLogic.ts` (the
+  class identities feed `EventApi.restrictSubscribe`'s subscriber
+  allowlist for the shared `CommandDispatchedEvent` consumer/producer
+  tap; cycle-safe). Each opts out with
+  `eslint-disable-next-line no-restricted-imports -- <reason>`.
 
-**Enforcement.** Two ESLint rules (`.eslintrc.js`): `api/*.ts` bans
-exported functions / function-consts; `lib/**/*.ts` bans the same,
-exempting `*Mixin` factories by name and the two decorator files by
-path. Both opt out only via an `eslint-disable` + justification. (The
-gate-string resolver and the sealed-subdir rule round out the
-[lint family](#cross-references).)
+**Enforcement.** ESLint rules (`.eslintrc.js`): `api/*.ts` bans exported
+functions / function-consts; `lib/**/*.ts` bans the same, exempting
+`*Mixin` factories by name and the two decorator files by path; a
+`no-restricted-imports` rule forbids importing `obj/api/*Logic`
+singletons anywhere except each logic's own `api/*.ts` facade (and
+`__tests__`, which white-box logic internals). All opt out only via an
+`eslint-disable` + justification. (The gate-string resolver and the
+sealed-subdir rule round out the [lint family](#cross-references).)
 
 **The ask-first rule.** Introducing a *new* exception — anything that
 needs a fresh `eslint-disable no-restricted-syntax`, or a file that
@@ -504,7 +514,10 @@ body-state, not agent-state** (a corpse / sessile animal is a body with
 reduced agency) — see [vitals.md](./subsystems/vitals.md). The identity
 line is sex (body, `SexedMixin` on Creature) vs. gender/persona (social,
 on Character). `Creature` is concrete, so a bare non-agent body (a frog,
-a corpse) is valid.
+a corpse) is valid. `Character` has two leaf subclasses: `Avatar`
+(player-driven, in `obj/`) and the thin `NPC` (`lib/character/NPC.ts` =
+`Character` + `BehavedMixin`) for authored, automation-driven characters —
+which keeps `Behaved` off players. See [behavior.md](./subsystems/behavior.md).
 
 Each branch lives in `lib/stuff/` and registers itself with `Stuff` at
 module load via `Stuff._registerTopLevelBranch(BranchClass)`. The
@@ -647,6 +660,8 @@ registry) lives in `lib/mixin.ts`.
 | `lib/thermal/` | `ThermalRegulationMixin` | the Option-C body driver: overrides `getVitalSign` (sync, cached effective ambient) to **drive** `coreTemperature` — pin at setpoint within the thermoneutral band, else spend satiation (cold) / hydration (hot, wet-bulb-capped) to defend it, fail into passive `Thermal` drift; endo/ecto split (`BodyPlan.thermalStrategy`) + Q10; the hypothermia/hyperthermia/torpor cascade → death seam. Composed over `ThermalMixin`/`Metabolic`, inner of `LoadBearing`, by `Creature`. No Api. See [thermal.md](./subsystems/thermal.md). |
 | `lib/forums/` | `ForumsMixin` | the forums transmission capability (post / reply / vote / subscribe verb family), composed on a hosted update (`ForumsUpdate`). Born-with: the `ForumsUpdate` is an `AetherHosted` implant conferring this mixin, granted at intake. Acts on behalf of its host via `getHost()`. See [forums.md](./subsystems/forums.md). |
 | `lib/forums/` | `SubjectSubscriberMixin` | per-Avatar forum-subscription storage: the keyed set of subscribed `Subject`s feeding the `ForumSubscriptionRegistry` fan-out. Composed by `Avatar`. See [forums.md](./subsystems/forums.md). |
+| `lib/behavior/` | `BehavedMixin` | the NPC automation layer (first behavior consumer of the activity substrate): runs a declarative `behaviors:` data-spec list, path-resolving + re-resolving "brain" code modules per fire (HMR), wiring cadence (jittered, presence-gated) + `handleMessage`-witness triggers, with slot contention over `EngagedMixin`. Branch-agnostic; composed by the thin `NPC` class. See [behavior.md](./subsystems/behavior.md). |
+| `lib/corpo/` | `BrandedMixin` | the per-product corpo **mark**: a `_brandKey` durable join resolving on read (via `CorpoApi`) to a `Brand` and its owning `Corpo` (or a null corpo for an independent). MQL-visible via a `subscribableFields` `brand`/`corpo` projection; appends a derived "a product of <Corpo>" `markupAugmenter` line. Composed by content onto branded objects (`BrandedBottle` = `BrandedMixin(Thing)`), not every Stuff. See [corpo.md](./subsystems/corpo.md). |
 | `lib/craft/` | `GradedMixin` | the ordinal-quality carrier: a persisted `gradeBand` word + the `Grade` value-object contract (`getGrade`/`setGrade`/`getGradeBand`/`setGradeBand`). Composed by input bottles (`GradedReceptacle`) and inherited by `CraftedMixin`. See [crafting.md](./subsystems/crafting.md). |
 | `lib/craft/` | `ToolMixin` | the durable-good substrate: `capabilities: string[]` (matched by recipe-required capability) + a `condition` (0..1) that `wear()`s on use, not the clock. Composed by `ToolItem`. See [crafting.md](./subsystems/crafting.md). |
 | `lib/craft/` | `CraftedMixin` | the per-instance maker's mark (composes `GradedMixin`): `{maker, recipe, craftedAt}` stamped once at craft-resolve + the DF-style `renderVerdict()` (band-word + prose + maker, never a number). Un-spoofable (maker derived from context). Composed by `CraftedDrink`. See [crafting.md](./subsystems/crafting.md). |

@@ -72,6 +72,39 @@ module.exports = {
       }
     },
     {
+      // Logic-singleton isolation: `obj/api/*Logic.ts` modules are the
+      // internal implementation behind their `api/*.ts` facade. Nothing
+      // imports a logic module directly — every consumer goes through the
+      // facade, which forwards/re-exports what it means to expose. The
+      // ONE sanctioned importer is each facade itself (it value-imports
+      // its own logic class for the singleton resolver) — exempted by the
+      // single-level `mud/api/*.ts` glob. Tests white-box logic internals
+      // directly (the test-only carve-out) — exempted by `__tests__`. The
+      // Consumer/Producer sibling cross-imports (an EventApi
+      // restrictSubscribe allowlist) opt out per-line with an
+      // `eslint-disable no-restricted-imports` + justification (see
+      // architecture.md § sanctioned-exception registry).
+      files: ['packages/server/src/**/*.ts', 'packages/server/src/**/*.tsx'],
+      excludedFiles: [
+        'packages/server/src/mud/api/*.ts',
+        'packages/server/src/**/__tests__/**'
+      ],
+      rules: {
+        'no-restricted-imports': [
+          'error',
+          {
+            patterns: [
+              {
+                group: ['**/obj/api/*Logic', '**/api/*Logic', './*Logic'],
+                message:
+                  'Import from the api/<x>.ts facade, not the obj/api/<X>Logic singleton (logic modules are internal implementation; only the facade imports its own logic).'
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
       // Apis expose behavior through their Api class. Module-level
       // exported functions are not allowed in api/*.ts — fold them
       // into the owning Api. Types and constants stay exportable.

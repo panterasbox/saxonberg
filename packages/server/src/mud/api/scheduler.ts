@@ -35,6 +35,12 @@ import { HotReloadApi } from './hot-reload';
 import { SchedulerLogic } from '../obj/api/SchedulerLogic';
 import { fileURLToPath } from 'url';
 
+// DI seam: re-exported so `SchedulerRegistry` registers its class through
+// this facade rather than importing the logic singleton directly (the
+// no-import-from-*Logic rule). The load-time mechanism lives in
+// `SchedulerLogic`; this is a pure pass-through re-export.
+export { registerSchedulerRegistryClass } from '../obj/api/SchedulerLogic';
+
 /* ─────────────────────────── public surface types ─────────────────────────── */
 
 /**

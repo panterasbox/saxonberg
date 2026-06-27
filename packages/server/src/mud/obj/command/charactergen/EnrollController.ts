@@ -109,10 +109,28 @@ function isReservedName(lower: string): boolean {
   );
 }
 
+/** Inclusive name-length bounds — operator-tunable via app-settings, with
+ * a fallback to the historical 2–24 when read before the cache is warmed. */
+function nameLengthBounds(): { min: number; max: number } {
+  const read = (key: string, fallback: number): number => {
+    try {
+      const n = Number(AppApi.setting(key));
+      return Number.isFinite(n) && n > 0 ? n : fallback;
+    } catch {
+      return fallback;
+    }
+  };
+  return {
+    min: read(AppSettingKeys.chargenNameMinLength, 2),
+    max: read(AppSettingKeys.chargenNameMaxLength, 24),
+  };
+}
+
 function validateNameToken(token: string, label: string): string | undefined {
   const t = token.trim();
-  if (t.length < 2 || t.length > 24) {
-    return `${label} must be 2–24 characters.`;
+  const { min, max } = nameLengthBounds();
+  if (t.length < min || t.length > max) {
+    return `${label} must be ${min}–${max} characters.`;
   }
   if (!NAME_RE.test(t)) {
     return `${label} may use letters with a single internal hyphen or apostrophe only.`;

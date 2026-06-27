@@ -1114,6 +1114,71 @@ export class StuffApi {
     }
     return ClassConstructor;
   }
+
+  /**
+   * Resolve a **named export** at `classPath` from the hot-reload
+   * registry, warming the path (lazy `reload`) on a cold miss. The
+   * synchronous, caller-named-export cousin of {@link loadClassByPath}
+   * (which resolves the file-basename export and falls back to a bare
+   * import). Used for path-resolved **brain** modules (`exportName =
+   * 'brain'`), whose concept-export is not the basename.
+   *
+   * Only class-like exports are retained by the registry, so the brain
+   * marker is a named class-expression (`export const brain = class
+   * {…}`). Returns `null` — never throws — for an invalid path, a
+   * frozen path, or a missing export, so callers (the behavior wiring,
+   * the CMS save-gate) treat "doesn't resolve" as a clean negative.
+   */
+  public static async resolveExport(
+    classPath: string,
+    exportName: string
+  ): Promise<unknown | null> {
+    let absoluteClassPath: string;
+    try {
+      absoluteClassPath = StuffApi.#resolveAbsoluteClassPath(
+        this.#validateClassPath(classPath)
+      );
+    } catch {
+      return null;
+    }
+    if (HotReloadApi.isFrozen(absoluteClassPath)) return null;
+    let exp = HotReloadApi.getCurrentExport(absoluteClassPath, exportName);
+    if (!exp) {
+      try {
+        await HotReloadApi.reload(absoluteClassPath);
+      } catch {
+        return null;
+      }
+      exp = HotReloadApi.getCurrentExport(absoluteClassPath, exportName);
+    }
+    return exp ?? null;
+  }
+
+  /**
+   * Synchronous sibling of {@link resolveExport}: resolves a named
+   * export from the hot-reload registry with **no** lazy warm. Returns
+   * `null` if the path was never warmed, is frozen, or lacks the
+   * export. The per-invocation re-resolve seam for brains —
+   * `BehavedMixin` warms each brain path once at wire time (via the
+   * async `resolveExport`), then re-resolves the current class per fire
+   * through this sync path (a registry-map hit), so HMR propagates
+   * with no async on the hot path.
+   */
+  public static resolveExportSync(
+    classPath: string,
+    exportName: string
+  ): unknown | null {
+    let absoluteClassPath: string;
+    try {
+      absoluteClassPath = StuffApi.#resolveAbsoluteClassPath(
+        this.#validateClassPath(classPath)
+      );
+    } catch {
+      return null;
+    }
+    if (HotReloadApi.isFrozen(absoluteClassPath)) return null;
+    return HotReloadApi.getCurrentExport(absoluteClassPath, exportName) ?? null;
+  }
 }
 
 /**
