@@ -114,6 +114,10 @@ export const Mixins = {
   Thermal: 'ThermalMixin',
   ThermalRegulation: 'ThermalRegulationMixin',
   Respiration: 'RespirationMixin',
+  Graded: 'GradedMixin',
+  Tool: 'ToolMixin',
+  Crafted: 'CraftedMixin',
+  Maker: 'MakerMixin',
 } as const;
 
 /**

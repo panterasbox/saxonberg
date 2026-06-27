@@ -102,6 +102,10 @@ import type { Disguisable } from '../lib/disguise/Disguisable';
 import type { DisguiseBearing } from '../lib/disguise/Disguise';
 import type { Status } from '../lib/status/Status';
 import type { Identifiable } from '../lib/identification/Identifiable';
+import type { Graded } from '../lib/craft/Graded';
+import type { Tooled } from '../lib/craft/Tooled';
+import type { Crafted } from '../lib/craft/Crafted';
+import type { Maker } from '../lib/craft/Maker';
 import { SecurityApi } from './security';
 import { ShadowApi } from './shadow';
 
@@ -791,6 +795,22 @@ export class MixinApi {
 
   public static isIdentifiable(obj: Stuff): obj is Stuff & Identifiable {
     return this.hasMixin(obj, Mixins.Identifiable);
+  }
+
+  public static isGraded(obj: Stuff): obj is Stuff & Graded {
+    return this.hasMixin(obj, Mixins.Graded);
+  }
+
+  public static isTool(obj: Stuff): obj is Stuff & Tooled {
+    return this.hasMixin(obj, Mixins.Tool);
+  }
+
+  public static isCrafted(obj: Stuff): obj is Stuff & Crafted {
+    return this.hasMixin(obj, Mixins.Crafted);
+  }
+
+  public static isMaker(obj: Stuff): obj is Stuff & Maker {
+    return this.hasMixin(obj, Mixins.Maker);
   }
 
   /**
