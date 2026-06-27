@@ -12,9 +12,9 @@
  * Backs the bar's back-bar (the working bottles + tools sit on it, visibly).
  */
 
-import Thing from '../lib/stuff/Thing';
-import { DetailedMixin } from '../lib/description/Detailed';
-import { SurfacedMixin } from '../lib/spatial/Surfaced';
+import Thing from '../stuff/Thing';
+import { DetailedMixin } from '../description/Detailed';
+import { SurfacedMixin } from './Surfaced';
 
 const SurfaceBase = SurfacedMixin(DetailedMixin(Thing));
 

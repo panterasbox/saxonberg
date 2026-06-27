@@ -7,7 +7,7 @@
  * "serves on order" via the verb, not a repertoire.
  */
 
-import Npc from './Npc';
-import { MakerMixin } from '../lib/craft/Maker';
+import NPC from './NPC';
+import { MakerMixin } from '../craft/Maker';
 
-export default class Crafter extends MakerMixin(Npc) {}
+export default class Crafter extends MakerMixin(NPC) {}

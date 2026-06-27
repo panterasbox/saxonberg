@@ -22,10 +22,10 @@ import Material from '../lib/material/Material';
 import Condition from '../lib/vitals/Condition';
 import type { ToxinBehavior } from '../lib/metabolism/Metabolic';
 import { Creature } from '../lib/creature/Creature';
-import GradedReceptacle from '../obj/GradedReceptacle';
-import ToolItem from '../obj/ToolItem';
-import CraftedDrink from '../obj/CraftedDrink';
-import Menu from '../obj/Menu';
+import GradedReceptacle from '../domain/lounge/GradedReceptacle';
+import ToolItem from '../lib/craft/ToolItem';
+import CraftedDrink from '../domain/lounge/CraftedDrink';
+import Menu from '../domain/lounge/Menu';
 import RecipeCatalogue from '../obj/RecipeCatalogue';
 import { Idea } from '../lib/stuff/Idea';
 import { ContainerMixin } from '../lib/spatial/Container';
@@ -72,8 +72,8 @@ function ensureAlcoholCondition(): void {
 const GIN = '/lib/material/spirit/gin';
 const VERMOUTH = '/lib/material/spirit/vermouth';
 const MARTINI_MAT = '/lib/material/cocktail/martini';
-const GLASS = '/obj/vessel/cocktail-glass';
-const DAVE = '/obj/Npc/dave-test';
+const GLASS = '/domain/lounge/cocktail-glass';
+const DAVE = '/domain/lounge/dave-test';
 
 class TestRoom extends ContainerMixin(Idea) {
   static _mixinName = 'TestRoom';

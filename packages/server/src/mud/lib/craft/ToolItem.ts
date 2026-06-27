@@ -7,9 +7,9 @@
  * authored in each seed's `data:`.
  */
 
-import Thing from '../lib/stuff/Thing';
-import { DetailedMixin } from '../lib/description/Detailed';
-import { ToolMixin } from '../lib/craft/Tooled';
+import Thing from '../stuff/Thing';
+import { DetailedMixin } from '../description/Detailed';
+import { ToolMixin } from './Tooled';
 
 const ToolItemBase = ToolMixin(DetailedMixin(Thing));
 

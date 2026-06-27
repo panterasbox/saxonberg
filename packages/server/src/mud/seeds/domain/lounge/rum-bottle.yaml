@@ -1,5 +1,5 @@
 # A working bottle of white rum — a graded bulk input on the bar.
-class: /obj/GradedReceptacle
+class: /domain/lounge/GradedReceptacle
 hydratorClass: /lib/persistence/PersistentHydrator
 data:
   shortDescription: a bottle of white rum

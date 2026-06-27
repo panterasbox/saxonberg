@@ -1,7 +1,7 @@
 # Dave — the bartender NPC. A Crafter (MakerMixin Character): the order-
 # fulfilling maker. Behavior-free in v1 (no brain); he serves on `order`
 # via the verb. Cloned fresh into the bar each boot (transient runtime).
-class: /obj/Crafter
+class: /lib/character/Crafter
 hydratorClass: /lib/persistence/PersistentHydrator
 data:
   name: Dave

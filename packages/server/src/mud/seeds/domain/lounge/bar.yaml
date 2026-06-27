@@ -19,15 +19,15 @@ data:
   primaryKeyword: bar
   illustration: location/bar.png
   populates:
-    - /obj/back-bar
-    - { template: /obj/vessel/gin-bottle, onto: /obj/back-bar }
-    - { template: /obj/vessel/vermouth-bottle, onto: /obj/back-bar }
-    - { template: /obj/vessel/rum-bottle, onto: /obj/back-bar }
-    - { template: /obj/vessel/lime-bottle, onto: /obj/back-bar }
-    - { template: /obj/tool/shaker, onto: /obj/back-bar }
-    - { template: /obj/tool/mixing-glass, onto: /obj/back-bar }
-    - /obj/Npc/dave
-    - /obj/Menu/bar-menu
+    - /domain/lounge/back-bar
+    - { template: /domain/lounge/gin-bottle, onto: /domain/lounge/back-bar }
+    - { template: /domain/lounge/vermouth-bottle, onto: /domain/lounge/back-bar }
+    - { template: /domain/lounge/rum-bottle, onto: /domain/lounge/back-bar }
+    - { template: /domain/lounge/lime-bottle, onto: /domain/lounge/back-bar }
+    - { template: /domain/lounge/shaker, onto: /domain/lounge/back-bar }
+    - { template: /domain/lounge/mixing-glass, onto: /domain/lounge/back-bar }
+    - /domain/lounge/dave
+    - /domain/lounge/bar-menu
   longDescription: |
     A narrow, warm room that smells of citrus peel and old wood. The bar itself is a single slab of something dark and scarred, lit from beneath so the bottles ranked behind it throw long colored shadows up the wall. Stools wait in a patient row. Behind the taps a chalkboard menu has been wiped and rewritten so many times it's gone soft and grey.
 

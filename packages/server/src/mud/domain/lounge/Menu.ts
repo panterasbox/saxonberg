@@ -16,10 +16,10 @@
  * its offer.
  */
 
-import Thing from '../lib/stuff/Thing';
-import { DetailedMixin } from '../lib/description/Detailed';
-import type { CommandContributions } from '../api/command';
-import { CraftingApi } from '../api/crafting';
+import Thing from '../../lib/stuff/Thing';
+import { DetailedMixin } from '../../lib/description/Detailed';
+import type { CommandContributions } from '../../api/command';
+import { CraftingApi } from '../../api/crafting';
 
 // Thing already composes Visible + Perceptible + Tangible + Containable.
 const MenuBase = DetailedMixin(Thing);

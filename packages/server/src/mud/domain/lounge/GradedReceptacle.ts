@@ -8,9 +8,9 @@
  * (material, capacity, amount, grade) is authored in each seed's `data:`.
  */
 
-import Thing from '../lib/stuff/Thing';
-import { BulkableMixin } from '../lib/bulk/Bulkable';
-import { GradedMixin } from '../lib/craft/Graded';
+import Thing from '../../lib/stuff/Thing';
+import { BulkableMixin } from '../../lib/bulk/Bulkable';
+import { GradedMixin } from '../../lib/craft/Graded';
 
 const GradedReceptacleBase = GradedMixin(BulkableMixin(Thing));
 

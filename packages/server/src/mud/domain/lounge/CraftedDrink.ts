@@ -12,10 +12,10 @@
  * + maker) — never a number.
  */
 
-import Thing from '../lib/stuff/Thing';
-import { BulkableMixin } from '../lib/bulk/Bulkable';
-import { DetailedMixin } from '../lib/description/Detailed';
-import { CraftedMixin, type Crafted } from '../lib/craft/Crafted';
+import Thing from '../../lib/stuff/Thing';
+import { BulkableMixin } from '../../lib/bulk/Bulkable';
+import { DetailedMixin } from '../../lib/description/Detailed';
+import { CraftedMixin, type Crafted } from '../../lib/craft/Crafted';
 
 const CraftedDrinkBase = CraftedMixin(BulkableMixin(DetailedMixin(Thing)));
 

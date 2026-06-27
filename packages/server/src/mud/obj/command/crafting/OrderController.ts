@@ -14,7 +14,7 @@ import { ContainmentApi } from '../../../api/containment';
 import { MixinApi } from '../../../api/mixin';
 import { MessageApi } from '../../../api/message';
 import { Mml } from '../../../api/mml';
-import Menu from '../../Menu';
+import Menu from '../../../domain/lounge/Menu';
 
 const TOPIC = 'world.narration.action';
 

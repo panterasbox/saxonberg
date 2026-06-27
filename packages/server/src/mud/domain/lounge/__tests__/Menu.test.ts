@@ -6,10 +6,10 @@
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import Menu from '../Menu';
-import RecipeCatalogue from '../RecipeCatalogue';
-import { StuffApi } from '../../api/stuff';
-import { PersistenceManager } from '../../../backend/PersistenceManager';
-import { makeStuff, makeStuffAtPath } from '../../lib/security/__tests__/test-setup';
+import RecipeCatalogue from '../../../obj/RecipeCatalogue';
+import { StuffApi } from '../../../api/stuff';
+import { PersistenceManager } from '../../../../backend/PersistenceManager';
+import { makeStuff, makeStuffAtPath } from '../../../lib/security/__tests__/test-setup';
 
 let store: Record<string, Record<string, unknown>[]>;
 

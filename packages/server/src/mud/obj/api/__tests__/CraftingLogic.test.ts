@@ -22,9 +22,9 @@ import { BulkableApi } from '../../../api/bulk';
 import { PersistenceManager } from '../../../../backend/PersistenceManager';
 import { Quantity } from '../../../lib/quantity';
 import Material from '../../../lib/material/Material';
-import GradedReceptacle from '../../GradedReceptacle';
-import ToolItem from '../../ToolItem';
-import CraftedDrink from '../../CraftedDrink';
+import GradedReceptacle from '../../../domain/lounge/GradedReceptacle';
+import ToolItem from '../../../lib/craft/ToolItem';
+import CraftedDrink from '../../../domain/lounge/CraftedDrink';
 import RecipeCatalogue from '../../RecipeCatalogue';
 import { Idea } from '../../../lib/stuff/Idea';
 import { ContainerMixin } from '../../../lib/spatial/Container';
@@ -51,8 +51,8 @@ const GIN = '/lib/material/spirit/gin';
 const VERMOUTH = '/lib/material/spirit/vermouth';
 const RUM = '/lib/material/spirit/rum';
 const MARTINI_MAT = '/lib/material/cocktail/martini';
-const GLASS = '/obj/vessel/cocktail-glass';
-const DAVE = '/obj/Npc/dave-test';
+const GLASS = '/domain/lounge/cocktail-glass';
+const DAVE = '/domain/lounge/dave-test';
 
 let store: Record<string, Record<string, unknown>[]>;
 
