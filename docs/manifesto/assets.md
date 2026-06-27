@@ -97,13 +97,47 @@ Reveal: **scale-1 (the flood) → scale-2 (librarian proposes a merge, human con
 
 ---
 
+## Ch 1 — "Three voices, none supreme"  *(all beats built ✅)*
+
+### Beat 1 — scale forces self-organization
+| PNG | Source | State | Shows | Lands on cue |
+|---|---|---|---|---|
+| `ch1-beat1-container` | `ch1-beat1-container.excalidraw` | — | a taped-together mess (mods/rules/drama, tan tape) → arrow → clean "how the community decides" container | "held together with duct tape… real infrastructure instead" |
+
+### Beat 2 — three dimensions of each person
+| PNG | Source | State | Shows | Lands on cue |
+|---|---|---|---|---|
+| `ch1-beat2-meters` | `ch1-beat2-meters.excalidraw` | — | one person + three meters MAKE/FUND/PLAY at different heights | "three things almost everyone does… each earns its own kind of say" |
+
+### Beat 3 — three counts, 2-of-3  (hero)
+Reveal: **hero-1 (bars) → hero-2 (+ pass line) → hero-3 (+ verdict)**.
+| PNG | Source | State | Shows | Lands on cue |
+|---|---|---|---|---|
+| `ch1-beat3-hero-1` | `ch1-beat3-hero-1.excalidraw` | 1/3 | three aggregate bars: MAKERS / FUNDERS / PLAYERS | "it counts three ways at once" |
+| `ch1-beat3-hero-2` | `ch1-beat3-hero-2.excalidraw` | 2/3 | + the pass line | "to pass…" |
+| `ch1-beat3-hero-3` | `ch1-beat3-hero-3.excalidraw` | 3/3 | + ✓/✗ marks → "PASSES — 2 of 3 (money's count lost, it still carries)" | "you win two of the three… money buys nothing in the other two" |
+
+### Beat 4 — the firewall  (hero)
+Reveal: **firewall-1 (whale's empty meters) → firewall-2 (+ $ fills FUND, + compute) → firewall-3 (+ wall blocks REAL POWER)**.
+| PNG | Source | State | Shows | Lands on cue |
+|---|---|---|---|---|
+| `ch1-beat4-firewall-1` | `ch1-beat4-firewall-1.excalidraw` | 1/3 | a whale: FUND empty, MAKE/PLAY ~zero | "money's welcome…" |
+| `ch1-beat4-firewall-2` | `ch1-beat4-firewall-2.excalidraw` | 2/3 | $ fills the FUND meter + a dashed "$ → compute (grows the world for everyone)" | "it buys exactly two things: compute… and a voice in the funders' count" |
+| `ch1-beat4-firewall-3` | `ch1-beat4-firewall-3.excalidraw` | 3/3 | a wall blocks $ from REAL POWER (make/play/winning); caption "a funder's voice — never a maker, player, or winner" | "still can't make you a maker, a player, or a winner" |
+
+### Beat 5 — hand-forward teaser
+| PNG | Source | State | Shows | Lands on cue |
+|---|---|---|---|---|
+| `ch1-beat5-teaser` | `ch1-beat5-teaser.excalidraw` | — | one figure running a single meter sky-high — "can they own it?" | "what stops the most relentless person from piling up one whole count?" |
+
+---
+
 ## Other segments — not built yet
 
 Build order TBD. Each segment's per-beat visual spec lives in its own cue sheet:
 
 - **Intro** (`intro.md`) — full-screen face, no diagrams.
 - **Ch 0** (`chapter-0.md`) — origin motifs, world card, apathy-graveyard + engagement stack, content→record, lineage/EVE, machine-underneath, money inset.
-- **Ch 1** (`chapter-1.md`) — duct-tape→container, three-meter person, the gauges hero (2-of-3), the firewall/whale. *(first-pass assets were deleted; rebuild from scratch.)*
 - **Ch 2** (`chapter-2.md`) — meter callback, conferred-by-others + ghost accounts, the conviction "weight that gets heavier" hero.
 - **Ch 4** (`chapter-4.md`) — code/human split, the lifecycle pipeline, the administration, build-it-it's-yours/property, judiciary two faces.
 - **Ch 5** (`chapter-5.md`) — real-world-vs-digital contrast, the tamper-evident chain hero, crypto-minus-casino, sealed-by-math, detectable-not-impossible + fork.
