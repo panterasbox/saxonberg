@@ -57,64 +57,106 @@ your own bedroom, so you hit the ground running.
   "live" = the dynamic-expression engine that turns *who lives here* into *what
   the room looks like.*
 
-## Themes — the on-ramp's first click
+## Genre — the theme (the on-ramp's first click)
 
-The gentlest entry, and the feature to build first: **a curated set of preformed
-themes** you pick at **room assignment, from Katie.** You tell her the look you're
-after — *space, maritime, naturalist, scholarly, minimalist, cozy, industrial…* —
-and when she **moves you in, the room is already customized** with that theme's
-**seed data** (its objects, decor, layout, lighting). Instant gratification: not
-a blank box, a *home with a vibe*, day one. Katie is the diegetic interface
-(*"what kind of room you after? got a few looks"*), which is a lovely beat for the
-manifest-holder.
+The "theme" is **genre**, not decor-style — the world's registers: **future,
+fantasy, history, neorealist** (and whatever else — noir, horror…). It's the
+**aesthetic skin** of your half, and it's deeply on-brand: the whole game is
+genre-*mixed* (fantasy species beside cyberpunk corpos; Gus's anecdotes of the
+chosen one, god, and the future-guy all minding the same curb). Your room genre
+is **which flavor of the genre-soup you bring into your own space** — a future
+deck (chrome, screens, LEDs), a fantasy den (tapestries, candles, a chest), a
+history room (period furnishings), a neorealist one (grounded, mundane, plain).
 
-**The theme is *per-half*, not room-wide** (decided): you theme *your* side;
-your roommate's side is themed by *their* expression (the proc-gen NPC's
-generated look, or — Wren — her authored one). So the shared room visibly reads
-as **two distinct people** — sometimes a cohesive blend, sometimes a charming
-clash (your space deck beside their maritime bunk). *Speculative:* if your half
-and theirs **match**, the room could **synergize** — the two halves resolving
-into one cohesive whole (a small unlock, or just a nicer space). Since the
-roommate's theme is generated, a match is either a happy accident or a quiet act
-of harmony with your agent roommate (a who-counts-domestic beat, §17.H) — TBD,
-and kept light.
+You pick a genre at **room assignment, from Katie** — *"what register you after?
+got a few looks"* — and when she **moves you in, the room's already seeded** in
+that genre (its objects, layout, lighting). Instant gratification: a *home with a
+vibe*, day one; a lovely beat for the manifest-holder.
 
-Themes do triple duty:
-1. **Instant expression** — your room looks intentional immediately.
-2. **A bounded starting point** — you then tweak within the palette (theme-scoped
-   options: the space theme offers space-y decor).
-3. **A worked CMS example** — each theme is a clean, inspectable composition, so
-   when you open the CMS your themed room *teaches* you how rooms are wired. The
-   pick-a-preset → tweak → inspect → author path is the whole ladder in miniature.
+**Per-half, not room-wide** (decided): you skin *your* side; your roommate's side
+is *their* genre (the proc-gen NPC's generated register, or — Wren — her authored
+one). So the shared dorm reads as a **genre-clash made domestic** — your future
+deck beside their fantasy bunk, the genre-mixing thesis in one room, a little
+funny. *Speculative:* matching **genres** could **synergize** into one cohesive
+space (a small unlock, or just a nicer whole); since the roommate's genre is
+generated, a match is a happy accident or a quiet act of harmony with your agent
+roommate (§17.H) — TBD, kept light.
 
-## Occupant expression (the generative core — where the faculty gets designed)
+Genre does triple duty: **instant expression** (intentional day one), a **bounded
+starting point** (tweak within the genre's palette), and the **strongest CMS
+lesson** — each genre is a coherent, self-contained composition (a worked example
+of "how to build a future space"), exactly what you'd riff on in your sandbox,
+nudging toward *authoring within a genre.* The pick → tweak → inspect → author
+path is the whole ladder in miniature.
 
-The room is a portrait of its two occupants, and designing **how each kind of
-figure expresses** *is* designing the faculty. The expression-channels feeding
-one room:
+## The room as a three-axis self-portrait (genre · soul · roots)
 
-- **Possessions** — the occupant's **Carries** / loadout populate their half.
-- **Traits** — dispositions shape the room (a `Diligent` half starts tidy; a
-  `Gregarious` one accretes social clutter; a `Shy` one stays spare).
-- **Choice vs. generation** — the player's half is *chosen* (theme + palette);
-  the NPC's is *generated.*
+The room is a portrait of its two occupants across **three composing axes** — and
+designing how each kind of figure expresses across them *is* designing the
+faculty.
 
-Four figure-types the faculty must support:
+**The anatomy it composes into.** A fixed shell (the Warren node — walls, window,
+door, the uniform shape) split into **two halves**, each a small set of **slots**:
+bed/bedding · desk · walls (posters, pinboard) · shelves/storage (books,
+collections) · decor (plant, lamp, rug, lights) · lighting · floor. The palette is
+*slots × options*, deliberately small (the training-wheels bound and the legible
+first CMS lesson).
 
-- **You (player):** explicit choice (theme + palette) + your Carries + your
-  traits as defaults.
-- **The proc-gen NPC roommate:** **generated** expression — the same pipeline
-  that makes the agent (NameBank + species + traits, §17.H) also generates *their
-  half of the room.* The room is half-authored-by-you, half-authored-by-the-
-  generator.
-- **Wren (first-class singleton):** **authored** expression — her carve drives
-  her half; her *new* room is the test case of "authored singleton + proc-gen new
-  roommate" sharing a space.
-- **Dunny (departed):** **frozen** expression — his half preserved (negative
-  space), the other half stripped; the cut-off-occupancy state.
+The three axes that fill those slots:
 
-So the faculty supports **choice, generation, authoring, and freeze** — carve the
-expressions and the `DormRoom` template + the CMS-inspectable wiring fall out.
+- **Genre (style) — *picked.*** The aesthetic register (future / fantasy /
+  history / neorealist); see *Genre* above. The skin.
+- **Soul (lived-in state) — *rendered from traits + Carries.*** Personality made
+  spatial, layered *on top of* the genre skin (a Lazy fantasy room = candle wax
+  and dropped scrolls; a Lazy future room = cables and energy-drink cans). The
+  trait → room mapping for the loud-signal axes:
+
+  | Disposition | reads as | pole → pole |
+  |---|---|---|
+  | `diligence` | tidiness | made/clear/ordered ↔ unmade, piles, clutter |
+  | `sociability` | openness | friend-photos, a visitor's chair, door propped ↔ spare, shut |
+  | `temperance` | consumables | clean ↔ wrappers, cups, a stocked stash |
+  | `ambition` | aspiration | goal-board, trophies, advancement books ↔ cozy, settled |
+  | `curiosity` | collection | maps, oddities, projects-in-progress ↔ bare, functional |
+  | `generosity` | sharing | candy bowl, communal stuff ↔ locked, hoarded |
+  | `humility` | display | modest ↔ trophies, mirrors, awards |
+  | `composure` | order | serene, plants ↔ aggressive, chaotic |
+  | `worldview` | tone | bright, hopeful ↔ dark, ironic, sparse |
+
+  The **band sets the volume** (entrenched-`Diligent` = *obsessively* tidy); a
+  curated **subset** of Carries renders (the displayable ones, not every pocket
+  item); the other axes ride along subtly or not at all.
+- **Roots (bio) — *rendered from char-gen, grows with lore.*** Where you're from,
+  your history, your identity — a memento from home, a species-cultural item, an
+  affiliation token, a photo (Wren's *unanswered letter from home* is the
+  exemplar). **Thin today** (char-gen bio is barebones), a **seam to grow into**:
+  reserve a "roots" slot or two now, fill it as the world accumulates lore — the
+  room gets *more* expressive over time.
+
+So: **genre = style, soul = personality, roots = origin** — three layers per
+half, two halves per room.
+
+**The four figures across the axes** (carving these designs the faculty):
+
+- **You (player):** genre *picked* + soul from *your traits as overridable
+  defaults* + your Carries + roots from your bio.
+- **The proc-gen NPC roommate:** **generated** across all three — genre from
+  persona/bio *with variety* (an elf might generate fantasy, a synth future, but
+  **not deterministically** — an elf in a neorealist room is the better
+  character, the same anti-essentialism discipline as the species allegory), soul
+  from generated traits, roots from generated bio. You learn who they are by
+  looking.
+- **Wren (singleton):** **authored** — her carve *is* the spec (heads-down,
+  boxes-still-unpacked, one corner made functional, the letter from home); her new
+  room is the "authored singleton + proc-gen roommate" test case.
+- **Dunny (departed):** **frozen** — the composition engine *paused* on his last
+  state (his half a snapshot: cold tea, the counting-notation), the other half
+  stripped (Wren vacated).
+
+The faculty supports **pick, generate, author, and freeze** across the three axes
+— carve the expressions and the `DormRoom` template + the CMS-inspectable wiring
+fall out. "Live running code" = this composition (genre + soul + roots → the
+rendered half), recomputed as things change.
 
 ## The thematic payoff (keep it in view)
 
@@ -126,20 +168,23 @@ the room you sleep in.
 
 ## Open decisions / dials
 
-1. **The customization palette** — what's in the fixed range (layout-within-
-   bounds, bedding/posters/decor, a plant, lighting, tidiness), and how
-   theme-scoped it is.
-2. **The theme set** — the launch list (space/maritime/…) and how extensible.
-   (*Decided:* themes are **per-half**; the matching-theme **synergy** stays an
-   open, light sub-question.)
-3. **Trait → room rules** — the mapping from dispositions to room expression
-   (the generation rules for the NPC half; the defaults for yours).
-4. **How dynamic** — does the room shift over time (your state/growth, your
-   roommate's mood) or only at customization?
-5. **What "frozen" is, mechanically** — how Dunny's room models cut-off
-   occupancy (preserved half + stripped half + the seal).
-6. **CMS exposure depth** — how much of the room's wiring the first CMS view
-   shows, and how it maps to the sandbox vocabulary.
+1. **The palette** — finalize the slots (bed / desk / walls / shelves / decor /
+   lighting / floor) and the per-slot options; keep it small (the beginner bound
+   + the CMS lesson).
+2. **The genre roster** — the launch set (future / fantasy / history / neorealist
+   + ?) and how it maps to the world's genre-zones. (*Decided:* genre is the
+   theme, **per-half**; the matching-genre **synergy** stays light.)
+3. **Soul layering** — refine the trait → room table, and the **genre × soul**
+   composition rule (how trait-driven mess sits *on* the genre skin).
+4. **Roots, near-term** — one or two "roots" objects now (a home token) vs.
+   waiting for richer char-gen bio.
+5. **How dynamic** — does a half shift over time? *Lean:* the **NPC half slowly
+   tracks its entrenching traits** (a living readout + a subtle clue surface), the
+   **player half stays put until you tweak it.**
+6. **What "frozen" is, mechanically** — Dunny's cut-off occupancy (preserved half
+   + stripped half + the seal).
+7. **CMS exposure depth** — how much wiring the first CMS view shows, and how it
+   maps to the sandbox vocabulary.
 
 ## Dependencies & deferrals
 
