@@ -57,16 +57,19 @@ win two of the three. So the biggest funder can own the funders' count and
 still lose, because money buys nothing in the other two. No single way of
 contributing carries a decision alone. That constraint is the whole design."
 
-**[Beat 4 — money, as a confident aside + new kicker]**
+**[Beat 4 — money: what it actually buys (compute + a voice), never power]**
 "And these three kinds of say don't convert into each other — which is where
-money comes in. Money's welcome; somebody pays for the servers. But it buys
-exactly one thing: weight in the funders' count. Not a maker's say, not a
-player's say, not power in the world itself. Funding the world and running it
-are two different things, with a wall between them — no token, nothing to cash
-out. This is the easy part to get right; it's the obvious trap, the one crypto
-walked straight into, so I closed the door and moved on. Money can make you the
-loudest funder in the room. It still can't make you a maker, a player, or a
-winner."
+money comes in. Money's welcome; it's how the lights stay on. And it buys exactly
+two things, neither of them power. **One: compute** — the only thing that's
+actually scarce in a digital world, where everything else copies for free — so a
+dollar grows the world's compute for *everyone*, more room for the place to
+exist. **Two: a voice** in the funders' count. That's the whole list — not a
+maker's say, not a player's say, not power in the world itself. Funding the world
+and running it are two different things, with a wall between them — no token,
+nothing to cash out. It's the obvious trap, the one crypto walked straight into,
+so I closed that door and moved on. **Money can make you the loudest funder in
+the room, and buy the whole world more room to exist. It still can't make you a
+maker, a player, or a winner.**"
 
 **[Beat 5 — hand forward, with curiosity]**
 "So: an apparatus for the community's decisions, three kinds of say, and money

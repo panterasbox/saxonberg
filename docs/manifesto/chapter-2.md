@@ -80,17 +80,17 @@ it without ever using it up"*; the creed *"earned and spent, never owned."*
   our own word "weight," dodges any filling-tank/reservoir misread, and stays
   distinct from Ch 1's bars): a held yes/no stance shown with literal *heft*,
   growing bolder/heavier along a short day-marked track; a **flip snaps it back
-  to feather-light**. Two staged adds on top: **full weight on every issue** (the
+  to feather-light**. One staged add on top: **full weight on every issue** (the
   same heavy stance present on several issues at once, vs. a sliced pie crossed
-  out) and **delegation** (hand the stance to another figure; a tug-back shows
-  it's revocable). *(Swap to option A — a weight-over-time line/chart — if you
-  want the flip/reset to read more precisely; just say so.)*
+  out). *(Swap to option A — a weight-over-time line/chart — if you want the
+  flip/reset to read more precisely; just say so.)* (Delegation visual removed —
+  delegation moved to Ch 6; it's not in this chapter's narration.)
 - **Beat 4 — corner.** Hand-forward; teaser of the argument-map (Ch 3). The
   creed line *"earned and spent, never owned"* stays **corner**, not full-screen
   — that register's saved for the actual outro.
 
-Hero = the conviction build (Beat 3); full-weight-per-issue and delegation are
-staged on top, not competing visuals. Client never shown.
+Hero = the conviction build (Beat 3); full-weight-per-issue is staged on top, not
+a competing visual. Client never shown.
 
 ## Notes
 
