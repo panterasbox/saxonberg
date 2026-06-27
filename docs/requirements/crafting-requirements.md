@@ -29,12 +29,14 @@ it's modeled*).
   template/clone pipeline, stamped with material grade + maker provenance.
   Conservation holds: inputs are debited; the output is a new stamped thing;
   nothing is minted from nothing.
-- **Recipes are authored knowledge.** A recipe is an authored `Idea`
-  (reference singleton, the Material/Topic/Soul catalogue pattern) naming
-  input slots **by constraint** (category + min grade), required tools **by
-  capability**, an output `Template`, and property-derivation rules
-  (output material/ABV from the chosen inputs). Recipes are **venue-known**
-  in v1 (the venue carries its recipe book).
+- **Recipes are authored knowledge.** A recipe is authored reference data —
+  a `Document` (the `Emote` precedent), **not** a Stuff and **not** a
+  template — naming input slots **by constraint** (category + min grade),
+  required tools **by capability**, an output `Template` (the form to
+  clone), and property-derivation rules (output material/grade from the
+  chosen inputs). A `RecipeCatalogue` singleton manages the `recipes`
+  collection (the `SoulCatalogue`↔`Emote` relationship). Recipes are
+  **venue-known** in v1 (the venue carries its recipe book).
 - **A crafting venue aggregates the four-tuple.** A `CraftingVenueMixin` on a
   `Location` carries the **known-recipe book**; the venue's **tools** and
   **input stock** are the `Tangible` matter physically present in the room
@@ -146,17 +148,42 @@ Character** with no `Behaved` mixin, no scheduled repertoire. Lane 1's full
 NPC behavior wraps this later; the single serve-on-order reflex is a **verb**,
 not NPC behavior, so there is zero file collision with Lane 1.
 
-### Recipe = authored `Idea` + `RecipeCatalogue` singleton
+### Recipe = a `Document`, managed by `RecipeCatalogue` (the `Emote` pattern)
 
-Recipes follow the established reference-identity pattern: a `Recipe` `Idea`
-class (`lib/craft/Recipe.ts`), authored as template documents, loaded by a
-`RecipeCatalogue` singleton (`obj/RecipeCatalogue.ts`, the
-Topic/Soul-catalogue shape). A recipe names: input slots `{category, minGrade,
-measure}`, required tool capabilities `string[]`, an output template path, and
-derivation rules (v1: output material = a cocktail material; ABV =
-volume-weighted from spirit inputs; grade = min/blend of input grades at fixed
-control). **Recipe ≠ template** is preserved (a form can have several
-recipes); v1 authors one recipe per drink.
+A recipe is **data** — no mutable state, no lifecycle, no per-instance
+identity, no behavior beyond answering questions about its own fields (the
+derivation math lives on `Grade`). So it is **not** a Stuff/`Idea`: that
+machinery (the clone pipeline, the call-security proxy wrap, singleton
+registration) would buy nothing.
+
+It is also **not** a `domain` template. A template's one job is to hydrate a
+real Stuff class; a template that is never cloned (the way `Topic` reads its
+template docs as data) makes templates serve double duty and is a wart not to
+copy.
+
+The right home is the codebase's existing pattern for **authored reference
+data that isn't Stuff**: a **`Document`** in its own collection, managed by a
+catalogue singleton — exactly the `Emote`↔`SoulCatalogue` relationship.
+
+- `Recipe extends Document` in a `recipes` collection, with typed accessors
+  over: `name`, `keywords`, input slots `{category, minGrade, measureL}`,
+  required tool capabilities `string[]`, `outputTemplate` (the form to
+  clone), `outputMaterial` (the cocktail Material the glass holds), and an
+  optional `baseGrade` floor.
+- `RecipeCatalogue` (a singleton `Idea` in `obj/`) reads/caches the
+  collection and resolves recipes by path + keyword (so `order martini`
+  resolves one) — the `SoulCatalogue` shape. A `RecipeSeeder` (backend)
+  seeds the genesis recipes at boot, mirroring `EmoteSeeder`.
+- **The boundary stays honest:** `outputTemplate` points at a *real*
+  Template (the drink glass), which **is** a Stuff cloned by the pipeline;
+  only the recipe-as-knowledge is a Document. **Recipe ≠ template** is
+  preserved (a form can have several recipes); v1 authors one recipe per
+  drink.
+
+Derivation (v1, fixed control): output material = the recipe's authored
+cocktail Material; output grade = weakest-link across the chosen inputs'
+grades. (Per-instance ABV-from-spirit-choice is deferred — the cocktail
+Material carries authored alcohol so `drink`→metabolism is honest.)
 
 ### Grade = an ordinal value-object
 
@@ -186,14 +213,17 @@ The verbs (`menu`, `order`, `serve`, `mix`) form a new command domain:
 (Command categories are verb-domain folders, distinct from the guarded TS
 module taxonomy; a new one for a new subsystem is expected.)
 
-### Drink → metabolism via honest ABV
+### Drink → metabolism via honest alcohol
 
 The output drink is a glass (`Bulkable`) holding the mixed liquid; the
-liquid's `Material` carries `edibility: true` + `toxicity: [{type: 'alcohol',
-amount}]` scaled from the recipe-derived ABV. The existing `drink`/`sip`
-verbs route through `BulkableApi.ingest` → `MetabolicMixin.ingest` → `getBAC`
-unchanged. ABV is a measured `Quantity` (a count with a referent); quality
-stays a verdict.
+liquid's `Material` is the recipe's authored **cocktail Material**, carrying
+`edibility: true` + `toxicity: [{type: 'alcohol', amount}]`. The existing
+`drink`/`sip` verbs route through `BulkableApi.ingest` →
+`MetabolicMixin.ingest` → `getBAC` unchanged, so the drinker's BAC rises by
+how much they drink. Per-instance ABV-from-spirit-choice (a vodka vs gin
+martini differing in strength) is **deferred** — v1's cocktail Material is
+fixed per recipe; the instance variable is the *volume*. Quality stays a
+verdict (a `Grade`), never a number.
 
 ## Constraints
 
@@ -203,11 +233,13 @@ stays a verdict.
   built general and reusable; the bar is the first consumer. (CLAUDE.md
   "fold into substrate, don't invent special cases.")
 - **Module taxonomy.** New substrate lives in a new `lib/craft/` subsystem
-  folder (mixins/value-objects/vocabularies) + `api/crafting.ts` (the thin
-  gated forwarding shell, ending in `SecurityApi.decorateApiClass`) +
-  `obj/api/CraftingLogic.ts` (the `@internal` logic singleton holding the
-  protected logic, gated `FromModule('mud/api/crafting#CraftingApi')`).
-  `RecipeCatalogue` is an `obj/` singleton `Idea`. **No free-floating helper
+  folder (the mixins, value-objects, vocabularies, and the `Recipe`
+  `Document`) + `api/crafting.ts` (the thin gated forwarding shell, ending in
+  `SecurityApi.decorateApiClass`) + `obj/api/CraftingLogic.ts` (the
+  `@internal` logic singleton holding the protected logic, gated
+  `FromModule('mud/api/crafting#CraftingApi')`). `RecipeCatalogue` is an
+  `obj/` singleton `Idea`; a backend `RecipeSeeder` seeds the `recipes`
+  collection at boot (the `EmoteSeeder` precedent). **No free-floating helper
   modules**; no new `eslint-disable no-restricted-syntax` without sign-off.
 - **Go through the Api layer.** Cloning via `StuffApi.clone`; matter consumed
   via `BulkableApi.transfer` / `GlobbableApi`; placement via
@@ -226,10 +258,11 @@ stays a verdict.
   envelope (`ctx.note` + scene), not a `{success}` shape.
 - **Schedule through `ScheduleApi`** if any timed step is needed (none
   expected in v1 — craft-resolve is synchronous).
-- **Persistence tracks honored.** Authored content (room, NPC, bottles,
-  tools, recipes, menu) are **templates** (cloned, not saved back). Crafted
+- **Persistence tracks honored.** Authored *things* (room, NPC, bottles,
+  tools, the cocktail/spirit Materials) are **templates** (cloned, not saved
+  back). Authored *recipe knowledge* is `Document` data in a new `recipes`
+  collection (the `emotes` precedent — not a template, never cloned). Crafted
   drinks are transient runtime matter (persisted nowhere; reset on restart).
-  No new Document collection is required for v1.
 
 ## Acceptance criteria
 
@@ -241,8 +274,9 @@ stays a verdict.
 - `CraftedMixin` stamps `{maker, grade, recipe, craftedAt}` at resolve; tests
   confirm the maker matches the resolving character (giver for `serve`/`mix`;
   the bartender NPC for `order`) and is not settable off the wire.
-- `Recipe` Ideas load via `RecipeCatalogue`; `CraftingVenueMixin.getKnownRecipes()`
-  returns the venue's book; tests cover catalogue load + venue lookup.
+- `Recipe` Documents load from the `recipes` collection via
+  `RecipeCatalogue`; `CraftingVenueMixin.getKnownRecipes()` returns the
+  venue's book; tests cover catalogue load + venue lookup.
 - The `Grade` value-object orders the five bands and renders a band-word;
   tests cover ordering and band-word output.
 - Tool capability matching + wear-on-use: a recipe requiring "shaker" rejects
