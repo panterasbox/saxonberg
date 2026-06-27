@@ -29,6 +29,7 @@ import { CommandDispatchedEvent } from '../../lib/events/CommandDispatchedEvent'
 import type { CommandDispatchedPayload } from '../../lib/events/CommandDispatchedEvent';
 // Referenced only inside installDispatchTap (the restrictSubscribe allowlist),
 // so the ConsumerLogic ↔ ProducerLogic import cycle is runtime-only / safe.
+// eslint-disable-next-line no-restricted-imports -- sibling logic singletons in one subsystem; class identities feed EventApi.restrictSubscribe's subscriber allowlist (cycle-safe, see comment)
 import { ProducerLogic } from './ProducerLogic';
 
 const ConsumerApiCallers = SecurityPolicies.FromModule(
