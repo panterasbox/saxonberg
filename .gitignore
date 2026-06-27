@@ -26,3 +26,6 @@ out/
 
 # Windows/WSL mark-of-the-web cruft
 *:Zone.Identifier
+
+# Manifesto diagram exports (regenerable from .excalidraw sources)
+docs/manifesto/*.png
