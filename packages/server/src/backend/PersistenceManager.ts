@@ -37,6 +37,7 @@ export enum Collections {
   Channels = 'channels',
   Beliefs = 'beliefs',
   Chronicles = 'chronicles',
+  Transcripts = 'transcripts',
   ForumSubjects = 'forum_subjects',
   ForumBoards = 'forum_boards',
   ForumEntries = 'forum_entries',
@@ -629,6 +630,15 @@ export class PersistenceManager {
       // cleanup cascade (`deleteMany({ owner })`) are
       // O(rows-for-this-owner), not a full scan.
       await this.getCollection(Collections.Chronicles).createIndex({
+        owner: 1,
+      });
+
+      // Transcripts: per-character append-only evidence ledger (one doc
+      // per sub-check). Indexed on `owner` so the owner-scoped read
+      // (`TranscriptEntry.find({ owner })`, which the derive-on-read
+      // Competence estimator and the self-view consume) and the future
+      // per-player cleanup cascade are O(rows-for-this-owner).
+      await this.getCollection(Collections.Transcripts).createIndex({
         owner: 1,
       });
 
