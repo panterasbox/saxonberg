@@ -1,0 +1,30 @@
+verbs: [practice]
+controller: author/PracticeController
+description: "Record a practice deed against a Discipline (advancement harness)"
+help: |
+  Developer harness for the advancement substrate. Records a single
+  learning-event deed on your own Transcript for a Discipline, so the
+  derive-on-read Competence estimator has evidence to fold and band
+  conferrals can be observed without the real (lane-2) practice verbs.
+
+  `practice <discipline> [difficulty] [outcome]`
+
+  - difficulty: trivial | easy | standard | hard | formidable
+    (default standard)
+  - outcome:    failure | partial | success | critical
+    (default success)
+
+  Hard, surprising attempts move your competence most; grinding
+  trivial successes barely moves it at all.
+validators:
+  - /lib/command/validators/requiresDeveloper
+args:
+  - name: discipline
+    type: string
+    required: true
+  - name: difficulty
+    type: string
+    required: false
+  - name: outcome
+    type: string
+    required: false

@@ -41,6 +41,7 @@ import { PerceptionMixin } from '../perception/Perception';
 import { VocalMixin } from '../message/Vocal';
 import { SoulMixin } from '../social/Soul';
 import { CommandGiverMixin } from '../command/CommandGiver';
+import { AdvancementMixin } from '../advancement/Advancement';
 import { EngagedMixin } from '../activity/Engaged';
 import { BeliefStoreMixin } from '../belief/BeliefStore';
 import { StatusMixin } from '../status/Status';
@@ -66,7 +67,12 @@ import { StatusMixin } from '../status/Status';
 //   all — it reads nothing from the other mixins, so position is free;
 //   placing it at the base of the agency stack keeps every PC and NPC
 //   (the viewer types) carrying it.
-const CharacterBase = CommandGiverMixin(
+// - AdvancementMixin sits OUTERMOST, above CommandGiverMixin: it pushes
+//   competence-conferred verbs onto the giver's affordance stack, so it
+//   needs CommandGiver's surface (pushCommandSource/popCommandSource) in
+//   its base.
+const CharacterBase = AdvancementMixin(
+  CommandGiverMixin(
   MobileMixin(
     EngagedMixin(
       SoulMixin(
@@ -83,6 +89,7 @@ const CharacterBase = CommandGiverMixin(
         )
       )
     )
+  )
   )
 );
 

@@ -19,11 +19,25 @@ import {
 } from "../../lib/advancement/CompetenceBand";
 import { WorldClockApi } from "../../api/worldclock";
 import { PersistApi } from "../../api/persist";
+import { StuffApi } from "../../api/stuff";
+import { MixinApi } from "../../api/mixin";
+import { Mixins } from "../../lib/mixin";
+import { TemplatePaths } from "../../lib/paths";
+import type DisciplineCatalogue from "../DisciplineCatalogue";
 
 /** A Discipline the owner has evidence in, with its current band. */
 export interface DisciplineBand {
   discipline: string;
   band: CompetenceBandName;
+}
+
+/**
+ * A host whose conferred affordances can be refreshed. Narrowed
+ * structurally (via `Mixins.Competence`) rather than importing the mixin —
+ * keeps the logic free of a command-layer back-import.
+ */
+interface ConferralRefreshable {
+  refreshConferrals(): Promise<void>;
 }
 
 const AdvancementApiCallers = SecurityPolicies.FromModule(
@@ -96,6 +110,61 @@ async function recordSignatureImpl(
       tags: opts.tags,
     });
   }
+  // A Transcript append is the only band-mover; since Competence is
+  // derive-on-read, a band crossing has no event of its own. Re-evaluate
+  // the owner's conferred affordances now (the knowing→doing seam).
+  if (MixinApi.hasMixin(owner, Mixins.Advancement)) {
+    await (owner as unknown as ConferralRefreshable).refreshConferrals();
+  }
+}
+
+/** The live DisciplineCatalogue singleton, or `null` before it warms. */
+function catalogue(): DisciplineCatalogue | null {
+  return (
+    (StuffApi.findByTemplatePath(
+      TemplatePaths.disciplineCatalogue
+    ) as DisciplineCatalogue | null) ?? null
+  );
+}
+
+/** Group an owner's evidence by Discipline and derive each band. */
+async function bandsForImpl(owner: Stuff): Promise<DisciplineBand[]> {
+  if (!active()) return [];
+  const ownerId = ownerKey(owner);
+  if (!ownerId) return [];
+  const entries = await TranscriptEntry.find({ owner: ownerId });
+  const byDiscipline = new Map<string, TranscriptEntry[]>();
+  for (const e of entries) {
+    const bucket = byDiscipline.get(e.discipline) ?? [];
+    bucket.push(e);
+    byDiscipline.set(e.discipline, bucket);
+  }
+  return [...byDiscipline.entries()]
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([discipline, rows]) => ({
+      discipline,
+      band: Competence.bandOf(rows),
+    }));
+}
+
+/**
+ * The verb yaml-paths the owner's current bands confer: for each evidenced
+ * Discipline, every conferral rule the band meets contributes its verbs.
+ * Deduped + sorted. The command-layer resolution + push lives in
+ * `CompetenceMixin`; this is the pure band×catalogue decision.
+ */
+async function conferredVerbsImpl(owner: Stuff): Promise<string[]> {
+  const cat = catalogue();
+  if (!cat) return [];
+  const verbs = new Set<string>();
+  for (const { discipline, band } of await bandsForImpl(owner)) {
+    for (const rule of cat.getConferrals(discipline)) {
+      if (CompetenceBand.atOrAbove(band, rule.band)) {
+        for (const verb of rule.verbs) verbs.add(verb);
+      }
+    }
+  }
+  return [...verbs].sort();
 }
 
 /**
@@ -168,21 +237,12 @@ export class AdvancementLogic extends Idea {
   /** See {@link AdvancementApi.bandsFor}. */
   @CallSecurity(AdvancementApiCallers)
   public async bandsFor(owner: Stuff): Promise<DisciplineBand[]> {
-    if (!active()) return [];
-    const ownerId = ownerKey(owner);
-    if (!ownerId) return [];
-    const entries = await TranscriptEntry.find({ owner: ownerId });
-    const byDiscipline = new Map<string, TranscriptEntry[]>();
-    for (const e of entries) {
-      const bucket = byDiscipline.get(e.discipline) ?? [];
-      bucket.push(e);
-      byDiscipline.set(e.discipline, bucket);
-    }
-    return [...byDiscipline.entries()]
-      .sort(([a], [b]) => a.localeCompare(b))
-      .map(([discipline, rows]) => ({
-        discipline,
-        band: Competence.bandOf(rows),
-      }));
+    return bandsForImpl(owner);
+  }
+
+  /** See {@link AdvancementApi.conferredVerbs}. */
+  @CallSecurity(AdvancementApiCallers)
+  public async conferredVerbs(owner: Stuff): Promise<string[]> {
+    return conferredVerbsImpl(owner);
   }
 }

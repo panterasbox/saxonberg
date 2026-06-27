@@ -122,6 +122,16 @@ export class AdvancementApi {
   public static async bandsFor(owner: Stuff): Promise<DisciplineBand[]> {
     return logic().bandsFor(owner);
   }
+
+  /**
+   * The verb yaml-paths the owner's current competence confers (band ×
+   * Catalog conferral rules) — the decision behind the knowing→doing seam.
+   * `CompetenceMixin` resolves these to `CommandDefinition`s and pushes
+   * them onto the giver's affordance stack.
+   */
+  public static async conferredVerbs(owner: Stuff): Promise<string[]> {
+    return logic().conferredVerbs(owner);
+  }
 }
 
 SecurityApi.decorateApiClass(AdvancementApi);
