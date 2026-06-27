@@ -209,9 +209,25 @@ All single static assets.
 
 ---
 
-## Other segments — not built yet
+## Intro & Outro — full-screen segments
 
-Build order TBD. Each segment's per-beat visual spec lives in its own cue sheet:
+**Intro** (`intro.md`) — **full-screen face, no diagram.** Optional title card
+*"A modest proposal for gamified government."* Nothing to export.
 
-- **Intro** (`intro.md`) — full-screen face, no diagrams.
-- **Outro** (`outro.md`) — full-screen face; light insets only (callback montage, make/fund/play, draft card).
+**Outro** (`outro.md`) — full-screen face; light insets only:
+
+| PNG | Source | Where | Shows |
+|---|---|---|---|
+| `outro-montage` | `outro-montage.excalidraw` | open | the six series motifs → "a community that runs itself" (the closing callback) |
+| `outro-doors` | `outro-doors.excalidraw` | "two things are real now" | the DRAFT constitution (deliberate) + a world to build in (design), both "OPEN TODAY" |
+| `outro-road` | `outro-road.excalidraw` | "the road ahead" | a real instance — needs money, someone to stand behind it |
+| `outro-makefundplay` | `outro-makefundplay.excalidraw` | "three ways to take part" | the make/fund/play venn — pick one, pick all three |
+
+---
+
+## Status: all segments built ✅
+
+Intro (face-only) · Ch 0–6 · Outro. Every diagram asset is a committed
+`.excalidraw` source; PNGs are exported on demand (gitignored). Total diagram
+assets: **~60** across the deck. Redo any in the edit and re-export — the manifest
+stays the index.
