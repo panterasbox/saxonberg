@@ -1,6 +1,7 @@
 # NPC — Gus, the Crossing Authority (staging)
 
-> **Status:** staging draft (character sheet).
+> **Status:** staging draft (character sheet; engine-attributes spine added
+> 2026-06-27 to match the format).
 > **Placement:** University Avenue (the TPA stop, outside the campus gate)
 > — see the `university-ave → quad` room slice.
 > **Target seed path:** a `Character` template under the EU zone's NPCs
@@ -36,6 +37,58 @@ He also threads the world's running gag: everything here is an
 **Authority** (the *Teleport* Authority runs the terminal; Gus is the
 *Crossing* Authority). He'll tell you it's an official designation. It is
 not.
+
+---
+
+## Engine attributes (the buildable spine)
+
+> Added 2026-06-27 — the character-sheet format's spine, layered on top of the
+> (already deep) carve below. Dispositions/competence are authored *targets*; the
+> rich Look / His things / Routine / Dialogue sections are the real depth.
+
+- **Species:** **Human** (`homo sapiens`) — cast for the *persona of the mundane
+  baseline.* Gus is deliberately, lovingly ordinary (the black-and-white before
+  the campus's Technicolor — see *Design intent*); the plain human at the
+  threshold, before the weirder species inside. His "allegory" is the meta one
+  (primitive NPC vs. the living ones past the gate), not a race one.
+- **Dispositions** (salient axes — `key` → pole · band):
+  - `ambition` → **Content · entrenched** — the defining axis. Renewably,
+    genuinely content; *fed* by the flow of arrivals, no itch for more (see *The
+    note under the joke*).
+  - `diligence` → **Diligent · entrenched** — dutiful and proud; the routine, the
+    polished paddle, total professional gravity for a post that needs no one.
+  - `constancy` → **Stubborn · entrenched** — immovable: won't leave the post,
+    won't cross the gate. The dedication *is* the character.
+  - `composure` → **Calm · entrenched** — unflappable and easy, until "traffic" is
+    in play, when he flips clipped-and-professional on a dime.
+  - `sociability` → **Gregarious · defined** — folksy, warm, talks at everyone
+    whether they're listening or not.
+  - *Nuance —* `curiosity`: contentedly **Incurious** (he knows his lane — *"I
+    just do the road"* — and doesn't wonder), with one flicker of exception: the
+    wary eye down the haze-road.
+- **Competence:** crossing-guard craft + the whistle blow-model (sound × breath ×
+  skill) — genuinely **expert**, exercised *for no one.* Discipline TBD; not his
+  defining axis (he's character, not skill).
+- **Behavior (brains):** the **deliberately primitive** floor — `idles` (a mixed
+  sampler) + `greets` (the arrival ritual) + `reacts` (cross / depart / blocked) +
+  canned `intent-dialogue` (crude triggers, no comprehension), **stateless
+  per-interactor** (he declines per-conversant memory — diegetically, he forgets
+  you). **Do not upgrade him to a live agent** (it kills the contrast bit). Full
+  spec + YAML in *Routine* / *Dialogue* / *Behavior spec* below.
+- **Regard baseline:** **warm/folksy** to everyone — but it never *deepens*,
+  because the no-memory resets him: every meeting is perpetually the first, warm
+  and unattached. Fond of all, attached to none.
+- **Carries / on his person:** worn — the faded high-vis **orange vest** and the
+  homemade **CROSSING AUTHORITY badge** (No. 001, *AUTHORIZED BY: Gus*), sensible
+  shoes; carried/wielded — the **STOP paddle** (in hand), the brass **whistle**
+  (on its cord), the **pocket-watch** (*AUGUSTUS*, on its chain — the full name he
+  hides there), the **crossing-log** clipboard, and the **thermos he never
+  opens**; plus the folding **camp chair** at his post (the relief's, not his).
+  The *sit / set / open / cross* throughline — four things he won't do — is the
+  spine of the loadout (see *His things*). Implant: **none** (the mundane
+  baseline; no aether, fitting the throwback). Brands: ordinary, independent. Full
+  specs in `objects/` (stop-paddle, whistle, pocket-watch, thermos, crossing-log,
+  camp-chair).
 
 ---
 
