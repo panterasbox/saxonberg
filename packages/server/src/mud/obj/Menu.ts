@@ -17,12 +17,12 @@
  */
 
 import Thing from '../lib/stuff/Thing';
-import { VisibleMixin } from '../lib/description/Visible';
 import { DetailedMixin } from '../lib/description/Detailed';
 import type { CommandContributions } from '../api/command';
 import { CraftingApi } from '../api/crafting';
 
-const MenuBase = DetailedMixin(VisibleMixin(Thing));
+// Thing already composes Visible + Perceptible + Tangible + Containable.
+const MenuBase = DetailedMixin(Thing);
 
 export default class Menu extends MenuBase {
   static persistentFields = ['offeredRecipes'];
