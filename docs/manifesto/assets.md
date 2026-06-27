@@ -164,12 +164,27 @@ All single static assets (no staged reveals).
 
 ---
 
+## Ch 4 — "Governing is shipping software"  *(all beats built ✅)*
+
+All single static assets.
+
+| PNG | Source | Beat | Shows | Lands on cue |
+|---|---|---|---|---|
+| `ch4-beat1-inert` | `ch4-beat1-inert.excalidraw` | 1 | "DECISION: ✓ passed" on a page → "…now what?" | "a decision is just words until something starts running" |
+| `ch4-beat2-split` | `ch4-beat2-split.excalidraw` | 2 | CODE (small, mechanical) vs PEOPLE (the bigger half) | "code handles the mechanical; people handle everything else" |
+| `ch4-beat3-pipeline` | `ch4-beat3-pipeline.excalidraw` | 3 | legislature→executive→judiciary (decide→build→check) + law at 3 sizes (broad / nerf-NPC / exact) | "the legislature decides… requirements at any size" |
+| `ch4-beat4-admin` | `ch4-beat4-admin.excalidraw` | 4 | the executive = a whole administration; engineering is one box among many | "the administration… building code is one specialty" |
+| `ch4-beat5-property` | `ch4-beat5-property.excalidraw` | 5 | build in a sandbox → YOUR CLAIM (property); executive can oversee ✓ / seize ✗ (due process); a play-only figure untouched | "property, not politics — held, not governed" |
+| `ch4-beat6-judiciary` | `ch4-beat6-judiciary.excalidraw` | 6 | the two faces — VERIFICATION (✓ conforms / ✗ diagnostic remand) + APPEAL; jury by lot | "code review, but for whether the law came true… court judges, executive builds" |
+| `ch4-beat7-synth` | `ch4-beat7-synth.excalidraw` | 7 | legislature decides · executive makes it real · people check → "who holds all that power?" | "the legislature decides, the executive makes it real, the people check all of it" |
+
+---
+
 ## Other segments — not built yet
 
 Build order TBD. Each segment's per-beat visual spec lives in its own cue sheet:
 
 - **Intro** (`intro.md`) — full-screen face, no diagrams.
-- **Ch 4** (`chapter-4.md`) — code/human split, the lifecycle pipeline, the administration, build-it-it's-yours/property, judiciary two faces.
 - **Ch 5** (`chapter-5.md`) — real-world-vs-digital contrast, the tamper-evident chain hero, crypto-minus-casino, sealed-by-math, detectable-not-impossible + fork.
 - **Ch 6** (`chapter-6.md`) — already-a-government overlay, the floor (three slabs), the dial, graduated participation, the founder mechanism + ratification.
 - **Outro** (`outro.md`) — full-screen face; light insets only (callback montage, make/fund/play, draft card).
