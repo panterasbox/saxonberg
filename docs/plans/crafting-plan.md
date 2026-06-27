@@ -12,6 +12,19 @@ Feasibility is emergent (reachable matter). The offer is a `Menu` object;
 the maker is an agent; "Dave's Bar" is emergent content. **No
 `CraftingVenueMixin`.**
 
+**Generality scope (v1 = transform + bulk):** the recipe *skeleton* is
+domain-neutral (slots-by-constraint, tools-by-capability, output template,
+weakest-link grade, provenance, the fixed-control skill seam) and carries
+every domain. v1 implements only the **transform** recipe shape (inputs →
+one output, properties derived) over **bulk** inputs (the cocktail case);
+**assembly** recipes (output properties *emerge from components* — a
+genuinely different model the slate separates out) are deferred, not faked.
+The two domain-specific steps — *consume inputs* and *apply output
+properties* — are isolated behind named seams in `CraftingLogic` (Phase 3),
+so cooking/smithing (glob/discrete/mass inputs, Tangible-material/component
+outputs) arrive as **new branches**, never a rewrite. Recipe data is dev-tier
+re-seedable, so the data shape (e.g. `measureL`) isn't locked in.
+
 Two decisions taken with the user during planning:
 
 - **serve/mix are general agent verbs** (any agent; maker = the giver). Only
@@ -99,7 +112,8 @@ Mirror `lib/social/Emote.ts` ↔ `obj/SoulCatalogue.ts` ↔
 ### NEW `mud/lib/craft/Recipe.ts` — `Document` (`recipes` collection)
 - `static collectionName = 'recipes';` · unique index on `recipeId`.
 - Fields → `static persistentFields`: `recipeId`, `name`, `keywords:string[]`, `inputSlots: RecipeInputSlot[]`, `toolCapabilities: string[]`, `outputTemplate:string` (a real cloneable glass template path), `outputMaterial:string` (the cocktail Material path), `baseGradeBand?:string`.
-- `export interface RecipeInputSlot { slot:string; category:string; minGrade:string; measureL:number; }` — flat objects → default-Hydrator round-trip (the `composition` precedent).
+- `export interface RecipeInputSlot { slot:string; category:string; minGrade:string; measureL:number; }` — flat objects → default-Hydrator round-trip (the `composition` precedent). (`measureL` is the v1 bulk-only amount; mass/count amounts arrive with cooking/smithing — re-seedable, not locked in.)
+- `outputMaterial` is **one output-derivation strategy** — the *mixture* case, where no single input material flows through so the resulting substance is authored on the recipe. It is **not** the universal output rule (a transform like ore→ingot instead flows the input's material onto the output Tangible; assembly composes components). Documented as such so the field reads as a strategy, not "the way."
 - Method surface: `getRecipeId/getName/getKeywords/getInputSlots/getToolCapabilities/getOutputTemplate/getOutputMaterial/getBaseGrade(): Grade|null/matchesKeyword(kw)`.
 
 ### NEW `mud/obj/RecipeCatalogue.ts` — singleton Idea (`/obj/RecipeCatalogue`)
@@ -142,9 +156,9 @@ Methods gated `@CallSecurity(FromModule('mud/api/crafting#CraftingApi'))` (the s
 5. **Match tools** — per required capability, find a present tool with `hasCapability`. None → decline `missing-tool` (detail = cap).
 6. **Derive grade** — `Grade.deriveAtFixedControl(matchedGrades)`; floor at `recipe.getBaseGrade()` if set.
 7. **Clone output** — `StuffApi.clone(recipe.getOutputTemplate())`. Missing template → decline `no-output`.
-8. **Fill the glass** — `slot = BulkableApi.slotFor(output)`; `slot.setMaterial(StuffApi.singleton<Material>(recipe.getOutputMaterial()))`; `slot.setAmount(Quantity.of(Σ measureL, 'L'))` (BulkSlot mutators ungated).
-9. **Stamp** — assert `MixinApi.isCrafted(output)` (else throw — output template misauthored); `output.stamp({maker: maker.getTemplatePath()??'' , grade, recipe: recipe.getRecipeId(), craftedAt: WorldClockApi.getNow().rawValue()})`.
-10. **Consume inputs (conservation)** — per matched slot: `BulkableApi.transfer(bottleSlot, null, {kind:'measure', litres:measureL, mode:'strict'})`; **assert `applied === measureL`** else throw (conservation breach).
+8. **Apply output properties** — `applyBulkOutput(output, recipe, matchedSlots)` **(domain seam #1)**: `slot = BulkableApi.slotFor(output)`; `slot.setMaterial(StuffApi.singleton<Material>(recipe.getOutputMaterial()))`; `slot.setAmount(Quantity.of(Σ measureL, 'L'))` (BulkSlot mutators ungated). This is the **only** bulk/cocktail-specific output step; smithing adds a sibling `applyTangibleOutput` (flow material onto the Tangible), assembly an `applyComposedOutput`. The skeleton calls one named apply-fn — adding a domain is a new branch, not an edit here.
+9. **Stamp** — assert `MixinApi.isCrafted(output)` (else throw — output template misauthored); `output.stamp({maker: maker.getTemplatePath()??'' , grade, recipe: recipe.getRecipeId(), craftedAt: WorldClockApi.getNow().rawValue()})`. (Domain-neutral.)
+10. **Consume inputs (conservation)** — `consumeBulkInputs(matchedSlots)` **(domain seam #2)**: per matched slot `BulkableApi.transfer(bottleSlot, null, {kind:'measure', litres:measureL, mode:'strict'})`; **assert `applied === measureL`** else throw (conservation breach). The **only** bulk-specific consume step; globs/items add sibling `consumeGlobInputs`/`consumeItemInputs`. New branch, not an edit here.
 11. **Wear tools** — each matched tool `.wear()`.
 12. Return `{ok:true, output, grade}`. (Placement is the verb's job, not craft's.)
 
