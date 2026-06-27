@@ -1,0 +1,26 @@
+verbs: [serve]
+controller: crafting/ServeController
+description: "Make a cocktail and hand it to someone"
+help: |
+  Make a drink and serve it to someone — `serve bob martini`. You're
+  the maker (your name goes on it). Steer the pour with `with`:
+  `serve bob martini with bombay`. You need the ingredients and tools
+  within reach.
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresConscious
+args:
+  - name: patron
+    type: object
+    required: true
+    scope: "reachable"
+    validators:
+      - /lib/command/validators/mustBeVisible
+      - /lib/command/validators/mustBeAgent
+  - name: cocktail
+    type: string
+    required: true
+  - name: brand
+    type: string
+    required: false
+    prepositions: [with]
