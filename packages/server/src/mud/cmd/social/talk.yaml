@@ -22,4 +22,5 @@ args:
     type: object
     required: true
     scope: ["$focus", "reachable"]
+    prepositions: [to]
     onExcess: prompt
