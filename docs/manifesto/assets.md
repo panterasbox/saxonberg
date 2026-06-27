@@ -132,12 +132,28 @@ Reveal: **firewall-1 (whale's empty meters) → firewall-2 (+ $ fills FUND, + co
 
 ---
 
+## Ch 0 — "A government in a game"  *(all beats built ✅)*
+
+All single static assets (no staged reveals).
+
+| PNG | Source | Beat | Shows | Lands on cue |
+|---|---|---|---|---|
+| `ch0-beat1-origin` | `ch0-beat1-origin.excalidraw` | 1 | a MUD terminal + a livestream chat, side by side — "where the ideas came from" | "the text-based MUDs… and the livestreaming communities of today" |
+| `ch0-beat2-world` | `ch0-beat2-world.excalidraw` | 2 | a stylized world card (prose + art hint) + two differentiators: educational core / the people run it (laws·treasury·courts) | "an MMO… educational core… the people who live in it run it" |
+| `ch0-beat3-graveyard` | `ch0-beat3-graveyard.excalidraw` | 3 | DAOs / online democracies / token voting as empty, zero-turnout rooms — "built the rules, died of apathy" | "built the rules and waited for a crowd that never came… died of apathy" |
+| `ch0-beat3-stack` | `ch0-beat3-stack.excalidraw` | 3 | GOVERNMENT slab riding on the PLAY base — "the engine they never had" | "the government rides on the play… the engine every one of those experiments was missing" |
+| `ch0-beat4-record` | `ch0-beat4-record.excalidraw` | 4 | prose / image / action → a ledger of blocks (one = "vote 60-40") — "recorded exactly, can't be faked" | "everything is just information… recorded exactly… nobody can quietly fake" |
+| `ch0-beat5-lineage` | `ch0-beat5-lineage.excalidraw` | 5 | EVE / players-vote / text-world-ballots → the apparatus (assembly) + "votes you can't buy" + "juries by lot" | "games have been laboratories… old ideas… what's new is the assembly" |
+| `ch0-beat6-machine` | `ch0-beat6-machine.excalidraw` | 6 | "THE MACHINE" base with your game + ghosted communities + a DRAFT constitution card | "the machine underneath it… any community could pick up and run… a draft" |
+| `ch0-beat7-money` | `ch0-beat7-money.excalidraw` | 7 | a money-bag looming over "the apparatus" with a big "?" | "what stops whoever brings the most money from owning the whole thing?" |
+
+---
+
 ## Other segments — not built yet
 
 Build order TBD. Each segment's per-beat visual spec lives in its own cue sheet:
 
 - **Intro** (`intro.md`) — full-screen face, no diagrams.
-- **Ch 0** (`chapter-0.md`) — origin motifs, world card, apathy-graveyard + engagement stack, content→record, lineage/EVE, machine-underneath, money inset.
 - **Ch 2** (`chapter-2.md`) — meter callback, conferred-by-others + ghost accounts, the conviction "weight that gets heavier" hero.
 - **Ch 4** (`chapter-4.md`) — code/human split, the lifecycle pipeline, the administration, build-it-it's-yours/property, judiciary two faces.
 - **Ch 5** (`chapter-5.md`) — real-world-vs-digital contrast, the tamper-evident chain hero, crypto-minus-casino, sealed-by-math, detectable-not-impossible + fork.
