@@ -149,6 +149,32 @@ replaced the retired `config/constants.ts` constant, which conflated the
 spawn default with the evac fallback and pointed evac at the (destructible)
 lobby.
 
+> Later builds added their own keys (reactions, forums anti-snowball,
+> renown/participation/producer/influence/conviction); each is documented in
+> its own subsystem doc. The table above is the original v1 exemplar pair,
+> not a live registry — `AppSettingKeys` is.
+
+## The scattered-constant sweep
+
+A pass over modules predating this subsystem lifted a handful of hardcoded
+policy literals into the bag. The bar is deliberate: a candidate is a
+**single-source** value an operator would plausibly tune live — *not* a
+per-Stuff/template field default, per-species content, a physics constant, a
+safety/recursion guard, a deliberate mechanism cadence, or a value already
+gated elsewhere (e.g. `dm`'s recipient cap is enforced by the `dm.yaml`
+cardinality, so its controller backstop stays a literal; the introduce
+regard bump is a flagged-replaceable demo, so it stays put).
+
+| Key | Seeded value | Read by |
+|---|---|---|
+| `chat.historyCap` | `200` | `ChannelCatalogue.recordHistory` — per-channel in-memory history ring cap. |
+| `chargen.nameMinLength` / `chargen.nameMaxLength` | `2` / `24` | `EnrollController.validateNameToken` — inclusive name-length bounds. |
+| `status.maxLength` | `100` | `StatusMixin` `sanitizeStatus` — max rendered status one-liner length. |
+
+Each consumer reads through a local try/catch helper that falls back to the
+historical literal when the cache is unread (pre-warm / tests), so the
+migration is behavior-preserving and safe on the hydrate-at-boot path.
+
 ## Adding a setting
 
 1. Add a `key`/`value` entry to `mud/config/app-settings.yaml`.

@@ -25,9 +25,23 @@
 
 import type { MixinConstructor } from '../mixin';
 import type { CommandContributions } from '../../api/command';
+import { AppApi } from '../../api/app';
+import { AppSettingKeys } from '../config/AppSettings';
 
-/** Max rendered status length — a one-liner, not a paragraph. */
-const MAX_STATUS_LENGTH = 100;
+/** Fallback when app-settings is unread (pre-warm / tests); the seeded
+ * `status.maxLength` is authoritative at runtime. A one-liner, not a
+ * paragraph. */
+const DEFAULT_MAX_STATUS_LENGTH = 100;
+
+/** Max rendered status length (operator-tunable via `status.maxLength`). */
+function maxStatusLength(): number {
+  try {
+    const n = Number(AppApi.setting(AppSettingKeys.statusMaxLength));
+    return Number.isFinite(n) && n > 0 ? n : DEFAULT_MAX_STATUS_LENGTH;
+  } catch {
+    return DEFAULT_MAX_STATUS_LENGTH;
+  }
+}
 
 /**
  * Per-field invariant: collapse whitespace/newlines to single spaces and
@@ -37,10 +51,9 @@ const MAX_STATUS_LENGTH = 100;
  */
 function sanitizeStatus(value: string): string {
   const cleaned = value.replace(/\s+/g, ' ').trim();
-  if (cleaned.length > MAX_STATUS_LENGTH) {
-    throw new Error(
-      `Status too long (${cleaned.length} > ${MAX_STATUS_LENGTH} chars).`,
-    );
+  const max = maxStatusLength();
+  if (cleaned.length > max) {
+    throw new Error(`Status too long (${cleaned.length} > ${max} chars).`);
   }
   return cleaned;
 }
