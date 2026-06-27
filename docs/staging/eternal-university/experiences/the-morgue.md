@@ -212,6 +212,35 @@ insider, and the scene already let you assemble. What the body delivers:
   beloved-innocent whose autopsy doesn't add up) fires *once*; afterward every
   body is quietly suspect and the dread goes ambient.
 
+## The shared case (multiplayer)
+
+It's an MMO — *many* players investigate Dunny's death — and the arc turns that
+from awkwardness into the §10 thesis (the crowd that keeps saying his name is the
+**un-erasing**; the general design is the bible's §17.F). At the morgue it
+surfaces concretely:
+
+- **Pim owns it, cheerfully.** He notices the crowd (Gregarious) but not as
+  suspicious (innocently Incurious): *"Akhtar! You're the fourth this week —
+  popular fellow."* That one line (a) diegetically owns the swarm, (b) **leaks
+  that other investigators exist** (go pool up / check the Quad), and (c) makes
+  him a passive **exhaust-sensor** — the crowd asking Dunny's name *is* the
+  community un-erasing him, witnessed by the one who has no idea what he's
+  witnessing.
+- **Vance feels the opposite.** A fast-tracked body suddenly drawing a line of
+  askers is *heat* (she's Cautious) — so collective attention **pressures the
+  cover-up.**
+- **Residue later players can find:** the Quad **argument-map** (join a
+  contestable debate-in-progress, never a walkthrough), **NPC memory** (ask Pim
+  "who else has been asking?" → pointed at prior investigators / other players),
+  the **recognition exhaust** of having investigated.
+- **The split:** the collective layer accelerates (map, memory, case-phase); the
+  **personal** layer stays earned (your own derivation, skill, standing). Hard
+  rule: **no single player consumes the body or the case.**
+
+*Dials:* the inquiry count is a flavored/capped abstraction (lean) rather than a
+raw live tally (so it never reads "0" on a quiet night); the no-consumption
+constraint is load-bearing.
+
 ## Cross-references
 
 - Bible: [§14 the corpse-laundering + investigative geography](../../../slates/builds/eternal-university-narrative-slate.md),

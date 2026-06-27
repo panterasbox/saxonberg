@@ -921,7 +921,8 @@ reads as not-home reads as suspect. Paranoia falls out of the transport
 layer. (Same caution as §10's win-loop: dread, not griefing — don't
 mechanically punish disconnection.)
 
-**F. The questline abstraction (design — deferred, flagged not specced).**
+**F. The questline abstraction (design — multiplayer/residue firmed
+2026-06-27; the concrete questline object still deferred).**
 The multiplayer reset problem (a whodunit is *closed*, a dorm is *open* —
 newcomers daily) wants a real design object, and the arc keeps gesturing
 at its shape. Do **not** instance the murder per-player (that kills the
@@ -937,6 +938,40 @@ as a **closable case + a persistent antagonist** — which is exactly the
 Heroes-shaped: close a case without closing the world. These four
 properties are general, not murder-specific — but they're *design*, and
 they wait until the narrative tells us what beats they must carry.
+
+**Firmed (2026-06-27) — the MMO reality *is* the thesis, plus the residue
+layers.** The many-players-one-body fact is not dissonance to paper over: where
+most MMOs cringe at "a thousand heroes, one princess," here *many players
+investigating one death* is the §10 mechanism itself — a community is harder to
+silence, and the crowd that keeps saying the victim's name *is* the un-erasing.
+So the engine's social substrate (which most games lack) **solves** the
+shared-quest problem instead of hiding it, through three persistable **residue
+layers** (all on shipped substrate) that make the case a standing community
+project, not N solo runs:
+
+- **The argument-map** (forums / the Quad) — earlier players' collective
+  deduction; a newcomer joins a *contestable debate in progress* (property 2),
+  never a walkthrough to copy. Honest underdetermination (§5) keeps it an
+  argument, not an answer key — so the public map is no spoiler; community-
+  reasoning *is* the win.
+- **NPC memory** (belief / recognition) — NPCs remember who asked; a player can
+  ask *"who else has been looking?"* and be pointed at prior investigators (other
+  players) to pool with. A chatty-incurious NPC can *report the swarm
+  diegetically* (Pim at the morgue is the exemplar) — owning the MMO reality,
+  leaking co-investigators, and acting as a passive **exhaust-sensor**: the
+  crowd's attention is the victim un-erased, witnessed by one who doesn't grasp
+  it. That attention also **pressures the antagonist** (heat on the cover-up — a
+  real shared-world stake).
+- **Chronicle deeds + recognition exhaust** — a player's investigative acts
+  persist in the social graph; you become *known* as one who looked.
+
+The governing split: the **collective layer accelerates** (map, NPC memory, the
+case's phase); the **personal layer stays earned** (your own derivation, skill
+credit, standing) — under a hard **no-consumption rule**: no single player can
+use up the body or the case (or it vanishes for everyone). The case stays a
+closable unit on a persistent antagonist (§15.3), closing per-cohort without
+closing the world. *Still deferred:* the concrete questline object that wires
+this together.
 
 **G. Investigation design — immersive-sim, not whodunit-parlor (2026-06-27).**
 Two linked decisions. **(1) Not an everyone's-a-suspect story** — the frame
