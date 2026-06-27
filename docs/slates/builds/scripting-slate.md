@@ -108,6 +108,46 @@ See also:
   intended; the behavior ladder and the `scripted` rung were placeholders for
   it.
 
+## The first use case — recipes as banked command-scripts (Dave's Bar)
+
+This slate's "next conversation" (*what needs we have around scripting*) has its
+first concrete, bounded answer, and it's the **gentlest rung the language could
+launch on.** In [Dave's Bar](./daves-bar-slate.md), a player learns a cocktail
+by **making it once for real** (programming by demonstration): the sequence of
+verbs they perform — `pour gin into shaker` · `add vermouth` · `stir` ·
+`strain into glass` · `garnish with olive` · `serve` — is **banked as a named
+recipe**, and afterward `make martini` *replays it.* Reading the recipe from a
+book is a `claim`; *making* it is the `deed` that banks it (the advancement
+model's knowing→doing / procedural-vs-conceptual, felt — the book isn't enough,
+the hands have to learn it).
+
+Why it's the right MVP:
+
+- **It exercises the spine, none of the forks.** A recipe is a **linear sequence
+  of gated verbs** — command-native, *conducts the verb bus* (decision #2),
+  sequencing-over-dispatch — with **no** blocks, control flow, `wait`, MQL
+  conditions, director, or `improv`. Plus exactly **one** parameter (the brand,
+  `pour $gin` → `make martini with Vionne`) — the tamest touch of the
+  `$`-value feature. The whole thesis, validated on the easiest possible case.
+- **Replay is pre-bound, not re-parsed.** The banked script rides the piping
+  model's `{command, model}` path — **skip match/assemble, run resolve +
+  execute** — so replay skips the text re-parse (fast) but still
+  resolve+validate+executes through the bus (gated, attributed, scope-rechecked
+  every time). Real commands without the tedium; "piping skips parsing, not
+  resolve."
+- **It's the most accessible on-ramp the language could have.** Players author
+  scripts by *doing*, never knowing they're scripting (decision #6, "humans
+  author it too," at its gentlest) — and the banked script is *commands*, so
+  it's inspectable and later editable: do → get a script → tweak it (the seam to
+  recipe invention) → write scripts. The bar teaches what a script *is*.
+
+**Decision:** build Dave's Bar's recipe shorthand **script-shaped from the
+start** — so the bar is the scripting language's first home (alongside Activity
+and metabolism), pulling forward only the **tamest rung** (banked linear
+command-macros + one substitution), never the language's blocks / coroutines /
+director. The language gets designed against a real bounded consumer instead of
+in the abstract.
+
 ## Safe by grammar, not by trust
 
 eval's sandbox exposes everything and is gated by *who you are* (developer).
