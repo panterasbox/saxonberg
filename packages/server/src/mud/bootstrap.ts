@@ -43,6 +43,13 @@ export const bootstrapManifest: BootstrapEntry[] = [
   // the topic catalogue). Resolvable via the catalogue singleton after this
   // entry's postRegister fires.
   { templatePath: '/obj/DisciplineCatalogue' },
+  // CorpoCatalogue singleton — the corpos Catalog: the authored megacorps
+  // and their product brands. Warms its descriptor caches + portfolio index
+  // in postRegister from the per-Corpo / per-Brand leaf templates under
+  // `/lib/corpo/` in the `domain` collection (the same lazy-template pattern
+  // as the discipline catalogue). Resolvable via `CorpoApi` after this
+  // entry's postRegister fires.
+  { templatePath: '/obj/CorpoCatalogue' },
   // GroupRegistry — provider table for managed / MQL / contacts
   // group sources. Registers the three v1 provider instances in
   // postRegister; downstream consumers (chat audience, future
