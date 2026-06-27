@@ -195,10 +195,23 @@ All single static assets.
 
 ---
 
+## Ch 6 — "A dial on an honest floor"  *(all beats built ✅)*
+
+| PNG | Source | State | Shows | Lands on cue |
+|---|---|---|---|---|
+| `ch6-beat1-switch` | `ch6-beat1-switch.excalidraw` | — | a person + an ON/OFF switch ("somebody always has root") + "can a community be free of whoever runs it?" | "somebody has root… anyone who claims they've abolished power is selling something" |
+| `ch6-beat2-floor` | `ch6-beat2-floor.excalidraw` | — | three bedrock slabs: money-can't-buy-power · record-can't-be-faked · you-can-always-leave | "three things guaranteed in every copy… bedrock" |
+| `ch6-beat3-moderation` | `ch6-beat3-moderation.excalidraw` | — | you-already-run-a-government mapping (operator→exec, mods→police, rules→law, appeals→courts, mod-log→record) + "rules take the heat, not you" | "you're already running a government — you just call it moderation" |
+| `ch6-beat3-dial` | `ch6-beat3-dial.excalidraw` | — | the dial slider (operator ↔ full republic) sitting on the floor; ghosted communities each set their own | "turn the dial as far as you trust your people" |
+| `ch6-beat4-graduated` | `ch6-beat4-graduated.excalidraw` | — | operator hands a call down; a member delegates the vote (revocable) — "nobody carries the whole load" | "an operator can defer… a member can hand their vote to someone they trust" |
+| `ch6-beat5-founder` | `ch6-beat5-founder.excalidraw` | — | pre-ratification across the 3 counts (patron match+1 / producer diluting / consumer none) → RATIFICATION → outcomes (offboard / sunset / keep-match / autocrat) → floor holds | "before a community ratifies… then ratification, the community decides… the floor holds" |
+| `ch6-beat6-landing` | `ch6-beat6-landing.excalidraw` | — | the series motifs assembled (meters · map · pipeline · chain · floor · dial) → "THAT'S THE DESIGN" → hard-cut to the Outro | "that's the whole thing… that's the design" |
+
+---
+
 ## Other segments — not built yet
 
 Build order TBD. Each segment's per-beat visual spec lives in its own cue sheet:
 
 - **Intro** (`intro.md`) — full-screen face, no diagrams.
-- **Ch 6** (`chapter-6.md`) — already-a-government overlay, the floor (three slabs), the dial, graduated participation, the founder mechanism + ratification.
 - **Outro** (`outro.md`) — full-screen face; light insets only (callback montage, make/fund/play, draft card).
