@@ -32,6 +32,7 @@ import type {
 import type { MqlOneResult } from '../../../api/mql';
 import type { Stuff } from '../../../lib/stuff/Stuff';
 import { MixinApi } from '../../../api/mixin';
+import { ContainmentApi } from '../../../api/containment';
 import { MessageApi } from '../../../api/message';
 import { BulkableApi } from '../../../api/bulk';
 import { RecognitionApi } from '../../../api/recognition';
@@ -234,19 +235,11 @@ export default class LookController extends CommandController<LookModel> {
           RecognitionApi.learnIdentity(actor, item, null);
         }
       }
-      // Items resting on a *listed* surface (the bottles on the back-bar)
-      // are NOT loose room contents — listing them here is the clutter we're
-      // avoiding. They're represented by their surface and discovered by
-      // examining it (`look back-bar`). Items resting on an unlisted surface
-      // (e.g. the Adornment floor) stay top-level. The containment walk is
-      // unchanged — purely a presentation filter.
-      const visibleIds = new Set(visibleContents.map((i) => i.stuffId));
-      const topLevel = visibleContents.filter((item) => {
-        const surface = MixinApi.isContainable(item)
-          ? item.getRestingOn()
-          : null;
-        return !(surface && visibleIds.has(surface.stuffId));
-      });
+      // Items resting on a listed surface (the bottles on the back-bar) are
+      // not loose room contents — they're represented by their surface and
+      // discovered by examining it (`look back-bar`). Shared with `sense` and
+      // the inspection pane via `ContainmentApi.looseContents`.
+      const topLevel = ContainmentApi.looseContents(visibleContents);
       if (topLevel.length > 0) {
         const list = Mml.list(topLevel.map((item) => Mml.item(item)));
         body = Mml.compose`${body}\n── You also see: ${list}.`;

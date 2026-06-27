@@ -37,6 +37,7 @@ import type {
 import type { MqlOneResult } from '../../../api/mql';
 import type { Stuff } from '../../../lib/stuff/Stuff';
 import { MixinApi } from '../../../api/mixin';
+import { ContainmentApi } from '../../../api/containment';
 import { MessageApi } from '../../../api/message';
 import { Mml } from '../../../api/mml';
 import { PerceptionApi } from '../../../api/perception';
@@ -190,9 +191,12 @@ export default class SenseController extends CommandController<SenseModel> {
         body = Mml.compose`${body}\n${exitsLine}`;
       }
     }
-    if (visibleContents.length > 0) {
-      const items = visibleContents.map((item) => Mml.item(item));
-      const list = Mml.list(items);
+    // Surface-resting items (the back-bar's bottles) aren't loose room
+    // contents — represented by their surface, found by examining it. Shared
+    // rule with `look` + the inspection pane.
+    const topLevel = ContainmentApi.looseContents(visibleContents);
+    if (topLevel.length > 0) {
+      const list = Mml.list(topLevel.map((item) => Mml.item(item)));
       body = Mml.compose`${body}\n── You also see: ${list}.`;
     }
 

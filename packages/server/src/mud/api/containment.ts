@@ -35,6 +35,7 @@ import type { Containable } from '../lib/spatial/Containable';
 import type { Surfaced } from '../lib/spatial/Surfaced';
 import type { Warren } from '../lib/location/Warren';
 import { StuffApi } from './stuff';
+import { MixinApi } from './mixin';
 import { HotReloadApi } from './hot-reload';
 import { SecurityApi } from './security';
 import { CallSecurity } from '../lib/security/decorators';
@@ -275,6 +276,24 @@ export class ContainmentApi {
    */
   public static getContents(container: ContainerStuff): ContainableStuff[] {
     return logic().getContents(container);
+  }
+
+  /**
+   * Filter a contents snapshot to the **loose** (top-level) items — those
+   * NOT resting on another item *in the same set*. Items resting on a listed
+   * surface (the bottles on the back-bar) are represented by that surface and
+   * discovered by examining it (`look <surface>`); listing them as room
+   * contents is the clutter we avoid. Shared by every contents-presentation
+   * surface — `look`, `sense`, and the inspection-pane projection — so they
+   * agree. Pure: the containment walk is unchanged; this only shapes what's
+   * presented at top level.
+   */
+  public static looseContents(items: readonly Stuff[]): Stuff[] {
+    const ids = new Set(items.map((i) => i.stuffId));
+    return items.filter((item) => {
+      const surface = MixinApi.isContainable(item) ? item.getRestingOn() : null;
+      return !(surface && ids.has(surface.stuffId));
+    });
   }
 
   /**
