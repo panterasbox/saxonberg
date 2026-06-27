@@ -36,20 +36,24 @@ import type { TraitBandName } from "../lib/trait/TraitBand";
 import { StuffApi } from "./stuff";
 import { HotReloadApi } from "./hot-reload";
 import { SecurityApi } from "./security";
-import {
-  TraitLogic,
-  type RecordOptions,
-  type ClaimSeed,
-} from "../obj/api/TraitLogic";
+import { TraitLogic } from "../obj/api/TraitLogic";
 import { fileURLToPath } from "url";
 
-export type {
-  DispositionEntryFields,
-  RecordOptions,
-  ClaimSeed,
-  AxisEstimate,
-  TraitBandName,
-};
+/** Act-level context shared by every disposition row of one act. */
+export interface RecordOptions {
+  kind?: "deed" | "claim";
+  /** Game-time seconds; defaults to the witness clock when omitted. */
+  when?: number | null;
+  tags?: string[];
+}
+
+/** One seeded disposition claim — an authored/established axis position. */
+export interface ClaimSeed {
+  disposition: string;
+  valence: number;
+}
+
+export type { DispositionEntryFields, AxisEstimate, TraitBandName };
 
 const LOGIC_PATH = "/obj/api/trait";
 const LOGIC_CLASS_FILE = fileURLToPath(

@@ -24,12 +24,7 @@ import { MixinApi } from "../../api/mixin";
 import { Mixins } from "../../lib/mixin";
 import { TemplatePaths } from "../../lib/paths";
 import type DisciplineCatalogue from "../DisciplineCatalogue";
-
-/** A Discipline the owner has evidence in, with its current band. */
-export interface DisciplineBand {
-  discipline: string;
-  band: CompetenceBandName;
-}
+import type { RecordOptions, DisciplineBand } from "../../api/advancement";
 
 /**
  * A host whose conferred affordances can be refreshed. Narrowed
@@ -43,14 +38,6 @@ interface ConferralRefreshable {
 const AdvancementApiCallers = SecurityPolicies.FromModule(
   "mud/api/advancement#AdvancementApi"
 );
-
-/** Act-level context shared by every sub-check row of one act. */
-export interface RecordOptions {
-  kind?: "deed" | "claim";
-  /** Game-time seconds; defaults to the witness clock when omitted. */
-  when?: number | null;
-  tags?: string[];
-}
 
 /** Persistence is a no-op unless Mongo is connected (tests, pre-boot). */
 function active(): boolean {

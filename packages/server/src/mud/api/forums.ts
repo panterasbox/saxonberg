@@ -21,18 +21,49 @@ import type { Stuff } from '../lib/stuff/Stuff';
 import type Board from '../lib/forum/Board';
 import type Entry from '../lib/forum/Entry';
 import type Subject from '../lib/forum/Subject';
-import type {
-  BoardView,
-  ThreadView,
-  MakeForumOptions,
-  EntrySort,
-  VoteState,
-  ArgumentRelation,
-  ArgumentLensNode,
-} from '../obj/api/ForumsLogic';
 import type { BoardOrganizer } from '../lib/forum/Board';
 import type { VoteValue } from '../lib/forum/Vote';
+import type { MakeSubjectOptions } from '../obj/SubjectCatalogue';
 import { ForumsLogic } from '../obj/api/ForumsLogic';
+
+/** Sort orders for the popularity organizer. */
+export type EntrySort = 'new' | 'top' | 'hot' | 'controversial';
+
+/** The current vote state of an entry for one voter (`null` = no vote). */
+export type VoteState = VoteValue | null;
+
+/** A board paired with its owning subject — the common forum read unit. */
+export interface BoardView {
+  board: Board;
+  subject: Subject;
+}
+
+/** A thread root plus its full reply tree (flat, parent-linked). */
+export interface ThreadView {
+  root: Entry;
+  posts: Entry[];
+}
+
+/**
+ * A node in the computed **argument lens** — the entry plus the one
+ * structural fact the neutral default lens derives: whether it is an
+ * **open objection** (an `objects-to` with no answering child). The lens
+ * reads pure relations; it never reads `up`/`down` and stores no order.
+ */
+export interface ArgumentLensNode {
+  entry: Entry;
+  openObjection: boolean;
+}
+
+/** Options for `makeForum` — passthrough to the subject mint + board meta. */
+export interface MakeForumOptions extends MakeSubjectOptions {
+  description?: string;
+  /** Which organizer to light (default `'popularity'`). */
+  organizer?: BoardOrganizer;
+}
+
+/** The typed edges legal for the `'argument'` organizer (pro/con/neutral). */
+export type ArgumentRelation = 'supports' | 'objects-to' | 'responds-to';
 import ForumSubscriptionRegistry, {
   type ForumSubscribeRequest,
 } from '../obj/ForumSubscriptionRegistry';

@@ -33,15 +33,25 @@ import type {
 import { StuffApi } from "./stuff";
 import { HotReloadApi } from "./hot-reload";
 import { SecurityApi } from "./security";
-import {
-  AdvancementLogic,
-  type RecordOptions,
-  type DisciplineBand,
-} from "../obj/api/AdvancementLogic";
+import { AdvancementLogic } from "../obj/api/AdvancementLogic";
 import type { CompetenceBandName } from "../lib/advancement/CompetenceBand";
 import { fileURLToPath } from "url";
 
-export type { TranscriptEntryFields, RecordOptions, DisciplineBand };
+/** Act-level context shared by every sub-check row of one act. */
+export interface RecordOptions {
+  kind?: "deed" | "claim";
+  /** Game-time seconds; defaults to the witness clock when omitted. */
+  when?: number | null;
+  tags?: string[];
+}
+
+/** A Discipline the owner has evidence in, with its current band. */
+export interface DisciplineBand {
+  discipline: string;
+  band: CompetenceBandName;
+}
+
+export type { TranscriptEntryFields };
 
 const LOGIC_PATH = "/obj/api/advancement";
 const LOGIC_CLASS_FILE = fileURLToPath(

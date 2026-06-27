@@ -24,22 +24,9 @@ import { PersistApi } from "../../api/persist";
 import { AppApi } from "../../api/app";
 import { AppSettingKeys } from "../../lib/config/AppSettings";
 import { RegardApi } from "../../api/regard";
+import type { RecordOptions, ClaimSeed } from "../../api/trait";
 
 const TraitApiCallers = SecurityPolicies.FromModule("mud/api/trait#TraitApi");
-
-/** Act-level context shared by every disposition row of one act. */
-export interface RecordOptions {
-  kind?: "deed" | "claim";
-  /** Game-time seconds; defaults to the witness clock when omitted. */
-  when?: number | null;
-  tags?: string[];
-}
-
-/** One seeded disposition claim — an authored/established axis position. */
-export interface ClaimSeed {
-  disposition: string;
-  valence: number;
-}
 
 /** Persistence is a no-op unless Mongo is connected (tests, pre-boot). */
 function active(): boolean {
