@@ -146,6 +146,21 @@ export const AppSettingKeys = {
    * resets the clock (the spend half of influence; no verb yet).
    */
   convictionBuildPeriodSeconds: "conviction.buildPeriodSeconds",
+
+  /**
+   * Operator policy knobs lifted out of scattered module constants (the
+   * pre-app-settings sweep). Each is a single-source limit an operator may
+   * want to tune live; consumers read with a try/catch fallback to the
+   * historical literal so a pre-warm/test read is still safe.
+   */
+  /** Chat — per-channel in-memory history ring cap (`ChannelCatalogue`). */
+  chatHistoryCap: "chat.historyCap",
+  /** Char-gen — minimum length (chars) of a chosen character name token. */
+  chargenNameMinLength: "chargen.nameMinLength",
+  /** Char-gen — maximum length (chars) of a chosen character name token. */
+  chargenNameMaxLength: "chargen.nameMaxLength",
+  /** Status — max rendered length (chars) of a Character's status one-liner. */
+  statusMaxLength: "status.maxLength",
 } as const;
 
 export type AppSettingKey =
