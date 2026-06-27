@@ -1,0 +1,10 @@
+class: /lib/advancement/Discipline
+hydratorClass: /lib/persistence/PersistentHydrator
+data:
+  key: bartending
+  channel: skill
+  label: Bartending
+  iscedf: "1013"  # ISCED-F 2013 field-of-education code
+  specializes:
+    - hospitality-catering
+  description: The craft of running the rail — the parent school the cocktail crafts specialize under, itself a specialization of the hospitality-catering field.
