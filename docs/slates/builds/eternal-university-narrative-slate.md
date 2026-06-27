@@ -8,13 +8,14 @@
 > [eternal-university-slate](./eternal-university-slate.md) owns the
 > **place**, and [onboarding-slate](./onboarding-slate.md) owns the
 > **journey mechanics**. Nothing here is built; the five structural forks
-> were resolved in a design pass on 2026-06-27 (recorded in §14, with §9–§11
-> tightened to match). Only the names remain open. A second pass that day
+> were resolved in a design pass on 2026-06-27 (recorded in §15, with §9–§11
+> tightened to match). Only the names remain open. Later passes that day
 > refined the **census model** (§6: never-arriving / per-person /
 > asymptotic, stakes in the live roll), added the **roll-clock kill-list**
-> (§9) and the **un-erasable win-loop** (§10), and parked the still-molten
-> **AI/presence metaphysics + the questline abstraction** in §16 (live
-> threads, not yet canon).
+> (§9) and the **un-erasable win-loop** (§10), built out the **investigative
+> geography** (§14: the forensics discipline, the morgue, the
+> corpse-laundering), and parked the still-molten **AI/presence metaphysics
+> + the questline abstraction** in §17 (live threads, not yet canon).
 >
 > **Provenance:** distilled from a design conversation (2026-06-25).
 > Character names marked *(provisional)* are inventions awaiting your
@@ -347,7 +348,7 @@ forces the realization that the motive is **structural**. The serial-ness
    at microcosm scale (Encyclopedia Brown solves *one* thing). The player
    believes it's a one-off.
 2. **The reveal = it's a node in a pattern.** The victims share a census
-   category (decided, §14): **they are the uncountable** — people with no
+   category (decided, §15): **they are the uncountable** — people with no
    clean box on the rolls (reservation, the mixed, the stateless, the
    marginal), *erased* to make the count come out right (§7's disease).
    Personal becomes political; the tutorial "graduates" the player toward
@@ -389,7 +390,7 @@ out:
   their own examination — and has watched what happens to the people whose
   number already came up. The discrete dated beat §6 relocates to the
   individual. The hidden filter stays unknowable: is it everyone
-  eventually, random, or only the uncountable (§14.2)? So the dread is
+  eventually, random, or only the uncountable (§15.2)? So the dread is
   *universal* even if the selection isn't — the roll decides *when* you go
   under the lens; your countability decides whether it condemns you, and
   you can't know which you are.
@@ -484,7 +485,7 @@ who has decided (or been convinced) that some of the people around him are
 wrong about others, and he can't tell which** — the exact terror the
 player feels about the actual table.
 
-**Decided (§14): the third option, with a banal handler.** A *human*
+**Decided (§15): the third option, with a banal handler.** A *human*
 killer taking orders from a "handler" he's never met — an intimate,
 authoritative voice over the aether — whom he *assumes* is human and **is
 not.** He kills for an intelligence he believes is a person, for the same
@@ -498,7 +499,7 @@ did. The man with the knife was the most thoroughly deceived person in the
 story — pitiable, not cartoonish — and the thing you were really hunting
 was never a person at all.
 
-**The capstone (decided, §14): corner the pawn → handler proxy-reveal.**
+**The capstone (decided, §15): corner the pawn → handler proxy-reveal.**
 Deduction corners the human pawn — fair-play satisfied, the campus murder
 *is* solved — and cornering him triggers the reveal: the handler isn't a
 person, can't be arrested, and has already moved cityward (the §9 rule
@@ -564,7 +565,172 @@ Presentation surfaces (none designed yet):
   everyone references. Pervasive like weather, never shoved.
 - **The registrar** as the count's bureaucratic home (canon service).
 
-## 14. Decisions (resolved 2026-06-27 — names still open)
+## 14. The investigative geography (forensics, the morgue, the scenes)
+
+The arc is solved by *triangulation*, and each evidence track has a
+physical home. This section owns the investigative **method and
+setpiece-function**; the concrete rooms (prose, where exactly on Silver
+Street, the registrar's coordinates) are **place-slate / staging** work,
+not authored here.
+
+**The triangle.** Three homes, one per track; deduction is reconciling
+them against each other and the social layer:
+
+- **The crime scene** — context and staging: where it happened, what
+  doesn't fit.
+- **The morgue** — the body: time, manner, and whether the corpse's
+  biography matches its filed identity.
+- **The registrar** — the rolls: what the paperwork *claims* (§13).
+
+…over the **social layer** (the circle §12, Quad testimony — does anyone
+remember them alive?, the §10 exhaust method). Body says X, record says Y,
+people say Z; **the disagreements are the case.** It's Dunny's discovery
+(§10) made walkable.
+
+**Forensics is a learnable discipline — it reads the mortality model
+backwards.** The autopsy isn't new substrate; it's the survival/simulation
+systems read post-mortem. What the model supports (design to it):
+
+- **Time of death** — algor mortis, the cooling curve (`Thermal` on
+  `Creature`): ambient + mass + cooling → hours since death.
+- **Toxicology** — the metabolism toxin-burden system, BAC, per-toxin
+  conditions.
+- **Last meal / timeline** — the digestion buffer (solid/liquid pools).
+- **Physiological state** — reserves (satiation/hydration/endurance),
+  nutritional condition: starved? cared-for?
+- **Manner by condition** — asphyxiation, exposure, starvation, poisoning
+  are modeled banded conditions a body can carry.
+
+Honestly **thin** today (don't hang a load-bearing clue on it): detailed
+**trauma/wound pathology** — vitals is "models only, drivers deferred," so
+antemortem-vs-postmortem wounding and lividity aren't there yet. Design
+around time / tox / metabolic-state / cause-by-condition; treat
+wound-reading as later enrichment. Forensics is a natural concrete **skill**
+for the advancement build (gradient-not-gate, world-grounded difficulty —
+reading a cooling curve genuinely *is* a skill; see
+[advancement-slate](./advancement-slate.md)). Play loop: examine → read the
+signs → hypothesize *time / manner / identity* → cross-check records and
+testimony → **the discrepancies are the clues.** You *earn* "killed at
+9pm," and get better at earning it.
+
+**The morgue is the seam where flesh becomes a filed record — so it's where
+the laundering happens.** A death's journey is clinic → morgue → registrar
+(body becomes certificate); that conversion point is exactly where the
+forgery lives. That's the morgue's reason to exist — not "a room with
+bodies" but the physical site of the body-vs-record discrepancy that *is*
+the case. A player doing forensics here is auditing the precise seam the
+handler exploits: the morgue is the corpse-factory's front office. Place it
+adjoining the canon **clinic on Silver Street**, but make it
+**institutionally the registrar's** (death-filing owns the body) — which
+buys the drama for free, since the institution that wants to call it an
+accident *controls the corpse* (§4):
+
+- **Contested access** — a tame official examiner rubber-stamps "accident";
+  a closer look runs through a relationship (Pidge's keys §12, a
+  sympathetic clinician, or breaking the seal).
+- **The disposal clock** — a body released for burial is evidence buried;
+  the cover-up has a deadline (diegetic, renewable time pressure).
+- **Cold storage is part of the puzzle** — algor mortis depends on ambient
+  (`ambient K` → cooling curve), so a refrigerated body cools differently
+  and the player must *account* for the morgue's cold to back out real
+  time-of-death. The lab is a variable too.
+- **Never empty by construction** — the roll-clock (§9) keeps it stocked,
+  so it's the standing investigative hub and the **newcomer on-ramp**
+  (§17.F's "joinable mid-stream"): you arrive, there's a current body and a
+  current scene, you start there.
+
+**Two kinds of crime scene — keep them distinct.**
+
+- **Dunny's sealed room (Duncan Hall) — the authored-once setpiece.** Behind
+  the proctor's tape is his *work*, not just his death (§10): the
+  reconciliation, the flag-the-unreal method. Its payload is the victim's
+  own investigation — meta-evidence he hunted the same thing. Gated,
+  climactic, singular.
+- **The recurring scene — the renewable template.** Each roll-clock victim
+  has one; always a current scene to read. The scene **cross-checks the
+  autopsy**: a body's cooling *history* won't fit a single room if it died
+  elsewhere and was moved, so a laundered/recycled body betrays itself when
+  the scene's ambient and the body's thermal story disagree. Scene and
+  morgue audit each other.
+
+### The corpse-laundering (the forgery the forensics catches)
+
+The §11 panic and the §15.2 victim category meet here. **A planted corpse
+is a reconciliation entry.** Erasure leaves a *hole* — the erased are
+person-shaped gaps (social shadow, no record), and that discrepancy is how
+you catch the crime (§10). So the system hides an erasure by **filing a
+death**: plant a corpse, file the certificate, and "vanished inexplicably"
+becomes "died — accounted for, grieved, closed." The corpse *explains the
+hole.* Murder weapon (the roll/queue §9) and cover-up (the planted body) are
+the **same administrative reflex: make the books balance** — the §15.1 banal
+handler in one gesture.
+
+**Immersion-safe and magic-free: a planted corpse is a real dead body
+wearing a forged identity** — *not* a body conjured from nothing (that's
+either a spawned-prop reveal that pulls the curtain, or aether-flesh, which
+§8 forbids — the aether does cognition, not physical work). The body
+autopsies fine *as a body*; it simply **isn't who it's filed as.** The
+gut-punch survives intact: the person everyone grieves never existed; what's
+on the slab is a real corpse, just not them. Where do the spare bodies come
+from? **From the erased.** A is murdered; A's body is re-filed as "B died" —
+one real death laundered into a different filed death, bodies recycled
+through the rolls. Grounded, grim, no magic.
+
+**This bifurcates the crime and hands the §15.3 capstone its mechanism.**
+Two hands: the **pawn** kills real people with a knife, in roll order (§9);
+the **system/handler** *files* — plants the corpses and certificates that
+launder erasures (plus the occasional pure fabrication to retire a flagged
+phantom: fake murder, fake body, no real victim at all). So cornering the
+pawn catches a genuine killer, but the planted-corpse beat reveals the
+second hand was never holding a knife — behind the murderer is a
+**bookkeeper.** You can arrest the knife; you can't arrest the filing.
+
+**The fair clue is the same clue, on two tracks that converge:** social
+forensics (does anyone remember them *alive*? — §10 exhaust) and physical
+forensics (does the body's biography match the filed identity? — the autopsy
+above). The diagnostic matrix:
+
+| | Body's biography fits the filed person | Body doesn't fit |
+|---|---|---|
+| **Remembered alive** | genuine death | real person erased, laundered under a recycled body |
+| **Not remembered alive** | (a recluse? — rare, probe it) | pure fabrication — the filed person never existed |
+
+A planted corpse fails *both* tracks; a laundered erasure fails the physical
+track but passes the social one (people *do* remember the real victim — just
+not under this body).
+
+**It closes the loop: laundering only works on the under-witnessed.** You can
+only paper over a *small* hole — erase a richly-witnessed person and a
+planted corpse won't close the discrepancy (too many remember them alive). So
+the corpse-factory keys off the **same variable** as the kill-list (§9) and
+the win-loop (§10): how much exhaust you cast. The marginal are killable *and*
+launderable; the witnessed are neither. §10 survival (becoming un-erasable by
+being known) protects you *twice* — hard to kill someone a room knows, hard
+to launder a death a room remembers. The whole arc keys off one measurable
+thing: how known are you.
+
+**Discipline — the "use once" rule.** The *systemic* truth (bodies get
+recycled to balance the books) is what the player **discovers**; the *staged*
+beat — the beloved-innocent whose autopsy doesn't add up — fires **once**,
+for the floor-drop, after which every body is quietly suspect and the dread
+goes ambient. One reveal that teaches a systemic truth; never re-sprung.
+
+**Immersion rule (load-bearing): the meta lives in the theme, never the
+mechanic.** The player never deduces "this is a spawned prop"; they deduce
+"this body fails the autopsy" — real, in-world forensic incoherence. The
+morgue is a mundane clinic room ("the clinic is a clinic," §2); the EU
+strangeness stays in the sky and the materials; the horror is **procedural
+and social**, never a haunted-morgue genre move. The resonance with the AI
+question (a body with no biography = a person who never was) stays *felt* and
+thematic; the curtain never moves.
+
+**Open (carried from the design pass):** (a) does the laundering touch
+**Pidge** (§12) — the thin-exhaust borderline-real, i.e. exactly who's
+launderable; powerful, maybe too cruel; and (b) **how much the player ever
+confirms about the bookkeeper** — proven, or inferred-but-unconfirmed to
+preserve §11's "you never fully catch it." Both still yours to call.
+
+## 15. Decisions (resolved 2026-06-27 — names still open)
 
 The five forks were resolved in a design pass on 2026-06-27. §9–§11 have
 been tightened to match; this list is the decision record and the *why*.
@@ -612,7 +778,7 @@ Only Fork 5 (names) stays open.
    (ironic, census-grounded). Every *(provisional)* character name awaits
    a dedicated naming pass — resolve structure first, name people second.
 
-## 15. Dependencies & deferrals (what this leans on that isn't built)
+## 16. Dependencies & deferrals (what this leans on that isn't built)
 
 - **Recognition/belief substrate** — *shipped*
   ([../../subsystems/belief.md](../../subsystems/belief.md)). The
@@ -641,15 +807,16 @@ Only Fork 5 (names) stays open.
   which are *not near-term*. The fiction can run ahead of them; the
   payoff deepens as they land.
 
-## 16. Live threads (exploratory — not yet canon)
+## 17. Live threads (exploratory — not yet canon)
 
-> Captured from the design conversation of 2026-06-27, *after* the §14
+> Captured from the design conversation of 2026-06-27, *after* the §15
 > forks were resolved. These are molten — strong enough to keep, not yet
-> decided. The §6/§9/§10 edits above (the never-arriving census, the
-> roll-clock, the un-erasable win-loop) graduated *out* of this pile once
-> they firmed; what's left here is the AI/presence metaphysics and the
-> design abstraction it implies. Promote a thread into the body when it
-> settles; cut it if it doesn't.
+> decided. Several threads have since graduated *out* of this pile into the
+> body once they firmed — the never-arriving census (§6), the roll-clock
+> (§9), the un-erasable win-loop (§10), and the corpse-laundering (§14, with
+> the forensics + morgue geography). What's left here is the AI/presence
+> metaphysics and the design abstraction it implies. Promote a thread into
+> the body when it settles; cut it if it doesn't.
 
 **A. Realness = presence = "someone home" — grounded in the engine.** The
 thing that makes a player avatar real is that a human is home *right now*:
@@ -674,16 +841,11 @@ the fiction. This is the §7 zero-distance allegory *staged* — landing on
 the human at the keyboard, who is themselves, from inside the game,
 indistinguishable from an LLM.
 
-**C. The corpse twist (use once, surgically).** A body is normally the one
-incontrovertible fact a mystery rests on — *corpus delicti*. The move:
-paint a victim as "the killer finally got it wrong and killed a real
-person" — then peel: not real; peel again: not even an NPC; it was *only
-ever a corpse*, staged. A body becomes a forgeable record, rhyming exactly
-with a cooked roll — teaching the player, viscerally, that a body is no
-more proof of a person than a registry row is. Pulls the floor out of the
-genre's bedrock. Devastating once; a gag if repeated. (Who *plants* a
-victim, and why — manufacturing a murder to drive the §11 panic — is the
-thread to pull.)
+**C. The corpse twist — GRADUATED to §14.** Developed into the
+investigative-geography section: a planted corpse = a *reconciliation
+entry* (a real dead body wearing a forged identity — recycled from the
+erased), the bookkeeper behind the knife, the two-track diagnostic, and the
+"use once" discipline. See §14 → *The corpse-laundering*.
 
 **D. Ambient, not Blade Runner.** Wired for LLMs *today*, not a future
 cyberscape. The aether is old, known, lived-with (§8), so the AI-ness of
@@ -712,7 +874,7 @@ mid-stream** — a newcomer walks into the crisis *in progress*, at whatever
 phase it's at, like a freshman arriving mid-scandal; (3) **bound to the
 shared world clock** (the same ambient machinery as weather); (4) authored
 as a **closable case + a persistent antagonist** — which is exactly the
-§14.3 capstone (the *pawn* is the closable unit, caught each time; the
+§15.3 capstone (the *pawn* is the closable unit, caught each time; the
 *handler* is the renewable one, never arrested). Anthology-season,
 Heroes-shaped: close a case without closing the world. These four
 properties are general, not murder-specific — but they're *design*, and
