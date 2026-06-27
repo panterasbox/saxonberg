@@ -13,6 +13,7 @@ import { readFileSync, readdirSync } from 'fs';
 import { fileURLToPath } from 'url';
 import YAML from 'yaml';
 import { StuffApi } from '../../../api/stuff';
+import { DialogueTreeSchema } from '../../../lib/npc/tree';
 
 const NPC_DIR = fileURLToPath(
   new URL('../../../seeds/domain/lounge/npc/', import.meta.url)
@@ -72,6 +73,19 @@ describe("Dave's Bar cast seeds", () => {
         expect(resolved, `${f}: ${spec.brain}`).not.toBeNull();
       }
     }
+  });
+
+  it('every authored dialogue tree is structurally valid (save-gate parity)', () => {
+    let trees = 0;
+    for (const f of castFiles()) {
+      for (const spec of load(f).data.behaviors ?? []) {
+        if (spec.trigger !== 'engage') continue;
+        trees++;
+        expect(DialogueTreeSchema.validate(spec.config), f).toEqual([]);
+      }
+    }
+    // At least one cast member is conversational (Mara).
+    expect(trees).toBeGreaterThan(0);
   });
 
   it('the bar populates the five cast templates (alongside the crafting fixtures)', () => {
