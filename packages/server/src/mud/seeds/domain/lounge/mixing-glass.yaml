@@ -1,5 +1,5 @@
 # A mixing glass — a tool offering the `mixing-glass` capability (stirred drinks).
-class: /lib/craft/ToolItem
+class: /domain/lounge/CocktailShaker
 hydratorClass: /lib/persistence/PersistentHydrator
 data:
   shortDescription: a mixing glass

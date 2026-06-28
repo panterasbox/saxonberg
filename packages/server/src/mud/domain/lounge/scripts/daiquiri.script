@@ -1,0 +1,11 @@
+# Daiquiri — shaken.
+#
+# Rum base ($brand), lime, shaken not stirred. The second cocktail proves
+# the recipe-script shape is general, not martini-special: a different
+# spirit, a different mix verb (`shake` vs `stir`), the same grammar.
+def daiquiri ($brand) {
+  pour $brand into shaker
+  pour lime into shaker
+  shake shaker
+  strain shaker into glass
+}

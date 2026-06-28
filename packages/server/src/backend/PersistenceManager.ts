@@ -53,6 +53,7 @@ export enum Collections {
   AuthoringEvents = 'authoring_events',
   Positions = 'positions',
   Recipes = 'recipes',
+  Documents = 'documents',
   BankLedger = 'bank_ledger',
   BankAccounts = 'bank_accounts',
   BankSupply = 'bank_supply',

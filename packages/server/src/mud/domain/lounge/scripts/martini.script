@@ -1,0 +1,13 @@
+# Gin Martini — stirred, up.
+#
+# The base gin is the $brand parameter: `make martini with Crowsfoot`
+# pours that gin; bare `make martini` uses the house pour. This is the
+# same `def <name> ($brand) { … }` shape the demonstration-capture
+# Transcriber emits from a hand build — authored here by hand to show the
+# *authored-as-content* source (the second of the three authoring paths).
+def martini ($brand) {
+  pour $brand into mixing glass
+  pour vermouth into mixing glass
+  stir mixing glass
+  strain mixing glass into glass
+}

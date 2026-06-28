@@ -25,6 +25,7 @@ import { SecurityApi } from './security';
 import { ShadowApi } from './shadow';
 import type { MqlManyResult, MqlOneResult } from './mql';
 import type { ParsedCommand } from './command-line';
+import type { Script } from '../lib/script/ast';
 import { CommandLogic } from '../obj/api/CommandLogic';
 
 /**
@@ -241,6 +242,13 @@ export interface ParserContext {
  *                 parser. Dispatcher skips match/assemble and runs
  *                 only resolve + execute. Used by NL/LLM parsers
  *                 that decide intent themselves.
+ *   - `script`  — a parsed multi-statement / block-bearing `Script`
+ *                 AST. The dispatcher routes it to `ScriptApi.runAst`,
+ *                 which walks it through the interpreter (each command a
+ *                 gated bus dispatch). Produced by the `script` parser
+ *                 for input msh can't represent (statement separators,
+ *                 standalone `{ }` blocks); a bare single command is
+ *                 delegated to msh and comes back as `parsed`.
  *   - `error`   — input couldn't be parsed; the dispatcher emits a
  *                 `command-rejected { reason: 'parse-failed' }` note
  *                 onto the dispatch-response envelope.
@@ -250,6 +258,9 @@ export interface ParseResult {
   bound?: {
     command: CommandDefinition;
     model: ModelData;
+  };
+  script?: {
+    ast: Script;
   };
   error?: string;
 }

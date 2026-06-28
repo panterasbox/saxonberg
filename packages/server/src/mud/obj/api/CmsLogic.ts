@@ -12,8 +12,11 @@ import { AccessApi } from '../../api/access';
 import { ExecutionContextApi } from '../../api/execution-context';
 import { ZoneApi } from '../../api/zone';
 import { StuffApi } from '../../api/stuff';
+import { ScriptApi } from '../../api/script';
+import { DocumentApi } from '../../api/document';
 import { DialogueTreeSchema } from '../../lib/npc/tree';
 import { Template } from '../../lib/stuff/Template';
+import { StoredDocument } from '../../lib/document/StoredDocument';
 import { Zone } from '../../lib/zone/Zone';
 import { CmsError } from '../../api/cms';
 import type { Stuff } from '../../lib/stuff/Stuff';
@@ -42,6 +45,23 @@ function languageForPath(path: string): string {
   if (path.endsWith('.json')) return 'json';
   if (path.endsWith('.yaml') || path.endsWith('.yml')) return 'yaml';
   return 'plaintext';
+}
+
+/**
+ * A stored document's editable body + editor language, by `kind`. A
+ * `script` kind is plain-text source (`data.source`, the code surface);
+ * any other kind is its `data` pretty-printed as JSON. The `kind` is the
+ * metadata that decides the treatment — the generic store stays opaque.
+ */
+function documentBody(doc: StoredDocument): { body: string; language: string } {
+  if (doc.getKind() === 'script') {
+    const source = doc.getData().source;
+    return {
+      body: typeof source === 'string' ? source : '',
+      language: 'plaintext',
+    };
+  }
+  return { body: JSON.stringify(doc.getData(), null, 2), language: 'json' };
 }
 
 /**
@@ -200,6 +220,8 @@ function actingActor(): Stuff | null {
  */
 async function gateRead(backend: CmsBackend): Promise<void> {
   const actor = actingActor();
+  // source (engine TS) is developer-only; content (templates) and document
+  // (the owned-JSON store — scripts + future kinds) are author-tier.
   const ok =
     backend === 'source'
       ? await AccessApi.isDeveloper(actor)
@@ -209,7 +231,9 @@ async function gateRead(backend: CmsBackend): Promise<void> {
       'denied',
       backend === 'source'
         ? 'you must be a developer to browse source'
-        : 'you must be an author to browse content'
+        : backend === 'document'
+          ? 'you must be an author to browse documents'
+          : 'you must be an author to browse content'
     );
   }
 }
@@ -291,6 +315,42 @@ export class CmsLogic extends Idea {
       );
       return { backend, path, entries };
     }
+    if (backend === 'document') {
+      // Immediate children of `path` over the path-addressed document
+      // store: a doc one segment deep is a leaf; a deeper one contributes
+      // a synthetic folder (mirrors the content tree's namespace folders).
+      const docs = await DocumentApi.list(path);
+      const prefix = path === '/' ? '/' : path + '/';
+      const leafAtChild = new Set<string>();
+      const folders = new Set<string>();
+      for (const doc of docs) {
+        if (!doc.getPath().startsWith(prefix)) continue;
+        const remainder = doc.getPath().slice(prefix.length);
+        if (remainder.length === 0) continue;
+        const slash = remainder.indexOf('/');
+        const seg = slash === -1 ? remainder : remainder.slice(0, slash);
+        const childPath = (path === '/' ? '' : path) + '/' + seg;
+        if (slash === -1) leafAtChild.add(childPath);
+        else folders.add(childPath);
+      }
+      const entries: CmsTreeEntry[] = [];
+      for (const childPath of new Set([...leafAtChild, ...folders])) {
+        entries.push({
+          backend: 'document',
+          path: childPath,
+          name: lastSegment(childPath),
+          kind: folders.has(childPath) ? 'folder' : 'leaf',
+        });
+      }
+      entries.sort((a, b) =>
+        a.kind === b.kind
+          ? a.name.localeCompare(b.name)
+          : a.kind === 'folder'
+            ? -1
+            : 1
+      );
+      return { backend, path, entries };
+    }
     // source — rooted at the mudlib; test folders hidden
     const abs = sourceAbs(path);
     const dirEntries = await SourceTreeApi.list(abs);
@@ -337,6 +397,14 @@ export class CmsLogic extends Idea {
         },
       };
     }
+    if (backend === 'document') {
+      const doc = await DocumentApi.read(path);
+      if (!doc) throw new CmsError('not-found', `no document at ${path}`);
+      // The record's `kind` drives the editable body + editor language
+      // (script → plain-text source; other kinds → pretty-printed JSON).
+      const { body, language } = documentBody(doc);
+      return { backend, path, kind: 'leaf', body, language };
+    }
     // source — rooted at the mudlib
     const abs = sourceAbs(path);
     if (await SourceTreeApi.isDir(abs)) {
@@ -376,6 +444,12 @@ export class CmsLogic extends Idea {
         kind: isFolder ? 'folder' : 'leaf',
       };
     }
+    if (backend === 'document') {
+      const doc = await DocumentApi.read(path);
+      return doc
+        ? { backend, path, exists: true, kind: 'leaf' }
+        : { backend, path, exists: false };
+    }
     // source — rooted at the mudlib
     const abs = sourceAbs(path);
     if (await SourceTreeApi.isDir(abs)) {
@@ -400,7 +474,61 @@ export class CmsLogic extends Idea {
     if (backend === 'content') {
       return this._writeContent(actor, path, body);
     }
+    if (backend === 'document') {
+      return this._writeDocument(path, body);
+    }
     return this._writeSource(actor, path, body);
+  }
+
+  /**
+   * Document write, routed by the record's `kind`. A **script** kind
+   * (the only runtime-CREATABLE kind today — scripts are runtime-authored)
+   * goes through `ScriptApi.saveScript`, the script chokepoint: it persists
+   * the source as `kind: 'script'` `data: { source }`, gates on owner
+   * access, records provenance, and runs the script go-live (invalidate the
+   * AST cache). Any other (existing) kind writes its edited JSON body back
+   * via `DocumentApi.save` under its current kind — that path has no live
+   * consumer to re-hydrate yet (dorm etc. land later). A denial surfaces as
+   * `CmsError('denied')`; invalid JSON for a non-script kind as
+   * `CmsError('invalid')`. Both derive the actor from context (anti-spoof).
+   */
+  private async _writeDocument(
+    path: string,
+    body: string
+  ): Promise<CmsWriteResult> {
+    const existing = await DocumentApi.read(path);
+    // New docs default to the script kind (the runtime-authored one);
+    // creating other kinds via the CMS is out of scope for v1.
+    const kind = existing?.getKind() ?? 'script';
+    if (kind === 'script') {
+      try {
+        await ScriptApi.saveScript(path, body);
+      } catch (err) {
+        throw new CmsError('denied', (err as Error).message);
+      }
+      return {
+        backend: 'document',
+        path,
+        reloaded: true,
+        reloadDetail: 're-resolves on next invocation',
+      };
+    }
+    let data: Record<string, unknown>;
+    try {
+      const parsed = JSON.parse(body) as unknown;
+      if (parsed === null || typeof parsed !== 'object' || Array.isArray(parsed)) {
+        throw new Error('body must be a JSON object');
+      }
+      data = parsed as Record<string, unknown>;
+    } catch (err) {
+      throw new CmsError('invalid', (err as Error).message);
+    }
+    try {
+      await DocumentApi.save(path, kind, data);
+    } catch (err) {
+      throw new CmsError('denied', (err as Error).message);
+    }
+    return { backend: 'document', path, reloaded: false, reloadDetail: 'saved' };
   }
 
   /**

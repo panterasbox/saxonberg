@@ -15,6 +15,7 @@ import { ContainmentApi } from '../../../api/containment';
 import { MixinApi } from '../../../api/mixin';
 import { MessageApi } from '../../../api/message';
 import { Mml } from '../../../api/mml';
+import { RecipeKnowledge } from '../../../lib/script/RecipeKnowledge';
 import Menu from '../../../domain/lounge/Menu';
 
 const TOPIC = 'world.narration.action';
@@ -43,6 +44,13 @@ export default class MenuController extends CommandController<MenuModel> {
         .toSelf(Mml.compose`The menu is blank.`)
         .send();
       return;
+    }
+
+    // Reading a recipe source marks it *known-of* — a chronicle claim
+    // (idempotent: re-reading the menu doesn't duplicate). Known-of lets
+    // you attempt the manual build; making it is the deed (the ladder).
+    for (const recipe of offered) {
+      await RecipeKnowledge.noteKnown(giver, recipe.recipeId, recipe.name);
     }
 
     const lines = offered.map((r) => `  ${r.name}`).join('\n');

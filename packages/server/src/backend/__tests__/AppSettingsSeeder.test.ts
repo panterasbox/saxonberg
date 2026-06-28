@@ -41,7 +41,7 @@ describe("AppSettingsSeeder", () => {
     pm.setFindResult([]);
     const added = await AppSettingsSeeder.run();
 
-    expect(added).toBe(29);
+    expect(added).toBe(36);
     expect(pm.saves).toHaveLength(1);
     expect(pm.saves[0]!.collection).toBe("app_settings");
     const values = savedValues(pm);
@@ -89,6 +89,13 @@ describe("AppSettingsSeeder", () => {
           [AppSettingKeys.chargenNameMinLength]: "2",
           [AppSettingKeys.chargenNameMaxLength]: "24",
           [AppSettingKeys.statusMaxLength]: "100",
+          [AppSettingKeys.scriptSliceSteps]: "1000",
+          [AppSettingKeys.scriptMaxStepsPlayer]: "10000",
+          [AppSettingKeys.scriptMaxStepsPlatform]: "1000000",
+          [AppSettingKeys.scriptMaxDispatchPlayer]: "500",
+          [AppSettingKeys.scriptMaxDispatchPlatform]: "50000",
+          [AppSettingKeys.scriptMaxDepthPlayer]: "64",
+          [AppSettingKeys.scriptMaxDepthPlatform]: "256",
           [AppSettingKeys.bankingSalesTaxRate]: "0.08",
           [AppSettingKeys.bankingTreasuryAccount]: "treasury",
         },
@@ -111,8 +118,9 @@ describe("AppSettingsSeeder", () => {
 
     // Missing keys seeded: evacuationFallback + 3 reaction + 2 forum
     // anti-snowball + 5 renown + 2 participation + 2 producer + 1 influence
-    // + 1 conviction + 5 traits + 1 chat + 2 chargen + 1 status + 2 banking.
-    expect(added).toBe(28);
+    // + 1 conviction + 5 traits + 1 chat + 2 chargen + 1 status + 7 script
+    // + 2 banking.
+    expect(added).toBe(35);
     expect(pm.saves).toHaveLength(1);
     const values = savedValues(pm);
     // operator value preserved, missing keys seeded

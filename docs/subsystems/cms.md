@@ -30,7 +30,7 @@ boundary* below.
 
 ## The unified-tree projection
 
-Two backends, one navigation model:
+Three backends, one navigation model:
 
 - **`content`** — `Template` docs in the `domain` collection (you edit
   `data`), via `TemplateApi`.
@@ -41,15 +41,24 @@ Two backends, one navigation model:
   paths are mud-relative (`/api/cms.ts`, not `/server/src/mud/api/cms.ts`),
   and `..` that climbs out of mud throws (mud is a hard boundary, enforced
   in `CmsLogic` via `sourceAbs`, on top of the `SourceTreeApi` sandbox).
+- **`document`** — the path-addressed **document store** (`StoredDocument`
+  in the `documents` collection) via `DocumentApi` — the generic
+  owner-claimed JSON tree ([document-store.md](./document-store.md)). Each
+  record carries a **`kind`** that drives the editor treatment: a `script`
+  kind is a plain-text code leaf (its write funnels through
+  `ScriptApi.saveScript` — the script chokepoint: gate + provenance + AST
+  go-live); any other kind is its `data` pretty-printed as JSON. Scripts
+  ride it today; dorm-room customization is the deferred next kind.
 
-A **node ref** is `{ backend: 'content' | 'source'; path }`. `path` is the
-canonical identifier *within that backend* (a template path
+A **node ref** is `{ backend: 'content' | 'source' | 'document'; path }`.
+`path` is the canonical identifier *within that backend* (a template path
 `/obj/Avatar/foo` for content; a mud-relative path `/api/cms.ts` for
-source). **There is no merged namespace** — the unified-ness is that one
-`CmsApi` and one explorer drive both, discriminated by `backend`. The
-explorer shows two fixed roots ("content" / "source"); a synthetic merged
-root was deliberately avoided (it would invent a namespace the backends
-don't share and complicate write-dispatch).
+source; a store path `/home/<player>/scripts/<name>` for document).
+**There is no merged namespace** — the unified-ness is that one `CmsApi`
+and one explorer drive all three, discriminated by `backend`. The explorer
+shows three fixed roots ("content" / "source" / "documents"); a synthetic
+merged root was deliberately avoided (it would invent a namespace the
+backends don't share and complicate write-dispatch).
 
 A **leaf** carries an editable body: in content, a non-Zone template (its
 `data`); in source, a file. A **folder** has children and no body: a Zone

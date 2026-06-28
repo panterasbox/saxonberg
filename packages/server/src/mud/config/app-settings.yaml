@@ -126,6 +126,27 @@ settings:
   # one-liner (a one-liner, not a paragraph).
   - key: status.maxLength
     value: "100"
+  # Scripting — resource governance. The slice yields the single-threaded
+  # event loop every N interpreter steps so a no-suspension tight loop
+  # cannot freeze other players; the ceilings stop a runaway run (steps =
+  # tight loops, dispatch = each-fan-out, depth = recursion). Tiered by
+  # authorship: player-home/inline scripts get the tight budget, released
+  # /obj/ + /domain/ content the large one. See
+  # docs/subsystems/scripting.md § Resource governance.
+  - key: script.sliceSteps
+    value: "1000"
+  - key: script.maxSteps.player
+    value: "10000"
+  - key: script.maxSteps.platform
+    value: "1000000"
+  - key: script.maxDispatch.player
+    value: "500"
+  - key: script.maxDispatch.platform
+    value: "50000"
+  - key: script.maxDepth.player
+    value: "64"
+  - key: script.maxDepth.platform
+    value: "256"
   # Banking — the DEMO sales-tax rate (a fraction of a purchase remitted to
   # the placeholder treasury via the remittance-split seam). Authored and
   # INERT: recorded + instrumented, not governed. Live taxation is the

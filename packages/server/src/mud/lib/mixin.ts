@@ -120,6 +120,7 @@ export const Mixins = {
   Tool: 'ToolMixin',
   Crafted: 'CraftedMixin',
   Maker: 'MakerMixin',
+  ManualBuild: 'ManualBuildMixin',
   Bank: 'BankMixin',
   // The unified credential holder — one keyed store of credentials-as-data,
   // composed on the born-with wallet app and on the physical cards.

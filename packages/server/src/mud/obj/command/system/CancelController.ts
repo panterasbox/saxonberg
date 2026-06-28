@@ -29,6 +29,7 @@ import { MessageApi } from '../../../api/message';
 import { MixinApi } from '../../../api/mixin';
 import { Mml } from '../../../api/mml';
 import { SchedulerApi } from '../../../api/scheduler';
+import { ScriptApi } from '../../../api/script';
 
 interface CancelModel extends CommandModel {
   type?: string;
@@ -55,6 +56,9 @@ export default class CancelController extends CommandController<CancelModel> {
 
     if (!targetType) {
       SchedulerApi.cancelAll(giver);
+      // Barge-in: stop any running script too (its in-flight engaged step
+      // aborts; partial matter stands, no rollback).
+      ScriptApi.cancelAll('barge-in');
       MessageApi.scene(giver)
         .topic('world.narration.action')
         .toSelf(Mml.compose`You cancel what you were doing.`)
