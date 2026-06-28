@@ -16,6 +16,7 @@
  */
 
 import type { Script } from "../lib/script/ast";
+import type { ScriptAbortReason } from "../lib/script/AbortReason";
 import { StuffApi } from "./stuff";
 import { HotReloadApi } from "./hot-reload";
 import { SecurityApi } from "./security";
@@ -59,6 +60,17 @@ export class ScriptApi {
    */
   static run(text: string): Promise<void> {
     return logic().run(text);
+  }
+
+  /**
+   * Cancel every running (suspended) script the **acting actor** owns —
+   * the barge-in path. The actor is derived from execution context (never
+   * a parameter); each coroutine stops with the typed `reason`, aborting
+   * its in-flight engaged step (its effect never lands — partial matter
+   * standing, no rollback). Wired into the `stop`/`cancel` verb.
+   */
+  static cancelAll(reason: ScriptAbortReason = "cancelled"): void {
+    logic().cancelAll(reason);
   }
 
   /**

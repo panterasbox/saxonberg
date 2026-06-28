@@ -48,12 +48,26 @@ import { Scope } from "./Scope";
 import { ScriptValues } from "./Value";
 import type { ScriptValue } from "./Value";
 import { ScriptBuiltins } from "./builtins";
+import { Coroutine } from "./Coroutine";
 import type { Script, Pipeline, Command, Arg } from "./ast";
 import type { Stuff } from "../stuff/Stuff";
 import type { CommandGiver } from "../command/CommandGiver";
 import type { CommandDefinition } from "../command/CommandDefinition";
 import type { Note } from "@saxonberg/types";
 import type { ScriptAbortReason } from "./AbortReason";
+
+/**
+ * A coroutine suspension the script asks the pump to schedule onto the
+ * game clock (P5). `wait` is the one-shot timer; `every` is a perpetual
+ * cadence (the main script does not resume past it); `when` polls a
+ * condition then runs its block once and resumes. (The await-engaged
+ * suspension is not yielded — the pump detects it after a dispatch that
+ * started a timed activity.)
+ */
+export type SuspendRequest =
+  | { type: "wait"; seconds: number }
+  | { type: "every"; seconds: number; block: Block }
+  | { type: "when"; source: string; scope: Scope; block: Block };
 
 /** A unit of work the sync evaluator hands to the async pump. */
 export type Effect =
@@ -63,7 +77,8 @@ export type Effect =
       model: CommandModel;
       prep: Record<string, string>;
     }
-  | { kind: "slice" };
+  | { kind: "slice" }
+  | { kind: "suspend"; request: SuspendRequest };
 
 /** Value the pump feeds back after handling an effect. */
 export type Resume = CommandContext | undefined;
@@ -140,6 +155,19 @@ function itemsOf(value: ScriptValue): ScriptValue[] {
   return [];
 }
 
+/**
+ * Parse a duration literal (`5m`, `30s`, `2h`, `1d`, or a bare number =
+ * seconds) into game-seconds. Unparseable → 0 (fires next tick).
+ */
+function parseDurationSeconds(text: string): number {
+  const match = /^(\d+(?:\.\d+)?)\s*(s|m|h|d)?$/.exec(text.trim());
+  if (!match) return 0;
+  const value = Number(match[1]);
+  const unit = match[2] ?? "s";
+  const scale = unit === "m" ? 60 : unit === "h" ? 3600 : unit === "d" ? 86400 : 1;
+  return value * scale;
+}
+
 /** Extract `def` param names from a `($a $b)` island source. */
 function parseParams(source: string): string[] {
   return source
@@ -168,47 +196,63 @@ export class Interpreter {
   ) {}
 
   /**
-   * Pump the evaluator to completion. Handles each yielded effect —
-   * `dispatch` runs the bound command tail and resumes with its ctx;
-   * `slice` yields the event loop and resumes. A `ResourceLimitError`
-   * becomes a graceful `resource-limit` abort.
+   * Start a {@link Coroutine} over this script and begin pumping it. The
+   * coroutine handles every effect — `dispatch` (with the await-engaged
+   * pacing rule), `slice` (preemption), and `suspend` (game-clock wait /
+   * every / when) — and may detach (run on in the background across
+   * scheduler frames) without blocking the caller. The handle exposes
+   * `whenFirstYield()` (resolves on the first suspend or on completion —
+   * the detachment point) and `whenSettled()` (resolves when the run
+   * finishes or is cancelled), plus `cancel()`.
    */
-  async drive(
+  startCoroutine(
+    ast: Script,
+    scope: Scope,
+    dispatch: DispatchFn,
+    reschedule: RescheduleFn,
+  ): Coroutine {
+    const co = new Coroutine(this.evalScript(ast, scope), this, dispatch, reschedule);
+    co.start();
+    return co;
+  }
+
+  /**
+   * Pump the evaluator to completion and return its result. Convenience
+   * over {@link startCoroutine} for the non-suspending case (a script
+   * with no `wait` / `every` / `when` / engaged-step) — it awaits the
+   * coroutine's settlement. A suspending script driven this way only
+   * settles once the game clock advances, so suspend-bearing callers use
+   * `startCoroutine` + advance the clock instead.
+   */
+  drive(
     ast: Script,
     scope: Scope,
     dispatch: DispatchFn,
     reschedule: RescheduleFn,
   ): Promise<DriveResult> {
-    const gen = this.evalScript(ast, scope);
-    let resume: Resume = undefined;
-    for (;;) {
-      let step: IteratorResult<Effect, ScriptValue>;
-      try {
-        step = gen.next(resume);
-      } catch (error) {
-        if (error instanceof ResourceLimitError) {
-          return {
-            value: undefined,
-            notes: this.notes,
-            aborted: "resource-limit",
-            detail: error.which,
-          };
-        }
-        throw error;
-      }
-      if (step.done) {
-        return { value: step.value, notes: this.notes };
-      }
-      const effect = step.value;
-      if (effect.kind === "dispatch") {
-        const ctx = await dispatch(effect.command, effect.model, effect.prep);
-        for (const note of ctx.getNotes()) this.notes.push(note);
-        resume = ctx;
-      } else {
-        await reschedule();
-        resume = undefined;
-      }
-    }
+    return this.startCoroutine(ast, scope, dispatch, reschedule).whenSettled();
+  }
+
+  /* ───────────── pump-facing accessors (used by Coroutine) ───────────── */
+
+  /** The actor this interpreter runs as (engagement checks, MQL). @internal */
+  getActor(): Stuff & CommandGiver {
+    return this.actor;
+  }
+
+  /** Snapshot of the run's accumulated notes. @internal */
+  getNotes(): Note[] {
+    return [...this.notes];
+  }
+
+  /** Record a note from a dispatched command's context. @internal */
+  recordNote(note: Note): void {
+    this.notes.push(note);
+  }
+
+  /** Evaluate a `( )` island's condition source (for `when` polling). @internal */
+  evalCondition(source: string, scope: Scope): ScriptValue {
+    return Expression.evaluate(source, scope, this.actor);
   }
 
   /* ───────────────────── sync evaluator ───────────────────── */
@@ -282,9 +326,67 @@ export class Interpreter {
         return yield* this.evalWhile(command, scope);
       case "def":
         return this.evalDef(command, scope);
+      case "wait":
+        return yield* this.evalWait(command);
+      case "every":
+        return yield* this.evalEvery(command, scope);
+      case "when":
+        return yield* this.evalWhen(command, scope);
       default:
         return undefined;
     }
+  }
+
+  /* ───────────────────── temporal builtins (P5) ───────────────── */
+  //
+  // Each yields a `suspend` effect the Coroutine schedules onto the game
+  // clock. The interpreter stays a pure generator; all timer wiring lives
+  // in the pump.
+
+  /** `wait <dur>` — suspend; resume after the duration on the game clock. */
+  private *evalWait(command: Command): Eval<ScriptValue> {
+    const arg = command.args[0];
+    const text = arg && arg.kind === "literal" ? arg.value : "0";
+    yield { kind: "suspend", request: { type: "wait", seconds: parseDurationSeconds(text) } };
+    return undefined;
+  }
+
+  /** `every <dur> {block}` — fire the block on cadence (perpetual). */
+  private *evalEvery(command: Command, scope: Scope): Eval<ScriptValue> {
+    const arg = command.args[0];
+    const text = arg && arg.kind === "literal" ? arg.value : "0";
+    const block = this.blockArg(command.args[1], scope);
+    if (block === null) {
+      this.note({
+        kind: "command-rejected",
+        reason: "bind-failed",
+        detail: "every: missing { block }",
+      });
+      return undefined;
+    }
+    yield {
+      kind: "suspend",
+      request: { type: "every", seconds: parseDurationSeconds(text), block },
+    };
+    return undefined; // perpetual — the pump does not resume past `every`
+  }
+
+  /** `when (cond) {block}` — run the block once cond is truthy, then resume. */
+  private *evalWhen(command: Command, scope: Scope): Eval<ScriptValue> {
+    const condArg = command.args[0];
+    const source =
+      condArg && condArg.kind === "expr" ? condArg.source : "false";
+    const block = this.blockArg(command.args[1], scope);
+    if (block === null) {
+      this.note({
+        kind: "command-rejected",
+        reason: "bind-failed",
+        detail: "when: missing { block }",
+      });
+      return undefined;
+    }
+    yield { kind: "suspend", request: { type: "when", source, scope, block } };
+    return undefined;
   }
 
   /**

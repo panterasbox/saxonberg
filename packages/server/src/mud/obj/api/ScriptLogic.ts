@@ -14,6 +14,8 @@ import { ExecutionContextApi } from "../../api/execution-context";
 import { AppSettingKeys } from "../../lib/config/AppSettings";
 import { Interpreter } from "../../lib/script/Interpreter";
 import type { ResourceLimits, DispatchFn } from "../../lib/script/Interpreter";
+import type { Coroutine } from "../../lib/script/Coroutine";
+import type { ScriptAbortReason } from "../../lib/script/AbortReason";
 import { Scope } from "../../lib/script/Scope";
 import type { Stuff } from "../../lib/stuff/Stuff";
 import type { Sensor } from "../../lib/message/Sensor";
@@ -74,6 +76,39 @@ function resolveLimits(authorPath?: string): ResourceLimits {
   };
 }
 
+/**
+ * Per-actor registry of running (typically suspended) coroutines —
+ * in-memory, keyed on the actor's `stuffId`. Lets `cancelAll` (the
+ * `stop`/`cancel` barge-in) reach a detached background script. Module
+ * state on the logic singleton; coroutines are transient anyway (they
+ * die on restart), so a HMR reload losing the map is harmless.
+ */
+const RUNNING = new Map<string, Set<Coroutine>>();
+
+function registerCoroutine(actor: Stuff, co: Coroutine): void {
+  let set = RUNNING.get(actor.stuffId);
+  if (!set) {
+    set = new Set();
+    RUNNING.set(actor.stuffId, set);
+  }
+  set.add(co);
+}
+
+function deregisterCoroutine(actor: Stuff, co: Coroutine): void {
+  const set = RUNNING.get(actor.stuffId);
+  if (!set) return;
+  set.delete(co);
+  if (set.size === 0) RUNNING.delete(actor.stuffId);
+}
+
+function cancelAllImpl(reason: ScriptAbortReason): void {
+  const actor = currentActor();
+  if (actor === null) return;
+  const set = RUNNING.get(actor.stuffId);
+  if (!set) return;
+  for (const co of [...set]) co.cancel(reason); // whenSettled handler deregisters
+}
+
 async function runAstImpl(ast: Script, authorPath?: string): Promise<void> {
   const actor = currentActor();
   if (actor === null) return; // no actor in context — nothing to run as
@@ -83,31 +118,41 @@ async function runAstImpl(ast: Script, authorPath?: string): Promise<void> {
     actor._dispatchBound(command, model, prep);
   // The preemption slice: yield one macrotask via ScheduleApi (never a
   // bare timer) so the event loop drains other actors' work between
-  // slices. Game-clock suspension (`wait`) lands in P5 over WorldClockApi.
+  // slices. Coroutine suspension (`wait`/`every`/`when`/await-engaged)
+  // rides the game clock via WorldClockApi inside the Coroutine.
   const reschedule = (): Promise<void> =>
     new Promise<void>((resolve) => {
       ScheduleApi.schedule(0, () => resolve());
     });
 
-  const result = await interpreter.drive(ast, new Scope(), dispatch, reschedule);
+  const co = interpreter.startCoroutine(ast, new Scope(), dispatch, reschedule);
+  registerCoroutine(actor, co);
 
-  // Thread the run's accumulated notes onto the ambient command context
-  // so they ride the dispatch-response envelope (the machine channel),
-  // exactly as a typed command's notes would.
+  // Settle handling — runs whenever the run finishes (possibly long after
+  // it detached). Deregisters and, on an abort, fires the diegetic
+  // message (partial effects stand). Post-detach notes are surfaced by
+  // the controllers' own scenes; only pre-detach notes ride the envelope.
+  void co.whenSettled().then((result) => {
+    deregisterCoroutine(actor, co);
+    if (result.aborted !== undefined && MixinApi.isSensor(actor)) {
+      MessageApi.scene(actor as Stuff & Sensor)
+        .topic("system.script.aborted")
+        .toSelf(
+          Mml.compose`The script stopped (${result.aborted}${
+            result.detail ? `: ${result.detail}` : ""
+          }).`,
+        )
+        .send();
+    }
+  });
+
+  // Detach: return once the run first suspends OR completes, so the host's
+  // prompt stays live for a `wait`-bearing script. Thread the pre-detach
+  // notes onto the ambient command context (the envelope's machine
+  // channel), exactly as a typed command's notes would ride.
+  await co.whenFirstYield();
   const ctx = ExecutionContextApi.getCurrentCommandContext();
-  for (const note of result.notes) ctx?.note(note);
-
-  if (result.aborted !== undefined && MixinApi.isSensor(actor)) {
-    // Diegetic message (the human channel); partial effects stand.
-    MessageApi.scene(actor as Stuff & Sensor)
-      .topic("system.script.aborted")
-      .toSelf(
-        Mml.compose`The script stopped (${result.aborted}${
-          result.detail ? `: ${result.detail}` : ""
-        }).`,
-      )
-      .send();
-  }
+  for (const note of interpreter.getNotes()) ctx?.note(note);
 }
 
 async function runImpl(text: string): Promise<void> {
@@ -187,6 +232,12 @@ export class ScriptLogic extends Idea {
   @CallSecurity(ScriptApiCallers)
   public async run(text: string): Promise<void> {
     return runImpl(text);
+  }
+
+  /** See {@link ScriptApi.cancelAll}. */
+  @CallSecurity(ScriptApiCallers)
+  public cancelAll(reason: ScriptAbortReason): void {
+    cancelAllImpl(reason);
   }
 
   /** See {@link ScriptApi.format}. */

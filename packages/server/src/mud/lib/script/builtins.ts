@@ -19,17 +19,22 @@
  * and small; growing the language is adding affordance verbs (over the
  * bus) or, rarely, a new intrinsic builtin (authored, out-of-band).
  *
- * The temporal builtins (`wait` / `every` / `when`, P5) join this set
- * when coroutine suspension lands.
+ * The temporal builtins (`wait` / `every` / `when`) are also here — they
+ * suspend the script onto the game clock (the Coroutine schedules the
+ * resume); the interpreter just yields a `suspend` effect.
  */
 
-/** The control-flow + binding builtins recognized by the interpreter. */
+/** The control-flow + binding + temporal builtins the interpreter owns. */
 export const SCRIPT_BUILTINS = [
   "set",
   "if",
   "each",
   "while",
   "def",
+  // Temporal (P5) — these suspend the script onto the game clock.
+  "wait",
+  "every",
+  "when",
 ] as const;
 
 /** A builtin verb name. */
