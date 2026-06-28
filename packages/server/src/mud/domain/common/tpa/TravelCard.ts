@@ -1,18 +1,21 @@
 /**
  * TravelCard — a carryable Teleport Authority travel card.
  *
- * A held credential: composes `TravelCredentialMixin` (the registered-node
- * set + register/authorize surface) on a plain `Thing`. State lives on the
- * card, so handing it to another player hands over its registered routes —
- * the transferable half of the credential (the implant is the personal half).
+ * A held credential: a thin {@link CredentialWalletMixin} holder over a plain
+ * `Thing`, carrying one `travel` credential record (the registered-node set +
+ * born-with floor). State lives on the card, so handing it to another player
+ * hands over its registered routes — the transferable half of the credential
+ * (the wallet implant is the personal half).
  *
- * Issued into every fresh Avatar's inventory at clone time by
- * `Avatar.installDefaultLoadout` (the card is the v1 default credential; the
- * cranial slot is capacity-1 and already holds the AetherImplant).
+ * Affords no holder-verbs: `register` is afforded by the terminal you're
+ * standing at, `teleport` is a general verb. The card is pure gate-data.
  */
 
 import Thing from "../../../lib/stuff/Thing";
-import { TravelCredentialMixin } from "../../../lib/fasttravel/TravelCredential";
+import { CredentialWalletMixin } from "../../../lib/credential/CredentialWallet";
+import type { CredentialKind } from "../../../lib/credential/Credential";
 
-export default class TravelCard extends TravelCredentialMixin(Thing) {
+export default class TravelCard extends CredentialWalletMixin(Thing) {
+  /** Born holding one travel credential record (registered set + floor). */
+  static defaultCredentialKinds: readonly CredentialKind[] = ["travel"];
 }

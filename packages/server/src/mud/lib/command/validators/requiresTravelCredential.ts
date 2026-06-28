@@ -10,15 +10,15 @@ import type { CommandValidator } from "../../../api/command";
 import { SpeciesApi } from "../../../api/species";
 import { ContainmentApi } from "../../../api/containment";
 import { MixinApi } from "../../../api/mixin";
-import type { TravelCredential } from "../../fasttravel/TravelCredential";
+import type { CredentialWallet } from "../../credential/CredentialWallet";
 import type { Stuff } from "../../stuff/Stuff";
 
 const validator: CommandValidator = (context) => {
   const cred = ContainmentApi.findReachable(
     context.commandGiver,
     context.location,
-    (s: Stuff): s is Stuff & TravelCredential =>
-      MixinApi.isTravelCredential(s),
+    (s: Stuff): s is Stuff & CredentialWallet =>
+      MixinApi.isCredentialWallet(s) && !!s.getCredential("travel"),
   );
   if (cred) return undefined;
   return "you have no Teleport Authority credential";

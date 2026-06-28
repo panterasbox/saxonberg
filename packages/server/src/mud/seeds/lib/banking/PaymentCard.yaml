@@ -6,3 +6,5 @@ hydratorClass: /lib/persistence/PersistentHydrator
 data:
   shortDescription: a payment card
   keywords: [card, paymentcard]
+  # The born-with payment credential record comes from
+  # PaymentCard.defaultCredentialKinds; linked + capped at issue.

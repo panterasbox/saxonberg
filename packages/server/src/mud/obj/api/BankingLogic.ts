@@ -18,7 +18,8 @@ import { Money } from "../../lib/banking/Money";
 import { BankTransaction } from "../../lib/banking/Transaction";
 import type { LedgerLeg } from "../../lib/banking/Transaction";
 import type { Bank } from "../../lib/banking/Bank";
-import type { PaymentCredential } from "../../lib/banking/PaymentCredential";
+import type { PaymentCredential } from "../../lib/credential/Credential";
+import type { CredentialWallet } from "../../lib/credential/CredentialWallet";
 import PaymentCard from "../../lib/banking/PaymentCard";
 import type {
   Charge,
@@ -40,7 +41,9 @@ import type { Container } from "../../lib/spatial/Container";
 import type { Containable } from "../../lib/spatial/Containable";
 import type { Globbable } from "../../lib/stuff/Globbable";
 
-const BankingApiCallers = SecurityPolicies.FromModule("mud/api/banking#BankingApi");
+const BankingApiCallers = SecurityPolicies.FromModule(
+  "mud/api/banking#BankingApi",
+);
 
 /** Persistence is a no-op unless Mongo is connected (tests, pre-boot). */
 function active(): boolean {
@@ -100,7 +103,7 @@ async function accountsOfImpl(ownerKey: string): Promise<AccountBalance[]> {
 /** The `ownerKey`'s account at `bankPath`, or null. */
 async function accountAtImpl(
   ownerKey: string,
-  bankPath: string
+  bankPath: string,
 ): Promise<AccountBalance | null> {
   if (!active()) return null;
   const [row] = await AccountBalance.find<AccountBalance>({
@@ -111,7 +114,9 @@ async function accountAtImpl(
 }
 
 /** Resolve an account row by its durable id, or null. */
-async function accountByIdImpl(accountId: string): Promise<AccountBalance | null> {
+async function accountByIdImpl(
+  accountId: string,
+): Promise<AccountBalance | null> {
   if (!active()) return null;
   const [row] = await AccountBalance.find<AccountBalance>({ accountId });
   return row ?? null;
@@ -126,7 +131,7 @@ async function accountByIdImpl(accountId: string): Promise<AccountBalance | null
  */
 async function openAccountImpl(
   bankPath: string,
-  corpoKey: string
+  corpoKey: string,
 ): Promise<string> {
   if (!active()) {
     throw new Error("BankingLogic.openAccount: no persistence connection");
@@ -161,7 +166,7 @@ async function openAccountImpl(
 async function ensureVenueAccountImpl(
   ownerPath: string,
   bankPath: string,
-  corpoKey: string
+  corpoKey: string,
 ): Promise<string> {
   if (!active()) {
     throw new Error("BankingLogic.ensureVenueAccount: no persistence");
@@ -191,7 +196,7 @@ async function ensureVenueAccountImpl(
 async function moveCoins(
   from: Stuff & Container,
   to: Stuff & Container,
-  count: number
+  count: number,
 ): Promise<boolean> {
   let remaining = count;
   for (const item of [...ContainmentApi.getContents(from)]) {
@@ -216,15 +221,17 @@ async function moveCoins(
  * a revoked card is not a usable routing credential, so a reissued card is
  * found in its place even while the dead one is still carried.
  */
-function reachableCredential(actor: Stuff): (Stuff & PaymentCredential) | null {
-  return ContainmentApi.findReachable(
+function reachableCredential(actor: Stuff): PaymentCredential | null {
+  const holder = ContainmentApi.findReachable(
     actor,
     null,
-    (s: Stuff): s is Stuff & PaymentCredential => {
-      if (!MixinApi.isPaymentCredential(s)) return false;
-      return !s.isFrozen();
-    }
+    (s: Stuff): s is Stuff & CredentialWallet => {
+      if (!MixinApi.isCredentialWallet(s)) return false;
+      const pay = s.getCredential("payment");
+      return !!pay && !pay.isFrozen();
+    },
   );
+  return holder?.getCredential("payment") ?? null;
 }
 
 /** Link a freshly-opened account onto the owner's implant wallet (best-effort). */
@@ -242,14 +249,16 @@ function autoLinkToWallet(actor: Stuff | null, accountId: string): void {
  */
 async function settleImpl(
   charge: Charge,
-  method: SettlementMethod
+  method: SettlementMethod,
 ): Promise<SettlementReceipt> {
   const payer = actingPrincipal();
   if (!payer) throw new Error("BankingLogic.settle: no acting payer");
 
   if (method.kind === "cash") {
     if (!charge.payeeContainer) {
-      throw new Error("BankingLogic.settle: cash needs someone to hand coin to");
+      throw new Error(
+        "BankingLogic.settle: cash needs someone to hand coin to",
+      );
     }
     if (!MixinApi.isContainer(payer)) {
       throw new Error("BankingLogic.settle: the payer can't hold coin");
@@ -257,7 +266,7 @@ async function settleImpl(
     const ok = await moveCoins(
       payer as Stuff & Container,
       charge.payeeContainer,
-      charge.amount.minor
+      charge.amount.minor,
     );
     if (!ok) throw new Error("BankingLogic.settle: not enough cash on hand");
     return { method: "cash" };
@@ -265,7 +274,8 @@ async function settleImpl(
 
   // credential method
   const cred = reachableCredential(payer);
-  if (!cred) throw new Error("BankingLogic.settle: you have no payment credential");
+  if (!cred)
+    throw new Error("BankingLogic.settle: you have no payment credential");
   let routingAccount: string | null;
   if (method.fromBankPath) {
     const acct = await accountAtImpl(actingActorKey(), method.fromBankPath);
@@ -277,11 +287,13 @@ async function settleImpl(
     routingAccount = cred.getActiveAccount();
   }
   if (!routingAccount) {
-    throw new Error("BankingLogic.settle: the credential has no active account");
+    throw new Error(
+      "BankingLogic.settle: the credential has no active account",
+    );
   }
   if (!cred.authorize(charge.amount)) {
     throw new Error(
-      "BankingLogic.settle: the credential declined (frozen or over its cap)"
+      "BankingLogic.settle: the credential declined (frozen or over its cap)",
     );
   }
   if (AccountBalance.cachedBalance(routingAccount) < charge.amount.minor) {
@@ -327,7 +339,7 @@ async function settleImpl(
 async function payWageImpl(
   employerAccountId: string,
   workerKey: string,
-  amount: Money
+  amount: Money,
 ): Promise<void> {
   const owned = await accountsOfImpl(workerKey);
   const workerAccount = (owned.find((a) => a.isPrimary) ?? owned[0])?.accountId;
@@ -372,7 +384,7 @@ function demoTaxConfig(): { rate: number; treasury: string } {
  */
 async function remitDemoTaxImpl(
   sellerAccountId: string,
-  saleAmount: Money
+  saleAmount: Money,
 ): Promise<Money> {
   const { rate, treasury } = demoTaxConfig();
   if (rate <= 0) return Money.zero();
@@ -398,7 +410,7 @@ async function remitDemoTaxImpl(
  */
 async function issueCashImpl(
   into: Stuff & Container,
-  amount: Money
+  amount: Money,
 ): Promise<Stuff> {
   await postTransaction("mint", [
     {
@@ -451,7 +463,11 @@ async function profitAndLossImpl(accountId: string): Promise<ProfitAndLoss> {
     const signed = r.toAccount === accountId ? r.amount : -r.amount;
     lines[r.category] = (lines[r.category] ?? 0) + signed;
   }
-  return { account: accountId, lines, balance: AccountBalance.cachedBalance(accountId) };
+  return {
+    account: accountId,
+    lines,
+    balance: AccountBalance.cachedBalance(accountId),
+  };
 }
 
 /**
@@ -460,17 +476,18 @@ async function profitAndLossImpl(accountId: string): Promise<ProfitAndLoss> {
  */
 async function issueCardImpl(
   accountId: string,
-  capMinor: number
-): Promise<Stuff & PaymentCredential> {
+  capMinor: number,
+): Promise<Stuff & CredentialWallet> {
   const principal = actingPrincipal();
   const card = await StuffApi.clone<PaymentCard>(TemplatePaths.paymentCard);
-  card.linkAccount(accountId);
-  card.setActiveAccount(accountId);
-  card.setSpendCap(capMinor);
+  const pay = card.ensureCredential("payment");
+  pay.linkAccount(accountId);
+  pay.setActiveAccount(accountId);
+  pay.setSpendCap(capMinor);
   if (principal && MixinApi.isContainer(principal)) {
     ContainmentApi.move(card as unknown as Stuff & Containable, principal);
   }
-  return card as Stuff & PaymentCredential;
+  return card as Stuff & CredentialWallet;
 }
 
 /**
@@ -489,7 +506,7 @@ async function issueCardImpl(
 async function postTransaction(
   kind: LedgerKind,
   legs: LedgerLeg[],
-  opts: { locality?: string | null } = {}
+  opts: { locality?: string | null } = {},
 ): Promise<void> {
   // Conservation is asserted FIRST — a malformed posting throws with or
   // without a DB connection (the contract violation is the same offline).
@@ -567,7 +584,9 @@ async function bumpSupply(minted: number, drained: number): Promise<void> {
 async function entriesForImpl(accountId: string): Promise<LedgerEntry[]> {
   if (!active()) return [];
   const out = await LedgerEntry.find<LedgerEntry>({ fromAccount: accountId });
-  const incoming = await LedgerEntry.find<LedgerEntry>({ toAccount: accountId });
+  const incoming = await LedgerEntry.find<LedgerEntry>({
+    toAccount: accountId,
+  });
   const seen = new Set(out.map((r) => r._id));
   for (const r of incoming) if (!seen.has(r._id)) out.push(r);
   return out;
@@ -633,19 +652,32 @@ export class BankingLogic extends Idea {
     toAccountId: string,
     amount: Money,
     memo = "",
-    category: PnlCategory = "float"
+    category: PnlCategory = "float",
   ): Promise<void> {
     await postTransaction("mint", [
-      { from: Account.ISSUANCE, to: toAccountId, amount: amount.minor, memo, category },
+      {
+        from: Account.ISSUANCE,
+        to: toAccountId,
+        amount: amount.minor,
+        memo,
+        category,
+      },
     ]);
   }
 
   /** See {@link BankingApi.drain}. */
   @CallSecurity(BankingApiCallers)
-  public async drain(fromAccountId: string, amount: Money, memo = ""): Promise<void> {
-    if (active() && AccountBalance.cachedBalance(fromAccountId) < amount.minor) {
+  public async drain(
+    fromAccountId: string,
+    amount: Money,
+    memo = "",
+  ): Promise<void> {
+    if (
+      active() &&
+      AccountBalance.cachedBalance(fromAccountId) < amount.minor
+    ) {
       throw new Error(
-        `BankingLogic.drain: ${fromAccountId} holds less than ${amount.render()}`
+        `BankingLogic.drain: ${fromAccountId} holds less than ${amount.render()}`,
       );
     }
     await postTransaction("drain", [
@@ -701,7 +733,10 @@ export class BankingLogic extends Idea {
 
   /** See {@link BankingApi.openAccount}. */
   @CallSecurity(BankingApiCallers)
-  public async openAccount(bankPath: string, corpoKey: string): Promise<string> {
+  public async openAccount(
+    bankPath: string,
+    corpoKey: string,
+  ): Promise<string> {
     return openAccountImpl(bankPath, corpoKey);
   }
 
@@ -737,7 +772,7 @@ export class BankingLogic extends Idea {
   @CallSecurity(BankingApiCallers)
   public async deposit(
     bank: Stuff & Bank,
-    coinStack: Stuff & Globbable
+    coinStack: Stuff & Globbable,
   ): Promise<void> {
     if (!isCashLike(coinStack)) {
       throw new Error("BankingLogic.deposit: that isn't cash");
@@ -745,16 +780,14 @@ export class BankingLogic extends Idea {
     const owner = actingActorKey();
     const account = await accountAtImpl(owner, bank.getBankPath());
     if (!account) {
-      throw new Error(
-        "BankingLogic.deposit: no account here — open one first"
-      );
+      throw new Error("BankingLogic.deposit: no account here — open one first");
     }
     const value = stackValue(coinStack);
     // Coin physically enters the vault (merges with any resting stack); the
     // balance is credited — the two cancel (supply-neutral cash bridge).
     ContainmentApi.move(
       coinStack as unknown as Stuff & Containable,
-      bank as unknown as Stuff & Container
+      bank as unknown as Stuff & Container,
     );
     await postTransaction("deposit", [
       { from: Account.CASH_BRIDGE, to: account.accountId, amount: value },
@@ -771,7 +804,7 @@ export class BankingLogic extends Idea {
     }
     if (AccountBalance.cachedBalance(account.accountId) < amount.minor) {
       throw new Error(
-        `BankingLogic.withdraw: your balance is under ${amount.render()}`
+        `BankingLogic.withdraw: your balance is under ${amount.render()}`,
       );
     }
     // The diegetic limit (AC#13): a branch can run low on physical coin even
@@ -779,7 +812,7 @@ export class BankingLogic extends Idea {
     if (bank.getTillLiquidity().minor < amount.minor) {
       throw new Error(
         `BankingLogic.withdraw: the branch can't cover ${amount.render()} ` +
-          `in cash right now (till low)`
+          `in cash right now (till low)`,
       );
     }
     const principal = actingPrincipal();
@@ -787,12 +820,16 @@ export class BankingLogic extends Idea {
       throw new Error("BankingLogic.withdraw: nowhere to hand the cash");
     }
     await postTransaction("withdraw", [
-      { from: account.accountId, to: Account.CASH_BRIDGE, amount: amount.minor },
+      {
+        from: account.accountId,
+        to: Account.CASH_BRIDGE,
+        amount: amount.minor,
+      },
     ]);
     await moveCoins(
       bank as unknown as Stuff & Container,
       principal,
-      amount.minor
+      amount.minor,
     );
   }
 
@@ -802,7 +839,7 @@ export class BankingLogic extends Idea {
     fromAccountId: string,
     toAccountId: string,
     amount: Money,
-    memo = ""
+    memo = "",
   ): Promise<void> {
     const from = await accountByIdImpl(fromAccountId);
     if (!from) throw new Error("BankingLogic.transfer: no such source account");
@@ -813,7 +850,7 @@ export class BankingLogic extends Idea {
     }
     if (AccountBalance.cachedBalance(fromAccountId) < amount.minor) {
       throw new Error(
-        `BankingLogic.transfer: balance under ${amount.render()}`
+        `BankingLogic.transfer: balance under ${amount.render()}`,
       );
     }
     await postTransaction("transfer", [
@@ -827,27 +864,30 @@ export class BankingLogic extends Idea {
   @CallSecurity(BankingApiCallers)
   public async settle(
     charge: Charge,
-    method: SettlementMethod
+    method: SettlementMethod,
   ): Promise<SettlementReceipt> {
     return settleImpl(charge, method);
   }
 
   /** See {@link BankingApi.setActiveAccount}. Switch the wallet's active acct. */
   @CallSecurity(BankingApiCallers)
-  public setActiveAccount(credential: Stuff & PaymentCredential, accountId: string): void {
+  public setActiveAccount(
+    credential: PaymentCredential,
+    accountId: string,
+  ): void {
     credential.setActiveAccount(accountId);
   }
 
   /** See {@link BankingApi.activeCredential}. The actor's routing credential. */
   @CallSecurity(BankingApiCallers)
-  public activeCredential(): (Stuff & PaymentCredential) | null {
+  public activeCredential(): PaymentCredential | null {
     const actor = actingPrincipal();
     return actor ? reachableCredential(actor) : null;
   }
 
   /** See {@link BankingApi.freezeCredential}. Report-lost — revoke a credential. */
   @CallSecurity(BankingApiCallers)
-  public freezeCredential(credential: Stuff & PaymentCredential): void {
+  public freezeCredential(credential: PaymentCredential): void {
     credential.setFrozen(true);
   }
 
@@ -855,8 +895,8 @@ export class BankingLogic extends Idea {
   @CallSecurity(BankingApiCallers)
   public async issueCard(
     accountId: string,
-    capMinor: number
-  ): Promise<Stuff & PaymentCredential> {
+    capMinor: number,
+  ): Promise<Stuff & CredentialWallet> {
     return issueCardImpl(accountId, capMinor);
   }
 
@@ -867,7 +907,7 @@ export class BankingLogic extends Idea {
   public async payWage(
     employerAccountId: string,
     workerKey: string,
-    amount: Money
+    amount: Money,
   ): Promise<void> {
     return payWageImpl(employerAccountId, workerKey, amount);
   }
@@ -882,14 +922,17 @@ export class BankingLogic extends Idea {
   @CallSecurity(BankingApiCallers)
   public async remitDemoTax(
     sellerAccountId: string,
-    saleAmount: Money
+    saleAmount: Money,
   ): Promise<Money> {
     return remitDemoTaxImpl(sellerAccountId, saleAmount);
   }
 
   /** See {@link BankingApi.issueCash}. The central-bank physical cash faucet. */
   @CallSecurity(BankingApiCallers)
-  public async issueCash(into: Stuff & Container, amount: Money): Promise<Stuff> {
+  public async issueCash(
+    into: Stuff & Container,
+    amount: Money,
+  ): Promise<Stuff> {
     return issueCashImpl(into, amount);
   }
 
@@ -904,7 +947,7 @@ export class BankingLogic extends Idea {
   public async ensureVenueAccount(
     ownerPath: string,
     bankPath: string,
-    corpoKey: string
+    corpoKey: string,
   ): Promise<string> {
     return ensureVenueAccountImpl(ownerPath, bankPath, corpoKey);
   }

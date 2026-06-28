@@ -93,7 +93,11 @@ export default class WalletController extends BankingControllerBase<WalletModel>
   private async freeze(model: WalletModel, context: CommandContext): Promise<void> {
     const giver = context.commandGiver;
     const card = model.card?.stuff;
-    if (!card || !MixinApi.isPaymentCredential(card)) {
+    const pay =
+      card && MixinApi.isCredentialWallet(card)
+        ? card.getCredential("payment")
+        : undefined;
+    if (!card || !pay) {
       MessageApi.scene(giver)
         .topic(TOPIC)
         .toSelf(Mml.compose`You have no '${model.card?.raw ?? ""}' card to report.`)
@@ -101,9 +105,9 @@ export default class WalletController extends BankingControllerBase<WalletModel>
       context.note({ kind: "empty-result", field: "card", query: model.card?.raw ?? "" });
       return;
     }
-    const account = card.getActiveAccount();
-    const cap = card.getSpendCap();
-    BankingApi.freezeCredential(card);
+    const account = pay.getActiveAccount();
+    const cap = pay.getSpendCap();
+    BankingApi.freezeCredential(pay);
     if (account) await BankingApi.issueCard(account, cap);
     MessageApi.scene(giver)
       .topic(TOPIC)

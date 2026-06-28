@@ -50,9 +50,11 @@ export const TemplatePaths = {
   // Hosted capability updates (aether hosting relation) — incorporeal
   // Ideas cloned into an attunement host by the default loadout.
   commsUpdate: "/lib/comms/CommsUpdate",
-  travelCredentialUpdate: "/lib/fasttravel/TravelCredentialUpdate",
   forumsUpdate: "/lib/forum/ForumsUpdate",
-  paymentImplantUpdate: "/lib/banking/PaymentImplantUpdate",
+  // The unified credential wallet app — one hosted holder for every
+  // credential kind (payment, travel, …), replacing the per-credential
+  // PaymentImplantUpdate + TravelCredentialUpdate twins.
+  credentialWalletUpdate: "/lib/credential/CredentialWalletUpdate",
 
   // Payment card template — cloned per issue (a bearer instrument, 1:1
   // with one account); the reissue path after a report-lost freeze.
