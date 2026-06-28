@@ -1,5 +1,5 @@
 /**
- * TwitchRelay — the relay's in-memory state singleton.
+ * TwitchRelay - the relay's in-memory state singleton.
  *
  * Channels are **player-initiated and memory-resident**: there is no
  * registry collection. A player tunes in by Twitch login; the login is
@@ -9,8 +9,8 @@
  * + tune re-initializes lazily. Players are dropped from every channel on
  * logout.
  *
- * Holds: the channel table (broadcasterId → login + tuned playerIds), a
- * login→id resolution cache, the per-channel history ring, the outbound
+ * Holds: the channel table (broadcasterId -> login + tuned playerIds), a
+ * login->id resolution cache, the per-channel history ring, the outbound
  * echo-tag store, the per-player + global send throttles, and the
  * installed outbound DI port. Pure state + delivery; the gated
  * orchestration lives in `TwitchLogic`, this singleton's only caller.
@@ -37,7 +37,7 @@ import type {
   TwitchMessagePayload,
 } from '@saxonberg/types';
 
-// Dials — candidates for `twitch.*` AppSettings (kept as constants in v1;
+// Dials - candidates for `twitch.*` AppSettings (kept as constants in v1;
 // see the app-settings constant-sweep pattern).
 const HISTORY_CAP = 200;
 const ECHO_TTL_MS = 15_000;
@@ -59,9 +59,9 @@ interface ChannelEntry {
 const TwitchRelayBase = PostRegistrationMixin(Idea);
 
 export default class TwitchRelay extends TwitchRelayBase {
-  /** broadcasterId → { login, tuned playerIds }. Memory-only. */
+  /** broadcasterId -> { login, tuned playerIds }. Memory-only. */
   private channels = new Map<string, ChannelEntry>();
-  /** lowercased login → broadcasterId (resolution cache). */
+  /** lowercased login -> broadcasterId (resolution cache). */
   private loginToId = new Map<string, string>();
 
   private history = new Map<string, MessageFrame[]>();
@@ -73,7 +73,7 @@ export default class TwitchRelay extends TwitchRelayBase {
 
   public override async postRegister(_context?: unknown): Promise<void> {
     // Drop a player from every channel they were tuned to when they go
-    // offline (frees the channel on the 1→0 edge so the reader unsubscribes).
+    // offline (frees the channel on the 1->0 edge so the reader unsubscribes).
     EventApi.on<{ playerId: string; userId: string }>(
       Events.PlayerLoggedOut,
       (p) => this.dropPlayer(p.playerId)
@@ -93,8 +93,8 @@ export default class TwitchRelay extends TwitchRelayBase {
 
   /**
    * Tune a player into a Twitch channel by login. Resolves the login to a
-   * broadcaster id (cache → port's Helix lookup), creates the channel entry
-   * lazily, and fires the presence 0→1 edge so the reader subscribes.
+   * broadcaster id (cache -> port's Helix lookup), creates the channel entry
+   * lazily, and fires the presence 0->1 edge so the reader subscribes.
    */
   public async tuneByLogin(
     playerId: string,
@@ -132,7 +132,7 @@ export default class TwitchRelay extends TwitchRelayBase {
     return { ok: true, broadcasterId, login: entry.broadcasterLogin };
   }
 
-  /** Tune a player out by login; fires the presence 1→0 edge. */
+  /** Tune a player out by login; fires the presence 1->0 edge. */
   public untune(
     playerId: string,
     login: string
@@ -150,7 +150,7 @@ export default class TwitchRelay extends TwitchRelayBase {
     return { ok: true, login: entry.broadcasterLogin };
   }
 
-  /** Remove a player from every channel (logout); fire each 1→0 edge. */
+  /** Remove a player from every channel (logout); fire each 1->0 edge. */
   public dropPlayer(playerId: string): void {
     for (const [broadcasterId, entry] of this.channels) {
       if (!entry.tuned.has(playerId)) continue;
@@ -180,7 +180,7 @@ export default class TwitchRelay extends TwitchRelayBase {
     return [...(this.channels.get(broadcasterId)?.tuned ?? [])];
   }
 
-  /** Cache-only login → channel resolve (no port call). */
+  /** Cache-only login -> channel resolve (no port call). */
   public resolveByLogin(
     loginLower: string
   ): { broadcasterId: string; login: string } | null {
@@ -260,7 +260,7 @@ export default class TwitchRelay extends TwitchRelayBase {
       speaker.kind === 'in-game'
         ? speaker.ref.displayName ?? 'someone'
         : speaker.externalName;
-    const marker = egress ? '⊳twitch→' : '⊳twitch';
+    const marker = egress ? 'twitch->' : 'twitch';
     const body = Mml.compose`[${marker} #${broadcasterLogin}] ${name}: ${text}`.toString();
     const payload: TwitchMessagePayload = {
       broadcasterId,
@@ -273,7 +273,7 @@ export default class TwitchRelay extends TwitchRelayBase {
 
     for (const playerId of this.whoTuned(broadcasterId)) {
       const avatar = PlayerApi.findAvatarByPlayerId(playerId);
-      if (!avatar) continue; // offline — skip
+      if (!avatar) continue; // offline - skip
       MessageApi.sendMessage(avatar, {
         id: SecurityApi.uuid(),
         topic: 'world.twitch.message',
