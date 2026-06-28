@@ -5,13 +5,10 @@ import { Idea } from '../../lib/stuff/Idea';
 import { CallSecurity, Unshadowable } from '../../lib/security/decorators';
 import { SecurityPolicies } from '../../lib/security/SecurityPolicies';
 import { StuffApi } from '../../api/stuff';
-import { EventApi } from '../../api/event';
 import { MessageApi } from '../../api/message';
 import { PlayerApi } from '../../api/player';
-import { Events } from '../../lib/events';
 import { User } from '../../lib/identity/User';
 import { TwitchProfile } from '../../lib/identity/TwitchProfile';
-import type { TwitchChannel } from '../../lib/twitch/TwitchChannel';
 import type { Stuff } from '../../lib/stuff/Stuff';
 import type Avatar from '../Avatar';
 import type TwitchRelay from '../TwitchRelay';
@@ -20,6 +17,7 @@ import { TWITCH_SCOPE_WRITE_CHAT } from '@saxonberg/types';
 import type {
   TwitchRelayPort,
   TwitchPostResult,
+  TwitchTuneResult,
   NormalizedInbound,
 } from '../../api/twitch';
 
@@ -31,73 +29,66 @@ const TwitchApiCallers = SecurityPolicies.FromModule('mud/api/twitch#TwitchApi')
  * `/obj/api/twitch`. Stateless (no `PostRegistrationMixin`); every method
  * resolves the {@link TwitchRelay} state singleton via the module-private
  * `requireRelay` and gates on `FromModule('mud/api/twitch#TwitchApi')`.
+ * Channels are addressed by Twitch login.
  *
  * @internal
  */
 @Unshadowable
 export class TwitchLogic extends Idea {
-  /** See {@link TwitchApi.resolveChannel}. */
-  @CallSecurity(TwitchApiCallers)
-  public async resolveChannel(key: string): Promise<TwitchChannel | null> {
-    return (await requireRelay()).resolveChannel(key);
-  }
-
-  /** See {@link TwitchApi.allChannels}. */
-  @CallSecurity(TwitchApiCallers)
-  public async allChannels(): Promise<TwitchChannel[]> {
-    return (await requireRelay()).allChannels();
-  }
-
   /** See {@link TwitchApi.tune}. */
   @CallSecurity(TwitchApiCallers)
-  public async tune(
-    avatar: Avatar,
-    key: string
-  ): Promise<{ ok: boolean; channel?: TwitchChannel; reason?: string }> {
-    return this.setTuned(avatar, key, true);
+  public async tune(avatar: Avatar, login: string): Promise<TwitchTuneResult> {
+    return (await requireRelay()).tuneByLogin(avatar.getPlayerId(), login);
   }
 
   /** See {@link TwitchApi.untune}. */
   @CallSecurity(TwitchApiCallers)
   public async untune(
     avatar: Avatar,
-    key: string
-  ): Promise<{ ok: boolean; channel?: TwitchChannel; reason?: string }> {
-    return this.setTuned(avatar, key, false);
+    login: string
+  ): Promise<{ ok: boolean; login?: string; reason?: string }> {
+    return (await requireRelay()).untune(avatar.getPlayerId(), login);
   }
 
-  /** See {@link TwitchApi.tunedChannelsFor}. */
+  /** See {@link TwitchApi.tunedLoginsFor}. */
   @CallSecurity(TwitchApiCallers)
-  public async tunedChannelsFor(avatar: Avatar): Promise<TwitchChannel[]> {
-    const relay = await requireRelay();
-    return relay
-      .allChannels()
-      .filter((c) => avatar.isTuned(c.broadcasterId));
+  public async tunedLoginsFor(avatar: Avatar): Promise<string[]> {
+    return (await requireRelay()).tunedLoginsFor(avatar.getPlayerId());
   }
 
   /** See {@link TwitchApi.whoTuned}. */
   @CallSecurity(TwitchApiCallers)
-  public async whoTuned(broadcasterId: string): Promise<Avatar[]> {
-    return (await requireRelay()).tunedAvatars(broadcasterId);
+  public async whoTuned(login: string): Promise<Avatar[]> {
+    const relay = await requireRelay();
+    const channel = relay.resolveByLogin(login.trim().toLowerCase());
+    if (!channel) return [];
+    const out: Avatar[] = [];
+    for (const playerId of relay.whoTuned(channel.broadcasterId)) {
+      const avatar = PlayerApi.findAvatarByPlayerId(playerId);
+      if (avatar) out.push(avatar);
+    }
+    return out;
   }
 
   /** See {@link TwitchApi.historyFor}. */
   @CallSecurity(TwitchApiCallers)
-  public async historyFor(
-    broadcasterId: string
-  ): Promise<readonly MessageFrame[]> {
-    return (await requireRelay()).historyFor(broadcasterId);
+  public async historyFor(login: string): Promise<readonly MessageFrame[]> {
+    const relay = await requireRelay();
+    const channel = relay.resolveByLogin(login.trim().toLowerCase());
+    if (!channel) return [];
+    return relay.historyFor(channel.broadcasterId);
   }
 
   /** See {@link TwitchApi.post}. */
   @CallSecurity(TwitchApiCallers)
   public async post(
     speaker: Stuff,
-    key: string,
+    login: string,
     text: string
   ): Promise<TwitchPostResult> {
     const relay = await requireRelay();
-    const channel = relay.resolveChannel(key);
+    // You must tune in (which resolves + caches the login) before posting.
+    const channel = relay.resolveByLogin(login.trim().toLowerCase());
     if (!channel) return { ok: false, reason: 'no-channel' };
     const body = text.trim();
     if (!body) return { ok: false, reason: 'empty' };
@@ -131,7 +122,13 @@ export class TwitchLogic extends Idea {
 
     // Mirror in-game (case-1 speaker, egress) only AFTER a successful send,
     // and tag the echo so the reader drops our own read-back.
-    relay.deliver(channel, { kind: 'in-game', ref: MessageApi.refOf(speaker) }, body, true);
+    relay.deliver(
+      channel.broadcasterId,
+      channel.login,
+      { kind: 'in-game', ref: MessageApi.refOf(speaker) },
+      body,
+      true
+    );
     relay.noteEcho(profile.twitchUserId, body);
     return { ok: true };
   }
@@ -142,42 +139,22 @@ export class TwitchLogic extends Idea {
     const relay = await requireRelay();
     // Suppress the echo of our own outbound post.
     if (relay.isEcho(n.senderTwitchUserId, n.text)) return;
-    const channel = relay.resolveChannel(n.broadcasterId);
-    if (!channel) return;
+    const channel = relay.channelById(n.broadcasterId);
+    if (!channel) return; // nobody tuned in to this channel
     const speaker = await resolveSpeaker(n.senderTwitchUserId, n.senderDisplay);
-    relay.deliver(channel, speaker, n.text, false);
+    relay.deliver(
+      n.broadcasterId,
+      channel.broadcasterLogin,
+      speaker,
+      n.text,
+      false
+    );
   }
 
   /** See {@link TwitchApi.installRelayPort}. */
   @CallSecurity(TwitchApiCallers)
   public async installRelayPort(port: TwitchRelayPort | null): Promise<void> {
     (await requireRelay()).setOutboundPort(port);
-  }
-
-  private async setTuned(
-    avatar: Avatar,
-    key: string,
-    tunedIn: boolean
-  ): Promise<{ ok: boolean; channel?: TwitchChannel; reason?: string }> {
-    const relay = await requireRelay();
-    const channel = relay.resolveChannel(key);
-    if (!channel) return { ok: false, reason: 'no-channel' };
-    const changed = tunedIn
-      ? avatar.addTuned(channel.broadcasterId)
-      : avatar.removeTuned(channel.broadcasterId);
-    if (changed) {
-      await avatar.save();
-      const { count, prev } = relay.recordPresence(
-        channel.broadcasterId,
-        tunedIn ? +1 : -1
-      );
-      EventApi.emit(Events.TwitchPresenceChanged, {
-        broadcasterId: channel.broadcasterId,
-        count,
-        prev,
-      });
-    }
-    return { ok: true, channel };
   }
 }
 

@@ -4,11 +4,13 @@
  * the hot-reloadable logic singleton at `/obj/api/twitch` via
  * `StuffApi.singletonSync`, decorated by `SecurityApi.decorateApiClass`.
  *
- * This file also homes the relay's call-shape types — including the
- * **outbound DI port** (`TwitchRelayPort`), the sanctioned backend→mudlib
- * injection the outbound path uses to reach the backend `TwitchClient`
- * (mud/ cannot import backend/). The port is installed at boot via
- * {@link TwitchApi.installRelayPort}.
+ * Channels are **player-initiated and addressed by Twitch login** — there
+ * is no registry. This file homes the relay's call-shape types, including
+ * the **outbound DI port** (`TwitchRelayPort`), the sanctioned
+ * backend→mudlib injection the relay uses to reach the backend
+ * `TwitchClient` (mud/ cannot import backend/) for both the Helix
+ * login→id lookup and the outbound Send Chat Message. Installed at boot
+ * via {@link TwitchApi.installRelayPort}.
  */
 
 import { StuffApi } from './stuff';
@@ -18,7 +20,6 @@ import { TwitchLogic } from '../obj/api/TwitchLogic';
 import { fileURLToPath } from 'url';
 import type { Stuff } from '../lib/stuff/Stuff';
 import type Avatar from '../obj/Avatar';
-import type { TwitchChannel } from '../lib/twitch/TwitchChannel';
 import type { TwitchProfile } from '../lib/identity/TwitchProfile';
 import type { MessageFrame } from '@saxonberg/types';
 
@@ -41,16 +42,29 @@ function logic(): TwitchLogic {
 
 /**
  * The outbound DI port — implemented in `backend/` over `TwitchClient` and
- * installed at boot. `send` resolves the poster's token and performs the
- * stateless Helix Send Chat Message; the mudlib never imports the client.
+ * installed at boot. `resolveLogin` does the Helix login→broadcaster-id
+ * lookup (so a player can tune by handle); `send` resolves the poster's
+ * token and performs the stateless Helix Send Chat Message. The mudlib
+ * never imports the client.
  */
 export interface TwitchRelayPort {
+  resolveLogin(
+    login: string
+  ): Promise<{ broadcasterId: string; login: string } | null>;
   send(opts: {
     broadcasterId: string;
     profile: TwitchProfile;
     text: string;
   }): Promise<{ ok: boolean; error?: string }>;
 }
+
+/** Result of a tune-by-login. */
+export type TwitchTuneResult = {
+  ok: boolean;
+  broadcasterId?: string;
+  login?: string;
+  reason?: 'no-relay' | 'unknown-login';
+};
 
 /** Outcome of an outbound post (drives the controller's reject-and-point). */
 export type TwitchPostResult =
@@ -77,54 +91,41 @@ export interface NormalizedInbound {
 }
 
 export class TwitchApi {
-  /** Resolve a relayed channel by broadcasterId, login, or label. */
-  static resolveChannel(key: string): Promise<TwitchChannel | null> {
-    return logic().resolveChannel(key);
+  /** Tune a player in to a Twitch channel by login (lazy resolve + 0→1). */
+  static tune(avatar: Avatar, login: string): Promise<TwitchTuneResult> {
+    return logic().tune(avatar, login);
   }
 
-  /** All relayed channels in the registry. */
-  static allChannels(): Promise<TwitchChannel[]> {
-    return logic().allChannels();
-  }
-
-  /** Tune an Avatar in to a relayed channel (fires presence on 0→1). */
-  static tune(
-    avatar: Avatar,
-    key: string
-  ): Promise<{ ok: boolean; channel?: TwitchChannel; reason?: string }> {
-    return logic().tune(avatar, key);
-  }
-
-  /** Tune an Avatar out (fires presence on 1→0). */
+  /** Tune a player out by login (1→0 edge). */
   static untune(
     avatar: Avatar,
-    key: string
-  ): Promise<{ ok: boolean; channel?: TwitchChannel; reason?: string }> {
-    return logic().untune(avatar, key);
+    login: string
+  ): Promise<{ ok: boolean; login?: string; reason?: string }> {
+    return logic().untune(avatar, login);
   }
 
-  /** The relayed channels an Avatar is tuned in to. */
-  static tunedChannelsFor(avatar: Avatar): Promise<TwitchChannel[]> {
-    return logic().tunedChannelsFor(avatar);
+  /** The Twitch logins a player is currently tuned in to. */
+  static tunedLoginsFor(avatar: Avatar): Promise<string[]> {
+    return logic().tunedLoginsFor(avatar);
   }
 
-  /** Avatars currently tuned in to a channel. */
-  static whoTuned(broadcasterId: string): Promise<Avatar[]> {
-    return logic().whoTuned(broadcasterId);
+  /** Online Avatars tuned in to a channel (by login). */
+  static whoTuned(login: string): Promise<Avatar[]> {
+    return logic().whoTuned(login);
   }
 
-  /** The history ring for a channel. */
-  static historyFor(broadcasterId: string): Promise<readonly MessageFrame[]> {
-    return logic().historyFor(broadcasterId);
+  /** The history ring for a channel (by login). */
+  static historyFor(login: string): Promise<readonly MessageFrame[]> {
+    return logic().historyFor(login);
   }
 
-  /** Post outbound to a relayed channel as the speaker (send → mirror). */
+  /** Post outbound to a tuned channel (by login) as the speaker. */
   static post(
     speaker: Stuff,
-    key: string,
+    login: string,
     text: string
   ): Promise<TwitchPostResult> {
-    return logic().post(speaker, key, text);
+    return logic().post(speaker, login, text);
   }
 
   /** Inbound entry point — the backend reader's down-call. */

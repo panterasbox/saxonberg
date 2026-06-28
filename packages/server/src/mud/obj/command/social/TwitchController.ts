@@ -3,10 +3,11 @@
  * controller, dispatch-on-subcommand with `fallthrough: true`: an unknown
  * first token (`twitch twitchdev hello`) falls through to a bare post.
  *
+ * Channels are player-initiated and addressed by **Twitch login** (handle).
  * Subcommands: list / tune / untune / history / who. The relay is its own
- * surface (not a Channel), so this controller forwards to `TwitchApi`, not
- * `ChatApi`. Outbound posting reject-and-points unlinked/unscoped players
- * into the auth re-consent flow.
+ * surface (not a Channel), so this forwards to `TwitchApi`. Outbound
+ * posting reject-and-points unlinked/unscoped players into the auth
+ * re-consent flow.
  */
 
 import { CommandController } from '../../../lib/command/CommandController';
@@ -17,7 +18,7 @@ import { TwitchApi } from '../../../api/twitch';
 import { PlayerApi } from '../../../api/player';
 
 interface TwitchModel extends CommandModel {
-  channel?: string;
+  channel?: string; // a Twitch login (handle)
   message?: string;
 }
 
@@ -50,19 +51,19 @@ export default class TwitchController extends CommandController<TwitchModel> {
     context: CommandContext
   ): Promise<void> {
     const speaker = context.commandGiver;
-    const key = (model.channel ?? '').trim();
+    const login = (model.channel ?? '').trim();
     const body = (model.message ?? '').trim();
-    if (!key) return this.fail(context, 'channel required', 'channel-required');
+    if (!login) return this.fail(context, 'channel required', 'channel-required');
     if (!body) return this.fail(context, 'message required', 'message-required');
 
-    const result = await TwitchApi.post(speaker, key, body);
+    const result = await TwitchApi.post(speaker, login, body);
     if (result.ok) return; // the mirror is delivered to tuned-in players
 
     switch (result.reason) {
       case 'no-channel':
         return this.fail(
           context,
-          `No relayed Twitch channel '${key}'.`,
+          `Tune in to Twitch #${login} first: twitch tune ${login}`,
           'no-channel'
         );
       case 'empty':
@@ -96,19 +97,22 @@ export default class TwitchController extends CommandController<TwitchModel> {
 
   private async executeList(context: CommandContext): Promise<void> {
     const actor = context.commandGiver;
-    const channels = await TwitchApi.allChannels();
-    if (channels.length === 0) {
-      this.send(context, Mml.fromMarkup('\nNo relayed Twitch channels.\n'));
+    if (!PlayerApi.isAvatarStuff(actor)) {
+      return this.fail(context, 'Only players tune in.', 'avatar-required');
+    }
+    const logins = await TwitchApi.tunedLoginsFor(actor);
+    if (logins.length === 0) {
+      this.send(
+        context,
+        Mml.fromMarkup(
+          "\nYou aren't tuned in to any Twitch channels. " +
+            'Tune in with `twitch tune <handle>`.\n'
+        )
+      );
       return;
     }
-    const isAvatar = PlayerApi.isAvatarStuff(actor);
-    const lines = ['Twitch channels:'];
-    for (const c of channels) {
-      const tuned =
-        isAvatar && actor.isTuned(c.broadcasterId) ? '  (tuned in)' : '';
-      const label = c.label ? `  [${c.label}]` : '';
-      lines.push(`  ${c.broadcasterLogin}${label}${tuned}`);
-    }
+    const lines = ['Tuned in to Twitch:'];
+    for (const login of logins) lines.push(`  #${login}`);
     this.send(context, Mml.fromMarkup(`\n${lines.join('\n')}\n`));
   }
 
@@ -121,44 +125,58 @@ export default class TwitchController extends CommandController<TwitchModel> {
     if (!PlayerApi.isAvatarStuff(actor)) {
       return this.fail(context, 'Only players tune in.', 'avatar-required');
     }
-    const key = (model.channel ?? '').trim();
-    const res = tunedIn
-      ? await TwitchApi.tune(actor, key)
-      : await TwitchApi.untune(actor, key);
-    if (!res.ok || !res.channel) {
+    const login = (model.channel ?? '').trim();
+    if (!login) return this.fail(context, 'channel required', 'channel-required');
+
+    if (tunedIn) {
+      const res = await TwitchApi.tune(actor, login);
+      if (!res.ok) {
+        if (res.reason === 'no-relay') {
+          return this.fail(
+            context,
+            "Twitch relay isn't configured.",
+            'no-relay'
+          );
+        }
+        return this.fail(
+          context,
+          `No Twitch channel '${login}' (check the handle).`,
+          'unknown-login'
+        );
+      }
+      this.send(
+        context,
+        Mml.compose`\nTuned in to Twitch #${res.login ?? login}.\n`
+      );
+      return;
+    }
+
+    const res = await TwitchApi.untune(actor, login);
+    if (!res.ok) {
       return this.fail(
         context,
-        `No relayed Twitch channel '${key}'.`,
-        'no-channel'
+        `You aren't tuned in to '${login}'.`,
+        'unknown-login'
       );
     }
-    this.send(
-      context,
-      tunedIn
-        ? Mml.compose`\nTuned in to Twitch #${res.channel.broadcasterLogin}.\n`
-        : Mml.compose`\nLeft Twitch #${res.channel.broadcasterLogin}.\n`
-    );
+    this.send(context, Mml.compose`\nLeft Twitch #${res.login ?? login}.\n`);
   }
 
   private async executeHistory(
     model: TwitchModel,
     context: CommandContext
   ): Promise<void> {
-    const key = (model.channel ?? '').trim();
-    const channel = await TwitchApi.resolveChannel(key);
-    if (!channel) {
-      return this.fail(
-        context,
-        `No relayed Twitch channel '${key}'.`,
-        'no-channel'
-      );
-    }
-    const ring = await TwitchApi.historyFor(channel.broadcasterId);
+    const login = (model.channel ?? '').trim();
+    if (!login) return this.fail(context, 'channel required', 'channel-required');
+    const ring = await TwitchApi.historyFor(login);
     if (ring.length === 0) {
-      this.send(context, Mml.fromMarkup(`\nNo history for ${key}.\n`));
+      this.send(
+        context,
+        Mml.fromMarkup(`\nNo history for Twitch #${login} (tune in first?).\n`)
+      );
       return;
     }
-    const lines = [`Twitch #${channel.broadcasterLogin}:`];
+    const lines = [`Twitch #${login}:`];
     for (const f of ring) lines.push(`  ${f.body}`);
     this.send(context, Mml.fromMarkup(`\n${lines.join('\n')}\n`));
   }
@@ -167,21 +185,17 @@ export default class TwitchController extends CommandController<TwitchModel> {
     model: TwitchModel,
     context: CommandContext
   ): Promise<void> {
-    const key = (model.channel ?? '').trim();
-    const channel = await TwitchApi.resolveChannel(key);
-    if (!channel) {
-      return this.fail(
-        context,
-        `No relayed Twitch channel '${key}'.`,
-        'no-channel'
-      );
-    }
-    const tuned = await TwitchApi.whoTuned(channel.broadcasterId);
+    const login = (model.channel ?? '').trim();
+    if (!login) return this.fail(context, 'channel required', 'channel-required');
+    const tuned = await TwitchApi.whoTuned(login);
     if (tuned.length === 0) {
-      this.send(context, Mml.fromMarkup(`\nNo one tuned in to ${key}.\n`));
+      this.send(
+        context,
+        Mml.fromMarkup(`\nNo one tuned in to Twitch #${login}.\n`)
+      );
       return;
     }
-    const lines = [`Tuned in to Twitch #${channel.broadcasterLogin}:`];
+    const lines = [`Tuned in to Twitch #${login}:`];
     for (const a of tuned) lines.push(`  ${a.getPresentation()}`);
     this.send(context, Mml.fromMarkup(`\n${lines.join('\n')}\n`));
   }

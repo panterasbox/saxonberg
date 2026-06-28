@@ -37,6 +37,12 @@ export class TwitchRelayReader {
   private pending = new Map<string, ReturnType<typeof setTimeout>>();
 
   private readonly port: TwitchRelayPort = {
+    resolveLogin: async (login: string) => {
+      const token = await this.readerToken();
+      if (!token) return null;
+      const u = await TwitchClient.get().resolveUser(login, token);
+      return u ? { broadcasterId: u.id, login: u.login } : null;
+    },
     send: async ({ broadcasterId, profile, text }) => {
       try {
         const token = await TwitchClient.get().tokenFor(profile);

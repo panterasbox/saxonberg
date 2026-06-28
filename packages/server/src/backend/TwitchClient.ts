@@ -27,6 +27,7 @@ import { TwitchProfile } from '../mud/lib/identity/TwitchProfile';
 const EVENTSUB_WS_URL = 'wss://eventsub.wss.twitch.tv/ws';
 const HELIX_EVENTSUB_URL = 'https://api.twitch.tv/helix/eventsub/subscriptions';
 const HELIX_CHAT_MESSAGES_URL = 'https://api.twitch.tv/helix/chat/messages';
+const HELIX_USERS_URL = 'https://api.twitch.tv/helix/users';
 const TWITCH_TOKEN_URL = 'https://id.twitch.tv/oauth2/token';
 
 /**
@@ -378,6 +379,33 @@ export class TwitchClient {
     const d = json.data?.[0];
     if (d && d.is_sent === false) return { ok: false, error: 'dropped' };
     return { ok: true, messageId: d?.message_id };
+  }
+
+  /**
+   * Resolve a Twitch login to its stable broadcaster id (Helix `/users`).
+   * Used so a player can tune in by handle. Returns null for an unknown
+   * login (or a non-OK response).
+   */
+  public async resolveUser(
+    login: string,
+    token: string
+  ): Promise<{ id: string; login: string } | null> {
+    const res = await this.transport.fetch(
+      `${HELIX_USERS_URL}?login=${encodeURIComponent(login)}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Client-Id': this.clientId,
+        },
+      }
+    );
+    if (!res.ok) return null;
+    const json = (await res.json()) as {
+      data?: Array<{ id?: string; login?: string }>;
+    };
+    const u = json.data?.[0];
+    if (!u?.id) return null;
+    return { id: u.id, login: u.login ?? login };
   }
 
   /**

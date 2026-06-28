@@ -19,7 +19,6 @@ import { RecipeSeeder } from './RecipeSeeder';
 import { ScriptSeeder } from './ScriptSeeder';
 import { NameBankSeeder } from './NameBankSeeder';
 import { ChannelSeeder } from './ChannelSeeder';
-import { TwitchChannelSeeder } from './TwitchChannelSeeder';
 import { TwitchRelayReader } from './TwitchRelayReader';
 import { AppSettingsSeeder } from './AppSettingsSeeder';
 import { BootstrapManager } from './BootstrapManager';
@@ -141,7 +140,6 @@ export class AppBootstrap {
     await RecipeSeeder.run();
     await ScriptSeeder.run();
     await ChannelSeeder.run();
-    await TwitchChannelSeeder.run();
     await NameBankSeeder.run();
     await AppSettingsSeeder.run();
 

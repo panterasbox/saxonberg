@@ -208,4 +208,20 @@ describe('TwitchClient', () => {
     expect(tok).toBe('live');
     expect(fetchMock).not.toHaveBeenCalled();
   });
+
+  it('resolveUser looks up a login via Helix /users', async () => {
+    fetchMock.mockResolvedValueOnce(
+      okJson({ data: [{ id: '141981764', login: 'twitchdev' }] })
+    );
+    const u = await client.resolveUser('TwitchDev', 'reader-tok');
+    expect(u).toEqual({ id: '141981764', login: 'twitchdev' });
+    expect(String(fetchMock.mock.calls[0]![0])).toContain(
+      '/helix/users?login=TwitchDev'
+    );
+  });
+
+  it('resolveUser returns null for an unknown login', async () => {
+    fetchMock.mockResolvedValueOnce(okJson({ data: [] }));
+    expect(await client.resolveUser('nope', 'tok')).toBeNull();
+  });
 });
