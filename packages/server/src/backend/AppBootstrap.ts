@@ -22,7 +22,7 @@ import { ChannelSeeder } from './ChannelSeeder';
 import { AppSettingsSeeder } from './AppSettingsSeeder';
 import { BootstrapManager } from './BootstrapManager';
 import { CommandApi } from '../mud/api/command';
-import { QuantityApi } from '../mud/api/quantity';
+import { PackApi } from '../mud/api/pack';
 import { WorldClockApi } from '../mud/api/worldclock';
 import { AppSettings } from '../mud/lib/config/AppSettings';
 import { RenownApi } from '../mud/api/renown';
@@ -104,19 +104,28 @@ export class AppBootstrap {
 
     await SeederManager.run();
 
-    // Quantity tag tables — content-authored YAML at
-    // `mud/config/quantity-tags.yaml`. Must run before anything
-    // that uses `Quantity.tag()` / `Quantity.parse(tagString)`,
-    // which includes the marshallers' coercion paths and the
-    // light propagation walk's band lookups.
-    const tagsResult = QuantityApi.loadTagTables();
-    const tagSummary = tagsResult.registered
-      .map(({ unit, scaleName }) => `${unit}/${scaleName}`)
-      .join(', ');
-    console.info(
-      `QuantityApi: ${tagsResult.registered.length} tag table(s) loaded ` +
-        `(${tagSummary})`
-    );
+    // Content packs — reconcile every shipped `@saxonberg/content-*` pack
+    // into the DB (materials, biomes, quantity units). The installer is the
+    // source-of-truth-is-the-file replacement for seeding the migrated
+    // trees, AND folds in the former standalone `QuantityApi.loadTagTables`
+    // call (the quantity content-kind). Writes rows only — nothing is live
+    // yet (BootstrapManager clones later), so no re-hydrate at boot.
+    //
+    // Coexists with SeederManager (above): the installer only touches
+    // `sourcePack`-stamped (or adopts-then-stamps) rows for paths its packs
+    // ship; SeederManager is insert-only on the shrunken `seeds/` tree —
+    // disjoint sets. Runs before `loadHooks` because the migrated content
+    // (domain templates + quantity tables) is all pre-hooks content the
+    // marshaller/`tag()` consumers and the DomainHook clone depend on.
+    const packResults = await PackApi.install();
+    for (const r of packResults) {
+      console.info(
+        `PackApi: '${r.packId}' installed — ` +
+          `${r.inserted.length} inserted, ${r.updated.length} updated, ` +
+          `${r.adopted.length} adopted, ${r.deleted.length} deleted, ` +
+          `${r.quantityTables} quantity table(s)`
+      );
+    }
 
     await PersistenceManager.get().loadHooks();
 
