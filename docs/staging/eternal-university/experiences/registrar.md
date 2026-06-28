@@ -123,10 +123,12 @@ The cast-free door, worked out in full so it builds straight:
   no new flag). **Renown *gates* the grant; it doesn't *become* it** — the grant
   stays a deliberate act, not an auto-threshold, so the puzzle survives.
 - **The credential rides the wallet.** The writ is one record in the
-  implant's credential-holder app — see
-  [credential-wallet-slate.md](../../../slates/builds/credential-wallet-slate.md)
-  (deputization is its first native tenant; the §8 physical card is the
-  cross-jurisdiction *presentation*, not the source of truth).
+  implant's credential-holder app — the wallet substrate is now **shipped** (see
+  [credential.md](../../../subsystems/credential.md)); **deputization** itself is
+  its deferred tenant (the issuer-authorization ledger + single `CredentialCard`,
+  in [tails/credential-wallet-slate.md](../../../slates/tails/credential-wallet-slate.md)).
+  The §8 physical card is the cross-jurisdiction *presentation*, not the source
+  of truth.
 - **Motive = incompetent, not evil.** The proctors are campus lost-and-found +
   noise complaints, not detectives. The writ is a **rubber-stamp** — the
   path-of-least-resistance "yes" that makes you leave — pushed across the
