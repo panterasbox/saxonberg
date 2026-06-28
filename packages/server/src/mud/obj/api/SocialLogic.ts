@@ -173,6 +173,62 @@ function defaultRuleFor(viewer: Stuff, ref: GroupRef): NotifyRule {
   return id ? baselineRule(viewer, id) : defaultCustomRule(ref);
 }
 
+/**
+ * The reserved ids that resolve at the **head** of the effective list (the
+ * `effectiveRuleList` virtual head), in baseline-rank order: `foes` before
+ * `friends`. `everyone-else` / `strangers` are tail baselines and keep the
+ * default append behaviour when materialized.
+ */
+const HEAD_RESERVED: readonly ReservedId[] = [RESERVED.foes, RESERVED.friends];
+
+/** Is `id` a head-baseline reserved id (`foes` / `friends`)? */
+function isHeadReserved(id: ReservedId | null): id is ReservedId {
+  return id === RESERVED.foes || id === RESERVED.friends;
+}
+
+/**
+ * The stored-list index a freshly-materialized head-baseline reserved rule
+ * should occupy so it preserves its virtual-head precedence: above every
+ * custom rule, and in baseline rank (`foes` before `friends`). The index is
+ * the count of higher-ranked head-baseline rules already stored — so `foes`
+ * always lands at 0 and `friends` lands just after a stored `foes`.
+ */
+function headInsertIndex(
+  host: NotifyPolicy,
+  viewer: Stuff,
+  id: ReservedId,
+): number {
+  const myRank = HEAD_RESERVED.indexOf(id);
+  let idx = 0;
+  for (const r of host.notifyRules()) {
+    const rid = reservedIdOf(viewer, r.groupRef);
+    if (isHeadReserved(rid) && HEAD_RESERVED.indexOf(rid) < myRank) idx++;
+  }
+  return idx;
+}
+
+/**
+ * Persist a (newly-built) rule into the store. A head-baseline reserved id
+ * (`foes` / `friends`) being **materialized for the first time** is inserted
+ * at the head (preserving baseline rank) rather than appended, so it keeps
+ * the precedence its virtual twin had above all custom rules. Everything
+ * else (custom refs, the `everyone-else` / `strangers` tail) appends. An
+ * already-stored rule is replaced in place and never moved (re-materializing
+ * is precedence-stable) — `upsertNotifyRuleAt` handles that case.
+ */
+function storeMaterialized(
+  host: NotifyPolicy,
+  viewer: Stuff,
+  rule: NotifyRule,
+): void {
+  const id = reservedIdOf(viewer, rule.groupRef);
+  if (isHeadReserved(id)) {
+    host.upsertNotifyRuleAt(rule, headInsertIndex(host, viewer, id));
+  } else {
+    host.upsertNotifyRule(rule);
+  }
+}
+
 interface ListEntry {
   rule: NotifyRule;
   reserved: boolean;
@@ -301,7 +357,7 @@ function setRuleImpl(
   const existing = host.notifyRules().find((r) => r.groupRef === ref);
   const base = existing ?? defaultRuleFor(viewer, ref);
   const merged: NotifyRule = { ...base, ...patch, groupRef: ref };
-  host.upsertNotifyRule(merged);
+  storeMaterialized(host, viewer, merged);
   return { rule: merged, created: existing === undefined };
 }
 
@@ -329,7 +385,7 @@ function reorderRuleImpl(
 
 function ensureStored(host: NotifyPolicy, viewer: Stuff, ref: GroupRef): void {
   if (host.notifyRules().some((r) => r.groupRef === ref)) return;
-  host.upsertNotifyRule(defaultRuleFor(viewer, ref));
+  storeMaterialized(host, viewer, defaultRuleFor(viewer, ref));
 }
 
 /* ── Phase 2: the display-lensing occupant formatter ─────────────────── */
@@ -555,6 +611,7 @@ async function relayPresenceImpl(
 
   for (const viewer of PlayerApi.getAllAvatars()) {
     if ((viewer as Stuff) === (actor as Stuff)) continue; // never self-notify
+    if (!viewer.isConnected()) continue; // online viewers only — skip linkdead
     const rule = await ruleForImpl(viewer, actor as Stuff, {
       excludeMql: true,
     });

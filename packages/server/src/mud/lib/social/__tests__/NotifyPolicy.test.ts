@@ -43,6 +43,33 @@ describe("NotifyPolicyMixin", () => {
     });
   });
 
+  it("upsertNotifyRuleAt inserts a new rule at the position and clamps bounds", () => {
+    const o = makeStuff(() => new NotifyOwner());
+    o.upsertNotifyRule(rule("a"));
+    o.upsertNotifyRule(rule("b"));
+    // Insert at the head.
+    o.upsertNotifyRuleAt(rule("head"), 0);
+    expect(o.notifyRules().map((r) => r.groupRef)).toEqual(["head", "a", "b"]);
+    // A position past the end clamps to the tail.
+    o.upsertNotifyRuleAt(rule("tail"), 99);
+    expect(o.notifyRules().map((r) => r.groupRef)).toEqual([
+      "head",
+      "a",
+      "b",
+      "tail",
+    ]);
+  });
+
+  it("upsertNotifyRuleAt replaces an existing rule in place (never moves it)", () => {
+    const o = makeStuff(() => new NotifyOwner());
+    o.upsertNotifyRule(rule("a"));
+    o.upsertNotifyRule(rule("b"));
+    // Same groupRef → in-place replace, position argument ignored.
+    o.upsertNotifyRuleAt(rule("b", { color: "rose" }), 0);
+    expect(o.notifyRules().map((r) => r.groupRef)).toEqual(["a", "b"]);
+    expect(o.notifyRules()[1]).toMatchObject({ groupRef: "b", color: "rose" });
+  });
+
   it("remove drops a rule and reports whether anything changed", () => {
     const o = makeStuff(() => new NotifyOwner());
     o.upsertNotifyRule(rule("managed:a"));

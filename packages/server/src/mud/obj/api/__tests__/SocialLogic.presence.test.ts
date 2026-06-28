@@ -41,14 +41,23 @@ import {
 } from "../../../lib/security/__tests__/test-setup";
 import type { MessageFrame } from "@saxonberg/types";
 
-/** An Avatar-shaped host: Sensor (so `scene.toSelf` works) + NotifyPolicy. */
+/**
+ * An Avatar-shaped host: Sensor (so `scene.toSelf` works) + NotifyPolicy.
+ * `connected` stands in for `HasInteractiveMixin.isConnected()` — the relay
+ * scans online viewers only, so a linkdead viewer (`connected = false`) is
+ * skipped.
+ */
 class Viewer extends SensorMixin(NotifyPolicyMixin(Idea)) {
   public received: MessageFrame[] = [];
+  public connected = true;
   constructor(private pid: string) {
     super();
   }
   getPlayerId(): string {
     return this.pid;
+  }
+  isConnected(): boolean {
+    return this.connected;
   }
   protected override handleMessage(frame: unknown): void {
     this.received.push(frame as MessageFrame);
@@ -238,6 +247,19 @@ describe("SocialLogic presence relay", () => {
     const serialized = JSON.stringify(payload);
     expect(serialized).not.toContain("fighter-guild");
     expect(serialized).not.toContain("secret-cabal");
+  });
+
+  it("skips a linkdead viewer (scans online viewers only)", async () => {
+    const v = makeViewer("v1");
+    v.connected = false; // linkdead — no live Interactive to push to
+    SocialApi.setRule(v, "managed:fighter-guild", { onConnect: "banner" });
+    membership.add(`actor|managed:fighter-guild`);
+
+    SocialApi.boot();
+    EventApi.emit(Events.PlayerLoggedIn, { playerId: "actor", userId: "u" });
+    await flush();
+
+    expect(v.received).toHaveLength(0);
   });
 
   it("does not notify the acting player about their own login", async () => {

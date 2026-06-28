@@ -38,6 +38,14 @@ export interface NotifyPolicy {
    * tail when none exists. The caller supplies the fully-built rule.
    */
   upsertNotifyRule(rule: NotifyRule): void;
+  /**
+   * Like {@link upsertNotifyRule}, but a *newly-inserted* rule lands at
+   * `position` (clamped to the list bounds) rather than at the tail. An
+   * existing rule with the same `groupRef` is still replaced in place and
+   * never moved. The caller owns the position semantics (e.g. reserved-rank
+   * ordering) — this stays dumb storage.
+   */
+  upsertNotifyRuleAt(rule: NotifyRule, position: number): void;
   /** Drop the rule keyed on `groupRef`. Returns true if anything changed. */
   removeNotifyRule(groupRef: GroupRef): boolean;
   /**
@@ -108,6 +116,18 @@ export function NotifyPolicyMixin<TBase extends MixinConstructor>(Base: TBase) {
       );
       if (idx >= 0) this._notifyRules[idx] = rule;
       else this._notifyRules.push(rule);
+    }
+
+    upsertNotifyRuleAt(rule: NotifyRule, position: number): void {
+      const idx = this._notifyRules.findIndex(
+        (r) => r.groupRef === rule.groupRef,
+      );
+      if (idx >= 0) {
+        this._notifyRules[idx] = rule;
+        return;
+      }
+      const at = Math.max(0, Math.min(position, this._notifyRules.length));
+      this._notifyRules.splice(at, 0, rule);
     }
 
     removeNotifyRule(groupRef: GroupRef): boolean {

@@ -136,6 +136,70 @@ describe("SocialApi.ruleFor — strict ordered first-match", () => {
     expect(r.onConnect).toBe("banner");
   });
 
+  it("materializing a head-baseline reserved rule (friends) preserves its head precedence over a higher custom rule", async () => {
+    const v = makeViewer();
+    const p = makePerson("/obj/Avatar/dual");
+    // A boosted custom guild rule — the only stored rule, so it sits above
+    // where a tail-appended `friends` would land.
+    SocialApi.setRule(v, "managed:guild", { boostInDense: true });
+    // The person is BOTH a guild member and a friend.
+    membership.add(`/obj/Avatar/dual|managed:guild`);
+    membership.add(`/obj/Avatar/dual|${FRIENDS_REF}`);
+
+    // Before materialization: virtual `friends` lives at the head, above the
+    // stored guild rule, so the dual person resolves to friends.
+    const before = await SocialApi.ruleFor(v, p);
+    expect(before.groupRef).toBe(FRIENDS_REF);
+    expect(before.reserved).toBe(true);
+
+    // Editing friends materializes it. The bug appended it to the tail
+    // (below managed:guild), flipping the resolution to the guild rule.
+    SocialApi.setRule(v, FRIENDS_REF, { color: "violet" });
+
+    // After materialization: friends still wins — it was inserted at the
+    // head, not appended below the custom guild rule.
+    const after = await SocialApi.ruleFor(v, p);
+    expect(after.groupRef).toBe(FRIENDS_REF);
+    expect(after.reserved).toBe(false);
+
+    // And the stored order reflects friends ahead of the guild rule.
+    const stored = SocialApi.listRules(v).map((r) => r.groupRef);
+    expect(stored.indexOf(FRIENDS_REF)).toBeLessThan(
+      stored.indexOf("managed:guild"),
+    );
+  });
+
+  it("materializing both head baselines keeps foes before friends, above custom rules", async () => {
+    const v = makeViewer();
+    const foesRef = `contacts:viewer:${RESERVED.foes}`;
+    SocialApi.setRule(v, "managed:guild", {});
+    // Materialize friends first, then foes — foes must still rank ahead.
+    SocialApi.setRule(v, FRIENDS_REF, { color: "violet" });
+    SocialApi.setRule(v, foesRef, { color: "rose" });
+
+    const order = SocialApi.listRules(v).map((r) => r.groupRef);
+    expect(order.indexOf(foesRef)).toBeLessThan(order.indexOf(FRIENDS_REF));
+    expect(order.indexOf(FRIENDS_REF)).toBeLessThan(
+      order.indexOf("managed:guild"),
+    );
+  });
+
+  it("re-materializing an already-stored head baseline does not move it", async () => {
+    const v = makeViewer();
+    SocialApi.setRule(v, FRIENDS_REF, { color: "violet" });
+    SocialApi.setRule(v, "managed:guild", {});
+    // friends is stored at the head; a second edit must not relocate it
+    // (and must not jump it relative to the now-stored guild rule).
+    SocialApi.setRule(v, FRIENDS_REF, { color: "teal" });
+
+    const order = SocialApi.listRules(v).map((r) => r.groupRef);
+    expect(order.indexOf(FRIENDS_REF)).toBeLessThan(
+      order.indexOf("managed:guild"),
+    );
+    const friends = SocialApi.listRules(v).find((r) => r.groupRef === FRIENDS_REF);
+    expect(friends?.color).toBe("teal");
+  });
+
   it("stores an MQL ref but skips it under excludeMql (display vs notify)", async () => {
     const v = makeViewer();
     const p = makePerson("/obj/Avatar/p1");
