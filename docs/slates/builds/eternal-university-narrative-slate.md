@@ -143,7 +143,7 @@ relationship to the death:
 | Campus organ | Canon hook | Role in the arc |
 |---|---|---|
 | **The Quad** | central green, the hub ([campus-map]) | The campus's **forum made physical** — where the student body argues it out; the argument-map lives here as a board/kiosk. The player learns the world's "approach to problem-solving" by watching a community reason badly, then better. |
-| **The Registrar** | a campus *service* (EU slate) | **The rolls live here.** The campus's census/enfranchisement authority. Where the count is kept, where the fraud happens, where the victim's census-prep work was filed. The single most load-bearing service for this arc. |
+| **The enrollment office** | a campus *service* | The campus **intake** — who's enrolled, the population fed to the city census (*arriving = being counted*, §6). **Where Dunny's census-prep started and his discovery began** — the thread's on-ramp. *Not* the civic authority: the **rolls, the count, and the fraud live at the civic Registrar in Terminus** (§15.4) — a *municipal* office, like the morgue; the records route leads there. See `experiences/registrar.md`. |
 | **University Avenue + Gus's gate** | TPA stop in Terminus; Gus the crossing guard | The **town/gown membrane.** Gus's crossing ritual (theater over one traversal) becomes quietly thematic: crossing *is* being counted in/out. The seam the victim kept crossing; the door the arc eventually walks through to the city. |
 | **The proctors** | (new) | The institutional layer that would prefer quiet. First time the player feels "the institution has its own interests." Where deputization happens. |
 | **Duncan Hall** | the dorm (EU slate; onboarding climax) | Home. The room with the tape on it. One node — important because it's *home*, not because it's the universe. The sealed room is the arc's engine (see §7). |
@@ -453,7 +453,9 @@ directly on the recognition/belief substrate —
 
 **His major:** **demography / population statistics** — the discipline of
 counting itself — and he'd been assigned **census-prep work** (reconciling
-the preliminary rolls at the registrar). His "specialness" is **a trait,
+the preliminary rolls at the campus **enrollment office** — the thread's start;
+the civic Registrar and the fraud are in Terminus, §15.4). His "specialness" is
+**a trait,
 not a power**: the obsessive who, when the numbers didn't close, *kept
 pulling the thread instead of rounding the error away.* Pi's Max —
 isolated, fixated, sadder than the player, the cautionary version. His
