@@ -39,6 +39,7 @@ import { PostRegistrationMixin } from "../lib/stuff/PostRegistration";
 import { HasInteractiveMixin } from "../lib/connection/HasInteractive";
 import { AetherMixin } from "../lib/message/Aether";
 import { ContactsMixin } from "../lib/social/Contacts";
+import { NotifyPolicyMixin } from "../lib/social/NotifyPolicy";
 import { SubjectSubscriberMixin } from "../lib/forum/SubjectSubscriber";
 import { Events } from "../lib/events";
 import type { User } from "../lib/identity/User";
@@ -78,7 +79,9 @@ export interface AvatarInitContext {
 // it. The mixin gates `tell` and (future) chat / remote-emote.
 const AvatarBase = PostRegistrationMixin(
   HasInteractiveMixin(
-    AetherMixin(ContactsMixin(SubjectSubscriberMixin(ShelledCharacter))),
+    AetherMixin(
+      NotifyPolicyMixin(ContactsMixin(SubjectSubscriberMixin(ShelledCharacter))),
+    ),
   ),
 );
 

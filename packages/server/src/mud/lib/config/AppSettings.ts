@@ -213,6 +213,19 @@ export const AppSettingKeys = {
   bankingSalesTaxRate: "banking.salesTaxRate",
   /** Banking — the placeholder treasury account that demo tax accumulates in. */
   bankingTreasuryAccount: "banking.treasuryAccount",
+
+  /**
+   * Social-graph (attention management) — the reserved-baseline notify
+   * rules' default fields (deployment defaults, NOT code constants). JSON
+   * map keyed by reserved id (`foes`/`friends`/`everyone-else`/`strangers`)
+   * → the rule's display + notification + color fields. The engine ships
+   * the strict-ordered-first-match resolution; these are the seeded
+   * defaults the virtual baseline resolves to. See
+   * docs/subsystems/social-graph.md.
+   */
+  socialBaselineRules: "social.baselineRules",
+  /** Social-graph — the neutral palette token a fresh custom rule inherits. */
+  socialDefaultColor: "social.defaultColor",
 } as const;
 
 export type AppSettingKey =

@@ -1,0 +1,52 @@
+verbs: [notify]
+controller: social/NotifyController
+description: "Manage your attention rules — how a group's connect / disconnect / message surfaces, and how they render in a room (keyed on any group ref, ordered by precedence)"
+help: |
+  Decide whose comings, goings, and messages reach you, and how the
+  people in a group render when you look at a room. A rule is keyed on
+  any group — a contacts label (`friends`), a managed group
+  (`managed:fighter-guild`), or an MQL query — and your rules are an
+  ordered list: when someone matches several, the FIRST rule down the
+  list wins. Order is precedence, so placing a rule higher makes it
+  authoritative.
+
+  Bare `notify` lists your rules. `notify <ref>` shows one. `notify
+  <ref> k=v …` sets fields. `notify <ref> --above <other>` reorders.
+  `notify <ref> remove` drops a rule (the group falls back to the
+  sensible default tail). Reserved labels — `friends`, `foes`,
+  `everyone-else`, `strangers` — ship sensible defaults you can edit.
+
+  Fields: `login` / `disconnect` (banner|log-only|silent), `message`
+  (full|summary|silent), `render` (name|feature-string|count-only|hidden),
+  `boost` (on|off), `color` (a theme palette token, e.g. amber).
+validators:
+  - /lib/command/validators/requiresAnimate
+fallthrough: true
+options:
+  above:
+    type: string
+    description: "Reorder: place this rule above another (order = precedence)"
+  below:
+    type: string
+    description: "Reorder: place this rule below another"
+subcommands:
+  remove:
+    description: "Drop a rule (the group falls back to the default tail)"
+    help: |
+      Remove a rule you set. The group it covered falls back to the
+      reserved baseline default (so removing your `friends` rule just
+      restores the shipped friends behavior, it doesn't forget anyone).
+    args:
+      - name: ref
+        type: string
+        required: true
+args:
+  # Fallthrough: when the first token isn't the `remove` subcommand, bind
+  # these as `notify <ref> [k=v …]` (set / show), or bare `notify` (list).
+  - name: ref
+    type: string
+    required: false
+  - name: assignments
+    type: string
+    required: false
+    greedy: true

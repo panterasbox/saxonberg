@@ -1,0 +1,294 @@
+/**
+ * NotifyController — player surface for the attention-rule store (the
+ * social-graph notify policy). Thin caller over `SocialApi`: bare list /
+ * `<ref>` show / `<ref> k=v…` set / `--above`/`--below` reorder / `remove`.
+ *
+ * The store + first-match resolution live in `SocialLogic` (behind
+ * `SocialApi`); this controller only normalizes the typed `<ref>` (bare
+ * contacts labels → `contacts:<me>:<label>`), parses the `k=v` field
+ * assignments, and enforces the 50-rule soft cap with a friendly rejection
+ * (storage stays dumb — the cap lives at set-time, the Contacts precedent).
+ */
+
+import { CommandController } from "../../../lib/command/CommandController";
+import type { CommandContext, CommandModel } from "../../../api/command";
+import { MessageApi } from "../../../api/message";
+import { MixinApi } from "../../../api/mixin";
+import { Mml } from "../../../api/mml";
+import { PlayerApi } from "../../../api/player";
+import { SocialApi } from "../../../api/social";
+import type { Stuff } from "../../../lib/stuff/Stuff";
+import type { NotifyPolicy } from "../../../lib/social/NotifyPolicy";
+import {
+  RESERVED,
+  NAME_RENDERINGS,
+  CONNECT_SURFACES,
+  MESSAGE_SURFACES,
+  PALETTE_TOKENS,
+  type NotifyRule,
+} from "../../../lib/social/NotifyRule";
+
+/** The maximum number of user-defined rules (soft cap, slate open-Q 8). */
+const MAX_RULES = 50;
+
+interface NotifyModel extends CommandModel {
+  ref?: string;
+  assignments?: string;
+  above?: string;
+  below?: string;
+}
+
+type NotifyHost = Stuff & NotifyPolicy;
+
+export default class NotifyController extends CommandController<NotifyModel> {
+  async execute(model: NotifyModel, context: CommandContext): Promise<void> {
+    const giver = context.commandGiver;
+    if (!MixinApi.isNotifyPolicy(giver)) {
+      return this.fail(
+        context,
+        "You have no notification policy.",
+        "mixin-missing",
+      );
+    }
+    const host: NotifyHost = giver;
+    const vid = PlayerApi.isAvatarStuff(giver) ? giver.getPlayerId() : "";
+
+    // `remove` subcommand: `notify remove <ref>`.
+    if (model.subcommand === "remove") {
+      return this.executeRemove(host, vid, model.ref ?? "", context);
+    }
+
+    const rawRef = (model.ref ?? "").trim();
+    const assignments = (model.assignments ?? "").trim();
+
+    // Reorder: `notify <ref> --above/--below <other>`.
+    if (model.above || model.below) {
+      return this.executeReorder(host, vid, rawRef, model, context);
+    }
+
+    // Bare `notify` — list.
+    if (!rawRef) return this.executeList(host, context);
+
+    // `notify <ref> remove` (the requirements' ref-first remove grammar).
+    if (assignments === "remove") {
+      return this.executeRemove(host, vid, rawRef, context);
+    }
+
+    // `notify <ref> k=v …` — set.
+    if (assignments) {
+      return this.executeSet(host, vid, rawRef, assignments, context);
+    }
+
+    // `notify <ref>` — show one rule.
+    return this.executeShow(host, vid, rawRef, context);
+  }
+
+  private executeList(host: NotifyHost, context: CommandContext): void {
+    const rules = SocialApi.listRules(host);
+    if (rules.length === 0) {
+      this.send(context, Mml.fromMarkup(`\nNo notify rules.\n`));
+      return;
+    }
+    const lines = ["Your notify rules (top = highest precedence):"];
+    for (const r of rules) lines.push(`  ${renderRuleLine(r)}`);
+    this.send(context, Mml.fromMarkup(`\n${lines.join("\n")}\n`));
+  }
+
+  private executeShow(
+    host: NotifyHost,
+    vid: string,
+    rawRef: string,
+    context: CommandContext,
+  ): void {
+    const ref = normalizeRef(vid, rawRef);
+    const rule = SocialApi.listRules(host).find((r) => r.groupRef === ref);
+    if (!rule) {
+      this.send(context, Mml.fromMarkup(`\nNo rule for ${ref}.\n`));
+      return;
+    }
+    this.send(context, Mml.fromMarkup(`\n${renderRuleLine(rule)}\n`));
+  }
+
+  private executeSet(
+    host: NotifyHost,
+    vid: string,
+    rawRef: string,
+    assignments: string,
+    context: CommandContext,
+  ): void {
+    const ref = normalizeRef(vid, rawRef);
+    const parsed = parseAssignments(assignments);
+    if (typeof parsed === "string") {
+      return this.fail(context, parsed, "bad-assignment");
+    }
+
+    // Soft cap: only a genuinely NEW user-defined rule counts against it.
+    const exists = host.notifyRules().some((r) => r.groupRef === ref);
+    if (!exists && host.notifyRules().length >= MAX_RULES) {
+      return this.fail(
+        context,
+        `You already have ${MAX_RULES} notify rules — remove one before ` +
+          `adding another.`,
+        "rule-cap",
+      );
+    }
+
+    const result = SocialApi.setRule(host, ref, parsed);
+    const verb = result.created ? "Set" : "Updated";
+    this.send(
+      context,
+      Mml.fromMarkup(`\n${verb} rule for ${ref}.\n  ${renderRuleLine(result.rule)}\n`),
+    );
+  }
+
+  private executeReorder(
+    host: NotifyHost,
+    vid: string,
+    rawRef: string,
+    model: NotifyModel,
+    context: CommandContext,
+  ): void {
+    if (!rawRef) {
+      return this.fail(context, "Which rule to reorder?", "ref-required");
+    }
+    const where: "above" | "below" = model.above ? "above" : "below";
+    const anchorRaw = (model.above ?? model.below ?? "").trim();
+    if (!anchorRaw) {
+      return this.fail(context, "Reorder relative to which rule?", "anchor-required");
+    }
+    const ref = normalizeRef(vid, rawRef);
+    const anchor = normalizeRef(vid, anchorRaw);
+    if (ref === anchor) {
+      return this.fail(context, "A rule can't be reordered against itself.", "self-anchor");
+    }
+    const ok = SocialApi.reorderRule(host, ref, anchor, where);
+    if (!ok) {
+      return this.fail(context, `Couldn't reorder ${ref}.`, "reorder-failed");
+    }
+    this.send(context, Mml.fromMarkup(`\nMoved ${ref} ${where} ${anchor}.\n`));
+  }
+
+  private executeRemove(
+    host: NotifyHost,
+    vid: string,
+    rawRef: string,
+    context: CommandContext,
+  ): void {
+    const trimmed = rawRef.trim();
+    if (!trimmed) return this.fail(context, "Remove which rule?", "ref-required");
+    const ref = normalizeRef(vid, trimmed);
+    const removed = SocialApi.removeRule(host, ref);
+    if (!removed) {
+      this.send(context, Mml.fromMarkup(`\nNo rule for ${ref}.\n`));
+      return;
+    }
+    this.send(
+      context,
+      Mml.fromMarkup(`\nRemoved rule for ${ref}; it falls back to the default.\n`),
+    );
+  }
+
+  private fail(
+    context: CommandContext,
+    detail: string,
+    reason: string,
+  ): void {
+    this.send(context, Mml.fromMarkup(`\n${detail}\n`));
+    context.note({ kind: "controller-rejected", reason, detail });
+  }
+
+  private send(context: CommandContext, body: Mml): void {
+    MessageApi.scene(context.commandGiver)
+      .topic("system.shell.notify")
+      .toSelf(body)
+      .send();
+  }
+}
+
+/**
+ * Normalize a typed `<ref>` to a canonical `GroupRef`:
+ *   - the bare pseudo-subjects `everyone-else` / `strangers` stay bare,
+ *   - anything already containing a `:` is a full ref (`managed:…`,
+ *     `mql:…`, `contacts:…`) and passes through,
+ *   - any other bare word (including `friends` / `foes`) is a contacts
+ *     label → `contacts:<me>:<word>`.
+ * MUST match `SocialLogic.canonicalReservedRef` so a materialized reserved
+ * rule dedups its virtual baseline twin.
+ */
+function normalizeRef(vid: string, raw: string): string {
+  const trimmed = raw.trim();
+  if (trimmed === RESERVED.everyoneElse || trimmed === RESERVED.strangers) {
+    return trimmed;
+  }
+  if (trimmed.includes(":")) return trimmed;
+  return `contacts:${vid}:${trimmed}`;
+}
+
+const BOOST_TRUE = new Set(["on", "true", "yes", "1"]);
+const BOOST_FALSE = new Set(["off", "false", "no", "0"]);
+
+/**
+ * Parse `k=v` field assignments into a partial rule, or return an error
+ * string. Recognized keys: `login`/`disconnect`/`message`/`render`/
+ * `boost`/`color`.
+ */
+function parseAssignments(input: string): Partial<NotifyRule> | string {
+  const patch: Partial<NotifyRule> = {};
+  for (const token of input.split(/\s+/).filter(Boolean)) {
+    const eq = token.indexOf("=");
+    if (eq < 0) {
+      return `Expected key=value, got '${token}'.`;
+    }
+    const key = token.slice(0, eq).trim().toLowerCase();
+    const value = token.slice(eq + 1).trim();
+    switch (key) {
+      case "login":
+      case "connect":
+        if (!CONNECT_SURFACES.includes(value as never)) {
+          return `login must be one of ${CONNECT_SURFACES.join(" / ")}.`;
+        }
+        patch.onConnect = value as NotifyRule["onConnect"];
+        break;
+      case "disconnect":
+        if (!CONNECT_SURFACES.includes(value as never)) {
+          return `disconnect must be one of ${CONNECT_SURFACES.join(" / ")}.`;
+        }
+        patch.onDisconnect = value as NotifyRule["onDisconnect"];
+        break;
+      case "message":
+        if (!MESSAGE_SURFACES.includes(value as never)) {
+          return `message must be one of ${MESSAGE_SURFACES.join(" / ")}.`;
+        }
+        patch.onMessage = value as NotifyRule["onMessage"];
+        break;
+      case "render":
+        if (!NAME_RENDERINGS.includes(value as never)) {
+          return `render must be one of ${NAME_RENDERINGS.join(" / ")}.`;
+        }
+        patch.nameRendering = value as NotifyRule["nameRendering"];
+        break;
+      case "boost":
+        if (BOOST_TRUE.has(value.toLowerCase())) patch.boostInDense = true;
+        else if (BOOST_FALSE.has(value.toLowerCase())) patch.boostInDense = false;
+        else return `boost must be on or off.`;
+        break;
+      case "color":
+        if (!PALETTE_TOKENS.includes(value as never)) {
+          return `color must be one of ${PALETTE_TOKENS.join(" / ")}.`;
+        }
+        patch.color = value as NotifyRule["color"];
+        break;
+      default:
+        return `Unknown field '${key}'.`;
+    }
+  }
+  return patch;
+}
+
+function renderRuleLine(r: NotifyRule): string {
+  return (
+    `${r.groupRef}  render=${r.nameRendering} boost=${r.boostInDense ? "on" : "off"} ` +
+    `login=${r.onConnect} disconnect=${r.onDisconnect} message=${r.onMessage} ` +
+    `color=${r.color}`
+  );
+}
