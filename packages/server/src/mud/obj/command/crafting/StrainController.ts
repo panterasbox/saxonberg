@@ -23,6 +23,7 @@ import { Mml } from "../../../api/mml";
 import { CraftingApi } from "../../../api/crafting";
 import { ExecutionContextApi } from "../../../api/execution-context";
 import { Transcriber } from "../../../lib/script/Transcriber";
+import { RecipeKnowledge } from "../../../lib/script/RecipeKnowledge";
 
 const TOPIC = "world.narration.action";
 const STRAIN_MS = 2500;
@@ -105,21 +106,28 @@ export default class StrainController extends ManualBuildController<StrainModel>
             .toPeers(Mml.compose`${Mml.name(giver)} strains out ${Mml.item(outcome.output)}.`)
             .send();
 
-          // Demonstration capture: a hand-typed build that matched a recipe
-          // transcribes into a named recipe-script banked to the builder's
-          // home. A scripted replay records no sources → nothing to capture.
+          // The chronicle knowledge ladder + demonstration capture. The
+          // FIRST faithful, hand-typed build of a recipe mints the
+          // can-make **deed** and transcribes + banks the personal
+          // recipe-script — the SAME act (learning *is* getting the
+          // script). Later builds of a recipe you can already make just
+          // yield the drink; a scripted replay records no sources.
           if (recipeId.length > 0 && sources.length > 0) {
             await ExecutionContextApi.runRoot(
               StrainController,
-              "transcribe",
+              "learn-recipe",
               async () => {
                 ExecutionContextApi.tagActingAuthor(builder);
+                if (await RecipeKnowledge.canMake(builder, recipeId)) return;
+                const view = await CraftingApi.lookupRecipe(recipeId);
+                const name = view?.name ?? recipeId;
+                await RecipeKnowledge.noteMade(builder, recipeId, name);
                 const path = await Transcriber.transcribe(recipeId, sources);
                 if (path !== null) {
                   MessageApi.scene(giver)
                     .topic(TOPIC)
                     .toSelf(
-                      Mml.compose`You've worked out how to make ${recipeId} — the recipe is yours now (try \`make ${recipeId}\`).`,
+                      Mml.compose`You've worked out how to make ${name} — the recipe is yours now (try \`make ${recipeId}\`).`,
                     )
                     .send();
                 }

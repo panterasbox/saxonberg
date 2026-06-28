@@ -160,6 +160,38 @@ function makeReschedule(): () => Promise<void> {
     });
 }
 
+/** The bound-tail dispatch primitive for `actor` (re-resolved each run). */
+function dispatchFor(actor: Stuff & CommandGiver): DispatchFn {
+  return (command, model, prep) => actor._dispatchBound(command, model, prep);
+}
+
+/** The actor's home recipe path: `/home/<key>/scripts/<name>`. */
+function homeScriptPath(actor: Stuff, name: string): string | null {
+  const key = actor.getTemplatePath()?.split("/").filter(Boolean).pop() ?? null;
+  return key ? `/home/${key}/scripts/${name}` : null;
+}
+
+/**
+ * Auto-load a recipe-script the actor owns from the home store (the
+ * learned/transcribed recipe), running its source to register the `def`,
+ * then returning it. Re-resolved per call (cached until `goLive`) — so an
+ * edit to the banked script reaches the next `make`. The stored source is
+ * a `def …` (no dispatch), so the loader run completes synchronously.
+ */
+async function loadHomeRecipe(
+  actor: Stuff & CommandGiver,
+  name: string,
+  defs: Map<string, ScriptDef>,
+): Promise<ScriptDef | undefined> {
+  const path = homeScriptPath(actor, name);
+  if (path === null) return undefined;
+  const ast = await resolveScriptImpl(path, actor);
+  if (ast === null) return undefined;
+  const loader = new Interpreter(actor, resolveLimits(path), defs);
+  await loader.drive(ast, new Scope(), dispatchFor(actor), makeReschedule());
+  return defs.get(name);
+}
+
 /**
  * Start a coroutine over `ast` in `scope`, register it for cancellation,
  * wire settle handling (deregister + abort scene), and **detach** —
@@ -173,9 +205,12 @@ async function startAndDetach(
   ast: Script,
   scope: Scope,
 ): Promise<void> {
-  const dispatch: DispatchFn = (command, model, prep) =>
-    actor._dispatchBound(command, model, prep);
-  const co = interpreter.startCoroutine(ast, scope, dispatch, makeReschedule());
+  const co = interpreter.startCoroutine(
+    ast,
+    scope,
+    dispatchFor(actor),
+    makeReschedule(),
+  );
   registerCoroutine(actor, co);
 
   void co.whenSettled().then((result) => {
@@ -223,7 +258,9 @@ async function invokeImpl(name: string, args: string[]): Promise<boolean> {
   const actor = currentAuthor();
   if (actor === null) return false;
   const defs = sessionDefsFor(actor);
-  const def = defs.get(name);
+  // A session `def` (the player's own) wins; otherwise auto-load a
+  // learned recipe-script the actor owns from the home store.
+  const def = defs.get(name) ?? (await loadHomeRecipe(actor, name, defs));
   if (!def) return false;
   const interpreter = new Interpreter(actor, resolveLimits(), defs);
   const callScope = def.scope.child();

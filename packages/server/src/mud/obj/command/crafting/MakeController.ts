@@ -14,6 +14,8 @@
 import { CommandController } from "../../../lib/command/CommandController";
 import type { CommandContext, CommandModel } from "../../../api/command";
 import { ScriptApi } from "../../../api/script";
+import { CraftingApi } from "../../../api/crafting";
+import { RecipeKnowledge } from "../../../lib/script/RecipeKnowledge";
 import { MessageApi } from "../../../api/message";
 import { Mml } from "../../../api/mml";
 
@@ -26,10 +28,32 @@ interface MakeModel extends CommandModel {
 
 export default class MakeController extends CommandController<MakeModel> {
   async execute(model: MakeModel, context: CommandContext): Promise<void> {
+    const giver = context.commandGiver;
+
+    // The knowledge gate: a **catalogue** recipe can only be made once
+    // you've *learned* it (the can-make deed — the first faithful hand
+    // build). A player's own non-catalogue `def` resolves to no recipe
+    // view, so it's ungated (you wrote it). The book isn't enough.
+    const view = await CraftingApi.lookupRecipe(model.recipe);
+    if (view && !(await RecipeKnowledge.canMake(giver, view.recipeId))) {
+      MessageApi.scene(giver)
+        .topic(TOPIC)
+        .toSelf(
+          Mml.compose`You've heard of ${view.name}, but you haven't learned to make it — try building it by hand first.`,
+        )
+        .send();
+      context.note({
+        kind: "controller-rejected",
+        reason: "not-learned",
+        detail: model.recipe,
+      });
+      return;
+    }
+
     const args = model.brand ? [model.brand] : [];
     const invoked = await ScriptApi.invoke(model.recipe, args);
     if (!invoked) {
-      MessageApi.scene(context.commandGiver)
+      MessageApi.scene(giver)
         .topic(TOPIC)
         .toSelf(Mml.compose`You don't know how to make '${model.recipe}'.`)
         .send();

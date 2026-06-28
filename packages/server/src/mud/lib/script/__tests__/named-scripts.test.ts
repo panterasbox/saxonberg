@@ -21,6 +21,7 @@ import { ContainerMixin } from "../../spatial/Container";
 import { SensorMixin } from "../../message/Sensor";
 import { ContainmentApi } from "../../../api/containment";
 import { CommandApi } from "../../../api/command";
+import { CraftingApi } from "../../../api/crafting";
 import { makeStuff } from "../../security/__tests__/test-setup";
 import {
   PersistenceManager,
@@ -71,6 +72,9 @@ describe("named scripts — def persistence + make", () => {
       find,
       findById: vi.fn(),
     } as unknown as PersistenceManager);
+    // These names are session `def`s, not catalogue recipes — the
+    // can-make gate keys off a recipe view, so make it resolve to none.
+    vi.spyOn(CraftingApi, "lookupRecipe").mockResolvedValue(null);
     location = makeStuff(() => new Location());
     giver = makeStuff(() => new TestGiver());
     ContainmentApi.move(giver, location);
