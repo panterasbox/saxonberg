@@ -1,8 +1,18 @@
 # External chat relay slate (working doc)
 
-> **Status: shape proposed.** Bridge the in-game channel system to
-> external chat services (**Twitch first**, YouTube deferred). An external
-> channel is **not a new subsystem** — it's the existing `Channel` with one
+> **Status: Twitch (Waves 1+2) SHIPPED 2026-06 → [twitch-relay.md](../../subsystems/twitch-relay.md);
+> YouTube (Wave 3) deferred.** NOTE: the shipped build **deviated** from the
+> "external channel = a `Channel` facet" model below — Twitch chat is a
+> dedicated separate surface (own `twitch` verb + `world.twitch.message`
+> topic) and is **player-initiated + memory-resident** (no registry
+> collection), not admin-curated. This slate is retained for the YouTube
+> generalization (live-only + quota) only; read the subsystem doc for the
+> shipped Twitch shape.
+
+> **Original shape (superseded for Twitch):** Bridge the in-game channel
+> system to external chat services (**Twitch first**, YouTube deferred). An
+> external channel is **not a new subsystem** — it's the existing `Channel`
+> with one
 > new *binding* facet ("this channel mirrors a Twitch broadcaster's
 > chat"). Inbound: one shared reader injects external messages as ordinary
 > channel frames. Outbound: a player posting sends to the service **as

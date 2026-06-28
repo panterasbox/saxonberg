@@ -19,6 +19,7 @@ import { RecipeSeeder } from './RecipeSeeder';
 import { ScriptSeeder } from './ScriptSeeder';
 import { NameBankSeeder } from './NameBankSeeder';
 import { ChannelSeeder } from './ChannelSeeder';
+import { TwitchRelayReader } from './TwitchRelayReader';
 import { AppSettingsSeeder } from './AppSettingsSeeder';
 import { BootstrapManager } from './BootstrapManager';
 import { CommandApi } from '../mud/api/command';
@@ -202,6 +203,11 @@ export class AppBootstrap {
     await AccountBalance.warm();
     await SupplyAggregate.warm();
     BankingApi.boot();
+
+    // Twitch relay — install the outbound DI port + wire the presence-gated
+    // EventSub reader. Inert until a channel is seeded AND a player tunes
+    // in (and a reader token is configured); safe to boot unconditionally.
+    TwitchRelayReader.get().boot();
   }
 
   /**

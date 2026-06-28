@@ -1699,3 +1699,43 @@ export interface CmsErrorBody {
   error: string; // machine code: 'denied' | 'not-found' | 'invalid' | 'sandbox' | 'internal'
   message: string; // human detail
 }
+
+// ---- Twitch relay -------------------------------------------------------
+
+/**
+ * Twitch OAuth scope names the relay spends. Identity scope
+ * (`user:read:email`) lives in the auth spine; these two are the
+ * incremental chat scopes acquired on demand: the reader account holds
+ * `user:read:chat`, a posting player holds `user:write:chat`.
+ */
+export const TWITCH_SCOPE_READ_CHAT = 'user:read:chat';
+export const TWITCH_SCOPE_WRITE_CHAT = 'user:write:chat';
+
+/**
+ * The speaker on a relay frame. Honest-to-origin: a Twitch line carries an
+ * `external` (or `external-linked`) speaker; an outbound mirror of a local
+ * player's post carries `in-game`. `external-linked` carries BOTH the
+ * Twitch handle and a {@link StuffRef} to the linked Avatar, so the client
+ * can show the handle by default and reveal the MUD persona on hover.
+ */
+export type RelaySpeaker =
+  | { kind: 'in-game'; ref: StuffRef }
+  | { kind: 'external'; service: 'twitch'; externalName: string }
+  | {
+      kind: 'external-linked';
+      service: 'twitch';
+      externalName: string;
+      ref: StuffRef;
+    };
+
+/**
+ * Payload of a `world.twitch.message` frame. `egress` marks the outbound
+ * mirror of a local player's post (rendered with the `⊳twitch` marker).
+ */
+export interface TwitchMessagePayload {
+  broadcasterId: string;
+  broadcasterLogin: string;
+  speaker: RelaySpeaker;
+  text: string;
+  egress?: boolean;
+}
