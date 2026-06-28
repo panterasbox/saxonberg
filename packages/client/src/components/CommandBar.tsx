@@ -105,12 +105,9 @@ const ChipsRow = styled.div`
  * dialogue tree this is the NPC's current beat (also spoken aloud in the
  * feed); for a disambiguation/confirm it's the question.
  *
- * **Left-truncated**: the operative part of a line is its end ("…so
- * what'll you have?"), so we keep the tail and clip the head — the
- * ellipsis lands at the start. `direction: rtl` makes `text-overflow`
- * clip+ellipsis the left edge; the inner `<bdi>` isolates the (LTR)
- * text so its words and punctuation still render left-to-right. A line
- * that fits shows whole, with no ellipsis.
+ * Shown in full — it wraps freely. (The cramped, one-line slot-picker
+ * pill is where a long beat gets left-truncated to its operative end;
+ * this spacious pinned area does not.)
  */
 const PromptContext = styled.div`
   padding: ${tokens.space.md} ${tokens.space.xl} 0;
@@ -119,11 +116,7 @@ const PromptContext = styled.div`
   font-size: ${tokens.font.body};
   font-style: italic;
   line-height: 1.4;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  direction: rtl;
-  text-align: left;
+  white-space: pre-wrap;
 `;
 
 const InputRow = styled.div<{ $hasChips: boolean }>`
@@ -810,9 +803,7 @@ export function CommandBar({
   return (
     <BarContainer $promptMode={promptMode}>
       {promptMode && activeEntry?.label ? (
-        <PromptContext>
-          <bdi>{activeEntry.label}</bdi>
-        </PromptContext>
+        <PromptContext>{activeEntry.label}</PromptContext>
       ) : null}
 
       {hasChips || hasValidationError ? (
