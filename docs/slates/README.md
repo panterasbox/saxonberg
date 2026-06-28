@@ -283,7 +283,7 @@ extends; none is a fresh build.
 | [access](./tails/access-slate.md) | access.md / call-security.md | actor-aware policy slots |
 | [argument-map](./tails/argument-map-slate.md) | forums.md | **v1 shipped 2026-06** (the `organizer: 'argument'` claim-graph + neutral lens + open-objection + circle highlight + mature seam + client mode → forums.md); deferred: claim dedup/canonicalization, integrity-grade summarization, automated convergence, proposal version-control, the vote consumer, the plural-lens explorer |
 | [auth-providers](./tails/auth-providers-slate.md) | connection.md | **Waves 1+2 shipped 2026-06** (multi-provider spine + Twitch login + account link/unlink + token encryption → connection.md); deferred: chat scopes, account merge, provider-side revocation, name-refraction, YouTube |
-| [external-chat-relay](./tails/external-chat-relay-slate.md) | chat.md | bind a `Channel` to an external service (Twitch first) — inbound reader + outbound post-as-yourself; **rides the auth-providers keystone** |
+| [external-chat-relay](./tails/external-chat-relay-slate.md) | twitch-relay.md | **Twitch SHIPPED** (two-way chat relay, separate player-initiated surface) → twitch-relay.md; slate retained for the deferred **YouTube** generalization only |
 | [augmentation](./tails/augmentation-slate.md) | augmentation.md | Wave 2+ (Wave 1 shipped) |
 | [affordance-verb](./tails/affordance-verb-slate.md) | put/give/Surfaced (shipped) | source-scoping (`::`), command-provenance |
 | [chat](./tails/chat-slate.md) | chat.md | moderation / edit-trail |
