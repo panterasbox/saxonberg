@@ -37,6 +37,10 @@
  *  - **`$` extends, does not fork, the shell variable namespace.**
  *    `$name` / `${name}` become `VarRef` nodes the interpreter resolves
  *    frame-first, then falls back to `ShellApi.expandVariables`.
+ *  - **`#` at a token boundary is a line comment** (the bash rule) —
+ *    skipped to end-of-line, so authored `.script` content can be
+ *    annotated. A glued `#` mid-word stays literal; comments never reach
+ *    the AST, so `format()` drops them (canonical source, no comments).
  *
  * A block's inner text is **parsed once** into a `Script` fragment (the
  * anti-Tcl keystone — never a re-scanned string).
@@ -171,6 +175,16 @@ function lexScript(input: string): { tokens: ScriptToken[] } | { error: string }
     if (i >= input.length) break;
     const c = input[i]!;
 
+    if (c === "#") {
+      // Line comment: `#` at a token boundary (we just skipped inline
+      // space) runs to end-of-line — the bash rule. The newline still
+      // yields a `sep`. A **glued** `#` mid-word (`foo#bar`) never
+      // reaches here (readWord owns it), so only boundary `#` comments.
+      // Bare commands take the msh fast path and never enter this lexer,
+      // so the byte-identical guarantee is untouched.
+      while (i < input.length && input[i] !== "\n") i++;
+      continue;
+    }
     if (c === ";" || c === "\n") {
       tokens.push({ kind: "sep" });
       i++;
