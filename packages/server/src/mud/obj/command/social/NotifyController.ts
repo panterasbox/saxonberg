@@ -18,7 +18,12 @@ import { Mml } from "../../../api/mml";
 import { PlayerApi } from "../../../api/player";
 import { SocialApi } from "../../../api/social";
 import type { Stuff } from "../../../lib/stuff/Stuff";
+import type { HasInteractive } from "../../../lib/connection/HasInteractive";
 import type { NotifyPolicy } from "../../../lib/social/NotifyPolicy";
+import type {
+  SocialRuleProjection,
+  SocialRulesState,
+} from "@saxonberg/types";
 import {
   RESERVED,
   NAME_RENDERINGS,
@@ -92,6 +97,9 @@ export default class NotifyController extends CommandController<NotifyModel> {
     const lines = ["Your notify rules (top = highest precedence):"];
     for (const r of rules) lines.push(`  ${renderRuleLine(r)}`);
     this.send(context, Mml.fromMarkup(`\n${lines.join("\n")}\n`));
+    // A bare `notify` is how the settings pane requests a fresh
+    // projection on mount — push the effective list back.
+    this.pushProjection(host);
   }
 
   private executeShow(
@@ -139,6 +147,7 @@ export default class NotifyController extends CommandController<NotifyModel> {
       context,
       Mml.fromMarkup(`\n${verb} rule for ${ref}.\n  ${renderRuleLine(result.rule)}\n`),
     );
+    this.pushProjection(host);
   }
 
   private executeReorder(
@@ -166,6 +175,7 @@ export default class NotifyController extends CommandController<NotifyModel> {
       return this.fail(context, `Couldn't reorder ${ref}.`, "reorder-failed");
     }
     this.send(context, Mml.fromMarkup(`\nMoved ${ref} ${where} ${anchor}.\n`));
+    this.pushProjection(host);
   }
 
   private executeRemove(
@@ -185,6 +195,25 @@ export default class NotifyController extends CommandController<NotifyModel> {
     this.send(
       context,
       Mml.fromMarkup(`\nRemoved rule for ${ref}; it falls back to the default.\n`),
+    );
+    this.pushProjection(host);
+  }
+
+  /**
+   * Push the viewer's effective ordered rule list as the `social.rules`
+   * client-state projection (the Phase-4 settings-pane feed). A pure
+   * server→client push — `social.rules` is NOT a persisted client-state
+   * key; the rule store stays the single source of truth, and the pane
+   * reads this as a read-only cache (writes go back through `notify`).
+   * Skipped silently when the giver is an NPC with a policy but no
+   * connected Interactive (the store mutation still stands).
+   */
+  private pushProjection(host: NotifyHost): void {
+    if (!MixinApi.isHasInteractive(host)) return;
+    const state: SocialRulesState = { rules: buildRulesProjection(host) };
+    (host as NotifyHost & HasInteractive).pushClientStateUpdate(
+      "social.rules",
+      state,
     );
   }
 
@@ -283,6 +312,41 @@ function parseAssignments(input: string): Partial<NotifyRule> | string {
     }
   }
   return patch;
+}
+
+/**
+ * Flatten the host's effective ordered rule list into the wire
+ * projection the settings pane reads. `reserved` is `true` for a virtual
+ * baseline row not yet materialized into the stored list (so the pane can
+ * style it as an un-pinned default); `label` is the friendly display name.
+ */
+function buildRulesProjection(host: NotifyHost): SocialRuleProjection[] {
+  const stored = new Set(host.notifyRules().map((r) => r.groupRef));
+  return SocialApi.listRules(host).map((r) => ({
+    groupRef: r.groupRef,
+    label: labelFor(r.groupRef),
+    nameRendering: r.nameRendering,
+    boostInDense: r.boostInDense,
+    onConnect: r.onConnect,
+    onDisconnect: r.onDisconnect,
+    onMessage: r.onMessage,
+    color: r.color,
+    reserved: !stored.has(r.groupRef),
+  }));
+}
+
+/**
+ * The friendly display label for a `GroupRef`: a contacts ref shows its
+ * bare label (`contacts:<pid>:friends` → `friends`); everything else
+ * (managed / MQL / the bare pseudo-subjects) shows the ref verbatim. The
+ * pane addresses commands by `groupRef`, never the label.
+ */
+function labelFor(ref: string): string {
+  if (ref.startsWith("contacts:")) {
+    const parts = ref.split(":");
+    if (parts.length >= 3) return parts.slice(2).join(":");
+  }
+  return ref;
 }
 
 function renderRuleLine(r: NotifyRule): string {

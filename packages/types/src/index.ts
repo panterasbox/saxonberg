@@ -122,6 +122,52 @@ export interface SocialNotificationPayload {
   country?: string;
 }
 
+/**
+ * One row of the `social.rules` client-state projection — a flattened,
+ * wire-safe view of a `NotifyRule` for the "Social / Notifications"
+ * settings pane. The server pushes the viewer's effective ordered list
+ * (stored rules spliced into the virtual reserved baseline) via
+ * `host.pushClientStateUpdate('social.rules', SocialRulesState)` after
+ * every `notify` mutation; the pane reads it as a **read-only cache** —
+ * the per-character rule store stays the single source of truth, and all
+ * writes go back through the `notify` verb.
+ *
+ * - `groupRef` is the canonical ref the verb addresses (`contacts:<pid>:
+ *   <label>`, `managed:<id>`, `mql:<q>`, or the bare `everyone-else` /
+ *   `strangers` pseudo-subjects).
+ * - `label` is the human-friendly display name (a contacts ref's bare
+ *   label, else the ref itself) — display only; commands address
+ *   `groupRef`.
+ * - `reserved` is `true` for a virtual baseline row not yet materialized
+ *   into the stored list (the pane styles it as a default that
+ *   editing/reordering will pin).
+ * - `color` is a named theme-palette token (never raw hex), mapped
+ *   client-side through `tokens.palette`.
+ */
+export interface SocialRuleProjection {
+  groupRef: string;
+  label: string;
+  nameRendering: 'name' | 'feature-string' | 'count-only' | 'hidden';
+  boostInDense: boolean;
+  onConnect: 'banner' | 'log-only' | 'silent';
+  onDisconnect: 'banner' | 'log-only' | 'silent';
+  onMessage: 'full' | 'summary' | 'silent';
+  color: string;
+  reserved: boolean;
+}
+
+/**
+ * The `social.rules` client-state projection value — the viewer's
+ * effective ordered notify-rule list, top = highest precedence. Pushed
+ * server→client (`client-state-update`) after every `notify` mutation
+ * (and on a bare `notify` list) so the settings pane re-renders without a
+ * reconnect snapshot. Not a persisted client-state key — a pure push
+ * cache.
+ */
+export interface SocialRulesState {
+  rules: SocialRuleProjection[];
+}
+
 // ============================================================================
 // Response Envelope (dispatch outcome wire frame)
 // ============================================================================

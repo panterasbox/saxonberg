@@ -4,12 +4,21 @@ Working slate for the social-graph layer — notification rules and
 bucket-keyed display verbosity over named lists of other characters.
 Built on top of recognition; consumed by comms.
 
-> **Status: still a build — the relationship layer is unbuilt.** Only the
-> storage *substrate* shipped (see below); the feature this slate is
-> really about — per-bucket **notification policy**, per-viewer **display
-> verbosity / density-aware aggregation** (the "200-player tavern renders
-> manageably" thesis), and **recognition-state coupling** — has **not**
-> been built. Stays in `builds/`, not a deferred tail.
+> **Status: Wave 3 SHIPPED — the attention-management layer is built.**
+> See [docs/subsystems/social-graph.md](../../subsystems/social-graph.md).
+> The storage *substrate* shipped earlier as `ContactsMixin`; **Wave 3**
+> now delivers the feature this slate is really about — per-*group*
+> **notification policy** (the `notify` verb + the login fan-out),
+> per-viewer **display verbosity / density-aware aggregation** (the
+> "200-player tavern renders manageably" thesis), the strict
+> ordered-first-match `ruleFor` resolution, the named-color highlight, and
+> the client notification queue + settings pane. Two seams are flagged
+> deferrals (see Wave 3 below + the subsystem doc): the **message-restyle
+> live wiring** (the method exists + is tested but isn't yet consulted by
+> the live message path — needs a sync contacts-fast-path) and the
+> reserved **`country?` geo seam** (connection-origin-slate).
+> **Recognition-state coupling** (consent friending, recognition-gated
+> bucketing) remains the next build. Stays in `builds/` for Wave 4.
 
 **Storage half SHIPPED.** The bucket *storage* + *membership
 verbs* this slate originally proposed (`SocialBucket` shape,
@@ -406,13 +415,45 @@ verb suite (contacts.md).**
 - Recognition gating (you can't bucket a stranger) is deferred to the
   recognition-family build; v1 `contacts add` is online-resolution only.
 
-**Wave 3** — notification + display policy integration. *(The live
-remainder of this slate.)*
+**Wave 3 — notification + display policy integration. SHIPPED.** See
+[docs/subsystems/social-graph.md](../../subsystems/social-graph.md). What
+landed (with the design refined past the original sketch above):
 
-- DescribeApi v2 step 4: bucket-aware rendering.
-- Density-aware aggregation in the MML composer.
-- Notification surfaces (banner, highlight, summary).
-- `social.verbosity` setting in EnvironmentMixin keyspace.
+- ~~DescribeApi v2 step 4: bucket-aware rendering~~ → the per-viewer
+  `SocialApi.composeOccupants` formatter, a sibling of
+  `RecognitionApi.describe` one cardinality up, wired at the single
+  `LookController` occupant seam (look + arrival).
+- ~~Density-aware aggregation in the MML composer~~ → the four-tier
+  density table + `(species, worn-feature)` similarity grouping, the
+  collapsed line a targetable `mudq:` MQL-seed handle.
+- ~~Notification surfaces (banner, highlight, summary)~~ → the net-new
+  `PlayerLoggedIn`/`PlayerLoggedOut` fan-out (reverse-keyed,
+  rate-limited, MQL-excluded, privacy-gated) → `world.social.presence`
+  frames → the client `NotificationQueue`; message restyle implemented +
+  tested (live wiring deferred — see banner).
+- ~~`social.verbosity` setting~~ → declared `static settings` on
+  `NotifyPolicyMixin` (schema-on-owner).
+- **Beyond the sketch:** policy keyed on **any `GroupRef`** (not just
+  contacts); **strict ordered first-match with positional authority**
+  replacing the "priority integer" / "max salience" rules; the dedicated
+  **`notify` verb** (not a `bucket policy` subcommand); the
+  `NotifyPolicyMixin` per-character store (sibling of `_contacts`); named
+  theme-palette **`color`** tokens; and the thin **settings pane** over
+  `notify` (every control previews+issues its command).
+
+Two deferrals carried out of Wave 3 (flagged in the subsystem doc):
+**message-restyle live wiring** (`styleMessageFor` exists + is tested but
+the live message path doesn't consult it yet — needs a sync
+contacts-fast-path for the multi-recipient async-`ruleFor` wall) and the
+reserved **`country?` geo seam** (payload field reserved, populated once
+the connection-origin substrate lands).
+
+Several Wave-3 open questions above are now resolved: **Q1**
+(foes-onEnterRoom) is moot — movement is not a notification event; **Q3**
+(multi-bucket conflict) → strict ordered first-match, list order is
+precedence; **Q4** (aggregation grouping) → `(species, most-distinctive
+worn feature)`; **Q8** (max rules) → soft cap 50 at set-time; **Q10**
+(channel routing) → banner→queue, log-only→quiet inline, silent→unsent.
 
 **Wave 4** — power-user features (post v1).
 

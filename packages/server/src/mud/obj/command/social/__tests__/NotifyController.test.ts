@@ -17,10 +17,24 @@ import { Mml } from "../../../../api/mml";
 import { Idea } from "../../../../lib/stuff/Idea";
 import { StuffApi } from "../../../../api/stuff";
 import { NotifyPolicyMixin } from "../../../../lib/social/NotifyPolicy";
+import { HasInteractiveMixin } from "../../../../lib/connection/HasInteractive";
 import { makeStuff } from "../../../../lib/security/__tests__/test-setup";
 import type { CommandContext, CommandModel } from "../../../../api/command";
+import type { SocialRulesState } from "@saxonberg/types";
 
 class NotifyHost extends NotifyPolicyMixin(Idea) {
+  getPlayerId(): string {
+    return "me";
+  }
+}
+
+/**
+ * A connected host — composes `HasInteractiveMixin` so the controller's
+ * `social.rules` projection push fires (the `MixinApi.isHasInteractive`
+ * gate). `pushClientStateUpdate` is stubbed via a spy so no backend wire
+ * is needed (the `StyleController` precedent).
+ */
+class ConnectedNotifyHost extends HasInteractiveMixin(NotifyPolicyMixin(Idea)) {
   getPlayerId(): string {
     return "me";
   }
@@ -127,6 +141,45 @@ describe("NotifyController", () => {
     SocialApi.setRule(g, "managed:c", {});
     await run(g, { subcommand: "remove", ref: "managed:c" });
     expect(g.notifyRules().some((r) => r.groupRef === "managed:c")).toBe(false);
+  });
+
+  it("pushes the social.rules projection on a mutation", async () => {
+    const g = makeStuff(() => new ConnectedNotifyHost());
+    vi.spyOn(PlayerApi, "isAvatarStuff").mockImplementation((o: unknown) => o === g);
+    const pushSpy = vi
+      .spyOn(g, "pushClientStateUpdate")
+      .mockImplementation(() => {});
+
+    const ctrl = makeStuff(() => new NotifyController());
+    await ctrl.execute(
+      { ref: "friends", assignments: "color=teal boost=on" } as CommandModel,
+      ctxFor(g),
+    );
+
+    expect(pushSpy).toHaveBeenCalledWith("social.rules", expect.any(Object));
+    const [, state] = pushSpy.mock.calls.at(-1)!;
+    const rules = (state as SocialRulesState).rules;
+    const friends = rules.find((r) => r.groupRef === FRIENDS_REF);
+    expect(friends).toMatchObject({
+      groupRef: FRIENDS_REF,
+      label: "friends",
+      color: "teal",
+      boostInDense: true,
+      reserved: false,
+    });
+    // The virtual baseline tail rides along, flagged reserved.
+    expect(rules.some((r) => r.groupRef === "everyone-else" && r.reserved)).toBe(
+      true,
+    );
+  });
+
+  it("does not push when the giver has no connected Interactive", async () => {
+    const g = makeGiver(); // plain NotifyHost — no HasInteractive
+    // No push method exists to spy on; the mutation must still succeed.
+    await run(g, { ref: "friends", assignments: "color=amber" });
+    expect(
+      SocialApi.listRules(g).find((r) => r.groupRef === FRIENDS_REF)?.color,
+    ).toBe("amber");
   });
 
   it("enforces the 50-rule soft cap with a rejection", async () => {

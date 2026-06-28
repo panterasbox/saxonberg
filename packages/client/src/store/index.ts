@@ -291,6 +291,14 @@ interface StoreState extends CmsSlice {
   setMainView: (view: "terminal" | "forum") => void;
 
   /**
+   * Whether the "Social / Notifications" settings pane (a modal over the
+   * `notify` verb) is open. Opened from the account menu; ephemeral
+   * client-only UI state, never persisted.
+   */
+  socialPaneOpen: boolean;
+  setSocialPaneOpen: (open: boolean) => void;
+
+  /**
    * The input mode (client-only scoped-input prefix) PER primary view —
    * the Terminal and Forum bars are conceptually separate bars and each
    * keeps its own scope, so a chat mode set in the forum never follows you
@@ -916,6 +924,10 @@ export const useStore = create<StoreState>((set, get) => ({
   mainView: "terminal",
   setMainView: (view) =>
     set((state) => (state.mainView === view ? {} : { mainView: view })),
+
+  // "Social / Notifications" settings-pane modal toggle (account menu).
+  socialPaneOpen: false,
+  setSocialPaneOpen: (open) => set(() => ({ socialPaneOpen: open })),
 
   // Input mode (client-only scoped-input prefix), held per primary view.
   inputMode: { terminal: null, forum: null },
