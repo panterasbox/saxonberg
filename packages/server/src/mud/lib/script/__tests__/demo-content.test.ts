@@ -34,7 +34,7 @@ import { ContainmentApi } from "../../../api/containment";
 import { CommandApi } from "../../../api/command";
 import { ScriptApi } from "../../../api/script";
 import { WorldClockApi } from "../../../api/worldclock";
-import { ScriptDocument } from "../ScriptDocument";
+import { StoredDocument } from "../../document/StoredDocument";
 import { ScriptSeeder } from "../../../../backend/ScriptSeeder";
 import { makeStuff } from "../../security/__tests__/test-setup";
 import {
@@ -154,12 +154,13 @@ describe("ScriptSeeder banks the authored scripts", () => {
     const inserted = await ScriptSeeder.run();
     expect(inserted).toBeGreaterThanOrEqual(DEMO_SCRIPTS.length);
 
-    const martini = await ScriptDocument.findByPath(
+    const martini = await StoredDocument.findByPath(
       "/domain/lounge/scripts/martini",
     );
     expect(martini).not.toBeNull();
+    expect(martini!.getKind()).toBe("script");
     expect(martini!.getOwner()).toBe("/domain/lounge");
-    expect(martini!.getSource()).toBe(readDemo("martini"));
+    expect((martini!.getData().source as string)).toBe(readDemo("martini"));
 
     // Re-running inserts nothing (matched by path).
     const again = await ScriptSeeder.run();

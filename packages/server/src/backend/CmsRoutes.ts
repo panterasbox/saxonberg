@@ -65,7 +65,9 @@ function sendCmsError(res: Response, e: unknown): void {
 
 /** Narrow a raw query value to a valid backend, or null. */
 function parseBackend(value: unknown): CmsBackend | null {
-  return value === 'content' || value === 'source' ? value : null;
+  return value === 'content' || value === 'source' || value === 'document'
+    ? value
+    : null;
 }
 
 export class CmsRoutes {

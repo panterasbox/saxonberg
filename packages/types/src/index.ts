@@ -1637,7 +1637,7 @@ export interface PersistableConstructor<T extends Persistable> {
 // CMS data surface (REST: explorer tree + read/write/stat)
 // ============================================================================
 
-export type CmsBackend = 'content' | 'source' | 'script';
+export type CmsBackend = 'content' | 'source' | 'document';
 export type CmsNodeKind = 'folder' | 'leaf';
 
 /** One entry in a directory/folder listing. */
@@ -1660,7 +1660,9 @@ export interface CmsReadResult {
   backend: CmsBackend;
   path: string;
   kind: CmsNodeKind; // always 'leaf' on success
-  /** Content: pretty-printed JSON of template.data. Source: raw file bytes. */
+  /** Content: pretty-printed JSON of template.data. Source: raw file bytes.
+   *  Document: the stored `data` (a script kind's source text, else
+   *  pretty-printed JSON). */
   body: string;
   /** Editor language hint: 'json' | 'typescript' | 'yaml' | 'plaintext'. */
   language: string;

@@ -73,16 +73,17 @@ export class ProvenanceApi {
    * Gated to the authoring-transport singletons: `TemplateLogic`
    * (`/obj/api/template`) — the template chokepoint every template
    * authoring path (in-world verbs + the REST CMS) funnels through — and
-   * `ScriptLogic` (`/obj/api/script`) — the path-addressed script store,
-   * a legitimately separate authoring transport (scripts aren't
-   * templates). Each records authoring for *its own* paths (template
-   * paths vs `/home/…`/`/obj/…/recipes/…` script paths); the chokepoint
-   * guarantee per kind is preserved. Nothing else may append a row.
+   * `DocumentLogic` (`/obj/api/document`) — the path-addressed document
+   * store (scripts and any other owned-JSON kind), a legitimately separate
+   * authoring transport (stored documents aren't templates). Each records
+   * authoring for *its own* paths (template paths vs `/home/…`/`/domain/…`
+   * document paths); the chokepoint guarantee per kind is preserved.
+   * Nothing else may append a row.
    */
   @CallSecurity(
     SecurityPolicies.AnyOf(
       SecurityPolicies.FromTemplate('/obj/api/template'),
-      SecurityPolicies.FromTemplate('/obj/api/script')
+      SecurityPolicies.FromTemplate('/obj/api/document')
     )
   )
   public static async recordAuthoring(

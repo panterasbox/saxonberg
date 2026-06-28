@@ -208,40 +208,48 @@ ceiling.
    (`MakeController` → `ScriptApi.invoke`, binding the first param from
    `with`). Authored recipe-scripts persist in the store (below).
 
-## The path-addressed script store (P7)
+## The store: scripts as a document `kind` (P7)
 
 Scripts are **source text**, not Stuff templates (a template hydrates a
-Stuff; a script hydrates nothing) and not git-deployed code. They live in
-a dedicated `scripts` collection as **`ScriptDocument`** (the `Recipe`
-Document precedent — reference data, never cloned), keyed on **path +
-owner** with the scope encoded in the path:
+Stuff; a script hydrates nothing) and not git-deployed code. They persist
+as **one `kind` of stored document** in the generic, owner-claimed
+**document store** — the third path-addressed tree (source / template /
+**document**), its own subsystem ([document-store.md](./document-store.md)).
+A script is a `StoredDocument` with `kind: 'script'`, `data: { source }`,
+keyed on the path (scope encoded):
 
 ```
 /home/<player>/scripts/<name>     personal (recorded or written)
 /domain/<world>/scripts/<name>    managed world content
 ```
 
-The stored value is the canonical **source** (what the CMS Monaco surface
-shows), **re-parsed on resolution** — no compilation, which is why scripts
-reach the runtime-writable tree first. `ScriptLogic` owns
-`saveScript` / `resolveScript` (cached AST, `goLive` invalidates) /
-`invokeByPath`. Path-addressing **reuses the whole ownership stack**:
-`gateScriptMutation` runs `AccessApi.canMutateZone` over the covering
-zone (or the slice-walk `can(write)` for a `/home/…` path), and
-`ProvenanceApi.recordAuthoring` stamps authorship keyed on the path — the
-`recordAuthoring` gate was **broadened to `AnyOf(template, script)`** so the
-store is an admitted authoring transport (additive, per-kind). The acting
-author comes from **execution context** (`getActingAuthor`), never a
-parameter — the store ops are reached over the CMS REST path where there is
-no command frame.
+The stored `data.source` is the canonical text (what the CMS shows),
+**re-parsed on resolution** — no compilation, which is why scripts reach
+the runtime-writable tree first. The **split of concerns** is the point:
 
-### The CMS third backend
+- **`DocumentApi`** owns *storage* — `read` / `list` / `save` (find-or-
+  create), the owner-access gate (an owner owns their own `/home/<self>/`
+  branch, else zone / slice-walk), the owner stamp from execution context
+  (`getActingAuthor`, never a parameter), and `recordAuthoring` keyed on
+  the path (`DocumentLogic` is a named authoring transport in the
+  broadened gate). It is **kind-agnostic** — never inspects `data`.
+- **`ScriptLogic`** owns the script *semantics* — `saveScript` (→
+  `DocumentApi.save(path, 'script', { source })` + invalidate the AST
+  cache), `resolveScript` (→ `DocumentApi.read` → parse `data.source` →
+  the per-path AST cache the generic store deliberately doesn't keep),
+  `invokeByPath`, and `goLive` (the script-specific cache invalidation).
 
-`CmsBackend` is `content | source | script`; `CmsLogic` dispatches the
-unified tree / read / stat / write per backend, with the save→go-live
-split (a script write invalidates the resolve cache, the
-`HotReloadApi.reload` analog). So authored scripts edit-and-go-live in the
-same explorer as templates and source.
+### The CMS third tree
+
+`CmsBackend` is `content | source | document`; `CmsLogic` dispatches the
+unified tree / read / stat / write per backend. The document backend is
+generic — the record's **`kind`** drives the editor treatment: a `script`
+kind is a plain-text code leaf whose write funnels through
+`ScriptApi.saveScript` (the script chokepoint: gate + provenance + AST
+go-live), and any other kind is its `data` as JSON. So authored scripts
+edit-and-go-live in the same explorer as templates and source — and the
+tree is ready for the next owned-JSON kind (dorm customization) without a
+new backend.
 
 ## Demonstration capture (P8)
 
@@ -331,7 +339,7 @@ ladder's output).
 | Coroutine pump + cancellation | `lib/script/Coroutine.ts` |
 | Abort reasons | `lib/script/AbortReason.ts` |
 | The wrapping parser | `lib/command/parsers/script.ts` |
-| Script store Document | `lib/script/ScriptDocument.ts` |
+| Document store (scripts ride it) | `lib/document/StoredDocument.ts` + `api/document.ts` + `obj/api/DocumentLogic.ts` ([document-store.md](./document-store.md)) |
 | Demonstration capture | `lib/script/Transcriber.ts` |
 | Recipe knowledge ladder | `lib/script/RecipeKnowledge.ts` |
 | Api façade | `api/script.ts` |

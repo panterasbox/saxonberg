@@ -6,10 +6,7 @@ import { CallSecurity, Unshadowable } from "../../lib/security/decorators";
 import { SecurityPolicies } from "../../lib/security/SecurityPolicies";
 import { CommandApi } from "../../api/command";
 import { MixinApi } from "../../api/mixin";
-import { ZoneApi } from "../../api/zone";
-import { AccessApi } from "../../api/access";
-import { ProvenanceApi } from "../../api/provenance";
-import { ScriptDocument } from "../../lib/script/ScriptDocument";
+import { DocumentApi } from "../../api/document";
 import { MessageApi } from "../../api/message";
 import { Mml } from "../../api/mml";
 import { ScheduleApi } from "../../api/schedule";
@@ -292,13 +289,23 @@ async function captureManualBuildImpl(
   return Transcriber.transcribe(recipeId, sources);
 }
 
-/* ─────────────── the path-addressed script store (P7) ─────────── */
+/* ─────────────── scripts over the document store (P7) ─────────── */
+//
+// Scripts are one **kind** of stored document (`kind: 'script'`,
+// `data: { source }`) in the generic path-addressed `DocumentApi` store.
+// ScriptLogic owns the script *semantics* — parse source → AST, the AST
+// cache, and the script-specific go-live — while `DocumentApi` owns the
+// storage, the owner-access gate, and provenance.
+
+/** The document-store `kind` scripts are persisted under. */
+const SCRIPT_KIND = "script";
 
 /**
- * Parsed-AST cache keyed on path — the resolve-by-path hot path.
- * `goLive(path)` invalidates an entry (the `HotReloadApi.reload` analog),
- * so a CMS edit or a re-record reaches the next invocation without a
- * restart. In-memory; rebuilt lazily from the store.
+ * Parsed-AST cache keyed on path — the resolve-by-path hot path (the one
+ * cache the generic store deliberately doesn't keep, since an AST is
+ * script-specific). `goLive(path)` invalidates an entry (the
+ * `HotReloadApi.reload` analog), so a CMS edit or a re-record reaches the
+ * next invocation without a restart. In-memory; rebuilt lazily.
  */
 const RESOLVE_CACHE = new Map<string, Script>();
 
@@ -328,6 +335,14 @@ async function parseSourceToScript(
   return null; // parse error → unresolvable
 }
 
+/** The source text of the script stored at `path`, or null. */
+async function readScriptSource(path: string): Promise<string | null> {
+  const doc = await DocumentApi.read(path);
+  if (!doc || doc.getKind() !== SCRIPT_KIND) return null;
+  const source = doc.getData().source;
+  return typeof source === "string" ? source : null;
+}
+
 /** Resolve a stored script at `path` to its parsed AST (cached). */
 async function resolveScriptImpl(
   path: string,
@@ -335,73 +350,23 @@ async function resolveScriptImpl(
 ): Promise<Script | null> {
   const cached = RESOLVE_CACHE.get(path);
   if (cached) return cached;
-  const doc = await ScriptDocument.findByPath(path);
-  if (!doc) return null;
-  const ast = await parseSourceToScript(doc.getSource(), actor);
+  const source = await readScriptSource(path);
+  if (source === null) return null;
+  const ast = await parseSourceToScript(source, actor);
   if (ast === null) return null;
   RESOLVE_CACHE.set(path, ast);
   return ast;
 }
 
 /**
- * Access-gate a script mutation by path, reusing the existing zone/access
- * stack: the covering spatial zone gates via `canMutateZone`; absent one
- * (e.g. a `/home/…` authoring path — the per-`/home/` access model rides
- * the future scoped-authoring sandbox), the slice-walk `can(write)`
- * applies. Returns a denial message, or null when permitted.
+ * Persist a script's source to the document store as `kind: 'script'`,
+ * `data: { source }`. The owner-access gate, owner stamp, and provenance
+ * all live in `DocumentApi.save` (the store chokepoint); ScriptLogic adds
+ * only the script-specific go-live — invalidate the AST cache so the next
+ * invocation re-parses.
  */
-/**
- * True when `path` lies in `actor`'s own `/home/<self>/` authoring
- * subtree — keyed on the same durable-path basename `homeScriptPath`
- * banks under, so a builder owns exactly the home recipes the
- * demonstration-capture writes for them.
- */
-function isOwnHomePath(actor: Stuff, path: string): boolean {
-  const key = actor.getTemplatePath()?.split("/").filter(Boolean).pop();
-  return key !== undefined && path.startsWith(`/home/${key}/`);
-}
-
-async function gateScriptMutation(
-  actor: Stuff | null,
-  path: string,
-): Promise<string | null> {
-  // A player owns their own `/home/<self>/` subtree — the
-  // demonstration-capture home-bank writes here as the builder, and a
-  // player writing their own recorded recipe-script needs no broader
-  // grant. (The fuller per-`/home/` access model rides the future
-  // scoped-authoring sandbox; this is the self-owner base case.)
-  if (actor !== null && isOwnHomePath(actor, path)) return null;
-  const zone = await ZoneApi.resolveZoneForPath(path);
-  if (zone) {
-    if (!(await AccessApi.canMutateZone(actor, zone))) {
-      return "you don't have permission to mutate that script's zone";
-    }
-    return null;
-  }
-  if (!(await AccessApi.can(actor, "write", null))) {
-    return "you don't have permission to write that script";
-  }
-  return null;
-}
-
 async function saveScriptImpl(path: string, source: string): Promise<void> {
-  const actor = currentAuthor();
-  const denial = await gateScriptMutation(actor, path);
-  if (denial !== null) throw new Error(denial);
-
-  // Persist (find-or-create). Owner = the acting author's durable path.
-  const doc = (await ScriptDocument.findByPath(path)) ?? new ScriptDocument();
-  doc.path = path;
-  doc.owner = actor?.getTemplatePath() ?? "";
-  doc.source = source;
-  await doc.save();
-
-  // Authorship — append a provenance row keyed on the path (author from
-  // context, never a param). ScriptLogic is now an admitted authoring
-  // transport (the broadened recordAuthoring gate).
-  await ProvenanceApi.recordAuthoring({ path });
-
-  // Go-live: invalidate the resolve cache so the next invocation re-parses.
+  await DocumentApi.save(path, SCRIPT_KIND, { source });
   RESOLVE_CACHE.delete(path);
 }
 

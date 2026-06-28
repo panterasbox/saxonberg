@@ -1,13 +1,14 @@
 /**
- * CMS third backend ('script') — the path-addressed script store as a
- * browsable/editable backend alongside content + source.
+ * CMS third backend ('document') — the path-addressed document store as a
+ * browsable/editable backend alongside content + source. Scripts are one
+ * `kind` of stored document (kind='script', data={source}).
  *
- * Exercises the CmsApi surface for the script backend: write (create) →
- * read (the source as plain text) → stat (exists/leaf) → listTree
- * (immediate children), plus the go-live on save. Author-tier read gate;
- * writes funnel through ScriptApi.saveScript (the store's gated
- * chokepoint). Runs inside the runRoot + tagActingAuthor attribution
- * bridge the REST CMS uses.
+ * Exercises the CmsApi surface for the document backend: write (create a
+ * script) → read (the source as plain text, kind-driven) → stat
+ * (exists/leaf) → listTree (immediate children), plus the go-live on save.
+ * Author-tier read gate; a script-kind write funnels through
+ * ScriptApi.saveScript (the script chokepoint over DocumentApi.save). Runs
+ * inside the runRoot + tagActingAuthor attribution bridge the REST CMS uses.
  */
 
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
@@ -39,7 +40,7 @@ beforeEach(() => {
   WorldClockApi._setNowProviderForTesting(() => 1000);
 
   const find = vi.fn(async (col: string, query: Record<string, unknown>) => {
-    if (col === "scripts") {
+    if (col === "documents") {
       return scripts.filter((d) =>
         Object.entries(query).every(([k, v]) => d[k] === v),
       );
@@ -47,7 +48,7 @@ beforeEach(() => {
     return [];
   });
   const save = vi.fn(async (col: string, doc: Record<string, unknown>) => {
-    if (col === "scripts") {
+    if (col === "documents") {
       const i = scripts.findIndex((d) => d.path === doc.path);
       if (i >= 0) scripts[i] = { ...doc };
       else scripts.push({ ...doc, _id: String(scripts.length + 1) });
@@ -74,46 +75,47 @@ afterEach(() => {
   WorldClockApi._resetForTesting();
 });
 
-describe("CMS script backend", () => {
+describe("CMS document backend (scripts as kind=script)", () => {
   it("write creates a script and reports go-live", async () => {
     const result = await runAs(() =>
-      CmsApi.write("script", SCRIPT_PATH, "ping; stir"),
+      CmsApi.write("document", SCRIPT_PATH, "ping; stir"),
     );
-    expect(result.backend).toBe("script");
+    expect(result.backend).toBe("document");
     expect(result.reloaded).toBe(true);
     expect(scripts).toHaveLength(1);
-    expect(scripts[0]!.source).toBe("ping; stir");
+    expect(scripts[0]!.kind).toBe("script");
+    expect((scripts[0]!.data as { source: string }).source).toBe("ping; stir");
   });
 
   it("read returns the stored source as plain-text leaf", async () => {
-    await runAs(() => CmsApi.write("script", SCRIPT_PATH, "ping; stir"));
-    const read = await runAs(() => CmsApi.read("script", SCRIPT_PATH));
+    await runAs(() => CmsApi.write("document", SCRIPT_PATH, "ping; stir"));
+    const read = await runAs(() => CmsApi.read("document", SCRIPT_PATH));
     expect(read.kind).toBe("leaf");
     expect(read.body).toBe("ping; stir");
     expect(read.language).toBe("plaintext");
   });
 
   it("stat reflects existence", async () => {
-    await runAs(() => CmsApi.write("script", SCRIPT_PATH, "ping"));
-    const exists = await runAs(() => CmsApi.stat("script", SCRIPT_PATH));
+    await runAs(() => CmsApi.write("document", SCRIPT_PATH, "ping"));
+    const exists = await runAs(() => CmsApi.stat("document", SCRIPT_PATH));
     expect(exists).toMatchObject({ exists: true, kind: "leaf" });
     const missing = await runAs(() =>
-      CmsApi.stat("script", "/home/test/scripts/none"),
+      CmsApi.stat("document", "/home/test/scripts/none"),
     );
     expect(missing.exists).toBe(false);
   });
 
   it("read of a missing script throws not-found", async () => {
     await expect(
-      runAs(() => CmsApi.read("script", "/home/test/scripts/none")),
+      runAs(() => CmsApi.read("document", "/home/test/scripts/none")),
     ).rejects.toThrow();
   });
 
   it("listTree lists immediate children of a prefix", async () => {
-    await runAs(() => CmsApi.write("script", "/home/test/scripts/greet", "ping"));
-    await runAs(() => CmsApi.write("script", "/home/test/scripts/wave", "ping"));
+    await runAs(() => CmsApi.write("document", "/home/test/scripts/greet", "ping"));
+    await runAs(() => CmsApi.write("document", "/home/test/scripts/wave", "ping"));
     const listing = await runAs(() =>
-      CmsApi.listTree("script", "/home/test/scripts"),
+      CmsApi.listTree("document", "/home/test/scripts"),
     );
     const names = listing.entries.map((e) => e.name).sort();
     expect(names).toEqual(["greet", "wave"]);

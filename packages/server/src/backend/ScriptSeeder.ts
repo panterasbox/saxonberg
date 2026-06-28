@@ -1,15 +1,16 @@
 /**
- * ScriptSeeder — populate the `scripts` collection from the authored
+ * ScriptSeeder — populate the `documents` collection from the authored
  * world recipe-/coroutine-scripts under `mud/domain/lounge/scripts/`.
  *
  * Insert-only / idempotent (mirrors `RecipeSeeder` / `EmoteSeeder`):
  * scripts are matched by their store `path`; existing records are left
- * alone. Each `<name>.script` file is seeded at the path-addressed store
- * key `/domain/lounge/scripts/<name>` (world-managed content — the
- * `/domain/` prefix selects the platform resource tier in
- * `ScriptLogic.resolveLimits`). The stored value is the **source text**
- * verbatim (re-parsed on resolution; never compiled — the script-store
- * decision), so the files double as the human-editable CMS surface.
+ * alone. Each `<name>.script` file is seeded as a `kind: 'script'`
+ * document at the path-addressed store key `/domain/lounge/scripts/<name>`
+ * (world-managed content — the `/domain/` prefix selects the platform
+ * resource tier in `ScriptLogic.resolveLimits`). The stored value is the
+ * **source text** verbatim in `data.source` (re-parsed on resolution;
+ * never compiled — the script-store decision), so the files double as the
+ * human-editable CMS surface.
  *
  * These authored scripts are the *authored-as-content* exemplar (one of
  * the three authoring sources) and the `invokeByPath` targets (an
@@ -19,7 +20,7 @@
  * — the world content here is the world author's parallel copy.
  *
  * Dev workflow when a `.script` changes:
- *   db.scripts.deleteOne({path: '/domain/lounge/scripts/<name>'}); restart
+ *   db.documents.deleteOne({path: '/domain/lounge/scripts/<name>'}); restart
  *
  * Runs in bootstrap alongside the other per-collection seeders, after
  * `PersistenceManager.connect` (indexes) and before `BootstrapManager.run`.
@@ -28,7 +29,7 @@
 import { readFileSync, readdirSync } from 'fs';
 import { fileURLToPath } from 'url';
 import { dirname, join, basename } from 'path';
-import { ScriptDocument } from '../mud/lib/script/ScriptDocument';
+import { StoredDocument } from '../mud/lib/document/StoredDocument';
 
 interface ScriptSeedOptions {
   /** Override the seed directory; defaults to mud/domain/lounge/scripts. */
@@ -60,13 +61,14 @@ export class ScriptSeeder {
     for (const file of files.sort()) {
       const name = basename(file, '.script');
       const path = `${prefix}/${name}`;
-      const existing = await ScriptDocument.findByPath(path);
+      const existing = await StoredDocument.findByPath(path);
       if (existing) continue;
       const source = readFileSync(join(dir, file), 'utf-8');
-      const doc = new ScriptDocument();
+      const doc = new StoredDocument();
       doc.path = path;
       doc.owner = owner;
-      doc.source = source;
+      doc.kind = 'script';
+      doc.data = { source };
       await doc.save();
       inserted++;
     }

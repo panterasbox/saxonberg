@@ -1,12 +1,13 @@
 /**
- * CmsExplorer — the dual-root CMS tree.
+ * CmsExplorer — the multi-root CMS tree.
  *
- * Two fixed top-level roots, listed independently (no merged namespace —
- * see docs/subsystems/cms.md): "content" (`{backend:'content',path:'/'}`) and
- * "source" (`{backend:'source',path:'/'}`). Each is a synthetic folder
- * {@link CmsTreeEntry} the recursive {@link CmsTreeNode} expands the same
- * way as any other folder, so the lazy-load + cache path is uniform from
- * the roots down. Themed via `tokens`.
+ * Three fixed top-level roots, listed independently (no merged namespace —
+ * see docs/subsystems/cms.md): "content" (`{backend:'content'}`, templates),
+ * "source" (`{backend:'source'}`, engine TS), and "documents"
+ * (`{backend:'document'}`, the owned-JSON store — scripts + future kinds).
+ * Each is a synthetic folder {@link CmsTreeEntry} the recursive
+ * {@link CmsTreeNode} expands the same way as any other folder, so the
+ * lazy-load + cache path is uniform from the roots down. Themed via `tokens`.
  */
 
 import React from "react";
@@ -18,6 +19,7 @@ import { tokens } from "../ui";
 const ROOTS: CmsTreeEntry[] = [
   { backend: "content", path: "/", name: "content", kind: "folder" },
   { backend: "source", path: "/", name: "source", kind: "folder" },
+  { backend: "document", path: "/", name: "documents", kind: "folder" },
 ];
 
 // A plain block scroll container — NOT a flex column. Rows are a flat

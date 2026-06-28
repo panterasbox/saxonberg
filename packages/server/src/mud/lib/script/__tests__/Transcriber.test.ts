@@ -57,7 +57,7 @@ beforeEach(() => {
   scripts = [];
   WorldClockApi._setNowProviderForTesting(() => 1000);
   const find = vi.fn(async (col: string, query: Record<string, unknown>) => {
-    if (col === "scripts") {
+    if (col === "documents") {
       return scripts.filter((d) =>
         Object.entries(query).every(([k, v]) => d[k] === v),
       );
@@ -65,7 +65,7 @@ beforeEach(() => {
     return [];
   });
   const save = vi.fn(async (col: string, doc: Record<string, unknown>) => {
-    if (col === "scripts") {
+    if (col === "documents") {
       const i = scripts.findIndex((d) => d.path === doc.path);
       if (i >= 0) scripts[i] = { ...doc };
       else scripts.push({ ...doc, _id: String(scripts.length + 1) });
@@ -95,7 +95,7 @@ describe("Transcriber.transcribe", () => {
     expect(path).toBe(HOME_PATH);
 
     const doc = scripts.find((s) => s.path === HOME_PATH)!;
-    const source = doc.source as string;
+    const source = (doc.data as { source: string }).source;
     expect(source).toContain("def martini ($brand)");
     expect(source).toContain("pour $brand into shaker"); // lifted
     expect(source).not.toContain("pour gin"); // the concrete spirit is gone
@@ -105,7 +105,7 @@ describe("Transcriber.transcribe", () => {
 
   it("emits real source that round-trips (re-parses to a def)", async () => {
     await runAs(() => Transcriber.transcribe("martini", BUILD));
-    const source = (scripts[0]!.source as string);
+    const source = ((scripts[0]!.data as { source: string }).source);
 
     // Re-parse via the public ScriptApi.format round-trip property: the
     // banked source parses, and re-formatting is stable.

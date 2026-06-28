@@ -16,7 +16,7 @@
 
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { ScriptApi } from "../../../api/script";
-import { ScriptDocument } from "../ScriptDocument";
+import { StoredDocument } from "../../document/StoredDocument";
 import { AccessApi } from "../../../api/access";
 import { ZoneApi } from "../../../api/zone";
 import { CommandApi } from "../../../api/command";
@@ -71,7 +71,7 @@ beforeEach(() => {
       rows.filter((d) =>
         Object.entries(query).every(([k, v]) => d[k] === v),
       );
-    if (col === "scripts") return match(scripts);
+    if (col === "documents") return match(scripts);
     if (col === "authoring_events") return match(authoring);
     if (
       col === "domain" &&
@@ -88,7 +88,7 @@ beforeEach(() => {
     return [];
   });
   const save = vi.fn(async (col: string, doc: Record<string, unknown>) => {
-    if (col === "scripts") {
+    if (col === "documents") {
       const i = scripts.findIndex((d) => d.path === doc.path);
       if (i >= 0) scripts[i] = { ...doc };
       else scripts.push({ ...doc, _id: String(scripts.length + 1) });
@@ -121,13 +121,15 @@ describe("script store — save", () => {
   it("persists a script keyed on its path, with owner + a provenance row", async () => {
     await runAs(() => ScriptApi.saveScript(SCRIPT_PATH, "ping; ping"));
 
-    const doc = await ScriptDocument.findByPath(SCRIPT_PATH);
+    const doc = await StoredDocument.findByPath(SCRIPT_PATH);
     expect(doc).not.toBeNull();
-    expect(doc!.getSource()).toBe("ping; ping");
+    // Scripts are one kind of stored document: kind='script', data={source}.
+    expect(doc!.getKind()).toBe("script");
+    expect((doc!.getData().source as string)).toBe("ping; ping");
     expect(doc!.getOwner()).toBe(OWNER);
 
     // Provenance: a row was appended for the path (proves the broadened
-    // gate admits ScriptLogic — else recordAuthoring would have thrown).
+    // gate admits the document store — else recordAuthoring would throw).
     expect(authoring.some((r) => r.path === SCRIPT_PATH)).toBe(true);
     expect(authoring[0]!.author).toBe(OWNER);
   });
@@ -149,9 +151,9 @@ describe("script store — save", () => {
     // wrongly denied for ordinary players.)
     vi.spyOn(AccessApi, "can").mockResolvedValue(false);
     await runAs(() => ScriptApi.saveScript(SCRIPT_PATH, "ping; ping"));
-    const doc = await ScriptDocument.findByPath(SCRIPT_PATH);
+    const doc = await StoredDocument.findByPath(SCRIPT_PATH);
     expect(doc).not.toBeNull();
-    expect(doc!.getSource()).toBe("ping; ping");
+    expect((doc!.getData().source as string)).toBe("ping; ping");
   });
 
   it("captureManualBuild banks the recipe-script in an authorless frame", async () => {
@@ -169,9 +171,9 @@ describe("script store — save", () => {
       ]),
     );
     expect(path).toBe("/home/test/scripts/martini");
-    const doc = await ScriptDocument.findByPath(path!);
+    const doc = await StoredDocument.findByPath(path!);
     expect(doc).not.toBeNull();
-    expect(doc!.getSource()).toContain("def martini");
+    expect((doc!.getData().source as string)).toContain("def martini");
   });
 });
 
