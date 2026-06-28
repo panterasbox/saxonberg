@@ -742,7 +742,12 @@ landing first.
   bridged whitelisted Apis, resource limits (CPU / memory /
   timeout), monitoring hooks. The runtime-model
   [Tier 2 isolation discussion](./runtime-model.md#isolation-options)
-  is the framing.
+  is the framing. *The **Content** corner has shipped its first
+  build as **content packs** — pure-data, no-code deliverables with a
+  reconcile installer (see
+  [content-packs.md](./subsystems/content-packs.md) /
+  [content-packs-slate.md](./slates/builds/content-packs-slate.md));
+  Capability / Full (new-code mods, needing `isolated-vm`) remain.*
 - **Persistence framework upgrade** — fine-grained per-record
   access patterns. Recognition + identification + social-graph
   stores need it; current `Persistable` is whole-document. May

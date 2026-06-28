@@ -22,19 +22,25 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 /**
- * Default config locations. Tests can override via the path arg; in
- * production the installer (`PackApi`) always passes the resolved pack path.
+ * Default quantity-tags YAML — the no-arg fallback for **tests only**. In
+ * production the installer (`PackApi`) always passes the resolved pack path
+ * (the YAML is content, owned by the base-library content pack — the source
+ * of truth). Resolved **lazily** (not at module scope) so merely importing
+ * `QuantityLogic` doesn't hard-require a content pack to be installed —
+ * keeping the kernel decoupled from content. Memoized after first use.
  *
- * The quantity-tags YAML now lives in the **base-library content pack**
- * (the source of truth) — so the default resolves it there via module
- * resolution (the pack is a server dependency), keeping a single source for
- * the no-arg fallback that the boot path + test helpers still use. The JSON
- * **schema** is a kernel validation contract (not pack content), so it stays
- * beside the engine in `config/`.
+ * The JSON **schema**, by contrast, is a kernel validation contract (not
+ * pack content), so it stays beside the engine in `config/`.
  */
-const DEFAULT_YAML_PATH = createRequire(import.meta.url).resolve(
-  '@saxonberg/content-base-library/content/quantity/quantity-tags.yaml'
-);
+let _defaultYamlPath: string | null = null;
+function defaultYamlPath(): string {
+  if (_defaultYamlPath === null) {
+    _defaultYamlPath = createRequire(import.meta.url).resolve(
+      '@saxonberg/content-base-library/content/quantity/quantity-tags.yaml'
+    );
+  }
+  return _defaultYamlPath;
+}
 const DEFAULT_SCHEMA_PATH = join(
   __dirname,
   '../../config/quantity-tags.schema.json'
@@ -155,7 +161,7 @@ export class QuantityLogic extends Idea {
   /** See {@link QuantityApi.loadTagTables}. */
   @CallSecurity(QuantityApiCallers)
   public loadTagTables(yamlPath?: string): TagTableLoadResult {
-    const path = yamlPath ?? DEFAULT_YAML_PATH;
+    const path = yamlPath ?? defaultYamlPath();
     const tables = parseAndValidate(path, DEFAULT_SCHEMA_PATH);
     const registered: Array<{ unit: Unit; scaleName: ScaleName }> = [];
     for (const [unitKey, scales] of Object.entries(tables)) {
@@ -171,7 +177,7 @@ export class QuantityLogic extends Idea {
   /** See {@link QuantityApi.reloadTagTables}. */
   @CallSecurity(QuantityApiCallers)
   public reloadTagTables(yamlPath?: string): TagTableLoadResult {
-    const path = yamlPath ?? DEFAULT_YAML_PATH;
+    const path = yamlPath ?? defaultYamlPath();
     const before = new Set<string>(
       Quantity._registeredScales().map(
         ({ unit, scaleName }) => `${unit}\0${scaleName}`

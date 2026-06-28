@@ -19,7 +19,6 @@ import YAML from 'yaml';
 import { PackApi } from '../../../api/pack';
 import { PersistApi } from '../../../api/persist';
 import { StuffApi } from '../../../api/stuff';
-import { Collections } from '../../../../backend/PersistenceManager';
 
 const MATERIAL = '/lib/material/Material';
 const HYDRATOR = '/lib/persistence/PersistentHydrator';

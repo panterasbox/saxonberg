@@ -1,6 +1,17 @@
 # Content packs — content as a versioned, shippable deliverable
 
-> **Status: exploratory — the long-term answer to `SeederManager`.**
+> **Status: v1 shipped (base-library) — remaining waves open.** The
+> substrate and first pack landed (the `PackApi`/`PackLogic` reconcile
+> installer + the **base-library** pack: materials, biomes, quantity-units;
+> boot install + `pack sync`). The mechanism is now documented in
+> [content-packs.md](../../subsystems/content-packs.md); this slate is
+> kept for the **deferred waves** still in design (the other packs,
+> retiring `SeederManager`, `seed-missing`, world packs, version
+> machinery, round-trip/export, migrations, marketplace — see *Open
+> questions* and D-notes). The framing below is the original design
+> rationale.
+>
+> **The long-term answer to `SeederManager`.**
 > Today the game's foundational content trees (materials, biomes,
 > species, name banks, emotes, recipes, channels, app-settings) are
 > seeded into MongoDB at boot by `SeederManager` + five per-collection
