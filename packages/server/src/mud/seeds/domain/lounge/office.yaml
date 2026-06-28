@@ -5,12 +5,13 @@
 # duncan-hall CartesianLocation precedent), distinct from the singleton
 # Bar so it never inherits the Warren wiring.
 #
-# The north exit INTO this room is declared `hidden` on the bar (the
-# slate's "non-obvious exit" — discoverable by the curious). True
-# regard-gating ("impassable until you've earned his regard") needs an
-# access-gated-exit code seam that isn't declaratively authorable yet;
-# tracked as the one follow-up beyond this content pass. The south exit
-# back out is plain and visible.
+# The north exit INTO this room is declared `hidden` on the bar. NOTE:
+# hidden exits are excluded from movement targeting (canReach + the MQL
+# resolver use getObviousExits), so the office is currently reachable by
+# no one — the intended "inaccessible inner sanctum" placeholder. The
+# unlock (a regard-gated reveal / a search mechanic / or flipping the
+# bar's north `hidden: false`) is the deferred follow-up. The south exit
+# back out is plain and visible for when entry is enabled.
 class: /lib/location/CartesianLocation
 hydratorClass: /lib/persistence/PersistentHydrator
 data:

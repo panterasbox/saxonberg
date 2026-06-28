@@ -52,15 +52,18 @@ data:
       keywords: [stool, stools, seat, seats, leather, rail]
       description: |
         Worn leather, each one shaped a little differently by the body that owns it — and on a quiet night one at the end of the rail sits empty on purpose, kept for whichever of the staff is off-shift and drinking here anyway. Where else would they go.
-  # The non-obvious way into Dave's office. Declared `hidden` (absent
-  # from `look` / obvious-exits — the slate's non-obvious exit) and
-  # `bidirectional: false` so it does NOT auto-install a hidden inverse;
-  # the office declares its own plain, visible south exit back out. The
-  # south exit (bar->lounge host) is still wired imperatively by the
-  # Warren and is deliberately not declared here. NOTE: true regard-
-  # gating on this exit needs an access-gated-exit code seam (not yet
-  # declaratively authorable); for now the room is discoverable by the
-  # curious who try `north`.
+  # The way into Dave's office. Declared `hidden` and `bidirectional:
+  # false` (the office declares its own plain south exit back out; the
+  # bar->lounge south exit is wired imperatively by the Warren and not
+  # declared here). IMPORTANT: `hidden` exits are excluded from BOTH the
+  # obvious-exits list AND movement targeting — `canReach` and the MQL
+  # exit resolver iterate getObviousExits(), so a hidden exit is not
+  # walkable by name (`north` -> "you can't walk that way"). So today
+  # the office is a SEALED inner sanctum, reachable by no one — the
+  # intended "inaccessible until earned" placeholder. Lighting it up
+  # (a regard-gated reveal, a `search`-reveals-hidden mechanic, or just
+  # flipping `hidden: false` to make it freely walkable) is the deferred
+  # follow-up. Verified live 2026-06-28: `north` is correctly blocked.
   exits:
     north:
       destination: /domain/lounge/office
