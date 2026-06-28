@@ -33,7 +33,7 @@ lands: it is **your own room, after a death.** Tandem makes the faculty legible
 
 ## The big idea: the dorm room is the first rung of the authoring ladder
 
-char-gen → **bounded-customize your dorm room** (a fixed palette, no quota,
+char-gen → **bounded-customize your dorm room** (a filtered editor, no quota,
 training wheels) → **inspect it in the CMS** (read the wiring of the familiar) →
 **graduate to a sandbox + compute quota** (full authoring, the rails off). The
 dorm room is the **bridge from player to author** — the cooperative's
@@ -51,112 +51,184 @@ your own bedroom, so you hit the ground running.
 - **Uniform `DormRoom` template**, Warren-budded via Katie's manifest.
 - **Two expression-slots** (the two halves) — the room is a *portrait of its two
   occupants*, never static.
-- **Bounded customization** — a curated palette (training wheels), not arbitrary
-  authoring; the sandbox is where the rails come off.
+- **Bounded customization = a *filter* over the object's mixin-fields** — not a
+  fixed palette of features (see *How customization works*). Customizing = setting
+  the editable fields the object's composed mixins expose; the *tier* (dorm)
+  filters which fields/values are allowed. The sandbox is the same editor,
+  unfiltered.
 - **CMS-inspectable, live-running code** — the wiring is a worked example, and
   "live" = the dynamic-expression engine that turns *who lives here* into *what
   the room looks like.*
+- **Storage = hybrid (the document-tree decision, 2026-06-27).** The reusable
+  **base `DormRoom` template** lives in the *template tree* (the inspectable
+  wiring / the "lesson"); your **per-player customization document** lives in the
+  new **document tree** (your choices, owner-scoped). The Warren buds your room by
+  *cloning the base + overlaying the document* — and the `Hydrator` reuses its
+  data path (a document *is* `data`). See
+  [document-tree-slate](./document-tree-slate.md).
 
-## Genre — the theme (the on-ramp's first click)
+## How customization works: field-editing over the object's mixins
 
-The "theme" is **genre**, not decor-style — the world's registers: **future,
-fantasy, history, neorealist** (and whatever else — noir, horror…). It's the
-**aesthetic skin** of your half, and it's deeply on-brand: the whole game is
-genre-*mixed* (fantasy species beside cyberpunk corpos; Gus's anecdotes of the
-chosen one, god, and the future-guy all minding the same curb). Your room genre
-is **which flavor of the genre-soup you bring into your own space** — a future
-deck (chrome, screens, LEDs), a fantasy den (tapestries, candles, a chest), a
-history room (period furnishings), a neorealist one (grounded, mundane, plain).
+There is **no hand-picked list of customization "features."** Customizing an
+object just means **setting the editable fields of whatever mixins it composes**
+— and the **mixin library *is* the palette** (≈100 mixins; a big fraction
+decorate: `Visible` descriptions, `Detailed` sub-features,
+`SmellSource`/`SoundSource` scent & sound, `AmbientLit`/`LightSource` glow,
+`Tangible` material, `Adornable` adornments, `Surfaced`/`Postured` usable
+surfaces, `Branded` mark, `Atmospheric` air …). It **grows for free** — every new
+mixin is a new way to customize, zero new features to design. Generic objects, so
+**no `Named`** (a dorm bed is `a bed` via `Visible.shortDescription`, never a
+proper name — see `Named.ts` IS/IS-NOT).
 
-You pick a genre at **room assignment, from Katie** — *"what register you after?
-got a few looks"* — and when she **moves you in, the room's already seeded** in
-that genre (its objects, layout, lighting). Instant gratification: a *home with a
-vibe*, day one; a lovely beat for the manifest-holder.
+So the whole thing collapses to three pieces:
 
-**Per-half, not room-wide** (decided): you skin *your* side; your roommate's side
-is *their* genre (the proc-gen NPC's generated register, or — Wren — her authored
-one). So the shared dorm reads as a **genre-clash made domestic** — your future
-deck beside their fantasy bunk, the genre-mixing thesis in one room, a little
-funny. *Speculative:* matching **genres** could **synergize** into one cohesive
-space (a small unlock, or just a nicer whole); since the roommate's genre is
-generated, a match is a happy accident or a quiet act of harmony with your agent
-roommate (§17.H) — TBD, kept light.
+- **An object's editable schema is *derived from its composed mixins*** (their
+  settable fields). The CMS schema-driven editor reads exactly that. The dorm room
+  is a **bounded view of the universal editor**; the sandbox is the same editor
+  unfiltered.
+- **A theme is a cross-mixin *field-bundle*** keyed by slot — not "prose";
+  *whatever fields* the genre wants to set (description + material + scent + light
+  in one register). Picked from **Katie at move-in**, **per-half** (→ the
+  genre-clash made domestic; matching-genre synergy kept light, §17.H).
+- **A tier is a *filter*** over that field-surface — *which mixins / fields /
+  values* are editable here. That is the only thing "bounded customization" means.
 
-Genre does triple duty: **instant expression** (intentional day one), a **bounded
-starting point** (tweak within the genre's palette), and the **strongest CMS
-lesson** — each genre is a coherent, self-contained composition (a worked example
-of "how to build a future space"), exactly what you'd riff on in your sandbox,
-nudging toward *authoring within a genre.* The pick → tweak → inspect → author
-path is the whole ladder in miniature.
+### The theme roster (the launch set)
 
-## The room as a three-axis self-portrait (genre · soul · roots)
+Seven registers Katie offers at move-in (*"a few looks"*), each a recognizable
+genre **anchored to real world content** — plus one unlock. Each *is* a
+cross-mixin field-bundle (description + material + light + scent, in register):
 
-The room is a portrait of its two occupants across **three composing axes** — and
-designing how each kind of figure expresses across them *is* designing the
-faculty.
+| Theme | Register | World-anchor | A taste |
+|---|---|---|---|
+| **Fantasy** | high-fantasy | the species, the aether | dark wood, candles, a runebook; beeswax & cold stone |
+| **Future** | sci-fi / cyberpunk | the corpos | chrome, a glowing terminal, neon underglow; a fan's hum |
+| **Noir** | hardboiled detective | the murder arc | blind-slat shadow, a desk lamp, a case-board; smoke & old paper |
+| **Gothic** | horror / dread | the undead cast | dark velvet, a cracked mirror, cobweb; a shut-room smell |
+| **Period** | antique / old-world | the classical, dark-academia | leather & brass, an oil lamp, mahogany; old books |
+| **Pastoral** | cozy / cottage | the rustic, the warm | quilts, dried flowers, a plant; woodsmoke & herbs |
+| **Plain** | neorealist (no-theme) | the un-genred EU ("the dorm is a dorm") | institutional bed, a desk, a few posters, fairy lights |
 
-**The anatomy it composes into.** A fixed shell (the Warren node — walls, window,
-door, the uniform shape) split into **two halves**, each a small set of **slots**:
-bed/bedding · desk · walls (posters, pinboard) · shelves/storage (books,
-collections) · decor (plant, lamp, rug, lights) · lighting · floor. The palette is
-*slots × options*, deliberately small (the training-wheels bound and the legible
-first CMS lesson).
+**Unlock — Weird** (eldritch / aether-strange; Gus's "all eyes and angles"):
+angles that don't quite meet, a window onto the wrong sky, ozone. Hardest to make
+*livable* — earned, not handed out at move-in.
 
-The three axes that fill those slots:
+Curated, not the ceiling: themes are field-bundles, so **community-authored
+themes** come later (a player's "synthwave" or "brutalist" bundle — the first
+player-made content others consume). These seven (+ Weird) are the launch
+definitive set.
 
-- **Genre (style) — *picked.*** The aesthetic register (future / fantasy /
-  history / neorealist); see *Genre* above. The skin.
-- **Soul (lived-in state) — *rendered from traits + Carries.*** Personality made
-  spatial, layered *on top of* the genre skin (a Lazy fantasy room = candle wax
-  and dropped scrolls; a Lazy future room = cables and energy-drink cans). The
-  trait → room mapping for the loud-signal axes:
+### The field-value sources (what populates a half)
 
-  | Disposition | reads as | pole → pole |
-  |---|---|---|
-  | `diligence` | tidiness | made/clear/ordered ↔ unmade, piles, clutter |
-  | `sociability` | openness | friend-photos, a visitor's chair, door propped ↔ spare, shut |
-  | `temperance` | consumables | clean ↔ wrappers, cups, a stocked stash |
-  | `ambition` | aspiration | goal-board, trophies, advancement books ↔ cozy, settled |
-  | `curiosity` | collection | maps, oddities, projects-in-progress ↔ bare, functional |
-  | `generosity` | sharing | candy bowl, communal stuff ↔ locked, hoarded |
-  | `humility` | display | modest ↔ trophies, mirrors, awards |
-  | `composure` | order | serene, plants ↔ aggressive, chaotic |
-  | `worldview` | tone | bright, hopeful ↔ dark, ironic, sparse |
+Genre/soul/roots aren't separate axes — they're **sources** that feed the one
+field-surface, resolved **player > theme > trait-default > base**:
 
-  The **band sets the volume** (entrenched-`Diligent` = *obsessively* tidy); a
-  curated **subset** of Carries renders (the displayable ones, not every pocket
-  item); the other axes ride along subtly or not at all.
-- **Roots (bio) — *rendered from char-gen, grows with lore.*** Where you're from,
-  your history, your identity — a memento from home, a species-cultural item, an
-  affiliation token, a photo (Wren's *unanswered letter from home* is the
-  exemplar). **Thin today** (char-gen bio is barebones), a **seam to grow into**:
-  reserve a "roots" slot or two now, fill it as the world accumulates lore — the
-  room gets *more* expressive over time.
+- **Theme** (genre) — a field-bundle across mixins, in register. The skin.
+- **Soul** (traits) — trait-derived **field defaults** (a `Diligent` occupant's
+  side defaults tidy; loud-signal map: diligence→tidiness, sociability→openness,
+  curiosity→collection, temperance→consumables, …; the **band sets the volume**).
+- **Roots** (bio) — bio-derived objects/fields (a home token; thin now, grows
+  with lore).
+- **You** — explicit field overrides, on top.
 
-So: **genre = style, soul = personality, roots = origin** — three layers per
-half, two halves per room.
+And the **four figures** populate that surface differently — **production cost
+maps to room cost:**
 
-**The four figures across the axes** (carving these designs the faculty):
+- **You** — a theme **plus your own field overrides.**
+- **The proc-gen roommate** — **a theme, *unmodified.*** It picks a register from
+  its persona (with variety — an elf needn't get fantasy; the species-allegory
+  discipline) and stops; no per-field customization. Cheap, like the agent — the
+  room *is* the theme. (The never-personalized half quietly feeds the §17.H
+  *dawning* that there's not-quite-a-person there.)
+- **A singleton NPC (Wren)** — **bespoke**, *never* a theme off the shelf. Carved
+  characters get carved rooms: a hand-authored field-set that *is* the carve
+  (Wren's — boxes still unpacked, one corner made functional, the letter from
+  home). A theme may seed it, but the carve overrides freely; her room is authored
+  like she is.
+- **Dunny (departed)** — bespoke **and frozen**: the composition paused on his
+  last field-state (cold tea, the counting-notation).
 
-- **You (player):** genre *picked* + soul from *your traits as overridable
-  defaults* + your Carries + roots from your bio.
-- **The proc-gen NPC roommate:** **generated** across all three — genre from
-  persona/bio *with variety* (an elf might generate fantasy, a synth future, but
-  **not deterministically** — an elf in a neorealist room is the better
-  character, the same anti-essentialism discipline as the species allegory), soul
-  from generated traits, roots from generated bio. You learn who they are by
-  looking.
-- **Wren (singleton):** **authored** — her carve *is* the spec (heads-down,
-  boxes-still-unpacked, one corner made functional, the letter from home); her new
-  room is the "authored singleton + proc-gen roommate" test case.
-- **Dunny (departed):** **frozen** — the composition engine *paused* on his last
-  state (his half a snapshot: cold tea, the counting-notation), the other half
-  stripped (Wren vacated).
+### The tier filter = the housing ladder
 
-The faculty supports **pick, generate, author, and freeze** across the three axes
-— carve the expressions and the `DormRoom` template + the CMS-inspectable wiring
-fall out. "Live running code" = this composition (genre + soul + roots → the
-rendered half), recomputed as things change.
+The filter widens as privacy/ownership rises — so the housing progression *is*
+the customization-power ladder (and the authoring ladder):
+
+| Tier | Privacy | Editable surface |
+|---|---|---|
+| **Dorm** (shared, half/half) | your half's objects | a curated subset of object mixin-fields (some `Visible`, `Detailed`, `Smell`/`Sound`, value-bounded `Tangible`, `AmbientLit`), within allowed values. **Room-level mixins off** — the atmosphere is shared. |
+| **Apartment / hotel** (private, whole-room) | the whole room | + **room-level mixins** — `Atmospheric`/biome (the magic-threshold room: the gate-sky-flip applied to a private door), whole-room theming. |
+| **Homestead / real estate** (own land) | the whole space | the **filter off** — every field, plus **composing new mixins** onto objects. The sandbox. |
+
+The dorm is bounded *because it's shared* (you can't atmosphere a room someone
+else lives in); **privacy unlocks deeper finishes; ownership unlocks authoring.**
+
+### The code
+
+The generic object — its composed mixins define what's customizable:
+
+```yaml
+# /domain/eu/dorm/bed
+class: /lib/dorm/Bed       # = Detailed(SmellSource(SoundSource(Tangible(Visible(Thing)))))
+data:
+  short:    "a bed"                     # Visible      (NOT Named — generic)
+  long:     "A standard dorm bed."      # Visible
+  material: /lib/material/wood/pine     # Tangible
+  # details (Detailed) · smell (SmellSource) · sound (SoundSource) · light (AmbientLit): unset
+```
+
+A theme — a cross-mixin field-bundle, keyed by slot:
+
+```yaml
+# /domain/eu/theme/fantasy
+bed:
+  short:    "a great four-poster"                              # Visible
+  long:     "A four-poster, drapes the deep red of old wine."  # Visible
+  details:  { drapes: "heavy velvet, dust sifting from the folds" }   # Detailed
+  material: /lib/material/wood/blackoak                         # Tangible
+  smell:    "beeswax and cold stone"                           # SmellSource
+  sound:    "charms on the canopy tick in any draft"           # SoundSource
+  light:    { glow: candle, level: dim }                       # AmbientLit
+```
+
+Your half — a sparse *field diff* (any mixin's fields):
+
+```jsonc
+// document tree · /home/p-8f2a/dorm-room
+{
+  "meta": { "schema": "dorm-room@1", "owner": "p-8f2a",
+            "base": "/domain/eu/DormRoom", "room": "duncan-hall:r-204", "half": "left" },
+  "theme": "fantasy",
+  "slots": {
+    "bed": {
+      "long":     "Just a cot. But the quilt's the one Gran sewed.",   // Visible
+      "material": "/lib/material/textile/quilt-cotton",                 // Tangible
+      "details":  { "quilt": "edges gone soft, a coffee stain shaped like Ohio" }, // Detailed
+      "smell":    "faintly of her house — cedar and old coffee"         // SmellSource
+      // short, sound, light: untouched → the fantasy bundle's
+    }
+  }
+}
+```
+
+The tier filter — the only thing that makes it "bounded":
+
+```yaml
+# /domain/eu/DormRoom — which mixin-fields a DORM lets a player set (and to what)
+editable:
+  "*":                               # any slot object on your half
+    Visible:     [short, long]
+    Detailed:    [details]           # describe existing sub-features
+    SmellSource: [smell]
+    SoundSource: [sound]
+    AmbientLit:  [light]
+    Tangible:    { material: [ /lib/material/wood/**, /lib/material/textile/** ] }  # value-bounded
+  # NOT here: Atmospheric (room biome → apartment tier); composing new mixins (sandbox)
+```
+
+End to end: **the object's mixins define the surface, the theme is a field-bundle,
+your doc is a field-diff, the tier is the filter** — and the CMS shows all of it
+(`from: theme` grayed, yours highlighted), the same editor you'll get unfiltered
+in your sandbox.
 
 ## The thematic payoff (keep it in view)
 
@@ -168,48 +240,59 @@ the room you sleep in.
 
 ## Open decisions / dials
 
-1. **The palette** — finalize the slots (bed / desk / walls / shelves / decor /
-   lighting / floor) and the per-slot options; keep it small (the beginner bound
-   + the CMS lesson).
-2. **The genre roster** — the launch set (future / fantasy / history / neorealist
-   + ?) and how it maps to the world's genre-zones. (*Decided:* genre is the
-   theme, **per-half**; the matching-genre **synergy** stays light.)
-3. **Soul layering** — refine the trait → room table, and the **genre × soul**
-   composition rule (how trait-driven mess sits *on* the genre skin).
-4. **Roots, near-term** — one or two "roots" objects now (a home token) vs.
-   waiting for richer char-gen bio.
+1. **The tier filter** — finalize which mixin-fields the dorm exposes and their
+   value bounds (the `editable` policy); keep it small (the beginner bound + the
+   CMS lesson).
+2. **The genre/theme roster** — ***resolved:*** the **seven-register launch set +
+   Weird-as-unlock** (see *The theme roster*), picked from Katie, **per-half**;
+   matching-genre **synergy** kept light; community-authored themes later.
+3. **Trait → field-default mapping** — refine the soul map and the resolution rule
+   (player > theme > trait-default > base).
+4. **Roots, near-term** — one or two bio objects now (a home token) vs. waiting
+   for richer char-gen bio.
 5. **How dynamic** — does a half shift over time? *Lean:* the **NPC half slowly
    tracks its entrenching traits** (a living readout + a subtle clue surface), the
    **player half stays put until you tweak it.**
 6. **What "frozen" is, mechanically** — Dunny's cut-off occupancy (preserved half
    + stripped half + the seal).
-7. **CMS exposure depth** — how much wiring the first CMS view shows, and how it
-   maps to the sandbox vocabulary.
+7. **CMS exposure depth** — how much wiring the first view shows; the
+   schema-driven editor derives an object's editable schema from its mixins.
+8. **The private-housing tier** — apartment / hotel (whole-room, + `Atmospheric`/
+   biome — the magic-threshold room) as the **next build** after dorm-warren; the
+   rung that unlocks room-level customization.
 
 ## Dependencies & deferrals
 
 - **Warren / MultiLocation** — *shipped* (the dynamic rooms).
 - **Templates + clone pipeline** — *shipped* (the uniform template, seed data).
-- **CMS** — *building* (the inspectability + the authoring surface; see
+- **CMS** — *building* (the inspectability + the authoring surface; the
+  schema-driven editor reads an object's mixin-fields; see
   [cms-slate](./cms-slate.md)).
-- **Traits, Carries** — *shipped / designed* (the expression channels).
+- **The document tree (the "third tree")** — **decided 2026-06-27**: the
+  per-player customization document lives here, the base template in the template
+  tree (the hybrid). The Warren-constituent storage standard; reuses the Hydrator.
+  See [document-tree-slate](./document-tree-slate.md).
+- **The mixin library** — *shipped* (≈100 mixins); it **is** the decoration
+  palette and grows for free.
+- **Traits, Carries** — *shipped / designed* (the soul source).
 - **The proc-gen roommate pipeline** — §17.H / llm-content territory; the NPC-half
   generation rides it.
-- **The sandbox + compute quota tier** — **deferred** (the full-authoring future,
-  metered-compute). The dorm-room rung is the near-term, demoable on-ramp; nail
-  it first, leave the sandbox for later.
+- **The private-housing + sandbox tiers** — **deferred** (whole-room biome; the
+  full-authoring + metered-compute future). The dorm-room rung is the near-term,
+  demoable on-ramp; nail it first.
 
 ## Cross-references
 
 - [location.md](../../subsystems/location.md) (Warren) ·
   [templates.md](../../subsystems/templates.md) (template + seed data) ·
-  [cms.md](../../subsystems/cms.md) / [cms-slate](./cms-slate.md) (inspectability,
-  authoring) · [char-gen.md](../../subsystems/char-gen.md) (the bounded-draft
-  precedent).
+  [mixins.md](../../subsystems/mixins.md) (the palette) ·
+  [cms.md](../../subsystems/cms.md) / [cms-slate](./cms-slate.md) (the
+  schema-driven editor) · [char-gen.md](../../subsystems/char-gen.md) (the
+  bounded-draft precedent).
 - [eternal-university-narrative-slate.md](./eternal-university-narrative-slate.md)
   §17.H (the roommate; the who-counts domestic).
 - Staging: `eternal-university/experiences/sealed-room.md` (Dunny's frozen room),
   `eternal-university/npcs/property-manager.md` (Katie's manifest = the allocator
-  face), and the cast Carries (the expression channel).
+  face), and the cast Carries (the soul source).
 - [species-expansion-slate](./species-expansion-slate.md) (the proc-gen NPC's
   species/persona feeds their half).
