@@ -25,6 +25,12 @@ import { ExecutionContextApi } from '../../mud/api/execution-context';
 import type { Stuff } from '../../mud/lib/stuff/Stuff';
 import { AuthMiddleware } from './AuthMiddleware';
 import { TWITCH_IDENTITY_SCOPE } from './PassportConfig';
+import { User } from '../../mud/lib/identity/User';
+import { TwitchProfile } from '../../mud/lib/identity/TwitchProfile';
+import {
+  TWITCH_SCOPE_READ_CHAT,
+  TWITCH_SCOPE_WRITE_CHAT,
+} from '@saxonberg/types';
 
 /**
  * AuthRoutes - Handles authentication routes.
@@ -80,6 +86,10 @@ export class AuthRoutes {
 
     AuthRoutes.setupLinkRoutes(app, 'google', 'google-link');
     AuthRoutes.setupLinkRoutes(app, 'twitch', 'twitch-link');
+
+    // ---- Re-auth (authenticated; broaden Twitch chat scopes) --------
+
+    AuthRoutes.setupTwitchReauthRoutes(app);
 
     // ---- Unlinking (authenticated POST, no OAuth) -------------------
 
@@ -214,6 +224,96 @@ export class AuthRoutes {
                   ? 'already'
                   : 'collision';
             res.redirect(`${process.env.CLIENT_URL}/?link=${code}`);
+          }
+        );
+      }
+    );
+  }
+
+  /**
+   * Wire the Twitch chat-scope re-consent flow:
+   * `GET /auth/twitch/reauth?scope=<allowed>` and its callback. Both
+   * authenticated. The initiate handler builds an **incremental** scope
+   * set (identity + already-granted + the requested chat scope) so Twitch
+   * doesn't drop existing grants, and forces a fresh consent screen (via
+   * the strategy's `force_verify`). The callback writes the broadened
+   * token back to the user's existing `TwitchProfile` through the same
+   * `handleProviderLink` upsert the link flow uses — for a same-user
+   * re-consent the result is `already-linked`, which is success here.
+   */
+  private static setupTwitchReauthRoutes(app: Express): void {
+    const allowed = new Set<string>([
+      TWITCH_SCOPE_READ_CHAT,
+      TWITCH_SCOPE_WRITE_CHAT,
+    ]);
+
+    app.get(
+      '/auth/twitch/reauth',
+      AuthMiddleware.requireAuth,
+      (req: Request, res: Response, next: (err?: unknown) => void) => {
+        const requested = String(req.query.scope ?? '');
+        if (!allowed.has(requested)) {
+          res.redirect(`${process.env.CLIENT_URL}/?reauth=invalid`);
+          return;
+        }
+        const userId = (req.user as { id: string }).id;
+        // Load the already-granted scopes so the re-consent is additive,
+        // not a replace (Twitch grants exactly the requested set).
+        void (async () => {
+          let granted: string[] = [];
+          try {
+            const user = await User.findById<User>(userId);
+            if (user?.twitchProfileId) {
+              const profile = await TwitchProfile.findById<TwitchProfile>(
+                user.twitchProfileId
+              );
+              granted = profile?.scopes ?? [];
+            }
+          } catch (err) {
+            console.error('AuthRoutes: reauth scope preload failed:', err);
+          }
+          const scope = Array.from(
+            new Set([...TWITCH_IDENTITY_SCOPE, ...granted, requested])
+          );
+          passport.authenticate('twitch-reauth', {
+            scope,
+            session: false,
+          })(req, res, next);
+        })();
+      }
+    );
+
+    app.get(
+      '/auth/twitch/reauth/callback',
+      AuthMiddleware.requireAuth,
+      passport.authenticate('twitch-reauth', {
+        session: false,
+        failureRedirect: `${process.env.CLIENT_URL}/?reauth=failure`,
+      }),
+      (req: Request, res: Response) => {
+        const session = req.session as unknown as {
+          passport?: { user?: { id?: string } };
+        };
+        const userId = session.passport?.user?.id;
+        const profile = req.user as PassportTwitchProfileWithTokens | undefined;
+        if (!userId || !profile) {
+          res.redirect(`${process.env.CLIENT_URL}/?reauth=failure`);
+          return;
+        }
+        Backend.get().handleProviderLink(
+          'twitch',
+          userId,
+          profile,
+          (error, result) => {
+            if (error || !result) {
+              console.error('AuthRoutes: reauth error:', error);
+              res.redirect(`${process.env.CLIENT_URL}/?reauth=failure`);
+              return;
+            }
+            // linked / already-linked both mean the broadened token was
+            // written back; only a cross-user collision is a real failure.
+            const code = result.status === 'collision' ? 'collision' : 'success';
+            res.redirect(`${process.env.CLIENT_URL}/?reauth=${code}`);
           }
         );
       }
