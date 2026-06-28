@@ -1,9 +1,23 @@
-# Credential wallet — one holder, many credentials-as-data (sketch)
+# Credential wallet — one holder, many credentials-as-data (tail)
 
-> **Status: sketch / pre-requirements.** A small **consolidation** build —
-> captures an abstraction, not a spec. Authored 2026-06-27 in a design pass on
-> the EU murder arc, when proctor **deputization** became the *third* credential
-> and the per-credential-mixin pattern showed its seam.
+> **Status: core SHIPPED 2026-06-27** (`feature/credential-wallet-build`),
+> graduated to [credential.md](../../subsystems/credential.md). The holder
+> (`CredentialWalletMixin`), the credentials-as-data records, the born-with
+> `CredentialWalletUpdate`, and the **migration of both payment and travel**
+> onto it all shipped — the per-credential mixins / hosted-update twins are
+> gone. **Deferred tail** (this slate's surviving surface): **deputization**
+> as a native tenant, the **issuer-authorization ledger** (validity derived,
+> the record a *presentation* not the source of truth), a single
+> `CredentialCard` (v1 keeps two thin per-kind card subclasses), and a thin
+> `CredentialApi`. Originally authored 2026-06-27 in a design pass on the EU
+> murder arc, when proctor **deputization** became the *third* credential and
+> the per-credential-mixin pattern showed its seam.
+>
+> **What shipped diverged from the sketch below:** deputization was descoped
+> (the user's call) and the build instead did the "out this pass" work —
+> migrating the two existing credentials onto the holder. Read the design
+> below as the *full* surface; [credential.md](../../subsystems/credential.md)
+> is the live reference for what's built.
 >
 > **The smell:** we already ship two credential mixins —
 > `PaymentCredentialMixin` ([banking.md](../../subsystems/banking.md):
@@ -99,7 +113,7 @@ credential mixins today; we retrofit the old two when convenient.
 ## Cross-references
 
 - First tenant / driver: the EU murder arc deputization — the proctors office
-  pathway ([eternal-university-narrative-slate.md](./eternal-university-narrative-slate.md)
+  pathway ([eternal-university-narrative-slate.md](../builds/eternal-university-narrative-slate.md)
   §14, the registrar/morgue access immsim).
 - Folds in (later): [banking.md](../../subsystems/banking.md),
   [fasttravel.md](../../subsystems/fasttravel.md).

@@ -23,22 +23,25 @@ a directed set of **routes**, a **selected destination** (state), an
 advance policy, an inert `status` seam, and `getArrivalRoom()` (where
 travellers land — the node's own container).
 
-**`TravelCredentialMixin`** (`lib/fasttravel/TravelCredential.ts`) — the
-**credential**: a registered-node set plus the register/authorize
-surface. Base-agnostic (no corporeal assumption), so it composes around
-two bases — the Thing/Idea symmetry of the three-base capability model
-(see [augmentation.md](./augmentation.md)):
+**The credential** is now a `travel` **record** held in a
+`CredentialWalletMixin` holder (the unified credential substrate — see
+[credential.md](./credential.md)): a registered-node set plus the
+register/authorize surface. The holder is base-agnostic, so it composes
+around two bases — the Thing/Idea symmetry of the three-base capability
+model (see [augmentation.md](./augmentation.md)):
 
-- a carryable **`TravelCard`** `Thing` (`/domain/common/tpa/TravelCard`)
-  — the transferable half: lend the card, lend its routes;
-- an incorporeal **`TravelCredentialUpdate`**
-  (`TravelCredentialMixin(AetherHostedMixin(Idea))`) — a hosted update
+- a carryable **`TravelCard`** `Thing` (`/domain/common/tpa/TravelCard` =
+  `CredentialWalletMixin(Thing)`) — the transferable half: lend the card,
+  lend its routes;
+- the born-with **`CredentialWalletUpdate`**
+  (`CredentialWalletMixin(AetherHostedMixin(Idea))`) — the one wallet app
   injected into the avatar's aether attunement by
-  `Avatar.installDefaultLoadout`. This **replaced the implant's
-  directly-carried credential**: the `AetherImplant` now confers
-  attunement only and no longer composes `TravelCredentialMixin`.
+  `Avatar.installDefaultLoadout`, holding the `travel` record alongside
+  `payment`. The `AetherImplant` confers attunement only and composes no
+  credential mixin.
 
-State lives on the credential Stuff in either base.
+The `travel` record's state (registered set + floor) lives in the holder in
+either base.
 
 ## The network model
 
@@ -91,10 +94,11 @@ the fork so it never blocks the privileged path:
   Checks departure-capable → keyword selection → **credential
   registration** → travels to the destination node's `getArrivalRoom()`
   via `Mobile.teleport`. The credential lookup is unchanged in intent:
-  `findReachable(..., isTravelCredential)` returns whichever credential
-  is reachable — a **carried `TravelCard`** (the carried-inventory leg)
-  or the **hosted `TravelCredentialUpdate`** (the host-descent leg added
-  for the three-base model). One scan, either base, no controller change.
+  `findReachable(..., isCredentialWallet + a travel record)` returns
+  whichever holder is reachable — a **carried `TravelCard`** (the
+  carried-inventory leg) or the **born-with `CredentialWalletUpdate`** (the
+  host-descent leg of the three-base model) — then reads its `travel`
+  record. One scan, either base, no controller change.
 
 **`register`** (`RegisterController`, `cmd/movement/register.yaml`) —
 records the terminal here onto your credential so you can `teleport` to
@@ -117,7 +121,8 @@ another way and `register` first".
 **University Avenue node** (`/domain/eternal/university-avenue-terminal`)
 — the lounge → campus hop, the single documented exception to
 "reach-before-travel". The floor is preserved across hydration (the
-`registered` setter unions saved entries on top of it, never clearing).
+`TravelCredential` record's `fromData` unions saved entries on top of it,
+never clearing).
 
 ## Timetable & advance policy
 
@@ -134,9 +139,9 @@ handles):
 
 Credential registration is **session-durable, not cross-restart**:
 `Avatar.save()` persists only the avatar's own fields (no inventory
-persist-back; the hosted credential update is re-cloned each session by
-`installDefaultLoadout`, so `registered` resets to the born-with floor
-each login), so the registered set does not survive a server restart
+persist-back; the hosted `CredentialWalletUpdate` is re-cloned each session
+by `installDefaultLoadout`, so the `travel` record's registered set resets
+to the born-with floor each login), so it does not survive a server restart
 yet. Cross-restart durability rides future persistence work (aug-state
 colocation; inventory persist-back) — see [persistence](./persistence.md).
 

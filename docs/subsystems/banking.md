@@ -129,16 +129,22 @@ thing owed is a `Charge` (`amount + payee + reason`, **presented** vs
   routes one payment from a specific linked account without disturbing the
   active setting. Returns a `SettlementReceipt` the scene reads.
 
-The **credential** is the dual-base `TravelCredential` shape:
-`PaymentCredentialMixin` (linked-account set + active pointer + `spendCap` +
-`frozen` + `authorize`) over BOTH `PaymentCard` (`= mixin(Thing)`, a 1:1
-bearer instrument you can lose) and `PaymentImplantUpdate`
-(`= mixin(AetherHostedMixin(Idea))`, the wallet linking all accounts, one
-active — installed once by `Avatar.installDefaultLoadout`, body-bound).
-Reached via `ContainmentApi.findReachable` (implant-first — the self-hosted
-leg precedes carried cards), which **skips frozen** credentials so a reissued
+The **credential** is now a `payment` **record** held in a
+`CredentialWalletMixin` holder (the unified credential substrate — see
+[credential.md](./credential.md)): the record carries the linked-account set +
+active pointer + `spendCap` + `frozen` + `authorize`. The holder composes over
+BOTH a `PaymentCard` (`= CredentialWalletMixin(Thing)`, a 1:1 bearer
+instrument you can lose) and the born-with `CredentialWalletUpdate`
+(`= CredentialWalletMixin(AetherHostedMixin(Idea))`, the one wallet app holding
+every credential kind — installed once by `Avatar.installDefaultLoadout`,
+body-bound). Reached via `ContainmentApi.findReachable` keyed on
+`MixinApi.isCredentialWallet` + a **non-frozen** `payment` record
+(implant-first — the self-hosted leg precedes carried cards), so a reissued
 card is found in place of a revoked one. `openAccount` auto-links each new
-account to the owner's implant (first opened → active).
+account to the owner's wallet (first opened → active). `BankingApi`'s
+credential surface (`activeCredential` / `setActiveAccount` /
+`freezeCredential`) traffics in the `PaymentCredential` record; `issueCard`
+returns the card holder (`Stuff & CredentialWallet`).
 
 The **risk ladder + recourse**: cash = bearer, no recourse; implant =
 body-bound (not a carryable Thing); card = bearer, bounded by `freeze`
@@ -148,6 +154,17 @@ security cap, never a fee). Verbs: `pay` (the one flat top-level settlement
 verb — stated transfer; `--cash`/`--from`) + the `wallet` verb (bare → show
 active; `wallet use <corpo>` switch; `wallet freeze <card>` report-lost +
 reissue).
+
+> **History.** Phase 3 shipped the payment credential as a
+> banking-owned `PaymentCredentialMixin` over a `PaymentCard` Thing and a
+> `PaymentImplantUpdate` aether twin. The **credential-wallet build**
+> (`feature/credential-wallet-build`) folded it into the shared credential
+> substrate: the behavior moved onto a `PaymentCredential` *record* held in a
+> `CredentialWalletMixin`, the implant twin became the unified
+> `CredentialWalletUpdate`, and resolution re-keyed to
+> `MixinApi.isCredentialWallet`. The verb surface and the ledger are
+> unchanged — only where the credential's state lives. See
+> [credential.md](./credential.md).
 
 ## Tabs, wages, demo tax, the P&L (Phase 4)
 
