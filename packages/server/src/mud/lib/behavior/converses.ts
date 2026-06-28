@@ -34,6 +34,9 @@ function pick(lines: string[]): string | undefined {
 export const brain = class {
   static label = 'converses';
   static claims: readonly EngagementSlot[] = ['voice'];
+  // Yield while the host is mid-conversation (voice/attention held) so its
+  // trait-flavored chatter doesn't talk over the directed dialogue.
+  static requiresFree: readonly EngagementSlot[] = ['voice', 'attention'];
 
   static async act(ctx: BrainContext): Promise<void> {
     const chatty = pool(ctx.config, 'chatty');

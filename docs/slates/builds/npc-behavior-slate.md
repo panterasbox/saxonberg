@@ -53,7 +53,7 @@ The load-bearing decisions:
 
 See also:
 
-- [docs/slates/npc-dialogue-slate.md](../builds/npc-dialogue-slate.md) — the
+- [docs/slates/npc-dialogue-slate.md](../tails/npc-dialogue-slate.md) — the
   **speech brains** (tree / intent / LLM responders) this generalizes; the
   "one output, swappable brains" pattern is its core, now applied to all
   behavior. Dialogue content (trees, rules) = data on the NPC; responders =
@@ -512,7 +512,7 @@ hollow `'blocked'` gate); combat/defend brains (RPG-deferred).
 
 ## What this slate does NOT cover
 
-- **The dialogue *responders* internals** → [npc-dialogue-slate.md](../builds/npc-dialogue-slate.md);
+- **The dialogue *responders* internals** → [npc-dialogue-slate.md](../tails/npc-dialogue-slate.md);
   consumed as the speech brains.
 - **The activity/engagement substrate** → [activity.md](../../subsystems/activity.md);
   consumed for triggers + coordination.

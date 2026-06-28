@@ -44,6 +44,7 @@ import { StuffApi } from '../../api/stuff';
 import { ScheduleApi, type ScheduleHandle } from '../../api/schedule';
 import { SchedulerApi } from '../../api/scheduler';
 import { MixinApi } from '../../api/mixin';
+import type { CommandContributions } from '../../api/command';
 import { ReactionApi } from '../../api/reaction';
 import { SoulApi } from '../../api/soul';
 import { TraitApi, type ClaimSeed } from '../../api/trait';
@@ -111,6 +112,28 @@ export function BehavedMixin<TBase extends MixinConstructor<Stuff>>(
 
     public getBehaviors(): readonly BehaviorSpec[] {
       return this.behaviors;
+    }
+
+    /**
+     * Per-instance dynamic command contributions, merged with the static
+     * `commandContributions` by the containment-delta machinery (the
+     * `InstanceContributor` seam). A Behaved host affords `talk` to
+     * nearby givers **exactly when** it carries an `engage`-triggered
+     * (dialogue-responder) spec — so a conversational NPC is
+     * discoverable and a silent one is not, with no subclass and no
+     * manual push/pop. Reads the persisted `behaviors:` (hydrated before
+     * placement, so it is live at containment-delta time), independent of
+     * brain wiring. The framework's pop-on-departure / reset-on-move
+     * handles teardown; adding/removing a tree on an already-placed host
+     * settles on its next (re)placement.
+     */
+    public getInstanceContributions(): CommandContributions {
+      const conversational = (this.behaviors ?? []).some(
+        (s) => s.trigger === 'engage'
+      );
+      return conversational
+        ? { environment: ['social/talk.yaml'], peers: ['social/talk.yaml'] }
+        : {};
     }
 
     // ───────── lifecycle ─────────
@@ -373,11 +396,17 @@ export function BehavedMixin<TBase extends MixinConstructor<Stuff>>(
         const mult = unit === 'ms' ? 1 : unit === 'm' ? 60_000 : 1_000;
         return { source: 'cadence', intervalMs: n * mult };
       }
-      const kind = raw.trim() as WitnessKind;
+      const trimmed = raw.trim();
+      // The dialogue-responder sentinel: wires nothing (no timer, no
+      // witness dispatch). The spec exists to surface the tree to the
+      // `talk` controller, warm the brain at wire time, and mark the host
+      // conversational. The brain is reached only via `open`.
+      if (trimmed === 'engage') return { source: 'engage' };
+      const kind = trimmed as WitnessKind;
       if (kind in WITNESS_TOPIC) return { source: 'witness', kind };
       throw new Error(
-        `unrecognized trigger '${raw}' (expected 'cadence:<N>[ms|s|m]' ` +
-          `or one of ${Object.keys(WITNESS_TOPIC).join('/')})`
+        `unrecognized trigger '${raw}' (expected 'cadence:<N>[ms|s|m]', ` +
+          `'engage', or one of ${Object.keys(WITNESS_TOPIC).join('/')})`
       );
     }
 

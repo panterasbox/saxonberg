@@ -25,7 +25,7 @@ import type { Stuff } from "../lib/stuff/Stuff";
 import { SpeciesApi } from "../api/species";
 import AetherImplant from "../lib/augmentation/AetherImplant";
 import CommsUpdate from "../lib/comms/CommsUpdate";
-import TravelCredentialUpdate from "../lib/fasttravel/TravelCredentialUpdate";
+import CredentialWalletUpdate from "../lib/credential/CredentialWalletUpdate";
 import ForumsUpdate from "../lib/forum/ForumsUpdate";
 import { MessageApi } from "../api/message";
 import { Mml } from "../api/mml";
@@ -530,14 +530,17 @@ export default class Avatar extends AvatarBase {
         CommsUpdate.TEMPLATE_PATH,
       );
       this.hostUpdate(comms);
-      const cred = await StuffApi.clone<TravelCredentialUpdate>(
-        TravelCredentialUpdate.TEMPLATE_PATH,
-      );
-      this.hostUpdate(cred);
       const forums = await StuffApi.clone<ForumsUpdate>(
         ForumsUpdate.TEMPLATE_PATH,
       );
       this.hostUpdate(forums);
+      // One wallet app holds every credential kind (payment + travel),
+      // replacing the per-credential implant twins. Its seed ships an empty
+      // payment record and a floored travel record.
+      const wallet = await StuffApi.clone<CredentialWalletUpdate>(
+        CredentialWalletUpdate.TEMPLATE_PATH,
+      );
+      this.hostUpdate(wallet);
     } catch (err) {
       console.warn(
         `Avatar.installDefaultLoadout skipped for ${this.stuffId}:`,

@@ -1,0 +1,14 @@
+# The Goodkin teller counter — the BankMixin fixture that lights up the
+# banking verbs while you're in the branch and holds the cash vault (its
+# contents are the till). Affiliated to Goodkin (the roster's retail bank);
+# opening an account here records that affiliation.
+class: /lib/banking/BankCounter
+hydratorClass: /lib/persistence/PersistentHydrator
+data:
+  shortDescription: the teller counter
+  longDescription: |
+    A long counter of pale stone topped with a brass rail, a worn ledger
+    pad, and a row of stamped Goodkin tokens in a tray. A discreet grille
+    separates the public side from the till.
+  keywords: [counter, teller, desk, window, till]
+  corpoKey: goodkin

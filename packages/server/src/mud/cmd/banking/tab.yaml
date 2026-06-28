@@ -1,0 +1,16 @@
+verbs: [tab]
+controller: banking/TabController
+description: "Run a tab at the venue — show / settle / skip"
+help: |
+  Bare `tab` shows what you owe here. `tab settle` clears it from your
+  account; `tab skip` walks out on it — possible, but remembered, and not
+  free (a regard hit and the loss of the privilege). A tab is a privilege of
+  being known to the house.
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresConscious
+subcommands:
+  settle:
+    description: "Settle your tab here (pay what's owed)"
+  skip:
+    description: "Walk out on your tab (priced: regard hit + revoked)"

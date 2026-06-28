@@ -515,7 +515,7 @@ reduced agency) — see [vitals.md](./subsystems/vitals.md). The identity
 line is sex (body, `SexedMixin` on Creature) vs. gender/persona (social,
 on Character). `Creature` is concrete, so a bare non-agent body (a frog,
 a corpse) is valid. `Character` has two leaf subclasses: `Avatar`
-(player-driven, in `obj/`) and the thin `NPC` (`lib/character/NPC.ts` =
+(player-driven, in `obj/`) and the thin `NPC` (`lib/npc/NPC.ts` =
 `Character` + `BehavedMixin`) for authored, automation-driven characters —
 which keeps `Behaved` off players. See [behavior.md](./subsystems/behavior.md).
 
@@ -643,7 +643,7 @@ registry) lives in `lib/mixin.ts`.
 | `lib/perception/` | `SmellSourceMixin` | "this Stuff emits an odor"; `getEmittedConcentration()` (ppm `Quantity`) + `getOdorIdentity()` (string). Composed by smelly Thing templates (candle, garlic, etc.) and fixture-side Adornments. See [senses.md](./subsystems/senses.md). |
 | `lib/perception/` | `SoundSourceMixin` | "this Stuff emits sound"; `getEmittedAmplitude()` (dB `Quantity`) + `getSoundCharacter()` (string). Composed by noisy Thing templates and fixture-side Adornments. |
 | `lib/augmentation/` | `AugmentMixin` | "this Stuff is an installable augment"; declares `confers(): readonly string[]` listing mixin names activated when installed. Wave 1 vocabulary surfaces `_augmentGated` / `_grantsModalities` on the mixins themselves. See [augmentation.md](./subsystems/augmentation.md). |
-| `lib/augmentation/` | `AetherHostedMixin` | the *update* side of the aether hosting relation: a `getHost`/`setHost` back-ref + the must-be-hosted invariant, composed around an `Idea` (the incorporeal capability base). Co-composed with a capability mixin on an update class (`CommsUpdate`, `TravelCredentialUpdate`). See [augmentation.md](./subsystems/augmentation.md). |
+| `lib/augmentation/` | `AetherHostedMixin` | the *update* side of the aether hosting relation: a `getHost`/`setHost` back-ref + the must-be-hosted invariant, composed around an `Idea` (the incorporeal capability base). Co-composed with a capability mixin on an update class (`CommsUpdate`, `CredentialWalletUpdate`). See [augmentation.md](./subsystems/augmentation.md). |
 | `lib/message/` | `AetherMixin` | **attunement** + the aether **host**: perceive the Aether (contributes the `verbal-esp` / `emotive-esp` modalities to `PerceptionApi.sensorium`) and host capability *update* `Idea`s (`getHostedUpdates` + sealed `hostUpdate`/`unhostUpdate` chokepoints). Augment-gated (`_augmentGated = true`); conferred by the `AetherImplant` **or** intrinsically by `Species.innateMixins`. No longer carries transmission — that moved to `CommsMixin`. See [augmentation.md](./subsystems/augmentation.md). |
 | `lib/comms/` | `CommsMixin` | the comms transmission capability (the `dm`/`reply`/`broadcast`/`chat` verb family + DM cohort state), composed on a hosted update (`CommsUpdate`). `tell` sends on behalf of its host (the operator) via `getHost()`. See [comms.md](./subsystems/comms.md). |
 | `lib/vitals/` | `VitalsMixin` | body-state: vital-sign `Quantity` fields, per-species survivable-band lookup, derived `getConditionBand` / `getConsciousness` (computed, never stored), the anatomy resolver, the active-condition collection, and the death/consciousness seams. Requires `OrganismMixin`. Composed by `Creature`. See [vitals.md](./subsystems/vitals.md). |

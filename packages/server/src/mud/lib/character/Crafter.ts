@@ -11,7 +11,7 @@
  * `BehavedMixin` and behaviors wire unchanged.
  */
 
-import NPC from './NPC';
+import NPC from '../npc/NPC';
 import { MakerMixin } from '../craft/Maker';
 
 export default class Crafter extends MakerMixin(NPC) {}

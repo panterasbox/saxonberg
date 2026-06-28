@@ -72,7 +72,7 @@ See also:
   payoff are onboarding's; the lounge is the social pocket they depart from.
 - [docs/subsystems/char-gen.md](../../subsystems/char-gen.md) — one (optional)
   front-end for seeding the flavor tag-set at intake.
-- [docs/slates/npc-dialogue-slate.md](../builds/npc-dialogue-slate.md) — **Dave.**
+- [docs/slates/npc-dialogue-slate.md](../tails/npc-dialogue-slate.md) — **Dave.**
   He's the slate's own worked example (the barkeep). v1 Dave is minimal;
   full conversational Dave rides its Wave 2 (scripted) / Wave 3 (emergent).
 - [docs/slates/vitals-slate.md](../builds/vitals-slate.md) — **drinks.** A drink is
@@ -367,7 +367,7 @@ Wave 3). Richer flavor mechanics (weighted toppings; weighted aggregation).
   credential) → [fast-travel-slate.md](../tails/fast-travel-slate.md); the lounge
   merely hosts the first terminal.
 - **NPC dialogue internals** (responder seam, trees, scripted matching,
-  the LLM front-end) → [npc-dialogue-slate.md](../builds/npc-dialogue-slate.md);
+  the LLM front-end) → [npc-dialogue-slate.md](../tails/npc-dialogue-slate.md);
   Dave consumes it.
 - **Char-gen intake** and the **campus journey / dorm payoff** →
   [docs/subsystems/char-gen.md](../../subsystems/char-gen.md) / [onboarding-slate.md](../builds/onboarding-slate.md).

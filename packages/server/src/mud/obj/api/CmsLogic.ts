@@ -14,6 +14,7 @@ import { ZoneApi } from '../../api/zone';
 import { StuffApi } from '../../api/stuff';
 import { ScriptApi } from '../../api/script';
 import { DocumentApi } from '../../api/document';
+import { DialogueTreeSchema } from '../../lib/npc/tree';
 import { Template } from '../../lib/stuff/Template';
 import { StoredDocument } from '../../lib/document/StoredDocument';
 import { Zone } from '../../lib/zone/Zone';
@@ -121,6 +122,13 @@ function sourceCmsPath(abs: string): string {
  * resolution-time, in `BehavedMixin`): a typo'd or dangling brain path
  * is rejected at author time rather than silently no-op'ing at spawn.
  * No-op for templates without a `behaviors:` list.
+ *
+ * Additionally, for a dialogue-responder spec (the resolved brain's
+ * `label` is `tree-dialogue`), structurally validate its `config` tree
+ * via {@link DialogueTreeSchema.validate} — so a dangling node target or
+ * an unknown effect verb is caught at author time, not at conversation
+ * time. (The brain knows its tree format; the gate only asks the brain
+ * who it is, then runs the shared validator.)
  */
 async function validateBehaviorPaths(
   data: Record<string, unknown>
@@ -135,6 +143,17 @@ async function validateBehaviorPaths(
     const resolved = await StuffApi.resolveExport(brainPath, 'brain');
     if (!resolved) {
       throw new CmsError('invalid', `unresolvable brain path: ${brainPath}`);
+    }
+    if ((resolved as { label?: unknown }).label === 'tree-dialogue') {
+      const errors = DialogueTreeSchema.validate(
+        (entry as { config?: unknown }).config
+      );
+      if (errors.length > 0) {
+        throw new CmsError(
+          'invalid',
+          `invalid dialogue tree (${brainPath}): ${errors.join('; ')}`
+        );
+      }
     }
   }
 }

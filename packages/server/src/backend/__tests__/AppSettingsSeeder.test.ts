@@ -41,7 +41,7 @@ describe("AppSettingsSeeder", () => {
     pm.setFindResult([]);
     const added = await AppSettingsSeeder.run();
 
-    expect(added).toBe(34);
+    expect(added).toBe(36);
     expect(pm.saves).toHaveLength(1);
     expect(pm.saves[0]!.collection).toBe("app_settings");
     const values = savedValues(pm);
@@ -96,6 +96,8 @@ describe("AppSettingsSeeder", () => {
           [AppSettingKeys.scriptMaxDispatchPlatform]: "50000",
           [AppSettingKeys.scriptMaxDepthPlayer]: "64",
           [AppSettingKeys.scriptMaxDepthPlatform]: "256",
+          [AppSettingKeys.bankingSalesTaxRate]: "0.08",
+          [AppSettingKeys.bankingTreasuryAccount]: "treasury",
         },
       },
     ]);
@@ -116,8 +118,9 @@ describe("AppSettingsSeeder", () => {
 
     // Missing keys seeded: evacuationFallback + 3 reaction + 2 forum
     // anti-snowball + 5 renown + 2 participation + 2 producer + 1 influence
-    // + 1 conviction + 5 traits + 1 chat + 2 chargen + 1 status + 7 script.
-    expect(added).toBe(33);
+    // + 1 conviction + 5 traits + 1 chat + 2 chargen + 1 status + 7 script
+    // + 2 banking.
+    expect(added).toBe(35);
     expect(pm.saves).toHaveLength(1);
     const values = savedValues(pm);
     // operator value preserved, missing keys seeded

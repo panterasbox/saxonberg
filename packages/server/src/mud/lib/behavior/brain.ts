@@ -28,6 +28,7 @@
 import type { Stuff } from '../stuff/Stuff';
 import type { EngagementSlot } from '../activity/Engaged';
 import type { MessageFrame } from '@saxonberg/types';
+import type Interactive from '../../obj/Interactive';
 
 /** The canonical export name a brain module marks itself with. */
 export const BRAIN_EXPORT = 'brain' as const;
@@ -96,7 +97,40 @@ export interface BrainStatics {
   readonly presenceGated?: boolean;
   /** The entry point the framework invokes when a wired trigger fires. */
   act(ctx: BrainContext): void | Promise<void>;
+  /**
+   * The **responder-open seam** — implemented only by dialogue brains
+   * (`tree-dialogue`, and the later `intent-dialogue`). The `talk`
+   * controller resolves the host's dialogue spec by path and calls this
+   * to begin a conversation; it is distinct from `act` (a dialogue
+   * brain's `engage` trigger wires nothing, so its `act` never fires).
+   * Other brains leave it unset. See docs/subsystems/npc-dialogue.md.
+   *
+   * @hook
+   */
+  open?(args: DialogueOpenArgs): Promise<DialogueOpenResult>;
 }
+
+/** Arguments to {@link BrainStatics.open}. */
+export interface DialogueOpenArgs {
+  /** The engaging player's character (drives the tree, speaks aloud). */
+  player: Stuff;
+  /** The responder host (the NPC; speaks its beats). */
+  npc: Stuff;
+  /** The dialogue spec's `config` — the tree, an opaque blob. */
+  config: Record<string, unknown>;
+  /** The driver's connection, captured for the private choice wheel. */
+  interactive?: Interactive;
+}
+
+/**
+ * The outcome of {@link BrainStatics.open}. `ok:false` carries the
+ * reason so the `talk` controller renders the right decline prose:
+ * `no-tree` (host has no usable tree), `busy` (host already in a
+ * conversation — 1:1), `no-viewer` (no live connection to prompt).
+ */
+export type DialogueOpenResult =
+  | { ok: true }
+  | { ok: false; reason: 'no-tree' | 'busy' | 'no-viewer' };
 
 /** Witness trigger kinds (perception-driven, via `handleMessage`). */
 export type WitnessKind = 'arrival' | 'departure' | 'emote' | 'speech';
@@ -108,7 +142,12 @@ export type WitnessKind = 'arrival' | 'departure' | 'emote' | 'speech';
  */
 export type ParsedTrigger =
   | { source: 'cadence'; intervalMs: number }
-  | { source: 'witness'; kind: WitnessKind };
+  | { source: 'witness'; kind: WitnessKind }
+  // `engage` wires nothing — no timer, no witness dispatch. It exists so
+  // the spec surfaces the tree to the `talk` controller, warms the brain
+  // path at wire time, and marks the host as conversational (the
+  // discoverability signal). The brain is reached only via `open`.
+  | { source: 'engage' };
 
 /**
  * Witness alias → the frame `topic` (prefix) it observes on the host's

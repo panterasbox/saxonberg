@@ -147,3 +147,12 @@ settings:
     value: "64"
   - key: script.maxDepth.platform
     value: "256"
+  # Banking — the DEMO sales-tax rate (a fraction of a purchase remitted to
+  # the placeholder treasury via the remittance-split seam). Authored and
+  # INERT: recorded + instrumented, not governed. Live taxation is the
+  # cooperative build. The treasury account is a placeholder that only
+  # accumulates (no appropriation path).
+  - key: banking.salesTaxRate
+    value: "0.08"
+  - key: banking.treasuryAccount
+    value: treasury

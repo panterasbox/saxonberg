@@ -222,6 +222,13 @@ computation lives at the dispatch site.
 schema. The server always emits both shapes; the client picks per
 setting.
 
+`SoulMixin` further owns `introduceSelf()` — the shared, modality-neutral
+introduce act (the introduce scene + `learnIdentity` to all in range)
+that the `introduce` verb, the `introduces` NPC brain, and the player
+auto-introduce hook all route through — plus the `social.autoIntroduce`
+setting (default off) that opts a player into introducing on arrival. See
+[npc-dialogue.md](./npc-dialogue.md) and [belief.md](./belief.md).
+
 ## `SoulCatalogue` + `SoulApi`
 
 The verb→Emote runtime cache lives on a Stuff singleton,

@@ -1,0 +1,34 @@
+# Wenna — the placeholder Goodkin teller. A face at the counter so the
+# account interactions are mediated by a person, not a terminal (the
+# "NPCs, not menus" texture). Deliberately a placeholder: a name, a role,
+# a line of presence — full characterization is a deferred content carve.
+class: /lib/character/NPC
+hydratorClass: /lib/persistence/PersistentHydrator
+data:
+  name: Wenna
+  pronouns: she
+  _speciesPath: /lib/species/animalia/chordata/mammalia/primates/hominidae/homo/sapiens
+  lifecycleState: alive
+  primaryKeyword: teller
+  alternateNames:
+    - wenna
+    - clerk
+  shortDescription: a brisk Goodkin teller
+  longDescription: |
+    Neat in a grey Goodkin blazer, with a teller's unhurried efficiency
+    and a pen she taps when she's waiting. She has the look of someone who
+    has counted a great deal of other people's money and judged none of it.
+  behaviors:
+    - brain: /lib/behavior/greets
+      trigger: arrival
+      config:
+        lines:
+          - "Welcome to Goodkin. How can I help?"
+          - "Opening an account? Just say the word."
+    - brain: /lib/behavior/idles
+      trigger: cadence:17s
+      config:
+        pool:
+          - { kind: free, value: "squares a stack of forms against the counter." }
+          - { kind: free, value: "taps her pen, waiting." }
+          - { kind: say, value: "Take your time." }

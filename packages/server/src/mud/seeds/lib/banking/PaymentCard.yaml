@@ -1,0 +1,10 @@
+# PaymentCard — the carryable payment credential template, cloned per issue
+# (a bearer instrument, 1:1 with one account). Capped + linked at issue
+# time by BankingApi.issueCard; the reissue path after a report-lost freeze.
+class: /lib/banking/PaymentCard
+hydratorClass: /lib/persistence/PersistentHydrator
+data:
+  shortDescription: a payment card
+  keywords: [card, paymentcard]
+  # The born-with payment credential record comes from
+  # PaymentCard.defaultCredentialKinds; linked + capped at issue.

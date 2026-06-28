@@ -25,7 +25,7 @@ import { CraftingApi } from '../../api/crafting';
 const MenuBase = DetailedMixin(Thing);
 
 export default class Menu extends MenuBase {
-  static persistentFields = ['offeredRecipes'];
+  static persistentFields = ['offeredRecipes', 'prices'];
 
   /**
    * The crafting verb surface lights up wherever a Menu is present (in the
@@ -46,6 +46,9 @@ export default class Menu extends MenuBase {
       'crafting/strain.yaml',
       'crafting/garnish.yaml',
       'crafting/make.yaml',
+      // The bar's patron-facing money surface: run a tab here (the venue
+      // owns the tab state; this is just the affordance carrier in the room).
+      'banking/tab.yaml',
     ],
     inventory: [
       'crafting/menu.yaml',
@@ -57,12 +60,27 @@ export default class Menu extends MenuBase {
       'crafting/strain.yaml',
       'crafting/garnish.yaml',
       'crafting/make.yaml',
+      'banking/tab.yaml',
     ],
     peers: [],
   };
 
   /** Recipe ids this menu offers (references the `recipes` collection). */
   public offeredRecipes: string[] = [];
+
+  /**
+   * Authored flat prices per recipe id, in minor units (the bartender's
+   * willingness — an authored stance, the banking-requirements resolution
+   * for the order→Charge hook since crafting exposes no price). A recipe
+   * with no entry is served free (backward-compatible: order stays free
+   * where no price is authored).
+   */
+  public prices: Record<string, number> = {};
+
+  /** The authored price (minor units) for a recipe, or null if unpriced. */
+  priceFor(recipeId: string): number | null {
+    return this.prices[recipeId] ?? null;
+  }
 
   getOfferedRecipeIds(): readonly string[] {
     return this.offeredRecipes;

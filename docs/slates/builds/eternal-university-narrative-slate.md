@@ -106,6 +106,32 @@ un-genred rule and fair-play detective fiction. Guard against it.
   reasoning together is harder to kill.** (This is why the player succeeds
   where the victim died — see §8.)
 
+**The first-quest teaching mandate (governing constraint for the opening).**
+"An Honest Count" is most likely the *first* thing a new player engages, so its
+opening carries a **dual mandate: a genuine investigation *and* the tutorial for
+how investigation works here** — and the two pull against each other. The
+reconciliation is a discipline, not a rail:
+
+1. **Ramp the difficulty.** The first body's evidence is trivially reachable —
+   it teaches the examine→derive→commit loop (the first forensic win); only
+   *later* obstacles test route-finding.
+2. **NPCs narrate the affordances.** A locked door is never a dead end — it's a
+   character who tells you its *rule*, and the same line hands you your next
+   goal and a route. The immersive-sim's *properties* (§17.G) become learnable,
+   diegetic guidance, so a new player discovers the route space *in fiction*
+   rather than being handed it (or hitting a wall).
+3. **The breadcrumb is the next question, never a quest marker** (§13). The
+   inspection pane and MQL (the magnifying glass) always surface a thread to
+   pull, with a parallel records track so the player is never hard-stuck on any
+   one route.
+
+The five-route breadth (§17.G) is the **replay / co-op / veteran** layer —
+*discovered*, never front-loaded. What the opening is really teaching is
+**immersive-sim literacy itself**: that here you read an obstacle's properties
+and find a route, rather than hunt for the one key. Introduced gently at the
+sealed room (§14, the in-dorm access puzzle) and escalated hard at the city
+morgue (§14, across the gate).
+
 ## 4. The campus as a polity in miniature
 
 The campus is not a setting to tour; it is a **scale model of the whole
@@ -116,8 +142,8 @@ relationship to the death:
 
 | Campus organ | Canon hook | Role in the arc |
 |---|---|---|
-| **The Quad** | central green, the hub ([campus-map]) | The campus's **forum made physical** — where the student body argues it out; the argument-map lives here as a board/kiosk. The player learns the world's "approach to problem-solving" by watching a community reason badly, then better. |
-| **The Registrar** | a campus *service* (EU slate) | **The rolls live here.** The campus's census/enfranchisement authority. Where the count is kept, where the fraud happens, where the victim's census-prep work was filed. The single most load-bearing service for this arc. |
+| **The Quad** | central green, the hub ([campus-map]) | The campus **hub** (geography — crossroads, gather point) and the diegetic home of *public civic deliberation* (the forums aftermath + the **deferred** public homicide-board). **Not** where the arc's deduction happens: the forensic **deduction board is party-scoped and reachable anywhere** (see `deduction-slate.md`), not a Quad fixture. The "approach to problem-solving" is taught *by doing the deduction*, not by watching a Quad crowd. |
+| **The enrollment office** | a campus *service* | The campus **intake** — who's enrolled, the population fed to the city census (*arriving = being counted*, §6). **Where Dunny's census-prep started and his discovery began** — the thread's on-ramp. *Not* the civic authority: the **rolls, the count, and the fraud live at the civic Registrar in Terminus** (§15.4) — a *municipal* office, like the morgue; the records route leads there. See `experiences/registrar.md`. |
 | **University Avenue + Gus's gate** | TPA stop in Terminus; Gus the crossing guard | The **town/gown membrane.** Gus's crossing ritual (theater over one traversal) becomes quietly thematic: crossing *is* being counted in/out. The seam the victim kept crossing; the door the arc eventually walks through to the city. |
 | **The proctors** | (new) | The institutional layer that would prefer quiet. First time the player feels "the institution has its own interests." Where deputization happens. |
 | **Duncan Hall** | the dorm (EU slate; onboarding climax) | Home. The room with the tape on it. One node — important because it's *home*, not because it's the universe. The sealed room is the arc's engine (see §7). |
@@ -264,7 +290,9 @@ ubiquitous — so the in-world question "is this person real?" is not a
 mirror held up to the AI anxiety; it **is** the AI anxiety, and it's the
 same question the human at the keyboard is already asking about the table.
 This is the rarest thing fiction can do: an allegory where the metaphor
-and the referent are the same object. The phantoms wear the AI face; the
+and the referent are the same object. **The most literal instance is each player's own dorm
+roommate** — a procedural agent you cohabit with from orientation (§17.H). The
+phantoms wear the AI face; the
 **uncounted underclass** is agents that participate but don't count
 (which fuses cleanly with the reservation allegory). See
 [llm-content-slate](./llm-content-slate.md),
@@ -425,7 +453,9 @@ directly on the recognition/belief substrate —
 
 **His major:** **demography / population statistics** — the discipline of
 counting itself — and he'd been assigned **census-prep work** (reconciling
-the preliminary rolls at the registrar). His "specialness" is **a trait,
+the preliminary rolls at the campus **enrollment office** — the thread's start;
+the civic Registrar and the fraud are in Terminus, §15.4). His "specialness" is
+**a trait,
 not a power**: the obsessive who, when the numbers didn't close, *kept
 pulling the thread instead of rounding the error away.* Pi's Max —
 isolated, fixated, sadder than the player, the cautionary version. His
@@ -599,7 +629,7 @@ them against each other and the social layer:
   biography matches its filed identity.
 - **The registrar** — the rolls: what the paperwork *claims* (§13).
 
-…over the **social layer** (the circle §12, Quad testimony — does anyone
+…over the **social layer** (the circle §12, distributed **testimony** — does anyone
 remember them alive?, the §10 exhaust method). Body says X, record says Y,
 people say Z; **the disagreements are the case.** It's Dunny's discovery
 (§10) made walkable.
@@ -636,11 +666,18 @@ the laundering happens.** A death's journey is clinic → morgue → registrar
 forgery lives. That's the morgue's reason to exist — not "a room with
 bodies" but the physical site of the body-vs-record discrepancy that *is*
 the case. A player doing forensics here is auditing the precise seam the
-handler exploits: the morgue is the corpse-factory's front office. Place it
-adjoining the canon **clinic on Silver Street**, but make it
-**institutionally the registrar's** (death-filing owns the body) — which
-buys the drama for free, since the institution that wants to call it an
-accident *controls the corpse* (§4):
+handler exploits: the morgue is the corpse-factory's front office. It is the
+**city medical examiner's, across Gus's gate in Terminus** — where a suspicious
+death belongs (a young person found at the foot of a stairwell is a coroner's
+case; the campus clinic on Silver Street only *pronounces* the death, and the
+body is transported out). This is correct, not a concession: bodies go where
+bodies go, and it seats the morgue at the **municipal seam** — the ME plus the
+registrar's parent authority in Terminus (§15.4's thread). The drama needs no
+invented sovereignty, just a **complicit examiner**: the office that autopsies
+the body and signs its certificate is the one rigging the finding, so "the
+institution that wants to call it an accident *controls the corpse*" (§4) holds
+— at the city end, with the campus cover-up (Katie, the proctors) as its
+smaller local arm. The body crossing the gate is the player crossing it:
 
 - **Contested access** — a tame official examiner rubber-stamps "accident";
   a closer look runs through a relationship (Pidge's keys §12, a
@@ -784,13 +821,21 @@ Only Fork 5 (names) stays open.
    survives inside it — **turn the pitiable pawn in, or use him to trace
    the handler** — which is the moral-hazard decision that feeds the
    census vote (§10 sting). → §11.
-4. **The city thread — DECIDED: a document, not a place.** The off-campus
-   pull is a *clue*, not built geography: Dunny's reconciliation shows the
-   erased names were re-filed by the registrar's **parent authority in
-   Terminus**, and Gus's crossing-log corroborates (victims crossed out,
-   never back). Establishes "this goes outward and deeper" while Terminus
-   stays haze — zero city geography to build. The place slate keeps
-   University Avenue as a standalone landing.
+4. **The city thread — UPDATED 2026-06-27: a place, built in sequence.**
+   Originally decided "a document, not a place" (zero city geography) to keep
+   the arc playable before the city existed — now superseded: building out
+   Terminus as a real city map is the intended trajectory, so the off-campus
+   pull *graduates to built geography*, beginning with the **city medical
+   examiner's morgue** (§14), where the body actually goes. What survives is
+   the **sequencing**, not the prohibition: the arc fills in in layers and
+   stays playable as the city grows — the campus-side beats (the scene, the
+   first forensic win) stand alone; the city morgue is the additive next
+   layer, never a blocker. The clue-substance is unchanged: Dunny's
+   reconciliation shows the erased names were re-filed by the registrar's
+   **parent authority in Terminus**, Gus's crossing-log corroborates (victims
+   crossed out, never back), and the rot lives at the municipal seam the
+   player now crosses the gate to reach. University Avenue stays the
+   standalone landing and the threshold.
 5. **Names — STILL OPEN.** The arc title **"An Honest Count" is kept**
    (ironic, census-grounded). Every *(provisional)* character name awaits
    a dedicated naming pass — resolve structure first, name people second.
@@ -800,9 +845,12 @@ Only Fork 5 (names) stays open.
 - **Recognition/belief substrate** — *shipped*
   ([../../subsystems/belief.md](../../subsystems/belief.md)). The
   exhaust/social-shadow signal rides it directly.
-- **Forums + argument-map** — *shipped*
-  ([../../subsystems/forums.md](../../subsystems/forums.md)). The Quad's
-  deliberation surface.
+- **Forums** — *shipped*
+  ([../../subsystems/forums.md](../../subsystems/forums.md)). The
+  **civic-aftermath** deliberation surface (*what the polity does* about the
+  fraud) — **not** the investigation's resolution, which is the forensic
+  **deduction board** (`deduction-slate.md`). Investigation is *demonstrated*,
+  not deliberated.
 - **The aether (augmentation/comms)** — *substrate shipped*; its one
   load-bearing property (§8) is a stance to honor, not new code.
 - **The census mechanic** — **not built.** The roll, the enumerator, the
@@ -880,13 +928,18 @@ reads as not-home reads as suspect. Paranoia falls out of the transport
 layer. (Same caution as §10's win-loop: dread, not griefing — don't
 mechanically punish disconnection.)
 
-**F. The questline abstraction (design — deferred, flagged not specced).**
+**F. The questline abstraction (design — multiplayer/residue firmed
+2026-06-27; the concrete questline object still deferred).**
 The multiplayer reset problem (a whodunit is *closed*, a dorm is *open* —
 newcomers daily) wants a real design object, and the arc keeps gesturing
-at its shape. Do **not** instance the murder per-player (that kills the
-§3/§5 thesis — the Quad argument-map only matters if real players reason
-about the *same* body). Instead, a questline that is: (1) **backed by a
-shared world event**, not per-player instanced; (2) **joinable
+at its shape. The resolution (see `deduction-slate.md`): **party-scoped
+instancing over shared evidence sources** — everyone works the *same* body,
+records, and room (one persistent world, no-consumption), but each party
+assembles its **own blank deduction board** (fresh per party, co-op pooling
+within it). This keeps the §3/§5 "same body" thesis *and* dodges both failure
+modes — lonely full-solo instancing **and** the single global solve that goes
+trite. So a questline that is: (1) **backed by a shared world event** (the
+evidence sources), **party-scoped** (the boards); (2) **joinable
 mid-stream** — a newcomer walks into the crisis *in progress*, at whatever
 phase it's at, like a freshman arriving mid-scandal; (3) **bound to the
 shared world clock** (the same ambient machinery as weather); (4) authored
@@ -896,6 +949,44 @@ as a **closable case + a persistent antagonist** — which is exactly the
 Heroes-shaped: close a case without closing the world. These four
 properties are general, not murder-specific — but they're *design*, and
 they wait until the narrative tells us what beats they must carry.
+
+**Firmed (2026-06-27) — the MMO reality *is* the thesis, plus the residue
+layers.** The many-players-one-body fact is not dissonance to paper over: where
+most MMOs cringe at "a thousand heroes, one princess," here *many players
+investigating one death* is the §10 mechanism itself — a community is harder to
+silence, and the crowd that keeps saying the victim's name *is* the un-erasing.
+So the engine's social substrate (which most games lack) **solves** the
+shared-quest problem instead of hiding it, through three persistable **residue
+layers** (all on shipped substrate) that make the case a standing community
+project, not N solo runs:
+
+- **The shared evidence world** (one body, one set of records, one room —
+  no-consumption) — the *sources* persist and are common to all parties, even
+  though each party's **deduction board is its own** (blank per party, so never a
+  walkthrough to copy). Honest underdetermination (§5) means even the shared
+  sources are an argument, not an answer key. *(The public collective
+  argument-map — earlier players' deduction, joinable mid-stream — is superseded
+  for authored cases and re-homed to the deferred public homicide-board; see
+  `deduction-slate.md`.)*
+- **NPC memory** (belief / recognition) — NPCs remember who asked; a player can
+  ask *"who else has been looking?"* and be pointed at prior investigators (other
+  players) to pool with. A chatty-incurious NPC can *report the swarm
+  diegetically* (Pim at the morgue is the exemplar) — owning the MMO reality,
+  leaking co-investigators, and acting as a passive **exhaust-sensor**: the
+  crowd's attention is the victim un-erased, witnessed by one who doesn't grasp
+  it. That attention also **pressures the antagonist** (heat on the cover-up — a
+  real shared-world stake).
+- **Chronicle deeds + recognition exhaust** — a player's investigative acts
+  persist in the social graph; you become *known* as one who looked.
+
+The governing split: the **collective layer accelerates** (map, NPC memory, the
+case's phase); the **personal layer stays earned** (your own derivation, skill
+credit, standing) — under a hard **no-consumption rule**: no single player can
+use up the body or the case (or it vanishes for everyone). The case stays a
+closable unit on a persistent antagonist (§15.3), closing per-cohort without
+closing the world. *Now sketched* in `deduction-slate.md` (the
+forensic-investigation quest type + the party-scope resolution); the concrete
+wired questline object still to build.
 
 **G. Investigation design — immersive-sim, not whodunit-parlor (2026-06-27).**
 Two linked decisions. **(1) Not an everyone's-a-suspect story** — the frame
@@ -916,11 +1007,44 @@ doors. And the room is **not a gate**: the truth is over-determined across a
 testimony — the §14 triangle + the smuggled fragment), which (a) gives
 multiple paths, (b) removes the multiplayer chokepoint, and (c) makes
 investigation *cooperative* — one player charms Katie, another reads the
-body, a third pulls the records, pooled on the Quad: the §10 thesis (a
+body, a third pulls the records, pooled on the **party's deduction board**: the §10 thesis (a
 community assembles the truth a lone decoder can't) as literal co-op.
 Deduction stays knowledge-gated (Obra Dinn / Outer Wilds): the real lock is
 *understanding*, not the door. Forcing function on perception / locks /
 locomotion / dialogue+regard / stealth / advancement.
+
+**H. The dorm roommate — the thesis planted at orientation (design, 2026-06-27;
+firm in concept, deferred in execution).** The onboarding climax hands every new
+player a Duncan Hall room (the elastic Warren, allocated via Katie's manifest,
+§4), and rooms are **shared, two to a pair.** The model (decided): a **real
+player is always paired with a procedural NPC roommate** — never two real players
+(uniform, since everyone passes through the dorm before homesteading out);
+NPC+NPC rooms hold the ambient floor (Dunny/Wren and the rest). So from night one
+**you cohabit with an agent** — named, *sometimes-home* (§17.A made literal),
+routined, real enough to matter.
+
+The thesis lives here *before* the murder, but not where you'd first guess.
+Because the rule is uniform the community will *learn* it, so the unease is
+**not** "is my roommate real?" (that collapses) — it is the §17.B indictment set
+up intimately: you bond with a *known* agent, and the murder later makes you
+realize you could never tell about *anyone else* (the people down the hall, the
+victims — where players and NPCs genuinely mix and the can't-tell ambiguity truly
+lives). The murder doesn't *introduce* who-counts; it weaponizes what you've
+cohabited with since orientation. The structure even rhymes — you ↔ your roommate
+is Dunny ↔ Wren, so investigating a victim and his surviving roommate is a mirror
+of your own room. This is §7's zero-distance allegory at its purest: the roommate
+**literally is** the LLM agent the engine is built for.
+
+The implications are in-bounds but real. The roommates are **generated, not
+carved** — a *system* (NameBank + traits + species-cast + behavior-brain +
+presence patterns), distinct from the hand-built named cast, so the
+expensive-carve discipline doesn't apply. The **quality bar is the catch**:
+believable enough to *bond with* points at good **LLM-driven agents**, a **tech
+dependency** on §16's not-near-term rungs — so plant a thinner roommate early
+(present, named, lightly interactive) and let the gut-punch mature as the tech
+lands, keeping the rule **soft / unannounced** (§17.D) so "my roommate's an
+agent" *dawns* rather than gets stated. The procedural-roommate pipeline is
+onboarding / llm-content territory, not this slate's to build.
 
 ---
 

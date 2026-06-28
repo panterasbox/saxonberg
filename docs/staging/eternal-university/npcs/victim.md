@@ -50,7 +50,8 @@ killed.
 Different people knew different Dunnys, and the player's first real work is
 reconciling them — so *we* hold the truth:
 
-- **To Mira** (who brings you in): a kind friend who actually listened.
+- **To the people he looked out for** (the night janitor, the quiet kids he
+  greeted): a kind friend who actually listened.
 - **To the gossip layer:** shady, a *dealer*, always angling.
 - **To the proctors:** an odd kid, coming and going at all hours, a bit of a
   problem.
@@ -126,13 +127,37 @@ unreal, sitting there waiting for someone less kind to pick it up.
 > were moved. The sealed room is deliberately *incomplete*. See the roommate
 > carve.
 
+## His effects (what he carried — and what's missing)
+
+A dead man's pockets are evidence, and Dunny's are a **clue cluster** — the
+forensic complement to the body and the room (§14). Three reads:
+
+- **What's missing is the loud part.** His **work is gone** from his effects and
+  his room — the notebook, the reconciliation, the flag-the-unreal method (§10).
+  Someone took it; the *absence* points at motive (the discovery *was* the
+  reason). The detail that saves the case: one fragment escaped — tucked into
+  Wren's belongings, ridden out past the tape (see the roommate carve). The body
+  and the room are *deliberately incomplete.*
+- **What he was wearing is a staging tell.** Found at the foot of a warm
+  stairwell but **dressed wrong for it** — for the cold, for being out, not for a
+  dorm at that hour — which **corroborates the algor-mortis "moved" clue**: he
+  died elsewhere (somewhere cold) and was staged here. Scene, body, and *clothes*
+  all audit each other.
+- **His comms/implant** is a quiet surface — last contacts, the calls he made
+  chasing the discrepancy — though the aether is identity-blind (§8), so it shows
+  *that* he reached out, not cleanly *to whom.* A thread, not an answer.
+
+(His signature carried thing in life — he **counted under his breath** and kept
+the muttered tallies — is texture, not evidence; the load-bearing object is the
+*missing* work.)
+
 ## The hole he left (the negative-space summary)
 
 The floor's quieter. The people he greeted go unacknowledged again — and a
-couple of them are frightened, or already gone. Mira can't shake that the
-silence is *wrong*, so she finds the one person who notices things. The
-proctors want the room sealed and the story soft. That absence,
-campus-shaped, is the carve.
+couple of them are frightened, or already gone. A new arrival — you — gets the
+room down the hall, feels the silence is *wrong*, and can't stop poking at it
+(the organic on-ramp; no quest-giver — see the bible's §12). The proctors want
+the room sealed and the story soft. That absence, campus-shaped, is the carve.
 
 ---
 

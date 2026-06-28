@@ -11,6 +11,9 @@ import type { BrainContext, BrainStatics } from './brain';
 export const brain = class {
   static label = 'random-chatter';
   static claims: readonly EngagementSlot[] = ['voice'];
+  // Yield while the host is mid-conversation (voice/attention held) so it
+  // doesn't interleave undirected chatter with the directed dialogue.
+  static requiresFree: readonly EngagementSlot[] = ['voice', 'attention'];
 
   static act(ctx: BrainContext): void {
     const lines = Array.isArray(ctx.config.lines)

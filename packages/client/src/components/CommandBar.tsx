@@ -99,6 +99,26 @@ const ChipsRow = styled.div`
   padding: ${tokens.space.md} ${tokens.space.xl} 0;
 `;
 
+/**
+ * The active prompt's question, pinned directly above the chips so the
+ * line you're answering stays put while the room feed scrolls. For a
+ * dialogue tree this is the NPC's current beat (also spoken aloud in the
+ * feed); for a disambiguation/confirm it's the question.
+ *
+ * Shown in full — it wraps freely. (The cramped, one-line slot-picker
+ * pill is where a long beat gets left-truncated to its operative end;
+ * this spacious pinned area does not.)
+ */
+const PromptContext = styled.div`
+  padding: ${tokens.space.md} ${tokens.space.xl} 0;
+  color: ${tokens.color.accent};
+  font-family: ${tokens.font.mono};
+  font-size: ${tokens.font.body};
+  font-style: italic;
+  line-height: 1.4;
+  white-space: pre-wrap;
+`;
+
 const InputRow = styled.div<{ $hasChips: boolean }>`
   display: flex;
   align-items: stretch;
@@ -470,13 +490,19 @@ export function CommandBar({
 
   const promptMode = activeEntry !== undefined;
 
+  // Hover-preview overlay for prompt chips: the response a chip would
+  // send (the number you'd type for a choice, `yes`/`no` for a confirm)
+  // shows in the input on mouseover, so a player learns the CLI path and
+  // graduates from clicking. Display-only — never mutates the draft.
+  const [chipPreview, setChipPreview] = useState<string | null>(null);
+
   // The input's displayed value: for base, use the controlled
-  // baseValue from App (it tracks hover preview); for prompts, read
-  // straight from store.
+  // baseValue from App (it tracks hover preview); for prompts, the chip
+  // hover-preview overlays the stored draft.
   const inputValue =
     activeSlot === BASE_SLOT
       ? baseValue
-      : promptDrafts[activeSlot] ?? '';
+      : chipPreview ?? promptDrafts[activeSlot] ?? '';
 
   const [history, setHistory] = useState<string[]>([]);
   const [historyIndex, setHistoryIndex] = useState(-1);
@@ -505,6 +531,11 @@ export function CommandBar({
       return changed ? next : prev;
     });
   }, [prompts]);
+
+  // A stale chip preview must not leak across slot switches.
+  useEffect(() => {
+    setChipPreview(null);
+  }, [activeSlot]);
 
   // History persistence — unchanged from the pre-refactor shape.
   useEffect(() => {
@@ -593,7 +624,16 @@ export function CommandBar({
         setDraft(activeSlot, '');
         return;
       }
-      case 'choice':
+      case 'choice': {
+        // Numbered CLI path: typing a choice's 1-based number and Enter
+        // sends it, the same as clicking the chip (the hover-preview
+        // taught the number). Out-of-range / non-numeric is a no-op.
+        const n = parseInt(draft.trim(), 10);
+        const list = activeEntry.choices;
+        const picked = Number.isInteger(n) ? list[n - 1] : undefined;
+        if (picked) handleChipSend(activeEntry, picked.response);
+        return;
+      }
       case 'mql-object':
       case 'mql-many':
         // Chip-only kinds: Enter on bare input is a no-op.
@@ -604,6 +644,7 @@ export function CommandBar({
   const handleChipSend = (entry: PromptEntry, response: string) => {
     onSendPromptResponse(entry.promptId, response);
     setDraft(entry.promptId, '');
+    setChipPreview(null);
   };
 
   const handleMqlManyToggle = (entry: PromptEntry, stuffId: string) => {
@@ -686,13 +727,15 @@ export function CommandBar({
       case 'choice':
         return (
           <ChipRow>
-            {activeEntry.choices.map((c) => (
+            {activeEntry.choices.map((c, i) => (
               <Chip
                 key={c.response}
                 $primary={c.response === activeEntry.defaultChoice}
                 onClick={() => handleChipSend(activeEntry, c.response)}
+                onMouseEnter={() => setChipPreview(String(i + 1))}
+                onMouseLeave={() => setChipPreview(null)}
               >
-                {c.label}
+                {i + 1}. {c.label}
               </Chip>
             ))}
           </ChipRow>
@@ -704,12 +747,16 @@ export function CommandBar({
             <Chip
               $primary={yesPrimary}
               onClick={() => handleChipSend(activeEntry, 'yes')}
+              onMouseEnter={() => setChipPreview('yes')}
+              onMouseLeave={() => setChipPreview(null)}
             >
               Yes
             </Chip>
             <Chip
               $primary={!yesPrimary}
               onClick={() => handleChipSend(activeEntry, 'no')}
+              onMouseEnter={() => setChipPreview('no')}
+              onMouseLeave={() => setChipPreview(null)}
             >
               No
             </Chip>
@@ -769,12 +816,23 @@ export function CommandBar({
   // Label = active slot's label (basePrompt for base; prompt
   // question for a prompt). Click opens the dropdown to switch
   // active slot.
-  const slotPickerLabel = activeEntry ? activeEntry.label : basePrompt;
+  // The pill can't wrap, so a long prompt label (a dialogue beat) is
+  // left-truncated here too — keep the operative end, ellipsis at the
+  // start — matching the pinned PromptContext above.
+  const slotPickerLabel = activeEntry
+    ? activeEntry.label.length > 28
+      ? `…${activeEntry.label.slice(activeEntry.label.length - 27)}`
+      : activeEntry.label
+    : basePrompt;
   const hasChips = activeEntry !== undefined && activeEntry.kind !== 'text';
   const hasValidationError = activeEntry?.validationError !== undefined;
 
   return (
     <BarContainer $promptMode={promptMode}>
+      {promptMode && activeEntry?.label ? (
+        <PromptContext>{activeEntry.label}</PromptContext>
+      ) : null}
+
       {hasChips || hasValidationError ? (
         <ChipsRow>
           {hasChips ? activeChips : null}
@@ -895,6 +953,8 @@ export function CommandBar({
                   ? activeEntry.placeholder ?? 'Type your answer...'
                   : activeEntry && activeEntry.kind === 'confirm'
                   ? 'y / n (or click)'
+                  : activeEntry && activeEntry.kind === 'choice'
+                  ? 'Type a number or click a choice; Esc to go back'
                   : 'Click a choice above, or Esc to return to commands'
                 : inputMode
                 ? `${inputMode.prefix} … (/ for a raw command, Esc to exit)`

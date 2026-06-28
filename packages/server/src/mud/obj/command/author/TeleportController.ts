@@ -25,7 +25,7 @@ import { MixinApi } from "../../../api/mixin";
 import { ContainmentApi, ContainmentError } from "../../../api/containment";
 import { AccessApi } from "../../../api/access";
 import { StuffApi } from "../../../api/stuff";
-import type { TravelCredential } from "../../../lib/fasttravel/TravelCredential";
+import type { CredentialWallet } from "../../../lib/credential/CredentialWallet";
 import type { FastTravel } from "../../../lib/fasttravel/FastTravel";
 import type { Container } from "../../../lib/spatial/Container";
 import type { Stuff } from "../../../lib/stuff/Stuff";
@@ -138,19 +138,20 @@ export default class TeleportController extends CommandController<TeleportModel>
       return this.fail(context, "there is no terminal here", "no-terminal");
     }
 
-    const cred = ContainmentApi.findReachable(
+    const holder = ContainmentApi.findReachable(
       giver,
       context.location,
-      (s: Stuff): s is Stuff & TravelCredential =>
-        MixinApi.isTravelCredential(s),
+      (s: Stuff): s is Stuff & CredentialWallet =>
+        MixinApi.isCredentialWallet(s) && !!s.getCredential("travel"),
     );
-    if (!cred) {
+    if (!holder) {
       return this.fail(
         context,
         "you have no Teleport Authority credential",
         "no-credential",
       );
     }
+    const cred = holder.ensureCredential("travel");
 
     if (!node.isDeparture()) {
       return this.fail(

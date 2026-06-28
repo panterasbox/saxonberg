@@ -1,0 +1,28 @@
+verbs: [pay]
+controller: banking/PayController
+description: "Pay someone — by cash or from your account"
+help: |
+  Pay someone by name — `pay bob 25`. By default it clears from your
+  payment implant's active account; add `--cash` to hand over coin, or
+  `--from <corpo>` to route this one payment from a different account of
+  yours without changing your default.
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresConscious
+args:
+  - name: recipient
+    type: object
+    required: true
+    scope: ["reachable", "online"]
+  - name: amount
+    type: string
+    required: true
+options:
+  cash:
+    short: c
+    type: boolean
+    description: "Pay in physical coin (off-ledger) instead of by credential."
+  from:
+    short: f
+    type: string
+    description: "Route from your account at the named corpo/bank (one-off)."

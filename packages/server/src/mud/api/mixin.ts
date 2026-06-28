@@ -62,7 +62,7 @@ import type { SmellSource } from '../lib/perception/SmellSource';
 import type { SoundSource } from '../lib/perception/SoundSource';
 import type { Augment } from '../lib/augmentation/Augment';
 import type { FastTravel } from '../lib/fasttravel/FastTravel';
-import type { TravelCredential } from '../lib/fasttravel/TravelCredential';
+import type { CredentialWallet } from '../lib/credential/CredentialWallet';
 import type { Perception } from '../lib/perception/Perception';
 import type { Tangible } from '../lib/material/Tangible';
 import type { Organism } from '../lib/species/Organism';
@@ -91,6 +91,7 @@ import type { Spawned } from '../lib/stuff/Spawned';
 import type { Globbable } from '../lib/stuff/Globbable';
 import type { Bulkable } from '../lib/bulk/Bulkable';
 import type { Engaged } from '../lib/activity/Engaged';
+import type { Behaved } from '../lib/behavior/Behaved';
 import type { Atmospheric } from '../lib/biome/Atmospheric';
 import type { Addressable } from '../lib/address/Addressable';
 import type { SkyExposed } from '../lib/biome/SkyExposed';
@@ -107,6 +108,8 @@ import type { Tooled } from '../lib/craft/Tooled';
 import type { Crafted } from '../lib/craft/Crafted';
 import type { Maker } from '../lib/craft/Maker';
 import type { Builds } from '../lib/craft/ManualBuild';
+import type { Bank } from '../lib/banking/Bank';
+import type { Tab } from '../lib/banking/Tab';
 import { SecurityApi } from './security';
 import { ShadowApi } from './shadow';
 
@@ -564,10 +567,10 @@ export class MixinApi {
     return this.hasMixin(obj, Mixins.FastTravel);
   }
 
-  public static isTravelCredential(
+  public static isCredentialWallet(
     obj: Stuff,
-  ): obj is Stuff & TravelCredential {
-    return this.hasMixin(obj, Mixins.TravelCredential);
+  ): obj is Stuff & CredentialWallet {
+    return this.hasMixin(obj, Mixins.CredentialWallet);
   }
 
   public static isSealable(obj: Stuff): obj is Stuff & Sealable {
@@ -762,6 +765,10 @@ export class MixinApi {
     return this.hasMixin(obj, Mixins.Engaged);
   }
 
+  public static isBehaved(obj: Stuff): obj is Stuff & Behaved {
+    return this.hasMixin(obj, Mixins.Behaved);
+  }
+
   public static isAtmospheric(obj: Stuff): obj is Stuff & Atmospheric {
     return this.hasMixin(obj, Mixins.Atmospheric);
   }
@@ -817,6 +824,14 @@ export class MixinApi {
   /** A manual-build vessel — the shaker/mixing-glass that buffers a build. */
   public static isBuildVessel(obj: Stuff): obj is Stuff & Builds {
     return this.hasMixin(obj, Mixins.ManualBuild);
+  }
+
+  public static isBank(obj: Stuff): obj is Stuff & Bank {
+    return this.hasMixin(obj, Mixins.Bank);
+  }
+
+  public static isTab(obj: Stuff): obj is Stuff & Tab {
+    return this.hasMixin(obj, Mixins.Tab);
   }
 
   /**
