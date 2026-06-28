@@ -25,6 +25,7 @@ import { MessageApi } from '../../api/message';
 import { MixinApi } from '../../api/mixin';
 import { Mml } from '../../api/mml';
 import { ReactionApi } from '../../api/reaction';
+import { RecognitionApi } from '../../api/recognition';
 import { ExecutionContextApi } from '../../api/execution-context';
 import type {
   CommandContributions,
@@ -64,6 +65,15 @@ export interface Soul {
   emote(emote: Emote, opts?: EmoteOptions): void;
   /** In-room free-form emote: render + compose Scene + send. */
   emoteFree(text: string, target?: Stuff, inReactionTo?: string): void;
+  /**
+   * Introduce yourself to everyone in range — a modality-neutral social
+   * act (the shared core behind the `introduce` verb, the NPC
+   * `introduces` brain, and the player auto-introduce hook). Emits the
+   * introduction scene and writes each in-range perceiver's recognition
+   * of you (`learnIdentity`). Returns false (no-op) if you have no proper
+   * name to give.
+   */
+  introduceSelf(): boolean;
 }
 
 export function SoulMixin<TBase extends MixinConstructor>(Base: TBase) {
@@ -136,6 +146,16 @@ export function SoulMixin<TBase extends MixinConstructor>(Base: TBase) {
           'Client-side count at which the reaction sample collapses ' +
           'behind a single expandable summary.',
       },
+      {
+        key: 'social.autoIntroduce',
+        type: SettingTypes.Boolean,
+        default: false,
+        description:
+          'When on, you introduce yourself automatically as you arrive ' +
+          'somewhere new, so the people there learn your name. Social ' +
+          'NPCs (e.g. most bartenders) have this intrinsically via an ' +
+          '`introduces` behavior instead of this setting.',
+      },
     ];
 
     static commandContributions: CommandContributions = {
@@ -183,6 +203,31 @@ export function SoulMixin<TBase extends MixinConstructor>(Base: TBase) {
       const out: EmoteBodies = { self: selfBody, peer: peerBody };
       if (target) out.target = peerBody;
       return out;
+    }
+
+    introduceSelf(): boolean {
+      const actor = this as unknown as Stuff;
+      const name = MixinApi.isNamed(actor) ? actor.getName() || null : null;
+      if (!name) return false;
+      // Modality-neutral (sign / gesture / speech) — same topic the
+      // `introduce` verb uses; peers render the actor by their CURRENT
+      // perception ("a tall stranger introduces themselves as Mara"),
+      // upgraded by the learnIdentity below for next time.
+      MessageApi.scene(actor)
+        .topic('world.narration.action')
+        .toSelf(Mml.compose`You introduce yourself as ${name}.`)
+        .toPeers(
+          Mml.compose`${Mml.name(actor)} introduces themselves as ${name}.`,
+        )
+        .send();
+      const env = MixinApi.isContainable(actor) ? actor.getContainer() : null;
+      if (env) {
+        for (const listener of MessageApi.getSensors(env)) {
+          if (listener.stuffId === actor.stuffId) continue;
+          RecognitionApi.learnIdentity(listener, actor, name);
+        }
+      }
+      return true;
     }
 
     emote(emote: Emote, opts?: EmoteOptions): void {

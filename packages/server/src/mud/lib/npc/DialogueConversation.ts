@@ -43,6 +43,7 @@ import { RegardApi } from "../../api/regard";
 import { TraitApi } from "../../api/trait";
 import { WorldClockApi } from "../../api/worldclock";
 import { SoulApi } from "../../api/soul";
+import { RecognitionApi } from "../../api/recognition";
 import { MixinApi } from "../../api/mixin";
 import { DefaultCalendar } from "../time/DefaultCalendar";
 import type { Containable } from "../spatial/Containable";
@@ -236,12 +237,14 @@ export class DialogueConversation implements SustainedEngagement {
           response: String(i),
         }));
 
-        // The prompt label echoes the NPC's current beat so the line
-        // you're responding to is pinned beside the choices (the spoken
-        // copy in the room feed scrolls away). The client left-truncates
-        // it (keep the operative end, ellipsis at the start). Falls back
-        // to the generic ask for a beatless node.
-        const promptLabel = node.beat ?? PROMPT_LABEL;
+        // The prompt label echoes the NPC's current beat — prefixed with
+        // who you're talking to (recognition-aware, so it reads "Mara: …"
+        // once she's introduced herself, else by description) — pinned
+        // beside the choices since the spoken copy in the feed scrolls
+        // away. Falls back to the generic ask for a beatless node.
+        const promptLabel = node.beat
+          ? `${RecognitionApi.describe(this.player, this.npc)}: ${node.beat}`
+          : PROMPT_LABEL;
         let picked: string;
         try {
           picked = await PromptApi.choice(

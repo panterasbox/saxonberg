@@ -24,6 +24,10 @@ data:
     - { disposition: worldview, valence: 70 }
     - { disposition: sociability, valence: 70 }
   behaviors:
+    # Intrinsic auto-introduce: name themselves to newcomers so patrons
+    # learn who they are (the NPC half of the auto-introduce feature).
+    - brain: /lib/behavior/introduces
+      trigger: arrival
     - brain: /lib/behavior/shifts
       trigger: cadence:30s
       config:

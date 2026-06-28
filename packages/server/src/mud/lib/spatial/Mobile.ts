@@ -41,6 +41,8 @@ import type { LocomotionMode } from '../locomotion/LocomotionMode';
 import { MixinApi } from '../../api/mixin';
 import { ContainmentApi, ContainmentError } from '../../api/containment';
 import { MessageApi } from '../../api/message';
+import { RecognitionApi } from '../../api/recognition';
+import type { Soul } from '../social/Soul';
 import { Mml } from '../../api/mml';
 import { ProseApi } from '../../api/prose';
 import { NavigationApi } from '../../api/navigation';
@@ -84,6 +86,7 @@ export interface Mobile {
    * `<sense>` regions authored.
    */
   autoSenseOnArrival(): Promise<void>;
+  autoIntroduceOnArrival(): void;
 
   /** Optional pre-traversal veto on the mover. */
   canTraverse?(via: Exit): VetoResult;
@@ -451,6 +454,7 @@ export function MobileMixin<TBase extends MixinConstructor<Stuff & Containable>>
       // extend simply produces "here" again — focus is well-defined
       // on arrival).
       await this.autoSenseOnArrival();
+      this.autoIntroduceOnArrival();
     }
 
     /**
@@ -476,6 +480,7 @@ export function MobileMixin<TBase extends MixinConstructor<Stuff & Containable>>
         // because `teleport` keeps a synchronous signature; failures
         // in the sense (rare — same room rendering) are swallowed.
         void this.autoSenseOnArrival().catch(() => {});
+        this.autoIntroduceOnArrival();
       }
     }
 
@@ -535,6 +540,42 @@ export function MobileMixin<TBase extends MixinConstructor<Stuff & Containable>>
         );
       } catch {
         // Swallow — see jsdoc.
+      }
+    }
+
+    /**
+     * Auto-introduce on arrival — the **player half** of the
+     * auto-introduce feature (social NPCs use the `introduces` brain;
+     * they have no settings store). A mover who opted in
+     * (`social.autoIntroduce`) names themselves to a room that doesn't
+     * already know them; any present opted-in occupant likewise
+     * introduces to the newcomer. Real recognition via
+     * `SoulMixin.introduceSelf`. Best-effort — never breaks movement.
+     */
+    autoIntroduceOnArrival(): void {
+      const self = this as unknown as Stuff;
+      const env = MixinApi.isContainable(self) ? self.getContainer() : null;
+      if (!env || !MixinApi.isContainer(env)) return;
+      const others = [...env.getContents()].filter(
+        (o) => o.stuffId !== self.stuffId,
+      );
+      if (others.length === 0) return;
+      const wants = (s: Stuff): s is Stuff & Soul =>
+        MixinApi.isSoul(s) &&
+        ShellApi.resolveSetting<boolean>(s, 'social.autoIntroduce') === true;
+      try {
+        // Mover introduces to the room (if anyone here doesn't know them).
+        if (wants(self) && others.some((o) => !RecognitionApi.recognizes(o, self))) {
+          self.introduceSelf();
+        }
+        // Opted-in occupants introduce themselves to the newcomer.
+        for (const o of others) {
+          if (wants(o) && !RecognitionApi.recognizes(self, o)) {
+            o.introduceSelf();
+          }
+        }
+      } catch {
+        // Best-effort — a failed introduce must not break movement.
       }
     }
 
