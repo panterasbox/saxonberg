@@ -342,6 +342,35 @@ getFixtureBoundaries(): Boundary[];      // dedupes via anchor → boundary
 getFixtureLightSources(): (Stuff & Adornment)[];
 ```
 
+### Declarative adornments: `applyAdornments` instruction field
+
+`adornments` is an **instruction field** on `AdornableMixin` (declared
+via `static instructionFields = ['adornments']`) — the `applyExits` /
+`applyPopulates` precedent applied to fixtures. Its YAML data is an
+array of `AdornmentSpec` entries (a bare `template` path, or
+`{ template, slot }` for a meaningful slot name). The Hydrator's
+Phase-2 dispatch calls `applyAdornments`, which **clones** each
+template (fixtures are per-instance — no singleton dispatch like
+`applyPopulates`), guards that it composes `AdornmentMixin`
+(`MixinApi.isAdornment`, else a configuration-error throw naming the
+path), and attaches it via `addFixture`. There is no paired getter —
+the live fixtures are read through `getFixtures()`; the spec is
+discarded after Phase 2.
+
+Fixtures are runtime-only (not persisted; `addFixture` sets no
+`environment`, matching `BoundaryApi.attachExistingBoundary`), so
+`applyAdornments` re-runs and rebuilds them on every hydrate — the
+same reconstruct-on-boot model the `BoundaryAnchor` wiring uses. This
+is the declarative seam that retired the imperative-only fixture
+wiring: a seed can now author wall décor (e.g. the `NeonSign` branded
+light-emitting fixtures on Dave's Bar back-bar wall) as pure data.
+
+```yaml
+adornments:
+  - { template: /domain/lounge/neon-veshko, slot: sign:veshko }
+  - /domain/lounge/neon-aevex            # bare path → auto slot
+```
+
 **Floors are Adornments.** The default-floor template
 (`/idea/surface/default-floor`) composes `Adornment + Postured`
 and lives as an Adornment on the Location's Adornable surface.
