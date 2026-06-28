@@ -103,8 +103,14 @@ const ChipsRow = styled.div`
  * The active prompt's question, pinned directly above the chips so the
  * line you're answering stays put while the room feed scrolls. For a
  * dialogue tree this is the NPC's current beat (also spoken aloud in the
- * feed); for a disambiguation/confirm it's the question. Wraps freely —
- * the slot-picker pill can't, which is why a long beat needs a home here.
+ * feed); for a disambiguation/confirm it's the question.
+ *
+ * **Left-truncated**: the operative part of a line is its end ("…so
+ * what'll you have?"), so we keep the tail and clip the head — the
+ * ellipsis lands at the start. `direction: rtl` makes `text-overflow`
+ * clip+ellipsis the left edge; the inner `<bdi>` isolates the (LTR)
+ * text so its words and punctuation still render left-to-right. A line
+ * that fits shows whole, with no ellipsis.
  */
 const PromptContext = styled.div`
   padding: ${tokens.space.md} ${tokens.space.xl} 0;
@@ -113,7 +119,11 @@ const PromptContext = styled.div`
   font-size: ${tokens.font.body};
   font-style: italic;
   line-height: 1.4;
-  white-space: pre-wrap;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  direction: rtl;
+  text-align: left;
 `;
 
 const InputRow = styled.div<{ $hasChips: boolean }>`
@@ -787,10 +797,11 @@ export function CommandBar({
   // question for a prompt). Click opens the dropdown to switch
   // active slot.
   // The pill can't wrap, so a long prompt label (a dialogue beat) is
-  // truncated here — its full text lives in the pinned PromptContext.
+  // left-truncated here too — keep the operative end, ellipsis at the
+  // start — matching the pinned PromptContext above.
   const slotPickerLabel = activeEntry
     ? activeEntry.label.length > 28
-      ? `${activeEntry.label.slice(0, 27)}…`
+      ? `…${activeEntry.label.slice(activeEntry.label.length - 27)}`
       : activeEntry.label
     : basePrompt;
   const hasChips = activeEntry !== undefined && activeEntry.kind !== 'text';
@@ -799,7 +810,9 @@ export function CommandBar({
   return (
     <BarContainer $promptMode={promptMode}>
       {promptMode && activeEntry?.label ? (
-        <PromptContext>{activeEntry.label}</PromptContext>
+        <PromptContext>
+          <bdi>{activeEntry.label}</bdi>
+        </PromptContext>
       ) : null}
 
       {hasChips || hasValidationError ? (
