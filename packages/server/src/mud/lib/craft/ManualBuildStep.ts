@@ -61,7 +61,7 @@ export class ManualBuildStep implements DurativeActivity {
     this.duration = opts.durationMs;
     this._onComplete = opts.onComplete;
     this._onAbort = opts.onAbort ?? ((): void => {});
-    this._host = opts.host ?? (opts.actor as unknown as Stuff);
+    this._host = opts.host ?? opts.actor;
   }
 
   onStart(): void {

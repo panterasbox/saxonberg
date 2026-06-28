@@ -58,10 +58,10 @@ with a diegetic reason, not a flag flip.
 
 ## Mixins (`lib/craft/`)
 
-All four are registered in `lib/mixin.ts` (`Mixins.Graded`/`Tool`/
-`Crafted`/`Maker`) with a `MixinApi.isX` predicate. No `#`-private
-instance state (proxy trap); persisted fields are public for the
-Hydrator; per-field invariants ride accessor pairs.
+All five are registered in `lib/mixin.ts` (`Mixins.Graded`/`Tool`/
+`Crafted`/`Maker`/`ManualBuild`) with a `MixinApi.isX` predicate. No
+`#`-private instance state (proxy trap); persisted fields are public for
+the Hydrator; per-field invariants ride accessor pairs.
 
 - **`GradedMixin`** (`Graded.ts`) — the shared grade carrier (input
   bottles **and** `CraftedMixin`). The persist-string / value-object
@@ -87,6 +87,14 @@ Hydrator; per-field invariants ride accessor pairs.
   used **only** to identify the present `order` fulfiller (the bartender).
   **Not** used to gate `serve`/`mix` (those are general agent verbs;
   maker = the giver).
+- **`ManualBuildMixin`** (`ManualBuild.ts`, the `Builds` interface,
+  `MixinApi.isBuildVessel`) — the **vessel-as-buffer** for a step-by-step
+  build (the shaker / mixing glass). A runtime-only buffer of graded
+  `BuildContribution`s (`addContribution`/`getContributions`/`clearBuild`)
+  the `pour`/`add` verbs bank into and `strain` mints from, plus the
+  recorded **command sources** (`recordCommand`/`getCommandSources`) the
+  demonstration capture transcribes (see [scripting.md](./scripting.md)).
+  No persistent fields — a build is transient.
 
 ## Recipe = a `Document` (the Emote pattern)
 
@@ -217,6 +225,36 @@ return `void`, emitting via `ctx.note` + `MessageApi.scene`.
 floor" — the bartender NPC is a **static authored Character with no
 `Behaved` mixin**; the serve-on-order reflex is a verb, not behavior, so
 there is zero file collision with the npc-behavior lane.
+
+## The manual build (the by-hand path)
+
+Alongside the one-shot served path, a drink can be **built by hand**, one
+command at a time — the path the scripting build added (its manual-build
+verbs are also the substrate the demonstration-capture records). Each step
+is an **engaged activity** (`ManualBuildStep`, the `'hands'` slot, the
+activity substrate's first durative-verb consumer — see
+[activity.md](./activity.md)): the effect lands **at completion**, so a
+barge-in `cancel` mid-step leaves partial matter standing.
+
+- **`pour <spirit> into <vessel>`** / **`add <spirit>`** — debit a standard
+  measure off the chosen reachable graded bottle (to the discard sink —
+  conservation) and bank a graded `BuildContribution` into the vessel's
+  buffer. `add` (no vessel) finds the build vessel you're working in.
+- **`stir`** / **`shake <vessel>`** — record the mix method on the build.
+- **`strain [<vessel>] into <glass>`** — the **terminal mint**.
+- **`garnish <glass> with <garnish>`** — the finishing flourish.
+
+The vessel is a `ManualBuildMixin` build vessel (`CocktailShaker` backs
+both the shaker and the mixing glass — `capabilities` decide which recipe
+tool it satisfies). At `strain`, **`CraftingApi.mintFromBuild`**
+reverse-matches the accumulated contributions to a recipe (`matchBuild`:
+exact slot set, category + measure-at-or-above + min-grade, **no
+leftovers** — a faithful build is exactly the recipe) and mints the
+graded, maker's-marked drink into the glass, **reusing the one quality
+model** (weakest-link `Grade`, the `applyBulkOutput` fill). An off-spec
+build still yields *a* drink — the generic mint — but matches no recipe
+(`recipeId === ''`), the discriminator the knowledge ladder rides. The
+maker is derived from `getActingAuthor`, never a parameter.
 
 ## Drink → metabolism (honest alcohol)
 

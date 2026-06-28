@@ -76,10 +76,9 @@ relationship layer remains.
 *Where the personality lives.*
 - [npc-behavior-slate](./builds/npc-behavior-slate.md) — brains / routines / automation substrate. Absorbs collision's "guards" decomposition.
 - [npc-dialogue-slate](./builds/npc-dialogue-slate.md) — dialogue trees; deferred LLM free-text front-end.
-- [scripting-slate](./builds/scripting-slate.md) — a purpose-built soft-scripting language; promotes npc-behavior's deferred `scripted-behavior` tail to a first-class subsystem (and a human-authored content surface in its own right). **Not near-term** — the remaining design forks (blocks, execution model, the `( )` sublanguage, scope) want a focused learning pass first.
 - [llm-content-slate](./builds/llm-content-slate.md) — the runtime LLM rung npc-behavior left open: a single director agent forces the cast over the command bus and narrates ambient scenes, expressing multi-stage behavior by authoring in the scripting language. **Not near-term.**
 
-**Phases:** behavior substrate → dialogue → scripting language → LLM director. (`reactions` core shipped; its `tails/` tail rides later.)
+**Phases:** behavior substrate → dialogue → scripting language → LLM director. (The **scripting language v1 engine shipped** 2026-06 → `scripting.md`; its slate moved to `tails/` with the piping tail. `reactions` core shipped; its `tails/` tail rides later.)
 
 ### 3. Vitals & survival
 *Substrate shipped; the survival mechanics build on top.* The vitals
@@ -310,6 +309,7 @@ extends; none is a fresh build.
 | [multilocation](./tails/multilocation-slate.md) | location.md | deferred procedural / spatial Warren consumers beyond the shipped social-elastic lounge case |
 | [fast-travel](./tails/fast-travel-slate.md) | fasttravel.md | living-infrastructure wave (terminals break down / disruption, Authority wear-maintenance, the inert `status` seam) + cross-restart credential durability |
 | [client-shell](./tails/client-shell-slate.md) | client-shell.md | search / command palette, mode switcher + per-mode status, public read-only surface, declarative mode/manifest model, pre-auth device-local client-state tier |
+| [scripting](./tails/scripting-slate.md) | scripting.md / document-store.md | **v1 engine shipped 2026-06** (interpreter + coroutines + two surfaces + demonstration-capture + knowledge-ladder + the generic document store → scripting.md; the block/execution-model/`( )`/scope forks all resolved + built); deferred: the **piping model** (multi-stage pipelines over the built `Pipeline` AST node + the general value→field binder + the two-channel/ByValue compatibility design) and the open block forks (`it`-only vs explicit params) |
 
 **Near-absorbed — retirement candidates** (kept this pass rather than
 deleted, since each still carries live design surface; prune on request

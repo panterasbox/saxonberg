@@ -35,6 +35,14 @@ rides the scheduler purely to occupy an engagement slot for a contention
 window (so a wandering NPC yields `'body'`/`'attention'` while it greets
 an arrival). See [behavior.md](./behavior.md).
 
+The first *durative-verb* consumer has also landed:
+the manual cocktail-build verbs (`pour`/`stir`/`strain`/`garnish`) each
+run as a `ManualBuildStep` `DurativeActivity` on the `'hands'` slot — the
+worked exemplar of "a verb with duration becomes an activity" (effect
+applied **at completion**, a barge-in `cancel` aborts mid-step leaving
+partial matter standing). See [crafting.md](./crafting.md) and the paced
+replay it enables in [scripting.md](./scripting.md).
+
 Three claims drive the design:
 
 1. **Verbs that have duration become activities.** A controller's
@@ -379,11 +387,12 @@ for the deferred design).
 `cancel` itself is instant — no slots, runs synchronously, always
 available regardless of what's in flight.
 
-Wave 1 ships an empty engagement map at all times (no v1 activity
-producers). Bare `cancel` narrates "You cancel what you were
-doing." against an empty map; `cancel <type>` emits an
-`empty-result` note + "You aren't <type>." until real activities
-register.
+Wave 1 originally shipped an empty engagement map (no activity
+producers); engaged consumers have since landed (respiration, behavior,
+the manual-build verbs — see above). Bare `cancel` still narrates "You
+cancel what you were doing." against an empty map; `cancel <type>` emits
+an `empty-result` note + "You aren't <type>." when no matching activity
+is in flight.
 
 ## The Abort taxonomy
 
@@ -615,7 +624,8 @@ why this shape was chosen.
 
 ## Future work
 
-Wave 1 ships the substrate; no v1 controllers register activities.
+Wave 1 shipped the substrate; engaged consumers have since landed
+(respiration, NPC behavior, the manual-build crafting verbs).
 Forward-looking work — preserved as design reference in two
 sibling slates:
 
