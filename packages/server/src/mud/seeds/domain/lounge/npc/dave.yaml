@@ -35,6 +35,10 @@ data:
     - { disposition: boldness, valence: 70 }
     - { disposition: humility, valence: -70 }
   behaviors:
+    # Intrinsic auto-introduce: name themselves to newcomers so patrons
+    # learn who they are (the NPC half of the auto-introduce feature).
+    - brain: /lib/behavior/introduces
+      trigger: arrival
     # Dave rarely leaves the office — a short evening turn about the floor.
     - brain: /lib/behavior/shifts
       trigger: cadence:30s

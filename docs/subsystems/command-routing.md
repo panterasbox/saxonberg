@@ -342,6 +342,28 @@ Each filename resolves through `CommandApi.getCommand` and is loaded
 once per file; the resulting `CommandDefinition` is shared across
 every host that contributes it.
 
+### `InstanceContributor` — per-instance dynamic contributions
+
+`commandContributions` is **static** (class-level), so it can't express
+"contribute X only when this *instance's* state holds." The optional
+`InstanceContributor` seam (`api/command.ts`, `@hook`) closes that gap:
+
+```ts
+interface InstanceContributor { getInstanceContributions(): CommandContributions; }
+```
+
+At the `environment`/`peers` containment-delta push sites,
+`CommandLogic.collectBucketDefsForInstance` merges a contributor's
+per-instance result with its class/mixin statics. Because it rides the
+ordinary push/pop/reset movement machinery, late-arrival, departure, and
+mover relocation are all handled with no extra hooks (the hook must be
+cheap and total — a throw is swallowed to no contribution). First
+consumer: `BehavedMixin.getInstanceContributions` affords `social/
+talk.yaml` exactly when the host carries a dialogue tree (an `engage`
+spec) — so a conversational NPC is discoverable and a silent one is not,
+with no subclass and no manual push/pop. See
+[npc-dialogue.md](./npc-dialogue.md).
+
 ## Recency stack
 
 Per-giver, chronological. Each entry is `(source, bucket,

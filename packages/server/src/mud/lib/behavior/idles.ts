@@ -2,12 +2,15 @@
  * `idles` brain — ambient flavor on a cadence. Samples one entry from a
  * **mixed emission pool** (emote / free-form / speech) each fire, the
  * "lean-and-polish / wipe-the-rail" idle business that makes a room feel
- * inhabited. Claims no slots (instant; yields to nothing, blocks
- * nothing) and is presence-gated by default (an empty room stays quiet).
+ * inhabited. Claims no slots, but **yields while the host's `voice` or
+ * `attention` is engaged** (e.g. mid-conversation) so the NPC stops idle
+ * muttering/fidgeting and focuses on whoever it's talking to.
+ * Presence-gated by default (an empty room stays quiet).
  *
  * config: `{ pool: Array<{ kind: 'emote'|'free'|'say', value: string }> }`
  */
 
+import type { EngagementSlot } from '../activity/Engaged';
 import type { BrainContext, BrainStatics } from './brain';
 
 interface PoolEntry {
@@ -17,6 +20,8 @@ interface PoolEntry {
 
 export const brain = class {
   static label = 'idles';
+  // Yield while the host is mid-conversation (voice/attention held).
+  static requiresFree: readonly EngagementSlot[] = ['voice', 'attention'];
 
   static act(ctx: BrainContext): void | Promise<void> {
     const pool = Array.isArray(ctx.config.pool)

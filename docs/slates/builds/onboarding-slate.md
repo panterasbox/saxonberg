@@ -58,7 +58,7 @@ See also:
   attribution is why a private nudge is unmistakably *from* Limen.
 - [docs/subsystems/messaging.md](../../subsystems/messaging.md) /
   language — **signs** are Readables (wayfinding); a route map is layout.
-- [docs/slates/npc-dialogue-slate.md](../builds/npc-dialogue-slate.md) — the
+- [docs/slates/npc-dialogue-slate.md](../tails/npc-dialogue-slate.md) — the
   greeter NPC.
 - [docs/subsystems/connection.md](../../subsystems/connection.md) — login
   spawns you in the lounge.

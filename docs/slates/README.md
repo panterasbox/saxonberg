@@ -75,7 +75,7 @@ relationship layer remains.
 ### 2. NPCs
 *Where the personality lives.*
 - [npc-behavior-slate](./builds/npc-behavior-slate.md) — brains / routines / automation substrate. Absorbs collision's "guards" decomposition.
-- [npc-dialogue-slate](./builds/npc-dialogue-slate.md) — dialogue trees; deferred LLM free-text front-end.
+- [npc-dialogue-slate](./tails/npc-dialogue-slate.md) *(tail)* — **shipped (Wave 1)** → [../subsystems/npc-dialogue.md](../subsystems/npc-dialogue.md): the responder seam (`talk to` → a pluggable brain), the branching-tree responder, and auto-introduce. Tail holds the scripted `intent-dialogue` + LLM free-text front-end + multiplayer waves.
 - [scripting-slate](./builds/scripting-slate.md) — a purpose-built soft-scripting language; promotes npc-behavior's deferred `scripted-behavior` tail to a first-class subsystem (and a human-authored content surface in its own right). **Not near-term** — the remaining design forks (blocks, execution model, the `( )` sublanguage, scope) want a focused learning pass first.
 - [llm-content-slate](./builds/llm-content-slate.md) — the runtime LLM rung npc-behavior left open: a single director agent forces the cast over the command bus and narrates ambient scenes, expressing multi-stage behavior by authoring in the scripting language. **Not near-term.**
 

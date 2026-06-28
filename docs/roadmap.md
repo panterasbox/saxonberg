@@ -310,10 +310,12 @@ Ordered by leverage + dependency:
    intrinsic conferral). Wave 2+ adds the install/remove medical
    procedure, char-gen loadout, other augment Stuff (translation,
    prosthetics, sensor packages, motor / cognitive), and failure
-   modes. Npc-dialogue still leans on the shipped prompt + slot
-   substrate.
+   modes. Npc-dialogue **Wave 1 shipped 2026-06** (the branching-tree
+   responder + `talk to` + auto-introduce; see
+   [npc-dialogue.md](./subsystems/npc-dialogue.md)); the scripted
+   `intent-dialogue` / LLM front-end is the tail.
    ([augmentation](./slates/tails/augmentation-slate.md) /
-   [npc-dialogue](./slates/builds/npc-dialogue-slate.md))
+   [npc-dialogue](./slates/tails/npc-dialogue-slate.md))
 
 The **new-player flow** straddles both tracks: char-gen engine +
 fast-travel terminals are Track B (server-first) — the **char-gen
@@ -449,7 +451,7 @@ pass; built in waves):
   emote-at-a-message + **batched aggregate-delta** broadcast (hundreds-of-
   users scale); toggle-once; tag-grouping; ephemeral runtime + warehouse
   the stream.
-- [docs/slates/builds/npc-dialogue-slate.md](./slates/builds/npc-dialogue-slate.md) —
+- [docs/slates/tails/npc-dialogue-slate.md](./slates/tails/npc-dialogue-slate.md) —
   conversation-not-interrogation; a **pluggable responder** (branching
   tree via prompt+engagement / scripted free-text / deferred LLM); one
   room-visible speech output.

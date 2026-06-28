@@ -74,7 +74,7 @@ See also:
   sense-channel family** (verbal = language-gated, emotive = language-
   free); the implant is its organ. Reception *is* sensing; comms delivers
   *on* these channels. (Acoustic speech rides the hearing channel.)
-- [docs/slates/npc-dialogue-slate.md](../builds/npc-dialogue-slate.md) — NPC
+- [docs/slates/npc-dialogue-slate.md](../tails/npc-dialogue-slate.md) — NPC
   responders consume directed speech (and implant DM for remote NPCs).
 - [docs/subsystems/messaging.md](../../subsystems/messaging.md) — the Scene
   composer + delivery chokepoint; comms is a new audience-resolution

@@ -117,7 +117,7 @@ change to the ~56 call sites. The client-data path
 universal `displayName` field, so the inspection pane and the scrollback
 can't diverge.
 
-## Recognition triggers — `introduce` + repeat-perception
+## Recognition triggers — `introduce` + auto-introduce + repeat-perception
 
 `RecognitionApi.learnIdentity(viewer, subject, name)` is the single
 identity-learning sink (non-null name = introduction; null = a bare
@@ -133,6 +133,15 @@ sighting). All triggers funnel through it.
   recipient set (`MessageApi.getSensors(env)`), writes each recipient's
   record. **No content hook in the messaging substrate** — the controller
   owns the write.
+- **Auto-introduce** (the dialogue build's ambient trigger): the shared
+  `SoulMixin.introduceSelf()` runs the same introduce act (scene +
+  `learnIdentity` to all in range), gated by
+  `RecognitionApi.recognizes(viewer, subject)` so it doesn't re-introduce
+  to someone who already knows the actor. Fired on arrival by the
+  `introduces` NPC brain (intrinsic — social NPCs name themselves to
+  newcomers) and by `Mobile.autoIntroduceOnArrival` for players who set
+  `social.autoIntroduce`. So you learn the bartender's name by walking in,
+  and speech then renders it. See [npc-dialogue.md](./npc-dialogue.md).
 - **Repeat-perception**: `LookController` fires `learnIdentity(actor,
   target, null)` for each perceived being on the look chokepoint (never in
   `describe`). First sight creates a null-`knownAs` stranger record; later

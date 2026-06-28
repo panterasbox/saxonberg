@@ -270,6 +270,90 @@ describe('CmsApi — content backend', () => {
     expect(out.backend).toBe('content');
   });
 
+  it('write rejects a dialogue tree with a dangling node target', async () => {
+    vi.spyOn(AccessApi, 'can').mockResolvedValue(true);
+    await expect(
+      CmsApi.write(
+        'content',
+        '/cmstest/alpha',
+        JSON.stringify({
+          behaviors: [
+            {
+              brain: '/lib/behavior/tree-dialogue',
+              trigger: 'engage',
+              config: {
+                entry: [{ node: 'root' }],
+                nodes: {
+                  root: { beat: 'Hi.', choices: [{ line: 'x', to: 'nowhere' }] },
+                },
+              },
+            },
+          ],
+        })
+      )
+    ).rejects.toMatchObject({ code: 'invalid' });
+  });
+
+  it('write rejects a dialogue tree with an unknown effect verb', async () => {
+    vi.spyOn(AccessApi, 'can').mockResolvedValue(true);
+    await expect(
+      CmsApi.write(
+        'content',
+        '/cmstest/alpha',
+        JSON.stringify({
+          behaviors: [
+            {
+              brain: '/lib/behavior/tree-dialogue',
+              trigger: 'engage',
+              config: {
+                entry: [{ node: 'root' }],
+                nodes: {
+                  root: {
+                    beat: 'Hi.',
+                    choices: [
+                      { line: 'x', to: 'root', effects: [{ verb: 'teleport' }] },
+                    ],
+                  },
+                },
+              },
+            },
+          ],
+        })
+      )
+    ).rejects.toMatchObject({ code: 'invalid' });
+  });
+
+  it('write accepts a valid dialogue tree', async () => {
+    vi.spyOn(AccessApi, 'can').mockResolvedValue(true);
+    vi.spyOn(AccessApi, 'canMutateZone').mockResolvedValue(true);
+    vi.spyOn(StuffApi, 'findAllByTemplatePath').mockReturnValue([]);
+    const out = await CmsApi.write(
+      'content',
+      '/cmstest/alpha',
+      JSON.stringify({
+        behaviors: [
+          {
+            brain: '/lib/behavior/tree-dialogue',
+            trigger: 'engage',
+            config: {
+              entry: [{ node: 'root' }],
+              nodes: {
+                root: {
+                  beat: 'Hi.',
+                  choices: [
+                    { line: 'Bye.', to: 'done', effects: [{ verb: 'regard', delta: 1 }] },
+                  ],
+                },
+                done: { beat: 'Later.', terminal: true },
+              },
+            },
+          },
+        ],
+      })
+    );
+    expect(out.backend).toBe('content');
+  });
+
   it('write to a missing template throws CmsError(not-found)', async () => {
     vi.spyOn(AccessApi, 'can').mockResolvedValue(true);
     await expect(

@@ -110,6 +110,16 @@ export class RecognitionApi {
   }
 
   /**
+   * Whether `viewer` already recognizes `subject` by a learned name. The
+   * gate the ambient auto-introduce triggers use so an NPC/player doesn't
+   * re-introduce to someone who already knows them. False when the viewer
+   * can't hold beliefs or has no name on record for the subject.
+   */
+  public static recognizes(viewer: Stuff, subject: Stuff): boolean {
+    return logic().recognizes(viewer, subject);
+  }
+
+  /**
    * Generate a salient-feature description for a being the viewer
    * doesn't recognize. Viewer-independent (features are objective; only
    * the *name* is unknown). Reused by the viewer-relative targeting

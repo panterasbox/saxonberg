@@ -61,6 +61,7 @@ import {
   type AliasExpansionInfo,
   type Parser,
   type CommandContributions,
+  type InstanceContributor,
   type FieldValue,
   type ModelData,
   type CommandModel,
@@ -2084,16 +2085,13 @@ function resolveDefs(filenames: string[] | undefined): CommandDefinition[] {
 }
 
 /**
- * Walk a class chain — concrete first, then mixins — and collect
- * the named bucket's filenames into a deduped CommandDefinition[].
+ * Walk a class chain — concrete first, then mixins — and collect the
+ * named bucket's static contribution filenames (deduping is deferred to
+ * {@link resolveDefs}).
  */
-function collectBucketDefs(
-  ctor: unknown,
-  bucket: Bucket
-): CommandDefinition[] {
+function bucketFilenames(ctor: unknown, bucket: Bucket): string[] {
   const filenames: string[] = [];
-  const own = getContributions(ctor);
-  const ownList = own?.[bucket];
+  const ownList = getContributions(ctor)?.[bucket];
   if (ownList) filenames.push(...ownList);
   const mixins = MixinApi.queryMixins(
     ctor as { prototype: unknown } & ((...args: unknown[]) => unknown)
@@ -2102,7 +2100,51 @@ function collectBucketDefs(
     const mlist = getContributions(mixin)?.[bucket];
     if (mlist) filenames.push(...mlist);
   }
-  return resolveDefs(filenames);
+  return filenames;
+}
+
+/**
+ * Per-instance dynamic contribution filenames for `bucket`, via the
+ * optional {@link InstanceContributor} seam. Defensive: the hook runs on
+ * the containment hot path, so a throw is swallowed to no contribution.
+ */
+function instanceBucketFilenames(instance: Stuff, bucket: Bucket): string[] {
+  const fn = (instance as Partial<InstanceContributor>)
+    .getInstanceContributions;
+  if (typeof fn !== 'function') return [];
+  try {
+    return fn.call(instance)?.[bucket] ?? [];
+  } catch {
+    return [];
+  }
+}
+
+/**
+ * The named bucket's contributions off a **class** only (static). Used
+ * where no instance is in hand (shadows, hosted updates, self-seed).
+ */
+function collectBucketDefs(
+  ctor: unknown,
+  bucket: Bucket
+): CommandDefinition[] {
+  return resolveDefs(bucketFilenames(ctor, bucket));
+}
+
+/**
+ * The named bucket's contributions off a live **instance** — its
+ * class/mixin statics PLUS any per-instance {@link InstanceContributor}
+ * contributions. Used at the `environment`/`peers` containment-delta
+ * push sites so a contribution can depend on per-instance state and
+ * still ride the ordinary movement push/pop/reset lifecycle.
+ */
+function collectBucketDefsForInstance(
+  instance: Stuff,
+  bucket: Bucket
+): CommandDefinition[] {
+  return resolveDefs([
+    ...bucketFilenames(instance.constructor, bucket),
+    ...instanceBucketFilenames(instance, bucket),
+  ]);
 }
 
 function applyContainmentDeltaImpl(
@@ -2131,9 +2173,9 @@ function applyContainmentDeltaImpl(
         (to as Stuff & CommandGiver).pushCommandSource(item, 'inventory', defs);
       }
     }
-    const envDefs = collectBucketDefs(item.constructor, 'environment');
+    const envDefs = collectBucketDefsForInstance(item, 'environment');
     const peerDefs = MixinApi.isCommandGiver(item)
-      ? collectBucketDefs(item.constructor, 'peers')
+      ? collectBucketDefsForInstance(item, 'peers')
       : [];
     if (envDefs.length > 0 || peerDefs.length > 0) {
       for (const sibling of to.getContents()) {
@@ -2160,9 +2202,9 @@ function applyContainmentDeltaImpl(
     if (from) itemCG.resetCommandSources('self-moved');
     for (const neighbor of to.getContents()) {
       if ((neighbor as Stuff) === item) continue;
-      const envDefs = collectBucketDefs(neighbor.constructor, 'environment');
+      const envDefs = collectBucketDefsForInstance(neighbor, 'environment');
       const peerDefs = MixinApi.isCommandGiver(neighbor)
-        ? collectBucketDefs(neighbor.constructor, 'peers')
+        ? collectBucketDefsForInstance(neighbor, 'peers')
         : [];
       if (envDefs.length > 0) {
         itemCG.pushCommandSource(neighbor, 'environment', envDefs);

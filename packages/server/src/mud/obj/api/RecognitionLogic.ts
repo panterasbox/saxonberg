@@ -221,6 +221,17 @@ function learnIdentityImpl(
   viewer.know(RECOGNITION, referent, { knownAs: name });
 }
 
+/** See {@link RecognitionApi.recognizes}. */
+function recognizesImpl(viewer: Stuff, subject: Stuff): boolean {
+  if (!MixinApi.isBeliefStore(viewer)) return false;
+  const referent = subject.getTemplatePath();
+  if (!referent) return false;
+  const record = viewer.recall(RECOGNITION, referent) as
+    | { knownAs?: string | null }
+    | undefined;
+  return !!record?.knownAs;
+}
+
 /**
  * RecognitionLogic — the hot-reloadable logic singleton behind
  * {@link RecognitionApi}.
@@ -260,6 +271,12 @@ export class RecognitionLogic extends Idea {
     name: string | null
   ): void {
     learnIdentityImpl(viewer, subject, name);
+  }
+
+  /** See {@link RecognitionApi.recognizes}. */
+  @CallSecurity(RecognitionApiCallers)
+  public recognizes(viewer: Stuff, subject: Stuff): boolean {
+    return recognizesImpl(viewer, subject);
   }
 
   /** See {@link RecognitionApi.salientFeatures}. */

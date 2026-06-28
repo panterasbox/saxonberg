@@ -66,7 +66,7 @@ characters hardest.
 
 **Characters as the primary lever.** This is the strong suit.
 
-- The [npc-dialogue](../slates/builds/npc-dialogue-slate.md) design has NPCs
+- The [npc-dialogue](../slates/tails/npc-dialogue-slate.md) design has NPCs
   *lead* — the barkeep opens with "Road dust on you. Bad time to
   travel, what with the bandits on the north pass" rather than waiting
   for the player to guess keywords. The player doesn't hunt a topic

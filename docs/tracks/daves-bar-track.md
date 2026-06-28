@@ -24,7 +24,7 @@ build; it is not itself a module. (See [daves-bar-slate](../slates/builds/daves-
 |---|---|---|---|
 | **npc-behavior Wave 1** | `Behaved` + canned brains + wiring + cast; lights up the inert Activity substrate | **BUILT** (MR !90; subsystem doc [behavior.md](../subsystems/behavior.md)) | [npc-behavior](../slates/builds/npc-behavior-slate.md) |
 | **Traits** | derived-from-behavior personality (= competence-for-dispositions); stress-as-divergence | **designed** | [npc-behavior § Traits](../slates/builds/npc-behavior-slate.md) |
-| **npc-dialogue Wave 1** | responder seam + branching trees + scripted banter; voices from traits, warmth from regard | **direction set** | [npc-dialogue](../slates/builds/npc-dialogue-slate.md) |
+| **npc-dialogue Wave 1** | responder seam + branching trees; voices from traits, warmth from regard (scripted banter deferred) | **shipped → [npc-dialogue.md](../subsystems/npc-dialogue.md)** | [npc-dialogue](../slates/tails/npc-dialogue-slate.md) |
 | **Advancement** | Catalog / Transcript / Competence (the *learning core* — NOT deferred) | **designed**, increment-1 standalone | [advancement](../slates/builds/advancement-slate.md) |
 | **Crafting v1** | the Dave's Bar slice (venue, recipes, tools, craft-resolve, provenance) | **designed**, buildable | [crafting](../slates/builds/crafting-slate.md) |
 | **Banking** | accounts / ledger / cash; the deficit-as-target P&L | **designed** | [economy § Banking](../slates/builds/economy-slate.md) |
