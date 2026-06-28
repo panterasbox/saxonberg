@@ -97,8 +97,13 @@ importers:
         specifier: ^2.0.0
         version: 2.1.9(@types/node@20.19.28)(jsdom@25.0.1)
 
+  packages/content/base-library: {}
+
   packages/server:
     dependencies:
+      '@saxonberg/content-base-library':
+        specifier: workspace:*
+        version: link:../content/base-library
       '@saxonberg/types':
         specifier: workspace:*
         version: link:../types

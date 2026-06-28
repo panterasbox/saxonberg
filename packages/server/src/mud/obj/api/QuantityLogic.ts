@@ -2,6 +2,7 @@
 // (Doc comment on the class below so @internal lands on the reflection.)
 
 import { readFileSync } from 'fs';
+import { createRequire } from 'module';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 import YAML from 'yaml';
@@ -20,8 +21,20 @@ const QuantityApiCallers = SecurityPolicies.FromModule(
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-/** Default config locations. Tests can override via the path arg. */
-const DEFAULT_YAML_PATH = join(__dirname, '../../config/quantity-tags.yaml');
+/**
+ * Default config locations. Tests can override via the path arg; in
+ * production the installer (`PackApi`) always passes the resolved pack path.
+ *
+ * The quantity-tags YAML now lives in the **base-library content pack**
+ * (the source of truth) — so the default resolves it there via module
+ * resolution (the pack is a server dependency), keeping a single source for
+ * the no-arg fallback that the boot path + test helpers still use. The JSON
+ * **schema** is a kernel validation contract (not pack content), so it stays
+ * beside the engine in `config/`.
+ */
+const DEFAULT_YAML_PATH = createRequire(import.meta.url).resolve(
+  '@saxonberg/content-base-library/content/quantity/quantity-tags.yaml'
+);
 const DEFAULT_SCHEMA_PATH = join(
   __dirname,
   '../../config/quantity-tags.schema.json'

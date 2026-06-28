@@ -22,12 +22,21 @@
 
 import { describe, it, expect } from 'vitest';
 import { readFileSync, existsSync, readdirSync, statSync } from 'fs';
+import { createRequire } from 'module';
 import { fileURLToPath } from 'url';
 import { dirname, join, relative } from 'path';
 import YAML from 'yaml';
 
 const __filename = fileURLToPath(import.meta.url);
-const SEEDS_DIR = join(dirname(__filename), '../../../seeds/lib/biome');
+// The biome roster now ships in the base-library content pack (lifted out of
+// `seeds/`). Resolve the pack root the same way the installer does, then read
+// its `content/lib/biome` namespace mirror.
+const PACK_ROOT = dirname(
+  createRequire(import.meta.url).resolve(
+    '@saxonberg/content-base-library/package.json',
+  ),
+);
+const SEEDS_DIR = join(PACK_ROOT, 'content/lib/biome');
 
 interface BiomeSeed {
   class: string;

@@ -1,0 +1,23 @@
+verbs: [pack]
+controller: author/PackController
+description: "Reconcile a content pack into the world and push edits live"
+help: |
+  Reconcile a content pack's files into the database and re-hydrate the
+  affected live singletons, with no restart. The pack files are the source
+  of truth; this makes the running world match them. Developer access
+  required.
+
+  Usage: pack sync <packId>
+
+  <packId> defaults to `base-library`. Edits to a material/biome go live
+  immediately (the singleton re-hydrates); a deleted content file drops its
+  row and destructs the orphaned singleton.
+validators:
+  - /lib/command/validators/requiresDeveloper
+args:
+  - name: subcommand
+    type: string
+    required: true
+  - name: packId
+    type: string
+    required: false
