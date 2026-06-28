@@ -22,8 +22,7 @@ import { MessageApi } from "../../../api/message";
 import { Mml } from "../../../api/mml";
 import { CraftingApi } from "../../../api/crafting";
 import { ExecutionContextApi } from "../../../api/execution-context";
-import { Transcriber } from "../../../lib/script/Transcriber";
-import { RecipeKnowledge } from "../../../lib/script/RecipeKnowledge";
+import { ScriptApi } from "../../../api/script";
 
 const TOPIC = "world.narration.action";
 const STRAIN_MS = 2500;
@@ -111,28 +110,28 @@ export default class StrainController extends ManualBuildController<StrainModel>
           // can-make **deed** and transcribes + banks the personal
           // recipe-script — the SAME act (learning *is* getting the
           // script). Later builds of a recipe you can already make just
-          // yield the drink; a scripted replay records no sources.
+          // yield the drink; a scripted replay records no sources. The
+          // capture runs at engaged-completion, outside the command frame
+          // — so `ScriptApi.captureManualBuild` (a framework seam) stamps
+          // the builder as the acting author the transcribe attributes to;
+          // a controller can't push/tag frames itself.
           if (recipeId.length > 0 && sources.length > 0) {
-            await ExecutionContextApi.runRoot(
-              StrainController,
-              "learn-recipe",
-              async () => {
-                ExecutionContextApi.tagActingAuthor(builder);
-                if (await RecipeKnowledge.canMake(builder, recipeId)) return;
-                const view = await CraftingApi.lookupRecipe(recipeId);
-                const name = view?.name ?? recipeId;
-                await RecipeKnowledge.noteMade(builder, recipeId, name);
-                const path = await Transcriber.transcribe(recipeId, sources);
-                if (path !== null) {
-                  MessageApi.scene(giver)
-                    .topic(TOPIC)
-                    .toSelf(
-                      Mml.compose`You've worked out how to make ${name} — the recipe is yours now (try \`make ${recipeId}\`).`,
-                    )
-                    .send();
-                }
-              },
+            const view = await CraftingApi.lookupRecipe(recipeId);
+            const name = view?.name ?? recipeId;
+            const path = await ScriptApi.captureManualBuild(
+              builder,
+              recipeId,
+              name,
+              sources,
             );
+            if (path !== null) {
+              MessageApi.scene(giver)
+                .topic(TOPIC)
+                .toSelf(
+                  Mml.compose`You've worked out how to make ${name} — the recipe is yours now (try \`make ${recipeId}\`).`,
+                )
+                .send();
+            }
           }
         })().catch((err: unknown) => {
           console.error("StrainController: mint failed", err);

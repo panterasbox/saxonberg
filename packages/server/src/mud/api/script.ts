@@ -17,9 +17,11 @@
 
 import type { Script } from "../lib/script/ast";
 import type { ScriptAbortReason } from "../lib/script/AbortReason";
+import type { Stuff } from "../lib/stuff/Stuff";
 import { StuffApi } from "./stuff";
 import { HotReloadApi } from "./hot-reload";
 import { SecurityApi } from "./security";
+import { ExecutionContextApi } from "./execution-context";
 import { ScriptLogic } from "../obj/api/ScriptLogic";
 import { fileURLToPath } from "url";
 
@@ -126,6 +128,30 @@ export class ScriptApi {
    */
   static format(ast: Script): string {
     return logic().format(ast);
+  }
+
+  /**
+   * Capture a faithful manual build as the builder's learned recipe: mint
+   * the can-make **deed** and transcribe + bank the personal recipe-script
+   * — the *same act* (learning **is** getting the script). Called at the
+   * `strain` step's engaged completion, which the scheduler runs inside an
+   * **authorless** `runRoot('completion')` frame — so the builder
+   * (captured from the live command frame at dispatch, then threaded here)
+   * is stamped as that frame's acting author via {@link
+   * ExecutionContextApi.tagActingAuthor}. That stamp is the framework seam
+   * a controller can't reach (frame mutators are framework-only); the
+   * downstream `noteMade` / `Transcriber.transcribe` read it back through
+   * `getActingAuthor`. Returns the banked script path, or null when
+   * nothing was captured (already learned, or no resolvable owner).
+   */
+  static captureManualBuild(
+    builder: Stuff,
+    recipeId: string,
+    name: string,
+    sources: readonly string[],
+  ): Promise<string | null> {
+    ExecutionContextApi.tagActingAuthor(builder);
+    return logic().captureManualBuild(recipeId, name, sources);
   }
 }
 

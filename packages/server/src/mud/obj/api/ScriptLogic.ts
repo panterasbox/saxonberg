@@ -17,6 +17,8 @@ import { AppApi } from "../../api/app";
 import { ExecutionContextApi } from "../../api/execution-context";
 import { AppSettingKeys } from "../../lib/config/AppSettings";
 import { Interpreter } from "../../lib/script/Interpreter";
+import { RecipeKnowledge } from "../../lib/script/RecipeKnowledge";
+import { Transcriber } from "../../lib/script/Transcriber";
 import type {
   ResourceLimits,
   DispatchFn,
@@ -269,6 +271,27 @@ async function invokeImpl(name: string, args: string[]): Promise<boolean> {
   return true;
 }
 
+/**
+ * Capture a faithful manual build (the `strain` engaged-completion path).
+ * The acting author is the builder — stamped onto the scheduler's
+ * completion frame by `ScriptApi.captureManualBuild` (the framework seam)
+ * and read back here via {@link currentAuthor}. Idempotent on the deed:
+ * a recipe already in the can-make state captures nothing (returns null).
+ * Otherwise mints the deed and transcribes the personal recipe-script,
+ * returning its banked path.
+ */
+async function captureManualBuildImpl(
+  recipeId: string,
+  name: string,
+  sources: readonly string[],
+): Promise<string | null> {
+  const builder = currentAuthor();
+  if (builder === null) return null;
+  if (await RecipeKnowledge.canMake(builder, recipeId)) return null;
+  await RecipeKnowledge.noteMade(builder, recipeId, name);
+  return Transcriber.transcribe(recipeId, sources);
+}
+
 /* ─────────────── the path-addressed script store (P7) ─────────── */
 
 /**
@@ -327,10 +350,27 @@ async function resolveScriptImpl(
  * the future scoped-authoring sandbox), the slice-walk `can(write)`
  * applies. Returns a denial message, or null when permitted.
  */
+/**
+ * True when `path` lies in `actor`'s own `/home/<self>/` authoring
+ * subtree — keyed on the same durable-path basename `homeScriptPath`
+ * banks under, so a builder owns exactly the home recipes the
+ * demonstration-capture writes for them.
+ */
+function isOwnHomePath(actor: Stuff, path: string): boolean {
+  const key = actor.getTemplatePath()?.split("/").filter(Boolean).pop();
+  return key !== undefined && path.startsWith(`/home/${key}/`);
+}
+
 async function gateScriptMutation(
   actor: Stuff | null,
   path: string,
 ): Promise<string | null> {
+  // A player owns their own `/home/<self>/` subtree — the
+  // demonstration-capture home-bank writes here as the builder, and a
+  // player writing their own recorded recipe-script needs no broader
+  // grant. (The fuller per-`/home/` access model rides the future
+  // scoped-authoring sandbox; this is the self-owner base case.)
+  if (actor !== null && isOwnHomePath(actor, path)) return null;
   const zone = await ZoneApi.resolveZoneForPath(path);
   if (zone) {
     if (!(await AccessApi.canMutateZone(actor, zone))) {
@@ -492,5 +532,15 @@ export class ScriptLogic extends Idea {
   @CallSecurity(ScriptApiCallers)
   public format(ast: Script): string {
     return formatScript(ast);
+  }
+
+  /** See {@link ScriptApi.captureManualBuild}. */
+  @CallSecurity(ScriptApiCallers)
+  public async captureManualBuild(
+    recipeId: string,
+    name: string,
+    sources: readonly string[],
+  ): Promise<string | null> {
+    return captureManualBuildImpl(recipeId, name, sources);
   }
 }

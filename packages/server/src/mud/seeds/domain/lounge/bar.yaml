@@ -35,6 +35,12 @@ data:
     - { template: /domain/lounge/lime-bottle, onto: /domain/lounge/back-bar }
     - { template: /domain/lounge/shaker, onto: /domain/lounge/back-bar }
     - { template: /domain/lounge/mixing-glass, onto: /domain/lounge/back-bar }
+    # Empty serving glasses on the rail — the receptacle a hand build
+    # strains into (the served `order` path clones its own; a by-hand
+    # build needs a real glass present). Keyword `cocktail` (vs the
+    # mixing glass's `mixing`) keeps `strain … into cocktail` unambiguous.
+    - { template: /domain/lounge/cocktail-glass, onto: /domain/lounge/back-bar }
+    - { template: /domain/lounge/cocktail-glass, onto: /domain/lounge/back-bar }
     - /domain/lounge/bar-menu
     - /domain/lounge/npc/mara
     - /domain/lounge/npc/remy

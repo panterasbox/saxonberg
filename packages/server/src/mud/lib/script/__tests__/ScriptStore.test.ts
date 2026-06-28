@@ -132,12 +132,46 @@ describe("script store — save", () => {
     expect(authoring[0]!.author).toBe(OWNER);
   });
 
-  it("refuses the write when access is denied", async () => {
+  it("refuses the write to a path the author doesn't own when access is denied", async () => {
+    // A foreign `/home/<other>/` path the `/home/test` actor doesn't own
+    // → not the self-home base case → the slice-walk `can(write)` applies.
     vi.spyOn(AccessApi, "can").mockResolvedValue(false);
     await expect(
-      runAs(() => ScriptApi.saveScript(SCRIPT_PATH, "ping")),
+      runAs(() => ScriptApi.saveScript("/home/other/scripts/greet", "ping")),
     ).rejects.toThrow();
     expect(scripts).toHaveLength(0);
+  });
+
+  it("permits a self-home write even when slice-walk access is denied", async () => {
+    // A player owns their own `/home/<self>/` subtree — the
+    // demonstration-capture home-bank — so a self-home write does not
+    // consult `AccessApi.can`. (Regression: the home-bank transcribe was
+    // wrongly denied for ordinary players.)
+    vi.spyOn(AccessApi, "can").mockResolvedValue(false);
+    await runAs(() => ScriptApi.saveScript(SCRIPT_PATH, "ping; ping"));
+    const doc = await ScriptDocument.findByPath(SCRIPT_PATH);
+    expect(doc).not.toBeNull();
+    expect(doc!.getSource()).toBe("ping; ping");
+  });
+
+  it("captureManualBuild banks the recipe-script in an authorless frame", async () => {
+    // The strain step's engaged completion runs in the scheduler's
+    // **authorless** `runRoot('completion')` frame. `captureManualBuild`
+    // must stamp the builder as acting author itself (a controller can't
+    // push/tag frames — the bug this guards) and bank the transcribed
+    // recipe to the builder's own `/home/<self>/` store. No giver, no
+    // pre-tag here — exactly the scheduler-completion scenario.
+    vi.spyOn(AccessApi, "can").mockResolvedValue(false); // self-home only
+    const path = await ExecutionContextApi.runRoot(Stuff, "completion", () =>
+      ScriptApi.captureManualBuild(actor, "martini", "Gin Martini", [
+        "pour gin into shaker",
+        "stir shaker",
+      ]),
+    );
+    expect(path).toBe("/home/test/scripts/martini");
+    const doc = await ScriptDocument.findByPath(path!);
+    expect(doc).not.toBeNull();
+    expect(doc!.getSource()).toContain("def martini");
   });
 });
 
