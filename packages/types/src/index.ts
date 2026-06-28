@@ -94,6 +94,35 @@ export interface MessageFrame<T = unknown> {
 }
 
 // ============================================================================
+// Social-graph presence notification (the `world.social.presence` payload)
+// ============================================================================
+
+/**
+ * Payload of a `world.social.presence` frame — the social-graph Wave 3
+ * connect/disconnect notification (server `SocialLogic.relayPresence` →
+ * client notification queue). Rides the ordinary `MessageFrame` channel
+ * (no new wire message type); the client demuxes by `topic` + `surface`.
+ *
+ * - `surface: 'banner'` routes to the dismissable client notification
+ *   queue; `'log-only'` falls through to the normal quiet inline frame
+ *   append. (`'silent'` is never sent — the relay drops it server-side.)
+ * - `color` is a named theme-palette token (e.g. `'amber'`), never raw
+ *   hex, so the highlight resolves through the theme cascade.
+ * - `country` is the **reserved geo seam**: left `undefined` in this
+ *   build, populated later from `ConnectionApi.originOf(...).country`
+ *   once the connection-origin substrate lands, so the banner can gain
+ *   "from <country>" with no rework here. Do NOT populate it yet.
+ */
+export interface SocialNotificationPayload {
+  kind: 'presence';
+  event: 'connect' | 'disconnect';
+  actor: StuffRef;
+  surface: 'banner' | 'log-only';
+  color: string;
+  country?: string;
+}
+
+// ============================================================================
 // Response Envelope (dispatch outcome wire frame)
 // ============================================================================
 

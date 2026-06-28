@@ -665,3 +665,53 @@ describe("websocket prompt substrate", () => {
     expect(s.basePrompt).toBe("kitchen>");
   });
 });
+
+describe("websocket social presence demux", () => {
+  beforeEach(() => {
+    resetClient();
+    useStore.setState({ notifications: [], frames: [] });
+  });
+
+  function presenceFrame(surface: "banner" | "log-only", id: string): unknown {
+    return {
+      id,
+      topic: "world.social.presence",
+      tags: ["audience:actor"],
+      body: "<name>Alice</name> has connected.",
+      payload: {
+        kind: "presence",
+        event: "connect",
+        actor: { stuffId: "a1", displayName: "Alice" },
+        surface,
+        color: "amber",
+      },
+      meta: { timestamp: 0 },
+    };
+  }
+
+  it("routes a banner presence frame to the notification queue", () => {
+    attachMockWs();
+    deliver(presenceFrame("banner", "f1"));
+    const s = useStore.getState();
+    expect(s.notifications.map((n) => n.id)).toEqual(["f1"]);
+    expect(s.notifications[0]?.color).toBe("amber");
+    // Banner frames do NOT land in the transcript buffer.
+    expect(s.frames).toHaveLength(0);
+  });
+
+  it("lets a log-only presence frame fall through to the catch-all", () => {
+    attachMockWs();
+    const seen: string[] = [];
+    const handler = (f: { id: string }) => seen.push(f.id);
+    websocketClient.onAnyTopic(handler);
+    try {
+      deliver(presenceFrame("log-only", "f2"));
+    } finally {
+      websocketClient.offAnyTopic(handler);
+    }
+    // Not a banner → not queued; the frame reaches the catch-all
+    // (which the in-world frame store appends to the transcript).
+    expect(useStore.getState().notifications).toHaveLength(0);
+    expect(seen).toContain("f2");
+  });
+});

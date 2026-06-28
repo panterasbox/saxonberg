@@ -19,6 +19,7 @@ import { SERVER_URL, WS_URL } from "./config";
 import { websocketClient } from "./services/websocket";
 import { Frame } from "./components/frame/Frame";
 import { ReconnectBanner } from "./components/frame/ReconnectBanner";
+import { NotificationQueue } from "./components/frame/NotificationQueue";
 import { StartScreen } from "./components/StartScreen";
 import { Terminal } from "./components/Terminal";
 import { TabStrip } from "./components/TabStrip";
@@ -720,6 +721,7 @@ function App() {
         <AppContainer>
           <Frame />
           <ReconnectBanner />
+          <NotificationQueue />
           <Cockpit>
             <LeftColumn>
               {/* Primary-view switch — Terminal | Forum (not a phase). */}

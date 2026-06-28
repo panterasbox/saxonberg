@@ -38,6 +38,7 @@ import type {
   MqlSubscriptionResultEnvelope,
   Note,
   PromptEnvelope,
+  SocialNotificationPayload,
   StuffDetailRecord,
   StuffRefRecord,
 } from "@saxonberg/types";
@@ -191,6 +192,7 @@ class WebSocketClient {
         if (this.intentionalDisconnect) {
           this.intentionalDisconnect = false;
           useStore.getState().clearPrompts();
+          useStore.getState().clearNotifications();
           useStore.getState().clearFrames();
           return;
         }
@@ -206,6 +208,7 @@ class WebSocketClient {
         // reconnect feels seamless (the next dispatch refreshes the
         // base prompt anyway).
         useStore.getState().clearPrompts();
+        useStore.getState().clearNotifications();
         // Frames are session-scoped; drop the buffer so scrollback
         // doesn't span a reconnect (welcome-scene-on-reconnect
         // anchors the new session at the top).
@@ -253,6 +256,7 @@ class WebSocketClient {
     }
     useStore.getState().clearFrames();
     useStore.getState().clearPrompts();
+    useStore.getState().clearNotifications();
     useStore.getState().setDisconnected(undefined, "reconnecting");
     this.connect(this.url);
   }
@@ -464,6 +468,23 @@ class WebSocketClient {
         this.handleConnectionEstablished(
           messageFrame.payload as ConnectionEstablishedPayload,
         );
+      }
+
+      // Social-graph presence notification — demuxed by topic (no new
+      // wire message type; banners ride the existing frame channel like
+      // chat frames). `banner` → the ephemeral notification queue (NOT
+      // the transcript buffer); `log-only` falls through to the normal
+      // per-topic / catch-all append so it renders quietly inline.
+      if (messageFrame.topic === "world.social.presence") {
+        const payload = messageFrame.payload as
+          | SocialNotificationPayload
+          | undefined;
+        if (payload?.surface === "banner") {
+          useStore
+            .getState()
+            .pushNotification({ ...payload, id: messageFrame.id });
+          return;
+        }
       }
 
       const handlers = this.topicHandlers.get(messageFrame.topic);

@@ -52,11 +52,29 @@ function logic(): SocialLogic {
 
 export class SocialApi {
   /**
-   * Boot seam (idempotent). Empty in Phase 1; the Phase-3 login/logout
-   * presence tap installs here (wired from `AppBootstrap.run()`).
+   * Boot seam (idempotent). Installs the login/logout presence relay
+   * (the net-new connect/disconnect → notification consumer). Wired from
+   * `AppBootstrap.run()`.
    */
   public static boot(): void {
-    // Phase 3 installs the presence tap here.
+    logic().installPresenceTap();
+  }
+
+  /**
+   * Restyle a matched speaker's already-buffered message body per the
+   * viewer's first-matching `onMessage` surface (a *notification* surface,
+   * never feed-filtering): `full`/`summary` → highlight in the rule color,
+   * `silent` → body unchanged (notification suppression only — the message
+   * still renders). MQL refs are excluded (a restyle is a notification
+   * surface). `body` is materialized per `viewer`. See the Phase-3b wiring
+   * note on {@link SocialLogic}.
+   */
+  public static styleMessageFor(
+    viewer: Stuff,
+    speaker: Stuff,
+    body: Mml,
+  ): Promise<Mml> {
+    return logic().styleMessageFor(viewer, speaker, body);
   }
 
   /**

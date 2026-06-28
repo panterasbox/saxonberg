@@ -12,8 +12,14 @@ import { PlayerApi } from "../../api/player";
 import { ShellApi } from "../../api/shell";
 import { GrammarApi } from "../../api/grammar";
 import { Mml } from "../../api/mml";
+import { MessageApi } from "../../api/message";
+import { EventApi } from "../../api/event";
+import type { Subscription } from "../../api/event";
+import { Events } from "../../lib/events";
+import type { Sensor } from "../../lib/message/Sensor";
 import { AppApi } from "../../api/app";
 import { AppSettingKeys } from "../../lib/config/AppSettings";
+import type { SocialNotificationPayload } from "@saxonberg/types";
 import type { GroupRef } from "../../lib/social/GroupProvider";
 import type { NotifyPolicy } from "../../lib/social/NotifyPolicy";
 import {
@@ -235,6 +241,21 @@ function asResolved(entry: ListEntry): ResolvedRule {
   return { ...entry.rule, reserved: entry.reserved };
 }
 
+/**
+ * Is `ref` an `mql:` group ref? Safe against the bare reserved
+ * pseudo-subjects (`strangers` / `everyone-else`), which aren't
+ * `source:id`-shaped and make `GroupApi.parseRef` throw — those are never
+ * MQL, so a throw resolves to `false`. The notification fan-out's
+ * `excludeMql` walk reaches the reserved tail, so this guard must be total.
+ */
+function isMqlRef(ref: GroupRef): boolean {
+  try {
+    return GroupApi.parseRef(ref).source === "mql";
+  } catch {
+    return false;
+  }
+}
+
 /** See {@link SocialApi.ruleFor}. */
 async function ruleForImpl(
   viewer: Stuff,
@@ -246,7 +267,7 @@ async function ruleForImpl(
   let everyoneElse: ListEntry | null = null;
   for (const entry of list) {
     if (entry.rule.groupRef === RESERVED.everyoneElse) everyoneElse = entry;
-    if (opts.excludeMql && GroupApi.parseRef(entry.rule.groupRef).source === "mql") {
+    if (opts.excludeMql && isMqlRef(entry.rule.groupRef)) {
       continue;
     }
     if (await matchesRule(viewer, person, personId, entry.rule)) {
@@ -500,6 +521,99 @@ async function composeOccupantsImpl(
   return Mml.list([...boosted, ...individual, ...grouped]);
 }
 
+/* ── Phase 3: the presence relay + message restyle ───────────────────── */
+
+/**
+ * Rate-limiter window (ms) per `(actor, viewer, event)` — a transient,
+ * in-memory cadence cap (the `RenownLogic.receptionSeen` precedent;
+ * nothing persisted). Cadence is *mechanism*, not a legislated value, so
+ * it's a code constant rather than an AppSettings dial. A re-login inside
+ * the window is dropped so a flapping connection doesn't spam a viewer.
+ */
+const PRESENCE_RATE_WINDOW_MS = 60_000;
+
+/**
+ * Fan a login / logout out to every online viewer whose first-matching
+ * rule (excluding MQL refs — too costly as a notification subject) for
+ * the acting player carries a non-silent surface.
+ *
+ * Runs as substrate code (no command context) — the match comes from the
+ * *viewer's own* rule list under the viewer's identity, so this never
+ * exposes who-policied-whom: the pushed frame carries only the actor ref,
+ * surface, and color, never the rule list. Cost is `O(online viewers ×
+ * rules × isMember)`; the default-silent baseline for non-contacts bounds
+ * the fan-out (only bucketed non-silent rules emit).
+ */
+async function relayPresenceImpl(
+  actorPlayerId: string,
+  event: "connect" | "disconnect",
+  limiter: Map<string, number>,
+): Promise<void> {
+  const actor = PlayerApi.findAvatarByPlayerId(actorPlayerId);
+  if (!actor) return;
+  const now = Date.now();
+
+  for (const viewer of PlayerApi.getAllAvatars()) {
+    if ((viewer as Stuff) === (actor as Stuff)) continue; // never self-notify
+    const rule = await ruleForImpl(viewer, actor as Stuff, {
+      excludeMql: true,
+    });
+    const surface = event === "connect" ? rule.onConnect : rule.onDisconnect;
+    if (surface === "silent") continue; // muted — nothing surfaces
+
+    // Rate-limit per (actor, viewer, event). Transient; nothing persisted.
+    const key = `${actorPlayerId}|${viewerPlayerId(viewer)}|${event}`;
+    const last = limiter.get(key);
+    if (last !== undefined && now - last < PRESENCE_RATE_WINDOW_MS) continue;
+    limiter.set(key, now);
+
+    const payload: SocialNotificationPayload = {
+      kind: "presence",
+      event,
+      actor: MessageApi.refOf(actor as Stuff),
+      surface, // narrowed to 'banner' | 'log-only' above
+      color: rule.color,
+      country: undefined, // reserved geo seam — populated by a later build
+    };
+    // The banner line is viewer-aware (late-bound `Mml.name`); the color
+    // tint rides the payload (the client queue's palette token).
+    const verb = event === "connect" ? "connected" : "disconnected";
+    const body = Mml.compose`${Mml.name(actor as Stuff)} has ${verb}.`;
+    MessageApi.scene(viewer)
+      .topic("world.social.presence")
+      .toSelf(body, payload)
+      .send();
+  }
+}
+
+/**
+ * Restyle a matched speaker's already-buffered message body per the
+ * viewer's first-matching `onMessage` surface (a *notification* surface,
+ * never feed-filtering — the message is never dropped):
+ *   - `full`    → wrap the body in a `<highlight>` tinted by the rule color;
+ *   - `summary` → (Phase 3b) aggregation has no clean per-recipient hook
+ *     yet, so render like `full` for now (the limitation is flagged);
+ *   - `silent`  → suppress the *notification* only; the body renders
+ *     unchanged (never dropped).
+ *
+ * MQL refs are excluded (consistent with the presence relay — a message
+ * restyle is a notification surface, and MQL refs are not notification
+ * subjects). `body.toString(viewer)` materializes the inner per recipient.
+ */
+async function styleMessageForImpl(
+  viewer: Stuff,
+  speaker: Stuff,
+  body: Mml,
+): Promise<Mml> {
+  const rule = await ruleForImpl(viewer, speaker, { excludeMql: true });
+  if (rule.onMessage === "silent") return body;
+  // `full` and `summary` both highlight in the rule color for now.
+  return Mml.fromMarkup(
+    `<highlight color="${Mml.escape(rule.color)}">` +
+      `${body.toString(viewer as Stuff & Sensor)}</highlight>`,
+  );
+}
+
 /**
  * SocialLogic — the hot-reloadable logic singleton behind
  * {@link SocialApi}.
@@ -511,14 +625,86 @@ async function composeOccupantsImpl(
  * `RenownLogic` discipline — so the public-to-public self-calls don't trip
  * the gate). Each public method carries the `FromModule` gate.
  *
- * Phase 1 surface: the rule store + `ruleFor`. The Phase-3 presence tap
- * (`installPresenceTap`) and the Phase-2 occupant formatter land on this
- * same singleton.
+ * Phase 1 surface: the rule store + `ruleFor`. The Phase-2 occupant
+ * formatter and the Phase-3 presence tap (`installPresenceTap`) + message
+ * restyle (`styleMessageFor`) land on this same singleton.
+ *
+ * TODO Phase 3b — `styleMessageFor` is implemented and unit-tested but is
+ * NOT yet wired into the live message-delivery path. The clean per-
+ * recipient seam (`SensorMixin.onMessage` is a framework template method
+ * marked "DO NOT override"; the speech producers compose one multi-
+ * recipient `Scene`) would require a broader comms/messaging refactor to
+ * late-bind the per-viewer restyle, deferred rather than forced here. A
+ * future consumer (a `filterMessage`-shadow or a late-bound producer-side
+ * wrapper) calls `SocialApi.styleMessageFor(viewer, speaker, body)` at the
+ * compose seam. `summary` currently renders like `full` (no clean
+ * per-recipient aggregation hook yet).
  *
  * @internal
  */
 @Unshadowable
 export class SocialLogic extends Idea {
+  /**
+   * The login subscription — retained so a re-install is a no-op.
+   * Transient instance state on the singleton (not persisted); a fresh
+   * singleton (post-HMR / post-`clearAll`) re-installs cleanly.
+   */
+  private loginSub: Subscription<unknown> | null = null;
+
+  /** The logout subscription — retained so re-install is a no-op. */
+  private logoutSub: Subscription<unknown> | null = null;
+
+  /**
+   * Ephemeral per-`(actor, viewer, event)` rate-limiter (`key → last-emit
+   * ms`). Transient instance state; a fresh singleton starts empty
+   * (the `RenownLogic.receptionSeen` precedent). Nothing persisted.
+   */
+  private presenceSeen = new Map<string, number>();
+
+  /**
+   * Install the presence relay (idempotent). Subscribes to
+   * `PlayerLoggedIn` / `PlayerLoggedOut` and fans each out to the online
+   * viewers whose first-matching rule for the acting player is non-silent.
+   * Called once at boot (`SocialApi.boot`).
+   *
+   * Unlike the renown reaction/reception taps, this does NOT
+   * `restrictSubscribe`: login/logout is *public presence* (already an
+   * open `emittableBy()` engine event), not a per-actor command/utterance
+   * cadence side-channel — locking subscribe would wrongly bar other
+   * legitimate future presence consumers.
+   */
+  @CallSecurity(SocialApiCallers)
+  public installPresenceTap(): void {
+    if (this.loginSub) return;
+    const limiter = this.presenceSeen;
+    this.loginSub = EventApi.on<{ playerId: string; userId: string }>(
+      Events.PlayerLoggedIn,
+      (p) => {
+        void relayPresenceImpl(p.playerId, "connect", limiter).catch((err) =>
+          console.error("SocialLogic: presence connect relay failed", err),
+        );
+      },
+    );
+    this.logoutSub = EventApi.on<{ playerId: string }>(
+      Events.PlayerLoggedOut,
+      (p) => {
+        void relayPresenceImpl(p.playerId, "disconnect", limiter).catch((err) =>
+          console.error("SocialLogic: presence disconnect relay failed", err),
+        );
+      },
+    );
+  }
+
+  /** See {@link SocialApi.styleMessageFor}. */
+  @CallSecurity(SocialApiCallers)
+  public styleMessageFor(
+    viewer: Stuff,
+    speaker: Stuff,
+    body: Mml,
+  ): Promise<Mml> {
+    return styleMessageForImpl(viewer, speaker, body);
+  }
+
   /** See {@link SocialApi.ruleFor}. */
   @CallSecurity(SocialApiCallers)
   public async ruleFor(

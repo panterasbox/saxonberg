@@ -32,6 +32,7 @@ import ParticipationStanding from '../mud/lib/standing/ParticipationStanding';
 import { ProducerApi } from '../mud/api/producer';
 import ProducerStanding from '../mud/lib/standing/ProducerStanding';
 import { BankingApi } from '../mud/api/banking';
+import { SocialApi } from '../mud/api/social';
 import AccountBalance from '../mud/lib/banking/AccountBalance';
 import SupplyAggregate from '../mud/lib/banking/SupplyAggregate';
 import { Document } from '../mud/lib/persistence/Document';
@@ -202,6 +203,13 @@ export class AppBootstrap {
     await AccountBalance.warm();
     await SupplyAggregate.warm();
     BankingApi.boot();
+
+    // Social graph (Wave 3) — install the login/logout presence relay: the
+    // net-new connect/disconnect → notification consumer that fans a
+    // login out to online viewers whose first-matching rule for the
+    // acting player is non-silent. In-memory, nothing persisted; no warm
+    // step (the rule store rides each Avatar's own persistence).
+    SocialApi.boot();
   }
 
   /**
