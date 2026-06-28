@@ -51,8 +51,8 @@ them is the case**:
   Registrar holds these. *Forge one → a phantom; destroy/refile one → an
   erasure.* The fraud is **document manipulation.**
 - **The lived side — the exhaust.** A real person leaves a recognition shadow
-  (the belief substrate). The *world* holds this — read at the **Quad / the
-  social layer.**
+  (the belief substrate). The *world* holds this — read **across the world via
+  the recognition/belief substrate** (the social layer), not at any one place.
 
 **Dunny's flag-the-unreal method is just cross-referencing those two**, and the
 Registrar is the *official* side. Physical, certified, contestable — like keys
@@ -63,8 +63,8 @@ and bodies.
 Read the filings and find the names whose paper says "real" but whose **exhaust
 says otherwise** — phantoms (filed, no shadow) — and the person-shaped **holes**
 (a shadow with no filing — the erased). Cross-check the rolls (what the paperwork
-*claims*) against the **body** (the morgue) and **testimony** (the Quad). The
-disagreements are the case. This is the home of the records route the morgue
+*claims*) against the **body** (the morgue) and **testimony** (the
+recognition/belief substrate). The disagreements are the case. This is the home of the records route the morgue
 already points at ("*who signed the certificate*" → it was filed **here**).
 
 ## The morgue–Registrar pair (the city's personhood machine)

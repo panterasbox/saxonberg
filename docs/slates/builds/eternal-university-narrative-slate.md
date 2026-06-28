@@ -142,7 +142,7 @@ relationship to the death:
 
 | Campus organ | Canon hook | Role in the arc |
 |---|---|---|
-| **The Quad** | central green, the hub ([campus-map]) | The campus's **forum made physical** — where the student body argues it out; the argument-map lives here as a board/kiosk. The player learns the world's "approach to problem-solving" by watching a community reason badly, then better. |
+| **The Quad** | central green, the hub ([campus-map]) | The campus **hub** (geography — crossroads, gather point) and the diegetic home of *public civic deliberation* (the forums aftermath + the **deferred** public homicide-board). **Not** where the arc's deduction happens: the forensic **deduction board is party-scoped and reachable anywhere** (see `deduction-slate.md`), not a Quad fixture. The "approach to problem-solving" is taught *by doing the deduction*, not by watching a Quad crowd. |
 | **The enrollment office** | a campus *service* | The campus **intake** — who's enrolled, the population fed to the city census (*arriving = being counted*, §6). **Where Dunny's census-prep started and his discovery began** — the thread's on-ramp. *Not* the civic authority: the **rolls, the count, and the fraud live at the civic Registrar in Terminus** (§15.4) — a *municipal* office, like the morgue; the records route leads there. See `experiences/registrar.md`. |
 | **University Avenue + Gus's gate** | TPA stop in Terminus; Gus the crossing guard | The **town/gown membrane.** Gus's crossing ritual (theater over one traversal) becomes quietly thematic: crossing *is* being counted in/out. The seam the victim kept crossing; the door the arc eventually walks through to the city. |
 | **The proctors** | (new) | The institutional layer that would prefer quiet. First time the player feels "the institution has its own interests." Where deputization happens. |
@@ -629,7 +629,7 @@ them against each other and the social layer:
   biography matches its filed identity.
 - **The registrar** — the rolls: what the paperwork *claims* (§13).
 
-…over the **social layer** (the circle §12, Quad testimony — does anyone
+…over the **social layer** (the circle §12, distributed **testimony** — does anyone
 remember them alive?, the §10 exhaust method). Body says X, record says Y,
 people say Z; **the disagreements are the case.** It's Dunny's discovery
 (§10) made walkable.
@@ -845,9 +845,12 @@ Only Fork 5 (names) stays open.
 - **Recognition/belief substrate** — *shipped*
   ([../../subsystems/belief.md](../../subsystems/belief.md)). The
   exhaust/social-shadow signal rides it directly.
-- **Forums + argument-map** — *shipped*
-  ([../../subsystems/forums.md](../../subsystems/forums.md)). The Quad's
-  deliberation surface.
+- **Forums** — *shipped*
+  ([../../subsystems/forums.md](../../subsystems/forums.md)). The
+  **civic-aftermath** deliberation surface (*what the polity does* about the
+  fraud) — **not** the investigation's resolution, which is the forensic
+  **deduction board** (`deduction-slate.md`). Investigation is *demonstrated*,
+  not deliberated.
 - **The aether (augmentation/comms)** — *substrate shipped*; its one
   load-bearing property (§8) is a stance to honor, not new code.
 - **The census mechanic** — **not built.** The roll, the enumerator, the
@@ -929,10 +932,14 @@ mechanically punish disconnection.)
 2026-06-27; the concrete questline object still deferred).**
 The multiplayer reset problem (a whodunit is *closed*, a dorm is *open* —
 newcomers daily) wants a real design object, and the arc keeps gesturing
-at its shape. Do **not** instance the murder per-player (that kills the
-§3/§5 thesis — the Quad argument-map only matters if real players reason
-about the *same* body). Instead, a questline that is: (1) **backed by a
-shared world event**, not per-player instanced; (2) **joinable
+at its shape. The resolution (see `deduction-slate.md`): **party-scoped
+instancing over shared evidence sources** — everyone works the *same* body,
+records, and room (one persistent world, no-consumption), but each party
+assembles its **own blank deduction board** (fresh per party, co-op pooling
+within it). This keeps the §3/§5 "same body" thesis *and* dodges both failure
+modes — lonely full-solo instancing **and** the single global solve that goes
+trite. So a questline that is: (1) **backed by a shared world event** (the
+evidence sources), **party-scoped** (the boards); (2) **joinable
 mid-stream** — a newcomer walks into the crisis *in progress*, at whatever
 phase it's at, like a freshman arriving mid-scandal; (3) **bound to the
 shared world clock** (the same ambient machinery as weather); (4) authored
@@ -953,11 +960,14 @@ shared-quest problem instead of hiding it, through three persistable **residue
 layers** (all on shipped substrate) that make the case a standing community
 project, not N solo runs:
 
-- **The argument-map** (forums / the Quad) — earlier players' collective
-  deduction; a newcomer joins a *contestable debate in progress* (property 2),
-  never a walkthrough to copy. Honest underdetermination (§5) keeps it an
-  argument, not an answer key — so the public map is no spoiler; community-
-  reasoning *is* the win.
+- **The shared evidence world** (one body, one set of records, one room —
+  no-consumption) — the *sources* persist and are common to all parties, even
+  though each party's **deduction board is its own** (blank per party, so never a
+  walkthrough to copy). Honest underdetermination (§5) means even the shared
+  sources are an argument, not an answer key. *(The public collective
+  argument-map — earlier players' deduction, joinable mid-stream — is superseded
+  for authored cases and re-homed to the deferred public homicide-board; see
+  `deduction-slate.md`.)*
 - **NPC memory** (belief / recognition) — NPCs remember who asked; a player can
   ask *"who else has been looking?"* and be pointed at prior investigators (other
   players) to pool with. A chatty-incurious NPC can *report the swarm
@@ -974,8 +984,9 @@ case's phase); the **personal layer stays earned** (your own derivation, skill
 credit, standing) — under a hard **no-consumption rule**: no single player can
 use up the body or the case (or it vanishes for everyone). The case stays a
 closable unit on a persistent antagonist (§15.3), closing per-cohort without
-closing the world. *Still deferred:* the concrete questline object that wires
-this together.
+closing the world. *Now sketched* in `deduction-slate.md` (the
+forensic-investigation quest type + the party-scope resolution); the concrete
+wired questline object still to build.
 
 **G. Investigation design — immersive-sim, not whodunit-parlor (2026-06-27).**
 Two linked decisions. **(1) Not an everyone's-a-suspect story** — the frame
@@ -996,7 +1007,7 @@ doors. And the room is **not a gate**: the truth is over-determined across a
 testimony — the §14 triangle + the smuggled fragment), which (a) gives
 multiple paths, (b) removes the multiplayer chokepoint, and (c) makes
 investigation *cooperative* — one player charms Katie, another reads the
-body, a third pulls the records, pooled on the Quad: the §10 thesis (a
+body, a third pulls the records, pooled on the **party's deduction board**: the §10 thesis (a
 community assembles the truth a lone decoder can't) as literal co-op.
 Deduction stays knowledge-gated (Obra Dinn / Outer Wilds): the real lock is
 *understanding*, not the door. Forcing function on perception / locks /

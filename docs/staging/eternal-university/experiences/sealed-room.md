@@ -116,8 +116,10 @@ It's an authored-once setpiece in a shared world, so the no-consumption rule
 (§17.F) governs: **one player can't use up the room.** The **clearing clock is
 flavored pressure, not literal loss-for-all** (it reads as urgency; it doesn't
 actually erase the room out from under other players). Comprehension is
-**per-player** (your own context unlocks the work); the findings feed the
-**shared argument-map** on the Quad.
+**per-player** (your own context unlocks the work); the findings feed your
+**party's deduction board**
+([deduction-slate](../../../slates/builds/deduction-slate.md) — party-scoped,
+blank per party).
 
 ## Cross-references
 

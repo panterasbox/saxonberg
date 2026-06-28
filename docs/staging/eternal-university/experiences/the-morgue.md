@@ -189,8 +189,9 @@ work is *real*: bodies stream in from the living game.
   moral charge the other routes don't.
 
 **Co-op falls out for free** (§10/§17.G): one player charms the insider, another
-earns the credential, a third pulls the records — pooled on the Quad. The
-distributed-access pattern is the multiplayer thesis made literal.
+earns the credential, a third pulls the records — pooled on the party's
+**deduction board**. The distributed-access pattern is the multiplayer thesis
+made literal.
 
 ## What access unlocks (the payload — see §14)
 
@@ -222,17 +223,22 @@ surfaces concretely:
 - **Pim owns it, cheerfully.** He notices the crowd (Gregarious) but not as
   suspicious (innocently Incurious): *"Akhtar! You're the fourth this week —
   popular fellow."* That one line (a) diegetically owns the swarm, (b) **leaks
-  that other investigators exist** (go pool up / check the Quad), and (c) makes
+  that other investigators exist** (go pool up — ask who else has been asking),
+  and (c) makes
   him a passive **exhaust-sensor** — the crowd asking Dunny's name *is* the
   community un-erasing him, witnessed by the one who has no idea what he's
   witnessing.
 - **Vance feels the opposite.** A fast-tracked body suddenly drawing a line of
   askers is *heat* (she's Cautious) — so collective attention **pressures the
   cover-up.**
-- **Residue later players can find:** the Quad **argument-map** (join a
-  contestable debate-in-progress, never a walkthrough), **NPC memory** (ask Pim
-  "who else has been asking?" → pointed at prior investigators / other players),
-  the **recognition exhaust** of having investigated.
+- **Residue later players can find:** **NPC memory** (ask Pim "who else has been
+  asking?" → pointed at prior investigators / other players to pool with), the
+  **recognition exhaust** of having investigated, and the **persistent shared
+  evidence world** itself (the body, the records — one set, no-consumption). The
+  *deduction board is party-scoped* (blank per party — fresh, never a walkthrough
+  to copy); the public collective argument-map is the **deferred public
+  homicide-board** layer, not this authored case (see
+  [deduction-slate](../../../slates/builds/deduction-slate.md)).
 - **The split:** the collective layer accelerates (map, memory, case-phase); the
   **personal** layer stays earned (your own derivation, skill, standing). Hard
   rule: **no single player consumes the body or the case.**
