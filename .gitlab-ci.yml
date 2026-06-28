@@ -124,8 +124,17 @@ pages:
   artifacts:
     paths:
       - public
+  # Manual: the TypeDoc site is scaffolding (the eventual pre-auth web
+  # view), so rebuilding + republishing it on every master push burned
+  # ~60-80s of billed runner time per merge for docs that often hadn't
+  # changed. Now it's an optional button on the master pipeline — click ▶
+  # to refresh the published Pages site. allow_failure keeps an un-played
+  # job from blocking the pipeline; GitLab serves the last build until
+  # you run it again.
   rules:
     - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
+      when: manual
+      allow_failure: true
 
 # Browser end-to-end tests against a full, throwaway stack. Playwright's
 # `webServer` boots the server (AUTH_MODE=test) + client and waits for
