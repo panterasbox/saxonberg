@@ -1,9 +1,0 @@
-verbs: [pnl]
-controller: banking/PnlController
-description: "Read the venue's profit-and-loss (operator)"
-help: |
-  Read the house P&L here — `pnl`. Categorized flows (sales, cogs, wages,
-  subsidy, tax) and a running balance that sits red by design. Operator-gated.
-validators:
-  - /lib/command/validators/requiresAnimate
-  - /lib/command/validators/requiresDeveloper

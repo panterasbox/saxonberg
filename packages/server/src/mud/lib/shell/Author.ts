@@ -90,10 +90,8 @@ export function AuthorMixin<TBase extends MixinConstructor>(Base: TBase) {
         // surface like the rest of this suite; each carries
         // `requiresDeveloper`, so a non-author sees nothing (no employment
         // relationship yet — operator == developer in v1).
-        'banking/mint.yaml',
-        'banking/payroll.yaml',
-        'banking/pnl.yaml',
-        'banking/supply.yaml',
+        'banking/reserve.yaml',
+        'banking/house.yaml',
       ],
       environment: [],
       inventory: [],

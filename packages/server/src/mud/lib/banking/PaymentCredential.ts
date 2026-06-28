@@ -75,13 +75,9 @@ export function PaymentCredentialMixin<TBase extends MixinConstructor<Stuff>>(
      * anywhere you hold a credential, not only at a bank counter.
      */
     static commandContributions: CommandContributions = {
-      self: ["banking/pay.yaml", "banking/wallet.yaml", "banking/freeze.yaml"],
+      self: ["banking/pay.yaml", "banking/wallet.yaml"],
       environment: [],
-      inventory: [
-        "banking/pay.yaml",
-        "banking/wallet.yaml",
-        "banking/freeze.yaml",
-      ],
+      inventory: ["banking/pay.yaml", "banking/wallet.yaml"],
       peers: [],
     };
 

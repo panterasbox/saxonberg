@@ -7,10 +7,7 @@
  */
 
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
-import OpenController from "../OpenController";
-import BalanceController from "../BalanceController";
-import DepositController from "../DepositController";
-import WithdrawController from "../WithdrawController";
+import BankController from "../BankController";
 import BankCounter from "../../../../lib/banking/BankCounter";
 import Coin from "../../../Coin";
 import { BankingApi } from "../../../../api/banking";
@@ -101,52 +98,45 @@ describe("Banking controllers — verb wiring", () => {
     coins.setQuantity(100);
     ContainmentApi.move(coins, giver);
 
+    const runBank = (m: Record<string, unknown>, verb: string) =>
+      asGiver(giver, () =>
+        makeStuff(() => new BankController()).execute(
+          m as never,
+          makeContext(giver, loc, verb)
+        )
+      );
+
     // open
-    await asGiver(giver, () =>
-      makeStuff(() => new OpenController()).execute({} as never, makeContext(giver, loc, "open"))
-    );
-    const accountId = await asGiver(giver, () =>
-      BankingApi.myAccountAt(BANK_PATH)
-    );
+    await runBank({ subcommand: "open" }, "bank");
+    const accountId = await asGiver(giver, () => BankingApi.myAccountAt(BANK_PATH));
     expect(accountId).not.toBeNull();
 
-    // balance (no throw, scene path)
-    await asGiver(giver, () =>
-      makeStuff(() => new BalanceController()).execute(
-        {} as never,
-        makeContext(giver, loc, "balance")
-      )
-    );
+    // balance — bare `bank` (no subcommand)
+    await runBank({}, "bank");
 
     // deposit the coin stack
-    const depModel = { coins: { stuff: coins, raw: "coins" } as MqlOneResult };
-    await asGiver(giver, () =>
-      makeStuff(() => new DepositController()).execute(
-        depModel as never,
-        makeContext(giver, loc, "deposit")
-      )
+    await runBank(
+      { subcommand: "deposit", coins: { stuff: coins, raw: "coins" } as MqlOneResult },
+      "bank"
     );
     expect(BankingApi.balanceOf(accountId!).minor).toBe(100);
     expect(bank.getTillLiquidity().minor).toBe(100);
 
     // withdraw the whole stack back
-    await asGiver(giver, () =>
-      makeStuff(() => new WithdrawController()).execute(
-        { amount: "100" } as never,
-        makeContext(giver, loc, "withdraw")
-      )
-    );
+    await runBank({ subcommand: "withdraw", amount: "100" }, "bank");
     expect(BankingApi.balanceOf(accountId!).minor).toBe(0);
     expect(bank.getTillLiquidity().minor).toBe(0);
   });
 
-  it("open declines with a note when there's no bank in the room", async () => {
+  it("declines with a note when there's no bank in the room", async () => {
     const loc = makeStuff(() => new Location());
     const giver = makeStuffAtPath(() => new TestGiver(), ALICE);
     ContainmentApi.move(giver, loc);
 
-    const ctx = makeContext(giver, loc, "open");
-    await asGiver(giver, () => makeStuff(() => new OpenController()).execute({} as never, ctx));
+    const ctx = makeContext(giver, loc, "bank");
+    await asGiver(giver, () =>
+      makeStuff(() => new BankController()).execute({} as never, ctx)
+    );
     expect(ctx.getNotes()).toContainEqual(
       expect.objectContaining({ kind: "controller-rejected", reason: "no-bank-here" })
     );

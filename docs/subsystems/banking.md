@@ -101,10 +101,13 @@ feed the `environment` bucket; the `Menu` precedent). The counter's contents
   deposit / withdraw / same-bank transfer. Cross-bank settlement of physical
   cash is deferred (a cross-bank transfer moves ledger balances only).
 
-Verbs (`open` / `deposit` / `withdraw` / `transfer` / `balance`, in one
-`banking/` category) are thin MVC triples over `BankController.resolveBank`
-(the affording counter, else the room scan — the crafting "agent performs,
-venue owns state" resolution). The branch is authored as **city content**:
+The branch ops ride **one `bank` verb** with subcommands (the
+`chat`/`alias` dispatch-on-`subcommand` precedent, not a verb-per-action):
+bare `bank` → balance; `bank open` / `deposit <coins>` / `withdraw <amount>`
+/ `transfer <amount> to <who>` / `balance`. One `BankController` dispatcher
+extends `BankingControllerBase` (`resolveBank` — the affording counter, else
+the room scan; the crafting "agent performs, venue owns state" resolution).
+The branch is authored as **city content**:
 `seeds/domain/eternal/university-avenue/{bank,bank-counter,npc/teller}.yaml`,
 one cell north of the arrival plaza (reachable from the born-with University
 Avenue fast-travel node), affiliated to **Goodkin** (the retail bank).
@@ -141,8 +144,10 @@ The **risk ladder + recourse**: cash = bearer, no recourse; implant =
 body-bound (not a carryable Thing); card = bearer, bounded by `freeze`
 (report-lost → `frozen`, account/balance untouched, reissue via `issueCard`)
 and a per-credential `spendCap` (`authorize` refuses over-cap or frozen — a
-security cap, never a fee). Verbs: `pay` (stated transfer; `--cash`/`--from`),
-`wallet` (show/switch active account), `freeze` (report-lost + reissue).
+security cap, never a fee). Verbs: `pay` (the one flat top-level settlement
+verb — stated transfer; `--cash`/`--from`) + the `wallet` verb (bare → show
+active; `wallet use <corpo>` switch; `wallet freeze <card>` report-lost +
+reissue).
 
 ## Tabs, wages, demo tax, the P&L (Phase 4)
 
@@ -154,14 +159,15 @@ security cap, never a fee). Verbs: `pay` (stated transfer; `--cash`/`--from`),
   **Skipping** is priced, not prevented: `skipTab` applies a `RegardApi`
   regard hit from the creditor and revokes the privilege; the unpaid balance
   stays on the books. State on the mixin (decision 3: session-durable). The
-  `tab [settle|skip]` verb is afforded by the bar's Menu (the affordance
-  carrier in the room) and records against the venue's `TabMixin`.
+  `tab` verb (bare → show; `tab settle` / `tab skip`) is afforded by the
+  bar's Menu (the affordance carrier in the room) and records against the
+  venue's `TabMixin`.
 - **Wages** — `BankingApi.payWage(employerAccount, workerKey, amount)` moves
   coin to the worker's primary account as a `wage`/`wages` line. *Who* is
   employed is authored (out of scope); this is the payment only. **No
   employer-solvency check** — the venue runs its P&L red by design (subsidy
-  covers). The `payroll` verb (operator-gated via `AuthorMixin` +
-  `requiresDeveloper`) pays from the present venue's account.
+  covers). `house payroll <worker> <amount>` (operator-gated via `AuthorMixin`
+  + `requiresDeveloper`) pays from the present venue's account.
 - **Demo sales tax** — `BankingApi.remitDemoTax(sellerAccount, saleAmount)`:
   a **seller-collected** `tax`/`tax` posting seller → placeholder treasury at
   the authored, **inert** rate (`banking.salesTaxRate` AppSetting; recorded,
@@ -171,8 +177,8 @@ security cap, never a fee). Verbs: `pay` (stated transfer; `--cash`/`--from`),
   Phase 3 stays for tips/fees.)
 - **The P&L** — `BankingApi.profitAndLoss(account)`: a derive-on-read
   categorized read (per-category signed net + running balance) — the
-  deficit-as-target instrument, red by design. The `pnl` verb
-  (operator-gated). The `mint` verb (operator-gated CB faucet) mints
+  deficit-as-target instrument, red by design. `house pnl` (operator-gated)
+  reads it; `reserve mint <amount>` (operator-gated CB faucet) mints
   `subsidy` into the venue account to cover the red — a logged, visible,
   accountable faucet.
 
@@ -186,7 +192,7 @@ two consumers are derive-on-read with no backfill:
 - **Money supply + reconciliation** — `moneySupply()` (Σ mints − Σ drains,
   O(1) off `SupplyAggregate`) and `reconcile()`: the conservation audit
   (`supply === Σ account balances + Σ circulating coin`, the coins outside
-  bank vaults; `cashInExistence = supply − Σ balances`). The `supply` verb
+  bank vaults; `cashInExistence = supply − Σ balances`). `reserve supply`
   (operator-gated) renders both.
 
 **Cash genesis** — `issueCash(into, amount)` is the CB physical-cash faucet:
@@ -272,10 +278,17 @@ The plan flagged 6 open implementation choices; settled as reached:
    `Charge` and settled via `settle`. The settle primitive + Charge ship in
    Phase 3; the Menu price field + the order→charge wiring land with the bar
    loop in Phase 5 (the integration point). (Phase 3.)
-5. **Verb category** — chose **one `banking/` category** for the whole
-   surface (player + operator verbs together), per the plan's proposal.
-   Operator verbs are gated by developer-access at the controller, not by a
-   separate category. (Phase 2.)
+5. **Verb category / shape** — one `banking/` category, and (post-review)
+   **dispatch-on-subcommand parents, not a verb-per-action** (the
+   `chat`/`alias` precedent — the framework supports far more than the
+   old-MUD flat-verb style): `bank` (open/deposit/withdraw/transfer/balance),
+   `wallet` (use/freeze), `tab` (settle/skip), plus the flat `pay`; the
+   operator surface splits **`reserve`** (mint/supply, central bank) vs
+   **`house`** (pnl/payroll, venue owner), both `requiresDeveloper` via
+   `AuthorMixin`. 13 flat verbs → 6, collapsing most verb collisions
+   (no more banking `open` shadowing the boundary `open`). A pure view-layer
+   regroup — the Api/Logic substrate is untouched. (Phase 2 surface,
+   restructured post-MR review.)
 6. **Branch/teller homing** — city content under `seeds/domain/eternal/`
    (resolved by the plan). Sub-choice settled: **`BankMixin` on a
    teller-counter `Thing` fixture**, NOT on the branch Location — a

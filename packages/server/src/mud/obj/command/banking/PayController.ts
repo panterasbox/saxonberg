@@ -10,7 +10,7 @@
  * `BankingApi.settle`; the bar wires that in the integration phase.)
  */
 
-import { BankController } from "./BankController";
+import { BankingControllerBase } from "./BankingControllerBase";
 import type { CommandContext, CommandModel } from "../../../api/command";
 import type { MqlOneResult } from "../../../api/mql";
 import { BankingApi, Money } from "../../../api/banking";
@@ -28,7 +28,7 @@ interface PayModel extends CommandModel {
   from?: string;
 }
 
-export default class PayController extends BankController<PayModel> {
+export default class PayController extends BankingControllerBase<PayModel> {
   async execute(model: PayModel, context: CommandContext): Promise<void> {
     const giver = context.commandGiver;
 
