@@ -146,14 +146,17 @@ The cast-free door, worked out in full so it builds straight:
   The proctor at the glass is an affordance that only ever shrugs you back to
   the form.
 
-## The census-form payload (§13 — stubbed, its own pass)
+## The census-form payload (§13 — its own pass)
 
-The Registrar is also where **being counted** happens — the **census form** (the
-categories it offers and withholds = the politics, the authorable-allegory
-template), the *miscounted / uncounted / over-counted* scene, the **roll-clock**
-(your enumeration date). This is the arc's *thematic centerpiece* and it's big
-enough to deserve a **focused pass of its own** — flagged here, not designed in
-this records-track sheet.
+The Registrar is also where **being counted** happens — the **census form**: the
+arc's *thematic centerpiece*, now designed in its own focused pass at
+**[census-form.md](./census-form.md)**. The axis landed on **counted by
+contribution** (labor / play / fund — the three influence stocks reframed as the
+*floor of personhood* instead of the *ladder of standing*: the legislature's own
+engagement logic, one inversion from monstrous). The *miscounted / uncounted /
+over-counted* are the victim failure-modes; the **roll-clock** is engagement
+decay made perishable; the form doubles as the investigation's **literacy primer**
+(read a clean filing → read the cooked ones). See that sheet for the full design.
 
 ## Rooms (the build spec — three tiers each)
 
