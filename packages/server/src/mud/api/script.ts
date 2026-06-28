@@ -76,6 +76,37 @@ export class ScriptApi {
   }
 
   /**
+   * Save a script's source to the path-addressed store, keyed on `path`
+   * (owner/scope encoded in the path). Mutation is access-gated on the
+   * covering zone (`AccessApi`), the owner is set from the acting author,
+   * authorship is appended to the provenance ledger keyed on the path,
+   * and the resolve cache is invalidated (go-live). The acting author is
+   * derived from context, never a parameter.
+   */
+  static saveScript(path: string, source: string): Promise<void> {
+    return logic().saveScript(path, source);
+  }
+
+  /**
+   * Invalidate the resolve cache for `path` (the `HotReloadApi.reload`
+   * analog) so the next invocation re-parses the stored source — a CMS
+   * edit or a re-record reaches the next run without a restart.
+   */
+  static goLive(path: string): void {
+    logic().goLive(path);
+  }
+
+  /**
+   * Resolve and run the stored script at `path` (re-resolved per
+   * invocation, cached until `goLive`). Runs as the acting actor, paced
+   * by the coroutine. Resolves `true` if a script was found at the path,
+   * `false` otherwise.
+   */
+  static invokeByPath(path: string): Promise<boolean> {
+    return logic().invokeByPath(path);
+  }
+
+  /**
    * Cancel every running (suspended) script the **acting actor** owns —
    * the barge-in path. The actor is derived from execution context (never
    * a parameter); each coroutine stops with the typed `reason`, aborting

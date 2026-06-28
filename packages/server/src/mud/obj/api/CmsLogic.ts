@@ -12,7 +12,9 @@ import { AccessApi } from '../../api/access';
 import { ExecutionContextApi } from '../../api/execution-context';
 import { ZoneApi } from '../../api/zone';
 import { StuffApi } from '../../api/stuff';
+import { ScriptApi } from '../../api/script';
 import { Template } from '../../lib/stuff/Template';
+import { ScriptDocument } from '../../lib/script/ScriptDocument';
 import { Zone } from '../../lib/zone/Zone';
 import { CmsError } from '../../api/cms';
 import type { Stuff } from '../../lib/stuff/Stuff';
@@ -181,6 +183,8 @@ function actingActor(): Stuff | null {
  */
 async function gateRead(backend: CmsBackend): Promise<void> {
   const actor = actingActor();
+  // source (engine TS) is developer-only; content (templates) and script
+  // (authored recipe-scripts) are author-tier.
   const ok =
     backend === 'source'
       ? await AccessApi.isDeveloper(actor)
@@ -190,7 +194,9 @@ async function gateRead(backend: CmsBackend): Promise<void> {
       'denied',
       backend === 'source'
         ? 'you must be a developer to browse source'
-        : 'you must be an author to browse content'
+        : backend === 'script'
+          ? 'you must be an author to browse scripts'
+          : 'you must be an author to browse content'
     );
   }
 }
@@ -272,6 +278,42 @@ export class CmsLogic extends Idea {
       );
       return { backend, path, entries };
     }
+    if (backend === 'script') {
+      // Immediate children of `path` over the path-addressed store: a
+      // script doc one segment deep is a leaf; a deeper one contributes a
+      // synthetic folder (mirrors the content tree's namespace folders).
+      const docs = await ScriptDocument.findByPrefix(path);
+      const prefix = path === '/' ? '/' : path + '/';
+      const leafAtChild = new Set<string>();
+      const folders = new Set<string>();
+      for (const doc of docs) {
+        if (!doc.path.startsWith(prefix)) continue;
+        const remainder = doc.path.slice(prefix.length);
+        if (remainder.length === 0) continue;
+        const slash = remainder.indexOf('/');
+        const seg = slash === -1 ? remainder : remainder.slice(0, slash);
+        const childPath = (path === '/' ? '' : path) + '/' + seg;
+        if (slash === -1) leafAtChild.add(childPath);
+        else folders.add(childPath);
+      }
+      const entries: CmsTreeEntry[] = [];
+      for (const childPath of new Set([...leafAtChild, ...folders])) {
+        entries.push({
+          backend: 'script',
+          path: childPath,
+          name: lastSegment(childPath),
+          kind: folders.has(childPath) ? 'folder' : 'leaf',
+        });
+      }
+      entries.sort((a, b) =>
+        a.kind === b.kind
+          ? a.name.localeCompare(b.name)
+          : a.kind === 'folder'
+            ? -1
+            : 1
+      );
+      return { backend, path, entries };
+    }
     // source — rooted at the mudlib; test folders hidden
     const abs = sourceAbs(path);
     const dirEntries = await SourceTreeApi.list(abs);
@@ -318,6 +360,12 @@ export class CmsLogic extends Idea {
         },
       };
     }
+    if (backend === 'script') {
+      const doc = await ScriptDocument.findByPath(path);
+      if (!doc) throw new CmsError('not-found', `no script at ${path}`);
+      // Scripts are always leaves (plain text — no language service in v1).
+      return { backend, path, kind: 'leaf', body: doc.getSource(), language: 'plaintext' };
+    }
     // source — rooted at the mudlib
     const abs = sourceAbs(path);
     if (await SourceTreeApi.isDir(abs)) {
@@ -357,6 +405,12 @@ export class CmsLogic extends Idea {
         kind: isFolder ? 'folder' : 'leaf',
       };
     }
+    if (backend === 'script') {
+      const doc = await ScriptDocument.findByPath(path);
+      return doc
+        ? { backend, path, exists: true, kind: 'leaf' }
+        : { backend, path, exists: false };
+    }
     // source — rooted at the mudlib
     const abs = sourceAbs(path);
     if (await SourceTreeApi.isDir(abs)) {
@@ -381,7 +435,36 @@ export class CmsLogic extends Idea {
     if (backend === 'content') {
       return this._writeContent(actor, path, body);
     }
+    if (backend === 'script') {
+      return this._writeScript(path, body);
+    }
     return this._writeSource(actor, path, body);
+  }
+
+  /**
+   * Script write: persist source to the path-addressed store via
+   * `ScriptApi.saveScript`, which is the store's mutation chokepoint —
+   * it derives the actor from context (anti-spoof, no `actor` param),
+   * access-gates on the covering zone, records provenance keyed on the
+   * path, and go-lives (invalidates the resolve cache). A denial surfaces
+   * as `CmsError('denied')`. Unlike content, a script may be CREATED here
+   * (scripts are runtime-authored — `saveScript` find-or-creates).
+   */
+  private async _writeScript(
+    path: string,
+    body: string
+  ): Promise<CmsWriteResult> {
+    try {
+      await ScriptApi.saveScript(path, body);
+    } catch (err) {
+      throw new CmsError('denied', (err as Error).message);
+    }
+    return {
+      backend: 'script',
+      path,
+      reloaded: true,
+      reloadDetail: 're-resolves on next invocation',
+    };
   }
 
   /**

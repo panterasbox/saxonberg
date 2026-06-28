@@ -53,6 +53,7 @@ export enum Collections {
   AuthoringEvents = 'authoring_events',
   Positions = 'positions',
   Recipes = 'recipes',
+  Scripts = 'scripts',
 }
 
 /**

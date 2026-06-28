@@ -70,13 +70,21 @@ export class ProvenanceApi {
    * provenance; nothing else may append a row. No-op without an active
    * connection or an attributable context.
    *
-   * Gated `FromTemplate('/obj/api/template')`: the sole legitimate caller is
-   * the `TemplateLogic` save singleton (a registered Stuff, so its caller
-   * frame resolves to its template path, not a module id). Every authoring
-   * transport — the in-world verbs and the REST CMS — reaches provenance only
-   * through that one chokepoint.
+   * Gated to the authoring-transport singletons: `TemplateLogic`
+   * (`/obj/api/template`) — the template chokepoint every template
+   * authoring path (in-world verbs + the REST CMS) funnels through — and
+   * `ScriptLogic` (`/obj/api/script`) — the path-addressed script store,
+   * a legitimately separate authoring transport (scripts aren't
+   * templates). Each records authoring for *its own* paths (template
+   * paths vs `/home/…`/`/obj/…/recipes/…` script paths); the chokepoint
+   * guarantee per kind is preserved. Nothing else may append a row.
    */
-  @CallSecurity(SecurityPolicies.FromTemplate('/obj/api/template'))
+  @CallSecurity(
+    SecurityPolicies.AnyOf(
+      SecurityPolicies.FromTemplate('/obj/api/template'),
+      SecurityPolicies.FromTemplate('/obj/api/script')
+    )
+  )
   public static async recordAuthoring(
     fields: AuthoringEventFields
   ): Promise<void> {

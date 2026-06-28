@@ -6,6 +6,10 @@ import { CallSecurity, Unshadowable } from "../../lib/security/decorators";
 import { SecurityPolicies } from "../../lib/security/SecurityPolicies";
 import { CommandApi } from "../../api/command";
 import { MixinApi } from "../../api/mixin";
+import { ZoneApi } from "../../api/zone";
+import { AccessApi } from "../../api/access";
+import { ProvenanceApi } from "../../api/provenance";
+import { ScriptDocument } from "../../lib/script/ScriptDocument";
 import { MessageApi } from "../../api/message";
 import { Mml } from "../../api/mml";
 import { ScheduleApi } from "../../api/schedule";
@@ -25,6 +29,7 @@ import type { Stuff } from "../../lib/stuff/Stuff";
 import type { Sensor } from "../../lib/message/Sensor";
 import type { CommandGiver } from "../../lib/command/CommandGiver";
 import type { Script, Pipeline, Command, Arg } from "../../lib/script/ast";
+import type { ParsedCommand } from "../../api/command-line";
 
 const ScriptApiCallers = SecurityPolicies.FromModule("mud/api/script#ScriptApi");
 
@@ -42,6 +47,21 @@ const ScriptApiCallers = SecurityPolicies.FromModule("mud/api/script#ScriptApi")
  */
 function currentActor(): (Stuff & CommandGiver) | null {
   return ExecutionContextApi.getCurrentCommandContext()?.commandGiver ?? null;
+}
+
+/**
+ * The acting author — transport-agnostic (in-world command-frame giver OR
+ * a REST `tagActingAuthor` stamp), the anti-spoof source for the store
+ * ops (`saveScript` / `invokeByPath`), which are reached over the CMS
+ * REST path where no command frame exists. `runAst`/`invoke` instead use
+ * the command-frame giver ({@link currentActor}), which tolerates forced
+ * NPC dispatch the author resolver fails closed on.
+ */
+function currentAuthor(): (Stuff & CommandGiver) | null {
+  return (
+    (ExecutionContextApi.getActingAuthor() as (Stuff & CommandGiver) | null) ??
+    null
+  );
 }
 
 /** Read a numeric AppSettings value, falling back when unseeded (tests). */
@@ -208,6 +228,116 @@ async function invokeImpl(name: string, args: string[]): Promise<boolean> {
   return true;
 }
 
+/* ─────────────── the path-addressed script store (P7) ─────────── */
+
+/**
+ * Parsed-AST cache keyed on path — the resolve-by-path hot path.
+ * `goLive(path)` invalidates an entry (the `HotReloadApi.reload` analog),
+ * so a CMS edit or a re-record reaches the next invocation without a
+ * restart. In-memory; rebuilt lazily from the store.
+ */
+const RESOLVE_CACHE = new Map<string, Script>();
+
+/** Convert a single bare `ParsedCommand` into a one-statement `Script`. */
+function parsedToScript(parsed: ParsedCommand): Script {
+  const args: Arg[] = parsed.rawTokens
+    .slice(1)
+    .map((token) => ({ kind: "literal", value: token.raw }));
+  const command: Command = { kind: "command", word: parsed.verb, args };
+  return { kind: "script", statements: [{ kind: "pipeline", commands: [command] }] };
+}
+
+/** Parse stored source text into a `Script` AST (or null on error). */
+async function parseSourceToScript(
+  source: string,
+  actor: Stuff & CommandGiver,
+): Promise<Script | null> {
+  const parser = await CommandApi.resolveParser("script");
+  const location = MixinApi.isContainable(actor) ? actor.getContainer() : null;
+  const result = await parser.parse(source, {
+    commandGiver: actor,
+    location,
+    available: actor.getAvailableCommands(),
+  });
+  if (result.script !== undefined) return result.script.ast;
+  if (result.parsed !== undefined) return parsedToScript(result.parsed);
+  return null; // parse error → unresolvable
+}
+
+/** Resolve a stored script at `path` to its parsed AST (cached). */
+async function resolveScriptImpl(
+  path: string,
+  actor: Stuff & CommandGiver,
+): Promise<Script | null> {
+  const cached = RESOLVE_CACHE.get(path);
+  if (cached) return cached;
+  const doc = await ScriptDocument.findByPath(path);
+  if (!doc) return null;
+  const ast = await parseSourceToScript(doc.getSource(), actor);
+  if (ast === null) return null;
+  RESOLVE_CACHE.set(path, ast);
+  return ast;
+}
+
+/**
+ * Access-gate a script mutation by path, reusing the existing zone/access
+ * stack: the covering spatial zone gates via `canMutateZone`; absent one
+ * (e.g. a `/home/…` authoring path — the per-`/home/` access model rides
+ * the future scoped-authoring sandbox), the slice-walk `can(write)`
+ * applies. Returns a denial message, or null when permitted.
+ */
+async function gateScriptMutation(
+  actor: Stuff | null,
+  path: string,
+): Promise<string | null> {
+  const zone = await ZoneApi.resolveZoneForPath(path);
+  if (zone) {
+    if (!(await AccessApi.canMutateZone(actor, zone))) {
+      return "you don't have permission to mutate that script's zone";
+    }
+    return null;
+  }
+  if (!(await AccessApi.can(actor, "write", null))) {
+    return "you don't have permission to write that script";
+  }
+  return null;
+}
+
+async function saveScriptImpl(path: string, source: string): Promise<void> {
+  const actor = currentAuthor();
+  const denial = await gateScriptMutation(actor, path);
+  if (denial !== null) throw new Error(denial);
+
+  // Persist (find-or-create). Owner = the acting author's durable path.
+  const doc = (await ScriptDocument.findByPath(path)) ?? new ScriptDocument();
+  doc.path = path;
+  doc.owner = actor?.getTemplatePath() ?? "";
+  doc.source = source;
+  await doc.save();
+
+  // Authorship — append a provenance row keyed on the path (author from
+  // context, never a param). ScriptLogic is now an admitted authoring
+  // transport (the broadened recordAuthoring gate).
+  await ProvenanceApi.recordAuthoring({ path });
+
+  // Go-live: invalidate the resolve cache so the next invocation re-parses.
+  RESOLVE_CACHE.delete(path);
+}
+
+async function invokeByPathImpl(path: string): Promise<boolean> {
+  const actor = currentAuthor();
+  if (actor === null) return false;
+  const ast = await resolveScriptImpl(path, actor);
+  if (ast === null) return false;
+  const interpreter = new Interpreter(
+    actor,
+    resolveLimits(path),
+    sessionDefsFor(actor),
+  );
+  await startAndDetach(actor, interpreter, ast, new Scope());
+  return true;
+}
+
 async function runImpl(text: string): Promise<void> {
   const actor = currentActor();
   if (actor === null) return;
@@ -297,6 +427,24 @@ export class ScriptLogic extends Idea {
   @CallSecurity(ScriptApiCallers)
   public async invoke(name: string, args: string[]): Promise<boolean> {
     return invokeImpl(name, args);
+  }
+
+  /** See {@link ScriptApi.saveScript}. */
+  @CallSecurity(ScriptApiCallers)
+  public async saveScript(path: string, source: string): Promise<void> {
+    return saveScriptImpl(path, source);
+  }
+
+  /** See {@link ScriptApi.goLive}. */
+  @CallSecurity(ScriptApiCallers)
+  public goLive(path: string): void {
+    RESOLVE_CACHE.delete(path);
+  }
+
+  /** See {@link ScriptApi.invokeByPath}. */
+  @CallSecurity(ScriptApiCallers)
+  public async invokeByPath(path: string): Promise<boolean> {
+    return invokeByPathImpl(path);
   }
 
   /** See {@link ScriptApi.format}. */

@@ -1637,7 +1637,7 @@ export interface PersistableConstructor<T extends Persistable> {
 // CMS data surface (REST: explorer tree + read/write/stat)
 // ============================================================================
 
-export type CmsBackend = 'content' | 'source';
+export type CmsBackend = 'content' | 'source' | 'script';
 export type CmsNodeKind = 'folder' | 'leaf';
 
 /** One entry in a directory/folder listing. */
