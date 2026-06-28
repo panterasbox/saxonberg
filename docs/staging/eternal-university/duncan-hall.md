@@ -75,6 +75,44 @@ open onto) with:
 **Dunny's floor** carries his **sealed room** (the #4 setpiece) and, off it,
 **Wren's reassigned room** (the bespoke singleton room — see her carve).
 
+## Security & access
+
+What keeps strangers out of your room, and you out of others' — **two layers,
+both anchored to Katie's manifest** (the source of truth for who lives where).
+
+**Physical entry — the door (mundane; "the dorm is a dorm," §2).** Every room has
+a plain **lockable door** (the `Boundary` / `DoorBearing` / `Sealable` substrate).
+Who it opens for is an **access-control** check ([access.md](../../subsystems/access.md)
+— `AccessApi.can(actor, 'enter', room)`): the authorized set is the room's
+**assigned occupants** (read off the manifest), with **Katie holding master
+authority** (her keys — the §14 investigation gate). Entry is **possession-gated,
+low-friction**: you *have* your key and you're on the list → the door opens; you
+don't `unlock` on every entry. A resident carries **one key**; **Katie carries
+the keychain** (her *sound*, the building authority — the size of your key-ring is
+a status marker, not a chore).
+
+**Why physical keys at all — and why that's a feature, not a tedium tax.**
+Because the aether **can't authenticate** (§8 — the same blindness the census
+runs into), a door *can't recognize you*; it can only check a key. So access is a
+**physical token** — losable, stealable, lendable, copyable — and *that is the
+whole texture of the investigation*: Katie's key can be lent or refused, a stolen
+key opens a sealed room, "who had a key" is a real question. The mundane key is
+the *consequence* of the aether's blindness (**not** a magic door — the opposite),
+and it's **why access is contestable** at all. The unauthorized routes — **be let
+in · get a key · break in** (loud; the world remembers, §11) · **go around** (the
+window) — are the §17.G immsim; the sealed room (#4) is just a special-cased
+contested door.
+
+**Editorial access — the document (owner-scoped).** Standing *inside* a room you
+still can't **re-author** it: the customization document is owner-scoped (the
+document-tree's gated save — see the
+[dorm-warren](../../slates/builds/dorm-warren-slate.md) /
+[document-tree](../../slates/builds/document-tree-slate.md) slates). You write only
+**your** room's doc; others' you can at most inspect. Two occupants share the room
+*physically* (the half-line is a social convention, not a wall — plain containment
+lets a roommate touch your stuff), but each **owns their half's document.**
+Physical access and editorial access are separate; the manifest feeds both.
+
 ## What's load-bearing vs. ambient
 
 - **Load-bearing named spaces:** the **lobby** (Katie / onboarding / the
@@ -111,3 +149,5 @@ open onto) with:
    floor lounges).
 5. **The basement as an access route** — how much it's a usable maintenance
    ingress (ties to the sealed-room immsim routes via Katie's keys).
+6. **Key mechanics** — copying / lending / lost-key reissue (a Katie loop);
+   physical key (leaned — stealable feeds the immsim) vs. a combination lock.
