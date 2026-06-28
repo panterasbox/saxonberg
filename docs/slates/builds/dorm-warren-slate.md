@@ -127,8 +127,13 @@ field-surface, resolved **player > theme > trait-default > base**:
 - **Soul** (traits) — trait-derived **field defaults** (a `Diligent` occupant's
   side defaults tidy; loud-signal map: diligence→tidiness, sociability→openness,
   curiosity→collection, temperance→consumables, …; the **band sets the volume**).
-- **Roots** (bio) — bio-derived objects/fields (a home token; thin now, grows
-  with lore).
+- **Roots / origin** (bio) — **light bio-derived homeland accents** layered
+  *under* your register, **not a second theme family** (a sea-born half gets
+  salt-air, driftwood, coral in the palette — *whatever register you picked*).
+  Auto from bio, **not a second pick** (no paradox of choice), and **no
+  completeness pressure**: accents of *whatever richness the homeland warrants*
+  (maritime rich, a dull homeland gets one token). At the **apartment tier** the
+  homeland **blooms into a whole biome** (below); at the dorm it stays accents.
 - **You** — explicit field overrides, on top.
 
 And the **four figures** populate that surface differently — **production cost
@@ -156,7 +161,7 @@ the customization-power ladder (and the authoring ladder):
 | Tier | Privacy | Editable surface |
 |---|---|---|
 | **Dorm** (shared, half/half) | your half's objects | a curated subset of object mixin-fields (some `Visible`, `Detailed`, `Smell`/`Sound`, value-bounded `Tangible`, `AmbientLit`), within allowed values. **Room-level mixins off** — the atmosphere is shared. |
-| **Apartment / hotel** (private, whole-room) | the whole room | + **room-level mixins** — `Atmospheric`/biome (the magic-threshold room: the gate-sky-flip applied to a private door), whole-room theming. |
+| **Apartment / hotel** (private, whole-room) | the whole room | + **room-level mixins** — `Atmospheric`/biome: the occupant's **homeland blooms into an actual biome** you step into (the sea-born's underwater apartment — the gate-sky-flip on a private door), whole-room theming. |
 | **Homestead / real estate** (own land) | the whole space | the **filter off** — every field, plus **composing new mixins** onto objects. The sandbox. |
 
 The dorm is bounded *because it's shared* (you can't atmosphere a room someone
@@ -248,8 +253,9 @@ the room you sleep in.
    matching-genre **synergy** kept light; community-authored themes later.
 3. **Trait → field-default mapping** — refine the soul map and the resolution rule
    (player > theme > trait-default > base).
-4. **Roots, near-term** — one or two bio objects now (a home token) vs. waiting
-   for richer char-gen bio.
+4. **Roots / origin, near-term** — light bio-derived homeland accents under the
+   register (maritime = sea-accents, *not* a peer theme); how rich per homeland;
+   the full **biome bloom** is the apartment tier, not the dorm.
 5. **How dynamic** — does a half shift over time? *Lean:* the **NPC half slowly
    tracks its entrenching traits** (a living readout + a subtle clue surface), the
    **player half stays put until you tweak it.**
