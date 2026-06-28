@@ -75,9 +75,10 @@ describe("Wallet routing", () => {
     await BankingApi.mint(acctB, Money.of(1000));
 
     // the one credential links both accounts; first opened is active
-    expect(card.getLinkedAccounts().has(acctA)).toBe(true);
-    expect(card.getLinkedAccounts().has(acctB)).toBe(true);
-    expect(card.getActiveAccount()).toBe(acctA);
+    const pay = card.getCredential("payment")!;
+    expect(pay.getLinkedAccounts().has(acctA)).toBe(true);
+    expect(pay.getLinkedAccounts().has(acctB)).toBe(true);
+    expect(pay.getActiveAccount()).toBe(acctA);
 
     // default pay routes from the active account (A)
     let receipt = await asOwner(alice, () =>
@@ -88,7 +89,7 @@ describe("Wallet routing", () => {
     expect(BankingApi.balanceOf(acctB).minor).toBe(1000);
 
     // switch active to B → default pay now routes from B
-    BankingApi.setActiveAccount(card, acctB);
+    BankingApi.setActiveAccount(pay, acctB);
     receipt = await asOwner(alice, () =>
       BankingApi.settle(charge(100), { kind: "credential" })
     );
@@ -101,6 +102,6 @@ describe("Wallet routing", () => {
     );
     expect(receipt.accountId).toBe(acctA);
     expect(BankingApi.balanceOf(acctA).minor).toBe(850);
-    expect(card.getActiveAccount()).toBe(acctB); // active unchanged
+    expect(pay.getActiveAccount()).toBe(acctB); // active unchanged
   });
 });

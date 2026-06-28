@@ -309,6 +309,7 @@ extends; none is a fresh build.
 | [weather](./tails/weather-slate.md) | weather.md | Wave 2 "teeth": precipitation→wetness, fog→visibility, cloud→light dimming, snow depth, hazards, vector wind, authored per-Locality climate, the far economy (farming / sailing / travel) |
 | [multilocation](./tails/multilocation-slate.md) | location.md | deferred procedural / spatial Warren consumers beyond the shipped social-elastic lounge case |
 | [fast-travel](./tails/fast-travel-slate.md) | fasttravel.md | living-infrastructure wave (terminals break down / disruption, Authority wear-maintenance, the inert `status` seam) + cross-restart credential durability |
+| [credential-wallet](./tails/credential-wallet-slate.md) | banking.md / fasttravel.md → credential.md | **core shipped 2026-06-27** (the `CredentialWalletMixin` holder + credentials-as-data + the payment/travel migration → credential.md); deferred: deputization as a native tenant, the issuer-authorization ledger (validity derived, the record a *presentation*), a single `CredentialCard`, a thin `CredentialApi` |
 | [client-shell](./tails/client-shell-slate.md) | client-shell.md | search / command palette, mode switcher + per-mode status, public read-only surface, declarative mode/manifest model, pre-auth device-local client-state tier |
 
 **Near-absorbed — retirement candidates** (kept this pass rather than

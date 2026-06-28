@@ -32,7 +32,8 @@ import type {
 import type { Container } from "../lib/spatial/Container";
 import type { LedgerLeg } from "../lib/banking/Transaction";
 import type { Bank } from "../lib/banking/Bank";
-import type { PaymentCredential } from "../lib/banking/PaymentCredential";
+import type { PaymentCredential } from "../lib/credential/Credential";
+import type { CredentialWallet } from "../lib/credential/CredentialWallet";
 import type {
   Charge,
   SettlementMethod,
@@ -62,11 +63,12 @@ export type {
   RemittanceSplit,
   SettlementReceipt,
   PaymentCredential,
+  CredentialWallet,
 };
 
 const LOGIC_PATH = "/obj/api/banking";
 const LOGIC_CLASS_FILE = fileURLToPath(
-  new URL("../obj/api/BankingLogic", import.meta.url)
+  new URL("../obj/api/BankingLogic", import.meta.url),
 );
 
 /** Resolve the HMR-able BankingLogic singleton (sync). */
@@ -74,10 +76,10 @@ function logic(): BankingLogic {
   return StuffApi.singletonSync(
     LOGIC_PATH,
     () =>
-      new ((HotReloadApi.getCurrentExport(
-        LOGIC_CLASS_FILE,
-        "BankingLogic"
-      ) as typeof BankingLogic | null) ?? BankingLogic)()
+      new (
+        (HotReloadApi.getCurrentExport(LOGIC_CLASS_FILE, "BankingLogic") as
+          typeof BankingLogic | null) ?? BankingLogic
+      )(),
   );
 }
 
@@ -101,7 +103,7 @@ export class BankingApi {
     toAccountId: string,
     amount: Money,
     memo = "",
-    category: PnlCategory = "float"
+    category: PnlCategory = "float",
   ): Promise<void> {
     return logic().mint(toAccountId, amount, memo, category);
   }
@@ -114,7 +116,7 @@ export class BankingApi {
   public static async drain(
     fromAccountId: string,
     amount: Money,
-    memo = ""
+    memo = "",
   ): Promise<void> {
     return logic().drain(fromAccountId, amount, memo);
   }
@@ -164,7 +166,7 @@ export class BankingApi {
    */
   public static async openAccount(
     bankPath: string,
-    corpoKey: string
+    corpoKey: string,
   ): Promise<string> {
     return logic().openAccount(bankPath, corpoKey);
   }
@@ -181,7 +183,7 @@ export class BankingApi {
 
   /** The `ownerKey`'s primary account id — the receive-by-identity target. */
   public static async primaryAccountIdOf(
-    ownerKey: string
+    ownerKey: string,
   ): Promise<string | null> {
     return logic().primaryAccountIdOf(ownerKey);
   }
@@ -194,7 +196,7 @@ export class BankingApi {
   /** Deposit a coin stack: coin → vault, balance credited 1:1 (custodial). */
   public static async deposit(
     bank: Stuff & Bank,
-    coinStack: Stuff & Globbable
+    coinStack: Stuff & Globbable,
   ): Promise<void> {
     return logic().deposit(bank, coinStack);
   }
@@ -202,7 +204,7 @@ export class BankingApi {
   /** Withdraw cash: balance → coin, bounded by the branch till liquidity. */
   public static async withdraw(
     bank: Stuff & Bank,
-    amount: Money
+    amount: Money,
   ): Promise<void> {
     return logic().withdraw(bank, amount);
   }
@@ -212,7 +214,7 @@ export class BankingApi {
     fromAccountId: string,
     toAccountId: string,
     amount: Money,
-    memo = ""
+    memo = "",
   ): Promise<void> {
     return logic().transfer(fromAccountId, toAccountId, amount, memo);
   }
@@ -228,34 +230,34 @@ export class BankingApi {
    */
   public static async settle(
     charge: Charge,
-    method: SettlementMethod
+    method: SettlementMethod,
   ): Promise<SettlementReceipt> {
     return logic().settle(charge, method);
   }
 
   /** The acting owner's routing payment credential (implant-first), or null. */
-  public static activeCredential(): (Stuff & PaymentCredential) | null {
+  public static activeCredential(): PaymentCredential | null {
     return logic().activeCredential();
   }
 
   /** Switch a credential's active account (the `wallet` verb; persists). */
   public static setActiveAccount(
-    credential: Stuff & PaymentCredential,
-    accountId: string
+    credential: PaymentCredential,
+    accountId: string,
   ): void {
     return logic().setActiveAccount(credential, accountId);
   }
 
   /** Report-lost: freeze a credential (account + balance untouched). */
-  public static freezeCredential(credential: Stuff & PaymentCredential): void {
+  public static freezeCredential(credential: PaymentCredential): void {
     return logic().freezeCredential(credential);
   }
 
   /** Issue/reissue a payment card linked 1:1 to `accountId`, into inventory. */
   public static async issueCard(
     accountId: string,
-    capMinor: number
-  ): Promise<Stuff & PaymentCredential> {
+    capMinor: number,
+  ): Promise<Stuff & CredentialWallet> {
     return logic().issueCard(accountId, capMinor);
   }
 
@@ -269,7 +271,7 @@ export class BankingApi {
   public static async payWage(
     employerAccountId: string,
     workerKey: string,
-    amount: Money
+    amount: Money,
   ): Promise<void> {
     return logic().payWage(employerAccountId, workerKey, amount);
   }
@@ -292,7 +294,7 @@ export class BankingApi {
    */
   public static async remitDemoTax(
     sellerAccountId: string,
-    saleAmount: Money
+    saleAmount: Money,
   ): Promise<Money> {
     return logic().remitDemoTax(sellerAccountId, saleAmount);
   }
@@ -305,7 +307,7 @@ export class BankingApi {
    */
   public static async issueCash(
     into: Stuff & Container,
-    amount: Money
+    amount: Money,
   ): Promise<Stuff> {
     return logic().issueCash(into, amount);
   }
@@ -327,7 +329,7 @@ export class BankingApi {
   public static async ensureVenueAccount(
     ownerPath: string,
     bankPath: string,
-    corpoKey: string
+    corpoKey: string,
   ): Promise<string> {
     return logic().ensureVenueAccount(ownerPath, bankPath, corpoKey);
   }

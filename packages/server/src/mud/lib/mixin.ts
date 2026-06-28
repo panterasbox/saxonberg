@@ -103,7 +103,6 @@ export const Mixins = {
   WarrenMember: 'WarrenMemberMixin',
   Lounge: 'LoungeMixin',
   FastTravel: 'FastTravelMixin',
-  TravelCredential: 'TravelCredentialMixin',
   Fixture: 'FixtureMixin',
   LoadBearing: 'LoadBearingMixin',
   BeliefStore: 'BeliefStoreMixin',
@@ -122,7 +121,9 @@ export const Mixins = {
   Crafted: 'CraftedMixin',
   Maker: 'MakerMixin',
   Bank: 'BankMixin',
-  PaymentCredential: 'PaymentCredentialMixin',
+  // The unified credential holder — one keyed store of credentials-as-data,
+  // composed on the born-with wallet app and on the physical cards.
+  CredentialWallet: 'CredentialWalletMixin',
   Tab: 'TabMixin',
 } as const;
 

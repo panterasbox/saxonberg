@@ -11,8 +11,8 @@
  *   - AugmentMixin → confers `AetherMixin` (attunement) when installed.
  *
  * The implant is purely the attunement conferrer now — it no longer
- * carries the travel credential directly (that became a hosted
- * `TravelCredentialUpdate`).
+ * carries any credential directly (those live in the hosted
+ * `CredentialWalletUpdate`).
  *
  * Hardened (per the augmentation slate's Wave 1 framing): no power
  * state, no fuel, no failure modes, no removal procedure in v1. A
@@ -31,10 +31,10 @@ import { TangibleMixin } from '../material/Tangible';
 import { AugmentMixin } from './Augment';
 import { TemplatePaths } from '../paths';
 
-// The baseline implant confers attunement only — the travel credential
-// is no longer carried here. It became a hosted `TravelCredentialUpdate`
+// The baseline implant confers attunement only — credentials are no
+// longer carried here. They live in the hosted `CredentialWalletUpdate`
 // that `Avatar.installDefaultLoadout` injects into the host alongside
-// the comms update. One conferrer, two hosted updates.
+// the comms + forums updates. One conferrer, hosted updates carry the rest.
 const AetherImplantBase = AugmentMixin(
   SlottableMixin(TangibleMixin(Thing)),
 );

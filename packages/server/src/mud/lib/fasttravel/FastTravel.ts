@@ -29,7 +29,7 @@ import { WorldClockApi } from "../../api/worldclock";
 import { StuffApi } from "../../api/stuff";
 import { ContainmentApi } from "../../api/containment";
 import { MixinApi } from "../../api/mixin";
-import type { TravelCredential } from "./TravelCredential";
+import type { CredentialWallet } from "../credential/CredentialWallet";
 
 export type Directionality = "arrival" | "departure" | "both";
 export type AdvanceMode = "manual" | "scheduled" | "cycle";
@@ -261,12 +261,13 @@ export function FastTravelMixin<TBase extends MixinConstructor<Stuff>>(
       const here = MixinApi.isContainable(viewer)
         ? viewer.getContainer()
         : null;
-      const cred = ContainmentApi.findReachable(
+      const holder = ContainmentApi.findReachable(
         viewer,
         here,
-        (s: Stuff): s is Stuff & TravelCredential =>
-          MixinApi.isTravelCredential(s),
+        (s: Stuff): s is Stuff & CredentialWallet =>
+          MixinApi.isCredentialWallet(s) && !!s.getCredential("travel"),
       );
+      const cred = holder?.getCredential("travel");
       const selected = this.selectedDestinationRef;
       const lines: string[] = [
         `Departures — ${(this as unknown as Stuff).getPresentation()}:`,

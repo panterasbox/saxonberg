@@ -10,7 +10,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { BankingApi, Money } from "../../../api/banking";
 import type { Charge } from "../../../api/banking";
 import PaymentCard from "../PaymentCard";
-import PaymentImplantUpdate from "../PaymentImplantUpdate";
+import CredentialWalletUpdate from "../../credential/CredentialWalletUpdate";
 import { MixinApi } from "../../../api/mixin";
 import { Idea } from "../../stuff/Idea";
 import { ContainerMixin } from "../../spatial/Container";
@@ -69,7 +69,7 @@ async function pocket(
     BankingApi.openAccount(BANK_A, "goodkin")
   ); // auto-links + active on the carried card
   await BankingApi.mint(accountId, Money.of(funds));
-  card.setSpendCap(cap);
+  card.getCredential("payment")!.setSpendCap(cap);
   return { alice, card, accountId };
 }
 
@@ -106,8 +106,8 @@ describe("Credential risk ladder", () => {
     expect(BankingApi.balanceOf(accountId).minor).toBe(900);
 
     // report-lost → frozen; the account/balance are untouched
-    BankingApi.freezeCredential(card);
-    expect(card.isFrozen()).toBe(true);
+    BankingApi.freezeCredential(card.getCredential("payment")!);
+    expect(card.getCredential("payment")!.isFrozen()).toBe(true);
     expect(BankingApi.balanceOf(accountId).minor).toBe(900);
 
     // a frozen card can no longer spend (no usable credential reachable)
@@ -127,15 +127,15 @@ describe("Credential risk ladder", () => {
     expect(BankingApi.balanceOf(accountId).minor).toBe(850);
   });
 
-  it("the implant is body-bound (a hosted update, not a carryable Thing)", () => {
+  it("the wallet implant is body-bound (a hosted update, not a carryable Thing)", () => {
     const implant = makeStuffAtPath(
-      () => new PaymentImplantUpdate(),
-      "/lib/banking/PaymentImplantUpdate"
+      () => new CredentialWalletUpdate(),
+      "/lib/credential/CredentialWalletUpdate"
     );
-    // A card is Containable (carryable / losable); the implant is not.
+    // A card is Containable (carryable / losable); the wallet implant is not.
     const card = makeStuffAtPath(() => new PaymentCard(), "/obj/PaymentCard");
     expect(MixinApi.isContainable(card)).toBe(true);
     expect(MixinApi.isContainable(implant)).toBe(false);
-    expect(MixinApi.isPaymentCredential(implant)).toBe(true);
+    expect(MixinApi.isCredentialWallet(implant)).toBe(true);
   });
 });

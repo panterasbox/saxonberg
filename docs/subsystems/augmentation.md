@@ -179,8 +179,8 @@ export class AetherImplant
 
 Hardened per the slate: no power state, no failure modes, no fuel.
 Diegetically a small brass-and-silicon device. The implant is purely
-the **attunement conferrer** now — it no longer carries the travel
-credential directly (that became a hosted `TravelCredentialUpdate`).
+the **attunement conferrer** now — it no longer carries any credential
+directly (those live in the hosted `CredentialWalletUpdate`).
 
 `Avatar.installDefaultLoadout` (dispatched from `postRegister` during
 the clone cascade, once per session) keys off **whether the avatar is
@@ -188,9 +188,9 @@ attuned by any source**: if `AetherMixin` isn't already active (a
 born-attuned species confers it intrinsically — see below), it occupies
 the implant in the cranial slot to confer it; otherwise it skips the
 implant. Either way the avatar is now an `AetherHost`, so the loadout
-injects the two default updates (comms + the travel credential) onto it.
-Idempotency keys off **"already hosts a comms update"** — correct for
-both the implanted and born-attuned paths.
+injects the default updates (comms, forums, and the credential wallet)
+onto it. Idempotency keys off **"already hosts a comms update"** — correct
+for both the implanted and born-attuned paths.
 
 ## How other augment kinds plug in (substrate proof)
 
@@ -220,16 +220,16 @@ framework change, only:
 `AetherMixin` is no longer a comms-carrying mixin: it is the aether
 **host**. *Attunement* is the conferred (implant) or intrinsic (species)
 capability whose payload is a host that aether `Idea`s (updates) plug
-into. Comms and the travel credential are hosted updates; the physical
-`TravelCard` (and a future radio) are their corporeal twins.
+into. Comms and the credential wallet are hosted updates; the physical
+`TravelCard` / `PaymentCard` (and a future radio) are their corporeal twins.
 
 ### The hosting relation (distinct from containment)
 
 - **Update side** — `AetherHostedMixin` (`lib/augmentation/AetherHosted.ts`)
   composes around an `Idea`: a `getHost()`/`setHost()` back-ref and the
   must-be-hosted invariant. The capability mixin (`CommsMixin`,
-  `TravelCredentialMixin`) co-composes on the same update class
-  (`CommsUpdate`, `TravelCredentialUpdate`).
+  `CredentialWalletMixin`) co-composes on the same update class
+  (`CommsUpdate`, `CredentialWalletUpdate`).
 - **Host side** — `AetherMixin` carries `_hostedUpdates` (the
   source-of-truth collection) and the sealed chokepoints
   `hostUpdate` / `unhostUpdate` (`@Final @Unshadowable`).
@@ -375,8 +375,10 @@ lib/mixin.ts                    Mixins.Augment registry constant
   `meta.modality`; transmission now rides the hosted `CommsUpdate`.
 - [comms.md](./comms.md) — comms-as-update (`CommsMixin` on
   `CommsUpdate`), `tell` sends from `getHost()`.
-- [fasttravel.md](./fasttravel.md) — credential-as-update
-  (`TravelCredentialUpdate`) + the `TravelCard` Thing twin.
+- [fasttravel.md](./fasttravel.md) — the `travel` credential, now a record
+  in the unified `CredentialWalletUpdate` + the `TravelCard` Thing twin.
+- [credential.md](./credential.md) — the credential-wallet substrate that
+  unified the payment + travel hosted updates into one wallet app.
 - [perception.md](./perception.md) — viewer-aware-query pattern;
   augment activations flow into the sensorium walk transparently.
 - [antipatterns.md](../antipatterns.md) — augment-modeling
@@ -399,3 +401,9 @@ relation is orchestrated entirely by the `AetherMixin` host methods plus
 `ContainmentApi.findReachable`, per the no-new-Apis rule. See the
 `feat(augmentation): capability hosting` commit and its review-cleanup
 follow-up.
+
+The **credential-wallet build** (`feature/credential-wallet-build`) later
+collapsed the per-credential hosted updates (`PaymentImplantUpdate` +
+`TravelCredentialUpdate`) into a single born-with `CredentialWalletUpdate`
+holding credentials-as-data — the loadout now injects one credential app,
+not one per kind. See [credential.md](./credential.md).

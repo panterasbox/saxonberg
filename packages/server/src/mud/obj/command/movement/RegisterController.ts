@@ -14,7 +14,7 @@ import { MessageApi } from "../../../api/message";
 import { Mml } from "../../../api/mml";
 import { MixinApi } from "../../../api/mixin";
 import { ContainmentApi } from "../../../api/containment";
-import type { TravelCredential } from "../../../lib/fasttravel/TravelCredential";
+import type { CredentialWallet } from "../../../lib/credential/CredentialWallet";
 import type { Stuff } from "../../../lib/stuff/Stuff";
 
 export default class RegisterController extends CommandController<CommandModel> {
@@ -36,19 +36,20 @@ export default class RegisterController extends CommandController<CommandModel> 
         "not-arrival",
       );
     }
-    const cred = ContainmentApi.findReachable(
+    const holder = ContainmentApi.findReachable(
       giver,
       context.location,
-      (s: Stuff): s is Stuff & TravelCredential =>
-        MixinApi.isTravelCredential(s),
+      (s: Stuff): s is Stuff & CredentialWallet =>
+        MixinApi.isCredentialWallet(s) && !!s.getCredential("travel"),
     );
-    if (!cred) {
+    if (!holder) {
       return this.fail(
         context,
         "you have no Teleport Authority credential",
         "no-credential",
       );
     }
+    const cred = holder.ensureCredential("travel");
     const ref = node.getTemplatePath();
     if (!ref) {
       return this.fail(

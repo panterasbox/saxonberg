@@ -14,7 +14,7 @@ import Species from "../../lib/species/Species";
 import BodyPlan from "../../lib/species/BodyPlan";
 import AetherImplant from "../../lib/augmentation/AetherImplant";
 import CommsUpdate from "../../lib/comms/CommsUpdate";
-import TravelCredentialUpdate from "../../lib/fasttravel/TravelCredentialUpdate";
+import CredentialWalletUpdate from "../../lib/credential/CredentialWalletUpdate";
 import ForumsUpdate from "../../lib/forum/ForumsUpdate";
 import { StuffApi } from "../../api/stuff";
 import { SpeciesApi } from "../../api/species";
@@ -22,7 +22,7 @@ import { MixinApi } from "../../api/mixin";
 import { ContainmentApi } from "../../api/containment";
 import type { AetherHost } from "../../lib/message/Aether";
 import type { Comms } from "../../lib/comms/Comms";
-import type { TravelCredential } from "../../lib/fasttravel/TravelCredential";
+import type { CredentialWallet } from "../../lib/credential/CredentialWallet";
 import type { Forums } from "../../lib/forum/Forums";
 import {
   makeStuff,
@@ -77,9 +77,9 @@ function hostedComms(avatar: Avatar): (Stuff & Comms)[] {
   );
 }
 
-function hostedCredentials(avatar: Avatar): (Stuff & TravelCredential)[] {
-  return hostedUpdates(avatar).filter((u): u is Stuff & TravelCredential =>
-    MixinApi.isTravelCredential(u),
+function hostedCredentials(avatar: Avatar): (Stuff & CredentialWallet)[] {
+  return hostedUpdates(avatar).filter((u): u is Stuff & CredentialWallet =>
+    MixinApi.isCredentialWallet(u),
   );
 }
 
@@ -101,8 +101,8 @@ describe("Avatar.installDefaultLoadout", () => {
         if (path === CommsUpdate.TEMPLATE_PATH) {
           return makeStuff(() => new CommsUpdate());
         }
-        if (path === TravelCredentialUpdate.TEMPLATE_PATH) {
-          return makeStuff(() => new TravelCredentialUpdate());
+        if (path === CredentialWalletUpdate.TEMPLATE_PATH) {
+          return makeStuff(() => new CredentialWalletUpdate());
         }
         if (path === ForumsUpdate.TEMPLATE_PATH) {
           return makeStuff(() => new ForumsUpdate());
@@ -182,8 +182,8 @@ describe("Avatar.installDefaultLoadout", () => {
     expect(hostedForums(avatar)).toHaveLength(1);
   });
 
-  it("the implant no longer composes TravelCredentialMixin", () => {
+  it("the implant no longer composes any credential mixin", () => {
     const implant = makeStuff(() => new AetherImplant());
-    expect(MixinApi.isTravelCredential(implant)).toBe(false);
+    expect(MixinApi.isCredentialWallet(implant)).toBe(false);
   });
 });

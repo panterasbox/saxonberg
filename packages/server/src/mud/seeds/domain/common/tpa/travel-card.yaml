@@ -8,3 +8,5 @@ data:
   primaryKeyword: card
   longDescription: |
     A slim card of brushed alloy, warm to the touch, its face etched with the Teleport Authority's spiral mark. A row of tiny indicator pips records the stops you've registered.
+  # The born-with travel credential record (registered-node set + floor)
+  # comes from TravelCard.defaultCredentialKinds.
