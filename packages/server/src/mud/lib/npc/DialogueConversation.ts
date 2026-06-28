@@ -26,7 +26,7 @@
  * (the player's picked line and the NPC's beats) ride the ordinary
  * directed `say` Scene, so the room overhears but never sees the wheel.
  *
- * Ephemeral only (requirements slate #5): the `scratch` bag dies with
+ * Ephemeral only: the `scratch` bag dies with
  * the engagement; cross-conversation warmth lives in regard
  * (persisted), never here.
  */

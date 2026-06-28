@@ -76,7 +76,7 @@ See also:
 - [client-cockpit-slate.md](../tails/client-cockpit-slate.md) /
   [console-filtering-slate.md](../tails/console-filtering-slate.md) — rendering:
   per-conversation buffers/tabs, topic filtering, the gutter message-ids.
-- [npc-dialogue-slate.md](../builds/npc-dialogue-slate.md) — remote NPCs reachable
+- [npc-dialogue-slate.md](../tails/npc-dialogue-slate.md) — remote NPCs reachable
   via implant DM; in-channel NPCs are a content matter.
 - [docs/design-philosophy.md](../../design-philosophy.md) — liberal diegesis;
   Principle 3 (layered presentation) for provenance rendering.

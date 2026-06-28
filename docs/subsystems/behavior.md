@@ -138,6 +138,15 @@ per-host seen-set seeded at wire time (so spawning doesn't "greet"
 everyone already present). `emote`/`speech` recover the acting subject
 from the act registry — the same speaker-recover seam renown uses.
 
+A third trigger, **`engage`** (`{source:'engage'}`), wires **nothing** —
+no timer, no witness dispatch. It marks a spec whose brain is reached
+only through the **`open` responder seam** (`BrainStatics.open`, a
+`@hook`), invoked by the `talk` controller — the dialogue-responder
+contract. The spec still surfaces the tree to the controller, warms the
+brain at wire time, and (via `BehavedMixin.getInstanceContributions`)
+marks the host conversational for the `talk` affordance. See
+[npc-dialogue.md](./npc-dialogue.md).
+
 `addressed` and `given` are deferred (dialogue Wave 2 / later); both slot
 in as additional `handleMessage` topic predicates with no new event.
 
@@ -187,17 +196,25 @@ the same mixin on a `Thing`/`Location` host later; live wiring (timers,
 the seen-set) is runtime-only and re-installed from the persisted
 `behaviors:` data on every clone/reboot.
 
-## The seven canned brains
+## The canned brains
 
 | Brain | Trigger | claims | requiresFree | Emits | config |
 |---|---|---|---|---|---|
-| `idles` | cadence | — | — | one sampled pool entry (emote / free / say) | `{ pool: {kind,value}[] }` |
-| `random-chatter` | cadence | `voice` | — | a random spoken line | `{ lines: string[] }` |
+| `idles` | cadence | — | `voice,attention` | one sampled pool entry (emote / free / say) | `{ pool: {kind,value}[] }` |
+| `random-chatter` | cadence | `voice` | `voice,attention` | a random spoken line | `{ lines: string[] }` |
 | `wanders` | cadence | `body` | `attention` | traverse a random available exit | `{ avoid?: string[] }` |
 | `patrols` | cadence | `body` | `attention` | traverse the next route direction (index in `state`) | `{ route: string[] }` |
 | `greets` | `arrival` | `attention` | — | greet the arriver (directed) | `{ lines: string[] }` |
 | `reacts` | `emote` | `attention` | — | emote/speak back at the perceived actor | `{ reactions: {to?,emote?,respond?}[] }` |
 | `shifts` | cadence | — | — | migrate by shift state (teleport) | `{ schedule, behindBar, railStool, offstage }` |
+| `tree-dialogue` | `engage` | `voice,attention` | — | none — reached via `open`, opens a `DialogueConversation` ([npc-dialogue.md](./npc-dialogue.md)) | the dialogue tree |
+| `introduces` | `arrival` | `attention` | — | introduces the host to a newcomer (`learnIdentity`) unless already known | — |
+
+(The trait-aware `converses` brain — cadence, claims `voice` — is documented
+in [trait.md](./trait.md).) The speech/idle cadence brains declare
+`requiresFree: [voice, attention]` so they fall quiet while the host is
+mid-conversation (a `DialogueConversation` holds both slots) — the spoken
+dialogue isn't muddied by ambient chatter.
 
 `shifts` reads the game clock (`WorldClockApi` + `DefaultCalendar`),
 finds the matching schedule entry, and migrates the NPC to `behindBar`

@@ -38,7 +38,7 @@ export const brain = class {
   /**
    * Never fires: the `engage` trigger wires no timer or witness, so this
    * brain is reached only via {@link open}. Present to satisfy the brain
-   * contract (Risk 3 — keeping `act` required for every other brain).
+   * contract — `act` stays required for every other brain.
    */
   static act(): void {
     // intentional no-op

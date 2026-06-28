@@ -1,9 +1,16 @@
-# NPC dialogue slate (working doc)
+# NPC dialogue slate (tail)
 
-> **Status: direction set, internals open.** Captures how players hold
-> conversations with NPCs. The architecture is decided (one speech
-> output, swappable responder "brains," through the command framework);
-> the authoring formats and the intent-matching depth are the open work.
+> **Status: Wave 1 shipped (2026-06)** → [../../subsystems/npc-dialogue.md](../../subsystems/npc-dialogue.md).
+> The responder seam (`talk to` → a pluggable brain), the **branching-tree
+> responder**, the pure-data tree format + CMS save-gate, the
+> `InstanceContributor` discoverability seam, and auto-introduce all
+> shipped. This slate is now a **tail** holding the deferred waves: the
+> scripted free-text **`intent-dialogue`** responder (pattern/synonym
+> tables; the `addressed`/`handleMessage` trigger + the implant `tell`
+> entry land with it), the **LLM** front-end (see also
+> [llm-content-slate](../builds/llm-content-slate.md)), persistent
+> per-relationship state ([social-graph-slate](../builds/social-graph-slate.md)),
+> and **multiplayer** tree participation beyond overhearing.
 
 Working slate for **NPC dialogue** — talking *with* the world's
 inhabitants, from a barkeep's banter to a quest-giver's branching
