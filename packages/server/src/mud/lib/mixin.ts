@@ -121,6 +121,9 @@ export const Mixins = {
   Tool: 'ToolMixin',
   Crafted: 'CraftedMixin',
   Maker: 'MakerMixin',
+  Bank: 'BankMixin',
+  PaymentCredential: 'PaymentCredentialMixin',
+  Tab: 'TabMixin',
 } as const;
 
 /**

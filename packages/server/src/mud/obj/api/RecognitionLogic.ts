@@ -196,6 +196,19 @@ function perceivedKeywordsImpl(viewer: Stuff, target: Stuff): string[] {
   return MixinApi.isPerceptible(target) ? target.getKeywords() : [];
 }
 
+/**
+ * See {@link RecognitionApi.recognizes}. A boolean read over the recognition
+ * realm: does `viewer` hold a recognition belief about `target`? Not
+ * organism-gated — `learnIdentity` records for any templatePath'd subject;
+ * only `describe`'s *consumption* is living-being-specific.
+ */
+function recognizesImpl(viewer: Stuff, target: Stuff): boolean {
+  if (!MixinApi.isBeliefStore(viewer)) return false;
+  const referent = target.getTemplatePath();
+  if (!referent) return false;
+  return viewer.recall(RECOGNITION, referent) != null;
+}
+
 /** See {@link RecognitionApi.learnIdentity}. */
 function learnIdentityImpl(
   viewer: Stuff,
@@ -231,6 +244,12 @@ export class RecognitionLogic extends Idea {
   @CallSecurity(RecognitionApiCallers)
   public describe(viewer: Stuff, target: Stuff): string {
     return describeImpl(viewer, target);
+  }
+
+  /** See {@link RecognitionApi.recognizes}. */
+  @CallSecurity(RecognitionApiCallers)
+  public recognizes(viewer: Stuff, target: Stuff): boolean {
+    return recognizesImpl(viewer, target);
   }
 
   /** See {@link RecognitionApi.learnIdentity}. */

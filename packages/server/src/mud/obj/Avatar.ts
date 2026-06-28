@@ -26,6 +26,7 @@ import { SpeciesApi } from "../api/species";
 import AetherImplant from "../lib/augmentation/AetherImplant";
 import CommsUpdate from "../lib/comms/CommsUpdate";
 import TravelCredentialUpdate from "../lib/fasttravel/TravelCredentialUpdate";
+import PaymentImplantUpdate from "../lib/banking/PaymentImplantUpdate";
 import ForumsUpdate from "../lib/forum/ForumsUpdate";
 import { MessageApi } from "../api/message";
 import { Mml } from "../api/mml";
@@ -538,6 +539,10 @@ export default class Avatar extends AvatarBase {
         ForumsUpdate.TEMPLATE_PATH,
       );
       this.hostUpdate(forums);
+      const wallet = await StuffApi.clone<PaymentImplantUpdate>(
+        PaymentImplantUpdate.TEMPLATE_PATH,
+      );
+      this.hostUpdate(wallet);
     } catch (err) {
       console.warn(
         `Avatar.installDefaultLoadout skipped for ${this.stuffId}:`,

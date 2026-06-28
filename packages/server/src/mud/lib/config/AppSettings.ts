@@ -179,6 +179,17 @@ export const AppSettingKeys = {
   chargenNameMaxLength: "chargen.nameMaxLength",
   /** Status — max rendered length (chars) of a Character's status one-liner. */
   statusMaxLength: "status.maxLength",
+
+  /**
+   * Banking — the **demo** sales-tax rate, a fraction of a purchase remitted
+   * to the placeholder treasury via the remittance-split seam. Authored and
+   * **inert** (recorded, not governed — the corpo-affiliation-edge
+   * precedent); live/legislated taxation is the cooperative build. See
+   * docs/subsystems/banking.md.
+   */
+  bankingSalesTaxRate: "banking.salesTaxRate",
+  /** Banking — the placeholder treasury account that demo tax accumulates in. */
+  bankingTreasuryAccount: "banking.treasuryAccount",
 } as const;
 
 export type AppSettingKey =

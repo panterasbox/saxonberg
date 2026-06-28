@@ -1,0 +1,8 @@
+# PaymentImplantUpdate — the payment credential as a hosted update (the
+# wallet, the incorporeal twin of the PaymentCard Thing). Injected into an
+# attunement host by Avatar.installDefaultLoadout. Born with no linked
+# accounts; openAccount auto-links each new account and sets the first
+# active. Session-durable (re-cloned each login).
+class: /lib/banking/PaymentImplantUpdate
+hydratorClass: /lib/persistence/PersistentHydrator
+data: {}

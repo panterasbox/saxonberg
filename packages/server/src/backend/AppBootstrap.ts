@@ -30,6 +30,9 @@ import { ConsumerApi } from '../mud/api/consumer';
 import ParticipationStanding from '../mud/lib/standing/ParticipationStanding';
 import { ProducerApi } from '../mud/api/producer';
 import ProducerStanding from '../mud/lib/standing/ProducerStanding';
+import { BankingApi } from '../mud/api/banking';
+import AccountBalance from '../mud/lib/banking/AccountBalance';
+import SupplyAggregate from '../mud/lib/banking/SupplyAggregate';
 import { Document } from '../mud/lib/persistence/Document';
 import { StuffApi } from '../mud/api/stuff';
 import type { Marshaller } from '../mud/lib/persistence/Marshaller';
@@ -179,6 +182,15 @@ export class AppBootstrap {
     // consumer so the shared signal's allowlist is asserted in a stable order.
     await ProducerStanding.warm();
     ProducerApi.boot();
+
+    // Banking (the monetary substrate) — warm the account-balance read cache
+    // and the single-row supply headline from their materialized rows, then
+    // boot the logic singleton (the stable activation seam). Warm before boot
+    // so the first `balanceOf` / `moneySupply` reads are populated; the
+    // CentralBank singleton is cloned by the bootstrap manifest above.
+    await AccountBalance.warm();
+    await SupplyAggregate.warm();
+    BankingApi.boot();
   }
 
   /**
