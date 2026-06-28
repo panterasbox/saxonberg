@@ -238,9 +238,11 @@ export class DialogueConversation implements SustainedEngagement {
 
         // The prompt label echoes the NPC's current beat so the line
         // you're responding to is pinned beside the choices (the spoken
-        // copy in the room feed scrolls away). Falls back to the generic
-        // ask for a beatless node.
-        const promptLabel = node.beat ?? PROMPT_LABEL;
+        // copy in the room feed scrolls away). Led with an ellipsis so it
+        // reads as the NPC trailing off, waiting on your reply — distinct
+        // from the clean spoken line in the feed. Falls back to the
+        // generic ask for a beatless node.
+        const promptLabel = node.beat ? `… ${node.beat}` : PROMPT_LABEL;
         let picked: string;
         try {
           picked = await PromptApi.choice(
