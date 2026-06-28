@@ -21,7 +21,7 @@ See also:
 
 - [docs/subsystems/connection.md](../../subsystems/connection.md) — the
   login/logout + WebSocket-upgrade lifecycle this hooks into.
-- [docs/requirements/social-graph-requirements.md](../../requirements/social-graph-requirements.md)
+- [docs/subsystems/social-graph.md](../../subsystems/social-graph.md)
   — the first consumer; reserves an optional `country?` on the
   presence-notification payload.
 - [docs/subsystems/access.md](../../subsystems/access.md) —

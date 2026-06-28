@@ -21,7 +21,7 @@ structural sibling of `_contacts`. The player surface is one dedicated
 verb, `notify`, plus a thin client settings pane over it.
 
 Seeded by
-[social-graph-slate.md](../slates/builds/social-graph-slate.md);
+[social-graph-slate.md](../slates/tails/social-graph-slate.md);
 builds on [contacts.md](./contacts.md),
 [grouping.md](./grouping.md) (the `GroupApi`/`GroupRef` policy subject),
 [belief.md](./belief.md) (`RecognitionApi.describe` / `salientFeatures`),
@@ -192,14 +192,18 @@ present)" bucket.
 
 A collapsed line is **not** a dead string: it's a `mudq:` MML `<link>`
 handle carrying its room-scope MQL seed (`dwarves in red robes` /
-`others`), so the four client addressability paths
-([client-shell.md](./client-shell.md) hover→command-bar preview,
-expand-on-pull, the [inspection-pane](./inspection-pane.md) drill-in
-roster, and the [prompt.md](./prompt.md) `mqlMany` verb-time pick-list)
-have something to resolve. Collapse is a display lens, never a targeting
-wall; ordinals / feature-filters / post-`look` pronoun memory all still
-resolve against the live room scope. `mudq:` is inert-but-painted in v1;
-the live click/preview wiring is the deferred seam.
+`others`). **What v1 ships is the painted seed only** — the seed is
+present and tested, but the four richer client interactions it's meant
+to feed ([client-shell.md](./client-shell.md) hover→command-bar
+preview, expand-on-pull, the [inspection-pane](./inspection-pane.md)
+drill-in roster, and the [prompt.md](./prompt.md) `mqlMany` verb-time
+pick-list) are **not yet wired client-side** (`mudq:` renders as an
+inert painted span); that wiring is a deferred seam. The principle
+still holds — collapse is a display lens, never a targeting wall:
+ordinals / feature-filters / post-`look` pronoun memory already resolve
+the collapsed occupants against the live room scope by *typing*, with
+or without the click affordances. (The seed is also not yet
+percent-encoded — raw spaces — which lands with the click handler.)
 
 Cost is bounded — display resolves `ruleFor` once per *visible occupant
 in one room* (room-size bounded), once per render; MQL refs are valid
@@ -401,5 +405,27 @@ front over `notify`**:
   store pattern the notification queue extends + the command-bar preview
   contract; [inspection-pane.md](./inspection-pane.md) — the drill-in
   roster; [prompt.md](./prompt.md) — `mqlMany` verb-time disambiguation.
-- [social-graph-slate.md](../slates/builds/social-graph-slate.md) — the
+- [social-graph-slate.md](../slates/tails/social-graph-slate.md) — the
   seeding slate (Wave 3 shipped here).
+
+## History
+
+Built as social-graph Wave 3 (commits `d84b0688`..`123f5172`, merged
+2026-06). Three design→implementation shifts worth recording, since the
+plan and requirements (now retired) described the earlier shape:
+
+- **Display formatter resolves eagerly per-viewer, not late-bound.** The
+  plan modeled the occupant block as a synchronous late-bound
+  `{ toMml(viewer) }` fragment. `ruleFor` is **async** (membership rides
+  `GroupApi.isMember`) and MML `toString(viewer)` is synchronous, so the
+  formatter instead resolves eagerly for the single known viewer at the
+  `look`/arrival seam (both are single-recipient). Late-binding for a
+  future multi-recipient enter-broadcast is deferred.
+- **`notify` set-fields are typed `--options`, not positional `k=v`.** A
+  greedy positional is implicitly required and must be last, so it can't
+  follow the optional `<ref>` — the `k=v` grammar the plan showed could
+  not load. See the *The `notify` verb* section.
+- **Message restyle is method-complete but unwired (Phase 3b).**
+  `styleMessageFor` exists and is tested; wiring it into the
+  multi-recipient speech path hits the same async-`ruleFor`/sync-render
+  wall and wants a sync contacts-fast-path — deferred.
