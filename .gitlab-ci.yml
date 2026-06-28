@@ -196,7 +196,12 @@ deploy-dev:
   script:
     - bash deploy/materialize-env.sh dev env.out
     - scp env.out "$DEPLOY_USER@$DEPLOY_HOST:/srv/saxonberg/.env"
-    - ssh "$DEPLOY_USER@$DEPLOY_HOST" "cd /srv/saxonberg && ./deploy/dev/update.sh"
+    # NODE_OPTIONS is also set inside update.sh, but update.sh git-pulls
+    # itself before building — the in-flight copy is the pre-fix one, so
+    # exporting it here guarantees the heap cap applies on the very next
+    # deploy (the runner reads this file fresh; the var propagates into
+    # the on-box build child).
+    - ssh "$DEPLOY_USER@$DEPLOY_HOST" "cd /srv/saxonberg && NODE_OPTIONS=--max-old-space-size=2048 ./deploy/dev/update.sh"
   environment:
     name: dev
     url: https://dev.saxonberg.panterasbox.net

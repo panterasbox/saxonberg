@@ -22,7 +22,11 @@ pnpm install --frozen-lockfile
 
 echo "==> build types + client"
 pnpm --filter @saxonberg/types build
-pnpm --filter @saxonberg/client build
+# This box has ~2 GiB RAM, so Node auto-caps its V8 old-space heap near
+# ~970 MB (it sizes the heap from physical RAM, not swap). The client's
+# rollup build peaks just above that and aborts ("JavaScript heap out of
+# memory", exit 134). Raise the cap so the build can spill into swap.
+NODE_OPTIONS="--max-old-space-size=2048" pnpm --filter @saxonberg/client build
 
 echo "==> restart saxonberg"
 sudo systemctl restart saxonberg
