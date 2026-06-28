@@ -12,9 +12,11 @@
 > **Corrects the bible:** §4 and §14 mislocated "the Registrar" *on campus* — the
 > same error as the morgue. The civic authority is the city's; the campus has
 > only an enrollment intake.
-> **Carves pulled in (JIT — flagged, not rostered):** a records clerk/gatekeeper,
-> Dunny's enrollment supervisor, the enumerator (§13). Carve when their route is
-> built.
+> **Carves (spent):** [Bram](../npcs/enrollment-supervisor.md) (enrollment
+> supervisor — the on-ramp) + [Pell](../npcs/records-official.md) (records official
+> — the city's one carve). Per the three-tier room discipline, *every other space*
+> is prose + a few objects + a **spawned** population; the enumerator (§13) is
+> deferred to the census-form pass.
 > **Retire when:** cemented as Terminus location + content seeds in YAML.
 
 ---
@@ -99,6 +101,105 @@ template), the *miscounted / uncounted / over-counted* scene, the **roll-clock**
 (your enumeration date). This is the arc's *thematic centerpiece* and it's big
 enough to deserve a **focused pass of its own** — flagged here, not designed in
 this records-track sheet.
+
+## Rooms (the build spec — three tiers each)
+
+Per the room-spec discipline — **prose & detail** (cheap, the bulk:
+`longDescription` + `Detailed` sub-features, *not* objects), **realized Stuff**
+(costly, few, each justified: real instantiated objects), **NPCs** (each a full
+design session: spawned-population systems + *at most one* deliberate carve per
+location).
+
+### Room 1 — the campus enrollment office (the on-ramp; *campus*)
+
+A small, sleepy, paper-heavy intake office near the Quad — where *you* enrolled
+(you already know the room), and where Dunny did census-prep. The thread **starts**
+here and points downtown.
+
+- **Prose & detail:** the cramped office, the counter and stale NOW-SERVING sign,
+  cracked chairs, filing-and-toner air, faded grandeur; the **three-views-of-the-
+  count** on the walls (filing cabinets · rolls terminal · residency map); **Dunny's
+  cleared desk** — a dust-rectangle where the nameplate sat — and the surviving
+  counting-tic remnant (a tally scratched under the drawer).
+- **Realized Stuff:** the **residency map** (evidence — see below), a **rolls
+  terminal** (scoped query), the **enrollment form** (takeable; §13 hook), the
+  **HELP WANTED sign** (the access hook), a **slice of the campus filings** (§8
+  anchors, low-security).
+- **NPCs:** **one carve — [Bram](../npcs/enrollment-supervisor.md)**, the supervisor
+  (the fourth banality facet — *wisdom*). The rest **spawned**: the queue of
+  enrollees (incl. the §13 edge-cases, the §17.H mix).
+
+> **The Spartan detail — the residency map.** Pins = who lives where; and because
+> records are physical (§8), **erasure leaves a hole**: a *pinhole with no pin* = an
+> **erasure**; a *pin moved beside its hole* = a relocation (Wren); a *fresh pin in
+> an old hole* = a **phantom re-filling an erased slot** (the laundering, literal).
+> The whole fraud on a corkboard for the careful eye. General rule: *in a world of
+> physical records, every erasure leaves a trace, and the investigation is reading
+> the holes* (the pinhole, the dust-rectangle, a gap in a sequence).
+>
+> **The assignment (the access mechanic).** You can't *take the job* (multiplayer —
+> a singular consumed seat); you take **the assignment** — a temp, **scoped,
+> repeatable** census-prep batch granting limited access to *exactly that* (the
+> method + a *piece* of the discrepancy, not the run of the place). *"Do well and
+> we'll hire you" — and it never happens* (the Gus-deferred-carrot; Dunny was an
+> assigned temp too, never made permanent). The precarity rhymes with who-counts:
+> a temp, never quite *counted* as an employee, living his last weeks.
+
+### Room 2 — the public hall (*city*)
+
+The civic front: worn-grand, cold — the matched half of the morgue (files your
+existence / files your death). The **threshold and the wall.**
+
+- **Prose & detail:** the civic hum, the shapeless brass seal, the bank of
+  scratched windows (speak-holes, CLOSED cards), the flip-board, bolted benches,
+  the crossed-out directory, curling notices + "Your Rights as a Counted Person"
+  pamphlets, the stopped clock, the worn floor-tracks. ~90% of the room, free.
+- **Realized Stuff:** the **STAFF ONLY door** (`Boundary` — the access wall), the
+  **census form** (takeable; §13), the **requested record / the morgue's
+  certificate** (a real evidence item you obtain and carry — points *deeper*).
+- **NPCs:** **zero carved.** The **queue** = spawned (`Populates`) — the census
+  processing a city of the living, *spawning the victim category at the counter*
+  (the uncountable, §15.2, administered in/out of existence — the arc's most loaded
+  *sight*). The windows are **affordances**, not characters; the city makes you
+  *earn* the deeper access.
+
+### Room 3 — the records floor (*city*)
+
+Behind the glass — where the count is *made* and the cooking hides in the routine.
+
+- **Prose & detail:** the low working floor, rows of reconciliation desks, wire
+  trays of certificates, pneumatic tubes toward the archive, the glassed-in office
+  over the floor, the **SPECIAL-HANDLING tray** (the laundering as a category),
+  hard light.
+- **Realized Stuff:** the **archive door** (`Boundary`, deeper), a **reconciliation
+  terminal** (live rolls; scoped), the **cooked ledger / flagged certificate** (the
+  fraud's proof, *in a hand*), the **disposal chute** (the registrar's
+  erasure-instrument — *a filing can be burned too*; a half-shredded filing in the
+  bin = a caught erasure; the §14 disposal clock).
+- **NPCs:** **the one city carve — [Pell](../npcs/records-official.md)**, the records
+  official (the **escalation** — the first *knowing* accomplice; the pawn's
+  white-collar twin; the kill-chain seam who passed Dunny's name up). The clerks =
+  spawned/flat.
+
+### Room 4 — the archive / vault (*city*)
+
+The deepest, coldest — where the certified anchor-documents (personhood itself)
+are kept. Bedrock of the records track.
+
+- **Prose & detail:** the climate-held vault, steel shelving into low light, coded
+  filing boxes, the preservation hum, a single reading desk, the heaviest door; the
+  Spartan-details (a gap in a numbered sequence, a broken-and-resealed band, dust
+  shadows of recent handling).
+- **Realized Stuff:** the **vault door** (`Boundary` — the heaviest gate), the
+  **foundational filings** (a forged anchor cert · a missing/destroyed one — the
+  §10 hole at the root · the victim-category sector and its gaps — the *deepest*
+  proof), the **retrieval log** (who pulled what, when — the trail that names the
+  tamperer).
+- **NPCs:** **zero — deliberately.** The vault is **unstaffed**: you're *alone with
+  the records.* The isolation is the drama (the deepest evidence + the worst place
+  to be caught — §11's spectral-evidence panic). Beyond it is only the **faceless
+  upstream/handler**, never in a room you can enter (§11 — the unarrestable). The
+  records track ends here; the haze begins.
 
 ## Cross-references
 
