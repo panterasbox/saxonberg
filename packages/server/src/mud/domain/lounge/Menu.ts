@@ -45,6 +45,7 @@ export default class Menu extends MenuBase {
       'crafting/stir.yaml',
       'crafting/strain.yaml',
       'crafting/garnish.yaml',
+      'crafting/make.yaml',
     ],
     inventory: [
       'crafting/menu.yaml',
@@ -55,6 +56,7 @@ export default class Menu extends MenuBase {
       'crafting/stir.yaml',
       'crafting/strain.yaml',
       'crafting/garnish.yaml',
+      'crafting/make.yaml',
     ],
     peers: [],
   };

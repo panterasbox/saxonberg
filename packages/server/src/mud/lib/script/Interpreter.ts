@@ -130,8 +130,12 @@ export class ResourceLimitError extends Error {
 
 const NEEDS_QUOTING_RE = /[\s"\\|]/;
 
-/** A `def`'d command — captured params, body, and definition scope. */
-interface ScriptDef {
+/**
+ * A `def`'d command — captured params, body, and definition scope (the
+ * closure). Held in the per-actor session-defs map so a `def` at one
+ * prompt is invocable at the next (the named-scripts surface).
+ */
+export interface ScriptDef {
   params: string[];
   body: Script;
   scope: Scope;
@@ -182,17 +186,18 @@ export class Interpreter {
   private dispatches = 0;
   private depth = 0;
   private readonly notes: Note[] = [];
-  /**
-   * `def`'d commands, in-memory for the duration of this run. Invoked by
-   * name like any verb. Cross-prompt session persistence (a `def` at one
-   * prompt invoked at the next) is the named-scripts surface (P6); a
-   * single multi-statement script can `def f …; f …` today.
-   */
-  private readonly defs = new Map<string, ScriptDef>();
 
+  /**
+   * @param actor   the actor this run executes as.
+   * @param limits  the resource ceilings (from AppSettings, tiered).
+   * @param defs    the `def`'d-command map. Defaults to a fresh per-run
+   *   map; `ScriptLogic` passes the **actor's session map** so a `def` at
+   *   one prompt is invocable at the next (the named-scripts surface).
+   */
   constructor(
     private readonly actor: Stuff & CommandGiver,
     private readonly limits: ResourceLimits,
+    private readonly defs: Map<string, ScriptDef> = new Map(),
   ) {}
 
   /**

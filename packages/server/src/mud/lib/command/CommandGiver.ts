@@ -197,7 +197,7 @@ export interface CommandGiver {
  * @internal
  */
 async function resolveActorParser(actor: Stuff): Promise<Parser> {
-  const spec = ShellApi.resolveSetting<string>(actor, 'shell.parser') ?? 'msh';
+  const spec = ShellApi.resolveSetting<string>(actor, 'shell.parser') ?? 'script';
   return CommandApi.resolveParser(spec);
 }
 
@@ -221,14 +221,15 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
       {
         key: 'shell.parser',
         type: SettingTypes.Enum,
-        default: 'msh',
+        default: 'script',
         enumValues: ['msh', 'script'],
         description:
-          'Parser used to turn raw input into commands. `msh` is the ' +
-          'default tokenizer-driven shell; `script` is the command-native ' +
-          'scripting parser (multi-statement, blocks, $vars) that wraps ' +
-          'msh for bare commands. The prompt-as-interpreter default flip ' +
-          'lands with the scripting surfaces.',
+          'Parser used to turn raw input into commands. `script` (the ' +
+          'default) is the command-native scripting parser — the prompt ' +
+          'IS the interpreter: multi-statement scripts, blocks, and $vars ' +
+          'run inline, while a bare single command is delegated to `msh` ' +
+          'and parses byte-identically. Set to `msh` to opt out of the ' +
+          'interpreter entirely.',
       },
     ];
 

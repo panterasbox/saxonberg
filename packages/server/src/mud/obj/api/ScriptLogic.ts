@@ -13,7 +13,11 @@ import { AppApi } from "../../api/app";
 import { ExecutionContextApi } from "../../api/execution-context";
 import { AppSettingKeys } from "../../lib/config/AppSettings";
 import { Interpreter } from "../../lib/script/Interpreter";
-import type { ResourceLimits, DispatchFn } from "../../lib/script/Interpreter";
+import type {
+  ResourceLimits,
+  DispatchFn,
+  ScriptDef,
+} from "../../lib/script/Interpreter";
 import type { Coroutine } from "../../lib/script/Coroutine";
 import type { ScriptAbortReason } from "../../lib/script/AbortReason";
 import { Scope } from "../../lib/script/Scope";
@@ -109,29 +113,51 @@ function cancelAllImpl(reason: ScriptAbortReason): void {
   for (const co of [...set]) co.cancel(reason); // whenSettled handler deregisters
 }
 
-async function runAstImpl(ast: Script, authorPath?: string): Promise<void> {
-  const actor = currentActor();
-  if (actor === null) return; // no actor in context — nothing to run as
+/**
+ * Per-actor session `def`'d-command store — in-memory, keyed on
+ * `stuffId`. A `def` typed at one prompt lands here and is invocable at
+ * the next (via `make <name>`, or directly within a later script). The
+ * interpreter writes/reads this map directly (passed as its `defs`), so a
+ * `def` persists for the session. Transient (dies on restart), like the
+ * coroutine registry.
+ */
+const SESSION_DEFS = new Map<string, Map<string, ScriptDef>>();
 
-  const interpreter = new Interpreter(actor, resolveLimits(authorPath));
-  const dispatch: DispatchFn = (command, model, prep) =>
-    actor._dispatchBound(command, model, prep);
-  // The preemption slice: yield one macrotask via ScheduleApi (never a
-  // bare timer) so the event loop drains other actors' work between
-  // slices. Coroutine suspension (`wait`/`every`/`when`/await-engaged)
-  // rides the game clock via WorldClockApi inside the Coroutine.
-  const reschedule = (): Promise<void> =>
+function sessionDefsFor(actor: Stuff): Map<string, ScriptDef> {
+  let map = SESSION_DEFS.get(actor.stuffId);
+  if (!map) {
+    map = new Map();
+    SESSION_DEFS.set(actor.stuffId, map);
+  }
+  return map;
+}
+
+/** The preemption-slice reschedule — one macrotask via ScheduleApi. */
+function makeReschedule(): () => Promise<void> {
+  return () =>
     new Promise<void>((resolve) => {
       ScheduleApi.schedule(0, () => resolve());
     });
+}
 
-  const co = interpreter.startCoroutine(ast, new Scope(), dispatch, reschedule);
+/**
+ * Start a coroutine over `ast` in `scope`, register it for cancellation,
+ * wire settle handling (deregister + abort scene), and **detach** —
+ * returning once the run first suspends or completes (so a `wait`-bearing
+ * script doesn't block the prompt). Pre-detach notes ride the ambient
+ * command envelope. Shared by `runAst` and `invoke`.
+ */
+async function startAndDetach(
+  actor: Stuff & CommandGiver,
+  interpreter: Interpreter,
+  ast: Script,
+  scope: Scope,
+): Promise<void> {
+  const dispatch: DispatchFn = (command, model, prep) =>
+    actor._dispatchBound(command, model, prep);
+  const co = interpreter.startCoroutine(ast, scope, dispatch, makeReschedule());
   registerCoroutine(actor, co);
 
-  // Settle handling — runs whenever the run finishes (possibly long after
-  // it detached). Deregisters and, on an abort, fires the diegetic
-  // message (partial effects stand). Post-detach notes are surfaced by
-  // the controllers' own scenes; only pre-detach notes ride the envelope.
   void co.whenSettled().then((result) => {
     deregisterCoroutine(actor, co);
     if (result.aborted !== undefined && MixinApi.isSensor(actor)) {
@@ -146,13 +172,40 @@ async function runAstImpl(ast: Script, authorPath?: string): Promise<void> {
     }
   });
 
-  // Detach: return once the run first suspends OR completes, so the host's
-  // prompt stays live for a `wait`-bearing script. Thread the pre-detach
-  // notes onto the ambient command context (the envelope's machine
-  // channel), exactly as a typed command's notes would ride.
   await co.whenFirstYield();
   const ctx = ExecutionContextApi.getCurrentCommandContext();
   for (const note of interpreter.getNotes()) ctx?.note(note);
+}
+
+async function runAstImpl(ast: Script, authorPath?: string): Promise<void> {
+  const actor = currentActor();
+  if (actor === null) return; // no actor in context — nothing to run as
+  const interpreter = new Interpreter(
+    actor,
+    resolveLimits(authorPath),
+    sessionDefsFor(actor),
+  );
+  await startAndDetach(actor, interpreter, ast, new Scope());
+}
+
+/**
+ * Invoke a named session script with positional args (the `make
+ * <recipe>` path). Looks up the `def`'d script on the acting actor, binds
+ * its params in a child of the def's captured scope (the closure), and
+ * runs the body — paced by the same coroutine as any script. Returns
+ * `false` when no such script is defined (the caller declines).
+ */
+async function invokeImpl(name: string, args: string[]): Promise<boolean> {
+  const actor = currentActor();
+  if (actor === null) return false;
+  const defs = sessionDefsFor(actor);
+  const def = defs.get(name);
+  if (!def) return false;
+  const interpreter = new Interpreter(actor, resolveLimits(), defs);
+  const callScope = def.scope.child();
+  def.params.forEach((param, i) => callScope.define(param, args[i]));
+  await startAndDetach(actor, interpreter, def.body, callScope);
+  return true;
 }
 
 async function runImpl(text: string): Promise<void> {
@@ -238,6 +291,12 @@ export class ScriptLogic extends Idea {
   @CallSecurity(ScriptApiCallers)
   public cancelAll(reason: ScriptAbortReason): void {
     cancelAllImpl(reason);
+  }
+
+  /** See {@link ScriptApi.invoke}. */
+  @CallSecurity(ScriptApiCallers)
+  public async invoke(name: string, args: string[]): Promise<boolean> {
+    return invokeImpl(name, args);
   }
 
   /** See {@link ScriptApi.format}. */

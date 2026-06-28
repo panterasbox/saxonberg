@@ -63,6 +63,19 @@ export class ScriptApi {
   }
 
   /**
+   * Invoke a named session script (a `def`'d recipe) with positional
+   * `args`, binding its params — the `make <recipe>` path. The acting
+   * actor is derived from context; the script runs paced by the coroutine
+   * (engaged steps trickle out). Resolves `true` if a script of that name
+   * was found and started, `false` otherwise (the caller declines). The
+   * authored-content recipe-script source (loaded from the path-addressed
+   * store) lands in P7; v1 invokes session `def`s.
+   */
+  static invoke(name: string, args: string[] = []): Promise<boolean> {
+    return logic().invoke(name, args);
+  }
+
+  /**
    * Cancel every running (suspended) script the **acting actor** owns —
    * the barge-in path. The actor is derived from execution context (never
    * a parameter); each coroutine stops with the typed `reason`, aborting
