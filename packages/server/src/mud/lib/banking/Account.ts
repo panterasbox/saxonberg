@@ -24,6 +24,9 @@
  * A static-method value-object (no instances): the home that keeps the
  * id vocabulary as one named concept rather than free-floating helpers.
  */
+
+import { SecurityApi } from "../../api/security";
+
 export class Account {
   /** The mint source / drain sink — the supply faucet counterparty. */
   public static readonly ISSUANCE = "issuance:central-bank";
@@ -46,13 +49,13 @@ export class Account {
   }
 
   /**
-   * Mint a fresh, opaque, durable account id. The id keys the ledger; the
-   * friendly identity (owner / bank) lives on the {@link AccountBalance}
-   * registry row — the "durable id underneath, friendly identity on top"
-   * pattern (`templatePath` / `ContactsMixin`). `seq` makes the id unique
-   * within a real-time millisecond.
+   * Mint a fresh, opaque, durable account id — a nanoid via the one id seam
+   * ({@link SecurityApi.uuid}). The id keys the ledger; the friendly identity
+   * (owner / bank) lives on the {@link AccountBalance} registry row — the
+   * "durable id underneath, friendly identity on top" pattern (`templatePath`
+   * / `ContactsMixin`).
    */
-  public static newId(seq: number): string {
-    return `acct-${Date.now().toString(36)}-${seq.toString(36)}`;
+  public static newId(): string {
+    return SecurityApi.uuid();
   }
 }

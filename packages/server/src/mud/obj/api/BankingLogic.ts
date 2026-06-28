@@ -72,9 +72,6 @@ function actingPrincipal(): Stuff | null {
   return (ExecutionContextApi.getActingAuthor() as Stuff | null) ?? null;
 }
 
-/** Monotonic per-process counter making each minted account id unique. */
-let acctSeq = 0;
-
 /** Coin-shaped duck type — avoids importing the Coin class here. */
 interface CashLike {
   getDenomination(): string;
@@ -140,7 +137,7 @@ async function openAccountImpl(
   if (already) return already.accountId;
 
   const row = new AccountBalance();
-  row.accountId = Account.newId(acctSeq++);
+  row.accountId = Account.newId();
   row.owner = owner;
   row.bankPath = bankPath;
   row.corpoKey = corpoKey;
@@ -173,7 +170,7 @@ async function ensureVenueAccountImpl(
   const existing = owned.find((a) => a.bankPath === bankPath) ?? owned[0];
   if (existing) return existing.accountId;
   const row = new AccountBalance();
-  row.accountId = Account.newId(acctSeq++);
+  row.accountId = Account.newId();
   row.owner = ownerPath;
   row.bankPath = bankPath;
   row.corpoKey = corpoKey;

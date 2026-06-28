@@ -1,19 +1,26 @@
 /**
  * BankCounter — the teller-counter fixture: the seeded `BankMixin` host that
  * lights up the banking verb surface inside a branch and holds the cash
- * vault. A `Container` (its contents are the vault coins) that is also a
- * `Thing` (it sits in the room, is looked at, referenced by keyword).
+ * vault. A **`Vessel`** (the canonical container-object — its contents are
+ * the vault coins) made describable + referenceable (`Visible` / `Perceptible`
+ * / `Detailed`) so it sits in the room, renders, resolves by keyword, and
+ * exposes look-at details. `Vessel` rather than a hand-rolled
+ * `ContainerMixin(Thing)`: a thing-that-holds-things is exactly what `Vessel`
+ * is.
  *
  * The `BankMixin` demonstrator class, homed beside the mixin (the
- * `TravelCredential` / `BrandedBottle` precedent): a class that instantiates
- * a banking-defined mixin lives in `lib/banking/`, not top-level `/obj/`.
+ * `TravelCredential` / `BrandedBottle` precedent).
  */
 
-import Thing from "../stuff/Thing";
-import { ContainerMixin } from "../spatial/Container";
+import { Vessel } from "../stuff/Vessel";
+import { VisibleMixin } from "../description/Visible";
+import { PerceptibleMixin } from "../description/Perceptible";
+import { DetailedMixin } from "../description/Detailed";
 import { BankMixin } from "./Bank";
 
-const BankCounterBase = BankMixin(ContainerMixin(Thing));
+const BankCounterBase = BankMixin(
+  DetailedMixin(VisibleMixin(PerceptibleMixin(Vessel)))
+);
 
 export default class BankCounter extends BankCounterBase {
   static persistentFields = ["corpoKey"];
