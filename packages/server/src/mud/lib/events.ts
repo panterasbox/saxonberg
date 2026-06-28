@@ -45,7 +45,6 @@ export const Events = {
   ModuleUnloaded: 'module.unloaded',
   ModuleReloadFailed: 'module.reloadFailed',
   StreamStateChanged: 'stream.stateChanged',
-  TwitchPresenceChanged: 'twitch.presenceChanged',
 } as const;
 
 export type EventName = (typeof Events)[keyof typeof Events];
@@ -112,15 +111,5 @@ export interface EventPayloads {
    * singleton.
    */
   [Events.StreamStateChanged]: StreamStateSnapshot;
-  /**
-   * Fired when the count of in-game players tuned in to a relayed Twitch
-   * channel crosses a boundary; the reader subscribes on 0→1 and tears
-   * down on 1→0. `prev`/`count` let the consumer detect the edge.
-   */
-  [Events.TwitchPresenceChanged]: {
-    broadcasterId: string;
-    count: number;
-    prev: number;
-  };
 }
 

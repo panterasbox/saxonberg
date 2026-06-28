@@ -2,18 +2,19 @@
  * TwitchRelay - the relay's in-memory state singleton.
  *
  * Channels are **player-initiated and memory-resident**: there is no
- * registry collection. A player tunes in by Twitch login; the login is
- * resolved to a broadcaster id once (via the outbound DI port's Helix
- * lookup), cached, and a lightweight channel entry is created on demand.
- * All of it lives only in memory and evaporates on reboot; the next login
- * + tune re-initializes lazily. Players are dropped from every channel on
- * logout.
+ * registry collection. A player tunes in by Twitch login; `TwitchLogic`
+ * resolves the login to a broadcaster id (via the backend reader) and
+ * calls `addTuned` with the resolved id, which lazily creates a channel
+ * entry. All of it lives only in memory and evaporates on reboot; the next
+ * login + tune re-initializes lazily.
  *
- * Holds: the channel table (broadcasterId -> login + tuned playerIds), a
- * login->id resolution cache, the per-channel history ring, the outbound
- * echo-tag store, the per-player + global send throttles, and the
- * installed outbound DI port. Pure state + delivery; the gated
- * orchestration lives in `TwitchLogic`, this singleton's only caller.
+ * This singleton is **pure mudlib state**: no backend import, no events.
+ * Its mutators (`addTuned` / `removeTuned` / `dropPlayer`) return the
+ * presence **edges** (0->1 / 1->0); the Api bridge (`TwitchLogic`) reads
+ * those edges and drives the backend reader's subscribe/unsubscribe
+ * directly. Holds: the channel table (broadcasterId -> login + tuned
+ * playerIds), a login->id resolution cache, the per-channel history ring,
+ * the outbound echo-tag store, and the per-player + global send throttles.
  *
  * Delivery reuses the lone `MessageApi.sendMessage` chokepoint with a
  * hand-built frame on the relay's own `world.twitch.message` topic and a
@@ -27,10 +28,7 @@ import { PostRegistrationMixin } from '../lib/stuff/PostRegistration';
 import { MessageApi } from '../api/message';
 import { SecurityApi } from '../api/security';
 import { PlayerApi } from '../api/player';
-import { EventApi } from '../api/event';
 import { Mml } from '../api/mml';
-import { Events } from '../lib/events';
-import type { TwitchRelayPort } from '../api/twitch';
 import type {
   MessageFrame,
   RelaySpeaker,
@@ -69,100 +67,65 @@ export default class TwitchRelay extends TwitchRelayBase {
   private playerBuckets = new Map<string, Bucket>();
   private globalBucket: Bucket = { tokens: GLOBAL_BURST, last: Date.now() };
 
-  private outboundPort: TwitchRelayPort | null = null;
+  // ---- tune / untune (pure mutators; return the presence edges) ----------
 
-  public override async postRegister(_context?: unknown): Promise<void> {
-    // Drop a player from every channel they were tuned to when they go
-    // offline (frees the channel on the 1->0 edge so the reader unsubscribes).
-    EventApi.on<{ playerId: string; userId: string }>(
-      Events.PlayerLoggedOut,
-      (p) => this.dropPlayer(p.playerId)
-    );
+  /** Cached broadcaster id for an already-resolved (lowercased) login. */
+  public cachedId(loginLower: string): string | undefined {
+    return this.loginToId.get(loginLower);
   }
-
-  // ---- outbound port -----------------------------------------------------
-
-  public setOutboundPort(port: TwitchRelayPort | null): void {
-    this.outboundPort = port;
-  }
-  public getOutboundPort(): TwitchRelayPort | null {
-    return this.outboundPort;
-  }
-
-  // ---- tune / untune (player-initiated, lazy) ----------------------------
 
   /**
-   * Tune a player into a Twitch channel by login. Resolves the login to a
-   * broadcaster id (cache -> port's Helix lookup), creates the channel entry
-   * lazily, and fires the presence 0->1 edge so the reader subscribes.
+   * Add a player to a channel by ALREADY-RESOLVED broadcaster id, caching
+   * the login and creating the channel entry lazily. Returns true on the
+   * 0->1 edge — the Api bridge then tells the reader to subscribe.
    */
-  public async tuneByLogin(
+  public addTuned(
     playerId: string,
+    broadcasterId: string,
     login: string
-  ): Promise<{
-    ok: boolean;
-    broadcasterId?: string;
-    login?: string;
-    reason?: 'no-relay' | 'unknown-login';
-  }> {
+  ): boolean {
     const lower = login.trim().toLowerCase();
-    let broadcasterId = this.loginToId.get(lower);
-    let resolvedLogin = lower;
-
-    if (!broadcasterId) {
-      const port = this.outboundPort;
-      if (!port) return { ok: false, reason: 'no-relay' };
-      const resolved = await port.resolveLogin(lower);
-      if (!resolved) return { ok: false, reason: 'unknown-login' };
-      broadcasterId = resolved.broadcasterId;
-      resolvedLogin = resolved.login.toLowerCase();
-      this.loginToId.set(lower, broadcasterId);
-      this.loginToId.set(resolvedLogin, broadcasterId);
-    }
-
+    this.loginToId.set(lower, broadcasterId);
     let entry = this.channels.get(broadcasterId);
     if (!entry) {
-      entry = { broadcasterLogin: resolvedLogin, tuned: new Set() };
+      entry = { broadcasterLogin: lower, tuned: new Set() };
       this.channels.set(broadcasterId, entry);
     }
     const prev = entry.tuned.size;
     entry.tuned.add(playerId);
-    const count = entry.tuned.size;
-    if (prev === 0 && count > 0) this.emitPresence(broadcasterId, count, prev);
-    return { ok: true, broadcasterId, login: entry.broadcasterLogin };
+    return prev === 0 && entry.tuned.size > 0;
   }
 
-  /** Tune a player out by login; fires the presence 1->0 edge. */
-  public untune(
+  /**
+   * Remove a player from a channel by login. `emptied` is the 1->0 edge —
+   * the Api bridge then tells the reader to unsubscribe.
+   */
+  public removeTuned(
     playerId: string,
-    login: string
-  ): { ok: boolean; login?: string; reason?: 'unknown-login' } {
-    const lower = login.trim().toLowerCase();
-    const broadcasterId = this.loginToId.get(lower);
-    const entry = broadcasterId
-      ? this.channels.get(broadcasterId)
-      : undefined;
-    if (!broadcasterId || !entry) return { ok: false, reason: 'unknown-login' };
+    loginLower: string
+  ): { ok: boolean; broadcasterId?: string; emptied: boolean } {
+    const broadcasterId = this.loginToId.get(loginLower);
+    const entry = broadcasterId ? this.channels.get(broadcasterId) : undefined;
+    if (!broadcasterId || !entry) return { ok: false, emptied: false };
     const prev = entry.tuned.size;
     entry.tuned.delete(playerId);
-    const count = entry.tuned.size;
-    if (prev > 0 && count === 0) this.emitPresence(broadcasterId, count, prev);
-    return { ok: true, login: entry.broadcasterLogin };
+    const emptied = prev > 0 && entry.tuned.size === 0;
+    return { ok: true, broadcasterId, emptied };
   }
 
-  /** Remove a player from every channel (logout); fire each 1->0 edge. */
-  public dropPlayer(playerId: string): void {
+  /**
+   * Remove a player from every channel (logout). Returns the broadcaster
+   * ids that hit 0 — the Api bridge unsubscribes each.
+   */
+  public dropPlayer(playerId: string): string[] {
+    const emptied: string[] = [];
     for (const [broadcasterId, entry] of this.channels) {
       if (!entry.tuned.has(playerId)) continue;
       const prev = entry.tuned.size;
       entry.tuned.delete(playerId);
-      const count = entry.tuned.size;
-      if (prev > 0 && count === 0) this.emitPresence(broadcasterId, count, prev);
+      if (prev > 0 && entry.tuned.size === 0) emptied.push(broadcasterId);
     }
-  }
-
-  private emitPresence(broadcasterId: string, count: number, prev: number): void {
-    EventApi.emit(Events.TwitchPresenceChanged, { broadcasterId, count, prev });
+    return emptied;
   }
 
   // ---- resolution / queries ---------------------------------------------

@@ -375,7 +375,6 @@ export class EventApi {
       // Open emit — the `stream` verb (StreamController) and StreamState
       // are the v1 emitters; no tighter allowlist needed in Phase 1.
       [Events.StreamStateChanged]: EventApi.emittableBy(),
-      [Events.TwitchPresenceChanged]: EventApi.emittableBy(),
     };
     return EventApi.#defaultPolicies;
   }

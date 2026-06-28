@@ -5,12 +5,12 @@
  * `StuffApi.singletonSync`, decorated by `SecurityApi.decorateApiClass`.
  *
  * Channels are **player-initiated and addressed by Twitch login** — there
- * is no registry. This file homes the relay's call-shape types, including
- * the **outbound DI port** (`TwitchRelayPort`), the sanctioned
- * backend→mudlib injection the relay uses to reach the backend
- * `TwitchClient` (mud/ cannot import backend/) for both the Helix
- * login→id lookup and the outbound Send Chat Message. Installed at boot
- * via {@link TwitchApi.installRelayPort}.
+ * is no registry. This file homes the relay's call-shape types. The
+ * backend integration (Helix login→id lookup, Send Chat Message, EventSub
+ * subscribe/unsubscribe) is reached **directly** from `TwitchLogic`, which
+ * imports the backend reader (the bridge-in-Api pattern, like
+ * `PersistApi`→`PersistenceManager` / `ConnectionLogic`→`ConnectionManager`).
+ * No DI port, no boot-time injection.
  */
 
 import { StuffApi } from './stuff';
@@ -20,7 +20,6 @@ import { TwitchLogic } from '../obj/api/TwitchLogic';
 import { fileURLToPath } from 'url';
 import type { Stuff } from '../lib/stuff/Stuff';
 import type Avatar from '../obj/Avatar';
-import type { TwitchProfile } from '../lib/identity/TwitchProfile';
 import type { MessageFrame } from '@saxonberg/types';
 
 const LOGIC_PATH = '/obj/api/twitch';
@@ -38,24 +37,6 @@ function logic(): TwitchLogic {
         'TwitchLogic'
       ) as typeof TwitchLogic | null) ?? TwitchLogic)()
   );
-}
-
-/**
- * The outbound DI port — implemented in `backend/` over `TwitchClient` and
- * installed at boot. `resolveLogin` does the Helix login→broadcaster-id
- * lookup (so a player can tune by handle); `send` resolves the poster's
- * token and performs the stateless Helix Send Chat Message. The mudlib
- * never imports the client.
- */
-export interface TwitchRelayPort {
-  resolveLogin(
-    login: string
-  ): Promise<{ broadcasterId: string; login: string } | null>;
-  send(opts: {
-    broadcasterId: string;
-    profile: TwitchProfile;
-    text: string;
-  }): Promise<{ ok: boolean; error?: string }>;
 }
 
 /** Result of a tune-by-login. */
@@ -133,9 +114,12 @@ export class TwitchApi {
     return logic().dispatchInbound(n);
   }
 
-  /** Install (or clear) the outbound DI port. Called at boot. */
-  static installRelayPort(port: TwitchRelayPort | null): Promise<void> {
-    return logic().installRelayPort(port);
+  /**
+   * Drop a player from every tuned channel (logout). Returns the
+   * broadcaster ids that emptied — the backend reader unsubscribes each.
+   */
+  static dropPlayer(playerId: string): Promise<string[]> {
+    return logic().dropPlayer(playerId);
   }
 }
 

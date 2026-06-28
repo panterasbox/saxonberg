@@ -14,8 +14,8 @@ import type Avatar from '../Avatar';
 import type TwitchRelay from '../TwitchRelay';
 import type { MessageFrame, RelaySpeaker } from '@saxonberg/types';
 import { TWITCH_SCOPE_WRITE_CHAT } from '@saxonberg/types';
+import { TwitchRelayReader } from '../../../backend/TwitchRelayReader';
 import type {
-  TwitchRelayPort,
   TwitchPostResult,
   TwitchTuneResult,
   NormalizedInbound,
@@ -35,19 +35,52 @@ const TwitchApiCallers = SecurityPolicies.FromModule('mud/api/twitch#TwitchApi')
  */
 @Unshadowable
 export class TwitchLogic extends Idea {
-  /** See {@link TwitchApi.tune}. */
+  /**
+   * See {@link TwitchApi.tune}. The bridge: resolve the login via the
+   * backend reader (cache-first), mutate the relay, and on the 0->1 edge
+   * tell the reader to subscribe.
+   */
   @CallSecurity(TwitchApiCallers)
   public async tune(avatar: Avatar, login: string): Promise<TwitchTuneResult> {
-    return (await requireRelay()).tuneByLogin(avatar.getPlayerId(), login);
+    const relay = await requireRelay();
+    const reader = TwitchRelayReader.get();
+    const lower = login.trim().toLowerCase();
+    const playerId = avatar.getPlayerId();
+
+    let id = relay.cachedId(lower);
+    if (!id) {
+      if (!reader.isConfigured()) return { ok: false, reason: 'no-relay' };
+      const r = await reader.resolveLogin(lower);
+      if (!r) return { ok: false, reason: 'unknown-login' };
+      id = r.broadcasterId;
+    }
+    if (relay.addTuned(playerId, id, lower)) reader.subscribe(id);
+    return { ok: true, broadcasterId: id, login: lower };
   }
 
-  /** See {@link TwitchApi.untune}. */
+  /** See {@link TwitchApi.untune}. On the 1->0 edge, unsubscribe. */
   @CallSecurity(TwitchApiCallers)
   public async untune(
     avatar: Avatar,
     login: string
   ): Promise<{ ok: boolean; login?: string; reason?: string }> {
-    return (await requireRelay()).untune(avatar.getPlayerId(), login);
+    const relay = await requireRelay();
+    const lower = login.trim().toLowerCase();
+    const res = relay.removeTuned(avatar.getPlayerId(), lower);
+    if (res.emptied && res.broadcasterId) {
+      TwitchRelayReader.get().unsubscribe(res.broadcasterId);
+    }
+    return {
+      ok: res.ok,
+      login: lower,
+      reason: res.ok ? undefined : 'unknown-login',
+    };
+  }
+
+  /** See {@link TwitchApi.dropPlayer}. The reader unsubscribes the result. */
+  @CallSecurity(TwitchApiCallers)
+  public async dropPlayer(playerId: string): Promise<string[]> {
+    return (await requireRelay()).dropPlayer(playerId);
   }
 
   /** See {@link TwitchApi.tunedLoginsFor}. */
@@ -109,9 +142,7 @@ export class TwitchLogic extends Idea {
     if (!relay.tryAcquireSend(speaker.getPlayerId())) {
       return { ok: false, reason: 'throttled' };
     }
-    const port = relay.getOutboundPort();
-    if (!port) return { ok: false, reason: 'send-failed', detail: 'relay offline' };
-    const result = await port.send({
+    const result = await TwitchRelayReader.get().send({
       broadcasterId: channel.broadcasterId,
       profile,
       text: body,
@@ -149,12 +180,6 @@ export class TwitchLogic extends Idea {
       n.text,
       false
     );
-  }
-
-  /** See {@link TwitchApi.installRelayPort}. */
-  @CallSecurity(TwitchApiCallers)
-  public async installRelayPort(port: TwitchRelayPort | null): Promise<void> {
-    (await requireRelay()).setOutboundPort(port);
   }
 }
 

@@ -1,16 +1,20 @@
 /**
- * TwitchRelayReader — the presence-gated inbound worker + the outbound DI
- * port wiring. Backend infrastructure, modeled on `BroadcastFeed`
- * (singleton, lazy boot). It is the only place the relay surface (mud/)
- * and the integration client (backend/) meet:
+ * TwitchRelayReader — the presence-gated inbound worker + the backend half
+ * of the relay. Backend infrastructure, modeled on `BroadcastFeed`
+ * (singleton, lazy boot). It owns the set of active EventSub
+ * `channel.chat.message` subscriptions and exposes the backend operations
+ * the Api bridge (`TwitchLogic`) calls **directly** (no DI port):
  *
- *  - **Inbound:** holds one EventSub `channel.chat.message` subscription
- *    per relayed channel that has ≥1 tuned-in player. Subscriptions are
- *    created on the `TwitchPresenceChanged` 0→1 edge and deleted on 1→0,
- *    debounced per channel. Notifications are normalized and handed to
- *    `TwitchApi.dispatchInbound` (a down-call into mudlib).
- *  - **Outbound:** installs a `TwitchRelayPort` over `TwitchClient` so the
- *    mudlib post path can send as the poster without importing backend/.
+ *  - `resolveLogin` — Helix login→broadcaster-id (tune by handle).
+ *  - `subscribe` / `unsubscribe` — manage a channel's chat subscription,
+ *    debounced per channel; driven by the relay's presence edges.
+ *  - `send` — the stateless Helix Send Chat Message (outbound).
+ *  - `isConfigured` — whether a reader account is set.
+ *
+ * Inbound notifications are normalized and handed to
+ * `TwitchApi.dispatchInbound` (a down-call into mudlib). On logout it
+ * observes `PlayerLoggedOut` (a real lifecycle broadcast) and unsubscribes
+ * any channels that emptied.
  *
  * One operator reader account (env `TWITCH_READER_USER_ID`) holds
  * `user:read:chat` and is the `user_id` condition on every subscription —
@@ -23,7 +27,7 @@ import { EventApi } from '../mud/api/event';
 import { Events } from '../mud/lib/events';
 import { ExecutionContextApi } from '../mud/api/execution-context';
 import { TwitchProfile } from '../mud/lib/identity/TwitchProfile';
-import type { NormalizedInbound, TwitchRelayPort } from '../mud/api/twitch';
+import type { NormalizedInbound } from '../mud/api/twitch';
 
 const DEBOUNCE_MS = 1500;
 
@@ -36,28 +40,6 @@ export class TwitchRelayReader {
   /** broadcasterId → pending debounce timer. */
   private pending = new Map<string, ReturnType<typeof setTimeout>>();
 
-  private readonly port: TwitchRelayPort = {
-    resolveLogin: async (login: string) => {
-      const token = await this.readerToken();
-      if (!token) return null;
-      const u = await TwitchClient.get().resolveUser(login, token);
-      return u ? { broadcasterId: u.id, login: u.login } : null;
-    },
-    send: async ({ broadcasterId, profile, text }) => {
-      try {
-        const token = await TwitchClient.get().tokenFor(profile);
-        return await TwitchClient.get().sendChatMessage({
-          broadcasterId,
-          senderId: profile.twitchUserId,
-          token,
-          text,
-        });
-      } catch (err) {
-        return { ok: false, error: String(err) };
-      }
-    },
-  };
-
   private constructor() {}
 
   public static get(): TwitchRelayReader {
@@ -65,12 +47,10 @@ export class TwitchRelayReader {
     return this.instance;
   }
 
-  /** Install the port + wire the client/presence listeners. Idempotent. */
+  /** Wire the client + logout listeners. Idempotent. */
   public boot(): void {
     if (this.booted) return;
     this.booted = true;
-
-    void TwitchApi.installRelayPort(this.port);
 
     TwitchClient.get().onNotification((n) => {
       if (n.subscriptionType !== 'channel.chat.message') return;
@@ -85,32 +65,83 @@ export class TwitchRelayReader {
     TwitchClient.get().onSessionReset(() => {
       const ids = [...this.subs.keys()];
       this.subs.clear();
-      for (const b of ids) void this.subscribe(b);
+      for (const b of ids) void this.doSubscribe(b);
     });
 
-    EventApi.on<{ broadcasterId: string; count: number; prev: number }>(
-      Events.TwitchPresenceChanged,
-      ({ broadcasterId, count, prev }) => {
-        if (prev === 0 && count > 0) this.debounce(broadcasterId, 'sub');
-        else if (prev > 0 && count === 0) this.debounce(broadcasterId, 'unsub');
+    // Backend observing the real lifecycle broadcast: when a player logs
+    // out, the relay drops them from every channel and returns the ones
+    // that emptied; unsubscribe each.
+    EventApi.on<{ playerId: string; userId: string }>(
+      Events.PlayerLoggedOut,
+      async ({ playerId }) => {
+        const emptied = await TwitchApi.dropPlayer(playerId);
+        for (const id of emptied) this.unsubscribe(id);
       }
     );
 
     console.info('TwitchRelayReader: booted (presence-gated EventSub reader).');
   }
 
+  // ---- backend operations the Api bridge calls directly ------------------
+
+  /** Whether a reader account is configured (`TWITCH_READER_USER_ID`). */
+  public isConfigured(): boolean {
+    return readerUserId() !== '';
+  }
+
+  /** Helix login → broadcaster id (the tune-by-handle lookup). */
+  public async resolveLogin(
+    login: string
+  ): Promise<{ broadcasterId: string; login: string } | null> {
+    const token = await this.readerToken();
+    if (!token) return null;
+    const u = await TwitchClient.get().resolveUser(login, token);
+    return u ? { broadcasterId: u.id, login: u.login } : null;
+  }
+
+  /** Stateless Helix Send Chat Message as the poster. */
+  public async send(opts: {
+    broadcasterId: string;
+    profile: TwitchProfile;
+    text: string;
+  }): Promise<{ ok: boolean; error?: string }> {
+    try {
+      const token = await TwitchClient.get().tokenFor(opts.profile);
+      return await TwitchClient.get().sendChatMessage({
+        broadcasterId: opts.broadcasterId,
+        senderId: opts.profile.twitchUserId,
+        token,
+        text: opts.text,
+      });
+    } catch (err) {
+      return { ok: false, error: String(err) };
+    }
+  }
+
+  /** Subscribe to a channel's chat (debounced). Driven by the 0->1 edge. */
+  public subscribe(broadcasterId: string): void {
+    this.debounce(broadcasterId, 'sub');
+  }
+
+  /** Unsubscribe from a channel's chat (debounced). Driven by the 1->0 edge. */
+  public unsubscribe(broadcasterId: string): void {
+    this.debounce(broadcasterId, 'unsub');
+  }
+
+  // ---- subscription lifecycle (private) ----------------------------------
+
   private debounce(broadcasterId: string, action: 'sub' | 'unsub'): void {
     const existing = this.pending.get(broadcasterId);
     if (existing) clearTimeout(existing);
     const t = setTimeout(() => {
       this.pending.delete(broadcasterId);
-      if (action === 'sub') void this.subscribe(broadcasterId);
-      else void this.unsubscribe(broadcasterId);
+      if (action === 'sub') void this.doSubscribe(broadcasterId);
+      else void this.doUnsubscribe(broadcasterId);
     }, DEBOUNCE_MS);
     this.pending.set(broadcasterId, t);
   }
 
-  private async subscribe(broadcasterId: string): Promise<void> {
+  private async doSubscribe(broadcasterId: string): Promise<void> {
     if (this.subs.has(broadcasterId)) return;
     const token = await this.readerToken();
     const readerId = readerUserId();
@@ -134,7 +165,7 @@ export class TwitchRelayReader {
     }
   }
 
-  private async unsubscribe(broadcasterId: string): Promise<void> {
+  private async doUnsubscribe(broadcasterId: string): Promise<void> {
     const id = this.subs.get(broadcasterId);
     if (!id) return;
     this.subs.delete(broadcasterId);
