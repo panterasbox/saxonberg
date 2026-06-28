@@ -86,12 +86,65 @@ where it *lives*.
 
 ## Access (the records-route immsim — same as the morgue)
 
-The archives are access-controlled, so the records have their own contested
-access: **deputized** (records access — the §3 arc), a **sympathetic clerk**
-(insider), the **public service** (request a record *legitimately* — clean but
-limited), or **break in** (the archives — loud, §17.G). The §8 physical-anchor
-nature is what makes it contestable; truth stays over-determined (rolls + body +
-exhaust), so no single door gates it.
+The records are access-controlled, so they have their own contested access —
+and the over-determination (§17.G) is sharpest here: **the same ACCESS delta,
+three doors, three different *things you actually do*.** The pathways differ by
+*verb*, not just flavor — which is what makes each one's casting choice
+deliberate:
+
+| Door | Verb | Where | Cast |
+|---|---|---|---|
+| **Deputization** | *file* — beat the system | the proctors office | **cast-free** (flat indifference + paperwork) |
+| **Insider** | *talk* — win a person | the records floor | **[Pell](../npcs/records-official.md)** (the crack) |
+| **Break-in** | *sneak* — beat the lock | the archive / vault | **no one** |
+
+The talk-door **earns** Pell; the other two earn **nobody** — the casting is
+the point, not an oversight. (A fourth, lighter door: the **public service** —
+request *a* record legitimately at the window — clean but limited, you get the
+one filing, not the run of the place.) The §8 physical-anchor nature is what
+makes records contestable at all; truth stays over-determined (rolls + body +
+exhaust), so **no single door gates it.**
+
+### The deputization door (the *file* pathway — its settled spine)
+
+The cast-free door, worked out in full so it builds straight:
+
+- **Effect:** a **STANDING** delta — you become a *deputized investigator* —
+  that **cascades to ACCESS**, but **jurisdiction-gated**: a master key on
+  *campus* (Zones owned by the school's group), only a *presented credential*
+  in the *city* (the morgue / registrar are Terminus's — a campus writ is a doc
+  a city official chooses to honor, §8).
+- **Derived, not a flag.** Deputization is **not** a stored boolean. An
+  append-only **authorization ledger** (proctor `authorize` / `revoke` events,
+  scoped + expiring) → **`isDeputized(actor, scope)` derives on read** (latest
+  non-revoked, non-expired) — the house derive-don't-track rule (renown /
+  competence / authoring all do this). Access honors it via an **MQL-defined
+  group** over that derived status (`Zone.accessGroups`, no hand-mutated roster,
+  no new flag). **Renown *gates* the grant; it doesn't *become* it** — the grant
+  stays a deliberate act, not an auto-threshold, so the puzzle survives.
+- **The credential rides the wallet.** The writ is one record in the
+  implant's credential-holder app — see
+  [credential-wallet-slate.md](../../../slates/builds/credential-wallet-slate.md)
+  (deputization is its first native tenant; the §8 physical card is the
+  cross-jurisdiction *presentation*, not the source of truth).
+- **Motive = incompetent, not evil.** The proctors are campus lost-and-found +
+  noise complaints, not detectives. The writ is a **rubber-stamp** — the
+  path-of-least-resistance "yes" that makes you leave — pushed across the
+  counter by someone who never connects that it matters. The horror is the
+  *darkly-easy*: getting authority to ask why a student died is easier than
+  getting your bike out of impound. (It rhymes with §13 — a temp credential,
+  never quite real, exactly Dunny's never-made-permanent assignment.)
+- **Cost = leak, not watcher.** No one *watches* the writ — no one here is
+  competent enough to. But the trail **exists**, in a system that leaks from
+  every sloppy seam, and the same rot that cooked the rolls can read a roster.
+  The danger arrives later, sideways, *through* the incompetence — not because a
+  proctor sold you out.
+- **The pathway itself is peopleless** (the *file* verb): take-a-number, the
+  soft-cornered forms, the wrong window, the contradicting signs, the stamp (or
+  a self-serve permit kiosk). You navigate **process**, never persuasion — the
+  indifference is *expressed* by there being no real conversation to be had.
+  The proctor at the glass is an affordance that only ever shrugs you back to
+  the form.
 
 ## The census-form payload (§13 — stubbed, its own pass)
 
