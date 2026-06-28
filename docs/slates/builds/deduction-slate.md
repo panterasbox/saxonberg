@@ -60,6 +60,38 @@ forever** — nothing reaches it. The case **completes with one blank**; the
 reconstruction names the hand as `[unestablished]`. The thesis as a UI fact, no
 special machinery — just an unreached marker.
 
+## Scope — instance the authored case, go public only for the live stream
+
+The resolution to the public-vs-private tension. **The content's nature decides
+the board's scope**, because public collaborative deduction only has tension
+where the answer is *genuinely unknown* — and on a single global wall a one-shot
+mystery is unknown exactly *once* (first cohort solves it; everyone after
+reenacts a finished board — trite). Three content shapes, not two:
+
+- **Evergreen-instanced** (every party solves it fresh) → board must be
+  **party-scoped** (a fresh solve needs a blank wall).
+- **One-time world-event** (solved once, becomes history) → global-public works,
+  but most players inherit it *solved.*
+- **Regenerating stream** (new cases keep coming) → global-public stays live.
+
+The resolution, split by job:
+
+- **Authored cases (the Dunny murder) → party-scoped instancing.** One board,
+  instanced to the investigating party. Keeps **collaborative pooling** (you
+  still combine findings with friends — the multiplayer crux survives) while
+  killing triteness (**your party's wall starts blank** — fresh every run). Solo
+  = a board of one; co-op = pooling. The model for *every* authored forensic
+  quest.
+- **The global-public Quad wall → reserved for the regenerating stream.** Not one
+  solved murder but a **standing homicide institution** fed by the never-ending
+  kill-stream (EU §9 "the roll *is* the kill-list"; the morgue's steady corpse
+  flow). Genuinely public *because* the cases are genuinely open and new —
+  evergreen-via-fresh-cases, not evergreen-via-replay.
+
+**Authored cases teach (instanced, fresh, co-op); the public board is the endgame
+institution (live, evergreen).** The arc ships the first; the second is a future
+system the arc *gestures at* but does not depend on.
+
 ## The synthesis (best elements, by source)
 
 | Source | Element taken |
@@ -73,8 +105,9 @@ special machinery — just an unreached marker.
 | **Batman / Ethan Carter** | the **reconstruction montage** as *reward* — never as the deduction itself |
 | **Disco Elysium** → our advancement | **competence-gated derivations** — your forensic skill gates what you can `analyze` |
 
-**One-line model:** a **shared, persistent, auto-accreting deduction wall** where
-you post only **grounded findings**, **link them into typed inferences**,
+**One-line model:** an **auto-accreting deduction wall** (party-scoped for
+authored cases, global for the live stream — see *Scope*) where you post only
+**grounded findings**, **link them into typed inferences**,
 conclusions **lock in coherent clusters**, covers are broken by **presenting the
 contradiction**, you **declare readiness** and may finish **incomplete** (the §11
 node stays empty), and a locked cluster **plays back as a reconstruction** — with
@@ -148,10 +181,10 @@ multiplayer crux.**
    weighted? confidence?) and exactly when a cluster "coheres" enough to lock.
    The Sherlock-rich vs. Obra-Dinn-legible tension. *(Lean: start with 3 typed
    edges + a simple cluster rule; expand only if play demands.)*
-2. **Shared vs. per-player board.** One communal wall (the Quad as rumor map,
-   pooling native) vs. per-player boards that *share findings.* *(Lean: shared —
-   it's the multiplayer crux and text makes it cheap; per-player is the
-   single-player degenerate case.)*
+2. **Shared vs. per-player board.** **RESOLVED — see *Scope* above:**
+   **party-scoped instancing** for authored cases (collaborative pooling without
+   global triteness; solo = a board of one), **global-public reserved** for the
+   regenerating live-case stream (the standing homicide institution).
 3. **Wrong convergence.** How possible is a *false* lock (frame the innocent)?
    Grounding makes it hard (can't ground a false link), but the handler can seed
    plausible claims. *(Lean: possible-but-hard, with stakes — a wrong
