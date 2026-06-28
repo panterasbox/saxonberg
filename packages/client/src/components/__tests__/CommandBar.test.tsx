@@ -296,8 +296,56 @@ describe('CommandBar — submit per kind', () => {
         foreground: true,
       });
     });
-    fireEvent.click(screen.getByText('Apple'));
+    // Choices are numbered ("1. Apple") to teach the typed-number CLI path.
+    fireEvent.click(screen.getByText('1. Apple'));
     expect(spies.onSendPromptResponse).toHaveBeenCalledWith('p1', 'apple');
+  });
+
+  it('typing a choice number and Enter sends that choice response', () => {
+    const spies = makeSpies();
+    renderBar(spies);
+    act(() => {
+      pushPrompt({
+        kind: 'choice',
+        promptId: 'p1',
+        label: 'Pick',
+        choices: [
+          { label: 'Apple', response: 'apple' },
+          { label: 'Pear', response: 'pear' },
+        ],
+        foreground: true,
+      });
+    });
+    const input = screen.getByPlaceholderText(
+      'Type a number or click a choice; Esc to go back',
+    );
+    fireEvent.change(input, { target: { value: '2' } });
+    fireEvent.keyDown(input, { key: 'Enter' });
+    expect(spies.onSendPromptResponse).toHaveBeenCalledWith('p1', 'pear');
+  });
+
+  it('hovering a choice chip previews its number in the input', () => {
+    const spies = makeSpies();
+    renderBar(spies);
+    act(() => {
+      pushPrompt({
+        kind: 'choice',
+        promptId: 'p1',
+        label: 'Pick',
+        choices: [
+          { label: 'Apple', response: 'apple' },
+          { label: 'Pear', response: 'pear' },
+        ],
+        foreground: true,
+      });
+    });
+    const input = screen.getByPlaceholderText(
+      'Type a number or click a choice; Esc to go back',
+    ) as HTMLInputElement;
+    fireEvent.mouseEnter(screen.getByText('2. Pear'));
+    expect(input.value).toBe('2');
+    fireEvent.mouseLeave(screen.getByText('2. Pear'));
+    expect(input.value).toBe('');
   });
 
   it('mql-object chip click sends the picked stuffId', () => {
