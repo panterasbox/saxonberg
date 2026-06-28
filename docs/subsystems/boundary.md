@@ -34,7 +34,7 @@ Cross-references:
 | `DoorBearingMixin` | mixin | Adds a `door: Door | null` field for hosts whose exits are synthesized rather than authored (`ExitableVessel`). Constrained to `Stuff & Exitable`. |
 | `Door` | concrete `Thing` subclass | `SealableMixin(Boundary)`. Shared open/closed state referenced by exit pairs. Implements all five conduits — `LightConduit`, `LineOfSight`, `MovementConduit`, `SmellConduit`, `SoundConduit` — all gated on `isOpen()`. `attachedTo: Set<Exit>` is the runtime back-reference. |
 | `AdornableMixin` | mixin | Container-side surface for non-portable attached Stuff (`getFixtures()` parallel to `getContents()`). Composed onto `Location` and `ExitableVessel` (not the bare `Vessel` base — every fixture consumer narrows on `MixinApi.isAdornable` first). |
-| `AdornmentMixin` | mixin | Host-side back-reference (`adornedTo`) and not-portable invariant. Composed by `BoundaryAnchor`; future fixtures (sconces) too. |
+| `AdornmentMixin` | mixin | Host-side back-reference (`adornedTo`) and not-portable invariant. Composed by `BoundaryAnchor` and by content fixtures (e.g. `domain/lounge/NeonSign` = `Adornment(Branded(LightSource(Thing)))`). Attached declaratively via the host's `adornments:` instruction field (see *Declarative adornments* below) or imperatively via `addFixture`. |
 | `Boundary` | concrete `Thing` subclass | The two-anchor abstraction for cross-room channels. Just `extends Thing` — `Visible` / `Perceptible` come baked into Thing's default composition. Subclasses (`Window`, `Door`) compose `Sealable` for shutter / closed state. |
 | `BoundaryAnchor` | concrete `Thing` subclass | `Adornment` Thing — the per-side proxy in each host's `getFixtures()`. Two anchors per Boundary. |
 | `Conduit` | TS interface | Channel-shape: `LightConduit`, `LineOfSight`, `MovementConduit`, `SmellConduit`, `SoundConduit`. Boundary subclasses implement (a subset of) these via `getConduits()`. |
@@ -340,6 +340,35 @@ hasFixture(f: Stuff & Adornment): boolean;
 getFixtures(): readonly (Stuff & Adornment)[];
 getFixtureBoundaries(): Boundary[];      // dedupes via anchor → boundary
 getFixtureLightSources(): (Stuff & Adornment)[];
+```
+
+### Declarative adornments: `applyAdornments` instruction field
+
+`adornments` is an **instruction field** on `AdornableMixin` (declared
+via `static instructionFields = ['adornments']`) — the `applyExits` /
+`applyPopulates` precedent applied to fixtures. Its YAML data is an
+array of `AdornmentSpec` entries (a bare `template` path, or
+`{ template, slot }` for a meaningful slot name). The Hydrator's
+Phase-2 dispatch calls `applyAdornments`, which **clones** each
+template (fixtures are per-instance — no singleton dispatch like
+`applyPopulates`), guards that it composes `AdornmentMixin`
+(`MixinApi.isAdornment`, else a configuration-error throw naming the
+path), and attaches it via `addFixture`. There is no paired getter —
+the live fixtures are read through `getFixtures()`; the spec is
+discarded after Phase 2.
+
+Fixtures are runtime-only (not persisted; `addFixture` sets no
+`environment`, matching `BoundaryApi.attachExistingBoundary`), so
+`applyAdornments` re-runs and rebuilds them on every hydrate — the
+same reconstruct-on-boot model the `BoundaryAnchor` wiring uses. This
+is the declarative seam that retired the imperative-only fixture
+wiring: a seed can now author wall décor (e.g. the `NeonSign` branded
+light-emitting fixtures on Dave's Bar back-bar wall) as pure data.
+
+```yaml
+adornments:
+  - { template: /domain/lounge/neon-veshko, slot: sign:veshko }
+  - /domain/lounge/neon-aevex            # bare path → auto slot
 ```
 
 **Floors are Adornments.** The default-floor template

@@ -73,3 +73,69 @@ data:
           - "Between us? Big doings up the avenue."
         terse:
           - "Mm. Busy one."
+    # The branching-tree responder — `talk to remy`. Remy is the
+    # information node: gossip, the corpo buzz up the avenue, and an
+    # offer to introduce you around. His dishonesty (-70) unlocks the
+    # conspiratorial "you didn't hear it from me" choices; warmth opens
+    # with a rumor he's been saving for you.
+    - brain: /lib/behavior/tree-dialogue
+      trigger: engage
+      config:
+        entry:
+          - node: warm
+            guard:
+              - { fact: regard, op: gte, value: 20 }
+          - node: neutral
+        nodes:
+          warm:
+            beat: "There they are! Sit, sit — I've been saving one just for you."
+            choices:
+              - { line: "Go on then, what's the word?", to: gossip }
+              - line: "You know everyone — introduce me around?"
+                to: intro
+              - line: "Always good to see you, Remy."
+                to: warm
+                effects:
+                  - { verb: regard, delta: 3 }
+              - { line: "Just here for the quiet.", to: done }
+          neutral:
+            beat: "Hey hey — new face! Well, not anymore. Remy's the name. What're we drinking, friend?"
+            choices:
+              - { line: "What's the word around here?", to: gossip }
+              - line: "You look like a man who hears things."
+                guard:
+                  - { fact: "trait:honesty", op: lt, value: 0 }
+                to: gossip
+              - { line: "Nothing for now, thanks.", to: done }
+          gossip:
+            beat: >-
+              Between us? Big doings with the corpo lot up the avenue —
+              but you didn't hear it from me.
+            choices:
+              - line: "Tell me more."
+                to: avenue
+                effects:
+                  - { verb: regard, delta: 2 }
+              - { line: "You're terrible, Remy.", to: done }
+          avenue:
+            beat: >-
+              There's a story in every bottle on that shelf, if you know
+              who owns what. Stick around long enough and I'll teach you
+              to read the room.
+            choices:
+              - line: "I'd like that."
+                to: done
+                effects:
+                  - { verb: regard, delta: 2 }
+              - { line: "Maybe later.", to: done }
+          intro:
+            beat: "Say the word and I'll point you at the right people. That's what I'm for."
+            choices:
+              - line: "Appreciate it."
+                to: done
+                effects:
+                  - { verb: regard, delta: 2 }
+              - { line: "I'll find my own way.", to: done }
+          done:
+            beat: "Catch you 'round, friend!"
+            terminal: true

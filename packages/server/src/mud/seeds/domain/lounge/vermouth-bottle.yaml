@@ -10,3 +10,7 @@ data:
   interiorMaterial: /lib/material/spirit/vermouth
   interiorAmount: 0.7
   gradeBand: fair
+  # The vermouth is Vionne — a prestige house charging premium for a fair
+  # pour, sat right next to its rival Hollis on the rail (the fault line
+  # made literal). "A product of Vionne" renders for free (BrandedMixin).
+  _brandKey: vionne-rouge

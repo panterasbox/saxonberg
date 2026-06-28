@@ -1,0 +1,14 @@
+# A Volk (Veshko) neon sign — a branded, light-emitting wall fixture.
+# Attached to the bar via the bar's `adornments:` field. The "a product
+# of Veshko" mark renders for free (BrandedMixin); the warm amber glow
+# feeds the room's ambient light fixture-side (LightSourceMixin).
+class: /domain/lounge/NeonSign
+hydratorClass: /lib/persistence/PersistentHydrator
+data:
+  shortDescription: a Volk neon sign
+  keywords: [sign, neon, veshko, volk]
+  longDescription: |
+    A neon sign in Veshko's blunt industrial typeface — the word VOLK stamped out in hard amber capitals over a stylized cogwheel. It throws a warm, faintly migraine-bright glow across its corner of the back-bar and hums at a pitch you stop hearing after the first drink.
+  _brandKey: volk
+  emittedIntensity: 95
+  emittedColorTemperature: 2000

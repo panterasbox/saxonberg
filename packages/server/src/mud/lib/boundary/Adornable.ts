@@ -44,10 +44,24 @@ import type { Adornment } from './Adornment';
 import type { Slottable } from '../slot/Slottable';
 import type { Slotted, SlotSpec } from '../slot/Slotted';
 import { StuffApi } from '../../api/stuff';
+import { MixinApi } from '../../api/mixin';
 import { SlottedMixin } from '../slot/Slotted';
 
 import type { Boundary } from './Boundary';
 import { BoundaryAnchor } from './BoundaryAnchor';
+
+/**
+ * One `adornments` entry. A bare path string clones the template and
+ * attaches it with the next synthetic slot name; the object form pins a
+ * meaningful `slot` (the same names `addFixture` accepts — e.g.
+ * `sign:left`). The referenced template MUST compose `AdornmentMixin`
+ * (the applier guards and throws otherwise).
+ *
+ * Fixtures are per-instance by nature (two Veshko signs are two
+ * objects), so the applier always **clones** — there is no singleton
+ * dispatch like `applyPopulates`.
+ */
+export type AdornmentSpec = string | { template: string; slot?: string };
 
 /** Public shape added by AdornableMixin. */
 export interface Adornable {
@@ -65,6 +79,16 @@ export interface Adornable {
   getFixtureLightSources(): (Stuff & Adornment)[];
   getFixtureSmellSources(): (Stuff & Adornment)[];
   getFixtureSoundSources(): (Stuff & Adornment)[];
+  /**
+   * @hook Invoked by the `Hydrator`'s Phase-2 instruction dispatch from
+   *   a template's `adornments` field. **Instruction applier** — clones
+   *   each spec's template and attaches it as a fixture via
+   *   `addFixture`; the spec is not retained and there is no paired
+   *   getter (the live fixtures are read via `getFixtures()`). Fixtures
+   *   are runtime-only, so this re-runs and rebuilds them on every
+   *   hydrate (the `BoundaryAnchor` reconstruction model).
+   */
+  applyAdornments(specs: AdornmentSpec[]): Promise<void>;
 }
 
 export function AdornableMixin<TBase extends MixinConstructor<Stuff & Container>>(
@@ -72,6 +96,39 @@ export function AdornableMixin<TBase extends MixinConstructor<Stuff & Container>
 ) {
   return class AdornableMixin extends SlottedMixin(Base) {
     static _mixinName = 'AdornableMixin';
+
+    /**
+     * Instruction field consumed by `applyAdornments`. The YAML data is
+     * an array of `AdornmentSpec` entries; Phase 2 clones each and
+     * attaches it as a fixture. The `applyExits` / `applyPopulates`
+     * precedent — declarative content over the imperative `addFixture`.
+     */
+    static instructionFields = ['adornments'];
+
+    /**
+     * Phase 2 applier — clone each adornment template and attach it as a
+     * fixture. Mirrors `applyPopulates`, minus the singleton dispatch:
+     * fixtures are per-instance, so every entry is cloned fresh. A
+     * template that doesn't compose `AdornmentMixin` is a configuration
+     * error (it can't be a fixture) and throws, naming the path.
+     */
+    async applyAdornments(specs: AdornmentSpec[]): Promise<void> {
+      if (!Array.isArray(specs)) return;
+      for (const spec of specs) {
+        const path = typeof spec === 'string' ? spec : spec?.template;
+        if (typeof path !== 'string' || path.length === 0) continue;
+        const slot = typeof spec === 'string' ? undefined : spec.slot;
+        const inst = await StuffApi.clone<Stuff>(path);
+        if (!MixinApi.isAdornment(inst)) {
+          throw new Error(
+            `AdornableMixin.applyAdornments: '${path}' is not an ` +
+              `Adornment (it must compose AdornmentMixin to attach as a ` +
+              `fixture)`
+          );
+        }
+        this.addFixture(inst, slot);
+      }
+    }
 
     /**
      * Fixtures keyed by slot name. Single source of truth — the

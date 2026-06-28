@@ -10,3 +10,6 @@ data:
   interiorMaterial: /lib/material/spirit/gin
   interiorAmount: 0.7
   gradeBand: fine
+  # Dave's house pour is a small-batch independent — no corpo owns the
+  # rail. The "an independent label" mark renders for free (BrandedMixin).
+  _brandKey: crowsfoot-gin
