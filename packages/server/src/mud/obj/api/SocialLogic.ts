@@ -9,6 +9,9 @@ import { MixinApi } from "../../api/mixin";
 import { GroupApi } from "../../api/group";
 import { RecognitionApi } from "../../api/recognition";
 import { PlayerApi } from "../../api/player";
+import { ShellApi } from "../../api/shell";
+import { GrammarApi } from "../../api/grammar";
+import { Mml } from "../../api/mml";
 import { AppApi } from "../../api/app";
 import { AppSettingKeys } from "../../lib/config/AppSettings";
 import type { GroupRef } from "../../lib/social/GroupProvider";
@@ -308,6 +311,195 @@ function ensureStored(host: NotifyPolicy, viewer: Stuff, ref: GroupRef): void {
   host.upsertNotifyRule(defaultRuleFor(viewer, ref));
 }
 
+/* ── Phase 2: the display-lensing occupant formatter ─────────────────── */
+
+/** A pre-grouped occupant's render disposition (see {@link modeFor}). */
+type RenderMode = "boosted" | "individual" | "grouped" | "hidden";
+
+/** The verbosity dial's three positions. */
+type Verbosity = "minimal" | "standard" | "verbose";
+
+/**
+ * Density level `0..3` from the room's renderable-occupant count — the
+ * requirements' four-tier table (`<10` / `10–30` / `30–100` / `>100`).
+ * Boundaries: 30 sits in the `10–30` tier, 100 in the `30–100` tier.
+ */
+function densityLevel(roomSize: number): number {
+  if (roomSize < 10) return 0;
+  if (roomSize <= 30) return 1;
+  if (roomSize <= 100) return 2;
+  return 3;
+}
+
+/** The viewer's `social.verbosity` (schema default `standard`). */
+function verbosityOf(viewer: Stuff): Verbosity {
+  const v = ShellApi.resolveSetting<string>(viewer, "social.verbosity");
+  return v === "minimal" || v === "verbose" ? v : "standard";
+}
+
+/**
+ * The density level after verbosity modulation: `minimal` shifts one tier
+ * more aggressive, `verbose` disables collapse entirely (signalled by a
+ * `-1` level — every non-hidden occupant renders individually).
+ */
+function effectiveLevel(roomSize: number, verbosity: Verbosity): number {
+  if (verbosity === "verbose") return -1;
+  const base = densityLevel(roomSize);
+  return verbosity === "minimal" ? Math.min(3, base + 1) : base;
+}
+
+/**
+ * How a single occupant renders, given the effective density `level` and
+ * the rule that matched them. Boosted rules (`boostInDense`) are always
+ * lifted and named; `hidden` rules are dropped. Otherwise the rule's
+ * `nameRendering` and the tier decide individual-vs-grouped — `name`-class
+ * occupants (`everyone-else`) collapse only at the top tier, while
+ * `feature-string`-class occupants (`strangers`) collapse from the
+ * `30–100` tier up, matching the requirements table.
+ */
+function modeFor(level: number, rule: ResolvedRule): RenderMode {
+  if (rule.boostInDense) return "boosted";
+  if (rule.nameRendering === "hidden") return "hidden";
+  if (level < 0) return "individual"; // verbose — no collapse
+  switch (rule.nameRendering) {
+    case "name":
+      return level >= 3 ? "grouped" : "individual";
+    case "feature-string":
+      return level >= 2 ? "grouped" : "individual";
+    case "count-only":
+      return "grouped";
+    default:
+      return "individual";
+  }
+}
+
+/** The species common-name of an organism occupant, or null. */
+function speciesNameOf(occ: Stuff): string | null {
+  if (!MixinApi.isOrganism(occ)) return null;
+  return occ.getSpecies()?.getCommonNames()[0] ?? null;
+}
+
+/**
+ * The most-distinctive worn feature of an occupant, parsed out of the
+ * `RecognitionApi.salientFeatures` string (`"a dwarf wearing red robes"` →
+ * `"red robes"`). Null when nothing notable is worn — composing *through*
+ * the shipped salient-features primitive rather than re-deriving it.
+ */
+function wornFeatureOf(occ: Stuff): string | null {
+  const salient = RecognitionApi.salientFeatures(occ);
+  const marker = " wearing ";
+  const idx = salient.lastIndexOf(marker);
+  if (idx < 0) return null;
+  const worn = salient.slice(idx + marker.length).trim();
+  return worn.length > 0 ? worn : null;
+}
+
+/**
+ * Build an eager `<name>` fragment for one occupant. The display text is
+ * resolved **now** through `RecognitionApi.describe(viewer, occ)` (compose
+ * *through* describe, never re-implement naming) because the occupant block
+ * is resolved eagerly for a single known viewer (see
+ * `composeOccupantsImpl`); a boosted occupant carries its rule's palette
+ * token as a `color` attribute the client theme maps to a treatment.
+ */
+function nameMml(viewer: Stuff, occ: Stuff, color?: PaletteToken): Mml {
+  const display = RecognitionApi.describe(viewer, occ);
+  const colorAttr = color ? ` color="${Mml.escape(color)}"` : "";
+  return Mml.fromMarkup(
+    `<name stuff-id="${Mml.escape(occ.stuffId)}"${colorAttr}>` +
+      `${Mml.escape(display)}</name>`,
+  );
+}
+
+/**
+ * A collapsed-group line — a targetable handle carrying its MQL seed in a
+ * `mudq:` `<link>` so the four client addressability paths (hover →
+ * command-bar preview, expand-on-pull, inspection-pane drill, verb-time
+ * `mqlMany`) have something to resolve. `mudq:` is inert-but-painted in v1
+ * (see `message-rendering.md`); the click/preview wiring is the deferred
+ * seam. The seed is the human-readable room-scope query (`dwarves in red
+ * robes` / `others`); percent-encoding is deferred with the click handler.
+ */
+function groupHandle(seed: string, label: string): Mml {
+  return Mml.link(`mudq:${seed}`, label);
+}
+
+/** See {@link SocialApi.composeOccupants}. */
+async function composeOccupantsImpl(
+  viewer: Stuff,
+  occupants: Stuff[],
+  roomSize: number,
+): Promise<Mml> {
+  const level = effectiveLevel(roomSize, verbosityOf(viewer));
+
+  const boosted: Mml[] = [];
+  const individual: Mml[] = [];
+  const collapsible: Stuff[] = [];
+
+  for (const occ of occupants) {
+    // Eager (await) resolution: ruleFor is async (membership rides
+    // GroupApi.isMember), but MML toString is sync. v1 renders the
+    // occupant block for a single known viewer (look's toSelf, arrival's
+    // forceCommand('look')), so we resolve here rather than via a
+    // late-bound sync wrapper. Late-binding for a future multi-recipient
+    // enter-broadcast is the deferred seam.
+    const rule = await ruleForImpl(viewer, occ, {});
+    switch (modeFor(level, rule)) {
+      case "boosted":
+        boosted.push(nameMml(viewer, occ, rule.color));
+        break;
+      case "individual":
+        individual.push(nameMml(viewer, occ));
+        break;
+      case "grouped":
+        collapsible.push(occ);
+        break;
+      case "hidden":
+        break;
+    }
+  }
+
+  // Similarity-group the collapsible occupants by (species, worn feature).
+  // A group needs a shared tuple AND at least two members to read as a
+  // count line ("12 dwarves in red robes"); everything else — incomplete
+  // tuples and lone occupants — falls to the generic "(N others present)".
+  const tupleGroups = new Map<string, Stuff[]>();
+  const generic: Stuff[] = [];
+  for (const occ of collapsible) {
+    const species = speciesNameOf(occ);
+    const feature = wornFeatureOf(occ);
+    if (species && feature) {
+      const key = `${species}␟${feature}`;
+      const bucket = tupleGroups.get(key);
+      if (bucket) bucket.push(occ);
+      else tupleGroups.set(key, [occ]);
+    } else {
+      generic.push(occ);
+    }
+  }
+
+  const grouped: Mml[] = [];
+  for (const [key, members] of tupleGroups) {
+    if (members.length < 2) {
+      generic.push(...members);
+      continue;
+    }
+    const sep = key.indexOf("␟");
+    const species = key.slice(0, sep);
+    const feature = key.slice(sep + 1);
+    const plural = GrammarApi.pluralize(members[0]!, species);
+    const seed = `${plural} in ${feature}`;
+    grouped.push(groupHandle(seed, `${members.length} ${seed}`));
+  }
+  if (generic.length > 0) {
+    const n = generic.length;
+    const noun = n === 1 ? "other present" : "others present";
+    grouped.push(groupHandle("others", `(${n} ${noun})`));
+  }
+
+  return Mml.list([...boosted, ...individual, ...grouped]);
+}
+
 /**
  * SocialLogic — the hot-reloadable logic singleton behind
  * {@link SocialApi}.
@@ -357,6 +549,16 @@ export class SocialLogic extends Idea {
   @CallSecurity(SocialApiCallers)
   public removeRule(viewer: Stuff, ref: GroupRef): boolean {
     return removeRuleImpl(viewer, ref);
+  }
+
+  /** See {@link SocialApi.composeOccupants}. */
+  @CallSecurity(SocialApiCallers)
+  public composeOccupants(
+    viewer: Stuff,
+    occupants: Stuff[],
+    roomSize: number,
+  ): Promise<Mml> {
+    return composeOccupantsImpl(viewer, occupants, roomSize);
   }
 
   /** See {@link SocialApi.reorderRule}. */

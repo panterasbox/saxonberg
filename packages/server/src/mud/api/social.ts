@@ -17,6 +17,7 @@
  */
 
 import type { Stuff } from "../lib/stuff/Stuff";
+import type { Mml } from "./mml";
 import type { GroupRef } from "../lib/social/GroupProvider";
 import type {
   NotifyRule,
@@ -100,6 +101,30 @@ export class SocialApi {
   /** Drop the rule keyed on `ref` (group falls to the baseline tail). */
   public static removeRule(viewer: Stuff, ref: GroupRef): boolean {
     return logic().removeRule(viewer, ref);
+  }
+
+  /**
+   * Render the per-viewer occupant block for a room: the display-lensing
+   * formatter (Phase 2), a sibling of `RecognitionApi.describe` one
+   * cardinality up. Partitions `occupants` by the shared `ruleFor`
+   * first-match into boosted (lifted + full-named + colored), named-default,
+   * and density-collapsed (similarity-grouped "N <species> in <feature>" /
+   * "(N others present)") buckets, modulated by the viewer's
+   * `social.verbosity`. `roomSize` (renderable-organism count) drives the
+   * density tier.
+   *
+   * Returns a **fully-resolved** `Mml` for `viewer` — resolved eagerly
+   * because `ruleFor` is async while MML `toString` is sync; v1 renders the
+   * block for a single known viewer (look's `toSelf`, arrival's
+   * `forceCommand('look')`). The collapsed lines are `mudq:` handles
+   * carrying their room-scope MQL seed so the aggregate stays targetable.
+   */
+  public static composeOccupants(
+    viewer: Stuff,
+    occupants: Stuff[],
+    roomSize: number,
+  ): Promise<Mml> {
+    return logic().composeOccupants(viewer, occupants, roomSize);
   }
 
   /**
