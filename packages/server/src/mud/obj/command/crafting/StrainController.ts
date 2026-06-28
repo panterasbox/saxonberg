@@ -22,6 +22,7 @@ import { MessageApi } from "../../../api/message";
 import { Mml } from "../../../api/mml";
 import { CraftingApi } from "../../../api/crafting";
 import { ExecutionContextApi } from "../../../api/execution-context";
+import { Transcriber } from "../../../lib/script/Transcriber";
 
 const TOPIC = "world.narration.action";
 const STRAIN_MS = 2500;
@@ -70,12 +71,19 @@ export default class StrainController extends ManualBuildController<StrainModel>
       "";
     const built: Stuff & Builds = vessel;
     const into = glass;
+    // The builder + this strain's command text, captured for demonstration
+    // capture (the mint + transcribe run later, outside the command frame).
+    const builder = giver;
+    const commandText = context.commandText;
 
     this.engageStep(context, {
       durationMs: STRAIN_MS,
       beginSelf: Mml.compose`You begin straining ${Mml.item(vessel)} into ${Mml.item(glass)}.`,
       onComplete: () => {
         void (async (): Promise<void> => {
+          // Close the capture: the strain is the last step of the build.
+          built.recordCommand(commandText);
+          const sources = built.getCommandSources();
           const outcome = await CraftingApi.mintFromBuild({
             glass: into,
             contributions: [...built.getContributions()],
@@ -89,12 +97,35 @@ export default class StrainController extends ManualBuildController<StrainModel>
               .send();
             return;
           }
+          const recipeId = outcome.recipeId;
           built.clearBuild();
           MessageApi.scene(giver)
             .topic(TOPIC)
             .toSelf(Mml.compose`You strain out ${Mml.item(outcome.output)}.`)
             .toPeers(Mml.compose`${Mml.name(giver)} strains out ${Mml.item(outcome.output)}.`)
             .send();
+
+          // Demonstration capture: a hand-typed build that matched a recipe
+          // transcribes into a named recipe-script banked to the builder's
+          // home. A scripted replay records no sources → nothing to capture.
+          if (recipeId.length > 0 && sources.length > 0) {
+            await ExecutionContextApi.runRoot(
+              StrainController,
+              "transcribe",
+              async () => {
+                ExecutionContextApi.tagActingAuthor(builder);
+                const path = await Transcriber.transcribe(recipeId, sources);
+                if (path !== null) {
+                  MessageApi.scene(giver)
+                    .topic(TOPIC)
+                    .toSelf(
+                      Mml.compose`You've worked out how to make ${recipeId} — the recipe is yours now (try \`make ${recipeId}\`).`,
+                    )
+                    .send();
+                }
+              },
+            );
+          }
         })().catch((err: unknown) => {
           console.error("StrainController: mint failed", err);
         });

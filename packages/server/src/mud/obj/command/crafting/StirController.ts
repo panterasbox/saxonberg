@@ -49,11 +49,13 @@ export default class StirController extends ManualBuildController<StirModel> {
     }
 
     const built: Stuff & Builds = vessel;
+    const commandText = context.commandText;
     this.engageStep(context, {
       durationMs: STIR_MS,
       beginSelf: Mml.compose`You begin to ${verb} ${Mml.item(vessel)}.`,
       onComplete: () => {
         built.setBuildMethod(method);
+        built.recordCommand(commandText);
         MessageApi.scene(giver)
           .topic(TOPIC)
           .toSelf(Mml.compose`You ${verb} ${Mml.item(built)} well.`)

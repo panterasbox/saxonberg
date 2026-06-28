@@ -64,6 +64,12 @@ export interface CraftSuccess {
   output: Stuff;
   /** Its derived quality grade. */
   grade: Grade;
+  /**
+   * The recipe this was made from — `''` for a generic (recipe-unmatched)
+   * manual build. Demonstration capture (P8) names the transcribed
+   * recipe-script after it; the knowledge ladder (P9) gates on it.
+   */
+  recipeId: string;
 }
 
 export interface CraftFailure {

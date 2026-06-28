@@ -315,7 +315,7 @@ async function mintFromBuildImpl(req: BuildMintRequest): Promise<CraftOutcome> {
     craftedAt: WorldClockApi.getNow().rawValue(),
   });
 
-  return { ok: true, output: glass, grade };
+  return { ok: true, output: glass, grade, recipeId };
 }
 
 /** The craft-resolve algorithm. See {@link CraftingApi.craft}. */
@@ -382,7 +382,7 @@ async function craftImpl(req: CraftRequest): Promise<CraftOutcome> {
   consumeBulkInputs(matched);
   for (const t of usedTools) t.wear();
 
-  return { ok: true, output, grade };
+  return { ok: true, output, grade, recipeId: recipe.getRecipeId() };
 }
 
 async function lookupImpl(ref: string): Promise<RecipeView | null> {

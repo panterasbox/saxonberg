@@ -92,6 +92,9 @@ export default class PourController extends ManualBuildController<PourModel> {
     const material = mpath ? await StuffApi.singleton<Material>(mpath) : null;
     const category = material ? primaryCategory(material) : "unknown";
     const gradeBand = bottle.getGradeBand();
+    // Captured for the demonstration-capture trail (empty for a scripted
+    // dispatch — only a hand-typed build accumulates a transcript).
+    const commandText = context.commandText;
 
     this.engageStep(context, {
       durationMs: POUR_MS,
@@ -115,6 +118,7 @@ export default class PourController extends ManualBuildController<PourModel> {
           measureL: result.applied,
           gradeBand,
         });
+        vessel.recordCommand(commandText);
         MessageApi.scene(giver)
           .topic(TOPIC)
           .toSelf(Mml.compose`You pour ${Mml.item(bottle)} into ${Mml.item(vessel)}.`)

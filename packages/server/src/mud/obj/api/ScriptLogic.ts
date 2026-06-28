@@ -216,7 +216,11 @@ async function runAstImpl(ast: Script, authorPath?: string): Promise<void> {
  * `false` when no such script is defined (the caller declines).
  */
 async function invokeImpl(name: string, args: string[]): Promise<boolean> {
-  const actor = currentActor();
+  // The acting author (transport-agnostic), so a recipe loaded by path
+  // (`invokeByPath`, also author-keyed) and the session-`def` it
+  // registered resolve under the same actor — the same giver in a
+  // non-forced command frame as `currentActor`.
+  const actor = currentAuthor();
   if (actor === null) return false;
   const defs = sessionDefsFor(actor);
   const def = defs.get(name);
