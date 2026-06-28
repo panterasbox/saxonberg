@@ -23,10 +23,13 @@ describe("AdornableMixin.applyAdornments", () => {
     StuffApi.clearAll();
   });
 
-  it("registers `adornments` as an instruction field (Hydrator Phase-2 dispatch)", () => {
-    expect(MixinApi.getAllInstructionFields(CartesianLocation)).toContain(
-      "adornments"
-    );
+  it("registers `adornments` as an instruction field without shadowing siblings", () => {
+    // CartesianLocation composes both Adornable and Exitable; the chain
+    // walk must collect BOTH (a `static instructionFields` on Adornable
+    // must not clobber Exitable's 'exits' / Populates' 'populates').
+    const fields = MixinApi.getAllInstructionFields(CartesianLocation);
+    expect(fields).toContain("adornments");
+    expect(fields).toContain("exits");
   });
 
   it("clones each spec and attaches it as a fixture, stamping adornedTo", async () => {
