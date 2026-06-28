@@ -63,3 +63,66 @@ data:
           - "Welcome to my bar."
           - "What're we drinking?"
           - "Glad you came by, friend."
+    # The branching-tree responder — `talk to dave`. Dave is the endgame
+    # made flesh: the performer's rehearsed charm up front, the settled
+    # institution-keeper underneath. Low humility (-70) keeps the bit
+    # front-and-center; the `real` node (high regard) drops it and points
+    # at the door north — the inner sanctum he's mostly retired into.
+    - brain: /lib/behavior/tree-dialogue
+      trigger: engage
+      config:
+        entry:
+          - node: warm
+            guard:
+              - { fact: regard, op: gte, value: 30 }
+          - node: neutral
+        nodes:
+          warm:
+            beat: "Well, look who the cat dragged in. You're alright, you know that? Not everybody gets the real me."
+            choices:
+              - { line: "What is the real you, Dave?", to: real }
+              - { line: "How'd you end up running this place?", to: story }
+              - line: "Yippee-ki-yay, Dave."
+                to: warm
+                effects:
+                  - { verb: regard, delta: 2 }
+              - { line: "Just saying hello.", to: done }
+          neutral:
+            beat: "Dave. My bar. *polishes a glass that didn't need it* What can I do for you?"
+            choices:
+              - { line: "Do the Bruce Willis.", to: bit }
+              - { line: "You own the place?", to: story }
+              - { line: "Just passing through.", to: done }
+          bit:
+            beat: >-
+              *drops into a gravelly drawl* "Yippee-ki-yay." ...Nah. I'm
+              retired from all that. Mostly.
+            choices:
+              - line: "Still got it."
+                to: done
+                effects:
+                  - { verb: regard, delta: 2 }
+              - { line: "Heh. Cheers, Dave.", to: done }
+          story:
+            beat: >-
+              Acted a little, drifted a lot, landed here. Stopped chasing
+              the next thing and started keeping a thing. Best decision I
+              never planned.
+            choices:
+              - { line: "Sounds like you found it.", to: done }
+              - { line: "Lucky place.", to: done }
+          real:
+            beat: >-
+              The real me works in the back these days. You stop pouring,
+              eventually — you become the place instead. There's a door
+              north most folks never notice. Earn it, and we'll talk
+              properly.
+            choices:
+              - line: "I'd like that, Dave."
+                to: done
+                effects:
+                  - { verb: regard, delta: 3 }
+              - { line: "I'll keep it in mind.", to: done }
+          done:
+            beat: "Take it easy out there."
+            terminal: true

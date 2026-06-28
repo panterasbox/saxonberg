@@ -62,3 +62,61 @@ data:
         terse:
           - "..."
           - "Mm."
+    # The branching-tree responder — `talk to sloane`. Sloane is the
+    # Confessor: perceptive (composure +70 unlocks the "what do you see"
+    # read), secretive (honesty -70 keeps the confidences), compassionate
+    # (+70 — the unload-on-me path). The good stuff opens only with
+    # regard; a stranger gets quiet courtesy, not the dark end of the bar.
+    - brain: /lib/behavior/tree-dialogue
+      trigger: engage
+      config:
+        entry:
+          - node: warm
+            guard:
+              - { fact: regard, op: gte, value: 20 }
+          - node: neutral
+        nodes:
+          warm:
+            beat: "You came back. Sit at the dark end — it's quieter down here. You look like you've had a day."
+            choices:
+              - { line: "Honestly? It's been a rough one.", to: confess }
+              - line: "What do you see, watching all night?"
+                guard:
+                  - { fact: "trait:composure", op: gte, value: 50 }
+                to: watch
+              - { line: "Nothing a quiet drink won't fix.", to: done }
+          neutral:
+            beat: "...Hey. Sloane. Pull up if you like — I don't pry."
+            choices:
+              - { line: "You always this quiet?", to: quiet }
+              - { line: "Something's been on my mind.", to: confess }
+              - { line: "Just a drink, thanks.", to: done }
+          confess:
+            beat: >-
+              I'm listening. No charge for that one, and it doesn't leave
+              this end of the bar.
+            choices:
+              - line: "Thanks. I needed that."
+                to: done
+                effects:
+                  - { verb: regard, delta: 3 }
+              - { line: "Forget I said anything.", to: done }
+          watch:
+            beat: >-
+              Mostly I see who needs another and who just needs someone to
+              not say anything. You're the second kind, tonight.
+            choices:
+              - line: "You're good at this."
+                to: done
+                effects:
+                  - { verb: regard, delta: 2 }
+              - { line: "Spooky, that.", to: done }
+          quiet:
+            beat: >-
+              Quiet keeps the confidences. People tell me things — and I
+              keep them. That's the whole job, after midnight.
+            choices:
+              - { line: "Fair enough.", to: done }
+          done:
+            beat: "Door's open a while yet. Mind the late hour."
+            terminal: true

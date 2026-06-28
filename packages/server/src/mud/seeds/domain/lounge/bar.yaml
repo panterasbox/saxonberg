@@ -19,9 +19,61 @@ data:
   primaryKeyword: bar
   illustration: location/bar.png
   longDescription: |
-    A narrow, warm room that smells of citrus peel and old wood. The bar itself is a single slab of something dark and scarred, lit from beneath so the bottles ranked behind it throw long colored shadows up the wall. Stools wait in a patient row. Behind the taps a chalkboard menu has been wiped and rewritten so many times it's gone soft and grey.
+    A narrow, warm room that smells of citrus peel and old wood. The bar itself is a single slab of something dark and scarred, lit from beneath so the bottles ranked behind it throw long colored shadows up the wall. Stools wait in a patient row. Behind the taps a chalkboard menu has been wiped and rewritten so many times it's gone soft and grey. Neon signs and brass tap handles wash the far wall in an amber haze — a wall crowded with framed photographs, a chipped mug on a high shelf, and a few curling, signed dollar bills.
 
     The lounge is back through the doorway to the south.
+  # Examine-on-demand (the barfly look-closely layer). The room `look`
+  # names these; the stories are latent until pulled (`look at the
+  # photos`, `look at the signs`). The corpo legibility surface ties the
+  # branded bottles + Remy's gossip to the wall; the photo wall + the
+  # mug + the bills carry the bar's attributed, un-fakeable history.
+  details:
+    signs:
+      keywords: [sign, signs, neon, tap, taps, handle, handles, light, lights]
+      description: |
+        The glow is corporate. Each neon sign and brass tap handle carries a maker's mark, and Dave chose every one — which makes the far wall a map of his politics. A Veshko sign hums beside an Aevex one that's never quite forgiven it; a cheap proud Hollis light buzzes a few feet from the cool Vionne script it's spent years undercutting. Read the wall and you can read the whole avenue's quarrels, lit up in amber and rose.
+    photos:
+      keywords: [photo, photos, photograph, photographs, wall, picture, pictures, frame, frames]
+      description: |
+        Decades of regulars, going yellow in their frames. A younger Dave mid-impression, caught with one arm flung wide and the whole room laughing. A broad half-orc — Augie, unmistakably — behind the bar with a clipboard under one arm and a grin like he owns the place, though he never did. Empty stools photographed on purpose, the way you photograph people who aren't coming back.
+    mug:
+      keywords: [mug, tankard, shelf, brass, plate]
+      description: |
+        A chipped pewter mug sits alone on a high shelf, a little brass plate screwed beneath it with a name worn past reading. Nobody washes it. Nobody moves it. The bar keeps its own, and this is how it remembers them.
+    bills:
+      keywords: [bill, bills, dollar, dollars, note, notes, money]
+      description: |
+        Signed bills tacked up behind the rail, gone soft with smoke and years — first dollars, dares paid off, a couple of IOUs in Dave's own hand that he plainly never meant to collect. Every one is somebody's small story, kept where they can see it kept.
+    slab:
+      keywords: [slab, counter, woodwork, wood, scar, scars, rings]
+      description: |
+        Up close the dark slab is a ledger of its own — water rings inside water rings, a constellation of old cigarette burns, initials gouged in by somebody who got told off for it. Sanded smooth, never replaced. A newer bar would have thrown it out years ago; that's rather the point.
+    stools:
+      keywords: [stool, stools, seat, seats, leather, rail]
+      description: |
+        Worn leather, each one shaped a little differently by the body that owns it — and on a quiet night one at the end of the rail sits empty on purpose, kept for whichever of the staff is off-shift and drinking here anyway. Where else would they go.
+  # The non-obvious way into Dave's office. Declared `hidden` (absent
+  # from `look` / obvious-exits — the slate's non-obvious exit) and
+  # `bidirectional: false` so it does NOT auto-install a hidden inverse;
+  # the office declares its own plain, visible south exit back out. The
+  # south exit (bar->lounge host) is still wired imperatively by the
+  # Warren and is deliberately not declared here. NOTE: true regard-
+  # gating on this exit needs an access-gated-exit code seam (not yet
+  # declaratively authorable); for now the room is discoverable by the
+  # curious who try `north`.
+  exits:
+    north:
+      destination: /domain/lounge/office
+      hidden: true
+      bidirectional: false
+  # The corpo battlefield, lit. Branded neon signs attached as non-
+  # portable wall fixtures (AdornableMixin.applyAdornments): each carries
+  # a corpo mark and emits light, so rival Veshko (amber) and Aevex
+  # (cool blue) literally glow against each other over the back-bar —
+  # the fault line the `signs` detail + Remy's gossip describe.
+  adornments:
+    - { template: /domain/lounge/neon-veshko, slot: sign:veshko }
+    - { template: /domain/lounge/neon-aevex, slot: sign:aevex }
   # The crafting fixtures stock the rail; the cast spawns here on
   # hydration too. Each cast member is an NPC template + behavior data;
   # the `shifts` brain sorts them by the game clock — whoever's on shift

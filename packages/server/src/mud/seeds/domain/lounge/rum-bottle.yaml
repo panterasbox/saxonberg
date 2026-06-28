@@ -10,3 +10,6 @@ data:
   interiorMaterial: /lib/material/spirit/rum
   interiorAmount: 0.7
   gradeBand: fine
+  # The well rum is Hollis — cheap, mass-retail, proud of it. "A product
+  # of Hollis" renders for free (BrandedMixin).
+  _brandKey: hollis-cane

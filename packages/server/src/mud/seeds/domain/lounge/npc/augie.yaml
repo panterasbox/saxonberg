@@ -56,3 +56,73 @@ data:
         lines:
           - "Well, come on in."
           - "Good to see you. Sit, sit."
+    # The branching-tree responder — `talk to augie`. Augie is the bar's
+    # living history and the keeper of the succession. The slate's rule:
+    # the good stories are earned — told only to someone who keeps coming
+    # back (regard-gated). The `clipboard` node plants the leadership-by-
+    # continuity lineage (Dave -> Augie -> Mara -> ?) — the authored seam
+    # the deferred succession arc will grow from.
+    - brain: /lib/behavior/tree-dialogue
+      trigger: engage
+      config:
+        entry:
+          - node: warm
+            guard:
+              - { fact: regard, op: gte, value: 25 }
+          - node: neutral
+        nodes:
+          warm:
+            beat: "Ah — you keep coming back. That's the whole secret of a place like this, you know. Pull up. I'll tell you a good one."
+            choices:
+              - { line: "How did Dave end up with this bar?", to: daveStory }
+              - { line: "Who kept the place before Mara?", to: clipboard }
+              - line: "Just glad to be here, Augie."
+                to: warm
+                effects:
+                  - { verb: regard, delta: 2 }
+              - { line: "Another time. Take care.", to: done }
+          neutral:
+            beat: "Well, come in, come in. Augie. I only work the weekends now — semi-retired, they tell me."
+            choices:
+              - { line: "You've been here a long time?", to: years }
+              - { line: "What's good this weekend?", to: done }
+              - { line: "Just passing through.", to: done }
+          years:
+            beat: >-
+              Longer than most. Long enough to pour for three generations
+              of regulars and mean it every time.
+            choices:
+              - { line: "Tell me a story, then.", to: soon }
+              - { line: "That's something.", to: done }
+          soon:
+            beat: >-
+              Heh. Stick around, friend. The good stories keep — they're
+              for the regulars. Come back and earn one.
+            choices:
+              - { line: "I'll do that.", to: done }
+          daveStory:
+            beat: >-
+              Dave? He acted, once. Did a Bruce Willis that could clear a
+              room — the good way. Drifted through a hundred odd jobs, then
+              he found this place, and it found him. Stuck, this time.
+            choices:
+              - line: "Sounds like he found home."
+                to: done
+                effects:
+                  - { verb: regard, delta: 2 }
+              - { line: "And you?", to: clipboard }
+          clipboard:
+            beat: >-
+              Before Mara kept the books, I did. Before me, Dave himself.
+              Somebody always picks up the clipboard — nobody hands it to
+              you. You just start counting the bottles one day, and the
+              place starts looking to you. That's how it passes here.
+            choices:
+              - line: "Maybe I'll count them, someday."
+                to: done
+                effects:
+                  - { verb: regard, delta: 3 }
+              - { line: "Sounds like a lot of work.", to: done }
+          done:
+            beat: "No rush, friend. Come back when you can stay a while."
+            terminal: true
