@@ -268,17 +268,30 @@ like contacts but with an arbitrary `GroupRef` subject.
 ```
 notify                          # list your ordered rules + a compact summary
 notify <ref>                    # show one rule
-notify <ref> k=v [k=v…]         # set fields: login= disconnect= message=
-                                #   render= boost= color=
+notify <ref> --login <s> --disconnect <s> --message <s> \
+       --render <s> --boost --no-boost --color <s>
+                                # set fields (typed options)
 notify <ref> --above <ref>      # reorder above another (order = precedence)
 notify <ref> --below <ref>      # reorder below another
-notify <ref> remove             # drop the rule (group falls to the tail)
+notify <ref> --remove           # drop the rule (group falls to the tail)
+notify remove <ref>             # …same, via the remove subcommand
 ```
+
+The set-fields are typed **options**, not positional `k=v`: the command
+framework forbids an optional `<ref>` positional followed by a greedy
+assignment positional (a greedy arg is implicitly required + last), so an
+optional ref + free-form `k=v` is structurally illegal. `--login` /
+`--disconnect` take `banner|log-only|silent`; `--message` takes
+`full|summary|silent`; `--render` takes
+`name|feature-string|count-only|hidden`; `--boost` / `--no-boost` are the
+boolean flag pair; `--color` takes a palette token.
 
 `NotifyController` is a thin caller: it normalizes the typed `<ref>`
 (bare label → `contacts:<me>:<label>`; refs containing `:` and the bare
-pseudo-subjects pass through), parses the `k=v` assignments, enforces the
-**50-rule soft cap** at set-time with a friendly rejection, and dispatches
+pseudo-subjects pass through), builds the field patch from whichever typed
+options were provided (validating each value against its vocabulary),
+enforces the **50-rule soft cap** at set-time with a friendly rejection,
+and dispatches
 to `SocialApi.{setRule,removeRule,reorderRule,listRules}`. A `silent`
 surface *is* the mute, so allow and deny share the verb. The global
 verbosity dial stays the settings verb
@@ -328,7 +341,7 @@ front over `notify`**:
   and the server's ordered store is authoritative, so the projection's
   next push reconciles the order.
 - An "add group" input resolves a typed ref to a default rule
-  (`notify <ref> render=name`, a default-preserving create), and a global
+  (`notify <ref> --render name`, a default-preserving create), and a global
   `social.verbosity` control issues the `settings set` command.
 
 ## Two flagged deferrals

@@ -259,7 +259,7 @@ export const SocialNotificationsPane: React.FC<
   const optionRow = (
     rule: SocialRuleProjection,
     fieldLabel: string,
-    key: string,
+    flag: string,
     options: readonly string[],
     current: string,
   ): React.ReactElement => (
@@ -267,10 +267,10 @@ export const SocialNotificationsPane: React.FC<
       <FieldLabel>{fieldLabel}</FieldLabel>
       {options.map((opt) =>
         cmdButton(
-          `notify ${rule.groupRef} ${key}=${opt}`,
+          `notify ${rule.groupRef} --${flag} ${opt}`,
           opt,
           current === opt,
-          `${key}-${opt}`,
+          `${flag}-${opt}`,
         ),
       )}
     </Field>
@@ -279,9 +279,9 @@ export const SocialNotificationsPane: React.FC<
   const submitAdd = (): void => {
     const ref = addRef.trim();
     if (!ref) return;
-    // Any field assignment materializes the rule with defaults; `render=
+    // Any field option materializes the rule with defaults; `--render
     // name` is the custom default, so this is a default-preserving create.
-    onCommandClick(`notify ${ref} render=name`);
+    onCommandClick(`notify ${ref} --render name`);
     setAddRef("");
   };
 
@@ -323,7 +323,7 @@ export const SocialNotificationsPane: React.FC<
                 {rule.reserved && <ReservedTag>(default)</ReservedTag>}
                 <Spacer />
                 {cmdButton(
-                  `notify ${rule.groupRef} remove`,
+                  `notify ${rule.groupRef} --remove`,
                   "remove",
                   false,
                   `remove-${rule.groupRef}`,
@@ -337,14 +337,14 @@ export const SocialNotificationsPane: React.FC<
                     key={tok}
                     $color={paletteColor(tok)}
                     $active={rule.color === tok}
-                    data-testid={`notify ${rule.groupRef} color=${tok}`}
+                    data-testid={`notify ${rule.groupRef} --color ${tok}`}
                     aria-label={`color ${tok}`}
                     onMouseEnter={() =>
-                      onCommandPreview(`notify ${rule.groupRef} color=${tok}`)
+                      onCommandPreview(`notify ${rule.groupRef} --color ${tok}`)
                     }
                     onMouseLeave={() => onCommandPreview(null)}
                     onClick={() =>
-                      onCommandClick(`notify ${rule.groupRef} color=${tok}`)
+                      onCommandClick(`notify ${rule.groupRef} --color ${tok}`)
                     }
                   />
                 ))}
@@ -361,13 +361,13 @@ export const SocialNotificationsPane: React.FC<
               <Field>
                 <FieldLabel>boost</FieldLabel>
                 {cmdButton(
-                  `notify ${rule.groupRef} boost=on`,
+                  `notify ${rule.groupRef} --boost`,
                   "on",
                   rule.boostInDense,
                   `boost-on`,
                 )}
                 {cmdButton(
-                  `notify ${rule.groupRef} boost=off`,
+                  `notify ${rule.groupRef} --no-boost`,
                   "off",
                   !rule.boostInDense,
                   `boost-off`,
@@ -413,7 +413,7 @@ export const SocialNotificationsPane: React.FC<
               data-testid="social-add-button"
               onMouseEnter={() =>
                 addRef.trim() &&
-                onCommandPreview(`notify ${addRef.trim()} render=name`)
+                onCommandPreview(`notify ${addRef.trim()} --render name`)
               }
               onMouseLeave={() => onCommandPreview(null)}
               onClick={submitAdd}

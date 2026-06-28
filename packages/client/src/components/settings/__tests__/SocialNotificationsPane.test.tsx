@@ -71,7 +71,7 @@ describe("SocialNotificationsPane", () => {
     const onCommandClick = vi.fn();
     renderPane({ onCommandPreview, onCommandClick });
 
-    const cmd = `notify ${FRIENDS} color=teal`;
+    const cmd = `notify ${FRIENDS} --color teal`;
     const swatch = screen.getByTestId(cmd);
     fireEvent.mouseEnter(swatch);
     expect(onCommandPreview).toHaveBeenCalledWith(cmd);
@@ -81,12 +81,24 @@ describe("SocialNotificationsPane", () => {
     expect(onCommandClick).toHaveBeenCalledWith(cmd);
   });
 
-  it("a surface button issues notify <ref> message=full", () => {
+  it("a surface button issues notify <ref> --message full", () => {
     seed([rule({ groupRef: FRIENDS, label: "friends", reserved: false })]);
     const onCommandClick = vi.fn();
     renderPane({ onCommandClick });
-    fireEvent.click(screen.getByTestId(`notify ${FRIENDS} message=full`));
-    expect(onCommandClick).toHaveBeenCalledWith(`notify ${FRIENDS} message=full`);
+    fireEvent.click(screen.getByTestId(`notify ${FRIENDS} --message full`));
+    expect(onCommandClick).toHaveBeenCalledWith(
+      `notify ${FRIENDS} --message full`,
+    );
+  });
+
+  it("the boost toggle issues --boost / --no-boost", () => {
+    seed([rule({ groupRef: FRIENDS, label: "friends", reserved: false })]);
+    const onCommandClick = vi.fn();
+    renderPane({ onCommandClick });
+    fireEvent.click(screen.getByTestId(`notify ${FRIENDS} --boost`));
+    expect(onCommandClick).toHaveBeenCalledWith(`notify ${FRIENDS} --boost`);
+    fireEvent.click(screen.getByTestId(`notify ${FRIENDS} --no-boost`));
+    expect(onCommandClick).toHaveBeenCalledWith(`notify ${FRIENDS} --no-boost`);
   });
 
   it("reorder up issues --above the previous row", () => {
@@ -127,7 +139,7 @@ describe("SocialNotificationsPane", () => {
     });
     fireEvent.click(screen.getByTestId("social-add-button"));
     expect(onCommandClick).toHaveBeenCalledWith(
-      "notify managed:fighter-guild render=name",
+      "notify managed:fighter-guild --render name",
     );
   });
 

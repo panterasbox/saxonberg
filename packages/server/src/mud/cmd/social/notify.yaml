@@ -11,18 +11,45 @@ help: |
   authoritative.
 
   Bare `notify` lists your rules. `notify <ref>` shows one. `notify
-  <ref> k=v …` sets fields. `notify <ref> --above <other>` reorders.
-  `notify <ref> remove` drops a rule (the group falls back to the
-  sensible default tail). Reserved labels — `friends`, `foes`,
-  `everyone-else`, `strangers` — ship sensible defaults you can edit.
+  <ref> --login banner …` sets fields. `notify <ref> --above <other>`
+  reorders. `notify <ref> --remove` (or `notify remove <ref>`) drops a
+  rule (the group falls back to the sensible default tail). Reserved
+  labels — `friends`, `foes`, `everyone-else`, `strangers` — ship
+  sensible defaults you can edit.
 
-  Fields: `login` / `disconnect` (banner|log-only|silent), `message`
-  (full|summary|silent), `render` (name|feature-string|count-only|hidden),
-  `boost` (on|off), `color` (a theme palette token, e.g. amber).
+  Field options: `--login` / `--disconnect` (banner|log-only|silent),
+  `--message` (full|summary|silent), `--render`
+  (name|feature-string|count-only|hidden), `--boost` / `--no-boost`,
+  `--color` (a theme palette token, e.g. amber).
 validators:
   - /lib/command/validators/requiresAnimate
 fallthrough: true
 options:
+  login:
+    type: string
+    description: "How a connect surfaces: banner | log-only | silent"
+  disconnect:
+    type: string
+    description: "How a disconnect surfaces: banner | log-only | silent"
+  message:
+    type: string
+    description: "How a matched message restyles: full | summary | silent"
+  render:
+    type: string
+    description: "How members render in a room: name | feature-string | count-only | hidden"
+  color:
+    type: string
+    description: "Highlight color — a theme palette token (e.g. amber)"
+  boost:
+    type: boolean
+    description: "Boost this group's members in dense room listings"
+  no-boost:
+    type: boolean
+    field: noBoost
+    description: "Stop boosting this group's members in dense room listings"
+  remove:
+    type: boolean
+    description: "Drop this rule (the group falls back to the default tail)"
   above:
     type: string
     description: "Reorder: place this rule above another (order = precedence)"
@@ -42,11 +69,9 @@ subcommands:
         required: true
 args:
   # Fallthrough: when the first token isn't the `remove` subcommand, bind
-  # these as `notify <ref> [k=v …]` (set / show), or bare `notify` (list).
+  # it as `notify <ref>` (set via --options / show), or bare `notify`
+  # (list). The set-fields are typed OPTIONS (above), not positionals —
+  # an optional `ref` can't be followed by a greedy positional.
   - name: ref
     type: string
     required: false
-  - name: assignments
-    type: string
-    required: false
-    greedy: true

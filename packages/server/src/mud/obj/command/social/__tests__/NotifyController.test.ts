@@ -1,7 +1,8 @@
 /**
  * NotifyController — the `notify` verb surface: bare-name contacts
- * normalization, `k=v` field parsing + validation, --above/--below
- * reorder, remove (both grammars), and the 50-rule soft-cap rejection.
+ * normalization, typed field-option parsing + validation, --above/--below
+ * reorder, remove (both grammars: `--remove` and the `remove` subcommand),
+ * and the 50-rule soft-cap rejection.
  *
  * The store lives in the in-memory NotifyPolicyMixin giver; the emitted
  * scene body is captured by stubbing `MessageApi.scene` (the
@@ -42,7 +43,14 @@ class ConnectedNotifyHost extends HasInteractiveMixin(NotifyPolicyMixin(Idea)) {
 
 interface NotifyModel extends CommandModel {
   ref?: string;
-  assignments?: string;
+  login?: string;
+  disconnect?: string;
+  message?: string;
+  render?: string;
+  color?: string;
+  boost?: boolean;
+  noBoost?: boolean;
+  remove?: boolean;
   above?: string;
   below?: string;
 }
@@ -97,9 +105,25 @@ describe("NotifyController", () => {
     expect(body).toContain("everyone-else");
   });
 
-  it("sets fields via k=v and normalizes a bare contacts label", async () => {
+  it("shows a single rule when only a ref is given (no field options)", async () => {
     const g = makeGiver();
-    await run(g, { ref: "friends", assignments: "color=amber boost=on message=full" });
+    await run(g, { ref: "friends" });
+    const body = captured!.toString();
+    expect(body).toContain(FRIENDS_REF);
+    // A pure show must not materialize a stored row.
+    expect(
+      g.notifyRules().some((r) => r.groupRef === FRIENDS_REF),
+    ).toBe(false);
+  });
+
+  it("sets multiple fields via typed options and normalizes a bare label", async () => {
+    const g = makeGiver();
+    await run(g, {
+      ref: "friends",
+      color: "amber",
+      boost: true,
+      message: "full",
+    });
 
     const stored = SocialApi.listRules(g).find((r) => r.groupRef === FRIENDS_REF);
     expect(stored).toMatchObject({
@@ -111,11 +135,18 @@ describe("NotifyController", () => {
     expect(captured!.toString()).toContain(FRIENDS_REF);
   });
 
-  it("rejects an invalid field value with a friendly note", async () => {
+  it("sets boostInDense=false via --no-boost", async () => {
     const g = makeGiver();
-    await run(g, { ref: "friends", assignments: "color=fuchsia" });
+    await run(g, { ref: "friends", noBoost: true });
+    const stored = SocialApi.listRules(g).find((r) => r.groupRef === FRIENDS_REF);
+    expect(stored?.boostInDense).toBe(false);
+  });
+
+  it("rejects an invalid field-option value with a friendly note", async () => {
+    const g = makeGiver();
+    await run(g, { ref: "friends", color: "fuchsia" });
     expect(note).toHaveBeenCalledWith(
-      expect.objectContaining({ kind: "controller-rejected", reason: "bad-assignment" }),
+      expect.objectContaining({ kind: "controller-rejected", reason: "bad-option" }),
     );
     // Nothing materialized.
     expect(
@@ -132,10 +163,10 @@ describe("NotifyController", () => {
     expect(stored).toEqual(["managed:b", "managed:a"]);
   });
 
-  it("removes via the ref-first grammar and via the remove subcommand", async () => {
+  it("removes via the --remove flag and via the remove subcommand", async () => {
     const g = makeGiver();
     SocialApi.setRule(g, "managed:a", {});
-    await run(g, { ref: "managed:a", assignments: "remove" });
+    await run(g, { ref: "managed:a", remove: true });
     expect(g.notifyRules().some((r) => r.groupRef === "managed:a")).toBe(false);
 
     SocialApi.setRule(g, "managed:c", {});
@@ -152,7 +183,7 @@ describe("NotifyController", () => {
 
     const ctrl = makeStuff(() => new NotifyController());
     await ctrl.execute(
-      { ref: "friends", assignments: "color=teal boost=on" } as CommandModel,
+      { ref: "friends", color: "teal", boost: true } as CommandModel,
       ctxFor(g),
     );
 
@@ -176,7 +207,7 @@ describe("NotifyController", () => {
   it("does not push when the giver has no connected Interactive", async () => {
     const g = makeGiver(); // plain NotifyHost — no HasInteractive
     // No push method exists to spy on; the mutation must still succeed.
-    await run(g, { ref: "friends", assignments: "color=amber" });
+    await run(g, { ref: "friends", color: "amber" });
     expect(
       SocialApi.listRules(g).find((r) => r.groupRef === FRIENDS_REF)?.color,
     ).toBe("amber");
@@ -187,7 +218,7 @@ describe("NotifyController", () => {
     for (let i = 0; i < 50; i++) SocialApi.setRule(g, `managed:g${i}`, {});
     expect(g.notifyRules()).toHaveLength(50);
 
-    await run(g, { ref: "managed:over", assignments: "color=teal" });
+    await run(g, { ref: "managed:over", color: "teal" });
     expect(note).toHaveBeenCalledWith(
       expect.objectContaining({ kind: "controller-rejected", reason: "rule-cap" }),
     );

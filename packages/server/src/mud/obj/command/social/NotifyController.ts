@@ -1,13 +1,18 @@
 /**
  * NotifyController — player surface for the attention-rule store (the
  * social-graph notify policy). Thin caller over `SocialApi`: bare list /
- * `<ref>` show / `<ref> k=v…` set / `--above`/`--below` reorder / `remove`.
+ * `<ref>` show / `<ref> --login banner …` set (typed options) /
+ * `--above`/`--below` reorder / `--remove` (and the `remove` subcommand).
  *
  * The store + first-match resolution live in `SocialLogic` (behind
  * `SocialApi`); this controller only normalizes the typed `<ref>` (bare
- * contacts labels → `contacts:<me>:<label>`), parses the `k=v` field
- * assignments, and enforces the 50-rule soft cap with a friendly rejection
- * (storage stays dumb — the cap lives at set-time, the Contacts precedent).
+ * contacts labels → `contacts:<me>:<label>`), builds the field patch from
+ * the typed `--login/--disconnect/--message/--render/--boost/--no-boost/
+ * --color` options (validating each value), and enforces the 50-rule soft
+ * cap with a friendly rejection (storage stays dumb — the cap lives at
+ * set-time, the Contacts precedent). The set-fields are OPTIONS, not
+ * positional `k=v`, because the framework forbids an optional `<ref>`
+ * positional followed by a greedy assignment positional.
  */
 
 import { CommandController } from "../../../lib/command/CommandController";
@@ -38,7 +43,14 @@ const MAX_RULES = 50;
 
 interface NotifyModel extends CommandModel {
   ref?: string;
-  assignments?: string;
+  login?: string;
+  disconnect?: string;
+  message?: string;
+  render?: string;
+  color?: string;
+  boost?: boolean;
+  noBoost?: boolean;
+  remove?: boolean;
   above?: string;
   below?: string;
 }
@@ -64,24 +76,23 @@ export default class NotifyController extends CommandController<NotifyModel> {
     }
 
     const rawRef = (model.ref ?? "").trim();
-    const assignments = (model.assignments ?? "").trim();
 
     // Reorder: `notify <ref> --above/--below <other>`.
     if (model.above || model.below) {
       return this.executeReorder(host, vid, rawRef, model, context);
     }
 
-    // Bare `notify` — list.
-    if (!rawRef) return this.executeList(host, context);
-
-    // `notify <ref> remove` (the requirements' ref-first remove grammar).
-    if (assignments === "remove") {
+    // `notify <ref> --remove` (the ref-first remove grammar).
+    if (model.remove) {
       return this.executeRemove(host, vid, rawRef, context);
     }
 
-    // `notify <ref> k=v …` — set.
-    if (assignments) {
-      return this.executeSet(host, vid, rawRef, assignments, context);
+    // Bare `notify` — list.
+    if (!rawRef) return this.executeList(host, context);
+
+    // `notify <ref> --login banner …` — set (any field option provided).
+    if (hasFieldOption(model)) {
+      return this.executeSet(host, vid, rawRef, model, context);
     }
 
     // `notify <ref>` — show one rule.
@@ -121,13 +132,13 @@ export default class NotifyController extends CommandController<NotifyModel> {
     host: NotifyHost,
     vid: string,
     rawRef: string,
-    assignments: string,
+    model: NotifyModel,
     context: CommandContext,
   ): void {
     const ref = normalizeRef(vid, rawRef);
-    const parsed = parseAssignments(assignments);
+    const parsed = buildPatch(model);
     if (typeof parsed === "string") {
-      return this.fail(context, parsed, "bad-assignment");
+      return this.fail(context, parsed, "bad-option");
     }
 
     // Soft cap: only a genuinely NEW user-defined rule counts against it.
@@ -253,64 +264,66 @@ function normalizeRef(vid: string, raw: string): string {
   return `contacts:${vid}:${trimmed}`;
 }
 
-const BOOST_TRUE = new Set(["on", "true", "yes", "1"]);
-const BOOST_FALSE = new Set(["off", "false", "no", "0"]);
+/**
+ * Whether any field-setting option was provided (so `notify <ref>` with
+ * one or more `--login/--disconnect/--message/--render/--boost/--no-boost/
+ * --color` is a SET, and a bare `notify <ref>` with none is a SHOW).
+ */
+function hasFieldOption(model: NotifyModel): boolean {
+  return (
+    model.login !== undefined ||
+    model.disconnect !== undefined ||
+    model.message !== undefined ||
+    model.render !== undefined ||
+    model.color !== undefined ||
+    model.boost === true ||
+    model.noBoost === true
+  );
+}
 
 /**
- * Parse `k=v` field assignments into a partial rule, or return an error
- * string. Recognized keys: `login`/`disconnect`/`message`/`render`/
- * `boost`/`color`.
+ * Build a partial rule from the typed field options, or return an error
+ * string on a bad value (the friendly rejection mirrors how other
+ * controllers validate option values). Recognized options:
+ * `--login`/`--disconnect`/`--message`/`--render`/`--color` (string,
+ * checked against their vocabulary) + `--boost`/`--no-boost` (flags).
  */
-function parseAssignments(input: string): Partial<NotifyRule> | string {
+function buildPatch(model: NotifyModel): Partial<NotifyRule> | string {
   const patch: Partial<NotifyRule> = {};
-  for (const token of input.split(/\s+/).filter(Boolean)) {
-    const eq = token.indexOf("=");
-    if (eq < 0) {
-      return `Expected key=value, got '${token}'.`;
+  if (model.login !== undefined) {
+    if (!CONNECT_SURFACES.includes(model.login as never)) {
+      return `--login must be one of ${CONNECT_SURFACES.join(" / ")}.`;
     }
-    const key = token.slice(0, eq).trim().toLowerCase();
-    const value = token.slice(eq + 1).trim();
-    switch (key) {
-      case "login":
-      case "connect":
-        if (!CONNECT_SURFACES.includes(value as never)) {
-          return `login must be one of ${CONNECT_SURFACES.join(" / ")}.`;
-        }
-        patch.onConnect = value as NotifyRule["onConnect"];
-        break;
-      case "disconnect":
-        if (!CONNECT_SURFACES.includes(value as never)) {
-          return `disconnect must be one of ${CONNECT_SURFACES.join(" / ")}.`;
-        }
-        patch.onDisconnect = value as NotifyRule["onDisconnect"];
-        break;
-      case "message":
-        if (!MESSAGE_SURFACES.includes(value as never)) {
-          return `message must be one of ${MESSAGE_SURFACES.join(" / ")}.`;
-        }
-        patch.onMessage = value as NotifyRule["onMessage"];
-        break;
-      case "render":
-        if (!NAME_RENDERINGS.includes(value as never)) {
-          return `render must be one of ${NAME_RENDERINGS.join(" / ")}.`;
-        }
-        patch.nameRendering = value as NotifyRule["nameRendering"];
-        break;
-      case "boost":
-        if (BOOST_TRUE.has(value.toLowerCase())) patch.boostInDense = true;
-        else if (BOOST_FALSE.has(value.toLowerCase())) patch.boostInDense = false;
-        else return `boost must be on or off.`;
-        break;
-      case "color":
-        if (!PALETTE_TOKENS.includes(value as never)) {
-          return `color must be one of ${PALETTE_TOKENS.join(" / ")}.`;
-        }
-        patch.color = value as NotifyRule["color"];
-        break;
-      default:
-        return `Unknown field '${key}'.`;
-    }
+    patch.onConnect = model.login as NotifyRule["onConnect"];
   }
+  if (model.disconnect !== undefined) {
+    if (!CONNECT_SURFACES.includes(model.disconnect as never)) {
+      return `--disconnect must be one of ${CONNECT_SURFACES.join(" / ")}.`;
+    }
+    patch.onDisconnect = model.disconnect as NotifyRule["onDisconnect"];
+  }
+  if (model.message !== undefined) {
+    if (!MESSAGE_SURFACES.includes(model.message as never)) {
+      return `--message must be one of ${MESSAGE_SURFACES.join(" / ")}.`;
+    }
+    patch.onMessage = model.message as NotifyRule["onMessage"];
+  }
+  if (model.render !== undefined) {
+    if (!NAME_RENDERINGS.includes(model.render as never)) {
+      return `--render must be one of ${NAME_RENDERINGS.join(" / ")}.`;
+    }
+    patch.nameRendering = model.render as NotifyRule["nameRendering"];
+  }
+  if (model.color !== undefined) {
+    if (!PALETTE_TOKENS.includes(model.color as never)) {
+      return `--color must be one of ${PALETTE_TOKENS.join(" / ")}.`;
+    }
+    patch.color = model.color as NotifyRule["color"];
+  }
+  // `--boost` / `--no-boost` flags. If both are somehow given, the
+  // affirmative `--boost` wins (applied last).
+  if (model.noBoost === true) patch.boostInDense = false;
+  if (model.boost === true) patch.boostInDense = true;
   return patch;
 }
 
