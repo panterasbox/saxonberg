@@ -40,6 +40,7 @@ import { HasInteractiveMixin } from "../lib/connection/HasInteractive";
 import { AetherMixin } from "../lib/message/Aether";
 import { ContactsMixin } from "../lib/social/Contacts";
 import { SubjectSubscriberMixin } from "../lib/forum/SubjectSubscriber";
+import { TwitchTunedMixin } from "../lib/twitch/TwitchTuned";
 import { Events } from "../lib/events";
 import type { User } from "../lib/identity/User";
 import type {
@@ -78,7 +79,11 @@ export interface AvatarInitContext {
 // it. The mixin gates `tell` and (future) chat / remote-emote.
 const AvatarBase = PostRegistrationMixin(
   HasInteractiveMixin(
-    AetherMixin(ContactsMixin(SubjectSubscriberMixin(ShelledCharacter))),
+    AetherMixin(
+      ContactsMixin(
+        SubjectSubscriberMixin(TwitchTunedMixin(ShelledCharacter)),
+      ),
+    ),
   ),
 );
 

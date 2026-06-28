@@ -57,6 +57,7 @@ export enum Collections {
   BankLedger = 'bank_ledger',
   BankAccounts = 'bank_accounts',
   BankSupply = 'bank_supply',
+  TwitchChannels = 'twitch_channels',
 }
 
 /**
@@ -619,6 +620,16 @@ export class PersistenceManager {
         memberIds: 1,
       });
       await this.getCollection(Collections.Channels).createIndex({ kind: 1 });
+
+      // Twitch relay registry: one row per curated relayed channel,
+      // keyed (unique) on broadcasterId, looked up by login.
+      await this.getCollection(Collections.TwitchChannels).createIndex(
+        { broadcasterId: 1 },
+        { unique: true }
+      );
+      await this.getCollection(Collections.TwitchChannels).createIndex({
+        broadcasterLogin: 1,
+      });
 
       // Beliefs: per-viewer identity-memory working set (one doc per
       // {viewerId, realm, referent}). Indexed on `viewerId` so a

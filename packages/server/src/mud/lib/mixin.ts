@@ -100,6 +100,7 @@ export const Mixins = {
   Soul: 'SoulMixin',
   Contacts: 'ContactsMixin',
   SubjectSubscriber: 'SubjectSubscriberMixin',
+  TwitchTuned: 'TwitchTunedMixin',
   WarrenMember: 'WarrenMemberMixin',
   Lounge: 'LoungeMixin',
   FastTravel: 'FastTravelMixin',
