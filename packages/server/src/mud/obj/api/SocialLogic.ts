@@ -12,6 +12,7 @@ import { PlayerApi } from "../../api/player";
 import { ShellApi } from "../../api/shell";
 import { GrammarApi } from "../../api/grammar";
 import { Mml } from "../../api/mml";
+import { ProseApi } from "../../api/prose";
 import { MessageApi } from "../../api/message";
 import { EventApi } from "../../api/event";
 import type { Subscription } from "../../api/event";
@@ -25,6 +26,7 @@ import type { GroupRef } from "../../lib/social/GroupProvider";
 import type { NotifyPolicy } from "../../lib/social/NotifyPolicy";
 import {
   RESERVED,
+  PRESENCE_FORMAT_DEFAULT,
   type NotifyRule,
   type ResolvedRule,
   type RuleForOptions,
@@ -682,19 +684,39 @@ async function relayPresenceImpl(
       color: rule.color,
       ...(country ? { country } : {}),
     };
-    // The line is viewer-aware (late-bound `Mml.name`); the rule color
-    // tints it inline (a `<highlight>` wrap when not the neutral default,
-    // mirroring `styleMessageForImpl`). Arrivals append "from <country>"
-    // when the origin resolved.
-    const place = country ? ` from ${country}` : "";
-    const inner = Mml.compose`${Mml.name(actor as Stuff)} has ${verb}${place}.`;
+    // Render the viewer's customizable Liquid presence template
+    // (`social.presenceFormat`, persisted per-character) over the variable
+    // context — `who` is a viewer-aware late-bound `Mml.name` (recognition-
+    // gated), `country` is null on departures / unresolved origins so the
+    // default "from …" tail elides. A syntactically broken custom template
+    // never silences the notice — it falls back to the shipped default.
+    const vars = {
+      who: Mml.name(actor as Stuff),
+      action: verb,
+      event,
+      category: isArrival ? "arrival" : "departure",
+      is_arrival: isArrival,
+      country: country ?? null,
+    };
+    const template =
+      ShellApi.resolveSetting<string>(viewer, "social.presenceFormat") ||
+      PRESENCE_FORMAT_DEFAULT;
+    let line: Mml;
+    try {
+      line = ProseApi.format(template, vars);
+    } catch {
+      line = ProseApi.format(PRESENCE_FORMAT_DEFAULT, vars);
+    }
+    // Resolve viewer-aware (we're already per-viewer), then tint inline by
+    // the rule color (a `<highlight>` wrap when not the neutral default,
+    // mirroring `styleMessageForImpl`).
+    const resolved = line.toString(viewer as Stuff & Sensor);
     const body =
       rule.color && rule.color !== "neutral"
         ? Mml.fromMarkup(
-            `<highlight color="${Mml.escape(rule.color)}">` +
-              `${inner.toString(viewer as Stuff & Sensor)}</highlight>`,
+            `<highlight color="${Mml.escape(rule.color)}">${resolved}</highlight>`,
           )
-        : inner;
+        : Mml.fromMarkup(resolved);
     // Per-viewer isolation: a single bad recipient (mid-teardown handle,
     // a send that throws) must not deny every other viewer their frame.
     try {

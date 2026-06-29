@@ -32,7 +32,13 @@ function geolocateCountry(ip: string): string | undefined {
   try {
     const normalized = ip.startsWith('::ffff:') ? ip.slice(7) : ip;
     const hit = geoip.lookup(normalized);
-    if (!hit?.country) return undefined;
+    if (!hit?.country) {
+      // Dev-only fallback: localhost / private IPs never geolocate, so a
+      // local session would never show a country. When `DEV_GEO_COUNTRY`
+      // is set, treat an unresolved IP as coming from it — a testing knob
+      // only (production has real client IPs via X-Forwarded-For).
+      return process.env.DEV_GEO_COUNTRY || undefined;
+    }
     return REGION_NAMES.of(hit.country) ?? hit.country;
   } catch {
     return undefined;

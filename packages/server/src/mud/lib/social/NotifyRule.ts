@@ -137,3 +137,42 @@ export const PALETTE_TOKENS: readonly PaletteToken[] = [
   "sky",
   "neutral",
 ];
+
+/**
+ * The default Liquid template for a presence line (the `social.presenceFormat`
+ * per-character setting). Rendered by the presence relay through
+ * `ProseApi.format` against the {@link PRESENCE_VARS} context, then tinted
+ * inline by the matched rule's `color`. The `country` guard keeps the
+ * "from …" tail off departures and off connections whose origin didn't
+ * resolve (localhost / private IPs).
+ *
+ * Players customize this freely (`settings set social.presenceFormat "…"`
+ * or the Social pane); a syntactically broken template falls back to this
+ * default at render.
+ */
+export const PRESENCE_FORMAT_DEFAULT =
+  "{{ who }} has {{ action }}{% if country %} from {{ country }}{% endif %}.";
+
+/**
+ * The variable context a `social.presenceFormat` template can reference.
+ * This is the **extension seam**: future fields (player level, guild,
+ * pronouns, time-of-day, …) graft on here in `SocialLogic` with no change
+ * to the template plumbing — author a new key, document it below.
+ *
+ * | Variable | Type | Meaning |
+ * |---|---|---|
+ * | `who` | Mml name ref | the actor, viewer-aware (recognition-gated — a stranger reads as "a human", clickable to target) |
+ * | `action` | string | the default verb phrase: "entered the game" / "reconnected" / "left the game" / "disconnected" |
+ * | `event` | string | the raw event key: `loggedIn` / `reconnected` / `loggedOut` / `disconnected` |
+ * | `category` | string | `arrival` (login / reconnect) or `departure` (logout / disconnect) |
+ * | `is_arrival` | boolean | true for arrivals |
+ * | `country` | string \| null | country of origin (arrivals only, when resolved), else null |
+ */
+export const PRESENCE_VARS = [
+  "who",
+  "action",
+  "event",
+  "category",
+  "is_arrival",
+  "country",
+] as const;

@@ -154,6 +154,29 @@ describe("SocialLogic presence relay", () => {
     expect(payload.event).toBe("loggedIn");
     expect((payload.actor as { stuffId: string }).stuffId).toBe(actor.stuffId);
     expect(payload.country).toBeUndefined();
+    // Rendered via the default `social.presenceFormat` Liquid template
+    // through ProseApi — the line names the transition. No country tail
+    // (no resolved origin in the stub).
+    expect(JSON.stringify(frame.body)).toContain("entered the game");
+    expect(JSON.stringify(frame.body)).not.toContain("from ");
+  });
+
+  it("appends country of origin to an arrival when it resolves", async () => {
+    const { ConnectionApi } = await import("../../../api/connection");
+    vi.spyOn(ConnectionApi, "originOf").mockReturnValue({ country: "Germany" });
+
+    const v = makeViewer("v1");
+    SocialApi.setRule(v, "managed:fighter-guild", { onConnect: "show" });
+    membership.add(`actor|managed:fighter-guild`);
+
+    SocialApi.boot();
+    EventApi.emit(Events.PlayerLoggedIn, { playerId: "actor", userId: "u" });
+    await flush();
+
+    expect(v.received).toHaveLength(1);
+    const frame = v.received[0]!;
+    expect(JSON.stringify(frame.body)).toContain("from Germany");
+    expect((frame.payload as { country?: string }).country).toBe("Germany");
   });
 
   it("produces nothing for an unmatched login", async () => {

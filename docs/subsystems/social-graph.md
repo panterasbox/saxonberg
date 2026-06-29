@@ -266,6 +266,37 @@ the only substantive new wiring. **Room movement is not a notification
 event**: enter/leave stays the existing ungated movement line, with no
 per-bucket knob.
 
+### Customizing the line — `social.presenceFormat`
+
+The presence line is **author-owned**: a per-character **Liquid template**
+held in the `social.presenceFormat` setting (schema-on-mixin on
+`NotifyPolicyMixin`, so it persists on the avatar like any setting). The
+relay renders it per-viewer through `ProseApi.format` (Mml-aware, so the
+late-bound `who` ref stays viewer-aware and clickable), then tints the
+result inline by the matched rule's `color`. A syntactically broken
+template never silences the notice — it falls back to the shipped default.
+
+The variable context (the documented extension seam — `PRESENCE_VARS` in
+`NotifyRule.ts`) is where future fields graft on (player level, guild,
+pronouns, time-of-day) with no plumbing change:
+
+| Variable | Meaning |
+|---|---|
+| `who` | the actor, viewer-aware (recognition-gated, clickable) |
+| `action` | the default phrase ("entered the game" / "reconnected" / …) |
+| `event` | the raw key (`loggedIn` / `reconnected` / `loggedOut` / `disconnected`) |
+| `category` | `arrival` or `departure` |
+| `is_arrival` | boolean |
+| `country` | country of origin (arrivals, when resolved), else null |
+
+Default: `{{ who }} has {{ action }}{% if country %} from {{ country }}{% endif %}.`
+Set it via `settings set social.presenceFormat "<template>"` (quote it so
+the Liquid `{{ … }}` survives the command tokenizer — `settings set`
+strips the wrapping quotes on store) or the Social pane's "presence line"
+field. The pushed `social.rules` projection carries the current value so
+the pane shows + edits it; writes route back through the same `settings`
+command (the buttons-preview-their-command contract).
+
 ### Bounds + privacy
 
 Cost is `O(online viewers × rules × isMember)`. It's bounded because (a)
@@ -400,7 +431,9 @@ the [connection-origin slate](../slates/tails/connection-origin-slate.md):
 - The relay reads `originOf(actor).country` for arrivals only (a
   departure has no origin). It resolves to nothing on **localhost /
   private IPs** — so the country line only appears against real remote
-  connections.
+  connections. For local testing, set the **`DEV_GEO_COUNTRY`** env var
+  (e.g. `DEV_GEO_COUNTRY=Germany`): an unresolved IP then reads as that
+  country. Dev-only — production has real client IPs.
 
 City/region, the developer-gated IP read, and any persisted "last-seen
 country" remain deferred to the slate.

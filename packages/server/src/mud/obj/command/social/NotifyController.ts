@@ -21,6 +21,7 @@ import { MessageApi } from "../../../api/message";
 import { MixinApi } from "../../../api/mixin";
 import { Mml } from "../../../api/mml";
 import { PlayerApi } from "../../../api/player";
+import { ShellApi } from "../../../api/shell";
 import { SocialApi } from "../../../api/social";
 import type { Stuff } from "../../../lib/stuff/Stuff";
 import type { HasInteractive } from "../../../lib/connection/HasInteractive";
@@ -35,6 +36,7 @@ import {
   CONNECT_SURFACES,
   MESSAGE_SURFACES,
   PALETTE_TOKENS,
+  PRESENCE_FORMAT_DEFAULT,
   type NotifyRule,
 } from "../../../lib/social/NotifyRule";
 
@@ -221,7 +223,12 @@ export default class NotifyController extends CommandController<NotifyModel> {
    */
   private pushProjection(host: NotifyHost): void {
     if (!MixinApi.isHasInteractive(host)) return;
-    const state: SocialRulesState = { rules: buildRulesProjection(host) };
+    const state: SocialRulesState = {
+      rules: buildRulesProjection(host),
+      presenceFormat:
+        ShellApi.resolveSetting<string>(host as Stuff, "social.presenceFormat") ||
+        PRESENCE_FORMAT_DEFAULT,
+    };
     (host as NotifyHost & HasInteractive).pushClientStateUpdate(
       "social.rules",
       state,

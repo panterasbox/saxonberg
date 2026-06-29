@@ -212,6 +212,13 @@ const Global = styled.div`
   gap: ${tokens.space.sm};
   padding-top: ${tokens.space.sm};
   border-top: 1px solid ${tokens.color.borderMuted};
+  flex-wrap: wrap;
+`;
+
+const FormatHint = styled.span`
+  flex-basis: 100%;
+  color: ${tokens.color.fgMuted};
+  font-size: ${tokens.font.small};
 `;
 
 function paletteColor(token: string): string {
@@ -226,6 +233,14 @@ export const SocialNotificationsPane: React.FC<
   );
   const rules: SocialRuleProjection[] = state?.rules ?? [];
   const [addRef, setAddRef] = React.useState("");
+  // Presence-line format: a local draft over the pushed value. `null` =
+  // "follow the server" (after a save, the fresh push re-syncs); once the
+  // user types, the draft holds until they save or reset.
+  const [formatDraft, setFormatDraft] = React.useState<string | null>(null);
+  const presenceFormat = formatDraft ?? state?.presenceFormat ?? "";
+  // Quote the value so a Liquid `{{ … }}` template survives the command
+  // tokenizer; `settings set` strips the wrapping quotes on store.
+  const presenceFormatCommand = `settings set social.presenceFormat "${presenceFormat.replace(/"/g, '\\"')}"`;
 
   // Request the current projection on first open: the server pushes
   // `social.rules` on any `notify` invocation, and a bare `notify` is the
@@ -421,6 +436,50 @@ export const SocialNotificationsPane: React.FC<
               add
             </Btn>
           </AddBlock>
+
+          <Global>
+            <FieldLabel>presence line</FieldLabel>
+            <AddInput
+              data-testid="presence-format-input"
+              placeholder="{{ who }} has {{ action }}…"
+              value={presenceFormat}
+              onChange={(e) => setFormatDraft(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  onCommandClick(presenceFormatCommand);
+                  setFormatDraft(null);
+                }
+              }}
+            />
+            <Btn
+              data-testid="presence-format-save"
+              onMouseEnter={() => onCommandPreview(presenceFormatCommand)}
+              onMouseLeave={() => onCommandPreview(null)}
+              onClick={() => {
+                onCommandClick(presenceFormatCommand);
+                setFormatDraft(null);
+              }}
+            >
+              save
+            </Btn>
+            <Btn
+              data-testid="presence-format-reset"
+              onMouseEnter={() =>
+                onCommandPreview("settings unset social.presenceFormat")
+              }
+              onMouseLeave={() => onCommandPreview(null)}
+              onClick={() => {
+                onCommandClick("settings unset social.presenceFormat");
+                setFormatDraft(null);
+              }}
+            >
+              reset
+            </Btn>
+            <FormatHint>
+              Variables: {"{{ who }}"} · {"{{ action }}"} · {"{{ country }}"} ·{" "}
+              {"{{ category }}"} · {"{{ event }}"}
+            </FormatHint>
+          </Global>
 
           <Global>
             <FieldLabel>verbosity</FieldLabel>

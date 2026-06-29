@@ -22,7 +22,7 @@ import {
   type SettingsSchemaEntry,
 } from "../shell/Environment";
 import type { GroupRef } from "./GroupProvider";
-import type { NotifyRule } from "./NotifyRule";
+import { PRESENCE_FORMAT_DEFAULT, type NotifyRule } from "./NotifyRule";
 
 /**
  * Public method surface — methods only, per the inter-stuff contract.
@@ -85,6 +85,18 @@ export function NotifyPolicyMixin<TBase extends MixinConstructor>(Base: TBase) {
           "Room-occupant collapse aggressiveness. `standard` is the " +
           "density-aware default; `verbose` names everyone; `minimal` " +
           "aggregates aggressively even at low density.",
+      },
+      {
+        key: "social.presenceFormat",
+        type: SettingTypes.String,
+        default: PRESENCE_FORMAT_DEFAULT,
+        description:
+          "Liquid template for a presence line (someone entering / leaving " +
+          "the game). Variables: {{ who }} (viewer-aware name), " +
+          "{{ action }} (e.g. 'entered the game'), {{ event }}, " +
+          "{{ category }} (arrival|departure), {{ is_arrival }}, " +
+          "{{ country }}. Example: " +
+          "\"{{ who }} {{ action }}{% if country %} ({{ country }}){% endif %}\".",
       },
     ];
 

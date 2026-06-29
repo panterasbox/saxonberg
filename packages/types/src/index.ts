@@ -185,6 +185,13 @@ export interface SocialRuleProjection {
  */
 export interface SocialRulesState {
   rules: SocialRuleProjection[];
+  /**
+   * The viewer's current `social.presenceFormat` Liquid template (the
+   * per-character presence-line format). The pane shows + edits it; writes
+   * go back through `settings set social.presenceFormat "…"`. A pure push
+   * cache like `rules` — the setting store is the source of truth.
+   */
+  presenceFormat: string;
 }
 
 // ============================================================================
