@@ -1,7 +1,7 @@
 /**
  * NotifyController — player surface for the attention-rule store (the
  * social-graph notify policy). Thin caller over `SocialApi`: bare list /
- * `<ref>` show / `<ref> --login banner …` set (typed options) /
+ * `<ref>` show / `<ref> --login show …` set (typed options) /
  * `--above`/`--below` reorder / `--remove` (and the `remove` subcommand).
  *
  * The store + first-match resolution live in `SocialLogic` (behind
@@ -90,7 +90,7 @@ export default class NotifyController extends CommandController<NotifyModel> {
     // Bare `notify` — list.
     if (!rawRef) return this.executeList(host, context);
 
-    // `notify <ref> --login banner …` — set (any field option provided).
+    // `notify <ref> --login show …` — set (any field option provided).
     if (hasFieldOption(model)) {
       return this.executeSet(host, vid, rawRef, model, context);
     }

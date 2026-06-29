@@ -38,10 +38,10 @@ import type {
   MqlSubscriptionResultEnvelope,
   Note,
   PromptEnvelope,
-  SocialNotificationPayload,
   StuffDetailRecord,
   StuffRefRecord,
 } from "@saxonberg/types";
+import { INTENTIONAL_LEAVE_CLOSE_CODE } from "@saxonberg/types";
 import { nanoid } from "nanoid";
 import { useStore, type PromptEntry, type StuffMetadata } from "../store/index";
 
@@ -192,7 +192,6 @@ class WebSocketClient {
         if (this.intentionalDisconnect) {
           this.intentionalDisconnect = false;
           useStore.getState().clearPrompts();
-          useStore.getState().clearNotifications();
           useStore.getState().clearFrames();
           return;
         }
@@ -208,7 +207,6 @@ class WebSocketClient {
         // reconnect feels seamless (the next dispatch refreshes the
         // base prompt anyway).
         useStore.getState().clearPrompts();
-        useStore.getState().clearNotifications();
         // Frames are session-scoped; drop the buffer so scrollback
         // doesn't span a reconnect (welcome-scene-on-reconnect
         // anchors the new session at the top).
@@ -256,7 +254,6 @@ class WebSocketClient {
     }
     useStore.getState().clearFrames();
     useStore.getState().clearPrompts();
-    useStore.getState().clearNotifications();
     useStore.getState().setDisconnected(undefined, "reconnecting");
     this.connect(this.url);
   }
@@ -269,7 +266,10 @@ class WebSocketClient {
   public disconnect(): void {
     this.intentionalDisconnect = true;
     if (this.ws) {
-      this.ws.close();
+      // Close with the intentional-leave code so the server reads this as
+      // a deliberate departure (→ a `loggedOut` presence frame for
+      // viewers) rather than an involuntary linkdead (→ `disconnected`).
+      this.ws.close(INTENTIONAL_LEAVE_CLOSE_CODE);
       this.ws = null;
     }
   }
@@ -470,22 +470,10 @@ class WebSocketClient {
         );
       }
 
-      // Social-graph presence notification — demuxed by topic (no new
-      // wire message type; banners ride the existing frame channel like
-      // chat frames). `banner` → the ephemeral notification queue (NOT
-      // the transcript buffer); `log-only` falls through to the normal
-      // per-topic / catch-all append so it renders quietly inline.
-      if (messageFrame.topic === "world.social.presence") {
-        const payload = messageFrame.payload as
-          | SocialNotificationPayload
-          | undefined;
-        if (payload?.surface === "banner") {
-          useStore
-            .getState()
-            .pushNotification({ ...payload, id: messageFrame.id });
-          return;
-        }
-      }
+      // Social-graph presence frames (`world.social.presence`) ride the
+      // ordinary frame channel and render inline in the buffer like any
+      // other scene frame — no separate notification surface. They fall
+      // through to the normal per-topic / catch-all append below.
 
       const handlers = this.topicHandlers.get(messageFrame.topic);
       if (handlers) {

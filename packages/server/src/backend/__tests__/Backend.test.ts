@@ -262,15 +262,27 @@ describe('Backend', () => {
   });
 
   describe('close path', () => {
-    it('handleWebSocketClose notifies Application and removes the socket', () => {
+    it('handleWebSocketClose notifies Application (involuntary) and removes the socket', () => {
       const disc = vi
         .spyOn(app, 'handleUserDisconnect')
         .mockResolvedValue(undefined);
       const ws = makeFakeSocket();
       const socketId = connectAndCaptureId(ws);
       ws.fire('close');
-      expect(disc).toHaveBeenCalledWith(socketId);
+      // No leave code → involuntary drop (intentional=false).
+      expect(disc).toHaveBeenCalledWith(socketId, false);
       expect(backend.getConnectionCount()).toBe(0);
+    });
+
+    it('flags a deliberate leave when the socket closes with the leave code', () => {
+      const disc = vi
+        .spyOn(app, 'handleUserDisconnect')
+        .mockResolvedValue(undefined);
+      const ws = makeFakeSocket();
+      const socketId = connectAndCaptureId(ws);
+      // 4000 = INTENTIONAL_LEAVE_CLOSE_CODE (sign out / switch character).
+      ws.fire('close', 4000);
+      expect(disc).toHaveBeenCalledWith(socketId, true);
     });
   });
 

@@ -19,7 +19,6 @@ import { SERVER_URL, WS_URL } from "./config";
 import { websocketClient } from "./services/websocket";
 import { Frame } from "./components/frame/Frame";
 import { ReconnectBanner } from "./components/frame/ReconnectBanner";
-import { NotificationQueue } from "./components/frame/NotificationQueue";
 import { SocialNotificationsPane } from "./components/settings/SocialNotificationsPane";
 import { StartScreen } from "./components/StartScreen";
 import { Terminal } from "./components/Terminal";
@@ -724,7 +723,6 @@ function App() {
         <AppContainer>
           <Frame />
           <ReconnectBanner />
-          <NotificationQueue />
           {socialPaneOpen && (
             <SocialNotificationsPane
               onClose={() => setSocialPaneOpen(false)}

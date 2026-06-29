@@ -15,6 +15,7 @@ import { Mml } from "../../api/mml";
 import { MessageApi } from "../../api/message";
 import { EventApi } from "../../api/event";
 import type { Subscription } from "../../api/event";
+import { ConnectionApi } from "../../api/connection";
 import { Events } from "../../lib/events";
 import type { Sensor } from "../../lib/message/Sensor";
 import { AppApi } from "../../api/app";
@@ -53,8 +54,8 @@ const BASELINE_FALLBACK: Record<ReservedId, Omit<NotifyRule, "groupRef">> = {
   [RESERVED.friends]: {
     nameRendering: "name",
     boostInDense: true,
-    onConnect: "banner",
-    onDisconnect: "banner",
+    onConnect: "show",
+    onDisconnect: "show",
     onMessage: "full",
     color: "amber",
   },
@@ -589,33 +590,83 @@ async function composeOccupantsImpl(
 const PRESENCE_RATE_WINDOW_MS = 60_000;
 
 /**
- * Fan a login / logout out to every online viewer whose first-matching
- * rule (excluding MQL refs — too costly as a notification subject) for
- * the acting player carries a non-silent surface.
+ * The four player-presence transitions, all gated on having a character
+ * in the world (a bare welcome-screen socket and the OAuth layer never
+ * reach here). Arrivals (`loggedIn` / `reconnected`) ride a rule's
+ * `onConnect` surface; departures (`loggedOut` / `disconnected`) ride
+ * `onDisconnect`.
+ */
+type PresenceEvent = "loggedIn" | "loggedOut" | "reconnected" | "disconnected";
+
+/** Arrivals ride `onConnect`; everything else is a departure (`onDisconnect`). */
+const PRESENCE_ARRIVALS: ReadonlySet<PresenceEvent> = new Set([
+  "loggedIn",
+  "reconnected",
+]);
+
+/** The player-facing verb phrase for each transition (`<name> has <verb>.`). */
+const PRESENCE_VERB: Record<PresenceEvent, string> = {
+  loggedIn: "entered the game",
+  reconnected: "reconnected",
+  loggedOut: "left the game",
+  disconnected: "disconnected",
+};
+
+/**
+ * The connecting player's country of origin (display name), or `undefined`
+ * when unresolved — localhost / private IPs, an unknown geo, or simply no
+ * captured origin for this session. Reads the transient per-connection
+ * origin captured at the WS handshake via `ConnectionApi.originOf`; the
+ * raw IP never leaves that layer (country is the only datum surfaced).
+ */
+function presenceCountryFor(actorPlayerId: string): string | undefined {
+  try {
+    return ConnectionApi.originOf(actorPlayerId).country;
+  } catch {
+    return undefined;
+  }
+}
+
+/**
+ * Fan a presence transition out to every online viewer whose first-
+ * matching rule (excluding MQL refs — too costly as a notification
+ * subject) for the acting player carries a non-silent surface. The frame
+ * renders inline in each viewer's message buffer (no separate
+ * notification surface), tinted by the rule color.
  *
  * Runs as substrate code (no command context) — the match comes from the
  * *viewer's own* rule list under the viewer's identity, so this never
  * exposes who-policied-whom: the pushed frame carries only the actor ref,
- * surface, and color, never the rule list. Cost is `O(online viewers ×
+ * event, and color, never the rule list. Cost is `O(online viewers ×
  * rules × isMember)`; the default-silent baseline for non-contacts bounds
  * the fan-out (only bucketed non-silent rules emit).
  */
 async function relayPresenceImpl(
   actorPlayerId: string,
-  event: "connect" | "disconnect",
+  event: PresenceEvent,
   limiter: Map<string, number>,
 ): Promise<void> {
   const actor = PlayerApi.findAvatarByPlayerId(actorPlayerId);
   if (!actor) return;
   const now = Date.now();
+  const isArrival = PRESENCE_ARRIVALS.has(event);
+  // Country of origin rides arrivals only (a connection has an origin; a
+  // departure doesn't). Resolved once per relay, shared across viewers.
+  const country = isArrival ? presenceCountryFor(actorPlayerId) : undefined;
+  const verb = PRESENCE_VERB[event];
 
   for (const viewer of PlayerApi.getAllAvatars()) {
     if ((viewer as Stuff) === (actor as Stuff)) continue; // never self-notify
+    // Skip stale handles: a destroyed avatar (e.g. a just-logged-out
+    // instance still lingering in the registry) can still report
+    // `isConnected()` true, but sending to it throws DestroyedObjectError
+    // on `onEnvelope` and would abort the whole relay loop.
+    if ((viewer as Stuff).isDestroyed()) continue;
     if (!viewer.isConnected()) continue; // online viewers only — skip linkdead
     const rule = await ruleForImpl(viewer, actor as Stuff, {
       excludeMql: true,
     });
-    const surface = event === "connect" ? rule.onConnect : rule.onDisconnect;
+    const surface = isArrival ? rule.onConnect : rule.onDisconnect;
     if (surface === "silent") continue; // muted — nothing surfaces
 
     // Rate-limit per (actor, viewer, event). Transient; nothing persisted.
@@ -628,18 +679,32 @@ async function relayPresenceImpl(
       kind: "presence",
       event,
       actor: MessageApi.refOf(actor as Stuff),
-      surface, // narrowed to 'banner' | 'log-only' above
       color: rule.color,
-      country: undefined, // reserved geo seam — populated by a later build
+      ...(country ? { country } : {}),
     };
-    // The banner line is viewer-aware (late-bound `Mml.name`); the color
-    // tint rides the payload (the client queue's palette token).
-    const verb = event === "connect" ? "connected" : "disconnected";
-    const body = Mml.compose`${Mml.name(actor as Stuff)} has ${verb}.`;
-    MessageApi.scene(viewer)
-      .topic("world.social.presence")
-      .toSelf(body, payload)
-      .send();
+    // The line is viewer-aware (late-bound `Mml.name`); the rule color
+    // tints it inline (a `<highlight>` wrap when not the neutral default,
+    // mirroring `styleMessageForImpl`). Arrivals append "from <country>"
+    // when the origin resolved.
+    const place = country ? ` from ${country}` : "";
+    const inner = Mml.compose`${Mml.name(actor as Stuff)} has ${verb}${place}.`;
+    const body =
+      rule.color && rule.color !== "neutral"
+        ? Mml.fromMarkup(
+            `<highlight color="${Mml.escape(rule.color)}">` +
+              `${inner.toString(viewer as Stuff & Sensor)}</highlight>`,
+          )
+        : inner;
+    // Per-viewer isolation: a single bad recipient (mid-teardown handle,
+    // a send that throws) must not deny every other viewer their frame.
+    try {
+      MessageApi.scene(viewer)
+        .topic("world.social.presence")
+        .toSelf(body, payload)
+        .send();
+    } catch {
+      // best-effort relay — drop this viewer, continue the scan
+    }
   }
 }
 
@@ -711,6 +776,12 @@ export class SocialLogic extends Idea {
   /** The logout subscription — retained so re-install is a no-op. */
   private logoutSub: Subscription<unknown> | null = null;
 
+  /** The reconnect subscription — retained so re-install is a no-op. */
+  private reconnectSub: Subscription<unknown> | null = null;
+
+  /** The linkdead-drop subscription — retained so re-install is a no-op. */
+  private disconnectSub: Subscription<unknown> | null = null;
+
   /**
    * Ephemeral per-`(actor, viewer, event)` rate-limiter (`key → last-emit
    * ms`). Transient instance state; a fresh singleton starts empty
@@ -734,21 +805,26 @@ export class SocialLogic extends Idea {
   public installPresenceTap(): void {
     if (this.loginSub) return;
     const limiter = this.presenceSeen;
+    const relay = (event: PresenceEvent) => (p: { playerId: string }) => {
+      void relayPresenceImpl(p.playerId, event, limiter).catch((err) =>
+        console.error(`SocialLogic: presence ${event} relay failed`, err),
+      );
+    };
     this.loginSub = EventApi.on<{ playerId: string; userId: string }>(
       Events.PlayerLoggedIn,
-      (p) => {
-        void relayPresenceImpl(p.playerId, "connect", limiter).catch((err) =>
-          console.error("SocialLogic: presence connect relay failed", err),
-        );
-      },
+      relay("loggedIn"),
+    );
+    this.reconnectSub = EventApi.on<{ playerId: string; userId: string }>(
+      Events.PlayerReconnected,
+      relay("reconnected"),
     );
     this.logoutSub = EventApi.on<{ playerId: string }>(
       Events.PlayerLoggedOut,
-      (p) => {
-        void relayPresenceImpl(p.playerId, "disconnect", limiter).catch((err) =>
-          console.error("SocialLogic: presence disconnect relay failed", err),
-        );
-      },
+      relay("loggedOut"),
+    );
+    this.disconnectSub = EventApi.on<{ playerId: string }>(
+      Events.PlayerDisconnected,
+      relay("disconnected"),
     );
   }
 

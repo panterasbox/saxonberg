@@ -11,26 +11,31 @@ help: |
   authoritative.
 
   Bare `notify` lists your rules. `notify <ref>` shows one. `notify
-  <ref> --login banner …` sets fields. `notify <ref> --above <other>`
+  <ref> --login show …` sets fields. `notify <ref> --above <other>`
   reorders. `notify <ref> --remove` (or `notify remove <ref>`) drops a
   rule (the group falls back to the sensible default tail). Reserved
   labels — `friends`, `foes`, `everyone-else`, `strangers` — ship
   sensible defaults you can edit.
 
-  Field options: `--login` / `--disconnect` (banner|log-only|silent),
-  `--message` (full|summary|silent), `--render`
-  (name|feature-string|count-only|hidden), `--boost` / `--no-boost`,
-  `--color` (a theme palette token, e.g. amber).
+  Field options: `--login` / `--disconnect` (show|silent — a presence
+  frame in your buffer, or nothing), `--message` (full|summary|silent),
+  `--render` (name|feature-string|count-only|hidden), `--boost` /
+  `--no-boost`, `--color` (a theme palette token, e.g. amber).
+
+  `--login` covers arrivals (a character entering the game or reconnecting
+  after a drop); `--disconnect` covers departures (logging out or going
+  linkdead). The frame names the specific event; this just decides whether
+  it reaches you.
 validators:
   - /lib/command/validators/requiresAnimate
 fallthrough: true
 options:
   login:
     type: string
-    description: "How a connect surfaces: banner | log-only | silent"
+    description: "Arrivals (login / reconnect): show | silent"
   disconnect:
     type: string
-    description: "How a disconnect surfaces: banner | log-only | silent"
+    description: "Departures (logout / disconnect): show | silent"
   message:
     type: string
     description: "How a matched message restyles: full | summary | silent"

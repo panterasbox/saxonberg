@@ -24,8 +24,16 @@ export type NameRendering =
   | "count-only"
   | "hidden";
 
-/** Where a connect / disconnect event surfaces. */
-export type ConnectSurface = "banner" | "log-only" | "silent";
+/**
+ * Whether a presence transition (arrival: login / reconnect — or
+ * departure: logout / disconnect) surfaces to the viewer. A presence
+ * frame renders inline in the message buffer like any other scene frame
+ * (there is no separate notification surface), so the choice is binary:
+ * `show` it, or stay `silent`. The frame's tint comes from the rule
+ * `color`; the specific verb (entered / reconnected / left / dropped)
+ * comes from the event, not this field.
+ */
+export type ConnectSurface = "show" | "silent";
 
 /** How a matched speaker's message is restyled (a notification surface). */
 export type MessageSurface = "full" | "summary" | "silent";
@@ -111,11 +119,7 @@ export const NAME_RENDERINGS: readonly NameRendering[] = [
   "hidden",
 ];
 
-export const CONNECT_SURFACES: readonly ConnectSurface[] = [
-  "banner",
-  "log-only",
-  "silent",
-];
+export const CONNECT_SURFACES: readonly ConnectSurface[] = ["show", "silent"];
 
 export const MESSAGE_SURFACES: readonly MessageSurface[] = [
   "full",

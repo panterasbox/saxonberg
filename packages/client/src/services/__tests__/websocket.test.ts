@@ -666,52 +666,44 @@ describe("websocket prompt substrate", () => {
   });
 });
 
-describe("websocket social presence demux", () => {
+describe("websocket social presence frames", () => {
   beforeEach(() => {
     resetClient();
-    useStore.setState({ notifications: [], frames: [] });
+    useStore.setState({ frames: [] });
   });
 
-  function presenceFrame(surface: "banner" | "log-only", id: string): unknown {
+  function presenceFrame(
+    event: "loggedIn" | "loggedOut" | "reconnected" | "disconnected",
+    id: string,
+  ): unknown {
     return {
       id,
       topic: "world.social.presence",
       tags: ["audience:actor"],
-      body: "<name>Alice</name> has connected.",
+      body: "<name>Alice</name> has entered the game.",
       payload: {
         kind: "presence",
-        event: "connect",
+        event,
         actor: { stuffId: "a1", displayName: "Alice" },
-        surface,
         color: "amber",
       },
       meta: { timestamp: 0 },
     };
   }
 
-  it("routes a banner presence frame to the notification queue", () => {
-    attachMockWs();
-    deliver(presenceFrame("banner", "f1"));
-    const s = useStore.getState();
-    expect(s.notifications.map((n) => n.id)).toEqual(["f1"]);
-    expect(s.notifications[0]?.color).toBe("amber");
-    // Banner frames do NOT land in the transcript buffer.
-    expect(s.frames).toHaveLength(0);
-  });
-
-  it("lets a log-only presence frame fall through to the catch-all", () => {
+  it("renders a presence frame inline via the catch-all (no separate surface)", () => {
     attachMockWs();
     const seen: string[] = [];
     const handler = (f: { id: string }) => seen.push(f.id);
     websocketClient.onAnyTopic(handler);
     try {
-      deliver(presenceFrame("log-only", "f2"));
+      deliver(presenceFrame("loggedIn", "f1"));
+      deliver(presenceFrame("reconnected", "f2"));
     } finally {
       websocketClient.offAnyTopic(handler);
     }
-    // Not a banner → not queued; the frame reaches the catch-all
-    // (which the in-world frame store appends to the transcript).
-    expect(useStore.getState().notifications).toHaveLength(0);
-    expect(seen).toContain("f2");
+    // Every presence frame reaches the catch-all (which the in-world frame
+    // store appends to the transcript) — there is no toast/queue surface.
+    expect(seen).toEqual(["f1", "f2"]);
   });
 });

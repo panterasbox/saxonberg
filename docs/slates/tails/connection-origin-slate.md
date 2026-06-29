@@ -1,5 +1,17 @@
 # Connection-origin slate (working doc)
 
+> **Partially shipped (country v1) in the social-graph build.** The
+> capture seam (`WebSocketService.handleUpgrade` → threaded to
+> `ConnectionApi.recordOrigin`), the offline `geoip-lite` country lookup,
+> the transient in-memory `{ip, country}` on the `Interactive` (PII
+> posture: IP never persisted), and `ConnectionApi.originOf(playerId)`
+> returning **country only** all landed there — consumed by the presence
+> relay's "from `<country>`" arrival line (see
+> [social-graph.md](../../subsystems/social-graph.md) § Country of
+> origin). Still deferred per this slate: the **developer-gated IP read**,
+> the `whois`/`locate` **lookup verb**, **city/region**, and any persisted
+> "last-seen country". The rest of this doc is the original full design.
+
 > **Status: scoped, buildable, small.** A self-contained substrate that
 > captures *where a connection comes from* — geographic origin (country
 > always; full IP privileged) — at the WebSocket handshake, and exposes

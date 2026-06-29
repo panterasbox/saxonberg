@@ -10,10 +10,11 @@ halves, over one shared resolution primitive:
    density-aware, similarity-grouped counts. The "a 200-player tavern
    renders as a manageable scene" thesis.
 2. **Notification policy** — per-*group* rules (keyed on any `GroupRef`,
-   not just contacts) for what a person's connect / disconnect /
-   message surfaces to the player (banner / inline / silent), resolved
-   by a strict ordered rule list, rate-limited, and delivered through a
-   client notification surface.
+   not just contacts) for whether a person's presence (entering / leaving
+   the game, dropping / reconnecting) and messages surface to the player
+   (`show` / `silent`), resolved by a strict ordered rule list, rate-
+   limited, and delivered as an **ordinary inline message frame** (no
+   separate notification surface — see "Presence frames" below).
 
 Both halves call **one** `SocialApi.ruleFor(viewer, person)` primitive.
 The store is a `NotifyPolicyMixin` per-character rule list — the
@@ -38,7 +39,9 @@ builds on [contacts.md](./contacts.md),
 | Gated dev-facing face | `api/social.ts` (`SocialApi`) |
 | Hot-reloadable logic singleton | `obj/api/SocialLogic.ts` (`/obj/api/social`) |
 | The `notify` verb | `cmd/social/notify.yaml` + `obj/command/social/NotifyController.ts` |
-| Client queue + pane | `components/frame/NotificationQueue.tsx`, `components/settings/SocialNotificationsPane.tsx` |
+| Presence events | `Avatar.enter` / `Avatar.onLinkdead` (+ `setLeaveIntent`), `lib/events.ts` (`PlayerLoggedIn`/`PlayerLoggedOut`/`PlayerReconnected`/`PlayerDisconnected`) |
+| Country of origin | `api/connection.ts` (`ConnectionApi.originOf`/`recordOrigin`, `geoip-lite`), captured at the WS handshake |
+| Client settings pane | `components/settings/SocialNotificationsPane.tsx` (presence frames render inline — no bespoke client component) |
 
 No new module category: `SocialApi`/`SocialLogic` mirror the
 `RecognitionApi`/`RecognitionLogic` and `RenownApi`/`RenownLogic`
@@ -78,8 +81,8 @@ interface NotifyRule {
   groupRef: GroupRef;
   nameRendering: 'name' | 'feature-string' | 'count-only' | 'hidden';
   boostInDense: boolean;
-  onConnect:    'banner' | 'log-only' | 'silent';
-  onDisconnect: 'banner' | 'log-only' | 'silent';
+  onConnect:    'show' | 'silent';   // arrivals: login / reconnect
+  onDisconnect: 'show' | 'silent';   // departures: logout / disconnect
   onMessage:    'full' | 'summary' | 'silent';
   color: PaletteToken;        // a named token, never raw hex
 }
@@ -209,29 +212,54 @@ Cost is bounded — display resolves `ruleFor` once per *visible occupant
 in one room* (room-size bounded), once per render; MQL refs are valid
 display subjects, evaluated once per render.
 
-## Notification policy — the login fan-out
+## Notification policy — the presence fan-out
 
-`Events.PlayerLoggedIn` / `PlayerLoggedOut` are emitted today but had
-**no buffer-relay consumer** — nothing turned them into a player-facing
-notification. This build supplies it. `SocialApi.boot()` (wired from
-`AppBootstrap.run()` after `RenownApi.boot()`) installs an idempotent
-presence tap on `SocialLogic` (the `RenownLogic` tap shape). On a
-login/logout, `relayPresence`:
+`Events.PlayerLoggedIn` / `PlayerLoggedOut` were emitted but had **no
+buffer-relay consumer**. This build supplies one, and refines the event
+taxonomy into **four player-level transitions, each gated on having a
+character in the world** (a bare welcome-screen socket and the
+OAuth/user layer never surface):
+
+| Event | Fires from | Meaning |
+|---|---|---|
+| `PlayerLoggedIn` | `Avatar.enter` (fresh instance) | a character entered the game |
+| `PlayerReconnected` | `Avatar.enter` (instance survived linkdead) | a connection returned to a still-in-world body |
+| `PlayerDisconnected` | `Avatar.onLinkdead` (no leave intent) | the last socket dropped involuntarily (linkdead); the body lingers |
+| `PlayerLoggedOut` | `Avatar.onLinkdead` (leave intent set) | a deliberate sign-out / switch-character |
+
+The fresh-vs-reconnect split keys on a transient per-instance
+`sessionActive` flag (set in `enter`, surviving the linkdead window — a
+real logout destructs the instance, so the next session starts fresh).
+The drop-vs-logout split keys on a transient `leaveIntent` flag: the
+client closes the socket with the **`INTENTIONAL_LEAVE_CLOSE_CODE`**
+(4000) on a deliberate teardown, threaded `Backend.handleWebSocketClose`
+→ `Application.handleUserDisconnect(socketId, intentional)` →
+`Avatar.setLeaveIntent` before the linkdead edge fires. A raw drop leaves
+the flag unset. The relay's only non-test consumer of these events is
+itself, so the taxonomy is free to be precise.
+
+`SocialApi.boot()` (wired from `AppBootstrap.run()` after
+`RenownApi.boot()`) installs an idempotent presence tap on `SocialLogic`
+(the `RenownLogic` tap shape) subscribing to all four. `relayPresence`:
 
 1. Resolves the acting Avatar; scans every online viewer
-   (`PlayerApi.getAllAvatars()`, skipping the actor).
+   (`PlayerApi.getAllAvatars()`, skipping the actor and any destroyed /
+   linkdead handle).
 2. `ruleFor(viewer, actor, { excludeMql: true })` — first match.
-3. `surface = event === 'connect' ? rule.onConnect : rule.onDisconnect`;
-   `silent` → skip.
+3. Arrivals (`loggedIn` / `reconnected`) read `rule.onConnect`;
+   departures (`loggedOut` / `disconnected`) read `rule.onDisconnect`.
+   `silent` → skip. The two policy directions cover all four events; the
+   rendered line names the specific transition.
 4. **Rate-limit** per `(actor, viewer, event)` via an in-memory
    `Map<string, number>` window (60 s; transient, nothing persisted —
    the `RenownLogic.receptionSeen` precedent; cadence is mechanism, so a
    code constant rather than an AppSettings dial). A flapping connection
    is dropped within the window.
-5. Pushes a `world.social.presence` frame:
-   `MessageApi.scene(viewer).topic(...).toSelf(body, payload).send()`,
-   the banner line viewer-aware (`Mml.name`), the `color` riding the
-   payload.
+5. Sends a `world.social.presence` frame:
+   `MessageApi.scene(viewer).topic(...).toSelf(body, payload).send()` —
+   the line viewer-aware (`Mml.name`), tinted **inline** by the rule
+   `color` (a `<highlight>` wrap, mirroring `styleMessageForImpl`).
+   Arrivals append "from `<country>`" when the origin resolved (below).
 
 This is **global presence** — surfaced wherever the viewer is — and is
 the only substantive new wiring. **Room movement is not a notification
@@ -284,18 +312,19 @@ notify remove <ref>             # …same, via the remove subcommand
 The set-fields are typed **options**, not positional `k=v`: the command
 framework forbids an optional `<ref>` positional followed by a greedy
 assignment positional (a greedy arg is implicitly required + last), so an
-optional ref + free-form `k=v` is structurally illegal. `--login` /
-`--disconnect` take `banner|log-only|silent`; `--message` takes
-`full|summary|silent`; `--render` takes
-`name|feature-string|count-only|hidden`; `--boost` / `--no-boost` are the
-boolean flag pair; `--color` takes a palette token.
+optional ref + free-form `k=v` is structurally illegal.
 
 `NotifyController` is a thin caller: it normalizes the typed `<ref>`
 (bare label → `contacts:<me>:<label>`; refs containing `:` and the bare
 pseudo-subjects pass through), builds the field patch from whichever typed
-options were provided (validating each value against its vocabulary),
-enforces the **50-rule soft cap** at set-time with a friendly rejection,
-and dispatches
+options were provided (validating each value against its vocabulary).
+`--login` / `--disconnect` take `show|silent` (a presence frame in the
+buffer, or nothing — `--login` covers arrivals, `--disconnect` covers
+departures); `--message` takes `full|summary|silent`; `--render` takes
+`name|feature-string|count-only|hidden`; `--boost` / `--no-boost` are
+the boolean flag pair; `--color` takes a palette token. It then enforces
+the **50-rule soft cap** at set-time with a friendly rejection, and
+dispatches
 to `SocialApi.{setRule,removeRule,reorderRule,listRules}`. A `silent`
 surface *is* the mute, so allow and deny share the verb. The global
 verbosity dial stays the settings verb
@@ -303,19 +332,22 @@ verbosity dial stays the settings verb
 
 ## Client surfaces
 
-### The notification queue
+### Presence frames render inline (no separate surface)
 
-Banner-class presence frames ride the ordinary `MessageFrame` channel
-(no new wire type), demuxed client-side by `topic ===
-'world.social.presence'` + `payload.surface`. `surface: 'banner'` →
-`pushNotification` into the **`notifications`** store slice (the
-prompt-stack shape: ephemeral, idempotent on `id`, cleared on disconnect);
-`'log-only'` → the normal quiet inline frame append; `'silent'` is never
-sent. `NotificationQueue.tsx` (sibling of `ReconnectBanner`) renders the
-queue as a dismissable toast stack, each tinted by its rule `color`
-mapped through `tokens.palette` (named token, not hex — the same palette
-the boosted room name and the message highlight use, so a theme swap
-re-tints every social highlight in one edit).
+A presence frame rides the ordinary `MessageFrame` channel (no new wire
+type) on `topic === 'world.social.presence'` and renders **inline in the
+message buffer like any other scene frame** — there is no toast / queue /
+overlay. (An early iteration routed a `banner` surface into a dismissable
+`NotificationQueue.tsx` toast stack; that was deliberately removed —
+presence is "a simple message frame," not a new client notification
+category. The client just lets the frame fall through to the normal
+per-topic / catch-all append.) The line is tinted **server-side** by the
+rule `color` (a `<highlight>` wrap the `MmlRenderer` resolves through
+`tokens.palette` — a named token, not hex, the same palette the boosted
+room name and the message highlight use, so a theme swap re-tints every
+social highlight in one edit). The structured `SocialNotificationPayload`
+(`{kind, event, actor, color, country?}`) rides along for any future
+structured consumer.
 
 ### The settings pane
 
@@ -348,7 +380,32 @@ front over `notify`**:
   (`notify <ref> --render name`, a default-preserving create), and a global
   `social.verbosity` control issues the `settings set` command.
 
-## Two flagged deferrals
+## Country of origin
+
+Arrivals (`loggedIn` / `reconnected`) gain a "from `<country>`" tail when
+the connecting player's country resolves. The capture is a v1 slice of
+the [connection-origin slate](../slates/tails/connection-origin-slate.md):
+
+- **Capture** at the WS handshake (`WebSocketService.handleUpgrade`):
+  the client IP (first hop of `X-Forwarded-For`, else
+  `socket.remoteAddress`) is threaded `Backend.handleWebSocketConnect` →
+  `Application.handleUserConnect` → `ConnectionApi.recordOrigin`, which
+  derives the country via the offline **`geoip-lite`** dataset
+  (`Intl.DisplayNames` for the ISO→name render) and stashes
+  `{ ip, country }` **transiently on the `Interactive`** (in-memory only;
+  never persisted — the PII posture).
+- **Expose**, privilege-split: `ConnectionApi.originOf(playerId)` returns
+  **country only** (broadly readable); the raw IP never leaves the
+  connection layer (the developer-gated IP read stays deferred).
+- The relay reads `originOf(actor).country` for arrivals only (a
+  departure has no origin). It resolves to nothing on **localhost /
+  private IPs** — so the country line only appears against real remote
+  connections.
+
+City/region, the developer-gated IP read, and any persisted "last-seen
+country" remain deferred to the slate.
+
+## A flagged deferral
 
 1. **Message-restyle live wiring (Phase 3b).**
    `SocialApi.styleMessageFor(viewer, speaker, body)` is implemented and
@@ -364,15 +421,6 @@ front over `notify`**:
    aggregation hook yet). A future `filterMessage`-shadow or late-bound
    producer-side wrapper calls `styleMessageFor` at the compose seam.
 
-2. **The reserved `country?` geo seam.** The
-   `SocialNotificationPayload.country?` field is left `undefined` in this
-   build. Once the connection-origin substrate lands
-   ([connection-origin-slate](../slates/tails/connection-origin-slate.md)),
-   `relayPresence` reads `ConnectionApi.originOf(actor).country` and the
-   banner gains "from <country>" with no rework here. Capturing the IP,
-   the geo lookup, and the country/IP privilege split are all out of
-   scope.
-
 ## Non-goals (this build)
 
 - **Message filtering / moderation** — a `foes` policy governs display
@@ -380,7 +428,7 @@ front over `notify`**:
   feed is a comms concern (comms-slate).
 - **Mutual / consent friending** — bucketing stays unilateral + private.
 - **`onProximity` / `onActivity` / movement notifications** — v1 covers
-  connect / disconnect / message.
+  presence (login / logout / reconnect / disconnect) + message.
 - **MQL refs as notification subjects** — display only.
 - **Raw / custom highlight colors** — named theme-palette tokens only.
 - **Account-level bucket federation across characters** — per-character
@@ -401,8 +449,8 @@ front over `notify`**:
 - [shell-environment.md](./shell-environment.md) — the `social.verbosity`
   settings keyspace; [app-settings.md](./app-settings.md) — the
   deployment-default baseline-rule seeds.
-- [client-shell.md](./client-shell.md) — the `ReconnectBanner` / frame /
-  store pattern the notification queue extends + the command-bar preview
+- [client-shell.md](./client-shell.md) — the frame / store pattern
+  presence frames render through + the command-bar preview
   contract; [inspection-pane.md](./inspection-pane.md) — the drill-in
   roster; [prompt.md](./prompt.md) — `mqlMany` verb-time disambiguation.
 - [social-graph-slate.md](../slates/tails/social-graph-slate.md) — the

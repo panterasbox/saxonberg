@@ -368,6 +368,8 @@ export class EventApi {
       [Events.ConnectionAttached]: EventApi.emittableBy(),
       [Events.PlayerLoggedIn]: EventApi.emittableBy(),
       [Events.PlayerLoggedOut]: EventApi.emittableBy(),
+      [Events.PlayerReconnected]: EventApi.emittableBy(),
+      [Events.PlayerDisconnected]: EventApi.emittableBy(),
       [Events.ModuleReloaded]: EventApi.emittableBy(HotReloadApi),
       [Events.ModuleRolledBack]: EventApi.emittableBy(HotReloadApi),
       [Events.ModuleUnloaded]: EventApi.emittableBy(HotReloadApi),

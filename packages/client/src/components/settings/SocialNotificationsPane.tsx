@@ -34,7 +34,7 @@ const NAME_RENDERINGS = [
   "count-only",
   "hidden",
 ] as const;
-const CONNECT_SURFACES = ["banner", "log-only", "silent"] as const;
+const CONNECT_SURFACES = ["show", "silent"] as const;
 const MESSAGE_SURFACES = ["full", "summary", "silent"] as const;
 const PALETTE_TOKENS = [
   "amber",

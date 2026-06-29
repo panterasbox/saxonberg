@@ -188,6 +188,12 @@ export class WebSocketService {
       return;
     }
 
+    // Capture the client IP at the handshake (one hop of trust: a
+    // proxy's X-Forwarded-For, else the raw socket address). Passed
+    // forward so the connection layer can derive country of origin; the
+    // raw IP is never persisted.
+    const clientIp = this.clientIpOf(request);
+
     // Session is valid - proceed with WebSocket upgrade
     this.wss!.handleUpgrade(request, socket, head, (ws) => {
       const sessionId = session.id;
@@ -197,8 +203,20 @@ export class WebSocketService {
       );
 
       // Delegate to Backend
-      this.backend.handleWebSocketConnect(ws, userId, sessionId);
+      this.backend.handleWebSocketConnect(ws, userId, sessionId, false, clientIp);
     });
+  }
+
+  /**
+   * The connecting client's IP: the first hop of `X-Forwarded-For` when a
+   * trusted proxy set it (production behind Caddy), else the raw socket
+   * remote address (dev). Returns `undefined` when neither is present.
+   */
+  private clientIpOf(request: IncomingMessage): string | undefined {
+    const xff = request.headers['x-forwarded-for'];
+    const forwarded =
+      typeof xff === 'string' ? xff.split(',')[0]?.trim() : undefined;
+    return forwarded || request.socket.remoteAddress || undefined;
   }
 
   /**

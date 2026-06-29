@@ -98,26 +98,45 @@ export interface MessageFrame<T = unknown> {
 // ============================================================================
 
 /**
+ * WebSocket close code the client uses on a **deliberate** teardown (sign
+ * out / switch character) so the server can distinguish a clean departure
+ * (→ `loggedOut`) from an involuntary network drop / linkdead (→
+ * `disconnected`). In the application-private range (4000–4999) per the
+ * WebSocket spec, so it never collides with protocol codes.
+ */
+export const INTENTIONAL_LEAVE_CLOSE_CODE = 4000;
+
+/**
  * Payload of a `world.social.presence` frame — the social-graph Wave 3
- * connect/disconnect notification (server `SocialLogic.relayPresence` →
- * client notification queue). Rides the ordinary `MessageFrame` channel
- * (no new wire message type); the client demuxes by `topic` + `surface`.
+ * presence notification (server `SocialLogic.relayPresence`). Rides the
+ * ordinary `MessageFrame` channel (no new wire message type, no separate
+ * client notification surface): a presence frame renders **inline in the
+ * message buffer** like any other scene frame. The payload is carried for
+ * structured consumers (filtering, future styling); the human-readable
+ * line is the frame body, tinted server-side by the rule `color`.
  *
- * - `surface: 'banner'` routes to the dismissable client notification
- *   queue; `'log-only'` falls through to the normal quiet inline frame
- *   append. (`'silent'` is never sent — the relay drops it server-side.)
+ * - `event` is the player-level presence transition, gated on having a
+ *   character in the world:
+ *   - `loggedIn` — a character entered the game (fresh session);
+ *   - `reconnected` — a connection returned to a still-in-world character
+ *     that had gone linkdead;
+ *   - `loggedOut` — a character deliberately left the game (sign out /
+ *     switch character);
+ *   - `disconnected` — a character's last connection dropped (linkdead),
+ *     the body lingering for a possible reconnect.
+ *   A bare socket to the welcome screen and the OAuth/user layer never
+ *   surface here.
  * - `color` is a named theme-palette token (e.g. `'amber'`), never raw
- *   hex, so the highlight resolves through the theme cascade.
- * - `country` is the **reserved geo seam**: left `undefined` in this
- *   build, populated later from `ConnectionApi.originOf(...).country`
- *   once the connection-origin substrate lands, so the banner can gain
- *   "from <country>" with no rework here. Do NOT populate it yet.
+ *   hex, so the inline highlight resolves through the theme cascade.
+ * - `country` is the connecting player's country of origin (display
+ *   name), present on `loggedIn` / `reconnected` when resolvable from the
+ *   connection IP (`ConnectionApi.originOf`). Absent on localhost / when
+ *   geo can't resolve, and on departures.
  */
 export interface SocialNotificationPayload {
   kind: 'presence';
-  event: 'connect' | 'disconnect';
+  event: 'loggedIn' | 'loggedOut' | 'reconnected' | 'disconnected';
   actor: StuffRef;
-  surface: 'banner' | 'log-only';
   color: string;
   country?: string;
 }
@@ -149,8 +168,8 @@ export interface SocialRuleProjection {
   label: string;
   nameRendering: 'name' | 'feature-string' | 'count-only' | 'hidden';
   boostInDense: boolean;
-  onConnect: 'banner' | 'log-only' | 'silent';
-  onDisconnect: 'banner' | 'log-only' | 'silent';
+  onConnect: 'show' | 'silent';
+  onDisconnect: 'show' | 'silent';
   onMessage: 'full' | 'summary' | 'silent';
   color: string;
   reserved: boolean;

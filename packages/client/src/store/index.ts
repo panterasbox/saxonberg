@@ -29,7 +29,6 @@ import type {
   PromptChoice,
   ReactionActState,
   ReactionSampleEntry,
-  SocialNotificationPayload,
   StuffDetailRecord,
   StuffRefRecord,
   TopicDescriptor,
@@ -60,15 +59,6 @@ export type ConnectionPhase =
   | "character-select"
   | "char-gen"
   | "in-world";
-
-/**
- * One entry in the ephemeral social-notification (banner) queue — a
- * `world.social.presence` frame whose `surface === 'banner'`, demuxed by
- * topic in `services/websocket.ts`. The wire `SocialNotificationPayload`
- * plus a client-assigned `id` (the source frame's id) for dismissal.
- * Ephemeral; cleared on disconnect alongside the prompt stack.
- */
-export type SocialNotification = SocialNotificationPayload & { id: string };
 
 /**
  * Client mirror of one entry on the per-Interactive prompt stack.
@@ -764,28 +754,6 @@ interface StoreState extends CmsSlice {
    * dispatch).
    */
   clearPrompts: () => void;
-
-  // Social-notification (banner) queue slice -------------------------
-  /**
-   * Ephemeral queue of banner-class social notifications (a contact's
-   * connect/disconnect). Mirrors the prompt-stack shape: server frames
-   * push, dismissals/TTL remove by `id`. Cleared on disconnect.
-   * `log-only` presence frames never reach here — they fall through to
-   * the normal quiet inline frame append.
-   */
-  notifications: SocialNotification[];
-  /**
-   * Append a banner notification. Idempotent on duplicate `id` (a frame
-   * replay shouldn't double-display).
-   */
-  pushNotification: (notification: SocialNotification) => void;
-  /** Remove one notification by `id` (dismiss control or TTL expiry). */
-  dismissNotification: (id: string) => void;
-  /**
-   * Drop the whole queue. Called by the WebSocket service on disconnect
-   * alongside `clearPrompts` — the queue is session-ephemeral.
-   */
-  clearNotifications: () => void;
 }
 
 /**
@@ -1330,27 +1298,6 @@ export const useStore = create<StoreState>((set, get) => ({
       activeSlot: BASE_SLOT,
       echoSnapshotQueue: [],
     })),
-
-  // Social-notification (banner) queue slice
-  notifications: [],
-
-  pushNotification: (notification) =>
-    set((state) => {
-      if (state.notifications.some((n) => n.id === notification.id)) {
-        return {};
-      }
-      return { notifications: [...state.notifications, notification] };
-    }),
-
-  dismissNotification: (id) =>
-    set((state) => {
-      const notifications = state.notifications.filter((n) => n.id !== id);
-      return notifications.length === state.notifications.length
-        ? {}
-        : { notifications };
-    }),
-
-  clearNotifications: () => set(() => ({ notifications: [] })),
 
   // Client state slice
   clientState: {},

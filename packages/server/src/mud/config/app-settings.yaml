@@ -160,12 +160,15 @@ settings:
   # Social-graph (attention management) — the reserved-baseline notify
   # rules' default fields (deployment defaults, NOT code constants). A
   # reserved label (foes / friends / everyone-else / strangers) resolves to
-  # these defaults until the player edits it. `friends` boosts + banners +
-  # warm color; `foes` de-emphasizes + suppresses notifications + muted/red;
-  # `everyone-else` is the named, silent recognized fallback; `strangers`
-  # render as feature-strings, silent. See docs/subsystems/social-graph.md.
+  # these defaults until the player edits it. `friends` boosts + shows
+  # presence + warm color; `foes` de-emphasizes + suppresses notifications +
+  # muted/red; `everyone-else` is the named, silent recognized fallback;
+  # `strangers` render as feature-strings, silent. Presence surfaces are
+  # `show` | `silent` (a presence frame renders inline in the buffer; the
+  # old `banner`/`log-only` split retired with the toast). See
+  # docs/subsystems/social-graph.md.
   - key: social.baselineRules
-    value: '{"foes":{"nameRendering":"feature-string","boostInDense":false,"onConnect":"silent","onDisconnect":"silent","onMessage":"silent","color":"rose"},"friends":{"nameRendering":"name","boostInDense":true,"onConnect":"banner","onDisconnect":"banner","onMessage":"full","color":"amber"},"everyone-else":{"nameRendering":"name","boostInDense":false,"onConnect":"silent","onDisconnect":"silent","onMessage":"silent","color":"neutral"},"strangers":{"nameRendering":"feature-string","boostInDense":false,"onConnect":"silent","onDisconnect":"silent","onMessage":"silent","color":"slate"}}'
+    value: '{"foes":{"nameRendering":"feature-string","boostInDense":false,"onConnect":"silent","onDisconnect":"silent","onMessage":"silent","color":"rose"},"friends":{"nameRendering":"name","boostInDense":true,"onConnect":"show","onDisconnect":"show","onMessage":"full","color":"amber"},"everyone-else":{"nameRendering":"name","boostInDense":false,"onConnect":"silent","onDisconnect":"silent","onMessage":"silent","color":"neutral"},"strangers":{"nameRendering":"feature-string","boostInDense":false,"onConnect":"silent","onDisconnect":"silent","onMessage":"silent","color":"slate"}}'
   # The neutral palette token a fresh custom rule inherits until `color=` is set.
   - key: social.defaultColor
     value: neutral

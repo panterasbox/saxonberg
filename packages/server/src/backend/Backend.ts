@@ -22,6 +22,7 @@ import type {
   Envelope,
   PassportGoogleProfile,
 } from '@saxonberg/types';
+import { INTENTIONAL_LEAVE_CLOSE_CODE } from '@saxonberg/types';
 import type {
   LinkResult,
   ProviderProfile,
@@ -173,7 +174,8 @@ export class Backend implements IBackend {
     ws: WebSocket,
     userId: string,
     sessionId: string,
-    isBroadcast = false
+    isBroadcast = false,
+    clientIp?: string
   ): void {
     // Generate socket ID
     const socketId = `socket_${SecurityApi.uuid()}`;
@@ -188,8 +190,8 @@ export class Backend implements IBackend {
       this.handleWebSocketMessage(socketId, data);
     });
 
-    ws.on('close', () => {
-      this.handleWebSocketClose(socketId);
+    ws.on('close', (code: number) => {
+      this.handleWebSocketClose(socketId, code);
     });
 
     ws.on('error', (error: Error) => {
@@ -202,7 +204,7 @@ export class Backend implements IBackend {
     if (this.application) {
       const app = this.application;
       ExecutionContextApi.runRoot(Backend, 'handleUserConnect', () =>
-        app.handleUserConnect(userId, sessionId, socketId, isBroadcast)
+        app.handleUserConnect(userId, sessionId, socketId, isBroadcast, clientIp)
       );
     }
   }
@@ -257,8 +259,12 @@ export class Backend implements IBackend {
    * Handle WebSocket close.
    *
    * @param socketId - Socket ID
+   * @param code - WebSocket close code. The client closes with
+   *   {@link INTENTIONAL_LEAVE_CLOSE_CODE} on a deliberate sign-out /
+   *   switch-character (vs a network drop), so a clean departure is
+   *   distinguishable from an involuntary linkdead downstream.
    */
-  private handleWebSocketClose(socketId: string): void {
+  private handleWebSocketClose(socketId: string, code?: number): void {
     console.info(`Backend: WebSocket closed - socketId=${socketId}`);
 
     // Remove from registry
@@ -268,8 +274,9 @@ export class Backend implements IBackend {
     // Notify Application of disconnection. Root frame on the boundary.
     if (this.application) {
       const app = this.application;
+      const intentional = code === INTENTIONAL_LEAVE_CLOSE_CODE;
       ExecutionContextApi.runRoot(Backend, 'handleUserDisconnect', () =>
-        app.handleUserDisconnect(socketId)
+        app.handleUserDisconnect(socketId, intentional)
       );
     }
   }

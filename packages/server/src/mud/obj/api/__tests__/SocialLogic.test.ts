@@ -72,7 +72,7 @@ describe("SocialApi.ruleFor — strict ordered first-match", () => {
     const p = makePerson("/obj/Avatar/p1");
     // Two stored rules, both containing the person; first should win.
     SocialApi.setRule(v, "managed:a", { onConnect: "silent" });
-    SocialApi.setRule(v, "managed:b", { onConnect: "banner" });
+    SocialApi.setRule(v, "managed:b", { onConnect: "show" });
     membership.add(`/obj/Avatar/p1|managed:a`);
     membership.add(`/obj/Avatar/p1|managed:b`);
 
@@ -129,11 +129,11 @@ describe("SocialApi.ruleFor — strict ordered first-match", () => {
   it("accepts a managed-group ref as a matching subject", async () => {
     const v = makeViewer();
     const p = makePerson("/obj/Avatar/guildie");
-    SocialApi.setRule(v, "managed:fighter-guild", { onConnect: "banner" });
+    SocialApi.setRule(v, "managed:fighter-guild", { onConnect: "show" });
     membership.add(`/obj/Avatar/guildie|managed:fighter-guild`);
     const r = await SocialApi.ruleFor(v, p);
     expect(r.groupRef).toBe("managed:fighter-guild");
-    expect(r.onConnect).toBe("banner");
+    expect(r.onConnect).toBe("show");
   });
 
   it("materializing a head-baseline reserved rule (friends) preserves its head precedence over a higher custom rule", async () => {
