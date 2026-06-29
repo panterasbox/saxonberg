@@ -786,6 +786,73 @@ describe('Avatar', () => {
       });
     });
 
+    it('emits PlayerReconnected on a second enter (returning to a lingering body)', async () => {
+      const { MessageApi } = await import('../../api/message');
+      const { EventApi } = await import('../../api/event');
+      const { Events } = await import('../../lib/events');
+
+      const avatar = makeAvatar('enter-rc');
+      vi.spyOn(avatar, 'getContainer').mockReturnValue({
+        stuffId: 's',
+        getPresentation: () => 'somewhere',
+        getTemplatePath: () => null,
+      } as never);
+      vi.spyOn(avatar, 'startAutoSave').mockImplementation(() => {});
+      const emitSpy = vi.spyOn(EventApi, 'emit').mockImplementation(() => {});
+      const send = vi.fn();
+      vi.spyOn(MessageApi, 'scene').mockImplementation(
+        () =>
+          ({
+            topic: () => ({
+              toSelf: () => ({ payload: () => ({ send }), send }),
+            }),
+          }) as never
+      );
+
+      // First enter: fresh login.
+      await avatar.enter(fakeInteractive() as unknown as Interactive);
+      // Second enter: the instance survived a linkdead window → reconnect.
+      await avatar.enter(fakeInteractive() as unknown as Interactive);
+
+      expect(emitSpy).toHaveBeenCalledWith(Events.PlayerLoggedIn, {
+        playerId: 'enter-rc',
+        userId: 'user-1',
+      });
+      expect(emitSpy).toHaveBeenCalledWith(Events.PlayerReconnected, {
+        playerId: 'enter-rc',
+        userId: 'user-1',
+      });
+    });
+
+    it('onLinkdead emits PlayerDisconnected on an involuntary drop', async () => {
+      const { EventApi } = await import('../../api/event');
+      const { Events } = await import('../../lib/events');
+      const avatar = makeAvatar('ld-drop');
+      const emitSpy = vi.spyOn(EventApi, 'emit').mockImplementation(() => {});
+      avatar.onLinkdead();
+      expect(emitSpy).toHaveBeenCalledWith(Events.PlayerDisconnected, {
+        playerId: 'ld-drop',
+      });
+    });
+
+    it('onLinkdead emits PlayerLoggedOut after a deliberate leave intent', async () => {
+      const { EventApi } = await import('../../api/event');
+      const { Events } = await import('../../lib/events');
+      const avatar = makeAvatar('ld-leave');
+      const emitSpy = vi.spyOn(EventApi, 'emit').mockImplementation(() => {});
+      avatar.setLeaveIntent(true);
+      avatar.onLinkdead();
+      expect(emitSpy).toHaveBeenCalledWith(Events.PlayerLoggedOut, {
+        playerId: 'ld-leave',
+      });
+      // The intent is consumed — a subsequent drop is an involuntary one.
+      emitSpy.mockClear();
+      avatar.onLinkdead();
+      expect(emitSpy).toHaveBeenCalledWith(Events.PlayerDisconnected, {
+        playerId: 'ld-leave',
+      });
+    });
+
     it('welcome-scene payload carries topicCatalogue from the singleton', async () => {
       const { MessageApi } = await import('../../api/message');
       const { EventApi } = await import('../../api/event');

@@ -270,6 +270,12 @@ export class CommandLogic extends Idea {
     commands.clear();
   }
 
+  /** See {@link CommandApi.allDefinitions}. */
+  @CallSecurity(CommandApiCallers)
+  public allDefinitions(): CommandDefinition[] {
+    return [...commands.values()];
+  }
+
   /** See {@link CommandApi.invalidate}. */
   @CallSecurity(CommandApiCallers)
   public invalidate(filename: string): boolean {

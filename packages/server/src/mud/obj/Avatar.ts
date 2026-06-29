@@ -40,6 +40,7 @@ import { PostRegistrationMixin } from "../lib/stuff/PostRegistration";
 import { HasInteractiveMixin } from "../lib/connection/HasInteractive";
 import { AetherMixin } from "../lib/message/Aether";
 import { ContactsMixin } from "../lib/social/Contacts";
+import { NotifyPolicyMixin } from "../lib/social/NotifyPolicy";
 import { SubjectSubscriberMixin } from "../lib/forum/SubjectSubscriber";
 import { Events } from "../lib/events";
 import type { User } from "../lib/identity/User";
@@ -79,7 +80,9 @@ export interface AvatarInitContext {
 // it. The mixin gates `tell` and (future) chat / remote-emote.
 const AvatarBase = PostRegistrationMixin(
   HasInteractiveMixin(
-    AetherMixin(ContactsMixin(SubjectSubscriberMixin(ShelledCharacter))),
+    AetherMixin(
+      NotifyPolicyMixin(ContactsMixin(SubjectSubscriberMixin(ShelledCharacter))),
+    ),
   ),
 );
 
@@ -444,10 +447,17 @@ export default class Avatar extends AvatarBase {
     // description rendering here.
     await this.autoSenseOnArrival();
 
-    // Avatar is in-world; the user is logged in. Engine-level event
-    // for any observer (audit, achievements) that doesn't care
-    // which avatar — just that this player is now playable.
-    EventApi.emit(Events.PlayerLoggedIn, {
+    // Avatar is in-world; the user is playable. Engine-level presence
+    // event for any observer (audit, achievements, the social presence
+    // relay). A first-ever `enter()` for this instance is a fresh login;
+    // a second `enter()` (a connection returning to a body that lingered
+    // linkdead) is a reconnect — `sessionActive` is the discriminator
+    // (set below, surviving the linkdead window).
+    const reconnect = this.sessionActive;
+    this.sessionActive = true;
+    // A returning connection cancels any pending deliberate-leave intent.
+    this.leaveIntent = false;
+    EventApi.emit(reconnect ? Events.PlayerReconnected : Events.PlayerLoggedIn, {
       playerId: this.getPlayerId(),
       userId: interactive.getUserId() ?? "",
     });
@@ -464,6 +474,42 @@ export default class Avatar extends AvatarBase {
    * the mixin proxy receiver can't reach `#`-private slots.
    */
   private periodicSaveHandle: ScheduleHandle | null = null;
+
+  /**
+   * Transient per-instance session flag: has this avatar instance entered
+   * the world at least once in its current life? Set in `enter()`, never
+   * cleared while the instance lingers linkdead — so a second `enter()`
+   * (a connection returning to a still-in-world body) is recognizable as a
+   * **reconnect** rather than a fresh login. A real logout destructs the
+   * instance, so the next session starts a fresh instance with this unset.
+   *
+   * NOT persisted (deliberately absent from `persistentFields`): it
+   * describes the live session, not durable avatar state. TypeScript
+   * `private` per the domain-code default (the mixin proxy can't reach
+   * `#`-private slots).
+   */
+  private sessionActive: boolean = false;
+
+  /**
+   * Transient flag: did the player signal a *deliberate* leave (sign out /
+   * switch character) rather than a network drop? Set by the connection
+   * layer (`Application.handleUserDisconnect`) when the socket closed with
+   * the intentional-leave close code, read once by `onLinkdead()` to fire
+   * `PlayerLoggedOut` (a deliberate departure) instead of
+   * `PlayerDisconnected` (an involuntary linkdead drop). Not persisted.
+   */
+  private leaveIntent: boolean = false;
+
+  /**
+   * Mark this avatar's next presence drop as a deliberate leave (sign out
+   * / switch character) rather than an involuntary linkdead. The
+   * connection layer calls this at the network boundary when the client
+   * closed with the intentional-leave close code; `onLinkdead()` consumes
+   * it. Idempotent.
+   */
+  public setLeaveIntent(intentional: boolean): void {
+    this.leaveIntent = intentional;
+  }
 
   /**
    * Install the v1 default loadout — attune the avatar, then inject the
@@ -685,7 +731,19 @@ export default class Avatar extends AvatarBase {
       StuffApi.destruct(this);
       return;
     }
-    EventApi.emit(Events.PlayerLoggedOut, { playerId: this.playerId });
+    // Split deliberate departures from involuntary drops. A sign-out /
+    // switch-character closes the socket with the intentional-leave code,
+    // which the connection layer recorded via `setLeaveIntent` — that's a
+    // `PlayerLoggedOut` (the character left the game; a return is a fresh
+    // login). A bare drop is a `PlayerDisconnected` (linkdead): the body
+    // lingers and the next `enter()` will be a reconnect.
+    if (this.leaveIntent) {
+      this.leaveIntent = false;
+      this.sessionActive = false;
+      EventApi.emit(Events.PlayerLoggedOut, { playerId: this.playerId });
+    } else {
+      EventApi.emit(Events.PlayerDisconnected, { playerId: this.playerId });
+    }
   }
 
   public toString(): string {

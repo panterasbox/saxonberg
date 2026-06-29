@@ -82,6 +82,9 @@ export class MessageLogic extends Idea {
   /** See {@link MessageApi.sendMessage}. */
   @CallSecurity(MessageApiCallers)
   public sendMessage(recipient: SensorStuff, frame: MessageFrame): void {
+    // A destroyed recipient is inert (its proxy no-ops every call), so a
+    // dead sensor still reachable from a room is harmless here — no guard
+    // needed. A *linkdead* recipient is live and still receives.
     recipient.onMessage(frame);
   }
 

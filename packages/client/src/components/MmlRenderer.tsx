@@ -26,6 +26,19 @@ import styled from 'styled-components';
 import { useStore } from '../store';
 import { parseMml, type MmlNode } from '../lib/mml/parseMml';
 import { FACE_STACKS } from '../styles/faces';
+import { tokens } from './ui';
+
+/**
+ * Map a server social-graph palette token (`amber`, `rose`, …) to a
+ * concrete theme color, falling back to `neutral` for an unknown token.
+ * The same `tokens.palette` map the `NotificationQueue` toast uses, so a
+ * `<name color="amber">` room occupant and its presence banner tint
+ * identically. Returns `undefined` for an absent attr (no tint).
+ */
+function paletteFor(token: string | undefined): string | undefined {
+  if (!token) return undefined;
+  return tokens.palette[token] ?? tokens.palette.neutral!;
+}
 
 interface MmlRendererProps {
   text: string;
@@ -119,20 +132,20 @@ function labelOf(node: MmlNode): string {
   return node.children.map(labelOf).join('');
 }
 
-const ClickableSpan = styled.span`
-  color: #4ec9b0;
+const ClickableSpan = styled.span<{ $tint?: string }>`
+  color: ${(p) => p.$tint ?? '#4ec9b0'};
   cursor: pointer;
   text-decoration: underline;
   text-decoration-style: dotted;
   text-underline-offset: 2px;
 
   &:hover {
-    color: #7fdfc8;
+    color: ${(p) => p.$tint ?? '#7fdfc8'};
     text-decoration-style: solid;
   }
 
   &:active {
-    color: #b8eedc;
+    color: ${(p) => p.$tint ?? '#b8eedc'};
   }
 `;
 
@@ -164,6 +177,16 @@ function handleAffordanceClick(
   }
   onCommandClick(cmd);
 }
+
+/**
+ * Non-clickable highlight wrapper for `<highlight color="…">` (the
+ * `onMessage: full` message-restyle surface). Forward-compat: the server
+ * restyle path isn't wired live yet, but render the color tint when the
+ * attr is present so the surface lights up the moment it is.
+ */
+const HighlightSpan = styled.span<{ $tint?: string }>`
+  color: ${(p) => p.$tint ?? 'inherit'};
+`;
 
 /**
  * Inert link affordance for `mudq:` URIs (and any other namespaced
@@ -286,6 +309,14 @@ function renderNode(
       return <StrikeSpan key={key}>{children}</StrikeSpan>;
     case 'chan':
       return <ChanChip key={key}>{children}</ChanChip>;
+    case 'highlight':
+      // Styling wrapper, not clickable — tint by the palette color when
+      // present, otherwise pass through unstyled.
+      return (
+        <HighlightSpan key={key} $tint={paletteFor(node.attrs.color)}>
+          {children}
+        </HighlightSpan>
+      );
     case 'msg':
       // No wrapper styling — `<msg>` is a region marker the
       // per-message-type templates consume for layout (chat's
@@ -365,9 +396,13 @@ function renderNode(
     return <React.Fragment key={key}>{children}</React.Fragment>;
   }
 
+  // Identity tags (notably `<name>`) may carry a social-graph `color`
+  // attribute (a boosted room occupant) — tint the span through the same
+  // palette as the notification queue, keeping the click/preview behavior.
   return (
     <ClickableSpan
       key={key}
+      $tint={paletteFor(node.attrs.color)}
       onClick={(e) => handleAffordanceClick(e, cmd, ctx.onCommandClick)}
       onContextMenu={(e) => {
         e.preventDefault();

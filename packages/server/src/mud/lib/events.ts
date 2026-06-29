@@ -40,6 +40,8 @@ export const Events = {
   ConnectionAttached: 'connection.attached',
   PlayerLoggedIn: 'player.loggedIn',
   PlayerLoggedOut: 'player.loggedOut',
+  PlayerReconnected: 'player.reconnected',
+  PlayerDisconnected: 'player.disconnected',
   ModuleReloaded: 'module.reloaded',
   ModuleRolledBack: 'module.rolledBack',
   ModuleUnloaded: 'module.unloaded',
@@ -100,6 +102,8 @@ export interface EventPayloads {
   [Events.ConnectionAttached]: { interactiveId: string; holderId?: string };
   [Events.PlayerLoggedIn]: { playerId: string; userId: string };
   [Events.PlayerLoggedOut]: { playerId: string };
+  [Events.PlayerReconnected]: { playerId: string; userId: string };
+  [Events.PlayerDisconnected]: { playerId: string };
   [Events.ModuleReloaded]: ReloadEvent;
   [Events.ModuleRolledBack]: ReloadEvent;
   [Events.ModuleUnloaded]: ReloadEvent;

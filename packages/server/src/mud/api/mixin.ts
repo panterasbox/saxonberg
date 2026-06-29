@@ -96,6 +96,7 @@ import type { Atmospheric } from '../lib/biome/Atmospheric';
 import type { Addressable } from '../lib/address/Addressable';
 import type { SkyExposed } from '../lib/biome/SkyExposed';
 import type { Contacts } from '../lib/social/Contacts';
+import type { NotifyPolicy } from '../lib/social/NotifyPolicy';
 import type { Soul } from '../lib/social/Soul';
 import type { WarrenMember } from '../lib/location/WarrenMember';
 import type { BeliefStore } from '../lib/belief/BeliefStore';
@@ -611,6 +612,10 @@ export class MixinApi {
 
   public static isContacts(obj: Stuff): obj is Stuff & Contacts {
     return this.hasMixin(obj, Mixins.Contacts);
+  }
+
+  public static isNotifyPolicy(obj: Stuff): obj is Stuff & NotifyPolicy {
+    return this.hasMixin(obj, Mixins.NotifyPolicy);
   }
 
   public static isSoul(obj: Stuff): obj is Stuff & Soul {

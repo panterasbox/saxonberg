@@ -1,0 +1,6 @@
+# HelpCatalogue — the singleton that warms the help index in postRegister
+# by harvesting the commands + api projectors. No field state; the index
+# is rebuilt on demand from the command roster + author-surface.json.
+class: /obj/HelpCatalogue
+hydratorClass: /lib/persistence/PersistentHydrator
+data: {}

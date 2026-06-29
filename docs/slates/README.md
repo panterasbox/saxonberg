@@ -31,8 +31,10 @@ shipped substrate it leans on.
 identity substrate **shipped 2026-06** — recognition (full) +
 identification (substrate) + the viewer-aware naming step, graduated to
 [../subsystems/belief.md](../subsystems/belief.md). The two shipped slates
-moved to `tails/`, holding their deferred surface; the relationship layer
-remains a build.
+moved to `tails/`, holding their deferred surface; the social-graph
+**attention layer** then shipped (Wave 3 →
+[../subsystems/social-graph.md](../subsystems/social-graph.md)), its slate
+moving to `tails/` with only Wave 4 + the message-restyle wiring left.
 - [chronicle-slate](./tails/chronicle-slate.md) *(tail)* — the append-only
   identity **ledger** (witnessed deeds + authored prologue claims) that
   every future identity readout (recognition, reputation, alignment,
@@ -45,10 +47,20 @@ remains a build.
 - [identification-slate](./tails/identification-slate.md) *(tail)* — the
   deferred pedagogical instrument seam (`analyze X with Y`, real Material
   chemistry), partial identification, misidentification.
-- [social-graph-slate](./builds/social-graph-slate.md) — relationship
-  buckets/lists. Storage half already shipped as `ContactsMixin`
-  ([../subsystems/contacts.md](../subsystems/contacts.md)); the
-  relationship layer remains.
+- [social-graph-slate](./tails/social-graph-slate.md) *(tail)* — the
+  bucket storage shipped as `ContactsMixin`
+  ([../subsystems/contacts.md](../subsystems/contacts.md)) and the
+  attention layer (display lensing + the `notify` notification policy)
+  shipped as Wave 3
+  ([../subsystems/social-graph.md](../subsystems/social-graph.md));
+  remaining tail = Wave 4 (account-level federation) + message-restyle
+  live wiring.
+- [connection-origin-slate](./tails/connection-origin-slate.md) *(tail)* —
+  geographic origin of a connection (country broadly visible, IP
+  developer-only, in-memory/never-persisted). **Country v1 shipped** with
+  the social-graph build (capture → `geoip-lite` → `ConnectionApi.originOf`,
+  consumed by the presence line); remaining tail = the developer-gated IP
+  read, a `whois`/`locate` verb, and city/region.
 - [reputation-slate](./builds/reputation-slate.md) — charisma-as-**measured-influence**
   (regard / renown / susceptibility), notoriety as the signed twin that
   pierces disguise, per-circle scoping. The platform's "value as physics,
@@ -70,7 +82,8 @@ remains a build.
 
 **Status:** recognition + identification substrate shipped → `belief.md`;
 chronicle ledger substrate shipped → `chronicle.md`; social-graph
-relationship layer remains.
+attention layer shipped Wave 3 → `social-graph.md` (Wave 4 + connection
+origin remain as tails).
 
 ### 2. NPCs
 *Where the personality lives.*

@@ -237,7 +237,8 @@ export class Application {
     userId: string,
     sessionId: string,
     socketId: string,
-    isBroadcast = false
+    isBroadcast = false,
+    clientIp?: string
   ): Promise<void> {
     if (!this.backend) {
       console.error('Application: Backend not initialized');
@@ -278,6 +279,10 @@ export class Application {
         user
       );
 
+      // Capture the connection's geographic origin (country only is
+      // surfaced; the raw IP stays transient on the Interactive).
+      ConnectionApi.recordOrigin(interactive, clientIp);
+
       const login = await StuffApi.create(() => new Login(interactive));
       await login.enter();
     } catch (error) {
@@ -295,7 +300,7 @@ export class Application {
     }
   }
 
-  public handleUserDisconnect(socketId: string): void {
+  public handleUserDisconnect(socketId: string, intentional = false): void {
     console.info(`Application: User disconnecting - socketId=${socketId}`);
 
     // Broadcast connections live only in the feed's set (no Interactive).
@@ -309,6 +314,17 @@ export class Application {
     // triggers it at the network boundary, then removes (below).
     const interactive = ConnectionManager.get().getInteractive(socketId);
     if (interactive) {
+      // A deliberate sign-out / switch-character closed the socket with
+      // the intentional-leave code. Record it on the holder (the in-world
+      // avatar) BEFORE teardown so its `onLinkdead` fires `loggedOut`
+      // (a clean departure) rather than `disconnected` (an involuntary
+      // linkdead). A bare network drop leaves the flag unset.
+      if (intentional) {
+        const holder = interactive.getHolder() as {
+          setLeaveIntent?: (intentional: boolean) => void;
+        } | null;
+        holder?.setLeaveIntent?.(true);
+      }
       interactive.teardownSubstrateState();
     }
 

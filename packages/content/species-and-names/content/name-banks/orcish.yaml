@@ -1,0 +1,8 @@
+# Name bank `orcish` (file name = bank key). Blended with `common` for
+# the half-orc cast.
+style: Blunt, guttural, strong.
+given:
+  [Brakka, Dura, Gorruk, Grisha, Karg, Mogra, Nargol, Ruka, Shagg,
+   Thokk, Ura, Vrenn]
+surname:
+  [Skullcleaver, Ironmaw, Bonecrush, Grimtusk, Bloodfang, Steeljaw]

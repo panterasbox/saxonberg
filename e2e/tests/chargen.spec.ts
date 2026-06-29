@@ -87,8 +87,12 @@ test('a new player creates a character and spawns into the world', async ({
     await page.goto('/');
 
     // The zero-avatar user lands in the dedicated creation stage, not the
-    // cockpit.
-    await expect(page.getByTestId('chargen-stage')).toBeVisible();
+    // cockpit. Generous timeout: this first assertion waits through the
+    // WebSocket connect ("Connecting…"), which can run past the default
+    // 5s under parallel load — same connect window `enterWorld` allows for.
+    await expect(page.getByTestId('chargen-stage')).toBeVisible({
+      timeout: 25_000,
+    });
 
     // Step — species. Each step's options are driven by the server's
     // `system.charactergen.state` frame; clicking a card sends the literal
@@ -181,9 +185,16 @@ test('a new player creates a character and spawns into the world', async ({
     // the seeded spawn room — the lounge (the Avatar seed pins
     // `startLocation: /domain/lounge/warren`). We assert on the room's
     // stable identity label, not its flavor prose.
-    await input.fill('look');
-    await input.press('Enter');
-    await expect(page.getByText(/the lounge/i).first()).toBeVisible();
+    //
+    // Resilient send: right after the cockpit flips in, the WebSocket
+    // world session can still be settling, so the first `look` may be
+    // dropped. Retry until the room renders.
+    const lounge = page.getByText(/the lounge/i).first();
+    await expect(async () => {
+      await input.fill('look');
+      await input.press('Enter');
+      await expect(lounge).toBeVisible({ timeout: 2_000 });
+    }).toPass({ timeout: 20_000 });
   } finally {
     await context?.close();
   }

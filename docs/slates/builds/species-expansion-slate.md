@@ -11,6 +11,19 @@
 > **Scope:** roster expansion, **NPC-first** (player-playability per species is
 > a separate, later question). Influence: **NetHack** (its race/monster personas,
 > D&D/Tolkien-derived) + the casting principle below.
+>
+> **First pass BUILT (2026-06-29, `feature/species-and-names-pack`).** Per
+> Open-Q6 (EU corner first), the two casting calls — **troll** (`homo/trollius`,
+> Katie) and **ghoul** (`homo/ghulius`, Dr. Vance) — landed as NPC-first
+> `Species` seeds. Then a cheap, data-only roster expansion: **gnome / half-elf
+> / orc** added **playable** (in the char-gen roster), plus NPC-first **ogre /
+> kobold / satyr**. All mundane living-people (the "brute"/"undead" framings are
+> slander, not biology). New `gnomish` + `sylvan` name banks; the rest reuse
+> existing pools. Shipped alongside the migration of the whole `Species`/`Clade`
+> tree + the name banks out of the kernel seed tree into the
+> `@saxonberg/content-species-and-names` content pack. The deeper *personhood*
+> casts (flesh-golem, doppelganger, zombie, synth — they want mechanics) and the
+> rest of the palette below stay deferred (JIT, carve-by-carve).
 
 ---
 

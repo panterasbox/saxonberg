@@ -1,0 +1,39 @@
+# Homo orcus — fantasy orc (the full orc, beside the half-orc semiorcus).
+# Same biped anatomy as sapiens, built broad and powerful; a keen nose and
+# low-light eyes, short and intense of life. Playable. See
+# docs/slates/builds/species-expansion-slate.md.
+class: /lib/species/Species
+hydratorClass: /lib/persistence/PersistentHydrator
+data:
+  illustration: species/orcus.png
+  binomial: Homo orcus
+  commonNames: ["orc"]
+  _bodyPlanPath: /lib/body-plans/biped
+  _parentCladePath: /lib/species/animalia
+  _defaultMaterialPath: /lib/material/tissue/flesh
+  vitalProfile:
+    coreTemperature: { baseline: 310, survivableMin: 301, survivableMax: 316 }
+    heartRate: { baseline: 64, survivableMin: 28, survivableMax: 210 }
+    respiratoryRate: { baseline: 15, survivableMin: 5, survivableMax: 40 }
+    bloodPressureSystolic: { baseline: 122, survivableMin: 72, survivableMax: 200 }
+    bloodPressureDiastolic: { baseline: 82, survivableMin: 42, survivableMax: 130 }
+    spo2: { baseline: 98, survivableMin: 70, survivableMax: 100 }
+    bloodVolume: { baseline: 6, survivableMin: 3.9, survivableMax: 6 }
+  lifecycleStates: ["alive", "dead", "undead"]
+  sexDeterminationSystem: dioecious
+  reproductiveMode: sexual
+  lifespanMin: 0
+  lifespanMax: 60
+  circadianBand: crepuscular
+  diet: omnivore
+  visionProfile:
+    scotopicMin: very-dim
+    photopicMax: bright
+    bandShift: -1
+  olfactoryProfile:
+    acuity: keen
+  longDescription: >-
+    A broad, heavy-shouldered figure well over the common height,
+    green-grey of skin with a jutting jaw and prominent tusks, fierce-eyed
+    and restless, with a keen nose that reads a room before the eyes do.
+  nameBankKeys: ["orcish"]

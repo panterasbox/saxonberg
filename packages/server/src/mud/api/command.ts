@@ -1175,6 +1175,17 @@ export class CommandApi {
   }
 
   /**
+   * Every loaded `CommandDefinition` — the whole filename-keyed cache,
+   * not the per-giver affordance set. Populated by `preloadAll` at
+   * boot (which runs before `HelpCatalogue` warms), so the help index's
+   * commands projector sees the complete verb roster. Returns a snapshot
+   * array; ordering follows insertion.
+   */
+  static allDefinitions(): CommandDefinition[] {
+    return logic().allDefinitions();
+  }
+
+  /**
    * Drop the cached `CommandDefinition` for one YAML so the next
    * `getCommand(filename)` re-reads from disk. The escape hatch
    * for dev edits — command YAMLs don't auto-reload (the cache

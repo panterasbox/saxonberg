@@ -3,3 +3,6 @@ node_modules/
 playwright-report/
 test-results/
 blob-report/
+
+# Ad-hoc DOM-probe scratch scripts (underscore-prefixed, throwaway)
+_*.mjs

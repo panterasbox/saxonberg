@@ -4,9 +4,10 @@
 import { readFileSync, readdirSync, statSync, existsSync } from 'fs';
 import { createRequire } from 'module';
 import { fileURLToPath } from 'url';
-import { dirname, join, relative } from 'path';
+import { basename, dirname, join, relative } from 'path';
 import YAML from 'yaml';
 import { Idea } from '../../lib/stuff/Idea';
+import { NameBank } from '../../lib/species/NameBank';
 import { CallSecurity, Unshadowable } from '../../lib/security/decorators';
 import { SecurityPolicies } from '../../lib/security/SecurityPolicies';
 import { Collections } from '../../../backend/PersistenceManager';
@@ -39,11 +40,24 @@ interface DomainFile {
   relFile: string;
 }
 
+/** A parsed `name-bank`-kind content file (one bank). */
+interface NameBankFile {
+  /** Bank key — the file's basename (`common.yaml` → `common`). */
+  key: string;
+  given: string[];
+  surname: string[];
+  style?: string;
+  /** Pack-relative file path, for diagnostics. */
+  relFile: string;
+}
+
 /** The classified content of a pack's `content/` tree. */
 interface PackContent {
   domain: DomainFile[];
   /** Absolute path to `content/quantity/quantity-tags.yaml`, or null. */
   quantityYaml: string | null;
+  /** Parsed `content/name-banks/*.yaml`, one per bank (empty when absent). */
+  nameBanks: NameBankFile[];
 }
 
 // --- discovery -------------------------------------------------------------
@@ -207,11 +221,38 @@ function readContent(pack: ResolvedPack): PackContent {
       relFile: relative(pack.root, file),
     });
   }
+  const nameBanks: NameBankFile[] = [];
+  const nbRoot = join(pack.contentRoot, 'name-banks');
+  for (const file of walkYaml(nbRoot)) {
+    const raw = readFileSync(file, 'utf-8');
+    const parsed = YAML.parse(raw) as unknown;
+    if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
+      throw new Error(
+        `PackApi: pack '${pack.manifest.id}': malformed name bank at ${file}`,
+      );
+    }
+    const doc = parsed as Record<string, unknown>;
+    nameBanks.push({
+      key: basename(file).replace(/\.yaml$/, ''),
+      given: stringArray(doc.given),
+      surname: stringArray(doc.surname),
+      style: typeof doc.style === 'string' ? doc.style : undefined,
+      relFile: relative(pack.root, file),
+    });
+  }
+
   const quantityYaml = join(pack.contentRoot, 'quantity', 'quantity-tags.yaml');
   return {
     domain,
     quantityYaml: existsSync(quantityYaml) ? quantityYaml : null,
+    nameBanks,
   };
+}
+
+/** Coerce a parsed YAML value to a string[] (non-strings dropped). */
+function stringArray(value: unknown): string[] {
+  if (!Array.isArray(value)) return [];
+  return value.filter((v): v is string => typeof v === 'string');
 }
 
 // --- requires-kernel -------------------------------------------------------
@@ -352,6 +393,93 @@ async function reconcileDomain(
   return { inserted, updated, adopted, deleted };
 }
 
+/** The row shape PackLogic writes for a name bank (a flat `Document` + stamp). */
+interface NameBankRow extends Record<string, unknown> {
+  _id?: string;
+  key: string;
+  given: string[];
+  surname: string[];
+  style?: string;
+  sourcePack: string;
+}
+
+/**
+ * Reconcile the `name-bank`-kind files into the `name_banks` collection,
+ * keyed on bank `key` (the file basename). Same ownership-scoped
+ * insert/update/adopt/delete contract as {@link reconcileDomain}, but
+ * over a flat `Document` row rather than a path-addressed template. Banks
+ * are immutable reference data the char-gen suggester unions by key —
+ * after a sync writes any change, {@link NameBank.clearCache} drops the
+ * resolution cache so the edit is live.
+ */
+async function reconcileNameBanks(
+  packId: string,
+  files: NameBankFile[],
+): Promise<Pick<PackReconcileResult, 'inserted' | 'updated' | 'adopted' | 'deleted'>> {
+  const inserted: string[] = [];
+  const updated: string[] = [];
+  const adopted: string[] = [];
+  const deleted: string[] = [];
+
+  const stampedRows = (await PersistApi.find(Collections.NameBanks, {
+    sourcePack: packId,
+  })) as NameBankRow[];
+  const stampedByKey = new Map(stampedRows.map((r) => [r.key, r]));
+  const fileKeys = new Set(files.map((f) => f.key));
+
+  for (const f of files) {
+    const row: NameBankRow = {
+      key: f.key,
+      given: f.given,
+      surname: f.surname,
+      sourcePack: packId,
+    };
+    if (f.style !== undefined) row.style = f.style;
+
+    const stamped = stampedByKey.get(f.key);
+    if (stamped) {
+      const same =
+        canonical({
+          given: stamped.given,
+          surname: stamped.surname,
+          style: stamped.style ?? undefined,
+        }) === canonical({ given: f.given, surname: f.surname, style: f.style });
+      if (!same) {
+        await PersistApi.save(Collections.NameBanks, { ...row, _id: stamped._id });
+        updated.push(f.key);
+      }
+      continue;
+    }
+
+    const existing = (await PersistApi.find(Collections.NameBanks, {
+      key: f.key,
+    })) as NameBankRow[];
+    const prior = existing[0];
+    if (prior) {
+      if (prior.sourcePack && prior.sourcePack !== packId) {
+        throw new Error(
+          `PackApi: pack '${packId}' wants name bank '${f.key}' but it is ` +
+            `owned by pack '${prior.sourcePack}'`,
+        );
+      }
+      await PersistApi.save(Collections.NameBanks, { ...row, _id: prior._id });
+      adopted.push(f.key);
+    } else {
+      await PersistApi.save(Collections.NameBanks, row);
+      inserted.push(f.key);
+    }
+  }
+
+  for (const r of stampedRows) {
+    if (!fileKeys.has(r.key) && r._id) {
+      await PersistApi.delete(Collections.NameBanks, r._id);
+      deleted.push(r.key);
+    }
+  }
+
+  return { inserted, updated, adopted, deleted };
+}
+
 /** Re-hydrate / destruct live singletons after a sync's reconcile. */
 async function rehydrate(
   changedPaths: string[],
@@ -395,6 +523,18 @@ async function reconcilePack(
     content.domain,
   );
 
+  const nb = await reconcileNameBanks(pack.manifest.id, content.nameBanks);
+  const nameBanks =
+    nb.inserted.length + nb.updated.length + nb.adopted.length;
+  // Banks are cached by key on first resolve; a live sync that changed any
+  // bank must drop the cache so the edit reaches the next char-gen suggest.
+  if (
+    opts.rehydrate &&
+    nameBanks + nb.deleted.length > 0
+  ) {
+    NameBank.clearCache();
+  }
+
   let quantityTables = 0;
   if (content.quantityYaml) {
     const result = opts.rehydrate
@@ -415,6 +555,7 @@ async function reconcilePack(
     adopted,
     deleted,
     quantityTables,
+    nameBanks,
     rehydrated,
   };
 }

@@ -292,6 +292,14 @@ interface StoreState extends CmsSlice {
   flashGhost: (message: string) => void;
 
   /**
+   * Whether the "Social / Notifications" settings pane (a modal over the
+   * `notify` verb) is open. Opened from the account menu; ephemeral
+   * client-only UI state, never persisted.
+   */
+  socialPaneOpen: boolean;
+  setSocialPaneOpen: (open: boolean) => void;
+
+  /**
    * The summoned-pane tier — the no-modal replacement for "pop a modal".
    * A transient pane that renders BESIDE the current layout's terminal
    * (never full-screen, never blocks input — the inspection pane is the
@@ -907,6 +915,10 @@ export const useStore = create<StoreState>((set, get) => ({
   ghostFlash: null,
   setGhostPreview: (command) => set(() => ({ ghostPreview: command })),
   flashGhost: (message) => set(() => ({ ghostFlash: message })),
+
+  // "Social / Notifications" settings-pane modal toggle (account menu).
+  socialPaneOpen: false,
+  setSocialPaneOpen: (open) => set(() => ({ socialPaneOpen: open })),
 
   // Summoned-pane tier (the no-modal side panel).
   summonedPane: null,

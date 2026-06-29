@@ -1,0 +1,9 @@
+# Name bank `infernal` (file name = bank key). Blended with `common` for
+# the tiefling cast.
+style: Ember and old contracts.
+given:
+  [Azaril, Belial, Caim, Ember, Isolde, Lucan, Malphas, Nyx, Ronove,
+   Seraphine, Valafar, Zariel]
+surname:
+  [Ashborne, Cinderfell, Emberhart, Hellweather, Nightbane,
+   Smokegale, Brimhollow]

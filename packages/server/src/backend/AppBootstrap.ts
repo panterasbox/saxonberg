@@ -17,7 +17,6 @@ import { SeederManager } from './SeederManager';
 import { EmoteSeeder } from './EmoteSeeder';
 import { RecipeSeeder } from './RecipeSeeder';
 import { ScriptSeeder } from './ScriptSeeder';
-import { NameBankSeeder } from './NameBankSeeder';
 import { ChannelSeeder } from './ChannelSeeder';
 import { TwitchRelayReader } from './TwitchRelayReader';
 import { Application } from './Application';
@@ -34,6 +33,7 @@ import ParticipationStanding from '../mud/lib/standing/ParticipationStanding';
 import { ProducerApi } from '../mud/api/producer';
 import ProducerStanding from '../mud/lib/standing/ProducerStanding';
 import { BankingApi } from '../mud/api/banking';
+import { SocialApi } from '../mud/api/social';
 import AccountBalance from '../mud/lib/banking/AccountBalance';
 import SupplyAggregate from '../mud/lib/banking/SupplyAggregate';
 import { Document } from '../mud/lib/persistence/Document';
@@ -107,7 +107,9 @@ export class AppBootstrap {
     await SeederManager.run();
 
     // Content packs — reconcile every shipped `@saxonberg/content-*` pack
-    // into the DB (materials, biomes, quantity units). The installer is the
+    // into the DB (base-library: materials, biomes, quantity units;
+    // species-and-names: the species/clade tree + char-gen name banks).
+    // The installer is the
     // source-of-truth-is-the-file replacement for seeding the migrated
     // trees, AND folds in the former standalone `QuantityApi.loadTagTables`
     // call (the quantity content-kind). Writes rows only — nothing is live
@@ -125,7 +127,7 @@ export class AppBootstrap {
         `PackApi: '${r.packId}' installed — ` +
           `${r.inserted.length} inserted, ${r.updated.length} updated, ` +
           `${r.adopted.length} adopted, ${r.deleted.length} deleted, ` +
-          `${r.quantityTables} quantity table(s)`
+          `${r.quantityTables} quantity table(s), ${r.nameBanks} name bank(s)`
       );
     }
 
@@ -141,7 +143,6 @@ export class AppBootstrap {
     await RecipeSeeder.run();
     await ScriptSeeder.run();
     await ChannelSeeder.run();
-    await NameBankSeeder.run();
     await AppSettingsSeeder.run();
 
     const cmd = await CommandApi.preloadAll();
@@ -204,6 +205,14 @@ export class AppBootstrap {
     await AccountBalance.warm();
     await SupplyAggregate.warm();
     BankingApi.boot();
+
+    // Social graph (Wave 3) — install the presence relay: the net-new
+    // consumer that fans the four in-world-gated presence transitions
+    // (login / reconnect / disconnect / logout) out to online viewers
+    // whose first-matching rule for the acting player is non-silent.
+    // In-memory, nothing persisted; no warm step (the rule store rides
+    // each Avatar's own persistence).
+    SocialApi.boot();
 
     // Twitch relay — install the outbound DI port + wire the presence-gated
     // EventSub reader. Inert until a channel is seeded AND a player tunes

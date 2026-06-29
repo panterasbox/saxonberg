@@ -21,6 +21,7 @@ import { SERVER_URL, WS_URL } from "./config";
 import { websocketClient } from "./services/websocket";
 import { Frame } from "./components/frame/Frame";
 import { ReconnectBanner } from "./components/frame/ReconnectBanner";
+import { SocialNotificationsPane } from "./components/settings/SocialNotificationsPane";
 import { StartScreen } from "./components/StartScreen";
 import { CharacterSelect } from "./components/CharacterSelect";
 import { CharGenStage } from "./components/CharGenStage";
@@ -262,6 +263,10 @@ function App() {
   const auth = useStore((state) => state.auth);
   const connection = useStore((state) => state.connection);
   const connectionPhase = useStore((state) => state.connectionPhase);
+  // The Social / Notifications settings pane (master's notify surface),
+  // opened from the AccountMenu. Independent of the summoned-pane tier.
+  const socialPaneOpen = useStore((state) => state.socialPaneOpen);
+  const setSocialPaneOpen = useStore((state) => state.setSocialPaneOpen);
   const frames = useStore((state) => state.frames);
   const clientState = useStore((state) => state.clientState);
   const reactionPrefs = useStore((state) => state.reactionPrefs);
@@ -656,6 +661,17 @@ function App() {
               <SettingsPane onSendCommand={sendCommand} onClose={closePane} />
             ) : null}
           </ContentRow>
+          {/* The Social / Notifications pane (master's notify surface),
+              opened from the AccountMenu — independent of the summoned
+              settings pane above. */}
+          {socialPaneOpen && (
+            <SocialNotificationsPane
+              onClose={() => setSocialPaneOpen(false)}
+              onSendCommand={sendCommand}
+              onCommandPreview={handleCommandPreview}
+              onCommandClick={handleCommandClick}
+            />
+          )}
           {/* The always-on ghost command line — affordance previews +
               post-action flash, beside the primary command bar. */}
           <GhostCommandLine />

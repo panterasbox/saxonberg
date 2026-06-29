@@ -129,7 +129,43 @@ export class ConnectionApi {
   public static detach(interactive: Interactive): void {
     return logic().detach(interactive);
   }
+
+  /**
+   * Record an Interactive's connection origin from its handshake IP: the
+   * raw IP is stored transiently on the Interactive (in-memory only — the
+   * PII posture) and resolved to a country display name via the offline
+   * geo dataset. Called once at connect by the connection layer. A
+   * missing / unresolvable IP is a safe no-op.
+   */
+  public static recordOrigin(
+    interactive: Interactive,
+    ip: string | undefined
+  ): void {
+    return logic().recordOrigin(interactive, ip);
+  }
+
+  /**
+   * The connecting player's origin, by playerId. Returns **country only**
+   * (a display name, broadly readable) — the raw IP never leaves the
+   * connection layer (the developer-gated IP read is deferred). Empty
+   * object when the player isn't connected or geo didn't resolve
+   * (localhost / private IP / unknown). The social presence relay reads
+   * `originOf(player).country` for the "from <country>" arrival line.
+   */
+  public static originOf(playerId: string): ConnectionOrigin {
+    return logic().originOf(playerId);
+  }
 }
 
+/**
+ * A connection's geographic origin, privilege-split. v1 surfaces only
+ * `country` (broadly readable); the raw IP stays in the connection layer
+ * (the developer-gated read is a later build). See the connection-origin
+ * slate.
+ */
+export interface ConnectionOrigin {
+  /** Country display name (e.g. "Germany"), or absent when unresolved. */
+  country?: string;
+}
 
 SecurityApi.decorateApiClass(ConnectionApi);

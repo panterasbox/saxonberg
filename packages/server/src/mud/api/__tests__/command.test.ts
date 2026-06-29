@@ -74,6 +74,20 @@ describe('CommandApi', () => {
     });
   });
 
+  describe('allDefinitions()', () => {
+    it('returns the whole loaded roster (the help index corpus)', () => {
+      // Seed the cache by loading a couple of verbs, then assert the
+      // roster accessor surfaces them (the commands projector's source).
+      CommandApi.getCommand('system/ping.yaml');
+      CommandApi.getCommand('perception/look.yaml');
+      const defs = CommandApi.allDefinitions();
+      const verbs = defs.map((d) => d.getPrimaryVerb());
+      expect(verbs).toContain('ping');
+      expect(verbs).toContain('look');
+      expect(defs.length).toBeGreaterThanOrEqual(2);
+    });
+  });
+
   describe('YAML structure round-trip', () => {
     it('parses ping.yaml as a zero-arg flat verb', () => {
       const cmd = CommandApi.getCommand('system/ping.yaml');

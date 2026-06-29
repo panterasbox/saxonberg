@@ -208,8 +208,14 @@ function coerceToType(
   schema: SettingsSchemaEntry,
 ): unknown {
   switch (schema.type) {
-    case 'string':
-      return raw;
+    case 'string': {
+      // Shell convention: a value wrapped in a matching quote pair has the
+      // quotes stripped. The greedy value arg captures the raw remainder
+      // (including any quotes), and a user must quote a value that contains
+      // command-tokenizer syntax — e.g. a Liquid `{{ … }}` presence format.
+      const quoted = raw.match(/^"([\s\S]*)"$/) ?? raw.match(/^'([\s\S]*)'$/);
+      return quoted ? quoted[1] : raw;
+    }
     case 'number': {
       const n = Number(raw);
       if (Number.isNaN(n)) throw new Error(`'${raw}' is not a number`);

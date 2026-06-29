@@ -9,7 +9,7 @@
 ## The frame — one substrate, several axes
 
 Every affiliation here rides the **[grouping facade](../../subsystems/grouping.md)**
-(+ [social-graph](../builds/social-graph-slate.md) for ties, [chat](../tails/chat-slate.md)
+(+ [social-graph](../tails/social-graph-slate.md) for ties, [chat](../tails/chat-slate.md)
 for channels). **Don't build N systems** — build the substrate; these are
 *providers/configurations* on it, differing on three dials: **source**
 (vertical-fed / chosen / earned / world-given), **weight** (belonging-flavor
@@ -118,7 +118,7 @@ live. (Houses may persist as alumni networks, but their home is the campus.)
 ## Substrate / connections
 
 [grouping subsystem](../../subsystems/grouping.md) (the facade; houses/guilds/corps are
-providers) · [social-graph-slate](../builds/social-graph-slate.md) (ties) ·
+providers) · [social-graph-slate](../tails/social-graph-slate.md) (ties) ·
 [chat-slate](../tails/chat-slate.md) (clubs = channels) ·
 [alignment-religion-slate](../deferred-rpg/alignment-religion-slate.md) (religion;
 corp-competition's prosocial caveat) · [char-gen](../../subsystems/char-gen.md)

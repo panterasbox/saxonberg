@@ -85,6 +85,7 @@ export const AccountMenu: React.FC = () => {
   const player = useStore((s) => s.auth.player);
   const displayName = useStore((s) => s.auth.user?.displayName);
   const isDeveloper = useStore((s) => s.auth.isDeveloper === true);
+  const setSocialPaneOpen = useStore((s) => s.setSocialPaneOpen);
   const [open, setOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
 
@@ -132,6 +133,14 @@ export const AccountMenu: React.FC = () => {
     websocketClient.sendCommand("layout builder");
   };
 
+  // Open the "Social / Notifications" settings pane — the thin front over
+  // the `notify` verb (display lensing + notification policy). A modal
+  // toggled via a store flag; App renders the pane when it's set.
+  const openSocial = () => {
+    setOpen(false);
+    setSocialPaneOpen(true);
+  };
+
   return (
     <Root ref={rootRef}>
       <Trigger
@@ -155,6 +164,9 @@ export const AccountMenu: React.FC = () => {
               Switch character
             </Item>
           )}
+          <Item role="menuitem" onClick={openSocial}>
+            Social / Notifications
+          </Item>
           {isDeveloper && (
             <Item role="menuitem" onClick={openCms}>
               CMS editor

@@ -163,6 +163,27 @@ describe('SettingsController', () => {
       expect(host.getSetting<string>('feature.greeting')).toBe('howdy');
     });
 
+    it('strips a wrapping quote pair from a string value', () => {
+      controller.execute(
+        makeModel(
+          { key: 'feature.greeting', value: '"hello there {{ x }}"' },
+          'set',
+        ),
+        makeContext(host, location),
+      );
+      expect(host.getSetting<string>('feature.greeting')).toBe(
+        'hello there {{ x }}',
+      );
+    });
+
+    it('leaves an unquoted string (and inner quotes) untouched', () => {
+      controller.execute(
+        makeModel({ key: 'feature.greeting', value: 'say "hi"' }, 'set'),
+        makeContext(host, location),
+      );
+      expect(host.getSetting<string>('feature.greeting')).toBe('say "hi"');
+    });
+
     it('coerces a numeric string for number-typed settings', () => {
       controller.execute(
         makeModel({ key: 'feature.count', value: '42' }, 'set'),

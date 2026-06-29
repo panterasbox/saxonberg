@@ -22,6 +22,7 @@ import { MongoClient, Db, Collection, ObjectId } from 'mongodb';
 import { readFileSync } from 'fs';
 import { fileURLToPath } from 'url';
 import { dirname, join, isAbsolute } from 'path';
+import { AsyncLocalStorage } from 'node:async_hooks';
 import YAML from 'yaml';
 
 /**
@@ -33,6 +34,7 @@ export enum Collections {
   TwitchProfiles = 'twitch_profiles',
   Domain = 'domain',
   Emotes = 'emotes',
+  NameBanks = 'name_banks',
   Groups = 'groups',
   Channels = 'channels',
   Beliefs = 'beliefs',
@@ -131,9 +133,23 @@ export class PersistenceManager {
 
   /**
    * Active dispatch slots — for re-entry detection. Tracks which
-   * `(collection, operation)` slots are currently executing.
+   * `(collection, operation)` slots are currently executing *within a
+   * single dispatch chain*.
+   *
+   * Carried in AsyncLocalStorage rather than a single global `Set`: the
+   * guard exists to catch a hook that, from inside its own dispatch,
+   * triggers another save/delete against the SAME slot (genuine
+   * re-entry — an infinite hook loop). Because dispatch is async (it
+   * awaits the hook chain and the Mongo round-trip), a global set would
+   * also flag two INDEPENDENT concurrent operations on the same
+   * collection — e.g. two simultaneous logins each saving `users` — whose
+   * awaits interleave, throwing a spurious `HookReentryError` on the
+   * second. ALS scopes the active set to one async dispatch tree: nested
+   * (re-entrant) dispatch inherits the parent's set and is still caught;
+   * concurrent independent dispatch gets its own and proceeds.
    */
-  private activeSlots: Set<string> = new Set();
+  private activeSlotsALS: AsyncLocalStorage<Set<string>> =
+    new AsyncLocalStorage<Set<string>>();
 
   /**
    * Private constructor (singleton pattern).
@@ -265,7 +281,9 @@ export class PersistenceManager {
   public clearHooks(): void {
     this.saveHooks.clear();
     this.deleteHooks.clear();
-    this.activeSlots.clear();
+    // No active-slot set to clear: the re-entry guard's set lives in
+    // AsyncLocalStorage, scoped to each in-flight dispatch tree and
+    // released when that dispatch settles (the finally in `withSlot`).
   }
 
   /**
@@ -444,11 +462,7 @@ export class PersistenceManager {
     document: Record<string, unknown>
   ): Promise<string> {
     const slot = `${collectionName}:save`;
-    if (this.activeSlots.has(slot)) {
-      throw new HookReentryError(collectionName, 'save');
-    }
-    this.activeSlots.add(slot);
-    try {
+    return this.withSlot(slot, collectionName, 'save', async () => {
       const hooks = this.saveHooks.get(slot) ?? [];
       const terminal = (doc: Record<string, unknown>): Promise<string> =>
         this.persistSave(collectionName, doc);
@@ -458,10 +472,39 @@ export class PersistenceManager {
         const continuation = next;
         next = (doc) => hook(collectionName, doc, continuation);
       }
-      return await next(document);
-    } finally {
-      this.activeSlots.delete(slot);
+      return next(document);
+    });
+  }
+
+  /**
+   * Reserve a dispatch `slot` for the duration of `body`, scoped to the
+   * current async dispatch tree (see `activeSlotsALS`). Genuine re-entry
+   * into the same slot from within `body` (a hook re-saving its own
+   * collection) throws `HookReentryError`; independent concurrent
+   * dispatch on the same slot runs in its own store and is unaffected.
+   */
+  private async withSlot<T>(
+    slot: string,
+    collectionName: string,
+    operation: 'save' | 'delete',
+    body: () => Promise<T>
+  ): Promise<T> {
+    const existing = this.activeSlotsALS.getStore();
+    const active = existing ?? new Set<string>();
+    if (active.has(slot)) {
+      throw new HookReentryError(collectionName, operation);
     }
+    const run = async (): Promise<T> => {
+      active.add(slot);
+      try {
+        return await body();
+      } finally {
+        active.delete(slot);
+      }
+    };
+    // A top-level dispatch establishes the tree's store; nested
+    // (re-entrant) dispatch inherits it via getStore().
+    return existing ? run() : this.activeSlotsALS.run(active, run);
   }
 
   /**
@@ -470,11 +513,7 @@ export class PersistenceManager {
    */
   private async dispatchDelete(collectionName: string, id: string): Promise<void> {
     const slot = `${collectionName}:delete`;
-    if (this.activeSlots.has(slot)) {
-      throw new HookReentryError(collectionName, 'delete');
-    }
-    this.activeSlots.add(slot);
-    try {
+    await this.withSlot(slot, collectionName, 'delete', async () => {
       const hooks = this.deleteHooks.get(slot) ?? [];
       const terminal = (idArg: string): Promise<void> =>
         this.persistDelete(collectionName, idArg);
@@ -485,9 +524,7 @@ export class PersistenceManager {
         next = (idArg) => hook(collectionName, idArg, continuation);
       }
       await next(id);
-    } finally {
-      this.activeSlots.delete(slot);
-    }
+    });
   }
 
   /**
@@ -598,6 +635,12 @@ export class PersistenceManager {
         { unique: true }
       );
       await this.getCollection(Collections.Emotes).createIndex({ aliases: 1 });
+
+      // Name banks: unique key for the char-gen suggester's by-key resolve.
+      await this.getCollection(Collections.NameBanks).createIndex(
+        { key: 1 },
+        { unique: true }
+      );
 
       // Recipes: unique recipeId for catalogue resolve.
       await this.getCollection(Collections.Recipes).createIndex(

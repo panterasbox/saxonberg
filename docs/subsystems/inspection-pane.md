@@ -679,7 +679,7 @@ button. The same attribute drives **two** layers from one source:
 - **Styling** — a future theme stylesheet selects on
   `[data-stuff-id]` against the viewer's social-graph bucket
   (friend / foe / self) to colour the name. The
-  [social-graph slate](../slates/builds/social-graph-slate.md) +
+  [social-graph slate](../slates/tails/social-graph-slate.md) +
   [message-rendering slate](../slates/tails/message-rendering-slate.md)
   describe the bucket model. The attribute is emitted today;
   bucket selectors land when that subsystem does, without any

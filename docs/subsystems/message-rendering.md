@@ -589,7 +589,7 @@ sweep distilled them to:
 - [docs/slates/tails/message-rendering-slate.md](../slates/tails/message-rendering-slate.md)
   — seeding slate; Wave 2 (layout library) and Wave 3 (channel
   stylesheets) parked there.
-- [docs/slates/builds/social-graph-slate.md](../slates/builds/social-graph-slate.md)
+- [docs/slates/tails/social-graph-slate.md](../slates/tails/social-graph-slate.md)
   — real `BucketResolver` source (stubbed neutral in v1).
 - [docs/slates/tails/recognition-slate.md](../slates/tails/recognition-slate.md)
   — `DescribeApi` v2 names; the renderer is forward-compat.

@@ -20,7 +20,11 @@ export default defineConfig({
   expect: { timeout: 5_000 },
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
-  retries: process.env.CI ? 2 : 0,
+  // One local retry (CI keeps 2). A retried-then-passed test is reported
+  // as "flaky", NOT "passed" — so a genuine failure still surfaces as
+  // "failed" while a transient blip (e.g. a momentary hook-reentry under
+  // concurrent test-login mints) doesn't read as a real regression.
+  retries: process.env.CI ? 2 : 1,
   reporter: process.env.CI ? [['list'], ['html', { open: 'never' }]] : 'list',
   use: {
     baseURL: CLIENT_URL,

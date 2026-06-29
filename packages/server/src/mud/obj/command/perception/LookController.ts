@@ -36,6 +36,7 @@ import { ContainmentApi } from '../../../api/containment';
 import { MessageApi } from '../../../api/message';
 import { BulkableApi } from '../../../api/bulk';
 import { RecognitionApi } from '../../../api/recognition';
+import { SocialApi } from '../../../api/social';
 import { Mml } from '../../../api/mml';
 import type Exit from '../../../lib/boundary/Exit';
 
@@ -44,7 +45,7 @@ interface LookModel extends CommandModel {
 }
 
 export default class LookController extends CommandController<LookModel> {
-  execute(model: LookModel, context: CommandContext): void {
+  execute(model: LookModel, context: CommandContext): void | Promise<void> {
     const target = model.target;
     // `look.yaml` declares `default: "$focus"` and the scope fallback
     // chain `["$focus", "reachable"]`, so the dispatcher always
@@ -138,7 +139,7 @@ export default class LookController extends CommandController<LookModel> {
     return;
   }
 
-  private lookAtLocation(context: CommandContext): void {
+  private async lookAtLocation(context: CommandContext): Promise<void> {
     const actor = context.commandGiver;
     const location = context.location;
     if (!location) return; // defensive: placeless avatars are blocked at inbound and Login carries no sense verbs, so location is present in practice; degrade to a quiet no-op otherwise
@@ -241,8 +242,25 @@ export default class LookController extends CommandController<LookModel> {
       // the inspection pane via `ContainmentApi.looseContents`.
       const topLevel = ContainmentApi.looseContents(visibleContents);
       if (topLevel.length > 0) {
-        const list = Mml.list(topLevel.map((item) => Mml.item(item)));
-        body = Mml.compose`${body}\n── You also see: ${list}.`;
+        // Organism occupants route through the display-lensing formatter
+        // (friends boosted, strangers density-collapsed per the viewer's
+        // `social.verbosity`); inert items stay on the plain item list.
+        // The formatter is async (rule resolution rides GroupApi.isMember)
+        // and returns a Mml already resolved for `actor` — the single known
+        // viewer of this `toSelf` render.
+        const occupants = topLevel.filter((item) => MixinApi.isOrganism(item));
+        const items = topLevel.filter((item) => !MixinApi.isOrganism(item));
+        const segments: Mml[] = [];
+        if (occupants.length > 0) {
+          segments.push(
+            await SocialApi.composeOccupants(actor, occupants, occupants.length),
+          );
+        }
+        if (items.length > 0) {
+          segments.push(Mml.list(items.map((item) => Mml.item(item))));
+        }
+        const seen = Mml.list(segments);
+        body = Mml.compose`${body}\n── You also see: ${seen}.`;
       }
     }
 
