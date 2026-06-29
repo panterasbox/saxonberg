@@ -407,8 +407,13 @@ sessile plan is the stand-in for organisms with no agency anatomy
 - `diet` (DietApi-deferred)
 - `visionProfile` — flat 3-scalar record consumed by `VisionModality`
 
-The v1 acceptance roster (`/lib/species/...`). The char-gen Wave 1 build
-expanded the `homo` genus to seven playable humanoid species:
+The roster (`/lib/species/...`). The char-gen Wave 1 build expanded the
+`homo` genus to seven playable humanoid species; the species-expansion
+pass added **three more playable** (gnome, half-elf, orc) and **five
+NPC-first** casts (troll, ghoul, ogre, kobold, satyr). The species are
+now installed from the `@saxonberg/content-species-and-names` content
+pack (`content/lib/species/**`), not the kernel seed tree — see
+[content-packs.md](./content-packs.md).
 
 | Path | Body plan | Kingdom | Notes |
 |---|---|---|---|
@@ -419,6 +424,14 @@ expanded the `homo` genus to seven playable humanoid species:
 | `animalia/.../homo/infernalis` | biped | Animalia | Tiefling (char-gen). |
 | `animalia/.../homo/periannath` | biped | Animalia | Halfling (char-gen). |
 | `animalia/.../homo/semiorcus` | biped | Animalia | Half-orc (char-gen). |
+| `animalia/.../homo/gnomus` | biped | Animalia | Gnome (char-gen) — small/wiry tinker-folk, low-light, ~350-yr; `gnomish` names. |
+| `animalia/.../homo/semieldarinus` | biped | Animalia | Half-elf (char-gen) — mild low-light, ~180-yr; `elvish`+`common` names. |
+| `animalia/.../homo/orcus` | biped | Animalia | Orc (char-gen) — broad, keen-nosed, short-lived ~60-yr; `orcish` names. |
+| `animalia/.../homo/trollius` | biped | Animalia | Troll (NPC-first) — big/rooted, sun-shy low-light, ~300-yr; the "brute" framing is slander, not biology. Katie's cast. |
+| `animalia/.../homo/ghulius` | biped | Animalia | Ghoul (NPC-first) — living people, runs cool, keen nose, `lifecycleStates: alive/dead` (the undead framing is slander). Dr. Vance's cast. |
+| `animalia/.../homo/ogrus` | biped | Animalia | Ogre (NPC-first) — enormous, slow, gentle heavy; the "dumb brute" framing is persona, not law. |
+| `animalia/.../homo/koboldus` | biped | Animalia | Kobold (NPC-first) — small, scaled, draconic-kin, nocturnal, runs cool. |
+| `animalia/.../homo/satyrus` | biped | Animalia | Satyr (NPC-first) — pastoral hedonist/reveler (bar texture), ~200-yr; `sylvan` names. |
 | `animalia/.../lithobates/catesbeianus` | quadruped | Animalia | American bullfrog — non-mammal entry. |
 | `plantae/.../spathiphyllum/wallisii` | sessile | Plantae | Peace lily; monoecious. |
 | `constructa/metallica/tutor-bot/mk-iv` | biped | Constructa | Robot — `lifecycleStates: powered/unpowered/destroyed`, `sexDeterminationSystem: 'none'`. |

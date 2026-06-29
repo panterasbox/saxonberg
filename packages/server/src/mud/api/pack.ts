@@ -16,7 +16,8 @@
  * - {@link PackApi.discoverPacks} — read + order the shipped pack manifests.
  *
  * Reconcile is **ownership-scoped and non-destructive**: every installed
- * `domain` row carries a `sourcePack` stamp; a run only ever touches rows
+ * row (a `domain` template, or a `name_banks` bank) carries a `sourcePack`
+ * stamp; a run only ever touches rows
  * stamped by *that* pack (adopting pre-existing unstamped rows on first
  * install — migration without a wipe). Anything unstamped/other-stamped is
  * invisible. A pack's referenced backing classes must resolve (the
@@ -58,6 +59,8 @@ export interface PackReconcileResult {
   deleted: string[];
   /** (unit, scale) tag pairs (re)loaded; 0 when the pack has no quantity kind. */
   quantityTables: number;
+  /** Name banks written (insert/update/adopt); 0 when the pack has none. */
+  nameBanks: number;
   /** Live instances re-hydrated (sync only; 0 at boot). */
   rehydrated: number;
 }

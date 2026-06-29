@@ -3,8 +3,9 @@
 # add a species / aspiration / pronoun by editing this file, no code
 # change. See docs/plans/char-gen-plan.md (Phase B/C).
 #
-# `species[].path` must point at a real Species template seed under
-# mud/seeds/lib/species/. `aspirations[].outfit` lists garment template
+# `species[].path` must point at a real Species template — these live in
+# the `@saxonberg/content-species-and-names` content pack
+# (`content/lib/species/**`). `aspirations[].outfit` lists garment template
 # paths cloned + worn at commit (missing ones are skipped). `bioSeed`
 # is the starter bio prose seeded onto PersonaMixin.
 #
@@ -43,6 +44,18 @@ species:
     path: /lib/species/animalia/chordata/mammalia/primates/hominidae/homo/draconicus
     label: Dragonborn
     description: Scaled and proud, with the bearing of an elder wyrm.
+  - key: gnome
+    path: /lib/species/animalia/chordata/mammalia/primates/hominidae/homo/gnomus
+    label: Gnome
+    description: Small, wiry, and tirelessly curious; a tinker-folk of the deep places.
+  - key: half-elf
+    path: /lib/species/animalia/chordata/mammalia/primates/hominidae/homo/semieldarinus
+    label: Half-elf
+    description: Between two worlds; elven poise and human drive, at home in neither fully.
+  - key: orc
+    path: /lib/species/animalia/chordata/mammalia/primates/hominidae/homo/orcus
+    label: Orc
+    description: Broad and fierce, keen-nosed and short-lived; intense from first breath to last.
 
 # Pronouns are NOT listed here — the closed-choice pronoun options
 # derive from the `Pronouns` enum in @saxonberg/types (single source of

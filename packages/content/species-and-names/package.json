@@ -1,0 +1,7 @@
+{
+  "name": "@saxonberg/content-species-and-names",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Player + NPC species (the Linnaean Species/Clade tree) and the char-gen name banks.",
+  "type": "module"
+}

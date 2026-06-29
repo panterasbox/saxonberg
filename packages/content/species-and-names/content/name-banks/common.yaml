@@ -1,0 +1,11 @@
+# Name bank `common` (file name = bank key). Plain, familiar names —
+# the default human pool, also blended into half-orc / tiefling and used
+# by the mundane living-people casts (ghoul, troll). A `Species`
+# references this via `nameBankKeys: ["common"]`.
+style: Plain, familiar human names.
+given:
+  [Alden, Bram, Bella, Cora, Dane, Edda, Finn, Greta, Hal, Iris,
+   Jonas, Kira, Lena, Marek, Nessa, Otto, Pia, Rolf, Sela, Tomas]
+surname:
+  [Ashby, Brook, Cole, Dunn, Fletcher, Greer, Hale, Mercer, Nash,
+   Reed, Stone, Vance, Webb, Yale]

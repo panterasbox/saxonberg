@@ -33,6 +33,7 @@ export enum Collections {
   TwitchProfiles = 'twitch_profiles',
   Domain = 'domain',
   Emotes = 'emotes',
+  NameBanks = 'name_banks',
   Groups = 'groups',
   Channels = 'channels',
   Beliefs = 'beliefs',
@@ -598,6 +599,12 @@ export class PersistenceManager {
         { unique: true }
       );
       await this.getCollection(Collections.Emotes).createIndex({ aliases: 1 });
+
+      // Name banks: unique key for the char-gen suggester's by-key resolve.
+      await this.getCollection(Collections.NameBanks).createIndex(
+        { key: 1 },
+        { unique: true }
+      );
 
       // Recipes: unique recipeId for catalogue resolve.
       await this.getCollection(Collections.Recipes).createIndex(

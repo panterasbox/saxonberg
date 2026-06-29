@@ -1,9 +1,12 @@
 # Content packs — content as a versioned, shippable deliverable
 
-> **Status: v1 shipped (base-library) — remaining waves open.** The
-> substrate and first pack landed (the `PackApi`/`PackLogic` reconcile
+> **Status: v1 + the species+names wave shipped — remaining waves open.**
+> The substrate and first pack landed (the `PackApi`/`PackLogic` reconcile
 > installer + the **base-library** pack: materials, biomes, quantity-units;
-> boot install + `pack sync`). The mechanism is now documented in
+> boot install + `pack sync`). The **species-and-names** pack (D3/D6) then
+> shipped on `feature/species-and-names-pack`, carrying the first
+> *side-collection* content kind (**name-banks**) and retiring
+> `NameBankSeeder`. The mechanism is now documented in
 > [content-packs.md](../../subsystems/content-packs.md); this slate is
 > kept for the **deferred waves** still in design (the other packs,
 > retiring `SeederManager`, `seed-missing`, world packs, version

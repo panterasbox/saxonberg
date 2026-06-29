@@ -1,0 +1,39 @@
+# Homo koboldus — fantasy kobold. Same biped anatomy as sapiens, small and
+# scaled; a draconic-kin warren-dweller, nocturnal and sharp-eyed in the
+# dark, runs a touch cool. NPC-first. See
+# docs/slates/builds/species-expansion-slate.md.
+class: /lib/species/Species
+hydratorClass: /lib/persistence/PersistentHydrator
+data:
+  illustration: species/koboldus.png
+  binomial: Homo koboldus
+  commonNames: ["kobold"]
+  _bodyPlanPath: /lib/body-plans/biped
+  _parentCladePath: /lib/species/animalia
+  _defaultMaterialPath: /lib/material/tissue/flesh
+  vitalProfile:
+    coreTemperature: { baseline: 306, survivableMin: 297, survivableMax: 314 }
+    heartRate: { baseline: 90, survivableMin: 40, survivableMax: 240 }
+    respiratoryRate: { baseline: 20, survivableMin: 8, survivableMax: 44 }
+    bloodPressureSystolic: { baseline: 116, survivableMin: 66, survivableMax: 200 }
+    bloodPressureDiastolic: { baseline: 76, survivableMin: 36, survivableMax: 130 }
+    spo2: { baseline: 98, survivableMin: 70, survivableMax: 100 }
+    bloodVolume: { baseline: 3.5, survivableMin: 2.3, survivableMax: 3.5 }
+  lifecycleStates: ["alive", "dead", "undead"]
+  sexDeterminationSystem: dioecious
+  reproductiveMode: sexual
+  lifespanMin: 0
+  lifespanMax: 135
+  circadianBand: nocturnal
+  diet: omnivore
+  visionProfile:
+    scotopicMin: very-dim
+    photopicMax: bright
+    bandShift: -1
+  olfactoryProfile:
+    acuity: keen
+  longDescription: >-
+    A small, scaled figure barely up to the waist, draconic about the snout
+    and quick on its feet, with bright dark-adapted eyes and a wary,
+    deferent watchfulness that keeps to the edges of a room.
+  nameBankKeys: ["draconic"]

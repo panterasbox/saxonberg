@@ -3,7 +3,7 @@
  * `mud/config/app-settings.yaml`.
  *
  * Insert / merge-missing / idempotent — matches `EmoteSeeder` /
- * `ChannelSeeder` / `NameBankSeeder`. The `app_settings` collection holds
+ * `ChannelSeeder`. The `app_settings` collection holds
  * one row (a `values` bag). On first boot the seeded values are inserted;
  * on later boots any keys NEW to the YAML are merged in, while keys an
  * operator changed via the `config` verb are left alone. The YAML is the
