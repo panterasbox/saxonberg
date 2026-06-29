@@ -152,7 +152,11 @@ describe("HelpCatalogue", () => {
     const cat = await warmed();
     const topic = cat.findApiTopic("ContainmentApi.move");
     expect(topic).not.toBeNull();
-    expect(topic!.body).toContain("move(item: Stuff & Containable, to: Container): void");
+    // The body is escaped to valid MML at assembly, so the `&` in the
+    // signature is carried as the `&amp;` entity (the client decodes it).
+    expect(topic!.body).toContain(
+      "move(item: Stuff &amp; Containable, to: Container): void"
+    );
     expect(topic!.body).toContain("Move an item into a container.");
     // method-of → the api landing; requires → the mixin/type it names.
     expect(topic!.relations.some((r) => r.kind === "method-of")).toBe(true);

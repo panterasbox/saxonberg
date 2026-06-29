@@ -262,7 +262,8 @@ function renderType(t: TdType | undefined): string {
       // Inline object / function type — render compactly.
       return "object";
     case "predicate":
-      return typeof t.name === "string" ? `boolean` : "boolean";
+      // A type predicate (`x is Foo`) renders as its runtime type.
+      return "boolean";
     default:
       return typeof t.name === "string" ? t.name : "unknown";
   }

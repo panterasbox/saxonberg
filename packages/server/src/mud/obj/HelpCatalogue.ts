@@ -32,6 +32,7 @@ import { Idea } from "../lib/stuff/Idea";
 import { PostRegistrationMixin } from "../lib/stuff/PostRegistration";
 import { Mixins } from "../lib/mixin";
 import { CommandApi } from "../api/command";
+import { Mml } from "../api/mml";
 import type { CommandDefinition } from "../lib/command/CommandDefinition";
 import type { VetoResult } from "../lib/errors";
 
@@ -251,6 +252,16 @@ export default class HelpCatalogue extends HelpCatalogueBase {
       this.deriveRelations(topics, surface);
     }
 
+    // Bodies are assembled as plain text — signatures and syntax that
+    // naturally carry `<`, `>`, `&` (`Promise<Parser>`, `help <verb>`,
+    // `Stuff & Container`). Escape every body once here so `HelpTopic.body`
+    // is genuinely valid MML, the contract both the verb renderer and the
+    // REST `body` field rely on. (Handing raw `<…>` to `Mml.fromMarkup`
+    // makes the client `parseMml` treat it as a tag and drop it.)
+    for (const topic of topics.values()) {
+      topic.body = Mml.compose`${topic.body}`.toString();
+    }
+
     this.topics = topics;
     this.buildIndexes();
   }
@@ -403,7 +414,10 @@ export default class HelpCatalogue extends HelpCatalogueBase {
       if (!t) return;
       if (
         t.relations.some(
-          (r) => r.kind === rel.kind && r.targetId === rel.targetId
+          (r) =>
+            r.kind === rel.kind &&
+            r.targetId === rel.targetId &&
+            r.targetTitle === rel.targetTitle
         )
       ) {
         return;
@@ -440,9 +454,13 @@ export default class HelpCatalogue extends HelpCatalogueBase {
       const id = `mixin.${concept}`;
       const conferred = byFace.get(concept) ?? [];
       for (const m of conferred) {
+        // Conferred methods are rendered inline in the mixin body this
+        // wave (not standalone topics), so the edge resolves to the mixin
+        // topic that documents them; the method name rides `targetTitle`.
+        // Per-member drill-in topics are a later wave.
         add(id, {
           kind: "confers",
-          targetId: `mixin.${concept}.${m.name}`,
+          targetId: id,
           targetTitle: m.name,
         });
         for (const tname of m.signatureTypes) {
@@ -544,7 +562,8 @@ export default class HelpCatalogue extends HelpCatalogueBase {
   }
 }
 
-// ── Pure render helpers (topic bodies — plain text is valid MML) ──────
+// ── Pure render helpers — assemble topic bodies as plain text; rebuild()
+//    escapes each one to valid MML before the index is published. ───────
 
 function toIndexEntry(t: HelpTopic): HelpIndexEntry {
   return {

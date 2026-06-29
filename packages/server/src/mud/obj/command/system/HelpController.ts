@@ -8,8 +8,10 @@
  *   - `help api [target]`    → api/mixin/type topic (real signature + summary)
  *   - `help search <q>`      → search, results grouped by kind
  *
- * Every form reads through the index; topic bodies are already MML markup
- * (the rulebook entry). Emitted on the existing `system.shell.help` topic.
+ * Every form reads through the index. Topic bodies arrive as valid MML
+ * (the catalogue escapes them at assembly) and pass through verbatim; this
+ * controller's own chrome (landings, search lists, errors) is plain text,
+ * escaped via `Mml.compose`. Emitted on the `system.shell.help` topic.
  */
 
 import { CommandController } from "../../../lib/command/CommandController";
@@ -54,7 +56,7 @@ export default class HelpController extends CommandController<HelpModel> {
   private showLanding(context: CommandContext): void {
     const index: HelpIndexResult = HelpApi.index();
     if (index.categories.length === 0) {
-      this.tell(context, Mml.fromMarkup("\nNo help topics available.\n"));
+      this.tellText(context, "\nNo help topics available.\n");
       return;
     }
     const lines: string[] = ["", "Help — the rulebook for how the world works.", ""];
@@ -65,14 +67,14 @@ export default class HelpController extends CommandController<HelpModel> {
     lines.push('Type "help <verb>" for a command, "help api <Type>" for the');
     lines.push('engine surface, or "help search <word>".');
     lines.push("");
-    this.tell(context, Mml.fromMarkup(lines.join("\n")));
+    this.tellText(context, lines.join("\n"));
   }
 
   /** Render one command topic by verb / alias. */
   private showCommand(verb: string, context: CommandContext): void {
     const topic = HelpApi.commandTopic(verb);
     if (!topic) {
-      this.tell(context, Mml.fromMarkup(`\nunknown command: ${verb}\n`));
+      this.tellText(context, `\nunknown command: ${verb}\n`);
       context.note({
         kind: "controller-rejected",
         reason: "unknown-command",
@@ -106,15 +108,12 @@ export default class HelpController extends CommandController<HelpModel> {
         lines.push("(api index unavailable — run `pnpm docs`.)", "");
       }
       lines.push('Type "help api <Type>" or "help api <Type>.<member>".', "");
-      this.tell(context, Mml.fromMarkup(lines.join("\n")));
+      this.tellText(context, lines.join("\n"));
       return;
     }
     const topic = HelpApi.apiTopic(target);
     if (!topic) {
-      this.tell(
-        context,
-        Mml.fromMarkup(`\nno api topic for '${target}'.\n`)
-      );
+      this.tellText(context, `\nno api topic for '${target}'.\n`);
       context.note({
         kind: "controller-rejected",
         reason: "unknown-api-topic",
@@ -128,7 +127,7 @@ export default class HelpController extends CommandController<HelpModel> {
   /** Render search results grouped by kind. */
   private showSearch(query: string, context: CommandContext): void {
     if (!query) {
-      this.tell(context, Mml.fromMarkup("\nUsage: help search <query>\n"));
+      this.tellText(context, "\nUsage: help search <query>\n");
       context.note({
         kind: "controller-rejected",
         reason: "missing-query",
@@ -138,7 +137,7 @@ export default class HelpController extends CommandController<HelpModel> {
     }
     const result: HelpSearchResult = HelpApi.search(query);
     if (result.groups.length === 0) {
-      this.tell(context, Mml.fromMarkup(`\nNo matches for '${query}'.\n`));
+      this.tellText(context, `\nNo matches for '${query}'.\n`);
       return;
     }
     const lines: string[] = ["", `Matches for '${query}':`, ""];
@@ -149,20 +148,29 @@ export default class HelpController extends CommandController<HelpModel> {
       }
       lines.push("");
     }
-    this.tell(context, Mml.fromMarkup(lines.join("\n")));
+    this.tellText(context, lines.join("\n"));
   }
 
   /** Render a topic's MML body + its navigable relation links. */
   private renderTopic(topic: HelpTopic, context: CommandContext): void {
-    const lines: string[] = ["", topic.body];
-    if (topic.relations.length > 0) {
-      lines.push("", "See also:");
-      for (const rel of topic.relations) {
-        lines.push(`  ${rel.kind}: ${rel.targetTitle}`);
-      }
+    // The body is already valid MML (escaped by the catalogue) — pass it
+    // through verbatim; the "See also" chrome is plain text and is escaped
+    // by `compose`.
+    const body = Mml.fromMarkup(topic.body);
+    if (topic.relations.length === 0) {
+      this.tell(context, Mml.compose`\n${body}\n`);
+      return;
     }
-    lines.push("");
-    this.tell(context, Mml.fromMarkup(lines.join("\n")));
+    const seeAlso: string[] = ["", "See also:"];
+    for (const rel of topic.relations) {
+      seeAlso.push(`  ${rel.kind}: ${rel.targetTitle}`);
+    }
+    this.tell(context, Mml.compose`\n${body}\n${seeAlso.join("\n")}\n`);
+  }
+
+  /** Escape a plain-text chrome block to MML and send it. */
+  private tellText(context: CommandContext, text: string): void {
+    this.tell(context, Mml.compose`${text}`);
   }
 
   private tell(context: CommandContext, body: Mml): void {
