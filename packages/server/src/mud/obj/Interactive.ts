@@ -37,10 +37,25 @@ export default class Interactive extends Idea {
   protected user: User;
   protected connectedAt: Date;
 
+  /**
+   * The wall-clock time of this session's most recent player input.
+   * Transient (in-memory only — Interactive is never persisted), the
+   * sibling of {@link connectedAt}; seeded to `connectedAt` so a freshly
+   * connected session reads as active. Refreshed by {@link touchInput}
+   * at the `CommandGiver` dispatch tail. The idle status is *derived* from
+   * this against `social.idleAfter` (see `PresenceApi.statusOf`) — there
+   * is no stored idle flag and no per-player timer.
+   */
+  protected lastInputAt: Date;
+
   public getSocketId(): string { return this.socketId; }
   public getSessionId(): string { return this.sessionId; }
   public getUser(): User { return this.user; }
   public getConnectedAt(): Date { return this.connectedAt; }
+  public getLastInputAt(): Date { return this.lastInputAt; }
+
+  /** Mark this session active as of now (a single transient assignment). */
+  public touchInput(): void { this.lastInputAt = new Date(); }
 
   /**
    * Per-Interactive monotonic frame counter. Shared by every
@@ -98,6 +113,7 @@ export default class Interactive extends Idea {
     this.sessionId = sessionId;
     this.user = user;
     this.connectedAt = new Date();
+    this.lastInputAt = this.connectedAt;
   }
 
   /**
