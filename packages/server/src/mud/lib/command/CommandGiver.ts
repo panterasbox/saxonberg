@@ -498,6 +498,32 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
       // parser/matcher binds; controllers always see the populated
       // form.
       const giver = this as unknown as Stuff & CommandGiver;
+
+      // Server-authoritative input mode (per-bar). For real player input
+      // only (interactive && !forced && the giver carries client state),
+      // look up the submitting bar's prefix in `cockpit.inputModes` and
+      // prepend it before anything parses. Scripts / NPC / forced
+      // dispatch carry no barId and bypass — verbatim. `applyInputMode`
+      // is pure (the `/`-escape and `mode`-exempt rules live there); the
+      // per-bar lookup happens here at the call site. The echo reflects
+      // the dispatched text, since `commandText` is reassigned.
+      // A submission with NO barId (an affordance click, a script, a
+      // programmatic dispatch) is deliberately un-moded: preview equals
+      // send. Only a real bar submission (carrying its barId) consults
+      // that bar's prefix.
+      if (
+        opts.barId !== undefined &&
+        opts.interactive &&
+        !opts.forced &&
+        MixinApi.isHasInteractive(giver)
+      ) {
+        const modes = giver.getClientState<Record<string, string>>(
+          'cockpit.inputModes',
+        );
+        const prefix = modes?.[opts.barId] ?? '';
+        commandText = CommandApi.applyInputMode(commandText, prefix);
+      }
+
       // The dispatch location is whichever Container holds the giver
       // — typically a Location (room) but may be a Vessel (entered
       // wardrobe/ship). Controllers narrow with MixinApi predicates
@@ -530,6 +556,7 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
         commandSource: giver,
         interactive: opts.interactive,
         bodyFields: opts.bodyFields,
+        barId: opts.barId,
       });
       ExecutionContextApi.updateCurrentFrameMetadata({
         commandContext: outer,

@@ -33,7 +33,6 @@ beforeEach(() => {
     forumNav: { boardHandle: null, threadId: null },
     forumRecords: {},
     forumScopes: {},
-    inputMode: null,
   });
 });
 
@@ -77,15 +76,14 @@ describe("forum store slice", () => {
     });
   });
 
-  it("inputMode is a single client-only scoped-input slot", () => {
-    expect(useStore.getState().inputMode).toBeNull();
-    useStore.getState().setInputMode({ prefix: "chat devtalk", label: "devtalk" });
-    expect(useStore.getState().inputMode).toEqual({
-      prefix: "chat devtalk",
-      label: "devtalk",
-    });
-    useStore.getState().clearInputMode();
-    expect(useStore.getState().inputMode).toBeNull();
+  it("ghost line: setGhostPreview + flashGhost drive the preview/flash strip", () => {
+    expect(useStore.getState().ghostPreview).toBeNull();
+    useStore.getState().setGhostPreview("look mirror");
+    expect(useStore.getState().ghostPreview).toBe("look mirror");
+    useStore.getState().setGhostPreview(null);
+    expect(useStore.getState().ghostPreview).toBeNull();
+    useStore.getState().flashGhost("copied: look mirror");
+    expect(useStore.getState().ghostFlash).toBe("copied: look mirror");
   });
 
   it("carries argument-mode fields and clears an open-objection via a replace delta", () => {

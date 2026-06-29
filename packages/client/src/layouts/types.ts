@@ -11,9 +11,10 @@
  *
  * `LayoutProps` is the bundle of shared cockpit handles `App` threads to
  * the active layout: the frame buffer, the command-send / preview /
- * click handlers, and the base-input state (controlled by `App` because
- * it doubles as the hover-preview channel). Each layout fans these out
- * to its terminals, command bar(s), and side panes.
+ * click handlers, and the prompt handlers. Each command bar owns its own
+ * input draft locally and submits its `barId` (so the server applies
+ * that bar's mode); preview/flash live in the ghost command line, not in
+ * a bar. Each layout fans these out to its terminals, bar(s), and panes.
  */
 
 import type React from "react";
@@ -22,24 +23,20 @@ import type { Frame as ConsoleFrame } from "../store/index";
 export interface LayoutProps {
   /** The tab-filtered frame buffer the layout's terminal(s) render. */
   frames: ConsoleFrame[];
-  /** Send a raw command over the bus. */
-  onSendCommand: (text: string) => void;
+  /**
+   * Send a raw command over the bus. `barId` is the originating command
+   * bar (the server applies that bar's input mode); omit it for un-moded
+   * dispatch (affordance clicks).
+   */
+  onSendCommand: (text: string, barId?: string) => void;
   /** Send a response to an active server-side prompt. */
   onSendPromptResponse: (promptId: string, response: string) => void;
   /** Cancel a pending prompt. */
   onCancelPrompt: (promptId: string) => void;
-  /** Click-to-send an affordance's command (command-bus primacy). */
+  /** Click-to-send an affordance's command, un-moded (command-bus primacy). */
   onCommandClick: (command: string) => void;
-  /** Hover-preview an affordance's command (`null` = stop previewing). */
+  /** Hover-preview an affordance's command in the ghost line (`null` = stop). */
   onCommandPreview: (command: string | null) => void;
-  /** The base-slot input draft (controlled by App; also the preview channel). */
-  baseValue: string;
-  /** Mirror a base-input keystroke back to App. */
-  onBaseChange: (value: string) => void;
-  /** Post-click flash signal. */
-  flashing: boolean;
-  /** True while an affordance command is previewed in the bar. */
-  previewing: boolean;
 }
 
 /**

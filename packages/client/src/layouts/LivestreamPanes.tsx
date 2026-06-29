@@ -65,10 +65,6 @@ export function LivestreamPanes({
   onCancelPrompt,
   onCommandClick,
   onCommandPreview,
-  baseValue,
-  onBaseChange,
-  flashing,
-  previewing,
 }: LivestreamPanesProps): JSX.Element {
   const chatFrames = frames.filter(isChatFrame);
   const gameFrames = frames.filter((f) => !isChatFrame(f));
@@ -85,13 +81,10 @@ export function LivestreamPanes({
           />
         </GameTerminal>
         <CommandBar
-          baseValue={baseValue}
-          onBaseChange={onBaseChange}
+          barId="stream-game"
           onSendCommand={onSendCommand}
           onSendPromptResponse={onSendPromptResponse}
           onCancelPrompt={onCancelPrompt}
-          flashing={flashing}
-          previewing={previewing}
         />
       </LeftColumn>
       <Rail>
@@ -100,6 +93,14 @@ export function LivestreamPanes({
           frames={chatFrames}
           onCommandClick={onCommandClick}
           onCommandPreview={onCommandPreview}
+        />
+        {/* The chat terminal's own bar — its own barId, so its mode is
+            independent of the game bar (e.g. scoped to `twitch`). */}
+        <CommandBar
+          barId="stream-chat"
+          onSendCommand={onSendCommand}
+          onSendPromptResponse={onSendPromptResponse}
+          onCancelPrompt={onCancelPrompt}
         />
       </Rail>
     </Cockpit>

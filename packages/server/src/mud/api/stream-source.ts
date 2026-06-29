@@ -29,7 +29,15 @@ export class StreamSourceApi {
    * malformed.
    */
   static current(): StreamSource[] {
-    const raw = AppApi.setting(AppSettingKeys.livestreamBroadcastSources);
+    // Pre-warm / test safety: a read before `AppSettings.warm()` throws.
+    // The embed must degrade to "no broadcast", never crash a caller
+    // (the welcome-payload build runs this on every login).
+    let raw: string;
+    try {
+      raw = AppApi.setting(AppSettingKeys.livestreamBroadcastSources);
+    } catch {
+      return [];
+    }
     if (!raw) return [];
     let parsed: unknown;
     try {

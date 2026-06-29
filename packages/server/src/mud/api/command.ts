@@ -62,6 +62,16 @@ export interface ExecuteCommandOpts {
    * defaults to `false`.
    */
   forced?: boolean;
+
+  /**
+   * Which input region (command bar) the command was submitted from.
+   * Threaded from the inbound `command` message so the input-mode
+   * prepend ({@link CommandApi.applyInputMode}) looks up *that bar's*
+   * prefix in `cockpit.inputModes`, and so `ModeController` knows which
+   * bar a `mode` verb targets. Defaults to `'main'`; absent for
+   * scripts / NPC / forced dispatch (no bar, no prefix applied).
+   */
+  barId?: string;
 }
 
 /**
@@ -125,6 +135,14 @@ export interface CommandContext {
   bodyFields?: Record<string, unknown>;
 
   /**
+   * The input region (command bar) this command was submitted from,
+   * carried from {@link ExecuteCommandOpts.barId}. `ModeController`
+   * reads it to target the right bar's entry in `cockpit.inputModes`.
+   * Defaults to `'main'`.
+   */
+  barId?: string;
+
+  /**
    * Precomputed permission snapshot used by MQL pre-resolution
    * gates. Populated by the dispatcher per command via
    * `AccessApi.isAuthor` + (when admin) a `'core'` membership read;
@@ -179,6 +197,8 @@ export interface CreateCommandContextArgs {
   interactive?: Interactive;
   /** Structured body side-channel; see {@link CommandContext.bodyFields}. */
   bodyFields?: Record<string, unknown>;
+  /** Submitting command bar; see {@link CommandContext.barId}. */
+  barId?: string;
 }
 
 /**
@@ -1240,6 +1260,34 @@ export class CommandApi {
     args: CreateCommandContextArgs,
   ): CommandContext {
     return logic().createCommandContext(args);
+  }
+
+  /**
+   * Apply a bar's input-mode prefix to a raw command line — the
+   * load-bearing pre-tokenize step on the command-entry hot path
+   * (server-authoritative input mode, per-bar).
+   *
+   * Pure and total: given the raw text and the resolved prefix for the
+   * submitting bar, return the text the interpreter should actually
+   * dispatch. Three rules, in order:
+   *
+   *   1. **No prefix** (the bar is unset) → verbatim no-op.
+   *   2. **`/`-escape** → strip the leading slash and run the rest raw
+   *      (a one-off un-moded command; `/look` lexes as `look`).
+   *   3. **`mode`-management** → the `mode` verb itself is exempt, so
+   *      `mode off` / `mode chat x` always reach the interpreter
+   *      un-prefixed regardless of the active mode.
+   *
+   * Otherwise the prefix is prepended: `chat`-mode + `hello` →
+   * `chat hello`. Kept here (not in `msh`) so the tokenizer stays
+   * Stuff-unaware; the per-bar lookup happens at the call site.
+   */
+  static applyInputMode(rawText: string, modePrefix: string): string {
+    if (!modePrefix) return rawText; // (1) unset bar — verbatim no-op
+    const t = rawText.trimStart();
+    if (t.startsWith('/')) return t.slice(1); // (2) escape → run raw
+    if (t.split(/\s+/)[0]?.toLowerCase() === 'mode') return rawText; // (3) exempt
+    return `${modePrefix} ${rawText}`;
   }
 
   /**

@@ -1,0 +1,25 @@
+verbs: [mode]
+controller: shell/ModeController
+description: "Scope a command bar: type bare lines as `<prefix> …` until you turn it off."
+help: |
+  Put a command bar into a mode so everything you type there is
+  prefixed for you. `mode chat gossip` scopes this bar to the gossip
+  channel — then a bare `hello` is dispatched as `chat hello`. Run a
+  one-off raw command without leaving the mode by starting it with a
+  slash: `/look`. Turn the mode off with `mode off` (or bare `mode`).
+
+  Modes are per-bar: a layout with several terminals can have one bar
+  scoped to chat while another stays plain. The bar shows its prefix
+  inline as you type, so what you see is exactly what dispatches.
+validators:
+  - /lib/command/validators/requiresHasInteractive
+examples:
+  - cmd: mode chat gossip
+    note: Scope this bar to the gossip channel
+  - cmd: mode off
+    note: Clear this bar's mode
+args:
+  - name: prefix
+    type: string
+    required: false
+    greedy: true

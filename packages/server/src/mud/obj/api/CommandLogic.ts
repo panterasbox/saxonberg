@@ -160,6 +160,7 @@ class CommandContextImpl implements CommandContext {
   public interactive?: Interactive;
   public aliasExpansion?: AliasExpansionInfo;
   public bodyFields?: Record<string, unknown>;
+  public barId?: string;
   public _mqlPermission?: {
     isAuthor: boolean;
     coreMemberIds?: ReadonlySet<string>;
@@ -182,6 +183,7 @@ class CommandContextImpl implements CommandContext {
     this.commandSource = args.commandSource ?? args.commandGiver;
     if (args.interactive !== undefined) this.interactive = args.interactive;
     if (args.bodyFields !== undefined) this.bodyFields = args.bodyFields;
+    if (args.barId !== undefined) this.barId = args.barId;
   }
 
   note(n: Note): void {

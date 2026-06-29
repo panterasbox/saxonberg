@@ -38,12 +38,19 @@ export const handleCommand: InboundHandler = async (ctx, message) => {
   const rawPayload = message.payload as {
     text: string;
     fields?: Record<string, unknown>;
+    barId?: string;
   };
   const commandText = rawPayload.text?.trim();
   const bodyFields =
     rawPayload.fields && typeof rawPayload.fields === 'object'
       ? rawPayload.fields
       : undefined;
+  // Which command bar this came from — drives the per-bar input-mode
+  // prepend. Affordance clicks (and legacy / programmatic submissions)
+  // omit it; an absent barId means "un-moded — never prepend" (preview
+  // equals send), distinct from a real bar like `'main'`.
+  const barId =
+    typeof rawPayload.barId === 'string' ? rawPayload.barId : undefined;
   if (!commandText) {
     // Empty line: Avatar gets a bare prompt-refresh envelope (MUD-style
     // "press Enter"). For a Login (char-gen/roster) there's nothing to
@@ -79,7 +86,7 @@ export const handleCommand: InboundHandler = async (ctx, message) => {
   // to see "something went wrong" rather than have the dispatcher
   // log silently.
   try {
-    await giver.executeCommand(commandText, { interactive, bodyFields });
+    await giver.executeCommand(commandText, { interactive, bodyFields, barId });
   } catch (error) {
     console.error(`Command error for socket ${socketId}:`, error);
     backend.sendMessageToSocket(socketId, {

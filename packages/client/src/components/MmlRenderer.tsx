@@ -137,6 +137,35 @@ const ClickableSpan = styled.span`
 `;
 
 /**
+ * Copy a command to the clipboard with a ghost-line "copied: …" flash.
+ * The explicit "make it mine" path (paste into whichever bar you want) —
+ * replaces shift-click-loads-a-bar, which has no honest target under
+ * multiple bars. Bound to shift-click + the right-click on an affordance.
+ */
+function copyCommand(cmd: string): void {
+  void navigator.clipboard?.writeText(cmd).catch(() => {});
+  useStore.getState().flashGhost(`copied: ${cmd}`);
+}
+
+/**
+ * Affordance primary-click: shift-click copies; a plain click runs the
+ * command un-moded (preview equals send). Centralized so both clickable
+ * sites share the gesture model.
+ */
+function handleAffordanceClick(
+  e: React.MouseEvent,
+  cmd: string,
+  onCommandClick: (command: string) => void,
+): void {
+  if (e.shiftKey) {
+    e.preventDefault();
+    copyCommand(cmd);
+    return;
+  }
+  onCommandClick(cmd);
+}
+
+/**
  * Inert link affordance for `mudq:` URIs (and any other namespaced
  * link the v1 build can't route). Deliberately NOT styled like a
  * clickable link: no underline, no cursor change, no hover state.
@@ -313,10 +342,14 @@ function renderNode(
       return (
         <ClickableSpan
           key={key}
-          onClick={() => ctx.onCommandClick(cmd)}
+          onClick={(e) => handleAffordanceClick(e, cmd, ctx.onCommandClick)}
+          onContextMenu={(e) => {
+            e.preventDefault();
+            copyCommand(cmd);
+          }}
           onMouseEnter={() => ctx.onCommandPreview(cmd)}
           onMouseLeave={() => ctx.onCommandPreview(null)}
-          title={`Click to send: ${cmd}`}
+          title={`Click to send: ${cmd} · shift-click to copy`}
         >
           {children}
         </ClickableSpan>
@@ -335,10 +368,14 @@ function renderNode(
   return (
     <ClickableSpan
       key={key}
-      onClick={() => ctx.onCommandClick(cmd)}
+      onClick={(e) => handleAffordanceClick(e, cmd, ctx.onCommandClick)}
+      onContextMenu={(e) => {
+        e.preventDefault();
+        copyCommand(cmd);
+      }}
       onMouseEnter={() => ctx.onCommandPreview(cmd)}
       onMouseLeave={() => ctx.onCommandPreview(null)}
-      title={`Click to send: ${cmd}`}
+      title={`Click to send: ${cmd} · shift-click to copy`}
     >
       {children}
     </ClickableSpan>

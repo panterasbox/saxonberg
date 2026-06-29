@@ -40,10 +40,6 @@ export const ForumLayout: React.FC<LayoutProps> = ({
   onSendPromptResponse,
   onCancelPrompt,
   onCommandPreview,
-  baseValue,
-  onBaseChange,
-  flashing,
-  previewing,
 }) => {
   // Most recent in-world scene frame, MML-stripped, for the peek toast.
   const scenePeek = React.useMemo(() => {
@@ -68,16 +64,13 @@ export const ForumLayout: React.FC<LayoutProps> = ({
             onCommandPreview={onCommandPreview}
           />
           <CommandBar
-            baseValue={baseValue}
-            onBaseChange={onBaseChange}
+            barId="forum"
             onSendCommand={onSendCommand}
             onSendPromptResponse={onSendPromptResponse}
             onCancelPrompt={onCancelPrompt}
-            flashing={flashing}
-            previewing={previewing}
           />
         </LeftColumn>
-        <ForumChatSidecar />
+        <ForumChatSidecar onSendCommand={onSendCommand} />
       </Cockpit>
       {scenePeek && <ScenePeek>{scenePeek}</ScenePeek>}
     </>

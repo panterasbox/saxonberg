@@ -24,10 +24,6 @@ export const WorldLayout: React.FC<LayoutProps> = ({
   onCancelPrompt,
   onCommandClick,
   onCommandPreview,
-  baseValue,
-  onBaseChange,
-  flashing,
-  previewing,
 }) => {
   const [drawerOpen, setDrawerOpen] = useState(false);
 
@@ -42,13 +38,10 @@ export const WorldLayout: React.FC<LayoutProps> = ({
         />
         {drawerOpen && <FilterDrawer onClose={() => setDrawerOpen(false)} />}
         <CommandBar
-          baseValue={baseValue}
-          onBaseChange={onBaseChange}
+          barId="world"
           onSendCommand={onSendCommand}
           onSendPromptResponse={onSendPromptResponse}
           onCancelPrompt={onCancelPrompt}
-          flashing={flashing}
-          previewing={previewing}
         />
       </LeftColumn>
       <InspectionPane

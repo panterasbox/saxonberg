@@ -72,12 +72,12 @@ export function postForumThread(
     : `forum post ${boardHandle}`;
   // The body field is dual-source; the GUI supplies it via `fields` (the
   // command string still carries a real verb + selectors).
-  websocketClient.sendCommand(verb, { body });
+  websocketClient.sendCommand(verb, { fields: { body } });
 }
 
 /** Reply to an entry; the body rides the `fields` side-channel. */
 export function replyForumEntry(entryId: string, body: string): void {
-  websocketClient.sendCommand(`forum reply ${entryId}`, { body });
+  websocketClient.sendCommand(`forum reply ${entryId}`, { fields: { body } });
 }
 
 /** The three argument-board contribution valences → reply flags. */
@@ -93,7 +93,9 @@ export function attachArgumentClaim(
   valence: ArgumentValence,
   body: string,
 ): void {
-  websocketClient.sendCommand(`forum reply ${parentId} --${valence}`, { body });
+  websocketClient.sendCommand(`forum reply ${parentId} --${valence}`, {
+    fields: { body },
+  });
 }
 
 /** Mark an argument deliberation matured (owner-gated server-side). */

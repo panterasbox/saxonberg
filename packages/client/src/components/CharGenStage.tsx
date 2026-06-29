@@ -42,6 +42,7 @@ import { mediaUrl } from "../config";
 import { tokens } from "./ui/tokens";
 import { Terminal } from "./Terminal";
 import { CommandBar } from "./CommandBar";
+import { GhostCommandLine } from "./GhostCommandLine";
 import type { Frame } from "../store/index";
 
 /* --- Layout primitives -------------------------------------------- */
@@ -566,15 +567,11 @@ function reviewRows(picks: CharGenPicks): { label: string; value: string }[] {
 
 interface CharGenStageProps {
   /** The real command channel — every affordance routes through it. */
-  onSendCommand: (text: string) => void;
+  onSendCommand: (text: string, barId?: string) => void;
   /** Frames feeding the slim narration strip. */
   frames: Frame[];
-  /** CommandBar wiring, forwarded from App unchanged. */
-  baseValue: string;
-  onBaseChange: (value: string) => void;
   onSendPromptResponse: (promptId: string, response: string) => void;
   onCancelPrompt: (promptId: string) => void;
-  flashing?: boolean;
   /** Terminal click-routing wiring, forwarded from App unchanged. */
   onCommandClick: (command: string) => void;
   onCommandPreview: (command: string | null) => void;
@@ -583,11 +580,8 @@ interface CharGenStageProps {
 export function CharGenStage({
   onSendCommand,
   frames,
-  baseValue,
-  onBaseChange,
   onSendPromptResponse,
   onCancelPrompt,
-  flashing,
   onCommandClick,
   onCommandPreview,
 }: CharGenStageProps) {
@@ -920,14 +914,14 @@ export function CharGenStage({
         />
       </TerminalStrip>
 
+      {/* Ghost command line — previews the `enroll …` an affordance runs. */}
+      <GhostCommandLine />
       {/* The command bar is the backbone — typed `enroll …` always works. */}
       <CommandBar
-        baseValue={baseValue}
-        onBaseChange={onBaseChange}
+        barId="chargen"
         onSendCommand={onSendCommand}
         onSendPromptResponse={onSendPromptResponse}
         onCancelPrompt={onCancelPrompt}
-        flashing={flashing}
       />
     </Stage>
   );

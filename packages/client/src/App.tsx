@@ -25,6 +25,7 @@ import { StartScreen } from "./components/StartScreen";
 import { CharacterSelect } from "./components/CharacterSelect";
 import { CharGenStage } from "./components/CharGenStage";
 import { ViewsMenu } from "./components/ViewsMenu";
+import { GhostCommandLine } from "./components/GhostCommandLine";
 import { LAYOUT_REGISTRY, type LayoutProps } from "./layouts";
 import { tokens } from "./components/ui";
 import type {
@@ -249,42 +250,19 @@ function App() {
       !mutedSet.has(f.topic) &&
       !(reactionPrefs.alwaysAggregate && f.inReactionTo !== undefined),
   );
-  // Single display value for the input. Three sources can drive it:
-  //   1. The user typing (kept in userTypedRef as the canonical text).
-  //   2. A hover preview from a clickable affordance (transient).
-  //   3. The post-click flash showing the sent command (transient).
-  // userTypedRef stays untouched during hover so we can restore it
-  // on mouse-leave even if the user moved between adjacent
-  // clickables. The restore is deferred by one tick so a leave →
-  // enter sequence can cancel the pending restore.
-  const [inputValue, setInputValue] = useState("");
-  // True while a clickable affordance's command is previewed in the bar.
-  // The command bar hides the input-mode chip during a preview so a
-  // previewed direct command (e.g. `forum vote …`) doesn't read as though
-  // it'll be wrapped by the active chat mode.
-  const [previewing, setPreviewing] = useState(false);
-  const [flashing, setFlashing] = useState(false);
-  const userTypedRef = useRef("");
-  const previewActiveRef = useRef(false);
+  // Hover preview lives in the ghost command line (store-backed), not in
+  // a command bar — under per-bar mode a moded bar would prepend its
+  // prefix, so the preview would lie about what sends. The restore on
+  // mouse-leave is deferred by one tick so a leave → enter sweep across
+  // adjacent affordances doesn't flicker the line empty.
   const restoreTimerRef = useRef<number | null>(null);
-  const flashTimerRef = useRef<number | null>(null);
 
   useEffect(() => {
     return () => {
       if (restoreTimerRef.current !== null)
         window.clearTimeout(restoreTimerRef.current);
-      if (flashTimerRef.current !== null)
-        window.clearTimeout(flashTimerRef.current);
     };
   }, []);
-
-  // The typed base-input draft is transient, so it starts fresh on each
-  // layout switch rather than carrying a half-typed line from one cockpit
-  // arrangement into the next.
-  useEffect(() => {
-    setInputValue("");
-    userTypedRef.current = "";
-  }, [layout]);
 
   useEffect(() => {
     // Check auth status on mount
@@ -406,7 +384,12 @@ function App() {
     }
   };
 
-  const sendCommand = (text: string) => {
+  // Send a real command over the bus. `barId` is the originating command
+  // bar (so the server applies that bar's input mode); affordance clicks
+  // omit it to dispatch un-moded (preview equals send). The text reaches
+  // the server verbatim — the client never wraps it (the interpreter
+  // prepends the mode prefix server-side).
+  const sendCommand = (text: string, barId?: string) => {
     if (!websocketClient.isConnected()) {
       console.warn("Cannot send command: not connected");
       return;
@@ -435,10 +418,7 @@ function App() {
       });
     }
 
-    websocketClient.send({
-      type: "command",
-      payload: { text },
-    });
+    websocketClient.sendCommand(text, barId !== undefined ? { barId } : undefined);
   };
 
   /**
@@ -482,28 +462,11 @@ function App() {
   };
 
   /**
-   * Mirror keystrokes into the canonical userTyped buffer and clear
-   * any in-flight preview state (a keystroke ends a preview).
-   */
-  const handleInputChange = (value: string) => {
-    if (previewActiveRef.current) {
-      previewActiveRef.current = false;
-      if (restoreTimerRef.current !== null) {
-        window.clearTimeout(restoreTimerRef.current);
-        restoreTimerRef.current = null;
-      }
-    }
-    userTypedRef.current = value;
-    setInputValue(value);
-  };
-
-  /**
-   * Hover preview. `null` means "stop previewing" (mouseleave); a
-   * string means "start previewing this command" (mouseenter). The
-   * restore is deferred by one tick so an immediately-following
-   * mouseenter on an adjacent clickable cancels it — without that,
-   * a sweep across two affordances flashes the userTyped buffer
-   * mid-transition.
+   * Hover preview → the ghost command line (store-backed). `null` means
+   * "stop previewing" (mouseleave); a string shows the exact command a
+   * hovered affordance would run. The restore is deferred by one tick so
+   * a leave → enter sweep across adjacent affordances doesn't flicker the
+   * line empty mid-transition.
    */
   const handleCommandPreview = (command: string | null) => {
     if (restoreTimerRef.current !== null) {
@@ -512,43 +475,23 @@ function App() {
     }
     if (command === null) {
       restoreTimerRef.current = window.setTimeout(() => {
-        previewActiveRef.current = false;
-        setPreviewing(false);
-        setInputValue(userTypedRef.current);
+        useStore.getState().setGhostPreview(null);
         restoreTimerRef.current = null;
       }, 0);
     } else {
-      previewActiveRef.current = true;
-      setPreviewing(true);
-      setInputValue(command);
+      useStore.getState().setGhostPreview(command);
     }
   };
 
   /**
-   * Click-to-send: command-bus primacy. The input already shows the
-   * command (via the preview) when the click lands. Send, flash for
-   * 150ms, clear. Any user-typed buffer is also cleared — a click
-   * commits to sending, so the prior typing is no longer relevant.
+   * Click-to-send: command-bus primacy, **un-moded**. Affordance clicks
+   * carry no `barId`, so the interpreter never prepends a bar's mode —
+   * preview equals send. Flash the ghost line so the just-sent command
+   * stays briefly visible.
    */
   const handleCommandClick = (command: string) => {
-    if (restoreTimerRef.current !== null) {
-      window.clearTimeout(restoreTimerRef.current);
-      restoreTimerRef.current = null;
-    }
-    previewActiveRef.current = false;
-    userTypedRef.current = "";
-
-    setInputValue(command);
     sendCommand(command);
-    setFlashing(true);
-    if (flashTimerRef.current !== null) {
-      window.clearTimeout(flashTimerRef.current);
-    }
-    flashTimerRef.current = window.setTimeout(() => {
-      setFlashing(false);
-      setInputValue("");
-      flashTimerRef.current = null;
-    }, 150);
+    useStore.getState().flashGhost(`› ${command}`);
   };
 
   useEffect(() => {
@@ -622,11 +565,8 @@ function App() {
         <CharGenStage
           onSendCommand={sendCommand}
           frames={visibleFrames}
-          baseValue={inputValue}
-          onBaseChange={handleInputChange}
           onSendPromptResponse={sendPromptResponse}
           onCancelPrompt={cancelPrompt}
-          flashing={flashing}
           onCommandClick={handleCommandClick}
           onCommandPreview={handleCommandPreview}
         />
@@ -644,10 +584,6 @@ function App() {
         onCancelPrompt: cancelPrompt,
         onCommandClick: handleCommandClick,
         onCommandPreview: handleCommandPreview,
-        baseValue: inputValue,
-        onBaseChange: handleInputChange,
-        flashing,
-        previewing,
       };
       const ActiveLayout = (
         LAYOUT_REGISTRY[layout] ?? LAYOUT_REGISTRY.world!
@@ -668,6 +604,9 @@ function App() {
           </ChromeBar>
           {/* The active layout fills the fluid content area. */}
           <ActiveLayout {...layoutProps} />
+          {/* The always-on ghost command line — affordance previews +
+              post-action flash, beside the primary command bar. */}
+          <GhostCommandLine />
         </AppContainer>
       );
     }

@@ -35,10 +35,6 @@ export const BuilderLayout: React.FC<LayoutProps> = ({
   onCancelPrompt,
   onCommandClick,
   onCommandPreview,
-  baseValue,
-  onBaseChange,
-  flashing,
-  previewing,
 }) => {
   return (
     <Cockpit>
@@ -50,13 +46,10 @@ export const BuilderLayout: React.FC<LayoutProps> = ({
           onCommandPreview={onCommandPreview}
         />
         <CommandBar
-          baseValue={baseValue}
-          onBaseChange={onBaseChange}
+          barId="builder"
           onSendCommand={onSendCommand}
           onSendPromptResponse={onSendPromptResponse}
           onCancelPrompt={onCancelPrompt}
-          flashing={flashing}
-          previewing={previewing}
         />
       </GlanceRail>
     </Cockpit>

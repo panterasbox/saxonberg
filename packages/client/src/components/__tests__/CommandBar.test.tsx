@@ -27,7 +27,6 @@ function resetStore(): void {
 }
 
 interface Spies {
-  onBaseChange: ReturnType<typeof vi.fn>;
   onSendCommand: ReturnType<typeof vi.fn>;
   onSendPromptResponse: ReturnType<typeof vi.fn>;
   onCancelPrompt: ReturnType<typeof vi.fn>;
@@ -35,23 +34,30 @@ interface Spies {
 
 function makeSpies(): Spies {
   return {
-    onBaseChange: vi.fn(),
     onSendCommand: vi.fn(),
     onSendPromptResponse: vi.fn(),
     onCancelPrompt: vi.fn(),
   };
 }
 
+// The base draft is now local to the bar; seed it by typing into the
+// input (the App no longer controls it). `barId` is submitted with each
+// command so the server applies that bar's mode.
 function renderBar(spies: Spies, baseValue = '') {
-  return render(
+  const r = render(
     <CommandBar
-      baseValue={baseValue}
-      onBaseChange={spies.onBaseChange}
+      barId="test"
       onSendCommand={spies.onSendCommand}
       onSendPromptResponse={spies.onSendPromptResponse}
       onCancelPrompt={spies.onCancelPrompt}
     />,
   );
+  if (baseValue) {
+    fireEvent.change(screen.getByPlaceholderText('Enter command...'), {
+      target: { value: baseValue },
+    });
+  }
+  return r;
 }
 
 function pushPrompt(entry: PromptEntry) {
@@ -100,13 +106,13 @@ describe('CommandBar — base / command mode', () => {
     expect(screen.getByPlaceholderText('Enter command...')).toBeTruthy();
   });
 
-  it('Enter on base sends through onSendCommand', () => {
+  it('Enter on base sends through onSendCommand tagged with the barId', () => {
     const spies = makeSpies();
     renderBar(spies, 'look');
     fireEvent.keyDown(screen.getByPlaceholderText('Enter command...'), {
       key: 'Enter',
     });
-    expect(spies.onSendCommand).toHaveBeenCalledWith('look');
+    expect(spies.onSendCommand).toHaveBeenCalledWith('look', 'test');
   });
 
   it('empty Enter still calls onSendCommand (for the server-side refresh short-circuit)', () => {
@@ -115,7 +121,7 @@ describe('CommandBar — base / command mode', () => {
     fireEvent.keyDown(screen.getByPlaceholderText('Enter command...'), {
       key: 'Enter',
     });
-    expect(spies.onSendCommand).toHaveBeenCalledWith('');
+    expect(spies.onSendCommand).toHaveBeenCalledWith('', 'test');
   });
 });
 

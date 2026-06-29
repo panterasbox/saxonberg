@@ -232,18 +232,6 @@ export interface Frame {
   };
 }
 
-/**
- * A client-side input scope ("mode"): a sticky verb/alias prefix the
- * command bar wraps bare input with. PURELY client state — like the
- * console filters, it never rides the command bus. Typing `foo` while a
- * mode is set submits the real command `<prefix> foo`; a leading `/`
- * escapes for a one-off raw command. Set by the chat sidecar's "talk
- * here" (or `mode <prefix>`), cleared by Esc / the chip / `mode off`.
- */
-export interface InputMode {
-  prefix: string;
-  label: string;
-}
 
 /**
  * Combined store state. Extends {@link CmsSlice} (the CMS editor's
@@ -289,19 +277,19 @@ interface StoreState extends CmsSlice {
   setConnectionPhase: (phase: ConnectionPhase) => void;
 
   /**
-   * The input mode (client-only scoped-input prefix). The primary-view
-   * axis is now the server-authoritative `cockpit.layout` clientState
-   * key (read via the layout registry), so this is a single slot rather
-   * than per-view. Set by the chat sidecar's "talk here" / `mode
-   * <prefix>`, cleared by Esc / `mode off`. See {@link InputMode}.
-   *
-   * Phase 4 retires this client-side mechanism: input mode becomes the
-   * per-bar server `cockpit.inputModes` map applied by the command
-   * interpreter, and the client becomes a display-only indicator.
+   * The ghost command line — the always-on preview/teaching strip beside
+   * the primary command bar. `ghostPreview` is the exact command a
+   * hovered affordance would run (passive teaching); `ghostFlash` is a
+   * transient post-action message (`› <ran>` on click, `copied: …` on
+   * copy). Input mode itself is now server-authoritative (the per-bar
+   * `cockpit.inputModes` clientState map + the interpreter prepend); the
+   * client no longer wraps input.
    */
-  inputMode: InputMode | null;
-  setInputMode: (mode: InputMode) => void;
-  clearInputMode: () => void;
+  ghostPreview: string | null;
+  ghostFlash: string | null;
+  setGhostPreview: (command: string | null) => void;
+  /** Show a transient ghost-line flash (auto-clears in the component). */
+  flashGhost: (message: string) => void;
 
   /**
    * The forum view's current navigation target. `boardHandle` is the
@@ -900,15 +888,13 @@ export const useStore = create<StoreState>((set, get) => ({
       state.connectionPhase === phase ? {} : { connectionPhase: phase },
     ),
 
-  // Input mode (client-only scoped-input prefix). Single slot — the
-  // primary-view axis is now the server-authoritative `cockpit.layout`
-  // clientState key (read via the layout registry), not a client field.
-  // (Phase 4 retires this client-side mode mechanism entirely in favour
-  // of the per-bar server `cockpit.inputModes` map + the interpreter
-  // prepend.)
-  inputMode: null,
-  setInputMode: (mode) => set(() => ({ inputMode: mode })),
-  clearInputMode: () => set(() => ({ inputMode: null })),
+  // Ghost command line — preview + transient flash. Input mode is now
+  // server-authoritative (the per-bar `cockpit.inputModes` map applied by
+  // the command interpreter); the client only displays it.
+  ghostPreview: null,
+  ghostFlash: null,
+  setGhostPreview: (command) => set(() => ({ ghostPreview: command })),
+  flashGhost: (message) => set(() => ({ ghostFlash: message })),
 
   forumNav: { boardHandle: null, threadId: null },
   setForumNav: (nav) =>
