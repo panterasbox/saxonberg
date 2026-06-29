@@ -91,8 +91,8 @@ function plain(body: string): string {
 export function ForumChatSidecar(): JSX.Element {
   const forumNav = useStore((s) => s.forumNav);
   const frames = useStore((s) => s.frames);
-  // The sidecar lives in the forum view, so it reads/sets the forum bar's mode.
-  const forumMode = useStore((s) => s.inputMode.forum);
+  // The sidecar's "talk here" scopes the command bar to this channel.
+  const forumMode = useStore((s) => s.inputMode);
   const setInputMode = useStore((s) => s.setInputMode);
 
   const handle = forumNav.boardHandle;

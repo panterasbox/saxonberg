@@ -73,6 +73,7 @@ describe("connection.link state machine", () => {
       },
       topicCatalogue: [],
       clientState: {},
+      broadcastSources: [],
     });
     expect(useStore.getState().connection.link).toBe("connected");
     expect(useStore.getState().connection.isConnected).toBe(true);

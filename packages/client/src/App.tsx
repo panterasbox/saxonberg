@@ -17,23 +17,22 @@ import {
 } from "./store/index";
 import { registerReactionHandlers } from "./store/reactionActions";
 import { registerForumHandlers } from "./store/forumActions";
-import { ForumView } from "./components/ForumView";
-import { ForumChatSidecar } from "./components/ForumChatSidecar";
 import { SERVER_URL, WS_URL } from "./config";
 import { websocketClient } from "./services/websocket";
 import { Frame } from "./components/frame/Frame";
 import { ReconnectBanner } from "./components/frame/ReconnectBanner";
 import { StartScreen } from "./components/StartScreen";
-import { Terminal } from "./components/Terminal";
-import { TabStrip } from "./components/TabStrip";
-import { FilterDrawer } from "./components/FilterDrawer";
-import { CommandBar } from "./components/CommandBar";
-import { InspectionPane } from "./components/InspectionPane";
 import { CharacterSelect } from "./components/CharacterSelect";
 import { CharGenStage } from "./components/CharGenStage";
 import { CmsSurface } from "./components/cms/CmsSurface";
+import { ViewsMenu } from "./components/ViewsMenu";
+import { LAYOUT_REGISTRY, type LayoutProps } from "./layouts";
 import { tokens } from "./components/ui";
-import type { ConsoleTab, TwitchMessagePayload } from "@saxonberg/types";
+import type {
+  ConsoleTab,
+  LayoutName,
+  TwitchMessagePayload,
+} from "@saxonberg/types";
 
 /**
  * Extract the structured twitch-provenance fields from a
@@ -91,62 +90,13 @@ const Splash = styled.div`
 `;
 
 /**
- * Top-level cockpit shell. Left column holds the terminal scrollback
- * + command bar (the existing single-column UX); right column hosts
- * the inspection pane. Fixed-width, no user-resize, no tab strip in
- * v1 — see the inspection-pane requirements' non-goals.
+ * The always-on chrome strip holding the "Views" layout switcher. A
+ * fixed, constant-position region (the matte) so the layout affordance
+ * is in the same place in every layout.
  */
-const Cockpit = styled.div`
+const ChromeBar = styled.div`
   display: flex;
-  flex: 1;
-  min-height: 0;
-`;
-
-const LeftColumn = styled.div`
-  display: flex;
-  flex-direction: column;
-  flex: 1;
-  min-width: 0;
-`;
-
-/**
- * The in-world primary-view switch (Terminal | Forum). Distinct from the
- * TabStrip (which is a filter axis *inside* the Terminal view) — this
- * swaps the whole LeftColumn content slot + the view-sensitive right
- * column, while Frame + CommandBar persist.
- */
-const ViewSwitch = styled.div`
-  display: flex;
-  gap: 0.25rem;
-  padding: 0.25rem 0.5rem;
-`;
-
-const ViewTab = styled.button<{ $active: boolean }>`
-  background: ${(p) => (p.$active ? "rgba(255,255,255,0.14)" : "transparent")};
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  border-radius: 4px;
-  color: inherit;
-  cursor: pointer;
-  padding: 0.15rem 0.6rem;
-  font: inherit;
-`;
-
-/**
- * A live-scene peek so the player never goes dark on live play while the
- * Forum view is active — the most recent scene frame surfaces as a toast.
- */
-const ScenePeek = styled.div`
-  position: absolute;
-  bottom: 4.5rem;
-  right: 1rem;
-  max-width: 22rem;
-  padding: 0.5rem 0.75rem;
-  border-radius: ${tokens.radius.md};
-  background: ${tokens.color.surfaceAlt};
-  border: 1px solid ${tokens.color.borderEmphasis};
-  color: ${tokens.color.fgMuted};
-  font-size: 0.85rem;
-  pointer-events: none;
+  align-items: center;
 `;
 
 /**
@@ -272,40 +222,6 @@ function formatResponseEcho(promptId: string, response: string): string | null {
   return `${entry.label} → ${resolved}`;
 }
 
-const FORUM_SUBCOMMANDS = new Set([
-  "list",
-  "make",
-  "on",
-  "post",
-  "reply",
-  "read",
-  "promote",
-  "follow",
-  "vote",
-]);
-
-/**
- * Recognize a `forum` / `forum <board>` invocation and flip the cockpit
- * to the forum view + set the nav target. Subcommand forms (post / vote /
- * make …) leave the view alone — the server handles them and any live
- * subscription updates the already-open view. This is the client side of
- * the CLI⇄GUI convergence; the command still goes to the server too.
- */
-function recognizeForumNavigation(text: string): void {
-  const tokens = text.trim().split(/\s+/);
-  if (tokens[0] !== "forum") return;
-  const store = useStore.getState();
-  if (tokens.length === 1) {
-    store.setMainView("forum");
-    return;
-  }
-  const arg = tokens[1]!;
-  if (FORUM_SUBCOMMANDS.has(arg.toLowerCase())) return;
-  // A bare `forum <board>` reads a board → open it in the forum view.
-  store.setMainView("forum");
-  store.setForumNav({ boardHandle: arg, threadId: null });
-}
-
 /**
  * Read once at module load: is this tab the CMS surface (`?surface=cms`)?
  * The CMS opens in its own browser tab sharing the session; when this is
@@ -324,11 +240,12 @@ function App() {
   const auth = useStore((state) => state.auth);
   const connection = useStore((state) => state.connection);
   const connectionPhase = useStore((state) => state.connectionPhase);
-  const mainView = useStore((state) => state.mainView);
-  const setMainView = useStore((state) => state.setMainView);
   const frames = useStore((state) => state.frames);
   const clientState = useStore((state) => state.clientState);
   const reactionPrefs = useStore((state) => state.reactionPrefs);
+  // The active cockpit layout — server-authoritative on `cockpit.layout`.
+  const layout =
+    (clientState["cockpit.layout"] as LayoutName | undefined) ?? "world";
   // Filter frames by the active tab's muted set. The 'All' default
   // mutes nothing, so a fresh player sees the full firehose.
   const activeTabName =
@@ -344,21 +261,6 @@ function App() {
       !mutedSet.has(f.topic) &&
       !(reactionPrefs.alwaysAggregate && f.inReactionTo !== undefined),
   );
-  // Live-scene peek for the forum view — the most recent in-world scene
-  // frame, stripped of MML, so the player keeps live awareness without
-  // leaving the forum. Recomputed as frames arrive.
-  const scenePeek = React.useMemo(() => {
-    for (let i = visibleFrames.length - 1; i >= 0; i--) {
-      const f = visibleFrames[i]!;
-      if (f.topic.startsWith("world.")) {
-        return f.body
-          .replace(/<[^>]+>/g, "")
-          .trim()
-          .slice(0, 160);
-      }
-    }
-    return null;
-  }, [visibleFrames]);
   // Single display value for the input. Three sources can drive it:
   //   1. The user typing (kept in userTypedRef as the canonical text).
   //   2. A hover preview from a clickable affordance (transient).
@@ -374,7 +276,6 @@ function App() {
   // it'll be wrapped by the active chat mode.
   const [previewing, setPreviewing] = useState(false);
   const [flashing, setFlashing] = useState(false);
-  const [drawerOpen, setDrawerOpen] = useState(false);
   const userTypedRef = useRef("");
   const previewActiveRef = useRef(false);
   const restoreTimerRef = useRef<number | null>(null);
@@ -389,14 +290,13 @@ function App() {
     };
   }, []);
 
-  // The Terminal and Forum command bars are conceptually separate bars.
-  // Their scope (mode) is held per-view in the store; the typed draft is
-  // transient, so it starts fresh on each view switch rather than carrying
-  // a half-typed line from one context into the other.
+  // The typed base-input draft is transient, so it starts fresh on each
+  // layout switch rather than carrying a half-typed line from one cockpit
+  // arrangement into the next.
   useEffect(() => {
     setInputValue("");
     userTypedRef.current = "";
-  }, [mainView]);
+  }, [layout]);
 
   useEffect(() => {
     // Check auth status on mount
@@ -525,11 +425,6 @@ function App() {
     // deltas continue to update the cached result and the live
     // header regardless of which verb triggered them.
     applyOutgoingCommandToPane(text);
-
-    // Verb-driven navigation: `forum` / `forum <board>` flips the cockpit
-    // to the forum view and sets the nav target (CLI ⇄ GUI converge). The
-    // forum subcommands that aren't board handles are left to the server.
-    recognizeForumNavigation(text);
 
     // Push an echo-pairing snapshot for non-empty commands. The
     // server's empty-command short-circuit doesn't fire an input-
@@ -751,74 +646,44 @@ function App() {
       );
 
     case "in-world":
-    default:
-      // Show game UI when authenticated and the avatar is in-world.
+    default: {
+      // Show game UI when authenticated and the avatar is in-world. The
+      // active layout is server-authoritative (`cockpit.layout`); the
+      // registry resolves it to a component, falling back to `world`.
+      const layoutProps: LayoutProps = {
+        frames: visibleFrames,
+        onSendCommand: sendCommand,
+        onSendPromptResponse: sendPromptResponse,
+        onCancelPrompt: cancelPrompt,
+        onCommandClick: handleCommandClick,
+        onCommandPreview: handleCommandPreview,
+        baseValue: inputValue,
+        onBaseChange: handleInputChange,
+        flashing,
+        previewing,
+      };
+      const ActiveLayout = (
+        LAYOUT_REGISTRY[layout] ?? LAYOUT_REGISTRY.world!
+      ).Component;
       return (
         <AppContainer>
+          {/* Always-on chrome (the matte): status header, reconnect
+              banner, and the Views layout switcher — same place every
+              layout. */}
           <Frame />
           <ReconnectBanner />
-          <Cockpit>
-            <LeftColumn>
-              {/* Primary-view switch — Terminal | Forum (not a phase). */}
-              <ViewSwitch>
-                <ViewTab
-                  $active={mainView === "terminal"}
-                  onClick={() => setMainView("terminal")}
-                >
-                  Terminal
-                </ViewTab>
-                <ViewTab
-                  $active={mainView === "forum"}
-                  onClick={() => setMainView("forum")}
-                >
-                  Forum
-                </ViewTab>
-              </ViewSwitch>
-              {mainView === "terminal" ? (
-                <>
-                  <TabStrip onToggleDrawer={() => setDrawerOpen((v) => !v)} />
-                  <Terminal
-                    frames={visibleFrames}
-                    onCommandClick={handleCommandClick}
-                    onCommandPreview={handleCommandPreview}
-                  />
-                  {drawerOpen && (
-                    <FilterDrawer onClose={() => setDrawerOpen(false)} />
-                  )}
-                </>
-              ) : (
-                <ForumView
-                  onSendCommand={sendCommand}
-                  onCommandPreview={handleCommandPreview}
-                />
-              )}
-              {/* Frame + CommandBar persist across both views. */}
-              <CommandBar
-                baseValue={inputValue}
-                onBaseChange={handleInputChange}
-                onSendCommand={sendCommand}
-                onSendPromptResponse={sendPromptResponse}
-                onCancelPrompt={cancelPrompt}
-                flashing={flashing}
-                previewing={previewing}
-              />
-            </LeftColumn>
-            {/* View-sensitive right column. */}
-            {mainView === "terminal" ? (
-              <InspectionPane
-                onSendCommand={sendCommand}
-                onCommandPreview={handleCommandPreview}
-              />
-            ) : (
-              <ForumChatSidecar />
-            )}
-          </Cockpit>
-          {/* Live-scene peek so forum-view players keep live awareness. */}
-          {mainView === "forum" && scenePeek && (
-            <ScenePeek>{scenePeek}</ScenePeek>
-          )}
+          <ChromeBar>
+            <ViewsMenu
+              current={layout}
+              onCommandClick={handleCommandClick}
+              onCommandPreview={handleCommandPreview}
+            />
+          </ChromeBar>
+          {/* The active layout fills the fluid content area. */}
+          <ActiveLayout {...layoutProps} />
         </AppContainer>
       );
+    }
   }
 }
 

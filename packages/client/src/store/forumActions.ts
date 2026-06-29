@@ -101,9 +101,13 @@ export function matureArgument(boardHandle: string): void {
   websocketClient.sendCommand(`forum mature ${boardHandle}`);
 }
 
-/** Navigate to a board's thread-list (also flips mainView via App's recognizer). */
+/**
+ * Navigate to a board's thread-list. Called from within the forum
+ * layout (a board click in ForumView), so it sets only the nav target —
+ * the layout is the server-authoritative `cockpit.layout` axis and is
+ * not flipped here (no client-side auto-switch).
+ */
 export function openForumBoard(boardHandle: string): void {
-  useStore.getState().setMainView("forum");
   useStore.getState().setForumNav({ boardHandle, threadId: null });
 }
 

@@ -213,6 +213,16 @@ export const AppSettingKeys = {
   bankingSalesTaxRate: "banking.salesTaxRate",
   /** Banking — the placeholder treasury account that demo tax accumulates in. */
   bankingTreasuryAccount: "banking.treasuryAccount",
+
+  /**
+   * Livestream — the operator-configured broadcast sources surfaced to the
+   * livestream-viewer cockpit embed. A JSON array of `StreamSource`
+   * (`{platform:'twitch',channel} | {platform:'youtube',videoId}`); the
+   * `renown.decayHalfLives` JSON-in-a-string precedent. Empty/absent → no
+   * broadcast configured (the embed shows nothing). See
+   * docs/subsystems/livestream.md / cockpit-layouts.
+   */
+  livestreamBroadcastSources: "livestream.broadcastSources",
 } as const;
 
 export type AppSettingKey =

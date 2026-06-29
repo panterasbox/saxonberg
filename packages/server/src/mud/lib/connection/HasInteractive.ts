@@ -30,6 +30,7 @@ import type Interactive from '../../obj/Interactive';
 import type { CommandContributions } from '../../api/command';
 import { ShellApi } from '../../api/shell';
 import { GoogleProfile } from '../identity/GoogleProfile';
+import { LAYOUT_NAMES } from '@saxonberg/types';
 
 /**
  * Strategy-injected `client-state-update` push function. The
@@ -206,6 +207,45 @@ export function HasInteractiveMixin<TBase extends MixinConstructor>(Base: TBase)
             ? true
             : 'must be a JSON object',
       },
+      {
+        key: 'cockpit.layout',
+        defaultValue: 'world',
+        description:
+          'The cockpit layout this player is in — the server-' +
+          'authoritative view axis (world | forum | livestream-' +
+          'viewer | streamer | builder). Set by the `layout` verb; ' +
+          'the client holds a layout→component registry and swaps the ' +
+          'whole cockpit on change.',
+        validator: (v) =>
+          typeof v === 'string' &&
+          (LAYOUT_NAMES as readonly string[]).includes(v)
+            ? true
+            : `unknown layout (known: ${LAYOUT_NAMES.join(', ')})`,
+      },
+      {
+        key: 'cockpit.inputModes',
+        defaultValue: {},
+        description:
+          'Per-bar input modes — a { barId → prefix } map. The ' +
+          'command interpreter prepends a bar’s prefix to bare ' +
+          'input submitted from that bar (escape with `/`; the `mode` ' +
+          'verb itself is exempt). Set/cleared by the `mode` verb from ' +
+          'a given bar; the client renders the prefix as an inline ' +
+          'uneditable span.',
+        // Shape: a flat object whose values are all strings. The
+        // resolver/interpreter tolerate a missing key (= that bar is
+        // unset); this validator only rejects non-objects and non-
+        // string values so a malformed write can't poison the map.
+        validator: (v) => {
+          if (typeof v !== 'object' || v === null || Array.isArray(v)) {
+            return 'must be a { barId: prefix } object';
+          }
+          for (const val of Object.values(v as Record<string, unknown>)) {
+            if (typeof val !== 'string') return 'every mode prefix must be a string';
+          }
+          return true;
+        },
+      },
     ];
 
     /**
@@ -216,7 +256,7 @@ export function HasInteractiveMixin<TBase extends MixinConstructor>(Base: TBase)
      * the wiring local.
      */
     static commandContributions: CommandContributions = {
-      self: ['shell/style.yaml'],
+      self: ['shell/style.yaml', 'shell/layout.yaml'],
       environment: [],
       inventory: [],
       peers: [],

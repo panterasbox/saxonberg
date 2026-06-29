@@ -469,8 +469,9 @@ export function CommandBar({
   previewing,
 }: CommandBarProps) {
   const prompts = useStore((s) => s.prompts);
-  // The active scope is this view's mode (the bars are per-view).
-  const inputMode = useStore((s) => s.inputMode[s.mainView]);
+  // The active client-side input scope (single slot; Phase 4 moves this
+  // server-side to the per-bar `cockpit.inputModes` map).
+  const inputMode = useStore((s) => s.inputMode);
   const setInputMode = useStore((s) => s.setInputMode);
   const clearInputMode = useStore((s) => s.clearInputMode);
   const activeSlot = useStore((s) => s.activeSlot);

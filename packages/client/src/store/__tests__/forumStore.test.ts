@@ -30,22 +30,14 @@ function rec(id: string, over: Partial<ForumEntryRecord> = {}): ForumEntryRecord
 
 beforeEach(() => {
   useStore.setState({
-    mainView: "terminal",
     forumNav: { boardHandle: null, threadId: null },
     forumRecords: {},
     forumScopes: {},
-    inputMode: { terminal: null, forum: null },
+    inputMode: null,
   });
 });
 
 describe("forum store slice", () => {
-  it("mainView toggles terminal ↔ forum (not a phase)", () => {
-    expect(useStore.getState().mainView).toBe("terminal");
-    expect(useStore.getState().connectionPhase).not.toBe("forum");
-    useStore.getState().setMainView("forum");
-    expect(useStore.getState().mainView).toBe("forum");
-  });
-
   it("applyForumResult stores the snapshot under the subscription", () => {
     useStore
       .getState()
@@ -85,18 +77,15 @@ describe("forum store slice", () => {
     });
   });
 
-  it("inputMode is client-only scoped-input state, held per view", () => {
-    useStore.setState({ mainView: "forum" });
-    expect(useStore.getState().inputMode.forum).toBeNull();
+  it("inputMode is a single client-only scoped-input slot", () => {
+    expect(useStore.getState().inputMode).toBeNull();
     useStore.getState().setInputMode({ prefix: "chat devtalk", label: "devtalk" });
-    // Set on the active (forum) view only — the terminal bar is untouched.
-    expect(useStore.getState().inputMode.forum).toEqual({
+    expect(useStore.getState().inputMode).toEqual({
       prefix: "chat devtalk",
       label: "devtalk",
     });
-    expect(useStore.getState().inputMode.terminal).toBeNull();
     useStore.getState().clearInputMode();
-    expect(useStore.getState().inputMode.forum).toBeNull();
+    expect(useStore.getState().inputMode).toBeNull();
   });
 
   it("carries argument-mode fields and clears an open-objection via a replace delta", () => {

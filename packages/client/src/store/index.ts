@@ -288,22 +288,17 @@ interface StoreState extends CmsSlice {
   setConnectionPhase: (phase: ConnectionPhase) => void;
 
   /**
-   * In-world primary-view axis — `'terminal'` (the classic cockpit) or
-   * `'forum'` (the forum board view). NOT a `connectionPhase`: the player
-   * stays `in-world`; Frame + CommandBar persist across both; only the
-   * LeftColumn content slot + the view-sensitive right column swap.
+   * The input mode (client-only scoped-input prefix). The primary-view
+   * axis is now the server-authoritative `cockpit.layout` clientState
+   * key (read via the layout registry), so this is a single slot rather
+   * than per-view. Set by the chat sidecar's "talk here" / `mode
+   * <prefix>`, cleared by Esc / `mode off`. See {@link InputMode}.
+   *
+   * Phase 4 retires this client-side mechanism: input mode becomes the
+   * per-bar server `cockpit.inputModes` map applied by the command
+   * interpreter, and the client becomes a display-only indicator.
    */
-  mainView: "terminal" | "forum";
-  setMainView: (view: "terminal" | "forum") => void;
-
-  /**
-   * The input mode (client-only scoped-input prefix) PER primary view —
-   * the Terminal and Forum bars are conceptually separate bars and each
-   * keeps its own scope, so a chat mode set in the forum never follows you
-   * to the terminal. `setInputMode`/`clearInputMode` target the *current*
-   * view; read the active one as `inputMode[mainView]`. See {@link InputMode}.
-   */
-  inputMode: { terminal: InputMode | null; forum: InputMode | null };
+  inputMode: InputMode | null;
   setInputMode: (mode: InputMode) => void;
   clearInputMode: () => void;
 
@@ -894,23 +889,15 @@ export const useStore = create<StoreState>((set, get) => ({
       state.connectionPhase === phase ? {} : { connectionPhase: phase },
     ),
 
-  // In-world primary-view axis (terminal | forum). Not a phase. Each view
-  // is its own command bar — switching just shows the other bar with its
-  // own state intact (the mode is per-view; nothing to clear here).
-  mainView: "terminal",
-  setMainView: (view) =>
-    set((state) => (state.mainView === view ? {} : { mainView: view })),
-
-  // Input mode (client-only scoped-input prefix), held per primary view.
-  inputMode: { terminal: null, forum: null },
-  setInputMode: (mode) =>
-    set((state) => ({
-      inputMode: { ...state.inputMode, [state.mainView]: mode },
-    })),
-  clearInputMode: () =>
-    set((state) => ({
-      inputMode: { ...state.inputMode, [state.mainView]: null },
-    })),
+  // Input mode (client-only scoped-input prefix). Single slot — the
+  // primary-view axis is now the server-authoritative `cockpit.layout`
+  // clientState key (read via the layout registry), not a client field.
+  // (Phase 4 retires this client-side mode mechanism entirely in favour
+  // of the per-bar server `cockpit.inputModes` map + the interpreter
+  // prepend.)
+  inputMode: null,
+  setInputMode: (mode) => set(() => ({ inputMode: mode })),
+  clearInputMode: () => set(() => ({ inputMode: null })),
 
   forumNav: { boardHandle: null, threadId: null },
   setForumNav: (nav) =>
