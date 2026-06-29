@@ -75,13 +75,15 @@ export default class ProfileController extends CommandController<ProfileModel> {
     }
     if (standing.length) lines.push(Mml.escape(standing.join(' · ')));
 
-    // Chronicle (recognized).
+    // Chronicle (recognized). The entry text is already ProseApi-rendered
+    // MML (it can carry `<location>` / name refs), so it is emitted as
+    // markup — NOT escaped — while the literal bullet prefix is plain.
     if (card.chronicle) {
       if (card.chronicle.prologue) {
-        lines.push(Mml.escape(card.chronicle.prologue));
+        lines.push(card.chronicle.prologue);
       }
       for (const deed of card.chronicle.deeds) {
-        lines.push(Mml.escape(`• ${deed}`));
+        lines.push(`• ${deed}`);
       }
     }
 
