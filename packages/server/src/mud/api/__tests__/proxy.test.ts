@@ -12,7 +12,7 @@ import { StuffApi } from '../stuff';
 import { ProxyApi } from '../proxy';
 import Thing from '../../lib/stuff/Thing';
 import { ExecutionContextApi, FrameKind } from '../execution-context';
-import { DestroyedObjectError, SecurityError } from '../../lib/security/errors';
+import { SecurityError } from '../../lib/security/errors';
 import { makeStuff } from '../../lib/security/__tests__/test-setup';
 
 describe('ProxyApi.wrap + sentinel + decorated destroy', () => {
@@ -45,11 +45,14 @@ describe('ProxyApi.wrap + sentinel + decorated destroy', () => {
     expect(t.isDestroyed()).toBe(true);
   });
 
-  it('touching a destroyed object throws DestroyedObjectError', () => {
+  it('a destroyed object is inert: method calls no-op (return undefined)', () => {
     const t = makeStuff(() => new Thing());
     StuffApi.destruct(t);
-    // isDestroyed() is exempt; other methods throw.
-    expect(() => t.getContainer()).toThrow(DestroyedObjectError);
+    // A destroyed Stuff is inert — methods are no-ops returning undefined,
+    // never a throw (an in-flight async / stale broadcast ref hitting a
+    // dead object must not crash). `isDestroyed` stays exempt + truthful.
+    expect(() => t.getContainer()).not.toThrow();
+    expect(t.getContainer()).toBeUndefined();
   });
 
   it('isDestroyed() remains callable post-destruct', () => {

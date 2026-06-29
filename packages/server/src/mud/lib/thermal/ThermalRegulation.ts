@@ -399,6 +399,13 @@ export function ThermalRegulationMixin<TBase extends MixinConstructor>(
       // Freeze the regulated core to now under the current cache.
       this.reconcileThermalRegulation();
       const eff = await this.effectiveAmbient();
+      // The host can be destructed *during* the awaits above — a guest is
+      // reaped the instant it goes linkdead, which can race an in-flight
+      // re-stamp. A destroyed Stuff is inert: every method (here
+      // `effectiveAmbient`, and the mixin's own host accessors) returns
+      // `undefined`. The re-stamp is moot for a gone object, so bail on
+      // the first `undefined` rather than read `.rawValue()` off nothing.
+      if (eff === undefined) return;
       this.effectiveAmbientK = eff.rawValue();
       const nowS = this.regNowSeconds();
       if (nowS !== null) this.thermalRegStamp = nowS;
