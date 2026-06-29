@@ -57,8 +57,10 @@ moving to `tails/` with only Wave 4 + the message-restyle wiring left.
   live wiring.
 - [connection-origin-slate](./tails/connection-origin-slate.md) *(tail)* —
   geographic origin of a connection (country broadly visible, IP
-  developer-only, in-memory/never-persisted); the social-graph connect
-  banner reserves a `country?` seam for it. Buildable, ~one cycle.
+  developer-only, in-memory/never-persisted). **Country v1 shipped** with
+  the social-graph build (capture → `geoip-lite` → `ConnectionApi.originOf`,
+  consumed by the presence line); remaining tail = the developer-gated IP
+  read, a `whois`/`locate` verb, and city/region.
 - [reputation-slate](./builds/reputation-slate.md) — charisma-as-**measured-influence**
   (regard / renown / susceptibility), notoriety as the signed twin that
   pierces disguise, per-circle scoping. The platform's "value as physics,

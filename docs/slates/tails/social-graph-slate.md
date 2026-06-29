@@ -8,17 +8,22 @@ Built on top of recognition; consumed by comms.
 > See [docs/subsystems/social-graph.md](../../subsystems/social-graph.md).
 > The storage *substrate* shipped earlier as `ContactsMixin`; **Wave 3**
 > now delivers the feature this slate is really about — per-*group*
-> **notification policy** (the `notify` verb + the login fan-out),
+> **notification policy** (the `notify` verb + the presence fan-out),
 > per-viewer **display verbosity / density-aware aggregation** (the
 > "200-player tavern renders manageably" thesis), the strict
-> ordered-first-match `ruleFor` resolution, the named-color highlight, and
-> the client notification queue + settings pane. Two seams are flagged
-> deferrals (see Wave 3 below + the subsystem doc): the **message-restyle
-> live wiring** (the method exists + is tested but isn't yet consulted by
-> the live message path — needs a sync contacts-fast-path) and the
-> reserved **`country?` geo seam** (connection-origin-slate).
-> **Recognition-state coupling** (consent friending, recognition-gated
-> bucketing) remains the next build. Stays in `builds/` for Wave 4.
+> ordered-first-match `ruleFor` resolution, and the named-color highlight.
+> A post-review rework reshaped the notification half: presence renders as
+> an **ordinary inline message frame** (no toast/queue; the surface vocab
+> collapsed `banner`/`log-only` → `show`|`silent`), over **four
+> in-world-gated transitions** (login / reconnect / disconnect / logout),
+> with a **per-character customizable Liquid line** (`social.presenceFormat`)
+> and **country of origin shipped** (the connection-origin slate's country
+> v1). One seam stays a flagged deferral (see Wave 3 below + the subsystem
+> doc): the **message-restyle live wiring** (the method exists + is tested
+> but isn't yet consulted by the live message path — needs a sync
+> contacts-fast-path). **Recognition-state coupling** (consent friending,
+> recognition-gated bucketing) remains the next build. Stays in `builds/`
+> for Wave 4.
 
 **Storage half SHIPPED.** The bucket *storage* + *membership
 verbs* this slate originally proposed (`SocialBucket` shape,
