@@ -15,8 +15,12 @@
  */
 
 import type { Stuff } from '../lib/stuff/Stuff';
-import type { PresenceStatus } from './presence';
+import type { PresenceStatus, RosterRow } from '@saxonberg/types';
 import { StuffApi } from './stuff';
+
+// RosterRow is a wire type (it rides the roster frame to the client), so
+// it lives in @saxonberg/types; re-exported here for server consumers.
+export type { RosterRow } from '@saxonberg/types';
 import { HotReloadApi } from './hot-reload';
 import { SecurityApi } from './security';
 import { ProfileLogic } from '../obj/api/ProfileLogic';
@@ -37,21 +41,6 @@ function logic(): ProfileLogic {
         'ProfileLogic'
       ) as typeof ProfileLogic | null) ?? ProfileLogic)()
   );
-}
-
-/** One viewer-lensed roster line. */
-export interface RosterRow {
-  /** Stable per-target key — the Avatar template path (or stuffId). */
-  handle: string;
-  /** Viewer-aware perceived name or salient-feature description. */
-  header: string;
-  /** Country of origin — always shown when resolved (unconditional). */
-  country?: string;
-  /** Granular presence status — present only when not the unremarkable
-   *  `active` default AND the viewer passes the target's `privacy.showStatus`. */
-  status?: PresenceStatus;
-  /** Whether the viewer recognizes the target (drives client styling). */
-  recognized: boolean;
 }
 
 /** The proper-name surface (recognition-gated). */

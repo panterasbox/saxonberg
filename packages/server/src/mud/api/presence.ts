@@ -14,8 +14,13 @@
  */
 
 import type Avatar from '../obj/Avatar';
-import type { RosterRow } from './profile';
+import type { PresenceStatus } from '@saxonberg/types';
 import { StuffApi } from './stuff';
+
+// The wire types crossing to the client live in @saxonberg/types (single
+// source of truth); re-exported here so server consumers import them from
+// the owning Api face.
+export type { PresenceStatus, RosterFrame } from '@saxonberg/types';
 import { HotReloadApi } from './hot-reload';
 import { SecurityApi } from './security';
 import { PresenceLogic } from '../obj/api/PresenceLogic';
@@ -37,26 +42,6 @@ function logic(): PresenceLogic {
       ) as typeof PresenceLogic | null) ?? PresenceLogic)()
   );
 }
-
-/**
- * Derived session-liveness, in display-precedence order
- * (`reconnecting` > `engaged` > `idle` > `active`). Computed on read; no
- * stored idle flag, no per-player timer.
- */
-export type PresenceStatus = 'active' | 'idle' | 'engaged' | 'reconnecting';
-
-/**
- * The roster wire-frame payload on the `world.social.roster` topic — a
- * presence-PUBLIC channel (distinct from the notify-gated
- * `world.social.presence` notification surface). The client mirrors this
- * shape. A `snapshot` is the full viewer-lensed roster (pane open /
- * session establish); `add` upserts one viewer-lensed row; `remove`
- * carries only the stable handle.
- */
-export type RosterFrame =
-  | { kind: 'roster'; action: 'add'; handle: string; row: RosterRow }
-  | { kind: 'roster'; action: 'remove'; handle: string }
-  | { kind: 'roster'; action: 'snapshot'; rows: RosterRow[] };
 
 export class PresenceApi {
   /**

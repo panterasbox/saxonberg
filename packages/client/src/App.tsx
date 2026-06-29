@@ -30,6 +30,7 @@ import { TabStrip } from "./components/TabStrip";
 import { FilterDrawer } from "./components/FilterDrawer";
 import { CommandBar } from "./components/CommandBar";
 import { InspectionPane } from "./components/InspectionPane";
+import { WhoPane } from "./components/WhoPane";
 import { CharacterSelect } from "./components/CharacterSelect";
 import { CharGenStage } from "./components/CharGenStage";
 import { CmsSurface } from "./components/cms/CmsSurface";
@@ -123,6 +124,46 @@ const ViewSwitch = styled.div`
 `;
 
 const ViewTab = styled.button<{ $active: boolean }>`
+  background: ${(p) => (p.$active ? "rgba(255,255,255,0.14)" : "transparent")};
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 4px;
+  color: inherit;
+  cursor: pointer;
+  padding: 0.15rem 0.6rem;
+  font: inherit;
+`;
+
+/**
+ * The view-sensitive right column wrapper (Terminal view) — a fixed-width
+ * column holding a small pane switch above the active cockpit pane
+ * (Inspection | Who's Online). Sizing to the 360px pane child so it never
+ * grows; `PaneSlot` is `flex: 1` so the pane's `height: 100%` resolves
+ * against the remaining space below the switch.
+ */
+const RightColumn = styled.div`
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+`;
+
+const PaneSwitch = styled.div`
+  display: flex;
+  gap: 0.25rem;
+  width: 100%;
+  box-sizing: border-box;
+  padding: ${tokens.space.sm} ${tokens.space.md};
+  border-left: 1px solid ${tokens.color.border};
+  border-bottom: 1px solid ${tokens.color.borderMuted};
+  background: ${tokens.color.surfaceAlt};
+`;
+
+const PaneSlot = styled.div`
+  flex: 1;
+  min-height: 0;
+  display: flex;
+`;
+
+const PaneTab = styled.button<{ $active: boolean }>`
   background: ${(p) => (p.$active ? "rgba(255,255,255,0.14)" : "transparent")};
   border: 1px solid rgba(255, 255, 255, 0.14);
   border-radius: 4px;
@@ -326,6 +367,8 @@ function App() {
   const connection = useStore((state) => state.connection);
   const connectionPhase = useStore((state) => state.connectionPhase);
   const mainView = useStore((state) => state.mainView);
+  const rightPane = useStore((state) => state.rightPane);
+  const setRightPane = useStore((state) => state.setRightPane);
   const setMainView = useStore((state) => state.setMainView);
   const socialPaneOpen = useStore((state) => state.socialPaneOpen);
   const setSocialPaneOpen = useStore((state) => state.setSocialPaneOpen);
@@ -814,12 +857,38 @@ function App() {
                 previewing={previewing}
               />
             </LeftColumn>
-            {/* View-sensitive right column. */}
+            {/* View-sensitive right column. In the Terminal view a small
+                pane switch chooses Inspection | Who's Online. */}
             {mainView === "terminal" ? (
-              <InspectionPane
-                onSendCommand={sendCommand}
-                onCommandPreview={handleCommandPreview}
-              />
+              <RightColumn>
+                <PaneSwitch>
+                  <PaneTab
+                    $active={rightPane === "inspect"}
+                    onClick={() => setRightPane("inspect")}
+                  >
+                    Inspect
+                  </PaneTab>
+                  <PaneTab
+                    $active={rightPane === "who"}
+                    onClick={() => setRightPane("who")}
+                  >
+                    Who&apos;s Online
+                  </PaneTab>
+                </PaneSwitch>
+                <PaneSlot>
+                  {rightPane === "who" ? (
+                    <WhoPane
+                      onSendCommand={sendCommand}
+                      onCommandPreview={handleCommandPreview}
+                    />
+                  ) : (
+                    <InspectionPane
+                      onSendCommand={sendCommand}
+                      onCommandPreview={handleCommandPreview}
+                    />
+                  )}
+                </PaneSlot>
+              </RightColumn>
             ) : (
               <ForumChatSidecar />
             )}

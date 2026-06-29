@@ -69,7 +69,7 @@ describe('WhoController', () => {
       person('stranger'),
     ] as never);
     vi.spyOn(ProfileApi, 'composeRow').mockImplementation(
-      async (_v, t) => ROWS[(t as { stuffId: keyof typeof ROWS }).stuffId]
+      async (_v, t) => ROWS[(t as { stuffId: keyof typeof ROWS }).stuffId]!
     );
   });
 
