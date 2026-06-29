@@ -219,12 +219,18 @@ HTML.
 
 ## Build order / waves
 
-**Wave 1 — unify what exists.** The `HelpTopic` schema + the index
-harvester; projectors for **commands** (YAML + controllers) and the
-existing **api-model**; the `help` verb + `HelpController` querying the
-index; search + typeahead; spoiler capability gating on read (anonymous
-floor). Outcome: today's command help + API reference live under one
-searchable index + verb.
+**Wave 1 — unify what exists. BUILT — see
+[docs/subsystems/help.md](../../subsystems/help.md).** The `HelpTopic`
+schema (in `@saxonberg/types`) + the `/obj/HelpCatalogue` index harvester;
+projectors for **commands** (YAML + controllers, `getHelpText()` verbatim)
+and the **api-model** (the enriched `author-surface.json` + the complete
+`Mixins` roster, first-class graded `api`/`mixin`/`type` topics with typed
+relations); the `HelpApi` read chokepoint + a no-op-at-floor capability
+filter; a **REST help data API**; the `help` verb + `HelpController`
+querying the index (bare-fallthrough `help <verb>`, legacy `help verb`
+preserved); search + typeahead across both subdivisions; graceful degrade
+when the artifact is absent. Outcome: command help + API reference live
+under one searchable index + verb + REST contract.
 
 **Wave 2 — widen the projectors + author surface.** Projectors for
 **immutable defs / taxonomies / units** (Species, Clade, body plans,
