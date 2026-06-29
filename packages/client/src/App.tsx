@@ -26,6 +26,7 @@ import { CharacterSelect } from "./components/CharacterSelect";
 import { CharGenStage } from "./components/CharGenStage";
 import { ViewsMenu } from "./components/ViewsMenu";
 import { GhostCommandLine } from "./components/GhostCommandLine";
+import { SettingsPane } from "./components/settings/SettingsPane";
 import { LAYOUT_REGISTRY, type LayoutProps } from "./layouts";
 import { tokens } from "./components/ui";
 import type {
@@ -90,13 +91,45 @@ const Splash = styled.div`
 `;
 
 /**
- * The always-on chrome strip holding the "Views" layout switcher. A
- * fixed, constant-position region (the matte) so the layout affordance
- * is in the same place in every layout.
+ * The always-on chrome strip holding the "Views" layout switcher + the
+ * settings affordance. A fixed, constant-position region (the matte) so
+ * the layout/settings affordances are in the same place in every layout.
  */
 const ChromeBar = styled.div`
   display: flex;
   align-items: center;
+`;
+
+const ChromeSpacer = styled.div`
+  flex: 1;
+`;
+
+const ChromeButton = styled.button<{ $active: boolean }>`
+  background: ${(p) =>
+    p.$active ? tokens.color.surfaceMuted : "transparent"};
+  border: 1px solid ${tokens.color.border};
+  border-radius: ${tokens.radius.sm};
+  color: ${tokens.color.fgEmphasis};
+  cursor: pointer;
+  margin-right: 0.5rem;
+  padding: 0.15rem 0.6rem;
+  font: inherit;
+  font-size: ${tokens.font.small};
+
+  &:hover {
+    background: ${tokens.color.surfaceMuted};
+  }
+`;
+
+/**
+ * The fluid content row: the active layout fills it, and a summoned pane
+ * (settings, future detail) docks beside it as a non-modal side panel —
+ * the terminal stays visible (never-blind, no-modal).
+ */
+const ContentRow = styled.div`
+  display: flex;
+  flex: 1;
+  min-height: 0;
 `;
 
 /**
@@ -235,6 +268,9 @@ function App() {
   // The active cockpit layout — server-authoritative on `cockpit.layout`.
   const layout =
     (clientState["cockpit.layout"] as LayoutName | undefined) ?? "world";
+  const summonedPane = useStore((state) => state.summonedPane);
+  const openPane = useStore((state) => state.openPane);
+  const closePane = useStore((state) => state.closePane);
   // Filter frames by the active tab's muted set. The 'All' default
   // mutes nothing, so a fresh player sees the full firehose.
   const activeTabName =
@@ -601,9 +637,25 @@ function App() {
               onCommandClick={handleCommandClick}
               onCommandPreview={handleCommandPreview}
             />
+            <ChromeSpacer />
+            <ChromeButton
+              $active={summonedPane === "settings"}
+              aria-label="Toggle settings pane"
+              onClick={() =>
+                summonedPane === "settings" ? closePane() : openPane("settings")
+              }
+            >
+              Settings
+            </ChromeButton>
           </ChromeBar>
-          {/* The active layout fills the fluid content area. */}
-          <ActiveLayout {...layoutProps} />
+          {/* The active layout fills the fluid content area; a summoned
+              pane (settings) docks beside it — non-modal, terminal stays. */}
+          <ContentRow>
+            <ActiveLayout {...layoutProps} />
+            {summonedPane === "settings" ? (
+              <SettingsPane onSendCommand={sendCommand} onClose={closePane} />
+            ) : null}
+          </ContentRow>
           {/* The always-on ghost command line — affordance previews +
               post-action flash, beside the primary command bar. */}
           <GhostCommandLine />

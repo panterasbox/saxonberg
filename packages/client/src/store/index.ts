@@ -292,6 +292,18 @@ interface StoreState extends CmsSlice {
   flashGhost: (message: string) => void;
 
   /**
+   * The summoned-pane tier — the no-modal replacement for "pop a modal".
+   * A transient pane that renders BESIDE the current layout's terminal
+   * (never full-screen, never blocks input — the inspection pane is the
+   * existing proof). `null` = none summoned. v1 kind: `'settings'`.
+   * Opening a pane is client UI state (like the inspection pane), not a
+   * layout switch; the controls inside send real commands.
+   */
+  summonedPane: "settings" | null;
+  openPane: (kind: "settings") => void;
+  closePane: () => void;
+
+  /**
    * The forum view's current navigation target. `boardHandle` is the
    * subject-title handle of the open board; `threadId` is the open
    * thread's entry id (null at the board's thread-list level).
@@ -895,6 +907,11 @@ export const useStore = create<StoreState>((set, get) => ({
   ghostFlash: null,
   setGhostPreview: (command) => set(() => ({ ghostPreview: command })),
   flashGhost: (message) => set(() => ({ ghostFlash: message })),
+
+  // Summoned-pane tier (the no-modal side panel).
+  summonedPane: null,
+  openPane: (kind) => set(() => ({ summonedPane: kind })),
+  closePane: () => set(() => ({ summonedPane: null })),
 
   forumNav: { boardHandle: null, threadId: null },
   setForumNav: (nav) =>
