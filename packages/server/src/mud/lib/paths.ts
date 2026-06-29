@@ -35,6 +35,7 @@ export const TemplatePaths = {
   soulCatalogue: "/obj/SoulCatalogue",
   disciplineCatalogue: "/obj/DisciplineCatalogue",
   corpoCatalogue: "/obj/CorpoCatalogue",
+  helpCatalogue: "/obj/HelpCatalogue",
 
   // Persistence infra (declared as `static templatePath` on these classes).
   persistentHydrator: "/lib/persistence/PersistentHydrator",
