@@ -31,12 +31,11 @@ interpreter prepends the mode prefix server-side.
 
 ## Resolved decisions (the planner's 7 open questions)
 
-1. **`forum <board>` deep-open — PENDING USER.** Default in this plan:
-   accept the one-click downgrade (typing `forum` opens the forum layout's
-   board list; opening a specific board is a click). If we want zero
-   regression, `ForumController` pushes the board handle for the client to
-   auto-select (a small server-driven `forumNav` add). *Confirm before
-   Phase 1.*
+1. **No auto-switching of layout (RESOLVED).** Layout changes **only** via
+   the explicit `layout` verb (typed / Views-menu). The `forum` verb does
+   **not** set layout; `ForumController` is untouched. The `?surface=cms`
+   deep-link auto-entry is dropped. Every layout is one click in the Views
+   menu, so discoverability is unaffected. (Diegetic auto-switch deferred.)
 2. **`cockpit.inputMode` shape** — empty-string = unset (not `null`). The
    indicator shows the **raw prefix** (`chat devtalk`), not a separate
    friendly label (server stores only the prefix).
@@ -79,11 +78,10 @@ behavior-identical.
   `Avatar.save()` → `pushClientStateUpdate(...)` + confirmation line.
   Register on `HasInteractiveMixin.commandContributions.self` beside
   `style.yaml` (`:218`).
-- **`ForumController`** — on bare `forum` / board-read only (not
-  `post`/`vote`/`make`), also set `cockpit.layout='forum'` server-side (the
-  replacement for the deleted client watcher). Factor the save/push triple
-  into a shared helper (a thin `CockpitLayoutApi.setLayout(host,name)` or a
-  private) so `Layout`/`ForumController` don't drift.
+- **`ForumController` — unchanged.** No layout write (no auto-switch). The
+  forum board view is reached via `layout forum` / the Views menu; the
+  `forum` verb stays pure CRUD. (The deleted client `recognizeForumNavigation`
+  is simply *not* replaced.)
 
 ### Client — registry refactor
 New `packages/client/src/layouts/`: `types.ts` (`LayoutProps`,`LayoutDef`),
@@ -151,12 +149,13 @@ Add to `Envelope` (`:971`) + `EnvelopeTemplate` (`:991`); add
   in the content slot (restyle its `Screen` from `100vh/100vw` to
   `flex:1; min-height:0` so the always-on minimum stays visible); `cmsInit`
   runs on mount; server CMS surface untouched; Monaco lazy.
-  - **Retire `?surface=cms` takeover → deep-link:** delete the
+  - **Retire the `?surface=cms` takeover (no auto-entry):** delete the
     `IS_CMS_SURFACE` full-screen branch (`:718`) + the `if (IS_CMS_SURFACE) return;`
-    WS guard (`:424`) so WS always connects; on mount, once
-    `connectionPhase==='in-world'`, `sendCommand('layout builder')` once and
-    `history.replaceState` to strip the param. The dev account-menu CMS
-    launcher sends `layout builder` instead of opening a tab.
+    WS guard (`:424`) so WS always connects. The URL is **no longer special-
+    cased** — it loads the normal cockpit (`world`); builder is entered
+    explicitly via the Views menu or `layout builder` (no on-load
+    auto-switch, per "no auto-switching"). The dev account-menu CMS launcher
+    sends `layout builder` (an explicit click) instead of opening a tab.
 
 ## Phase 4 — Server-authoritative input mode (separable; command-parsing)
 
@@ -197,11 +196,10 @@ Add to `Envelope` (`:971`) + `EnvelopeTemplate` (`:991`); add
    input already short-circuited upstream; `/` **strips** the slash so
    `/look` lexes as `look`; echo = dispatched text. One pure fn + one gated
    reassignment; no `msh` change.
-2. **Layout refactor w/o regressing forum** — extract the two `mainView`
-   branches verbatim into `World`/`ForumLayout`; `forumNav` stays client-only
-   nav set by clicks in `ForumView`; forum *entry* preserved by
-   `ForumController`'s server-side layout write. The typed-`forum <board>`
-   deep-open is the one-click-downgrade (decision #1).
+2. **Layout refactor** — extract the two `mainView` branches verbatim into
+   `World`/`ForumLayout`; `forumNav` stays client-only nav set by clicks in
+   `ForumView`. Forum entry is the explicit `layout forum` (Views menu); no
+   `ForumController` change (decision #1 — no auto-switch).
 3. **Platform-agnostic embed** — `StreamSource` union; Twitch wired (parent
    from `window.location.hostname`, sandboxed), YouTube shape-only; chat/game
    terminals = allowlist + complement client filters.

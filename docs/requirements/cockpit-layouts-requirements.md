@@ -104,10 +104,10 @@ client's existing `clientState` channel.
   accommodate `youtube`, but only the Twitch iframe renders this cycle. The
   YouTube **chat relay** is a separate queued build (distinct from this
   video work).
-- **Diegetic layout triggers beyond the kept conveniences** — the slate's
-  vision of arbitrary verbs/NPCs auto-switching layout is out; this build
-  ships the explicit `layout` verb plus the two pre-existing/obvious
-  conveniences (`forum` sets the forum layout; the CMS entry sets builder).
+- **Any auto-switching of layout** — no domain verb, NPC, item, or URL
+  implicitly changes layout this cycle. The only switch is the explicit
+  `layout` verb (+ the Views menu). The slate's diegetic-trigger vision
+  (verbs/NPCs that flip layout) is deferred.
 - **Stream-engagement stats content** — streamer mode ships the placeholder
   only.
 - **CMS feature changes** — the fold re-homes the existing surface; no new
@@ -143,13 +143,17 @@ verb (the cockpit-config family: `style` = appearance, `mode` = input scope,
 **"Views"** (newcomer-legible) and sends `layout <name>` on use; menu noun
 and verb intentionally differ.
 
-### `layout` is canonical; `forum` and the CMS entry also set it
-The `layout` verb is the explicit switch. To avoid a UX regression, the
-**`forum` verb additionally sets `cockpit.layout = forum`** server-side
-(preserving today's "typing `forum` opens the board," now authoritative —
-the replacement for the deleted client watcher). The CMS entry
-(`?surface=cms` deep-link, and/or a `cms`/`build` verb) sets `builder`.
-Other domain verbs do **not** implicitly change layout in v1.
+### `layout` is the only way to switch — no auto-switch (deferred)
+Layout changes happen **only** through the explicit `layout` verb — typed,
+or sent by the **"Views" menu** dropdown per the click model. **No domain
+verb, URL, NPC, or item implicitly changes layout this cycle.** The `forum`
+verb stays pure forum CRUD; you reach the forum board via `layout forum`
+(or the Views menu), not as a side effect of `forum`. The standalone
+`?surface=cms` takeover is retired; builder is entered the same way
+(`layout builder` / the menu), not via an on-load auto-switch. This costs
+nothing in discoverability — the Views menu makes every layout one click.
+Auto-switching off domain triggers (the slate's diegetic-trigger vision) is
+**deferred**.
 
 ### Input mode moves to the server; the interpreter applies it
 `mode <prefix>` / `mode off` set per-player input-mode on `clientState`
@@ -205,8 +209,9 @@ pane replaced by a labeled placeholder. Both as described in Goals.
   across reconnect**. Unknown names rejected with a clear note.
 - `cockpit.layout` is in `clientStateSchema` (default `'world'`); a fresh
   player loads in `world`. The client-local `mainView` +
-  `recognizeForumNavigation` are gone; `forum` and the forum board view
-  still work (now via `cockpit.layout`).
+  `recognizeForumNavigation` are gone; the forum board view is reached via
+  `layout forum` (or the Views menu), and the `forum` verb itself does
+  **not** change layout (no auto-switch).
 - **World** renders the current cockpit, behavior-identical (regression).
 - **Livestream-viewer** renders a Twitch embed (selected source) + a chat
   terminal showing only `world.twitch.message` (accommodating
