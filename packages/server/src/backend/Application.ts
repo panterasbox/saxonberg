@@ -32,6 +32,11 @@ import { setClientStateUpdatePush } from '../mud/lib/connection/HasInteractive';
 import type Interactive from '../mud/obj/Interactive';
 import Login from '../mud/obj/Login';
 import { ReactionApi } from '../mud/api/reaction';
+import { ConnectionApi } from '../mud/api/connection';
+import { EventApi } from '../mud/api/event';
+import { Events } from '../mud/lib/events';
+import { StreamSourceApi } from '../mud/api/stream-source';
+import type { StreamSource } from '@saxonberg/types';
 import { User } from '../mud/lib/identity/User';
 import { TwitchProfile } from '../mud/lib/identity/TwitchProfile';
 import { GoogleProfile } from '../mud/lib/identity/GoogleProfile';
@@ -111,6 +116,19 @@ export class Application {
     setClientStateUpdatePush((interactive, key, value) =>
       this.sendClientStateUpdateToInteractive(interactive, key, value),
     );
+    // Live broadcast-source push: when the operator changes the
+    // livestream embed sources (`config livestream.broadcastSources`),
+    // fan the new list to every connected player so the livestream-
+    // viewer embed updates without a reconnect. The welcome snapshot
+    // (`ConnectionEstablishedPayload.broadcastSources`) is the baseline.
+    EventApi.on<StreamSource[]>(Events.StreamSourcesChanged, (sources) => {
+      for (const interactive of ConnectionApi.getAllInteractives()) {
+        this.sendEnvelopeToInteractive(interactive, {
+          type: 'stream-sources',
+          sources,
+        });
+      }
+    });
     console.info('Application: Initialized with Backend');
   }
 

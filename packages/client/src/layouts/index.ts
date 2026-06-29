@@ -13,10 +13,15 @@ import type { LayoutName } from "@saxonberg/types";
 import type { LayoutDef } from "./types";
 import { WorldLayout } from "./WorldLayout";
 import { ForumLayout } from "./ForumLayout";
+import { LivestreamViewerLayout } from "./LivestreamViewerLayout";
 
 export const LAYOUT_REGISTRY: Partial<Record<LayoutName, LayoutDef>> = {
   world: { label: "World", Component: WorldLayout },
   forum: { label: "Forum", Component: ForumLayout },
+  "livestream-viewer": {
+    label: "Livestream",
+    Component: LivestreamViewerLayout,
+  },
 };
 
 export type { LayoutProps, LayoutDef } from "./types";

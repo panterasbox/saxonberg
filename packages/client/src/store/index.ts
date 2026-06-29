@@ -29,6 +29,7 @@ import type {
   PromptChoice,
   ReactionActState,
   ReactionSampleEntry,
+  StreamSource,
   StuffDetailRecord,
   StuffRefRecord,
   TopicDescriptor,
@@ -378,6 +379,16 @@ interface StoreState extends CmsSlice {
    * this AND `websocketClient.sendClientStateWrite`.
    */
   setLocalClientState: (key: string, value: unknown) => void;
+
+  /**
+   * Operator-configured broadcast sources for the livestream-viewer
+   * embed. Seeded from the welcome snapshot (`setConnected`) and kept
+   * live by the `stream-sources` envelope. Empty when no broadcast is
+   * configured.
+   */
+  broadcastSources: StreamSource[];
+  /** Replace the broadcast source list (welcome snapshot + live push). */
+  setBroadcastSources: (sources: StreamSource[]) => void;
 
   // Frames — typed message-frame buffer feeding the Terminal.
   /**
@@ -1005,6 +1016,7 @@ export const useStore = create<StoreState>((set, get) => ({
       selfAvatarId: payload.avatarStuffId,
       topicCatalogue: topicMap,
       clientState: { ...(payload.clientState ?? {}) },
+      broadcastSources: payload.broadcastSources ?? [],
       ...(payload.reactionPrefs
         ? { reactionPrefs: payload.reactionPrefs }
         : {}),
@@ -1300,6 +1312,10 @@ export const useStore = create<StoreState>((set, get) => ({
     set((state) => ({
       clientState: { ...state.clientState, [key]: value },
     })),
+
+  // Broadcast sources slice (livestream-viewer embed)
+  broadcastSources: [],
+  setBroadcastSources: (sources) => set(() => ({ broadcastSources: sources })),
 
   // Frames slice
   frames: [],

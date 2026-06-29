@@ -45,6 +45,7 @@ export const Events = {
   ModuleUnloaded: 'module.unloaded',
   ModuleReloadFailed: 'module.reloadFailed',
   StreamStateChanged: 'stream.stateChanged',
+  StreamSourcesChanged: 'stream.sourcesChanged',
 } as const;
 
 export type EventName = (typeof Events)[keyof typeof Events];

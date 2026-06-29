@@ -381,8 +381,17 @@ function App() {
     websocketClient.onAnyTopic(handle);
     registerReactionHandlers();
     registerForumHandlers();
+    // Live broadcast-source push — keeps the livestream-viewer embed in
+    // sync when the operator changes `livestream.broadcastSources`. The
+    // welcome snapshot (`setConnected`) is the baseline.
+    const onStreamSources = (envelope: import("@saxonberg/types").Envelope) => {
+      if (envelope.type !== "stream-sources") return;
+      useStore.getState().setBroadcastSources(envelope.sources);
+    };
+    websocketClient.onEnvelope("stream-sources", onStreamSources);
     return () => {
       websocketClient.offAnyTopic(handle);
+      websocketClient.offEnvelope("stream-sources", onStreamSources);
     };
   }, []);
 
