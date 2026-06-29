@@ -87,8 +87,12 @@ test('a new player creates a character and spawns into the world', async ({
     await page.goto('/');
 
     // The zero-avatar user lands in the dedicated creation stage, not the
-    // cockpit.
-    await expect(page.getByTestId('chargen-stage')).toBeVisible();
+    // cockpit. Generous timeout: this first assertion waits through the
+    // WebSocket connect ("Connecting…"), which can run past the default
+    // 5s under parallel load — same connect window `enterWorld` allows for.
+    await expect(page.getByTestId('chargen-stage')).toBeVisible({
+      timeout: 25_000,
+    });
 
     // Step — species. Each step's options are driven by the server's
     // `system.charactergen.state` frame; clicking a card sends the literal

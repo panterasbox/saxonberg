@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { mintSession, enterWorld, sendUntil, commandInput } from './helpers';
+import { mintSession, enterWorld, walkToBar, commandInput } from './helpers';
 
 /**
  * Multiplayer message routing: two avatars in the same room, one speaks,
@@ -30,22 +30,16 @@ test('a spoken line reaches another avatar in the same room', async ({
   const speaker = await enterWorld(browser, a.state);
   const listener = await enterWorld(browser, b.state);
   try {
-    // Walk both into Dave's Bar (north of the lounge) so they share one
-    // room — the lounge is a budding Warren, but Dave's Bar is a single
-    // persistent singleton, so co-location there is guaranteed.
-    //
-    // Wait on the live location HEADING, not body text: the lounge's own
-    // prose ("the warm light of Dave's Bar") and the post-arrival
-    // scrollback both contain "Dave's Bar", so a `getByText` match is
-    // satisfied before the move lands. Keying on the level-2 location
-    // heading means `sendUntil` only returns once the page is actually in
-    // the bar — which also serializes the two moves, so the listener's
-    // `north` runs after the first-ever lazy `GoController` clone has
-    // finished (concurrent first-moves otherwise race that clone).
-    const barHeading = (page: typeof speaker.page) =>
-      page.getByRole('heading', { name: /Dave's Bar/i });
-    await sendUntil(speaker.page, 'north', barHeading(speaker.page));
-    await sendUntil(listener.page, 'north', barHeading(listener.page));
+    // Walk both into Dave's Bar so they share one room — Dave's Bar is a
+    // single persistent singleton, so co-location there is guaranteed once
+    // both arrive. `walkToBar` walks the lounge Warren's exit graph rather
+    // than assuming a fixed `north`: a fresh avatar can spawn in a budded
+    // satellite (no direct north→bar) when earlier tests have piled
+    // linkdead avatars into the host. Serialized (speaker first) so the
+    // listener's traversal runs after the first-ever lazy `GoController`
+    // clone has finished — concurrent first-moves otherwise race it.
+    await walkToBar(speaker.page);
+    await walkToBar(listener.page);
 
     // Speaker says something distinctive; the listener should receive it.
     await commandInput(speaker.page).fill('say Greetings everyone');

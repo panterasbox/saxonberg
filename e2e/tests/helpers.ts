@@ -160,3 +160,47 @@ export async function sendUntil(
     await expect(locator).toBeVisible({ timeout: 2_000 });
   }).toPass({ timeout });
 }
+
+/**
+ * Walk an avatar into Dave's Bar, whatever lounge room it spawned in.
+ *
+ * The lounge is an elastic Warren in a depth-1 STAR topology: only the
+ * HOST room has the `north` exit to Dave's Bar; every satellite hangs off
+ * the host by a single back-exit. A fresh avatar lands in the host while
+ * it's under the bud threshold, but linkdead avatars from earlier tests
+ * pile up there across a suite run and push it over — so a later test's
+ * avatar can bud into a satellite instead, where a bare `north` goes
+ * nowhere. (That made the old "just send north" approach fail only after
+ * the suite had minted a dozen-odd avatars — a false failure that had
+ * nothing to do with the messaging path under test.)
+ *
+ * This walks the exit graph instead of assuming a fixed direction: each
+ * step it reads the room's exit buttons (rendered as `go <dir>` clicks),
+ * prefers `north` (host→bar), and otherwise takes the lone back-exit to
+ * the host. Star depth-1 means that converges in at most two hops from
+ * any spawn room.
+ */
+export async function walkToBar(page: Page, timeout = 30_000): Promise<void> {
+  const barHeading = page.getByRole('heading', { name: /Dave's Bar/i });
+  // Exit affordances are buttons titled "Click to send: go <dir>"; their
+  // label text is the bare direction. Contents (e.g. "a human") are also
+  // buttons but carry a different command, so the title prefix isolates
+  // exits cleanly.
+  const exitButtons = page.locator(
+    'button[title^="Click to send: go "]'
+  );
+  await expect(async () => {
+    if (await barHeading.isVisible().catch(() => false)) return;
+    const n = await exitButtons.count();
+    let chosen = n > 0 ? exitButtons.first() : null;
+    for (let i = 0; i < n; i++) {
+      const label = (await exitButtons.nth(i).textContent())?.trim();
+      if (label === 'north') {
+        chosen = exitButtons.nth(i);
+        break;
+      }
+    }
+    if (chosen) await chosen.click().catch(() => {});
+    await expect(barHeading).toBeVisible({ timeout: 2_000 });
+  }).toPass({ timeout });
+}
