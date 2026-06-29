@@ -111,7 +111,7 @@ The gestures:
 
 **The consistent rule:** *auto-actions (hover / click) are unmoded; anything
 routed through a command bar — typed or pasted — obeys that bar's mode*
-(pill visible, `/` escapes). Pasting a copied command into a bar is the
+(its inline prefix visible, `/` escapes). Pasting a copied command into a bar is the
 explicit "make it mine" path — and restores the teaching moment of the
 command landing where you type, on the user's reach rather than on every
 hover.

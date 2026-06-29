@@ -16,7 +16,7 @@ the client merely displays that state and routes frames.
    surface).
 2. **Input mode (redo).** Today `mode <prefix>` is a *client-only* string
    trick (the command bar wraps `foo` → `<prefix> foo`). This moves it
-   server-side: `mode` sets per-player state, the **command interpreter
+   server-side: `mode` sets per-bar state, the **command interpreter
    prepends the prefix on the way in**, and the client becomes a
    display-only indicator. This removes the last client-only command
    behavior, making command-bus primacy absolute.
@@ -194,15 +194,17 @@ nothing in discoverability — the Views menu makes every layout one click.
 Auto-switching off domain triggers (the slate's diegetic-trigger vision) is
 **deferred**.
 
-### Input mode moves to the server; the interpreter applies it
-`mode <prefix>` / `mode off` set per-player input-mode on `clientState`
-(`cockpit.inputMode`). The **command-parsing entry** (`CommandLineApi` /
-the `msh` dispatch path) gains a pre-tokenize step: if the dispatching
-player has an input mode set, and the raw line is neither `/`-escaped nor a
-`mode` command, prepend the prefix. The interpreter reads the mode from the
-player's `clientState` server-side. The client is display-only. Per-player
-granularity; `/` is the escape. This is the load-bearing, sensitive change —
-it sits on the hot path every command traverses.
+### Input mode moves to the server; the interpreter applies it (per bar)
+`mode <prefix>` / `mode off`, issued from a bar, set/clear **that bar's**
+entry in the `clientState` map `cockpit.inputModes` (`{ barId → prefix }`).
+Each command submission carries its **`barId`**; the **command-parsing
+entry** (`CommandLineApi` / the `msh` dispatch path) gains a pre-tokenize
+step: look up `cockpit.inputModes[barId]` and, if set and the raw line is
+neither `/`-escaped nor a `mode` command, prepend it. The interpreter reads
+the modes from the player's `clientState` server-side; the client is
+display-only. **Per-bar** granularity; `/` is the escape. This is the
+load-bearing, sensitive change — it sits on the hot path every command
+traverses.
 
 ### Broadcast sources: operator config, surfaced live, viewer-picked
 The streamer's live channels are operator config (AppSettings/env, mirroring
