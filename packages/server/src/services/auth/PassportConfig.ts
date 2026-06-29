@@ -240,6 +240,55 @@ export class PassportConfig {
       )
     );
 
+    // Re-auth strategy → re-consents the *current* user for an EXPANDED
+    // scope set (e.g. adding `user:write:chat`), writing the broadened
+    // token back to their existing TwitchProfile. Its own callback URL;
+    // the route supplies the (incremental) scope per request and binds the
+    // result to the current user via handleProviderLink — the same upsert
+    // the link flow uses. `force_verify` makes Twitch always show the
+    // consent screen, so the user sees the new permission being granted.
+    const reauthCallbackURL = callbackURL.replace(
+      '/auth/twitch/callback',
+      '/auth/twitch/reauth/callback'
+    );
+    const reauthStrategy = new OAuth2Strategy(
+      {
+        authorizationURL: TWITCH_AUTHORIZE_URL,
+        tokenURL: TWITCH_TOKEN_URL,
+        clientID,
+        clientSecret,
+        callbackURL: reauthCallbackURL,
+        state: true,
+      },
+      async (
+        accessToken: string,
+        refreshToken: string,
+        params: TwitchTokenParams,
+        _profile: unknown,
+        done: (
+          error: unknown,
+          profile?: PassportTwitchProfileWithTokens
+        ) => void
+      ) => {
+        try {
+          const withTokens = await this.buildTwitchProfile(
+            accessToken,
+            refreshToken,
+            params,
+            clientID
+          );
+          done(null, withTokens);
+        } catch (error) {
+          done(error);
+        }
+      }
+    );
+    // Twitch-specific authorize param: force a fresh consent screen.
+    reauthStrategy.authorizationParams = (): Record<string, string> => ({
+      force_verify: 'true',
+    });
+    passport.use('twitch-reauth', reauthStrategy);
+
     console.info('PassportConfig: Configured Twitch OAuth2 strategies');
   }
 

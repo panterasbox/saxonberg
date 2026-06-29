@@ -10,7 +10,11 @@
 import React, { useEffect, useRef, useState } from "react";
 import { nanoid } from "nanoid";
 import styled from "styled-components";
-import { useStore, type PromptEntry } from "./store/index";
+import {
+  useStore,
+  type PromptEntry,
+  type Frame as ConsoleFrame,
+} from "./store/index";
 import { registerReactionHandlers } from "./store/reactionActions";
 import { registerForumHandlers } from "./store/forumActions";
 import { ForumView } from "./components/ForumView";
@@ -30,7 +34,37 @@ import { CharacterSelect } from "./components/CharacterSelect";
 import { CharGenStage } from "./components/CharGenStage";
 import { CmsSurface } from "./components/cms/CmsSurface";
 import { tokens } from "./components/ui";
-import type { ConsoleTab } from "@saxonberg/types";
+import type { ConsoleTab, TwitchMessagePayload } from "@saxonberg/types";
+
+/**
+ * Extract the structured twitch-provenance fields from a
+ * `world.twitch.message` payload at ingest. Honest-to-origin: `handle`
+ * is the default shown name (the Twitch handle, or the local player's
+ * name on an `egress` mirror); `persona` is the linked MUD identity,
+ * revealed on hover when the sender is a linked player.
+ */
+function twitchFrameFields(payload: unknown): ConsoleFrame["twitch"] {
+  const p = payload as TwitchMessagePayload | undefined;
+  if (!p || !p.speaker) return undefined;
+  const sp = p.speaker;
+  let handle: string;
+  let persona: string | undefined;
+  if (sp.kind === "in-game") {
+    handle = sp.ref.displayName ?? "someone";
+  } else if (sp.kind === "external-linked") {
+    handle = sp.externalName;
+    persona = sp.ref.displayName;
+  } else {
+    handle = sp.externalName;
+  }
+  return {
+    login: p.broadcasterLogin,
+    handle,
+    text: p.text,
+    ...(persona ? { persona } : {}),
+    ...(p.egress ? { egress: true } : {}),
+  };
+}
 
 const AppContainer = styled.div`
   display: flex;
@@ -441,6 +475,9 @@ function App() {
               channelName: (frame.payload as { channelName: string })
                 .channelName,
             }
+          : {}),
+        ...(frame.topic === "world.twitch.message"
+          ? { twitch: twitchFrameFields(frame.payload) }
           : {}),
       });
     };

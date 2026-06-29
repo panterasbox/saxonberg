@@ -19,6 +19,7 @@ import { RecipeSeeder } from './RecipeSeeder';
 import { ScriptSeeder } from './ScriptSeeder';
 import { NameBankSeeder } from './NameBankSeeder';
 import { ChannelSeeder } from './ChannelSeeder';
+import { TwitchRelayReader } from './TwitchRelayReader';
 import { AppSettingsSeeder } from './AppSettingsSeeder';
 import { BootstrapManager } from './BootstrapManager';
 import { CommandApi } from '../mud/api/command';
@@ -204,12 +205,18 @@ export class AppBootstrap {
     await SupplyAggregate.warm();
     BankingApi.boot();
 
-    // Social graph (Wave 3) — install the login/logout presence relay: the
-    // net-new connect/disconnect → notification consumer that fans a
-    // login out to online viewers whose first-matching rule for the
-    // acting player is non-silent. In-memory, nothing persisted; no warm
-    // step (the rule store rides each Avatar's own persistence).
+    // Social graph (Wave 3) — install the presence relay: the net-new
+    // consumer that fans the four in-world-gated presence transitions
+    // (login / reconnect / disconnect / logout) out to online viewers
+    // whose first-matching rule for the acting player is non-silent.
+    // In-memory, nothing persisted; no warm step (the rule store rides
+    // each Avatar's own persistence).
     SocialApi.boot();
+
+    // Twitch relay — install the outbound DI port + wire the presence-gated
+    // EventSub reader. Inert until a channel is seeded AND a player tunes
+    // in (and a reader token is configured); safe to boot unconditionally.
+    TwitchRelayReader.get().boot();
   }
 
   /**

@@ -213,6 +213,22 @@ export interface Frame {
    * server-side keys on it.
    */
   channelName?: string;
+  /**
+   * Twitch relay provenance (`world.twitch.message` frames), extracted
+   * from `payload` at ingest. Structured so the twitch template renders
+   * the distinct treatment and reveals the linked MUD persona on hover
+   * without re-parsing the body string. CLIENT-only (not on the wire
+   * type). `handle` is the honest-to-origin default name (the Twitch
+   * handle, or the local player's name for an `egress` mirror); `persona`
+   * is the linked MUD identity surfaced on hover when present.
+   */
+  twitch?: {
+    login: string;
+    handle: string;
+    persona?: string;
+    text: string;
+    egress?: boolean;
+  };
 }
 
 /**

@@ -132,6 +132,15 @@ export class TwitchProfile extends Document implements ITwitchProfile {
     await this.save();
   }
 
+  /**
+   * Whether this profile currently holds a given OAuth scope. The relay's
+   * outbound path reads `hasScope('user:write:chat')` to decide between a
+   * send and a reject-and-point into the re-consent flow.
+   */
+  public hasScope(scope: string): boolean {
+    return this.scopes.includes(scope);
+  }
+
   public toString(): string {
     return `[TwitchProfile ${this.displayName} (${this._id ?? '(unsaved)'})]`;
   }
