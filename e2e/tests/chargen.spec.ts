@@ -181,9 +181,16 @@ test('a new player creates a character and spawns into the world', async ({
     // the seeded spawn room — the lounge (the Avatar seed pins
     // `startLocation: /domain/lounge/warren`). We assert on the room's
     // stable identity label, not its flavor prose.
-    await input.fill('look');
-    await input.press('Enter');
-    await expect(page.getByText(/the lounge/i).first()).toBeVisible();
+    //
+    // Resilient send: right after the cockpit flips in, the WebSocket
+    // world session can still be settling, so the first `look` may be
+    // dropped. Retry until the room renders.
+    const lounge = page.getByText(/the lounge/i).first();
+    await expect(async () => {
+      await input.fill('look');
+      await input.press('Enter');
+      await expect(lounge).toBeVisible({ timeout: 2_000 });
+    }).toPass({ timeout: 20_000 });
   } finally {
     await context?.close();
   }

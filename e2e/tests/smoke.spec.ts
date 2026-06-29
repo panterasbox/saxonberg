@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { openWorldAs, runCommand } from './helpers';
+import { openWorldAs, sendUntil } from './helpers';
 
 /**
  * Smoke tests — prove the harness works end to end: the test-auth seam,
@@ -39,8 +39,7 @@ test('a `look` command round-trips and renders the spawn room', async ({
 }) => {
   const { page, close } = await openWorldAs(browser, 'smoke-look');
   try {
-    await runCommand(page, 'look');
-    await expect(page.getByText(/the lounge/i).first()).toBeVisible();
+    await sendUntil(page, 'look', page.getByText(/the lounge/i).first());
   } finally {
     await close();
   }

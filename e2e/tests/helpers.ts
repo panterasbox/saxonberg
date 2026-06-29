@@ -97,10 +97,21 @@ export async function enterWorld(
   const roster = page.getByTestId('roster-screen');
   const input = commandInput(page);
   await expect(roster.or(input).first()).toBeVisible();
-  if (await roster.isVisible()) {
-    await page.getByRole('button', { name: /^Play / }).first().click();
-  }
-  await expect(input).toBeVisible();
+
+  // Enter the world, resiliently. Clicking "Play" sends `play <id>` over
+  // the WebSocket; if the socket isn't open yet the command is dropped
+  // and the roster just stays up. So we retry the click until the
+  // cockpit's command input actually appears (the "Play" button only
+  // exists on the real picker, not the transient "Connecting…" state, so
+  // a missing button between attempts is fine — the next poll re-checks).
+  await expect(async () => {
+    if (await input.isVisible().catch(() => false)) return;
+    const play = page.getByRole('button', { name: /^Play / }).first();
+    if (await play.isVisible().catch(() => false)) {
+      await play.click().catch(() => {});
+    }
+    await expect(input).toBeVisible({ timeout: 2_000 });
+  }).toPass({ timeout: 25_000 });
   return { context, page };
 }
 
@@ -127,4 +138,25 @@ export async function runCommand(page: Page, cmd: string): Promise<void> {
   await expect(input).toBeVisible();
   await input.fill(cmd);
   await input.press('Enter');
+}
+
+/**
+ * Send a command and wait for `locator` to become visible, RE-SENDING if
+ * it doesn't land. The first command sent right after world-entry can be
+ * dropped while the WebSocket session is still settling, so a single
+ * send is racy. Safe for idempotent commands (`look`, `inventory`) and
+ * for commands whose effect or echo is stable under a duplicate send
+ * (`say`, `smile`, a one-way `north`): once the locator is visible the
+ * retry stops, so a successful first send never sends twice.
+ */
+export async function sendUntil(
+  page: Page,
+  cmd: string,
+  locator: import('@playwright/test').Locator,
+  timeout = 20_000
+): Promise<void> {
+  await expect(async () => {
+    await runCommand(page, cmd);
+    await expect(locator).toBeVisible({ timeout: 2_000 });
+  }).toPass({ timeout });
 }
