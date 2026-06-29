@@ -67,13 +67,20 @@ export interface Refl {
     isPrivate?: boolean;
     isProtected?: boolean;
     isPublic?: boolean;
+    isOptional?: boolean;
+    isRest?: boolean;
   };
-  comment?: { blockTags?: Array<{ tag: string; content?: TextPart[] }> };
+  comment?: {
+    summary?: TextPart[];
+    blockTags?: Array<{ tag: string; content?: TextPart[] }>;
+  };
   signatures?: Refl[];
   parameters?: Refl[];
   type?: TdType;
   children?: Refl[];
   target?: number | unknown;
+  /** TypeDoc serializes a parameter's default value as a string. */
+  defaultValue?: string;
   // Set by TypeDoc on members copied from / overriding an ancestor.
   inheritedFrom?: unknown;
   overwrites?: unknown;
@@ -101,6 +108,18 @@ export interface ConsumerMember {
   face: string; // the class the method lives on
   name: string;
   qualified: string; // module#Face.name
+  /** Rendered readable signature: `name(p: T, ...): Ret`. */
+  signature: string;
+  /** First-paragraph TSDoc summary; `''` when absent. */
+  summary: string;
+  /** `@param` entries, in declaration order. Omitted when none. */
+  params?: { name: string; text: string }[];
+  /** `@returns` text. Omitted when none. */
+  returns?: string;
+  /** `@example` blocks, verbatim. Omitted when none. */
+  examples?: string[];
+  /** Named project-types in params+return (the relation join key). */
+  signatureTypes: string[];
 }
 
 /**
@@ -203,6 +222,124 @@ function signatureTypeRefs(member: Refl, into: Set<number>): void {
     for (const p of sig.parameters ?? []) collectTypeRefs(p.type, into);
     collectTypeRefs(sig.type, into);
   }
+}
+
+/**
+ * Render a TypeDoc serialized `TdType` to a readable type string.
+ * Pure — recurses through the structural shapes the surface speaks:
+ * intrinsics, references (incl. generics via `typeArguments`), unions,
+ * intersections, arrays, literals, tuples. Anything else degrades to a
+ * safe `name`/`object`/`unknown` rendering rather than throwing.
+ */
+function renderType(t: TdType | undefined): string {
+  if (!t || typeof t !== "object") return "unknown";
+  switch (t.type) {
+    case "intrinsic":
+      return typeof t.name === "string" ? t.name : "unknown";
+    case "reference": {
+      const name = typeof t.name === "string" ? t.name : "unknown";
+      const args = t.typeArguments ?? [];
+      if (args.length > 0) {
+        return `${name}<${args.map((a) => renderType(a)).join(", ")}>`;
+      }
+      return name;
+    }
+    case "union":
+      return (t.types ?? []).map((s) => renderType(s)).join(" | ");
+    case "intersection":
+      return (t.types ?? []).map((s) => renderType(s)).join(" & ");
+    case "array":
+      return `${renderType(t.elementType)}[]`;
+    case "tuple":
+      return `[${(t.elements ?? []).map((e) => renderType(e)).join(", ")}]`;
+    case "literal": {
+      const v = (t as { value?: unknown }).value;
+      if (v === null) return "null";
+      if (typeof v === "string") return `"${v}"`;
+      return String(v);
+    }
+    case "reflection":
+      // Inline object / function type — render compactly.
+      return "object";
+    case "predicate":
+      return typeof t.name === "string" ? `boolean` : "boolean";
+    default:
+      return typeof t.name === "string" ? t.name : "unknown";
+  }
+}
+
+/**
+ * Render one parameter reflection to `name: T`, honoring optional
+ * (`name?: T`), rest (`...name: T[]`), and default-valued (treated as
+ * optional) flags.
+ */
+function renderParam(p: Refl): string {
+  const rest = p.flags?.isRest ? "..." : "";
+  const optional =
+    !p.flags?.isRest &&
+    (p.flags?.isOptional === true || p.defaultValue !== undefined)
+      ? "?"
+      : "";
+  return `${rest}${p.name}${optional}: ${renderType(p.type)}`;
+}
+
+/**
+ * Render a member's first call signature to `name(p1: T1, p2?: T2): Ret`.
+ * Methods with no signature (shouldn't reach consumer tier) render the
+ * bare name.
+ */
+function renderSignature(member: Refl): string {
+  const sig = member.signatures?.[0];
+  if (!sig) return member.name;
+  const params = (sig.parameters ?? []).map((p) => renderParam(p)).join(", ");
+  const ret = sig.type ? renderType(sig.type) : "void";
+  return `${member.name}(${params}): ${ret}`;
+}
+
+/** Join a TextPart array to plain text. */
+function joinText(parts: TextPart[] | undefined): string {
+  return (parts ?? []).map((p) => p.text).join("").trim();
+}
+
+/** The TSDoc payload extracted from a consumer member. */
+interface MemberTsdoc {
+  summary: string;
+  params: { name: string; text: string }[];
+  returns: string | undefined;
+  examples: string[];
+}
+
+/**
+ * Extract the first-paragraph summary + `@param`/`@returns`/`@example`
+ * from a member's comment (and its first signature's comment, which is
+ * where TypeDoc usually lands a method's doc). All optional — absence
+ * degrades to `''`/empty.
+ */
+function extractTsdoc(member: Refl): MemberTsdoc {
+  const comments = [member.comment, ...(member.signatures ?? []).map((s) => s.comment)];
+  let summary = "";
+  const params: { name: string; text: string }[] = [];
+  let returns: string | undefined;
+  const examples: string[] = [];
+
+  for (const c of comments) {
+    if (!c) continue;
+    if (!summary) summary = joinText(c.summary);
+    for (const tag of c.blockTags ?? []) {
+      if (tag.tag === "@param") {
+        // TypeDoc serializes the param name on the tag's `name` slot
+        // (when present) and the description in `content`.
+        const name = (tag as { name?: string }).name;
+        const text = joinText(tag.content);
+        params.push({ name: typeof name === "string" ? name : "", text });
+      } else if (tag.tag === "@returns" && returns === undefined) {
+        returns = joinText(tag.content);
+      } else if (tag.tag === "@example") {
+        examples.push(joinText(tag.content));
+      }
+    }
+  }
+  return { summary, params, returns, examples };
 }
 
 /**
@@ -318,17 +455,49 @@ export function projectAuthorSurface(project: Refl): ProjectionResult {
         const isStuffMethod = !apiClass && member.flags?.isStatic !== true;
         if (!isStaticApi && !isStuffMethod) continue;
 
-        consumer.push({
+        const ids = new Set<number>();
+        signatureTypeRefs(member, ids);
+        for (const id of ids) referencedTypeIds.add(id);
+        memberTypeRefs.push({ module: mod.name, member: qualified, typeIds: ids });
+
+        // Resolve referenced ids to NAMED project-type names (the
+        // relation join key the runtime API projector consumes).
+        const signatureTypes: string[] = [];
+        const seenName = new Set<string>();
+        for (const id of ids) {
+          const hit = byId.get(id);
+          if (!hit) continue;
+          if (
+            hit.refl.kind === Kind.TypeAlias ||
+            hit.refl.kind === Kind.Interface ||
+            hit.refl.kind === Kind.Enum ||
+            hit.refl.kind === Kind.Class
+          ) {
+            if (!seenName.has(hit.refl.name)) {
+              seenName.add(hit.refl.name);
+              signatureTypes.push(hit.refl.name);
+            }
+          }
+        }
+        signatureTypes.sort();
+
+        const tsdoc = extractTsdoc(member);
+        const entry: ConsumerMember = {
           kind: isStaticApi ? "api-static" : "stuff-method",
           module: mod.name,
           face: cls.name,
           name: member.name,
           qualified,
-        });
-        const ids = new Set<number>();
-        signatureTypeRefs(member, ids);
-        for (const id of ids) referencedTypeIds.add(id);
-        memberTypeRefs.push({ module: mod.name, member: qualified, typeIds: ids });
+          signature: renderSignature(member),
+          summary: tsdoc.summary,
+          signatureTypes,
+        };
+        if (tsdoc.params.length > 0) entry.params = tsdoc.params;
+        if (tsdoc.returns !== undefined && tsdoc.returns.length > 0) {
+          entry.returns = tsdoc.returns;
+        }
+        if (tsdoc.examples.length > 0) entry.examples = tsdoc.examples;
+        consumer.push(entry);
       }
     }
   }

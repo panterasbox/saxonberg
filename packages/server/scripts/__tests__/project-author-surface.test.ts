@@ -220,3 +220,172 @@ describe("projectAuthorSurface", () => {
     ).toBe(false);
   });
 });
+
+// ── Signature renderer + TSDoc enrichment (Step 1) ──────────────────
+//
+// A second fixture exercising the readable-signature renderer across the
+// shapes the surface speaks (generic, union, optional, rest, intersection)
+// plus the TSDoc summary/param/returns/example extraction and the
+// degrade-to-signature-only rule for a member with no TSDoc.
+
+const intrinsic = (name: string): TdType => ({ type: "intrinsic", name });
+const ref = (name: string, target?: number, typeArguments?: TdType[]): TdType => {
+  const t: TdType = { type: "reference", name };
+  if (target !== undefined) t.target = target;
+  if (typeArguments) t.typeArguments = typeArguments;
+  return t;
+};
+
+type TdType = {
+  type?: string;
+  name?: string;
+  target?: number | unknown;
+  elementType?: TdType;
+  types?: TdType[];
+  elements?: TdType[];
+  typeArguments?: TdType[];
+  value?: unknown;
+};
+
+/** Build a static Api method with explicit signature parts. */
+function sigMethod(
+  name: string,
+  parameters: Refl[],
+  returnType: TdType | undefined,
+  comment?: Refl["comment"]
+): Refl {
+  const sig: Refl = { name, kind: 4096 };
+  if (parameters.length > 0) sig.parameters = parameters;
+  if (returnType) sig.type = returnType;
+  if (comment) sig.comment = comment;
+  return { name, kind: Kind.Method, flags: { isStatic: true }, signatures: [sig] };
+}
+
+const SIG_FIXTURE: Refl = {
+  name: "PROJECT",
+  kind: 1,
+  children: [
+    {
+      name: "mud/api/sig",
+      kind: Kind.Module,
+      children: [
+        {
+          name: "SigApi",
+          kind: Kind.Class,
+          children: [
+            // generic return: gen(): Property<T>
+            sigMethod("gen", [], ref("Property", 300, [ref("T")])),
+            // union param: uni(arg: A | B): void
+            sigMethod(
+              "uni",
+              [
+                {
+                  name: "arg",
+                  kind: 32768,
+                  type: { type: "union", types: [ref("A"), ref("B")] },
+                },
+              ],
+              undefined
+            ),
+            // optional param: opt(name?: string): void
+            sigMethod(
+              "opt",
+              [{ name: "name", kind: 32768, flags: { isOptional: true }, type: intrinsic("string") }],
+              undefined
+            ),
+            // rest param: restm(...args: number[]): void
+            sigMethod(
+              "restm",
+              [
+                {
+                  name: "args",
+                  kind: 32768,
+                  flags: { isRest: true },
+                  type: { type: "array", elementType: intrinsic("number") },
+                },
+              ],
+              undefined
+            ),
+            // intersection param: mix(host: Stuff & Container): void
+            sigMethod(
+              "mix",
+              [
+                {
+                  name: "host",
+                  kind: 32768,
+                  type: { type: "intersection", types: [ref("Stuff", 301), ref("Container", 302)] },
+                },
+              ],
+              undefined
+            ),
+            // fully documented member.
+            sigMethod(
+              "documented",
+              [{ name: "x", kind: 32768, type: intrinsic("number") }],
+              intrinsic("boolean"),
+              {
+                summary: [{ kind: "text", text: "Does a documented thing." }],
+                blockTags: [
+                  { tag: "@param", name: "x", content: [{ kind: "text", text: "the input" }] },
+                  { tag: "@returns", content: [{ kind: "text", text: "whether it worked" }] },
+                  { tag: "@example", content: [{ kind: "text", text: "SigApi.documented(1)" }] },
+                ],
+              }
+            ),
+            // no TSDoc → summary '' but signature still present.
+            sigMethod("bare", [], intrinsic("void")),
+          ],
+        },
+        // Named project-types so signatureTypes resolves them.
+        { id: 300, name: "Property", kind: Kind.TypeAlias, variant: "declaration" },
+        { id: 301, name: "Stuff", kind: Kind.Class, variant: "declaration" },
+        { id: 302, name: "Container", kind: Kind.Interface, variant: "declaration" },
+      ],
+    },
+  ],
+};
+
+describe("projectAuthorSurface — signature renderer + TSDoc", () => {
+  const { surface } = projectAuthorSurface(SIG_FIXTURE);
+  const by = (name: string) => surface.consumer.find((c) => c.name === name)!;
+
+  it("renders a generic return type", () => {
+    expect(by("gen").signature).toBe("gen(): Property<T>");
+  });
+
+  it("renders a union param", () => {
+    expect(by("uni").signature).toBe("uni(arg: A | B): void");
+  });
+
+  it("renders an optional param", () => {
+    expect(by("opt").signature).toBe("opt(name?: string): void");
+  });
+
+  it("renders a rest param", () => {
+    expect(by("restm").signature).toBe("restm(...args: number[]): void");
+  });
+
+  it("renders an intersection param (mixin-composition join)", () => {
+    expect(by("mix").signature).toBe("mix(host: Stuff & Container): void");
+    // signatureTypes carries the named project-types in the signature.
+    expect(by("mix").signatureTypes).toEqual(["Container", "Stuff"]);
+  });
+
+  it("extracts summary, @param, @returns, @example", () => {
+    const m = by("documented");
+    expect(m.summary).toBe("Does a documented thing.");
+    expect(m.params).toEqual([{ name: "x", text: "the input" }]);
+    expect(m.returns).toBe("whether it worked");
+    expect(m.examples).toEqual(["SigApi.documented(1)"]);
+    expect(m.signature).toBe("documented(x: number): boolean");
+  });
+
+  it("degrades to signature-only when a member has no TSDoc", () => {
+    const m = by("bare");
+    expect(m.summary).toBe("");
+    expect(m.signature).toBe("bare(): void");
+    expect(m.params).toBeUndefined();
+    expect(m.returns).toBeUndefined();
+    expect(m.examples).toBeUndefined();
+  });
+});
