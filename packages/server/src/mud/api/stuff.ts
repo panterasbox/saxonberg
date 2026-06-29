@@ -14,6 +14,7 @@
 
 import { existsSync } from 'fs';
 import { fileURLToPath } from 'url';
+import { AsyncLocalStorage } from 'node:async_hooks';
 import { Stuff, type DestroyedObjectMetadata } from '../lib/stuff/Stuff';
 import type { Hydrator } from '../lib/stuff/Hydrator';
 import { MixinApi, type AnyConstructor } from './mixin';
@@ -72,26 +73,38 @@ export class StuffApi {
   };
 
   /**
-   * Set of templatePaths whose `clone()` call is currently in flight.
-   * Catches circular template dependencies — e.g. a hydrator template
-   * naming itself (or another hydrator) as `hydratorClass`. Without
-   * detection the recursion would stack-overflow; with detection we
-   * throw a clear error before that happens.
+   * Per-clone-tree set of templatePaths currently in flight, carried in
+   * AsyncLocalStorage. Catches circular template dependencies — e.g. a
+   * hydrator template naming itself (or another hydrator) as
+   * `hydratorClass`. Without detection the recursion would stack-
+   * overflow; with detection we throw a clear error before that happens.
    *
-   * Invariant: every `clone()` must add its `templatePath` on entry
-   * and remove it in a finally block, regardless of success / failure.
+   * Crucially, the set is scoped to ONE async clone tree, not module-
+   * global. A genuine cycle is the same path reappearing within a single
+   * `clone()`'s own recursive descent (hydrate/postRegister re-entering
+   * `clone()`). Two INDEPENDENT concurrent clones of the same shared
+   * template — e.g. two avatars each cloning `/lib/comms/CommsUpdate` for
+   * their loadout, whose `await` points interleave — must NOT see each
+   * other's in-flight paths. A single module-global `Set` conflated
+   * "concurrent" with "circular" and spuriously threw on the second
+   * caller (the path chain in the error would even span two unrelated
+   * Avatar trees). ALS gives each top-level clone its own store; nested
+   * clones inherit the parent's via `getStore()`.
+   *
+   * Invariant: every `clone()` adds its `templatePath` to the active
+   * store on entry and removes it in a finally block, regardless of
+   * success / failure.
    */
-  static #inFlightClonePaths: Set<string> = new Set();
+  static #cloneStackALS = new AsyncLocalStorage<Set<string>>();
 
   /**
    * In-flight `singleton()` resolutions, keyed by path. Coalesces
    * concurrent first-resolution of the same singleton path onto a single
-   * shared clone promise — without this, two concurrent
-   * `singleton(path)` calls would both fall through to `clone(path)` and
-   * the second would trip the `#inFlightClonePaths` cycle guard (which
-   * throws, conflating "concurrent" with "circular"). Cleared when the
-   * clone settles. The classic lazy-singleton race (e.g. two
-   * simultaneous logins both lazily creating the lounge Warren).
+   * shared clone promise, so two concurrent `singleton(path)` calls share
+   * ONE instance rather than each falling through to `clone(path)` and
+   * racing to create two. Cleared when the clone settles. The classic
+   * lazy-singleton race (e.g. two simultaneous logins both lazily
+   * creating the lounge Warren).
    */
   static #pendingSingletons: Map<string, Promise<Stuff>> = new Map();
 
@@ -228,25 +241,37 @@ export class StuffApi {
     templatePath: string,
     context?: unknown
   ): Promise<T> {
-    // Cycle guard. Catches a template whose `hydratorClass` resolves
-    // (transitively) back to itself before the recursion stack-
-    // overflows. Normal clones aren't recursive — only the
-    // hydrator-resolution recursion can hit this.
-    if (this.#inFlightClonePaths.has(templatePath)) {
+    // Per-clone-tree cycle guard (see `#cloneStackALS`). Catches a
+    // template whose `hydratorClass` resolves (transitively) back to
+    // itself before the recursion stack-overflows. Normal clones aren't
+    // recursive — only the hydrator-resolution recursion can hit this.
+    // The in-flight set is scoped to this async clone tree, so concurrent
+    // independent clones of the same path don't false-trip it.
+    const existing = this.#cloneStackALS.getStore();
+    const stack = existing ?? new Set<string>();
+
+    if (stack.has(templatePath)) {
       throw new Error(
         `StuffApi.clone('${templatePath}'): circular template ` +
           `dependency — already in flight (path chain: ${[
-            ...this.#inFlightClonePaths,
+            ...stack,
             templatePath,
           ].join(' → ')})`
       );
     }
-    this.#inFlightClonePaths.add(templatePath);
-    try {
-      return await this.#cloneInner<T>(templatePath, context);
-    } finally {
-      this.#inFlightClonePaths.delete(templatePath);
-    }
+
+    const run = async (): Promise<T> => {
+      stack.add(templatePath);
+      try {
+        return await this.#cloneInner<T>(templatePath, context);
+      } finally {
+        stack.delete(templatePath);
+      }
+    };
+
+    // A top-level clone establishes the tree's store; nested clones
+    // (triggered during hydrate / postRegister) inherit it via getStore().
+    return existing ? run() : this.#cloneStackALS.run(stack, run);
   }
 
   static async #cloneInner<T extends Stuff>(

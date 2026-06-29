@@ -33,10 +33,7 @@ import { ExecutionContextApi } from './execution-context';
 import { ModuleApi } from './module';
 import { ProxyApi, type Interceptor, type InterceptionContext } from './proxy';
 import type { Stuff } from '../lib/stuff/Stuff';
-import {
-  SecurityError,
-  DestroyedObjectError,
-} from '../lib/security/errors';
+import { SecurityError } from '../lib/security/errors';
 
 /**
  * Late-binding handle to ShadowApi. We deliberately do NOT
@@ -135,6 +132,17 @@ export class SecurityApi {
   /** Per-method @ShadowSecurity. */
   static #shadowSecurity: WeakMap<ClassKey, Map<string, ShadowSecuritySpec>> =
     new WeakMap();
+
+  /**
+   * Bounded dedup set for the inert-call debug log (stuffIds whose ghost
+   * has already been logged once). A destroyed Stuff's method calls are
+   * inert no-ops (see the gate), but the FIRST such call per object is
+   * logged at debug level so a leaked strong ref stays observable to
+   * senior devs without per-call spam. Capacity-capped so it never grows
+   * unbounded on a long-running server.
+   */
+  static #inertCallsSeen: Set<string> = new Set();
+  static readonly #INERT_LOG_CAP = 4096;
 
   /* ─────────────────────── Decorator-side writers ─────────────────────── */
 
@@ -568,18 +576,49 @@ export class SecurityApi {
       return next();
     }
 
-    // 1. destroyed-object guard. `getTemplatePath` is exempt because
-    // the unregister path reads it on a freshly-destroyed Stuff to
-    // drop the byTemplatePath index entry — and the slot is
-    // hard-private + read-only from outside, so a post-destruct read
-    // is harmless.
+    // 1. destroyed-object guard — a destroyed Stuff is INERT: any method
+    // call is a no-op returning `undefined`, never a throw.
+    //
+    // Why no-op, not throw: a destroyed object can still be reached
+    // transiently — an in-flight async that captured it before destruct,
+    // a broadcast iterating a set that hasn't dropped the dead entry yet,
+    // a scheduled tick that hadn't been cancelled. Throwing turned those
+    // benign races into crashes / unhandled rejections that cascaded
+    // (e.g. a guest's destruct racing a thermal reconcile). Making the
+    // object inert keeps the whole system robust with ZERO per-call-site
+    // instrumentation — content authors never have to know a removed
+    // object is still callable; the worst a `value = dead.getFoo()` does
+    // is return `undefined` (an ordinary null check), never explode.
+    //
+    // This is orthogonal to garbage collection: GC reclaims an object
+    // when no STRONG ref remains, which is the job of `cleanupOnDestruct`
+    // (release stored refs) — not of this gate. The inert no-op just
+    // stops the crash; it neither helps nor hinders collection.
+    //
+    // `isDestroyed` / `toString` / `getTemplatePath` are exempt and run
+    // normally: the unregister path reads `getTemplatePath` on a
+    // freshly-destroyed Stuff to drop the index entry, and callers must
+    // be able to *ask* whether a Stuff is destroyed.
     if (
       ctx.prop !== 'isDestroyed' &&
       ctx.prop !== 'toString' &&
       ctx.prop !== 'getTemplatePath' &&
       ctx.target.isDestroyed()
     ) {
-      throw new DestroyedObjectError(ctx.target.stuffId, ctx.prop);
+      // First call per dead object → one debug line, so a leaked strong
+      // ref stays observable without per-call spam. Bounded set.
+      const id = ctx.target.stuffId;
+      if (!SecurityApi.#inertCallsSeen.has(id)) {
+        if (SecurityApi.#inertCallsSeen.size >= SecurityApi.#INERT_LOG_CAP) {
+          SecurityApi.#inertCallsSeen.clear();
+        }
+        SecurityApi.#inertCallsSeen.add(id);
+        console.debug(
+          `[inert] ${ctx.prop}() called on destroyed Stuff ${id} ` +
+            `(no-op); a strong ref to it outlived destruct.`
+        );
+      }
+      return undefined;
     }
 
     // 2. entry policy
