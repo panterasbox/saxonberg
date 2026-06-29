@@ -8,7 +8,7 @@ criterion there is settled. This plan is *how*. Branch:
 
 **Through-line:** the client owns **zero** command semantics. Two
 server-authoritative axes ride the existing `clientState` channel —
-`cockpit.layout` (what the cockpit looks like) and `cockpit.inputMode` (how
+`cockpit.layout` (what the cockpit looks like) and `cockpit.inputModes` (how
 typing is scoped). The client is a pure view: a `layout → component`
 registry swaps the cockpit on a `cockpit.layout` update; the command
 interpreter prepends the mode prefix server-side.
@@ -17,7 +17,7 @@ interpreter prepends the mode prefix server-side.
 
 | Seam | Location | Role |
 |---|---|---|
-| `clientStateSchema` (flat array) | `mud/lib/connection/HasInteractive.ts:176` | add `cockpit.layout`, `cockpit.inputMode` |
+| `clientStateSchema` (flat array) | `mud/lib/connection/HasInteractive.ts:176` | add `cockpit.layout`, `cockpit.inputModes` |
 | write+save+push template | `mud/obj/command/shell/StyleController.ts` `commit()` (~`:126`) | the pattern `Layout`/`ModeController` mirror |
 | welcome snapshot | `mud/obj/Avatar.ts:389` (`clientState: snapshotClientState()`) | add `broadcastSources` to the payload |
 | inbound clientState write | `backend/inbound/clientState.ts` | generic — **unchanged** (new keys ride it) |
@@ -36,9 +36,10 @@ interpreter prepends the mode prefix server-side.
    **not** set layout; `ForumController` is untouched. The `?surface=cms`
    deep-link auto-entry is dropped. Every layout is one click in the Views
    menu, so discoverability is unaffected. (Diegetic auto-switch deferred.)
-2. **`cockpit.inputMode` shape** — empty-string = unset (not `null`). The
-   indicator shows the **raw prefix** (`chat devtalk`), not a separate
-   friendly label (server stores only the prefix).
+2. **`cockpit.inputModes` shape** — a `{ barId → prefix }` map; a missing key
+   = that bar unset. The indicator shows the **raw prefix** (`chat devtalk`),
+   not a separate friendly label (server stores only the prefix). *(Per-bar,
+   not per-player — see Phase 4.)*
 3. **StreamSource live-push** — **include** the `StreamSourcesChanged`
    fan-out (acceptance lists it; the listener is small). Welcome-snapshot is
    the baseline; the push keeps it live when the operator changes config.
@@ -69,7 +70,7 @@ behavior-identical.
   ```
 - **`HasInteractive.ts:176`** — schema entry `cockpit.layout` (default
   `'world'`, validator = `LAYOUT_NAMES.includes(v)`); import `LAYOUT_NAMES`.
-  (Add `cockpit.inputMode` now too, to avoid a second schema edit.)
+  (Add `cockpit.inputModes` now too, to avoid a second schema edit.)
 - **Verb (new MVC pair):** `mud/cmd/shell/layout.yaml` (`verbs:[layout]`,
   `controller: shell/LayoutController`, `requiresHasInteractive` validator,
   one required `name`); `mud/obj/command/shell/LayoutController.ts` mirrors
@@ -157,12 +158,23 @@ Add to `Envelope` (`:971`) + `EnvelopeTemplate` (`:991`); add
     auto-switch, per "no auto-switching"). The dev account-menu CMS launcher
     sends `layout builder` (an explicit click) instead of opening a tab.
 
-## Phase 4 — Server-authoritative input mode (separable; command-parsing)
+## Phase 4 — Multiple command bars + per-bar input mode (command-parsing + wire)
 
-- **Schema:** `cockpit.inputMode` (default `''`, string validator).
+Mode is **per-bar**, not per-player (the chat bar wants chat scope while the
+game bar is plain). The multi-bar bars are exercised by phase 2's
+livestream-viewer (chat + game terminals).
+
+- **Wire:** the client→server command message gains `barId?: string` (which
+  input region it came from); thread from `backend/inbound/command.ts:82`
+  into `executeCommand(commandText, { interactive, bodyFields, barId })` and
+  onto the command context. Legacy/no-bar submissions → `'main'`.
+- **Schema:** `cockpit.inputModes` — `Record<string,string>` (`{ barId →
+  prefix }`), default `{}`, object-of-strings validator.
 - **Verb:** `mud/cmd/shell/mode.yaml` + `mud/obj/command/shell/ModeController.ts`
-  — `mode off`/bare `mode` → write `''`; `mode <prefix…>` → trimmed prefix;
-  the StyleController commit triple. Register on `commandContributions.self`.
+  — reads the dispatch's `barId` from context: `mode off`/bare `mode` → delete
+  `inputModes[barId]`; `mode <prefix…>` → set it; the StyleController commit
+  triple (write the whole map + save + push). Register on
+  `commandContributions.self`.
 - **Interpreter prepend (load-bearing):** pure helper in `mud/api/command.ts`:
   ```ts
   static applyInputMode(rawText: string, modePrefix: string): string {
@@ -176,18 +188,58 @@ Add to `Envelope` (`:971`) + `EnvelopeTemplate` (`:991`); add
   Hook in `CommandGiver.executeCommand` right after `giver` is bound (`:500`),
   before context build (`:521`):
   ```ts
-  const modePrefix = (opts.interactive && !opts.forced && MixinApi.isHasInteractive(giver))
-    ? giver.getClientState<string>('cockpit.inputMode') : '';
-  commandText = CommandApi.applyInputMode(commandText, modePrefix);
+  const modes = (opts.interactive && !opts.forced && MixinApi.isHasInteractive(giver))
+    ? giver.getClientState<Record<string,string>>('cockpit.inputModes') : undefined;
+  commandText = CommandApi.applyInputMode(commandText, modes?.[opts.barId ?? 'main'] ?? '');
   ```
   The `interactive && !forced` gate confines it to real player input (scripts/
-  NPC/forced bypass). Echo reflects the **dispatched** text. `msh.ts` stays
-  Stuff-unaware.
-- **Client (display-only):** delete the `inputMode` store slice; `CommandBar.tsx`
-  drops the `mode` interception + prefix-wrapping (`:566-590`) — `submitBase`
-  sends verbatim; the indicator pill reads `clientState['cockpit.inputMode']`,
-  its close button + Esc-on-active-mode send `mode off`. `ForumChatSidecar`'s
-  "talk here" sends `mode chat <handle>`; `active` derives from clientState.
+  NPC/forced bypass — no barId). `barId` also rides the command context so
+  `ModeController` knows which bar. `applyInputMode` stays pure (per-bar
+  lookup at the call site); `msh.ts` stays Stuff-unaware. Echo reflects the
+  **dispatched** text.
+- **Client (display-only):** delete the `inputMode` store slice. Each
+  `CommandBar` is bound to a `barId` and **submits it** with every command;
+  it drops the `mode` interception + prefix-wrapping (`:566-590`) —
+  `submitBase` sends verbatim. Its indicator pill reads
+  `clientState['cockpit.inputModes'][barId]`; pill-close + Esc send `mode off`
+  from that bar. `ForumChatSidecar`'s "talk here" sends `mode chat <handle>`
+  from the forum bar; `active` derives from clientState.
+- **Layout-set bar scope (optional, v1-cuttable):** a hardwired chat bar
+  (viewer's chat terminal) seeds its scope by the *client* sending
+  `mode <scope>` on layout mount (command-bus primacy, no server-seeds-mode
+  coupling) — or ship user-set-only and add the default later.
+
+**Acceptance:** `mode chat` from bar X → bare `hello` from X dispatches
+`chat hello`; a command from a different un-moded bar is unaffected; `/look`
+runs raw; `mode`/`mode off` never prefixed; `mode off` clears that bar; no
+mode = verbatim no-op; each bar shows its own indicator; submissions carry
+`barId`.
+
+## Phase 5 — Summoned-pane tier + settings pane (soft-depends on the notification-settings backend; cuttable)
+
+The modal-killer second tier + its first consumer. A **summoned pane**
+renders beside the current layout's terminal (never full-screen, never
+blocks input — the inspection pane is the existing proof).
+
+- **Mechanism:** a generic summoned-pane slot in the always-on chrome (or a
+  per-layout secondary-pane slot) a layout/affordance fills with a content
+  component and dismisses, terminal always beside it. A small registry of
+  pane kinds (`settings`, future `detail`).
+- **`components/settings/SettingsPane.tsx`:** **notification categories**
+  (from the external backend's surface; **degrade gracefully** to a "coming
+  soon" placeholder when absent) + **env/user vars** (driven by the existing
+  `settings` / `var` verbs + the `EnvironmentMixin` schema). Every control
+  **sends the real command** per command-bus primacy — no client-only
+  settings state.
+- **Entry:** a `settings` affordance (a Views-menu item or chrome button)
+  opens the pane — **not** a `layout` switch (it coexists with the current
+  layout).
+
+**Acceptance:** the settings pane opens beside a live terminal (no modal);
+controls send real commands; notification categories render when the backend
+is present and degrade when not. **Dependency:** the notification-settings
+backend (separate, landing on master) — if not yet landed, ship the
+env/user-vars half + the graceful placeholder.
 
 ## Hard / risky parts (approach + decision)
 
@@ -216,8 +268,9 @@ Add to `Envelope` (`:971`) + `EnvelopeTemplate` (`:991`); add
 - **`LayoutController`/`ModeController`/`ForumController`**: clientState set +
   push fired (spy the injected push); unknown layout → rejected note, no write;
   `forum post` does NOT set layout.
-- **`executeCommand` integration**: `cockpit.inputMode='chat'` → bare `hello`
-  runs verb `chat`; forced/no-interactive bypasses (regression).
+- **`executeCommand` integration**: `cockpit.inputModes={main:'chat'}` + barId
+  `main` → bare `hello` runs verb `chat`; a command with a different/un-moded
+  barId is unaffected; forced/no-interactive bypasses (regression).
 - **`StreamSourceApi.current()`**: valid/malformed JSON; welcome payload
   includes `broadcastSources`; the `StreamSourcesChanged` listener fans to
   `getAllInteractives()`.

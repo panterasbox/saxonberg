@@ -84,19 +84,45 @@ client's existing `clientState` channel.
   rewrite. `?surface=cms` becomes a **deep-link** into `builder`; the
   standalone no-WS takeover is retired.
 
-### Server-authoritative input mode
-- **`mode <prefix>`** is a server verb that sets the player's input-mode (a
-  stored prefix on `clientState`, e.g. `cockpit.inputMode`); **`mode off`**
-  clears it.
-- The **command interpreter prepends the prefix** to incoming raw input
-  before tokenizing, with two exemptions: a line beginning with the **escape
-  char `/`** (runs raw) and the **`mode` command itself** (so `mode off`
-  always works). `chat`-mode + typing `hello` ⇒ the server dispatches `chat
-  hello`.
+### Multiple command bars + per-bar input mode (server-authoritative)
+- A layout may have **multiple terminals, each with its own command bar**
+  pinned to its bottom (input lives with its output). Each bar carries its
+  own **input mode** (scope/prefix); modes are **per-bar, not per-player** —
+  a single global mode is wrong when terminals are topic-filtered (the chat
+  bar wants chat scope while the game bar is plain).
+- **`mode <prefix>`** / **`mode off`**, issued from a given bar, set/clear
+  **that bar's** mode. Modes live server-side as a `clientState` map
+  `cockpit.inputModes` (`{ barId → prefix }`).
+- Command submissions carry a **bar id** (context — *which* input region the
+  command came from, not a client rewrite). The **command interpreter
+  prepends that bar's prefix** before tokenizing, with two exemptions: a line
+  beginning with the **escape char `/`** (runs raw) and the **`mode` command
+  itself** (so `mode off` always works). `chat`-mode bar + typing `hello` ⇒
+  the server dispatches `chat hello`.
+- A bar's scope may be **layout-set** (a hardwired chat bar, set when the
+  layout mounts) or **user-set** (`mode` from that bar).
 - The client deletes its input-wrapping (`inputMode` store slice + the
-  CommandBar prefixing) and renders a **display-only mode indicator** from
-  the server state. Affordances that set a mode (e.g. the chat sidecar's
-  "talk here") now **send `mode <prefix>`** like any command.
+  CommandBar prefixing); each bar renders a **display-only mode indicator**
+  from `cockpit.inputModes[barId]`. Affordances that set a mode (e.g. the
+  chat sidecar's "talk here") **send `mode <prefix>`** like any command.
+
+### Composition grammar + the no-modal / summoned-pane tier
+- Every layout obeys the shared **composition grammar** — see
+  [cockpit-composition.md](../cockpit-composition.md) (the never-blind law,
+  fixed-chrome/fluid-content, hierarchy-encoding splits, the canonical
+  splits, the responsive tiers). Layouts are variations on one system.
+- **No modals.** A would-be modal renders in one of two tiers, both keeping
+  a terminal on screen: the **layout tier** (big/sticky, the `layout` verb)
+  and the **summoned-pane tier** (transient panes beside the current
+  terminal — the inspection pane is the existing proof). This build
+  establishes the **summoned-pane tier** as a first-class mechanism.
+- **Settings** is the first new summoned-pane consumer: a settings pane
+  (notification categories + environment/user variables) that renders beside
+  a terminal, with each control **sending the real command** (`settings` /
+  `var` / the notification-settings verbs) per command-bus primacy. The
+  notification-settings **backend is being built separately (landing on
+  master)**; the pane consumes it when present and degrades gracefully when
+  absent.
 
 ## Non-goals
 
@@ -117,8 +143,15 @@ client's existing `clientState` channel.
   does **not** auto-tune the broadcast channel's chat; the chat terminal is
   relay-topic-scoped and shows whatever the player has `twitch tune`'d.
   (Auto-tune is a noted future nicety.)
-- **Per-connection input-mode** — input mode is per-player (one active
-  mode); per-device input contexts are a possible later refinement.
+- **The notification-settings backend** — built separately (landing on
+  master); this build only renders it in the settings pane (graceful when
+  absent). No new settings/notification server surface here beyond what the
+  settings pane needs to drive the existing `settings`/`var` verbs.
+- **A full settings catalogue** — the settings pane establishes the
+  summoned-pane pattern and surfaces notification categories + env/user
+  vars; an exhaustive settings UI is later content.
+- **Per-connection input-mode** — modes are per-bar (and a player's bars are
+  layout-defined); per-*device* input contexts remain a later refinement.
 - **Mobile layouts** — the registry must not assume desktop-only real
   estate, but mobile layouts are their own slate.
 - **Study / classroom / tutor layouts** — the slate's other catalogue
@@ -187,9 +220,17 @@ pane replaced by a labeled placeholder. Both as described in Goals.
   `clientStateSchema` + `pushClientStateUpdate` + `client-state-update`
   envelope + welcome-snapshot restore. No parallel per-player UI-state path.
 - **The interpreter hook is load-bearing.** The input-mode prepend sits on
-  the raw-input entry every command crosses; it must be a clean, well-tested
-  pre-tokenize step that cannot mangle escaped or `mode`-management input,
-  and must be a no-op when no mode is set.
+  the raw-input entry every command crosses; it is a clean, well-tested
+  pre-tokenize step keyed on the submission's **bar id** (looking up that
+  bar's prefix in `cockpit.inputModes`), that cannot mangle escaped or
+  `mode`-management input, and is a verbatim no-op when the bar has no mode.
+  The inbound command message gains a `barId` field (threaded to the
+  interpreter).
+- **The composition grammar is binding.** Every layout obeys
+  [cockpit-composition.md](../cockpit-composition.md) — never-blind,
+  fixed-chrome/fluid-content, hierarchy-encoding splits, the canonical
+  splits, the responsive tiers. No modals: would-be modals are layouts or
+  summoned panes that keep a terminal visible.
 - **Embed safety.** Third-party iframes (Twitch now, YouTube later) are
   sandboxed/allowed appropriately; the Twitch player's `parent` param is
   config-driven (the host domain), never hard-coded.
@@ -225,13 +266,24 @@ pane replaced by a labeled placeholder. Both as described in Goals.
   connected); `?surface=cms` deep-links into builder; CMS reads/writes work
   through the unchanged REST surface.
 - The **"Views" menu** previews/sends `layout <name>` per the click model.
-- **Input mode:** `mode <prefix>` sets `cockpit.inputMode`; a subsequent
-  bare command is dispatched server-side with the prefix prepended; `/`
-  escapes a one-off raw command; `mode` / `mode off` are never prefixed;
-  `mode off` clears. With no mode set the interpreter is a verbatim no-op
-  (regression). The client shows a mode indicator and no longer wraps input.
-  Tests cover the interpreter prepend (including the two exemptions + the
-  no-op).
+- **Per-bar input mode:** `mode <prefix>` from a given bar sets
+  `cockpit.inputModes[barId]`; a subsequent bare command **from that bar** is
+  dispatched with the bar's prefix prepended, while a command from a
+  different (un-moded) bar is unaffected; `/` escapes a one-off raw command;
+  `mode` / `mode off` are never prefixed; `mode off` clears that bar. With no
+  mode set the interpreter is a verbatim no-op (regression). Each bar shows
+  its own indicator; the client no longer wraps input. Tests cover the
+  interpreter prepend keyed on `barId` (the two exemptions + the no-op).
+- **Multiple command bars:** a multi-terminal layout (livestream-viewer)
+  renders a bar per input-taking terminal; submissions carry the originating
+  `barId`.
+- **Settings pane (summoned-pane tier):** a settings pane renders beside a
+  terminal (never a full-screen modal); its controls send the real
+  `settings`/`var`/notification commands; it surfaces notification categories
+  when the (external) backend is present and degrades gracefully otherwise.
+- **Composition:** each shipped layout conforms to
+  [cockpit-composition.md](../cockpit-composition.md) (canonical split,
+  always-on terminal, fixed chrome).
 - Client `pnpm build` green; the shared wire-type change compiles on server
   + client; the relevant server tests (the `layout`/`mode` verbs' clientState
   writes, the interpreter prepend, the StreamSource surfacing) pass.
@@ -252,12 +304,20 @@ shape):
    union, operator-config sources surfaced live, the Twitch embed +
    topic-split terminals.
 3. **Streamer + builder** — the streamer stub; the CMS re-home.
-4. **Input-mode redo** — the server `mode` verb + the interpreter prepend +
-   client display-only. (Separable; touches command-parsing, not the client
-   layout work.)
+4. **Per-bar input-mode** — the multi-command-bar substrate (barId on
+   submissions; `cockpit.inputModes` map), the server `mode` verb + the
+   interpreter prepend keyed on barId + client display-only. (Touches
+   command-parsing + the wire command shape; the multi-bar bars themselves
+   are exercised by the livestream-viewer layout from phase 2.)
+5. **Summoned-pane tier + settings pane** — the modal-killer second tier and
+   its first consumer (the settings pane). Soft-depends on the
+   notification-settings backend landing on master; degrades gracefully.
+   Cuttable / deferrable if the build runs long.
 
 ## Cross-references
 
+- **Design reference (binding):** [cockpit-composition.md](../cockpit-composition.md)
+  — the layout grammar every layout obeys
 - **Seeding slate:** [client-cockpit-slate.md](../slates/tails/client-cockpit-slate.md)
 - **Builds on:** [twitch-relay.md](../subsystems/twitch-relay.md),
   [livestream.md](../subsystems/livestream.md), [cms.md](../subsystems/cms.md),
