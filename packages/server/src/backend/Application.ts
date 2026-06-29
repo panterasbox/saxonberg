@@ -35,7 +35,6 @@ import { ReactionApi } from '../mud/api/reaction';
 import { ConnectionApi } from '../mud/api/connection';
 import { EventApi } from '../mud/api/event';
 import { Events } from '../mud/lib/events';
-import { StreamSourceApi } from '../mud/api/stream-source';
 import type { StreamSource } from '@saxonberg/types';
 import { User } from '../mud/lib/identity/User';
 import { TwitchProfile } from '../mud/lib/identity/TwitchProfile';
