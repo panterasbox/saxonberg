@@ -75,6 +75,39 @@ column grids that cannot stack.
   client rewrite); the server holds per-bar mode and the interpreter prepends
   *that bar's* prefix. See the requirements' input-mode section.
 
+## The ghost command line + click model
+
+Clicking any affordance in the UI previews-then-sends a real command — this
+is *the* on-ramp from point-and-click to the CLI, so it is load-bearing.
+Under per-bar mode it cannot live *in* a command bar (a moded bar would
+prepend its prefix, so the preview would lie about what sends, and with N
+bars there is no single bar to preview into). So preview lives in a
+dedicated **ghost command line**:
+
+- A fixed, always-on strip styled **as a command line** (mono, a `>` glyph) —
+  *not* peripheral status chrome — placed **adjacent to the primary command
+  bar** so the "this is a thing you could type" lesson survives. It shows the
+  **exact** command a hovered affordance would run.
+
+The gestures:
+
+| Gesture | Effect |
+|---|---|
+| **Hover** | the ghost line shows the exact command (passive teaching). In-progress bar input is left untouched. |
+| **Click** | runs it immediately, **unmoded** — affordance submissions carry **no `barId`**, so no bar's mode prefix ever applies. Preview == send. |
+| **Copy** (shift-click + the right-click "Copy command" entry) | command → clipboard (with a "copied: …" flash). Paste into whichever bar you want, explicitly. Replaces shift-click-loads-a-bar (no honest target under N bars). |
+| **Right-click** | menu of alternative commands; each previews in the ghost line on hover, runs on click, copies via "Copy command". |
+
+**The consistent rule:** *auto-actions (hover / click) are unmoded; anything
+routed through a command bar — typed or pasted — obeys that bar's mode*
+(pill visible, `/` escapes). Pasting a copied command into a bar is the
+explicit "make it mine" path — and restores the teaching moment of the
+command landing where you type, on the user's reach rather than on every
+hover.
+
+*Touch:* hover doesn't exist; the ghost line is a desktop affordance — mobile
+uses tap = preview + run (per the slate). Out of scope, not designed against.
+
 ## Modals → panes (two tiers)
 
 The no-modal rule (law 6) routes every would-be-modal into one of two tiers,

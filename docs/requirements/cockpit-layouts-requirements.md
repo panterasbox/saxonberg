@@ -231,6 +231,15 @@ pane replaced by a labeled placeholder. Both as described in Goals.
   fixed-chrome/fluid-content, hierarchy-encoding splits, the canonical
   splits, the responsive tiers. No modals: would-be modals are layouts or
   summoned panes that keep a terminal visible.
+- **Command preview moves to the ghost command line; affordance clicks are
+  unmoded.** Per-bar mode forces preview out of the (now multiple, now moded)
+  command bars into a dedicated always-on **ghost command line** (a
+  command-styled strip beside the primary bar). A clicked affordance submits
+  with **no `barId`** so the interpreter never prepends — preview equals send.
+  Shift-click-loads-a-bar is **retired** (no honest target under N bars),
+  replaced by copy-to-clipboard (paste explicitly). Typed/pasted input in a
+  bar still obeys that bar's mode. See the click-model table in
+  [cockpit-composition.md](../cockpit-composition.md).
 - **Embed safety.** Third-party iframes (Twitch now, YouTube later) are
   sandboxed/allowed appropriately; the Twitch player's `parent` param is
   config-driven (the host domain), never hard-coded.

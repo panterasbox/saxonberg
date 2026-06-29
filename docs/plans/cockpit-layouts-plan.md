@@ -204,6 +204,17 @@ livestream-viewer (chat + game terminals).
   `clientState['cockpit.inputModes'][barId]`; pill-close + Esc send `mode off`
   from that bar. `ForumChatSidecar`'s "talk here" sends `mode chat <handle>`
   from the forum bar; `active` derives from clientState.
+- **Ghost command line + unmoded affordance clicks (lands here — per-bar
+  mode is what forces it):** add an always-on **ghost command line** (a
+  command-styled strip beside the primary bar). Re-point the existing
+  `onCommandPreview` wiring from the CommandBar input to the ghost line (the
+  bars stop showing previews). Affordance **clicks** submit with **no `barId`**
+  (the click path's submit omits it) so the interpreter never prepends —
+  preview equals send. **Retire shift-click-loads-a-bar**; rebind shift-click
+  (and add a right-click "Copy command" entry) to **copy to clipboard** with
+  a "copied: …" flash. (Before Phase 4 the single unmoded bar's existing
+  in-bar preview is fine; this swap rides with per-bar mode.) See the
+  click-model table in [cockpit-composition.md](../cockpit-composition.md).
 - **Layout-set bar scope (optional, v1-cuttable):** a hardwired chat bar
   (viewer's chat terminal) seeds its scope by the *client* sending
   `mode <scope>` on layout mount (command-bus primacy, no server-seeds-mode
