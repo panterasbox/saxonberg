@@ -91,7 +91,7 @@ AppApi.setSetting(key, value): Promise    // write + persist + refresh cache
 ## Seeding + warming is a backend bootstrap concern
 
 **Seed.** `AppSettingsSeeder.run()` runs in `AppBootstrap`'s seeder block
-(next to `EmoteSeeder`/`ChannelSeeder`/`NameBankSeeder`), reading
+(next to `EmoteSeeder`/`ChannelSeeder`), reading
 `mud/config/app-settings.yaml`. It is insert / **merge-missing** /
 idempotent: a fresh DB gets the seeded row; on later boots any key *new* to
 the YAML is merged into the existing row, while keys an operator changed via
