@@ -74,6 +74,17 @@ column grids that cannot stack.
   issued from that bar). Submissions carry a **bar id** (context, not a
   client rewrite); the server holds per-bar mode and the interpreter prepends
   *that bar's* prefix. See the requirements' input-mode section.
+- **Mode renders as an inline, uneditable prefix — not a pill.** A moded bar
+  shows the prefix as a non-editable `<span>` *inside* the bar, styled
+  **identically** to typed text, with the editable input as the tail — so it
+  reads as one continuous command line and looks exactly like you typed the
+  whole thing (you can't backspace over the prefix; it's a separate element).
+  The input holds only the tail; the span is **display-only** (mirrors
+  `cockpit.inputModes[barId]`), so what's shown equals what the server
+  prepends. The prefix **hides when the input is exempt** (starts with `/` or
+  `mode`), so the bar always shows what will actually dispatch (and typing
+  `/` teaches the escape). Closing the mode is a small **`✕` at the bar's
+  edge** (chrome, not the editable field) that sends `mode off`, plus Esc.
 
 ## The ghost command line + click model
 

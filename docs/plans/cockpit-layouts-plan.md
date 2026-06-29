@@ -200,10 +200,17 @@ livestream-viewer (chat + game terminals).
 - **Client (display-only):** delete the `inputMode` store slice. Each
   `CommandBar` is bound to a `barId` and **submits it** with every command;
   it drops the `mode` interception + prefix-wrapping (`:566-590`) —
-  `submitBase` sends verbatim. Its indicator pill reads
-  `clientState['cockpit.inputModes'][barId]`; pill-close + Esc send `mode off`
-  from that bar. `ForumChatSidecar`'s "talk here" sends `mode chat <handle>`
-  from the forum bar; `active` derives from clientState.
+  `submitBase` sends the input tail verbatim (+ barId). **Replace the
+  closeable mode pill with an inline uneditable prefix:** a flex container
+  styled as the bar holding `<span class="prefix">{mode} </span>` (read from
+  `clientState['cockpit.inputModes'][barId]`, styled identical to input text,
+  `user-select:none`, click → focus input) + the borderless `<input>` (the
+  tail). The input value is the tail only; the server prepends. **Hide the
+  prefix span when the input starts with `/` or `mode`** (exempt → honest
+  display). Close = a small `✕` at the bar's edge (chrome, not the input) +
+  Esc, both sending `mode off` from that bar. `ForumChatSidecar`'s "talk
+  here" sends `mode chat <handle>` from the forum bar; `active` derives from
+  clientState.
 - **Ghost command line + unmoded affordance clicks (lands here — per-bar
   mode is what forces it):** add an always-on **ghost command line** (a
   command-styled strip beside the primary bar). Re-point the existing

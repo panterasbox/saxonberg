@@ -102,9 +102,15 @@ client's existing `clientState` channel.
 - A bar's scope may be **layout-set** (a hardwired chat bar, set when the
   layout mounts) or **user-set** (`mode` from that bar).
 - The client deletes its input-wrapping (`inputMode` store slice + the
-  CommandBar prefixing); each bar renders a **display-only mode indicator**
-  from `cockpit.inputModes[barId]`. Affordances that set a mode (e.g. the
-  chat sidecar's "talk here") **send `mode <prefix>`** like any command.
+  CommandBar prefixing). A moded bar renders its prefix as an **inline,
+  uneditable `<span>`** inside the bar, styled **identically to typed text**
+  (you can't backspace over it; it looks exactly like you typed the whole
+  command) — display-only, mirroring `cockpit.inputModes[barId]`; the input
+  holds only the tail and the server prepends. The prefix **hides when the
+  input is exempt** (`/`-escape or a `mode` command), so the bar always shows
+  what will dispatch. Closing the mode is a small **`✕` at the bar's edge**
+  (+ Esc), not a pill. Affordances that set a mode (e.g. the chat sidecar's
+  "talk here") **send `mode <prefix>`** like any command.
 
 ### Composition grammar + the no-modal / summoned-pane tier
 - Every layout obeys the shared **composition grammar** — see
