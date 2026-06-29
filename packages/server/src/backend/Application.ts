@@ -116,11 +116,21 @@ export class Application {
     setClientStateUpdatePush((interactive, key, value) =>
       this.sendClientStateUpdateToInteractive(interactive, key, value),
     );
-    // Live broadcast-source push: when the operator changes the
-    // livestream embed sources (`config livestream.broadcastSources`),
-    // fan the new list to every connected player so the livestream-
-    // viewer embed updates without a reconnect. The welcome snapshot
-    // (`ConnectionEstablishedPayload.broadcastSources`) is the baseline.
+    console.info('Application: Initialized with Backend');
+  }
+
+  /**
+   * Wire the live broadcast-source push. When the operator changes the
+   * livestream embed sources (`config livestream.broadcastSources`), fan
+   * the new list to every connected player so the livestream-viewer embed
+   * updates without a reconnect. The welcome snapshot
+   * (`ConnectionEstablishedPayload.broadcastSources`) is the baseline.
+   *
+   * Registered from {@link AppBootstrap.run} AFTER the EventRegistry is
+   * bootstrapped (the `TwitchRelayReader.boot()` precedent) — NOT in
+   * `initialize()`, which runs in the Server constructor before bootstrap.
+   */
+  public wireBroadcastSourcesPush(): void {
     EventApi.on<StreamSource[]>(Events.StreamSourcesChanged, (sources) => {
       for (const interactive of ConnectionApi.getAllInteractives()) {
         this.sendEnvelopeToInteractive(interactive, {
@@ -129,7 +139,6 @@ export class Application {
         });
       }
     });
-    console.info('Application: Initialized with Backend');
   }
 
   /**
