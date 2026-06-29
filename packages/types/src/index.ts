@@ -1801,6 +1801,96 @@ export interface CmsErrorBody {
   message: string; // human detail
 }
 
+// ---- Help system --------------------------------------------------------
+
+/**
+ * The four graded subdivisions a help topic can belong to. `command`
+ * and `api`/`mixin`/`type` are the two Wave 1 subdivisions (the latter
+ * three are the API projector's graded kinds).
+ */
+export type HelpKind = 'command' | 'api' | 'mixin' | 'type';
+
+/** The typed edges between help topics — see {@link HelpRelation}. */
+export type HelpRelationKind =
+  | 'method-of'
+  | 'confers'
+  | 'composes'
+  | 'requires'
+  | 'consumed-by'
+  | 'see-also';
+
+/** One typed edge between topics, denormalized for one-fetch render. */
+export interface HelpRelation {
+  kind: HelpRelationKind;
+  targetId: string;
+  targetTitle: string;
+}
+
+/** Provenance: which subdivision/source a topic was harvested from. */
+export interface HelpSource {
+  subdivision: 'commands' | 'api';
+  /** command → primary verb; api/mixin/type → qualified `module#Face.member`. */
+  ref: string;
+}
+
+/** The single uniform shape the index/search/REST/verb all traffic in. */
+export interface HelpTopic {
+  /** 'command.look' | 'api.ContainmentApi.move' | 'mixin.Container' | 'type.Grade'. */
+  id: string;
+  kind: HelpKind;
+  title: string;
+  /** One line; '' when none. */
+  summary: string;
+  /** Typeahead corpus: verbs/aliases, member name, mixin concept, kind. */
+  keywords: string[];
+  /** MML markup string (the rulebook entry). */
+  body: string;
+  relations: HelpRelation[];
+  /** Capability flag; false at the anonymous floor this cycle. */
+  spoiler: boolean;
+  source: HelpSource;
+}
+
+/** Light index entry — instant pane render + client-local typeahead. */
+export interface HelpIndexEntry {
+  id: string;
+  kind: HelpKind;
+  title: string;
+  summary: string;
+  keywords: string[];
+}
+
+export interface HelpCategory {
+  kind: HelpKind;
+  title: string;
+  count: number;
+}
+
+// REST request/response DTOs.
+export interface HelpIndexResult {
+  entries: HelpIndexEntry[];
+  categories: HelpCategory[];
+}
+export interface HelpKindListResult {
+  kind: HelpKind;
+  topics: HelpIndexEntry[];
+}
+export interface HelpTopicResult {
+  topic: HelpTopic;
+}
+export interface HelpSearchGroup {
+  kind: HelpKind;
+  hits: HelpIndexEntry[];
+}
+export interface HelpSearchResult {
+  query: string;
+  groups: HelpSearchGroup[];
+}
+export interface HelpErrorBody {
+  error: 'not-found' | 'invalid';
+  message: string;
+}
+
 // ---- Twitch relay -------------------------------------------------------
 
 /**

@@ -7,6 +7,14 @@ help: |
   for one command — what it does, how to phrase it, and examples.
 
   `?` and `h` are shortcuts for `help`.
+fallthrough: true
+args:
+  # Bare `help look` → topic='look' (the common case — no `verb` word).
+  # Named `topic` so it never collides with the `api` subcommand's
+  # `target` field. Unknown first token falls through to bind here.
+  - name: topic
+    type: string
+    required: false
 subcommands:
   verb:
     description: "Show help for a verb (no name → list verbs)"

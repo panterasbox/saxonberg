@@ -55,6 +55,15 @@ export const bootstrapManifest: BootstrapEntry[] = [
   // as the discipline catalogue). Resolvable via `CorpoApi` after this
   // entry's postRegister fires.
   { templatePath: '/obj/CorpoCatalogue' },
+  // HelpCatalogue singleton — the boot-warmed help index (the in-game
+  // rulebook). Warms in postRegister by harvesting two projectors: every
+  // loaded CommandDefinition (command preload runs in AppBootstrap.run,
+  // before BootstrapManager.run) and the engine API surface (the enriched
+  // `author-surface.json` artifact + the complete Mixins registry). No
+  // dependsOn — neither projector depends on another manifest entry; an
+  // absent artifact degrades to command-only topics with one boot warning.
+  // Reads flow through HelpApi (the capability-filter chokepoint).
+  { templatePath: '/obj/HelpCatalogue' },
   // GroupRegistry — provider table for managed / MQL / contacts
   // group sources. Registers the three v1 provider instances in
   // postRegister; downstream consumers (chat audience, future
