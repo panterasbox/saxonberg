@@ -14,6 +14,8 @@ import type { LayoutDef } from "./types";
 import { WorldLayout } from "./WorldLayout";
 import { ForumLayout } from "./ForumLayout";
 import { LivestreamViewerLayout } from "./LivestreamViewerLayout";
+import { StreamerLayout } from "./StreamerLayout";
+import { BuilderLayout } from "./BuilderLayout";
 
 export const LAYOUT_REGISTRY: Partial<Record<LayoutName, LayoutDef>> = {
   world: { label: "World", Component: WorldLayout },
@@ -22,6 +24,8 @@ export const LAYOUT_REGISTRY: Partial<Record<LayoutName, LayoutDef>> = {
     label: "Livestream",
     Component: LivestreamViewerLayout,
   },
+  streamer: { label: "Streamer", Component: StreamerLayout },
+  builder: { label: "Builder", Component: BuilderLayout },
 };
 
 export type { LayoutProps, LayoutDef } from "./types";
