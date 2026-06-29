@@ -28,6 +28,7 @@ const OK: PackReconcileResult = {
   adopted: [],
   deleted: [],
   quantityTables: 0,
+  nameBanks: 0,
   rehydrated: 1,
 };
 

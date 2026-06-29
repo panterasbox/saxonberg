@@ -234,7 +234,11 @@ choices, write the picks).
 `name_banks` collection — **not** inlined on the `Species` template (a
 shared "common human" bank can back several species). It holds `given`,
 `surname`, and `style` pools. `NameBank.resolve(keys)` unions the pools
-for the species' `nameBankKeys`.
+for the species' `nameBankKeys`. Banks are installed from the
+`@saxonberg/content-species-and-names` content pack
+(`content/name-banks/<key>.yaml`, file name = bank key) by the `PackApi`
+`name-banks` content kind — see
+[content-packs.md](./content-packs.md).
 
 The suggester runs on `Species`: `suggestName(realName)` biases the
 pick by the player's real/account name (e.g. same initial), and

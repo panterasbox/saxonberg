@@ -9,10 +9,12 @@ demand. The pack files are the **source of truth**; the database is a
 files) and a clean deliverable boundary, decoupled from the kernel's
 release cycle.
 
-v1 ships one pack, **base-library** (materials, biomes, quantity-units),
-and the full iteration loop (boot install + runtime `pack sync`). It
-coexists with `SeederManager` and the per-collection seeders, which keep
-serving every not-yet-migrated tree.
+Two packs ship today: **base-library** (materials, biomes,
+quantity-units) and **species-and-names** (the `Species`/`Clade`
+taxonomy tree + the char-gen name banks), plus the full iteration loop
+(boot install + runtime `pack sync`). They coexist with `SeederManager`
+and the remaining per-collection seeders, which keep serving every
+not-yet-migrated tree.
 
 > **Scope.** This is the *content-only* corner of the downloadable-content
 > taxonomy (roadmap Framework 13: Content / Capability / Full). A content
@@ -102,14 +104,24 @@ which a path-prefix notion of ownership could not:
 |---|---|---|
 | `content/lib/**.yaml` | **domain** | reconciled into the `domain` collection (stamped) |
 | `content/quantity/quantity-tags.yaml` | **quantity** | loaded into the in-memory tag table via `QuantityApi.loadTagTables(path)` |
+| `content/name-banks/<key>.yaml` | **name-banks** | reconciled into the `name_banks` collection (stamped), keyed on the file's basename = the bank key |
 
-(The document/side-collection kind — emotes, name banks — is designed but
-not exercised in v1; base-library has none.)
+The **name-banks** kind is the first *side-collection* kind — a flat
+`Document` (`{key, given, surname, style?}`) rather than a path-addressed
+template, so its reconcile (`reconcileNameBanks`) mirrors the domain one
+but keys on the bank `key` and writes to `name_banks`. It skips the
+`requires-kernel` check (a name bank names no backing class). Because
+banks are immutable reference data the char-gen suggester caches by key,
+a `sync` that changes any bank calls `NameBank.clearCache()` so the edit
+goes live (banks aren't held by live instances, so there is nothing to
+re-hydrate). The general document/side-collection vein (emotes, recipes,
+channels) remains a deferred generalization of this one kind.
 
 ### The `sourcePack` stamp
 
-Each installed `domain` row carries a **top-level `sourcePack` field**,
-a sibling of `data` (`{path, class, hydratorClass, data, sourcePack}`).
+Each installed row carries a **top-level `sourcePack` field** (a `domain`
+template, a `name_banks` bank — every stamped backend). On a `domain` row
+it is a sibling of `data` (`{path, class, hydratorClass, data, sourcePack}`).
 It is **not** inside `data`, and the clone pipeline passes only
 `template.data` to the Hydrator — so the stamp is structurally
 unreachable by the instance (a `Material`/`Biome` never sees it). It is a
@@ -205,10 +217,11 @@ values: editing gin's density breaks nothing (it re-hydrates); renaming
 ## Deferred
 
 The slate (`docs/slates/builds/content-packs-slate.md`) holds the full
-design surface and remaining build waves: the other packs (species+names,
-emotes, recipes, channels) and the document/side-collection content-kind;
-retiring `SeederManager` and the per-collection seeders (the strangler-fig
-end-state); the `seed-missing` policy; world packs + cloned-instance
+design surface and remaining build waves: the remaining packs (emotes,
+recipes, channels) and generalizing the side-collection content-kind
+beyond name-banks; retiring `SeederManager` and the per-collection
+seeders (the strangler-fig end-state); the `seed-missing` policy; world
+packs + cloned-instance
 re-hydration; manifest version machinery + cross-pack dependency
 validation; the round-trip / export lane (edit-in-game → file); migrations;
 runtime install / uninstall / marketplace; third-party namespacing; and
@@ -216,11 +229,14 @@ the repo split.
 
 ## Key files
 
-- `packages/content/base-library/` — the v1 pack (manifest + content).
+- `packages/content/base-library/` — the substrate pack (materials,
+  biomes, quantity-units).
+- `packages/content/species-and-names/` — the species/clade tree
+  (`content/lib/species/**`) + the name banks (`content/name-banks/**`).
 - `mud/api/pack.ts` — `PackApi` + the manifest/result types.
-- `mud/obj/api/PackLogic.ts` — discovery, content-kind dispatch, the
-  stamped reconcile (insert/update/adopt/delete), `requires-kernel`, the
-  re-hydrate tail.
+- `mud/obj/api/PackLogic.ts` — discovery, content-kind dispatch (domain /
+  quantity / name-banks), the stamped reconcile (insert/update/adopt/
+  delete), `requires-kernel`, the re-hydrate tail.
 - `mud/obj/command/author/PackController.ts` + `cmd/author/pack.yaml` —
   the `pack sync` verb.
 - `backend/AppBootstrap.ts` — the boot install pass.
@@ -233,3 +249,11 @@ the repo split.
 Built on `feature/content-packs-build` (the content-packs v1 slice).
 First substrate where canonical game content lives outside `packages/server`
 as a versioned deliverable.
+
+`feature/species-and-names-pack` (2026-06-29) added the second pack,
+**species-and-names** — the `Species`/`Clade` tree + the char-gen name
+banks migrated out of the kernel seed tree / `NameBankSeeder` — and with
+it the third content kind, **name-banks** (the first side-collection
+kind). The migration rode the adopt-don't-wipe path: a live DB's existing
+unstamped species + `name_banks` rows are adopted in place on first
+install, no wipe, no data migration (no class moved).

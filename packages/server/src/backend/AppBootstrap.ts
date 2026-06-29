@@ -17,7 +17,6 @@ import { SeederManager } from './SeederManager';
 import { EmoteSeeder } from './EmoteSeeder';
 import { RecipeSeeder } from './RecipeSeeder';
 import { ScriptSeeder } from './ScriptSeeder';
-import { NameBankSeeder } from './NameBankSeeder';
 import { ChannelSeeder } from './ChannelSeeder';
 import { TwitchRelayReader } from './TwitchRelayReader';
 import { AppSettingsSeeder } from './AppSettingsSeeder';
@@ -107,7 +106,9 @@ export class AppBootstrap {
     await SeederManager.run();
 
     // Content packs — reconcile every shipped `@saxonberg/content-*` pack
-    // into the DB (materials, biomes, quantity units). The installer is the
+    // into the DB (base-library: materials, biomes, quantity units;
+    // species-and-names: the species/clade tree + char-gen name banks).
+    // The installer is the
     // source-of-truth-is-the-file replacement for seeding the migrated
     // trees, AND folds in the former standalone `QuantityApi.loadTagTables`
     // call (the quantity content-kind). Writes rows only — nothing is live
@@ -125,7 +126,7 @@ export class AppBootstrap {
         `PackApi: '${r.packId}' installed — ` +
           `${r.inserted.length} inserted, ${r.updated.length} updated, ` +
           `${r.adopted.length} adopted, ${r.deleted.length} deleted, ` +
-          `${r.quantityTables} quantity table(s)`
+          `${r.quantityTables} quantity table(s), ${r.nameBanks} name bank(s)`
       );
     }
 
@@ -141,7 +142,6 @@ export class AppBootstrap {
     await RecipeSeeder.run();
     await ScriptSeeder.run();
     await ChannelSeeder.run();
-    await NameBankSeeder.run();
     await AppSettingsSeeder.run();
 
     const cmd = await CommandApi.preloadAll();

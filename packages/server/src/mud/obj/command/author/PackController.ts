@@ -53,7 +53,7 @@ export default class PackController extends CommandController<PackModel> {
       `synced pack '${r.packId}': ` +
       `${r.inserted.length} inserted, ${r.updated.length} updated, ` +
       `${r.adopted.length} adopted, ${r.deleted.length} deleted, ` +
-      `${r.quantityTables} quantity table(s), ` +
+      `${r.quantityTables} quantity table(s), ${r.nameBanks} name bank(s), ` +
       `${r.rehydrated} live instance(s) re-hydrated`
     );
   }

@@ -25,41 +25,46 @@ const HYDRATOR = '/lib/persistence/PersistentHydrator';
 
 interface Row extends Record<string, unknown> {
   _id?: string;
-  path: string;
-  class: string;
+  path?: string;
+  class?: string;
   hydratorClass?: string;
-  data: Record<string, unknown>;
+  data?: Record<string, unknown>;
   sourcePack?: string;
+  /** Which collection a row belongs to (the stub is collection-aware so the
+   * `domain` and `name_banks` reconciles don't see each other's rows). */
+  __col?: string;
 }
 
 let rows: Row[];
 let nextId: number;
 const tmpRoots: string[] = [];
 
-/** An in-memory `domain` store behind PersistApi (find/save/delete/isConnected). */
+/** An in-memory, collection-aware store behind PersistApi. */
 function stubPersist(): void {
   rows = [];
   nextId = 1;
   vi.spyOn(PersistApi, 'isConnected').mockReturnValue(true);
   vi.spyOn(PersistApi, 'find').mockImplementation(
-    async (_col: string, query: Record<string, unknown>) =>
+    async (col: string, query: Record<string, unknown>) =>
       rows
-        .filter((r) =>
-          Object.entries(query).every(([k, v]) => (r as Row)[k] === v),
+        .filter(
+          (r) =>
+            (r.__col ?? 'domain') === col &&
+            Object.entries(query).every(([k, v]) => (r as Row)[k] === v),
         )
         .map((r) => ({ ...r })) as never,
   );
   vi.spyOn(PersistApi, 'save').mockImplementation(
-    async (_col: string, doc: Record<string, unknown>) => {
+    async (col: string, doc: Record<string, unknown>) => {
       const d = doc as Row;
       if (d._id) {
         const i = rows.findIndex((r) => r._id === d._id);
         const { _id, ...rest } = d;
-        rows[i] = { ...rows[i]!, ...rest, _id }; // $set-by-_id semantics
+        rows[i] = { ...rows[i]!, ...rest, _id, __col: col }; // $set-by-_id
         return String(d._id);
       }
       const id = `id-${nextId++}`;
-      rows.push({ ...d, _id: id });
+      rows.push({ ...d, _id: id, __col: col });
       return id;
     },
   );
@@ -89,11 +94,19 @@ interface FixtureFile {
   data?: Record<string, unknown>;
 }
 
+interface NameBankFixture {
+  key: string;
+  given: string[];
+  surname: string[];
+  style?: string;
+}
+
 /** Write a fixture pack to a temp dir; returns its root. */
 function writePack(
   id: string,
   files: FixtureFile[],
   dependsOn: string[] = [],
+  nameBanks: NameBankFixture[] = [],
 ): string {
   const root = mkdtempSync(join(tmpdir(), `pack-${id}-`));
   tmpRoots.push(root);
@@ -113,7 +126,20 @@ function writePack(
       }),
     );
   }
+  for (const nb of nameBanks) {
+    const file = join(root, 'content', 'name-banks', `${nb.key}.yaml`);
+    mkdirSync(dirname(file), { recursive: true });
+    writeFileSync(
+      file,
+      YAML.stringify({ style: nb.style, given: nb.given, surname: nb.surname }),
+    );
+  }
   return root;
+}
+
+/** The name_banks rows currently in the stubbed store. */
+function nameBankRows(): Row[] {
+  return rows.filter((r) => r.__col === 'name_banks');
 }
 
 beforeEach(() => {
@@ -239,20 +265,125 @@ describe('PackLogic — reconcile (fixture packs, stubbed class resolution)', ()
   });
 });
 
-describe('PackLogic — base-library integration (real pack + real class resolution)', () => {
-  it('install() discovers the real base-library pack: domain rows + quantity tables', async () => {
+describe('PackLogic — reconcile name banks (fixture packs, the name-bank kind)', () => {
+  beforeEach(stubClassResolution);
+
+  const HOMO = 'lib/species/animalia/homo/sapiens.yaml';
+
+  it('insert: name-bank files → stamped name_banks rows (key = file basename)', async () => {
+    const root = writePack(
+      'p',
+      [{ rel: HOMO, class: '/lib/species/Species' }],
+      [],
+      [
+        { key: 'common', given: ['Alden', 'Bella'], surname: ['Ashby'] },
+        { key: 'dwarvish', given: ['Durin'], surname: ['Stonebeard'] },
+      ],
+    );
+    const [r] = await PackApi.install([root]);
+    expect(r!.nameBanks).toBe(2);
+    const banks = nameBankRows();
+    expect(banks.map((b) => b.key).sort()).toEqual(['common', 'dwarvish']);
+    expect(banks.every((b) => b.sourcePack === 'p')).toBe(true);
+    const common = banks.find((b) => b.key === 'common')!;
+    expect(common.given).toEqual(['Alden', 'Bella']);
+    // The domain reconcile must NOT see the name-bank rows (collection-scoped).
+    expect(r!.deleted).toEqual([]);
+  });
+
+  it('update: edited bank overwrites; second run is a no-op', async () => {
+    const root = writePack('p', [], [], [
+      { key: 'common', given: ['Alden'], surname: ['Ashby'] },
+    ]);
+    await PackApi.install([root]);
+
+    writeFileSync(
+      join(root, 'content/name-banks/common.yaml'),
+      YAML.stringify({ given: ['Alden', 'Bram'], surname: ['Ashby'] }),
+    );
+    const [r2] = await PackApi.install([root]);
+    expect(r2!.nameBanks).toBe(1); // the update is counted
+    expect(nameBankRows().find((b) => b.key === 'common')!.given).toEqual([
+      'Alden',
+      'Bram',
+    ]);
+
+    const [r3] = await PackApi.install([root]);
+    expect(r3!.nameBanks).toBe(0); // no edit → no write
+  });
+
+  it('adoption: an unstamped legacy name bank is stamped + matched, no duplicate', async () => {
+    // Simulate a legacy NameBankSeeder row (unstamped) at a pack key.
+    rows.push({
+      _id: 'legacy-nb',
+      key: 'common',
+      given: ['Old'],
+      surname: ['Name'],
+      __col: 'name_banks',
+    });
+    const root = writePack('p', [], [], [
+      { key: 'common', given: ['Alden'], surname: ['Ashby'] },
+    ]);
+    const [r] = await PackApi.install([root]);
+    expect(r!.nameBanks).toBe(1);
+    const banks = nameBankRows();
+    expect(banks).toHaveLength(1); // adopted in place — no duplicate
+    expect(banks[0]!._id).toBe('legacy-nb');
+    expect(banks[0]!.sourcePack).toBe('p');
+    expect(banks[0]!.given).toEqual(['Alden']); // matched to the file
+  });
+
+  it('delete: a stamped bank whose file vanished is removed', async () => {
+    const root = writePack('p', [], [], [
+      { key: 'common', given: ['Alden'], surname: ['Ashby'] },
+      { key: 'dwarvish', given: ['Durin'], surname: ['Stonebeard'] },
+    ]);
+    await PackApi.install([root]);
+    expect(nameBankRows()).toHaveLength(2);
+
+    rmSync(join(root, 'content/name-banks/dwarvish.yaml'));
+    await PackApi.install([root]);
+    expect(nameBankRows().map((b) => b.key)).toEqual(['common']);
+  });
+});
+
+describe('PackLogic — pack integration (real packs + real class resolution)', () => {
+  it('install() discovers the shipped packs: base-library + species-and-names', async () => {
     // No stub on loadClassByPath — exercises the real resolver against the
-    // shipped Material/Biome classes. No packRoots → real discovery from
-    // server deps + module resolution to the @saxonberg/content-base-library
-    // pack root.
+    // shipped Material/Biome/Species/Clade classes. No packRoots → real
+    // discovery from server deps + module resolution to the
+    // @saxonberg/content-* pack roots.
     const results = await PackApi.install();
+
     const base = results.find((r) => r.packId === 'base-library');
     expect(base).toBeDefined();
     // Materials + biomes inserted as stamped domain rows.
     expect(base!.inserted).toContain('/lib/material/spirit/gin');
     expect(base!.inserted).toContain('/lib/biome');
-    expect(rows.every((r) => r.sourcePack === 'base-library')).toBe(true);
     // Content-kind dispatch: the quantity tag tables were loaded too.
     expect(base!.quantityTables).toBeGreaterThan(0);
+
+    const sp = results.find((r) => r.packId === 'species-and-names');
+    expect(sp).toBeDefined();
+    const HOMO =
+      '/lib/species/animalia/chordata/mammalia/primates/hominidae/homo';
+    // The kingdom Clade, the canonical human, and the two new casts.
+    expect(sp!.inserted).toContain('/lib/species/animalia');
+    expect(sp!.inserted).toContain(`${HOMO}/sapiens`);
+    expect(sp!.inserted).toContain(`${HOMO}/trollius`);
+    expect(sp!.inserted).toContain(`${HOMO}/ghulius`);
+    // The name-bank content kind installed its banks.
+    expect(sp!.nameBanks).toBeGreaterThan(0);
+    expect(nameBankRows().some((b) => b.key === 'common')).toBe(true);
+
+    // Every written row is stamped by one of the two shipped packs — no
+    // unstamped leakage.
+    expect(
+      rows.every(
+        (r) =>
+          r.sourcePack === 'base-library' ||
+          r.sourcePack === 'species-and-names',
+      ),
+    ).toBe(true);
   });
 });

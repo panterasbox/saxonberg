@@ -9,9 +9,10 @@
  * A `Species` references one or more by `key` (`Species.nameBankKeys`);
  * the suggester resolves the keys and unions the pools.
  *
- * Seeded from `mud/config/name-banks.yaml` by `NameBankSeeder` at boot
- * (the Emote/`SoulCatalogue` content-Document precedent). Banks are
- * immutable reference data, so resolution caches by key after first
+ * Installed from the `@saxonberg/content-species-and-names` content pack
+ * (`content/name-banks/<key>.yaml`, the file name = the bank key) by the
+ * `PackApi` reconcile installer — the `name-banks` content kind. Banks
+ * are immutable reference data, so resolution caches by key after first
  * load — no per-keystroke DB hit, and no dedicated catalogue singleton
  * (a Map cache is enough; not a premature registry).
  */
@@ -48,7 +49,11 @@ export class NameBank extends Document {
    */
   static #cache: Map<string, NameBank | null> = new Map();
 
-  /** Drop the resolution cache. Test seam. */
+  /**
+   * Drop the resolution cache. Called by `PackApi.sync` after a content
+   * pack writes any name-bank change (so the edit reaches the next
+   * char-gen suggest), and a test seam.
+   */
   static clearCache(): void {
     NameBank.#cache.clear();
   }

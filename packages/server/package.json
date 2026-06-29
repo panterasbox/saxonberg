@@ -17,6 +17,7 @@
   },
   "dependencies": {
     "@saxonberg/content-base-library": "workspace:*",
+    "@saxonberg/content-species-and-names": "workspace:*",
     "@saxonberg/types": "workspace:*",
     "@twurple/auth": "^8.1.4",
     "ajv": "^8.20.0",

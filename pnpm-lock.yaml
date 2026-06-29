@@ -99,11 +99,16 @@ importers:
 
   packages/content/base-library: {}
 
+  packages/content/species-and-names: {}
+
   packages/server:
     dependencies:
       '@saxonberg/content-base-library':
         specifier: workspace:*
         version: link:../content/base-library
+      '@saxonberg/content-species-and-names':
+        specifier: workspace:*
+        version: link:../content/species-and-names
       '@saxonberg/types':
         specifier: workspace:*
         version: link:../types

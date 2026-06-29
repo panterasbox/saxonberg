@@ -11,6 +11,15 @@
 > **Scope:** roster expansion, **NPC-first** (player-playability per species is
 > a separate, later question). Influence: **NetHack** (its race/monster personas,
 > D&D/Tolkien-derived) + the casting principle below.
+>
+> **First JIT pass BUILT (2026-06-29, `feature/species-and-names-pack`).** Per
+> Open-Q6 (EU corner first), the two casting calls — **troll** (`homo/trollius`,
+> Katie) and **ghoul** (`homo/ghulius`, Dr. Vance) — landed as NPC-first
+> `Species` seeds, mundane living-people (the "brute"/"undead" framings are
+> slander, not biology; common name banks). Shipped alongside the migration of
+> the whole `Species`/`Clade` tree + the name banks out of the kernel seed tree
+> into the `@saxonberg/content-species-and-names` content pack. The rest of the
+> palette below stays deferred (JIT, carve-by-carve).
 
 ---
 

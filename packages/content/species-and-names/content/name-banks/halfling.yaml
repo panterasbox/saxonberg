@@ -1,0 +1,8 @@
+# Name bank `halfling` (file name = bank key).
+style: Cozy, compound, hearthside.
+given:
+  [Bilba, Bobalu, Bramble, Dello, Frodi, Lila, Marigold, Milo, Nettie,
+   Pippa, Rosco, Tilly]
+surname:
+  [Smallberries, Underhill, Goodbarrel, Thornapple, Brandybuck,
+   Tealeaf, Honeyfoot, Greenbottle]
