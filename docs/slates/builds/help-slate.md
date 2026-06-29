@@ -1,6 +1,8 @@
 # Help slate (working doc)
 
-> **Status: shape proposed.** The **systems** half of the reading
+> **Status: Wave 1 shipped (2026-06) — see
+> [docs/subsystems/help.md](../../subsystems/help.md); Waves 2–3 shape
+> proposed.** The **systems** half of the reading
 > substrate — the in-game **rulebook**: how the world *works* (commands,
 > immutable-at-runtime types/taxonomies, mechanics, formulas + numbers,
 > the engine/API surface). **Developer-maintained** (unlike the

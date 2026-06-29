@@ -127,7 +127,11 @@ Relations fall out of the projection so the pane navigates a hierarchy,
 not a flat see-also list. Each edge denormalizes its `targetTitle`:
 
 - **method-of** — every member topic → its parent face/mixin/type topic.
-- **confers** — each `mixin` topic → its conferred members.
+- **confers** — each `mixin` topic → its conferred members (the method
+  name rides `targetTitle`). Conferred methods are rendered inline in the
+  mixin body this wave rather than as standalone topics, so the edge
+  resolves to the mixin topic that documents them; per-member drill-in
+  topics are a later wave.
 - **requires** — an `api`/member topic → the `type`/`mixin` topics named
   in its `signatureTypes`.
 - **consumed-by** — the inverse of `requires` (a name→consumers index over
