@@ -59,7 +59,7 @@ See also:
   channels project over** (the `GroupApi` membership/role source;
   guilds/parties/cohorts/managed groups all behind it). The key
   dependency: groups are primary, chat is a projection over them.
-- [social-graph-slate.md](../builds/social-graph-slate.md) — personal buckets
+- [social-graph-slate.md](../tails/social-graph-slate.md) — personal buckets
   (friends/classmates); *one source* into the grouping facade, not the
   facade itself.
 - [augmentation-slate.md](../tails/augmentation-slate.md) — the device carrying every

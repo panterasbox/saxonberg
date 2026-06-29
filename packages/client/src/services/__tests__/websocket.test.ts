@@ -665,3 +665,45 @@ describe("websocket prompt substrate", () => {
     expect(s.basePrompt).toBe("kitchen>");
   });
 });
+
+describe("websocket social presence frames", () => {
+  beforeEach(() => {
+    resetClient();
+    useStore.setState({ frames: [] });
+  });
+
+  function presenceFrame(
+    event: "loggedIn" | "loggedOut" | "reconnected" | "disconnected",
+    id: string,
+  ): unknown {
+    return {
+      id,
+      topic: "world.social.presence",
+      tags: ["audience:actor"],
+      body: "<name>Alice</name> has entered the game.",
+      payload: {
+        kind: "presence",
+        event,
+        actor: { stuffId: "a1", displayName: "Alice" },
+        color: "amber",
+      },
+      meta: { timestamp: 0 },
+    };
+  }
+
+  it("renders a presence frame inline via the catch-all (no separate surface)", () => {
+    attachMockWs();
+    const seen: string[] = [];
+    const handler = (f: { id: string }) => seen.push(f.id);
+    websocketClient.onAnyTopic(handler);
+    try {
+      deliver(presenceFrame("loggedIn", "f1"));
+      deliver(presenceFrame("reconnected", "f2"));
+    } finally {
+      websocketClient.offAnyTopic(handler);
+    }
+    // Every presence frame reaches the catch-all (which the in-world frame
+    // store appends to the transcript) — there is no toast/queue surface.
+    expect(seen).toEqual(["f1", "f2"]);
+  });
+});

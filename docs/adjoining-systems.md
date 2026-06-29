@@ -40,7 +40,7 @@ slates:
 1. [Time and sustained actions](#1-time-and-sustained-actions-graduated) — **GRADUATED to [subsystems/activity.md](./subsystems/activity.md)** (Wave 1 substrate shipped; locomotion-as-activity and host-slot activities deferred — see [locomotion-as-activity-slate.md](./slates/tails/locomotion-as-activity-slate.md) and [host-slot-activities-slate.md](./slates/tails/host-slot-activities-slate.md))
 2. [Sound propagation as a physics channel](#3-sound-propagation-as-a-physics-channel-graduated) — **GRADUATED to [subsystems/senses.md](./subsystems/senses.md)** (the *hearing* instance; deep acoustic spec retained in [senses-slate.md](./slates/tails/senses-slate.md); also spun out the cross-cutting [subsystems/quantities.md](./subsystems/quantities.md), shipped)
 3. [Collisions, blocking, and pushing](#2-collisions-blocking-and-pushing-graduated) — **GRADUATED to [collision-slate.md](./slates/deferred-rpg/collision-slate.md)** (also spun out [design-philosophy.md](./design-philosophy.md))
-4. [Recognition, disguise, and strangers](#5-recognition-disguise-and-strangers-graduated) — **GRADUATED to [recognition-slate.md](./slates/tails/recognition-slate.md)** (also spun out [social-graph-slate.md](./slates/builds/social-graph-slate.md), [identification-slate.md](./slates/tails/identification-slate.md); trust-tiered moderation folded into [comms-slate.md § Moderation](./slates/tails/comms-slate.md))
+4. [Recognition, disguise, and strangers](#5-recognition-disguise-and-strangers-graduated) — **GRADUATED to [recognition-slate.md](./slates/tails/recognition-slate.md)** (also spun out [social-graph-slate.md](./slates/tails/social-graph-slate.md), [identification-slate.md](./slates/tails/identification-slate.md); trust-tiered moderation folded into [comms-slate.md § Moderation](./slates/tails/comms-slate.md))
 
 Tier 2 — extends established patterns; can land after Tier 1
 without churn:
@@ -192,7 +192,7 @@ machinery (does this share infrastructure with #9?).
 sibling slates spun out from the social-game / multi-user-scale
 discussion:
 
-- [docs/slates/builds/social-graph-slate.md](./slates/builds/social-graph-slate.md) —
+- [docs/slates/tails/social-graph-slate.md](./slates/tails/social-graph-slate.md) —
   buckets (friends/foes/custom), notification policies,
   attention-management rendering. Strangers go *more*
   ambiguous in crowded rooms so people who matter stand out.

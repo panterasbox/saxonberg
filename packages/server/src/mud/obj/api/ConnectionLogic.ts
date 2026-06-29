@@ -11,10 +11,39 @@ import type { Stuff } from '../../lib/stuff/Stuff';
 import type { HasInteractive } from '../../lib/connection/HasInteractive';
 import { EventApi } from '../../api/event';
 import { Events } from '../../lib/events';
+import geoip from 'geoip-lite';
+import type { ConnectionOrigin } from '../../api/connection';
 
 const ConnectionApiCallers = SecurityPolicies.FromModule(
   'mud/api/connection#ConnectionApi'
 );
+
+/** ISO-3166 alpha-2 → English region display name (e.g. `DE` → `Germany`). */
+const REGION_NAMES = new Intl.DisplayNames(['en'], { type: 'region' });
+
+/**
+ * Resolve an IP to a country display name via the offline `geoip-lite`
+ * dataset. Returns `undefined` for localhost / private / unroutable IPs
+ * (no country) and on any lookup failure. Strips an IPv6-mapped-v4
+ * prefix (`::ffff:127.0.0.1` → `127.0.0.1`) so dev/proxy addresses
+ * resolve. Country is the only datum derived — never city/region here.
+ */
+function geolocateCountry(ip: string): string | undefined {
+  try {
+    const normalized = ip.startsWith('::ffff:') ? ip.slice(7) : ip;
+    const hit = geoip.lookup(normalized);
+    if (!hit?.country) {
+      // Dev-only fallback: localhost / private IPs never geolocate, so a
+      // local session would never show a country. When `DEV_GEO_COUNTRY`
+      // is set, treat an unresolved IP as coming from it — a testing knob
+      // only (production has real client IPs via X-Forwarded-For).
+      return process.env.DEV_GEO_COUNTRY || undefined;
+    }
+    return REGION_NAMES.of(hit.country) ?? hit.country;
+  } catch {
+    return undefined;
+  }
+}
 
 /**
  * ConnectionLogic — the hot-reloadable logic singleton behind
@@ -40,6 +69,32 @@ export class ConnectionLogic extends Idea {
   @CallSecurity(ConnectionApiCallers)
   public getInteractive(socketId: string): Interactive | undefined {
     return ConnectionManager.get().getInteractive(socketId);
+  }
+
+  /** See {@link ConnectionApi.recordOrigin}. */
+  @CallSecurity(ConnectionApiCallers)
+  public recordOrigin(interactive: Interactive, ip: string | undefined): void {
+    if (!ip) return;
+    interactive.setOrigin({ ip, country: geolocateCountry(ip) });
+  }
+
+  /** See {@link ConnectionApi.originOf}. */
+  @CallSecurity(ConnectionApiCallers)
+  public originOf(playerId: string): ConnectionOrigin {
+    // Resolve the player's live connection by scanning Interactives for
+    // the one whose holder carries this playerId, then read its transient
+    // origin. Returns COUNTRY ONLY — the raw IP never leaves the
+    // connection layer (the developer-gated IP read is deferred).
+    for (const interactive of ConnectionManager.get().getAllInteractives()) {
+      const holder = interactive.getHolder() as {
+        getPlayerId?: () => string;
+      } | null;
+      if (holder?.getPlayerId?.() === playerId) {
+        const origin = interactive.getOrigin();
+        return origin?.country ? { country: origin.country } : {};
+      }
+    }
+    return {};
   }
 
   /** See {@link ConnectionApi.getAllInteractives}. */

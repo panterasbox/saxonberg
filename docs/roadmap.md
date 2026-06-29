@@ -255,7 +255,7 @@ Ordered by leverage + dependency:
    ([emotes](./slates/tails/emotes-slate.md) /
    [comms](./slates/tails/comms-slate.md) /
    [chat](./slates/tails/chat-slate.md) /
-   [social-graph](./slates/builds/social-graph-slate.md))
+   [social-graph](./slates/tails/social-graph-slate.md))
 4. **Collision** — *decomposed; not a standalone near-term pick
    (resolved 2026-06-10).* The slate bundled three different-priority
    concerns that disperse rather than ship as a unit:
@@ -293,13 +293,17 @@ Ordered by leverage + dependency:
    (abstain/quorum, no verb yet), the durable-`templatePath` re-key, and the
    **authorship ledger** ([provenance.md](./subsystems/provenance.md)) — the
    patron faucet, the ballot/chambers, and NPC-susceptibility / eigenvector
-   weighting stay deferred. Remaining
-   tails: **social-graph** (crowd-bucket verbosity), identification's
+   weighting stay deferred. The **social-graph attention layer**
+   (crowd-bucket verbosity + the `notify` notification policy) then
+   **shipped 2026-06** as social-graph Wave 3
+   ([social-graph.md](./subsystems/social-graph.md)); its remaining tail
+   is Wave 4 (account-level federation) + the message-restyle live wiring.
+   Remaining tails: identification's
    **pedagogical instrument seam** (`analyze X with Y`, real Material
    chemistry) + partial-ID + misidentification, and the **aether
    id-aug** ambient trigger (axes unresolved + aug substrate retooling).
    ([reputation](./slates/builds/reputation-slate.md) /
-   [social-graph](./slates/builds/social-graph-slate.md) /
+   [social-graph](./slates/tails/social-graph-slate.md) /
    [identification](./slates/tails/identification-slate.md))
 6. **Augmentation Wave 2+ + npc-dialogue** — Wave 1 augmentation
    shipped 2026-06 (substrate + AetherImplant; see
@@ -414,7 +418,7 @@ requirements.
 - [docs/slates/tails/recognition-slate.md](./slates/tails/recognition-slate.md) — per-
   viewer perception state; `DescribeApi v2` pipeline; disguise
   as Wearable shadow; salient-feature rendering.
-- [docs/slates/builds/social-graph-slate.md](./slates/builds/social-graph-slate.md) —
+- [docs/slates/tails/social-graph-slate.md](./slates/tails/social-graph-slate.md) —
   per-viewer buckets (friends/foes/custom); notification policies;
   bucket-keyed display verbosity. **One *source* into the grouping
   facade** (below), not the same layer.

@@ -23,6 +23,7 @@ import { SERVER_URL, WS_URL } from "./config";
 import { websocketClient } from "./services/websocket";
 import { Frame } from "./components/frame/Frame";
 import { ReconnectBanner } from "./components/frame/ReconnectBanner";
+import { SocialNotificationsPane } from "./components/settings/SocialNotificationsPane";
 import { StartScreen } from "./components/StartScreen";
 import { Terminal } from "./components/Terminal";
 import { TabStrip } from "./components/TabStrip";
@@ -326,6 +327,8 @@ function App() {
   const connectionPhase = useStore((state) => state.connectionPhase);
   const mainView = useStore((state) => state.mainView);
   const setMainView = useStore((state) => state.setMainView);
+  const socialPaneOpen = useStore((state) => state.socialPaneOpen);
+  const setSocialPaneOpen = useStore((state) => state.setSocialPaneOpen);
   const frames = useStore((state) => state.frames);
   const clientState = useStore((state) => state.clientState);
   const reactionPrefs = useStore((state) => state.reactionPrefs);
@@ -757,6 +760,14 @@ function App() {
         <AppContainer>
           <Frame />
           <ReconnectBanner />
+          {socialPaneOpen && (
+            <SocialNotificationsPane
+              onClose={() => setSocialPaneOpen(false)}
+              onSendCommand={sendCommand}
+              onCommandPreview={handleCommandPreview}
+              onCommandClick={handleCommandClick}
+            />
+          )}
           <Cockpit>
             <LeftColumn>
               {/* Primary-view switch — Terminal | Forum (not a phase). */}

@@ -254,34 +254,35 @@ persisted shape doesn't change when that lands — storage is already
 keyed on durable identifiers; only the add-path's resolver gains a
 fallback lookup.
 
-## What's deferred — see social-graph-slate
+## The attention layer above contacts — see social-graph
 
 `ContactsMixin` ships the **bucket primitive** — named lists of
 durable identifiers, plus the verbs to manage them, plus a uniform
-read surface via `GroupApi`. The rest of what the social-graph
-subsystem will eventually do stays in
-[social-graph-slate.md](../slates/builds/social-graph-slate.md) for the
-recognition-family build:
+read surface via `GroupApi`. The **attention-management layer** that
+consumes those buckets — per-rule **notification policy** and
+**display lensing** — shipped as social-graph Wave 3; see
+[social-graph.md](./social-graph.md). Notably it does **not** put the
+policy on contacts: a rule is keyed on **any `GroupRef`** (a contacts
+label is one kind of subject, alongside managed groups and MQL
+queries), stored as a separate ordered `NotifyPolicyMixin` list and
+driven by the new `notify` verb — so contacts stays the dumb storage
+primitive it was designed to be. Resolved there:
 
-- **Per-bucket notification policy** (`onConnect`, `onMessage`,
-  `onProximity`, `onEnterRoom`) — when a contact triggers a
-  player-facing notification and how loudly.
-- **Display lensing** — bucket-keyed verbosity in DescribeApi v2;
-  friends get full names, strangers collapse into counts in a dense
-  room.
-- **Recognition state** — the "do I know this person yet" axis,
-  separate from "have I bucketed them"; recognition records hold the
-  bucket assignments rather than the Avatar's mixin.
-- **Mutual / consent friending** — `friend` adds are one-sided in
-  v1, accept-required in the recognition build.
-- **The `friend` reserved label** — NOT reserved here; labels are
-  generic strings. The recognition build promotes a chosen set of
-  labels to first-class semantics with the policy + lensing hooks
-  attached.
-- **The bucket-displaced verb suite** — `bucket create`,
-  `bucket add`, `bucket policy`, etc., from the slate; contacts'
-  verb suite covers the v1 mechanics under a different name (no
-  `policy` / `verbosity` subcommands).
+- **Per-rule notification policy** (`onConnect` / `onDisconnect` /
+  `onMessage`; movement deliberately dropped) — the `notify` verb +
+  the login presence relay.
+- **Display lensing** — bucket-keyed room-occupant verbosity (the
+  formatter is a sibling of `RecognitionApi.describe`, *not* a
+  "DescribeApi v2").
+- **Reserved labels** — `friends` / `foes` / `everyone-else` /
+  `strangers` are now first-class virtual baseline rules with shipped
+  defaults (contacts labels themselves stay generic strings).
+
+Still deferred (now tracked in social-graph.md + its slate's Wave 4):
+
+- **Recognition state** as a separate "do I know this person yet"
+  axis distinct from bucketing, and **mutual / consent friending**
+  (`friend` adds stay one-sided).
 
 The contracts hold across the upgrade: the persisted entry shape
 gains optional fields; the existing verbs keep working; the
@@ -295,6 +296,6 @@ gains optional fields; the existing verbs keep working; the
 - [messaging.md](./messaging.md) — audience computation in
   chat / DM; the consumer side of `GroupApi.membersOf` against a
   `contacts:` ref.
-- [social-graph-slate.md](../slates/builds/social-graph-slate.md) — the
+- [social-graph-slate.md](../slates/tails/social-graph-slate.md) — the
   full recognition-family design (notification policy, display
   lensing, recognition state) that contacts is the first slice of.

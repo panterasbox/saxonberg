@@ -68,7 +68,7 @@ See also:
   tags and channel presentational stylesheets (system/authors free;
   players channel-gated). Channel stylesheets are channel config set by
   admins (control-over).
-- [social-graph-slate.md](../builds/social-graph-slate.md) /
+- [social-graph-slate.md](../tails/social-graph-slate.md) /
   [recognition-slate.md](../tails/recognition-slate.md) — friend/foe **name
   coloring** = an MML `stuff-id` attribute resolved against the viewer's
   bucket.

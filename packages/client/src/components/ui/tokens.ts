@@ -40,6 +40,20 @@ export const tokens = {
     warning: "#cca700",
     danger: "#f48771",
   },
+  // Named social-graph highlight palette. The server emits a token name
+  // (never raw hex — see `NotifyRule.PaletteToken`); the client maps it
+  // here so a theme swap re-tints every social highlight in one edit.
+  // `paletteFor(token)` falls back to `neutral` for an unknown token.
+  palette: {
+    amber: "#d7ba7d",
+    teal: "#4ec9b0",
+    rose: "#f48771",
+    slate: "#888",
+    violet: "#a89bd8",
+    emerald: "#6abf69",
+    sky: "#569cd6",
+    neutral: "#bbb",
+  } as Record<string, string>,
   space: {
     xs: "0.15rem",
     sm: "0.25rem",

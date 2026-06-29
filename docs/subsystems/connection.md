@@ -120,7 +120,7 @@ Provider OAuth ──▶ /auth/{provider}/callback
                   ├─ ConnectionApi.transfer(interactive, avatar)
                   ├─ avatar.teleport(startingRoom, { silent: true })
                   ├─ MessageApi.scene(avatar)…system.connection.established
-                  ├─ EventApi.emit(Events.PlayerLoggedIn, …)
+                  ├─ EventApi.emit(Events.PlayerLoggedIn | …Reconnected, …)
                   └─ StuffApi.destruct(this)
 ```
 
@@ -420,8 +420,16 @@ a session" means; Avatar doesn't need to know how Login picked it.
    reset), same code that fires after a traversal. Avoids
    reimplementing the look output in Avatar.
 
-5. **`EventApi.emit(Events.PlayerLoggedIn, { playerId, userId })`** —
-   engine event for any observer (audit, achievements).
+5. **`EventApi.emit(Events.PlayerLoggedIn | Events.PlayerReconnected,
+   { playerId, userId })`** — engine event for any observer (audit,
+   achievements, the social presence relay). A first-ever `enter()` for
+   this instance is a fresh login (`PlayerLoggedIn`); a second `enter()`
+   (a connection returning to a body that lingered linkdead) is a
+   reconnect (`PlayerReconnected`), discriminated by a transient
+   `sessionActive` flag that survives the linkdead window. (Separately,
+   `Application.handleUserConnect` captures the connection's country of
+   origin via `ConnectionApi.recordOrigin` when the Interactive is created
+   — see [social-graph.md](./social-graph.md) § Country of origin.)
 
 After `Avatar.enter()` returns, the user is in-world.
 `interactive.getHolder() === avatar`; Login is destructed and
@@ -490,9 +498,14 @@ hooks (`connection.ts § transfer`):
 | `onLinkdead()` | count crosses 1 → 0 | last connection dropped |
 | `onLinkRestored()` | count crosses 0 → 1 | first connection back |
 
-All four are **optional**. `Avatar` overrides `onLinkdead` to emit
-the global `Events.PlayerLoggedOut`. Per-device hooks aren't
-currently used.
+All four are **optional**. `Avatar` overrides `onLinkdead` to emit a
+global presence event, split by intent: `Events.PlayerLoggedOut` for a
+**deliberate** leave (sign-out / switch-character — the client closed
+with `INTENTIONAL_LEAVE_CLOSE_CODE` 4000, which
+`Application.handleUserDisconnect` recorded via `Avatar.setLeaveIntent`),
+else `Events.PlayerDisconnected` for an **involuntary** linkdead drop
+(the body lingers; the next `enter()` is a reconnect). Per-device hooks
+aren't currently used.
 
 [Metabolism](./metabolism.md) is a **read-only** consumer of presence and
 adds **no connection-layer work**: its lazy reconcile checks
@@ -672,15 +685,22 @@ skips if the socket is missing or closed.
 
 WebSocket close is the canonical disconnect. The browser navigating
 away, the user closing the tab, network failure, and explicit client
-close all converge on `ws.on('close', ...)`.
+close all converge on `ws.on('close', code)`. The **close code**
+distinguishes a deliberate leave from an involuntary drop: the client's
+`disconnect()` (sign-out / leave-world) closes with
+`INTENTIONAL_LEAVE_CLOSE_CODE` (4000); a tab-close / network failure
+carries a normal/abnormal code. `handleWebSocketClose` reads it and
+passes `intentional` down, so the presence layer can fire `loggedOut`
+(deliberate) vs `disconnected` (linkdead) — see the hooks table above.
 
 ```
-ws 'close' → Backend.handleWebSocketClose(socketId)
+ws 'close' (code) → Backend.handleWebSocketClose(socketId, code)
                        │
                        ├─ socketsBySocketId.delete(socketId)
-                       │   (runRoot frame)
+                       │   (runRoot frame; intentional = code === 4000)
                        ▼
-              Application.handleUserDisconnect(socketId)
+              Application.handleUserDisconnect(socketId, intentional)
+                       │  └─ if intentional: holder.setLeaveIntent(true)
                        │
                        ├─ interactive.teardownSubstrateState()
                        │     (cancel MQL + forum subs, reaction

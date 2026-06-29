@@ -75,6 +75,22 @@ export default class Interactive extends Idea {
   public getHolder(): (HasInteractive & Stuff) | null { return this.holder; }
   public setHolder(value: (HasInteractive & Stuff) | null): void { this.holder = value; }
 
+  /**
+   * Transient connection origin captured at the WS handshake: the raw
+   * client `ip` and the derived `country` display name. **In-memory only**
+   * — an Interactive is never persisted, so the IP's lifetime is bounded
+   * to the live connection (the PII posture: country may surface broadly;
+   * the IP stays here). `null` until `ConnectionApi.recordOrigin` runs (or
+   * when geo can't resolve). Set/read through the Api, not directly.
+   */
+  protected origin: { ip?: string; country?: string } | null = null;
+  public getOrigin(): { ip?: string; country?: string } | null {
+    return this.origin;
+  }
+  public setOrigin(value: { ip?: string; country?: string } | null): void {
+    this.origin = value;
+  }
+
   constructor(socketId: string, sessionId: string, user: User) {
     super();
 

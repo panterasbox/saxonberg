@@ -394,7 +394,10 @@ to a `ForumsLogic` / `SubjectLogic` logic singleton; see
 [influence.md](./subsystems/influence.md) and
 [provenance.md](./subsystems/provenance.md). `InfluenceApi` is a thin
 cross-stock *dispatcher* with no logic singleton (it delegates to the
-per-stock Apis).
+per-stock Apis). `SocialApi` (→ `SocialLogic`; the attention-management
+layer — the shared `ruleFor` resolution, the display-lensing occupant
+formatter, the login presence relay — see
+[social-graph.md](./subsystems/social-graph.md)).
 
 `MqlSubscriptionApi` is the second wire channel alongside prose /
 dispatch-response. Inbound `mql-subscribe` / `mql-unsubscribe`

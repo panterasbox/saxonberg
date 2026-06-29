@@ -263,6 +263,31 @@ describe("MmlRenderer", () => {
       expect(onCommandPreview).toHaveBeenNthCalledWith(2, null);
     });
 
+    it("tints a <name color='amber'> span with the palette color (boosted occupant) while keeping it clickable", () => {
+      const { container, onCommandClick } = renderRenderer(
+        '<name color="amber">Alice</name>'
+      );
+      const span = screen.getByText("Alice");
+      // amber → tokens.palette.amber = #d7ba7d = rgb(215, 186, 125).
+      expect(window.getComputedStyle(span).color).toBe("rgb(215, 186, 125)");
+      // Click behavior preserved — falls back to `look <label>` with no
+      // registry hit.
+      fireEvent.click(span);
+      expect(onCommandClick).toHaveBeenCalledWith("look Alice");
+      expect(container.querySelector("span")).not.toBeNull();
+    });
+
+    it("renders a <highlight color='rose'> span tinted by the palette (forward-compat)", () => {
+      const { onCommandPreview } = renderRenderer(
+        '<highlight color="rose">danger</highlight>'
+      );
+      const span = screen.getByText("danger");
+      // rose → tokens.palette.rose = #f48771 = rgb(244, 135, 113).
+      expect(window.getComputedStyle(span).color).toBe("rgb(244, 135, 113)");
+      // Not clickable — a styling wrapper only.
+      expect(onCommandPreview).not.toHaveBeenCalled();
+    });
+
     it("reads the registry as a snapshot — upserts after render do not auto-rerender, but reads at click time use the latest snapshot when the parent re-renders", () => {
       // First render: no registry hit, label fallback.
       const { onCommandClick, rerender } = renderRenderer(

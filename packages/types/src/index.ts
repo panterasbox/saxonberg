@@ -94,6 +94,107 @@ export interface MessageFrame<T = unknown> {
 }
 
 // ============================================================================
+// Social-graph presence notification (the `world.social.presence` payload)
+// ============================================================================
+
+/**
+ * WebSocket close code the client uses on a **deliberate** teardown (sign
+ * out / switch character) so the server can distinguish a clean departure
+ * (→ `loggedOut`) from an involuntary network drop / linkdead (→
+ * `disconnected`). In the application-private range (4000–4999) per the
+ * WebSocket spec, so it never collides with protocol codes.
+ */
+export const INTENTIONAL_LEAVE_CLOSE_CODE = 4000;
+
+/**
+ * Payload of a `world.social.presence` frame — the social-graph Wave 3
+ * presence notification (server `SocialLogic.relayPresence`). Rides the
+ * ordinary `MessageFrame` channel (no new wire message type, no separate
+ * client notification surface): a presence frame renders **inline in the
+ * message buffer** like any other scene frame. The payload is carried for
+ * structured consumers (filtering, future styling); the human-readable
+ * line is the frame body, tinted server-side by the rule `color`.
+ *
+ * - `event` is the player-level presence transition, gated on having a
+ *   character in the world:
+ *   - `loggedIn` — a character entered the game (fresh session);
+ *   - `reconnected` — a connection returned to a still-in-world character
+ *     that had gone linkdead;
+ *   - `loggedOut` — a character deliberately left the game (sign out /
+ *     switch character);
+ *   - `disconnected` — a character's last connection dropped (linkdead),
+ *     the body lingering for a possible reconnect.
+ *   A bare socket to the welcome screen and the OAuth/user layer never
+ *   surface here.
+ * - `color` is a named theme-palette token (e.g. `'amber'`), never raw
+ *   hex, so the inline highlight resolves through the theme cascade.
+ * - `country` is the connecting player's country of origin (display
+ *   name), present on `loggedIn` / `reconnected` when resolvable from the
+ *   connection IP (`ConnectionApi.originOf`). Absent on localhost / when
+ *   geo can't resolve, and on departures.
+ */
+export interface SocialNotificationPayload {
+  kind: 'presence';
+  event: 'loggedIn' | 'loggedOut' | 'reconnected' | 'disconnected';
+  actor: StuffRef;
+  color: string;
+  country?: string;
+}
+
+/**
+ * One row of the `social.rules` client-state projection — a flattened,
+ * wire-safe view of a `NotifyRule` for the "Social / Notifications"
+ * settings pane. The server pushes the viewer's effective ordered list
+ * (stored rules spliced into the virtual reserved baseline) via
+ * `host.pushClientStateUpdate('social.rules', SocialRulesState)` after
+ * every `notify` mutation; the pane reads it as a **read-only cache** —
+ * the per-character rule store stays the single source of truth, and all
+ * writes go back through the `notify` verb.
+ *
+ * - `groupRef` is the canonical ref the verb addresses (`contacts:<pid>:
+ *   <label>`, `managed:<id>`, `mql:<q>`, or the bare `everyone-else` /
+ *   `strangers` pseudo-subjects).
+ * - `label` is the human-friendly display name (a contacts ref's bare
+ *   label, else the ref itself) — display only; commands address
+ *   `groupRef`.
+ * - `reserved` is `true` for a virtual baseline row not yet materialized
+ *   into the stored list (the pane styles it as a default that
+ *   editing/reordering will pin).
+ * - `color` is a named theme-palette token (never raw hex), mapped
+ *   client-side through `tokens.palette`.
+ */
+export interface SocialRuleProjection {
+  groupRef: string;
+  label: string;
+  nameRendering: 'name' | 'feature-string' | 'count-only' | 'hidden';
+  boostInDense: boolean;
+  onConnect: 'show' | 'silent';
+  onDisconnect: 'show' | 'silent';
+  onMessage: 'full' | 'summary' | 'silent';
+  color: string;
+  reserved: boolean;
+}
+
+/**
+ * The `social.rules` client-state projection value — the viewer's
+ * effective ordered notify-rule list, top = highest precedence. Pushed
+ * server→client (`client-state-update`) after every `notify` mutation
+ * (and on a bare `notify` list) so the settings pane re-renders without a
+ * reconnect snapshot. Not a persisted client-state key — a pure push
+ * cache.
+ */
+export interface SocialRulesState {
+  rules: SocialRuleProjection[];
+  /**
+   * The viewer's current `social.presenceFormat` Liquid template (the
+   * per-character presence-line format). The pane shows + edits it; writes
+   * go back through `settings set social.presenceFormat "…"`. A pure push
+   * cache like `rules` — the setting store is the source of truth.
+   */
+  presenceFormat: string;
+}
+
+// ============================================================================
 // Response Envelope (dispatch outcome wire frame)
 // ============================================================================
 

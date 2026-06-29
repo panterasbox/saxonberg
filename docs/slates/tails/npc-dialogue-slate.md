@@ -9,7 +9,7 @@
 > tables; the `addressed`/`handleMessage` trigger + the implant `tell`
 > entry land with it), the **LLM** front-end (see also
 > [llm-content-slate](../builds/llm-content-slate.md)), persistent
-> per-relationship state ([social-graph-slate](../builds/social-graph-slate.md)),
+> per-relationship state ([social-graph-slate](../tails/social-graph-slate.md)),
 > and **multiplayer** tree participation beyond overhearing.
 
 Working slate for **NPC dialogue** — talking *with* the world's
