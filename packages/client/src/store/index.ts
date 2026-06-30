@@ -17,6 +17,7 @@
 import { create } from "zustand";
 import type {
   AuthState,
+  BulletinRow,
   CharGenRosterEntry,
   CharGenStatePayload,
   ConnectionEstablishedPayload,
@@ -313,12 +314,13 @@ interface StoreState extends CmsSlice {
 
   /**
    * Which right-column cockpit pane the world layout shows —
-   * `'inspect'` (the inspection pane) or `'who'` (the "Who's Online"
-   * roster). Ephemeral client-only UI state, never persisted. Consulted
-   * by the world layout's right-column pane switch.
+   * `'inspect'` (the inspection pane), `'who'` (the "Who's Online"
+   * roster), or `'news'` (the bulletin news-ticker). Ephemeral
+   * client-only UI state, never persisted. Consulted by the world
+   * layout's right-column pane switch.
    */
-  rightPane: "inspect" | "who";
-  setRightPane: (pane: "inspect" | "who") => void;
+  rightPane: "inspect" | "who" | "news";
+  setRightPane: (pane: "inspect" | "who" | "news") => void;
 
   /**
    * The "Who's Online" roster (`world.social.roster` topic). `roster` maps
@@ -336,6 +338,32 @@ interface StoreState extends CmsSlice {
   applyRosterAdd: (row: RosterRow) => void;
   /** Delete one row by `handle` (a `remove` frame). */
   applyRosterRemove: (handle: string) => void;
+
+  /**
+   * The bulletin news-ticker feed (`world.bulletin.feed` topic). `feed`
+   * maps each bulletin's stable `bulletinId` → the {@link BulletinRow}
+   * projection; `feedOrder` is the display order (pins first, then by
+   * `publishedAt` desc — a STABLE tiebreaker over the already-server-
+   * ordered payload; the server is authoritative on order, the client
+   * re-sort only keeps the keyed map deterministic). The initial
+   * `snapshot` rides the welcome payload (`bulletinWindow` in
+   * `setConnected`); live `upsert` / `remove` frames flow through
+   * `services/websocket.ts` (the `world.bulletin.feed` handler).
+   */
+  feed: Record<string, BulletinRow>;
+  feedOrder: string[];
+  /** Replace the whole feed (a `snapshot` frame / the welcome window). */
+  applyBulletinSnapshot: (rows: BulletinRow[]) => void;
+  /** Upsert one row by `bulletinId` (an `upsert` frame). */
+  applyBulletinUpsert: (row: BulletinRow) => void;
+  /** Delete one row by `bulletinId` (a `remove` frame). */
+  applyBulletinRemove: (bulletinId: string) => void;
+  /**
+   * Append a batch of older rows (the REST archive "load older"
+   * control). Upserts each by `bulletinId`; the stable tiebreaker
+   * folds them into the existing order.
+   */
+  appendBulletins: (rows: BulletinRow[]) => void;
 
   /**
    * The forum view's current navigation target. `boardHandle` is the
@@ -871,6 +899,24 @@ function orderRoster(roster: Record<string, RosterRow>): string[] {
 }
 
 /**
+ * Stable display order for the bulletin news-ticker: pinned rows first,
+ * then by `publishedAt` descending (newest first), with `bulletinId` as
+ * the final tiebreaker so the order is deterministic. This is a STABLE
+ * tiebreaker over the already-server-ordered payload — the server owns
+ * order/pins; the client re-sort only keeps the keyed map deterministic
+ * after individual upserts/removes.
+ */
+function orderFeed(feed: Record<string, BulletinRow>): string[] {
+  return Object.values(feed)
+    .sort((a, b) => {
+      if (a.pinned !== b.pinned) return a.pinned ? -1 : 1;
+      if (a.publishedAt !== b.publishedAt) return b.publishedAt - a.publishedAt;
+      return a.bulletinId.localeCompare(b.bulletinId);
+    })
+    .map((row) => row.bulletinId);
+}
+
+/**
  * Initial auth state.
  */
 const initialAuthState: AuthState = {
@@ -969,7 +1015,8 @@ export const useStore = create<StoreState>((set, get) => ({
   openPane: (kind) => set(() => ({ summonedPane: kind })),
   closePane: () => set(() => ({ summonedPane: null })),
 
-  // Right-column cockpit pane axis (world layout): inspection | who's-online.
+  // Right-column cockpit pane axis (world layout): inspection | who's-online
+  // | news-ticker.
   rightPane: "inspect",
   setRightPane: (pane) =>
     set((state) => (state.rightPane === pane ? {} : { rightPane: pane })),
@@ -994,6 +1041,36 @@ export const useStore = create<StoreState>((set, get) => ({
       if (!(handle in state.roster)) return {};
       const { [handle]: _drop, ...roster } = state.roster;
       return { roster, rosterOrder: orderRoster(roster) };
+    }),
+
+  // Bulletin news-ticker feed (world.bulletin.feed). Keyed by stable
+  // bulletinId; ordering recomputed on every mutation (pins first, then
+  // publishedAt desc) as a stable tiebreaker over the server's order.
+  feed: {},
+  feedOrder: [],
+  applyBulletinSnapshot: (rows) =>
+    set(() => {
+      const feed: Record<string, BulletinRow> = {};
+      for (const row of rows) feed[row.bulletinId] = row;
+      return { feed, feedOrder: orderFeed(feed) };
+    }),
+  applyBulletinUpsert: (row) =>
+    set((state) => {
+      const feed = { ...state.feed, [row.bulletinId]: row };
+      return { feed, feedOrder: orderFeed(feed) };
+    }),
+  applyBulletinRemove: (bulletinId) =>
+    set((state) => {
+      if (!(bulletinId in state.feed)) return {};
+      const { [bulletinId]: _drop, ...feed } = state.feed;
+      return { feed, feedOrder: orderFeed(feed) };
+    }),
+  appendBulletins: (rows) =>
+    set((state) => {
+      if (rows.length === 0) return {};
+      const feed = { ...state.feed };
+      for (const row of rows) feed[row.bulletinId] = row;
+      return { feed, feedOrder: orderFeed(feed) };
     }),
 
   forumNav: { boardHandle: null, threadId: null },
@@ -1077,6 +1154,13 @@ export const useStore = create<StoreState>((set, get) => ({
     for (const d of payload.topicCatalogue ?? []) {
       topicMap.set(d.topic, d);
     }
+    // Seed the news-ticker feed from the welcome snapshot, exactly as the
+    // topic catalogue is consumed — bulletins have no presence event to
+    // hang a snapshot on, so the welcome window is the initial `snapshot`.
+    const feed: Record<string, BulletinRow> = {};
+    for (const row of payload.bulletinWindow ?? []) {
+      feed[row.bulletinId] = row;
+    }
     set((state) => ({
       // Entering the world from char-gen or the roster starts a fresh
       // terminal — drop the buffer (and its unread/muted bookkeeping) so
@@ -1101,6 +1185,8 @@ export const useStore = create<StoreState>((set, get) => ({
       selfInteractiveId: payload.interactiveStuffId,
       selfAvatarId: payload.avatarStuffId,
       topicCatalogue: topicMap,
+      feed,
+      feedOrder: orderFeed(feed),
       clientState: { ...(payload.clientState ?? {}) },
       broadcastSources: payload.broadcastSources ?? [],
       ...(payload.reactionPrefs

@@ -19,6 +19,7 @@ import { FilterDrawer } from "../components/FilterDrawer";
 import { CommandBar } from "../components/CommandBar";
 import { InspectionPane } from "../components/InspectionPane";
 import { WhoPane } from "../components/WhoPane";
+import { NewsTickerPane } from "../components/NewsTickerPane";
 
 /**
  * The view-sensitive right column — a small pane switch above the active
@@ -102,10 +103,21 @@ export const WorldLayout: React.FC<LayoutProps> = ({
           >
             Who&apos;s Online
           </PaneTab>
+          <PaneTab
+            $active={rightPane === "news"}
+            onClick={() => setRightPane("news")}
+          >
+            News
+          </PaneTab>
         </PaneSwitch>
         <PaneSlot>
           {rightPane === "who" ? (
             <WhoPane
+              onSendCommand={onSendCommand}
+              onCommandPreview={onCommandPreview}
+            />
+          ) : rightPane === "news" ? (
+            <NewsTickerPane
               onSendCommand={onSendCommand}
               onCommandPreview={onCommandPreview}
             />

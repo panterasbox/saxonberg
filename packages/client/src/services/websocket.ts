@@ -27,6 +27,7 @@
  */
 
 import type {
+  BulletinFeedFrame,
   CharGenRosterPayload,
   CharGenStatePayload,
   ConnectionEstablishedPayload,
@@ -176,6 +177,27 @@ class WebSocketClient {
           break;
         case "remove":
           store.applyRosterRemove(payload.handle);
+          break;
+      }
+    });
+    // The bulletin news-ticker (`world.bulletin.feed`). Empty body
+    // (payload-bearing), so it never renders a scrollback line. The
+    // initial snapshot rides the welcome payload (`bulletinWindow`);
+    // these frames carry live `upsert` / `remove` deltas — route by
+    // `action` to the store.
+    this.onTopic("world.bulletin.feed", (frame) => {
+      const payload = frame.payload as BulletinFeedFrame | undefined;
+      if (!payload || payload.kind !== "bulletin") return;
+      const store = useStore.getState();
+      switch (payload.action) {
+        case "snapshot":
+          store.applyBulletinSnapshot(payload.rows);
+          break;
+        case "upsert":
+          store.applyBulletinUpsert(payload.row);
+          break;
+        case "remove":
+          store.applyBulletinRemove(payload.bulletinId);
           break;
       }
     });
