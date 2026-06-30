@@ -127,6 +127,9 @@ export const Mixins = {
   // composed on the born-with wallet app and on the physical cards.
   CredentialWallet: 'CredentialWalletMixin',
   Tab: 'TabMixin',
+  // Haulage — a dragged container (cart) and the creature that pulls it.
+  Haulable: 'HaulableMixin',
+  Hauler: 'HaulerMixin',
 } as const;
 
 /**

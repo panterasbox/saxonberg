@@ -315,7 +315,7 @@ extends; none is a fresh build.
 | [chat](./tails/chat-slate.md) | chat.md | moderation / edit-trail |
 | [comms](./tails/comms-slate.md) | comms.md | trust-tiered policy |
 | [console-filtering](./tails/console-filtering-slate.md) | console (core shipped) | search, sender-filter |
-| [encumbrance](./tails/encumbrance-slate.md) | encumbrance.md | cart/conveyance propulsion handoff (the "hinge"), per-item placement refinement (a frame pack beating the worn floor), augment-conferred capacity, environmental (gravity) margins, tissue-derived mass, numeric tuning |
+| [encumbrance](./tails/encumbrance-slate.md) | encumbrance.md | **cart/conveyance handoff shipped** (the haulage build → conveyance.md/encumbrance.md § Haulage); deferred: per-item placement refinement (a frame pack beating the worn floor), augment-conferred capacity, environmental (gravity) margins, tissue-derived mass, numeric tuning |
 | [metabolism](./tails/metabolism-slate.md) | metabolism.md | wired nutrient deficiencies (scurvy), hangover, chronic-toxin exposure content, spoilage / perishability, magic ingestion, fuller-stomach-slows-absorption, bulk-food eating, per-individual rates, recovery-on-relogin, numeric tuning |
 | [message-rendering](./tails/message-rendering-slate.md) | message-rendering.md | GFM table input-sugar |
 | [mql-subscription](./tails/mql-subscription-slate.md) | mql-subscription.md | client topology cache, bandwidth ceilings |

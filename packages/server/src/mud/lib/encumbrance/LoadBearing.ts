@@ -252,6 +252,16 @@ export function LoadBearingMixin<TBase extends MixinConstructor>(Base: TBase) {
         }
       }
 
+      // c) Hitched cart — the draft load of whatever this bearer hauls.
+      // The cart's cargo was never on these books (it lives in the cart's
+      // own container); only the attenuated draft is borne. Read dynamically
+      // so the Creature base carries no haulage dependency — a non-hauler
+      // bearer skips this entirely. See docs/subsystems/encumbrance.md.
+      const self = this as unknown as Stuff;
+      if (MixinApi.isHauling(self)) {
+        total += self.getHaulDraft().rawValue();
+      }
+
       return Quantity.of(total, 'kg');
     }
 

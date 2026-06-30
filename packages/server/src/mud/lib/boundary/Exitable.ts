@@ -185,6 +185,13 @@ export interface ExitInstruction {
   messageIn?: string;
   messageOut?: string;
   media?: string[];
+  /**
+   * Whether a wheeled hauled cart may pass (default true). Set false on a
+   * stairs / stile / narrow exit that admits walking but not wheels. Wired
+   * through the one-way path (alongside `media`); a bidirectional exit
+   * inherits the default. See `Exit.wheelPassable`.
+   */
+  wheelPassable?: boolean;
 }
 
 export function ExitableMixin<TBase extends MixinConstructor<Stuff & Container>>(Base: TBase) {
@@ -550,6 +557,7 @@ export function ExitableMixin<TBase extends MixinConstructor<Stuff & Container>>
             messageIn: spec.messageIn,
             messageOut: spec.messageOut,
             media: spec.media,
+            wheelPassable: spec.wheelPassable,
           })
       );
       await this.addExit(exit);

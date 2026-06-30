@@ -196,6 +196,10 @@ export abstract class LocomotionControllerBase extends CommandController<Locomot
         return 'The way is blocked.';
       case 'door':
         return guard.reason ?? 'The way is closed.';
+      case 'terrain':
+        return guard.reason ?? "You can't drag the cart that way.";
+      case 'breakaway':
+        return guard.reason ?? "The cart won't budge.";
       default:
         return guard.reason ?? "You can't go that way.";
     }
@@ -217,6 +221,8 @@ function mapGate(gate: string | undefined): LocomotionGateFailedNote['gate'] {
     case 'capability': return 'capability';
     case 'blocked': return 'blocked';
     case 'door': return 'door';
+    case 'terrain': return 'terrain';
+    case 'breakaway': return 'breakaway';
     default: return 'exit-mode';
   }
 }

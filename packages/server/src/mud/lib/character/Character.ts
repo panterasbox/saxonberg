@@ -10,7 +10,7 @@
  *
  * Composition (agency, inner→outer on `Creature`):
  *   BeliefStore + Persona + Gendered + Sensor + Perceiver + Perception +
- *   Vocal + Soul + Engaged + Mobile + CommandGiver
+ *   Vocal + Soul + Engaged + Hauler + Mobile + CommandGiver
  *
  * Commands are inherited from mixins and subclasses:
  * - ContainerMixin (on Creature) provides: inventory, get, drop
@@ -35,6 +35,7 @@ import { Creature } from '../creature/Creature';
 import { GenderedMixin } from './Gendered';
 import { PersonaMixin } from './Persona';
 import { MobileMixin } from '../spatial/Mobile';
+import { HaulerMixin } from '../slot/Hauler';
 import { SensorMixin } from '../message/Sensor';
 import { PerceiverMixin } from '../description/Perceiver';
 import { PerceptionMixin } from '../perception/Perception';
@@ -52,6 +53,12 @@ import { StatusMixin } from '../status/Status';
 //   Sensor for output routing) and owns the perception verb surface
 //   as a separate role from Sensor's "I receive scene output."
 //   Sensor + Perception together = the full perceiver substrate.
+// - HaulerMixin sits between Mobile and Engaged. Position is free (it
+//   only holds the hitched-cart live ref); placing it on Character gives
+//   every PC and NPC-character the ability to pull a cart, while keeping
+//   it off the broad Creature base (a frog / corpse never hauls).
+//   LoadBearing (on Creature) reads its draft term dynamically via
+//   MixinApi.isHauling, so stack position doesn't matter.
 // - EngagedMixin sits immediately below MobileMixin so the body-slot
 //   engagement (source of truth for `Mobile.getEngagedMode`) can be
 //   read without forward references. Engagement is orthogonal to
@@ -74,6 +81,7 @@ import { StatusMixin } from '../status/Status';
 const CharacterBase = AdvancementMixin(
   CommandGiverMixin(
   MobileMixin(
+    HaulerMixin(
     EngagedMixin(
       SoulMixin(
         VocalMixin(
@@ -88,6 +96,7 @@ const CharacterBase = AdvancementMixin(
           )
         )
       )
+    )
     )
   )
   )

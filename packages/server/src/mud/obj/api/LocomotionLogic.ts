@@ -234,7 +234,66 @@ export class LocomotionLogic extends Idea {
     }
     const exitGuard = exit.canTraverse(actor, mode.getName());
     if (!exitGuard.ok) return exitGuard;
-    return this.checkEnablement(actor, mode, direction);
+    const enablement = this.checkEnablement(actor, mode, direction);
+    if (!enablement.ok) return enablement;
+    return this.checkHaulage(actor, exit, mode);
+  }
+
+  /**
+   * Haulage gate — refuses a move when the traverser's hitched cart can't
+   * follow. The hauler is the **actual traverser** (`actor`): a person
+   * pulling a handcart, or — for a ridden move — the conveyance host (the
+   * horse) whose own traverse is gated with its own mode (passthrough
+   * modes never reach here; `exit.canTraverse` rejects ride/drive at the
+   * media gate first, so the gate that fires for a ridden move is the
+   * host's self-powered traverse, where the host IS the actor). Two
+   * sub-gates:
+   *   - **terrain** — the cart's passage mode (`wheeled`) must be admitted
+   *     by the exit's `media`, AND the exit must be wheel-passable (the
+   *     stairs residue). The ladder / ford / air case is refused for free
+   *     by `exitAllowsMode` (wheeled's medium is `ground`).
+   *   - **breakaway** — the cart's draft load must not exceed the hauler's
+   *     strain ceiling ("the cart won't budge"). Exhaustion shaves the
+   *     ceiling (via the endurance margin), so a tiring hauler can hit it.
+   * This is the veto layer explicitly allowed to read encumbrance; the raw
+   * move (`Mobile.traverse`) stays encumbrance-free.
+   */
+  private checkHaulage(
+    actor: Stuff & Containable,
+    exit: Exit,
+    mode: LocomotionMode,
+  ): TraversalGuard {
+    if (!MixinApi.isHauling(actor) || !actor.isHitched()) {
+      return { ok: true };
+    }
+    const hauledCart = actor.getHauledCart();
+    if (!hauledCart) return { ok: true };
+
+    const passage = hauledCart.getPassageMode();
+    const passable =
+      passage !== null && this.exitAllowsMode(exit, passage);
+    if (!passable || !exit.isWheelPassable()) {
+      return {
+        ok: false,
+        gate: 'terrain',
+        mode: mode.getName(),
+        reason: `You can't drag the cart that way.`,
+      };
+    }
+
+    if (MixinApi.isLoadBearing(actor)) {
+      const draft = hauledCart.getDraftLoad().rawValue();
+      const ceiling = actor.getStrainCeiling().rawValue();
+      if (draft > ceiling) {
+        return {
+          ok: false,
+          gate: 'breakaway',
+          mode: mode.getName(),
+          reason: `The cart won't budge.`,
+        };
+      }
+    }
+    return { ok: true };
   }
 
   // ── enablement walk ──────────────────────────────────────────────

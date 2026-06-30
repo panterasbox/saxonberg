@@ -360,7 +360,9 @@ export interface LocomotionGateFailedNote {
     | 'capability'
     | 'no-conveyance'
     | 'blocked'
-    | 'door';
+    | 'door'
+    | 'terrain'
+    | 'breakaway';
   /** 'walk', 'climb', 'swim', etc. */
   mode: string;
 }

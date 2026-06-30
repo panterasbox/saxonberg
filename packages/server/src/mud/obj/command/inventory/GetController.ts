@@ -196,6 +196,24 @@ export default class GetController extends CommandController<GetModel> {
       );
     }
 
+    // Hands-occupied while hauling: you can't pick a thing up into your
+    // hands while gripping a cart's handle. Keyed on the giver being the
+    // hauler (a mounted rider whose horse hauls keeps their hands free).
+    if (MixinApi.isHauling(giver) && giver.isHitched()) {
+      context.note({
+        kind: 'controller-rejected',
+        reason: 'hands-hauling',
+        detail: 'cannot pick up while hauling a cart',
+      });
+      MessageApi.scene(giver)
+        .topic('world.perception.inventory')
+        .toSelf(
+          Mml.compose`Your hands are full — you're pulling ${Mml.item(giver.getHauledCart()!)}.`,
+        )
+        .send();
+      return false;
+    }
+
     // Encumbrance lift gate — only a load-bearing giver (a creature with
     // the gauge) is gated; non-creature containers (a chest looting into
     // a bag) skip it. Diegetic decline: an envelope note + a scene line,

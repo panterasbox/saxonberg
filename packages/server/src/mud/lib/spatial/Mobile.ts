@@ -437,6 +437,22 @@ export function MobileMixin<TBase extends MixinConstructor<Stuff & Containable>>
           }
         }
       }
+
+      // Tow a hitched cart along. The hauler is the mover that actually
+      // traverses — for a ridden move that's the conveyance host (the
+      // horse), so the cart follows the horse, not the rider. The cart is
+      // a room object (not a slot occupant), so this is its own seam, not
+      // the slot ripple above; its cargo rides inside it as a unit. No
+      // encumbrance is read here — the draft term lives in LoadBearing and
+      // the breakaway/terrain gates in LocomotionApi; the raw move stays
+      // encumbrance-free.
+      if (MixinApi.isHauling(mover)) {
+        const hauledCart = mover.getHauledCart();
+        if (hauledCart && MixinApi.isContainable(hauledCart)) {
+          ContainmentApi.move(hauledCart, destination);
+        }
+      }
+
       // Post-move traversal notifications.
       if (MixinApi.isExitable(source)) {
         callTraverseHook(source, 'onExited', [mover, exit]);

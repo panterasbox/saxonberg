@@ -5,11 +5,15 @@
 > mass-seeding, `Vessel.transmissionFactor` + the `Adornable`→`ExitableVessel`
 > narrowing, and the consequence ladder (lift gate / locomotion veto /
 > traversal drain) graduated to [encumbrance.md](../../subsystems/encumbrance.md).
-> What remains here is the deferred design surface: the cart/conveyance
-> propulsion handoff (the "hinge"), the per-item placement refinement (a
-> frame pack beating the worn floor), augment-conferred capacity,
-> environmental (gravity) margins, tissue-derived mass, and numeric
-> tuning. Endurance *recovery* is **not** an encumbrance tail — it lives
+> The **cart/conveyance handoff (the "hinge") has now shipped** too — as
+> the haulage build (`draftFactor` draft term folded into the gauge + the
+> cart-in-room live-ref tow + terrain/breakaway gates), graduated to
+> [encumbrance.md § Haulage](../../subsystems/encumbrance.md) +
+> [conveyance.md § Haulage](../../subsystems/conveyance.md). What remains
+> here is the rest of the deferred design surface: the per-item placement
+> refinement (a frame pack beating the worn floor), augment-conferred
+> capacity, environmental (gravity) margins, tissue-derived mass, and
+> numeric tuning. Endurance *recovery* is **not** an encumbrance tail — it lives
 > in the [metabolism-slate](../builds/metabolism-slate.md) (coupled
 > recovery closes the one-way drain this build shipped). This slate stays
 > until those are absorbed.
@@ -279,6 +283,15 @@ has to come from the interaction library, not from growing the number.
 ---
 
 ## The cart is the hinge
+
+> **Shipped** as the haulage build → [conveyance.md § Haulage](../../subsystems/conveyance.md#haulage--pulling-a-cart)
+> + [encumbrance.md § Haulage](../../subsystems/encumbrance.md#haulage--the-cart-the-draft-term).
+> One refinement on the sketch below: the dragged-cart cost is **not** a
+> separate "propulsion" gauge — it folds into the encumbrance gauge as one
+> `draftFactor`-attenuated `draftLoad` term, so the whole consequence
+> ladder reuses. The terrain trade ("dragged load gates your *path*") is
+> the `Exit.media` (`wheeled`) gate + a default-true `Exit.wheelPassable`
+> bit for the stairs residue.
 
 The cart wears two hats, and they hand off cleanly at the point the
 load leaves your body:
