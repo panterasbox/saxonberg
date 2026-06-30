@@ -24,10 +24,15 @@ import {
   type BulletinRealm,
   type BulletinKind,
 } from '../lib/bulletin/Bulletin';
+import type { BulletinRow } from '@saxonberg/types';
 import { fileURLToPath } from 'url';
 
 export { Bulletin };
 export type { BulletinRealm, BulletinKind };
+// The wire projection now lives in `@saxonberg/types` (the shared client
+// surface landed in Phase 3); re-exported here for server callers that
+// import it from the Api face.
+export type { BulletinRow };
 
 /**
  * The publish request — everything an author supplies. The author is NOT a
@@ -61,23 +66,6 @@ export interface ArchiveQuery {
   before?: number;
   /** Page size (clamped by the logic). */
   limit?: number;
-}
-
-/**
- * The client-facing projection of a bulletin — retracted rows are never
- * projected. (Relocates to `@saxonberg/types` when the wire surface lands
- * in Phase 3.)
- */
-export interface BulletinRow {
-  bulletinId: string;
-  realm: BulletinRealm;
-  kind: BulletinKind;
-  headline: string;
-  body: string;
-  author?: string;
-  publishedAt: number;
-  pinned: boolean;
-  expiresAt?: number;
 }
 
 const LOGIC_PATH = '/obj/api/bulletin';
@@ -147,6 +135,30 @@ export class BulletinApi {
   /** The paged archive over Mongo (realm/kind filtered, recency-desc). */
   public static archive(query: ArchiveQuery): Promise<Bulletin[]> {
     return logic().archive(query);
+  }
+
+  /**
+   * Project a {@link Bulletin} to its client-facing {@link BulletinRow}
+   * wire shape (the news-ticker row). A pure mapping — the single source of
+   * the projection shared by the inline frame fan-out (BulletinLogic) and
+   * the session-establish window (Avatar.enter). Retracted rows are never
+   * passed here (the window/fan filter them upstream); `expiresAt === 0` is
+   * dropped (never-expires).
+   */
+  public static toRow(bulletin: Bulletin): BulletinRow {
+    const expiresAt = bulletin.getExpiresAt();
+    const author = bulletin.getAuthor();
+    return {
+      bulletinId: bulletin.getBulletinId(),
+      realm: bulletin.getRealm(),
+      kind: bulletin.getKind(),
+      headline: bulletin.getHeadline(),
+      body: bulletin.getBody(),
+      author: author.length > 0 ? author : undefined,
+      publishedAt: bulletin.getPublishedAt(),
+      pinned: bulletin.isPinned(),
+      expiresAt: expiresAt > 0 ? expiresAt : undefined,
+    };
   }
 }
 

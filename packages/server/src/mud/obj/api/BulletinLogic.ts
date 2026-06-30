@@ -13,18 +13,26 @@ import { SecurityPolicies } from '../../lib/security/SecurityPolicies';
 import { StuffApi } from '../../api/stuff';
 import { SecurityApi } from '../../api/security';
 import { ExecutionContextApi } from '../../api/execution-context';
+import { PlayerApi } from '../../api/player';
+import { MessageApi } from '../../api/message';
+import { Mml } from '../../api/mml';
 import { TemplatePaths } from '../../lib/paths';
 import { Bulletin } from '../../lib/bulletin/Bulletin';
+import { BulletinApi } from '../../api/bulletin';
 import type BulletinBoard from '../BulletinBoard';
 import type {
   PublishRequest,
   BulletinPatch,
   ArchiveQuery,
 } from '../../api/bulletin';
+import type { BulletinFeedFrame } from '@saxonberg/types';
 
 const BulletinApiCallers = SecurityPolicies.FromModule(
   'mud/api/bulletin#BulletinApi'
 );
+
+/** The news-ticker fan-out topic — a presence-PUBLIC OOC channel. */
+const FEED_TOPIC = 'world.bulletin.feed';
 
 /** Default archive page size when the query doesn't specify one. */
 const ARCHIVE_DEFAULT_LIMIT = 30;
@@ -53,6 +61,30 @@ function resolveAuthorImpl(): string | null {
     author as { getTemplatePath?: () => string | null }
   ).getTemplatePath?.();
   return typeof tp === 'string' && tp.length > 0 ? tp : null;
+}
+
+/**
+ * Fan one already-composed bulletin-feed frame out to every online viewer,
+ * presence-PUBLIC: OOC-public, identical for every viewer (NO per-viewer
+ * lensing), so the caller composes the payload exactly once. Per-viewer
+ * isolation: a bad recipient never aborts the scan. The `sendRosterImpl`
+ * precedent, on the `world.bulletin.feed` topic. Unlike the roster (which
+ * taps externally-emitted presence events in `SocialApi.boot()`), the
+ * bulletin trigger originates inside the mutators below, so this fan is
+ * called inline (no event tap).
+ */
+function fanFeedImpl(frame: BulletinFeedFrame): void {
+  for (const viewer of PlayerApi.getAllAvatars()) {
+    if (viewer.isDestroyed() || !viewer.isConnected()) continue;
+    try {
+      MessageApi.scene(viewer)
+        .topic(FEED_TOPIC)
+        .toSelf(Mml.fromMarkup(''), frame)
+        .send();
+    } catch {
+      // best-effort relay — drop this viewer, continue the scan
+    }
+  }
 }
 
 /** Load a bulletin by id from the warm window, falling back to Mongo. */
@@ -84,7 +116,7 @@ async function publishImpl(req: PublishRequest): Promise<Bulletin> {
   b.retracted = false;
   await b.save();
   board()?.upsert(b);
-  // Phase 3: fan world.bulletin.feed ('upsert') to online viewers.
+  fanFeedImpl({ kind: 'bulletin', action: 'upsert', row: BulletinApi.toRow(b) });
   return b;
 }
 
@@ -102,7 +134,7 @@ async function editImpl(
   if (patch.expiresAt !== undefined) b.expiresAt = patch.expiresAt;
   await b.save();
   board()?.upsert(b);
-  // Phase 3: fan world.bulletin.feed ('upsert') to online viewers.
+  fanFeedImpl({ kind: 'bulletin', action: 'upsert', row: BulletinApi.toRow(b) });
   return b;
 }
 
@@ -114,7 +146,11 @@ async function retractImpl(bulletinId: string): Promise<Bulletin | null> {
   b.retracted = true;
   await b.save();
   board()?.upsert(b);
-  // Phase 3: fan world.bulletin.feed ('remove') to online viewers.
+  fanFeedImpl({
+    kind: 'bulletin',
+    action: 'remove',
+    bulletinId: b.getBulletinId(),
+  });
   return b;
 }
 
