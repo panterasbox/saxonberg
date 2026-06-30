@@ -35,12 +35,11 @@ moved to `tails/`, holding their deferred surface; the social-graph
 **attention layer** then shipped (Wave 3 →
 [../subsystems/social-graph.md](../subsystems/social-graph.md)), its slate
 moving to `tails/` with only Wave 4 + the message-restyle wiring left.
-- [chronicle-slate](./tails/chronicle-slate.md) *(tail)* — the append-only
-  identity **ledger** (witnessed deeds + authored prologue claims) that
-  every future identity readout (recognition, reputation, alignment,
-  traits, achievements) projects from — the common dumb-store root the
-  reputation / social-graph slates read. **Substrate shipped 2026-06**,
-  graduated to [../subsystems/chronicle.md](../subsystems/chronicle.md).
+- **chronicle** — the append-only identity **ledger** (witnessed deeds +
+  authored prologue claims) every identity readout projects from.
+  **Shipped 2026-06 and slate retired** (fully absorbed — its deferred
+  consumers themselves shipped as renown / trait / advancement); the
+  permanent record is [../subsystems/chronicle.md](../subsystems/chronicle.md).
 - [recognition-slate](./tails/recognition-slate.md) *(tail)* — deferred
   recognition surface: player-set nicknames, memory decay, voice/scent
   recognition, the aether id-aug ambient trigger.
@@ -120,7 +119,10 @@ in [tails/metabolism-slate](./tails/metabolism-slate.md):
 
 The remaining consumers + the environment they run against extend the build:
 - [thermal-slate](./tails/thermal-slate.md) — **shipped** → [thermal.md](../subsystems/thermal.md). The generic `Thermal` cooling capability (lazy Newton, τ=R·C) + the thermos (`Flask`) + corpse algor mortis + the campfire, and body thermoregulation (Option-C thermoneutral dead-band: spend satiation/hydration to defend the setpoint, endo/ecto split, Q10, the hypothermia/hyperthermia/torpor cascade). Resolves metabolism's heat seam. Tail (substantial deferred surface): phase change / ice (the latent-heat reserve-clamp), the sauna / steam room (heat-side worked example), per-region coverage + frostbite + wet-insulation collapse, windproofing distinct from `clo`, smoke / cooking / fire-spread + the air-supply burn coupling, behavioral (basking) ectotherm regulation, intermediate thermal strategies, and the indoor-convection room-bump + standalone radiant helper (the build wired the outdoor warming-slot path only).
-- [respiration-slate](./tails/respiration-slate.md) *(tail)* — oxygen / asphyxiation. **Shipped 2026-06** — the air-exchange + `spo2` death driver + the carried-air tank, graduated to [../subsystems/respiration.md](../subsystems/respiration.md). Deferred surface holding here: gills / confer-based water access, the inhaled-toxin (smoke / gas) channel, the strangulation channel, CO₂ / rebreather buildup, the airlock interlock, pressure / altitude.
+- **respiration** — oxygen / asphyxiation. **Shipped 2026-06 and slate
+  retired** (fully absorbed — its deferred surface, gills / inhaled-toxin /
+  strangulation / CO₂ / airlock / altitude, lives in the subsystem doc's
+  *Deferred* section): [../subsystems/respiration.md](../subsystems/respiration.md).
 - [weather-slate](./tails/weather-slate.md) — **shipped (Wave 1)** → [weather.md](../subsystems/weather.md). Atmospheric *dynamics* (the procedural driver over biome's static state; thermal's dynamic source): the stateless weather grammar, the SkyExposed biome-deviation seam, the presence-gated thermal coupling, and `analyze weather`. Per-locality off the shipped addressing tree (global until Localities are authored). Slate now a tail holding the Wave 2 "teeth".
 
 **Phases:** vitals substrate (built → tails) → encumbrance (built → tails) → metabolism (built → tails) → respiration (built → tails) → **thermal (built → tail)** → **weather (built → tail)**.
@@ -206,9 +208,10 @@ closes economy's open "deliberate faucet without inflation" thread.
   *structure*, not the person, is entrenched. Adoption rides **moderation as
   the on-ramp**. **Stake-ledger slice buildable now**; the full republic
   parked until there's a member body to govern.
-- [draft-constitution](./builds/draft-constitution.md) — the slate
-  consolidated into normative articles (Preamble + 13 Articles + a **Schedule
-  of Parameters**). Reframed as a **bare-bones kernel that ships to every
+- [draft-constitution](../governance/draft-constitution.md) *(governance
+  instrument — homed in [../governance/](../governance/), not a backlog slate)*
+  — the slate consolidated into normative articles (Preamble + 13 Articles + a
+  **Schedule of Parameters**). Reframed as a **bare-bones kernel that ships to every
   community**: a **three-floor test** (the *firewall* — the no-lawyer floor;
   the *machine* + its provided tools; everything else *deferred*) decides
   what's constitutional, so rights move to ratification, the economy +
@@ -232,10 +235,11 @@ closes economy's open "deliberate faucet without inflation" thread.
   membership modules) + **presets-as-distros** (Operator's table → Creator
   collective → Full republic). **A few hand-authored modules buildable now**;
   the package-manager conflict-resolution + curation tiers deferred to scale.
-- [founding-charter](./builds/founding-charter.md) — the founder's
-  **self-binding commitment**, in force from the first dollar (the
-  instance-specific instrument the constitution's Art. XI founding-stake bound
-  requires; *not* kernel text). The fiat-phase formula: **sole producer**
+- [founding-charter](../governance/founding-charter.md) *(governance
+  instrument — homed in [../governance/](../governance/), not a backlog slate)*
+  — the founder's **self-binding commitment**, in force from the first dollar
+  (the instance-specific instrument the constitution's Art. XI founding-stake
+  bound requires; *not* kernel text). The fiat-phase formula: **sole producer**
   (~100%, diluting) · **0% consumer** (players' house ceded) · **patron-match
   + 1** (a working majority that erodes as the community grows) · **the
   *granted* control sunsets at ratification** — but the founder's *earned*
@@ -334,15 +338,20 @@ extends; none is a fresh build.
 | [client-shell](./tails/client-shell-slate.md) | client-shell.md | search / command palette, mode switcher + per-mode status, public read-only surface, declarative mode/manifest model, pre-auth device-local client-state tier |
 | [scripting](./tails/scripting-slate.md) | scripting.md / document-store.md | **v1 engine shipped 2026-06** (interpreter + coroutines + two surfaces + demonstration-capture + knowledge-ladder + the generic document store → scripting.md; the block/execution-model/`( )`/scope forks all resolved + built); deferred: the **piping model** (multi-stage pipelines over the built `Pipeline` AST node + the general value→field binder + the two-channel/ByValue compatibility design) and the open block forks (`it`-only vs explicit params) |
 
-**Near-absorbed — retirement candidates** (kept this pass rather than
-deleted, since each still carries live design surface; prune on request
-once salvaged into the subsystem doc):
+**Near-absorbed — retirement candidates** (kept rather than deleted,
+since each still carries live design surface; prune on request once
+salvaged into the subsystem doc):
 
 | Slate | Graduated to | Surviving surface only |
 |---|---|---|
 | [emotes](./tails/emotes-slate.md) | emotes.md | Layers 2-4 (emoji / honorary / reactions) + moderation |
 | [mixin](./tails/mixin-slate.md) | mixins / material / light / slot / posture / glob | residual material threads |
-| [world-clock](./tails/world-clock-slate.md) | time.md | celestial-profile → light wiring |
+
+> **Retired 2026-06-29** (fully absorbed, salvaged into their subsystem
+> docs): `chronicle` → chronicle.md · `respiration` → respiration.md ·
+> `world-clock` → time.md · `document-tree` → document-store.md. The two
+> governance instruments (`draft-constitution`, `founding-charter`) moved
+> out of `builds/` to [../governance/](../governance/).
 
 ---
 

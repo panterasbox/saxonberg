@@ -173,6 +173,24 @@ never as a remodel of the registrar into a temple.
 
 ---
 
+## Lore grounding (the deep history)
+
+The campus's *feel* is the north-star above; its *backstory* now lives in
+[story-bible.md](../../story-bible.md), and it grounds a few specifics. The
+University was raised by the Mission clergy **on the ruins of the dead
+Eternal City**, atop the **Sanctuary** (the sacred dead heart) — so the
+campus literally sits on the old eternal core, which is *why* its finish is
+impossibly strange (it seeps up from beneath). Two roster buildings carry
+that history: the **Health Center** dispenses **attunement** because the
+University is where attunement was *mastered* (it installs the TPA
+implant-update on the onboarding journey — see
+[onboarding-slate.md](../builds/onboarding-slate.md)); and the **Chapel** is
+the **Mission clergy's residue** — keepers of the old worship faded to
+echoes (religion model: the bible + the
+[alignment-religion slate](../deferred-rpg/alignment-religion-slate.md)).
+
+---
+
 ## The surround — the city past the gates (deferred)
 
 EU sits inside a city. The temptation is to make that city a revival of

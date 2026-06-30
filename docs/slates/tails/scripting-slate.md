@@ -1,25 +1,31 @@
-# Scripting language slate (working doc)
+# Scripting language slate (tail)
 
-> **Status: decided in principle, design open.** A **purpose-built scripting
+> **Status: v1 engine SHIPPED (2026-06)** → graduated to
+> [scripting.md](../../subsystems/scripting.md). A **purpose-built scripting
 > language** — our grammar, our semantics — is the medium for procedural
 > content behavior. It promotes [npc-behavior-slate](./npc-behavior-slate.md)'s
 > deferred `scripted-behavior` tail to a first-class subsystem, and it's the
 > language the [LLM director](./llm-content-slate.md) authors in. It is the
 > **special** language (reaches only what the grammar grants), distinct from
-> the **general** TS `EvalScript` (reaches everything). This slate records
-> *why*, specifies the **piping model** and the **command-native grammar**
-> (below), and frames the remaining design work.
+> the **general** TS `EvalScript` (reaches everything). The block /
+> execution-model / `( )` sublanguage / scope forks this slate framed are all
+> **resolved and built**. This file is retained as a **tail** for the deferred
+> design surface only (see *Remaining work* immediately below).
 
 Working slate for **the scripting language** — the long-intended MUD
 soft-scripting layer. It's the code-tier rung the behavior ladder always
 pointed at, the answer to "how does an LLM express multi-stage / scheduled
 behavior," and a human-authored content surface in its own right.
 
-> *Not near-term.* This slate captures the model; nothing here is slated to
-> build soon. The remaining design forks (blocks, the execution model, the
-> `( )` sublanguage, scope) want a deeper grounding in scripting-language
-> design before they're decided — a good candidate for a focused learning
-> pass when build time approaches.
+> **Remaining work (deferred tail).** The v1 engine — interpreter +
+> coroutines + both surfaces + demonstration-capture + the chronicle
+> knowledge-ladder + the path-addressed document store — is live. What's
+> deferred: the **piping model** (multi-stage pipelines over the built
+> `Pipeline` AST node + the general value→field binder + the
+> two-channel/ByValue compatibility design), the open **block forks**
+> (`it`-only vs explicit params), the `improv` seam, and LLM-director
+> authoring. The rest of this doc is the original design record; read
+> [scripting.md](../../subsystems/scripting.md) for what actually shipped.
 
 The load-bearing decisions:
 

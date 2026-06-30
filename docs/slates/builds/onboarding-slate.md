@@ -113,11 +113,29 @@ choose, or auto after a beat — fork).
 Diegetic and learn-by-doing: **Dr. Limen** (the Orientation guide — see
 its own section below) is the voice that threads the journey; **signs**
 carry the spatial wayfinding (following them teaches movement); the walk
-teaches the world; and a **clinic on the route** demos installing a
-**small demo augment** (teaching the implant-acquisition flow with
-something low-stakes). No mode, no dump — the real verbs. Limen carries the
-*objective list* ("what now"); the signs carry *which-way*; an embodied
-**greeter** (lean: kept) is the first face at the gate.
+teaches the world; and the **Health Center on the
+route** is where you trade a physical **TravelCard** for the **TPA
+installed as an implant software update** — the implant-acquisition lesson,
+concrete and useful instead of a throwaway demo. No mode, no dump — the
+real verbs. Limen carries the *objective list* ("what now"); the signs
+carry *which-way*; an embodied **greeter** (lean: kept) is the first face
+at the gate.
+
+**The born-with loadout + the clinic beat.** You arrive with the implant
+issued and **comms only** (talk/emote over the **aether** — born-with),
+plus a physical **TravelCard** in hand. The Health Center installs the
+**TPA as a software update** on the implant, so you stop carrying the card
+— and that one beat teaches the three things it exists to teach: the
+**aether** (the medium you're already speaking over), the **cranial
+implant** (your own device, like a phone), and **software updates for it**
+(you install the capabilities *you* choose — the college reaches you over
+comms but never preloads itself). It's lore-true that this happens on
+campus: the University is where attunement was *mastered* (see
+[story-bible.md](../../story-bible.md)). Refs:
+[credential-wallet-slate](../tails/credential-wallet-slate.md) (the
+card ⊕ implant-app duality), [fast-travel-slate](../tails/fast-travel-slate.md)
+(the TPA), [augmentation-slate](../tails/augmentation-slate.md) (the install
+flow).
 
 The **private house suggestion** rides Limen — the one affiliation axis that
 touches onboarding (read from your profile) — but **joining is opt-in**: you
@@ -298,7 +316,7 @@ room); *never* gate progress on "completing a lesson." Help is on-demand.
 | **Arrival** | **look · sense** (auto-on-arrival) **· zone** (breadcrumb root flips; the sky reveal) |
 | **Quad / spine + walkways** *(the journey)* | **go/exits** (signs) **· verticality intro** (a staircase/"go up") **· doors/open · agent-vs-object** (greeter + objects) **· details** (examine) **· take · comms** (say/tell/emote — talk to the greeter/NPCs). *The richest teaching space — must be content-curated, not corridor.* |
 | **Student Services** | the service/prompt flow (+ tasks: major, name, housing) |
-| **Health Center / clinic** | **capability/augment** (the demo-augment install) |
+| **Health Center / clinic** | **capability/augment** — install the **TPA software update** (trading the born-with TravelCard); teaches **aether / implant / software-updates** |
 | **Campus Store / outfitter** | **wear / slots** (+ appearance, shopping) |
 | **Chapel** | *(opt-in: deity; not core-teaching)* |
 | **Duncan Hall** (lobby → room) | **verticality** (elevator/stairs/floors — the *real* lesson) **· containment · authoring** (the climax) |

@@ -20,16 +20,25 @@ build; it is not itself a module. (See [daves-bar-slate](../slates/builds/daves-
 
 ## The foundational builds (status + home)
 
+> **Where we are now (updated 2026-06-29):** the whole foundational table
+> below has **shipped** — every substrate has a subsystem doc, and the
+> integrating bar content rides them. What remains is the deferred *game-layer*
+> on each (faction gameplay on corpos, the advancement game-system above the
+> measurement core, lending/taxation on banking, the scripting piping model),
+> not the substrate. The sequence (phases 1–6) is, in substrate terms,
+> essentially complete; the open work is content + the deferred waves tracked
+> on each slate.
+
 | Build | What | Status | Slate |
 |---|---|---|---|
 | **npc-behavior Wave 1** | `Behaved` + canned brains + wiring + cast; lights up the inert Activity substrate | **BUILT** (MR !90; subsystem doc [behavior.md](../subsystems/behavior.md)) | [npc-behavior](../slates/builds/npc-behavior-slate.md) |
-| **Traits** | derived-from-behavior personality (= competence-for-dispositions); stress-as-divergence | **designed** | [npc-behavior § Traits](../slates/builds/npc-behavior-slate.md) |
+| **Traits** | derived-from-behavior personality (= competence-for-dispositions); stress-as-divergence | **BUILT** → [trait.md](../subsystems/trait.md) (stress/composure deferred) | [npc-behavior § Traits](../slates/builds/npc-behavior-slate.md) |
 | **npc-dialogue Wave 1** | responder seam + branching trees; voices from traits, warmth from regard (scripted banter deferred) | **shipped → [npc-dialogue.md](../subsystems/npc-dialogue.md)** | [npc-dialogue](../slates/tails/npc-dialogue-slate.md) |
-| **Advancement** | Catalog / Transcript / Competence (the *learning core* — NOT deferred) | **designed**, increment-1 standalone | [advancement](../slates/builds/advancement-slate.md) |
-| **Crafting v1** | the Dave's Bar slice (venue, recipes, tools, craft-resolve, provenance) | **designed**, buildable | [crafting](../slates/builds/crafting-slate.md) |
-| **Banking** | accounts / ledger / cash; the deficit-as-target P&L | **designed** | [economy § Banking](../slates/builds/economy-slate.md) |
-| **Corpos (marks)** | the corpo *marks* (brand→corpo ownership) — needed for the bar's brands | **designed** | [corpos](../slates/builds/corpos-slate.md) |
-| **Scripting language** | recipe-scripts (programming-by-demonstration) + the `scripted-behavior` brain | **MVP designed** | [scripting](../slates/builds/scripting-slate.md) |
+| **Advancement** | Catalog / Transcript / Competence (the *learning core* — NOT deferred) | **BUILT** → [advancement.md](../subsystems/advancement.md) (game-layer deferred) | [advancement](../slates/builds/advancement-slate.md) |
+| **Crafting v1** | the Dave's Bar slice (venue, recipes, tools, craft-resolve, provenance) | **BUILT** → [crafting.md](../subsystems/crafting.md) | [crafting](../slates/builds/crafting-slate.md) |
+| **Banking** | accounts / ledger / cash; the deficit-as-target P&L | **BUILT** → [banking.md](../subsystems/banking.md) (lending/taxation deferred) | [economy § Banking](../slates/builds/economy-slate.md) |
+| **Corpos (marks)** | the corpo *marks* (brand→corpo ownership) — needed for the bar's brands | **BUILT** (Phase 1 marks) → [corpo.md](../subsystems/corpo.md) (faction gameplay deferred) | [corpos](../slates/builds/corpos-slate.md) |
+| **Scripting language** | recipe-scripts (programming-by-demonstration) + the `scripted-behavior` brain | **MVP BUILT** → [scripting.md](../subsystems/scripting.md) (piping deferred) | [scripting](../slates/tails/scripting-slate.md) |
 
 Shipped substrate it all leans on: Reserve, Activity (inert), affordance
 attribution, Persona, templatePath, zones/access, bulk/glob/Material, location,

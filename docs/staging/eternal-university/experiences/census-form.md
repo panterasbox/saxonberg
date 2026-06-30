@@ -129,7 +129,7 @@ Two things at once:
 
 - **The mechanic** — a `CensusForm` whose **recognized-contribution schema is
   authorable content** (plugging into the document-tree work — see
-  [document-tree-slate.md](../../../slates/builds/document-tree-slate.md)). The
+  [document-store.md](../../../subsystems/document-store.md)). The
   EU arc ships *this* category set (labor/play/fund, the three-stock mirror);
   other authors ship their own surface allegory over the same machinery.
 - **The scene** — the EU arc's particular instance: the player's counting + the
@@ -163,7 +163,7 @@ loaded thing the player sees, and it needs **no carve** (spawned, negative-space
   form mirrors), [participation.md](../../../subsystems/participation.md) (the
   real-time engagement decay = the roll-clock fade),
   [belief.md](../../../subsystems/belief.md) (the lived-exhaust anchor half).
-- Slate: [document-tree-slate.md](../../../slates/builds/document-tree-slate.md)
+- Slate: [document-store.md](../../../subsystems/document-store.md)
   (the authorable form-as-document substrate).
 
 ## Open questions / dials

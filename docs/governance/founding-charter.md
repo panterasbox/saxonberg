@@ -17,7 +17,7 @@ See also:
 - [draft-constitution.md](./draft-constitution.md) Art. XI — the generic
   invariant this charter satisfies (formula-fixed · code-enforced · published ·
   auto-sunset → wage-only), and Art. III for what influence is.
-- [cooperative-slate.md](./cooperative-slate.md) § *Founding vs. amendment —
+- [cooperative-slate.md](../slates/builds/cooperative-slate.md) § *Founding vs. amendment —
   the founder's self-binding* — the rationale: why a credible, code-enforced,
   self-diluting commitment is what lets an early backer trust the stake.
 

@@ -65,7 +65,7 @@ your own bedroom, so you hit the ground running.
   new **document tree** (your choices, owner-scoped). The Warren buds your room by
   *cloning the base + overlaying the document* — and the `Hydrator` reuses its
   data path (a document *is* `data`). See
-  [document-tree-slate](./document-tree-slate.md).
+  [document-store.md](../../subsystems/document-store.md).
 
 ## How customization works: field-editing over the object's mixins
 
@@ -277,7 +277,7 @@ the room you sleep in.
 - **The document tree (the "third tree")** — **decided 2026-06-27**: the
   per-player customization document lives here, the base template in the template
   tree (the hybrid). The Warren-constituent storage standard; reuses the Hydrator.
-  See [document-tree-slate](./document-tree-slate.md).
+  See [document-store.md](../../subsystems/document-store.md).
 - **The mixin library** — *shipped* (≈100 mixins); it **is** the decoration
   palette and grows for free.
 - **Traits, Carries** — *shipped / designed* (the soul source).

@@ -1,7 +1,7 @@
 # Amendment-library slate (working doc) — "political legos"
 
 > **Status: the concept is settled; the *catalog* is the open, growing work.**
-> The [draft constitution](./draft-constitution.md) ships as a **bare-bones
+> The [draft constitution](../../governance/draft-constitution.md) ships as a **bare-bones
 > kernel** — the firewall, the machine, and the provided tools, identical for
 > every community on the platform. This slate specs the layer *on top*: a
 > shared **library of model amendments** — pre-drafted, vetted, composable
@@ -12,7 +12,7 @@
 
 See also:
 
-- [draft-constitution.md](./draft-constitution.md) — **the kernel.** Its
+- [draft-constitution.md](../../governance/draft-constitution.md) — **the kernel.** Its
   three-floor test (firewall / machine / deferred) is what *defines* a module
   slot: everything on floor 3 (rights, economy, roster, tool-adoption) is a
   library entry, not kernel text. Modules are adopted through its **Art. X**

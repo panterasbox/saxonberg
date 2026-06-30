@@ -390,9 +390,9 @@ requirements.
   (compute only — **no celestial→light wiring**, deferred until the
   perception branch merges). `DefaultCalendar`. Pedagogical surface
   (`Sundial`/`Sextant`, `analyze time`/`sky`, `measure shadow`/
-  `altitude`). `docs/slates/tails/world-clock-slate.md` kept for the
-  deferred surface (light wiring, multi-region latitude, locale,
-  weather, NPC schedules, second profiles).
+  `altitude`). [time.md § Future work](subsystems/time.md#future-work)
+  holds the deferred surface (light wiring, multi-region latitude,
+  locale, weather, NPC schedules, second profiles).
 - **Sound** — **absorbed into
   [senses-slate](./slates/tails/senses-slate.md)** (now the *hearing* instance of
   the unified `PerceptionChannel` substrate). The standalone sound-slate

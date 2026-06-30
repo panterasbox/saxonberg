@@ -5,6 +5,14 @@
 > **advancement / chronicle-readout layer**, so the real design waits for that.
 > *Everything here is tentative.* Actual demigods are **content**, to be
 > designed later.
+>
+> **Reconciled (2026-06-29) with [story-bible.md](../../story-bible.md)**, now
+> the canonical cosmology: the 3 high gods are **Presence / Nature / Hollow**
+> (the orientation-toward-experience axis — eternal, constant); demigods split
+> **old-world vs new (aether-enabled)** — the old vs new *religion* patronize
+> different demigods of the *same* gods; and **patrons are mythic, never
+> embodied** (the one divergence from this slate's earlier "deities are NPCs").
+> See the bible's *The gods and demigods* section.
 
 Surfaced while triaging char-gen's identity choices. Two entangled
 threads: the **morality/alignment system** and **religion (worship +
@@ -68,23 +76,32 @@ is the **interplay**: a **deity is a reactive character** who watches your
 deeds (chronicle deeds) and responds *in personality* to the harmony or tension
 between its values and your **witnessed** alignment. Your **chosen god** =
 declared aspiration; your **deeds** = reality; the gap *talks back*. This
-makes worship a live relationship (props-real), and deities the
-biggest-**personality** NPCs in the game (a forcing function for the NPC
-stack — see [[user-loves-npcs]]).
+makes worship a live relationship (props-real) — but the deity is
+**mythic, never embodied** (see the reconciliation note above): the gap
+talks back through the **world** (standing, fortune, omens, the chronicle),
+a felt presence known through story and sign, *not* a dialogue-tree NPC.
 
 ### Pantheon structure — a tree, not a crowd
 
 Avoid the flat *American Gods* sprawl. Two tiers, mapping the grid onto a
 **hierarchy**:
 
-- **3 high gods = the morality axis** (Good / Neutral / Evil). Distant
-  cosmic forces — and *literally the three narrative camps*: Good (the
-  protagonists' side), Evil (the single great adversary the cults serve),
-  Neutral (the indifferent world / nature / balance).
-- **Demigods = the Law axis + domains + personality**, scoped *under* each
-  high god (order-saint & trickster-saint under Good; nature-spirits &
-  balance-keepers under Neutral; tyrant & destroyer under Evil). These are
-  the relatable, reactive NPCs people actually worship.
+- **3 high gods = the morality axis**, named in the bible as the three
+  orientations toward experience: **Presence (Good)** / **Nature — the
+  Indifferent (Neutral)** / **The Hollow (Evil)**. Eternal and constant —
+  good vs. evil never moves. *Literally the three narrative camps*: Presence
+  (the protagonists' side), the Hollow (the single great adversary the cults
+  serve), Nature (the indifferent world / wild / balance).
+- **Demigods = domains + personality, and an *era*.** Each high god has
+  **old-world demigods** and **new, aether-enabled demigods** — the old vs
+  new *religion* patronize different demigods of the *same* gods (the new
+  religion couldn't exist before the aether was networked at scale). The
+  Hollow's new demigod is the **Metric / the Feed** (the capture/AI face);
+  Presence's is the patron of genuine connection-across-the-network. **They
+  are mythic — felt presences known through story, ritual, and signs, never
+  embodied NPCs** (an embodied god would be killable and would rank below the
+  wizard-players). The reactivity is real but rides the **world** — your
+  standing, fortune, omens, the chronicle — not a dialogue tree.
 
 Division of labor: **high gods = abstract cosmic forces** (you don't chat
 with them); **demigods = the personality canvas**. Fits how we build
