@@ -38,3 +38,10 @@ export function cart(massKg = 25, draftFactor = 0.04): Cart {
 export function haulingBearer(baseMass = 70): HaulingBearer {
   return bearerOf(() => new HaulingBearer(), baseMass);
 }
+
+/** A hauling bearer whose body plan admits `walk` (for the locomotion gates). */
+export function walkingHaulingBearer(baseMass = 70): HaulingBearer {
+  const b = haulingBearer(baseMass);
+  b.getSpecies()?.getBodyPlan()?.setLocomotionModes(['walk']);
+  return b;
+}

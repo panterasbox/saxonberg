@@ -124,6 +124,16 @@ export interface ExitOptions {
    * than enumerating every mode name.
    */
   media?: string[];
+  /**
+   * Whether a wheeled hauled cart may pass through this exit. Default
+   * `true`. The `media` gate already refuses a cart on any non-ground
+   * exit (a ladder / ford / open air); this bit covers the one residue
+   * the medium can't express — an exit that admits *walking* but must
+   * refuse *wheels* (stairs, a stile, a turnstile, a narrow door, all
+   * `media: ['ground']`). Authors set it `false` on those. See the
+   * haulage terrain gate in `LocomotionApi.canTraverseExit`.
+   */
+  wheelPassable?: boolean;
 }
 
 export default class Exit extends Idea {
@@ -305,6 +315,20 @@ export default class Exit extends Idea {
   }
 
   /**
+   * Whether a wheeled hauled cart may pass through. Default `true`;
+   * authors set `false` on stairs / stiles / narrow doors that admit
+   * walking but not wheels (the residue the `media` gate can't express).
+   */
+  protected _wheelPassable: boolean = true;
+
+  public isWheelPassable(): boolean {
+    return this._wheelPassable;
+  }
+  public setWheelPassable(value: boolean): void {
+    this._wheelPassable = value;
+  }
+
+  /**
    * True iff a mode named `modeName` is admitted by this exit. Resolution:
    *   - Empty `media` → legacy default; admits only `'walk'`. Preserves
    *     pre-refactor behavior for exits constructed without an explicit
@@ -394,6 +418,7 @@ export default class Exit extends Idea {
     // Reuse the same validator the public setter does. The `?? []`
     // default preserves backcompat for callers that don't pass it.
     this.setMedia(opts.media ?? []);
+    this._wheelPassable = opts.wheelPassable ?? true;
   }
 
   /**
