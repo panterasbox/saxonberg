@@ -215,7 +215,10 @@ is always the same three forces, the three orientations toward experience:
   honest work, awe.)*
 - **Nature / the Indifferent (Neutral)** — neither serves nor preys; the
   emergent natural world, the wild.
-- **The Hollow (Evil)** — preys on experience; capture.
+- **The Hollow (Evil)** — preys on experience; capture. Eternal only as the
+  *latent shadow of presence* — wherever the gift is freely given, taking is
+  possible — it **woke at the first hollowing** (see *The lost paradise*) and
+  recurs ever after (the first-faller → Solus → Vane → the Metric).
 
 These are the moral axis. The **Lawful/Chaotic axis is *not* godded** — it
 is the secular, human, political question (how the good organize
@@ -281,11 +284,21 @@ no clock), the deep past as **legend**. *Old world, brand-new order,
 founding any moment.* Precise-near, blank-far — and the 12x clock makes the
 present advance and the founding genuinely approach as people play.
 
-### I. The Age of Myth *[mythic, uncertain — stays light]*
-No throne yet — only the oldest battle (experience vs. the hollowing) and
-the gods, who are stories. Authority: none; only the deep faith later ages
-inherit. Holds the **two older worlds** whose joining later made Eternal
-City.
+### I. The Age of Myth *[mythic — the true beginning]*
+No throne yet — and at the very first, **no hollowing either.** The oldest
+thing is **paradise:** the ancient attuned, creatures of presence, naturally
+networked, living the cooperative *by nature* — a gift economy of mutual
+attention, presence freely flowing, uncapturable not by any wall but by
+**innocence** (no one had yet discovered taking). Then **the first fall:** a
+being — unnamed, it could have been anyone — looks at the freely-given gift and
+**takes**, hollowing himself in the act and waking the latent **Hollow**; the
+gift can be hoarded now, presence pools into centers, and the one connected
+polity shatters into the first hierarchy. That is **the oldest battle**
+(experience vs. the hollowing) and its **first casualty** — and the attuned
+carry forward the memory of what was and the promise it returns, *the prophecy's
+root.* (Full telling: *The lost paradise*.) Authority: none; only the deep faith
+later ages inherit. Holds, too, the **two older worlds** whose joining later
+made Eternal City.
 
 ### II. The Eternal Age — *Eternal City*
 Authority descends **from above.** Born of a union and ruled by a **founding
@@ -860,14 +873,32 @@ networked, born uncapturable — a presence-based, distributed polity *by
 nature*, the cult-of-presence as a society with no hollowing in it. **That
 was paradise.**
 
-- **The fall.** Paradise fell to the **first hollowing** — the first time a
-  being looked at freely-given presence and saw a *thing to take.* The first
-  capture; presence can't stay pure once it's hoarded. The legend *frames*
-  it as a curse (Eden's shape); the structural truth is the hollowing's
-  *birth.* So the hollowing is older than Eternal City — **paradise was its
-  first casualty, and Solus is a recurrence, not a debut.** *(Open: a mythic
-  **first-faller**, the original Solus among the attuned — or keep the fall
-  impersonal.)*
+- **The fall — the first theft of the gift.** Presence in paradise was
+  *given*: mutual attention flowing freely, each mind present to the others, a
+  gift economy of being-with. The fall was the discovery you could **take it
+  instead** — hold presence one-way, be witnessed without witnessing, become the
+  center others flow toward without flowing back. The first **capture.** And the
+  horror is that taking **empties you:** presence fills you only by being
+  *given*, so the one who hoards it gets all the attention and becomes *no one*,
+  a mouth with no face. **He hollowed himself.** *(The same act the modern Feed
+  industrializes — one-way extraction of attention, an age apart.)*
+- **The first-faller — real, but his name was never kept.** Unlike Solus
+  (named) and Vane (named), the first-faller is **faceless on purpose:** not
+  because legend forgot, but because the act *erased the self* — he became the
+  first hollow, and the emptiness is what remains, not the man. He is the
+  **first host the Hollow woke in** (the Hollow eternal only as the *latent
+  shadow* of presence, unwoken until this first yes). It could have been
+  **anyone**; he was simply first — which is the whole point: the rot is not a
+  villain's invention but a **possibility latent in presence itself.** *(So the
+  hollowing is older than Eternal City — paradise was its first casualty, Solus
+  a recurrence, not a debut.)*
+- **The shattering — innocence, not a wall.** Paradise was uncapturable not
+  because it was *guarded* but because no one had ever *discovered taking* — it
+  was protected by **innocence** (Eden's true shape). Once one being learned the
+  gift could be hoarded, the knowledge spread; presence pooled into centers and
+  peripheries; the one connected polity fractured into the **first hierarchy.**
+  Paradise didn't fall to an invader — it fell to a **discovery.** *(The legend
+  frames it as a curse; the structural truth is the hollowing's birth.)*
 - **The loss & the rediscovery.** The knowledge died with the attuned (the
   Fallow). The framers, digging in the aether, did not *invent* the better
   way — they **rediscovered** it and built a human, technological version of
