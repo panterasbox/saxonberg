@@ -49,6 +49,35 @@ power. The pantheon is the diegetic shadow of the CMS.
 embodiment. His gods walk around; ours can't, or they'd rank below the
 wizards.)
 
+### Wizards, protowizards, and the redeemed lineage **[settled]**
+
+A **wizard** is a *maker* — the authoring/demiurge power, will-into-being
+(the CMS). The line that matters is the **TypeScript line**: the moment you
+can write a line of TS you can slip every call-security gate the language
+and Node hand you, so crossing it is a **trust** event, not just a skill
+one.
+
+- **Protowizard** — makes *inside* the sandbox (scoped authoring — your
+  dorm, then more). **Everyone is *potentially* a wizard:** the making power
+  is democratized now, not hoarded by a few.
+- **Wizard** — vetted to make *outside* the sandbox (raw TS). A real
+  threshold.
+- **Executive institutions** — hold *rule.* Wizards make; institutions
+  govern; the two never meet in one hand.
+
+That last point retires a word: an **archwizard** was a wizard who *also
+ruled* — make-and-rule fused in one person, the exact sin that made Solus.
+So the new order has wizards and institutions and **no archwizards at
+all** — *the absence of the word is the political achievement.* (The
+Eternal Age had archwizards; the redeemed order, by construction, can't.)
+
+And the lineage is the gift to anyone who creates here: **a creator who
+becomes a wizard walks in the footsteps of the old wizards** — mythic in
+our story, real in the world that lived it — the same craft, the same
+cautionary tale, in an order engineered so they can never become Solus. The
+power that felled Eternal City, handed back with the one thing it lacked: a
+structure that won't let it take you.
+
 ## Alignment — two axes **[settled]**
 
 - **Good ↔ Evil** — the **ancient/cosmic/religious** axis. The oldest
@@ -226,7 +255,7 @@ City.
 Authority descends **from above.** Born of a union and ruled by a
 **founding dyad** — two makers, born of the Confluence, who withdraw into
 silence (the deist absence) and, at the end, fail to intervene. A
-**council of archwizards** rules beneath them; the estates (**clergy** +
+**council of wizards** rules beneath them; the estates (**clergy** +
 **nobility / peerage**, titles and land by divine sanction) below that.
 Make and rule fused; the dreamlike, impossible city. Its internal arc is
 the natural death of a made order — *born of a union, built by the first,
@@ -395,7 +424,7 @@ form reads as natural **sensitives / telepaths**.*
   through it. The two older worlds (uncertain, light).
 - **The Eternal Age** — *aether wild; the making-power hoarded.*
   Confluence (two worlds join; the founding dyad makes Eternal City) →
-  First Making (the first archwizards build) → Opening (makerhood widens;
+  First Making (the first wizards build) → Opening (makerhood widens;
   the founders withdraw into silence) → Pooling (power narrows to one
   seat; capture's first small-scale rising) → Reaping (the purge; the
   exodus begins).
@@ -485,10 +514,18 @@ The surname rhyme (**Solus ↔ Solvan**) is the wink: not kin (centuries
 apart), just the echo of history a chronicler catches. *Solus* = the one,
 alone at the top; *Solvan* = to loosen, free, **absolve**.
 
-- **Corvin Solus** — the **demagogue** of the Eternal Age. The seat of the
-  **Pooling**: he concentrated all authority to himself, and the order fell
-  (the Reaping, the Fallow). Remembered in legend simply as **Solus** — "the
-  fall of Solus." *He kept it, and it killed the world.*
+- **Corvin Solus** — the **demagogue** of the Eternal Age (**pure legend** —
+  the deep past, hazy in detail, certain in shape). A gifted **wizard** who
+  rose through the council and **seized rule** — the seat of the **Pooling**,
+  concentrating all authority because *nothing checked him* and telling
+  himself it was necessary (the god-king's certainty, not evil). In his
+  isolated later years his mind **went** — paranoia, grandiosity — and the
+  **Reaping** was a *mad* act, a paranoid purge; the city emptied around him
+  (the Fallow) and he ended **alone atop a dead city.** Remembered as *the
+  fall of Solus.* *He kept it, and it killed the world.* The inversion of
+  Solvan completes here: Solus **lost his mind but kept his life** (mad,
+  alive, alone); Solvan **keeps his mind but loses his life** (lucid, dying,
+  released).
 - **Anselm Solvan** — the **steward** of the present. Born into the late
   University (an *aether-research institution* for centuries), an aether
   scholar his whole life; in his sixties his **cohort cracked the implant
