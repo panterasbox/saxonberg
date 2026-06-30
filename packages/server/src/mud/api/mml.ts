@@ -11,7 +11,7 @@
  *
  * The vocabulary helpers (`name`, `speech`, `location`, `direction`,
  * `object`, `item`, `chan`, `msg`, `player`, `npc`, `mention`, `link`,
- * emphasis tags, `list`) emit Mml fragments that interpolate verbatim
+ * `color`, emphasis tags, `list`) emit Mml fragments that interpolate verbatim
  * inside `Mml.compose`; raw string arguments to vocabulary helpers are
  * always re-escaped — devs who want nested markup must compose with Mml
  * fragments explicitly.
@@ -423,6 +423,37 @@ export class Mml {
     return Mml.fromMarkup(`<link href="${escapeText(href)}">${inner}</link>`);
   }
 
+  /**
+   * The escaped-text fragment: a raw string lifted into an `Mml` with
+   * its special characters escaped exactly once, at construction. This
+   * is the seam that lets *any* display value join the compose chain as
+   * a fragment — once it's an `Mml`, it slots into bigger fragments
+   * verbatim and is never re-escaped. The plain default for an object's
+   * `getPresentationMml`.
+   */
+  static text(value: string): Mml {
+    return Mml.fromMarkup(escapeText(value));
+  }
+
+  /**
+   * Wrap body in `<color value="...">...</color>` — a literal color on
+   * composed prose. The grammar is otherwise semantic (`<item>`,
+   * `<speech>` describe *meaning*), but a thing's color is a real
+   * property of what's perceived (visible light has color), so we name
+   * it explicitly. The value is a theme-palette token / friendly color
+   * name (`purple`, `blue`, `red`, `grey`, …) resolved client-side
+   * through the palette, so it stays legible under any theme — never a
+   * raw hex. Raw strings in the body are escaped; pass an `Mml`
+   * fragment to nest markup (e.g. a clickable `<item>` whose label is
+   * tinted).
+   */
+  static color(value: string, body: string | Mml): Mml {
+    const inner = body instanceof Mml ? body.toString() : escapeText(body);
+    return Mml.fromMarkup(
+      `<color value="${escapeText(value)}">${inner}</color>`,
+    );
+  }
+
   /** Wrap body in `<strong>...</strong>` (markdown `**bold**`). */
   static strong(body: string | Mml): Mml {
     const inner = body instanceof Mml ? body.toString() : escapeText(body);
@@ -734,13 +765,22 @@ export class Mml {
     if (this.payload.kind === 'eager') return this.payload.raw;
     if (this.payload.kind === 'ref') {
       const { tag, stuff } = this.payload;
-      // Late-bound, viewer-aware display: the recipient's perceived
-      // name for this target, or the viewer-blind baseline when no
-      // recipient is in play (logs, persistence snapshots).
-      const display = viewer
+      // Recognition (the viewer-aware naming step) stays here, in the
+      // render layer: resolve the recipient's perceived label, or the
+      // viewer-blind baseline when no recipient is in play (logs,
+      // snapshots).
+      const label = viewer
         ? RecognitionApi.describe(viewer, stuff)
         : stuff.getPresentation();
-      return `<${tag} stuff-id="${escapeText(stuff.stuffId)}">${escapeText(display)}</${tag}>`;
+      // The object turns its label into a composable `Mml` *fragment*
+      // (`getPresentationMml`, Stuff): `null` = the plain default, which
+      // we build here as an escaped-once text fragment; a non-null
+      // override is a richer fragment (a terminal wraps its name in
+      // `<color>` to tint by state). Either way it composes verbatim and
+      // is never re-escaped — no plain-vs-markup decision at this seam.
+      const inner = (stuff.getPresentationMml(label) ?? Mml.text(label))
+        .toString();
+      return `<${tag} stuff-id="${escapeText(stuff.stuffId)}">${inner}</${tag}>`;
     }
     let out = '';
     const { strings, values } = this.payload;

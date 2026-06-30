@@ -29,15 +29,34 @@ import { FACE_STACKS } from '../styles/faces';
 import { tokens } from './ui';
 
 /**
- * Map a server social-graph palette token (`amber`, `rose`, …) to a
- * concrete theme color, falling back to `neutral` for an unknown token.
- * The same `tokens.palette` map the `NotificationQueue` toast uses, so a
- * `<name color="amber">` room occupant and its presence banner tint
- * identically. Returns `undefined` for an absent attr (no tint).
+ * Friendly color names → palette tokens, so authored prose can write
+ * the natural word (`<color value="purple">`) and still resolve through
+ * the theme palette (kept legible under any theme). Palette tokens pass
+ * through unchanged.
+ */
+const COLOR_ALIASES: Record<string, string> = {
+  purple: 'violet',
+  blue: 'sky',
+  red: 'rose',
+  grey: 'slate',
+  gray: 'slate',
+  green: 'emerald',
+  gold: 'amber',
+  yellow: 'amber',
+};
+
+/**
+ * Map a server palette token or friendly color name (`amber`, `rose`,
+ * `purple`, …) to a concrete theme color, falling back to `neutral` for
+ * an unknown token. The same `tokens.palette` map the `NotificationQueue`
+ * toast uses, so a `<name color="amber">` room occupant and its presence
+ * banner tint identically. Returns `undefined` for an absent attr (no
+ * tint).
  */
 function paletteFor(token: string | undefined): string | undefined {
   if (!token) return undefined;
-  return tokens.palette[token] ?? tokens.palette.neutral!;
+  const resolved = COLOR_ALIASES[token] ?? token;
+  return tokens.palette[resolved] ?? tokens.palette.neutral!;
 }
 
 interface MmlRendererProps {
@@ -189,6 +208,16 @@ const HighlightSpan = styled.span<{ $tint?: string }>`
 `;
 
 /**
+ * Explicit color wrapper for `<color value="…">` — the literal-color
+ * tag. Tints its content (and any clickable descendant, since a span's
+ * own color wins over an ancestor ClickableSpan's). Unknown / absent
+ * value falls through to inherited color.
+ */
+const ColorSpan = styled.span<{ $tint?: string }>`
+  color: ${(p) => p.$tint ?? 'inherit'};
+`;
+
+/**
  * Inert link affordance for `mudq:` URIs (and any other namespaced
  * link the v1 build can't route). Deliberately NOT styled like a
  * clickable link: no underline, no cursor change, no hover state.
@@ -316,6 +345,16 @@ function renderNode(
         <HighlightSpan key={key} $tint={paletteFor(node.attrs.color)}>
           {children}
         </HighlightSpan>
+      );
+    case 'color':
+      // Explicit literal-color tag — tint content by the palette
+      // (friendly names resolved in paletteFor). When it wraps a
+      // clickable label the inner color wins, so the affordance stays
+      // clickable but takes the colour.
+      return (
+        <ColorSpan key={key} $tint={paletteFor(node.attrs.value)}>
+          {children}
+        </ColorSpan>
       );
     case 'msg':
       // No wrapper styling — `<msg>` is a region marker the
