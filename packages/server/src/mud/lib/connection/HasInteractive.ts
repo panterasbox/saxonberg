@@ -71,6 +71,14 @@ export interface ClientStateSchemaEntry<T = unknown> {
   defaultValue: T;
   description?: string;
   validator?: (value: unknown) => true | string;
+  /**
+   * Transient keys live with the live session, not the character: held
+   * in an in-memory store that is never persisted (so they reset to the
+   * default on a fresh login) and never round-trips through the Hydrator.
+   * Used for ephemeral UI scoping like per-bar input modes. Defaults to
+   * persisted (`false`/absent).
+   */
+  transient?: boolean;
 }
 
 /**
@@ -224,6 +232,11 @@ export function HasInteractiveMixin<TBase extends MixinConstructor>(Base: TBase)
       },
       {
         key: 'cockpit.inputModes',
+        // Transient: input scoping belongs to the live session, not the
+        // character. Resets to {} on a fresh login — no persisted barId
+        // vocabulary to maintain across sessions. The barId is just an
+        // in-session routing handle, not a saved key.
+        transient: true,
         defaultValue: {},
         description:
           'Per-bar input modes — a { barId → prefix } map. The ' +
@@ -231,7 +244,8 @@ export function HasInteractiveMixin<TBase extends MixinConstructor>(Base: TBase)
           'input submitted from that bar (escape with `/`; the `mode` ' +
           'verb itself is exempt). Set/cleared by the `mode` verb from ' +
           'a given bar; the client renders the prefix as an inline ' +
-          'uneditable span.',
+          'uneditable span. Transient — never persisted; clears on ' +
+          'a fresh session.',
         // Shape: a flat object whose values are all strings. The
         // resolver/interpreter tolerate a missing key (= that bar is
         // unset); this validator only rejects non-objects and non-
@@ -277,6 +291,15 @@ export function HasInteractiveMixin<TBase extends MixinConstructor>(Base: TBase)
      */
     public _clientState: Record<string, unknown> = {};
 
+    /**
+     * Transient client-state slot — keys whose schema entry is
+     * `transient`. In-memory only: deliberately NOT in `persistentFields`,
+     * so it never reaches the Hydrator and resets to defaults on a fresh
+     * login. Per-bar input modes live here (ephemeral input scoping that
+     * belongs to the session, not the character).
+     */
+    public _transientClientState: Record<string, unknown> = {};
+
     static persistentFields = ['_clientState'];
 
     public getInteractives(): ReadonlySet<Interactive> {
@@ -318,11 +341,11 @@ export function HasInteractiveMixin<TBase extends MixinConstructor>(Base: TBase)
             `Add an entry to HasInteractiveMixin.clientStateSchema.`,
         );
       }
-      if (
-        this._clientState &&
-        Object.prototype.hasOwnProperty.call(this._clientState, key)
-      ) {
-        return this._clientState[key] as T;
+      const store = entry.transient
+        ? this._transientClientState
+        : this._clientState;
+      if (store && Object.prototype.hasOwnProperty.call(store, key)) {
+        return store[key] as T;
       }
       return entry.defaultValue as T;
     }
@@ -344,6 +367,11 @@ export function HasInteractiveMixin<TBase extends MixinConstructor>(Base: TBase)
               `'${key}': ${ok}`,
           );
         }
+      }
+      if (entry.transient) {
+        if (!this._transientClientState) this._transientClientState = {};
+        this._transientClientState[key] = value;
+        return;
       }
       if (!this._clientState) this._clientState = {};
       this._clientState[key] = value;
@@ -409,11 +437,11 @@ export function HasInteractiveMixin<TBase extends MixinConstructor>(Base: TBase)
           .clientStateSchema ?? [];
       const out: Record<string, unknown> = {};
       for (const entry of schema) {
-        if (
-          this._clientState &&
-          Object.prototype.hasOwnProperty.call(this._clientState, entry.key)
-        ) {
-          out[entry.key] = this._clientState[entry.key];
+        const store = entry.transient
+          ? this._transientClientState
+          : this._clientState;
+        if (store && Object.prototype.hasOwnProperty.call(store, entry.key)) {
+          out[entry.key] = store[entry.key];
         } else {
           out[entry.key] = entry.defaultValue;
         }

@@ -21,10 +21,12 @@
  *     target in the command instead (`mode chat --bar stream-chat`). The
  *     target stays visible in the ghost-line preview — no hidden state.
  *
- * Every mutation writes the whole map via `setClientState`, persists via
- * `save()`, and pushes to connected Interactives — the StyleController
- * commit triple — so the client's inline prefix indicator re-renders
- * without a reconnect.
+ * Every mutation writes the whole map via `setClientState` and pushes to
+ * connected Interactives so the client's inline prefix indicator
+ * re-renders without a reconnect. Input modes are **transient**
+ * (`clientStateSchema` marks `cockpit.inputModes` transient): they live
+ * with the live session, never persist, and reset on a fresh login — so
+ * there is no save step and no cross-session barId vocabulary to keep.
  */
 
 import { CommandController } from '../../../lib/command/CommandController';
@@ -33,7 +35,6 @@ import { MessageApi } from '../../../api/message';
 import { MixinApi } from '../../../api/mixin';
 import { Mml } from '../../../api/mml';
 import type { Stuff } from '../../../lib/stuff/Stuff';
-import Avatar from '../../Avatar';
 import type { HasInteractive } from '../../../lib/connection/HasInteractive';
 
 const MODES_KEY = 'cockpit.inputModes';
@@ -92,17 +93,13 @@ export default class ModeController extends CommandController<ModeModel> {
     return { ...current };
   }
 
-  /** Atomic commit: write, persist (Avatar only), push. */
+  /**
+   * Commit: write the transient map + push. No persistence — input mode
+   * is transient session state (`cockpit.inputModes` is a transient
+   * clientState key), so it stays in memory and dies with the session.
+   */
   private commit(host: ModeHost, next: Record<string, string>): void {
     host.setClientState(MODES_KEY, next);
-    if (host instanceof Avatar) {
-      host.save().catch((err: unknown) => {
-        const detail = err instanceof Error ? err.message : String(err);
-        console.warn(
-          `ModeController.commit: save failed (non-fatal): ${detail}`,
-        );
-      });
-    }
     host.pushClientStateUpdate(MODES_KEY, next);
   }
 
