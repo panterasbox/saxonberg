@@ -1,5 +1,5 @@
 /**
- * AnnounceController — the `announce` verb maps the bound model onto
+ * BulletinController — the `bulletin` verb maps the bound model onto
  * `BulletinApi.publish / edit / retract` (never the registry). Output is
  * captured by spying `Mml.fromMarkup` (it calls through) + a no-op scene
  * chainable, the ConfigController.test.ts harness. `BulletinApi` and
@@ -8,7 +8,7 @@
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import type { MockInstance } from 'vitest';
-import AnnounceController from '../AnnounceController';
+import BulletinController from '../BulletinController';
 import { BulletinApi } from '../../../../api/bulletin';
 import { AppApi } from '../../../../api/app';
 import { MessageApi } from '../../../../api/message';
@@ -16,7 +16,7 @@ import { Mml } from '../../../../api/mml';
 import { makeStuff } from '../../../../lib/security/__tests__/test-setup';
 import type { CommandContext, CommandModel } from '../../../../api/command';
 
-interface AnnounceModel extends CommandModel {
+interface BulletinModel extends CommandModel {
   headline?: string;
   body?: string;
   id?: string;
@@ -31,8 +31,8 @@ function fakeBulletin(id: string): { getBulletinId(): string } {
   return { getBulletinId: () => id };
 }
 
-describe('AnnounceController', () => {
-  let ctrl: AnnounceController;
+describe('BulletinController', () => {
+  let ctrl: BulletinController;
   let ctx: CommandContext;
   let output: string[];
   let note: ReturnType<typeof vi.fn>;
@@ -56,7 +56,7 @@ describe('AnnounceController', () => {
       .spyOn(BulletinApi, 'retract')
       .mockResolvedValue(fakeBulletin('b-1') as never);
 
-    ctrl = makeStuff(() => new AnnounceController());
+    ctrl = makeStuff(() => new BulletinController());
 
     output = [];
     const realFromMarkup = Mml.fromMarkup.bind(Mml);
@@ -80,7 +80,7 @@ describe('AnnounceController', () => {
     vi.restoreAllMocks();
   });
 
-  function run(model: AnnounceModel) {
+  function run(model: BulletinModel) {
     return ctrl.execute(model as never, ctx);
   }
 
@@ -175,7 +175,7 @@ describe('AnnounceController', () => {
       id: 'b-1',
       headline: 'Revised headline',
       pin: true,
-    } as AnnounceModel);
+    } as BulletinModel);
     expect(edit).toHaveBeenCalledTimes(1);
     expect(edit).toHaveBeenCalledWith('b-1', {
       headline: 'Revised headline',
@@ -190,14 +190,14 @@ describe('AnnounceController', () => {
       subcommand: 'edit',
       id: 'missing',
       headline: 'x',
-    } as AnnounceModel);
+    } as BulletinModel);
     expect(note).toHaveBeenCalledWith(
       expect.objectContaining({ reason: 'no-such-bulletin' }),
     );
   });
 
   it('retract maps id onto BulletinApi.retract', async () => {
-    await run({ subcommand: 'retract', id: 'b-1' } as AnnounceModel);
+    await run({ subcommand: 'retract', id: 'b-1' } as BulletinModel);
     expect(retract).toHaveBeenCalledWith('b-1');
     expect(note).not.toHaveBeenCalled();
     expect(output.join('\n')).toContain("Retracted bulletin 'b-1'");

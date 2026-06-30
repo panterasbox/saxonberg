@@ -1,5 +1,5 @@
 /**
- * requiresAuthor — verb-level author gate for `announce`. Mirrors the
+ * requiresAuthor — verb-level author gate for `bulletin`. Mirrors the
  * `requiresDeveloper` gate test in ConfigController.test.ts: the sync body
  * maps the threaded `allowed` boolean to a denial string, and the async
  * `preload` reads `AccessApi.isAuthor(commandGiver)`.
@@ -17,7 +17,7 @@ describe('requiresAuthor validator', () => {
 
   it('passes (undefined) when the giver is allowed', () => {
     const ctx = {
-      verb: 'announce',
+      verb: 'bulletin',
       commandGiver: {},
     } as unknown as CommandContext;
     expect(requiresAuthor(ctx, true)).toBeUndefined();
@@ -25,11 +25,11 @@ describe('requiresAuthor validator', () => {
 
   it('rejects a non-author with a permission message', () => {
     const ctx = {
-      verb: 'announce',
+      verb: 'bulletin',
       commandGiver: {},
     } as unknown as CommandContext;
     expect(requiresAuthor(ctx, false)).toBe(
-      "you don't have permission to announce",
+      "you don't have permission to bulletin",
     );
   });
 

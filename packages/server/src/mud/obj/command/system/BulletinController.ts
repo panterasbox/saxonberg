@@ -1,9 +1,9 @@
 /**
- * AnnounceController — the `announce` verb: publish / edit / retract on
- * the staff→player broadcast feed (the news ticker).
+ * BulletinController — the `bulletin` verb: post / edit / retract on the
+ * staff→player broadcast feed (the news ticker).
  *
- * Afforded via `AuthorMixin.commandContributions` (`system/announce.yaml`)
- * and authorized declaratively on the author axis — `announce.yaml` carries
+ * Afforded via `AuthorMixin.commandContributions` (`system/bulletin.yaml`)
+ * and authorized declaratively on the author axis — `bulletin.yaml` carries
  * `requiresAuthor`, so a non-author sees the verb but the dispatcher
  * rejects the command before this controller runs.
  *
@@ -12,12 +12,13 @@
  * publishing author is NOT passed — the logic derives it from the
  * execution context (the gated-API actor-from-context rule).
  *
- * Forms (fallthrough — bare `announce <headline>` publishes):
- *   - `announce <headline>` — publish; `--realm` / `--kind` / `--pin` /
- *     `--expires` options shape it; the long-form `body` rides the
- *     structured-form side-channel (overlaid into `model.body`).
- *   - `announce edit <id> [headline]` — patch an existing bulletin.
- *   - `announce retract <id>` — soft-delete (kept in the archive).
+ * Forms (`post` subcommand, with a bare-headline fallthrough shorthand):
+ *   - `bulletin post <headline>` (or bare `bulletin <headline>`) — publish;
+ *     `--realm` / `--kind` / `--pin` / `--expires` options shape it; the
+ *     long-form `body` rides the structured-form side-channel (overlaid
+ *     into `model.body`).
+ *   - `bulletin edit <id> [headline]` — patch an existing bulletin.
+ *   - `bulletin retract <id>` — soft-delete (kept in the archive).
  *
  * Controllers return `void`; outcomes ride the dispatch-response envelope.
  */
@@ -40,7 +41,7 @@ import {
   type BulletinKind,
 } from '../../../lib/bulletin/Bulletin';
 
-interface AnnounceModel extends CommandModel {
+interface BulletinModel extends CommandModel {
   /** The publish form's headline (greedy inline), or the edit form's new headline. */
   headline?: string;
   /** Long-form MML body — overlaid from the `{text, fields}` side-channel. */
@@ -57,13 +58,16 @@ interface AnnounceModel extends CommandModel {
 const HEADLINE_CAP_FALLBACK = 120;
 const BODY_CAP_FALLBACK = 4000;
 
-export default class AnnounceController extends CommandController<AnnounceModel> {
+export default class BulletinController extends CommandController<BulletinModel> {
   async execute(
-    model: AnnounceModel,
+    model: BulletinModel,
     context: CommandContext,
   ): Promise<void> {
     switch (model.subcommand) {
+      // Bare `bulletin <headline>` falls through with no subcommand; the
+      // explicit `post` subcommand is the same publish path.
       case undefined:
+      case 'post':
         return this.executePublish(model, context);
       case 'edit':
         return this.executeEdit(model, context);
@@ -72,14 +76,14 @@ export default class AnnounceController extends CommandController<AnnounceModel>
       default:
         return this.fail(
           context,
-          `Unknown announce subcommand: ${model.subcommand}`,
+          `Unknown bulletin subcommand: ${model.subcommand}`,
           'unknown-subcommand',
         );
     }
   }
 
   private async executePublish(
-    model: AnnounceModel,
+    model: BulletinModel,
     context: CommandContext,
   ): Promise<void> {
     const headline = (model.headline ?? '').trim();
@@ -87,8 +91,8 @@ export default class AnnounceController extends CommandController<AnnounceModel>
       return this.fail(context, 'headline required', 'headline-required');
     }
     // Publish defaults applied here (not in the YAML) so an unpassed flag
-    // stays undefined for the edit patch — see announce.yaml's options note.
-    const realm = AnnounceController.resolveRealm(model.realm ?? 'ooc');
+    // stays undefined for the edit patch — see bulletin.yaml's options note.
+    const realm = BulletinController.resolveRealm(model.realm ?? 'ooc');
     if (!realm) {
       return this.fail(
         context,
@@ -96,7 +100,7 @@ export default class AnnounceController extends CommandController<AnnounceModel>
         'bad-realm',
       );
     }
-    const kind = AnnounceController.resolveKind(model.kind ?? 'notice');
+    const kind = BulletinController.resolveKind(model.kind ?? 'notice');
     if (!kind) {
       return this.fail(
         context,
@@ -105,7 +109,7 @@ export default class AnnounceController extends CommandController<AnnounceModel>
       );
     }
 
-    const caps = AnnounceController.lengthCaps();
+    const caps = BulletinController.lengthCaps();
     if (headline.length > caps.headline) {
       return this.fail(
         context,
@@ -122,7 +126,7 @@ export default class AnnounceController extends CommandController<AnnounceModel>
       );
     }
 
-    const expiresAt = AnnounceController.resolveExpiry(model.expires);
+    const expiresAt = BulletinController.resolveExpiry(model.expires);
     if (expiresAt === null) {
       return this.fail(
         context,
@@ -151,13 +155,13 @@ export default class AnnounceController extends CommandController<AnnounceModel>
   }
 
   private async executeEdit(
-    model: AnnounceModel,
+    model: BulletinModel,
     context: CommandContext,
   ): Promise<void> {
     const id = (model.id ?? '').trim();
     if (!id) return this.fail(context, 'bulletin id required', 'id-required');
 
-    const caps = AnnounceController.lengthCaps();
+    const caps = BulletinController.lengthCaps();
     const patch: BulletinPatch = {};
 
     const headline = (model.headline ?? '').trim();
@@ -185,7 +189,7 @@ export default class AnnounceController extends CommandController<AnnounceModel>
     }
 
     if (model.realm !== undefined) {
-      const realm = AnnounceController.resolveRealm(model.realm);
+      const realm = BulletinController.resolveRealm(model.realm);
       if (!realm) {
         return this.fail(
           context,
@@ -196,7 +200,7 @@ export default class AnnounceController extends CommandController<AnnounceModel>
       patch.realm = realm;
     }
     if (model.kind !== undefined) {
-      const kind = AnnounceController.resolveKind(model.kind);
+      const kind = BulletinController.resolveKind(model.kind);
       if (!kind) {
         return this.fail(
           context,
@@ -208,7 +212,7 @@ export default class AnnounceController extends CommandController<AnnounceModel>
     }
     if (model.pin === true) patch.pinned = true;
     if (model.expires !== undefined) {
-      const expiresAt = AnnounceController.resolveExpiry(model.expires);
+      const expiresAt = BulletinController.resolveExpiry(model.expires);
       if (expiresAt === null) {
         return this.fail(
           context,
@@ -231,7 +235,7 @@ export default class AnnounceController extends CommandController<AnnounceModel>
   }
 
   private async executeRetract(
-    model: AnnounceModel,
+    model: BulletinModel,
     context: CommandContext,
   ): Promise<void> {
     const id = (model.id ?? '').trim();
@@ -270,7 +274,7 @@ export default class AnnounceController extends CommandController<AnnounceModel>
   private static resolveExpiry(raw: string | undefined): number | null {
     const text = (raw ?? '').trim();
     if (!text) return 0;
-    const ms = AnnounceController.parseDurationMs(text);
+    const ms = BulletinController.parseDurationMs(text);
     if (ms === null || ms <= 0) return null;
     return Date.now() + ms;
   }

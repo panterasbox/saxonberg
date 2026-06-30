@@ -2,7 +2,7 @@
  * requiresAuthor — verb-level precondition. Rejects when the giver isn't
  * an author (the `AccessApi.isAuthor` axis — the slice-walk over
  * `Zone.ownerGroup` / `accessGroups` with the `'core'` fallback). Used by
- * `announce`, whose effect is publishing to the staff→player broadcast
+ * `bulletin`, whose effect is publishing to the staff→player broadcast
  * feed (no slice scoping applies — author-or-not).
  *
  * The async preload returns the author-axis boolean directly; the

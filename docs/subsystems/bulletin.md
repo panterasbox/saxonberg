@@ -75,23 +75,24 @@ A small platform service — **not** in-world Stuff:
   is **no event tap to install** — `boot()` exists for call-site
   symmetry only.
 
-## Publishing — the `announce` verb
+## Publishing — the `bulletin` verb
 
-Afforded via `AuthorMixin.commandContributions` (`system/announce.yaml`,
+Afforded via `AuthorMixin.commandContributions` (`system/bulletin.yaml`,
 the `stream.yaml` precedent), authorized by the **`requiresAuthor`**
 validator over `AccessApi.isAuthor` (the `requiresStreamer` precedent —
 reusing the author axis, no new role machinery). The controller
-(`obj/command/system/AnnounceController.ts`) is a void controller
-dispatching on subcommand to `publish` / `edit <id>` / `retract <id>`,
-calling `BulletinApi` only (never the registry), reading the overlaid
-`model.body` from the `{text, fields}` side-channel
+(`obj/command/system/BulletinController.ts`) is a void controller
+dispatching on subcommand to `post` / `edit <id>` / `retract <id>`
+(bare `bulletin <headline>` falls through to `post`, the chat/forum
+fallthrough idiom), calling `BulletinApi` only (never the registry),
+reading the overlaid `model.body` from the `{text, fields}` side-channel
 ([forums.md](./forums.md)). `headline` takes the greedy positional; the
 long-form MML `body` rides the `payload:` side-channel (the GUI editor's
 natural home). Length-checked against `bulletin.headlineMaxLength` /
 `bulletin.bodyMaxLength`; success/rejection ride the dispatch-response
 envelope (`MessageApi.scene(...).topic('system.bulletin')` /
-`ctx.note`). The affordance+seed pair (`announce.yaml` in the Author
-contributions + `seeds/obj/command/system/AnnounceController.yaml`) is
+`ctx.note`). The affordance+seed pair (`bulletin.yaml` in the Author
+contributions + `seeds/obj/command/system/BulletinController.yaml`) is
 what makes the verb reachable — invisible to unit tests, so it is
 checked live.
 

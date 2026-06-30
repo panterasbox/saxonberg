@@ -85,11 +85,11 @@ export function AuthorMixin<TBase extends MixinConstructor>(Base: TBase) {
         // dedicated streamer-mode affordance narrow visibility without
         // touching the authorization gate.
         'stream/stream.yaml',
-        // News-ticker operator surface — publish / edit / retract on the
+        // News-ticker operator surface — post / edit / retract on the
         // staff→player broadcast feed. Afforded on the operator command
-        // surface like the rest of this suite; `announce.yaml` carries
+        // surface like the rest of this suite; `bulletin.yaml` carries
         // `requiresAuthor`, so a non-author sees nothing.
-        'system/announce.yaml',
+        'system/bulletin.yaml',
         // Banking operator surface — the central-bank faucet (mint subsidy),
         // wage payment, and the P&L read. Afforded on the operator command
         // surface like the rest of this suite; each carries
