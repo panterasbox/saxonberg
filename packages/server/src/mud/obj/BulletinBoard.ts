@@ -4,10 +4,12 @@
  * Lives at `/obj/BulletinBoard` (the singleton-in-`obj/` convention,
  * sibling to `RecipeCatalogue` / `TopicCatalogue`). The source of truth is
  * the `bulletins` collection of {@link Bulletin} Documents; this board warms
- * a transient cache from it and answers the **window** question — the
- * pins-first, recency-ordered, expiry/retract-filtered slice the live ticker
- * shows. The full archive lives in Mongo (reached via `BulletinApi.archive`);
- * the board holds only the warm window.
+ * a transient cache of the working set and answers the **window** question
+ * on read — the pins-first, recency-ordered, expiry/retract-filtered slice
+ * the live ticker shows. The full archive lives in Mongo (reached via
+ * `BulletinApi.archive`); the board caches the working set and computes the
+ * window per call. (A low-volume staff feed; a recency-bounded warm is the
+ * lever if the set ever grows large.)
  *
  * Server owns all the ticker semantics (ordering / pin-cap / expiry / window
  * length) — read here off `AppApi` settings with a try/catch fallback so a
@@ -89,7 +91,13 @@ export default class BulletinBoard extends BulletinBoardBase {
     await this.warm();
   }
 
-  /** (Re)build the window cache from the `bulletins` collection. */
+  /**
+   * (Re)build the cache from the `bulletins` collection — the live working
+   * set, all rows; `recentWindow()` does the retract/expiry filtering and
+   * the pin/length capping on read. Soft-retracted rows stay cached (still
+   * reachable by id), they just drop out of the window. Low-volume staff
+   * feed; a recency-bounded warm is the lever if the set ever grows large.
+   */
   public async warm(): Promise<void> {
     const bulletins = await Bulletin.find<Bulletin>({});
     const cache = new Map<string, Bulletin>();
