@@ -267,8 +267,8 @@ the Grounded Age's own. The grounding *was* the move from divine-cosmic
 authority to secular politics, so the political axis being god-less is the point.
 
 **Demigods — the patrons — are what change** — and *here* is where the **"Name,
-patron of Whatever"** format lives (the dozens of specific saints; rosters
-next). Each high god has **old-world demigods** and **new, aether-enabled
+patron of Whatever"** format lives (the dozens of specific saints; starter
+roster below). Each high god has **old-world demigods** and **new, aether-enabled
 demigods**: the *old religion* patronizes the rooted, ancestral patrons; the
 *new religion* the aether-born ones — and the new religion **couldn't have
 existed before the Widening**. **Moloch's** new demigod is the **Metric / the
@@ -291,9 +291,52 @@ patron (an aspiration), your deeds are measured against it, and the gap is the
 drama. Players patronize **Mitra or Pan** demigods (the good-compatible forces),
 never Moloch.
 
-*Open: specific demigod rosters per force; the **war-as-con** seam
+*Open: deeper rosters beyond the starter set below; the **war-as-con** seam
 (whether the "oldest battle" is partly a con — conflict pins attention,
 feeds both — parked; it cuts against "everyone is good" if swung early).*
+
+### The patrons — the starter roster *[settled; a tree, not a crowd]*
+
+A demigod is **"Name, patron of Whatever"** — a deified mythic root, a domain, a
+personality, an **era** (*old* = rooted/timeless · *new* = aether-born, the
+post-Widening religion). You declare a patron (the life you aspire to); your
+deeds are measured against it ("the god you name vs. the god you feed").
+
+**MITRA (Good) — the bond, presence, serving-experience**
+- **Vesta, patron of the hearth** *(old)* — home, welcome, the gathered fire. The
+  host.
+- **Eir, patron of the mend** *(old)* — healing, tending the suffering. The Healer.
+- **Goibniu, patron of honest work** *(old)* — craft done well *for others*; the
+  **good face of making** (the Builder — making for presence, the opposite of the
+  corpos who make to capture).
+- **Aletheia, patron of the honest count** *(new)* — the goddess of **truth /
+  unconcealment**: genuine connection across the network, being **truly seen**
+  instead of counted. The new religion's heart, and Mara's exact good-twin.
+
+**PAN (Neutral) — the indifferent wild**
+- **Cernunnos, patron of the wild** *(old)* — the hunt, the beasts, the green
+  dark. The Seeker into wilderness.
+- **the Turning, patron of the seasons** *(old)* — cycles, weather, the
+  indifferent year.
+- ***No new demigods*** — and that is the point: Pan is the one god *off the
+  network*; the wild never went online. (Mitra and Moloch carry old + new; Pan is
+  old-only.)
+
+**MOLOCH (Evil) — capture** *(antagonist faces; never a player pick)*
+- **Mammon, patron of the hoard** *(old)* — greed, wealth piled and held. The
+  **great houses' dark patron** — the chronic capture, deified.
+- **Mara, patron of the Feed** *(new)* — the demon of **illusion and the endless
+  loop** that keeps you (samsara — the doomscroll, three thousand years early).
+  The engagement-god; Moloch's modern mask with a real name. Aletheia's dark
+  mirror: *being seen* vs. *being kept.*
+
+**The shape:** the two **new** patrons are the whole thesis in two saints —
+**Aletheia** (connection that reveals you) vs. **Mara** (the feed that loops you),
+the good and evil of the same network, the live front a player can pick a side
+in. The **old** patrons are the rooted, timeless ones. Players patronize **Mitra
+or Pan** (or *seeking / unaffiliated*, the default); the **dark-god arc** (a good
+soul tangled with Mammon or Mara — never corrupting, always push-pull) is the
+earned religious twin of the False-Dawn cult, never a char-gen pick.
 
 ## History — the five ages
 
