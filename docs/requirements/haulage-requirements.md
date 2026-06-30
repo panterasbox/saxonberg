@@ -223,16 +223,16 @@ methods on existing classes?
 compose with mounting?
 
 **Decision:** three things make it fall out of the same model:
-- **`HaulerMixin` is composed where it's earned, not on the `Creature`
-  base** — on the player `Character` stack (every player self-hauls) and
-  on a dedicated **`HaulingCreature`** class (`HaulerMixin(Creature)`)
-  that draft beasts are authored from. Most creatures never haul, so the
-  base stays clean (the encumbrance doc's *"compose the mixin, not the
-  class tree"* rule). A draft animal bears the cart's draft on *its* own
-  gauge; you, the rider, are coupled to the horse by the *existing* mount
-  slot and bear nothing from the cart. Three orthogonal couplings, one
-  per link: `player —(mount slot)→ horse —(hauling ref)→ cart
-  —(container)→ cargo`.
+- **`HaulerMixin` is composed on the `Character` agency layer, not the
+  `Creature` base** — so every PC and NPC-character can pull a cart, while
+  a frog / corpse / sessile plant (bare `Creature`) never carries a
+  hauling ref (the encumbrance doc's *"compose the mixin, not the class
+  tree"* rule). `HaulingCreature` (the rideable draft beast) inherits it
+  from `Character` and adds `Mountable`. A draft animal bears the cart's
+  draft on *its* own gauge; you, the rider, are coupled to the horse by
+  the *existing* mount slot and bear nothing from the cart. Three
+  orthogonal couplings, one per link: `player —(mount slot)→ horse
+  —(hauling ref)→ cart —(container)→ cargo`.
 - **`hitch <cart> to <mount>`** is a second target form that harnesses
   the named creature as the hauler instead of the giver. Hands-occupation
   keys on *"am I the hauler"* (`isHauling(self)`), so harnessing a horse
