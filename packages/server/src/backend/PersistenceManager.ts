@@ -55,6 +55,7 @@ export enum Collections {
   AuthoringEvents = 'authoring_events',
   Positions = 'positions',
   Recipes = 'recipes',
+  Bulletins = 'bulletins',
   Documents = 'documents',
   BankLedger = 'bank_ledger',
   BankAccounts = 'bank_accounts',
@@ -647,6 +648,19 @@ export class PersistenceManager {
         { recipeId: 1 },
         { unique: true }
       );
+
+      // Bulletins: unique bulletinId for the edit/retract address + the
+      // window/archive de-dup. The compound { realm, kind, publishedAt:-1 }
+      // serves the REST archive query (realm/kind filter, recency-desc page).
+      await this.getCollection(Collections.Bulletins).createIndex(
+        { bulletinId: 1 },
+        { unique: true }
+      );
+      await this.getCollection(Collections.Bulletins).createIndex({
+        realm: 1,
+        kind: 1,
+        publishedAt: -1,
+      });
 
       // Groups: queryable owner / member shape (Phase 2B).
       await this.getCollection(Collections.Groups).createIndex({ owner: 1 });

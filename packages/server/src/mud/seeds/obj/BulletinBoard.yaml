@@ -1,0 +1,5 @@
+# BulletinBoard — the singleton that warms the news-ticker window from the
+# `bulletins` collection. No field state; the cache is rebuilt on demand.
+class: /obj/BulletinBoard
+hydratorClass: /lib/persistence/PersistentHydrator
+data: {}

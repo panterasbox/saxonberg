@@ -34,6 +34,7 @@ import { ProducerApi } from '../mud/api/producer';
 import ProducerStanding from '../mud/lib/standing/ProducerStanding';
 import { BankingApi } from '../mud/api/banking';
 import { SocialApi } from '../mud/api/social';
+import { BulletinApi } from '../mud/api/bulletin';
 import AccountBalance from '../mud/lib/banking/AccountBalance';
 import SupplyAggregate from '../mud/lib/banking/SupplyAggregate';
 import { Document } from '../mud/lib/persistence/Document';
@@ -216,6 +217,12 @@ export class AppBootstrap {
     // the presence-PUBLIC roster-delta tap (feeding the "Who's Online"
     // pane) — same four presence events, two consumers. In-memory.
     SocialApi.boot();
+
+    // Bulletin (news ticker) — a thin warm/activation seam. The board warms
+    // via its manifest postRegister; the staff→player feed fan-out is inline
+    // in BulletinLogic (Phase 3), so there is no event tap. Kept here for
+    // call-site symmetry with the other *Api.boot() seams.
+    BulletinApi.boot();
 
     // Twitch relay — install the outbound DI port + wire the presence-gated
     // EventSub reader. Inert until a channel is seeded AND a player tunes

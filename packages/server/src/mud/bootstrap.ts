@@ -41,6 +41,10 @@ export const bootstrapManifest: BootstrapEntry[] = [
   // `RecipeSeeder.run` earlier in the boot sequence). Resolvable via
   // `CraftingApi` after this entry's postRegister fires.
   { templatePath: '/obj/RecipeCatalogue' },
+  // BulletinBoard singleton — the runtime news-ticker window. Warmed at
+  // postRegister from the `bulletins` collection; resolvable via
+  // `BulletinApi` after this entry's postRegister fires. No dependsOn.
+  { templatePath: '/obj/BulletinBoard' },
   // DisciplineCatalogue singleton — the advancement Catalog: the authored,
   // typed field-of-study graph. Warms its descriptor cache in postRegister
   // from the per-Discipline leaf templates under `/lib/advancement/
