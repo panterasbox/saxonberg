@@ -135,8 +135,8 @@ administrative husk is reused.
   battle, pre-history. **Players are locked Good.** Evil is "the other."
 - **Lawful ↔ Chaotic** — the **recent/political** axis, and the *live*
   player axis: your relationship to the new order. **Both poles are
-  Good.** The chaotic holdout (old peerage, traditionalist) is a good
-  person who liked the old world, not a villain.
+  Good.** The chaotic holdout (the old-order traditionalist, the clergy-side
+  reluctant elder) is a good person who liked the old world, not a villain.
 
 So: **moral identity is fixed (Good); political identity is free.** The
 live conflict is *among good people about how to live together* — which
@@ -335,7 +335,8 @@ captured glory → diminished dark → the cooperative's redemption of making.)*
 
 ### II. The Eternal Age — *Eternal City*
 Authority descends **from above.** Born of a union and ruled by a **founding
-dyad** — two makers, born of the Confluence, **absent in complementary ways**:
+dyad** — two makers who **wrought the Confluence**, joining two of the many
+worlds into one — **absent in complementary ways**:
 
 - **The Wright** — who made and tends the world's *substrate itself*, the engine
   reality runs on (the **aether / the medium**). Apolitical not by choice but by
@@ -716,19 +717,28 @@ guardrails are **structural, never discretionary.**
 
 ### Event timeline (oldest → newest)
 
-- **Age of Myth** — *aether: the wild medium.* It simply is; mind and
-  belief move through it; the gods feed on it; the oldest battle is fought
-  through it. The two older worlds (uncertain, light).
-- **The Eternal Age** — *aether wild; the making-power hoarded.*
-  Confluence (two worlds join; the founding dyad makes Eternal City) →
-  First Making (the first wizards build) → Opening (makerhood widens;
-  the founders withdraw into silence) → Pooling (power narrows to one
-  seat; capture's first small-scale rising) → Reaping (the purge; the
-  exodus begins).
-- **The Fallow** — *aether: silent.* The city empties; nothing moves
-  through the aether; the twilight of all gods, a **true death of
-  presence**; the **attuned vanish**; the faith survives only as the
-  clergy's exile. Undatable — an empty age keeps no clock.
+- **Age of Myth** — *aether: the wild medium; creation by presence, then by
+  will.* **Paradise** (the attuned live the cooperative by nature) → the
+  **first fall** (a being *takes* the gift, hollows himself, wakes the latent
+  Hollow; the one polity shatters into the first hierarchy) → the
+  **Proliferation** (creation reinvented as artifice — wizardry; worlds beyond
+  counting rise and fall, many to capture) → the **Confluence** (two of the
+  many join under the Wright and the Warden → Eternal City). The oldest battle:
+  experience vs. the hollowing.
+- **The Eternal Age** — *aether wild; the making-power hoarded.* The **Wright**
+  (makes the substrate) and the **Warden** (two laws, then nonintervention)
+  wrought the Confluence → **First Making** (Mordrick raises the city; wizards
+  rule by fiat in cabals, under a meritocratic mask) → **Opening** (makerhood
+  widens; the founders withdraw into silence) → **Pooling** (**Corvin Solus**
+  seizes the single seat — nothing checked him, the Warden would not) →
+  **Reaping** (the *inverted* purge: the established and beloved cut, the new
+  spared; the exodus begins).
+- **The Fallow** — *aether: silent.* The city empties; nothing moves through
+  the aether; the twilight of all gods, a **true death of presence**; the
+  **attuned vanish.** Two survivor-threads flee the dark: the faith as the
+  **clergy's exile**, and the fallen wizard cabals hardening into the **great
+  houses** out in the wider world (the renouncers and the hoarders both born
+  here). Undatable — an empty age keeps no clock.
 - **The Mission** — *aether: harnessed, built shared* — the long road from the
   fall, the world's slow education back toward the Charter. **Exile:** Flight →
   Reformation (*teach, don't crown*, forged wandering) → Guttering → First Sign.
@@ -801,7 +811,7 @@ brief caretaker interim, the world modern and the founding imminent.
 - **The five corpos** — Veshko · Goodkin · Vionne · Hollis · Aevex (+ the **Independents**). Faceless by design (a wordmark, not a figure). *[corpos-slate]*
 - **The cooperative** — the *awaited* polity (not yet founded): five seats — court, executive, and the producer/patron/consumer legislative houses; parliamentary executive, conviction voting. Held provisionally by the steward (four empty, the consumer house live). *[cooperative-slate; bible: the seats]*
 - **The University** — the Mission's living heir; the clergy persist only as **echoes**.
-- **The attuned** — the returned sensitives (`homo/sensitivus`); a people, no named individual yet.
+- **The attuned** — the returned sensitives (`homo/sensitivus`); a people; **Amos the Attuned** (the herald) is the one named, long dead — see *The herald*.
 
 ### The political void — *filled by the players, not us*
 
@@ -851,13 +861,15 @@ alone at the top; *Solvan* = to loosen, free, **absolve**.
   released).
 - **Anselm Solvan** — the **steward** of the present. Born into the late
   University (an *aether-research institution* for centuries), an aether
-  scholar his whole life; in his sixties his **cohort cracked the implant
+  scholar his whole life; decades ago his **cohort cracked the implant
   breakthrough**, and he took the deepest test **on himself** — wouldn't
   risk anyone else — earning the **brain cancer** the cranial implant left
-  him (the cost of the gift; the medium takes its toll). A decade-plus
-  passed — the Widening spreading, the world going modern — before the
-  cohort **pivoted from studying the aether to engineering a polity** on it;
-  Solvan, already dying, poured his last lucid years into the framing. The
+  him (the cost of the gift; the medium takes its toll), a slow thing that
+  ripened across the long Widening years into the terminal illness it is now.
+  Through those years — the Widening spreading, the world going modern, a
+  near-relapse caught — the cohort at last **pivoted from studying the aether
+  to engineering a polity** on it; Solvan, now in his sixties and failing,
+  poured his last lucid years into the framing. The
   city recognized the **Charter** (year 0), and he was **drafted to steward
   *because* he is dying** — a terminal man *cannot* entrench, the perfect
   safeguard against another Solus. He holds the provisional government —
@@ -1263,7 +1275,7 @@ provenance, its nightmare the perfect forgery. Design facts:
 
 - **A core-sample of two ages.** You walk *backward through time and
   downward in register*: bright secular **new-order wings** → the
-  **estate-era galleries** (nobility, peerage, fading clergy) → the dark,
+  **estate-era galleries** (the great houses, the fading clergy) → the dark,
   impossibly-old **Sanctuary** at the heart (the oldest battle, relics of
   the hollowing's older masks, tended by the echo of the clergy).
 - **Strange finish [settled]:** the museum is *impossibly older than the
