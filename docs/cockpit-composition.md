@@ -5,7 +5,7 @@ client is one consistent system rather than a pile of bespoke screens.
 Layouts (`world` / `forum` / `livestream-viewer` / `streamer` / `builder` /
 …) are *variations on this grammar*, not exceptions to it. See the
 [client-cockpit slate](./slates/tails/client-cockpit-slate.md) and the
-[cockpit-layouts requirements](./requirements/cockpit-layouts-requirements.md).
+[cockpit-layouts subsystem doc](./subsystems/cockpit-layouts.md).
 
 ## The laws (truisms every layout obeys)
 
@@ -73,7 +73,8 @@ column grids that cannot stack.
   scope may be **layout-set** (a hardwired chat bar) or **user-set** (`mode`
   issued from that bar). Submissions carry a **bar id** (context, not a
   client rewrite); the server holds per-bar mode and the interpreter prepends
-  *that bar's* prefix. See the requirements' input-mode section.
+  *that bar's* prefix. See the cockpit-layouts subsystem doc's input-mode
+  section.
 - **Mode renders as an inline, uneditable prefix — not a pill.** A moded bar
   shows the prefix as a non-editable `<span>` *inside* the bar, styled
   **identically** to typed text, with the editable input as the tail — so it

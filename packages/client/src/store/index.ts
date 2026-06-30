@@ -233,7 +233,6 @@ export interface Frame {
   };
 }
 
-
 /**
  * Combined store state. Extends {@link CmsSlice} (the CMS editor's
  * state + actions) — composed in via `createCmsSlice` in the store body.

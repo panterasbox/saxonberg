@@ -31,6 +31,7 @@ import { LAYOUT_REGISTRY, type LayoutProps } from "./layouts";
 import { tokens } from "./components/ui";
 import type {
   ConsoleTab,
+  Envelope,
   LayoutName,
   TwitchMessagePayload,
 } from "@saxonberg/types";
@@ -359,7 +360,7 @@ function App() {
     // Live broadcast-source push — keeps the livestream-viewer embed in
     // sync when the operator changes `livestream.broadcastSources`. The
     // welcome snapshot (`setConnected`) is the baseline.
-    const onStreamSources = (envelope: import("@saxonberg/types").Envelope) => {
+    const onStreamSources = (envelope: Envelope) => {
       if (envelope.type !== "stream-sources") return;
       useStore.getState().setBroadcastSources(envelope.sources);
     };

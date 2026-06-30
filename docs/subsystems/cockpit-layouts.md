@@ -9,8 +9,7 @@ switch and every mode change is a real command on the wire.
 
 Built against the binding [composition grammar](../cockpit-composition.md)
 (never-blind, fixed-chrome/fluid-content, hierarchy-encoding splits, the
-no-modal rule). Requirements:
-[cockpit-layouts-requirements.md](../requirements/cockpit-layouts-requirements.md).
+no-modal rule).
 
 ## The layout axis
 
@@ -50,25 +49,48 @@ are **deleted** — all view-switching lives in the one server axis.
   buffer, command-send/preview/click handlers, prompt handlers). Each
   command bar owns its own local input draft and submits its `barId`;
   preview/flash live in the ghost line, not in a bar.
-- The **"Views" menu** (`components/ViewsMenu.tsx`) is always-on chrome:
-  it previews/sends `layout <name>` per the click model and marks the
-  current layout.
-- An **always-on minimum** (status header, a command bar, the Views
-  affordance) renders in every layout, so the player can always type
-  `layout world` to leave.
+- The **"Views" menu** (`components/ViewsMenu.tsx`) previews/sends
+  `layout <name>` per the click model and marks the current layout. It +
+  the Settings affordance live in the **single top `Frame` bar**
+  (`components/frame/Frame.tsx`) alongside bus-health + identity — one
+  fixed chrome row, not two (the separate `ChromeBar` row was folded into
+  `Frame` so the content area reclaims the vertical space).
+- An **always-on minimum** (the Frame bar, a command bar) renders in
+  every layout, so the player can always type `layout world` to leave.
 
 ### The five layouts
 
 | Layout | Shape (canonical split) | Notes |
 |---|---|---|
-| `world` | terminal + inspection rail (Single + rail) | the classic cockpit, behavior-identical to pre-refactor |
+| `world` | terminal + a right rail with an **Inspect \| Who's Online** pane switch (Single + rail) | the classic cockpit; the rail pane is chosen by the `rightPane` store slice (inspection detail vs the social-inspection roster) |
 | `forum` | board view + chat sidecar | the old `mainView === 'forum'`; live-scene peek keeps it never-blind |
 | `livestream-viewer` | video embed (focal) + game terminal + chat rail | see below |
-| `streamer` | viewer minus the embed + a "stream stats — coming soon" focal | `LivestreamPanes` shared with the viewer |
+| `streamer` | a **control deck** (focal) + game terminal + a widened chat rail | `StreamerDeck`; see below |
 | `builder` | CMS editor (dominant) + glance terminal rail (Monitor) | the CMS re-homed in-session |
 
 `LivestreamViewerLayout` and `StreamerLayout` share `LivestreamPanes`
-(the game terminal + chat rail + bar); only the focal pane differs.
+(the game terminal + chat rail + bar); only the focal pane differs (the
+viewer's video embed vs the streamer's control deck), and the streamer
+passes `railWide` so its chat — the broadcaster's lifeline — gets more
+room. The shared side rail is the tokenized `SideColumn` primitive
+(`tokens.rail`, with a `$wide` variant for the builder/streamer); the
+focal split is a real `tokens.ratio.focal` (~62/38) so fixed-ratio
+content (the 16:9 embed) is deliberately large and letterboxed within
+its share rather than incidentally sized.
+
+### The streamer control deck
+
+`StreamerLayout`'s focal is `components/StreamerDeck.tsx`, **not** a stats
+readout: while live a broadcaster mostly needs quick-action shortcuts to
+the commands they fire at the community (moderation, rewards/penalties,
+community prompts, broadcast state) plus a small live readout (viewers,
+uptime). The deck is the *frame* for that — a live strip + grouped cards
+of command shortcuts. The streamer command set isn't built yet, so the
+chips are an **honest scaffold**: each previews the command it *would*
+run in the ghost line on hover (the same learn-the-CLI affordance) but is
+dimmed and doesn't send until its verb ships. Per the through-line the
+client still owns zero command semantics — every chip is just a
+command-bus affordance.
 
 ## Livestream-viewer + the platform-agnostic embed
 
@@ -114,7 +136,14 @@ The last client-only command behavior, moved server-side — command-bus
 primacy made absolute.
 
 - **Schema** — `cockpit.inputModes` is a `clientStateSchema` entry, a
-  `{ barId → prefix }` map (default `{}`, object-of-strings validator).
+  `{ barId → prefix }` map (default `{}`, object-of-strings validator),
+  marked **`transient`**. Input scoping belongs to the live session, not
+  the character: transient keys live in a separate, non-persisted
+  in-memory `_transientClientState` slot (a per-key `transient` flag on
+  `ClientStateSchemaEntry` routes get/set/snapshot there), so they never
+  reach the Hydrator and **reset to `{}` on a fresh login**. The `barId`
+  is thus an in-session routing handle, not a saved cross-session
+  vocabulary.
 - **`barId`** rides the inbound `command` message and threads through
   `ExecuteCommandOpts` → `CommandContext` → the dispatch. A submission
   with **no `barId`** (an affordance click, a script, programmatic
@@ -130,9 +159,16 @@ primacy made absolute.
   `CommandApi` (not `msh`) so the tokenizer stays Stuff-unaware; the
   per-bar lookup is at the call site. The echo reflects the **dispatched**
   text.
-- **`mode` verb** (`cmd/shell/mode.yaml` + `ModeController`) edits
-  `cockpit.inputModes[context.barId ?? 'main']` — `mode <prefix…>` sets,
-  `mode off` / bare `mode` clears — via the same write→save→push triple.
+- **`mode` verb** (`cmd/shell/mode.yaml` + `ModeController`) edits one
+  bar's entry — `mode <prefix…>` sets, `mode off` / bare `mode` clears.
+  The target resolves `model.bar ?? context.barId ?? 'main'`: a typed
+  `mode` defaults to the bar it was submitted from (`context.barId`), and
+  the explicit **`--bar <id>`** option names a bar for an affordance —
+  which dispatches *un-moded* (no wire `barId`, so preview == send) and so
+  can't rely on `context.barId`. The target rides in the command text
+  (`mode chat --bar stream-chat`), keeping the ghost-line preview honest.
+  Because modes are transient the commit is just **write→push** (no
+  `save()`).
 
 ### Client (display-only)
 
@@ -188,3 +224,27 @@ not a `layout` switch — it coexists with the current layout.
 - [command-parsing.md](./command-parsing.md) / [command-routing.md](./command-routing.md) — the dispatch path the input-mode prepend hooks
 - [twitch-relay.md](./twitch-relay.md) — the chat relay the livestream-viewer chat terminal shows
 - [app-settings.md](./app-settings.md) — `livestream.broadcastSources`
+
+## History
+
+Built in five phases (`84f79f63`→`7ca1573f`): layout axis → livestream-
+viewer + embed → streamer/builder → per-bar input mode → summoned-pane
+tier. A visual-review pass (`0146b7b2`) then evolved the chrome and a few
+layouts past the original spec, and two follow-ons refined the input-mode
+model — so the doc above describes the *shipped* shape, which diverges
+from the retired requirements/plan in four deliberate ways:
+
+- **One chrome bar, not two** — the Views switcher + Settings folded into
+  `Frame`; the separate `ChromeBar` row was deleted.
+- **Streamer is a control deck, not a stats placeholder** —
+  `StreamerDeck` (grouped command-shortcut scaffold), chat rail widened.
+- **Input modes are transient** (`6d43beb2`) — `cockpit.inputModes` is a
+  `transient` clientState key (in-memory `_transientClientState`, never
+  persisted, resets on fresh login); `ModeController` dropped its
+  `save()`. `cockpit.layout` stays persisted.
+- **`mode --bar <id>`** (`4e82e740`) — explicit target so an un-moded
+  affordance can scope a named bar.
+
+The `world` layout's right rail gained the **Inspect | Who's Online**
+pane switch when the social-inspection feature merged from master — the
+roster pane is that subsystem's; the cockpit just hosts it in the rail.

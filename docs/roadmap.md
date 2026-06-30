@@ -124,9 +124,13 @@ The two original near-term items both shipped (message-rendering
 during the console-foundations merge — see retired list below). What
 remains in the near-term Track A queue:
 
-1. **Client-pull cockpit buildout** — cockpit shell, modes
-   (world / study / classroom / tutor), content surface (video +
-   transcript), theming polish. Per
+1. **Client-pull cockpit buildout** — the layout/composition substrate
+   shipped (cockpit-layouts build, 2026-06: server-authoritative `layout`
+   axis + per-bar input mode + livestream-viewer + builder + the
+   summoned-pane tier — see
+   [cockpit-layouts.md](./subsystems/cockpit-layouts.md)). What remains:
+   the education content surface (video + transcript), the study /
+   classroom / tutor modes, and theming polish. Per
    [client-cockpit-slate.md](./slates/tails/client-cockpit-slate.md);
    decomposes into per-track requirements docs at build time.
 2. **Scoped-authoring GUI** (the room editor) — blocked on

@@ -42,7 +42,8 @@ export default class LayoutController extends CommandController<LayoutModel> {
     if (!MixinApi.isHasInteractive(giver)) {
       throw new Error('LayoutController: command giver lacks HasInteractive');
     }
-    const host = giver as LayoutHost;
+    // `isHasInteractive` above narrows `giver` to `Stuff & HasInteractive`.
+    const host: LayoutHost = giver;
 
     const name = model.name?.trim();
     if (!name) {

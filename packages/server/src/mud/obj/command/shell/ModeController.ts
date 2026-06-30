@@ -53,7 +53,8 @@ export default class ModeController extends CommandController<ModeModel> {
     if (!MixinApi.isHasInteractive(giver)) {
       throw new Error('ModeController: command giver lacks HasInteractive');
     }
-    const host = giver as ModeHost;
+    // `isHasInteractive` above narrows `giver` to `Stuff & HasInteractive`.
+    const host: ModeHost = giver;
     // Explicit `--bar` wins (un-moded affordances name their target), then
     // the bar the line was typed in, then the main bar.
     const barId = model.bar?.trim() || context.barId || 'main';
