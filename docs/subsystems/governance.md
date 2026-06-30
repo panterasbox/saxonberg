@@ -225,3 +225,20 @@ moves; `house` (venue-owner) authority is a separate concern, untouched.
 - **Chambers as populations**, **terms / tenure / term-limits**, and a
   *generic* "requires office X" validator (deferred to the second
   office-gated verb — v1 uses the specific `requiresGovernor`).
+
+## History
+
+- The build first enforced the founder gate on `assign`/`vacate`
+  *inside* `OfficeController` (`OfficeApi.isFounder(commandGiver)`),
+  because the command schema scoped `validators:` to the verb level —
+  and a verb-level gate would have blocked the public roster. Review
+  reframed this on two axes: (1) authority is an **office** concern, so
+  `isFounder` should never be a per-verb gate — it is a pure internal
+  predicate plus the single meta governance-root gate above the office
+  system; (2) the schema limitation that forced the in-controller check
+  was the signal to add **per-subcommand validators** to the command
+  engine. The gate became the `requiresFoundingAuthority` subcommand
+  validator, and the engine gained `subcommands.<name>.validators`
+  (`feat(command): per-subcommand validators` +
+  `refactor(governance): gate office assign/vacate via subcommand
+  validator`).

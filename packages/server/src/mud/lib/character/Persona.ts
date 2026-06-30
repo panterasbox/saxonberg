@@ -61,11 +61,10 @@ export function PersonaMixin<TBase extends MixinConstructor>(Base: TBase) {
         // on AuthorMixin — because its roster is public (governance is
         // transparent by constitutional design, Art. VII): every player
         // can see who holds which office. The privileged `assign`/`vacate`
-        // subcommands enforce the founder gate inside OfficeController (the
-        // `group` precedent: a public verb whose privileged subcommands
-        // self-check authority in the controller, since the command schema
-        // scopes validators to the verb level). Homing it on AuthorMixin
-        // would wrongly hide the public roster from non-authors.
+        // subcommands carry the `requiresFoundingAuthority` subcommand-level
+        // validator (the governance-root gate), leaving the bare/`list`
+        // roster ungated. Homing it on AuthorMixin would wrongly hide the
+        // public roster from non-authors.
         'governance/office.yaml',
       ],
       environment: [],
