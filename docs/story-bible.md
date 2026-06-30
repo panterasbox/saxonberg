@@ -318,7 +318,10 @@ later ages inherit.
 creation lost, beings who no longer carried the attuned's gift *reinvented* it as
 **artifice:** making by **will and craft** instead of by presence — the
 demiurgic power the later ages call **wizardry** (the same will-into-being the
-CMS is). Artificial making is itself **post-paradise**, the *fallen substitute*
+CMS is). The first the legends *name* is **the Wright** — set against the
+first-faller as the two oldest figures of the broken world: the first to **take**
+(capture) and the first to **make** (artifice), paradise's loss answered two
+ways. Artificial making is itself **post-paradise**, the *fallen substitute*
 for a creation that was once a gift — and ungoverned, it spread into a **teeming
 churn:** worlds beyond counting, raised by makers, rising and falling at once.
 Most fell, and **many fell to the same rot the first-faller loosed** — capture,
@@ -339,7 +342,8 @@ dyad** — two makers who **wrought the Confluence**, joining two of the many
 worlds into one — **absent in complementary ways**:
 
 - **The Wright** — who made and tends the world's *substrate itself*, the engine
-  reality runs on (the **aether / the medium**). Apolitical not by choice but by
+  reality runs on (the **aether / the medium**); **the first maker, as old as the
+  first-faller** (see *The Age of Myth*). Apolitical not by choice but by
   **domain** — he is the physics, not the politics; the god who makes the world
   *run* and never once touches the mortal realm.
 - **The Warden** — who hands down exactly **two laws** and then refuses all
@@ -377,9 +381,20 @@ Grounded Age reads off the ruins:
 2. **The First Making** — the first circle of makers build the world out;
    **Mordrick the First Builder** raises the first Eternal City. *(Δ: the world
    gets its bones, and its first named maker.)*
-3. **The Opening** — the gate opens to new makers; generations of wizards follow
-   the first; the world flourishes and widens; the founders withdraw into
-   silence.
+3. **The Opening — the golden age.** The gate opens to new makers; generation on
+   generation of wizards follow the first, each cabal crafting its slice, and the
+   city flowers into **the grandest thing the Proliferation ever made** — an
+   impossible architecture of pure will, wonders raised for their own sake, make
+   and rule and worship all one bright machine. This is the **glory every later
+   age measures itself against and finds wanting:** the houses chase it, the
+   corpos tap the aether to climb back to it, the cooperative's dream of redeemed
+   making reaches *backward* to it. And it was **real**, not a sham — which is
+   exactly why its fall is tragedy, not comeuppance. But the **poison was already
+   in the wine:** the First Law sanctifying the strong, the meritocratic mask,
+   make-and-rule fused, the founders gone silent above. The golden age and the
+   rot are the *same* age — magnificent, and already doomed. The founders
+   withdraw into silence. *(The deepest museum gallery: awe and warning in one
+   room.)*
 4. **The Pooling** — shared authority narrows into a single seat by *calculus,
    not law*; the council's power is gated; the silent founders do not intervene.
    The seat has a name — **Corvin Solus**, the demagogue (see *The coin*) — but
@@ -636,8 +651,9 @@ made temporal):
 
 - **Early Mission — the Return** *(the legendary band, soft dates "by the
   clergy's reckoning"):* Amos breaks the silence; the clergy come home, relight
-  presence, tend the Sanctuary; the first generation born in new Terminus. The
-  dawn, told as myth.
+  presence, tend the Sanctuary, and raise the **first chapel** in the ruins'
+  shadow — **Oldtown** grows up around it, the first generation born in new
+  Terminus. The dawn, told as myth.
 - **~−240 · The Founding of the School** *(early-mid):* preservation hardens
   into teaching; the University rises on the ruins, founded *to study the
   aether*; clergy as church + school + civil authority, one office. Its identity
