@@ -16,6 +16,7 @@ validators:
 args:
   - name: target
     type: object
+    scope: ["$focus", "reachable"]
     required: true
     validators:
       - /lib/command/validators/canReach
