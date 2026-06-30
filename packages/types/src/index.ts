@@ -142,6 +142,53 @@ export interface SocialNotificationPayload {
 }
 
 /**
+ * A NOTABLE presence status on a `world.social.roster` row. Mirrors the
+ * server `PresenceApi.PresenceStatus`. A bare `active` (online, nothing
+ * notable) is represented by the **absence** of `RosterRow.status`, so the
+ * "Who's Online" pane only badges the exceptional states.
+ */
+export type PresenceStatus = 'active' | 'idle' | 'engaged' | 'reconnecting';
+
+/**
+ * One row of the `world.social.roster` projection — the viewer-lensed
+ * "who's online" record the server composes per-viewer (mirrors the server
+ * `ProfileApi.RosterRow`). The header is already lensed server-side
+ * (recognized → a name; stranger → a salient-feature description), so the
+ * client only renders — it owns zero naming/recognition semantics.
+ *
+ * - `handle` is the stable per-target key (the Avatar template path); the
+ *   client keys the roster map on it for stable add/remove/upsert.
+ * - `header` is the display string AND the targeting token the row's
+ *   `profile <header>` command uses.
+ * - `country` is the resolved country of origin (display name), present
+ *   when the server could resolve it.
+ * - `status` is a notable status only (idle/engaged/reconnecting); absent
+ *   means plain online.
+ * - `recognized` drives styling — known characters render emphasized,
+ *   strangers muted.
+ */
+export interface RosterRow {
+  handle: string;
+  header: string;
+  country?: string;
+  status?: PresenceStatus;
+  recognized: boolean;
+}
+
+/**
+ * Payload of a `world.social.roster` frame (mirrors the server
+ * `PresenceApi.RosterFrame`). Rides the ordinary `MessageFrame` channel
+ * (empty body, structured payload). The client routes by `action`:
+ * `snapshot` replaces the whole roster, `add` upserts one row by `handle`,
+ * `remove` deletes by `handle`. A full `snapshot` arrives automatically on
+ * connect/reconnect — there is no request RPC.
+ */
+export type RosterFrame =
+  | { kind: 'roster'; action: 'add'; handle: string; row: RosterRow }
+  | { kind: 'roster'; action: 'remove'; handle: string }
+  | { kind: 'roster'; action: 'snapshot'; rows: RosterRow[] };
+
+/**
  * One row of the `social.rules` client-state projection — a flattened,
  * wire-safe view of a `NotifyRule` for the "Social / Notifications"
  * settings pane. The server pushes the viewer's effective ordered list

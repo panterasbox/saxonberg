@@ -38,6 +38,7 @@ import type {
   MqlSubscriptionResultEnvelope,
   Note,
   PromptEnvelope,
+  RosterFrame,
   StuffDetailRecord,
   StuffRefRecord,
 } from "@saxonberg/types";
@@ -157,6 +158,26 @@ class WebSocketClient {
     // a scrollback line), handled purely by emptying the buffer.
     this.onTopic("system.terminal.clear", () => {
       useStore.getState().clearFrames();
+    });
+    // The "Who's Online" roster (`world.social.roster`). Empty body
+    // (payload-bearing), so it never renders a scrollback line. The server
+    // pushes a full `snapshot` on connect/reconnect and `add` / `remove`
+    // deltas as players come and go — route by `action` to the store.
+    this.onTopic("world.social.roster", (frame) => {
+      const payload = frame.payload as RosterFrame | undefined;
+      if (!payload || payload.kind !== "roster") return;
+      const store = useStore.getState();
+      switch (payload.action) {
+        case "snapshot":
+          store.applyRosterSnapshot(payload.rows);
+          break;
+        case "add":
+          store.applyRosterAdd(payload.row);
+          break;
+        case "remove":
+          store.applyRosterRemove(payload.handle);
+          break;
+      }
     });
   }
 

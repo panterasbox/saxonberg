@@ -235,6 +235,13 @@ export const AppSettingKeys = {
   socialBaselineRules: "social.baselineRules",
   /** Social-graph — the neutral palette token a fresh custom rule inherits. */
   socialDefaultColor: "social.defaultColor",
+  /**
+   * Social inspection — seconds of input inactivity after which a connected
+   * session is *derived* as idle (vs active) in `who`/`profile`. An operator
+   * knob, not a code constant; idle is computed on read, never stored. See
+   * docs/subsystems/social-graph.md (the inspection surface).
+   */
+  socialIdleAfter: "social.idleAfter",
 } as const;
 
 export type AppSettingKey =

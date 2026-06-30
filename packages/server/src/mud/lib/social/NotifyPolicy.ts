@@ -98,6 +98,18 @@ export function NotifyPolicyMixin<TBase extends MixinConstructor>(Base: TBase) {
           "{{ country }}. Example: " +
           "\"{{ who }} {{ action }}{% if country %} ({{ country }}){% endif %}\".",
       },
+      {
+        key: "privacy.showStatus",
+        type: SettingTypes.Enum,
+        enumValues: ["anyone", "contacts+"],
+        default: "anyone",
+        description:
+          "Who may see your granular presence status (engaged / idle) on " +
+          "`who` / `profile`. `anyone` offers it to strangers; `contacts+` " +
+          "shows only bare online to strangers and the detail to your " +
+          "contacts. Bare online is always public — privacy is a disclosure " +
+          "floor, never a way to vanish.",
+      },
     ];
 
     /**

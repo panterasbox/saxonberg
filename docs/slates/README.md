@@ -55,12 +55,21 @@ moving to `tails/` with only Wave 4 + the message-restyle wiring left.
   ([../subsystems/social-graph.md](../subsystems/social-graph.md));
   remaining tail = Wave 4 (account-level federation) + message-restyle
   live wiring.
+- [social-inspection-slate](./tails/social-inspection-slate.md) *(tail)* —
+  the player-facing inspection surface over the same substrate: a `who`
+  online roster, a `profile`/`finger` identity card, and a `score`/`me`
+  self-dashboard, governed by the **disclosure-dial** privacy model
+  (presence always public, country unconditional, per-observer fidelity
+  raised by recognition — `introduce` as the first consumer; invisibility
+  deferred as conditional perception). Design captured, not built.
 - [connection-origin-slate](./tails/connection-origin-slate.md) *(tail)* —
   geographic origin of a connection (country broadly visible, IP
   developer-only, in-memory/never-persisted). **Country v1 shipped** with
   the social-graph build (capture → `geoip-lite` → `ConnectionApi.originOf`,
   consumed by the presence line); remaining tail = the developer-gated IP
-  read, a `whois`/`locate` verb, and city/region.
+  read and city/region (the `whois`/`profile` verb that surfaces country
+  is now homed in
+  [social-inspection-slate](./tails/social-inspection-slate.md)).
 - [reputation-slate](./builds/reputation-slate.md) — charisma-as-**measured-influence**
   (regard / renown / susceptibility), notoriety as the signed twin that
   pierces disguise, per-circle scoping. The platform's "value as physics,

@@ -48,6 +48,12 @@ matters.
 
 See also:
 
+- [docs/slates/tails/social-inspection-slate.md](./social-inspection-slate.md)
+  — the **sibling tail**: the player-facing *inspection* surface (`who`
+  roster, `profile`/`finger` card, `score` self-dashboard) and the
+  disclosure-dial privacy model. Disjoint scope — this slate is the
+  *attention* surface (notification + display policy), that one is the
+  *inspection* surface.
 - [docs/subsystems/contacts.md](../../subsystems/contacts.md) — the
   **shipped** bucket storage + membership-verb layer (`ContactsMixin`,
   `contacts` verb suite, `ContactsGroupProvider`). This slate's

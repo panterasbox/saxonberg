@@ -29,6 +29,7 @@ import type {
   PromptChoice,
   ReactionActState,
   ReactionSampleEntry,
+  RosterRow,
   StreamSource,
   StuffDetailRecord,
   StuffRefRecord,
@@ -310,6 +311,32 @@ interface StoreState extends CmsSlice {
   summonedPane: "settings" | null;
   openPane: (kind: "settings") => void;
   closePane: () => void;
+
+  /**
+   * Which right-column cockpit pane the world layout shows —
+   * `'inspect'` (the inspection pane) or `'who'` (the "Who's Online"
+   * roster). Ephemeral client-only UI state, never persisted. Consulted
+   * by the world layout's right-column pane switch.
+   */
+  rightPane: "inspect" | "who";
+  setRightPane: (pane: "inspect" | "who") => void;
+
+  /**
+   * The "Who's Online" roster (`world.social.roster` topic). `roster` maps
+   * the stable per-target `handle` → the viewer-lensed {@link RosterRow};
+   * `rosterOrder` is the display order (recognized first, then by header).
+   * The server pushes a full `snapshot` on connect/reconnect and `add` /
+   * `remove` deltas as players come and go — the client only renders. See
+   * `services/websocket.ts` (the `world.social.roster` handler).
+   */
+  roster: Record<string, RosterRow>;
+  rosterOrder: string[];
+  /** Replace the whole roster (a `snapshot` frame). */
+  applyRosterSnapshot: (rows: RosterRow[]) => void;
+  /** Upsert one row by `handle` (an `add` frame). */
+  applyRosterAdd: (row: RosterRow) => void;
+  /** Delete one row by `handle` (a `remove` frame). */
+  applyRosterRemove: (handle: string) => void;
 
   /**
    * The forum view's current navigation target. `boardHandle` is the
@@ -827,6 +854,24 @@ function titleCase(segment: string): string {
 }
 
 /**
+ * Stable display order for the "Who's Online" roster: recognized
+ * characters first, then case-insensitively by `header`, with `handle` as
+ * the final tiebreaker so the order is deterministic.
+ */
+function orderRoster(roster: Record<string, RosterRow>): string[] {
+  return Object.values(roster)
+    .sort((a, b) => {
+      if (a.recognized !== b.recognized) return a.recognized ? -1 : 1;
+      const byHeader = a.header.localeCompare(b.header, undefined, {
+        sensitivity: "base",
+      });
+      if (byHeader !== 0) return byHeader;
+      return a.handle.localeCompare(b.handle);
+    })
+    .map((row) => row.handle);
+}
+
+/**
  * Initial auth state.
  */
 const initialAuthState: AuthState = {
@@ -924,6 +969,33 @@ export const useStore = create<StoreState>((set, get) => ({
   summonedPane: null,
   openPane: (kind) => set(() => ({ summonedPane: kind })),
   closePane: () => set(() => ({ summonedPane: null })),
+
+  // Right-column cockpit pane axis (world layout): inspection | who's-online.
+  rightPane: "inspect",
+  setRightPane: (pane) =>
+    set((state) => (state.rightPane === pane ? {} : { rightPane: pane })),
+
+  // "Who's Online" roster (world.social.roster). Keyed by stable handle;
+  // ordering recomputed on every mutation (recognized first, then header).
+  roster: {},
+  rosterOrder: [],
+  applyRosterSnapshot: (rows) =>
+    set(() => {
+      const roster: Record<string, RosterRow> = {};
+      for (const row of rows) roster[row.handle] = row;
+      return { roster, rosterOrder: orderRoster(roster) };
+    }),
+  applyRosterAdd: (row) =>
+    set((state) => {
+      const roster = { ...state.roster, [row.handle]: row };
+      return { roster, rosterOrder: orderRoster(roster) };
+    }),
+  applyRosterRemove: (handle) =>
+    set((state) => {
+      if (!(handle in state.roster)) return {};
+      const { [handle]: _drop, ...roster } = state.roster;
+      return { roster, rosterOrder: orderRoster(roster) };
+    }),
 
   forumNav: { boardHandle: null, threadId: null },
   setForumNav: (nav) =>

@@ -179,3 +179,8 @@ settings:
   # The neutral palette token a fresh custom rule inherits until `color=` is set.
   - key: social.defaultColor
     value: neutral
+  # Social inspection: seconds of input inactivity after which a connected
+  # session is derived as idle (vs active) in `who`/`profile`. Idle is
+  # computed on read, never stored. Default 5 minutes.
+  - key: social.idleAfter
+    value: "300"
