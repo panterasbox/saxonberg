@@ -20,7 +20,7 @@
 > substrate) can only be answered against a real member body. Build the honest ledger now; stand up the
 > republic when there's someone to govern.
 
-> **Consolidation:** a formal [draft constitution](./draft-constitution.md)
+> **Consolidation:** a formal [draft constitution](../../governance/draft-constitution.md)
 > distilling this slate into normative articles now exists (status: draft,
 > not ratified; four undecided points marked `[OPEN]` with recommendations).
 > This slate remains the *rationale*; the constitution carries the
@@ -2197,7 +2197,7 @@ which the founder earns only a **legislated wage**. The binding before
 ratification isn't law (there is none yet) but **code + publication + exit** —
 the founder binds himself by machine, in public. The generic *shape* of this
 is constitutional (kernel, Art. XI); the specific formula is the instance's
-published commitment — [founding-charter.md](./founding-charter.md) — and it
+published commitment — [founding-charter.md](../../governance/founding-charter.md) — and it
 ships with the **stake-ledger slice**, the first real test of code-first
 self-binding.
 
@@ -2227,7 +2227,7 @@ process* is simply "you must use the judicial machinery," *free expression*
 library is how communities differ without each re-solving the same problems.
 Full design — the catalog, the presets-as-distros, the governance package
 manager — in [amendment-library-slate.md](./amendment-library-slate.md), with
-the kernel itself consolidated in [draft-constitution.md](./draft-constitution.md).
+the kernel itself consolidated in [draft-constitution.md](../../governance/draft-constitution.md).
 
 ---
 

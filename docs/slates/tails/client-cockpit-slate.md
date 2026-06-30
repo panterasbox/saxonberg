@@ -296,7 +296,7 @@ focus is `'here'` (the default fragment). Status-header items
 | Lighting | Band + source attribution | v1 (in pane body) |
 | Atmosphere | Temperature, gas mix, pressure, gravity | v1 (in pane body) |
 | Sound | Ambient + sources | later (with sound subsystem) |
-| Time | Local clock | v1 (in header, if world-clock-slate ships) |
+| Time | Local clock | v1 (in header; world clock shipped — see time.md) |
 
 ### Inspection pane
 
@@ -777,7 +777,7 @@ Things that are tempting to add but should be resisted in v1:
   emits the tags this slate's renderer expects.
 - **Interactive prompt stack (Framework 11)** (roadmap v1 punch list)
   — server-side substrate for inline prompts.
-- **World clock** ([world-clock-slate](../tails/world-clock-slate.md)) —
+- **World clock** ([time.md](../../subsystems/time.md)) —
   feeds `%time` token in prompt + status header.
 - **Eternal University content** (server-side; out of slate scope)
   — provides the actual starting location and progression. Cockpit

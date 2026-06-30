@@ -253,8 +253,8 @@ refactor). The plan (`docs/plans/respiration-plan.md`) was written against
 surface-architecture refactor — most visibly, the biome media table now
 lives in the `BiomeLogic` logic singleton, so the `breathable` column
 landed there with a `BiomeApi` facade forwarder (`Mml`/`MessageApi` stayed
-in `api/`, so the player-cue path was unchanged). The
-[respiration-slate](../slates/tails/respiration-slate.md) moved from
-`builds/` to `tails/` at sweep, holding the deferred surface (gills /
+in `api/`, so the player-cue path was unchanged). The respiration slate
+was fully absorbed and retired at sweep; its deferred surface (gills /
 confer-based breathing, the inhaled-toxin and strangulation channels,
-CO₂ / rebreather, the airlock interlock, pressure / altitude).
+CO₂ / rebreather, the airlock interlock, pressure / altitude) lives in
+[Deferred (explicit non-goals)](#deferred-explicit-non-goals) above.

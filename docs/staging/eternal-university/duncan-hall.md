@@ -107,7 +107,7 @@ contested door.
 still can't **re-author** it: the customization document is owner-scoped (the
 document-tree's gated save — see the
 [dorm-warren](../../slates/builds/dorm-warren-slate.md) /
-[document-tree](../../slates/builds/document-tree-slate.md) slates). You write only
+[document-store](../../subsystems/document-store.md) slates). You write only
 **your** room's doc; others' you can at most inspect. Two occupants share the room
 *physically* (the half-line is a social convention, not a wall — plain containment
 lets a roommate touch your stuff), but each **owns their half's document.**

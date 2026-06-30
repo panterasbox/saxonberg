@@ -17,7 +17,8 @@ dynamic input.
 
 > Already anticipated by the substrate: **`biome.md` plans a `getWeather()`
 > method** and has **`SkyExposedMixin`** (the outdoor / indoor weather gate);
-> `world-clock-slate.md` lists weather as deferred. The seam is pre-cut.
+> [time.md](../../subsystems/time.md) lists weather as deferred. The seam is
+> pre-cut.
 
 ---
 
@@ -182,8 +183,8 @@ pass — the conveyance / path-constraint family).
 - [biome.md](../../subsystems/biome.md) — the atmospheric state weather drives;
   the `getWeather()` seam (shipped as the `BiomeLogic` deviation seam);
   `SkyExposedMixin` (the weather gate).
-- [time.md](../../subsystems/time.md) / [world-clock-slate](./world-clock-slate.md)
-  — the celestial layer (seasons / day-night) weather rides on top of.
+- [time.md](../../subsystems/time.md) — the celestial layer (seasons /
+  day-night) weather rides on top of.
 - [address.md](../../subsystems/address.md) / [delivery-slate](../builds/delivery-slate.md)
   — the **addressing substrate** (the locality namespace weather's coherence rides);
   the addressing foundation shipped, the wider delivery build remains deferred.

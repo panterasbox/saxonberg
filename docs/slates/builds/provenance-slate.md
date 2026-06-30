@@ -44,7 +44,7 @@ the first and most demanding consumer, not the only one.
   the engagement your content earns"; the **infrastructure** work the
   engagement-measure "can't *see*" is exactly what the dependency-DAG
   makes partly visible.
-- [draft-constitution.md](./draft-constitution.md) Art. X (amendment =
+- [draft-constitution.md](../../governance/draft-constitution.md) Art. X (amendment =
   versioned law), Art. VII (the tamper-evident record) — **the same
   VCS** this slate stands up.
 - [influence-allocation-requirements.md](../../requirements/influence-allocation-requirements.md)
