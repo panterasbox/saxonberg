@@ -134,7 +134,15 @@ async function editImpl(
   if (patch.expiresAt !== undefined) b.expiresAt = patch.expiresAt;
   await b.save();
   board()?.upsert(b);
-  fanFeedImpl({ kind: 'bulletin', action: 'upsert', row: BulletinApi.toRow(b) });
+  // If the edit pushed the row out of the live window (e.g. `--expires` set
+  // to the past), fan a `remove` so clients — which don't filter on expiry —
+  // drop it; otherwise fan the updated row. Mirrors `recentWindow`'s liveness.
+  const live = !b.isRetracted() && !b.isExpiredAt(Date.now());
+  fanFeedImpl(
+    live
+      ? { kind: 'bulletin', action: 'upsert', row: BulletinApi.toRow(b) }
+      : { kind: 'bulletin', action: 'remove', bulletinId: b.getBulletinId() }
+  );
   return b;
 }
 

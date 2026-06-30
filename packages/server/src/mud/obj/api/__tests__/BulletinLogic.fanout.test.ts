@@ -180,6 +180,48 @@ describe('BulletinLogic fan-out (inline, presence-public)', () => {
     expect(frame.bulletinId).toBe(b.getBulletinId());
   });
 
+  it('edit fans an upsert while the row stays live', async () => {
+    const v1 = makeViewer('v1');
+    const author = makeStuffAtPath(() => new TestAuthor(), '/obj/Avatar/a');
+
+    const b = await publishAs(author, () =>
+      BulletinApi.publish({ headline: 'first' })
+    );
+    await flush();
+    v1.received = [];
+
+    await BulletinApi.edit(b.getBulletinId(), { headline: 'revised' });
+    await flush();
+
+    expect(v1.received).toHaveLength(1);
+    const frame = v1.received[0]!;
+    expect(frame.action).toBe('upsert');
+    if (frame.action !== 'upsert') throw new Error('expected upsert');
+    expect(frame.row.headline).toBe('revised');
+  });
+
+  it('edit into an expired state fans a remove (left the live window)', async () => {
+    const v1 = makeViewer('v1');
+    const author = makeStuffAtPath(() => new TestAuthor(), '/obj/Avatar/a');
+
+    const b = await publishAs(author, () =>
+      BulletinApi.publish({ headline: 'expiring' })
+    );
+    await flush();
+    v1.received = [];
+
+    // Set expiry to the past — the row drops out of the window, so clients
+    // (which don't filter on expiry) must be told to remove it.
+    await BulletinApi.edit(b.getBulletinId(), { expiresAt: 1 });
+    await flush();
+
+    expect(v1.received).toHaveLength(1);
+    const frame = v1.received[0]!;
+    expect(frame.action).toBe('remove');
+    if (frame.action !== 'remove') throw new Error('expected remove');
+    expect(frame.bulletinId).toBe(b.getBulletinId());
+  });
+
   it('skips linkdead + destroyed viewers without aborting the scan', async () => {
     const linkdead = makeViewer('dead');
     linkdead.connected = false; // no live Interactive to push to

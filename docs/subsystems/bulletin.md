@@ -32,13 +32,16 @@ A small platform service — **not** in-world Stuff:
 - **`BulletinBoard`** (`obj/BulletinBoard.ts`) — the boot-warmed
   registry singleton (`PostRegistrationMixin(Idea)`, manifest-registered
   at `/obj/BulletinBoard`, seeded by `seeds/obj/BulletinBoard.yaml`; the
-  `RecipeCatalogue` shape). Holds the recent window in memory, warms
-  from Mongo via `postRegister()→warm()`, and **owns the window
-  semantics** (server owns all semantics): `recentWindow()` =
-  pins-first then `publishedAt`-desc, excluding `retracted` and expired,
-  pin count capped at `bulletin.maxPins`, window length capped at
-  `bulletin.tickerWindow`. `canDestruct()` refuses (singleton). Mongo is
-  the source of truth; the board is a rebuildable warm cache.
+  `RecipeCatalogue` shape). Caches the working set in memory — warmed
+  from Mongo via `postRegister()→warm()` — and **owns the window
+  semantics** (server owns all semantics), computing the window per call
+  rather than storing it: `recentWindow()` = pins-first then
+  `publishedAt`-desc, excluding `retracted` and expired, pin count capped
+  at `bulletin.maxPins`, window length capped at `bulletin.tickerWindow`.
+  Soft-retracted rows stay cached (reachable by id) but drop out of the
+  window. `canDestruct()` refuses (singleton). Mongo is the source of
+  truth; the board is a rebuildable warm cache. (Low-volume staff feed; a
+  recency-bounded warm is the lever if the set ever grows large.)
 - **`BulletinApi`** (`api/bulletin.ts`) + **`BulletinLogic`**
   (`obj/api/BulletinLogic.ts`) — the gated Api↔logic-singleton pair (the
   `CorpoApi`/`CorpoLogic` precedent). The Api is a thin forwarding shell
@@ -138,9 +141,12 @@ ticker is a player-toggled tab, not an operator-placed slot. The store
 `snapshot`/`upsert`/`remove` by action; `setConnected` seeds the feed
 from `payload.bulletinWindow`. Rows render pins-first with realm/kind
 chips and MML `headline`/`body` through `MmlRenderer` (MML-safe, no raw
-HTML), in the **server-given order** (the client re-sort is only a
-stable tiebreaker — the client owns zero ordering/pin/chip semantics). A
-"Load older" control pulls the REST archive and appends. The wire types
+HTML). The client `orderFeed` mirrors the server's display ordering rule
+(pins-first then recency) so incrementally-`upsert`ed frames — which
+carry no order index — land deterministically in the keyed map; the
+**authoritative semantics** (pin cap, expiry/retract filtering, window
+length) stay server-only. A "Load older" control pulls the REST archive
+and appends. The wire types
 (`BulletinRow`, `BulletinFeedFrame`, `BulletinRealm`, `BulletinKind`,
 `ConnectionEstablishedPayload.bulletinWindow`) live in
 `@saxonberg/types`.
