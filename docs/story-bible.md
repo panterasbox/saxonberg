@@ -434,7 +434,7 @@ form reads as natural **sensitives / telepaths**.*
   clergy's exile. Undatable — an empty age keeps no clock.
 - **The Mission** — *aether: harnessed, built shared* — the long road from
   the fall, the world's slow education back toward the Charter: the
-  **Coming** (a forerunner, *the herald*, breaks the silence and the clergy
+  **Coming** (a forerunner, *Amos the Attuned*, breaks the silence and the clergy
   return, revive presence, tend the Sanctuary) → the **Reformation** (*teach,
   don't crown*) → the **re-settlement** (the dead city lives again; the first
   generation born in new Terminus) → the **return of the attuned** (the gift
@@ -511,10 +511,10 @@ Pre-founding figures (each a real design session):
 - **The steward — *carved:* Anselm Solvan** (see *The coin*) — the reluctant
   dying caretaker; a named mortal, *not* the clergy-as-institution, and
   *not* the founder himself.
-- **The herald — *carved, name open*** (see *The herald*) — a returned
+- **The herald — *carved:* Amos the Attuned** (see *The herald*) — a returned
   attuned, the forerunner who breaks the Fallow's silence and prophesies
   scale, not himself; the Mission's dawn anti-Solus. Dead long before the
-  Widening. *Surname pending.*
+  Widening. Known by epithet; surname lost to time.
 - **A reluctant-elder clergy** — the human friction of the coming handover.
 - **A named attuned** — beyond the herald, only if the returned people need
   a second face.
@@ -677,9 +677,10 @@ was paradise.**
   ones** who fulfill it. The founding is **paradise regained.** (Beneath it,
   the cyclical warning: the hollowing *will* return; another Solus *can*
   rise.)
-- **The herald.** The Coming had a forerunner — a **voice in the dead city**
-  at the Fallow's end, the first to break the silence and prophesy the heal.
-  The Coming's catalyst. *(Full treatment below — see **The herald**.)*
+- **The herald.** The Coming had a forerunner — **Amos the Attuned**, a
+  **voice in the dead city** at the Fallow's end, the first to break the
+  silence and prophesy the heal. The Coming's catalyst. *(Full treatment
+  below — see **The herald**.)*
 
 It **sharpens Holt's doubt** into the deepest question in the world: the
 attuned held paradise because they were *unfallen* — born present,
@@ -693,7 +694,14 @@ prophecy, the herald, the closing-and-opening of books, and the
 written. The universal monomyth, dressed in our cosmology — never literal
 scripture.)*
 
-## The herald — the forerunner who promised everyone *[settled, name open]*
+## The herald — Amos the Attuned *[settled]*
+
+**Amos the Attuned** — the forerunner who promised everyone. Remembered by
+epithet, not family name: legend keeps *what he was*, and his surname is lost
+to the deep past like everything else before the Charter. (The name is a
+quiet prophet-nod — Amos the outsider who demanded justice for ordinary
+people against the complacent powerful — resonant if you catch it, clean if
+you don't; deliberately *not* the loud one.)
 
 The figure who breaks the Fallow's silence and triggers the Coming. Born a
 **returned attuned** (`homo/sensitivus` — *the* established people, not a new
@@ -749,8 +757,8 @@ after it.
   *shaped* in the one way that survives: the forerunner who doesn't reach the
   fulfillment.
 
-*Open: his **name** (people have surnames; the role is "John," but keep it
-subtle — not on the nose).*
+*Settled: known as **Amos the Attuned** — remembered by epithet, surname lost
+to time.*
 
 ## The Museum — the world's memory **[settled frame, contents open]**
 
