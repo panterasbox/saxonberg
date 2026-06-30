@@ -72,6 +72,7 @@ describe("connection.link state machine", () => {
         portraitUrl: "",
       },
       topicCatalogue: [],
+      bulletinWindow: [],
       clientState: {},
       broadcastSources: [],
     });

@@ -184,3 +184,17 @@ settings:
   # computed on read, never stored. Default 5 minutes.
   - key: social.idleAfter
     value: "300"
+
+  # Bulletin (news ticker) — the server-owned ticker semantics. The engine
+  # ships the pins-first/recency window + soft-retract/expiry filtering;
+  # these are the operator-tunable limits. tickerWindow caps the live
+  # window; maxPins caps the pin block held at the top; the length knobs
+  # bound an authored headline/body (validated at the `bulletin` verb).
+  - key: bulletin.tickerWindow
+    value: "30"
+  - key: bulletin.maxPins
+    value: "3"
+  - key: bulletin.headlineMaxLength
+    value: "120"
+  - key: bulletin.bodyMaxLength
+    value: "4000"

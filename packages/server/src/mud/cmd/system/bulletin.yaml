@@ -1,0 +1,104 @@
+verbs: [bulletin]
+controller: system/BulletinController
+description: "The news ticker — the staff→player broadcast feed (post / edit / retract)"
+help: |
+  Manage the news ticker that every connected player sees.
+
+  `bulletin post <headline>` publishes an announcement. Type the
+  headline inline; the longer body is composed in the GUI editor (the
+  structured `body` field), not on the command line. (Bare `bulletin
+  <headline>` is shorthand for `bulletin post <headline>`.)
+
+  `--realm` picks the broadcast realm: `ooc` (out-of-character /
+  operator, the default) or `world` (in-fiction). `--kind` classifies
+  it: `changelog`, `decision`, `event`, or `notice` (default). `--pin`
+  sticks it to the top of the window. `--expires` sets a shell-style
+  lifetime (`2h`, `7d`, `1h30m`); without one it never expires.
+
+  `bulletin edit <id> …` revises an existing bulletin; `bulletin
+  retract <id>` soft-deletes it (the row stays in the archive but
+  drops out of the live window).
+
+  This verb is restricted to authors — if you aren't one, the game
+  won't offer it.
+validators:
+  - /lib/command/validators/requiresAuthor
+fallthrough: true
+options:
+  # Verb-scoped (global to `bulletin`): in scope for the bare/`post`
+  # publish form AND the edit subcommand. No YAML `default:` on realm/kind
+  # — the publish default (ooc / notice) is applied in the controller so an
+  # unpassed flag stays undefined on the edit patch (change-only-what-you-pass).
+  realm:
+    type: string
+    field: realm
+    description: "Broadcast realm: ooc | world (publish default ooc)"
+  kind:
+    type: string
+    field: kind
+    description: "Classification: changelog | decision | event | notice (publish default notice)"
+  pin:
+    type: boolean
+    field: pin
+    description: "Pin to the top of the ticker window"
+  expires:
+    type: string
+    field: expires
+    description: "Shell-style lifetime (e.g. 2h, 7d, 1h30m); omit for never"
+payload:
+  # The long-form body is structured-form-only — clients populate it via
+  # the `{text, fields}` side-channel (overlaid into `model.body` by the
+  # dispatcher), not from bare text on the command line. The greedy
+  # `headline` positional already occupies the single greedy-arg slot, so
+  # the body rides the payload channel (the `write.yaml` body precedent).
+  body:
+    type: string
+    description: "Long-form MML body (GUI editor; structured-form-only)"
+subcommands:
+  post:
+    description: "Publish a new bulletin to the ticker"
+    help: |
+      Publish an announcement to the news ticker. Give the headline
+      inline; the verb-scoped `--realm` / `--kind` / `--pin` /
+      `--expires` options shape it, and the long-form body rides the
+      structured `body` field. Bare `bulletin <headline>` is the same
+      thing.
+    args:
+      - name: headline
+        type: string
+        required: true
+        greedy: true
+  edit:
+    description: "Edit an existing bulletin in place (by id)"
+    help: |
+      Revise a bulletin you published. Give its id, then the new
+      headline inline (or leave it off to edit only the flags). The
+      same verb-scoped `--realm` / `--kind` / `--pin` / `--expires`
+      options apply, changing only the ones you pass; the long-form body
+      rides the structured `body` field as on publish.
+    args:
+      - name: id
+        type: string
+        required: true
+      - name: headline
+        type: string
+        required: false
+        greedy: true
+  retract:
+    description: "Retract a bulletin (soft delete — kept in the archive)"
+    help: |
+      Drop a bulletin out of the live ticker. It is a soft delete: the
+      row stays in the archive for truthfulness, but no longer shows in
+      the window.
+    args:
+      - name: id
+        type: string
+        required: true
+args:
+  # Fallthrough: when the first token isn't `post` / `edit` / `retract`,
+  # bind the shorthand publish form `bulletin <headline>`. The headline is
+  # greedy — it consumes the whole inline phrase (a multi-word ticker line).
+  - name: headline
+    type: string
+    required: true
+    greedy: true

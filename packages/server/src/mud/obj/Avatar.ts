@@ -36,6 +36,7 @@ import {
 } from "../lib/shell/Environment";
 import { ShellApi } from "../api/shell";
 import { StreamSourceApi } from "../api/stream-source";
+import { BulletinApi } from "../api/bulletin";
 import { PostRegistrationMixin } from "../lib/stuff/PostRegistration";
 import { HasInteractiveMixin } from "../lib/connection/HasInteractive";
 import { AetherMixin } from "../lib/message/Aether";
@@ -408,6 +409,11 @@ export default class Avatar extends AvatarBase {
         isGuest: this.getIsGuest(),
       },
       topicCatalogue: catalogue?.getSnapshot() ?? [],
+      // The live news-ticker window (pins-first, recency-ordered, already
+      // retract/expiry-filtered + length-capped by the BulletinBoard). The
+      // client seeds its feed pane from this as a `snapshot`, exactly as it
+      // caches `topicCatalogue`; live deltas ride `world.bulletin.feed`.
+      bulletinWindow: BulletinApi.recent().map((b) => BulletinApi.toRow(b)),
       clientState: this.snapshotClientState(),
       // Operator-configured broadcast sources for the livestream-viewer
       // embed; surfaced live via the `stream-sources` envelope on change.

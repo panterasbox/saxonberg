@@ -189,6 +189,54 @@ export type RosterFrame =
   | { kind: 'roster'; action: 'snapshot'; rows: RosterRow[] };
 
 /**
+ * Which broadcast realm a bulletin belongs to — `ooc` (out-of-character /
+ * operator) vs `world` (in-fiction). Mirrors the server `BulletinRealm`.
+ */
+export type BulletinRealm = 'ooc' | 'world';
+
+/**
+ * The editorial classification of a bulletin. Mirrors the server
+ * `BulletinKind`.
+ */
+export type BulletinKind = 'changelog' | 'decision' | 'event' | 'notice';
+
+/**
+ * The client-facing projection of one bulletin (the news-ticker row). The
+ * server owns all semantics (ordering, pin-cap, expiry, soft-retract) — a
+ * **retracted** bulletin is never projected to the client. MML `headline` /
+ * `body` render through the existing parse path; the client owns zero
+ * ordering/recognition semantics.
+ */
+export interface BulletinRow {
+  bulletinId: string;
+  realm: BulletinRealm;
+  kind: BulletinKind;
+  headline: string;
+  body: string;
+  /** The publisher's durable identity string, when present. */
+  author?: string;
+  /** Publish time, epoch-ms. */
+  publishedAt: number;
+  pinned: boolean;
+  /** Expiry, epoch-ms; absent / `0` = never expires. */
+  expiresAt?: number;
+}
+
+/**
+ * Payload of a `world.bulletin.feed` frame (the news-ticker fan-out;
+ * mirrors the server-side fan). Rides the ordinary `MessageFrame` channel
+ * (empty body, structured payload). The client routes by `action`:
+ * `snapshot` replaces the whole feed, `upsert` inserts/replaces one row by
+ * `bulletinId`, `remove` deletes by `bulletinId`. The initial `snapshot`
+ * arrives on connect via `ConnectionEstablishedPayload.bulletinWindow`
+ * (the welcome payload, not a frame) — there is no request RPC.
+ */
+export type BulletinFeedFrame =
+  | { kind: 'bulletin'; action: 'upsert'; row: BulletinRow }
+  | { kind: 'bulletin'; action: 'remove'; bulletinId: string }
+  | { kind: 'bulletin'; action: 'snapshot'; rows: BulletinRow[] };
+
+/**
  * One row of the `social.rules` client-state projection — a flattened,
  * wire-safe view of a `NotifyRule` for the "Social / Notifications"
  * settings pane. The server pushes the viewer's effective ordered list
@@ -1528,6 +1576,14 @@ export interface ConnectionEstablishedPayload {
     /** `social.react.muteChannels` — no reaction widgets on chat lines. */
     muteChannels: boolean;
   };
+  /**
+   * The live news-ticker window at connect time — the pins-first,
+   * recency-ordered, retract/expiry-filtered slice the client seeds its
+   * feed pane from (consumed as a `snapshot`, exactly as `topicCatalogue`
+   * is). Live deltas thereafter ride `world.bulletin.feed` frames. Empty
+   * when nothing is published.
+   */
+  bulletinWindow: BulletinRow[];
 }
 
 /**
