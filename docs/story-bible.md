@@ -828,7 +828,7 @@ after it.
 *Settled: known as **Amos the Attuned** — remembered by epithet, surname lost
 to time.*
 
-## The pretender — Lucian Vane, the False Dawn *[settled; status: alive, free, spent]*
+## The pretender — Lucian Vane, the False Dawn *[settled; motive settled; status: alive, free, spent]*
 
 **Lucian Vane** — the recent, caught would-be Solus, remembered as **the False
 Dawn**: the living-memory recurrence of the legend, and the third of the three
@@ -846,6 +846,36 @@ never a third Sol- surname — capture needs no bloodline.)*
   attention-tyrant who nearly became the Feed's sovereign by promising the very
   dawn Amos had promised. He was **caught**, and catching him is what turned a
   cohort of aether-scholars into constitution-writers.
+- **His motive — the corrected lesson.** Vane is the puzzle Solus isn't: sane,
+  brilliant, and *fully aware* of how Solus ended — he **studied** the Pooling.
+  So why walk the same road eyes-open? Because as an academic he formed a theory
+  of Solus's failure and reasoned to the wrong half of it: *the flaw was the
+  man, not the concentration.* Solus failed because Solus was mad and
+  narcissistic — an **unfit holder**; concentration itself is fine in a *fit*
+  hand, and Vane, disciplined and self-aware, is certain he is that hand.
+  **Knowledge as inoculation:** understanding Solus convinces him he's immune —
+  the academy bred its own nemesis, the scholar who learned the lesson and drew
+  the wrong conclusion. And he's a **sincere rescuer**, not a throne-grabber: he
+  believes the cooperative is too weak to survive the corpos and the Feed, that
+  the distributed experiment is a beautiful suicide, and that a competent hand
+  must take the wheel before the hollowing wins. He isn't lying when he wears
+  salvation's face — **he believes it's his face.** He may even be *right about
+  the disease*, only catastrophically wrong about the cure. That is why a Good
+  person follows him: the calm, caring, brilliant man diagnosing a real
+  sickness, whose prescription happens to be capture.
+- **Why the sane man, not the mad legend, forced the Charter.** Solus's
+  *madness* let the world file the Pooling under freak accident — a one-off
+  sickness of the ungoverned age, something to mourn and move past. **Vane's
+  *sanity* proved it was never madness at all:** capture is a standing
+  temptation any competent, well-meaning person would feel on a power-bearing
+  network — not a bug you wait out but a permanent feature you must build
+  against, forever. Solus could be mourned; **Vane had to be answered.** He is
+  the bible's thesis in person — the living argument *against* the guardrails
+  ("but a *better* man could hold it"), refuted on principle: even a good, sane,
+  brilliant Vane must be stopped, because the **position** corrupts the outcome
+  regardless of the holder. *(A real framer-level hole, kept on purpose:
+  stopping him for what his structure *would* do — before he'd done wrong — was
+  not clean.)*
 - **Beaten by a constitution, not a champion.** The founding order's defining
   choice was to **refuse to martyr him** — no execution (it canonizes him, and
   is the Hollow's own answer), no prison (a relic and a letter-writing
@@ -878,13 +908,14 @@ never a third Sol- surname — capture needs no bloodline.)*
   grasped, lost, lingers with nothing. The good man dies having given
   everything; the bad man lives having kept nothing.
 
-*Open (a dial, not a gap): does the living Vane **court** the revival — the
-unrepentant demagogue working his embers for a second chance — or is he a
-**spent husk** the cult forms around regardless, projecting a dawn onto a man
-already hollow? The husk reading is the truer one (capture is the people's
-reach, not his engine — you can't fix it by neutralizing him) and the better
-setup if an **heir** to the False Dawn is ever carved as a present-day
-antagonist.*
+*The present Vane — neither raving nor empty.* A sincere man, even spent,
+**still believes he was right** — so the husk-vs-demagogue dial collapses into
+something better: he doesn't court followers and he isn't hollow; he **waits**,
+serenely certain the cooperative will fail and vindicate him, and that patient,
+unrepentant certainty is its own gravity — the thing that draws the faithful
+without his lifting a finger. *Open (the one real gap): an **heir** to the False
+Dawn — Vaneism with a young face — is the uncarved present-day antagonist slot,
+there whenever a live adversary is wanted.*
 
 ## The Museum — the world's memory **[settled frame, contents open]**
 
