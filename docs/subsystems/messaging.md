@@ -279,6 +279,10 @@ class Mml {
   static mention(stuffId: string, label: string): Mml // <mention stuff-id="…">@…</mention>
   static link(href: string, label: string | Mml): Mml // <link href="…">…</link>
 
+  // Color / fragment primitives
+  static color(value: string, body: string | Mml): Mml // <color value="…">…</color>
+  static text(value: string): Mml              // escaped-once text fragment
+
   // Emphasis (Discord-dialect markdown subset)
   static strong(body): Mml; static em(body): Mml
   static code(text): Mml;   static pre(text): Mml
@@ -304,6 +308,17 @@ class Mml {
   toJSON(): string
 }
 ```
+
+An identity ref (`name`/`item`/`object`/`player`/`npc`/`location`)
+renders its label through the target's **`Stuff.getPresentationMml(label)`**
+— the `Mml`-fragment sibling of `getPresentation`. `Mml.ref` resolves
+the viewer-aware label (recognition stays in the render layer) and
+hands it in; the default returns `null`, and `Mml.ref` wraps the label
+in `Mml.text` (escaped once). An object can override it to return a
+richer fragment — a name composed as markup — e.g. the TPA terminal
+wrapping its name in `<color>` to tint by status. So a name is a
+composable fragment like everything else; `getPresentation` stays a
+plain string for non-prose consumers (logs, notes, MQL scalars).
 
 The new vocabulary (chat / messaging tags + emphasis subset) and the
 markdown pipeline are documented in detail in

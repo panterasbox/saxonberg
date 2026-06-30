@@ -47,9 +47,11 @@ describe("Goodkin University Avenue branch seed", () => {
     expect((counter.data as { corpoKey?: string }).corpoKey).toBe("goodkin");
   });
 
-  it("the teller is a Character with a name and a brain", () => {
+  it("the teller is an NPC with a name and a brain", () => {
     const teller = seed("domain/eternal/university-avenue/npc/teller.yaml");
-    expect(String(teller.class)).toMatch(/character/i);
+    // `/lib/npc/NPC` (a Character subclass) — the class moved from the
+    // retired `/lib/character/NPC` path the seed used to name.
+    expect(String(teller.class)).toBe("/lib/npc/NPC");
     const data = teller.data as { name?: string; behaviors?: unknown[] };
     expect(data.name).toBeTruthy();
     expect(Array.isArray(data.behaviors)).toBe(true);

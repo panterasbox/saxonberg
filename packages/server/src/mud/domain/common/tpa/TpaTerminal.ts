@@ -12,11 +12,16 @@
  *
  * Surfaces the affordance two ways so bare-`teleport`-shows-the-board is
  * discoverable: a default **long description** that says how to use it, and a
- * computed **short description** carrying a diegetic status light — blue
- * arrival / red departure / purple both / dark offline. The word carries the
- * meaning; the colour only reinforces it (never colour-alone).
+ * diegetic **status light** — blue arrival / red departure / purple both /
+ * grey offline. The light is the *colour of the terminal's name*: the
+ * `getPresentationMml` override builds the name fragment wrapped in an
+ * explicit `<color>` MML tag (`Mml.color`), resolved client-side through the
+ * theme palette, so the colour does the work without spelling it out; the
+ * long description states the same condition in words (the non-colour-alone
+ * channel).
  */
 
+import { Mml } from "../../../api/mml";
 import Thing from "../../../lib/stuff/Thing";
 import { DetailedMixin } from "../../../lib/description/Detailed";
 import { FastTravelMixin } from "../../../lib/fasttravel/FastTravel";
@@ -62,24 +67,52 @@ export default class TpaTerminal extends TpaTerminalBase {
     super.onDestruct();
   }
 
-  /** A diegetic status light — directionality, or dark when offline. */
-  private statusLight(): string {
+  /**
+   * The terminal's operating condition as a color name: grey out of
+   * service, else blue inbound / red outbound / purple both-ways.
+   */
+  private statusColor(): string {
+    if (this.getStatus() !== "operational") return "grey";
+    switch (this.getDirectionality()) {
+      case "arrival":
+        return "blue";
+      case "departure":
+        return "red";
+      default:
+        return "purple";
+    }
+  }
+
+  /**
+   * The terminal's name fragment, tinted by status: the colour does the
+   * work, no words in the listing. We build a richer `Mml` fragment than
+   * the default plain one — the name wrapped in an explicit `<color>`
+   * tag — so the status reads as a real property of the composed prose,
+   * not a hidden tint channel. The long description spells the same
+   * state out in words (the non-colour-alone cue) on a deliberate look.
+   */
+  override getPresentationMml(label: string): Mml {
+    return Mml.color(this.statusColor(), label);
+  }
+
+  /** The status light in words — the colorblind-safe channel, shown on
+   * a deliberate look rather than in every room listing. */
+  private statusLine(): string {
     if (this.getStatus() !== "operational") {
-      return "its light dark, out of service";
+      return "Its status light is dark — the terminal is out of service.";
     }
     switch (this.getDirectionality()) {
       case "arrival":
-        return "its arrival light glowing blue";
+        return "Its light glows blue: an arrival-only stop.";
       case "departure":
-        return "its departure light burning red";
+        return "Its light burns red: a departure-only stop.";
       default:
-        return "lit a steady purple for both";
+        return "Its light shines a steady purple: it runs both ways.";
     }
   }
 
   override getShortDescription(): string {
-    const base = super.getShortDescription() || "a Teleport Authority terminal";
-    return `${base}, ${this.statusLight()}`;
+    return super.getShortDescription() || "a Teleport Authority terminal";
   }
 
   override getLongDescription(): string {
@@ -88,6 +121,16 @@ export default class TpaTerminal extends TpaTerminalBase {
         ? this.longDescription
         : DEFAULT_FLAVOR;
     const register = this.isArrival() ? `\n${REGISTER_HINT}` : "";
-    return `${flavor}\n${AFFORDANCE_HINT}${register}`;
+    return `${flavor}\n${this.statusLine()}\n${AFFORDANCE_HINT}${register}`;
+  }
+
+  // The look/inspect surfaces render `getMarkupLong` → `getLong`, which
+  // reads the raw `longDescription` field (empty here) with a
+  // short-description fallback — it never consults `getLongDescription()`.
+  // Route those surfaces through the computed long description so the
+  // affordance hints and the status line (the non-colour-alone channel
+  // for the name tint) actually show on a deliberate look.
+  override getLong(): string {
+    return this.getLongDescription();
   }
 }

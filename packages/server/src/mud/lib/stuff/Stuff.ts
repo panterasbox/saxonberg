@@ -39,6 +39,11 @@ import { ProxyApi } from '../../api/proxy';
 import { SecurityApi } from '../../api/security';
 import { MixinApi } from '../../api/mixin';
 import { GrammarApi } from '../../api/grammar';
+// Type-only: `Stuff` is the root base, so a *value* import of `Mml`
+// (which pulls recognition → belief → `Idea extends Stuff`) would form a
+// load-time cycle. The default fragment is built by `Mml.ref` instead;
+// subclasses that decorate value-import `Mml` themselves.
+import type { Mml } from '../../api/mml';
 import type { SubscribableFieldDescriptor } from '../../api/mql-subscription';
 import { ShadowChangedEvent } from '../events/ShadowChangedEvent';
 
@@ -191,6 +196,26 @@ export abstract class Stuff {
       if (status) return `${identity}, ${status}`;
     }
     return identity;
+  }
+
+  /**
+   * Build the composable `Mml` fragment for this object's display name —
+   * the Mml sibling of {@link getPresentation}. `Mml.ref` (and so every
+   * `<item>` / `<name>` / … identity tag) renders this, not a raw
+   * string, so a name joins the compose chain as a fragment like
+   * everything else. The `label` is the already-resolved, viewer-aware
+   * name (recognition runs in the render layer and hands it in).
+   *
+   * Return `null` for the plain default — `Mml.ref` then wraps the label
+   * in `Mml.text`, which escapes it exactly once, so player-authored
+   * names / status decoration are safe by construction and the fragment
+   * is never re-escaped downstream. Override to build a richer fragment
+   * (a TPA terminal wraps its name in `<color>` to tint by state). The
+   * plain-string `getPresentation` stays the surface for non-prose
+   * consumers (logs, `context.note`, MQL scalars).
+   */
+  getPresentationMml(_label: string): Mml | null {
+    return null;
   }
 
   /**
