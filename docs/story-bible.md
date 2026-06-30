@@ -284,8 +284,12 @@ of all gods, the aether gone silent, and the **attuned vanish with it**
 of the old faith is the clergy**, who carried it out into exile — not
 anyone left at the dead heart. The empty city becomes the **cautionary
 ruin** the new order builds against. Its **length is undatable on
-purpose**: an empty age keeps no clock, so "centuries, the legends say" is
-the most anyone can claim. *(The honest shape of how a world ends: not
+purpose** — an empty age keeps no clock, so "centuries, the legends say" is
+the most anyone can claim — but **undatable is not unknown:** the clergy's
+**exile** runs the whole length as a continuous, if dim, remembered thread
+(see *The deep history before year 0*). The dead city kept no record because
+no one was there; the faith kept one because someone always was. *(The honest
+shape of how a world ends: not
 stormed, just left.) Alts: the Long Quiet, the Hollow Years.*
 
 ### IV. The Mission *[settled]*
@@ -417,6 +421,64 @@ then back).
 *Open (small): the ancient legend's own casting; confirming the returned
 form reads as natural **sensitives / telepaths**.*
 
+### The deep history before year 0 — the Mission in depth *[settled; the pretender unnamed]*
+
+**Undatable is not unknown.** Two registers of deep past run side by side: the
+**dead city's blank** — no one was there to record the Fallow, so its *length*
+is lost ("an empty age keeps no clock") — and the **clergy's unbroken thread**
+— the faith was carried by hand the whole way, so the Fallow's *story* survives
+even where its calendar doesn't. Someone always carried it.
+
+**The Exile — the bridge across the Fallow.** The missionaries came from
+somewhere. When Eternal City went dark the clergy fled into the wilderness with
+the old worship and the memory of the Sanctuary, and across dark, hungry,
+obscure generations a **line of keepers** held the thread: the prophecy
+(ancestral memory of paradise and the promise of return), the warning of the
+Pooling, the way back to the dead heart. The **Reformation was forged in the
+exile** — the wandering is where the lesson of the fall sank in, where "teach,
+don't crown" hardened from watching, in hindsight, the order the faith had once
+blessed destroy itself. Known but dim: told as the keepers' lineage, not a
+dated chronicle. (How many generations wandered? "Long enough to learn." No one
+counts.)
+
+**The dating sharpens as it nears year 0** (the precise-near / vague-far rule
+made temporal):
+
+- **Early Mission — the Return** *(the legendary band, soft dates "by the
+  clergy's reckoning"):* Amos breaks the silence; the clergy come home, relight
+  presence, tend the Sanctuary; the first generation born in new Terminus. The
+  dawn, told as myth.
+- **The Founding of the School** *(early-mid):* preservation hardens into
+  teaching; the University rises on the ruins, founded *to study the aether*;
+  clergy as church + school + civil authority, one office. Its identity for the
+  next two centuries is **research, not rule.**
+- **The Scholars' Centuries — the Long Study** *(mid, the bulk of the deep
+  time, dated by rectors not years):* patient aether research; the city grows
+  around the campus; the **attuned return** mid-era as a miracle — revered,
+  studied, *learned from.* Here lives the long line of **research martyrs**:
+  scholars who burned themselves on the medium by self-experiment. **Solvan's
+  cancer is the last name on that wall — not a freak, a tradition.**
+- **The Breakthrough & the Widening** *(late, sharp — living memory, Solvan's
+  cohort):* the implant cracks attunement open; universal attunement rolls out
+  fast; the world goes modern *all at once.* The attuned's **dispossession**
+  lands here (miracle → clinic visit). Into the new networked power rush the
+  **corpos** — recent, not ancient, risen in a generation to own pieces of the
+  Widening — as the **clergy recede** and secular power fills the vacuum.
+- **The Near-Relapse — the Charter's trigger** *(latest):* the Widening's
+  concentration reopens the exact conditions of the Eternal Pooling, and a
+  **would-be Solus reaches for the networked world.** This time he is
+  **caught.** The scare is what converts a cohort of aether-*scholars* into
+  constitution-*writers* — *"it nearly happened again, in our own lifetimes; we
+  will not trust the guardrails to anyone's good character."* *(The recent
+  pretender is a real carve and wants a name — the living-memory echo of the
+  legendary Solus. Unnamed for now.)*
+
+**The framers end up with two cautionary cases, one in each hand:** the
+**ancient Pooling** (Solus — legend, read off the Eternal ruins) and the
+**recent near-relapse** (caught — living memory). The constitution is no
+academic exercise; it answers a fresh wound *and* an old one, which is exactly
+why its guardrails are **structural, never discretionary.**
+
 ### Event timeline (oldest → newest)
 
 - **Age of Myth** — *aether: the wild medium.* It simply is; mind and
@@ -434,19 +496,20 @@ form reads as natural **sensitives / telepaths**.*
   clergy's exile. Undatable — an empty age keeps no clock.
 - **The Mission** — *aether: harnessed, built shared* — the long road from
   the fall, the world's slow education back toward the Charter: the
-  **Coming** (a forerunner, *Amos the Attuned*, breaks the silence and the clergy
-  return, revive presence, tend the Sanctuary) → the **Reformation** (*teach,
-  don't crown*) → the **re-settlement** (the dead city lives again; the first
+  **Coming** (out of the long **exile**, a forerunner, *Amos the Attuned*,
+  breaks the silence and the clergy return, revive presence, tend the
+  Sanctuary) → the **Reformation** (*teach, don't crown* — forged in the
+  exile) → the **re-settlement** (the dead city lives again; the first
   generation born in new Terminus) → the **return of the attuned** (the gift
   re-emerges; the clergy *learn* attunement from them) → the **University
-  founded** to study the aether → a **near-relapse** (a would-be Solus rises
-  and is *caught this time* — the framers' lived reason) → the long study and
-  its **casualties** (the medium's toll; Solvan's cancer the last in a line)
-  → the **breakthrough** and the **Widening** (universal attunement; the
-  modern networked world all at once — corpos at scale, the New Gods
-  resurgent, the attuned dispossessed) → the **rise of the corpos** and the
-  **secular turn** (the clergy recede into echoes). *(The Handover into the
-  Grounded Age is the future — see below.)*
+  founded** to study the aether → the **long study** and its **casualties**
+  (the medium's toll; Solvan's cancer the last name on a long wall) → the
+  **breakthrough** and the **Widening** (universal attunement; the modern
+  networked world all at once — corpos risen in a generation, the New Gods
+  resurgent, the attuned dispossessed, the clergy receding into echoes) → the
+  **near-relapse** (a would-be Solus reaches for the networked world and is
+  *caught this time* — the framers' lived reason and the Charter's trigger).
+  *(The Handover into the Grounded Age is the future — see below.)*
 - **The Charter & the brief interim** *(present — ≈ year 5–10)* — the
   cohort's pivot from aether-study to polity-engineering; the constitution
   drafted, the city recognizes it (**year 0**), **Steward Solvan** drafted
