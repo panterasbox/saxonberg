@@ -20,6 +20,9 @@ import { tokens } from "./ui";
 const Rail = styled.div`
   display: flex;
   flex-direction: column;
+  flex: none;
+  width: ${tokens.rail.width};
+  min-width: ${tokens.rail.minWidth};
   height: 100%;
   min-height: 0;
   padding: 0.75rem;
@@ -88,12 +91,28 @@ function plain(body: string): string {
   return body.replace(/<[^>]+>/g, "").trim();
 }
 
-export function ForumChatSidecar(): JSX.Element {
+interface ForumChatSidecarProps {
+  /** Send a command, tagged with the forum bar's id (so "talk here"
+   *  scopes the forum bar's mode). */
+  onSendCommand: (text: string, barId?: string) => void;
+}
+
+/** The forum layout's primary command bar id — must match ForumLayout. */
+const FORUM_BAR_ID = "forum";
+
+export function ForumChatSidecar({
+  onSendCommand,
+}: ForumChatSidecarProps): JSX.Element {
   const forumNav = useStore((s) => s.forumNav);
   const frames = useStore((s) => s.frames);
-  // The sidecar lives in the forum view, so it reads/sets the forum bar's mode.
-  const forumMode = useStore((s) => s.inputMode.forum);
-  const setInputMode = useStore((s) => s.setInputMode);
+  // The forum bar's server-authoritative mode (display-only). "Talk here"
+  // sets it by sending `mode chat <handle>` from the forum bar.
+  const forumMode = useStore((s) => {
+    const modes = s.clientState["cockpit.inputModes"] as
+      | Record<string, string>
+      | undefined;
+    return modes?.[FORUM_BAR_ID] ?? "";
+  });
 
   const handle = forumNav.boardHandle;
   if (!handle) {
@@ -106,7 +125,7 @@ export function ForumChatSidecar(): JSX.Element {
   }
 
   const prefix = `chat ${handle}`;
-  const active = forumMode?.prefix === prefix;
+  const active = forumMode === prefix;
   const lines = frames.filter((f) => f.channelName === handle);
 
   return (
@@ -116,7 +135,9 @@ export function ForumChatSidecar(): JSX.Element {
         <HandleName>#{handle}</HandleName>
         <TalkButton
           $active={active}
-          onClick={() => setInputMode({ prefix, label: handle })}
+          onClick={() =>
+            onSendCommand(active ? "mode off" : `mode ${prefix}`, FORUM_BAR_ID)
+          }
           title="Scope the command bar to this channel"
         >
           {active ? "Talking…" : "Talk here"}

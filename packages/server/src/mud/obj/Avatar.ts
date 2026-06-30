@@ -35,6 +35,7 @@ import {
   type SettingsSchemaEntry,
 } from "../lib/shell/Environment";
 import { ShellApi } from "../api/shell";
+import { StreamSourceApi } from "../api/stream-source";
 import { PostRegistrationMixin } from "../lib/stuff/PostRegistration";
 import { HasInteractiveMixin } from "../lib/connection/HasInteractive";
 import { AetherMixin } from "../lib/message/Aether";
@@ -408,6 +409,9 @@ export default class Avatar extends AvatarBase {
       },
       topicCatalogue: catalogue?.getSnapshot() ?? [],
       clientState: this.snapshotClientState(),
+      // Operator-configured broadcast sources for the livestream-viewer
+      // embed; surfaced live via the `stream-sources` envelope on change.
+      broadcastSources: StreamSourceApi.current(),
       reactionPrefs: {
         intensity:
           ShellApi.resolveSetting<

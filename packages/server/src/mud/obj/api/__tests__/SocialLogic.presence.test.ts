@@ -60,7 +60,13 @@ class Viewer extends SensorMixin(NotifyPolicyMixin(Idea)) {
     return this.connected;
   }
   protected override handleMessage(frame: unknown): void {
-    this.received.push(frame as MessageFrame);
+    // This file tests the presence-NOTIFICATION relay. `SocialApi.boot()`
+    // also wires the presence-public roster delta tap (Who's Online), so a
+    // login/logout legitimately also produces a `world.social.roster`
+    // frame on a different topic. Scope capture to the presence topic so
+    // these assertions count only the relay under test.
+    const f = frame as MessageFrame;
+    if (f.topic === "world.social.presence") this.received.push(f);
   }
 }
 

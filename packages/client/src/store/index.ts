@@ -30,6 +30,7 @@ import type {
   ReactionActState,
   ReactionSampleEntry,
   RosterRow,
+  StreamSource,
   StuffDetailRecord,
   StuffRefRecord,
   TopicDescriptor,
@@ -233,19 +234,6 @@ export interface Frame {
 }
 
 /**
- * A client-side input scope ("mode"): a sticky verb/alias prefix the
- * command bar wraps bare input with. PURELY client state — like the
- * console filters, it never rides the command bus. Typing `foo` while a
- * mode is set submits the real command `<prefix> foo`; a leading `/`
- * escapes for a one-off raw command. Set by the chat sidecar's "talk
- * here" (or `mode <prefix>`), cleared by Esc / the chip / `mode off`.
- */
-export interface InputMode {
-  prefix: string;
-  label: string;
-}
-
-/**
  * Combined store state. Extends {@link CmsSlice} (the CMS editor's
  * state + actions) — composed in via `createCmsSlice` in the store body.
  */
@@ -289,13 +277,19 @@ interface StoreState extends CmsSlice {
   setConnectionPhase: (phase: ConnectionPhase) => void;
 
   /**
-   * In-world primary-view axis — `'terminal'` (the classic cockpit) or
-   * `'forum'` (the forum board view). NOT a `connectionPhase`: the player
-   * stays `in-world`; Frame + CommandBar persist across both; only the
-   * LeftColumn content slot + the view-sensitive right column swap.
+   * The ghost command line — the always-on preview/teaching strip beside
+   * the primary command bar. `ghostPreview` is the exact command a
+   * hovered affordance would run (passive teaching); `ghostFlash` is a
+   * transient post-action message (`› <ran>` on click, `copied: …` on
+   * copy). Input mode itself is now server-authoritative (the per-bar
+   * `cockpit.inputModes` clientState map + the interpreter prepend); the
+   * client no longer wraps input.
    */
-  mainView: "terminal" | "forum";
-  setMainView: (view: "terminal" | "forum") => void;
+  ghostPreview: string | null;
+  ghostFlash: string | null;
+  setGhostPreview: (command: string | null) => void;
+  /** Show a transient ghost-line flash (auto-clears in the component). */
+  flashGhost: (message: string) => void;
 
   /**
    * Whether the "Social / Notifications" settings pane (a modal over the
@@ -306,11 +300,22 @@ interface StoreState extends CmsSlice {
   setSocialPaneOpen: (open: boolean) => void;
 
   /**
-   * Which right-column cockpit pane is shown in the Terminal view —
+   * The summoned-pane tier — the no-modal replacement for "pop a modal".
+   * A transient pane that renders BESIDE the current layout's terminal
+   * (never full-screen, never blocks input — the inspection pane is the
+   * existing proof). `null` = none summoned. v1 kind: `'settings'`.
+   * Opening a pane is client UI state (like the inspection pane), not a
+   * layout switch; the controls inside send real commands.
+   */
+  summonedPane: "settings" | null;
+  openPane: (kind: "settings") => void;
+  closePane: () => void;
+
+  /**
+   * Which right-column cockpit pane the world layout shows —
    * `'inspect'` (the inspection pane) or `'who'` (the "Who's Online"
-   * roster). Ephemeral client-only UI state, never persisted. Only
-   * consulted in the Terminal view; the Forum view owns its own right
-   * column (the chat sidecar).
+   * roster). Ephemeral client-only UI state, never persisted. Consulted
+   * by the world layout's right-column pane switch.
    */
   rightPane: "inspect" | "who";
   setRightPane: (pane: "inspect" | "who") => void;
@@ -331,17 +336,6 @@ interface StoreState extends CmsSlice {
   applyRosterAdd: (row: RosterRow) => void;
   /** Delete one row by `handle` (a `remove` frame). */
   applyRosterRemove: (handle: string) => void;
-
-  /**
-   * The input mode (client-only scoped-input prefix) PER primary view —
-   * the Terminal and Forum bars are conceptually separate bars and each
-   * keeps its own scope, so a chat mode set in the forum never follows you
-   * to the terminal. `setInputMode`/`clearInputMode` target the *current*
-   * view; read the active one as `inputMode[mainView]`. See {@link InputMode}.
-   */
-  inputMode: { terminal: InputMode | null; forum: InputMode | null };
-  setInputMode: (mode: InputMode) => void;
-  clearInputMode: () => void;
 
   /**
    * The forum view's current navigation target. `boardHandle` is the
@@ -419,6 +413,16 @@ interface StoreState extends CmsSlice {
    * this AND `websocketClient.sendClientStateWrite`.
    */
   setLocalClientState: (key: string, value: unknown) => void;
+
+  /**
+   * Operator-configured broadcast sources for the livestream-viewer
+   * embed. Seeded from the welcome snapshot (`setConnected`) and kept
+   * live by the `stream-sources` envelope. Empty when no broadcast is
+   * configured.
+   */
+  broadcastSources: StreamSource[];
+  /** Replace the broadcast source list (welcome snapshot + live push). */
+  setBroadcastSources: (sources: StreamSource[]) => void;
 
   // Frames — typed message-frame buffer feeding the Terminal.
   /**
@@ -948,18 +952,24 @@ export const useStore = create<StoreState>((set, get) => ({
       state.connectionPhase === phase ? {} : { connectionPhase: phase },
     ),
 
-  // In-world primary-view axis (terminal | forum). Not a phase. Each view
-  // is its own command bar — switching just shows the other bar with its
-  // own state intact (the mode is per-view; nothing to clear here).
-  mainView: "terminal",
-  setMainView: (view) =>
-    set((state) => (state.mainView === view ? {} : { mainView: view })),
+  // Ghost command line — preview + transient flash. Input mode is now
+  // server-authoritative (the per-bar `cockpit.inputModes` map applied by
+  // the command interpreter); the client only displays it.
+  ghostPreview: null,
+  ghostFlash: null,
+  setGhostPreview: (command) => set(() => ({ ghostPreview: command })),
+  flashGhost: (message) => set(() => ({ ghostFlash: message })),
 
   // "Social / Notifications" settings-pane modal toggle (account menu).
   socialPaneOpen: false,
   setSocialPaneOpen: (open) => set(() => ({ socialPaneOpen: open })),
 
-  // Right-column cockpit pane axis (Terminal view): inspection | who's-online.
+  // Summoned-pane tier (the no-modal side panel).
+  summonedPane: null,
+  openPane: (kind) => set(() => ({ summonedPane: kind })),
+  closePane: () => set(() => ({ summonedPane: null })),
+
+  // Right-column cockpit pane axis (world layout): inspection | who's-online.
   rightPane: "inspect",
   setRightPane: (pane) =>
     set((state) => (state.rightPane === pane ? {} : { rightPane: pane })),
@@ -985,17 +995,6 @@ export const useStore = create<StoreState>((set, get) => ({
       const { [handle]: _drop, ...roster } = state.roster;
       return { roster, rosterOrder: orderRoster(roster) };
     }),
-
-  // Input mode (client-only scoped-input prefix), held per primary view.
-  inputMode: { terminal: null, forum: null },
-  setInputMode: (mode) =>
-    set((state) => ({
-      inputMode: { ...state.inputMode, [state.mainView]: mode },
-    })),
-  clearInputMode: () =>
-    set((state) => ({
-      inputMode: { ...state.inputMode, [state.mainView]: null },
-    })),
 
   forumNav: { boardHandle: null, threadId: null },
   setForumNav: (nav) =>
@@ -1103,6 +1102,7 @@ export const useStore = create<StoreState>((set, get) => ({
       selfAvatarId: payload.avatarStuffId,
       topicCatalogue: topicMap,
       clientState: { ...(payload.clientState ?? {}) },
+      broadcastSources: payload.broadcastSources ?? [],
       ...(payload.reactionPrefs
         ? { reactionPrefs: payload.reactionPrefs }
         : {}),
@@ -1398,6 +1398,10 @@ export const useStore = create<StoreState>((set, get) => ({
     set((state) => ({
       clientState: { ...state.clientState, [key]: value },
     })),
+
+  // Broadcast sources slice (livestream-viewer embed)
+  broadcastSources: [],
+  setBroadcastSources: (sources) => set(() => ({ broadcastSources: sources })),
 
   // Frames slice
   frames: [],

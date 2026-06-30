@@ -1,14 +1,15 @@
 /**
- * CmsSurface — the full-screen CMS takeover (its own browser tab).
+ * CmsSurface — the content-authoring surface (explorer + Monaco editor).
  *
- * Rendered by `App.tsx` when `?surface=cms` is present and the session is
- * authenticated, bypassing the cockpit entirely. This surface opens NO
- * WebSocket — it is REST-only (see docs/subsystems/cms.md): the explorer + editor speak the
- * `/api/cms/*` routes, and the live effect of a save is observed in a
- * separate in-world game tab via its existing subscriptions.
+ * Mounted inside the `builder` cockpit layout (the WebSocket session
+ * stays live alongside it). REST-only itself: the explorer + editor speak
+ * the `/api/cms/*` routes (see docs/subsystems/cms.md); the live effect of
+ * a save is observed via the in-world subscriptions in the same session.
+ * `cmsInit` mints the CSRF token once on mount.
  *
- * Layout: explorer (left) | editor (right). `cmsInit` mints the CSRF
- * token once on mount.
+ * Layout: explorer (left) | editor (right). Fills its content slot
+ * (`flex:1; min-height:0`) rather than the whole viewport, so the
+ * always-on cockpit chrome stays visible above it.
  */
 
 import React, { useEffect } from "react";
@@ -20,8 +21,8 @@ import { tokens } from "../ui";
 
 const Screen = styled.div`
   display: flex;
-  height: 100vh;
-  width: 100vw;
+  flex: 1;
+  min-height: 0;
   background: ${tokens.color.surfaceSunken};
   color: ${tokens.color.fg};
 `;

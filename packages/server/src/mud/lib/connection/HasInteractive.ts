@@ -30,6 +30,7 @@ import type Interactive from '../../obj/Interactive';
 import type { CommandContributions } from '../../api/command';
 import { ShellApi } from '../../api/shell';
 import { GoogleProfile } from '../identity/GoogleProfile';
+import { LAYOUT_NAMES } from '@saxonberg/types';
 
 /**
  * Strategy-injected `client-state-update` push function. The
@@ -70,6 +71,14 @@ export interface ClientStateSchemaEntry<T = unknown> {
   defaultValue: T;
   description?: string;
   validator?: (value: unknown) => true | string;
+  /**
+   * Transient keys live with the live session, not the character: held
+   * in an in-memory store that is never persisted (so they reset to the
+   * default on a fresh login) and never round-trips through the Hydrator.
+   * Used for ephemeral UI scoping like per-bar input modes. Defaults to
+   * persisted (`false`/absent).
+   */
+  transient?: boolean;
 }
 
 /**
@@ -206,6 +215,51 @@ export function HasInteractiveMixin<TBase extends MixinConstructor>(Base: TBase)
             ? true
             : 'must be a JSON object',
       },
+      {
+        key: 'cockpit.layout',
+        defaultValue: 'world',
+        description:
+          'The cockpit layout this player is in — the server-' +
+          'authoritative view axis (world | forum | livestream-' +
+          'viewer | streamer | builder). Set by the `layout` verb; ' +
+          'the client holds a layout→component registry and swaps the ' +
+          'whole cockpit on change.',
+        validator: (v) =>
+          typeof v === 'string' &&
+          (LAYOUT_NAMES as readonly string[]).includes(v)
+            ? true
+            : `unknown layout (known: ${LAYOUT_NAMES.join(', ')})`,
+      },
+      {
+        key: 'cockpit.inputModes',
+        // Transient: input scoping belongs to the live session, not the
+        // character. Resets to {} on a fresh login — no persisted barId
+        // vocabulary to maintain across sessions. The barId is just an
+        // in-session routing handle, not a saved key.
+        transient: true,
+        defaultValue: {},
+        description:
+          'Per-bar input modes — a { barId → prefix } map. The ' +
+          'command interpreter prepends a bar’s prefix to bare ' +
+          'input submitted from that bar (escape with `/`; the `mode` ' +
+          'verb itself is exempt). Set/cleared by the `mode` verb from ' +
+          'a given bar; the client renders the prefix as an inline ' +
+          'uneditable span. Transient — never persisted; clears on ' +
+          'a fresh session.',
+        // Shape: a flat object whose values are all strings. The
+        // resolver/interpreter tolerate a missing key (= that bar is
+        // unset); this validator only rejects non-objects and non-
+        // string values so a malformed write can't poison the map.
+        validator: (v) => {
+          if (typeof v !== 'object' || v === null || Array.isArray(v)) {
+            return 'must be a { barId: prefix } object';
+          }
+          for (const val of Object.values(v as Record<string, unknown>)) {
+            if (typeof val !== 'string') return 'every mode prefix must be a string';
+          }
+          return true;
+        },
+      },
     ];
 
     /**
@@ -216,7 +270,7 @@ export function HasInteractiveMixin<TBase extends MixinConstructor>(Base: TBase)
      * the wiring local.
      */
     static commandContributions: CommandContributions = {
-      self: ['shell/style.yaml'],
+      self: ['shell/style.yaml', 'shell/layout.yaml', 'shell/mode.yaml'],
       environment: [],
       inventory: [],
       peers: [],
@@ -236,6 +290,15 @@ export function HasInteractiveMixin<TBase extends MixinConstructor>(Base: TBase)
      * via the welcome payload, updated by `client-state-write`.
      */
     public _clientState: Record<string, unknown> = {};
+
+    /**
+     * Transient client-state slot — keys whose schema entry is
+     * `transient`. In-memory only: deliberately NOT in `persistentFields`,
+     * so it never reaches the Hydrator and resets to defaults on a fresh
+     * login. Per-bar input modes live here (ephemeral input scoping that
+     * belongs to the session, not the character).
+     */
+    public _transientClientState: Record<string, unknown> = {};
 
     static persistentFields = ['_clientState'];
 
@@ -278,11 +341,11 @@ export function HasInteractiveMixin<TBase extends MixinConstructor>(Base: TBase)
             `Add an entry to HasInteractiveMixin.clientStateSchema.`,
         );
       }
-      if (
-        this._clientState &&
-        Object.prototype.hasOwnProperty.call(this._clientState, key)
-      ) {
-        return this._clientState[key] as T;
+      const store = entry.transient
+        ? this._transientClientState
+        : this._clientState;
+      if (store && Object.prototype.hasOwnProperty.call(store, key)) {
+        return store[key] as T;
       }
       return entry.defaultValue as T;
     }
@@ -304,6 +367,11 @@ export function HasInteractiveMixin<TBase extends MixinConstructor>(Base: TBase)
               `'${key}': ${ok}`,
           );
         }
+      }
+      if (entry.transient) {
+        if (!this._transientClientState) this._transientClientState = {};
+        this._transientClientState[key] = value;
+        return;
       }
       if (!this._clientState) this._clientState = {};
       this._clientState[key] = value;
@@ -369,11 +437,11 @@ export function HasInteractiveMixin<TBase extends MixinConstructor>(Base: TBase)
           .clientStateSchema ?? [];
       const out: Record<string, unknown> = {};
       for (const entry of schema) {
-        if (
-          this._clientState &&
-          Object.prototype.hasOwnProperty.call(this._clientState, entry.key)
-        ) {
-          out[entry.key] = this._clientState[entry.key];
+        const store = entry.transient
+          ? this._transientClientState
+          : this._clientState;
+        if (store && Object.prototype.hasOwnProperty.call(store, entry.key)) {
+          out[entry.key] = store[entry.key];
         } else {
           out[entry.key] = entry.defaultValue;
         }

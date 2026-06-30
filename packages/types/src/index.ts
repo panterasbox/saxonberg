@@ -1130,7 +1130,8 @@ export type Envelope =
   | ForumSubscriptionErrorEnvelope
   | ReactionDeltaEnvelope
   | ReactionExpandResultEnvelope
-  | StreamStateEnvelope;
+  | StreamStateEnvelope
+  | StreamSourcesEnvelope;
 
 /**
  * Envelope shape pre-`frameId`-stamp. Producers build this; the
@@ -1150,7 +1151,8 @@ export type EnvelopeTemplate =
   | Omit<ForumSubscriptionErrorEnvelope, 'frameId'>
   | Omit<ReactionDeltaEnvelope, 'frameId'>
   | Omit<ReactionExpandResultEnvelope, 'frameId'>
-  | Omit<StreamStateEnvelope, 'frameId'>;
+  | Omit<StreamStateEnvelope, 'frameId'>
+  | Omit<StreamSourcesEnvelope, 'frameId'>;
 
 // ============================================================================
 // Identity Types (Persistent Objects)
@@ -1402,6 +1404,61 @@ export interface ConsoleTab {
 }
 
 /**
+ * The cockpit layout vocabulary — the server-authoritative axis on the
+ * `cockpit.layout` clientState key. The client holds a `layout →
+ * component` registry keyed by these names and swaps the whole cockpit
+ * on a `cockpit.layout` change. Both ends import this one list so the
+ * `layout` verb's validator and the client registry can never drift.
+ *
+ *   - `world`             — the classic terminal cockpit (default).
+ *   - `forum`             — the forum board view.
+ *   - `livestream-viewer` — a video embed + chat/game terminals.
+ *   - `streamer`          — the viewer layout minus the embed.
+ *   - `builder`           — the CMS tree + editor, re-homed in-session.
+ */
+export type LayoutName =
+  | "world"
+  | "forum"
+  | "livestream-viewer"
+  | "streamer"
+  | "builder";
+
+/** Every {@link LayoutName}, in menu order. The `layout` verb validates
+ *  against this; the client `LAYOUT_REGISTRY` is keyed by it. */
+export const LAYOUT_NAMES: readonly LayoutName[] = [
+  "world",
+  "forum",
+  "livestream-viewer",
+  "streamer",
+  "builder",
+];
+
+/**
+ * A platform-tagged broadcast source the livestream-viewer embed
+ * renders. Operator config (AppSettings/env) produces a `StreamSource[]`
+ * surfaced to player clients; the viewer picks among them. Twitch is
+ * wired this cycle; the `youtube` shape is defined and picker-
+ * accommodated but not rendered (the iframe is a placeholder).
+ */
+export type StreamSource =
+  | { platform: "twitch"; channel: string }
+  | { platform: "youtube"; videoId: string };
+
+/**
+ * Server→client push of the live broadcast source list when the
+ * operator changes `livestream.broadcastSources` mid-session. The
+ * welcome snapshot (`ConnectionEstablishedPayload.broadcastSources`) is
+ * the baseline; this keeps it live. A dedicated lightweight envelope —
+ * the source list is tiny and re-sending the whole list on change is
+ * simpler than diffing.
+ */
+export interface StreamSourcesEnvelope {
+  type: "stream-sources";
+  frameId: number;
+  sources: StreamSource[];
+}
+
+/**
  * Payload of the `system.connection.established` MessageFrame.
  * Server composes at connection-finalization; client stashes
  * `interactiveStuffId` as `selfInteractiveId` for own-echo
@@ -1447,6 +1504,13 @@ export interface ConnectionEstablishedPayload {
    * `ClientStateMixin`-contributing mixins on the holder.
    */
   clientState: Record<string, unknown>;
+  /**
+   * The operator-configured broadcast sources for the livestream-viewer
+   * embed (`StreamSource[]`, derived from AppSettings/env). Baseline for
+   * the embed; a `stream-sources` envelope keeps it live on change.
+   * Empty when no broadcast is configured.
+   */
+  broadcastSources: StreamSource[];
   /**
    * The viewer's reaction render preferences — the client-honored subset
    * of the `social.react.*` settings, resolved server-side at connect.

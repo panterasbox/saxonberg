@@ -124,12 +124,13 @@ export const AccountMenu: React.FC = () => {
     window.location.href = `${SERVER_URL}/auth/google`;
   };
 
-  // Open the CMS editor in its own tab (REST-only, shares the session
-  // cookie). Visible only to developers — a non-authoritative UX gate;
-  // the REST CMS routes remain the server-side authority.
+  // Enter the builder layout (the CMS, re-homed in-session). Command-bus
+  // primacy: an explicit `layout builder` click, not a takeover tab — the
+  // WebSocket session stays live. Visible only to developers (a non-
+  // authoritative UX gate; the REST CMS routes remain the authority).
   const openCms = () => {
     setOpen(false);
-    window.open("/?surface=cms", "_blank", "noopener");
+    websocketClient.sendCommand("layout builder");
   };
 
   // Open the "Social / Notifications" settings pane — the thin front over

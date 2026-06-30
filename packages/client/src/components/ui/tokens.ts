@@ -80,6 +80,23 @@ export const tokens = {
     sm: "2px",
     md: "4px",
   },
+  // The side rail — the fixed-width complement to a fluid primary column
+  // (chat rail, glance terminal). Fixed rem on purpose: a percentage rail
+  // collapses on narrow screens and balloons on ultrawide. `wide` is the
+  // CMS/builder variant that needs room for the explorer + editor.
+  rail: {
+    width: "22rem",
+    minWidth: "16rem",
+    wideWidth: "24rem",
+    wideMinWidth: "18rem",
+  },
+  // The focal split — the canonical content-vs-content vertical ratio
+  // (composition grammar): the focal pane (video / stats) claims the
+  // dominant share, the never-blind game terminal keeps the rest.
+  ratio: {
+    focal: 62,
+    focalComplement: 38,
+  },
 } as const;
 
 export type Tokens = typeof tokens;

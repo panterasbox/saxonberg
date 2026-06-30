@@ -41,7 +41,7 @@
  * plain text-edit keys.
  */
 
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import styled from 'styled-components';
 import {
   useStore,
@@ -52,24 +52,16 @@ import { tokens } from './ui/tokens';
 
 interface CommandBarProps {
   /**
-   * The base-slot draft text. Controlled by App because it doubles
-   * as the hover-preview display channel (clickable-affordance
-   * mouseenter writes here transiently). Per-prompt drafts are
-   * read/written directly through the store.
+   * Which command bar this is. Submitted with every command (the server
+   * applies *this bar's* input mode from `cockpit.inputModes[barId]`),
+   * and the key this bar reads its inline mode prefix from. A layout's
+   * terminals each get their own bar with a distinct `barId`.
    */
-  baseValue: string;
-  onBaseChange: (value: string) => void;
-  onSendCommand: (text: string) => void;
+  barId: string;
+  /** Send a command, tagged with this bar's `barId` (server prepends mode). */
+  onSendCommand: (text: string, barId?: string) => void;
   onSendPromptResponse: (promptId: string, response: string) => void;
   onCancelPrompt: (promptId: string) => void;
-  /** Post-click flash signal forwarded from App. */
-  flashing?: boolean;
-  /**
-   * True while a clickable affordance's command is previewed in the input.
-   * Hides the input-mode chip so a previewed direct command (a forum vote
-   * etc.) doesn't read as if it'll be wrapped by the active chat mode.
-   */
-  previewing?: boolean;
 }
 
 const HISTORY_KEY = 'saxonberg-command-history';
@@ -166,52 +158,50 @@ const ComposeArea = styled.textarea`
 `;
 
 /**
- * The active-input-mode pill shown left of the command input (e.g. the
- * channel you're scoped to). Visual sibling of a prompt slot chip.
+ * The inline, uneditable mode prefix shown *inside* the bar, left of the
+ * editable input — styled identically to typed text so the bar reads as
+ * one continuous command line (you can't backspace over it; it's a
+ * separate element). Display-only: mirrors `cockpit.inputModes[barId]`.
+ * The Input has no left border, so this abuts it seamlessly.
  */
-const ModeChip = styled.div`
+const Prefix = styled.span`
   display: flex;
   align-items: center;
-  gap: 0.3rem;
-  padding: 0 ${tokens.space.sm};
-  background: ${tokens.color.surfaceAlt};
-  border: 1px solid ${tokens.color.accent};
+  padding: ${tokens.space.md};
+  padding-right: 0;
+  background: ${tokens.color.surfaceSunken};
+  color: ${tokens.color.fg};
+  border: 1px solid ${tokens.color.border};
   border-right: none;
-  color: ${tokens.color.accent};
   font-family: ${tokens.font.mono};
   font-size: ${tokens.font.body};
-  white-space: nowrap;
+  white-space: pre;
+  user-select: none;
+  cursor: text;
 `;
 
-const ModeChipX = styled.button`
+/** The small ✕ at the bar's edge that clears this bar's mode (chrome). */
+const ModeCloseX = styled.button`
   background: none;
-  border: none;
+  border: 1px solid ${tokens.color.border};
+  border-left: none;
   color: ${tokens.color.fgMuted};
   cursor: pointer;
-  padding: 0;
+  padding: 0 ${tokens.space.sm};
   font-size: 0.8rem;
   &:hover {
     color: ${tokens.color.fg};
   }
 `;
 
-const Input = styled.input<{ $flashing?: boolean; $promptMode?: boolean }>`
+const Input = styled.input<{ $promptMode?: boolean }>`
   flex: 1;
   padding: ${tokens.space.md};
   background: ${(p) =>
-    p.$flashing
-      ? '#264f3e'
-      : p.$promptMode
-      ? tokens.color.surfaceMuted
-      : tokens.color.surfaceSunken};
+    p.$promptMode ? tokens.color.surfaceMuted : tokens.color.surfaceSunken};
   color: ${tokens.color.fg};
   border: 1px solid
-    ${(p) =>
-      p.$flashing
-        ? tokens.color.accent
-        : p.$promptMode
-        ? tokens.color.accent
-        : tokens.color.border};
+    ${(p) => (p.$promptMode ? tokens.color.accent : tokens.color.border)};
   border-left: none;
   font-family: ${tokens.font.mono};
   font-size: ${tokens.font.body};
@@ -220,11 +210,7 @@ const Input = styled.input<{ $flashing?: boolean; $promptMode?: boolean }>`
   &:focus {
     outline: none;
     border-color: ${(p) =>
-      p.$flashing
-        ? tokens.color.accent
-        : p.$promptMode
-        ? tokens.color.accentHover
-        : tokens.color.primary};
+      p.$promptMode ? tokens.color.accentHover : tokens.color.primary};
   }
 `;
 
@@ -460,19 +446,25 @@ function submitButtonLabel(entry: PromptEntry | undefined): string {
 /* --- Component ---------------------------------------------------- */
 
 export function CommandBar({
-  baseValue,
-  onBaseChange,
+  barId,
   onSendCommand,
   onSendPromptResponse,
   onCancelPrompt,
-  flashing,
-  previewing,
 }: CommandBarProps) {
   const prompts = useStore((s) => s.prompts);
-  // The active scope is this view's mode (the bars are per-view).
-  const inputMode = useStore((s) => s.inputMode[s.mainView]);
-  const setInputMode = useStore((s) => s.setInputMode);
-  const clearInputMode = useStore((s) => s.clearInputMode);
+  // This bar's server-authoritative input mode (the prefix the server
+  // prepends to bare input from this bar). Display-only — mirrors
+  // `cockpit.inputModes[barId]`; the client never wraps input.
+  const modePrefix = useStore((s) => {
+    const modes = s.clientState["cockpit.inputModes"] as
+      | Record<string, string>
+      | undefined;
+    return modes?.[barId] ?? "";
+  });
+  // The base-slot draft is local to this bar — multiple bars each own
+  // their own draft. Preview/flash live in the ghost command line.
+  const [baseDraft, setBaseDraft] = useState("");
+  const inputRef = useRef<HTMLInputElement | null>(null);
   const activeSlot = useStore((s) => s.activeSlot);
   const promptDrafts = useStore((s) => s.promptDrafts);
   const basePrompt = useStore((s) => s.basePrompt);
@@ -496,13 +488,21 @@ export function CommandBar({
   // graduates from clicking. Display-only — never mutates the draft.
   const [chipPreview, setChipPreview] = useState<string | null>(null);
 
-  // The input's displayed value: for base, use the controlled
-  // baseValue from App (it tracks hover preview); for prompts, the chip
-  // hover-preview overlays the stored draft.
+  // The input's displayed value: for base, this bar's local draft (the
+  // tail only — the server prepends any mode prefix); for prompts, the
+  // chip hover-preview overlays the stored draft.
   const inputValue =
     activeSlot === BASE_SLOT
-      ? baseValue
+      ? baseDraft
       : chipPreview ?? promptDrafts[activeSlot] ?? '';
+
+  // Whether the current base input is exempt from the mode prefix: a
+  // leading `/` (one-off raw command) or a `mode` command (always works).
+  // When exempt, the inline prefix hides so the bar shows what dispatches.
+  const baseExempt =
+    baseDraft.trimStart().startsWith('/') ||
+    baseDraft.trim().split(/\s+/)[0]?.toLowerCase() === 'mode';
+  const showPrefix = modePrefix !== '' && !baseExempt;
 
   const [history, setHistory] = useState<string[]>([]);
   const [historyIndex, setHistoryIndex] = useState(-1);
@@ -561,42 +561,27 @@ export function CommandBar({
 
   const submitBase = () => {
     if (offline) return; // bus down — no send, no queue
-    const trimmed = baseValue.trim();
+    const trimmed = baseDraft.trim();
 
-    // Client-only `mode` control — intercepted, never sent to the server
-    // (the scoped-input prefix is a client filter, like the console tabs).
-    if (trimmed === 'mode' || trimmed === 'mode off') {
-      clearInputMode();
-      onBaseChange('');
-      setHistoryIndex(-1);
-      return;
-    }
-    if (!inputMode && trimmed.startsWith('mode ')) {
-      const prefix = trimmed.slice(5).trim();
-      if (prefix) setInputMode({ prefix, label: prefix });
-      onBaseChange('');
-      setHistoryIndex(-1);
-      return;
-    }
-
-    // Apply the active mode prefix. A leading `/` escapes for a one-off
-    // raw command; otherwise the bare input is wrapped into the real
-    // command string `<prefix> <text>` (which is what reaches the bus).
-    let toSend = baseValue;
-    if (inputMode && trimmed) {
-      toSend = trimmed.startsWith('/')
-        ? trimmed.slice(1)
-        : `${inputMode.prefix} ${trimmed}`;
-    }
-    onSendCommand(toSend);
+    // The client never wraps input — the tail goes verbatim, tagged with
+    // this bar's `barId`, and the server's interpreter prepends this
+    // bar's mode prefix (the `mode` verb + `/`-escape are exempt there).
+    // `mode` / `mode off` are real commands now: they ride the bus too.
+    onSendCommand(baseDraft, barId);
     if (trimmed) {
       setHistory((prev) => {
         const filtered = prev[0] === trimmed ? prev : [trimmed, ...prev];
         return filtered.slice(0, MAX_HISTORY);
       });
     }
-    onBaseChange('');
+    setBaseDraft('');
     setHistoryIndex(-1);
+  };
+
+  /** Clear this bar's mode by sending `mode off` from this bar. */
+  const clearBarMode = () => {
+    if (offline) return;
+    onSendCommand('mode off', barId);
   };
 
   const submitActive = () => {
@@ -681,19 +666,18 @@ export function CommandBar({
     if (e.key === 'Escape') {
       e.preventDefault();
       // Esc on a prompt slot returns to base without dismissing —
-      // per slate, Esc is back-out, not kill. Esc on base clears
-      // the input (legacy behavior).
+      // per slate, Esc is back-out, not kill.
       if (promptMode) {
         setActiveSlot(BASE_SLOT);
         return;
       }
-      // Esc backs out of an active input mode first; a second Esc (or Esc
-      // with no mode) clears the input.
-      if (inputMode) {
-        clearInputMode();
+      // Esc backs out of this bar's input mode first (sends `mode off`);
+      // a second Esc (or Esc with no mode) clears the input.
+      if (showPrefix) {
+        clearBarMode();
         return;
       }
-      onBaseChange('');
+      setBaseDraft('');
       setHistoryIndex(-1);
       return;
     }
@@ -704,17 +688,17 @@ export function CommandBar({
       if (history.length > 0) {
         const newIndex = Math.min(historyIndex + 1, history.length - 1);
         setHistoryIndex(newIndex);
-        onBaseChange(history[newIndex] || '');
+        setBaseDraft(history[newIndex] || '');
       }
     } else if (!promptMode && e.key === 'ArrowDown') {
       e.preventDefault();
       if (historyIndex > 0) {
         const newIndex = historyIndex - 1;
         setHistoryIndex(newIndex);
-        onBaseChange(history[newIndex] || '');
+        setBaseDraft(history[newIndex] || '');
       } else if (historyIndex === 0) {
         setHistoryIndex(-1);
-        onBaseChange('');
+        setBaseDraft('');
       }
     }
   };
@@ -902,17 +886,14 @@ export function CommandBar({
           ) : null}
         </PickerAnchor>
 
-        {inputMode && !promptMode && !previewing && (
-          <ModeChip title="Esc to exit">
-            <span>{inputMode.label}</span>
-            <ModeChipX
-              aria-label="exit mode"
-              onClick={() => clearInputMode()}
-            >
-              ✕
-            </ModeChipX>
-          </ModeChip>
-        )}
+        {showPrefix && !promptMode ? (
+          <Prefix
+            title="Esc or ✕ to clear this bar's mode"
+            onClick={() => inputRef.current?.focus()}
+          >
+            {modePrefix}{' '}
+          </Prefix>
+        ) : null}
 
         {activeEntry && activeEntry.kind === 'compose' ? (
           // Multiline body composition — markdown; ⌘/Ctrl+Enter submits,
@@ -935,10 +916,11 @@ export function CommandBar({
           />
         ) : (
           <Input
+            ref={inputRef}
             value={inputValue}
             onChange={(e) => {
               if (activeSlot === BASE_SLOT) {
-                onBaseChange(e.target.value);
+                setBaseDraft(e.target.value);
               } else {
                 setDraft(activeSlot, e.target.value);
               }
@@ -956,15 +938,19 @@ export function CommandBar({
                   : activeEntry && activeEntry.kind === 'choice'
                   ? 'Type a number or click a choice; Esc to go back'
                   : 'Click a choice above, or Esc to return to commands'
-                : inputMode
-                ? `${inputMode.prefix} … (/ for a raw command, Esc to exit)`
+                : showPrefix
+                ? '… (/ for a raw command, Esc to clear the mode)'
                 : 'Enter command...'
             }
             autoFocus
-            $flashing={flashing}
             $promptMode={promptMode}
           />
         )}
+        {showPrefix && !promptMode ? (
+          <ModeCloseX aria-label="clear this bar's mode" onClick={clearBarMode}>
+            ✕
+          </ModeCloseX>
+        ) : null}
         <SendButton
           $promptMode={promptMode}
           onClick={submitActive}

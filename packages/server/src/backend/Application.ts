@@ -32,12 +32,15 @@ import { setClientStateUpdatePush } from '../mud/lib/connection/HasInteractive';
 import type Interactive from '../mud/obj/Interactive';
 import Login from '../mud/obj/Login';
 import { ReactionApi } from '../mud/api/reaction';
+import { ConnectionApi } from '../mud/api/connection';
+import { EventApi } from '../mud/api/event';
+import { Events } from '../mud/lib/events';
+import type { StreamSource } from '@saxonberg/types';
 import { User } from '../mud/lib/identity/User';
 import { TwitchProfile } from '../mud/lib/identity/TwitchProfile';
 import { GoogleProfile } from '../mud/lib/identity/GoogleProfile';
 import { TemplateApi } from '../mud/api/template';
 import { StuffApi } from '../mud/api/stuff';
-import { ConnectionApi } from '../mud/api/connection';
 import { AppApi } from '../mud/api/app';
 import { AppSettingKeys } from '../mud/lib/config/AppSettings';
 import Avatar from '../mud/obj/Avatar';
@@ -113,6 +116,28 @@ export class Application {
       this.sendClientStateUpdateToInteractive(interactive, key, value),
     );
     console.info('Application: Initialized with Backend');
+  }
+
+  /**
+   * Wire the live broadcast-source push. When the operator changes the
+   * livestream embed sources (`config livestream.broadcastSources`), fan
+   * the new list to every connected player so the livestream-viewer embed
+   * updates without a reconnect. The welcome snapshot
+   * (`ConnectionEstablishedPayload.broadcastSources`) is the baseline.
+   *
+   * Registered from {@link AppBootstrap.run} AFTER the EventRegistry is
+   * bootstrapped (the `TwitchRelayReader.boot()` precedent) — NOT in
+   * `initialize()`, which runs in the Server constructor before bootstrap.
+   */
+  public wireBroadcastSourcesPush(): void {
+    EventApi.on<StreamSource[]>(Events.StreamSourcesChanged, (sources) => {
+      for (const interactive of ConnectionApi.getAllInteractives()) {
+        this.sendEnvelopeToInteractive(interactive, {
+          type: 'stream-sources',
+          sources,
+        });
+      }
+    });
   }
 
   /**

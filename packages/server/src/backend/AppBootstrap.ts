@@ -19,6 +19,7 @@ import { RecipeSeeder } from './RecipeSeeder';
 import { ScriptSeeder } from './ScriptSeeder';
 import { ChannelSeeder } from './ChannelSeeder';
 import { TwitchRelayReader } from './TwitchRelayReader';
+import { Application } from './Application';
 import { AppSettingsSeeder } from './AppSettingsSeeder';
 import { BootstrapManager } from './BootstrapManager';
 import { CommandApi } from '../mud/api/command';
@@ -220,6 +221,12 @@ export class AppBootstrap {
     // EventSub reader. Inert until a channel is seeded AND a player tunes
     // in (and a reader token is configured); safe to boot unconditionally.
     TwitchRelayReader.get().boot();
+
+    // Livestream-viewer broadcast sources — wire the live push now that the
+    // EventRegistry is bootstrapped (the listener can't register in
+    // Application.initialize(), which runs pre-bootstrap in the Server
+    // constructor).
+    Application.get().wireBroadcastSourcesPush();
   }
 
   /**

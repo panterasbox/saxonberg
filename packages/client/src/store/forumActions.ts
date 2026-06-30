@@ -72,12 +72,12 @@ export function postForumThread(
     : `forum post ${boardHandle}`;
   // The body field is dual-source; the GUI supplies it via `fields` (the
   // command string still carries a real verb + selectors).
-  websocketClient.sendCommand(verb, { body });
+  websocketClient.sendCommand(verb, { fields: { body } });
 }
 
 /** Reply to an entry; the body rides the `fields` side-channel. */
 export function replyForumEntry(entryId: string, body: string): void {
-  websocketClient.sendCommand(`forum reply ${entryId}`, { body });
+  websocketClient.sendCommand(`forum reply ${entryId}`, { fields: { body } });
 }
 
 /** The three argument-board contribution valences → reply flags. */
@@ -93,7 +93,9 @@ export function attachArgumentClaim(
   valence: ArgumentValence,
   body: string,
 ): void {
-  websocketClient.sendCommand(`forum reply ${parentId} --${valence}`, { body });
+  websocketClient.sendCommand(`forum reply ${parentId} --${valence}`, {
+    fields: { body },
+  });
 }
 
 /** Mark an argument deliberation matured (owner-gated server-side). */
@@ -101,9 +103,13 @@ export function matureArgument(boardHandle: string): void {
   websocketClient.sendCommand(`forum mature ${boardHandle}`);
 }
 
-/** Navigate to a board's thread-list (also flips mainView via App's recognizer). */
+/**
+ * Navigate to a board's thread-list. Called from within the forum
+ * layout (a board click in ForumView), so it sets only the nav target —
+ * the layout is the server-authoritative `cockpit.layout` axis and is
+ * not flipped here (no client-side auto-switch).
+ */
 export function openForumBoard(boardHandle: string): void {
-  useStore.getState().setMainView("forum");
   useStore.getState().setForumNav({ boardHandle, threadId: null });
 }
 

@@ -156,6 +156,13 @@ settings:
     value: "0.08"
   - key: banking.treasuryAccount
     value: treasury
+  # Livestream — the broadcast sources the cockpit's livestream-viewer embed
+  # renders, as a JSON array of StreamSource. Empty by default (no broadcast
+  # configured). Operator-set live via `config`; surfaced to player clients
+  # in the welcome snapshot + a `stream-sources` push on change. Example:
+  # '[{"platform":"twitch","channel":"saxonberg"}]'
+  - key: livestream.broadcastSources
+    value: "[]"
 
   # Social-graph (attention management) — the reserved-baseline notify
   # rules' default fields (deployment defaults, NOT code constants). A

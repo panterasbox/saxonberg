@@ -610,15 +610,25 @@ class WebSocketClient {
 
   /**
    * Send a real command string, optionally with a structured body
-   * side-channel (`fields`). The GUI builds the SAME strings the CLI
-   * types — every action stays scriptable/aliasable; `fields` only fills
-   * the command's designated body field, never selectors/flags.
+   * side-channel (`fields`) and/or the originating command-bar id
+   * (`barId`). The GUI builds the SAME strings the CLI types — every
+   * action stays scriptable/aliasable; `fields` only fills the command's
+   * designated body field, never selectors/flags. `barId` is context
+   * (which input region this came from) so the server applies that bar's
+   * input mode; affordance clicks omit it to dispatch un-moded.
    */
-  public sendCommand(text: string, fields?: Record<string, unknown>): void {
-    this.send({
-      type: "command",
-      payload: fields ? { text, fields } : { text },
-    });
+  public sendCommand(
+    text: string,
+    opts?: { fields?: Record<string, unknown>; barId?: string },
+  ): void {
+    const payload: {
+      text: string;
+      fields?: Record<string, unknown>;
+      barId?: string;
+    } = { text };
+    if (opts?.fields) payload.fields = opts.fields;
+    if (opts?.barId !== undefined) payload.barId = opts.barId;
+    this.send({ type: "command", payload });
   }
 
   /**

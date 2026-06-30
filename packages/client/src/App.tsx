@@ -7,7 +7,7 @@
  * - Terminal UI for game interaction
  */
 
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef } from "react";
 import { nanoid } from "nanoid";
 import styled from "styled-components";
 import {
@@ -17,25 +17,24 @@ import {
 } from "./store/index";
 import { registerReactionHandlers } from "./store/reactionActions";
 import { registerForumHandlers } from "./store/forumActions";
-import { ForumView } from "./components/ForumView";
-import { ForumChatSidecar } from "./components/ForumChatSidecar";
 import { SERVER_URL, WS_URL } from "./config";
 import { websocketClient } from "./services/websocket";
 import { Frame } from "./components/frame/Frame";
 import { ReconnectBanner } from "./components/frame/ReconnectBanner";
 import { SocialNotificationsPane } from "./components/settings/SocialNotificationsPane";
 import { StartScreen } from "./components/StartScreen";
-import { Terminal } from "./components/Terminal";
-import { TabStrip } from "./components/TabStrip";
-import { FilterDrawer } from "./components/FilterDrawer";
-import { CommandBar } from "./components/CommandBar";
-import { InspectionPane } from "./components/InspectionPane";
-import { WhoPane } from "./components/WhoPane";
 import { CharacterSelect } from "./components/CharacterSelect";
 import { CharGenStage } from "./components/CharGenStage";
-import { CmsSurface } from "./components/cms/CmsSurface";
+import { GhostCommandLine } from "./components/GhostCommandLine";
+import { SettingsPane } from "./components/settings/SettingsPane";
+import { LAYOUT_REGISTRY, type LayoutProps } from "./layouts";
 import { tokens } from "./components/ui";
-import type { ConsoleTab, TwitchMessagePayload } from "@saxonberg/types";
+import type {
+  ConsoleTab,
+  Envelope,
+  LayoutName,
+  TwitchMessagePayload,
+} from "@saxonberg/types";
 
 /**
  * Extract the structured twitch-provenance fields from a
@@ -93,102 +92,14 @@ const Splash = styled.div`
 `;
 
 /**
- * Top-level cockpit shell. Left column holds the terminal scrollback
- * + command bar (the existing single-column UX); right column hosts
- * the inspection pane. Fixed-width, no user-resize, no tab strip in
- * v1 — see the inspection-pane requirements' non-goals.
+ * The fluid content row: the active layout fills it, and a summoned pane
+ * (settings, future detail) docks beside it as a non-modal side panel —
+ * the terminal stays visible (never-blind, no-modal).
  */
-const Cockpit = styled.div`
+const ContentRow = styled.div`
   display: flex;
   flex: 1;
   min-height: 0;
-`;
-
-const LeftColumn = styled.div`
-  display: flex;
-  flex-direction: column;
-  flex: 1;
-  min-width: 0;
-`;
-
-/**
- * The in-world primary-view switch (Terminal | Forum). Distinct from the
- * TabStrip (which is a filter axis *inside* the Terminal view) — this
- * swaps the whole LeftColumn content slot + the view-sensitive right
- * column, while Frame + CommandBar persist.
- */
-const ViewSwitch = styled.div`
-  display: flex;
-  gap: 0.25rem;
-  padding: 0.25rem 0.5rem;
-`;
-
-const ViewTab = styled.button<{ $active: boolean }>`
-  background: ${(p) => (p.$active ? "rgba(255,255,255,0.14)" : "transparent")};
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  border-radius: 4px;
-  color: inherit;
-  cursor: pointer;
-  padding: 0.15rem 0.6rem;
-  font: inherit;
-`;
-
-/**
- * The view-sensitive right column wrapper (Terminal view) — a fixed-width
- * column holding a small pane switch above the active cockpit pane
- * (Inspection | Who's Online). Sizing to the 360px pane child so it never
- * grows; `PaneSlot` is `flex: 1` so the pane's `height: 100%` resolves
- * against the remaining space below the switch.
- */
-const RightColumn = styled.div`
-  display: flex;
-  flex-direction: column;
-  min-height: 0;
-`;
-
-const PaneSwitch = styled.div`
-  display: flex;
-  gap: 0.25rem;
-  width: 100%;
-  box-sizing: border-box;
-  padding: ${tokens.space.sm} ${tokens.space.md};
-  border-left: 1px solid ${tokens.color.border};
-  border-bottom: 1px solid ${tokens.color.borderMuted};
-  background: ${tokens.color.surfaceAlt};
-`;
-
-const PaneSlot = styled.div`
-  flex: 1;
-  min-height: 0;
-  display: flex;
-`;
-
-const PaneTab = styled.button<{ $active: boolean }>`
-  background: ${(p) => (p.$active ? "rgba(255,255,255,0.14)" : "transparent")};
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  border-radius: 4px;
-  color: inherit;
-  cursor: pointer;
-  padding: 0.15rem 0.6rem;
-  font: inherit;
-`;
-
-/**
- * A live-scene peek so the player never goes dark on live play while the
- * Forum view is active — the most recent scene frame surfaces as a toast.
- */
-const ScenePeek = styled.div`
-  position: absolute;
-  bottom: 4.5rem;
-  right: 1rem;
-  max-width: 22rem;
-  padding: 0.5rem 0.75rem;
-  border-radius: ${tokens.radius.md};
-  background: ${tokens.color.surfaceAlt};
-  border: 1px solid ${tokens.color.borderEmphasis};
-  color: ${tokens.color.fgMuted};
-  font-size: 0.85rem;
-  pointer-events: none;
 `;
 
 /**
@@ -314,51 +225,6 @@ function formatResponseEcho(promptId: string, response: string): string | null {
   return `${entry.label} → ${resolved}`;
 }
 
-const FORUM_SUBCOMMANDS = new Set([
-  "list",
-  "make",
-  "on",
-  "post",
-  "reply",
-  "read",
-  "promote",
-  "follow",
-  "vote",
-]);
-
-/**
- * Recognize a `forum` / `forum <board>` invocation and flip the cockpit
- * to the forum view + set the nav target. Subcommand forms (post / vote /
- * make …) leave the view alone — the server handles them and any live
- * subscription updates the already-open view. This is the client side of
- * the CLI⇄GUI convergence; the command still goes to the server too.
- */
-function recognizeForumNavigation(text: string): void {
-  const tokens = text.trim().split(/\s+/);
-  if (tokens[0] !== "forum") return;
-  const store = useStore.getState();
-  if (tokens.length === 1) {
-    store.setMainView("forum");
-    return;
-  }
-  const arg = tokens[1]!;
-  if (FORUM_SUBCOMMANDS.has(arg.toLowerCase())) return;
-  // A bare `forum <board>` reads a board → open it in the forum view.
-  store.setMainView("forum");
-  store.setForumNav({ boardHandle: arg, threadId: null });
-}
-
-/**
- * Read once at module load: is this tab the CMS surface (`?surface=cms`)?
- * The CMS opens in its own browser tab sharing the session; when this is
- * true, `App` renders a full-screen `<CmsSurface/>` takeover bypassing
- * the cockpit and — crucially — opens NO WebSocket connection (the CMS
- * is REST-only; see docs/subsystems/cms.md). The query is fixed for the tab's life, so
- * reading it once at module load is sufficient.
- */
-const IS_CMS_SURFACE =
-  new URLSearchParams(window.location.search).get("surface") === "cms";
-
 /**
  * App component.
  */
@@ -366,15 +232,19 @@ function App() {
   const auth = useStore((state) => state.auth);
   const connection = useStore((state) => state.connection);
   const connectionPhase = useStore((state) => state.connectionPhase);
-  const mainView = useStore((state) => state.mainView);
-  const rightPane = useStore((state) => state.rightPane);
-  const setRightPane = useStore((state) => state.setRightPane);
-  const setMainView = useStore((state) => state.setMainView);
+  // The Social / Notifications settings pane (master's notify surface),
+  // opened from the AccountMenu. Independent of the summoned-pane tier.
   const socialPaneOpen = useStore((state) => state.socialPaneOpen);
   const setSocialPaneOpen = useStore((state) => state.setSocialPaneOpen);
   const frames = useStore((state) => state.frames);
   const clientState = useStore((state) => state.clientState);
   const reactionPrefs = useStore((state) => state.reactionPrefs);
+  // The active cockpit layout — server-authoritative on `cockpit.layout`.
+  const layout =
+    (clientState["cockpit.layout"] as LayoutName | undefined) ?? "world";
+  const summonedPane = useStore((state) => state.summonedPane);
+  const openPane = useStore((state) => state.openPane);
+  const closePane = useStore((state) => state.closePane);
   // Filter frames by the active tab's muted set. The 'All' default
   // mutes nothing, so a fresh player sees the full firehose.
   const activeTabName =
@@ -390,59 +260,19 @@ function App() {
       !mutedSet.has(f.topic) &&
       !(reactionPrefs.alwaysAggregate && f.inReactionTo !== undefined),
   );
-  // Live-scene peek for the forum view — the most recent in-world scene
-  // frame, stripped of MML, so the player keeps live awareness without
-  // leaving the forum. Recomputed as frames arrive.
-  const scenePeek = React.useMemo(() => {
-    for (let i = visibleFrames.length - 1; i >= 0; i--) {
-      const f = visibleFrames[i]!;
-      if (f.topic.startsWith("world.")) {
-        return f.body
-          .replace(/<[^>]+>/g, "")
-          .trim()
-          .slice(0, 160);
-      }
-    }
-    return null;
-  }, [visibleFrames]);
-  // Single display value for the input. Three sources can drive it:
-  //   1. The user typing (kept in userTypedRef as the canonical text).
-  //   2. A hover preview from a clickable affordance (transient).
-  //   3. The post-click flash showing the sent command (transient).
-  // userTypedRef stays untouched during hover so we can restore it
-  // on mouse-leave even if the user moved between adjacent
-  // clickables. The restore is deferred by one tick so a leave →
-  // enter sequence can cancel the pending restore.
-  const [inputValue, setInputValue] = useState("");
-  // True while a clickable affordance's command is previewed in the bar.
-  // The command bar hides the input-mode chip during a preview so a
-  // previewed direct command (e.g. `forum vote …`) doesn't read as though
-  // it'll be wrapped by the active chat mode.
-  const [previewing, setPreviewing] = useState(false);
-  const [flashing, setFlashing] = useState(false);
-  const [drawerOpen, setDrawerOpen] = useState(false);
-  const userTypedRef = useRef("");
-  const previewActiveRef = useRef(false);
+  // Hover preview lives in the ghost command line (store-backed), not in
+  // a command bar — under per-bar mode a moded bar would prepend its
+  // prefix, so the preview would lie about what sends. The restore on
+  // mouse-leave is deferred by one tick so a leave → enter sweep across
+  // adjacent affordances doesn't flicker the line empty.
   const restoreTimerRef = useRef<number | null>(null);
-  const flashTimerRef = useRef<number | null>(null);
 
   useEffect(() => {
     return () => {
       if (restoreTimerRef.current !== null)
         window.clearTimeout(restoreTimerRef.current);
-      if (flashTimerRef.current !== null)
-        window.clearTimeout(flashTimerRef.current);
     };
   }, []);
-
-  // The Terminal and Forum command bars are conceptually separate bars.
-  // Their scope (mode) is held per-view in the store; the typed draft is
-  // transient, so it starts fresh on each view switch rather than carrying
-  // a half-typed line from one context into the other.
-  useEffect(() => {
-    setInputValue("");
-    userTypedRef.current = "";
-  }, [mainView]);
 
   useEffect(() => {
     // Check auth status on mount
@@ -465,9 +295,9 @@ function App() {
   }, []);
 
   useEffect(() => {
-    // Connect to WebSocket when authenticated — EXCEPT on the CMS
-    // surface, which is REST-only and must never open a WS (cms.md).
-    if (IS_CMS_SURFACE) return;
+    // Connect to WebSocket when authenticated. The builder layout (the
+    // re-homed CMS) now runs inside this live session — there is no
+    // longer a REST-only takeover tab to special-case.
     if (auth.isAuthenticated && !connection.isConnected) {
       console.info("App: Authenticated - connecting to WebSocket...");
       websocketClient.connect(WS_URL);
@@ -527,8 +357,17 @@ function App() {
     websocketClient.onAnyTopic(handle);
     registerReactionHandlers();
     registerForumHandlers();
+    // Live broadcast-source push — keeps the livestream-viewer embed in
+    // sync when the operator changes `livestream.broadcastSources`. The
+    // welcome snapshot (`setConnected`) is the baseline.
+    const onStreamSources = (envelope: Envelope) => {
+      if (envelope.type !== "stream-sources") return;
+      useStore.getState().setBroadcastSources(envelope.sources);
+    };
+    websocketClient.onEnvelope("stream-sources", onStreamSources);
     return () => {
       websocketClient.offAnyTopic(handle);
+      websocketClient.offEnvelope("stream-sources", onStreamSources);
     };
   }, []);
 
@@ -555,7 +394,12 @@ function App() {
     }
   };
 
-  const sendCommand = (text: string) => {
+  // Send a real command over the bus. `barId` is the originating command
+  // bar (so the server applies that bar's input mode); affordance clicks
+  // omit it to dispatch un-moded (preview equals send). The text reaches
+  // the server verbatim — the client never wraps it (the interpreter
+  // prepends the mode prefix server-side).
+  const sendCommand = (text: string, barId?: string) => {
     if (!websocketClient.isConnected()) {
       console.warn("Cannot send command: not connected");
       return;
@@ -572,11 +416,6 @@ function App() {
     // header regardless of which verb triggered them.
     applyOutgoingCommandToPane(text);
 
-    // Verb-driven navigation: `forum` / `forum <board>` flips the cockpit
-    // to the forum view and sets the nav target (CLI ⇄ GUI converge). The
-    // forum subcommands that aren't board handles are left to the server.
-    recognizeForumNavigation(text);
-
     // Push an echo-pairing snapshot for non-empty commands. The
     // server's empty-command short-circuit doesn't fire an input-
     // echo MessageFrame, so an empty submission must not queue a
@@ -589,10 +428,7 @@ function App() {
       });
     }
 
-    websocketClient.send({
-      type: "command",
-      payload: { text },
-    });
+    websocketClient.sendCommand(text, barId !== undefined ? { barId } : undefined);
   };
 
   /**
@@ -636,28 +472,11 @@ function App() {
   };
 
   /**
-   * Mirror keystrokes into the canonical userTyped buffer and clear
-   * any in-flight preview state (a keystroke ends a preview).
-   */
-  const handleInputChange = (value: string) => {
-    if (previewActiveRef.current) {
-      previewActiveRef.current = false;
-      if (restoreTimerRef.current !== null) {
-        window.clearTimeout(restoreTimerRef.current);
-        restoreTimerRef.current = null;
-      }
-    }
-    userTypedRef.current = value;
-    setInputValue(value);
-  };
-
-  /**
-   * Hover preview. `null` means "stop previewing" (mouseleave); a
-   * string means "start previewing this command" (mouseenter). The
-   * restore is deferred by one tick so an immediately-following
-   * mouseenter on an adjacent clickable cancels it — without that,
-   * a sweep across two affordances flashes the userTyped buffer
-   * mid-transition.
+   * Hover preview → the ghost command line (store-backed). `null` means
+   * "stop previewing" (mouseleave); a string shows the exact command a
+   * hovered affordance would run. The restore is deferred by one tick so
+   * a leave → enter sweep across adjacent affordances doesn't flicker the
+   * line empty mid-transition.
    */
   const handleCommandPreview = (command: string | null) => {
     if (restoreTimerRef.current !== null) {
@@ -666,43 +485,23 @@ function App() {
     }
     if (command === null) {
       restoreTimerRef.current = window.setTimeout(() => {
-        previewActiveRef.current = false;
-        setPreviewing(false);
-        setInputValue(userTypedRef.current);
+        useStore.getState().setGhostPreview(null);
         restoreTimerRef.current = null;
       }, 0);
     } else {
-      previewActiveRef.current = true;
-      setPreviewing(true);
-      setInputValue(command);
+      useStore.getState().setGhostPreview(command);
     }
   };
 
   /**
-   * Click-to-send: command-bus primacy. The input already shows the
-   * command (via the preview) when the click lands. Send, flash for
-   * 150ms, clear. Any user-typed buffer is also cleared — a click
-   * commits to sending, so the prior typing is no longer relevant.
+   * Click-to-send: command-bus primacy, **un-moded**. Affordance clicks
+   * carry no `barId`, so the interpreter never prepends a bar's mode —
+   * preview equals send. Flash the ghost line so the just-sent command
+   * stays briefly visible.
    */
   const handleCommandClick = (command: string) => {
-    if (restoreTimerRef.current !== null) {
-      window.clearTimeout(restoreTimerRef.current);
-      restoreTimerRef.current = null;
-    }
-    previewActiveRef.current = false;
-    userTypedRef.current = "";
-
-    setInputValue(command);
     sendCommand(command);
-    setFlashing(true);
-    if (flashTimerRef.current !== null) {
-      window.clearTimeout(flashTimerRef.current);
-    }
-    flashTimerRef.current = window.setTimeout(() => {
-      setFlashing(false);
-      setInputValue("");
-      flashTimerRef.current = null;
-    }, 150);
+    useStore.getState().flashGhost(`› ${command}`);
   };
 
   useEffect(() => {
@@ -756,16 +555,6 @@ function App() {
     };
   }, []);
 
-  // CMS surface takeover (`?surface=cms`). Its own tab, full-screen,
-  // bypassing the cockpit and the connection-phase switch entirely — no
-  // WebSocket, REST-only. Show the start screen until the shared session
-  // is confirmed (the CMS needs the cookie + the developer flag); once
-  // authenticated, render the CMS shell.
-  if (IS_CMS_SURFACE) {
-    if (!auth.isAuthenticated) return <StartScreen />;
-    return <CmsSurface />;
-  }
-
   // Mutually-exclusive top-level screen, switched on the connection
   // phase. `unauthenticated` → login takeover; `character-select` →
   // the roster; `char-gen` → the dedicated creation stage;
@@ -786,23 +575,55 @@ function App() {
         <CharGenStage
           onSendCommand={sendCommand}
           frames={visibleFrames}
-          baseValue={inputValue}
-          onBaseChange={handleInputChange}
           onSendPromptResponse={sendPromptResponse}
           onCancelPrompt={cancelPrompt}
-          flashing={flashing}
           onCommandClick={handleCommandClick}
           onCommandPreview={handleCommandPreview}
         />
       );
 
     case "in-world":
-    default:
-      // Show game UI when authenticated and the avatar is in-world.
+    default: {
+      // Show game UI when authenticated and the avatar is in-world. The
+      // active layout is server-authoritative (`cockpit.layout`); the
+      // registry resolves it to a component, falling back to `world`.
+      const layoutProps: LayoutProps = {
+        frames: visibleFrames,
+        onSendCommand: sendCommand,
+        onSendPromptResponse: sendPromptResponse,
+        onCancelPrompt: cancelPrompt,
+        onCommandClick: handleCommandClick,
+        onCommandPreview: handleCommandPreview,
+      };
+      const ActiveLayout = (
+        LAYOUT_REGISTRY[layout] ?? LAYOUT_REGISTRY.world!
+      ).Component;
       return (
         <AppContainer>
-          <Frame />
+          {/* Always-on chrome (the matte): one bar — bus-health + identity
+              + the Views layout switcher + settings, same place every
+              layout — then the reconnect banner. */}
+          <Frame
+            layout={layout}
+            onCommandClick={handleCommandClick}
+            onCommandPreview={handleCommandPreview}
+            settingsActive={summonedPane === "settings"}
+            onToggleSettings={() =>
+              summonedPane === "settings" ? closePane() : openPane("settings")
+            }
+          />
           <ReconnectBanner />
+          {/* The active layout fills the fluid content area; a summoned
+              pane (settings) docks beside it — non-modal, terminal stays. */}
+          <ContentRow>
+            <ActiveLayout {...layoutProps} />
+            {summonedPane === "settings" ? (
+              <SettingsPane onSendCommand={sendCommand} onClose={closePane} />
+            ) : null}
+          </ContentRow>
+          {/* The Social / Notifications pane (master's notify surface),
+              opened from the AccountMenu — independent of the summoned
+              settings pane above. */}
           {socialPaneOpen && (
             <SocialNotificationsPane
               onClose={() => setSocialPaneOpen(false)}
@@ -811,94 +632,12 @@ function App() {
               onCommandClick={handleCommandClick}
             />
           )}
-          <Cockpit>
-            <LeftColumn>
-              {/* Primary-view switch — Terminal | Forum (not a phase). */}
-              <ViewSwitch>
-                <ViewTab
-                  $active={mainView === "terminal"}
-                  onClick={() => setMainView("terminal")}
-                >
-                  Terminal
-                </ViewTab>
-                <ViewTab
-                  $active={mainView === "forum"}
-                  onClick={() => setMainView("forum")}
-                >
-                  Forum
-                </ViewTab>
-              </ViewSwitch>
-              {mainView === "terminal" ? (
-                <>
-                  <TabStrip onToggleDrawer={() => setDrawerOpen((v) => !v)} />
-                  <Terminal
-                    frames={visibleFrames}
-                    onCommandClick={handleCommandClick}
-                    onCommandPreview={handleCommandPreview}
-                  />
-                  {drawerOpen && (
-                    <FilterDrawer onClose={() => setDrawerOpen(false)} />
-                  )}
-                </>
-              ) : (
-                <ForumView
-                  onSendCommand={sendCommand}
-                  onCommandPreview={handleCommandPreview}
-                />
-              )}
-              {/* Frame + CommandBar persist across both views. */}
-              <CommandBar
-                baseValue={inputValue}
-                onBaseChange={handleInputChange}
-                onSendCommand={sendCommand}
-                onSendPromptResponse={sendPromptResponse}
-                onCancelPrompt={cancelPrompt}
-                flashing={flashing}
-                previewing={previewing}
-              />
-            </LeftColumn>
-            {/* View-sensitive right column. In the Terminal view a small
-                pane switch chooses Inspection | Who's Online. */}
-            {mainView === "terminal" ? (
-              <RightColumn>
-                <PaneSwitch>
-                  <PaneTab
-                    $active={rightPane === "inspect"}
-                    onClick={() => setRightPane("inspect")}
-                  >
-                    Inspect
-                  </PaneTab>
-                  <PaneTab
-                    $active={rightPane === "who"}
-                    onClick={() => setRightPane("who")}
-                  >
-                    Who&apos;s Online
-                  </PaneTab>
-                </PaneSwitch>
-                <PaneSlot>
-                  {rightPane === "who" ? (
-                    <WhoPane
-                      onSendCommand={sendCommand}
-                      onCommandPreview={handleCommandPreview}
-                    />
-                  ) : (
-                    <InspectionPane
-                      onSendCommand={sendCommand}
-                      onCommandPreview={handleCommandPreview}
-                    />
-                  )}
-                </PaneSlot>
-              </RightColumn>
-            ) : (
-              <ForumChatSidecar />
-            )}
-          </Cockpit>
-          {/* Live-scene peek so forum-view players keep live awareness. */}
-          {mainView === "forum" && scenePeek && (
-            <ScenePeek>{scenePeek}</ScenePeek>
-          )}
+          {/* The always-on ghost command line — affordance previews +
+              post-action flash, beside the primary command bar. */}
+          <GhostCommandLine />
         </AppContainer>
       );
+    }
   }
 }
 

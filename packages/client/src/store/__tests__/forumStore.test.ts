@@ -30,22 +30,13 @@ function rec(id: string, over: Partial<ForumEntryRecord> = {}): ForumEntryRecord
 
 beforeEach(() => {
   useStore.setState({
-    mainView: "terminal",
     forumNav: { boardHandle: null, threadId: null },
     forumRecords: {},
     forumScopes: {},
-    inputMode: { terminal: null, forum: null },
   });
 });
 
 describe("forum store slice", () => {
-  it("mainView toggles terminal ↔ forum (not a phase)", () => {
-    expect(useStore.getState().mainView).toBe("terminal");
-    expect(useStore.getState().connectionPhase).not.toBe("forum");
-    useStore.getState().setMainView("forum");
-    expect(useStore.getState().mainView).toBe("forum");
-  });
-
   it("applyForumResult stores the snapshot under the subscription", () => {
     useStore
       .getState()
@@ -85,18 +76,14 @@ describe("forum store slice", () => {
     });
   });
 
-  it("inputMode is client-only scoped-input state, held per view", () => {
-    useStore.setState({ mainView: "forum" });
-    expect(useStore.getState().inputMode.forum).toBeNull();
-    useStore.getState().setInputMode({ prefix: "chat devtalk", label: "devtalk" });
-    // Set on the active (forum) view only — the terminal bar is untouched.
-    expect(useStore.getState().inputMode.forum).toEqual({
-      prefix: "chat devtalk",
-      label: "devtalk",
-    });
-    expect(useStore.getState().inputMode.terminal).toBeNull();
-    useStore.getState().clearInputMode();
-    expect(useStore.getState().inputMode.forum).toBeNull();
+  it("ghost line: setGhostPreview + flashGhost drive the preview/flash strip", () => {
+    expect(useStore.getState().ghostPreview).toBeNull();
+    useStore.getState().setGhostPreview("look mirror");
+    expect(useStore.getState().ghostPreview).toBe("look mirror");
+    useStore.getState().setGhostPreview(null);
+    expect(useStore.getState().ghostPreview).toBeNull();
+    useStore.getState().flashGhost("copied: look mirror");
+    expect(useStore.getState().ghostFlash).toBe("copied: look mirror");
   });
 
   it("carries argument-mode fields and clears an open-objection via a replace delta", () => {
