@@ -586,6 +586,56 @@ first time. The steward lets go and dies. *(So the founding is
 honest-count-gated by construction — the consumer house fills with real
 humans — and the lore curve and the live game's growth are the same line.)*
 
+## The framers — the founders who wouldn't rule *[settled]*
+
+The **framers** are Solvan's cohort: the University academics who, having
+cracked the implant breakthrough, pivoted from studying the aether to
+**engineering a polity** on it, and drafted the Charter. The
+founding-fathers — and, like every founding convention, **not of one mind.**
+
+**Two wings.** The **majority** won the Charter — full handover, trust the
+people, structural guardrails. **Holt's opposition** lost the main argument
+but **shaped the compromise**: the gradualism, the safeguards, the brakes in
+the Charter are their concessions. So the founding document isn't a pure
+manifesto — it's an argument with the losing side still legible in it. *The
+doubts are in the constitution.* The opposition is **loyal to a one** — they
+stayed, they respect the design they argued against.
+
+**They refused to rule — even themselves.** A council of brilliant framers
+running the provisional government would be a junta, a plural Solus-risk; so,
+having designed against concentration, they designed against their *own*
+collective hold too, and put **one dying man (Solvan)** in the seat, then
+stepped back. The founders who built the throne and wouldn't sit it.
+
+**They seed the polity's pluralism.** The cooperative doesn't begin
+monolithic: it inherits the framers' split, so a **loyal opposition** is
+already standing at the founding, a faction with a real good-faith case. The
+framers supply the *sides*; the players fill the *seats* — so people walk
+into a politics that already has fault lines worth arguing. And as the
+founding nears (the consumer house filling), the opposition's question goes
+live again — *"are they actually ready?"* — the honest question, not
+obstruction.
+
+**Edmund Holt** *(the one named framer)* — the opposition's **leader**, not
+its only voice. A good man, not a Solus: he doubts the people are *ready*,
+fears the full handover is naive, would have left a steadier hand on the
+wheel (the velvet cage, offered in good faith). He respects the design he
+disagrees with and stayed — the world's honest voice of the *legitimate*
+doubt. Stageable: he'll look a player in the eye and ask *"are you sure
+you're ready for this?"* — and he isn't wrong to ask. His arc rides the
+founding: come around, or hold the doubt to the end? *(Open.)*
+
+**The framers hold the design's own critique** (law==code, reviewed — the
+world doubting itself, honestly). Holt's standing positions, for instance:
+*the Sybil keystone* ("we never truly solved telling a real human from a
+fake — game the count and the polity is captured") and *the Goodhart irony*
+("we measure contribution to fight the hollowing, but what's measured gets
+gamed — are we raising the New God's altar in our own house?"). The rest
+stay the open questions the framers argue.
+
+*Open: a second opposition figure (a future carve); the wings stay
+collective.*
+
 ## The Museum — the world's memory **[settled frame, contents open]**
 
 The first anchor location, and the bible's walkable table of contents.
