@@ -312,8 +312,11 @@ polity shatters into the first hierarchy. That is **the oldest battle**
 (experience vs. the hollowing) and its **first casualty** — and the attuned
 carry forward the memory of what was and the promise it returns, *the prophecy's
 root.* (Full telling: *The lost paradise*.) Authority: none; only the deep faith
-later ages inherit. Holds, too, the **two older worlds** whose joining later
-made Eternal City.
+later ages inherit. And it was **teeming** — not a tidy origin but a vast, busy
+multiplicity of worlds, *worlds everywhere*, much rising and falling at once.
+Eternal City was just **one** thing that arose from it, when **two of the many**
+worlds joined (the Confluence). We follow *that* thread because it leads to our
+story, not because it was the center — the rest stays fog, as deep myth should.
 
 ### II. The Eternal Age — *Eternal City*
 Authority descends **from above.** Born of a union and ruled by a **founding
@@ -351,7 +354,8 @@ concentration, destroyed by the capture* — the cautionary case study the
 Grounded Age reads off the ruins:
 
 1. **The Confluence** — Eternal City born from **two older worlds joined into
-   one** (two dead predecessors merged); the dyad makes it. A **wild, brief
+   one** (two of the many dead worlds of that teeming age, merged); the dyad
+   makes it. A **wild, brief
    precursor city** flares first and dies young — then the dyad drafts its first
    makers and builds the *true* Eternal City, custom, from nothing.
 2. **The First Making** — the first circle of makers build the world out;
@@ -380,13 +384,17 @@ quiet. Authority: none. This is a **true death of presence** — the twilight
 of all gods, the aether gone silent, and the **attuned vanish with it**
 (they are creatures of presence — see *The attuned*). The surviving **crumb
 of the old faith is the clergy**, who carried it out into exile — not
-anyone left at the dead heart. But the clergy were **not the only survivors:**
-the **wealthy** fled too, carrying portable capital and *blood*, and in a
-collapsed world with no institutions they hardened into the **great houses** —
-hereditary dynasties, dynasty-as-continuity — out in the wider world. **The
-renouncers and the hoarders, both born in the same dark:** the clergy preserved
-the *gift* and renounced rule; the houses preserved *wealth* and entrenched
-blood (see *The corpos*). That fork has run ever since. The empty city becomes
+anyone left at the dead heart. But the clergy were **not the only survivors.**
+The Eternal *makers* fell too — the wizard **cabals** (each had owned its slice
+of the impossible city), stripped of their fiat-power, **degraded into the great
+houses:** fallen wizards who carried out their *craft* (now dimmed), their
+wealth, and their *blood*, and in an institution-less world entrenched as
+**hereditary dynasties.** **The renouncers and the hoarders, both born in the
+same dark:** the clergy kept the *faith* and renounced rule; the houses kept
+their *diminished making* and *owned what they could*, entrenching blood (see
+*The corpos*). Through the long dark these two — clergy and houses — were the
+world's only **creators**, though nothing they raised came near the glory of old
+Eternal City. That fork has run ever since. The empty city becomes
 the **cautionary ruin** the new order builds against. Its **length is undatable on
 purpose** — an empty age keeps no clock, so "centuries, the legends say" is
 the most anyone can claim — but **undatable is not unknown:** the clergy's
@@ -1182,26 +1190,35 @@ Independents; this is the *rise and meaning.*)
   *estranged siblings*, not strangers. (The corpos stay **faceless wordmarks**;
   their *founders* are name-able historical figures, the framers' cohort-peers —
   a carve left open.)
-- **The deep lineage — the great houses.** That cohort-split is only the
-  *natives'* origin. The **incumbent** stream runs far older than Terminus: it
-  descends from the **great houses** — the wealthy who fled the fall of Eternal
-  City carrying portable capital and *blood*, and who hardened into **hereditary
-  dynasties** out in the wider world (they *claim* ancient Eternal blood; the
-  dynastic form really hardened in the Fallow — the claim older than the truth,
-  fake legitimacy one age down). They are the **secular mirror of the clergy:**
-  same exodus, opposite choice — gift-and-renunciation vs. wealth-and-blood.
-  They compounded off-stage through the Mission as merchant-then-financier
-  dynasties and **returned at the Widening**, incorporating into corpos when the
-  field opened the money. So the hollowing keeps **two clocks:** the **acute**
-  demagogue who flares and burns out (first-faller → Solus → Vane), and the
-  **chronic** house that *never dies because it is inherited.* The corpo is the
-  great house in a corporate suit — **old blood under a faceless wordmark** (the
-  wordmark stays faceless; the house behind it is a name-able lineage, a carve
-  left open), and the slate's **rivalries are partly centuries-old house feuds**
-  in modern dress. *(Not a cabal — rivals; the danger stays structural,
-  hereditary capital + the board model, never a secret council.)* The
-  **Independents**, in this frame, are the **houseless** — makers who never had a
-  dynasty to inherit or entrench.
+- **The deep lineage — fallen wizards: cabals → houses → corpos.** That
+  cohort-split is only the *natives'* origin. The **incumbent** stream runs far
+  older than Terminus and is **made of fallen makers.** In the Eternal Age the
+  wizards were organized into **cabals**, each owning a slice of the world; when
+  the city fell and their fiat-power evaporated, the cabals **degraded into the
+  great houses** — fallen wizards who kept their (now-dimmed) craft, their
+  wealth, and their *blood*, and entrenched as **hereditary dynasties** in the
+  wider world (they *claim* ancient Eternal blood; the dynastic form really
+  hardened in the Fallow — the claim older than the truth). Over the Mission the
+  houses compounded — merchant-then-financier dynasties, intermarrying and
+  feuding — and at the Widening they **consolidated into the corpos** (old houses
+  merging into each). *Cabals → houses → corpos.* They are the **secular mirror
+  of the clergy:** through the dark age the two were the world's only
+  **creators**, but diminished — nothing near old Eternal's glory. And that is
+  the corpos' deepest motive: **they tap the aether because they believe it will
+  elevate them back to the glory their wizard-ancestors held** — the exact
+  projection of real wizards (devs) elevated by **compute** — reaching for
+  restoration the only way they know, by *owning the substrate* (the old
+  fusion-impulse), never the cooperative's distributed making. So the hollowing
+  keeps **two clocks:** the **acute** demagogue who flares and burns out
+  (first-faller → Solus → Vane), and the **chronic** house that *never dies
+  because it is inherited.* The corpo is the **fallen wizard in a corporate
+  suit** — old maker-blood under a faceless wordmark (the wordmark faceless; the
+  house behind it a name-able lineage, a carve left open); the slate's
+  **rivalries are partly the old cabal feuds** in modern dress. *(The cabals were
+  rivalrous committees, never one conspiracy, and their heirs still are — the
+  danger stays structural, hereditary capital + the board model, never a secret
+  council.)* The **Independents**, in this frame, are the **houseless** — makers
+  who never had a cabal or a dynasty.
 - **What they are — and aren't.** Not "the Hollow" (that is the principle), but
   **agents in a system that rewards capture.** A multipolar, **rivalrous** field,
   not a cartel — each corpo its own ethos; the temptation (capture pays on a
