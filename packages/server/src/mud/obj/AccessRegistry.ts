@@ -75,6 +75,14 @@ export default class AccessRegistry extends AccessRegistryBase {
   private cachedStreamerPlayerIds: ReadonlySet<string> | null = null;
   /** Cancellation handle for the streamer onChange subscription. */
   private streamerCacheCancel: (() => void) | null = null;
+  private cachedArchwizardsRef: GroupRef | null = null;
+  /** Set of playerIds in `'archwizards'` — the wizard-conferral axis.
+   *  Archwizards run `wizard grant/revoke`. Warmed lazily, invalidated
+   *  via the managed provider's onChange callback. Mirrors the wizard
+   *  cache exactly. */
+  private cachedArchwizardPlayerIds: ReadonlySet<string> | null = null;
+  /** Cancellation handle for the archwizard onChange subscription. */
+  private archwizardCacheCancel: (() => void) | null = null;
   /** Set of GroupRefs that count as "author scope" — every group
    *  referenced by some Zone's `ownerGroup` or `accessGroups`, plus
    *  `'core'`. Warmed lazily on first `isAuthor` read. */
@@ -85,6 +93,7 @@ export default class AccessRegistry extends AccessRegistryBase {
     await this.seedLoungeSlice();
     await this.seedWizardsGroup();
     await this.seedStreamersGroup();
+    await this.seedArchwizardsGroup();
   }
 
   /**
@@ -218,6 +227,52 @@ export default class AccessRegistry extends AccessRegistryBase {
   }
 
   /**
+   * Orthogonal archwizard axis — is the actor in `'archwizards'`?
+   * Archwizards confer/revoke wizard status (the `wizard grant/revoke`
+   * verb, authorized by the `requiresArchwizard` validator). Operator/
+   * root-managed for now (env seed + the `group` verb); the Prime
+   * Minister office above them is deferred.
+   */
+  @CallSecurity(AccessApiCallers)
+  public async isArchwizard(subject: Stuff | null): Promise<boolean> {
+    if (subject === null) return false;
+    const playerId = this.playerIdOf(subject);
+    if (playerId === null) return false;
+    const cache = await this.ensureArchwizardCache();
+    return cache.has(playerId);
+  }
+
+  /**
+   * Narrow-entry mutation: add or remove `playerId` from the `'wizards'`
+   * group. Reachable only through `AccessApi.setWizardMembership`, which
+   * carries the `FromController(WizardController)` policy — the archwizard
+   * authorization itself is enforced by the verb's `requiresArchwizard`
+   * validator, not here. Fires `managed().fireChange` so the lazy wizard
+   * cache invalidates. Returns true iff membership changed.
+   */
+  @CallSecurity(AccessApiCallers)
+  public async setWizardMembership(
+    playerId: string,
+    makeWizard: boolean,
+  ): Promise<boolean> {
+    const id = (playerId ?? '').trim();
+    if (id.length === 0) return false;
+    const reg = await GroupApi.registry();
+    const provider = reg.managed();
+    const wizards = await provider.findByName('wizards');
+    if (!wizards || !wizards._id) return false;
+    const changed = makeWizard
+      ? wizards.addMember(id, 'member')
+      : wizards.removeMember(id);
+    if (changed) {
+      await wizards.save();
+      provider.fireChange(wizards._id);
+      this.cachedWizardPlayerIds = null;
+    }
+    return changed;
+  }
+
+  /**
    * Walk a source-tree path against the template tree
    * most-specific-first, returning the closest extant FolderZone
    * instance. Used by workspace controllers in source/mirror mode to
@@ -333,6 +388,26 @@ export default class AccessRegistry extends AccessRegistryBase {
       this.cachedStreamerPlayerIds = null;
     });
     this.streamerCacheCancel = handle?.cancel ?? null;
+    return cache;
+  }
+
+  private async ensureArchwizardCache(): Promise<ReadonlySet<string>> {
+    if (this.cachedArchwizardPlayerIds) return this.cachedArchwizardPlayerIds;
+    const reg = await GroupApi.registry();
+    const provider = reg.managed();
+    const arch = await provider.findByName('archwizards');
+    if (!arch || !arch._id) {
+      this.cachedArchwizardPlayerIds = new Set();
+      return this.cachedArchwizardPlayerIds;
+    }
+    this.cachedArchwizardsRef = `managed:${arch._id}`;
+    const cache = new Set(arch.memberIds);
+    this.cachedArchwizardPlayerIds = cache;
+    this.archwizardCacheCancel?.();
+    const handle = provider.onChange?.(arch._id, () => {
+      this.cachedArchwizardPlayerIds = null;
+    });
+    this.archwizardCacheCancel = handle?.cancel ?? null;
     return cache;
   }
 
@@ -479,11 +554,45 @@ export default class AccessRegistry extends AccessRegistryBase {
     }
   }
 
+  private async seedArchwizardsGroup(): Promise<void> {
+    const reg = await GroupApi.registry();
+    const provider = reg.managed();
+    let archwizards = await provider.findByName('archwizards');
+    if (!archwizards) {
+      const g = new Group();
+      g.name = 'archwizards';
+      g.owner = 'system';
+      await g.save();
+      archwizards = g;
+    }
+    if (!archwizards._id) return;
+    this.cachedArchwizardsRef = `managed:${archwizards._id}`;
+
+    // Seed membership from ARCHWIZARD_PLAYER_IDS (comma-separated Avatar
+    // playerIds) — the operator/root floor that owns wizard conferral.
+    // Additive + idempotent (never removes), mirroring the streamer/
+    // wizard env seed. Runs before any `isArchwizard` read.
+    const ids = (process.env.ARCHWIZARD_PLAYER_IDS ?? '')
+      .split(',')
+      .map((s) => s.trim())
+      .filter((s) => s.length > 0);
+    let changed = false;
+    for (const id of ids) {
+      if (archwizards.addMember(id)) changed = true;
+    }
+    if (changed) {
+      await archwizards.save();
+      this.cachedArchwizardPlayerIds = null;
+    }
+  }
+
   public override onDestruct(): void {
     this.wizardCacheCancel?.();
     this.wizardCacheCancel = null;
     this.streamerCacheCancel?.();
     this.streamerCacheCancel = null;
+    this.archwizardCacheCancel?.();
+    this.archwizardCacheCancel = null;
     super.onDestruct();
   }
 }

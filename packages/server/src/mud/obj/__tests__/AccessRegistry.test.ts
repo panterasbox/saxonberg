@@ -16,6 +16,7 @@ import Avatar from "../Avatar";
 import { AccessApi } from "../../api/access";
 import { GroupApi } from "../../api/group";
 import { StuffApi } from "../../api/stuff";
+import { SecurityError } from "../../lib/security/errors";
 import { PersistenceManager } from "../../../backend/PersistenceManager";
 import { makeStuffAtPath } from "../../lib/security/__tests__/test-setup";
 
@@ -223,5 +224,82 @@ describe("AccessRegistry — developers→wizards migration", () => {
     const wizards = await reg.managed().findByName("wizards");
     expect(wizards!.memberIds).toEqual(["legacy-a"]);
     expect(await reg.managed().findByName("developers")).toBeNull();
+  });
+});
+
+const ARCH_ENV = "ARCHWIZARD_PLAYER_IDS";
+
+describe("AccessRegistry — archwizard axis + wizard conferral", () => {
+  let prevWiz: string | undefined;
+  let prevArch: string | undefined;
+
+  beforeEach(() => {
+    prevWiz = process.env[ENV_KEY];
+    prevArch = process.env[ARCH_ENV];
+    delete process.env[ENV_KEY];
+    delete process.env[ARCH_ENV];
+    AccessApi._resetRegistryRefForReload();
+    StuffApi.clearAll();
+  });
+
+  afterEach(() => {
+    if (prevWiz === undefined) delete process.env[ENV_KEY];
+    else process.env[ENV_KEY] = prevWiz;
+    if (prevArch === undefined) delete process.env[ARCH_ENV];
+    else process.env[ARCH_ENV] = prevArch;
+    vi.restoreAllMocks();
+    AccessApi._resetRegistryRefForReload();
+    StuffApi.clearAll();
+  });
+
+  it("isArchwizard is true for an archwizards member, false otherwise", async () => {
+    installInMemoryStore();
+    await bootRegistry();
+
+    const reg = await GroupApi.registry();
+    const arch = await reg.managed().findByName("archwizards");
+    expect(arch).not.toBeNull();
+    arch!.addMember("boss");
+    await arch!.save();
+    if (arch!._id) reg.managed().fireChange(arch!._id);
+
+    expect(await AccessApi.isArchwizard(makeAvatar("boss"))).toBe(true);
+    expect(await AccessApi.isArchwizard(makeAvatar("rando"))).toBe(false);
+  });
+
+  it("seeds archwizards from ARCHWIZARD_PLAYER_IDS", async () => {
+    process.env[ARCH_ENV] = "boss1, boss2";
+    installInMemoryStore();
+    await bootRegistry();
+
+    const reg = await GroupApi.registry();
+    const arch = await reg.managed().findByName("archwizards");
+    expect(arch!.memberIds.sort()).toEqual(["boss1", "boss2"]);
+  });
+
+  it("setWizardMembership is narrow-entry gated (rejects a non-WizardController caller)", () => {
+    // The facade carries FromController(WizardController); a call from
+    // this test module (not the controller) is denied synchronously.
+    expect(() => AccessApi.setWizardMembership("alice", true)).toThrow(
+      SecurityError,
+    );
+  });
+
+  it("a wizards-membership change + fireChange invalidates the cache (next isWizard reflects it)", async () => {
+    installInMemoryStore();
+    await bootRegistry();
+
+    const alice = makeAvatar("alice");
+    expect(await AccessApi.isWizard(alice)).toBe(false); // warms the cache
+
+    // The mechanism setWizardMembership relies on: mutate the group +
+    // fireChange → the lazy wizard cache invalidates.
+    const reg = await GroupApi.registry();
+    const wizards = await reg.managed().findByName("wizards");
+    wizards!.addMember("alice");
+    await wizards!.save();
+    reg.managed().fireChange(wizards!._id!);
+
+    expect(await AccessApi.isWizard(alice)).toBe(true);
   });
 });

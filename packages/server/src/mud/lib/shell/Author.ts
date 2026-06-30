@@ -85,6 +85,12 @@ export function AuthorMixin<TBase extends MixinConstructor>(Base: TBase) {
         // dedicated streamer-mode affordance narrow visibility without
         // touching the authorization gate.
         'stream/stream.yaml',
+        // Wizard conferral — `wizard grant/revoke <player>`. Afforded on
+        // the operator command surface like the rest of this suite, but
+        // *authorized* on the orthogonal archwizard axis: `wizard.yaml`
+        // carries `requiresArchwizard`, so an author who isn't an
+        // archwizard sees the verb but can't run it.
+        'author/wizard.yaml',
         // News-ticker operator surface — post / edit / retract on the
         // staff→player broadcast feed. Afforded on the operator command
         // surface like the rest of this suite; `bulletin.yaml` carries

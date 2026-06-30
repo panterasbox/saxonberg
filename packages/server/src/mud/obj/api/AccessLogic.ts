@@ -120,6 +120,27 @@ export class AccessLogic extends Idea {
     return reg.isStreamer(subject);
   }
 
+  /** See {@link AccessApi.isArchwizard}. */
+  @CallSecurity(AccessApiCallers)
+  public async isArchwizard(subject: Stuff | null): Promise<boolean> {
+    if (subject === null) return false;
+    const reg = lookupRegistry();
+    if (!reg) return true;
+    if (playerIdOfQuick(subject) === null) return false;
+    return reg.isArchwizard(subject);
+  }
+
+  /** See {@link AccessApi.setWizardMembership}. */
+  @CallSecurity(AccessApiCallers)
+  public async setWizardMembership(
+    playerId: string,
+    makeWizard: boolean
+  ): Promise<boolean> {
+    const reg = lookupRegistry();
+    if (!reg) return false;
+    return reg.setWizardMembership(playerId, makeWizard);
+  }
+
   /** See {@link AccessApi.resolveSourceFolderZone}. */
   @CallSecurity(AccessApiCallers)
   public async resolveSourceFolderZone(

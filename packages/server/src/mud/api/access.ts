@@ -24,6 +24,8 @@
 import { SecurityApi } from './security';
 import { StuffApi } from './stuff';
 import { HotReloadApi } from './hot-reload';
+import { CallSecurity } from '../lib/security/decorators';
+import { SecurityPolicies } from '../lib/security/SecurityPolicies';
 import type { Stuff } from '../lib/stuff/Stuff';
 import { AccessLogic } from '../obj/api/AccessLogic';
 import { fileURLToPath } from 'url';
@@ -105,6 +107,40 @@ export class AccessApi {
    */
   public static async isStreamer(subject: Stuff | null): Promise<boolean> {
     return logic().isStreamer(subject);
+  }
+
+  /**
+   * Orthogonal archwizard axis. True iff `subject` is an Avatar whose
+   * playerId is in the `'archwizards'` group. Archwizards confer/revoke
+   * wizard status via `wizard grant/revoke` (the `requiresArchwizard`
+   * validator). Operator/root-managed; the Prime Minister office above
+   * them is deferred.
+   */
+  public static async isArchwizard(subject: Stuff | null): Promise<boolean> {
+    return logic().isArchwizard(subject);
+  }
+
+  /**
+   * Narrow-entry mutation: add (`makeWizard=true`) or remove the player
+   * from the `'wizards'` group. Gated to the `WizardController` (the
+   * `wizard grant/revoke` verb) via the string-keyed `FromModule` policy
+   * — string-keyed to avoid a value-level static-import cycle (the
+   * `forceDestruct`/`DestructController` precedent). The *authority*
+   * (the giver's archwizard status) is enforced by the verb's
+   * `requiresArchwizard` validator; this method is the structurally
+   * single entry to the membership write. Returns true iff membership
+   * changed.
+   */
+  @CallSecurity(
+    SecurityPolicies.FromModule(
+      'mud/obj/command/author/WizardController'
+    )
+  )
+  public static async setWizardMembership(
+    playerId: string,
+    makeWizard: boolean
+  ): Promise<boolean> {
+    return logic().setWizardMembership(playerId, makeWizard);
   }
 
   /**
