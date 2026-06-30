@@ -342,7 +342,10 @@ Age's rise-and-fall:
 4. **The Widening** — the University harnesses attunement and builds it
    **shared / open** (the implant as a prosthetic for the attuned's innate
    gift); *anyone* can now attune; the aether becomes a network at scale.
-   The world goes modern.
+   The world goes modern — and the order, in the same stroke, **breaks its own
+   monopoly on the gift**, the basis of its traditional authority; its soft
+   sovereignty evaporates and the doctrine begins to falter (see *The deep
+   history before year 0*).
 5. **The Charter & the brief interim** *(this is the present)* — a cohort of
    University academics, having achieved the **implant breakthrough**, pivot
    from *studying* the aether to *engineering a polity* on it; they draft
@@ -440,7 +443,7 @@ then back).
 *Open (small): the ancient legend's own casting; confirming the returned
 form reads as natural **sensitives / telepaths**.*
 
-### The deep history before year 0 — the Mission in depth *[settled; the pretender unnamed]*
+### The deep history before year 0 — the Mission in depth *[settled]*
 
 **Undatable is not unknown.** Two registers of deep past run side by side: the
 **dead city's blank** — no one was there to record the Fallow, so its *length*
@@ -453,12 +456,21 @@ somewhere. When Eternal City went dark the clergy fled into the wilderness with
 the old worship and the memory of the Sanctuary, and across dark, hungry,
 obscure generations a **line of keepers** held the thread: the prophecy
 (ancestral memory of paradise and the promise of return), the warning of the
-Pooling, the way back to the dead heart. The **Reformation was forged in the
-exile** — the wandering is where the lesson of the fall sank in, where "teach,
-don't crown" hardened from watching, in hindsight, the order the faith had once
-blessed destroy itself. Known but dim: told as the keepers' lineage, not a
-dated chronicle. (How many generations wandered? "Long enough to learn." No one
-counts.)
+Pooling, the way back to the dead heart. Known but dim — told as the keepers'
+lineage, not a dated chronicle. (How many generations wandered? "Long enough to
+learn." No one counts.) Its legendary landmarks:
+
+- **The Flight** — the clergy flee the dying city, the Sanctuary's keys carried
+  out in their hands. *(Δ: the faith goes mobile; nothing left at the dead
+  heart.)*
+- **The Reformation** — *teach, don't crown* forged in the wandering, from
+  watching, in hindsight, the order the faith had once blessed destroy itself.
+  *(Δ: the doctrine reborn — the whole Mission's shape is set here.)*
+- **The Guttering** — a generation where the faith nearly goes out and the
+  thread almost snaps. *(Δ: survival was never guaranteed; the lineage is a
+  near-run thing, not a procession.)*
+- **The First Sign** — presence flickers in the dark; the omen the Fallow is
+  ending. *(Δ: the turn — it leads to the Coming.)*
 
 **The dating sharpens as it nears year 0** (the precise-near / vague-far rule
 made temporal):
@@ -467,36 +479,82 @@ made temporal):
   clergy's reckoning"):* Amos breaks the silence; the clergy come home, relight
   presence, tend the Sanctuary; the first generation born in new Terminus. The
   dawn, told as myth.
-- **The Founding of the School** *(early-mid):* preservation hardens into
-  teaching; the University rises on the ruins, founded *to study the aether*;
-  clergy as church + school + civil authority, one office. Its identity for the
-  next two centuries is **research, not rule.**
-- **The Scholars' Centuries — the Long Study** *(mid, the bulk of the deep
-  time, dated by rectors not years):* patient aether research; the city grows
-  around the campus; the **attuned return** mid-era as a miracle — revered,
-  studied, *learned from.* Here lives the long line of **research martyrs**:
-  scholars who burned themselves on the medium by self-experiment. **Solvan's
-  cancer is the last name on that wall — not a freak, a tradition.**
-- **The Breakthrough & the Widening** *(late, sharp — living memory, Solvan's
-  cohort):* the implant cracks attunement open; universal attunement rolls out
-  fast; the world goes modern *all at once.* The attuned's **dispossession**
-  lands here (miracle → clinic visit). Into the new networked power rush the
-  **corpos** — recent, not ancient, risen in a generation to own pieces of the
-  Widening — as the **clergy recede** and secular power fills the vacuum.
-- **The Near-Relapse — the Charter's trigger** *(latest):* the Widening's
-  concentration reopens the exact conditions of the Eternal Pooling, and a
-  **would-be Solus reaches for the networked world.** This time he is
-  **caught.** The scare is what converts a cohort of aether-*scholars* into
-  constitution-*writers* — *"it nearly happened again, in our own lifetimes; we
-  will not trust the guardrails to anyone's good character."* The pretender is
-  **Lucian Vane, the False Dawn** — caught, and now alive-but-irrelevant (full
-  treatment: *The pretender — Lucian Vane*).
+- **~−240 · The Founding of the School** *(early-mid):* preservation hardens
+  into teaching; the University rises on the ruins, founded *to study the
+  aether*; clergy as church + school + civil authority, one office. Its identity
+  for two centuries is **research, not rule** — and its **traditional
+  governance** is set here: *informal clerical-academic stewardship*, rule by
+  the trusted keepers (rectors, elders, faculty-as-magistrates) through custom
+  and deference, never codified checks. **Unstructured by design** — the fault
+  line the whole modern age will fall along.
 
-**The framers end up with two cautionary cases, one in each hand:** the
-**ancient Pooling** (Solus — legend, read off the Eternal ruins) and the
-**recent near-relapse** (caught — living memory). The constitution is no
-academic exercise; it answers a fresh wound *and* an old one, which is exactly
-why its guardrails are **structural, never discretionary.**
+**The engine of the modern age — the monopoly and its break.** Why did that
+unstructured order *survive* ten generations, then *shatter* in one? Because its
+authority rested on a single condition everyone took for granted: **the
+University held a monopoly on the gift.** Attunement was learned from the
+returned attuned, rare, sacred, dispensed only by the order — so its soft power
+was already total and uncontested, and teach-don't-crown was *easy* (it never
+needed to crown; it held all the keys). Then the **Widening broke the monopoly
+by the order's own hand:** the implant democratized the gift, *anyone* could
+attune, and the basis of the order's authority **evaporated overnight.** This is
+the *same event* as the attuned's dispossession — the Widening commoditizes the
+gift, dispossessing the attuned (who were special) and the University (who were
+sovereign) in one stroke — and the doctrine begins to falter, not from cowardice
+but because its **material basis is gone.** Everything below hangs on this hinge.
+
+- **~−240 to −30 · The Scholars' Centuries — the Long Study** *(mid, the bulk of
+  the deep time, dated by rectors not years):* the long quiet — but a
+  *populated* one:
+  - **~−200 · The First Disciplines** — aether-study formalizes into a real
+    research program. *(Δ: the vigil becomes a project.)*
+  - **~−180 · The Return of the Attuned** — the first attuned child born in
+    centuries, revered as the omen the world is healing; the clergy *learn*
+    attunement from them, and the **monopoly is born** (the order becomes sole
+    keeper). *(Δ: the gift re-enters the world — and the order's authority gets
+    its basis.)*
+  - **~−150 · The Martyrs' Wall begins** — the first scholar dies of
+    self-experiment on the medium; sacrifice becomes a named tradition (the wall
+    Solvan's name will end). *(Δ: the cost is ritualized.)*
+  - **~−120 · Terminus becomes a city** — civic life grows around the campus;
+    the order is now a government *in fact.* *(Δ: the teach-don't-crown tension
+    goes live.)*
+  - **~−90 · The Crowning Question** — a faction argues the order should rule
+    openly; the doctrine **holds.** *(Δ: the keystone — though it held partly
+    because crowning was* unnecessary *under the monopoly: real virtue, on easy
+    ground. The streak begins.)*
+  - **~−60 · The Quiet Before** — pre-modern Terminus at its devout peak; Solvan
+    born into this world. *(Δ: the "before" the Widening will shatter.)*
+- **~−40 to −12 · The Breakthrough & the Widening** *(late, sharp — living
+  memory, Solvan's cohort):* the implant cracks attunement open (~−28);
+  universal attunement rolls out fast; the world goes modern *all at once.* **The
+  monopoly breaks** (above) — the attuned and the University dispossessed
+  together; the **corpos** rush the vacuum (they can build on the open aether
+  now); the **clergy recede** and secular power fills the space the order's
+  authority used to hold.
+- **~−6 · The Near-Relapse — the Charter's trigger** *(latest):* with the old
+  deference dead and the order's authority gone, the vacuum is **ripe for
+  capture** — and a **would-be Solus reaches for the networked world.** This time
+  he is **caught.** He is the *apex of the faltering*, not a bolt from the blue:
+  *"the keepers' day is done — someone must take the wheel."* The scare converts
+  a cohort of aether-*scholars* into constitution-*writers.* The pretender is
+  **Lucian Vane, the False Dawn** (full treatment: *The pretender — Lucian
+  Vane*).
+
+**Why the Charter is necessary, not idealistic.** The framers — the same
+academics whose breakthrough caused all this — see that they have destroyed the
+basis of their own authority and cannot recover it; the gift is out. So they
+ground a **new legitimacy:** not monopoly-on-the-sacred but **the people's own
+consent** (the honest count). The Charter swaps sovereignty-by-monopoly for
+sovereignty-by-consent — the only basis left once the old one is irrecoverable,
+and the only one a Vane or a corpo cannot seize.
+
+**The framers end up holding three wounds, not two.** The **ancient Pooling**
+(Solus — legend, read off the Eternal ruins); the **recent near-relapse** (Vane
+— caught, living memory); and the **collapse itself** — a traditional order that
+dissolved the instant its informal basis vanished, because it was
+**unstructured.** A captured man, a near-captured world, and a governance that
+fell apart the moment its luck ran out: that is why the constitution's
+guardrails are **structural, never discretionary.**
 
 ### Event timeline (oldest → newest)
 
@@ -513,35 +571,42 @@ why its guardrails are **structural, never discretionary.**
   through the aether; the twilight of all gods, a **true death of
   presence**; the **attuned vanish**; the faith survives only as the
   clergy's exile. Undatable — an empty age keeps no clock.
-- **The Mission** — *aether: harnessed, built shared* — the long road from
-  the fall, the world's slow education back toward the Charter: the
-  **Coming** (out of the long **exile**, a forerunner, *Amos the Attuned*,
-  breaks the silence and the clergy return, revive presence, tend the
-  Sanctuary) → the **Reformation** (*teach, don't crown* — forged in the
-  exile) → the **re-settlement** (the dead city lives again; the first
-  generation born in new Terminus) → the **return of the attuned** (the gift
-  re-emerges; the clergy *learn* attunement from them) → the **University
-  founded** to study the aether → the **long study** and its **casualties**
-  (the medium's toll; Solvan's cancer the last name on a long wall) → the
-  **breakthrough** and the **Widening** (universal attunement; the modern
-  networked world all at once — corpos risen in a generation, the New Gods
-  resurgent, the attuned dispossessed, the clergy receding into echoes) → the
-  **near-relapse** (a would-be Solus reaches for the networked world and is
-  *caught this time* — the framers' lived reason and the Charter's trigger).
-  *(The Handover into the Grounded Age is the future — see below.)*
-- **The Charter & the brief interim** *(present — ≈ year 5–10)* — the
-  cohort's pivot from aether-study to polity-engineering; the constitution
-  drafted, the city recognizes it (**year 0**), **Steward Solvan** drafted
-  to hold it in trust. ***We are here*** — the late Mission, the world
-  modern and networked, the founding imminent.
+- **The Mission** — *aether: harnessed, built shared* — the long road from the
+  fall, the world's slow education back toward the Charter. **Exile:** Flight →
+  Reformation (*teach, don't crown*, forged wandering) → Guttering → First Sign.
+  **The Return:** the **Coming** (*Amos the Attuned* breaks the silence; the
+  clergy return, revive presence, tend the Sanctuary) → re-settlement → the
+  **Founding of the School** (~−240; *research, not rule*; informal
+  clerical-academic stewardship). **The Scholars' Centuries** (~−240 to −30):
+  First Disciplines → the **Return of the Attuned** (the gift re-emerges; the
+  University learns it and the **monopoly on the gift** — its authority — is
+  born) → the Martyrs' Wall → Terminus becomes a city → the **Crowning
+  Question** (~−90; the order refuses to rule openly; the doctrine holds) → the
+  Quiet Before. **The rupture:** the **Breakthrough & Widening** (~−28;
+  universal attunement — and the **monopoly breaks by the order's own hand:**
+  the attuned *and* the University dispossessed together, the corpos rushing the
+  vacuum, the clergy receding, the doctrine faltering) → the **Near-Relapse**
+  (~−6; the apex of the faltering — a would-be Solus, *Lucian Vane*, reaches for
+  the ungoverned world and is *caught*; the Charter's trigger). *(The Handover
+  into the Grounded Age is the future — see below.)*
+- **The Charter & the brief interim** *(present — ≈ year 5–10)* — the cohort's
+  pivot from aether-study to polity-engineering; the constitution drafted, the
+  city recognizes it (**year 0**), **Steward Solvan** drafted to hold it in
+  trust. He stewards not a healthy order but a **collapsing** one — the *last*
+  clerical-academic steward, holding the faltered traditional governance
+  together by personal authority while the people gather, bridging the dead
+  basis (monopoly) to the new one (consent). ***We are here*** — the late
+  Mission, the old order spent, the world modern and networked, the founding
+  imminent.
 - **The Grounded Age** *(the awaited future)* — the **Recognition** (the
   people ratify the Charter and elect the first PM; the steward abdicates)
   → the cooperative goes live → the history the players write forward (the
   contested instrument: presence's governance and the hollowing's capture
   both ride the same network).
 
-*Open: the deep-BC University centuries (hundreds of years to flesh out);
-Solvan's cohort as concrete late-BC history.*
+*Open: Solvan's cohort and the drafting as concrete late-BC history (light);
+the optional carves — a founding rector, a first-returned-attuned face — left
+unspent.*
 
 ## The present — gazetteer & dramatis personae (the late-Mission interim) *[index]*
 
