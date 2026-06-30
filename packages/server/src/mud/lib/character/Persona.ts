@@ -57,6 +57,16 @@ export function PersonaMixin<TBase extends MixinConstructor>(Base: TBase) {
         'social/who.yaml',
         'social/profile.yaml',
         'social/score.yaml',
+        // The `office`/`offices` verb is afforded universally here — NOT
+        // on AuthorMixin — because its roster is public (governance is
+        // transparent by constitutional design, Art. VII): every player
+        // can see who holds which office. The privileged `assign`/`vacate`
+        // subcommands enforce the founder gate inside OfficeController (the
+        // `group` precedent: a public verb whose privileged subcommands
+        // self-check authority in the controller, since the command schema
+        // scopes validators to the verb level). Homing it on AuthorMixin
+        // would wrongly hide the public roster from non-authors.
+        'governance/office.yaml',
       ],
       environment: [],
       inventory: [],
