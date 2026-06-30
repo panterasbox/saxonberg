@@ -442,6 +442,7 @@ brief caretaker interim, the world modern and the founding imminent.
   - **The Gate / Arrival · the Quad · Student Services · Health Center** (the aug clinic — attunement) **· Campus Store · the Chapel** (the Mission clergy's residue) **· Duncan Hall** (the Warren dorm). *[EU slate; campus-map]*
   - **Roads:** Eternal Way · Silver Street · Limbo Lane. *[EU slate]*
   - **The Sanctuary** — beneath/within the campus: the aether-nexus, the sacred dead heart, the Museum's eventual core. *[bible: the Mission / the attuned]*
+- **The Seat of Government** — the five seats (Court · Executive · Producer · Patron · Consumer houses), mostly **empty**: the steward holds four in trust and governs distributed; the consumer house alone is live. The founding's stage. *[bible: the seats]*
 - **The Lounge** — the universal login landing; Dave's Bar to its north. *[lounge-slate]*
 - **Dave's Bar** — the neighborhood bar, the anti-lounge. *[daves-bar-slate]*
 - **The TPA network** — teleport transit; terminals at the lounge, Arrival, Duncan Hall lobby. *[fasttravel; fast-travel-slate]*
@@ -456,7 +457,7 @@ brief caretaker interim, the world modern and the founding imminent.
 ### Factions & institutions
 
 - **The five corpos** — Veshko · Goodkin · Vionne · Hollis · Aevex (+ the **Independents**). Faceless by design (a wordmark, not a figure). *[corpos-slate]*
-- **The cooperative** — the present polity: three chambers, parliamentary executive, conviction voting. *[cooperative-slate]*
+- **The cooperative** — the *awaited* polity (not yet founded): five seats — court, executive, and the producer/patron/consumer legislative houses; parliamentary executive, conviction voting. Held provisionally by the steward (four empty, the consumer house live). *[cooperative-slate; bible: the seats]*
 - **The University** — the Mission's living heir; the clergy persist only as **echoes**.
 - **The attuned** — the returned sensitives (`homo/sensitivus`); a people, no named individual yet.
 
@@ -488,29 +489,65 @@ alone at the top; *Solvan* = to loosen, free, **absolve**.
   **Pooling**: he concentrated all authority to himself, and the order fell
   (the Reaping, the Fallow). Remembered in legend simply as **Solus** — "the
   fall of Solus." *He kept it, and it killed the world.*
-- **Anselm Solvan** — the **steward** of the present. A University scientist
-  who helped crack the **implant breakthrough** — and contracted a
-  **terminal condition experimenting on the aether with himself** (the cost
-  of the gift; the medium takes its toll). With his cohort he pivoted from
-  studying the aether to **engineering the polity**, drafted the Charter,
-  and was **drafted into stewardship precisely *because* he is dying**: a
-  terminal man *cannot* entrench — the perfect safeguard against another
-  Solus. He holds all three branches **in trust**, the conscious inverse of
-  the legend he was raised on. *He will give it away, and it will redeem
-  him.*
+- **Anselm Solvan** — the **steward** of the present. Born into the late
+  University (an *aether-research institution* for centuries), an aether
+  scholar his whole life; in his sixties his **cohort cracked the implant
+  breakthrough**, and he took the deepest test **on himself** — wouldn't
+  risk anyone else — earning the **brain cancer** the cranial implant left
+  him (the cost of the gift; the medium takes its toll). A decade-plus
+  passed — the Widening spreading, the world going modern — before the
+  cohort **pivoted from studying the aether to engineering a polity** on it;
+  Solvan, already dying, poured his last lucid years into the framing. The
+  city recognized the **Charter** (year 0), and he was **drafted to steward
+  *because* he is dying** — a terminal man *cannot* entrench, the perfect
+  safeguard against another Solus. He holds the provisional government —
+  *four of its five seats* — **in trust** (see *The seats*), the conscious
+  inverse of the legend he was raised on. *He will give it away, and it will
+  redeem him.*
 
-**His death is the founding.** Slow-terminal (contracted at the
-breakthrough, dragging through his brief stewardship — visibly failing by
-the present), he races his mortality to reach the **Recognition**. When the
-people ratify (critical mass) they don't only found the government — they
-**release him**: he sees it done, hands over, and dies. Clean exit: no
-retirement arc, no conflict of interest; a buildable beat (the ratification
-event triggers his passing), and a real stake for the playerbase — *your
-arrival is what lets the old man rest.*
+**His death is the founding.** The cancer has been with him for years and is
+terminal now; he is visibly failing, racing his mortality to reach the
+**Recognition**. When the people ratify (critical mass) they don't only
+found the government — they **release him**: he sees it done, hands over,
+and dies. Clean exit: no retirement arc, no conflict of interest; a
+buildable beat (the ratification event triggers his passing), and a real
+stake for the playerbase — *your arrival is what lets the old man rest.*
 
 *(Design note: both are the author's diegetic stand-ins — two faces, the
 fall and the redemption — but the in-fiction text never says so. Never make
 either *outright* the founder.)*
+
+## The seats of government — the empty hall *[settled]*
+
+Ratification needs a stage, not an ethereal vote, so there is a real **Seat
+of Government** — and it is **five seats**: the **Court**, the **Executive**,
+and the legislature's three houses, **Producer · Patron · Consumer** (the
+make / fund / play dimensions; reconcile the exact count with the
+cooperative-slate's chambers later).
+
+**The steward holds four of them — empty.** Solvan wields the authority of
+the Court, the Executive, and the Producer and Patron houses, but he
+**governs distributed, over the aether** (the offices exist; the work
+happens everywhere — work-from-home at civilizational scale), and he **will
+not sit the seats**: they aren't his, they're the people's. Four empty
+chairs of state are the trust *made visible* — a one-man government refusing
+to occupy the throne it holds.
+
+**The consumer house is the exception — and it's already real.** The moment
+a non-founder logs on, the consumer house has a **genuine, un-invented
+presence**, because *being here is the whole qualification*: you don't run
+for it or earn it, you just *are* a player. It was never Solvan's to hold,
+even provisionally. So the hall isn't all-empty — it's **a row of empty
+chairs with one seat filling**, gaining presence with every real arrival
+while the steward holds the other four alone and watches it grow.
+
+**The founding fills the seats.** Ratification is the day the people — who
+already hold the consumer house — reach **critical mass** and rise to take
+the rest: the producer and patron houses seated as real makers and funders
+accrue, the executive elected, the court named, the chambers alive for the
+first time. The steward lets go and dies. *(So the founding is
+honest-count-gated by construction — the consumer house fills with real
+humans — and the lore curve and the live game's growth are the same line.)*
 
 ## The Museum — the world's memory **[settled frame, contents open]**
 
