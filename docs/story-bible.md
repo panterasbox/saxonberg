@@ -183,6 +183,79 @@ The platform's secret real subject: teaching you to **wield the creative
 power well** — to build for presence, not capture. The
 consumer→producer→patron arc is a curriculum in aligned creation.
 
+### How alignment is used *[settled]*
+
+Alignment is **continuous underneath, banded on the face** — the project's
+universal pattern (renown, competence, traits all do this). The truth is a
+smooth, derive-on-read position (Good/Evil from the chronicle, Lawful/Chaotic
+from the governance record), always quietly drifting; the **gap** between the
+patron you *named* and the position you *feed* is a vector you can be far or near
+on. But what anyone *sees* is a **band** — "in resonance," "drifting toward
+Mara," "lawful-leaning" — never a raw number. The honesty firewall (same as
+competence): a score on your sheet is a thing to optimize, and an optimizable
+alignment *is a metric* — Moloch in our own house.
+
+**Architecturally it is the trait system, generalized** — the most general
+member of the estimator family: **competence** (per-skill) → **traits** (17
+dispositions) → **alignment** (two axes, the moral + political headline). Same
+derive-on-read, ledger-fed, decayed, banded machinery; alignment is the
+**roll-up** your traits, deeds, and governance record integrate *upward* into
+(the figure you see from across the room). Nearly free to build — a coarse
+aggregation over substrate that already exists.
+
+**Creators consume it for RECOGNITION, never for REWARD.** They don't *write*
+alignment — they **feed** it (author situations with real choices → chronicled →
+derived) and **read** it back as bands (via API). And they wire it only into the
+systems that let the world *respond in character* — NPC disposition, the
+demigod's felt pull, descriptions, narrative branches, faction attitude — never
+into the loot/economy. **The world may *react* to your alignment all day; it may
+never *pay* you for it.** Reaction is recognition (Mitra); payment is capture
+(Moloch) — the instant a creator gates a treasure chest on alignment, they've
+switched which god the game serves. The ends are **recognition** (the world sees
+you), **reflection** (you see yourself — *"am I running a hollow loop?"*), and
+**narrative** (the story branches on who you are) — never a leaderboard.
+
+The two axes express through two practices: **worship** carries Good/Evil (see
+*The gods · Worship in practice*); **politics** carries Lawful/Chaotic (below).
+
+### Politics in practice *[settled]*
+
+The secular twin of worship — and **god-less by design.** Both poles are Good, so
+the political question *cannot* be settled by which god is right (that would make
+one side evil); it can only be settled by **deliberation and the vote.** That is
+the grounding move itself: drag politics down off the divine axis and hand it to
+the people. So Lawful/Chaotic has **no patron and no chapel** — it has
+**positions and the Forum.**
+
+- **Read from your governance record:** the **forums** (deliberation — good
+  people arguing how to live together), **conviction** (the stakes you'll spend
+  standing to hold), the **chambers** (your house, your weight). *You are the
+  politics you practice.*
+- **Both poles Good.** **Lawful** = the structured new order (build the
+  guardrails, trust the structure, bring the founding). **Chaotic** = freedom and
+  skepticism (the old ways had something, *not so fast*, keep it loose — Holt's
+  pole). Neither is a villain; the live conflict is *among the good about how to
+  organize.*
+- **Present-tense vs. founded.** Now (pre-founding) the live expression is your
+  **stance toward the coming founding** — Holt's *"are you ready?"*, the consumer
+  house filling. After the founding, it is live governance participation.
+- **Pays in *influence*, not favor** — the secular boon is standing in the
+  chambers (the three stocks), earned by showing up and arguing, never dispensed
+  by a god.
+- **Free, where Good/Evil is locked.** You genuinely *choose* your politics
+  (can't choose Evil, but you can be lawful or chaotic); the leaning is legible
+  from the record — chosen on the surface, derived underneath, same as a patron.
+
+| | Good ↔ Evil | Lawful ↔ Chaotic |
+|---|---|---|
+| **system** | worship | politics |
+| **gods?** | god-ful | **god-less** |
+| **surface** | declare a *patron* | take *positions* |
+| **derived from** | the chronicle (what you feed) | the governance record (how you organize) |
+| **place** | the Chapel | the Forum |
+| **pays in** | the life deepened | influence |
+| **freedom** | locked Good (drift derived) | free (both poles Good) |
+
 ## Evil — the hollowing **[settled]**
 
 Evil is the **erasure of the line between person and thing** — from both
@@ -299,33 +372,43 @@ feeds both — parked; it cuts against "everyone is good" if swung early).*
 
 A demigod is **"Name, patron of Whatever"** — a deified mythic root, a domain, a
 personality, an **era** (*old* = rooted/timeless · *new* = aether-born, the
-post-Widening religion). You declare a patron (the life you aspire to); your
-deeds are measured against it ("the god you name vs. the god you feed").
+post-Widening religion), and a **position on the 9-grid.** You declare a patron
+(the life you aspire to); your deeds are measured against it ("the god you name
+vs. the god you feed").
+
+**The high gods stay off the Lawful/Chaotic axis entirely** — pure Good/Evil
+orientation, untouched by politics. The political axis enters at the **demigod**
+tier: each saint sits somewhere on the 9-grid — Good/Evil from its god,
+Lawful/Chaotic from its own temperament (*neutral is fine*). So a patron
+declares *both* a morality and a politics, and a single god is served through a
+**lawful** face *and* a **chaotic** one.
 
 **MITRA (Good) — the bond, presence, serving-experience**
-- **Vesta, patron of the hearth** *(old)* — home, welcome, the gathered fire. The
-  host.
-- **Eir, patron of the mend** *(old)* — healing, tending the suffering. The Healer.
-- **Goibniu, patron of honest work** *(old)* — craft done well *for others*; the
-  **good face of making** (the Builder — making for presence, the opposite of the
-  corpos who make to capture).
-- **Aletheia, patron of the honest count** *(new)* — the goddess of **truth /
+- **Vesta, patron of the hearth** *(old · Lawful Good)* — home, welcome, the
+  gathered fire. The host.
+- **Eir, patron of the mend** *(old · Neutral Good)* — healing, tending the
+  suffering; picks no side. The Healer.
+- **Goibniu, patron of honest work** *(old · Lawful Good)* — craft done well *for
+  others*; the **good face of making** (the Builder — making for presence, the
+  opposite of the corpos who make to capture).
+- **Aletheia, patron of the honest count** *(new · Chaotic Good)* — the goddess of **truth /
   unconcealment**: genuine connection across the network, being **truly seen**
   instead of counted. The new religion's heart, and Mara's exact good-twin.
 
 **PAN (Neutral) — the indifferent wild**
-- **Cernunnos, patron of the wild** *(old)* — the hunt, the beasts, the green
-  dark. The Seeker into wilderness.
-- **the Turning, patron of the seasons** *(old)* — cycles, weather, the
-  indifferent year.
+- **Cernunnos, patron of the wild** *(old · Chaotic Neutral)* — the hunt, the
+  beasts, the green dark. The Seeker into wilderness.
+- **the Turning, patron of the seasons** *(old · Lawful Neutral)* — cycles,
+  weather, the indifferent year; the inexorable wheel.
 - ***No new demigods*** — and that is the point: Pan is the one god *off the
   network*; the wild never went online. (Mitra and Moloch carry old + new; Pan is
   old-only.)
 
 **MOLOCH (Evil) — capture** *(antagonist faces; never a player pick)*
-- **Mammon, patron of the hoard** *(old)* — greed, wealth piled and held. The
-  **great houses' dark patron** — the chronic capture, deified.
-- **Mara, patron of the Feed** *(new)* — the demon of **illusion and the endless
+- **Mammon, patron of the hoard** *(old · Lawful Evil)* — greed, wealth piled and
+  held; *ordered* accumulation. The **great houses' dark patron** — the chronic
+  capture, deified.
+- **Mara, patron of the Feed** *(new · Chaotic Evil)* — the demon of **illusion and the endless
   loop** that keeps you (samsara — the doomscroll, three thousand years early).
   The engagement-god; Moloch's modern mask with a real name. Aletheia's dark
   mirror: *being seen* vs. *being kept.*
@@ -337,6 +420,42 @@ in. The **old** patrons are the rooted, timeless ones. Players patronize **Mitra
 or Pan** (or *seeking / unaffiliated*, the default); the **dark-god arc** (a good
 soul tangled with Mammon or Mara — never corrupting, always push-pull) is the
 earned religious twin of the False-Dawn cult, never a char-gen pick.
+
+### Worship in practice *[settled]*
+
+Worship is a **mirror, not a vending machine.** You don't pray for loot — you
+**declare a life** (a patron) and the world reflects whether you actually live
+it. The whole system is the honest count turned on your own soul.
+
+- **The pick (char-gen).** You name a **Mitra or Pan** patron — *the life you
+  want to be true of you* — or **seeking / unaffiliated** (the default; worship
+  is opt-in, never pushed). An optional **starting standing** sets tone, not
+  power (*devout · convert · lapsed · doubter*). No boon menu, no number — you've
+  told the world who you're trying to be; now it watches.
+- **The practice is the living of it.** Declare **Eir** and the worship *is*
+  tending the hurt; declare **Aletheia** and it *is* being genuinely present.
+  Prayer and rite are *expressions*; the **deeds are the liturgy** (it rides the
+  chronicle). The **Chapel** — on the Temple of the Ages ruins, tended by the
+  clergy's residue — is where you *declare or change* a patron; Mitra's worship
+  is the living **cult-of-presence**, the honest count its rite.
+- **The god never speaks — it's a current you're in.** No dialogue (mythic,
+  never embodied). It answers as the **gravity you feed:** in **resonance**
+  (deeds match the patron you named) the world tilts your way — fortune, omens,
+  the sense of being carried; in **dissonance** (you named one god, feed another)
+  the **mirror** — the chronicle and the honest count reflect the gap back.
+  *Recognition, not punishment: the world reflects, never judges.*
+- **Favor is the life deepened, not loot.** The "boon" for a patron is
+  **becoming more what you serve** — live Eir, grow in mending; live Goibniu,
+  your making gains weight (the deferred capability layer; favor earned by
+  *embodiment*, never by prayer). **You can't farm a god.**
+- **The drama is the gap — and the drift.** You can **name Aletheia and feed
+  Mara** — declare "connection," chase clout, perform for the count — and the
+  chilling part is you might not know it (*"am I running a hollow loop right
+  now?"*). Feeding Moloch is **drift, not damnation** (the good-floor holds;
+  always redeemable). That sets up the **dark-god arc:** a good soul who
+  *knowingly* tangles with **Mara or Mammon** — boons real and seductive, never
+  corrupting, a true push-pull with social and narrative cost — the earned
+  religious twin of the False-Dawn cult.
 
 ## History — the five ages
 
