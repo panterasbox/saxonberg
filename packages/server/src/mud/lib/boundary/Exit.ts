@@ -61,7 +61,9 @@ export type TraversalGate =
   | 'enablement'
   | 'capability'
   | 'noConveyance'
-  | 'encumbrance';
+  | 'encumbrance'
+  | 'terrain'
+  | 'breakaway';
 
 /**
  * Result of `Exit.canTraverse()`.

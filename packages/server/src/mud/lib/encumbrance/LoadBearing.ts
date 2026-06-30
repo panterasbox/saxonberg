@@ -37,6 +37,7 @@ import type { Slotted, SlotSpec } from '../slot/Slotted';
 import type { Tangible } from '../material/Tangible';
 import type { Reserved } from '../reserve';
 import type { Vitals, ConditionBand } from '../vitals/Vitals';
+import type { Hauler } from '../slot/Hauler';
 import { MixinApi } from '../../api/mixin';
 import { ContainmentApi } from '../../api/containment';
 import type { SubscribableFieldDescriptor } from '../../api/mql-subscription';
@@ -250,6 +251,15 @@ export function LoadBearingMixin<TBase extends MixinConstructor>(Base: TBase) {
         for (const occ of occupants) {
           total += walk(occ as unknown as Stuff, 1.0, placement, 0, visited);
         }
+      }
+
+      // c) Hitched cart — the draft load of whatever this bearer hauls.
+      // The cart's cargo was never on these books (it lives in the cart's
+      // own container); only the attenuated draft is borne. Read dynamically
+      // so the Creature base carries no haulage dependency — a non-hauler
+      // bearer skips this entirely. See docs/subsystems/encumbrance.md.
+      if (MixinApi.isHauling(this as unknown as Stuff)) {
+        total += (this as unknown as Hauler).getHaulDraft().rawValue();
       }
 
       return Quantity.of(total, 'kg');

@@ -43,6 +43,7 @@ import { AetherMixin } from "../lib/message/Aether";
 import { ContactsMixin } from "../lib/social/Contacts";
 import { NotifyPolicyMixin } from "../lib/social/NotifyPolicy";
 import { SubjectSubscriberMixin } from "../lib/forum/SubjectSubscriber";
+import { HaulerMixin } from "../lib/slot/Hauler";
 import { Events } from "../lib/events";
 import type { User } from "../lib/identity/User";
 import type {
@@ -79,10 +80,20 @@ export interface AvatarInitContext {
 // char-gen / augmentation slates' diegetic story); NPCs opt in
 // per-class by composing AetherMixin themselves when content requires
 // it. The mixin gates `tell` and (future) chat / remote-emote.
+// HaulerMixin composes onto Avatar — every player can hitch and pull a
+// cart (self-haul). Deliberately NOT on the Character base: a generic NPC
+// doesn't haul, and a draft beast carves it in via `HaulingCreature`
+// (the encumbrance doc's "compose the mixin, not the class tree" rule).
+// LoadBearing (on Creature) reads the draft term dynamically via
+// MixinApi.isHauling, so position in the stack is free.
 const AvatarBase = PostRegistrationMixin(
   HasInteractiveMixin(
     AetherMixin(
-      NotifyPolicyMixin(ContactsMixin(SubjectSubscriberMixin(ShelledCharacter))),
+      HaulerMixin(
+        NotifyPolicyMixin(
+          ContactsMixin(SubjectSubscriberMixin(ShelledCharacter)),
+        ),
+      ),
     ),
   ),
 );

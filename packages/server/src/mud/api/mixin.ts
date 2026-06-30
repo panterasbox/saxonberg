@@ -86,6 +86,8 @@ import type { Postured } from '../lib/slot/Postured';
 import type { Posed } from '../lib/character/Posed';
 import type { Mountable } from '../lib/slot/Mountable';
 import type { Drivable } from '../lib/slot/Drivable';
+import type { Haulable } from '../lib/slot/Haulable';
+import type { Hauler } from '../lib/slot/Hauler';
 import type { Spawner } from '../lib/stuff/Spawner';
 import type { Spawned } from '../lib/stuff/Spawned';
 import type { Globbable } from '../lib/stuff/Globbable';
@@ -748,6 +750,14 @@ export class MixinApi {
 
   public static isDrivable(obj: Stuff): obj is Stuff & Drivable {
     return this.hasMixin(obj, Mixins.Drivable);
+  }
+
+  public static isHaulable(obj: Stuff): obj is Stuff & Haulable {
+    return this.hasMixin(obj, Mixins.Haulable);
+  }
+
+  public static isHauling(obj: Stuff): obj is Stuff & Hauler {
+    return this.hasMixin(obj, Mixins.Hauler);
   }
 
   public static isSpawner(obj: Stuff): obj is Stuff & Spawner {
