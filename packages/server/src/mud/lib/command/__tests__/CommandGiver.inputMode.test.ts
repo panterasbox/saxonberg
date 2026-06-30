@@ -51,7 +51,10 @@ function echoedText(giver: TestGiver): string | undefined {
 
 // A minimal stand-in for the originating connection — executeCommand only
 // reads `.stuffId` off it for echo attribution.
-const fakeInteractive = { stuffId: 'i1' } as unknown as Interactive;
+const fakeInteractive = {
+  stuffId: 'i1',
+  touchInput: () => {},
+} as unknown as Interactive;
 
 describe('executeCommand per-bar input mode', () => {
   let giver: TestGiver;
