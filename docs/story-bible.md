@@ -206,8 +206,8 @@ experience. Evil is the enemy of experience itself.
   thesis with the lights out* — Saxonberg if the soul went missing.
 - **The dark twin of the count.** The honest count reduces no one — it
   counts to *recognize*. Evil counts to *consume*, reducing persons to
-  quantity. Same act, opposite soul. (Working handle: *the Great Tally* /
-  the New God of the Metric — throwaway names.)
+  quantity. Same act, opposite soul. (The god of all this is **Moloch**; its
+  modern mask the **Metric / the Feed** — see *The gods and demigods*.)
 - **Mythic, never literal.** No boss to unplug — it's the *named pattern*
   of capture. Its **agents are real** (witting and not); the god itself
   is only the myth that names what they serve. **No address** — placeless
@@ -221,53 +221,75 @@ experience. Evil is the enemy of experience itself.
 ## The gods and demigods **[settled]**
 
 Gods live on **belief and attention** — which the engine already models
-(renown, reactions, the belief-store, the gaze of players). Two tiers:
+(renown, reactions, the belief-store, the gaze of players). The deepest truth
+about them: **a god here is not a being but a *gravity*** — one of the two
+directions every incentive can be tuned, plus the indifferent world outside the
+network. **Good is an incentive tuned to *serve* the person; Evil one tuned to
+*capture* them** — the two trajectories the technology can take, personified.
+(We never name the real-world target; the gods *are* the two ways the network
+goes.) Two tiers:
 
-**Three high gods — eternal and constant.** Good vs. evil never moves; it
-is always the same three forces, the three orientations toward experience:
+**Three high gods — eternal and constant**, the three orientations toward
+experience. They carry **real personality without bodies:** a god has the feel
+of a *current* — a consistent pull you know the instant you're in it, never a
+figure you meet — and you don't worship a concept, you worship a **name** (a
+religion forms around *Mitra*, not around "presence"). So the names are
+**deified mythic roots, defamiliarized:**
 
-- **Presence (Good)** — serves experience. *(Old demigods: the hearth,
-  honest work, awe.)*
-- **Nature / the Indifferent (Neutral)** — neither serves nor preys; the
-  emergent natural world, the wild.
-- **The Hollow (Evil)** — preys on experience; capture. Eternal only as the
-  *latent shadow of presence* — wherever the gift is freely given, taking is
-  possible — it **woke at the first hollowing** (see *The lost paradise*) and
-  recurs ever after (the first-faller → Solus → Vane → the Metric).
+- **Mitra (Good)** — *the bond.* The oldest god of covenant and friendship, the
+  tie between people; serves experience. **Feels like the friend who is actually
+  present** — warm, unhurried, asks nothing back, leaves you more yourself;
+  slow, costly, never addictive, winning only on depth. (The attuned's
+  freely-given gift, deified.) *(Old demigods: the hearth, honest work, awe.)*
+- **Pan (Neutral)** — *the wild.* The indifferent natural world, the all, the
+  source of panic; neither serves nor preys. **Feels like the mountain that
+  doesn't know you exist** — vast, uninterested, here before the network and
+  after it; the one god not about attention at all.
+- **Moloch (Evil)** — *the devouring system* (an optimizer, not a glutton — the
+  malice filed off). Preys on experience; capture. **Feels like the feed that
+  ate your evening** — frictionless, endlessly accommodating, the warm face a
+  forgery the optimization found because warmth retains you; gives the hit,
+  takes the hour, leaves you emptier. *Not a devil — an A/B test that found your
+  weakness.* Eternal only as the **latent shadow of presence** (wherever the
+  gift is freely given, taking is possible); it **woke at the first hollowing**
+  (see *The lost paradise*) and recurs ever after (the first-faller → Solus →
+  Vane → the Metric).
+
+**Which gravity wins is decided by authorship, not virtue.** Gamification tunes
+incentives either way; the only thing that keeps the tuning toward Mitra is the
+**incentive-code written by all three** — consumer / producer / patron (play /
+make / fund), the three chambers. Capture is what you get when one writes the
+code alone.
 
 These are the moral axis. The **Lawful/Chaotic axis is *not* godded** — it
-is the secular, human, political question (how the good organize
-themselves), the Grounded Age's own. The grounding *was* the move from
-divine-cosmic authority to secular politics, so the political axis being
-god-less is the point.
+is the secular, human, political question (how the good organize themselves),
+the Grounded Age's own. The grounding *was* the move from divine-cosmic
+authority to secular politics, so the political axis being god-less is the point.
 
-**Demigods — the patrons — are what change.** Each high god has
-**old-world demigods** and **new, aether-enabled demigods**. The *old
-religion* patronizes the rooted, ancestral patrons; the *new religion*
-patronizes the aether-born ones — and the new religion **couldn't have
-existed before the Widening**. The Hollow's new demigod is the **Metric /
-the Feed** (the AI-capture allegory — a *new demigod of the eternal Evil*,
-the "newest mask"); Presence's new demigod is the patron of genuine
-connection-across-the-network (the honest count's god). The same aether
-births both.
+**Demigods — the patrons — are what change** — and *here* is where the **"Name,
+patron of Whatever"** format lives (the dozens of specific saints; rosters
+next). Each high god has **old-world demigods** and **new, aether-enabled
+demigods**: the *old religion* patronizes the rooted, ancestral patrons; the
+*new religion* the aether-born ones — and the new religion **couldn't have
+existed before the Widening**. **Moloch's** new demigod is the **Metric / the
+Feed** (the capture allegory — a *new mask on the eternal Evil*); **Mitra's** is
+the patron of genuine connection-across-the-network (the honest count's god).
+The same aether births both.
 
-Two religions, **one pantheon** — not different gods, the same three
-forces reached through different patrons. ("Old gods vs. new gods" is a
-folk *feel* — the rooted patrons feel old, the hollow's perpetually feel
-new — never a second set of deities. Good vs. evil is **constant**; only
-the demigods turn over.)
+Two religions, **one pantheon** — not different gods, the same three forces
+reached through different patrons. ("Old gods vs. new gods" is a folk *feel* —
+the rooted patrons feel old, Moloch's perpetually feel new — never a second set
+of deities. Good vs. evil is **constant**; only the demigods turn over.)
 
-**Patrons are mythic — never embodied.** A patron is a *felt presence*
-known through stories, ritual, and signs, not a dialogue-tree NPC (an
-embodied god would rank below the wizard-players — and would be
-*killable*, demanding ugly unkillable-mechanics). A patron "watches your
-deeds and answers the gap" between aspiration and behavior through the
-**world's** reaction — standing, fortune, omens, the chronicle — never a
-conversation. This is **"the god you name vs. the god you feed"**: you
-declare a patron (an aspiration, old-world or aether-born), your deeds are
-measured against it, and the gap is the drama. Players patronize
-**Presence or Nature** demigods (the good-compatible forces), never the
-Hollow.
+**Gods and patrons alike are mythic — never embodied** (no walking among
+mortals; an embodied god would rank below the wizard-players, and would be
+*killable*, demanding ugly unkillable-mechanics). A god is *felt*, not met: it
+"watches your deeds and answers the gap" between aspiration and behavior through
+the **world's** reaction — standing, fortune, omens, the chronicle — never a
+conversation. This is **"the god you name vs. the god you feed"**: you declare a
+patron (an aspiration), your deeds are measured against it, and the gap is the
+drama. Players patronize **Mitra or Pan** demigods (the good-compatible forces),
+never Moloch.
 
 *Open: specific demigod rosters per force; the **war-as-con** seam
 (whether the "oldest battle" is partly a con — conflict pins attention,
@@ -306,7 +328,7 @@ networked, living the cooperative *by nature* — a gift economy of mutual
 attention, presence freely flowing, uncapturable not by any wall but by
 **innocence** (no one had yet discovered taking). Then **the first fall:** a
 being — unnamed, it could have been anyone — looks at the freely-given gift and
-**takes**, hollowing himself in the act and waking the latent **Hollow**; the
+**takes**, hollowing himself in the act and waking the latent **Moloch**; the
 gift can be hoarded now, presence pools into centers, and the one connected
 polity shatters into the first hierarchy. That is **the oldest battle**
 (experience vs. the hollowing) and its **first casualty** — and the attuned
@@ -1009,7 +1031,7 @@ was paradise.**
   (named) and Vane (named), the first-faller is **faceless on purpose:** not
   because legend forgot, but because the act *erased the self* — he became the
   first hollow, and the emptiness is what remains, not the man. He is the
-  **first host the Hollow woke in** (the Hollow eternal only as the *latent
+  **first host Moloch woke in** (Moloch eternal only as the *latent
   shadow* of presence, unwoken until this first yes). It could have been
   **anyone**; he was simply first — which is the whole point: the rot is not a
   villain's invention but a **possibility latent in presence itself.** *(So the
@@ -1130,7 +1152,7 @@ never a third Sol- surname — capture needs no bloodline.)*
 - **The false fulfillment.** Vane didn't merely reach for power — during the
   Widening he **wore salvation's face.** He styled himself the prophecy come
   true, *the one come to fill the seats*, and rode the newly-networked feed to
-  capture **attention at scale** (the human face of the Hollow's modern
+  capture **attention at scale** (the human face of Moloch's modern
   demigod, the Metric / the Feed). Not a corpo man — the independent
   attention-tyrant who nearly became the Feed's sovereign by promising the very
   dawn Amos had promised. He was **caught**, and catching him is what turned a
@@ -1167,18 +1189,18 @@ never a third Sol- surname — capture needs no bloodline.)*
   not clean.)*
 - **Beaten by a constitution, not a champion.** The founding order's defining
   choice was to **refuse to martyr him** — no execution (it canonizes him, and
-  is the Hollow's own answer), no prison (a relic and a letter-writing
+  is Moloch's own answer), no prison (a relic and a letter-writing
   mythology). They **made his pitch redundant by structure:** once the seats
   provably can't be seized by one man, the man whose whole pitch was *"I will
   fill them"* was disproven in public. He's **alive, free, discredited,
-  unwatched** — and the freedom is the flex: no surveillance (the Hollow's
+  unwatched** — and the freedom is the flex: no surveillance (Moloch's
   tool), because the watch *is* the open structure. He's the live proof the
   guardrails work.
 - **Intent is not control — and the people are free.** The polity can refuse
   to *make* him a symbol; it cannot stop others from *choosing* him as one.
   Leaving Vane free is **accepting the risk that he gets deified** — and some
   will. This is the world's own wager turned on its shadow: you cannot suppress
-  the False Dawn without picking up the Hollow's tools, so the cooperative
+  the False Dawn without picking up Moloch's tools, so the cooperative
   **permits the danger** as the price of not becoming the thing it fears. We
   author the **conditions** — Vane, the embers, the lore — never the
   **outcome**: whether a real False-Dawn cult forms is **emergent,
@@ -1223,7 +1245,7 @@ Independents; this is the *rise and meaning.*)
   distribute, and run a planetary aether. The corpos did: they took the **pipes**
   (the implant supply chain, the field-services, the money rails — the
   corpo-run commercial banks of the banking model) *and* the **attention** (the
-  **Metric / the Feed**, the Hollow's modern demigod). The power the order gave
+  **Metric / the Feed**, Moloch's modern demigod). The power the order gave
   away, the corpos picked up. Risen in a single generation — recent, not ancient.
 - **The cohort-split — the corpos and the Charter are twins.** The breakthrough
   cohort — the academics who cracked the implant — faced one choice: **give the
@@ -1263,7 +1285,7 @@ Independents; this is the *rise and meaning.*)
   danger stays structural, hereditary capital + the board model, never a secret
   council.)* The **Independents**, in this frame, are the **houseless** — makers
   who never had a cabal or a dynasty.
-- **What they are — and aren't.** Not "the Hollow" (that is the principle), but
+- **What they are — and aren't.** Not **Moloch** (that is the god/principle), but
   **agents in a system that rewards capture.** A multipolar, **rivalrous** field,
   not a cartel — each corpo its own ethos; the temptation (capture pays on a
   universal field) bends them all to differing degrees, some building genuinely,
@@ -1322,10 +1344,10 @@ and the visitor assembles the history from the things:
   - **The Eschatology Room** (warded) — where the plinth leads if we lose: the
     **empty world**, a city that runs flawlessly and holds no one. A warning, not
     a treasure.
-- **The enemy in the room:** the **Metric exhibited as itself** — the Hollow's
+- **The enemy in the room:** the **Metric exhibited as itself** — Moloch's
   modern demigod on a working screen, *counting the visitor's attention while
-  they read about it.* Beside it the **two honest counts** (Presence *counts to
-  recognize* · the Hollow *counts to consume* — same act, opposite soul) and a
+  they read about it.* Beside it the **two honest counts** (Mitra *counts to
+  recognize* · Moloch *counts to consume* — same act, opposite soul) and a
   **mirror**: *you can't tell, including about yourself.*
 - **The founding** (told straight): the **Charter** working-draft, the framers'
   arguments still legible in the margins; **cranial implant, prototype №1**
@@ -1345,7 +1367,7 @@ and the visitor assembles the history from the things:
   miracle, made a clinic visit.*
 - **The living shrine** (belief, not gods): you can't display the gods, so you
   display worship — cult objects, **competing god-relics on competing placards**,
-  the candles **lit** (Presence worshipped *now*; the honest count its rite).
+  the candles **lit** (Mitra worshipped *now*; the honest count its rite).
 - **The City** — a quieter gallery: everyday Terminus, Oldtown's first chapel
   stone, the living ground the war is actually fought on.
 - **The deep root** (one alcove, not the spine): green glass from the **Palace of
