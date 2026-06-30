@@ -288,28 +288,62 @@ inherit. Holds the **two older worlds** whose joining later made Eternal
 City.
 
 ### II. The Eternal Age — *Eternal City*
-Authority descends **from above.** Born of a union and ruled by a
-**founding dyad** — two makers, born of the Confluence, who withdraw into
-silence (the deist absence) and, at the end, fail to intervene. A
-**council of wizards** rules beneath them; the estates (**clergy** +
-**nobility / peerage**, titles and land by divine sanction) below that.
-Make and rule fused; the dreamlike, impossible city. Its internal arc is
-the natural death of a made order — *born of a union, built by the first,
-opened to many, captured by concentration, destroyed by the capture* — the
-cautionary case study the Grounded Age reads off the ruins:
+Authority descends **from above.** Born of a union and ruled by a **founding
+dyad** — two makers, born of the Confluence, **absent in complementary ways**:
 
-1. **The Confluence** — Eternal City born from two older worlds joined into
-   one; the founding dyad makes it.
-2. **The First Making** — the first circle of makers build the world out.
-3. **The Opening** — the gate opens to new makers; the world flourishes and
-   widens; the founders withdraw into silence.
-4. **The Pooling** — shared authority narrows into a single seat by
-   *calculus, not law*; the council's power is gated; the silent founders
-   do not intervene. The seat has a name — **Corvin Solus**, the demagogue
-   (see *The coin*) — but the lesson stays structural: he pooled power
-   because *nothing checked him.* The age dies of concentration.
-5. **The Reaping** — the great purge and final consolidation; the first to
-   leave. Bleeds into the Fallow as the exodus dominoes.
+- **The Wright** — who made and tends the world's *substrate itself*, the engine
+  reality runs on (the **aether / the medium**). Apolitical not by choice but by
+  **domain** — he is the physics, not the politics; the god who makes the world
+  *run* and never once touches the mortal realm.
+- **The Warden** — who hands down exactly **two laws** and then refuses all
+  further governance, *actively dismantling* anyone who tries to impose more
+  order yet otherwise withholding every power he holds. **The guardrail who
+  chose, on principle, never to be one** — the Warden who would not ward.
+
+Between them **no one governs** — one will not rule, one only builds — and *that
+vacuum is the flaw*, the photographic negative the cooperative is built from. The
+Warden's **two laws** are the whole constitution of the age, and they carry its
+poison and its glory at once:
+
+> **First Law — *do not provoke the strong.*** (Might-makes-right dressed as
+> prudence — the seed of the Pooling.)
+> **Second Law — *take your joy.*** (The seed of everything good the age ever
+> made.)
+
+Beneath the dyad a **council of wizards** rules **by fiat**, and the
+wizard-ranks justify themselves as **earned** — the age's governing lie, a
+**meritocratic mask over a power hierarchy** (you "rose by integrating," which
+meant accruing power; unforgiving to newcomers, intoxicating once inside) — *the
+same lie the modern **Metric / the Feed** industrializes, power wearing merit's
+mask an age apart* (see *Evil — the hollowing*). The **clergy** keep the faith
+beneath them — the crumb that survives the fall. *Make and rule fused; the
+dreamlike, impossible city.* Its internal arc is the natural death of a made
+order — *born of a union, built by the first, opened to many, captured by
+concentration, destroyed by the capture* — the cautionary case study the
+Grounded Age reads off the ruins:
+
+1. **The Confluence** — Eternal City born from **two older worlds joined into
+   one** (two dead predecessors merged); the dyad makes it. A **wild, brief
+   precursor city** flares first and dies young — then the dyad drafts its first
+   makers and builds the *true* Eternal City, custom, from nothing.
+2. **The First Making** — the first circle of makers build the world out;
+   **Mordrick the First Builder** raises the first Eternal City. *(Δ: the world
+   gets its bones, and its first named maker.)*
+3. **The Opening** — the gate opens to new makers; generations of wizards follow
+   the first; the world flourishes and widens; the founders withdraw into
+   silence.
+4. **The Pooling** — shared authority narrows into a single seat by *calculus,
+   not law*; the council's power is gated; the silent founders do not intervene.
+   The seat has a name — **Corvin Solus**, the demagogue (see *The coin*) — but
+   the lesson stays structural: he pooled power because *nothing checked him*
+   (the age was built **anti-cooperative**, so no counter-power could ever
+   amass) and **the Warden would not.** The First Law had already sanctified
+   him — he was the strong, and the strong were not to be provoked. The age dies
+   of concentration.
+5. **The Reaping** — the great purge and final consolidation, and **inverted**:
+   it cut the **established, the beloved, the keepers of institutional memory**
+   and spared the new — knowledge destroyed by fiat. The first to leave; bleeds
+   into the Fallow as the exodus dominoes.
 
 ### III. The Fallow — *the decline*
 The throne **empties.** Eternal City hollows out and goes dark — entropy,
