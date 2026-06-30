@@ -193,9 +193,14 @@ reissue).
 - **The P&L** — `BankingApi.profitAndLoss(account)`: a derive-on-read
   categorized read (per-category signed net + running balance) — the
   deficit-as-target instrument, red by design. `house pnl` (operator-gated)
-  reads it; `reserve mint <amount>` (operator-gated CB faucet) mints
+  reads it; `reserve mint <amount>` (the CB faucet) mints
   `subsidy` into the venue account to cover the red — a logged, visible,
-  accountable faucet.
+  accountable faucet. **`reserve` is now Governor-gated** (`requiresGovernor`
+  / holding the `central-bank-governor` office — the founder by default, or
+  a handed-off holder), no longer `requiresWizard`: minting money is a
+  monetary-authority act, not a code-trust one. This realizes the "governance
+  of the central bank" `CentralBank.ts` left deferred — see
+  [governance.md](./governance.md). (`house` stays operator-gated.)
 
 ## Reporting consumers + the bar loop (Phase 5)
 
@@ -299,8 +304,10 @@ The plan flagged 6 open implementation choices; settled as reached:
    old-MUD flat-verb style): `bank` (open/deposit/withdraw/transfer/balance),
    `wallet` (use/freeze), `tab` (settle/skip), plus the flat `pay`; the
    operator surface splits **`reserve`** (mint/supply, central bank) vs
-   **`house`** (pnl/payroll, venue owner), both `requiresWizard` via
-   `AuthorMixin`. 13 flat verbs → 6, collapsing most verb collisions
+   **`house`** (pnl/payroll, venue owner): `house` is `requiresWizard` via
+   `AuthorMixin`; **`reserve` is `requiresGovernor`** (the
+   `central-bank-governor` office — see [governance.md](./governance.md)),
+   the monetary-authority axis rather than code-trust. 13 flat verbs → 6, collapsing most verb collisions
    (no more banking `open` shadowing the boundary `open`). A pure view-layer
    regroup — the Api/Logic substrate is untouched. (Phase 2 surface,
    restructured post-MR review.)
