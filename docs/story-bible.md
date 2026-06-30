@@ -97,6 +97,23 @@ cautionary tale, in an order engineered so they can never become Solus. The
 power that felled Eternal City, handed back with the one thing it lacked: a
 structure that won't let it take you.
 
+**Engine mapping.** The wizard/protowizard line above is realized
+literally in the engine (see
+[access.md § The code-trust lockdown](./subsystems/access.md)): the
+**`wizards`** managed group *is* the code-trust (raw-TS) axis, and a
+**protowizard** is its unstored complement — anyone with content-write
+access who isn't a wizard. The save chokepoint enforces it: a protowizard
+may author content but may not name code (`class` / `hydratorClass` /
+`behaviors[].brain`) to run. One nuance on the retired word: the engine
+*does* carry an **`archwizards`** group, but it is an **operational
+conferral tier** — *who may grant/revoke the making-trust* (operator/root
+-managed, the `wizard grant/revoke` verb) — **not** the in-fiction
+"archwizard" rank the lineage retires (a maker who also *ruled*).
+Make-and-rule stay separate: archwizards administer *making*, they do not
+*govern*; the executive/PM office above them is a later, separate
+institution. The word's political sin (fusion) is still absent; only its
+administrative husk is reused.
+
 ## Alignment — two axes **[settled]**
 
 - **Good ↔ Evil** — the **ancient/cosmic/religious** axis. The oldest

@@ -6,7 +6,7 @@
  *
  * The async preload returns the streamer-axis boolean directly; the
  * dispatcher threads it back to the sync body via the `preloaded`
- * argument. Mirrors `requiresDeveloper`.
+ * argument. Mirrors `requiresWizard`.
  */
 
 import type { CommandValidator } from '../../../api/command';

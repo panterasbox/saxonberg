@@ -17,7 +17,7 @@ help: |
   Hard, surprising attempts move your competence most; grinding
   trivial successes barely moves it at all.
 validators:
-  - /lib/command/validators/requiresDeveloper
+  - /lib/command/validators/requiresWizard
 args:
   - name: discipline
     type: string

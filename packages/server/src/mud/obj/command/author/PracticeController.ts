@@ -8,7 +8,7 @@
  * `{discipline, difficulty, outcome}` deed on the actor's own Transcript
  * via `AdvancementApi.recordDeed` (which re-evaluates conferrals), then
  * echoes the resulting competence band. Developer-gated (the yaml's
- * `requiresDeveloper` validator) on top of the AuthorMixin visibility.
+ * `requiresWizard` validator) on top of the AuthorMixin visibility.
  */
 
 import { CommandController } from "../../../lib/command/CommandController";

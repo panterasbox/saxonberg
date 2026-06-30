@@ -10,7 +10,7 @@ help: |
   Reload re-runs the object through the hot-reload state machine, so
   existing instances pick up your latest changes in place.
 validators:
-  - /lib/command/validators/requiresDeveloper
+  - /lib/command/validators/requiresWizard
 args:
   - name: target
     type: string

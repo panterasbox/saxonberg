@@ -54,15 +54,16 @@ export async function clearCoreMembership(): Promise<void> {
 }
 
 /**
- * Seed `playerId` as a `'developers'` member. Used by tests that
- * exercise the developer axis (eval / reload / source-tree writes).
+ * Seed `playerId` as a `'wizards'` member. Used by tests that
+ * exercise the wizard (code-trust) axis (eval / reload / source-tree
+ * writes / the code-naming-field gate).
  */
-export async function seedDeveloperMembership(playerId: string): Promise<void> {
+export async function seedWizardMembership(playerId: string): Promise<void> {
   await ensureAccessRegistry();
   const reg = await GroupApi.registry();
   const provider = reg.managed();
-  const developers = await provider.findByName('developers');
-  if (!developers) throw new Error('developers group not seeded');
-  developers.addMember(playerId, 'member');
-  await developers.save();
+  const wizards = await provider.findByName('wizards');
+  if (!wizards) throw new Error('wizards group not seeded');
+  wizards.addMember(playerId, 'member');
+  await wizards.save();
 }

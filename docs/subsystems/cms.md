@@ -10,7 +10,7 @@ This is the **first build** of the CMS / authoring tools
 ([cms-slate.md](../slates/builds/cms-slate.md), Wave 1) — the "start with
 the code editor" front half, built against the backend that already exists
 (`SourceTreeApi`, `TemplateApi`, `HotReloadApi`, `AccessApi`). It is
-**developer-tier**: the surface is for people who can already write source
+**wizard-tier**: the surface is for people who can already write source
 and edit templates. The lease model, content editors, versioning, git, the
 LSP, and the law==code review gate are **deferred** — see *Deferral
 boundary* below.
@@ -141,7 +141,7 @@ the access model.
 
 **The WS split.** This build adds **no new WebSocket message**. CMS data is
 REST-only; the CMS tab opens no socket. The author→save→live loop still
-works live: a developer with the **game tab** open observes a content
+works live: a wizard with the **game tab** open observes a content
 save's effect there because the go-live step mutates the live world that
 tab already renders via its existing MQL subscriptions. A CMS-tab WS channel
 (live tree/file deltas, cross-tab "someone edited X", SharedWorker
@@ -179,23 +179,23 @@ author).
 
 Server-authoritative, on the **context-derived** actor (never a passed
 value — see *§ `CmsApi` / `CmsLogic`*). The whole surface is
-authoring-tier: source (engine TS) is developer-only; content (templates)
+authoring-tier: source (engine TS) is wizard-only; content (templates)
 is author-tier. Writes mirror `WriteController` verbatim:
 
 | Op | Gate (subject = `getActingAuthor()`) |
 |---|---|
-| Source read / list / stat | `isAuthor`? no — **`isDeveloper`** |
+| Source read / list / stat | `isAuthor`? no — **`isWizard`** |
 | Content read / list / stat | **`isAuthor`** |
-| Source write | `isDeveloper` **and** `can('write', resolveSourceFolderZone(path))` |
+| Source write | `isWizard` **and** `can('write', resolveSourceFolderZone(path))` |
 | Content write | live Zone → `canMutateZone(zone)`; else `can('write', liveAtPath)` |
 
 A `null` (unattributable) context fails every gate closed. Denials surface
 as `CmsError('denied')` → HTTP 403 → an inline error in the editor, never a
 silent no-op.
 
-`/auth/status` carries a top-level **`isDeveloper`** boolean (read via
-`AccessApi.isDeveloper` for the session avatar) so the client can hide the
-CMS launcher for non-developers. This is a **non-authoritative UX hint** —
+`/auth/status` carries a top-level **`isWizard`** boolean (read via
+`AccessApi.isWizard` for the session avatar) so the client can hide the
+CMS launcher for non-wizards. This is a **non-authoritative UX hint** —
 the REST gates remain the authority.
 
 ## Save go-live (template vs source)
@@ -221,7 +221,7 @@ path*:
 The CMS opens as its own tab (`?surface=cms`), a full-screen takeover
 bypassing the cockpit and the connection-phase switch, opening **no
 WebSocket**. A launcher in the account menu (visible only when
-`auth.isDeveloper`) opens it.
+`auth.isWizard`) opens it.
 
 - **Explorer** (`CmsExplorer` + `CmsTreeNode`) — two fixed roots; folders
   lazy-expand via `listTree` (children cached per node); leaves open via
@@ -281,7 +281,7 @@ not entangle the review model with a specific store.
   applies only to source files (it reads a filesystem path). Templates go
   live by re-hydrating their live clones — the correct, behavior-equivalent
   mechanism.
-- **`isDeveloper` landed top-level on `/auth/status`, not on its `player`
+- **`isWizard` landed top-level on `/auth/status`, not on its `player`
   payload** — that route doesn't populate `player` today (the WS
   connection-established path does), so a top-level flag was the minimal
   in-grain choice.

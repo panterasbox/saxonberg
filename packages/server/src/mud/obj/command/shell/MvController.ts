@@ -92,8 +92,8 @@ export default class MvController extends CommandController<MvModel> {
 
     // Source-tree mv. Both endpoints are WRITE — `mv` REMOVES source
     // after write — so src-side slice walk must also be a write check
-    // (developer + slice walk on src and dst).
-    if (!(await AccessApi.isDeveloper(giver))) {
+    // (wizard + slice walk on src and dst).
+    if (!(await AccessApi.isWizard(giver))) {
       return this.fail(
         context,
         "you don't have permission to write source",

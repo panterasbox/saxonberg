@@ -88,6 +88,13 @@ Class names are the last path segment (e.g., `/obj/Avatar` →
 `Avatar`); the import succeeds only if a named export with that name
 exists in the resolved module. Anything else throws.
 
+This validation is **format-only** (shape of the path). The orthogonal
+**trust** question — *may this author name this code at all?* — is
+enforced separately at the `saveTemplate` chokepoint: a non-wizard
+(protowizard) author cannot introduce or change the executable
+code-naming fields (`class` / `hydratorClass` / `behaviors[].brain`).
+See [access.md § The code-trust lockdown](./access.md).
+
 ## The Clone Pipeline
 
 `StuffApi.clone<T>(templatePath, context?): Promise<T>` runs:

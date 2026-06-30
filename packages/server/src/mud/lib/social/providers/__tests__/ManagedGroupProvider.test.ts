@@ -1,7 +1,7 @@
 /**
  * Tests for `ManagedGroupProvider.findByName` — the by-name lookup
  * helper used by the AccessRegistry's bootstrap seeding to find
- * well-known groups (`'core'`, `'lounge'`, `'developers'`) without
+ * well-known groups (`'core'`, `'lounge'`, `'wizards'`) without
  * threading their `_id`s.
  */
 

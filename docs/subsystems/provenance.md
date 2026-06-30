@@ -75,11 +75,15 @@ transparency + exit later — it meets the existing bar, doesn't lower it.
 ### Cross-worktree CMS contract
 
 The REST CMS (build-2 `cms-editor`) reaches authorship through
-`TemplateApi.saveTemplate`, so it is covered automatically — once its
-`runRoot` boundary (`CmsSession.runAsSessionPlayer`) calls
-`ExecutionContextApi.tagActingAuthor(actor)`. Until then CMS writes are
-**safely unattributed** (no acting-author tag → `getActingAuthor` is `null` →
-no row), never *misattributed*.
+`TemplateApi.saveTemplate`, so it is covered automatically. Its `runRoot`
+boundary (`CmsSession.runAsSessionPlayer`) **does** call
+`ExecutionContextApi.tagActingAuthor(actor)` (`backend/CmsSession.ts`), so
+`getActingAuthor` resolves the session's in-world Avatar and CMS authoring
+writes are attributed today — **not** "safely unattributed until then"
+(that earlier note was stale). The same `getActingAuthor` seam is what the
+wizard-authority **code-field gate** reads to identify the CMS author (see
+[access.md § The code-trust lockdown](./access.md)); a context with no
+derivable actor still yields `null` → no row, never *misattribution*.
 
 ## CreditRouting — the producer faucet's routing input
 

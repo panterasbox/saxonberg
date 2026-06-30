@@ -10,7 +10,7 @@
  * Registry Stuff via `StuffApi.findByTemplatePath` cannot call its
  * methods; this Api is the only legitimate path.
  *
- * State lives on the Registry (cached refs, developer playerId Set,
+ * State lives on the Registry (cached refs, wizard playerId Set,
  * etc.); the cached pointer lives in the logic singleton's module scope
  * (a lookup convenience, not domain state). Reload of `api/access.ts` or
  * `obj/api/AccessLogic.ts` re-resolves the pointer; reload of
@@ -24,6 +24,8 @@
 import { SecurityApi } from './security';
 import { StuffApi } from './stuff';
 import { HotReloadApi } from './hot-reload';
+import { CallSecurity } from '../lib/security/decorators';
+import { SecurityPolicies } from '../lib/security/SecurityPolicies';
 import type { Stuff } from '../lib/stuff/Stuff';
 import { AccessLogic } from '../obj/api/AccessLogic';
 import { fileURLToPath } from 'url';
@@ -83,22 +85,62 @@ export class AccessApi {
   }
 
   /**
-   * Orthogonal developer axis. True iff `subject` is an Avatar
-   * whose playerId is in the `'developers'` group.
+   * Orthogonal wizard axis — the code-trust capability. True iff
+   * `subject` is an Avatar whose playerId is in the `'wizards'` group.
+   * Gates every TypeScript-authoring/execution door (`eval`, `reload`,
+   * source writes, CMS source read/write) AND the executable
+   * code-naming fields on a content template (`class` /
+   * `hydratorClass` / `behaviors[].brain`). A content author who is not
+   * a wizard is a "protowizard": content-write access without code
+   * trust.
    */
-  public static async isDeveloper(subject: Stuff | null): Promise<boolean> {
-    return logic().isDeveloper(subject);
+  public static async isWizard(subject: Stuff | null): Promise<boolean> {
+    return logic().isWizard(subject);
   }
 
   /**
    * Orthogonal streamer axis. True iff `subject` is an Avatar whose
    * playerId is in the `'streamers'` group. Gates the livestream
-   * control plane (the `stream` verb). Distinct from the developer
+   * control plane (the `stream` verb). Distinct from the wizard
    * axis — a streamer drives the broadcast overlay without holding
    * TypeScript-escape capability.
    */
   public static async isStreamer(subject: Stuff | null): Promise<boolean> {
     return logic().isStreamer(subject);
+  }
+
+  /**
+   * Orthogonal archwizard axis. True iff `subject` is an Avatar whose
+   * playerId is in the `'archwizards'` group. Archwizards confer/revoke
+   * wizard status via `wizard grant/revoke` (the `requiresArchwizard`
+   * validator). Operator/root-managed; the Prime Minister office above
+   * them is deferred.
+   */
+  public static async isArchwizard(subject: Stuff | null): Promise<boolean> {
+    return logic().isArchwizard(subject);
+  }
+
+  /**
+   * Narrow-entry mutation: add (`makeWizard=true`) or remove the player
+   * from the `'wizards'` group. Gated to the `WizardController` (the
+   * `wizard grant/revoke` verb) via the string-keyed `FromModule` policy
+   * — string-keyed to avoid a value-level static-import cycle (the
+   * `forceDestruct`/`DestructController` precedent). The *authority*
+   * (the giver's archwizard status) is enforced by the verb's
+   * `requiresArchwizard` validator; this method is the structurally
+   * single entry to the membership write. Returns true iff membership
+   * changed.
+   */
+  @CallSecurity(
+    SecurityPolicies.FromModule(
+      'mud/obj/command/author/WizardController'
+    )
+  )
+  public static async setWizardMembership(
+    playerId: string,
+    makeWizard: boolean
+  ): Promise<boolean> {
+    return logic().setWizardMembership(playerId, makeWizard);
   }
 
   /**

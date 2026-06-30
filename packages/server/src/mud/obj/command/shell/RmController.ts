@@ -114,8 +114,8 @@ export default class RmController extends CommandController<RmModel> {
       return;
     }
 
-    // Source-tree: developer + slice walk both required.
-    if (!(await AccessApi.isDeveloper(giver))) {
+    // Source-tree: wizard + slice walk both required.
+    if (!(await AccessApi.isWizard(giver))) {
       return this.fail(
         context,
         "you don't have permission to remove source",

@@ -110,24 +110,24 @@ export class AuthRoutes {
           displayName: '',
         };
 
-        // Non-authoritative developer-tier hint so the client can hide
+        // Non-authoritative wizard-tier hint so the client can hide
         // the CMS launcher. Resolves the session's loaded Avatar through
         // the same bridge the REST CMS routes use; null avatar → false.
         // Gates remain server-side (this flag is UX only).
         try {
-          response.isDeveloper = await CmsSession.runAsSessionPlayer(
+          response.isWizard = await CmsSession.runAsSessionPlayer(
             req,
-            'auth.status.isDeveloper',
+            'auth.status.isWizard',
             // Derive the avatar from context (the bridge stamps it) — the
             // same context-only channel the CMS gates use; no passed actor.
             () =>
-              AccessApi.isDeveloper(
+              AccessApi.isWizard(
                 ExecutionContextApi.getActingAuthor() as Stuff | null
               )
           );
         } catch (err) {
-          console.error('AuthRoutes: isDeveloper resolution failed:', err);
-          response.isDeveloper = false;
+          console.error('AuthRoutes: isWizard resolution failed:', err);
+          response.isWizard = false;
         }
       }
 

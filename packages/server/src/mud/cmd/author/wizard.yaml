@@ -1,0 +1,47 @@
+verbs: [wizard]
+controller: author/WizardController
+description: "Confer or revoke wizard (code-trust) status (archwizard-only)"
+help: |
+  Manage who holds wizard status — the code-trust capability that lets a
+  player write TypeScript, run `eval`/`reload`, and set the executable
+  code-naming fields on a content template. Everyone else who authors is
+  a protowizard: content, not code.
+
+  `wizard grant <player>` adds someone to the `wizards` group; `wizard
+  revoke <player>` removes them. This verb is restricted to archwizards —
+  if you aren't one, the game won't let you run it.
+validators:
+  - /lib/command/validators/requiresArchwizard
+subcommands:
+  grant:
+    description: "Confer wizard status on a player"
+    help: |
+      Add a player to the `wizards` group, granting them code trust.
+      Name the player after the subcommand.
+    examples:
+      - cmd: wizard grant alice
+        note: Confer wizard status on Alice
+    args:
+      - name: target
+        type: object
+        required: true
+        scope: "online"
+        validators:
+          - /lib/command/validators/mustBeAgent
+        onExcess: prompt
+  revoke:
+    description: "Revoke wizard status from a player"
+    help: |
+      Remove a player from the `wizards` group, dropping their code
+      trust. They keep any content-author (protowizard) access.
+    examples:
+      - cmd: wizard revoke alice
+        note: Revoke Alice's wizard status
+    args:
+      - name: target
+        type: object
+        required: true
+        scope: "online"
+        validators:
+          - /lib/command/validators/mustBeAgent
+        onExcess: prompt

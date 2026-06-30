@@ -15,6 +15,10 @@ import { Mixins } from '../../lib/mixin';
 import { TemplateError } from '../../lib/stuff/TemplateError';
 import { ReservedTemplatePrefixes } from '../../lib/paths';
 import { ProvenanceApi } from '../../api/provenance';
+import { AccessApi } from '../../api/access';
+import { ExecutionContextApi } from '../../api/execution-context';
+import { CodeNamingFields } from '../../lib/stuff/CodeNamingFields';
+import Avatar from '../Avatar';
 import type { Stuff } from '../../lib/stuff/Stuff';
 import type { Marshaller } from '../../lib/persistence/Marshaller';
 import PersistentHydrator from '../../lib/persistence/PersistentHydrator';
@@ -54,8 +58,23 @@ export class TemplateLogic extends Idea {
     data: Record<string, unknown>,
     hydratorClassPath?: string
   ): Promise<string> {
+    const existing = await Template.findByPath(path);
+
+    // Code-trust lockdown: a non-wizard author (a protowizard) may not
+    // introduce or change a direct code-naming field
+    // (`class` / `hydratorClass` / `behaviors[].brain`). The actor is
+    // derived from the execution context (never caller-supplied); the
+    // `existing` doc is the diff baseline. See access.md § The
+    // code-trust lockdown.
+    await this.enforceCodeFieldGate(
+      classPath,
+      data,
+      hydratorClassPath,
+      existing,
+    );
+
     const tpl =
-      (await Template.findByPath(path)) ??
+      existing ??
       ((await ZoneApi.isFolderClass(classPath))
         ? new ZoneTemplate()
         : new LeafTemplate());
@@ -77,6 +96,100 @@ export class TemplateLogic extends Idea {
     // / system save, forced, non-avatar principal) records nothing.
     await ProvenanceApi.recordAuthoring({ path });
     return tpl._id!;
+  }
+
+  /**
+   * The code-field gate (wizard-authority). Enforces that a non-wizard
+   * content author cannot set or change any **direct code-naming field**
+   * — `class`, `hydratorClass`, or any `behaviors[].brain` — on a
+   * content template, since each resolves to executable code at clone /
+   * hydrate / behavior-fire time. The transitive reference fields close
+   * by construction (every referenced template passed this same gate).
+   *
+   * Allow ladder (gated-api-actor-from-context rule):
+   *  1. no attributable Avatar author (system / bootstrap / forced /
+   *     cross-actor / pre-Avatar login + char-gen + guest provisioning)
+   *     → ALLOW;
+   *  2. a wizard (`AccessApi.isWizard`) → ALLOW;
+   *  3. else (a protowizard) → enforce the delta rule below.
+   *
+   * The delta rule rejects a write that **introduces or changes** a
+   * code-naming field vs. the `existing` doc: `class` / `hydratorClass`
+   * inequality, or an incoming brain multiset that is not a subset of
+   * the existing one. A pure cosmetic edit (same class/hydrator, brain
+   * set unchanged-or-reduced) passes — the protowizard authoring path.
+   *
+   * Structural carve-out (D4): a `mkdir`-shaped write — a Zone/folder
+   * `class` with no behaviors and the standard (or absent) hydrator —
+   * is exempt. A folder class is engine code by construction, carries no
+   * author-chosen executable strategy, and is constrained by the
+   * folder/leaf invariant. The carve-out admits *any* `isFolderClass`
+   * value (broader than the single `FolderZone` that `mkdir` emits); the
+   * no-behaviors + standard-hydrator clauses keep it from smuggling an
+   * executable strategy. It is not a code-execution escape (every folder
+   * class is wizard-authored engine code), though it does let a
+   * protowizard turn a leaf template into a folder — a content-integrity
+   * edge gated by ordinary content-write access, not a code-trust one.
+   *
+   * Placement (D6): this gate is enforced at `saveTemplate`, the *authoring*
+   * chokepoint where the acting author and the in-world/CMS intent live —
+   * deliberately, not at the universal `DomainHook.aroundSave` where the
+   * folder/leaf invariant sits. The trade-off: a future path that mutates a
+   * `Template` and calls `tpl.save()` directly would bypass *this* gate while
+   * still tripping folder/leaf validation, and the drift-guard watches
+   * resolver call-sites, not template-write sites. No protowizard-reachable
+   * path does that today (the only non-`saveTemplate` authoring writer,
+   * `PackLogic`, is wizard-gated at the `pack` verb); if one is ever added,
+   * the gate moves to `aroundSave` beside `validateFolderLeafSave`.
+   */
+  private async enforceCodeFieldGate(
+    classPath: string,
+    data: Record<string, unknown>,
+    hydratorClassPath: string | undefined,
+    existing: Template | null,
+  ): Promise<void> {
+    const actor = ExecutionContextApi.getActingAuthor();
+    if (!(actor instanceof Avatar)) return; // provisioning / system → allow
+    if (await AccessApi.isWizard(actor)) return; // code trust → allow
+
+    const incomingBrains = CodeNamingFields.extractBrains(data);
+    const existingBrains = CodeNamingFields.extractBrains(existing?.data);
+
+    // A structural folder scaffold (mkdir / lounge seed) carries no
+    // author-chosen executable strategy — exempt its class + standard
+    // hydrator. Requiring no behaviors + the standard hydrator prevents
+    // smuggling a brain/hydrator in under a folder class.
+    const standardHydrator =
+      hydratorClassPath === undefined ||
+      hydratorClassPath === PersistentHydrator.templatePath;
+    const folderScaffold =
+      incomingBrains.length === 0 &&
+      standardHydrator &&
+      (await ZoneApi.isFolderClass(classPath));
+
+    const violations: string[] = [];
+
+    if (classPath !== (existing?.class ?? undefined) && !folderScaffold) {
+      violations.push('class');
+    }
+    if (
+      (hydratorClassPath ?? undefined) !==
+        (existing?.hydratorClass ?? undefined) &&
+      !folderScaffold
+    ) {
+      violations.push('hydratorClass');
+    }
+    if (!CodeNamingFields.isMultisetSubset(incomingBrains, existingBrains)) {
+      violations.push('behaviors[].brain');
+    }
+
+    if (violations.length > 0) {
+      throw new TemplateError(
+        `only a wizard may set executable code-naming field(s) ` +
+          `[${violations.join(', ')}] on a content template; protowizards ` +
+          `author by cloning/customizing wizard-made templates`,
+      );
+    }
   }
 
   /** See {@link TemplateApi.validateFolderLeafSave}. */

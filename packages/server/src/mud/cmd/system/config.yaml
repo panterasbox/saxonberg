@@ -16,7 +16,7 @@ examples:
   - cmd: config defaultStartLocation /obj/Lounge
     note: Set a setting to a new value
 validators:
-  - /lib/command/validators/requiresDeveloper
+  - /lib/command/validators/requiresWizard
 args:
   # Both optional: `config` lists, `config <key>` shows, `config <key>
   # <value>` sets. `value` is a single token (a setting value is a path /

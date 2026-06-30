@@ -51,7 +51,7 @@ function lookupRegistry(): AccessRegistry | null {
  * {@link AccessApi}.
  *
  * Lives at `/obj/api/access`. Holds the registry-resolution + predicate
- * orchestration; the durable state (cached refs, developer playerId Set)
+ * orchestration; the durable state (cached refs, wizard playerId Set)
  * lives on the pinned `/obj/AccessRegistry`, whose methods are gated to
  * admit this logic singleton (`FromTemplate('/obj/api/access')`) as well
  * as the Api module. Each method is gated
@@ -100,14 +100,14 @@ export class AccessLogic extends Idea {
     return reg.isAuthor(subject);
   }
 
-  /** See {@link AccessApi.isDeveloper}. */
+  /** See {@link AccessApi.isWizard}. */
   @CallSecurity(AccessApiCallers)
-  public async isDeveloper(subject: Stuff | null): Promise<boolean> {
+  public async isWizard(subject: Stuff | null): Promise<boolean> {
     if (subject === null) return false;
     const reg = lookupRegistry();
     if (!reg) return true;
     if (playerIdOfQuick(subject) === null) return false;
-    return reg.isDeveloper(subject);
+    return reg.isWizard(subject);
   }
 
   /** See {@link AccessApi.isStreamer}. */
@@ -118,6 +118,27 @@ export class AccessLogic extends Idea {
     if (!reg) return true;
     if (playerIdOfQuick(subject) === null) return false;
     return reg.isStreamer(subject);
+  }
+
+  /** See {@link AccessApi.isArchwizard}. */
+  @CallSecurity(AccessApiCallers)
+  public async isArchwizard(subject: Stuff | null): Promise<boolean> {
+    if (subject === null) return false;
+    const reg = lookupRegistry();
+    if (!reg) return true;
+    if (playerIdOfQuick(subject) === null) return false;
+    return reg.isArchwizard(subject);
+  }
+
+  /** See {@link AccessApi.setWizardMembership}. */
+  @CallSecurity(AccessApiCallers)
+  public async setWizardMembership(
+    playerId: string,
+    makeWizard: boolean
+  ): Promise<boolean> {
+    const reg = lookupRegistry();
+    if (!reg) return false;
+    return reg.setWizardMembership(playerId, makeWizard);
   }
 
   /** See {@link AccessApi.resolveSourceFolderZone}. */

@@ -3,7 +3,7 @@
  * dispatch-on-subcommand wrapper: a `sync` forwards to PackApi.sync (with the
  * default packId when omitted); a bad subcommand and a sync failure both emit
  * a `controller-rejected` note without invoking PackApi.sync twice. Developer
- * gating is declarative (pack.yaml's requiresDeveloper validator), enforced by
+ * gating is declarative (pack.yaml's requiresWizard validator), enforced by
  * the dispatcher, not re-tested here.
  */
 

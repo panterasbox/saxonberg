@@ -84,7 +84,7 @@ const Item = styled.button`
 export const AccountMenu: React.FC = () => {
   const player = useStore((s) => s.auth.player);
   const displayName = useStore((s) => s.auth.user?.displayName);
-  const isDeveloper = useStore((s) => s.auth.isDeveloper === true);
+  const isWizard = useStore((s) => s.auth.isWizard === true);
   const setSocialPaneOpen = useStore((s) => s.setSocialPaneOpen);
   const [open, setOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
@@ -167,7 +167,7 @@ export const AccountMenu: React.FC = () => {
           <Item role="menuitem" onClick={openSocial}>
             Social / Notifications
           </Item>
-          {isDeveloper && (
+          {isWizard && (
             <Item role="menuitem" onClick={openCms}>
               CMS editor
             </Item>

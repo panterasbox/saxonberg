@@ -174,7 +174,7 @@ async findByName(name: string): Promise<Group | null>;
 `name` is unique-indexed at the collection level, so the result is a
 single Group or `null`. Used by `AccessRegistry`'s bootstrap seeding
 and developer-cache warm path to find well-known groups (`'core'`,
-`'lounge'`, `'developers'`) without threading their `_id`s — see
+`'lounge'`, `'wizards'`) without threading their `_id`s — see
 [access.md](./access.md).
 
 The provider holds a `Map<id, Set<listener>>` for change notifications.

@@ -194,7 +194,7 @@ Lane 2's real craft verbs don't exist on this branch, so the loop is made
 exercisable standalone:
 
 - **`practice <discipline> [difficulty] [outcome]`** (`cmd/author/`,
-  developer-gated via `requiresDeveloper` + AuthorMixin visibility) — the
+  wizard-gated via `requiresWizard` + AuthorMixin visibility) — the
   harness that fabricates one `deed`, standing in for real practice.
 - **`competence`** (`cmd/charactergen/`, the `chronicle`-verb shape) — the
   zero-arg, self-only, **bands-only** self-view; afforded by

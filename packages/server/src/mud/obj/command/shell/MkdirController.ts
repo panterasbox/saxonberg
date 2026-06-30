@@ -67,7 +67,7 @@ export default class MkdirController extends CommandController<MkdirModel> {
       return;
     }
 
-    if (!(await AccessApi.isDeveloper(giver))) {
+    if (!(await AccessApi.isWizard(giver))) {
       return this.fail(
         context,
         "you don't have permission to write source",

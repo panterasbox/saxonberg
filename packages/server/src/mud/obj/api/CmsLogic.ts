@@ -177,7 +177,7 @@ async function gateContentWrite(
 
 /**
  * Source-tree write gate — verbatim from
- * `WriteController._gateSourceWrite`. `isDeveloper(actor)` AND
+ * `WriteController._gateSourceWrite`. `isWizard(actor)` AND
  * `can(actor, 'write', resolveSourceFolderZone(path))`.
  * Returns null on allow, a human-readable reason on deny.
  */
@@ -185,7 +185,7 @@ async function gateSourceWrite(
   actor: Stuff | null,
   sourceLogical: string
 ): Promise<string | null> {
-  if (!(await AccessApi.isDeveloper(actor))) {
+  if (!(await AccessApi.isWizard(actor))) {
     return "you don't have permission to write source";
   }
   const resource = await AccessApi.resolveSourceFolderZone(sourceLogical);
@@ -215,22 +215,22 @@ function actingActor(): Stuff | null {
 
 /**
  * Read/list gate on the context-derived actor. The CMS is authoring-tier:
- * source (engine TS) is developer-only; content (templates) is author-tier.
+ * source (engine TS) is wizard-only; content (templates) is author-tier.
  * Throws `CmsError('denied')` on failure (null actor fails closed).
  */
 async function gateRead(backend: CmsBackend): Promise<void> {
   const actor = actingActor();
-  // source (engine TS) is developer-only; content (templates) and document
+  // source (engine TS) is wizard-only; content (templates) and document
   // (the owned-JSON store — scripts + future kinds) are author-tier.
   const ok =
     backend === 'source'
-      ? await AccessApi.isDeveloper(actor)
+      ? await AccessApi.isWizard(actor)
       : await AccessApi.isAuthor(actor);
   if (!ok) {
     throw new CmsError(
       'denied',
       backend === 'source'
-        ? 'you must be a developer to browse source'
+        ? 'you must be a wizard to browse source'
         : backend === 'document'
           ? 'you must be an author to browse documents'
           : 'you must be an author to browse content'
@@ -604,8 +604,8 @@ export class CmsLogic extends Idea {
     path: string,
     body: string
   ): Promise<CmsWriteResult> {
-    // Gate on the mud-rooted source location (isDeveloper is checked
-    // first, so non-developers are denied before any filesystem work).
+    // Gate on the mud-rooted source location (isWizard is checked
+    // first, so non-wizards are denied before any filesystem work).
     const display =
       path === '/' ? SOURCE_ROOT_DISPLAY : SOURCE_ROOT_DISPLAY + path;
     const denial = await gateSourceWrite(actor, display);

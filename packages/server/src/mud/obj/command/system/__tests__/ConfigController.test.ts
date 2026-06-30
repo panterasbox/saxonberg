@@ -17,7 +17,7 @@ import { MessageApi } from "../../../../api/message";
 import { Mml } from "../../../../api/mml";
 import { PersistenceManager } from "../../../../../backend/PersistenceManager";
 import { makeStuff } from "../../../../lib/security/__tests__/test-setup";
-import requiresDeveloper from "../../../../lib/command/validators/requiresDeveloper";
+import requiresWizard from "../../../../lib/command/validators/requiresWizard";
 import { AccessApi } from "../../../../api/access";
 import type { CommandContext, CommandModel } from "../../../../api/command";
 
@@ -125,29 +125,29 @@ describe("ConfigController", () => {
   });
 });
 
-describe("config verb — developer gate", () => {
-  it("config.yaml gates the verb with the requiresDeveloper validator", () => {
+describe("config verb — wizard gate", () => {
+  it("config.yaml gates the verb with the requiresWizard validator", () => {
     const path = fileURLToPath(
       new URL("../../../../cmd/system/config.yaml", import.meta.url),
     );
     const view = YAML.parse(readFileSync(path, "utf-8"));
     expect(view.verbs).toContain("config");
     expect(view.validators).toContain(
-      "/lib/command/validators/requiresDeveloper",
+      "/lib/command/validators/requiresWizard",
     );
   });
 
-  it("requiresDeveloper rejects a non-developer and allows a developer", () => {
+  it("requiresWizard rejects a non-wizard and allows a wizard", () => {
     const ctx = { verb: "config", commandGiver: {} } as unknown as CommandContext;
     // allowed=false → a denial string; allowed=true → undefined (pass).
-    expect(requiresDeveloper(ctx, false)).toMatch(/permission/);
-    expect(requiresDeveloper(ctx, true)).toBeUndefined();
+    expect(requiresWizard(ctx, false)).toMatch(/permission/);
+    expect(requiresWizard(ctx, true)).toBeUndefined();
   });
 
-  it("the gate's preload reads AccessApi.isDeveloper", async () => {
+  it("the gate's preload reads AccessApi.isWizard", async () => {
     const ctx = { commandGiver: {} } as unknown as CommandContext;
-    vi.spyOn(AccessApi, "isDeveloper").mockResolvedValue(true as never);
-    await expect(requiresDeveloper.preload!(ctx)).resolves.toBe(true);
+    vi.spyOn(AccessApi, "isWizard").mockResolvedValue(true as never);
+    await expect(requiresWizard.preload!(ctx)).resolves.toBe(true);
     vi.restoreAllMocks();
   });
 });

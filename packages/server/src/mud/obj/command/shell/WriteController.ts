@@ -242,7 +242,7 @@ export default class WriteController extends CommandController<WriteModel> {
 
   /**
    * Source-tree write gate. Two checks must pass:
-   *   1. `isDeveloper(giver)` — TS escape capability.
+   *   1. `isWizard(giver)` — TS escape (code-trust) capability.
    *   2. `can(giver, 'write', resolveSourceFolderZone(path))` — the
    *      slice walk constrains which area of source you can write to.
    */
@@ -250,7 +250,7 @@ export default class WriteController extends CommandController<WriteModel> {
     giver: Stuff,
     sourceLogical: string,
   ): Promise<string | null> {
-    if (!(await AccessApi.isDeveloper(giver))) {
+    if (!(await AccessApi.isWizard(giver))) {
       return "you don't have permission to write source";
     }
     const resource = await AccessApi.resolveSourceFolderZone(sourceLogical);

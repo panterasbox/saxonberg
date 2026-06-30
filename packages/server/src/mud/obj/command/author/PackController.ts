@@ -4,8 +4,8 @@
  *
  * The runtime half of the content-pack iteration loop: re-reads the pack's
  * files, reconciles the changed `domain` rows, and re-hydrates the affected
- * live singletons — no restart. Developer-gated (declaratively, via
- * `pack.yaml`'s `requiresDeveloper` validator), mirroring `reload`/`clone`.
+ * live singletons — no restart. Wizard-gated (declaratively, via
+ * `pack.yaml`'s `requiresWizard` validator), mirroring `reload`/`clone`.
  *
  * Dispatch-on-subcommand: `sync` is the only verb in v1. The reconcile logic
  * lives behind {@link PackApi}; this controller is a thin diegetic wrapper.
@@ -27,8 +27,8 @@ const DEFAULT_PACK = 'base-library';
 
 export default class PackController extends CommandController<PackModel> {
   async execute(model: PackModel, context: CommandContext): Promise<void> {
-    // Developer axis is declarative — see pack.yaml's
-    // `validators: requiresDeveloper`. The dispatcher rejects before here.
+    // Wizard axis is declarative — see pack.yaml's
+    // `validators: requiresWizard`. The dispatcher rejects before here.
     const sub = model.subcommand;
     if (sub !== 'sync') {
       return this.fail(
