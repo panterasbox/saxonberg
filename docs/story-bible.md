@@ -312,11 +312,26 @@ polity shatters into the first hierarchy. That is **the oldest battle**
 (experience vs. the hollowing) and its **first casualty** — and the attuned
 carry forward the memory of what was and the promise it returns, *the prophecy's
 root.* (Full telling: *The lost paradise*.) Authority: none; only the deep faith
-later ages inherit. And it was **teeming** — not a tidy origin but a vast, busy
-multiplicity of worlds, *worlds everywhere*, much rising and falling at once.
-Eternal City was just **one** thing that arose from it, when **two of the many**
-worlds joined (the Confluence). We follow *that* thread because it leads to our
-story, not because it was the center — the rest stays fog, as deep myth should.
+later ages inherit.
+
+**Then the myth's long second movement — the Proliferation.** With natural
+creation lost, beings who no longer carried the attuned's gift *reinvented* it as
+**artifice:** making by **will and craft** instead of by presence — the
+demiurgic power the later ages call **wizardry** (the same will-into-being the
+CMS is). Artificial making is itself **post-paradise**, the *fallen substitute*
+for a creation that was once a gift — and ungoverned, it spread into a **teeming
+churn:** worlds beyond counting, raised by makers, rising and falling at once.
+Most fell, and **many fell to the same rot the first-faller loosed** — capture,
+the maker who hoards — so the rise-and-fall that would one day kill Eternal City
+was **rehearsed countless times** before it; EC's tragedy is a *recurrence*, the
+grandest instance of a pattern as old as artificial making. Through all of it the
+**attuned scattered and faded**, a diaspora of the diminishing. **Eternal City
+was one emergence from this churn** — when **two of the many** worlds joined
+under the Wright and the Warden into something steadier and more glorious than
+the chaos had yet made. We follow *that* thread because it leads to our story,
+not because it was the center; the rest stays fog, as deep myth should. *(The
+spine of the whole history is creation itself: natural gift → fallen artifice →
+captured glory → diminished dark → the cooperative's redemption of making.)*
 
 ### II. The Eternal Age — *Eternal City*
 Authority descends **from above.** Born of a union and ruled by a **founding
