@@ -2,7 +2,7 @@
 # account interactions are mediated by a person, not a terminal (the
 # "NPCs, not menus" texture). Deliberately a placeholder: a name, a role,
 # a line of presence — full characterization is a deferred content carve.
-class: /lib/character/NPC
+class: /lib/npc/NPC
 hydratorClass: /lib/persistence/PersistentHydrator
 data:
   name: Wenna
