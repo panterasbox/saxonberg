@@ -13,8 +13,11 @@
  *     Governance is transparent by constitutional design (Art. VII), so
  *     these carry no `@CallSecurity` (mirroring `AccessApi.isWizard`).
  *   - **Gated mutations** — `assign`/`vacate` carry the string-keyed
- *     `FromModule('mud/obj/command/governance/OfficeController')` narrow-
- *     entry (the `AccessApi.setWizardMembership` gate shape). The
+ *     `AnyOf(FromModule('mud/obj/command/governance/OfficeController'),
+ *     FromTemplate('/obj/command/governance/OfficeController'))` narrow-
+ *     entry. The template-path arm is load-bearing: the controller is
+ *     cloned per execution, so the caller resolves to its template path
+ *     (not the module id) and a bare `FromModule` would deny it. The
  *     **authority** is enforced by the `requiresFoundingAuthority`
  *     subcommand-level validator (the meta governance-root gate), not
  *     re-checked here.
@@ -118,15 +121,25 @@ export class OfficeApi {
   /**
    * Narrow-entry mutation: set the explicit holder of an office
    * (replacing any prior — auditable). Gated to the `OfficeController`
-   * (the `office assign` verb) via the string-keyed `FromModule` policy
-   * — string-keyed to avoid a value-level static-import cycle (the
-   * `setWizardMembership`/`WizardController` precedent). The *authority*
-   * is enforced by the `requiresFoundingAuthority` subcommand validator;
-   * this method is the structurally single entry to the handoff write.
+   * (the `office assign` verb). The controller is cloned per execution
+   * (`CommandGiver._executeOne` → `StuffApi.clone('/obj/command/...')`),
+   * so the running caller is a Stuff whose `templatePath` is set at clone
+   * time — `resolveCallerPath` returns that **template path**, not the
+   * module id, and `FromModule` rejects `/`-prefixed paths. Hence the
+   * gate is `AnyOf(FromModule(module-id), FromTemplate(template-path))`
+   * (the `OfficeRegistry` caller-gate idiom): the template-path arm is
+   * what actually admits the cloned controller; the module-id arm covers
+   * a direct class-frame caller. Both are string-keyed to avoid a
+   * value-level static-import cycle. The *authority* is enforced by the
+   * `requiresFoundingAuthority` subcommand validator; this method is the
+   * structurally single entry to the handoff write.
    */
   @CallSecurity(
-    SecurityPolicies.FromModule(
-      'mud/obj/command/governance/OfficeController',
+    SecurityPolicies.AnyOf(
+      SecurityPolicies.FromModule(
+        'mud/obj/command/governance/OfficeController',
+      ),
+      SecurityPolicies.FromTemplate('/obj/command/governance/OfficeController'),
     ),
   )
   public static async assign(
@@ -139,11 +152,16 @@ export class OfficeApi {
   /**
    * Narrow-entry mutation: clear an office's explicit holder (the seat
    * reverts to the founder default). Office-only — a singular seat has
-   * no empty state. Same `OfficeController` gate as `assign`.
+   * no empty state. Same `OfficeController` gate as `assign` (see there
+   * for why it is `AnyOf(FromModule, FromTemplate)` — the cloned
+   * controller resolves to its template path).
    */
   @CallSecurity(
-    SecurityPolicies.FromModule(
-      'mud/obj/command/governance/OfficeController',
+    SecurityPolicies.AnyOf(
+      SecurityPolicies.FromModule(
+        'mud/obj/command/governance/OfficeController',
+      ),
+      SecurityPolicies.FromTemplate('/obj/command/governance/OfficeController'),
     ),
   )
   public static async vacate(officeKey: string): Promise<boolean> {
