@@ -202,9 +202,19 @@ revolution and no grievance** — the old order died of its own failure and
 the new one grew on the ruins, founded in construction, not resentment.
 (Inspiration: the California missions — clergy mission → town → university
 → secular order. Santa Clara University stands on Mission Santa Clara.)
-All names provisional. **Dating runs precise-near, blank-far:** the
-Grounded Age is recent and recorded; the deeper ages haze out; the Fallow
-is a genuine blank (an empty age keeps no clock).
+All names provisional.
+
+**The calendar.** Year 0 is **the Charter** — when the constitution was
+drafted and the caretaker order stood up. The **present is ≈ year 5–10**:
+the chartered system is *young*, held *in trust* by a single mortal steward
+for a handful of years, and the **founding (the Recognition) is imminent** —
+the day the people finally ratify and elect the first PM; it does **not**
+rebase the calendar (the count runs continuously from the Charter). The
+*world*, though, is old: it all sits in **BC** — hundreds of years of
+University history, the Mission, the Fallow (undatable — an empty age keeps
+no clock), the deep past as **legend**. *Old world, brand-new order,
+founding any moment.* Precise-near, blank-far — and the 12x clock makes the
+present advance and the founding genuinely approach as people play.
 
 ### I. The Age of Myth *[mythic, uncertain — stays light]*
 No throne yet — only the oldest battle (experience vs. the hollowing) and
@@ -230,9 +240,9 @@ cautionary case study the Grounded Age reads off the ruins:
    widens; the founders withdraw into silence.
 4. **The Pooling** — shared authority narrows into a single seat by
    *calculus, not law*; the council's power is gated; the silent founders
-   do not intervene. **Told structurally — no named demagogue; power
-   pooled and no one checked it. The age dies of concentration, full
-   stop.**
+   do not intervene. The seat has a name — **Corvin Solus**, the demagogue
+   (see *The coin*) — but the lesson stays structural: he pooled power
+   because *nothing checked him.* The age dies of concentration.
 5. **The Reaping** — the great purge and final consolidation; the first to
    leave. Bleeds into the Fallow as the exodus dominoes.
 
@@ -273,38 +283,54 @@ Age's rise-and-fall:
    not invent it.
 3. **The School** — preservation formalizes into teaching; the
    **University** rises on the ruins (**"Eternal University"** keeps the
-   dead city's name, Santa-Clara-style); young **Terminus** gathers around
-   it; the clergy administer it (church + school + civil authority).
+   dead city's name, Santa-Clara-style), founded **to study the aether** —
+   a research institution, and that is its identity for centuries; young
+   **Terminus** gathers around it; the clergy administer it (church +
+   school + civil authority).
 4. **The Widening** — the University harnesses attunement and builds it
    **shared / open** (the implant as a prosthetic for the attuned's innate
-   gift); *anyone* can now attune; the aether becomes a network at scale —
-   the doorway into the Grounded Age.
+   gift); *anyone* can now attune; the aether becomes a network at scale.
+   The world goes modern.
+5. **The Charter & the brief interim** *(this is the present)* — a cohort of
+   University academics, having achieved the **implant breakthrough**, pivot
+   from *studying* the aether to *engineering a polity* on it; they draft
+   the constitution, the city recognizes it (**year 0**), and one of them —
+   **Steward Anselm Solvan** (see *The coin*) — is drafted to hold all three
+   branches *in trust* while the people gather toward the founding. The
+   world is fully modern (networked aether, corpos, the city) but
+   **politically pre-founding.** ≈ **year 5–10**, the founding imminent, and
+   *this is now.*
 
-**The handover is gracious institutionally, frayed personally.** Ceding
-power *is* the doctrine's fulfillment — a teaching order is by design
-building toward its own obsolescence — so the order lets go gracefully,
-replaced by its own success. But individual **reluctant elders** struggle
-to release what they stewarded for generations: the clergy-side cousins of
-the Chaotic-but-Good, never villains.
+**The handover is the awaited *future*, not a past event** — the
+**Recognition**, when the people finally ratify the Charter and the steward
+abdicates (see *The Grounded Age*). It will be gracious institutionally —
+ceding *is* the doctrine's fulfillment, a teaching order building toward its
+own obsolescence — but frayed personally: the **reluctant elders** who
+struggle to release what they stewarded for generations, the clergy-side
+cousins of the Chaotic-but-Good, never villains. **It has not happened
+yet.**
 
 The campus inherits the eternal ruins' **impossible finish** — why canon's
 dreamlike campus rises from a grounded city: the strangeness seeps up from
-the old core and fades outward. Residue into the present: the University,
+the old core and fades outward. Standing in the present: the University,
 the Sanctuary, **Oldtown** (the original mission-settlement), the Chapel,
-and the clergy themselves, receded to **echoes**.
+and the clergy — **still holding in trust** (they recede to mere echoes
+only *after* the founding).
 
-### V. The Grounded Age — *the cooperative* *(now)*
-Authority rises **from the people.** The new politick emerges from the
-University, secularizes past the clergy, severs **make** from **rule**, and
-makes the guardrails **structural, never discretionary** (a safeguard that
-waits on someone *choosing* to act is a phantom one — the lesson read off
-the Pooling). The current age, and a young one. *Alts: the Commons, the
-Terminus Age.*
+### V. The Grounded Age — *the cooperative* *(the awaited future — not yet begun)*
+Authority rises **from the people** — when they finally **ratify the Charter
+(the Recognition)** and elect the first PM, the new politick *secularizes
+past the steward*, severs **make** from **rule**, and makes the guardrails
+**structural, never discretionary** (the lesson read off the Pooling). This
+is the **future the game is built toward** — the founding the playerbase
+will *enact* live, at critical mass. Which is why its **political cast is no
+one we author**: the first PM and the chambers are the real founding players
+(see *the political void*, below). *Alts: the Commons, the Terminus Age.*
 
-*Religion, present-tense coda:* the cooperative is secular in politics
-but, without quite knowing it, the latest front of the cult-of-presence
-against the New Gods. The clergy's sacred function persists as echoes; the
-honest count is, in mythic terms, a **rite.**
+*Religion coda:* the chartered order — and the cooperative it will become —
+is secular in politics but, without quite knowing it, the latest front of
+the cult-of-presence against the New Gods. The clergy's sacred function
+persists beneath it; the honest count is, in mythic terms, a **rite.**
 
 ### The aether — the through-line
 
@@ -384,15 +410,107 @@ form reads as natural **sensitives / telepaths**.*
   founded (attunement made teachable) → the Widening (the implant as
   prosthetic for the attuned's gift; *anyone* can attune; the aether becomes
   a network at scale) → the Handover (gracious, with reluctant elders).
-- **The Grounded Age** — *aether: networked, contested.* The Recognition
-  (a small group at the University designs the new politick to run on the
-  networked aether) → the Handover (the clergy cede civil authority; the
-  cooperative goes live) → the present (the contested instrument:
-  presence's governance and the hollowing's capture both ride the same
-  network).
+- **The Charter & the brief interim** *(present — ≈ year 5–10)* — the
+  cohort's pivot from aether-study to polity-engineering; the constitution
+  drafted, the city recognizes it (**year 0**), **Steward Solvan** drafted
+  to hold it in trust. ***We are here*** — the late Mission, the world
+  modern and networked, the founding imminent.
+- **The Grounded Age** *(the awaited future)* — the **Recognition** (the
+  people ratify the Charter and elect the first PM; the steward abdicates)
+  → the cooperative goes live → the history the players write forward (the
+  contested instrument: presence's governance and the hollowing's capture
+  both ride the same network).
 
-*Open: the Widening — gradual spread vs. a specific breakthrough/first
-implant; and the Recognition's designing group — size and composition.*
+*Open: the deep-BC University centuries (hundreds of years to flesh out);
+Solvan's cohort as concrete late-BC history.*
+
+## The present — gazetteer & dramatis personae (the late-Mission interim) *[index]*
+
+The concrete layer of the present — a **hub, not a re-description.** Most of
+it already lives in the slates and the staging tree; here it's organized,
+connected, and stamped with the historical strata beneath it. Per the
+NPC-cost rule, **existing figures are indexed; missing ones are flagged *to
+be carved*, never rattled off.** The present sits at **≈ year 5–10** — the
+brief caretaker interim, the world modern and the founding imminent.
+
+### Places (gazetteer)
+
+- **Terminus** — the grounded city (ordinary sky). *[eternal-university-slate § The surround]*
+  - **University Avenue** — the campus fronts it; the TPA stop sits here. *[EU slate]*
+  - **Oldtown** — a district, and *the original Mission-settlement* — the town that grew around the first chapel. *[delivery-slate; lore: the Mission]*
+- **Eternal University (the campus)** — the impossible enclave, built on the **Eternal City ruins**; strangeness seeps up from the dead core beneath. *[EU slate; staging/eternal-university]*
+  - **The Gate / Arrival · the Quad · Student Services · Health Center** (the aug clinic — attunement) **· Campus Store · the Chapel** (the Mission clergy's residue) **· Duncan Hall** (the Warren dorm). *[EU slate; campus-map]*
+  - **Roads:** Eternal Way · Silver Street · Limbo Lane. *[EU slate]*
+  - **The Sanctuary** — beneath/within the campus: the aether-nexus, the sacred dead heart, the Museum's eventual core. *[bible: the Mission / the attuned]*
+- **The Lounge** — the universal login landing; Dave's Bar to its north. *[lounge-slate]*
+- **Dave's Bar** — the neighborhood bar, the anti-lounge. *[daves-bar-slate]*
+- **The TPA network** — teleport transit; terminals at the lounge, Arrival, Duncan Hall lobby. *[fasttravel; fast-travel-slate]*
+- **The Museum** — *future* (the world's-memory walk over the five ages; see below).
+
+### People (dramatis personae) — *existing, indexed*
+
+- **Dave's Bar:** **Dave** (owner, blank-slate master mixologist), **Mara** (day; reserved, runs inventory), **Remy** (swing; gossip), **Sloane** (night; secrets-keeper), **Augie** (weekend; storyteller). *[daves-bar-slate]*
+- **Campus:** **Katie** (Duncan Hall property manager — a troll), **Dr. Limen** (the Orientation guide — a preserved brain wired into the campus), **Dr. Vance** (medical examiner — a ghoul). *[onboarding-slate; staging/eternal-university]*
+- **The "Honest Count" arc** carries its own murder-mystery cast (victim, killer, witnesses). *[eternal-university-narrative-slate; staging]*
+
+### Factions & institutions
+
+- **The five corpos** — Veshko · Goodkin · Vionne · Hollis · Aevex (+ the **Independents**). Faceless by design (a wordmark, not a figure). *[corpos-slate]*
+- **The cooperative** — the present polity: three chambers, parliamentary executive, conviction voting. *[cooperative-slate]*
+- **The University** — the Mission's living heir; the clergy persist only as **echoes**.
+- **The attuned** — the returned sensitives (`homo/sensitivus`); a people, no named individual yet.
+
+### The political void — *filled by the players, not us*
+
+The founding is the future; its cast is the real playerbase, so we **do not
+author it**:
+
+- **The Recognition's designers · the first PM · the chambers** — the real
+  founding players, emergent at the founding. *Not ours to carve.*
+
+Pre-founding figures (each a real design session):
+
+- **The steward — *carved:* Anselm Solvan** (see *The coin*) — the reluctant
+  dying caretaker; a named mortal, *not* the clergy-as-institution, and
+  *not* the founder himself.
+- **A reluctant-elder clergy** — the human friction of the coming handover.
+- **A named attuned** — only if the returned people need a face.
+
+## The coin — Corvin Solus & Anselm Solvan *[settled]*
+
+Two figures, two ages, **two faces of one coin** — a powerful maker facing
+the same choice (*keep power, or hand it over*) and resolving it oppositely.
+The surname rhyme (**Solus ↔ Solvan**) is the wink: not kin (centuries
+apart), just the echo of history a chronicler catches. *Solus* = the one,
+alone at the top; *Solvan* = to loosen, free, **absolve**.
+
+- **Corvin Solus** — the **demagogue** of the Eternal Age. The seat of the
+  **Pooling**: he concentrated all authority to himself, and the order fell
+  (the Reaping, the Fallow). Remembered in legend simply as **Solus** — "the
+  fall of Solus." *He kept it, and it killed the world.*
+- **Anselm Solvan** — the **steward** of the present. A University scientist
+  who helped crack the **implant breakthrough** — and contracted a
+  **terminal condition experimenting on the aether with himself** (the cost
+  of the gift; the medium takes its toll). With his cohort he pivoted from
+  studying the aether to **engineering the polity**, drafted the Charter,
+  and was **drafted into stewardship precisely *because* he is dying**: a
+  terminal man *cannot* entrench — the perfect safeguard against another
+  Solus. He holds all three branches **in trust**, the conscious inverse of
+  the legend he was raised on. *He will give it away, and it will redeem
+  him.*
+
+**His death is the founding.** Slow-terminal (contracted at the
+breakthrough, dragging through his brief stewardship — visibly failing by
+the present), he races his mortality to reach the **Recognition**. When the
+people ratify (critical mass) they don't only found the government — they
+**release him**: he sees it done, hands over, and dies. Clean exit: no
+retirement arc, no conflict of interest; a buildable beat (the ratification
+event triggers his passing), and a real stake for the playerbase — *your
+arrival is what lets the old man rest.*
+
+*(Design note: both are the author's diegetic stand-ins — two faces, the
+fall and the redemption — but the in-fiction text never says so. Never make
+either *outright* the founder.)*
 
 ## The Museum — the world's memory **[settled frame, contents open]**
 
