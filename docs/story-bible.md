@@ -809,13 +809,13 @@ brief caretaker interim, the world modern and the founding imminent.
 - **Eternal University (the campus)** — the impossible enclave, built on the **Eternal City ruins**; strangeness seeps up from the dead core beneath. **Each present site sits on a named EC ruin** — the new function echoing, or inverting, the old (mappings in `ec-source-inventory.md`). *[EU slate; staging/eternal-university]*
   - **The Gate / Arrival** (on the EC **TPA terminal**) **· the Quad · Student Services · Health Center** (the aug/attunement clinic — on **Dr. Frankenstein's Body Shop**, the body-remaking lineage) **· Campus Store** (on **A&A Clothiers**) **· the Chapel** (the clergy's worship rebuilt on the **Temple of the Ages** — same gods, same ground, faith carried across the fall; the EC temple already keyed statues on race/guild/sex) **· Duncan Hall** (the Warren dorm; on the EC **condos**). *[EU slate; campus-map; ec-source-inventory]*
   - **Roads:** Eternal Way · Silver Street · Limbo Lane (EC roads, names kept). *[EU slate]*
-  - **The Sanctuary** — beneath/within the campus, on the ruins of the **Heart of Eternal City** (and its Operations Room below): the city's old dead center, where the **aether source** was found — *the reason the clergy settled these ruins at all.* The wired reservoir that survived the Fallow (see *The aether*); the aether-nexus, the sacred dead heart, the Museum's eventual core. *[bible: the Mission / the attuned]*
+  - **The Sanctuary** — beneath/within the campus, on the ruins of the **Heart of Eternal City** (and its Operations Room below): the city's old dead center, where the **aether source** was found — *the reason the clergy settled these ruins at all.* The wired reservoir that survived the Fallow (see *The aether*); the aether-nexus, the sacred dead heart (the campus's aether-core — *not* the Museum, which is its own city institution). *[bible: the Mission / the attuned]*
   - **The Palace of Wizards** *(ruin; the Museum's deep anchor)* — on **Glass Way** (the green-glass road that still bleeds green light onto Eternal Way): the EC **wizard council's seat**, where the cabals ruled and **make-and-rule fused** — the throne of the old sin, in ruins on campus. A growth site and the richest deep-lore one: the natural **deepest gallery of the Museum's *Founding* wing** — the seat of fused power, where the new order reads its own warning (the campus's *Founding* counterpart to the city's living **Seat of Government**). *[ec-source-inventory: Glass Way / Palace of Wizards]*
 - **The Seat of Government** *(in Terminus — the city, not the campus)* — the five seats (Court · Executive · Producer · Patron · Consumer houses), mostly **empty**: the steward holds four in trust and governs distributed; the consumer house alone is live. The founding's stage. *[bible: the seats]*
 - **The Lounge** — the universal login landing; Dave's Bar to its north. *[lounge-slate]*
 - **Dave's Bar** — the neighborhood bar, the anti-lounge. *[daves-bar-slate]*
 - **The TPA network** — teleport transit; terminals at the lounge, Arrival, Duncan Hall lobby. *[fasttravel; fast-travel-slate]*
-- **The Museum** — *future* (the world's-memory walk over the five ages; see below).
+- **The Museum** *(downtown Terminus — a city institution, fiercely independent, kept by the keepers)* — *future*; the still-burning-war walk, told in curated artifacts (see *The Museum*, below).
 
 ### People (dramatis personae) — *existing, indexed*
 
@@ -1284,42 +1284,88 @@ Independents; this is the *rise and meaning.*)
   deferred*. The corpos are the **incumbent the model hopes to beat fairly**, not
   a dragon to slay.
 
-## The Museum — the world's memory **[settled frame, contents open]**
+## The Museum — the still-burning war *[settled; artifact set illustrative]*
 
-The first anchor location, and the bible's walkable table of contents.
-A museum is *the institution on the side of the real* — its lifeblood is
-provenance, its nightmare the perfect forgery. Design facts:
+A **city** institution, downtown in Terminus (the Sanctuary is the campus's
+aether-core; the museum is its own building) — the first anchor location and
+the bible's walkable table of contents. *The institution on the side of the
+real:* its lifeblood is **provenance**, its nightmare the **perfect forgery.**
 
-- **A core-sample of two ages.** You walk *backward through time and
-  downward in register*: bright secular **new-order wings** → the
-  **estate-era galleries** (the great houses, the fading clergy) → the dark,
-  impossibly-old **Sanctuary** at the heart (the oldest battle, relics of
-  the hollowing's older masks, tended by the echo of the clergy).
-- **Strange finish [settled]:** the museum is *impossibly older than the
-  city* — a young civic building wrapped around an ancient sanctuary that
-  was there first. The function stays dead-legible; the age is the
-  weirdness.
-- **A temple of myth:** it can't display the gods (they're mythic), so it
-  displays the **belief** — relics of worship, cult objects, competing
-  accounts on competing placards.
-- **The eschatology exhibit:** the warded/empty room that holds the
-  world's possible end — the empty world. A warning, not a treasure.
-- **The gap is the quest surface:** every exhibit is a *claim somebody
-  curated*; the space between placard and truth is where the play lives.
+**It is not a memorial — it is a live front.** The story it tells is the
+**oldest battle, experience vs. the hollowing, and the battle is still being
+fought.** The walk doesn't end in the past; it delivers you to the **current
+front and implicates you in it.** The hollowing that took paradise is the *same*
+hollowing in the Metric, the Feed, the corpos — operating *now, in this
+building, on you.*
 
-### The wings (= chapters of the bible) **[draft]**
+**Fiercely independent — that is its identity.** In a world where the corpos
+captured the field, the economy, and the attention, the museum is **the one
+institution that refused to be bought:** *this institution accepts no patron;
+provenance is not for sale.* The un-hollowed holdout. Kept by the **keepers** —
+the clergy-line that carried the *true account* unbroken across the Fallow, in
+its final form: from guarding the faith in exile to guarding the world's honest
+memory in the city. Independent *by lineage*, un-capturable because it descends
+from the one thread that never sold out.
 
-- **The Founding** — the new order; the estates→cooperative turn. The
-  Lawful/Chaotic axis lives here. *(Recommended first deep build — it
-  sets the voice.)*
-- **The Powers** — the five megacorps; naturally *sponsored* wings, each
-  telling history in its own interest.
-- **The Peoples** — species as mundane living people; the
-  prejudice-as-projection allegory lives here.
-- **The Commons** — the founding of the cooperative; the
-  cooperative-funded wing fighting to be the neutral account.
-- **The City** — everyday Terminus (Oldtown, University Avenue, the TPA,
-  Dave's Bar as a neighborhood institution).
+**It tells the story in artifacts, not chapters** — curated objects on plinths,
+and the visitor assembles the history from the things:
+
+- **The three absences** (the spine — Evil is *hollowing*, so the museum exhibits
+  *what was taken*):
+  - **The empty case — THE FIRST HOLLOW.** *No likeness survives; the act erased
+    the man.* The war's first casualty, displayed as a void.
+  - **The recurrence line** — a "**seal of Solus**" (*attribution uncertain — he
+    is legend*); then **Vane** (*on loan; the subject is alive*) — capture, age
+    after age…
+  - **…the empty plinth — "?"** *The next one has not yet come. It could be
+    anyone.* The war's open future, a blank pedestal that refuses to fill.
+  - **The Eschatology Room** (warded) — where the plinth leads if we lose: the
+    **empty world**, a city that runs flawlessly and holds no one. A warning, not
+    a treasure.
+- **The enemy in the room:** the **Metric exhibited as itself** — the Hollow's
+  modern demigod on a working screen, *counting the visitor's attention while
+  they read about it.* Beside it the **two honest counts** (Presence *counts to
+  recognize* · the Hollow *counts to consume* — same act, opposite soul) and a
+  **mirror**: *you can't tell, including about yourself.*
+- **The founding** (told straight): the **Charter** working-draft, the framers'
+  arguments still legible in the margins; **cranial implant, prototype №1**
+  (broke the monopoly, dispossessed the attuned, gave Solvan his cancer — one
+  object, the whole Widening); the **Martyrs' Wall** (the scholars the medium
+  killed, Solvan's the newest cut).
+- **The powers** (an honest broker is the only home a steelman has, so the corpos
+  are told **true** — impressive *and* damning): the cabals→houses→corpos arc; a
+  house's gilt **genealogy** beside the record that dates it to the Fallow (*the
+  claim older than the truth*); the **Enclosure**; the **marks** ("a product of
+  Veshko"). The placard's thesis: **the corpos and the cooperative are rival
+  heirs of the lost glory** — both reach back toward Eternal City's golden age,
+  the corpos by owning the substrate, the cooperative by redeemed making; not
+  villains, the *other* answer to the same longing.
+- **The peoples** — prejudice-as-projection, *present tense*: a reverent **cast
+  of the first returned-attuned child** beside an **implant retail box** — *the
+  miracle, made a clinic visit.*
+- **The living shrine** (belief, not gods): you can't display the gods, so you
+  display worship — cult objects, **competing god-relics on competing placards**,
+  the candles **lit** (Presence worshipped *now*; the honest count its rite).
+- **The City** — a quieter gallery: everyday Terminus, Oldtown's first chapel
+  stone, the living ground the war is actually fought on.
+- **The deep root** (one alcove, not the spine): green glass from the **Palace of
+  Wizards**, the **Two Laws** in black marble — *where the war was first lost on
+  a grand scale.*
+
+**The quest surface — provenance vs. the forgery.** Every label is a claim, and
+the museum is your **ally**, not a liar: it admits what it cannot verify (the
+honest "attribution uncertain" cases), and its nightmare is that a **perfect
+forgery has slipped in** and even *it* can't tell. The play is closing the gap —
+authenticate, catch the fake, see through the legend.
+
+**Strange finish:** a museum is a museum (function dead-legible), but its
+**contents reach impossibly far back** — it holds things older than the world
+has any right to still have. The age is the weirdness, not the building.
+
+**First build:** the founding pieces + the three absences as a single honest
+**Hall of the War** — the vertical slice that sets the voice and proves the
+artifact-and-provenance mechanic; the powers / peoples / shrine / deep-root
+galleries grow from there.
 
 ## Open threads (the live forks)
 
