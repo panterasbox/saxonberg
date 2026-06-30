@@ -8,7 +8,7 @@ help: |
   Operator-gated.
 validators:
   - /lib/command/validators/requiresAnimate
-  - /lib/command/validators/requiresDeveloper
+  - /lib/command/validators/requiresWizard
 subcommands:
   pnl:
     description: "Read the venue's profit-and-loss"

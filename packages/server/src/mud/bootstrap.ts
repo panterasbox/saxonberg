@@ -101,9 +101,9 @@ export const bootstrapManifest: BootstrapEntry[] = [
   // the first manifest entry guarantees).
   { templatePath: '/obj/StreamState' },
   // AccessRegistry — access substrate singleton holding the access
-  // predicates (`can`, `canMutateZone`, `isAuthor`, `isDeveloper`,
+  // predicates (`can`, `canMutateZone`, `isAuthor`, `isWizard`,
   // `isStreamer`) and the bootstrap seeding for the v1 groups
-  // (`'core'`, `'lounge'`, `'developers'`, `'streamers'`) plus the
+  // (`'core'`, `'lounge'`, `'wizards'`, `'streamers'`, `'archwizards'`) plus the
   // lounge FolderZones. Depends
   // on `GroupRegistry` (the seeding uses `GroupApi.registry().managed()`
   // to mint Groups via the managed provider). Idempotent —

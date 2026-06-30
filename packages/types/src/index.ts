@@ -1805,13 +1805,13 @@ export interface ApiResponse<T = unknown> {
 export interface AuthStatusResponse {
   isAuthenticated: boolean;
   /**
-   * Non-authoritative developer-tier hint: true iff the session's loaded
-   * Avatar is a developer (`AccessApi.isDeveloper`). The client uses it
-   * only to hide the CMS launcher for non-developers; the REST CMS gates
+   * Non-authoritative wizard-tier hint: true iff the session's loaded
+   * Avatar is a wizard (`AccessApi.isWizard`). The client uses it
+   * only to hide the CMS launcher for non-wizards; the REST CMS gates
    * remain the server-side authority. Absent/false when no in-world Avatar
    * is loaded for the session.
    */
-  isDeveloper?: boolean;
+  isWizard?: boolean;
   user?: {
     id: string;
     email: string;
@@ -1840,13 +1840,13 @@ export interface AuthStatusResponse {
 export interface AuthState {
   isAuthenticated: boolean;
   /**
-   * Non-authoritative developer-tier hint, mirrored from the
-   * {@link AuthStatusResponse.isDeveloper} field of `/auth/status`. The
+   * Non-authoritative wizard-tier hint, mirrored from the
+   * {@link AuthStatusResponse.isWizard} field of `/auth/status`. The
    * client uses it only to decide whether to show the CMS launcher; the
    * REST CMS gates remain the server-side authority. Absent/false when no
-   * developer Avatar is loaded for the session.
+   * wizard Avatar is loaded for the session.
    */
-  isDeveloper?: boolean;
+  isWizard?: boolean;
   user: {
     id: string;
     email: string;

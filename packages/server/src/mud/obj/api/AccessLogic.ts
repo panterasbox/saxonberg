@@ -51,7 +51,7 @@ function lookupRegistry(): AccessRegistry | null {
  * {@link AccessApi}.
  *
  * Lives at `/obj/api/access`. Holds the registry-resolution + predicate
- * orchestration; the durable state (cached refs, developer playerId Set)
+ * orchestration; the durable state (cached refs, wizard playerId Set)
  * lives on the pinned `/obj/AccessRegistry`, whose methods are gated to
  * admit this logic singleton (`FromTemplate('/obj/api/access')`) as well
  * as the Api module. Each method is gated
@@ -100,14 +100,14 @@ export class AccessLogic extends Idea {
     return reg.isAuthor(subject);
   }
 
-  /** See {@link AccessApi.isDeveloper}. */
+  /** See {@link AccessApi.isWizard}. */
   @CallSecurity(AccessApiCallers)
-  public async isDeveloper(subject: Stuff | null): Promise<boolean> {
+  public async isWizard(subject: Stuff | null): Promise<boolean> {
     if (subject === null) return false;
     const reg = lookupRegistry();
     if (!reg) return true;
     if (playerIdOfQuick(subject) === null) return false;
-    return reg.isDeveloper(subject);
+    return reg.isWizard(subject);
   }
 
   /** See {@link AccessApi.isStreamer}. */

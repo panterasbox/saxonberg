@@ -70,8 +70,8 @@ export function AuthorMixin<TBase extends MixinConstructor>(Base: TBase) {
         'author/teleport.yaml',
         // Advancement developer harness — fabricate Transcript deeds so
         // the derive-on-read Competence loop + band conferrals are
-        // exercisable without lane-2's real craft verbs. Developer-gated
-        // (requiresDeveloper) on top of this AuthorMixin visibility.
+        // exercisable without lane-2's real craft verbs. Wizard-gated
+        // (requiresWizard) on top of this AuthorMixin visibility.
         'author/practice.yaml',
         // Soul authoring — emote catalog mint / edit / delete / show /
         // list. Gated identically to the rest of the AuthorMixin suite:
@@ -93,8 +93,8 @@ export function AuthorMixin<TBase extends MixinConstructor>(Base: TBase) {
         // Banking operator surface — the central-bank faucet (mint subsidy),
         // wage payment, and the P&L read. Afforded on the operator command
         // surface like the rest of this suite; each carries
-        // `requiresDeveloper`, so a non-author sees nothing (no employment
-        // relationship yet — operator == developer in v1).
+        // `requiresWizard`, so a non-author sees nothing (no employment
+        // relationship yet — operator == wizard in v1).
         'banking/reserve.yaml',
         'banking/house.yaml',
       ],

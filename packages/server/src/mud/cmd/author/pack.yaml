@@ -13,7 +13,7 @@ help: |
   immediately (the singleton re-hydrates); a deleted content file drops its
   row and destructs the orphaned singleton.
 validators:
-  - /lib/command/validators/requiresDeveloper
+  - /lib/command/validators/requiresWizard
 args:
   - name: subcommand
     type: string

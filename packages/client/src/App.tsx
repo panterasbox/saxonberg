@@ -384,9 +384,9 @@ function App() {
           isAuthenticated: true,
           user: data.user || null,
           player: data.player || null,
-          // Non-authoritative developer-tier hint — drives only the CMS
+          // Non-authoritative wizard-tier hint — drives only the CMS
           // launcher visibility; the REST CMS gates are the authority.
-          isDeveloper: data.isDeveloper === true,
+          isWizard: data.isWizard === true,
         });
       }
     } catch (error) {

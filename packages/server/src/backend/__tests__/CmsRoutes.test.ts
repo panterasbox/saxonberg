@@ -90,7 +90,7 @@ describe('CmsRoutes', () => {
     vi.spyOn(PlayerApi, 'findAvatarByPlayerId').mockReturnValue(
       fakeAvatar('p-1')
     );
-    vi.spyOn(AccessApi, 'isDeveloper').mockResolvedValue(true);
+    vi.spyOn(AccessApi, 'isWizard').mockResolvedValue(true);
 
     const agent = request.agent(makeApp());
     await agent.post('/test-login').expect(200);
@@ -151,7 +151,7 @@ describe('CmsRoutes', () => {
     vi.spyOn(PlayerApi, 'findAvatarByPlayerId').mockReturnValue(
       fakeAvatar('p-1')
     );
-    vi.spyOn(AccessApi, 'isDeveloper').mockResolvedValue(true);
+    vi.spyOn(AccessApi, 'isWizard').mockResolvedValue(true);
     vi.spyOn(AccessApi, 'can').mockResolvedValue(true);
     vi.spyOn(AccessApi, 'resolveSourceFolderZone').mockResolvedValue(null);
 

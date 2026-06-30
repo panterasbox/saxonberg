@@ -6,7 +6,7 @@
  * `config <key> <value>`    → set one (persist + refresh cache).
  *
  * Cross-cutting concerns the framework handles, not us:
- *   - the `requiresDeveloper` validator (in `config.yaml`) gates the verb;
+ *   - the `requiresWizard` validator (in `config.yaml`) gates the verb;
  *     no access check belongs here.
  *
  * The namespace is open: a set to a key outside the `AppSettingKeys`

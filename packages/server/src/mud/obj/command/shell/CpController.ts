@@ -98,7 +98,7 @@ export default class CpController extends CommandController<CpModel> {
         'access-denied',
       );
     }
-    if (!(await AccessApi.isDeveloper(giver))) {
+    if (!(await AccessApi.isWizard(giver))) {
       return this.fail(
         context,
         "you don't have permission to write source",

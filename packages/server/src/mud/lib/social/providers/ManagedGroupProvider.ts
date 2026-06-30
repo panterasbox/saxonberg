@@ -32,7 +32,7 @@ export class ManagedGroupProvider implements GroupProvider {
    * (the `name` index is unique at the collection level) or null.
    * Used by the AccessRegistry's bootstrap seeding and developer-
    * cache warm path to find well-known groups (`'core'`,
-   * `'lounge'`, `'developers'`).
+   * `'lounge'`, `'wizards'`).
    */
   async findByName(name: string): Promise<Group | null> {
     const all = await Group.find({ name });

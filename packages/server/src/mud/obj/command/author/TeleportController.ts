@@ -48,7 +48,7 @@ export default class TeleportController extends CommandController<TeleportModel>
 
   private async canSelfTeleport(giver: Stuff): Promise<boolean> {
     return (
-      (await AccessApi.isAuthor(giver)) || (await AccessApi.isDeveloper(giver))
+      (await AccessApi.isAuthor(giver)) || (await AccessApi.isWizard(giver))
     );
   }
 

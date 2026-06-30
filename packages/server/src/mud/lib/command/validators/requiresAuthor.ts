@@ -7,7 +7,7 @@
  *
  * The async preload returns the author-axis boolean directly; the
  * dispatcher threads it back to the sync body via the `allowed`
- * argument. Mirrors `requiresStreamer` / `requiresDeveloper`.
+ * argument. Mirrors `requiresStreamer` / `requiresWizard`.
  */
 
 import type { CommandValidator } from '../../../api/command';

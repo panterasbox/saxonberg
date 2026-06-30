@@ -10,7 +10,7 @@ help: |
   reach. When the query matches more than one object, add `--all`
   to run the snippet once against each match in turn.
 validators:
-  - /lib/command/validators/requiresDeveloper
+  - /lib/command/validators/requiresWizard
 args:
   - name: expr
     type: string

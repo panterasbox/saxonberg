@@ -406,7 +406,7 @@ describe('CmsApi — source backend', () => {
     StuffApi.clearAll();
     // Context yields a developer; source is developer-gated.
     vi.spyOn(ExecutionContextApi, 'getActingAuthor').mockReturnValue(ACTOR);
-    vi.spyOn(AccessApi, 'isDeveloper').mockResolvedValue(true);
+    vi.spyOn(AccessApi, 'isWizard').mockResolvedValue(true);
     // The CMS source backend is rooted at the mudlib, so the temp tree
     // must live under mud/ and CMS paths are mud-relative.
     const name = `.tmp-cms-${Date.now()}`;
@@ -473,7 +473,7 @@ describe('CmsApi — source backend', () => {
   });
 
   it('source read is denied for a non-developer context', async () => {
-    vi.spyOn(AccessApi, 'isDeveloper').mockResolvedValue(false);
+    vi.spyOn(AccessApi, 'isWizard').mockResolvedValue(false);
     await expect(CmsApi.listTree('source', '/')).rejects.toMatchObject({
       code: 'denied',
     });
@@ -519,7 +519,7 @@ describe('CmsApi — source backend', () => {
   });
 
   it('write by a non-developer throws CmsError(denied)', async () => {
-    vi.spyOn(AccessApi, 'isDeveloper').mockResolvedValue(false);
+    vi.spyOn(AccessApi, 'isWizard').mockResolvedValue(false);
     await expect(
       CmsApi.write('source', `${tempLogical}/x.ts`, 'export {}')
     ).rejects.toMatchObject({ code: 'denied' });

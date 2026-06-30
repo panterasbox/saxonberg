@@ -10,7 +10,7 @@
  * Registry Stuff via `StuffApi.findByTemplatePath` cannot call its
  * methods; this Api is the only legitimate path.
  *
- * State lives on the Registry (cached refs, developer playerId Set,
+ * State lives on the Registry (cached refs, wizard playerId Set,
  * etc.); the cached pointer lives in the logic singleton's module scope
  * (a lookup convenience, not domain state). Reload of `api/access.ts` or
  * `obj/api/AccessLogic.ts` re-resolves the pointer; reload of
@@ -83,17 +83,23 @@ export class AccessApi {
   }
 
   /**
-   * Orthogonal developer axis. True iff `subject` is an Avatar
-   * whose playerId is in the `'developers'` group.
+   * Orthogonal wizard axis — the code-trust capability. True iff
+   * `subject` is an Avatar whose playerId is in the `'wizards'` group.
+   * Gates every TypeScript-authoring/execution door (`eval`, `reload`,
+   * source writes, CMS source read/write) AND the executable
+   * code-naming fields on a content template (`class` /
+   * `hydratorClass` / `behaviors[].brain`). A content author who is not
+   * a wizard is a "protowizard": content-write access without code
+   * trust.
    */
-  public static async isDeveloper(subject: Stuff | null): Promise<boolean> {
-    return logic().isDeveloper(subject);
+  public static async isWizard(subject: Stuff | null): Promise<boolean> {
+    return logic().isWizard(subject);
   }
 
   /**
    * Orthogonal streamer axis. True iff `subject` is an Avatar whose
    * playerId is in the `'streamers'` group. Gates the livestream
-   * control plane (the `stream` verb). Distinct from the developer
+   * control plane (the `stream` verb). Distinct from the wizard
    * axis — a streamer drives the broadcast overlay without holding
    * TypeScript-escape capability.
    */

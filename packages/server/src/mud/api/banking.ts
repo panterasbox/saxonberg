@@ -14,7 +14,7 @@
  * hot-reloadable {@link BankingLogic} singleton at `/obj/api/banking`,
  * reached synchronously via `StuffApi.singletonSync`. `dest /obj/api/banking`
  * reloads it. The central-bank mint/drain/float ops are
- * operator/developer-gated at the *verb* layer (`AccessApi.isDeveloper`),
+ * operator/developer-gated at the *verb* layer (`AccessApi.isWizard`),
  * not here; this surface is the mechanism, the verbs are the policy.
  */
 

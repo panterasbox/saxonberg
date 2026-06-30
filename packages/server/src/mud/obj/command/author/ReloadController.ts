@@ -32,7 +32,7 @@ export default class ReloadController extends CommandController<ReloadModel> {
     const giver = context.commandGiver;
 
     // Developer axis check is now declarative — see reload.yaml's
-    // `validators: requiresDeveloper`. The dispatcher rejects the
+    // `validators: requiresWizard`. The dispatcher rejects the
     // command before this controller runs when the giver isn't a
     // developer. No slice check applies — module reloads aren't
     // scoped to a content area.

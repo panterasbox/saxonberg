@@ -46,7 +46,7 @@ export default class EvalController extends CommandController<EvalModel> {
     const giver = context.commandGiver;
 
     // Developer axis check is now declarative — see eval.yaml's
-    // `validators: requiresDeveloper`. The dispatcher rejects the
+    // `validators: requiresWizard`. The dispatcher rejects the
     // command before this controller runs when the giver isn't a
     // developer.
 

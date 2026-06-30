@@ -8,7 +8,7 @@ help: |
   reconciliation audit. Operator-gated.
 validators:
   - /lib/command/validators/requiresAnimate
-  - /lib/command/validators/requiresDeveloper
+  - /lib/command/validators/requiresWizard
 subcommands:
   mint:
     description: "Mint subsidy into the present venue's account"

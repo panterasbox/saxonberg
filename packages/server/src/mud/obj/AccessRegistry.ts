@@ -13,11 +13,11 @@
  * (this Stuff), one calling surface (`AccessApi`), and one
  * structurally-enforced path between them.
  *
- * `postRegister` runs idempotent bootstrap seeding: mint the four
- * groups (`'core'`, `'lounge'`, `'developers'`, `'streamers'`) if
- * absent and stamp the lounge FolderZones at `/lib/lounge` and
- * `/domain/lounge`. Caches
- * (cached GroupRefs, developer playerId Set, author-groups list) warm
+ * `postRegister` runs idempotent bootstrap seeding: mint the
+ * groups (`'core'`, `'lounge'`, `'wizards'`, `'streamers'`,
+ * `'archwizards'`) if absent and stamp the lounge FolderZones at
+ * `/lib/lounge` and `/domain/lounge`. Caches
+ * (cached GroupRefs, wizard playerId Set, author-groups list) warm
  * lazily on first read and live as instance fields — reload of
  * `api/access.ts` doesn't affect them; reload of this file re-clones
  * the Registry per HotReloadApi's pattern (state resets and
@@ -62,16 +62,16 @@ export default class AccessRegistry extends AccessRegistryBase {
    *  api/access.ts reload because it lives on the Stuff. */
   private cachedCoreRef: GroupRef | null = null;
   private cachedLoungeRef: GroupRef | null = null;
-  private cachedDevelopersRef: GroupRef | null = null;
-  /** Set of playerIds in `'developers'` — warmed lazily, invalidated
+  private cachedWizardsRef: GroupRef | null = null;
+  /** Set of playerIds in `'wizards'` — warmed lazily, invalidated
    *  via the managed provider's onChange callback. */
-  private cachedDeveloperPlayerIds: ReadonlySet<string> | null = null;
-  /** Cancellation handle for the developer onChange subscription. */
-  private developerCacheCancel: (() => void) | null = null;
+  private cachedWizardPlayerIds: ReadonlySet<string> | null = null;
+  /** Cancellation handle for the wizard onChange subscription. */
+  private wizardCacheCancel: (() => void) | null = null;
   private cachedStreamersRef: GroupRef | null = null;
   /** Set of playerIds in `'streamers'` — the livestream-control axis.
    *  Warmed lazily, invalidated via the managed provider's onChange
-   *  callback. Mirrors the developer cache exactly. */
+   *  callback. Mirrors the wizard cache exactly. */
   private cachedStreamerPlayerIds: ReadonlySet<string> | null = null;
   /** Cancellation handle for the streamer onChange subscription. */
   private streamerCacheCancel: (() => void) | null = null;
@@ -83,7 +83,7 @@ export default class AccessRegistry extends AccessRegistryBase {
   public override async postRegister(_context?: unknown): Promise<void> {
     await this.seedCoreGroup();
     await this.seedLoungeSlice();
-    await this.seedDevelopersGroup();
+    await this.seedWizardsGroup();
     await this.seedStreamersGroup();
   }
 
@@ -183,24 +183,28 @@ export default class AccessRegistry extends AccessRegistryBase {
   }
 
   /**
-   * Orthogonal developer axis — is the actor in `'developers'`?
-   * Determines who can write TypeScript source, run `eval`, or
-   * `reload` modules. Doesn't matter what slices they own; the
-   * question is whether they have escape capability.
+   * Orthogonal wizard axis — is the actor in `'wizards'`? This is the
+   * code-trust capability: it determines who can write TypeScript
+   * source, run `eval`, `reload` modules, AND set the executable
+   * code-naming fields (`class` / `hydratorClass` / `behaviors[].brain`)
+   * on a content template (see the code-field gate in `TemplateLogic`).
+   * Doesn't matter what slices they own; the question is whether they
+   * have escape capability. A non-wizard author is a "protowizard" —
+   * content-write access without code trust.
    */
   @CallSecurity(AccessApiCallers)
-  public async isDeveloper(subject: Stuff | null): Promise<boolean> {
+  public async isWizard(subject: Stuff | null): Promise<boolean> {
     if (subject === null) return false;
     const playerId = this.playerIdOf(subject);
     if (playerId === null) return false;
-    const cache = await this.ensureDeveloperCache();
+    const cache = await this.ensureWizardCache();
     return cache.has(playerId);
   }
 
   /**
    * Orthogonal streamer axis — is the actor in `'streamers'`? Gates
    * the livestream control plane (the `stream` verb and, later, the
-   * scene / lower-third / afk mutators). Distinct from the developer
+   * scene / lower-third / afk mutators). Distinct from the wizard
    * axis: a streamer drives the broadcast overlay without necessarily
    * holding TypeScript-escape capability.
    */
@@ -292,23 +296,23 @@ export default class AccessRegistry extends AccessRegistryBase {
     return list;
   }
 
-  private async ensureDeveloperCache(): Promise<ReadonlySet<string>> {
-    if (this.cachedDeveloperPlayerIds) return this.cachedDeveloperPlayerIds;
+  private async ensureWizardCache(): Promise<ReadonlySet<string>> {
+    if (this.cachedWizardPlayerIds) return this.cachedWizardPlayerIds;
     const reg = await GroupApi.registry();
     const provider = reg.managed();
-    const dev = await provider.findByName('developers');
-    if (!dev || !dev._id) {
-      this.cachedDeveloperPlayerIds = new Set();
-      return this.cachedDeveloperPlayerIds;
+    const wiz = await provider.findByName('wizards');
+    if (!wiz || !wiz._id) {
+      this.cachedWizardPlayerIds = new Set();
+      return this.cachedWizardPlayerIds;
     }
-    this.cachedDevelopersRef = `managed:${dev._id}`;
-    const cache = new Set(dev.memberIds);
-    this.cachedDeveloperPlayerIds = cache;
-    this.developerCacheCancel?.();
-    const handle = provider.onChange?.(dev._id, () => {
-      this.cachedDeveloperPlayerIds = null;
+    this.cachedWizardsRef = `managed:${wiz._id}`;
+    const cache = new Set(wiz.memberIds);
+    this.cachedWizardPlayerIds = cache;
+    this.wizardCacheCancel?.();
+    const handle = provider.onChange?.(wiz._id, () => {
+      this.cachedWizardPlayerIds = null;
     });
-    this.developerCacheCancel = handle?.cancel ?? null;
+    this.wizardCacheCancel = handle?.cancel ?? null;
     return cache;
   }
 
@@ -383,19 +387,41 @@ export default class AccessRegistry extends AccessRegistryBase {
     }
   }
 
-  private async seedDevelopersGroup(): Promise<void> {
+  private async seedWizardsGroup(): Promise<void> {
     const reg = await GroupApi.registry();
     const provider = reg.managed();
-    const existing = await provider.findByName('developers');
-    if (existing && existing._id) {
-      this.cachedDevelopersRef = `managed:${existing._id}`;
-      return;
+    let wizards = await provider.findByName('wizards');
+    if (!wizards) {
+      const g = new Group();
+      g.name = 'wizards';
+      g.owner = 'system';
+      await g.save();
+      wizards = g;
     }
-    const g = new Group();
-    g.name = 'developers';
-    g.owner = 'system';
-    await g.save();
-    if (g._id) this.cachedDevelopersRef = `managed:${g._id}`;
+    if (!wizards._id) return;
+    this.cachedWizardsRef = `managed:${wizards._id}`;
+
+    // Seed membership from WIZARD_PLAYER_IDS (comma-separated Avatar
+    // playerIds) — deploy-time config alongside STREAMER_PLAYER_IDS, read
+    // straight from the env so there's no boot-ordering dependency on
+    // AppSettings. Additive + idempotent (never removes), matching the
+    // merge-missing philosophy of the lounge/core/streamer seeding; drop a
+    // member via `wizard revoke`. Runs before any `isWizard` read, so the
+    // lazy member cache picks the seeded ids up on first use.
+    const ids = (process.env.WIZARD_PLAYER_IDS ?? '')
+      .split(',')
+      .map((s) => s.trim())
+      .filter((s) => s.length > 0);
+    let changed = false;
+    for (const id of ids) {
+      if (wizards.addMember(id)) changed = true;
+    }
+    if (changed) {
+      await wizards.save();
+      // Drop the (possibly already-warmed) member cache so the next
+      // isWizard read reflects the freshly-seeded members.
+      this.cachedWizardPlayerIds = null;
+    }
   }
 
   private async seedStreamersGroup(): Promise<void> {
@@ -436,8 +462,8 @@ export default class AccessRegistry extends AccessRegistryBase {
   }
 
   public override onDestruct(): void {
-    this.developerCacheCancel?.();
-    this.developerCacheCancel = null;
+    this.wizardCacheCancel?.();
+    this.wizardCacheCancel = null;
     this.streamerCacheCancel?.();
     this.streamerCacheCancel = null;
     super.onDestruct();

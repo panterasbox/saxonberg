@@ -1,6 +1,6 @@
 /**
  * requiresAuthor — verb-level author gate for `bulletin`. Mirrors the
- * `requiresDeveloper` gate test in ConfigController.test.ts: the sync body
+ * `requiresWizard` gate test in ConfigController.test.ts: the sync body
  * maps the threaded `allowed` boolean to a denial string, and the async
  * `preload` reads `AccessApi.isAuthor(commandGiver)`.
  */
