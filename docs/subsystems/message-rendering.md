@@ -49,12 +49,28 @@ defined flatten so the failsafe string remains complete and readable.
 | `<list>` / `<list ordered="true">` | `Mml.unorderedList(items)` / `Mml.orderedList(items)` | linear-labeled lines |
 | `<li>` | `Mml.li(body)` | `- ` / `N. ` prefix |
 
-**No presentational core tags.** Color, alignment, size are stylesheet
-rules, never authored prose. The `<sys>` tag was **retired** in this
-build — chrome-label sites (the `── ` glyph in `look`'s exits and
-contents lines) emit the literal text as plain prose; Wave 2's
-structured layout vocabulary (`<box title>` / `<list>` with header)
-will replace them when it ships.
+**Color is the one presentational tag.** Alignment and size stay
+stylesheet rules, never authored prose — but a thing's *color* is a
+real property of what's perceived (visible light has color), so MML
+names it explicitly: `<color value="…">…</color>`
+(`Mml.color(value, body)`; flatten: children verbatim). The value is a
+theme-palette token or a friendly color name (`purple`/`blue`/`red`/
+`grey`, aliased to the palette tokens client-side in `paletteFor`), so
+it resolves through the same theme cascade as every other color and
+stays legible under any theme — **never a raw hex**. The renderer tints
+a `ColorSpan`; when `<color>` wraps a clickable identity tag the inner
+span's color wins, so the affordance stays clickable *and* takes the
+color (the TPA terminal's status-light name tint is the first consumer
+— see [fasttravel.md](./fasttravel.md)). Alongside it,
+`Mml.text(value)` is the escaped-text fragment: it lifts a raw string
+into an `Mml`, escaped once at construction, so any display value can
+join the compose chain as a fragment and is never re-escaped
+downstream.
+
+The `<sys>` tag was **retired** in an earlier build — chrome-label
+sites (the `── ` glyph in `look`'s exits and contents lines) emit the
+literal text as plain prose; Wave 2's structured layout vocabulary
+(`<box title>` / `<list>` with header) will replace them when it ships.
 
 ### `Mml.flatten` vs `Mml.stripTags`
 

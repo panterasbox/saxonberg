@@ -23,6 +23,15 @@ a directed set of **routes**, a **selected destination** (state), an
 advance policy, an inert `status` seam, and `getArrivalRoom()` (where
 travellers land — the node's own container).
 
+The concrete `TpaTerminal` (`domain/common/tpa/`) renders this
+directionality as a **diegetic status light** — the *color of the
+terminal's name* in a room listing (purple both-ways / blue arrival /
+red departure / grey out-of-service), via a `getPresentationMml`
+override that wraps the name in a `<color>` tag (see
+[message-rendering.md](./message-rendering.md)). The colour carries the
+meaning; the long description spells the same condition out in words
+(the non-colour-alone channel) on a deliberate `look`.
+
 **The credential** is now a `travel` **record** held in a
 `CredentialWalletMixin` holder (the unified credential substrate — see
 [credential.md](./credential.md)): a registered-node set plus the

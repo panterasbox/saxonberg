@@ -305,6 +305,17 @@ the drill chain IS the scope. The resolver's empty-scope fallback to
 `reachable` stays as a safety net for when the focus chain stops
 resolving (typically after the player walks into a different room).
 
+**Caveat — room-anchored args need the explicit chain.** The empty-scope
+fallback fires only when `$focus` *itself* fails to resolve, **not** when
+it resolves to an object whose scope simply doesn't contain the target.
+So a verb whose target is a room-level thing (a direction, an exit) must
+**not** rely on the bare `['$focus']` default: after `look <object>`,
+`$focus` resolves to that object, and a bare-default `go north` searches
+"north" inside it, finds no exit, and fails with "you can't walk that
+way." The movement verbs (`go`/`walk`/`climb`/`swim`/`fly`/`ride`/
+`drive`, joining `mount`) therefore declare `scope: ["$focus",
+"reachable"]` explicitly — drill first, then fall back to the room.
+
 Verbs that should **ignore drill entirely** declare a non-`$focus`
 fragment (`scope: 'inventory'` for `drop`, `scope: 'peers'` for
 `get`). Inspection-shaped verbs (`look`, `examine`, `read`) declare

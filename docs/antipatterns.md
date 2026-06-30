@@ -375,6 +375,18 @@ top of it; see `docs/subsystems/belief.md`.
 disguise effects can override the rendered identity via a method
 shadow.
 
+**To *decorate* a name as MML (color it, mark it), do NOT put markup in
+`getShortDescription()` / `getPresentation()`.** Those return a plain
+string consumed in ~100 non-prose places (logs, `context.note`, escaping
+`Mml.compose` interpolations, MQL scalars) — MML there renders as literal
+or double-escaped tags. The name's markup home is the `Mml`-fragment
+sibling **`Stuff.getPresentationMml(label)`**: `Mml.ref` composes it for
+every identity tag; the default returns `null` (the plain escaped
+fragment), and an override returns a richer fragment (e.g.
+`Mml.color(statusColor, label)`). See
+[messaging.md](./subsystems/messaging.md) and the `TpaTerminal`
+status-light tint.
+
 ### Rule of thumb
 
 - **Movement operations** (pick up, drop, teleport): use `ContainmentApi.move()`
