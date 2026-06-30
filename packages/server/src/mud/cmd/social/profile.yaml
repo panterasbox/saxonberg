@@ -1,0 +1,26 @@
+verbs: [profile, finger]
+controller: social/ProfileController
+description: "Look someone up — their identity card."
+help: |
+  `profile <person>` shows what you can learn about someone: who they
+  appear to be, where they're from, and how they're regarded. A stranger's
+  card is sparse — you see their description and country, but not their
+  name or story until you've been introduced (`introduce`). The more you
+  know them, the more the card fills in.
+
+  `finger` is an alias. With no argument, `profile` shows your own card —
+  the same as `score`.
+
+  What others see of *you* is your choice: `notify` and the privacy
+  settings control how much you offer without friction. Country, though,
+  is always shown.
+validators:
+  - /lib/command/validators/requiresAnimate
+args:
+  - name: target
+    type: object
+    required: false
+    scope: ["reachable", "online"]
+    validators:
+      - /lib/command/validators/mustBeAgent
+    onExcess: prompt

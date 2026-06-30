@@ -211,6 +211,9 @@ export class AppBootstrap {
     // whose first-matching rule for the acting player is non-silent.
     // In-memory, nothing persisted; no warm step (the rule store rides
     // each Avatar's own persistence).
+    // SocialApi.boot() installs BOTH the notify-gated presence relay and
+    // the presence-PUBLIC roster-delta tap (feeding the "Who's Online"
+    // pane) — same four presence events, two consumers. In-memory.
     SocialApi.boot();
 
     // Twitch relay — install the outbound DI port + wire the presence-gated

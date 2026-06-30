@@ -28,14 +28,79 @@ import type {
 import { StuffApi } from "./stuff";
 import { HotReloadApi } from "./hot-reload";
 import { SecurityApi } from "./security";
+import type Avatar from "../obj/Avatar";
+import type { PresenceStatus, RosterRow } from "@saxonberg/types";
 import { SocialLogic } from "../obj/api/SocialLogic";
+import { PresenceLogic } from "../obj/api/PresenceLogic";
+import { ProfileLogic } from "../obj/api/ProfileLogic";
 import { fileURLToPath } from "url";
 
 export type { NotifyRule, ResolvedRule, RuleForOptions, SetResult };
 
+// Wire types crossing to the client live in @saxonberg/types (single
+// source of truth); re-exported from this — the social-graph read face —
+// since `composeRow`/`composeCard` speak them.
+export type { PresenceStatus, RosterRow, RosterFrame } from "@saxonberg/types";
+
+/** The proper-name surface (recognition-gated). */
+export interface ProfileNameSurface {
+  honorific?: string;
+  name: string;
+  surname?: string;
+  suffix?: string;
+  alternates?: string[];
+}
+
+/** The self-only standing digest (empty lines hidden). */
+export interface ProfileDigest {
+  renown?: string;
+  influence?: { play: string; make: string };
+  competence?: { discipline: string; band: string }[];
+  traits?: { axis: string; band: string }[];
+}
+
+/** The full viewer-redacted inspection card (`composeCard`). */
+export interface ProfileCard {
+  handle: string;
+  header: string;
+  isSelf: boolean;
+  recognized: boolean;
+  // account / world facts — always shown
+  country?: string;
+  newness?: "new-arrival";
+  status?: PresenceStatus;
+  // physical / observable (disguise-aware)
+  species?: string;
+  sex?: string;
+  pronouns?: string;
+  ageStage?: string;
+  flavor?: string;
+  // persona — recognition-gated
+  nameSurface?: ProfileNameSurface;
+  aspiration?: string;
+  bio?: string;
+  chronicle?: { prologue?: string; deeds: string[] };
+  // always-outward standing
+  renownBand?: string;
+  competenceBands?: { discipline: string; band: string }[];
+  // self-only digest
+  digest?: ProfileDigest;
+  // observer-owned annotations (your read, never the target's disclosure)
+  yourLabel?: string;
+  yourRegard?: string;
+}
+
 const LOGIC_PATH = "/obj/api/social";
 const LOGIC_CLASS_FILE = fileURLToPath(
   new URL("../obj/api/SocialLogic", import.meta.url),
+);
+const PRESENCE_LOGIC_PATH = "/obj/api/presence";
+const PRESENCE_LOGIC_FILE = fileURLToPath(
+  new URL("../obj/api/PresenceLogic", import.meta.url),
+);
+const PROFILE_LOGIC_PATH = "/obj/api/profile";
+const PROFILE_LOGIC_FILE = fileURLToPath(
+  new URL("../obj/api/ProfileLogic", import.meta.url),
 );
 
 /** Resolve the HMR-able SocialLogic singleton (sync). */
@@ -50,14 +115,93 @@ function logic(): SocialLogic {
   );
 }
 
+/**
+ * The presence/profile reads live in their own logic singletons (kept
+ * separate for file size + HMR granularity) but behind this one facade —
+ * so the author navigates a single `SocialApi`, not three. Both are
+ * `@internal`; only `SocialApi` is the surface.
+ */
+function presenceLogic(): PresenceLogic {
+  return StuffApi.singletonSync(
+    PRESENCE_LOGIC_PATH,
+    () =>
+      new ((HotReloadApi.getCurrentExport(
+        PRESENCE_LOGIC_FILE,
+        "PresenceLogic",
+      ) as typeof PresenceLogic | null) ?? PresenceLogic)(),
+  );
+}
+
+function profileLogic(): ProfileLogic {
+  return StuffApi.singletonSync(
+    PROFILE_LOGIC_PATH,
+    () =>
+      new ((HotReloadApi.getCurrentExport(
+        PROFILE_LOGIC_FILE,
+        "ProfileLogic",
+      ) as typeof ProfileLogic | null) ?? ProfileLogic)(),
+  );
+}
+
 export class SocialApi {
   /**
-   * Boot seam (idempotent). Installs the login/logout presence relay
-   * (the net-new connect/disconnect → notification consumer). Wired from
-   * `AppBootstrap.run()`.
+   * Boot seam (idempotent). Installs both social-graph presence consumers:
+   * the notify-gated login/logout **notification** relay and the
+   * presence-PUBLIC **roster** delta tap (feeding the "Who's Online" pane).
+   * Both ride the same four presence events. Wired from `AppBootstrap.run()`.
    */
   public static boot(): void {
     logic().installPresenceTap();
+    presenceLogic().installRosterTap();
+  }
+
+  // --- Inspection reads (the `who` / `profile` / `score` surface) ---
+
+  /**
+   * Every currently-connected player avatar — the cheap filter over the
+   * online set (linkdead / destroyed excluded). The roster source for
+   * `who` and the live pane.
+   */
+  public static online(): Avatar[] {
+    return presenceLogic().online();
+  }
+
+  /**
+   * Derived session-liveness for `target`, in display-precedence order
+   * (`reconnecting` > `engaged` > `idle` > `active`). Computed on read
+   * against the `social.idleAfter` AppSetting; no stored idle state.
+   */
+  public static statusOf(target: Avatar): PresenceStatus {
+    return presenceLogic().statusOf(target);
+  }
+
+  /**
+   * Push a full viewer-lensed roster snapshot to one viewer (pane open /
+   * session establish) as a `world.social.roster` frame. Fire-and-forget.
+   */
+  public static snapshotFor(viewer: Avatar): void {
+    void presenceLogic().snapshotFor(viewer);
+  }
+
+  /**
+   * The full inspection card for `target`, viewer-redacted by recognition
+   * + the target's disclosure dial. `viewer === target` returns the
+   * unredacted self-card plus the standing digest. The cardinality-one
+   * sibling of {@link composeOccupants}.
+   */
+  public static composeCard(
+    viewer: Stuff,
+    target: Stuff,
+  ): Promise<ProfileCard> {
+    return profileLogic().composeCard(viewer, target);
+  }
+
+  /**
+   * The one viewer-lensed roster row — header + country + (gated) status —
+   * shared by `who` and the live roster pane.
+   */
+  public static composeRow(viewer: Stuff, target: Stuff): Promise<RosterRow> {
+    return profileLogic().composeRow(viewer, target);
   }
 
   /**
