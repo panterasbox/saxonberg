@@ -64,18 +64,64 @@ double-connect entirely — a follow-up.
 ## Deterministic world
 
 E2E runs against a deterministic world by construction: a fresh Mongo
-(ephemeral in CI) + the fixed seed set + the Avatar seed's pinned
-`container: /domain/eternal/duncan-hall/lobby` means a freshly-created
-test avatar always spawns in the seeded Duncan Hall lobby. The
-round-trip test asserts on that room's stable identity label, not its
-flavor prose. (Follow-up, best done against a live stack so it can be
-verified green: a dedicated, test-owned spawn room + a test-mode
-`container` override, to fully insulate E2E from campus content churn.)
+(ephemeral in CI) + the fixed seed set. A freshly-created test avatar
+spawns in the lounge Warren (`startLocation: /domain/lounge/warren`), so
+single-avatar specs assert on that room's stable identity label ("the
+lounge"), not its flavor prose.
+
+**Lounge churn & the spawn override.** The lounge is an *elastic Warren*
+that buds new rooms under occupant pressure. Against a **fresh** Mongo
+(CI's ephemeral `mongo:7`) this is harmless. Against a **persistent**
+local DB, however, linkdead avatars from earlier runs pile up and bud the
+lounge into a sprawling graph that no exit-walk can reliably cross — so a
+naïve "walk to a shared room" co-location strategy is flaky there. Two
+mitigations:
+
+- **The test-auth spawn override** (the durable fix). `POST
+  /auth/test-login` accepts an optional `startLocation` (a template path)
+  that pins where the provisioned avatar spawns — see
+  `TestAuthRoutes` → `Application.provisionTestCharacter`. Tests that need
+  a *known* or *shared* room use it to bypass the Warren entirely:
+  `multiplayer.spec.ts` pins both avatars to Dave's Bar (a stable
+  singleton, `/domain/lounge/bar`) so they spawn already co-located, and
+  `commands.spec.ts`'s movement test pins to the bar then walks `south`
+  to the lounge. These specs are therefore immune to lounge churn.
+- **Resetting locally.** Most specs are single-avatar or client-only and
+  don't care about churn. If you do hit a churn-sensitive failure on a
+  hammered local DB, restart the server (a boot reseeds the world and
+  drops the budded satellites).
 
 ## Status
 
-Three specs, **passing** against a live stack: `auth.spec.ts` (login
-screen for fresh visitors) and `smoke.spec.ts` (authenticated visitor
-lands in the cockpit + a `look` command round-trips and renders the
-spawn room). A smoke suite — it proves the harness and the critical
-path, not broad feature coverage; grow from here.
+Eleven specs, **passing** against a live stack — a fresh-Mongo run is a
+clean sweep. Coverage:
+
+- `auth.spec.ts` / `guest.spec.ts` — the login screen for fresh visitors
+  and the anonymous play-as-guest path.
+- `smoke.spec.ts` — authenticated visitor lands in the cockpit; a `look`
+  round-trips and renders the spawn room.
+- `chargen.spec.ts` — the full new-player creation flow → spawn.
+- `commands.spec.ts` — `say` / `smile` / `inventory` / movement / parse
+  errors.
+- `comms.spec.ts` — `whisper` (self-loop), `shout`, freeform `emote`.
+- `selfview.spec.ts` — the `score` / `standing` / `chronicle` / `traits`
+  self-views over the standing/chronicle/trait substrates.
+- `help.spec.ts` — the `help` rulebook index + `help <verb>` topics.
+- `cockpit.spec.ts` — input-clear-on-submit + command-history walking.
+- `views.spec.ts` — the Views-menu layout switch (`layout` verb), its
+  ghost-line preview, and the tab-strip filter drawer.
+- `tabs.spec.ts` — the create/rename/delete tab lifecycle.
+- `panes.spec.ts` / `inspect.spec.ts` — the Settings pane, the Who's
+  Online pane, and the Inspection pane (current-room paint + Inspect ↔
+  Who's Online toggle).
+- `social.spec.ts` — the Social/Notifications pane + its ghost-line
+  command previews.
+- `multiplayer.spec.ts` — a spoken line crossing two independent sessions
+  in one room (co-located via the spawn override).
+
+Note for local iteration: the dev server runs under `tsx` watch, so
+editing any file under `packages/server/src/**` (including `*.test.ts`)
+reloads it — **don't edit server source while an E2E run is in flight**,
+or in-flight tests will see a mid-run disconnect. The first spec right
+after a cold boot can also be slow (world bootstrap still settling); the
+configured retry absorbs that as a one-off "flaky", not a failure.

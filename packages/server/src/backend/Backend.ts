@@ -420,7 +420,8 @@ export class Backend implements IBackend {
   public async handleTestAuthentication(
     handle: string,
     done: (error: unknown, user?: { id: string }) => void,
-    withCharacter = false
+    withCharacter = false,
+    startLocation?: string
   ): Promise<void> {
     if (process.env.AUTH_MODE !== 'test') {
       done(new Error('Backend: test authentication is disabled'));
@@ -441,7 +442,8 @@ export class Backend implements IBackend {
           const id = await app.findOrCreateUserFromProvider('google', profile);
           // Optionally provision a ready character so in-world E2E tests
           // skip char-gen. char-gen specs omit this (0 chars → intake).
-          if (withCharacter) await app.provisionTestCharacter(id, handle);
+          if (withCharacter)
+            await app.provisionTestCharacter(id, handle, startLocation);
           return id;
         }
       );

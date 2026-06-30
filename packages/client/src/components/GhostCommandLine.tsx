@@ -61,7 +61,7 @@ export function GhostCommandLine(): JSX.Element {
   const flashing = Boolean(ghostFlash);
 
   return (
-    <Strip $flash={flashing} aria-live="polite">
+    <Strip $flash={flashing} aria-live="polite" data-testid="ghost-line">
       <Glyph aria-hidden="true">{flashing ? "" : ">"}</Glyph>
       {text ? (
         <span>{text}</span>

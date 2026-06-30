@@ -1,45 +1,54 @@
 import { test, expect } from '@playwright/test';
-import { mintSession, enterWorld, walkToBar, commandInput } from './helpers';
+import { mintSession, enterWorld, commandInput, sendUntil } from './helpers';
 
 /**
  * Multiplayer message routing: two avatars in the same room, one speaks,
  * the other hears it. Exercises the sensor/messaging path across two
  * independent client sessions — the heart of a multiplayer platform.
  *
- * Co-location matters: the lounge is an elastic Warren that buds per
- * occupant, so two fresh avatars spawn in DIFFERENT host rooms and never
- * share one. So both walk north into Dave's Bar — an ordinary single
- * room — which guarantees they're together before anyone speaks. The
- * assertion keys on the STABLE spoken content ("Greetings everyone"),
- * not the speaker's rendered label, which depends on the listener's
- * recognition state.
- *
- * Two full world-entries plus a round-trip is heavy, so the timeout is
- * raised well above the default.
+ * Co-location, deterministically
+ * ------------------------------
+ * The default spawn (the lounge) is an elastic Warren that BUDS under
+ * occupant pressure, so two fresh avatars routinely land in different
+ * rooms — and under a persistent DB the bud graph degenerates into
+ * something no exit-walk can reliably cross. So we sidestep the Warren
+ * entirely: both avatars are minted with `startLocation` pinned to Dave's
+ * Bar (a stable, non-Warren singleton room — `LoungeWarren.BAR_PATH`),
+ * via the test-auth seam's spawn override. They spawn already together,
+ * regardless of how polluted the lounge is, so this test is immune to
+ * lounge-population churn. The assertion keys on the STABLE spoken content
+ * ("Greetings everyone"), not the speaker's rendered label, which depends
+ * on the listener's recognition state.
  */
+const BAR_PATH = '/domain/lounge/bar';
+
 test('a spoken line reaches another avatar in the same room', async ({
   browser,
 }) => {
   test.setTimeout(120_000);
 
   const [a, b] = await Promise.all([
-    mintSession({ withCharacter: true }),
-    mintSession({ withCharacter: true }),
+    mintSession({ withCharacter: true, startLocation: BAR_PATH }),
+    mintSession({ withCharacter: true, startLocation: BAR_PATH }),
   ]);
 
   const speaker = await enterWorld(browser, a.state);
   const listener = await enterWorld(browser, b.state);
   try {
-    // Walk both into Dave's Bar so they share one room — Dave's Bar is a
-    // single persistent singleton, so co-location there is guaranteed once
-    // both arrive. `walkToBar` walks the lounge Warren's exit graph rather
-    // than assuming a fixed `north`: a fresh avatar can spawn in a budded
-    // satellite (no direct north→bar) when earlier tests have piled
-    // linkdead avatars into the host. Serialized (speaker first) so the
-    // listener's traversal runs after the first-ever lazy `GoController`
-    // clone has finished — concurrent first-moves otherwise race it.
-    await walkToBar(speaker.page);
-    await walkToBar(listener.page);
+    // Both spawned in Dave's Bar. Confirm each is actually there (the
+    // bar's long description is unique — "…citrus peel and old wood…")
+    // before the speech round-trip, re-sending `look` if the first one
+    // dropped while the WebSocket session was still settling.
+    await sendUntil(
+      speaker.page,
+      'look',
+      speaker.page.getByText(/citrus peel/i).first()
+    );
+    await sendUntil(
+      listener.page,
+      'look',
+      listener.page.getByText(/citrus peel/i).first()
+    );
 
     // Speaker says something distinctive; the listener should receive it.
     await commandInput(speaker.page).fill('say Greetings everyone');

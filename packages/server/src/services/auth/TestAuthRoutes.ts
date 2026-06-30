@@ -43,12 +43,23 @@ export class TestAuthRoutes {
       }
 
       const body = req.body as
-        | { handle?: unknown; withCharacter?: unknown }
+        | {
+            handle?: unknown;
+            withCharacter?: unknown;
+            startLocation?: unknown;
+          }
         | undefined;
       const handle = String(body?.handle ?? 'default');
       // Opt-in: provision a ready-to-play character so in-world E2E
       // tests skip char-gen. Char-gen specs omit it (0 chars → intake).
       const withCharacter = body?.withCharacter === true;
+      // Optional spawn override (e.g. a stable singleton room) so
+      // co-location E2E tests bypass the elastic lounge Warren. Ignored
+      // unless `withCharacter` provisions a fresh avatar.
+      const startLocation =
+        typeof body?.startLocation === 'string'
+          ? body.startLocation
+          : undefined;
 
       void backend.handleTestAuthentication(
         handle,
@@ -69,7 +80,8 @@ export class TestAuthRoutes {
             res.json({ isAuthenticated: true, user: { id: user.id } });
           });
         },
-        withCharacter
+        withCharacter,
+        startLocation
       );
     });
 

@@ -544,6 +544,31 @@ describe('Application', () => {
       expect(savedData.startLocation).toBe('/domain/lounge/warren');
     });
 
+    it('honors a startLocation override (spawn-room pin for co-location E2E)', async () => {
+      process.env.AUTH_MODE = 'test';
+      const user = {
+        _id: 'u1',
+        playerIds: [] as string[],
+        save: vi.fn().mockResolvedValue(undefined),
+      };
+      vi.spyOn(User, 'findById').mockResolvedValue(user as never);
+      vi.spyOn(Template, 'findByPath').mockResolvedValue({
+        path: Avatar.SEED_TEMPLATE_PATH,
+        class: '/obj/Avatar',
+        data: {},
+        hydratorClass: '/lib/persistence/PersistentHydrator',
+      } as never);
+      const tmplSave = vi
+        .spyOn(TemplateApi, 'saveTemplate')
+        .mockResolvedValue(undefined as never);
+
+      await app.provisionTestCharacter('u1', 'Tester', '/domain/lounge/bar');
+      // The override wins over the app-config default — the avatar is
+      // pinned to the named singleton room rather than the lounge Warren.
+      const savedData = tmplSave.mock.calls[0]![2] as Record<string, unknown>;
+      expect(savedData.startLocation).toBe('/domain/lounge/bar');
+    });
+
     it('is idempotent — no-op when the user already has a character', async () => {
       process.env.AUTH_MODE = 'test';
       const user = {
