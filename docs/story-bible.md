@@ -432,13 +432,21 @@ form reads as natural **sensitives / telepaths**.*
   through the aether; the twilight of all gods, a **true death of
   presence**; the **attuned vanish**; the faith survives only as the
   clergy's exile. Undatable — an empty age keeps no clock.
-- **The Mission** — *aether: harnessed, built shared.* The Coming (clergy
-  return, revive presence, tend the Sanctuary) → the Reformation (*teach,
-  don't crown*) → the **return of the attuned** (presence revives, the gift
-  re-emerges; the clergy *learn* attunement from them) → the University
-  founded (attunement made teachable) → the Widening (the implant as
-  prosthetic for the attuned's gift; *anyone* can attune; the aether becomes
-  a network at scale) → the Handover (gracious, with reluctant elders).
+- **The Mission** — *aether: harnessed, built shared* — the long road from
+  the fall, the world's slow education back toward the Charter: the
+  **Coming** (a forerunner, *the herald*, breaks the silence and the clergy
+  return, revive presence, tend the Sanctuary) → the **Reformation** (*teach,
+  don't crown*) → the **re-settlement** (the dead city lives again; the first
+  generation born in new Terminus) → the **return of the attuned** (the gift
+  re-emerges; the clergy *learn* attunement from them) → the **University
+  founded** to study the aether → a **near-relapse** (a would-be Solus rises
+  and is *caught this time* — the framers' lived reason) → the long study and
+  its **casualties** (the medium's toll; Solvan's cancer the last in a line)
+  → the **breakthrough** and the **Widening** (universal attunement; the
+  modern networked world all at once — corpos at scale, the New Gods
+  resurgent, the attuned dispossessed) → the **rise of the corpos** and the
+  **secular turn** (the clergy recede into echoes). *(The Handover into the
+  Grounded Age is the future — see below.)*
 - **The Charter & the brief interim** *(present — ≈ year 5–10)* — the
   cohort's pivot from aether-study to polity-engineering; the constitution
   drafted, the city recognizes it (**year 0**), **Steward Solvan** drafted
@@ -636,6 +644,51 @@ stay the open questions the framers argue.
 *Open: a second opposition figure (a future carve); the wings stay
 collective.*
 
+## The lost paradise — the prophecy's root *[settled]*
+
+The deepest layer, the one that turns the design into a myth: **the ancient
+attuned already lived the cooperative.** Creatures of presence, naturally
+networked, born uncapturable — a presence-based, distributed polity *by
+nature*, the cult-of-presence as a society with no hollowing in it. **That
+was paradise.**
+
+- **The fall.** Paradise fell to the **first hollowing** — the first time a
+  being looked at freely-given presence and saw a *thing to take.* The first
+  capture; presence can't stay pure once it's hoarded. The legend *frames*
+  it as a curse (Eden's shape); the structural truth is the hollowing's
+  *birth.* So the hollowing is older than Eternal City — **paradise was its
+  first casualty, and Solus is a recurrence, not a debut.** *(Open: a mythic
+  **first-faller**, the original Solus among the attuned — or keep the fall
+  impersonal.)*
+- **The loss & the rediscovery.** The knowledge died with the attuned (the
+  Fallow). The framers, digging in the aether, did not *invent* the better
+  way — they **rediscovered** it and built a human, technological version of
+  something that *was real once.* The cooperative is a **restoration**, not a
+  novel experiment; the framers are restorers, not utopians.
+- **The prophecy.** Carried by the old faith — not arbitrary foretelling but
+  **ancestral memory of paradise plus the promise it returns:** that one day
+  the people would come and fill the empty seats. The steward's vigil is
+  *awaiting a prophecy*; the players, at critical mass, are the **prophesied
+  ones** who fulfill it. The founding is **paradise regained.** (Beneath it,
+  the cyclical warning: the hollowing *will* return; another Solus *can*
+  rise.)
+- **The herald.** The Coming had a forerunner — a **voice in the dead city**
+  at the Fallow's end, the first to break the silence, prophesying the heal
+  and preparing the way; like John, perhaps dead before he saw it come. The
+  Coming's catalyst. *(Name open.)*
+
+It **sharpens Holt's doubt** into the deepest question in the world: the
+attuned held paradise because they were *unfallen* — born present,
+uncapturable. *Can the fallen — capturable, present only by a device — hold
+what only the unfallen ever held?* That is the gamble the founding is.
+
+*(Influence — the Bible as **structure, not creed:** paradise lost/regained,
+prophecy, the herald, the closing-and-opening of books, and the
+**Christ/Antichrist coin** — Solus the *fallen Christ*, Solvan the
+*redemptive Antichrist* who closes the old book so the people's can be
+written. The universal monomyth, dressed in our cosmology — never literal
+scripture.)*
+
 ## The Museum — the world's memory **[settled frame, contents open]**
 
 The first anchor location, and the bible's walkable table of contents.
@@ -698,3 +751,7 @@ provenance, its nightmare the perfect forgery. Design facts:
   persona.
 - **Hitchhiker's Guide** — deadpan, the absurd ancient machine; the
   world's lightness as a genre-solvent.
+- **The Bible** — *structure, not creed* (the greatest story ever told,
+  borrowed for its bones): paradise lost/regained, prophecy and the herald,
+  the closing-and-opening of books, the Christ/Antichrist coin. Dressed in
+  our own cosmology, never literal scripture.
