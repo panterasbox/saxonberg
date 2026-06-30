@@ -155,3 +155,73 @@ describe("AccessRegistry — wizard axis", () => {
     expect(wizards!.memberIds.sort()).toEqual(["p1", "p2"]);
   });
 });
+
+describe("AccessRegistry — developers→wizards migration", () => {
+  let prevEnv: string | undefined;
+
+  beforeEach(() => {
+    prevEnv = process.env[ENV_KEY];
+    delete process.env[ENV_KEY];
+    AccessApi._resetRegistryRefForReload();
+    StuffApi.clearAll();
+  });
+
+  afterEach(() => {
+    if (prevEnv === undefined) delete process.env[ENV_KEY];
+    else process.env[ENV_KEY] = prevEnv;
+    vi.restoreAllMocks();
+    AccessApi._resetRegistryRefForReload();
+    StuffApi.clearAll();
+  });
+
+  it("renames a legacy `developers` group forward, preserving _id + members", async () => {
+    const store = installInMemoryStore([
+      {
+        name: "developers",
+        owner: "system",
+        memberIds: ["legacy-a", "legacy-b"],
+        memberRoles: ["member", "member"],
+      },
+    ]);
+    const legacyId = store[0]!._id;
+
+    await bootRegistry();
+
+    const reg = await GroupApi.registry();
+    const wizards = await reg.managed().findByName("wizards");
+    expect(wizards).not.toBeNull();
+    expect(wizards!._id).toBe(legacyId); // same doc, renamed forward
+    expect(wizards!.memberIds.sort()).toEqual(["legacy-a", "legacy-b"]);
+
+    // No `developers` group remains.
+    expect(await reg.managed().findByName("developers")).toBeNull();
+
+    // Both legacy members read as wizards.
+    const a = makeAvatar("legacy-a");
+    const b = makeAvatar("legacy-b");
+    expect(await AccessApi.isWizard(a)).toBe(true);
+    expect(await AccessApi.isWizard(b)).toBe(true);
+  });
+
+  it("is idempotent: a second boot does not duplicate or lose members", async () => {
+    installInMemoryStore([
+      {
+        name: "developers",
+        owner: "system",
+        memberIds: ["legacy-a"],
+        memberRoles: ["member"],
+      },
+    ]);
+
+    await bootRegistry();
+    // Second boot against the already-migrated store.
+    AccessApi._resetRegistryRefForReload();
+    StuffApi.clearAll();
+    await bootRegistry();
+
+    const reg = await GroupApi.registry();
+    const wizards = await reg.managed().findByName("wizards");
+    expect(wizards!.memberIds).toEqual(["legacy-a"]);
+    expect(await reg.managed().findByName("developers")).toBeNull();
+  });
+});
