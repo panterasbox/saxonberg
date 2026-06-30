@@ -5,6 +5,7 @@
  *
  *   - `Cockpit`    — the fluid content row beneath the always-on chrome.
  *   - `LeftColumn` — the primary terminal + command-bar column.
+ *   - `SideColumn` — the fixed-width side rail (chat / glance terminal).
  */
 
 import styled from "styled-components";
@@ -30,6 +31,23 @@ export const LeftColumn = styled.div`
   flex-direction: column;
   flex: 1;
   min-width: 0;
+`;
+
+/**
+ * The fixed-width side rail — the complement to `LeftColumn`'s fluid
+ * primary. One tokenized width (`tokens.rail`) shared by every layout
+ * that carries a rail (livestream chat, builder glance), with a `$wide`
+ * variant for the CMS/builder's roomier explorer + editor. Fixed rem on
+ * purpose (a percentage rail breaks at the extremes).
+ */
+export const SideColumn = styled.div<{ $wide?: boolean }>`
+  display: flex;
+  flex-direction: column;
+  flex: none;
+  width: ${(p) => (p.$wide ? tokens.rail.wideWidth : tokens.rail.width)};
+  min-width: ${(p) =>
+    p.$wide ? tokens.rail.wideMinWidth : tokens.rail.minWidth};
+  border-left: 1px solid ${tokens.color.border};
 `;
 
 export { tokens };

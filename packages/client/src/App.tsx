@@ -25,7 +25,6 @@ import { SocialNotificationsPane } from "./components/settings/SocialNotificatio
 import { StartScreen } from "./components/StartScreen";
 import { CharacterSelect } from "./components/CharacterSelect";
 import { CharGenStage } from "./components/CharGenStage";
-import { ViewsMenu } from "./components/ViewsMenu";
 import { GhostCommandLine } from "./components/GhostCommandLine";
 import { SettingsPane } from "./components/settings/SettingsPane";
 import { LAYOUT_REGISTRY, type LayoutProps } from "./layouts";
@@ -89,37 +88,6 @@ const Splash = styled.div`
   font-family: ${tokens.font.family};
   font-size: ${tokens.font.small};
   font-style: italic;
-`;
-
-/**
- * The always-on chrome strip holding the "Views" layout switcher + the
- * settings affordance. A fixed, constant-position region (the matte) so
- * the layout/settings affordances are in the same place in every layout.
- */
-const ChromeBar = styled.div`
-  display: flex;
-  align-items: center;
-`;
-
-const ChromeSpacer = styled.div`
-  flex: 1;
-`;
-
-const ChromeButton = styled.button<{ $active: boolean }>`
-  background: ${(p) =>
-    p.$active ? tokens.color.surfaceMuted : "transparent"};
-  border: 1px solid ${tokens.color.border};
-  border-radius: ${tokens.radius.sm};
-  color: ${tokens.color.fgEmphasis};
-  cursor: pointer;
-  margin-right: 0.5rem;
-  padding: 0.15rem 0.6rem;
-  font: inherit;
-  font-size: ${tokens.font.small};
-
-  &:hover {
-    background: ${tokens.color.surfaceMuted};
-  }
 `;
 
 /**
@@ -631,28 +599,19 @@ function App() {
       ).Component;
       return (
         <AppContainer>
-          {/* Always-on chrome (the matte): status header, reconnect
-              banner, and the Views layout switcher — same place every
-              layout. */}
-          <Frame />
+          {/* Always-on chrome (the matte): one bar — bus-health + identity
+              + the Views layout switcher + settings, same place every
+              layout — then the reconnect banner. */}
+          <Frame
+            layout={layout}
+            onCommandClick={handleCommandClick}
+            onCommandPreview={handleCommandPreview}
+            settingsActive={summonedPane === "settings"}
+            onToggleSettings={() =>
+              summonedPane === "settings" ? closePane() : openPane("settings")
+            }
+          />
           <ReconnectBanner />
-          <ChromeBar>
-            <ViewsMenu
-              current={layout}
-              onCommandClick={handleCommandClick}
-              onCommandPreview={handleCommandPreview}
-            />
-            <ChromeSpacer />
-            <ChromeButton
-              $active={summonedPane === "settings"}
-              aria-label="Toggle settings pane"
-              onClick={() =>
-                summonedPane === "settings" ? closePane() : openPane("settings")
-              }
-            >
-              Settings
-            </ChromeButton>
-          </ChromeBar>
           {/* The active layout fills the fluid content area; a summoned
               pane (settings) docks beside it — non-modal, terminal stays. */}
           <ContentRow>

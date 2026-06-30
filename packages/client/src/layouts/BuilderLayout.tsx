@@ -11,22 +11,11 @@
  */
 
 import React from "react";
-import styled from "styled-components";
 import type { LayoutProps } from "./types";
-import { Cockpit, tokens } from "./primitives";
+import { Cockpit, SideColumn } from "./primitives";
 import { CmsSurface } from "../components/cms/CmsSurface";
 import { Terminal } from "../components/Terminal";
 import { CommandBar } from "../components/CommandBar";
-
-/** The glance terminal rail — a narrow column kept beside the editor. */
-const GlanceRail = styled.div`
-  display: flex;
-  flex-direction: column;
-  flex: none;
-  width: 24rem;
-  min-width: 18rem;
-  border-left: 1px solid ${tokens.color.border};
-`;
 
 export const BuilderLayout: React.FC<LayoutProps> = ({
   frames,
@@ -39,7 +28,7 @@ export const BuilderLayout: React.FC<LayoutProps> = ({
   return (
     <Cockpit>
       <CmsSurface />
-      <GlanceRail>
+      <SideColumn $wide>
         <Terminal
           frames={frames}
           onCommandClick={onCommandClick}
@@ -51,7 +40,7 @@ export const BuilderLayout: React.FC<LayoutProps> = ({
           onSendPromptResponse={onSendPromptResponse}
           onCancelPrompt={onCancelPrompt}
         />
-      </GlanceRail>
+      </SideColumn>
     </Cockpit>
   );
 };

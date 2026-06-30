@@ -23,7 +23,9 @@ import { tokens } from "../ui";
 const Wrap = styled.div`
   display: flex;
   flex-direction: column;
+  flex: 1;
   min-width: 0;
+  min-height: 0;
 `;
 
 const PickerRow = styled.div`
@@ -49,12 +51,26 @@ const PickerButton = styled.button<{ $active: boolean }>`
   }
 `;
 
-/** 16:9 fixed-ratio frame; the iframe / placeholder fills it absolutely. */
+/**
+ * The black stage that fills the focal allotment. The 16:9 screen inside
+ * is *contained* (letterboxed) within it — height-bound when the
+ * allotment is wide, width-bound when it's tall — so the video is as big
+ * as the focal split allows without ever cropping or overflowing.
+ */
 const Stage = styled.div`
-  position: relative;
-  width: 100%;
-  aspect-ratio: 16 / 9;
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   background: #000;
+`;
+
+const Screen = styled.div`
+  position: relative;
+  aspect-ratio: 16 / 9;
+  height: 100%;
+  max-width: 100%;
 
   > iframe {
     position: absolute;
@@ -95,7 +111,9 @@ export function StreamEmbed({ sources }: StreamEmbedProps): JSX.Element {
     return (
       <Wrap>
         <Stage>
-          <Placeholder>No broadcast is live right now.</Placeholder>
+          <Screen>
+            <Placeholder>No broadcast is live right now.</Placeholder>
+          </Screen>
         </Stage>
       </Wrap>
     );
@@ -119,20 +137,22 @@ export function StreamEmbed({ sources }: StreamEmbedProps): JSX.Element {
         </PickerRow>
       ) : null}
       <Stage>
-        {source.platform === "twitch" ? (
-          <iframe
-            title="Twitch stream"
-            src={`https://player.twitch.tv/?channel=${encodeURIComponent(
-              source.channel,
-            )}&parent=${window.location.hostname}`}
-            sandbox="allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox"
-            allow="autoplay; fullscreen"
-          />
-        ) : (
-          <Placeholder>
-            YouTube embeds are coming soon ({source.videoId}).
-          </Placeholder>
-        )}
+        <Screen>
+          {source.platform === "twitch" ? (
+            <iframe
+              title="Twitch stream"
+              src={`https://player.twitch.tv/?channel=${encodeURIComponent(
+                source.channel,
+              )}&parent=${window.location.hostname}`}
+              sandbox="allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox"
+              allow="autoplay; fullscreen"
+            />
+          ) : (
+            <Placeholder>
+              YouTube embeds are coming soon ({source.videoId}).
+            </Placeholder>
+          )}
+        </Screen>
       </Stage>
     </Wrap>
   );

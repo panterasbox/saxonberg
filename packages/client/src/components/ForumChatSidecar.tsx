@@ -20,6 +20,9 @@ import { tokens } from "./ui";
 const Rail = styled.div`
   display: flex;
   flex-direction: column;
+  flex: none;
+  width: ${tokens.rail.width};
+  min-width: ${tokens.rail.minWidth};
   height: 100%;
   min-height: 0;
   padding: 0.75rem;

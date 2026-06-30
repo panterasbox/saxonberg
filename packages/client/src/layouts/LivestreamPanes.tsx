@@ -17,7 +17,7 @@ import React from "react";
 import styled from "styled-components";
 import { type Frame as ConsoleFrame } from "../store/index";
 import type { LayoutProps } from "./types";
-import { Cockpit, LeftColumn, tokens } from "./primitives";
+import { Cockpit, LeftColumn, SideColumn, tokens } from "./primitives";
 import { Terminal } from "../components/Terminal";
 import { CommandBar } from "../components/CommandBar";
 
@@ -28,14 +28,6 @@ function isChatFrame(f: ConsoleFrame): boolean {
   return CHAT_TOPICS.has(f.topic);
 }
 
-const Rail = styled.div`
-  display: flex;
-  flex-direction: column;
-  width: 22rem;
-  min-width: 16rem;
-  border-left: 1px solid ${tokens.color.border};
-`;
-
 const RailTitle = styled.div`
   padding: ${tokens.space.sm} ${tokens.space.md};
   color: ${tokens.color.fgMuted};
@@ -44,21 +36,38 @@ const RailTitle = styled.div`
   border-bottom: 1px solid ${tokens.color.border};
 `;
 
-/** The compressed game terminal — floored at a legible minimum height. */
+/**
+ * The focal pane's vertical claim — the dominant share of the column
+ * (composition grammar's Focal split). The video / stats sizes first;
+ * `min-height: 0` lets the contained 16:9 letterbox within it.
+ */
+const Focal = styled.div`
+  display: flex;
+  flex: ${tokens.ratio.focal} 1 0;
+  min-height: 0;
+`;
+
+/**
+ * The compressed game terminal — the focal split's complement. Takes the
+ * remaining share, floored at a legible minimum height (never-blind).
+ */
 const GameTerminal = styled.div`
   display: flex;
   flex-direction: column;
-  flex: 1;
+  flex: ${tokens.ratio.focalComplement} 1 0;
   min-height: 8rem;
 `;
 
 interface LivestreamPanesProps extends LayoutProps {
-  /** The focal pane — the video embed (viewer) or a stats placeholder. */
+  /** The focal pane — the video embed (viewer) or the streamer deck. */
   focal: React.ReactNode;
+  /** Widen the chat rail — the streamer lives in chat, so it gets more room. */
+  railWide?: boolean;
 }
 
 export function LivestreamPanes({
   focal,
+  railWide,
   frames,
   onSendCommand,
   onSendPromptResponse,
@@ -72,7 +81,7 @@ export function LivestreamPanes({
   return (
     <Cockpit>
       <LeftColumn>
-        {focal}
+        <Focal>{focal}</Focal>
         <GameTerminal>
           <Terminal
             frames={gameFrames}
@@ -87,7 +96,7 @@ export function LivestreamPanes({
           onCancelPrompt={onCancelPrompt}
         />
       </LeftColumn>
-      <Rail>
+      <SideColumn $wide={railWide}>
         <RailTitle>Stream chat</RailTitle>
         <Terminal
           frames={chatFrames}
@@ -102,7 +111,7 @@ export function LivestreamPanes({
           onSendPromptResponse={onSendPromptResponse}
           onCancelPrompt={onCancelPrompt}
         />
-      </Rail>
+      </SideColumn>
     </Cockpit>
   );
 }
