@@ -202,7 +202,9 @@ revolution and no grievance** — the old order died of its own failure and
 the new one grew on the ruins, founded in construction, not resentment.
 (Inspiration: the California missions — clergy mission → town → university
 → secular order. Santa Clara University stands on Mission Santa Clara.)
-All names provisional.
+All names provisional. **Dating runs precise-near, blank-far:** the
+Grounded Age is recent and recorded; the deeper ages haze out; the Fallow
+is a genuine blank (an empty age keeps no clock).
 
 ### I. The Age of Myth *[mythic, uncertain — stays light]*
 No throne yet — only the oldest battle (experience vs. the hollowing) and
@@ -237,20 +239,59 @@ cautionary case study the Grounded Age reads off the ruins:
 ### III. The Fallow — *the decline*
 The throne **empties.** Eternal City hollows out and goes dark — entropy,
 not revolt; the people drift away until the lights go out; the ruins sit
-quiet. Authority: none. The empty city becomes the **cautionary ruin** the
-new order builds against. *(The honest shape of how a world ends: not
+quiet. Authority: none. This is a **true death of presence** — the twilight
+of all gods, the aether gone silent, and the **attuned vanish with it**
+(they are creatures of presence — see *The attuned*). The surviving **crumb
+of the old faith is the clergy**, who carried it out into exile — not
+anyone left at the dead heart. The empty city becomes the **cautionary
+ruin** the new order builds against. Its **length is undatable on
+purpose**: an empty age keeps no clock, so "centuries, the legends say" is
+the most anyone can claim. *(The honest shape of how a world ends: not
 stormed, just left.) Alts: the Long Quiet, the Hollow Years.*
 
-### IV. The Mission *[will sub-divide]*
-Authority held **in trust by the sacred.** Clergy carry the old faith down
-to the dead city, build the **University** on its bones (**"Eternal
-University"** keeps the dead city's name, Santa-Clara-style), and
-administer young **Terminus** (church + school + civil authority). The
-campus inherits the eternal ruins' **impossible finish** — why canon's
+### IV. The Mission *[settled]*
+Authority held **in trust by the sacred** — never owned (Eternal), not yet
+the people's (Grounded), but stewarded for a future being cultivated.
+
+**The clergy are a reformed remnant.** They carried the old faith out of
+the dying city into **exile** through the Fallow, and there underwent the
+**Reformation**: the faith had once *sanctified* the order that fell, so
+its whole new doctrine became **"teach, don't crown"** — never bless a
+ruler again, never build the thing that falls. That single turn is why the
+Mission raises a **University** rather than a bid to rule: a faith that
+won't crown can only *teach.*
+
+**The shape is rise-and-handover** — the redemptive mirror of the Eternal
+Age's rise-and-fall:
+
+1. **The Coming** — the clergy return to the dead heart and **revive
+   presence**, relighting the old worship and tending the **Sanctuary**
+   (the aether-nexus at the city's core).
+2. **The return of the attuned** — as presence comes back, the gift
+   **re-emerges** (see *The attuned*): the first attuned born in centuries,
+   in a new mundane form. The clergy *learn* attunement from them — they do
+   not invent it.
+3. **The School** — preservation formalizes into teaching; the
+   **University** rises on the ruins (**"Eternal University"** keeps the
+   dead city's name, Santa-Clara-style); young **Terminus** gathers around
+   it; the clergy administer it (church + school + civil authority).
+4. **The Widening** — the University harnesses attunement and builds it
+   **shared / open** (the implant as a prosthetic for the attuned's innate
+   gift); *anyone* can now attune; the aether becomes a network at scale —
+   the doorway into the Grounded Age.
+
+**The handover is gracious institutionally, frayed personally.** Ceding
+power *is* the doctrine's fulfillment — a teaching order is by design
+building toward its own obsolescence — so the order lets go gracefully,
+replaced by its own success. But individual **reluctant elders** struggle
+to release what they stewarded for generations: the clergy-side cousins of
+the Chaotic-but-Good, never villains.
+
+The campus inherits the eternal ruins' **impossible finish** — why canon's
 dreamlike campus rises from a grounded city: the strangeness seeps up from
-the old core and fades outward. *Sub-ages later: the clergy's arrival, the
-University rising, the slow secular handover. Open: who the rebuilding
-clergy were — a remnant of the old faith, or a new order.*
+the old core and fades outward. Residue into the present: the University,
+the Sanctuary, **Oldtown** (the original mission-settlement), the Chapel,
+and the clergy themselves, receded to **echoes**.
 
 ### V. The Grounded Age — *the cooperative* *(now)*
 Authority rises **from the people.** The new politick emerges from the
@@ -288,10 +329,38 @@ identity, cognition only (no physical work). That property is exactly
 *why the honest count must exist* — the network can't tell you who is
 real, so the polity has to. The bible's cosmological layer (ancient
 medium, the gods, harnessed at scale) sits **on top of** §8, never against
-it. *(Open thread: a species **aether-attuned by nature, not by implant** —
-the `homo/sensitivus` "attuned" stub — as the source humanity learned
-harnessing from; the implant as a prosthetic for their innate gift, later
-democratizing it. Casting + antiquity TBD.)*
+it. (The natural source humanity learned
+attunement from is **the attuned** — see *The attuned*, below.)
+
+### The attuned — creatures of presence *[settled]*
+
+A people **aether-attuned by nature** — born touching the medium everyone
+else needs an implant to reach (the canon `homo/sensitivus` "attuned"
+stub). Their fate is bound to presence itself: **when presence thrives they
+thrive; when it dies, they vanish** — the dragon pattern (gone for ages,
+then back).
+
+- **Two forms.** The **ancient** attuned are the mythic-age original, now
+  **legend** (as strange and old as the legend likes, *because they are
+  safely gone*). The **returned** attuned are a new, **mundane** emergence
+  of the same gift — ordinary people, the playable `homo/sensitivus`, where
+  the allegory and the guardrail live (people-with-a-trait, never
+  elder-magicals on a pedestal).
+- **Across the ages.** Mythic: the first attuned, the first mystics, strong
+  while presence is strong. Eternal: they **fade** as the makers rise and
+  presence is eclipsed (the Pooling). Fallow: **gone** — vanished with
+  presence into total dark, surviving only as legend. Mission: they
+  **return** as presence revives (the first attuned child in centuries — an
+  **omen** the world is healing), and the University learns attunement from
+  them.
+- **The dispossession (the allegory).** They return as a *miracle*, are
+  briefly revered — and then, within a generation, the University learns
+  their gift, builds the implant, and **mass-produces it**. The wonder
+  becomes a clinic visit; the miracle is commoditized. (The onboarding
+  clinic stop is, from their side, the thing that took their specialness.)
+
+*Open (small): the ancient legend's own casting; confirming the returned
+form reads as natural **sensitives / telepaths**.*
 
 ### Event timeline (oldest → newest)
 
@@ -304,17 +373,17 @@ democratizing it. Casting + antiquity TBD.)*
   the founders withdraw into silence) → Pooling (power narrows to one
   seat; capture's first small-scale rising) → Reaping (the purge; the
   exodus begins).
-- **The Fallow** — *aether: silent.* The city empties; with no one left to
-  attune, nothing moves through the aether; the twilight of all gods; the
-  ruins lie quiet for generations.
-- **The Mission** — *aether: harnessed, and built shared.* The Coming
-  (clergy return to the silent Sanctuary) → the Reformation (*teach, don't
-  crown*; study the aether as shared knowledge, not wield it as power) →
-  the Mission raised (the chapel — still standing on campus) → the Keeping
-  (the long study; pilgrims gather; Terminus seeds) → the University
-  founded (attunement made teachable) → the Widening (the implant matures;
-  *anyone* can attune; the aether becomes a network; the substrate reaches
-  scale).
+- **The Fallow** — *aether: silent.* The city empties; nothing moves
+  through the aether; the twilight of all gods, a **true death of
+  presence**; the **attuned vanish**; the faith survives only as the
+  clergy's exile. Undatable — an empty age keeps no clock.
+- **The Mission** — *aether: harnessed, built shared.* The Coming (clergy
+  return, revive presence, tend the Sanctuary) → the Reformation (*teach,
+  don't crown*) → the **return of the attuned** (presence revives, the gift
+  re-emerges; the clergy *learn* attunement from them) → the University
+  founded (attunement made teachable) → the Widening (the implant as
+  prosthetic for the attuned's gift; *anyone* can attune; the aether becomes
+  a network at scale) → the Handover (gracious, with reluctant elders).
 - **The Grounded Age** — *aether: networked, contested.* The Recognition
   (a small group at the University designs the new politick to run on the
   networked aether) → the Handover (the clergy cede civil authority; the
