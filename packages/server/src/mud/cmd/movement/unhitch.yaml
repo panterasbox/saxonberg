@@ -1,0 +1,23 @@
+verbs: [unhitch]
+controller: movement/UnhitchController
+description: "Let go of a cart you (or your mount) are pulling"
+help: |
+  Release a cart you're hauling. Bare `unhitch` lets go of whatever
+  you're pulling yourself. `unhitch horse` (or `unhitch cart`) releases
+  a cart you'd harnessed to a draft animal.
+
+  Unhitching frees your hands again; the cart stays where it stands.
+examples:
+  - cmd: unhitch
+    note: Drop the cart you're pulling
+  - cmd: unhitch horse
+    note: Release the cart harnessed to your mount
+validators:
+  - /lib/command/validators/requiresAnimate
+args:
+  - name: target
+    type: object
+    required: false
+    scope: ["$focus", "reachable"]
+    validators:
+      - /lib/command/validators/mustBeVisible

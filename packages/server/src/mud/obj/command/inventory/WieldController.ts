@@ -43,6 +43,23 @@ export default class WieldController extends CommandController<WieldModel> {
         `WieldController: mustBeWieldable validator should have caught ${target.stuffId}`
       );
     }
+    // Hands-occupied while hauling: you can't wield while gripping a cart's
+    // handle. Keyed on the giver being the hauler — a mounted rider whose
+    // horse hauls is NOT the hauler, so their hands stay free.
+    if (MixinApi.isHauling(giver) && giver.isHitched()) {
+      MessageApi.scene(giver)
+        .topic('world.perception.inventory')
+        .toSelf(
+          Mml.compose`Your hands are full — you're pulling ${Mml.item(giver.getHauledCart()!)}.`,
+        )
+        .send();
+      context.note({
+        kind: 'controller-rejected',
+        reason: 'hands-hauling',
+        detail: 'cannot wield while hauling a cart',
+      });
+      return;
+    }
     if (!MixinApi.isSlotted(giver)) {
       throw new Error(
         `WieldController: requiresSlotted validator should have caught ${giver.stuffId}`
