@@ -511,8 +511,13 @@ Pre-founding figures (each a real design session):
 - **The steward — *carved:* Anselm Solvan** (see *The coin*) — the reluctant
   dying caretaker; a named mortal, *not* the clergy-as-institution, and
   *not* the founder himself.
+- **The herald — *carved, name open*** (see *The herald*) — a returned
+  attuned, the forerunner who breaks the Fallow's silence and prophesies
+  scale, not himself; the Mission's dawn anti-Solus. Dead long before the
+  Widening. *Surname pending.*
 - **A reluctant-elder clergy** — the human friction of the coming handover.
-- **A named attuned** — only if the returned people need a face.
+- **A named attuned** — beyond the herald, only if the returned people need
+  a second face.
 
 ## The coin — Corvin Solus & Anselm Solvan *[settled]*
 
@@ -673,9 +678,8 @@ was paradise.**
   the cyclical warning: the hollowing *will* return; another Solus *can*
   rise.)
 - **The herald.** The Coming had a forerunner — a **voice in the dead city**
-  at the Fallow's end, the first to break the silence, prophesying the heal
-  and preparing the way; like John, perhaps dead before he saw it come. The
-  Coming's catalyst. *(Name open.)*
+  at the Fallow's end, the first to break the silence and prophesy the heal.
+  The Coming's catalyst. *(Full treatment below — see **The herald**.)*
 
 It **sharpens Holt's doubt** into the deepest question in the world: the
 attuned held paradise because they were *unfallen* — born present,
@@ -688,6 +692,65 @@ prophecy, the herald, the closing-and-opening of books, and the
 *redemptive Antichrist* who closes the old book so the people's can be
 written. The universal monomyth, dressed in our cosmology — never literal
 scripture.)*
+
+## The herald — the forerunner who promised everyone *[settled, name open]*
+
+The figure who breaks the Fallow's silence and triggers the Coming. Born a
+**returned attuned** (`homo/sensitivus` — *the* established people, not a new
+species), one of the first quiet ones: sensitive again in the late Fallow,
+before the world has a name for it, grown up on the legends and the prophecy,
+thought gifted or mad. His public voice is what *starts* the recognized
+return — he's the **unrecognized first sign of it**, not a figure who comes
+after it.
+
+- **What he receives, not predicts.** He doesn't *forecast* the implant — a
+  futurist would, and that flattens prophecy into a smart guess. He **receives
+  the promise.** Faintly touching the aether, he picks up its deep memory —
+  paradise, the attuned, the promise of return — and hears the *shape* of what's
+  coming (everyone present again) with no engineering for it, so he can only
+  speak it as prophecy. Generations later the framers dig in the same aether and
+  give that promise a **body** (the implant). **His vision and their invention
+  are the same knowledge arriving twice** — once received as prophecy, once
+  built as technology. He never knows the word "implant"; he knows *everyone
+  will be present again.* The framers later read him as a spec. (Keeps him a
+  **prophet, not a saint** — a real signal in a real medium, inside *structure,
+  not creed*.)
+- **Not John the Baptist — no messiah to point at.** John pointed at a *person*
+  ("behold, him"). Our herald points at a **collective**: the people who'll
+  come and fill the seats, not a prince who'll sit them. *"One comes after me"*
+  becomes *"everyone comes after me."* He never meets the messiah because there
+  **isn't** one — which *resolves* the Solvan tension rather than fighting it:
+  the herald foretold the **congregation**, and Solvan is only the steward who
+  holds the door until they arrive and then dies. Neither Solus nor Solvan is
+  what John promised. **What he promised is the polity** — salvation as a
+  people, not a prince, the cooperative thesis stated as scripture.
+- **The scale truth — why a minority is only an omen.** Attunement is *cheap*;
+  the system needs it **at scale.** A returned minority can't rebuild the
+  polity — a handful of telepaths isn't a networked people — so the returned
+  attuned are a **teaser, not a solution.** Only the implant (the Widening,
+  universal attunement) actually enables the system. This is exactly *the
+  dispossession*: the miracle gets **universalized into irrelevance**, the
+  clinic visit replacing the wonder, *because the system can't run on a miracle,
+  only on a utility.* So what the herald prophesies is **scale, not his own
+  gift**: *"my gift is for everyone, and it only means anything when it is."* He
+  foretells the **end of his own kind's specialness as the good news** — gives
+  the gift away in prophecy generations before the implant gives it away in fact.
+- **The anti-Solus.** The first hollowing was a being who looked at
+  freely-given presence and saw *a thing to take.* The herald looks at a rare
+  gift and sees *a thing to give to everyone.* A returned attuned who instead
+  thought *"we few are chosen"* would have been a small Solus, hoarding
+  presence; the herald is the inversion, and that's the whole character in one
+  line. He's the **forerunner anti-Solus at the Mission's dawn**, mirroring
+  **Solvan, the culminating anti-Solus at its end** — one gives the gift away,
+  the other gives the throne away.
+- **Dead before the dawn he named.** He heralds the Coming, prophesies the
+  Widening, and is **long dead before it lands** — never sees the thing he
+  promised; the prophecy outlives the prophet by generations. John-the-Baptist-
+  *shaped* in the one way that survives: the forerunner who doesn't reach the
+  fulfillment.
+
+*Open: his **name** (people have surnames; the role is "John," but keep it
+subtle — not on the nose).*
 
 ## The Museum — the world's memory **[settled frame, contents open]**
 
