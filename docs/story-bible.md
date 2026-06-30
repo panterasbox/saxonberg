@@ -469,9 +469,9 @@ made temporal):
   **would-be Solus reaches for the networked world.** This time he is
   **caught.** The scare is what converts a cohort of aether-*scholars* into
   constitution-*writers* — *"it nearly happened again, in our own lifetimes; we
-  will not trust the guardrails to anyone's good character."* *(The recent
-  pretender is a real carve and wants a name — the living-memory echo of the
-  legendary Solus. Unnamed for now.)*
+  will not trust the guardrails to anyone's good character."* The pretender is
+  **Lucian Vane, the False Dawn** — caught, and now alive-but-irrelevant (full
+  treatment: *The pretender — Lucian Vane*).
 
 **The framers end up with two cautionary cases, one in each hand:** the
 **ancient Pooling** (Solus — legend, read off the Eternal ruins) and the
@@ -578,6 +578,11 @@ Pre-founding figures (each a real design session):
   attuned, the forerunner who breaks the Fallow's silence and prophesies
   scale, not himself; the Mission's dawn anti-Solus. Dead long before the
   Widening. Known by epithet; surname lost to time.
+- **The pretender — *carved:* Lucian Vane, the False Dawn** (see *The
+  pretender*) — the recent caught would-be Solus; alive, free, irrelevant, the
+  embers still warm. History, not a live carve — but the canon seedbed for an
+  emergent, player-driven False-Dawn revival (an *heir* is the open antagonist
+  slot).
 - **A reluctant-elder clergy** — the human friction of the coming handover.
 - **A named attuned** — beyond the herald, only if the returned people need
   a second face.
@@ -822,6 +827,64 @@ after it.
 
 *Settled: known as **Amos the Attuned** — remembered by epithet, surname lost
 to time.*
+
+## The pretender — Lucian Vane, the False Dawn *[settled; status: alive, free, spent]*
+
+**Lucian Vane** — the recent, caught would-be Solus, remembered as **the False
+Dawn**: the living-memory recurrence of the legend, and the third of the three
+Antichrist-shaped figures — **Solus** (the original fall) → **Vane** (the false
+fulfillment, caught) → **Solvan** (the true renunciation). Past, recent,
+present. *(The name: **Vane** = the weathervane that turns with the crowd-wind,
+*vain*, his bid *in vain*. The Solus-echo lives in his deeds and his epithet,
+never a third Sol- surname — capture needs no bloodline.)*
+
+- **The false fulfillment.** Vane didn't merely reach for power — during the
+  Widening he **wore salvation's face.** He styled himself the prophecy come
+  true, *the one come to fill the seats*, and rode the newly-networked feed to
+  capture **attention at scale** (the human face of the Hollow's modern
+  demigod, the Metric / the Feed). Not a corpo man — the independent
+  attention-tyrant who nearly became the Feed's sovereign by promising the very
+  dawn Amos had promised. He was **caught**, and catching him is what turned a
+  cohort of aether-scholars into constitution-writers.
+- **Beaten by a constitution, not a champion.** The founding order's defining
+  choice was to **refuse to martyr him** — no execution (it canonizes him, and
+  is the Hollow's own answer), no prison (a relic and a letter-writing
+  mythology). They **made his pitch redundant by structure:** once the seats
+  provably can't be seized by one man, the man whose whole pitch was *"I will
+  fill them"* was disproven in public. He's **alive, free, discredited,
+  unwatched** — and the freedom is the flex: no surveillance (the Hollow's
+  tool), because the watch *is* the open structure. He's the live proof the
+  guardrails work.
+- **Intent is not control — and the people are free.** The polity can refuse
+  to *make* him a symbol; it cannot stop others from *choosing* him as one.
+  Leaving Vane free is **accepting the risk that he gets deified** — and some
+  will. This is the world's own wager turned on its shadow: you cannot suppress
+  the False Dawn without picking up the Hollow's tools, so the cooperative
+  **permits the danger** as the price of not becoming the thing it fears. We
+  author the **conditions** — Vane, the embers, the lore — never the
+  **outcome**: whether a real False-Dawn cult forms is **emergent,
+  player-driven, unauthored**, exactly as the founding itself is. *The seedbed
+  is canon; the harvest is the players'.*
+- **Deifying Vane is not "picking Evil."** The good-floor holds — players never
+  flip alignment. To follow the False Dawn is to be **seduced**, not corrupted:
+  a Good person who is *wrong*, who believes Vane was the real fulfillment and
+  that *they* are the saved ones. That is the whole allegory — capture wears
+  salvation's face; the Feed feels like connection. The political mirror of the
+  dark-demigod arc (a good soul tangled with a false light): never an
+  alignment-flip, always a real push-pull with social and narrative cost. **The
+  False Dawn's followers think they're the dawn.**
+- **The Solvan inversion.** Solvan, the redemptive face, dies **fulfilled** —
+  gives the seats away, then goes. Vane, the malign face, **lives on, spent** —
+  grasped, lost, lingers with nothing. The good man dies having given
+  everything; the bad man lives having kept nothing.
+
+*Open (a dial, not a gap): does the living Vane **court** the revival — the
+unrepentant demagogue working his embers for a second chance — or is he a
+**spent husk** the cult forms around regardless, projecting a dawn onto a man
+already hollow? The husk reading is the truer one (capture is the people's
+reach, not his engine — you can't fix it by neutralizing him) and the better
+setup if an **heir** to the False Dawn is ever carved as a present-day
+antagonist.*
 
 ## The Museum — the world's memory **[settled frame, contents open]**
 
