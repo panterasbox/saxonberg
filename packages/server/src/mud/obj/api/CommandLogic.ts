@@ -731,6 +731,9 @@ export class CommandLogic extends Idea {
     };
 
     collectCmd(command._resolvedValidators);
+    if (subcommand) {
+      collectCmd(command.getSubcommand(subcommand)?._resolvedValidators);
+    }
     const fieldDefs = collectActiveFieldDefs(subcommand, command);
     for (const [fname, def] of Object.entries(fieldDefs)) {
       collectField(def._resolvedValidators, fname);
@@ -1169,6 +1172,32 @@ export class CommandLogic extends Idea {
             detail: err,
           });
           return { result: 'failed' };
+        }
+      }
+    }
+
+    // Subcommand-level validators run after the verb-level gates and
+    // before field validators (the same authority/precondition phase,
+    // scoped to the invoked subcommand). They let one subcommand carry
+    // an authority gate the verb's other subcommands don't — e.g. a
+    // founder-only `assign` under a verb whose bare roster is public.
+    if (subcommand) {
+      const subValidators = command.getSubcommand(subcommand)
+        ?._resolvedValidators;
+      if (subValidators) {
+        for (const v of subValidators) {
+          const err = v(
+            context,
+            preloads?.get(v as (...args: never[]) => unknown) as never,
+          );
+          if (err) {
+            context.note({
+              kind: 'validator-failed',
+              validator: `subcommand:${subcommand}`,
+              detail: err,
+            });
+            return { result: 'failed' };
+          }
         }
       }
     }
@@ -1986,6 +2015,16 @@ async function resolveCommandValidators(
     for (const a of sub.args ?? []) await resolveOne(a);
     for (const opt of Object.values(sub.options ?? {})) {
       await resolveOne(opt);
+    }
+    // Subcommand-level validators — command-shaped (take `context`),
+    // like verb-level, so they dispatch to `resolveCommandValidator`
+    // (not the field form). Stored on `sub._resolvedValidators`.
+    if (sub.validators && sub.validators.length > 0) {
+      const fns: CommandValidator[] = [];
+      for (const spec of sub.validators) {
+        fns.push(await CommandApi.resolveCommandValidator(spec, yamlPath));
+      }
+      sub._resolvedValidators = fns;
     }
   }
   for (const opt of Object.values(cmd.verbOptions)) {

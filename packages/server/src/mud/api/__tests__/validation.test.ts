@@ -6,7 +6,15 @@
 import { describe, it, expect } from 'vitest';
 import { fileURLToPath } from 'url';
 import { dirname, resolve as resolvePath } from 'path';
-import { CommandApi } from '../command';
+import {
+  CommandApi,
+  type CommandContext,
+  type CommandModel,
+  type CommandValidator,
+} from '../command';
+import { CommandDefinition } from '../../lib/command/CommandDefinition';
+import { makeStuff } from '../../lib/security/__tests__/test-setup';
+import Location from '../../lib/stuff/Location';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -77,5 +85,96 @@ describe('CommandApi.preloadAll', () => {
     expect(arg?._resolvedValidators).toBeDefined();
     expect(arg?._resolvedValidators?.length).toBe(3);
     expect(typeof arg?._resolvedValidators?.[0]).toBe('function');
+  });
+});
+
+describe('subcommand-level validators', () => {
+  it('preloadAll resolves them (office assign/vacate carry one; the public list none)', async () => {
+    CommandApi.clearCache();
+    const result = await CommandApi.preloadAll();
+    expect(result.failed).toEqual([]);
+    const office = CommandApi.getCommand('governance/office.yaml');
+    expect(office?.getSubcommand('assign')?._resolvedValidators?.length).toBe(
+      1,
+    );
+    expect(office?.getSubcommand('vacate')?._resolvedValidators?.length).toBe(
+      1,
+    );
+    expect(typeof office?.getSubcommand('assign')?._resolvedValidators?.[0]).toBe(
+      'function',
+    );
+    // The public roster subcommand is ungated.
+    expect(
+      office?.getSubcommand('list')?._resolvedValidators,
+    ).toBeUndefined();
+  });
+
+  it('runValidators fires the INVOKED subcommand validator and skips it for other subcommands', () => {
+    const cmd = CommandDefinition.fromYaml(
+      'verbs: [gov-test]\n' +
+        'controller: NoopController\n' +
+        'description: stub\n' +
+        'subcommands:\n' +
+        '  gated:\n' +
+        '    description: gated\n' +
+        '  open:\n' +
+        '    description: open\n',
+      '<test>',
+    );
+    // A deterministic validator: deny unless the preloaded boolean is true.
+    const gate: CommandValidator<boolean> = (_ctx, allowed) =>
+      allowed ? undefined : 'subcommand-denied';
+    // `_resolvedValidators` is the type-erased `CommandValidator[]` (the
+    // resolver erases the preload's `<boolean>` exactly as here).
+    cmd.getSubcommand('gated')!._resolvedValidators = [
+      gate as unknown as CommandValidator,
+    ];
+
+    const loc = makeStuff(() => new Location());
+    const mkCtx = (): CommandContext =>
+      CommandApi.createCommandContext({
+        commandGiver: loc as never,
+        location: loc as never,
+        commandText: 'gov-test',
+        executionId: 'test',
+        commandId: 'test',
+        verb: 'gov-test',
+        command: cmd,
+      });
+
+    // Invoked + preload false → denied, with a subcommand-scoped note.
+    const denyCtx = mkCtx();
+    expect(
+      CommandApi.runValidators(
+        { subcommand: 'gated' } as CommandModel,
+        denyCtx,
+        new Map([[gate as never, false]]),
+      ),
+    ).toEqual({ result: 'failed' });
+    expect(denyCtx.getNotes()).toContainEqual(
+      expect.objectContaining({
+        kind: 'validator-failed',
+        validator: 'subcommand:gated',
+        detail: 'subcommand-denied',
+      }),
+    );
+
+    // Invoked + preload true → allowed.
+    expect(
+      CommandApi.runValidators(
+        { subcommand: 'gated' } as CommandModel,
+        mkCtx(),
+        new Map([[gate as never, true]]),
+      ),
+    ).toEqual({ ok: true });
+
+    // A DIFFERENT subcommand never fires the gated validator.
+    expect(
+      CommandApi.runValidators(
+        { subcommand: 'open' } as CommandModel,
+        mkCtx(),
+        new Map([[gate as never, false]]),
+      ),
+    ).toEqual({ ok: true });
   });
 });

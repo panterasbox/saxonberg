@@ -1024,6 +1024,20 @@ export interface SubcommandDefinition {
   controller?: string;
   args?: PositionalDefinition[];
   options?: Record<string, OptionDefinition>;
+  /**
+   * Subcommand-level validators (YAML path specs). Fire after the
+   * verb-level validators and before field validators, with
+   * `context.commandGiver` populated, only when this subcommand is
+   * invoked — the subcommand-scoped equivalent of `CommandView.validators`.
+   * An authority gate on one subcommand (a founder-only `assign`) that
+   * leaves the verb's public subcommands ungated.
+   */
+  validators?: string[];
+  /**
+   * Live functions populated by `CommandApi.preloadAll`. Always
+   * parallels `validators`. @internal
+   */
+  _resolvedValidators?: CommandValidator[];
 }
 
 /**
