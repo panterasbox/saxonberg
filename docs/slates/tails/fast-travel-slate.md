@@ -64,7 +64,7 @@ See also:
 - [docs/subsystems/locomotion.md](../../subsystems/locomotion.md) —
   **distinct**: locomotion is physical movement; fast travel is
   network teleport. The last-mile walk uses locomotion.
-- [docs/slates/world-clock-slate.md](../tails/world-clock-slate.md) — drives
+- [time.md](../../subsystems/time.md) — drives
   **scheduled** terminals (later mode).
 - [docs/subsystems/messaging.md](../../subsystems/messaging.md) /
   [message-rendering-slate.md](../tails/message-rendering-slate.md) /

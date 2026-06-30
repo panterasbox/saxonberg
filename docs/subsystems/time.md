@@ -6,10 +6,10 @@ calendar, and the pedagogical verb/instrument surface on top. Three
 layers, all under `lib/time/` plus the two Apis `api/worldclock.ts`
 and `api/celestial.ts`.
 
-Graduated from `docs/slates/tails/world-clock-slate.md` (kept for the
-forward-looking design surface — multi-region latitude, locale,
-weather, NPC schedules, second celestial profiles, celestial→light
-wiring).
+Graduated from the world-clock slate (now retired — its forward-looking
+design surface, multi-region latitude / locale / weather / NPC
+schedules / second celestial profiles / celestial→light wiring, is
+captured in [Future work](#future-work) below).
 
 ---
 
@@ -400,18 +400,30 @@ file.
   `boot`/`shutdown`; static-Api `@CallSecurity`.
 - [bootstrap.md](./bootstrap.md) — `AppBootstrap` boot/shutdown
   sequencing.
-- `docs/slates/tails/world-clock-slate.md` — the open design surface for the
-  deferred waves below.
+- [Future work](#future-work) — the deferred design surface (was the
+  now-retired world-clock slate).
 
-## Future work (in the slate)
+## Future work
 
 Celestial → ambient-light wiring (deferred until `perception` merges);
 friendly time tags (`morning`/`midnight`) in
 `config/quantity-tags.yaml`; per-zone / per-region latitude and
 longitude time zones; per-actor locale subsystem; a second celestial
-profile (Narnia / fey realm); weather; academic calendar; NPC
-schedules / routines; admin verbs for `setScale`/`pause`/`resume`; a
-best-effort crash snapshot on `uncaughtException`.
+profile (Narnia / fey realm); weather; NPC schedules / routines; admin
+verbs for `setScale`/`pause`/`resume`; a best-effort crash snapshot on
+`uncaughtException`.
+
+The **academic calendar** (class schedule / exam dates) is its own
+future slate, not a wave here — it couples to the learning-platform
+integration and lands cleanly as just another `Calendar` (or set of
+them) over this substrate when it's pulled. Two content tails are
+deferred but spec'd: a newbie-friendly **28-day-month variant
+calendar**, and the **proper naming passes** — the two provisional
+month names (Heliune / Brendarn, shipped alongside the ten carried-over
+names) and the ordinal weekday placeholders (`Oneday`–`Sevenday`)
+become real names at a future naming pass. The **time-axis epoch**
+(what `t=0` in game-time is, in Saxonberg lore) is also TBD — it
+doesn't affect the substrate.
 
 ## Design → implementation notes (load-bearing shifts)
 

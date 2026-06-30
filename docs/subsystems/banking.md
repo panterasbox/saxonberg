@@ -1,10 +1,8 @@
 # Banking — the monetary substrate
 
 > **Status:** built on `feature/banking-build` (phases 1–5). This doc is the
-> source of truth for the banking substrate; the
-> [requirements](../requirements/banking-requirements.md) and
-> [plan](../plans/banking-plan.md) are the spec/how. Sections marked
-> *(deferred)* name parked seams.
+> source of truth for the banking substrate. Sections marked *(deferred)* name
+> parked seams.
 
 Banking is **phase 4 ("Money") of the Dave's-Bar track**: the two-tier money
 model (physical **cash** vs auditable **account balances**), bridged by a

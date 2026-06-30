@@ -862,7 +862,7 @@ Only Fork 5 (names) stays open.
 - **Alignment as a deferred consumer of the chronicle** — the
   share-or-hoard / accuse-or-wait / shield-or-expose choices generate
   deeds worth recording, but the *readout* is deferred
-  ([../tails/chronicle-slate.md](../tails/chronicle-slate.md),
+  ([chronicle.md](../../subsystems/chronicle.md),
   [../deferred-rpg/alignment-religion-slate.md](../deferred-rpg/alignment-religion-slate.md)).
   Do **not** model rewards/advancement here — narrative, plot, setting,
   character only. However the player is rewarded, it must be justified by

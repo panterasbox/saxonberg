@@ -14,7 +14,7 @@
 
 A chaptered video introducing the cooperative governance model — a
 companion to, and a funnel toward, the full written manifesto + draft
-constitution (`docs/slates/builds/draft-constitution.md`,
+constitution (`docs/governance/draft-constitution.md`,
 `cooperative-slate.md`).
 
 **The video is a trailer, not an explainer.** Its job is to make the

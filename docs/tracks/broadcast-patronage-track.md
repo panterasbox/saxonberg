@@ -129,7 +129,7 @@ first push by choice.
 #### Phase 5 — Stake-ledger slice + founding-charter
 - **Slates:** [cooperative-slate.md](../slates/builds/cooperative-slate.md)
   (the "stake-ledger slice buildable now"),
-  [founding-charter.md](../slates/builds/founding-charter.md)
+  [founding-charter.md](../governance/founding-charter.md)
 - **Build:** the honest counter — per Saxonberg identity, record
   `lifetime_total` (drives influence reservoir cap) and `recurring_rate`
   (drives regen). Tamper-evident. **No** chambers/voting/executive/reserve
@@ -194,8 +194,8 @@ first push by choice.
 ## Cross-references
 
 - North star & funding model: [cooperative-slate.md](../slates/builds/cooperative-slate.md),
-  [founding-charter.md](../slates/builds/founding-charter.md),
-  [draft-constitution.md](../slates/builds/draft-constitution.md)
+  [founding-charter.md](../governance/founding-charter.md),
+  [draft-constitution.md](../governance/draft-constitution.md)
 - Engagement substrate: [comms.md](../subsystems/comms.md),
   [chat.md](../subsystems/chat.md), [messaging.md](../subsystems/messaging.md),
   [delivery-slate.md](../slates/builds/delivery-slate.md)
