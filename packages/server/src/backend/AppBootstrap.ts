@@ -33,7 +33,6 @@ import { ProducerApi } from '../mud/api/producer';
 import ProducerStanding from '../mud/lib/standing/ProducerStanding';
 import { BankingApi } from '../mud/api/banking';
 import { SocialApi } from '../mud/api/social';
-import { PresenceApi } from '../mud/api/presence';
 import AccountBalance from '../mud/lib/banking/AccountBalance';
 import SupplyAggregate from '../mud/lib/banking/SupplyAggregate';
 import { Document } from '../mud/lib/persistence/Document';
@@ -212,13 +211,10 @@ export class AppBootstrap {
     // whose first-matching rule for the acting player is non-silent.
     // In-memory, nothing persisted; no warm step (the rule store rides
     // each Avatar's own persistence).
+    // SocialApi.boot() installs BOTH the notify-gated presence relay and
+    // the presence-PUBLIC roster-delta tap (feeding the "Who's Online"
+    // pane) — same four presence events, two consumers. In-memory.
     SocialApi.boot();
-
-    // Social inspection — install the presence-PUBLIC roster-delta tap that
-    // feeds the live "Who's Online" pane. Over the same four presence
-    // transitions as the notify relay above, but ungated (presence is a
-    // public fact) and on its own `world.social.roster` topic. In-memory.
-    PresenceApi.boot();
 
     // Twitch relay — install the outbound DI port + wire the presence-gated
     // EventSub reader. Inert until a channel is seeded AND a player tunes

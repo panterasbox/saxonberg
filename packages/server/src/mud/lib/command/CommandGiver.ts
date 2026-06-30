@@ -519,7 +519,7 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
       // session active (a single transient `Date` assignment, gated to an
       // interactive origin — NPC / programmatic / cascaded dispatch carries
       // no Interactive and no-ops). Idle is *derived on read* from this in
-      // `PresenceApi.statusOf`; nothing is stored, scheduled, or fanned out.
+      // `SocialApi.statusOf`; nothing is stored, scheduled, or fanned out.
       opts.interactive?.touchInput();
       const outer = CommandApi.createCommandContext({
         commandGiver: giver,

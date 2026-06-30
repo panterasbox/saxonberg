@@ -3,7 +3,7 @@
  *
  * Lists every connected player (presence is a public fact — there is no
  * "appear offline"), each row lensed per-viewer via
- * `ProfileApi.composeRow`: known people by name, strangers by salient
+ * `SocialApi.composeRow`: known people by name, strangers by salient
  * features, country always appended, a notable presence status badged.
  * Filters narrow only on already-public facts (`--here` / `--friends` /
  * `--country`) — never a private attribute, so `--country` is legitimate
@@ -19,8 +19,7 @@ import { MessageApi } from '../../../api/message';
 import { Mml } from '../../../api/mml';
 import { MixinApi } from '../../../api/mixin';
 import { PlayerApi } from '../../../api/player';
-import { ProfileApi, type RosterRow } from '../../../api/profile';
-import { PresenceApi } from '../../../api/presence';
+import { SocialApi, type RosterRow } from '../../../api/social';
 import type { Stuff } from '../../../lib/stuff/Stuff';
 
 /** Identity-family self/social readout — reuse, don't invent a topic. */
@@ -41,7 +40,7 @@ interface WhoModel extends CommandModel {
 export default class WhoController extends CommandController<WhoModel> {
   async execute(model: WhoModel, context: CommandContext): Promise<void> {
     const viewer = context.commandGiver;
-    let people: Stuff[] = PresenceApi.online();
+    let people: Stuff[] = SocialApi.online();
 
     // --here: same containment as the viewer (null env ⇒ nobody is "here").
     if (model.here) {
@@ -71,7 +70,7 @@ export default class WhoController extends CommandController<WhoModel> {
     }
 
     let rows: RosterRow[] = await Promise.all(
-      people.map((p) => ProfileApi.composeRow(viewer, p))
+      people.map((p) => SocialApi.composeRow(viewer, p))
     );
 
     // --country: narrow on the already-public country field (no leak).

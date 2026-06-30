@@ -43,7 +43,7 @@ export default class Interactive extends Idea {
    * sibling of {@link connectedAt}; seeded to `connectedAt` so a freshly
    * connected session reads as active. Refreshed by {@link touchInput}
    * at the `CommandGiver` dispatch tail. The idle status is *derived* from
-   * this against `social.idleAfter` (see `PresenceApi.statusOf`) — there
+   * this against `social.idleAfter` (see `SocialApi.statusOf`) — there
    * is no stored idle flag and no per-player timer.
    */
   protected lastInputAt: Date;

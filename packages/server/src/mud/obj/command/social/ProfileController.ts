@@ -5,7 +5,7 @@
  * One viewer-aware card through different redaction: another player's card
  * is gated by recognition (persona hidden until you know them) and their
  * disclosure dial; your own card is unredacted and carries the standing
- * digest. All composition lives in `ProfileApi.composeCard` (the single
+ * digest. All composition lives in `SocialApi.composeCard` (the single
  * redaction seam) — this controller only renders.
  *
  * Read-only, self-defaulting (no target ⇒ yourself).
@@ -15,7 +15,7 @@ import { CommandController } from '../../../lib/command/CommandController';
 import type { CommandContext, CommandModel } from '../../../api/command';
 import { MessageApi } from '../../../api/message';
 import { Mml } from '../../../api/mml';
-import { ProfileApi, type ProfileCard } from '../../../api/profile';
+import { SocialApi, type ProfileCard } from '../../../api/social';
 import type { MqlOneResult } from '../../../api/mql';
 
 const TOPIC = 'world.identity';
@@ -29,7 +29,7 @@ export default class ProfileController extends CommandController<ProfileModel> {
   async execute(model: ProfileModel, context: CommandContext): Promise<void> {
     const viewer = context.commandGiver;
     const target = model.target?.stuff ?? viewer;
-    const card = await ProfileApi.composeCard(viewer, target);
+    const card = await SocialApi.composeCard(viewer, target);
     MessageApi.scene(viewer).topic(TOPIC).toSelf(this.render(card)).send();
   }
 

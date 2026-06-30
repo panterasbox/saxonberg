@@ -1,14 +1,13 @@
 /**
  * WhoController — the online roster render + filters. The roster source
- * (`PresenceApi.online`) and the per-row composer (`ProfileApi.composeRow`)
+ * (`SocialApi.online`) and the per-row composer (`SocialApi.composeRow`)
  * are stubbed; the emitted scene body is captured by stubbing
  * `MessageApi.scene` (the `StandingController` test precedent).
  */
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import WhoController from '../WhoController';
-import { PresenceApi } from '../../../../api/presence';
-import { ProfileApi, type RosterRow } from '../../../../api/profile';
+import { SocialApi, type RosterRow } from '../../../../api/social';
 import { MessageApi } from '../../../../api/message';
 import { Mml } from '../../../../api/mml';
 import { StuffApi } from '../../../../api/stuff';
@@ -64,11 +63,11 @@ afterEach(() => {
 
 describe('WhoController', () => {
   beforeEach(() => {
-    vi.spyOn(PresenceApi, 'online').mockReturnValue([
+    vi.spyOn(SocialApi, 'online').mockReturnValue([
       person('mara'),
       person('stranger'),
     ] as never);
-    vi.spyOn(ProfileApi, 'composeRow').mockImplementation(
+    vi.spyOn(SocialApi, 'composeRow').mockImplementation(
       async (_v, t) => ROWS[(t as { stuffId: keyof typeof ROWS }).stuffId]!
     );
   });

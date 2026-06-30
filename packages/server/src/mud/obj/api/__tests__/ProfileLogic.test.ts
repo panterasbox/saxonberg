@@ -14,7 +14,7 @@
  */
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { ProfileApi } from '../../../api/profile';
+import { SocialApi } from '../../../api/social';
 import { MixinApi } from '../../../api/mixin';
 import { PlayerApi } from '../../../api/player';
 import { RecognitionApi } from '../../../api/recognition';
@@ -25,7 +25,6 @@ import { TraitApi } from '../../../api/trait';
 import { RegardApi } from '../../../api/regard';
 import { ChronicleApi } from '../../../api/chronicle';
 import { ConnectionApi } from '../../../api/connection';
-import { PresenceApi } from '../../../api/presence';
 import { ShellApi } from '../../../api/shell';
 import { Band } from '../../../lib/standing/Band';
 import { StuffApi } from '../../../api/stuff';
@@ -95,7 +94,7 @@ afterEach(() => {
 describe('ProfileLogic.composeCard redaction', () => {
   it('withholds the persona from a stranger but shows physicality + renown', async () => {
     stubSubstrate(false);
-    const card = await ProfileApi.composeCard(makeViewer(), makeTarget());
+    const card = await SocialApi.composeCard(makeViewer(), makeTarget());
 
     expect(card.recognized).toBe(false);
     // Persona hidden.
@@ -118,7 +117,7 @@ describe('ProfileLogic.composeCard redaction', () => {
 
   it('unlocks the persona once recognized', async () => {
     stubSubstrate(true);
-    const card = await ProfileApi.composeCard(makeViewer(), makeTarget());
+    const card = await SocialApi.composeCard(makeViewer(), makeTarget());
 
     expect(card.recognized).toBe(true);
     expect(card.nameSurface?.name).toBe('Mara');
@@ -130,7 +129,7 @@ describe('ProfileLogic.composeCard redaction', () => {
   it('gives the self-card everything plus the standing digest, no annotations', async () => {
     stubSubstrate(true);
     const me = makeTarget();
-    const card = await ProfileApi.composeCard(me, me);
+    const card = await SocialApi.composeCard(me, me);
 
     expect(card.isSelf).toBe(true);
     expect(card.nameSurface?.name).toBe('Mara');
@@ -168,27 +167,27 @@ describe('ProfileLogic.composeRow — country always, status gated', () => {
     vi.spyOn(RecognitionApi, 'recognizes').mockReturnValue(true);
     vi.spyOn(RecognitionApi, 'describe').mockReturnValue('Mara');
     vi.spyOn(ConnectionApi, 'originOf').mockReturnValue({ country: 'Brazil' });
-    vi.spyOn(PresenceApi, 'statusOf').mockReturnValue(status as never);
+    vi.spyOn(SocialApi, 'statusOf').mockReturnValue(status as never);
     vi.spyOn(ShellApi, 'resolveSetting').mockReturnValue(showStatus as never);
   }
 
   it('always shows country and a notable status under `anyone`', async () => {
     stubRow('idle', 'anyone');
-    const row = await ProfileApi.composeRow(viewer(), makeAvatarTarget());
+    const row = await SocialApi.composeRow(viewer(), makeAvatarTarget());
     expect(row.country).toBe('Brazil');
     expect(row.status).toBe('idle');
   });
 
   it('withholds the granular status from a non-contact under `contacts+`', async () => {
     stubRow('idle', 'contacts+');
-    const row = await ProfileApi.composeRow(viewer(), makeAvatarTarget());
+    const row = await SocialApi.composeRow(viewer(), makeAvatarTarget());
     expect(row.country).toBe('Brazil'); // country is unconditional
     expect(row.status).toBeUndefined(); // bare online — status withheld
   });
 
   it('omits the unremarkable active default from a row', async () => {
     stubRow('active', 'anyone');
-    const row = await ProfileApi.composeRow(viewer(), makeAvatarTarget());
+    const row = await SocialApi.composeRow(viewer(), makeAvatarTarget());
     expect(row.status).toBeUndefined();
   });
 });

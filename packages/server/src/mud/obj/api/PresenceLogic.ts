@@ -1,4 +1,4 @@
-// PresenceLogic — the hot-reloadable logic singleton behind PresenceApi.
+// PresenceLogic — the hot-reloadable logic singleton behind SocialApi.
 // (Doc comment lives on the class so @internal lands on the reflection
 // TypeDoc emits, not on the module.)
 //
@@ -18,13 +18,16 @@ import { MessageApi } from '../../api/message';
 import { Mml } from '../../api/mml';
 import { EventApi } from '../../api/event';
 import { Events } from '../../lib/events';
-import { ProfileApi } from '../../api/profile';
-import type { PresenceStatus, RosterFrame } from '../../api/presence';
+import { SocialApi } from '../../api/social';
+import type { PresenceStatus, RosterFrame } from '@saxonberg/types';
 import type Avatar from '../Avatar';
 import type { Subscription } from '../../api/event';
 
-const PresenceApiCallers = SecurityPolicies.FromModule(
-  'mud/api/presence#PresenceApi'
+// Gated to the SocialApi facade — presence/profile reads fold into
+// SocialApi (one navigable surface); this logic singleton stays separate
+// for file size + HMR but is @internal.
+const SocialApiCallers = SecurityPolicies.FromModule(
+  'mud/api/social#SocialApi'
 );
 
 /** The roster wire topic — a presence-PUBLIC channel, distinct from the
@@ -95,7 +98,7 @@ async function snapshotForImpl(viewer: Avatar): Promise<void> {
   if (viewer.isDestroyed() || !viewer.isConnected()) return;
   const rows = [];
   for (const person of onlineImpl()) {
-    rows.push(await ProfileApi.composeRow(viewer, person));
+    rows.push(await SocialApi.composeRow(viewer, person));
   }
   sendRosterImpl(viewer, { kind: 'roster', action: 'snapshot', rows });
 }
@@ -135,7 +138,7 @@ async function fanImpl(
     }
     try {
       if (action === 'add' && actor) {
-        const row = await ProfileApi.composeRow(viewer, actor);
+        const row = await SocialApi.composeRow(viewer, actor);
         sendRosterImpl(viewer, {
           kind: 'roster',
           action: 'add',
@@ -164,10 +167,10 @@ async function onPresentImpl(actorPlayerId: string): Promise<void> {
 
 /**
  * PresenceLogic — the hot-reloadable logic singleton behind
- * {@link PresenceApi}.
+ * {@link SocialApi}.
  *
  * Lives at `/obj/api/presence` (a stateless `Stuff` singleton, no backing
- * `Template`); `PresenceApi`'s public statics forward here via
+ * `Template`); `SocialApi`'s public statics forward here via
  * `StuffApi.singletonSync`. Holds only the four-event roster-delta tap
  * subscriptions; everything else is derive-on-read.
  *
@@ -180,26 +183,26 @@ export class PresenceLogic extends Idea {
   private logoutSub: Subscription<unknown> | null = null;
   private disconnectSub: Subscription<unknown> | null = null;
 
-  /** See {@link PresenceApi.online}. */
-  @CallSecurity(PresenceApiCallers)
+  /** See {@link SocialApi.online}. */
+  @CallSecurity(SocialApiCallers)
   public online(): Avatar[] {
     return onlineImpl();
   }
 
-  /** See {@link PresenceApi.statusOf}. */
-  @CallSecurity(PresenceApiCallers)
+  /** See {@link SocialApi.statusOf}. */
+  @CallSecurity(SocialApiCallers)
   public statusOf(target: Avatar): PresenceStatus {
     return statusOfImpl(target);
   }
 
-  /** See {@link PresenceApi.snapshotFor}. */
-  @CallSecurity(PresenceApiCallers)
+  /** See {@link SocialApi.snapshotFor}. */
+  @CallSecurity(SocialApiCallers)
   public snapshotFor(viewer: Avatar): Promise<void> {
     return snapshotForImpl(viewer);
   }
 
-  /** See {@link PresenceApi.boot}. Idempotent. */
-  @CallSecurity(PresenceApiCallers)
+  /** See {@link SocialApi.boot}. Idempotent. */
+  @CallSecurity(SocialApiCallers)
   public installRosterTap(): void {
     if (this.loginSub) return;
     const present = (p: { playerId: string }) =>

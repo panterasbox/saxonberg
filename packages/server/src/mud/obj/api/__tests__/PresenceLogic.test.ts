@@ -6,7 +6,7 @@
  */
 
 import { describe, it, expect, afterEach, vi } from 'vitest';
-import { PresenceApi } from '../../../api/presence';
+import { SocialApi } from '../../../api/social';
 import { MixinApi } from '../../../api/mixin';
 import { AppApi } from '../../../api/app';
 import { StuffApi } from '../../../api/stuff';
@@ -34,11 +34,11 @@ afterEach(() => {
   StuffApi.clearAll();
 });
 
-describe('PresenceApi.statusOf precedence', () => {
+describe('SocialApi.statusOf precedence', () => {
   it('reads linkdead-but-lingering as reconnecting', () => {
     vi.spyOn(AppApi, 'setting').mockReturnValue('300');
     vi.spyOn(MixinApi, 'isEngaged').mockReturnValue(true);
-    expect(PresenceApi.statusOf(makeAvatar({ connected: false }))).toBe(
+    expect(SocialApi.statusOf(makeAvatar({ connected: false }))).toBe(
       'reconnecting'
     );
   });
@@ -47,7 +47,7 @@ describe('PresenceApi.statusOf precedence', () => {
     vi.spyOn(AppApi, 'setting').mockReturnValue('300');
     vi.spyOn(MixinApi, 'isEngaged').mockReturnValue(true);
     expect(
-      PresenceApi.statusOf(
+      SocialApi.statusOf(
         makeAvatar({ connected: true, engaged: true, lastInputAgoMs: 10_000_000 })
       )
     ).toBe('engaged');
@@ -57,7 +57,7 @@ describe('PresenceApi.statusOf precedence', () => {
     vi.spyOn(AppApi, 'setting').mockReturnValue('300'); // 5 minutes
     vi.spyOn(MixinApi, 'isEngaged').mockReturnValue(false);
     expect(
-      PresenceApi.statusOf(
+      SocialApi.statusOf(
         makeAvatar({ connected: true, lastInputAgoMs: 6 * 60 * 1000 })
       )
     ).toBe('idle');
@@ -67,7 +67,7 @@ describe('PresenceApi.statusOf precedence', () => {
     vi.spyOn(AppApi, 'setting').mockReturnValue('300');
     vi.spyOn(MixinApi, 'isEngaged').mockReturnValue(false);
     expect(
-      PresenceApi.statusOf(
+      SocialApi.statusOf(
         makeAvatar({ connected: true, lastInputAgoMs: 5_000 })
       )
     ).toBe('active');

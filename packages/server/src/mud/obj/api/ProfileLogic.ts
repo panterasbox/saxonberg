@@ -1,4 +1,4 @@
-// ProfileLogic — the hot-reloadable logic singleton behind ProfileApi.
+// ProfileLogic — the hot-reloadable logic singleton behind SocialApi.
 // The single viewer-aware redaction seam for player inspection. (Doc
 // comment on the class so @internal lands on the reflection, not the
 // module.)
@@ -18,18 +18,21 @@ import { TraitApi } from '../../api/trait';
 import { RegardApi } from '../../api/regard';
 import { ChronicleApi } from '../../api/chronicle';
 import { ShellApi } from '../../api/shell';
-import { PresenceApi } from '../../api/presence';
-import type { PresenceStatus } from '../../api/presence';
+import { SocialApi } from '../../api/social';
+import type { PresenceStatus } from '@saxonberg/types';
 import { Band } from '../../lib/standing/Band';
 import type {
   ProfileCard,
   ProfileDigest,
   ProfileNameSurface,
   RosterRow,
-} from '../../api/profile';
+} from '../../api/social';
 
-const ProfileApiCallers = SecurityPolicies.FromModule(
-  'mud/api/profile#ProfileApi'
+// Gated to the SocialApi facade — presence/profile reads fold into
+// SocialApi (one navigable surface); this logic singleton stays separate
+// for file size + HMR but is @internal.
+const SocialApiCallers = SecurityPolicies.FromModule(
+  'mud/api/social#SocialApi'
 );
 
 /** A connected account younger than this reads as a "new arrival". */
@@ -85,10 +88,10 @@ function contactEntryFor(
 
 /**
  * ProfileLogic — the hot-reloadable logic singleton behind
- * {@link ProfileApi}.
+ * {@link SocialApi}.
  *
  * Lives at `/obj/api/profile` (a stateless `Stuff` singleton, no backing
- * `Template`); `ProfileApi`'s public statics forward here via
+ * `Template`); `SocialApi`'s public statics forward here via
  * `StuffApi.singletonSync`. Stateless by construction — every method is
  * derive-on-read over the substrate Apis.
  *
@@ -96,8 +99,8 @@ function contactEntryFor(
  */
 @Unshadowable
 export class ProfileLogic extends Idea {
-  /** See {@link ProfileApi.composeRow}. */
-  @CallSecurity(ProfileApiCallers)
+  /** See {@link SocialApi.composeRow}. */
+  @CallSecurity(SocialApiCallers)
   public async composeRow(viewer: Stuff, target: Stuff): Promise<RosterRow> {
     const self = viewer.stuffId === target.stuffId;
     const recognized = self || RecognitionApi.recognizes(viewer, target);
@@ -117,8 +120,8 @@ export class ProfileLogic extends Idea {
     return row;
   }
 
-  /** See {@link ProfileApi.composeCard}. */
-  @CallSecurity(ProfileApiCallers)
+  /** See {@link SocialApi.composeCard}. */
+  @CallSecurity(SocialApiCallers)
   public async composeCard(viewer: Stuff, target: Stuff): Promise<ProfileCard> {
     const self = viewer.stuffId === target.stuffId;
     const recognized = self || RecognitionApi.recognizes(viewer, target);
@@ -233,7 +236,7 @@ export class ProfileLogic extends Idea {
     target: Stuff
   ): PresenceStatus | undefined {
     if (!PlayerApi.isAvatarStuff(target)) return undefined;
-    const status = PresenceApi.statusOf(target);
+    const status = SocialApi.statusOf(target);
     if (viewer.stuffId === target.stuffId) return status;
     const pref =
       ShellApi.resolveSetting<string>(target, 'privacy.showStatus') ?? 'anyone';
