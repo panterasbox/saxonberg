@@ -177,7 +177,7 @@ insert-only on the paths still in `seeds/`. Conflict-free by construction.
 ### Runtime — `pack sync <packId>`
 
 The `pack` author verb (`obj/command/author/PackController.ts` +
-`cmd/author/pack.yaml`, developer-gated via the `requiresDeveloper`
+`cmd/author/pack.yaml`, wizard-gated via the `requiresWizard`
 validator, dispatch-on-subcommand — `sync` is the only verb in v1) runs
 the **same** reconcile, then re-hydrates: for each changed path it calls
 `TemplateApi.restoreFromTemplate` on every live instance at that path

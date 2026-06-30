@@ -123,7 +123,24 @@ export class TemplateLogic extends Idea {
    * `class` with no behaviors and the standard (or absent) hydrator —
    * is exempt. A folder class is engine code by construction, carries no
    * author-chosen executable strategy, and is constrained by the
-   * folder/leaf invariant.
+   * folder/leaf invariant. The carve-out admits *any* `isFolderClass`
+   * value (broader than the single `FolderZone` that `mkdir` emits); the
+   * no-behaviors + standard-hydrator clauses keep it from smuggling an
+   * executable strategy. It is not a code-execution escape (every folder
+   * class is wizard-authored engine code), though it does let a
+   * protowizard turn a leaf template into a folder — a content-integrity
+   * edge gated by ordinary content-write access, not a code-trust one.
+   *
+   * Placement (D6): this gate is enforced at `saveTemplate`, the *authoring*
+   * chokepoint where the acting author and the in-world/CMS intent live —
+   * deliberately, not at the universal `DomainHook.aroundSave` where the
+   * folder/leaf invariant sits. The trade-off: a future path that mutates a
+   * `Template` and calls `tpl.save()` directly would bypass *this* gate while
+   * still tripping folder/leaf validation, and the drift-guard watches
+   * resolver call-sites, not template-write sites. No protowizard-reachable
+   * path does that today (the only non-`saveTemplate` authoring writer,
+   * `PackLogic`, is wizard-gated at the `pack` verb); if one is ever added,
+   * the gate moves to `aroundSave` beside `validateFolderLeafSave`.
    */
   private async enforceCodeFieldGate(
     classPath: string,

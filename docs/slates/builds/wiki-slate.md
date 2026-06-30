@@ -47,7 +47,7 @@ See also:
   scalar.
 - [docs/subsystems/access.md](../../subsystems/access.md) +
   [access-slate.md](../tails/access-slate.md) — `AccessApi.can` /
-  `canMutateZone` / `isDeveloper`, the zone-anchored slice walk over
+  `canMutateZone` / `isWizard`, the zone-anchored slice walk over
   `ownerGroup`/`accessGroups`, and `resolveSourceFolderZone` (the
   namespace-anchoring pattern the wiki mirrors). Reused wholesale.
 - [cms-slate.md](./cms-slate.md) — the **level-3 source** embed is the
@@ -211,7 +211,7 @@ click to peek).
 - **Capability ceiling (reader role/group) — server-enforced.** What
   you're *allowed* to see at all. This is just **`AccessApi` group
   membership**: a `teacher` group for answer-key/teacher tiers,
-  `AccessApi.isDeveloper` for **level 3 = the actual source**. Above
+  `AccessApi.isWizard` for **level 3 = the actual source**. Above
   your ceiling, the server **omits** the content — it never crosses the
   wire (so you can't dial yourself into source).
 
@@ -244,7 +244,7 @@ predicate:
 | `wiki edit <page>` / `wiki create <page>` | `AccessApi.can(actor, "edit", namespaceZone)` |
 | `wiki delete` / `wiki rollback` | `AccessApi.canMutateZone(actor, namespaceZone)` (owner role) |
 | `wiki history <page>` | read |
-| level-3 source embed | `AccessApi.isDeveloper(actor)` |
+| level-3 source embed | `AccessApi.isWizard(actor)` |
 
 **Namespace → `FolderZone` anchor.** `AccessApi.can` is zone-anchored
 (walks `resource.getZone()`). `WikiPage` data is its own beast, so we
@@ -333,7 +333,7 @@ the newcomer/SEO angle without a populated wiki.
 - Transclusion embed palette (`{{help:…}}` specs/taxonomies,
   `{{entity:…}}` spoiler-gated template data, `<mql>`/taxonomy, image,
   page-card); inline spoiler tags; **level-3 source embed**
-  (`isDeveloper` + `SourceTreeApi`).
+  (`isWizard` + `SourceTreeApi`).
 - Search integration polish (grouped Docs · Wiki results).
 - Community moderation tooling.
 

@@ -31,10 +31,10 @@ export default class ReloadController extends CommandController<ReloadModel> {
   async execute(model: ReloadModel, context: CommandContext): Promise<void> {
     const giver = context.commandGiver;
 
-    // Developer axis check is now declarative — see reload.yaml's
+    // Wizard axis check is now declarative — see reload.yaml's
     // `validators: requiresWizard`. The dispatcher rejects the
     // command before this controller runs when the giver isn't a
-    // developer. No slice check applies — module reloads aren't
+    // wizard. No slice check applies — module reloads aren't
     // scoped to a content area.
 
     let path: string | null = null;

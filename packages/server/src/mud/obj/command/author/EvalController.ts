@@ -45,10 +45,10 @@ export default class EvalController extends CommandController<EvalModel> {
   async execute(model: EvalModel, context: CommandContext): Promise<void> {
     const giver = context.commandGiver;
 
-    // Developer axis check is now declarative — see eval.yaml's
+    // Wizard axis check is now declarative — see eval.yaml's
     // `validators: requiresWizard`. The dispatcher rejects the
     // command before this controller runs when the giver isn't a
-    // developer.
+    // wizard.
 
     // Singleton resolution. Keyed by the player's persistent
     // identity (Avatar.getPlayerId) so different players don't

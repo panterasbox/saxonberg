@@ -5,16 +5,18 @@
  * direct code-naming fields (`CodeNamingFields.FIELDS`) so a non-wizard
  * content write can never name code to run. That guarantee rests on the
  * gate being the *only* place author-supplied content drives a module
- * resolution. This structural test enumerates **every** module-resolving
- * call site under `mud/` (`StuffApi.resolveExport` /
+ * resolution. This structural test enumerates **every** call site of the
+ * **sanctioned module resolvers** under `mud/` (`StuffApi.resolveExport` /
  * `.resolveExportSync` / `.loadClassByPath`, plus dynamic `import()`
  * with a non-string-literal argument) and asserts the set equals a
- * checked-in, classified manifest.
+ * checked-in, classified manifest. It guards the *known* resolver surface,
+ * not arbitrary code: a brand-new resolver primitive would also need to be
+ * added to the scanner's matcher list below (itself a reviewable change).
  *
- * A NEW, unclassified call site — e.g. a custom `Hydrator` subclass
- * reading a new instruction field that resolves a module — makes this
- * test FAIL, forcing the author to either join `CodeNamingFields.FIELDS`
- * + the gate, or justify a classification here.
+ * A NEW, unclassified call site of an existing resolver — e.g. a custom
+ * `Hydrator` subclass reading a new instruction field that resolves a
+ * module — makes this test FAIL, forcing the author to either join
+ * `CodeNamingFields.FIELDS` + the gate, or justify a classification here.
  *
  * Classifications:
  *  - **gated-direct** — fed by a `CodeNamingFields.FIELDS` value (clone

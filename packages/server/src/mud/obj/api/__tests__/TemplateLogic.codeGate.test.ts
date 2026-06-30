@@ -6,7 +6,14 @@
  * (`class` / `hydratorClass` / `behaviors[].brain`). Wizard-ness is
  * controlled by spying `AccessApi.isWizard`; the acting author is a real
  * `Avatar` (the gate narrows on `instanceof Avatar`), planted via the
- * `runRoot` + `tagActingAuthor` bridge (the CMS/in-world shape).
+ * `runRoot` + `tagActingAuthor` bridge (the CMS/REST shape).
+ *
+ * The gate is author-*source*-agnostic: it acts on whatever
+ * `ExecutionContextApi.getActingAuthor()` returns. That function's other
+ * branch — the in-world command-giver resolution (single non-forced giver
+ * → that Avatar; forced/inconsistent → null) — is covered directly in
+ * `execution-context.test.ts`, so injecting the author via the runRoot
+ * branch here proves the gate's allow-ladder + delta rule for both paths.
  *
  * Mongo is faked collection-aware (domain + authoring_events).
  */
@@ -232,5 +239,28 @@ describe("TemplateLogic code-field gate", () => {
         TemplateApi.saveTemplate("/domain/gallery/leaf", LEAF, {})
       )
     ).rejects.toThrow(/class/);
+  });
+
+  it("rejects smuggling a non-standard hydrator or a brain under a folder class", async () => {
+    const alice = makeAlice();
+    vi.spyOn(AccessApi, "isWizard").mockResolvedValue(false as never);
+
+    // Folder class but a non-standard hydrator → not a scaffold; the
+    // hydratorClass clause keeps the carve-out tight.
+    await expect(
+      asAuthor(alice, () =>
+        TemplateApi.saveTemplate("/domain/gallery/sub", FOLDER, {}, OTHER_HYDRATOR)
+      )
+    ).rejects.toThrow(/hydratorClass|class/);
+
+    // Folder class but a brain in the data → not a scaffold; the
+    // no-behaviors clause keeps the carve-out tight.
+    await expect(
+      asAuthor(alice, () =>
+        TemplateApi.saveTemplate("/domain/gallery/sub2", FOLDER, {
+          behaviors: [{ brain: "/lib/behavior/idles" }],
+        })
+      )
+    ).rejects.toThrow(/class|behaviors\[\]\.brain/);
   });
 });

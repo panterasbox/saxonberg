@@ -198,16 +198,17 @@ Ordered by leverage + dependency:
    (2026-06)**: `AccessApi` thin facade over the singleton
    `AccessRegistry` Stuff with four predicates
    (`can` resource-targeted slice walk, `canMutateZone` role-gated,
-   `isAuthor` broad content-scope, `isDeveloper` orthogonal
-   TS-escape axis) + `resolveSourceFolderZone` path resolver;
+   `isAuthor` broad content-scope, `isWizard` orthogonal
+   TS-escape axis — renamed from `isDeveloper` by the wizard-authority
+   build) + `resolveSourceFolderZone` path resolver;
    `Zone.ownerGroup` / `accessGroups` persistent inheritable fields;
    the narrow-entry pattern (`FromController` policy applied to
    `StuffApi.forceDestruct` + `ContainmentApi.forceMove`); the
    three bootstrap-seeded groups (`'core'` / `'lounge'` /
-   `'developers'`) with the lounge FolderZones; MQL
+   `'wizards'`, renamed from `'developers'`) with the lounge FolderZones; MQL
    `ctx.permission` snapshot wire-up; access checks on all 13
    author-tier and workspace verb controllers; two declarative
-   validators (`requiresCoreAccess`, `requiresDeveloper`). See
+   validators (`requiresCoreAccess`, `requiresWizard`). See
    [access.md](./subsystems/access.md). Wave 2+ deferred:
    possession / ownership / location capability sources,
    action-level enforcement for chat / door / channel,

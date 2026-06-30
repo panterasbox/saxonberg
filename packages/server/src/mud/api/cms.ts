@@ -88,7 +88,7 @@ export class CmsApi {
   /**
    * List the immediate children of one node. `path` is `/` for a backend
    * root. Reads are gated on the **context-derived** actor (source →
-   * developer, content → author); throws `CmsError('denied')` otherwise.
+   * wizard, content → author); throws `CmsError('denied')` otherwise.
    *
    * Takes **no `actor` argument by design** — the acting principal is
    * resolved from the execution context (`getActingAuthor`), never from a
@@ -127,7 +127,7 @@ export class CmsApi {
   /**
    * Author one leaf — save-is-authoritative. The acting principal is
    * derived from context (never passed); gates verbatim from
-   * `WriteController` (source → developer, content → write-permission),
+   * `WriteController` (source → wizard, content → write-permission),
    * persists, then runs the per-backend go-live step. Throws
    * `CmsError('denied')` on access denial, `('not-found')` for an absent
    * content template, `('invalid')` for malformed JSON; lets

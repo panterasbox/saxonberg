@@ -76,7 +76,7 @@ What exists today, from a code scout:
 - **Ownership.** `Zone.ownerGroup` / `accessGroups` (`GroupRef`,
   inheritable via the nearest-ancestor `Zone.lookupField` walk) + the
   `AccessApi` predicates (`can` / `canMutateZone` / `isAuthor` /
-  `isDeveloper`). **Only zones own.** No ownership on leaf templates, no
+  `isWizard`). **Only zones own.** No ownership on leaf templates, no
   ownership on TypeScript modules.
 - **Authoring.** The `write` verb (content `-c` → `TemplateApi.saveTemplate`;
   source `-s` → `SourceTreeApi.write`, developer-gated) over the

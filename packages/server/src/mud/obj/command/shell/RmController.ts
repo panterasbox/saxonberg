@@ -114,7 +114,7 @@ export default class RmController extends CommandController<RmModel> {
       return;
     }
 
-    // Source-tree: developer + slice walk both required.
+    // Source-tree: wizard + slice walk both required.
     if (!(await AccessApi.isWizard(giver))) {
       return this.fail(
         context,

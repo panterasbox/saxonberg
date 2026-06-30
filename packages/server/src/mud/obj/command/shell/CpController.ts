@@ -87,7 +87,7 @@ export default class CpController extends CommandController<CpModel> {
     }
 
     // Source-tree cp. Source endpoint = read; dest endpoint = write
-    // (developer + slice walk).
+    // (wizard + slice walk).
     const srcLogical = SourceTreeApi.joinLogical(cwd, model.src, { home });
     const dstLogical = SourceTreeApi.joinLogical(cwd, model.dst, { home });
     const srcSlice = await AccessApi.resolveSourceFolderZone(srcLogical);

@@ -37,7 +37,7 @@ See also:
   — the first consumer; reserves an optional `country?` on the
   presence-notification payload.
 - [docs/subsystems/access.md](../../subsystems/access.md) —
-  `AccessApi.isDeveloper`, the gate for the privileged IP read.
+  `AccessApi.isWizard`, the gate for the privileged IP read.
 - [docs/deployment.md](../../deployment.md) — the Caddy/Let's-Encrypt
   reverse-proxy topology that makes `X-Forwarded-For` (not
   `socket.remoteAddress`) the real client IP in production.
@@ -56,7 +56,7 @@ Three things, layered by sensitivity:
    GeoIP dataset. No per-connect network call.
 3. **Expose, split by privilege** — **country** is broadly readable
    (the connect notification, a lookup verb); the **full IP** is
-   developer-only (`AccessApi.isDeveloper`).
+   wizard-only (`AccessApi.isWizard`).
 
 > **PII posture is load-bearing.** The raw IP is **in-memory on the
 > live connection only — never written to Mongo.** Country may be
@@ -134,7 +134,7 @@ ConnectionApi.originOf(playerId: string): ConnectionOrigin
   visibility rules; e.g. the connect notification only fires for groups
   the viewer policied).
 - **IP** — populated only when the acting principal satisfies
-  `AccessApi.isDeveloper` (the orthogonal TS-escape / operator axis,
+  `AccessApi.isWizard` (the orthogonal TS-escape / operator axis,
   per [access.md](../../subsystems/access.md)); omitted otherwise. The
   gate is derived from execution context, never a caller-supplied flag.
 

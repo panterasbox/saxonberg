@@ -182,7 +182,7 @@ reissue).
   employed is authored (out of scope); this is the payment only. **No
   employer-solvency check** — the venue runs its P&L red by design (subsidy
   covers). `house payroll <worker> <amount>` (operator-gated via `AuthorMixin`
-  + `requiresDeveloper`) pays from the present venue's account.
+  + `requiresWizard`) pays from the present venue's account.
 - **Demo sales tax** — `BankingApi.remitDemoTax(sellerAccount, saleAmount)`:
   a **seller-collected** `tax`/`tax` posting seller → placeholder treasury at
   the authored, **inert** rate (`banking.salesTaxRate` AppSetting; recorded,
@@ -299,7 +299,7 @@ The plan flagged 6 open implementation choices; settled as reached:
    old-MUD flat-verb style): `bank` (open/deposit/withdraw/transfer/balance),
    `wallet` (use/freeze), `tab` (settle/skip), plus the flat `pay`; the
    operator surface splits **`reserve`** (mint/supply, central bank) vs
-   **`house`** (pnl/payroll, venue owner), both `requiresDeveloper` via
+   **`house`** (pnl/payroll, venue owner), both `requiresWizard` via
    `AuthorMixin`. 13 flat verbs → 6, collapsing most verb collisions
    (no more banking `open` shadowing the boundary `open`). A pure view-layer
    regroup — the Api/Logic substrate is untouched. (Phase 2 surface,

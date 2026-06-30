@@ -72,7 +72,7 @@ AppApi.setSetting(key, value): Promise    // write + persist + refresh cache
 - **Reads are ungated**: the internal consumers (evac, avatar-mint) are
   engine code, not developers. **`setSetting` is reached only through the
   developer-gated `config` verb**; the gate lives at the verb (its
-  `requiresDeveloper` validator), not duplicated on the Api.
+  `requiresWizard` validator), not duplicated on the Api.
 - **`setSetting` is self-refreshing**: the cache holds the very instance it
   mutates and saves, so there is no separate re-read.
 - **No boot/seed/warm method.** `AppApi` is the home for app-level
@@ -111,7 +111,7 @@ throws loudly (`AppSettings.getCached`) rather than returning a silent
 ## The `config` verb
 
 Single-token `config`, in the `system` command category, gated by the
-`/lib/command/validators/requiresDeveloper` validator (the `eval`/`reload`
+`/lib/command/validators/requiresWizard` validator (the `eval`/`reload`
 precedent — operator/TS-escape tier):
 
 ```
