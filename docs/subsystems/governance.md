@@ -141,9 +141,10 @@ home, one calling surface, one structurally-enforced path).
   `FromModule('mud/obj/command/governance/OfficeController')` narrow-entry
   (string-keyed to avoid a static-import cycle — the
   `AccessApi.setWizardMembership`/`WizardController` precedent). The
-  **authority** (the giver being the founder) is enforced inside
-  `OfficeController` via `OfficeApi.isFounder`, not re-checked at the Api
-  (the controller-gate + in-controller-authority split).
+  **authority** is the `requiresFoundingAuthority` subcommand-level
+  validator's job (see "The verb" below), not re-checked at the Api (the
+  controller-gate + validator-authority split, the `WizardController`
+  contract).
 
 Gated checks derive the acting principal from execution context
 (`context.commandGiver`), never a caller-supplied parameter — the
@@ -167,13 +168,31 @@ hide the public roster from non-authors):
 
 - `offices` / `office list` — the **public** roster (any player).
 - `office assign <player> <office>` / `office vacate <office>` — the
-  mutating subcommands, gated to the founder. Because the command schema
-  scopes `validators` to the verb level (and a verb-level gate would
-  wrongly block the public roster), the founder gate is enforced **inside
-  `OfficeController`** for these two subcommands — `OfficeApi.isFounder(
+  mutating subcommands, each carrying the **`requiresFoundingAuthority`
+  subcommand-level validator**. A non-founder sees the verb and the roster
+  but is denied `assign`/`vacate`; the bare/`list` roster stays public
+  because the gate sits on the *subcommand*, not the verb.
+
+  `requiresFoundingAuthority` is the **single meta-level governance-root
+  gate**, deliberately *not* a per-feature "is the founder" role check.
+  Normal in-world authority flows through *offices* (the `reserve` →
+  `requiresGovernor` / `holdsOffice` pattern below), and the founder
+  exercises that authority by *holding the seats by default* — never by a
+  parallel founder check sprinkled on verbs. The one power that sits
+  *above* the office system is the power to constitute the government
+  itself — to seat and unseat officeholders — which at founding is the
+  founder's pool-of-one authority (Art. XI). That, and only that, is what
+  this validator guards; its `preload` reads `OfficeApi.isFounder(
   context.commandGiver)`, the actor derived from execution context (the
-  `GroupController` per-subcommand owner-check precedent). A non-founder
-  sees the verb and the roster but is denied `assign`/`vacate`.
+  `gated-api-actor-from-context` rule).
+
+  Per-subcommand validators are a first-class command-engine feature: a
+  `subcommands.<name>.validators` list fires after the verb-level
+  validators and before field validators, only when that subcommand is
+  invoked (see [command-routing.md](./command-routing.md) /
+  [command-spec.md](./command-spec.md)). This is what lets one subcommand
+  carry an authority gate the verb's public subcommands don't — added with
+  this build, with `office assign`/`vacate` its first consumer.
 
 ## The one wired consumer: the Governor controls the central bank
 

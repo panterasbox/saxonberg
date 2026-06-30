@@ -15,15 +15,17 @@
  *   - **Gated mutations** — `assign`/`vacate` carry the string-keyed
  *     `FromModule('mud/obj/command/governance/OfficeController')` narrow-
  *     entry (the `AccessApi.setWizardMembership` gate shape). The
- *     **authority** (the giver being the founder) is enforced by the
- *     verb's `requiresFounder` validator, not re-checked here.
+ *     **authority** is enforced by the `requiresFoundingAuthority`
+ *     subcommand-level validator (the meta governance-root gate), not
+ *     re-checked here.
  *
  * Parameter convention (the `gated-api-actor-from-context` rule): the
  * read predicates that take a *subject* accept `Stuff | null` (an Avatar)
  * and let the Logic resolve playerId. The mutations take a resolved
  * `playerId: string` appointee (the controller resolved the MQL target).
  * The **appointer** is never a parameter — it is derived from execution
- * context by `requiresFounder`. `vacate(officeKey)` takes no player.
+ * context by `requiresFoundingAuthority`. `vacate(officeKey)` takes no
+ * player.
  */
 
 import { SecurityApi } from './security';
@@ -119,9 +121,8 @@ export class OfficeApi {
    * (the `office assign` verb) via the string-keyed `FromModule` policy
    * — string-keyed to avoid a value-level static-import cycle (the
    * `setWizardMembership`/`WizardController` precedent). The *authority*
-   * (the giver being the founder) is enforced by the verb's
-   * `requiresFounder` validator; this method is the structurally single
-   * entry to the handoff write.
+   * is enforced by the `requiresFoundingAuthority` subcommand validator;
+   * this method is the structurally single entry to the handoff write.
    */
   @CallSecurity(
     SecurityPolicies.FromModule(

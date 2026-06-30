@@ -8,14 +8,16 @@
  *
  * Authorization: the roster is public, so the verb is afforded
  * universally with no verb-level authority validator. The mutating
- * `assign`/`vacate` subcommands enforce the **founder** gate *inside* the
- * controller (the `GroupController` per-subcommand owner-check precedent —
- * the command schema scopes `validators` to the verb level, and a
- * verb-level gate would wrongly block the public roster). The acting
- * principal is derived from execution context (`context.commandGiver`),
- * never caller-supplied — `OfficeApi.isFounder(giver)` (the
- * `gated-api-actor-from-context` rule). Only the resolved appointee
- * playerId is ever passed onward.
+ * `assign`/`vacate` subcommands carry the `requiresFoundingAuthority`
+ * **subcommand-level** validator — the single meta-level governance-root
+ * gate (the founder's pool-of-one power to constitute the government,
+ * Art. XI), distinct from per-feature role checks: normal in-world
+ * authority flows through offices (the `reserve` → `requiresGovernor`
+ * pattern). The validator's acting principal is derived from execution
+ * context (framework-stamped `context.commandGiver`), never
+ * caller-supplied. By the time `execute` runs the giver is already
+ * authorized — the controller re-derives no authority, and only the
+ * resolved appointee playerId is ever passed onward.
  */
 
 import { CommandController } from '../../../lib/command/CommandController';
@@ -59,13 +61,8 @@ export default class OfficeController extends CommandController<OfficeModel> {
     model: OfficeModel,
     context: CommandContext,
   ): Promise<void> {
-    if (!(await OfficeApi.isFounder(context.commandGiver))) {
-      return this.fail(
-        context,
-        'Only the founder may hand off offices.',
-        'not-founder',
-      );
-    }
+    // Authority is the `requiresFoundingAuthority` subcommand validator's
+    // job (the dispatcher rejects non-founders before `execute` runs).
     const resolved =
       model.target && typeof model.target === 'object'
         ? (model.target as MqlOneResult)
@@ -123,13 +120,8 @@ export default class OfficeController extends CommandController<OfficeModel> {
     model: OfficeModel,
     context: CommandContext,
   ): Promise<void> {
-    if (!(await OfficeApi.isFounder(context.commandGiver))) {
-      return this.fail(
-        context,
-        'Only the founder may vacate offices.',
-        'not-founder',
-      );
-    }
+    // Authority is the `requiresFoundingAuthority` subcommand validator's
+    // job (the dispatcher rejects non-founders before `execute` runs).
     const office = Office.byKey((model.office ?? '').trim());
     if (!office) {
       return this.fail(

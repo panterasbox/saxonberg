@@ -24,6 +24,8 @@ subcommands:
       Set a player as the explicit holder of an office, replacing whoever
       held it. Name the player, then the office (by key or name, e.g.
       `prime-minister`). Founder-only.
+    validators:
+      - /lib/command/validators/requiresFoundingAuthority
     examples:
       - cmd: office assign alice prime-minister
         note: Hand the Prime Minister seat to Alice
@@ -43,6 +45,8 @@ subcommands:
     help: |
       Clear an office's explicit holder; the seat reverts to the founder
       default. Name the office only — there is no empty state. Founder-only.
+    validators:
+      - /lib/command/validators/requiresFoundingAuthority
     examples:
       - cmd: office vacate prime-minister
         note: Revert the Prime Minister seat to the founder

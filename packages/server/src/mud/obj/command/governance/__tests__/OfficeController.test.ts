@@ -5,9 +5,12 @@
  * narrow-entry `FromModule(OfficeController)` gate passes), over a real
  * `OfficeRegistry` + in-memory store. Proves the MVC mapping (target →
  * playerId, office key resolution) and the assign/replace/vacate
- * behavior end-to-end, plus the in-controller founder gate (a non-founder
- * is denied `assign`/`vacate`). The founder giver is seeded via the
- * credential path (a `User` + `TwitchProfile` matching the env handle).
+ * behavior end-to-end. Authority (founder-only `assign`/`vacate`) is the
+ * `requiresFoundingAuthority` subcommand validator's job, enforced in the
+ * dispatcher before `execute` runs — covered in that validator's own test
+ * + the subcommand-validator dispatch test, not here. The founder giver is
+ * seeded via the credential path (a `User` + `TwitchProfile` matching the
+ * env handle).
  */
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
@@ -322,44 +325,11 @@ describe('OfficeController', () => {
     );
   });
 
-  it('a non-founder is denied assign (in-controller founder gate)', async () => {
-    const nonFounder = makeAvatar('rando');
-    const alice = makeAvatar('alice');
-    const ctx = makeContext(nonFounder);
-    await run(
-      nonFounder,
-      {
-        subcommand: 'assign',
-        target: { stuff: alice, raw: 'alice' } as MqlOneResult,
-        office: 'prime-minister',
-      } as CommandModel,
-      ctx,
-    );
-    expect(ctx.getNotes()).toContainEqual(
-      expect.objectContaining({
-        kind: 'controller-rejected',
-        reason: 'not-founder',
-      }),
-    );
-    // No handoff was written.
-    expect((await OfficeApi.holderOf('prime-minister')).kind).toBe('founder');
-  });
-
-  it('a non-founder is denied vacate (in-controller founder gate)', async () => {
-    const nonFounder = makeAvatar('rando');
-    const ctx = makeContext(nonFounder);
-    await run(
-      nonFounder,
-      { subcommand: 'vacate', office: 'prime-minister' } as CommandModel,
-      ctx,
-    );
-    expect(ctx.getNotes()).toContainEqual(
-      expect.objectContaining({
-        kind: 'controller-rejected',
-        reason: 'not-founder',
-      }),
-    );
-  });
+  // Authority (founder-only assign/vacate) is enforced by the
+  // `requiresFoundingAuthority` subcommand validator in the dispatcher,
+  // BEFORE `execute` runs — not by the controller. It is covered by
+  // `requiresFoundingAuthority.test.ts` and the subcommand-validator
+  // dispatch test, not re-tested here (the `WizardController` precedent).
 
   it('a public list works for a non-founder', async () => {
     const nonFounder = makeAvatar('rando');
