@@ -240,12 +240,14 @@ export class LocomotionLogic extends Idea {
   }
 
   /**
-   * Haulage gate — refuses a move when a hitched cart can't follow. The
-   * hauler is resolved against the actual traverser: for a passthrough
-   * (ride / drive) move the conveyance host (the horse) traverses, so the
-   * cart and ceiling read off the *host*, not the commanding rider (a
-   * rider's own `isHauling` would be false and wave the cart through).
-   * Two sub-gates:
+   * Haulage gate — refuses a move when the traverser's hitched cart can't
+   * follow. The hauler is the **actual traverser** (`actor`): a person
+   * pulling a handcart, or — for a ridden move — the conveyance host (the
+   * horse) whose own traverse is gated with its own mode (passthrough
+   * modes never reach here; `exit.canTraverse` rejects ride/drive at the
+   * media gate first, so the gate that fires for a ridden move is the
+   * host's self-powered traverse, where the host IS the actor). Two
+   * sub-gates:
    *   - **terrain** — the cart's passage mode (`wheeled`) must be admitted
    *     by the exit's `media`, AND the exit must be wheel-passable (the
    *     stairs residue). The ladder / ford / air case is refused for free
@@ -261,13 +263,10 @@ export class LocomotionLogic extends Idea {
     exit: Exit,
     mode: LocomotionMode,
   ): TraversalGuard {
-    const hauler: Stuff | null = mode.getPassthrough()
-      ? this.findConveyanceHost(actor, mode)
-      : actor;
-    if (!hauler || !MixinApi.isHauling(hauler) || !hauler.isHitched()) {
+    if (!MixinApi.isHauling(actor) || !actor.isHitched()) {
       return { ok: true };
     }
-    const hauledCart = hauler.getHauledCart();
+    const hauledCart = actor.getHauledCart();
     if (!hauledCart) return { ok: true };
 
     const passage = hauledCart.getPassageMode();
@@ -282,9 +281,9 @@ export class LocomotionLogic extends Idea {
       };
     }
 
-    if (MixinApi.isLoadBearing(hauler)) {
+    if (MixinApi.isLoadBearing(actor)) {
       const draft = hauledCart.getDraftLoad().rawValue();
-      const ceiling = hauler.getStrainCeiling().rawValue();
+      const ceiling = actor.getStrainCeiling().rawValue();
       if (draft > ceiling) {
         return {
           ok: false,

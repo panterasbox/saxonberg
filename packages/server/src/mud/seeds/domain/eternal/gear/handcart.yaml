@@ -1,0 +1,22 @@
+# Handcart — a wheeled Vessel you hitch and pull. The worked example of
+# the haulage substrate: cargo loaded into it leaves the hauler's
+# encumbrance books (it lives in the cart's own container); only the
+# draftFactor-attenuated draft load is borne while hitched.
+#
+# draftFactor 0.04 (well-wheeled, level-path common case) — a heavy load
+# presents only a few felt kg of draft and often stays under the
+# light-load floor, draining no endurance. A dragged sledge would set it
+# high (~0.35); carrying it in your arms is 1.0.
+class: /lib/equipment/Handcart
+hydratorClass: /lib/persistence/PersistentHydrator
+data:
+  shortDescription: a wooden handcart
+  primaryKeyword: handcart
+  longDescription: >
+    A sturdy two-wheeled handcart with a long pull-handle and a plank
+    bed. Loaded right, one person can move a load that would flatten
+    them to carry — so long as the ground stays level.
+  mass: 25
+  draftFactor: 0.04
+  handedness: 2
+  passageMode: wheeled
