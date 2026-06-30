@@ -48,4 +48,21 @@ describe('narrow-entry gate on a cloned controller', () => {
     const stranger = { getTemplatePath: () => '/obj/command/social/GroupController' };
     expect(p.allows(stranger as never, null as never, 'assign' as never)).toBe(false);
   });
+
+  it('multi-controller AnyOf (forceMove shape) admits each cloned controller, denies others', () => {
+    // Mirrors the fixed ContainmentApi.forceMove gate: FromModule +
+    // FromTemplate arms for both Teleport and Goto controllers.
+    const p = SecurityPolicies.AnyOf(
+      SecurityPolicies.FromModule('mud/obj/command/author/TeleportController'),
+      SecurityPolicies.FromTemplate('/obj/command/author/TeleportController'),
+      SecurityPolicies.FromModule('mud/obj/command/author/GotoController'),
+      SecurityPolicies.FromTemplate('/obj/command/author/GotoController'),
+    );
+    const teleport = { getTemplatePath: () => '/obj/command/author/TeleportController' };
+    const goto = { getTemplatePath: () => '/obj/command/author/GotoController' };
+    const stranger = { getTemplatePath: () => '/obj/command/author/DestructController' };
+    expect(p.allows(teleport as never, null as never, 'forceMove' as never)).toBe(true);
+    expect(p.allows(goto as never, null as never, 'forceMove' as never)).toBe(true);
+    expect(p.allows(stranger as never, null as never, 'forceMove' as never)).toBe(false);
+  });
 });

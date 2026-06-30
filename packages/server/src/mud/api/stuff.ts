@@ -749,17 +749,29 @@ export class StuffApi {
    * but ignores the veto result. The `onDestruct` cleanup hook still
    * runs.
    *
-   * Gated by `SecurityPolicies.FromController(DestructController)` —
-   * the **narrow-entry pattern**. Only `DestructController` can
-   * reach this entry point; the controller does the
-   * `AccessApi.can(giver, 'force-destruct', target)` check before
-   * invoking. Combined, the mutation has exactly one legitimate
-   * entry path AND that path enforces who is authorized.
+   * Gated to `DestructController` — the **narrow-entry pattern**. Only
+   * `DestructController` can reach this entry point; the controller does
+   * the `AccessApi.can(giver, 'force-destruct', target)` check before
+   * invoking. Combined, the mutation has exactly one legitimate entry
+   * path AND that path enforces who is authorized.
    *
-   * Direct calls from outside `DestructController`'s module throw
-   * `SecurityError` from the decorator gate before this body runs.
+   * The controller is cloned per execution (`StuffApi.clone('/obj/command/
+   * ...')`), so the caller resolves to its **template path**, not the
+   * module id, and a bare `FromModule` rejects `/`-prefixed paths — so the
+   * gate is `AnyOf(FromModule(module-id), FromTemplate(template-path))`.
+   * The template-path arm admits the cloned controller (`destruct -f`);
+   * the module-id arm covers a direct class-frame caller. (A bare
+   * `FromModule` denied the real `destruct -f` dispatch — the same latent
+   * bug the government-offices live verification caught on
+   * `OfficeApi.assign`; see `clonedControllerGate.test`.) Direct calls
+   * from any other module throw `SecurityError`.
    */
-  @CallSecurity(SecurityPolicies.FromModule('mud/obj/command/author/DestructController'))
+  @CallSecurity(
+    SecurityPolicies.AnyOf(
+      SecurityPolicies.FromModule('mud/obj/command/author/DestructController'),
+      SecurityPolicies.FromTemplate('/obj/command/author/DestructController')
+    )
+  )
   public static forceDestruct(object: Stuff): void {
     StuffApi.#destructCore(object, true);
   }
