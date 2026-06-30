@@ -694,7 +694,8 @@ export class Application {
    */
   private async createDefaultAvatarTemplate(
     name: string,
-    surname?: string
+    surname?: string,
+    startLocation?: string
   ): Promise<string> {
     const seed = await Template.findByPath(Avatar.SEED_TEMPLATE_PATH);
     if (!seed) {
@@ -708,9 +709,12 @@ export class Application {
     const path = Avatar.getTemplatePath(playerId);
     const data: Record<string, unknown> = {
       ...seed.data,
-      // Initial spawn home from app config (the seed YAML no longer
-      // carries a startLocation literal).
-      startLocation: AppApi.setting(AppSettingKeys.defaultStartLocation),
+      // Initial spawn home: an explicit override (the test-auth seam uses
+      // this to land co-location E2E avatars in a stable singleton room,
+      // bypassing the elastic lounge Warren) else the app-config default
+      // (the seed YAML no longer carries a startLocation literal).
+      startLocation:
+        startLocation ?? AppApi.setting(AppSettingKeys.defaultStartLocation),
       name,
     };
     if (surname) data.surname = surname;
@@ -735,7 +739,8 @@ export class Application {
    */
   public async provisionTestCharacter(
     userId: string,
-    name = 'Tester'
+    name = 'Tester',
+    startLocation?: string
   ): Promise<void> {
     if (process.env.AUTH_MODE !== 'test') {
       throw new Error('Application.provisionTestCharacter: test-only');
@@ -745,7 +750,11 @@ export class Application {
       throw new Error(`Application.provisionTestCharacter: no user ${userId}`);
     }
     if (user.playerIds.length > 0) return;
-    const playerId = await this.createDefaultAvatarTemplate(name);
+    const playerId = await this.createDefaultAvatarTemplate(
+      name,
+      undefined,
+      startLocation
+    );
     user.playerIds.push(playerId);
     await user.save();
   }

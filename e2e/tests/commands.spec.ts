@@ -56,17 +56,25 @@ test('`inventory` reports an empty pack for a fresh avatar', async ({
   }
 });
 
-test('movement north traverses the exit into Dave\'s Bar', async ({
+test('movement traverses an exit into the adjoining room', async ({
   browser,
 }) => {
-  const { page, close } = await openWorldAs(browser, 'cmd-move');
+  // Spawn directly in Dave's Bar (a stable singleton) so the traversal is
+  // deterministic regardless of lounge-Warren budding: the bar always
+  // exits `south` to the lounge. This tests the movement mechanic
+  // (command → traverse → arrival auto-look) without depending on the
+  // pollutable Warren topology.
+  const { page, close } = await openWorldAs(browser, 'cmd-move', {
+    startLocation: '/domain/lounge/bar',
+  });
   try {
-    // Confirm we start in the lounge.
-    await sendUntil(page, 'look', page.getByText(/the lounge/i).first());
+    // Confirm we start in Dave's Bar (its long description is unique —
+    // "…citrus peel and old wood…").
+    await sendUntil(page, 'look', page.getByText(/citrus peel/i).first());
 
-    // The lounge exits north to Dave's Bar; arriving auto-looks, so the
-    // new room's identity label renders.
-    await sendUntil(page, 'north', page.getByText(/Dave's Bar/i).first());
+    // Go south to the lounge; arriving auto-looks, so the lounge's room
+    // identity ("the lounge") renders.
+    await sendUntil(page, 'south', page.getByText(/the lounge/i).first());
   } finally {
     await close();
   }

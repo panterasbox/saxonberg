@@ -127,12 +127,13 @@ export function ViewsMenu({
         <span>{open ? "▴" : "▾"}</span>
       </MenuButton>
       {open ? (
-        <Menu>
+        <Menu data-testid="views-menu">
           {LAYOUT_NAMES.map((name) => {
             const cmd = `layout ${name}`;
             return (
               <Item
                 key={name}
+                data-testid={`views-item-${name}`}
                 $active={name === current}
                 onMouseEnter={() => onCommandPreview(cmd)}
                 onMouseLeave={() => onCommandPreview(null)}

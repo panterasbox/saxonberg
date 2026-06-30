@@ -1,15 +1,18 @@
 import { test, expect } from '@playwright/test';
-import { openWorldAs, commandInput } from './helpers';
+import { openWorldAs } from './helpers';
 
 /**
  * The "Social / Notifications" settings pane — the thin front over the
  * `notify` verb (social-graph Wave 3). Opened from the account menu.
  *
  * Beyond proving the pane mounts, this guards a cross-cutting client
- * invariant: every clickable previews the command it would issue into
- * the command bar on hover (so players learn the CLI). The pane's
- * controls call `onCommandPreview`, which drives the real command-bar
- * input — we hover and assert the input takes the exact command string.
+ * invariant: every clickable previews the command it would issue on
+ * hover (so players learn the CLI). The pane's controls call
+ * `onCommandPreview`, which under per-bar input mode can't live *in* a
+ * command bar (a moded bar would prepend its prefix and the preview
+ * would lie about what sends). So the preview surfaces in the always-on
+ * ghost command line — we hover and assert that strip shows the exact
+ * command string.
  */
 
 async function openSocialPane(page: import('@playwright/test').Page) {
@@ -44,17 +47,17 @@ test('pane controls preview their command in the command bar on hover', async ({
   try {
     await openSocialPane(page);
 
+    const ghost = page.getByTestId('ghost-line');
+
     // Add-rule button: previews `notify <ref> --render name` for the
     // typed reference.
     await page.getByTestId('social-add-input').fill('friends');
     await page.getByTestId('social-add-button').hover();
-    await expect(commandInput(page)).toHaveValue('notify friends --render name');
+    await expect(ghost).toContainText('notify friends --render name');
 
     // Reset button: a fixed, ref-independent command.
     await page.getByTestId('presence-format-reset').hover();
-    await expect(commandInput(page)).toHaveValue(
-      'settings unset social.presenceFormat'
-    );
+    await expect(ghost).toContainText('settings unset social.presenceFormat');
   } finally {
     await close();
   }
