@@ -24,6 +24,25 @@ built this platform to teach you* — wears the fiction-coat *the world was
 made on purpose, maybe by a God.* The world never lies about being
 fabricated; it dresses that honesty as theology.
 
+### Scale & scope — the local stage, the multiverse backdrop **[settled]**
+
+Terminus is one city, in one nation of many, on one planet of many, in one
+dimension of many: a **multiverse.** But the multiverse is a **narrative
+permission slip, not a thing to design** — it exists only to let a location
+carry *wholly different context* from Terminus with no explanation owed, and
+the **TPA** ([fasttravel](./subsystems/fasttravel.md)) is the in-world transit
+that reaches it (the diegetic cover for places not linked in modeled
+3-space — or linked, over distances we never model). No cosmology hangs on
+it; nothing past the stage gets built.
+
+**The authored-content scope is deliberately tiny:** the **University**, the
+**city** (Terminus), and *maybe* a small **wilderness** zone for a newbie
+quest. Everything beyond is **systems** — the platform builds the engine, and
+the people who come aboard supply the worlds. The multiverse is exactly what
+*buys* that restraint: *elsewhere exists, reachable by TPA, fillable by
+others*, so it never has to be authored here. Content is the expensive layer;
+**we spend on systems and let creativity arrive.**
+
 ## Cosmology — three strata **[settled]**
 
 1. **The emergent.** The natural world is the result of chaos + physics:
