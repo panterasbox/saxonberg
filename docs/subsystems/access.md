@@ -1,8 +1,8 @@
 # Access
 
 The access subsystem is the permission seam that `call-security`
-explicitly reserved: a thin **`AccessApi`** facade with five
-predicates plus a path-resolver helper, plus a new **narrow-entry
+explicitly reserved: a thin **`AccessApi`** facade with six
+predicates plus a path-resolver helper, plus a **narrow-entry
 pattern** for privileged mutations. The substrate lands on top of
 the existing `grouping` (membership) and `zone` (inheritance walk)
 substrates.
@@ -15,9 +15,9 @@ the only legitimate calling path is through the Api — external code
 that grabs the Registry instance via `StuffApi.findByTemplatePath`
 gets a reference but `SecurityError` thrown on any method call.
 
-## The five axes
+## The six axes
 
-The build ships five orthogonal predicates:
+The substrate ships six orthogonal predicates:
 
 1. **`AccessApi.can(subject, action, resource)`** — resource-
    targeted slice walk. Walks `resource.getZone()` upward via
@@ -38,17 +38,30 @@ The build ships five orthogonal predicates:
    the question, so a lounge member legitimately doing MQL work
    in their slice gets the same pre-gate behavior as a core
    operator).
-4. **`AccessApi.isDeveloper(subject)`** — orthogonal developer
-   axis. True iff `subject` is in `'developers'`. Determines who
-   can write TypeScript source, run `eval`, or `reload` modules.
-   Doesn't matter what slices you own; the question is whether
-   you have escape capability.
+4. **`AccessApi.isWizard(subject)`** — orthogonal wizard axis, the
+   **code-trust capability**. True iff `subject` is in `'wizards'`.
+   Determines who can write TypeScript source, run `eval`, `reload`
+   modules, AND set the executable code-naming fields
+   (`class` / `hydratorClass` / `behaviors[].brain`) on a content
+   template (see *The code-trust lockdown* below). Doesn't matter
+   what slices you own; the question is whether you have escape
+   capability. A content author who is *not* a wizard is a
+   **protowizard** (content-write access without code trust — an
+   unstored complement, not a group).
 5. **`AccessApi.isStreamer(subject)`** — orthogonal streamer axis.
    True iff `subject` is in `'streamers'`. Gates the livestream
    control plane (the `stream` verb; later scene / lower-third /
-   afk). Distinct from the developer axis — a streamer drives the
+   afk). Distinct from the wizard axis — a streamer drives the
    broadcast overlay without holding TS-escape capability. See
    [livestream.md](./livestream.md).
+6. **`AccessApi.isArchwizard(subject)`** — orthogonal archwizard
+   axis, the **wizard-conferral capability**. True iff `subject` is
+   in `'archwizards'`. Archwizards confer/revoke wizard status via
+   the `wizard grant/revoke <player>` verb (the `requiresArchwizard`
+   validator). Archwizard membership itself is operator/root-managed
+   (env seed + the `group` verb); the chain is
+   `operator/root → archwizards → wizards`, with a Prime Minister
+   office deferred above `archwizards`.
 
 Plus one helper for slice-aware workspace verbs:
 
@@ -63,18 +76,20 @@ Plus one helper for slice-aware workspace verbs:
 The Registry is an `Idea + PostRegistrationMixin` singleton at
 `/obj/AccessRegistry`. Instance state:
 
-- `cachedCoreRef` / `cachedLoungeRef` / `cachedDevelopersRef` /
-  `cachedStreamersRef` — resolved `GroupRef`s for the
-  bootstrap-seeded groups.
-- `cachedDeveloperPlayerIds` / `cachedStreamerPlayerIds` — Sets of
-  playerIds in `'developers'` / `'streamers'`; warmed lazily on
-  first `isDeveloper` / `isStreamer` call, invalidated via the
-  managed provider's `onChange` callback.
+- `cachedCoreRef` / `cachedLoungeRef` / `cachedWizardsRef` /
+  `cachedStreamersRef` / `cachedArchwizardsRef` — resolved
+  `GroupRef`s for the bootstrap-seeded groups.
+- `cachedWizardPlayerIds` / `cachedStreamerPlayerIds` /
+  `cachedArchwizardPlayerIds` — Sets of playerIds in `'wizards'` /
+  `'streamers'` / `'archwizards'`; warmed lazily on first
+  `isWizard` / `isStreamer` / `isArchwizard` call, invalidated via
+  the managed provider's `onChange` callback.
 - `cachedAuthorGroups` — list of `GroupRef`s that count as
   "author scope"; every group referenced by some Zone's
   `ownerGroup` or `accessGroups`, plus `'core'`.
-- `developerCacheCancel` / `streamerCacheCancel` — onChange
-  cancellation handles, cleared on destruct.
+- `wizardCacheCancel` / `streamerCacheCancel` /
+  `archwizardCacheCancel` — onChange cancellation handles, cleared
+  on destruct.
 
 `postRegister` runs idempotent bootstrap seeding:
 
@@ -82,13 +97,22 @@ The Registry is an `Idea + PostRegistrationMixin` singleton at
 2. Mint `'lounge'` Group + stamp `FolderZone` templates at
    `/lib/lounge` and `/domain/lounge` with
    `data.ownerGroup = 'managed:<loungeGroupId>'`.
-3. Mint `'developers'` Group if absent (no FolderZone stamp —
-   it's a tag-like group whose only role is gating the
-   `isDeveloper` axis).
+3. Mint `'wizards'` Group if absent (no FolderZone stamp — it's a
+   tag-like group whose only role is gating the `isWizard`
+   code-trust axis), then add any playerIds from the
+   `WIZARD_PLAYER_IDS` env var (additive + idempotent). **Migration:**
+   if `'wizards'` is absent but a legacy `'developers'` group exists
+   (the pre-rename axis), the doc is renamed forward so its `_id` +
+   members carry over verbatim — existing developers keep wizard
+   access (insert-only seeder; one-time, idempotent).
 4. Mint `'streamers'` Group if absent (no FolderZone stamp —
    tag-like, gates the `isStreamer` axis), then add any playerIds
    from the `STREAMER_PLAYER_IDS` env var (comma-separated,
    additive + idempotent — never removes).
+5. Mint `'archwizards'` Group if absent (no FolderZone stamp —
+   tag-like, gates the `isArchwizard` conferral axis), then add any
+   playerIds from the `ARCHWIZARD_PLAYER_IDS` env var (additive +
+   idempotent).
 
 Re-running boot against a populated DB is a no-op (existing
 Groups + existing FolderZone stamps are not overwritten; member
@@ -137,8 +161,16 @@ controllers do the access check via `AccessApi.can` before
 invoking. Combined, the mutation has exactly one legitimate
 entry path AND that path enforces who is authorized.
 
-Two adoption sites this build flips:
+Adoption sites:
 
+- `AccessApi.setWizardMembership(playerId, makeWizard)` → gated by
+  `FromModule('mud/obj/command/author/WizardController')`
+  (string-keyed `FromController(WizardController)`). `WizardController`
+  (the `wizard grant/revoke` verb) is the sole legitimate caller; its
+  `requiresArchwizard` validator enforces *who* may invoke (the giver
+  must be an archwizard). The mutation resolves the `wizards` group,
+  add/removeMember, save, and `fireChange` to invalidate the wizard
+  cache. The wizard-conferral act has its own auditable entry path.
 - `StuffApi.forceDestruct` → gated by
   `FromModule('mud/obj/command/author/DestructController#DestructController')`
   (the string form of `FromController(DestructController)` —
@@ -158,6 +190,86 @@ pattern: every public Registry method carries
 `@CallSecurity(FromModule('mud/api/access#AccessApi'))`, so
 external code's only reachable surface is the Api facade.
 
+## The code-trust lockdown
+
+In a Node + proxy-security stack, anyone who can author a line of
+TypeScript can subvert the whole security apparatus — so that power
+is the **wizard** capability and nothing else. The catch: a content
+template is *data*, but several of its fields resolve to executable
+code, so "can write content" silently grants "can run code" unless
+those fields are gated. This build closes that bypass.
+
+**The wizard / protowizard partition.** A **protowizard** is the
+unstored complement of a wizard: any actor with content-write access
+(`can(…, 'write', …)`) who is **not** in `'wizards'`. There is no
+`protowizard` group or flag — "can edit content, can't write code"
+falls out of the existing content gate plus the code-field gate below.
+
+**The direct gated set.** Three template fields name a module export
+directly and are **wizard-only-writable**:
+
+- `class`
+- `hydratorClass`
+- `behaviors[].brain`
+
+(`CodeNamingFields.FIELDS` is the single source of truth.) The gate
+lives at the **universal `TemplateApi.saveTemplate` chokepoint**
+(`TemplateLogic.enforceCodeFieldGate`), through which both the
+in-world `write -c` verb and the REST CMS funnel. The actor is derived
+from the execution context (`ExecutionContextApi.getActingAuthor` —
+never caller-supplied; the *gated-api-actor-from-context* rule). The
+allow ladder:
+
+1. no attributable Avatar author (system / bootstrap / forced /
+   cross-actor / pre-Avatar login + char-gen + guest provisioning) →
+   **ALLOW** (the provisioning invariant);
+2. a wizard → **ALLOW**;
+3. else (a protowizard) → the **delta rule**: reject any write that
+   *introduces or changes* a direct field — `class` / `hydratorClass`
+   inequality vs. the existing doc, or an incoming `behaviors[].brain`
+   multiset that is not a subset of the existing one. A pure cosmetic
+   edit (same class/hydrator, brain set unchanged-or-reduced) passes —
+   the protowizard authoring path.
+
+**The transitive set closes by construction.** The reference fields
+(`adornments[].template`, `exits[].destination`, `exits[].door`,
+`populates[]`, `container`, `warren`, `startLocation`,
+`routes[].to`/`.warren`) get **no per-field gate**: each names *another
+template*, which must itself have passed the `class` gate, so a
+reference can only ever instantiate a wizard-vetted-or-protowizard-safe
+class. (Proven in `TemplateLogic.transitiveClosure.test.ts`.)
+
+**The structural carve-out (D4).** A `mkdir`-shaped write — a
+Zone/folder `class` with no behaviors and the standard (or absent)
+hydrator — is exempt: a folder class is engine code by construction,
+carries no author-chosen executable strategy, and is constrained by
+the folder/leaf invariant. So a protowizard can still create
+organizational sub-zones.
+
+**The `cp`/`mv` tightening (D5).** `cp`/`mv` content copy an existing
+template's `class`/`hydrator`/`behaviors` into a *new* path (no
+existing doc at dst), so the delta rule makes them **wizard-only** for
+class-bearing leaves. Protowizards author by cloning/customizing
+wizard-made templates and editing cosmetic `data`; they never type a
+class or brain freehand. (The v2 relaxation — letting protowizards
+*pick among* a wizard-vetted catalog of safe classes/brains — is
+deferred.)
+
+**The one bypass, independently gated (D6).** Every *authoring*
+template write funnels through `saveTemplate` except `PackLogic`
+(content-pack import, which writes `PersistApi.save` directly). The
+`pack` verb is `requiresWizard`-gated, so a non-wizard can never reach
+that path. Non-authoring domain writes that skip `saveTemplate`
+(`snapshotToTemplate` → Avatar persist-back) marshal only live
+`persistentFields`, never an author-named class string, and run under
+`null`/system contexts.
+
+**The drift-guard.** `codeNamingDriftGuard.test.ts` enumerates every
+module-resolving call site under `mud/` (`resolveExport` /
+`resolveExportSync` / `loadClassByPath` + non-literal dynamic
+`import()`) and asserts the set equals a classified manifest, so a new
+field that resolves a module export can't silently escape the gate.
+
 ## Where the gate lives — validator vs controller body
 
 The dispatcher's validator phase is the right home for an access check
@@ -168,13 +280,16 @@ cases:
 - **`requiresCoreAccess`** — `can(giver, ctx.verb, null)`. Action
   string is the verb name; resource is null, so the walk falls to
   `'core'`. Used by `soul` and `broadcast`.
-- **`requiresDeveloper`** — `isDeveloper(giver)`. Used by `eval`
-  and `reload`.
+- **`requiresWizard`** — `isWizard(giver)`. The code-trust gate;
+  used by `eval`, `reload`, `config`, `pack`, `practice`, and the
+  banking operator verbs.
 - **`requiresStreamer`** — `isStreamer(giver)`. Used by `stream`.
+- **`requiresArchwizard`** — `isArchwizard(giver)`. Used by
+  `wizard grant/revoke`.
 
 All follow the typed-preload pattern documented on
 `CommandValidator<T>`: the async preload returns the boolean
-decision (`AccessApi.can(...)` / `isDeveloper(...)` / `isStreamer(...)`); the
+decision (`AccessApi.can(...)` / `isWizard(...)` / `isStreamer(...)`); the
 dispatcher captures it in a per-dispatch `ValidatorPreloads` map and
 passes it back to the sync validator body as its second argument
 (`preloaded`). No module-level state, no manual cleanup.
@@ -198,16 +313,17 @@ tree mode, etc.) we revisit.
 | `GotoController` | non-force: `can(giver, 'goto', dest)`; force: `can(giver, 'force-goto', dest)`. |
 | `SoulController` | `requiresCoreAccess` (validator) — `can(giver, 'soul', null)` via the verb-name action. |
 | `BroadcastController` | `requiresCoreAccess` (validator) — `can(giver, 'broadcast', null)`. |
-| `EvalController` | `requiresDeveloper` (validator) — `isDeveloper(giver)`; no slice (eval is TS execution). |
+| `EvalController` | `requiresWizard` (validator) — `isWizard(giver)`; no slice (eval is TS execution). |
 | `StreamController` | `requiresStreamer` (validator) — `isStreamer(giver)`; no slice (livestream control plane). |
+| `WizardController` | `requiresArchwizard` (validator) — `isArchwizard(giver)`; calls the narrow-entry `setWizardMembership` (wizard grant/revoke). |
 | `CloneController` | `can(giver, 'clone', sourceResource)` — slice walk on source path. |
-| `ReloadController` | `requiresDeveloper` (validator) — `isDeveloper(giver)`; no slice. |
+| `ReloadController` | `requiresWizard` (validator) — `isWizard(giver)`; no slice. |
 | `WriteController` content | Zone target: `canMutateZone(giver, target)`. Else: `can(giver, 'write', target)`. |
-| `WriteController` source/mirror | `isDeveloper(giver)` AND `can(giver, 'write', resolveSourceFolderZone(path))`. |
+| `WriteController` source/mirror | `isWizard(giver)` AND `can(giver, 'write', resolveSourceFolderZone(path))`. |
 | `MkdirController` content | `can(giver, 'mkdir', parent)` flat — sub-zone creation is a member-level op. |
-| `MkdirController` source | developer + slice. |
+| `MkdirController` source | wizard + slice. |
 | `RmController` content | Zone target: `canMutateZone(giver, target)`. Else: `can(giver, 'rm', target)`. |
-| `RmController` source | developer + slice. |
+| `RmController` source | wizard + slice. |
 | `CpController` | Source endpoint: READ rules (slice walk only). Dest endpoint: WRITE rules per tree mode. |
 | `MvController` | Both endpoints WRITE rules — `mv` REMOVES source after write. |
 | `LsController` / `CatController` / `GrepController` | source/mirror mode: `can(giver, 'read', resolveSourceFolderZone(path))`. Content-tree reads are public. |
@@ -273,14 +389,15 @@ retired.
 |---|---|---|---|
 | `'core'` | `'system'` | none (universal fallback) | Default owner when the zone walk finds no stamped owner. Members authorize broadcast, soul, and any action against null-resource targets. |
 | `'lounge'` | `'system'` | `/lib/lounge`, `/domain/lounge` | Content slice owner for the lounge subsystem. Members can author lounge content. |
-| `'developers'` | `'system'` | none (orthogonal axis) | TS escape capability. Members can `eval`, `reload`, and write source. The slice walk constrains WHICH source area — see source-tree mode below. |
+| `'wizards'` | `'system'` | none (orthogonal axis) | Code-trust (TS-escape) capability. Members can `eval`, `reload`, write source, and set the code-naming fields on a content template. The slice walk constrains WHICH source area — see source-tree mode below. Env-seeded from `WIZARD_PLAYER_IDS`. |
 | `'streamers'` | `'system'` | none (orthogonal axis) | Livestream control plane. Members can run the `stream` verb. Seeded from `STREAMER_PLAYER_IDS`. See [livestream.md](./livestream.md). |
 
 All four start empty (bar any `STREAMER_PLAYER_IDS` seeds). With
 no members, every gated path denies — the secure default. Adding
 a new scoped group later is two records (Group + FolderZone
-stamp); adding a new TS-developer or streamer is a single
-member-add to `'developers'` / `'streamers'`.
+stamp); adding a new wizard or streamer is a single
+member-add to `'wizards'` / `'streamers'` (or, for a wizard,
+`wizard grant`).
 
 ## Action vocabulary
 
@@ -303,11 +420,12 @@ The vocabulary in use today: `'destruct'` / `'force-destruct'` /
 - Reload of `obj/AccessRegistry.ts` re-clones the Stuff per
   HotReloadApi's pattern. State resets; `postRegister` re-runs
   idempotently; caches re-warm lazily on first read. The
-  `developerCacheCancel` / `streamerCacheCancel` handles are
+  `wizardCacheCancel` / `streamerCacheCancel` /
+  `archwizardCacheCancel` handles are
   cleared in `onDestruct` so the leaked subscriptions don't
   survive.
 - `ManagedGroupProvider.findByName` is the by-name lookup used
-  by both bootstrap seeding and the developer-cache warm path.
+  by both bootstrap seeding and the wizard-cache warm path.
 - **`'core'` deleted at runtime** is benign: the cached
   `GroupRef` points at a deleted Group and `GroupApi.isMember`
   against it returns `false`, so every gated path denies. The
@@ -344,10 +462,14 @@ or because they're their own conversation:
 - **Admin-override entries for other Document collections**
   (`forceDeleteGroup`, `forceDisbandChannel`, `forceEditEmote`).
 - **Per-action filtering on grants.**
-- **Class-allowlist for content-tree Template writes.** A
-  lounge member writing `/domain/lounge/sneaky` with
-  `class: /lib/eval/EvalScript` could then `clone` it — the
-  mitigation is a follow-on build.
+- **The v2 wizard-curated class/brain catalog.** v1 makes the
+  direct code-naming fields *wizard-only-writable* (a protowizard
+  cannot set them at all — they author by cloning/customizing
+  wizard-made templates). The relaxation that lets protowizards
+  *pick among* a wizard-vetted set of safe classes/brains is a
+  later build. (The bare "class-allowlist gap" this section used to
+  flag — a lounge member writing `class: /lib/eval/EvalScript` and
+  cloning it — is **closed** by *The code-trust lockdown* above.)
 - **Per-result resource targeting on MQL filters.** The
   pre-resolution `isAuthor` check is the simplification; the
   per-result async work is a future MQL build.
