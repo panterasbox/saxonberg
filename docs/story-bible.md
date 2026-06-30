@@ -24,6 +24,21 @@ built this platform to teach you* — wears the fiction-coat *the world was
 made on purpose, maybe by a God.* The world never lies about being
 fabricated; it dresses that honesty as theology.
 
+**The projection stack.** Deeper than the coat: the game is a **literary
+projection of the metaverse** — the plane above the diegesis, the platform the
+**cooperative** actually governs. The *governance spine* is a faithful shadow of
+the real form: **aether** projects **compute**, **Terminus's polity** projects
+the cooperative, and the **corpos** project the incumbent **board-of-directors /
+market model** the cooperative is built to outperform. So the corpos are written
+as the **steelman of a working form** — effective, often genuinely good at what
+they do, extractive by *structure*, not villainy (you earn nothing beating a
+strawman). The shadow falls on the **governance spine only**; the rest — gods,
+attuned, ages — is free myth with no meta-referent. And the myth dramatizes the
+**wager played out**, not a scoreboard: up on the real plane the experiment is
+legally deferred (patronage, not markets — securities law, not the form), not
+yet won. *(Aether is not compute one-for-one — a projection, not an identity;
+both are scarcities a political body governs, which is the whole rhyme.)*
+
 ### Scale & scope — the local stage, the multiverse backdrop **[settled]**
 
 Terminus is one city, in one nation of many, on one planet of many, in one
@@ -643,8 +658,8 @@ but because its **material basis is gone.** Everything below hangs on this hinge
   universal attunement rolls out fast; the world goes modern *all at once.* **The
   monopoly breaks** (above) — the attuned and the University dispossessed
   together; the **corpos** rush the vacuum (they can build on the open aether
-  now); the **clergy recede** and secular power fills the space the order's
-  authority used to hold.
+  now — see *The corpos*); the **clergy recede** and secular power fills the
+  space the order's authority used to hold.
 - **~−6 · The Near-Relapse — the Charter's trigger** *(latest):* with the old
   deference dead and the order's authority gone, the vacuum is **ripe for
   capture** — and a **would-be Solus reaches for the networked world.** This time
@@ -1132,6 +1147,55 @@ unrepentant certainty is its own gravity — the thing that draws the faithful
 without his lifting a finger. *Open (the one real gap): an **heir** to the False
 Dawn — Vaneism with a young face — is the uncarved present-day antagonist slot,
 there whenever a live adversary is wanted.*
+
+## The corpos — the steelman of the incumbent *[settled; founders uncarved]*
+
+The corpos are the diegetic projection of the **board-of-directors / market
+model** the cooperative is built to outperform (see *the projection stack*). So
+they are written as a **steelman, never a strawman:** genuinely effective, often
+genuinely good at what they make, extractive by *structure*, not malice. The
+villainy is in the **incentive**, never the mustache. (Roster + ethos live in
+the corpos slate — Veshko / Goodkin / Vionne / Hollis / Aevex + the
+Independents; this is the *rise and meaning.*)
+
+- **The rise — they filled the vacuum the monopoly-break left.** When the
+  Widening shattered the University's monopoly on the gift, the order's authority
+  evaporated and *something* had to scale the new universal field. The teaching
+  order couldn't — it could *invent* the implant but never mass-produce,
+  distribute, and run a planetary aether. The corpos did: they took the **pipes**
+  (the implant supply chain, the field-services, the money rails — the
+  corpo-run commercial banks of the banking model) *and* the **attention** (the
+  **Metric / the Feed**, the Hollow's modern demigod). The power the order gave
+  away, the corpos picked up. Risen in a single generation — recent, not ancient.
+- **The cohort-split — the corpos and the Charter are twins.** The breakthrough
+  cohort — the academics who cracked the implant — faced one choice: **give the
+  gift away under structure, or own it for profit.** They split. The ones who
+  chose consent became the **framers** (→ the Charter); the ones who chose to own
+  it became the **corpo-founders** (→ the field-economy). Same room, same
+  discovery, two roads — which is why the present is a standoff between
+  *estranged siblings*, not strangers. (The corpos stay **faceless wordmarks**;
+  their *founders* are name-able historical figures, the framers' cohort-peers —
+  a carve left open.)
+- **What they are — and aren't.** Not "the Hollow" (that is the principle), but
+  **agents in a system that rewards capture.** A multipolar, **rivalrous** field,
+  not a cartel — each corpo its own ethos; the temptation (capture pays on a
+  universal field) bends them all to differing degrees, some building genuinely,
+  some pure-extracting. The **Independents** (Crowsfoot Gin and kin) are the
+  economic negative space — the small makers who never sold into the
+  field-economy, the un-captured corner.
+- **The two faces of capture.** From the one Widening came two reaches for the
+  vacuum: **Vane** — the *acute, personal, political* attempt (seize the seats) —
+  and **the corpos** — the *standing, institutional, economic* one (own the
+  field). The cooperative is the structural answer to both: **the honest count
+  against the Metric, consent against extraction.** Balancing the corpos is, in
+  large part, *why the polity must exist.*
+- **Why the steelman is mandatory.** The real wager is *the three-house model
+  outperforms the board model* — and you earn nothing outperforming a strawman.
+  So the fiction must show the corpos as a **working form:** competent,
+  productive, the obvious way to run things. The myth dramatizes the bet *played
+  out* (the polity wrestling the field back); the real plane has it *legally
+  deferred*. The corpos are the **incumbent the model hopes to beat fairly**, not
+  a dragon to slay.
 
 ## The Museum — the world's memory **[settled frame, contents open]**
 
