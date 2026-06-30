@@ -391,8 +391,10 @@ won't crown can only *teach.*
 Age's rise-and-fall:
 
 1. **The Coming** — the clergy return to the dead heart and **revive
-   presence**, relighting the old worship and tending the **Sanctuary**
-   (the aether-nexus at the city's core).
+   presence**, relighting the old worship and tending the **Sanctuary** (the
+   aether-nexus at the city's core — the **wired, implant-blind reservoir** that
+   held its charge through the Fallow; you can't relight a drained field from
+   nothing, but you can from a surviving loop — see *The aether*).
 2. **The return of the attuned** — as presence comes back, the gift
    **re-emerges** (see *The attuned*): the first attuned born in centuries,
    in a new mundane form. The clergy *learn* attunement from them — they do
@@ -477,35 +479,83 @@ medium, the gods, harnessed at scale) sits **on top of** §8, never against
 it. (The natural source humanity learned
 attunement from is **the attuned** — see *The attuned*, below.)
 
+**The aether has two bodies.** The same medium runs in two physical forms, and
+the difference is load-bearing:
+
+- **The field** — aether *over the air*, wireless, broadcast: broad,
+  civilization-scale, and **drainable.** What the **implant** taps, what mass
+  presence runs on, and what the **hollowing drains** (the Feed rides the field).
+  Fragile precisely because it's broad — capture thins it everywhere at once. The
+  implant is the *artificial re-creation* of what the ancient attuned did over
+  the field by nature.
+- **The wire** — aether *piped*, localized, a closed loop: **robust and
+  implant-blind.** A wire holds its charge even when the field around it goes
+  dead, and no wireless implant can reach or eavesdrop on it — you must
+  physically get to it. Local, private, off the Feed.
+
+This is why an entire field-species could die (see *The attuned*) while the faith
+survived: the **field** went silent in the Fallow, but **wired local nodes held
+their charge** — chief among them the **Sanctuary**, the implant-blind reservoir
+at the dead heart the clergy tended and **relit the field from at the Coming.**
+The implant-blind wire is also a standing story engine: the field is
+*surveillable*, the wire is *private* — the seam for secure nets, wired archives,
+and anything that goes *off the air* to escape capture.
+
+*Variability:* the **two bodies** are fixed (the lore leans on them), but how the
+aether *entered* the world, whether it can *exit*, and what mechanics harness it
+where stay **deliberately open** — a per-story lever, not a locked cosmology.
+
 ### The attuned — creatures of presence *[settled]*
 
-A people **aether-attuned by nature** — born touching the medium everyone
-else needs an implant to reach (the canon `homo/sensitivus` "attuned"
-stub). Their fate is bound to presence itself: **when presence thrives they
-thrive; when it dies, they vanish** — the dragon pattern (gone for ages,
-then back).
+A people **aether-attuned by nature** — born touching the medium everyone else
+needs an implant to reach (the canon `homo/sensitivus` "attuned" stub). But the
+**ancient** and the **returned** are *not the same kind of being*, and the gap
+between them is the hinge of the whole founding.
 
-- **Two forms.** The **ancient** attuned are the mythic-age original, now
-  **legend** (as strange and old as the legend likes, *because they are
-  safely gone*). The **returned** attuned are a new, **mundane** emergence
-  of the same gift — ordinary people, the playable `homo/sensitivus`, where
-  the allegory and the guardrail live (people-with-a-trait, never
-  elder-magicals on a pedestal).
-- **Across the ages.** Mythic: the first attuned, the first mystics, strong
-  while presence is strong. Eternal: they **fade** as the makers rise and
-  presence is eclipsed (the Pooling). Fallow: **gone** — vanished with
-  presence into total dark, surviving only as legend. Mission: they
-  **return** as presence revives (the first attuned child in centuries — an
-  **omen** the world is healing), and the University learns attunement from
-  them.
-- **The dispossession (the allegory).** They return as a *miracle*, are
-  briefly revered — and then, within a generation, the University learns
-  their gift, builds the implant, and **mass-produces it**. The wonder
-  becomes a clinic visit; the miracle is commoditized. (The onboarding
-  clinic stop is, from their side, the thing that took their specialness.)
+- **The ancient — field-creatures, individuated but in unbroken communion.**
+  Distinct selves, *not* a hive — but **wireless by nature**, living *on the
+  field* (see *The aether*), presence flowing freely between them, present to
+  each other always. They lived the cooperative **by innocence:** sharing
+  presence was as involuntary as breathing, because no one had discovered
+  taking. (Strange and old exactly as legend likes — *because they are safely
+  gone.*) The connection was never the flaw; it was the paradise.
+- **The extinction — they died of the draining, not the dark.** Field-creatures
+  have no life off the field, and the **hollowing is habitat loss:** every
+  capture — the first theft, the Eternal eclipse, the Pooling — thinned the
+  presence they lived in, until the Fallow drained the field to silence and the
+  beings made of it had nowhere left to be. The attuned are the **canary
+  species** — the hollowing's *first* casualty (paradise) and its *final* one
+  (extinction). Robust local wire-life would have survived; they were not that.
+  **Gone as a kind, forever.**
+- **The returned — the gift came back; the kind of being did not.** The
+  `homo/sensitivus` of the Mission are **ordinary, fallen, fully individuated
+  mortals** in whom the gift surfaces as a **trait** (a sensitivity), not a
+  substance — a **fresh emergence** in the common population, *not* a surviving
+  bloodline. Three differences: individuated (the connection is something they
+  *reach*, not something they *are*); robust and mortal-normal (they don't
+  vanish when presence thins — which is why they could survive, and be
+  playable); and the **gift without the grace** — they carry the sensitivity but
+  not the unfallen unity, as capable of *taking* (of becoming a Solus) as
+  anyone. The gift returned; the innocence did not.
+- **Why it is the whole wager.** Paradise cannot be **inherited or embodied** —
+  the only beings who could *be* it are extinct forever, and the gift-bearers
+  who came back are as fallen as the rest of us. So paradise can only be
+  **rebuilt by structure** — the fallen *constructing* what the unfallen simply
+  *were.* That is Holt's doubt at full strength, and the cosmological reason the
+  cooperative leans on **structure, not a special people:** there is no special
+  people anymore.
+- **The dispossession (the allegory).** They return as a *miracle*, are briefly
+  revered — and then, within a generation, the University learns their gift,
+  builds the implant, and **mass-produces it.** The wonder becomes a clinic
+  visit; the miracle is commoditized. And the sharp edge: the returned were
+  **never the legendary ancients reborn** — just ordinary people the world
+  *projected* the myth onto, so both the **reverence** (the pedestal) and the
+  **dispossession** (the discarding) are **projections** — the belief-engine's
+  doing, not their truth. (The onboarding clinic stop is, from their side, the
+  thing that took their specialness.)
 
-*Open (small): the ancient legend's own casting; confirming the returned
-form reads as natural **sensitives / telepaths**.*
+*Resolved: ancient = extinct field-species (individuated communion, not a hive);
+returned = mundane fresh-emergence sensitives, the gift without the grace.*
 
 ### The deep history before year 0 — the Mission in depth *[settled]*
 
