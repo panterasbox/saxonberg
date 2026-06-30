@@ -239,13 +239,18 @@ compose with mounting?
   leaves the rider's hands free — the hand-tax is intrinsic to *hand*-
   hauling (self-hitch), not to the hauling relationship. A harnessed
   animal claims no hands.
-- **The move-time gates evaluate the *traversing host*.** On a
-  mounted/driven move the horse is what actually traverses (ride is
-  passthrough), so the breakaway/terrain gates must read the **horse's**
-  hauling state + strain ceiling, not the commanding rider's — otherwise
-  the rider's pre-check (`isHauling(rider) == false`) would wave a cart
-  up the stairs. The tow then fires on the horse's `Mobile.traverse`
-  alongside the existing conveyance ripple that carries the rider.
+- **The move-time gates evaluate the *traversing hauler*.** On a
+  mounted move the horse is what actually traverses, so the
+  breakaway/terrain gates read the **horse's** hauling state + strain
+  ceiling. The gate keys on the actor passed to `canTraverseExit`, which
+  for the host's own self-powered traverse *is* the horse — so `hauler =
+  actor` resolves it. (A note discovered at build time: `ride`/`drive`
+  passthrough modes are rejected at the exit-media gate *before* the
+  haulage check ever runs — a pre-existing locomotion limitation — so the
+  gate that fires for a ridden move is the host's traverse, not a
+  rider-issued `ride`. See the build flag.) The tow fires on the horse's
+  `Mobile.traverse` alongside the existing conveyance ripple that carries
+  the rider.
 
 **Reasoning:** the relationships are genuinely orthogonal axes, so the
 substrate composes without special cases; the only real work is the
@@ -324,11 +329,16 @@ the host rather than the rider. **Reserved:** two animals on one cart
   move ("won't budge") while leaving the hitch intact. Tested.
 - **Live-ref cleanup**: destroying the cart, or the hauler logging out,
   clears the coupling on both sides (no dangling ref). Tested.
-- **Animal-hauling**: a `HaulingCreature` draft animal exists as demo
-  content; `hitch <cart> to <horse>` makes the **horse** the hauler. The
-  cart's draft lands on the horse's `getBorneBurden()`, **not** the
-  rider's (assert the mounted rider's burden is unchanged), and the
-  horse's larger capacity budges a cart over a human's ceiling. Tested.
+- **Animal-hauling**: the `HaulingCreature` draft-beast class ships;
+  `hitch <cart> to <horse>` makes the **horse** the hauler. The cart's
+  draft lands on the horse's `getBorneBurden()`, **not** the rider's
+  (assert the mounted rider's burden is unchanged), and the horse's
+  larger capacity budges a cart over a human's ceiling. Tested via the
+  integration suite. (A *shipped authored* draft-horse — a horse species
+  + body plan — is content-pack territory, not this substrate build:
+  species live in `@saxonberg/content-species-and-names`, not seeds. The
+  class + behavior ship here; the authored beast lands when a content
+  pass adds the species.)
 - **Ridden-haul tow + gate**: while mounted on a hauling horse, a move
   tows the cart on the **horse's** traverse (cart + cargo + rider all
   arrive); the terrain/breakaway gates evaluate the **horse** as the
