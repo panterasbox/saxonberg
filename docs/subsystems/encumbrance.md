@@ -223,15 +223,60 @@ one axis:
   transmission: 100 kg of cargo barely registers.
 - **`anvil`** (a heavy `Thing`, 200 kg) — the lift gate: over the strain
   ceiling, `get anvil` declines.
+- **`handcart`** (`/lib/equipment/Handcart`, a `Haulable` `Vessel`,
+  `draftFactor: 0.04`) — the draft term: 300 kg of cargo hitched behind
+  you costs ~9 effective kg.
 
 `biped.yaml` authors `baseMass: 70` (a human-ish body).
+
+## Haulage — the cart (the draft term)
+
+A **cart** is a wheeled `Vessel` you hitch and pull. It is the encumbrance
+consumer the `Vessel` section anticipated (*carry / drag / cart /
+can't-budge emergent from mass vs. capacity*) and the "cart hinge" the
+slate deferred. The relationship, the verbs, and the tow live in
+[conveyance.md § Haulage](./conveyance.md#haulage--pulling-a-cart); the
+**encumbrance side is one term**.
+
+Cargo loaded into a cart lives in the *cart's* container, which the burden
+walk never visits — so offloading onto a cart removes the weight **for
+free**. The only cost is moving the cart itself, modeled as the
+pushing-side analog of `transmissionFactor`:
+
+```
+draftLoad = (cartSelfMass + cartEffectiveContents) × draftFactor
+```
+
+`draftFactor` (`0..1`, on `HaulableMixin`) is the rolling-resistance ×
+mechanical-advantage coupling — wheels turn carry-weight into a small
+push-weight (a four-wheel cart ~0.03; a dragged sledge ~0.35; carried in
+arms 1.0). `cartEffectiveContents` runs the cart's contents through the
+**same** weighted walk (a bag of holding inside a cart still weighs ~0).
+
+While a bearer is hitched, `getBorneBurden` adds `draftLoad` as **one
+extra term** (read dynamically via `MixinApi.isHauling` so the `Creature`
+base carries no haulage dependency — a non-hauler bearer skips it). The
+**entire consequence ladder then reuses unchanged**: the draft raises
+`getLoadRatio`, gates climb/swim/fly, and drains endurance on
+traverse — though a well-wheeled cart's draft usually sits under
+`LIGHT_LOAD_FLOOR`, so hauling it costs no endurance (only a sledge /
+overload / bad coupling taxes you). Two **move-time gates** (in
+`LocomotionApi.canTraverseExit`, the veto layer allowed to read
+encumbrance — *not* the raw move) are haulage-specific: **terrain** (the
+cart's `wheeled` passage vs the exit) and **breakaway** (`draftLoad` over
+the strain ceiling → "won't budge"; the ceiling is endurance-shaved, so a
+tiring hauler can hit it). See
+[conveyance.md § Haulage](./conveyance.md#haulage--pulling-a-cart) and
+[locomotion.md](./locomotion.md).
 
 ## Deferred tails
 
 - **Recovery + survival ticks + the `collapse` cascade** → the
   **metabolism** build (slate written; the seam above is concrete).
 - **The spo2 capacity-margin** → the **respiration** build (slate written).
-- **Cart / conveyance carry handoff, environmental (gravity) margins,
-  tissue-derived mass, augment-conferred capacity, numeric tuning, the
-  per-item placement refinement (a frame pack beating the worn floor)** —
-  genuinely undriven; land when a consumer appears.
+- **Cart / conveyance carry handoff** — **shipped** (the draft term
+  above; the relationship in [conveyance.md § Haulage](./conveyance.md#haulage--pulling-a-cart)).
+- **Environmental (gravity) margins, tissue-derived mass,
+  augment-conferred capacity, numeric tuning, the per-item placement
+  refinement (a frame pack beating the worn floor)** — genuinely undriven;
+  land when a consumer appears.

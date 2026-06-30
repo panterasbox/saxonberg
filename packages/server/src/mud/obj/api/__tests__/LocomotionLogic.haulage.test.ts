@@ -17,6 +17,7 @@ import { StuffApi } from '../../../api/stuff';
 import { ContainmentApi } from '../../../api/containment';
 import { LocomotionApi } from '../../../api/locomotion';
 import { installV1QuantityMarshallers } from '../../../lib/persistence/__tests__/quantity-marshaller-test-helpers';
+import { Quantity } from '../../../lib/quantity';
 import { buildMode } from '../../../lib/locomotion/__tests__/test-helpers';
 import { makeStuff } from '../../../lib/security/__tests__/test-setup';
 import {
@@ -106,5 +107,23 @@ describe('LocomotionApi haulage gates', () => {
     bearer.hitch(cart(20, 0.5)); // draft 10 < 70
     const guard = LocomotionApi.canTraverseExit(bearer, exit, walk(), 'north');
     expect(guard.ok).toBe(true);
+  });
+
+  it('exhaustion lowers the budge threshold (a fresh cart later won\'t budge)', () => {
+    const { locA, exit } = groundExit(true);
+    const bearer = walkingHaulingBearer(70); // fresh ceiling 70
+    ContainmentApi.move(bearer, locA);
+    bearer.hitch(cart(100, 0.5)); // draft 50 — rolls when fresh
+
+    expect(
+      LocomotionApi.canTraverseExit(bearer, exit, walk(), 'north').ok,
+    ).toBe(true);
+
+    // Drain endurance to the floor → the endurance margin shaves capacity,
+    // so the strain ceiling drops below the cart's draft (no new code).
+    bearer.adjustReserve('endurance', Quantity.of(-100, '%'));
+    const guard = LocomotionApi.canTraverseExit(bearer, exit, walk(), 'north');
+    expect(guard.ok).toBe(false);
+    expect(guard.ok ? null : guard.gate).toBe('breakaway');
   });
 });

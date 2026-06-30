@@ -154,6 +154,70 @@ mode's `conveyanceMixin`. The witness invocation lives inside
 `mount horse` finds the horse's mountSlot; `mount back` resolves
 `back` as a Detail keyword via the § 5.5 Detail-targeted pathway.
 
+## Haulage — pulling a cart
+
+The **inverse** of conveyance: instead of the actor riding *in* the host,
+a wheeled `Vessel` (a cart) follows the actor on the ground while staying
+a room object. The cost model — the `draftFactor` term folded into
+encumbrance, and the move-time gates — lives in
+[encumbrance.md § Haulage](./encumbrance.md#haulage--the-cart-the-draft-term);
+this is the **relationship**: the coupling, the tow, and the verbs.
+
+**Two mixins** (`lib/slot/`, the conveyance family):
+
+| Name | Role |
+|---|---|
+| `HaulableMixin` | Cart side, on `Vessel`. Carries `draftFactor` / `handedness` / `passageMode` (the `wheeled` default), `getDraftLoad()`, and the `_hauledBy` back-ref. |
+| `HaulerMixin` | Hauler side. Holds the `_hauling` live ref; `hitch` / `unhitch` / `getHauledCart` / `isHitched` / `getHaulDraft`. |
+
+**The coupling is a Pattern-B live ref** — a symmetric **R2.2** pair
+(`hauler._hauling` ↔ `cart._hauledBy`) with an **R2.3** self-heal getter
+on each side; `hitch`/`unhitch` keep both sides atomic, and either
+side's `onDestruct` clears the back-ref. The ref is runtime-only (a
+reloaded hauler wakes unhitched). See [ref-shapes.md](../ref-shapes.md).
+
+**Where the capability lands.** `HaulerMixin` composes on **`Character`**
+(every PC + NPC-character can pull a cart) — **not** the broad `Creature`
+base (a frog / corpse never hauls; the "compose the mixin, not the class
+tree" rule). The cart side is `Handcart = HaulableMixin(Vessel)`
+(`lib/equipment/`). Draft beasts use **`HaulingCreature`** =
+`MountableMixin(PostRegistration(Character))` — a rideable creature that
+inherits hauling from `Character` and adds the rider slot.
+
+**The tow** rides the **conveyance ripple region of `Mobile.traverse`**
+(alongside the slot-occupant ripple, but keyed separately — the cart is a
+room object, not a slot occupant): after the mover moves, if it
+`isHauling`, its cart is `ContainmentApi.move`d to the destination,
+carrying its cargo as a unit. No encumbrance is read here — the raw move
+stays encumbrance-free.
+
+**Animal-hauling composes cleanly** because the three couplings are
+orthogonal axes: `player —(mount slot)→ horse —(hauling ref)→ cart
+—(container)→ cargo`. You mount the horse (existing mount slot); the horse
+hitches the cart (`hitch <cart> to <horse>`); the horse bears the draft on
+*its* gauge, you bear nothing. When the **horse** traverses, the ripple
+carries you and the tow carries the cart.
+
+> **Ridden-gate seam.** The move-time gates (terrain / breakaway) fire on
+> the **host's own self-powered traverse** (the horse is the hauler +
+> traverser). A rider-issued `ride <dir>` does *not* reach the haulage
+> gate — `exit.canTraverse` rejects passthrough modes at the media gate
+> first (a pre-existing locomotion limitation; see
+> [locomotion.md](./locomotion.md)). Wiring the gate into ride/drive
+> dispatch waits on that fix; the tow and the host-side gate are correct
+> and tested.
+
+### Haulage verbs
+
+| Verb | Action |
+|---|---|
+| `hitch <cart>` | The giver becomes the hauler (self-haul). Hands fill up (can't wield / loose-carry while hauling — guarded in `Wield`/`GetController`, keyed on `isHauling(giver)`). |
+| `hitch <cart> to <mount>` | Harness a draft creature (`HaulerMixin`) as the hauler instead; the rider's hands stay free. |
+| `unhitch [target]` | Bare = release the giver's own cart; `unhitch <mount>` / `<cart>` releases that one. |
+
+Hitching never fails on weight (you can always grab a handle); the cost
+surfaces at move time. Validators `mustBeHaulable` / `mustBeHauler`.
+
 ## What v1 doesn't cover
 
 - **Multi-controller vehicles** (tank, helicopter, sailboat) —

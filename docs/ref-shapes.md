@@ -258,7 +258,9 @@ side's setter atomically updates both sides; each side's
 - **Enforcement**: convention. Failure on one side is recoverable
   from the other side's surviving reference.
 - **Exemplars**: `Boundary` ↔ `BoundaryAnchor`, `Exit` ↔ `Door`,
-  `Adornment` ↔ `Adornable`.
+  `Adornment` ↔ `Adornable`, `Hauler` ↔ `Haulable` (the hitched-cart
+  coupling — `hauler._hauling` ↔ `cart._hauledBy`, runtime-only; see
+  [conveyance.md § Haulage](./subsystems/conveyance.md#haulage--pulling-a-cart)).
 
 #### R2.3 — Asymmetric single self-heal
 
@@ -330,6 +332,7 @@ for the static-shape convention.
 | `Exitable` | `exits` | R2.1 (owning cascade) | Holder destructs each outbound Exit |
 | `Boundary` ↔ `BoundaryAnchor` | both sides | R2.2 (symmetric) | Convention-based reciprocal clear |
 | `Exit` ↔ `Door` | both sides | R2.2 (symmetric) | Convention-based reciprocal clear |
+| `Hauler` ↔ `Haulable` | `_hauling` / `_hauledBy` | R2.2 (symmetric) + R2.3 self-heal getters | `hitch`/`unhitch` atomic; `onDestruct` reciprocal clear; runtime-only |
 | `Spawner` | `_spawned` | R2.4 (held side via `Spawned`) | Runtime-only; transient |
 | `Spawned` | `_spawner` | R2.3 + R2.4 | Self-heal getter + static unhook |
 | `Clade` | `species` | R2.4 (held side via `Species`) | `Species.onDestruct` chains the unhook |
