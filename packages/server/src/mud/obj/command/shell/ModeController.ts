@@ -9,14 +9,22 @@
  * submitted from that bar. This controller only edits the map; the
  * prepend is the load-bearing half.
  *
- *   - `mode <prefix…>` — set the submitting bar's prefix.
- *   - `mode off` / bare `mode` — clear the submitting bar's mode.
+ *   - `mode <prefix…>` — set the target bar's prefix.
+ *   - `mode off` / bare `mode` — clear the target bar's mode.
  *
- * The submitting bar is `context.barId` (defaults to `'main'`), carried
- * from the inbound `command` message. Every mutation writes the whole
- * map via `setClientState`, persists via `save()`, and pushes to
- * connected Interactives — the StyleController commit triple — so the
- * client's inline prefix indicator re-renders without a reconnect.
+ * The target bar is resolved `model.bar ?? context.barId ?? 'main'`:
+ *   - `context.barId` is the bar the line was typed in (carried from the
+ *     inbound `command` message) — the default for a typed `mode`.
+ *   - `--bar <id>` (`model.bar`) names a bar explicitly. A UI affordance
+ *     dispatches **un-moded** (no `barId` on the wire, so preview == send),
+ *     so a mode-setting button can't rely on `context.barId`; it names its
+ *     target in the command instead (`mode chat --bar stream-chat`). The
+ *     target stays visible in the ghost-line preview — no hidden state.
+ *
+ * Every mutation writes the whole map via `setClientState`, persists via
+ * `save()`, and pushes to connected Interactives — the StyleController
+ * commit triple — so the client's inline prefix indicator re-renders
+ * without a reconnect.
  */
 
 import { CommandController } from '../../../lib/command/CommandController';
@@ -34,6 +42,8 @@ type ModeHost = Stuff & HasInteractive;
 
 interface ModeModel extends CommandModel {
   prefix?: string;
+  /** `--bar <id>` — name the target bar explicitly (un-moded affordances). */
+  bar?: string;
 }
 
 export default class ModeController extends CommandController<ModeModel> {
@@ -43,7 +53,9 @@ export default class ModeController extends CommandController<ModeModel> {
       throw new Error('ModeController: command giver lacks HasInteractive');
     }
     const host = giver as ModeHost;
-    const barId = context.barId ?? 'main';
+    // Explicit `--bar` wins (un-moded affordances name their target), then
+    // the bar the line was typed in, then the main bar.
+    const barId = model.bar?.trim() || context.barId || 'main';
 
     const prefix = model.prefix?.trim();
     const next = this.cloneModes(host);

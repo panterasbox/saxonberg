@@ -58,6 +58,7 @@ function makeContext(
 
 interface ModeModel extends ModelData {
   prefix?: string;
+  bar?: string;
 }
 
 function makeModel(args: Partial<ModeModel> = {}): ModeModel {
@@ -119,6 +120,32 @@ describe('ModeController', () => {
     const ctx = makeContext(actor, location, 'main');
     await controller.execute(makeModel({}), ctx as never);
     expect(modes(actor)).toEqual({});
+  });
+
+  it('--bar names the target bar, ignoring the submitting barId', async () => {
+    // An un-moded affordance dispatches with no context.barId but names its
+    // target. Here the line is submitted from 'main' yet targets stream-chat.
+    const controller = makeStuff(() => new ModeController());
+    const ctx = makeContext(actor, location, 'main');
+    await controller.execute(
+      makeModel({ prefix: 'chat', bar: 'stream-chat' }),
+      ctx as never,
+    );
+    expect(modes(actor)).toEqual({ 'stream-chat': 'chat' });
+  });
+
+  it('--bar clears a named bar with `off`, leaving others', async () => {
+    actor.setClientState('cockpit.inputModes', {
+      main: 'chat gossip',
+      'stream-chat': 'twitch',
+    });
+    const controller = makeStuff(() => new ModeController());
+    const ctx = makeContext(actor, location, 'main');
+    await controller.execute(
+      makeModel({ prefix: 'off', bar: 'stream-chat' }),
+      ctx as never,
+    );
+    expect(modes(actor)).toEqual({ main: 'chat gossip' });
   });
 
   it('defaults to the main bar when no barId is on the context', async () => {

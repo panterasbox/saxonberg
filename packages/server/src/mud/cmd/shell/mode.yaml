@@ -11,6 +11,11 @@ help: |
   Modes are per-bar: a layout with several terminals can have one bar
   scoped to chat while another stays plain. The bar shows its prefix
   inline as you type, so what you see is exactly what dispatches.
+
+  By default `mode` targets the bar you typed it in. A UI control can
+  target a different bar with `--bar <id>` (e.g. a button that scopes the
+  stream-chat bar sends `mode chat --bar stream-chat`) — this is how an
+  affordance, which dispatches un-moded, names the bar it means.
 validators:
   - /lib/command/validators/requiresHasInteractive
 examples:
@@ -18,6 +23,13 @@ examples:
     note: Scope this bar to the gossip channel
   - cmd: mode off
     note: Clear this bar's mode
+  - cmd: mode chat --bar stream-chat
+    note: Scope a named bar (used by mode-setting buttons)
+options:
+  bar:
+    short: b
+    type: string
+    description: "Target a named command bar (default: the bar you typed in)."
 args:
   - name: prefix
     type: string
