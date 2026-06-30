@@ -75,13 +75,17 @@ subsystem docs the plan references). Implement.
 - `feat(<area>): <substrate-name>` — main implementation
 - Smaller `feat/refactor/fix(<area>):` commits for sub-pieces
 
+When the build is done and ready for review, **push the branch and
+open the MR** against `master` — no need to ask first. Pushing and
+MR creation are not gated on the user; only the merge is.
+
 **No skill.** A good plan is self-bootstrapping; the user opens a
 fresh session, points at the plan path, and the build proceeds.
 
 ### 4. MR review iteration
 
-**Inputs.** GitLab merge request (`panterasbox/saxonberg!<n>`) with
-inline comments from the user.
+**Inputs.** The GitLab merge request (`panterasbox/saxonberg!<n>`)
+opened at the end of the build, with inline comments from the user.
 
 **Activity.** Fetch open comments. For each, either resolve in code
 or push back in-thread. Re-fetch as the user adds more. Loop until
@@ -139,11 +143,13 @@ doc-sweep checklist, retirement decisions, the commit.
 
 ### 6. Merge
 
-**Activity.** Merge the MR. Clear context.
+**Activity.** Merge the MR. Clear context. This is the **only**
+step gated on the user — the merge is always the user's call, never
+done autonomously.
 
 **Output.** Merge commit on `master`.
 
-**No skill.** One button.
+**No skill.** One button — the user's.
 
 ## Branch & commit conventions
 
