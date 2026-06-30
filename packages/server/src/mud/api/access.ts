@@ -123,17 +123,26 @@ export class AccessApi {
   /**
    * Narrow-entry mutation: add (`makeWizard=true`) or remove the player
    * from the `'wizards'` group. Gated to the `WizardController` (the
-   * `wizard grant/revoke` verb) via the string-keyed `FromModule` policy
-   * — string-keyed to avoid a value-level static-import cycle (the
-   * `forceDestruct`/`DestructController` precedent). The *authority*
-   * (the giver's archwizard status) is enforced by the verb's
+   * `wizard grant/revoke` verb). The controller is cloned per execution
+   * (`CommandGiver._executeOne` → `StuffApi.clone('/obj/command/...')`),
+   * so the running caller is a Stuff whose `templatePath` is set at clone
+   * time — `resolveCallerPath` returns that **template path**, not the
+   * module id, and `FromModule` rejects `/`-prefixed paths. Hence the
+   * gate is `AnyOf(FromModule(module-id), FromTemplate(template-path))`:
+   * the template-path arm is what actually admits the cloned controller;
+   * the module-id arm covers a direct class-frame caller. Both are
+   * string-keyed to avoid a value-level static-import cycle. The
+   * *authority* (the giver's archwizard status) is enforced by the verb's
    * `requiresArchwizard` validator; this method is the structurally
    * single entry to the membership write. Returns true iff membership
-   * changed.
+   * changed. (A bare `FromModule` here denied the real dispatch — caught
+   * by the government-offices live verification; see
+   * `clonedControllerGate.test`.)
    */
   @CallSecurity(
-    SecurityPolicies.FromModule(
-      'mud/obj/command/author/WizardController'
+    SecurityPolicies.AnyOf(
+      SecurityPolicies.FromModule('mud/obj/command/author/WizardController'),
+      SecurityPolicies.FromTemplate('/obj/command/author/WizardController')
     )
   )
   public static async setWizardMembership(
