@@ -380,8 +380,14 @@ quiet. Authority: none. This is a **true death of presence** — the twilight
 of all gods, the aether gone silent, and the **attuned vanish with it**
 (they are creatures of presence — see *The attuned*). The surviving **crumb
 of the old faith is the clergy**, who carried it out into exile — not
-anyone left at the dead heart. The empty city becomes the **cautionary
-ruin** the new order builds against. Its **length is undatable on
+anyone left at the dead heart. But the clergy were **not the only survivors:**
+the **wealthy** fled too, carrying portable capital and *blood*, and in a
+collapsed world with no institutions they hardened into the **great houses** —
+hereditary dynasties, dynasty-as-continuity — out in the wider world. **The
+renouncers and the hoarders, both born in the same dark:** the clergy preserved
+the *gift* and renounced rule; the houses preserved *wealth* and entrenched
+blood (see *The corpos*). That fork has run ever since. The empty city becomes
+the **cautionary ruin** the new order builds against. Its **length is undatable on
 purpose** — an empty age keeps no clock, so "centuries, the legends say" is
 the most anyone can claim — but **undatable is not unknown:** the clergy's
 **exile** runs the whole length as a continuous, if dim, remembered thread
@@ -1176,6 +1182,26 @@ Independents; this is the *rise and meaning.*)
   *estranged siblings*, not strangers. (The corpos stay **faceless wordmarks**;
   their *founders* are name-able historical figures, the framers' cohort-peers —
   a carve left open.)
+- **The deep lineage — the great houses.** That cohort-split is only the
+  *natives'* origin. The **incumbent** stream runs far older than Terminus: it
+  descends from the **great houses** — the wealthy who fled the fall of Eternal
+  City carrying portable capital and *blood*, and who hardened into **hereditary
+  dynasties** out in the wider world (they *claim* ancient Eternal blood; the
+  dynastic form really hardened in the Fallow — the claim older than the truth,
+  fake legitimacy one age down). They are the **secular mirror of the clergy:**
+  same exodus, opposite choice — gift-and-renunciation vs. wealth-and-blood.
+  They compounded off-stage through the Mission as merchant-then-financier
+  dynasties and **returned at the Widening**, incorporating into corpos when the
+  field opened the money. So the hollowing keeps **two clocks:** the **acute**
+  demagogue who flares and burns out (first-faller → Solus → Vane), and the
+  **chronic** house that *never dies because it is inherited.* The corpo is the
+  great house in a corporate suit — **old blood under a faceless wordmark** (the
+  wordmark stays faceless; the house behind it is a name-able lineage, a carve
+  left open), and the slate's **rivalries are partly centuries-old house feuds**
+  in modern dress. *(Not a cabal — rivals; the danger stays structural,
+  hereditary capital + the board model, never a secret council.)* The
+  **Independents**, in this frame, are the **houseless** — makers who never had a
+  dynasty to inherit or entrench.
 - **What they are — and aren't.** Not "the Hollow" (that is the principle), but
   **agents in a system that rewards capture.** A multipolar, **rivalrous** field,
   not a cartel — each corpo its own ethos; the temptation (capture pays on a
