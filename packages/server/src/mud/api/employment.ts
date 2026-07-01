@@ -116,6 +116,15 @@ export class EmploymentApi {
     return logic().endCover(self, business);
   }
 
+  /**
+   * The present on-shift server a tip should reach — a present, active
+   * maker in `patron`'s location, or null. Shared by the EFT tip route and
+   * `collect`'s gate.
+   */
+  public static tipRecipientFor(patron: Stuff): Stuff | null {
+    return logic().tipRecipientFor(patron);
+  }
+
   /** The Business operating at `locationPath`, or null. */
   public static businessAt(locationPath: string): BusinessStuff | null {
     return logic().businessAt(locationPath);

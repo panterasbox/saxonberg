@@ -96,6 +96,9 @@ data:
     # mixing glass's `mixing`) keeps `strain … into cocktail` unambiguous.
     - { template: /domain/lounge/cocktail-glass, onto: /domain/lounge/back-bar }
     - { template: /domain/lounge/cocktail-glass, onto: /domain/lounge/back-bar }
+    # The tip jar on the rail — patrons `tip`, the on-shift bartender
+    # `collect`s it (physical coin, off the books).
+    - { template: /domain/lounge/tip-jar, onto: /domain/lounge/back-bar }
     - /domain/lounge/bar-menu
     - /domain/lounge/npc/mara
     - /domain/lounge/npc/remy

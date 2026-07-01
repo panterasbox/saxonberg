@@ -9,6 +9,7 @@ import { StuffApi } from '../../api/stuff';
 import { MixinApi } from '../../api/mixin';
 import { AccessApi } from '../../api/access';
 import { BankingApi, Money } from '../../api/banking';
+import { ContainmentApi } from '../../api/containment';
 import { WorldClockApi } from '../../api/worldclock';
 import type { ClockHandle } from '../../api/worldclock';
 import { Quantity } from '../../lib/quantity';
@@ -113,6 +114,22 @@ function beginCoverImpl(
 function endCoverImpl(self: Stuff, business: BusinessStuff): void {
   if (!MixinApi.isEmployed(self)) return;
   (self as EmployedActor)._removeEmployment(business.getTemplatePath() ?? '');
+}
+
+/**
+ * The present on-shift server for a tip — a present, **active** maker in
+ * `patron`'s location, other than the patron (the `CraftingLogic.resolveMaker`
+ * scan, one cardinality across: whoever is tending now). The EFT tip routes
+ * to this actor's account; `collect` gates on being this actor.
+ */
+function tipRecipientForImpl(patron: Stuff): Stuff | null {
+  if (!MixinApi.isContainable(patron)) return null;
+  const loc = ContainmentApi.getContainer(patron);
+  if (!loc || !MixinApi.isContainer(loc)) return null;
+  for (const c of ContainmentApi.getContents(loc)) {
+    if (c !== patron && MixinApi.isMaker(c)) return c;
+  }
+  return null;
 }
 
 /**
@@ -342,6 +359,12 @@ export class EmploymentLogic extends Idea {
   @CallSecurity(EmploymentApiCallers)
   public endCover(self: Stuff, business: BusinessStuff): void {
     endCoverImpl(self, business);
+  }
+
+  /** See {@link EmploymentApi.tipRecipientFor}. */
+  @CallSecurity(EmploymentApiCallers)
+  public tipRecipientFor(patron: Stuff): Stuff | null {
+    return tipRecipientForImpl(patron);
   }
 
   /** See {@link EmploymentApi.businessAt}. */
