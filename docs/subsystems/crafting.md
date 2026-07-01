@@ -32,7 +32,12 @@ those is its own concept with its own home:
 
 - **Recipe** — the transform spec, a `Document` (see below).
 - **Maker** — the agent who performs the craft and is stamped as
-  provenance (a present bartender for v1).
+  provenance (a present bartender for v1). `MakerMixin` is
+  **augment-gated** (`_augmentGated = true`): a bar `Crafter` composes it
+  always but is a maker only while its **on-shift** Position confers it, so
+  `MixinApi.isMaker` (now routed through `isActive`) and thus
+  `resolveMaker` select only the on-shift bartender. See
+  [employment.md](./employment.md).
 - **Tools + inputs** — ordinary `Tangible` matter, wherever it
   physically sits; reachability is the only feasibility gate.
 - **Offer / `Menu`** — a *curated* list of offered recipes, its own

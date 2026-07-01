@@ -8,7 +8,7 @@
  * on-shift server's account — recorded income on the *server's* ledger, but
  * the bar's account is untouched (never the bar's P&L). The patron is never
  * blocked from tipping; the cash/EFT choice is the anonymous-vs-recorded
- * story. See docs/plans/employment-engine-plan.md § Phase 7.
+ * story. See docs/subsystems/employment.md § Tips.
  */
 
 import { CommandController } from '../../../lib/command/CommandController';

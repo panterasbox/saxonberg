@@ -11,7 +11,7 @@
 # The house account keys on THIS path (/domain/lounge/business), so order
 # income (OrderController) and shift wages (the roster tick) settle on one
 # account — the deficit P&L reads them together. See
-# docs/subsystems/... (employment) and docs/plans/employment-engine-plan.md.
+# docs/subsystems/employment.md.
 class: /lib/employment/Business
 hydratorClass: /lib/persistence/PersistentHydrator
 data:

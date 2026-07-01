@@ -234,8 +234,8 @@ export class EmploymentLogic extends Idea {
    *   - **lazy-materialize** a record from the assignment (the roster is the
    *     single source of truth — the seeds carry no employment block);
    *   - **off→on**: stamp `onShiftSince = now`;
-   *   - **on→off**: settle the shift wage (Phase 4) off the captured record
-   *     *before* clearing `onShiftSince`, then flip to off-shift.
+   *   - **on→off**: settle the shift wage off the captured record *before*
+   *     clearing `onShiftSince`, then flip to off-shift.
    *
    * A `quit` / `fired` record is left alone (an explicit exit is never
    * resurrected by the seed roster).

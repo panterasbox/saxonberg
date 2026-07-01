@@ -5,7 +5,7 @@
  * whole lot, off every ledger. Gated on being the present, active maker
  * (`MixinApi.isMaker`, which is on-shift-aware): only whoever is actually
  * tending the bar can take it. Per-shift attribution falls out — whoever's
- * on shift empties it. See docs/plans/employment-engine-plan.md § Phase 7.
+ * on shift empties it. See docs/subsystems/employment.md § Tips.
  */
 
 import { CommandController } from '../../../lib/command/CommandController';
