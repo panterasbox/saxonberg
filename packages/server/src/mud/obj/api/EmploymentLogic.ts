@@ -8,6 +8,7 @@ import type { Stuff } from '../../lib/stuff/Stuff';
 import { StuffApi } from '../../api/stuff';
 import { MixinApi } from '../../api/mixin';
 import { AccessApi } from '../../api/access';
+import { BankingApi, Money } from '../../api/banking';
 import { WorldClockApi } from '../../api/worldclock';
 import type { ClockHandle } from '../../api/worldclock';
 import { Quantity } from '../../lib/quantity';
@@ -80,18 +81,45 @@ function endEmploymentImpl(
 }
 
 /**
- * Settle the wage for a completed shift. **Phase 4 fills the body** — the
- * shift-end (on→off transition) is the pay milestone: `rate × shift-hours`
- * once, at the boundary; the proprietor's own cover Employment is skipped
- * (unpaid by construction). `employment` carries the `onShiftSince` stamp
- * (captured before the caller clears it), so this can settle asynchronously
- * without a race. A no-op until Phase 4.
+ * Settle the wage for a completed shift — the shift-end (on→off transition)
+ * is the pay milestone: a **lump of `rate × shift-hours`, once, at the
+ * boundary** (not a continuous sweep). `employment` carries the
+ * `onShiftSince` stamp (captured before the caller clears it) and
+ * `offTimeRaw` is the shift-end instant, so an early clock-out just pays the
+ * partial. Skips the proprietor's own cover Employment (unpaid by
+ * construction — no self-wage). Reads the game clock only via the passed
+ * `offTimeRaw`, so a paused world (frozen clock) accrues nothing.
+ *
+ * The employer account keys on the **Business path** (not the venue), so
+ * order income and shift wages settle on one account.
  */
 async function settleShiftWageImpl(
-  _business: BusinessStuff,
-  _employment: Employment,
+  business: BusinessStuff,
+  employeeKey: string,
+  employment: Employment,
+  offTimeRaw: number,
 ): Promise<void> {
-  // Phase 4 — wage settlement at shift-end.
+  const onSince = employment.onShiftSince;
+  if (onSince == null) return; // never actually on shift
+  if (!employeeKey) return;
+  // Unpaid cover: the proprietor tending their own bar draws no wage.
+  if (employeeKey === business.getProprietor()) return;
+
+  const position = business.getPosition(employment.positionKey);
+  if (!position || position.wageRate <= 0) return;
+
+  const gameHours = (offTimeRaw - onSince) / ONE_GAME_HOUR_S;
+  if (gameHours <= 0) return;
+  const amount = Math.round(position.wageRate * gameHours);
+  if (amount <= 0) return;
+
+  const accountPath = business.getAccountPath();
+  const account = await BankingApi.ensureVenueAccount(
+    accountPath,
+    accountPath,
+    '',
+  );
+  await BankingApi.payWage(account, employeeKey, Money.of(amount));
 }
 
 /**
@@ -194,9 +222,14 @@ export class EmploymentLogic extends Idea {
             emp.withStatus('on-shift', nowRaw).serialize(),
           );
         } else if (desired === 'off-shift' && currentlyOn) {
-          // Settle off the captured record (has `onShiftSince`) before the
-          // synchronous clear below — no race.
-          void settleShiftWageImpl(business, emp).catch((err) =>
+          // Settle off the captured record (has `onShiftSince`) at this
+          // tick's instant, before the synchronous clear below — no race.
+          void settleShiftWageImpl(
+            business,
+            assignment.assignee,
+            emp,
+            nowRaw,
+          ).catch((err) =>
             console.error('EmploymentLogic: shift-wage settle failed', err),
           );
           employed._setEmploymentStatus(businessPath, 'off-shift');
@@ -296,9 +329,15 @@ export class EmploymentLogic extends Idea {
   @CallSecurity(EmploymentApiCallers)
   public settleShiftWage(
     business: BusinessStuff,
+    employeeKey: string,
     employment: Employment,
   ): Promise<void> {
-    return settleShiftWageImpl(business, employment);
+    return settleShiftWageImpl(
+      business,
+      employeeKey,
+      employment,
+      WorldClockApi.getNow().rawValue(),
+    );
   }
 
   /**

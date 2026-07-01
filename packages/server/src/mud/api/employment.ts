@@ -125,15 +125,17 @@ export class EmploymentApi {
   }
 
   /**
-   * Settle the wage for one completed shift (`rate × shift-hours`), skipping
-   * a proprietor's unpaid cover. Called by the roster tick on shift-end;
-   * exposed for tests / manual fire.
+   * Settle the wage for one completed shift (`rate × shift-hours`) from the
+   * Business account to `employeeKey`, skipping a proprietor's unpaid cover.
+   * Called by the roster tick on shift-end; exposed for tests / manual fire
+   * (settles to the current game-clock instant).
    */
   public static settleShiftWage(
     business: BusinessStuff,
+    employeeKey: string,
     employment: Employment,
   ): Promise<void> {
-    return logic().settleShiftWage(business, employment);
+    return logic().settleShiftWage(business, employeeKey, employment);
   }
 
   /**

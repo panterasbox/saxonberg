@@ -17,6 +17,7 @@ import { Mml } from '../../../api/mml';
 import Menu from '../../../domain/lounge/Menu';
 import { BankingApi, Money } from '../../../api/banking';
 import type { Charge } from '../../../api/banking';
+import { EmploymentApi } from '../../../api/employment';
 
 const TOPIC = 'world.narration.action';
 
@@ -95,9 +96,14 @@ export default class OrderController extends CraftController<OrderModel> {
   ): Promise<string | null> {
     const venuePath = context.location?.getTemplatePath();
     if (!venuePath) return null;
+    // Income keys on the Business account (the same account shift wages are
+    // paid from), so the P&L reflects both sides. Falls back to the venue
+    // path when no Business operates here (a non-employment venue).
+    const business = EmploymentApi.businessAt(venuePath);
+    const ownerPath = business?.getAccountPath() ?? venuePath;
     let venueAccount: string;
     try {
-      venueAccount = await BankingApi.ensureVenueAccount(venuePath, venuePath, '');
+      venueAccount = await BankingApi.ensureVenueAccount(ownerPath, ownerPath, '');
     } catch {
       return null;
     }
