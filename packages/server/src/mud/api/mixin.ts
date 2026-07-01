@@ -113,6 +113,8 @@ import type { Maker } from '../lib/craft/Maker';
 import type { Builds } from '../lib/craft/ManualBuild';
 import type { Bank } from '../lib/banking/Bank';
 import type { Tab } from '../lib/banking/Tab';
+import type { Business } from '../lib/employment/Business';
+import type { Employed } from '../lib/employment/Employed';
 import { SecurityApi } from './security';
 import { ShadowApi } from './shadow';
 
@@ -847,6 +849,16 @@ export class MixinApi {
 
   public static isTab(obj: Stuff): obj is Stuff & Tab {
     return this.hasMixin(obj, Mixins.Tab);
+  }
+
+  /** A standalone employing Business (the `BusinessMixin` marker). */
+  public static isBusiness(obj: Stuff): obj is Stuff & Business {
+    return this.hasMixin(obj, Mixins.Business);
+  }
+
+  /** An actor that can hold employment relationships (`EmployedMixin`). */
+  public static isEmployed(obj: Stuff): obj is Stuff & Employed {
+    return this.hasMixin(obj, Mixins.Employed);
   }
 
   /**
