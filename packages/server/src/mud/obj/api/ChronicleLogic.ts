@@ -16,7 +16,7 @@ import { WorldClockApi } from '../../api/worldclock';
 import { PersistApi } from '../../api/persist';
 
 const ChronicleApiCallers = SecurityPolicies.FromModule(
-  'mud/api/chronicle#ChronicleApi'
+  'api/chronicle#ChronicleApi'
 );
 
 /** Persistence is a no-op unless Mongo is connected (tests, pre-boot). */

@@ -82,7 +82,7 @@ import {
 } from '../../api/command';
 
 const CommandApiCallers = SecurityPolicies.AnyOf(
-  SecurityPolicies.FromModule('mud/api/command#CommandApi'),
+  SecurityPolicies.FromModule('api/command#CommandApi'),
   SecurityPolicies.SelfOnly
 );
 
@@ -225,7 +225,7 @@ class CommandContextImpl implements CommandContext {
  * `StuffApi.singletonSync`. `dest /obj/api/command` reloads it.
  *
  * Gating (the guts-variant recipe): every public method carries
- * `AnyOf(FromModule('mud/api/command#CommandApi'), SelfOnly)`.
+ * `AnyOf(FromModule('api/command#CommandApi'), SelfOnly)`.
  * `FromModule` admits the Api facade forwarders; `SelfOnly` admits the
  * intra-singleton `this.x()` self-calls (e.g. `resolveModel` →
  * `this.applyCardinalityPolicy`, `resolveAndValidate` →

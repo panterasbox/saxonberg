@@ -167,9 +167,9 @@ export class ContainmentApi {
    */
   @CallSecurity(
     SecurityPolicies.AnyOf(
-      SecurityPolicies.FromModule('mud/obj/command/author/TeleportController'),
+      SecurityPolicies.FromModule('obj/command/author/TeleportController'),
       SecurityPolicies.FromTemplate('/obj/command/author/TeleportController'),
-      SecurityPolicies.FromModule('mud/obj/command/author/GotoController'),
+      SecurityPolicies.FromModule('obj/command/author/GotoController'),
       SecurityPolicies.FromTemplate('/obj/command/author/GotoController'),
     ),
   )

@@ -30,7 +30,7 @@ import { CreditRouting } from '../../lib/standing/CreditRouting';
 import { ConsumerLogic } from './ConsumerLogic';
 
 const ProducerApiCallers = SecurityPolicies.FromModule(
-  'mud/api/producer#ProducerApi'
+  'api/producer#ProducerApi'
 );
 
 /**

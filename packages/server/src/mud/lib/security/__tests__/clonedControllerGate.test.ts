@@ -14,7 +14,7 @@ import { describe, it, expect } from 'vitest';
 import { SecurityPolicies } from '../SecurityPolicies';
 
 const TEMPLATE_PATH = '/obj/command/governance/OfficeController';
-const MODULE_ID = 'mud/obj/command/governance/OfficeController';
+const MODULE_ID = 'obj/command/governance/OfficeController';
 
 /** A stand-in for the cloned controller caller the gate actually sees. */
 const clonedController = {
@@ -53,9 +53,9 @@ describe('narrow-entry gate on a cloned controller', () => {
     // Mirrors the fixed ContainmentApi.forceMove gate: FromModule +
     // FromTemplate arms for both Teleport and Goto controllers.
     const p = SecurityPolicies.AnyOf(
-      SecurityPolicies.FromModule('mud/obj/command/author/TeleportController'),
+      SecurityPolicies.FromModule('obj/command/author/TeleportController'),
       SecurityPolicies.FromTemplate('/obj/command/author/TeleportController'),
-      SecurityPolicies.FromModule('mud/obj/command/author/GotoController'),
+      SecurityPolicies.FromModule('obj/command/author/GotoController'),
       SecurityPolicies.FromTemplate('/obj/command/author/GotoController'),
     );
     const teleport = { getTemplatePath: () => '/obj/command/author/TeleportController' };

@@ -1,6 +1,6 @@
 /**
  * End-to-end tests for `FromModule` and `FromTemplate` policies, plus
- * `ApiOnly` (which is sugar for `FromModule('mud/api/**')`). These
+ * `ApiOnly` (which is sugar for `FromModule('api/**')`). These
  * lean on the Vite plugin actually stamping every `mud/**` module —
  * if stamping ever breaks, this file is the canary.
  */
@@ -14,27 +14,27 @@ import { ContainmentApi } from '../../../api/containment';
 
 describe('FromModule (real, plugin-stamped)', () => {
   it('stamps Api classes under mud/api/**', () => {
-    expect(ModuleApi.lookup(StuffApi)).toBe('mud/api/stuff#StuffApi');
+    expect(ModuleApi.lookup(StuffApi)).toBe('api/stuff#StuffApi');
     expect(ModuleApi.lookup(ContainmentApi)).toBe(
-      'mud/api/containment#ContainmentApi'
+      'api/containment#ContainmentApi'
     );
   });
 
   it('stamps Stuff classes under mud/lib/stuff/**', () => {
     // Thing now follows the template-backing-class default-export
     // convention — bare-path module id.
-    expect(ModuleApi.lookup(Thing)).toBe('mud/lib/stuff/Thing');
+    expect(ModuleApi.lookup(Thing)).toBe('lib/stuff/Thing');
   });
 
   it('matches a stamped class against its module-id glob', () => {
-    const policy = SecurityPolicies.FromModule('mud/api/**');
+    const policy = SecurityPolicies.FromModule('api/**');
     expect(policy.allows(StuffApi, null, 'm')).toBe(true);
     expect(policy.allows(Thing, null, 'm')).toBe(false);
   });
 
   it('matches an instance via its class identity', () => {
     const t = new (class FakeApi {})();
-    const policy = SecurityPolicies.FromModule('mud/api/**');
+    const policy = SecurityPolicies.FromModule('api/**');
     // An anonymous test class has no stamp → fail closed.
     expect(policy.allows(t, null, 'm')).toBe(false);
   });
@@ -45,9 +45,9 @@ describe('FromModule (real, plugin-stamped)', () => {
     // With includeSubclasses, the matcher walks up to Thing, which
     // IS stamped, and matches.
     const sub = Object.create(StuffSub.prototype);
-    const direct = SecurityPolicies.FromModule('mud/lib/stuff/Thing');
+    const direct = SecurityPolicies.FromModule('lib/stuff/Thing');
     const recursive = SecurityPolicies.FromModule(
-      'mud/lib/stuff/Thing',
+      'lib/stuff/Thing',
       { includeSubclasses: true }
     );
     expect(direct.allows(sub, null, 'm')).toBe(false);

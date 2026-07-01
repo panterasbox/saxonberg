@@ -27,7 +27,7 @@ import type { Subscription } from '../../api/event';
 // SocialApi (one navigable surface); this logic singleton stays separate
 // for file size + HMR but is @internal.
 const SocialApiCallers = SecurityPolicies.FromModule(
-  'mud/api/social#SocialApi'
+  'api/social#SocialApi'
 );
 
 /** The roster wire topic — a presence-PUBLIC channel, distinct from the

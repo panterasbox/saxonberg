@@ -47,7 +47,7 @@ A small platform service — **not** in-world Stuff:
   `CorpoApi`/`CorpoLogic` precedent). The Api is a thin forwarding shell
   ending in `SecurityApi.decorateApiClass`; the logic is `@internal
   @Unshadowable extends Idea` with every method gated
-  `FromModule("mud/api/bulletin#BulletinApi")`, all real work in
+  `FromModule("api/bulletin#BulletinApi")`, all real work in
   module-private `*Impl` free functions.
 
 ## The write/read surface (`BulletinApi`)

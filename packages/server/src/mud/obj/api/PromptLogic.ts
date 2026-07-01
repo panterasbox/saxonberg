@@ -36,7 +36,7 @@ import {
 } from '../../api/prompt';
 
 const PromptApiCallers = SecurityPolicies.FromModule(
-  'mud/api/prompt#PromptApi'
+  'api/prompt#PromptApi'
 );
 
 /**

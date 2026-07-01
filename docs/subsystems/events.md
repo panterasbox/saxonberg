@@ -359,7 +359,7 @@ class EventSubscriptions extends Idea {
 Both state slots are `private`, not `#`-private: the singleton is a
 Stuff host whose instance methods dispatch through the call-security
 proxy, where `#`-private slots are unreachable. Every public method
-carries `@CallSecurity(FromModule('mud/api/event#EventApi'))`, so
+carries `@CallSecurity(FromModule('api/event#EventApi'))`, so
 `EventApi` is the singleton's only legitimate caller; the Api itself is
 a thin facade. Moving this state off the Api class lets subscribers and
 history survive an HMR reload of the Api file (a reload of *this* file

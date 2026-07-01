@@ -16,7 +16,7 @@ import type {
 } from '../../api/boundary';
 
 const BoundaryApiCallers = SecurityPolicies.FromModule(
-  'mud/api/boundary#BoundaryApi'
+  'api/boundary#BoundaryApi'
 );
 
 /**

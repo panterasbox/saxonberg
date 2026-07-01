@@ -53,7 +53,7 @@ import type {
 } from '@saxonberg/types';
 
 const ForumSubscriptionApiCallers = SecurityPolicies.FromModule(
-  'mud/api/forums#ForumsApi',
+  'api/forums#ForumsApi',
 );
 
 /** A live forum subscription's server-side state. */

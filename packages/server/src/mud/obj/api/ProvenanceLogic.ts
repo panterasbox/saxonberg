@@ -11,7 +11,7 @@ import { PersistApi } from '../../api/persist';
 import { ExecutionContextApi } from '../../api/execution-context';
 
 const ProvenanceApiCallers = SecurityPolicies.FromModule(
-  'mud/api/provenance#ProvenanceApi'
+  'api/provenance#ProvenanceApi'
 );
 
 /** Persistence is a no-op unless Mongo is connected (tests, pre-boot). */

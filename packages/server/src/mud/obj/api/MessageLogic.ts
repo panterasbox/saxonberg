@@ -23,7 +23,7 @@ import type TopicCatalogue from "../TopicCatalogue";
 type SensorStuff = Stuff & Sensor;
 
 const MessageApiCallers = SecurityPolicies.AnyOf(
-  SecurityPolicies.FromModule("mud/api/message#MessageApi"),
+  SecurityPolicies.FromModule("api/message#MessageApi"),
   SecurityPolicies.SelfOnly
 );
 
@@ -43,7 +43,7 @@ const MessageApiCallers = SecurityPolicies.AnyOf(
  * exported by the face and is not wrapped here.
  *
  * Gating (the guts-variant recipe): every public method carries
- * `AnyOf(FromModule('mud/api/message#MessageApi'), SelfOnly)`.
+ * `AnyOf(FromModule('api/message#MessageApi'), SelfOnly)`.
  * `FromModule` admits the Api facade; `SelfOnly` admits the intra-
  * singleton `this.x()` self-calls (`messageContents` / `messageContainer`
  * calling `getSensors` / `sendMessage`), where the caller and target are

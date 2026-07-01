@@ -34,7 +34,7 @@ import type { GroupRef } from '../../lib/social/GroupProvider';
 import { PersistApi } from '../../api/persist';
 
 const RenownApiCallers = SecurityPolicies.FromModule(
-  'mud/api/renown#RenownApi'
+  'api/renown#RenownApi'
 );
 
 /**

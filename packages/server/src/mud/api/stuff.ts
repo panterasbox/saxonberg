@@ -768,7 +768,7 @@ export class StuffApi {
    */
   @CallSecurity(
     SecurityPolicies.AnyOf(
-      SecurityPolicies.FromModule('mud/obj/command/author/DestructController'),
+      SecurityPolicies.FromModule('obj/command/author/DestructController'),
       SecurityPolicies.FromTemplate('/obj/command/author/DestructController')
     )
   )

@@ -12,7 +12,7 @@ import type {
 } from '../../api/command-line';
 
 const CommandLineApiCallers = SecurityPolicies.FromModule(
-  'mud/api/command-line#CommandLineApi'
+  'api/command-line#CommandLineApi'
 );
 
 /* ─────────────────── Internal lexeme stage ─────────────────── */

@@ -15,7 +15,7 @@ import { SlotApi } from '../../api/slot';
 import type { PostureTransferResult } from '../../api/posture';
 
 const PostureApiCallers = SecurityPolicies.FromModule(
-  'mud/api/posture#PostureApi'
+  'api/posture#PostureApi'
 );
 
 /**

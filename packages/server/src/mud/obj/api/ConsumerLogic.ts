@@ -33,7 +33,7 @@ import type { CommandDispatchedPayload } from '../../lib/events/CommandDispatche
 import { ProducerLogic } from './ProducerLogic';
 
 const ConsumerApiCallers = SecurityPolicies.FromModule(
-  'mud/api/consumer#ConsumerApi'
+  'api/consumer#ConsumerApi'
 );
 
 /**

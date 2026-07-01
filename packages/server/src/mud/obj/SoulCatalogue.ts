@@ -28,14 +28,14 @@ const SoulCatalogueBase = PostRegistrationMixin(Idea);
 
 // The catalogue's surface is reachable only through SoulApi → the
 // SoulLogic singleton (the surface-architecture two-singleton shape):
-// `FromModule('mud/api/soul#SoulApi')` admits the facade, `FromTemplate
+// `FromModule('api/soul#SoulApi')` admits the facade, `FromTemplate
 // ('/obj/api/soul')` admits the logic singleton (its actual caller after
 // the conversion), and `SelfOnly` admits the internal self-calls
 // (`postRegister`/`ensureCache` → `warmCache`). Any other caller is
 // denied. Mirrors the AccessRegistry encapsulation pattern (soul had no
 // gate before this build).
 const SoulApiCallers = SecurityPolicies.AnyOf(
-  SecurityPolicies.FromModule('mud/api/soul#SoulApi'),
+  SecurityPolicies.FromModule('api/soul#SoulApi'),
   SecurityPolicies.FromTemplate('/obj/api/soul'),
   SecurityPolicies.SelfOnly
 );

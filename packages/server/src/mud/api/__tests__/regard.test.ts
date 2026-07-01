@@ -3,7 +3,7 @@
  *
  * Two concerns:
  *  1. Encapsulation — RegardApi forwards to the RegardLogic singleton at
- *     `/obj/api/regard`, gated `FromModule('mud/api/regard#RegardApi')`; a
+ *     `/obj/api/regard`, gated `FromModule('api/regard#RegardApi')`; a
  *     direct logic-method call from any other module is denied.
  *  2. Behavior — get/adjust/set/clear/held-by through the Api against a
  *     real belief-store viewer: accumulation, the -100..+100 clamp,

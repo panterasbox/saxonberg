@@ -17,7 +17,7 @@ import type { MudlogOptions } from '../../api/mudlog';
 type SensorStuff = Stuff & Sensor;
 
 const MudlogApiCallers = SecurityPolicies.FromModule(
-  'mud/api/mudlog#MudlogApi'
+  'api/mudlog#MudlogApi'
 );
 
 /**

@@ -32,7 +32,7 @@ import type {
 // SocialApi (one navigable surface); this logic singleton stays separate
 // for file size + HMR but is @internal.
 const SocialApiCallers = SecurityPolicies.FromModule(
-  'mud/api/social#SocialApi'
+  'api/social#SocialApi'
 );
 
 /** A connected account younger than this reads as a "new arrival". */

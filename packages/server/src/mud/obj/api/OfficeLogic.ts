@@ -17,7 +17,7 @@ import type OfficeRegistry from '../OfficeRegistry';
 const REGISTRY_PATH = TemplatePaths.officeRegistry;
 
 const OfficeApiCallers = SecurityPolicies.FromModule(
-  'mud/api/office#OfficeApi',
+  'api/office#OfficeApi',
 );
 
 /**
@@ -54,7 +54,7 @@ function lookupRegistry(): OfficeRegistry | null {
  * short-circuit; durable state lives on `/obj/OfficeRegistry`, whose
  * methods admit this logic singleton (`FromTemplate('/obj/api/office')`)
  * as well as the Api module. Each method is gated
- * `FromModule('mud/api/office#OfficeApi')` (the Api is the only caller).
+ * `FromModule('api/office#OfficeApi')` (the Api is the only caller).
  *
  * **No-registry test path fails CLOSED.** Unlike `AccessApi.can`/
  * `isWizard` (which fail *open* because the dispatcher already pre-gated

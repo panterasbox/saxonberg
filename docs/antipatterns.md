@@ -1693,7 +1693,7 @@ surface-architecture refactor exists): call-security gates **only**
 function — or a static on a plain `lib` class — **can't be gated at
 all**. So protection-needing internal logic must be **`Stuff`-shaped**:
 that's exactly the `/obj/api/<feature>` logic singleton, gated
-`@CallSecurity(FromModule('mud/api/<feature>#<Feature>Api'))`. See
+`@CallSecurity(FromModule('api/<feature>#<Feature>Api'))`. See
 [call-security.md § The api↔logic-singleton recipe](./subsystems/call-security.md#the-apilogic-singleton-recipe).
 
 Where a plain function genuinely must be shared between `lib` modules

@@ -49,7 +49,7 @@ Api↔logic-singleton split verbatim. All real logic lives in
 module-private free functions in `SocialLogic.ts` (the `RenownLogic`
 discipline — public-to-public self-calls would trip the `FromModule`
 gate); each public method carries
-`@CallSecurity(FromModule('mud/api/social#SocialApi'))`.
+`@CallSecurity(FromModule('api/social#SocialApi'))`.
 
 ## The rule store — `NotifyPolicyMixin`
 

@@ -49,15 +49,24 @@ import { SecurityApi } from './security';
 /**
  * Canonical module-id string. Form: `<path>#<exportName>` for named
  * exports; bare `<path>` for default exports. Path is normalised to
- * the source-rooted form (`mud/api/stuff` rather than the absolute
- * `file:///…/mud/api/stuff.ts`) so policy globs are written against a
- * predictable shape.
+ * the mud-rooted form (`api/stuff` rather than the absolute
+ * `file:///…/src/mud/api/stuff.ts`) so policy globs are written against
+ * a predictable shape that parallels the clone-namespace template path.
  */
 type ModuleId = string;
 
 /**
  * Roots that the URL normaliser strips. The first match wins; order
- * matters when one root is a prefix of another.
+ * matters when one root is a prefix of another — the `mud/`-rooted
+ * hints come first so a mudlib file normalises to a `mud`-relative id
+ * (`obj/command/…`, `api/…`, `lib/…`) rather than a `src`-relative one
+ * (`mud/obj/…`). This makes a module id line up **segment-for-segment**
+ * with the clone-namespace template path it parallels — they differ
+ * only by the leading slash (`obj/command/X` vs `/obj/command/X`), which
+ * is the discriminator `resolveCallerPath` keys on. Only `/mud/` files
+ * are ever stamped (the loader transform gate), so every real id is
+ * `mud`-rooted; the trailing `src/`/`dist/` hints are a harmless
+ * fallback for any stray non-mud stamp.
  *
  * Production tsx runs from `packages/server/src/`; Vitest also imports
  * from `packages/server/src/`. Compiled JS lives under
@@ -67,6 +76,8 @@ type ModuleId = string;
  * dependency."
  */
 const SOURCE_ROOT_HINTS = [
+  'packages/server/src/mud/',
+  'packages/server/dist/mud/',
   'packages/server/src/',
   'packages/server/dist/',
 ];
@@ -251,15 +262,15 @@ export class ModuleApi {
   /* ─────────────────────── Internal helpers ─────────────────────── */
 
   /**
-   * Convert a file:// URL or absolute path into the source-rooted
+   * Convert a file:// URL or absolute path into the mud-rooted
    * canonical form used by `FromModule(...)` globs. Drops the file
    * extension. Examples:
    *
    *     file:///home/bob/proj/packages/server/src/mud/api/stuff.ts
-   *     → mud/api/stuff
+   *     → api/stuff
    *
    *     file:///home/bob/proj/packages/server/dist/mud/lib/spatial/Door.js
-   *     → mud/lib/spatial/Door
+   *     → lib/spatial/Door
    *
    * Files outside known roots return the absolute path with extension
    * stripped — they'll typically be `node_modules` or scripts and won't

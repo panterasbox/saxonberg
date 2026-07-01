@@ -85,7 +85,7 @@ const DEFAULT_PRESENTATION = 'something';
  * subclass) pass through.
  */
 const FromSpatialZone = SecurityPolicies.FromModule(
-  'mud/lib/zone/SpatialZone#SpatialZone',
+  'lib/zone/SpatialZone#SpatialZone',
   { includeSubclasses: true }
 );
 

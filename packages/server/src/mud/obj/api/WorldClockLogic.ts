@@ -20,7 +20,7 @@ import type {
 } from '../../api/worldclock';
 
 const WorldClockApiCallers = SecurityPolicies.FromModule(
-  'mud/api/worldclock#WorldClockApi'
+  'api/worldclock#WorldClockApi'
 );
 
 /* ─────────────────────── registry resolution ─────────────────────── */

@@ -18,7 +18,7 @@ import type {
 } from '../../api/scheduler';
 
 const SchedulerApiCallers = SecurityPolicies.FromModule(
-  'mud/api/scheduler#SchedulerApi'
+  'api/scheduler#SchedulerApi'
 );
 
 /* ─────────────────────── registry resolution ─────────────────────── */

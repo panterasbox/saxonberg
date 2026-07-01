@@ -12,7 +12,7 @@ import { MixinApi } from '../../api/mixin';
 import { StuffApi } from '../../api/stuff';
 
 const MaterialApiCallers = SecurityPolicies.FromModule(
-  'mud/api/material#MaterialApi'
+  'api/material#MaterialApi'
 );
 
 /**

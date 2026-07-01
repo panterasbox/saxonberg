@@ -87,7 +87,7 @@ runtime `pack sync` verb — and the gated `PackApi` is the shared surface:
   `PackManifest` / `PackReconcileResult` call-shape types.
 - **`PackLogic`** (`mud/obj/api/PackLogic.ts`, `/obj/api/pack`,
   `@internal @Unshadowable`) — the reconcile core; every public method
-  gated `FromModule('mud/api/pack#PackApi')`. All work in module-private
+  gated `FromModule('api/pack#PackApi')`. All work in module-private
   functions (the `CraftingLogic` precedent), so no intra-singleton
   `this.x()` calls trip the gate.
 

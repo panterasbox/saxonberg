@@ -575,7 +575,7 @@ HMR-able logic singleton at `/obj/api/forums`); both follow the
 **folded into `ForumsApi`** (one forum-facing Api), forwarding to the
 separate `ForumSubscriptionRegistry` runtime singleton — a review refactor
 (it was once its own `ForumSubscriptionApi`). The registry's gated
-methods carry `@CallSecurity(FromModule('mud/api/forums#ForumsApi'))`, so
+methods carry `@CallSecurity(FromModule('api/forums#ForumsApi'))`, so
 the facade is the only legitimate caller. The `forum-subscribe` /
 `forum-unsubscribe` inbound handlers and the disconnect teardown call
 through it.

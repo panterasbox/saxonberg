@@ -4,7 +4,7 @@
  *
  * BeliefStoreApi forwards to the BeliefStoreLogic singleton at
  * `/obj/api/belief`, whose methods are gated
- * `FromModule('mud/api/belief#BeliefStoreApi')`. A direct logic-method
+ * `FromModule('api/belief#BeliefStoreApi')`. A direct logic-method
  * call from any other module is denied.
  */
 

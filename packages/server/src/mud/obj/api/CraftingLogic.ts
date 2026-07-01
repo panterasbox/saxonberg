@@ -28,7 +28,7 @@ import type {
 import type { BuildContribution } from '../../lib/craft/ManualBuild';
 
 const CraftingApiCallers = SecurityPolicies.FromModule(
-  'mud/api/crafting#CraftingApi',
+  'api/crafting#CraftingApi',
 );
 
 const CATALOGUE_PATH = '/obj/RecipeCatalogue';

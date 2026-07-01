@@ -11,7 +11,7 @@
  *
  * State lives on the {@link ReactionRegistry} singleton at
  * `/obj/ReactionRegistry`; this Api holds no state. Every registry
- * method is gated `FromModule('mud/api/reaction#ReactionApi')`, so the
+ * method is gated `FromModule('api/reaction#ReactionApi')`, so the
  * facade is the only legitimate path. Mirrors the
  * `MqlSubscriptionApi` ↔ `MqlSubscriptionRegistry` split, minus the
  * HMR logic-singleton indirection (registry state survives an Api

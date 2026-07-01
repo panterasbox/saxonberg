@@ -12,7 +12,7 @@ import { StoredDocument } from "../../lib/document/StoredDocument";
 import type { Stuff } from "../../lib/stuff/Stuff";
 
 const DocumentApiCallers = SecurityPolicies.FromModule(
-  "mud/api/document#DocumentApi",
+  "api/document#DocumentApi",
 );
 
 /* ─────────────────────────── impl ─────────────────────────── */

@@ -3,7 +3,7 @@
  * conversion of `prompt`).
  *
  * PromptApi forwards to the PromptLogic singleton at `/obj/api/prompt`,
- * whose methods are gated `FromModule('mud/api/prompt#PromptApi')`. A
+ * whose methods are gated `FromModule('api/prompt#PromptApi')`. A
  * direct logic-method call from any other module is denied.
  */
 

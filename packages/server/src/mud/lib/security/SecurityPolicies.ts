@@ -134,15 +134,18 @@ function FromTemplate(glob: string): SecurityPolicy {
 /**
  * `FromModule(glob, opts)` — caller's stamped module ID matches `glob`.
  *
- * Module IDs have the form `<source-relative-path>#<exportName>` (or
- * bare `<path>` for default exports). Examples:
- *   - `mud/api/stuff#StuffApi`
- *   - `mud/lib/spatial/Door#Door`
+ * Module IDs have the form `<mud-relative-path>#<exportName>` (or
+ * bare `<path>` for default exports) — rooted at `mud/`, so a module ID
+ * lines up segment-for-segment with the template path it parallels,
+ * differing only by the leading slash (`obj/command/X` vs
+ * `/obj/command/X`). Examples:
+ *   - `api/stuff#StuffApi`
+ *   - `lib/spatial/Door#Door`
  *
  * Glob examples:
- *   - `'mud/api/**'` matches every Api export under `mud/api/`.
- *   - `'mud/lib/spatial/Door#Door'` matches exactly Door.
- *   - `'mud/domain/narnia/**'` matches every export under that
+ *   - `'api/**'` matches every Api export under `api/` (src/mud/api/).
+ *   - `'lib/spatial/Door#Door'` matches exactly Door.
+ *   - `'domain/narnia/**'` matches every export under that
  *     subtree — useful for the "developers don't trust each other"
  *     story where a subsystem owner gates onward calls into their
  *     module's privileged surface.
@@ -184,16 +187,16 @@ function FromModule(
 }
 
 /**
- * `ApiOnly` — the Api tier: callers under `mud/api/**` plus the Api's
- * hot-reloadable logic singletons under `mud/obj/api/**`.
+ * `ApiOnly` — the Api tier: callers under `api/**` plus the Api's
+ * hot-reloadable logic singletons under `obj/api/**`.
  *
  * Stage 1 shipped a forgeable constructor-name stub; Stage 2 replaced
  * it with the real loader-stamped module-id matcher. The
  * surface-architecture refactor moved each Api's *guts* into a stateless
- * `Stuff` logic singleton at `mud/obj/api/<Foo>Logic` (the `FooApi`
+ * `Stuff` logic singleton at `obj/api/<Foo>Logic` (the `FooApi`
  * statics forward to it). Those singletons ARE the Api implementation,
  * so they must retain Api-tier calling privileges — e.g. `split` calls
- * the `ApiOnly`-gated `ContainmentApi.placeDirect`. `mud/obj/api/`
+ * the `ApiOnly`-gated `ContainmentApi.placeDirect`. `obj/api/`
  * contains nothing BUT those logic singletons, so admitting it widens
  * the gate to exactly the Api tier and never to content. This only
  * *adds* admitted callers, so every prior allow/deny decision for
@@ -205,7 +208,7 @@ function FromModule(
  * `FromModule`.
  */
 const ApiOnlyPolicy: SecurityPolicy = (() => {
-  const fm = FromModule('mud/api/**', { includeSubclasses: true });
+  const fm = FromModule('api/**', { includeSubclasses: true });
   const fmLogic = FromTemplate('/obj/api/**');
   return {
     name: 'ApiOnly',

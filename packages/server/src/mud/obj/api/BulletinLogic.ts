@@ -28,7 +28,7 @@ import type {
 import type { BulletinFeedFrame } from '@saxonberg/types';
 
 const BulletinApiCallers = SecurityPolicies.FromModule(
-  'mud/api/bulletin#BulletinApi'
+  'api/bulletin#BulletinApi'
 );
 
 /** The news-ticker fan-out topic — a presence-PUBLIC OOC channel. */

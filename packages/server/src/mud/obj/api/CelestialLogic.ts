@@ -34,7 +34,7 @@ const clamp = (x: number, lo: number, hi: number): number =>
   Math.max(lo, Math.min(hi, x));
 
 const CelestialApiCallers = SecurityPolicies.AnyOf(
-  SecurityPolicies.FromModule('mud/api/celestial#CelestialApi'),
+  SecurityPolicies.FromModule('api/celestial#CelestialApi'),
   SecurityPolicies.SelfOnly
 );
 

@@ -12,7 +12,7 @@ import type { EmoteSpec } from '../SoulCatalogue';
 
 const CATALOGUE_PATH = TemplatePaths.soulCatalogue;
 
-const SoulApiCallers = SecurityPolicies.FromModule('mud/api/soul#SoulApi');
+const SoulApiCallers = SecurityPolicies.FromModule('api/soul#SoulApi');
 
 /**
  * Resolve the pinned `SoulCatalogue` singleton (the state home), warming
@@ -41,7 +41,7 @@ async function requireCatalogue(): Promise<SoulCatalogue> {
  * the state lives on the pinned `/obj/SoulCatalogue` singleton, whose
  * methods are gated to admit this logic singleton
  * (`FromTemplate('/obj/api/soul')`). Each method is gated
- * `FromModule('mud/api/soul#SoulApi')` (the Api is the only caller; no
+ * `FromModule('api/soul#SoulApi')` (the Api is the only caller; no
  * intra-singleton self-calls).
  *
  * @internal

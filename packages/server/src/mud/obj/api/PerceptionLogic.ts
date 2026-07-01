@@ -20,7 +20,7 @@ import { TemplatePathPrefixes } from '../../lib/paths';
 const MODALITY_PREFIX = TemplatePathPrefixes.perceptionModalities;
 
 const PerceptionApiCallers = SecurityPolicies.AnyOf(
-  SecurityPolicies.FromModule('mud/api/perception#PerceptionApi'),
+  SecurityPolicies.FromModule('api/perception#PerceptionApi'),
   SecurityPolicies.SelfOnly
 );
 

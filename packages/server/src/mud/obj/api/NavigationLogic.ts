@@ -85,7 +85,7 @@ function normalize(input: string): CardinalDirection | undefined {
 }
 
 const NavigationApiCallers = SecurityPolicies.FromModule(
-  'mud/api/navigation#NavigationApi'
+  'api/navigation#NavigationApi'
 );
 
 /**
@@ -95,7 +95,7 @@ const NavigationApiCallers = SecurityPolicies.FromModule(
  * Holds the canonical direction table (offsets, aliases, inverses) and
  * the lookup methods. Lives at `/obj/api/navigation`; `NavigationApi`'s
  * statics forward here via `StuffApi.singletonSync`. Each public method
- * is gated `FromModule('mud/api/navigation#NavigationApi')` (per-method,
+ * is gated `FromModule('api/navigation#NavigationApi')` (per-method,
  * not class-level — see {@link MaterialLogic} for why).
  *
  * The direction constants and the `CardinalDirection` vocabulary are

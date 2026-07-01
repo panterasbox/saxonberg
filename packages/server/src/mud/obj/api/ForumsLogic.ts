@@ -30,7 +30,7 @@ import type {
   ArgumentRelation,
 } from '../../api/forums';
 
-const ForumsApiCallers = SecurityPolicies.FromModule('mud/api/forums#ForumsApi');
+const ForumsApiCallers = SecurityPolicies.FromModule('api/forums#ForumsApi');
 
 /**
  * ForumsLogic — the hot-reloadable logic singleton behind {@link ForumsApi}.

@@ -46,7 +46,7 @@ type GlobbableStuff = Stuff & Globbable;
 // through them); `SelfOnly` admits the intra-singleton `this.split()` /
 // `this.merge()` self-calls inside `applyQuantity`.
 const GlobbableApiCallers = SecurityPolicies.AnyOf(
-  SecurityPolicies.FromModule('mud/api/glob#GlobbableApi'),
+  SecurityPolicies.FromModule('api/glob#GlobbableApi'),
   SecurityPolicies.SelfOnly
 );
 

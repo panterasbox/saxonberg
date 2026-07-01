@@ -81,14 +81,16 @@ function checkString(raw: string, file: string, findings: Finding[]): void {
   const modulePath = hashAt === -1 ? raw : raw.slice(0, hashAt);
   const exportName = hashAt === -1 ? null : raw.slice(hashAt + 1);
 
-  const base = join(SERVER_SRC, modulePath);
+  // Module ids are `mud`-rooted (`obj/…`, `api/…`, `lib/…`), so resolve
+  // them under src/mud/, not src/ — see SOURCE_ROOT_HINTS in api/module.ts.
+  const base = join(MUD_ROOT, modulePath);
   const candidates = [`${base}.ts`, `${base}.tsx`, join(base, "index.ts")];
   const found = candidates.find((p) => existsSync(p));
   if (!found) {
     findings.push({
       file,
       raw,
-      reason: `module '${modulePath}' does not exist under packages/server/src`,
+      reason: `module '${modulePath}' does not exist under packages/server/src/mud`,
     });
     return;
   }

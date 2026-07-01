@@ -129,7 +129,7 @@ absence of a row = the founder default holds the seat.**
 manifest-warmed) holds the state + behavior, mirroring `AccessRegistry`
 minus all seeding. The gated `OfficeApi` (`api/office.ts`) → `OfficeLogic`
 (`obj/api/OfficeLogic.ts`, `/obj/api/office`) pair is the surface; the
-Registry's methods carry `@CallSecurity(AnyOf(FromModule('mud/api/office#OfficeApi'),
+Registry's methods carry `@CallSecurity(AnyOf(FromModule('api/office#OfficeApi'),
 FromTemplate('/obj/api/office')))` (the narrow-entry pattern — one state
 home, one calling surface, one structurally-enforced path).
 
@@ -138,7 +138,7 @@ home, one calling surface, one structurally-enforced path).
   origin, current holder) is **publicly readable** — governance is
   transparent by constitutional design (Art. VII).
 - **Gated mutations** — `assign` / `vacate` carry the string-keyed
-  `FromModule('mud/obj/command/governance/OfficeController')` narrow-entry
+  `FromModule('obj/command/governance/OfficeController')` narrow-entry
   (string-keyed to avoid a static-import cycle — the
   `AccessApi.setWizardMembership`/`WizardController` precedent). The
   **authority** is the `requiresFoundingAuthority` subcommand-level

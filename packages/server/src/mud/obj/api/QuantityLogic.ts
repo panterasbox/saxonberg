@@ -15,7 +15,7 @@ import type { Unit, ScaleName, TagTableEntry } from '../../lib/quantity';
 import type { TagTableLoadResult } from '../../api/quantity';
 
 const QuantityApiCallers = SecurityPolicies.FromModule(
-  'mud/api/quantity#QuantityApi'
+  'api/quantity#QuantityApi'
 );
 
 const __filename = fileURLToPath(import.meta.url);

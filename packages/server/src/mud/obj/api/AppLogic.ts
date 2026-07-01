@@ -7,7 +7,7 @@ import { CallSecurity, Unshadowable } from '../../lib/security/decorators';
 import { SecurityPolicies } from '../../lib/security/SecurityPolicies';
 import { AppSettings } from '../../lib/config/AppSettings';
 
-const AppApiCallers = SecurityPolicies.FromModule('mud/api/app#AppApi');
+const AppApiCallers = SecurityPolicies.FromModule('api/app#AppApi');
 
 /**
  * AppLogic — the hot-reloadable logic singleton behind {@link AppApi}.

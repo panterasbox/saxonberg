@@ -4,7 +4,7 @@
  * Stable caller-facing surface for the government-office substrate.
  * Every method delegates through the hot-reloadable {@link OfficeLogic}
  * singleton at `/obj/api/office` to the Registry; the Registry's methods
- * carry `@CallSecurity(AnyOf(FromModule('mud/api/office#OfficeApi'),
+ * carry `@CallSecurity(AnyOf(FromModule('api/office#OfficeApi'),
  * FromTemplate('/obj/api/office')))` so the security gate denies any
  * caller outside the office subsystem.
  *
@@ -13,7 +13,7 @@
  *     Governance is transparent by constitutional design (Art. VII), so
  *     these carry no `@CallSecurity` (mirroring `AccessApi.isWizard`).
  *   - **Gated mutations** — `assign`/`vacate` carry the string-keyed
- *     `AnyOf(FromModule('mud/obj/command/governance/OfficeController'),
+ *     `AnyOf(FromModule('obj/command/governance/OfficeController'),
  *     FromTemplate('/obj/command/governance/OfficeController'))` narrow-
  *     entry. The template-path arm is load-bearing: the controller is
  *     cloned per execution, so the caller resolves to its template path
@@ -137,7 +137,7 @@ export class OfficeApi {
   @CallSecurity(
     SecurityPolicies.AnyOf(
       SecurityPolicies.FromModule(
-        'mud/obj/command/governance/OfficeController',
+        'obj/command/governance/OfficeController',
       ),
       SecurityPolicies.FromTemplate('/obj/command/governance/OfficeController'),
     ),
@@ -159,7 +159,7 @@ export class OfficeApi {
   @CallSecurity(
     SecurityPolicies.AnyOf(
       SecurityPolicies.FromModule(
-        'mud/obj/command/governance/OfficeController',
+        'obj/command/governance/OfficeController',
       ),
       SecurityPolicies.FromTemplate('/obj/command/governance/OfficeController'),
     ),

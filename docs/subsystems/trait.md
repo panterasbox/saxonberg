@@ -85,7 +85,7 @@ the unwarmed (unit-test / pre-boot) path.
 
 `TraitApi` (`api/trait.ts`) is the thin forwarding shell; the logic lives
 in the hot-reloadable `TraitLogic` singleton at `/obj/api/trait`, gated
-`FromModule("mud/api/trait#TraitApi")`. Internals are module-private free
+`FromModule("api/trait#TraitApi")`. Internals are module-private free
 functions (no intra-singleton `this.x()` to trip the gate). Surface:
 
 - `recordSignature(owner, signature, opts)` / `recordDeed(owner, subcheck,

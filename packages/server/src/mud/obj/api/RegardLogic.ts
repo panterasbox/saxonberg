@@ -8,7 +8,7 @@ import type { Stuff } from '../../lib/stuff/Stuff';
 import { MixinApi } from '../../api/mixin';
 import { REGARD } from '../../lib/belief/BeliefStore';
 
-const RegardApiCallers = SecurityPolicies.FromModule('mud/api/regard#RegardApi');
+const RegardApiCallers = SecurityPolicies.FromModule('api/regard#RegardApi');
 
 /** Inclusive bounds on stored regard. The range is normative (clamped). */
 const REGARD_MIN = -100;

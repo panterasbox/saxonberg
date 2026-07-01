@@ -149,7 +149,7 @@ The full walk is **async** (the zone-fallthrough step awaits
 `Zone.lookupField`, matching `BiomeApi.resolve*For`). The three-tier
 narrow-entry pattern is the access precedent: `AddressApi` (thin) →
 `AddressLogic` (`/obj/api/address`, stateless resolve orchestration,
-gated `FromModule('mud/api/address#AddressApi')`) → `AddressRegistry`
+gated `FromModule('api/address#AddressApi')`) → `AddressRegistry`
 (the durable index, gated `FromTemplate('/obj/api/address')`).
 
 ## The seam weather consumes

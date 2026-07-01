@@ -20,7 +20,7 @@ import type { VisionModality } from '../../lib/perception/modalities/VisionModal
 import { RECOGNITION, IDENTIFICATION } from '../../lib/belief/BeliefStore';
 
 const RecognitionApiCallers = SecurityPolicies.FromModule(
-  'mud/api/recognition#RecognitionApi'
+  'api/recognition#RecognitionApi'
 );
 
 /** Template path of the vision modality singleton. */

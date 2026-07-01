@@ -12,7 +12,7 @@ import { MixinApi } from '../../api/mixin';
 import { PersistApi } from '../../api/persist';
 
 const BeliefStoreApiCallers = SecurityPolicies.FromModule(
-  'mud/api/belief#BeliefStoreApi'
+  'api/belief#BeliefStoreApi'
 );
 
 /** Has this record learned anything worth persisting? */

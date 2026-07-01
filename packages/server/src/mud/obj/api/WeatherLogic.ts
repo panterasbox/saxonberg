@@ -32,7 +32,7 @@ import {
 } from '../../lib/weather/WeatherType';
 
 const WeatherApiCallers = SecurityPolicies.AnyOf(
-  SecurityPolicies.FromModule('mud/api/weather#WeatherApi'),
+  SecurityPolicies.FromModule('api/weather#WeatherApi'),
   SecurityPolicies.SelfOnly,
 );
 
@@ -303,7 +303,7 @@ async function runBoundaryFanout(): Promise<void> {
  * deviation and biome-identical reads. Boot forces the singleton into
  * existence via `nextBoundaryAfter` when it registers the schedule.
  *
- * Gated `AnyOf(FromModule('mud/api/weather#WeatherApi'), SelfOnly)`: the
+ * Gated `AnyOf(FromModule('api/weather#WeatherApi'), SelfOnly)`: the
  * `forecastFor`/`sampleFor` reads fan out to `weatherAt`/the grammar via
  * module-private functions (no intra-singleton self-calls), and the
  * facade forwarders supply the `FromModule` half.

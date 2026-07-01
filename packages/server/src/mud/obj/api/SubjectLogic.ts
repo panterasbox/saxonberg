@@ -20,7 +20,7 @@ import type Avatar from '../Avatar';
 const CATALOGUE_PATH = TemplatePaths.subjectCatalogue;
 
 const SubjectApiCallers = SecurityPolicies.FromModule(
-  'mud/api/subject#SubjectApi',
+  'api/subject#SubjectApi',
 );
 
 /**

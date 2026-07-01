@@ -25,7 +25,7 @@ interface CladeShape {
 }
 
 const SpeciesApiCallers = SecurityPolicies.FromModule(
-  'mud/api/species#SpeciesApi'
+  'api/species#SpeciesApi'
 );
 
 /**

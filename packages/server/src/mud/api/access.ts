@@ -4,7 +4,7 @@
  * Stable caller-facing surface for the access substrate. Every method
  * delegates through the hot-reloadable {@link AccessLogic} singleton at
  * `/obj/api/access` to the Registry; the Registry's methods carry
- * `@CallSecurity(AnyOf(FromModule('mud/api/access#AccessApi'),
+ * `@CallSecurity(AnyOf(FromModule('api/access#AccessApi'),
  * FromTemplate('/obj/api/access')))` so the security gate denies any
  * caller outside the access subsystem. External code that grabs the
  * Registry Stuff via `StuffApi.findByTemplatePath` cannot call its
@@ -141,7 +141,7 @@ export class AccessApi {
    */
   @CallSecurity(
     SecurityPolicies.AnyOf(
-      SecurityPolicies.FromModule('mud/obj/command/author/WizardController'),
+      SecurityPolicies.FromModule('obj/command/author/WizardController'),
       SecurityPolicies.FromTemplate('/obj/command/author/WizardController')
     )
   )

@@ -98,7 +98,7 @@ describe('SecurityPolicies', () => {
     });
 
     it('FromModule denies null caller', () => {
-      expect(SecurityPolicies.FromModule('mud/api/**').allows(null, null, 'm')).toBe(false);
+      expect(SecurityPolicies.FromModule('api/**').allows(null, null, 'm')).toBe(false);
     });
   });
 });

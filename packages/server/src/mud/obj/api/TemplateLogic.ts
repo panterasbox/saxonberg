@@ -24,7 +24,7 @@ import type { Marshaller } from '../../lib/persistence/Marshaller';
 import PersistentHydrator from '../../lib/persistence/PersistentHydrator';
 
 const TemplateApiCallers = SecurityPolicies.FromModule(
-  'mud/api/template#TemplateApi'
+  'api/template#TemplateApi'
 );
 
 /**
