@@ -30,7 +30,7 @@ const ONE_GAME_HOUR_S = 3_600;
 const TERMINAL: readonly EmploymentStatus[] = ['quit', 'fired'];
 
 const EmploymentApiCallers = SecurityPolicies.FromModule(
-  'mud/api/employment#EmploymentApi',
+  '/api/employment#EmploymentApi',
 );
 
 /** A Business as a live Stuff — the enumerable seeded entity. */
