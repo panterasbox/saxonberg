@@ -108,6 +108,42 @@ export class EmploymentApi {
   public static businessOfProprietor(subject: Stuff): BusinessStuff | null {
     return logic().businessOfProprietor(subject);
   }
+
+  /**
+   * Run one roster-maintenance pass now: evaluate every Business's roster
+   * against the game clock and update each assignee's shift state (lazy-
+   * materializing records, settling wages on shift-end). Normally the boot-
+   * installed recurring tick drives this; exposed for tests / manual fire.
+   */
+  public static tickRoster(): void {
+    return logic().tickRoster();
+  }
+
+  /** Sync shift-state read for `actor` — the `shifts` brain's input. */
+  public static shiftStateOf(actor: Stuff): 'on-shift' | 'off-shift' {
+    return logic().shiftStateOf(actor);
+  }
+
+  /**
+   * Settle the wage for one completed shift (`rate × shift-hours`), skipping
+   * a proprietor's unpaid cover. Called by the roster tick on shift-end;
+   * exposed for tests / manual fire.
+   */
+  public static settleShiftWage(
+    business: BusinessStuff,
+    employment: Employment,
+  ): Promise<void> {
+    return logic().settleShiftWage(business, employment);
+  }
+
+  /**
+   * Boot the engine: run one immediate roster pass then self-register the
+   * recurring game-time tick. Called from `AppBootstrap` after
+   * `BankingApi.boot()`.
+   */
+  public static boot(): void {
+    return logic().boot();
+  }
 }
 
 SecurityApi.decorateApiClass(EmploymentApi);

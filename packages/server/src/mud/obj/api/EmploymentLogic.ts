@@ -9,13 +9,23 @@ import { StuffApi } from '../../api/stuff';
 import { MixinApi } from '../../api/mixin';
 import { AccessApi } from '../../api/access';
 import { WorldClockApi } from '../../api/worldclock';
+import type { ClockHandle } from '../../api/worldclock';
+import { Quantity } from '../../lib/quantity';
+import { DefaultCalendar } from '../../lib/time/DefaultCalendar';
 import { Mixins } from '../../lib/mixin';
 import type { Business } from '../../lib/employment/Business';
 import type { Employed } from '../../lib/employment/Employed';
 import {
   Employment,
   type EmploymentData,
+  type EmploymentStatus,
 } from '../../lib/employment/Employment';
+
+/** One game-hour in game-seconds — the roster tick cadence. */
+const ONE_GAME_HOUR_S = 3_600;
+
+/** Statuses the roster no longer governs (explicit exit — not resurrected). */
+const TERMINAL: readonly EmploymentStatus[] = ['quit', 'fired'];
 
 const EmploymentApiCallers = SecurityPolicies.FromModule(
   'mud/api/employment#EmploymentApi',
@@ -70,6 +80,21 @@ function endEmploymentImpl(
 }
 
 /**
+ * Settle the wage for a completed shift. **Phase 4 fills the body** — the
+ * shift-end (on→off transition) is the pay milestone: `rate × shift-hours`
+ * once, at the boundary; the proprietor's own cover Employment is skipped
+ * (unpaid by construction). `employment` carries the `onShiftSince` stamp
+ * (captured before the caller clears it), so this can settle asynchronously
+ * without a race. A no-op until Phase 4.
+ */
+async function settleShiftWageImpl(
+  _business: BusinessStuff,
+  _employment: Employment,
+): Promise<void> {
+  // Phase 4 — wage settlement at shift-end.
+}
+
+/**
  * EmploymentLogic — the hot-reloadable logic singleton behind
  * {@link EmploymentApi}.
  *
@@ -114,6 +139,85 @@ export class EmploymentLogic extends Idea {
     // A newly-stood-up business may post-date the cache: rebuild + retry.
     this.businessCache = null;
     return this.allBusinesses().find(match) ?? null;
+  }
+
+  /** The recurring game-time tick handle (runtime-only; re-armed on reload). */
+  private rosterHandle: ClockHandle | null = null;
+
+  /**
+   * The roster maintenance pass (ungated private — the gated public
+   * `tickRoster` and the schedule callback both delegate here, so no
+   * intra-singleton gated `this.x()` call trips the gate). Enumerates every
+   * Business, evaluates each roster assignment against the game clock, and
+   * maintains the assignee's stored `Employment.status`:
+   *
+   *   - **lazy-materialize** a record from the assignment (the roster is the
+   *     single source of truth — the seeds carry no employment block);
+   *   - **off→on**: stamp `onShiftSince = now`;
+   *   - **on→off**: settle the shift wage (Phase 4) off the captured record
+   *     *before* clearing `onShiftSince`, then flip to off-shift.
+   *
+   * A `quit` / `fired` record is left alone (an explicit exit is never
+   * resurrected by the seed roster).
+   */
+  private runTick(): void {
+    const now = WorldClockApi.getNow();
+    const date = DefaultCalendar.singleton().decompose(now);
+    const nowRaw = now.rawValue();
+    for (const business of this.allBusinesses()) {
+      const businessPath = business.getTemplatePath() ?? '';
+      if (!businessPath) continue;
+      const roster = business.getRoster();
+      for (const assignment of roster.getAssignments()) {
+        const actor = StuffApi.findByTemplatePath(assignment.assignee);
+        if (!actor || !MixinApi.isEmployed(actor)) continue;
+        const employed = actor as EmployedActor;
+
+        let emp = employed.getEmployment(businessPath);
+        if (!emp) {
+          const record: EmploymentData = {
+            businessPath,
+            positionKey: assignment.positionKey,
+            status: 'off-shift',
+            hiredAt: nowRaw,
+            onShiftSince: null,
+          };
+          employed._upsertEmployment(record);
+          emp = Employment.of(record);
+        }
+        if (TERMINAL.includes(emp.status)) continue;
+
+        const desired = roster.evaluate(assignment, date);
+        const currentlyOn = emp.status === 'on-shift';
+        if (desired === 'on-shift' && !currentlyOn) {
+          employed._upsertEmployment(
+            emp.withStatus('on-shift', nowRaw).serialize(),
+          );
+        } else if (desired === 'off-shift' && currentlyOn) {
+          // Settle off the captured record (has `onShiftSince`) before the
+          // synchronous clear below — no race.
+          void settleShiftWageImpl(business, emp).catch((err) =>
+            console.error('EmploymentLogic: shift-wage settle failed', err),
+          );
+          employed._setEmploymentStatus(businessPath, 'off-shift');
+        }
+      }
+    }
+  }
+
+  /** Self-register the recurring game-time roster tick (idempotent). */
+  private installRosterSchedule(): void {
+    if (this.rosterHandle) return;
+    this.rosterHandle = WorldClockApi.every(
+      Quantity.of(ONE_GAME_HOUR_S, 's'),
+      () => {
+        try {
+          this.runTick();
+        } catch (err) {
+          console.error('EmploymentLogic: roster tick failed', err);
+        }
+      },
+    );
   }
 
   /** See {@link EmploymentApi.employmentOf}. */
@@ -171,5 +275,41 @@ export class EmploymentLogic extends Idea {
     const path = subject.getTemplatePath();
     if (!path) return null;
     return this.findBusiness((b) => b.getProprietor() === path);
+  }
+
+  /** See {@link EmploymentApi.tickRoster}. */
+  @CallSecurity(EmploymentApiCallers)
+  public tickRoster(): void {
+    this.runTick();
+  }
+
+  /** See {@link EmploymentApi.shiftStateOf}. */
+  @CallSecurity(EmploymentApiCallers)
+  public shiftStateOf(actor: Stuff): 'on-shift' | 'off-shift' {
+    return MixinApi.isEmployed(actor) &&
+      (actor as EmployedActor).isOnShift()
+      ? 'on-shift'
+      : 'off-shift';
+  }
+
+  /** See {@link EmploymentApi.settleShiftWage}. */
+  @CallSecurity(EmploymentApiCallers)
+  public settleShiftWage(
+    business: BusinessStuff,
+    employment: Employment,
+  ): Promise<void> {
+    return settleShiftWageImpl(business, employment);
+  }
+
+  /**
+   * See {@link EmploymentApi.boot}. Run one immediate roster pass (so
+   * on-shift state is correct at boot) then self-register the recurring
+   * game-time tick. Idempotent via the retained handle. The game-time
+   * schedule freezes with a paused world, so accrual freezes too.
+   */
+  @CallSecurity(EmploymentApiCallers)
+  public boot(): void {
+    this.runTick();
+    this.installRosterSchedule();
   }
 }

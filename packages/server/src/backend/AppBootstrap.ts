@@ -33,6 +33,7 @@ import ParticipationStanding from '../mud/lib/standing/ParticipationStanding';
 import { ProducerApi } from '../mud/api/producer';
 import ProducerStanding from '../mud/lib/standing/ProducerStanding';
 import { BankingApi } from '../mud/api/banking';
+import { EmploymentApi } from '../mud/api/employment';
 import { SocialApi } from '../mud/api/social';
 import { BulletinApi } from '../mud/api/bulletin';
 import AccountBalance from '../mud/lib/banking/AccountBalance';
@@ -206,6 +207,13 @@ export class AppBootstrap {
     await AccountBalance.warm();
     await SupplyAggregate.warm();
     BankingApi.boot();
+
+    // Employment engine — run one immediate roster pass (so on-shift state
+    // is correct at boot) then self-register the recurring game-time tick
+    // that maintains each assignee's shift status and settles shift-end
+    // wages. Booted AFTER banking (the wage settlement calls BankingApi) and
+    // after the bootstrap manifest stood up the Business + cast.
+    EmploymentApi.boot();
 
     // Social graph (Wave 3) — install the presence relay: the net-new
     // consumer that fans the four in-world-gated presence transitions
