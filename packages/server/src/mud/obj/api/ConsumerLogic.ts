@@ -32,8 +32,7 @@ import type { CommandDispatchedPayload } from '../../lib/events/CommandDispatche
 // eslint-disable-next-line no-restricted-imports -- sibling logic singletons in one subsystem; class identities feed EventApi.restrictSubscribe's subscriber allowlist (cycle-safe, see comment)
 import { ProducerLogic } from './ProducerLogic';
 
-const ConsumerApiCallers = SecurityPolicies.FromModule(
-  'mud/api/consumer#ConsumerApi'
+const ConsumerApiCallers = SecurityPolicies.FromModule('/api/consumer#ConsumerApi'
 );
 
 /**

@@ -38,6 +38,14 @@ first half of this slate is about.
 
 See also:
 
+- [docs/subsystems/governance.md](../../subsystems/governance.md) —
+  **the first built piece of this slate's structure.** The Office
+  substrate: the apparatus of seats (PM, the three House Speakers, the
+  founder-established Central-Bank Governor), founder-as-default-holder
+  by external credential, sparse handoffs, and the first authority
+  consumer (the Governor gates the central bank's `reserve`). The
+  democratic filling process (investiture / elections / no-confidence /
+  sortition) this slate describes is the deferred next step.
 - [docs/slates/builds/economy-slate.md](./economy-slate.md) — **the
   sibling.** Economy is value-as-physics (how matter and money enter,
   move, leave); this slate is governance *over* that value. The economy

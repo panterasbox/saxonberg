@@ -14,7 +14,7 @@ import type {
   MqlMany,
 } from '../../api/mql/types';
 
-const MqlApiCallers = SecurityPolicies.FromModule('mud/api/mql#MqlApi');
+const MqlApiCallers = SecurityPolicies.FromModule('/api/mql#MqlApi');
 
 /**
  * Decide whether the match list shares a single `via` shape — when every

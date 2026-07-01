@@ -30,7 +30,7 @@ import type { CommandGiver } from "../../lib/command/CommandGiver";
 import type { Script, Pipeline, Command, Arg } from "../../lib/script/ast";
 import type { ParsedCommand } from "../../api/command-line";
 
-const ScriptApiCallers = SecurityPolicies.FromModule("mud/api/script#ScriptApi");
+const ScriptApiCallers = SecurityPolicies.FromModule("/api/script#ScriptApi");
 
 /* ─────────────────────────── impl ─────────────────────────── */
 //

@@ -26,7 +26,7 @@ import type { EmissionData } from '../../api/locomotion';
 const MAX_PASSTHROUGH_DEPTH = 16;
 
 const LocomotionApiCallers = SecurityPolicies.AnyOf(
-  SecurityPolicies.FromModule('mud/api/locomotion#LocomotionApi'),
+  SecurityPolicies.FromModule('/api/locomotion#LocomotionApi'),
   SecurityPolicies.SelfOnly
 );
 
@@ -48,7 +48,7 @@ const LocomotionApiCallers = SecurityPolicies.AnyOf(
  * lookup uses the canonical key.
  *
  * Gating (the guts-variant recipe): every public method carries
- * `AnyOf(FromModule('mud/api/locomotion#LocomotionApi'), SelfOnly)`.
+ * `AnyOf(FromModule('/api/locomotion#LocomotionApi'), SelfOnly)`.
  * `FromModule` admits the Api facade; `SelfOnly` admits the many
  * intra-singleton `this.x()` self-calls (the caller and target are
  * both this singleton). Stateless helpers are module-private free

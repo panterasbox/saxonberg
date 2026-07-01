@@ -19,7 +19,7 @@ import type GroupRegistry from '../GroupRegistry';
 
 const REGISTRY_PATH = TemplatePaths.groupRegistry;
 
-const GroupApiCallers = SecurityPolicies.FromModule('mud/api/group#GroupApi');
+const GroupApiCallers = SecurityPolicies.FromModule('/api/group#GroupApi');
 
 /**
  * Resolve the pinned `GroupRegistry` singleton (the state home), warming
@@ -48,7 +48,7 @@ async function requireRegistry(): Promise<GroupRegistry> {
  * Lives at `/obj/api/group`. Holds the registry-resolution + forwarding;
  * the state lives on the pinned `/obj/GroupRegistry` singleton (whose
  * provider-dispatch methods are ungated, so no gate-widening needed).
- * Each method is gated `FromModule('mud/api/group#GroupApi')` (the Api
+ * Each method is gated `FromModule('/api/group#GroupApi')` (the Api
  * is the only caller; no intra-singleton self-calls).
  *
  * @internal

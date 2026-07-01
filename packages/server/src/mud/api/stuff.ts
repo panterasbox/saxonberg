@@ -749,17 +749,20 @@ export class StuffApi {
    * but ignores the veto result. The `onDestruct` cleanup hook still
    * runs.
    *
-   * Gated by `SecurityPolicies.FromController(DestructController)` —
-   * the **narrow-entry pattern**. Only `DestructController` can
-   * reach this entry point; the controller does the
-   * `AccessApi.can(giver, 'force-destruct', target)` check before
-   * invoking. Combined, the mutation has exactly one legitimate
-   * entry path AND that path enforces who is authorized.
+   * Gated to `DestructController` — the **narrow-entry pattern**. Only
+   * `DestructController` can reach this entry point; the controller does
+   * the `AccessApi.can(giver, 'force-destruct', target)` check before
+   * invoking. Combined, the mutation has exactly one legitimate entry
+   * path AND that path enforces who is authorized.
    *
-   * Direct calls from outside `DestructController`'s module throw
-   * `SecurityError` from the decorator gate before this body runs.
+   * The controller is cloned per execution (`destruct -f`), and
+   * `FromModule` matches it by its class module id (code provenance), so
+   * the cloned instance is admitted directly. Direct calls from any other
+   * module throw `SecurityError`.
    */
-  @CallSecurity(SecurityPolicies.FromModule('mud/obj/command/author/DestructController'))
+  @CallSecurity(
+    SecurityPolicies.FromModule('/obj/command/author/DestructController')
+  )
   public static forceDestruct(object: Stuff): void {
     StuffApi.#destructCore(object, true);
   }

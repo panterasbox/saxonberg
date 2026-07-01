@@ -33,8 +33,7 @@ import type { Container } from '../../lib/spatial/Container';
 import type { GroupRef } from '../../lib/social/GroupProvider';
 import { PersistApi } from '../../api/persist';
 
-const RenownApiCallers = SecurityPolicies.FromModule(
-  'mud/api/renown#RenownApi'
+const RenownApiCallers = SecurityPolicies.FromModule('/api/renown#RenownApi'
 );
 
 /**

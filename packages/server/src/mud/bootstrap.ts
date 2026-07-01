@@ -112,6 +112,17 @@ export const bootstrapManifest: BootstrapEntry[] = [
     templatePath: '/obj/AccessRegistry',
     dependsOn: ['/obj/GroupRegistry'],
   },
+  // OfficeRegistry — government-office substrate singleton (the seats of
+  // government, distinct from groups). `postRegister` warms only the
+  // founder credential config (FOUNDER_GOOGLE_EMAIL / FOUNDER_TWITCH_HANDLE)
+  // into instance fields — NO DB work. The apparatus (the five offices) is
+  // an authored code constant, and occupancy starts empty: every office
+  // resolves to the founder default until a handoff is stored in
+  // `office_holders`. No `dependsOn` — the registry reads its own
+  // `office_holders` collection plus `users`/`google_profiles`/
+  // `twitch_profiles` and env; the founder is not a Group, so there is no
+  // GroupRegistry dependency.
+  { templatePath: '/obj/OfficeRegistry' },
   // AddressRegistry — addressing-substrate singleton holding the
   // PathTrie coverage index (claimed-address-prefix → Locality). Its
   // postRegister eagerly clones the Locality roster under

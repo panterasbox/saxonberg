@@ -493,6 +493,32 @@ checks in controllers (see the
 [command-routing § Stage 4](./command-routing.md#stage-4--resolution--validation)
 note on framework-vs-controller responsibilities).
 
+##### Subcommand-level validators
+
+The same `requires*` (command-shaped) validators may also be
+declared on a **single subcommand** — a `validators:` list under
+`subcommands.<name>:`. They fire after the verb-level validators
+and before field validators, **only when that subcommand is
+invoked**, with `context.commandGiver` populated. This is the tool
+for a verb whose subcommands have different authority: gate one
+subcommand without blocking the verb's other (e.g. public) ones —
+a verb-level validator would gate them all.
+
+```yaml
+subcommands:
+  assign:                       # founder-only
+    validators:
+      - /lib/command/validators/requiresFoundingAuthority
+    args: [ ... ]
+  list:                         # public — no validators
+    description: "..."
+```
+
+`office assign`/`vacate` is the first consumer (founder-gated
+mutation under a verb whose bare roster is public). A failing
+subcommand validator emits a `validator-failed` note labelled
+`subcommand:<name>` and the controller is never cloned.
+
 `mustBeVisible` was removed from the look/inspection verbs — see
 [command-routing.md § Stage 4 — Resolution + validation](./command-routing.md#stage-4--resolution--validation)
 for why (the gate broke `look` against non-`Visible` locations

@@ -295,7 +295,7 @@ describe('ExecutionContextApi', () => {
     });
 
     it('denies a different mixin outside the allowlist (eg. mud/lib/character/)', () => {
-      // Drives home that "mud/lib" alone isn't trusted — only
+      // Drives home that "lib" alone isn't trusted — only
       // specific files in it are. CommandGiver is in by name; a
       // hypothetical NamedMixin.ts is not.
       expect(() =>
@@ -317,7 +317,7 @@ describe('ExecutionContextApi', () => {
         expect(e).toBeInstanceOf(SecurityError);
         const err = e as SecurityError;
         expect(err.message).toContain('tagCurrentFrame');
-        expect(err.message).toContain('mud/domain/evil.ts');
+        expect(err.message).toContain('domain/evil.ts');
       }
     });
   });

@@ -581,7 +581,7 @@ function classify(
   mixinConcepts: Set<string>
 ): HelpKind {
   if (mixinConcepts.has(name)) return "mixin";
-  if (name.endsWith("Api") && module.startsWith("mud/api/")) return "api";
+  if (name.endsWith("Api") && module.startsWith("api/")) return "api";
   return "type";
 }
 

@@ -11,8 +11,7 @@ import { SecurityPolicies } from '../../lib/security/SecurityPolicies';
 import { SourceTreeSandboxError } from '../../lib/shell/SourceTreeSandboxError';
 import type { DirEntry } from '../../api/source-tree';
 
-const SourceTreeApiCallers = SecurityPolicies.FromModule(
-  'mud/api/source-tree#SourceTreeApi'
+const SourceTreeApiCallers = SecurityPolicies.FromModule('/api/source-tree#SourceTreeApi'
 );
 
 /**

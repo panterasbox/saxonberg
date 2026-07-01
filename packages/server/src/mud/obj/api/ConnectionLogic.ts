@@ -14,8 +14,7 @@ import { Events } from '../../lib/events';
 import geoip from 'geoip-lite';
 import type { ConnectionOrigin } from '../../api/connection';
 
-const ConnectionApiCallers = SecurityPolicies.FromModule(
-  'mud/api/connection#ConnectionApi'
+const ConnectionApiCallers = SecurityPolicies.FromModule('/api/connection#ConnectionApi'
 );
 
 /** ISO-3166 alpha-2 → English region display name (e.g. `DE` → `Germany`). */

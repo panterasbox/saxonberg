@@ -164,7 +164,7 @@ The logic class is a stateless `Stuff` (`extends Idea`, **no**
 `PostRegistrationMixin`), marked `@internal` **on the `export class`
 declaration** (a leading file-top comment would become TypeDoc's module
 comment and fail to exclude the class), and each public method carries
-its own `@CallSecurity(FromModule('mud/api/<feature>#<Feature>Api'))`
+its own `@CallSecurity(FromModule('/api/<feature>#<Feature>Api'))`
 gate — per-method, not class-level. The gating recipe (why per-method,
 the intra-singleton self-call gotcha, the `ApiOnly` widening, the
 two-singleton state re-point) lives in

@@ -222,7 +222,7 @@ onBoundary(): void                        // the WorldClock system-schedule call
 
 The three-tier shape mirrors biome/address: `WeatherApi` (thin) →
 `WeatherLogic` (`/obj/api/weather`, stateless, gated
-`AnyOf(FromModule('mud/api/weather#WeatherApi'), SelfOnly)`). There is no
+`AnyOf(FromModule('/api/weather#WeatherApi'), SelfOnly)`). There is no
 registry tier — weather is stateless, so the singleton itself is the
 whole backend.
 

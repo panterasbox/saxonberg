@@ -35,8 +35,7 @@ interface ConferralRefreshable {
   refreshConferrals(): Promise<void>;
 }
 
-const AdvancementApiCallers = SecurityPolicies.FromModule(
-  "mud/api/advancement#AdvancementApi"
+const AdvancementApiCallers = SecurityPolicies.FromModule("/api/advancement#AdvancementApi"
 );
 
 /** Persistence is a no-op unless Mongo is connected (tests, pre-boot). */

@@ -48,20 +48,20 @@ const SURFACE: AuthorSurface = {
     // Container mixin (stuff-methods, face === concept).
     {
       kind: "stuff-method",
-      module: "mud/lib/spatial/Container",
+      module: "lib/spatial/Container",
       face: "Container",
       name: "getContents",
-      qualified: "mud/lib/spatial/Container#Container.getContents",
+      qualified: "lib/spatial/Container#Container.getContents",
       signature: "getContents(): Stuff[]",
       summary: "The items this container holds.",
       signatureTypes: ["Stuff"],
     },
     {
       kind: "stuff-method",
-      module: "mud/lib/spatial/Container",
+      module: "lib/spatial/Container",
       face: "Container",
       name: "addContainable",
-      qualified: "mud/lib/spatial/Container#Container.addContainable",
+      qualified: "lib/spatial/Container#Container.addContainable",
       signature: "addContainable(item: Containable): void",
       summary: "Add an item to this container.",
       signatureTypes: ["Containable"],
@@ -69,17 +69,17 @@ const SURFACE: AuthorSurface = {
     // ContainmentApi (api-static).
     {
       kind: "api-static",
-      module: "mud/api/containment",
+      module: "api/containment",
       face: "ContainmentApi",
       name: "move",
-      qualified: "mud/api/containment#ContainmentApi.move",
+      qualified: "api/containment#ContainmentApi.move",
       signature: "move(item: Stuff & Containable, to: Container): void",
       summary: "Move an item into a container.",
       signatureTypes: ["Container", "Containable"],
     },
   ],
   extension: [],
-  types: [{ id: 900, name: "Grade", module: "mud/lib/craft/Grade", kind: 128 }],
+  types: [{ id: 900, name: "Grade", module: "lib/craft/Grade", kind: 128 }],
 };
 
 async function warmed(): Promise<HelpCatalogue> {

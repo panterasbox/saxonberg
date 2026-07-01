@@ -4,7 +4,7 @@
  * Stable caller-facing surface for the access substrate. Every method
  * delegates through the hot-reloadable {@link AccessLogic} singleton at
  * `/obj/api/access` to the Registry; the Registry's methods carry
- * `@CallSecurity(AnyOf(FromModule('mud/api/access#AccessApi'),
+ * `@CallSecurity(AnyOf(FromModule('/api/access#AccessApi'),
  * FromTemplate('/obj/api/access')))` so the security gate denies any
  * caller outside the access subsystem. External code that grabs the
  * Registry Stuff via `StuffApi.findByTemplatePath` cannot call its
@@ -124,17 +124,16 @@ export class AccessApi {
    * Narrow-entry mutation: add (`makeWizard=true`) or remove the player
    * from the `'wizards'` group. Gated to the `WizardController` (the
    * `wizard grant/revoke` verb) via the string-keyed `FromModule` policy
-   * — string-keyed to avoid a value-level static-import cycle (the
-   * `forceDestruct`/`DestructController` precedent). The *authority*
-   * (the giver's archwizard status) is enforced by the verb's
-   * `requiresArchwizard` validator; this method is the structurally
-   * single entry to the membership write. Returns true iff membership
-   * changed.
+   * — string-keyed to avoid a value-level static-import cycle. The
+   * controller is cloned per execution, and `FromModule` matches it by
+   * its class module id (code provenance), so the cloned instance is
+   * admitted directly. The *authority* (the giver's archwizard status) is
+   * enforced by the verb's `requiresArchwizard` validator; this method is
+   * the structurally single entry to the membership write. Returns true
+   * iff membership changed.
    */
   @CallSecurity(
-    SecurityPolicies.FromModule(
-      'mud/obj/command/author/WizardController'
-    )
+    SecurityPolicies.FromModule('/obj/command/author/WizardController')
   )
   public static async setWizardMembership(
     playerId: string,

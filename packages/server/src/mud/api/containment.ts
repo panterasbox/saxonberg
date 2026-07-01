@@ -147,20 +147,23 @@ export class ContainmentApi {
    * but their veto results are ignored. Post-move `on*` hooks fire
    * identically.
    *
-   * Gated by `SecurityPolicies.FromController(TeleportController,
-   * GotoController)` — the **narrow-entry pattern**. Only the
-   * teleport/goto controllers can reach this entry point; each does
-   * the `AccessApi.can(giver, 'force-teleport' | 'force-goto', ...)`
-   * check before invoking. Combined, the mutation has exactly one
-   * legitimate entry path AND that path enforces who is authorized.
+   * Gated to the `TeleportController` / `GotoController` — the
+   * **narrow-entry pattern**. Only the teleport/goto controllers can
+   * reach this entry point; each does the `AccessApi.can(giver,
+   * 'force-teleport' | 'force-goto', ...)` check before invoking.
+   * Combined, the mutation has exactly one legitimate entry path AND
+   * that path enforces who is authorized.
    *
-   * Direct calls from outside those controllers' modules throw
-   * `SecurityError` from the decorator gate before this body runs.
+   * Each controller is cloned per execution (`teleport/goto --force`),
+   * and `FromModule` matches it by its class module id (code provenance),
+   * so the cloned instances are admitted directly — an `AnyOf` of the two
+   * controllers' `FromModule` gates, no `FromTemplate` arms. Direct calls
+   * from any other module throw `SecurityError`.
    */
   @CallSecurity(
     SecurityPolicies.AnyOf(
-      SecurityPolicies.FromModule('mud/obj/command/author/TeleportController'),
-      SecurityPolicies.FromModule('mud/obj/command/author/GotoController'),
+      SecurityPolicies.FromModule('/obj/command/author/TeleportController'),
+      SecurityPolicies.FromModule('/obj/command/author/GotoController'),
     ),
   )
   public static forceMove(

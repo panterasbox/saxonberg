@@ -165,7 +165,7 @@ at minimum `youtube.dailyQuotaUnits`, `youtube.insertCost`,
   free-floating helpers — fold utilities into the Api/logic/Stuff that
   owns them. `YoutubeApi` ends with `SecurityApi.decorateApiClass`;
   `YoutubeLogic` is `@internal`, gated
-  `FromModule('mud/api/youtube#YoutubeApi')`.
+  `FromModule('/api/youtube#YoutubeApi')`.
 - **Backend ↔ mudlib seam.** `mud/` may not import `backend/`. Outbound
   posting reaches `YoutubeClient` exactly as Twitch does: the
   `@internal` `YoutubeLogic` calls down to `YoutubeRelayReader.send()`

@@ -195,6 +195,46 @@ export function findExportedClassNames(source, fileName) {
 }
 
 /**
+ * Rewrite RELATIVE `FromModule('./x' | '../x')` gate strings to their
+ * absolute, mud-rooted form (`/obj/.../x`), resolved against the
+ * **declaring file's own module directory**. Absolute globs (`/obj/…`)
+ * and non-`FromModule` strings are untouched.
+ *
+ * This is what lets a narrow-entry gate be written relative to the file
+ * it lives in — "a caller in my directory / subtree" — that survives a
+ * directory rename, while the runtime matcher (`FromModule` →
+ * `PathPatternApi`) only ever sees absolute globs. Resolution happens
+ * here at transform time because the policy object is built once at
+ * module load, detached from its declaring file; the file's own path is
+ * in hand right here, so we bake the absolute form in and keep the
+ * runtime dumb. Only `FromModule` supports relative — `FromTemplate` is
+ * clone lineage, not file-relative.
+ *
+ * @param {string} source
+ * @param {string} fileUrl
+ * @returns {string}
+ */
+export function resolveRelativeModuleGates(source, fileUrl) {
+  const rawPath = fileUrl.startsWith('file://')
+    ? new URL(fileUrl).pathname
+    : fileUrl;
+  const filePath = rawPath.replace(/\\/g, '/');
+  const mudIdx = filePath.indexOf('/mud/');
+  if (mudIdx < 0) return source;
+  // The declaring module's own mud-rooted id (leading slash, no ext),
+  // then its directory — the base for `./` / `../` resolution.
+  const selfId =
+    '/' +
+    filePath.slice(mudIdx + '/mud/'.length).replace(/\.(ts|tsx|js|mjs|cjs)$/, '');
+  const moduleDir = path.posix.dirname(selfId);
+  return source.replace(
+    /(FromModule\(\s*)(['"])(\.\.?\/[^'"]*)\2/g,
+    (_m, pre, quote, rel) =>
+      `${pre}${quote}${path.posix.resolve(moduleDir, rel)}${quote}`
+  );
+}
+
+/**
  * Apply the transform. Returns the original source unchanged if there
  * are no class exports or the file is skipped.
  *
@@ -204,6 +244,10 @@ export function findExportedClassNames(source, fileName) {
  */
 export function transformSource(source, fileUrl) {
   if (!shouldTransform(fileUrl)) return source;
+  // Relative-gate rewrite is orthogonal to stamping and applies even to
+  // files with no class exports — do it first, on the source everything
+  // else sees.
+  source = resolveRelativeModuleGates(source, fileUrl);
   const fileName = fileUrl.startsWith('file://')
     ? new URL(fileUrl).pathname
     : fileUrl;

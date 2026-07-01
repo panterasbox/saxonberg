@@ -11,8 +11,7 @@ import type {
   ParsedPipeline,
 } from '../../api/command-line';
 
-const CommandLineApiCallers = SecurityPolicies.FromModule(
-  'mud/api/command-line#CommandLineApi'
+const CommandLineApiCallers = SecurityPolicies.FromModule('/api/command-line#CommandLineApi'
 );
 
 /* ─────────────────── Internal lexeme stage ─────────────────── */

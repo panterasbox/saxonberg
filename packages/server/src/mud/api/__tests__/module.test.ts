@@ -25,8 +25,8 @@ describe('ModuleApi', () => {
 
   it('_stampForTest sets the module-id', () => {
     class Foo {}
-    ModuleApi._stampForTest(Foo, 'mud/lib/Foo#Foo');
-    expect(ModuleApi.lookup(Foo)).toBe('mud/lib/Foo#Foo');
+    ModuleApi._stampForTest(Foo, '/lib/Foo#Foo');
+    expect(ModuleApi.lookup(Foo)).toBe('/lib/Foo#Foo');
     ModuleApi._forgetForTest(Foo);
   });
 
