@@ -29,7 +29,7 @@ interface OrderModel extends CommandModel {
 export default class OrderController extends CraftController<OrderModel> {
   async execute(model: OrderModel, context: CommandContext): Promise<void> {
     const giver = context.commandGiver;
-    const menu = resolveMenu(context);
+    const menu = Menu.resolveIn(context);
     if (!menu) {
       MessageApi.scene(giver)
         .topic(TOPIC)
@@ -124,16 +124,4 @@ export default class OrderController extends CraftController<OrderModel> {
       return null; // no credential / insufficient — the bar floats it
     }
   }
-}
-
-/** The affording menu, else the first menu in the room. */
-function resolveMenu(context: CommandContext): Menu | null {
-  if (context.commandSource instanceof Menu) return context.commandSource;
-  const loc = context.location;
-  if (loc && MixinApi.isContainer(loc)) {
-    for (const c of ContainmentApi.getContents(loc)) {
-      if (c instanceof Menu) return c;
-    }
-  }
-  return null;
 }

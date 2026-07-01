@@ -121,6 +121,10 @@ describe('tips — the tip jar', () => {
     const patron = makeStuffAtPath(() => new Patron(), PATRON);
     const bartender = makeStuffAtPath(() => new Bartender(), MARA);
     const jar = makeStuff(() => new TipJar());
+    // The live jar hydrates its seed keywords; the test double needs them
+    // too so `TipJar.resolveIn`'s MQL lookup (`resolveOne('jar')`) resolves
+    // it — a typed `tip`/`collect` carries no affording commandSource.
+    jar.setKeywords(['jar', 'tips']);
     ContainmentApi.move(patron, loc);
     ContainmentApi.move(bartender, loc);
     ContainmentApi.move(jar, loc);

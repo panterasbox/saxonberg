@@ -43,7 +43,7 @@ export default class CollectController extends CommandController<CollectModel> {
     }
     if (!MixinApi.isContainer(giver)) return;
 
-    const jar = resolveJar(context);
+    const jar = TipJar.resolveIn(context);
     if (!jar) {
       MessageApi.scene(giver)
         .topic(TOPIC)
@@ -79,17 +79,4 @@ export default class CollectController extends CommandController<CollectModel> {
       .toPeers(Mml.compose`${Mml.name(giver)} empties the tip jar.`)
       .send();
   }
-}
-
-/** The tip jar affording this verb, else the first jar in the room. */
-function resolveJar(context: CommandContext): (Stuff & Container) | null {
-  const source = context.commandSource as Stuff | undefined;
-  if (source instanceof TipJar) return source;
-  const loc = context.location;
-  if (loc && MixinApi.isContainer(loc)) {
-    for (const c of ContainmentApi.getContents(loc)) {
-      if (c instanceof TipJar) return c;
-    }
-  }
-  return null;
 }

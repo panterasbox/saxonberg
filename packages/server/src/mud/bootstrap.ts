@@ -201,16 +201,12 @@ export const bootstrapManifest: BootstrapEntry[] = [
   // migration, so the warren no longer hand-seats it. Without this entry
   // nothing instantiates the cascade root and the network never stands up.
   { templatePath: '/domain/lounge/terminal' },
-  // Dave's Bar Business — the standalone employment entity (proprietor +
-  // positions + roster + account + operating locations). Warmed + made
-  // enumerable here so `EmploymentLogic` finds it by the `BusinessMixin`
-  // marker (its boot tick materializes the four bartender Employments and
-  // maintains on-shift state on the game clock). Depends on the lounge
-  // cascade above (the bar + the cast NPCs must be live first).
-  {
-    templatePath: '/domain/lounge/business',
-    dependsOn: ['/domain/lounge/terminal'],
-  },
+  // Dave's Bar Business (the standalone employment entity) is NOT a manifest
+  // entry — it stands up with the bar's own content, cloned idempotently in
+  // `Bar.postRegister` (part of the lounge terminal cascade above). That
+  // keeps domain content out of the engine manifest and still guarantees the
+  // Business is live + enumerable before `EmploymentApi.boot()`'s first
+  // roster tick. See `domain/lounge/Bar.ts`.
   // Species clades, perception modalities, and augmentation
   // templates are NOT bootstrapped. Same lazy-load pattern as
   // locomotion modes / topic-catalogue leaves:

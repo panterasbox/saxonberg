@@ -16,7 +16,8 @@
 import Thing from '../../lib/stuff/Thing';
 import { ContainerMixin } from '../../lib/spatial/Container';
 import { DetailedMixin } from '../../lib/description/Detailed';
-import type { CommandContributions } from '../../api/command';
+import { MqlApi } from '../../api/mql';
+import type { CommandContext, CommandContributions } from '../../api/command';
 
 const TipJarBase = ContainerMixin(DetailedMixin(Thing));
 
@@ -33,4 +34,21 @@ export default class TipJar extends TipJarBase {
     inventory: [],
     peers: [],
   };
+
+  /**
+   * Resolve the tip jar a `tip` / `collect` command targets: the affording
+   * jar (an affordance click sets it as `commandSource`), else the jar
+   * reachable from the giver via MQL — object resolution goes through the
+   * query layer, not a hand-rolled room scan. Type-narrowed so a stray
+   * `jar`-keyworded object never masquerades as the tip jar.
+   */
+  static resolveIn(context: CommandContext): TipJar | null {
+    const source = context.commandSource;
+    if (source instanceof TipJar) return source;
+    const r = MqlApi.resolveOne('jar', {
+      commandGiver: context.commandGiver,
+      scope: 'reachable',
+    });
+    return r.stuff instanceof TipJar ? r.stuff : null;
+  }
 }

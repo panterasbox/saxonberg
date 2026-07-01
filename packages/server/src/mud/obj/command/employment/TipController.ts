@@ -16,12 +16,8 @@ import type { CommandContext, CommandModel } from '../../../api/command';
 import { BankingApi, Money } from '../../../api/banking';
 import type { Charge } from '../../../api/banking';
 import { EmploymentApi } from '../../../api/employment';
-import { ContainmentApi } from '../../../api/containment';
-import { MixinApi } from '../../../api/mixin';
 import { MessageApi } from '../../../api/message';
 import { Mml } from '../../../api/mml';
-import type { Stuff } from '../../../lib/stuff/Stuff';
-import type { Container } from '../../../lib/spatial/Container';
 import TipJar from '../../../domain/lounge/TipJar';
 
 const TOPIC = 'world.narration.action';
@@ -49,7 +45,7 @@ export default class TipController extends CommandController<TipModel> {
       return;
     }
 
-    const jar = resolveJar(context);
+    const jar = TipJar.resolveIn(context);
 
     // Cash route (default): drop coin in the jar — off the books.
     if (!model.eft && jar) {
@@ -145,17 +141,4 @@ export default class TipController extends CommandController<TipModel> {
       });
     }
   }
-}
-
-/** The tip jar affording this verb, else the first jar in the room. */
-function resolveJar(context: CommandContext): (Stuff & Container) | null {
-  const source = context.commandSource as Stuff | undefined;
-  if (source instanceof TipJar) return source;
-  const loc = context.location;
-  if (loc && MixinApi.isContainer(loc)) {
-    for (const c of ContainmentApi.getContents(loc)) {
-      if (c instanceof TipJar) return c;
-    }
-  }
-  return null;
 }
