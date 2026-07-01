@@ -401,6 +401,23 @@ reason.
   system, charactergen, crafting, banking, governance, stream.
 - **Command controllers**: in `mud/obj/command/<category>/`, e.g.
   `perception/LookController.ts`, `movement/GoController.ts`.
+- **Backing-class path mirrors template path** (convention, not
+  enforced). A Stuff's source file should sit at the path that mirrors
+  its clone-namespace template path, so you can find one from the other
+  by just adding/dropping the leading slash. This falls out of the two
+  identity namespaces the call-security gates use — a **module-id**
+  (source-file space, no leading slash: `obj/command/governance/OfficeController`)
+  and a **template path** (clone-instance space, leading slash:
+  `/obj/command/governance/OfficeController`) — which after the module-id
+  reroot differ *only* by that slash. Keeping the source in step means
+  `FromModule('obj/…')` and `FromTemplate('/obj/…')` for the same thing
+  read identically bar the slash. Holds today for content classes,
+  singletons (`obj/OfficeRegistry.ts` → `/obj/OfficeRegistry`), and
+  controllers. **The one deliberate exception is the `*Logic` singletons**:
+  the template is named for the feature while the class is named for the
+  logic — `obj/api/OfficeLogic.ts` registers at `/obj/api/office`
+  (same directory, different leaf). New code should follow the mirror
+  unless it's an Api/logic singleton.
 
 ## Member Privacy: `#` vs TypeScript Modifiers
 
