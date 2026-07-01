@@ -21,7 +21,7 @@ this doc notes the seams they plug into.
 class: /lib/npc/NPC
 data:
   behaviors:
-    - { brain: /lib/behavior/shifts, trigger: cadence:60s, config: { schedule: [...] } }
+    - { brain: /lib/behavior/shifts, trigger: cadence:60s, config: { behindBar, offstage } }
     - { brain: /lib/behavior/idles,  trigger: cadence:9s,  config: { pool: [...] } }
     - { brain: /lib/behavior/greets, trigger: arrival,     config: { lines: [...] } }
 ```
@@ -206,7 +206,8 @@ the seen-set) is runtime-only and re-installed from the persisted
 | `patrols` | cadence | `body` | `attention` | traverse the next route direction (index in `state`) | `{ route: string[] }` |
 | `greets` | `arrival` | `attention` | — | greet the arriver (directed) | `{ lines: string[] }` |
 | `reacts` | `emote` | `attention` | — | emote/speak back at the perceived actor | `{ reactions: {to?,emote?,respond?}[] }` |
-| `shifts` | cadence | — | — | migrate by shift state (teleport) | `{ schedule, behindBar, railStool, offstage }` |
+| `shifts` | cadence | — | — | migrate by employment shift state (teleport) | `{ behindBar, offstage, railStool? }` |
+| `covers` | cadence | — | — | proprietor covers when no on-shift maker is present (`beginCover`/`endCover`) | `{}` |
 | `tree-dialogue` | `engage` | `voice,attention` | — | none — reached via `open`, opens a `DialogueConversation` ([npc-dialogue.md](./npc-dialogue.md)) | the dialogue tree |
 | `introduces` | `arrival` | `attention` | — | introduces the host to a newcomer (`learnIdentity`) unless already known | — |
 
@@ -216,11 +217,17 @@ in [trait.md](./trait.md).) The speech/idle cadence brains declare
 mid-conversation (a `DialogueConversation` holds both slots) — the spoken
 dialogue isn't muddied by ambient chatter.
 
-`shifts` reads the game clock (`WorldClockApi` + `DefaultCalendar`),
-finds the matching schedule entry, and migrates the NPC to `behindBar`
-(`on-shift`), `railStool` (`off-shift-day` — present as a patron, the
-warmth tell), or `offstage` (`fully-off`). It is **not** presence-gated
-(it must run unwatched to move off-stage cast). This is
+`shifts` reads the host's shift state from the **employment engine**
+(`EmploymentApi.shiftStateOf`, a sync read of the roster-maintained
+`Employment.status`) and migrates the NPC to `behindBar` (on-shift) or
+`offstage` (off-shift) — presence is now a *consequence* of employment
+state, not a clock read (the schedule lives on the Business roster; see
+[employment.md](./employment.md)). `railStool` is a reserved config key for
+the deferred off-shift-at-the-rail presence. It is **not** presence-gated (it
+must run unwatched to move off-stage cast). The sibling **`covers`** brain is
+the proprietor's cover-driver: on a presence-gated cadence, if no other
+active on-shift maker is present it `beginCover`s a transient unpaid
+`MakerMixin`-conferring shift so an `order` still finds a fulfiller. This is
 presence/migration only — the in-room shift-*change* ritual (count-out,
 reconcile, hand-off) is a later scripting wave.
 
@@ -282,7 +289,7 @@ dangling brain path is caught at author time, not silently at spawn.
 | `BehavedMixin` + `Behaved` | `lib/behavior/Behaved.ts` | Reads `behaviors:`, wires triggers, re-resolves brains, runs slot contention |
 | `BehaviorSpec` / `BrainContext` / `BrainStatics` / `parseTrigger` vocab | `lib/behavior/brain.ts` | The brain category contract + trigger alias table |
 | `BehaviorBeat` | `lib/behavior/BehaviorBeat.ts` | Generic short `DurativeActivity` that holds a slot for the contention window |
-| The seven brains | `lib/behavior/{idles,random-chatter,wanders,patrols,greets,reacts,shifts}.ts` | Path-resolved strategy modules |
+| The canned brains | `lib/behavior/{idles,random-chatter,wanders,patrols,greets,reacts,shifts,covers}.ts` | Path-resolved strategy modules (`covers` = the proprietor cover-driver; see [employment.md](./employment.md)) |
 | `NPC` | `lib/npc/NPC.ts` | `Character` + `Behaved` archetype |
 | `StuffApi.resolveExport` / `resolveExportSync` | `api/stuff.ts` | Path → fs → hot-reload registry brain-export seam |
 | `validateBehaviorPaths` | `obj/api/CmsLogic.ts` | Save-gate brain-path validation |

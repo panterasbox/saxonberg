@@ -9,6 +9,7 @@ import { BankingControllerBase } from "./BankingControllerBase";
 import type { CommandContext, CommandModel } from "../../../api/command";
 import type { MqlOneResult } from "../../../api/mql";
 import { BankingApi, Money } from "../../../api/banking";
+import { EmploymentApi } from "../../../api/employment";
 import { MessageApi } from "../../../api/message";
 import { Mml } from "../../../api/mml";
 
@@ -35,10 +36,24 @@ export default class HouseController extends BankingControllerBase<HouseModel> {
     }
   }
 
+  /**
+   * The house account owner-key: the Business operating here (its account
+   * keys on the Business path, so it survives a venue move and matches the
+   * order/wage flows), falling back to the giver's own proprietor-business
+   * (running `house pnl` from elsewhere), then the raw venue path.
+   */
+  private houseOwnerKey(context: CommandContext): string {
+    const venuePath = context.location?.getTemplatePath() ?? "";
+    const here = venuePath ? EmploymentApi.businessAt(venuePath) : null;
+    const mine = EmploymentApi.businessOfProprietor(context.commandGiver);
+    return (here ?? mine)?.getAccountPath() ?? venuePath;
+  }
+
   private async pnl(context: CommandContext): Promise<void> {
     const giver = context.commandGiver;
-    const venuePath = context.location?.getTemplatePath() ?? "";
-    const account = await BankingApi.primaryAccountIdOf(venuePath);
+    const account = await BankingApi.primaryAccountIdOf(
+      this.houseOwnerKey(context),
+    );
     if (!account) {
       MessageApi.scene(giver).topic(TOPIC).toSelf(Mml.compose`There's no house account here to report on.`).send();
       context.note({ kind: "controller-rejected", reason: "no-venue-account", detail: "pnl" });
@@ -72,8 +87,9 @@ export default class HouseController extends BankingControllerBase<HouseModel> {
       context.note({ kind: "empty-result", field: "worker", query: model.worker?.raw ?? "" });
       return;
     }
-    const venuePath = context.location?.getTemplatePath() ?? "";
-    const employerAccount = await BankingApi.primaryAccountIdOf(venuePath);
+    const employerAccount = await BankingApi.primaryAccountIdOf(
+      this.houseOwnerKey(context),
+    );
     if (!employerAccount) {
       MessageApi.scene(giver).topic(TOPIC).toSelf(Mml.compose`There's no house account here to pay wages from.`).send();
       context.note({ kind: "controller-rejected", reason: "no-venue-account", detail: "payroll" });

@@ -11,8 +11,6 @@ import { CommandController } from '../../../lib/command/CommandController';
 import type { CommandContext, CommandModel } from '../../../api/command';
 import type { MqlOneResult } from '../../../api/mql';
 import { CraftingApi } from '../../../api/crafting';
-import { ContainmentApi } from '../../../api/containment';
-import { MixinApi } from '../../../api/mixin';
 import { MessageApi } from '../../../api/message';
 import { Mml } from '../../../api/mml';
 import { RecipeKnowledge } from '../../../lib/script/RecipeKnowledge';
@@ -61,16 +59,9 @@ export default class MenuController extends CommandController<MenuModel> {
   }
 }
 
-/** The named target, else the affording menu, else the first menu in the room. */
+/** The named target (already MQL-bound), else the affording / reachable menu. */
 function resolveMenu(model: MenuModel, context: CommandContext): Menu | null {
   const named = model.target?.stuff;
   if (named instanceof Menu) return named;
-  if (context.commandSource instanceof Menu) return context.commandSource;
-  const loc = context.location;
-  if (loc && MixinApi.isContainer(loc)) {
-    for (const c of ContainmentApi.getContents(loc)) {
-      if (c instanceof Menu) return c;
-    }
-  }
-  return null;
+  return Menu.resolveIn(context);
 }

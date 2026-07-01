@@ -20,6 +20,11 @@ import { PostRegistrationMixin } from '../../lib/stuff/PostRegistration';
 import { PopulatesMixin } from '../../lib/stuff/Populates';
 import { SingletonMixin } from '../../lib/stuff/Singleton';
 import { TabMixin } from '../../lib/banking/Tab';
+import { StuffApi } from '../../api/stuff';
+import { Template } from '../../lib/stuff/Template';
+
+/** The Business authored for this bar (loaded with the bar, not the manifest). */
+const BUSINESS_PATH = '/domain/lounge/business';
 
 // `PopulatesMixin` lets the bar stock itself declaratively from the seed's
 // `populates:` list on hydration — the crafting fixtures (back-bar, bottles
@@ -46,5 +51,16 @@ export default class Bar extends BarBase {
 
   public override async postRegister(_context?: unknown): Promise<void> {
     this.verifyOutboundExits();
+    // Stand up the bar's Business with the bar's own content (like the cast
+    // + fixtures) rather than as a top-level engine singleton in the
+    // bootstrap manifest. Guarded on the template being authored + seeded so
+    // a bar cloned without one (tests, another context) stands up fine — the
+    // `AccessRegistry.findByPath`-before-clone precedent. `singletonOrClone`
+    // is idempotent (an HMR re-clone reuses the live instance). It resolves
+    // before `EmploymentApi.boot()`'s first roster tick (the engine boots
+    // after the lounge cascade), so the staff are placed from the first tick.
+    if (await Template.findByPath(BUSINESS_PATH)) {
+      await StuffApi.singletonOrClone(BUSINESS_PATH);
+    }
   }
 }

@@ -39,15 +39,13 @@ data:
     # learn who they are (the NPC half of the auto-introduce feature).
     - brain: /lib/behavior/introduces
       trigger: arrival
-    # Dave rarely leaves the office — a short evening turn about the floor.
-    - brain: /lib/behavior/shifts
+    # Dave is the proprietor, not a rostered assignee — he covers the bar
+    # when no rostered bartender is on shift. The `covers` brain begins a
+    # transient, unpaid cover that confers MakerMixin, so an `order` still
+    # finds a fulfiller. Shift scheduling lives on the Business roster now.
+    - brain: /lib/behavior/covers
       trigger: cadence:30s
-      config:
-        behindBar: /domain/lounge/bar
-        railStool: /domain/lounge/bar
-        offstage: /domain/lounge/offstage
-        schedule:
-          - { days: [0, 1, 2, 3, 4, 5, 6], hours: [21, 23], state: on-shift }
+      config: {}
     - brain: /lib/behavior/idles
       trigger: cadence:15s
       config:

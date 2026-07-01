@@ -18,7 +18,8 @@
 
 import Thing from '../../lib/stuff/Thing';
 import { DetailedMixin } from '../../lib/description/Detailed';
-import type { CommandContributions } from '../../api/command';
+import { MqlApi } from '../../api/mql';
+import type { CommandContext, CommandContributions } from '../../api/command';
 import { CraftingApi } from '../../api/crafting';
 
 // Thing already composes Visible + Perceptible + Tangible + Containable.
@@ -26,6 +27,24 @@ const MenuBase = DetailedMixin(Thing);
 
 export default class Menu extends MenuBase {
   static persistentFields = ['offeredRecipes', 'prices'];
+
+  /**
+   * Resolve the menu an `order` / `menu` command works off: the affording
+   * menu (an affordance click sets it as `commandSource`), else the menu
+   * among the room's occupants. Object enumeration goes through MQL (the
+   * `peers` seed), not a hand-rolled containment scan; the `instanceof`
+   * check is the interim type filter. Callers with an explicit `named`
+   * target resolve that first (already MQL-bound) before falling back here.
+   */
+  static resolveIn(context: CommandContext): Menu | null {
+    const source = context.commandSource;
+    if (source instanceof Menu) return source;
+    const peers = MqlApi.resolveMany('peers', {
+      commandGiver: context.commandGiver,
+      scope: 'reachable',
+    });
+    return peers.stuff.find((s): s is Menu => s instanceof Menu) ?? null;
+  }
 
   /**
    * The crafting verb surface lights up wherever a Menu is present (in the

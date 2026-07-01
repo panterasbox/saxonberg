@@ -178,11 +178,17 @@ reissue).
   bar's Menu (the affordance carrier in the room) and records against the
   venue's `TabMixin`.
 - **Wages** — `BankingApi.payWage(employerAccount, workerKey, amount)` moves
-  coin to the worker's primary account as a `wage`/`wages` line. *Who* is
-  employed is authored (out of scope); this is the payment only. **No
-  employer-solvency check** — the venue runs its P&L red by design (subsidy
-  covers). `house payroll <worker> <amount>` (operator-gated via `AuthorMixin`
-  + `requiresWizard`) pays from the present venue's account.
+  coin to the worker's primary account as a `wage`/`wages` line — the payment
+  primitive only. *Who* is employed + *when they're paid* is now the
+  **employment engine**: the roster tick settles a shift wage
+  (`EmploymentApi.settleShiftWage`, `rate × shift-hours` at the shift-end
+  boundary) from the **Business account**, skipping the proprietor's unpaid
+  cover — see [employment.md](./employment.md). **No employer-solvency
+  check** — the venue runs its P&L red by design (subsidy covers). `house
+  payroll <worker> <amount>` (operator-gated via `AuthorMixin` +
+  `requiresWizard`) stays the manual override, resolving the venue's account
+  via the covering Business (`EmploymentApi.businessAt`), now redundant for
+  the normal loop.
 - **Demo sales tax** — `BankingApi.remitDemoTax(sellerAccount, saleAmount)`:
   a **seller-collected** `tax`/`tax` posting seller → placeholder treasury at
   the authored, **inert** rate (`banking.salesTaxRate` AppSetting; recorded,

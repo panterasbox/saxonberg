@@ -9,7 +9,7 @@
 
 import { CommandController } from "../../../lib/command/CommandController";
 import type { CommandContext, CommandModel } from "../../../api/command";
-import { ContainmentApi } from "../../../api/containment";
+import { MqlApi } from "../../../api/mql";
 import { MixinApi } from "../../../api/mixin";
 import type { Stuff } from "../../../lib/stuff/Stuff";
 import type { Bank } from "../../../lib/banking/Bank";
@@ -18,17 +18,29 @@ import type { Tab } from "../../../lib/banking/Tab";
 export abstract class BankingControllerBase<
   T extends CommandModel = CommandModel,
 > extends CommandController<T> {
-  /** The affording bank counter, else the first BankMixin host in the room. */
+  /**
+   * MQL enumeration of the room's occupants (the `peers` seed) — the shared
+   * candidate pool the capability filters below run over, in place of a
+   * hand-rolled containment scan.
+   */
+  private peers(context: CommandContext): Stuff[] {
+    return MqlApi.resolveMany("peers", {
+      commandGiver: context.commandGiver,
+      scope: "reachable",
+    }).stuff;
+  }
+
+  /** The affording bank counter, else the BankMixin host present in the room. */
   protected resolveBank(context: CommandContext): (Stuff & Bank) | null {
     const source = context.commandSource as Stuff | undefined;
     if (source && MixinApi.isBank(source)) return source;
-    const loc = context.location;
-    if (loc && MixinApi.isContainer(loc)) {
-      for (const c of ContainmentApi.getContents(loc)) {
-        if (MixinApi.isBank(c)) return c as Stuff & Bank;
-      }
-    }
-    return null;
+    // MQL enumerates; `isBank` is the interim capability filter (a future
+    // MQL type/mixin predicate subsumes it).
+    return (
+      this.peers(context).find((s): s is Stuff & Bank =>
+        MixinApi.isBank(s),
+      ) ?? null
+    );
   }
 
   /** The establishment the actor is in (a TabMixin Location), or null. */
@@ -38,13 +50,8 @@ export abstract class BankingControllerBase<
     return null;
   }
 
-  /** A present bartender (a MakerMixin agent) — the house's representative. */
+  /** A present bartender (an active MakerMixin agent) — the house's rep. */
   protected presentBartender(context: CommandContext): Stuff | null {
-    const loc = context.location;
-    if (!loc || !MixinApi.isContainer(loc)) return null;
-    for (const c of ContainmentApi.getContents(loc)) {
-      if (MixinApi.isMaker(c)) return c;
-    }
-    return null;
+    return this.peers(context).find((s) => MixinApi.isMaker(s)) ?? null;
   }
 }

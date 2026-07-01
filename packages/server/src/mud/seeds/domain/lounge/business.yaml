@@ -1,0 +1,56 @@
+# Dave's Bar — the Business entity.
+#
+# A Business is its own standalone entity, NOT a property of the room: it
+# owns the proprietor, the positions, the roster, its account, and the list
+# of operating locations. This is what lets the job span locations, the
+# proprietor be absent, and the business outlive its proprietor (the
+# Dave->Augie->Mara succession the cast implies). The Bar stays a dumb
+# Location with zero employment data; the employment engine finds this
+# Business by the BusinessMixin marker, never a field on the room.
+#
+# The house account keys on THIS path (/domain/lounge/business), so order
+# income (OrderController) and shift wages (the roster tick) settle on one
+# account — the deficit P&L reads them together. See
+# docs/subsystems/employment.md.
+class: /lib/employment/Business
+hydratorClass: /lib/persistence/PersistentHydrator
+data:
+  # The proprietor edge (a replaceable pointer, not a group): Dave. Checked
+  # by EmploymentApi.isProprietorOf; the covers brain reads it too. His own
+  # cover shift draws no wage (the settlement skips the proprietor).
+  proprietorPath: /domain/lounge/npc/dave
+  # The one position v1. `wageRate` is minor units per game-hour on shift
+  # (a tuning placeholder — an 8h shift ~ 32, a modest labor line against
+  # the deliberately-red P&L). `confers` is the on-shift capability grant:
+  # while on shift the holder's gated MakerMixin goes active, so the present
+  # bartender fulfills `order`.
+  positions:
+    - key: bartender
+      label: tending bar
+      wageRate: 4
+      confers: [MakerMixin]
+  # The roster — the single source of truth for who tends and when. The
+  # schedules are lifted verbatim from what each NPC's `shifts` brain read
+  # before this build (the brain now just reacts to the state this drives).
+  # Weekdays are 0-based; hours are a half-open [start, end) window.
+  rosterSlots:
+    - positionKey: bartender
+      assignee: /domain/lounge/npc/mara
+      schedule:
+        - { days: [0, 1, 2, 3, 4], hours: [6, 14] }
+    - positionKey: bartender
+      assignee: /domain/lounge/npc/remy
+      schedule:
+        - { days: [0, 1, 2, 3, 4], hours: [14, 22] }
+    - positionKey: bartender
+      assignee: /domain/lounge/npc/sloane
+      schedule:
+        # The after-hours close — two windows cover the midnight wrap.
+        - { days: [0, 1, 2, 3, 4], hours: [22, 24] }
+        - { days: [0, 1, 2, 3, 4], hours: [0, 6] }
+    - positionKey: bartender
+      assignee: /domain/lounge/npc/augie
+      schedule:
+        - { days: [5, 6], hours: [10, 24] }
+  operatingLocations:
+    - /domain/lounge/bar

@@ -46,6 +46,7 @@ import { AdvancementMixin } from '../advancement/Advancement';
 import { EngagedMixin } from '../activity/Engaged';
 import { BeliefStoreMixin } from '../belief/BeliefStore';
 import { StatusMixin } from '../status/Status';
+import { EmployedMixin } from '../employment/Employed';
 
 // Compose the agency mixins on top of the Creature body layer.
 // Order matters:
@@ -89,7 +90,9 @@ const CharacterBase = AdvancementMixin(
             PerceiverMixin(
               SensorMixin(
                 GenderedMixin(
-                  PersonaMixin(StatusMixin(BeliefStoreMixin(Creature)))
+                  PersonaMixin(
+                    StatusMixin(BeliefStoreMixin(EmployedMixin(Creature)))
+                  )
                 )
               )
             )

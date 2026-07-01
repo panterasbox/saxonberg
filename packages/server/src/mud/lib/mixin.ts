@@ -130,6 +130,10 @@ export const Mixins = {
   // Haulage — a dragged container (cart) and the creature that pulls it.
   Haulable: 'HaulableMixin',
   Hauler: 'HaulerMixin',
+  // Employment — the standalone Business entity and an actor's employment
+  // relationships (an on-shift Position confers its duties via augments).
+  Business: 'BusinessMixin',
+  Employed: 'EmployedMixin',
 } as const;
 
 /**

@@ -113,6 +113,8 @@ import type { Maker } from '../lib/craft/Maker';
 import type { Builds } from '../lib/craft/ManualBuild';
 import type { Bank } from '../lib/banking/Bank';
 import type { Tab } from '../lib/banking/Tab';
+import type { Business } from '../lib/employment/Business';
+import type { Employed } from '../lib/employment/Employed';
 import { SecurityApi } from './security';
 import { ShadowApi } from './shadow';
 
@@ -832,8 +834,17 @@ export class MixinApi {
     return this.hasMixin(obj, Mixins.Crafted);
   }
 
+  /**
+   * Whether `obj` can **currently** fulfill an order. `MakerMixin` is
+   * augment-gated, so this routes through {@link isActive} (activeness),
+   * not {@link hasMixin} (composition): a bar `Crafter` composes
+   * `MakerMixin` always but is a maker only while its on-shift Position
+   * confers it. The two `isMaker` consumers — `CraftingLogic.resolveMaker`
+   * (order fulfilment) and `BankingControllerBase` (the house
+   * representative) — thereby resolve only the on-shift bartender.
+   */
   public static isMaker(obj: Stuff): obj is Stuff & Maker {
-    return this.hasMixin(obj, Mixins.Maker);
+    return this.isActive(obj, Mixins.Maker);
   }
 
   /** A manual-build vessel — the shaker/mixing-glass that buffers a build. */
@@ -847,6 +858,16 @@ export class MixinApi {
 
   public static isTab(obj: Stuff): obj is Stuff & Tab {
     return this.hasMixin(obj, Mixins.Tab);
+  }
+
+  /** A standalone employing Business (the `BusinessMixin` marker). */
+  public static isBusiness(obj: Stuff): obj is Stuff & Business {
+    return this.hasMixin(obj, Mixins.Business);
+  }
+
+  /** An actor that can hold employment relationships (`EmployedMixin`). */
+  public static isEmployed(obj: Stuff): obj is Stuff & Employed {
+    return this.hasMixin(obj, Mixins.Employed);
   }
 
   /**
@@ -1172,6 +1193,23 @@ function collectAugmentConferralNames(stuff: Stuff): Set<string> {
       innate = undefined;
     }
     if (innate) for (const name of innate) out.add(name);
+  }
+  // Employment conferral: an on-shift Position confers its `confers`
+  // mixins on the holder (the `getConferredMixinNames` seam on
+  // `EmployedMixin`). The same structural soft-lookup — no import of the
+  // employment layer — so an on-shift bartender's gated `MakerMixin` goes
+  // active and an off-shift one's goes inert.
+  const employed = stuff as unknown as {
+    getConferredMixinNames?: () => readonly string[];
+  };
+  if (typeof employed.getConferredMixinNames === 'function') {
+    let names: readonly string[] | undefined;
+    try {
+      names = employed.getConferredMixinNames();
+    } catch {
+      names = undefined;
+    }
+    if (names) for (const name of names) out.add(name);
   }
   return out;
 }

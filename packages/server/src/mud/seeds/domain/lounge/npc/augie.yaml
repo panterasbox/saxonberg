@@ -34,8 +34,6 @@ data:
         behindBar: /domain/lounge/bar
         railStool: /domain/lounge/bar
         offstage: /domain/lounge/offstage
-        schedule:
-          - { days: [5, 6], hours: [10, 24], state: on-shift }
     - brain: /lib/behavior/idles
       trigger: cadence:13s
       config:
