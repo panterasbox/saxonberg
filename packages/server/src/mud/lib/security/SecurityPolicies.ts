@@ -171,6 +171,15 @@ function FromTemplate(glob: string): SecurityPolicy {
  *     the "developers don't trust each other" story where a subsystem
  *     owner gates onward calls into their module's privileged surface.
  *
+ * A glob may also be written **relative** (`'./Sibling'`, `'../peer/**'`)
+ * — resolved to the absolute form at load time by the loader transform
+ * (`resolveRelativeModuleGates`), relative to the *declaring file's*
+ * module directory. Useful for intra-subsystem "only my siblings/subtree
+ * may call this" gates that survive a directory move. Only `FromModule`
+ * takes relative globs (`FromTemplate` is clone lineage, not
+ * file-relative); by the time a glob reaches this policy it is always
+ * absolute.
+ *
  * `opts.includeSubclasses` (default: `false`) walks the caller's class
  * prototype chain looking for ANY ancestor whose module ID matches.
  * Set this for "this class and any subclass" rules.

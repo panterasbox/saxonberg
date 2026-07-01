@@ -31,7 +31,7 @@
 
 import { readFileSync, readdirSync, existsSync, statSync } from "fs";
 import { fileURLToPath } from "url";
-import { dirname, join, relative } from "path";
+import { dirname, join, relative, resolve as resolvePath } from "path";
 
 const EXIT_ON_FINDINGS = true; // CI-gating (flipped at end of P3)
 
@@ -81,10 +81,14 @@ function checkString(raw: string, file: string, findings: Finding[]): void {
   const modulePath = hashAt === -1 ? raw : raw.slice(0, hashAt);
   const exportName = hashAt === -1 ? null : raw.slice(hashAt + 1);
 
-  // Module ids are `mud`-rooted, leading-slash absolute (`/obj/…`,
-  // `/api/…`, `/lib/…`) — see SOURCE_ROOT_HINTS in api/module.ts. Drop the
-  // leading slash and resolve under src/mud/.
-  const base = join(MUD_ROOT, modulePath.replace(/^\//, ""));
+  // A relative gate string (`./x` / `../x`) resolves against the
+  // DECLARING file's directory (the transform bakes it to absolute at
+  // load time — see resolveRelativeModuleGates in the loader transform).
+  // An absolute module id is `mud`-rooted, leading-slash (`/obj/…`) — drop
+  // the slash and resolve under src/mud/.
+  const base = modulePath.startsWith(".")
+    ? resolvePath(dirname(file), modulePath)
+    : join(MUD_ROOT, modulePath.replace(/^\//, ""));
   const candidates = [`${base}.ts`, `${base}.tsx`, join(base, "index.ts")];
   const found = candidates.find((p) => existsSync(p));
   if (!found) {
