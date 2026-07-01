@@ -99,6 +99,23 @@ export class EmploymentApi {
     return logic().quit(actor, businessPath);
   }
 
+  /**
+   * Begin a proprietor covering their own bar — a transient on-shift
+   * Employment against the first position, conferring its capability
+   * (`MakerMixin`). Unpaid by construction. Returns the cover record.
+   */
+  public static beginCover(
+    self: Stuff,
+    business: BusinessStuff,
+  ): Employment | null {
+    return logic().beginCover(self, business);
+  }
+
+  /** End a proprietor's cover — drop the transient cover Employment. */
+  public static endCover(self: Stuff, business: BusinessStuff): void {
+    return logic().endCover(self, business);
+  }
+
   /** The Business operating at `locationPath`, or null. */
   public static businessAt(locationPath: string): BusinessStuff | null {
     return logic().businessAt(locationPath);

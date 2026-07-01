@@ -81,6 +81,41 @@ function endEmploymentImpl(
 }
 
 /**
+ * Begin a proprietor's cover: upsert a **transient, on-shift** Employment
+ * against the business's (first) position — reusing the whole on-shift→
+ * confer path, so the covering proprietor gains the Position's capability
+ * (`MakerMixin` for the bar). Unpaid by construction: the wage settlement
+ * skips a proprietor-held Employment, and the roster tick never governs the
+ * proprietor (they hold no roster slot), so the cover is never resurrected
+ * or paid. Idempotent-ish: a re-begin just refreshes the record.
+ */
+function beginCoverImpl(
+  self: Stuff,
+  business: BusinessStuff,
+): Employment | null {
+  if (!MixinApi.isEmployed(self)) return null;
+  const businessPath = business.getTemplatePath() ?? '';
+  const positionKey = business.getPositions()[0]?.key;
+  if (!businessPath || !positionKey) return null;
+  const now = WorldClockApi.getNow().rawValue();
+  const record: EmploymentData = {
+    businessPath,
+    positionKey,
+    status: 'on-shift',
+    hiredAt: now,
+    onShiftSince: now,
+  };
+  (self as EmployedActor)._upsertEmployment(record);
+  return Employment.of(record);
+}
+
+/** End a proprietor's cover: drop the transient cover Employment. */
+function endCoverImpl(self: Stuff, business: BusinessStuff): void {
+  if (!MixinApi.isEmployed(self)) return;
+  (self as EmployedActor)._removeEmployment(business.getTemplatePath() ?? '');
+}
+
+/**
  * Settle the wage for a completed shift — the shift-end (on→off transition)
  * is the pay milestone: a **lump of `rate × shift-hours`, once, at the
  * boundary** (not a continuous sweep). `employment` carries the
@@ -292,6 +327,21 @@ export class EmploymentLogic extends Idea {
   @CallSecurity(EmploymentApiCallers)
   public quit(actor: Stuff, businessPath: string): void {
     endEmploymentImpl(actor, businessPath, 'quit');
+  }
+
+  /** See {@link EmploymentApi.beginCover}. */
+  @CallSecurity(EmploymentApiCallers)
+  public beginCover(
+    self: Stuff,
+    business: BusinessStuff,
+  ): Employment | null {
+    return beginCoverImpl(self, business);
+  }
+
+  /** See {@link EmploymentApi.endCover}. */
+  @CallSecurity(EmploymentApiCallers)
+  public endCover(self: Stuff, business: BusinessStuff): void {
+    endCoverImpl(self, business);
   }
 
   /** See {@link EmploymentApi.businessAt}. */

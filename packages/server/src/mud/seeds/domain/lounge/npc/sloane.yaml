@@ -1,6 +1,7 @@
 # Sloane — the Confessor (night shift, weekdays; wraps past midnight).
 # Brooding, perceptive, secretive. Says little, sees everything, keeper
-# of the after-hours. Two schedule entries cover the midnight wrap.
+# of the after-hours (the night close, wrapping past midnight — the
+# schedule lives on the Business roster now).
 class: /lib/character/Crafter
 hydratorClass: /lib/persistence/PersistentHydrator
 data:
@@ -30,9 +31,6 @@ data:
         behindBar: /domain/lounge/bar
         railStool: /domain/lounge/bar
         offstage: /domain/lounge/offstage
-        schedule:
-          - { days: [0, 1, 2, 3, 4], hours: [22, 24], state: on-shift }
-          - { days: [0, 1, 2, 3, 4], hours: [0, 6], state: on-shift }
     - brain: /lib/behavior/idles
       trigger: cadence:14s
       config:
