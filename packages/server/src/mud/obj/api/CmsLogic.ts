@@ -30,7 +30,7 @@ import type {
   CmsWriteResult,
 } from '@saxonberg/types';
 
-const CmsApiCallers = SecurityPolicies.FromModule('api/cms#CmsApi');
+const CmsApiCallers = SecurityPolicies.FromModule('/api/cms#CmsApi');
 
 /** Last segment of a backend path, for display. Root → ''. */
 function lastSegment(path: string): string {

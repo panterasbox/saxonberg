@@ -11,8 +11,7 @@ import type AccessRegistry from '../AccessRegistry';
 
 const REGISTRY_PATH = TemplatePaths.accessRegistry;
 
-const AccessApiCallers = SecurityPolicies.FromModule(
-  'api/access#AccessApi'
+const AccessApiCallers = SecurityPolicies.FromModule('/api/access#AccessApi'
 );
 
 /**
@@ -55,7 +54,7 @@ function lookupRegistry(): AccessRegistry | null {
  * lives on the pinned `/obj/AccessRegistry`, whose methods are gated to
  * admit this logic singleton (`FromTemplate('/obj/api/access')`) as well
  * as the Api module. Each method is gated
- * `FromModule('api/access#AccessApi')` (the Api is the only caller;
+ * `FromModule('/api/access#AccessApi')` (the Api is the only caller;
  * internal sub-logic is in module-private free functions, so there are
  * no intra-singleton self-calls).
  *

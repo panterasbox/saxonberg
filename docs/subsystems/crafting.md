@@ -133,7 +133,7 @@ The gated forwarding pair (the `ProvenanceApi`↔`ProvenanceLogic` shape):
 `api/crafting.ts` is the thin gated shell (`SecurityApi.decorateApiClass`),
 `obj/api/CraftingLogic.ts` is the `@internal` logic singleton at
 `/obj/api/crafting`, methods gated
-`@CallSecurity(FromModule('api/crafting#CraftingApi'))`. Sub-logic is
+`@CallSecurity(FromModule('/api/crafting#CraftingApi'))`. Sub-logic is
 **module-private** functions (no intra-singleton `this.x()`).
 
 **Call shapes** (their home is `api/crafting.ts`):

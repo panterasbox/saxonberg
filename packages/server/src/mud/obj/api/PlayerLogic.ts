@@ -11,7 +11,7 @@ import { StuffApi } from '../../api/stuff';
 import type { Stuff } from '../../lib/stuff/Stuff';
 
 const PlayerApiCallers = SecurityPolicies.AnyOf(
-  SecurityPolicies.FromModule('api/player#PlayerApi'),
+  SecurityPolicies.FromModule('/api/player#PlayerApi'),
   SecurityPolicies.SelfOnly
 );
 

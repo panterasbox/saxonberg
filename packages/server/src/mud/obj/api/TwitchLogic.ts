@@ -22,13 +22,13 @@ import type {
 } from '../../api/twitch';
 
 const RELAY_PATH = '/obj/TwitchRelay';
-const TwitchApiCallers = SecurityPolicies.FromModule('api/twitch#TwitchApi');
+const TwitchApiCallers = SecurityPolicies.FromModule('/api/twitch#TwitchApi');
 
 /**
  * TwitchLogic — the gated logic singleton behind {@link TwitchApi}, at
  * `/obj/api/twitch`. Stateless (no `PostRegistrationMixin`); every method
  * resolves the {@link TwitchRelay} state singleton via the module-private
- * `requireRelay` and gates on `FromModule('api/twitch#TwitchApi')`.
+ * `requireRelay` and gates on `FromModule('/api/twitch#TwitchApi')`.
  * Channels are addressed by Twitch login.
  *
  * @internal

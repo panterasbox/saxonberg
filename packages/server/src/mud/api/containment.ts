@@ -154,23 +154,16 @@ export class ContainmentApi {
    * Combined, the mutation has exactly one legitimate entry path AND
    * that path enforces who is authorized.
    *
-   * Each controller is cloned per execution, so its caller resolves to
-   * its **template path**, not the module id, and a bare `FromModule`
-   * rejects `/`-prefixed paths — hence each gets a `FromTemplate` arm
-   * alongside its `FromModule` one. The template-path arms admit the
-   * cloned controllers (`teleport/goto --force`); the module-id arms
-   * cover direct class-frame callers. (A bare `FromModule` denied the
-   * real `--force` dispatch — the same latent bug the government-offices
-   * live verification caught on `OfficeApi.assign`; see
-   * `clonedControllerGate.test`.) Direct calls from any other module
-   * throw `SecurityError`.
+   * Each controller is cloned per execution (`teleport/goto --force`),
+   * and `FromModule` matches it by its class module id (code provenance),
+   * so the cloned instances are admitted directly — an `AnyOf` of the two
+   * controllers' `FromModule` gates, no `FromTemplate` arms. Direct calls
+   * from any other module throw `SecurityError`.
    */
   @CallSecurity(
     SecurityPolicies.AnyOf(
-      SecurityPolicies.FromModule('obj/command/author/TeleportController'),
-      SecurityPolicies.FromTemplate('/obj/command/author/TeleportController'),
-      SecurityPolicies.FromModule('obj/command/author/GotoController'),
-      SecurityPolicies.FromTemplate('/obj/command/author/GotoController'),
+      SecurityPolicies.FromModule('/obj/command/author/TeleportController'),
+      SecurityPolicies.FromModule('/obj/command/author/GotoController'),
     ),
   )
   public static forceMove(

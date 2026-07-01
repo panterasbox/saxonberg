@@ -3,7 +3,7 @@
  * two-singleton conversion of `soul`).
  *
  * SoulApi forwards to the SoulLogic singleton at `/obj/api/soul`, whose
- * methods are gated `FromModule('api/soul#SoulApi')` — and the
+ * methods are gated `FromModule('/api/soul#SoulApi')` — and the
  * pinned SoulCatalogue is now gated to admit only that logic singleton
  * (`FromTemplate('/obj/api/soul')`) + the facade + self-calls. A direct
  * logic-method call from any other module is denied.

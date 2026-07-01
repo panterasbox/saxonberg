@@ -10,7 +10,7 @@ substrates.
 State and behavior live on the singleton **`AccessRegistry`**
 Stuff at `/obj/AccessRegistry`; `AccessApi` is a thin facade that
 delegates through the security gate. Every public Registry method
-carries `@CallSecurity(FromModule('api/access#AccessApi'))`, so
+carries `@CallSecurity(FromModule('/api/access#AccessApi'))`, so
 the only legitimate calling path is through the Api — external code
 that grabs the Registry instance via `StuffApi.findByTemplatePath`
 gets a reference but `SecurityError` thrown on any method call.
@@ -164,7 +164,7 @@ entry path AND that path enforces who is authorized.
 Adoption sites:
 
 - `AccessApi.setWizardMembership(playerId, makeWizard)` → gated by
-  `FromModule('obj/command/author/WizardController')`
+  `FromModule('/obj/command/author/WizardController')`
   (string-keyed `FromController(WizardController)`). `WizardController`
   (the `wizard grant/revoke` verb) is the sole legitimate caller; its
   `requiresArchwizard` validator enforces *who* may invoke (the giver
@@ -172,7 +172,7 @@ Adoption sites:
   add/removeMember, save, and `fireChange` to invalidate the wizard
   cache. The wizard-conferral act has its own auditable entry path.
 - `StuffApi.forceDestruct` → gated by
-  `FromModule('obj/command/author/DestructController#DestructController')`
+  `FromModule('/obj/command/author/DestructController#DestructController')`
   (the string form of `FromController(DestructController)` —
   string-keyed to avoid a value-level static-import cycle).
   `DestructController` runs `AccessApi.can(giver,
@@ -187,7 +187,7 @@ Adoption sites:
 
 The Registry itself is the access-side instance of the same
 pattern: every public Registry method carries
-`@CallSecurity(FromModule('api/access#AccessApi'))`, so
+`@CallSecurity(FromModule('/api/access#AccessApi'))`, so
 external code's only reachable surface is the Api facade.
 
 ## The code-trust lockdown

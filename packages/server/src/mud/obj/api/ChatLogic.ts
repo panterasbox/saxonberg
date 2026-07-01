@@ -17,7 +17,7 @@ import { TemplatePaths } from '../../lib/paths';
 
 const CATALOGUE_PATH = TemplatePaths.channelCatalogue;
 
-const ChatApiCallers = SecurityPolicies.FromModule('api/chat#ChatApi');
+const ChatApiCallers = SecurityPolicies.FromModule('/api/chat#ChatApi');
 
 /**
  * ChatLogic — the hot-reloadable logic singleton behind {@link ChatApi}.

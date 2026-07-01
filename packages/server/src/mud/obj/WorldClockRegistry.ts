@@ -3,7 +3,7 @@
  * scheduling. Lives at `/obj/WorldClockRegistry`. The thin
  * `WorldClockApi` facade at `api/worldclock.ts` is the only legitimate
  * caller — every public method on this class carries
- * `@CallSecurity(FromModule('api/worldclock#WorldClockApi'))` so
+ * `@CallSecurity(FromModule('/api/worldclock#WorldClockApi'))` so
  * the security gate denies any other module's call. External code that
  * grabs the Registry instance via `StuffApi.findByTemplatePath` gets a
  * reference but `SecurityError` is thrown on any method call.
@@ -63,7 +63,7 @@ import { registerWorldClockRegistryClass } from '../api/worldclock';
  * internal calls, which `SelfOnly` permits.
  */
 const WorldClockApiCallers = SecurityPolicies.AnyOf(
-  SecurityPolicies.FromModule('api/worldclock#WorldClockApi'),
+  SecurityPolicies.FromModule('/api/worldclock#WorldClockApi'),
   SecurityPolicies.FromTemplate('/obj/api/worldclock'),
   SecurityPolicies.SelfOnly,
 );

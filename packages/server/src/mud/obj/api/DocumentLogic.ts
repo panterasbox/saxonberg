@@ -11,8 +11,7 @@ import { ExecutionContextApi } from "../../api/execution-context";
 import { StoredDocument } from "../../lib/document/StoredDocument";
 import type { Stuff } from "../../lib/stuff/Stuff";
 
-const DocumentApiCallers = SecurityPolicies.FromModule(
-  "api/document#DocumentApi",
+const DocumentApiCallers = SecurityPolicies.FromModule("/api/document#DocumentApi",
 );
 
 /* ─────────────────────────── impl ─────────────────────────── */

@@ -158,7 +158,7 @@ exposes — a small bundle of identity facets:
 | Facet              | Source                                              | Example                                  |
 | ------------------ | --------------------------------------------------- | ---------------------------------------- |
 | **stuffId**        | runtime nanoid, on every `Stuff`                    | `aB7…`                                   |
-| **module URL**     | the file the class was actually imported from, captured by the loader transform | `api/stuff#StuffApi`, `domain/narnia/NarniaLocation#NarniaLocation` |
+| **module URL**     | the file the class was actually imported from, captured by the loader transform | `/api/stuff#StuffApi`, `/domain/narnia/NarniaLocation#NarniaLocation` |
 | **template path**  | the CMS template path (only if cloned)              | `/obj/Avatar/abc123`, `/domain/narnia/cair-paravel` |
 
 **Module URL is captured by the import machinery, not declared by the
@@ -204,17 +204,21 @@ covering both named and default exports:
 
 | Class                                                 | Module ID                                     |
 | ----------------------------------------------------- | --------------------------------------------- |
-| `class Foo` exported as `Foo`                         | `lib/Foo#Foo`                             |
-| `class Foo` exported as `default`                     | `mud/lib/Foo` (bare path is the default-export convention) |
-| `class StuffApi` in `mud/api/stuff.ts`                | `api/stuff#StuffApi`                      |
-| `class NarniaLocation` in `mud/domain/narnia/...`     | `domain/narnia/NarniaLocation#NarniaLocation` |
+| `class Foo` exported as `Foo`                         | `/lib/Foo#Foo`                             |
+| `class Foo` exported as `default`                     | `/lib/Foo` (bare path is the default-export convention) |
+| `class StuffApi` in `mud/api/stuff.ts`                | `/api/stuff#StuffApi`                      |
+| `class NarniaLocation` in `mud/domain/narnia/...`     | `/domain/narnia/NarniaLocation#NarniaLocation` |
 
 `ModuleApi.lookup(cls)` returns the canonical id (or `null` if
-unstamped). The `resolveCallerPath` helper inside `SecurityPolicies`
-canonicalises the identity bundle into a single string for matching:
-**prefer template path if cloned, otherwise the module ID.** Template
-paths begin with `/`; module IDs don't — `FromTemplate` and
-`FromModule` discriminate on that.
+unstamped). Module IDs are `/`-absolute, mud-rooted — the **same shape**
+as the clone-namespace template path they parallel. `SecurityPolicies`
+resolves the caller's two identities **independently**:
+`resolveModuleId` (the caller's class module ID — code provenance) and
+`resolveTemplatePath` (the caller's instance template path — clone
+lineage). `FromModule` matches the former, `FromTemplate` the latter —
+they discriminate on **which identity a policy reads**, not on string
+shape. A cloned Stuff carries both, so `FromModule('/obj/…')` admits it
+by its class even though it also has a template path.
 
 ## The Interception Pipeline
 
@@ -509,7 +513,7 @@ halves are supported:
 
 - **Callee** is a proxy-wrapped `Stuff` instance method — the ordinary
   gateable shape.
-- **Caller** is the static Api class. `resolveCallerPath`'s branch *2b*
+- **Caller** is the static Api class. `resolveModuleId`'s function branch
   (`if (typeof caller === 'function') return ModuleApi.lookup(caller)`)
   treats a static-method synthesised frame's class as a first-class
   caller identity, and `decorateApiClass`'s static wrapper runs the
@@ -518,7 +522,7 @@ halves are supported:
   singleton sees `MaterialApi` as its caller.
 
 Each logic method therefore carries
-`@CallSecurity(FromModule('api/<feature>#<Feature>Api'))` — the Api
+`@CallSecurity(FromModule('/api/<feature>#<Feature>Api'))` — the Api
 forwards through, anything else is denied.
 
 ### Gate per method, not at class level
@@ -576,11 +580,11 @@ target, not the proxy) — hence the free-function route.
 A logic singleton's caller identity resolves to its `/obj/api/<feature>`
 **template path**, not a `mud/api/` module id. So `ApiOnly`-gated
 downstream calls (e.g. `ContainmentApi.move`, `placeDirect`) made *from*
-a logic singleton would fail the old `FromModule('api/**')` matcher.
+a logic singleton would fail the old `FromModule('/api/**')` matcher.
 `ApiOnly` was therefore widened (`lib/security/SecurityPolicies.ts`) to:
 
 ```
-FromModule('api/**', { includeSubclasses: true })  OR  FromTemplate('/obj/api/**')
+FromModule('/api/**', { includeSubclasses: true })  OR  FromTemplate('/obj/api/**')
 ```
 
 `/obj/api/` holds *nothing but* logic singletons, so the new arm admits
@@ -593,7 +597,7 @@ unchanged.
 Where an Api has state, a stateless logic singleton sits **between** the
 Api statics and the pinned state singleton (the state survives reload;
 the logic `dest`-reloads). Inserting the layer **re-points the state
-singleton's caller** — its `FromModule('api/<feature>#<Api>')` gate
+singleton's caller** — its `FromModule('/api/<feature>#<Api>')` gate
 becomes `AnyOf(FromModule(...), FromTemplate('/obj/api/<feature>'))`.
 Adoption:
 
@@ -745,7 +749,7 @@ Verdict: **all undecorated.**
 - **`registerInterceptor(interceptor)`** — only called from
   `SecurityApi.#securityGate`'s own installation block. A real
   candidate for individual `@CallSecurity` (e.g.,
-  `FromModule('api/security')`) — anything else registering an
+  `FromModule('/api/security')`) — anything else registering an
   interceptor can bypass the entire security gate. Held off because
   the bootstrap timing is fiddly: `proxy.ts` and `security.ts` import
   each other and resolve via late binding; adding a decorator that
@@ -764,7 +768,7 @@ specific cases:
 
 - `ModuleApi.stamp` — needs a "loader-only" policy first.
 - `ProxyApi.registerInterceptor` — needs verified-safe bootstrap
-  timing first; ideally a `FromModule('api/security')` policy.
+  timing first; ideally a `FromModule('/api/security')` policy.
 
 Everything else stays bare on principle: framework primitives that
 mediate calls cannot themselves be mediated without recursion or stack
@@ -809,9 +813,9 @@ default) and runs it before invoking the body.
 | `Public` | Anyone, including untrusted modder code. The framework default when no decorator is present. |
 | `SystemRoot` | `caller === null` only — the synthetic root frame planted by `runRoot`. |
 | `SelfOnly` | `caller === target` — only the target can call itself. |
-| `ApiOnly` | Sugar for `FromModule('api/**', { includeSubclasses: true })`. |
-| `FromTemplate(glob)` | Caller's CMS template path matches `glob`. Template paths begin with `/`; module IDs don't — `FromTemplate` rejects module-id callers. |
-| `FromModule(glob, opts?)` | Caller's stamped module ID matches `glob`. With `{ includeSubclasses: true }`, walks the prototype chain so any ancestor whose module ID matches passes. |
+| `ApiOnly` | Sugar for `FromModule('/api/**', { includeSubclasses: true })`. |
+| `FromTemplate(glob)` | Caller's **clone-instance template path** (`getTemplatePath`) matches `glob` — trust by clone lineage. A caller that isn't a cloned Stuff has no template identity and fails closed. |
+| `FromModule(glob, opts?)` | Caller's **class module ID** (`ModuleApi.lookup` on the class) matches `glob` — trust by code provenance, independent of any template path. With `{ includeSubclasses: true }`, walks the prototype chain so any ancestor whose module ID matches passes. Module IDs are `/`-absolute (same shape as template paths); the two policies are told apart by which identity each reads, not by the slash. |
 | `FromController(...controllers)` | Sugar over `FromModule` keyed by a controller class's stamped module id. For one controller, lazy `FromModule(moduleIdOf(c))`. For many, `AnyOf(FromModule(idOf(c1)), …)`. The lazy form resolves `ModuleApi.lookup(cls)` at call-time, fail-closed if the class isn't stamped yet — handles the cyclic-import edge case where the controller class isn't stamped at decorator-evaluation time. The **narrow-entry pattern**'s policy half — see [access.md](./access.md). |
 | `Custom(pred, name?)` | Wrap an arbitrary predicate `(caller, target, method) => boolean | Promise<boolean>`. |
 | `AllOf(...)` | Composition: every policy passes. |
@@ -828,8 +832,9 @@ async lookups (group membership, zone inheritance walks, etc.)
 without forcing every existing call site through a microtask.
 
 All identity-keyed policies (`FromTemplate`, `FromModule`, `ApiOnly`)
-**fail closed** when `resolveCallerPath` returns `null` — a class that
-wasn't stamped by the loader transform can never be trusted.
+**fail closed** when the caller has no matching identity (`resolveModuleId`
+/ `resolveTemplatePath` returns `null`) — a class that wasn't stamped by
+the loader transform can never be trusted.
 
 ### Deferred policies
 
@@ -1543,7 +1548,7 @@ The **narrow-entry pattern** is the access build's framing for who
 authorizes `forceX`:
 
 1. The Api method is decorated with `FromController(...controllers)`
-   (string-form `FromModule('obj/command/X#X')` in the shipped
+   (string-form `FromModule('/obj/command/X#X')` in the shipped
    wiring to avoid a value-level static-import cycle). Only the
    listed verb controllers can reach the entry point at all;
    everything else throws `SecurityError`.
@@ -1558,7 +1563,7 @@ that path enforces who is authorized.
 Adoption sites today:
 
 - `StuffApi.forceDestruct` →
-  `FromModule('obj/command/author/DestructController#DestructController')`.
+  `FromModule('/obj/command/author/DestructController#DestructController')`.
   `DestructController` does the access check.
 - `ContainmentApi.forceMove` →
   `AnyOf(FromModule(TeleportController), FromModule(GotoController))`.

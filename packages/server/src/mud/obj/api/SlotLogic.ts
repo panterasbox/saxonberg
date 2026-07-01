@@ -16,7 +16,7 @@ import type { SlotResolutionQuery } from '../../api/slot';
 // facade forwarders; `SelfOnly` admits the intra-singleton self-call
 // inside `findOccupiedHost` (which calls `this.findOccupiedSlots`).
 const SlotApiCallers = SecurityPolicies.AnyOf(
-  SecurityPolicies.FromModule('api/slot#SlotApi'),
+  SecurityPolicies.FromModule('/api/slot#SlotApi'),
   SecurityPolicies.SelfOnly
 );
 

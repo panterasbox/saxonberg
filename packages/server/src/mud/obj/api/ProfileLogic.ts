@@ -31,8 +31,7 @@ import type {
 // Gated to the SocialApi facade — presence/profile reads fold into
 // SocialApi (one navigable surface); this logic singleton stays separate
 // for file size + HMR but is @internal.
-const SocialApiCallers = SecurityPolicies.FromModule(
-  'api/social#SocialApi'
+const SocialApiCallers = SecurityPolicies.FromModule('/api/social#SocialApi'
 );
 
 /** A connected account younger than this reads as a "new arrival". */

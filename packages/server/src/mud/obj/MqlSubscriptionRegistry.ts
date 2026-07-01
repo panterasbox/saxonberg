@@ -5,7 +5,7 @@
  * Lives at `/obj/MqlSubscriptionRegistry`. The thin `MqlSubscriptionApi`
  * facade at `api/mql-subscription.ts` is the only legitimate caller —
  * every public method on this class carries
- * `@CallSecurity(FromModule('api/mql-subscription#MqlSubscriptionApi'))`
+ * `@CallSecurity(FromModule('/api/mql-subscription#MqlSubscriptionApi'))`
  * so external code that grabs the Stuff via `StuffApi.findByTemplatePath`
  * cannot poke its state.
  *
@@ -67,7 +67,7 @@ import { registerMqlSubscriptionRegistryClass } from '../api/mql-subscription';
  * registry-backed call), and internal `this.foo()` self-calls.
  */
 const MqlSubscriptionApiCallers = SecurityPolicies.AnyOf(
-  SecurityPolicies.FromModule('api/mql-subscription#MqlSubscriptionApi'),
+  SecurityPolicies.FromModule('/api/mql-subscription#MqlSubscriptionApi'),
   SecurityPolicies.FromTemplate('/obj/api/mql-subscription'),
   SecurityPolicies.SelfOnly,
 );

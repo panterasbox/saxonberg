@@ -86,10 +86,10 @@ describe('AccessApi facade', () => {
     StuffApi.clearAll();
   });
 
-  it('AccessApi is module-stamped as mud/api/access#AccessApi', () => {
+  it('AccessApi is module-stamped as /api/access#AccessApi', () => {
     // The FromModule policy on the Registry's methods keys on this
     // exact module id; the encapsulation contract depends on it.
-    expect(ModuleApi.lookup(AccessApi)).toBe('api/access#AccessApi');
+    expect(ModuleApi.lookup(AccessApi)).toBe('/api/access#AccessApi');
   });
 
   it('can(null, ...) returns false without resolving the Registry', async () => {
@@ -129,7 +129,7 @@ describe('AccessApi facade', () => {
     // because AccessApi is the caller). Then grab the same Registry
     // instance from the index and call its `can` directly. The
     // direct call's caller (the test module) does not match
-    // FromModule('api/access#AccessApi') and the gate denies.
+    // FromModule('/api/access#AccessApi') and the gate denies.
     try {
       await AccessApi.can(null, 'destruct', null);
     } catch {

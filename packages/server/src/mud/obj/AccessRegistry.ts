@@ -4,7 +4,7 @@
  * `GroupRegistry`, `SoulCatalogue`, and the other singleton catalogues
  * under `obj/`. The thin `AccessApi` facade at `api/access.ts` is the
  * only legitimate caller — every public method on this class carries
- * `@CallSecurity(FromModule('api/access#AccessApi'))` so the
+ * `@CallSecurity(FromModule('/api/access#AccessApi'))` so the
  * security gate denies any other module's call. External code that
  * grabs the Registry instance via `StuffApi.findByTemplatePath` gets a
  * reference but `SecurityError` thrown on any method call.
@@ -49,7 +49,7 @@ const AccessRegistryBase = PostRegistrationMixin(Idea);
 // and the logic singleton's template path so the Registry's methods stay
 // callable only through the access subsystem.
 const AccessApiCallers = SecurityPolicies.AnyOf(
-  SecurityPolicies.FromModule('api/access#AccessApi'),
+  SecurityPolicies.FromModule('/api/access#AccessApi'),
   SecurityPolicies.FromTemplate('/obj/api/access'),
 );
 

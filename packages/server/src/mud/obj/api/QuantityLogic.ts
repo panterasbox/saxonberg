@@ -14,8 +14,7 @@ import { Quantity } from '../../lib/quantity';
 import type { Unit, ScaleName, TagTableEntry } from '../../lib/quantity';
 import type { TagTableLoadResult } from '../../api/quantity';
 
-const QuantityApiCallers = SecurityPolicies.FromModule(
-  'api/quantity#QuantityApi'
+const QuantityApiCallers = SecurityPolicies.FromModule('/api/quantity#QuantityApi'
 );
 
 const __filename = fileURLToPath(import.meta.url);

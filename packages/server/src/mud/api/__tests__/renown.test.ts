@@ -7,7 +7,7 @@
  *
  * Mongo is faked with an in-memory collection (the chronicle/belief-store
  * harness): we stub PM's friendly surface (find / save), the same wrapper
- * methods `RenownEvent` uses. The gate (`FromModule('api/renown#…')`)
+ * methods `RenownEvent` uses. The gate (`FromModule('/api/renown#…')`)
  * is exercised implicitly — calls go through `RenownApi`, the allowed
  * caller — and the string is verified by `pnpm lint:gates`.
  */

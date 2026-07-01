@@ -13,7 +13,7 @@ import type { CorpoDescriptor } from "../../lib/corpo/Corpo";
 import type { BrandDescriptor } from "../../lib/corpo/Brand";
 import type CorpoCatalogue from "../CorpoCatalogue";
 
-const CorpoApiCallers = SecurityPolicies.FromModule("api/corpo#CorpoApi");
+const CorpoApiCallers = SecurityPolicies.FromModule("/api/corpo#CorpoApi");
 
 /**
  * A branded host, narrowed structurally (via `Mixins.Branded`) rather than

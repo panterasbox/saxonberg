@@ -11,8 +11,7 @@ import BeliefDocument from '../../lib/belief/BeliefDocument';
 import { MixinApi } from '../../api/mixin';
 import { PersistApi } from '../../api/persist';
 
-const BeliefStoreApiCallers = SecurityPolicies.FromModule(
-  'api/belief#BeliefStoreApi'
+const BeliefStoreApiCallers = SecurityPolicies.FromModule('/api/belief#BeliefStoreApi'
 );
 
 /** Has this record learned anything worth persisting? */

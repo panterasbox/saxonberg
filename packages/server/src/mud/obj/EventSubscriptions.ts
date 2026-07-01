@@ -9,7 +9,7 @@
  *
  * Lives at `/obj/EventSubscriptions`. The thin `EventApi` facade at
  * `api/event.ts` is the only legitimate caller — every public method
- * here carries `@CallSecurity(FromModule('api/event#EventApi'))`
+ * here carries `@CallSecurity(FromModule('/api/event#EventApi'))`
  * so external code that grabs the Stuff via `StuffApi.findByTemplatePath`
  * gets a reference but `SecurityError` is thrown on any method call.
  *
@@ -26,7 +26,7 @@ import { EventApi } from '../api/event';
 
 /** See WorldClockRegistry — same gate shape, same rationale. */
 const EventApiCallers = SecurityPolicies.AnyOf(
-  SecurityPolicies.FromModule('api/event#EventApi'),
+  SecurityPolicies.FromModule('/api/event#EventApi'),
   SecurityPolicies.SelfOnly,
 );
 

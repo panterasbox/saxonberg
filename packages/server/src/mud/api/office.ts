@@ -4,7 +4,7 @@
  * Stable caller-facing surface for the government-office substrate.
  * Every method delegates through the hot-reloadable {@link OfficeLogic}
  * singleton at `/obj/api/office` to the Registry; the Registry's methods
- * carry `@CallSecurity(AnyOf(FromModule('api/office#OfficeApi'),
+ * carry `@CallSecurity(AnyOf(FromModule('/api/office#OfficeApi'),
  * FromTemplate('/obj/api/office')))` so the security gate denies any
  * caller outside the office subsystem.
  *
@@ -13,14 +13,12 @@
  *     Governance is transparent by constitutional design (Art. VII), so
  *     these carry no `@CallSecurity` (mirroring `AccessApi.isWizard`).
  *   - **Gated mutations** — `assign`/`vacate` carry the string-keyed
- *     `AnyOf(FromModule('obj/command/governance/OfficeController'),
- *     FromTemplate('/obj/command/governance/OfficeController'))` narrow-
- *     entry. The template-path arm is load-bearing: the controller is
- *     cloned per execution, so the caller resolves to its template path
- *     (not the module id) and a bare `FromModule` would deny it. The
- *     **authority** is enforced by the `requiresFoundingAuthority`
- *     subcommand-level validator (the meta governance-root gate), not
- *     re-checked here.
+ *     `FromModule('/obj/command/governance/OfficeController')` narrow-
+ *     entry. `FromModule` matches the cloned controller by its class
+ *     module id (code provenance), so the per-execution clone is admitted
+ *     directly. The **authority** is enforced by the
+ *     `requiresFoundingAuthority` subcommand-level validator (the meta
+ *     governance-root gate), not re-checked here.
  *
  * Parameter convention (the `gated-api-actor-from-context` rule): the
  * read predicates that take a *subject* accept `Stuff | null` (an Avatar)
@@ -121,26 +119,16 @@ export class OfficeApi {
   /**
    * Narrow-entry mutation: set the explicit holder of an office
    * (replacing any prior — auditable). Gated to the `OfficeController`
-   * (the `office assign` verb). The controller is cloned per execution
-   * (`CommandGiver._executeOne` → `StuffApi.clone('/obj/command/...')`),
-   * so the running caller is a Stuff whose `templatePath` is set at clone
-   * time — `resolveCallerPath` returns that **template path**, not the
-   * module id, and `FromModule` rejects `/`-prefixed paths. Hence the
-   * gate is `AnyOf(FromModule(module-id), FromTemplate(template-path))`
-   * (the `OfficeRegistry` caller-gate idiom): the template-path arm is
-   * what actually admits the cloned controller; the module-id arm covers
-   * a direct class-frame caller. Both are string-keyed to avoid a
-   * value-level static-import cycle. The *authority* is enforced by the
-   * `requiresFoundingAuthority` subcommand validator; this method is the
-   * structurally single entry to the handoff write.
+   * (the `office assign` verb) via the string-keyed `FromModule` policy
+   * — string-keyed to avoid a value-level static-import cycle. The
+   * controller is cloned per execution, and `FromModule` matches it by
+   * its **class module id** (code provenance), so the cloned instance is
+   * admitted directly — no `FromTemplate` arm needed. The *authority* is
+   * enforced by the `requiresFoundingAuthority` subcommand validator;
+   * this method is the structurally single entry to the handoff write.
    */
   @CallSecurity(
-    SecurityPolicies.AnyOf(
-      SecurityPolicies.FromModule(
-        'obj/command/governance/OfficeController',
-      ),
-      SecurityPolicies.FromTemplate('/obj/command/governance/OfficeController'),
-    ),
+    SecurityPolicies.FromModule('/obj/command/governance/OfficeController'),
   )
   public static async assign(
     playerId: string,
@@ -152,17 +140,10 @@ export class OfficeApi {
   /**
    * Narrow-entry mutation: clear an office's explicit holder (the seat
    * reverts to the founder default). Office-only — a singular seat has
-   * no empty state. Same `OfficeController` gate as `assign` (see there
-   * for why it is `AnyOf(FromModule, FromTemplate)` — the cloned
-   * controller resolves to its template path).
+   * no empty state. Same `OfficeController` `FromModule` gate as `assign`.
    */
   @CallSecurity(
-    SecurityPolicies.AnyOf(
-      SecurityPolicies.FromModule(
-        'obj/command/governance/OfficeController',
-      ),
-      SecurityPolicies.FromTemplate('/obj/command/governance/OfficeController'),
-    ),
+    SecurityPolicies.FromModule('/obj/command/governance/OfficeController'),
   )
   public static async vacate(officeKey: string): Promise<boolean> {
     return logic().vacate(officeKey);

@@ -15,8 +15,7 @@ import type {
   CreateBoundaryOptions,
 } from '../../api/boundary';
 
-const BoundaryApiCallers = SecurityPolicies.FromModule(
-  'api/boundary#BoundaryApi'
+const BoundaryApiCallers = SecurityPolicies.FromModule('/api/boundary#BoundaryApi'
 );
 
 /**

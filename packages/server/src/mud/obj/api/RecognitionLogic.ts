@@ -19,8 +19,7 @@ import { TemplatePathPrefixes } from '../../lib/paths';
 import type { VisionModality } from '../../lib/perception/modalities/VisionModality';
 import { RECOGNITION, IDENTIFICATION } from '../../lib/belief/BeliefStore';
 
-const RecognitionApiCallers = SecurityPolicies.FromModule(
-  'api/recognition#RecognitionApi'
+const RecognitionApiCallers = SecurityPolicies.FromModule('/api/recognition#RecognitionApi'
 );
 
 /** Template path of the vision modality singleton. */

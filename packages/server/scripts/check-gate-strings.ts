@@ -81,9 +81,10 @@ function checkString(raw: string, file: string, findings: Finding[]): void {
   const modulePath = hashAt === -1 ? raw : raw.slice(0, hashAt);
   const exportName = hashAt === -1 ? null : raw.slice(hashAt + 1);
 
-  // Module ids are `mud`-rooted (`obj/…`, `api/…`, `lib/…`), so resolve
-  // them under src/mud/, not src/ — see SOURCE_ROOT_HINTS in api/module.ts.
-  const base = join(MUD_ROOT, modulePath);
+  // Module ids are `mud`-rooted, leading-slash absolute (`/obj/…`,
+  // `/api/…`, `/lib/…`) — see SOURCE_ROOT_HINTS in api/module.ts. Drop the
+  // leading slash and resolve under src/mud/.
+  const base = join(MUD_ROOT, modulePath.replace(/^\//, ""));
   const candidates = [`${base}.ts`, `${base}.tsx`, join(base, "index.ts")];
   const found = candidates.find((p) => existsSync(p));
   if (!found) {

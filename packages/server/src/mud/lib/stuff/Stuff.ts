@@ -84,8 +84,7 @@ const DEFAULT_PRESENTATION = 'something';
  * CartesianZone / SphericalZone (and any future SpatialZone
  * subclass) pass through.
  */
-const FromSpatialZone = SecurityPolicies.FromModule(
-  'lib/zone/SpatialZone#SpatialZone',
+const FromSpatialZone = SecurityPolicies.FromModule('/lib/zone/SpatialZone#SpatialZone',
   { includeSubclasses: true }
 );
 

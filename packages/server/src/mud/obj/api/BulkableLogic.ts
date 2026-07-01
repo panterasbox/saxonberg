@@ -31,7 +31,7 @@ const BULK_FIELD = 'bulk';
 // inside `transfer` (recursive `this.transfer` for drain-through, plus
 // `this.floorSurfaceNear`).
 const BulkableApiCallers = SecurityPolicies.AnyOf(
-  SecurityPolicies.FromModule('api/bulk#BulkableApi'),
+  SecurityPolicies.FromModule('/api/bulk#BulkableApi'),
   SecurityPolicies.SelfOnly
 );
 

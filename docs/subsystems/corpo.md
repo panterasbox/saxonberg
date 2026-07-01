@@ -85,7 +85,7 @@ The advancement-precedent three singletons:
   **no connection guard**, unlike `AdvancementLogic`). Internals are
   module-private free functions so there are no intra-singleton `this.x()`
   calls to trip the gate; each public method carries
-  `FromModule('api/corpo#CorpoApi')`.
+  `FromModule('/api/corpo#CorpoApi')`.
 - **`CorpoApi`** (`api/corpo.ts`) — the thin forwarding shell, resolving the
   HMR-able logic via `StuffApi.singletonSync`; ends in
   `SecurityApi.decorateApiClass`.

@@ -108,7 +108,7 @@ const BIOME_ANCESTRY_DEPTH_CAP = 32;
 let rootBiomeCache: Biome | null = null;
 
 const BiomeApiCallers = SecurityPolicies.AnyOf(
-  SecurityPolicies.FromModule('api/biome#BiomeApi'),
+  SecurityPolicies.FromModule('/api/biome#BiomeApi'),
   SecurityPolicies.SelfOnly
 );
 

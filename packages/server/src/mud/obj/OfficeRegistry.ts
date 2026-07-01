@@ -58,7 +58,7 @@ const OfficeRegistryBase = PostRegistrationMixin(Idea);
 // the logic singleton's template path so the Registry's methods stay
 // callable only through the office subsystem.
 const OfficeApiCallers = SecurityPolicies.AnyOf(
-  SecurityPolicies.FromModule('api/office#OfficeApi'),
+  SecurityPolicies.FromModule('/api/office#OfficeApi'),
   SecurityPolicies.FromTemplate('/obj/api/office'),
 );
 

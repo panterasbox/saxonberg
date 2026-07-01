@@ -4,7 +4,7 @@
  * Stable caller-facing surface for the access substrate. Every method
  * delegates through the hot-reloadable {@link AccessLogic} singleton at
  * `/obj/api/access` to the Registry; the Registry's methods carry
- * `@CallSecurity(AnyOf(FromModule('api/access#AccessApi'),
+ * `@CallSecurity(AnyOf(FromModule('/api/access#AccessApi'),
  * FromTemplate('/obj/api/access')))` so the security gate denies any
  * caller outside the access subsystem. External code that grabs the
  * Registry Stuff via `StuffApi.findByTemplatePath` cannot call its
@@ -123,27 +123,17 @@ export class AccessApi {
   /**
    * Narrow-entry mutation: add (`makeWizard=true`) or remove the player
    * from the `'wizards'` group. Gated to the `WizardController` (the
-   * `wizard grant/revoke` verb). The controller is cloned per execution
-   * (`CommandGiver._executeOne` → `StuffApi.clone('/obj/command/...')`),
-   * so the running caller is a Stuff whose `templatePath` is set at clone
-   * time — `resolveCallerPath` returns that **template path**, not the
-   * module id, and `FromModule` rejects `/`-prefixed paths. Hence the
-   * gate is `AnyOf(FromModule(module-id), FromTemplate(template-path))`:
-   * the template-path arm is what actually admits the cloned controller;
-   * the module-id arm covers a direct class-frame caller. Both are
-   * string-keyed to avoid a value-level static-import cycle. The
-   * *authority* (the giver's archwizard status) is enforced by the verb's
-   * `requiresArchwizard` validator; this method is the structurally
-   * single entry to the membership write. Returns true iff membership
-   * changed. (A bare `FromModule` here denied the real dispatch — caught
-   * by the government-offices live verification; see
-   * `clonedControllerGate.test`.)
+   * `wizard grant/revoke` verb) via the string-keyed `FromModule` policy
+   * — string-keyed to avoid a value-level static-import cycle. The
+   * controller is cloned per execution, and `FromModule` matches it by
+   * its class module id (code provenance), so the cloned instance is
+   * admitted directly. The *authority* (the giver's archwizard status) is
+   * enforced by the verb's `requiresArchwizard` validator; this method is
+   * the structurally single entry to the membership write. Returns true
+   * iff membership changed.
    */
   @CallSecurity(
-    SecurityPolicies.AnyOf(
-      SecurityPolicies.FromModule('obj/command/author/WizardController'),
-      SecurityPolicies.FromTemplate('/obj/command/author/WizardController')
-    )
+    SecurityPolicies.FromModule('/obj/command/author/WizardController')
   )
   public static async setWizardMembership(
     playerId: string,

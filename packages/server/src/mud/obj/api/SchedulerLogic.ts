@@ -17,8 +17,7 @@ import type {
   StartResult,
 } from '../../api/scheduler';
 
-const SchedulerApiCallers = SecurityPolicies.FromModule(
-  'api/scheduler#SchedulerApi'
+const SchedulerApiCallers = SecurityPolicies.FromModule('/api/scheduler#SchedulerApi'
 );
 
 /* ─────────────────────── registry resolution ─────────────────────── */

@@ -3,7 +3,7 @@
  * of `mql`).
  *
  * MqlApi forwards to the MqlLogic singleton at `/obj/api/mql`, whose
- * methods are gated `FromModule('api/mql#MqlApi')`. A direct
+ * methods are gated `FromModule('/api/mql#MqlApi')`. A direct
  * logic-method call from any other module is denied.
  */
 

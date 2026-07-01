@@ -52,8 +52,7 @@ import type {
   ForumSubscriptionErrorReason,
 } from '@saxonberg/types';
 
-const ForumSubscriptionApiCallers = SecurityPolicies.FromModule(
-  'api/forums#ForumsApi',
+const ForumSubscriptionApiCallers = SecurityPolicies.FromModule('/api/forums#ForumsApi',
 );
 
 /** A live forum subscription's server-side state. */

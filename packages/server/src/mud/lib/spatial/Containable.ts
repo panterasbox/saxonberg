@@ -138,7 +138,7 @@ export interface Containable {
 // `setContainer` / `_setRestingOn` chokepoints stay reachable only
 // through the containment subsystem.
 const FromContainmentApi = SecurityPolicies.AnyOf(
-  SecurityPolicies.FromModule('api/containment#ContainmentApi', {
+  SecurityPolicies.FromModule('/api/containment#ContainmentApi', {
     includeSubclasses: false,
   }),
   SecurityPolicies.FromTemplate('/obj/api/containment'),

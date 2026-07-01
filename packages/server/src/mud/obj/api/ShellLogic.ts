@@ -19,7 +19,7 @@ import { MudlogApi } from "../../api/mudlog";
 import type { SyntheticVarEntry } from "../../api/shell";
 
 const ShellApiCallers = SecurityPolicies.AnyOf(
-  SecurityPolicies.FromModule("api/shell#ShellApi"),
+  SecurityPolicies.FromModule("/api/shell#ShellApi"),
   SecurityPolicies.SelfOnly
 );
 
@@ -38,7 +38,7 @@ const VAR_PATTERN =
  * here via `StuffApi.singletonSync`. `dest /obj/api/shell` reloads it.
  *
  * Gating (the guts-variant recipe): every public method carries
- * `AnyOf(FromModule('api/shell#ShellApi'), SelfOnly)`. `FromModule`
+ * `AnyOf(FromModule('/api/shell#ShellApi'), SelfOnly)`. `FromModule`
  * admits the Api facade; `SelfOnly` admits any intra-singleton self-call
  * (caller and target both this singleton). Stateless sub-logic lives in
  * module-private free functions — off-class, ungated, un-callable from

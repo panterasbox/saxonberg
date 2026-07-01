@@ -19,8 +19,7 @@ import type {
   WorldClockSnapshot,
 } from '../../api/worldclock';
 
-const WorldClockApiCallers = SecurityPolicies.FromModule(
-  'api/worldclock#WorldClockApi'
+const WorldClockApiCallers = SecurityPolicies.FromModule('/api/worldclock#WorldClockApi'
 );
 
 /* ─────────────────────── registry resolution ─────────────────────── */

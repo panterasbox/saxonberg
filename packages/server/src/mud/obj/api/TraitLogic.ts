@@ -26,7 +26,7 @@ import { AppSettingKeys } from "../../lib/config/AppSettings";
 import { RegardApi } from "../../api/regard";
 import type { RecordOptions, ClaimSeed } from "../../api/trait";
 
-const TraitApiCallers = SecurityPolicies.FromModule("api/trait#TraitApi");
+const TraitApiCallers = SecurityPolicies.FromModule("/api/trait#TraitApi");
 
 /** Persistence is a no-op unless Mongo is connected (tests, pre-boot). */
 function active(): boolean {

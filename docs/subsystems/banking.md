@@ -259,7 +259,7 @@ placement*).
 
 `api/banking.ts` — `BankingApi`, the thin gated forwarding shell.
 `obj/api/BankingLogic.ts` — the `@Unshadowable` logic singleton at
-`/obj/api/banking`, gated `FromModule('api/banking#BankingApi')`; the
+`/obj/api/banking`, gated `FromModule('/api/banking#BankingApi')`; the
 sealed `postTransaction` chokepoint lives here as a module-private fn.
 
 Collections (`backend/PersistenceManager.ts`): `bank_ledger` (indexed

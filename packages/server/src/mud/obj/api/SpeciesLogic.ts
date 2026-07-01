@@ -24,8 +24,7 @@ interface CladeShape {
   getName?(): string;
 }
 
-const SpeciesApiCallers = SecurityPolicies.FromModule(
-  'api/species#SpeciesApi'
+const SpeciesApiCallers = SecurityPolicies.FromModule('/api/species#SpeciesApi'
 );
 
 /**

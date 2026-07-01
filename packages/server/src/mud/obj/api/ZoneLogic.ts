@@ -37,7 +37,7 @@ function hasPrototype(value: unknown): value is ClassWithPrototype {
 // (`getEnclosingZone` → `this.isFolderClass`, `resolveZoneForPath` →
 // `this.isSpatialZoneClass`).
 const ZoneApiCallers = SecurityPolicies.AnyOf(
-  SecurityPolicies.FromModule('api/zone#ZoneApi'),
+  SecurityPolicies.FromModule('/api/zone#ZoneApi'),
   SecurityPolicies.SelfOnly
 );
 

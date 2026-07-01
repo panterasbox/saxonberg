@@ -41,8 +41,7 @@ import type { Container } from "../../lib/spatial/Container";
 import type { Containable } from "../../lib/spatial/Containable";
 import type { Globbable } from "../../lib/stuff/Globbable";
 
-const BankingApiCallers = SecurityPolicies.FromModule(
-  "api/banking#BankingApi",
+const BankingApiCallers = SecurityPolicies.FromModule("/api/banking#BankingApi",
 );
 
 /** Persistence is a no-op unless Mongo is connected (tests, pre-boot). */

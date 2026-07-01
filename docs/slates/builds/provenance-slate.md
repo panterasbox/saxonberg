@@ -71,7 +71,7 @@ What exists today, from a code scout:
 - **Template ↔ class.** `Template.class` is a source-relative path (e.g.
   `/obj/Avatar`), resolved by **dynamic import at clone time** — there is
   **no central path→constructor registry**. `ModuleApi.stamp` maps each
-  class → a module ID (`obj/Avatar#Avatar`) for **call-security
+  class → a module ID (`/obj/Avatar#Avatar`) for **call-security
   gates**, not template resolution.
 - **Ownership.** `Zone.ownerGroup` / `accessGroups` (`GroupRef`,
   inheritable via the nearest-ancestor `Zone.lookupField` walk) + the

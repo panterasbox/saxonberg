@@ -329,7 +329,7 @@ problem for the privileged `EngagedMixin._setEngagement` /
 every timer-fired callback with
 `ExecutionContextApi.runRoot(SchedulerApi, 'fire', fn)` so the
 synthetic root frame's `target` is `SchedulerApi`, which the
-`ApiOnly` (= `FromModule('api/**')`) policy permits. Same
+`ApiOnly` (= `FromModule('/api/**')`) policy permits. Same
 pattern for the host-destruction subscription's `EventApi` listener
 callback.
 

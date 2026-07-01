@@ -21,8 +21,7 @@ import type {
 
 const REGISTRY_PATH = TemplatePaths.addressRegistry;
 
-const AddressApiCallers = SecurityPolicies.FromModule(
-  'api/address#AddressApi',
+const AddressApiCallers = SecurityPolicies.FromModule('/api/address#AddressApi',
 );
 
 const CONTAINMENT_DEPTH_CAP = 32;
@@ -126,7 +125,7 @@ function lookupRegistry(): AddressRegistry | null {
  * Registry). The durable coverage index lives on the pinned
  * `/obj/AddressRegistry`, whose methods admit this logic singleton
  * (`FromTemplate('/obj/api/address')`). Each method here is gated
- * `FromModule('api/address#AddressApi')`; shared logic is in
+ * `FromModule('/api/address#AddressApi')`; shared logic is in
  * module-private free functions, so there are no intra-singleton
  * self-calls.
  *

@@ -30,7 +30,7 @@ type ContainableStuff = Stuff & Containable;
 let _mergeOnArrivalHook: MergeOnArrivalHook | null = null;
 
 const ContainmentApiCallers = SecurityPolicies.AnyOf(
-  SecurityPolicies.FromModule('api/containment#ContainmentApi'),
+  SecurityPolicies.FromModule('/api/containment#ContainmentApi'),
   SecurityPolicies.SelfOnly
 );
 
@@ -46,7 +46,7 @@ const ContainmentApiCallers = SecurityPolicies.AnyOf(
  * reloads it.
  *
  * Gating (the guts-variant recipe): every public method carries
- * `AnyOf(FromModule('api/containment#ContainmentApi'), SelfOnly)`.
+ * `AnyOf(FromModule('/api/containment#ContainmentApi'), SelfOnly)`.
  * `FromModule` admits the Api facade forwarders; `SelfOnly` admits the
  * intra-singleton `this.x()` self-calls (e.g. `placeOn` → `this.move`).
  * The narrow-entry guards on `forceMove` (FromController) and

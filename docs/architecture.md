@@ -169,7 +169,7 @@ The logic singleton is a `Stuff` (a runtime class, so `obj/api/`),
 extends `Idea`, composes **no** `PostRegistrationMixin` (statelessness
 is load-bearing — `dest` is the reload invalidator), is marked
 `@internal` *on the class declaration*, and gates each public method
-`@CallSecurity(FromModule('api/<feature>#<Feature>Api'))`. Protected
+`@CallSecurity(FromModule('/api/<feature>#<Feature>Api'))`. Protected
 internal logic that used to crowd the Api's TypeDoc surface now lives
 here, off the documented surface. See
 [hot-reload.md § Api logic singletons](./subsystems/hot-reload.md#api-logic-singletons-objapifeature)
