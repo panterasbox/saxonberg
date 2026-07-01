@@ -25,6 +25,18 @@ export function MakerMixin<TBase extends MixinConstructor>(Base: TBase) {
   return class MakerMixin extends Base implements Maker {
     static _mixinName = 'MakerMixin';
 
+    /**
+     * Augment-gated: composing `MakerMixin` is necessary but not
+     * sufficient. The role is **active** only while a conferral grants it
+     * (`MixinApi.isActive` / `getActiveMixins`) — for the bar staff, the
+     * on-shift Position's `confers: ['MakerMixin']` surfaced via
+     * `EmployedMixin.getConferredMixinNames`. So an off-shift (or never-
+     * employed) Crafter is composed-but-inactive, and `MixinApi.isMaker`
+     * (now routed through `isActive`) selects only the on-shift bartender
+     * as the order fulfiller. See docs/subsystems/augmentation.md.
+     */
+    static _augmentGated = true;
+
     isMaker(): boolean {
       return true;
     }

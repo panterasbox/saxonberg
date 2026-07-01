@@ -80,6 +80,12 @@ class TestRoom extends ContainerMixin(Idea) {
 }
 class TestBartender extends MakerMixin(NamedMixin(ContainableMixin(Idea))) {
   static _mixinName = 'TestBartender';
+  // MakerMixin is augment-gated; a test bartender stands in for an on-shift
+  // employee by conferring the role directly (the employment leg
+  // `collectAugmentConferralNames` reads), so `MixinApi.isMaker` is true.
+  getConferredMixinNames(): readonly string[] {
+    return ['MakerMixin'];
+  }
 }
 
 function registerMaterial(
