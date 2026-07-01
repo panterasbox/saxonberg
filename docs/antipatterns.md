@@ -1452,6 +1452,31 @@ Existing verb-level validators in `lib/command/validators/`:
 Compose more — they're tiny files that take a `CommandValidator`
 function and return a string-on-fail / undefined-on-pass.
 
+**Per-subcommand authority — declare a subcommand validator, don't
+hand-roll it in the controller.** When only *some* subcommands of a
+verb are privileged (a public roster + a founder-gated `assign`), a
+verb-level validator would gate them all. Put the gate on the
+subcommand: a `validators:` list under `subcommands.<name>:` fires
+only when that subcommand is invoked, after the verb-level
+validators and before field validators (see
+[command-spec.md](./subsystems/command-spec.md)). The `office` verb
+is the exemplar — `assign`/`vacate` carry
+`requiresFoundingAuthority`, the bare `offices` roster stays public.
+
+```yaml
+subcommands:
+  assign:
+    validators: [/lib/command/validators/requiresFoundingAuthority]
+    args: [ … ]
+  list:                      # public — no validator
+    description: …
+```
+
+If you find yourself starting `executeAssign` with an
+`OfficeApi.isFounder(ctx.commandGiver)` check, that's the smell —
+the gate is a subcommand validator, and the controller re-derives
+no authority.
+
 ## Controllers — don't switch-default on unknown subcommand
 
 A subcommanded controller's `execute()` should NOT have a
@@ -1668,7 +1693,7 @@ surface-architecture refactor exists): call-security gates **only**
 function — or a static on a plain `lib` class — **can't be gated at
 all**. So protection-needing internal logic must be **`Stuff`-shaped**:
 that's exactly the `/obj/api/<feature>` logic singleton, gated
-`@CallSecurity(FromModule('mud/api/<feature>#<Feature>Api'))`. See
+`@CallSecurity(FromModule('/api/<feature>#<Feature>Api'))`. See
 [call-security.md § The api↔logic-singleton recipe](./subsystems/call-security.md#the-apilogic-singleton-recipe).
 
 Where a plain function genuinely must be shared between `lib` modules

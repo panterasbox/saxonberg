@@ -11,8 +11,7 @@ import type { MaterialComposition } from '../../api/material';
 import { MixinApi } from '../../api/mixin';
 import { StuffApi } from '../../api/stuff';
 
-const MaterialApiCallers = SecurityPolicies.FromModule(
-  'mud/api/material#MaterialApi'
+const MaterialApiCallers = SecurityPolicies.FromModule('/api/material#MaterialApi'
 );
 
 /**

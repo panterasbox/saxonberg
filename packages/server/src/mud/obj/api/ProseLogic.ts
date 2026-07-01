@@ -7,7 +7,7 @@ import { SecurityPolicies } from '../../lib/security/SecurityPolicies';
 import type { Mml } from '../../api/mml';
 import { Prose, type FilterFn } from '../../lib/prose/Prose';
 
-const ProseApiCallers = SecurityPolicies.FromModule('mud/api/prose#ProseApi');
+const ProseApiCallers = SecurityPolicies.FromModule('/api/prose#ProseApi');
 
 /**
  * ProseLogic — the hot-reloadable logic singleton behind

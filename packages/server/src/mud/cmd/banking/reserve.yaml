@@ -1,14 +1,16 @@
 verbs: [reserve]
 controller: banking/ReserveController
-description: "Central bank operator — mint / supply (operator)"
+description: "Central bank — mint / supply (Governor-gated)"
 help: |
   The central-bank surface. `reserve mint <amount>` mints subsidy into the
   present venue's account — a logged, visible, accountable faucet that covers
   the deficit-as-target P&L. `reserve supply` reads the money supply and the
-  reconciliation audit. Operator-gated.
+  reconciliation audit. Governor-gated: you must hold the
+  `central-bank-governor` office (the founder by default, or a handed-off
+  holder) — the monetary-authority axis, not code-trust.
 validators:
   - /lib/command/validators/requiresAnimate
-  - /lib/command/validators/requiresWizard
+  - /lib/command/validators/requiresGovernor
 subcommands:
   mint:
     description: "Mint subsidy into the present venue's account"

@@ -3,7 +3,7 @@
  * runtime state. Lives at `/obj/SchedulerRegistry`. The thin
  * `SchedulerApi` facade at `api/scheduler.ts` is the only legitimate
  * caller — every public method on this class carries
- * `@CallSecurity(FromModule('mud/api/scheduler#SchedulerApi'))` so the
+ * `@CallSecurity(FromModule('/api/scheduler#SchedulerApi'))` so the
  * security gate denies any other module's call. External code that
  * grabs the Registry instance via `StuffApi.findByTemplatePath` gets a
  * reference but `SecurityError` is thrown on any method call.
@@ -68,7 +68,7 @@ import type {
  * internal `this.foo()` self-calls.
  */
 const SchedulerApiCallers = SecurityPolicies.AnyOf(
-  SecurityPolicies.FromModule('mud/api/scheduler#SchedulerApi'),
+  SecurityPolicies.FromModule('/api/scheduler#SchedulerApi'),
   SecurityPolicies.FromTemplate('/obj/api/scheduler'),
   SecurityPolicies.SelfOnly,
 );

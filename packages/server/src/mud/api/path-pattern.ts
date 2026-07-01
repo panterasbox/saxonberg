@@ -13,8 +13,8 @@
  * security policies and MQL path-glob seeds.
  *
  * Two-pass test:
- *   PathPatternApi.matches('mud/api/stuff#StuffApi', 'mud/api/**') === true
- *   PathPatternApi.matches('mud/lib/stuff/Thing#Thing', 'mud/api/**') === false
+ *   PathPatternApi.matches('api/stuff#StuffApi', 'api/**') === true
+ *   PathPatternApi.matches('lib/stuff/Thing#Thing', 'api/**') === false
  *
  * Companion data structure: {@link PathTrie} provides O(segments) exact
  * lookup and glob-walk against an indexed set of paths, sharing

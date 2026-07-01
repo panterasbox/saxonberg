@@ -35,8 +35,7 @@ import {
   type MqlManyPromptOpts,
 } from '../../api/prompt';
 
-const PromptApiCallers = SecurityPolicies.FromModule(
-  'mud/api/prompt#PromptApi'
+const PromptApiCallers = SecurityPolicies.FromModule('/api/prompt#PromptApi'
 );
 
 /**

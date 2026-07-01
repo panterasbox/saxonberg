@@ -17,7 +17,7 @@ import { QuantityApi } from '../../api/quantity';
 import { TemplateApi } from '../../api/template';
 import type { PackManifest, PackReconcileResult } from '../../api/pack';
 
-const PackApiCallers = SecurityPolicies.FromModule('mud/api/pack#PackApi');
+const PackApiCallers = SecurityPolicies.FromModule('/api/pack#PackApi');
 
 /** A pack resolved to its on-disk root + parsed manifest. */
 interface ResolvedPack {

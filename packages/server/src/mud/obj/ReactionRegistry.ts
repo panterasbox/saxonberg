@@ -7,7 +7,7 @@
  *
  * Lives at `/obj/ReactionRegistry`. The thin {@link ReactionApi} facade
  * is the only legitimate caller — every public method carries
- * `@CallSecurity(FromModule('mud/api/reaction#ReactionApi'))` (plus
+ * `@CallSecurity(FromModule('/api/reaction#ReactionApi'))` (plus
  * `SelfOnly` for internal `this.foo()`), so external code that grabs the
  * Stuff via `StuffApi.findByTemplatePath` cannot poke its state.
  *
@@ -55,7 +55,7 @@ import type {
 } from '../api/reaction';
 
 const ReactionApiCallers = SecurityPolicies.AnyOf(
-  SecurityPolicies.FromModule('mud/api/reaction#ReactionApi'),
+  SecurityPolicies.FromModule('/api/reaction#ReactionApi'),
   SecurityPolicies.SelfOnly,
 );
 

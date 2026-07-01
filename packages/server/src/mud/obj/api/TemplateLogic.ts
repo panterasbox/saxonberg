@@ -23,8 +23,7 @@ import type { Stuff } from '../../lib/stuff/Stuff';
 import type { Marshaller } from '../../lib/persistence/Marshaller';
 import PersistentHydrator from '../../lib/persistence/PersistentHydrator';
 
-const TemplateApiCallers = SecurityPolicies.FromModule(
-  'mud/api/template#TemplateApi'
+const TemplateApiCallers = SecurityPolicies.FromModule('/api/template#TemplateApi'
 );
 
 /**

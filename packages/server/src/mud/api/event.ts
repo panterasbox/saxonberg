@@ -14,7 +14,7 @@
  *     per-property `checkAccess` policies; `setProp` is the emit gate.
  *   - `EventSubscriptions` (this refactor) — the runtime listener
  *     side-table and the bounded ring-buffer history. Methods carry
- *     `@CallSecurity(FromModule('mud/api/event#EventApi'))` so the
+ *     `@CallSecurity(FromModule('/api/event#EventApi'))` so the
  *     subscription state has one calling surface — this one.
  *
  * Dispatch is non-blocking and isolated: `emit` enqueues a microtask,

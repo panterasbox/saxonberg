@@ -4,7 +4,7 @@
  *
  * CommandApi forwards to the CommandLogic singleton at
  * `/obj/api/command`, whose methods are gated
- * `AnyOf(FromModule('mud/api/command#CommandApi'), SelfOnly)`. A direct
+ * `AnyOf(FromModule('/api/command#CommandApi'), SelfOnly)`. A direct
  * logic-method call from any other module is denied.
  */
 

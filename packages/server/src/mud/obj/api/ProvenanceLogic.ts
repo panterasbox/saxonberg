@@ -10,8 +10,7 @@ import { WorldClockApi } from '../../api/worldclock';
 import { PersistApi } from '../../api/persist';
 import { ExecutionContextApi } from '../../api/execution-context';
 
-const ProvenanceApiCallers = SecurityPolicies.FromModule(
-  'mud/api/provenance#ProvenanceApi'
+const ProvenanceApiCallers = SecurityPolicies.FromModule('/api/provenance#ProvenanceApi'
 );
 
 /** Persistence is a no-op unless Mongo is connected (tests, pre-boot). */

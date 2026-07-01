@@ -21,6 +21,7 @@
 export const TemplatePaths = {
   // Singleton registries.
   accessRegistry: "/obj/AccessRegistry",
+  officeRegistry: "/obj/OfficeRegistry",
   addressRegistry: "/obj/AddressRegistry",
   groupRegistry: "/obj/GroupRegistry",
   schedulerRegistry: "/obj/SchedulerRegistry",

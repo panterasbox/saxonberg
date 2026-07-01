@@ -14,8 +14,7 @@ import { AppSettingKeys } from '../../lib/config/AppSettings';
 import { WorldClockApi } from '../../api/worldclock';
 import { PersistApi } from '../../api/persist';
 
-const ConvictionApiCallers = SecurityPolicies.FromModule(
-  'mud/api/conviction#ConvictionApi'
+const ConvictionApiCallers = SecurityPolicies.FromModule('/api/conviction#ConvictionApi'
 );
 
 /** Persistence is a no-op unless Mongo is connected (tests, pre-boot). */

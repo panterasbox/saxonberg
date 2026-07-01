@@ -81,7 +81,7 @@ reloads it.
 Like belief, the logic's internal helpers (`active()`, `ownerKey()`, the
 shared mint path) are **module-private free functions**, not
 intra-singleton `this.x()` calls — a self-call would trip the
-`FromModule('mud/api/chronicle#ChronicleApi')` gate (the caller would be
+`FromModule('/api/chronicle#ChronicleApi')` gate (the caller would be
 `ChronicleLogic`, not the allowed `ChronicleApi`). Every public method
 no-ops without a durable owner key (`owner.getTemplatePath()`) or an
 active Mongo connection (`PersistenceManager.get().isConnected()`).

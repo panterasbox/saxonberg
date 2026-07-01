@@ -4,7 +4,7 @@
  *
  * RecognitionApi forwards to the RecognitionLogic singleton at
  * `/obj/api/recognition`, whose methods are gated
- * `FromModule('mud/api/recognition#RecognitionApi')`. A direct
+ * `FromModule('/api/recognition#RecognitionApi')`. A direct
  * logic-method call from any other module is denied.
  */
 

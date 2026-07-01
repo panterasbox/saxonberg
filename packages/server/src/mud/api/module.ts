@@ -48,16 +48,28 @@ import { SecurityApi } from './security';
 
 /**
  * Canonical module-id string. Form: `<path>#<exportName>` for named
- * exports; bare `<path>` for default exports. Path is normalised to
- * the source-rooted form (`mud/api/stuff` rather than the absolute
- * `file:///…/mud/api/stuff.ts`) so policy globs are written against a
- * predictable shape.
+ * exports; bare `<path>` for default exports. Path is normalised to the
+ * mud-rooted absolute form with a leading slash (`/api/stuff` rather than
+ * the file URL `file:///…/src/mud/api/stuff.ts`) so a module id is the
+ * same shape as the clone-namespace template path it parallels
+ * (`/obj/command/X`). The two identity spaces are told apart by which
+ * policy reads which — `FromModule` matches a caller's class module id,
+ * `FromTemplate` matches its instance template path — not by the slash.
  */
 type ModuleId = string;
 
 /**
  * Roots that the URL normaliser strips. The first match wins; order
- * matters when one root is a prefix of another.
+ * matters when one root is a prefix of another — the `mud/`-rooted
+ * hints come first so a mudlib file normalises to a `mud`-relative,
+ * leading-slashed id (`/obj/command/…`, `/api/…`, `/lib/…`) rather than a
+ * `src`-relative one (`mud/obj/…`). This makes a module id **identical in
+ * shape** to the clone-namespace template path it parallels
+ * (`/obj/command/X`); the two are told apart by which policy reads which
+ * identity, not by the slash. Only `/mud/` files are ever stamped (the
+ * loader transform gate), so every real id is `mud`-rooted; the trailing
+ * `src/`/`dist/` hints are a harmless fallback for any stray non-mud
+ * stamp.
  *
  * Production tsx runs from `packages/server/src/`; Vitest also imports
  * from `packages/server/src/`. Compiled JS lives under
@@ -67,6 +79,8 @@ type ModuleId = string;
  * dependency."
  */
 const SOURCE_ROOT_HINTS = [
+  'packages/server/src/mud/',
+  'packages/server/dist/mud/',
   'packages/server/src/',
   'packages/server/dist/',
 ];
@@ -251,15 +265,15 @@ export class ModuleApi {
   /* ─────────────────────── Internal helpers ─────────────────────── */
 
   /**
-   * Convert a file:// URL or absolute path into the source-rooted
+   * Convert a file:// URL or absolute path into the mud-rooted
    * canonical form used by `FromModule(...)` globs. Drops the file
    * extension. Examples:
    *
    *     file:///home/bob/proj/packages/server/src/mud/api/stuff.ts
-   *     → mud/api/stuff
+   *     → /api/stuff
    *
    *     file:///home/bob/proj/packages/server/dist/mud/lib/spatial/Door.js
-   *     → mud/lib/spatial/Door
+   *     → /lib/spatial/Door
    *
    * Files outside known roots return the absolute path with extension
    * stripped — they'll typically be `node_modules` or scripts and won't
@@ -275,11 +289,18 @@ export class ModuleApi {
     for (const root of SOURCE_ROOT_HINTS) {
       const idx = s.indexOf(root);
       if (idx >= 0) {
-        s = s.slice(idx + root.length);
+        // Root-relative form with a LEADING SLASH, so a module id is an
+        // absolute path in the same shape as a clone-namespace template
+        // path — `/obj/command/X`, `/api/foo#Foo`, `/lib/…`. The two are
+        // then distinguished by *which policy resolves which identity*
+        // (FromModule → class module id, FromTemplate → instance template
+        // path), not by slash presence.
+        s = '/' + s.slice(idx + root.length);
         break;
       }
     }
-    // Strip extension.
+    // Strip extension. (Files outside every root fall through here with
+    // their absolute fs path, already leading-slashed.)
     return s.replace(/\.(ts|tsx|js|mjs|cjs)$/, '');
   }
 

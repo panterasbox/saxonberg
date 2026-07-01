@@ -14,8 +14,7 @@ import { MixinApi } from '../../api/mixin';
 import { SlotApi } from '../../api/slot';
 import type { PostureTransferResult } from '../../api/posture';
 
-const PostureApiCallers = SecurityPolicies.FromModule(
-  'mud/api/posture#PostureApi'
+const PostureApiCallers = SecurityPolicies.FromModule('/api/posture#PostureApi'
 );
 
 /**

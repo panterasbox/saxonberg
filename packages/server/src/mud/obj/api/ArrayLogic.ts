@@ -6,7 +6,7 @@ import { Idea } from '../../lib/stuff/Idea';
 import { CallSecurity, Unshadowable } from '../../lib/security/decorators';
 import { SecurityPolicies } from '../../lib/security/SecurityPolicies';
 
-const ArrayApiCallers = SecurityPolicies.FromModule('mud/api/array#ArrayApi');
+const ArrayApiCallers = SecurityPolicies.FromModule('/api/array#ArrayApi');
 
 /**
  * ArrayLogic — the hot-reloadable logic singleton behind

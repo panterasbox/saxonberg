@@ -15,8 +15,7 @@ import type {
   SubscribeRequest,
 } from '../../api/mql-subscription';
 
-const MqlSubscriptionApiCallers = SecurityPolicies.FromModule(
-  'mud/api/mql-subscription#MqlSubscriptionApi'
+const MqlSubscriptionApiCallers = SecurityPolicies.FromModule('/api/mql-subscription#MqlSubscriptionApi'
 );
 
 /* ─────────────────────── registry resolution ─────────────────────── */

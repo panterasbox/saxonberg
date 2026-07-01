@@ -7,29 +7,29 @@ import { PathPatternApi } from '../path-pattern';
 
 describe('PathPatternApi.matches', () => {
   it('matches literals exactly', () => {
-    expect(PathPatternApi.matches('mud/api/stuff', 'mud/api/stuff')).toBe(true);
-    expect(PathPatternApi.matches('mud/api/stuff', 'mud/api/other')).toBe(false);
+    expect(PathPatternApi.matches('api/stuff', 'api/stuff')).toBe(true);
+    expect(PathPatternApi.matches('api/stuff', 'api/other')).toBe(false);
   });
 
   it('* matches a single segment', () => {
-    expect(PathPatternApi.matches('mud/api/stuff', 'mud/api/*')).toBe(true);
-    expect(PathPatternApi.matches('mud/api/sub/stuff', 'mud/api/*')).toBe(false);
+    expect(PathPatternApi.matches('api/stuff', 'api/*')).toBe(true);
+    expect(PathPatternApi.matches('api/sub/stuff', 'api/*')).toBe(false);
   });
 
   it('** matches across segments', () => {
-    expect(PathPatternApi.matches('mud/api/stuff', 'mud/api/**')).toBe(true);
-    expect(PathPatternApi.matches('mud/api/sub/stuff', 'mud/api/**')).toBe(true);
-    expect(PathPatternApi.matches('mud/lib/spatial/Door', 'mud/api/**')).toBe(false);
+    expect(PathPatternApi.matches('api/stuff', 'api/**')).toBe(true);
+    expect(PathPatternApi.matches('api/sub/stuff', 'api/**')).toBe(true);
+    expect(PathPatternApi.matches('lib/spatial/Door', 'api/**')).toBe(false);
   });
 
   it('ID with #ExportName matches under ** glob', () => {
     expect(
-      PathPatternApi.matches('mud/api/stuff#StuffApi', 'mud/api/**')
+      PathPatternApi.matches('api/stuff#StuffApi', 'api/**')
     ).toBe(true);
   });
 
   it('** at end allows empty tail', () => {
-    expect(PathPatternApi.matches('mud/api/', 'mud/api/**')).toBe(true);
+    expect(PathPatternApi.matches('api/', 'api/**')).toBe(true);
   });
 
   it('escapes regex metacharacters in literal segments', () => {
@@ -53,8 +53,8 @@ describe('PathPatternApi.matches', () => {
     });
 
     it('combines with literal characters in a segment', () => {
-      expect(PathPatternApi.matches('mud/api/stuff', 'mud/?pi/stuff')).toBe(true);
-      expect(PathPatternApi.matches('mud/aapi/stuff', 'mud/?pi/stuff')).toBe(false);
+      expect(PathPatternApi.matches('api/stuff', '?pi/stuff')).toBe(true);
+      expect(PathPatternApi.matches('aapi/stuff', '?pi/stuff')).toBe(false);
     });
   });
 });

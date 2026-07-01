@@ -81,7 +81,7 @@ The data-flow is **acyclic in the dangerous direction** — that acyclicity
 
 `RenownApi` (`api/renown.ts`) is the thin gated facade; the logic lives in
 the HMR-able `RenownLogic` singleton (`obj/api/RenownLogic.ts`, gated
-`FromModule('mud/api/renown#RenownApi')`, internal sub-logic in
+`FromModule('/api/renown#RenownApi')`, internal sub-logic in
 module-private free functions to dodge the gate on `this.x()` self-calls).
 Surface:
 

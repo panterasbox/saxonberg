@@ -101,7 +101,7 @@ argument*). A context with no derivable actor → `null` → every gate fails
 closed. **All cross-backend dispatch lives in `CmsLogic`**, never in the
 REST handlers — the write gates are module-private functions mirroring
 `WriteController._gateContentWrite` / `_gateSourceWrite` verbatim. Every
-public `CmsLogic` method carries `@CallSecurity(FromModule('mud/api/cms#CmsApi'))`:
+public `CmsLogic` method carries `@CallSecurity(FromModule('/api/cms#CmsApi'))`:
 anything that grabs the singleton and calls it other than through `CmsApi`
 gets `SecurityError`.
 

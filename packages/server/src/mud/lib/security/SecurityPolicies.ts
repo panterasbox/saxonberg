@@ -67,44 +67,64 @@ const SelfOnlyPolicy: SecurityPolicy = {
 };
 
 /**
- * Resolve a caller's "caller path" string used by identity-keyed
- * policies. Order:
- *   1. If the caller is a `Stuff` proxy with a `templatePath`, use it.
- *   2. If the caller is (or carries) a class with a stamped module ID,
- *      use the module ID.
- * Returns `null` if neither is present — identity-keyed policies fail
- * closed (deny) when this returns null.
+ * The two identity-keyed policies each resolve a **different** identity
+ * of the caller, and match it against a `/`-absolute glob:
+ *
+ *   - `FromTemplate` → the caller's clone-instance **template path**
+ *     (`resolveTemplatePath`) — trust by clone lineage.
+ *   - `FromModule` → the caller's class **module id**
+ *     (`resolveModuleId`) — trust by code provenance.
+ *
+ * Both identities are absolute and slash-shaped now (a module id is
+ * `/obj/command/X`, a template path is `/obj/command/X`), so a caller
+ * that is a *cloned* Stuff carries BOTH — its clone lineage AND the
+ * provenance of its class. Keeping the resolvers separate is what lets
+ * the two policies mean different things (a class cloned into a foreign
+ * template matches `FromModule` by its code but not `FromTemplate` by
+ * its lineage) while sharing one path shape.
  */
-function resolveCallerPath(caller: unknown | null): string | null {
-  if (caller === null || caller === undefined) return null;
-  // (1) Template path — set at clone time on the Stuff instance.
-  // Read via `getTemplatePath()` since the slot is hard-private
-  // (Stuff.#templatePath) post-lockdown; the method unwraps RAW_TARGET
-  // internally. The try/catch handles the rare reflection-test case
-  // where `caller` carries Stuff's prototype but wasn't constructed
-  // via the Stuff constructor (e.g., `Object.create(Sub.prototype)`)
-  // — the `#templatePath` slot doesn't exist on such objects and a
-  // direct read throws "Cannot read private member."
-  if (typeof caller === 'object') {
-    const obj = caller as {
-      getTemplatePath?: () => string | null;
-      constructor?: object;
-    };
-    if (typeof obj.getTemplatePath === 'function') {
-      try {
-        const path = obj.getTemplatePath();
-        if (typeof path === 'string' && path.length > 0) return path;
-      } catch {
-        // Fall through to constructor-based lookup.
-      }
+
+/**
+ * The caller's clone-instance template path, or `null` for a caller that
+ * isn't a cloned Stuff. Read via `getTemplatePath()` since the slot is
+ * hard-private (`Stuff.#templatePath`); the method unwraps RAW_TARGET
+ * internally. The try/catch handles the rare reflection-test case where
+ * `caller` carries Stuff's prototype but wasn't constructed via the Stuff
+ * constructor (`Object.create(Sub.prototype)`) — the private slot doesn't
+ * exist and a direct read throws.
+ */
+function resolveTemplatePath(caller: unknown | null): string | null {
+  if (caller === null || typeof caller !== 'object') return null;
+  const obj = caller as { getTemplatePath?: () => string | null };
+  if (typeof obj.getTemplatePath === 'function') {
+    try {
+      const path = obj.getTemplatePath();
+      if (typeof path === 'string' && path.length > 0) return path;
+    } catch {
+      // Not a genuinely-constructed Stuff; no template identity.
     }
-    // (2a) Caller is an instance — look up its class.
-    if (obj.constructor) {
-      const id = ModuleApi.lookup(obj.constructor as object);
+  }
+  return null;
+}
+
+/**
+ * The caller's class module id (code provenance), or `null` if unstamped.
+ * An *instance* resolves via its `constructor`; a class value resolves
+ * directly. Independent of whether the caller also has a template path —
+ * a cloned Stuff still answers here with the module id of its class,
+ * which is what fixes the narrow-entry-controller gates (a cloned
+ * controller is admitted by `FromModule` via its class, not just by
+ * `FromTemplate` via its clone path).
+ */
+function resolveModuleId(caller: unknown | null): string | null {
+  if (caller === null || caller === undefined) return null;
+  if (typeof caller === 'object') {
+    const ctor = (caller as { constructor?: object }).constructor;
+    if (ctor) {
+      const id = ModuleApi.lookup(ctor);
       if (id) return id;
     }
   }
-  // (2b) Caller is a class itself (static-method synthesised frame).
   if (typeof caller === 'function') {
     const id = ModuleApi.lookup(caller as object);
     if (id) return id;
@@ -121,33 +141,46 @@ function FromTemplate(glob: string): SecurityPolicy {
   return {
     name: `FromTemplate(${glob})`,
     allows(caller) {
-      const path = resolveCallerPath(caller);
-      if (path === null) return false;
-      // Template paths begin with '/' by convention; module IDs don't.
-      // Reject module IDs at this gate — FromTemplate is template-only.
-      if (!path.startsWith('/')) return false;
-      return PathPatternApi.matches(path, glob);
+      // Clone lineage only — the caller's instance template path. A
+      // caller that isn't a cloned Stuff (an Api class, a bare value
+      // object) has no template identity and fails closed here.
+      const path = resolveTemplatePath(caller);
+      return path !== null && PathPatternApi.matches(path, glob);
     },
   };
 }
 
 /**
- * `FromModule(glob, opts)` — caller's stamped module ID matches `glob`.
+ * `FromModule(glob, opts)` — the caller's class **module id** matches
+ * `glob`. This is trust by *code provenance*: it answers "what source
+ * module is this caller's class from?", independent of whether the
+ * caller is also a cloned Stuff (a cloned controller is admitted here by
+ * its class, which is what makes it the right gate for the narrow-entry
+ * controllers — no `FromTemplate` arm needed).
  *
- * Module IDs have the form `<source-relative-path>#<exportName>` (or
- * bare `<path>` for default exports). Examples:
- *   - `mud/api/stuff#StuffApi`
- *   - `mud/lib/spatial/Door#Door`
+ * Module IDs are `/`-absolute, `mud`-rooted, `<path>#<exportName>` (or
+ * bare `<path>` for a default export) — the same shape as the template
+ * path they parallel. Examples:
+ *   - `/api/stuff#StuffApi`
+ *   - `/lib/spatial/Door#Door`
  *
  * Glob examples:
- *   - `'mud/api/**'` matches every Api export under `mud/api/`.
- *   - `'mud/lib/spatial/Door#Door'` matches exactly Door.
- *   - `'mud/domain/narnia/**'` matches every export under that
- *     subtree — useful for the "developers don't trust each other"
- *     story where a subsystem owner gates onward calls into their
- *     module's privileged surface.
+ *   - `'/api/**'` matches every Api export under `api/` (src/mud/api/).
+ *   - `'/lib/spatial/Door#Door'` matches exactly Door.
+ *   - `'/domain/narnia/**'` matches every export under that subtree —
+ *     the "developers don't trust each other" story where a subsystem
+ *     owner gates onward calls into their module's privileged surface.
  *
- * `opts.includeSubclasses` (default: `false`) walks the caller's
+ * A glob may also be written **relative** (`'./Sibling'`, `'../peer/**'`)
+ * — resolved to the absolute form at load time by the loader transform
+ * (`resolveRelativeModuleGates`), relative to the *declaring file's*
+ * module directory. Useful for intra-subsystem "only my siblings/subtree
+ * may call this" gates that survive a directory move. Only `FromModule`
+ * takes relative globs (`FromTemplate` is clone lineage, not
+ * file-relative); by the time a glob reaches this policy it is always
+ * absolute.
+ *
+ * `opts.includeSubclasses` (default: `false`) walks the caller's class
  * prototype chain looking for ANY ancestor whose module ID matches.
  * Set this for "this class and any subclass" rules.
  */
@@ -159,11 +192,9 @@ function FromModule(
     name: `FromModule(${glob})`,
     allows(caller) {
       if (caller === null || caller === undefined) return false;
-      // Direct match against the immediate caller's identity.
-      const path = resolveCallerPath(caller);
-      if (path !== null && !path.startsWith('/')) {
-        if (PathPatternApi.matches(path, glob)) return true;
-      }
+      // Direct match against the caller's own class module id.
+      const id = resolveModuleId(caller);
+      if (id !== null && PathPatternApi.matches(id, glob)) return true;
       if (!opts.includeSubclasses) return false;
       // Walk the prototype chain: each ancestor class might be the
       // one that lives at the matched module.
@@ -174,8 +205,8 @@ function FromModule(
               (caller as { constructor?: unknown }).constructor ?? caller
             );
       while (proto && proto !== Function.prototype && proto !== Object.prototype) {
-        const id = ModuleApi.lookup(proto as object);
-        if (id && PathPatternApi.matches(id, glob)) return true;
+        const pid = ModuleApi.lookup(proto as object);
+        if (pid && PathPatternApi.matches(pid, glob)) return true;
         proto = Object.getPrototypeOf(proto);
       }
       return false;
@@ -184,16 +215,16 @@ function FromModule(
 }
 
 /**
- * `ApiOnly` — the Api tier: callers under `mud/api/**` plus the Api's
- * hot-reloadable logic singletons under `mud/obj/api/**`.
+ * `ApiOnly` — the Api tier: callers under `api/**` plus the Api's
+ * hot-reloadable logic singletons under `obj/api/**`.
  *
  * Stage 1 shipped a forgeable constructor-name stub; Stage 2 replaced
  * it with the real loader-stamped module-id matcher. The
  * surface-architecture refactor moved each Api's *guts* into a stateless
- * `Stuff` logic singleton at `mud/obj/api/<Foo>Logic` (the `FooApi`
+ * `Stuff` logic singleton at `obj/api/<Foo>Logic` (the `FooApi`
  * statics forward to it). Those singletons ARE the Api implementation,
  * so they must retain Api-tier calling privileges — e.g. `split` calls
- * the `ApiOnly`-gated `ContainmentApi.placeDirect`. `mud/obj/api/`
+ * the `ApiOnly`-gated `ContainmentApi.placeDirect`. `obj/api/`
  * contains nothing BUT those logic singletons, so admitting it widens
  * the gate to exactly the Api tier and never to content. This only
  * *adds* admitted callers, so every prior allow/deny decision for
@@ -205,7 +236,7 @@ function FromModule(
  * `FromModule`.
  */
 const ApiOnlyPolicy: SecurityPolicy = (() => {
-  const fm = FromModule('mud/api/**', { includeSubclasses: true });
+  const fm = FromModule('/api/**', { includeSubclasses: true });
   const fmLogic = FromTemplate('/obj/api/**');
   return {
     name: 'ApiOnly',

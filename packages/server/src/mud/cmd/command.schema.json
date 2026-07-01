@@ -107,6 +107,11 @@
         "options": {
           "type": "object",
           "additionalProperties": { "$ref": "#/$defs/option" }
+        },
+        "validators": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/validatorSpec" },
+          "description": "Subcommand-level validators that fire AFTER the verb-level validators and BEFORE field validators with `context.commandGiver` populated, only when this subcommand is the one invoked. The subcommand-scoped equivalent of verb-level `validators` — authority/precondition gates that apply to one subcommand (e.g. a founder-only `assign`) without blocking the verb's other, public subcommands."
         }
       }
     },

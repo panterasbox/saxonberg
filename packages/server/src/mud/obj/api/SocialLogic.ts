@@ -35,7 +35,7 @@ import {
   type PaletteToken,
 } from "../../lib/social/NotifyRule";
 
-const SocialApiCallers = SecurityPolicies.FromModule("mud/api/social#SocialApi");
+const SocialApiCallers = SecurityPolicies.FromModule("/api/social#SocialApi");
 
 /**
  * Code-side baseline fallback — used only when AppSettings isn't warmed

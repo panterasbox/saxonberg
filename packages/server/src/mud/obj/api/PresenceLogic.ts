@@ -26,8 +26,7 @@ import type { Subscription } from '../../api/event';
 // Gated to the SocialApi facade — presence/profile reads fold into
 // SocialApi (one navigable surface); this logic singleton stays separate
 // for file size + HMR but is @internal.
-const SocialApiCallers = SecurityPolicies.FromModule(
-  'mud/api/social#SocialApi'
+const SocialApiCallers = SecurityPolicies.FromModule('/api/social#SocialApi'
 );
 
 /** The roster wire topic — a presence-PUBLIC channel, distinct from the

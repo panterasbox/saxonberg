@@ -80,7 +80,7 @@ CommandDispatchedEvent ─► CreditRouting.resolve ─► producer_events ─�
 - **`ProducerApi`** (`api/producer.ts`) → **`ProducerLogic`**
   (`obj/api/ProducerLogic.ts`, `/obj/api/producer`): `boot` / `append` /
   `recompute` / `producerOf(authorId)` / `standingOf(authorId)` /
-  `eventsFor`. Gated `FromModule('mud/api/producer#ProducerApi')`.
+  `eventsFor`. Gated `FromModule('/api/producer#ProducerApi')`.
 - **Formula is engagement-only** — the decayed, weighted attributed-bucket
   scalar, **no `× regard`** (an author earns from *draw*, not from being
   liked), so `ProducerLogic` reads no `RenownApi`. **Real-time** decay (the
@@ -132,7 +132,7 @@ population-deferred); this is the substrate + its tested clock seam.
   `drop` / `abstain` / `positionOf` / `tally` / `quorumWeight`. Every method
   takes an optional `now` (real-time MS) defaulting to the wall clock — the
   deterministic clock seam the tests drive. Gated
-  `FromModule('mud/api/conviction#ConvictionApi')`.
+  `FromModule('/api/conviction#ConvictionApi')`.
 
 The math:
 
