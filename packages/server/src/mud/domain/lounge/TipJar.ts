@@ -37,18 +37,20 @@ export default class TipJar extends TipJarBase {
 
   /**
    * Resolve the tip jar a `tip` / `collect` command targets: the affording
-   * jar (an affordance click sets it as `commandSource`), else the jar
-   * reachable from the giver via MQL — object resolution goes through the
-   * query layer, not a hand-rolled room scan. Type-narrowed so a stray
-   * `jar`-keyworded object never masquerades as the tip jar.
+   * jar (an affordance click sets it as `commandSource`), else the tip jar
+   * among the room's occupants. Object enumeration goes through MQL (the
+   * `peers` seed), not a hand-rolled containment scan; the `instanceof`
+   * check is the interim type filter (a future MQL type-predicate subsumes
+   * it), so a honey jar on the same back-bar never masquerades as the tip
+   * jar.
    */
   static resolveIn(context: CommandContext): TipJar | null {
     const source = context.commandSource;
     if (source instanceof TipJar) return source;
-    const r = MqlApi.resolveOne('jar', {
+    const peers = MqlApi.resolveMany('peers', {
       commandGiver: context.commandGiver,
       scope: 'reachable',
     });
-    return r.stuff instanceof TipJar ? r.stuff : null;
+    return peers.stuff.find((s): s is TipJar => s instanceof TipJar) ?? null;
   }
 }

@@ -31,19 +31,19 @@ export default class Menu extends MenuBase {
   /**
    * Resolve the menu an `order` / `menu` command works off: the affording
    * menu (an affordance click sets it as `commandSource`), else the menu
-   * reachable from the giver via MQL — object resolution goes through the
-   * query layer, not a hand-rolled room scan. Type-narrowed against a stray
-   * `menu`-keyworded object. Callers with an explicit `named` target
-   * resolve that first (already MQL-bound) before falling back here.
+   * among the room's occupants. Object enumeration goes through MQL (the
+   * `peers` seed), not a hand-rolled containment scan; the `instanceof`
+   * check is the interim type filter. Callers with an explicit `named`
+   * target resolve that first (already MQL-bound) before falling back here.
    */
   static resolveIn(context: CommandContext): Menu | null {
     const source = context.commandSource;
     if (source instanceof Menu) return source;
-    const r = MqlApi.resolveOne('menu', {
+    const peers = MqlApi.resolveMany('peers', {
       commandGiver: context.commandGiver,
       scope: 'reachable',
     });
-    return r.stuff instanceof Menu ? r.stuff : null;
+    return peers.stuff.find((s): s is Menu => s instanceof Menu) ?? null;
   }
 
   /**
