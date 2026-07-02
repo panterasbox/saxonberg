@@ -13,7 +13,10 @@ import { Mml } from '../../../../api/mml';
 import { Idea } from '../../../../lib/stuff/Idea';
 import { StuffApi } from '../../../../api/stuff';
 import { makeStuff } from '../../../../lib/security/__tests__/test-setup';
-import type { CommandContext, CommandModel } from '../../../../api/command';
+import type { CommandContext } from '../../../../api/command';
+
+/** ScriptController's model type (its `ScriptModel` isn't exported). */
+type ScriptModel = Parameters<ScriptController['execute']>[0];
 
 let captured: Mml | null;
 
@@ -54,7 +57,7 @@ describe('ScriptController.execute', () => {
     const ctrl = makeStuff(() => new ScriptController());
 
     await ctrl.execute(
-      { body: 'look; say hi' } as unknown as CommandModel,
+      { body: 'look; say hi' } as unknown as ScriptModel,
       ctxFor(actor)
     );
 
@@ -68,7 +71,7 @@ describe('ScriptController.execute', () => {
     const ctrl = makeStuff(() => new ScriptController());
 
     await ctrl.execute(
-      { body: '   wait 1   ' } as unknown as CommandModel,
+      { body: '   wait 1   ' } as unknown as ScriptModel,
       ctxFor(actor)
     );
 
@@ -81,7 +84,7 @@ describe('ScriptController.execute', () => {
     const ctrl = makeStuff(() => new ScriptController());
     const ctx = ctxFor(actor);
 
-    await ctrl.execute({ body: '   ' } as unknown as CommandModel, ctx);
+    await ctrl.execute({ body: '   ' } as unknown as ScriptModel, ctx);
 
     expect(run).not.toHaveBeenCalled();
     expect(ctx.note).toHaveBeenCalledWith(

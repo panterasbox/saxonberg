@@ -1,12 +1,15 @@
 # Async commands (working slate)
 
-> **Status:** design. Not built. A small command-layer feature: a
-> per-command `async` flag that detaches a command's execution from
-> the per-socket input chain so a long-running command doesn't block
-> the player's next input. Driver: **scripts**. The heavy lifting
-> (dispatch pipeline, phase-effects, the reserved `deferred-dispatch`
-> replace-handler) is already in place — this slate is mostly about
-> wiring one reserved seam and settling the opt shape.
+> **Status:** **shipped** (MR !122) →
+> [command-routing.md § Async dispatch](../../subsystems/command-routing.md)
+> + [command-spec.md](../../subsystems/command-spec.md). The `async:`
+> spec field + reserved `--async`/`--sync` flags + the accept-time
+> detach seam in `_executeOne` + the new `script` verb all landed; sync
+> is the default and is per-giver/never-global. This tail is retained
+> for the **deferred surface**: a line-level `--async`/`--sync` prefix so
+> a *bare* typed multi-statement script (no `script` verb) can be
+> detached; a per-actor async concurrency cap; and a generic
+> cancel-my-running-async-command verb (engagement owns cancel today).
 
 See also:
 

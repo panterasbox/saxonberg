@@ -131,7 +131,7 @@ function proseForFrameworkNote(note: Note): string | null {
  * run's microtask fires. Kept off the public `CommandContext` surface
  * (member-privacy / export-discipline).
  */
-const detachedContexts = new WeakSet<object>();
+const detachedContexts = new WeakSet<CommandContext>();
 
 /** Frame `target` marker for a detached async command body. */
 const ASYNC_BODY_TARGET = { module: 'CommandGiverMixin' } as const;
