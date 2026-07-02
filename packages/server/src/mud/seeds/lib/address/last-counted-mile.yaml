@@ -1,0 +1,8 @@
+# The Last Counted Mile — the newbie-wilds frontier-crossroads Locality.
+# Names the crossroads node on departures boards (D13). The crossroads hub
+# room carries an address under this prefix (`last-counted-mile/...`).
+class: /lib/address/Locality
+hydratorClass: /lib/persistence/PersistentHydrator
+data:
+  name: The Last Counted Mile
+  _address: last-counted-mile

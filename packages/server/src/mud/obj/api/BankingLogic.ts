@@ -214,6 +214,43 @@ async function moveCoins(
   return remaining === 0;
 }
 
+/** Total cash-like value on hand in a container (top-level coin stacks). */
+function cashOnHand(holder: Stuff & Container): number {
+  let total = 0;
+  for (const item of ContainmentApi.getContents(holder)) {
+    if (isCashLike(item)) total += item.getQuantity();
+  }
+  return total;
+}
+
+/**
+ * Remove exactly `count` worth of cash from `holder`, destroying the coin
+ * (it leaves circulation). Caller must have pre-checked sufficiency
+ * ({@link cashOnHand}); returns whether the full amount was drained. Used by
+ * the on-ledger cash bridge (a cash payment with no physical till): coin is
+ * consumed, equal value credited on-ledger — supply-neutral.
+ */
+async function drainCoins(
+  holder: Stuff & Container,
+  count: number,
+): Promise<boolean> {
+  let remaining = count;
+  for (const item of [...ContainmentApi.getContents(holder)]) {
+    if (remaining <= 0) break;
+    if (!isCashLike(item)) continue;
+    const have = item.getQuantity();
+    if (have <= remaining) {
+      StuffApi.destruct(item as unknown as Stuff);
+      remaining -= have;
+    } else {
+      const piece = await GlobbableApi.split(item, remaining);
+      StuffApi.destruct(piece as unknown as Stuff);
+      remaining = 0;
+    }
+  }
+  return remaining === 0;
+}
+
 /**
  * The actor's routing payment credential (implant-first via findReachable's
  * self-hosted leg, then carried cards). A **frozen** credential is skipped —
@@ -254,21 +291,59 @@ async function settleImpl(
   if (!payer) throw new Error("BankingLogic.settle: no acting payer");
 
   if (method.kind === "cash") {
-    if (!charge.payeeContainer) {
-      throw new Error(
-        "BankingLogic.settle: cash needs someone to hand coin to",
-      );
-    }
     if (!MixinApi.isContainer(payer)) {
       throw new Error("BankingLogic.settle: the payer can't hold coin");
     }
-    const ok = await moveCoins(
-      payer as Stuff & Container,
-      charge.payeeContainer,
-      charge.amount.minor,
-    );
-    if (!ok) throw new Error("BankingLogic.settle: not enough cash on hand");
-    return { method: "cash" };
+    // Off-ledger handover to a physical receiver (a till, a person's hand).
+    if (charge.payeeContainer) {
+      const ok = await moveCoins(
+        payer as Stuff & Container,
+        charge.payeeContainer,
+        charge.amount.minor,
+      );
+      if (!ok) throw new Error("BankingLogic.settle: not enough cash on hand");
+      return { method: "cash" };
+    }
+    // No physical receiver: bank the coin instantly across the cash bridge
+    // and settle on-ledger to `payeeAccountId` (+ any splits). Supply-neutral
+    // — the coin is consumed, the equal value credited on-ledger. Used where
+    // the payee has no local till (a global TPA operating-budget account), so
+    // a cash fare's city+TPA split still holds (D12 cash bridge).
+    if (!charge.payeeAccountId) {
+      throw new Error("BankingLogic.settle: cash needs a payee");
+    }
+    const payerC = payer as Stuff & Container;
+    if (cashOnHand(payerC) < charge.amount.minor) {
+      throw new Error("BankingLogic.settle: not enough cash on hand");
+    }
+    const cashSplits = charge.splits ?? [];
+    const cashSplitTotal = cashSplits.reduce((s, x) => s + x.amount.minor, 0);
+    if (cashSplitTotal > charge.amount.minor) {
+      throw new Error("BankingLogic.settle: splits exceed the charge");
+    }
+    await drainCoins(payerC, charge.amount.minor);
+    const bridgeLegs: LedgerLeg[] = [];
+    const bridgeMain = charge.amount.minor - cashSplitTotal;
+    if (bridgeMain > 0) {
+      bridgeLegs.push({
+        from: Account.CASH_BRIDGE,
+        to: charge.payeeAccountId,
+        amount: bridgeMain,
+        category: charge.category ?? "sales",
+        memo: charge.reason,
+      });
+    }
+    for (const sp of cashSplits) {
+      bridgeLegs.push({
+        from: Account.CASH_BRIDGE,
+        to: sp.accountId,
+        amount: sp.amount.minor,
+        category: sp.category ?? "other",
+        memo: charge.reason,
+      });
+    }
+    await postTransaction("deposit", bridgeLegs);
+    return { method: "cash", accountId: charge.payeeAccountId };
   }
 
   // credential method

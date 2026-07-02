@@ -29,6 +29,7 @@ import { WorldClockApi } from "../../api/worldclock";
 import { StuffApi } from "../../api/stuff";
 import { ContainmentApi } from "../../api/containment";
 import { MixinApi } from "../../api/mixin";
+import { AddressApi } from "../../api/address";
 import type { CredentialWallet } from "../credential/CredentialWallet";
 
 export type Directionality = "arrival" | "departure" | "both";
@@ -42,6 +43,8 @@ export type AdvanceMode = "manual" | "scheduled" | "cycle";
 export interface TravelRoute {
   ref: string;
   departures: CronPattern[];
+  /** The author-set fare in minor units (0 = free). */
+  fee: number;
 }
 
 /** Raw seed shape for a route, normalised by {@link applyRoutes}. */
@@ -49,6 +52,7 @@ interface RawRoute {
   to?: string;
   warren?: string;
   departures?: Array<string | CronPattern>;
+  fee?: number;
 }
 
 /** Public shape provided by FastTravelMixin. */
@@ -71,6 +75,7 @@ export interface FastTravel {
   ): Promise<{ route?: TravelRoute; ambiguous?: boolean }>;
 
   getArrivalRoom(): Promise<Stuff & Container>;
+  getDestinationLabel(): Promise<string>;
   renderDepartures(viewer: Stuff & Sensor): Promise<string>;
 
   armNetwork(): Promise<void>;
@@ -187,7 +192,7 @@ export function FastTravelMixin<TBase extends MixinConstructor<Stuff>>(
         const ref = r.to ?? r.warren;
         if (!ref) throw new TypeError("route needs a `to` or `warren` path");
         const departures = (r.departures ?? []).map(parseCron);
-        this._routes.set(ref, { ref, departures });
+        this._routes.set(ref, { ref, departures, fee: r.fee ?? 0 });
       }
     }
     getRoutes(): ReadonlyMap<string, TravelRoute> {
@@ -255,6 +260,26 @@ export function FastTravelMixin<TBase extends MixinConstructor<Stuff>>(
       return room;
     }
 
+    /* ── destination naming (covering Locality, D13) ─────────────── */
+
+    /**
+     * The name a departures board shows for *this* node as a destination:
+     * its **covering Locality**'s name (the general place it represents),
+     * falling back to the node's own presentation when no Locality covers
+     * it (the single-room / unlocalized case). Overridable per node for a
+     * bespoke board label. Display-only — keyword targeting stays on the
+     * terminal's authored `keywords`.
+     */
+    async getDestinationLabel(): Promise<string> {
+      const self = this as unknown as Stuff;
+      const room = MixinApi.isContainable(self) ? self.getContainer() : null;
+      if (room && MixinApi.isContainer(room)) {
+        const locality = await AddressApi.resolveLocalityFor(room);
+        if (locality) return locality.getName();
+      }
+      return MixinApi.isPerceptible(self) ? self.getPresentation() : "a stop";
+    }
+
     /* ── the local departures board (live, viewer-aware) ────────── */
 
     async renderDepartures(viewer: Stuff & Sensor): Promise<string> {
@@ -275,16 +300,19 @@ export function FastTravelMixin<TBase extends MixinConstructor<Stuff>>(
         return lines.join("\n");
       }
       for (const route of this._routes.values()) {
-        const node = await StuffApi.singleton<Stuff & Sensor>(route.ref);
-        const name = node.getPresentation();
+        const node = await StuffApi.singleton<Stuff & FastTravel & Sensor>(
+          route.ref,
+        );
+        const name = await node.getDestinationLabel();
         const active = route.ref === selected ? " «now boarding»" : "";
         const reg =
           cred && !cred.isRegistered(route.ref) ? " — not yet registered" : "";
+        const fare = route.fee > 0 ? ` ⊙${route.fee}` : "";
         const times =
           route.departures.length > 0
             ? `  [${route.departures.map(formatCron).join(", ")}]`
             : "";
-        lines.push(`  ${name}${active}${reg}${times}`);
+        lines.push(`  ${name}${fare}${active}${reg}${times}`);
       }
       lines.push("Travel with `teleport <destination>`.");
       return lines.join("\n");

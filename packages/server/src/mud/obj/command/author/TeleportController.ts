@@ -25,6 +25,11 @@ import { MixinApi } from "../../../api/mixin";
 import { ContainmentApi, ContainmentError } from "../../../api/containment";
 import { AccessApi } from "../../../api/access";
 import { StuffApi } from "../../../api/stuff";
+import { BankingApi, Money } from "../../../api/banking";
+import type { Charge } from "../../../api/banking";
+import { EmploymentApi } from "../../../api/employment";
+import { AppApi } from "../../../api/app";
+import { AppSettingKeys } from "../../../lib/config/AppSettings";
 import type { CredentialWallet } from "../../../lib/credential/CredentialWallet";
 import type { FastTravel } from "../../../lib/fasttravel/FastTravel";
 import type { Container } from "../../../lib/spatial/Container";
@@ -228,7 +233,96 @@ export default class TeleportController extends CommandController<TeleportModel>
     if (!MixinApi.isMobile(giver) || !MixinApi.isContainable(giver)) {
       return this.fail(context, "you can't travel", "immobile");
     }
+
+    // Paid routes settle the fare BEFORE travelling (insufficient funds
+    // refuses without moving). Free routes (fee 0) skip settlement entirely.
+    const fee = node.getRoutes().get(ref)?.fee ?? 0;
+    if (fee > 0) {
+      const ok = await this.settleFare(context, fee);
+      if (!ok) return;
+    }
+
     giver.teleport(arrivalRoom);
+  }
+
+  /**
+   * Settle a paid fare, split two operating budgets: the city budget (the
+   * Business operating the departure gate, resolved un-spoofably from the
+   * departure-gate room — never a caller parameter) takes `fee − networkFee`;
+   * the global TPA operating budget takes the network fee
+   * (`min(fee, base + floor(fee × rate))`, the flat-base + percentage
+   * payment-processor shape). Tries credential, then cash — both split
+   * identically (cash via the cash bridge, D12). Returns false (and refuses,
+   * without moving the traveller) on no-operator / insufficient funds.
+   */
+  private async settleFare(
+    context: CommandContext,
+    fee: number,
+  ): Promise<boolean> {
+    // Operator = the Business operating THIS departure-gate room (the
+    // OrderController precedent) — un-spoofable, never a caller token. A
+    // paid route with no operator is an authoring error ([DECIDE-A]).
+    const here = context.location?.getTemplatePath();
+    const biz = here ? EmploymentApi.businessAt(here) : undefined;
+    const bizPath = biz?.getAccountPath();
+    if (!bizPath) {
+      this.fail(
+        context,
+        "this gate has no operator to collect the fare",
+        "no-operator",
+      );
+      return false;
+    }
+    let cityBudgetAccount: string;
+    try {
+      cityBudgetAccount = await BankingApi.ensureVenueAccount(
+        bizPath,
+        bizPath,
+        "",
+      );
+    } catch {
+      this.fail(context, "the fare can't be collected here", "no-operator");
+      return false;
+    }
+    const rate =
+      Number(AppApi.setting(AppSettingKeys.fasttravelNetworkFeeRate)) || 0;
+    const base =
+      Number(AppApi.setting(AppSettingKeys.fasttravelNetworkFeeBase)) || 0;
+    const networkFee = Math.min(fee, base + Math.floor(fee * rate));
+    const tpaAccount =
+      AppApi.setting(AppSettingKeys.fasttravelTpaAccount) || "tpa";
+    const charge: Charge = {
+      amount: Money.of(fee),
+      reason: "TPA fare",
+      presented: true,
+      payeeAccountId: cityBudgetAccount,
+      category: "fare",
+      splits:
+        networkFee > 0
+          ? [
+              {
+                accountId: tpaAccount,
+                amount: Money.of(networkFee),
+                category: "networkFee",
+              },
+            ]
+          : [],
+    };
+    // Credential first, then cash — a coin-holder rides too, and the split
+    // holds either way (cash crosses the bridge). Any failure refuses.
+    try {
+      await BankingApi.settle(charge, { kind: "credential" });
+      return true;
+    } catch {
+      /* fall through to cash */
+    }
+    try {
+      await BankingApi.settle(charge, { kind: "cash" });
+      return true;
+    } catch {
+      this.fail(context, "you can't cover the fare", "fare-declined");
+      return false;
+    }
   }
 
   /* ── helpers ────────────────────────────────────────────────────── */

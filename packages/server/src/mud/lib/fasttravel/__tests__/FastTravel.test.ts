@@ -52,6 +52,16 @@ describe("FastTravelMixin", () => {
     expect(n.getSelectedDestination()).toBe("/b");
   });
 
+  it("applyRoutes normalizes the fare (absent → 0, present → number)", () => {
+    const n = makeStuff(() => new Node());
+    n.applyRoutes([
+      { to: "/paid", fee: 15 },
+      { to: "/free" },
+    ]);
+    expect(n.getRoutes().get("/paid")?.fee).toBe(15);
+    expect(n.getRoutes().get("/free")?.fee).toBe(0);
+  });
+
   it("MixinApi.isFastTravel narrows", () => {
     const n = makeStuff(() => new Node());
     expect(MixinApi.isFastTravel(n)).toBe(true);
