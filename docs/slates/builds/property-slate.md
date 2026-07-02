@@ -682,3 +682,113 @@ sold as premium authored content) *and* protects authored work from accidental
 loss (the key is not the vault). No new module category — a ref field on the
 wardrobe, a live-resolved exit on the zone, and the existing transfer + dormancy
 + evacuation machinery.
+
+### I. Chattel, persistence, and the capability-vs-relation correction (supersedes §F's chattel half)
+
+§F proposed a `PossessableMixin` + a `possessions` registry-as-store. Both were
+mis-scoped. The corrected model is smaller and reuses more.
+
+**The guardrail — a mixin test (adopt this project-wide).** Before proposing any
+mixin, ask:
+1. **Capability or relation?** A *capability* is intrinsic ("this KIND of thing
+   can be worn / contains / is a portal") → a mixin on the templates that have it
+   (`Wearable`, `Container`, `SandboxPortal`). A *relation* is runtime ("this
+   instance is owned-by / regarded-by / authored-by that one") → a **registry
+   keyed on identity, never a mixin** (`belief`, `regard`, `renown`,
+   `authoring_events` — none is a `RegardableMixin` on its target).
+2. **If a mixin: does *every* instance of the base have it?** If yes it's
+   base-class, not a mixin; if only some, it's opt-in.
+3. **Where does the concept bottom out** in the hierarchy?
+
+Possession fails #1 — **being owned is a relation, not a capability** → **there is
+no `PossessableMixin`.** (Contrast: the wardrobe's `SandboxPortalMixin` confers
+*behavior* → a legit mixin. The test discriminates.)
+
+**The real substrate is `PersistableHolder`** — a *capability* (passes #1): a
+container that snapshots/restores a **bounded set of contained state across a
+boundary**. Three consumers, one mechanism:
+
+- **Avatar** (carried inventory across logout — the shipped instance),
+- **Container / chest** (stashed contents across restart),
+- **Owned-parcel room** (placed fixtures — the fridge that won't fit in a chest).
+
+And crucially, the **sandbox rollback is the same capability** (restore the
+pre-entry snapshot). Unowned/ephemeral rooms are *not* holders — they only
+populate (see below), which is why dropping a valuable in the street loses it.
+"Your stuff persists where you have a persistent claim" is a *consequence* of
+this, not an authored rule.
+
+**One shared serialization boundary contract** (identical for logout / stash /
+sandbox-exit — design once):
+
+- ✅ **Contained items that fit** — *bulk-limited* (the fridge-in-chest constraint
+  is just container capacity).
+- ⚠️ **Equipped/worn → unequip.** Slot bindings are body-plan-dependent and
+  shadow-carrying; v1 round-trips only un-equipped inventory (best-effort re-equip
+  later).
+- ❌ **Shadows** (buffs / augment effects / disguises / polymorph / per-viewer
+  overrides) — runtime-only, dropped.
+- ❌ **Live-refs to session instances** — nulled on restore (the R2 rules).
+
+This is the **same allowlist as the sandbox material-vs-epistemic split**,
+generalized.
+
+**Possession is one field, not a store.** Each item's snapshot carries
+`{ templatePath, stateDelta, owner, id }`; `owner` rides wherever the item is held
+(Avatar / chest / owned room). The `possessions` collection demotes to a
+**rebuildable owner-*index*** over holders (the banking ledger→cache shape) — for
+"what/where do I own," not for storage. **Persistence ≠ ownership:** carrying a
+generic item into your persistent room makes it *persist*, not become *yours*;
+ownership changes only by `claim`/transfer (a stamp) or by authored-under-extent.
+
+**Ownership resolution — the same rule as §C cost-owner:**
+
+```
+ownerOf(item) =
+  explicit owner stamp                                   // titled chattel — travels with it
+  ?? (templatePath under a parcel extent → that parcel)  // authored parcel-content (fixtures)
+  ?? unowned                                             // generic, unclaimed
+```
+
+Because the derivation keys on **templatePath, not location**, an authored fixture
+stays titled to its parcel even when displaced → displacing it is **theft**
+(custody ≠ owner), recoverable; only an explicit stamp transfers it.
+
+**Ownership bottoms out at `Creature`** (the vitals.md `Creature → Character`
+split *is* the chattel↔person line): `Thing`/`Creature` are ownable chattel;
+`Character`/`NPC`/`Avatar` are self-owned persons; `Location`/`Zone` are the
+real-property axis; `Stuff` owns nothing. Avatars already have durable identity +
+persist-back *because* they're self-owned individuated persons — the same
+capability owned chattel needs, triggered by personhood instead of ownership.
+
+**Three mechanisms, cleanly layered (not one tangled thing):**
+
+| Mechanism | Job | Source of truth |
+|---|---|---|
+| **Populates** | *seed* a room's initial contents | the template (`container:`/`PopulatesMixin`) |
+| **Persistence** | *maintain* ongoing contents | a snapshot — **only for persistable holders** |
+| **Ownership** | *attribute* who owns each item | the `owner` field (`stamp ?? extent ?? unowned`) |
+
+- **Seed-then-persist handoff**, gated by "is this a persistable holder": a holder
+  runs populates **once** to seed its first snapshot, then persistence is
+  authoritative (no respawn); an ephemeral room has **no snapshot**, so populates
+  re-runs every materialization (restocking) and runtime additions are wiped. This
+  is the mechanistic reason the street loses your dropped sword.
+- **One-shot vs. restocking populates** is a per-declaration knob: one-shot
+  (fixtures — seeded then persisted, no duplicate on displacement) vs. restocking
+  (shop wares / ambient — always respawned, typically ephemeral & unowned). Titled
+  chattel is always the one-shot kind. (The shipped `Avatar.enter` live-ref
+  consultation already leans one-shot/idempotent.)
+
+**Net scope (replaces §F's chattel-registry-as-store):** **no new persistence
+system.** Generalize the shipped **Avatar holder-snapshot to chests + owned rooms**
+under **one serialization boundary contract**; possession is a **field** on each
+item's snapshot plus a **rebuildable owner-index**; a **durable per-item id** is
+conferred by ownership (for the index + cross-move/theft tracking), a small field,
+not a mechanism. `PossessableMixin` is deleted; `PersistableHolder` is the one new
+capability.
+
+> **Today's state (honest scope):** no room persists runtime additions —
+> persistence is Avatar-only, rooms only populate. The build's actual new work is
+> making **owned parcel-rooms + chests** persistable holders, which is what
+> *creates* the seed-then-persist handoff.
