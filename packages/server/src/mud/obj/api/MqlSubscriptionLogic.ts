@@ -3,7 +3,7 @@
 // class declaration below so @internal lands on the reflection TypeDoc
 // emits, not on the module.)
 
-import { Idea } from '../../lib/stuff/Idea';
+import { ApiLogic } from '../../lib/stuff/ApiLogic';
 import { CallSecurity, Unshadowable } from '../../lib/security/decorators';
 import { SecurityPolicies } from '../../lib/security/SecurityPolicies';
 import type Interactive from '../Interactive';
@@ -97,7 +97,7 @@ function resolveRegistry(): MqlSubscriptionRegistry {
  * @internal
  */
 @Unshadowable
-export class MqlSubscriptionLogic extends Idea {
+export class MqlSubscriptionLogic extends ApiLogic {
   /* ─── public surface ─── */
 
   /** See {@link MqlSubscriptionApi.handleSubscribe}. */

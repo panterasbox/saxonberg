@@ -1,7 +1,7 @@
 // TraitLogic — the hot-reloadable logic singleton behind TraitApi. (Doc
 // comment on the class below so @internal lands on the reflection.)
 
-import { Idea } from "../../lib/stuff/Idea";
+import { ApiLogic } from "../../lib/stuff/ApiLogic";
 import { CallSecurity, Unshadowable } from "../../lib/security/decorators";
 import { SecurityPolicies } from "../../lib/security/SecurityPolicies";
 import type { Stuff } from "../../lib/stuff/Stuff";
@@ -210,7 +210,7 @@ async function regardBaselineImpl(
  * @internal
  */
 @Unshadowable
-export class TraitLogic extends Idea {
+export class TraitLogic extends ApiLogic {
   /** See {@link TraitApi.recordSignature}. */
   @CallSecurity(TraitApiCallers)
   public async recordSignature(

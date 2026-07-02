@@ -27,10 +27,19 @@ import { ContactsGroupProvider } from '../lib/social/providers/ContactsGroupProv
 import type { Stuff } from '../lib/stuff/Stuff';
 import type { GroupRole } from '../lib/social/Group';
 import type { VetoResult } from '../lib/errors';
+import type { EvictionContext } from '../lib/stuff/Stuff';
 
 const GroupRegistryBase = PostRegistrationMixin(Idea);
 
 export default class GroupRegistry extends GroupRegistryBase {
+
+  /**
+   * Residency veto - a load-bearing process-lifetime singleton is
+   * never culled by the self-eviction sweep.
+   */
+  public canEvict(_context: EvictionContext): VetoResult {
+    return { ok: false, reason: 'system singleton; never culled' };
+  }
   /** Provider source → provider instance. */
   private providers: Map<string, GroupProvider> = new Map();
 

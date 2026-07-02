@@ -28,10 +28,19 @@ import { PostRegistrationMixin } from '../lib/stuff/PostRegistration';
 import { Events } from '../lib/events';
 import { EventApi } from '../api/event';
 import type { VetoResult } from '../lib/errors';
+import type { EvictionContext } from '../lib/stuff/Stuff';
 
 const EventRegistryBase = PostRegistrationMixin(PropertiedMixin(Idea));
 
 export default class EventRegistry extends EventRegistryBase {
+
+  /**
+   * Residency veto - a load-bearing process-lifetime singleton is
+   * never culled by the self-eviction sweep.
+   */
+  public canEvict(_context: EvictionContext): VetoResult {
+    return { ok: false, reason: 'system singleton; never culled' };
+  }
   /**
    * Iterate the well-known events and call `initProp` for each with
    * the per-event policy. Runs once after registration; safe against

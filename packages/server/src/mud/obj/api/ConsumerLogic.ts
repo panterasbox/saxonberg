@@ -1,7 +1,7 @@
 // ConsumerLogic — the hot-reloadable logic singleton behind ConsumerApi.
 // (Doc comment on the class below so @internal lands on the reflection.)
 
-import { Idea } from '../../lib/stuff/Idea';
+import { ApiLogic } from '../../lib/stuff/ApiLogic';
 import { CallSecurity, Unshadowable } from '../../lib/security/decorators';
 import { SecurityPolicies } from '../../lib/security/SecurityPolicies';
 import ParticipationEvent from '../../lib/standing/ParticipationEvent';
@@ -267,7 +267,7 @@ function standingOfImpl(subjectId: string): InfluenceStanding {
  * @internal
  */
 @Unshadowable
-export class ConsumerLogic extends Idea {
+export class ConsumerLogic extends ApiLogic {
   /** The dispatch-capture subscription — retained so re-install is a no-op. */
   private dispatchSub: Subscription<CommandDispatchedPayload> | null = null;
 

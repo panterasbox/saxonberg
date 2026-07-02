@@ -66,7 +66,8 @@
  * for the full mechanics.
  */
 
-import { Stuff } from './Stuff';
+import { Stuff, type EvictionContext } from './Stuff';
+import type { VetoResult } from '../errors';
 import { ShadowApi } from '../../api/shadow';
 
 /**
@@ -81,6 +82,20 @@ export abstract class Shadow extends Stuff {
    */
   public get host(): Stuff | null {
     return ShadowApi._hostOf(this);
+  }
+
+  /**
+   * Residency veto: a shadow attached to a live host stays resident (the
+   * host still wears it); an orphaned / dead-host shadow is cullable
+   * garbage. Checks `host.isDestroyed()`, never `host.canEvict()` —
+   * one-directional (attached defers to anchor), no recursion.
+   */
+  public override canEvict(context: EvictionContext): VetoResult {
+    const h = this.host;
+    if (h !== null && !h.isDestroyed()) {
+      return { ok: false, reason: 'shadow on a live host' };
+    }
+    return super.canEvict(context);
   }
 
   /**

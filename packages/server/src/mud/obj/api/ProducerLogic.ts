@@ -1,7 +1,7 @@
 // ProducerLogic — the hot-reloadable logic singleton behind ProducerApi.
 // (Doc comment on the class below so @internal lands on the reflection.)
 
-import { Idea } from '../../lib/stuff/Idea';
+import { ApiLogic } from '../../lib/stuff/ApiLogic';
 import { CallSecurity, Unshadowable } from '../../lib/security/decorators';
 import { SecurityPolicies } from '../../lib/security/SecurityPolicies';
 import ProducerEvent from '../../lib/standing/ProducerEvent';
@@ -273,7 +273,7 @@ function standingOfImpl(authorId: string): InfluenceStanding {
  * @internal
  */
 @Unshadowable
-export class ProducerLogic extends Idea {
+export class ProducerLogic extends ApiLogic {
   /** The recurring recompute handle — retained so re-install is a no-op. */
   private recomputeHandle: ScheduleHandle | null = null;
 

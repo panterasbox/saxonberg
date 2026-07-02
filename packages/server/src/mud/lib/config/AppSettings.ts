@@ -257,6 +257,21 @@ export const AppSettingKeys = {
   bulletinHeadlineMaxLength: "bulletin.headlineMaxLength",
   /** Bulletin — max rendered length (chars) of a body. */
   bulletinBodyMaxLength: "bulletin.bodyMaxLength",
+
+  /**
+   * Residency — scheduled object self-maintenance (see
+   * docs/subsystems/residency.md). Keys are namespaced per sweep:
+   * `residency.eviction.*` is the real-time cold-tail garbage-culler
+   * (ships in observe mode — logs candidates, culls nothing; enforcement
+   * is a flip, re-read each sweep, no restart). The deferred game-time
+   * reset sweep will namespace under `residency.reset.*`.
+   */
+  /** Eviction — `observe` (log only) | `enforce` (actually cull). */
+  residencyEvictionMode: "residency.eviction.mode",
+  /** Eviction — sweep cadence in ms. */
+  residencyEvictionIntervalMs: "residency.eviction.intervalMs",
+  /** Eviction — idle grace window (ms) before an object is a candidate. */
+  residencyEvictionIdleThresholdMs: "residency.eviction.idleThresholdMs",
 } as const;
 
 export type AppSettingKey =

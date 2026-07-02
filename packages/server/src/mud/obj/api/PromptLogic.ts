@@ -14,7 +14,7 @@ import type {
   PromptEnvelope,
   PromptRefreshNote,
 } from '@saxonberg/types';
-import { Idea } from '../../lib/stuff/Idea';
+import { ApiLogic } from '../../lib/stuff/ApiLogic';
 import { CallSecurity, Unshadowable } from '../../lib/security/decorators';
 import { SecurityPolicies } from '../../lib/security/SecurityPolicies';
 import type { Stuff } from '../../lib/stuff/Stuff';
@@ -257,7 +257,7 @@ function emitDismissed(
  * @internal
  */
 @Unshadowable
-export class PromptLogic extends Idea {
+export class PromptLogic extends ApiLogic {
   /** See {@link PromptApi.choice}. */
   @CallSecurity(PromptApiCallers)
   public choice<T extends string = string>(

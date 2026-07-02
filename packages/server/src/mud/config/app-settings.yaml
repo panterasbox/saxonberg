@@ -198,3 +198,17 @@ settings:
     value: "120"
   - key: bulletin.bodyMaxLength
     value: "4000"
+
+  # Residency — scheduled object self-maintenance. The eviction sweep
+  # (`residency.eviction.*`) is the real-time cold-tail garbage-culler;
+  # it ships in observe mode (logs what it WOULD cull, destructs nothing)
+  # so the go-live memory profile can be measured before enforcement —
+  # flip mode to `enforce` (re-read each sweep, no restart) to cull for
+  # real. The deferred game-time reset sweep will add `residency.reset.*`.
+  # See docs/subsystems/residency.md.
+  - key: residency.eviction.mode
+    value: observe
+  - key: residency.eviction.intervalMs
+    value: "60000"
+  - key: residency.eviction.idleThresholdMs
+    value: "1800000"

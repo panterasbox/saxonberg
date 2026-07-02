@@ -1,7 +1,7 @@
 // OfficeLogic — the hot-reloadable logic singleton behind OfficeApi.
 // (Doc comment on the class below so @internal lands on the reflection.)
 
-import { Idea } from '../../lib/stuff/Idea';
+import { ApiLogic } from '../../lib/stuff/ApiLogic';
 import { CallSecurity, Unshadowable } from '../../lib/security/decorators';
 import { SecurityPolicies } from '../../lib/security/SecurityPolicies';
 import { StuffApi } from '../../api/stuff';
@@ -67,7 +67,7 @@ function lookupRegistry(): OfficeRegistry | null {
  * @internal
  */
 @Unshadowable
-export class OfficeLogic extends Idea {
+export class OfficeLogic extends ApiLogic {
   /** See {@link OfficeApi.holderOf}. */
   @CallSecurity(OfficeApiCallers)
   public async holderOf(officeKey: string): Promise<OfficeHolderResult> {

@@ -1,7 +1,7 @@
 // MqlLogic — the hot-reloadable logic singleton behind MqlApi.
 // (Doc comment on the class below so @internal lands on the reflection.)
 
-import { Idea } from '../../lib/stuff/Idea';
+import { ApiLogic } from '../../lib/stuff/ApiLogic';
 import { CallSecurity, Unshadowable } from '../../lib/security/decorators';
 import { SecurityPolicies } from '../../lib/security/SecurityPolicies';
 import type { Stuff } from '../../lib/stuff/Stuff';
@@ -57,7 +57,7 @@ function consensusVia(
  * @internal
  */
 @Unshadowable
-export class MqlLogic extends Idea {
+export class MqlLogic extends ApiLogic {
   /** See {@link MqlApi.resolveOne}. */
   @CallSecurity(MqlApiCallers)
   public resolveOne(query: string, ctx: MqlContext): MqlOne {

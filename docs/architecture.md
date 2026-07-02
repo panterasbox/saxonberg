@@ -166,8 +166,11 @@ FooLogic (obj/api/FooLogic.ts)   the logic — a stateless Stuff, @internal,
 ```
 
 The logic singleton is a `Stuff` (a runtime class, so `obj/api/`),
-extends `Idea`, composes **no** `PostRegistrationMixin` (statelessness
-is load-bearing — `dest` is the reload invalidator), is marked
+extends **`ApiLogic`** (a thin `Idea` subclass shared by every logic
+singleton; its job is to make them residency-exempt — see
+[residency.md](./subsystems/residency.md)), composes **no**
+`PostRegistrationMixin` (statelessness is load-bearing — `dest` is the
+reload invalidator), is marked
 `@internal` *on the class declaration*, and gates each public method
 `@CallSecurity(FromModule('/api/<feature>#<Feature>Api'))`. Protected
 internal logic that used to crowd the Api's TypeDoc surface now lives

@@ -26,6 +26,7 @@ import { Bulletin } from '../lib/bulletin/Bulletin';
 import { AppApi } from '../api/app';
 import { AppSettingKeys } from '../lib/config/AppSettings';
 import type { VetoResult } from '../lib/errors';
+import type { EvictionContext } from '../lib/stuff/Stuff';
 
 const BulletinBoardBase = PostRegistrationMixin(Idea);
 
@@ -45,6 +46,14 @@ function settingInt(key: string, fallback: number): number {
 }
 
 export default class BulletinBoard extends BulletinBoardBase {
+
+  /**
+   * Residency veto - a load-bearing process-lifetime singleton is
+   * never culled by the self-eviction sweep.
+   */
+  public canEvict(_context: EvictionContext): VetoResult {
+    return { ok: false, reason: 'system singleton; never culled' };
+  }
   /** bulletinId → Bulletin. `null` = not yet warmed. */
   private cache: Map<string, Bulletin> | null = null;
 

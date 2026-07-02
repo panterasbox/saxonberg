@@ -46,6 +46,7 @@ import { GrammarApi } from '../../api/grammar';
 import type { Mml } from '../../api/mml';
 import type { SubscribableFieldDescriptor } from '../../api/mql-subscription';
 import { ShadowChangedEvent } from '../events/ShadowChangedEvent';
+import type { VetoResult } from '../errors';
 
 /**
  * Any class reference, abstract or concrete. Used by the top-level
@@ -87,6 +88,26 @@ const DEFAULT_PRESENTATION = 'something';
 const FromSpatialZone = SecurityPolicies.FromModule('/lib/zone/SpatialZone#SpatialZone',
   { includeSubclasses: true }
 );
+
+/**
+ * Runtime facts the residency (self-eviction) sweep hands to
+ * {@link Stuff.canEvict} — only what an object *cannot* derive about
+ * itself. Everything self-knowable (contents, engagement, host,
+ * container chain) the object introspects directly; the context carries
+ * the sweep-computed idle duration and the trigger that fired.
+ *
+ * Deliberately thin **and extensible**: the sole reason `canEvict`
+ * takes a context object rather than being no-arg is so a future
+ * resource-pressure trigger (compute-dormancy) can add fields
+ * (`memoryPressure`, …) and a new `reason` **without changing any
+ * existing override's signature**. v1 carries only these two.
+ */
+export interface EvictionContext {
+  /** `Date.now() - getLastTouched()` at sweep time. */
+  idleMs: number;
+  /** What triggered the ask. Extensible; v1 is idle-driven only. */
+  reason: 'idle';
+}
 
 /**
  * Base class for all game objects.
@@ -459,54 +480,43 @@ export abstract class Stuff {
   private _isDestroyed: boolean = false;
 
   /**
-   * Last successful method-dispatch timestamp. Maintained by the
-   * security gate (`SecurityApi.#securityGate`) — every successful
-   * (non-denied) dispatch writes `Date.now()` here via the static
-   * `Stuff.touch(stuff)` write seam below.
+   * Recency timestamp for the residency (self-eviction) sweep. The
+   * security gate calls `touch()` on the raw target after every
+   * successful non-getter dispatch; the sweep reads `getLastTouched()`
+   * (via `RAW_TARGET`, so asking never counts as a touch).
    *
-   * Used by the future GC sweep's `considerSelfDestruct(context)` to
-   * decide whether an orphan-eligible Stuff is cold enough to drop.
-   * Initialized to construction time so freshly-created Stuff start
-   * "touched."
+   * Transient: never persisted, not in `persistentFields` or
+   * `PASSTHROUGH_KEYS`; resets to construction time on every
+   * clone/hydrate. TS-`private` (not `#`) so `touch()` works whether
+   * `this` is the raw target or the security proxy — but the real
+   * callpaths (the gate and the sweep) both operate on the **raw**
+   * target, so `this` is raw there and no proxy is involved.
    *
-   * Hard-private (`#`) for tamper-resistance: the `#` slot lives on
-   * the raw target only and is unreachable from outside the Stuff
-   * class body — not via bracket access, not via reflection, not via
-   * a wrapping Proxy. The only write site is `Stuff.touch(stuff)`,
-   * which is timestamp-fixed (no caller-supplied value), so even
-   * code that imports `Stuff` can only refresh a Stuff to the
-   * current time — never inject a sentinel or future value.
-   *
-   * Not in `PASSTHROUGH_KEYS`, not in `persistentFields`. Transient
-   * by definition; resets at every clone/hydrate to the new
-   * construction time.
+   * Trade-off vs. the `#` scaffold: a raw-field write (`obj.lastTouched
+   * = …`) can forge this value. That forge-resistance is intentionally
+   * dropped — the field isn't security-sensitive, `touch()` itself is
+   * still timestamp-fixed (no caller value), and the `canEvict` /
+   * `canDestruct` vetoes backstop any force-cull.
    */
-  #lastTouchMs: number = Date.now();
+  private lastTouched: number = Date.now();
 
   /**
-   * Write seam for `#lastTouchMs`. Called once per successful
-   * method dispatch from the security gate. Timestamp-fixed (no
-   * caller-supplied value) so no one — not a shadow, not a
-   * subclass, not a buff — can forge an immortality value.
-   *
-   * Accepts either a raw target or a proxy; unwraps via
-   * `RAW_TARGET` before reaching the `#` slot (the slot lives on
-   * the raw target only, and `this` inside an instance method
-   * called through the proxy is the proxy).
-   *
-   * @internal — only called by the security gate; documented here
-   * because the slot's invariants depend on this single call site.
+   * Refresh the recency timestamp to now. Timestamp-fixed (no
+   * caller-supplied value). Called on the **raw** target by the
+   * security gate on every successful dispatch (Phase 2) and by the
+   * residency presence walk.
    */
-  public static touch(stuff: Stuff): void {
-    ProxyApi.unwrap(stuff).#lastTouchMs = Date.now();
+  public touch(): void {
+    this.lastTouched = Date.now();
   }
 
   /**
-   * Read seam for `#lastTouchMs`. Used by the future GC sweep.
-   * Same `ProxyApi.unwrap` pattern as `touch`.
+   * Read the recency timestamp. Read by the residency sweep — which
+   * calls it on the raw target (via `RAW_TARGET`) so the sweep's own
+   * introspection never counts as a touch.
    */
-  public static getLastTouchMs(stuff: Stuff): number {
-    return ProxyApi.unwrap(stuff).#lastTouchMs;
+  public getLastTouched(): number {
+    return this.lastTouched;
   }
 
   /**
@@ -807,17 +817,42 @@ export abstract class Stuff {
   public onDestruct(): void {}
 
   /**
+   * Consent seam for the residency (self-eviction) sweep. The sweep
+   * asks each idle object whether it may be culled; the object decides,
+   * reading its own knowledge. Default is **cull** (`{ ok: true }`) — a
+   * fresh backing class is reclaimable by default and only becomes
+   * sticky when its author deliberately vetoes, the correct bias for a
+   * leak-plugger. Return `{ ok: false, reason }` to veto.
+   *
+   * Vetoes layer on the mixin/class that *owns* the relevant
+   * relationship, composed via `super.canEvict(context)` — base `Stuff`
+   * stays permissive and does not reach into Container/Shadow/Avatar/
+   * Exit knowledge. The relational vetoes derive from the R2.x
+   * ref-cleanup rules: an object in an owned/symmetric live-ref
+   * relationship vetoes while its anchor is alive (see
+   * `docs/subsystems/residency.md`).
+   *
+   * Distinct from `canDestruct`: an object that permits eviction can
+   * still `canDestruct`-veto, so the sweep's enforce path tolerates a
+   * `DestructError` (logs + continues). The sweep calls this on the
+   * **raw** target (via `RAW_TARGET`) so asking never counts as a touch.
+   *
+   * @hook Invoked by the residency sweep (`ResidencyLogic`) on idle
+   *   candidates. **Veto seam** — `{ ok: false, reason }` keeps the
+   *   object resident. Override on the owning mixin/class and **chain
+   *   `super.canEvict(context)`** so composed layers run. Public and
+   *   ungateable (a subclass's `super.canEvict()` is author code).
+   */
+  public canEvict(context: EvictionContext): VetoResult {
+    // Silence unused-param lint at the permissive base; overrides read it.
+    void context;
+    return { ok: true };
+  }
+
+  /**
    * Get a string representation of this object (for debugging).
    */
   public toString(): string {
     return `[Stuff ${this.stuffId}${this._isDestroyed ? ' (destroyed)' : ''}]`;
   }
 }
-
-// Wire the GC last-touch instrumentation into the security gate.
-// SecurityApi calls this on every successful method dispatch; we
-// register the static here (after the class body finishes) so the
-// gate can fire it without taking a value-binding on Stuff (which
-// would form a `security → stuff → api/stuff → security` load
-// cycle).
-SecurityApi._registerTouchFn(Stuff.touch);

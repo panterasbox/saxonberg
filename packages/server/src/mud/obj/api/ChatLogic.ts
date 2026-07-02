@@ -2,7 +2,7 @@
 // (Doc comment lives on the class declaration below so @internal lands
 // on the reflection TypeDoc emits, not on the module.)
 
-import { Idea } from '../../lib/stuff/Idea';
+import { ApiLogic } from '../../lib/stuff/ApiLogic';
 import { CallSecurity, Unshadowable } from '../../lib/security/decorators';
 import { SecurityPolicies } from '../../lib/security/SecurityPolicies';
 import { StuffApi } from '../../api/stuff';
@@ -40,7 +40,7 @@ const ChatApiCallers = SecurityPolicies.FromModule('/api/chat#ChatApi');
  * @internal
  */
 @Unshadowable
-export class ChatLogic extends Idea {
+export class ChatLogic extends ApiLogic {
   /** See {@link ChatApi.resolveByName}. */
   @CallSecurity(ChatApiCallers)
   public async resolveByName(name: string): Promise<Channel | null> {

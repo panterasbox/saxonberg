@@ -1,7 +1,7 @@
 // ProseLogic — the hot-reloadable logic singleton behind ProseApi.
 // (Doc comment on the class below so @internal lands on the reflection.)
 
-import { Idea } from '../../lib/stuff/Idea';
+import { ApiLogic } from '../../lib/stuff/ApiLogic';
 import { CallSecurity, Unshadowable } from '../../lib/security/decorators';
 import { SecurityPolicies } from '../../lib/security/SecurityPolicies';
 import type { Mml } from '../../api/mml';
@@ -26,7 +26,7 @@ const ProseApiCallers = SecurityPolicies.FromModule('/api/prose#ProseApi');
  * @internal
  */
 @Unshadowable
-export class ProseLogic extends Idea {
+export class ProseLogic extends ApiLogic {
   /** See {@link ProseApi.format}. */
   @CallSecurity(ProseApiCallers)
   public format(source: string, vars: Record<string, unknown>): Mml {

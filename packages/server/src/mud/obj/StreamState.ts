@@ -31,10 +31,19 @@ import { EventApi } from '../api/event';
 import { Events } from '../lib/events';
 import type { StreamStateSnapshot } from '@saxonberg/types';
 import type { VetoResult } from '../lib/errors';
+import type { EvictionContext } from '../lib/stuff/Stuff';
 
 const StreamStateBase = PostRegistrationMixin(Idea);
 
 export default class StreamState extends StreamStateBase {
+
+  /**
+   * Residency veto - a load-bearing process-lifetime singleton is
+   * never culled by the self-eviction sweep.
+   */
+  public canEvict(_context: EvictionContext): VetoResult {
+    return { ok: false, reason: 'system singleton; never culled' };
+  }
   /** Fixed singleton template path. */
   public static readonly TEMPLATE_PATH = '/obj/StreamState';
 

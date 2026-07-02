@@ -8,7 +8,7 @@ import type {
   QuantityClampedRejectedNote,
   TargetDeclinedNote,
 } from '@saxonberg/types';
-import { Idea } from '../../lib/stuff/Idea';
+import { ApiLogic } from '../../lib/stuff/ApiLogic';
 import { CallSecurity, Unshadowable } from '../../lib/security/decorators';
 import { SecurityPolicies } from '../../lib/security/SecurityPolicies';
 import type { Stuff } from '../../lib/stuff/Stuff';
@@ -79,7 +79,7 @@ const GlobbableApiCallers = SecurityPolicies.AnyOf(
  * @internal
  */
 @Unshadowable
-export class GlobbableLogic extends Idea {
+export class GlobbableLogic extends ApiLogic {
   /** See {@link GlobbableApi.canMerge}. */
   @CallSecurity(GlobbableApiCallers)
   public canMerge(a: Stuff, b: Stuff): boolean {

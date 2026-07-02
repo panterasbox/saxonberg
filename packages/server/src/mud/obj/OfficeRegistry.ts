@@ -50,6 +50,7 @@ import {
 } from '../lib/governance/Office';
 import { OfficeHolder } from '../lib/governance/OfficeHolder';
 import type { VetoResult } from '../lib/errors';
+import type { EvictionContext } from '../lib/stuff/Stuff';
 
 const OfficeRegistryBase = PostRegistrationMixin(Idea);
 
@@ -63,6 +64,14 @@ const OfficeApiCallers = SecurityPolicies.AnyOf(
 );
 
 export default class OfficeRegistry extends OfficeRegistryBase {
+
+  /**
+   * Residency veto - a load-bearing process-lifetime singleton is
+   * never culled by the self-eviction sweep.
+   */
+  public canEvict(_context: EvictionContext): VetoResult {
+    return { ok: false, reason: 'system singleton; never culled' };
+  }
   /** Founder Google email, lowercased at warm (null = unconfigured). */
   private founderGoogleEmail: string | null = null;
   /** Founder Twitch login (lowercased handle), at warm (null = unset). */

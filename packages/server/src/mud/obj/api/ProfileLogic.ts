@@ -3,7 +3,7 @@
 // comment on the class so @internal lands on the reflection, not the
 // module.)
 
-import { Idea } from '../../lib/stuff/Idea';
+import { ApiLogic } from '../../lib/stuff/ApiLogic';
 import { CallSecurity, Unshadowable } from '../../lib/security/decorators';
 import { SecurityPolicies } from '../../lib/security/SecurityPolicies';
 import type { Stuff } from '../../lib/stuff/Stuff';
@@ -97,7 +97,7 @@ function contactEntryFor(
  * @internal
  */
 @Unshadowable
-export class ProfileLogic extends Idea {
+export class ProfileLogic extends ApiLogic {
   /** See {@link SocialApi.composeRow}. */
   @CallSecurity(SocialApiCallers)
   public async composeRow(viewer: Stuff, target: Stuff): Promise<RosterRow> {

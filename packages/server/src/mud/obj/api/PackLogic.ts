@@ -6,7 +6,7 @@ import { createRequire } from 'module';
 import { fileURLToPath } from 'url';
 import { basename, dirname, join, relative } from 'path';
 import YAML from 'yaml';
-import { Idea } from '../../lib/stuff/Idea';
+import { ApiLogic } from '../../lib/stuff/ApiLogic';
 import { NameBank } from '../../lib/species/NameBank';
 import { CallSecurity, Unshadowable } from '../../lib/security/decorators';
 import { SecurityPolicies } from '../../lib/security/SecurityPolicies';
@@ -571,7 +571,7 @@ async function reconcilePack(
  * @internal
  */
 @Unshadowable
-export class PackLogic extends Idea {
+export class PackLogic extends ApiLogic {
   /** See {@link PackApi.install}. */
   @CallSecurity(PackApiCallers)
   public async install(

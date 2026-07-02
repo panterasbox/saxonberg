@@ -35,10 +35,19 @@ import { Template } from "../lib/stuff/Template";
 import Corpo, { type CorpoDescriptor } from "../lib/corpo/Corpo";
 import Brand, { type BrandDescriptor } from "../lib/corpo/Brand";
 import type { VetoResult } from "../lib/errors";
+import type { EvictionContext } from '../lib/stuff/Stuff';
 
 const CorpoCatalogueBase = PostRegistrationMixin(Idea);
 
 export default class CorpoCatalogue extends CorpoCatalogueBase {
+
+  /**
+   * Residency veto - a load-bearing process-lifetime singleton is
+   * never culled by the self-eviction sweep.
+   */
+  public canEvict(_context: EvictionContext): VetoResult {
+    return { ok: false, reason: 'system singleton; never culled' };
+  }
   /**
    * Transient runtime caches keyed by durable `key`. `null` means "not
    * built yet"; warmed in `postRegister` (or lazily as an empty cold state

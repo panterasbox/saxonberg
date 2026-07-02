@@ -336,6 +336,7 @@ extends; none is a fresh build.
 | [language](./tails/language-slate.md) | comms / perception | comprehension; roleplay flavor |
 | [reactions](./tails/reactions-slate.md) | reactions.md / emotes | core shipped (act-scoped emote + aggregate-delta + `react` + chips); deferred: analytics event-tap, emote-flood salvage |
 | [persistence-architecture](./tails/persistence-architecture-slate.md) | persistence.md | Wave 3 un-Stuff marshallers (Waves 1-2 shipped) |
+| [residency](./tails/residency-slate.md) | lifecycle.md → residency.md | **eviction shipped 2026-07** (self-eviction of the cold tail: `canEvict` default-cull hook + dispatch/presence recency + `ApiLogic` + the R2.x-derived veto roster, observe-first → residency.md); deferred: the game-time **reset** sweep (`resets:`/`ResettableMixin`, restock vs field-revert), memory-pressure-modulated aggressiveness, per-object footprint, incremental/LRU sweeping |
 | [vitals](./tails/vitals-slate.md) | vitals.md / reserve.md | application waves — live condition progression, the death-transition driver, assessment / instruments / treatment, consumables, forensics (substrate / Wave 1 shipped) |
 | [weather](./tails/weather-slate.md) | weather.md | Wave 2 "teeth": precipitation→wetness, fog→visibility, cloud→light dimming, snow depth, hazards, vector wind, authored per-Locality climate, the far economy (farming / sailing / travel) |
 | [multilocation](./tails/multilocation-slate.md) | location.md | deferred procedural / spatial Warren consumers beyond the shipped social-elastic lounge case |

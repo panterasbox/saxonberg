@@ -7,7 +7,7 @@ import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 import YAML from 'yaml';
 import Ajv, { type ValidateFunction } from 'ajv';
-import { Idea } from '../../lib/stuff/Idea';
+import { ApiLogic } from '../../lib/stuff/ApiLogic';
 import { CallSecurity, Unshadowable } from '../../lib/security/decorators';
 import { SecurityPolicies } from '../../lib/security/SecurityPolicies';
 import { Quantity } from '../../lib/quantity';
@@ -144,7 +144,7 @@ function parseAndValidate(
  * @internal
  */
 @Unshadowable
-export class QuantityLogic extends Idea {
+export class QuantityLogic extends ApiLogic {
   /** See {@link QuantityApi.resolveUnitToken}. */
   @CallSecurity(QuantityApiCallers)
   public resolveUnitToken(token: string): Unit | null {

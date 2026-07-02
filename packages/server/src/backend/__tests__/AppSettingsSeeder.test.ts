@@ -41,7 +41,7 @@ describe("AppSettingsSeeder", () => {
     pm.setFindResult([]);
     const added = await AppSettingsSeeder.run();
 
-    expect(added).toBe(44);
+    expect(added).toBe(47);
     expect(pm.saves).toHaveLength(1);
     expect(pm.saves[0]!.collection).toBe("app_settings");
     const values = savedValues(pm);
@@ -110,6 +110,10 @@ describe("AppSettingsSeeder", () => {
           [AppSettingKeys.bulletinMaxPins]: "3",
           [AppSettingKeys.bulletinHeadlineMaxLength]: "120",
           [AppSettingKeys.bulletinBodyMaxLength]: "4000",
+          // The three residency (self-eviction) keys.
+          [AppSettingKeys.residencyEvictionMode]: "observe",
+          [AppSettingKeys.residencyEvictionIntervalMs]: "60000",
+          [AppSettingKeys.residencyEvictionIdleThresholdMs]: "1800000",
         },
       },
     ]);
@@ -133,8 +137,9 @@ describe("AppSettingsSeeder", () => {
     // + 1 conviction + 5 traits + 1 chat + 2 chargen + 1 status + 7 script
     // + 2 banking + 1 livestream (broadcastSources) + 3 social
     // (social.baselineRules, social.defaultColor, social.idleAfter)
-    // + 4 bulletin (tickerWindow, maxPins, headlineMaxLength, bodyMaxLength).
-    expect(added).toBe(43);
+    // + 4 bulletin (tickerWindow, maxPins, headlineMaxLength, bodyMaxLength)
+    // + 3 residency (eviction.mode, .intervalMs, .idleThresholdMs).
+    expect(added).toBe(46);
     expect(pm.saves).toHaveLength(1);
     const values = savedValues(pm);
     // operator value preserved, missing keys seeded

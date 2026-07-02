@@ -26,6 +26,8 @@
  */
 
 import type { MixinConstructor } from '../mixin';
+import type { VetoResult } from '../errors';
+import type { EvictionContext } from '../stuff/Stuff';
 import type Interactive from '../../obj/Interactive';
 import type { CommandContributions } from '../../api/command';
 import { ShellApi } from '../../api/shell';
@@ -170,6 +172,15 @@ export interface HasInteractive {
 export function HasInteractiveMixin<TBase extends MixinConstructor>(Base: TBase) {
   return class HasInteractiveMixin extends Base {
     static _mixinName = 'HasInteractiveMixin';
+
+    /**
+     * Residency veto: a session holder (Avatar / Login) is never culled
+     * by the self-eviction sweep — its lifecycle is owned by connection
+     * teardown. Unconditional (does not chain `super`).
+     */
+    public canEvict(_context: EvictionContext): VetoResult {
+      return { ok: false, reason: 'interactive session holder' };
+    }
 
     /**
      * Client-state schema. Declares every persisted UI key + its

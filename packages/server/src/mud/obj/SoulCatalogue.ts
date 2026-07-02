@@ -23,6 +23,7 @@ import { CallSecurity } from '../lib/security/decorators';
 import { SecurityPolicies } from '../lib/security/SecurityPolicies';
 import { Emote } from '../lib/social/Emote';
 import type { VetoResult } from '../lib/errors';
+import type { EvictionContext } from '../lib/stuff/Stuff';
 
 const SoulCatalogueBase = PostRegistrationMixin(Idea);
 
@@ -52,6 +53,14 @@ export interface EmoteSpec {
 }
 
 export default class SoulCatalogue extends SoulCatalogueBase {
+
+  /**
+   * Residency veto - a load-bearing process-lifetime singleton is
+   * never culled by the self-eviction sweep.
+   */
+  public canEvict(_context: EvictionContext): VetoResult {
+    return { ok: false, reason: 'system singleton; never culled' };
+  }
   /**
    * Verb → Emote lookup table. `null` means "not warmed yet". Includes
    * alias entries — each alias maps to the same Emote record as its

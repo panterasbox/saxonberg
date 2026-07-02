@@ -2,7 +2,7 @@
 // (Doc comment lives on the class declaration below so @internal lands
 // on the reflection TypeDoc emits, not on the module.)
 
-import { Idea } from '../../lib/stuff/Idea';
+import { ApiLogic } from '../../lib/stuff/ApiLogic';
 import { CallSecurity, Unshadowable } from '../../lib/security/decorators';
 import { SecurityPolicies } from '../../lib/security/SecurityPolicies';
 import { ZoneApi } from '../../api/zone';
@@ -48,7 +48,7 @@ const TemplateApiCallers = SecurityPolicies.FromModule('/api/template#TemplateAp
  * @internal
  */
 @Unshadowable
-export class TemplateLogic extends Idea {
+export class TemplateLogic extends ApiLogic {
   /** See {@link TemplateApi.saveTemplate}. */
   @CallSecurity(TemplateApiCallers)
   public async saveTemplate(

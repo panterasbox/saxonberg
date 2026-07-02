@@ -1,7 +1,7 @@
 // ProvenanceLogic — the hot-reloadable logic singleton behind ProvenanceApi.
 // (Doc comment on the class below so @internal lands on the reflection.)
 
-import { Idea } from '../../lib/stuff/Idea';
+import { ApiLogic } from '../../lib/stuff/ApiLogic';
 import { CallSecurity, Unshadowable } from '../../lib/security/decorators';
 import { SecurityPolicies } from '../../lib/security/SecurityPolicies';
 import AuthoringEvent from '../../lib/standing/AuthoringEvent';
@@ -90,7 +90,7 @@ async function authorOfImpl(path: string): Promise<string | null> {
  * @internal
  */
 @Unshadowable
-export class ProvenanceLogic extends Idea {
+export class ProvenanceLogic extends ApiLogic {
   /** See {@link ProvenanceApi.recordAuthoring}. */
   @CallSecurity(ProvenanceApiCallers)
   public async recordAuthoring(fields: AuthoringEventFields): Promise<void> {

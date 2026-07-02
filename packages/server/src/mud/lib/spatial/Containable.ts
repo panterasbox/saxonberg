@@ -27,7 +27,7 @@
  */
 
 import type { MixinConstructor } from '../mixin';
-import type { Stuff } from '../stuff/Stuff';
+import type { Stuff, EvictionContext } from '../stuff/Stuff';
 import type { Container } from './Container';
 import type { Surfaced } from './Surfaced';
 import type { VetoResult } from '../errors';
@@ -148,6 +148,24 @@ export function ContainableMixin<TBase extends MixinConstructor>(Base: TBase) {
   class ContainableMixin extends Base {
     // Mixin marker for detection by MixinApi
     static _mixinName = 'ContainableMixin';
+
+    /**
+     * Residency veto: anything anywhere inside an interactive holder
+     * (Avatar / Login) stays resident — player-held stuff is precious,
+     * and this protects a disconnected-but-in-memory avatar's inventory
+     * that presence-touch doesn't reach. Self-knowable walk up the
+     * container chain; falls through to `super` otherwise.
+     */
+    public canEvict(context: EvictionContext): VetoResult {
+      let cur: (Stuff & Container) | null = this.getContainer();
+      while (cur !== null) {
+        if (MixinApi.isHasInteractive(cur)) {
+          return { ok: false, reason: 'inside an interactive holder' };
+        }
+        cur = MixinApi.isContainable(cur) ? cur.getContainer() : null;
+      }
+      return super.canEvict(context);
+    }
 
     /**
      * Instruction field — declarative spawn target. Consumed by

@@ -7,7 +7,7 @@
 // functions directly so the `FromModule` gate never sees an
 // intra-singleton self-call (which it would deny).
 
-import { Idea } from '../../lib/stuff/Idea';
+import { ApiLogic } from '../../lib/stuff/ApiLogic';
 import { CallSecurity, Unshadowable } from '../../lib/security/decorators';
 import { SecurityPolicies } from '../../lib/security/SecurityPolicies';
 import { PlayerApi } from '../../api/player';
@@ -176,7 +176,7 @@ async function onPresentImpl(actorPlayerId: string): Promise<void> {
  * @internal
  */
 @Unshadowable
-export class PresenceLogic extends Idea {
+export class PresenceLogic extends ApiLogic {
   private loginSub: Subscription<unknown> | null = null;
   private reconnectSub: Subscription<unknown> | null = null;
   private logoutSub: Subscription<unknown> | null = null;

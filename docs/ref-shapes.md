@@ -231,6 +231,14 @@ Within Pattern B there are four structural sub-flavors,
 distinguished by the cleanup rule that applies when one of the two
 sides destructs. These are the **R2.1–R2.4 cleanup rules**:
 
+> **Residency corollary.** The same attachment relationships that need
+> coordinated cleanup on destruct need *veto-coupling on evict*: an
+> object in an R2.1-owned or R2.2-symmetric relationship vetoes
+> `canEvict` while its anchor is alive (a shadow while its host lives, an
+> exit while its room lives, contents while their container is non-empty).
+> The self-eviction sweep derives its relational veto roster from these
+> rules — see [residency.md](./subsystems/residency.md).
+
 #### R2.1 — Owning cascade
 
 When the held side's lifetime is bounded by the holder's (the

@@ -2,7 +2,7 @@
 // (Doc comment lives on the class declaration so @internal lands on the
 // reflection TypeDoc emits, not on the module.)
 
-import { Idea } from '../../lib/stuff/Idea';
+import { ApiLogic } from '../../lib/stuff/ApiLogic';
 import { CallSecurity, Unshadowable } from '../../lib/security/decorators';
 import { SecurityPolicies } from '../../lib/security/SecurityPolicies';
 import { StuffApi } from '../../api/stuff';
@@ -37,7 +37,7 @@ const SubjectApiCallers = SecurityPolicies.FromModule('/api/subject#SubjectApi',
  * @internal
  */
 @Unshadowable
-export class SubjectLogic extends Idea {
+export class SubjectLogic extends ApiLogic {
   /** See {@link SubjectApi.makeSubject}. */
   @CallSecurity(SubjectApiCallers)
   public async makeSubject(

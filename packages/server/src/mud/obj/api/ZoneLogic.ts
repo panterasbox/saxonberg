@@ -2,7 +2,7 @@
 // (Doc comment lives on the class declaration below so @internal lands
 // on the reflection TypeDoc emits, not on the module.)
 
-import { Idea } from '../../lib/stuff/Idea';
+import { ApiLogic } from '../../lib/stuff/ApiLogic';
 import { CallSecurity, Unshadowable } from '../../lib/security/decorators';
 import { SecurityPolicies } from '../../lib/security/SecurityPolicies';
 import { StuffApi } from '../../api/stuff';
@@ -68,7 +68,7 @@ const ZoneApiCallers = SecurityPolicies.AnyOf(
  * @internal
  */
 @Unshadowable
-export class ZoneLogic extends Idea {
+export class ZoneLogic extends ApiLogic {
   /** See {@link ZoneApi.isFolderClass}. */
   @CallSecurity(ZoneApiCallers)
   public async isFolderClass(classPath: string): Promise<boolean> {

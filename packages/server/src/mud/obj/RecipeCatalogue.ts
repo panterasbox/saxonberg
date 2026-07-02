@@ -19,10 +19,19 @@ import { Idea } from '../lib/stuff/Idea';
 import { PostRegistrationMixin } from '../lib/stuff/PostRegistration';
 import { Recipe } from '../lib/craft/Recipe';
 import type { VetoResult } from '../lib/errors';
+import type { EvictionContext } from '../lib/stuff/Stuff';
 
 const RecipeCatalogueBase = PostRegistrationMixin(Idea);
 
 export default class RecipeCatalogue extends RecipeCatalogueBase {
+
+  /**
+   * Residency veto - a load-bearing process-lifetime singleton is
+   * never culled by the self-eviction sweep.
+   */
+  public canEvict(_context: EvictionContext): VetoResult {
+    return { ok: false, reason: 'system singleton; never culled' };
+  }
   /** recipeId → Recipe. `null` = not yet warmed. */
   private cache: Map<string, Recipe> | null = null;
 

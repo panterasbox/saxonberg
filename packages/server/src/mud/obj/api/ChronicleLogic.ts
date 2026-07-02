@@ -2,7 +2,7 @@
 // ChronicleApi. (Doc comment on the class below so @internal lands on
 // the reflection.)
 
-import { Idea } from '../../lib/stuff/Idea';
+import { ApiLogic } from '../../lib/stuff/ApiLogic';
 import { CallSecurity, Unshadowable } from '../../lib/security/decorators';
 import { SecurityPolicies } from '../../lib/security/SecurityPolicies';
 import type { Stuff } from '../../lib/stuff/Stuff';
@@ -111,7 +111,7 @@ async function recordOnceImpl(
  * @internal
  */
 @Unshadowable
-export class ChronicleLogic extends Idea {
+export class ChronicleLogic extends ApiLogic {
   /** See {@link ChronicleApi.record}. */
   @CallSecurity(ChronicleApiCallers)
   public async record(

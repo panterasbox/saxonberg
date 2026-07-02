@@ -27,6 +27,8 @@
  */
 
 import { Idea } from '../lib/stuff/Idea';
+import type { VetoResult } from '../lib/errors';
+import type { EvictionContext } from '../lib/stuff/Stuff';
 import { CallSecurity } from '../lib/security/decorators';
 import { SecurityPolicies } from '../lib/security/SecurityPolicies';
 import { EventApi } from '../api/event';
@@ -71,6 +73,14 @@ export interface ForumSubscribeRequest {
 }
 
 export default class ForumSubscriptionRegistry extends Idea {
+
+  /**
+   * Residency veto - a load-bearing process-lifetime singleton is
+   * never culled by the self-eviction sweep.
+   */
+  public canEvict(_context: EvictionContext): VetoResult {
+    return { ok: false, reason: 'system singleton; never culled' };
+  }
   private registry: Map<Interactive, Map<string, ForumSubState>> = new Map();
   private byBoard: Map<string, Set<ForumSubState>> = new Map();
   private byThread: Map<string, Set<ForumSubState>> = new Map();

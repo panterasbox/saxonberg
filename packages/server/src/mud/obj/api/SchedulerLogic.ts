@@ -2,7 +2,7 @@
 // SchedulerApi. (Doc comment lives on the class declaration below so
 // @internal lands on the reflection TypeDoc emits, not on the module.)
 
-import { Idea } from '../../lib/stuff/Idea';
+import { ApiLogic } from '../../lib/stuff/ApiLogic';
 import { CallSecurity, Unshadowable } from '../../lib/security/decorators';
 import { SecurityPolicies } from '../../lib/security/SecurityPolicies';
 import type { Stuff } from '../../lib/stuff/Stuff';
@@ -134,7 +134,7 @@ function resolveRegistry(): SchedulerRegistry {
  * @internal
  */
 @Unshadowable
-export class SchedulerLogic extends Idea {
+export class SchedulerLogic extends ApiLogic {
   /* ──────────────────── activity-class registry ──────────────────── */
 
   /** See {@link SchedulerApi.registerActivity}. */

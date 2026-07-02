@@ -2,7 +2,7 @@
 // AdvancementApi. (Doc comment on the class below so @internal lands on
 // the reflection.)
 
-import { Idea } from "../../lib/stuff/Idea";
+import { ApiLogic } from "../../lib/stuff/ApiLogic";
 import { CallSecurity, Unshadowable } from "../../lib/security/decorators";
 import { SecurityPolicies } from "../../lib/security/SecurityPolicies";
 import type { Stuff } from "../../lib/stuff/Stuff";
@@ -166,7 +166,7 @@ async function conferredVerbsImpl(owner: Stuff): Promise<string[]> {
  * @internal
  */
 @Unshadowable
-export class AdvancementLogic extends Idea {
+export class AdvancementLogic extends ApiLogic {
   /** See {@link AdvancementApi.recordSignature}. */
   @CallSecurity(AdvancementApiCallers)
   public async recordSignature(

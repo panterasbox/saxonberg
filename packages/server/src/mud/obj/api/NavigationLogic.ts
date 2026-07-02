@@ -2,7 +2,7 @@
 // NavigationApi. (Doc comment lives on the class declaration below so
 // @internal lands on the reflection TypeDoc emits, not on the module.)
 
-import { Idea } from '../../lib/stuff/Idea';
+import { ApiLogic } from '../../lib/stuff/ApiLogic';
 import { CallSecurity, Unshadowable } from '../../lib/security/decorators';
 import { SecurityPolicies } from '../../lib/security/SecurityPolicies';
 import type { CardinalDirection } from '../../api/navigation';
@@ -107,7 +107,7 @@ const NavigationApiCallers = SecurityPolicies.FromModule('/api/navigation#Naviga
  * @internal
  */
 @Unshadowable
-export class NavigationLogic extends Idea {
+export class NavigationLogic extends ApiLogic {
   /** See {@link NavigationApi.normalizeDirection}. */
   @CallSecurity(NavigationApiCallers)
   public normalizeDirection(input: string): CardinalDirection | undefined {
