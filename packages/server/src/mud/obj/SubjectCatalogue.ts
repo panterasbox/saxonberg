@@ -71,6 +71,14 @@ export interface MakeSubjectOptions {
 const SubjectCatalogueBase = PostRegistrationMixin(Idea);
 
 export default class SubjectCatalogue extends SubjectCatalogueBase {
+
+  /**
+   * Residency veto - a load-bearing process-lifetime singleton is
+   * never culled by the self-eviction sweep.
+   */
+  public canEvict(): VetoResult {
+    return { ok: false, reason: 'system singleton; never culled' };
+  }
   private byId: Map<string, Subject> | null = null;
   private byTitle: Map<string, Subject> = new Map();
   private backedGroupIds: Set<string> = new Set();

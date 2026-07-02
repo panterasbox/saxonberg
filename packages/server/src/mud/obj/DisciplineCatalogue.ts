@@ -39,6 +39,14 @@ import type { VetoResult } from "../lib/errors";
 const DisciplineCatalogueBase = PostRegistrationMixin(Idea);
 
 export default class DisciplineCatalogue extends DisciplineCatalogueBase {
+
+  /**
+   * Residency veto - a load-bearing process-lifetime singleton is
+   * never culled by the self-eviction sweep.
+   */
+  public canEvict(): VetoResult {
+    return { ok: false, reason: 'system singleton; never culled' };
+  }
   /**
    * Transient runtime cache keyed by Discipline `key`. `null` means "not
    * built yet"; warmed in `postRegister` (or lazily on first access in a

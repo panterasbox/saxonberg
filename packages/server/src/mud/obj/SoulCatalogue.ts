@@ -52,6 +52,14 @@ export interface EmoteSpec {
 }
 
 export default class SoulCatalogue extends SoulCatalogueBase {
+
+  /**
+   * Residency veto - a load-bearing process-lifetime singleton is
+   * never culled by the self-eviction sweep.
+   */
+  public canEvict(): VetoResult {
+    return { ok: false, reason: 'system singleton; never culled' };
+  }
   /**
    * Verb → Emote lookup table. `null` means "not warmed yet". Includes
    * alias entries — each alias maps to the same Emote record as its

@@ -26,7 +26,7 @@
  */
 
 import type { MixinConstructor } from '../mixin';
-import type { Stuff } from '../stuff/Stuff';
+import type { Stuff, EvictionContext } from '../stuff/Stuff';
 import type { Containable } from './Containable';
 import type { VetoResult } from '../errors';
 import { CallSecurity, Final, Unshadowable } from '../security/decorators';
@@ -98,6 +98,20 @@ export function ContainerMixin<TBase extends MixinConstructor>(Base: TBase) {
   class ContainerMixin extends Base {
     // Mixin marker for detection by MixinApi
     static _mixinName = 'ContainerMixin';
+
+    /**
+     * Residency veto: a non-empty container stays resident — its cold
+     * contents cull individually first, then the emptied container culls
+     * a later sweep (bottom-up, so R2.4's owning-cascade never destructs
+     * a subtree out from under itself). Falls through to `super` when
+     * empty so other composed vetoes still apply.
+     */
+    public canEvict(context: EvictionContext): VetoResult {
+      if (this.getContents().length > 0) {
+        return { ok: false, reason: 'container is not empty' };
+      }
+      return super.canEvict(context);
+    }
 
     /**
      * Framework cleanup (S1 — evacuate to outer container).

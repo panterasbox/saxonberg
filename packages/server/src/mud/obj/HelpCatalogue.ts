@@ -97,6 +97,14 @@ function loadAuthorSurfaceFromDisk(): AuthorSurface | null {
 const HelpCatalogueBase = PostRegistrationMixin(Idea);
 
 export default class HelpCatalogue extends HelpCatalogueBase {
+
+  /**
+   * Residency veto - a load-bearing process-lifetime singleton is
+   * never culled by the self-eviction sweep.
+   */
+  public canEvict(): VetoResult {
+    return { ok: false, reason: 'system singleton; never culled' };
+  }
   /** id → topic. `null` = not yet warmed. */
   private topics: Map<string, HelpTopic> | null = null;
   /** kind → topic ids, sorted by title. */

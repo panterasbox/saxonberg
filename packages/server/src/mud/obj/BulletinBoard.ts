@@ -45,6 +45,14 @@ function settingInt(key: string, fallback: number): number {
 }
 
 export default class BulletinBoard extends BulletinBoardBase {
+
+  /**
+   * Residency veto - a load-bearing process-lifetime singleton is
+   * never culled by the self-eviction sweep.
+   */
+  public canEvict(): VetoResult {
+    return { ok: false, reason: 'system singleton; never culled' };
+  }
   /** bulletinId → Bulletin. `null` = not yet warmed. */
   private cache: Map<string, Bulletin> | null = null;
 

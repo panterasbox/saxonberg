@@ -39,7 +39,8 @@
 import type { MessageFrame } from '@saxonberg/types';
 import type { MixinConstructor } from '../mixin';
 import { Mixins } from '../mixin';
-import type { Stuff } from '../stuff/Stuff';
+import type { Stuff, EvictionContext } from '../stuff/Stuff';
+import type { VetoResult } from '../errors';
 import { StuffApi } from '../../api/stuff';
 import { ScheduleApi, type ScheduleHandle } from '../../api/schedule';
 import { SchedulerApi } from '../../api/scheduler';
@@ -88,6 +89,18 @@ export function BehavedMixin<TBase extends MixinConstructor<Stuff>>(
 ) {
   class BehavedMixin extends Base implements Behaved {
     static _mixinName = 'BehavedMixin';
+
+    /**
+     * Residency veto: authored NPC cast (carrying a behavior spec) is
+     * never culled — re-cloning would erase it. Falls through to `super`
+     * when spec-less so other composed vetoes still apply.
+     */
+    public canEvict(context: EvictionContext): VetoResult {
+      if (this.getBehaviors().length > 0) {
+        return { ok: false, reason: 'active NPC behavior spec' };
+      }
+      return super.canEvict(context);
+    }
 
     /** The declarative spec list — pure data, persisted as-is. */
     static persistentFields = ['behaviors', 'dispositions'];

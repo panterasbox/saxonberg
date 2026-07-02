@@ -35,6 +35,14 @@ import type { VetoResult } from '../lib/errors';
 const StreamStateBase = PostRegistrationMixin(Idea);
 
 export default class StreamState extends StreamStateBase {
+
+  /**
+   * Residency veto - a load-bearing process-lifetime singleton is
+   * never culled by the self-eviction sweep.
+   */
+  public canEvict(): VetoResult {
+    return { ok: false, reason: 'system singleton; never culled' };
+  }
   /** Fixed singleton template path. */
   public static readonly TEMPLATE_PATH = '/obj/StreamState';
 

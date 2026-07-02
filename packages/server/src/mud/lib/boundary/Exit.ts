@@ -39,7 +39,8 @@
  */
 
 import { Idea } from '../stuff/Idea';
-import type { Stuff } from '../stuff/Stuff';
+import type { Stuff, EvictionContext } from '../stuff/Stuff';
+import type { VetoResult } from '../errors';
 import type { Container } from '../spatial/Container';
 import type { Containable } from '../spatial/Containable';
 import type Door from './Door';
@@ -144,6 +145,18 @@ export default class Exit extends Idea {
   protected source: Stuff & Container;
   public getSource(): Stuff & Container { return this.source; }
   public setSource(value: Stuff & Container): void { this.source = value; }
+
+  /**
+   * Residency veto: an exit whose source room is alive stays resident —
+   * else the sweep would cull an exit out from under a live room (R2.1
+   * owned). An exit of a destroyed room is cullable.
+   */
+  public override canEvict(context: EvictionContext): VetoResult {
+    if (!this.source.isDestroyed()) {
+      return { ok: false, reason: 'exit of a live room' };
+    }
+    return super.canEvict(context);
+  }
 
   /**
    * Within-session live ref (Pattern B). Set when the Exit was

@@ -23,6 +23,14 @@ import type { VetoResult } from '../lib/errors';
 const RecipeCatalogueBase = PostRegistrationMixin(Idea);
 
 export default class RecipeCatalogue extends RecipeCatalogueBase {
+
+  /**
+   * Residency veto - a load-bearing process-lifetime singleton is
+   * never culled by the self-eviction sweep.
+   */
+  public canEvict(): VetoResult {
+    return { ok: false, reason: 'system singleton; never culled' };
+  }
   /** recipeId → Recipe. `null` = not yet warmed. */
   private cache: Map<string, Recipe> | null = null;
 

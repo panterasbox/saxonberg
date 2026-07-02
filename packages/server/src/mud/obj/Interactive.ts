@@ -22,6 +22,7 @@
  */
 
 import { Idea } from '../lib/stuff/Idea';
+import type { VetoResult } from '../lib/errors';
 import { ConnectionApi } from '../api/connection';
 import { MqlSubscriptionApi } from '../api/mql-subscription';
 import { ForumsApi } from '../api/forums';
@@ -32,6 +33,14 @@ import type { User } from '../lib/identity/User';
 import type { HasInteractive } from '../lib/connection/HasInteractive';
 
 export default class Interactive extends Idea {
+
+  /**
+   * Residency veto - a load-bearing process-lifetime singleton is
+   * never culled by the self-eviction sweep.
+   */
+  public canEvict(): VetoResult {
+    return { ok: false, reason: 'system singleton; never culled' };
+  }
   protected socketId: string;
   protected sessionId: string;
   protected user: User;

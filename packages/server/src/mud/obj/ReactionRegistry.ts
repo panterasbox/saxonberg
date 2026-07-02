@@ -30,6 +30,7 @@ import type {
   ReactionExpandResultEnvelope,
 } from '@saxonberg/types';
 import { Idea } from '../lib/stuff/Idea';
+import type { VetoResult } from '../lib/errors';
 import { CallSecurity } from '../lib/security/decorators';
 import { SecurityPolicies } from '../lib/security/SecurityPolicies';
 import type { Stuff } from '../lib/stuff/Stuff';
@@ -161,6 +162,14 @@ class InteractiveReactionSink implements ReactionSink {
 }
 
 export default class ReactionRegistry extends Idea {
+
+  /**
+   * Residency veto - a load-bearing process-lifetime singleton is
+   * never culled by the self-eviction sweep.
+   */
+  public canEvict(): VetoResult {
+    return { ok: false, reason: 'system singleton; never culled' };
+  }
   /* ─── state ─── */
   private acts: Map<string, ActRecord> = new Map();
   private dirty: Set<string> = new Set();

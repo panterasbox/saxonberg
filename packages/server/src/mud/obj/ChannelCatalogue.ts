@@ -86,6 +86,14 @@ const DEFAULT_SUBSCRIPTION: ChannelSubscription = {
 const ChannelCatalogueBase = PostRegistrationMixin(Idea);
 
 export default class ChannelCatalogue extends ChannelCatalogueBase {
+
+  /**
+   * Residency veto - a load-bearing process-lifetime singleton is
+   * never culled by the self-eviction sweep.
+   */
+  public canEvict(): VetoResult {
+    return { ok: false, reason: 'system singleton; never culled' };
+  }
   private byName: Map<string, Channel> | null = null;
   private byHandle: Map<string, AdHocChannel> = new Map();
   private history: Map<string, MessageFrame[]> = new Map();
