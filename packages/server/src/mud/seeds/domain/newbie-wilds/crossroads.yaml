@@ -1,0 +1,13 @@
+# The Last Counted Mile — the newbie-wilds frontier-crossroads zone. The paid
+# destination reachable (for a fare) from Terminus Gate A; the integration
+# anchor the deferred newbie-wilds build extends (docs/staging/newbie-wilds/).
+# A distinct branch from /domain/eternal and /domain/terminus. This build ships
+# a MINIMAL v0 — one designed landing room + one `both` terminal ("the Line").
+#
+# No ownerGroup this cycle: it collects nothing (no operator), and the
+# newbie-wilds build will stamp its own owner group. Generic classes only.
+class: /lib/location/CartesianZone
+hydratorClass: /lib/persistence/PersistentHydrator
+data:
+  name: The Last Counted Mile
+  cellSize: 3.0
