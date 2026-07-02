@@ -271,6 +271,40 @@ export function HasInteractiveMixin<TBase extends MixinConstructor>(Base: TBase)
           return true;
         },
       },
+      {
+        key: 'cockpit.watch',
+        // Transient: the focal-embed target belongs to the live session, not
+        // the character. Resets to null on a fresh login — matching the
+        // `cockpit.inputModes` precedent. Set by the `watch` verb.
+        transient: true,
+        defaultValue: null,
+        description:
+          'The livestream-viewer focal-embed target — a server-' +
+          'authoritative per-viewer WatchTarget ({platform,channel} | ' +
+          '{platform,videoId} | {platform,channelId}) or null. Set by the ' +
+          '`watch` verb; the client mirrors it and renders the platform ' +
+          'player iframe. Transient — never persisted; clears on a fresh ' +
+          'session.',
+        // Shape: null (nothing watched) or an embed-shaped object with a
+        // `platform` and one of channel/videoId/channelId.
+        validator: (v) => {
+          if (v === null) return true;
+          if (typeof v !== 'object' || Array.isArray(v)) {
+            return 'must be null or a { platform, … } object';
+          }
+          const o = v as Record<string, unknown>;
+          if (o.platform === 'twitch' && typeof o.channel === 'string') {
+            return true;
+          }
+          if (
+            o.platform === 'youtube' &&
+            (typeof o.videoId === 'string' || typeof o.channelId === 'string')
+          ) {
+            return true;
+          }
+          return 'unknown watch target shape';
+        },
+      },
     ];
 
     /**

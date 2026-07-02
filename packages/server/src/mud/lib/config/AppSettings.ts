@@ -272,6 +272,17 @@ export const AppSettingKeys = {
   residencyEvictionIntervalMs: "residency.eviction.intervalMs",
   /** Eviction — idle grace window (ms) before an object is a candidate. */
   residencyEvictionIdleThresholdMs: "residency.eviction.idleThresholdMs",
+
+  /**
+   * YouTube relay (read-only) dials. The Twitch relay's hardcoded constants
+   * are grandfathered; new YouTube code reads these operator knobs instead:
+   * per-channel history-ring cap, per-stream reconnect backoff, and the
+   * `liveChatMessages.list` poll interval (the `streamList` fallback + the
+   * overlay-owner light live-status poll). See docs/subsystems/streaming.md.
+   */
+  youtubeHistoryCap: "youtube.historyCap",
+  youtubeReconnectBackoffMs: "youtube.reconnectBackoffMs",
+  youtubePollIntervalMs: "youtube.pollIntervalMs",
 } as const;
 
 export type AppSettingKey =

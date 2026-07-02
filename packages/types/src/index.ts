@@ -1166,6 +1166,24 @@ export interface StreamStateEnvelope {
   state: StreamStateSnapshot;
 }
 
+/**
+ * Server→broadcast push of one relay-chat line from the overlay owner's
+ * OWN active stream (Twitch or YouTube, unified + provenance-tagged),
+ * forwarded onto the `service:broadcast` overlay feed while live. Filtered
+ * server-side to the `OVERLAY_*`-configured channels — a viewer tuning a
+ * DIFFERENT channel never reaches this envelope. Escaped plain text,
+ * never MML (untrusted external input). The overlay *render* lives in the
+ * sibling `pbox-stream` repo; this is the wire contract it consumes.
+ */
+export interface RelayChatEnvelope {
+  type: 'relay-chat';
+  frameId: number;
+  service: 'twitch' | 'youtube';
+  channelHandle: string;
+  speaker: RelaySpeaker;
+  text: string;
+}
+
 export type Envelope =
   | DispatchResponseEnvelope
   | ActivityUpdateEnvelope
@@ -1181,6 +1199,7 @@ export type Envelope =
   | ReactionDeltaEnvelope
   | ReactionExpandResultEnvelope
   | StreamStateEnvelope
+  | RelayChatEnvelope
   | StreamSourcesEnvelope;
 
 /**
@@ -1202,6 +1221,7 @@ export type EnvelopeTemplate =
   | Omit<ReactionDeltaEnvelope, 'frameId'>
   | Omit<ReactionExpandResultEnvelope, 'frameId'>
   | Omit<StreamStateEnvelope, 'frameId'>
+  | Omit<RelayChatEnvelope, 'frameId'>
   | Omit<StreamSourcesEnvelope, 'frameId'>;
 
 // ============================================================================
@@ -1493,6 +1513,20 @@ export const LAYOUT_NAMES: readonly LayoutName[] = [
 export type StreamSource =
   | { platform: "twitch"; channel: string }
   | { platform: "youtube"; videoId: string };
+
+/**
+ * The per-viewer focal-embed target held as server-authoritative
+ * `cockpit.watch` clientState (set by the `watch` verb, pushed to the
+ * client, which renders the platform's public-player iframe). Embed-shaped:
+ * a Twitch channel, a YouTube videoId, or a YouTube channelId (the
+ * `@handle`/`UC…` durable form, rendered `live_stream?channel=<channelId>`
+ * so it tracks the channel's live status across streams). `null` = nothing
+ * watched. Replaces the retired operator-curated {@link StreamSource}.
+ */
+export type WatchTarget =
+  | { platform: "twitch"; channel: string }
+  | { platform: "youtube"; videoId: string }
+  | { platform: "youtube"; channelId: string };
 
 /**
  * Server→client push of the live broadcast source list when the
@@ -2072,25 +2106,64 @@ export const TWITCH_SCOPE_READ_CHAT = 'user:read:chat';
 export const TWITCH_SCOPE_WRITE_CHAT = 'user:write:chat';
 
 /**
- * The speaker on a relay frame. Honest-to-origin: a Twitch line carries an
+ * YouTube OAuth scope the read-only relay reader spends. A single operator
+ * reader account holds `youtube.readonly` (sufficient for
+ * `liveChatMessages.streamList`/`list` reads + `channels.list` resolves);
+ * an API key is insufficient for `liveChatMessages`. Outbound posting
+ * (`youtube.force-ssl`, per-player) is deferred with YouTube write.
+ */
+export const YOUTUBE_SCOPE_READONLY =
+  'https://www.googleapis.com/auth/youtube.readonly';
+
+/**
+ * The speaker on a relay frame. Honest-to-origin: an external line carries an
  * `external` (or `external-linked`) speaker; an outbound mirror of a local
  * player's post carries `in-game`. `external-linked` carries BOTH the
- * Twitch handle and a {@link StuffRef} to the linked Avatar, so the client
- * can show the handle by default and reveal the MUD persona on hover.
+ * external handle and a {@link StuffRef} to the linked Avatar, so the client
+ * can show the handle by default and reveal the MUD persona on hover. The
+ * `service` axis spans both relay transports (`'twitch' | 'youtube'`);
+ * `external-linked` is Twitch-only this cycle (no YouTube reverse link).
  */
 export type RelaySpeaker =
   | { kind: 'in-game'; ref: StuffRef }
-  | { kind: 'external'; service: 'twitch'; externalName: string }
+  | {
+      kind: 'external';
+      service: 'twitch' | 'youtube';
+      externalName: string;
+    }
   | {
       kind: 'external-linked';
-      service: 'twitch';
+      service: 'twitch' | 'youtube';
       externalName: string;
       ref: StuffRef;
     };
 
 /**
+ * Payload of a relay chat frame (`world.twitch.message` /
+ * `world.youtube.message`). Platform-agnostic: `service` names the
+ * transport, `channelKey` is the transport's stable channel key (Twitch
+ * broadcasterId / YouTube liveChatId), `channelHandle` the display handle.
+ * `egress` marks the outbound mirror of a local player's post (rendered
+ * with the `⊳ …→` marker; Twitch-only this cycle).
+ *
+ * `TwitchMessagePayload` is folded into this as an alias in P1 when the
+ * relay singleton + client ingest are retargeted onto the unified shape.
+ */
+export interface RelayMessagePayload {
+  service: 'twitch' | 'youtube';
+  channelKey: string;
+  channelHandle: string;
+  speaker: RelaySpeaker;
+  text: string;
+  egress?: boolean;
+}
+
+/**
  * Payload of a `world.twitch.message` frame. `egress` marks the outbound
  * mirror of a local player's post (rendered with the `⊳twitch` marker).
+ *
+ * @deprecated Superseded by {@link RelayMessagePayload}; retargeted onto it
+ * in P1 (the relay-unification phase).
  */
 export interface TwitchMessagePayload {
   broadcasterId: string;

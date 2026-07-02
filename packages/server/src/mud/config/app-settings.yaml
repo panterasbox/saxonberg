@@ -166,6 +166,19 @@ settings:
   - key: livestream.broadcastSources
     value: "[]"
 
+  # YouTube relay (read-only) dials — operator knobs for the second chat
+  # transport. historyCap: per-channel history-ring depth. reconnectBackoffMs:
+  # per-stream reconnect delay on a dropped liveChatMessages stream.
+  # pollIntervalMs: the `list`-poll fallback + overlay live-status poll
+  # cadence (a floor; the API's pollingIntervalMillis wins when larger).
+  # See docs/subsystems/streaming.md.
+  - key: youtube.historyCap
+    value: "200"
+  - key: youtube.reconnectBackoffMs
+    value: "5000"
+  - key: youtube.pollIntervalMs
+    value: "5000"
+
   # Social-graph (attention management) — the reserved-baseline notify
   # rules' default fields (deployment defaults, NOT code constants). A
   # reserved label (foes / friends / everyone-else / strangers) resolves to
