@@ -2,7 +2,7 @@
 // comment lives on the class declaration below so @internal lands on the
 // reflection TypeDoc emits, not on the module.)
 
-import { Idea } from '../../lib/stuff/Idea';
+import { ApiLogic } from '../../lib/stuff/ApiLogic';
 import { CallSecurity, Unshadowable } from '../../lib/security/decorators';
 import { SecurityPolicies } from '../../lib/security/SecurityPolicies';
 import { SourceTreeApi, SourceTreeSandboxError } from '../../api/source-tree';
@@ -259,7 +259,7 @@ async function gateRead(backend: CmsBackend): Promise<void> {
  * @internal
  */
 @Unshadowable
-export class CmsLogic extends Idea {
+export class CmsLogic extends ApiLogic {
   /** See {@link CmsApi.listTree}. */
   @CallSecurity(CmsApiCallers)
   public async listTree(

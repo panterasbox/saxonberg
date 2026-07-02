@@ -1,7 +1,7 @@
 // CorpoLogic — the hot-reloadable logic singleton behind CorpoApi.
 // (Doc comment on the class below so @internal lands on the reflection.)
 
-import { Idea } from "../../lib/stuff/Idea";
+import { ApiLogic } from "../../lib/stuff/ApiLogic";
 import { CallSecurity, Unshadowable } from "../../lib/security/decorators";
 import { SecurityPolicies } from "../../lib/security/SecurityPolicies";
 import type { Stuff } from "../../lib/stuff/Stuff";
@@ -86,7 +86,7 @@ function rivalsOfImpl(corpoKey: string): CorpoDescriptor[] {
  * @internal
  */
 @Unshadowable
-export class CorpoLogic extends Idea {
+export class CorpoLogic extends ApiLogic {
   /** See {@link CorpoApi.corpoOfBrand}. */
   @CallSecurity(CorpoApiCallers)
   public corpoOfBrand(brandKey: string): CorpoDescriptor | null {

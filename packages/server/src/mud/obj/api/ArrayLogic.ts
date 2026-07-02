@@ -2,7 +2,7 @@
 // (Doc comment lives on the class declaration below so @internal lands
 // on the reflection TypeDoc emits, not on the module.)
 
-import { Idea } from '../../lib/stuff/Idea';
+import { ApiLogic } from '../../lib/stuff/ApiLogic';
 import { CallSecurity, Unshadowable } from '../../lib/security/decorators';
 import { SecurityPolicies } from '../../lib/security/SecurityPolicies';
 
@@ -29,7 +29,7 @@ const ArrayApiCallers = SecurityPolicies.FromModule('/api/array#ArrayApi');
  * @internal
  */
 @Unshadowable
-export class ArrayLogic extends Idea {
+export class ArrayLogic extends ApiLogic {
   /** See {@link ArrayApi.equal}. */
   @CallSecurity(ArrayApiCallers)
   public equal<T>(a: ReadonlyArray<T>, b: ReadonlyArray<T>): boolean {

@@ -2,7 +2,7 @@
 // ContainmentApi. (Doc comment lives on the class declaration below so
 // @internal lands on the reflection TypeDoc emits, not on the module.)
 
-import { Idea } from '../../lib/stuff/Idea';
+import { ApiLogic } from '../../lib/stuff/ApiLogic';
 import { CallSecurity, Unshadowable } from '../../lib/security/decorators';
 import { SecurityPolicies } from '../../lib/security/SecurityPolicies';
 import type { Stuff } from '../../lib/stuff/Stuff';
@@ -64,7 +64,7 @@ const ContainmentApiCallers = SecurityPolicies.AnyOf(
  * @internal
  */
 @Unshadowable
-export class ContainmentLogic extends Idea {
+export class ContainmentLogic extends ApiLogic {
   /** See {@link ContainmentApi._registerMergeOnArrivalHook}. */
   @CallSecurity(ContainmentApiCallers)
   public _registerMergeOnArrivalHook(hook: MergeOnArrivalHook): void {

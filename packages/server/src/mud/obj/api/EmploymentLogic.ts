@@ -1,7 +1,7 @@
 // EmploymentLogic — the hot-reloadable logic singleton behind EmploymentApi.
 // (Doc comment on the class below so @internal lands on the reflection.)
 
-import { Idea } from '../../lib/stuff/Idea';
+import { ApiLogic } from '../../lib/stuff/ApiLogic';
 import { CallSecurity, Unshadowable } from '../../lib/security/decorators';
 import { SecurityPolicies } from '../../lib/security/SecurityPolicies';
 import type { Stuff } from '../../lib/stuff/Stuff';
@@ -188,7 +188,7 @@ async function settleShiftWageImpl(
  * @internal
  */
 @Unshadowable
-export class EmploymentLogic extends Idea {
+export class EmploymentLogic extends ApiLogic {
   /**
    * The Business index — businesses are found by the `BusinessMixin`
    * marker (never a field on a room), the `SlotLogic` / `LocomotionLogic`

@@ -1,7 +1,7 @@
 // WeatherLogic — the hot-reloadable logic singleton behind WeatherApi.
 // (Doc comment on the class below so @internal lands on the reflection.)
 
-import { Idea } from '../../lib/stuff/Idea';
+import { ApiLogic } from '../../lib/stuff/ApiLogic';
 import { CallSecurity, Unshadowable } from '../../lib/security/decorators';
 import { SecurityPolicies } from '../../lib/security/SecurityPolicies';
 import type { Stuff } from '../../lib/stuff/Stuff';
@@ -311,7 +311,7 @@ async function runBoundaryFanout(): Promise<void> {
  * @internal
  */
 @Unshadowable
-export class WeatherLogic extends Idea {
+export class WeatherLogic extends ApiLogic {
   /** See {@link WeatherApi.weatherAt}. Pure. */
   @CallSecurity(WeatherApiCallers)
   public weatherAt(

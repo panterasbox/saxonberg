@@ -2,7 +2,7 @@
 // (Doc comment lives on the class declaration so @internal lands on the
 // reflection TypeDoc emits, not on the module.)
 
-import { Idea } from '../../lib/stuff/Idea';
+import { ApiLogic } from '../../lib/stuff/ApiLogic';
 import { CallSecurity, Unshadowable } from '../../lib/security/decorators';
 import { SecurityPolicies } from '../../lib/security/SecurityPolicies';
 import { Mml } from '../../api/mml';
@@ -46,7 +46,7 @@ const ForumsApiCallers = SecurityPolicies.FromModule('/api/forums#ForumsApi');
  * @internal
  */
 @Unshadowable
-export class ForumsLogic extends Idea {
+export class ForumsLogic extends ApiLogic {
   // --- Board lifecycle ----------------------------------------------
 
   /** See {@link ForumsApi.createBoardOnSubject}. */

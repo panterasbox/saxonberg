@@ -2,7 +2,7 @@
 // (Doc comment lives on the class declaration below so @internal lands
 // on the reflection TypeDoc emits, not on the module.)
 
-import { Idea } from '../../lib/stuff/Idea';
+import { ApiLogic } from '../../lib/stuff/ApiLogic';
 import { CallSecurity, Unshadowable } from '../../lib/security/decorators';
 import { SecurityPolicies } from '../../lib/security/SecurityPolicies';
 import type { Stuff } from '../../lib/stuff/Stuff';
@@ -41,7 +41,7 @@ const SlotApiCallers = SecurityPolicies.AnyOf(
  * @internal
  */
 @Unshadowable
-export class SlotLogic extends Idea {
+export class SlotLogic extends ApiLogic {
   /** See {@link SlotApi.occupyAll}. */
   @CallSecurity(SlotApiCallers)
   public occupyAll(

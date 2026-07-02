@@ -2,7 +2,7 @@
 // RecognitionApi. (Doc comment on the class below so @internal lands on
 // the reflection.)
 
-import { Idea } from '../../lib/stuff/Idea';
+import { ApiLogic } from '../../lib/stuff/ApiLogic';
 import { CallSecurity, Unshadowable } from '../../lib/security/decorators';
 import { SecurityPolicies } from '../../lib/security/SecurityPolicies';
 import type { Stuff } from '../../lib/stuff/Stuff';
@@ -236,7 +236,7 @@ function recognizesImpl(viewer: Stuff, subject: Stuff): boolean {
  * @internal
  */
 @Unshadowable
-export class RecognitionLogic extends Idea {
+export class RecognitionLogic extends ApiLogic {
   /** See {@link RecognitionApi.describe}. */
   @CallSecurity(RecognitionApiCallers)
   public describe(viewer: Stuff, target: Stuff): string {

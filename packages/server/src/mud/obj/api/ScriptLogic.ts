@@ -1,7 +1,7 @@
 // ScriptLogic — the hot-reloadable logic singleton behind ScriptApi.
 // (Doc comment on the class below so @internal lands on the reflection.)
 
-import { Idea } from "../../lib/stuff/Idea";
+import { ApiLogic } from "../../lib/stuff/ApiLogic";
 import { CallSecurity, Unshadowable } from "../../lib/security/decorators";
 import { SecurityPolicies } from "../../lib/security/SecurityPolicies";
 import { CommandApi } from "../../api/command";
@@ -450,7 +450,7 @@ function formatArg(arg: Arg): string {
  * @internal
  */
 @Unshadowable
-export class ScriptLogic extends Idea {
+export class ScriptLogic extends ApiLogic {
   /** See {@link ScriptApi.runAst}. */
   @CallSecurity(ScriptApiCallers)
   public async runAst(ast: Script): Promise<void> {

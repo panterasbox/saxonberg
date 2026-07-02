@@ -1,7 +1,7 @@
 // MudlogLogic — the hot-reloadable logic singleton behind MudlogApi.
 // (Doc comment on the class below so @internal lands on the reflection.)
 
-import { Idea } from '../../lib/stuff/Idea';
+import { ApiLogic } from '../../lib/stuff/ApiLogic';
 import { CallSecurity, Unshadowable } from '../../lib/security/decorators';
 import { SecurityPolicies } from '../../lib/security/SecurityPolicies';
 import type { Stuff } from '../../lib/stuff/Stuff';
@@ -105,7 +105,7 @@ function dispatch(
  * @internal
  */
 @Unshadowable
-export class MudlogLogic extends Idea {
+export class MudlogLogic extends ApiLogic {
   /** See {@link MudlogApi.trace}. */
   @CallSecurity(MudlogApiCallers)
   public trace(

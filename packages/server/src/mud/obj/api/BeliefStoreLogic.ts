@@ -2,7 +2,7 @@
 // BeliefStoreApi. (Doc comment on the class below so @internal lands on
 // the reflection.)
 
-import { Idea } from '../../lib/stuff/Idea';
+import { ApiLogic } from '../../lib/stuff/ApiLogic';
 import { CallSecurity, Unshadowable } from '../../lib/security/decorators';
 import { SecurityPolicies } from '../../lib/security/SecurityPolicies';
 import type { Stuff } from '../../lib/stuff/Stuff';
@@ -76,7 +76,7 @@ async function writeRecordImpl(
  * @internal
  */
 @Unshadowable
-export class BeliefStoreLogic extends Idea {
+export class BeliefStoreLogic extends ApiLogic {
   /** See {@link BeliefStoreApi.hydrate}. */
   @CallSecurity(BeliefStoreApiCallers)
   public async hydrate(viewer: Stuff): Promise<void> {

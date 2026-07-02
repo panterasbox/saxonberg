@@ -2,7 +2,7 @@
 // (Doc comment lives on the class declaration below so @internal lands
 // on the reflection TypeDoc emits, not on the module.)
 
-import { Idea } from '../../lib/stuff/Idea';
+import { ApiLogic } from '../../lib/stuff/ApiLogic';
 import { CallSecurity, Unshadowable } from '../../lib/security/decorators';
 import { SecurityPolicies } from '../../lib/security/SecurityPolicies';
 import Avatar from '../Avatar';
@@ -44,7 +44,7 @@ const PlayerApiCallers = SecurityPolicies.AnyOf(
  * @internal
  */
 @Unshadowable
-export class PlayerLogic extends Idea {
+export class PlayerLogic extends ApiLogic {
   /**
    * Registry of avatars by player ID. A specialized index for quick
    * avatar lookup. TS `private` (not `#`) — see the class doc.

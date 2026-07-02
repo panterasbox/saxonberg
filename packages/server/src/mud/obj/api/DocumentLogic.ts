@@ -1,7 +1,7 @@
 // DocumentLogic — the hot-reloadable logic singleton behind DocumentApi.
 // (Doc comment on the class below so @internal lands on the reflection.)
 
-import { Idea } from "../../lib/stuff/Idea";
+import { ApiLogic } from "../../lib/stuff/ApiLogic";
 import { CallSecurity, Unshadowable } from "../../lib/security/decorators";
 import { SecurityPolicies } from "../../lib/security/SecurityPolicies";
 import { ZoneApi } from "../../api/zone";
@@ -110,7 +110,7 @@ async function saveImpl(
  * @internal
  */
 @Unshadowable
-export class DocumentLogic extends Idea {
+export class DocumentLogic extends ApiLogic {
   /** See {@link DocumentApi.read}. */
   @CallSecurity(DocumentApiCallers)
   public async read(path: string): Promise<StoredDocument | null> {

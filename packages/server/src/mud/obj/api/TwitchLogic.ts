@@ -1,7 +1,7 @@
 // TwitchLogic — the hot-reloadable logic singleton behind TwitchApi.
 // (Doc comment on the class so @internal lands on the reflection.)
 
-import { Idea } from '../../lib/stuff/Idea';
+import { ApiLogic } from '../../lib/stuff/ApiLogic';
 import { CallSecurity, Unshadowable } from '../../lib/security/decorators';
 import { SecurityPolicies } from '../../lib/security/SecurityPolicies';
 import { StuffApi } from '../../api/stuff';
@@ -34,7 +34,7 @@ const TwitchApiCallers = SecurityPolicies.FromModule('/api/twitch#TwitchApi');
  * @internal
  */
 @Unshadowable
-export class TwitchLogic extends Idea {
+export class TwitchLogic extends ApiLogic {
   /**
    * See {@link TwitchApi.tune}. The bridge: resolve the login via the
    * backend reader (cache-first), mutate the relay, and on the 0->1 edge

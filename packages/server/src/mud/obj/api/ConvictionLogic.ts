@@ -1,7 +1,7 @@
 // ConvictionLogic — the hot-reloadable logic singleton behind ConvictionApi.
 // (Doc comment on the class below so @internal lands on the reflection.)
 
-import { Idea } from '../../lib/stuff/Idea';
+import { ApiLogic } from '../../lib/stuff/ApiLogic';
 import { CallSecurity, Unshadowable } from '../../lib/security/decorators';
 import { SecurityPolicies } from '../../lib/security/SecurityPolicies';
 import Position from '../../lib/standing/Position';
@@ -225,7 +225,7 @@ async function quorumWeightImpl(
  * @internal
  */
 @Unshadowable
-export class ConvictionLogic extends Idea {
+export class ConvictionLogic extends ApiLogic {
   /** See {@link ConvictionApi.hold}. */
   @CallSecurity(ConvictionApiCallers)
   public async hold(

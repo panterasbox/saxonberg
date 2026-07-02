@@ -2,7 +2,7 @@
 // ConnectionApi. (Doc comment lives on the class declaration below so
 // @internal lands on the reflection TypeDoc emits, not on the module.)
 
-import { Idea } from '../../lib/stuff/Idea';
+import { ApiLogic } from '../../lib/stuff/ApiLogic';
 import { CallSecurity, Unshadowable } from '../../lib/security/decorators';
 import { SecurityPolicies } from '../../lib/security/SecurityPolicies';
 import { ConnectionManager } from '../../../backend/ConnectionManager';
@@ -63,7 +63,7 @@ function geolocateCountry(ip: string): string | undefined {
  * @internal
  */
 @Unshadowable
-export class ConnectionLogic extends Idea {
+export class ConnectionLogic extends ApiLogic {
   /** See {@link ConnectionApi.getInteractive}. */
   @CallSecurity(ConnectionApiCallers)
   public getInteractive(socketId: string): Interactive | undefined {

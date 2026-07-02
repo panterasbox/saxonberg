@@ -2,7 +2,7 @@
 // (Doc comment lives on the class declaration below so @internal lands
 // on the reflection TypeDoc emits, not on the module.)
 
-import { Idea } from '../../lib/stuff/Idea';
+import { ApiLogic } from '../../lib/stuff/ApiLogic';
 import { CallSecurity, Unshadowable } from '../../lib/security/decorators';
 import { SecurityPolicies } from '../../lib/security/SecurityPolicies';
 import type { Stuff } from '../../lib/stuff/Stuff';
@@ -245,7 +245,7 @@ class CommandContextImpl implements CommandContext {
  * @internal
  */
 @Unshadowable
-export class CommandLogic extends Idea {
+export class CommandLogic extends ApiLogic {
   /** See {@link CommandApi.getCommand}. */
   @CallSecurity(CommandApiCallers)
   public getCommand(filename: string): CommandDefinition | null {

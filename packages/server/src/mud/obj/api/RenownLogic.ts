@@ -1,7 +1,7 @@
 // RenownLogic — the hot-reloadable logic singleton behind RenownApi.
 // (Doc comment on the class below so @internal lands on the reflection.)
 
-import { Idea } from '../../lib/stuff/Idea';
+import { ApiLogic } from '../../lib/stuff/ApiLogic';
 import { CallSecurity, Unshadowable } from '../../lib/security/decorators';
 import { SecurityPolicies } from '../../lib/security/SecurityPolicies';
 import RenownEvent from '../../lib/standing/RenownEvent';
@@ -455,7 +455,7 @@ function renownOfImpl(subjectId: string, scope: RenownScope): number {
  * @internal
  */
 @Unshadowable
-export class RenownLogic extends Idea {
+export class RenownLogic extends ApiLogic {
   /**
    * The reaction ingestion subscription — retained so a re-install is a
    * no-op. Transient instance state on the singleton (not persisted); a

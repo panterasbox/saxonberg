@@ -1,7 +1,7 @@
 // GroupLogic — the hot-reloadable logic singleton behind GroupApi.
 // (Doc comment on the class below so @internal lands on the reflection.)
 
-import { Idea } from '../../lib/stuff/Idea';
+import { ApiLogic } from '../../lib/stuff/ApiLogic';
 import { CallSecurity, Unshadowable } from '../../lib/security/decorators';
 import { SecurityPolicies } from '../../lib/security/SecurityPolicies';
 import { StuffApi } from '../../api/stuff';
@@ -54,7 +54,7 @@ async function requireRegistry(): Promise<GroupRegistry> {
  * @internal
  */
 @Unshadowable
-export class GroupLogic extends Idea {
+export class GroupLogic extends ApiLogic {
   /** See {@link GroupApi.membersOf}. */
   @CallSecurity(GroupApiCallers)
   public async membersOf(ref: GroupRef): Promise<Stuff[]> {

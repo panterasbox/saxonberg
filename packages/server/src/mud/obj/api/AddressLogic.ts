@@ -1,7 +1,7 @@
 // AddressLogic — the hot-reloadable logic singleton behind AddressApi.
 // (Doc comment on the class below so @internal lands on the reflection.)
 
-import { Idea } from '../../lib/stuff/Idea';
+import { ApiLogic } from '../../lib/stuff/ApiLogic';
 import { CallSecurity, Unshadowable } from '../../lib/security/decorators';
 import { SecurityPolicies } from '../../lib/security/SecurityPolicies';
 import { StuffApi } from '../../api/stuff';
@@ -132,7 +132,7 @@ function lookupRegistry(): AddressRegistry | null {
  * @internal
  */
 @Unshadowable
-export class AddressLogic extends Idea {
+export class AddressLogic extends ApiLogic {
   /** See {@link AddressApi.resolveLocalityFor}. */
   @CallSecurity(AddressApiCallers)
   public async resolveLocalityFor(

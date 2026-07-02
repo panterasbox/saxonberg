@@ -2,7 +2,7 @@
 // CommandLineApi. (Doc comment on the class below so @internal lands on
 // the reflection.)
 
-import { Idea } from '../../lib/stuff/Idea';
+import { ApiLogic } from '../../lib/stuff/ApiLogic';
 import { CallSecurity, Unshadowable } from '../../lib/security/decorators';
 import { SecurityPolicies } from '../../lib/security/SecurityPolicies';
 import type {
@@ -354,7 +354,7 @@ function parsePipelineImpl(input: string): ParsedPipeline {
  * @internal
  */
 @Unshadowable
-export class CommandLineLogic extends Idea {
+export class CommandLineLogic extends ApiLogic {
   /** See {@link CommandLineApi.parsePipeline}. */
   @CallSecurity(CommandLineApiCallers)
   public parsePipeline(input: string): ParsedPipeline {

@@ -1,7 +1,7 @@
 // RegardLogic — the hot-reloadable logic singleton behind RegardApi.
 // (Doc comment on the class below so @internal lands on the reflection.)
 
-import { Idea } from '../../lib/stuff/Idea';
+import { ApiLogic } from '../../lib/stuff/ApiLogic';
 import { CallSecurity, Unshadowable } from '../../lib/security/decorators';
 import { SecurityPolicies } from '../../lib/security/SecurityPolicies';
 import type { Stuff } from '../../lib/stuff/Stuff';
@@ -61,7 +61,7 @@ function writeRegard(viewer: Stuff, subject: Stuff, value: number): void {
  * @internal
  */
 @Unshadowable
-export class RegardLogic extends Idea {
+export class RegardLogic extends ApiLogic {
   /** See {@link RegardApi.getRegard}. */
   @CallSecurity(RegardApiCallers)
   public getRegard(viewer: Stuff, subject: Stuff): number {

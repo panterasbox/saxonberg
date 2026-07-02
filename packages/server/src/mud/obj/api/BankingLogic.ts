@@ -1,7 +1,7 @@
 // BankingLogic — the hot-reloadable logic singleton behind BankingApi.
 // (Doc comment on the class below so @internal lands on the reflection.)
 
-import { Idea } from "../../lib/stuff/Idea";
+import { ApiLogic } from "../../lib/stuff/ApiLogic";
 import { CallSecurity, Unshadowable } from "../../lib/security/decorators";
 import { SecurityPolicies } from "../../lib/security/SecurityPolicies";
 import LedgerEntry from "../../lib/banking/LedgerEntry";
@@ -636,7 +636,7 @@ async function recomputeSupplyImpl(): Promise<void> {
  * @internal
  */
 @Unshadowable
-export class BankingLogic extends Idea {
+export class BankingLogic extends ApiLogic {
   /** See {@link BankingApi.boot}. Idempotent; reserved for future taps. */
   @CallSecurity(BankingApiCallers)
   public boot(): void {

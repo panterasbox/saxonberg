@@ -1,7 +1,7 @@
 // AccessLogic — the hot-reloadable logic singleton behind AccessApi.
 // (Doc comment on the class below so @internal lands on the reflection.)
 
-import { Idea } from '../../lib/stuff/Idea';
+import { ApiLogic } from '../../lib/stuff/ApiLogic';
 import { CallSecurity, Unshadowable } from '../../lib/security/decorators';
 import { SecurityPolicies } from '../../lib/security/SecurityPolicies';
 import { StuffApi } from '../../api/stuff';
@@ -61,7 +61,7 @@ function lookupRegistry(): AccessRegistry | null {
  * @internal
  */
 @Unshadowable
-export class AccessLogic extends Idea {
+export class AccessLogic extends ApiLogic {
   /** See {@link AccessApi.can}. */
   @CallSecurity(AccessApiCallers)
   public async can(

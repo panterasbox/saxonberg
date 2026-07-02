@@ -1,7 +1,7 @@
 // CraftingLogic — the hot-reloadable logic singleton behind CraftingApi.
 // (Doc comment on the class below so @internal lands on the reflection.)
 
-import { Idea } from '../../lib/stuff/Idea';
+import { ApiLogic } from '../../lib/stuff/ApiLogic';
 import { CallSecurity, Unshadowable } from '../../lib/security/decorators';
 import { SecurityPolicies } from '../../lib/security/SecurityPolicies';
 import type { Stuff } from '../../lib/stuff/Stuff';
@@ -419,7 +419,7 @@ async function offeredImpl(menu: Stuff): Promise<RecipeView[]> {
  * @internal
  */
 @Unshadowable
-export class CraftingLogic extends Idea {
+export class CraftingLogic extends ApiLogic {
   /** See {@link CraftingApi.craft}. */
   @CallSecurity(CraftingApiCallers)
   public async craft(request: CraftRequest): Promise<CraftOutcome> {

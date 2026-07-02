@@ -7,7 +7,7 @@
 // callers use the functions directly so the `FromModule` gate never sees an
 // intra-singleton self-call (which it would deny).
 
-import { Idea } from '../../lib/stuff/Idea';
+import { ApiLogic } from '../../lib/stuff/ApiLogic';
 import { CallSecurity, Unshadowable } from '../../lib/security/decorators';
 import { SecurityPolicies } from '../../lib/security/SecurityPolicies';
 import { StuffApi } from '../../api/stuff';
@@ -199,7 +199,7 @@ async function archiveImpl(query: ArchiveQuery): Promise<Bulletin[]> {
  * @internal
  */
 @Unshadowable
-export class BulletinLogic extends Idea {
+export class BulletinLogic extends ApiLogic {
   /** See {@link BulletinApi.publish}. */
   @CallSecurity(BulletinApiCallers)
   public publish(req: PublishRequest): Promise<Bulletin> {

@@ -1,7 +1,7 @@
 // SocialLogic — the hot-reloadable logic singleton behind SocialApi.
 // (Doc comment on the class below so @internal lands on the reflection.)
 
-import { Idea } from "../../lib/stuff/Idea";
+import { ApiLogic } from "../../lib/stuff/ApiLogic";
 import { CallSecurity, Unshadowable } from "../../lib/security/decorators";
 import { SecurityPolicies } from "../../lib/security/SecurityPolicies";
 import type { Stuff } from "../../lib/stuff/Stuff";
@@ -787,7 +787,7 @@ async function styleMessageForImpl(
  * @internal
  */
 @Unshadowable
-export class SocialLogic extends Idea {
+export class SocialLogic extends ApiLogic {
   /**
    * The login subscription — retained so a re-install is a no-op.
    * Transient instance state on the singleton (not persisted); a fresh
