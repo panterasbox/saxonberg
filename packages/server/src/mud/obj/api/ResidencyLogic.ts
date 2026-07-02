@@ -14,6 +14,11 @@ import { AppApi } from '../../api/app';
 import { AppSettingKeys } from '../../lib/config/AppSettings';
 import { CallSecurity } from '../../lib/security/decorators';
 import { SecurityPolicies } from '../../lib/security/SecurityPolicies';
+import { ConnectionApi } from '../../api/connection';
+import { MixinApi } from '../../api/mixin';
+import type { Stuff } from '../../lib/stuff/Stuff';
+import type { Container } from '../../lib/spatial/Container';
+import type { Containable } from '../../lib/spatial/Containable';
 
 const ResidencyApiCallers = SecurityPolicies.FromModule(
   '/api/residency#ResidencyApi',
@@ -45,6 +50,31 @@ function readMode(): 'observe' | 'enforce' {
 }
 
 /**
+ * Presence walk (the `WeatherLogic.runBoundaryFanout` pattern). A
+ * connected player *in* a room is the strongest form of touch, so before
+ * each scan we refresh the recency of every room a player occupies and
+ * everything nested in it (co-occupants, floor items, and — since the
+ * player is himself deep-contents of his room — each player's inventory).
+ * This keeps a silently-occupied room warm even when nobody's dispatching
+ * methods. It is a touch *source*, not a pin: it just bumps `lastTouched`.
+ */
+function presenceWalkImpl(): void {
+  const visited = new Set<string>();
+  for (const interactive of ConnectionApi.getAllInteractives()) {
+    const holder = interactive.getHolder();
+    if (holder === null || !MixinApi.isContainable(holder)) continue;
+    const room = (holder as Stuff & Containable).getContainer();
+    if (room === null || !MixinApi.isContainer(room)) continue;
+    if (visited.has(room.stuffId)) continue;
+    visited.add(room.stuffId);
+    ProxyApi.unwrap(room).touch();
+    for (const item of (room as Stuff & Container).getDeepContents()) {
+      ProxyApi.unwrap(item).touch();
+    }
+  }
+}
+
+/**
  * The lazy O(n) cold-tail scan. `getAllObjects()` returns proxies, so we
  * read recency and ask `canEvict` on the **raw** target — the sweep's own
  * introspection must never count as a touch. In enforce mode, consenters
@@ -52,6 +82,15 @@ function readMode(): 'observe' | 'enforce' {
  * re-read each sweep, so flipping `residency.mode` needs no restart.
  */
 function sweepImpl(): void {
+  // Refresh presence first, so a silently-occupied room and its contents
+  // read as warm when the scan below evaluates them. Best-effort: a
+  // connection-layer hiccup must never crash the sweep.
+  try {
+    presenceWalkImpl();
+  } catch (err) {
+    console.warn('[residency] presence walk failed; scanning anyway', err);
+  }
+
   const mode = readMode();
   const idleThreshold = readInt(
     AppSettingKeys.residencyIdleThresholdMs,

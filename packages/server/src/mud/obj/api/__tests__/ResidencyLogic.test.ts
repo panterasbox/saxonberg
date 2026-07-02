@@ -10,6 +10,9 @@ import Location from '../../../lib/stuff/Location';
 import { ResidencyApi } from '../../../api/residency';
 import { StuffApi } from '../../../api/stuff';
 import { ShadowApi } from '../../../api/shadow';
+import { ContainmentApi } from '../../../api/containment';
+import { ConnectionApi } from '../../../api/connection';
+import type Interactive from '../../Interactive';
 import { AppSettings, AppSettingKeys } from '../../../lib/config/AppSettings';
 import { makeStuff } from '../../../lib/security/__tests__/test-setup';
 
@@ -69,5 +72,38 @@ describe('residency sweep', () => {
     vi.setSystemTime(50_000);
     ResidencyApi.sweepNow();
     expect(StuffApi.findById(id)).toBeDefined();
+  });
+
+  it('presence keeps an occupied room’s contents warm', () => {
+    setSetting(AppSettingKeys.residencyMode, 'enforce');
+    const room = makeStuff(() => new Location());
+    const holder = makeStuff(() => new Thing()); // stand-in avatar
+    const item = makeStuff(() => new Thing());
+    ContainmentApi.move(holder, room);
+    ContainmentApi.move(item, room);
+    const itemId = item.stuffId;
+    // Fake a connected player whose holder is in the room.
+    const spy = vi
+      .spyOn(ConnectionApi, 'getAllInteractives')
+      .mockReturnValue([{ getHolder: () => holder } as unknown as Interactive]);
+    vi.setSystemTime(50_000); // idle by recency...
+    ResidencyApi.sweepNow(); // ...but the presence walk refreshes it
+    expect(StuffApi.findById(itemId)).toBeDefined();
+    spy.mockRestore();
+  });
+
+  it('without presence, an idle item in a room is culled', () => {
+    setSetting(AppSettingKeys.residencyMode, 'enforce');
+    const room = makeStuff(() => new Location());
+    const item = makeStuff(() => new Thing());
+    ContainmentApi.move(item, room);
+    const itemId = item.stuffId;
+    const spy = vi
+      .spyOn(ConnectionApi, 'getAllInteractives')
+      .mockReturnValue([]);
+    vi.setSystemTime(50_000);
+    ResidencyApi.sweepNow();
+    expect(StuffApi.findById(itemId)).toBeUndefined();
+    spy.mockRestore();
   });
 });
