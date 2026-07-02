@@ -1,5 +1,13 @@
 # YouTube Live Chat Relay — requirements
 
+> **SUPERSEDED (2026-07-02)** by
+> [stream-tuning-requirements.md](./stream-tuning-requirements.md), which
+> reopened this doc's two locked decisions: the surface is now **unified**
+> (platform-agnostic `tune`/`watch` verbs, not a parallel `youtube` mirror)
+> and YouTube is **read-only this cycle** (not two-way). Retained for the
+> live-only-bind / `liveChatId`-resolution / transport mechanics, which
+> carry forward unchanged. Do not plan from this doc.
+
 Bridge YouTube live chat into the world as a **second, parallel relay
 surface** beside the shipped Twitch relay — bidirectional from day one.
 A tuned-in player reads a YouTube broadcaster's live chat as in-world
