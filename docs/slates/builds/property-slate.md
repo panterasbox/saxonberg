@@ -519,3 +519,117 @@ sub-parcels) is foundational, pulling structural tenancy forward from Phase 3.
 The sandbox/anti-cheat resolves to the **released gate + trust domains** (largely
 reusing the augment `isActive` seam), and home personalization to **capability
 tiers**, neither of which needs new governance machinery.
+
+### F. Sub-zone granularity — "parcel = zone" and the second ownership axis
+
+Does "parcel = zone" hold at *player scale* (own a shop / a room / an object),
+where the lounge exemplar (a whole team subtree) gives no guidance? **It holds
+for real property — and reaches further down than expected — but only by handing
+everything below the zone to a second ownership axis.**
+
+- The **cardinal-only-intra-zone invariant already makes every interior its own
+  zone** (you `enter` a door → non-cardinal exit → zone break). So the things a
+  player owns as real property are *already* zones: a house, a shop-in-a-district
+  (a sub-parcel nested at its `enter` door), an apartment (each unit `enter`-ed),
+  a dorm (`HomeZone`), a farm (beds are **slots**, not sub-parcels). Parcel =
+  zone. ✓
+- **Coarser than a zone** is covered by `extents[]` (one parcel spans several
+  zones — the lounge's `/domain/lounge` + `/lib/lounge`). **Finer than a zone is
+  NOT a parcel:**
+  - **Chattel** — movable/placeable objects (sword, pet, market stall, a
+    supplier's counter dropped in your shop). Owned per-instance (an owner-stamp),
+    *not* titled as real property, *not* allowance-bearing; compute billed to a
+    parcel via **cost-owner**. ("Rent a stall" = place your owned stall-fixture in
+    the hall's zone — chattel, no sub-zone.)
+  - **Slots** — internal structure of a zone you already own (farm beds,
+    workbenches). Part of the host parcel, not separate ownership.
+- **Bright line:** *real property bottoms out at the zone; everything finer is
+  chattel or slots.*
+
+**Key output — Phase 0 possession core is TWO registries, not one:**
+
+| | Parcel title (real property) | Chattel possession (goods) |
+|---|---|---|
+| Unit | a Zone (extent) | a Stuff instance |
+| Keyed on | zone path / `parcelId` + `extents[]` | a durable instance id |
+| Allowance | yes | no (billed to a parcel via cost-owner) |
+| Un-fuse from author | `ownerOf(path) = title ?? authorOf` | `ownerOf(item) = stamp ?? authorOf` |
+
+The pets-slate gap ("no owner-stamp on goods; `Charge` has no debtor") **is the
+chattel half** — and it belongs here, since the slate already claims to be the
+general possession substrate ("custody is a degenerate case of possession").
+Both halves un-fuse owner from author, meet compute at cost-owner, and go inert
+in canon if unreleased.
+
+**Two tensions:**
+1. **Zone proliferation** for fine ownership (a city of 10k homes = 10k zones +
+   parcel rows). `HomeZone` proves per-player-zone at some scale; city-scale
+   wants lazy instantiation + coverage-index perf, and a first-class **runtime
+   "subdivide/claim" primitive** (mint zone + parcel record + wire exits + set
+   allowance — the concrete shape of the slate's "first-class transfer";
+   `HomeZone`/`mkdir` precedent).
+2. **Seamless open-world coordinate-region ownership** — the *one* case parcel =
+   zone can't express (a prairie subdivided into plots without fragmenting into
+   100 grids). v1: plot-zones stitched by cardinal exits (cardinal exits *can*
+   cross zones — farming does this). Later, **additive not contradictory**: a
+   *region parcel* claiming a coord bounding-box within a host zone, with a
+   point-in-region resolver layered *under* the path-prefix one (only opt-in
+   zones pay the point-test). Single-leaf-room ownership is the same gap/answer.
+
+### G. The wardrobe — the sandbox is a placeable portal fixture, not a parcel mode
+
+The keystone reframe that collapses §D + §E into one diegetic, **composable**
+thing: **the sandbox is a placeable portal fixture (chattel) that mints a linked
+magic-circle zone (a parcel) you author freely and publish from.** (Narnia
+wardrobe / holodeck gate / summoning circle — skinnable.)
+
+- **`SandboxPortalMixin` + a content skin** = a Tier-0 composable primitive you
+  place in your canonical, data-driven home (same act as hanging a painting; the
+  skin is pure `Visible`/`Detailed` data — no new module category).
+- **Placing / first-entering mints the linked sandbox zone** (the runtime
+  subdivide/claim primitive from §F): a parcel you own, a magic-circle domain, an
+  unreleased namespace (`/home` → already "unreleased" per the released gate), its
+  own allowance. **Both ownership axes in one object:** you own the *wardrobe*
+  (chattel) + the *linked sandbox zone* (parcel + authoring authority).
+- **Single canon-facing portal invariant:** a sandbox wires *no* exits back to
+  canon except its originating wardrobe → the ledger-quarantine reconcile
+  checkpoint is **singular**, easing the "every exit must reconcile" hard part.
+
+**Two orthogonal gates; the wardrobe opens only one:**
+
+| Gate | Protects | Wardrobe opens it? |
+|---|---|---|
+| **Release / balance** | game balance (unreviewed content power in canon) | **Yes** — unreleased content *works* inside; rollback contains balance leaks. |
+| **Code-trust (`isWizard`)** | server security (executing arbitrary TypeScript) | **No** — TS stays wizard-gated everywhere. |
+
+Rollback contains *game state*, not *code execution* — a malicious TS class could
+exfiltrate/melt the box before any exit-rollback (that's `isolated-vm`'s job, a
+different mechanism). So **"absolute authoring authority" = absolute over
+*content*** (compose/configure/script/author unreleased templates), **not over
+*code*.** A non-wizard gets a full creative sandbox; new TypeScript is still the
+wizard axis, unchanged.
+
+**Two exits (why "build it in the wardrobe and publish" isn't a cheat):**
+1. **Walk out** → material rollback (keep nothing — symmetric, applies to you too).
+2. **Publish** → CMS/forums review gate → your *design* enters canon, balanced,
+   for everyone.
+
+Neither smuggles power out. The wardrobe cleanly separates *playing with
+unreleased toys* (rollback) from *contributing a reviewed primitive* (publish).
+
+**Architectural payoff:** the wardrobe is **what makes the compose-only canonical
+home acceptable.** Unbounded authoring isn't forbidden — it's *routed* into a
+sandbox where it can't hurt anyone, with a reviewed path to canon. The valve, not
+the wall; the dorm-warren player→author ladder made physical (decorate → step
+into the wardrobe to author → publish → your word joins everyone's dictionary).
+
+**Edges (resolve cleanly):** allowance-gated size (bigger holodeck costs budget;
+empty → freeze; rollback reclaims memory on exit) · invite guests = the
+shared-holodeck case, symmetric rollback, access-controlled by your parcel · even
+wizards prototype here (their unreleased class is still quarantined until
+published — the release gate applies regardless of author) · lazy/dormant zone
+(`HomeZone` precedent).
+
+**Open (next edge):** the `SandboxPortalMixin` ↔ minted-zone **lifecycle
+binding** — what happens to the linked sandbox zone when the wardrobe (chattel,
+movable) is destroyed, sold, or carried elsewhere, since the zone is a parcel.
