@@ -781,7 +781,9 @@ capability owned chattel needs, triggered by personhood instead of ownership.
   consultation already leans one-shot/idempotent.)
 
 **Net scope (replaces §F's chattel-registry-as-store):** **no new persistence
-system.** Generalize the shipped **Avatar holder-snapshot to chests + owned rooms**
+system.** Generalize the shipped holder-snapshot to **chests + owned rooms**
+(room persistence **corrected in §K** — it uses the dorm's *document-store
+customization-doc*, base-template + delta, **not** the legacy Avatar-snapshot)
 under **one serialization boundary contract**; possession is a **field** on each
 item's snapshot plus a **rebuildable owner-index**; a **durable per-item id** is
 conferred by ownership (for the index + cross-move/theft tracking), a small field,
@@ -841,3 +843,97 @@ premises parcel carries the allowance (landlord funds), the business pays rent,
 and its operating compute (bartender NPC, ambient brains) attributes via
 cost-owner/residency to the premises parcel. The `Business`-as-its-own-Idea
 decision (not a venue mixin) is exactly what makes this three-way split work.
+
+### K. Dorms — the proto-parcel; Warren ownership; and rent vs. own
+
+The dorm shipped before this design, so it's the reality-check. **What shipped:**
+`HomeZone` (`lib/home/HomeZone.ts`) — a per-player namespace root at
+`/home/<playerId>/`, a *non-spatial* Zone — plus the **document-store self-home
+ownership base case** (`DocumentLogic`: "an owner always owns their own
+`/home/<self>/`"). **What did NOT ship:** the *lived, customizable* dorm — gating
+"waits on the permission framework"; `kind:'dorm'` customization is "(future)".
+So the dorm's *foundations* predate this; the dorm-as-home is still deferred.
+
+**The dorm is the proto-parcel, and it independently anticipated four decisions:**
+§A (per-player runtime zone = `HomeZone`), §B (ownership by **identity** in the
+document/access layer, *not* on the `domain` template), §D (`/home/` = unreleased,
+so dorm content is already inert in canon), §E/§I (customization = base-template +
+per-player customization-doc). Independent convergence — a good sign.
+
+**Two decisions the dorm forces:**
+
+1. **The self-home case is the *implicit default parcel*** (the `office_holders`
+   sparse-default precedent): every player owns `/home/<self>/` **by identity, with
+   no `parcels` row**; the registry only stores *explicit / transferred /
+   real-estate* parcels. 0a generalizes the self-home base case into exactly this.
+2. **Room persistence = the document-store customization-doc, NOT the legacy
+   Avatar-snapshot** (corrects §I). The dorm was always designed as base-template
+   (seed) + `kind:'dorm'` customization-doc (persisted delta) in the **document
+   store** — the *intended future* store (`Avatar = legacy per-player-template,
+   migrate later`). So **owned-room** persistence adopts the dorm's doc model;
+   **carried inventory / chest contents** keep the holder-snapshot (Avatar
+   mechanism, legacy, migrate later). Two flavors, dorm points at the better one.
+
+**Thread 1 — ownership on a Warren.** Warren rooms **share one templatePath**
+(elastic clones, not singletons), so §I's extent-derivation can't tell one
+resident's room from another's. Root cause: the Warren mechanism (elastic,
+interchangeable, *ephemeral*) was the **lounge's** choice — a mismatch for a dorm
+(persistent, personal). Two resolutions:
+
+- **(A, recommended) Dorms aren't Warrens.** Each resident's room is a
+  **per-resident stable extent** under `/home/<resident>/dorm/`, **lazily
+  instantiated + dormant-when-empty.** The property model's own **dormancy +
+  lazy-first-use** already delivers the Warren's *only* real benefit (only occupied
+  rooms cost anything) *without* bud/reap/merge and *without* the shared-templatePath
+  ownership problem. Given parcels + dormancy exist, revisit whether dorms need the
+  Warren at all.
+- **(B) If Warren-dorms stay:** ownership keys on the durable **assignment**
+  (resident ↔ room-slot) + the customization-doc, **not** the room instance; the
+  instance is a **lazy materialization stamped from the assignment**.
+
+Either way, the principle — **ownership lives on the title/claim in the registry,
+never on the instance** — *confirms* §B (the Warren just makes instance ≠ title
+visible).
+
+**Thread 2 — rent vs. own** = the custody/title axis, generalized to real property:
+
+| Relationship | Is | Analog of |
+|---|---|---|
+| **Own** | hold the **title** (registry owner) — customize / transfer / subdivide / collect rent | title |
+| **Rent / lease** | a **time-bounded use-right** (occupy + customize + persist your stuff) **without** the title | *custody without title* — the legit, paid sibling of chattel **lending** |
+| **Visit** | presence only | — |
+
+The **dorm is a lease**: the university/commons **owns the building**; each
+resident **holds a room-lease** (customizes, keeps their stuff *during the lease*,
+**reverts on leave/graduation**). Renting threads through: **§J** (shop premises
+leased); the **compute allowance** (landlord holds the allowance + liability, tenant
+pays rent — *flat-absorb-and-cap* vs. *metered sub-allowance*, which **is** the
+sublet-rollup fork made concrete); **sublet** = a use-grant *of* a use-grant.
+**Phasing split:** the **lease *relationship*** (use-grant + expiry + revert) is
+needed **early, for the dorm** (0b-adjacent, and a dorm may be tuition-covered so it
+needs *no* payment); the **rent *economics*** (payment, metered sub-allowance,
+sublease markets) stay **Phase 3**.
+
+**The unifying upgrade — the registry becomes a *claims-and-grants* layer.** Thread
+1 forces "ownership is on the claim, not the instance"; thread 2 forces "there are
+*use-grants* distinct from *titles*." So §B's `parcels` shape grows one notch:
+
+```
+parcels: {
+  parcelId, extents[], parentParcel,
+  owner,                                              // the TITLE
+  grants: [ { holder, kind:'lease'|'sublease', expires, terms } ],  // USE-RIGHTS, not title
+  accessGrants, allowance
+}
+```
+
+`ownerOf` resolves the title; a new `useRightOf(parcel, actor)` resolves grants (am
+I a tenant here?). **Custody/title (chattel) and title/use-grant (parcels) are the
+same axis** on the two registries.
+
+**Phasing impact:** 0a generalizes the self-home base case into the **implicit
+default parcel** + adopts the **claims-and-grants** registry shape; **0a directly
+unblocks the dorm's long-deferred gating**; the **minimal lease relationship** rides
+0a/0b; the **`dorm-warren` slate becomes a named consumer-slice** of property (its
+first proof case, per `StoredDocument`'s "dorm = first consumer"); and we should
+**revisit Warren-for-dorms** in favor of per-resident dormant parcels.
