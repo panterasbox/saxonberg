@@ -1,17 +1,16 @@
 # Residency — self-eviction of the cold tail + scheduled state-reset
 
-> **Status: exploratory — pre-requirements design, grounded against the
-> live code.** Today the only way an in-memory `Stuff` leaves memory is
-> an explicit `StuffApi.destruct()` — someone has to *actively* decide an
-> object is done. Nothing reclaims the **abandoned cold tail**: clones
-> that were made, drifted, and then forgotten (a dropped item nobody
-> returns for, a room nobody re-enters, an NPC nobody visits, a shadow
-> lifted off its host and orphaned) accumulate in `StuffApi`'s registry
-> for the life of the process. This slate is the missing **residency**
-> substrate: a scheduled sweep that lets objects **evict themselves**
-> when no one's touched them for a while, plus its game-time sibling —
-> objects that **reset themselves** to a baseline on a cadence. Two
-> scheduled sweeps over one "engine informs, object decides" primitive.
+> **Status: TAIL — the eviction sweep shipped 2026-07**
+> ([residency.md](../../subsystems/residency.md)); this slate now holds
+> the deferred **reset** sweep. Shipped: the real-time cold-tail culler —
+> a scheduled sweep that lets abandoned `Stuff` **evict itself** via the
+> `canEvict` default-cull hook (recency by dispatch-touch + presence,
+> `ApiLogic` categorical veto, the R2.x-derived relational veto roster,
+> observe-first). Deferred (this tail): the game-time sibling — objects
+> that **reset themselves** to a baseline on a cadence (`resets:` +
+> `ResettableMixin`, restock vs field-revert). Two scheduled sweeps over
+> one "engine informs, object decides" primitive; the second is the
+> remaining design surface below.
 
 **This is a garbage-culler, not a swapfile.** The explicit non-goal is
 memory *scaling* — if the box is that constrained the answer is a

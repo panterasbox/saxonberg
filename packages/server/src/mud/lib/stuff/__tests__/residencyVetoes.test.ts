@@ -13,6 +13,8 @@ import { HasInteractiveMixin } from '../../connection/HasInteractive';
 import { WarrenMemberMixin } from '../../location/WarrenMember';
 import { BehavedMixin } from '../../behavior/Behaved';
 import type { BehaviorSpec } from '../../behavior/brain';
+import { Shadow } from '../Shadow';
+import { Shadowing } from '../../security/decorators';
 import { ContainmentApi } from '../../../api/containment';
 import { StuffApi } from '../../../api/stuff';
 import { ShadowApi } from '../../../api/shadow';
@@ -25,6 +27,12 @@ class Box extends ContainerMixin(Thing) {}
 class Holder extends HasInteractiveMixin(ContainerMixin(Thing)) {}
 class Bot extends BehavedMixin(Thing) {}
 class MemberRoom extends WarrenMemberMixin(Location) {}
+class TestShadow extends Shadow {
+  @Shadowing('getPresentation')
+  public decorate(): string {
+    return 'shadowed';
+  }
+}
 
 describe('residency veto roster', () => {
   beforeEach(() => {
@@ -56,6 +64,17 @@ describe('residency veto roster', () => {
   it('HasInteractive holder itself vetoes', () => {
     const holder = makeStuff(() => new Holder());
     expect(holder.canEvict(IDLE).ok).toBe(false);
+  });
+
+  it('shadow: vetoes on a live host, cullable when orphaned', () => {
+    const host = makeStuff(() => new Thing());
+    const shadow = makeStuff(() => new TestShadow());
+    // Not attached → no host → cullable garbage.
+    expect(shadow.canEvict(IDLE)).toEqual({ ok: true });
+    // Attached to a live host → veto (asked on the proxy, as the sweep does,
+    // so the proxy-keyed host resolves).
+    ShadowApi.attach(host, shadow);
+    expect(shadow.canEvict(IDLE).ok).toBe(false);
   });
 
   it('Behaved: vetoes with a behavior spec, cullable without', () => {

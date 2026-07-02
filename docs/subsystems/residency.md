@@ -91,12 +91,22 @@ deep-contents of his room — each player's inventory). This is a touch
 ```
 presenceWalkImpl()                                  // refresh presence first
 for obj in StuffApi.getAllObjects():                // proxies
-  raw = ProxyApi.unwrap(obj)                         // read on RAW — never self-touch
-  idleMs = now - raw.getLastTouched()
+  raw = ProxyApi.unwrap(obj)
+  idleMs = now - raw.getLastTouched()                // RAW: idle check must not touch
   if idleMs < idleThresholdMs: continue              // LRU grace
-  if not raw.canEvict({ idleMs, reason: 'idle' }).ok: continue
+  if not obj.canEvict({ idleMs, reason: 'idle' }).ok: continue   // PROXY: this-relative vetoes resolve
   observe → log(candidate);  enforce → StuffApi.destruct(obj)
 ```
+
+The split is deliberate: recency is read on the **raw** target so the
+idle check itself is never a touch (that's what keeps idle detection
+honest), but `canEvict` is asked on the **proxy** — a veto's
+self-knowledge can be `this`-relative through the framework (a shadow's
+host lives in a proxy-keyed WeakMap, so `this.host` only resolves when
+`this` is the proxy). The touch proxy-dispatch incurs is harmless: only
+cold-tail candidates (past the idle threshold) are asked, and only
+*after* the idle decision — a culled candidate is moot, a vetoing one is
+merely refreshed.
 
 **Not an ordered LRU list.** The textbook LRU structure is for eviction
 *on the hot access path* (find-a-victim-now under memory pressure); ours

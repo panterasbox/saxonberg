@@ -88,10 +88,18 @@ function presenceWalkImpl(): void {
 
 /**
  * The eviction sweep — the lazy O(n) cold-tail scan. `getAllObjects()`
- * returns proxies, so we read recency and ask `canEvict` on the **raw**
- * target — the sweep's own introspection must never count as a touch. In
- * enforce mode, consenters are culled through `StuffApi.destruct` (the
- * full choreography). Mode is re-read each sweep, so flipping
+ * returns proxies. Recency is read on the **raw** target
+ * (`getLastTouched`) so the idle check never counts as a touch — that's
+ * what keeps idle detection honest. `canEvict`, by contrast, is asked on
+ * the **proxy**, because a veto's self-knowledge may be `this`-relative
+ * through the framework (a shadow's host lives in a proxy-keyed WeakMap,
+ * so `this.host` only resolves when `this` is the proxy). The touch that
+ * proxy-dispatch incurs is harmless here: only cold-tail candidates
+ * (already past the idle threshold) are asked, and the ask happens
+ * *after* the idle decision — a culled candidate is moot, a vetoing one
+ * is merely refreshed (it would veto again anyway). In enforce mode,
+ * consenters are culled through `StuffApi.destruct` (the full
+ * choreography). Mode is re-read each sweep, so flipping
  * `residency.eviction.mode` needs no restart.
  */
 function runEvictionSweep(): void {
@@ -116,9 +124,11 @@ function runEvictionSweep(): void {
 
   for (const obj of StuffApi.getAllObjects()) {
     const raw = ProxyApi.unwrap(obj);
-    const idleMs = now - raw.getLastTouched();
+    const idleMs = now - raw.getLastTouched(); // raw: idle check must not touch
     if (idleMs < idleThreshold) continue;
-    if (!raw.canEvict({ idleMs, reason: 'idle' }).ok) continue;
+    // Ask on the proxy so `this`-relative vetoes resolve (e.g. a shadow's
+    // proxy-keyed host); harmless post-decision touch of a cold candidate.
+    if (!obj.canEvict({ idleMs, reason: 'idle' }).ok) continue;
     candidates++;
 
     if (mode === 'enforce') {

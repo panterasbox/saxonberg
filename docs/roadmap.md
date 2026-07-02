@@ -762,9 +762,12 @@ landing first.
   stores need it; current `Persistable` is whole-document. May
   fold in a parallel "social/memory store" using MongoDB
   collections directly, with its own schema and indices.
-- **Idle eviction for Stuff lifecycle** — registry is forever-
-  growing. TTL / LRU / proxy-access-hooks design pass needed.
-  Subsystems/lifecycle.md § Open Design.
+- **Idle eviction for Stuff lifecycle** — **shipped** as the residency
+  substrate ([residency.md](./subsystems/residency.md)): a real-time
+  sweep lets abandoned `Stuff` self-evict via the `canEvict` hook
+  (default-cull, override-to-veto), recency fed by dispatch-touch +
+  presence, observe-first. The game-time **reset** sweep is the deferred
+  sibling in the same home.
 - **Guest accounts** — **shipped** as the anonymous-guest path of the
   client shell (see [client-shell.md](./subsystems/client-shell.md)):
   a `/auth/guest` ephemeral principal, a randomized throwaway avatar
