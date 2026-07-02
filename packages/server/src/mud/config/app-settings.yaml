@@ -168,6 +168,10 @@ settings:
     value: "5000"
   - key: youtube.pollIntervalMs
     value: "5000"
+  # Overlay-owner live-status re-resolve — 15 min (a search.list costs ~100
+  # quota units, so keep it slow; it only catches the owner's stream restart).
+  - key: youtube.overlayPollIntervalMs
+    value: "900000"
 
   # Social-graph (attention management) — the reserved-baseline notify
   # rules' default fields (deployment defaults, NOT code constants). A

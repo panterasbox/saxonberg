@@ -154,6 +154,23 @@ export default class StreamRelay extends StreamRelayBase {
   }
 
   /**
+   * Remove a player from a channel addressed by its exact transport key
+   * (not its handle) — used when the overlay poll re-tunes the sentinel to a
+   * restarted YouTube stream (the handle→key cache has already moved on).
+   */
+  public removeTunedByKey(
+    playerId: string,
+    service: Service,
+    key: string,
+  ): { ok: boolean; emptied: boolean } {
+    const entry = this.channels.get(StreamRelay.channelKey(service, key));
+    if (!entry) return { ok: false, emptied: false };
+    const prev = entry.tuned.size;
+    entry.tuned.delete(playerId);
+    return { ok: true, emptied: prev > 0 && entry.tuned.size === 0 };
+  }
+
+  /**
    * Remove a player from every channel (logout). Returns the channels that
    * hit 0 — the Api bridge unsubscribes each on its transport.
    */

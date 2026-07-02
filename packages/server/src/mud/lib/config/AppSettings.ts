@@ -274,6 +274,15 @@ export const AppSettingKeys = {
   youtubeHistoryCap: "youtube.historyCap",
   youtubeReconnectBackoffMs: "youtube.reconnectBackoffMs",
   youtubePollIntervalMs: "youtube.pollIntervalMs",
+  /**
+   * YouTube overlay-owner live-status poll interval — how often the overlay
+   * forwarding re-resolves the owner's `OVERLAY_YOUTUBE_CHANNEL` to catch a
+   * stream restart. A `search.list` costs ~100 quota units, so this is a
+   * conservative default (a slow restart-catch is fine — it's a single
+   * channel and a nicety, distinct from the deferred N-channel viewer
+   * auto-rebind). See docs/subsystems/streaming.md.
+   */
+  youtubeOverlayPollIntervalMs: "youtube.overlayPollIntervalMs",
 } as const;
 
 export type AppSettingKey =

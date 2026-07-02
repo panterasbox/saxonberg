@@ -8,6 +8,11 @@ import { StuffApi } from '../../api/stuff';
 import { MessageApi } from '../../api/message';
 import { Mml } from '../../api/mml';
 import { PlayerApi } from '../../api/player';
+import { AppApi } from '../../api/app';
+import { AppSettingKeys } from '../../lib/config/AppSettings';
+import { ScheduleApi } from '../../api/schedule';
+import type { ScheduleHandle } from '../../api/schedule';
+import StreamRelayClass from '../StreamRelay';
 import { User } from '../../lib/identity/User';
 import { TwitchProfile } from '../../lib/identity/TwitchProfile';
 import { StreamerTarget } from '../../lib/streaming/StreamerTarget';
@@ -269,12 +274,27 @@ export class StreamLogic extends ApiLogic {
   }
 
   /**
-   * See {@link StreamApi.setOverlayReading}. Wired in P4 (overlay chat
-   * forwarding) — a no-op until then.
+   * See {@link StreamApi.setOverlayReading}. Open (`on=true`) / close the
+   * overlay owner's OWN-channel reads by sentinel-tuning the `OVERLAY_*`
+   * channels — reusing the presence edge so the reader opens, independent of
+   * any player `tune`. Twitch resolves the login; YouTube resolves the
+   * current live broadcast + starts a light live-status poll to catch a
+   * stream restart. Idempotent on the current on/off state.
    */
   @CallSecurity(StreamApiCallers)
-  public async setOverlayReading(_on: boolean): Promise<void> {
-    // P4: sentinel-tune the OVERLAY_* channels via the readers.
+  public async setOverlayReading(on: boolean): Promise<void> {
+    if (on === overlayReading) return;
+    overlayReading = on;
+    const relay = await requireRelay();
+    if (on) {
+      await openOverlayTwitch(relay);
+      await openOverlayYoutube(relay);
+      startOverlayYoutubePoll();
+    } else {
+      stopOverlayYoutubePoll();
+      closeOverlayTwitch(relay);
+      closeOverlayYoutube(relay);
+    }
   }
 
   // ---- resolution helpers (private) --------------------------------------
@@ -353,6 +373,125 @@ export class StreamLogic extends ApiLogic {
 function unsubscribeReader(service: Service, key: string): void {
   if (service === 'twitch') TwitchRelayReader.get().unsubscribe(key);
   else YoutubeRelayReader.get().unsubscribe(key);
+}
+
+// ---- overlay-owner reading (P4) ------------------------------------------
+// The owner's own external channels are env config (single-owner model). The
+// sentinel is `addTuned` to them so the reader opens via the presence edge;
+// delivered lines carry the configured handle, which `BroadcastFeed` filters
+// to before forwarding. State is module-level (the overlay is a global,
+// single-feed / single-owner concern).
+
+let overlayReading = false;
+let overlayYoutubePoll: ScheduleHandle | null = null;
+/** The liveChatId the sentinel is currently reading for the owner's YouTube. */
+let overlayYoutubeKey: string | null = null;
+
+function overlayTwitchLogin(): string {
+  return (process.env.OVERLAY_TWITCH_LOGIN ?? '').trim().toLowerCase();
+}
+
+function overlayYoutubeChannel(): string {
+  return (process.env.OVERLAY_YOUTUBE_CHANNEL ?? '').trim();
+}
+
+const OVERLAY_SENTINEL = StreamRelayClass.OVERLAY_SENTINEL;
+
+async function openOverlayTwitch(relay: StreamRelay): Promise<void> {
+  const login = overlayTwitchLogin();
+  if (!login) return;
+  const reader = TwitchRelayReader.get();
+  if (!reader.isConfigured()) return;
+  let key = relay.resolveByHandle('twitch', login)?.key;
+  if (!key) {
+    const r = await reader.resolveLogin(login);
+    if (!r) return;
+    key = r.broadcasterId;
+  }
+  if (relay.addTuned(OVERLAY_SENTINEL, 'twitch', key, login)) {
+    reader.subscribe(key);
+  }
+}
+
+function closeOverlayTwitch(relay: StreamRelay): void {
+  const login = overlayTwitchLogin();
+  if (!login) return;
+  const res = relay.removeTuned(OVERLAY_SENTINEL, 'twitch', login);
+  if (res.emptied && res.key) TwitchRelayReader.get().unsubscribe(res.key);
+}
+
+async function openOverlayYoutube(relay: StreamRelay): Promise<void> {
+  const chan = overlayYoutubeChannel();
+  if (!chan) return;
+  const reader = YoutubeRelayReader.get();
+  if (!reader.isConfigured()) return;
+  const resolved = await reader.resolveChannel(chan);
+  if (typeof resolved === 'string') return; // not-live / unknown → poll catches it
+  const key = resolved.liveChatId;
+  if (relay.addTuned(OVERLAY_SENTINEL, 'youtube', key, chan)) {
+    await reader.subscribe(key);
+  }
+  overlayYoutubeKey = key;
+}
+
+function closeOverlayYoutube(relay: StreamRelay): void {
+  overlayYoutubeKey = null;
+  const chan = overlayYoutubeChannel();
+  if (!chan) return;
+  const res = relay.removeTuned(OVERLAY_SENTINEL, 'youtube', chan);
+  if (res.emptied && res.key) YoutubeRelayReader.get().unsubscribe(res.key);
+}
+
+/**
+ * A light live-status poll re-resolving the owner's YouTube channel to catch
+ * a stream restart (a new `activeLiveChatId`). Single channel; a `search.list`
+ * is quota-costly, so the interval is deliberately slow (AppSetting).
+ */
+function startOverlayYoutubePoll(): void {
+  if (overlayYoutubePoll) return;
+  const chan = overlayYoutubeChannel();
+  if (!chan) return;
+  overlayYoutubePoll = ScheduleApi.recurring(overlayPollIntervalMs(), () => {
+    void reresolveOverlayYoutube();
+  });
+}
+
+function stopOverlayYoutubePoll(): void {
+  if (!overlayYoutubePoll) return;
+  ScheduleApi.cancel(overlayYoutubePoll);
+  overlayYoutubePoll = null;
+}
+
+async function reresolveOverlayYoutube(): Promise<void> {
+  if (!overlayReading) return;
+  const chan = overlayYoutubeChannel();
+  const reader = YoutubeRelayReader.get();
+  if (!chan || !reader.isConfigured()) return;
+  const relay = await requireRelay();
+  const resolved = await reader.resolveChannel(chan);
+  const newKey = typeof resolved === 'string' ? null : resolved.liveChatId;
+  if (newKey === overlayYoutubeKey) return; // unchanged
+  // The owner restarted (or went offline). Drop the sentinel from the old
+  // stream (by exact key — the handle cache may have moved), then bind the new.
+  if (overlayYoutubeKey) {
+    const res = relay.removeTunedByKey(OVERLAY_SENTINEL, 'youtube', overlayYoutubeKey);
+    if (res.emptied) YoutubeRelayReader.get().unsubscribe(overlayYoutubeKey);
+  }
+  overlayYoutubeKey = newKey;
+  if (newKey) {
+    if (relay.addTuned(OVERLAY_SENTINEL, 'youtube', newKey, chan)) {
+      await reader.subscribe(newKey);
+    }
+  }
+}
+
+function overlayPollIntervalMs(): number {
+  try {
+    const n = Number(AppApi.setting(AppSettingKeys.youtubeOverlayPollIntervalMs));
+    return Number.isFinite(n) && n > 0 ? n : 900_000;
+  } catch {
+    return 900_000;
+  }
 }
 
 let relayRef: StreamRelay | null = null;

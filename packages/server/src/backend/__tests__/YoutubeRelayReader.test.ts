@@ -6,7 +6,15 @@
  * the resolve forwards.
  */
 
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import {
+  describe,
+  it,
+  expect,
+  beforeEach,
+  afterEach,
+  vi,
+  type MockInstance,
+} from 'vitest';
 import { YoutubeRelayReader } from '../YoutubeRelayReader';
 import type { YoutubeClient, YoutubeInboundMessage } from '../YoutubeClient';
 import { StreamApi } from '../../mud/api/stream';
@@ -48,8 +56,8 @@ function makeMockClient(over?: Partial<{
 }
 
 describe('YoutubeRelayReader', () => {
-  let dispatch: ReturnType<typeof vi.spyOn>;
-  let dropChannel: ReturnType<typeof vi.spyOn>;
+  let dispatch: MockInstance<typeof StreamApi.dispatchInbound>;
+  let dropChannel: MockInstance<typeof StreamApi.dropChannel>;
 
   beforeEach(() => {
     dispatch = vi
