@@ -84,11 +84,17 @@ export default class WatchController extends CommandController<WatchModel> {
     if (parsed.form === 'character') {
       const resolved = await StreamApi.resolveTarget(parsed);
       if (!resolved.ok) {
-        return this.fail(
-          context,
-          'Could not resolve that character to a stream.',
-          resolved.reason,
-        );
+        // A bare word is ambiguous between a character name and a stream
+        // handle: if it names no online character, point at the platform
+        // flags rather than a character-specific dead end.
+        const detail =
+          resolved.reason === 'unlinked'
+            ? "that character hasn't linked a Twitch account."
+            : resolved.reason === 'no-relay'
+              ? "Twitch relay isn't configured."
+              : 'No online character by that name — for a stream handle ' +
+                'add --twitch or --youtube (or give a URL).';
+        return this.fail(context, detail, resolved.reason);
       }
       this.setWatch(host, context, {
         platform: 'twitch',

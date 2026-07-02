@@ -325,9 +325,12 @@ export default class TuneController extends CommandController<TuneModel> {
           'not-live',
         );
       case 'unknown-character':
+        // A bare word that names no online character is an ambiguous
+        // handle — point at the platform flags, not a character dead end.
         return this.fail(
           context,
-          'No online character by that name.',
+          'No online character by that name — for a stream handle ' +
+            'add --twitch or --youtube (or give a URL).',
           'unknown-character',
         );
       case 'unlinked':
