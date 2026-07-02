@@ -1,0 +1,54 @@
+inherit RoomCode;
+#include "NewbieDir.h"
+#include "boot_player.h"
+
+object witch1,
+       witch2;
+
+
+void extra_create()
+{
+ set_short("Witches' Coven");
+ set_long(
+  "Dark, twisted trees surround this cold and dank clearing.  You can't seem\n"
+ +"to be able to shake the feeling of great evil nearby.  This dreaded place\n"
+ +"seems to be a favorite gathering place for evil witches.\n"
+ );
+
+ add_description("trees","The trees look dead.\n");
+ add_description("clearing","Just look around.\n");
+
+ add_exit("west",NEWBIE_DIR+"evil3");
+}
+
+
+void extra_reset()
+{
+ if (!present("bcauldron"))
+   move_object(clone_object(NEWBIE_DIR+"obj/cauldron"), THISO);
+ if (!witch1 || !living(witch1))
+ {
+   witch1 = clone_object(NEWBIE_DIR+"monsters/witch");
+   witch1->set_short("a hunchbacked witch");
+   witch1->add_phrase("The hunchbacked witch stirs the bubbling brew.\n");
+   witch1->add_phrase(
+     "The hunchbacked witch says, \"We still need one more ingredient.\"\n");
+   witch1->enable_commands();
+   move_object(witch1, THISO);
+ }
+ if (!witch2 || !living(witch2))
+ {
+   witch2 = clone_object(NEWBIE_DIR+"monsters/witch");
+   witch2->set_short("an old witch");
+   witch2->add_phrase("The old witch cackles with glee!\n");
+   witch2->add_phrase(
+     "The old witch takes a little sip from the cauldron.\n");
+   move_object(witch2, THISO);
+ }
+}
+
+
+void extra_init()
+{
+ check_player();
+}

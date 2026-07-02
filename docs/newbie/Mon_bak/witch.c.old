@@ -1,0 +1,29 @@
+inherit MonsterCode;
+
+void extra_create()
+{
+ set_name("witch");
+ set_short("a witch");
+ set_long(
+  "This is an evil-looking witch, dressed in dirty rags.  She smiles at you\n"
+ +"with a gap-toothed grin.\n");
+ set_race("human");
+ set_gender("female");
+ set_natural_ac(2);
+ set_alignment(-200);
+ set_damage_bonus(1);
+ set_hit_bonus(1);
+ set_type("blunt");
+ set_stat("str", 24);
+ set_stat("int", 27);
+ set_stat("wil", 12);
+ set_stat("con", 15);
+ set_stat("dex", 14);
+ set_stat("chr", 10);
+ set_skill("dodge", 2);
+ set_chat_chance(30);
+ set_chat_delay(30 + random(10));
+ set_combat_message2("hits");
+ add_phrase(
+  "One of the witches casts a stony glance at you.\n");
+}

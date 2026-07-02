@@ -1,0 +1,181 @@
+//  pub.c  (PubCode)
+//  Written by Hannah on 12/93
+//  Fixed by Morgana on 10/94
+
+inherit RoomPlusCode;
+
+#include <oldshit.h>
+//  The healing standard as of the date this pub was written:
+//        10 units of currency per hit point, PLUS
+//        10 units of currency per mana point, PLUS
+//        5  units of currency per fatigue point.
+//  For this pub, 1/3 of the cost of each item goes toward hp, mana, & ftg
+//  respectively.
+
+#define  Hp_heal_amt      cost/30        /*  = cost * (1/3) / 10  */
+#define  Mana_heal_amt    cost/30        /*  = cost * (1/3) / 10  */
+#define  Ftg_heal_amt     cost/15        /*  = cost * (1/3) / 5   */
+#define  add_fullness     cost/10        /*  max fullness = max hp    */
+#define  add_drunkenness  cost/10        /*  max intox = max fatigue  */
+#define  SP10  "          "              /* 10 spaces */
+#define  SP15  "               "         /* 15 spaces */
+
+string  Owner;
+mixed  *Pub_Items;
+
+// ----------------------------------------------------------------------------
+
+string query_owner()
+{
+    return( Owner );
+}
+
+string *query_pub_items()
+{
+    return( Pub_Items );
+}
+
+
+void set_owner( string str )
+{
+    Owner = str;
+}
+
+void set_pub_items( mixed *list )
+{
+    Pub_Items = list;
+}
+
+// ----------------------------------------------------------------------------
+
+void print_sign()
+{
+    string sign;
+    int    i, cost;
+
+    sign = SP15 + "%*%*%*%*%*%   P U B   M E N U   %*%*%*%*%*%\n\n";
+    sign += SP15 + SP10 + pad( "Items", 18 ) + "Cost\n";
+    sign += SP15 + SP10 + pad( "--------", 18 ) + "---------\n";
+    sign += SP15 + "Food:\n";
+    for( i = 0; i < sizeof( Pub_Items ); i+=4 )
+        if( Pub_Items[ i + 3 ] == "food" )
+        {
+            cost = Pub_Items[ i + 2 ];
+            sign += SP15 + SP10 + pad( Pub_Items[ i ], 18 ) +
+              ( cost < 100 ? " " + cost : cost ) + " coins\n";
+        }
+    sign += SP15 + "Drinks:\n";
+    for( i = 0; i < sizeof( Pub_Items ); i+=4 )
+        if( Pub_Items[ i + 3 ] == "drink" )
+        {
+            cost = Pub_Items[ i + 2 ];
+            sign += SP15 + SP10 + pad( Pub_Items[ i ], 18 ) +
+              ( cost < 100 ? " " + cost : cost ) + " coins\n";
+        }
+    sign += "\n";
+    write( sign );
+}
+
+
+void init()
+{
+    ::init();
+    add_action( "do_read",  "read" );
+    add_action( "buy_item", "buy" );
+}
+
+
+status do_read( string str )
+{
+    notify_fail( "What do you want to read?\n" );
+    if( !str || ( str != "menu" && str != "sign" ) )
+        return( 0 );
+    return( print_sign(), 1 );
+}
+
+
+status buy_item( string str )
+{
+    int    i, OK, cost;
+
+    OK = 0;
+    notify_fail( "What do you wish to buy?\n" );
+    for( i = 0; i < sizeof( Pub_Items ); i += 4 )
+        if( Pub_Items[ i ] == str )
+        {
+            OK = 1;
+            break;
+        }
+    if( !OK )
+        return( 0 );
+    cost = atoi( Pub_Items[ i + 2 ] );
+
+    if( cost > THISP->query_money() )
+        return( write( "You don't have enough money to buy that.\n" ), 1 );
+    if( Pub_Items[ i + 3 ] == "food" )
+    {
+        if( !THISP->eat_food( add_fullness ) )
+            return( write( "Sorry, you are too full.\n" ), 1 );
+        say( strformat( PNAME + " buys " + Pub_Items[ i + 1 ] +
+          " from " + query_owner() + " and eats the whole thing." ) );
+        write( strformat( "You buy " + Pub_Items[ i + 1 ] +
+          " from " + query_owner() + " and eat the whole thing." ) );
+    }
+    else
+    {
+        if( !THISP->drink_alco( add_drunkenness ) )
+            return( write( "Sorry, you are too drunk.\n" ), 1 );
+        say( strformat( PNAME + " buys " + Pub_Items[ i + 1 ] +
+          " from " + query_owner() + " and drinks the whole thing." ) );
+        write( strformat( "You buy " + Pub_Items[ i + 1 ] +
+          " from " + query_owner() + " and drink the whole thing." ) );
+    }
+    THISP->add_hp( Hp_heal_amt );
+    THISP->add_mana( Mana_heal_amt );
+    THISP->add_fatigue( Ftg_heal_amt );
+    THISP->add_money( -cost );
+    return( 1 );
+}
+
+
+void create()
+{
+    ::create();
+    set( "short", "A Pub" );
+    set( "day_long",
+        "This is a large, popular drinking hall, constructed in brick " +
+        "to withstand even the rowdiest of patrons.  This place appears " +
+        "to be an active center for socializing.  Cigarette smoke as well " +
+        "as conversation fill the air.  The owner of the pub, " +
+        query_owner() + ", is usually around to take your order.  On one " +
+        "wall you can see a small wooden sign." );
+    set( "day_light", PART_LIT );
+
+    set( "exits", ([ "out": "/zone/null/eternal/lounge/lounge" ]) );
+
+    set( "descs", ([
+      ({ "sign", "menu" }): "@print_sign",
+      "owner":
+          query_owner() + " is the owner of this fine establishment.",
+      "smoke":
+        "Smoke fills the room.  You think you might choke soon."
+     ]) );
+
+    set_owner( "Itchy" );
+    set_pub_items( ({
+      "soup",      "a bowl of chicken soup",       75,  "food",
+      "pie",       "a slice of pecan pie",        100,  "food",
+      "pheasant",  "a dish of roast pheasant",    250,  "food",
+      "lamb",      "a leg of lamb",               300,  "food",
+      "milk",      "a glass of goat's milk",       50,  "drink",
+      "tea",       "a steaming cup of tea",        50,  "drink",
+      "ale",       "a glass of fine ale",         150,  "drink",
+      "special",   "a mug of the House Special",  350,  "drink"  }) );
+
+    THISO->extra_create();
+}
+
+
+void extra_create()
+{
+}

@@ -1,0 +1,109 @@
+//  wall.c
+//  Newbie Area Entrance
+//  written by Hannah on 11/92
+
+inherit RoomPlusCode;
+#include "../GPaths.h"
+
+#define HERE  NEWBIE + "wall"
+#define DEST  NEWBIE + "crossroads"
+
+
+void extra_create()
+{
+    set( "short", "Border to Easy Land" );
+    set( "day_long",
+      "The small path leads up to a giant wall to the north, with " +
+      "a very small gate.  You seem to have reached the protected " +
+      "entrance to a new land.  A pair of extremely burly guards " +
+      "stand at attention at the gate.  Next to one of the guards is " +
+      "what appears to be a weapons detector, which checks for " +
+      "over-powerful weapons." );
+    set( "day_light", SUNLIGHT );
+    set( "exits", ([
+      "south": "entrance",
+    ]) );
+    set( "descs", ([
+      "path":
+          "The path goes north towards the gate.",
+      ({ "wall", "walls" }):
+          "The wall is too high to climb, and stretches as far as the " +
+          "eye can see.",
+      "entrance":
+          "The entrance looks well-protected.",
+      ({ "guards", "guard" }):
+          "Each of the guards is a large, well-built man.",
+      ({ "detector", "weapons detector" }):
+          "It looks like a device built to detect very powerful weapons."
+    ]) );
+    set( "reset_data", ([
+      "sign"        : NEWBIE + "Obj/wsign",
+      "newbie_wall" : NEWBIE + "Obj/nwall",
+    ]) );
+    set( OutsideP, 1 );
+}
+
+
+void extra_init()
+{
+    add_action( "go_north", "north" );
+}
+
+
+status big_weapon_exists( object ob )
+{
+    object *My_Inv;
+    int      i;
+
+    My_Inv = deep_inventory( ob );
+    for( i = 0; i < sizeof( My_Inv ); i++ )
+    {
+        if( ( My_Inv[ i ]->query_max_damage() > 10 ) ||
+            ( My_Inv[ i ]->query_sharpness() > 30 ) ||
+            ( My_Inv[ i ]->query_density() > 7 ) ||     
+            ( My_Inv[ i ]->query_special() ) )
+            return( 1 );
+    }
+    return( 0 );
+}
+
+
+int go_north( string str )
+{
+    if( str )
+        return( 0 );
+
+    /* ========== PLAYER STATS CHECK ========== */
+    if( ( GetLevel( THISP ) == "mortal" )
+      && ( ( MISCFUN->evaluation( THISP ) > 15 )
+        || ( THISP->query_stat( "str" ) > 25 )
+        || ( THISP->query_stat( "con" ) > 25 ) ) )
+    {
+        say(PNAME + " tries to go through the gate, but the guards stop " +
+          objective( THISP ) + ".\n" );
+        write( "You try to go through the gate, but the guards stop you.\n" );
+        tell_room( THISO,
+          "One of the guards says, \"You are much too powerful.\"\n" );
+        return( 1 );
+    }
+
+    /* ========== MEGA WEAPONS CHECK ========== */
+    if( big_weapon_exists( THISP ) )
+    {
+        say( PNAME + " tries to go through the gate, but the guards stop " +
+          objective( THISP ) + ".\n" );
+        write( "You try to go through the gate, but the guards stop you.\n" );
+        tell_room( THISO,
+          "One of the guards says, \"Your weaponry is much too powerful.\"\n");
+        return( 1 );
+    }
+
+    say( "The guards look " + PNAME + " over.\n" );
+    write( "The guards look you over.\n" );
+    tell_room( DEST, PNAME + " " + THISP->query_msgin() + ".\n" );
+    move_object( THISP, DEST );
+    tell_room( HERE, PNAME + " " + THISP->query_msgout() +
+        " through the gates north.\n" );
+    command( "glance", THISP );
+    return( 1 );
+}

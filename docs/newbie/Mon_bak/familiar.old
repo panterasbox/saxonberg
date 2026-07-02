@@ -1,0 +1,184 @@
+/*
+**  Written by Hannah on 11/92.
+**  This is a monster that follows a player of very evil or lower alignment,
+**  and which attacks monsters of good alignment that the player is in
+**  combat with.  The monster only hangs around for about 20 minutes.
+*/
+
+inherit MonsterCode;
+inherit MonsterTalk;
+
+string Followee;
+object FolloweeOb;
+object FamOb;
+int    Type;
+
+
+void extra_create()
+{
+ string POS;
+
+ set_name("familiar");
+ Type = random(4);
+ switch (Type)
+ {
+   case 0:
+     add_alias("grey wolf");
+     add_alias("wolf");
+     set_short("a familiar in the shape of a grey wolf");
+     break;
+   case 1:
+     add_alias("black cat");
+     add_alias("cat");
+     set_short("a familiar in the shape of a black cat");
+     break;
+   case 2:
+     add_alias("small demon");
+     add_alias("demon");
+     set_short("a familiar in the shape of a small demon");
+     break;
+   default:
+     add_alias("nightmare horse");
+     add_alias("horse");
+     set_short("a familiar in the shape of a nightmare horse");
+     break;
+ }
+ set_long(
+ "This is a familiar, protector of those of very evil alignment.  It will\n"
++"fight by the side of a warrior of very evil alignment against a good foe.\n"
+ );
+ set_natural_ac(1);
+ if (random(2) == 1)
+   set_gender("male");
+ else
+   set_gender("female");
+ set_race("animal");
+ set_alignment("malicious");
+ set_type("edged");
+ set_stat("str", 12);
+ set_stat("int", 9);
+ set_stat("wil", 10);
+ set_stat("con", 14);
+ set_stat("dex", 12);
+ set_stat("chr", 14);
+ add_combat_message("bite", "bites");
+ set_heal_amount(15);
+ set_heal_rate(30);
+
+ set_chat_chance(40);
+ set_chat_rate(32);
+ if ((string)THISO->query_gender() == "male")
+   POS = "his";
+ else
+   POS = "her";
+ add_phrase(
+  "The familiar grins evilly at you.\n");
+ add_phrase(
+  "The familiar looks at " + POS + " surroundings suspiciously.\n");
+ add_phrase(
+  "The familiar looks around for something to kill.\n");
+ add_combat_phrase("The familiar briefly glows with power.\n");
+ Followee = "nobody";
+}
+
+
+void self_destruct()
+{
+ object tmpob1, tmpob2;
+ object MonsterOb;
+ mixed *list;
+ int    i;
+
+ if (!find_living(Followee))
+ {
+   say("A hole opens up in the ground, and the familiar returns to "
+     + possessive(FamOb) + " home in Hell.\n");
+   destruct(FamOb);
+ }
+ if (!present(Followee))
+ {
+  tmpob1 = environment(FamOb);
+  tell_room(tmpob1,
+   "The familiar runs after " + capitalize(Followee) + ".\n");
+  tmpob2 = environment(find_living(Followee));
+  move_object(FamOb, tmpob2);
+  tell_room(tmpob2,
+   "A familiar runs in, following " + capitalize(Followee) + ".\n");
+ }
+
+ /* ------------------------------------------------------------------------
+ **  This is the routine to make the familiar attack a monster when the
+ **  player being followed is in combat.  The familiar will only attack
+ **  monsters of good alignment.
+ */
+
+if ( !(FamOb->in_combat()) )
+   if ( (FolloweeOb->in_combat()) )
+   {
+     list = (mixed)FolloweeOb->query_targets();
+     for (i=0; i<sizeof(list); i++)
+     {
+       if ( !(list[i]->query_npc()) )
+         continue;
+       if (list[i]->query_alignment() <= 999)
+         continue;
+       MonsterOb = list[i];
+       FamOb->attack_object(MonsterOb);
+       break;
+     }
+   }
+ call_out("self_destruct", 3);
+}
+
+
+void time_fam_out()
+{
+ tell_room(environment(FolloweeOb),
+  "The familiar says, \"My time in this world is done.\"\n"
+ +"The familiar jumps into a hole and returns to Hell.\n"
+ );
+ remove_call_out("setup_fam");
+ remove_call_out("self_destruct");
+ destruct(FamOb);
+}
+
+
+void setup_fam()
+{
+ command("follow " + Followee, THISO);
+}
+
+
+void extra_init()
+{
+ string ShortDesc;
+
+ if ((Followee == "nobody")
+  && (THISP->query_alignment() < -2500)
+  && ((string)THISP->query_real_name() != "familiar"))
+ {
+   Followee = lower_case((string)THISP->query_name());
+   FolloweeOb = THISP;
+   ShortDesc = capitalize(Followee) + "'s familiar, ";
+   switch (Type)
+   {
+     case 0:
+       ShortDesc = ShortDesc + "in the shape of a grey wolf";
+       break;
+     case 1:
+       ShortDesc = ShortDesc + "in the shape of a black cat";
+       break;
+     case 2:
+       ShortDesc = ShortDesc + "in the shape of a small demon";
+       break;
+     default:
+       ShortDesc = ShortDesc + "in the shape of a nightmare horse";
+       break;
+   }
+   THISO->set_short(ShortDesc);
+   FamOb = THISO;
+   call_out("setup_fam", 1);
+   call_out("self_destruct", 3);
+   call_out("time_fam_out", 1200);  /* fly away in ~20 minutes */
+ }
+}

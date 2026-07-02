@@ -1,0 +1,112 @@
+//  Newbie.h
+//  Written by Hannah on 10/92 as an include file;
+//  92-12 Hannah -- Modifications and cleaning up
+//  94-05-04 Hannah -- Common room functions added
+//
+//  This file is #included into the rooms of the newbie area.
+//  It looks for high-level players intruding into this area,
+//  and boots them out.  It also checks to see if the player is
+//  carrying a weapon with a special, high sharpness, etc, and
+//  checks inside containers just in case the player tries to
+//  sneak one in.
+//
+//  Guns are banned from this area, as well as player killing.
+
+inherit RoomPlusCode;
+
+#define NEWBIE        "/zone/fantasy/genious/newbie/"
+#define NEWBIE_GUN  "/zone/fantasy/genious/newbie/Wea/pistol"
+#define WALL          NEWBIE + "wall"
+
+
+void boot_this_player()
+{
+    tell_room( THISO, "Two burly guards suddenly appear.\n" );
+    say( sprintf( "One guard points to %s and bellows, \"INTRUDER!!!\"\n" +
+      "The guards drag %s away.\n", PNAME, PNAME ) );
+    write( "One guard points to you and bellows, \"INTRUDER!!!\"\n" +
+      "The guards drag you away.\n" );
+    tell_room( WALL, sprintf(
+      "%s is dragged out of the gates by a pair of burly guards.\n", PNAME ) );
+    move_object( THISP, WALL );
+    command( "glance", THISP );
+}
+
+
+//  This function is called by check_weapons().
+//  It does a recursive search through the player's inventory and all
+//  containers the player carries until a megaweapon is found.
+//
+status big_weapon_exists( object ob )
+{
+    object *My_Inv;
+    int      i;
+
+    My_Inv = deep_inventory( ob );
+    for( i = 0; i < sizeof( My_Inv ); i++ )
+    {
+        if( ( My_Inv[ i ]->query_sharpness() > 20 ) ||
+            ( My_Inv[ i ]->query_density() > 7 ) ||     
+            ( My_Inv[ i ]->query_special() ) ||
+            ( My_Inv[ i ]->query( GunP ) &&
+                program_name( My_Inv[ i ] ) != NEWBIE_GUN ) )
+            return( 1 );
+    }
+    return( 0 );
+}
+
+
+status check_weapons()
+{
+    object InvItem;
+
+    if( big_weapon_exists( THISP ) )
+    {
+        tell_room( ENV( THISP ), "You hear the beeping sounds of the " +
+          "weapons detector in the distance.\n" );
+        tell_room( WALL, "The weapons detector begins to beep.\n" );
+        call_out( "boot_this_player", 2 );
+    }
+    return( 1 );
+}
+
+
+/*
+**  check_player() is called from within init() in all room files in which
+**  player levels and weaponry are to be limited.
+*/
+status check_player()
+{
+    if( ( GetLevel( THISP ) == "mortal" ) &&
+         ( ( THISP->relative_level() > 120 ) ||    /* if sum of stats > 120 */
+            ( THISP->query_base_stat( "str" ) > 25 ) ||
+            ( THISP->query_base_stat( "con" ) > 25 ) ) )
+    {
+        call_out( "boot_this_player", 2 );
+        return( 1 );
+    }
+    check_weapons();
+    return( 1 );
+}
+
+/* -------------------- standard room functions -------------------- */
+
+void
+init()
+{
+    ::init();
+    check_player();
+}
+
+nomask mixed
+query( string var )
+{
+    switch( var )
+    {
+        case NoPKP:
+            return( 1 );
+    }
+    return ::query( var );
+}
+
+//  End of Newbie.h

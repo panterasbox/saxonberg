@@ -1,0 +1,21 @@
+//  smithy.c
+//  written by Hannah on 10/94
+
+#include "Newbie.h"
+
+
+void extra_create()
+{
+    set( "short", "Nocilis' Fine Weaponry" );
+    set( "day_long",
+      "Carpenters work night and day to build this new structure.  So, " +
+      "it is still not open." );
+    set( "day_light", WELL_LIT );
+    set( "night_light", WELL_LIT );
+
+    set( "exits", ([ "east":  "good12" ]) );
+
+    set( "descs", ([
+      "carpenters":
+          "One of them waves a hammer menacingly at you." ]) );
+}

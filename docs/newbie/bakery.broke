@@ -1,0 +1,33 @@
+//  bakery.c
+//  Written by Hannah on 10/94
+
+inherit "/zone/fantasy/genious/newbie/Pub";
+
+
+void extra_create()
+{
+    set( "short", "A Small Bakery" );
+    set( "day_long",
+      "The aroma of bread makes you salivate.  This is a small mom-and-pop " +
+      "joint that gets a lot of business.  Behind the counter is the shop " +
+      "owner, " + query_owner() + ".  You can see a menu on the wall." );
+    set( "day_light", WELL_LIT );
+
+    set( "exits", ([ "south": "good06" ]) );
+
+    set( "descs", ([
+      "counter":
+          "This is a generic wooden counter." ]) );
+
+    set_owner( "Deathnar" );
+
+    set_pub_items( ({
+      "soup",       "a bowl of vegetable soup",  75,   "food", 
+      "croissant",  "a croissant",               250,  "food",
+      "pie",        "a slice of apple pie",      100,  "food",
+      "sandwich",   "a turkey sandwich",         350,  "food",
+      "milk",       "a glass of milk",           50,   "drink",
+      "coffee",     "a cup of coffee",           150,  "drink",
+      "espresso",   "a double espresso",         350,  "drink"
+    }) );
+}
