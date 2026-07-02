@@ -23,7 +23,7 @@ opening a cycle for).
 
 ## Builds (`builds/`)
 
-Ten builds. Each lists its member slates in rough phase order and the
+Eleven builds. Each lists its member slates in rough phase order and the
 shipped substrate it leans on.
 
 ### 1. Identity & social perception
@@ -353,6 +353,34 @@ salvaged into the subsystem doc):
 > `world-clock` → time.md · `document-tree` → document-store.md. The two
 > governance instruments (`draft-constitution`, `founding-charter`) moved
 > out of `builds/` to [../governance/](../governance/).
+
+### 11. Magic items & BUC
+*NetHack's consumables as an immsim stress-test.* Most of the potion / scroll
+/ ring / amulet catalog lands on **already-shipped** substrate (belief,
+augmentation, thermal, metabolism, respiration, senses, teleport, reserve); a
+handful reconceive (healing has no HP to restore), stress a system (identify →
+prompt, detection → MQL, hallucination → rendering, amnesia → belief), or wait
+on combat.
+- [magic-items-slate](./builds/magic-items-slate.md) — the reformed
+  **blessed/uncursed/cursed** model (BUC as a *potency level* on the item's own
+  axis — `scale`/`pick`, monotonic, opt-in `Blessable`, known-BUC a belief
+  realm, cursed-sticks via the release gate) + the `Consumable`/`Effect`
+  substrate (Gap 0) + the full NetHack catalog walk + a **ranked gap-roundup**
+  (the build work-list). Sibling of
+  [identification-slate](./tails/identification-slate.md) (the orthogonal item
+  *identity* axis).
+- [presence-hollowing-slate](./builds/presence-hollowing-slate.md) *(spun out of
+  the item walk)* — **presence-vs-hollowing as a physical agent-state** (*is
+  anyone home?*), the physical shadow of the Good=presence / Evil=hollowing
+  cosmology. Two item consumers (sanctity *reacts* to the hollow; ESP *can't
+  perceive* it). **Shared with alignment** (kept distinct: this is the
+  physical/perceivable layer, alignment the derived/moral one).
+- [spawn-distribution-slate](./builds/spawn-distribution-slate.md) *(spun out of
+  the item walk)* — the **dynamic weighted-populate substrate** (the runtime
+  sibling of `populates: onto`): per-entity opt-in weights, per-location
+  bias-and-renormalize, **two output kinds** (loot items + procgen NPCs, the
+  procgen-NPC generator folded in). Consumers: BUC-at-spawn, create-monster,
+  world-population. **Shared world-wide.**
 
 ---
 
