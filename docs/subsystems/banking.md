@@ -220,6 +220,14 @@ two consumers are derive-on-read with no backfill:
   (`supply === Σ account balances + Σ circulating coin`, the coins outside
   bank vaults; `cashInExistence = supply − Σ balances`). `reserve supply`
   (operator-gated) renders both.
+- **The account statement** (player-facing) — `bank statement [count]`, a
+  `BankController` subcommand beside `balance`: a derive-on-read scan of the
+  caller's own ledger at the branch they're standing in (`entriesFor(accountId)`
+  — the substrate reader `profitAndLoss` also rides), rendered newest-first
+  with a per-line running balance accumulated over the *full* history, the
+  most recent `count` rows shown (default 20, capped 100). No new substrate —
+  the append-only ledger makes it a pure read; the P&L's ledger-scan sibling
+  turned toward the account holder rather than the venue owner.
 
 **Cash genesis** — `issueCash(into, amount)` is the CB physical-cash faucet:
 a `mint` issuance → cash bridge (supply grows, no account touched) plus a
@@ -307,7 +315,8 @@ The plan flagged 6 open implementation choices; settled as reached:
 5. **Verb category / shape** — one `banking/` category, and (post-review)
    **dispatch-on-subcommand parents, not a verb-per-action** (the
    `chat`/`alias` precedent — the framework supports far more than the
-   old-MUD flat-verb style): `bank` (open/deposit/withdraw/transfer/balance),
+   old-MUD flat-verb style): `bank`
+   (open/deposit/withdraw/transfer/balance/statement),
    `wallet` (use/freeze), `tab` (settle/skip), plus the flat `pay`; the
    operator surface splits **`reserve`** (mint/supply, central bank) vs
    **`house`** (pnl/payroll, venue owner): `house` is `requiresWizard` via

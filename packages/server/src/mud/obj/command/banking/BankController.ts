@@ -2,8 +2,8 @@
  * BankController — the `bank` verb: dispatch-on-subcommand over the player's
  * branch operations. Bare `bank` reads your balance; the subcommands are
  * `open`, `deposit <coins>`, `withdraw <amount>`, `transfer <amount> to
- * <who>`, `balance`. One controller, one verb — the `ChatController`/
- * subcommand precedent, not a verb-per-action.
+ * <who>`, `balance`, `statement [count]`. One controller, one verb — the
+ * `ChatController`/subcommand precedent, not a verb-per-action.
  *
  * Accounts resolve by identity + branch context (no number typed); the actor
  * is the context-derived author throughout.
@@ -22,10 +22,15 @@ import type { Bank } from "../../../lib/banking/Bank";
 
 const TOPIC = "world.narration.action";
 
+/** Default / max rows a `bank statement` lists (most recent first). */
+const DEFAULT_STATEMENT_ROWS = 20;
+const MAX_STATEMENT_ROWS = 100;
+
 interface BankModel extends CommandModel {
   coins?: MqlOneResult;
   amount?: string;
   recipient?: MqlOneResult;
+  count?: string;
 }
 
 export default class BankController extends BankingControllerBase<BankModel> {
@@ -49,6 +54,8 @@ export default class BankController extends BankingControllerBase<BankModel> {
         return this.withdraw(bank, model, context);
       case "transfer":
         return this.transfer(bank, model, context);
+      case "statement":
+        return this.statement(bank, model, context);
       // bare `bank` and `bank balance` both read the balance
       case undefined:
       case "balance":
@@ -89,6 +96,71 @@ export default class BankController extends BankingControllerBase<BankModel> {
       .topic(TOPIC)
       .toSelf(Mml.compose`Your balance is ${BankingApi.balanceOf(accountId).render()}.`)
       .send();
+  }
+
+  /**
+   * `bank statement [count]` — the account's recent ledger as a running
+   * statement. Read-only over the same account `balance` resolves; the
+   * ledger is scanned newest-first, each line carrying the running balance
+   * after it. The running balance is accumulated over the *full* history
+   * (oldest→newest) so the shown window's balances are true, then the most
+   * recent `count` rows (default 20, capped 100) are rendered newest-first.
+   */
+  private async statement(
+    bank: Stuff & Bank,
+    model: BankModel,
+    context: CommandContext
+  ): Promise<void> {
+    const giver = context.commandGiver;
+    const accountId = await BankingApi.myAccountAt(bank.getBankPath());
+    if (!accountId) {
+      MessageApi.scene(giver)
+        .topic(TOPIC)
+        .toSelf(Mml.compose`You don't have an account here. Try \`bank open\`.`)
+        .send();
+      context.note({ kind: "controller-rejected", reason: "no-account", detail: "statement" });
+      return;
+    }
+    const rows = await BankingApi.entriesFor(accountId);
+    if (rows.length === 0) {
+      MessageApi.scene(giver)
+        .topic(TOPIC)
+        .toSelf(Mml.compose`No activity on your account here yet.`)
+        .send();
+      return;
+    }
+    // Oldest → newest so the running balance accumulates in order (wall clock
+    // primary, game clock as the tiebreak).
+    const ordered = [...rows].sort(
+      (a, b) => (a.realAt || 0) - (b.realAt || 0) || (a.at || 0) - (b.at || 0)
+    );
+    let running = 0;
+    const annotated = ordered.map((r) => {
+      const delta = r.toAccount === accountId ? r.amount : -r.amount;
+      running += delta;
+      return { r, delta, running };
+    });
+    const requested = Number(model.count);
+    const limit =
+      Number.isInteger(requested) && requested > 0
+        ? Math.min(requested, MAX_STATEMENT_ROWS)
+        : DEFAULT_STATEMENT_ROWS;
+    const shown = annotated.slice(-limit).reverse();
+    const lines = shown
+      .map(({ r, delta, running: bal }) => {
+        const sign = delta >= 0 ? "+" : "";
+        const label = r.memo || r.kind;
+        return `  ${sign}${Money.of(delta).render()}  ${label}  (balance ${Money.of(bal).render()})`;
+      })
+      .join("\n");
+    const heading =
+      annotated.length > shown.length
+        ? `Statement (most recent ${shown.length} of ${annotated.length}):`
+        : `Statement:`;
+    const body =
+      `${heading}\n${lines}\n` +
+      `  Current balance: ${BankingApi.balanceOf(accountId).render()}`;
+    MessageApi.scene(giver).topic(TOPIC).toSelf(Mml.compose`${body}`).send();
   }
 
   private async deposit(

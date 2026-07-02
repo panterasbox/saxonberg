@@ -128,6 +128,72 @@ describe("Banking controllers — verb wiring", () => {
     expect(bank.getTillLiquidity().minor).toBe(0);
   });
 
+  it("statement lists activity, honors a count arg, and guards a missing account", async () => {
+    const loc = makeStuff(() => new Location());
+    const giver = makeStuffAtPath(() => new TestGiver(), ALICE);
+    ContainmentApi.move(giver, loc);
+    const bank = makeStuffAtPath(() => {
+      const b = new BankCounter();
+      b.setCorpoKey("goodkin");
+      return b;
+    }, BANK_PATH);
+    ContainmentApi.move(bank, loc);
+    const coins = makeStuffAtPath(() => new Coin(), "/obj/Coin");
+    coins.setMass(Quantity.of(0.01, "kg"));
+    coins.setQuantity(100);
+    ContainmentApi.move(coins, giver);
+
+    const runBank = (m: Record<string, unknown>, verb: string) =>
+      asGiver(giver, () =>
+        makeStuff(() => new BankController()).execute(
+          m as never,
+          makeContext(giver, loc, verb)
+        )
+      );
+
+    // No account yet → statement declines with a no-account note.
+    const noAcctCtx = makeContext(giver, loc, "bank");
+    await asGiver(giver, () =>
+      makeStuff(() => new BankController()).execute(
+        { subcommand: "statement" } as never,
+        noAcctCtx
+      )
+    );
+    expect(noAcctCtx.getNotes()).toContainEqual(
+      expect.objectContaining({ kind: "controller-rejected", reason: "no-account" })
+    );
+
+    // Open + a deposit + a withdrawal → real ledger activity.
+    await runBank({ subcommand: "open" }, "bank");
+    await runBank(
+      { subcommand: "deposit", coins: { stuff: coins, raw: "coins" } as MqlOneResult },
+      "bank"
+    );
+    await runBank({ subcommand: "withdraw", amount: "30" }, "bank");
+
+    // Statement over the activity — happy path, no rejection note. The
+    // `count` arg is accepted (parsed, clamped) the same way.
+    const stmtCtx = makeContext(giver, loc, "bank");
+    await asGiver(giver, () =>
+      makeStuff(() => new BankController()).execute(
+        { subcommand: "statement" } as never,
+        stmtCtx
+      )
+    );
+    const countCtx = makeContext(giver, loc, "bank");
+    await asGiver(giver, () =>
+      makeStuff(() => new BankController()).execute(
+        { subcommand: "statement", count: "1" } as never,
+        countCtx
+      )
+    );
+    for (const ctx of [stmtCtx, countCtx]) {
+      expect(
+        ctx.getNotes().some((n) => n.kind === "controller-rejected")
+      ).toBe(false);
+    }
+  });
+
   it("declines with a note when there's no bank in the room", async () => {
     const loc = makeStuff(() => new Location());
     const giver = makeStuffAtPath(() => new TestGiver(), ALICE);
