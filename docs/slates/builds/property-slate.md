@@ -344,3 +344,178 @@ unified as a capacity-allocation authority — stress-testing whether Offices ar
 - **No new module categories.** The parcel is a Zone/Location + a title record;
   the cost model is a save-time validator + a table; attribution rides the Proxy +
   a registry sweep; verbs are ordinary YAML+controller pairs.
+
+---
+
+## Design-session addendum — 2026-07-02 (parcel data model, sandboxing, home personalization)
+
+> A long working session, grounded by reading the **live lounge content**,
+> refined and in places **corrected** the slate body above. Where this
+> addendum disagrees with the body, the addendum is newer. Five clusters.
+
+### A. The zone tree *is* the ownership tree (corrects "two unrelated trees")
+
+The body claims "boundaries and holdings are unrelated trees; no boundary edge
+coincides with an ownable extent." **Reading the code, that's wrong.** There is
+no zone-less content: every path belongs to the Zone hierarchy (`FolderZone`
+for organizational areas, `CartesianZone`/`SphericalZone` for coordinate rooms).
+The lounge is a **`FolderZone` at `/domain/lounge`** (+ `/lib/lounge`) with
+`ownerGroup = managed:<lounge>`, stamped by `AccessRegistry.seedLoungeSlice`;
+`'core'` owns the root. ("Zone-less" in the lounge comments means only "no
+`Stuff.zone` *spatial* stamp" — the non-coordinate social pockets still belong
+to the `/domain/lounge` FolderZone for ownership/access/inheritance.)
+
+So the FolderZone edge **already coincides with an ownable extent** (`ownerGroup`,
+walked closest-first by `AccessApi.can`, filesystem-ACL semantics), and
+"managed independently" is **already true** (the lounge group owns its subtree;
+EU/Terminus each get their own owning group). Consequences:
+
+- **A parcel is always a Zone** (a FolderZone for an area, a spatial zone for a
+  grid). The "namespace vs zone" question is a false dichotomy — the zone
+  hierarchy *is* path-addressed.
+- **Parcels form their own hierarchy — a *sparse overlay* on the zone tree.**
+  Not every zone is a parcel; a zone with no parcel record inherits its
+  governing parcel from the nearest parcel-bearing ancestor (longest-prefix). A
+  finer zone nested inside a parcel can carry its **own** parcel record → a
+  carve-out sub-parcel (`parentParcel` edge). This makes **nested ownership /
+  tenancy a Phase-0 structural property**, not a Phase-3 deferral.
+
+### B. Ownership + authorship + allowance live in a *separate* collection
+
+Privilege separation: `ownerGroup`/`accessGroups` are currently stored on the
+Zone **template** — a row in the `domain` collection, the very collection whose
+access they gate. Whoever can edit the zone template can rewrite its own owner
+and seize the subtree. **These must live apart from the content they govern.**
+
+- New **`parcels`** registry collection:
+  `{ parcelId, extents: string[], parentParcel, owner, accessGrants, allowance }`
+  + a prefix→parcel coverage index (the `AddressRegistry` pattern) for
+  longest-prefix resolution.
+- **`parcelId` + `extents[]`** (not a bare domain-path key) is justified by
+  "own the whole operation end to end": a parcel spans its content root **and**
+  its code root — the lounge already owns `/domain/lounge` **and** `/lib/lounge`.
+- **Full migration:** the Zone becomes pure content/geometry (extent, coordinate
+  frame, inheritance defaults) with **zero** access info. `AccessApi.can`
+  repoints its read from `zone.data` → the `parcels` registry;
+  `seedLoungeSlice` writes a parcel row instead of mutating `domain.data`.
+- **Author ≠ owner via two collections** (resolves brick zero, no migration):
+  `authoring_events` (immutable **credit**, already ships) + `parcels` (mutable
+  **possession**). `ownerOf(path) = parcels-title (longest-prefix) ?? authorOf`.
+  Owner *defaults* to author; a transfer writes a title row that overrides. The
+  body slightly overstated the fusion — `ownerGroup` already exists and is
+  mutable; the real fusion was provenance treating earliest-author as owner.
+
+### C. Compute attribution = spawn-provenance ("cost-owner"), not backing class
+
+Closes the body's open "cause vs receiver" fork. You never attribute running
+compute by the *class/module*; you attribute by the parcel that **caused the
+instance to exist**:
+
+- `costOwnerOf(instance)`: **(1)** if its `templatePath` resolves (longest-prefix)
+  to a parcel extent → that parcel (the common case — authoring your own
+  template — free, no stamp). **(2)** else a generic/commons template
+  (`/obj/Flask`, `/lib/Flask` cloned directly) → a **sparse birth-stamp** = the
+  spawning parcel, derived from the spawn's `ExecutionContext` root.
+- The coin/flask distinction falls out with **no special-casing**: the mint
+  spawns the coin (no parcel → commons overhead); ME's tavern populates the
+  flask (→ ME pays), *despite* `Flask` being a commons class. Cost follows the
+  **authorial choice**, not the class's location.
+- **CPU** = cause (`ExecutionContext` root → actor's parcel — shared library
+  code costs its *user*, not its commons author). **Memory** = residency, with
+  **owned gear → owner's parcel** (presence-never-the-meter; a crowd walking in
+  doesn't spike a parcel). Autonomous drivers with no command cause → residency.
+- Cost-owner **re-stamps on a possession transfer** — the compute-cost axis
+  rides the same title machinery as ownership (possession and operating-cost
+  move together).
+
+### D. Anti-cheat is a *content-release gate*, not place-sandboxing the home
+
+The real seam is **author-vs-play**, not **home-vs-sandbox**:
+
+- **One invariant:** *material* state is domain-local; *epistemic/social* state
+  is global. The **published world** is the maximal material-canonical domain
+  (portable within — both ends passed the publish/review gate). A private
+  parcel/clique is a **magic circle**: material state is real inside but **does
+  not cross out** — and the boundary is **symmetric** (binds the owner too, so
+  the owner can't be the cheater).
+- **Mechanism = scoped ledger quarantine, not world-instancing.** Because
+  character power is ledger-derived + timestamped (Transcript/renown/bank/…),
+  "rollback" = discard the circle-scoped ledger appends on exit. Everyone stays
+  in the same room; only their *writes* are scoped — cheaper than per-visitor
+  instances (preserves presence-never-the-meter).
+- **Allowlist principle:** epistemic persists (chronicle / contacts /
+  recognition — *what you learned, whom you met*); material reverts (loot /
+  levels / money / buffs / vitals — *what you gained*).
+- **The gamified home is canonical, NOT a sandbox.** Pet care (real `regard`
+  substrate), electricity/upkeep (real compute + money economy) are *playing*
+  with published mechanisms → real and game-affecting everywhere, dwelling
+  included. The **anti-cheat is the released gate**: unreleased authored power
+  is **inert in canon** (point-of-effect, via the augment `isActive` seam) — you
+  can't wield an unreviewed +5 sword in the real game, but you *can* raise a real
+  pet. The rollback magic-circle shrinks to a **testbed** for unreleased builds —
+  a granular **sandbox sub-zone** (workshop) nested inside the canonical dwelling
+  (the parcel hierarchy from §A carries it).
+- **Consistency note (checked):** gamified-home mechanics that "happen while
+  you're away" (pet drifts feral, plants grow, meter ticks) use
+  **reconcile-on-read** (the metabolism/farming pattern), *not* a live tick — so
+  they affect durable state **without** violating presence-freeze.
+
+### E. Home personalization = capability tiers, not a governance permit
+
+A permit pipeline (legislature/executive/courts per change) is the wrong
+altitude and doesn't scale. **Personal customization is not a governance act.**
+Governing principle: **review the vocabulary (primitives), not the sentence
+(compositions)** — review cost is O(new primitives), not O(homes).
+
+- **Tier 0 — arrange & decorate:** clone published templates, set *data fields*,
+  arrange rooms (the dorm-warren mixin-field editor). Data, not code → nothing
+  new enters canon → **no review**. Rides the wizard/protowizard lockdown
+  (players set data fields, never the `class`/`brain`/`hydratorClass` code fields
+  at `saveTemplate`).
+- **Tier 1 — automate with scripts:** scripts over the **published command bus**
+  — **safe by construction** (run as you, can't exceed your own command
+  authority), throttled by the scripting engine's resource limits + the compute
+  allowance. **No review.**
+- **Tier 2 — author new primitives:** new code → unreleased → test in the
+  workshop sub-zone → **publish via CMS/forums review** → becomes a shared
+  primitive anyone composes in Tier 0. Review is **per-primitive, once**,
+  amortized across every home that uses it.
+- **Two throttles replace the permit:** the **release gate** (unreviewed power
+  inert — cheating is structurally impossible, not administratively forbidden)
+  + the **compute allowance** (overbuilding self-limited by budget). Governance
+  is reserved for the **commons + shared rules** only — never your couch. The
+  tiers *are* the player→author ladder (personalizing teaches authoring).
+
+### Open threads carried forward
+
+- **Sublet rollup** (sub-parcel allowance carved-from-parent vs. direct
+  governance grant) = a **producer-house allocation policy**, not substrate.
+- **Trust-domain topology:** lattice (published ⊃ custom ⊃ singleton) vs.
+  arbitrary graph. Lean lattice (asymmetric trust invites exploits).
+- **What counts as "power"** for the release/activation gate — augments clearly;
+  do crafted `Grade`, conferred verbs, standing need it, or do they route
+  through augments/ledgers and get it free?
+- **Material-vs-epistemic ledger enumeration** — the exact list, and the edges
+  (does reputation *earned inside* persist? — no; does *having met* persist? — yes).
+- **Cost-owner re-stamp on transfer:** automatic, or a consented step (can
+  ownership and compute-liability be split — the seller keeps hosting)?
+- **Combination exploits** (two individually-safe primitives that break
+  together) = a governance **backstop** (notice-and-patch / catch at
+  publish-review), not a gate.
+- **The Tier 0 / Tier 2 line:** how much novel behavior can come from pure data
+  config over rich published primitives before an author is forced into code?
+- **Instancing** (only if used beyond ledger-quarantine): the snapshot split +
+  who pays the per-visitor compute.
+
+### Net (phase-sequencing impact)
+
+Core theses **survive intact** (two scarcities, pay-to-run, presence-never-the-
+meter, author≠owner, dormancy enforcement, governance-allocates). Three things
+change how Phase 0 is scoped: **(1)** the parcel is "a Zone + title + allowance,"
+not a net-new join — reuse the zone tree; **(2)** ownership/allowance data moves
+to a **separate `parcels` collection** (a refactor of the shipped access
+substrate — repoint `AccessApi.can`); **(3)** the **parcel hierarchy** (nested
+sub-parcels) is foundational, pulling structural tenancy forward from Phase 3.
+The sandbox/anti-cheat resolves to the **released gate + trust domains** (largely
+reusing the augment `isActive` seam), and home personalization to **capability
+tiers**, neither of which needs new governance machinery.
