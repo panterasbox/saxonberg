@@ -792,3 +792,52 @@ capability.
 > persistence is Avatar-only, rooms only populate. The build's actual new work is
 > making **owned parcel-rooms + chests** persistable holders, which is what
 > *creates* the seed-then-persist handoff.
+
+### J. Verb generality (custody vs. title) + what a shop belongs to
+
+**The verbs aren't a new parallel set.** They split on the custody/title axis:
+
+- **Custody = the *existing* containment verbs** (`get`/`drop`/`put`/`give` →
+  `ContainmentApi.move`). Unchanged.
+- **Title = a new concern *layered onto* those verbs**, not new parallel ones:
+  `drop`/`put` your owned item → custody moves, title stays; `take` an owned item
+  without consent → **theft** (custody without title); `give` → a **combined
+  custody + title** transfer (bilateral consent).
+- **Genuinely-new verbs only where there's no custody analog:** `claim`
+  (title-only stamp), `sell` (title + custody + payment), and the **parcel
+  operations** (you can't carry a zone).
+
+Architecturally: the shared things are the **operation primitives**
+(`ContainmentApi.move` / the title chokepoint / banking `settle`); **verbs are
+thin controllers composing them.** Chattel rides the containment-verb family
+(made title-aware); **real property gets its own verb/category** (no custody).
+`sell` is polymorphic-on-target or split. Discriminator: *does the target have
+custody?*
+
+**"Possessions" is a sparse minority, not most objects** (restating §I): floor
+junk, shelf mugs, ambient stuff are unowned ephemeral `populates` clones with no
+row. Possessions = *claimed valuables* + *extent-derived fixtures*. Ownership is
+opt-in via `claim`, which is what keeps the registry cheap.
+
+**Shops are a primary consumer, but it's invisible until point-of-sale:** stock
+is *not* individually titled (restock / bulk); a **sale** is where possession
+fires — `sell`/`order` **promotes** the item (stamp title to buyer + `settle`
+payment, atomically). **Dave's Bar already does this** (`OrderController` settles
+the Menu's `priceFor` as a `Charge`).
+
+**What a shop belongs to — three separable layers, three (possibly different)
+owners:**
+
+| Layer | Is | Owned by |
+|---|---|---|
+| **Premises** | the rooms/zone | a **parcel** title-holder (landlord, proprietor, or *leased*) |
+| **Business** (brand / account / roster) | a **`Business` Idea** (`/domain/lounge/business`) | its **proprietor** (a principal, via the replaceable `proprietorPath`; outlives the proprietor) |
+| **Stock** | wares | the **business** (by extent-derivation), until sold |
+
+Dave's Bar collapses these today (one team owns premises + business), but the
+model **separates** them — a proprietor can rent premises from a landlord and run
+a business that owns its stock. **Compute** follows the same layering: the
+premises parcel carries the allowance (landlord funds), the business pays rent,
+and its operating compute (bartender NPC, ambient brains) attributes via
+cost-owner/residency to the premises parcel. The `Business`-as-its-own-Idea
+decision (not a venue mixin) is exactly what makes this three-way split work.
