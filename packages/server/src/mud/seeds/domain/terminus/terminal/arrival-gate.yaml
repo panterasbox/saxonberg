@@ -1,0 +1,42 @@
+# Terminus Terminal — the arrival gate. The alcove inbound travellers
+# materialise in (the arrival terminal seats here). Generic room. Carries an
+# `_address` under the Terminus locality prefix so `resolveLocalityFor` lands
+# on the "Terminus" Locality and the board names this destination "Terminus".
+#
+# The arrival gate declares `north`→hall explicitly (not just relying on the
+# hall's south reciprocal): the four terminals are manifest entries that seat
+# their OWN gate rooms, so the station HALL (and via it the office) only stands
+# up live when a seated room's `applyExits` references it — the arrival gate is
+# that anchor, and the hall then pulls the other gate rooms + office off its
+# own exits. The `across` exit is the cross-branch adjacency to the EU campus —
+# Terminus sits on University Avenue, across from the university gate. Its
+# reciprocal is authored on the plaza (Phase 6). Non-cardinal + cross-zone, so
+# it is a semantic exit (CartesianLocation.addExit allows it).
+class: /lib/location/CartesianLocation
+hydratorClass: /lib/persistence/PersistentHydrator
+data:
+  shortDescription: the Terminus arrival gate
+  primaryKeyword: arrival-gate
+  _address: terminus/arrival-gate
+  longDescription: |
+    A shallow alcove off the south end of the hall, floored in a slightly newer stone than the rest, where inbound travellers resolve out of the between. A frosted-glass arch frames the concourse to the north; a wide doorway to the west opens straight onto University Avenue, and across the street the pale gates of Eternal University stand open.
+
+    A worn strip of rubber matting runs from the arrival plate to the concourse, the way generations of arrivals have already walked it.
+  coords:
+    x: 0
+    y: -1
+    z: 0
+  exits:
+    north:
+      destination: /domain/terminus/terminal/hall
+    across:
+      destination: /domain/eternal/university-avenue/plaza
+  details:
+    plate:
+      keywords: [plate, arrival, matting, mat]
+      description: |
+        A brass arrival plate set flush in the floor, its edge lit by a thin ring of blue light. Step off it and onto the matting; the light dims behind you, waiting for the next arrival.
+    avenue:
+      keywords: [avenue, street, gate, university, campus]
+      description: |
+        Through the west doorway: University Avenue, and across it the university gate — plane trees, swept stone, the campus rising in pale terraces beyond. The last mile onto campus is on foot.

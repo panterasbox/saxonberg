@@ -57,11 +57,15 @@ const FOLDER_ZONE_CLASS = TemplatePaths.folderZone;
 
 const LOUNGE_FOLDER_PATHS = ['/lib/lounge', '/domain/lounge'] as const;
 
+/** The Terminus municipality's owned zone — its terminal building. */
+const TERMINUS_ZONE_PATH = '/domain/terminus/terminal';
+
 export default class AccessRegistry extends AccessRegistryBase {
   /** Cached GroupRef for `'core'`. Resolved lazily; survives the
    *  api/access.ts reload because it lives on the Stuff. */
   private cachedCoreRef: GroupRef | null = null;
   private cachedLoungeRef: GroupRef | null = null;
+  private cachedTerminusRef: GroupRef | null = null;
   private cachedWizardsRef: GroupRef | null = null;
   /** Set of playerIds in `'wizards'` — warmed lazily, invalidated
    *  via the managed provider's onChange callback. */
@@ -91,6 +95,7 @@ export default class AccessRegistry extends AccessRegistryBase {
   public override async postRegister(_context?: unknown): Promise<void> {
     await this.seedCoreGroup();
     await this.seedLoungeSlice();
+    await this.seedTerminusSlice();
     await this.seedWizardsGroup();
     await this.seedStreamersGroup();
     await this.seedArchwizardsGroup();
@@ -459,6 +464,32 @@ export default class AccessRegistry extends AccessRegistryBase {
         { ownerGroup: loungeRef },
         PersistentHydrator.templatePath,
       );
+    }
+  }
+
+  private async seedTerminusSlice(): Promise<void> {
+    // Mint the Terminus municipality's owner group (owner `system`) and stamp
+    // it as the ownerGroup on the terminal zone — a real ownerGroup distinct
+    // from the EU campus group, resolvable via AccessApi, without a literal in
+    // the seed (the managed group's _id is runtime-minted). The seedLoungeSlice
+    // precedent; idempotent (stamp only when missing, never overwrite).
+    const reg = await GroupApi.registry();
+    const provider = reg.managed();
+    let terminus = await provider.findByName('terminus');
+    if (!terminus) {
+      const g = new Group();
+      g.name = 'terminus';
+      g.owner = 'system';
+      await g.save();
+      terminus = g;
+    }
+    if (!terminus._id) return;
+    const terminusRef: GroupRef = `managed:${terminus._id}`;
+    this.cachedTerminusRef = terminusRef;
+    const existing = await Template.findByPath(TERMINUS_ZONE_PATH);
+    if (existing && !existing.data?.ownerGroup) {
+      existing.data = { ...existing.data, ownerGroup: terminusRef };
+      await existing.save();
     }
   }
 

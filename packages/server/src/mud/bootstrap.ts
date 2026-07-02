@@ -201,6 +201,20 @@ export const bootstrapManifest: BootstrapEntry[] = [
   // migration, so the warren no longer hand-seats it. Without this entry
   // nothing instantiates the cascade root and the network never stands up.
   { templatePath: '/domain/lounge/terminal' },
+  // Terminus TPA terminals — the transit hub's network-resident singletons.
+  // Unlike the lounge root, the three departure terminals are never route
+  // TARGETS, so nothing cascade-loads them; without these entries
+  // `findReachable` never sees a departure terminal for a player standing in
+  // the gate room. Each terminal's `postRegister → seatSelf` stands up its
+  // gate room, and the arrival-gate's `applyExits` cascade pulls the hall →
+  // the other gate rooms + office (the rooms need no entries). The arrival
+  // terminal entry is strictly redundant (it cascade-loads as the lounge
+  // route target after Phase 6) but keeps the four-terminal set uniform and
+  // standup independent of lounge routing.
+  { templatePath: '/domain/terminus/terminal/arrival-terminal' },
+  { templatePath: '/domain/terminus/terminal/departure-terminal-a' },
+  { templatePath: '/domain/terminus/terminal/departure-terminal-b' },
+  { templatePath: '/domain/terminus/terminal/departure-terminal-c' },
   // Dave's Bar Business (the standalone employment entity) is NOT a manifest
   // entry — it stands up with the bar's own content, cloned idempotently in
   // `Bar.postRegister` (part of the lounge terminal cascade above). That

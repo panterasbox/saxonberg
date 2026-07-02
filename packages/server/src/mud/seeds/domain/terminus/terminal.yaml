@@ -1,0 +1,13 @@
+# Terminus Terminal — the transit-hub building zone (the first zone of the
+# /domain/terminus/ area). A CartesianZone holding the station hall, its four
+# gate rooms, and the ticket office. "Terminus Terminal" as the hub label
+# rides this zone `name` + the room prose (generic rooms, no NamedMixin).
+#
+# ownerGroup is NOT hardcoded here (the managed group's _id is runtime-minted)
+# — AccessRegistry.seedTerminusSlice stamps the Terminus municipality group as
+# ownerGroup when missing (the seedLoungeSlice precedent).
+class: /lib/location/CartesianZone
+hydratorClass: /lib/persistence/PersistentHydrator
+data:
+  name: Terminus Terminal
+  cellSize: 3.0

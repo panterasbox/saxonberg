@@ -1,0 +1,20 @@
+# Terminus Terminal — Departure Gate A (operational). The one working gate:
+# its terminal runs the free return to the lounge and the paid line out to the
+# newbie-wilds crossroads. The west back-exit to the hall is auto-installed by
+# the hall's east exit. Generic room.
+class: /lib/location/CartesianLocation
+hydratorClass: /lib/persistence/PersistentHydrator
+data:
+  shortDescription: Departure Gate A
+  primaryKeyword: gate-a
+  longDescription: |
+    A departure gate off the east side of the hall: a raised platform ringed by a brass rail, a departures terminal standing at its head like a lectern. Gate A is the one that runs — its status light burns a steady red, and a short queue forms and dissolves as travellers step up, name a stop, and are gone.
+  coords:
+    x: 1
+    y: 0
+    z: 0
+  details:
+    rail:
+      keywords: [rail, railing, platform]
+      description: |
+        A brass rail worn bright by a thousand hands, ringing the departure platform. Step inside it, up to the terminal, and read the board with `teleport`.
