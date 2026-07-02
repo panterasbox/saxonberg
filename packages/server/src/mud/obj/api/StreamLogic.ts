@@ -6,6 +6,7 @@ import { CallSecurity, Unshadowable } from '../../lib/security/decorators';
 import { SecurityPolicies } from '../../lib/security/SecurityPolicies';
 import { StuffApi } from '../../api/stuff';
 import { MessageApi } from '../../api/message';
+import { Mml } from '../../api/mml';
 import { PlayerApi } from '../../api/player';
 import { User } from '../../lib/identity/User';
 import { TwitchProfile } from '../../lib/identity/TwitchProfile';
@@ -18,12 +19,14 @@ import type { RelayChannelRef } from '../StreamRelay';
 import type { MessageFrame, RelaySpeaker } from '@saxonberg/types';
 import { TWITCH_SCOPE_WRITE_CHAT } from '@saxonberg/types';
 import { TwitchRelayReader } from '../../../backend/TwitchRelayReader';
+import { YoutubeRelayReader } from '../../../backend/YoutubeRelayReader';
 import type {
   PostResult,
   ResolveResult,
   TuneResult,
   UntuneResult,
   NormalizedInbound,
+  YoutubeChannelResult,
 } from '../../api/stream';
 
 type Service = 'twitch' | 'youtube';
@@ -59,8 +62,7 @@ export class StreamLogic extends ApiLogic {
     }
     // url / handle forms carry the platform.
     if (parsed.platform === 'youtube') {
-      // YouTube resolution (channel/video → liveChatId) lands in P3.
-      return { ok: false, reason: 'no-relay' };
+      return this.resolveYoutube(parsed.identifier);
     }
     // Twitch: the identifier is a channel login.
     return this.resolveTwitchLogin(parsed.identifier);
@@ -80,10 +82,13 @@ export class StreamLogic extends ApiLogic {
       target.key,
       target.handle,
     );
-    if (opened && target.platform === 'twitch') {
-      TwitchRelayReader.get().subscribe(target.key);
+    if (opened) {
+      if (target.platform === 'twitch') {
+        TwitchRelayReader.get().subscribe(target.key);
+      } else {
+        await YoutubeRelayReader.get().subscribe(target.key);
+      }
     }
-    // YouTube subscribe wires in P3 (YoutubeRelayReader).
     return { ok: true, service: target.platform, handle: target.handle };
   }
 
@@ -97,10 +102,9 @@ export class StreamLogic extends ApiLogic {
     const relay = await requireRelay();
     const lower = handle.trim().toLowerCase();
     const res = relay.removeTuned(avatar.getPlayerId(), service, lower);
-    if (res.emptied && res.key && res.service === 'twitch') {
-      TwitchRelayReader.get().unsubscribe(res.key);
+    if (res.emptied && res.key) {
+      unsubscribeReader(res.service ?? service, res.key);
     }
-    // YouTube unsubscribe wires in P3.
     return {
       ok: res.ok,
       service,
@@ -109,10 +113,57 @@ export class StreamLogic extends ApiLogic {
     };
   }
 
-  /** See {@link StreamApi.dropPlayer}. Each reader unsubscribes the result. */
+  /**
+   * See {@link StreamApi.dropPlayer}. Drops the player from every channel
+   * and unsubscribes each emptied channel on its transport (centralized here
+   * so a single `PlayerLoggedOut` observer covers both readers).
+   */
   @CallSecurity(StreamApiCallers)
   public async dropPlayer(playerId: string): Promise<RelayChannelRef[]> {
-    return (await requireRelay()).dropPlayer(playerId);
+    const emptied = (await requireRelay()).dropPlayer(playerId);
+    for (const ref of emptied) unsubscribeReader(ref.service, ref.key);
+    return emptied;
+  }
+
+  /**
+   * See {@link StreamApi.dropChannel}. A YouTube stream ended: drop the whole
+   * channel and notice the tuned-in players.
+   */
+  @CallSecurity(StreamApiCallers)
+  public async dropChannel(service: Service, key: string): Promise<void> {
+    const relay = await requireRelay();
+    const channel = relay.channelByKey(service, key);
+    const players = relay.dropChannel(service, key);
+    if (players.length === 0) return;
+    const handle = channel?.handle ?? key;
+    const body = Mml.compose`\n${service} #${handle} — the stream ended.\n`;
+    for (const playerId of players) {
+      const avatar = PlayerApi.findAvatarByPlayerId(playerId);
+      if (!avatar) continue;
+      MessageApi.sendMessage(avatar, {
+        id: `stream-end-${key}-${playerId}`,
+        topic: `world.${service}.message`,
+        tags: ['audience:witness'],
+        body: body.toString(),
+        meta: { timestamp: Date.now(), channelId: key },
+      });
+    }
+  }
+
+  /**
+   * See {@link StreamApi.resolveYoutubeChannelId}. `@handle`/`UC…` →
+   * channelId for the `watch` embed (the D4=(c) durable form). Reader
+   * unconfigured → `no-relay`.
+   */
+  @CallSecurity(StreamApiCallers)
+  public async resolveYoutubeChannelId(
+    ref: string,
+  ): Promise<YoutubeChannelResult> {
+    const reader = YoutubeRelayReader.get();
+    if (!reader.isConfigured()) return { ok: false, reason: 'no-relay' };
+    const channelId = await reader.resolveChannelId(ref);
+    if (channelId === 'unknown') return { ok: false, reason: 'unknown-target' };
+    return { ok: true, channelId };
   }
 
   /** See {@link StreamApi.tunedTargetsFor}. */
@@ -250,6 +301,22 @@ export class StreamLogic extends ApiLogic {
   }
 
   /**
+   * Resolve a YouTube channel/video ref to its current live chat (live-only
+   * bind). `identifier` is the display handle; the key is the liveChatId.
+   */
+  private async resolveYoutube(identifier: string): Promise<ResolveResult> {
+    const reader = YoutubeRelayReader.get();
+    if (!reader.isConfigured()) return { ok: false, reason: 'no-relay' };
+    const resolved = await reader.resolveChannel(identifier);
+    if (resolved === 'unknown') return { ok: false, reason: 'unknown-target' };
+    if (resolved === 'not-live') return { ok: false, reason: 'not-live' };
+    return {
+      ok: true,
+      target: new StreamerTarget('youtube', resolved.liveChatId, identifier),
+    };
+  }
+
+  /**
    * Resolve a character/MQL identifier to its linked Twitch channel. v1:
    * match an online Avatar by name, then walk User→TwitchProfile.login.
    * (Character→YouTube is a non-goal — GoogleProfile stores no channel.)
@@ -280,6 +347,12 @@ export class StreamLogic extends ApiLogic {
       ),
     };
   }
+}
+
+/** Unsubscribe a channel on its transport's backend reader. */
+function unsubscribeReader(service: Service, key: string): void {
+  if (service === 'twitch') TwitchRelayReader.get().unsubscribe(key);
+  else YoutubeRelayReader.get().unsubscribe(key);
 }
 
 let relayRef: StreamRelay | null = null;

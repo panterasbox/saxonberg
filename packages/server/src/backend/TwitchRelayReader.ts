@@ -69,15 +69,13 @@ export class TwitchRelayReader {
     });
 
     // Backend observing the real lifecycle broadcast: when a player logs
-    // out, the relay drops them from every channel and returns the ones
-    // that emptied; unsubscribe each.
+    // out, `StreamApi.dropPlayer` drops them from every channel and
+    // unsubscribes each emptied channel on its transport (both readers) — so
+    // this single observer covers Twitch AND YouTube.
     EventApi.on<{ playerId: string; userId: string }>(
       Events.PlayerLoggedOut,
       async ({ playerId }) => {
-        const emptied = await StreamApi.dropPlayer(playerId);
-        for (const ref of emptied) {
-          if (ref.service === 'twitch') this.unsubscribe(ref.key);
-        }
+        await StreamApi.dropPlayer(playerId);
       }
     );
 

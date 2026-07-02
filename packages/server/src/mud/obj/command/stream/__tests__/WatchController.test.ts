@@ -128,7 +128,9 @@ describe('WatchController', () => {
     ).toBe(false);
   });
 
-  it('bare YouTube @handle defers (reject) and leaves the embed unchanged', async () => {
+  it('bare YouTube @handle points at a URL when the reader is unconfigured', async () => {
+    // No YOUTUBE_READER_* env in tests → the @handle resolve reports
+    // no-relay and the controller reject-and-points at a URL.
     const ctx = await run({ target: 'mkbhd', youtube: true });
     expect(watched(actor)).toBeNull();
     expect(
@@ -137,7 +139,7 @@ describe('WatchController', () => {
         .some(
           (n) =>
             n.kind === 'controller-rejected' &&
-            (n as { reason: string }).reason === 'youtube-handle-deferred',
+            (n as { reason: string }).reason === 'no-relay',
         ),
     ).toBe(true);
   });

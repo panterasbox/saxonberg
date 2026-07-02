@@ -199,6 +199,24 @@ export default class StreamRelay extends StreamRelayBase {
     return [...entry.tuned].filter((p) => p !== StreamRelay.OVERLAY_SENTINEL);
   }
 
+  /**
+   * Drop an entire channel (a YouTube stream ended). Returns the tuned-in
+   * playerIds (overlay sentinel excluded) so the reader can notify them,
+   * and removes the channel entry + its handle cache + history ring.
+   */
+  public dropChannel(service: Service, key: string): string[] {
+    const composite = StreamRelay.channelKey(service, key);
+    const entry = this.channels.get(composite);
+    if (!entry) return [];
+    const players = [...entry.tuned].filter(
+      (p) => p !== StreamRelay.OVERLAY_SENTINEL,
+    );
+    this.channels.delete(composite);
+    this.handleToKey.delete(this.handleKey(service, entry.handle));
+    this.history.delete(composite);
+    return players;
+  }
+
   /** Cache-only handle -> channel resolve (no port call). */
   public resolveByHandle(
     service: Service,

@@ -11,6 +11,7 @@ import { describe, it, expect, beforeAll, beforeEach, afterEach, vi } from 'vite
 import { StreamApi } from '../../../api/stream';
 import { PlayerApi } from '../../../api/player';
 import { TwitchRelayReader } from '../../../../backend/TwitchRelayReader';
+import { YoutubeRelayReader } from '../../../../backend/YoutubeRelayReader';
 import StreamRelay from '../../StreamRelay';
 import { StreamerTarget } from '../../../lib/streaming/StreamerTarget';
 import type { Stuff } from '../../../lib/stuff/Stuff';
@@ -28,6 +29,21 @@ function mockReader(over: Partial<{
     subscribe: () => undefined,
     unsubscribe: () => undefined,
   } as unknown as TwitchRelayReader);
+}
+
+function mockYoutubeReader(over: Partial<{
+  isConfigured: boolean;
+  resolveChannel: (ref: string) => Promise<unknown>;
+  resolveChannelId: (ref: string) => Promise<string | 'unknown'>;
+}>): void {
+  vi.spyOn(YoutubeRelayReader, 'get').mockReturnValue({
+    isConfigured: () => over.isConfigured ?? true,
+    resolveChannel:
+      over.resolveChannel ?? (async () => ({ liveChatId: 'lc-1' })),
+    resolveChannelId: over.resolveChannelId ?? (async () => 'UC-x'),
+    subscribe: async () => undefined,
+    unsubscribe: () => undefined,
+  } as unknown as YoutubeRelayReader);
 }
 
 describe('StreamLogic.resolveTarget (via StreamApi)', () => {
@@ -68,11 +84,39 @@ describe('StreamLogic.resolveTarget (via StreamApi)', () => {
     expect(res).toEqual({ ok: false, reason: 'unknown-target' });
   });
 
-  it('defers youtube resolution (no-relay) this cycle', async () => {
+  it('resolves a live youtube handle to its liveChatId', async () => {
+    mockYoutubeReader({
+      isConfigured: true,
+      resolveChannel: async () => ({ liveChatId: 'lc-1' }),
+    });
+    const res = await StreamApi.resolveTarget(
+      StreamerTarget.parse('mkbhd', { youtube: true }),
+    );
+    expect(res.ok).toBe(true);
+    if (res.ok) {
+      expect(res.target.platform).toBe('youtube');
+      expect(res.target.key).toBe('lc-1');
+      expect(res.target.handle).toBe('mkbhd');
+    }
+  });
+
+  it('rejects no-relay when the youtube reader is unconfigured', async () => {
+    mockYoutubeReader({ isConfigured: false });
     const res = await StreamApi.resolveTarget(
       StreamerTarget.parse('mkbhd', { youtube: true }),
     );
     expect(res).toEqual({ ok: false, reason: 'no-relay' });
+  });
+
+  it('rejects not-live when the youtube channel is not streaming', async () => {
+    mockYoutubeReader({
+      isConfigured: true,
+      resolveChannel: async () => 'not-live',
+    });
+    const res = await StreamApi.resolveTarget(
+      StreamerTarget.parse('offline', { youtube: true }),
+    );
+    expect(res).toEqual({ ok: false, reason: 'not-live' });
   });
 
   it('passes a parse rejection straight through', async () => {
@@ -103,5 +147,26 @@ describe('StreamLogic.post (via StreamApi)', () => {
     const speaker = {} as Stuff;
     const res = await StreamApi.post(speaker, 'youtube', 'mkbhd', 'hi');
     expect(res).toEqual({ ok: false, reason: 'read-only' });
+  });
+});
+
+describe('StreamLogic.resolveYoutubeChannelId (watch embed, via StreamApi)', () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it('resolves an @handle to a channelId when configured', async () => {
+    mockYoutubeReader({
+      isConfigured: true,
+      resolveChannelId: async () => 'UC-resolved',
+    });
+    const res = await StreamApi.resolveYoutubeChannelId('@mkbhd');
+    expect(res).toEqual({ ok: true, channelId: 'UC-resolved' });
+  });
+
+  it('reports no-relay when the reader is unconfigured', async () => {
+    mockYoutubeReader({ isConfigured: false });
+    const res = await StreamApi.resolveYoutubeChannelId('@mkbhd');
+    expect(res).toEqual({ ok: false, reason: 'no-relay' });
   });
 });

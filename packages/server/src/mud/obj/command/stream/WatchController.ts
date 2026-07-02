@@ -101,16 +101,22 @@ export default class WatchController extends CommandController<WatchModel> {
       return;
     }
 
-    // URL / handle form — resolve the embed shape (no external call).
-    const embed = this.embedFor(parsed);
+    // URL / handle form — resolve the embed shape (no external call), except
+    // a bare YouTube @handle which resolves to a durable channelId via the
+    // reader credential (D4=(c)).
+    let embed = this.embedFor(parsed);
     if (embed === 'youtube-handle') {
-      // Bare YouTube @handle embed needs the P3 reader/resolver.
-      return this.fail(
-        context,
-        'Give a YouTube URL or video id (bare @handle watching lands with ' +
-          'the YouTube reader).',
-        'youtube-handle-deferred',
-      );
+      const r = await StreamApi.resolveYoutubeChannelId(parsed.identifier);
+      if (!r.ok) {
+        return this.fail(
+          context,
+          r.reason === 'no-relay'
+            ? "Give a YouTube URL or video id — the YouTube reader isn't configured."
+            : 'No YouTube channel by that handle.',
+          r.reason,
+        );
+      }
+      embed = { platform: 'youtube', channelId: r.channelId };
     }
     this.setWatch(host, context, embed);
 

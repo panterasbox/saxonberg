@@ -68,6 +68,11 @@ export type TuneResult =
   | { ok: true; service: 'twitch' | 'youtube'; handle: string }
   | { ok: false; reason: TuneReason };
 
+/** Outcome of resolving a YouTube `@handle`/`UC…` to its channelId (watch). */
+export type YoutubeChannelResult =
+  | { ok: true; channelId: string }
+  | { ok: false; reason: 'no-relay' | 'unknown-target' };
+
 /** Outcome of an untune. */
 export type UntuneResult = {
   ok: boolean;
@@ -170,10 +175,30 @@ export class StreamApi {
 
   /**
    * Drop a player from every tuned channel (logout). Returns the channels
-   * that emptied — each backend reader unsubscribes its own service's keys.
+   * that emptied — each is unsubscribed on its transport.
    */
   static dropPlayer(playerId: string): Promise<RelayChannelRef[]> {
     return logic().dropPlayer(playerId);
+  }
+
+  /**
+   * Drop an entire channel (a YouTube stream ended) and notice the tuned-in
+   * players. The backend reader calls this from its stream-end detection.
+   */
+  static dropChannel(
+    service: 'twitch' | 'youtube',
+    key: string,
+  ): Promise<void> {
+    return logic().dropChannel(service, key);
+  }
+
+  /**
+   * Resolve a YouTube `@handle` / `UC…` to its channelId — the durable
+   * `watch` embed target (`live_stream?channel=`). Reuses the P3 reader
+   * credential; reader-unconfigured → `no-relay`.
+   */
+  static resolveYoutubeChannelId(ref: string): Promise<YoutubeChannelResult> {
+    return logic().resolveYoutubeChannelId(ref);
   }
 
   /**
