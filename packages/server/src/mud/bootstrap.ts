@@ -202,16 +202,19 @@ export const bootstrapManifest: BootstrapEntry[] = [
   // nothing instantiates the cascade root and the network never stands up.
   { templatePath: '/domain/lounge/terminal' },
   // Terminus TPA terminals — the transit hub's network-resident singletons.
-  // Unlike the lounge root, the three departure terminals are never route
-  // TARGETS, so nothing cascade-loads them; without these entries
-  // `findReachable` never sees a departure terminal for a player standing in
-  // the gate room. Each terminal's `postRegister → seatSelf` stands up its
-  // gate room, and the arrival-gate's `applyExits` cascade pulls the hall →
-  // the other gate rooms + office (the rooms need no entries). The arrival
-  // terminal entry is strictly redundant (it cascade-loads as the lounge
-  // route target after Phase 6) but keeps the four-terminal set uniform and
-  // standup independent of lounge routing.
-  { templatePath: '/domain/terminus/terminal/arrival-terminal' },
+  // The three DEPARTURE terminals are never route TARGETS, so nothing
+  // cascade-loads them; without these entries `findReachable` never sees a
+  // departure terminal for a player standing in the gate room. Each terminal's
+  // `postRegister → seatSelf` stands up its gate room; the departure gates
+  // stand up their own rooms, and the ARRIVAL terminal (below) anchors the
+  // hall cascade (hall → office). The arrival terminal is deliberately NOT a
+  // manifest entry: it is a route target of the lounge terminal (the eager
+  // root, cloned first), whose `armNetwork` cascade-loads it via
+  // `StuffApi.singleton` — an arrival-terminal manifest entry would then try to
+  // `clone` an already-live singleton and throw (BootstrapManager clones each
+  // entry). Its arrival-gate room's `north`→hall exit still pulls the hall +
+  // office, so all six rooms stand up. (Caught at live boot; the plan's
+  // "list it for uniformity" note predated the Phase-6 lounge→arrival repoint.)
   { templatePath: '/domain/terminus/terminal/departure-terminal-a' },
   { templatePath: '/domain/terminus/terminal/departure-terminal-b' },
   { templatePath: '/domain/terminus/terminal/departure-terminal-c' },
