@@ -1,5 +1,11 @@
 # Alignment & religion slate
 
+> **⚠ SUPERSEDED (2026-07-01) by
+> [builds/alignment-slate.md](../builds/alignment-slate.md).** The matured
+> design lives there — two asymmetric axes, pantheon-as-legend, the mirror, and
+> the `Faction` primitive. This doc is kept only for its early intuitions and
+> the reconciliation history below; **design from the build slate.**
+
 > **Status: VERY preliminary — RPG-layer, deferred.** Captured because
 > char-gen is the right time to think about identity. Alignment rides the
 > **advancement / chronicle-readout layer**, so the real design waits for that.
