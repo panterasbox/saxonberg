@@ -157,4 +157,41 @@ describe("Terminus content standup (real seeds)", () => {
     expect(dests).toContain("/domain/eternal/university-avenue/plaza");
     expect(dests).toContain("/domain/terminus/terminal/hall");
   });
+
+  it("declares every intra-zone connection explicitly on both sides", async () => {
+    await boot();
+    const HALL = "/domain/terminus/terminal/hall";
+    // Each neighbour's OWN template declares its explicit exit back to the hall
+    // (getExits() is the explicit map — grid-derived exits aren't in it). The
+    // template is self-describing: read the room, know what it connects to.
+    const backExit: Record<string, string> = {
+      "/domain/terminus/terminal/arrival-gate": "north",
+      "/domain/terminus/terminal/departure-gate-a": "west",
+      "/domain/terminus/terminal/departure-gate-b": "east",
+      "/domain/terminus/terminal/departure-gate-c": "south",
+      "/domain/terminus/terminal/office": "down",
+    };
+    for (const [room, dir] of Object.entries(backExit)) {
+      const exits = explicitExits(StuffApi.findByTemplatePath(room)!);
+      expect(exits.get(dir)?.getDestinationTemplatePath()).toBe(HALL);
+    }
+    // And the hall declares all five of its own doorways explicitly.
+    const hallExits = explicitExits(StuffApi.findByTemplatePath(HALL)!);
+    const hallDests = [...hallExits.values()].map((e) =>
+      e.getDestinationTemplatePath(),
+    );
+    for (const room of Object.keys(backExit)) {
+      expect(hallDests).toContain(room);
+    }
+  });
 });
+
+function explicitExits(
+  room: Stuff,
+): Map<string, { getDestinationTemplatePath(): string | null }> {
+  return (
+    room as unknown as {
+      getExits(): Map<string, { getDestinationTemplatePath(): string | null }>;
+    }
+  ).getExits();
+}

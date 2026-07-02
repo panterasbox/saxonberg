@@ -1,8 +1,8 @@
 # Terminus Terminal — the ticket office. A raised mezzanine overlooking the
-# hall, reached by the iron stair (the hall's `up` exit auto-installs the
-# `down` back-exit). The terminal clerk works here; `populates` stands the
-# clerk NPC up on hydrate, and the clerk's postRegister stands up the
-# city-budget Business (Phase 4). Generic room.
+# hall, reached by the iron stair (the hall lies one cell down; the `down`
+# exit is declared explicitly here, the `up` on the hall). The terminal clerk
+# works here; `populates` stands the clerk NPC up on hydrate, and the clerk's
+# postRegister stands up the city-budget Business (Phase 4). Generic room.
 class: /lib/location/CartesianLocation
 hydratorClass: /lib/persistence/PersistentHydrator
 data:
@@ -14,6 +14,9 @@ data:
     x: 0
     y: 0
     z: 1
+  exits:
+    down:
+      destination: /domain/terminus/terminal/hall
   populates:
     - /domain/terminus/terminal/clerk
   details:

@@ -1,7 +1,7 @@
 # Terminus Terminal — Departure Gate C (out of service). One of two dead
 # gates: authored-static out-of-service content (D8). Its terminal shows a
-# grey status light and refuses travel. Generic room. The back-exit to the
-# hall is auto-installed by the hall's north exit.
+# grey status light and refuses travel. Generic room; connections declared
+# explicitly on both sides — the hall lies one cell south.
 class: /lib/location/CartesianLocation
 hydratorClass: /lib/persistence/PersistentHydrator
 data:
@@ -13,6 +13,9 @@ data:
     x: 0
     y: 1
     z: 0
+  exits:
+    south:
+      destination: /domain/terminus/terminal/hall
   details:
     notice:
       keywords: [notice, sign, barrier, cordon]

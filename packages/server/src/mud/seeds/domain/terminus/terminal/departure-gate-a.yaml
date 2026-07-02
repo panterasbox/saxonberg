@@ -1,7 +1,8 @@
 # Terminus Terminal — Departure Gate A (operational). The one working gate:
 # its terminal runs the free return to the lounge and the paid line out to the
-# newbie-wilds crossroads. The west back-exit to the hall is auto-installed by
-# the hall's east exit. Generic room.
+# newbie-wilds crossroads. Generic room. Every connection is declared
+# explicitly on both sides (the template is self-describing): the hall lies one
+# cell west.
 class: /lib/location/CartesianLocation
 hydratorClass: /lib/persistence/PersistentHydrator
 data:
@@ -13,6 +14,9 @@ data:
     x: 1
     y: 0
     z: 0
+  exits:
+    west:
+      destination: /domain/terminus/terminal/hall
   details:
     rail:
       keywords: [rail, railing, platform]
