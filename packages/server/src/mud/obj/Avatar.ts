@@ -100,6 +100,7 @@ export default class Avatar extends AvatarBase {
       "author/player.yaml",
       "perception/analyze.yaml",
       "social/subject.yaml",
+      "shell/script.yaml",
     ],
     environment: [],
     inventory: [],

@@ -84,6 +84,13 @@ export class CommandDefinition {
    * `this.args`. Schema-enforced: the flag REQUIRES both fields.
    */
   public readonly fallthrough: boolean;
+  /**
+   * Default async-dispatch mode for this verb (default `false`). When
+   * `true`, `CommandGiverMixin._executeOne` detaches the controller body
+   * from the giver's own input chain at accept-time. Overridden
+   * per-invocation by the reserved `--async` / `--sync` flags.
+   */
+  public readonly async: boolean;
   public readonly verbOptions: Record<string, OptionDefinition>;
   /**
    * Structured-form-only fields. Populated exclusively through
@@ -115,6 +122,7 @@ export class CommandDefinition {
     this.args = view.args || [];
     this.subcommands = view.subcommands || {};
     this.fallthrough = view.fallthrough === true;
+    this.async = view.async === true;
     this.verbOptions = normaliseOptions(view.options);
     this.payload = normaliseOptions(view.payload);
     this.validators = view.validators ?? [];
@@ -264,6 +272,7 @@ export class CommandDefinition {
     }
 
     validateFieldNameUniqueness(this);
+    validateReservedFlagNames(this);
   }
 
   /**
@@ -700,6 +709,41 @@ function validateCardinality(
     throw new Error(
       `${filePath} (${scope}.${fname}): cardinality is not valid on type='object' (implicit { exactly: 1 })`
     );
+  }
+}
+
+/**
+ * `--async` / `--sync` are reserved framework flags (parsed ahead of
+ * per-command option binding — see `CommandLogic.assemble`). A command
+ * that declared an option, option-`field`, or positional named `async`
+ * or `sync` would have that token silently swallowed by the reserved-flag
+ * interceptor, never reaching its binder. Fail such a definition at load
+ * so the collision surfaces at boot, not as a mystery at dispatch.
+ */
+function validateReservedFlagNames(def: CommandDefinition): void {
+  const RESERVED = new Set(['async', 'sync']);
+  const check = (name: string | undefined, where: string): void => {
+    if (name !== undefined && RESERVED.has(name)) {
+      throw new Error(
+        `name "${name}" is a reserved framework flag (--async / --sync) and cannot be used as ${where} in ${def.filePath}`
+      );
+    }
+  };
+  const checkOptions = (
+    opts: Record<string, OptionDefinition>,
+    where: string
+  ): void => {
+    for (const [name, opt] of Object.entries(opts)) {
+      check(name, `an option name (${where})`);
+      check(opt.field, `an option field (${where})`);
+    }
+  };
+  for (const a of def.args) check(a.name, 'a positional arg');
+  checkOptions(def.verbOptions, 'verb');
+  checkOptions(def.payload, 'payload');
+  for (const [subName, sub] of Object.entries(def.subcommands)) {
+    checkOptions(sub.options ?? {}, `subcommand "${subName}"`);
+    for (const a of sub.args ?? []) check(a.name, `subcommand "${subName}" arg`);
   }
 }
 

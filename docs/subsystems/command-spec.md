@@ -85,6 +85,32 @@ options:                      # optional; verb-scoped
 A zero-arg verb (e.g. `inventory`, `ping`) has neither `args` nor
 `subcommands` — that's fine.
 
+### `async:` — detach the controller from the giver's input chain
+
+An optional top-level `async: true` (default `false`) makes the verb
+run **async**: its controller body detaches from the giver's own input
+chain at accept-time, so the giver's prompt frees immediately and the
+single dispatch-response envelope fires late. See
+[command-routing.md § Async dispatch](./command-routing.md#async-dispatch--detaching-the-controller-body)
+for the mechanism. Two things to know as an author:
+
+- **Sync (the default) is already per-giver, never global.** A sync
+  command blocks only the giver's own next command, not other players'
+  input. You don't need `async` to avoid stalling the room — only to
+  free the *giver's own* prompt while a long command of theirs runs.
+- **Async output arrives out of order** — the controller's Scene lands
+  *after* the prompt is back. So `async: true` is only for commands
+  where that's acceptable (a long script, a background job) — **never a
+  command whose value is an immediate in-place response** like `look`.
+
+A player overrides the verb default per invocation with the reserved
+framework flags **`--async`** / **`--sync`**, recognized on any verb
+(you declare nothing). The names `async` and `sync` are therefore
+reserved: using either as an option or arg name is a load-time error.
+`async` is *not* the engagement framework — a durative in-world action
+with slots / cancel / abort uses `SchedulerApi` (see
+[activity.md](./activity.md)), for which `async` is a no-op.
+
 ## Help content — `description` / `help` / `examples`
 
 Three authored fields feed the in-game `help` browser
