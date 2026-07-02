@@ -80,6 +80,18 @@ live. (Houses may persist as alumni networks, but their home is the campus.)
 
 ## Guild — the class system (deferred)
 
+> **The guild design now lives in
+> [advancement-slate § Guilds](../builds/advancement-slate.md) + § Declared
+> focus** — reframed as an **institution *over* the Discipline Catalog** (map
+> vs institution; no hardcoded class — guilds *are* the class system,
+> emergent from membership + earned disciplines) whose core mechanic is
+> **declared focus = deliberate practice** (joining declares a focus that
+> makes those disciplines learn *faster* — a gradient, not the old
+> unlock-*gate* — via a focus-tagged Transcript, honesty firewall intact).
+> This section's "class taxonomy + ladder" sketch is superseded by that.
+> The **form / join / earn** wall: you *form* a party, *join* a guild, *earn*
+> standing with a corp.
+
 - **Two structures**, both authorable hierarchies like our species/biome
   trees:
   1. **A class taxonomy** (tree): broad class (Fighter) → specializations;
@@ -96,6 +108,18 @@ live. (Houses may persist as alumni networks, but their home is the campus.)
 - Deferred with [capability-magic](../deferred-rpg/capability-magic-slate.md).
 
 ## Corp — the competition overlay (deferred)
+
+> **Settled since this sketch:** corp is a **conduct-driven multipolar
+> approval *standing*, NOT a membership** (you don't *join* a corp — every
+> corp regards you, moved by conduct; see
+> [corpos-slate § the approval vector](../builds/corpos-slate.md), Phase 1
+> shipped as the mark substrate → [corpo.md](../../subsystems/corpo.md)). The
+> "joined branch" framing below is superseded — allegiance is *employment +
+> the resulting standing*. The full player-axis is now **closed** in
+> [corpos-slate Phase 2](../builds/corpos-slate.md): the standing-vector;
+> competition over **market + prestige** (not territory — that's the polity);
+> venues marked by ownership, **people by standing** (not a brand-stamp);
+> prosocial-by-construction; player-founded corps deferred.
 
 - An **orthogonal allegiance axis** (the EVE model): the *same* org exists as
   multiple **corp-branded branches**, and your corp affiliation sets which

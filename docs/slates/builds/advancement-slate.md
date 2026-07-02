@@ -362,6 +362,83 @@ grants *access* and *unlocks verbs*, never bumps a number.
   [spoiler](../deferred-rpg/spoiler-slate.md) thread, at the cost of
   fragmenting the shared map. *Open.*
 
+## Declared focus — deliberate practice, the honest heir to the guild-unlock
+
+The classic MUD guild *gated* which skills you could train (a hard
+can/can't). This model keeps "your guild means something" and drops the
+gate: **joining a guild that claims a region of the map declares that region
+your *focus*, and focus makes those disciplines learn *faster* — a gradient,
+not a gate.** You can learn anything; focus just bends the curve toward your
+craft. It's the positive expression of the *Open* resolution above — guilds
+don't hoard knowledge, they *accelerate* their region.
+
+**What "learn faster" honestly means.** Not XP (there is none), not a
+competence bump (derived-on-read, never stored). Declaring a focus turns
+those disciplines into **deliberate practice** — a higher learning-rate —
+while everything else stays *incidental practice*. Real pedagogy, not a
+fudge: **ZPD (difficulty-gated learning, already in the estimator) + focused
+attention = the textbook definition of deliberate practice.** The two pieces
+we already have compose into the actual phenomenon that builds expertise.
+
+**The honest engine — the focus-tagged Transcript.** Each `TranscriptEntry`
+carries a **frozen focus-context** stamped at append: which focus you held,
+at what commitment-depth, *when you did the act*. Competence-on-read applies
+a **tunable deliberate-practice modulation** to it (a focused-at-ZPD entry
+moves the Bayesian estimate more than an incidental one). Three properties
+keep it honest:
+
+- **Immutable & prospective** — the tag reflects the focus held *at the
+  moment of the act*, frozen forever. Drop the guild later and past
+  deliberate reps stay deliberate; join later and only *future* acts tag.
+  **You can never retroactively re-focus your history** — the anti-gaming
+  spine.
+- **Frozen facts, tunable formula** — the entry stores the *facts* (focus +
+  commitment) frozen; how much deliberate practice *helps* is a tunable
+  read-time parameter (like the other BKT dials). Never fabricates a fact.
+- **Never a number** — the modulation happens *inside* the derive, before
+  banding. Focus surfaces only as reaching the next band sooner — felt as
+  faster band-progress + the
+  [odometer](../deferred-rpg/odometer-slate.md) concentrating in your focus
+  area, never as "1.7×."
+
+**Why it doesn't break the firewall.** Competence stays a pure function of
+the Transcript — just a *richer* Transcript recording a true property of
+each act. Two players with "the same acts" don't have identical Transcripts
+(their focus-tags differ), and that difference reflects a real difference in
+*how they practiced*. No injected evidence, no stored bump; every competence
+point still traces to a real graded act.
+
+**The one slippery point — and its defense.** "Deliberateness" is
+operationalized as "held a declared focus" — a *proxy* for cognitive
+engagement (unmeasurable directly). Defended by: the declaration has real
+costs (admission / dues / opportunity-cost); the bonus **ramps with
+sustained commitment** (a momentary flag gains almost nothing); and it only
+ever *weights real evidence* (focus can't manufacture a Transcript entry).
+The worst you can do is slightly accelerate learning you're genuinely doing
+— the intended effect.
+
+**Specialization via depth-scarcity (no artificial budget).** The bonus
+**ramps with commitment/rank** — declaring is modest, deepening
+(apprentice→master) is more — and depth requires real accumulated evidence
+(**time**). So you dabble in many guilds (shallow foci) but master few (deep
+foci): specialization emerges from the *time-cost of depth*, not a slot
+count. And **focus is a bonus, never a penalty** — un-focused disciplines
+learn at the honest incidental baseline, never slowed (capacity-not-decay).
+The ramp does **double duty**: it makes depth scarce *and* it defeats
+focus-swapping (switching resets the ramp, so per-act swaps gain nothing).
+
+**Deliberate context stacks (the venue/mentors get a mechanical job).**
+Declared focus alone is the floor (learn your focus faster *anywhere*).
+Practicing in a genuinely deliberate context — the guild's **venue**, a
+**mentor** holding you at your ZPD, sanctioned challenges — deepens the
+deliberateness and stacks more. So the guild's access-affordances aren't
+separate flavor: **using them is how you cash a declared focus into faster
+learning.** The focus declaration and the venue/mentors are one loop.
+
+**Per-discipline clamp** — deliberateness is capped per discipline, so two
+guilds whose regions overlap on a discipline don't multiply the bonus; you
+get that discipline's focus once, capped.
+
 ## Three orthogonal social axes — the wall that keeps guild ≠ party
 
 A guild must **not** become a stand-in for a party. Keeping three axes
@@ -373,6 +450,12 @@ orthogonal is the mechanism:
   **complementarity** (fighter + botanist + face). Aligns on a **venture**.
 - **Corp / faction / house** — *cross-cutting* loyalty or sponsorship,
   spanning disciplines.
+
+In one word each: you **form** a party, **join** a guild, and **earn**
+standing with a corp — corp being a conduct-driven multipolar *standing*,
+**not** a membership (see [corpos-slate](./corpos-slate.md)). Form / join /
+earn — three different *kinds* of relationship, which is why they can't
+collapse into each other.
 
 If guilds are disciplinary verticals and parties *demand* complementarity,
 a party **structurally cannot** collapse into a guild. "A party aligned on

@@ -193,7 +193,17 @@ keeps NPCs honest: **merchants are bounded, not infinite.** A merchant
 buying ore runs low on coin; a baker runs out of bread until resupplied.
 NPC commerce is a *participant* in the loop, not a money printer or an
 infinite sink — the opposite of the classic MUD shop with infinite
-stock and infinite coin at fixed prices.
+stock and infinite coin at fixed prices. Two conservation-clean shop
+models fall out, and the *default* matters: a **bounded merchant** buys and
+sells with real, finite coin (won't pay for junk it can't resell — the
+solvency filter *is* the anti-vendor-trash rule), and a **consignment /
+broker** lists your goods for a commission and **never buys** (zero capital,
+no faucet). Consignment is the safe way to "sell to a shop" — because the
+one thing that invites arbitrage and the vendor-trash faucet is a shop that
+*buys at a fixed price*, so the default shop **sells and brokers, it does
+not fixed-price-buy.** The conservation constraint isn't a limit on shops;
+it's what makes worthless swords *stay* worthless — no shop can pay real
+coin for what has no buyer.
 
 ### 4. Entropy (the sink)
 
@@ -482,6 +492,38 @@ same decision seen from both ends: get the physics honest and the
 
 ---
 
+## Corpo retail — producers, franchisers, and the market arena
+
+The commercial-banking pattern above (banks are corpo-run; choosing one is a
+standing corpo-affiliation) has a **retail twin**, and it's where the corpo
+market-competition ([corpos-slate](./corpos-slate.md) Phase 2, now designed)
+actually plays out:
+
+- **Corpos are the producers / wholesalers.** They manufacture the branded
+  goods the shops sell (the mark — Volk, Vionne Noir, aevex augments). The
+  corpo is *upstream* (production at scale); the shop is *downstream*
+  (retail).
+- **Corpos franchise retail outlets.** A corpo charters / funds / brands a
+  shop (a "Hollis Mart") — the corp-sponsorship mechanic pointed at retail.
+  This is also the **capital on-ramp** to running a merchant shop: the corpo
+  fronts capital + inventory + brand, the operator (player or NPC) fronts the
+  labor, they split the margin — solving "how does a broke player stock a
+  shop." Running a franchise **raises your standing with that corpo** (and
+  tanks its rival's) — the retail twin of "your bank is a corpo-affiliation."
+- **Shops are the corpo-competition arena.** "Whose franchises win the
+  street's consumers" *is* the market-share competition from the corpo
+  closure. Hollis Marts vs. Vionne boutiques contesting the same shoppers —
+  the rivalry made concrete and visible in the bazaar, not asserted.
+
+None of this mints: franchise capital, wholesale purchases, and retail sales
+are all transfers (the corpo's real budget → inventory → consumer coin →
+back). The corpo is a **bounded participant** (the *Circulation* rule) at
+production scale, never a faucet. Player-founded corpos that could *be*
+franchisers are the deferred apex; v1 = the authored corpos supply and
+franchise, players and NPCs operate the outlets.
+
+---
+
 ## Employment & economic engagement
 
 The diegetic concept is plain: **a business needs labor, and labor is
@@ -734,6 +776,29 @@ game with real players to measure:
   the **denomination ceiling** (the cash-disincentive dial); and whether to
   lean into an off-books **grey market** as gameplay (smuggling/tax-dodging)
   or leave it inert friction.
+- **Capital markets — securities, the corpo stock exchange, monetary policy
+  as a lever.** Explored and **deliberately deferred behind a working retail
+  economy.** A capital market is a **derivative** — it prices claims on an
+  underlying (a corpo's real earnings), so the underlying must *exist and
+  produce observable value first*, or it's a **casino by construction**
+  (price detached from fundamentals = pure zero-sum speculation, "robbing
+  Peter to pay Paul" with no work done in between). That's also the
+  real-world order — millennia of trade + banking before the ~1600s
+  joint-stock exchange, and **debt before equity.** So the sequence: get the
+  **retail economy circulating money productively on its own** (labor →
+  consume → corpos produce & compete → *visible earnings*) → **then** the
+  fundamentals exist to price. When it comes: **bonds before equity** (the
+  simpler, less-speculative stepping stone); the market stays
+  **fundamentals-anchored** (dividends the primary return; price tethered to
+  visible corpo performance — the exchange is a *derivative of the retail
+  marketplace*) and **optional depth** (never the *only* capital source —
+  corpos also fund from retained earnings + reserve allocation); and it's the
+  **macro layer the reserve / CB-Governor operates** as monetary-policy
+  transmission (extending *Wages as monetary policy* above — idle savings →
+  productive investment; a liquidity absorber; the mint/drain + a deposit
+  rate as the dials). Player-founded corpo IPOs are the apex of the apex.
+  Stays conserved throughout (every trade a transfer; the reserve the only
+  mint) — but it is the **last** economic layer to build, not the first.
 
 The throughline: **build the honest substrate, tune the balance against
 reality.** Or, in the user's framing — you need a real game to solve the
