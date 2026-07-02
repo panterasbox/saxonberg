@@ -50,14 +50,14 @@ content-pack ↔ mod line* below.
 - [app-settings.md](../../subsystems/app-settings.md) — the
   `seed-missing` reconcile exception: operator-tunable config where the
   DB wins after first seed, the counter-case to file-is-truth.
-- [provenance-slate.md](./provenance-slate.md) — the **sibling
+- [provenance-slate.md](../builds/provenance-slate.md) — the **sibling
   substrate**, not a duplicate. Provenance owns *authorship* (who wrote
   a thing → producer credit) and the in-runtime VCS for *live* content.
   Content packs own the *build-time* delivery of *bundled, kernel-shipped*
   content. The `sourcePack` stamp here is a thin precursor to provenance's
   attribution; the deferred *round-trip* lane (edit-in-game → export to
   pack) is where the two meet. Content packs do **not** wait on provenance.
-- [cms-slate.md](./cms-slate.md) — the authoring surfaces over the
+- [cms-slate.md](../builds/cms-slate.md) — the authoring surfaces over the
   `source` / `template` backends and the "git is a thin VC overlay on
   **one** repo — **mods maybe the lone future exception**" position.
   Content-packs-as-separate-repos **is** that flagged exception, now

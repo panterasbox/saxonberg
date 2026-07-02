@@ -300,5 +300,5 @@ the room you sleep in.
 - Staging: `eternal-university/experiences/sealed-room.md` (Dunny's frozen room),
   `eternal-university/npcs/property-manager.md` (Katie's manifest = the allocator
   face), and the cast Carries (the soul source).
-- [species-expansion-slate](./species-expansion-slate.md) (the proc-gen NPC's
+- [species-expansion-slate](../tails/species-expansion-slate.md) (the proc-gen NPC's
   species/persona feeds their half).

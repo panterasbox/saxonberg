@@ -28,7 +28,7 @@ where **domesticability** lives) ·
 Related slates:
 [npc-behavior-slate](./npc-behavior-slate.md) (a pet is an *owned NPC*; tameable
 fauna are Character-tier carves) ·
-[species-expansion-slate](./species-expansion-slate.md) (pet/animal species are carves) ·
+[species-expansion-slate](../tails/species-expansion-slate.md) (pet/animal species are carves) ·
 [dorm-warren-slate](./dorm-warren-slate.md) (where a pet lives) ·
 [reputation-slate](./reputation-slate.md) (regard, scoped to the animal) ·
 [provenance-slate](./provenance-slate.md) (authorship — *not* the possession gap this surfaces) ·

@@ -103,7 +103,7 @@ before it goes predictable.
 ## Why this is the who-counts canvas, not just flavor
 
 The EU arc's engine is **personhood / who-counts** (see
-[eternal-university-narrative-slate.md](./eternal-university-narrative-slate.md)
+[eternal-university-narrative-slate.md](../builds/eternal-university-narrative-slate.md)
 §5, §7). A world of many *kinds* of person is the canvas that question is painted
 on — so the **highest-value casts carry a recognizable persona *and* press on
 "what is one person?"** They earn their keep twice. The standouts (all
@@ -238,6 +238,6 @@ just a name (see a seed like `homo/sensitivus.yaml`, `tutor-bot/mk-iv.yaml`):
 ---
 
 *See also:* [race.md](../../subsystems/race.md) (the built substrate) ·
-[eternal-university-narrative-slate.md](./eternal-university-narrative-slate.md)
+[eternal-university-narrative-slate.md](../builds/eternal-university-narrative-slate.md)
 (the who-counts engine the diversity serves) · the character sheets under
 `docs/staging/eternal-university/npcs/` (the `Species` casting slot in action).

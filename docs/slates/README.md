@@ -72,7 +72,12 @@ moving to `tails/` with only Wave 4 + the message-restyle wiring left.
 - [reputation-slate](./builds/reputation-slate.md) — charisma-as-**measured-influence**
   (regard / renown / susceptibility), notoriety as the signed twin that
   pierces disguise, per-circle scoping. The platform's "value as physics,
-  not RPG" answer to CHA. **Game-design, deferred.**
+  not RPG" answer to CHA. **Measurement substrate SHIPPED** — regard
+  ([belief.md](../subsystems/belief.md) regard realm), [renown.md](../subsystems/renown.md),
+  [participation.md](../subsystems/participation.md), [influence.md](../subsystems/influence.md).
+  Kept in `builds/` for the deferred **charisma/notoriety game layer**
+  (susceptibility, the disguise-counterweight, NPC consumers, eigenvector
+  trust-weighting) — game-design, not a tail.
 - [forums-slate](./builds/forums-slate.md) — durable multi-author boards on
   the aether implant, unifying **popularity forums + structured-argument
   deliberation as two organizers over one primitive** (`organizer:
@@ -148,8 +153,16 @@ continues with the content + navigation layers on top:
 - [authoring-intelligence-slate](./builds/authoring-intelligence-slate.md) — compiled `.d.ts` type surface + LSP for authors.
 - [compile-diagnostics-slate](./builds/compile-diagnostics-slate.md) — in-editor compile diagnostics.
 - [scoped-authoring-slate](./builds/scoped-authoring-slate.md) — personal / scoped authoring permissions.
+- [provenance-slate](./builds/provenance-slate.md) — the authorship substrate bridging
+  authoring (this build) and **producer influence** (§9): ownership + attribution +
+  dependency-DAG credit + an in-runtime VCS. **First brick SHIPPED** — the append-only
+  `AuthoringEvent` ledger + context-derived author → [provenance.md](../subsystems/provenance.md)
+  (the producer faucet's routing input). Kept in `builds/` for the build-sized remainder
+  (the dependency-DAG credit graph, git-in-runtime VCS, the author≠owner un-fusing that
+  [property](./builds/property-slate.md) consumes).
 
-**Phases:** type surface + diagnostics → CMS editor core → scoped authoring.
+**Phases:** type surface + diagnostics → CMS editor core → scoped authoring · provenance
+(first brick shipped → the DAG + VCS deferred).
 
 > The former verb-provisioning slate is retired — its one durable idea
 > (a verb may be afforded by many source objects; the source is the
@@ -273,11 +286,14 @@ closes economy's open "deliberate faucet without inflation" thread.
 *Learning as a science — how a character grows.* The **game-system** half
 of "learning as adventure": advancement modeled so it *feels* like real
 learning even when it's the character doing the studying, not the player.
-New substrate; no shipped subsystem (though ~40% of the supporting pieces —
-Reserve, Activity, affordance attribution, Persona, templatePath keying,
-zones/access — already ship). The hard constraint: **a character must be
-able to advance without ever entering a classroom** — a real RPG first,
-the academic vertical optional fuel.
+**First slice SHIPPED** — the measurement substrate (Catalog / Transcript /
+derived Competence) graduated to [advancement.md](../subsystems/advancement.md),
+and the personality layer to [trait.md](../subsystems/trait.md). Kept in
+`builds/` for the deferred build-sized remainder (guilds-as-institutions,
+the player-extensible content-graph + governed canonization, the
+education-vertical sensor bridge, estimator tuning). The hard constraint:
+**a character must be able to advance without ever entering a classroom**
+— a real RPG first, the academic vertical optional fuel.
 - [advancement-slate](./builds/advancement-slate.md) — the build: gamify
   the **metacognition** of learning (the player coaches; the character does
   the rote), the six build-crafting translations of the XP-model's
@@ -332,6 +348,8 @@ extends; none is a fresh build.
 | [locomotion-as-activity](./tails/locomotion-as-activity-slate.md) | activity.md / locomotion.md | deferred activity wave |
 | [hand-slot](./tails/hand-slot-slate.md) | embodiment.md | hand-slot redesign |
 | [bulkable](./tails/bulkable-slate.md) | bulk.md | thermos slice shipped; deferred: mixing/solutions, gas (`sealed`), `Container`+`Bulkable`, amount-aware appearance |
+| [content-packs](./tails/content-packs-slate.md) | content-packs.md | **substrate + first packs shipped** (`PackApi` reconcile installer + base-library + species-and-names, incl. the first side-collection `name-banks` kind → content-packs.md); deferred: the other packs, retiring `SeederManager`, `seed-missing`, world packs, version machinery, round-trip/export, migrations, marketplace |
+| [species-expansion](./tails/species-expansion-slate.md) | race.md / content-packs.md | **substrate + first content pass shipped** (troll + ghoul NPC-first casts + the gnome/half-elf/orc playable + ogre/kobold/satyr data batch, on `feature/species-and-names-pack`); deferred: the deeper personhood casts (flesh-golem / doppelganger / zombie / synth — they want mechanics) + per-species playability |
 | [client-cockpit](./tails/client-cockpit-slate.md) | cockpit (several tracks shipped) | remaining client-track umbrella |
 | [language](./tails/language-slate.md) | comms / perception | comprehension; roleplay flavor |
 | [reactions](./tails/reactions-slate.md) | reactions.md / emotes | core shipped (act-scoped emote + aggregate-delta + `react` + chips); deferred: analytics event-tap, emote-flood salvage |
