@@ -1098,6 +1098,14 @@ export interface CommandView {
    * hi) still bind through the top-level args.
    */
   fallthrough?: boolean;
+  /**
+   * Default async-dispatch mode for this verb (default `false`). When
+   * `true`, the controller body detaches from the giver's own input
+   * chain at accept-time — see {@link AssembleSuccess.reservedAsync} for
+   * the per-invocation `--async` / `--sync` override and
+   * `command-routing.md` for the detach seam.
+   */
+  async?: boolean;
 }
 
 /**
@@ -1130,6 +1138,15 @@ export interface CommandSchemaPayload {
 export interface AssembleSuccess {
   model: CommandModel;
   prep?: Record<string, string>;
+  /**
+   * The reserved async-override flag consumed from the token stream, if
+   * any: `--async` / `--sync` (last wins). These are framework-reserved
+   * flags stripped ahead of per-command option binding, not per-command
+   * options — so they work on any verb. `undefined` = no override; the
+   * verb's `CommandDefinition.async` spec default applies. Consumed in
+   * `CommandGiverMixin._runChain` to compute the effective async mode.
+   */
+  reservedAsync?: 'async' | 'sync';
 }
 
 export type AssembleResult =

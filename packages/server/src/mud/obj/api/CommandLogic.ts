@@ -476,6 +476,12 @@ export class CommandLogic extends Idea {
     const fields: ModelData = {};
     let i = 1;
     let stopped = false;
+    // Reserved framework flags `--async` / `--sync` — stripped ahead of
+    // per-command option binding (the `--` stop-options precedent), so
+    // they work on any verb without it declaring an option. Last wins;
+    // never reach `bindOptionToken` (so no "unknown option" error).
+    // Only before the stop-options boundary; after `--` they're literals.
+    let reservedAsync: 'async' | 'sync' | undefined;
 
     // Phase 1: verb-scope options before any subcommand/positional.
     while (i < tokens.length) {
@@ -484,6 +490,11 @@ export class CommandLogic extends Idea {
       if (stopped) break;
       if (t.kind === 'stop-options') {
         stopped = true;
+        i++;
+        continue;
+      }
+      if (t.kind === 'long-flag' && (t.name === 'async' || t.name === 'sync')) {
+        reservedAsync = t.name;
         i++;
         continue;
       }
@@ -531,6 +542,15 @@ export class CommandLogic extends Idea {
       const t = tokens[i]!;
       if (!stopped && t.kind === 'stop-options') {
         stopped = true;
+        i++;
+        continue;
+      }
+      if (
+        !stopped &&
+        t.kind === 'long-flag' &&
+        (t.name === 'async' || t.name === 'sync')
+      ) {
+        reservedAsync = t.name;
         i++;
         continue;
       }
@@ -601,6 +621,7 @@ export class CommandLogic extends Idea {
 
     const out: AssembleSuccess = { model: fields };
     if (Object.keys(prep).length > 0) out.prep = prep;
+    if (reservedAsync !== undefined) out.reservedAsync = reservedAsync;
     return out;
   }
 

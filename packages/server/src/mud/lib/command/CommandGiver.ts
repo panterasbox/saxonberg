@@ -122,6 +122,88 @@ function proseForFrameworkNote(note: Note): string | null {
   }
 }
 
+/**
+ * Contexts whose dispatch-response envelope is fired by a *detached*
+ * async body (in `_executeOne`), not by `executeCommand`'s synchronous
+ * finish tail. Keyed on the claiming `CommandContext` — weak so a
+ * completed dispatch's ctx is collectable. No race: single-threaded, and
+ * the sync `has()` check in `executeCommand` runs before the detached
+ * run's microtask fires. Kept off the public `CommandContext` surface
+ * (member-privacy / export-discipline).
+ */
+const detachedContexts = new WeakSet<CommandContext>();
+
+/** Frame `target` marker for a detached async command body. */
+const ASYNC_BODY_TARGET = { module: 'CommandGiverMixin' } as const;
+
+/**
+ * Assemble + fire the single dispatch-response envelope for a completed
+ * dispatch (the finish tail extracted from `executeCommand`). Runs the
+ * framework-failure prose sweep, then sends the typed-note envelope +
+ * `prompt-refresh`. Behaviour-preserving for the sync path; for an async
+ * command the detached body calls this in its `finally` so the one
+ * (late) envelope carries the body's accumulated notes + final status.
+ */
+function emitDispatchResponse(ctx: CommandContext): void {
+  const giverAsStuff = ctx.commandGiver as unknown as Stuff;
+  // Framework-failure prose sweep: dispatcher / validator / MQL notes
+  // get an auto-rendered `system.command.error` scene so the player
+  // sees WHY without the client rendering envelopes. Controller-side
+  // notes are skipped (controllers fire their own scenes).
+  if (MixinApi.isSensor(giverAsStuff)) {
+    for (const note of ctx.getNotes()) {
+      const prose = proseForFrameworkNote(note);
+      if (prose === null) continue;
+      MessageApi.scene(giverAsStuff as Stuff & Sensor)
+        .topic('system.command.error')
+        .toSelf(Mml.compose`${prose}`)
+        .send();
+    }
+  }
+  // Every response carries a `prompt-refresh` note so the client's
+  // base-prompt area updates after every command.
+  const notes = [
+    ...ctx.getNotes(),
+    PromptApi.renderPromptRefresh(giverAsStuff),
+  ];
+  const envelopeTemplate: EnvelopeTemplate = {
+    type: 'dispatch-response',
+    dispatchId: ctx.commandId,
+    outcome: {
+      status: ctx.getStatus(),
+      notes,
+    },
+  };
+  if (MixinApi.isSensor(giverAsStuff)) {
+    MessageApi.sendEnvelope(giverAsStuff as Stuff & Sensor, envelopeTemplate);
+  }
+}
+
+/**
+ * Run a detached async command body under a fresh root frame, tagged as
+ * a Command frame carrying the originating dispatch's `CommandContext` +
+ * `causingCommandId`, so the body's Scenes stamp `commandId ==
+ * dispatchId` and `PromptApi` stays reachable (the planted `interactive`
+ * on `ctx`). Mirrors `ScheduleApi.planRun`'s runRoot + metadata pattern.
+ * Not awaited by the caller — that is the whole point (the giver's input
+ * chain frees at accept-time). ALS keeps the frame live across awaits.
+ */
+function runDetachedBody(
+  causingId: string,
+  ctx: CommandContext,
+  fn: () => Promise<void>
+): void {
+  void ExecutionContextApi.runRoot(ASYNC_BODY_TARGET, 'executeAsyncBody', () => {
+    ExecutionContextApi.tagCurrentFrame(FrameKind.Command);
+    ExecutionContextApi.updateCurrentFrameMetadata({
+      commandContext: ctx,
+      causingCommandId: causingId,
+      forced: false,
+    });
+    return fn();
+  });
+}
+
 /** Bucket of a recency-stack entry — categorical metadata, not ordering. */
 export type RecencyBucket = 'self' | 'inventory' | 'environment' | 'peers';
 
@@ -660,10 +742,13 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
               preloads,
             );
             if (!('result' in validated)) {
+              // Bound path carries no token stream, so no reserved flag —
+              // the spec default is the effective async mode.
               await this._executeOne(
                 parseResult.bound.command,
                 resolved.resolved,
-                outer
+                outer,
+                { async: parseResult.bound.command.async }
               );
             }
           }
@@ -717,56 +802,14 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
         }
       }
 
-      // Framework-failure prose sweep: each accumulated note that
-      // came from the dispatcher / validator / MQL framework gets
-      // an auto-rendered scene on `system.command.error` so a
-      // player typing a bad command sees WHY without needing the
-      // client to render envelopes. Controller-side notes
-      // (controller-rejected, mixin-missing, etc.) are skipped —
-      // controllers are expected to fire their own domain-specific
-      // scenes when they care to surface prose.
-      //
-      // Envelope vs. scene split: scene is the human channel
-      // (prose, MML), envelope is the machine channel (typed notes
-      // for bots / replay / scripting). Both fire here for
-      // framework failures so neither consumer is short-changed.
-      const giverAsStuff = outer.commandGiver as unknown as Stuff;
-      if (MixinApi.isSensor(giverAsStuff)) {
-        for (const note of claimingCtx.getNotes()) {
-          const prose = proseForFrameworkNote(note);
-          if (prose === null) continue;
-          MessageApi.scene(giverAsStuff as Stuff & Sensor)
-            .topic('system.command.error')
-            .toSelf(Mml.compose`${prose}`)
-            .send();
-        }
-      }
-
-      // Assemble the dispatch-response envelope template. No
-      // `frameId` — that's stamped per-Interactive at the wire
-      // delivery layer in `Application.sendEnvelopeToInteractive`.
-      // Sensor pipeline (Avatar.handleEnvelope) multiplexes the
-      // template to every connected Interactive.
-      //
-      // Every response carries a `prompt-refresh` Note rendered from
-      // the giver's `prompt.format` setting (default `{{ focus }}>`)
-      // so the client's base-prompt area updates after every command —
-      // the MUD-style refresh model. See
-      // `docs/subsystems/prompt.md` (Wave 7) for the full design.
-      const notes = [
-        ...claimingCtx.getNotes(),
-        PromptApi.renderPromptRefresh(giverAsStuff),
-      ];
-      const envelopeTemplate: EnvelopeTemplate = {
-        type: 'dispatch-response',
-        dispatchId: outer.commandId,
-        outcome: {
-          status: claimingCtx.getStatus(),
-          notes,
-        },
-      };
-      if (MixinApi.isSensor(giverAsStuff)) {
-        MessageApi.sendEnvelope(giverAsStuff as Stuff & Sensor, envelopeTemplate);
+      // Fire the dispatch-response envelope — assembling the framework-
+      // failure prose sweep + typed-note envelope + prompt-refresh (see
+      // `emitDispatchResponse`). EXCEPT when an async command detached
+      // its controller body in `_executeOne`: then the detached run owns
+      // firing the single (late) envelope once the body completes, so we
+      // fire nothing here at accept-time.
+      if (!detachedContexts.has(claimingCtx)) {
+        emitDispatchResponse(claimingCtx);
       }
     }
 
@@ -1016,7 +1059,14 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
           preloads,
         );
         if ('result' in validated) return attempt;
-        await this._executeOne(command, resolved.resolved, attempt);
+        // Effective async = per-invocation reserved flag over the verb's
+        // spec default. `--async`/`--sync` were stripped during assemble.
+        const effectiveAsync = built.reservedAsync
+          ? built.reservedAsync === 'async'
+          : command.async;
+        await this._executeOne(command, resolved.resolved, attempt, {
+          async: effectiveAsync,
+        });
         return attempt;
       }
       // Every match returned a shape error.
@@ -1042,8 +1092,12 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
     async _executeOne(
       command: CommandDefinition,
       model: CommandModel,
-      context: CommandContext
+      context: CommandContext,
+      opts?: { async?: boolean }
     ): Promise<void> {
+      // Controller resolution stays synchronous — a subcommand with no
+      // resolvable controller rejects here, never detaching a phantom
+      // body (and its envelope fires the normal sync way).
       const sub = (model as { subcommand?: string }).subcommand;
       const controllerName = sub
         ? command.controllerForSubcommand(sub)
@@ -1056,6 +1110,39 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
         });
         return;
       }
+
+      // Async: spawn the controller body detached (a fresh root frame,
+      // NOT awaited) so the giver's input chain frees at accept-time.
+      // The detached run owns firing the single (late) dispatch-response
+      // in its `finally` — a late throw still surfaces a user-visible
+      // `controller-error` envelope (never a silent log). `executeCommand`
+      // skips its finish tail for this ctx (the `detachedContexts` mark).
+      if (opts?.async) {
+        detachedContexts.add(context);
+        const causingId = context.commandId;
+        runDetachedBody(causingId, context, async () => {
+          let controller: CommandController | null = null;
+          try {
+            controller = await StuffApi.clone<CommandController>(
+              `/obj/command/${controllerName}`
+            );
+            await controller.execute(model, context);
+          } catch (error: unknown) {
+            const message =
+              error instanceof Error ? error.message : String(error);
+            context.note({
+              kind: 'controller-error',
+              controller: controllerName,
+              detail: message,
+            });
+          } finally {
+            if (controller) StuffApi.destruct(controller);
+            emitDispatchResponse(context);
+          }
+        });
+        return;
+      }
+
       let controller: CommandController | null = null;
       try {
         controller = await StuffApi.clone<CommandController>(

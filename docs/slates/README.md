@@ -317,6 +317,7 @@ extends; none is a fresh build.
 | [external-chat-relay](./tails/external-chat-relay-slate.md) | twitch-relay.md | **Twitch SHIPPED** (two-way chat relay, separate player-initiated surface) → twitch-relay.md; slate retained for the deferred **YouTube** generalization only |
 | [augmentation](./tails/augmentation-slate.md) | augmentation.md | Wave 2+ (Wave 1 shipped) |
 | [affordance-verb](./tails/affordance-verb-slate.md) | put/give/Surfaced (shipped) | source-scoping (`::`), command-provenance |
+| [async-commands](./tails/async-commands-slate.md) | command-routing.md | **shipped (MR !122)** → command-routing.md § Async dispatch + command-spec.md: opt-in `async` override (spec field + reserved `--async`/`--sync` flags, accept-time detach in `_executeOne`, sync stays per-giver/never-global) + the `script` verb. Deferred tail: a line-level prefix for bare typed multi-statement scripts, a per-actor async cap, a generic cancel verb |
 | [chat](./tails/chat-slate.md) | chat.md | moderation / edit-trail |
 | [comms](./tails/comms-slate.md) | comms.md | trust-tiered policy |
 | [console-filtering](./tails/console-filtering-slate.md) | console (core shipped) | search, sender-filter |

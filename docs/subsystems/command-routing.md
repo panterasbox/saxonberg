@@ -1041,6 +1041,68 @@ Controllers don't need to wrap throwing primitives (e.g.
 `SlotApi.occupyAll`) themselves — throwing is the right shape for
 programmatic-contract violations.
 
+### Async dispatch — detaching the controller body
+
+By default `_executeOne` **awaits** the controller, so the giver's
+`executeCommand` promise resolves only when the body finishes. Since
+`Backend.processUserMessage` chains each socket's messages behind that
+same socket's previous one (`inboundChainBySocketId`), a long controller
+blocks *that giver's* next command until it completes — but never
+another player's: the chain is per-socket, and Node's event loop
+interleaves everyone else the moment the body `await`s. **Sync is
+per-giver, never global.**
+
+A command may opt into **async** dispatch, which moves the detach point
+to *accept-time*. When the effective mode is async, `_executeOne` spawns
+the controller body detached — under `runDetachedBody` (a fresh
+`ExecutionContextApi.runRoot` frame tagged `Command`, carrying the
+dispatch's `CommandContext` + `causingCommandId`) — and **returns
+without awaiting it**, so the giver's chain link frees immediately. The
+detached run owns firing the single (late) dispatch-response envelope in
+its `finally` (`emitDispatchResponse`); a late throw still surfaces a
+user-visible `controller-error` envelope, never a silent log.
+`executeCommand` skips its own finish tail for a detached ctx (a
+module-private `detachedContexts` WeakSet marks it).
+
+Everything accept-time and order-sensitive stays synchronous and in
+arrival order regardless of async: parse, alias, `_emitInputEcho`
+(+ `CommandDispatchedEvent`), MQL resolve, validator preload, validators,
+and any confirm-prompt all run *before* `_executeOne`. A rejected
+validator or declined prompt returns before `_executeOne` — so it never
+detaches, and no phantom envelope fires. Only the controller body and
+its outcome envelope defer.
+
+The effective mode is **the per-invocation reserved flag over the verb's
+spec default**: a verb's `async: true` (see
+[command-spec.md](./command-spec.md)) sets the default; the reserved
+framework flags `--async` / `--sync` (stripped during assemble, ahead of
+per-command option binding — the `--` stop-options precedent, so they
+work on any verb) override it. Because the detach is a pure
+dispatch-boundary property, an async command needs **no controller
+change** — its `execute()` is unaware it ran detached.
+
+Two consequences an author must respect: an async command's Scene output
+lands *after* the prompt is back (out of order), so async is only for
+commands where that's acceptable — never `look`; and this is a *sibling*
+of the engagement/activity framework, not a replacement (engaged
+durative actions already return immediately via `SchedulerApi.start`, so
+`async` is a no-op for them — a command needing exclusive actor access
+or cancel/abort uses engagement, not `async`). The reserved
+`deferred-dispatch` phase-effect handler remains a documented
+placeholder; v1 threads the async decision directly, not through a phase
+effect.
+
+The **`script` verb** is an ordinary command that runs its greedy `body`
+via `ScriptApi.run` through `_executeOne`, so it inherits `--async` /
+`--sync` with no special-casing. It is the *flaggable* sibling of the
+bare typed-script line (a multi-statement line with no `script` prefix,
+handled inline in `executeCommand` at the `parseResult.script` branch —
+sync, unflaggable, unchanged). Note the tokenizer splits a top-level `;`
+into separate statements *before* the verb binds, so the `script` verb's
+typed body is a single statement (or a `{ }` block); a full
+multi-statement body reaches it only via the client `fields.body`
+side-channel.
+
 ### Dynamic contributions (the retired `pass: true` replacement)
 
 The execute-stage chain-of-responsibility (`pass: true`) is gone.
@@ -1119,6 +1181,13 @@ subcommands:
 
 Top-level `args:` and `subcommands:` are mutually exclusive. Either
 may be absent (a verb with neither — e.g. `ping` — is fine).
+
+An optional top-level **`async: true`** sets the verb's default dispatch
+mode to async (see [§ Async dispatch](#async-dispatch--detaching-the-controller-body)
+above and [command-spec.md](./command-spec.md)); it defaults to `false`.
+The names `async` / `sync` are reserved (they collide with the
+`--async` / `--sync` framework flags) and rejected at load if used as an
+option or arg name.
 
 ## Adding a new command
 
