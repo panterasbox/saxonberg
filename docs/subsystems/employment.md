@@ -138,6 +138,21 @@ operator override (a one-off bonus), now redundant for the normal loop.
 Business account (`EmploymentApi.businessAt(location)?.getAccountPath()`), so
 income and wages roll up into one deficit P&L.
 
+**Worker-account guard.** `settleShiftWageImpl` provisions the worker's
+account if absent (`ensureVenueAccount(employeeKey, employeeKey, '')`) before
+`payWage` — NPC workers never opened one, and `payWage` throws without it.
+Additive + general; closes the same gap in the bar loop.
+
+**Second employment consumer — the Terminus city budget.** Terminus's
+**municipal city-budget `Business`** (proprietor-absent, `/domain/terminus/
+budget`) is the second consumer after Dave's Bar: it lists the operational
+departure gate in `operatingLocations` (so the transit fare's city share
+attributes to it, un-spoofably), pays the **terminal clerk** (a bounded roster
+shift so the wage settles at the boundary), and closes the conserved fare-in →
+wage-out loop. The clerk's standup clones the budget in `TicketClerk.postRegister`
+(the `Bar.postRegister` guarded-`singletonOrClone` precedent). See
+[fasttravel.md](./fasttravel.md) § Terminus.
+
 ## The `shifts` + `covers` brains
 
 Presence is a **consequence** of employment state, kept in brains so it

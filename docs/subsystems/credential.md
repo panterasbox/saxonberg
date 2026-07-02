@@ -46,8 +46,18 @@ reflection). It knows its `kind` and serializes itself to a plain
   lifted verbatim from the retired `PaymentCredentialMixin`.
 - **`TravelCredential`** — the registered-node set plus
   `register`/`unregister`/`isRegistered`/`authorize`. Born with the
-  **University Avenue floor**; `fromData` unions saved entries on top of the
-  floor, never clearing it.
+  **three-node `BORN_WITH_TRAVEL_NODES` floor** (the Terminus arrival node,
+  the lounge, and the newbie-wilds crossroads — the University Avenue node is
+  retired); `fromData` unions saved entries on top of the floor, never
+  clearing it. **Presentation-vs-clearance down-payment:** the record
+  satisfies the `teleport`/`register` *instrument* gate wherever it is held,
+  but travel **clearance** is bound to the traveller's **identity** — read
+  from and written to their aether-hosted wallet only, never a carried
+  `TravelCard` (see [fasttravel.md](./fasttravel.md) § Identity-bound
+  clearance). A card is a bearer *instrument/presentation*, never an
+  authorization store — a narrow, non-ledger down-payment on the
+  credential-wallet tail's "a credential is a presentation, not the source of
+  truth" principle (the full issuer-authorization ledger stays deferred).
 
 ## The holder — `CredentialWalletMixin` (`lib/credential/CredentialWallet.ts`)
 
@@ -82,8 +92,11 @@ for the kind (`CredentialByKind` map).
   `defaultCredentialKinds = ['payment']`; affords `pay`/`wallet` via the
   `inventory` bucket. Cloned per issue by `BankingApi.issueCard`.
 - **`TravelCard`** (`domain/common/tpa/TravelCard.ts`, `CredentialWalletMixin(Thing)`)
-  — the transferable TPA card. `defaultCredentialKinds = ['travel']`; affords
-  no holder-verbs (the terminal affords `register`).
+  — a carryable TPA card: a bearer **instrument**, never a clearance store (its
+  floored `travel` record satisfies the instrument gate; authorization is
+  identity-bound). `defaultCredentialKinds = ['travel']`; affords no
+  holder-verbs (the terminal affords `register`; the ticket clerk hands one out
+  free via `procure card`).
 
 The cards stay **thin per-kind subclasses** — they share storage, resolution,
 and the holder mixin, and differ only in their static `commandContributions`.

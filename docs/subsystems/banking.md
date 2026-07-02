@@ -229,10 +229,22 @@ two consumers are derive-on-read with no backfill:
   the append-only ledger makes it a pure read; the P&L's ledger-scan sibling
   turned toward the account holder rather than the venue owner.
 
-**Cash genesis** — `issueCash(into, amount)` is the CB physical-cash faucet:
-a `mint` issuance → cash bridge (supply grows, no account touched) plus a
-`Coin` stack cloned into the world. The only ways coin enters circulation are
-`issueCash` and a `withdraw`; both keep `reconcile` balanced.
+**Cash genesis** — `issueCash(into, amount, category?)` is the CB physical-cash
+faucet: a `mint` issuance → cash bridge (supply grows, no account touched) plus
+a `Coin` stack cloned into the world. The only ways coin enters circulation are
+`issueCash` and a `withdraw`; both keep `reconcile` balanced. The optional P&L
+`category` tags the mint (e.g. the char-gen **onboarding coin** → `onboarding`).
+
+**Transit-fare consumer (the TPA).** The fast-travel fare is the **first wired
+consumer of `settle`'s remittance-split seam** (see
+[fasttravel.md](./fasttravel.md) § The transit-fare economy): a paid ride's
+`Charge` credits the city-budget account `fee − networkFee` and splits the
+network fee to the `fasttravel.tpaAccount`, conserved, refused on short funds.
+It also drives the **on-ledger cash bridge**: a cash `settle` with no
+`payeeContainer` (a global TPA account has no local till) **banks the coin
+instantly** — the coin is consumed (`drainCoins`) and the equal value posted
+`cash bridge → payee (+ splits)` as a `deposit`, supply-neutral — so a cash
+fare splits identically to a credential fare (D12).
 
 **The bar loop** — open an account → deposit cash → order a drink → pay (or
 tab + settle) → the bar's ledger accrues sales/wages → it runs red → the CB

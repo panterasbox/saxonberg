@@ -400,7 +400,7 @@ reason.
 - **Command YAML views**: in `mud/cmd/<category>/`, lowercase
   (`perception/look.yaml`, `social/say.yaml`). Categories: perception,
   social, movement, posture, inventory, boundary, bulk, shell, author,
-  system, charactergen, crafting, banking, governance, stream.
+  system, charactergen, crafting, banking, governance, stream, tpa.
 - **Command controllers**: in `mud/obj/command/<category>/`, e.g.
   `perception/LookController.ts`, `movement/GoController.ts`.
 - **Backing-class path mirrors template path** (convention, not
