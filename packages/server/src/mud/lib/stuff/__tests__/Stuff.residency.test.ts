@@ -10,6 +10,7 @@ import { describe, it, expect, afterEach, vi } from 'vitest';
 import Thing from '../Thing';
 import type { EvictionContext } from '../Stuff';
 import type { VetoResult } from '../../errors';
+import { ProxyApi } from '../../../api/proxy';
 import { makeStuff } from '../../security/__tests__/test-setup';
 
 const IDLE: EvictionContext = { idleMs: 999_999, reason: 'idle' };
@@ -40,30 +41,19 @@ describe('Stuff residency surface', () => {
     });
   });
 
-  describe('recency', () => {
-    it('a fresh Stuff is warm (getLastTouched ~ construction time)', () => {
+  describe('recency surface', () => {
+    // Operate on the RAW target so the security gate's dispatch-touch
+    // (see residencyTouch.test.ts) doesn't interfere — this isolates
+    // the pure base-class surface.
+    it('a fresh Stuff is warm; touch() advances to now', () => {
       vi.useFakeTimers();
       vi.setSystemTime(1_000);
-      const thing = makeStuff(() => new Thing());
-      expect(thing.getLastTouched()).toBe(1_000);
-    });
+      const raw = ProxyApi.unwrap(makeStuff(() => new Thing()));
+      expect(raw.getLastTouched()).toBe(1_000);
 
-    it('touch() advances the recency timestamp to now', () => {
-      vi.useFakeTimers();
-      vi.setSystemTime(1_000);
-      const thing = makeStuff(() => new Thing());
       vi.setSystemTime(5_000);
-      thing.touch();
-      expect(thing.getLastTouched()).toBe(5_000);
-    });
-
-    it('getLastTouched() does not itself advance recency', () => {
-      vi.useFakeTimers();
-      vi.setSystemTime(1_000);
-      const thing = makeStuff(() => new Thing());
-      vi.setSystemTime(9_000);
-      // Reading is not touching: the value stays at construction time.
-      expect(thing.getLastTouched()).toBe(1_000);
+      raw.touch();
+      expect(raw.getLastTouched()).toBe(5_000);
     });
   });
 });

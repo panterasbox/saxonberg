@@ -480,63 +480,10 @@ export abstract class Stuff {
   private _isDestroyed: boolean = false;
 
   /**
-   * Last successful method-dispatch timestamp. Maintained by the
-   * security gate (`SecurityApi.#securityGate`) — every successful
-   * (non-denied) dispatch writes `Date.now()` here via the static
-   * `Stuff.touch(stuff)` write seam below.
-   *
-   * Used by the future GC sweep's `considerSelfDestruct(context)` to
-   * decide whether an orphan-eligible Stuff is cold enough to drop.
-   * Initialized to construction time so freshly-created Stuff start
-   * "touched."
-   *
-   * Hard-private (`#`) for tamper-resistance: the `#` slot lives on
-   * the raw target only and is unreachable from outside the Stuff
-   * class body — not via bracket access, not via reflection, not via
-   * a wrapping Proxy. The only write site is `Stuff.touch(stuff)`,
-   * which is timestamp-fixed (no caller-supplied value), so even
-   * code that imports `Stuff` can only refresh a Stuff to the
-   * current time — never inject a sentinel or future value.
-   *
-   * Not in `PASSTHROUGH_KEYS`, not in `persistentFields`. Transient
-   * by definition; resets at every clone/hydrate to the new
-   * construction time.
-   */
-  #lastTouchMs: number = Date.now();
-
-  /**
-   * Write seam for `#lastTouchMs`. Called once per successful
-   * method dispatch from the security gate. Timestamp-fixed (no
-   * caller-supplied value) so no one — not a shadow, not a
-   * subclass, not a buff — can forge an immortality value.
-   *
-   * Accepts either a raw target or a proxy; unwraps via
-   * `RAW_TARGET` before reaching the `#` slot (the slot lives on
-   * the raw target only, and `this` inside an instance method
-   * called through the proxy is the proxy).
-   *
-   * @internal — only called by the security gate; documented here
-   * because the slot's invariants depend on this single call site.
-   */
-  public static touch(stuff: Stuff): void {
-    ProxyApi.unwrap(stuff).#lastTouchMs = Date.now();
-  }
-
-  /**
-   * Read seam for `#lastTouchMs`. Used by the future GC sweep.
-   * Same `ProxyApi.unwrap` pattern as `touch`.
-   */
-  public static getLastTouchMs(stuff: Stuff): number {
-    return ProxyApi.unwrap(stuff).#lastTouchMs;
-  }
-
-  /**
-   * Recency timestamp for the residency (self-eviction) sweep — the
-   * instance surface that supersedes the `#lastTouchMs` / `Stuff.touch`
-   * static scaffold above. The Phase-2 security-gate rewire repoints
-   * the gate at `touch()` and removes the `#` scaffold + its
-   * `_registerTouchFn` hop; until then both coexist (harmless — only
-   * the old path is wired, the new one is exercised by tests).
+   * Recency timestamp for the residency (self-eviction) sweep. The
+   * security gate calls `touch()` on the raw target after every
+   * successful non-getter dispatch; the sweep reads `getLastTouched()`
+   * (via `RAW_TARGET`, so asking never counts as a touch).
    *
    * Transient: never persisted, not in `persistentFields` or
    * `PASSTHROUGH_KEYS`; resets to construction time on every
@@ -909,11 +856,3 @@ export abstract class Stuff {
     return `[Stuff ${this.stuffId}${this._isDestroyed ? ' (destroyed)' : ''}]`;
   }
 }
-
-// Wire the GC last-touch instrumentation into the security gate.
-// SecurityApi calls this on every successful method dispatch; we
-// register the static here (after the class body finishes) so the
-// gate can fire it without taking a value-binding on Stuff (which
-// would form a `security → stuff → api/stuff → security` load
-// cycle).
-SecurityApi._registerTouchFn(Stuff.touch);
