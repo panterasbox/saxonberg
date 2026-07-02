@@ -215,15 +215,6 @@ export const AppSettingKeys = {
   bankingTreasuryAccount: "banking.treasuryAccount",
 
   /**
-   * Livestream — the operator-configured broadcast sources surfaced to the
-   * livestream-viewer cockpit embed. A JSON array of `StreamSource`
-   * (`{platform:'twitch',channel} | {platform:'youtube',videoId}`); the
-   * `renown.decayHalfLives` JSON-in-a-string precedent. Empty/absent → no
-   * broadcast configured (the embed shows nothing). See
-   * docs/subsystems/livestream.md / cockpit-layouts.
-   */
-  livestreamBroadcastSources: "livestream.broadcastSources",
-  /**
    * Social-graph (attention management) — the reserved-baseline notify
    * rules' default fields (deployment defaults, NOT code constants). JSON
    * map keyed by reserved id (`foes`/`friends`/`everyone-else`/`strangers`)

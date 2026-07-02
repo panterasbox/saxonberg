@@ -21,9 +21,6 @@ import { MessageApi } from "../../../api/message";
 import { Mml } from "../../../api/mml";
 import { AppApi } from "../../../api/app";
 import { AppSettingKeys } from "../../../lib/config/AppSettings";
-import { EventApi } from "../../../api/event";
-import { Events } from "../../../lib/events";
-import { StreamSourceApi } from "../../../api/stream-source";
 
 /** The blessed key vocabulary — used only to flag/soft-note ad-hoc keys. */
 const KNOWN_KEYS = new Set<string>(Object.values(AppSettingKeys));
@@ -68,12 +65,6 @@ export default class ConfigController extends CommandController<ConfigModel> {
     context: CommandContext,
   ): Promise<void> {
     await AppApi.setSetting(key, value);
-    // Live-surface the livestream embed sources when the operator changes
-    // them: fire the event the boot listener fans to player clients, so
-    // the cockpit's livestream-viewer embed updates without a reconnect.
-    if (key === AppSettingKeys.livestreamBroadcastSources) {
-      EventApi.emit(Events.StreamSourcesChanged, StreamSourceApi.current());
-    }
     const lines = ["", `${key} set to ${value}.`];
     if (!KNOWN_KEYS.has(key)) {
       lines.push(`(note: "${key}" is not a known setting — it was still saved.)`);

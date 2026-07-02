@@ -156,16 +156,6 @@ settings:
     value: "0.08"
   - key: banking.treasuryAccount
     value: treasury
-  # Livestream — the broadcast sources the cockpit's livestream-viewer embed
-  # renders, as a JSON array of StreamSource. Empty by default (no broadcast
-  # configured). Operator-set live via `config`; surfaced to player clients
-  # in the welcome snapshot + a `stream-sources` push on change. Each entry
-  # is either a Twitch channel or a YouTube video; listing one of each gives
-  # the viewer a picker to choose which to watch. Example:
-  # '[{"platform":"twitch","channel":"saxonberg"},{"platform":"youtube","videoId":"dQw4w9WgXcQ"}]'
-  - key: livestream.broadcastSources
-    value: "[]"
-
   # YouTube relay (read-only) dials — operator knobs for the second chat
   # transport. historyCap: per-channel history-ring depth. reconnectBackoffMs:
   # per-stream reconnect delay on a dropped liveChatMessages stream.

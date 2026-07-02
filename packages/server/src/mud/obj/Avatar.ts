@@ -35,7 +35,6 @@ import {
   type SettingsSchemaEntry,
 } from "../lib/shell/Environment";
 import { ShellApi } from "../api/shell";
-import { StreamSourceApi } from "../api/stream-source";
 import { BulletinApi } from "../api/bulletin";
 import { PostRegistrationMixin } from "../lib/stuff/PostRegistration";
 import { HasInteractiveMixin } from "../lib/connection/HasInteractive";
@@ -416,9 +415,6 @@ export default class Avatar extends AvatarBase {
       // caches `topicCatalogue`; live deltas ride `world.bulletin.feed`.
       bulletinWindow: BulletinApi.recent().map((b) => BulletinApi.toRow(b)),
       clientState: this.snapshotClientState(),
-      // Operator-configured broadcast sources for the livestream-viewer
-      // embed; surfaced live via the `stream-sources` envelope on change.
-      broadcastSources: StreamSourceApi.current(),
       reactionPrefs: {
         intensity:
           ShellApi.resolveSetting<

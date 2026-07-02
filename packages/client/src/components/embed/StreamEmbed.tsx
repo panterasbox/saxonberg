@@ -2,23 +2,22 @@
  * StreamEmbed — the platform-agnostic video embed for the livestream-
  * viewer layout.
  *
- * Renders the player-selected broadcast source as a sandboxed iframe.
- * Both platforms are wired: Twitch uses the Twitch player (with `parent`
- * derived from the host domain — correct-by-construction, never hard-
- * coded, satisfying the embed-safety constraint); YouTube uses the
- * standard `/embed/<videoId>` player. When both a Twitch and a YouTube
- * source are configured the picker lets the viewer choose which to
- * watch.
+ * Renders the viewer's `watch`-selected target as a sandboxed iframe. The
+ * target is a single server-authoritative `WatchTarget` (the per-viewer
+ * `cockpit.watch` clientState) — there is no picker; the `watch` verb is
+ * the one control. Both platforms are wired: Twitch uses the Twitch player
+ * (with `parent` derived from the host domain — correct-by-construction,
+ * never hard-coded, satisfying the embed-safety constraint); YouTube uses
+ * the standard `/embed/<videoId>` player, or `/embed/live_stream?channel=
+ * <channelId>` for the durable channel form.
  *
- * When more than one source is configured the viewer picks the platform;
- * with one source the picker is suppressed (a no-op). Fixed-ratio (16:9)
- * content sizes first per the composition grammar — the box claims its
- * aspect and the surrounding panes fill the remainder.
+ * Fixed-ratio (16:9) content sizes first per the composition grammar — the
+ * box claims its aspect and the surrounding panes fill the remainder.
  */
 
-import React, { useState } from "react";
+import React from "react";
 import styled from "styled-components";
-import type { StreamSource } from "@saxonberg/types";
+import type { WatchTarget } from "@saxonberg/types";
 import { tokens } from "../ui";
 
 const Wrap = styled.div`
@@ -27,29 +26,6 @@ const Wrap = styled.div`
   flex: 1;
   min-width: 0;
   min-height: 0;
-`;
-
-const PickerRow = styled.div`
-  display: flex;
-  gap: ${tokens.space.sm};
-  padding: ${tokens.space.sm};
-`;
-
-const PickerButton = styled.button<{ $active: boolean }>`
-  padding: 0.15rem 0.6rem;
-  background: ${(p) =>
-    p.$active ? tokens.color.primary : tokens.color.actionBg};
-  color: ${(p) => (p.$active ? "white" : tokens.color.fg)};
-  border: 1px solid ${tokens.color.border};
-  border-radius: ${tokens.radius.sm};
-  cursor: pointer;
-  font-family: ${tokens.font.mono};
-  font-size: ${tokens.font.small};
-
-  &:hover {
-    background: ${(p) =>
-      p.$active ? tokens.color.primaryHover : tokens.color.actionBgHover};
-  }
 `;
 
 /**
@@ -95,68 +71,54 @@ const Placeholder = styled.div`
   padding: ${tokens.space.xl};
 `;
 
-function platformLabel(source: StreamSource): string {
-  return source.platform === "twitch"
-    ? `Twitch · ${source.channel}`
-    : `YouTube · ${source.videoId}`;
-}
+const IFRAME_SANDBOX =
+  "allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox";
 
 interface StreamEmbedProps {
-  sources: StreamSource[];
+  target: WatchTarget | null;
 }
 
-export function StreamEmbed({ sources }: StreamEmbedProps): JSX.Element {
-  const [selected, setSelected] = useState(0);
-
-  if (sources.length === 0) {
+function iframeFor(target: WatchTarget): JSX.Element {
+  if (target.platform === "twitch") {
     return (
-      <Wrap>
-        <Stage>
-          <Screen>
-            <Placeholder>No broadcast is live right now.</Placeholder>
-          </Screen>
-        </Stage>
-      </Wrap>
+      <iframe
+        title="Twitch stream"
+        src={`https://player.twitch.tv/?channel=${encodeURIComponent(
+          target.channel,
+        )}&parent=${window.location.hostname}`}
+        sandbox={IFRAME_SANDBOX}
+        allow="autoplay; fullscreen"
+      />
     );
   }
+  const src =
+    "videoId" in target
+      ? `https://www.youtube.com/embed/${encodeURIComponent(target.videoId)}`
+      : `https://www.youtube.com/embed/live_stream?channel=${encodeURIComponent(
+          target.channelId,
+        )}`;
+  return (
+    <iframe
+      title="YouTube stream"
+      src={src}
+      sandbox={IFRAME_SANDBOX}
+      allow="autoplay; fullscreen; encrypted-media; picture-in-picture"
+    />
+  );
+}
 
-  const source = sources[Math.min(selected, sources.length - 1)]!;
-
+export function StreamEmbed({ target }: StreamEmbedProps): JSX.Element {
   return (
     <Wrap>
-      {sources.length > 1 ? (
-        <PickerRow>
-          {sources.map((s, i) => (
-            <PickerButton
-              key={`${s.platform}-${i}`}
-              $active={i === selected}
-              onClick={() => setSelected(i)}
-            >
-              {platformLabel(s)}
-            </PickerButton>
-          ))}
-        </PickerRow>
-      ) : null}
       <Stage>
         <Screen>
-          {source.platform === "twitch" ? (
-            <iframe
-              title="Twitch stream"
-              src={`https://player.twitch.tv/?channel=${encodeURIComponent(
-                source.channel,
-              )}&parent=${window.location.hostname}`}
-              sandbox="allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox"
-              allow="autoplay; fullscreen"
-            />
+          {target ? (
+            iframeFor(target)
           ) : (
-            <iframe
-              title="YouTube stream"
-              src={`https://www.youtube.com/embed/${encodeURIComponent(
-                source.videoId,
-              )}`}
-              sandbox="allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox"
-              allow="autoplay; fullscreen; encrypted-media; picture-in-picture"
-            />
+            <Placeholder>
+              Nothing on the screen — use the watch command to put a
+              broadcast here.
+            </Placeholder>
           )}
         </Screen>
       </Stage>

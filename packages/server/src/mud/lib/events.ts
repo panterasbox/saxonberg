@@ -47,7 +47,6 @@ export const Events = {
   ModuleUnloaded: 'module.unloaded',
   ModuleReloadFailed: 'module.reloadFailed',
   StreamStateChanged: 'stream.stateChanged',
-  StreamSourcesChanged: 'stream.sourcesChanged',
   RelayMessage: 'stream.relayMessage',
 } as const;
 

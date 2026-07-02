@@ -1199,8 +1199,7 @@ export type Envelope =
   | ReactionDeltaEnvelope
   | ReactionExpandResultEnvelope
   | StreamStateEnvelope
-  | RelayChatEnvelope
-  | StreamSourcesEnvelope;
+  | RelayChatEnvelope;
 
 /**
  * Envelope shape pre-`frameId`-stamp. Producers build this; the
@@ -1221,8 +1220,7 @@ export type EnvelopeTemplate =
   | Omit<ReactionDeltaEnvelope, 'frameId'>
   | Omit<ReactionExpandResultEnvelope, 'frameId'>
   | Omit<StreamStateEnvelope, 'frameId'>
-  | Omit<RelayChatEnvelope, 'frameId'>
-  | Omit<StreamSourcesEnvelope, 'frameId'>;
+  | Omit<RelayChatEnvelope, 'frameId'>;
 
 // ============================================================================
 // Identity Types (Persistent Objects)
@@ -1504,16 +1502,6 @@ export const LAYOUT_NAMES: readonly LayoutName[] = [
 ];
 
 /**
- * A platform-tagged broadcast source the livestream-viewer embed
- * renders. Operator config (AppSettings/env) produces a `StreamSource[]`
- * surfaced to player clients; the viewer picks among them. Twitch is
- * wired this cycle; the `youtube` shape is defined and picker-
- * accommodated but not rendered (the iframe is a placeholder).
- */
-export type StreamSource =
-  | { platform: "twitch"; channel: string }
-  | { platform: "youtube"; videoId: string };
-
 /**
  * The per-viewer focal-embed target held as server-authoritative
  * `cockpit.watch` clientState (set by the `watch` verb, pushed to the
@@ -1521,26 +1509,12 @@ export type StreamSource =
  * a Twitch channel, a YouTube videoId, or a YouTube channelId (the
  * `@handle`/`UC…` durable form, rendered `live_stream?channel=<channelId>`
  * so it tracks the channel's live status across streams). `null` = nothing
- * watched. Replaces the retired operator-curated {@link StreamSource}.
+ * watched. Replaces the retired operator-curated broadcast-source list.
  */
 export type WatchTarget =
   | { platform: "twitch"; channel: string }
   | { platform: "youtube"; videoId: string }
   | { platform: "youtube"; channelId: string };
-
-/**
- * Server→client push of the live broadcast source list when the
- * operator changes `livestream.broadcastSources` mid-session. The
- * welcome snapshot (`ConnectionEstablishedPayload.broadcastSources`) is
- * the baseline; this keeps it live. A dedicated lightweight envelope —
- * the source list is tiny and re-sending the whole list on change is
- * simpler than diffing.
- */
-export interface StreamSourcesEnvelope {
-  type: "stream-sources";
-  frameId: number;
-  sources: StreamSource[];
-}
 
 /**
  * Payload of the `system.connection.established` MessageFrame.
@@ -1588,13 +1562,6 @@ export interface ConnectionEstablishedPayload {
    * `ClientStateMixin`-contributing mixins on the holder.
    */
   clientState: Record<string, unknown>;
-  /**
-   * The operator-configured broadcast sources for the livestream-viewer
-   * embed (`StreamSource[]`, derived from AppSettings/env). Baseline for
-   * the embed; a `stream-sources` envelope keeps it live on change.
-   * Empty when no broadcast is configured.
-   */
-  broadcastSources: StreamSource[];
   /**
    * The viewer's reaction render preferences — the client-honored subset
    * of the `social.react.*` settings, resolved server-side at connect.
