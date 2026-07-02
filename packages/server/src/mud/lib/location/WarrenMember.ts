@@ -27,7 +27,8 @@
  */
 
 import type { MixinConstructor } from '../mixin';
-import type { Stuff } from '../stuff/Stuff';
+import type { Stuff, EvictionContext } from '../stuff/Stuff';
+import type { VetoResult } from '../errors';
 import type { Container } from '../spatial/Container';
 import type { Warren } from './Warren';
 
@@ -56,6 +57,21 @@ export function WarrenMemberMixin<TBase extends MixinConstructor<Stuff & Contain
 ) {
   return class WarrenMemberMixin extends Base {
     static _mixinName = 'WarrenMemberMixin';
+
+    /**
+     * Residency veto: a live Warren member stays resident — culling a
+     * satellite out from under the elastic graph (host designation, hub
+     * exits, migration) is the Warren's call, not residency's. An
+     * unaffiliated / detached member (`getWarren()` null, incl. the R2.3
+     * self-heal of a destructed Warren) falls through to `super` and
+     * culls like any other room.
+     */
+    public canEvict(context: EvictionContext): VetoResult {
+      if (this.getWarren() !== null) {
+        return { ok: false, reason: 'active warren member' };
+      }
+      return super.canEvict(context);
+    }
 
     /**
      * R2.4 framework cleanup. Unhook from the owning Warren's set on

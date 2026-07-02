@@ -21,8 +21,6 @@
  */
 
 import { Stuff } from './Stuff';
-import type { VetoResult } from '../errors';
-import type { EvictionContext } from './Stuff';
 import { ContainerMixin } from '../spatial/Container';
 import { AdornableMixin } from '../boundary/Adornable';
 import { TangibleMixin } from '../material/Tangible';
@@ -35,16 +33,6 @@ const LocationBase = AddressableMixin(
 
 export default class Location extends LocationBase {
   static persistentFields: string[] = [];
-
-  /**
-   * Residency veto: rooms are authored / graph-managed content and are
-   * never culled by the self-eviction sweep. Reclaiming an ephemeral
-   * room is the owning subsystem's job (e.g. the Warren's merge-low
-   * reconcile), not residency's. Unconditional.
-   */
-  public override canEvict(_context: EvictionContext): VetoResult {
-    return { ok: false, reason: 'room (authored/graph-managed)' };
-  }
 
   // `getVolume` / `getCeilingHeight` live on AtmosphericMixin (composed
   // above) so Vessels — which also have meaningful interior volume —

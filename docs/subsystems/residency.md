@@ -159,7 +159,14 @@ index.
 | shadow | its host is alive | one-directional (checks `host.isDestroyed()`, never `host.canEvict()` — no recursion); orphaned shadow culls |
 | `Exit` / `Adornment` | its source room / wall is alive | R2.1 owned — else an exit is culled out from under a live room |
 | `Behaved` | it holds a behavior spec | authored NPC cast; re-clone would erase it |
-| `Location` | always | rooms are authored / graph-managed; reclaiming an ephemeral bud is the owning subsystem's job (the Warren's merge-low), not residency's |
+| `WarrenMember` | it's in a live warren (`getWarren() !== null`) | culling a satellite out from under the elastic graph (host designation, hub exits, migration) is the Warren's call, not residency's |
+
+A plain `Location` does **not** veto. Rooms are path-addressable, so an
+empty, unreferenced, idle room culls and simply re-clones from its
+template on next entry (exits carry `destinationPath` to re-resolve). A
+room with contents is held by the `Container` veto; a room in the Warren
+graph by the `WarrenMember` veto — nothing else about a room is worth
+keeping resident.
 
 Occupied furniture and engaged actors get **no explicit veto** — the
 occupant is present, so presence + dispatch touch already keep them warm.

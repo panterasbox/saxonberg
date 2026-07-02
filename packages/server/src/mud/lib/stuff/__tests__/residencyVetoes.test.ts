@@ -10,6 +10,7 @@ import Location from '../Location';
 import Exit from '../../boundary/Exit';
 import { ContainerMixin } from '../../spatial/Container';
 import { HasInteractiveMixin } from '../../connection/HasInteractive';
+import { WarrenMemberMixin } from '../../location/WarrenMember';
 import { BehavedMixin } from '../../behavior/Behaved';
 import type { BehaviorSpec } from '../../behavior/brain';
 import { ContainmentApi } from '../../../api/containment';
@@ -23,6 +24,7 @@ const IDLE: EvictionContext = { idleMs: 9_000_000_000, reason: 'idle' };
 class Box extends ContainerMixin(Thing) {}
 class Holder extends HasInteractiveMixin(ContainerMixin(Thing)) {}
 class Bot extends BehavedMixin(Thing) {}
+class MemberRoom extends WarrenMemberMixin(Location) {}
 
 describe('residency veto roster', () => {
   beforeEach(() => {
@@ -64,9 +66,18 @@ describe('residency veto roster', () => {
     expect(bot.canEvict(IDLE).ok).toBe(false); // authored cast → veto
   });
 
-  it('Location: vetoes unconditionally (authored/graph-managed)', () => {
+  it('Location: an empty, unaffiliated room is cullable (re-clones on entry)', () => {
     const room = makeStuff(() => new Location());
-    expect(room.canEvict(IDLE).ok).toBe(false);
+    expect(room.canEvict(IDLE)).toEqual({ ok: true });
+  });
+
+  it('WarrenMember: vetoes while in a warren, cullable once detached', () => {
+    const room = makeStuff(() => new MemberRoom());
+    const fakeWarren = makeStuff(() => new Thing());
+    (room as unknown as { setWarren(w: unknown): void }).setWarren(fakeWarren);
+    expect(room.canEvict(IDLE).ok).toBe(false); // active member → veto
+    (room as unknown as { setWarren(w: unknown): void }).setWarren(null);
+    expect(room.canEvict(IDLE)).toEqual({ ok: true }); // detached → cullable
   });
 
   it('Exit: vetoes while its source room is alive', () => {

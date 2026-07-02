@@ -171,8 +171,11 @@ roster, each living on the owning mixin:
   `Behaved`-NPC-engaged veto is the actor-side instance of this.)
 - **`Behaved` NPCs** additionally veto while holding a behavior spec —
   authored cast; re-clone would erase them.
-- **Authored `Location`s veto**; an ephemeral / `Warren`-bud room overrides
-  *back* to cull-when-empty.
+- **A `WarrenMember` room vetoes while it's in a live warren** — culling a
+  satellite out from under the elastic graph is the Warren's call. A plain
+  `Location` does **not** veto: rooms are path-addressable, so an empty,
+  unreferenced room culls and re-clones from its template on next entry
+  (a room with contents is already held by the `Container` veto).
 
 ### Touch signal: method dispatch, plus a presence supplement
 
@@ -297,9 +300,8 @@ Ships in observe mode; enforcement is a flip. Knobs (`AppSettingKeys`):
   non-empty `Container`; a `Containable` inside an `Avatar` (incl. a
   disconnected avatar's inventory); a shadow while its host lives (and an
   orphaned shadow culls); an `Exit`/`Adornment` while its room/wall lives;
-  a `Postured` host with an occupant / an engagement-subject; an
-  engaged/spec `Behaved` NPC; an authored `Location` (and a `Warren`-bud
-  culls when empty). (tests)
+  an engaged/spec `Behaved` NPC; a `WarrenMember` while in a warren
+  (and an empty, unaffiliated `Location` culls). (tests)
 - The shadow veto checks `host.isDestroyed()`, not `host.canEvict()`, and
   no host-defers-to-shadow reciprocal exists (no recursion). (test)
 - `ApiLogic extends Idea` exists with `canEvict → veto`; **every**

@@ -65,13 +65,15 @@ describe('residency sweep', () => {
     expect(StuffApi.findById(id)).toBeDefined();
   });
 
-  it('enforce mode spares a vetoing object (a room)', () => {
+  it('enforce mode spares a vetoing object (a non-empty room)', () => {
     setSetting(AppSettingKeys.residencyMode, 'enforce');
     const room = makeStuff(() => new Location());
+    const item = makeStuff(() => new Thing());
+    ContainmentApi.move(item, room);
     const id = room.stuffId;
     vi.setSystemTime(50_000);
     ResidencyApi.sweepNow();
-    expect(StuffApi.findById(id)).toBeDefined();
+    expect(StuffApi.findById(id)).toBeDefined(); // non-empty → Container veto
   });
 
   it('presence keeps an occupied room’s contents warm', () => {
