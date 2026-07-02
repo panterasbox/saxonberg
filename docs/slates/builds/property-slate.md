@@ -591,9 +591,10 @@ wardrobe / holodeck gate / summoning circle — skinnable.)
   unreleased namespace (`/home` → already "unreleased" per the released gate), its
   own allowance. **Both ownership axes in one object:** you own the *wardrobe*
   (chattel) + the *linked sandbox zone* (parcel + authoring authority).
-- **Single canon-facing portal invariant:** a sandbox wires *no* exits back to
-  canon except its originating wardrobe → the ledger-quarantine reconcile
-  checkpoint is **singular**, easing the "every exit must reconcile" hard part.
+- **Portal-crossing invariant** (corrected in §H): a sandbox wires *no*
+  **non-portal** exit back to canon, and **every** canon↔sandbox crossing is a
+  reconcile checkpoint — which is what makes the "every exit must reconcile" hard
+  part tractable (multiple portals to one zone are allowed; see §H).
 
 **Two orthogonal gates; the wardrobe opens only one:**
 
@@ -630,6 +631,54 @@ wizards prototype here (their unreleased class is still quarantined until
 published — the release gate applies regardless of author) · lazy/dormant zone
 (`HomeZone` precedent).
 
-**Open (next edge):** the `SandboxPortalMixin` ↔ minted-zone **lifecycle
-binding** — what happens to the linked sandbox zone when the wardrobe (chattel,
-movable) is destroyed, sold, or carried elsewhere, since the zone is a parcel.
+### H. Wardrobe ↔ zone lifecycle — decouple *access* (chattel) from *asset* (parcel)
+
+Binding the movable wardrobe 1:1-rigidly to its durable zone makes both fragile.
+Split them — the **storage-unit-and-key** model:
+
+- **Wardrobe (chattel) = the access.** Carries a `linkedSandboxPath` ref.
+- **Sandbox zone (parcel) = the asset** (authored work + allowance).
+- **The zone's exit-to-canon resolves *live* to the wardrobe's current location**
+  (resolve-on-read) — the portal is wherever the wardrobe is.
+
+Lifecycle then falls out:
+
+- **Move** (rearrange / carry to a friend's house) → the portal relocates, the
+  zone travels with its door — a **portable pocket dimension**. Compute stays
+  billed to the owner via cost-owner regardless of physical location (carrying it
+  into a friend's house doesn't bill their parcel).
+- **Sell** → **two separable transfers**: *empty* (chattel only; buyer's portal
+  mints a fresh zone on first entry — blank wardrobes as a durable good) vs
+  *furnished* (chattel **+ a parcel transfer**: title + allowance-liability move
+  to the buyer — a curated holodeck as premium content). The empty/furnished
+  prompt is where the "cost-owner re-stamp: automatic vs consented" thread is
+  answered.
+- **Destroy** → **evacuate occupants first** (force reconcile-exit to the shipped
+  `evacuationFallback` AppSetting — else they're trapped, since the exit resolved
+  through the now-gone wardrobe), then **orphan, don't destroy** (the asset
+  outlives its access; re-bind a new wardrobe to reclaim it). Truly-abandoned
+  zones follow the normal parcel **dormancy → eviction** path — no wardrobe
+  special case.
+
+**Invariant correction to §G:** not "exactly one portal" but "**every**
+canon↔sandbox crossing is a reconcile checkpoint, and no *non-portal* exit
+reaches canon." **Multiple wardrobes → one zone is allowed**, because the
+reconcile keys on the *visitor's entry snapshot*, not the door (enter via A, exit
+via B → reconcile against the A-entry snapshot). Airtight regardless of door
+count.
+
+**Interactions carried forward:**
+- **Authorship vs. ownership on a furnished sale.** Buyer gets the *parcel title*
+  (possession); *authoring credit* stays with the seller (`authoring_events` is
+  immutable). So if the buyer later **publishes** something the seller built,
+  credit-routing (`CreditRouting.resolve`) must rule author vs. owner vs. a
+  `CreditShare` split (if the buyer modified it) — the producer-influence seam.
+- **Allowance-liability** follows the parcel on a furnished transfer; stays with
+  the seller on an empty sale.
+
+**Payoff:** decoupling access from asset yields a **durable-good + content
+market** (blank wardrobes manufactured as product; furnished pocket-dimensions
+sold as premium authored content) *and* protects authored work from accidental
+loss (the key is not the vault). No new module category — a ref field on the
+wardrobe, a live-resolved exit on the zone, and the existing transfer + dormancy
++ evacuation machinery.
