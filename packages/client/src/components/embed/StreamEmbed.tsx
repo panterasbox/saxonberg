@@ -3,11 +3,12 @@
  * viewer layout.
  *
  * Renders the player-selected broadcast source as a sandboxed iframe.
- * Twitch is wired (the Twitch player, with `parent` derived from the
- * host domain — correct-by-construction, never hard-coded, satisfying
- * the embed-safety constraint). YouTube's shape is defined and the
- * picker accommodates it, but the iframe is a "coming soon" placeholder
- * this cycle.
+ * Both platforms are wired: Twitch uses the Twitch player (with `parent`
+ * derived from the host domain — correct-by-construction, never hard-
+ * coded, satisfying the embed-safety constraint); YouTube uses the
+ * standard `/embed/<videoId>` player. When both a Twitch and a YouTube
+ * source are configured the picker lets the viewer choose which to
+ * watch.
  *
  * When more than one source is configured the viewer picks the platform;
  * with one source the picker is suppressed (a no-op). Fixed-ratio (16:9)
@@ -148,9 +149,14 @@ export function StreamEmbed({ sources }: StreamEmbedProps): JSX.Element {
               allow="autoplay; fullscreen"
             />
           ) : (
-            <Placeholder>
-              YouTube embeds are coming soon ({source.videoId}).
-            </Placeholder>
+            <iframe
+              title="YouTube stream"
+              src={`https://www.youtube.com/embed/${encodeURIComponent(
+                source.videoId,
+              )}`}
+              sandbox="allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox"
+              allow="autoplay; fullscreen; encrypted-media; picture-in-picture"
+            />
           )}
         </Screen>
       </Stage>

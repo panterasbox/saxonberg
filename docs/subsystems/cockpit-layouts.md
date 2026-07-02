@@ -96,8 +96,10 @@ command-bus affordance.
 
 - **`StreamSource`** (`@saxonberg/types`) is a platform union:
   `{platform:'twitch', channel}` | `{platform:'youtube', videoId}`.
-  Twitch is wired; the YouTube shape is defined and picker-accommodated
-  but renders a placeholder this cycle.
+  Both platforms are wired: Twitch renders the Twitch player, YouTube
+  the standard `/embed/<videoId>` player. Configuring one source of each
+  platform lets the viewer pick which to watch (see the client picker
+  below). YouTube *chat* is still deferred — this is the video embed only.
 - **Operator config** — `livestream.broadcastSources` (an AppSetting, a
   JSON-array string, the `renown.decayHalfLives` precedent).
   `StreamSourceApi.current()` (`mud/api/stream-source.ts`) parses +
@@ -112,9 +114,11 @@ command-bus affordance.
   every `ConnectionApi.getAllInteractives()` via
   `sendEnvelopeToInteractive`.
 - **Client** — `components/embed/StreamEmbed.tsx` renders the
-  player-selected source (picker shown only when >1). The Twitch iframe's
-  `parent` is `window.location.hostname` (correct-by-construction, never
-  hard-coded) and it is sandboxed. The chat terminal allowlists the
+  player-selected source (picker shown only when >1, so a Twitch+YouTube
+  pair surfaces a two-button chooser). The Twitch iframe's `parent` is
+  `window.location.hostname` (correct-by-construction, never hard-coded);
+  the YouTube iframe is `https://www.youtube.com/embed/<videoId>`. Both
+  are sandboxed identically. The chat terminal allowlists the
   relay topics (`world.twitch.message`, `world.youtube.message`); the
   game terminal is the complement — client-side filters over the one
   shared frame buffer, no ingest-time routing.
