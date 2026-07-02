@@ -1,5 +1,16 @@
 # Twitch relay
 
+> **Superseded — folded into [streaming.md](./streaming.md).** The Twitch
+> relay is now one transport behind the unified `tune`/`watch` surface: the
+> `twitch` verb is **retired** (platform rides in the target/opt), the
+> `TwitchRelay`/`TwitchLogic`/`TwitchApi` classes are renamed
+> `StreamRelay`/`StreamLogic`/`StreamApi`, and the channel table is keyed by
+> a composite `channelKey(service, key)`. The `world.twitch.message` topic
+> and the `TwitchClient`/`TwitchRelayReader` **transport** are unchanged.
+> Read [streaming.md](./streaming.md) first; this doc is retained for the
+> Twitch-specific transport detail (EventSub session, Helix, the
+> incremental-scope reauth flow, the three-case identity bridge).
+
 The two-way bridge between in-game players and a streamer's **Twitch
 chat**. A player tunes into a Twitch channel by handle, reads its chat in
 the cockpit, and posts to it under their own linked Twitch identity. It is

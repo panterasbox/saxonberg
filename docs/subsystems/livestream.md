@@ -97,9 +97,32 @@ primitive `Interactive.nextFrameId` provides for normal connections).
   governs mud/ objects; `BroadcastFeed` is a backend service at the
   same layer.
 
-It **only taps `StreamState`** in Phase 1 — safe by construction (no
-chat, no private channels). Phase 2 forwards *public* chat over the
-same feed.
+Beyond `StreamState`, the feed also forwards the **overlay owner's own
+relay chat** (both platforms, unified) — the reaction-delta seam's sibling.
+See [streaming.md](./streaming.md) for the full picture; the wire seam is:
+
+- The relay ([`StreamRelay`](./streaming.md)) stays **mud-pure** — on every
+  delivered line it emits `Events.RelayMessage` (`{service, channelKey,
+  channelHandle, speaker, text}`) via `EventApi.emit`, never importing
+  `backend/`. `BroadcastFeed.ensureSubscribed` installs an
+  `EventApi.on(Events.RelayMessage)` listener (beside the reaction-delta
+  one) that **filters to the owner's `OVERLAY_TWITCH_LOGIN` /
+  `OVERLAY_YOUTUBE_CHANNEL`** (matched by the configured handle — a viewer
+  tuning a *different* channel never matches, so nothing leaks) and pushes a
+  **`RelayChatEnvelope`** (`{type:'relay-chat', frameId, service,
+  channelHandle, speaker, text}` in `@saxonberg/types`) to every broadcast
+  socket. The `pbox-stream` overlay renders it; this repo ships only the
+  wire contract + the forwarding.
+- The read is **overlay-presence-gated**: `addConnection`'s 0→1 edge calls
+  `StreamApi.setOverlayReading(true)` (1→0 → `false`), which sentinel-tunes
+  (`overlay:broadcast`) the owner's configured channels through the same
+  readers used for viewer tuning — reusing the presence edge to open/close
+  the owner reads independent of any player `tune`. YouTube re-resolves the
+  owner's current live broadcast on a slow single-channel live-status poll
+  (`youtube.overlayPollIntervalMs`, default 15 min — `search.list` is
+  quota-costly) to catch a stream restart. One token / one feed / one owner
+  is preserved — the owner's channels are env config, no per-overlay
+  `StreamState` keying (the deferred multi-streamer non-goal).
 
 ## Authorization — the streamer axis
 

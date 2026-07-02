@@ -92,36 +92,37 @@ dimmed and doesn't send until its verb ships. Per the through-line the
 client still owns zero command semantics — every chip is just a
 command-bus affordance.
 
-## Livestream-viewer + the platform-agnostic embed
+## Livestream-viewer + the watch-driven embed
 
-- **`StreamSource`** (`@saxonberg/types`) is a platform union:
-  `{platform:'twitch', channel}` | `{platform:'youtube', videoId}`.
-  Both platforms are wired: Twitch renders the Twitch player, YouTube
-  the standard `/embed/<videoId>` player. Configuring one source of each
-  platform lets the viewer pick which to watch (see the client picker
-  below). YouTube *chat* is still deferred — this is the video embed only.
-- **Operator config** — `livestream.broadcastSources` (an AppSetting, a
-  JSON-array string, the `renown.decayHalfLives` precedent).
-  `StreamSourceApi.current()` (`mud/api/stream-source.ts`) parses +
-  shape-validates it to a `StreamSource[]`, falling back to `[]` on
-  absent/malformed/pre-warm (try/catch — the welcome build must never
-  crash).
-- **Surfacing** — the welcome snapshot
-  (`ConnectionEstablishedPayload.broadcastSources`, set in
-  `Avatar.enter`) is the baseline; a `stream-sources` envelope keeps it
-  live. The `config` verb fires `Events.StreamSourcesChanged` when the
-  key changes, and an `Application` boot listener fans the new list to
-  every `ConnectionApi.getAllInteractives()` via
-  `sendEnvelopeToInteractive`.
-- **Client** — `components/embed/StreamEmbed.tsx` renders the
-  player-selected source (picker shown only when >1, so a Twitch+YouTube
-  pair surfaces a two-button chooser). The Twitch iframe's `parent` is
+The focal video is now **per-viewer, driven by the `watch` verb** — not a
+global operator-curated list. The whole `broadcastSources` path
+(`StreamSourceApi`, `livestream.broadcastSources`, the `stream-sources`
+envelope, `Events.StreamSourcesChanged`, `Application.wireBroadcastSources­Push`,
+the welcome-snapshot `broadcastSources` field, and the multi-source picker)
+is **retired**. See [streaming.md](./streaming.md) for the `tune`/`watch`
+surface; this section is just the embed's cockpit half.
+
+- **Server-authoritative per-viewer state** — `watch <target>` resolves the
+  embed shape and writes it to the transient `cockpit.watch` clientState
+  (`WatchTarget | null` in `@saxonberg/types`), pushed to the client via the
+  `setClientState` → `pushClientStateUpdate` seam (the `cockpit.inputModes`
+  / `ModeController` precedent, no `save()`). `watch off` → `null`. The
+  client owns zero command semantics — it mirrors the server state and
+  renders the iframe.
+- **`WatchTarget`** is embed-shaped: `{platform:'twitch', channel}` |
+  `{platform:'youtube', videoId}` | `{platform:'youtube', channelId}` (the
+  `@handle`/`UC…` durable form, rendered `live_stream?channel=<channelId>`).
+- **Client** — `components/embed/StreamEmbed.tsx` takes a single
+  `WatchTarget | null` and renders **one** sandboxed iframe (no picker) or
+  an empty placeholder. `LivestreamViewerLayout` reads
+  `clientState['cockpit.watch']`. The Twitch iframe's `parent` is
   `window.location.hostname` (correct-by-construction, never hard-coded);
-  the YouTube iframe is `https://www.youtube.com/embed/<videoId>`. Both
-  are sandboxed identically. The chat terminal allowlists the
-  relay topics (`world.twitch.message`, `world.youtube.message`); the
-  game terminal is the complement — client-side filters over the one
-  shared frame buffer, no ingest-time routing.
+  the YouTube iframe is `youtube.com/embed/<videoId>` (videoId arm) or
+  `youtube.com/embed/live_stream?channel=<channelId>` (channelId arm). The
+  chat terminal allowlists the relay topics (`world.twitch.message`,
+  `world.youtube.message`); the game terminal is the complement —
+  client-side filters over the one shared frame buffer, no ingest-time
+  routing.
 
 ## Builder = the CMS re-homed
 
@@ -224,10 +225,9 @@ not a `layout` switch — it coexists with the current layout.
 - [cockpit-composition.md](../cockpit-composition.md) — the binding layout grammar
 - [client-shell.md](./client-shell.md) — the client front-door (frame primitives, clientState channel)
 - [cms.md](./cms.md) — the CMS surface re-homed into `builder`
-- [livestream.md](./livestream.md) — the broadcast-feed substrate; the embed config lives beside it
+- [livestream.md](./livestream.md) — the broadcast-feed substrate (+ the overlay relay-chat envelope)
 - [command-parsing.md](./command-parsing.md) / [command-routing.md](./command-routing.md) — the dispatch path the input-mode prepend hooks
-- [twitch-relay.md](./twitch-relay.md) — the chat relay the livestream-viewer chat terminal shows
-- [app-settings.md](./app-settings.md) — `livestream.broadcastSources`
+- [streaming.md](./streaming.md) — the `tune`/`watch` surface driving `cockpit.watch` + the relay chat terminal shows
 
 ## History
 
