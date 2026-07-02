@@ -35,6 +35,7 @@ import Discipline, {
 } from "../lib/advancement/Discipline";
 import { CompetenceBand } from "../lib/advancement/CompetenceBand";
 import type { VetoResult } from "../lib/errors";
+import type { EvictionContext } from '../lib/stuff/Stuff';
 
 const DisciplineCatalogueBase = PostRegistrationMixin(Idea);
 
@@ -44,7 +45,7 @@ export default class DisciplineCatalogue extends DisciplineCatalogueBase {
    * Residency veto - a load-bearing process-lifetime singleton is
    * never culled by the self-eviction sweep.
    */
-  public canEvict(): VetoResult {
+  public canEvict(_context: EvictionContext): VetoResult {
     return { ok: false, reason: 'system singleton; never culled' };
   }
   /**

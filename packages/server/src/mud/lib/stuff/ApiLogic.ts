@@ -1,5 +1,6 @@
 import { Idea } from './Idea';
 import type { VetoResult } from '../errors';
+import type { EvictionContext } from './Stuff';
 
 /**
  * Base class for the `*Logic` singletons behind the `*Api` facades
@@ -28,7 +29,7 @@ export class ApiLogic extends Idea {
    * culled. Terminal (does not chain `super`) — the exemption is
    * unconditional.
    */
-  public canEvict(): VetoResult {
+  public canEvict(_context: EvictionContext): VetoResult {
     return { ok: false, reason: 'load-bearing logic singleton' };
   }
 }

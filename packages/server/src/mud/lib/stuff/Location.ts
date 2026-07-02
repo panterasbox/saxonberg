@@ -22,6 +22,7 @@
 
 import { Stuff } from './Stuff';
 import type { VetoResult } from '../errors';
+import type { EvictionContext } from './Stuff';
 import { ContainerMixin } from '../spatial/Container';
 import { AdornableMixin } from '../boundary/Adornable';
 import { TangibleMixin } from '../material/Tangible';
@@ -41,7 +42,7 @@ export default class Location extends LocationBase {
    * room is the owning subsystem's job (e.g. the Warren's merge-low
    * reconcile), not residency's. Unconditional.
    */
-  public override canEvict(): VetoResult {
+  public override canEvict(_context: EvictionContext): VetoResult {
     return { ok: false, reason: 'room (authored/graph-managed)' };
   }
 

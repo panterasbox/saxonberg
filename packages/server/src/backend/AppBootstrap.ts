@@ -33,6 +33,7 @@ import ParticipationStanding from '../mud/lib/standing/ParticipationStanding';
 import { ProducerApi } from '../mud/api/producer';
 import ProducerStanding from '../mud/lib/standing/ProducerStanding';
 import { BankingApi } from '../mud/api/banking';
+import { ResidencyApi } from '../mud/api/residency';
 import { EmploymentApi } from '../mud/api/employment';
 import { SocialApi } from '../mud/api/social';
 import { BulletinApi } from '../mud/api/bulletin';
@@ -198,6 +199,13 @@ export class AppBootstrap {
     // consumer so the shared signal's allowlist is asserted in a stable order.
     await ProducerStanding.warm();
     ProducerApi.boot();
+
+    // Residency (self-eviction) — install the real-time cold-tail sweep.
+    // No warm step (nothing materialized); it reads AppSettings each sweep
+    // and enumerates the live registry (populated by the manifest clones
+    // above). Ships in observe mode, so booting culls nothing until an
+    // operator flips `residency.mode` to `enforce`.
+    ResidencyApi.boot();
 
     // Banking (the monetary substrate) — warm the account-balance read cache
     // and the single-row supply headline from their materialized rows, then

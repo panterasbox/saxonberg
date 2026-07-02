@@ -257,6 +257,19 @@ export const AppSettingKeys = {
   bulletinHeadlineMaxLength: "bulletin.headlineMaxLength",
   /** Bulletin — max rendered length (chars) of a body. */
   bulletinBodyMaxLength: "bulletin.bodyMaxLength",
+
+  /**
+   * Residency (self-eviction) — the cold-tail garbage-culler's operator
+   * knobs. Ships in observe mode (logs candidates, culls nothing);
+   * enforcement is a flip, re-read each sweep (no restart). See
+   * docs/subsystems/residency.md.
+   */
+  /** Residency — `observe` (log only) | `enforce` (actually cull). */
+  residencyMode: "residency.mode",
+  /** Residency — sweep cadence in ms. */
+  residencySweepIntervalMs: "residency.sweepIntervalMs",
+  /** Residency — idle grace window (ms) before an object is a candidate. */
+  residencyIdleThresholdMs: "residency.idleThresholdMs",
 } as const;
 
 export type AppSettingKey =

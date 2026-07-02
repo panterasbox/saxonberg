@@ -27,6 +27,7 @@
 
 import type { MixinConstructor } from '../mixin';
 import type { VetoResult } from '../errors';
+import type { EvictionContext } from '../stuff/Stuff';
 import type Interactive from '../../obj/Interactive';
 import type { CommandContributions } from '../../api/command';
 import { ShellApi } from '../../api/shell';
@@ -177,7 +178,7 @@ export function HasInteractiveMixin<TBase extends MixinConstructor>(Base: TBase)
      * by the self-eviction sweep — its lifecycle is owned by connection
      * teardown. Unconditional (does not chain `super`).
      */
-    public canEvict(): VetoResult {
+    public canEvict(_context: EvictionContext): VetoResult {
       return { ok: false, reason: 'interactive session holder' };
     }
 

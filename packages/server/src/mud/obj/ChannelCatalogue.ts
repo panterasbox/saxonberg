@@ -56,6 +56,7 @@ import type SubjectCatalogue from './SubjectCatalogue';
 import type Subject from '../lib/forum/Subject';
 import type { MessageFrame } from '@saxonberg/types';
 import type { VetoResult } from '../lib/errors';
+import type { EvictionContext } from '../lib/stuff/Stuff';
 
 /** Fallback when app-settings is unread (pre-warm / tests); the seeded
  * `chat.historyCap` is authoritative at runtime. */
@@ -91,7 +92,7 @@ export default class ChannelCatalogue extends ChannelCatalogueBase {
    * Residency veto - a load-bearing process-lifetime singleton is
    * never culled by the self-eviction sweep.
    */
-  public canEvict(): VetoResult {
+  public canEvict(_context: EvictionContext): VetoResult {
     return { ok: false, reason: 'system singleton; never culled' };
   }
   private byName: Map<string, Channel> | null = null;

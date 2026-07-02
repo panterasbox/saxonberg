@@ -998,7 +998,11 @@ export class StuffApi {
     const objects: Stuff[] = [];
 
     for (const obj of this.#indexes.byId.values()) {
-      if (!obj.isDestroyed()) {
+      // Check liveness on the RAW target: enumerating the registry is not
+      // "using" an object, so the residency sweep's isDestroyed filter must
+      // not count as a dispatch-touch (which would refresh every object's
+      // recency on every sweep and defeat idle detection).
+      if (!ProxyApi.unwrap(obj).isDestroyed()) {
         objects.push(obj);
       } else {
         // Clean up destroyed objects across every index.

@@ -37,6 +37,7 @@ import { Template } from '../lib/stuff/Template';
 import Topic from '../lib/messaging/Topic';
 import type { TopicDescriptor } from '@saxonberg/types';
 import type { VetoResult } from '../lib/errors';
+import type { EvictionContext } from '../lib/stuff/Stuff';
 
 const TopicCatalogueBase = PostRegistrationMixin(Idea);
 
@@ -46,7 +47,7 @@ export default class TopicCatalogue extends TopicCatalogueBase {
    * Residency veto - a load-bearing process-lifetime singleton is
    * never culled by the self-eviction sweep.
    */
-  public canEvict(): VetoResult {
+  public canEvict(_context: EvictionContext): VetoResult {
     return { ok: false, reason: 'system singleton; never culled' };
   }
   /**

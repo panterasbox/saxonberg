@@ -35,6 +35,7 @@ import { CommandApi } from "../api/command";
 import { Mml } from "../api/mml";
 import type { CommandDefinition } from "../lib/command/CommandDefinition";
 import type { VetoResult } from "../lib/errors";
+import type { EvictionContext } from '../lib/stuff/Stuff';
 
 // ── The parsed shape of `author-surface.json` (the build artifact the
 //    projection script emits). Declared locally because the script lives
@@ -102,7 +103,7 @@ export default class HelpCatalogue extends HelpCatalogueBase {
    * Residency veto - a load-bearing process-lifetime singleton is
    * never culled by the self-eviction sweep.
    */
-  public canEvict(): VetoResult {
+  public canEvict(_context: EvictionContext): VetoResult {
     return { ok: false, reason: 'system singleton; never culled' };
   }
   /** id → topic. `null` = not yet warmed. */
