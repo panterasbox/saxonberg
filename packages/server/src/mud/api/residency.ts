@@ -1,5 +1,7 @@
-// ResidencyApi — the thin, gated forwarding shell over ResidencyLogic
-// (the cold-tail self-eviction sweep). See docs/subsystems/residency.md.
+// ResidencyApi — the thin, gated forwarding shell over ResidencyLogic,
+// the home for scheduled object self-maintenance (the real-time eviction
+// sweep now; the deferred game-time reset sweep later — same shape).
+// See docs/subsystems/residency.md.
 
 import { StuffApi } from './stuff';
 import { HotReloadApi } from './hot-reload';
@@ -26,18 +28,19 @@ function logic(): ResidencyLogic {
 
 export class ResidencyApi {
   /**
-   * Boot seam (idempotent): install the real-time cold-tail sweep.
-   * Activation = the `ResidencyLogic` singleton's presence. Ships in
-   * observe mode (`residency.mode`), so booting culls nothing until an
-   * operator flips it to `enforce`.
+   * Boot seam (idempotent): install the residency sweeps. Today that's
+   * the real-time cold-tail eviction sweep; the deferred reset sweep will
+   * be installed here too. Activation = the `ResidencyLogic` singleton's
+   * presence. Eviction ships in observe mode (`residency.eviction.mode`),
+   * so booting culls nothing until an operator flips it to `enforce`.
    */
   public static boot(): void {
-    logic().installSweep();
+    logic().installEvictionSweep();
   }
 
-  /** Run one sweep now (test / manual seam). */
-  public static sweepNow(): void {
-    logic().sweepNow();
+  /** Run one eviction sweep now (test / manual seam). */
+  public static evictNow(): void {
+    logic().evictNow();
   }
 }
 

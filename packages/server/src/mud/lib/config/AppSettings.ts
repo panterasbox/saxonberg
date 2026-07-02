@@ -259,17 +259,19 @@ export const AppSettingKeys = {
   bulletinBodyMaxLength: "bulletin.bodyMaxLength",
 
   /**
-   * Residency (self-eviction) — the cold-tail garbage-culler's operator
-   * knobs. Ships in observe mode (logs candidates, culls nothing);
-   * enforcement is a flip, re-read each sweep (no restart). See
-   * docs/subsystems/residency.md.
+   * Residency — scheduled object self-maintenance (see
+   * docs/subsystems/residency.md). Keys are namespaced per sweep:
+   * `residency.eviction.*` is the real-time cold-tail garbage-culler
+   * (ships in observe mode — logs candidates, culls nothing; enforcement
+   * is a flip, re-read each sweep, no restart). The deferred game-time
+   * reset sweep will namespace under `residency.reset.*`.
    */
-  /** Residency — `observe` (log only) | `enforce` (actually cull). */
-  residencyMode: "residency.mode",
-  /** Residency — sweep cadence in ms. */
-  residencySweepIntervalMs: "residency.sweepIntervalMs",
-  /** Residency — idle grace window (ms) before an object is a candidate. */
-  residencyIdleThresholdMs: "residency.idleThresholdMs",
+  /** Eviction — `observe` (log only) | `enforce` (actually cull). */
+  residencyEvictionMode: "residency.eviction.mode",
+  /** Eviction — sweep cadence in ms. */
+  residencyEvictionIntervalMs: "residency.eviction.intervalMs",
+  /** Eviction — idle grace window (ms) before an object is a candidate. */
+  residencyEvictionIdleThresholdMs: "residency.eviction.idleThresholdMs",
 } as const;
 
 export type AppSettingKey =

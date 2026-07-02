@@ -1,13 +1,22 @@
-# Residency — self-eviction of the cold tail
+# Residency — scheduled object self-maintenance
 
-The **residency** substrate is a scheduled, real-time background sweep
-that lets abandoned in-memory `Stuff` **evict itself** — reclaiming the
-cold tail of clones that were made, drifted, and then forgotten (a
-dropped item nobody returns for, a room nobody re-enters, an NPC nobody
-visits, a shadow lifted off its host and orphaned). Before it, the only
-way a live `Stuff` left memory was an explicit `StuffApi.destruct()` —
-someone had to *actively* decide an object was done — so the registry
-grew for the life of the process.
+The **residency** substrate hosts a family of scheduled sweeps that share
+one shape: the engine periodically visits objects and lets each decide a
+maintenance action on itself — *engine informs, object decides*. Two
+sweeps live here:
+
+- **Eviction (shipped)** — a real-time background sweep that lets
+  abandoned in-memory `Stuff` **evict itself**, reclaiming the cold tail
+  of clones that were made, drifted, and then forgotten (a dropped item
+  nobody returns for, a room nobody re-enters, an NPC nobody visits, a
+  shadow lifted off its host and orphaned). Before it, the only way a
+  live `Stuff` left memory was an explicit `StuffApi.destruct()`.
+- **Reset (deferred, same shape, same home)** — a game-time repop sweep
+  over `ResettableMixin`, restorative-of-self. Not built yet; it slots in
+  as a sibling sweep (`installResetSweep()` on the game-time clock,
+  `residency.reset.*` knobs) — see *Deferred* below.
+
+The rest of this doc describes the eviction sweep.
 
 **This is a garbage-culler, not a swapfile.** Memory *scaling* is an
 explicit non-goal (the answer to that is a distributive model). The
@@ -113,12 +122,14 @@ eviction may still `canDestruct`-veto, so the enforce path tolerates a
 Because the go-live memory profile is unknown, the sweep **ships in
 observe mode** — it logs what it *would* cull (cold-tail size + a sample)
 and destructs nothing. Watch that against real load, then flip
-`residency.mode` to `enforce`. Mode is re-read each sweep (no restart).
-Knobs (`AppSettingKeys`, seeded in `config/app-settings.yaml`):
+`residency.eviction.mode` to `enforce`. Mode is re-read each sweep (no
+restart). Knobs are per-sweep-namespaced (`residency.eviction.*` here;
+the reset sweep will add `residency.reset.*`), seeded in
+`config/app-settings.yaml`:
 
-- `residency.mode` — `observe` | `enforce` (default `observe`)
-- `residency.sweepIntervalMs` — sweep cadence (default 60000)
-- `residency.idleThresholdMs` — grace window (default 1800000)
+- `residency.eviction.mode` — `observe` | `enforce` (default `observe`)
+- `residency.eviction.intervalMs` — sweep cadence (default 60000)
+- `residency.eviction.idleThresholdMs` — grace window (default 1800000)
 
 Settings reads are try/catch-guarded and fail **safe** (to `observe`,
 never cull) when AppSettings isn't warmed (pre-boot / tests).
@@ -173,10 +184,13 @@ occupant is present, so presence + dispatch touch already keep them warm.
 
 ## Module homes
 
-- `api/residency.ts` — `ResidencyApi` gated forwarding shell (`boot`,
-  `sweepNow`).
-- `obj/api/ResidencyLogic.ts` — the `@internal` logic singleton (the
-  sweep loop + presence walk); `extends ApiLogic`, so it self-exempts.
+- `api/residency.ts` — `ResidencyApi` gated forwarding shell (`boot`
+  installs the residency sweeps; `evictNow` for test/manual).
+- `obj/api/ResidencyLogic.ts` — the `@internal` logic singleton, home to
+  the scheduled sweeps: `installEvictionSweep()` + `runEvictionSweep` +
+  the presence walk today, one retained handle per sweep (the reset
+  sweep's `installResetSweep()` + `runResetSweep` land alongside).
+  `extends ApiLogic`, so it self-exempts.
 - `lib/stuff/Stuff.ts` — `canEvict`, `EvictionContext`, `lastTouched`,
   `touch()` / `getLastTouched()`.
 - `lib/stuff/ApiLogic.ts` — the logic-singleton base carrying the
@@ -184,13 +198,16 @@ occupant is present, so presence + dispatch touch already keep them warm.
 
 ## Deferred
 
-- **The reset sibling** (game-time repop) — `resets:` +
-  `ResettableMixin`, restorative-of-self, never destructive-of-others,
-  reusing the presence walk as a skip. Designed in the slate; a separate
-  follow-on build. (Note the subsumption: a cold resettable object is
-  simply culled and re-cloned fresh — its template state *is* its reset
-  state — so explicit reset only earns its keep for warm/resident
-  objects.)
+- **The reset sweep** (game-time repop) — the second sweep this substrate
+  is built to host: `resets:` + `ResettableMixin`, restorative-of-self,
+  never destructive-of-others, reusing the presence walk as a skip. It
+  installs a sibling `installResetSweep()` on the game-time clock (vs.
+  eviction's real-time clock), reads `residency.reset.*`, and its
+  `runResetSweep` body mirrors `runEvictionSweep`. Designed in the slate;
+  a separate follow-on build. (Note the subsumption: a cold resettable
+  object is simply culled and re-cloned fresh — its template state *is*
+  its reset state — so explicit reset only earns its keep for
+  warm/resident objects.)
 - **Memory-pressure-driven aggressiveness** — a sweep-side threshold
   modulation (shrink the grace window under heap pressure), *not* an
   input to `canEvict`. Documented seam; not built.

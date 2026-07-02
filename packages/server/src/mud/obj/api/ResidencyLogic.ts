@@ -1,10 +1,22 @@
-// ResidencyLogic — the cold-tail self-eviction sweep behind ResidencyApi.
+// ResidencyLogic — scheduled object self-maintenance, behind ResidencyApi.
 //
-// A lazy, real-time O(n) scan: every idle object (untouched past the
-// threshold) is asked `canEvict`; consenters are culled via the ordinary
-// `StuffApi.destruct` choreography. This is a garbage-culler for abandoned
-// world state, NOT a swapfile — culled objects are gone; a later reference
-// re-clones them fresh from template. See docs/subsystems/residency.md.
+// Residency hosts a family of scheduled sweeps that share one shape: the
+// engine periodically visits objects and lets each decide a maintenance
+// action on itself ("engine informs, object decides").
+//
+//   - Eviction (SHIPPED): a lazy, real-time O(n) cold-tail scan. Every
+//     idle object (untouched past the threshold) is asked `canEvict`;
+//     consenters are culled via the ordinary `StuffApi.destruct`
+//     choreography. A garbage-culler for abandoned world state, NOT a
+//     swapfile — culled objects are gone; a later reference re-clones
+//     them fresh from template.
+//   - Reset (DEFERRED — same shape, same home): a game-time repop sweep
+//     over `ResettableMixin`, restorative-of-self. When built it installs
+//     a sibling `installResetSweep()` on the game-time clock and reads
+//     `residency.reset.*`; the `runResetSweep` body mirrors the eviction
+//     body below.
+//
+// See docs/subsystems/residency.md.
 
 import { ApiLogic } from '../../lib/stuff/ApiLogic';
 import { StuffApi } from '../../api/stuff';
@@ -25,7 +37,7 @@ const ResidencyApiCallers = SecurityPolicies.FromModule(
 );
 
 /** Fallbacks used when AppSettings isn't warmed yet (tests / pre-boot). */
-const DEFAULT_SWEEP_MS = 60_000;
+const DEFAULT_EVICTION_INTERVAL_MS = 60_000;
 const DEFAULT_IDLE_MS = 1_800_000;
 const OBSERVE_SAMPLE_CAP = 20;
 
@@ -39,9 +51,9 @@ function readInt(key: string, fallback: number): number {
   }
 }
 
-function readMode(): 'observe' | 'enforce' {
+function readEvictionMode(): 'observe' | 'enforce' {
   try {
-    return AppApi.setting(AppSettingKeys.residencyMode) === 'enforce'
+    return AppApi.setting(AppSettingKeys.residencyEvictionMode) === 'enforce'
       ? 'enforce'
       : 'observe';
   } catch {
@@ -75,13 +87,14 @@ function presenceWalkImpl(): void {
 }
 
 /**
- * The lazy O(n) cold-tail scan. `getAllObjects()` returns proxies, so we
- * read recency and ask `canEvict` on the **raw** target — the sweep's own
- * introspection must never count as a touch. In enforce mode, consenters
- * are culled through `StuffApi.destruct` (the full choreography). Mode is
- * re-read each sweep, so flipping `residency.mode` needs no restart.
+ * The eviction sweep — the lazy O(n) cold-tail scan. `getAllObjects()`
+ * returns proxies, so we read recency and ask `canEvict` on the **raw**
+ * target — the sweep's own introspection must never count as a touch. In
+ * enforce mode, consenters are culled through `StuffApi.destruct` (the
+ * full choreography). Mode is re-read each sweep, so flipping
+ * `residency.eviction.mode` needs no restart.
  */
-function sweepImpl(): void {
+function runEvictionSweep(): void {
   // Refresh presence first, so a silently-occupied room and its contents
   // read as warm when the scan below evaluates them. Best-effort: a
   // connection-layer hiccup must never crash the sweep.
@@ -91,9 +104,9 @@ function sweepImpl(): void {
     console.warn('[residency] presence walk failed; scanning anyway', err);
   }
 
-  const mode = readMode();
+  const mode = readEvictionMode();
   const idleThreshold = readInt(
-    AppSettingKeys.residencyIdleThresholdMs,
+    AppSettingKeys.residencyEvictionIdleThresholdMs,
     DEFAULT_IDLE_MS,
   );
   const now = Date.now();
@@ -129,13 +142,13 @@ function sweepImpl(): void {
   if (mode === 'observe') {
     if (candidates > 0) {
       console.info(
-        `[residency] observe: ${candidates} cull candidate(s) ` +
+        `[residency] eviction observe: ${candidates} cull candidate(s) ` +
           `idle >= ${idleThreshold}ms; sample: ${sample.join(', ')}`,
       );
     }
   } else if (candidates > 0) {
     console.info(
-      `[residency] enforce: culled ${culled}/${candidates} candidate(s)`,
+      `[residency] eviction enforce: culled ${culled}/${candidates} candidate(s)`,
     );
   }
 }
@@ -143,25 +156,30 @@ function sweepImpl(): void {
 /**
  * @internal — the logic singleton behind `ResidencyApi`. Registers at
  * `/obj/api/residency`; methods admit only the `ResidencyApi` face.
- * Extends `ApiLogic`, so it is itself residency-exempt.
+ * Extends `ApiLogic`, so it is itself residency-exempt. Owns one retained
+ * handle per scheduled sweep (the eviction sweep today; the reset sweep
+ * gets a sibling handle + `installResetSweep()` when built).
  */
 export class ResidencyLogic extends ApiLogic {
-  /** The recurring sweep handle — retained so re-install is a no-op. */
-  private sweepHandle: ScheduleHandle | null = null;
+  /** The recurring eviction-sweep handle — retained so re-install is a no-op. */
+  private evictionHandle: ScheduleHandle | null = null;
 
-  /** Install the real-time cold-tail sweep (idempotent). */
+  /** Install the real-time cold-tail eviction sweep (idempotent). */
   @CallSecurity(ResidencyApiCallers)
-  public installSweep(): void {
-    if (this.sweepHandle) return;
-    this.sweepHandle = ScheduleApi.recurring(
-      readInt(AppSettingKeys.residencySweepIntervalMs, DEFAULT_SWEEP_MS),
-      () => sweepImpl(),
+  public installEvictionSweep(): void {
+    if (this.evictionHandle) return;
+    this.evictionHandle = ScheduleApi.recurring(
+      readInt(
+        AppSettingKeys.residencyEvictionIntervalMs,
+        DEFAULT_EVICTION_INTERVAL_MS,
+      ),
+      () => runEvictionSweep(),
     );
   }
 
-  /** Run one sweep synchronously (test / manual seam). */
+  /** Run one eviction sweep synchronously (test / manual seam). */
   @CallSecurity(ResidencyApiCallers)
-  public sweepNow(): void {
-    sweepImpl();
+  public evictNow(): void {
+    runEvictionSweep();
   }
 }

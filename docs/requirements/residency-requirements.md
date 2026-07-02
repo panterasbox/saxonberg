@@ -235,17 +235,20 @@ layered before it.
 
 ### Observe-first, tunable via AppSettings
 
-Ships in observe mode; enforcement is a flip. Knobs (`AppSettingKeys`):
+Ships in observe mode; enforcement is a flip. Knobs are per-sweep
+namespaced under `residency.<sweep>.*` (the reset sweep will add
+`residency.reset.*`); dispatch-touch is unconditional, so no touch-signal
+knob. Eviction (`AppSettingKeys`):
 
-- `residency.mode` — `observe` | `enforce` (default `observe`)
-- `residency.sweepIntervalMs` — sweep cadence
-- `residency.idleThresholdMs` — the grace window
-- `residency.touchSignals` — which sources bump recency
+- `residency.eviction.mode` — `observe` | `enforce` (default `observe`)
+- `residency.eviction.intervalMs` — sweep cadence
+- `residency.eviction.idleThresholdMs` — the grace window
 
 ### Module homes
 
-- `api/residency.ts` — `ResidencyApi` facade (`touch(stuff)`, boot/sweep
-  entry), ending in `SecurityApi.decorateApiClass`.
+- `api/residency.ts` — `ResidencyApi` facade (`boot` installs the
+  residency sweeps; `evictNow` for test/manual), ending in
+  `SecurityApi.decorateApiClass`.
 - `obj/api/ResidencyLogic.ts` — the `@internal` logic singleton at
   `/obj/api/residency` owning the sweep loop, the cached tick, and
   observe/enforce dispatch.
@@ -277,7 +280,7 @@ Ships in observe mode; enforcement is a flip. Knobs (`AppSettingKeys`):
   row ("Stateless `Stuff` (`extends Idea`, no `PostRegistrationMixin`)")
   updates to match at finalize.
 - **Default-observe guarantees safe deploy** — enabling the build must not
-  cull anything until an operator flips `residency.mode`.
+  cull anything until an operator flips `residency.eviction.mode`.
 
 ## Acceptance criteria
 
@@ -308,7 +311,7 @@ Ships in observe mode; enforcement is a flip. Knobs (`AppSettingKeys`):
   `obj/api/*Logic.ts` extends it; a `*Logic` singleton survives an
   enforce-mode sweep. (tests)
 - `residency.*` AppSettings keys are defined, seeded, and read; changing
-  `residency.mode` toggles enforcement without a restart.
+  `residency.eviction.mode` toggles enforcement without a restart.
 - Subsystem doc `docs/subsystems/residency.md` exists and is linked from
   the CLAUDE.md documentation map.
 

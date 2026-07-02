@@ -27,57 +27,57 @@ describe('residency sweep', () => {
     // Warm an empty settings cache without Mongo (test seam).
     (AppSettings as unknown as { _cached: AppSettings | null })._cached =
       new AppSettings();
-    setSetting(AppSettingKeys.residencyIdleThresholdMs, '100');
+    setSetting(AppSettingKeys.residencyEvictionIdleThresholdMs, '100');
     vi.useFakeTimers();
     vi.setSystemTime(1_000);
   });
 
   afterEach(() => {
     vi.useRealTimers();
-    setSetting(AppSettingKeys.residencyMode, 'observe');
+    setSetting(AppSettingKeys.residencyEvictionMode, 'observe');
   });
 
   it('observe mode culls nothing', () => {
-    setSetting(AppSettingKeys.residencyMode, 'observe');
+    setSetting(AppSettingKeys.residencyEvictionMode, 'observe');
     const thing = makeStuff(() => new Thing());
     const id = thing.stuffId;
     vi.setSystemTime(50_000); // idle 49s >> 100ms threshold
-    ResidencyApi.sweepNow();
+    ResidencyApi.evictNow();
     expect(StuffApi.findById(id)).toBeDefined();
   });
 
   it('enforce mode culls an idle, non-vetoing object', () => {
-    setSetting(AppSettingKeys.residencyMode, 'enforce');
+    setSetting(AppSettingKeys.residencyEvictionMode, 'enforce');
     const thing = makeStuff(() => new Thing());
     const id = thing.stuffId;
     vi.setSystemTime(50_000); // idle 49s >> 100ms threshold
-    ResidencyApi.sweepNow();
+    ResidencyApi.evictNow();
     expect(StuffApi.findById(id)).toBeUndefined();
   });
 
   it('enforce mode skips a recently touched object', () => {
-    setSetting(AppSettingKeys.residencyMode, 'enforce');
+    setSetting(AppSettingKeys.residencyEvictionMode, 'enforce');
     const thing = makeStuff(() => new Thing());
     const id = thing.stuffId;
     vi.setSystemTime(50_000);
     thing.touch(); // fresh again → within grace
-    ResidencyApi.sweepNow();
+    ResidencyApi.evictNow();
     expect(StuffApi.findById(id)).toBeDefined();
   });
 
   it('enforce mode spares a vetoing object (a non-empty room)', () => {
-    setSetting(AppSettingKeys.residencyMode, 'enforce');
+    setSetting(AppSettingKeys.residencyEvictionMode, 'enforce');
     const room = makeStuff(() => new Location());
     const item = makeStuff(() => new Thing());
     ContainmentApi.move(item, room);
     const id = room.stuffId;
     vi.setSystemTime(50_000);
-    ResidencyApi.sweepNow();
+    ResidencyApi.evictNow();
     expect(StuffApi.findById(id)).toBeDefined(); // non-empty → Container veto
   });
 
   it('presence keeps an occupied room’s contents warm', () => {
-    setSetting(AppSettingKeys.residencyMode, 'enforce');
+    setSetting(AppSettingKeys.residencyEvictionMode, 'enforce');
     const room = makeStuff(() => new Location());
     const holder = makeStuff(() => new Thing()); // stand-in avatar
     const item = makeStuff(() => new Thing());
@@ -89,13 +89,13 @@ describe('residency sweep', () => {
       .spyOn(ConnectionApi, 'getAllInteractives')
       .mockReturnValue([{ getHolder: () => holder } as unknown as Interactive]);
     vi.setSystemTime(50_000); // idle by recency...
-    ResidencyApi.sweepNow(); // ...but the presence walk refreshes it
+    ResidencyApi.evictNow(); // ...but the presence walk refreshes it
     expect(StuffApi.findById(itemId)).toBeDefined();
     spy.mockRestore();
   });
 
   it('without presence, an idle item in a room is culled', () => {
-    setSetting(AppSettingKeys.residencyMode, 'enforce');
+    setSetting(AppSettingKeys.residencyEvictionMode, 'enforce');
     const room = makeStuff(() => new Location());
     const item = makeStuff(() => new Thing());
     ContainmentApi.move(item, room);
@@ -104,7 +104,7 @@ describe('residency sweep', () => {
       .spyOn(ConnectionApi, 'getAllInteractives')
       .mockReturnValue([]);
     vi.setSystemTime(50_000);
-    ResidencyApi.sweepNow();
+    ResidencyApi.evictNow();
     expect(StuffApi.findById(itemId)).toBeUndefined();
     spy.mockRestore();
   });
