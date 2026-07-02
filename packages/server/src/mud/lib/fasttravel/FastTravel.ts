@@ -84,6 +84,9 @@ export interface FastTravel {
 
   getStatus(): string;
   setStatus(value: string): void;
+
+  getSurcharge(): number;
+  setSurcharge(value: number): void;
 }
 
 /** "11:00" → { hour: 11, minute: 0 }; pass-through for an object pattern. */
@@ -114,6 +117,7 @@ export function FastTravelMixin<TBase extends MixinConstructor<Stuff>>(
       "status",
       "advanceMode",
       "cycleInterval",
+      "surcharge",
     ];
 
     /** `routes` is authored content applied once at hydrate (Phase 2). */
@@ -127,6 +131,14 @@ export function FastTravelMixin<TBase extends MixinConstructor<Stuff>>(
     private _directionality: Directionality = "both";
     private _selectedDestinationRef: string | null = null;
     private _status = "operational";
+    /**
+     * The node's **arrival surcharge** (minor units; 0 = none): a charge this
+     * terminal imposes just for *using it as a destination*, added on top of
+     * the route's own `fee`. Collected by the Business operating THIS node's
+     * arrival room (the destination operator), the mirror of the route fee's
+     * departure attribution. Optional, like the fee.
+     */
+    private _surcharge = 0;
     private _advanceMode: AdvanceMode = "manual";
     private _cycleInterval: string | null = null;
     private _routes = new Map<string, TravelRoute>();
@@ -161,6 +173,19 @@ export function FastTravelMixin<TBase extends MixinConstructor<Stuff>>(
     }
     setStatus(value: string): void {
       this._status = value;
+    }
+
+    /* ── arrival surcharge (destination-imposed, on top of the fee) ── */
+
+    getSurcharge(): number {
+      return this._surcharge;
+    }
+    setSurcharge(value: number): void {
+      const n = Number(value);
+      if (!Number.isFinite(n) || n < 0) {
+        throw new TypeError(`bad surcharge '${value}' (want a non-negative number)`);
+      }
+      this._surcharge = Math.floor(n);
     }
 
     /* ── advance policy ─────────────────────────────────────────── */
@@ -307,7 +332,16 @@ export function FastTravelMixin<TBase extends MixinConstructor<Stuff>>(
         const active = route.ref === selected ? " «now boarding»" : "";
         const reg =
           cred && !cred.isRegistered(route.ref) ? " — not yet registered" : "";
-        const fare = route.fee > 0 ? ` ⊙${route.fee}` : "";
+        // The board shows the TOTAL the traveller pays: the route fee plus the
+        // destination's own arrival surcharge (⊙total; broken out when both).
+        const surcharge = node.getSurcharge();
+        const total = route.fee + surcharge;
+        const fare =
+          total > 0
+            ? surcharge > 0 && route.fee > 0
+              ? ` ⊙${total} (${route.fee}+${surcharge})`
+              : ` ⊙${total}`
+            : "";
         const times =
           route.departures.length > 0
             ? `  [${route.departures.map(formatCron).join(", ")}]`

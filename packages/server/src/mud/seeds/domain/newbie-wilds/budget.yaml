@@ -1,0 +1,19 @@
+# The Last Counted Mile — the frontier settlement's municipal operating budget.
+# A proprietor-absent (municipal) Business, the Terminus city-budget precedent:
+# it collects the crossroads terminal's **arrival surcharge** (the toll the
+# settlement charges for stepping off the Line onto the frontier) and nothing
+# else this cycle — no positions, no wages (its spend is deferred, like the TPA
+# budget; both recirculate, the sink is a deferred CB drain).
+#
+# `operatingLocations` names the crossroads hub, so `businessAt(hub)` resolves
+# this operator for the surcharge's destination attribution (un-spoofable — the
+# mirror of the route fee's departure attribution). Stood up with the
+# crossroads terminal's content (CrossroadsTerminal.postRegister), not a
+# manifest entry.
+class: /lib/employment/Business
+hydratorClass: /lib/persistence/PersistentHydrator
+data:
+  proprietorPath: ''
+  positions: []
+  operatingLocations:
+    - /domain/newbie-wilds/crossroads/hub

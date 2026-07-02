@@ -58,6 +58,7 @@ const R_ROOM = "/domain/test/fare/r-room";
 const DEPART = "/domain/test/fare/depart";
 const ARRIVE = "/domain/test/fare/arrive";
 const BIZ = "/domain/test/fare/budget";
+const DEST_BIZ = "/domain/test/fare/dest-budget";
 const TPA = "tpa";
 
 class Node extends FastTravelMixin(Thing) {
@@ -118,25 +119,38 @@ function makeWalletTraveller(name: string): Traveller {
   return t;
 }
 
-/** A departure node routed to ARRIVE with `fee`, seated in D_ROOM. */
-function seedNetwork(fee: number, departPath = DEPART): {
-  dRoom: Location;
-} {
+/**
+ * A departure node routed to ARRIVE with `fee`, seated in D_ROOM. Options:
+ * `surcharge` sets the ARRIVE node's arrival surcharge; `destOperator` stands
+ * up a Business operating the ARRIVE room (so the surcharge has a collector).
+ */
+function seedNetwork(
+  fee: number,
+  opts: { surcharge?: number; destOperator?: boolean } = {},
+): { dRoom: Location } {
   const dRoom = makeStuffAtPath(() => new Location(), D_ROOM);
   const rRoom = makeStuffAtPath(() => new Location(), R_ROOM);
-  const depart = makeStuffAtPath(() => new Node(), departPath);
+  const depart = makeStuffAtPath(() => new Node(), DEPART);
   depart.setDirectionality("departure");
   depart.setStatus("operational");
   depart.applyRoutes([{ to: ARRIVE, fee }]);
   ContainmentApi.move(depart, dRoom);
   const arrive = makeStuffAtPath(() => new Node(), ARRIVE);
   arrive.setDirectionality("both");
+  if (opts.surcharge) arrive.setSurcharge(opts.surcharge);
   ContainmentApi.move(arrive, rRoom);
   // The municipal city-budget Business operating the departure-gate room.
   const biz = makeStuffAtPath(() => new BusinessEntity(), BIZ);
   biz.proprietorPath = "";
   biz.positions = [];
   biz.operatingLocations = [D_ROOM];
+  // Optional: the destination operator collecting the arrival surcharge.
+  if (opts.destOperator) {
+    const dest = makeStuffAtPath(() => new BusinessEntity(), DEST_BIZ);
+    dest.proprietorPath = "";
+    dest.positions = [];
+    dest.operatingLocations = [R_ROOM];
+  }
   return { dRoom };
 }
 
@@ -265,6 +279,57 @@ describe("TPA fare settlement (integration)", () => {
     expect(await bal(cityAccount)).toBe(12);
     expect(await bal(TPA)).toBe(3);
     expect(BankingApi.moneySupply().minor).toBe(supplyBefore); // supply-neutral
+    expect(BankingApi.reconcile().balanced).toBe(true);
+  });
+
+  it("an arrival surcharge splits a third operator: total = fee + surcharge", async () => {
+    const { dRoom } = seedNetwork(15, { surcharge: 2, destOperator: true });
+    const t = makeWalletTraveller("frank");
+    await fundAccount(t, "frank-acct", 100);
+    ContainmentApi.move(t, dRoom);
+    const destAccount = await BankingApi.ensureVenueAccount(DEST_BIZ, DEST_BIZ, "");
+
+    await ride(t, dRoom);
+    // total 17: departure city 12 (15−3), TPA 3 (network fee on the fee only),
+    // destination operator 2 (the surcharge), traveller −17.
+    expect(await bal("frank-acct")).toBe(83);
+    expect(await bal(cityAccount)).toBe(12);
+    expect(await bal(TPA)).toBe(3);
+    expect(await bal(destAccount)).toBe(2);
+    const rRoom = await StuffApi.singleton<Stuff & Container>(R_ROOM);
+    expect(t.getContainer()).toBe(rRoom); // arrived
+    expect(BankingApi.reconcile().balanced).toBe(true);
+  });
+
+  it("a surcharge with no destination operator refuses the ride", async () => {
+    const { dRoom } = seedNetwork(15, { surcharge: 2 }); // no destOperator
+    const t = makeWalletTraveller("grace");
+    await fundAccount(t, "grace-acct", 100);
+    ContainmentApi.move(t, dRoom);
+
+    const c = await ride(t, dRoom);
+    expect(t.getContainer()).toBe(dRoom); // not moved
+    expect(await bal("grace-acct")).toBe(100); // untouched
+    expect(await bal(cityAccount)).toBe(0);
+    expect(
+      c.getNotes().some((n) => n.kind === "controller-rejected" && n.reason === "no-operator"),
+    ).toBe(true);
+  });
+
+  it("a surcharge on a FREE route goes wholly to the destination (no TPA fee)", async () => {
+    const { dRoom } = seedNetwork(0, { surcharge: 2, destOperator: true });
+    const t = makeWalletTraveller("heidi");
+    await fundAccount(t, "heidi-acct", 100);
+    ContainmentApi.move(t, dRoom);
+    const destAccount = await BankingApi.ensureVenueAccount(DEST_BIZ, DEST_BIZ, "");
+
+    await ride(t, dRoom);
+    expect(await bal("heidi-acct")).toBe(98); // −2 (surcharge only)
+    expect(await bal(destAccount)).toBe(2); // the whole surcharge
+    expect(await bal(cityAccount)).toBe(0); // free route → no departure charge
+    expect(await bal(TPA)).toBe(0); // no network fee on a free route
+    const rRoom = await StuffApi.singleton<Stuff & Container>(R_ROOM);
+    expect(t.getContainer()).toBe(rRoom); // arrived
     expect(BankingApi.reconcile().balanced).toBe(true);
   });
 });

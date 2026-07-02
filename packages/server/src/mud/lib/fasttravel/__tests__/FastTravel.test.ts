@@ -62,6 +62,16 @@ describe("FastTravelMixin", () => {
     expect(n.getRoutes().get("/free")?.fee).toBe(0);
   });
 
+  it("surcharge: defaults to 0, sets/floors, rejects negatives", () => {
+    const n = makeStuff(() => new Node());
+    expect(n.getSurcharge()).toBe(0);
+    n.setSurcharge(2);
+    expect(n.getSurcharge()).toBe(2);
+    n.setSurcharge(3.9);
+    expect(n.getSurcharge()).toBe(3);
+    expect(() => n.setSurcharge(-1)).toThrow();
+  });
+
   it("MixinApi.isFastTravel narrows", () => {
     const n = makeStuff(() => new Node());
     expect(MixinApi.isFastTravel(n)).toBe(true);

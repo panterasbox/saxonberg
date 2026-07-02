@@ -203,6 +203,24 @@ the CB mints:
   payment-processor shape, so the TPA **collects a non-zero fee on every
   paid ride** (a pure percentage floors to zero on micro-fares).
 
+**Arrival surcharge (destination-imposed).** On top of the route's `fee`, a
+**destination node** can impose its own **`surcharge`** (`FastTravel.surcharge`,
+minor units, optional like the fee) — a charge just for *using that terminal as
+a destination*. The traveller pays `total = fee + surcharge`; the board shows
+the total (`⊙total`, broken out `(fee+surcharge)` when both). The surcharge is
+collected by the Business operating the **destination's arrival room**
+(`businessAt(arrivalRoom)`), the mirror of the fee's departure attribution — so
+each end's operator collects its own charge, un-spoofably, over the same
+`settle` split (departure op keeps `fee − networkFee`, TPA takes `networkFee` on
+the **fee only**, destination op takes the whole `surcharge`; conserved). A
+`surcharge > 0` with no destination operator is an authoring error → refuse. A
+fee-0 route into a surcharged destination is charged the surcharge alone (no
+network fee — the ride itself is free). Demo: the newbie-wilds crossroads
+("The Last Counted Mile") levies a small **arrival toll** collected by its
+frontier settlement budget (stood up by the bespoke `CrossroadsTerminal`), so
+Gate A → crossroads costs `15 + 2` — Terminus keeps the fare, the frontier the
+toll — while the free return leg stays free.
+
 Both budgets **recirculate** (the city budget pays the clerk's wages — the
 conserved loop; the TPA budget funds network maintenance, *deferred*). The
 sink lever is a **CB drain** from a budget back to the CB (a monetary-policy
