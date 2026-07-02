@@ -138,26 +138,47 @@ export default class TeleportController extends CommandController<TeleportModel>
       return this.fail(context, "there is no terminal here", "no-terminal");
     }
 
-    const holder = ContainmentApi.findReachable(
+    // Instrument gate: "do you have the means to use the TPA at all?" — any
+    // reachable travel holder satisfies it (a carried card OR the born-with
+    // implant), so onboarding and the un-implanted are never stranded.
+    const instrument = ContainmentApi.findReachable(
       giver,
       context.location,
       (s: Stuff): s is Stuff & CredentialWallet =>
         MixinApi.isCredentialWallet(s) && !!s.getCredential("travel"),
     );
-    if (!holder) {
+    if (!instrument) {
       return this.fail(
         context,
         "you have no Teleport Authority credential",
         "no-credential",
       );
     }
-    const cred = holder.ensureCredential("travel");
+    // Clearance is read off IDENTITY, never the carried instrument: the
+    // actor's own aether-hosted wallet (leg-2 isolation). A loaded card
+    // handed to another player confers no clearance. When the actor hosts no
+    // wallet (un-attuned, card-only) the clearance store is the born-with
+    // floor only.
+    const identity = ContainmentApi.findHostedUpdate(
+      giver,
+      (s: Stuff): s is Stuff & CredentialWallet =>
+        MixinApi.isCredentialWallet(s) && !!s.getCredential("travel"),
+    );
+    const cred = identity?.getCredential("travel") ?? null;
 
     if (!node.isDeparture()) {
       return this.fail(
         context,
         "this terminal is for arrivals only",
         "not-departure",
+      );
+    }
+
+    if (node.getStatus() !== "operational") {
+      return this.fail(
+        context,
+        "this gate is out of service — no departures board here today",
+        "out-of-service",
       );
     }
 
@@ -191,7 +212,9 @@ export default class TeleportController extends CommandController<TeleportModel>
       return;
     }
 
-    if (!cred.isRegistered(ref)) {
+    // A null clearance store (un-attuned actor with no identity wallet) is
+    // empty clearance → not-registered, exactly as an unregistered node.
+    if (!cred || !cred.isRegistered(ref)) {
       return this.fail(
         context,
         "you haven't registered that destination — reach it another way and `register` first",

@@ -343,6 +343,31 @@ export class ContainmentApi {
   }
 
   /**
+   * Find the first update **hosted directly on the actor's own attunement**
+   * matching `predicate` — `findReachable`'s leg 2 (self's hosted updates)
+   * in isolation, returning null when the actor hosts no match.
+   *
+   * This is the **identity-only, single-level, predicate-agnostic** resolver:
+   * it scans exactly `actor.getHostedUpdates()`, one level, and considers no
+   * slot occupants, no carried inventory, no location. It exists for **leg-2
+   * isolation** — structural identity binding, where a capability that must be
+   * bound to *who the actor is* (their born-with aether-hosted wallet) may not
+   * be satisfied by a carried, transferable instrument. Same guardrail as
+   * {@link findReachable}: **not** a query engine; keyed on a mixin type,
+   * first-match, type-narrowed `Stuff & T`. Anything keyed on identity /
+   * keywords / properties / user input belongs to MQL, never here.
+   *
+   * Actor-from-context discipline: callers pass `context.commandGiver` / the
+   * viewer, exactly as with {@link findReachable}.
+   */
+  public static findHostedUpdate<T>(
+    actor: Stuff,
+    predicate: (s: Stuff) => s is Stuff & T,
+  ): (Stuff & T) | null {
+    return logic().findHostedUpdate(actor, predicate);
+  }
+
+  /**
    * Resolve a spawn/landing reference into the live Container to place
    * something in. The reference is EITHER a Warren — land in its lazily
    * created (and migration-tracked) host via `getHost()` — or an ordinary

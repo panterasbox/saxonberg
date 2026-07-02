@@ -165,3 +165,61 @@ describe('ContainmentApi.findReachable — self + host-descent legs', () => {
     ).toBe(update);
   });
 });
+
+// ─── findHostedUpdate — leg-2 isolation (identity binding) ──────────
+
+describe('ContainmentApi.findHostedUpdate — leg-2 isolation', () => {
+  let actor: AttunedActor;
+  let location: Location;
+
+  function matching(...ids: string[]) {
+    const set = new Set(ids);
+    return (s: Stuff): s is Stuff => set.has(s.stuffId);
+  }
+
+  beforeEach(() => {
+    actor = makeStuff(() => new AttunedActor());
+    location = makeStuff(() => new Location());
+    ContainmentApi.move(actor, location);
+  });
+
+  it("returns the actor's own hosted update", () => {
+    const update = makeStuff(() => new HostedUpdate());
+    actor.hostUpdate(update);
+    expect(
+      ContainmentApi.findHostedUpdate(actor, matching(update.stuffId)),
+    ).toBe(update);
+  });
+
+  it('returns null when the match is only in carried inventory (not on identity)', () => {
+    const radio = makeStuff(() => new CarriedRadio());
+    ContainmentApi.move(radio, actor);
+    const update = makeStuff(() => new HostedUpdate());
+    radio.hostUpdate(update);
+    // findReachable finds it (leg 4); findHostedUpdate does NOT (leg 2 only).
+    expect(
+      ContainmentApi.findReachable(actor, location, matching(update.stuffId)),
+    ).toBe(update);
+    expect(
+      ContainmentApi.findHostedUpdate(actor, matching(update.stuffId)),
+    ).toBeNull();
+  });
+
+  it("returns null when the match is only on a slot occupant's host", () => {
+    // A carried radio matches at findReachable's carried-host-descent leg,
+    // but is not the actor's own hosted update.
+    const radio = makeStuff(() => new CarriedRadio());
+    ContainmentApi.move(radio, actor);
+    const hostedOnRadio = makeStuff(() => new HostedUpdate());
+    radio.hostUpdate(hostedOnRadio);
+    expect(
+      ContainmentApi.findHostedUpdate(actor, matching(hostedOnRadio.stuffId)),
+    ).toBeNull();
+  });
+
+  it('returns null when the actor hosts nothing matching', () => {
+    expect(
+      ContainmentApi.findHostedUpdate(actor, matching('nonexistent')),
+    ).toBeNull();
+  });
+});

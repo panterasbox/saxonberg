@@ -258,12 +258,10 @@ export function FastTravelMixin<TBase extends MixinConstructor<Stuff>>(
     /* ── the local departures board (live, viewer-aware) ────────── */
 
     async renderDepartures(viewer: Stuff & Sensor): Promise<string> {
-      const here = MixinApi.isContainable(viewer)
-        ? viewer.getContainer()
-        : null;
-      const holder = ContainmentApi.findReachable(
+      // "— not yet registered" reflects IDENTITY clearance (the viewer's own
+      // aether-hosted wallet), not whatever card they happen to carry.
+      const holder = ContainmentApi.findHostedUpdate(
         viewer,
-        here,
         (s: Stuff): s is Stuff & CredentialWallet =>
           MixinApi.isCredentialWallet(s) && !!s.getCredential("travel"),
       );
