@@ -1,0 +1,35 @@
+# Terminus — the municipal city-budget Business (the operating budget of
+# Terminus the municipality). NOT a mixin on the terminal: a standalone
+# Business (proprietor-absent = public/municipal — the substrate's designed
+# municipal case, no corpoKey), so it can span operating locations and outlive
+# any officer. The house account keys on THIS path, so fare income (the Gate A
+# fare, attributed by operatingLocations) and the clerk's wages settle on one
+# P&L — the conserved city-budget loop.
+#
+# Stood up with the terminal content (the Bar.postRegister precedent), not a
+# manifest entry — cloned idempotently in TicketClerk.postRegister, live before
+# EmploymentApi.boot()'s first roster tick.
+class: /lib/employment/Business
+hydratorClass: /lib/persistence/PersistentHydrator
+data:
+  proprietorPath: ''
+  # The one city position: the terminal clerk. `wageRate` is minor units per
+  # game-hour on shift (demo). `confers` is empty — the clerk staffs the
+  # window, it doesn't craft (no MakerMixin).
+  positions:
+    - key: clerk
+      label: staffing the ticket office
+      wageRate: 4
+      confers: []
+  # A BOUNDED daily shift (not [0,24]): the wage settles at the on->off
+  # boundary, so the shift must close for the payout to fire. Weekdays 0-based;
+  # hours a half-open [start, end) window.
+  rosterSlots:
+    - positionKey: clerk
+      assignee: /domain/terminus/terminal/clerk
+      schedule:
+        - { days: [0, 1, 2, 3, 4, 5, 6], hours: [6, 22] }
+  # The operational departure gate — so `businessAt(departure-gate-a)` resolves
+  # this operator for the Gate A fare's city share (un-spoofable attribution).
+  operatingLocations:
+    - /domain/terminus/terminal/departure-gate-a

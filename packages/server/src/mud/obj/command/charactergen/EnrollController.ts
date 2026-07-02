@@ -30,6 +30,7 @@ import { Mml } from "../../../api/mml";
 import { StuffApi } from "../../../api/stuff";
 import { AppApi } from "../../../api/app";
 import { AppSettingKeys } from "../../../lib/config/AppSettings";
+import { BankingApi, Money } from "../../../api/banking";
 import { ConnectionApi } from "../../../api/connection";
 import { ContainmentApi } from "../../../api/containment";
 import { MixinApi } from "../../../api/mixin";
@@ -594,6 +595,20 @@ export default class EnrollController extends CommandController<EnrollModel> {
       },
       tags: ["founding", "enroll"],
     });
+
+    // 5c. Onboarding coin (D11): a committed non-guest gets a small hard-coin
+    //     grant — physical `Coin` minted via `issueCash` (the CB cash faucet,
+    //     the only conserved way money enters, logged). Drink-sized + anti-farm;
+    //     NO account is opened (that's a later onboarding beat). Guests are
+    //     minted via `Login.mintRandomGuestAvatar` and never reach char-gen
+    //     commit — the `!isGuest` guard makes that explicit. `0` disables it.
+    if (!avatar.getIsGuest()) {
+      const stipend =
+        Number(AppApi.setting(AppSettingKeys.bankingOnboardingStipend)) || 0;
+      if (stipend > 0) {
+        await BankingApi.issueCash(avatar, Money.of(stipend), "onboarding");
+      }
+    }
 
     // 6. Hand off to the avatar's session, then destruct Login.
     ConnectionApi.transfer(interactive, avatar);

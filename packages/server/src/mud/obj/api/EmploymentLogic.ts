@@ -171,6 +171,13 @@ async function settleShiftWageImpl(
     accountPath,
     '',
   );
+  // Ensure the worker has an account to be paid into — `payWage` throws
+  // otherwise. NPC workers (the terminal clerk, the bar cast) never opened
+  // one, so provision a resource-identity account keyed on their own path.
+  // Additive + general; also closes the same gap in the bar wage loop.
+  if ((await BankingApi.primaryAccountIdOf(employeeKey)) == null) {
+    await BankingApi.ensureVenueAccount(employeeKey, employeeKey, '');
+  }
   await BankingApi.payWage(account, employeeKey, Money.of(amount));
 }
 

@@ -308,8 +308,9 @@ export class BankingApi {
   public static async issueCash(
     into: Stuff & Container,
     amount: Money,
+    category: PnlCategory = "float",
   ): Promise<Stuff> {
-    return logic().issueCash(into, amount);
+    return logic().issueCash(into, amount, category);
   }
 
   /**

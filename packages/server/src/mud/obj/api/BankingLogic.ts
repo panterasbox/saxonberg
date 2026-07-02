@@ -485,6 +485,7 @@ async function remitDemoTaxImpl(
 async function issueCashImpl(
   into: Stuff & Container,
   amount: Money,
+  category: PnlCategory = "float",
 ): Promise<Stuff> {
   await postTransaction("mint", [
     {
@@ -492,7 +493,7 @@ async function issueCashImpl(
       to: Account.CASH_BRIDGE,
       amount: amount.minor,
       memo: "cash issuance",
-      category: "float",
+      category,
     },
   ]);
   const coin = await StuffApi.clone(COIN_PATH);
@@ -1006,8 +1007,9 @@ export class BankingLogic extends ApiLogic {
   public async issueCash(
     into: Stuff & Container,
     amount: Money,
+    category: PnlCategory = "float",
   ): Promise<Stuff> {
-    return issueCashImpl(into, amount);
+    return issueCashImpl(into, amount, category);
   }
 
   /** See {@link BankingApi.reconcile}. The conservation audit (sync). */

@@ -1,0 +1,27 @@
+# procure card — obtain a fresh Teleport Authority travel card from the
+# terminal clerk, free of charge. Contributed to your command set only when a
+# clerk who offers it is present (TicketClerk.commandContributions); the
+# controller resolves the affording clerk as the command source. The card is an
+# instrument, not a fare — no money changes hands.
+verbs: [procure]
+description: "Procure a fresh Teleport Authority travel card from the clerk (free)."
+controller: tpa/ProcureCardController
+# An optional trailing word so `procure card` parses (the noun is flavour —
+# the clerk only ever hands out one thing). Bare `procure` works too.
+args:
+  - name: what
+    type: string
+    required: false
+    greedy: true
+help: |
+  Ask the ticket clerk for a fresh Teleport Authority travel card:
+
+    procure card
+
+  The card is free — it's an instrument that lets you use the network,
+  not a ticket. It carries no destinations of its own; where you're
+  cleared to travel is bound to you, not the card, so a spare card is
+  just a spare key. `procure card` only appears when a clerk who hands
+  them out is here.
+validators:
+  - /lib/command/validators/requiresAnimate

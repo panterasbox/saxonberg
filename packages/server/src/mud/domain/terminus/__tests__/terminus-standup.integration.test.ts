@@ -37,7 +37,14 @@ function loadSeeds(dir: string, rootLen: number): Doc[] {
     const st = statSync(full);
     if (st.isDirectory()) {
       out.push(...loadSeeds(full, rootLen));
-    } else if (entry.endsWith(".yaml")) {
+    } else if (
+      entry.endsWith(".yaml") &&
+      // The clerk (a full NPC) + the city-budget Business are Phase-4 content
+      // with their own tests; this standup test stubs the clerk (below) and
+      // doesn't exercise the budget, so skip the heavy hydration here.
+      entry !== "clerk.yaml" &&
+      entry !== "budget.yaml"
+    ) {
       const rel = full.slice(rootLen).replace(/\.yaml$/, "");
       const path = `/domain/terminus${rel.replace(/\\/g, "/")}`;
       const parsed = YAML.parse(readFileSync(full, "utf-8")) as Record<
