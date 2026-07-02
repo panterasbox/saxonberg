@@ -937,3 +937,51 @@ unblocks the dorm's long-deferred gating**; the **minimal lease relationship** r
 0a/0b; the **`dorm-warren` slate becomes a named consumer-slice** of property (its
 first proof case, per `StoredDocument`'s "dorm = first consumer"); and we should
 **revisit Warren-for-dorms** in favor of per-resident dormant parcels.
+
+---
+
+## Phase re-slice & readiness (session close, 2026-07-02)
+
+The addendum settled the design; the discipline now is to **slice thin and build**,
+not explore further. "Phase 0 — possession core" grew into two builds; re-sliced:
+
+| Slice | Contains | Readiness |
+|---|---|---|
+| **0a — Real-property title** | the `parcels` **claims-and-grants** registry + the `AccessApi.can` refactor (move `ownerGroup`/`accessGroups` out of `domain`) + the parcel **hierarchy** + author≠owner (two collections) + the **implicit-default-parcel** (self-home) generalization + the `subdivide`/parcel-transfer verbs | **`/requirements`-ready** — firm, self-contained, lowest-risk, highest unblock |
+| **0b — Chattel & persistence** | `PersistableHolder` (holder-snapshot for chests + **document-doc** for owned rooms) + the **serialization boundary contract** + seed-then-persist + possession field/index + title-aware containment verbs (`claim`/`give`/`sell`) + the **minimal lease relationship** (use-grant + revert) | **~90%** — pin the boundary-contract list + the seed-then-persist/one-shot-vs-restock gate first |
+| **1 — Compute economy** | predicted heartbeat-budget + runtime degradation ordering (the two-scarcity headline) | **needs a design pass** — we did *attribution* (cost-owner), never *metering/degradation* |
+| **later consumers** | sandbox/wardrobe (design done), governance allocation, tenancy **economics** (rent/sublease markets), coord-region parcels | deferred — downstream of 0a+0b+the release gate |
+
+**Why 0a first:** it's a prerequisite for 0b (chattel's extent-derivation and
+owned-room persistence both need titled parcels), it's the lowest-risk slice (no
+persistence generalization), it establishes the primitive the whole build-order
+list points up to, and it **lights up the half-built dorm** as its first proof case.
+
+**The one risk to scope first in 0a requirements — the `AccessApi.can` blast
+radius.** Moving `ownerGroup`/`accessGroups` out of `domain` touches *shipped*
+access substrate. Requirements should open by enumerating **what reads
+`zone.data.ownerGroup` today** (`resolveSourceFolderZone`, the shell write verbs,
+`CmsLogic`, `AccessRegistry.seedLoungeSlice`, …) and confirm the repoint +
+lounge-stamp migration is non-breaking.
+
+**Firm (decided, in §A–§K):** parcel = a Zone · sparse parcel hierarchy · ownership
+in a separate claims-and-grants registry · author≠owner via two collections · cost-
+owner = spawn-provenance · anti-cheat = the released gate (author-vs-play) · home
+personalization = capability tiers · chattel = a field + rebuildable index (no
+`PossessableMixin`) · `PersistableHolder` the one new capability · one serialization
+boundary contract · three layered mechanisms (populates/persistence/ownership) ·
+verbs split on custody/title · shops = three-layer composition · dorm = the
+implicit-default-parcel + document-doc persistence · rent = a use-grant · the
+capability-vs-relation mixin guardrail.
+
+**Still open — non-blocking (deferred):** sublet rollup (producer-house policy) ·
+trust-domain topology (lean lattice) · "power" definition for the release gate ·
+theft∥lending recovery/adjudication · combination exploits (governance backstop) ·
+publish-from-sold-sandbox credit routing · zone-proliferation perf · coord-region
+parcels · Warren-for-dorms revisit.
+
+**Still open — blocking for their own slice:** 0b → the serialization
+boundary-contract list + the seed-then-persist gate; Phase 1 → the entire
+budget/degradation design.
+
+**Next action: `/requirements` on Phase 0a.**
