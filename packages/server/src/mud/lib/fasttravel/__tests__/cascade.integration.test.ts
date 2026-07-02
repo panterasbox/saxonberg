@@ -27,8 +27,10 @@ import {
 import PersistentHydrator from "../../persistence/PersistentHydrator";
 
 const PH = PersistentHydrator.templatePath;
-const UA_TERMINAL = "/domain/eternal/university-avenue-terminal";
-const UA_ROOM = "/domain/eternal/university-avenue/plaza";
+// Repointed: the lounge routes to the Terminus arrival gate (the standalone
+// University Avenue terminal is retired — Phase 6).
+const TERMINUS_TERMINAL = "/domain/terminus/terminal/arrival-terminal";
+const TERMINUS_ROOM = "/domain/terminus/terminal/arrival-gate";
 
 const fastTravelDocs: Doc[] = [
   {
@@ -40,26 +42,26 @@ const fastTravelDocs: Doc[] = [
       shortDescription: "a Teleport Authority terminal",
       keywords: ["lounge"],
       directionality: "both",
-      routes: [{ to: UA_TERMINAL }],
+      routes: [{ to: TERMINUS_TERMINAL }],
     },
   },
   {
-    path: UA_TERMINAL,
+    path: TERMINUS_TERMINAL,
     class: "/domain/common/tpa/TpaTerminal",
     hydratorClass: PH,
     data: {
-      seatIn: UA_ROOM,
+      seatIn: TERMINUS_ROOM,
       shortDescription: "a Teleport Authority terminal",
-      keywords: ["university-avenue", "campus"],
+      keywords: ["terminus"],
       directionality: "both",
       routes: [{ to: LoungePaths.terminal }],
     },
   },
   {
-    path: UA_ROOM,
+    path: TERMINUS_ROOM,
     class: "/lib/stuff/VoidLocation",
     hydratorClass: PH,
-    data: { shortDescription: "University Avenue" },
+    data: { shortDescription: "the Terminus arrival gate" },
   },
 ];
 
@@ -113,8 +115,8 @@ describe("fast-travel cascade + lounge seating", () => {
     expect(node!.getDirectionality()).toBe("both");
 
     // The cascade loaded the rest of the network from that one seated node.
-    expect(StuffApi.findByTemplatePath(UA_TERMINAL)).toBeTruthy();
-    expect(StuffApi.findByTemplatePath(UA_ROOM)).toBeTruthy();
+    expect(StuffApi.findByTemplatePath(TERMINUS_TERMINAL)).toBeTruthy();
+    expect(StuffApi.findByTemplatePath(TERMINUS_ROOM)).toBeTruthy();
   });
 
   it("the lounge node arrival room resolves to the live warren host", async () => {

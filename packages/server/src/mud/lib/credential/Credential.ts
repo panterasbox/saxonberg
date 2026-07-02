@@ -33,9 +33,22 @@ export const CREDENTIAL_KINDS: readonly CredentialKind[] = [
 /** A credential with no explicit cap admits any amount (the implant default). */
 export const UNCAPPED = -1;
 
-/** The born-with node every fresh travel credential is registered for. */
-export const UNIVERSITY_AVENUE_NODE =
-  "/domain/eternal/university-avenue-terminal";
+/**
+ * The born-with registration floor — the three nodes every fresh travel
+ * credential is registered for, so the interchange and the social hub are
+ * universally reachable by design (the hub has no foot path to the rest of the
+ * world). The **Terminus arrival node** (onboarding's lounge→campus hop now
+ * lands here; walk across to campus), **the lounge** (so a fresh player can
+ * always TPA back to Dave's Bar — Gate A's free return works without an
+ * explicit `register`), and **the paid destination** (the newbie-wilds
+ * crossroads — reachable for a fare, not a registration gate). Replaces the
+ * retired single University Avenue node.
+ */
+export const BORN_WITH_TRAVEL_NODES = [
+  "/domain/terminus/terminal/arrival-terminal",
+  "/domain/lounge/terminal",
+  "/domain/newbie-wilds/crossroads/terminal",
+] as const;
 
 /**
  * The serialized form of a credential — a plain object the wallet stores in
@@ -194,21 +207,21 @@ export class PaymentCredential extends Credential {
  * The fast-travel credential: a registered-node set plus the
  * register/authorize surface. A node's network identity is its own
  * singleton template path; the registered set is a set of those paths. Every
- * credential is born with the University Avenue node registered (the lounge →
- * campus hop), the single documented exception to "reach a node before you
- * can travel to it"; the floor is preserved across hydration (saved entries
- * union on top, never clearing it).
+ * credential is born with the {@link BORN_WITH_TRAVEL_NODES} floor registered
+ * (the interchange, the lounge, and the paid destination), the documented
+ * exception to "reach a node before you can travel to it"; the floor is
+ * preserved across hydration (saved entries union on top, never clearing it).
  */
 export class TravelCredential extends Credential {
   readonly kind = "travel" as const;
 
   /** The allowed-node set, seeded with the born-with floor. */
-  private _registered: Set<string> = new Set([UNIVERSITY_AVENUE_NODE]);
+  private _registered: Set<string> = new Set(BORN_WITH_TRAVEL_NODES);
 
   static fromData(row: SerializedCredential): TravelCredential {
     const c = new TravelCredential();
     c._registered = new Set([
-      UNIVERSITY_AVENUE_NODE,
+      ...BORN_WITH_TRAVEL_NODES,
       ...(row.registered ?? []),
     ]);
     return c;
