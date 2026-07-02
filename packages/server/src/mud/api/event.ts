@@ -380,6 +380,9 @@ export class EventApi {
       // Open emit — the `config` verb (ConfigController) is the v1 emitter
       // when the operator changes `livestream.broadcastSources`.
       [Events.StreamSourcesChanged]: EventApi.emittableBy(),
+      // Open emit — `StreamRelay.deliver` emits one per relayed line; the
+      // backend BroadcastFeed filters to the OVERLAY_* channels.
+      [Events.RelayMessage]: EventApi.emittableBy(),
     };
     return EventApi.#defaultPolicies;
   }

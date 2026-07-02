@@ -2159,16 +2159,7 @@ export interface RelayMessagePayload {
 }
 
 /**
- * Payload of a `world.twitch.message` frame. `egress` marks the outbound
- * mirror of a local player's post (rendered with the `⊳twitch` marker).
- *
- * @deprecated Superseded by {@link RelayMessagePayload}; retargeted onto it
- * in P1 (the relay-unification phase).
+ * @deprecated Legacy name for {@link RelayMessagePayload}; retained as an
+ * alias to limit churn. New code speaks `RelayMessagePayload`.
  */
-export interface TwitchMessagePayload {
-  broadcasterId: string;
-  broadcasterLogin: string;
-  speaker: RelaySpeaker;
-  text: string;
-  egress?: boolean;
-}
+export type TwitchMessagePayload = RelayMessagePayload;

@@ -1,23 +1,24 @@
 /**
- * twitchTemplate — `world.twitch.message` frames (the Twitch relay).
+ * relayTemplate — relay chat frames (`world.twitch.message` /
+ * `world.youtube.message`, the unified stream-chat relay).
  *
  * A distinct, OOC/meta treatment separate from in-world chat: a
- * Twitch-purple provenance chip, the sender's Twitch handle as the
- * default name (honest-to-origin), and the message text rendered as
- * plain (escaped) text — Twitch messages are untrusted input and never
- * pass through the MML renderer.
+ * per-platform provenance chip (Twitch-purple / YouTube-red), the sender's
+ * external handle as the default name (honest-to-origin), and the message
+ * text rendered as plain (escaped) text — relay messages are untrusted
+ * input and never pass through the MML renderer.
  *
  *   ┌──────────────────┬─────────────────────────────────┐
  *   │ ⊳ twitch #chan    │ viewer: some message text       │
  *   └──────────────────┴─────────────────────────────────┘
  *
- * For a linked player the handle carries a dotted underline and reveals
- * the MUD persona on hover (`title`) — the handle stays the default
- * shown name, the persona is *revealed*, never substituted. An `egress`
- * frame (the mirror of a local player's outbound post) shows the player
- * name with a `→` marker.
+ * For a linked player (Twitch only this cycle) the handle carries a dotted
+ * underline and reveals the MUD persona on hover (`title`) — the handle
+ * stays the default shown name, the persona is *revealed*, never
+ * substituted. An `egress` frame (the mirror of a local player's outbound
+ * post) shows the player name with a `→` marker.
  *
- * The channel chip is clickable: it previews `twitch tune <login>` in
+ * The channel chip is clickable: it previews `tune <handle> --<service>` in
  * the command bar on hover and submits it on click (the global
  * clickable-previews-its-command rule).
  */
@@ -27,7 +28,10 @@ import styled from "styled-components";
 import type { Template } from "./TemplateRegistry";
 import { renderTree } from "./renderHelpers";
 
-const TWITCH_PURPLE = "#9146ff";
+const SERVICE_COLOR: Record<string, string> = {
+  twitch: "#9146ff",
+  youtube: "#ff0000",
+};
 
 const Row = styled.div`
   display: flex;
@@ -35,7 +39,7 @@ const Row = styled.div`
   gap: 0.5rem;
 `;
 
-const Chip = styled.button`
+const Chip = styled.button<{ $color: string }>`
   flex: 0 0 auto;
   min-width: 8rem;
   text-align: left;
@@ -44,7 +48,7 @@ const Chip = styled.button`
   padding: 0;
   font: inherit;
   cursor: pointer;
-  color: ${TWITCH_PURPLE};
+  color: ${(p) => p.$color};
   font-weight: 600;
 
   &:hover {
@@ -67,33 +71,35 @@ const Handle = styled.span<{ $linked?: boolean }>`
       : ""}
 `;
 
-export const twitchTemplate: Template = (ctx) => {
-  const t = ctx.frame.twitch;
-  // Failsafe for a twitch-topic frame without structured fields: render
-  // the body markup through the default path.
+export const relayTemplate: Template = (ctx) => {
+  const t = ctx.frame.relay;
+  // Failsafe for a relay-topic frame without structured fields: render the
+  // body markup through the default path.
   if (!t) {
     return <div>{renderTree(ctx.tree, ctx)}</div>;
   }
 
-  const marker = t.egress ? "⊳ twitch →" : "⊳ twitch";
-  const tuneCmd = `twitch tune ${t.login}`;
+  const color = SERVICE_COLOR[t.service] ?? SERVICE_COLOR.twitch!;
+  const marker = t.egress ? `⊳ ${t.service} →` : `⊳ ${t.service}`;
+  const tuneCmd = `tune ${t.channelHandle} --${t.service}`;
 
   return (
     <Row>
       <Chip
+        $color={color}
         onClick={() => ctx.onCommandClick(tuneCmd)}
         onMouseEnter={() => ctx.onCommandPreview(tuneCmd)}
         onMouseLeave={() => ctx.onCommandPreview(null)}
-        title={`Tune in to Twitch #${t.login}`}
+        title={`Follow ${t.service} #${t.channelHandle}`}
       >
-        {marker} #{t.login}
+        {marker} #{t.channelHandle}
       </Chip>
       <Content>
         <Handle
           $linked={t.persona !== undefined}
           title={t.persona !== undefined ? `MUD: ${t.persona}` : undefined}
         >
-          {t.handle}
+          {t.speaker}
         </Handle>
         {": "}
         {t.text}
