@@ -15,6 +15,16 @@ Working slate for **combat tactics**: the party-as-a-whole meta-strategy
 layer, the abstract engagement model it rides, and why this — not
 geometric ranged combat — is where a text game shines.
 
+> **The combat system itself now has its own slate.** This slate's two
+> theses — combat-as-engagement-graph and party-level tactic presets — are
+> the *spatial* and *party-strategy* halves. The **terms/consent/blame
+> frame, the loadout/affordance model, the expressive layer, and the
+> moment-to-moment poise minigame** live in
+> [combat-slate.md](./combat-slate.md), which was written after this one and
+> supersedes its "combat system itself… not yet designed" deferral. This
+> slate's *engagement graph* is that slate's *threat graph*; its
+> Master-Apprentice preset is validated there against the poise economy.
+
 The starting provocation was ranged combat. The conclusion was that
 ranged combat *is* possible without sub-room geometry (it's an
 abstraction problem, not a coordinate problem), but it isn't where games
