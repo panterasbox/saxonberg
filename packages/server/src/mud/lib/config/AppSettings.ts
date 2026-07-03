@@ -271,8 +271,6 @@ export const AppSettingKeys = {
    * `liveChatMessages.list` poll interval (the `streamList` fallback + the
    * overlay-owner light live-status poll). See docs/subsystems/streaming.md.
    */
-  youtubeHistoryCap: "youtube.historyCap",
-  youtubeReconnectBackoffMs: "youtube.reconnectBackoffMs",
   youtubePollIntervalMs: "youtube.pollIntervalMs",
   /**
    * YouTube overlay-owner live-status poll interval — how often the overlay

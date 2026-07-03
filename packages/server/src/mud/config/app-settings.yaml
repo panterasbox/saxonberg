@@ -157,15 +157,9 @@ settings:
   - key: banking.treasuryAccount
     value: treasury
   # YouTube relay (read-only) dials — operator knobs for the second chat
-  # transport. historyCap: per-channel history-ring depth. reconnectBackoffMs:
-  # per-stream reconnect delay on a dropped liveChatMessages stream.
-  # pollIntervalMs: the `list`-poll fallback + overlay live-status poll
-  # cadence (a floor; the API's pollingIntervalMillis wins when larger).
-  # See docs/subsystems/streaming.md.
-  - key: youtube.historyCap
-    value: "200"
-  - key: youtube.reconnectBackoffMs
-    value: "5000"
+  # transport. pollIntervalMs: the `list`-poll read cadence + overlay
+  # live-status poll floor (the API's pollingIntervalMillis wins when
+  # larger). See docs/subsystems/streaming.md.
   - key: youtube.pollIntervalMs
     value: "5000"
   # Overlay-owner live-status re-resolve — 15 min (a search.list costs ~100

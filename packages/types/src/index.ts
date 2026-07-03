@@ -2073,16 +2073,6 @@ export const TWITCH_SCOPE_READ_CHAT = 'user:read:chat';
 export const TWITCH_SCOPE_WRITE_CHAT = 'user:write:chat';
 
 /**
- * YouTube OAuth scope the read-only relay reader spends. A single operator
- * reader account holds `youtube.readonly` (sufficient for
- * `liveChatMessages.streamList`/`list` reads + `channels.list` resolves);
- * an API key is insufficient for `liveChatMessages`. Outbound posting
- * (`youtube.force-ssl`, per-player) is deferred with YouTube write.
- */
-export const YOUTUBE_SCOPE_READONLY =
-  'https://www.googleapis.com/auth/youtube.readonly';
-
-/**
  * The speaker on a relay frame. Honest-to-origin: an external line carries an
  * `external` (or `external-linked`) speaker; an outbound mirror of a local
  * player's post carries `in-game`. `external-linked` carries BOTH the
@@ -2112,9 +2102,6 @@ export type RelaySpeaker =
  * broadcasterId / YouTube liveChatId), `channelHandle` the display handle.
  * `egress` marks the outbound mirror of a local player's post (rendered
  * with the `⊳ …→` marker; Twitch-only this cycle).
- *
- * `TwitchMessagePayload` is folded into this as an alias in P1 when the
- * relay singleton + client ingest are retargeted onto the unified shape.
  */
 export interface RelayMessagePayload {
   service: 'twitch' | 'youtube';
@@ -2124,9 +2111,3 @@ export interface RelayMessagePayload {
   text: string;
   egress?: boolean;
 }
-
-/**
- * @deprecated Legacy name for {@link RelayMessagePayload}; retained as an
- * alias to limit churn. New code speaks `RelayMessagePayload`.
- */
-export type TwitchMessagePayload = RelayMessagePayload;

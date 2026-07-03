@@ -45,8 +45,8 @@ import type {
 
 type Service = 'twitch' | 'youtube';
 
-// Dials - the twitch relay's grandfathered constants (candidates for
-// `stream.*` AppSettings; the YouTube reader reads `youtube.*` instead).
+// Dials - the unified relay's shared constants (candidates for `stream.*`
+// AppSettings; the YouTube reader reads `youtube.*` instead).
 const HISTORY_CAP = 200;
 const ECHO_TTL_MS = 15_000;
 const PLAYER_BURST = 5; // tokens

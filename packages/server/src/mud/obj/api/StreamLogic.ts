@@ -44,9 +44,8 @@ const StreamApiCallers = SecurityPolicies.FromModule('/api/stream#StreamApi');
  * `/obj/api/stream`. Stateless (no `PostRegistrationMixin`); every method
  * resolves the {@link StreamRelay} state singleton via the module-private
  * `requireRelay` and gates on `FromModule('/api/stream#StreamApi')`. Channels
- * are addressed by `(service, handle)`; the Twitch transport is reached
- * directly through {@link TwitchRelayReader} (the YouTube transport lands in
- * P3).
+ * are addressed by `(service, handle)`; each transport is reached directly —
+ * Twitch via {@link TwitchRelayReader}, YouTube via `YoutubeRelayReader`.
  *
  * @internal
  */
@@ -375,12 +374,14 @@ function unsubscribeReader(service: Service, key: string): void {
   else YoutubeRelayReader.get().unsubscribe(key);
 }
 
-// ---- overlay-owner reading (P4) ------------------------------------------
+// ---- overlay-owner reading -----------------------------------------------
 // The owner's own external channels are env config (single-owner model). The
 // sentinel is `addTuned` to them so the reader opens via the presence edge;
 // delivered lines carry the configured handle, which `BroadcastFeed` filters
 // to before forwarding. State is module-level (the overlay is a global,
-// single-feed / single-owner concern).
+// single-feed / single-owner concern) — note it resets on HMR (orphaning the
+// poll handle + sentinel tune), but a broadcast reconnect re-drives
+// `setOverlayReading`, which re-establishes both.
 
 let overlayReading = false;
 let overlayYoutubePoll: ScheduleHandle | null = null;

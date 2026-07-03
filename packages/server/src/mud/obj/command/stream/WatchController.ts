@@ -8,10 +8,11 @@
  * renders the platform's public-player iframe. `watch off` clears it. Most
  * forms resolve with no external call (Twitch handle, YouTube URL / videoId
  * / `UC…` channelId), so watching works even when the chat relay is
- * unconfigured; a bare YouTube `@handle` needs the P3 reader (deferred).
+ * unconfigured; a bare YouTube `@handle` resolves to a channelId via the
+ * YouTube reader (`channels.list`), so that form needs the reader set.
  *
  * Watching also *implies* following the chat — a best-effort delegation to
- * `StreamApi.tune` (Twitch this cycle; YouTube chat-tune lands in P3).
+ * `StreamApi.tune` (Twitch two-way; YouTube read-only).
  */
 
 import { CommandController } from '../../../lib/command/CommandController';
@@ -126,8 +127,9 @@ export default class WatchController extends CommandController<WatchModel> {
     }
     this.setWatch(host, context, embed);
 
-    // Watching implies following the chat — best-effort (Twitch this cycle;
-    // YouTube chat-tune resolves to no-relay until P3, so no-op).
+    // Watching implies following the chat — best-effort delegation to
+    // `StreamApi.tune` (Twitch two-way; YouTube read-only, and a no-op when
+    // its reader is unconfigured).
     const actor = context.commandGiver;
     if (PlayerApi.isAvatarStuff(actor)) {
       const resolved = await StreamApi.resolveTarget(parsed);
@@ -137,7 +139,8 @@ export default class WatchController extends CommandController<WatchModel> {
 
   /**
    * The embed-shaped {@link WatchTarget} for a URL/handle target, or
-   * `'youtube-handle'` when it's a bare YouTube handle (P3-resolved).
+   * `'youtube-handle'` when it's a bare YouTube handle (resolved to a
+   * channelId via the YouTube reader).
    */
   private embedFor(
     parsed: Extract<ParsedTarget, { form: 'url' | 'handle' }>,

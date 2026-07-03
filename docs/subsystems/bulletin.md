@@ -6,7 +6,7 @@ happenings — published by the author axis and read passively by
 everyone. Deliberately **not** the forums ([forums.md](./forums.md), a
 two-way *deliberation* substrate): a Bulletin is one-directional,
 low-interaction, chronological — closer in spirit to the OOC Twitch
-relay ([twitch-relay.md](./twitch-relay.md)) and the presence relay's
+relay ([streaming.md](./streaming.md)) and the presence relay's
 `world.social.roster` frame ([social-graph.md](./social-graph.md)).
 
 Source of truth for this subsystem. Seeded by the
@@ -184,7 +184,7 @@ AppSettings ([app-settings.md](./app-settings.md), seeded from
 `WhoPane`), [topics.md](./topics.md) (the session-establish snapshot
 seam), [forums.md](./forums.md) (the `{text, fields}` body side-channel;
 the deliberation surface this is *not*),
-[twitch-relay.md](./twitch-relay.md) /
+[streaming.md](./streaming.md) /
 [livestream.md](./livestream.md) (OOC broadcast framing + the
 `AuthorMixin`-afforded operator verb), [access.md](./access.md)
 (`AccessApi.isAuthor`), [help.md](./help.md) (the read-only REST

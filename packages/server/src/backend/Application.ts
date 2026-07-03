@@ -33,8 +33,6 @@ import type Interactive from '../mud/obj/Interactive';
 import Login from '../mud/obj/Login';
 import { ReactionApi } from '../mud/api/reaction';
 import { ConnectionApi } from '../mud/api/connection';
-import { EventApi } from '../mud/api/event';
-import { Events } from '../mud/lib/events';
 import { User } from '../mud/lib/identity/User';
 import { TwitchProfile } from '../mud/lib/identity/TwitchProfile';
 import { GoogleProfile } from '../mud/lib/identity/GoogleProfile';

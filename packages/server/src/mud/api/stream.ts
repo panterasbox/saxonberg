@@ -112,9 +112,9 @@ export interface NormalizedInbound {
 
 export class StreamApi {
   /**
-   * Resolve a parsed target into a transport channel (Twitch login→id over
-   * the network, character→linked login over the DB). YouTube resolution
-   * lands in P3.
+   * Resolve a parsed target into a transport channel — Twitch login→id over
+   * the network, YouTube handle/URL→channel, character→linked login over the
+   * DB.
    */
   static resolveTarget(parsed: ParsedTarget): Promise<ResolveResult> {
     return logic().resolveTarget(parsed);
@@ -194,7 +194,7 @@ export class StreamApi {
 
   /**
    * Resolve a YouTube `@handle` / `UC…` to its channelId — the durable
-   * `watch` embed target (`live_stream?channel=`). Reuses the P3 reader
+   * `watch` embed target (`live_stream?channel=`). Reuses the YouTube reader
    * credential; reader-unconfigured → `no-relay`.
    */
   static resolveYoutubeChannelId(ref: string): Promise<YoutubeChannelResult> {
@@ -203,8 +203,8 @@ export class StreamApi {
 
   /**
    * Open (`on=true`) / close (`on=false`) the overlay owner's own-channel
-   * reads via the sentinel-tune presence edge. Wired in P4 (overlay chat
-   * forwarding); a no-op until then.
+   * reads via the sentinel-tune presence edge — the overlay chat forwarding
+   * seam, driven as broadcast overlays connect / disconnect.
    */
   static setOverlayReading(on: boolean): Promise<void> {
     return logic().setOverlayReading(on);
