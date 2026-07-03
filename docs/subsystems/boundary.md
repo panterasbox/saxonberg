@@ -90,26 +90,29 @@ type signature is for subclass overrides. `addBidirectionalExit` is
 also async because it `await`s the two `addExit` calls internally.
 Callers must `await`.
 
-### `ExitableMixin` lookup precedence
+### `ExitableMixin` lookup — explicit only
 
 `ExitableMixin` (`lib/boundary/Exitable.ts`) is composed by
 `CartesianLocation`, `SphericalLocation`, and `ExitableVessel`.
-`getExit(direction)` merges:
+Exits are **authored explicitly on every room** — a room connects to
+exactly what its own template declares, on both sides. The zone does
+**not** synthesize exits from grid adjacency; every template is
+self-describing. `getExit(direction)` resolves:
 
-1. **Explicit map.** Wins absolutely.
+1. **Explicit map.** The authored exit, or `undefined`.
 2. **Subclass hook.** `ExitableVessel.getExit` overrides for
    `direction === 'out'`.
-3. **Zone-derived.** `zone?.deriveExit(this, direction)` —
-   polymorphic: `CartesianZone` synthesizes from grid adjacency,
-   `SphericalZone` always returns `undefined`. No `instanceof`
-   check at the call site (see
-   [antipatterns.md § instanceof, virtual methods, and
-   cast-by-invariant](../antipatterns.md)).
 
-`getObviousExits()` is the union used by `look`. Walks explicit
-exits first, then iterates the 10 cardinals through
-`zone.deriveExit` only when `zone?.hasDerivedAdjacency()` —
-again polymorphic, no `instanceof`.
+`getObviousExits()` (used by `look`) is the explicit exits, `!hidden`.
+
+**No auto-reciprocal.** `applyExits` installs only the edge it declares
+(`bidirectional` defaults to **false**); the return trip is a separate
+entry on the destination's template. `bidirectional: true` is an
+explicit opt-in that also installs the reciprocal — used where the two
+exits share one physical `Door` (whose boundary anchors must be wired
+once; the door *is* the shared "both sides"). `verifyOutboundExits`
+still links the two authored one-way exits of a doorway as inverses
+when both are loaded.
 
 `getExitDoors()` collects every non-null `exit.door` reachable
 through `getObviousExits` — used by MQL so a player can target a

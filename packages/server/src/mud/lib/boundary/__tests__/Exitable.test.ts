@@ -54,7 +54,7 @@ describe('ExitableMixin', () => {
     expect(await locA.addExit(exit)).toBe(true);
   });
 
-  it('explicit exit wins over zone-derived lookup in the same direction', async () => {
+  it('returns the explicit exit for a declared direction', async () => {
     const explicit = makeStuff(() => new Exit({ direction: 'north', source: locA, destination: locC }));
     await locA.addExit(explicit);
     const exit = locA.getExit('north');
@@ -66,22 +66,22 @@ describe('ExitableMixin', () => {
     expect(locA.getExit('portal')).toBeUndefined();
   });
 
-  it('zone-derived exit returned when no explicit entry exists', () => {
-    const exit = locA.getExit('north');
-    expect(exit).toBeDefined();
-    expect(exit!.getDestination()).toBe(locB);
+  it('does NOT synthesize a grid-adjacent exit — exits are explicit only', () => {
+    // locB sits one cell north of locA, but with no authored exit `getExit`
+    // returns nothing. The zone no longer derives exits from adjacency.
+    expect(locA.getExit('north')).toBeUndefined();
   });
 
-  it('getExit for a direction without neighbor returns undefined', () => {
+  it('getExit for a direction without an explicit exit returns undefined', () => {
     expect(locA.getExit('east')).toBeUndefined();
     expect(locA.getExit('south')).toBeUndefined();
   });
 
-  it('returns undefined for a non-cardinal when zone has no explicit exit', () => {
+  it('returns undefined for a non-cardinal when there is no explicit exit', () => {
     expect(locA.getExit('office')).toBeUndefined();
   });
 
-  it('getObviousExits merges explicit and derived, filters hidden', async () => {
+  it('getObviousExits returns the explicit exits, filters hidden', async () => {
     const hidden = makeStuff(() => new Exit({
       direction: 'up',
       source: locA,
@@ -98,9 +98,9 @@ describe('ExitableMixin', () => {
 
     const obvious = locA.getObviousExits();
     const directions = obvious.map((e) => e.getDirection());
-    expect(directions).toContain('down');
-    expect(directions).toContain('north');
-    expect(directions).not.toContain('up');
+    expect(directions).toEqual(['down']); // explicit + visible only
+    expect(directions).not.toContain('up'); // hidden
+    expect(directions).not.toContain('north'); // not derived
   });
 
   it('getExitDoors collects doors from obvious exits', async () => {

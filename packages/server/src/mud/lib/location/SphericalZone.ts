@@ -77,12 +77,4 @@ export default class SphericalZone extends SingletonMixin(SpatialZone) {
     }
     return super.removeLocation(location);
   }
-
-  /**
-   * Spherical zones have no derivable adjacency — all exits are explicit.
-   * Always returns `undefined` by design.
-   */
-  public deriveExit(_from: Location, _direction: string): Exit | undefined {
-    return undefined;
-  }
 }

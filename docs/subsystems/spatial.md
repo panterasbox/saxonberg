@@ -628,8 +628,8 @@ Public methods (all on `NavigationApi`):
 - `cardinalDirections()` → readonly array of all 10.
 
 Used heavily: `CartesianLocation.addExit` validates against
-`isCardinalDirection`; `CartesianZone.deriveExit` and `getNeighbor`
-go through `normalizeDirection` and `directionOffset`;
+`isCardinalDirection`; `CartesianZone.getNeighbor`
+goes through `normalizeDirection` and `directionOffset`;
 `Exitable.addBidirectionalExit` uses `invertDirection` for inferred
 opposites; `MobileMixin`'s arrival resolver uses `invertDirection`
 for "arrives from the south."

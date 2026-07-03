@@ -52,13 +52,14 @@ describe('SmellModality.signalAt — propagation core', () => {
     expect(smell!.sources).toHaveLength(1);
   });
 
-  it('odor leaks through open doorless exits', () => {
+  it('odor leaks through open doorless exits', async () => {
     const zone = makeStuff(() => new CartesianZone());
     zone.setCellSize(1);
     const a = makeStuff(() => new CartesianLocation());
     const b = makeStuff(() => new CartesianLocation());
     zone.addLocation(a, 0, 0, 0);
     zone.addLocation(b, 0, 1, 0);
+    await a.addBidirectionalExit(b, 'north'); // explicit doorless doorway
     const candle = makeStuff(() => new Candle());
     candle.setEmittedConcentration(60);
     candle.setOdorIdentity('garlic');

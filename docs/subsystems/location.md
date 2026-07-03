@@ -96,26 +96,23 @@ coordinate zones below live in `lib/location/`. Every zone owns:
 - `name: string` — human-readable ("Narnia Castle").
 - `rooms: Set<Location>` — membership. Maintained by `addRoom` /
   `removeRoom`, with a back-reference stamped onto `room.zone`.
-- Abstract `deriveExit(from, direction): Exit | undefined` — the
-  zone-class-specific synthesis strategy.
+
+Exits are **not** derived by the zone — every room authors its own exits
+explicitly (both sides). The spatial zone is the coordinate grid + its
+invariants, not an exit source.
 
 ### `CartesianZone`
 
-`CartesianZone.ts`. Same-size grid cells with **derived** cardinal
-exits.
+`CartesianZone.ts`. Same-size grid cells; **explicit** exits (no
+grid-derived exits — a room connects to exactly what its template
+declares).
 
 - `addRoom(room, x, y, z)` — stamps `room.coordinates` from
-  the supplied indices, indexes the room by `"x,y,z"` key, invalidates
-  the derived-exit cache. The room must compose
-  `CartesianCoordinatesMixin` or `addRoom` throws.
+  the supplied indices, indexes the room by `"x,y,z"` key. The room must
+  compose `CartesianCoordinatesMixin` or `addRoom` throws.
 - `getNeighbor(from, direction)` — looks up the room at
-  `from + offset(direction)`, where `offset` comes from
-  `NavigationApi.directionOffset`.
-- `deriveExit(from, direction)` — checks cardinality,
-  membership, then synthesizes a one-way `Exit` from `from` to the
-  neighbor cell. Cached per source per direction. Both endpoints must
-  compose `ContainerMixin` (otherwise the Exit constructor's typing is
-  unsatisfiable).
+  `from + offset(direction)` (`NavigationApi.directionOffset`). A
+  geometry query for tooling, **not** an exit source.
 
 `cellSize` is **load-bearing** as of the biome substrate
 ([biome.md](./biome.md)). Default `3.0` linear meters (a typical
@@ -165,10 +162,9 @@ adjacency**.
 - `addRoom(room)` inherits the base placement and indexes
   by rounded focus tuple in a debug `focusIndex`. The index is for
   authoring tooling only — exit lookup never consults it.
-- `deriveExit(_from, _direction)` **always returns
-  `undefined`** by design. Angles between spheres are arbitrary; every
-  exit must be authored by hand as a semantic label (`'office'`,
-  `'plaza'`, `'portal'`).
+- Exits are authored by hand as semantic labels (`'office'`, `'plaza'`,
+  `'portal'`) — the same explicit-exit rule as everywhere; spherical
+  space simply has no cardinal grid to have tempted derivation.
 
 ### Zone resolution: `ZoneApi`
 
