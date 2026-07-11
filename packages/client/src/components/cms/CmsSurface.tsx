@@ -69,12 +69,24 @@ const ExplorerColumn = styled.div`
 
 export const CmsSurface: React.FC = () => {
   const cmsInit = useStore((s) => s.cmsInit);
-  // Files (explorer + editor) vs Compose (the Studio composition surface).
-  const [mode, setMode] = React.useState<"files" | "compose">("files");
+  const cmsOpen = useStore((s) => s.cmsOpen);
+  // Files (explorer + editor) vs Kinds (the content-first Studio surface: the
+  // blueprint catalogue + template + class-composer view router).
+  const [mode, setMode] = React.useState<"files" | "kinds">("files");
 
   useEffect(() => {
     void cmsInit();
   }, [cmsInit]);
+
+  // The Studio's template-create success offers "open in Files": switch tabs
+  // and open the freshly-written content template in the Files editor.
+  const openInFiles = React.useCallback(
+    (path: string) => {
+      setMode("files");
+      void cmsOpen("content", path);
+    },
+    [cmsOpen],
+  );
 
   return (
     <Root>
@@ -92,12 +104,12 @@ export const CmsSurface: React.FC = () => {
         <ModeTab
           type="button"
           role="tab"
-          aria-selected={mode === "compose"}
-          $active={mode === "compose"}
-          title="Compose new backing classes + inspect blueprints"
-          onClick={() => setMode("compose")}
+          aria-selected={mode === "kinds"}
+          $active={mode === "kinds"}
+          title="Browse the blueprint catalogue, instantiate templates, and author new kinds"
+          onClick={() => setMode("kinds")}
         >
-          Compose
+          Kinds
         </ModeTab>
       </ModeBar>
       {mode === "files" ? (
@@ -108,7 +120,7 @@ export const CmsSurface: React.FC = () => {
           <CmsEditor />
         </Screen>
       ) : (
-        <StudioPanel />
+        <StudioPanel onOpenInFiles={openInFiles} />
       )}
     </Root>
   );

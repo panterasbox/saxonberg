@@ -70,11 +70,20 @@ gate closed.
 | Op | Gate | Purpose |
 |---|---|---|
 | `describeClass(classPath, contextPath?)` | `isAuthor` | effective mixin set + authorable field list joined to type shape + effective value/source |
+| `createTemplate(input)` | `isAuthor` (+ the code-field gate on the `class` set) | **act #1** — save a NEW content template at a fresh path (CREATE-only; updates go through `CmsApi.write`) |
 | `listBlueprints()` / `getBlueprint(id)` | `isAuthor` | browse the catalogue (ungated reads over the singleton) |
 | `publishBlueprint(input)` | `isAuthor` | **act #2** — name/publish a composition of approved classes |
-| `listMixins()` | `isAuthor` | the palette vocabulary (registry names + base classes) |
+| `listMixins()` | `isAuthor` | the palette vocabulary — `{ mixins, bases }`: the flat pickable list (each mixin carrying a one-line `summary` — the first sentence of its concept doc comment, from the source scan; always available, degrades to absent when undocumented) + each base class with its implied (`_mixinName`) mixin set for composition pre-seeding |
 | `scaffoldClass(input)` | `isAuthor` | **inert source string** composing mixins over a base (open to all authors) |
 | `commitClass(input)` | `isWizard` + `can('write', zone)` | **act #3** — write the new class source + reload |
+
+`createTemplate` is the server side of act #1 (the CMS content-write path only
+*updates* an existing template — "creating templates is out of scope"). It is
+author-tier to call; the wizard-lockdown code-field gate inside
+`TemplateApi.saveTemplate` still applies to the `class` value being set and, on
+refusal, is surfaced as a graceful `denied` disposition (never a 500). An
+existing path is likewise a `denied`, not an overwrite. REST:
+`POST /api/studio/template` (CSRF, `requireAuth`).
 
 `describeClass` reads effective values through a live representative
 instance (`findByTemplatePath(contextPath)` else the first
@@ -87,7 +96,7 @@ instance it reads class defaults off a guarded throwaway
 mis-attributed to a subclass mixin.
 
 REST: `GET /api/studio/describe|blueprints|blueprint|mixins`,
-`POST /api/studio/blueprint|scaffold|commit` — `requireAuth`, the CMS
+`POST /api/studio/blueprint|scaffold|commit|template` — `requireAuth`, the CMS
 `X-CMS-CSRF` double-submit on POSTs, each through
 `CmsSession.runAsSessionPlayer` (the same attribution bridge as the CMS).
 
@@ -136,6 +145,16 @@ are three creation acts, and only one needs a wizard:
    shipped wizard-lockdown, [access.md](./access.md)). This build is the
    sanctioned bridge across that content→code boundary, not a relaxation of
    it.
+
+The composer's **base can be any approved class**, not only the 8 fundamental
+roots: "Author a new kind from this →" on a concrete blueprint makes that
+class the *superclass* (`class New extends <added>(Coin) {}`), with the
+selected class's mixins shown as a read-only inherited segment and the added
+stack starting empty (the scaffolder resolves the base by NAME — the last
+segment of its `classPath` — via the export-source scan, which already
+captures default-exported concrete classes like `Coin`/`PaymentCard`). The
+structural signature still keys on the fundamental *root*, so a bare subclass
+over `Coin` is correctly flagged as an exact match to `Coin` ("use it?").
 
 **Save returns a disposition, not a boolean.** `commitClass` /
 `publishBlueprint` return `committed` / `denied` (with `proposed` **reserved**

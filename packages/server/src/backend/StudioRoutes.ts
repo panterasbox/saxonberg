@@ -27,6 +27,7 @@ import type { Express, Request, Response } from 'express';
 import { StudioApi, StudioError } from '../mud/api/studio';
 import type {
   CommitClassInput,
+  CreateTemplateInput,
   PublishBlueprintInput,
   ScaffoldClassInput,
 } from '../mud/api/studio';
@@ -86,6 +87,25 @@ export class StudioRoutes {
           req,
           'studio.describeClass',
           () => StudioApi.describeClass(classPath, context)
+        );
+        res.json(out);
+      } catch (e) {
+        sendStudioError(res, e);
+      }
+    });
+
+    // ---- mixin inspector (read) -----------------------------------
+    app.get('/api/studio/mixin', requireAuth, async (req, res) => {
+      const name = typeof req.query.name === 'string' ? req.query.name : '';
+      if (!name) {
+        res.status(400).json({ code: 'invalid', message: 'missing name' });
+        return;
+      }
+      try {
+        const out = await CmsSession.runAsSessionPlayer(
+          req,
+          'studio.describeMixin',
+          () => StudioApi.describeMixin(name)
         );
         res.json(out);
       } catch (e) {
@@ -209,6 +229,41 @@ export class StudioRoutes {
           req,
           'studio.scaffoldClass',
           () => StudioApi.scaffoldClass(input)
+        );
+        res.json(out);
+      } catch (e) {
+        sendStudioError(res, e);
+      }
+    });
+
+    // ---- create a NEW content template (CSRF-protected) -----------
+    app.post('/api/studio/template', requireAuth, async (req, res) => {
+      if (!csrfOk(req, res)) return;
+      const body = req.body as Partial<CreateTemplateInput> | undefined;
+      if (
+        !body ||
+        typeof body.path !== 'string' ||
+        typeof body.classPath !== 'string' ||
+        typeof body.data !== 'object' ||
+        body.data === null ||
+        Array.isArray(body.data)
+      ) {
+        res.status(400).json({
+          code: 'invalid',
+          message: 'path, classPath, and a data object are required',
+        });
+        return;
+      }
+      const input: CreateTemplateInput = {
+        path: body.path,
+        classPath: body.classPath,
+        data: body.data as Record<string, unknown>,
+      };
+      try {
+        const out = await CmsSession.runAsSessionPlayer(
+          req,
+          'studio.createTemplate',
+          () => StudioApi.createTemplate(input)
         );
         res.json(out);
       } catch (e) {

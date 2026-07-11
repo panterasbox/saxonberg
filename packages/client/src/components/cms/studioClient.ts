@@ -16,10 +16,13 @@ import type {
   ClassCommitResult,
   ClassDescription,
   CommitClassInput,
-  MixinPaletteEntry,
+  CreateTemplateInput,
+  MixinDetail,
+  MixinPalette,
   ScaffoldClassInput,
   ScaffoldResult,
   StudioErrorBody,
+  TemplateWriteResult,
 } from "@saxonberg/types";
 import { SERVER_URL } from "../../config";
 
@@ -98,13 +101,50 @@ export const studioClient = {
   },
 
   /**
-   * The composition palette's vocabulary — the mixin registry names plus a
-   * small set of instantiable base classes. The `MixinPalette` picks a base +
-   * mixin set from these to scaffold a new backing class.
+   * The composition palette's vocabulary — `{ mixins, bases }`: the flat
+   * pickable mixin/base entry list plus each instantiable base class with its
+   * implied (`_mixinName`) mixin set (for composition pre-seeding). The
+   * composer picks a base + added-mixin set from these to scaffold a new
+   * backing class.
    */
-  async listMixins(): Promise<MixinPaletteEntry[]> {
+  async listMixins(): Promise<MixinPalette> {
     const res = await fetch(`${BASE}/mixins`, { credentials: "include" });
-    return unwrap<MixinPaletteEntry[]>(res);
+    return unwrap<MixinPalette>(res);
+  },
+
+  /**
+   * Describe a single mixin for the composer's inspector pane — its full
+   * concept comment, contributed fields, and optional HelpApi enrichment
+   * (relations + methods). Read-only; the session cookie rides the call.
+   */
+  async describeMixin(name: string): Promise<MixinDetail> {
+    const params = new URLSearchParams({ name });
+    const res = await fetch(`${BASE}/mixin?${params.toString()}`, {
+      credentials: "include",
+    });
+    return unwrap<MixinDetail>(res);
+  },
+
+  /**
+   * Create a NEW content template (creation act #1 — author-tier, no wizard)
+   * pointing at an already-approved backing class. CREATE-only: an existing
+   * path returns `{ disposition: 'denied' }` (updates go through
+   * `cmsClient.write('content', …)`). The server re-gates the code-field
+   * lockdown and surfaces any refusal as a graceful `denied` disposition —
+   * never a throw for the trust/existence gates. `csrf` is the shared CMS
+   * double-submit token (from `cmsClient.getCsrf`).
+   */
+  async createTemplate(
+    input: CreateTemplateInput,
+    csrf: string,
+  ): Promise<TemplateWriteResult> {
+    const res = await fetch(`${BASE}/template`, {
+      method: "POST",
+      credentials: "include",
+      headers: { "Content-Type": "application/json", "X-CMS-CSRF": csrf },
+      body: JSON.stringify(input),
+    });
+    return unwrap<TemplateWriteResult>(res);
   },
 
   /**

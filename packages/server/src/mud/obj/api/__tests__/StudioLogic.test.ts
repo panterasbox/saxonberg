@@ -21,11 +21,14 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { StudioApi, StudioError } from '../../../api/studio';
 import { StuffApi } from '../../../api/stuff';
+import { HelpApi } from '../../../api/help';
 import { AccessApi } from '../../../api/access';
 import { ExecutionContextApi } from '../../../api/execution-context';
 import { ProvenanceApi } from '../../../api/provenance';
 import { SourceTreeApi } from '../../../api/source-tree';
 import { HotReloadApi } from '../../../api/hot-reload';
+import { TemplateApi, TemplateError } from '../../../api/template';
+import { Template } from '../../../lib/stuff/Template';
 import { Blueprint } from '../../../lib/studio/Blueprint';
 import type BlueprintCatalogue from '../../BlueprintCatalogue';
 import { Idea } from '../../../lib/stuff/Idea';
@@ -363,6 +366,40 @@ describe('StudioLogic.scaffoldClass', () => {
     expect(out.source).toContain('export class ThingSub extends Thing {}');
   });
 
+  it('resolves a concrete default-exported class as the base (Coin)', async () => {
+    stubAuthorGateOpen();
+    vi.spyOn(AccessApi, 'isWizard').mockResolvedValue(true);
+    // "Author a new kind from this →" on the Coin blueprint makes Coin the
+    // SUPERCLASS: `class MyCoin extends Coin {}`. Coin is `export default
+    // class Coin`, so a DEFAULT import must be emitted (not a named one).
+    const out = await StudioApi.scaffoldClass({
+      name: 'MyCoin',
+      baseClass: 'Coin',
+      mixinNames: [],
+    });
+    expect(out.source).toMatch(/import Coin from '[^']+';/);
+    expect(out.source).not.toContain('import { Coin }');
+    expect(out.source).not.toMatch(/from '[^']*\.js'/);
+    expect(out.source).toContain('export class MyCoin extends Coin {}');
+  });
+
+  it('resolves a concrete class base + composes added mixins over it', async () => {
+    stubAuthorGateOpen();
+    vi.spyOn(AccessApi, 'isWizard').mockResolvedValue(true);
+    // PaymentCard is `export default class PaymentCard`; adding a mixin over it
+    // composes `NamedMixin(PaymentCard)`.
+    const out = await StudioApi.scaffoldClass({
+      name: 'GoldCard',
+      baseClass: 'PaymentCard',
+      mixinNames: ['NamedMixin'],
+    });
+    expect(out.source).toMatch(/import PaymentCard from '[^']+';/);
+    expect(out.source).toContain('import { NamedMixin } from');
+    expect(out.source).toContain(
+      'export class GoldCard extends NamedMixin(PaymentCard) {}'
+    );
+  });
+
   it('right-folds multiple mixins outermost-first', async () => {
     stubAuthorGateOpen();
     vi.spyOn(AccessApi, 'isWizard').mockResolvedValue(true);
@@ -535,5 +572,266 @@ describe('StudioLogic.commitClass — dispositions + ordering', () => {
     } finally {
       cleanup();
     }
+  });
+});
+
+// ---- createTemplate (act #1 — instantiate a NEW content template) -------
+
+describe('StudioLogic.createTemplate', () => {
+  it('creates a template at a fresh path (committed) with the right class + data', async () => {
+    stubAuthorGateOpen();
+    vi.spyOn(Template, 'findByPath').mockResolvedValue(null); // fresh path
+    const save = vi
+      .spyOn(TemplateApi, 'saveTemplate')
+      .mockResolvedValue('mongo-id');
+
+    const out = await StudioApi.createTemplate({
+      path: '/domain/parlor/my-coin',
+      classPath: '/obj/Coin',
+      data: { name: 'My Coin', denomination: 5 },
+    });
+
+    expect(out.disposition).toBe('committed');
+    expect(out.path).toBe('/domain/parlor/my-coin');
+    expect(out.message).toBeUndefined();
+    // The class + data were passed straight to the saveTemplate chokepoint.
+    expect(save).toHaveBeenCalledWith('/domain/parlor/my-coin', '/obj/Coin', {
+      name: 'My Coin',
+      denomination: 5,
+    });
+  });
+
+  it('refuses an existing path (denied, CREATE-only) without writing', async () => {
+    stubAuthorGateOpen();
+    vi.spyOn(Template, 'findByPath').mockResolvedValue(
+      {} as unknown as Template
+    ); // already exists
+    const save = vi.spyOn(TemplateApi, 'saveTemplate').mockResolvedValue('x');
+
+    const out = await StudioApi.createTemplate({
+      path: '/domain/parlor/existing',
+      classPath: '/obj/Coin',
+      data: {},
+    });
+
+    expect(out.disposition).toBe('denied');
+    expect(out.message).toContain('already exists');
+    expect(out.path).toBeUndefined();
+    expect(save).not.toHaveBeenCalled();
+  });
+
+  it('surfaces the code-field gate as a graceful denied (not a 500)', async () => {
+    stubAuthorGateOpen();
+    vi.spyOn(Template, 'findByPath').mockResolvedValue(null);
+    // A non-wizard setting `class` trips the wizard-lockdown at the
+    // saveTemplate chokepoint — a TemplateError, surfaced as denied.
+    vi.spyOn(TemplateApi, 'saveTemplate').mockRejectedValue(
+      new TemplateError(
+        'only a wizard may set executable code-naming field(s) [class] on a content template'
+      )
+    );
+
+    const out = await StudioApi.createTemplate({
+      path: '/domain/parlor/gated',
+      classPath: '/obj/Coin',
+      data: {},
+    });
+
+    expect(out.disposition).toBe('denied');
+    expect(out.message).toContain('wizard');
+  });
+
+  it('propagates a non-TemplateError (a real failure is a 500, not denied)', async () => {
+    stubAuthorGateOpen();
+    vi.spyOn(Template, 'findByPath').mockResolvedValue(null);
+    vi.spyOn(TemplateApi, 'saveTemplate').mockRejectedValue(
+      new Error('mongo is down')
+    );
+    await expect(
+      StudioApi.createTemplate({
+        path: '/domain/parlor/boom',
+        classPath: '/obj/Coin',
+        data: {},
+      })
+    ).rejects.toThrow('mongo is down');
+  });
+
+  it('denies a non-author (null context actor) and never writes', async () => {
+    vi.spyOn(ExecutionContextApi, 'getActingAuthor').mockReturnValue(null);
+    vi.spyOn(AccessApi, 'isAuthor').mockResolvedValue(false);
+    const save = vi.spyOn(TemplateApi, 'saveTemplate').mockResolvedValue('x');
+    await expect(
+      StudioApi.createTemplate({
+        path: '/domain/parlor/nope',
+        classPath: '/obj/Coin',
+        data: {},
+      })
+    ).rejects.toMatchObject({ code: 'denied' });
+    expect(save).not.toHaveBeenCalled();
+  });
+});
+
+// ---- listMixins (palette + base implied-mixin sets) ---------------------
+
+describe('StudioLogic.listMixins — bases with implied mixin sets', () => {
+  it('returns bases with non-empty impliedMixins for a rich base (Character)', async () => {
+    stubAuthorGateOpen();
+    const palette = await StudioApi.listMixins();
+
+    // The flat pickable list is unchanged: base entries + registry mixins.
+    expect(Array.isArray(palette.mixins)).toBe(true);
+    expect(palette.mixins.some((m) => m.name === 'Idea' && m.kind === 'base')).toBe(
+      true
+    );
+    expect(palette.mixins.some((m) => m.kind === 'mixin')).toBe(true);
+
+    // Every offered base is present in `bases`.
+    const byName = new Map(palette.bases.map((b) => [b.name, b]));
+    for (const base of ['Idea', 'Thing', 'Location', 'Character', 'Creature', 'Agent']) {
+      expect(byName.has(base), `expected base ${base}`).toBe(true);
+    }
+
+    // Character is a rich composition → a non-empty implied mixin set, deduped.
+    const character = byName.get('Character')!;
+    expect(character.impliedMixins.length).toBeGreaterThan(0);
+    expect(new Set(character.impliedMixins).size).toBe(
+      character.impliedMixins.length
+    );
+    expect(character.classPath).toContain('/lib/character/Character');
+
+    // Idea is the bare base → an empty implied set (no mixins on it).
+    expect(byName.get('Idea')!.impliedMixins).toEqual([]);
+  });
+
+  it('enriches mixin entries with a one-line summary from the source scan', async () => {
+    stubAuthorGateOpen();
+    const palette = await StudioApi.listMixins();
+
+    const byName = new Map(palette.mixins.map((m) => [m.name, m]));
+    // A well-documented mixin surfaces its concept comment's first sentence.
+    const globbable = byName.get('GlobbableMixin');
+    expect(globbable?.kind).toBe('mixin');
+    expect(globbable?.summary).toBeTruthy();
+    expect(globbable!.summary!.toLowerCase()).toContain('fungible');
+    // The summary is a single line — no gutter asterisks, no @tags leaked.
+    expect(globbable!.summary).not.toContain('*');
+    expect(globbable!.summary).not.toContain('@');
+
+    // Base entries carry no summary (help is a mixin-palette concern).
+    expect(byName.get('Idea')?.summary).toBeUndefined();
+
+    // Most mixins are documented — the enrichment is broadly populated, and
+    // degrades to `undefined` (never a throw) for any that aren't.
+    const mixinEntries = palette.mixins.filter((m) => m.kind === 'mixin');
+    const withSummary = mixinEntries.filter((m) => m.summary);
+    expect(withSummary.length).toBeGreaterThan(mixinEntries.length / 2);
+  });
+});
+
+// ---- describeMixin (mixin inspector pane) -------------------------------
+
+describe('StudioLogic.describeMixin', () => {
+  it('returns the FULL multi-paragraph concept comment + contributed fields', async () => {
+    stubAuthorGateOpen();
+    // No help catalogue is warmed in this harness → the enrichment is absent.
+    vi.spyOn(HelpApi, 'apiTopic').mockReturnValue(null);
+
+    const detail = await StudioApi.describeMixin('GlobbableMixin');
+
+    expect(detail.name).toBe('GlobbableMixin');
+
+    // The description is the WHOLE concept comment, not the first sentence:
+    // it spans multiple paragraphs and preserves the "Three guarantees" list.
+    expect(detail.description).toContain('fungible-stack substrate');
+    expect(detail.description).toContain('Three guarantees');
+    // A numbered list item's text survives (list structure preserved).
+    expect(detail.description).toContain('One Stuff, N units');
+    // Multi-paragraph: a blank-line paragraph break is retained.
+    expect(detail.description).toMatch(/\n\n/);
+    // Longer than any one-line summary would be.
+    expect(detail.description.length).toBeGreaterThan(200);
+    // The gutter `*`, `{@link}` wrappers and `**bold**` markers are stripped.
+    expect(detail.description).not.toContain('{@link');
+    expect(detail.description).not.toContain('**');
+
+    // The `docs/…` pointer named in the prose rides back as docRef.
+    expect(detail.docRef).toBe('docs/subsystems/glob.md');
+
+    // The contributed authorable field `quantity` surfaces (with a shape).
+    const byName = new Map(detail.authorableFields.map((f) => [f.name, f]));
+    expect(byName.has('quantity')).toBe(true);
+    expect(typeof byName.get('quantity')!.typeShape).toBe('string');
+    expect(byName.get('quantity')!.typeShape.length).toBeGreaterThan(0);
+    expect(byName.get('quantity')!.kind).toBe('property');
+  });
+
+  it('degrades gracefully when HelpApi has no topic (relations empty, no throw)', async () => {
+    stubAuthorGateOpen();
+    vi.spyOn(HelpApi, 'apiTopic').mockReturnValue(null);
+
+    const detail = await StudioApi.describeMixin('GlobbableMixin');
+    expect(detail.relations).toEqual([]);
+    expect(detail.methods).toEqual([]);
+    // The always-available source-scan halves are still populated.
+    expect(detail.description.length).toBeGreaterThan(0);
+    expect(detail.authorableFields.length).toBeGreaterThan(0);
+  });
+
+  it('never throws when HelpApi itself throws — enrichment just stays empty', async () => {
+    stubAuthorGateOpen();
+    vi.spyOn(HelpApi, 'apiTopic').mockImplementation(() => {
+      throw new Error('catalogue not warm');
+    });
+
+    const detail = await StudioApi.describeMixin('GlobbableMixin');
+    expect(detail.relations).toEqual([]);
+    expect(detail.methods).toEqual([]);
+    expect(detail.description).toContain('fungible-stack substrate');
+  });
+
+  it('surfaces HelpApi enrichment (relations + conferred methods) when present', async () => {
+    stubAuthorGateOpen();
+    vi.spyOn(HelpApi, 'apiTopic').mockReturnValue({
+      id: 'mixin.Globbable',
+      kind: 'mixin',
+      title: 'Globbable',
+      summary: 'fungible',
+      keywords: [],
+      body: '',
+      spoiler: false,
+      source: { subdivision: 'api', ref: 'Globbable' },
+      relations: [
+        { kind: 'confers', targetId: 'mixin.Globbable', targetTitle: 'getQuantity' },
+        { kind: 'confers', targetId: 'mixin.Globbable', targetTitle: 'setQuantity' },
+        { kind: 'consumed-by', targetId: 'api.GlobbableApi', targetTitle: 'GlobbableApi' },
+      ],
+    });
+
+    const detail = await StudioApi.describeMixin('GlobbableMixin');
+    // Conferred method names ride the `confers` edges.
+    expect(detail.methods).toEqual(
+      expect.arrayContaining(['getQuantity', 'setQuantity'])
+    );
+    // The non-confers relation is passed through verbatim.
+    expect(
+      detail.relations.some(
+        (r) => r.kind === 'consumed-by' && r.targetTitle === 'GlobbableApi'
+      )
+    ).toBe(true);
+  });
+
+  it('denies a non-author (null context actor) and rejects an empty name', async () => {
+    vi.spyOn(ExecutionContextApi, 'getActingAuthor').mockReturnValue(null);
+    vi.spyOn(AccessApi, 'isAuthor').mockResolvedValue(false);
+    await expect(
+      StudioApi.describeMixin('GlobbableMixin')
+    ).rejects.toMatchObject({ code: 'denied' });
+
+    // With the gate open, an empty name is an invalid request.
+    vi.restoreAllMocks();
+    stubAuthorGateOpen();
+    await expect(StudioApi.describeMixin('  ')).rejects.toMatchObject({
+      code: 'invalid',
+    });
   });
 });

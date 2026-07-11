@@ -9,34 +9,53 @@ import { ApiLogic } from '../../lib/stuff/ApiLogic';
 import { CallSecurity, Unshadowable } from '../../lib/security/decorators';
 import { SecurityPolicies } from '../../lib/security/SecurityPolicies';
 import { AccessApi } from '../../api/access';
+import { HelpApi } from '../../api/help';
 import { ExecutionContextApi } from '../../api/execution-context';
 import { StuffApi } from '../../api/stuff';
 import { MixinApi } from '../../api/mixin';
 import type { AnyConstructor } from '../../api/mixin';
 import { ProvenanceApi } from '../../api/provenance';
+import { TemplateApi, TemplateError } from '../../api/template';
+import { Template } from '../../lib/stuff/Template';
 import { SourceTreeApi, SourceTreeSandboxError } from '../../api/source-tree';
 import { HotReloadApi } from '../../api/hot-reload';
 import { Quantity } from '../../lib/quantity';
 import { Mixins } from '../../lib/mixin';
 import { StudioError } from '../../api/studio';
 import { Blueprint } from '../../lib/studio/Blueprint';
+import { Idea } from '../../lib/stuff/Idea';
+import Thing from '../../lib/stuff/Thing';
+import { Vessel } from '../../lib/stuff/Vessel';
+import Location from '../../lib/stuff/Location';
+import { Agent } from '../../lib/stuff/Agent';
+import { Creature } from '../../lib/creature/Creature';
+import { Character } from '../../lib/character/Character';
+import { Shadow } from '../../lib/stuff/Shadow';
 import type BlueprintCatalogue from '../BlueprintCatalogue';
 import type { Stuff } from '../../lib/stuff/Stuff';
 import type {
   AuthorableFieldDescriptor,
   AuthorableFieldsArtifact,
+  BaseClassEntry,
   BlueprintDetail,
   BlueprintSummary,
   BlueprintWriteResult,
   ClassCommitResult,
   ClassDescription,
   CommitClassInput,
+  CreateTemplateInput,
+  HelpRelation,
+  HelpTopic,
+  MixinDetail,
+  MixinFieldDetail,
+  MixinPalette,
   MixinPaletteEntry,
   PublishBlueprintInput,
   ScaffoldClassInput,
   ScaffoldResult,
   StudioFieldDescriptor,
   StudioValueSource,
+  TemplateWriteResult,
 } from '@saxonberg/types';
 
 const StudioApiCallers = SecurityPolicies.FromModule('/api/studio#StudioApi');
@@ -50,15 +69,33 @@ const StudioApiCallers = SecurityPolicies.FromModule('/api/studio#StudioApi');
  */
 const SOURCE_ROOT_DISPLAY = '/server/src/mud';
 
-/** Instantiable base classes offered by the composition palette. */
-const PALETTE_BASE_CLASSES = [
-  'Idea',
-  'Thing',
-  'Location',
-  'Character',
-  'Creature',
-  'Agent',
-] as const;
+/**
+ * The base-class constructors offered by the composition palette, keyed by
+ * name. `Character` is abstract but a constructor reference is all
+ * `MixinApi.queryMixins` (a prototype-chain walk) needs — never instantiated
+ * here. The array below is the display order; this map is the resolution for
+ * `impliedMixins`.
+ */
+const PALETTE_BASE_CTORS: Record<string, AnyConstructor> = {
+  // The real fundamental divisions of `Stuff` (Idea/Shadow extend Stuff
+  // directly; Agent = TangibleMixin(Stuff); Thing/Location/Vessel are its
+  // composed roots; Creature→Character specialize Agent). `Idea` is the
+  // bare-Stuff base, so `Stuff` itself isn't offered. Abstract bases
+  // (Character/Shadow) are fine — only prototype-walked, never instantiated.
+  Idea: Idea as unknown as AnyConstructor,
+  Thing: Thing as unknown as AnyConstructor,
+  Vessel: Vessel as unknown as AnyConstructor,
+  Location: Location as unknown as AnyConstructor,
+  Agent: Agent as unknown as AnyConstructor,
+  Creature: Creature as unknown as AnyConstructor,
+  Character: Character as unknown as AnyConstructor,
+  Shadow: Shadow as unknown as AnyConstructor,
+};
+
+/** Instantiable base classes offered by the composition palette (display order). */
+const PALETTE_BASE_CLASSES = Object.keys(
+  PALETTE_BASE_CTORS
+) as ReadonlyArray<string>;
 
 /** The runtime blueprint index singleton — ungated reference reads. */
 const CATALOGUE_PATH = '/obj/BlueprintCatalogue';
@@ -275,10 +312,151 @@ interface ClassExport {
   isDefault: boolean;
 }
 
+/** A mixin file's full top concept comment, cleaned, plus a `docs/…` ref. */
+interface TopDescription {
+  /** The cleaned multi-paragraph description text (list structure kept). */
+  text: string;
+  /** A `docs/…(.md)` path named in the prose, when present. */
+  docRef?: string;
+}
+
 /** The export-source scan result — mixin factories + base classes by name. */
 interface ExportSources {
   mixins: Map<string, string>;
   classes: Map<string, ClassExport>;
+  /** mixin factory name → the doc summary ADJACENT to `export function`. */
+  summaries: Map<string, string>;
+  /** mixin name → its file's top concept-comment summary (the usual source). */
+  topSummaries: Map<string, string>;
+  /**
+   * mixin name → its file's FULL top concept comment (multi-paragraph, list
+   * structure preserved) + any `docs/…` ref — the inspector-pane substance.
+   */
+  topDescriptions: Map<string, TopDescription>;
+  /** exported `interface <Name>` → its TSDoc summary — the companion fallback. */
+  interfaceSummaries: Map<string, string>;
+}
+
+/** Cap a palette summary so one verbose comment can't blow up the row. */
+const SUMMARY_MAX = 200;
+
+/**
+ * The one-line summary of a TSDoc doc-comment body: the first PARAGRAPH (up to
+ * the first blank line or the first `@`-block-tag line — these mixin concept
+ * comments lead with a `Name — summary.` line), reduced to its first sentence
+ * when it carries a terminator, with the `*` gutter, `{@link}` wrappers, and
+ * `**bold**` markdown stripped. `undefined` for an empty / tag-only comment.
+ */
+function firstDocSentence(block: string): string | undefined {
+  const para: string[] = [];
+  for (const raw of block.split('\n')) {
+    const line = raw.replace(/^\s*\*?\s?/, '').trimEnd();
+    const trimmed = line.trim();
+    if (trimmed.startsWith('@')) break; // stop at the first block tag
+    if (trimmed === '') {
+      if (para.length > 0) break; // end of the first paragraph
+      continue; // skip leading blank lines
+    }
+    para.push(line);
+  }
+  const text = para
+    .join(' ')
+    // `{@link Foo}` / `{@link Foo | bar}` → the referenced name only.
+    .replace(/\{@link\s+([^}|]+?)(?:\s*\|[^}]*)?\}/g, '$1')
+    .replace(/\*\*([^*]+)\*\*/g, '$1') // strip **bold** markdown
+    .replace(/\s+/g, ' ')
+    .trim();
+  if (!text) return undefined;
+  const m = /^(.*?[.!?])(\s|$)/.exec(text);
+  let sentence = (m ? m[1]! : text).trim();
+  if (sentence.length > SUMMARY_MAX) {
+    sentence = sentence.slice(0, SUMMARY_MAX - 1).trimEnd() + '…';
+  }
+  return sentence || undefined;
+}
+
+/** The first `/** … *&#47;` doc comment's summary in a source file, if any. */
+function fileTopSummary(src: string): string | undefined {
+  const m = /\/\*\*([\s\S]*?)\*\//.exec(src);
+  return m ? firstDocSentence(m[1]!) : undefined;
+}
+
+/** A `docs/…(.md)` path named in prose (the "learn more" pointer). */
+const DOC_REF_RE = /docs\/[A-Za-z0-9_./-]+\.md/;
+
+/**
+ * The FULL top concept comment of a source file as clean text — the whole
+ * leading `/** … *&#47;` block, NOT just the first sentence. The `*` gutter is
+ * stripped while paragraph breaks (blank lines) and numbered/bulleted list
+ * structure (leading indentation + `1.` / `-` markers) are preserved;
+ * `{@link Foo}` wrappers and `**bold**` markdown are reduced to plain text.
+ * Capture stops at the first `@`-block-tag line so a trailing `@internal` /
+ * `@packageDocumentation` never leaks in. A `docs/…` reference in the prose
+ * rides back as `docRef`. `undefined` for an empty / tag-only comment.
+ */
+function fileTopDescription(src: string): TopDescription | undefined {
+  const m = /\/\*\*([\s\S]*?)\*\//.exec(src);
+  if (!m) return undefined;
+  const block = m[1]!;
+  const docRefMatch = DOC_REF_RE.exec(block);
+  const lines: string[] = [];
+  for (const raw of block.split('\n')) {
+    // De-gutter: drop leading whitespace + the `*` and one following space,
+    // KEEPING any further indentation (list nesting is meaningful).
+    const line = raw.replace(/^\s*\*? ?/, '').replace(/\s+$/, '');
+    if (line.trim().startsWith('@')) break; // stop at the first block tag
+    lines.push(line);
+  }
+  const text = lines
+    .join('\n')
+    // `{@link Foo}` / `{@link Foo | bar}` → the referenced name only.
+    .replace(/\{@link\s+([^}|]+?)(?:\s*\|[^}]*)?\}/g, '$1')
+    .replace(/\*\*([^*]+)\*\*/g, '$1') // strip **bold** markdown
+    .replace(/\n{3,}/g, '\n\n') // collapse runs of blank lines
+    .replace(/^\n+/, '')
+    .replace(/\n+$/, '');
+  if (!text.trim()) return undefined;
+  const out: TopDescription = { text };
+  if (docRefMatch) out.docRef = docRefMatch[0];
+  return out;
+}
+
+/**
+ * Canonical, de-underscored, sorted field names from a classification's
+ * underscore-insensitive candidate set (`quantity`/`_quantity` → `quantity`).
+ * The best-effort fallback when a mixin can't be composed for a clean read.
+ */
+function canonicalFieldNames(set: Set<string>): string[] {
+  const out = new Set<string>();
+  for (const c of set) out.add(c.replace(/^_/, ''));
+  return [...out].sort();
+}
+
+/**
+ * The HelpApi enrichment for a mixin — the typed relations + conferred method
+ * names from the boot-warmed help index. Degrades to empty (never throws) when
+ * the help artifact is absent or the mixin has no topic.
+ */
+function collectHelpEnrichment(mixinName: string): {
+  relations: HelpRelation[];
+  methods: string[];
+} {
+  const concept = mixinName.replace(/Mixin$/, '');
+  let topic: HelpTopic | null = null;
+  try {
+    topic = HelpApi.apiTopic(concept);
+  } catch {
+    topic = null;
+  }
+  if (!topic) return { relations: [], methods: [] };
+  const relations = topic.relations ?? [];
+  // Conferred method names ride the `confers` edges' `targetTitle`.
+  const methods = [
+    ...new Set(
+      relations.filter((r) => r.kind === 'confers').map((r) => r.targetTitle)
+    ),
+  ];
+  return { relations, methods };
 }
 
 /**
@@ -292,8 +470,16 @@ interface ExportSources {
 function scanExportSources(): ExportSources {
   const mixins = new Map<string, string>();
   const classes = new Map<string, ClassExport>();
+  const summaries = new Map<string, string>();
+  const topSummaries = new Map<string, string>();
+  const topDescriptions = new Map<string, TopDescription>();
+  const interfaceSummaries = new Map<string, string>();
   for (const file of walkTsFiles(MUD_ROOT, [])) {
     const src = readFileSync(file, 'utf8');
+    // The file-top concept comment — for a one-concept mixin file this IS the
+    // mixin's description (it sits above the imports, not the factory).
+    const topSummary = fileTopSummary(src);
+    const topDescription = fileTopDescription(src);
     // Mixin factories are always NAMED exports (`export function FooMixin`);
     // their `_mixinName` marker names them.
     for (const m of src.matchAll(
@@ -301,6 +487,12 @@ function scanExportSources(): ExportSources {
     )) {
       const name = m[1]!;
       if (!mixins.has(name)) mixins.set(name, file);
+      if (topSummary && !topSummaries.has(name)) {
+        topSummaries.set(name, topSummary);
+      }
+      if (topDescription && !topDescriptions.has(name)) {
+        topDescriptions.set(name, topDescription);
+      }
     }
     // `export default (abstract)? class X` — a default export.
     for (const m of src.matchAll(
@@ -317,8 +509,66 @@ function scanExportSources(): ExportSources {
       const name = m[1]!;
       if (!classes.has(name)) classes.set(name, { file, isDefault: false });
     }
+    // The leading doc-comment above `export function <Name>(…)` — the mixin
+    // factory's summary. Keyed by the factory name (== `_mixinName`).
+    for (const m of src.matchAll(
+      /\/\*\*([\s\S]*?)\*\/\s*export\s+function\s+([A-Za-z0-9_]+)\s*(?:<[\s\S]*?>)?\s*\(/g
+    )) {
+      const name = m[2]!;
+      if (summaries.has(name)) continue;
+      const s = firstDocSentence(m[1]!);
+      if (s) summaries.set(name, s);
+    }
+    // The leading doc-comment above `export interface <Name>` — the companion
+    // fallback when the factory itself carries no doc comment.
+    for (const m of src.matchAll(
+      /\/\*\*([\s\S]*?)\*\/\s*export\s+interface\s+([A-Za-z0-9_]+)\b/g
+    )) {
+      const name = m[2]!;
+      if (interfaceSummaries.has(name)) continue;
+      const s = firstDocSentence(m[1]!);
+      if (s) interfaceSummaries.set(name, s);
+    }
   }
-  return { mixins, classes };
+  return {
+    mixins,
+    classes,
+    summaries,
+    topSummaries,
+    topDescriptions,
+    interfaceSummaries,
+  };
+}
+
+/**
+ * The one-line summary for a mixin, by precedence: a doc comment adjacent to
+ * its `export function`, else the file's top concept comment (the usual
+ * source — the description sits above the imports), else the companion
+ * interface's doc (the un-suffixed name, e.g. `ContainerMixin` →
+ * `interface Container`). `undefined` when none carries a doc comment.
+ */
+function mixinSummary(
+  name: string,
+  sources: ExportSources
+): string | undefined {
+  const bare = name.replace(/Mixin$/, '');
+  return (
+    sources.summaries.get(name) ??
+    sources.topSummaries.get(name) ??
+    sources.interfaceSummaries.get(bare) ??
+    sources.interfaceSummaries.get(name)
+  );
+}
+
+/**
+ * The mud-rooted, forward-slashed, extension-stripped path of a source file
+ * (`.../src/mud/lib/stuff/Idea.ts` → `/lib/stuff/Idea`). The stable "class
+ * path" shape the palette reports for a base class.
+ */
+function mudRootedPath(absFile: string): string {
+  return (
+    '/' + relative(MUD_ROOT, absFile).split(sep).join('/').replace(/\.ts$/, '')
+  );
 }
 
 /**
@@ -328,8 +578,7 @@ function scanExportSources(): ExportSources {
 function importSpecifierFor(absFile: string | undefined): string | null {
   if (!absFile) return null;
   // Mud-rooted, forward-slashed, extension-stripped path of the source file.
-  const mudRel =
-    '/' + relative(MUD_ROOT, absFile).split(sep).join('/').replace(/\.ts$/, '');
+  const mudRel = mudRootedPath(absFile);
   // Scaffold targets always live at `/obj/<Name>.ts`, so imports are
   // relative to `/obj`.
   let spec = posix.relative('/obj', mudRel);
@@ -512,6 +761,45 @@ export class StudioLogic extends ApiLogic {
     return { classPath, mixins: mixinNames, fields };
   }
 
+  /** See {@link StudioApi.describeMixin}. */
+  @CallSecurity(StudioApiCallers)
+  public async describeMixin(name: string): Promise<MixinDetail> {
+    await gateRead();
+    const mixinName = (name ?? '').trim();
+    if (!mixinName) {
+      throw new StudioError('invalid', 'a mixin name is required');
+    }
+
+    const sources = this.getExportSources();
+    const scan = this.getClassification();
+
+    // Description + docRef — the always-available source scan (the substance).
+    const top = sources.topDescriptions.get(mixinName);
+
+    // Contributed fields — reuse describeClass's inference by composing the
+    // mixin over a bare Idea (best-effort; degrades to source-scan names).
+    const { authorableFields, runtimeState } = await this.describeMixinFields(
+      mixinName,
+      sources,
+      scan.get(mixinName)
+    );
+
+    // Enrichment — typed help relations + conferred method names. Empty (never
+    // a throw) when the help artifact is absent / the mixin has no topic.
+    const { relations, methods } = collectHelpEnrichment(mixinName);
+
+    const detail: MixinDetail = {
+      name: mixinName,
+      description: top?.text ?? '',
+      authorableFields,
+      runtimeState,
+      relations,
+      methods,
+    };
+    if (top?.docRef) detail.docRef = top.docRef;
+    return detail;
+  }
+
   /** See {@link StudioApi.listBlueprints}. */
   @CallSecurity(StudioApiCallers)
   public async listBlueprints(): Promise<BlueprintSummary[]> {
@@ -586,16 +874,90 @@ export class StudioLogic extends ApiLogic {
 
   /** See {@link StudioApi.listMixins}. */
   @CallSecurity(StudioApiCallers)
-  public async listMixins(): Promise<MixinPaletteEntry[]> {
+  public async listMixins(): Promise<MixinPalette> {
     await gateRead();
-    const entries: MixinPaletteEntry[] = [];
+    const sources = this.getExportSources();
+    const mixins: MixinPaletteEntry[] = [];
     for (const base of PALETTE_BASE_CLASSES) {
-      entries.push({ name: base, kind: 'base' });
+      mixins.push({ name: base, kind: 'base' });
     }
     for (const name of Object.values(Mixins)) {
-      entries.push({ name, kind: 'mixin' });
+      const entry: MixinPaletteEntry = { name, kind: 'mixin' };
+      // Inline one-line help, sourced from the mixin's TSDoc doc comment (or
+      // its companion interface's). Degrades to `undefined` when undocumented.
+      const summary = mixinSummary(name, sources);
+      if (summary) entry.summary = summary;
+      mixins.push(entry);
     }
-    return entries;
+
+    // Each base class with the mixin set it already composes (its own
+    // prototype-chain `_mixinName`s, deduped, composition order) — so a
+    // client can pre-seed a base's composition instead of starting at 0.
+    const bases: BaseClassEntry[] = [];
+    for (const name of PALETTE_BASE_CLASSES) {
+      const ctor = PALETTE_BASE_CTORS[name];
+      const impliedMixins = ctor
+        ? [
+            ...new Set(
+              MixinApi.queryMixins(ctor).map(
+                (m) => m._mixinName ?? m.name ?? '<anonymous>'
+              )
+            ),
+          ]
+        : [];
+      const file = sources.classes.get(name)?.file;
+      bases.push({
+        name,
+        classPath: file ? mudRootedPath(file) : '',
+        impliedMixins,
+      });
+    }
+
+    return { mixins, bases };
+  }
+
+  /** See {@link StudioApi.createTemplate}. */
+  @CallSecurity(StudioApiCallers)
+  public async createTemplate(
+    input: CreateTemplateInput
+  ): Promise<TemplateWriteResult> {
+    // Act #1 — "instantiate a template": save a NEW content template pointing
+    // at an already-approved class. Author-tier to CALL (a null actor fails
+    // the gate closed); the wizard-lockdown code-field gate inside
+    // `saveTemplate` still applies to the `class` set and is surfaced as a
+    // graceful `denied`, not a 500.
+    await gateRead();
+
+    const path = (input.path ?? '').trim();
+    const classPath = (input.classPath ?? '').trim();
+    if (!path || !classPath) {
+      throw new StudioError('invalid', 'path and classPath are required');
+    }
+
+    // CREATE-only: an existing path is refused (updates go through
+    // `CmsApi.write('content', …)`).
+    const existing = await Template.findByPath(path);
+    if (existing) {
+      return {
+        disposition: 'denied',
+        message: `a template already exists at ${path}`,
+      };
+    }
+
+    try {
+      await TemplateApi.saveTemplate(path, classPath, input.data ?? {});
+    } catch (err) {
+      // The code-field gate (a non-wizard setting `class`) throws a
+      // `TemplateError` at the `saveTemplate` chokepoint — a content-authoring
+      // refusal, surfaced as a graceful `denied` (the wizard-lockdown stays
+      // intact; this op just doesn't 500 on it). Anything else propagates.
+      if (err instanceof TemplateError) {
+        return { disposition: 'denied', message: (err as Error).message };
+      }
+      throw err;
+    }
+
+    return { disposition: 'committed', path };
   }
 
   /** See {@link StudioApi.scaffoldClass}. */
@@ -717,6 +1079,76 @@ export class StudioLogic extends ApiLogic {
   private _persistDraft(_path: string, _source: string): void {
     // Intentionally empty — the review-workflow seam (see StudioApi doc +
     // docs/plans/cms-composition-plan.md [CALL] #2). Do NOT execute a draft.
+  }
+
+  /**
+   * The contributed authorable fields (+ runtime-state names) of a single
+   * mixin. Tries to compose the mixin over a bare `Idea` so it can read clean
+   * field names + best-effort type shapes through the same machinery
+   * `describeClass` uses (`getAll*Fields` + a throwaway class-default read).
+   * ANY failure (a mixin that needs a richer base, a throwing constructor)
+   * degrades to the source-scan candidate names with a `json` shape — the
+   * pane is always useful.
+   */
+  private async describeMixinFields(
+    mixinName: string,
+    sources: ExportSources,
+    classified: MixinClassification | undefined
+  ): Promise<{ authorableFields: MixinFieldDetail[]; runtimeState: string[] }> {
+    if (!classified) return { authorableFields: [], runtimeState: [] };
+
+    const file = sources.mixins.get(mixinName);
+    let composed: AnyConstructor | null = null;
+    if (file) {
+      try {
+        const factory = await StuffApi.resolveExport(
+          mudRootedPath(file),
+          mixinName
+        );
+        if (typeof factory === 'function') {
+          composed = (factory as (base: AnyConstructor) => AnyConstructor)(
+            Idea as unknown as AnyConstructor
+          );
+        }
+      } catch {
+        composed = null;
+      }
+    }
+
+    if (composed) {
+      try {
+        const persistent = MixinApi.getAllPersistentFields(composed);
+        const instruction = MixinApi.getAllInstructionFields(composed);
+        const instructionSet = new Set(instruction);
+        const allFields = [...new Set([...persistent, ...instruction])];
+        const authorableFields: MixinFieldDetail[] = [];
+        for (const field of allFields) {
+          if (!classified.authorable.has(field)) continue;
+          const { value } = await this.readClassDefault(composed, field);
+          authorableFields.push({
+            name: field,
+            kind: instructionSet.has(field) ? 'instruction' : 'property',
+            typeShape: inferTypeShape(value) ?? 'json',
+          });
+        }
+        const runtimeState = persistent.filter((f) =>
+          classified.runtime.has(f)
+        );
+        return { authorableFields, runtimeState };
+      } catch {
+        // fall through to the source-scan fallback below
+      }
+    }
+
+    // Fallback: canonical names straight from the classification candidate
+    // sets — no live type, so `json` (the raw-JSON widget shape).
+    const authorableFields: MixinFieldDetail[] = canonicalFieldNames(
+      classified.authorable
+    ).map((name) => ({ name, kind: 'property', typeShape: 'json' }));
+    return {
+      authorableFields,
+      runtimeState: canonicalFieldNames(classified.runtime),
+    };
   }
 
   /** Lazily build + cache the export-source scan (mixin/base → file). */
@@ -894,6 +1326,7 @@ function toSummary(bp: Blueprint): BlueprintSummary {
     baseClass: bp.getBaseClass(),
     mixinNames: [...bp.getMixinNames()],
     blessed: bp.isBlessed(),
+    signature: bp.getSignature(),
   };
   const classPath = bp.getClassPath();
   if (classPath) s.classPath = classPath;

@@ -32,10 +32,13 @@ import type {
   ClassCommitResult,
   ClassDescription,
   CommitClassInput,
-  MixinPaletteEntry,
+  CreateTemplateInput,
+  MixinDetail,
+  MixinPalette,
   PublishBlueprintInput,
   ScaffoldClassInput,
   ScaffoldResult,
+  TemplateWriteResult,
 } from '@saxonberg/types';
 
 export type {
@@ -49,11 +52,17 @@ export type {
   BlueprintKind,
   PublishBlueprintInput,
   StudioDisposition,
+  MixinDetail,
+  MixinFieldDetail,
   MixinPaletteEntry,
+  MixinPalette,
+  BaseClassEntry,
   ScaffoldClassInput,
   ScaffoldResult,
   CommitClassInput,
   ClassCommitResult,
+  CreateTemplateInput,
+  TemplateWriteResult,
 } from '@saxonberg/types';
 
 /**
@@ -121,6 +130,25 @@ export class StudioApi {
   }
 
   /**
+   * Describe a single mixin for the composer's inspector pane: its FULL
+   * multi-paragraph concept comment, the authorable fields it contributes
+   * (name + best-effort type shape) and its runtime-state field names — all
+   * from the always-available server source scan — plus optional HelpApi
+   * enrichment (typed relations + conferred method names), which degrades to
+   * empty when the help artifact is absent (never a throw).
+   *
+   * Read-gated (author-tier) on the **context-derived** actor
+   * (`getActingAuthor`), never a caller-supplied value — takes **no `actor`
+   * argument by design**. Throws `StudioError('denied')` for a non-author,
+   * `('invalid')` for an empty name.
+   *
+   * @param name - the mixin's `_mixinName` (e.g. `'GlobbableMixin'`).
+   */
+  public static describeMixin(name: string): Promise<MixinDetail> {
+    return logic().describeMixin(name);
+  }
+
+  /**
    * List every catalogued blueprint — the derived skeleton (one per backing
    * class) plus the curated overlay. Read-gated (author-tier) on the
    * context-derived actor; the underlying `BlueprintCatalogue` singleton is
@@ -154,12 +182,31 @@ export class StudioApi {
   }
 
   /**
-   * The composition palette's vocabulary — the mixin registry names plus a
-   * small set of instantiable base classes an author picks when scaffolding a
-   * new backing class. Read-gated (author-tier) on the context-derived actor.
+   * The composition palette's vocabulary — `{ mixins, bases }`. `mixins` is
+   * the flat pickable list (base entries + every registry mixin, unchanged);
+   * `bases` pairs each offered base class with the mixin set it already
+   * composes (`impliedMixins`), so a client can pre-seed a base's composition
+   * instead of starting from an empty set. Read-gated (author-tier) on the
+   * context-derived actor.
    */
-  public static listMixins(): Promise<MixinPaletteEntry[]> {
+  public static listMixins(): Promise<MixinPalette> {
     return logic().listMixins();
+  }
+
+  /**
+   * Save a NEW content template pointing at an already-approved backing class
+   * (creation act #1 — "instantiate a template"; author-tier to call). Refuses
+   * with `{ disposition: 'denied' }` when a template already exists at `path`
+   * (CREATE-only — updates go through `CmsApi.write('content', …)`) or when the
+   * wizard-lockdown code-field gate refuses the `class` set (a non-wizard
+   * naming a class) — a graceful disposition, never a 500. The author is
+   * derived from context and recorded via the `saveTemplate` provenance
+   * chokepoint — **no `actor` argument** (anti-spoof).
+   */
+  public static createTemplate(
+    input: CreateTemplateInput
+  ): Promise<TemplateWriteResult> {
+    return logic().createTemplate(input);
   }
 
   /**
