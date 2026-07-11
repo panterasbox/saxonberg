@@ -233,6 +233,13 @@ build shipped only the **seams** (metabolism is the first consumer):
   free, this seam reused untouched), spawns the `asphyxiation` condition,
   and fires the cause-of-death/lifecycle transition on sustained anoxia.
   The other signs remain substrate-only, awaiting their drivers.
+- **`bloodVolume` is now driven** — [harm](./harm.md) is the injury driver
+  that moves `bloodVolume` to the death seam: a bleeding laceration's
+  recurring wound-tick drains it, the `conscious → unconscious` waypoint
+  falls out of `getConsciousness()` for free (this seam reused untouched),
+  and the floor stamps `setCauseOfDeath('exsanguination')` +
+  `setLifecycleState('dead')`. Harm is the `inflict` producer + the five
+  live `TRAUMA_BEHAVIOR` behaviors + the medic vertical (assess/treat).
 
 ## Reserves
 
@@ -245,12 +252,21 @@ deferred.
 
 ## What's deferred (the applications)
 
-All live behavior and content: condition progression / the bleed tick,
-the death-watcher driver, reserve drain/replenish producers, disease/
-poison/affliction content, the assess/measure-on-patient/treatment
-verbs + instruments, the physical-attribute readings, the anatomy
-graph + part-promotion, postmortem fidelity, contagion, the `inflict`
-producer seam.
+> **Update (harm build).** The trauma applications shipped: the
+> [harm driver](./harm.md) is the `inflict` producer, the five live
+> `TRAUMA_BEHAVIOR` behaviors (laceration bleed flagship + clot gate,
+> contusion, fracture-impairs-slot, burn, avulsion), the recurring
+> wound-tick (presence-frozen, re-armed on hydrate) → death by
+> `exsanguination`, the limp + coverage couplings, and the medic vertical
+> (`assess` / `treat` / `undress` + `DressingMixin`/`Bandage`). No longer
+> deferred. The remainder below still is.
+
+Remaining deferred: reserve drain/replenish producers, disease/poison/
+affliction content, measure-on-patient instruments, the physical-attribute
+readings, the anatomy graph + part-promotion (avulsion sever — see
+harm.md), postmortem fidelity, contagion, and the **materials-response
+severity function** (v1 severity is magnitude-only; mechanism is recorded,
+not scored — see harm.md).
 
 **Forward-compat — mechanism of injury (combat).** When a combat system
 lands, it plugs into labeled sockets here without reshaping the
@@ -269,6 +285,9 @@ for the magic-side mirror.
 
 ## Cross-references
 
+- [harm.md](./harm.md) — the injury driver over this substrate: `inflict`,
+  the live trauma behaviors, the wound-tick, death by exsanguination, the
+  limp + coverage, the medic vertical
 - [reserve.md](./reserve.md) — the `Reserve` substrate
 - [race.md](./race.md) — `OrganismMixin`, `Species`, `BodyPlan`,
   `SpeciesApi.isAlive/isAnimate`
