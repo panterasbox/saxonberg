@@ -244,13 +244,18 @@ export function SlottedMixin<TBase extends MixinConstructor<Stuff>>(
     public canOccupy(candidate: Stuff & Slottable, slot: string): boolean {
       const spec = this.getSlotSpec(slot);
       if (!spec) return false;
-      // Part 0 — anatomy gate (coarse, Vitals substrate). A slot whose
-      // `bodyPart` is gone is disabled. No-op unless the host composes
-      // VitalsMixin AND the gating part is actually missing, so intact
+      // Part 0 — anatomy + trauma gate (coarse, Vitals substrate). A slot
+      // whose `bodyPart` is gone (missing) or fractured above the impair
+      // threshold is disabled. No-op unless the host composes VitalsMixin
+      // AND the gating part is actually missing / fractured, so intact
       // bodies behave exactly as before. `isVitals` narrows the host so
-      // the call is type-checked (no duck-typing cast).
+      // the calls are type-checked (no duck-typing cast).
       const host = this as unknown as Stuff;
-      if (MixinApi.isVitals(host) && host.isSlotDisabledByAnatomy(slot)) {
+      if (
+        MixinApi.isVitals(host) &&
+        (host.isSlotDisabledByAnatomy(slot) ||
+          host.isSlotImpairedByTrauma(slot))
+      ) {
         return false;
       }
       // Part 1 — slot-side mixin check. `accepts` is validated to be

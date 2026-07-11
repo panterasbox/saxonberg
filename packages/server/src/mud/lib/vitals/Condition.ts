@@ -241,15 +241,86 @@ export const LACERATION_BEHAVIOR: TraumaBehavior = {
 };
 
 /**
- * The closed trauma behavior table. Phase 1 lights up `laceration`; the
- * remaining four land in Phase 2 (`avulsion` delegates to laceration).
+ * A wound that carries no systemic bleed — it just decays its severity
+ * toward zero over game-time at its own rate (the driver relieves it at
+ * clear). `resolve`/`reopen` are inert (the dressing branch is the bleed's
+ * clot gate; splint/suture instruments for the mechanical types are a
+ * deferred first-aid branch — see harm.md). Shared by contusion / burn,
+ * and the base of fracture.
+ */
+function decayingBehavior(
+  ratePerSec: number,
+  phrase: (t: Trauma) => string
+): TraumaBehavior {
+  return {
+    onset: noop,
+    tick(_host: Vitals, t: Trauma, elapsedSec: number): void {
+      t.severity = Math.max(0, t.severity - ratePerSec * elapsedSec);
+    },
+    resolve: noop,
+    reopen: noop,
+    describe: phrase,
+  };
+}
+
+/** contusion — mild, self-resolving over time; no bleed. */
+export const CONTUSION_BEHAVIOR: TraumaBehavior = decayingBehavior(
+  HARM_DEFAULTS.CONTUSION_HEAL_PER_SEC,
+  (t) => `a bruise on ${t.site}`
+);
+
+/**
+ * fracture — a slow natural heal. The **impairment is a derived read** of
+ * this trauma through the `canOccupy` / slot machinery
+ * (`Vitals.isSlotImpairedByTrauma`), NOT a tick effect — so clearing /
+ * healing the fracture restores the affordance with no separate un-impair
+ * step. Setting the bone (a splint instrument) is a deferred first-aid
+ * branch; v1 only heals it over time.
+ */
+export const FRACTURE_BEHAVIOR: TraumaBehavior = decayingBehavior(
+  HARM_DEFAULTS.FRACTURE_HEAL_PER_SEC,
+  (t) => `a fracture of ${t.site}`
+);
+
+/** burn — real behavior: severity + a slow heal at its own rate. */
+export const BURN_BEHAVIOR: TraumaBehavior = decayingBehavior(
+  HARM_DEFAULTS.BURN_HEAL_PER_SEC,
+  (t) => `a burn on ${t.site}`
+);
+
+/**
+ * avulsion — behaves as a **severe laceration** (floors severity, bleeds,
+ * shares the clot gate). The deferred **limb-sever / part-promotion**
+ * (mark the `BodyPart` missing, cascade slot-disable + presentation) lands
+ * HERE — at `onset` — when the sever build arrives; v1 stops at the severe
+ * bleed. See harm.md § deferred seams.
+ */
+export const AVULSION_BEHAVIOR: TraumaBehavior = {
+  onset(host: Vitals, t: Trauma): void {
+    t.severity = Math.max(t.severity, HARM_DEFAULTS.AVULSION_SEVERITY_FLOOR);
+    LACERATION_BEHAVIOR.onset(host, t);
+  },
+  tick: LACERATION_BEHAVIOR.tick,
+  resolve: LACERATION_BEHAVIOR.resolve,
+  reopen: LACERATION_BEHAVIOR.reopen,
+  describe(t: Trauma): string {
+    if (t.dressed) return `a dressed avulsion of ${t.site} (bleeding controlled)`;
+    if (t.bleeding) return `a gaping avulsion of ${t.site}`;
+    return `a clotted avulsion of ${t.site}`;
+  },
+};
+
+/**
+ * The closed trauma behavior table — every `TraumaType` carries live
+ * behavior (the NOOP exemplar remains the fallback shape). `avulsion`
+ * delegates to laceration.
  */
 export const TRAUMA_BEHAVIOR: Record<TraumaType, TraumaBehavior> = {
   laceration: LACERATION_BEHAVIOR,
-  fracture: NOOP_BEHAVIOR,
-  contusion: NOOP_BEHAVIOR,
-  avulsion: NOOP_BEHAVIOR,
-  burn: NOOP_BEHAVIOR,
+  fracture: FRACTURE_BEHAVIOR,
+  contusion: CONTUSION_BEHAVIOR,
+  avulsion: AVULSION_BEHAVIOR,
+  burn: BURN_BEHAVIOR,
 };
 
 // ---------- Kind-A: the Condition Idea template ----------

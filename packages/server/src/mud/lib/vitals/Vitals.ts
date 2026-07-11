@@ -38,6 +38,7 @@ import { MixinApi } from '../../api/mixin';
 import type { VitalBand, VitalProfile } from '../species/Species';
 import type { BodyPart } from '../species/BodyPlan';
 import type { ActiveCondition } from './Condition';
+import { HARM_DEFAULTS } from './Condition';
 
 /**
  * The engine's vital-sign vocabulary — the canonical key list, used by
@@ -173,6 +174,13 @@ export interface Vitals {
   getInjuredParts(): ResolvedBodyPart[];
   /** Coarse part→slot coupling: a missing part disables its slots. */
   isSlotDisabledByAnatomy(slot: string): boolean;
+  /**
+   * Trauma part→slot coupling: an active fracture above the impair
+   * threshold at the slot's `bodyPart` greys the slot's affordances. A
+   * derived read (heals as the fracture heals), sibling of
+   * `isSlotDisabledByAnatomy`.
+   */
+  isSlotImpairedByTrauma(slot: string): boolean;
 
   // ---------- conditions — both kinds, one collection ----------
   getConditions(): readonly ActiveCondition[];
@@ -431,6 +439,29 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
         .find((s) => s.name === slot);
       if (!spec?.bodyPart) return false;
       return this.getPart(spec.bodyPart)?.missing ?? false;
+    }
+
+    public isSlotImpairedByTrauma(slot: string): boolean {
+      // Same slot→part resolve as the anatomy gate, but the disqualifier
+      // is an active fracture (above the impair threshold) sitting at the
+      // slot's `bodyPart`. A derived read — no stored "impaired" flag; the
+      // affordance returns the moment the fracture heals/clears.
+      const self = this as unknown as Stuff;
+      if (!MixinApi.isOrganism(self)) return false;
+      const spec = self
+        .getSpecies()
+        ?.getBodyPlan()
+        ?.getSlots()
+        .find((s) => s.name === slot);
+      const part = spec?.bodyPart;
+      if (!part) return false;
+      return this.conditions.some(
+        (c) =>
+          c.kind === 'trauma' &&
+          c.type === 'fracture' &&
+          c.site === part &&
+          c.severity >= HARM_DEFAULTS.FRACTURE_IMPAIR_SEVERITY,
+      );
     }
 
     // ---------- conditions (both kinds, one collection) ----------
