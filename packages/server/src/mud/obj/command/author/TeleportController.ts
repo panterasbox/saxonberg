@@ -241,7 +241,7 @@ export default class TeleportController extends CommandController<TeleportModel>
     const fee = node.getRoutes().get(ref)?.fee ?? 0;
     const surcharge = destNode.getSurcharge();
     if (fee > 0 || surcharge > 0) {
-      const ok = await this.settleFare(context, fee, surcharge, arrivalRoom);
+      const ok = await this.settleFare(context, fee, surcharge, node, destNode);
       if (!ok) return;
     }
 
@@ -254,15 +254,18 @@ export default class TeleportController extends CommandController<TeleportModel>
    * a caller parameter), and conserved:
    *
    *  - **`fee`** (the route's departure charge) → the Business operating the
-   *    **departure gate** (`businessAt(context.location)` — the OrderController
-   *    precedent), which keeps `fee − networkFee`;
+   *    **departure terminal** (`ensureOperatorAt(node)` — keyed on the fixture,
+   *    not the room, so two venues sharing a room each resolve their own
+   *    operator; stands the Business up lazily if it isn't live), which keeps
+   *    `fee − networkFee`;
    *  - the TPA **network fee** (`min(fee, base + floor(fee × rate))`) → the
    *    global TPA operating budget (levied on the ride, i.e. the `fee` only);
    *  - **`surcharge`** (the destination node's own arrival charge) → the
-   *    Business operating the **destination's arrival room**, the mirror of
-   *    the fee's departure attribution.
+   *    Business operating the **destination terminal**, the mirror of the fee's
+   *    departure attribution — again fixture-keyed.
    *
-   * A `fee > 0` with no departure operator, or a `surcharge > 0` with no
+   * All un-spoofable (resolved from the fixtures, never a caller token). A
+   * `fee > 0` with no departure operator, or a `surcharge > 0` with no
    * destination operator, is an authoring error → refuse ([DECIDE-A]). Tries
    * credential, then cash — both split identically (cash via the cash bridge,
    * D12). Returns false (and refuses, without moving the traveller) on
@@ -272,13 +275,15 @@ export default class TeleportController extends CommandController<TeleportModel>
     context: CommandContext,
     fee: number,
     surcharge: number,
-    arrivalRoom: Stuff & Container,
+    node: Stuff & FastTravel,
+    destNode: Stuff & FastTravel,
   ): Promise<boolean> {
     // Departure operator (collects the base fare) — required only when fee>0.
+    // Keyed on the departure TERMINAL (the fixture), stood up lazily if needed.
     let cityBudgetAccount: string | null = null;
     if (fee > 0) {
-      const here = context.location?.getTemplatePath();
-      const bizPath = (here ? EmploymentApi.businessAt(here) : undefined)
+      const here = (node as unknown as Stuff).getTemplatePath();
+      const bizPath = (here ? await EmploymentApi.ensureOperatorAt(here) : null)
         ?.getAccountPath();
       if (!bizPath) {
         this.fail(context, "this gate has no operator to collect the fare", "no-operator");
@@ -293,11 +298,11 @@ export default class TeleportController extends CommandController<TeleportModel>
     }
 
     // Destination operator (collects the surcharge) — required only when
-    // surcharge>0. Resolved from the destination's arrival room, never a token.
+    // surcharge>0. Keyed on the destination TERMINAL (the fixture), never a token.
     let destOperatorAccount: string | null = null;
     if (surcharge > 0) {
-      const destHere = arrivalRoom.getTemplatePath();
-      const destPath = (destHere ? EmploymentApi.businessAt(destHere) : undefined)
+      const destHere = (destNode as unknown as Stuff).getTemplatePath();
+      const destPath = (destHere ? await EmploymentApi.ensureOperatorAt(destHere) : null)
         ?.getAccountPath();
       if (!destPath) {
         this.fail(

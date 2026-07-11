@@ -62,7 +62,7 @@ function validateGroupRef(ref: string): void {
  * `lookupAncestorField`).
  */
 export abstract class Zone extends Idea {
-  static persistentFields = ['ownerGroup', 'accessGroups'];
+  static persistentFields = ['ownerGroup', 'accessGroups', 'ownerGroupName'];
 
   /**
    * Human-readable zone name ("Narnia Castle", "The Caves", "Animalia", …).
@@ -84,8 +84,26 @@ export abstract class Zone extends Idea {
   protected _ownerGroup?: GroupRef;
   protected _accessGroups?: GroupRef[];
 
+  /**
+   * A **symbolic** owner-group declaration: a managed group *name* (not a
+   * runtime `managed:<id>` ref). The access layer resolves it — mint-or-find
+   * the managed group by this name and use its real ref — so a zone can be
+   * authored as owned without knowing the runtime group id (which retires the
+   * per-area `seed*Slice` boot hooks; see `AccessRegistry`). Ignored when an
+   * explicit `_ownerGroup` ref is set.
+   */
+  protected _ownerGroupName?: string;
+
   public getOwnerGroup(): GroupRef | undefined {
     return this._ownerGroup;
+  }
+
+  public getOwnerGroupName(): string | undefined {
+    return this._ownerGroupName;
+  }
+
+  public setOwnerGroupName(name: string | undefined): void {
+    this._ownerGroupName = name && name.length > 0 ? name : undefined;
   }
 
   public setOwnerGroup(ref: GroupRef | undefined): void {

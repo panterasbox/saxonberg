@@ -1,0 +1,10 @@
+# /domain/lounge — the lounge content area (a FolderZone holding the bar,
+# terminal, cast, and fixtures beneath it). Owned by the `lounge` managed
+# group, declared symbolically via `ownerGroupName` (see /lib/lounge). The
+# leaf content lives under seeds/domain/lounge/ — folder-seed-alongside-dir,
+# the /lib/address.yaml precedent.
+class: /lib/zone/FolderZone
+hydratorClass: /lib/persistence/PersistentHydrator
+data:
+  name: lounge
+  ownerGroupName: lounge

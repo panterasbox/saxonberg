@@ -6,9 +6,9 @@
 # fare, attributed by operatingLocations) and the clerk's wages settle on one
 # P&L — the conserved city-budget loop.
 #
-# Stood up with the terminal content (the Bar.postRegister precedent), not a
-# manifest entry — cloned idempotently in TicketClerk.postRegister, live before
-# EmploymentApi.boot()'s first roster tick.
+# Stands up **lazily and derived**: no manifest entry, no clerk hook. The
+# employment engine reads this Business's own `operatingLocations` and stands
+# it up on first `businessAt(that fixture)` — the Gate A fare is the trigger.
 class: /lib/employment/Business
 hydratorClass: /lib/persistence/PersistentHydrator
 data:
@@ -29,7 +29,8 @@ data:
       assignee: /domain/terminus/terminal/clerk
       schedule:
         - { days: [0, 1, 2, 3, 4, 5, 6], hours: [6, 22] }
-  # The operational departure gate — so `businessAt(departure-gate-a)` resolves
-  # this operator for the Gate A fare's city share (un-spoofable attribution).
+  # The operational departure TERMINAL (the fixture, not the room) — so
+  # `businessAt(the terminal)` resolves this operator precisely and un-spoofably
+  # (two venues sharing one room each key on their own fixture, no ambiguity).
   operatingLocations:
-    - /domain/terminus/terminal/departure-gate-a
+    - /domain/terminus/terminal/departure-terminal-a

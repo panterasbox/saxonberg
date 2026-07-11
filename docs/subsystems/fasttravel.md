@@ -192,10 +192,13 @@ fare **splits two operating budgets** over banking's remittance-split seam
 the CB mints:
 
 - **The city's operating budget** (the bulk) — the `Business` operating the
-  **departure-gate room**, resolved un-spoofably via
-  `EmploymentApi.businessAt(context.location…)` (the `OrderController`
-  precedent), never a caller parameter. Its account collects `fee −
-  networkFee`; a paid route with no operator is an authoring error → refuse.
+  **departure terminal** (the *fixture*, not the room), resolved un-spoofably
+  via `EmploymentApi.ensureOperatorAt(node)` — keyed on the terminal so two
+  venues sharing a room each resolve their own operator, and standing the
+  Business up lazily from its own `operatingLocations` if it isn't live yet
+  (see [employment.md](./employment.md); no manifest entry, no standup hook).
+  Its account collects `fee − networkFee`; a paid route with no operator is an
+  authoring error → refuse.
 - **The TPA's operating budget** — a **network fee** into the well-known
   `fasttravel.tpaAccount` (default `"tpa"`). The fee is a **flat base + a
   percentage** — `min(fee, base + floor(fee × rate))`, tunable via
@@ -208,8 +211,9 @@ the CB mints:
 minor units, optional like the fee) — a charge just for *using that terminal as
 a destination*. The traveller pays `total = fee + surcharge`; the board shows
 the total (`⊙total`, broken out `(fee+surcharge)` when both). The surcharge is
-collected by the Business operating the **destination's arrival room**
-(`businessAt(arrivalRoom)`), the mirror of the fee's departure attribution — so
+collected by the Business operating the **destination terminal**
+(`ensureOperatorAt(destNode)`, fixture-keyed like the fee), the mirror of the
+fee's departure attribution — so
 each end's operator collects its own charge, un-spoofably, over the same
 `settle` split (departure op keeps `fee − networkFee`, TPA takes `networkFee` on
 the **fee only**, destination op takes the whole `surcharge`; conserved). A
@@ -248,10 +252,13 @@ terminal was `both`) and the **`status` out-of-service** seam — the ride
 fork reads `getStatus()` at authorization and refuses a non-operational
 departure (**D8**; the seam stays authored-static — no dynamic breakdown).
 
-The four terminals are **per-terminal boot-manifest entries** (`bootstrap.ts`):
-the three departure terminals are never route targets, so nothing
-cascade-loads them; the arrival gate anchors the room cascade (hall → the
-other gate rooms + office). The office's **terminal clerk** (`TicketClerk`,
+The four terminals are **not** boot-manifest entries — they load by
+**`populates:` cascade** from the single lounge root (`bootstrap.ts` holds
+one hub anchor, not one entry per terminal). The three departure terminals
+are never route targets, so a plain route-target cascade would never reach
+them; instead each departure gate room declares `populates:` its own
+terminal fixture, so standing up the hub materializes every gate + its
+terminal. The office's **terminal clerk** (`TicketClerk`,
 "Tootie") is the city-budget `Business`'s paid employee — she **procures a
 free replacement `TravelCard`** (`procure card`, the `tpa/` command
 category; a card is an instrument, no fare) and receives **wages** from the

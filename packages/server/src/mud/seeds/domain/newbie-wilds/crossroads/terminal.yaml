@@ -13,11 +13,13 @@
 # (the frontier's, by destination); the free return leg (fee 0, and Terminus
 # arrival has no surcharge) stays free.
 #
-# The bespoke `CrossroadsTerminal` class = the generic terminal + the frontier
-# budget standup. Keywords `crossroads`/`frontier` are the typeable handles for
-# `teleport crossroads` at Gate A; the board DISPLAYS the covering Locality name
-# ("The Last Counted Mile") and the ⊙ total fare.
-class: /domain/newbie-wilds/CrossroadsTerminal
+# The frontier settlement's operating budget stands up lazily (derived from its
+# own `operatingLocations`, which name THIS terminal) on the first arrival
+# surcharge — no bespoke terminal class needed. Keywords `crossroads`/`frontier`
+# are the typeable handles for `teleport crossroads` at Gate A; the board
+# DISPLAYS the covering Locality name ("The Last Counted Mile") and the ⊙ total
+# fare.
+class: /domain/common/tpa/TpaTerminal
 hydratorClass: /lib/persistence/PersistentHydrator
 data:
   seatIn: /domain/newbie-wilds/crossroads/hub

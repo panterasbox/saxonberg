@@ -13,33 +13,18 @@
  *     when the clerk is present (the retired dispenser fixture isn't needed).
  *     The controller resolves the affording clerk as `context.commandSource`.
  *
- *  2. `postRegister` stands up the municipal city-budget Business with the
- *     terminal's own content (the `Bar.postRegister` guarded-`singletonOrClone`
- *     precedent) — idempotent on HMR, live before `EmploymentApi.boot`'s first
- *     roster tick (the cascade completes before engine boot). Folding standup
- *     into the already-bespoke clerk avoids a second class ([DECIDE-S]).
+ * The city-budget Business is **not** stood up here — it stands up lazily,
+ * derived from its own `operatingLocations` data, on the first fare
+ * (`EmploymentApi.ensureOperatorAt`). No standup hook, no `[DECIDE-S]` second
+ * class: the clerk is just an NPC that affords a verb.
  */
 
 import { NPC } from "../../lib/npc/NPC";
-import { StuffApi } from "../../api/stuff";
-import { Template } from "../../lib/stuff/Template";
 import type { CommandContributions } from "../../api/command";
-import { TerminusPaths } from "./paths";
 
 export default class TicketClerk extends NPC {
   /** Affords `procure card` to co-located players (the `self`-neighbor push). */
   static commandContributions: CommandContributions = {
     environment: ["tpa/procure-card.yaml"],
   };
-
-  public override async postRegister(_context?: unknown): Promise<void> {
-    // Wire the `behaviors:` spec list (the base NPC's job) first…
-    await super.postRegister(_context);
-    // …then stand up the city-budget Business (guarded on the template being
-    // authored + seeded, so a clerk cloned without one — tests — stands up
-    // fine). `singletonOrClone` is idempotent across an HMR re-clone.
-    if (await Template.findByPath(TerminusPaths.budget)) {
-      await StuffApi.singletonOrClone(TerminusPaths.budget);
-    }
-  }
 }

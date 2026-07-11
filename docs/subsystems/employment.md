@@ -83,6 +83,20 @@ extends Idea` at `/obj/api/employment`, HMR-able; every method gated
   the **singleton instance** (a `StuffApi.clearAll` recreates the singleton
   → fresh cache; rebuilt on a miss). `businessAt(locationPath)` /
   `businessOfProprietor(subject)` read it.
+- **Fixture-keyed attribution + derived lazy standup.** `operatingLocations`
+  names the **fixture** a Business operates (a terminal / vending unit), not the
+  room — so two venues sharing a room each resolve their *own* operator
+  (`businessAt(fixture)` is a sound 1:1; two businesses claiming one fixture is
+  an authoring error). `ensureOperatorAt(fixturePath)` is the async lookup that
+  stands the operator up **lazily** if it isn't live yet — derived from the
+  Business's own `operatingLocations` template data via a cached reverse index
+  (`operatingLocation → BusinessTemplatePath`, filtered cheaply by the field's
+  presence, `isBusiness`-verified after standup). This retires the per-venue
+  standup hooks: **no** manifest entry, **no** `Bar.postRegister` /
+  `TicketClerk` clone — the first `businessAt`-style query at a fixture (an
+  order, a fare) stands the Business up. Consumers: `OrderController` (the bar)
+  and `TeleportController.settleFare` (the transit fare) call `ensureOperatorAt`;
+  the roster tick's live-scan then processes it.
 
 ## Roster-driven on-shift state (`runTick`, on the game clock)
 
@@ -198,15 +212,18 @@ Tips are **physical cash**, two routes, never the bar's P&L:
   `resolveMaker` scan, one cardinality across), shared by the EFT route and
   `collect`'s gate.
 
-## The Business stands up with the bar
+## The Business stands up lazily (derived, no hook)
 
-`Bar.postRegister` clones the Business (`StuffApi.singletonOrClone`, guarded
-on `Template.findByPath` — the `AccessRegistry` precedent), so it stands up
-with the bar's own content (the lounge terminal cascade), **not** a top-level
-bootstrap manifest entry. Idempotent on HMR re-clone; live before the first
-roster tick (the engine boots after the cascade), so the staff are placed
-from the first tick. A bar cloned without a seeded business (tests, another
-context) stands up fine.
+A Business is **not** stood up by a `postRegister` hook (the old
+`Bar.postRegister` / `TicketClerk` clones are gone) nor a manifest entry. It
+stands up **lazily**, derived from its own `operatingLocations`, on the first
+`ensureOperatorAt(fixture)` query — an order at the bar, a fare at a terminal
+(see **Fixture-keyed attribution + derived lazy standup** above). Idempotent
+(`singletonOrClone`); the roster tick's live-scan processes it once live. A
+context with no Business template for a fixture resolves to null and falls
+back gracefully. The **city budget** (Terminus) and the **frontier settlement
+budget** (the newbie-wilds crossroads) both stand up this way — each names its
+own terminal fixture in `operatingLocations`.
 
 ## Fixture resolution goes through MQL
 

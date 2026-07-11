@@ -41,7 +41,8 @@ function seedBudget(): BusinessEntity {
   const b = makeStuffAtPath(() => new BusinessEntity(), BUDGET);
   b.proprietorPath = ""; // municipal
   b.positions = [{ key: "clerk", label: "staffing the ticket office", wageRate: 4, confers: [] }];
-  b.operatingLocations = ["/domain/terminus/terminal/departure-gate-a"];
+  // Fixture-keyed: the budget operates the departure TERMINAL, not the room.
+  b.operatingLocations = ["/domain/terminus/terminal/departure-terminal-a"];
   return b;
 }
 
@@ -91,9 +92,10 @@ describe("Terminus city-budget wage loop", () => {
     expect(BankingApi.reconcile().balanced).toBe(true);
   });
 
-  it("resolves the municipal budget as the operator of the departure gate", async () => {
+  it("resolves the municipal budget as the operator of the departure terminal", async () => {
     seedBudget();
-    const op = EmploymentApi.businessAt("/domain/terminus/terminal/departure-gate-a");
+    // Fixture-keyed: the operator is resolved from the terminal, not the room.
+    const op = EmploymentApi.businessAt("/domain/terminus/terminal/departure-terminal-a");
     expect(op).toBeTruthy();
     expect(op!.getAccountPath()).toBe(BUDGET);
     expect(op!.getProprietor()).toBeUndefined(); // municipal (proprietor-absent)

@@ -139,17 +139,19 @@ function seedNetwork(
   arrive.setDirectionality("both");
   if (opts.surcharge) arrive.setSurcharge(opts.surcharge);
   ContainmentApi.move(arrive, rRoom);
-  // The municipal city-budget Business operating the departure-gate room.
+  // The city-budget Business operates the departure TERMINAL (the fixture,
+  // fixture-keyed attribution), not the room.
   const biz = makeStuffAtPath(() => new BusinessEntity(), BIZ);
   biz.proprietorPath = "";
   biz.positions = [];
-  biz.operatingLocations = [D_ROOM];
-  // Optional: the destination operator collecting the arrival surcharge.
+  biz.operatingLocations = [DEPART];
+  // Optional: the destination operator collecting the arrival surcharge — keyed
+  // on the destination terminal fixture.
   if (opts.destOperator) {
     const dest = makeStuffAtPath(() => new BusinessEntity(), DEST_BIZ);
     dest.proprietorPath = "";
     dest.positions = [];
-    dest.operatingLocations = [R_ROOM];
+    dest.operatingLocations = [ARRIVE];
   }
   return { dRoom };
 }

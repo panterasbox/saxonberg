@@ -91,13 +91,11 @@ The Registry is an `Idea + PostRegistrationMixin` singleton at
   `archwizardCacheCancel` — onChange cancellation handles, cleared
   on destruct.
 
-`postRegister` runs idempotent bootstrap seeding:
+`postRegister` runs idempotent bootstrap seeding of the **tag-like** groups
+(whose membership comes from env vars, not zone ownership):
 
 1. Mint `'core'` Group if absent (universal fallback owner).
-2. Mint `'lounge'` Group + stamp `FolderZone` templates at
-   `/lib/lounge` and `/domain/lounge` with
-   `data.ownerGroup = 'managed:<loungeGroupId>'`.
-3. Mint `'wizards'` Group if absent (no FolderZone stamp — it's a
+2. Mint `'wizards'` Group if absent (no FolderZone stamp — it's a
    tag-like group whose only role is gating the `isWizard`
    code-trust axis), then add any playerIds from the
    `WIZARD_PLAYER_IDS` env var (additive + idempotent). **Migration:**
@@ -105,14 +103,25 @@ The Registry is an `Idea + PostRegistrationMixin` singleton at
    (the pre-rename axis), the doc is renamed forward so its `_id` +
    members carry over verbatim — existing developers keep wizard
    access (insert-only seeder; one-time, idempotent).
-4. Mint `'streamers'` Group if absent (no FolderZone stamp —
+3. Mint `'streamers'` Group if absent (no FolderZone stamp —
    tag-like, gates the `isStreamer` axis), then add any playerIds
    from the `STREAMER_PLAYER_IDS` env var (comma-separated,
    additive + idempotent — never removes).
-5. Mint `'archwizards'` Group if absent (no FolderZone stamp —
+4. Mint `'archwizards'` Group if absent (no FolderZone stamp —
    tag-like, gates the `isArchwizard` conferral axis), then add any
    playerIds from the `ARCHWIZARD_PLAYER_IDS` env var (additive +
    idempotent).
+
+**Zone-ownership groups are NOT seeded here** — a zone declares its owner
+**symbolically by name** in its own seed (`data.ownerGroupName: <name>`), and
+the access layer resolves it lazily: `effectiveOwnerRef(zone)` prefers an
+explicit `ownerGroup` ref, else `resolveOwnerGroupName(name)` mints-or-finds
+the managed group by that name (cached) and returns its runtime `managed:<id>`
+ref. This retires the per-area `seed*Slice` boot hooks (lounge, Terminus) — the
+lounge folder zones (`/lib/lounge`, `/domain/lounge`) and the Terminus terminal
+zone now carry `ownerGroupName` in their seeds; adding a new owned area is one
+seed field, no code. The template-scan `ensureAuthorGroups` resolves
+`ownerGroupName` on folder zones the same way.
 
 Re-running boot against a populated DB is a no-op (existing
 Groups + existing FolderZone stamps are not overwritten; member
@@ -124,18 +133,24 @@ Two new persistent fields on `Zone`:
 
 ```ts
 class Zone {
-  protected _ownerGroup?: GroupRef;       // primary owner — single group
+  protected _ownerGroup?: GroupRef;       // primary owner — explicit ref
+  protected _ownerGroupName?: string;     // OR a symbolic managed-group name
   protected _accessGroups?: GroupRef[];   // secondary permitted groups
   getOwnerGroup(): GroupRef | undefined;
   setOwnerGroup(ref: GroupRef | undefined): void;
+  getOwnerGroupName(): string | undefined;
+  setOwnerGroupName(name: string | undefined): void;
   getAccessGroups(): readonly GroupRef[] | undefined;
   setAccessGroups(refs: readonly GroupRef[] | undefined): void;
 }
 ```
 
-Both setters validate the `source:id` shape and throw on
-malformed entries. Both fields land in
-`Zone.persistentFields = ['ownerGroup', 'accessGroups']`, so the
+`_ownerGroup` is an explicit `managed:<id>` ref; `_ownerGroupName` is the
+**symbolic** authorable alternative (a managed-group *name*), resolved to a ref
+by the access layer (mint-or-find; see above) — the id can't be authored, so a
+zone declares the name and the runtime resolves it. The ref setter validates
+the `source:id` shape and throws on malformed entries. The fields land in
+`Zone.persistentFields = ['ownerGroup', 'accessGroups', 'ownerGroupName']`, so the
 Hydrator's two-phase dispatch round-trips them automatically.
 
 Both fields participate in the existing inheritance walk

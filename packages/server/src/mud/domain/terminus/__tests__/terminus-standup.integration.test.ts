@@ -97,8 +97,16 @@ const STUBS: Doc[] = [
   { path: "/domain/eternal/university-avenue/plaza", class: "/lib/stuff/VoidLocation", hydratorClass: PH, data: { shortDescription: "University Avenue" } },
 ];
 
+/**
+ * Boot the hub the way the real network does — from a SINGLE anchor. The
+ * arrival terminal (in reality the lounge's route target) self-seats into the
+ * arrival gate; the gate's `north`→hall exit + the hall's exits cascade the
+ * rooms, and each gate room `populates:` its own departure terminal. Booting
+ * only the arrival terminal must bring the whole hub up (no per-terminal
+ * manifest entries) — the #4 lazy-load contract.
+ */
 async function boot(): Promise<void> {
-  for (const t of TERMINALS) await StuffApi.singleton(t);
+  await StuffApi.singleton(TERMINALS[0]!);
 }
 
 describe("Terminus content standup (real seeds)", () => {

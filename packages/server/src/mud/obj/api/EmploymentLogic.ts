@@ -382,6 +382,53 @@ export class EmploymentLogic extends ApiLogic {
     );
   }
 
+  /**
+   * Cached reverse index `operatingLocation → BusinessTemplatePath`, built
+   * from the authored Business templates' own `operatingLocations` data. The
+   * derived-standup source of truth (no per-instance standup hook). Filtered
+   * cheaply by the presence of the `operatingLocations` field — no class
+   * resolution; `ensureOperatorAt` verifies `isBusiness` after standup. Nulled
+   * with `businessCache` on a fresh singleton (a `StuffApi.clearAll`).
+   */
+  private operatorIndex: Map<string, string> | null = null;
+
+  private async buildOperatorIndex(): Promise<Map<string, string>> {
+    if (this.operatorIndex) return this.operatorIndex;
+    const { Template } = await import('../../lib/stuff/Template');
+    const idx = new Map<string, string>();
+    for (const t of await Template.findDescendants('/')) {
+      const ops = t.data?.operatingLocations as unknown;
+      if (!Array.isArray(ops)) continue;
+      for (const loc of ops) {
+        if (typeof loc === 'string' && loc.length > 0) idx.set(loc, t.path);
+      }
+    }
+    this.operatorIndex = idx;
+    return idx;
+  }
+
+  /** See {@link EmploymentApi.ensureOperatorAt}. */
+  @CallSecurity(EmploymentApiCallers)
+  public async ensureOperatorAt(
+    locationPath: string,
+  ): Promise<BusinessStuff | null> {
+    // Call the ungated private finder, not `this.businessAt` — a gated
+    // intra-singleton self-call would be denied (the caller is the logic, not
+    // the face).
+    const live = this.findBusiness((b) =>
+      b.getOperatingLocations().includes(locationPath),
+    );
+    if (live) return live;
+    // Derive the operator from the authored Business templates and stand it up
+    // lazily (idempotent). No manifest entry, no clerk/venue standup hook.
+    const idx = await this.buildOperatorIndex();
+    const tplPath = idx.get(locationPath);
+    if (!tplPath) return null;
+    const inst = await StuffApi.singletonOrClone<Stuff>(tplPath);
+    this.businessCache = null; // the live scan must re-see the new instance
+    return MixinApi.isBusiness(inst) ? (inst as BusinessStuff) : null;
+  }
+
   /** See {@link EmploymentApi.businessOfProprietor}. */
   @CallSecurity(EmploymentApiCallers)
   public businessOfProprietor(subject: Stuff): BusinessStuff | null {

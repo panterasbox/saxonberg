@@ -201,23 +201,14 @@ export const bootstrapManifest: BootstrapEntry[] = [
   // migration, so the warren no longer hand-seats it. Without this entry
   // nothing instantiates the cascade root and the network never stands up.
   { templatePath: '/domain/lounge/terminal' },
-  // Terminus TPA terminals — the transit hub's network-resident singletons.
-  // The three DEPARTURE terminals are never route TARGETS, so nothing
-  // cascade-loads them; without these entries `findReachable` never sees a
-  // departure terminal for a player standing in the gate room. Each terminal's
-  // `postRegister → seatSelf` stands up its gate room; the departure gates
-  // stand up their own rooms, and the ARRIVAL terminal (below) anchors the
-  // hall cascade (hall → office). The arrival terminal is deliberately NOT a
-  // manifest entry: it is a route target of the lounge terminal (the eager
-  // root, cloned first), whose `armNetwork` cascade-loads it via
-  // `StuffApi.singleton` — an arrival-terminal manifest entry would then try to
-  // `clone` an already-live singleton and throw (BootstrapManager clones each
-  // entry). Its arrival-gate room's `north`→hall exit still pulls the hall +
-  // office, so all six rooms stand up. (Caught at live boot; the plan's
-  // "list it for uniformity" note predated the Phase-6 lounge→arrival repoint.)
-  { templatePath: '/domain/terminus/terminal/departure-terminal-a' },
-  { templatePath: '/domain/terminus/terminal/departure-terminal-b' },
-  { templatePath: '/domain/terminus/terminal/departure-terminal-c' },
+  // Terminus TPA terminals are NOT manifest entries — the whole hub
+  // cascade-loads lazily from the single lounge root: the lounge terminal's
+  // `armNetwork` resolves its route to the Terminus **arrival** terminal,
+  // which self-seats into the arrival gate; the arrival gate's `north`→hall
+  // exit pulls the hall, and the hall's exits pull the other gate rooms +
+  // office. Each gate room then `populates:` its own departure terminal (the
+  // `singleton()` load runs the terminal's `seatSelf`; PopulatesMixin skips the
+  // redundant move). Nothing here needs to enumerate the terminals.
   // Dave's Bar Business (the standalone employment entity) is NOT a manifest
   // entry — it stands up with the bar's own content, cloned idempotently in
   // `Bar.postRegister` (part of the lounge terminal cascade above). That

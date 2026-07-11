@@ -125,9 +125,24 @@ export class EmploymentApi {
     return logic().tipRecipientFor(patron);
   }
 
-  /** The Business operating at `locationPath`, or null. */
+  /** The **live** Business operating at `locationPath`, or null (a sync scan). */
   public static businessAt(locationPath: string): BusinessStuff | null {
     return logic().businessAt(locationPath);
+  }
+
+  /**
+   * The Business operating at `locationPath` — standing it up **lazily** from
+   * its authored template if it isn't live yet. Attribution keys on the
+   * **fixture** (a terminal / vending unit), not the room, so two venues
+   * sharing a room each resolve their own operator. The derived-standup path:
+   * no manifest entry, no per-venue standup hook — the Business's own
+   * `operatingLocations` data drives it. Async (the standup clones). Returns
+   * null when no authored Business operates the path.
+   */
+  public static async ensureOperatorAt(
+    locationPath: string,
+  ): Promise<BusinessStuff | null> {
+    return logic().ensureOperatorAt(locationPath);
   }
 
   /** The Business `subject` proprietors, or null. */

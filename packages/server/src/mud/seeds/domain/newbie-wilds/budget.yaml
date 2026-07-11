@@ -5,15 +5,17 @@
 # else this cycle — no positions, no wages (its spend is deferred, like the TPA
 # budget; both recirculate, the sink is a deferred CB drain).
 #
-# `operatingLocations` names the crossroads hub, so `businessAt(hub)` resolves
-# this operator for the surcharge's destination attribution (un-spoofable — the
-# mirror of the route fee's departure attribution). Stood up with the
-# crossroads terminal's content (CrossroadsTerminal.postRegister), not a
-# manifest entry.
+# `operatingLocations` names the crossroads TERMINAL (the fixture), so
+# `businessAt(the terminal)` resolves this operator for the surcharge's
+# destination attribution — precise + un-spoofable, the mirror of the route
+# fee's departure attribution. Stands up **lazily and derived** (no manifest
+# entry, no bespoke terminal hook): the employment engine reads this Business's
+# `operatingLocations` and stands it up on first `businessAt` at that terminal
+# — the arrival surcharge is the trigger.
 class: /lib/employment/Business
 hydratorClass: /lib/persistence/PersistentHydrator
 data:
   proprietorPath: ''
   positions: []
   operatingLocations:
-    - /domain/newbie-wilds/crossroads/hub
+    - /domain/newbie-wilds/crossroads/terminal

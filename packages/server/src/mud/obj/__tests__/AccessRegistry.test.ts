@@ -63,9 +63,13 @@ function installInMemoryStore(initial: Doc[] = []): Doc[] {
       return store.slice();
     },
   );
+  const findById = vi.fn(async (_collection: string, id: string) =>
+    store.find((d) => d._id === id) ?? null,
+  );
   vi.spyOn(PersistenceManager, "get").mockReturnValue({
     save,
     find,
+    findById,
     isConnected: () => true,
   } as unknown as PersistenceManager);
   return store;
@@ -301,5 +305,44 @@ describe("AccessRegistry — archwizard axis + wizard conferral", () => {
     reg.managed().fireChange(wizards!._id!);
 
     expect(await AccessApi.isWizard(alice)).toBe(true);
+  });
+});
+
+describe("AccessRegistry — symbolic ownerGroupName resolution", () => {
+  beforeEach(() => {
+    AccessApi._resetRegistryRefForReload();
+    StuffApi.clearAll();
+  });
+  afterEach(() => {
+    vi.restoreAllMocks();
+    AccessApi._resetRegistryRefForReload();
+    StuffApi.clearAll();
+  });
+
+  it("mints-or-finds the named group and folds it into the author scope", async () => {
+    // A folder zone owned symbolically by name — no runtime `managed:<id>`
+    // literal, no seed-slice hook. (The retired seedLoungeSlice pattern.)
+    installInMemoryStore([
+      {
+        path: "/lib/testarea",
+        class: "/lib/zone/FolderZone",
+        data: { name: "testarea", ownerGroupName: "testarea" },
+      },
+    ]);
+    await bootRegistry();
+
+    const player = makeAvatar("dana");
+    // First read mints the `testarea` group (empty) and resolves it into the
+    // author scope; dana isn't a member yet.
+    expect(await AccessApi.isAuthor(player)).toBe(false);
+
+    const reg = await GroupApi.registry();
+    const group = await reg.managed().findByName("testarea");
+    expect(group).not.toBeNull(); // minted by the symbolic resolution
+    group!.addMember("dana");
+    await group!.save();
+
+    // Now a member of the resolved owner group is an author of that area.
+    expect(await AccessApi.isAuthor(player)).toBe(true);
   });
 });

@@ -13,6 +13,8 @@ data:
     x: 0
     y: 1
     z: 0
+  populates:
+    - /domain/terminus/terminal/departure-terminal-c
   exits:
     south:
       destination: /domain/terminus/terminal/hall

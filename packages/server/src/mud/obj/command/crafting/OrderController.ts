@@ -97,9 +97,10 @@ export default class OrderController extends CraftController<OrderModel> {
     const venuePath = context.location?.getTemplatePath();
     if (!venuePath) return null;
     // Income keys on the Business account (the same account shift wages are
-    // paid from), so the P&L reflects both sides. Falls back to the venue
-    // path when no Business operates here (a non-employment venue).
-    const business = EmploymentApi.businessAt(venuePath);
+    // paid from), so the P&L reflects both sides. `ensureOperatorAt` stands the
+    // venue's Business up lazily (derived from its `operatingLocations`) on
+    // this first order; falls back to the venue path when none operates here.
+    const business = await EmploymentApi.ensureOperatorAt(venuePath);
     const ownerPath = business?.getAccountPath() ?? venuePath;
     let venueAccount: string;
     try {
