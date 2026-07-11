@@ -71,13 +71,20 @@ resolution; title/hierarchy *storage* moves to `ParcelApi`. **Why:** clean §B
 separation — parcels are their own concept (title, hierarchy, later grants/allowance),
 and access-decision vs. title-storage are different responsibilities.
 
-### 2. `Zone.ownerGroup`/`accessGroups` are removed
+### 2. The Zone ownership fields are removed (corrected post-Terminus)
 
-**Q:** Deprecate-in-place or remove? **A:** Remove the fields, the getters/setters,
-and `Zone.persistentFields = ['ownerGroup','accessGroups']`. **Why:** the blast-radius
-investigation confirmed the *only* readers are inside `AccessRegistry` (the `can`
-walk, `canMutateZone`, `ensureAuthorGroups`) and the *only* writer is
-`seedLoungeSlice` — all repointed by this build. Keeping dead fields invites drift.
+**Q:** Deprecate-in-place or remove? **A:** Remove them. **Corrected against current
+code:** the Terminus merge (`ec5e5353`) changed the field set and the writer, so the
+removal is larger than first budgeted. Delete **three** fields — `ownerGroup`,
+`accessGroups`, **and `ownerGroupName`** — the getters/setters, `validateGroupRef`, and
+the **three-entry** `Zone.persistentFields`. Also retire the now-data-driven writer +
+resolver machinery in `AccessRegistry`: `effectiveOwnerRef`, `resolveOwnerGroupName`,
+`cachedOwnerNameRefs`, and the `ensureAuthorGroups` template-`data` scan. **There is no
+`seedLoungeSlice`** — the per-area boot hooks were deleted; ownership is currently
+data-driven from a `data.ownerGroupName` seed field + lazy mint-or-find, all of which
+this build replaces. **Why:** keeping dead fields (or a live ownership source inside
+`domain`) invites drift and — per the security constraint below — is exactly the
+spoof vector 0a exists to close.
 
 ### 3. `ownerOf` resolution order
 
@@ -90,6 +97,13 @@ walk, `canMutateZone`, `ensureAuthorGroups`) and the *only* writer is
 
 **Why:** un-fuses owner from author (title overrides, author is the default), and the
 self-home case reuses (does not fork) the existing document-store ownership base case.
+
+**Owners are *typed principals*, not bare group refs.** Because the chain introduces
+**individual** owners (self-home → a player; author fallback → a player templatePath),
+`ownerOf` returns a discriminated `ParcelOwner` — `{kind:'group', …}` or
+`{kind:'player', templatePath}` — and `AccessApi.can`/`canMutateZone` dispatch on the
+kind (group → `GroupApi` membership/`'owner'`-role; player → identity match). Group
+owners preserve today's exact membership semantics.
 
 ### 4. The registry ships claims-and-grants; 0a resolves `owner` only
 
@@ -119,13 +133,29 @@ which must not gate the title primitive. **Why:** keep 0a free of the economy.
 nearest parcel-bearing ancestor. **Why:** reuse the shipped addressing-resolution
 pattern; no new mechanism.
 
-### 7. Lounge migration is a re-seed, not a data sweep
+### 7. Seeded ownership = explicit `parcels` seed rows; migration covers lounge + Terminus (corrected)
 
-**Q:** What migration is needed? **A:** Update `seedLoungeSlice` to write parcel rows
-for `/domain/lounge` + `/lib/lounge` (owner = the `'lounge'` group), idempotently.
-Per-player gating was never implemented, so **the lounge is the only stamped zone** —
-no world-wide data migration. **Why:** minimal, idempotent, and the only pre-existing
-ownership stamp.
+**Q:** Where does seeded (infrastructure) ownership live, and what migrates?
+**A (two corrections against current code):**
+
+- **Ownership is declared as explicit `parcels` seed rows — never on the zone seed, never
+  in `domain`.** `ownerGroupName` is removed from the zone seeds entirely (not kept as an
+  authoring surface). This is the **secure** choice and the only one forward-compatible
+  with the content-pack/mod future: when content becomes untrusted (anyone authors a
+  pack), ownership declared *inside* content is a supply-chain spoof — so ownership must
+  be assigned through a gated channel (platform `parcels` seeds + the gated `ParcelApi`),
+  which content/packs cannot forge. (Chosen over harvesting `ownerGroupName` from the zone
+  seed, which would keep an access-control source inside the editable `domain` collection.)
+- **The lounge is NOT the only stamped zone.** Migration covers **lounge** (`/lib/lounge`
+  + `/domain/lounge`, group `lounge`) **AND the Terminus terminal** (`/domain/terminus/terminal`,
+  group `terminus`, a **spatial `CartesianZone`** — the first spatial-zone ownership, which
+  validates the "parcel = FolderZone *or* spatial zone" model). `crossroads` (newbie-wilds)
+  is intentionally unowned. `accessGroups` is used by zero seeds (see the Constraints note).
+  Seeding is idempotent (upsert-iff-absent keyed on `extent`); no world-wide data sweep.
+
+**Why:** seeding is transitional (it will be replaced by content packs), so the small
+"a parcel seed row per owned area" cost is temporary — and it's the shape that carries
+over unchanged to the pack world.
 
 ### 8. Compute allowance is out of scope
 
@@ -135,6 +165,18 @@ is title-only; the compute economy is Phase 1 and needs its own design pass.
 
 ## Constraints
 
+- **THE GOVERNING INVARIANT — access-check data lives only in a collection that
+  content-authoring cannot reach.** Anything relied on for an access decision must be
+  **unspoofable and un-manipulable by content edits**. Ownership is therefore **never
+  declared *in* content** — not on a zone seed, not in a content pack — and is written
+  **only** by the gated `ParcelApi` (subdivide/transfer) + gated platform `parcels` seeds.
+  This is the *reason* 0a exists (move ownership out of the editable `domain` collection),
+  and it must survive the content-pack/mod future, where content is untrusted by
+  construction and ownership-in-content would be a supply-chain spoof.
+- **`accessGroups` (the flat-union multi-group ACL) is consciously dropped, not lost.**
+  No seed uses it, so removal is byte-identical today; the multi-group / secondary-access
+  capability is restored later by 0b's `grants[]` seam. This is a deliberate deletion to
+  be re-provided, not an accident.
 - **No new module categories.** `ParcelRegistry` (singleton `Stuff`), `ParcelApi`
   (thin gated forwarding shell ending in `SecurityApi.decorateApiClass`), `ParcelLogic`
   (`@internal` logic singleton at `/obj/api/parcel`, methods gated
@@ -172,13 +214,22 @@ is title-only; the compute economy is Phase 1 and needs its own design pass.
   refuses a non-owner of the parent; tested.
 - **`transfer`** moves a title with bilateral consent; refuses a non-owner giver and an
   unconsenting receiver; tested.
-- **`AccessApi.can` repointed:** reads the `parcels` registry; the three
-  `AccessRegistry` read-sites (`can` walk, `canMutateZone`, `ensureAuthorGroups`) and
-  the writer (`seedLoungeSlice`) no longer read/write `Zone` ownership fields;
-  `Zone.ownerGroup`/`accessGroups` + their `persistentFields` entry are gone.
-- **Lounge regression:** `AccessApi.can` / `canMutateZone` decisions over `/domain/lounge`
-  + `/lib/lounge` are unchanged after migration (a regression test asserts identical
-  authorize/deny outcomes for representative callers); `seedLoungeSlice` is idempotent.
+- **`AccessApi.can` repointed:** reads the `parcels` registry; the `AccessRegistry`
+  read-sites (`can`, `canMutateZone`, `ensureAuthorGroups`) consult `ParcelApi`; the
+  data-driven writer/resolver machinery (`effectiveOwnerRef`, `resolveOwnerGroupName`,
+  `cachedOwnerNameRefs`, the `ensureAuthorGroups` template-`data` scan) is retired; all
+  **three** `Zone` ownership fields (`ownerGroup`, `accessGroups`, `ownerGroupName`) +
+  their `persistentFields` entries + `validateGroupRef` are gone; no seed carries
+  `ownerGroupName`.
+- **Lounge + Terminus regression (load-bearing):** `AccessApi.can` / `canMutateZone`
+  decisions over `/domain/lounge` + `/lib/lounge` (group `lounge`) **and
+  `/domain/terminus/terminal` (group `terminus`, a `CartesianZone`)** are byte-identical
+  after migration — a regression test asserts identical authorize/deny outcomes for
+  representative callers (member / non-member / `'owner'`-vs-`'member'`-role / null-NPC
+  subject) against the pre-migration path; parcel seeding is idempotent (two `postRegister`
+  runs → one row per owned zone). A one-time audit of the **deployed** `domain` collection
+  for stray `data.accessGroups` / nested differing `ownerGroup` gates the "byte-identical"
+  claim (Risk R1 in the plan).
 - **Self-home:** `ownerOf('/home/<player>/…')` = that player with **no** `parcels` row.
 - **Seam fields present-but-inert:** `grants[]` and `allowance` exist on the row shape;
   no 0a code path populates or reads them for behavior.

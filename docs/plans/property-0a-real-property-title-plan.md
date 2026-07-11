@@ -37,11 +37,16 @@ True blast radius: **AccessRegistry (~5 sites), Zone (fields + hydration), the s
 
 ## Part 1 — Conflicts to bounce back to the requirements author
 
-**Revisit #1 and #2 before building; #3–#5 absorbed into the plan but acknowledged.**
+> **RESOLVED 2026-07-11 — requirements updated.** #1 and #2 corrected in the requirements
+> (decision #7 → lounge + Terminus; decision #2 → three fields + retire the symbolic
+> machinery). #3 **decided: Option B — explicit `parcels` seed rows, ownership never in
+> content** (the governing security invariant), NOT harvest-from-seed. §Part 5f and §Part 7
+> below reflect Option B. #4 (typed `ParcelOwner`) and #5 (`accessGroups` conscious
+> deletion) are now named in the requirements.
 
 1. **CONFLICT — decision #7 "lounge is the only stamped zone" is false.** Migration must cover **lounge (group `lounge`) AND Terminus terminal (group `terminus`)** — two groups, three paths, one a `CartesianZone`. The "Lounge regression" acceptance criterion widens to "lounge + Terminus regression."
 2. **CONFLICT — decision #2's field list and "writer is `seedLoungeSlice`" are both stale.** No `seedLoungeSlice`; the writer is the seed-YAML `ownerGroupName` + lazy `resolveOwnerGroupName`. Removal must delete **three** fields + a three-entry `persistentFields`, and retire `effectiveOwnerRef`/`resolveOwnerGroupName`/`cachedOwnerNameRefs` + the `ensureAuthorGroups` template-`data` scan. Strictly more removal than budgeted.
-3. **DESIGN GAP — the symbolic-`ownerGroupName` seed mechanism has no analog in the parcels design.** Terminus deliberately moved *away* from a boot hook toward "one seed field, no code." Decision needed: keep parcel ownership **data-declared on the zone seed** (ParcelRegistry harvests the seed field into parcel rows, idempotent — **recommended**, preserves "add an area = one seed field") vs. explicit `parcels`-collection seed rows. Plan assumes harvest-from-seed (§Part 7), pending sign-off.
+3. **DECIDED — Option B: explicit `parcels` seed rows; ownership never in content.** Rather than harvest `ownerGroupName` from the zone seed (which keeps an access-control source inside the editable `domain` collection), ownership is declared as gated platform `parcels` seed rows and `ownerGroupName` is removed from the zone seeds entirely. This satisfies the governing security invariant (access-check data unspoofable by content edits) and is the only shape forward-compatible with the content-pack/mod future (content is untrusted → ownership-in-content is a supply-chain spoof). The "one seed field" ergonomic cost is trivial + transitional (seeding is being replaced by packs). See §Part 7.
 4. **DESIGN GAP — `ownerOf` must return a *typed principal*, not a bare group ref.** The 0a chain introduces **individual** owners (self-home → a player; author fallback → a player templatePath). So `can`/`canMutateZone` must dispatch on owner kind (group → membership/role; player → identity match). Defined as a `ParcelOwner` discriminated union (§3).
 5. **MINOR — `accessGroups` (flat-union secondary-groups walk) has no 0a equivalent.** Folded into the future `grants[]` seam (inert in 0a). No seed uses it → dropping is byte-identical, but it *is* a conscious multi-group-ACL removal that 0b's `grants[]` must later restore.
 
@@ -116,14 +121,22 @@ Category `system`; actor from `ExecutionContextApi.getActingAuthor` (never a par
 
 Both controllers call `ParcelApi` (the only legitimate caller of `ParcelRegistry`).
 
-## Part 7 — Migration (idempotent)
+## Part 7 — Migration (Option B: explicit `parcels` seed rows, idempotent)
 
-**ParcelRegistry harvests zone-ownership into parcel rows at `postRegister`** (recommended; pending §Part 1 #3):
-- Keep `ownerGroupName` on the seed as the **authoring** surface; ParcelRegistry harvests it: `/lib/lounge` + `/domain/lounge` → `{group,name:'lounge'}`; `/domain/terminus/terminal` → `{group,name:'terminus'}`.
-- Upsert a `ParcelRecord` per owned zone **iff absent** (find-by-`extent` guard → idempotent, the `AccessRegistry` merge-missing philosophy). Re-run = no-op.
-- **No world-wide data migration** — only the three stamped zones; `authoring_events` untouched.
-
-If §Part 1 #3 lands as explicit seed rows, swap the harvest for `seeds/obj/parcels/*.yaml`; the rest is identical.
+**Ownership is declared as gated platform `parcels` seed rows — never on the zone seed.**
+- Author `seeds/obj/parcels/*.yaml` rows (installed through the trusted seed channel into
+  the gated `parcels` collection): `/lib/lounge` + `/domain/lounge` → `owner {kind:'group',name:'lounge'}`;
+  `/domain/terminus/terminal` → `owner {kind:'group',name:'terminus'}`. `crossroads` gets none (unowned).
+- **Remove `ownerGroupName` from the zone seeds entirely** (`/lib/lounge.yaml`,
+  `/domain/lounge.yaml`, `/domain/terminus/terminal.yaml`) — ownership no longer lives in
+  `domain` in any form.
+- `ParcelRegistry.postRegister` loads the `parcels` collection and builds the coverage trie;
+  seed rows upsert **iff absent** (find-by-`extent` guard → idempotent; re-run = no-op).
+- **No world-wide data migration** — only the three stamped zones; `authoring_events` untouched
+  (owner-defaults-to-author needs no migration).
+- **Security note:** the `parcels` collection is write-gated to `ParcelApi` + the seed
+  installer, exactly like `bank_accounts`/`AccessRegistry` state. Content edits (domain-write,
+  future packs) can never reach it — the governing invariant.
 
 ## Part 8 — Test plan
 
