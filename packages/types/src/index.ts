@@ -2024,6 +2024,75 @@ export interface AuthorableFieldsArtifact {
   };
 }
 
+// ---- Studio composition surface (describeClass, P1) ---------------------
+
+/**
+ * Where an effective field value was read from when describing a class:
+ *   - `instance` — the value the representative live instance holds itself.
+ *   - `resolution-chain` — the instance had no own value; the value came
+ *     from the engine's `Zone.lookupField` → biome resolution chain.
+ *   - `class-default` — no live instance existed; the value is the class
+ *     field initializer read off a throwaway construction.
+ */
+export type StudioValueSource =
+  | 'instance'
+  | 'resolution-chain'
+  | 'class-default';
+
+/**
+ * One author-facing field of a described class, joined from the runtime
+ * mixin/field introspection to its projected shape and effective value.
+ * The composer form generator reads these to pick a widget per field.
+ */
+export interface StudioFieldDescriptor {
+  /** The persistent- / instruction-field name (e.g. `'name'`). */
+  name: string;
+  /** The declaring mixin's `_mixinName` (e.g. `'NamedMixin'`). */
+  mixin: string;
+  /**
+   * `property` — a stored field whose runtime type is `typeShape`.
+   * `instruction` — a declarative field applied by an `apply<Field>`
+   * method.
+   */
+  kind: 'property' | 'instruction';
+  /**
+   * Projected/inferred readable type string (the widget-selection key):
+   * `string`, `number`, `boolean`, `array`, `Quantity`, a union of string
+   * literals, … or `json` when the shape can't be determined (the
+   * raw-JSON fallback widget).
+   */
+  typeShape: string;
+  /** First-paragraph TSDoc summary; omitted when absent. */
+  description?: string;
+  /** For a union-of-string-literals field: the allowed values. */
+  enumValues?: string[];
+  /** Present when the field points at other Stuff by path (Pattern A). */
+  refShape?: 'path';
+  /** The referenced Stuff/type name for a `ref:` field. */
+  refType?: string;
+  /** The effective value read for the field; omitted when undefined. */
+  defaultValue?: unknown;
+  /** Where {@link defaultValue} was read from. */
+  valueSource: StudioValueSource;
+}
+
+/**
+ * The result of `StudioApi.describeClass` — a backing class's effective
+ * authorable field list joined to shapes + effective value + source.
+ */
+export interface ClassDescription {
+  classPath: string;
+  /** The effective mixin set (each layer's `_mixinName`). */
+  mixins: string[];
+  fields: StudioFieldDescriptor[];
+}
+
+/** Uniform error body for the Studio REST surface. */
+export interface StudioErrorBody {
+  code: string; // machine code: 'denied' | 'not-found' | 'invalid'
+  message: string; // human detail
+}
+
 // ---- Help system --------------------------------------------------------
 
 /**
