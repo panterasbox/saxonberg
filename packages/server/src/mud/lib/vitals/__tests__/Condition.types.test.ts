@@ -29,25 +29,36 @@ describe('TRAUMA_BEHAVIOR table', () => {
     }
   });
 
-  it('v1 ships the no-op exemplar for every type (no live behavior)', () => {
+  it('every entry carries the full strategy surface', () => {
+    // The harm build fills the table with live behavior; the roster stays
+    // total and closed (the NOOP exemplar is the fallback shape).
     for (const t of ALL_TRAUMA) {
-      expect(TRAUMA_BEHAVIOR[t]).toBe(NOOP_BEHAVIOR);
+      const b = TRAUMA_BEHAVIOR[t];
+      expect(typeof b.onset).toBe('function');
+      expect(typeof b.tick).toBe('function');
+      expect(typeof b.resolve).toBe('function');
+      expect(typeof b.reopen).toBe('function');
+      expect(typeof b.describe).toBe('function');
     }
   });
 
-  it('describe emits plain (type, site) prose', () => {
+  it('the laceration describe phrases by dressed / bleeding / clotted', () => {
     const t: Trauma = {
       kind: 'trauma',
       type: 'laceration',
       site: 'body.leg.left',
       severity: 0.6,
+      bleeding: true,
     };
     expect(TRAUMA_BEHAVIOR.laceration.describe(t)).toBe(
-      'laceration of body.leg.left',
+      'a bleeding laceration on body.leg.left',
     );
+    t.bleeding = false;
+    t.dressed = true;
+    expect(TRAUMA_BEHAVIOR.laceration.describe(t)).toContain('dressed');
   });
 
-  it('no-op onset/tick/resolve do nothing and do not throw', () => {
+  it('the NOOP exemplar tolerates onset/tick/resolve/reopen calls', () => {
     const t: Trauma = {
       kind: 'trauma',
       type: 'fracture',
@@ -57,8 +68,9 @@ describe('TRAUMA_BEHAVIOR table', () => {
     const host = {} as never;
     expect(() => {
       NOOP_BEHAVIOR.onset(host, t);
-      NOOP_BEHAVIOR.tick(host, t);
+      NOOP_BEHAVIOR.tick(host, t, 1);
       NOOP_BEHAVIOR.resolve(host, t);
+      NOOP_BEHAVIOR.reopen(host, t);
     }).not.toThrow();
   });
 });

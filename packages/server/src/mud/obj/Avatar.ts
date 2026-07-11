@@ -36,6 +36,7 @@ import {
 } from "../lib/shell/Environment";
 import { ShellApi } from "../api/shell";
 import { BulletinApi } from "../api/bulletin";
+import { HarmApi } from "../api/harm";
 import { PostRegistrationMixin } from "../lib/stuff/PostRegistration";
 import { HasInteractiveMixin } from "../lib/connection/HasInteractive";
 import { AetherMixin } from "../lib/message/Aether";
@@ -371,6 +372,12 @@ export default class Avatar extends AvatarBase {
     // identification) into its in-memory belief store. Serves the naming
     // path from memory thereafter — no Mongo read on look/listing.
     await BeliefStoreApi.hydrate(this);
+
+    // Re-arm the wound-tick: a bleeding/healing trauma persists on the
+    // body, but the recurring tick handle is transient (never persisted),
+    // so a body coming live must re-arm. Idempotent no-op when the avatar
+    // carries no active trauma. See docs/subsystems/harm.md.
+    HarmApi.rearmWoundTicks(this);
 
     // First-arrival deed — minted once, ever. Called unconditionally
     // (not gated on `opts.firstArrival`): the greeting flag only selects

@@ -23,6 +23,7 @@
 import { Idea } from '../stuff/Idea';
 import { SingletonMixin } from '../stuff/Singleton';
 import { PropertiedMixin } from '../stuff/Propertied';
+import { Quantity } from '../quantity';
 import type { Vitals } from './Vitals';
 import type { ToxinBehavior } from '../metabolism/Metabolic';
 
@@ -151,14 +152,23 @@ export interface ProgressionSpec {
 }
 
 /**
- * Per-trauma-type behavior — onset / tick / resolve / describe, the
- * strategy table co-located with the value. `tick` is authored against
- * `ScheduleApi.recurring`'s zero-arg callback, NOT `ScheduledEmission`.
+ * Per-trauma-type behavior — onset / tick / resolve / reopen / describe,
+ * the strategy table co-located with the value. `tick(host, t, elapsedSec)`
+ * is driven by the `HarmLogic` recurring wound-tick, which owns the
+ * game-time elapsed (the drain is computed in game-time so it freezes on
+ * absence). `resolve` is the *dress* action (arrest the bleed / begin the
+ * clot); `reopen` is the *undress* action (remove the dressing — re-arm the
+ * bleed iff still above the clot threshold). The consuming verbs
+ * (`TreatController` / `UndressController`) call `.resolve` / `.reopen`
+ * uniformly across every type, so both are on the interface (not
+ * laceration-specific).
  */
 export interface TraumaBehavior {
   onset(host: Vitals, t: Trauma): void;
-  tick(host: Vitals, t: Trauma): void;
+  tick(host: Vitals, t: Trauma, elapsedSec: number): void;
   resolve(host: Vitals, t: Trauma): void;
+  /** The undress action — remove a dressing; reopen the bleed if un-clotted. */
+  reopen(host: Vitals, t: Trauma): void;
   describe(t: Trauma): string;
 }
 
@@ -169,16 +179,73 @@ export const NOOP_BEHAVIOR: TraumaBehavior = {
   onset: noop,
   tick: noop,
   resolve: noop,
+  reopen: noop,
   describe: (t: Trauma): string => `${t.type} of ${t.site}`,
 };
 
+/** Read the host's current blood volume in litres. */
+function bloodLitres(host: Vitals): number {
+  return host.getVitalSign('bloodVolume').rawValue();
+}
+
+/** Set the host's blood volume, floored at 0 (a lethal read handles death). */
+function setBloodLitres(host: Vitals, litres: number): void {
+  host.setVitalSign('bloodVolume', Quantity.of(Math.max(0, litres), 'L'));
+}
+
 /**
- * The closed trauma behavior table. v1 ships every `TraumaType` keyed to
- * the no-op exemplar — the shape is the deliverable; per-type behavior
- * (bleed, fracture-disables-slot, …) is a later wave.
+ * The flagship — **laceration → bleed**, with the clot gate.
+ *
+ * - `onset` opens the bleed (`bleeding = true`).
+ * - `tick` while bleeding-and-undressed drains `bloodVolume`
+ *   (`BLEED_PER_SEC · severity · elapsedSec`; an open bleed does NOT
+ *   self-clot — you must dress it); once dressed OR clotted-open it instead
+ *   decays severity (fast while `dressed`, slow otherwise) toward clear.
+ * - `resolve` (dress) sets `dressed`, arrests the bleed, begins the clot.
+ * - `reopen` (undress) clears `dressed` and re-arms `bleeding` iff severity
+ *   is still above `CLOT_SEVERITY`; below it the wound has clotted and is
+ *   safe to remove (heals to clear).
+ */
+export const LACERATION_BEHAVIOR: TraumaBehavior = {
+  onset(_host: Vitals, t: Trauma): void {
+    t.bleeding = true;
+  },
+  tick(host: Vitals, t: Trauma, elapsedSec: number): void {
+    const D = HARM_DEFAULTS;
+    if (t.bleeding && !t.dressed) {
+      const lost = D.BLEED_PER_SEC * Math.max(0, t.severity) * elapsedSec;
+      setBloodLitres(host, bloodLitres(host) - lost);
+      return; // an open bleed holds its severity until dressed
+    }
+    // Dressed (fast clot/heal) or clotted-open (slow heal to clear).
+    const rate = t.dressed
+      ? D.DRESSED_HEAL_PER_SEC
+      : D.LACERATION_HEAL_PER_SEC;
+    t.severity = Math.max(0, t.severity - rate * elapsedSec);
+  },
+  resolve(_host: Vitals, t: Trauma): void {
+    t.dressed = true;
+    t.bleeding = false;
+  },
+  reopen(_host: Vitals, t: Trauma): void {
+    t.dressed = false;
+    if (t.severity > HARM_DEFAULTS.CLOT_SEVERITY) t.bleeding = true;
+  },
+  describe(t: Trauma): string {
+    if (t.dressed) {
+      return `a dressed laceration on ${t.site} (bleeding controlled)`;
+    }
+    if (t.bleeding) return `a bleeding laceration on ${t.site}`;
+    return `a clotted laceration on ${t.site}`;
+  },
+};
+
+/**
+ * The closed trauma behavior table. Phase 1 lights up `laceration`; the
+ * remaining four land in Phase 2 (`avulsion` delegates to laceration).
  */
 export const TRAUMA_BEHAVIOR: Record<TraumaType, TraumaBehavior> = {
-  laceration: NOOP_BEHAVIOR,
+  laceration: LACERATION_BEHAVIOR,
   fracture: NOOP_BEHAVIOR,
   contusion: NOOP_BEHAVIOR,
   avulsion: NOOP_BEHAVIOR,

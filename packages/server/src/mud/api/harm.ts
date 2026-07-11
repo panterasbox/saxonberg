@@ -76,6 +76,17 @@ export class HarmApi {
   public static inflict(target: Stuff, spec: InflictSpec): InflictOutcome {
     return logic().inflict(target, spec);
   }
+
+  /**
+   * Re-arm the recurring wound-tick for a body whose bleeding trauma
+   * persisted but whose (never-persisted) tick handle was lost on
+   * hydrate / reload. Idempotent and cheap: no-op when the body has no
+   * active trauma. Called from the body-warm seams (`Avatar.enter`,
+   * `Creature.postRegister`) and after `undress` re-opens a wound.
+   */
+  public static rearmWoundTicks(host: Stuff): void {
+    logic().rearmWoundTicks(host);
+  }
 }
 
 SecurityApi.decorateApiClass(HarmApi);
