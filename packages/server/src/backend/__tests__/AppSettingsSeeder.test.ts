@@ -41,7 +41,7 @@ describe("AppSettingsSeeder", () => {
     pm.setFindResult([]);
     const added = await AppSettingsSeeder.run();
 
-    expect(added).toBe(51);
+    expect(added).toBe(52);
     expect(pm.saves).toHaveLength(1);
     expect(pm.saves[0]!.collection).toBe("app_settings");
     const values = savedValues(pm);
@@ -106,10 +106,11 @@ describe("AppSettingsSeeder", () => {
           // The two social-graph baseline keys (Phase 1 additions).
           [AppSettingKeys.socialBaselineRules]: "{}",
           [AppSettingKeys.socialDefaultColor]: "neutral",
-          // Social idle threshold (social-inspection) + the livestream
-          // broadcast sources (cockpit livestream-viewer).
+          // Social idle threshold (social-inspection).
           [AppSettingKeys.socialIdleAfter]: "300",
-          [AppSettingKeys.livestreamBroadcastSources]: "[]",
+          // The two YouTube-relay (read-only) dials.
+          [AppSettingKeys.youtubePollIntervalMs]: "5000",
+          [AppSettingKeys.youtubeOverlayPollIntervalMs]: "900000",
           // The four news-ticker (bulletin) keys.
           [AppSettingKeys.bulletinTickerWindow]: "30",
           [AppSettingKeys.bulletinMaxPins]: "3",
@@ -140,12 +141,12 @@ describe("AppSettingsSeeder", () => {
     // Missing keys seeded: evacuationFallback + 3 reaction + 2 forum
     // anti-snowball + 5 renown + 2 participation + 2 producer + 1 influence
     // + 1 conviction + 5 traits + 1 chat + 2 chargen + 1 status + 7 script
-    // + 2 banking + 1 livestream (broadcastSources) + 3 social
-    // (social.baselineRules, social.defaultColor, social.idleAfter)
+    // + 2 banking + 2 youtube (pollIntervalMs, overlayPollIntervalMs)
+    // + 3 social (social.baselineRules, social.defaultColor, social.idleAfter)
     // + 4 bulletin (tickerWindow, maxPins, headlineMaxLength, bodyMaxLength)
     // + 3 residency (eviction.mode, .intervalMs, .idleThresholdMs)
     // + 4 transit (banking.onboardingStipend + 3 fasttravel fare keys).
-    expect(added).toBe(50);
+    expect(added).toBe(51);
     expect(pm.saves).toHaveLength(1);
     const values = savedValues(pm);
     // operator value preserved, missing keys seeded

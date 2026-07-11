@@ -1,11 +1,25 @@
 # YouTube Live Chat Relay — Scope
 
-**Status:** Scoped, pre-requirements. Entry point for `/requirements`.
+> **Status (2026-07-02): YouTube READ shipped, OUTBOUND deferred.**
+> Read-only YouTube chat shipped in the **unified stream-tuning build**
+> (`feature/stream-tuning` → [streaming.md](../../subsystems/streaming.md)),
+> which **superseded this slate's two locked decisions**: the surface is
+> now **unified** (`watch`/`tune` over a `StreamerTarget`, not a parallel
+> `Youtube*` mirror — only the *transport* stays per-platform), and v1 is
+> **read-only, not full two-way**. Retained for the still-deferred
+> **YouTube outbound** design below — `liveChatMessages.insert` + the
+> **quota accountant / coalescing / drop policy** + per-player
+> `youtube.force-ssl` OAuth + the `GoogleProfile` token extension +
+> `google-reauth`. The "10% that is NOT a copy" (transport, live-only
+> bind, quota) all still applies to the outbound cycle.
+
 **Lineage:** Wave 3+ of
 [external-chat-relay-slate.md](./external-chat-relay-slate.md); sequel
-to the shipped Twitch relay (MR !101, `feature/twitch-relay-build`).
+to the shipped Twitch relay (MR !101, `feature/twitch-relay-build`) and
+the unified stream-tuning build.
 **Sits on:** the Google OAuth spine (primary login) +
 [livestream.md](../../subsystems/livestream.md) +
+[streaming.md](../../subsystems/streaming.md) +
 [broadcast-patronage-track.md](../../tracks/broadcast-patronage-track.md).
 
 ## Thesis

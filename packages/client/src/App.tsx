@@ -31,35 +31,41 @@ import { LAYOUT_REGISTRY, type LayoutProps } from "./layouts";
 import { tokens } from "./components/ui";
 import type {
   ConsoleTab,
-  Envelope,
   LayoutName,
-  TwitchMessagePayload,
+  RelayMessagePayload,
 } from "@saxonberg/types";
 
+/** Relay-chat topics that carry a `RelayMessagePayload` (both transports). */
+const RELAY_TOPICS = new Set([
+  "world.twitch.message",
+  "world.youtube.message",
+]);
+
 /**
- * Extract the structured twitch-provenance fields from a
- * `world.twitch.message` payload at ingest. Honest-to-origin: `handle`
- * is the default shown name (the Twitch handle, or the local player's
- * name on an `egress` mirror); `persona` is the linked MUD identity,
- * revealed on hover when the sender is a linked player.
+ * Extract the structured relay-provenance fields from a relay-chat payload
+ * at ingest. Honest-to-origin: `speaker` is the default shown name (the
+ * external handle, or the local player's name on an `egress` mirror);
+ * `persona` is the linked MUD identity, revealed on hover when the sender
+ * is a linked player (Twitch only this cycle).
  */
-function twitchFrameFields(payload: unknown): ConsoleFrame["twitch"] {
-  const p = payload as TwitchMessagePayload | undefined;
+function relayFrameFields(payload: unknown): ConsoleFrame["relay"] {
+  const p = payload as RelayMessagePayload | undefined;
   if (!p || !p.speaker) return undefined;
   const sp = p.speaker;
-  let handle: string;
+  let speaker: string;
   let persona: string | undefined;
   if (sp.kind === "in-game") {
-    handle = sp.ref.displayName ?? "someone";
+    speaker = sp.ref.displayName ?? "someone";
   } else if (sp.kind === "external-linked") {
-    handle = sp.externalName;
+    speaker = sp.externalName;
     persona = sp.ref.displayName;
   } else {
-    handle = sp.externalName;
+    speaker = sp.externalName;
   }
   return {
-    login: p.broadcasterLogin,
-    handle,
+    service: p.service,
+    channelHandle: p.channelHandle,
+    speaker,
     text: p.text,
     ...(persona ? { persona } : {}),
     ...(p.egress ? { egress: true } : {}),
@@ -349,25 +355,16 @@ function App() {
                 .channelName,
             }
           : {}),
-        ...(frame.topic === "world.twitch.message"
-          ? { twitch: twitchFrameFields(frame.payload) }
+        ...(RELAY_TOPICS.has(frame.topic)
+          ? { relay: relayFrameFields(frame.payload) }
           : {}),
       });
     };
     websocketClient.onAnyTopic(handle);
     registerReactionHandlers();
     registerForumHandlers();
-    // Live broadcast-source push — keeps the livestream-viewer embed in
-    // sync when the operator changes `livestream.broadcastSources`. The
-    // welcome snapshot (`setConnected`) is the baseline.
-    const onStreamSources = (envelope: Envelope) => {
-      if (envelope.type !== "stream-sources") return;
-      useStore.getState().setBroadcastSources(envelope.sources);
-    };
-    websocketClient.onEnvelope("stream-sources", onStreamSources);
     return () => {
       websocketClient.offAnyTopic(handle);
-      websocketClient.offEnvelope("stream-sources", onStreamSources);
     };
   }, []);
 

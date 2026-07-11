@@ -242,15 +242,6 @@ export const AppSettingKeys = {
   fasttravelTpaAccount: "fasttravel.tpaAccount",
 
   /**
-   * Livestream — the operator-configured broadcast sources surfaced to the
-   * livestream-viewer cockpit embed. A JSON array of `StreamSource`
-   * (`{platform:'twitch',channel} | {platform:'youtube',videoId}`); the
-   * `renown.decayHalfLives` JSON-in-a-string precedent. Empty/absent → no
-   * broadcast configured (the embed shows nothing). See
-   * docs/subsystems/livestream.md / cockpit-layouts.
-   */
-  livestreamBroadcastSources: "livestream.broadcastSources",
-  /**
    * Social-graph (attention management) — the reserved-baseline notify
    * rules' default fields (deployment defaults, NOT code constants). JSON
    * map keyed by reserved id (`foes`/`friends`/`everyone-else`/`strangers`)
@@ -299,6 +290,24 @@ export const AppSettingKeys = {
   residencyEvictionIntervalMs: "residency.eviction.intervalMs",
   /** Eviction — idle grace window (ms) before an object is a candidate. */
   residencyEvictionIdleThresholdMs: "residency.eviction.idleThresholdMs",
+
+  /**
+   * YouTube relay (read-only) dials. The Twitch relay's hardcoded constants
+   * are grandfathered; new YouTube code reads these operator knobs instead:
+   * per-channel history-ring cap, per-stream reconnect backoff, and the
+   * `liveChatMessages.list` poll interval (the `streamList` fallback + the
+   * overlay-owner light live-status poll). See docs/subsystems/streaming.md.
+   */
+  youtubePollIntervalMs: "youtube.pollIntervalMs",
+  /**
+   * YouTube overlay-owner live-status poll interval — how often the overlay
+   * forwarding re-resolves the owner's `OVERLAY_YOUTUBE_CHANNEL` to catch a
+   * stream restart. A `search.list` costs ~100 quota units, so this is a
+   * conservative default (a slow restart-catch is fine — it's a single
+   * channel and a nicety, distinct from the deferred N-channel viewer
+   * auto-rebind). See docs/subsystems/streaming.md.
+   */
+  youtubeOverlayPollIntervalMs: "youtube.overlayPollIntervalMs",
 } as const;
 
 export type AppSettingKey =

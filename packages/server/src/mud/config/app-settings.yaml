@@ -175,13 +175,16 @@ settings:
   # accrues here), named like banking.treasuryAccount.
   - key: fasttravel.tpaAccount
     value: tpa
-  # Livestream — the broadcast sources the cockpit's livestream-viewer embed
-  # renders, as a JSON array of StreamSource. Empty by default (no broadcast
-  # configured). Operator-set live via `config`; surfaced to player clients
-  # in the welcome snapshot + a `stream-sources` push on change. Example:
-  # '[{"platform":"twitch","channel":"saxonberg"}]'
-  - key: livestream.broadcastSources
-    value: "[]"
+  # YouTube relay (read-only) dials — operator knobs for the second chat
+  # transport. pollIntervalMs: the `list`-poll read cadence + overlay
+  # live-status poll floor (the API's pollingIntervalMillis wins when
+  # larger). See docs/subsystems/streaming.md.
+  - key: youtube.pollIntervalMs
+    value: "5000"
+  # Overlay-owner live-status re-resolve — 15 min (a search.list costs ~100
+  # quota units, so keep it slow; it only catches the owner's stream restart).
+  - key: youtube.overlayPollIntervalMs
+    value: "900000"
 
   # Social-graph (attention management) — the reserved-baseline notify
   # rules' default fields (deployment defaults, NOT code constants). A

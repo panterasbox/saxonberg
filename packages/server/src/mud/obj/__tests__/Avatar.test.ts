@@ -11,6 +11,7 @@
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import Avatar from '../Avatar';
+import { CommandApi } from '../../api/command';
 import Interactive from '../Interactive';
 import { Character } from '../../lib/character/Character';
 import { User } from '../../lib/identity/User';
@@ -927,6 +928,28 @@ describe('Avatar', () => {
       expect(passedPayload.clientState['console.tabs']).toEqual([
         { name: 'All', muted: [] },
       ]);
+    });
+  });
+
+  // Regression: the stream-tuning `watch`/`tune` verbs shipped in
+  // cmd/stream/ but were listed in no `commandContributions`, so a player
+  // saw "I don't understand 'watch'." Availability = static
+  // `commandContributions.self` on the class + its mixins, NOT the verb's
+  // directory. These two verbs require HasInteractive + write cockpit.watch,
+  // so they belong on the player Avatar's own console surface.
+  describe('stream verb affordances', () => {
+    it('affords the watch and tune verbs to the player Avatar', () => {
+      expect(Avatar.commandContributions.self).toContain('stream/watch.yaml');
+      expect(Avatar.commandContributions.self).toContain('stream/tune.yaml');
+    });
+
+    it('the afforded stream contributions resolve to real verbs', () => {
+      expect(CommandApi.getCommand('stream/watch.yaml')?.verbs).toContain(
+        'watch'
+      );
+      expect(CommandApi.getCommand('stream/tune.yaml')?.verbs).toContain(
+        'tune'
+      );
     });
   });
 });
