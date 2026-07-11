@@ -1,0 +1,35 @@
+verbs: [treat, bind, dress]
+controller: medical/TreatController
+description: "Dress a wound to arrest bleeding"
+help: |
+  `treat` (also `bind` or `dress`) dresses a bleeding wound, using up a
+  dressing you're carrying — a bandage, gauze, a clean rag. It sets the
+  bleed under control and lets the wound begin to clot. With no target you
+  treat your own worst wound; name someone to treat them.
+
+  How well it goes depends on the dressing's quality and your skill at
+  medicine: a clean bandage in a practised hand clots fast and holds; a
+  filthy rag in an untrained one, less so. The dressing is spent either
+  way.
+
+  A freshly dressed wound hasn't clotted yet — pull the dressing off too
+  soon (`undress`) and it bleeds again. Once it has clotted it is safe to
+  remove and heals on its own.
+examples:
+  - cmd: treat
+    note: Dress your own worst wound
+  - cmd: bind the guard
+    note: Dress a wound on someone else
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresConscious
+  - /lib/command/validators/mustHaveDressing
+args:
+  - name: target
+    type: object
+    required: false
+    scope: ["$focus", "reachable"]
+    updates_focus: extend
+    prepositions: [on]
+    validators:
+      - /lib/command/validators/mustBeVisible

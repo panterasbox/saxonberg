@@ -1,0 +1,27 @@
+verbs: [assess]
+controller: perception/AssessController
+description: "Read a body's condition and wounds"
+help: |
+  `assess` reports the state of a body — its overall condition and any
+  wounds it carries. With no target, you assess yourself, in full detail.
+  Name someone to assess them instead; what you can tell depends on how
+  skilled you are at medicine — a novice reads only the gist ("bleeding
+  badly"), while a practised eye reads the site and severity.
+
+  A dressed wound reads as "bleeding controlled" but hides how bad it
+  really is behind the dressing. To know whether it has clotted, an
+  expert can judge through it — otherwise `undress` it and look.
+examples:
+  - cmd: assess
+    note: Check your own condition
+  - cmd: assess the guard
+    note: Read another body's wounds
+args:
+  - name: target
+    type: object
+    required: false
+    scope: ["$focus", "reachable"]
+    updates_focus: extend
+    prepositions: [at]
+    validators:
+      - /lib/command/validators/mustBeVisible
