@@ -1,0 +1,28 @@
+verbs: [transfer]
+controller: system/TransferController
+description: "Transfer a parcel's title to another player (bilateral consent)"
+help: |
+  Hand the title to a parcel you own to another player. Name the parcel by
+  its path, then `to` and the player. Because a title carries liability, the
+  recipient must accept — you can't push a title onto someone, so they have
+  to be online to say yes.
+
+  Title-only: no payment changes hands (selling is a later feature). The
+  handoff is recorded permanently in the chain-of-title log, so a parcel's
+  former owners stay on the record — a transfer is never a silent overwrite.
+examples:
+  - cmd: transfer /domain/lounge to alice
+    note: Offer the lounge title to Alice (she must accept)
+validators:
+  - /lib/command/validators/requiresAnimate
+args:
+  - name: parcel
+    type: string
+    required: true
+  - name: recipient
+    type: object
+    required: true
+    scope: "online"
+    prepositions: [to]
+    validators:
+      - /lib/command/validators/mustBeAgent
