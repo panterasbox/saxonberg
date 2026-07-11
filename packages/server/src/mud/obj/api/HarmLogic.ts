@@ -164,6 +164,26 @@ function advanceWounds(
   if (activeTraumas(host).length === 0) cancelTick(host, ticks);
 }
 
+/**
+ * Binary coverage-presence: is `partKey` covered by a worn item? Resolves
+ * the body plan's `getSlotsCovering(partKey)` (the `covers` edge — NOT
+ * `bodyPart`; the `feet` slot couples to the foot parts via `covers`) and
+ * returns true iff any covering slot holds a `Wearable` occupant. No
+ * materials / degree (deferred). A module-private free function (no
+ * intra-singleton self-call).
+ */
+function isSiteCoveredImpl(host: Stuff, partKey: string): boolean {
+  if (!MixinApi.isOrganism(host) || !MixinApi.isSlotted(host)) return false;
+  const covering = host.getSpecies()?.getBodyPlan()?.getSlotsCovering(partKey);
+  if (!covering || covering.length === 0) return false;
+  for (const spec of covering) {
+    for (const occ of host.getOccupants(spec.name)) {
+      if (MixinApi.isWearable(occ)) return true;
+    }
+  }
+  return false;
+}
+
 /** Cancel + drop a body's wound-tick (idempotent). */
 function cancelTick(host: Stuff, ticks: Map<string, TickEntry>): void {
   const entry = ticks.get(host.stuffId);
@@ -230,6 +250,12 @@ export class HarmLogic extends ApiLogic {
   @CallSecurity(HarmApiCallers)
   public rearmWoundTicks(host: Stuff): void {
     this.armWoundTick(host);
+  }
+
+  /** See {@link HarmApi.isSiteCovered}. */
+  @CallSecurity(HarmApiCallers)
+  public isSiteCovered(host: Stuff, partKey: string): boolean {
+    return isSiteCoveredImpl(host, partKey);
   }
 
   /**

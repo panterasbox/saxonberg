@@ -157,6 +157,18 @@ export interface Vitals {
   getConditionBand(): ConditionBand;
   getConsciousness(): Consciousness;
 
+  // ---------- locomotion coupling (the limp) ----------
+  /**
+   * Traversal endurance drain from locomotor wounds — the limp. A
+   * severity-gated `endurance` drain summed over active laceration /
+   * avulsion traumas at a locomotor site (`body.leg.*`, incl. `.foot`),
+   * composed in at the `LocomotionApi` traverse seam (mirroring
+   * `LoadBearing.drainForTraversal`). Derived from live conditions, so it
+   * eases as the wound dresses / heals. No-op without a `Reserved`
+   * `endurance` reserve. Distinct from fracture's slot-disable.
+   */
+  drainForLimp(): void;
+
   // ---------- death seam (cause-of-death field + postmortem seam) ----------
   getCauseOfDeath(): string | null;
   setCauseOfDeath(value: string | null): void;
@@ -384,6 +396,25 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
         return 'unconscious';
       }
       return 'conscious';
+    }
+
+    // ---------- locomotion coupling (the limp) ----------
+
+    public drainForLimp(): void {
+      const self = this as unknown as Stuff;
+      if (!MixinApi.isReserved(self) || !self.hasReserve('endurance')) return;
+      let severity = 0;
+      for (const c of this.conditions) {
+        if (c.kind !== 'trauma') continue;
+        if (c.type !== 'laceration' && c.type !== 'avulsion') continue;
+        // Locomotor sites only — a leg / foot wound hobbles; a hand cut
+        // does not. Foot keys (`body.leg.left.foot`) sit under `body.leg`.
+        if (!c.site.startsWith('body.leg')) continue;
+        severity += Math.max(0, c.severity);
+      }
+      if (severity <= 0) return;
+      const cost = HARM_DEFAULTS.LIMP_DRAIN_PER_SEVERITY * severity;
+      self.adjustReserve('endurance', Quantity.of(-cost, '%'));
     }
 
     // ---------- death seam ----------

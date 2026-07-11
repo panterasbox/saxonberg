@@ -1,0 +1,182 @@
+/**
+ * Phase 3 — the limp (LocomotionApi seam) + the coverage-presence read.
+ *
+ * Limp: an active foot laceration imposes a severity-gated endurance drain
+ * at the universal self-powered traverse chokepoint (`engageAround`),
+ * scaling with severity and clearing as the wound heals. Coverage:
+ * `HarmApi.isSiteCovered` reads the `covers` edge — false barefoot, true
+ * when a worn item occupies the covering slot.
+ */
+
+import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { HarmApi } from '../../../api/harm';
+import { LocomotionApi } from '../../../api/locomotion';
+import { LocomotionMode } from '../../../lib/locomotion/LocomotionMode';
+import { buildMode } from '../../../lib/locomotion/__tests__/test-helpers';
+import Location from '../../../lib/stuff/Location';
+import Exit from '../../../lib/boundary/Exit';
+import Thing from '../../../lib/stuff/Thing';
+import { MobileMixin } from '../../../lib/spatial/Mobile';
+import { WearableMixin } from '../../../lib/slot/Wearable';
+import { SlottableMixin } from '../../../lib/slot/Slottable';
+import { Creature } from '../../../lib/creature/Creature';
+import Species from '../../../lib/species/Species';
+import BodyPlan from '../../../lib/species/BodyPlan';
+import { ContainmentApi } from '../../../api/containment';
+import { StuffApi } from '../../../api/stuff';
+import {
+  makeStuff,
+  stampTemplatePathForTest,
+} from '../../../lib/security/__tests__/test-setup';
+import { installV1QuantityMarshallers } from '../../../lib/persistence/__tests__/quantity-marshaller-test-helpers';
+import type { Trauma } from '../../../lib/vitals/Condition';
+
+class MobileCreature extends MobileMixin(Creature) {
+  static _mixinName = 'MobileCreature';
+}
+
+const Boot = WearableMixin(SlottableMixin(Thing));
+class TestBoot extends Boot {
+  static _mixinName = 'TestBoot';
+}
+
+const endurance = (c: Creature): number =>
+  c.getReserve('endurance')!.current.rawValue();
+
+function footLaceration(severity: number): Trauma {
+  return {
+    kind: 'trauma',
+    type: 'laceration',
+    site: 'body.leg.left.foot',
+    severity,
+    bleeding: true,
+  };
+}
+
+describe('the limp — LocomotionApi.engageAround endurance drain', () => {
+  let walk: LocomotionMode;
+  beforeEach(() => {
+    installV1QuantityMarshallers();
+    walk = buildMode('walk');
+  });
+  afterEach(() => StuffApi.clearAll());
+
+  function exitBetween(from: Location, to: Location): Exit {
+    return makeStuff(
+      () => new Exit({ direction: 'north', source: from, destination: to })
+    );
+  }
+
+  async function traverse(a: MobileCreature): Promise<number> {
+    const here = a.getContainer() as Location;
+    const there = makeStuff(() => new Location());
+    const before = endurance(a);
+    await LocomotionApi.engageAround(
+      a,
+      walk,
+      exitBetween(here, there),
+      async () => {}
+    );
+    return before - endurance(a);
+  }
+
+  it('a foot laceration drains endurance on traverse, scaling with severity', async () => {
+    const here = makeStuff(() => new Location());
+
+    const light = makeStuff(() => new MobileCreature());
+    ContainmentApi.move(light, here);
+    light.afflict(footLaceration(1));
+    const dropLight = await traverse(light);
+    expect(dropLight).toBeGreaterThan(0);
+
+    const heavy = makeStuff(() => new MobileCreature());
+    ContainmentApi.move(heavy, here);
+    heavy.afflict(footLaceration(2));
+    const dropHeavy = await traverse(heavy);
+    expect(dropHeavy).toBeGreaterThan(dropLight);
+  });
+
+  it('an unwounded body pays no limp cost', async () => {
+    const here = makeStuff(() => new Location());
+    const a = makeStuff(() => new MobileCreature());
+    ContainmentApi.move(a, here);
+    expect(await traverse(a)).toBe(0);
+  });
+
+  it('the limp clears when the wound heals (severity 0)', async () => {
+    const here = makeStuff(() => new Location());
+    const a = makeStuff(() => new MobileCreature());
+    ContainmentApi.move(a, here);
+    const wound = footLaceration(1.5);
+    a.afflict(wound);
+    expect(await traverse(a)).toBeGreaterThan(0);
+
+    wound.severity = 0; // healed
+    expect(await traverse(a)).toBe(0);
+  });
+
+  it('a non-locomotor (arm) laceration does not limp', async () => {
+    const here = makeStuff(() => new Location());
+    const a = makeStuff(() => new MobileCreature());
+    ContainmentApi.move(a, here);
+    a.afflict({
+      kind: 'trauma',
+      type: 'laceration',
+      site: 'body.arm.left.hand',
+      severity: 2,
+      bleeding: true,
+    });
+    expect(await traverse(a)).toBe(0);
+  });
+});
+
+describe('HarmApi.isSiteCovered — binary coverage presence', () => {
+  const BODYPLAN_PATH = '/lib/body-plans/biped-feet';
+  beforeEach(() => installV1QuantityMarshallers());
+  afterEach(() => StuffApi.clearAll());
+
+  function footedCreature(): Creature {
+    const plan = makeStuff(() => new BodyPlan());
+    plan.setName('biped-feet');
+    plan.setSlots([
+      {
+        name: 'feet',
+        accepts: 'WearableMixin',
+        covers: ['body.leg.left.foot', 'body.leg.right.foot'],
+      },
+    ]);
+    plan.setBodyParts([
+      { key: 'body.torso', parent: null, tissues: [] },
+      { key: 'body.leg.left', parent: 'body.torso', tissues: [] },
+      { key: 'body.leg.left.foot', parent: 'body.leg.left', tissues: [] },
+      { key: 'body.leg.right', parent: 'body.torso', tissues: [] },
+      { key: 'body.leg.right.foot', parent: 'body.leg.right', tissues: [] },
+    ]);
+    stampTemplatePathForTest(plan, BODYPLAN_PATH);
+
+    const species = makeStuff(() => new Species());
+    species.setBodyPlan(plan);
+    stampTemplatePathForTest(species, '/lib/species/test/footed');
+
+    const c = makeStuff(() => new Creature());
+    c.setSpecies(species);
+    return c;
+  }
+
+  it('is false barefoot and true when the covering slot is worn', () => {
+    const c = footedCreature();
+    expect(HarmApi.isSiteCovered(c, 'body.leg.left.foot')).toBe(false);
+
+    const boot = makeStuff(() => new TestBoot());
+    boot.setSlotClaim(BODYPLAN_PATH, ['feet']);
+    c.occupy(boot, 'feet');
+
+    expect(HarmApi.isSiteCovered(c, 'body.leg.left.foot')).toBe(true);
+    expect(HarmApi.isSiteCovered(c, 'body.leg.right.foot')).toBe(true);
+  });
+
+  it('is false for an uncovered / unknown part', () => {
+    const c = footedCreature();
+    expect(HarmApi.isSiteCovered(c, 'body.torso')).toBe(false);
+  });
+});

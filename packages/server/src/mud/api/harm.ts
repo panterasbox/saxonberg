@@ -87,6 +87,18 @@ export class HarmApi {
   public static rearmWoundTicks(host: Stuff): void {
     logic().rearmWoundTicks(host);
   }
+
+  /**
+   * Binary **coverage-presence** read: is `partKey` covered by any worn
+   * item on `host`? Resolves the body plan's `getSlotsCovering(partKey)`
+   * (the `covers` edge, not `bodyPart`) and returns true iff any covering
+   * slot holds a worn (`Wearable`) occupant. No materials / degree — the
+   * mitigation *curve* is deferred to materials-response. Used by the
+   * floor hazard's barefoot gate (shoes protect; barefoot cuts).
+   */
+  public static isSiteCovered(host: Stuff, partKey: string): boolean {
+    return logic().isSiteCovered(host, partKey);
+  }
 }
 
 SecurityApi.decorateApiClass(HarmApi);

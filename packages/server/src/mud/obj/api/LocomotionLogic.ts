@@ -405,6 +405,14 @@ export class LocomotionLogic extends ApiLogic {
       if (MixinApi.isLoadBearing(actor)) {
         actor.drainForTraversal();
       }
+      // Wound limp — a severity-gated endurance drain from a locomotor
+      // laceration/avulsion, composed at the same universal self-powered
+      // chokepoint (conveyance riders + raw/forceMove skip it structurally,
+      // exactly as with the encumbrance drain). Cheap sync narrowed read;
+      // a no-op for an unwounded / non-Vitals actor.
+      if (MixinApi.isVitals(actor)) {
+        actor.drainForLimp();
+      }
       return result;
     } finally {
       if (this.isTransientEngagement(mode, exit)) {
