@@ -17,11 +17,15 @@
  */
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import * as fs from 'fs';
+import * as path from 'path';
 import { StudioApi, StudioError } from '../../../api/studio';
 import { StuffApi } from '../../../api/stuff';
 import { AccessApi } from '../../../api/access';
 import { ExecutionContextApi } from '../../../api/execution-context';
 import { ProvenanceApi } from '../../../api/provenance';
+import { SourceTreeApi } from '../../../api/source-tree';
+import { HotReloadApi } from '../../../api/hot-reload';
 import { Blueprint } from '../../../lib/studio/Blueprint';
 import type BlueprintCatalogue from '../../BlueprintCatalogue';
 import { Idea } from '../../../lib/stuff/Idea';
@@ -202,7 +206,7 @@ function makeFakeCatalogue(): BlueprintCatalogue {
 
 describe('StudioLogic.publishBlueprint — signature dedup + durable id', () => {
   beforeEach(() => {
-    vi.spyOn(Blueprint.prototype, 'save').mockResolvedValue('doc-id');
+    vi.spyOn(Blueprint.prototype, 'save').mockResolvedValue(undefined);
     vi.spyOn(ProvenanceApi, 'recordAuthoring').mockResolvedValue(undefined);
   });
 
@@ -269,7 +273,7 @@ describe('StudioLogic.publishBlueprint — signature dedup + durable id', () => 
 
 describe('StudioLogic.publishBlueprint — trust + attribution', () => {
   beforeEach(() => {
-    vi.spyOn(Blueprint.prototype, 'save').mockResolvedValue('doc-id');
+    vi.spyOn(Blueprint.prototype, 'save').mockResolvedValue(undefined);
   });
 
   it('denies a non-author gracefully (disposition, not a throw)', async () => {
@@ -313,5 +317,223 @@ describe('StudioLogic.publishBlueprint — trust + attribution', () => {
     });
     // There is no actor parameter — the anti-spoof contract (author derives
     // from context inside ProvenanceLogic, never a publishBlueprint arg).
+  });
+});
+
+// ---- scaffoldClass (P4 — new-class scaffold, author-tier) ---------------
+
+describe('StudioLogic.scaffoldClass', () => {
+  it('composes a source module with resolved imports + the extends clause', async () => {
+    stubAuthorGateOpen();
+    vi.spyOn(AccessApi, 'isWizard').mockResolvedValue(true); // wizard → no draft
+
+    const out = await StudioApi.scaffoldClass({
+      name: 'ScaffoldCoin',
+      baseClass: 'Idea',
+      mixinNames: ['GlobbableMixin'],
+    });
+
+    expect(out.targetPath).toBe('/obj/ScaffoldCoin.ts');
+    // Import resolution: the base + mixin are imported by name (path resolved
+    // from the source scan; assert the identifier, not the exact file path).
+    expect(out.source).toContain('import { Idea } from');
+    expect(out.source).toContain('import { GlobbableMixin } from');
+    // No `.js` extension in a generated import.
+    expect(out.source).not.toMatch(/from '[^']*\.js'/);
+    // The composition: `export class Name extends Mixin(Base) {}`.
+    expect(out.source).toContain(
+      'export class ScaffoldCoin extends GlobbableMixin(Idea) {}'
+    );
+    // A wizard gets no draft path (they can commit directly).
+    expect(out.draftPath).toBeUndefined();
+  });
+
+  it('emits a DEFAULT import for a default-exported base class', async () => {
+    stubAuthorGateOpen();
+    vi.spyOn(AccessApi, 'isWizard').mockResolvedValue(true);
+    // `Thing` is `export default class Thing` — the scaffold must emit a
+    // default import (`import Thing from ...`), not a named one.
+    const out = await StudioApi.scaffoldClass({
+      name: 'ThingSub',
+      baseClass: 'Thing',
+      mixinNames: [],
+    });
+    expect(out.source).toMatch(/import Thing from '[^']+';/);
+    expect(out.source).not.toContain('import { Thing }');
+    expect(out.source).toContain('export class ThingSub extends Thing {}');
+  });
+
+  it('right-folds multiple mixins outermost-first', async () => {
+    stubAuthorGateOpen();
+    vi.spyOn(AccessApi, 'isWizard').mockResolvedValue(true);
+    const out = await StudioApi.scaffoldClass({
+      name: 'MultiThing',
+      baseClass: 'Idea',
+      mixinNames: ['NamedMixin', 'VisibleMixin'],
+    });
+    expect(out.source).toContain(
+      'export class MultiThing extends NamedMixin(VisibleMixin(Idea)) {}'
+    );
+  });
+
+  it('hands a non-wizard the reserved /home/<self>/drafts path (not persisted)', async () => {
+    stubAuthorGateOpen(); // AUTHOR templatePath = /obj/Avatar/alice
+    vi.spyOn(AccessApi, 'isWizard').mockResolvedValue(false);
+    const out = await StudioApi.scaffoldClass({
+      name: 'DraftThing',
+      baseClass: 'Idea',
+      mixinNames: [],
+    });
+    expect(out.targetPath).toBe('/obj/DraftThing.ts');
+    expect(out.draftPath).toBe('/home/alice/drafts/DraftThing.ts');
+    expect(out.source).toContain('export class DraftThing extends Idea {}');
+  });
+
+  it('rejects an invalid class name', async () => {
+    stubAuthorGateOpen();
+    await expect(
+      StudioApi.scaffoldClass({
+        name: 'not-pascal',
+        baseClass: 'Idea',
+        mixinNames: [],
+      })
+    ).rejects.toMatchObject({ code: 'invalid' });
+  });
+
+  it('denies a non-author (null context actor)', async () => {
+    vi.spyOn(ExecutionContextApi, 'getActingAuthor').mockReturnValue(null);
+    vi.spyOn(AccessApi, 'isAuthor').mockResolvedValue(false);
+    await expect(
+      StudioApi.scaffoldClass({
+        name: 'Nope',
+        baseClass: 'Idea',
+        mixinNames: [],
+      })
+    ).rejects.toMatchObject({ code: 'denied' });
+  });
+});
+
+// ---- commitClass (P4 — wizard-gated source commit) ----------------------
+
+/** Open the wizard source-write gate on the context-derived actor. */
+function stubWizardGateOpen(): void {
+  vi.spyOn(ExecutionContextApi, 'getActingAuthor').mockReturnValue(AUTHOR);
+  vi.spyOn(AccessApi, 'isWizard').mockResolvedValue(true);
+  vi.spyOn(AccessApi, 'can').mockResolvedValue(true);
+  vi.spyOn(AccessApi, 'resolveSourceFolderZone').mockResolvedValue(null);
+}
+
+/**
+ * A real, cleaned-up temp source path under the mudlib root (the CmsRoutes
+ * source-write harness). Returns the CMS-relative path + the absolute file +
+ * a cleanup fn.
+ */
+function tempSourceTarget(): {
+  cmsPath: string;
+  absFile: string;
+  cleanup: () => void;
+} {
+  const sandbox = SourceTreeApi.getSandboxRoot();
+  const relDir = 'studio-commit-test';
+  const absDir = path.join(sandbox, 'server', 'src', 'mud', relDir);
+  fs.mkdirSync(absDir, { recursive: true });
+  const fileName = `Commit${Date.now()}.ts`;
+  return {
+    cmsPath: `/${relDir}/${fileName}`,
+    absFile: path.join(absDir, fileName),
+    cleanup: () => fs.rmSync(absDir, { recursive: true, force: true }),
+  };
+}
+
+describe('StudioLogic.commitClass — dispositions + ordering', () => {
+  it('non-wizard → denied, no file written, no authoring recorded', async () => {
+    vi.spyOn(ExecutionContextApi, 'getActingAuthor').mockReturnValue(AUTHOR);
+    vi.spyOn(AccessApi, 'isWizard').mockResolvedValue(false);
+    const writeSpy = vi.spyOn(SourceTreeApi, 'write');
+    const record = vi
+      .spyOn(ProvenanceApi, 'recordAuthoring')
+      .mockResolvedValue(undefined);
+
+    const out = await StudioApi.commitClass({
+      targetPath: '/obj/Denied.ts',
+      source: 'export class Denied {}\n',
+    });
+
+    expect(out.disposition).toBe('denied');
+    expect(out.classPath).toBeUndefined();
+    expect(writeSpy).not.toHaveBeenCalled();
+    expect(record).not.toHaveBeenCalled();
+  });
+
+  it('null-actor context → denied, records nothing (anti-spoof)', async () => {
+    vi.spyOn(ExecutionContextApi, 'getActingAuthor').mockReturnValue(null);
+    vi.spyOn(AccessApi, 'isWizard').mockImplementation(async (s) => s != null);
+    const writeSpy = vi.spyOn(SourceTreeApi, 'write');
+    const record = vi
+      .spyOn(ProvenanceApi, 'recordAuthoring')
+      .mockResolvedValue(undefined);
+
+    const out = await StudioApi.commitClass({
+      targetPath: '/obj/NullActor.ts',
+      source: 'export class NullActor {}\n',
+    });
+    expect(out.disposition).toBe('denied');
+    expect(writeSpy).not.toHaveBeenCalled();
+    expect(record).not.toHaveBeenCalled();
+    // No `actor` parameter exists to substitute a privileged principal: the
+    // signature is `commitClass(input)`, and even a stray extra positional
+    // arg is ignored — the gate still denied on the null context actor.
+    const out2 = await (
+      StudioApi.commitClass as unknown as (...a: unknown[]) => Promise<{
+        disposition: string;
+      }>
+    )({ targetPath: '/obj/NullActor2.ts', source: 'x' }, AUTHOR);
+    expect(out2.disposition).toBe('denied');
+  });
+
+  it('wizard → committed + reloaded:true, file written, authoring recorded', async () => {
+    stubWizardGateOpen();
+    const { cmsPath, absFile, cleanup } = tempSourceTarget();
+    const reload = vi
+      .spyOn(HotReloadApi, 'reload')
+      .mockResolvedValue(undefined as never);
+    const record = vi
+      .spyOn(ProvenanceApi, 'recordAuthoring')
+      .mockResolvedValue(undefined);
+    const source = 'export class CommitOk {}\n';
+    try {
+      const out = await StudioApi.commitClass({ targetPath: cmsPath, source });
+      expect(out.disposition).toBe('committed');
+      expect(out.classPath).toBe(cmsPath);
+      expect(out.reloaded).toBe(true); // the client's follow-on gate
+      expect(fs.readFileSync(absFile, 'utf8')).toBe(source);
+      expect(reload).toHaveBeenCalledWith(absFile);
+      // Attribution against the source path, author from context (no param).
+      expect(record).toHaveBeenCalledWith({ path: cmsPath });
+    } finally {
+      cleanup();
+    }
+  });
+
+  it('compile failure → committed + reloaded:false (persisted-but-not-live)', async () => {
+    stubWizardGateOpen();
+    const { cmsPath, absFile, cleanup } = tempSourceTarget();
+    vi.spyOn(HotReloadApi, 'reload').mockRejectedValue(
+      new Error('TS2304: Cannot find name')
+    );
+    vi.spyOn(ProvenanceApi, 'recordAuthoring').mockResolvedValue(undefined);
+    try {
+      const out = await StudioApi.commitClass({
+        targetPath: cmsPath,
+        source: 'export class Broken extends Nope {}\n',
+      });
+      expect(out.disposition).toBe('committed'); // NOT a throw / 500
+      expect(out.reloaded).toBe(false); // ordering gate stays closed
+      expect(out.reloadDetail).toContain('TS2304');
+      // The file is persisted even though it didn't go live.
+      expect(fs.existsSync(absFile)).toBe(true);
+    } finally {
+      cleanup();
+    }
   });
 });

@@ -13,7 +13,12 @@
 import type {
   BlueprintDetail,
   BlueprintSummary,
+  ClassCommitResult,
   ClassDescription,
+  CommitClassInput,
+  MixinPaletteEntry,
+  ScaffoldClassInput,
+  ScaffoldResult,
   StudioErrorBody,
 } from "@saxonberg/types";
 import { SERVER_URL } from "../../config";
@@ -90,5 +95,50 @@ export const studioClient = {
       credentials: "include",
     });
     return unwrap<BlueprintDetail>(res);
+  },
+
+  /**
+   * The composition palette's vocabulary — the mixin registry names plus a
+   * small set of instantiable base classes. The `MixinPalette` picks a base +
+   * mixin set from these to scaffold a new backing class.
+   */
+  async listMixins(): Promise<MixinPaletteEntry[]> {
+    const res = await fetch(`${BASE}/mixins`, { credentials: "include" });
+    return unwrap<MixinPaletteEntry[]>(res);
+  },
+
+  /**
+   * Scaffold a new backing class (creation act #1 — author-tier, inert text).
+   * `csrf` is the shared CMS double-submit token (from `cmsClient.getCsrf`).
+   */
+  async scaffold(
+    input: ScaffoldClassInput,
+    csrf: string,
+  ): Promise<ScaffoldResult> {
+    const res = await fetch(`${BASE}/scaffold`, {
+      method: "POST",
+      credentials: "include",
+      headers: { "Content-Type": "application/json", "X-CMS-CSRF": csrf },
+      body: JSON.stringify(input),
+    });
+    return unwrap<ScaffoldResult>(res);
+  },
+
+  /**
+   * Commit a scaffolded class to source (creation act #3 — wizard-gated). The
+   * server re-gates: a non-wizard receives `{ disposition: 'denied' }` (never
+   * a throw). `csrf` is the shared CMS double-submit token.
+   */
+  async commit(
+    input: CommitClassInput,
+    csrf: string,
+  ): Promise<ClassCommitResult> {
+    const res = await fetch(`${BASE}/commit`, {
+      method: "POST",
+      credentials: "include",
+      headers: { "Content-Type": "application/json", "X-CMS-CSRF": csrf },
+      body: JSON.stringify(input),
+    });
+    return unwrap<ClassCommitResult>(res);
   },
 };

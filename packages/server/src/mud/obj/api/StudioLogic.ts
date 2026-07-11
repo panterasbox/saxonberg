@@ -3,7 +3,7 @@
 // reflection TypeDoc emits, not on the module.)
 
 import { readFileSync, readdirSync } from 'fs';
-import { dirname, join } from 'path';
+import { dirname, join, relative, sep, posix } from 'path';
 import { fileURLToPath } from 'url';
 import { ApiLogic } from '../../lib/stuff/ApiLogic';
 import { CallSecurity, Unshadowable } from '../../lib/security/decorators';
@@ -14,7 +14,10 @@ import { StuffApi } from '../../api/stuff';
 import { MixinApi } from '../../api/mixin';
 import type { AnyConstructor } from '../../api/mixin';
 import { ProvenanceApi } from '../../api/provenance';
+import { SourceTreeApi, SourceTreeSandboxError } from '../../api/source-tree';
+import { HotReloadApi } from '../../api/hot-reload';
 import { Quantity } from '../../lib/quantity';
+import { Mixins } from '../../lib/mixin';
 import { StudioError } from '../../api/studio';
 import { Blueprint } from '../../lib/studio/Blueprint';
 import type BlueprintCatalogue from '../BlueprintCatalogue';
@@ -25,13 +28,37 @@ import type {
   BlueprintDetail,
   BlueprintSummary,
   BlueprintWriteResult,
+  ClassCommitResult,
   ClassDescription,
+  CommitClassInput,
+  MixinPaletteEntry,
   PublishBlueprintInput,
+  ScaffoldClassInput,
+  ScaffoldResult,
   StudioFieldDescriptor,
   StudioValueSource,
 } from '@saxonberg/types';
 
 const StudioApiCallers = SecurityPolicies.FromModule('/api/studio#StudioApi');
+
+/**
+ * The CMS source backend is rooted at the mudlib (`packages/server/src/mud`)
+ * — the same root `CmsLogic` uses. Scaffold/commit target paths are
+ * CMS-relative to this root (`/obj/Coin.ts`, not the absolute FS path).
+ * Copied verbatim from `CmsLogic` (the source-write mirror the plan
+ * prescribes).
+ */
+const SOURCE_ROOT_DISPLAY = '/server/src/mud';
+
+/** Instantiable base classes offered by the composition palette. */
+const PALETTE_BASE_CLASSES = [
+  'Idea',
+  'Thing',
+  'Location',
+  'Character',
+  'Creature',
+  'Agent',
+] as const;
 
 /** The runtime blueprint index singleton — ungated reference reads. */
 const CATALOGUE_PATH = '/obj/BlueprintCatalogue';
@@ -191,6 +218,186 @@ function readOwn(host: unknown, field: string): unknown {
   }
 }
 
+// ---- scaffold: source-write helpers (mirrored from CmsLogic) -------------
+
+/**
+ * Resolve a CMS-relative source path (rooted at the mudlib) to an absolute
+ * filesystem path, enforcing it stays within the mud root. A `..` that
+ * climbs out of mud throws `SourceTreeSandboxError`. Verbatim in shape from
+ * `CmsLogic.sourceAbs` — mud is a hard boundary.
+ */
+function sourceAbs(cmsPath: string): string {
+  const display =
+    cmsPath === '/' ? SOURCE_ROOT_DISPLAY : SOURCE_ROOT_DISPLAY + cmsPath;
+  const abs = SourceTreeApi.resolvePath('/', display, { home: '/' });
+  const rootAbs = SourceTreeApi.resolvePath('/', SOURCE_ROOT_DISPLAY, {
+    home: '/',
+  });
+  if (abs !== rootAbs && !abs.startsWith(rootAbs + '/')) {
+    throw new SourceTreeSandboxError(
+      `path '${cmsPath}' resolves outside the source root`
+    );
+  }
+  return abs;
+}
+
+/**
+ * Source-tree write gate — `isWizard(actor)` AND `can(actor, 'write',
+ * resolveSourceFolderZone(path))`. Verbatim from `CmsLogic.gateSourceWrite`
+ * (which mirrors `WriteController._gateSourceWrite`). Returns null on allow,
+ * a human-readable reason on deny — the caller surfaces it as a graceful
+ * `denied` disposition rather than throwing.
+ */
+async function gateSourceWrite(
+  actor: Stuff | null,
+  sourceLogical: string
+): Promise<string | null> {
+  if (!(await AccessApi.isWizard(actor))) {
+    return 'you must be a wizard to publish a class';
+  }
+  const resource = await AccessApi.resolveSourceFolderZone(sourceLogical);
+  if (!(await AccessApi.can(actor, 'write', resource))) {
+    return "you don't have permission to write to that source slice";
+  }
+  return null;
+}
+
+// ---- scaffold: import resolution + source composition --------------------
+
+/** Whether `name` is a legal PascalCase TS class identifier. */
+function isValidClassName(name: string): boolean {
+  return /^[A-Z][A-Za-z0-9_]*$/.test(name);
+}
+
+/** A resolved base-class export: its source file + whether it's a default export. */
+interface ClassExport {
+  file: string;
+  isDefault: boolean;
+}
+
+/** The export-source scan result — mixin factories + base classes by name. */
+interface ExportSources {
+  mixins: Map<string, string>;
+  classes: Map<string, ClassExport>;
+}
+
+/**
+ * A one-time scan mapping each exported mixin factory (`_mixinName`) and each
+ * exported base class to its source file (absolute), recording whether a base
+ * class is a `export default` (so the scaffolder emits a default import, not a
+ * named one — e.g. `Thing`/`Location`). Reuses the same tree walk as the
+ * classification scan. Best-effort — an unresolved name degrades to a
+ * placeholder comment the wizard fixes in Monaco.
+ */
+function scanExportSources(): ExportSources {
+  const mixins = new Map<string, string>();
+  const classes = new Map<string, ClassExport>();
+  for (const file of walkTsFiles(MUD_ROOT, [])) {
+    const src = readFileSync(file, 'utf8');
+    // Mixin factories are always NAMED exports (`export function FooMixin`);
+    // their `_mixinName` marker names them.
+    for (const m of src.matchAll(
+      /static\s+_mixinName\s*=\s*['"]([A-Za-z0-9_]+)['"]/g
+    )) {
+      const name = m[1]!;
+      if (!mixins.has(name)) mixins.set(name, file);
+    }
+    // `export default (abstract)? class X` — a default export.
+    for (const m of src.matchAll(
+      /export\s+default\s+(?:abstract\s+)*class\s+([A-Za-z0-9_]+)/g
+    )) {
+      const name = m[1]!;
+      if (!classes.has(name)) classes.set(name, { file, isDefault: true });
+    }
+    // `export (abstract)? class X` — a named export (the `default` keyword
+    // sits between `export` and `class`, so this pattern won't match those).
+    for (const m of src.matchAll(
+      /export\s+(?:abstract\s+)*class\s+([A-Za-z0-9_]+)/g
+    )) {
+      const name = m[1]!;
+      if (!classes.has(name)) classes.set(name, { file, isDefault: false });
+    }
+  }
+  return { mixins, classes };
+}
+
+/**
+ * The relative import specifier (no extension, no `.js`) from the scaffold
+ * target directory (`/obj`) to `absFile`. `null` when unresolved.
+ */
+function importSpecifierFor(absFile: string | undefined): string | null {
+  if (!absFile) return null;
+  // Mud-rooted, forward-slashed, extension-stripped path of the source file.
+  const mudRel =
+    '/' + relative(MUD_ROOT, absFile).split(sep).join('/').replace(/\.ts$/, '');
+  // Scaffold targets always live at `/obj/<Name>.ts`, so imports are
+  // relative to `/obj`.
+  let spec = posix.relative('/obj', mudRel);
+  if (!spec.startsWith('.')) spec = './' + spec;
+  return spec;
+}
+
+/**
+ * Compose a static TS backing-class module: resolved imports for the base +
+ * each mixin, then `export class <Name> extends <M0>(<M1>(<Base>)) {}`. An
+ * unresolved import becomes a `// TODO` placeholder (the module won't compile
+ * until fixed — the reload gate catches it; scaffolding is best-effort text).
+ */
+function composeSource(
+  name: string,
+  baseClass: string,
+  mixinNames: string[],
+  sources: ExportSources
+): string {
+  const lines: string[] = [];
+  const unresolved = (ident: string): void => {
+    lines.push(`// TODO: could not resolve the import for ${ident};`);
+    lines.push(`// import { ${ident} } from '...';`);
+  };
+  // The base may be a NAMED or a DEFAULT export.
+  const baseExport = sources.classes.get(baseClass);
+  const baseSpec = importSpecifierFor(baseExport?.file);
+  if (baseSpec) {
+    lines.push(
+      baseExport?.isDefault
+        ? `import ${baseClass} from '${baseSpec}';`
+        : `import { ${baseClass} } from '${baseSpec}';`
+    );
+  } else {
+    unresolved(baseClass);
+  }
+  // Mixin factories are always named exports.
+  for (const m of [...new Set(mixinNames)]) {
+    const spec = importSpecifierFor(sources.mixins.get(m));
+    if (spec) lines.push(`import { ${m} } from '${spec}';`);
+    else unresolved(m);
+  }
+
+  // Right-fold the mixins over the base: [A, B] → A(B(Base)).
+  let composed = baseClass;
+  for (let i = mixinNames.length - 1; i >= 0; i--) {
+    composed = `${mixinNames[i]}(${composed})`;
+  }
+
+  const body =
+    lines.join('\n') +
+    '\n\n' +
+    `/**\n * ${name} — a composed backing class (scaffolded by the CMS Studio).\n */\n` +
+    `export class ${name} extends ${composed} {}\n`;
+  return body;
+}
+
+/**
+ * The owner id for a `/home/<self>/` draft branch — the acting Avatar's
+ * durable id (the last segment of its templatePath). `'anon'` when the
+ * context has no derivable identity (the draft path is a reserved seam only).
+ */
+function selfIdOf(actor: Stuff | null): string {
+  const path = actor?.getTemplatePath?.() ?? '';
+  const seg = path.split('/').filter(Boolean).pop();
+  return seg || 'anon';
+}
+
 /**
  * StudioLogic — the hot-reloadable logic singleton behind
  * {@link StudioApi}.
@@ -217,6 +424,8 @@ export class StudioLogic extends ApiLogic {
   private classification: Map<string, MixinClassification> | null = null;
   /** Cached artifact enrichment (loaded once; empty when absent). */
   private artifact: AuthorableFieldsArtifact | null = null;
+  /** Cached export-source scan (mixin/base name → file), for scaffold imports. */
+  private exportSources: ExportSources | null = null;
 
   /** See {@link StudioApi.describeClass}. */
   @CallSecurity(StudioApiCallers)
@@ -373,6 +582,147 @@ export class StudioLogic extends ApiLogic {
     });
 
     return { disposition: 'committed', blueprintId };
+  }
+
+  /** See {@link StudioApi.listMixins}. */
+  @CallSecurity(StudioApiCallers)
+  public async listMixins(): Promise<MixinPaletteEntry[]> {
+    await gateRead();
+    const entries: MixinPaletteEntry[] = [];
+    for (const base of PALETTE_BASE_CLASSES) {
+      entries.push({ name: base, kind: 'base' });
+    }
+    for (const name of Object.values(Mixins)) {
+      entries.push({ name, kind: 'mixin' });
+    }
+    return entries;
+  }
+
+  /** See {@link StudioApi.scaffoldClass}. */
+  @CallSecurity(StudioApiCallers)
+  public async scaffoldClass(
+    input: ScaffoldClassInput
+  ): Promise<ScaffoldResult> {
+    // Author-tier, open to all — scaffolding is inert client text (a wizard
+    // gate applies only at commit). A null actor still fails the read gate.
+    await gateRead();
+    const actor = actingActor();
+
+    const name = (input.name ?? '').trim();
+    const baseClass = (input.baseClass ?? '').trim();
+    if (!isValidClassName(name)) {
+      throw new StudioError(
+        'invalid',
+        `'${name}' is not a valid PascalCase class name`
+      );
+    }
+    if (!baseClass) {
+      throw new StudioError('invalid', 'a base class is required');
+    }
+    const mixinNames = (input.mixinNames ?? []).filter(
+      (m): m is string => typeof m === 'string' && m.length > 0
+    );
+
+    const source = composeSource(
+      name,
+      baseClass,
+      mixinNames,
+      this.getExportSources()
+    );
+    const targetPath = `/obj/${name}.ts`;
+
+    const result: ScaffoldResult = { source, targetPath };
+    // A non-wizard cannot commit; hand back the reserved draft-branch path.
+    // v1 does NOT persist — `_persistDraft` is the dormant seam.
+    if (!(await AccessApi.isWizard(actor))) {
+      const draftPath = `/home/${selfIdOf(actor)}/drafts/${name}.ts`;
+      result.draftPath = draftPath;
+      this._persistDraft(draftPath, source);
+    }
+    return result;
+  }
+
+  /** See {@link StudioApi.commitClass}. */
+  @CallSecurity(StudioApiCallers)
+  public async commitClass(
+    input: CommitClassInput
+  ): Promise<ClassCommitResult> {
+    // Act #3 — committing a new class is a SOURCE write, wizard-gated. A
+    // non-wizard gets a graceful `denied` disposition (the banner warned
+    // before save), NOT a throw.
+    const actor = actingActor();
+    const targetPath = (input.targetPath ?? '').trim();
+    if (!targetPath) {
+      throw new StudioError('invalid', 'a targetPath is required');
+    }
+    const source = input.source ?? '';
+
+    const display =
+      targetPath === '/'
+        ? SOURCE_ROOT_DISPLAY
+        : SOURCE_ROOT_DISPLAY + targetPath;
+    const denial = await gateSourceWrite(actor, display);
+    if (denial) {
+      // Graceful, non-throwing refusal — nothing is written.
+      return { disposition: 'denied', message: denial };
+    }
+
+    // sourceAbs throws SourceTreeSandboxError on a mud-boundary escape.
+    let abs: string;
+    try {
+      abs = sourceAbs(targetPath);
+    } catch (err) {
+      throw new StudioError('invalid', (err as Error).message);
+    }
+
+    await SourceTreeApi.write(abs, source);
+
+    // The source is now persisted (committed) — attribute the authoring act
+    // to the context-derived author (never a param). `SourceTreeApi.write`
+    // bypasses the `saveTemplate` chokepoint, so it is recorded here (the
+    // `/obj/api/studio` provenance transport). Recorded regardless of the
+    // reload outcome, since the file is persisted either way.
+    await ProvenanceApi.recordAuthoring({ path: targetPath });
+
+    // Class-then-template ordering: only on `reloaded: true` may the client
+    // then save a template referencing the new `class:`. A compile failure
+    // leaves the file persisted-but-not-live (the shipped CMS behavior) —
+    // surfaced, never a 500.
+    try {
+      await HotReloadApi.reload(abs);
+    } catch (err) {
+      return {
+        disposition: 'committed',
+        classPath: targetPath,
+        reloaded: false,
+        reloadDetail: (err as Error).message,
+      };
+    }
+    return {
+      disposition: 'committed',
+      classPath: targetPath,
+      reloaded: true,
+      reloadDetail: 'reloaded module',
+    };
+  }
+
+  /**
+   * The reserved draft-persistence seam ([CALL] #2). A non-wizard's scaffold
+   * has a stable `/home/<self>/drafts/<Name>.ts` path, but v1 keeps the draft
+   * in the client Monaco buffer only — persisting a non-executable draft
+   * would need a new document `kind` and non-executing go-live semantics the
+   * future review workflow owns. **Documented no-op**; the future workflow
+   * fills it in against the `/home/<self>/` document-store branch.
+   */
+  private _persistDraft(_path: string, _source: string): void {
+    // Intentionally empty — the review-workflow seam (see StudioApi doc +
+    // docs/plans/cms-composition-plan.md [CALL] #2). Do NOT execute a draft.
+  }
+
+  /** Lazily build + cache the export-source scan (mixin/base → file). */
+  private getExportSources(): ExportSources {
+    if (!this.exportSources) this.exportSources = scanExportSources();
+    return this.exportSources;
   }
 
   /**

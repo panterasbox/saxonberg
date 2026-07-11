@@ -7,7 +7,27 @@
  * (`JSON.stringify(data, null, 2)`) for an unedited round-trip.
  */
 
-import { beforeEach, describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+
+// Mock the REST client so scaffold/commit actions can be exercised without a
+// server. `StudioClientError` (used by the slice's errMessage) is preserved.
+const scaffoldMock = vi.fn();
+const commitMock = vi.fn();
+const listMixinsMock = vi.fn();
+vi.mock("../../components/cms/studioClient", async (orig) => {
+  const actual =
+    await orig<typeof import("../../components/cms/studioClient")>();
+  return {
+    ...actual,
+    studioClient: {
+      ...actual.studioClient,
+      scaffold: (...a: unknown[]) => scaffoldMock(...a),
+      commit: (...a: unknown[]) => commitMock(...a),
+      listMixins: (...a: unknown[]) => listMixinsMock(...a),
+    },
+  };
+});
+
 import { useStore } from "../index";
 import { serializeStudioData } from "../studioSlice";
 
@@ -32,6 +52,14 @@ function resetStudio(): void {
       advanced: false,
       loading: false,
       error: null,
+      mixins: null,
+      scaffoldSource: null,
+      scaffoldTarget: null,
+      scaffoldDraftPath: null,
+      commitDisposition: null,
+      commitReloaded: false,
+      commitMessage: null,
+      busy: false,
     },
   });
 }
@@ -126,6 +154,105 @@ describe("studioSlice overlay", () => {
     expect(useStore.getState().studio.advanced).toBe(false);
     useStore.getState().studioToggleAdvanced();
     expect(useStore.getState().studio.advanced).toBe(true);
+  });
+});
+
+describe("studioSlice scaffold + commit (P4)", () => {
+  beforeEach(() => {
+    resetStudio();
+    scaffoldMock.mockReset();
+    commitMock.mockReset();
+  });
+
+  it("studioScaffold stores the generated source + paths and resets commit state", async () => {
+    scaffoldMock.mockResolvedValue({
+      source: "export class Coin extends GlobbableMixin(Idea) {}\n",
+      targetPath: "/obj/Coin.ts",
+      draftPath: "/home/alice/drafts/Coin.ts",
+    });
+    await useStore
+      .getState()
+      .studioScaffold(
+        { name: "Coin", baseClass: "Idea", mixinNames: ["GlobbableMixin"] },
+        "csrf-token",
+      );
+    const st = useStore.getState().studio;
+    expect(st.scaffoldSource).toContain("export class Coin");
+    expect(st.scaffoldTarget).toBe("/obj/Coin.ts");
+    expect(st.scaffoldDraftPath).toBe("/home/alice/drafts/Coin.ts");
+    expect(st.commitDisposition).toBeNull();
+    expect(st.commitReloaded).toBe(false);
+  });
+
+  it("a committed + reloaded commit surfaces the disposition and UNLOCKS the follow-on", async () => {
+    scaffoldMock.mockResolvedValue({
+      source: "export class Coin extends GlobbableMixin(Idea) {}\n",
+      targetPath: "/obj/Coin.ts",
+    });
+    commitMock.mockResolvedValue({
+      disposition: "committed",
+      classPath: "/obj/Coin.ts",
+      reloaded: true,
+      reloadDetail: "reloaded module",
+    });
+    await useStore
+      .getState()
+      .studioScaffold(
+        { name: "Coin", baseClass: "Idea", mixinNames: ["GlobbableMixin"] },
+        "csrf",
+      );
+    await useStore.getState().studioCommit("csrf");
+    const st = useStore.getState().studio;
+    expect(st.commitDisposition).toBe("committed");
+    // The class-then-template ordering gate is OPEN only now.
+    expect(st.commitReloaded).toBe(true);
+  });
+
+  it("a DENIED commit surfaces the disposition and does NOT enable the follow-on", async () => {
+    scaffoldMock.mockResolvedValue({
+      source: "export class Coin extends GlobbableMixin(Idea) {}\n",
+      targetPath: "/obj/Coin.ts",
+    });
+    commitMock.mockResolvedValue({
+      disposition: "denied",
+      message: "you must be a wizard to publish a class",
+    });
+    await useStore
+      .getState()
+      .studioScaffold(
+        { name: "Coin", baseClass: "Idea", mixinNames: ["GlobbableMixin"] },
+        "csrf",
+      );
+    await useStore.getState().studioCommit("csrf");
+    const st = useStore.getState().studio;
+    expect(st.commitDisposition).toBe("denied");
+    // The follow-on template step stays blocked.
+    expect(st.commitReloaded).toBe(false);
+    expect(st.commitMessage).toContain("wizard");
+  });
+
+  it("a committed-but-NOT-reloaded commit (compile failure) keeps the gate closed", async () => {
+    scaffoldMock.mockResolvedValue({
+      source: "export class Broken extends Nope {}\n",
+      targetPath: "/obj/Broken.ts",
+    });
+    commitMock.mockResolvedValue({
+      disposition: "committed",
+      classPath: "/obj/Broken.ts",
+      reloaded: false,
+      reloadDetail: "TS2304: Cannot find name 'Nope'",
+    });
+    await useStore
+      .getState()
+      .studioScaffold(
+        { name: "Broken", baseClass: "Nope", mixinNames: [] },
+        "csrf",
+      );
+    await useStore.getState().studioCommit("csrf");
+    const st = useStore.getState().studio;
+    expect(st.commitDisposition).toBe("committed");
+    expect(st.commitReloaded).toBe(false); // persisted-but-not-live
+    expect(st.commitMessage).toContain("TS2304");
   });
 });
 

@@ -29,8 +29,13 @@ import type {
   BlueprintDetail,
   BlueprintSummary,
   BlueprintWriteResult,
+  ClassCommitResult,
   ClassDescription,
+  CommitClassInput,
+  MixinPaletteEntry,
   PublishBlueprintInput,
+  ScaffoldClassInput,
+  ScaffoldResult,
 } from '@saxonberg/types';
 
 export type {
@@ -44,6 +49,11 @@ export type {
   BlueprintKind,
   PublishBlueprintInput,
   StudioDisposition,
+  MixinPaletteEntry,
+  ScaffoldClassInput,
+  ScaffoldResult,
+  CommitClassInput,
+  ClassCommitResult,
 } from '@saxonberg/types';
 
 /**
@@ -141,6 +151,47 @@ export class StudioApi {
     input: PublishBlueprintInput
   ): Promise<BlueprintWriteResult> {
     return logic().publishBlueprint(input);
+  }
+
+  /**
+   * The composition palette's vocabulary — the mixin registry names plus a
+   * small set of instantiable base classes an author picks when scaffolding a
+   * new backing class. Read-gated (author-tier) on the context-derived actor.
+   */
+  public static listMixins(): Promise<MixinPaletteEntry[]> {
+    return logic().listMixins();
+  }
+
+  /**
+   * Scaffold a new backing class from a base + ordered mixin set (creation
+   * act #1 — **author-tier, open to all**: the generated module is inert
+   * text). Returns the generated TS `source`, the wizard-commit `targetPath`
+   * (`/obj/<Name>.ts`), and — for a non-wizard — the reserved
+   * `/home/<self>/drafts/<Name>.ts` `draftPath` (v1 does NOT persist it). The
+   * actor is derived from context — **no `actor` argument** (anti-spoof).
+   * Emits a **source string only**; nothing composes a class at runtime.
+   */
+  public static scaffoldClass(
+    input: ScaffoldClassInput
+  ): Promise<ScaffoldResult> {
+    return logic().scaffoldClass(input);
+  }
+
+  /**
+   * Commit a scaffolded backing class to source (creation act #3 —
+   * **wizard-gated**, a source write). A non-wizard gets a graceful
+   * `{ disposition: 'denied' }` (the banner warned first), never a throw. A
+   * wizard's write goes live via `HotReloadApi.reload`; a compile failure
+   * returns `{ disposition: 'committed', reloaded: false, reloadDetail }`
+   * (persisted-but-not-live), never a 500. The authoring act is recorded from
+   * context — **no `actor` argument** (anti-spoof). Class-then-template
+   * ordering (the follow-on template save waits for `reloaded: true`) is
+   * enforced by the client; `commitClass` only writes the class.
+   */
+  public static commitClass(
+    input: CommitClassInput
+  ): Promise<ClassCommitResult> {
+    return logic().commitClass(input);
   }
 }
 

@@ -23,9 +23,13 @@
  * `requireAuth` this build (anon read-only deferred).
  */
 
-import type { Express, Response } from 'express';
+import type { Express, Request, Response } from 'express';
 import { StudioApi, StudioError } from '../mud/api/studio';
-import type { PublishBlueprintInput } from '../mud/api/studio';
+import type {
+  CommitClassInput,
+  PublishBlueprintInput,
+  ScaffoldClassInput,
+} from '../mud/api/studio';
 import { AuthMiddleware } from '../services/auth/AuthMiddleware';
 import { CmsSession } from './CmsSession';
 
@@ -43,6 +47,21 @@ function sendStudioError(res: Response, e: unknown): void {
   }
   console.error('StudioRoutes: unexpected error:', e);
   res.status(500).json({ code: 'internal', message: 'internal server error' });
+}
+
+/**
+ * CMS double-submit CSRF check for a Studio POST: the `X-CMS-CSRF` header
+ * must equal the (shared CMS) session token. On mismatch, sends a 403 and
+ * returns false; the caller returns early.
+ */
+function csrfOk(req: Request, res: Response): boolean {
+  const header = req.get('X-CMS-CSRF');
+  const expected = req.session.cmsCsrf;
+  if (!expected || !header || header !== expected) {
+    res.status(403).json({ code: 'denied', message: 'csrf' });
+    return false;
+  }
+  return true;
 }
 
 export class StudioRoutes {
@@ -108,13 +127,7 @@ export class StudioRoutes {
 
     // ---- blueprint publish (CSRF-protected) -----------------------
     app.post('/api/studio/blueprint', requireAuth, async (req, res) => {
-      // CSRF double-submit: header must match the (shared CMS) session token.
-      const header = req.get('X-CMS-CSRF');
-      const expected = req.session.cmsCsrf;
-      if (!expected || !header || header !== expected) {
-        res.status(403).json({ code: 'denied', message: 'csrf' });
-        return;
-      }
+      if (!csrfOk(req, res)) return;
       const body = req.body as Partial<PublishBlueprintInput> | undefined;
       if (
         !body ||
@@ -149,6 +162,83 @@ export class StudioRoutes {
           req,
           'studio.publishBlueprint',
           () => StudioApi.publishBlueprint(input)
+        );
+        res.json(out);
+      } catch (e) {
+        sendStudioError(res, e);
+      }
+    });
+
+    // ---- composition palette (read) -------------------------------
+    app.get('/api/studio/mixins', requireAuth, async (req, res) => {
+      try {
+        const out = await CmsSession.runAsSessionPlayer(
+          req,
+          'studio.listMixins',
+          () => StudioApi.listMixins()
+        );
+        res.json(out);
+      } catch (e) {
+        sendStudioError(res, e);
+      }
+    });
+
+    // ---- scaffold a new backing class (CSRF-protected) ------------
+    app.post('/api/studio/scaffold', requireAuth, async (req, res) => {
+      if (!csrfOk(req, res)) return;
+      const body = req.body as Partial<ScaffoldClassInput> | undefined;
+      if (
+        !body ||
+        typeof body.name !== 'string' ||
+        typeof body.baseClass !== 'string'
+      ) {
+        res
+          .status(400)
+          .json({ code: 'invalid', message: 'name and baseClass required' });
+        return;
+      }
+      const input: ScaffoldClassInput = {
+        name: body.name,
+        baseClass: body.baseClass,
+        mixinNames: Array.isArray(body.mixinNames)
+          ? body.mixinNames.filter((m): m is string => typeof m === 'string')
+          : [],
+      };
+      try {
+        const out = await CmsSession.runAsSessionPlayer(
+          req,
+          'studio.scaffoldClass',
+          () => StudioApi.scaffoldClass(input)
+        );
+        res.json(out);
+      } catch (e) {
+        sendStudioError(res, e);
+      }
+    });
+
+    // ---- commit a scaffolded class to source (CSRF-protected) -----
+    app.post('/api/studio/commit', requireAuth, async (req, res) => {
+      if (!csrfOk(req, res)) return;
+      const body = req.body as Partial<CommitClassInput> | undefined;
+      if (
+        !body ||
+        typeof body.targetPath !== 'string' ||
+        typeof body.source !== 'string'
+      ) {
+        res
+          .status(400)
+          .json({ code: 'invalid', message: 'targetPath and source required' });
+        return;
+      }
+      const input: CommitClassInput = {
+        targetPath: body.targetPath,
+        source: body.source,
+      };
+      try {
+        const out = await CmsSession.runAsSessionPlayer(
+          req,
+          'studio.commitClass',
+          () => StudioApi.commitClass(input)
         );
         res.json(out);
       } catch (e) {

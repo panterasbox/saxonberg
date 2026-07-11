@@ -17,14 +17,47 @@ import styled from "styled-components";
 import { useStore } from "../../store/index";
 import { CmsExplorer } from "./CmsExplorer";
 import { CmsEditor } from "./CmsEditor";
+import { StudioPanel } from "./studio/StudioPanel";
 import { tokens } from "../ui";
+
+const Root = styled.div`
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  background: ${tokens.color.surfaceSunken};
+  color: ${tokens.color.fg};
+`;
+
+const ModeBar = styled.div`
+  display: flex;
+  align-items: center;
+  gap: ${tokens.space.xs};
+  padding: ${tokens.space.xs} ${tokens.space.md};
+  border-bottom: 1px solid ${tokens.color.borderMuted};
+  background: ${tokens.color.surface};
+`;
+
+const ModeTab = styled.button<{ $active: boolean }>`
+  background: ${(p) => (p.$active ? tokens.color.surfaceAlt : "transparent")};
+  border: 1px solid
+    ${(p) => (p.$active ? tokens.color.borderEmphasis : "transparent")};
+  border-radius: ${tokens.radius.md};
+  color: ${(p) => (p.$active ? tokens.color.fg : tokens.color.fgMuted)};
+  font-family: ${tokens.font.family};
+  font-size: ${tokens.font.small};
+  padding: ${tokens.space.xs} ${tokens.space.md};
+  cursor: pointer;
+
+  &:hover {
+    color: ${tokens.color.fg};
+  }
+`;
 
 const Screen = styled.div`
   display: flex;
   flex: 1;
   min-height: 0;
-  background: ${tokens.color.surfaceSunken};
-  color: ${tokens.color.fg};
 `;
 
 const ExplorerColumn = styled.div`
@@ -36,17 +69,47 @@ const ExplorerColumn = styled.div`
 
 export const CmsSurface: React.FC = () => {
   const cmsInit = useStore((s) => s.cmsInit);
+  // Files (explorer + editor) vs Compose (the Studio composition surface).
+  const [mode, setMode] = React.useState<"files" | "compose">("files");
 
   useEffect(() => {
     void cmsInit();
   }, [cmsInit]);
 
   return (
-    <Screen>
-      <ExplorerColumn>
-        <CmsExplorer />
-      </ExplorerColumn>
-      <CmsEditor />
-    </Screen>
+    <Root>
+      <ModeBar role="tablist" aria-label="CMS surface mode">
+        <ModeTab
+          type="button"
+          role="tab"
+          aria-selected={mode === "files"}
+          $active={mode === "files"}
+          title="Browse + edit content, source, and documents"
+          onClick={() => setMode("files")}
+        >
+          Files
+        </ModeTab>
+        <ModeTab
+          type="button"
+          role="tab"
+          aria-selected={mode === "compose"}
+          $active={mode === "compose"}
+          title="Compose new backing classes + inspect blueprints"
+          onClick={() => setMode("compose")}
+        >
+          Compose
+        </ModeTab>
+      </ModeBar>
+      {mode === "files" ? (
+        <Screen>
+          <ExplorerColumn>
+            <CmsExplorer />
+          </ExplorerColumn>
+          <CmsEditor />
+        </Screen>
+      ) : (
+        <StudioPanel />
+      )}
+    </Root>
   );
 };

@@ -24,7 +24,12 @@
  * adopted as the new baseline via {@link StudioSlice.studioLoadData}.
  */
 
-import type { ClassDescription } from "@saxonberg/types";
+import type {
+  ClassDescription,
+  MixinPaletteEntry,
+  ScaffoldClassInput,
+  StudioDisposition,
+} from "@saxonberg/types";
 import { studioClient, StudioClientError } from "../components/cms/studioClient";
 
 /** The Studio slice's state + actions. */
@@ -44,6 +49,28 @@ export interface StudioSlice {
     loading: boolean;
     /** Last inline error (describe or parse), or null. */
     error: string | null;
+
+    // ---- P4: composition palette + new-class scaffold/commit ----
+    /** The composition palette vocabulary (base classes + mixins), or null. */
+    mixins: MixinPaletteEntry[] | null;
+    /** The scaffolded (and wizard-edited) source, or null when none active. */
+    scaffoldSource: string | null;
+    /** The wizard-commit target path for the active scaffold. */
+    scaffoldTarget: string | null;
+    /** The reserved non-wizard draft path for the active scaffold. */
+    scaffoldDraftPath: string | null;
+    /** The last commit disposition (`committed`/`denied`), or null. */
+    commitDisposition: StudioDisposition | null;
+    /**
+     * True only after a commit returned `reloaded:true` — the client-side
+     * class-then-template ordering gate. The follow-on template-creation step
+     * is blocked until this is true (a `denied` commit never sets it).
+     */
+    commitReloaded: boolean;
+    /** Human detail for the last commit (reloadDetail or denial message). */
+    commitMessage: string | null;
+    /** True while a scaffold/commit POST is in flight. */
+    busy: boolean;
   };
 
   /** Fetch a class's authorable-field schema for the composer. */
@@ -58,6 +85,18 @@ export interface StudioSlice {
   studioToggleAdvanced: () => void;
   /** Serialize the overlay to the byte-compatible `template.data` body. */
   studioSerialize: () => string;
+
+  // ---- P4 actions ----
+  /** Fetch the composition palette vocabulary (idempotent-ish; refetches). */
+  studioListMixins: () => Promise<void>;
+  /** Scaffold a new backing class; stores the generated source + paths. */
+  studioScaffold: (input: ScaffoldClassInput, csrf: string) => Promise<void>;
+  /** Edit the active scaffold's source buffer (the wizard's Monaco edits). */
+  studioSetScaffoldSource: (source: string) => void;
+  /** Commit the active scaffold to source; surfaces the disposition. */
+  studioCommit: (csrf: string) => Promise<void>;
+  /** Clear the active scaffold + its commit state. */
+  studioResetScaffold: () => void;
 }
 
 /**
@@ -123,6 +162,14 @@ export const createStudioSlice = (
     advanced: false,
     loading: false,
     error: null,
+    mixins: null,
+    scaffoldSource: null,
+    scaffoldTarget: null,
+    scaffoldDraftPath: null,
+    commitDisposition: null,
+    commitReloaded: false,
+    commitMessage: null,
+    busy: false,
   },
 
   studioDescribe: async (classPath, contextPath) => {
@@ -192,4 +239,82 @@ export const createStudioSlice = (
     const { baseData, edits, cleared } = get().studio;
     return serializeStudioData(baseData, edits, cleared);
   },
+
+  studioListMixins: async () => {
+    try {
+      const mixins = await studioClient.listMixins();
+      set((s) => ({ studio: { ...s.studio, mixins } }));
+    } catch (e) {
+      set((s) => ({ studio: { ...s.studio, error: errMessage(e) } }));
+    }
+  },
+
+  studioScaffold: async (input, csrf) => {
+    set((s) => ({ studio: { ...s.studio, busy: true, error: null } }));
+    try {
+      const out = await studioClient.scaffold(input, csrf);
+      set((s) => ({
+        studio: {
+          ...s.studio,
+          busy: false,
+          scaffoldSource: out.source,
+          scaffoldTarget: out.targetPath,
+          scaffoldDraftPath: out.draftPath ?? null,
+          // A fresh scaffold clears any prior commit disposition + the
+          // follow-on ordering gate.
+          commitDisposition: null,
+          commitReloaded: false,
+          commitMessage: null,
+        },
+      }));
+    } catch (e) {
+      set((s) => ({
+        studio: { ...s.studio, busy: false, error: errMessage(e) },
+      }));
+    }
+  },
+
+  studioSetScaffoldSource: (source) =>
+    set((s) => ({ studio: { ...s.studio, scaffoldSource: source } })),
+
+  studioCommit: async (csrf) => {
+    const { scaffoldTarget, scaffoldSource } = get().studio;
+    if (scaffoldTarget === null || scaffoldSource === null) return;
+    set((s) => ({ studio: { ...s.studio, busy: true, error: null } }));
+    try {
+      const out = await studioClient.commit(
+        { targetPath: scaffoldTarget, source: scaffoldSource },
+        csrf,
+      );
+      set((s) => ({
+        studio: {
+          ...s.studio,
+          busy: false,
+          commitDisposition: out.disposition,
+          // Ordering gate: only a committed + reloaded class unlocks the
+          // follow-on template step. A `denied` (or not-live) commit does not.
+          commitReloaded:
+            out.disposition === "committed" && out.reloaded === true,
+          commitMessage: out.message ?? out.reloadDetail ?? null,
+        },
+      }));
+    } catch (e) {
+      set((s) => ({
+        studio: { ...s.studio, busy: false, error: errMessage(e) },
+      }));
+    }
+  },
+
+  studioResetScaffold: () =>
+    set((s) => ({
+      studio: {
+        ...s.studio,
+        scaffoldSource: null,
+        scaffoldTarget: null,
+        scaffoldDraftPath: null,
+        commitDisposition: null,
+        commitReloaded: false,
+        commitMessage: null,
+      },
+    })),
 });

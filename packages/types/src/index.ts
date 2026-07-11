@@ -2174,6 +2174,87 @@ export interface BlueprintWriteResult {
   message?: string;
 }
 
+// ---- New-class scaffold + commit (Studio, P4) ---------------------------
+
+/**
+ * One entry of the composition palette — a mixin (or an instantiable base
+ * class) the author can pick when scaffolding a new backing class. `name`
+ * is the exported identifier used verbatim in the generated `extends`
+ * clause (`GlobbableMixin`, `Idea`, …).
+ */
+export interface MixinPaletteEntry {
+  /** The exported identifier (a mixin factory name or a base class name). */
+  name: string;
+  /**
+   * `mixin` — a class-factory mixin (`FooMixin`), applied over the base.
+   * `base` — an instantiable base class (`Idea`/`Thing`/…) the mixins wrap.
+   */
+  kind: 'mixin' | 'base';
+}
+
+/**
+ * The `StudioApi.scaffoldClass` call shape — compose a new backing class
+ * from a base plus an ordered mixin set. The **actor is derived from
+ * context, never a parameter** (anti-spoof). Scaffolding is author-tier and
+ * open to all: the generated module is inert text until a wizard commits it.
+ */
+export interface ScaffoldClassInput {
+  /** The new class name (PascalCase identifier). */
+  name: string;
+  /** The base class the mixins are applied over (`Idea`, `Thing`, …). */
+  baseClass: string;
+  /** The mixin factories to compose, outermost-first. */
+  mixinNames: string[];
+}
+
+/**
+ * The result of `StudioApi.scaffoldClass` — the generated TS source module
+ * plus the stable paths the commit / draft workflows write into.
+ */
+export interface ScaffoldResult {
+  /** The generated static TS source module (imports + `extends` clause). */
+  source: string;
+  /** The wizard-commit target: `/obj/<Name>.ts` (a CMS-relative source path). */
+  targetPath: string;
+  /**
+   * The reserved non-wizard draft path (`/home/<self>/drafts/<Name>.ts`).
+   * Present only for a non-wizard scaffolder; v1 does NOT persist here — it
+   * is the stable seam the future review workflow fills in.
+   */
+  draftPath?: string;
+}
+
+/**
+ * The `StudioApi.commitClass` call shape — write a scaffolded backing class
+ * to source (creation act #3, wizard-gated). The **actor is derived from
+ * context, never a parameter** (anti-spoof).
+ */
+export interface CommitClassInput {
+  /** The source path to write (`/obj/<Name>.ts`, from `scaffoldClass`). */
+  targetPath: string;
+  /** The (possibly wizard-edited) TS source module body. */
+  source: string;
+}
+
+/**
+ * The result of `StudioApi.commitClass` — a graceful disposition, never a
+ * throw for the trust gate. `denied` — a non-wizard tried to publish (the
+ * banner warned first). `committed` — the source was written; `reloaded`
+ * reports whether the module went live (a compile failure leaves it
+ * persisted-but-not-live, `reloaded: false` + `reloadDetail`, NOT a 500).
+ */
+export interface ClassCommitResult {
+  disposition: StudioDisposition;
+  /** The committed source path (`/obj/<Name>.ts`); absent on `denied`. */
+  classPath?: string;
+  /** True when the written module compiled + went live. */
+  reloaded?: boolean;
+  /** The reload outcome detail (the compile error on `reloaded: false`). */
+  reloadDetail?: string;
+  /** Human detail on `denied`. */
+  message?: string;
+}
+
 // ---- Help system --------------------------------------------------------
 
 /**
