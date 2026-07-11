@@ -214,6 +214,12 @@ is title-only; the compute economy is Phase 1 and needs its own design pass.
   refuses a non-owner of the parent; tested.
 - **`transfer`** moves a title with bilateral consent; refuses a non-owner giver and an
   unconsenting receiver; tested.
+- **Chain-of-title (append-only, never overwrite):** `transfer` and `subdivide` append a
+  title event to an append-only `parcel_events` log (the `bank_ledger`/`renown_events`
+  pattern); the current `owner` is the rebuildable state. A test asserts a transferred
+  parcel's prior owner is still recoverable from the log — so ownership *lineage* is
+  preserved (the real-estate-metagame provenance seam, slate §L). Rebuild-from-log +
+  the lineage readout are deferred consumers; 0a only writes the trail.
 - **`AccessApi.can` repointed:** reads the `parcels` registry; the `AccessRegistry`
   read-sites (`can`, `canMutateZone`, `ensureAuthorGroups`) consult `ParcelApi`; the
   data-driven writer/resolver machinery (`effectiveOwnerRef`, `resolveOwnerGroupName`,

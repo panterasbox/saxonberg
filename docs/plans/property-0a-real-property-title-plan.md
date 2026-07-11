@@ -90,6 +90,18 @@ export class ParcelRecord extends Document {
 - **Coverage index:** `PathTrie<ParcelRecord>` inserted under `extent` (copy `AddressRegistry`); resolution = `coverage.longestPrefix(path)[0] ?? null` (`AddressRegistry.coveringLocalityOf` precedent, `PathTrie.longestPrefix`). `parentParcel` stored for O(1) transfer/subdivide bookkeeping (derivable from the trie, but cheap to keep).
 - `postRegister` rebuilds the index from the `parcels` collection (idempotent), mirroring `AddressRegistry.rebuildIndex`.
 
+**Chain-of-title — the registry is log-backed (the banking/renown sibling pattern).** A
+second append-only collection **`parcel_events`** records every title event
+(`{extent, event:'subdivide'|'transfer', from, to, actor, at}`); the `parcels` rows are
+the **current-state cache**. In 0a the `owner` field is maintained directly *and* every
+mutation appends to `parcel_events` (write the trail now — cheap; rebuild-from-log and the
+chain-of-title *readout* are deferred consumers). This preserves ownership lineage so
+`transfer` is **never a destructive overwrite** — required for the real-estate metagame's
+"once owned by nobility" provenance (slate §L), and it matches `bank_ledger→bank_accounts`
+/ `renown_events→renown`. **Collections:** `parcels` (current state) + `parcel_events`
+(append-only history) — both write-gated to `ParcelApi` + the seed installer (the
+governing security invariant).
+
 ## Part 4 — `ownerOf` resolution (the total 4-step chain) + self-home
 
 `ParcelLogic.ownerOf(path): Promise<ParcelOwner>` (total):
@@ -117,7 +129,7 @@ Category `system`; actor from `ExecutionContextApi.getActingAuthor` (never a par
 
 **`subdivide <name>`:** resolve the giver's governing parcel → gate to parent-parcel owner (refuse non-owner) → mint the child zone via `TemplateApi.saveTemplate(childPath, '/lib/zone/FolderZone', {})` (**`MkdirController.ts:62` precedent**; `/lib/location/CartesianZone` for a spatial carve-out) → write the parcel row (`owner` inherits parent, `parentParcel`, `extent=zonePath=childPath`) → wire the boundary exit (no-op for FolderZone). *Spatial carve-out exit wiring may exceed 0a — ship FolderZone-first, defer spatial (matches the "coordinate-region parcels deferred" non-goal).*
 
-**`transfer <parcel> to <player>` (bilateral consent):** gate to current owner (refuse non-owner giver) → **receiver consent** via `PromptApi.confirm(receiver, "Accept title to <parcel>? (it carries liability)")`; decline/timeout → abort → on accept `ParcelApi.transfer(extent, newOwner)` rewrites `owner`, re-warms the trie. Title-only, **no banking** (`sell` deferred).
+**`transfer <parcel> to <player>` (bilateral consent):** gate to current owner (refuse non-owner giver) → **receiver consent** via `PromptApi.confirm(receiver, "Accept title to <parcel>? (it carries liability)")`; decline/timeout → abort → on accept `ParcelApi.transfer(extent, newOwner)` **appends a `transfer` event to `parcel_events`** (from = current owner, to = newOwner, actor = the acting principal), then updates the current-owner cache row + re-warms the trie — **not a destructive overwrite** (chain-of-title, §Part 3). `subdivide` likewise appends a genesis event. Title-only, **no banking** (`sell` deferred).
 
 Both controllers call `ParcelApi` (the only legitimate caller of `ParcelRegistry`).
 

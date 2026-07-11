@@ -985,3 +985,56 @@ boundary-contract list + the seed-then-persist gate; Phase 1 → the entire
 budget/degradation design.
 
 **Next action: `/requirements` on Phase 0a.**
+
+---
+
+## §L. The real-estate metagame (forward-compatibility check)
+
+A lore-session sketch of the long-term vision: players start **renting** (their dorm
+room), then climb a **prestige ladder** of owned property — apartment → townhome →
+single-family home → unique **manor houses** once held by the gameworld's nobility —
+sited across the game's **geography** (city, suburbs, districts). The **sandbox/holodeck**
+sits *adjacent* to the home (100%-authored, unpublished, meant-to-be-published), while the
+home itself is the *constrained, canonical* space — and **how those constraints are
+modelled is (part of) what confers prestige**. Way out of scope; captured here to record
+that the substrate **accommodates it** and to name the seams to preserve.
+
+**The mapping — it's the intended consumer, not a stretch:**
+
+| Vision | Carried by |
+|---|---|
+| Rent → own progression | the custody/title axis (§K): dorm = a **lease** (`grant`); moving up = acquiring a **title** on a better parcel — same claims-and-grants registry |
+| Property *types* (apt/townhome/SFH/manor) | content + a `prestige`/`class` attribute; not substrate |
+| Geography (city/suburbs/districts) | the shipped **address/Locality** substrate + spatial zones; a parcel's location = its address/zone position (`parentParcel` for district→lot) |
+| **Prestige = allowance** | the slate's founding thesis — "value isn't the dirt, it's how much **liveness** it's permitted"; a manor = a bigger governance-allocated compute allowance |
+| Unique named manors + "once owned by nobility" | `NamedMixin` + lore + **chain-of-title** (the ownership lineage *is* the prestige) |
+| Sandbox adjacent, unpublished, publish-intended | §G/§H — the **wardrobe** portal in the home mints the magic-circle zone; the publish path to canon |
+
+**Seams to preserve (so we don't foreclose it):**
+
+1. **Chain-of-title — `transfer` leaves a trail, never a destructive overwrite.** The
+   "once owned by nobility" prestige *is* the lineage. So the parcels registry is
+   **log-backed** (the `bank_ledger→bank_accounts` / `renown_events→renown` pattern): an
+   append-only `parcel_events` trail + a rebuildable current-owner. **This is the one seam
+   that touches 0a** — cheap now, needs a migration to retrofit — so it's in the 0a plan
+   (write the trail; rebuild + lineage readout deferred).
+2. **The membrane — prestige buys *resources*, never *security relaxation*.** Prestige =
+   more allowance, better location, more slots, safety, lineage — all *within* the rules.
+   It must **never** mean a fancier home relaxes the release gate / lets home-forged power
+   work in canon (that's pay-to-cheat, breaking the cooperative's no-pay-to-win membrane).
+   Canonical-authoring freedom is equal for everyone and lives in the **sandbox** (free for
+   all); the home's anti-cheat constraints are non-purchasable security invariants. So
+   "constraints confer prestige" = the **resource envelope + location + safety**, not a
+   weaker gate. Hold this line.
+3. **"Safer neighborhoods" = a per-zone *policy* attribute** (no theft/combat/griefing in a
+   district) riding `Zone.lookupField` inheritance (district sets it, lots inherit) — a
+   future consumer of the rules/access layer, natively carried, not yet built.
+
+**Already-scoped deferral this motivates:** dense residential subdivision (a suburb of many
+single-family lots without grid-fragmentation) is exactly the **coordinate-region ("region
+parcel")** case §F deferred — an *additive* point-in-region resolver under the path-prefix
+one. Accommodated, not precluded; suburbs are its motivating consumer.
+
+**Net:** the vision needs no redesign and doesn't change 0a's scope — only the
+chain-of-title seam (now in the plan) and the non-purchasable-security membrane (an
+invariant to hold forever).
