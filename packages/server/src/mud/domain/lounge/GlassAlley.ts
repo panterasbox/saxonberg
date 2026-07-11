@@ -1,7 +1,7 @@
 /**
  * GlassAlley — the harm-driver **demonstrator**: a grimy service alley
  * behind Dave's Bar with broken bottles underfoot. Walking in bare-footed
- * cuts you (a laceration through `HarmApi.inflict` to a foot part); shod,
+ * cuts you (a laceration through `ConditionApi.inflict` to a foot part); shod,
  * you're fine. It proves the flagship loop live in shipped, reachable
  * content: step on glass → bleed + limp → assess → treat-or-die.
  *
@@ -26,7 +26,7 @@ import { PostRegistrationMixin } from '../../lib/stuff/PostRegistration';
 import { PopulatesMixin } from '../../lib/stuff/Populates';
 import { SingletonMixin } from '../../lib/stuff/Singleton';
 import { MixinApi } from '../../api/mixin';
-import { HarmApi } from '../../api/harm';
+import { ConditionApi } from '../../api/condition';
 import type { Stuff } from '../../lib/stuff/Stuff';
 
 const GlassAlleyBase = SingletonMixin(
@@ -59,15 +59,16 @@ export default class GlassAlley extends GlassAlleyBase {
    * seam — NOT a teleport arrival, which uses `autoSenseOnArrival`; the
    * proof body is walked in). Resolve a foot site from the mover's own
    * anatomy (a non-biped matches none → graceful no cut), and cut it
-   * through `inflict` iff the foot is uncovered (`isSiteCovered` — any
+   * through `ConditionApi.inflict` iff the foot is uncovered
+   * (`ConditionApi.isSiteCovered` — any
    * footwear protects in v1).
    */
   public onEntered(mover: Stuff, _exit: unknown): void {
     if (!MixinApi.isVitals(mover)) return;
     const site = GlassAlley.FOOT_SITES.find((s) => mover.getPart(s) != null);
     if (!site) return; // no matching foot part — a non-biped takes no cut
-    if (HarmApi.isSiteCovered(mover, site)) return; // shod → protected
-    HarmApi.inflict(mover, {
+    if (ConditionApi.isSiteCovered(mover, site)) return; // shod → protected
+    ConditionApi.inflict(mover, {
       mechanism: GlassAlley.HAZARD_MECHANISM,
       site,
       energy: GlassAlley.HAZARD_ENERGY,

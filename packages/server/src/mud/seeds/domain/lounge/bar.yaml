@@ -69,12 +69,6 @@ data:
       destination: /domain/lounge/office
       hidden: true
       bidirectional: false
-    # The service alley out back — the harm-driver demonstrator (broken
-    # glass underfoot). Walkable, one-way declared so it installs no
-    # colliding inverse (the alley declares its own east exit back here).
-    west:
-      destination: /domain/lounge/glass-alley
-      bidirectional: false
   # The corpo battlefield, lit. Branded neon signs attached as non-
   # portable wall fixtures (AdornableMixin.applyAdornments): each carries
   # a corpo mark and emits light, so rival Veshko (amber) and Aevex

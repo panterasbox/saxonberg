@@ -37,8 +37,11 @@ import { QuantityMarshaller } from '../persistence/QuantityMarshaller';
 import { MixinApi } from '../../api/mixin';
 import type { VitalBand, VitalProfile } from '../species/Species';
 import type { BodyPart } from '../species/BodyPlan';
-import type { ActiveCondition } from './Condition';
-import { HARM_DEFAULTS } from './Condition';
+import type { ActiveCondition, Trauma } from './Condition';
+import { HARM_DEFAULTS, TRAUMA_BEHAVIOR } from './Condition';
+import { StuffApi } from '../../api/stuff';
+import { WorldClockApi } from '../../api/worldclock';
+import { TemplatePaths } from '../paths';
 
 /**
  * The engine's vital-sign vocabulary — the canonical key list, used by
@@ -276,9 +279,19 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
     public bodyPartDeltas: Record<string, BodyPartDelta> = {};
     public conditions: ActiveCondition[] = [];
 
+    /**
+     * Reconcile-on-read reentrancy guard — a plain transient flag, never
+     * persisted. Case (1): it protects the wound reconcile from
+     * re-triggering itself through the vital-sign reads it performs
+     * (`this.getVitalSign('bloodVolume')` inside `reconcileConditions`).
+     */
+    private _reconcilingConditions = false;
+
     // ---------- vital signs ----------
 
     public getVitalSign(sign: VitalSign): Quantity<Unit> {
+      // A blood-volume read must reflect any in-flight bleed.
+      if (sign === 'bloodVolume') this.reconcileConditions();
       return (this as unknown as Record<string, Quantity<Unit>>)[
         VITAL_FIELD[sign]
       ]!;
@@ -319,6 +332,7 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
      * transition (the deferred driver owns transitions).
      */
     public getConditionBand(): ConditionBand {
+      this.reconcileConditions();
       const self = this as unknown as Stuff;
       if (!MixinApi.isOrganism(self)) {
         throw new Error('VitalsMixin requires OrganismMixin (lifecycle state)');
@@ -369,6 +383,7 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
      * `dead`. Head trauma is folded in below.
      */
     public getConsciousness(): Consciousness {
+      this.reconcileConditions();
       const self = this as unknown as Stuff;
       if (!MixinApi.isOrganism(self)) {
         throw new Error('VitalsMixin requires OrganismMixin (lifecycle state)');
@@ -498,7 +513,100 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
     // ---------- conditions (both kinds, one collection) ----------
 
     public getConditions(): readonly ActiveCondition[] {
+      this.reconcileConditions();
       return this.conditions;
+    }
+
+    /**
+     * Reconcile-on-read wound progression — the harm driver, reconcile
+     * style (the metabolism / thermal / respiration precedent, NOT a
+     * recurring push tick). For each active trauma, integrate the in-session
+     * game-time elapsed since its `tickedAt` stamp through the trauma's
+     * `tick`, relieve any wound healed to (near) zero, then check the
+     * bleed→death floor. Called at the top of the reads that must reflect
+     * the current bleed (`getVitalSign('bloodVolume')`, `getConditionBand`,
+     * `getConsciousness`, `getConditions`).
+     *
+     * **Presence-freeze parity** with `Metabolic.reconcileMetabolism`:
+     * first-touch stamp, linkdead re-stamp, `elapsed <= 0` guard, and the
+     * far-past guard (a logout/relog gap integrates nothing). Cheap no-op
+     * when no world clock runs (unit tests stay idle) or no trauma is
+     * active. The `_reconcilingConditions` guard makes the vital-sign reads
+     * this method performs non-reentrant.
+     */
+    private reconcileConditions(): void {
+      if (this._reconcilingConditions) return;
+      const self = this as unknown as Stuff;
+      if (!MixinApi.isOrganism(self)) return;
+      // A corpse doesn't bleed — nothing left to progress.
+      if (self.getLifecycleState() === 'dead') return;
+
+      // In-session game-time; `null` when no world clock is running
+      // (pre-boot / a unit test that hasn't bootstrapped one) → idle.
+      if (!StuffApi.findByTemplatePath(TemplatePaths.worldClockRegistry)) {
+        return;
+      }
+      const nowS = WorldClockApi.getNow().rawValue();
+
+      const traumas = this.conditions.filter(
+        (c): c is Trauma => c.kind === 'trauma',
+      );
+      if (traumas.length === 0) return;
+
+      // Linkdead freeze: the body lingers in-world but its clock is paused —
+      // re-stamp so the away-gap never accumulates.
+      const linkdead =
+        MixinApi.isHasInteractive(self) && self.isLinkdead();
+
+      this._reconcilingConditions = true;
+      try {
+        for (const t of traumas) {
+          // First touch: seed the stamp so a fresh wound doesn't integrate
+          // a giant gap from epoch.
+          if (t.tickedAt === undefined) {
+            t.tickedAt = nowS;
+            continue;
+          }
+          if (linkdead) {
+            t.tickedAt = nowS;
+            continue;
+          }
+          const elapsed = nowS - t.tickedAt;
+          if (elapsed <= 0) {
+            t.tickedAt = nowS;
+            continue;
+          }
+          // Far-past guard: a gap this long means absence — integrate
+          // nothing (real-life absence never bleeds you).
+          if (elapsed > HARM_DEFAULTS.MAX_REASONABLE_GAP_SEC) {
+            t.tickedAt = nowS;
+            continue;
+          }
+          t.tickedAt = nowS;
+          TRAUMA_BEHAVIOR[t.type].tick(this, t, elapsed);
+        }
+
+        // Relieve any wound healed to (near) zero severity.
+        for (const t of traumas) {
+          if (t.severity <= HARM_DEFAULTS.CLEARED_SEVERITY) this.relieve(t);
+        }
+
+        // Bleed → death floor. `getConsciousness()` already reads a low
+        // blood volume as `unconscious`, so the conscious → unconscious
+        // waypoint falls out for free — harm writes only the death sign.
+        const floor = this.getVitalBand('bloodVolume').survivableMin;
+        if (this._bloodVolume.rawValue() <= floor) {
+          if (
+            MixinApi.isOrganism(self) &&
+            self.getLifecycleState() !== 'dead'
+          ) {
+            this.setCauseOfDeath('exsanguination');
+            self.setLifecycleState('dead');
+          }
+        }
+      } finally {
+        this._reconcilingConditions = false;
+      }
     }
 
     public hasCondition(pred: (c: ActiveCondition) => boolean): boolean {

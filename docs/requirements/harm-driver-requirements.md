@@ -1,5 +1,9 @@
 # Harm driver — requirements
 
+> **MR-review superseded:** the Api is `ConditionApi` (not `HarmApi`) and the
+> wound progression is reconcile-on-read (not `ScheduleApi.recurring`); see
+> `docs/subsystems/harm.md`.
+
 The harm driver is the first **injury** driver over the vitals
 substrate: the piece that lets an external insult wound a body, makes
 that wound progress or heal over game-time, and lets a wound kill.

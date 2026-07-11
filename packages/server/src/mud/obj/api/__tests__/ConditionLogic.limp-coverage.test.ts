@@ -4,12 +4,12 @@
  * Limp: an active foot laceration imposes a severity-gated endurance drain
  * at the universal self-powered traverse chokepoint (`engageAround`),
  * scaling with severity and clearing as the wound heals. Coverage:
- * `HarmApi.isSiteCovered` reads the `covers` edge — false barefoot, true
+ * `ConditionApi.isSiteCovered` reads the `covers` edge — false barefoot, true
  * when a worn item occupies the covering slot.
  */
 
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { HarmApi } from '../../../api/harm';
+import { ConditionApi } from '../../../api/condition';
 import { LocomotionApi } from '../../../api/locomotion';
 import { LocomotionMode } from '../../../lib/locomotion/LocomotionMode';
 import { buildMode } from '../../../lib/locomotion/__tests__/test-helpers';
@@ -130,7 +130,7 @@ describe('the limp — LocomotionApi.engageAround endurance drain', () => {
   });
 });
 
-describe('HarmApi.isSiteCovered — binary coverage presence', () => {
+describe('ConditionApi.isSiteCovered — binary coverage presence', () => {
   const BODYPLAN_PATH = '/lib/body-plans/biped-feet';
   beforeEach(() => installV1QuantityMarshallers());
   afterEach(() => StuffApi.clearAll());
@@ -165,18 +165,18 @@ describe('HarmApi.isSiteCovered — binary coverage presence', () => {
 
   it('is false barefoot and true when the covering slot is worn', () => {
     const c = footedCreature();
-    expect(HarmApi.isSiteCovered(c, 'body.leg.left.foot')).toBe(false);
+    expect(ConditionApi.isSiteCovered(c, 'body.leg.left.foot')).toBe(false);
 
     const boot = makeStuff(() => new TestBoot());
     boot.setSlotClaim(BODYPLAN_PATH, ['feet']);
     c.occupy(boot, 'feet');
 
-    expect(HarmApi.isSiteCovered(c, 'body.leg.left.foot')).toBe(true);
-    expect(HarmApi.isSiteCovered(c, 'body.leg.right.foot')).toBe(true);
+    expect(ConditionApi.isSiteCovered(c, 'body.leg.left.foot')).toBe(true);
+    expect(ConditionApi.isSiteCovered(c, 'body.leg.right.foot')).toBe(true);
   });
 
   it('is false for an uncovered / unknown part', () => {
     const c = footedCreature();
-    expect(HarmApi.isSiteCovered(c, 'body.torso')).toBe(false);
+    expect(ConditionApi.isSiteCovered(c, 'body.torso')).toBe(false);
   });
 });

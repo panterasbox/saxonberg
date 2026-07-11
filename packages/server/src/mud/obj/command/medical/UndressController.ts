@@ -7,8 +7,8 @@
  * `reopen` — and if the wound is still above `HARM_DEFAULTS.CLOT_SEVERITY`
  * it re-arms `bleeding` (a premature removal reopens the bleed); below the
  * threshold it has clotted and is safe to remove (heals to clear). The
- * bandage is spent, not recovered. Re-arms the wound-tick (the tick may
- * have been cancelled when the wound resolved).
+ * bandage is spent, not recovered. Progression resumes on the next read
+ * (reconcile-on-read — no tick to re-arm).
  */
 
 import { CommandController } from '../../../lib/command/CommandController';
@@ -16,7 +16,6 @@ import type { CommandContext, CommandModel } from '../../../api/command';
 import type { MqlOneResult } from '../../../api/mql';
 import { MessageApi } from '../../../api/message';
 import { MixinApi } from '../../../api/mixin';
-import { HarmApi } from '../../../api/harm';
 import { Mml } from '../../../api/mml';
 import type { Stuff } from '../../../lib/stuff/Stuff';
 import type { Vitals } from '../../../lib/vitals/Vitals';
@@ -71,9 +70,7 @@ export default class UndressController extends CommandController<UndressModel> {
     }
 
     TRAUMA_BEHAVIOR[wound.type].reopen(target, wound);
-    // The tick may have been cancelled when the wound resolved to clear;
-    // re-arm so a re-opened bleed drains again (idempotent otherwise).
-    HarmApi.rearmWoundTicks(target);
+    // A re-opened bleed drains again on the next read (reconcile-on-read).
 
     const reopened = wound.bleeding === true;
     const whose = isSelf ? 'your' : `${target.getPresentation()}'s`;

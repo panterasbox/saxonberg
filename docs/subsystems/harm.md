@@ -12,21 +12,35 @@ path, but it **stands alone without any combat loop, weapon, or armor**: a
 body becomes woundable by ordinary hazards, and a non-combat **medic** loop
 (assess → treat, skill-gated) is playable before combat exists.
 
+## `ConditionApi` — the condition-surface facade
+
+The gated facade over the whole vitals **condition** surface — inflicted
+trauma + afflictions, the one home for inflicted status effects on a body
+(`api/condition.ts` → the gated `ConditionLogic` singleton at
+`/obj/api/condition`). Reserves (endurance) and transient combat flags are
+NOT conditions and stay out. Beyond the `inflict` producer (below) it
+forwards the plain condition mutators — `afflict(target, condition)` /
+`relieve(target, condition)` — and a query `conditionsOf(target)`, each a
+thin gated pass-through to the body's own `VitalsMixin` method (a no-op /
+empty for a non-`Vitals` target). It is deliberately **bounded**: internal
+drivers (metabolism, respiration) keep calling the body methods directly;
+the Api ADDS a facade, it does not re-route them.
+
 ## The `inflict` producer
 
-`HarmApi.inflict(target, { mechanism, site, energy }) → InflictOutcome`
-(`api/harm.ts` → the gated `HarmLogic` singleton at `/obj/api/harm`) is the
-**single seam every harm source calls** — this build's floor-glass hazard,
-and later combat. It builds a `Trauma`, lands it through the existing
-`VitalsMixin.afflict()` door, runs the trauma's `onset`, and arms the
-recurring wound-tick.
+`ConditionApi.inflict(target, { mechanism, site, energy }) → InflictOutcome`
+is the **single seam every harm source calls** — this build's floor-glass
+hazard, and later combat. It builds a `Trauma`, lands it through the
+existing `VitalsMixin.afflict()` door, runs the trauma's `onset`, and stamps
+the reconcile-on-read `tickedAt` anchor (see below — no arming).
 
 - **Gated producer.** `inflict` is a powerful primitive that must not be
-  callable by arbitrary content. `HarmLogic.inflict` carries
-  `@CallSecurity(FromModule('/api/harm#HarmApi'))` — only the `HarmApi`
-  facade forwards in; trusted producers (the hazard, later combat) reach it
-  through the Api. The inflicter is un-spoofable, so `HarmApi.inflict`
-  itself stays reachable (the `BulletinApi`/`ProvenanceApi` precedent).
+  callable by arbitrary content. `ConditionLogic.inflict` carries
+  `@CallSecurity(FromModule('/api/condition#ConditionApi'))` — only the
+  `ConditionApi` facade forwards in; trusted producers (the hazard, later
+  combat) reach it through the Api. The inflicter is un-spoofable, so
+  `ConditionApi.inflict` itself stays reachable (the
+  `BulletinApi`/`ProvenanceApi` precedent).
 - **Inflicter from context.** The inflicter's durable `templatePath` is
   derived from `ExecutionContextApi.getActingAuthor()` (command-frame giver
   when non-forced + single-consistent, else the REST acting-author stamp,
@@ -78,35 +92,43 @@ in the `HARM_DEFAULTS` const-object (the driver `*_DEFAULTS` convention).
   cascade slot-disable + presentation) lands at `AVULSION_BEHAVIOR.onset`
   when the sever build arrives; v1 stops at the severe bleed.
 
-## The wound-tick driver
+## The wound driver — reconcile-on-read
 
-A recurring `ScheduleApi.recurring(HARM_DEFAULTS.TICK_INTERVAL_MS, …)` on
-`HarmLogic`, armed per-body by `inflict`. The **drain is computed in
-game-time** (`WorldClockApi.getNow()`), so it freezes with a paused clock
-and honors presence — the tick fires on a real timer, but integrates only
-game-time elapsed.
+Wound progression is **reconcile-on-read**, exactly like its sibling
+drivers (`Metabolic.reconcileMetabolism` / `ThermalRegulation` /
+`Respiration`) — **not** a recurring push tick. There is **no
+`ScheduleApi.recurring`, no in-memory tick-handle map, and no re-arm
+seam**. The driver lives on the body itself:
+`VitalsMixin.reconcileConditions()`, a private method run at the top of the
+reads that must reflect the current bleed — `getVitalSign('bloodVolume')`,
+`getConditionBand`, `getConsciousness`, `getConditions`.
 
-- **Presence-freeze parity.** The per-fire integration copies
-  `Metabolic.reconcileMetabolism` verbatim: first-touch stamp, linkdead
-  re-stamp (`isHasInteractive && isLinkdead`), `elapsed <= 0` guard, and
-  the far-past guard (`MAX_REASONABLE_GAP_SEC`, 4h — a logout/relog gap
-  integrates nothing). Zero work for absent players.
-- **The handle is NEVER persisted.** It lives in an in-memory
-  `Map<stuffId, {handle, stamp}>` on the singleton (keyed on the live
-  `stuffId`, unique per instance). The *bleeding trauma* persists (in
-  `VitalsMixin.conditions`); the tick handle does not.
-- **Re-arm on hydrate.** A body coming live re-arms via
-  `HarmApi.rearmWoundTicks(host)` (idempotent, no-op without active
-  trauma), called from `Avatar.enter()` (players) and `NPC.postRegister`
-  (NPCs). A bare `Creature`/`Character` without `PostRegistrationMixin`
-  won't auto-re-arm — a documented degenerate; the proof body is an Avatar.
-- **Death by exsanguination.** After ticking, if `bloodVolume` is at/below
-  its `survivableMin`, harm stamps its own death —
+- **The stamp persists, not a handle.** Each active `Trauma` carries a
+  persisted game-time `tickedAt` anchor (rides the `VitalsMixin.conditions`
+  collection). `inflict` stamps it at onset; every read advances it. A body
+  coming live simply resumes from its last stamp on the next read — nothing
+  to re-arm, no `Avatar.enter` / `NPC.postRegister` touch. (The old
+  `HarmApi.rearmWoundTicks` seam is **gone**; `NPC` reverts to the bare
+  `BehavedMixin` `postRegister`.)
+- **Per-trauma integration.** For each active trauma,
+  `reconcileConditions` computes the in-session game-time elapsed since its
+  `tickedAt`, calls `TRAUMA_BEHAVIOR[t.type].tick(host, t, elapsedSec)`,
+  then relieves any wound healed to (near) zero severity and re-stamps.
+- **Presence-freeze parity.** The integration copies the
+  `reconcileMetabolism` discipline: first-touch stamp, linkdead re-stamp
+  (`isHasInteractive && isLinkdead`), `elapsed <= 0` guard, and the
+  far-past guard (`MAX_REASONABLE_GAP_SEC`, 4h — a logout/relog gap
+  integrates nothing). Cheap no-op when no world clock runs (unit tests
+  stay idle) or no trauma is active. A `_reconcilingConditions` reentrancy
+  guard keeps the vital-sign reads the method performs from re-triggering
+  it.
+- **Death by exsanguination.** After integrating, if `bloodVolume` is
+  at/below its `survivableMin`, harm stamps its own death —
   `setCauseOfDeath('exsanguination')` + `setLifecycleState('dead')`
   (idempotent-guarded, the metabolism/respiration shape; there is **no**
-  shared `applyDeath` helper) — and cancels the tick. The
-  `conscious → unconscious` waypoint needs no code: `getConsciousness()`
-  already reads a low `bloodVolume` as `unconscious`.
+  shared `applyDeath` helper). The `conscious → unconscious` waypoint needs
+  no code: `getConsciousness()` already reads a low `bloodVolume` as
+  `unconscious`.
 
 ## The couplings — limp + coverage
 
@@ -118,7 +140,7 @@ game-time elapsed.
   raw/forceMove traverses skip it structurally. Eases as the wound heals.
   Distinct from fracture's slot-disable (that's a read; this is a movement
   cost).
-- **Coverage-presence** (`HarmApi.isSiteCovered(host, partKey)`) is a
+- **Coverage-presence** (`ConditionApi.isSiteCovered(host, partKey)`) is a
   **binary** read: resolves the body plan's `getSlotsCovering(partKey)`
   (the `covers` edge — NOT `bodyPart`; the `feet` slot couples to the foot
   parts via `covers`) and returns true iff a covering slot holds a worn
@@ -141,17 +163,19 @@ command category plus `assess` in `perception`.
   seams — no sibling mixins in v1.
 - **`treat` / `bind` / `dress`** (`cmd/medical/`, `mustHaveDressing`
   validator) dresses a body's worst bleeding wound, consuming a reachable
-  dressing (`StuffApi.destruct`), calling the trauma's `resolve` (sets
-  `dressed`, arrests the bleed), and re-arming the tick so the dressed
-  wound heals to clear. Outcome quality = the dressing's `dressingQuality`
+  dressing (`StuffApi.destruct`) and calling the trauma's `resolve` (sets
+  `dressed`, arrests the bleed); the dressed wound heals to clear on the
+  next read (reconcile-on-read — no tick to re-arm). Outcome quality = the
+  dressing's `dressingQuality`
   × the treater's `medicine` competence band; difficulty is derived from
   the wound (a world-measurement, not a tag). A graded outcome mints an
   `ActSignature` (`AdvancementApi.recordDeed`) into the treater's
   Transcript — consuming the advancement API, reshaping nothing in it.
 - **`undress`** (a distinct verb from the wearable-slot `remove`) is the
   clot gate's other half: calls `reopen` (a premature removal above
-  `CLOT_SEVERITY` re-arms the bleed; after clot it is safe) and re-arms the
-  tick. The bandage is spent, not recovered.
+  `CLOT_SEVERITY` re-opens the bleed; after clot it is safe). A re-opened
+  bleed drains again on the next read (reconcile-on-read — no tick to
+  re-arm). The bandage is spent, not recovered.
 - **`assess`** (`cmd/perception/`) is a perception-gated readout, not a
   tool-mediated measurement (no stethoscope — deferred). Full fidelity on
   one's own body; banded + competence-sharpened on others (novice reads
@@ -172,11 +196,13 @@ composition; the reusable abstraction is `inflict` itself). It overrides
 `onEntered(mover, exit)` (the `Mobile.traverse` presence trigger — NOT a
 teleport arrival): resolve a foot site from the mover's own anatomy (a
 non-biped matches none → graceful no cut), gate on
-`HarmApi.isSiteCovered`, and cut a barefoot foot through `inflict` (never
-`afflict` directly). Config (mechanism / energy / foot sites) is class
-constants. Reachable in shipped content — a walkable `west` exit from
-Dave's Bar (`seeds/domain/lounge/glass-alley.yaml`), with two `Bandage`s
-stocked so the treat loop is playable in-world. Proves the full loop: step
+`ConditionApi.isSiteCovered`, and cut a barefoot foot through `inflict`
+(never `afflict` directly). Config (mechanism / energy / foot sites) is
+class constants. Reachable in shipped content — a walkable `down` exit (a
+service stair) off the **Terminus Terminal hall**
+(`seeds/domain/terminus/terminal/hall.yaml` → `/domain/lounge/glass-alley`,
+which declares its own `up` back-exit), with two `Bandage`s stocked so the
+treat loop is playable in-world. Proves the full loop: step
 on glass → bleed + limp → assess → treat-or-die. A real hazard/trap
 taxonomy is a separate future build over the same seam.
 

@@ -1,15 +1,15 @@
 /**
- * HarmLogic / HarmApi — the `inflict` producer spine (Phase 0). Covers:
+ * ConditionLogic / ConditionApi — the `inflict` producer spine (Phase 0). Covers:
  * `inflict` maps mechanism → trauma type, energy → severity, records the
  * raw mechanism, afflicts through `VitalsMixin`, and stamps the
  * context-derived inflicter (giver templatePath under a non-forced single
  * giver; undefined when forced / cross-actor / absent). And the gate: a
- * raw call to `HarmLogic.inflict` from outside `HarmApi` is denied.
+ * raw call to `ConditionLogic.inflict` from outside `ConditionApi` is denied.
  */
 
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { HarmApi } from '../../../api/harm';
-import { HarmLogic } from '../HarmLogic';
+import { ConditionApi } from '../../../api/condition';
+import { ConditionLogic } from '../ConditionLogic';
 import { Creature } from '../../../lib/creature/Creature';
 import Thing from '../../../lib/stuff/Thing';
 import { StuffApi } from '../../../api/stuff';
@@ -37,13 +37,13 @@ function trauma(c: Creature): Trauma {
   return t as Trauma;
 }
 
-describe('HarmLogic.inflict — producer spine', () => {
+describe('ConditionLogic.inflict — producer spine', () => {
   beforeEach(() => installV1QuantityMarshallers());
   afterEach(() => StuffApi.clearAll());
 
   it('maps mechanism → type, energy → severity, records the mechanism', () => {
     const body = makeStuff(() => new Creature());
-    const out = HarmApi.inflict(body, {
+    const out = ConditionApi.inflict(body, {
       mechanism: 'sharp',
       site: 'body.leg.left.foot',
       energy: 1.5,
@@ -58,7 +58,7 @@ describe('HarmLogic.inflict — producer spine', () => {
   });
 
   it('maps every mechanism to its trauma type', () => {
-    const cases: Array<[Parameters<typeof HarmApi.inflict>[1]['mechanism'], string]> =
+    const cases: Array<[Parameters<typeof ConditionApi.inflict>[1]['mechanism'], string]> =
       [
         ['sharp', 'laceration'],
         ['blunt', 'contusion'],
@@ -68,7 +68,7 @@ describe('HarmLogic.inflict — producer spine', () => {
       ];
     for (const [mechanism, type] of cases) {
       const body = makeStuff(() => new Creature());
-      HarmApi.inflict(body, { mechanism, site: 'body.torso', energy: 1 });
+      ConditionApi.inflict(body, { mechanism, site: 'body.torso', energy: 1 });
       expect(trauma(body).type).toBe(type);
     }
   });
@@ -85,7 +85,7 @@ describe('HarmLogic.inflict — producer spine', () => {
         'executeCommand',
         cmdFrame(giver),
         () => {
-          HarmApi.inflict(body, {
+          ConditionApi.inflict(body, {
             mechanism: 'sharp',
             site: 'body.torso',
             energy: 1,
@@ -109,7 +109,7 @@ describe('HarmLogic.inflict — producer spine', () => {
         'executeCommand',
         cmdFrame(giver, true),
         () => {
-          HarmApi.inflict(body, {
+          ConditionApi.inflict(body, {
             mechanism: 'sharp',
             site: 'body.torso',
             energy: 1,
@@ -123,7 +123,7 @@ describe('HarmLogic.inflict — producer spine', () => {
 
   it('leaves the inflicter undefined outside any command frame', () => {
     const body = makeStuff(() => new Creature());
-    HarmApi.inflict(body, {
+    ConditionApi.inflict(body, {
       mechanism: 'sharp',
       site: 'body.torso',
       energy: 1,
@@ -133,7 +133,7 @@ describe('HarmLogic.inflict — producer spine', () => {
 
   it('afflicts nothing on a non-wound-able (non-Vitals) target', () => {
     const notABody = makeStuff(() => new Thing());
-    const out = HarmApi.inflict(notABody, {
+    const out = ConditionApi.inflict(notABody, {
       mechanism: 'sharp',
       site: 'body.torso',
       energy: 1,
@@ -142,8 +142,8 @@ describe('HarmLogic.inflict — producer spine', () => {
     expect(out.trauma.type).toBe('laceration');
   });
 
-  it('denies a raw call to HarmLogic.inflict from outside HarmApi', () => {
-    const raw = makeStuff(() => new HarmLogic());
+  it('denies a raw call to ConditionLogic.inflict from outside ConditionApi', () => {
+    const raw = makeStuff(() => new ConditionLogic());
     const body = makeStuff(() => new Creature());
     let threw = false;
     try {

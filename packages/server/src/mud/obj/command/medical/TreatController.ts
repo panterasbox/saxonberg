@@ -24,7 +24,6 @@ import { MixinApi } from '../../../api/mixin';
 import { StuffApi } from '../../../api/stuff';
 import { ContainmentApi } from '../../../api/containment';
 import { AdvancementApi } from '../../../api/advancement';
-import { HarmApi } from '../../../api/harm';
 import { Mml } from '../../../api/mml';
 import type { Stuff } from '../../../lib/stuff/Stuff';
 import type { Vitals } from '../../../lib/vitals/Vitals';
@@ -147,11 +146,11 @@ export default class TreatController extends CommandController<TreatModel> {
     const difficulty = difficultyFor(wound);
     const outcome = outcomeFor(band, dressing.getDressingQuality());
 
-    // Mechanical effect: dress it (arrest the bleed, begin the clot), spend
-    // the item, and re-arm the tick so the dressed wound heals to clear.
+    // Mechanical effect: dress it (arrest the bleed, begin the clot) and
+    // spend the item. The dressed wound heals to clear on the next read
+    // (reconcile-on-read — no tick to arm).
     TRAUMA_BEHAVIOR[wound.type].resolve(target, wound);
     await StuffApi.destruct(dressing);
-    HarmApi.rearmWoundTicks(target);
 
     // Mint the graded deed into the treater's Transcript (the ActSignature).
     await AdvancementApi.recordDeed(giver, {

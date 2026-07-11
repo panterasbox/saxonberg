@@ -1,5 +1,9 @@
 # Harm driver — implementation plan
 
+> **MR-review superseded:** the Api is `ConditionApi` (not `HarmApi`) and the
+> wound progression is reconcile-on-read (not `ScheduleApi.recurring`); see
+> `docs/subsystems/harm.md`.
+
 **Requirements:** `docs/requirements/harm-driver-requirements.md` (authoritative, closed)
 **Branch slug:** `harm`
 **Artifact lifetime:** ephemeral; retired at pre-merge sweep.

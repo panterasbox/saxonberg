@@ -10,9 +10,10 @@
  * - step → bleed → (untreated, advance the world clock) → death by
  *   `exsanguination`.
  *
- * Movement is a real `Mobile.traverse` (fires the room's `onEntered`); the
- * wound-tick runs under fake timers + a manual world clock; the medic verbs
- * run through the real controllers (Mongo faked, scene stubbed).
+ * Movement is a real `Mobile.traverse` (fires the room's `onEntered`);
+ * wound progression is reconcile-on-read, driven by reading the body after
+ * advancing a manual world clock; the medic verbs run through the real
+ * controllers (Mongo faked, scene stubbed).
  */
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
@@ -87,13 +88,13 @@ function mover(path: string): MobileCreature {
   return c;
 }
 
-/** Bar → alley walk (real Mobile.traverse fires the alley's onEntered). */
+/** Street → alley walk (real Mobile.traverse fires the alley's onEntered). */
 async function walkIntoAlley(m: MobileCreature): Promise<GlassAlley> {
-  const bar = makeStuff(() => new Location());
+  const street = makeStuff(() => new Location());
   const alley = makeStuff(() => new GlassAlley());
-  ContainmentApi.move(m, bar);
+  ContainmentApi.move(m, street);
   const exit = makeStuff(
-    () => new Exit({ direction: 'west', source: bar, destination: alley })
+    () => new Exit({ direction: 'east', source: street, destination: alley })
   );
   await m.traverse(exit, 'walk');
   return alley;
@@ -105,10 +106,12 @@ function wound(m: Creature): Trauma | undefined {
     | undefined;
 }
 
-function tick(times = 1): void {
+/** Advance game-time one interval and READ the body to drive reconcile. */
+function tick(m: MobileCreature, times = 1): void {
   for (let i = 0; i < times; i++) {
     real += TICK;
     vi.advanceTimersByTime(TICK);
+    m.getConditionBand(); // a read drives reconcile-on-read
   }
 }
 
@@ -181,7 +184,7 @@ describe('GlassAlley — full loop', () => {
     expect(wound(m)!.bleeding).toBe(false);
 
     let guard = 0;
-    while (wound(m) && guard++ < 400) tick();
+    while (wound(m) && guard++ < 400) tick(m);
     expect(wound(m)).toBeUndefined(); // healed to clear
   });
 
@@ -212,7 +215,7 @@ describe('GlassAlley — full loop', () => {
     expect(wound(m)!.bleeding).toBe(true);
 
     let guard = 0;
-    while (m.getLifecycleState() !== 'dead' && guard++ < 100) tick();
+    while (m.getLifecycleState() !== 'dead' && guard++ < 100) tick(m);
     expect(m.getLifecycleState()).toBe('dead');
     expect(m.getCauseOfDeath()).toBe('exsanguination');
   });

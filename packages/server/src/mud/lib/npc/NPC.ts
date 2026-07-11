@@ -21,24 +21,9 @@
 import { Character } from '../character/Character';
 import { PostRegistrationMixin } from '../stuff/PostRegistration';
 import { BehavedMixin } from '../behavior/Behaved';
-import { HarmApi } from '../../api/harm';
 
 const NPCBase = BehavedMixin(PostRegistrationMixin(Character));
 
-export class NPC extends NPCBase {
-  /**
-   * Chain `super.postRegister()` (Behaved wires the `behaviors:` spec),
-   * then re-arm the wound-tick — the NPC body-warm seam mirroring
-   * `Avatar.enter` for players. A wounded NPC restored from a template
-   * (its bleeding trauma persisted, its transient tick handle lost)
-   * resumes bleeding/healing. Idempotent no-op when it carries no active
-   * trauma. (A bare `Creature`/`Character` without this hook won't
-   * auto-re-arm — a documented degenerate; the proof body is an Avatar.)
-   */
-  override async postRegister(context?: unknown): Promise<void> {
-    await super.postRegister(context);
-    HarmApi.rearmWoundTicks(this);
-  }
-}
+export class NPC extends NPCBase {}
 
 export default NPC;

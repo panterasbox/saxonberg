@@ -1,19 +1,22 @@
-# GlassAlley — the harm-driver demonstrator, one walkable exit west of
-# Dave's Bar. Broken glass on the ground: walk in barefoot and it cuts a
-# foot (a laceration through HarmApi.inflict, gated on foot coverage —
-# shoes protect); the bleed + limp are then something the medic loop
-# (`assess` → `treat`) has to deal with. A couple of bandages are stocked
-# on the ground so the treat loop is playable right here. The hazard is
-# the room's own `onEntered` (a one-off class, not a reusable mixin).
+# GlassAlley — the harm-driver demonstrator, one walkable exit (down the
+# service stair) off the Terminus Terminal hall. Broken glass on the
+# ground: walk in barefoot and it cuts a foot (a laceration through
+# ConditionApi.inflict, gated on foot coverage — shoes protect); the bleed
+# + limp are then something the medic loop (`assess` → `treat`) has to deal
+# with. A couple of bandages are stocked on the ground so the treat loop is
+# playable right here. The hazard is the room's own `onEntered` (a one-off
+# class, not a reusable mixin). The hall wires the `down` exit in; this
+# template declares its own back exit (`up`) so both sides are self-
+# describing.
 class: /domain/lounge/GlassAlley
 hydratorClass: /lib/persistence/PersistentHydrator
 data:
-  shortDescription: the service alley behind Dave's
+  shortDescription: the service alley behind the terminal
   primaryKeyword: alley
   longDescription: |
-    A cramped brick throat of an alley behind the bar, barely shoulder-wide, that smells of rain and spilled beer. The ground is a minefield of broken bottles — green and brown glass ground into the wet concrete, catching the light from the bar's back door. A dented first-aid tin has been left open against the wall, its contents spilling out. Watch your step; better yet, watch your feet.
+    A cramped brick throat of an alley behind the station, barely shoulder-wide, that smells of rain and cold iron. The ground is a minefield of broken bottles — green and brown glass ground into the wet concrete, catching the light from the terminal's back door. A dented first-aid tin has been left open against the wall, its contents spilling out. Watch your step; better yet, watch your feet.
 
-    The bar is back through the door to the east.
+    The terminal hall is back up the service steps.
   details:
     glass:
       keywords: [glass, bottle, bottles, shard, shards, floor, ground]
@@ -24,8 +27,8 @@ data:
       description: |
         A battered first-aid tin, lid rusted open, tipped against the wall. A few clean bandages have spilled out onto a folded rag — enough to bind a cut, if you're quick about it.
   exits:
-    east:
-      destination: /domain/lounge/bar
+    up:
+      destination: /domain/terminus/terminal/hall
       bidirectional: false
   populates:
     - /domain/lounge/bandage

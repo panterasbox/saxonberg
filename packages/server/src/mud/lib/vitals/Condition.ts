@@ -16,8 +16,11 @@
  *
  * This build ships the **shapes only** — the type system, the table
  * skeleton with a no-op exemplar, the `Condition` class, and ZERO
- * authored content. No live progression. Progression shapes target
- * `ScheduleApi.recurring` (NOT the engagement-bound `ScheduledEmission`).
+ * authored content for afflictions. Trauma progression is driven
+ * **reconcile-on-read** by `VitalsMixin.reconcileConditions` (the
+ * metabolism / thermal / respiration precedent), NOT a recurring push
+ * tick: each active trauma carries a persisted game-time `tickedAt`
+ * stamp, and the read methods integrate the elapsed game-time.
  */
 
 import { Idea } from '../stuff/Idea';
@@ -54,7 +57,7 @@ export type TraumaType =
  * read it later. v1 stores it but it has **NO severity interaction yet**
  * (magnitude-only severity — "damage type is explicitly not the model").
  * The closed vocabulary maps bijectively onto {@link TraumaType} in
- * `HarmLogic.inflict`. Grow additively.
+ * `ConditionLogic.inflict`. Grow additively.
  */
 export type Mechanism =
   | 'sharp'
@@ -94,21 +97,32 @@ export interface Trauma {
    * an environmental / far-cause / unattributable insult.
    */
   inflictedBy?: string;
-  // The runtime ScheduleApi.recurring handle a future tick holds is NOT
-  // persisted — re-arm on hydrate.
+  /**
+   * The game-time (seconds) this trauma was last integrated — the
+   * reconcile-on-read anchor. Stamped at `inflict` and advanced on every
+   * `VitalsMixin.reconcileConditions`. Persisted (rides the `conditions`
+   * collection), so a body coming live simply resumes from its last
+   * stamp — no re-arm seam. Undefined until the first read stamps it.
+   */
+  tickedAt?: number;
 }
 
 /**
  * Engine dials for the harm driver — playtest-tuned rates, greppable and
  * retunable in one place (the `UNIVERSE_DEFAULT_VITAL_PROFILE` / metabolism
  * `*_DEFAULTS` precedent — a capability's dials live in its own module).
- * Read by the {@link TRAUMA_BEHAVIOR} strategies and the `HarmLogic`
- * wound-tick driver. NOT plan decisions or engine invariants.
+ * Read by the {@link TRAUMA_BEHAVIOR} strategies and
+ * `VitalsMixin.reconcileConditions`. NOT plan decisions or engine
+ * invariants.
  */
 export const HARM_DEFAULTS = {
   /** energy → severity (magnitude-only; mechanism is NOT scored in v1). */
   SEVERITY_PER_ENERGY: 1,
-  /** Wound-tick cadence (real-time); the DRAIN is computed in game-time. */
+  /**
+   * Nominal wound integration step (real-ms). Progression is
+   * reconcile-on-read (no live cadence), but tests advance the manual
+   * clock by this step; the DRAIN is computed in game-time.
+   */
   TICK_INTERVAL_MS: 5_000,
   /** Presence far-past guard (game-seconds) — mirrors the metabolism guard. */
   MAX_REASONABLE_GAP_SEC: 4 * 60 * 60,
@@ -154,9 +168,10 @@ export interface ProgressionSpec {
 /**
  * Per-trauma-type behavior — onset / tick / resolve / reopen / describe,
  * the strategy table co-located with the value. `tick(host, t, elapsedSec)`
- * is driven by the `HarmLogic` recurring wound-tick, which owns the
- * game-time elapsed (the drain is computed in game-time so it freezes on
- * absence). `resolve` is the *dress* action (arrest the bleed / begin the
+ * is driven by `VitalsMixin.reconcileConditions` (reconcile-on-read), which
+ * owns the game-time elapsed since the trauma's `tickedAt` stamp (the drain
+ * is computed in game-time so it freezes on absence). `resolve` is the
+ * *dress* action (arrest the bleed / begin the
  * clot); `reopen` is the *undress* action (remove the dressing — re-arm the
  * bleed iff still above the clot threshold). The consuming verbs
  * (`TreatController` / `UndressController`) call `.resolve` / `.reopen`
