@@ -19,8 +19,9 @@
 
 import React from "react";
 import styled from "styled-components";
-import type { StudioFieldDescriptor } from "@saxonberg/types";
+import type { CmsTreeEntry, StudioFieldDescriptor } from "@saxonberg/types";
 import { tokens } from "../../../ui";
+import { cmsClient } from "../../cmsClient";
 
 /** Props every Studio widget receives. */
 export interface WidgetProps {
@@ -225,24 +226,177 @@ export const QuantityWidget: React.FC<WidgetProps> = ({
   );
 };
 
+/**
+ * Ref types that are catalogue DATA, not content-template classes — a path
+ * picker over the content tree wouldn't find them, so the widget degrades to
+ * a labelled text input for these (never breaks).
+ */
+const CATALOGUE_DATA_REF_TYPES = new Set([
+  "Material",
+  "Biome",
+  "Topic",
+  "Clade",
+  "Species",
+  "Corpo",
+  "Brand",
+  "Discipline",
+  "Emote",
+  "Recipe",
+  "Quantity",
+  "Unit",
+]);
+
+// --- reference-picker tree browser ----------------------------------------
+
+const BrowseButton = styled.button`
+  background: ${tokens.color.actionBg};
+  color: ${tokens.color.fg};
+  border: 1px solid ${tokens.color.border};
+  border-radius: ${tokens.radius.md};
+  font-family: ${tokens.font.family};
+  font-size: ${tokens.font.micro};
+  padding: 2px ${tokens.space.sm};
+  margin-left: ${tokens.space.sm};
+  cursor: pointer;
+`;
+
+const Browser = styled.div`
+  margin-top: ${tokens.space.xs};
+  border: 1px solid ${tokens.color.borderMuted};
+  border-radius: ${tokens.radius.md};
+  max-height: 12rem;
+  overflow: auto;
+  background: ${tokens.color.surface};
+`;
+
+const Crumb = styled.div`
+  font-family: ${tokens.font.mono};
+  font-size: ${tokens.font.micro};
+  color: ${tokens.color.fgMuted};
+  padding: ${tokens.space.xs} ${tokens.space.sm};
+  border-bottom: 1px solid ${tokens.color.borderMuted};
+`;
+
+const Entry = styled.button`
+  display: block;
+  width: 100%;
+  text-align: left;
+  background: transparent;
+  color: ${tokens.color.fg};
+  border: none;
+  padding: 2px ${tokens.space.sm};
+  cursor: pointer;
+  font-family: ${tokens.font.mono};
+  font-size: ${tokens.font.micro};
+
+  &:hover {
+    background: ${tokens.color.surfaceSunken};
+  }
+`;
+
+/**
+ * A lazy content-template tree browser: navigates the `content` backend and
+ * selects a leaf path. Path-only filtering (`listTree` carries no class), so
+ * v1 shows all leaves and hints the target type — pragmatic, never wrong.
+ */
+const ContentTreeBrowser: React.FC<{
+  refType?: string;
+  onPick: (path: string) => void;
+}> = ({ refType, onPick }) => {
+  const [cwd, setCwd] = React.useState("/");
+  const [entries, setEntries] = React.useState<CmsTreeEntry[] | null>(null);
+  const [error, setError] = React.useState<string | null>(null);
+
+  React.useEffect(() => {
+    let live = true;
+    setEntries(null);
+    setError(null);
+    cmsClient
+      .listTree("content", cwd)
+      .then((listing) => {
+        if (live) setEntries(listing.entries);
+      })
+      .catch((e: unknown) => {
+        if (live) setError(e instanceof Error ? e.message : "browse failed");
+      });
+    return () => {
+      live = false;
+    };
+  }, [cwd]);
+
+  const parent =
+    cwd === "/" ? null : cwd.replace(/\/[^/]+$/, "") || "/";
+
+  return (
+    <Browser>
+      <Crumb>
+        {refType ? `${refType} · ` : ""}
+        {cwd}
+      </Crumb>
+      {parent !== null && (
+        <Entry onClick={() => setCwd(parent)}>../</Entry>
+      )}
+      {error && <Entry disabled>error: {error}</Entry>}
+      {entries === null && !error && <Entry disabled>loading…</Entry>}
+      {entries?.map((e) =>
+        e.kind === "folder" ? (
+          <Entry key={e.path} onClick={() => setCwd(e.path)}>
+            {e.name}/
+          </Entry>
+        ) : (
+          <Entry key={e.path} onClick={() => onPick(e.path)}>
+            {e.name}
+          </Entry>
+        ),
+      )}
+    </Browser>
+  );
+};
+
 export const ReferencePickerWidget: React.FC<WidgetProps> = ({
   descriptor,
   value,
   isSet,
   onChange,
-}) => (
-  <>
-    <Field
-      type="text"
-      value={isSet && typeof value === "string" ? value : ""}
-      placeholder={placeholderOf(descriptor)}
-      onChange={(e) => onChange(e.target.value)}
-    />
-    <Note>
-      → picker (P3){descriptor.refType ? ` · ${descriptor.refType}` : ""}
-    </Note>
-  </>
-);
+}) => {
+  const [browsing, setBrowsing] = React.useState(false);
+  // A catalogue-data ref (Material, Biome, …) isn't a content template — the
+  // tree browser can't find it, so degrade to the labelled text input.
+  const browsable =
+    !descriptor.refType || !CATALOGUE_DATA_REF_TYPES.has(descriptor.refType);
+  return (
+    <>
+      <Field
+        type="text"
+        value={isSet && typeof value === "string" ? value : ""}
+        placeholder={placeholderOf(descriptor)}
+        onChange={(e) => onChange(e.target.value)}
+      />
+      <Note>
+        {descriptor.refType ? `→ ${descriptor.refType}` : "→ reference"}
+        {browsable ? (
+          <BrowseButton
+            type="button"
+            onClick={() => setBrowsing((b) => !b)}
+          >
+            {browsing ? "close" : "browse…"}
+          </BrowseButton>
+        ) : (
+          " (path)"
+        )}
+      </Note>
+      {browsing && browsable && (
+        <ContentTreeBrowser
+          refType={descriptor.refType}
+          onPick={(path) => {
+            onChange(path);
+            setBrowsing(false);
+          }}
+        />
+      )}
+    </>
+  );
+};
 
 export const RawJsonWidget: React.FC<WidgetProps> = ({
   descriptor,

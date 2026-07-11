@@ -13,18 +13,37 @@ import { ExecutionContextApi } from '../../api/execution-context';
 import { StuffApi } from '../../api/stuff';
 import { MixinApi } from '../../api/mixin';
 import type { AnyConstructor } from '../../api/mixin';
+import { ProvenanceApi } from '../../api/provenance';
 import { Quantity } from '../../lib/quantity';
 import { StudioError } from '../../api/studio';
+import { Blueprint } from '../../lib/studio/Blueprint';
+import type BlueprintCatalogue from '../BlueprintCatalogue';
 import type { Stuff } from '../../lib/stuff/Stuff';
 import type {
   AuthorableFieldDescriptor,
   AuthorableFieldsArtifact,
+  BlueprintDetail,
+  BlueprintSummary,
+  BlueprintWriteResult,
   ClassDescription,
+  PublishBlueprintInput,
   StudioFieldDescriptor,
   StudioValueSource,
 } from '@saxonberg/types';
 
 const StudioApiCallers = SecurityPolicies.FromModule('/api/studio#StudioApi');
+
+/** The runtime blueprint index singleton — ungated reference reads. */
+const CATALOGUE_PATH = '/obj/BlueprintCatalogue';
+
+/**
+ * Synthetic provenance path for a blueprint's naming act. The curated
+ * commons has no per-owner namespace, so `publishBlueprint` attributes the
+ * naming act against this stable per-id path (Risk (d)).
+ */
+function blueprintProvenancePath(blueprintId: string): string {
+  return `${CATALOGUE_PATH}/${blueprintId}`;
+}
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 /** Root of the mudlib source tree (`.../src/mud`) — the classification scan. */
@@ -284,6 +303,90 @@ export class StudioLogic extends ApiLogic {
     return { classPath, mixins: mixinNames, fields };
   }
 
+  /** See {@link StudioApi.listBlueprints}. */
+  @CallSecurity(StudioApiCallers)
+  public async listBlueprints(): Promise<BlueprintSummary[]> {
+    await gateRead();
+    const catalogue = await this.requireCatalogue();
+    return catalogue.allBlueprints().map((bp) => toSummary(bp));
+  }
+
+  /** See {@link StudioApi.getBlueprint}. */
+  @CallSecurity(StudioApiCallers)
+  public async getBlueprint(blueprintId: string): Promise<BlueprintDetail> {
+    await gateRead();
+    const catalogue = await this.requireCatalogue();
+    const bp = catalogue.getBlueprint(blueprintId);
+    if (!bp) {
+      throw new StudioError('not-found', `no blueprint '${blueprintId}'`);
+    }
+    return toDetail(bp);
+  }
+
+  /** See {@link StudioApi.publishBlueprint}. */
+  @CallSecurity(StudioApiCallers)
+  public async publishBlueprint(
+    input: PublishBlueprintInput
+  ): Promise<BlueprintWriteResult> {
+    // Act #2 — naming/publishing a composition of already-approved classes is
+    // author-tier (no wizard). Denial is a graceful disposition, not a throw.
+    if (!(await AccessApi.isAuthor(actingActor()))) {
+      return {
+        disposition: 'denied',
+        message: 'you must be an author to publish a blueprint',
+      };
+    }
+    if (!input.name || !input.baseClass) {
+      throw new StudioError('invalid', 'name and baseClass are required');
+    }
+
+    const mixinNames = [...new Set(input.mixinNames ?? [])].sort();
+    const signature = Blueprint.signatureFromParts(input.baseClass, mixinNames);
+    const catalogue = await this.requireCatalogue();
+
+    // Dedup on signature: a collision reuses the existing durable id (stable
+    // across rename), attaching the new name/metadata to the same blueprint.
+    const existing = catalogue.findBySignature(signature);
+    const bp = existing ?? new Blueprint();
+    const blueprintId = existing
+      ? existing.getBlueprintId()
+      : mintBlueprintId(input.name, signature);
+
+    bp.blueprintId = blueprintId;
+    bp.signature = signature;
+    bp.name = input.name;
+    bp.baseClass = input.baseClass;
+    bp.mixinNames = mixinNames;
+    bp.kind = input.kind ?? 'composition';
+    bp.classPath = input.classPath ?? '';
+    bp.parent = input.parent ?? '';
+    bp.blessed = input.blessed ?? false;
+    bp.description = input.description ?? '';
+    await bp.save();
+    catalogue.upsert(bp);
+
+    // Attribute the naming act to the context-derived author (never a param).
+    // `Blueprint.save` bypasses the `saveTemplate` chokepoint, so the row is
+    // recorded here against the synthetic per-id provenance path.
+    await ProvenanceApi.recordAuthoring({
+      path: blueprintProvenancePath(blueprintId),
+    });
+
+    return { disposition: 'committed', blueprintId };
+  }
+
+  /**
+   * Resolve the ungated {@link BlueprintCatalogue} singleton (the
+   * gating-on-the-Api, reference-read-on-the-catalogue split). Prefers the
+   * live registered instance (HMR/test-reset supersede a stale handle).
+   */
+  private async requireCatalogue(): Promise<BlueprintCatalogue> {
+    const found =
+      StuffApi.findByTemplatePath<BlueprintCatalogue>(CATALOGUE_PATH);
+    if (found) return found;
+    return StuffApi.singleton<BlueprintCatalogue>(CATALOGUE_PATH);
+  }
+
   /** Lazily build + cache the source-scan classification. */
   private getClassification(): Map<string, MixinClassification> {
     if (!this.classification) this.classification = scanClassification();
@@ -430,6 +533,48 @@ export class StudioLogic extends ApiLogic {
       }
     }
   }
+}
+
+/** Project a stored {@link Blueprint} to its wire summary. */
+function toSummary(bp: Blueprint): BlueprintSummary {
+  const s: BlueprintSummary = {
+    blueprintId: bp.getBlueprintId(),
+    name: bp.getName(),
+    kind: bp.getKind(),
+    baseClass: bp.getBaseClass(),
+    mixinNames: [...bp.getMixinNames()],
+    blessed: bp.isBlessed(),
+  };
+  const classPath = bp.getClassPath();
+  if (classPath) s.classPath = classPath;
+  const parent = bp.getParent();
+  if (parent) s.parent = parent;
+  const description = bp.getDescription();
+  if (description) s.description = description;
+  return s;
+}
+
+/** Project a stored {@link Blueprint} to its wire detail (summary + sig). */
+function toDetail(bp: Blueprint): BlueprintDetail {
+  return { ...toSummary(bp), signature: bp.getSignature() };
+}
+
+/**
+ * Mint a stable, unique blueprintId for a brand-new composition — a name
+ * slug plus a short signature-derived suffix (so two distinct compositions
+ * that happen to share a name don't collide on id).
+ */
+function mintBlueprintId(name: string, signature: string): string {
+  const slug =
+    name
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '') || 'blueprint';
+  let hash = 0;
+  for (let i = 0; i < signature.length; i++) {
+    hash = (hash * 31 + signature.charCodeAt(i)) | 0;
+  }
+  return `${slug}-${(hash >>> 0).toString(36)}`;
 }
 
 /** Infer a readable widget-selection type string from a sample value. */

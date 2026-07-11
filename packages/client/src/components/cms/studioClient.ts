@@ -10,7 +10,12 @@
  * reuses the existing CMS content-write path (`cmsClient.write`).
  */
 
-import type { ClassDescription, StudioErrorBody } from "@saxonberg/types";
+import type {
+  BlueprintDetail,
+  BlueprintSummary,
+  ClassDescription,
+  StudioErrorBody,
+} from "@saxonberg/types";
 import { SERVER_URL } from "../../config";
 
 /** Thrown on any non-2xx Studio response, carrying the `StudioErrorBody`. */
@@ -66,5 +71,24 @@ export const studioClient = {
       credentials: "include",
     });
     return unwrap<ClassDescription>(res);
+  },
+
+  /**
+   * List every catalogued blueprint — the derived skeleton (one per backing
+   * class) plus the curated overlay. The class picker groups these by
+   * `parent` and surfaces `blessed` first.
+   */
+  async listBlueprints(): Promise<BlueprintSummary[]> {
+    const res = await fetch(`${BASE}/blueprints`, { credentials: "include" });
+    return unwrap<BlueprintSummary[]>(res);
+  },
+
+  /** Resolve one blueprint by durable id (summary + structural signature). */
+  async getBlueprint(blueprintId: string): Promise<BlueprintDetail> {
+    const params = new URLSearchParams({ id: blueprintId });
+    const res = await fetch(`${BASE}/blueprint?${params.toString()}`, {
+      credentials: "include",
+    });
+    return unwrap<BlueprintDetail>(res);
   },
 };

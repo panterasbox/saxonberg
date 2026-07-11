@@ -25,13 +25,25 @@ import { HotReloadApi } from './hot-reload';
 import { SecurityApi } from './security';
 import { StudioLogic } from '../obj/api/StudioLogic';
 import { fileURLToPath } from 'url';
-import type { ClassDescription } from '@saxonberg/types';
+import type {
+  BlueprintDetail,
+  BlueprintSummary,
+  BlueprintWriteResult,
+  ClassDescription,
+  PublishBlueprintInput,
+} from '@saxonberg/types';
 
 export type {
   ClassDescription,
   StudioFieldDescriptor,
   StudioValueSource,
   StudioErrorBody,
+  BlueprintSummary,
+  BlueprintDetail,
+  BlueprintWriteResult,
+  BlueprintKind,
+  PublishBlueprintInput,
+  StudioDisposition,
 } from '@saxonberg/types';
 
 /**
@@ -96,6 +108,39 @@ export class StudioApi {
     contextPath?: string
   ): Promise<ClassDescription> {
     return logic().describeClass(classPath, contextPath);
+  }
+
+  /**
+   * List every catalogued blueprint — the derived skeleton (one per backing
+   * class) plus the curated overlay. Read-gated (author-tier) on the
+   * context-derived actor; the underlying `BlueprintCatalogue` singleton is
+   * ungated reference data (the gating-at-the-Api split).
+   */
+  public static listBlueprints(): Promise<BlueprintSummary[]> {
+    return logic().listBlueprints();
+  }
+
+  /**
+   * Resolve one blueprint by its durable id (summary + structural
+   * signature). Read-gated; throws `StudioError('not-found')` when unknown.
+   */
+  public static getBlueprint(blueprintId: string): Promise<BlueprintDetail> {
+    return logic().getBlueprint(blueprintId);
+  }
+
+  /**
+   * Name/publish a composition of already-approved classes (creation act
+   * #2 — author-tier, no wizard). **Dedups on the structural signature**
+   * (`baseClass` + `mixinNames`): a collision reuses the existing durable
+   * `blueprintId` (stable across rename). The author is derived from context
+   * and recorded as an `AuthoringEvent` — takes **no `actor` argument by
+   * design** (anti-spoof). Returns `{ disposition: 'committed', blueprintId }`
+   * or `{ disposition: 'denied', message }` for a non-author.
+   */
+  public static publishBlueprint(
+    input: PublishBlueprintInput
+  ): Promise<BlueprintWriteResult> {
+    return logic().publishBlueprint(input);
   }
 }
 

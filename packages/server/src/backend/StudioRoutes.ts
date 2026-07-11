@@ -4,9 +4,17 @@
  * Mirrors {@link CmsRoutes}: each route is 1:1 with a `StudioApi` op through
  * the {@link CmsSession} attribution bridge (which resolves the session
  * Avatar, plants the Root frame, and stamps the acting author). P1 exposes
- * one read:
+ * these routes:
  *
- *   GET /api/studio/describe?class=&context=   → StudioApi.describeClass
+ *   GET  /api/studio/describe?class=&context=  → StudioApi.describeClass
+ *   GET  /api/studio/blueprints                → StudioApi.listBlueprints
+ *   GET  /api/studio/blueprint?id=             → StudioApi.getBlueprint
+ *   POST /api/studio/blueprint                 → StudioApi.publishBlueprint
+ *                                                (CSRF-protected)
+ *
+ * The blueprint POST reuses the CMS double-submit CSRF token (shared
+ * session): the client fetches `/api/cms/csrf` once and sends it in the
+ * `X-CMS-CSRF` header, compared against `req.session.cmsCsrf`.
  *
  * **No authz lives here.** The route validates payload shape, calls the
  * bridge, and maps the typed errors `StudioApi` throws onto HTTP status
@@ -17,6 +25,7 @@
 
 import type { Express, Response } from 'express';
 import { StudioApi, StudioError } from '../mud/api/studio';
+import type { PublishBlueprintInput } from '../mud/api/studio';
 import { AuthMiddleware } from '../services/auth/AuthMiddleware';
 import { CmsSession } from './CmsSession';
 
@@ -58,6 +67,88 @@ export class StudioRoutes {
           req,
           'studio.describeClass',
           () => StudioApi.describeClass(classPath, context)
+        );
+        res.json(out);
+      } catch (e) {
+        sendStudioError(res, e);
+      }
+    });
+
+    // ---- blueprint catalogue reads --------------------------------
+    app.get('/api/studio/blueprints', requireAuth, async (req, res) => {
+      try {
+        const out = await CmsSession.runAsSessionPlayer(
+          req,
+          'studio.listBlueprints',
+          () => StudioApi.listBlueprints()
+        );
+        res.json(out);
+      } catch (e) {
+        sendStudioError(res, e);
+      }
+    });
+
+    app.get('/api/studio/blueprint', requireAuth, async (req, res) => {
+      const id = typeof req.query.id === 'string' ? req.query.id : '';
+      if (!id) {
+        res.status(400).json({ code: 'invalid', message: 'missing id' });
+        return;
+      }
+      try {
+        const out = await CmsSession.runAsSessionPlayer(
+          req,
+          'studio.getBlueprint',
+          () => StudioApi.getBlueprint(id)
+        );
+        res.json(out);
+      } catch (e) {
+        sendStudioError(res, e);
+      }
+    });
+
+    // ---- blueprint publish (CSRF-protected) -----------------------
+    app.post('/api/studio/blueprint', requireAuth, async (req, res) => {
+      // CSRF double-submit: header must match the (shared CMS) session token.
+      const header = req.get('X-CMS-CSRF');
+      const expected = req.session.cmsCsrf;
+      if (!expected || !header || header !== expected) {
+        res.status(403).json({ code: 'denied', message: 'csrf' });
+        return;
+      }
+      const body = req.body as Partial<PublishBlueprintInput> | undefined;
+      if (
+        !body ||
+        typeof body.name !== 'string' ||
+        typeof body.baseClass !== 'string'
+      ) {
+        res
+          .status(400)
+          .json({ code: 'invalid', message: 'name and baseClass required' });
+        return;
+      }
+      const input: PublishBlueprintInput = {
+        name: body.name,
+        baseClass: body.baseClass,
+        kind: body.kind === 'concrete' ? 'concrete' : 'composition',
+        mixinNames: Array.isArray(body.mixinNames)
+          ? body.mixinNames.filter((m): m is string => typeof m === 'string')
+          : [],
+        ...(typeof body.classPath === 'string'
+          ? { classPath: body.classPath }
+          : {}),
+        ...(typeof body.parent === 'string' ? { parent: body.parent } : {}),
+        ...(typeof body.blessed === 'boolean'
+          ? { blessed: body.blessed }
+          : {}),
+        ...(typeof body.description === 'string'
+          ? { description: body.description }
+          : {}),
+      };
+      try {
+        const out = await CmsSession.runAsSessionPlayer(
+          req,
+          'studio.publishBlueprint',
+          () => StudioApi.publishBlueprint(input)
         );
         res.json(out);
       } catch (e) {

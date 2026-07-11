@@ -2093,6 +2093,87 @@ export interface StudioErrorBody {
   message: string; // human detail
 }
 
+// ---- Blueprint catalogue (Studio / composition surface, P3) -------------
+
+/**
+ * The disposition of a Studio write (name/publish/commit). `committed` — the
+ * write landed; `denied` — the trust gate refused it (a graceful refusal, not
+ * a throw). The `proposed` slot is reserved for the future propose →
+ * wizard-review workflow (not implemented this build).
+ */
+export type StudioDisposition = 'committed' | 'denied'; // 'proposed' reserved
+
+/**
+ * A blueprint's structural kind:
+ *   - `composition` — a pure mixin-over-base composition (no custom
+ *     methods/own fields); recomposable, the palette's building blocks.
+ *   - `concrete` — a logic-bearing backing class (owns methods/state);
+ *     catalogued as a whole `kind` pointing at its `classPath`, NOT a
+ *     recomposable particle set.
+ */
+export type BlueprintKind = 'composition' | 'concrete';
+
+/**
+ * A catalogued blueprint — a structural composition (derived from a backing
+ * class or authored in the curated overlay). `blueprintId`/`signature` are
+ * the durable keys; `name` is a mutable display label. The `signature` is
+ * `<baseClass>|<sorted-mixin-names>` — two authors composing the same
+ * particles collide to one blueprint (the dedup key).
+ */
+export interface BlueprintSummary {
+  /** Durable id; stable across rename. The catalogue's primary key. */
+  blueprintId: string;
+  /** Mutable display label (never a key). */
+  name: string;
+  kind: BlueprintKind;
+  /** The composition base class name (`Idea`, `Thing`, `Character`, …). */
+  baseClass: string;
+  /** The effective mixin set's `_mixinName`s, sorted. */
+  mixinNames: string[];
+  /** Concrete kinds only: the backing class path (`/obj/Campfire`). */
+  classPath?: string;
+  /** Hierarchy grouping — a parent blueprintId or category key. */
+  parent?: string;
+  /** Curated + endorsed; blessed blueprints surface first in the picker. */
+  blessed: boolean;
+  /** Optional author-facing description. */
+  description?: string;
+}
+
+/** A blueprint detail — the summary plus its structural signature. */
+export interface BlueprintDetail extends BlueprintSummary {
+  /** `<baseClass>|<sorted-mixin-names>` — the dedup key. */
+  signature: string;
+}
+
+/**
+ * The `StudioApi.publishBlueprint` call shape — name/publish a composition of
+ * already-approved classes (author-tier, no wizard). The **actor is derived
+ * from context, never a parameter** (anti-spoof). Dedup is on the computed
+ * `signature` (`baseClass` + `mixinNames`): a collision reuses the existing
+ * `blueprintId`, so a rename attaches to the derived entry rather than
+ * duplicating it.
+ */
+export interface PublishBlueprintInput {
+  name: string;
+  kind: BlueprintKind;
+  baseClass: string;
+  mixinNames: string[];
+  classPath?: string;
+  parent?: string;
+  blessed?: boolean;
+  description?: string;
+}
+
+/** The result of a `publishBlueprint` — the disposition + the durable id. */
+export interface BlueprintWriteResult {
+  disposition: StudioDisposition;
+  /** The blueprint's durable id when `committed`; absent on `denied`. */
+  blueprintId?: string;
+  /** Human detail on `denied`. */
+  message?: string;
+}
+
 // ---- Help system --------------------------------------------------------
 
 /**
