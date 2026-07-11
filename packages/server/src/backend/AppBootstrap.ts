@@ -18,6 +18,7 @@ import { EmoteSeeder } from './EmoteSeeder';
 import { RecipeSeeder } from './RecipeSeeder';
 import { ScriptSeeder } from './ScriptSeeder';
 import { ChannelSeeder } from './ChannelSeeder';
+import { ParcelSeeder } from './ParcelSeeder';
 import { TwitchRelayReader } from './TwitchRelayReader';
 import { YoutubeRelayReader } from './YoutubeRelayReader';
 import { AppSettingsSeeder } from './AppSettingsSeeder';
@@ -147,6 +148,7 @@ export class AppBootstrap {
     await ScriptSeeder.run();
     await ChannelSeeder.run();
     await AppSettingsSeeder.run();
+    await ParcelSeeder.run();
 
     const cmd = await CommandApi.preloadAll();
     if (cmd.failed.length > 0) {

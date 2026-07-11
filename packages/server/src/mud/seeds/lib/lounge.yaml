@@ -1,10 +1,10 @@
 # /lib/lounge — the lounge team's ownership root (a FolderZone). Scopes write
-# access for lounge content. Owned by the managed group named `lounge`,
-# declared symbolically via `ownerGroupName` — the access layer mints-or-finds
-# the group and resolves the runtime ref on first access (replaces the retired
-# AccessRegistry.seedLoungeSlice boot hook).
+# access for lounge content. Ownership is NOT declared here: it lives in the
+# gated `parcels` collection (`/lib/lounge` → the managed `lounge` group; see
+# mud/config/parcels.yaml), never on this editable `domain` zone template —
+# the governing security invariant. The retired `ownerGroupName` stamp moved
+# to the parcel row.
 class: /lib/zone/FolderZone
 hydratorClass: /lib/persistence/PersistentHydrator
 data:
   name: lounge
-  ownerGroupName: lounge

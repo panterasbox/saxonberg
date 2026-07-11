@@ -60,6 +60,8 @@ export enum Collections {
   BankLedger = 'bank_ledger',
   BankAccounts = 'bank_accounts',
   BankSupply = 'bank_supply',
+  Parcels = 'parcels',
+  ParcelEvents = 'parcel_events',
 }
 
 /**
@@ -887,6 +889,24 @@ export class PersistenceManager {
 
       // Bank supply: the single-row running money-supply headline
       // (rebuildable from the ledger). One row — no index needed.
+
+      // Parcels: the real-property title registry (one doc per titled
+      // extent, the rebuildable current-state cache). Indexed on `extent`
+      // (the coverage-index key + the seed/mutation upsert lookup) and
+      // `parentParcel` (the sparse-hierarchy child scan).
+      await this.getCollection(Collections.Parcels).createIndex({
+        extent: 1,
+      });
+      await this.getCollection(Collections.Parcels).createIndex({
+        parentParcel: 1,
+      });
+
+      // Parcel events: the append-only chain-of-title log (one doc per
+      // title event; nothing overwritten — the `renown_events` shape).
+      // Indexed on `extent` (the lineage readout for a title).
+      await this.getCollection(Collections.ParcelEvents).createIndex({
+        extent: 1,
+      });
 
       console.info('PersistenceManager: Indexes created successfully');
     } catch (error) {

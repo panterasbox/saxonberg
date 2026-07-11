@@ -3,13 +3,14 @@
 # gate rooms, and the ticket office. "Terminus Terminal" as the hub label
 # rides this zone `name` + the room prose (generic rooms, no NamedMixin).
 #
-# Owned by the Terminus **municipality** group, declared symbolically:
-# `ownerGroupName` names the managed group, and the access layer mints-or-finds
-# it and resolves the runtime ref on first access (the `managed:<id>` can't be
-# authored — its id is runtime-minted). Data-driven; no `seed*Slice` boot hook.
+# Owned by the Terminus **municipality** group — but ownership is NOT declared
+# here. It lives in the gated `parcels` collection (`/domain/terminus/terminal`
+# → the managed `terminus` group; see mud/config/parcels.yaml), never on this
+# editable zone template (the governing security invariant). This is the first
+# spatial-zone (CartesianZone) ownership stamp. The retired `ownerGroupName`
+# moved to the parcel row.
 class: /lib/location/CartesianZone
 hydratorClass: /lib/persistence/PersistentHydrator
 data:
   name: Terminus Terminal
   cellSize: 3.0
-  ownerGroupName: terminus

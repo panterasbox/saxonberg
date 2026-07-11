@@ -20,18 +20,24 @@ gets a reference but `SecurityError` thrown on any method call.
 The substrate ships six orthogonal predicates:
 
 1. **`AccessApi.can(subject, action, resource)`** — resource-
-   targeted slice walk. Walks `resource.getZone()` upward via
-   `ZoneApi.getEnclosingZone`, collecting the closest stamped
-   `ownerGroup` AND every `accessGroups` entry along the way. If
-   the walk finds no owners, falls back to the universal `'core'`
-   group. The action is a free string; this build doesn't filter
-   ownership by action (any member-of-a-permitted-group authorizes
-   any action).
-2. **`AccessApi.canMutateZone(subject, zone)`** — role-gated. True
-   iff `subject` has `'owner'` role in the zone's primary
-   `ownerGroup`. Used by verb controllers when the target IS a Zone
-   Template (transfer ownership, mutate `accessGroups`, destruct
-   the slice).
+   targeted ownership check. Resolves the resource's zone
+   templatePath, then `ParcelApi.ownerOf(path)` (the total title →
+   self-home → state chain, longest-prefix over parcel extents —
+   see [parcel.md](./parcel.md)), and dispatches on the owner kind:
+   a **group** owner resolves to a ref and checks
+   `GroupApi.isMember`; a **player** owner is an identity match.
+   Untitled content resolves to the state (`'core'`) — byte-
+   identical to the former zone-tree flat-union walk (no seed used
+   `accessGroups`). The action is a free string; this build doesn't
+   filter ownership by action.
+2. **`AccessApi.canMutateZone(subject, zone)`** — role-gated. For a
+   **group** owner, true iff `subject` has the `'owner'` role in the
+   parcel's governing group; for a **player** owner, an identity
+   match. Used by verb controllers when the target IS a Zone
+   Template (transfer ownership, destruct the slice) — and by the
+   `subdivide` / `transfer` parcel verbs. Resolves title the same
+   way (`ParcelApi.ownerOf`); the covering parcel's owner is the
+   nearest-ancestor owner the former upward walk found.
 3. **`AccessApi.isAuthor(subject)`** — broad "is the actor a
    member of any group with content scope?". Used for MQL
    pre-gates that can't be resource-targeted (the result set IS
@@ -85,8 +91,8 @@ The Registry is an `Idea + PostRegistrationMixin` singleton at
   `isWizard` / `isStreamer` / `isArchwizard` call, invalidated via
   the managed provider's `onChange` callback.
 - `cachedAuthorGroups` — list of `GroupRef`s that count as
-  "author scope"; every group referenced by some Zone's
-  `ownerGroup` or `accessGroups`, plus `'core'`.
+  "author scope"; every group named by a `group`-kind parcel owner
+  (via `ParcelApi.groupOwnerRefs`), plus `'core'`.
 - `wizardCacheCancel` / `streamerCacheCancel` /
   `archwizardCacheCancel` — onChange cancellation handles, cleared
   on destruct.
@@ -112,60 +118,31 @@ The Registry is an `Idea + PostRegistrationMixin` singleton at
    playerIds from the `ARCHWIZARD_PLAYER_IDS` env var (additive +
    idempotent).
 
-**Zone-ownership groups are NOT seeded here** — a zone declares its owner
-**symbolically by name** in its own seed (`data.ownerGroupName: <name>`), and
-the access layer resolves it lazily: `effectiveOwnerRef(zone)` prefers an
-explicit `ownerGroup` ref, else `resolveOwnerGroupName(name)` mints-or-finds
-the managed group by that name (cached) and returns its runtime `managed:<id>`
-ref. This retires the per-area `seed*Slice` boot hooks (lounge, Terminus) — the
-lounge folder zones (`/lib/lounge`, `/domain/lounge`) and the Terminus terminal
-zone now carry `ownerGroupName` in their seeds; adding a new owned area is one
-seed field, no code. The template-scan `ensureAuthorGroups` resolves
-`ownerGroupName` on folder zones the same way.
+**Zone-ownership is NOT resolved here anymore.** As of property phase 0a,
+ownership moved out of the editable `domain` zone template into the gated
+`parcels` collection (the governing security invariant). The `ParcelRegistry`
+owns the title store + the mint-or-find group-ref resolution; `postRegister`
+seeds only the tag-like groups above. The former data-driven
+`effectiveOwnerRef` / `resolveOwnerGroupName` machinery is retired.
 
 Re-running boot against a populated DB is a no-op (existing
-Groups + existing FolderZone stamps are not overwritten; member
-seeding only adds missing ids).
+Groups are not overwritten; member seeding only adds missing ids).
 
-## Ownership on the Zone tree
+## Ownership: the parcel layer
 
-Two new persistent fields on `Zone`:
+Ownership is no longer stamped on `Zone` — the three ownership fields
+(`ownerGroup` / `accessGroups` / `ownerGroupName`) were **removed** in
+property phase 0a. Title is a **parcel** in the gated `parcels` registry,
+resolved by longest-prefix over parcel extents. `AccessApi.can` /
+`canMutateZone` / `isAuthor` consult `ParcelApi` for ownership; the access
+layer keeps only the *decision* logic (group membership/role vs. player
+identity). See **[parcel.md](./parcel.md)** for the registry, the
+`ownerOf` title → self-home → state chain, the sparse hierarchy, and the
+`subdivide` / `transfer` verbs.
 
-```ts
-class Zone {
-  protected _ownerGroup?: GroupRef;       // primary owner — explicit ref
-  protected _ownerGroupName?: string;     // OR a symbolic managed-group name
-  protected _accessGroups?: GroupRef[];   // secondary permitted groups
-  getOwnerGroup(): GroupRef | undefined;
-  setOwnerGroup(ref: GroupRef | undefined): void;
-  getOwnerGroupName(): string | undefined;
-  setOwnerGroupName(name: string | undefined): void;
-  getAccessGroups(): readonly GroupRef[] | undefined;
-  setAccessGroups(refs: readonly GroupRef[] | undefined): void;
-}
-```
-
-`_ownerGroup` is an explicit `managed:<id>` ref; `_ownerGroupName` is the
-**symbolic** authorable alternative (a managed-group *name*), resolved to a ref
-by the access layer (mint-or-find; see above) — the id can't be authored, so a
-zone declares the name and the runtime resolves it. The ref setter validates
-the `source:id` shape and throws on malformed entries. The fields land in
-`Zone.persistentFields = ['ownerGroup', 'accessGroups', 'ownerGroupName']`, so the
-Hydrator's two-phase dispatch round-trips them automatically.
-
-Both fields participate in the existing inheritance walk
-(`Zone.lookupField` / `Zone.lookupAncestorField`):
-
-- `ownerGroup` is the slice's primary owner — singular. The
-  `'owner'` role in this group can transfer ownership,
-  grant/revoke secondary access, and destruct the slice. Other
-  roles in this group still get content access via `can()`.
-- `accessGroups` is a list of secondary permitted groups —
-  collaborators, reviewers, guest contributors. All members of
-  any `accessGroups` entry get content access (any role) via
-  `can()`. They cannot perform zone-ownership-mutation ops.
-- `accessGroups` entries from parent zones **propagate to
-  children** — filesystem ACL semantics.
+The `accessGroups` flat-union multi-group ACL is a **conscious deletion to
+be re-provided** — no seed used it (byte-identical removal), and the
+multi-group / secondary-access capability returns as 0b's `grants[]` seam.
 
 ## The narrow-entry pattern
 
@@ -398,21 +375,26 @@ synchronously:
 `api/mql/permissions.ts` and `_MqlAdminFlag` test seam are
 retired.
 
-## The four bootstrap-seeded groups
+## The bootstrap-seeded groups
 
-| Group | Owner | FolderZone stamps | Purpose |
-|---|---|---|---|
-| `'core'` | `'system'` | none (universal fallback) | Default owner when the zone walk finds no stamped owner. Members authorize broadcast, soul, and any action against null-resource targets. |
-| `'lounge'` | `'system'` | `/lib/lounge`, `/domain/lounge` | Content slice owner for the lounge subsystem. Members can author lounge content. |
-| `'wizards'` | `'system'` | none (orthogonal axis) | Code-trust (TS-escape) capability. Members can `eval`, `reload`, write source, and set the code-naming fields on a content template. The slice walk constrains WHICH source area — see source-tree mode below. Env-seeded from `WIZARD_PLAYER_IDS`. |
-| `'streamers'` | `'system'` | none (orthogonal axis) | Livestream control plane. Members can run the `stream` verb. Seeded from `STREAMER_PLAYER_IDS`. See [livestream.md](./livestream.md). |
+`postRegister` mints four **tag-like** groups (membership from env vars, not
+zone ownership):
 
-All four start empty (bar any `STREAMER_PLAYER_IDS` seeds). With
-no members, every gated path denies — the secure default. Adding
-a new scoped group later is two records (Group + FolderZone
-stamp); adding a new wizard or streamer is a single
-member-add to `'wizards'` / `'streamers'` (or, for a wizard,
-`wizard grant`).
+| Group | Owner | Purpose |
+|---|---|---|
+| `'core'` | `'system'` | The state / universal fallback owner (`ownerOf`'s state rung). Members authorize broadcast, soul, and any action against null-resource / untitled targets. |
+| `'wizards'` | `'system'` | Code-trust (TS-escape) capability. Members can `eval`, `reload`, write source, and set the code-naming fields on a content template. Env-seeded from `WIZARD_PLAYER_IDS`. |
+| `'streamers'` | `'system'` | Livestream control plane. Members can run the `stream` verb. Seeded from `STREAMER_PLAYER_IDS`. See [livestream.md](./livestream.md). |
+| `'archwizards'` | `'system'` | Wizard-conferral capability (the `wizard grant/revoke` verb). Seeded from `ARCHWIZARD_PLAYER_IDS`. |
+
+All start empty (bar any env seeds) — with no members, every gated path
+denies (the secure default). **Content-slice owner groups** (`'lounge'`,
+`'terminus'`, …) are **not** seeded here: they're named by a
+`group`-kind parcel owner and minted **on-demand** by the parcel layer
+(`ParcelRegistry.resolveOwnerRef`, mint-or-find) when a parcel row is first
+read. Adding a new owned area is a `parcels` seed row (see
+[parcel.md](./parcel.md)); adding a wizard/streamer/archwizard is a single
+member-add.
 
 ## Action vocabulary
 
@@ -512,11 +494,24 @@ decision when the first scoped-authoring consumer cares.
   this builds on.
 - [grouping.md](./grouping.md) — `GroupApi.isMember` / `roleOf`,
   `ManagedGroupProvider.findByName`.
+- [parcel.md](./parcel.md) — the **real-property title** substrate
+  ownership resolution moved to (property phase 0a): `ParcelApi.ownerOf`,
+  the coverage index, the `subdivide` / `transfer` verbs, and the
+  `Zone` ownership-field removal.
 - [zone.md](./zone.md) — `Zone.lookupField` inheritance walk,
-  `ZoneApi.getEnclosingZone`, the `ownerGroup` / `accessGroups`
-  fields documented here.
-- [persistence.md](./persistence.md) +
-  [templates.md](./templates.md) — `persistentFields` round-trip
-  via `PersistentHydrator` for the new Zone fields.
+  `ZoneApi.getEnclosingZone` (the ownership fields it used to
+  document now live in the parcel layer).
 - [response-envelope.md](./response-envelope.md) —
   `controller-rejected` Note shape used on access denials.
+
+## History
+
+Property phase 0a (`feature/property-0a-title`, commit `81b250be`) moved
+ownership out of the editable `domain` zone template into the gated
+`parcels` collection — the governing security invariant (access-check data
+unspoofable by content edits). `can` / `canMutateZone` / `ensureAuthorGroups`
+were repointed onto `ParcelApi.ownerOf`; the three `Zone` ownership fields
+and the data-driven `effectiveOwnerRef` / `resolveOwnerGroupName` machinery
+were removed. The dispatch grew a **player-owner** case (identity match)
+alongside the group case (membership/role), since parcels can be titled to an
+individual. See [parcel.md](./parcel.md).

@@ -53,9 +53,10 @@ top:
 1. **An owner owns their own `/home/<self>/` branch** — keyed on the
    durable-path basename, so a player owns exactly the subtree the runtime
    banks under their name (recorded recipe-scripts today, a dorm's
-   customization tomorrow). No broader grant needed. *This is the
-   self-owner base case the fuller per-`/home/` access model will build
-   on.*
+   customization tomorrow). No broader grant needed. As of property phase
+   0a this rule is **shared, not forked**: `isOwnHomePath` consumes
+   `ParcelApi.selfHomeOwnerOf` (the single implementation, also rung 2 of
+   the parcel `ownerOf` chain — see [parcel.md](./parcel.md)).
 2. else the covering spatial zone gates via `AccessApi.canMutateZone`;
 3. else the slice-walk `AccessApi.can(write)`.
 
