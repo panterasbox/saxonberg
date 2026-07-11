@@ -290,11 +290,12 @@ the cross-lease "request the return" handling), **contents**
 archetype, or blank.
 
 **The zone editor (the map).** The same data one zoom out — rooms as nodes,
-exits as edges. Its distinctive jobs: **layout** (place rooms; in a
-`CartesianZone` grid, adjacency *derives* the cardinal exits — so intra-zone
-connectivity is built by *placement*, which is why the room editor's
-exit-picker handles only cross-zone/semantic exits; `SphericalZone` = a
-node-graph with semantic edges; `FolderZone` = a tree); **room birth**
+exits as edges. Its distinctive jobs: **layout** (place rooms; note exits are
+now **explicit-only** — the former grid-adjacency exit derivation was removed in
+the Terminus build, so the editor must *write* the reciprocal exit edges when it
+lays out or connects rooms rather than inferring them from placement;
+`SphericalZone` = a node-graph with semantic edges; `FolderZone` = a tree);
+**room birth**
 (placing a cell *creates* a room — clone-from-archetype — which the room
 editor then fleshes); **zone-scale leverage** (set **zone-carried defaults**
 — the authoring side of the room editor's "from zone" — plus bulk ops over

@@ -113,6 +113,10 @@ describe('EnrollController.commit → chronicle seeding', () => {
       setSex: vi.fn(),
       enter: vi.fn().mockResolvedValue(undefined),
       getTemplatePath: () => avatarPath,
+      // The commit path grants the onboarding coin to non-guests; this
+      // AppApi.setting mock returns a non-numeric string for the stipend
+      // key, so no mint fires — the guard just needs the accessor.
+      getIsGuest: () => false,
     };
     vi.spyOn(StuffApi, 'clone').mockImplementation(async (path: string) => {
       if (path.startsWith('/obj/Avatar/')) {

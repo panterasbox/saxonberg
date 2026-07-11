@@ -24,7 +24,7 @@ import {
 import CredentialWalletUpdate from "../CredentialWalletUpdate";
 import PaymentCard from "../../banking/PaymentCard";
 import TravelCard from "../../../domain/common/tpa/TravelCard";
-import { UNIVERSITY_AVENUE_NODE } from "../Credential";
+import { BORN_WITH_TRAVEL_NODES } from "../Credential";
 import { makeStuff } from "../../security/__tests__/test-setup";
 import type { Stuff } from "../../stuff/Stuff";
 
@@ -70,7 +70,9 @@ describe("CredentialWalletMixin holder", () => {
     expect(w2.getCredential("payment")!.hasAccount("acct-z")).toBe(true);
     const t = w2.getCredential("travel")!;
     expect(t.isRegistered("/domain/a/node")).toBe(true);
-    expect(t.isRegistered(UNIVERSITY_AVENUE_NODE)).toBe(true); // floor preserved
+    for (const node of BORN_WITH_TRAVEL_NODES) {
+      expect(t.isRegistered(node)).toBe(true); // floor preserved
+    }
   });
 });
 
@@ -89,10 +91,10 @@ describe("either-base resolution (one scan finds the holder)", () => {
       isWallet,
     );
     expect(resolved).toBe(wallet);
-    // Born-with University Avenue floor authorizes lounge → campus.
-    expect(
-      resolved?.getCredential("travel")!.isRegistered(UNIVERSITY_AVENUE_NODE),
-    ).toBe(true);
+    // Born-with three-node floor (interchange + lounge + paid destination).
+    for (const node of BORN_WITH_TRAVEL_NODES) {
+      expect(resolved?.getCredential("travel")!.isRegistered(node)).toBe(true);
+    }
     // `register` writes to the hosted update's travel record.
     resolved?.getCredential("travel")!.register("/domain/x/node");
     expect(wallet.getCredential("travel")!.isRegistered("/domain/x/node")).toBe(
@@ -112,9 +114,9 @@ describe("either-base resolution (one scan finds the holder)", () => {
       isWallet,
     );
     expect(resolved).toBe(card);
-    expect(
-      resolved?.getCredential("travel")!.isRegistered(UNIVERSITY_AVENUE_NODE),
-    ).toBe(true);
+    for (const node of BORN_WITH_TRAVEL_NODES) {
+      expect(resolved?.getCredential("travel")!.isRegistered(node)).toBe(true);
+    }
   });
 
   it("narrows the holders: update is AetherHosted, cards are carryable", () => {

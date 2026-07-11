@@ -153,22 +153,24 @@ export interface BidirectionalExitOptions {
  *
  * ```yaml
  * exits:
- *   north:
- *     destination: /narnia/castle/library
+ *   north:                                   # one edge; the neighbour's
+ *     destination: /narnia/castle/library    # template declares `south` back
  *   portal:
  *     destination: /narnia/dark-wood/clearing
- *     bidirectional: true
+ *     bidirectional: true                    # shares a Door → install both
  *     opposite: portal
  * ```
  *
  * `destination` is the template path of the destination Location;
  * the applier resolves it lazily via `StuffApi.singleton` (clones on
- * first need). `bidirectional` defaults to true for cardinal
- * directions (the inverse is inferred via
- * `NavigationApi.invertDirection`) and false for non-cardinal labels
- * unless `opposite` is supplied. `door` is the template path of an
- * optional Door whose anchors are installed transitively when
- * present.
+ * first need). Exits are authored **explicitly on both sides** — an entry
+ * installs only its own edge; the return trip is a separate entry on the
+ * destination's template (every template self-describes). `bidirectional`
+ * defaults to **false**; set it `true` to also install the reciprocal (the
+ * inverse is inferred via `NavigationApi.invertDirection` for cardinals, or
+ * `opposite` for labels) — used where the two exits share one physical `Door`,
+ * whose anchors must be wired once. `door` is the template path of an optional
+ * Door whose anchors are installed transitively when present.
  *
  * Per declarative-content-slate § exits on ExitableMixin.
  */
@@ -310,25 +312,15 @@ export function ExitableMixin<TBase extends MixinConstructor<Stuff & Container>>
     }
 
     /**
-     * Merged lookup:
-     *   1. explicit → wins
-     *   2. (subclass hook — `ExitableVessel` overrides for `'out'`)
-     *   3. zone-derived (only `CartesianZone` returns anything)
-     *   4. undefined
+     * Exits are **explicit only** — a room connects to exactly what its own
+     * template declares (`ExitableVessel` overrides for the vessel `'out'`
+     * hook). The zone no longer *synthesizes* exits from grid adjacency; it
+     * only *enforces* geometry invariants on authored exits (see
+     * `CartesianLocation.addExit`). Every template is self-describing: read it
+     * and you know what it connects to.
      */
     getExit(direction: string): Exit | undefined {
-      const explicit = this.exits.get(direction);
-      if (explicit) return explicit;
-
-      // `SpatialZone.deriveExit` is polymorphic: CartesianZone synthesizes
-      // a grid-adjacent Exit, SphericalZone always returns undefined.
-      // `Stuff.zone` is typed `SpatialZone | null` — non-spatial Zone
-      // subclasses (Clade) never stamp here, so no narrowing needed.
-      const zone = (this as unknown as Stuff).getZone();
-      return zone?.deriveExit(
-        this as unknown as import('../stuff/Location').default,
-        direction
-      );
+      return this.exits.get(direction);
     }
 
     /** Explicit exits only. For tooling / persistence. */
@@ -341,32 +333,14 @@ export function ExitableMixin<TBase extends MixinConstructor<Stuff & Container>>
     }
 
     /**
-     * Exits displayed by `look` — explicit ∪ derived, filtered by `!hidden`.
-     *
-     * Zones that synthesize cardinal-derived exits (CartesianZone) opt in
-     * via `Zone.hasDerivedAdjacency()`; zones without adjacency derivation
-     * (SphericalZone) skip the iteration entirely so we don't waste 10
-     * always-undefined `deriveExit` calls per query.
+     * Exits displayed by `look` — the explicit exits, filtered by `!hidden`.
+     * Explicit-only (see {@link getExit}); the zone no longer contributes
+     * grid-derived exits.
      */
     getObviousExits(): Exit[] {
       const result: Exit[] = [];
-      const seen = new Set<string>();
-
-      for (const [dir, exit] of this.exits) {
+      for (const exit of this.exits.values()) {
         if (!exit.isHidden()) result.push(exit);
-        seen.add(dir);
-      }
-
-      const zone = (this as unknown as Stuff).getZone();
-      if (zone?.hasDerivedAdjacency()) {
-        for (const dir of NavigationApi.cardinalDirections()) {
-          if (seen.has(dir)) continue;
-          const exit = zone.deriveExit(
-            this as unknown as import('../stuff/Location').default,
-            dir
-          );
-          if (exit && !exit.isHidden()) result.push(exit);
-        }
       }
       return result;
     }
@@ -526,8 +500,13 @@ export function ExitableMixin<TBase extends MixinConstructor<Stuff & Container>>
             }, incoming destination: ${spec.destination})`
         );
       }
-      const isCardinal = NavigationApi.isCardinalDirection(direction);
-      const bidirectional = spec.bidirectional ?? (isCardinal && !spec.oneWay);
+      // Exits are authored explicitly on BOTH sides — an exit creates only
+      // its OWN edge; the return trip is a separate declaration on the
+      // destination's template. `bidirectional: true` is an explicit opt-in
+      // that also installs the reciprocal (used where the two exits share one
+      // physical `Door`, whose boundary anchors must be wired once — the door
+      // IS the shared "both sides"). No cardinal auto-reciprocity.
+      const bidirectional = spec.bidirectional ?? false;
       if (bidirectional) {
         const opts: BidirectionalExitOptions = {
           door: doorStuff,

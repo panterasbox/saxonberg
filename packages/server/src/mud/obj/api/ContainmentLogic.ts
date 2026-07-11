@@ -35,6 +35,28 @@ const ContainmentApiCallers = SecurityPolicies.AnyOf(
 );
 
 /**
+ * Descend-into-host helper: when `host` is an attunement host, test each
+ * of its hosted update Ideas (the incorporeal capability base). One level
+ * only — matching the one-flat-level discipline of the corporeal legs.
+ * `actor` is the actor whose scan this is, skipped to avoid self-recursion.
+ * Module-private (off-class, ungated, un-callable from outside) — shared by
+ * `findReachable`'s leg 2/3/4 and the leg-2-only `findHostedUpdate`.
+ */
+function hostedMatch<T>(
+  host: Stuff,
+  actor: Stuff,
+  predicate: (s: Stuff) => s is Stuff & T,
+): (Stuff & T) | null {
+  // `isAether` narrows `host` to an `AetherHost` — no cast needed.
+  if (!MixinApi.isAether(host)) return null;
+  for (const u of host.getHostedUpdates()) {
+    if (u === actor) continue; // defensive — no self-recursion
+    if (predicate(u)) return u;
+  }
+  return null;
+}
+
+/**
  * ContainmentLogic — the hot-reloadable logic singleton behind
  * {@link ContainmentApi}.
  *
@@ -161,27 +183,12 @@ export class ContainmentLogic extends ApiLogic {
     location: ContainerStuff | null,
     predicate: (s: Stuff) => s is Stuff & T,
   ): (Stuff & T) | null {
-    // Descend-into-host helper: when `h` is an attunement host, test
-    // each of its hosted update Ideas (the incorporeal capability
-    // base). One level only — matching the one-flat-level discipline
-    // of the corporeal legs (findReachable stays a thin
-    // first-match-by-type scan, not a query engine).
-    const scanHost = (h: Stuff): (Stuff & T) | null => {
-      // `isAether` narrows `h` to an `AetherHost` — no cast needed.
-      if (!MixinApi.isAether(h)) return null;
-      for (const u of h.getHostedUpdates()) {
-        if (u === actor) continue; // defensive — no self-recursion
-        if (predicate(u)) return u;
-      }
-      return null;
-    };
-
     // 1. Self (intrinsic leg) — a capability composed directly on the
     //    actor (or its species). On-your-person, so it goes first.
     if (predicate(actor)) return actor;
     // 2. Self's hosted updates — the implant-hosted comms / credential
     //    updates plugged into the actor's own attunement.
-    const onSelf = scanHost(actor);
+    const onSelf = hostedMatch(actor, actor, predicate);
     if (onSelf) return onSelf;
     // 3. Installed augmentations — slot occupants ("on your person"),
     //    plus each attuned occupant's hosted updates.
@@ -189,7 +196,7 @@ export class ContainmentLogic extends ApiLogic {
       for (const occupants of actor.getAllOccupants().values()) {
         for (const occ of occupants) {
           if (predicate(occ)) return occ;
-          const hosted = scanHost(occ);
+          const hosted = hostedMatch(occ, actor, predicate);
           if (hosted) return hosted;
         }
       }
@@ -199,7 +206,7 @@ export class ContainmentLogic extends ApiLogic {
     if (MixinApi.isContainer(actor)) {
       for (const item of actor.getContents()) {
         if (predicate(item)) return item;
-        const hosted = scanHost(item);
+        const hosted = hostedMatch(item, actor, predicate);
         if (hosted) return hosted;
       }
     }
@@ -210,6 +217,18 @@ export class ContainmentLogic extends ApiLogic {
       }
     }
     return null;
+  }
+
+  /** See {@link ContainmentApi.findHostedUpdate}. */
+  @CallSecurity(ContainmentApiCallers)
+  public findHostedUpdate<T>(
+    actor: Stuff,
+    predicate: (s: Stuff) => s is Stuff & T,
+  ): (Stuff & T) | null {
+    // Leg-2 in isolation: the actor's OWN hosted updates, one level. No
+    // slot-occupant / carried-inventory / location legs — this is
+    // identity binding, not the reachable-instrument scan.
+    return hostedMatch(actor, actor, predicate);
   }
 
   /** See {@link ContainmentApi.resolveLanding}. */

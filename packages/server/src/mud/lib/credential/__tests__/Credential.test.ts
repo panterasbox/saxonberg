@@ -2,7 +2,7 @@
  * The credential record value-objects (the authorization half). Behavior
  * lifted from the retired PaymentCredentialMixin / TravelCredentialMixin,
  * now exercised directly on the plain records the wallet holds:
- *   - travel: born-with University Avenue floor, register/isRegistered/
+ *   - travel: born-with three-node floor, register/isRegistered/
  *     unregister/authorize, serialize round-trip re-floors;
  *   - payment: link/active/cap/frozen + authorize ladder, serialize round-trip.
  */
@@ -12,15 +12,17 @@ import {
   Credential,
   PaymentCredential,
   TravelCredential,
-  UNIVERSITY_AVENUE_NODE,
+  BORN_WITH_TRAVEL_NODES,
   UNCAPPED,
 } from "../Credential";
 import { Money } from "../../banking/Money";
 
 describe("TravelCredential record", () => {
-  it("is born with the University Avenue node registered", () => {
+  it("is born with all three floor nodes registered", () => {
     const c = new TravelCredential();
-    expect(c.isRegistered(UNIVERSITY_AVENUE_NODE)).toBe(true);
+    for (const node of BORN_WITH_TRAVEL_NODES) {
+      expect(c.isRegistered(node)).toBe(true);
+    }
   });
 
   it("register / isRegistered / unregister / authorize", () => {
@@ -39,7 +41,9 @@ describe("TravelCredential record", () => {
     const back = Credential.fromData(c.toData());
     expect(back).toBeInstanceOf(TravelCredential);
     const t = back as TravelCredential;
-    expect(t.isRegistered(UNIVERSITY_AVENUE_NODE)).toBe(true);
+    for (const node of BORN_WITH_TRAVEL_NODES) {
+      expect(t.isRegistered(node)).toBe(true);
+    }
     expect(t.isRegistered("/domain/a/node")).toBe(true);
   });
 
@@ -49,7 +53,9 @@ describe("TravelCredential record", () => {
       kind: "travel",
       registered: ["/domain/b/node"],
     }) as TravelCredential;
-    expect(back.isRegistered(UNIVERSITY_AVENUE_NODE)).toBe(true);
+    for (const node of BORN_WITH_TRAVEL_NODES) {
+      expect(back.isRegistered(node)).toBe(true);
+    }
     expect(back.isRegistered("/domain/b/node")).toBe(true);
   });
 });

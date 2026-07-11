@@ -201,6 +201,14 @@ export const bootstrapManifest: BootstrapEntry[] = [
   // migration, so the warren no longer hand-seats it. Without this entry
   // nothing instantiates the cascade root and the network never stands up.
   { templatePath: '/domain/lounge/terminal' },
+  // Terminus TPA terminals are NOT manifest entries — the whole hub
+  // cascade-loads lazily from the single lounge root: the lounge terminal's
+  // `armNetwork` resolves its route to the Terminus **arrival** terminal,
+  // which self-seats into the arrival gate; the arrival gate's `north`→hall
+  // exit pulls the hall, and the hall's exits pull the other gate rooms +
+  // office. Each gate room then `populates:` its own departure terminal (the
+  // `singleton()` load runs the terminal's `seatSelf`; PopulatesMixin skips the
+  // redundant move). Nothing here needs to enumerate the terminals.
   // Dave's Bar Business (the standalone employment entity) is NOT a manifest
   // entry — it stands up with the bar's own content, cloned idempotently in
   // `Bar.postRegister` (part of the lounge terminal cascade above). That

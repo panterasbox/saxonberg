@@ -119,7 +119,7 @@ describe('GoController', () => {
   let peerInB: PeerSensor;
   let controller: GoController;
 
-  beforeEach(() => {
+  beforeEach(async () => {
     // GoController now extends LocomotionControllerBase, which resolves
     // the walk LocomotionMode singleton via LocomotionApi.modeOfOrThrow.
     // Seed the singleton up-front (in production the SeederManager does this).
@@ -133,6 +133,13 @@ describe('GoController', () => {
     locB.setShortDescription('Location B');
     zone.addLocation(locA, 0, 0, 0);
     zone.addLocation(locB, 0, 1, 0);
+    // Exits are explicit (no grid-derivation): declare both sides.
+    await locA.addExit(
+      makeStuff(() => new Exit({ direction: 'north', source: locA, destination: locB })),
+    );
+    await locB.addExit(
+      makeStuff(() => new Exit({ direction: 'south', source: locB, destination: locA })),
+    );
 
     avatar = makeStuff(() => new FakeAvatar());
     avatar.setName('Alice');

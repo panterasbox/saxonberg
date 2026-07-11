@@ -196,7 +196,7 @@ Under `Idea`:
 
 - **`Exit`** — a first-class one-way passage between locations.
 - **`Zone`** — a scope / folder of templates with field inheritance.
-  - **`SpatialZone`** — a zone that owns locations and derives exits.
+  - **`SpatialZone`** — a zone that owns locations; exits are explicit, never derived.
   - **`CartesianZone`** — a 3D integer-grid zone with cardinal adjacency.
   - **`SphericalZone`** — a zone of arbitrarily-placed spheres with
     semantic exits.
@@ -264,7 +264,7 @@ factory in the folder shown.
 - **`Sealable`** — open/closed state (doors, chests, windows).
 
 **`boundary/`**
-- **`Exitable`** — owns a location's exits (explicit + zone-derived).
+- **`Exitable`** — owns a location's exits (explicit only; the zone never derives them).
 - **`DoorBearing`** — a vessel whose exit is synthesized from a
   single `Door`.
 - **`Adornable`** — hosts non-portable fixtures (sconces, anchors).

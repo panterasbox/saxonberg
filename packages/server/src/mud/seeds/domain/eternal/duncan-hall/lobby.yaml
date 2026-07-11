@@ -32,9 +32,15 @@ data:
     y: 1
     z: 0
   exits:
+    # Doored connection: the front doors are one physical boundary spanning
+    # both rooms, so this is authored once with `bidirectional: true` (the door
+    # IS the shared "both sides"; its light-boundary anchors are wired once).
+    # The steps' back-exit (north, through the same door) is installed from
+    # here rather than duplicated on the steps template.
     south:
       destination: /domain/eternal/duncan-hall/steps
       door: /domain/eternal/duncan-hall/front-doors
+      bidirectional: true
   populates:
     - /obj/instrument/thermometer
     - /obj/instrument/barometer

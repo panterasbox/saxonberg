@@ -12,6 +12,15 @@
  *   /lib/address/narnia           Locality    ← root Region (fallback)
  *   /lib/address/cair-paravel     Locality    ← nested, longest-prefix
  *   /lib/address/lantern-waste    Locality    ← sibling discrimination
+ *
+ * The transit build adds three board-destination Localities (the first
+ * non-demonstrative address content) — the TPA departures board names each
+ * destination by its covering Locality (see fasttravel.md § destination
+ * naming):
+ *
+ *   /lib/address/terminus            Locality  ← the transit hub
+ *   /lib/address/the-lounge          Locality  ← the social hub
+ *   /lib/address/last-counted-mile   Locality  ← the frontier crossroads
  */
 
 import { describe, it, expect } from 'vitest';
@@ -82,11 +91,27 @@ describe('Address roster — slim demonstrative inventory', () => {
     expect(loadSeed('lantern-waste.yaml').data?._address).toBe('narnia/wild');
   });
 
+  it('the three transit-hub Localities name the TPA board destinations', () => {
+    expect(loadSeed('terminus.yaml').data?._address).toBe('terminus');
+    expect(loadSeed('the-lounge.yaml').data?._address).toBe('lounge');
+    expect(loadSeed('last-counted-mile.yaml').data?._address).toBe(
+      'last-counted-mile',
+    );
+    for (const f of ['terminus.yaml', 'the-lounge.yaml', 'last-counted-mile.yaml']) {
+      expect(loadSeed(f).class).toBe('/lib/address/Locality');
+    }
+  });
+
   it('no other address seeds have crept in (slim roster discipline)', () => {
     const expected = new Set([
+      // The demonstrative substrate roster.
       'narnia.yaml',
       'cair-paravel.yaml',
       'lantern-waste.yaml',
+      // The transit board-destination Localities.
+      'terminus.yaml',
+      'the-lounge.yaml',
+      'last-counted-mile.yaml',
     ]);
     const actual = new Set(listYamlsRelative(SEEDS_DIR));
     expect(actual).toEqual(expected);

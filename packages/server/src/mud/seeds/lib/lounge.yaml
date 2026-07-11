@@ -1,0 +1,10 @@
+# /lib/lounge — the lounge team's ownership root (a FolderZone). Scopes write
+# access for lounge content. Owned by the managed group named `lounge`,
+# declared symbolically via `ownerGroupName` — the access layer mints-or-finds
+# the group and resolves the runtime ref on first access (replaces the retired
+# AccessRegistry.seedLoungeSlice boot hook).
+class: /lib/zone/FolderZone
+hydratorClass: /lib/persistence/PersistentHydrator
+data:
+  name: lounge
+  ownerGroupName: lounge

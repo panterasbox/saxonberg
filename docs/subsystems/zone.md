@@ -47,9 +47,10 @@ CartesianZone  SphericalZone
   automatically without editing a central allow-list.
 - **`SpatialZone`** — abstract intermediate carrying the
   location-aware surface (`addLocation`, `getLocations`,
-  `removeLocation`, `contains`, `deriveExit`, `canDestruct`).
-  Stamps `Stuff.zone`. `CartesianZone` and `SphericalZone`
-  extend this — not `Zone` directly.
+  `removeLocation`, `contains`, `canDestruct`). Stamps `Stuff.zone`.
+  `CartesianZone` and `SphericalZone` extend this — not `Zone`
+  directly. Exits are authored explicitly on rooms; the zone is the
+  coordinate grid + its invariants, never an exit source.
 - **`FolderZone`** — generic organizational scope, no spatial
   topology. Use for templatePath folders like `/domain/narnia/`
   or `/lib/biome/outdoor/` that organize a content team's tree

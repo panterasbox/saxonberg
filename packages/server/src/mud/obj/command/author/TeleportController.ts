@@ -25,6 +25,11 @@ import { MixinApi } from "../../../api/mixin";
 import { ContainmentApi, ContainmentError } from "../../../api/containment";
 import { AccessApi } from "../../../api/access";
 import { StuffApi } from "../../../api/stuff";
+import { BankingApi, Money } from "../../../api/banking";
+import type { Charge } from "../../../api/banking";
+import { EmploymentApi } from "../../../api/employment";
+import { AppApi } from "../../../api/app";
+import { AppSettingKeys } from "../../../lib/config/AppSettings";
 import type { CredentialWallet } from "../../../lib/credential/CredentialWallet";
 import type { FastTravel } from "../../../lib/fasttravel/FastTravel";
 import type { Container } from "../../../lib/spatial/Container";
@@ -138,26 +143,47 @@ export default class TeleportController extends CommandController<TeleportModel>
       return this.fail(context, "there is no terminal here", "no-terminal");
     }
 
-    const holder = ContainmentApi.findReachable(
+    // Instrument gate: "do you have the means to use the TPA at all?" — any
+    // reachable travel holder satisfies it (a carried card OR the born-with
+    // implant), so onboarding and the un-implanted are never stranded.
+    const instrument = ContainmentApi.findReachable(
       giver,
       context.location,
       (s: Stuff): s is Stuff & CredentialWallet =>
         MixinApi.isCredentialWallet(s) && !!s.getCredential("travel"),
     );
-    if (!holder) {
+    if (!instrument) {
       return this.fail(
         context,
         "you have no Teleport Authority credential",
         "no-credential",
       );
     }
-    const cred = holder.ensureCredential("travel");
+    // Clearance is read off IDENTITY, never the carried instrument: the
+    // actor's own aether-hosted wallet (leg-2 isolation). A loaded card
+    // handed to another player confers no clearance. When the actor hosts no
+    // wallet (un-attuned, card-only) the clearance store is the born-with
+    // floor only.
+    const identity = ContainmentApi.findHostedUpdate(
+      giver,
+      (s: Stuff): s is Stuff & CredentialWallet =>
+        MixinApi.isCredentialWallet(s) && !!s.getCredential("travel"),
+    );
+    const cred = identity?.getCredential("travel") ?? null;
 
     if (!node.isDeparture()) {
       return this.fail(
         context,
         "this terminal is for arrivals only",
         "not-departure",
+      );
+    }
+
+    if (node.getStatus() !== "operational") {
+      return this.fail(
+        context,
+        "this gate is out of service — no departures board here today",
+        "out-of-service",
       );
     }
 
@@ -191,7 +217,9 @@ export default class TeleportController extends CommandController<TeleportModel>
       return;
     }
 
-    if (!cred.isRegistered(ref)) {
+    // A null clearance store (un-attuned actor with no identity wallet) is
+    // empty clearance → not-registered, exactly as an unregistered node.
+    if (!cred || !cred.isRegistered(ref)) {
       return this.fail(
         context,
         "you haven't registered that destination — reach it another way and `register` first",
@@ -205,7 +233,151 @@ export default class TeleportController extends CommandController<TeleportModel>
     if (!MixinApi.isMobile(giver) || !MixinApi.isContainable(giver)) {
       return this.fail(context, "you can't travel", "immobile");
     }
+
+    // Paid routes settle the fare BEFORE travelling (insufficient funds
+    // refuses without moving). The total is the route's `fee` (the departure
+    // charge) plus the destination node's own arrival `surcharge` — both
+    // optional. A fully free trip (fee 0 + surcharge 0) skips settlement.
+    const fee = node.getRoutes().get(ref)?.fee ?? 0;
+    const surcharge = destNode.getSurcharge();
+    if (fee > 0 || surcharge > 0) {
+      const ok = await this.settleFare(context, fee, surcharge, node, destNode);
+      if (!ok) return;
+    }
+
     giver.teleport(arrivalRoom);
+  }
+
+  /**
+   * Settle a paid trip — `total = fee + surcharge`, both optional — split
+   * across up to three operating budgets, all resolved **un-spoofably** (never
+   * a caller parameter), and conserved:
+   *
+   *  - **`fee`** (the route's departure charge) → the Business operating the
+   *    **departure terminal** (`ensureOperatorAt(node)` — keyed on the fixture,
+   *    not the room, so two venues sharing a room each resolve their own
+   *    operator; stands the Business up lazily if it isn't live), which keeps
+   *    `fee − networkFee`;
+   *  - the TPA **network fee** (`min(fee, base + floor(fee × rate))`) → the
+   *    global TPA operating budget (levied on the ride, i.e. the `fee` only);
+   *  - **`surcharge`** (the destination node's own arrival charge) → the
+   *    Business operating the **destination terminal**, the mirror of the fee's
+   *    departure attribution — again fixture-keyed.
+   *
+   * All un-spoofable (resolved from the fixtures, never a caller token). A
+   * `fee > 0` with no departure operator, or a `surcharge > 0` with no
+   * destination operator, is an authoring error → refuse. Tries
+   * credential, then cash — both split identically (cash via the cash bridge,
+   * D12). Returns false (and refuses, without moving the traveller) on
+   * no-operator / insufficient funds.
+   */
+  private async settleFare(
+    context: CommandContext,
+    fee: number,
+    surcharge: number,
+    node: Stuff & FastTravel,
+    destNode: Stuff & FastTravel,
+  ): Promise<boolean> {
+    // Departure operator (collects the base fare) — required only when fee>0.
+    // Keyed on the departure TERMINAL (the fixture), stood up lazily if needed.
+    let cityBudgetAccount: string | null = null;
+    if (fee > 0) {
+      const here = (node as unknown as Stuff).getTemplatePath();
+      const bizPath = (here ? await EmploymentApi.ensureOperatorAt(here) : null)
+        ?.getAccountPath();
+      if (!bizPath) {
+        this.fail(context, "this gate has no operator to collect the fare", "no-operator");
+        return false;
+      }
+      try {
+        cityBudgetAccount = await BankingApi.ensureVenueAccount(bizPath, bizPath, "");
+      } catch {
+        this.fail(context, "the fare can't be collected here", "no-operator");
+        return false;
+      }
+    }
+
+    // Destination operator (collects the surcharge) — required only when
+    // surcharge>0. Keyed on the destination TERMINAL (the fixture), never a token.
+    let destOperatorAccount: string | null = null;
+    if (surcharge > 0) {
+      const destHere = (destNode as unknown as Stuff).getTemplatePath();
+      const destPath = (destHere ? await EmploymentApi.ensureOperatorAt(destHere) : null)
+        ?.getAccountPath();
+      if (!destPath) {
+        this.fail(
+          context,
+          "this destination has no operator to collect its surcharge",
+          "no-operator",
+        );
+        return false;
+      }
+      try {
+        destOperatorAccount = await BankingApi.ensureVenueAccount(destPath, destPath, "");
+      } catch {
+        this.fail(context, "the surcharge can't be collected there", "no-operator");
+        return false;
+      }
+    }
+
+    const rate =
+      Number(AppApi.setting(AppSettingKeys.fasttravelNetworkFeeRate)) || 0;
+    const base =
+      Number(AppApi.setting(AppSettingKeys.fasttravelNetworkFeeBase)) || 0;
+    const networkFee = fee > 0 ? Math.min(fee, base + Math.floor(fee * rate)) : 0;
+    const tpaAccount =
+      AppApi.setting(AppSettingKeys.fasttravelTpaAccount) || "tpa";
+    const total = fee + surcharge;
+
+    // Build the split. When there's a base fare, the departure city budget is
+    // the main payee (nets `fee − networkFee = total − networkFee − surcharge`)
+    // and the TPA + destination legs are splits. A surcharge-only trip
+    // (fee 0) pays the whole surcharge to the destination operator directly.
+    const splits: Charge["splits"] = [];
+    let payeeAccountId: string;
+    if (cityBudgetAccount) {
+      payeeAccountId = cityBudgetAccount;
+      if (networkFee > 0) {
+        splits.push({ accountId: tpaAccount, amount: Money.of(networkFee), category: "networkFee" });
+      }
+      if (destOperatorAccount && surcharge > 0) {
+        splits.push({ accountId: destOperatorAccount, amount: Money.of(surcharge), category: "fare" });
+      }
+    } else {
+      // Surcharge-only (free route into a surcharged destination). Reached only
+      // when fee===0, so settleFare's guard implies surcharge>0, so the
+      // destination-operator resolution above set destOperatorAccount.
+      payeeAccountId = destOperatorAccount!;
+    }
+
+    const charge: Charge = {
+      amount: Money.of(total),
+      reason: "TPA fare",
+      presented: true,
+      payeeAccountId,
+      category: "fare",
+      splits,
+    };
+    // Credential first, then cash — a coin-holder rides too, and the split
+    // holds either way (cash crosses the bridge). The credential attempt
+    // swallows every error (no wallet, insufficient credential balance, …) and
+    // falls through to cash; the terminal cash failure is what surfaces to the
+    // player. A genuine banking fault (bad account, conservation) therefore
+    // reads as "you can't cover the fare" — acceptable at demo scale, matching
+    // the OrderController settle precedent.
+    try {
+      await BankingApi.settle(charge, { kind: "credential" });
+      return true;
+    } catch {
+      /* fall through to cash */
+    }
+    try {
+      await BankingApi.settle(charge, { kind: "cash" });
+      return true;
+    } catch {
+      this.fail(context, "you can't cover the fare", "fare-declined");
+      return false;
+    }
   }
 
   /* ── helpers ────────────────────────────────────────────────────── */

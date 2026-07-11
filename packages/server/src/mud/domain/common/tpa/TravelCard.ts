@@ -2,13 +2,17 @@
  * TravelCard — a carryable Teleport Authority travel card.
  *
  * A held credential: a thin {@link CredentialWalletMixin} holder over a plain
- * `Thing`, carrying one `travel` credential record (the registered-node set +
- * born-with floor). State lives on the card, so handing it to another player
- * hands over its registered routes — the transferable half of the credential
- * (the wallet implant is the personal half).
+ * `Thing`, carrying one `travel` credential record (the born-with floor). The
+ * card is a bearer **instrument**, never a clearance store: its `travel` record
+ * satisfies the `teleport`/`register` *instrument gate* ("do you have the means
+ * to use the TPA at all?"), but travel **authorization** (the registered-node
+ * set) is bound to the traveller's *identity* — the born-with, aether-hosted
+ * wallet — and is never read off, nor written to, the card. Handing the card to
+ * another player confers no destinations they didn't already hold on their own
+ * identity.
  *
  * Affords no holder-verbs: `register` is afforded by the terminal you're
- * standing at, `teleport` is a general verb. The card is pure gate-data.
+ * standing at, `teleport` is a general verb. The card is pure instrument.
  */
 
 import Thing from "../../../lib/stuff/Thing";

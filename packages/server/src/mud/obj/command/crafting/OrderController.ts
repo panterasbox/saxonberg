@@ -97,9 +97,10 @@ export default class OrderController extends CraftController<OrderModel> {
     const venuePath = context.location?.getTemplatePath();
     if (!venuePath) return null;
     // Income keys on the Business account (the same account shift wages are
-    // paid from), so the P&L reflects both sides. Falls back to the venue
-    // path when no Business operates here (a non-employment venue).
-    const business = EmploymentApi.businessAt(venuePath);
+    // paid from), so the P&L reflects both sides. `ensureOperatorAt` stands the
+    // venue's Business up lazily (derived from its `operatingLocations`) on
+    // this first order; falls back to the venue path when none operates here.
+    const business = await EmploymentApi.ensureOperatorAt(venuePath);
     const ownerPath = business?.getAccountPath() ?? venuePath;
     let venueAccount: string;
     try {
@@ -114,14 +115,22 @@ export default class OrderController extends CraftController<OrderModel> {
       payeeAccountId: venueAccount,
       category: 'sales',
     };
+    // Try credential first, then cash (D12) — a coin-holder pays with coin
+    // (banked on-ledger via the cash bridge to the venue account), and the
+    // float stays the last resort (no funds at all). Both remit the demo tax.
+    let receipt;
     try {
-      const receipt = await BankingApi.settle(charge, { kind: 'credential' });
-      await BankingApi.remitDemoTax(venueAccount, Money.of(price));
-      return receipt.corpoKey
-        ? `(${Money.of(price).render()}, ${receipt.corpoKey})`
-        : `(${Money.of(price).render()})`;
+      receipt = await BankingApi.settle(charge, { kind: 'credential' });
     } catch {
-      return null; // no credential / insufficient — the bar floats it
+      try {
+        receipt = await BankingApi.settle(charge, { kind: 'cash' });
+      } catch {
+        return null; // no funds at all — the bar floats it
+      }
     }
+    await BankingApi.remitDemoTax(venueAccount, Money.of(price));
+    return receipt.corpoKey
+      ? `(${Money.of(price).render()}, ${receipt.corpoKey})`
+      : `(${Money.of(price).render()})`;
   }
 }

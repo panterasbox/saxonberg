@@ -40,17 +40,47 @@ around two bases — the Thing/Idea symmetry of the three-base capability
 model (see [augmentation.md](./augmentation.md)):
 
 - a carryable **`TravelCard`** `Thing` (`/domain/common/tpa/TravelCard` =
-  `CredentialWalletMixin(Thing)`) — the transferable half: lend the card,
-  lend its routes;
+  `CredentialWalletMixin(Thing)`) — a bearer **instrument**, never a
+  clearance store (see **Identity-bound clearance** below);
 - the born-with **`CredentialWalletUpdate`**
   (`CredentialWalletMixin(AetherHostedMixin(Idea))`) — the one wallet app
   injected into the avatar's aether attunement by
   `Avatar.installDefaultLoadout`, holding the `travel` record alongside
-  `payment`. The `AetherImplant` confers attunement only and composes no
-  credential mixin.
+  `payment`. This is the **identity holder**. The `AetherImplant` confers
+  attunement only and composes no credential mixin.
 
-The `travel` record's state (registered set + floor) lives in the holder in
-either base.
+## Identity-bound clearance (the card is an instrument, not a passport)
+
+Travel **authorization** — the registered-node set — is a structural
+property of the *traveller's identity*: it is read from and written to the
+actor's own **aether-hosted wallet** only, never a carried, transferable
+card. The split is deliberate:
+
+- **Instrument gate** ("do you have the means to use the TPA at all?") —
+  `ContainmentApi.findReachable(actor, here, isCredentialWallet + travel)`.
+  A carried `TravelCard` **or** the born-with implant satisfies it, so
+  onboarding and the un-implanted are never stranded.
+- **Clearance** ("are you cleared for *this* destination?") —
+  `ContainmentApi.findHostedUpdate(actor, isCredentialWallet + travel)`, a
+  **leg-2-only** resolver that scans exactly `actor.getHostedUpdates()`
+  (one level), so clearance is bound to *who the actor is*. `register`
+  writes here; the `teleport` fork's `isRegistered` check and
+  `renderDepartures`' "not yet registered" annotation read here.
+
+`findHostedUpdate` (`api/containment.ts`) is `findReachable`'s self-hosted
+leg in isolation — same guardrail (identity-only, single-level,
+predicate-agnostic, **not** a query engine). The security property is
+**structural, not scan-order**: handing a loaded card to another player
+confers no clearance they didn't already hold on their own identity (the
+card's own registered set is never consulted for authorization). The
+`TravelCard` keeps a floored `travel` record purely so it satisfies the
+*instrument* gate.
+
+*Edge (documented, not engineered around):* an un-attuned actor with no
+hosted wallet has no identity clearance store; `register` fails gracefully
+("nowhere to record"), and the ride is refused as not-registered.
+Effectively every player avatar is attuned and carries the born-with
+wallet.
 
 ## The network model
 
@@ -81,8 +111,20 @@ either base.
   → asks for specificity; no match → "no route here goes to …".
 - **bare `teleport`** at a node renders the **departures board**
   (`renderDepartures`) — a live, viewer-aware list of routes with the
-  now-boarding marker, per-route times, and a "not yet registered" note
-  for destinations the viewer's credential hasn't unlocked.
+  now-boarding marker, per-route times, a `⊙N` **fare** tag for paid
+  routes, and a "not yet registered" note (read off the viewer's
+  **identity** wallet) for destinations they haven't unlocked.
+- **Destinations are named by covering Locality (D13).** The board shows
+  each destination's covering-`Locality` name via
+  `FastTravel.getDestinationLabel()` — resolve the node's arrival room's
+  address (`AddressApi.resolveLocalityFor`) → `Locality.getName()`, falling
+  back to the terminal's own presentation when no Locality covers it (the
+  `LoungeTerminal` overrides it to "The Lounge" because the Warren host
+  carries no stable address). Display-only: **keyword targeting stays on the
+  terminal's authored `keywords`** (`teleport terminus`/`crossroads`/`lounge`),
+  not the multi-word Locality name. The three board Localities (Terminus /
+  The Lounge / The Last Counted Mile) are seeded under `seeds/lib/address/`
+  so `AddressRegistry.postRegister` warms their prefixes at boot.
 - **Selection** is node state: `selectedDestinationRef` (defaults to the
   first route). A keyword sets it; the timetable can flip it.
 
@@ -99,15 +141,14 @@ the fork so it never blocks the privileged path:
   the old object-relocation `teleport` and `goto`. Reuses `Mobile.teleport`
   with a raw-move / `forceMove` fallback and the `canTeleport` witness veto.
 - **TPA ride** (unprivileged): rides the network from the node the actor
-  can reach (`ContainmentApi.findReachable` for the node + the credential).
-  Checks departure-capable → keyword selection → **credential
-  registration** → travels to the destination node's `getArrivalRoom()`
-  via `Mobile.teleport`. The credential lookup is unchanged in intent:
-  `findReachable(..., isCredentialWallet + a travel record)` returns
-  whichever holder is reachable — a **carried `TravelCard`** (the
-  carried-inventory leg) or the **born-with `CredentialWalletUpdate`** (the
-  host-descent leg of the three-base model) — then reads its `travel`
-  record. One scan, either base, no controller change.
+  can reach (`ContainmentApi.findReachable` for the node). Checks the
+  **instrument gate** (any reachable travel holder) → departure-capable →
+  **out-of-service** (`getStatus() !== "operational"` → refuse) → keyword
+  selection → **clearance** (`findHostedUpdate` identity holder's
+  `isRegistered`) → **fare settlement** (paid routes only, below) → travels
+  to the destination node's `getArrivalRoom()` via `Mobile.teleport`. The
+  instrument gate and the clearance read are **two separate resolvers** (see
+  **Identity-bound clearance** above), never one scan.
 
 **`register`** (`RegisterController`, `cmd/movement/register.yaml`) —
 records the terminal here onto your credential so you can `teleport` to
@@ -127,11 +168,118 @@ it. Explicit, diegetic — not auto-unlock. The TPA fork checks
 another way and `register` first".
 
 **Born-with floor:** every credential is born registered for the
-**University Avenue node** (`/domain/eternal/university-avenue-terminal`)
-— the lounge → campus hop, the single documented exception to
-"reach-before-travel". The floor is preserved across hydration (the
-`TravelCredential` record's `fromData` unions saved entries on top of it,
-never clearing).
+**three-node set** `BORN_WITH_TRAVEL_NODES` (`lib/credential/Credential.ts`)
+— the **Terminus arrival node** (`/domain/terminus/terminal/arrival-terminal`),
+**the lounge** (`/domain/lounge/terminal`), and **the paid destination**
+(`/domain/newbie-wilds/crossroads/terminal`) — the documented exception to
+"reach-before-travel". The hub has no foot path to the rest of the world, so
+the interchange and the social hub are universally reachable by design:
+onboarding's lounge→campus hop lands at Terminus (walk across the avenue to
+campus), and the lounge floor node makes Gate A's free return to Dave's Bar
+work even for a fresh player who never explicitly registered it. The paid
+destination is on the floor because the **fare**, not registration, gates it.
+The floor is preserved across hydration (the `TravelCredential` record's
+`fromData` unions saved entries on top of it, never clearing).
+
+## The transit-fare economy
+
+A route carries an author-set **`fee`** (`TravelRoute.fee`, minor units;
+`0` = free — the lounge↔terminus hops stay free). A paid ride **settles the
+fare before travelling** (`TeleportController.settleFare`); insufficient
+funds **refuses the ride** (no partial charge, traveller not moved). The
+fare **splits two operating budgets** over banking's remittance-split seam
+(the first wired consumer), and **conserves** — a fare *moves* money, only
+the CB mints:
+
+- **The city's operating budget** (the bulk) — the `Business` operating the
+  **departure terminal** (the *fixture*, not the room), resolved un-spoofably
+  via `EmploymentApi.ensureOperatorAt(node)` — keyed on the terminal so two
+  venues sharing a room each resolve their own operator, and standing the
+  Business up lazily from its own `operatingLocations` if it isn't live yet
+  (see [employment.md](./employment.md); no manifest entry, no standup hook).
+  Its account collects `fee − networkFee`; a paid route with no operator is an
+  authoring error → refuse.
+- **The TPA's operating budget** — a **network fee** into the well-known
+  `fasttravel.tpaAccount` (default `"tpa"`). The fee is a **flat base + a
+  percentage** — `min(fee, base + floor(fee × rate))`, tunable via
+  `fasttravel.networkFeeBase` / `fasttravel.networkFeeRate` — the
+  payment-processor shape, so the TPA **collects a non-zero fee on every
+  paid ride** (a pure percentage floors to zero on micro-fares).
+
+**Arrival surcharge (destination-imposed).** On top of the route's `fee`, a
+**destination node** can impose its own **`surcharge`** (`FastTravel.surcharge`,
+minor units, optional like the fee) — a charge just for *using that terminal as
+a destination*. The traveller pays `total = fee + surcharge`; the board shows
+the total (`⊙total`, broken out `(fee+surcharge)` when both). The surcharge is
+collected by the Business operating the **destination terminal**
+(`ensureOperatorAt(destNode)`, fixture-keyed like the fee), the mirror of the
+fee's departure attribution — so
+each end's operator collects its own charge, un-spoofably, over the same
+`settle` split (departure op keeps `fee − networkFee`, TPA takes `networkFee` on
+the **fee only**, destination op takes the whole `surcharge`; conserved). A
+`surcharge > 0` with no destination operator is an authoring error → refuse. A
+fee-0 route into a surcharged destination is charged the surcharge alone (no
+network fee — the ride itself is free). Demo: the newbie-wilds crossroads
+("The Last Counted Mile") levies a small **arrival toll** collected by its
+frontier settlement budget (stood up by the bespoke `CrossroadsTerminal`), so
+Gate A → crossroads costs `15 + 2` — Terminus keeps the fare, the frontier the
+toll — while the free return leg stays free.
+
+Both budgets **recirculate** (the city budget pays the clerk's wages — the
+conserved loop; the TPA budget funds network maintenance, *deferred*). The
+sink lever is a **CB drain** from a budget back to the CB (a monetary-policy
+decision, *deferred*), **not** passive accumulation. Settlement is
+**tender-agnostic** (D12): the fare tries the payment credential, then
+**cash** — a cash fare **crosses the cash bridge** (the coin is consumed,
+the equal value credited on-ledger to the city budget and split to the TPA;
+supply-neutral) so the split holds either way. P&L categories `fare` /
+`networkFee` (`lib/banking/LedgerEntry.ts`).
+
+## Terminus — the transit hub (network content)
+
+**Terminus** (`/domain/terminus/`, its own branch = the **Terminus
+municipality** owner sphere, distinct from the EU campus) is the network's
+central interchange, **on University Avenue across the street from the
+university gate** (a cross-branch `across` exit to the EU plaza; the
+standalone University Avenue terminal is **retired**, Terminus absorbs the
+campus-arrival role). Its first zone is the terminal building
+(`/domain/terminus/terminal`): a station **hall**, an **arrival gate**
+(directionality `arrival` — the floor node the lounge routes to), **three
+departure gates** (**A operational** with the free lounge return + the paid
+crossroads line; **B and C out of service**), and a **ticket office**. It is
+the first content to exercise the `directionality` feature (every prior
+terminal was `both`) and the **`status` out-of-service** seam — the ride
+fork reads `getStatus()` at authorization and refuses a non-operational
+departure (**D8**; the seam stays authored-static — no dynamic breakdown).
+
+The four terminals are **not** boot-manifest entries — they load by
+**`populates:` cascade** from the single lounge root (`bootstrap.ts` holds
+one hub anchor, not one entry per terminal). The three departure terminals
+are never route targets, so a plain route-target cascade would never reach
+them; instead each departure gate room declares `populates:` its own
+terminal fixture, so standing up the hub materializes every gate + its
+terminal. The office's **terminal clerk** (`TicketClerk`,
+"Tootie") is the city-budget `Business`'s paid employee — she **procures a
+free replacement `TravelCard`** (`procure card`, the `tpa/` command
+category; a card is an instrument, no fare) and receives **wages** from the
+city budget at her shift boundary (the roster tick; a bounded shift so the
+wage settles). `settleShiftWageImpl` gained a **worker-account guard** that
+auto-provisions an NPC worker's account so the wage lands. The **paid
+destination** is the newbie-wilds **crossroads** ("The Last Counted Mile",
+`/domain/newbie-wilds/crossroads`) — a minimal v0 (one designed landing room
++ one `both` terminal, free return), the integration anchor the deferred
+newbie-wilds build extends.
+
+New **committed non-guest** players receive a small **onboarding coin**
+(`issueCash` at the char-gen commit; hard coin, no account, anti-farm ~20,
+guests excluded) — spendable at the bar and the fare (both accept cash).
+
+> **Reseed note (R1).** `SeederManager` is insert-only, so on an *existing*
+> world the repointed lounge route, the deleted UA terminal, the plaza edit,
+> and the new `fasttravel.*` / `banking.onboardingStipend` AppSettings do not
+> apply live: delete-and-restart the three affected `domain` rows and reboot
+> (the AppSettings seeder merges the new keys on next boot). Fresh DBs are
+> correct automatically.
 
 ## Timetable & advance policy
 

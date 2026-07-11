@@ -10,6 +10,10 @@
 # This is the W1 proof content — not the Atlantis area, just a place a
 # body can actually drown. (`inhale` before descending buys a longer dive;
 # climbing back `up` to the steps cancels the drain and recovers.)
+#
+# Its way back up to the steps is declared explicitly here (exits are authored
+# on both sides — the steps declare `down` to here, this room declares `up`
+# back). One cell below the steps at [0, 0, -1].
 class: /lib/location/CartesianLocation
 hydratorClass: /lib/persistence/PersistentHydrator
 data:
@@ -21,4 +25,7 @@ data:
     x: 0
     y: 0
     z: -1
+  exits:
+    up:
+      destination: /domain/eternal/duncan-hall/steps
   _atmosphere: water

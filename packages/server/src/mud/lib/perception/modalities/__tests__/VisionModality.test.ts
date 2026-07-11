@@ -49,7 +49,7 @@ describe('VisionModality.signalAt — propagation core', () => {
     expect(VisionModality.bandAt(loc)).toBe('lit');
   });
 
-  it('exits leak ambient light from neighbors', () => {
+  it('exits leak ambient light from neighbors', async () => {
     const zone = makeStuff(() => new CartesianZone());
     zone.setCellSize(1);
     const a = makeStuff(() => new CartesianLocation());
@@ -57,6 +57,8 @@ describe('VisionModality.signalAt — propagation core', () => {
     zone.addLocation(a, 0, 0, 0);
     zone.addLocation(b, 0, 1, 0);
     b.setAmbientFlux(60);
+    // Exits are explicit (no grid-derivation) — declare the doorless doorway.
+    await a.addBidirectionalExit(b, 'north');
 
     const totalA = VisionModality.lightAt(a);
     expect(totalA.intensity.rawValue()).toBe(60 * EXIT_TAU);
@@ -82,7 +84,7 @@ describe('VisionModality.signalAt — propagation core', () => {
     expect(totalA.intensity.rawValue()).toBe(60);
   });
 
-  it('MAX_HOPS truncates propagation past depth 2', () => {
+  it('MAX_HOPS truncates propagation past depth 2', async () => {
     const zone = makeStuff(() => new CartesianZone());
     zone.setCellSize(1);
     const a = makeStuff(() => new CartesianLocation());
@@ -94,12 +96,16 @@ describe('VisionModality.signalAt — propagation core', () => {
     zone.addLocation(c, 0, 2, 0);
     zone.addLocation(d, 0, 3, 0);
     d.setAmbientFlux(100);
+    // Explicit chain a↔b↔c↔d — d is three hops from a, past MAX_HOPS.
+    await a.addBidirectionalExit(b, 'north');
+    await b.addBidirectionalExit(c, 'north');
+    await c.addBidirectionalExit(d, 'north');
 
     expect(MAX_HOPS).toBe(2);
     expect(VisionModality.lightAt(a)).toBe(Light.ZERO);
   });
 
-  it('cycle: visited Set prevents infinite recursion', () => {
+  it('cycle: visited Set prevents infinite recursion', async () => {
     const zone = makeStuff(() => new CartesianZone());
     zone.setCellSize(1);
     const a = makeStuff(() => new AmbientCartesianLocation());
@@ -107,6 +113,7 @@ describe('VisionModality.signalAt — propagation core', () => {
     zone.addLocation(a, 0, 0, 0);
     zone.addLocation(b, 0, 1, 0);
     a.setAmbientFlux(10);
+    await a.addBidirectionalExit(b, 'north'); // a↔b cycle for the visited guard
 
     const total = VisionModality.lightAt(a);
     expect(total.intensity.rawValue()).toBeGreaterThanOrEqual(10);

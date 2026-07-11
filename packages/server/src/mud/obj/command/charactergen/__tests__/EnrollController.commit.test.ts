@@ -26,6 +26,7 @@ import { ConnectionApi } from '../../../../api/connection';
 import { ContainmentApi } from '../../../../api/containment';
 import { SlotApi } from '../../../../api/slot';
 import { MessageApi } from '../../../../api/message';
+import { BankingApi, Money } from '../../../../api/banking';
 import { makeStuff } from '../../../../lib/security/__tests__/test-setup';
 import type { CommandContext, CommandModel } from '../../../../api/command';
 
@@ -43,7 +44,11 @@ describe('EnrollController.commit', () => {
   let ctx: CommandContext;
   let user: { _id: string; playerIds: string[]; save: ReturnType<typeof vi.fn> };
   let savedTemplate: { path: string; data: Record<string, unknown> } | null;
-  let avatar: { setSex: ReturnType<typeof vi.fn>; enter: ReturnType<typeof vi.fn> };
+  let avatar: {
+    setSex: ReturnType<typeof vi.fn>;
+    enter: ReturnType<typeof vi.fn>;
+    getIsGuest: ReturnType<typeof vi.fn>;
+  };
   let transfer: ReturnType<typeof vi.fn>;
   let destruct: ReturnType<typeof vi.fn>;
   let dressed: string[];
@@ -54,7 +59,14 @@ describe('EnrollController.commit', () => {
 
     // The mint path now sources the new avatar's startLocation from app
     // config; mock the cached read (no AppSettings boot warm in this unit).
-    vi.spyOn(AppApi, 'setting').mockReturnValue('/domain/lounge/warren');
+    // Key-aware: the onboarding stipend needs a number, everything else the
+    // spawn home.
+    vi.spyOn(AppApi, 'setting').mockImplementation((k: string) =>
+      k === 'banking.onboardingStipend' ? '20' : '/domain/lounge/warren',
+    );
+    // Onboarding coin is minted through the CB faucet — spy it (no banking
+    // harness in this unit); the dedicated tests assert the call shape.
+    vi.spyOn(BankingApi, 'issueCash').mockResolvedValue(undefined as never);
 
     user = { _id: 'u1', playerIds: [], save: vi.fn().mockResolvedValue(undefined) };
     const interactive = makeStuff(
@@ -101,7 +113,11 @@ describe('EnrollController.commit', () => {
 
     // Clone: avatar for the Avatar path, a real Wearable garment for
     // everything else (claims a torso slot on the biped body plan).
-    avatar = { setSex: vi.fn(), enter: vi.fn().mockResolvedValue(undefined) };
+    avatar = {
+      setSex: vi.fn(),
+      enter: vi.fn().mockResolvedValue(undefined),
+      getIsGuest: vi.fn().mockReturnValue(false),
+    };
     dressed = [];
     const garment = makeStuff(() => new TestGarment());
     garment.setSlotClaim(BIPED, ['torso']);
@@ -175,5 +191,29 @@ describe('EnrollController.commit', () => {
     expect(transfer).toHaveBeenCalled();
     expect(avatar.enter).toHaveBeenCalledTimes(1);
     expect(destruct).toHaveBeenCalledWith(login);
+  });
+
+  it('grants the onboarding coin to a committed non-guest (one issueCash mint)', async () => {
+    await confirm();
+    expect(BankingApi.issueCash).toHaveBeenCalledTimes(1);
+    const [into, amount] = (BankingApi.issueCash as unknown as {
+      mock: { calls: unknown[][] };
+    }).mock.calls[0]!;
+    expect(into).toBe(avatar);
+    expect((amount as Money).minor).toBe(20);
+  });
+
+  it('grants a guest no onboarding coin', async () => {
+    avatar.getIsGuest.mockReturnValue(true);
+    await confirm();
+    expect(BankingApi.issueCash).not.toHaveBeenCalled();
+  });
+
+  it('grants nothing when the stipend is 0', async () => {
+    (AppApi.setting as unknown as { mockImplementation: (f: (k: string) => string) => void }).mockImplementation(
+      (k: string) => (k === 'banking.onboardingStipend' ? '0' : '/domain/lounge/warren'),
+    );
+    await confirm();
+    expect(BankingApi.issueCash).not.toHaveBeenCalled();
   });
 });

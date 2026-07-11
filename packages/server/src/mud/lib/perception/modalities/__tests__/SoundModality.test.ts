@@ -68,13 +68,14 @@ describe('SoundModality.signalAt — propagation core', () => {
     expect(sound!.amplitude.rawValue()).toBeCloseTo(63.0103, 2);
   });
 
-  it('sound leaks through open doorless exits', () => {
+  it('sound leaks through open doorless exits', async () => {
     const zone = makeStuff(() => new CartesianZone());
     zone.setCellSize(1);
     const a = makeStuff(() => new CartesianLocation());
     const b = makeStuff(() => new CartesianLocation());
     zone.addLocation(a, 0, 0, 0);
     zone.addLocation(b, 0, 1, 0);
+    await a.addBidirectionalExit(b, 'north'); // explicit doorless doorway
     const w = makeStuff(() => new Whistle());
     w.setEmittedAmplitude(100);
     w.setCharacter('whistle');

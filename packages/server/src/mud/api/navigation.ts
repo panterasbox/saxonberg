@@ -2,9 +2,9 @@
  * NavigationApi — canonical direction table, aliases, and cartesian offsets.
  *
  * Cartesian zones use a 10-way direction set: the 8 compass cardinals plus
- * `up` and `down`. Each direction has a `[dx, dy, dz]` offset used by
- * `CartesianZone.deriveExit()` to locate the neighbor cell, and a canonical
- * inverse used by arrival-message formatting.
+ * `up` and `down`. Each direction has a `[dx, dy, dz]` offset (used by
+ * `CartesianZone.getNeighbor()` and coordinate geometry) and a canonical
+ * inverse used by arrival-message formatting + authoring reciprocal exits.
  *
  * Spherical zones and vessels use arbitrary semantic labels (`'office'`,
  * `'kitchen'`, `'out'`) that live outside this table — callers treat an

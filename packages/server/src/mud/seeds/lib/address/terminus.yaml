@@ -1,0 +1,12 @@
+# Terminus — the transit-hub Locality. Names the Terminus arrival node on
+# every departures board (D13). The arrival-gate room carries an address
+# under this prefix (`terminus/...`), so `resolveLocalityFor` lands here.
+# Homed under `seeds/lib/address/` (the narnia precedent) so
+# AddressRegistry.postRegister eagerly clones + warms its prefix at boot —
+# a domain-dir seed would never register and the board would fall back to
+# "a Teleport Authority terminal". templatePath ≠ claimed address.
+class: /lib/address/Locality
+hydratorClass: /lib/persistence/PersistentHydrator
+data:
+  name: Terminus
+  _address: terminus

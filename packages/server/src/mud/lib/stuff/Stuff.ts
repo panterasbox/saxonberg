@@ -400,7 +400,7 @@ export abstract class Stuff {
    * non-spatial Zone subclasses (`Clade`, future taxonomic / permission
    * scopes) NEVER stamp here. The folder-of-templates membership lives
    * in the template-tree structure; only spatial zones — the things
-   * that own a `Set<Location>` and a `deriveExit` strategy — go on
+   * that own a `Set<Location>` and a coordinate grid — go on
    * `Stuff.zone`. Callers who want "what folder does this template path
    * sit under" should consult the template tree, not this field.
    *

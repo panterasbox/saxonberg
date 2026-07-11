@@ -1,0 +1,56 @@
+# Terminus Terminal — the station hall. The hub's connective tissue: a great
+# vaulted concourse the gates open off. Generic room (shortDescription, no
+# NamedMixin — the hub label rides the zone name + prose). Prose is the bulk;
+# the loudspeaker, benches, ad-plastered walls, departures board and Authority
+# seal are DESCRIBED details, not realized Stuff.
+#
+# Exits are declared explicitly on BOTH sides (every template is self-
+# describing — you can read any room and know what it connects to). The hall
+# lists all five of its doorways; each neighbour lists its own way back. South
+# to the arrival gate, east/west/north to departure gates A/B/C, up to the
+# ticket office mezzanine.
+class: /lib/location/CartesianLocation
+hydratorClass: /lib/persistence/PersistentHydrator
+data:
+  shortDescription: Terminus Terminal, the station hall
+  primaryKeyword: hall
+  longDescription: |
+    The great hall of Terminus rises three storeys to a ribbed glass vault, grey daylight pooling on a floor worn to a shine by a century of boots. Departure gates open off the concourse to either side; an arrival alcove yawns to the south, and a raised ticket office overlooks it all from a mezzanine reached by a short iron stair.
+
+    A loudspeaker crackles overhead at intervals, announcing stops in a bored contralto nobody quite listens to. Rows of bolted benches face a great split-flap departures board; the walls between the gates are papered edge to edge in advertisements, layered so deep the oldest have fossilised. Above the arch to the arrival gate, the Teleport Authority's seal is set in tarnished brass: a compass rose swallowing its own tail.
+  coords:
+    x: 0
+    y: 0
+    z: 0
+  exits:
+    south:
+      destination: /domain/terminus/terminal/arrival-gate
+    east:
+      destination: /domain/terminus/terminal/departure-gate-a
+    west:
+      destination: /domain/terminus/terminal/departure-gate-b
+    north:
+      destination: /domain/terminus/terminal/departure-gate-c
+    up:
+      destination: /domain/terminus/terminal/office
+  details:
+    loudspeaker:
+      keywords: [loudspeaker, speaker, tannoy]
+      description: |
+        A brass horn bolted high on the wall, wired to somewhere unseen. Every few minutes it clears its throat and names a stop, then thinks better of it and falls silent.
+    benches:
+      keywords: [benches, bench, seats]
+      description: |
+        Rows of hardwood benches, bolted to the floor and polished bald at the middle of every seat. A few travellers wait with the settled patience of people who have missed one connection and expect to miss the next.
+    board:
+      keywords: [board, departures, split-flap, timetable]
+      description: |
+        A great split-flap board hangs over the concourse, its tiles clattering through place-names and times. Read it the honest way — step up to a gate and `teleport` to see where its line runs.
+    walls:
+      keywords: [walls, advertisements, ads, posters]
+      description: |
+        The walls between the gates are papered in advertisements layered so deep they've gone geological — bright new bills over sun-bleached ones over things no longer sold.
+    seal:
+      keywords: [seal, crest, brass, rose, compass]
+      description: |
+        Set in tarnished brass above the arrival arch: the Teleport Authority's seal, a compass rose swallowing its own tail. Beneath it, half-legible, the Authority's motto — ARRIVE ELSEWHERE.

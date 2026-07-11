@@ -213,6 +213,33 @@ export const AppSettingKeys = {
   bankingSalesTaxRate: "banking.salesTaxRate",
   /** Banking — the placeholder treasury account that demo tax accumulates in. */
   bankingTreasuryAccount: "banking.treasuryAccount",
+  /**
+   * Banking — the **demo** onboarding coin (minor units) a committed
+   * non-guest char-gen player is granted via `issueCash` (the CB cash
+   * faucet) at commit. Drink-sized + anti-farm; guests get nothing;
+   * `0` disables the grant. See docs/subsystems/banking.md.
+   */
+  bankingOnboardingStipend: "banking.onboardingStipend",
+
+  /**
+   * Fast-travel — the tunable TPA **network-fee percentage** levied on every
+   * paid ride into the TPA operating budget (the payment-processor share).
+   * Read try/catch → 0-fallback like `banking.salesTaxRate`. See
+   * docs/subsystems/fasttravel.md.
+   */
+  fasttravelNetworkFeeRate: "fasttravel.networkFeeRate",
+  /**
+   * Fast-travel — the **flat base** component (minor units) of the TPA
+   * network fee, guaranteeing non-zero TPA income on any paid ride (a pure
+   * percentage floors to zero on micro-fares). `min(fee, base + floor(fee ×
+   * rate))`.
+   */
+  fasttravelNetworkFeeBase: "fasttravel.networkFeeBase",
+  /**
+   * Fast-travel — the TPA operating-budget account id (the well-known
+   * account the network fee accrues to), named like `banking.treasuryAccount`.
+   */
+  fasttravelTpaAccount: "fasttravel.tpaAccount",
 
   /**
    * Social-graph (attention management) — the reserved-baseline notify

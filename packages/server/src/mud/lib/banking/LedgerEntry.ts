@@ -55,6 +55,9 @@ export type PnlCategory =
   | "deposit"
   | "withdraw"
   | "float"
+  | "fare"
+  | "networkFee"
+  | "onboarding"
   | "other";
 
 /**

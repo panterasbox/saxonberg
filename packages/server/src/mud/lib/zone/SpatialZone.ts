@@ -3,8 +3,9 @@
  *
  * The bare `Zone` is a scope/folder unit (templates use Zone-class folders to
  * carry policy that descendants inherit). `SpatialZone` adds the topographical
- * surface: a Set of member Locations, the location/zone back-reference dance,
- * and the `deriveExit` polymorphism point used by `ExitableMixin`.
+ * surface: a Set of member Locations and the location/zone back-reference
+ * dance. Exits are authored explicitly on every room — the zone does not
+ * synthesize them (CartesianZone *validates* cardinal-exit geometry instead).
  *
  * `CartesianZone` and `SphericalZone` extend this — not `Zone` directly.
  *
@@ -14,15 +15,11 @@
  */
 import { Zone } from './Zone';
 import type Location from '../stuff/Location';
-import type Exit from '../boundary/Exit';
 import type { VetoResult } from '../errors';
 
 /**
- * Abstract base for all topographical Zone subtypes.
- *
- * Subclasses implement `deriveExit()` — CartesianZone computes grid-adjacent
- * exits on demand; SphericalZone always returns `undefined` (spherical space
- * has no implicit adjacency, exits are authored by hand).
+ * Abstract base for all topographical Zone subtypes (`CartesianZone`,
+ * `SphericalZone`): a Set of member Locations + the zone back-reference.
  */
 export abstract class SpatialZone extends Zone {
   /**
@@ -63,36 +60,6 @@ export abstract class SpatialZone extends Zone {
    */
   public contains(location: Location): boolean {
     return this.locations.has(location);
-  }
-
-  /**
-   * Zone-derived exit lookup. Called by `ExitableMixin.getExit()` when no
-   * explicit exit covers the direction.
-   *
-   * - CartesianZone: synthesize a grid-adjacent Exit (lazy + cached).
-   * - SphericalZone: always `undefined` (spherical space has no implicit
-   *   adjacency).
-   *
-   * @param from - The exitable source location performing the lookup.
-   * @param direction - Normalized direction string (see `NavigationApi`).
-   */
-  public abstract deriveExit(from: Location, direction: string): Exit | undefined;
-
-  /**
-   * Does this Zone synthesize cardinal-derived exits from grid
-   * adjacency? CartesianZone overrides to return `true`; the
-   * default is `false`. `ExitableMixin.getObviousExits` uses this
-   * to skip the cardinal-iteration loop on zones that don't have
-   * adjacency-derived exits.
-   *
-   * This is a behavioural query (yes/no about how the zone routes
-   * exits), not a Cartesian-specific value extraction. `cellSize`
-   * lives on `CartesianZone` because it's meaningless on
-   * non-Cartesian zones; the Cartesian-shaped Location reaches
-   * into its zone for that value via cast-by-invariant.
-   */
-  public hasDerivedAdjacency(): boolean {
-    return false;
   }
 
   /**

@@ -1,0 +1,48 @@
+# The crossroads landing — where a traveller steps off the Line onto the
+# frontier. A DESIGNED room (a real foretaste of the wilds per the staging
+# doc), not a stub: the graded street gives out here, two buildings face each
+# other close enough to argue, a contested board leans between them, and the
+# road runs on into a treeline gone quiet. The buildings / board / Warden /
+# Undertaker are DESCRIBED details (prose is the bulk) — the full room-by-room
+# hub + the realized cast are the newbie-wilds build's job; this is the arrival
+# beat only.
+#
+# Carries an `_address` under "The Last Counted Mile" locality prefix so the
+# Terminus board names this destination by its locality (D13).
+class: /lib/location/CartesianLocation
+hydratorClass: /lib/persistence/PersistentHydrator
+data:
+  shortDescription: the crossroads at the last counted mile
+  primaryKeyword: crossroads
+  _address: last-counted-mile/hub
+  longDescription: |
+    The graded road gives out here in a rut of pink ruin-glass and pine needles — the last counted mile before the counted world quits. You have stepped off the Line onto a frontier that does not appear to have been told it is one.
+
+    Two buildings face each other across the street, close enough to argue. On the left, whitewashed and straight, a charter office, a lantern burning in its window in broad day. On the right, a lean-to that smells of pine shavings and cold, a shingle that just reads BARLOW. Between them, on a leaning post, a board — an official notice with something amended under it in charcoal. And past them both the road runs on into a treeline that has gone quiet, the particular quiet of woods with something listening in them. Somewhere in there, close, something huffs.
+
+    Behind you the Teleport Authority terminal hums at the kerb — the Line, the way back to Terminus and the counted world. Ahead is everything that is going to try to kill you.
+  coords:
+    x: 0
+    y: 0
+    z: 0
+  details:
+    office:
+      keywords: [office, charter, lantern, seal, warden]
+      description: |
+        The charter office: whitewashed, square, a lantern burning in the window in broad day and a heavy seal sitting inside it like something dug up. Someone with a ledger open on her arm stands in the doorway — the Warden, they say, if you're the sort to get sworn. (She'll have proper work for you when this frontier is finished being built.)
+    barlow:
+      keywords: [barlow, lean-to, undertaker, coffins, shingle]
+      description: |
+        A lean-to that smells of pine shavings and cold, its shingle just BARLOW. Through the door the pale ends of coffins are stacked and waiting. A man out front works a plane along a board and does not look up. Dead's honest work too, the charcoal says.
+    board:
+      keywords: [board, notice, notices, bounties, warrant, post]
+      description: |
+        NOTICES · by order of the settlement charter · all wolfshead · all DEAD OR ALIVE. A robber of the Line billed as the Gallant; a gentleman out of the fog who works with a knife; a witch, deep wood, do not eat the sweets; and one — [blank] — that came through the terminal, do not attempt to communicate. Beneath, heavier, in charcoal: the office is closed more'n it's open. see Barlow. bring a lantern.
+    treeline:
+      keywords: [treeline, trees, woods, wood, forest]
+      description: |
+        The road runs on past both doors into a treeline that has gone quiet. Not empty-quiet — listening-quiet. Somewhere close in there something huffs, and settles, and waits.
+    line:
+      keywords: [line, terminal, tpa, kerb]
+      description: |
+        The Teleport Authority terminal — the Line — hums at the kerb where the graded road ends. It runs one way from here: back to Terminus, and the counted world. `teleport` reads the board; there's no fare on the ride home.

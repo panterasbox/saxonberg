@@ -1,28 +1,23 @@
 /**
- * CartesianZone — grid-indexed zone that derives cardinal exits from adjacency.
+ * CartesianZone — grid-indexed zone: the coordinate grid + its invariants.
  *
  * Cells are the same size within a single zone (`cellSize`). Locations are
- * positioned by integer grid coordinates `(x, y, z)`. Exits in cardinal
- * directions are NOT authored by hand; they are *derived* from grid
- * neighborship on demand and cached.
+ * positioned by integer grid coordinates `(x, y, z)`. Exits are authored
+ * explicitly on every room — the zone never *synthesizes* them from adjacency
+ * (a room connects to exactly what its template declares). The zone's job is
+ * the coordinate grid + its invariants (unique cell occupancy; the
+ * cardinal-only-intra-zone exit rule on `CartesianLocation`).
  *
  * - `addLocation(location, x, y, z)` — place a location at a grid cell;
- *   stamps the location's `coordinates` and `zone`, invalidates the
- *   derived-exit cache.
- * - `deriveExit(from, direction)` — looks up the neighbor cell; if present,
- *   synthesizes a one-way `Exit` (cached) from `from` to the neighbor. If
- *   no neighbor, returns `undefined`.
- *
- * Derived exits are NEVER persisted — recomputed each boot.
+ *   stamps the location's `coordinates` and `zone`.
+ * - `getNeighbor(from, direction)` — the room at `from + offset(direction)`,
+ *   or `undefined` (a geometry query for tooling; not an exit source).
  */
 
 import { SpatialZone } from '../zone/SpatialZone';
-import Exit from '../boundary/Exit';
 import { NavigationApi } from '../../api/navigation';
 import type Location from '../stuff/Location';
-import type { Stuff } from '../stuff/Stuff';
 import { MixinApi } from '../../api/mixin';
-import { StuffApi } from '../../api/stuff';
 import { SingletonMixin } from '../stuff/Singleton';
 
 /** Compose a grid key from integer cell coordinates. */
@@ -51,12 +46,6 @@ export default class CartesianZone extends SingletonMixin(SpatialZone) {
   public getCellSize(): number { return this.cellSize; }
   public setCellSize(value: number): void { this.cellSize = value; }
 
-  /**
-   * CartesianZone synthesizes cardinal-derived exits from grid
-   * adjacency. Overrides the Zone base's `false` default.
-   */
-  public override hasDerivedAdjacency(): boolean { return true; }
-
   /** Locations indexed by `"x,y,z"` key. Host-internal. */
   protected readonly grid: Map<string, Location> = new Map();
 
@@ -76,12 +65,6 @@ export default class CartesianZone extends SingletonMixin(SpatialZone) {
     if (!here) return false;
     return room ? here === room : true;
   }
-
-  /**
-   * Lazy cache of derived exits keyed by `"<fromStuffId>:<direction>"`.
-   * Invalidated wholesale when the grid changes — cheap to rebuild.
-   */
-  private derivedCache: Map<string, Exit> = new Map();
 
   static persistentFields = ['name', 'cellSize'];
 
@@ -105,7 +88,6 @@ export default class CartesianZone extends SingletonMixin(SpatialZone) {
     }
     location.setCoordinates([x, y, z]);
     this.grid.set(gridKey(x, y, z), location);
-    this.derivedCache.clear();
     super.addLocation(location);
   }
 
@@ -124,7 +106,6 @@ export default class CartesianZone extends SingletonMixin(SpatialZone) {
     if (this.grid.get(key) === location) {
       this.grid.delete(key);
     }
-    this.derivedCache.clear();
     return super.removeLocation(location);
   }
 
@@ -145,38 +126,4 @@ export default class CartesianZone extends SingletonMixin(SpatialZone) {
     return this.grid.get(gridKey(coords[0] + dx, coords[1] + dy, coords[2] + dz));
   }
 
-  /**
-   * Zone-derived exit: synthesize a one-way `Exit` from `from` to its
-   * grid neighbor in `direction`. Cached per-source per-direction.
-   *
-   * Returns `undefined` when `direction` isn't cardinal, `from` isn't in
-   * this zone, or the neighbor cell is empty.
-   */
-  public deriveExit(from: Location, direction: string): Exit | undefined {
-    const canonical = NavigationApi.normalizeDirection(direction);
-    if (!canonical) return undefined;
-    if (!this.getLocations().has(from)) return undefined;
-
-    const cacheKey = `${(from as unknown as Stuff).stuffId}:${canonical}`;
-    const cached = this.derivedCache.get(cacheKey);
-    if (cached) return cached;
-
-    const neighbor = this.getNeighbor(from, canonical);
-    if (!neighbor) return undefined;
-
-    // Use the type-predicate form so the narrowing flows through to
-    // the Exit constructor — `MixinApi.isContainer` narrows
-    // `Location` to `Location & Container`, which IS `Stuff & Container`,
-    // so no cast is needed at the call site.
-    if (!MixinApi.isContainer(from)) return undefined;
-    if (!MixinApi.isContainer(neighbor)) return undefined;
-
-    const exit = StuffApi.createSync(() => new Exit({
-      direction: canonical,
-      source: from,
-      destination: neighbor,
-    }));
-    this.derivedCache.set(cacheKey, exit);
-    return exit;
-  }
 }

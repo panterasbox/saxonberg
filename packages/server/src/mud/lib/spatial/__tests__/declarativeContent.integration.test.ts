@@ -97,14 +97,18 @@ describe('Declarative content lazy hydrate — CartesianZone + rooms + Window', 
           },
         },
       },
-      // Room B — has coords only (the back-exit south arrives via roomA's
-      // bidirectional `addBidirectionalExit`).
+      // Room B — declares its OWN exit back (exits are explicit on both
+      // sides; no auto-reciprocal). roomA's `north` still triggers roomB's
+      // clone when the applier resolves the destination via singleton.
       {
         path: '/test/declarative/zone/roomB',
         class: '/lib/location/CartesianLocation',
         hydratorClass: PersistentHydrator.templatePath,
         data: {
           coords: { x: 0, y: 1, z: 0 },
+          exits: {
+            south: { destination: '/test/declarative/zone/roomA' },
+          },
         },
       },
       // Window — declarative attachedHosts.
@@ -152,7 +156,7 @@ describe('Declarative content lazy hydrate — CartesianZone + rooms + Window', 
     expect(roomB).toBeTruthy();
     expect(roomB!.getCoords()).toEqual({ x: 0, y: 1, z: 0 });
 
-    // Bidirectional exit pair installed.
+    // Both explicit exits installed (each room declares its own edge).
     const north = roomA.getExit('north');
     expect(north).toBeDefined();
     expect(north!.getDestination()).toBe(roomB);

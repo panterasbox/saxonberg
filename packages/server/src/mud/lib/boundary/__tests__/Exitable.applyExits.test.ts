@@ -63,7 +63,7 @@ describe('Exitable.applyExits', () => {
     StuffApi.clearAll();
   });
 
-  it('installs a cardinal bidirectional pair (default bidirectional for cardinals)', async () => {
+  it('a plain cardinal exit installs ONE edge (no auto-reciprocal)', async () => {
     installInMemoryStore([
       {
         path: '/zone',
@@ -78,9 +78,28 @@ describe('Exitable.applyExits', () => {
       north: { destination: '/zone/b' },
     });
 
-    expect(a.getExit('north')).toBeDefined();
+    // Only a's own edge is installed; the return trip is a separate
+    // declaration on b's template (exits are explicit on both sides).
     expect(a.getExit('north')?.getDestination()).toBe(b);
-    expect(b.getExit('south')).toBeDefined();
+    expect(b.getExit('south')).toBeUndefined();
+  });
+
+  it('bidirectional: true installs the reciprocal too (explicit opt-in)', async () => {
+    installInMemoryStore([
+      {
+        path: '/zone',
+        class: '/lib/location/CartesianZone',
+        data: {},
+      },
+    ]);
+    const a = makeStuffAtPath(() => new CartesianLocation(), '/zone/a');
+    const b = makeStuffAtPath(() => new CartesianLocation(), '/zone/b');
+
+    await a.applyExits({
+      north: { destination: '/zone/b', bidirectional: true },
+    });
+
+    expect(a.getExit('north')?.getDestination()).toBe(b);
     expect(b.getExit('south')?.getDestination()).toBe(a);
   });
 
@@ -98,7 +117,9 @@ describe('Exitable.applyExits', () => {
     door.setShortDescription('oak door');
 
     await a.applyExits({
-      north: { destination: '/zone/b', door: '/door1' },
+      // A doored connection is authored once with `bidirectional: true` — the
+      // door is one physical boundary spanning both rooms.
+      north: { destination: '/zone/b', door: '/door1', bidirectional: true },
     });
 
     const exitN = a.getExit('north');

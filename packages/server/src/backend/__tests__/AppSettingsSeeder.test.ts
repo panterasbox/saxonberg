@@ -41,7 +41,7 @@ describe("AppSettingsSeeder", () => {
     pm.setFindResult([]);
     const added = await AppSettingsSeeder.run();
 
-    expect(added).toBe(48);
+    expect(added).toBe(52);
     expect(pm.saves).toHaveLength(1);
     expect(pm.saves[0]!.collection).toBe("app_settings");
     const values = savedValues(pm);
@@ -98,6 +98,11 @@ describe("AppSettingsSeeder", () => {
           [AppSettingKeys.scriptMaxDepthPlatform]: "256",
           [AppSettingKeys.bankingSalesTaxRate]: "0.08",
           [AppSettingKeys.bankingTreasuryAccount]: "treasury",
+          // Banking onboarding coin + the three fast-travel fare keys.
+          [AppSettingKeys.bankingOnboardingStipend]: "20",
+          [AppSettingKeys.fasttravelNetworkFeeRate]: "0.15",
+          [AppSettingKeys.fasttravelNetworkFeeBase]: "1",
+          [AppSettingKeys.fasttravelTpaAccount]: "tpa",
           // The two social-graph baseline keys (Phase 1 additions).
           [AppSettingKeys.socialBaselineRules]: "{}",
           [AppSettingKeys.socialDefaultColor]: "neutral",
@@ -139,8 +144,9 @@ describe("AppSettingsSeeder", () => {
     // + 2 banking + 2 youtube (pollIntervalMs, overlayPollIntervalMs)
     // + 3 social (social.baselineRules, social.defaultColor, social.idleAfter)
     // + 4 bulletin (tickerWindow, maxPins, headlineMaxLength, bodyMaxLength)
-    // + 3 residency (eviction.mode, .intervalMs, .idleThresholdMs).
-    expect(added).toBe(47);
+    // + 3 residency (eviction.mode, .intervalMs, .idleThresholdMs)
+    // + 4 transit (banking.onboardingStipend + 3 fasttravel fare keys).
+    expect(added).toBe(51);
     expect(pm.saves).toHaveLength(1);
     const values = savedValues(pm);
     // operator value preserved, missing keys seeded

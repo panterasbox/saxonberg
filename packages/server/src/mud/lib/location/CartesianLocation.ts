@@ -5,10 +5,11 @@
  * Composition: `ExitableMixin(CartesianCoordinatesMixin(VisibleMixin(Location)))`
  *
  * Locations are positioned by integer grid coordinates in a zone's grid.
- * Cardinal exits are derived on demand from grid adjacency (see
- * `CartesianZone.deriveExit`) unless an explicit exit is authored. Flat
- * zones leave `z = 0` and have no `up`/`down` neighbors; vertical zones
- * fill them in.
+ * Exits are authored **explicitly** on every room — the zone does not derive
+ * them from grid adjacency (a room connects to exactly what its template
+ * declares, on both sides). The grid drives geometry (volume, ceiling,
+ * light-scale) and the cardinal-only-intra-zone exit rule below, not exit
+ * synthesis. Flat zones leave `z = 0`; vertical zones use `up`/`down`.
  *
  * Direction discipline: CartesianLocations only accept exits in one of the
  * 10 canonical cardinal directions (`n`/`s`/`e`/`w`/diagonals/`up`/`down`).

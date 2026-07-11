@@ -90,26 +90,29 @@ type signature is for subclass overrides. `addBidirectionalExit` is
 also async because it `await`s the two `addExit` calls internally.
 Callers must `await`.
 
-### `ExitableMixin` lookup precedence
+### `ExitableMixin` lookup — explicit only
 
 `ExitableMixin` (`lib/boundary/Exitable.ts`) is composed by
 `CartesianLocation`, `SphericalLocation`, and `ExitableVessel`.
-`getExit(direction)` merges:
+Exits are **authored explicitly on every room** — a room connects to
+exactly what its own template declares, on both sides. The zone does
+**not** synthesize exits from grid adjacency; every template is
+self-describing. `getExit(direction)` resolves:
 
-1. **Explicit map.** Wins absolutely.
+1. **Explicit map.** The authored exit, or `undefined`.
 2. **Subclass hook.** `ExitableVessel.getExit` overrides for
    `direction === 'out'`.
-3. **Zone-derived.** `zone?.deriveExit(this, direction)` —
-   polymorphic: `CartesianZone` synthesizes from grid adjacency,
-   `SphericalZone` always returns `undefined`. No `instanceof`
-   check at the call site (see
-   [antipatterns.md § instanceof, virtual methods, and
-   cast-by-invariant](../antipatterns.md)).
 
-`getObviousExits()` is the union used by `look`. Walks explicit
-exits first, then iterates the 10 cardinals through
-`zone.deriveExit` only when `zone?.hasDerivedAdjacency()` —
-again polymorphic, no `instanceof`.
+`getObviousExits()` (used by `look`) is the explicit exits, `!hidden`.
+
+**No auto-reciprocal.** `applyExits` installs only the edge it declares
+(`bidirectional` defaults to **false**); the return trip is a separate
+entry on the destination's template. `bidirectional: true` is an
+explicit opt-in that also installs the reciprocal — used where the two
+exits share one physical `Door` (whose boundary anchors must be wired
+once; the door *is* the shared "both sides"). `verifyOutboundExits`
+still links the two authored one-way exits of a doorway as inverses
+when both are loaded.
 
 `getExitDoors()` collects every non-null `exit.door` reachable
 through `getObviousExits` — used by MQL so a player can target a
@@ -161,9 +164,11 @@ The applier:
 
 - Resolves `destination` and optional `door` paths lazily via
   `StuffApi.singleton` (clones on first need).
-- Defaults `bidirectional` to true for cardinal directions
-  (inverse inferred via `NavigationApi.invertDirection`), false for
-  non-cardinal labels (caller must supply `opposite` explicitly).
+- Defaults `bidirectional` to **false** — installs only the edge it
+  declares. `bidirectional: true` is an explicit opt-in that also
+  installs the reciprocal (its inverse inferred via
+  `NavigationApi.invertDirection` for cardinals, or the caller-supplied
+  `opposite` for non-cardinal labels).
 - Per-direction idempotency: a matching existing exit (same
   destination, same door) is a no-op; a mismatch throws with a
   diagnostic naming both seed paths.
@@ -554,8 +559,8 @@ two rooms.
 ## Persistence Notes
 
 - Exits: `direction`, `destinationPath`, flags. The `door` Stuff
-  reference goes via custom `persistenceHandler`. Derived
-  cartesian exits are recomputed on boot.
+  reference goes via custom `persistenceHandler`. Every exit is
+  explicit and persisted — the zone no longer derives any.
 - Doors: `isOpen` (from Sealable). The `attachedTo` Set and the
   anchor pair are runtime-only.
 - Boundaries: subclass-specific (Window's transmissivity +
@@ -566,6 +571,23 @@ two rooms.
   the `Containable.environment` shape (custom
   `persistenceHandler`). Composing classes that need attachment
   to survive restart own that.
+
+## History
+
+**Exits became explicit-only** in the Terminus Terminal build
+(`feature/terminus-terminal`, commits `f142178c` + `84f30cdc`). The
+`CartesianZone`/`SpatialZone` layer previously *derived* cardinal exits
+from grid adjacency (and `applyExits` auto-installed a reciprocal for
+cardinal directions); `getExit` fell through to a `deriveExit()` synthesis
+path. That was removed: every exit is now authored explicitly on both
+sides of a connection, `applyExits` installs only the edge it declares
+(`bidirectional` defaults **false**; `bidirectional: true` opts into the
+reciprocal for a shared `Door`), and `deriveExit` is gone. The motivation
+was legibility — any room template now names exactly what it connects to,
+readable without simulating the grid. The zone's remaining job is to
+*enforce* connectivity invariants, not to invent edges. Content that
+relied on derivation (the Terminus hub, the EU campus) migrated to
+explicit-both-sides exits in the same build.
 
 ## Cross-References
 

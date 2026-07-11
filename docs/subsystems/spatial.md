@@ -628,8 +628,8 @@ Public methods (all on `NavigationApi`):
 - `cardinalDirections()` → readonly array of all 10.
 
 Used heavily: `CartesianLocation.addExit` validates against
-`isCardinalDirection`; `CartesianZone.deriveExit` and `getNeighbor`
-go through `normalizeDirection` and `directionOffset`;
+`isCardinalDirection`; `CartesianZone.getNeighbor`
+goes through `normalizeDirection` and `directionOffset`;
 `Exitable.addBidirectionalExit` uses `invertDirection` for inferred
 opposites; `MobileMixin`'s arrival resolver uses `invertDirection`
 for "arrives from the south."
@@ -695,10 +695,8 @@ The spatial subsystem is mostly auto-persistent through
 - `Vessel`: `transmissionFactor` (the encumbrance attenuation; default
   1.0) — plus whatever its mixins contribute.
 
-Two intentional non-persistents:
+One intentional non-persistent:
 
-- **Derived exits** are never persisted. They're a pure function of
-  the grid and `NavigationApi`'s offsets — recomputed on boot.
 - **`Containable.environment`** is NOT in `persistentFields` (see
   `Containable.ts:71-76`). It's a reference to another Stuff; the
   classes that compose Containable must declare a custom

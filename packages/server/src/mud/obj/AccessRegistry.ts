@@ -31,16 +31,13 @@ import { SecurityPolicies } from '../lib/security/SecurityPolicies';
 import { GroupApi } from '../api/group';
 import { ZoneApi } from '../api/zone';
 import { StuffApi } from '../api/stuff';
-import { TemplateApi } from '../api/template';
 import { Template } from '../lib/stuff/Template';
-import PersistentHydrator from '../lib/persistence/PersistentHydrator';
 import { Group, type GroupRole } from '../lib/social/Group';
 import type { GroupRef } from '../lib/social/GroupProvider';
 import type { Stuff } from '../lib/stuff/Stuff';
 import { Zone } from '../lib/zone/Zone';
 import FolderZone from '../lib/zone/FolderZone';
 import Avatar from './Avatar';
-import { TemplatePaths } from '../lib/paths';
 
 const AccessRegistryBase = PostRegistrationMixin(Idea);
 
@@ -53,15 +50,11 @@ const AccessApiCallers = SecurityPolicies.AnyOf(
   SecurityPolicies.FromTemplate('/obj/api/access'),
 );
 
-const FOLDER_ZONE_CLASS = TemplatePaths.folderZone;
-
-const LOUNGE_FOLDER_PATHS = ['/lib/lounge', '/domain/lounge'] as const;
 
 export default class AccessRegistry extends AccessRegistryBase {
   /** Cached GroupRef for `'core'`. Resolved lazily; survives the
    *  api/access.ts reload because it lives on the Stuff. */
   private cachedCoreRef: GroupRef | null = null;
-  private cachedLoungeRef: GroupRef | null = null;
   private cachedWizardsRef: GroupRef | null = null;
   /** Set of playerIds in `'wizards'` — warmed lazily, invalidated
    *  via the managed provider's onChange callback. */
@@ -90,7 +83,10 @@ export default class AccessRegistry extends AccessRegistryBase {
 
   public override async postRegister(_context?: unknown): Promise<void> {
     await this.seedCoreGroup();
-    await this.seedLoungeSlice();
+    // Zone-ownership slices (lounge / Terminus) are NOT seeded here — a zone
+    // declares `ownerGroupName: <name>` in its seed and the access layer
+    // resolves it (mint-or-find) on first access (`effectiveOwnerRef` /
+    // `resolveOwnerGroupName`). Data-driven, no per-area boot hook.
     await this.seedWizardsGroup();
     await this.seedStreamersGroup();
     await this.seedArchwizardsGroup();
@@ -122,7 +118,7 @@ export default class AccessRegistry extends AccessRegistryBase {
     const permittedGroups: GroupRef[] = [];
     let zone: Zone | null = this.zoneOf(resource);
     while (zone !== null) {
-      const owner = zone.getOwnerGroup();
+      const owner = await this.effectiveOwnerRef(zone);
       if (owner) permittedGroups.push(owner);
       const access = zone.getAccessGroups();
       if (access) permittedGroups.push(...access);
@@ -158,7 +154,7 @@ export default class AccessRegistry extends AccessRegistryBase {
     let z: Zone | null = zone;
     let primary: GroupRef | undefined;
     while (z !== null && primary === undefined) {
-      primary = z.getOwnerGroup();
+      primary = await this.effectiveOwnerRef(z);
       if (primary === undefined) {
         z = await ZoneApi.getEnclosingZone(z);
       }
@@ -333,6 +329,47 @@ export default class AccessRegistry extends AccessRegistryBase {
     return this.cachedCoreRef;
   }
 
+  /** name → resolved `managed:<id>` ref (mint-or-find). Warmed lazily. */
+  private cachedOwnerNameRefs = new Map<string, GroupRef>();
+
+  /**
+   * Resolve a zone's **symbolic** `ownerGroupName` to a real `managed:<id>`
+   * ref — mint-or-find the managed group by that name (owner `system`),
+   * cached. This is the data-driven replacement for the per-area `seed*Slice`
+   * boot hooks: a zone declares `ownerGroupName: <name>` in its seed and the
+   * group + ownership resolve on first access.
+   */
+  private async resolveOwnerGroupName(name: string): Promise<GroupRef | null> {
+    const cached = this.cachedOwnerNameRefs.get(name);
+    if (cached) return cached;
+    const reg = await GroupApi.registry();
+    const provider = reg.managed();
+    let g = await provider.findByName(name);
+    if (!g) {
+      g = new Group();
+      g.name = name;
+      g.owner = 'system';
+      await g.save();
+    }
+    if (!g._id) return null;
+    const ref: GroupRef = `managed:${g._id}`;
+    this.cachedOwnerNameRefs.set(name, ref);
+    return ref;
+  }
+
+  /**
+   * The effective owner ref for a zone: an explicit `ownerGroup` ref wins;
+   * otherwise a symbolic `ownerGroupName` resolves (mint-or-find). Undefined
+   * when the zone declares neither.
+   */
+  private async effectiveOwnerRef(zone: Zone): Promise<GroupRef | undefined> {
+    const explicit = zone.getOwnerGroup();
+    if (explicit) return explicit;
+    const name = zone.getOwnerGroupName();
+    if (name) return (await this.resolveOwnerGroupName(name)) ?? undefined;
+    return undefined;
+  }
+
   private async ensureAuthorGroups(): Promise<readonly GroupRef[]> {
     if (this.cachedAuthorGroups) return this.cachedAuthorGroups;
     const refs = new Set<GroupRef>();
@@ -341,6 +378,12 @@ export default class AccessRegistry extends AccessRegistryBase {
       if (!(await ZoneApi.isFolderClass(t.class))) continue;
       const owner = t.data?.ownerGroup as GroupRef | undefined;
       if (owner) refs.add(owner);
+      // Symbolic owner-group names resolve to a real ref (mint-or-find).
+      const ownerName = t.data?.ownerGroupName as string | undefined;
+      if (ownerName) {
+        const ref = await this.resolveOwnerGroupName(ownerName);
+        if (ref) refs.add(ref);
+      }
       const access = t.data?.accessGroups as readonly GroupRef[] | undefined;
       if (access) for (const r of access) refs.add(r);
     }
@@ -428,39 +471,6 @@ export default class AccessRegistry extends AccessRegistryBase {
     if (g._id) this.cachedCoreRef = `managed:${g._id}`;
   }
 
-  private async seedLoungeSlice(): Promise<void> {
-    const reg = await GroupApi.registry();
-    const provider = reg.managed();
-    let lounge = await provider.findByName('lounge');
-    if (!lounge) {
-      const g = new Group();
-      g.name = 'lounge';
-      g.owner = 'system';
-      await g.save();
-      lounge = g;
-    }
-    if (!lounge._id) return;
-    const loungeRef: GroupRef = `managed:${lounge._id}`;
-    this.cachedLoungeRef = loungeRef;
-    for (const path of LOUNGE_FOLDER_PATHS) {
-      const existing = await Template.findByPath(path);
-      if (existing) {
-        // Only stamp the ownerGroup when missing — never overwrite an
-        // existing owner. Idempotent.
-        if (!existing.data?.ownerGroup) {
-          existing.data = { ...existing.data, ownerGroup: loungeRef };
-          await existing.save();
-        }
-        continue;
-      }
-      await TemplateApi.saveTemplate(
-        path,
-        FOLDER_ZONE_CLASS,
-        { ownerGroup: loungeRef },
-        PersistentHydrator.templatePath,
-      );
-    }
-  }
 
   private async seedWizardsGroup(): Promise<void> {
     const reg = await GroupApi.registry();

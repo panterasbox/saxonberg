@@ -36,16 +36,19 @@ export default class RegisterController extends CommandController<CommandModel> 
         "not-arrival",
       );
     }
-    const holder = ContainmentApi.findReachable(
+    // Clearance is bound to the traveller's IDENTITY (the born-with,
+    // aether-hosted wallet), never to a carried, transferable card — so the
+    // write targets the actor's own hosted wallet directly (leg-2 isolation),
+    // not the general reachable-instrument scan.
+    const holder = ContainmentApi.findHostedUpdate(
       giver,
-      context.location,
       (s: Stuff): s is Stuff & CredentialWallet =>
         MixinApi.isCredentialWallet(s) && !!s.getCredential("travel"),
     );
     if (!holder) {
       return this.fail(
         context,
-        "you have no Teleport Authority credential",
+        "you have no identity-bound Teleport Authority credential to record onto",
         "no-credential",
       );
     }

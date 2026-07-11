@@ -27,12 +27,6 @@ describe('SphericalZone', () => {
     expect(plaza.getZone()).toBe(zone);
   });
 
-  it('deriveExit always returns undefined', () => {
-    for (const dir of ['north', 'south', 'east', 'up', 'office', 'out']) {
-      expect(zone.deriveExit(plaza, dir)).toBeUndefined();
-    }
-  });
-
   it('explicit exits on spherical locations still work', async () => {
     const toOffice = makeStuff(() => new Exit({
       direction: 'office',

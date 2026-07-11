@@ -1,0 +1,33 @@
+# The crossroads terminal — "the Line". The `both`-directional node the Gate A
+# paid route lands travellers at (its arrival room is the hub), and the
+# departure origin of the FREE return leg back to the Terminus arrival node. A
+# single `both` terminal (the lounge precedent) means it cascade-loads as the
+# Gate A route target — no manifest entry needed. Floor-registered (Phase 6):
+# the FARE, not registration, gates the outbound trip; the return is free.
+#
+# `surcharge` is the settlement's **arrival toll** — a charge this terminal
+# imposes just for arriving here, ADDED on top of the route's own fee (total =
+# fee + surcharge). Collected by the frontier operating budget
+# (`CrossroadsTerminal.postRegister` stands it up; `businessAt(the hub)`
+# resolves it). So Gate A → crossroads costs 15 (Terminus's, by departure) + 2
+# (the frontier's, by destination); the free return leg (fee 0, and Terminus
+# arrival has no surcharge) stays free.
+#
+# The frontier settlement's operating budget stands up lazily (derived from its
+# own `operatingLocations`, which name THIS terminal) on the first arrival
+# surcharge — no bespoke terminal class needed. Keywords `crossroads`/`frontier`
+# are the typeable handles for `teleport crossroads` at Gate A; the board
+# DISPLAYS the covering Locality name ("The Last Counted Mile") and the ⊙ total
+# fare.
+class: /domain/common/tpa/TpaTerminal
+hydratorClass: /lib/persistence/PersistentHydrator
+data:
+  seatIn: /domain/newbie-wilds/crossroads/hub
+  shortDescription: a Teleport Authority terminal
+  keywords: [crossroads, frontier]
+  directionality: both
+  status: operational
+  surcharge: 2
+  routes:
+    - to: /domain/terminus/terminal/arrival-terminal
+      fee: 0

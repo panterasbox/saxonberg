@@ -10,6 +10,14 @@
  * `getArrivalRoom()` resolves to the live lounge host (`LoungeWarren.getHost`),
  * creating it on first call — which, since this node is the eager boot root,
  * stands the lounge host up at boot.
+ *
+ * `getDestinationLabel()` names the lounge "The Lounge" on other terminals'
+ * departures boards (D13). The generic label resolves a destination's covering
+ * Locality via its arrival room's address, but the lounge arrival room is the
+ * Warren host — a runtime role with no stable address — so the Locality lookup
+ * can't land. Overriding here gives the board the right name directly, without
+ * co-opting the terminal's own `shortDescription` (which reads correctly in
+ * the lounge as a plain terminal).
  */
 
 import TpaTerminal from "../common/tpa/TpaTerminal";
@@ -25,5 +33,9 @@ export default class LoungeTerminal extends TpaTerminal {
       LoungeWarren.WARREN_PATH,
     );
     return warren.getHost();
+  }
+
+  override async getDestinationLabel(): Promise<string> {
+    return "The Lounge";
   }
 }
