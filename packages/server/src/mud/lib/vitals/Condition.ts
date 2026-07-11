@@ -47,6 +47,29 @@ export type TraumaType =
   | 'avulsion'
   | 'burn';
 
+/**
+ * The physical mechanism of an insult — the harm producer records it on
+ * the trauma so the deferred **materials-response** severity function can
+ * read it later. v1 stores it but it has **NO severity interaction yet**
+ * (magnitude-only severity — "damage type is explicitly not the model").
+ * The closed vocabulary maps bijectively onto {@link TraumaType} in
+ * `HarmLogic.inflict`. Grow additively.
+ */
+export type Mechanism =
+  | 'sharp'
+  | 'blunt'
+  | 'crushing'
+  | 'thermal'
+  | 'tearing';
+
+export const MECHANISMS: readonly Mechanism[] = [
+  'sharp',
+  'blunt',
+  'crushing',
+  'thermal',
+  'tearing',
+];
+
 /** Kind B — trauma value; behavior resolves from `TRAUMA_BEHAVIOR`. */
 export interface Trauma {
   kind: 'trauma';
@@ -59,9 +82,55 @@ export interface Trauma {
   bleeding?: boolean;
   /** Pressure / bandage applied → bleed arrested (runtime process flag). */
   dressed?: boolean;
+  /**
+   * The physical mechanism that caused it — recorded by the harm producer,
+   * **not yet scored** (the deferred materials-response function reads it).
+   */
+  mechanism?: Mechanism;
+  /**
+   * The inflicter's durable `templatePath`, for combat's future blame
+   * ledger — harm records attribution without owning blame. Undefined for
+   * an environmental / far-cause / unattributable insult.
+   */
+  inflictedBy?: string;
   // The runtime ScheduleApi.recurring handle a future tick holds is NOT
   // persisted — re-arm on hydrate.
 }
+
+/**
+ * Engine dials for the harm driver — playtest-tuned rates, greppable and
+ * retunable in one place (the `UNIVERSE_DEFAULT_VITAL_PROFILE` / metabolism
+ * `*_DEFAULTS` precedent — a capability's dials live in its own module).
+ * Read by the {@link TRAUMA_BEHAVIOR} strategies and the `HarmLogic`
+ * wound-tick driver. NOT plan decisions or engine invariants.
+ */
+export const HARM_DEFAULTS = {
+  /** energy → severity (magnitude-only; mechanism is NOT scored in v1). */
+  SEVERITY_PER_ENERGY: 1,
+  /** Wound-tick cadence (real-time); the DRAIN is computed in game-time. */
+  TICK_INTERVAL_MS: 5_000,
+  /** Presence far-past guard (game-seconds) — mirrors the metabolism guard. */
+  MAX_REASONABLE_GAP_SEC: 4 * 60 * 60,
+  /** Laceration bleed: blood litres lost per game-second per unit severity. */
+  BLEED_PER_SEC: 0.002,
+  /** Severity decay per game-second while a laceration is dressed. */
+  DRESSED_HEAL_PER_SEC: 0.02,
+  /** Below this severity a laceration has clotted (safe to undress). */
+  CLOT_SEVERITY: 0.5,
+  /** Natural (undressed) severity decay per game-second, per trauma family. */
+  LACERATION_HEAL_PER_SEC: 0.003,
+  CONTUSION_HEAL_PER_SEC: 0.02,
+  FRACTURE_HEAL_PER_SEC: 0.0015,
+  BURN_HEAL_PER_SEC: 0.006,
+  /** Fracture at/above this severity disables its coupled slot. */
+  FRACTURE_IMPAIR_SEVERITY: 0.5,
+  /** Avulsion severity floor — "a severe laceration". */
+  AVULSION_SEVERITY_FLOOR: 2,
+  /** Below this severity a wound has healed and is cleared from the body. */
+  CLEARED_SEVERITY: 0.01,
+  /** Limp: endurance %-drained per traverse per unit locomotor-wound severity. */
+  LIMP_DRAIN_PER_SEVERITY: 4,
+} as const;
 
 /** Both kinds behind one collection element. */
 export type ActiveCondition = AfflictionRecord | Trauma;
