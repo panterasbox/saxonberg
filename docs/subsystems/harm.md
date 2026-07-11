@@ -198,13 +198,24 @@ teleport arrival): resolve a foot site from the mover's own anatomy (a
 non-biped matches none → graceful no cut), gate on
 `ConditionApi.isSiteCovered`, and cut a barefoot foot through `inflict`
 (never `afflict` directly). Config (mechanism / energy / foot sites) is
-class constants. Reachable in shipped content — a walkable `down` exit (a
-service stair) off the **Terminus Terminal hall**
-(`seeds/domain/terminus/terminal/hall.yaml` → `/domain/lounge/glass-alley`,
-which declares its own `up` back-exit), with two `Bandage`s stocked so the
-treat loop is playable in-world. Proves the full loop: step
-on glass → bleed + limp → assess → treat-or-die. A real hazard/trap
-taxonomy is a separate future build over the same seam.
+class constants. It proves the full loop end-to-end — step on glass →
+bleed + limp → assess → treat-or-die — through the real `Mobile.traverse`
++ the medic controllers + the reconcile driver, in the **`GlassAlley`
+integration test** (`domain/lounge/__tests__/GlassAlley.integration.test.ts`,
+which constructs the alley + a body + an `Exit` in-memory). It is **not
+wired into the world seed graph** (see the note below); the
+reachable-in-world demo is deferred until a safe walkable host exists. A
+real hazard/trap taxonomy is a separate future build over the same seam.
+
+> **In-world placement deferred.** The demo was briefly wired off Dave's
+> Bar, then the Terminus Terminal hall, but every real content-area host
+> broke a standup/fast-travel invariant (a cross-domain exit fails the
+> terminus standup's isolated boot; the lounge's landing host asserts its
+> exit count; the TPA terminals pull the room into the fast-travel
+> cascade). Rather than degrade a tested content area for a demo, the
+> seed wiring was retired — `GlassAlley` stays a class + integration
+> fixture. Re-home it to a purpose-built, un-asserted walkable room when
+> one exists.
 
 ## Deferred (named seams)
 
@@ -237,3 +248,27 @@ taxonomy is a separate future build over the same seam.
   coverage presence check
 - [combat-slate.md](../slates/deferred-rpg/combat-slate.md) — the
   downstream consumer
+
+## History
+
+The build shipped in the harm-driver branch (the `feat(harm): Phase 0–6`
+commit range through the pre-merge sweep). Two design→implementation
+shifts landed during MR review and are worth noting because the retired
+plan/requirements docs describe the pre-review shape:
+
+- **`HarmApi` → `ConditionApi`.** The producer Api was promoted from a
+  harm-only surface to the gated facade over the whole vitals *condition*
+  surface — `inflict` (trauma) plus `afflict` / `relieve` / `conditionsOf`
+  (afflictions). Reserves (endurance) and transient combat flags are
+  distinct axes and stay out. Logic singleton at `/obj/api/condition`.
+- **Push tick → reconcile-on-read.** Wound progression was originally
+  planned as a `ScheduleApi.recurring` push with an in-memory tick-handle
+  map re-armed on hydrate from `Avatar.enter` + `NPC.postRegister`. It was
+  reworked to reconcile-on-read on the `VitalsMixin` read path (a
+  persisted per-trauma `tickedAt`), which deleted the re-arm seam entirely
+  and made harm consistent with the metabolism / thermal reconcile
+  drivers. The demonstrator room's in-world seed exit (first off Dave's
+  Bar, then the Terminus Terminal hall) was retired at the sweep — every
+  real content-area host broke a standup/fast-travel invariant — so
+  `GlassAlley` ships as a class + integration fixture, its reachable-in-
+  world placement deferred.

@@ -6,10 +6,9 @@
 #
 # Exits are declared explicitly on BOTH sides (every template is self-
 # describing — you can read any room and know what it connects to). The hall
-# lists its doorways; each neighbour lists its own way back. South to the
-# arrival gate, east/west/north to departure gates A/B/C, up to the ticket
-# office mezzanine, and down a service stair to the back alley (the harm-driver
-# demonstrator).
+# lists all five of its doorways; each neighbour lists its own way back. South
+# to the arrival gate, east/west/north to departure gates A/B/C, up to the
+# ticket office mezzanine.
 class: /lib/location/CartesianLocation
 hydratorClass: /lib/persistence/PersistentHydrator
 data:
@@ -34,12 +33,6 @@ data:
       destination: /domain/terminus/terminal/departure-gate-c
     up:
       destination: /domain/terminus/terminal/office
-    # A service stair down to the back alley — the harm-driver demonstrator
-    # (broken glass underfoot). Walkable, one-way declared so it installs no
-    # colliding inverse (the alley declares its own `up` exit back here).
-    down:
-      destination: /domain/lounge/glass-alley
-      bidirectional: false
   details:
     loudspeaker:
       keywords: [loudspeaker, speaker, tannoy]

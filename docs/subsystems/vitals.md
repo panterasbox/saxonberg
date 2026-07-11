@@ -234,8 +234,10 @@ build shipped only the **seams** (metabolism is the first consumer):
   and fires the cause-of-death/lifecycle transition on sustained anoxia.
   The other signs remain substrate-only, awaiting their drivers.
 - **`bloodVolume` is now driven** — [harm](./harm.md) is the injury driver
-  that moves `bloodVolume` to the death seam: a bleeding laceration's
-  recurring wound-tick drains it, the `conscious → unconscious` waypoint
+  that moves `bloodVolume` to the death seam: a bleeding laceration
+  drains it **reconcile-on-read** (integrated on the `VitalsMixin` read
+  path — the metabolism/thermal precedent, no recurring tick), the
+  `conscious → unconscious` waypoint
   falls out of `getConsciousness()` for free (this seam reused untouched),
   and the floor stamps `setCauseOfDeath('exsanguination')` +
   `setLifecycleState('dead')`. Harm is the `inflict` producer + the five

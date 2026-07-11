@@ -169,10 +169,16 @@ remains in the near-term Track A queue:
 >   seam, [metabolism.md](./subsystems/metabolism.md)), and **respiration**
 >   (the air-exchange driver that finally drives `spo2` to an anoxia death
 >   seam on drowning / vacuum, plus the carried-air scuba loop,
->   [respiration.md](./subsystems/respiration.md)). Still deferred: the
->   general assess / measure-on-patient / treatment verbs + instruments,
->   live (non-metabolism) condition progression, and a *general*
->   death-transition driver (each driver drives only its own cascade).
+>   [respiration.md](./subsystems/respiration.md)), and **harm** (the
+>   first *injury* driver — the `inflict` producer, live trauma
+>   progression reconcile-on-read, bleed → `exsanguination`, and the
+>   non-combat medic vertical `assess`/`treat`/`dress`/`undress` +
+>   the `DressingMixin`/`Bandage` capability,
+>   [harm.md](./subsystems/harm.md)). Still deferred: the *general* /
+>   instrument-mediated assess + measure-on-patient, the first-aid
+>   instrument + medicine branches (splint / suture / antiseptic — harm
+>   shipped only the dressing branch), and a *general* death-transition
+>   driver (each driver drives only its own cascade).
 >   ([vitals-slate.md](./slates/builds/vitals-slate.md))
 > - **Things-here / Inventory chip strips.** Drafted as
 >   tandem-slice training wheels before the inspection pane
