@@ -56,8 +56,9 @@ See also:
 - [docs/subsystems/spatial.md](../../subsystems/spatial.md) /
   [zone.md](../../subsystems/zone.md) — the **coordinate data** rendered:
   `CartesianZone` (grid, `cellSize` in meters), `SphericalZone` (focus +
-  radius, semantic exits), `coords`, `deriveExit`. The map visualizes this;
-  it doesn't define it.
+  radius, semantic exits), `coords`. (Exits are **explicit-only** as of the
+  Terminus build — the former `deriveExit` grid-derivation was removed; the map
+  reads the authored exits.) The map visualizes this; it doesn't define it.
 - [docs/standard-model.md](../../standard-model.md) /
   [design-philosophy.md](../../design-philosophy.md) — the **honest spatial
   model** the map renders, and **layered presentation** (prose / physics /
@@ -207,8 +208,8 @@ demo-quality (lighting/materials).
 
 - **Zone/room *editing logic*** → [cms-slate.md](../builds/cms-slate.md). The map is
   the render surface + canvas; the editing rules are the editor's.
-- **The spatial model itself** (coordinates, zones, exits, `cellSize`,
-  `deriveExit`, and the **placement-validity invariants** — Cartesian
+- **The spatial model itself** (coordinates, zones, explicit exits,
+  `cellSize`, and the **placement-validity invariants** — Cartesian
   unique-coords, the owed `SphericalZone` non-overlap check) →
   [spatial.md](../../subsystems/spatial.md) / [zone.md](../../subsystems/zone.md).
   The map *surfaces* these; the spatial model *owns* them.

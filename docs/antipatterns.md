@@ -913,8 +913,8 @@ you reach for the wrong one:
   the caller wants the narrowed surface.
 - **Virtual method on the base class** — for *behavioural*
   questions that genuinely make sense across every subclass. Good:
-  `Zone.hasDerivedAdjacency(): boolean` (every zone can answer
-  "do I synthesize exits from adjacency?"). Bad:
+  `Stuff.canEvict(): boolean` (every Stuff can answer "may I be
+  culled from residency?"). Bad:
   `Zone.getCellSize(): number | null` returning `null` on
   non-Cartesian zones — `cellSize` doesn't conceptually exist on
   a SphericalZone, so lifting it to the base pollutes the

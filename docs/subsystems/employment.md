@@ -163,8 +163,9 @@ budget`) is the second consumer after Dave's Bar: it lists the operational
 departure gate in `operatingLocations` (so the transit fare's city share
 attributes to it, un-spoofably), pays the **terminal clerk** (a bounded roster
 shift so the wage settles at the boundary), and closes the conserved fare-in →
-wage-out loop. The clerk's standup clones the budget in `TicketClerk.postRegister`
-(the `Bar.postRegister` guarded-`singletonOrClone` precedent). See
+wage-out loop. The budget Business stands up **lazily** — derived from its own
+`operatingLocations`, on the first `ensureOperatorAt(fixture)` query (a fare at
+the gate) — no `TicketClerk`/`Bar.postRegister` clone. See
 [fasttravel.md](./fasttravel.md) § Terminus.
 
 ## The `shifts` + `covers` brains
@@ -278,6 +279,8 @@ plan. Notable design→implementation shifts:
   `obj/api/`), which the tighter gate would reject.
 - `OrderController` income re-keyed to the Business account too (the plan
   only named `HouseController`) — required for a combined P&L.
-- The Business stands up in `Bar.postRegister` rather than a bootstrap
-  manifest entry, and fixture resolution moved to MQL `peers` + type filter
-  (both from MR review).
+- The Business stands up **lazily** (derived from `operatingLocations` via
+  `ensureOperatorAt`) rather than a bootstrap manifest entry or a
+  `postRegister` clone, and fixture resolution moved to MQL `peers` + type
+  filter (both from MR review; the lazy standup finalized in the Terminus
+  build).

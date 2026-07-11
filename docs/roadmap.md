@@ -510,9 +510,11 @@ onboarding → dorm + authoring), each thin-engine / content-heavy:
 > **Surfaced-but-deferred subsystems.** The new-player and authoring
 > pass named several systems it deliberately does *not* solve, recorded
 > here so they aren't re-discovered cold:
-> - **Economy / currency** — fast-travel fees, catalog `make` costs,
->   the clinic comp. Multiple design sessions of its own; everything
->   is free/comped until it exists.
+> - **Economy / currency** — catalog `make` costs, the clinic comp.
+>   Multiple design sessions of its own; most of the world is
+>   free/comped until it exists. (**Fast-travel fares now ship** —
+>   the banking-backed transit-fare economy, conserved, split
+>   city/TPA/destination — see [fasttravel.md](./subsystems/fasttravel.md).)
 > - **Object condition / maintenance** — the "living infrastructure"
 >   seam (terminals break down, need upkeep); illustrative in
 >   fast-travel, not built.

@@ -127,10 +127,6 @@ room). It drives:
 A 5 m × 5 m room is `cellSize: 5`. Tests pinning specific LightBand
 values may need to set `cellSize: 1` for the prior 1 m² calibration.
 
-**Derived exits are never persisted.** They're a function of the grid
-plus `NavigationApi`'s offset table; rebuilding them on boot is
-trivial.
-
 ### `HomeZone`
 
 `HomeZone.ts` (`lib/home/HomeZone.ts`). A bare `Zone` subclass with

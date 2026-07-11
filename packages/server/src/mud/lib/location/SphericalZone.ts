@@ -4,8 +4,7 @@
  * Locations are spheres (see SphericalCoordinatesMixin) positioned by focus
  * in spherical coordinates. Angles between spheres are arbitrary, so exits
  * are **always explicit** — authored by hand as semantic labels like
- * `'office'` or `'plaza'`. `deriveExit()` accordingly always returns
- * `undefined`.
+ * `'office'` or `'plaza'`. The zone never synthesizes an exit.
  *
  * A debug index by rounded focus tuple is maintained to help tooling /
  * authoring find nearby locations; it is NOT consulted by the exit-lookup
@@ -14,7 +13,6 @@
 
 import { SpatialZone } from '../zone/SpatialZone';
 import type Location from '../stuff/Location';
-import type Exit from '../boundary/Exit';
 import { SingletonMixin } from '../stuff/Singleton';
 import { MixinApi } from '../../api/mixin';
 

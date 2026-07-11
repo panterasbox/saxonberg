@@ -426,7 +426,7 @@ export class EmploymentLogic extends ApiLogic {
     if (!tplPath) return null;
     const inst = await StuffApi.singletonOrClone<Stuff>(tplPath);
     this.businessCache = null; // the live scan must re-see the new instance
-    return MixinApi.isBusiness(inst) ? (inst as BusinessStuff) : null;
+    return MixinApi.isBusiness(inst) ? inst : null;
   }
 
   /** See {@link EmploymentApi.businessOfProprietor}. */

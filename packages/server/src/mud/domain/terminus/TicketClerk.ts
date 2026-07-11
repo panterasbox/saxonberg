@@ -5,7 +5,7 @@
  * recipient that closes the conserved city-budget loop).
  *
  * A bespoke `NPC` carve (a proper character, not a flat functionary) adding
- * exactly two things over the base NPC:
+ * exactly one thing over the base NPC:
  *
  *  1. `commandContributions.environment` affords `procure card` to co-located
  *     players — a Character neighbor's `environment` contributions are pushed
@@ -15,8 +15,8 @@
  *
  * The city-budget Business is **not** stood up here — it stands up lazily,
  * derived from its own `operatingLocations` data, on the first fare
- * (`EmploymentApi.ensureOperatorAt`). No standup hook, no `[DECIDE-S]` second
- * class: the clerk is just an NPC that affords a verb.
+ * (`EmploymentApi.ensureOperatorAt`). No standup hook, no second class: the
+ * clerk is just an NPC that affords a verb.
  */
 
 import { NPC } from "../../lib/npc/NPC";

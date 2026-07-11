@@ -266,7 +266,7 @@ export default class TeleportController extends CommandController<TeleportModel>
    *
    * All un-spoofable (resolved from the fixtures, never a caller token). A
    * `fee > 0` with no departure operator, or a `surcharge > 0` with no
-   * destination operator, is an authoring error → refuse ([DECIDE-A]). Tries
+   * destination operator, is an authoring error → refuse. Tries
    * credential, then cash — both split identically (cash via the cash bridge,
    * D12). Returns false (and refuses, without moving the traveller) on
    * no-operator / insufficient funds.
@@ -344,7 +344,9 @@ export default class TeleportController extends CommandController<TeleportModel>
         splits.push({ accountId: destOperatorAccount, amount: Money.of(surcharge), category: "fare" });
       }
     } else {
-      // Surcharge-only (free route into a surcharged destination).
+      // Surcharge-only (free route into a surcharged destination). Reached only
+      // when fee===0, so settleFare's guard implies surcharge>0, so the
+      // destination-operator resolution above set destOperatorAccount.
       payeeAccountId = destOperatorAccount!;
     }
 
@@ -357,7 +359,12 @@ export default class TeleportController extends CommandController<TeleportModel>
       splits,
     };
     // Credential first, then cash — a coin-holder rides too, and the split
-    // holds either way (cash crosses the bridge). Any failure refuses.
+    // holds either way (cash crosses the bridge). The credential attempt
+    // swallows every error (no wallet, insufficient credential balance, …) and
+    // falls through to cash; the terminal cash failure is what surfaces to the
+    // player. A genuine banking fault (bad account, conservation) therefore
+    // reads as "you can't cover the fare" — acceptable at demo scale, matching
+    // the OrderController settle precedent.
     try {
       await BankingApi.settle(charge, { kind: "credential" });
       return true;
