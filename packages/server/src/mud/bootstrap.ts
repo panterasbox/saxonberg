@@ -117,6 +117,18 @@ export const bootstrapManifest: BootstrapEntry[] = [
     templatePath: '/obj/AccessRegistry',
     dependsOn: ['/obj/GroupRegistry'],
   },
+  // ParcelRegistry — real-property title substrate singleton. Holds the
+  // PathTrie coverage index over parcel `extents` (the sparse-hierarchy
+  // resolution) + the mint-or-find group-ref resolution that moved out of
+  // AccessRegistry. `postRegister` rebuilds the index idempotently from the
+  // `parcels` collection (seeded by the backend ParcelSeeder before boot).
+  // Depends on `GroupRegistry` (owner-ref resolution mints managed Groups)
+  // and follows `AccessRegistry` (which consults it, via ParcelApi, for
+  // ownership resolution — the access-decision-vs-title-storage split).
+  {
+    templatePath: '/obj/ParcelRegistry',
+    dependsOn: ['/obj/GroupRegistry'],
+  },
   // OfficeRegistry — government-office substrate singleton (the seats of
   // government, distinct from groups). `postRegister` warms only the
   // founder credential config (FOUNDER_GOOGLE_EMAIL / FOUNDER_TWITCH_HANDLE)

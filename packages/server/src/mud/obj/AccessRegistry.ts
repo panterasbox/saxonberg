@@ -31,9 +31,11 @@ import { SecurityPolicies } from '../lib/security/SecurityPolicies';
 import { GroupApi } from '../api/group';
 import { ZoneApi } from '../api/zone';
 import { StuffApi } from '../api/stuff';
+import { ParcelApi } from '../api/parcel';
 import { Template } from '../lib/stuff/Template';
-import { Group, type GroupRole } from '../lib/social/Group';
+import { Group } from '../lib/social/Group';
 import type { GroupRef } from '../lib/social/GroupProvider';
+import type { ParcelOwner } from '../lib/parcel/ParcelRecord';
 import type { Stuff } from '../lib/stuff/Stuff';
 import { Zone } from '../lib/zone/Zone';
 import FolderZone from '../lib/zone/FolderZone';
@@ -76,31 +78,38 @@ export default class AccessRegistry extends AccessRegistryBase {
   private cachedArchwizardPlayerIds: ReadonlySet<string> | null = null;
   /** Cancellation handle for the archwizard onChange subscription. */
   private archwizardCacheCancel: (() => void) | null = null;
-  /** Set of GroupRefs that count as "author scope" — every group
-   *  referenced by some Zone's `ownerGroup` or `accessGroups`, plus
+  /** Set of GroupRefs that count as "author scope" — every group named by
+   *  a `group`-kind parcel owner (via `ParcelApi.groupOwnerRefs`), plus
    *  `'core'`. Warmed lazily on first `isAuthor` read. */
   private cachedAuthorGroups: readonly GroupRef[] | null = null;
 
   public override async postRegister(_context?: unknown): Promise<void> {
     await this.seedCoreGroup();
-    // Zone-ownership slices (lounge / Terminus) are NOT seeded here — a zone
-    // declares `ownerGroupName: <name>` in its seed and the access layer
-    // resolves it (mint-or-find) on first access (`effectiveOwnerRef` /
-    // `resolveOwnerGroupName`). Data-driven, no per-area boot hook.
+    // Zone-ownership (lounge / Terminus) is NOT resolved here anymore.
+    // Ownership moved out of the editable `domain` zone template into the
+    // gated `parcels` collection (the governing security invariant); the
+    // `ParcelRegistry` owns the title store + the mint-or-find group-ref
+    // resolution, and `can`/`canMutateZone` consult it via `ParcelApi`.
+    // This registry only seeds the tag-like groups below.
     await this.seedWizardsGroup();
     await this.seedStreamersGroup();
     await this.seedArchwizardsGroup();
   }
 
   /**
-   * Resource-targeted slice walk. Returns true iff `subject` is in
-   * any of the groups owning the resource's zone-tree slice.
+   * Resource-targeted ownership check. Returns true iff `subject` holds
+   * (or is a member of the group holding) the title governing the
+   * resource's zone.
    *
-   * Walk: from `resource.getZone()` upward via
-   * `ZoneApi.getEnclosingZone`, collecting the closest stamped
-   * `ownerGroup` AND every `accessGroups` entry along the way. If
-   * the walk finds no owners, fall back to the universal `'core'`
-   * group.
+   * Title now lives in the `parcels` registry, not the zone tree: resolve
+   * the resource's zone templatePath, then `ParcelApi.ownerOf(path)` (the
+   * total title → self-home → state chain, longest-prefix over parcel
+   * extents). Dispatch on the owner kind — a **group** owner resolves to a
+   * ref (mint-or-find by name) and checks `GroupApi.isMember`; a
+   * **player** owner is an identity match. Byte-identical to the former
+   * zone-tree walk for the migrated areas: no seed used `accessGroups`, so
+   * the old flat-union collapses to the single nearest owner (or `core`
+   * for untitled content), which is exactly what `ownerOf` returns.
    *
    * Action is a free string — this build does not filter ownership by
    * action. Role differentiation lives in `canMutateZone()`.
@@ -114,33 +123,20 @@ export default class AccessRegistry extends AccessRegistryBase {
     if (subject === null) return false;
     const playerId = this.playerIdOf(subject);
     if (playerId === null) return false;
-
-    const permittedGroups: GroupRef[] = [];
-    let zone: Zone | null = this.zoneOf(resource);
-    while (zone !== null) {
-      const owner = await this.effectiveOwnerRef(zone);
-      if (owner) permittedGroups.push(owner);
-      const access = zone.getAccessGroups();
-      if (access) permittedGroups.push(...access);
-      zone = await ZoneApi.getEnclosingZone(zone);
-    }
-    if (permittedGroups.length === 0) {
-      const coreRef = await this.resolveCoreRef();
-      if (coreRef) permittedGroups.push(coreRef);
-    }
-    for (const ref of permittedGroups) {
-      if (await GroupApi.isMember(playerId, ref)) return true;
-    }
-    return false;
+    const path = this.zoneOf(resource)?.getTemplatePath() ?? '';
+    const owner = await ParcelApi.ownerOf(path);
+    return this.subjectIsOwnerMember(subject, playerId, owner);
   }
 
   /**
-   * Role-gated check used when the target IS a Zone Template
-   * (transfer ownership, mutate `accessGroups`, destruct the slice).
-   * Requires `'owner'` role in the zone's primary (closest)
-   * `ownerGroup`. `'admin'` / `'member'` roles and members of
-   * secondary `accessGroups` are not authorized for zone-mutation
-   * ops in this build.
+   * Role-gated check used when the target IS a Zone Template (transfer
+   * ownership, destruct the slice). For a **group** owner requires the
+   * `'owner'` role in the parcel's governing group (`'admin'`/`'member'`
+   * are not authorized for zone-mutation ops); for a **player** owner an
+   * identity match. Resolves title via `ParcelApi.ownerOf(zone-path)` —
+   * the covering parcel's owner is the nearest-ancestor owner the former
+   * upward walk found; untitled → the state's `core`, still requiring the
+   * `'owner'` role there (byte-identical).
    */
   @CallSecurity(AccessApiCallers)
   public async canMutateZone(
@@ -151,29 +147,16 @@ export default class AccessRegistry extends AccessRegistryBase {
     if (!(zone instanceof Zone)) return false;
     const playerId = this.playerIdOf(subject);
     if (playerId === null) return false;
-    let z: Zone | null = zone;
-    let primary: GroupRef | undefined;
-    while (z !== null && primary === undefined) {
-      primary = await this.effectiveOwnerRef(z);
-      if (primary === undefined) {
-        z = await ZoneApi.getEnclosingZone(z);
-      }
-    }
-    if (primary === undefined) {
-      const coreRef = await this.resolveCoreRef();
-      if (coreRef) primary = coreRef;
-    }
-    if (primary === undefined) return false;
-    const role: GroupRole | null = await GroupApi.roleOf(playerId, primary);
-    return role === 'owner';
+    const owner = await ParcelApi.ownerOf(zone.getTemplatePath() ?? '');
+    return this.subjectHasOwnerRole(subject, playerId, owner);
   }
 
   /**
    * Broad "is the actor a member of any group with content scope?"
    * used by MQL pre-gates that can't be resource-targeted. True for
-   * any Avatar whose playerId is in `'core'` or any Group that's
-   * stamped as a Zone's `ownerGroup` / `accessGroups` anywhere in
-   * the tree.
+   * any Avatar whose playerId is in `'core'` or any group named by a
+   * `group`-kind parcel owner (the repointed author scope — see
+   * `ensureAuthorGroups`).
    */
   @CallSecurity(AccessApiCallers)
   public async isAuthor(subject: Stuff | null): Promise<boolean> {
@@ -329,64 +312,62 @@ export default class AccessRegistry extends AccessRegistryBase {
     return this.cachedCoreRef;
   }
 
-  /** name → resolved `managed:<id>` ref (mint-or-find). Warmed lazily. */
-  private cachedOwnerNameRefs = new Map<string, GroupRef>();
-
   /**
-   * Resolve a zone's **symbolic** `ownerGroupName` to a real `managed:<id>`
-   * ref — mint-or-find the managed group by that name (owner `system`),
-   * cached. This is the data-driven replacement for the per-area `seed*Slice`
-   * boot hooks: a zone declares `ownerGroupName: <name>` in its seed and the
-   * group + ownership resolve on first access.
+   * Does `subject` hold (or belong to the group holding) `owner`? A
+   * `player` owner is an identity match; a `group` owner resolves to a
+   * ref (mint-or-find by name, via `ParcelApi`) and checks membership.
+   * The `can()` (content-access) dispatch.
    */
-  private async resolveOwnerGroupName(name: string): Promise<GroupRef | null> {
-    const cached = this.cachedOwnerNameRefs.get(name);
-    if (cached) return cached;
-    const reg = await GroupApi.registry();
-    const provider = reg.managed();
-    let g = await provider.findByName(name);
-    if (!g) {
-      g = new Group();
-      g.name = name;
-      g.owner = 'system';
-      await g.save();
-    }
-    if (!g._id) return null;
-    const ref: GroupRef = `managed:${g._id}`;
-    this.cachedOwnerNameRefs.set(name, ref);
-    return ref;
+  private async subjectIsOwnerMember(
+    subject: Stuff,
+    playerId: string,
+    owner: ParcelOwner,
+  ): Promise<boolean> {
+    if (owner.kind === 'player') return this.subjectOwnsAsPlayer(subject, owner);
+    const ref = await ParcelApi.resolveOwnerRef(owner);
+    if (!ref) return false;
+    return GroupApi.isMember(playerId, ref);
   }
 
   /**
-   * The effective owner ref for a zone: an explicit `ownerGroup` ref wins;
-   * otherwise a symbolic `ownerGroupName` resolves (mint-or-find). Undefined
-   * when the zone declares neither.
+   * Does `subject` hold `owner` with mutation authority? A `player` owner
+   * is an identity match; a `group` owner requires the `'owner'` role.
+   * The `canMutateZone()` dispatch.
    */
-  private async effectiveOwnerRef(zone: Zone): Promise<GroupRef | undefined> {
-    const explicit = zone.getOwnerGroup();
-    if (explicit) return explicit;
-    const name = zone.getOwnerGroupName();
-    if (name) return (await this.resolveOwnerGroupName(name)) ?? undefined;
-    return undefined;
+  private async subjectHasOwnerRole(
+    subject: Stuff,
+    playerId: string,
+    owner: ParcelOwner,
+  ): Promise<boolean> {
+    if (owner.kind === 'player') return this.subjectOwnsAsPlayer(subject, owner);
+    const ref = await ParcelApi.resolveOwnerRef(owner);
+    if (!ref) return false;
+    return (await GroupApi.roleOf(playerId, ref)) === 'owner';
+  }
+
+  /**
+   * Identity match for a `player`-kind owner: true iff `subject` is that
+   * individual. Handles both stored forms — a title held directly at the
+   * Avatar's own `templatePath` (`/obj/Avatar/<key>`, a transferred title)
+   * and the self-home form (`/home/<key>`, resolution rung 2).
+   */
+  private subjectOwnsAsPlayer(
+    subject: Stuff,
+    owner: ParcelOwner & { kind: 'player' },
+  ): boolean {
+    const subjectPath = subject.getTemplatePath();
+    if (!subjectPath) return false;
+    if (owner.templatePath === subjectPath) return true;
+    const key = subjectPath.split('/').filter(Boolean).pop();
+    return key !== undefined && owner.templatePath === `/home/${key}`;
   }
 
   private async ensureAuthorGroups(): Promise<readonly GroupRef[]> {
     if (this.cachedAuthorGroups) return this.cachedAuthorGroups;
-    const refs = new Set<GroupRef>();
-    const allTemplates = await Template.findDescendants('/');
-    for (const t of allTemplates) {
-      if (!(await ZoneApi.isFolderClass(t.class))) continue;
-      const owner = t.data?.ownerGroup as GroupRef | undefined;
-      if (owner) refs.add(owner);
-      // Symbolic owner-group names resolve to a real ref (mint-or-find).
-      const ownerName = t.data?.ownerGroupName as string | undefined;
-      if (ownerName) {
-        const ref = await this.resolveOwnerGroupName(ownerName);
-        if (ref) refs.add(ref);
-      }
-      const access = t.data?.accessGroups as readonly GroupRef[] | undefined;
-      if (access) for (const r of access) refs.add(r);
-    }
+    // The author scope is now the parcel layer's group owners + `core`
+    // (the template-`data` scan for `ownerGroup`/`ownerGroupName` is
+    // retired — ownership no longer lives in `domain`).
+    const refs = new Set<GroupRef>(await ParcelApi.groupOwnerRefs());
     const coreRef = await this.resolveCoreRef();
     if (coreRef) refs.add(coreRef);
     const list = [...refs];

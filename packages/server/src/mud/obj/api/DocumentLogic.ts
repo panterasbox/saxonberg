@@ -6,6 +6,7 @@ import { CallSecurity, Unshadowable } from "../../lib/security/decorators";
 import { SecurityPolicies } from "../../lib/security/SecurityPolicies";
 import { ZoneApi } from "../../api/zone";
 import { AccessApi } from "../../api/access";
+import { ParcelApi } from "../../api/parcel";
 import { ProvenanceApi } from "../../api/provenance";
 import { ExecutionContextApi } from "../../api/execution-context";
 import { StoredDocument } from "../../lib/document/StoredDocument";
@@ -33,12 +34,20 @@ function actingAuthor(): Stuff | null {
  * True when `path` lies in `actor`'s own `/home/<self>/` branch — keyed on
  * the durable-path basename, so an owner owns exactly the subtree the
  * runtime banks under their name (a player's recorded recipe-scripts, a
- * future dorm's customization). The self-owner base case the broader
- * per-`/home/` access model will build on.
+ * future dorm's customization).
+ *
+ * Consumes the shared self-home rule via `ParcelApi.selfHomeOwnerOf` (the
+ * property build generalized this base case into the `ownerOf` chain's
+ * rung 2 — one `/home/<key>/` rule, kept in one place, not forked). The
+ * ownership self-home yields a `player` owner at `/home/<key>`; this
+ * actor owns it iff that key is the actor's own. Byte-identical to the
+ * former `path.startsWith('/home/${key}/')` check.
  */
 function isOwnHomePath(actor: Stuff, path: string): boolean {
+  const owner = ParcelApi.selfHomeOwnerOf(path);
+  if (!owner || owner.kind !== "player") return false;
   const key = actor.getTemplatePath()?.split("/").filter(Boolean).pop();
-  return key !== undefined && path.startsWith(`/home/${key}/`);
+  return key !== undefined && owner.templatePath === `/home/${key}`;
 }
 
 /**

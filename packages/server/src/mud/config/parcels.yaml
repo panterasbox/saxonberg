@@ -1,0 +1,29 @@
+# parcels.yaml — the platform's infrastructure title rows, installed into
+# the gated `parcels` collection by the backend ParcelSeeder.
+#
+# THE GOVERNING SECURITY INVARIANT: ownership is declared HERE (a gated
+# platform seed channel), never on the editable `domain` zone template. A
+# content edit (or a future untrusted content pack) can never forge a
+# title — access-check data lives only in this collection. This replaces
+# the retired `data.ownerGroupName` stamps on the lounge / Terminus zone
+# seeds.
+#
+# `owner` is a typed ParcelOwner: `{kind: group, name: <managed-group>}`
+# resolves mint-or-find to a runtime `managed:<id>` ref (the seed can't
+# know the id); `{kind: player, templatePath: <path>}` is an individual.
+# `zonePath` defaults to `extent`. Seeding is idempotent (insert-iff-absent
+# keyed on `extent`).
+
+parcels:
+  # The lounge team's ownership roots — the library folder and the content
+  # folder, both owned by the managed `lounge` group (was ownerGroupName).
+  - extent: /lib/lounge
+    owner: { kind: group, name: lounge }
+  - extent: /domain/lounge
+    owner: { kind: group, name: lounge }
+
+  # The Terminus municipality's transit-hub terminal — the first spatial
+  # (CartesianZone) ownership stamp, validating "parcel = FolderZone OR
+  # spatial zone" (was ownerGroupName: terminus).
+  - extent: /domain/terminus/terminal
+    owner: { kind: group, name: terminus }

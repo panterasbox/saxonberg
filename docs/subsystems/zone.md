@@ -104,15 +104,15 @@ backed by one Api orchestration helper:
   [architecture.md § Orchestration lives one layer up from raw
   steps](../architecture.md#orchestration-lives-one-layer-up-from-raw-steps).
 
-**`ownerGroup` / `accessGroups` are the first named substrate fields
-that ride this walk.** Both live on `Zone` as persistent fields
-(`Zone.persistentFields = ['ownerGroup', 'accessGroups']`), validated
-on the setter (`source:id` shape, throws on malformed), and round-tripped
-through `PersistentHydrator`. The access build consumes them via
-`AccessApi.can` — the flat-union walk collects the closest
-`ownerGroup` plus every `accessGroups` entry up to root. `accessGroups`
-entries from parent zones propagate to children (filesystem ACL
-semantics). See [access.md](./access.md) for the consumer side.
+**Ownership does NOT live on `Zone`.** The `ownerGroup` / `accessGroups` /
+`ownerGroupName` fields were **removed** in property phase 0a —
+`Zone.persistentFields = []` and the zone carries no access controls of its
+own. Title is a **parcel** in the gated `parcels` registry, resolved by
+longest-prefix; `AccessApi.can` consults `ParcelApi.ownerOf`. This is the
+governing security invariant (access-check data must be unspoofable by
+content edits, so it can't live in the editable `domain` zone template). See
+[parcel.md](./parcel.md) and [access.md](./access.md). The inheritance walk
+below is untouched — it carries celestial/biome defaults, not ownership.
 
 **Every Zone subclass participates as an inheritance node** —
 FolderZones, HomeZones, Clades, and spatial zones alike — because
@@ -292,3 +292,10 @@ for the entry flow.
 The Wave 1 + Wave 2 build landed on the `spacial` branch between
 commits `b9afbaa` and `869c47a`. The spawn-shape follow-up landed
 on `spawn-save`.
+
+Property phase 0a (`feature/property-0a-title`, commit `81b250be`) **removed**
+the three `Zone` ownership fields (`ownerGroup` / `accessGroups` /
+`ownerGroupName`), their accessors, and `validateGroupRef`, setting
+`persistentFields = []`. Ownership moved to the gated `parcels` registry (the
+governing security invariant); the folder/leaf invariant and the field-
+inheritance walk are untouched. See [parcel.md](./parcel.md).

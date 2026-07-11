@@ -30,23 +30,7 @@
 import { Idea } from '../stuff/Idea';
 import { MixinApi } from '../../api/mixin';
 import { ZoneApi } from '../../api/zone';
-import type { GroupRef } from '../social/GroupProvider';
 
-/**
- * Validate a `GroupRef` shape. Inlined here (instead of calling
- * `GroupApi.parseRef`) to avoid pulling
- * the `Group` Document into Zone's module graph — that would
- * lengthen the load cycle through Document at a point where Zone
- * is reached early by `api/zone.ts`. The shape check is trivial: a
- * `source:id` string with at least one colon.
- */
-function validateGroupRef(ref: string): void {
-  if (ref.indexOf(':') < 0) {
-    throw new Error(
-      `Zone.setOwnerGroup: malformed GroupRef '${ref}' — expected 'source:id'`,
-    );
-  }
-}
 // `ZoneApi` is statically imported because it owns the field-walk
 // orchestration (`ZoneApi.getEnclosingZone`) that `lookupAncestorField`
 // delegates to. The api side breaks its end of the would-be cycle by
@@ -62,7 +46,19 @@ function validateGroupRef(ref: string): void {
  * `lookupAncestorField`).
  */
 export abstract class Zone extends Idea {
-  static persistentFields = ['ownerGroup', 'accessGroups', 'ownerGroupName'];
+  /** Zone itself persists no fields (subclasses declare their own; the
+   *  inheritance walk reads dynamic fields via `lookupField`). See the
+   *  ownership-removal note below. */
+  static persistentFields: string[] = [];
+
+  // Ownership/access fields (`ownerGroup` / `accessGroups` /
+  // `ownerGroupName`) were REMOVED in property phase 0a. Title now lives in
+  // the gated `parcels` collection (`ParcelRegistry` / `ParcelApi`), never
+  // on this editable `domain` zone template — the governing security
+  // invariant. `AccessApi.can`/`canMutateZone` resolve ownership via
+  // `ParcelApi.ownerOf`; the zone carries no access controls of its own.
+  // `persistentFields` is intentionally empty (the inheritance walk below
+  // reads dynamic fields via `lookupField`, not `persistentFields`).
 
   /**
    * Human-readable zone name ("Narnia Castle", "The Caves", "Animalia", …).
@@ -71,64 +67,6 @@ export abstract class Zone extends Idea {
 
   public getName(): string { return this.name; }
   public setName(value: string): void { this.name = value; }
-
-  /**
-   * The slice's primary owner — singular, conceptually primary. The
-   * `'owner'` role in this group can transfer ownership, grant or
-   * revoke secondary access, and destruct the slice. Other roles in
-   * this group still get content access via the `can()` flat-union
-   * walk. The field is inheritable through `Zone.lookupField`; the
-   * `AccessApi.can` walk collects the closest stamped `ownerGroup`
-   * plus every `accessGroups` entry up to root.
-   */
-  protected _ownerGroup?: GroupRef;
-  protected _accessGroups?: GroupRef[];
-
-  /**
-   * A **symbolic** owner-group declaration: a managed group *name* (not a
-   * runtime `managed:<id>` ref). The access layer resolves it — mint-or-find
-   * the managed group by this name and use its real ref — so a zone can be
-   * authored as owned without knowing the runtime group id (which retires the
-   * per-area `seed*Slice` boot hooks; see `AccessRegistry`). Ignored when an
-   * explicit `_ownerGroup` ref is set.
-   */
-  protected _ownerGroupName?: string;
-
-  public getOwnerGroup(): GroupRef | undefined {
-    return this._ownerGroup;
-  }
-
-  public getOwnerGroupName(): string | undefined {
-    return this._ownerGroupName;
-  }
-
-  public setOwnerGroupName(name: string | undefined): void {
-    this._ownerGroupName = name && name.length > 0 ? name : undefined;
-  }
-
-  public setOwnerGroup(ref: GroupRef | undefined): void {
-    if (ref === undefined) {
-      this._ownerGroup = undefined;
-      return;
-    }
-    validateGroupRef(ref);
-    this._ownerGroup = ref;
-  }
-
-  public getAccessGroups(): readonly GroupRef[] | undefined {
-    return this._accessGroups;
-  }
-
-  public setAccessGroups(refs: readonly GroupRef[] | undefined): void {
-    if (refs === undefined) {
-      this._accessGroups = undefined;
-      return;
-    }
-    for (const ref of refs) {
-      validateGroupRef(ref);
-    }
-    this._accessGroups = [...refs];
-  }
 
   /**
    * Effective value of `fieldName` for this zone. Reads own value

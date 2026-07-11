@@ -12,8 +12,10 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import AccessRegistry from "../AccessRegistry";
 import GroupRegistry from "../GroupRegistry";
+import ParcelRegistry from "../ParcelRegistry";
 import Avatar from "../Avatar";
 import { AccessApi } from "../../api/access";
+import { ParcelApi } from "../../api/parcel";
 import { GroupApi } from "../../api/group";
 import { StuffApi } from "../../api/stuff";
 import { SecurityError } from "../../lib/security/errors";
@@ -26,6 +28,8 @@ interface Doc extends Record<string, unknown> {
   name?: string;
   class?: string;
   data?: Record<string, unknown>;
+  extent?: string;
+  owner?: unknown;
 }
 
 function installInMemoryStore(initial: Doc[] = []): Doc[] {
@@ -46,6 +50,9 @@ function installInMemoryStore(initial: Doc[] = []): Doc[] {
     async (_collection: string, query: Record<string, unknown>) => {
       if (typeof query.name === "string") {
         return store.filter((d) => d.name === query.name);
+      }
+      if (typeof query.extent === "string") {
+        return store.filter((d) => d.extent === query.extent);
       }
       if (typeof query.path === "string") {
         return store.filter((d) => d.path === query.path);
@@ -89,6 +96,18 @@ async function bootRegistry(): Promise<AccessRegistry> {
   const reg = makeStuffAtPath(
     () => new AccessRegistry(),
     "/obj/AccessRegistry",
+  );
+  await reg.postRegister();
+  return reg;
+}
+
+/** Stand up the ParcelRegistry (rebuilds its coverage index from the
+ *  `parcels` rows in the shared store). Property 0a repointed the author
+ *  scope + `can` onto it. */
+async function bootParcelRegistry(): Promise<ParcelRegistry> {
+  const reg = makeStuffAtPath(
+    () => new ParcelRegistry(),
+    "/obj/ParcelRegistry",
   );
   await reg.postRegister();
   return reg;
@@ -308,37 +327,42 @@ describe("AccessRegistry — archwizard axis + wizard conferral", () => {
   });
 });
 
-describe("AccessRegistry — symbolic ownerGroupName resolution", () => {
+describe("AccessRegistry — author scope from parcel group owners", () => {
   beforeEach(() => {
     AccessApi._resetRegistryRefForReload();
+    ParcelApi._resetRegistryRefForReload();
     StuffApi.clearAll();
   });
   afterEach(() => {
     vi.restoreAllMocks();
     AccessApi._resetRegistryRefForReload();
+    ParcelApi._resetRegistryRefForReload();
     StuffApi.clearAll();
   });
 
-  it("mints-or-finds the named group and folds it into the author scope", async () => {
-    // A folder zone owned symbolically by name — no runtime `managed:<id>`
-    // literal, no seed-slice hook. (The retired seedLoungeSlice pattern.)
+  it("folds a parcel's group owner into the author scope (repointed off parcels, not zone data)", async () => {
+    // Ownership now lives in the `parcels` collection (property 0a), not on
+    // the zone template. A parcel owned by the managed `testarea` group:
+    // `ensureAuthorGroups` → `ParcelApi.groupOwnerRefs` mints-or-finds it.
     installInMemoryStore([
       {
-        path: "/lib/testarea",
-        class: "/lib/zone/FolderZone",
-        data: { name: "testarea", ownerGroupName: "testarea" },
+        extent: "/lib/testarea",
+        zonePath: "/lib/testarea",
+        owner: { kind: "group", name: "testarea" },
+        parentParcel: null,
       },
     ]);
     await bootRegistry();
+    await bootParcelRegistry();
 
     const player = makeAvatar("dana");
-    // First read mints the `testarea` group (empty) and resolves it into the
+    // First read mints the `testarea` group (empty) and folds it into the
     // author scope; dana isn't a member yet.
     expect(await AccessApi.isAuthor(player)).toBe(false);
 
     const reg = await GroupApi.registry();
     const group = await reg.managed().findByName("testarea");
-    expect(group).not.toBeNull(); // minted by the symbolic resolution
+    expect(group).not.toBeNull(); // minted by the owner-ref resolution
     group!.addMember("dana");
     await group!.save();
 
