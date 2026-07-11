@@ -1,13 +1,16 @@
 # External chat relay slate (working doc)
 
-> **Status: Twitch (Waves 1+2) SHIPPED 2026-06 → [twitch-relay.md](../../subsystems/twitch-relay.md);
-> YouTube (Wave 3) deferred.** NOTE: the shipped build **deviated** from the
-> "external channel = a `Channel` facet" model below — Twitch chat is a
-> dedicated separate surface (own `twitch` verb + `world.twitch.message`
-> topic) and is **player-initiated + memory-resident** (no registry
-> collection), not admin-curated. This slate is retained for the YouTube
-> generalization (live-only + quota) only; read the subsystem doc for the
-> shipped Twitch shape.
+> **Status: Twitch + YouTube-READ SHIPPED → [streaming.md](../../subsystems/streaming.md);
+> YouTube outbound deferred.** The shipped work **deviated** from the
+> "external channel = a `Channel` facet" model below — the relay is a
+> dedicated **unified** surface (`watch`/`tune` verbs over a
+> `StreamerTarget`, `world.{twitch,youtube}.message` topics),
+> **player-initiated + memory-resident** (no registry collection), not
+> admin-curated. Twitch (two-way) + YouTube (read-only) both ship; the
+> `externalBinding`/`Channel`-facet unification below is **not** how it
+> landed. Retained only for the deferred **YouTube outbound** design (see
+> [youtube-relay-slate.md](./youtube-relay-slate.md)); read the subsystem
+> doc for the shipped shape.
 
 > **Original shape (superseded for Twitch):** Bridge the in-game channel
 > system to external chat services (**Twitch first**, YouTube deferred). An

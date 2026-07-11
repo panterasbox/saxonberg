@@ -1166,6 +1166,24 @@ export interface StreamStateEnvelope {
   state: StreamStateSnapshot;
 }
 
+/**
+ * Server→broadcast push of one relay-chat line from the overlay owner's
+ * OWN active stream (Twitch or YouTube, unified + provenance-tagged),
+ * forwarded onto the `service:broadcast` overlay feed while live. Filtered
+ * server-side to the `OVERLAY_*`-configured channels — a viewer tuning a
+ * DIFFERENT channel never reaches this envelope. Escaped plain text,
+ * never MML (untrusted external input). The overlay *render* lives in the
+ * sibling `pbox-stream` repo; this is the wire contract it consumes.
+ */
+export interface RelayChatEnvelope {
+  type: 'relay-chat';
+  frameId: number;
+  service: 'twitch' | 'youtube';
+  channelHandle: string;
+  speaker: RelaySpeaker;
+  text: string;
+}
+
 export type Envelope =
   | DispatchResponseEnvelope
   | ActivityUpdateEnvelope
@@ -1181,7 +1199,7 @@ export type Envelope =
   | ReactionDeltaEnvelope
   | ReactionExpandResultEnvelope
   | StreamStateEnvelope
-  | StreamSourcesEnvelope;
+  | RelayChatEnvelope;
 
 /**
  * Envelope shape pre-`frameId`-stamp. Producers build this; the
@@ -1202,7 +1220,7 @@ export type EnvelopeTemplate =
   | Omit<ReactionDeltaEnvelope, 'frameId'>
   | Omit<ReactionExpandResultEnvelope, 'frameId'>
   | Omit<StreamStateEnvelope, 'frameId'>
-  | Omit<StreamSourcesEnvelope, 'frameId'>;
+  | Omit<RelayChatEnvelope, 'frameId'>;
 
 // ============================================================================
 // Identity Types (Persistent Objects)
@@ -1484,29 +1502,19 @@ export const LAYOUT_NAMES: readonly LayoutName[] = [
 ];
 
 /**
- * A platform-tagged broadcast source the livestream-viewer embed
- * renders. Operator config (AppSettings/env) produces a `StreamSource[]`
- * surfaced to player clients; the viewer picks among them. Twitch is
- * wired this cycle; the `youtube` shape is defined and picker-
- * accommodated but not rendered (the iframe is a placeholder).
- */
-export type StreamSource =
-  | { platform: "twitch"; channel: string }
-  | { platform: "youtube"; videoId: string };
-
 /**
- * Server→client push of the live broadcast source list when the
- * operator changes `livestream.broadcastSources` mid-session. The
- * welcome snapshot (`ConnectionEstablishedPayload.broadcastSources`) is
- * the baseline; this keeps it live. A dedicated lightweight envelope —
- * the source list is tiny and re-sending the whole list on change is
- * simpler than diffing.
+ * The per-viewer focal-embed target held as server-authoritative
+ * `cockpit.watch` clientState (set by the `watch` verb, pushed to the
+ * client, which renders the platform's public-player iframe). Embed-shaped:
+ * a Twitch channel, a YouTube videoId, or a YouTube channelId (the
+ * `@handle`/`UC…` durable form, rendered `live_stream?channel=<channelId>`
+ * so it tracks the channel's live status across streams). `null` = nothing
+ * watched. Replaces the retired operator-curated broadcast-source list.
  */
-export interface StreamSourcesEnvelope {
-  type: "stream-sources";
-  frameId: number;
-  sources: StreamSource[];
-}
+export type WatchTarget =
+  | { platform: "twitch"; channel: string }
+  | { platform: "youtube"; videoId: string }
+  | { platform: "youtube"; channelId: string };
 
 /**
  * Payload of the `system.connection.established` MessageFrame.
@@ -1554,13 +1562,6 @@ export interface ConnectionEstablishedPayload {
    * `ClientStateMixin`-contributing mixins on the holder.
    */
   clientState: Record<string, unknown>;
-  /**
-   * The operator-configured broadcast sources for the livestream-viewer
-   * embed (`StreamSource[]`, derived from AppSettings/env). Baseline for
-   * the embed; a `stream-sources` envelope keeps it live on change.
-   * Empty when no broadcast is configured.
-   */
-  broadcastSources: StreamSource[];
   /**
    * The viewer's reaction render preferences — the client-honored subset
    * of the `social.react.*` settings, resolved server-side at connect.
@@ -2072,29 +2073,40 @@ export const TWITCH_SCOPE_READ_CHAT = 'user:read:chat';
 export const TWITCH_SCOPE_WRITE_CHAT = 'user:write:chat';
 
 /**
- * The speaker on a relay frame. Honest-to-origin: a Twitch line carries an
+ * The speaker on a relay frame. Honest-to-origin: an external line carries an
  * `external` (or `external-linked`) speaker; an outbound mirror of a local
  * player's post carries `in-game`. `external-linked` carries BOTH the
- * Twitch handle and a {@link StuffRef} to the linked Avatar, so the client
- * can show the handle by default and reveal the MUD persona on hover.
+ * external handle and a {@link StuffRef} to the linked Avatar, so the client
+ * can show the handle by default and reveal the MUD persona on hover. The
+ * `service` axis spans both relay transports (`'twitch' | 'youtube'`);
+ * `external-linked` is Twitch-only this cycle (no YouTube reverse link).
  */
 export type RelaySpeaker =
   | { kind: 'in-game'; ref: StuffRef }
-  | { kind: 'external'; service: 'twitch'; externalName: string }
+  | {
+      kind: 'external';
+      service: 'twitch' | 'youtube';
+      externalName: string;
+    }
   | {
       kind: 'external-linked';
-      service: 'twitch';
+      service: 'twitch' | 'youtube';
       externalName: string;
       ref: StuffRef;
     };
 
 /**
- * Payload of a `world.twitch.message` frame. `egress` marks the outbound
- * mirror of a local player's post (rendered with the `⊳twitch` marker).
+ * Payload of a relay chat frame (`world.twitch.message` /
+ * `world.youtube.message`). Platform-agnostic: `service` names the
+ * transport, `channelKey` is the transport's stable channel key (Twitch
+ * broadcasterId / YouTube liveChatId), `channelHandle` the display handle.
+ * `egress` marks the outbound mirror of a local player's post (rendered
+ * with the `⊳ …→` marker; Twitch-only this cycle).
  */
-export interface TwitchMessagePayload {
-  broadcasterId: string;
-  broadcasterLogin: string;
+export interface RelayMessagePayload {
+  service: 'twitch' | 'youtube';
+  channelKey: string;
+  channelHandle: string;
   speaker: RelaySpeaker;
   text: string;
   egress?: boolean;

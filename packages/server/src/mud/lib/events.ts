@@ -16,7 +16,7 @@
  *      permissive.
  */
 
-import type { StreamStateSnapshot } from '@saxonberg/types';
+import type { RelaySpeaker, StreamStateSnapshot } from '@saxonberg/types';
 
 /**
  * Well-known engine event names.
@@ -47,7 +47,7 @@ export const Events = {
   ModuleUnloaded: 'module.unloaded',
   ModuleReloadFailed: 'module.reloadFailed',
   StreamStateChanged: 'stream.stateChanged',
-  StreamSourcesChanged: 'stream.sourcesChanged',
+  RelayMessage: 'stream.relayMessage',
 } as const;
 
 export type EventName = (typeof Events)[keyof typeof Events];
@@ -116,5 +116,24 @@ export interface EventPayloads {
    * singleton.
    */
   [Events.StreamStateChanged]: StreamStateSnapshot;
+  /**
+   * One relay-chat line delivered by `StreamRelay.deliver` (inbound read or
+   * outbound mirror), emitted per delivered line so the backend
+   * `BroadcastFeed` can forward the overlay owner's OWN channels onto the
+   * broadcast feed. The relay stays mud-pure (EventApi.emit only); the feed
+   * filters to the `OVERLAY_*` channels — nothing else consumes it.
+   */
+  [Events.RelayMessage]: RelayMessageEvent;
+}
+
+/** Payload of {@link Events.RelayMessage}. */
+export interface RelayMessageEvent {
+  service: 'twitch' | 'youtube';
+  /** Transport channel key (broadcasterId / liveChatId). */
+  channelKey: string;
+  /** Display handle for the channel. */
+  channelHandle: string;
+  speaker: RelaySpeaker;
+  text: string;
 }
 

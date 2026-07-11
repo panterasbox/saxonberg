@@ -31,7 +31,6 @@ import type {
   ReactionActState,
   ReactionSampleEntry,
   RosterRow,
-  StreamSource,
   StuffDetailRecord,
   StuffRefRecord,
   TopicDescriptor,
@@ -217,17 +216,19 @@ export interface Frame {
    */
   channelName?: string;
   /**
-   * Twitch relay provenance (`world.twitch.message` frames), extracted
-   * from `payload` at ingest. Structured so the twitch template renders
-   * the distinct treatment and reveals the linked MUD persona on hover
-   * without re-parsing the body string. CLIENT-only (not on the wire
-   * type). `handle` is the honest-to-origin default name (the Twitch
-   * handle, or the local player's name for an `egress` mirror); `persona`
-   * is the linked MUD identity surfaced on hover when present.
+   * Relay-chat provenance (`world.twitch.message` / `world.youtube.message`
+   * frames), extracted from `payload` at ingest. Structured so the relay
+   * template renders the distinct per-platform treatment and reveals the
+   * linked MUD persona on hover without re-parsing the body string.
+   * CLIENT-only (not on the wire type). `speaker` is the honest-to-origin
+   * default name (the external handle, or the local player's name for an
+   * `egress` mirror); `persona` is the linked MUD identity surfaced on hover
+   * when present (Twitch only this cycle).
    */
-  twitch?: {
-    login: string;
-    handle: string;
+  relay?: {
+    service: "twitch" | "youtube";
+    channelHandle: string;
+    speaker: string;
     persona?: string;
     text: string;
     egress?: boolean;
@@ -441,16 +442,6 @@ interface StoreState extends CmsSlice {
    * this AND `websocketClient.sendClientStateWrite`.
    */
   setLocalClientState: (key: string, value: unknown) => void;
-
-  /**
-   * Operator-configured broadcast sources for the livestream-viewer
-   * embed. Seeded from the welcome snapshot (`setConnected`) and kept
-   * live by the `stream-sources` envelope. Empty when no broadcast is
-   * configured.
-   */
-  broadcastSources: StreamSource[];
-  /** Replace the broadcast source list (welcome snapshot + live push). */
-  setBroadcastSources: (sources: StreamSource[]) => void;
 
   // Frames — typed message-frame buffer feeding the Terminal.
   /**
@@ -1188,7 +1179,6 @@ export const useStore = create<StoreState>((set, get) => ({
       feed,
       feedOrder: orderFeed(feed),
       clientState: { ...(payload.clientState ?? {}) },
-      broadcastSources: payload.broadcastSources ?? [],
       ...(payload.reactionPrefs
         ? { reactionPrefs: payload.reactionPrefs }
         : {}),
@@ -1484,10 +1474,6 @@ export const useStore = create<StoreState>((set, get) => ({
     set((state) => ({
       clientState: { ...state.clientState, [key]: value },
     })),
-
-  // Broadcast sources slice (livestream-viewer embed)
-  broadcastSources: [],
-  setBroadcastSources: (sources) => set(() => ({ broadcastSources: sources })),
 
   // Frames slice
   frames: [],

@@ -3,7 +3,7 @@
  * of the relay. Backend infrastructure, modeled on `BroadcastFeed`
  * (singleton, lazy boot). It owns the set of active EventSub
  * `channel.chat.message` subscriptions and exposes the backend operations
- * the Api bridge (`TwitchLogic`) calls **directly** (no DI port):
+ * the Api bridge (`StreamLogic`) calls **directly** (no DI port):
  *
  *  - `resolveLogin` — Helix login→broadcaster-id (tune by handle).
  *  - `subscribe` / `unsubscribe` — manage a channel's chat subscription,
@@ -12,9 +12,9 @@
  *  - `isConfigured` — whether a reader account is set.
  *
  * Inbound notifications are normalized and handed to
- * `TwitchApi.dispatchInbound` (a down-call into mudlib). On logout it
- * observes `PlayerLoggedOut` (a real lifecycle broadcast) and unsubscribes
- * any channels that emptied.
+ * `StreamApi.dispatchInbound('twitch', …)` (a down-call into mudlib). On
+ * logout it observes `PlayerLoggedOut` (a real lifecycle broadcast) and
+ * unsubscribes any Twitch channels that emptied.
  *
  * One operator reader account (env `TWITCH_READER_USER_ID`) holds
  * `user:read:chat` and is the `user_id` condition on every subscription —
@@ -22,12 +22,12 @@
  */
 
 import { TwitchClient } from './TwitchClient';
-import { TwitchApi } from '../mud/api/twitch';
+import { StreamApi } from '../mud/api/stream';
 import { EventApi } from '../mud/api/event';
 import { Events } from '../mud/lib/events';
 import { ExecutionContextApi } from '../mud/api/execution-context';
 import { TwitchProfile } from '../mud/lib/identity/TwitchProfile';
-import type { NormalizedInbound } from '../mud/api/twitch';
+import type { NormalizedInbound } from '../mud/api/stream';
 
 const DEBOUNCE_MS = 1500;
 
@@ -57,7 +57,7 @@ export class TwitchRelayReader {
       const norm = normalize(n.event);
       if (!norm) return;
       void ExecutionContextApi.runRoot(null, 'twitch.inbound', () =>
-        TwitchApi.dispatchInbound(norm)
+        StreamApi.dispatchInbound('twitch', norm)
       );
     });
 
@@ -69,13 +69,13 @@ export class TwitchRelayReader {
     });
 
     // Backend observing the real lifecycle broadcast: when a player logs
-    // out, the relay drops them from every channel and returns the ones
-    // that emptied; unsubscribe each.
+    // out, `StreamApi.dropPlayer` drops them from every channel and
+    // unsubscribes each emptied channel on its transport (both readers) — so
+    // this single observer covers Twitch AND YouTube.
     EventApi.on<{ playerId: string; userId: string }>(
       Events.PlayerLoggedOut,
       async ({ playerId }) => {
-        const emptied = await TwitchApi.dropPlayer(playerId);
-        for (const id of emptied) this.unsubscribe(id);
+        await StreamApi.dropPlayer(playerId);
       }
     );
 
@@ -193,18 +193,18 @@ function readerUserId(): string {
 
 /** Normalize a `channel.chat.message` EventSub event payload. */
 function normalize(ev: Record<string, unknown>): NormalizedInbound | null {
-  const broadcasterId = String(ev.broadcaster_user_id ?? '');
-  const senderTwitchUserId = String(ev.chatter_user_id ?? '');
+  const channelKey = String(ev.broadcaster_user_id ?? '');
+  const senderUserId = String(ev.chatter_user_id ?? '');
   const senderLogin = String(ev.chatter_user_login ?? '');
   const senderDisplay = String(
     ev.chatter_user_name ?? ev.chatter_user_login ?? ''
   );
   const message = ev.message as { text?: string } | undefined;
   const text = String(message?.text ?? '');
-  if (!broadcasterId || !text) return null;
+  if (!channelKey || !text) return null;
   return {
-    broadcasterId,
-    senderTwitchUserId,
+    channelKey,
+    senderUserId,
     senderLogin,
     senderDisplay,
     text,

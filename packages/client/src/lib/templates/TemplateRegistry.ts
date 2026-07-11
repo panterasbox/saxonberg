@@ -19,7 +19,7 @@ import { chatTemplate } from './chatTemplate';
 import { sayTemplate } from './sayTemplate';
 import { tellTemplate } from './tellTemplate';
 import { emoteTemplate } from './emoteTemplate';
-import { twitchTemplate } from './twitchTemplate';
+import { relayTemplate } from './relayTemplate';
 
 export interface TemplateCtx {
   frame: Frame;
@@ -46,7 +46,8 @@ const REGISTRATIONS: Registration[] = [
   // tellTemplate so the experience is identical pre / post rename.
   { prefix: 'world.speech.tell', template: tellTemplate },
   { prefix: 'world.expression', template: emoteTemplate },
-  { prefix: 'world.twitch', template: twitchTemplate },
+  { prefix: 'world.twitch', template: relayTemplate },
+  { prefix: 'world.youtube', template: relayTemplate },
 ];
 
 /**

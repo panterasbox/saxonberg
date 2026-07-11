@@ -25,16 +25,45 @@ import type {
   StreamStateSnapshot,
   StreamStateEnvelope,
   ReactionDeltaEnvelope,
+  RelayChatEnvelope,
 } from '@saxonberg/types';
 import { Backend } from './Backend';
 import { EventApi } from '../mud/api/event';
 import { Events } from '../mud/lib/events';
+import type { RelayMessageEvent } from '../mud/lib/events';
 import { StuffApi } from '../mud/api/stuff';
+import { StreamApi } from '../mud/api/stream';
 import StreamState from '../mud/obj/StreamState';
 import {
   ReactionScopeDeltaEvent,
   type ReactionScopeDeltaPayload,
 } from '../mud/lib/events/ReactionScopeDeltaEvent';
+
+/** The overlay owner's configured Twitch login (env). */
+function overlayTwitchLogin(): string {
+  return (process.env.OVERLAY_TWITCH_LOGIN ?? '').trim().toLowerCase();
+}
+
+/** The overlay owner's configured YouTube channel ref (env). */
+function overlayYoutubeChannel(): string {
+  return (process.env.OVERLAY_YOUTUBE_CHANNEL ?? '').trim().toLowerCase();
+}
+
+/**
+ * Whether a relayed line belongs to the overlay owner's OWN configured
+ * channel — the filter that keeps a viewer's unrelated tune off the feed.
+ * Matches the configured handle (the sentinel tunes each channel by exactly
+ * that handle), never a resolved transport key.
+ */
+function isOverlayOwnChannel(payload: RelayMessageEvent): boolean {
+  const handle = payload.channelHandle.trim().toLowerCase();
+  if (payload.service === 'twitch') {
+    const login = overlayTwitchLogin();
+    return login !== '' && handle === login;
+  }
+  const chan = overlayYoutubeChannel();
+  return chan !== '' && handle === chan;
+}
 
 const LIVE_DEFAULT: StreamStateSnapshot = { mode: 'live', awayUntil: null };
 
@@ -64,18 +93,26 @@ export class BroadcastFeed {
     return this.instance;
   }
 
+  /** Test seam — drop the singleton so each test starts unsubscribed. */
+  public static _resetForTesting(): void {
+    this.instance = new BroadcastFeed();
+  }
+
   /**
    * Register a broadcast connection and push the current snapshot.
    * Idempotent for a given socketId.
    */
   public addConnection(socketId: string): void {
     this.ensureSubscribed();
+    const wasEmpty = this.connections.size === 0;
     this.connections.add(socketId);
     this.frameCounters.set(socketId, 0);
     console.info(
       `BroadcastFeed: connection added - socketId=${socketId}, total=${this.connections.size}`,
     );
     this.pushTo(socketId, this.currentSnapshot());
+    // 0→1 edge: open the overlay owner's own-channel reads (presence-gated).
+    if (wasEmpty) void StreamApi.setOverlayReading(true);
   }
 
   /**
@@ -88,6 +125,8 @@ export class BroadcastFeed {
     console.info(
       `BroadcastFeed: connection removed - socketId=${socketId}, total=${this.connections.size}`,
     );
+    // 1→0 edge: close the overlay owner's own-channel reads.
+    if (this.connections.size === 0) void StreamApi.setOverlayReading(false);
   }
 
   public getConnectionCount(): number {
@@ -111,7 +150,32 @@ export class BroadcastFeed {
         this.pushReactionDeltaToAll(payload);
       },
     );
+    // Overlay-owner chat: the relay emits one RelayMessage per delivered
+    // line; forward ONLY the owner's own configured channels (Twitch +
+    // YouTube, unified) as a relay-chat envelope. A viewer tuning some other
+    // channel never matches the filter, so nothing leaks onto the feed.
+    EventApi.on<RelayMessageEvent>(Events.RelayMessage, (payload) => {
+      if (!isOverlayOwnChannel(payload)) return;
+      this.pushRelayChatToAll(payload);
+    });
     this.subscribed = true;
+  }
+
+  private pushRelayChatToAll(payload: RelayMessageEvent): void {
+    if (this.connections.size === 0) return;
+    for (const socketId of this.connections) {
+      const frameId = (this.frameCounters.get(socketId) ?? 0) + 1;
+      this.frameCounters.set(socketId, frameId);
+      const envelope: RelayChatEnvelope = {
+        type: 'relay-chat',
+        frameId,
+        service: payload.service,
+        channelHandle: payload.channelHandle,
+        speaker: payload.speaker,
+        text: payload.text,
+      };
+      Backend.get().sendEnvelopeToSocket(socketId, envelope);
+    }
   }
 
   private pushReactionDeltaToAll(payload: ReactionScopeDeltaPayload): void {
