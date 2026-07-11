@@ -69,6 +69,9 @@ export const Mixins = {
   Organism: 'OrganismMixin',
   Sexed: 'SexedMixin',
   Vitals: 'VitalsMixin',
+  // First-aid dressing capability — any item that can dress a wound
+  // (bandage / gauze / clean rag). The harm build's medic vertical.
+  Dressing: 'DressingMixin',
   Reserved: 'ReservedMixin',
   Radioactive: 'RadioactiveMixin',
   Branded: 'BrandedMixin',

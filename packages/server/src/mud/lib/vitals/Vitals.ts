@@ -37,7 +37,11 @@ import { QuantityMarshaller } from '../persistence/QuantityMarshaller';
 import { MixinApi } from '../../api/mixin';
 import type { VitalBand, VitalProfile } from '../species/Species';
 import type { BodyPart } from '../species/BodyPlan';
-import type { ActiveCondition } from './Condition';
+import type { ActiveCondition, Trauma } from './Condition';
+import { HARM_DEFAULTS, TRAUMA_BEHAVIOR } from './Condition';
+import { StuffApi } from '../../api/stuff';
+import { WorldClockApi } from '../../api/worldclock';
+import { TemplatePaths } from '../paths';
 
 /**
  * The engine's vital-sign vocabulary — the canonical key list, used by
@@ -156,6 +160,18 @@ export interface Vitals {
   getConditionBand(): ConditionBand;
   getConsciousness(): Consciousness;
 
+  // ---------- locomotion coupling (the limp) ----------
+  /**
+   * Traversal endurance drain from locomotor wounds — the limp. A
+   * severity-gated `endurance` drain summed over active laceration /
+   * avulsion traumas at a locomotor site (`body.leg.*`, incl. `.foot`),
+   * composed in at the `LocomotionApi` traverse seam (mirroring
+   * `LoadBearing.drainForTraversal`). Derived from live conditions, so it
+   * eases as the wound dresses / heals. No-op without a `Reserved`
+   * `endurance` reserve. Distinct from fracture's slot-disable.
+   */
+  drainForLimp(): void;
+
   // ---------- death seam (cause-of-death field + postmortem seam) ----------
   getCauseOfDeath(): string | null;
   setCauseOfDeath(value: string | null): void;
@@ -173,6 +189,13 @@ export interface Vitals {
   getInjuredParts(): ResolvedBodyPart[];
   /** Coarse part→slot coupling: a missing part disables its slots. */
   isSlotDisabledByAnatomy(slot: string): boolean;
+  /**
+   * Trauma part→slot coupling: an active fracture above the impair
+   * threshold at the slot's `bodyPart` greys the slot's affordances. A
+   * derived read (heals as the fracture heals), sibling of
+   * `isSlotDisabledByAnatomy`.
+   */
+  isSlotImpairedByTrauma(slot: string): boolean;
 
   // ---------- conditions — both kinds, one collection ----------
   getConditions(): readonly ActiveCondition[];
@@ -256,9 +279,19 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
     public bodyPartDeltas: Record<string, BodyPartDelta> = {};
     public conditions: ActiveCondition[] = [];
 
+    /**
+     * Reconcile-on-read reentrancy guard — a plain transient flag, never
+     * persisted. Case (1): it protects the wound reconcile from
+     * re-triggering itself through the vital-sign reads it performs
+     * (`this.getVitalSign('bloodVolume')` inside `reconcileConditions`).
+     */
+    private _reconcilingConditions = false;
+
     // ---------- vital signs ----------
 
     public getVitalSign(sign: VitalSign): Quantity<Unit> {
+      // A blood-volume read must reflect any in-flight bleed.
+      if (sign === 'bloodVolume') this.reconcileConditions();
       return (this as unknown as Record<string, Quantity<Unit>>)[
         VITAL_FIELD[sign]
       ]!;
@@ -299,6 +332,7 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
      * transition (the deferred driver owns transitions).
      */
     public getConditionBand(): ConditionBand {
+      this.reconcileConditions();
       const self = this as unknown as Stuff;
       if (!MixinApi.isOrganism(self)) {
         throw new Error('VitalsMixin requires OrganismMixin (lifecycle state)');
@@ -349,6 +383,7 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
      * `dead`. Head trauma is folded in below.
      */
     public getConsciousness(): Consciousness {
+      this.reconcileConditions();
       const self = this as unknown as Stuff;
       if (!MixinApi.isOrganism(self)) {
         throw new Error('VitalsMixin requires OrganismMixin (lifecycle state)');
@@ -376,6 +411,25 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
         return 'unconscious';
       }
       return 'conscious';
+    }
+
+    // ---------- locomotion coupling (the limp) ----------
+
+    public drainForLimp(): void {
+      const self = this as unknown as Stuff;
+      if (!MixinApi.isReserved(self) || !self.hasReserve('endurance')) return;
+      let severity = 0;
+      for (const c of this.conditions) {
+        if (c.kind !== 'trauma') continue;
+        if (c.type !== 'laceration' && c.type !== 'avulsion') continue;
+        // Locomotor sites only — a leg / foot wound hobbles; a hand cut
+        // does not. Foot keys (`body.leg.left.foot`) sit under `body.leg`.
+        if (!c.site.startsWith('body.leg')) continue;
+        severity += Math.max(0, c.severity);
+      }
+      if (severity <= 0) return;
+      const cost = HARM_DEFAULTS.LIMP_DRAIN_PER_SEVERITY * severity;
+      self.adjustReserve('endurance', Quantity.of(-cost, '%'));
     }
 
     // ---------- death seam ----------
@@ -433,10 +487,126 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
       return this.getPart(spec.bodyPart)?.missing ?? false;
     }
 
+    public isSlotImpairedByTrauma(slot: string): boolean {
+      // Same slot→part resolve as the anatomy gate, but the disqualifier
+      // is an active fracture (above the impair threshold) sitting at the
+      // slot's `bodyPart`. A derived read — no stored "impaired" flag; the
+      // affordance returns the moment the fracture heals/clears.
+      const self = this as unknown as Stuff;
+      if (!MixinApi.isOrganism(self)) return false;
+      const spec = self
+        .getSpecies()
+        ?.getBodyPlan()
+        ?.getSlots()
+        .find((s) => s.name === slot);
+      const part = spec?.bodyPart;
+      if (!part) return false;
+      return this.conditions.some(
+        (c) =>
+          c.kind === 'trauma' &&
+          c.type === 'fracture' &&
+          c.site === part &&
+          c.severity >= HARM_DEFAULTS.FRACTURE_IMPAIR_SEVERITY,
+      );
+    }
+
     // ---------- conditions (both kinds, one collection) ----------
 
     public getConditions(): readonly ActiveCondition[] {
+      this.reconcileConditions();
       return this.conditions;
+    }
+
+    /**
+     * Reconcile-on-read wound progression — the harm driver, reconcile
+     * style (the metabolism / thermal / respiration precedent, NOT a
+     * recurring push tick). For each active trauma, integrate the in-session
+     * game-time elapsed since its `tickedAt` stamp through the trauma's
+     * `tick`, relieve any wound healed to (near) zero, then check the
+     * bleed→death floor. Called at the top of the reads that must reflect
+     * the current bleed (`getVitalSign('bloodVolume')`, `getConditionBand`,
+     * `getConsciousness`, `getConditions`).
+     *
+     * **Presence-freeze parity** with `Metabolic.reconcileMetabolism`:
+     * first-touch stamp, linkdead re-stamp, `elapsed <= 0` guard, and the
+     * far-past guard (a logout/relog gap integrates nothing). Cheap no-op
+     * when no world clock runs (unit tests stay idle) or no trauma is
+     * active. The `_reconcilingConditions` guard makes the vital-sign reads
+     * this method performs non-reentrant.
+     */
+    private reconcileConditions(): void {
+      if (this._reconcilingConditions) return;
+      const self = this as unknown as Stuff;
+      if (!MixinApi.isOrganism(self)) return;
+      // A corpse doesn't bleed — nothing left to progress.
+      if (self.getLifecycleState() === 'dead') return;
+
+      // In-session game-time; `null` when no world clock is running
+      // (pre-boot / a unit test that hasn't bootstrapped one) → idle.
+      if (!StuffApi.findByTemplatePath(TemplatePaths.worldClockRegistry)) {
+        return;
+      }
+      const nowS = WorldClockApi.getNow().rawValue();
+
+      const traumas = this.conditions.filter(
+        (c): c is Trauma => c.kind === 'trauma',
+      );
+      if (traumas.length === 0) return;
+
+      // Linkdead freeze: the body lingers in-world but its clock is paused —
+      // re-stamp so the away-gap never accumulates.
+      const linkdead =
+        MixinApi.isHasInteractive(self) && self.isLinkdead();
+
+      this._reconcilingConditions = true;
+      try {
+        for (const t of traumas) {
+          // First touch: seed the stamp so a fresh wound doesn't integrate
+          // a giant gap from epoch.
+          if (t.tickedAt === undefined) {
+            t.tickedAt = nowS;
+            continue;
+          }
+          if (linkdead) {
+            t.tickedAt = nowS;
+            continue;
+          }
+          const elapsed = nowS - t.tickedAt;
+          if (elapsed <= 0) {
+            t.tickedAt = nowS;
+            continue;
+          }
+          // Far-past guard: a gap this long means absence — integrate
+          // nothing (real-life absence never bleeds you).
+          if (elapsed > HARM_DEFAULTS.MAX_REASONABLE_GAP_SEC) {
+            t.tickedAt = nowS;
+            continue;
+          }
+          t.tickedAt = nowS;
+          TRAUMA_BEHAVIOR[t.type].tick(this, t, elapsed);
+        }
+
+        // Relieve any wound healed to (near) zero severity.
+        for (const t of traumas) {
+          if (t.severity <= HARM_DEFAULTS.CLEARED_SEVERITY) this.relieve(t);
+        }
+
+        // Bleed → death floor. `getConsciousness()` already reads a low
+        // blood volume as `unconscious`, so the conscious → unconscious
+        // waypoint falls out for free — harm writes only the death sign.
+        const floor = this.getVitalBand('bloodVolume').survivableMin;
+        if (this._bloodVolume.rawValue() <= floor) {
+          if (
+            MixinApi.isOrganism(self) &&
+            self.getLifecycleState() !== 'dead'
+          ) {
+            this.setCauseOfDeath('exsanguination');
+            self.setLifecycleState('dead');
+          }
+        }
+      } finally {
+        this._reconcilingConditions = false;
+      }
     }
 
     public hasCondition(pred: (c: ActiveCondition) => boolean): boolean {

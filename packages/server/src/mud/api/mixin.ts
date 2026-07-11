@@ -108,6 +108,7 @@ import type { Status } from '../lib/status/Status';
 import type { Identifiable } from '../lib/identification/Identifiable';
 import type { Graded } from '../lib/craft/Graded';
 import type { Tooled } from '../lib/craft/Tooled';
+import type { Dressing } from '../lib/vitals/Dressing';
 import type { Crafted } from '../lib/craft/Crafted';
 import type { Maker } from '../lib/craft/Maker';
 import type { Builds } from '../lib/craft/ManualBuild';
@@ -828,6 +829,11 @@ export class MixinApi {
 
   public static isTool(obj: Stuff): obj is Stuff & Tooled {
     return this.hasMixin(obj, Mixins.Tool);
+  }
+
+  /** A first-aid dressing item (bandage / gauze / rag). See DressingMixin. */
+  public static isDressing(obj: Stuff): obj is Stuff & Dressing {
+    return this.hasMixin(obj, Mixins.Dressing);
   }
 
   public static isCrafted(obj: Stuff): obj is Stuff & Crafted {
