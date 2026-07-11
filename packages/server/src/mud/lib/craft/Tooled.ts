@@ -37,10 +37,18 @@ export function ToolMixin<TBase extends MixinConstructor>(Base: TBase) {
 
     static persistentFields = ['capabilities', 'condition'];
 
-    /** The capabilities this tool offers (validated against the vocabulary). */
+    /**
+     * The capabilities this tool offers (validated against the vocabulary).
+     *
+     * @authorable
+     */
     public capabilities: string[] = [];
 
-    /** 0..1 wear gauge; default pristine. */
+    /**
+     * 0..1 wear gauge; default pristine.
+     *
+     * @runtimeState
+     */
     private _condition: number = 1;
 
     protected get condition(): number {

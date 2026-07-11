@@ -32,7 +32,9 @@ export function SwimmableMixin<TBase extends MixinConstructor<Stuff>>(
     static _mixinName = 'SwimmableMixin';
     static persistentFields = ['axes', 'difficulty'];
 
+    /** @authorable */
     public axes: string[] = [];
+    /** @authorable */
     public difficulty: number | null = null;
 
     public getAxes(): readonly string[] {

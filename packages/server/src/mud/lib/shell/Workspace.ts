@@ -290,12 +290,14 @@ export function WorkspaceMixin<
      * than reading `workspace.home` at construction time — the
      * Hydrator hasn't loaded settings yet at the moment fields
      * default-initialise.
+     * @runtimeState
      */
     public contentCwd: string = DEFAULT_HOME;
 
     /**
      * Persistent cwd in the source tree. Same defaulting story as
      * `contentCwd`.
+     * @runtimeState
      */
     public sourceCwd: string = DEFAULT_HOME;
 

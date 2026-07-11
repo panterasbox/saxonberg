@@ -44,7 +44,11 @@ const CAMPFIRE = {
 } as const;
 
 export default class Campfire extends CampfireBase {
-  /** Game-time (seconds) of the last fuel reconcile; 0 = unseeded. */
+  /**
+   * Game-time (seconds) of the last fuel reconcile; 0 = unseeded.
+   *
+   * @runtimeState Pure runtime bookkeeping — not author-facing.
+   */
   public fuelClockStamp = 0;
 
   static persistentFields = ['fuelClockStamp'];

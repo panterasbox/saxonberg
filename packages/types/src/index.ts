@@ -1971,6 +1971,59 @@ export interface CmsErrorBody {
   message: string; // human detail
 }
 
+// ---- Authorable-fields artifact (Studio / composition surface, P0) ------
+
+/**
+ * One author-facing field of a mixin, as projected from the TypeDoc
+ * model by the `@authorable` projector (see
+ * `packages/server/scripts/project-author-surface.ts`). The composer
+ * form generator reads these to pick a widget per field.
+ *
+ * `typeShape` is the **projected** readable type string (`string`,
+ * `number`, `Quantity<Mass>`, `"a" | "b"`, …) — it is derived from the
+ * signature, never a hand-authored enum. That keeps the artifact a
+ * single source of truth (the code) rather than a second one.
+ */
+export interface AuthorableFieldDescriptor {
+  /** The declaring mixin's `_mixinName` (e.g. `'NamedMixin'`). */
+  mixin: string;
+  /** The persistent- / instruction-field name (e.g. `'name'`). */
+  field: string;
+  /**
+   * `property` — a stored field whose runtime type is `typeShape`.
+   * `instruction` — a declarative field applied by an `apply<Field>`
+   * method; `typeShape` is the applier's **payload** shape, not the
+   * runtime field type.
+   */
+  kind: 'property' | 'instruction';
+  /** Projected readable type string (the widget-selection key). */
+  typeShape: string;
+  /** First-paragraph TSDoc summary; `''` when absent. */
+  description: string;
+  /** For a union-of-string-literals field: the allowed values. */
+  enumValues?: string[];
+  /** Present when the field points at other Stuff by path (Pattern A). */
+  refShape?: 'path';
+  /** The referenced Stuff/type name for a `ref:` field. */
+  refType?: string;
+}
+
+/**
+ * The emitted `authorable-fields.json` — the field descriptors keyed by
+ * mixin name, plus the coverage audit. `coverage.unclassified` holds
+ * `"<mixin>.<field>"` strings for persistent/instruction fields carrying
+ * neither `@authorable` nor `@runtimeState`; `doubleClassified` holds
+ * those carrying both. Both are the audit worklist the coverage-guard
+ * test asserts empty.
+ */
+export interface AuthorableFieldsArtifact {
+  fields: Record<string, AuthorableFieldDescriptor[]>;
+  coverage: {
+    unclassified: string[];
+    doubleClassified: string[];
+  };
+}
+
 // ---- Help system --------------------------------------------------------
 
 /**

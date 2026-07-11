@@ -40,9 +40,15 @@ export function AmbientLitMixin<TBase extends MixinConstructor>(Base: TBase) {
       'ambientColorTemperature',
     ];
 
-    /** Backing storage for the lumen scalar. */
+    /**
+     * Backing storage for the lumen scalar.
+     * @authorable
+     */
     private _ambientIntensity: number = 0;
-    /** Backing storage for the Kelvin color-temperature scalar. */
+    /**
+     * Backing storage for the Kelvin color-temperature scalar.
+     * @authorable
+     */
     private _ambientColorTemperature: number | null = null;
 
     /**

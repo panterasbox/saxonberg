@@ -260,6 +260,7 @@ export function EnvironmentMixin<TBase extends MixinConstructor>(Base: TBase) {
      * Schema-declared persistent overrides. Optional + default `{}`
      * matches the legacy-tolerant Propertied.savedProps pattern, so
      * existing avatar docs don't need migration.
+     * @runtimeState
      */
     persistentStore?: Record<string, unknown> = {};
 

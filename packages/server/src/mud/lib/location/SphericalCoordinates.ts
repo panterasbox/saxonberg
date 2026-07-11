@@ -30,10 +30,18 @@ export function SphericalCoordinatesMixin<TBase extends MixinConstructor>(Base: 
     static _mixinName = 'SphericalCoordinatesMixin';
     static persistentFields = ['coordinates', 'radius'];
 
-    /** [rho, theta, phi] — radial distance + two angles. */
+    /**
+     * [rho, theta, phi] — radial distance + two angles.
+     *
+     * @authorable
+     */
     protected coordinates: [number, number, number] = [0, 0, 0];
 
-    /** Sphere radius. Default 1.0 makes a unit sphere. */
+    /**
+     * Sphere radius. Default 1.0 makes a unit sphere.
+     *
+     * @authorable
+     */
     protected radius: number = 1.0;
 
     getCoordinates(): [number, number, number] { return this.coordinates; }

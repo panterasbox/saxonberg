@@ -227,6 +227,7 @@ export function AliasMixin<TBase extends MixinConstructor>(Base: TBase) {
      * Optional + default `{}`. Matches the legacy-tolerant
      * Propertied.savedProps pattern so existing avatar docs without
      * the field hydrate cleanly.
+     * @runtimeState
      */
     aliases?: Record<string, string | null> = {};
 

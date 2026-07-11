@@ -81,7 +81,10 @@ export function BankMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
       peers: [],
     };
 
-    /** The bank's corpo affiliation key. */
+    /**
+     * The bank's corpo affiliation key.
+     * @authorable ref:Corpo
+     */
     public corpoKey = "";
 
     public getCorpoKey(): string {

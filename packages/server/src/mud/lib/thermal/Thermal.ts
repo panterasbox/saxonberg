@@ -181,9 +181,13 @@ export function ThermalMixin<TBase extends MixinConstructor>(Base: TBase) {
       "barrier",
     ];
 
+    /** @runtimeState */
     public stampedTemperatureK: number = THERMAL_DEFAULTS.DEFAULT_TEMPERATURE_K;
+    /** @runtimeState */
     public thermalClockStamp = 0;
+    /** @runtimeState */
     public lastAmbientK: number = THERMAL_DEFAULTS.DEFAULT_TEMPERATURE_K;
+    /** @authorable */
     public barrier: string | null = null;
 
     /**

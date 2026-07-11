@@ -158,10 +158,15 @@ export function NamedMixin<TBase extends MixinConstructor>(Base: TBase) {
       },
     ];
 
+    /** @authorable Formal address prefix ("Dr.", "Sir", "Captain"). */
     protected honorific?: string;
+    /** @authorable The casual-register proper name (the field 95% of callers want). */
     protected name: string = '';
+    /** @authorable Family / second name. */
     protected surname?: string;
+    /** @authorable Post-nominal suffix ("Jr.", "III", "Esq."). */
     protected nameSuffix?: string;
+    /** @authorable Typed extra names (nicknames, titles, credentials). */
     protected alternateNames: AlternateName[] = [];
 
     getHonorific(): string | undefined { return this.honorific; }

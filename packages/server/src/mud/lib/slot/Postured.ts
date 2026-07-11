@@ -82,6 +82,8 @@ export function PosturedMixin<TBase extends MixinConstructor<Stuff & Slotted>>(
      * `> 1` speeds recovery (a comfortable bed), values in `(0, 1)` are
      * legal but reserved (a cramped perch). Per-field invariant on the
      * setter (finite, `> 0`).
+     *
+     * @authorable
      */
     public restQuality: number = 1.0;
 
@@ -103,6 +105,8 @@ export function PosturedMixin<TBase extends MixinConstructor<Stuff & Slotted>>(
      * Warming bonus (Kelvin, additive to a slot-occupant's effective
      * ambient). Default `0` (neutral). Per-field invariant on the setter
      * (finite, `>= 0`).
+     *
+     * @authorable
      */
     public warmth: number = 0;
 

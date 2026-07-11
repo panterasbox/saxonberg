@@ -35,6 +35,7 @@ export function IdentifiableMixin<TBase extends MixinConstructor>(Base: TBase) {
 
     static persistentFields = ['identifiedName'];
 
+    /** @authorable The true type name revealed on identification. */
     public identifiedName: string = '';
 
     getIdentifiedName(): string {

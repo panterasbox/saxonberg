@@ -94,10 +94,16 @@ export function PersonaMixin<TBase extends MixinConstructor>(Base: TBase) {
       },
     ];
 
-    /** Claimed narrative prose. Seeded at char-gen; editable later. */
+    /**
+     * Claimed narrative prose. Seeded at char-gen; editable later.
+     * @authorable
+     */
     public bio: string = '';
 
-    /** Closed-choice origin/aspiration key (or null if unset). */
+    /**
+     * Closed-choice origin/aspiration key (or null if unset).
+     * @authorable
+     */
     public aspiration: string | null = null;
 
     public getBio(): string {

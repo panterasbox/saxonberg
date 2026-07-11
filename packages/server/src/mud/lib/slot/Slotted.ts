@@ -170,6 +170,8 @@ export function SlottedMixin<TBase extends MixinConstructor<Stuff>>(
      * Authoring data — only used by the default `getSlotNames` /
      * `getSlotSpec` implementation. Hosts that override the universe
      * surface (BodyPlanSlots, Adornable) leave this empty.
+     *
+     * @authorable
      */
     public staticSlots: SlotSpec[] = [];
 

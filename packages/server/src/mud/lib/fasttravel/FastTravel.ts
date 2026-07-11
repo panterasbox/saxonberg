@@ -128,8 +128,11 @@ export function FastTravelMixin<TBase extends MixinConstructor<Stuff>>(
       environment: ["movement/register.yaml"],
     };
 
+    /** @authorable Which travel direction this terminal permits. */
     private _directionality: Directionality = "both";
+    /** @runtimeState */
     private _selectedDestinationRef: string | null = null;
+    /** @runtimeState */
     private _status = "operational";
     /**
      * The node's **arrival surcharge** (minor units; 0 = none): a charge this
@@ -137,10 +140,14 @@ export function FastTravelMixin<TBase extends MixinConstructor<Stuff>>(
      * the route's own `fee`. Collected by the Business operating THIS node's
      * arrival room (the destination operator), the mirror of the route fee's
      * departure attribution. Optional, like the fee.
+     * @authorable
      */
     private _surcharge = 0;
+    /** @authorable */
     private _advanceMode: AdvanceMode = "manual";
+    /** @authorable */
     private _cycleInterval: string | null = null;
+    /** @authorable */
     private _routes = new Map<string, TravelRoute>();
     private _clockHandles: ClockHandle[] = [];
 

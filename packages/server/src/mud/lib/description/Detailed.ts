@@ -253,6 +253,10 @@ export function DetailedMixin<TBase extends MixinConstructor>(Base: TBase) {
     /**
      * Hierarchical detail map. Host-internal storage; external callers
      * go through `getDetail` / `setDetail` / `removeDetail`.
+     *
+     * @authorable Instruction field — the declarative `details:` map is
+     *   consumed by `applyDetails` (Phase-2 hydrator dispatch); the
+     *   composer edits the applier's payload shape, not this runtime Map.
      */
     protected details: DetailMap = new Map();
 

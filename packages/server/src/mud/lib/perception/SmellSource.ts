@@ -63,9 +63,15 @@ export function SmellSourceMixin<TBase extends MixinConstructor>(Base: TBase) {
 
     static persistentFields = ['emittedConcentration', 'odorIdentity'];
 
-    /** Backing storage for the emitted ppm scalar. */
+    /**
+     * Backing storage for the emitted ppm scalar.
+     * @authorable
+     */
     private _emittedConcentration: number = 0;
-    /** Backing storage for the odor identity. */
+    /**
+     * Backing storage for the odor identity.
+     * @authorable
+     */
     private _odorIdentity: string = '';
 
     /**

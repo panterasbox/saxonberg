@@ -177,6 +177,254 @@ export interface ProjectionResult {
   reexportReport: ReexportIssue[];
 }
 
+// ── @authorable projector (Studio / composition surface, P0) ────────
+//
+// A second pass over the same TypeDoc model, emitting the
+// `authorable-fields.json` artifact the composer form generator reads.
+// A mixin's author-facing fields carry the `@authorable` block tag; its
+// runtime-state fields carry `@runtimeState`. The pass classifies every
+// declared persistent/instruction field as exactly one of the two (the
+// coverage audit) and projects a widget-selection descriptor for the
+// authorable ones.
+//
+// These interfaces mirror `AuthorableFieldDescriptor` /
+// `AuthorableFieldsArtifact` in `@saxonberg/types` — kept local here for
+// the same reason `AuthorSurface` is (a build script reading an external
+// schema shouldn't drag the types package into its resolution).
+
+export interface AuthorableFieldDescriptor {
+  mixin: string;
+  field: string;
+  kind: "property" | "instruction";
+  typeShape: string;
+  description: string;
+  enumValues?: string[];
+  refShape?: "path";
+  refType?: string;
+}
+
+export interface AuthorableFieldsArtifact {
+  fields: Record<string, AuthorableFieldDescriptor[]>;
+  coverage: {
+    unclassified: string[];
+    doubleClassified: string[];
+  };
+}
+
+/**
+ * Return the `@authorable` tag's content (possibly `''`) when a member
+ * carries it, else `null`. Shaped like {@link hookContract}. The tag
+ * body may name a ref target: `@authorable ref:Material`.
+ */
+function authorableTag(refl: Refl): string | null {
+  const bags = [refl.comment, ...(refl.signatures ?? []).map((s) => s.comment)];
+  for (const c of bags) {
+    const tag = c?.blockTags?.find((t) => t.tag === "@authorable");
+    if (tag) return (tag.content ?? []).map((p) => p.text).join("").trim();
+  }
+  return null;
+}
+
+/** Whether a member carries the `@runtimeState` marker. */
+function hasRuntimeStateTag(refl: Refl): boolean {
+  const bags = [refl.comment, ...(refl.signatures ?? []).map((s) => s.comment)];
+  return bags.some((c) =>
+    (c?.blockTags ?? []).some((t) => t.tag === "@runtimeState"),
+  );
+}
+
+/**
+ * Read a static string-array member (`persistentFields` /
+ * `instructionFields`) off a class reflection. TypeDoc serializes the
+ * literal either as a `tuple` type of `literal` elements or — when it
+ * collapses the initializer — a parseable `defaultValue` array string.
+ * Returns `[]` when neither is readable (the field set is unknown).
+ */
+function readStaticStringArray(cls: Refl, fieldName: string): string[] {
+  const child = (cls.children ?? []).find((c) => c.name === fieldName);
+  if (!child) return [];
+  const t = child.type as TdType | undefined;
+  if (t && t.type === "tuple" && Array.isArray(t.elements)) {
+    const out: string[] = [];
+    for (const el of t.elements) {
+      const v = (el as { value?: unknown }).value;
+      if (typeof v === "string") out.push(v);
+    }
+    if (out.length > 0) return out;
+  }
+  const dv = child.defaultValue;
+  if (typeof dv === "string" && dv.includes("[")) {
+    return [...dv.matchAll(/['"]([\w.-]+)['"]/g)].map((m) => m[1]!);
+  }
+  return [];
+}
+
+/**
+ * Read a static string-literal member's value (e.g. `_mixinName`).
+ * TypeDoc stores it as a quoted `defaultValue` (`"'NamedMixin'"`) or a
+ * `literal` type. Returns `null` when absent.
+ */
+function readStaticStringLiteral(cls: Refl, fieldName: string): string | null {
+  const child = (cls.children ?? []).find((c) => c.name === fieldName);
+  if (!child) return null;
+  const t = child.type as TdType | undefined;
+  if (t && t.type === "literal") {
+    const v = (t as { value?: unknown }).value;
+    if (typeof v === "string") return v;
+  }
+  const dv = child.defaultValue;
+  if (typeof dv === "string") {
+    const m = dv.match(/^['"](.*)['"]$/);
+    if (m) return m[1]!;
+  }
+  return null;
+}
+
+/** Lower the first character (`Name` → `name`). */
+function decapitalize(s: string): string {
+  return s.length === 0 ? s : s[0]!.toLowerCase() + s.slice(1);
+}
+
+/**
+ * Derive the field name a member describes. Property/Accessor members
+ * name the field directly; an interface accessor `get<Field>` /
+ * `set<Field>` (the TypeDoc-reflectable home for a mixin field, since
+ * mixin instance-field declarations aren't emitted) maps to its field.
+ */
+function fieldNameOf(member: Refl): string {
+  const m = member.name.match(/^(?:get|set)([A-Z]\w*)$/);
+  if (m && member.kind === Kind.Method) return decapitalize(m[1]!);
+  return member.name;
+}
+
+/** The union-of-string-literals values, or `undefined` if not one. */
+function unionStringLiterals(t: TdType | undefined): string[] | undefined {
+  if (!t || t.type !== "union" || !Array.isArray(t.types)) return undefined;
+  const out: string[] = [];
+  for (const sub of t.types) {
+    if (sub.type !== "literal") return undefined;
+    const v = (sub as { value?: unknown }).value;
+    if (typeof v !== "string") return undefined;
+    out.push(v);
+  }
+  return out.length > 0 ? out : undefined;
+}
+
+/**
+ * Project the `@authorable` field schema from a TypeDoc project model.
+ * Pure — no IO. Walks every class/interface reflection, keys it by its
+ * static `_mixinName` (falling back to the reflection name), classifies
+ * each declared persistent/instruction field as `@authorable` vs
+ * `@runtimeState`, and emits a widget-selection descriptor per
+ * authorable field plus the coverage audit.
+ */
+export function projectAuthorableFields(project: Refl): AuthorableFieldsArtifact {
+  const fields: Record<string, AuthorableFieldDescriptor[]> = {};
+  const unclassified: string[] = [];
+  const doubleClassified: string[] = [];
+
+  const modules: Refl[] = [];
+  (function indexModules(n: Refl): void {
+    if (n.kind === Kind.Module) modules.push(n);
+    for (const c of n.children ?? []) indexModules(c);
+  })(project);
+
+  for (const mod of modules) {
+    for (const cls of mod.children ?? []) {
+      if (cls.kind !== Kind.Class && cls.kind !== Kind.Interface) continue;
+
+      const persistent = new Set(readStaticStringArray(cls, "persistentFields"));
+      const instruction = new Set(
+        readStaticStringArray(cls, "instructionFields"),
+      );
+      const fieldSet = new Set([...persistent, ...instruction]);
+
+      // Find members carrying either classification tag.
+      const authorableFields = new Map<string, Refl>(); // field → member
+      const runtimeFields = new Set<string>();
+      const members = cls.children ?? [];
+      for (const member of members) {
+        if (member.flags?.isPrivate) continue;
+        const isAuthorable = authorableTag(member) !== null;
+        const isRuntime = hasRuntimeStateTag(member);
+        if (!isAuthorable && !isRuntime) continue;
+        const field = fieldNameOf(member);
+        if (isAuthorable && !authorableFields.has(field)) {
+          authorableFields.set(field, member);
+        }
+        if (isRuntime) runtimeFields.add(field);
+      }
+
+      if (
+        fieldSet.size === 0 &&
+        authorableFields.size === 0 &&
+        runtimeFields.size === 0
+      ) {
+        continue; // not a field-bearing mixin
+      }
+
+      const mixinKey =
+        readStaticStringLiteral(cls, "_mixinName") ?? cls.name;
+
+      // Descriptors for authorable fields.
+      const descriptors: AuthorableFieldDescriptor[] = [];
+      for (const [field, member] of authorableFields) {
+        const kind: "property" | "instruction" = instruction.has(field)
+          ? "instruction"
+          : "property";
+        let typeShape: string;
+        if (kind === "instruction") {
+          const applier = members.find(
+            (m) => m.name === `apply${capitalize(field)}`,
+          );
+          const sig = applier?.signatures?.[0];
+          const payload = sig?.parameters?.[0]?.type;
+          typeShape = payload ? renderType(payload) : "json";
+        } else {
+          typeShape = member.type ? renderType(member.type) : "json";
+        }
+        const descriptor: AuthorableFieldDescriptor = {
+          mixin: mixinKey,
+          field,
+          kind,
+          typeShape,
+          description: joinText(member.comment?.summary),
+        };
+        const enumValues = unionStringLiterals(member.type);
+        if (enumValues) descriptor.enumValues = enumValues;
+        const tag = authorableTag(member) ?? "";
+        const refMatch = tag.match(/\bref:([A-Za-z0-9_]+)/);
+        if (refMatch) {
+          descriptor.refShape = "path";
+          descriptor.refType = refMatch[1]!;
+        }
+        descriptors.push(descriptor);
+      }
+      if (descriptors.length > 0) {
+        descriptors.sort((a, b) => a.field.localeCompare(b.field));
+        fields[mixinKey] = descriptors;
+      }
+
+      // Coverage: every declared field must carry exactly one tag.
+      for (const field of fieldSet) {
+        const inA = authorableFields.has(field);
+        const inR = runtimeFields.has(field);
+        if (inA && inR) doubleClassified.push(`${mixinKey}.${field}`);
+        else if (!inA && !inR) unclassified.push(`${mixinKey}.${field}`);
+      }
+    }
+  }
+
+  unclassified.sort();
+  doubleClassified.sort();
+  return { fields, coverage: { unclassified, doubleClassified } };
+}
+
+/** Upper the first character (`name` → `Name`) — `apply<Field>` join. */
+function capitalize(s: string): string {
+  return s.length === 0 ? s : s[0]!.toUpperCase() + s.slice(1);
+}
+
 function hookContract(refl: Refl): string | null {
   const bags = [refl.comment, ...(refl.signatures ?? []).map((s) => s.comment)];
   for (const c of bags) {
@@ -593,6 +841,22 @@ function main(): void {
     `author-surface: ${surface.consumer.length} consumer, ` +
       `${surface.extension.length} extension, ${surface.types.length} types ` +
       `→ ${outPath}`
+  );
+
+  // Second artifact: the @authorable field schema (Studio composer).
+  const authorablePath = join(dirname(outPath), "authorable-fields.json");
+  const authorable = projectAuthorableFields(project);
+  writeFileSync(authorablePath, JSON.stringify(authorable, null, 2));
+  const authorableCount = Object.values(authorable.fields).reduce(
+    (n, d) => n + d.length,
+    0
+  );
+  console.log(
+    `authorable-fields: ${authorableCount} field(s) across ` +
+      `${Object.keys(authorable.fields).length} mixin(s); coverage ` +
+      `unclassified=${authorable.coverage.unclassified.length} ` +
+      `doubleClassified=${authorable.coverage.doubleClassified.length} ` +
+      `→ ${authorablePath}`
   );
 
   if (reexportReport.length > 0) {

@@ -330,11 +330,17 @@ export function MetabolicMixin<TBase extends MixinConstructor>(Base: TBase) {
       "lastMealLabel",
     ];
 
+    /** @runtimeState */
     public digestionPools: Record<string, number> = {};
+    /** @runtimeState */
     public solidVolume = 0;
+    /** @runtimeState */
     public liquidVolume = 0;
+    /** @runtimeState */
     public toxinBurdens: Record<string, number> = {};
+    /** @runtimeState */
     public metabolicClockStamp = 0;
+    /** @runtimeState */
     public lastMealLabel: string | null = null;
 
     /**

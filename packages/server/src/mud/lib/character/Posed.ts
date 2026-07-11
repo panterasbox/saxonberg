@@ -28,6 +28,7 @@ export function PosedMixin<TBase extends MixinConstructor>(Base: TBase) {
     static _mixinName = 'PosedMixin';
     static persistentFields = ['posture'];
 
+    /** @authorable */
     public posture: string = Postures.Stand;
 
     public getPosture(): string {

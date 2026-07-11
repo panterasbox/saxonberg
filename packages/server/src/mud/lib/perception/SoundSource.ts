@@ -44,7 +44,9 @@ export function SoundSourceMixin<TBase extends MixinConstructor>(Base: TBase) {
     static _mixinName = 'SoundSourceMixin';
     static persistentFields = ['emittedAmplitude', 'character'];
 
+    /** @authorable Backing storage for the emitted dB scalar. */
     private _emittedAmplitude: number = 0;
+    /** @authorable Backing storage for the sound character string. */
     private _character: string = '';
 
     protected get emittedAmplitude(): number {

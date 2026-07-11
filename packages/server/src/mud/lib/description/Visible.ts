@@ -185,8 +185,11 @@ export function VisibleMixin<TBase extends MixinConstructor>(Base: TBase) {
       },
     ];
 
+    /** @authorable Brief description, shown with an article ("a heavy iron door"). */
     protected shortDescription: string = '';
+    /** @authorable Detailed examine text. */
     protected longDescription: string = '';
+    /** @authorable Bucket-relative media key for this thing's illustration. */
     protected illustration: string | null = null;
 
     getShortDescription(): string {
