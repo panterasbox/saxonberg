@@ -25,9 +25,11 @@ addendum §A–§K and the "Phase re-slice & readiness" closing section scope th
 - **Parcels form a sparse hierarchy** over the zone tree: a `parentParcel` edge and
   carve-out sub-parcels; a zone with no parcel record inherits its governing parcel
   from the nearest parcel-bearing ancestor.
-- **Author ≠ owner.** Ownership is a transferable **title** distinct from the
-  immutable `authoring_events` ledger; **owner defaults to author** with no data
-  migration.
+- **Author ≠ owner (fully un-fused).** Ownership is a transferable **title** distinct
+  from the immutable `authoring_events` ledger. **Default title is publicly held (the
+  state — `'core'` in 0a); the author is NOT the default owner** — authoring confers
+  *credit*, never *title*. No data migration (untitled content → state = today's
+  core-decided behavior).
 - **Every player implicitly owns `/home/<self>/`** — the *default parcel*, resolved
   by identity with no `parcels` row (generalizing the shipped `DocumentLogic`
   self-home base case).
@@ -86,24 +88,36 @@ this build replaces. **Why:** keeping dead fields (or a live ownership source in
 `domain`) invites drift and — per the security constraint below — is exactly the
 spoof vector 0a exists to close.
 
-### 3. `ownerOf` resolution order
+### 3. `ownerOf` resolution — title / self-home / **state** (default = publicly held; author is NOT the default)
 
-**Q:** How is ownership resolved for an arbitrary path? **A:** A total fallback chain:
+**Q:** How is ownership resolved for an arbitrary path, and what's the *default*?
+**A (governance decision):** a total **three-rung** chain:
 1. **Explicit parcel title** — longest-prefix over parcel `extents` (the coverage index).
 2. **Self-home identity** — a path under `/home/<key>/` → that player (the implicit
    default parcel, no row), mirroring the shipped `DocumentLogic` base case.
-3. **Provenance author** — `ProvenanceApi.authorOf` (earliest `AuthoringEvent`).
-4. **`'core'` root** — the universe-root default.
+3. **The state (public default)** — everything else is **publicly held**: `{kind:'group',
+   name:'core'}` (the `'core'` universe-root group is the state placeholder in 0a; a
+   dedicated state/treasury principal is a governance-build refinement).
 
-**Why:** un-fuses owner from author (title overrides, author is the default), and the
-self-home case reuses (does not fork) the existing document-store ownership base case.
+**The author rung is removed.** Authoring gives **credit** (the immutable
+`authoring_events` provenance ledger, for attribution / producer-influence), **never
+title.** You own only what you hold title to; untitled content is the state's. This is
+the *full* un-fusing of owner from author (correcting the earlier "owner defaults to
+author" — the state is the default, not the author). It's also **migration-free and
+byte-identical**: untitled content → state (`core`) = today's core-decided behavior.
 
-**Owners are *typed principals*, not bare group refs.** Because the chain introduces
-**individual** owners (self-home → a player; author fallback → a player templatePath),
-`ownerOf` returns a discriminated `ParcelOwner` — `{kind:'group', …}` or
-`{kind:'player', templatePath}` — and `AccessApi.can`/`canMutateZone` dispatch on the
-kind (group → `GroupApi` membership/`'owner'`-role; player → identity match). Group
-owners preserve today's exact membership semantics.
+**Access vs. title.** `ownerOf` answers *title* (who owns). **Access** (`can`) dispatches
+on the title owner: **explicit title / self-home → the holder** (group membership, or
+player identity match); **state-owned → the state's governance**, which in 0a is the
+existing `core`/wizard gate — a seam the future **PM/legislature-doled-access** model
+refines (the PM is the superuser who doles out access from that position). So `can` uses
+the **same three-rung chain — no author rung** — and there is no authored-content access
+change (this closes plan risk R2a).
+
+**Owners are *typed principals*.** `ownerOf` returns a discriminated `ParcelOwner` —
+`{kind:'group', …}` or `{kind:'player', templatePath}`; `AccessApi.can`/`canMutateZone`
+dispatch on the kind (group → `GroupApi` membership/`'owner'`-role; player → identity
+match). Group owners preserve today's exact membership semantics.
 
 ### 4. The registry ships claims-and-grants; 0a resolves `owner` only
 

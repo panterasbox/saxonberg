@@ -72,7 +72,7 @@ Mirror the **AccessRegistry / AccessLogic / AccessApi** three-tier.
 export type ParcelOwner =
   | { kind: 'group'; name: string }          // symbolic managed-group name ('lounge','terminus')
   | { kind: 'group'; ref: GroupRef }          // explicit managed:<id>
-  | { kind: 'player'; templatePath: string }; // an individual (author / self-home)
+  | { kind: 'player'; templatePath: string }; // an individual (self-home, or a title transferred to a player)
 
 export class ParcelRecord extends Document {
   static collectionName = 'parcels';
@@ -102,15 +102,18 @@ chain-of-title *readout* are deferred consumers). This preserves ownership linea
 (append-only history) — both write-gated to `ParcelApi` + the seed installer (the
 governing security invariant).
 
-## Part 4 — `ownerOf` resolution (the total 4-step chain) + self-home
+## Part 4 — `ownerOf` resolution (the total THREE-rung chain) + self-home
 
-`ParcelLogic.ownerOf(path): Promise<ParcelOwner>` (total):
+`ParcelLogic.ownerOf(path): Promise<ParcelOwner>` (total) — **governance decision: default
+title is publicly held (the state); the author rung is removed** (authoring → credit, not
+title — the full un-fusing):
 1. **Explicit parcel title** — `coveringParcelOf(path)` longest-prefix; if covered, return its `owner`.
 2. **Self-home identity** — `/home/<key>/…` → `{kind:'player', templatePath:'/home/<key>'}`, **no `parcels` row**. Must **generalize, not fork, `DocumentLogic.isOwnHomePath`** (`DocumentLogic.ts:39–42`): extract the `/home/<key>/` rule into `ParcelApi.selfHomeOwnerOf(path)` and rewrite `DocumentLogic.isOwnHomePath` to consume it (one `/home/` rule, kept shared).
-3. **Provenance author** — `ProvenanceApi.authorOf(path)`; non-null → `{kind:'player', templatePath: author}`.
-4. **`'core'` root** — `{kind:'group', name:'core'}`.
+3. **The state (public default)** — `{kind:'group', name:'core'}`. `'core'` is the state placeholder in 0a; a dedicated state/treasury principal is a governance-build refinement.
 
-Title-overrides-author falls out of step 1 preceding step 3.
+**No `ProvenanceApi.authorOf` rung** — authorship feeds provenance/credit only, never title.
+This makes the chain **byte-identical** (untitled content → state = today's core walk) and
+**resolves R2a** (no authored-content access change).
 
 ## Part 5 — The `AccessApi.can` / `AccessRegistry` repoint
 
@@ -173,7 +176,13 @@ Steps 1–5 are independent of the repoint; step 6 is the only one that can regr
 
 - **R1 (highest) — non-byte-identical `can`.** The old walk did a *flat union of every ancestor's* `ownerGroup`+`accessGroups`; the parcel model resolves a *single* nearest owner. Safe only because **no seed uses `accessGroups`** and ownership is single-group-per-subtree. *Mitigation: the widened regression test + a one-time audit of the **deployed** `domain` collection for stray `data.accessGroups` / nested differing `ownerGroup`.*
 - **R2 — the individual-owner path is new to `can`** (group-membership was the only prior case). *Mitigation: explicit self-home + author-owned `can` tests.*
-- **R2a (OPEN DECISION — resolve before wiring `can`) — does the *author* rung feed ACCESS, or only TITLE?** The `ownerOf` chain is `title → self-home → author → core`. Wiring `can` to the *full* chain means **the author of any un-parceled content becomes its access-owner** — a behavior change from today's "walk to `core`": content with a recorded `AuthoringEvent` that sits under no owned parcel would flip from core-decided to author-decided access (author gains mutate; core members may lose it). Blast radius today is bounded by how sparse `authoring_events` is (seeded content has none; only CMS/in-world-authored paths do), but it grows as authoring grows, and the **lounge+Terminus regression test does NOT cover it** (those are parcel-owned). Decision: either (a) `can`/`canMutateZone` use the full chain (author-as-owner grants access — arguably correct: "you can edit what you made"), or (b) access uses a **narrower** chain `title → self-home → core` (author feeds *title/provenance* queries only, not access). Recommend deciding explicitly + adding an author-owned `can` test either way; do NOT let it fall out implicitly from wiring `can` straight to `ownerOf`.
+- **R2a — RESOLVED (governance decision): the author rung is removed entirely.** Default
+  title is **publicly held (the state = `'core'` in 0a)**; authoring → credit, not title.
+  So `ownerOf` and `can` both use `title → self-home → state`, with **no author rung** —
+  which is **byte-identical** to today (untitled → core) and eliminates the
+  authored-content access-change risk. Access to state-owned content is the existing
+  `core`/wizard gate in 0a, a seam the future PM/legislature-doled-access model refines.
+  (See requirements decision #3.)
 - **R3 — re-introducing a boot hook Terminus removed** (the harvest pass). *Mitigation: keep it declarative — harvest the seed field, don't hardcode paths; §Part 1 #3 sign-off.*
 - **R4 — spatial carve-out exit wiring** may exceed 0a (the Terminus terminal is a `CartesianZone`). *Mitigation: ship `subdivide` FolderZone-first; defer spatial (matches the deferred non-goal).*
 - **R5 — `ensureAuthorGroups` semantics** change if any owned zone lacks a parcel row post-migration. *Mitigation: migration covers every owned zone; `isAuthor` regression test.*
