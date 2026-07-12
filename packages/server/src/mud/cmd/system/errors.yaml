@@ -1,0 +1,62 @@
+verbs: [errors]
+controller: system/ErrorsController
+description: "Show compile / runtime / console diagnostics from the dev tooling"
+help: |
+  Read the author-diagnostics store: TypeScript compile errors, runtime
+  throws in authored content (a brain / script / controller that blew up),
+  and — for wizards — the raw server console.
+
+  `errors` (or `errors list`) shows recent diagnostics, newest first.
+  Filter with `--channel <zone.lounge|lib.*|command|api|global>`,
+  `--severity <error|warning>`, `--source <runtime|compile>`, `--mine`
+  (only diagnostics in content you authored), and `--limit <n>`. A path
+  argument narrows to that path prefix: `errors /lib/lounge`.
+
+  `errors raw` tails the raw console ring (`--grep <text>`, `--limit`) —
+  wizard-only, since it can carry engine internals.
+
+  `errors clear <path>` drops the diagnostics for a path (wizards, or the
+  author of that path).
+
+  Restricted to authors — if you aren't one, the game won't offer it.
+validators:
+  - /lib/command/validators/requiresAuthor
+fallthrough: true
+args:
+  - name: path
+    type: string
+    required: false
+    greedy: true
+    description: "A path prefix to filter (list) or the target to clear"
+options:
+  channel:
+    type: string
+    field: channel
+    description: "Filter by channel (zone.lounge, lib.*, command, api, global)"
+  severity:
+    type: string
+    field: severity
+    description: "Filter by severity: error | warning"
+  source:
+    type: string
+    field: source
+    description: "Filter by producer: runtime | compile"
+  mine:
+    type: boolean
+    field: mine
+    description: "Only diagnostics in content you authored"
+  limit:
+    type: number
+    field: limit
+    description: "Max rows (default 50; raw default 200)"
+  grep:
+    type: string
+    field: grep
+    description: "Substring filter for `errors raw`"
+subcommands:
+  list:
+    description: "List recent diagnostics matching your filters (default)"
+  raw:
+    description: "Tail the raw console ring (wizard-only)"
+  clear:
+    description: "Drop diagnostics for a path (wizard, or author of the path)"
