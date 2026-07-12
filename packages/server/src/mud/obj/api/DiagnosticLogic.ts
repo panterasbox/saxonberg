@@ -82,10 +82,9 @@ function fire(row: DiagnosticDoc): void {
 }
 
 /** Resolve an online Avatar for an author `templatePath`; undefined = offline. */
-function onlineAuthor(authorPath: string): (Stuff & { getPresentation?: () => string }) | undefined {
+function onlineAuthor(authorPath: string): Stuff | undefined {
   try {
-    const found = StuffApi.findByTemplatePath(authorPath) as Stuff | undefined;
-    return found ?? undefined;
+    return StuffApi.findByTemplatePath(authorPath) as Stuff | undefined;
   } catch {
     return undefined;
   }

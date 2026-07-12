@@ -14,9 +14,9 @@ that blew up reached the player as a generic *"Command execution failed"*
 with the real error swallowed; ambient TypeScript type errors only
 appeared in CI. This subsystem closes that gap.
 
-Seeded by
-[diagnostics-slate.md](../slates/builds/diagnostics-slate.md) and
-[author-diagnostics-requirements.md](../requirements/author-diagnostics-requirements.md).
+Seeded by the author-diagnostics slate, requirements, and plan (all
+retired at merge — this doc is the live reference; see git history at the
+commit range in *History* below).
 
 ## Shape at a glance
 
@@ -205,3 +205,24 @@ push channel is the reserved upgrade.
   now; mutation awaits List-type `settings set`).
 - ESLint diagnostics (the `source`/channel/store shape extends without API
   changes).
+
+## History
+
+Built as `feature/author-diagnostics` (commit range `3c7d1c6f..HEAD`).
+Three shifts from the plan/requirements were load-bearing:
+
+- **The command "chokepoint" is not `runRoot`.** The plan assumed a single
+  `runRootGuarded` at the command boundary would catch authored throws; the
+  code review found controller throws are already absorbed into
+  `controller-error` notes *inside* `CommandGiver` first. So command capture
+  became the **two-seam** design (record at the note sites; the `command.ts`
+  guard only catches residual escapes + retires the generic frame).
+- **The reader gate widened from author-tier to author-or-wizard.** Driving
+  the feature live showed a wizard (who edits engine source/TS — exactly who
+  needs compile diagnostics) was locked out by `requiresAuthor`. The verb
+  dropped the validator and gates author-or-wizard in the controller;
+  `DiagnosticLogic.list` unions the two axes.
+- **The `errors` verb renders plain escaped text, not an MML list.** The
+  nested `Mml.unorderedList`/`compose` round-trip through `fromMarkup`
+  dropped the list body (only the count rendered); switched to a plain
+  escaped multi-line block.

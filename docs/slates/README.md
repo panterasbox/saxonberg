@@ -162,7 +162,6 @@ continues with the content + navigation layers on top:
   (the mixin-particle palette + the named-blueprint catalog) shipped with the
   Studio** ([../subsystems/studio.md](../subsystems/studio.md)); kept in
   `builds/` for the engine-typed IntelliSense / LSP / host-isolation remainder.
-- [diagnostics-slate](./builds/diagnostics-slate.md) — author diagnostics: runtime execution-context guard + console tap + compile watcher into one searchable store, delivered to giver + author, read from CMS panel + `errors` verb.
 - [scoped-authoring-slate](./builds/scoped-authoring-slate.md) — personal / scoped authoring permissions.
 - [provenance-slate](./builds/provenance-slate.md) — the authorship substrate bridging
   authoring (this build) and **producer influence** (§9): ownership + attribution +
@@ -172,7 +171,7 @@ continues with the content + navigation layers on top:
   (the dependency-DAG credit graph, git-in-runtime VCS, the author≠owner un-fusing that
   [property](./builds/property-slate.md) consumes).
 
-**Phases:** type surface + diagnostics → CMS editor core (shipped → cms.md) →
+**Phases:** type surface + diagnostics (shipped → diagnostics.md) → CMS editor core (shipped → cms.md) →
 the Studio composition surface + first authoring-intelligence catalogs
 (shipped → studio.md) → scoped authoring · provenance (first brick shipped → the
 DAG + VCS deferred).
