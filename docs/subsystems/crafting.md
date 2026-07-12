@@ -74,12 +74,14 @@ the Hydrator; per-field invariants ride accessor pairs.
   and the `Grade` value-object rides separate contract methods
   (`getGrade`/`setGrade` ↔ `getGradeBand`/`setGradeBand`). `setGradeBand`
   validates via `Grade.isBand`.
-- **`DurableMixin`** (`Durable.ts`) — the durable-good substrate: a
-  `condition` (0..1, private `_condition` accessor pair clamping) that
-  `wear()`s on **use, not the clock** (economy Law 2). Repair deferred — the
-  wear field establishes the sink shape without pulling in service mechanics.
-  Composed by tools, **weapons, and armor alike** (durability is not
-  "tool"); narrow via `MixinApi.isDurable`.
+- **`DurableMixin`** (`lib/material/Durable.ts` — the wear-state axis of a
+  physical object, sibling of `Tangible`/`Constructed`; **not** a crafting
+  mixin) — the durable-good substrate: a `condition` (0..1, private
+  `_condition` accessor pair clamping) that `wear()`s on **use, not the
+  clock** (economy Law 2). Repair deferred — the wear field establishes the
+  sink shape without pulling in service mechanics. Composed by tools,
+  **weapons, and armor alike** (durability is not "tool"); narrow via
+  `MixinApi.isDurable`.
 - **`ToolMixin`** (`Tooled.ts`) — the crafting **capabilities** layer:
   `capabilities: string[]` a recipe requires by kind. A `ToolItem` composes
   `ToolMixin(DurableMixin(…))` — a tool is a durable good that *also* offers

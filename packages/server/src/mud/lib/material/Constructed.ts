@@ -26,7 +26,7 @@ import { MaterialApi, OUTCOME_BANDS } from '../../api/material';
 import type { MarkupAugmenter } from '../../api/mml';
 import type { Stuff } from '../stuff/Stuff';
 import type { Graded } from '../craft/Graded';
-import type { Durable } from '../craft/Durable';
+import type { Durable } from './Durable';
 
 export interface Constructed {
   /** The persisted form word (e.g. `'plate'`). Host/persist surface. */

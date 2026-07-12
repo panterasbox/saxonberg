@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { Idea } from '../../stuff/Idea';
 import { GradedMixin } from '../Graded';
 import { ToolMixin } from '../Tooled';
-import { DurableMixin } from '../Durable';
+import { DurableMixin } from '../../material/Durable';
 import { CraftedMixin } from '../Crafted';
 import { MakerMixin } from '../Maker';
 import { Grade } from '../Grade';

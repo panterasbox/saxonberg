@@ -11,7 +11,7 @@
 import Thing from '../stuff/Thing';
 import { DetailedMixin } from '../description/Detailed';
 import { ToolMixin } from './Tooled';
-import { DurableMixin } from './Durable';
+import { DurableMixin } from '../material/Durable';
 
 const ToolItemBase = ToolMixin(DurableMixin(DetailedMixin(Thing)));
 

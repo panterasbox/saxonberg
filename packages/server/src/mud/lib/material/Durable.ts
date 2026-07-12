@@ -1,14 +1,20 @@
 /**
- * DurableMixin — a physical thing that wears out with **use, not the clock**
- * (economy Law 2: you dull the knife by cutting, never by time on the wall).
+ * DurableMixin — the **wear-state axis** of a physical object: a thing that
+ * wears out with **use, not the clock** (economy Law 2: you dull the knife
+ * by cutting, never by time on the wall).
  *
- * The generic durable-good sink: a `0..1 condition` gauge that starts
- * pristine and drops via `wear()`. It is deliberately **NOT** "tool" — a
- * weapon, a piece of armor, and a crafting shaker are all *durable goods*,
- * but only the shaker is a tool. `ToolMixin` composes this (durability +
- * crafting `capabilities`); armor and weapons compose it directly (durability
- * alone, no inert capability list). The clean split that stops "is-a tool"
- * from meaning "wears out".
+ * Lives in `lib/material/` alongside the other physical-object axes — a made
+ * thing has a *material* ({@link TangibleMixin}), a *form* ({@link
+ * ConstructedMixin}), and a *condition* (this). The generic durable-good
+ * sink: a `0..1 condition` gauge that starts pristine and drops via
+ * `wear()`.
+ *
+ * Deliberately **NOT** "tool" — a weapon, a piece of armor, and a crafting
+ * shaker are all *durable goods*, but only the shaker is a tool. Crafting's
+ * `ToolMixin` (capabilities) composes this at the use site
+ * (`ToolMixin(DurableMixin(…))`); armor and weapons compose it directly
+ * (durability alone, no inert capability list). The clean split that stops
+ * "is-a tool" from meaning "wears out". Narrow via `MixinApi.isDurable`.
  *
  * Composed on a `Thing` (or any Stuff). Opt-in repair is a later increment.
  */

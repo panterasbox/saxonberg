@@ -29,7 +29,7 @@
 import Thing from '../stuff/Thing';
 import { DetailedMixin } from '../description/Detailed';
 import { ConstructedMixin } from '../material/Constructed';
-import { DurableMixin } from '../craft/Durable';
+import { DurableMixin } from '../material/Durable';
 import { GradedMixin } from '../craft/Graded';
 import { SlottableMixin } from '../slot/Slottable';
 import { WieldableMixin } from '../slot/Wieldable';
