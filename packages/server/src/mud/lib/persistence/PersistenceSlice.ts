@@ -85,6 +85,17 @@ export interface SlottedSlice {
 export type MixinSlice = FieldsSlice | ContainerSlice | SlottedSlice;
 
 /**
+ * A Containable top-level host's own durable spawn/recall location — the
+ * `PersistedRecord.place` shape. `startLocation` (a `WarrenMember`-reconciled
+ * Warren/room ref, resolved via `ContainmentApi.resolveLanding`) takes
+ * precedence over a plain `container` templatePath.
+ */
+export interface HostPlacement {
+  container?: string;
+  startLocation?: string;
+}
+
+/**
  * The recursion seam a `captureSlice` hook uses to descend into item state
  * without importing `PersistableLogic`. `PersistableLogic` implements it.
  */

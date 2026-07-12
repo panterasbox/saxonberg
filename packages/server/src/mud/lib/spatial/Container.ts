@@ -148,7 +148,13 @@ export function ContainerMixin<TBase extends MixinConstructor>(Base: TBase) {
       ctx: CaptureContext,
     ): ContainerSlice {
       const container = host as Stuff & Container;
-      const contents = container.getContents();
+      // A live player avatar (HasInteractive) is a transient occupant, never
+      // a host's persistent content — it persists itself, under its own
+      // record. Skipping it here keeps the shared content index (which the
+      // Slotted slice references) aligned with the emitted entries.
+      const contents = container
+        .getContents()
+        .filter((item) => !MixinApi.isHasInteractive(item));
       const entries: ContentEntry[] = contents.map((item) => {
         const placement: Placement = {};
         const restingOn = item.getRestingOn();

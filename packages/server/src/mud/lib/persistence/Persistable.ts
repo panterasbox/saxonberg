@@ -47,6 +47,17 @@ export interface Persistable {
    * override so a re-materialize never re-seeds.
    */
   isPersistenceHost(): boolean;
+
+  /**
+   * Whether this host actually persists. Default `true`; a host overrides
+   * to opt out per-instance (an Avatar returns `!isGuest` — a guest is
+   * throwaway and writes nothing). Consulted by `postRegister` /
+   * `cleanupOnDestruct` here and by `PersistableLogic.capture` /
+   * `materialize`, so the opt-out holds across every trigger.
+   *
+   * @hook Override to gate persistence per-instance.
+   */
+  shouldPersist(): boolean;
 }
 
 export function PersistableMixin<TBase extends MixinConstructor<Stuff>>(
@@ -56,6 +67,10 @@ export function PersistableMixin<TBase extends MixinConstructor<Stuff>>(
     static _mixinName = "PersistableMixin";
 
     isPersistenceHost(): boolean {
+      return true;
+    }
+
+    shouldPersist(): boolean {
       return true;
     }
 
@@ -122,6 +137,7 @@ export function PersistableMixin<TBase extends MixinConstructor<Stuff>>(
       if (typeof sup === "function") {
         await sup.call(this, context);
       }
+      if (!this.shouldPersist()) return; // guest / opted-out — no record
       const self = this as unknown as Stuff;
       const scope = self.getTemplatePath();
       if (!scope) return;
@@ -142,6 +158,7 @@ export function PersistableMixin<TBase extends MixinConstructor<Stuff>>(
      */
     static cleanupOnDestruct(stuff: Stuff): void {
       if (!MixinApi.isPersistable(stuff)) return;
+      if (!stuff.shouldPersist()) return; // guest / opted-out — no record
       const scope = stuff.getTemplatePath();
       if (!scope) return;
       void PersistableApi.capture(stuff).catch((err) => {

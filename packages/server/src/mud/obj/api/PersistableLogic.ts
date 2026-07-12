@@ -23,6 +23,7 @@ import type {
   SlottedSlice,
   FieldsSlice,
   Placement,
+  HostPlacement,
   CaptureContext,
 } from "../../lib/persistence/PersistenceSlice";
 import type { Stuff } from "../../lib/stuff/Stuff";
@@ -64,16 +65,79 @@ function ownerString(owner: ParcelOwner): string {
 }
 
 /**
- * The record `owner` for a host `scope` — its parcel title (the
- * `DocumentLogic.selfHomeOwnerOf` precedent, generalized through
- * `ParcelApi.ownerOf`), falling back to the host's own path when the title
- * resolve fails. Never a parameter (actor-from-context rule).
+ * The record `owner` for a host `scope`. A **self-owned principal** host —
+ * a `HasInteractive` player avatar — owns its own record (owner = scope), so
+ * the account-deletion cascade `deleteAllFor(<avatar path>)` is a keyed
+ * match. Otherwise the parcel title (the `DocumentLogic.selfHomeOwnerOf`
+ * precedent, generalized through `ParcelApi.ownerOf`), falling back to the
+ * host's own path when the title resolve fails. Never a parameter.
  */
-async function ownerOfScope(scope: string): Promise<string> {
+async function ownerOfScope(scope: string, host: Stuff): Promise<string> {
+  if (MixinApi.isHasInteractive(host)) return scope;
   try {
     return ownerString(await ParcelApi.ownerOf(scope));
   } catch {
     return scope;
+  }
+}
+
+/**
+ * A host's persistence opt-out: a host may implement `shouldPersist()` (an
+ * Avatar returns `!isGuest`) to skip capture/materialize entirely. Default
+ * (no method) = persist.
+ */
+function shouldPersist(host: Stuff): boolean {
+  const fn = (host as unknown as { shouldPersist?: () => boolean })
+    .shouldPersist;
+  return typeof fn === "function" ? fn.call(host) : true;
+}
+
+/**
+ * Capture a **Containable top-level host**'s own durable location — the
+ * `WarrenMember`-reconciled spawn/recall point (the Warren, not the transient
+ * room clone) or a plain container. Mirrors the retired
+ * `snapshotToTemplate` location logic, now on the record. Null for a
+ * non-Containable host (a room) or one with no environment.
+ */
+function capturePlacement(host: Stuff): HostPlacement | null {
+  if (!MixinApi.isContainable(host)) return null;
+  const env = host.getContainer();
+  if (!env) return null;
+  if (MixinApi.isWarrenMember(env)) {
+    const warren = env.getWarren()?.getTemplatePath();
+    if (warren) return { startLocation: warren };
+  }
+  const container = env.getTemplatePath();
+  return container ? { container } : null;
+}
+
+/**
+ * Re-place a Containable host at its captured location: a `startLocation`
+ * resolves through `ContainmentApi.resolveLanding` (Warren → fresh host room,
+ * or a singleton/cloned room — the `applyStartLocation` path); a plain
+ * `container` moves into the live singleton at that path. Best-effort — a
+ * missing target leaves the host where the clone placed it.
+ */
+async function restorePlacement(
+  host: Stuff,
+  place: HostPlacement | null,
+): Promise<void> {
+  if (!place || !MixinApi.isContainable(host)) return;
+  if (place.startLocation) {
+    const { container } = await ContainmentApi.resolveLanding(
+      place.startLocation,
+    );
+    ContainmentApi.move(host as Stuff & Containable, container);
+    return;
+  }
+  if (place.container) {
+    const target = StuffApi.findByTemplatePath(place.container);
+    if (target && MixinApi.isContainer(target)) {
+      ContainmentApi.move(
+        host as Stuff & Containable,
+        target as Stuff & Container,
+      );
+    }
   }
 }
 
@@ -151,9 +215,11 @@ function captureState(host: Stuff): Record<string, MixinSlice> {
   );
 
   // Shared content order — the Container slice's entry order, the indices
-  // the Slotted slice references. Built once so both agree.
+  // the Slotted slice references. Built once so both agree; must apply the
+  // SAME HasInteractive filter `ContainerMixin.captureSlice` does, or the
+  // Slotted indices drift from the emitted entries.
   const order: (Stuff & Containable)[] = MixinApi.isContainer(host)
-    ? host.getContents()
+    ? host.getContents().filter((item) => !MixinApi.isHasInteractive(item))
     : [];
   const indexMap = new Map<Stuff, number>();
   order.forEach((item, i) => indexMap.set(item, i));
@@ -320,26 +386,30 @@ async function cloneHost(scope: string): Promise<Stuff | null> {
 /* ─────────────────────────── impl entry points ──────────────────────── */
 
 async function captureImpl(host: Stuff): Promise<void> {
+  if (!shouldPersist(host)) return; // guest / opted-out host — persist nothing
   const scope = host.getTemplatePath();
   if (!scope) {
     throw new Error("PersistableLogic.capture: host has no templatePath stamp");
   }
-  const owner = await ownerOfScope(scope);
+  const owner = await ownerOfScope(scope, host);
   // Warm marshallers, THEN take the synchronous snapshot (atomic — the
   // last sync block before the save), so concurrent triggers each write a
   // valid full snapshot (last-write-wins).
   await preloadTreeMarshallers(host);
   const state = captureState(host);
+  const place = capturePlacement(host);
   const rec =
     (await PersistedRecord.findByScopeAndOwner(scope, owner)) ??
     new PersistedRecord();
   rec.scope = scope;
   rec.owner = owner;
   rec.state = state;
+  rec.place = place;
   await rec.save();
 }
 
 async function materializeImpl(host: Stuff): Promise<void> {
+  if (!shouldPersist(host)) return; // guest / opted-out host — nothing to restore
   const scope = host.getTemplatePath();
   if (!scope) return;
   const records = await PersistedRecord.findByScope(scope);
@@ -355,9 +425,12 @@ async function materializeImpl(host: Stuff): Promise<void> {
       principal,
       "persistenceRestore",
       undefined,
-      () => {
+      async () => {
         ExecutionContextApi.tagActingAuthor(principal);
-        return restoreState(host, record.getState(), principal);
+        await restoreState(host, record.getState(), principal);
+        // A Containable top-level host re-places itself at its captured
+        // location (overriding the clone-time template spawn).
+        await restorePlacement(host, record.getPlace());
       },
     );
   }

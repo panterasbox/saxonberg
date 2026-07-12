@@ -112,6 +112,31 @@ class HostChest extends PersistableMixin(
   }
 }
 
+// A Containable persistable host (an avatar-shaped stand-in) — captures its
+// OWN durable location into its record.
+class MovableHost extends PersistableMixin(
+  ContainerMixin(ContainableMixin(PostRegistrationMixin(Idea))),
+) {
+  static persistentFields = ["label"];
+  label = "";
+  getLabel(): string {
+    return this.label;
+  }
+  setLabel(v: string): void {
+    this.label = v;
+  }
+}
+
+// An opted-out host (a guest stand-in) — shouldPersist() is false, so it
+// writes and restores nothing.
+class GuestLikeHost extends PersistableMixin(
+  ContainerMixin(PostRegistrationMixin(Idea)),
+) {
+  override shouldPersist(): boolean {
+    return false;
+  }
+}
+
 // A Slotted host (worn-gear demo) + a Slottable garment.
 class Wearer extends SlottedMixin(ContainerMixin(PostRegistrationMixin(Idea))) {}
 class Garment extends SlottableMixin(ContainableMixin(Idea)) {
@@ -581,6 +606,41 @@ describe("marshalled value round-trip (pre-build note #5 landmine)", () => {
     expect(restored).toBeInstanceOf(Quantity);
     expect(restored!.value).toBe(2.5);
     expect(restored!.unit).toBe("kg");
+  });
+});
+
+describe("host self-placement (Avatar-migration substrate)", () => {
+  it("captures a Containable host's own location and re-places it on restore", async () => {
+    cloneFactories = {};
+    const room = makeStuffAtPath(() => new ContentChest(), "/domain/room-c");
+    const mover = makeStuffAtPath(() => new MovableHost(), "/domain/mover");
+    mover.setLabel("wanderer");
+    ContainmentApi.move(mover, room);
+
+    await PersistableApi.capture(mover);
+    // The record carries the host's own placement.
+    const rec = snapshots.find((s) => s.scope === "/domain/mover")!;
+    expect(rec.place).toEqual({ container: "/domain/room-c" });
+
+    // Evict just the mover (room stays registered); re-clone + materialize
+    // → it re-homes into the room via the captured placement.
+    StuffApi.unregister(mover);
+    const reborn = makeStuffAtPath(() => new MovableHost(), "/domain/mover");
+    await PersistableApi.materialize(reborn);
+    expect(reborn.getLabel()).toBe("wanderer");
+    expect(reborn.getContainer()).toBe(room);
+  });
+});
+
+describe("persistence opt-out (guest skip)", () => {
+  it("a host whose shouldPersist() is false writes and restores nothing", async () => {
+    cloneFactories = {};
+    const guest = makeStuffAtPath(() => new GuestLikeHost(), "/domain/guest");
+    await PersistableApi.capture(guest);
+    expect(snapshots).toHaveLength(0);
+    expect(await PersistableApi.hasRecord("/domain/guest")).toBe(false);
+    // materialize is a no-op (and never throws).
+    await PersistableApi.materialize(guest);
   });
 });
 

@@ -30,11 +30,11 @@
  */
 
 import { Document } from "./Document";
-import type { MixinSlice } from "./PersistenceSlice";
+import type { MixinSlice, HostPlacement } from "./PersistenceSlice";
 
 export class PersistedRecord extends Document {
   static collectionName = "holder_snapshots";
-  static persistentFields = ["scope", "owner", "state"];
+  static persistentFields = ["scope", "owner", "state", "place"];
 
   /** The host's singleton `templatePath` — identity + re-clone base. */
   scope: string = "";
@@ -44,6 +44,16 @@ export class PersistedRecord extends Document {
 
   /** The per-mixin-composed capture (opaque JSON — see class doc). */
   state: Record<string, MixinSlice> = {};
+
+  /**
+   * A **Containable top-level host**'s own durable location (an avatar's
+   * spawn/recall point) — the `WarrenMember`-reconciled `startLocation` or
+   * a plain `container` templatePath, or null for a non-Containable host (a
+   * room) or one placed by its referrer. Restored on materialize. This is
+   * the persistence-spine home of the location capture `snapshotToTemplate`
+   * once wrote to the avatar template.
+   */
+  place: HostPlacement | null = null;
 
   getScope(): string {
     return this.scope;
@@ -55,6 +65,10 @@ export class PersistedRecord extends Document {
 
   getState(): Record<string, MixinSlice> {
     return this.state;
+  }
+
+  getPlace(): HostPlacement | null {
+    return this.place;
   }
 
   /** Every record scoped to a host `templatePath` (one per owner). */
