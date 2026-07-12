@@ -53,7 +53,14 @@ export class CmsSession {
     fn: () => Promise<T>
   ): Promise<T> {
     const actor = await CmsSession.resolveSessionAvatar(req);
-    return ExecutionContextApi.runRoot(Backend, method, () => {
+    // Guarded with 'rethrow': a throwing REST op is recorded as a runtime
+    // diagnostic AND re-thrown, so `sendCmsError` still maps it to an HTTP
+    // status. ('rethrow' never yields undefined — it returns fn's value or
+    // throws — so the T | undefined widening is a safe cast.)
+    return ExecutionContextApi.runRootGuarded(
+      Backend,
+      method,
+      () => {
       // Stamp the acting Avatar onto frame metadata (NOT the frame target,
       // which stays `Backend`, so downstream @CallSecurity gates are
       // unchanged). The CMS API takes NO `actor` argument — it resolves the
@@ -65,9 +72,11 @@ export class CmsSession {
       // explicitly. Null actor (no in-world avatar) → no tag → every gate
       // fails closed. Gated to backend/ + framework callers; CmsSession
       // qualifies.
-      if (actor) ExecutionContextApi.tagActingAuthor(actor);
-      return fn();
-    });
+        if (actor) ExecutionContextApi.tagActingAuthor(actor);
+        return fn();
+      },
+      'rethrow'
+    ) as Promise<T>;
   }
 
   /**

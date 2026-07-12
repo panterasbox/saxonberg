@@ -360,9 +360,15 @@ export default class SchedulerRegistry extends Idea {
         const h = WorldClockApi.every(
           Quantity.of(em.intervalMs / 1000, 's'),
           () => {
-            ExecutionContextApi.runRoot(SchedulerApi, 'emission', () => {
-              this.fireEmission(e, em);
-            });
+            // Guarded('swallow'): a throwing emission handler is recorded
+            // as a runtime diagnostic and swallowed — a clock tick has no
+            // caller to rethrow to, and swallowing keeps the cadence alive.
+            void ExecutionContextApi.runRootGuarded(
+              SchedulerApi,
+              'emission',
+              () => this.fireEmission(e, em),
+              'swallow'
+            );
           },
         );
         handles.push(h);

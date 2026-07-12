@@ -59,6 +59,18 @@ export function AuthorMixin<TBase extends MixinConstructor>(Base: TBase) {
           'Maximum recursion depth inside an `eval` body. Same ' +
           'declared-now, consumed-later story as eval.timeoutMs.',
       },
+      {
+        key: 'compile.subscribe',
+        type: SettingTypes.List,
+        default: ['$cwd', 'global'],
+        lifetime: 'persistent',
+        description:
+          'Channels to live-tail for author diagnostics in mudlog. ' +
+          'Patterns: "*" (all), a literal channel ("zone.lounge"), a ' +
+          'prefix ("lib.*"), or synthetic "$cwd" (the channel for your ' +
+          'current source cwd). Mutation awaits a future `errors ' +
+          'subscribe` subcommand (the settings-set list-type gap).',
+      },
     ];
 
     static commandContributions: CommandContributions = {
@@ -103,6 +115,12 @@ export function AuthorMixin<TBase extends MixinConstructor>(Base: TBase) {
         // relationship yet — operator == wizard in v1).
         'banking/reserve.yaml',
         'banking/house.yaml',
+        // Author-diagnostics reader — `errors list/raw/clear` over the
+        // diagnostics store (compile / runtime / console). Afforded here;
+        // `errors.yaml` carries `requiresAuthor`, so a non-author sees
+        // nothing. The finer gates (raw → wizard, clear → author-of-path)
+        // are enforced in the controller / DiagnosticApi.
+        'system/errors.yaml',
       ],
       environment: [],
       inventory: [],

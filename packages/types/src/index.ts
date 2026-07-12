@@ -1971,6 +1971,106 @@ export interface CmsErrorBody {
   message: string; // human detail
 }
 
+// ---- Author diagnostics (the diagnostics subsystem) --------------------
+
+/** Which producer emitted a structured diagnostic. */
+export type DiagnosticSource = "runtime" | "compile" | "console";
+
+/** Severity of a structured diagnostic. */
+export type DiagnosticSeverity = "error" | "warning" | "info";
+
+/**
+ * One persisted row in the `diagnostics` collection — the shared shape
+ * every producer (runtime guard / compile watcher / console promote)
+ * writes and both readers (the `errors` verb, the CMS panel) read. Plain
+ * scalars only (no marshalled value-objects), so the store is a raw
+ * `getCollection` read/write, not a `Document` subclass.
+ */
+export interface DiagnosticDoc {
+  /** Stringified Mongo `_id` (present on reads). */
+  _id?: string;
+  source: DiagnosticSource;
+  severity: DiagnosticSeverity;
+  /** Routing key, a pure function of `path` (`zone.<x>`, `lib.<x>`, `command`, `api`, `global`). */
+  channel: string;
+  /** The content/source path that produced it; `null` when unresolved. */
+  path: string | null;
+  /** `ProvenanceApi.authorOf(path)` at write time — the "my items" index. */
+  author: string | null;
+  /** sha256[:16] of the file bytes (compile/source only). */
+  versionId: string | null;
+  /** TS diagnostic code (compile only). */
+  code: number | null;
+  line: number | null;
+  col: number | null;
+  message: string;
+  /** Runtime throws only. */
+  stack: string | null;
+  /** Epoch ms the row was recorded. */
+  ts: number;
+  /** TTL anchor — Mongo evicts at this instant. */
+  expiresAt: Date;
+}
+
+/** One raw diagnostic as a producer hands it in (pre-channel/author derivation). */
+export interface RawDiagnostic {
+  severity: DiagnosticSeverity;
+  line?: number | null;
+  col?: number | null;
+  code?: number | null;
+  message: string;
+}
+
+/** A single captured runtime throw (the runRoot guard / command-path capture). */
+export interface RuntimeDiagnostic {
+  path: string | null;
+  severity?: DiagnosticSeverity; // defaults to 'error'
+  message: string;
+  stack?: string | null;
+}
+
+/** One raw line held in the console ring (unattributed). */
+export interface RawConsoleLine {
+  level: "log" | "info" | "warn" | "error";
+  text: string;
+  ts: number;
+}
+
+/** Reader filter for `DiagnosticApi.list` (the `errors` verb + CMS panel). */
+export interface DiagnosticListFilter {
+  channels?: readonly string[];
+  pathPrefix?: string;
+  severity?: DiagnosticSeverity;
+  source?: DiagnosticSource;
+  /** Restrict to rows whose `author` equals this explicit value. */
+  author?: string;
+  /**
+   * The "my content" lens: restrict to rows the *acting* author owns. The
+   * author is resolved server-side from the execution context (never
+   * client-supplied), so this is the spoof-safe form of `author`.
+   */
+  mine?: boolean;
+  since?: number; // epoch ms
+  limit?: number; // default 50
+}
+
+/** Filter for the raw console ring tail (`errors raw` / the panel raw view). */
+export interface RawConsoleFilter {
+  grep?: string;
+  limit?: number;
+}
+
+/** The event fired on each structured recording (delivery listener seam). */
+export interface DiagnosticEvent {
+  source: DiagnosticSource;
+  channel: string;
+  path: string | null;
+  author: string | null;
+  severity: DiagnosticSeverity;
+  message: string;
+  ts: number;
+}
+
 // ---- Authorable-fields artifact (Studio / composition surface) ---------
 
 /**

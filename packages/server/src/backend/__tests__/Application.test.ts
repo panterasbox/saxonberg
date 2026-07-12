@@ -296,7 +296,12 @@ describe('Application', () => {
       expect(msg.payload.message).toBe('Avatar has no location');
     });
 
-    it('surfaces a rejected executeCommand as a "Command execution failed" error', async () => {
+    it('absorbs a rejected executeCommand (no generic "Command execution failed" frame)', async () => {
+      // The command inbound path now wraps executeCommand in
+      // runRootGuarded('absorb'): a throw is recorded as a runtime
+      // diagnostic and swallowed — the giver's real-error surface is the
+      // controller-error note fired *inside* executeCommand (mocked away
+      // here), and the old generic socket frame is retired.
       const avatar = makeFakeAvatar({
         executeCommand: vi.fn().mockRejectedValue(new Error('boom')),
       });
@@ -307,16 +312,12 @@ describe('Application', () => {
         type: 'command',
         payload: { text: 'look' },
       });
-      // Allow the promise chain (.catch handler in Application) to run.
+      // Allow the guard's async catch (record + absorb) to run.
       await new Promise((r) => setTimeout(r, 0));
       await new Promise((r) => setTimeout(r, 0));
-      expect(backend.sent).toHaveLength(1);
-      const msg = backend.sent[0]!.message as {
-        type: string;
-        payload: { message: string };
-      };
-      expect(msg.type).toBe('error');
-      expect(msg.payload.message).toBe('Command execution failed');
+      // No error frame — the rejection was absorbed, not surfaced as a
+      // generic transport error.
+      expect(backend.sent).toHaveLength(0);
     });
   });
 

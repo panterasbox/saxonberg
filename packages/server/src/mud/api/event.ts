@@ -380,6 +380,12 @@ export class EventApi {
       // Open emit — `StreamRelay.deliver` emits one per relayed line; the
       // backend BroadcastFeed filters to the OVERLAY_* channels.
       [Events.RelayMessage]: EventApi.emittableBy(),
+      // Open emit — `DiagnosticApi.record`/`recordDiagnostics` are the v1
+      // emitters; importing DiagnosticApi here would form a load cycle
+      // (event → diagnostics → DiagnosticLogic → event), so we keep the
+      // open policy (the RelayMessage precedent). The logic gate on
+      // DiagnosticLogic is the real write restriction.
+      [Events.Diagnostic]: EventApi.emittableBy(),
     };
     return EventApi.#defaultPolicies;
   }

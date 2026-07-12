@@ -35,6 +35,7 @@ import { PlayerApi } from '../../mud/api/player';
 import { SourceTreeApi } from '../../mud/api/source-tree';
 import { HotReloadApi } from '../../mud/api/hot-reload';
 import { AccessApi } from '../../mud/api/access';
+import { DiagnosticApi } from '../../mud/api/diagnostics';
 import type Avatar from '../../mud/obj/Avatar';
 
 /** Minimal app mirroring Server's auth middleware + CmsRoutes. */
@@ -100,6 +101,58 @@ describe('CmsRoutes', () => {
     expect(res.status).toBe(200);
     expect(res.body.backend).toBe('source');
     expect(Array.isArray(res.body.entries)).toBe(true);
+  });
+
+  it('authenticated diagnostics read binds to DiagnosticApi.list', async () => {
+    const user = new User();
+    user.playerIds = ['p-1'];
+    vi.spyOn(User, 'findById').mockResolvedValue(user);
+    vi.spyOn(PlayerApi, 'findAvatarByPlayerId').mockReturnValue(
+      fakeAvatar('p-1')
+    );
+    const list = vi
+      .spyOn(DiagnosticApi, 'list')
+      .mockResolvedValue([
+        {
+          source: 'runtime',
+          severity: 'error',
+          channel: 'zone.lounge',
+          path: '/lib/lounge/Bar',
+          author: null,
+          versionId: null,
+          code: null,
+          line: 12,
+          col: null,
+          message: 'brain threw',
+          stack: null,
+          ts: 1,
+          expiresAt: new Date(),
+        },
+      ]);
+
+    const agent = request.agent(makeApp());
+    await agent.post('/test-login').expect(200);
+
+    const res = await agent.get(
+      '/api/cms/diagnostics?channel=zone.lounge&mine=true&limit=5'
+    );
+    expect(res.status).toBe(200);
+    expect(res.body.diagnostics).toHaveLength(1);
+    expect(res.body.diagnostics[0].message).toBe('brain threw');
+    // The route parses the query onto the filter and passes NO actor
+    // (author resolves server-side via the bridge + mine flag).
+    expect(list).toHaveBeenCalledWith(
+      expect.objectContaining({
+        channels: ['zone.lounge'],
+        mine: true,
+        limit: 5,
+      })
+    );
+  });
+
+  it('unauthenticated diagnostics request returns 401', async () => {
+    const res = await request(makeApp()).get('/api/cms/diagnostics');
+    expect(res.status).toBe(401);
   });
 
   it('unauthenticated request returns 401', async () => {

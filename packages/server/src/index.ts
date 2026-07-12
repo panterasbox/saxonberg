@@ -20,6 +20,7 @@
 // doesn't run through preload.js; same source transform either way.
 import 'dotenv/config';
 import { AppBootstrap } from './backend/AppBootstrap';
+import { ConsoleTap } from './backend/ConsoleTap';
 import { Server } from './services/Server';
 
 /**
@@ -36,6 +37,12 @@ import { Server } from './services/Server';
  */
 export async function main() {
   try {
+    // Author-diagnostics Producer 2: install the console tap FIRST, before
+    // any boot output, so the raw ring captures the whole session's
+    // terminal log (wizard-readable via `errors raw` / the CMS panel).
+    // Passthrough is preserved — the console still prints as normal.
+    ConsoleTap.get().install();
+
     console.info('='.repeat(60));
     console.info('Saxonberg 2.0 Server - Starting...');
     console.info('='.repeat(60));
