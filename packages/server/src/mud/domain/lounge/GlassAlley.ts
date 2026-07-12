@@ -40,9 +40,18 @@ const GlassAlleyBase = SingletonMixin(
 export default class GlassAlley extends GlassAlleyBase {
   static persistentFields: string[] = [];
 
-  /** The insult a bare foot takes from the broken glass. */
+  /**
+   * The insult a foot takes from the broken glass — an `edge`. A bare foot
+   * is opened (a bleeding laceration); a stoutly-shod foot's covering stack
+   * attenuates it below the no-wound threshold (a plated / iron-shod boot
+   * deflects it, a bare or thin-shod foot does not). The barefoot-vs-booted
+   * distinction now falls out of the materials-response covering-stack
+   * resolution automatically (a boot = a `Constructed` `Wearable` covering
+   * the foot, its material + construction attenuating the edge) — no
+   * explicit coverage gate.
+   */
   private static readonly HAZARD_ENERGY = 2;
-  private static readonly HAZARD_MECHANISM = 'sharp' as const;
+  private static readonly HAZARD_MECHANISM = 'edge' as const;
   /** Candidate foot part keys (biped); a non-biped matches none → no cut. */
   private static readonly FOOT_SITES = [
     'body.leg.left.foot',
@@ -58,16 +67,16 @@ export default class GlassAlley extends GlassAlleyBase {
    * `Mobile.traverse` → `callTraverseHook(destination, 'onEntered', …)`
    * seam — NOT a teleport arrival, which uses `autoSenseOnArrival`; the
    * proof body is walked in). Resolve a foot site from the mover's own
-   * anatomy (a non-biped matches none → graceful no cut), and cut it
-   * through `ConditionApi.inflict` iff the foot is uncovered
-   * (`ConditionApi.isSiteCovered` — any
-   * footwear protects in v1).
+   * anatomy (a non-biped matches none → graceful no cut) and cut it through
+   * `ConditionApi.inflict` with an `edge` insult. Coverage is no longer a
+   * gate: a shod foot's covering stack attenuates the low-energy edge below
+   * the no-wound threshold (a boot deflects it), a bare foot lacerates — the
+   * degree resolution *is* the coverage read.
    */
   public onEntered(mover: Stuff, _exit: unknown): void {
     if (!MixinApi.isVitals(mover)) return;
     const site = GlassAlley.FOOT_SITES.find((s) => mover.getPart(s) != null);
     if (!site) return; // no matching foot part — a non-biped takes no cut
-    if (ConditionApi.isSiteCovered(mover, site)) return; // shod → protected
     ConditionApi.inflict(mover, {
       mechanism: GlassAlley.HAZARD_MECHANISM,
       site,

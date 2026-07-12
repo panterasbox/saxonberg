@@ -1,43 +1,31 @@
 /**
- * Phase 3 — the limp (LocomotionApi seam) + the coverage-presence read.
+ * Phase 3 — the limp (LocomotionApi seam).
  *
- * Limp: an active foot laceration imposes a severity-gated endurance drain
- * at the universal self-powered traverse chokepoint (`engageAround`),
- * scaling with severity and clearing as the wound heals. Coverage:
- * `ConditionApi.isSiteCovered` reads the `covers` edge — false barefoot, true
- * when a worn item occupies the covering slot.
+ * An active foot laceration imposes a severity-gated endurance drain at the
+ * universal self-powered traverse chokepoint (`engageAround`), scaling with
+ * severity and clearing as the wound heals.
+ *
+ * (The binary `ConditionApi.isSiteCovered` coverage-presence read is
+ * retired — materials-response resolves coverage *degree* through the
+ * `inflict` covering stack. See `material-response.inflict.test.ts`.)
  */
 
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { ConditionApi } from '../../../api/condition';
 import { LocomotionApi } from '../../../api/locomotion';
 import { LocomotionMode } from '../../../lib/locomotion/LocomotionMode';
 import { buildMode } from '../../../lib/locomotion/__tests__/test-helpers';
 import Location from '../../../lib/stuff/Location';
 import Exit from '../../../lib/boundary/Exit';
-import Thing from '../../../lib/stuff/Thing';
 import { MobileMixin } from '../../../lib/spatial/Mobile';
-import { WearableMixin } from '../../../lib/slot/Wearable';
-import { SlottableMixin } from '../../../lib/slot/Slottable';
 import { Creature } from '../../../lib/creature/Creature';
-import Species from '../../../lib/species/Species';
-import BodyPlan from '../../../lib/species/BodyPlan';
 import { ContainmentApi } from '../../../api/containment';
 import { StuffApi } from '../../../api/stuff';
-import {
-  makeStuff,
-  stampTemplatePathForTest,
-} from '../../../lib/security/__tests__/test-setup';
+import { makeStuff } from '../../../lib/security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '../../../lib/persistence/__tests__/quantity-marshaller-test-helpers';
 import type { Trauma } from '../../../lib/vitals/Condition';
 
 class MobileCreature extends MobileMixin(Creature) {
   static _mixinName = 'MobileCreature';
-}
-
-const Boot = WearableMixin(SlottableMixin(Thing));
-class TestBoot extends Boot {
-  static _mixinName = 'TestBoot';
 }
 
 const endurance = (c: Creature): number =>
@@ -127,56 +115,5 @@ describe('the limp — LocomotionApi.engageAround endurance drain', () => {
       bleeding: true,
     });
     expect(await traverse(a)).toBe(0);
-  });
-});
-
-describe('ConditionApi.isSiteCovered — binary coverage presence', () => {
-  const BODYPLAN_PATH = '/lib/body-plans/biped-feet';
-  beforeEach(() => installV1QuantityMarshallers());
-  afterEach(() => StuffApi.clearAll());
-
-  function footedCreature(): Creature {
-    const plan = makeStuff(() => new BodyPlan());
-    plan.setName('biped-feet');
-    plan.setSlots([
-      {
-        name: 'feet',
-        accepts: 'WearableMixin',
-        covers: ['body.leg.left.foot', 'body.leg.right.foot'],
-      },
-    ]);
-    plan.setBodyParts([
-      { key: 'body.torso', parent: null, tissues: [] },
-      { key: 'body.leg.left', parent: 'body.torso', tissues: [] },
-      { key: 'body.leg.left.foot', parent: 'body.leg.left', tissues: [] },
-      { key: 'body.leg.right', parent: 'body.torso', tissues: [] },
-      { key: 'body.leg.right.foot', parent: 'body.leg.right', tissues: [] },
-    ]);
-    stampTemplatePathForTest(plan, BODYPLAN_PATH);
-
-    const species = makeStuff(() => new Species());
-    species.setBodyPlan(plan);
-    stampTemplatePathForTest(species, '/lib/species/test/footed');
-
-    const c = makeStuff(() => new Creature());
-    c.setSpecies(species);
-    return c;
-  }
-
-  it('is false barefoot and true when the covering slot is worn', () => {
-    const c = footedCreature();
-    expect(ConditionApi.isSiteCovered(c, 'body.leg.left.foot')).toBe(false);
-
-    const boot = makeStuff(() => new TestBoot());
-    boot.setSlotClaim(BODYPLAN_PATH, ['feet']);
-    c.occupy(boot, 'feet');
-
-    expect(ConditionApi.isSiteCovered(c, 'body.leg.left.foot')).toBe(true);
-    expect(ConditionApi.isSiteCovered(c, 'body.leg.right.foot')).toBe(true);
-  });
-
-  it('is false for an uncovered / unknown part', () => {
-    const c = footedCreature();
-    expect(ConditionApi.isSiteCovered(c, 'body.torso')).toBe(false);
   });
 });

@@ -79,7 +79,7 @@ describe('VitalsMixin wound reconcile — bleed → death', () => {
     const start = bv(b);
 
     ConditionApi.inflict(b, {
-      mechanism: 'sharp',
+      mechanism: 'edge',
       site: 'body.leg.left.foot',
       energy: 2,
     });
@@ -106,7 +106,7 @@ describe('VitalsMixin wound reconcile — bleed → death', () => {
     const b = makeStuff(() => new TestBody()); // no interactive ⇒ linkdead
     expect(b.isLinkdead()).toBe(true);
     ConditionApi.inflict(b, {
-      mechanism: 'sharp',
+      mechanism: 'edge',
       site: 'body.leg.left.foot',
       energy: 2,
     });
@@ -119,7 +119,7 @@ describe('VitalsMixin wound reconcile — bleed → death', () => {
     const b = makeStuff(() => new TestBody());
     connect(b);
     ConditionApi.inflict(b, {
-      mechanism: 'sharp',
+      mechanism: 'edge',
       site: 'body.leg.left.foot',
       energy: 2,
     });
@@ -145,7 +145,7 @@ describe('VitalsMixin wound reconcile — bleed → death', () => {
     const b = makeStuff(() => new TestBody());
     connect(b);
     ConditionApi.inflict(b, {
-      mechanism: 'sharp',
+      mechanism: 'edge',
       site: 'body.leg.left.foot',
       energy: 1.5,
     });
@@ -169,7 +169,7 @@ describe('VitalsMixin wound reconcile — bleed → death', () => {
     const b = makeStuff(() => new TestBody());
     connect(b);
     ConditionApi.inflict(b, {
-      mechanism: 'sharp',
+      mechanism: 'edge',
       site: 'body.leg.left.foot',
       energy: 2,
     });

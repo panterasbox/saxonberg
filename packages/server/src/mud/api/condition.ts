@@ -31,7 +31,7 @@
 import type { Stuff } from '../lib/stuff/Stuff';
 import type {
   ActiveCondition,
-  Mechanism,
+  InsultKind,
   Trauma,
 } from '../lib/vitals/Condition';
 import { StuffApi } from './stuff';
@@ -40,16 +40,25 @@ import { SecurityApi } from './security';
 import { ConditionLogic } from '../obj/api/ConditionLogic';
 import { fileURLToPath } from 'url';
 
-export type { Mechanism } from '../lib/vitals/Condition';
-export { MECHANISMS } from '../lib/vitals/Condition';
+export type { InsultKind, Channel } from '../lib/vitals/Condition';
+export { CHANNELS, Channels } from '../lib/vitals/Condition';
 
 /** The insult a producer describes: what kind, where, and how hard. */
 export interface InflictSpec {
-  /** The physical mechanism — mapped to a `TraumaType`, recorded raw. */
-  mechanism: Mechanism;
+  /**
+   * The insult kind — a materials-response `Channel` (edge / point / blunt),
+   * resolved outside-in through the covering stack into the tissue (yielding
+   * BOTH the trauma type and its severity), or a `'thermal'` / `'tearing'`
+   * passthrough (magnitude-only → burn / avulsion). Recorded raw.
+   */
+  mechanism: InsultKind;
   /** A `body.*` part key (anatomy) the wound sits at. */
   site: string;
-  /** Magnitude of the insult; mapped to severity (magnitude-only in v1). */
+  /**
+   * Magnitude of the incident insult. For a `Channel`, the energy delivered
+   * to the covering stack (attenuated inward, the residual meeting tissue);
+   * for a passthrough, mapped straight to severity.
+   */
   energy: number;
 }
 
@@ -80,12 +89,17 @@ function logic(): ConditionLogic {
 
 export class ConditionApi {
   /**
-   * Wound `target`. Builds a {@link Trauma} from `spec` (mechanism →
-   * `TraumaType`, `energy` → severity, `mechanism` recorded raw), stamps
-   * the context-derived inflicter, afflicts it through `VitalsMixin`, runs
-   * the trauma's `onset`, and stamps the reconcile-on-read `tickedAt`
-   * anchor. No-op-afflict (`afflicted: false`) when `target` is not a
-   * wound-able body.
+   * Wound `target` through the materials-response function. For a `Channel`
+   * insult, resolves the covering stack at `spec.site` (armor occupants
+   * outside-in), attenuates the energy through each layer, and lets the
+   * residual meet the site's tissue — yielding BOTH the {@link Trauma}
+   * *type* (edge→laceration, point→puncture, blunt→fracture/contusion) AND
+   * its *severity*; a fully-attenuated blow lands no wound (`afflicted:
+   * false`, a truthful "deflected"). For a `'thermal'`/`'tearing'`
+   * passthrough, maps magnitude straight to a burn / avulsion. Stamps the
+   * context-derived inflicter, runs the trauma's `onset`, and stamps the
+   * reconcile-on-read `tickedAt` anchor. No-op-afflict when `target` is not
+   * a wound-able body.
    */
   public static inflict(target: Stuff, spec: InflictSpec): InflictOutcome {
     return logic().inflict(target, spec);
@@ -118,18 +132,6 @@ export class ConditionApi {
    */
   public static conditionsOf(target: Stuff): readonly ActiveCondition[] {
     return logic().conditionsOf(target);
-  }
-
-  /**
-   * Binary **coverage-presence** read: is `partKey` covered by any worn
-   * item on `host`? Resolves the body plan's `getSlotsCovering(partKey)`
-   * (the `covers` edge, not `bodyPart`) and returns true iff any covering
-   * slot holds a worn (`Wearable`) occupant. No materials / degree — the
-   * mitigation *curve* is deferred to materials-response. Used by the
-   * floor hazard's barefoot gate (shoes protect; barefoot cuts).
-   */
-  public static isSiteCovered(host: Stuff, partKey: string): boolean {
-    return logic().isSiteCovered(host, partKey);
   }
 }
 
