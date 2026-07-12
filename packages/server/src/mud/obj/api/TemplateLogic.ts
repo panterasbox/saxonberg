@@ -20,7 +20,6 @@ import { ExecutionContextApi } from '../../api/execution-context';
 import { CodeNamingFields } from '../../lib/stuff/CodeNamingFields';
 import Avatar from '../Avatar';
 import type { Stuff } from '../../lib/stuff/Stuff';
-import type { Marshaller } from '../../lib/persistence/Marshaller';
 import PersistentHydrator from '../../lib/persistence/PersistentHydrator';
 
 const TemplateApiCallers = SecurityPolicies.FromModule('/api/template#TemplateApi'
@@ -311,88 +310,6 @@ export class TemplateLogic extends ApiLogic {
   @CallSecurity(TemplateApiCallers)
   public ancestorPaths(path: string): string[] {
     return Template.ancestorPaths(path);
-  }
-
-  /** See {@link TemplateApi.snapshotToTemplate}. */
-  @CallSecurity(TemplateApiCallers)
-  public async snapshotToTemplate(stuff: Stuff): Promise<Template> {
-    const path = stuff.getTemplatePath();
-    if (!path) {
-      throw new Error(
-        `TemplateApi.snapshotToTemplate: Stuff has no templatePath stamp`
-      );
-    }
-
-    // Synchronous snapshot — captures field values + container ref
-    // BEFORE any event-loop yield. Load-bearing for onDestruct-
-    // driven saves.
-    const ctor = stuff.constructor as new (...args: unknown[]) => Stuff;
-    const fields = MixinApi.getAllPersistentFields(ctor);
-    const marshallerPaths = MixinApi.getAllFieldMarshallers(ctor);
-    const self = stuff as unknown as Record<string, unknown>;
-    const snapshot: Record<string, unknown> = {};
-    for (const field of fields) {
-      if (!(field in stuff)) continue;
-      snapshot[field] = self[field];
-    }
-    // Durable-location capture (synchronous, before the first await).
-    // Save-delegation: when the live container is a Warren member (a
-    // lounge room), the avatar's *durable* spawn/recall reference is the
-    // **Warren**, not the transient room clone — so we persist
-    // `data.startLocation: <Warren>` and drop `data.container`. The
-    // consult rides the existing `WarrenMember.getWarren()` back-ref; no
-    // extra capability mixin. Otherwise the host keeps the ordinary
-    // `data.container` behavior (byte-identical for non-Warren-member
-    // containers). Both keys are reconciled so a session in the lounge
-    // followed by one in an ordinary room never leaves a stale key.
-    const hostIsContainable = MixinApi.isContainable(stuff);
-    const env = hostIsContainable ? stuff.getContainer() : null;
-    const warrenPath =
-      env && MixinApi.isWarrenMember(env)
-        ? env.getWarren()?.getTemplatePath() ?? null
-        : null;
-    const containerPath = env?.getTemplatePath() ?? null;
-
-    const tpl = await Template.findByPath(path);
-    if (!tpl) {
-      throw new Error(
-        `TemplateApi.snapshotToTemplate: no template at '${path}'`
-      );
-    }
-
-    const data: Record<string, unknown> = { ...(tpl.data ?? {}) };
-    for (const field of fields) {
-      if (!(field in snapshot)) continue;
-      const value = snapshot[field];
-      const mPath = marshallerPaths[field];
-      if (mPath) {
-        // Lazy-create via singleton: marshaller seeds live at
-        // `pathFor(unit)` and are content-style templates rather than
-        // bootstrap entries, so the first save touching a unit
-        // instantiates its marshaller on demand. Subsequent saves
-        // hit the live ref in the byTemplatePath index.
-        const m = await StuffApi.singleton<Marshaller<unknown, unknown>>(mPath);
-        data[field] = m.toStored(value);
-      } else {
-        data[field] = value;
-      }
-    }
-    if (hostIsContainable) {
-      if (warrenPath !== null) {
-        // In a Warren-managed room → persist the durable Warren ref.
-        data.startLocation = warrenPath;
-        delete data.container;
-      } else if (containerPath !== null) {
-        data.container = containerPath;
-        delete data.startLocation;
-      } else {
-        delete data.container;
-        delete data.startLocation;
-      }
-    }
-
-    tpl.data = data;
-    return tpl; // Caller commits via tpl.save().
   }
 
   /** See {@link TemplateApi.restoreFromTemplate}. */

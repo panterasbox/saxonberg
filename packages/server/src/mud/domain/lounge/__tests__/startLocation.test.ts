@@ -10,7 +10,9 @@ import Avatar from '../../../obj/Avatar';
 import { StuffApi } from '../../../api/stuff';
 import { ContainmentApi } from '../../../api/containment';
 import { MixinApi } from '../../../api/mixin';
-import { TemplateApi } from '../../../api/template';
+import { PersistableApi } from '../../../api/persistable';
+import { ParcelApi } from '../../../api/parcel';
+import { PersistableMixin } from '../../../lib/persistence/Persistable';
 import { ContainableMixin } from '../../../lib/spatial/Containable';
 import { Idea } from '../../../lib/stuff/Idea';
 import type { Stuff } from '../../../lib/stuff/Stuff';
@@ -19,11 +21,7 @@ import {
   makeStuff,
   makeStuffAtPath,
 } from '../../../lib/security/__tests__/test-setup';
-import {
-  installStore,
-  loungeDocs,
-  type Doc,
-} from './lounge-fixtures';
+import { installStore, loungeDocs } from './lounge-fixtures';
 
 describe('startLocation spawn instruction + recover-and-warn', () => {
   beforeEach(() => {
@@ -97,24 +95,29 @@ describe('startLocation spawn instruction + recover-and-warn', () => {
   });
 });
 
-describe('recall save-delegation in snapshotToTemplate', () => {
-  // A minimal Containable host standing in for an avatar's snapshot.
-  class SnapHost extends ContainableMixin(Idea) {}
+describe('recall placement capture in the persistence spine', () => {
+  // A persistable Containable host standing in for an avatar. Its
+  // `PersistedRecord.place` carries the WarrenMember-reconciled recall
+  // location — the logic the retired `snapshotToTemplate` once wrote to the
+  // avatar template, now on `PersistableLogic.capturePlacement`.
+  class SnapHost extends PersistableMixin(ContainableMixin(Idea)) {}
 
   beforeEach(() => {
     StuffApi.clearAll();
+    // The recall-placement resolution is independent of parcel title; pin a
+    // deterministic owner so capture doesn't touch the parcel registry.
+    vi.spyOn(ParcelApi, 'ownerOf').mockResolvedValue({
+      kind: 'group',
+      name: 'core',
+    });
   });
   afterEach(() => {
     vi.restoreAllMocks();
     StuffApi.clearAll();
   });
 
-  it('an avatar in a lounge room persists startLocation=<Warren> and drops container (AC 5)', async () => {
-    installStore(
-      loungeDocs([
-        { path: '/obj/Avatar/snap', class: '/obj/Avatar', data: {} } as Doc,
-      ]),
-    );
+  it('an avatar in a lounge room captures place.startLocation=<Warren>, no container (AC 5)', async () => {
+    const store = installStore(loungeDocs());
     const warren = await StuffApi.singleton<LoungeWarren>(
       LoungeWarren.WARREN_PATH,
     );
@@ -122,27 +125,27 @@ describe('recall save-delegation in snapshotToTemplate', () => {
     const snap = makeStuffAtPath(() => new SnapHost(), '/obj/Avatar/snap');
     ContainmentApi.move(snap as never, host as unknown as Stuff & Container);
 
-    const tpl = await TemplateApi.snapshotToTemplate(snap as unknown as Stuff);
-    expect(tpl.data.startLocation).toBe(LoungeWarren.WARREN_PATH);
-    expect('container' in tpl.data).toBe(false);
+    await PersistableApi.capture(snap as unknown as Stuff);
+    const rec = store.find(
+      (d) => (d as Record<string, unknown>).scope === '/obj/Avatar/snap',
+    ) as Record<string, unknown> | undefined;
+    expect(rec?.place).toEqual({ startLocation: LoungeWarren.WARREN_PATH });
   });
 
-  it('an avatar in an ordinary room persists container and drops startLocation (regression)', async () => {
-    installStore(
-      loungeDocs([
-        { path: '/obj/Avatar/snap2', class: '/obj/Avatar', data: {} } as Doc,
-      ]),
-    );
-    // Place the host in Dave's Bar — a plain singleton room, NOT a
-    // Warren member — so the snapshot keeps ordinary container behavior.
+  it('an avatar in an ordinary room captures place.container, no startLocation (regression)', async () => {
+    const store = installStore(loungeDocs());
+    // Dave's Bar — a plain singleton room, NOT a Warren member — so the
+    // capture keeps ordinary container behavior.
     const bar = await StuffApi.singleton<Stuff & Container>(
       LoungeWarren.BAR_PATH,
     );
     const snap = makeStuffAtPath(() => new SnapHost(), '/obj/Avatar/snap2');
     ContainmentApi.move(snap as never, bar);
 
-    const tpl = await TemplateApi.snapshotToTemplate(snap as unknown as Stuff);
-    expect(tpl.data.container).toBe(LoungeWarren.BAR_PATH);
-    expect('startLocation' in tpl.data).toBe(false);
+    await PersistableApi.capture(snap as unknown as Stuff);
+    const rec = store.find(
+      (d) => (d as Record<string, unknown>).scope === '/obj/Avatar/snap2',
+    ) as Record<string, unknown> | undefined;
+    expect(rec?.place).toEqual({ container: LoungeWarren.BAR_PATH });
   });
 });

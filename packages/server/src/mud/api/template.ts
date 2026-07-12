@@ -27,7 +27,6 @@ import { StuffApi } from './stuff';
 import { HotReloadApi } from './hot-reload';
 import { SecurityApi } from './security';
 import type { Stuff } from '../lib/stuff/Stuff';
-import type { Template } from '../lib/stuff/Template';
 import { TemplateLogic } from '../obj/api/TemplateLogic';
 import { fileURLToPath } from 'url';
 
@@ -162,45 +161,6 @@ export class TemplateApi {
     return logic().ancestorPaths(path);
   }
 
-  /**
-   * Snapshot a live Stuff host's `persistentFields` chain back to its
-   * backing Template doc's `data` block. Walks the composed mixin
-   * chain via `MixinApi.getAllPersistentFields(stuff.constructor)`;
-   * marshals values per `MixinApi.getAllFieldMarshallers`; derives
-   * `data.container` from the live container ref when the host is
-   * Containable; merges over the existing `tpl.data` (preserves
-   * non-mixin-managed keys).
-   *
-   * **Pure capture-state: does NOT call `tpl.save()`.** Returns the
-   * mutated Template; the caller decides when to commit. Separating
-   * capture from commit lets callers inspect, batch, or short-
-   * circuit before persisting. Default usage:
-   *
-   *     const tpl = await TemplateApi.snapshotToTemplate(host);
-   *     await tpl.save();
-   *
-   * Keyed on `stuff.getTemplatePath()` — the runtime stamp every
-   * Stuff carries post-clone — NOT on any class-specific helper.
-   * The method is class-shape-agnostic.
-   *
-   * **Synchronous-prefix-before-first-await ordering.** The
-   * persistentFields walk and the container ref read run
-   * synchronously, BEFORE `Template.findByPath` yields. This is
-   * load-bearing for `onDestruct`-driven fire-and-forget saves:
-   * they capture pre-cleanup field values even though the MongoDB
-   * write itself is async.
-   *
-   * Concurrent calls produce equivalent full-state snapshots — no
-   * in-process coordination. MongoDB's `replaceOne` resolves
-   * ordering as last-write-wins.
-   *
-   * Throws when the host has no templatePath stamp, when no
-   * Template exists at the resolved path, or when a marshalled
-   * field references an unregistered marshaller.
-   */
-  public static async snapshotToTemplate(stuff: Stuff): Promise<Template> {
-    return logic().snapshotToTemplate(stuff);
-  }
 
   /**
    * Re-hydrate a live Stuff host's in-memory state from its current
