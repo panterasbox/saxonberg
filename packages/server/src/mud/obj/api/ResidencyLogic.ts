@@ -28,6 +28,7 @@ import { CallSecurity } from '../../lib/security/decorators';
 import { SecurityPolicies } from '../../lib/security/SecurityPolicies';
 import { ConnectionApi } from '../../api/connection';
 import { MixinApi } from '../../api/mixin';
+import { PersistableApi } from '../../api/persistable';
 import type { Stuff } from '../../lib/stuff/Stuff';
 import type { Container } from '../../lib/spatial/Container';
 import type { Containable } from '../../lib/spatial/Containable';
@@ -102,7 +103,7 @@ function presenceWalkImpl(): void {
  * choreography). Mode is re-read each sweep, so flipping
  * `residency.eviction.mode` needs no restart.
  */
-function runEvictionSweep(): void {
+async function runEvictionSweep(): Promise<void> {
   // Refresh presence first, so a silently-occupied room and its contents
   // read as warm when the scan below evaluates them. Best-effort: a
   // connection-layer hiccup must never crash the sweep.
@@ -133,6 +134,16 @@ function runEvictionSweep(): void {
 
     if (mode === 'enforce') {
       try {
+        // Persistence spine: a persistable host must capture its contents
+        // to a durable `PersistedRecord` BEFORE the cull — rooms/chests
+        // have no autosave backstop, so a dropped eviction write is silent
+        // data loss (pre-build note #1). Await the capture, then destruct;
+        // the sync `PersistableMixin.cleanupOnDestruct` remains the
+        // non-sweep backstop. Capture failure aborts THIS cull (keep the
+        // resident host over losing its contents) and keeps sweeping.
+        if (MixinApi.isPersistable(raw)) {
+          await PersistableApi.capture(obj);
+        }
         StuffApi.destruct(obj);
         culled++;
       } catch (err) {
@@ -183,13 +194,20 @@ export class ResidencyLogic extends ApiLogic {
         AppSettingKeys.residencyEvictionIntervalMs,
         DEFAULT_EVICTION_INTERVAL_MS,
       ),
-      () => runEvictionSweep(),
+      // Fire-and-forget the async sweep; a persistable host's capture is
+      // awaited INSIDE the sweep before its cull, so durability holds even
+      // though the recurring callback doesn't await the sweep itself.
+      () => {
+        void runEvictionSweep().catch((err) =>
+          console.warn('[residency] eviction sweep failed', err),
+        );
+      },
     );
   }
 
-  /** Run one eviction sweep synchronously (test / manual seam). */
+  /** Run one eviction sweep (test / manual seam). Awaits durable capture. */
   @CallSecurity(ResidencyApiCallers)
-  public evictNow(): void {
-    runEvictionSweep();
+  public async evictNow(): Promise<void> {
+    await runEvictionSweep();
   }
 }
