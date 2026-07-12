@@ -754,3 +754,19 @@ Index creation is best-effort (logs and continues on failure).
   `Quantity<U>` through `{value, unit}` JSON; PropertiedMixin's
   per-prop marshaller binding (`savedPropMarshallers`) lets host
   Stuff store rich Quantity props without a per-class declaration.
+
+## History
+
+- **The self-persistence spine + Avatar migration** (persistence-spine
+  build). The universal `PersistableMixin`/`PersistableApi`/`PersistableLogic`
+  substrate landed, and Avatar migrated off the per-player-template
+  `snapshotToTemplate` persist-back onto it — so carried inventory and worn
+  gear now survive logout (they were lost before; only `persistentFields`
+  persisted). The load-bearing shifts: the durable-location capture (the
+  `WarrenMember` recall reconciliation) moved from `TemplateLogic.snapshotToTemplate`
+  onto `PersistableLogic.capturePlacement` (`PersistedRecord.place`);
+  `snapshotToTemplate` was retired while **`restoreFromTemplate` stayed**
+  (`CmsLogic`/`PackLogic` content go-live depend on it — the plan's original
+  "retire the pair" was corrected). A late review pass typed the
+  `shouldPersist` hook (off duck-typing) and added the singleton-host
+  runtime guard.
