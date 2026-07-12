@@ -109,6 +109,7 @@ import type { Status } from '../lib/status/Status';
 import type { Identifiable } from '../lib/identification/Identifiable';
 import type { Graded } from '../lib/craft/Graded';
 import type { Tooled } from '../lib/craft/Tooled';
+import type { Durable } from '../lib/craft/Durable';
 import type { Dressing } from '../lib/vitals/Dressing';
 import type { Crafted } from '../lib/craft/Crafted';
 import type { Maker } from '../lib/craft/Maker';
@@ -834,6 +835,12 @@ export class MixinApi {
 
   public static isTool(obj: Stuff): obj is Stuff & Tooled {
     return this.hasMixin(obj, Mixins.Tool);
+  }
+
+  /** A durable good with a wear-on-use condition gauge (tool / weapon /
+   * armor). A `Tool` is also `Durable`; the reverse does not hold. */
+  public static isDurable(obj: Stuff): obj is Stuff & Durable {
+    return this.hasMixin(obj, Mixins.Durable);
   }
 
   /** A first-aid dressing item (bandage / gauze / rag). See DressingMixin. */

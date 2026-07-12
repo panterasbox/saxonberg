@@ -13,7 +13,9 @@
  * The compose-and-name precedent (`ToolItem` / `Bandage`): a thin concrete
  * class = the stack, no new behavior, so seeds author a breastplate / mail
  * hauberk / gambeson as `data:` (material + `constructionForm` + `grade` +
- * `slotClaims` + the body plan's coverage slots).
+ * `slotClaims` + the body plan's coverage slots). Armor composes
+ * {@link DurableMixin} for its wear-on-use `condition` (armor degrades) — a
+ * *durable good*, NOT a crafting tool (no capabilities).
  *
  * Seeded as content (e.g. `/domain/eternal/armor/steel-breastplate`) with
  * `data.slotClaims: { /lib/body-plans/biped: [torso] }`, `_materialPath`,
@@ -23,14 +25,14 @@
 import Thing from '../stuff/Thing';
 import { DetailedMixin } from '../description/Detailed';
 import { ConstructedMixin } from '../material/Constructed';
-import { ToolMixin } from '../craft/Tooled';
+import { DurableMixin } from '../craft/Durable';
 import { GradedMixin } from '../craft/Graded';
 import { SlottableMixin } from '../slot/Slottable';
 import { WearableMixin } from '../slot/Wearable';
 
 const ArmorBase = WearableMixin(
   SlottableMixin(
-    GradedMixin(ToolMixin(ConstructedMixin(DetailedMixin(Thing)))),
+    GradedMixin(DurableMixin(ConstructedMixin(DetailedMixin(Thing)))),
   ),
 );
 

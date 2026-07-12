@@ -11,8 +11,10 @@ produce honestly different wounds, **demonstrable with no combat loop**.
 
 Seeds from `docs/slates/deferred-rpg/materials-response-slate.md` (Settled
 1–11). Reuses [vitals.md](./vitals.md) (`BodyPart`, tissue Materials,
-`SlotSpec.covers`), [crafting.md](./crafting.md) (`GradedMixin`, `ToolMixin`
-wear), [slot.md](./slot.md)/[embodiment.md](./embodiment.md) (`WearableMixin`,
+`SlotSpec.covers`), [crafting.md](./crafting.md) (`GradedMixin`, the
+`DurableMixin` wear gauge split out of `ToolMixin`),
+[slot.md](./slot.md)/[embodiment.md](./embodiment.md) (`WearableMixin`,
+`WieldableMixin`,
 coverage), [quantities.md](./quantities.md), and
 [app-settings.md](./app-settings.md).
 
@@ -112,7 +114,9 @@ fallback (safe pre-warm/test).
 There is **no `ArmorMixin`** (Settled-4). A piece of armor is an *emergent
 composition*: a `Wearable` `Thing` carrying a `Material` (via `Tangible`), a
 `Construction` (its resist form, via the new `ConstructedMixin`), a `Grade`,
-and a wear-on-use `condition` (the existing `ToolMixin`). `lib/equipment/Armor`
+and a wear-on-use `condition` (`DurableMixin` — the durable-good half split
+out of `ToolMixin`, so armor wears out without being a "tool").
+`lib/equipment/Armor`
 and `lib/equipment/Weapon` are thin compose-and-name classes (siblings of
 `Garment`); their "armor-ness"/"weapon-ness" is purely the composition,
 nothing narrows on an `isArmor`.
@@ -143,9 +147,10 @@ presence**. The binary `ConditionApi.isSiteCovered` is retired.
 An implement *derives* which channel(s) it presents from its
 weapon-delivery-form (`deliverableChannels`). A `Weapon` **is `Wieldable`**
 — it claims a body-plan hand slot via `slotClaims`, so you can hold it — and
-composes `ToolMixin` **only** for its wear-on-use `condition` gauge (a
-durable good, not a crafting tool; the durability-out-of-`ToolMixin` split
-is a deferred cleanup). What v1 defers is the combat **loadout + playstyle**
+composes `DurableMixin` for its wear-on-use `condition` gauge (a *durable
+good*, not a crafting tool — durability was split out of `ToolMixin` so
+weapons/armor wear out without carrying an inert capability list). What v1
+defers is the combat **loadout + playstyle**
 (reach / poise / guard→parry / afforded gambits), orthogonal to holding the
 thing. The channel driving a given `inflict` is **explicit** at the call
 site (Settled: no auto-pick).

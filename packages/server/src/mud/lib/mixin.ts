@@ -124,6 +124,9 @@ export const Mixins = {
   Respiration: 'RespirationMixin',
   Behaved: 'BehavedMixin',
   Graded: 'GradedMixin',
+  // A physical thing that wears out with use (the condition/wear gauge).
+  // Composed by tools, weapons, and armor alike — durability is not "tool".
+  Durable: 'DurableMixin',
   Tool: 'ToolMixin',
   Crafted: 'CraftedMixin',
   Maker: 'MakerMixin',

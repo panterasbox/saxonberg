@@ -84,7 +84,7 @@ function resolveCoveringStack(host: Stuff, partKey: string): CoveringLayer[] {
         material: MaterialApi.materialOf(occ),
         construction,
         grade: MixinApi.isGraded(occ) ? occ.getGrade() : undefined,
-        condition: MixinApi.isTool(occ) ? occ.getCondition() : 1,
+        condition: MixinApi.isDurable(occ) ? occ.getCondition() : 1,
       });
     }
   }

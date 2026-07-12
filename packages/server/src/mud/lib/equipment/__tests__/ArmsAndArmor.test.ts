@@ -35,7 +35,9 @@ describe('Armor — emergent composition', () => {
     expect(MixinApi.isTangible(a)).toBe(true);
     expect(MixinApi.isConstructed(a)).toBe(true);
     expect(MixinApi.isGraded(a)).toBe(true);
-    expect(MixinApi.isTool(a)).toBe(true);
+    // A durable good (wears out), NOT a crafting tool.
+    expect(MixinApi.isDurable(a)).toBe(true);
+    expect(MixinApi.isTool(a)).toBe(false);
     expect(MixinApi.isWearable(a)).toBe(true);
     // No ArmorMixin — armor is the composition, nothing narrows on it.
     expect((MixinApi as unknown as { isArmor?: unknown }).isArmor).toBeUndefined();
@@ -59,12 +61,14 @@ describe('Armor — emergent composition', () => {
 });
 
 describe('Weapon — delivery half', () => {
-  it('composes material + construction + graded + tool + wieldable (not worn)', () => {
+  it('composes material + construction + graded + durable + wieldable (not tool, not worn)', () => {
     const w = makeStuff(() => new Weapon());
     expect(MixinApi.isTangible(w)).toBe(true);
     expect(MixinApi.isConstructed(w)).toBe(true);
     expect(MixinApi.isGraded(w)).toBe(true);
-    expect(MixinApi.isTool(w)).toBe(true);
+    // A durable good, NOT a crafting tool.
+    expect(MixinApi.isDurable(w)).toBe(true);
+    expect(MixinApi.isTool(w)).toBe(false);
     // Held, not worn — Wieldable (hand slot) yes, Wearable (body slot) no.
     expect(MixinApi.isWieldable(w)).toBe(true);
     expect(MixinApi.isWearable(w)).toBe(false);

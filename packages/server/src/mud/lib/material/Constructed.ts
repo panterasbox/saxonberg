@@ -26,7 +26,7 @@ import { MaterialApi, OUTCOME_BANDS } from '../../api/material';
 import type { MarkupAugmenter } from '../../api/mml';
 import type { Stuff } from '../stuff/Stuff';
 import type { Graded } from '../craft/Graded';
-import type { Tooled } from '../craft/Tooled';
+import type { Durable } from '../craft/Durable';
 
 export interface Constructed {
   /** The persisted form word (e.g. `'plate'`). Host/persist surface. */
@@ -104,8 +104,8 @@ function responsePipsAugmenter(
   const grade = MixinApi.isGraded(host)
     ? (host as unknown as Graded).getGrade()
     : undefined;
-  const condition = MixinApi.isTool(host)
-    ? (host as unknown as Tooled).getCondition()
+  const condition = MixinApi.isDurable(host)
+    ? (host as unknown as Durable).getCondition()
     : undefined;
 
   const armor = construction.isArmor();

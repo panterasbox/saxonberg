@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { Idea } from '../../stuff/Idea';
 import { GradedMixin } from '../Graded';
 import { ToolMixin } from '../Tooled';
+import { DurableMixin } from '../Durable';
 import { CraftedMixin } from '../Crafted';
 import { MakerMixin } from '../Maker';
 import { Grade } from '../Grade';
@@ -10,7 +11,8 @@ import { makeStuff } from '../../security/__tests__/test-setup';
 class GradedHost extends GradedMixin(Idea) {
   static _mixinName = 'GradedHost';
 }
-class ToolHost extends ToolMixin(Idea) {
+// A ToolItem composes both: capabilities (ToolMixin) + wear (DurableMixin).
+class ToolHost extends ToolMixin(DurableMixin(Idea)) {
   static _mixinName = 'ToolHost';
 }
 class CraftedHost extends CraftedMixin(Idea) {

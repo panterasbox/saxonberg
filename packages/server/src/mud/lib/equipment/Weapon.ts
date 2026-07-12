@@ -16,10 +16,11 @@
  * gambits, the whole "weapon carries a playstyle" bundle — which is the
  * combat build, orthogonal to simply holding the thing.
  *
- * `ToolMixin` is composed **only** for its wear-on-use `condition` gauge (a
- * blade dulls with use) — NOT its crafting capabilities, which stay an inert
- * `[]`. (A weapon is a *durable good*, not a crafting tool; the clean split
- * of durability out of `ToolMixin` is a deferred cleanup.)
+ * A weapon composes {@link DurableMixin} for its wear-on-use `condition`
+ * gauge (a blade dulls with use) — a *durable good*, NOT a crafting tool, so
+ * it carries no inert capability list. (Durability was split out of
+ * `ToolMixin` precisely so weapons and armor can wear out without being
+ * "tools".)
  *
  * Seeded as content (e.g. `/domain/eternal/arms/steel-dagger`) with
  * `_materialPath`, `constructionForm: bladed`, a `grade`, and `slotClaims`.
@@ -28,14 +29,14 @@
 import Thing from '../stuff/Thing';
 import { DetailedMixin } from '../description/Detailed';
 import { ConstructedMixin } from '../material/Constructed';
-import { ToolMixin } from '../craft/Tooled';
+import { DurableMixin } from '../craft/Durable';
 import { GradedMixin } from '../craft/Graded';
 import { SlottableMixin } from '../slot/Slottable';
 import { WieldableMixin } from '../slot/Wieldable';
 
 const WeaponBase = WieldableMixin(
   SlottableMixin(
-    GradedMixin(ToolMixin(ConstructedMixin(DetailedMixin(Thing)))),
+    GradedMixin(DurableMixin(ConstructedMixin(DetailedMixin(Thing)))),
   ),
 );
 
