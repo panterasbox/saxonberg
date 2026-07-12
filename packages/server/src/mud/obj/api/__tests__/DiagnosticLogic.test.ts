@@ -165,9 +165,16 @@ describe('DiagnosticApi.list', () => {
     );
   });
 
-  it('returns [] for a non-author actor', async () => {
+  it('returns [] for a non-author non-wizard actor', async () => {
     vi.spyOn(AccessApi, 'isAuthor').mockResolvedValue(false);
     expect(await DiagnosticApi.list({})).toEqual([]);
+  });
+
+  it('admits a wizard who is not an author (sees compile rows)', async () => {
+    vi.spyOn(AccessApi, 'isAuthor').mockResolvedValue(false);
+    vi.spyOn(AccessApi, 'isWizard').mockResolvedValue(true);
+    const rows = await DiagnosticApi.list({});
+    expect(rows).toHaveLength(2); // runtime + compile
   });
 
   it('redacts compile rows from non-wizards', async () => {

@@ -153,17 +153,31 @@ never a passed value):
 
 | Op | Gate |
 |---|---|
-| `list` (structured) | `isAuthor`; non-wizards never see `compile` rows |
+| `list` (structured) | `isAuthor` **or** `isWizard`; non-wizards never see `compile` rows |
 | `rawTail` (console ring) | `isWizard` (enforced in `ErrorsController`) |
 | `clear(path)` | `isWizard`, or `isAuthor` of the path — else `-1` |
 | producer writes | the `DiagnosticApi` facade → `DiagnosticLogic` `FromModule` gate |
 
-A `null` (unattributable) context fails every read closed (`list` → `[]`).
+`list` admits **author or wizard** (a wizard edits engine source/TS, so is
+exactly who needs compile diagnostics — the two axes are orthogonal, so the
+reader unions them rather than requiring parcel-authorship). The `errors`
+verb enforces the same author-or-wizard tier in `ErrorsController` (the
+verb is afforded to every avatar via `AuthorMixin`; there is no
+`requiresAuthor` validator). A `null` (unattributable) context fails every
+read closed (`list` → `[]`).
+
+**Where a runtime throw lands.** A throw with a *local* handler is caught
+there first: an NPC brain throw is caught by `BehavedMixin` (which
+`console.warn`s it), so it surfaces in the **console ring** (`errors raw`),
+not the structured store. The structured runtime guard captures throws that
+reach a guarded `runRoot` uncaught — command-controller throws (via the
+`CommandGiver` seam) and other unguarded background work.
 
 ## Reader A — the `errors` verb
 
 `mud/cmd/system/errors.yaml` + `ErrorsController` (category `system`,
-`requiresAuthor`, AuthorMixin-afforded). Subcommands: `list` (default) —
+AuthorMixin-afforded, author-or-wizard gated in the controller).
+Subcommands: `list` (default) —
 `--channel` / `--severity` / `--source` / `--mine` / `--limit` filters and
 a greedy `path` prefix arg; `raw` — the wizard-only console ring
 (`--grep`); `clear <path>`. Live tailing is the mudlog author-push plus

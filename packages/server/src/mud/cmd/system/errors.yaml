@@ -18,9 +18,7 @@ help: |
   `errors clear <path>` drops the diagnostics for a path (wizards, or the
   author of that path).
 
-  Restricted to authors — if you aren't one, the game won't offer it.
-validators:
-  - /lib/command/validators/requiresAuthor
+  Restricted to authors and wizards; others are told they lack permission.
 fallthrough: true
 # The bare form `errors [<path>]` falls through here → list (the controller
 # defaults an absent subcommand to list); an explicit subcommand uses its

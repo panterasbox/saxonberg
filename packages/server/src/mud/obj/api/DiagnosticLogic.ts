@@ -202,8 +202,11 @@ export class DiagnosticLogic extends ApiLogic {
   public async list(filter: DiagnosticListFilter): Promise<DiagnosticDoc[]> {
     if (!connected()) return [];
     const subject = actor();
-    if (!(await AccessApi.isAuthor(subject))) return [];
     const isWiz = await AccessApi.isWizard(subject);
+    // Author-tier OR wizard: a wizard edits engine source/TS, so is exactly
+    // who needs compile diagnostics — reads admit either axis (a null /
+    // unattributable context still fails closed).
+    if (!isWiz && !(await AccessApi.isAuthor(subject))) return [];
     // Non-wizards can't see TS-source compile diagnostics (wizard-tier content).
     if (!isWiz && filter.source === 'compile') return [];
 

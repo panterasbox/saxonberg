@@ -58,6 +58,7 @@ describe('ErrorsController', () => {
     vi.spyOn(DiagnosticApi, 'rawTail').mockReturnValue([]);
     vi.spyOn(DiagnosticApi, 'clear').mockResolvedValue(0);
     vi.spyOn(AccessApi, 'isWizard').mockResolvedValue(false);
+    vi.spyOn(AccessApi, 'isAuthor').mockResolvedValue(true);
 
     ctrl = makeStuff(() => new ErrorsController());
 
@@ -92,6 +93,22 @@ describe('ErrorsController', () => {
   afterEach(() => vi.restoreAllMocks());
 
   const run = (m: ErrorsModel) => ctrl.execute(m as never, ctx);
+
+  it('rejects a non-author non-wizard with a note', async () => {
+    vi.spyOn(AccessApi, 'isAuthor').mockResolvedValue(false);
+    await run({});
+    expect(note).toHaveBeenCalledWith(
+      expect.objectContaining({ kind: 'controller-rejected', reason: 'not-authorised' })
+    );
+    expect(DiagnosticApi.list).not.toHaveBeenCalled();
+  });
+
+  it('admits a wizard who is not an author', async () => {
+    vi.spyOn(AccessApi, 'isAuthor').mockResolvedValue(false);
+    vi.spyOn(AccessApi, 'isWizard').mockResolvedValue(true);
+    await run({});
+    expect(DiagnosticApi.list).toHaveBeenCalled();
+  });
 
   it('list (default) maps filters onto DiagnosticApi.list', async () => {
     vi.mocked(DiagnosticApi.list).mockResolvedValue([row({})]);
@@ -135,7 +152,7 @@ describe('ErrorsController', () => {
     await run({ subcommand: 'raw', grep: 'boo' });
     expect(DiagnosticApi.rawTail).toHaveBeenCalledWith({
       grep: 'boo',
-      limit: undefined,
+      limit: 30, // default short tail
     });
     expect(output.join('\n')).toContain('boom');
   });

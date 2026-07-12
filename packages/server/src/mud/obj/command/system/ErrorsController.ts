@@ -44,6 +44,20 @@ interface ErrorsModel extends CommandModel {
 
 export default class ErrorsController extends CommandController<ErrorsModel> {
   async execute(model: ErrorsModel, context: CommandContext): Promise<void> {
+    // Author-or-wizard gate (the verb is afforded to every avatar via
+    // AuthorMixin; the tier check lives here so a wizard — who edits source
+    // and needs compile diagnostics — is admitted alongside content authors).
+    const actor = context.commandGiver;
+    const allowed =
+      (await AccessApi.isAuthor(actor)) || (await AccessApi.isWizard(actor));
+    if (!allowed) {
+      context.note({
+        kind: 'controller-rejected',
+        reason: 'not-authorised',
+        detail: 'errors is for authors and wizards',
+      });
+      return;
+    }
     const sub = model.subcommand ?? 'list';
     if (sub === 'clear') return this.clear(model, context);
     if (sub === 'raw') return this.raw(model, context);
@@ -72,13 +86,10 @@ export default class ErrorsController extends CommandController<ErrorsModel> {
       return;
     }
 
-    const body = Mml.fromMarkup(
-      [
-        Mml.strong(`${rows.length} diagnostic(s)`).toString(),
-        Mml.unorderedList(rows.map((r) => renderRow(r))).toString(),
-      ].join('\n\n')
-    );
-    MessageApi.scene(actor).topic(TOPIC).toSelf(body).send();
+    const text =
+      `${rows.length} diagnostic(s):\n\n` +
+      rows.map((r) => renderRow(r)).join('\n');
+    MessageApi.scene(actor).topic(TOPIC).toSelf(Mml.escape(text)).send();
   }
 
   private async raw(
@@ -94,7 +105,12 @@ export default class ErrorsController extends CommandController<ErrorsModel> {
       });
       return;
     }
-    const lines = DiagnosticApi.rawTail({ grep: model.grep, limit: model.limit });
+    // Default to a short tail — the ring holds the whole session's console
+    // (boot included), so an unbounded dump is a wall of text.
+    const lines = DiagnosticApi.rawTail({
+      grep: model.grep,
+      limit: model.limit ?? 30,
+    });
     if (lines.length === 0) {
       MessageApi.scene(actor)
         .topic(TOPIC)
@@ -102,10 +118,8 @@ export default class ErrorsController extends CommandController<ErrorsModel> {
         .send();
       return;
     }
-    const body = Mml.fromMarkup(
-      Mml.unorderedList(lines.map((l) => renderRaw(l))).toString()
-    );
-    MessageApi.scene(actor).topic(TOPIC).toSelf(body).send();
+    const text = lines.map((l) => renderRaw(l)).join('\n');
+    MessageApi.scene(actor).topic(TOPIC).toSelf(Mml.escape(text)).send();
   }
 
   private async clear(
@@ -146,14 +160,16 @@ function asSource(v: string | undefined): DiagnosticSource | undefined {
   return v === 'runtime' || v === 'compile' || v === 'console' ? v : undefined;
 }
 
-function renderRow(r: DiagnosticDoc): Mml {
+/** One diagnostic row as a plain text line (the whole block is escaped once). */
+function renderRow(r: DiagnosticDoc): string {
   const where = r.path
     ? `${r.path}${r.line != null ? `:${r.line}` : ''}`
     : r.channel;
-  const head = `[${r.severity}] ${r.channel} ${where}`;
-  return Mml.compose`${Mml.strong(head)} — ${Mml.escape(r.message)}`;
+  const code = r.code != null ? ` (TS${r.code})` : '';
+  return `• [${r.severity}] ${r.channel}  ${where}${code} — ${r.message}`;
 }
 
-function renderRaw(l: RawConsoleLine): Mml {
-  return Mml.compose`${Mml.strong(`[${l.level}]`)} ${Mml.escape(l.text)}`;
+/** One raw console line as a plain text line. */
+function renderRaw(l: RawConsoleLine): string {
+  return `• [${l.level}] ${l.text}`;
 }
