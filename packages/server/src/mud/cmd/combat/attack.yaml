@@ -1,0 +1,35 @@
+verbs: [attack]
+controller: combat/AttackController
+description: "Start a fight with someone present"
+help: |
+  `attack <target>` opens a fight. Terms are consented like an
+  introduction: if you and your target both fight the same way (a
+  frictionless bar scuffle — non-lethal, to yield), it opens silently.
+  Bring `--lethal` and your target only expects a friendly bout, and
+  they're prompted to accept the escalation.
+
+  Once a fight is open, act with the gambit verbs (`strike`, `disarm`,
+  `subdue`, `shove`), read the fray with `status`, and `yield` to concede.
+  Combat runs at an emergent tempo — you ready a gambit and it resolves on
+  the next beat; a faster fighter simply acts more often.
+examples:
+  - cmd: attack the wolf
+    note: A non-lethal bout by default
+  - cmd: attack the wolf --lethal
+    note: A fight to the death (the target may refuse the terms)
+options:
+  lethal:
+    short: l
+    type: boolean
+    description: "Bring lethal terms (a fight that can end in death)."
+  to:
+    type: string
+    description: "Stop-condition: first-blood, yield, incapacitation, or death."
+args:
+  - name: target
+    type: object
+    required: true
+    scope: ["$focus", "reachable"]
+    updates_focus: extend
+    validators:
+      - /lib/command/validators/mustBeVisible

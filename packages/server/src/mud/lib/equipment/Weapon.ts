@@ -40,4 +40,21 @@ const WeaponBase = WieldableMixin(
   ),
 );
 
-export default class Weapon extends WeaponBase {}
+export default class Weapon extends WeaponBase {
+  /**
+   * Weapon **balance** — the fourth (deferred) emergent-tempo input,
+   * exposed here as a neutral-default data hook (1.0). The tempo function
+   * multiplies it in; when the weapon-playstyle cycle lands it populates
+   * this from construction and nothing else changes. See
+   * docs/subsystems/combat.md (Tempo) and materials-response-slate.
+   *
+   * @authorable
+   */
+  public balanceFactor: number = 1;
+
+  static persistentFields = ['balanceFactor'];
+
+  getBalanceFactor(): number {
+    return this.balanceFactor;
+  }
+}

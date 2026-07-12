@@ -1,0 +1,9 @@
+verbs: [disarm]
+controller: combat/GambitController
+description: "Combat gambit: disarm your opponent"
+help: |
+  `disarm` readies the disarm gambit against your current opponent. It is
+  queued intent — it resolves on the next combat beat, and it needs a
+  usable instrument (a wielded weapon or a natural attack) plus an
+  un-impaired limb. A disarmed or wounded fighter loses the gambits that
+  need the affected instrument. Only usable while you're in a fight.

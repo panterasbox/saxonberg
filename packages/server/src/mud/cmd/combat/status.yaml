@@ -1,0 +1,9 @@
+verbs: [status]
+controller: combat/StatusController
+description: "Read your fight at a glance"
+help: |
+  `status` shows your own combat state at full fidelity — poise band,
+  combat flags, condition, and open wounds — plus a banded, hedged read of
+  your opponent. Everything is a band, never a number. Out of combat it
+  simply says you're not fighting. (The terminal stand-in for the combat
+  pane.)

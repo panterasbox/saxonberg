@@ -1,0 +1,6 @@
+verbs: [yield]
+controller: combat/YieldController
+description: "Concede the fight"
+help: |
+  `yield` concedes the fight — a clean, deliberate exit that ends the bout
+  in your opponent's favour. Distinct from being beaten down.
