@@ -59,26 +59,39 @@ interface InternalHandle {
 }
 
 /**
- * Wrap `fn` so it runs inside `runRoot` with the captured
+ * Wrap `fn` so it runs inside a guarded `runRoot` with the captured
  * `causingCommandId` planted on the new Root frame's metadata.
  * When `causingId` is null (no propagation, or no ambient command),
- * still run inside `runRoot` so the callback has a fresh, well-defined
- * call-stack root — just without the metadata.
+ * still run inside `runRootGuarded` so the callback has a fresh,
+ * well-defined call-stack root — just without the metadata.
+ *
+ * Uses `runRootGuarded('swallow')`: a scheduled callback has no caller to
+ * rethrow to, so a throw is recorded as a runtime diagnostic and
+ * swallowed. This also fixes a latent bug — a *sync* throw from `fn`
+ * under the old `runRoot` propagated out of `planRun` and killed the
+ * caller's reschedule (`fireFixedDelay` never re-armed its timer). fn is
+ * `() => void`, so its synchronous body still completes before the guard
+ * yields; only the error path changes.
  */
 function planRun(
   causingId: string | null,
   fn: () => void
 ): void {
   if (causingId === null) {
-    ExecutionContextApi.runRoot(ScheduleApi, 'fire', fn);
+    void ExecutionContextApi.runRootGuarded(ScheduleApi, 'fire', fn, 'swallow');
     return;
   }
-  ExecutionContextApi.runRoot(ScheduleApi, 'fire', () => {
-    ExecutionContextApi.updateCurrentFrameMetadata({
-      causingCommandId: causingId,
-    });
-    fn();
-  });
+  void ExecutionContextApi.runRootGuarded(
+    ScheduleApi,
+    'fire',
+    () => {
+      ExecutionContextApi.updateCurrentFrameMetadata({
+        causingCommandId: causingId,
+      });
+      fn();
+    },
+    'swallow'
+  );
 }
 
 export class ScheduleApi {

@@ -35,6 +35,7 @@ import ParticipationStanding from '../mud/lib/standing/ParticipationStanding';
 import { ProducerApi } from '../mud/api/producer';
 import ProducerStanding from '../mud/lib/standing/ProducerStanding';
 import { BankingApi } from '../mud/api/banking';
+import { DiagnosticApi } from '../mud/api/diagnostics';
 import { ResidencyApi } from '../mud/api/residency';
 import { EmploymentApi } from '../mud/api/employment';
 import { SocialApi } from '../mud/api/social';
@@ -252,6 +253,11 @@ export class AppBootstrap {
     // until a player tunes a live YouTube channel (and the env reader
     // account is configured); safe to boot unconditionally.
     YoutubeRelayReader.get().boot();
+
+    // Author diagnostics — register the single idempotent author-push
+    // listener (a runtime diagnostic notifies the content's author). Safe
+    // and cheap in every environment; nothing fires it if no producer runs.
+    DiagnosticApi.startRouter();
   }
 
   /**
