@@ -468,6 +468,147 @@ specialized value objects with a canonical wire shape
 (`Quantity<U>`'s `{value, unit}`). Most fields decompose; flatten
 them.
 
+## The self-persistence spine (`Persistable`)
+
+The **persistence spine** is the universal substrate by which a `Stuff`
+serializes **its own** runtime state — its declared fields, its held
+contents, its worn gear — so that property, inventory, and room contents
+survive residency eviction, logout, and reload, and reassemble faithfully on
+materialize. It generalizes the Avatar-only `snapshotToTemplate` mechanism
+(above) into one per-mixin-composed capture/restore model shared by any
+persistence *host*.
+
+The governing constraint is **security**: hydration bypasses the `setFoo()`
+call-security gates, so the spine routes capture/restore **through** the
+gated setter surface and reconstitutes items **through** the gated
+`StuffApi.clone` path — never raw field injection — executed **as the owning
+principal**. Persistence adds no new attack surface: it is exactly as safe as
+the setter gates it routes through. See
+[call-security.md](./call-security.md) and [access.md](./access.md).
+
+### Hosts, content, and the record
+
+Persistence is a property of **hosts** — singletons keyed by `templatePath`
+(an avatar, an authored home/room, a unique container). A host composes
+`PersistableMixin` (`lib/persistence/Persistable.ts`, `_mixinName =
+'PersistableMixin'`), **outermost**, and carries three behaviors: a
+`postRegister` **materialize driver** (with a record → restore; without →
+capture the first record, the seed-then-persist gate), an `applyPopulates`
+override that skips the seed once a record exists (no duplication), and a
+`cleanupOnDestruct` **capture-on-destruct backstop**.
+
+The engine-of-record is `PersistedRecord`
+(`lib/persistence/PersistedRecord.ts`) over the **`holder_snapshots`**
+collection — a `{ scope, owner, state }` envelope:
+
+- `scope` — the host's singleton `templatePath` (identity + re-clone base;
+  materialize loads every record scoped to it).
+- `owner` — whose content (a principal's durable `templatePath`, a
+  `group:<name>` sentinel, or `'core'`) → the **account-deletion cascade
+  key**. Derived from `ParcelApi.ownerOf(scope)` — never a parameter.
+- `state` — the **per-mixin-composed** capture: a map keyed by mixin/layer
+  name to that layer's `MixinSlice` (`lib/persistence/PersistenceSlice.ts`).
+  Stored as opaque JSON (no marshaller — `Document.toDocument` copies it
+  as-is, the `StoredDocument.data` precedent); only `PersistableLogic` builds
+  or interprets it.
+
+There is **no player-facing write path**: `holder_snapshots` is written only
+by the gated `PersistableLogic`, reachable only through `PersistableApi`'s
+gated methods (`capture` / `materialize` / `hasRecord` / `deleteAllFor`).
+
+### Per-mixin composition
+
+Capture is **composed per-mixin**, mirroring `getAllPersistentFields`:
+`MixinApi.getPersistenceContributors(ctor)` walks the prototype chain (own
+`_mixinName` only — so a concrete subclass doesn't borrow its base mixin's
+slice key) and yields one descriptor per contributing layer. Each layer
+either runs its `captureSlice` hook or contributes the **default slice** (its
+own declared `persistentFields`, marshalled to stored form). Three slice
+shapes:
+
+- **default** (`{ fields }`) — every ordinary mixin (`Graded`, `Propertied`,
+  `Named`, …).
+- **container** (`{ contents }`, `ContainerMixin.captureSlice`) — one
+  `ContentEntry` per Containable, in `getContents()` order. A **non-host
+  item** nests `{ templatePath, state, placement }` (recursing through
+  sub-containers); a **nested host** is a reference `{ ref, placement }` —
+  not absorbed, because it persists itself. Surface-resting items record the
+  index of the Surfaced sibling they rest on.
+- **slotted** (`{ worn }`, `SlottedMixin.captureSlice`) — worn/equipped
+  occupancy by **position** (indices into the container slice) + the slot
+  names each item claims; non-content occupants (a rider, a sitter) resolve
+  to −1 and are skipped.
+
+The recursion seam (`CaptureContext`) lets a mixin's `captureSlice` descend
+into item state without importing `PersistableLogic` (breaking the lib →
+obj/api cycle). Container/Slotted **restore** is centralized in
+`PersistableLogic` (it cross-references the two slices by index).
+
+### The security path
+
+`PersistableApi` → `PersistableLogic` (`/obj/api/persistable`, gated
+`FromModule('/api/persistable#PersistableApi')`) owns the walk. Restore
+composes three defenses:
+
+1. **Principal frame** — the whole restore runs inside a pushed frame whose
+   acting author is the record's owner (a live player when online, else the
+   host itself — resolved decision #3), so `getActingAuthor` and any
+   principal-based gate resolve to it, and restore is isolated from the
+   ambient frame. This is the spine's single reviewed **frame-mutator
+   allowlist** entry in `execution-context.ts` (the
+   `SchedulerRegistry`/`EventSubscriptions` precedent).
+2. **Drift guard** — a default slice's fields are filtered to the cloned
+   class's declared `persistentFields` before hydration, so a forged record
+   cannot inject `class`/`hydratorClass`/`brain` (Template-level, never
+   persistent fields) nor any undeclared key. Fields hydrate through the
+   standard two-phase `PersistentHydrator` (prefers the invariant-enforcing
+   `set<Field>` setter, un-marshals rich values, bracket-assigns only
+   setterless pure-storage fields).
+3. **Gated reconstitution** — each `ContentEntry` is re-created via
+   `StuffApi.clone(templatePath)` (the record names only a path + declared
+   slices, never a class), then has its own `state` applied recursively;
+   `{ref}` entries follow the reference — cloning the nested host, which
+   self-materializes its own records via `postRegister`, reconstructing the
+   tree by walking references.
+
+Capture snapshots synchronously (after a marshaller pre-warm) so concurrent
+triggers each write a valid full snapshot (last-write-wins).
+
+### The eviction seam
+
+A plain `ContainerMixin` vetoes eviction while it holds contents; a
+**persistable host does not** — `ContainerMixin.canEvict` falls through for a
+persistable host so its *other* vetoes still apply (a live Avatar's
+`HasInteractive`, a `WarrenMember`) but the contents-count veto is dropped.
+Durability is guaranteed at the sweep: `ResidencyLogic.runEvictionSweep`
+(now async) **awaits `PersistableApi.capture` before `StuffApi.destruct`** for
+a persistable host — rooms/chests have no autosave backstop, so a dropped
+eviction write would be silent data loss. The sync `cleanupOnDestruct`
+capture is the non-sweep backstop. Only a hard crash mid-session (before any
+capture) loses since-last-capture changes.
+
+### Status + deferred
+
+Built and proven on generic persistable fixtures
+(`lib/persistence/__tests__/persistence-spine.test.ts`, 16 tests over the
+acceptance criteria). **Deferred / not yet in this MR:**
+
+- **The Avatar migration.** Avatar still persists via `snapshotToTemplate`
+  (above). Migrating it onto the spine needs one net-new substrate capability
+  — capturing a *host's own* placement (its container, with the
+  `WarrenMember` recall reconciliation) into its record and re-placing it on
+  materialize — plus a guest-skip gate and self-owner (`owner = scope`)
+  derivation for a `HasInteractive` host. Session-critical; wants live login
+  validation.
+- **Retiring `snapshotToTemplate`.** Only the **snapshot** direction is
+  Avatar-only in production; **`restoreFromTemplate` must stay** — `CmsLogic`
+  and `PackLogic` use it to re-hydrate live clones from an edited template
+  (content go-live, a distinct concern). So the retirement is `snapshotToTemplate`
+  only, and follows the Avatar migration.
+- Possession (per-owner *loose* items in a shared room), multi-instance
+  persistable hosts (parcel/extent identity), and the compute-allowance
+  persistence cap — property Phase 0b/1.
+
 ## Design Decisions
 
 ### Why static `collectionName`?
@@ -569,6 +710,12 @@ Indexes are created on connect:
 - `channels.kind` — non-unique
 - `beliefs.viewerId` — non-unique (powers per-viewer hydrate + the
   future per-player cleanup cascade)
+- `holder_snapshots.scope` — non-unique (materialize loads every record
+  scoped to a host)
+- `holder_snapshots.owner` — non-unique (the account-deletion cascade key)
+- `holder_snapshots.{scope, owner}` — unique (the single-record capture
+  upsert) — the persistence-spine engine-of-record; see [The self-persistence
+  spine](#the-self-persistence-spine-persistable)
 
 Index creation is best-effort (logs and continues on failure).
 

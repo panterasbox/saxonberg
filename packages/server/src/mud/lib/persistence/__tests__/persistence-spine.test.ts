@@ -31,7 +31,6 @@ import { ContainmentApi } from "../../../api/containment";
 import { SlotApi } from "../../../api/slot";
 import { ParcelApi } from "../../../api/parcel";
 import { MixinApi } from "../../../api/mixin";
-import { PersistedRecord } from "../PersistedRecord";
 import PersistentHydrator from "../PersistentHydrator";
 import { PersistableMixin } from "../Persistable";
 import { PersistenceManager } from "../../../../backend/PersistenceManager";

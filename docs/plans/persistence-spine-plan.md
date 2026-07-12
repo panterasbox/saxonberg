@@ -7,6 +7,39 @@ vessels, routed through call-security as the owning principal and
 reconstituting items through the gated clone path. Executes the closed
 requirements at [persistence-spine-requirements.md](../requirements/persistence-spine-requirements.md).
 
+## Build status (2026-07-11)
+
+**Landed (phases 1–6 + tests + docs):** the universal substrate is built,
+green, and regression-free.
+
+- `PersistedRecord` + `holder_snapshots` collection + slice vocabulary.
+- `PersistableMixin`, `MixinApi.getPersistenceContributors` / `isPersistable`,
+  the gated `PersistableApi` / `PersistableLogic` (capture / materialize /
+  hasRecord / deleteAllFor) with the principal-frame allowlist entry, the
+  drift guard, gated `StuffApi.clone` reconstitution, and the `Container` /
+  `Slotted` `captureSlice` hooks.
+- The residency `canEvict` capture-then-permit-cull seam + the durable
+  await-capture-before-destruct in `ResidencyLogic`.
+- 16 acceptance tests
+  (`lib/persistence/__tests__/persistence-spine.test.ts`) covering every AC
+  **except** the Avatar gear round-trip; `persistence.md` extended.
+
+**Deferred to a follow-up (phases 7–8), and a plan correction:**
+
+- The **Avatar migration** (§6 below) is session-critical and needs one
+  net-new substrate capability the generic path doesn't yet have —
+  capturing a *host's own* placement (its container, with the `WarrenMember`
+  recall reconciliation `snapshotToTemplate:380–392` does) into its own
+  record and re-placing it on materialize — plus a **guest-skip** gate on
+  `PersistableMixin` and a **self-owner** (`owner = scope`) derivation for a
+  `HasInteractive` host. It wants live login/logout/autosave validation.
+- **Plan correction to §6 step 4 / phase 8:** the pair is **not** retired
+  together. `restoreFromTemplate` is **not** Avatar-only — `CmsLogic` and
+  `PackLogic` call it to re-hydrate live clones from an edited template
+  (content go-live). Only **`snapshotToTemplate`** (the snapshot direction)
+  is Avatar-only in production and can be retired, after the Avatar
+  migration; `restoreFromTemplate` stays.
+
 ## 0. Grounding verified against current code
 
 - Avatar persist-back: `obj/Avatar.ts:298` `save()` → `TemplateApi.snapshotToTemplate(this)` then `tpl.save()`; guest guard at `:302`; autosave timer `startAutoSave()` at `:613` (guest guard `:614`); `onDestruct()` fire-and-forget save at `:694`. `restore()` at `:317` → `TemplateApi.restoreFromTemplate`.
