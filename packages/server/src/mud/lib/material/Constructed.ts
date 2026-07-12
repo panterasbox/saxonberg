@@ -25,8 +25,6 @@ import { MixinApi } from '../../api/mixin';
 import { MaterialApi, OUTCOME_BANDS } from '../../api/material';
 import type { MarkupAugmenter } from '../../api/mml';
 import type { Stuff } from '../stuff/Stuff';
-import type { Graded } from '../craft/Graded';
-import type { Durable } from './Durable';
 
 export interface Constructed {
   /** The persisted form word (e.g. `'plate'`). Host/persist surface. */
@@ -101,11 +99,10 @@ function responsePipsAugmenter(
   const construction = host.getConstruction();
   if (!construction) return text;
   const material = MaterialApi.materialOf(host);
-  const grade = MixinApi.isGraded(host)
-    ? (host as unknown as Graded).getGrade()
-    : undefined;
+  // isGraded / isDurable are type predicates — they narrow `host` directly.
+  const grade = MixinApi.isGraded(host) ? host.getGrade() : undefined;
   const condition = MixinApi.isDurable(host)
-    ? (host as unknown as Durable).getCondition()
+    ? host.getCondition()
     : undefined;
 
   const armor = construction.isArmor();

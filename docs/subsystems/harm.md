@@ -259,8 +259,23 @@ real hazard/trap taxonomy is a separate future build over the same seam.
 
 ## History
 
-The build shipped in the harm-driver branch (the `feat(harm): Phase 0–6`
-commit range through the pre-merge sweep). Two design→implementation
+**Materials-response supersession (`feature/materials-response-build`).**
+The `inflict` producer was upgraded by the follow-on materials-response
+build: what this doc's earlier text called "magnitude-only severity + a
+bijective `mechanismToType` switch + a binary `isSiteCovered` gate" is
+retired. `inflict` now resolves a `Channel` insult outside-in through the
+covering stack into the tissue — **both** severity AND trauma type come from
+`MaterialApi`'s response function, and coverage is a *degree* (the stack),
+not a presence flag. The mechanism vocab unified into the channel set
+(`thermal`/`tearing` keep a magnitude-only passthrough); `TraumaType` grew
+`puncture`. See [materials-response.md](./materials-response.md). The
+sections above are current; this note marks the seam for readers of the
+retired harm plan.
+
+---
+
+The original build shipped in the harm-driver branch (the `feat(harm): Phase
+0–6` commit range through the pre-merge sweep). Two design→implementation
 shifts landed during MR review and are worth noting because the retired
 plan/requirements docs describe the pre-review shape:
 
