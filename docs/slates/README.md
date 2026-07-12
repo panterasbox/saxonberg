@@ -162,7 +162,7 @@ continues with the content + navigation layers on top:
   (the mixin-particle palette + the named-blueprint catalog) shipped with the
   Studio** ([../subsystems/studio.md](../subsystems/studio.md)); kept in
   `builds/` for the engine-typed IntelliSense / LSP / host-isolation remainder.
-- [compile-diagnostics-slate](./builds/compile-diagnostics-slate.md) — in-editor compile diagnostics.
+- [diagnostics-slate](./builds/diagnostics-slate.md) — author diagnostics: runtime execution-context guard + console tap + compile watcher into one searchable store, delivered to giver + author, read from CMS panel + `errors` verb.
 - [scoped-authoring-slate](./builds/scoped-authoring-slate.md) — personal / scoped authoring permissions.
 - [provenance-slate](./builds/provenance-slate.md) — the authorship substrate bridging
   authoring (this build) and **producer influence** (§9): ownership + attribution +
