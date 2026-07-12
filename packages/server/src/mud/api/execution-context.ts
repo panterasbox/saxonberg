@@ -151,6 +151,13 @@ const _frameMutatorAllowlist: ReadonlyArray<RegExp> = [
   // the orthogonal trust that the Registry's body is engine code, not
   // content. Keep narrow — add the bare name, not a wildcard.
   /\/mud\/obj\/(EventSubscriptions|MqlSubscriptionRegistry|SchedulerRegistry|WorldClockRegistry)\.(ts|js)$/,
+  // The persistence-spine logic singleton plants a principal frame around
+  // restore (`run` + `tagActingAuthor`) so capture/restore executes AS the
+  // owning principal — the single reviewed frame-mutator touchpoint of the
+  // persistence build. Lives at `/obj/api/persistable`; `PersistableApi`
+  // gates who may call it. Same narrow trust as the registries above: this
+  // entry asserts the singleton's BODY is engine code, not content.
+  /\/mud\/obj\/api\/PersistableLogic\.(ts|js)$/,
   /\.test\.(ts|js)$/,                            // tests need the seam — they can't fake production identity
 ];
 

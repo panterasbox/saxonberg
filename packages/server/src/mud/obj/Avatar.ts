@@ -14,7 +14,6 @@ import { ShelledCharacter } from "../lib/shell/ShelledCharacter";
 import { PlayerApi } from "../api/player";
 import { ConnectionApi } from "../api/connection";
 import { EventApi } from "../api/event";
-import { TemplateApi } from "../api/template";
 import { StuffApi } from "../api/stuff";
 import { BeliefStoreApi } from "../api/belief";
 import { ChronicleApi } from "../api/chronicle";
@@ -37,6 +36,8 @@ import {
 import { ShellApi } from "../api/shell";
 import { BulletinApi } from "../api/bulletin";
 import { PostRegistrationMixin } from "../lib/stuff/PostRegistration";
+import { PersistableMixin } from "../lib/persistence/Persistable";
+import { PersistableApi } from "../api/persistable";
 import { HasInteractiveMixin } from "../lib/connection/HasInteractive";
 import { AetherMixin } from "../lib/message/Aether";
 import { ContactsMixin } from "../lib/social/Contacts";
@@ -78,10 +79,21 @@ export interface AvatarInitContext {
 // char-gen / augmentation slates' diegetic story); NPCs opt in
 // per-class by composing AetherMixin themselves when content requires
 // it. The mixin gates `tell` and (future) chat / remote-emote.
-const AvatarBase = PostRegistrationMixin(
-  HasInteractiveMixin(
-    AetherMixin(
-      NotifyPolicyMixin(ContactsMixin(SubjectSubscriberMixin(ShelledCharacter))),
+// PersistableMixin is composed **outermost** so its persistence-host
+// behaviors (materialize/seed on `postRegister`, capture-on-destruct
+// backstop, the persistable `canEvict` fall-through) wrap the rest. Avatar
+// persists through the universal spine (see docs/subsystems/persistence.md):
+// its record carries its declared fields, its carried inventory (Container
+// slice), its worn gear (Slotted slice), and its own spawn/recall location
+// (`place`). `shouldPersist()` (below) gates guests out.
+const AvatarBase = PersistableMixin(
+  PostRegistrationMixin(
+    HasInteractiveMixin(
+      AetherMixin(
+        NotifyPolicyMixin(
+          ContactsMixin(SubjectSubscriberMixin(ShelledCharacter)),
+        ),
+      ),
     ),
   ),
 );
@@ -275,47 +287,66 @@ export default class Avatar extends AvatarBase {
     }
 
     await this.installDefaultLoadout();
+
+    // Drive the persistence spine LAST, after the born-with loadout is in
+    // place: `PersistableMixin.postRegister` materializes this avatar's
+    // record (restoring fields + carried inventory + worn gear + spawn
+    // location, overriding the clone-time template defaults) on a returning
+    // login, or captures the first record on signup. A guest's
+    // `shouldPersist()` is false, so this is a no-op for guests.
+    await super.postRegister(context);
   }
 
   /**
-   * Snapshot this Avatar's `persistentFields` chain back to its
-   * per-player template doc. Two-line shim: TemplateApi captures
-   * state into the returned Template; `tpl.save()` commits it.
+   * Persistence opt-out (the spine's `shouldPersist` hook). A guest is
+   * throwaway and persists nothing — the single point (alongside the
+   * `save()` guard) that makes "zero guest persistence" hold across
+   * materialize / capture / autosave / onDestruct.
+   */
+  public override shouldPersist(): boolean {
+    return !this.isGuest;
+  }
+
+  /**
+   * Capture this Avatar's full runtime state into its persistence-spine
+   * record (`PersistableApi.capture` → `holder_snapshots`): declared fields,
+   * carried inventory, worn gear, and spawn/recall location.
    *
-   * Concurrent saves (periodic timer + linkdead hook + manual eval)
-   * each produce a valid full-state snapshot; MongoDB resolves
-   * ordering as last-write-wins. See
-   * `docs/subsystems/templates.md` § Persist-Back for the
-   * snapshot-before-await ordering invariant the substrate honors.
+   * Concurrent saves (periodic timer + linkdead hook + manual eval) each
+   * produce a valid full-state snapshot; the capture snapshots synchronously
+   * before its first `await`, and MongoDB resolves ordering as
+   * last-write-wins. See [docs/subsystems/persistence.md § The
+   * self-persistence spine](../../docs/subsystems/persistence.md).
    *
-   * @hook Invoked by the backend lifecycle (periodic autosave timer,
-   *   the linkdead hook, and manual `eval`) to persist the avatar's
-   *   full state back to its template. **Witness** (async) — snapshots
-   *   before the first `await` so concurrent saves each write a valid
-   *   full-state snapshot (last-write-wins). The only v1 persist-back
-   *   consumer; not a general mixin surface.
+   * @hook Invoked by the backend lifecycle (periodic autosave timer, the
+   *   linkdead hook, and manual `eval`) to persist the avatar's full state.
+   *   **Witness** (async) — the only v1 persist-back consumer; not a general
+   *   mixin surface.
    */
   public async save(): Promise<void> {
-    // Guests persist nothing — no per-character template to write back.
-    // This is the single guard that makes "zero guest persistence" hold
-    // across every save path (autosave timer, onDestruct, client-state).
+    // Guests persist nothing — no record to write. This guard mirrors
+    // `shouldPersist()` (which also fails closed inside the spine) so the
+    // "zero guest persistence" invariant holds across every save path
+    // (autosave timer, onDestruct, client-state).
     if (this.isGuest) return;
-    const tpl = await TemplateApi.snapshotToTemplate(this);
-    await tpl.save();
+    // Persist through the universal spine: fields + carried inventory + worn
+    // gear + spawn location, into the avatar's `holder_snapshots` record.
+    await PersistableApi.capture(this);
   }
 
   /**
-   * Re-hydrate this Avatar's in-memory state from its current
-   * template doc. Operates on the existing live instance,
-   * preserving identity / stuffId / connected Interactives.
+   * Re-hydrate this Avatar's in-memory state from its persistence-spine
+   * record. Operates on the existing live instance, preserving identity /
+   * stuffId / connected Interactives.
    *
-   * v1: developer/admin operation — no multi-connection
-   * synchronization. Should not be invoked during the initial
-   * clone cascade (the in-flight-clone guard catches recursive
-   * clones, not parallel hydrate on a registered instance).
+   * v1: developer/admin operation — no multi-connection synchronization,
+   * and intended for a **fresh** instance (the normal login path
+   * materializes via `postRegister`; re-running `restore()` on a live
+   * avatar that already holds inventory would re-clone the captured items on
+   * top). Should not be invoked during the initial clone cascade.
    */
   public async restore(): Promise<void> {
-    await TemplateApi.restoreFromTemplate(this);
+    await PersistableApi.materialize(this);
   }
 
   /**
@@ -684,8 +715,8 @@ export default class Avatar extends AvatarBase {
    *
    * The save is fire-and-forget (`onDestruct` is synchronous per
    * the Stuff lifecycle contract). Correctness lives in
-   * `TemplateApi.snapshotToTemplate`'s synchronous prefix — field
-   * values + container ref are captured BEFORE the first await,
+   * `PersistableApi.capture`'s synchronous snapshot prefix — the field
+   * values, content tree, and location are read BEFORE the first await,
    * so the snapshot reflects pre-cleanup state even if the MongoDB
    * write doesn't complete during shutdown. The periodic backstop
    * covers any prior state loss; concurrent in-flight save is fine

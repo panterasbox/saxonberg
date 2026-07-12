@@ -16,9 +16,12 @@ that shapes every slate.
 
 The substrate is in place. Major shipped surfaces:
 
-- **Auth + persistence** — Google OAuth; `Persistable` track for
-  user-data; template/clone track for the Idea hierarchy;
-  Marshaller framework for non-default serialization.
+- **Auth + persistence** — Google OAuth; the **self-persistence spine**
+  (`PersistableMixin`/`PersistableApi` — any host captures its own fields +
+  inventory + gear + location into `holder_snapshots`, routed through
+  call-security; Avatar migrated onto it, so gear/inventory now survive
+  logout); template/clone track for the Idea hierarchy; Marshaller
+  framework for non-default serialization.
 - **Standard Model + mixins** — class-factory mixin pattern,
   `Mixins` registry, composition rules; `PropertiedMixin` for
   typed properties.
@@ -676,8 +679,9 @@ One sequencing note worth keeping: the **recognition family**
 (recognition + identification + social-graph) ships best as a
 *unit* — the slates compose tightly (per-viewer state + DescribeApi
 v2 + buckets), and dispersed shipping creates hard-to-test partial
-states. The persistence-framework upgrade probably lands alongside
-it (per-record stores).
+states. (The persistence-framework upgrade the per-record stores wanted
+has since shipped as the self-persistence spine — see
+[persistence.md](./subsystems/persistence.md).)
 
 ---
 

@@ -10,7 +10,9 @@ import Lounge from '../Lounge';
 import Avatar from '../../../obj/Avatar';
 import { StuffApi } from '../../../api/stuff';
 import { ContainmentApi } from '../../../api/containment';
-import { TemplateApi } from '../../../api/template';
+import { PersistableApi } from '../../../api/persistable';
+import { ParcelApi } from '../../../api/parcel';
+import { PersistableMixin } from '../../../lib/persistence/Persistable';
 import type { Stuff } from '../../../lib/stuff/Stuff';
 import type { Container } from '../../../lib/spatial/Container';
 import { makeStuff, makeStuffAtPath } from '../../../lib/security/__tests__/test-setup';
@@ -109,15 +111,15 @@ describe('lounge landing integration', () => {
     expect((host2 as Stuff).isDestroyed()).toBe(false);
   });
 
-  it('recall round-trip: a saved startLocation=<Warren> resumes into a live host, never a dead instance (AC 5)', async () => {
-    // Minimal Containable avatar stand-in with a template doc, so we can
-    // snapshot recall state without the full Avatar clone pipeline.
-    class RecallHost extends ContainableMixin(Idea) {}
-    installStore(
-      loungeDocs([
-        { path: '/obj/Avatar/recall', class: '/obj/Avatar', data: {} } as Doc,
-      ]),
-    );
+  it('recall round-trip: a captured startLocation=<Warren> resumes into a live host, never a dead instance (AC 5)', async () => {
+    // Persistable Containable avatar stand-in, so we can capture recall
+    // state through the persistence spine without the full Avatar pipeline.
+    class RecallHost extends PersistableMixin(ContainableMixin(Idea)) {}
+    const store = installStore(loungeDocs());
+    vi.spyOn(ParcelApi, 'ownerOf').mockResolvedValue({
+      kind: 'group',
+      name: 'core',
+    });
     const warren = await StuffApi.singleton<LoungeWarren>(
       LoungeWarren.WARREN_PATH,
     );
@@ -128,14 +130,19 @@ describe('lounge landing integration', () => {
     );
     ContainmentApi.move(player as never, host as unknown as Stuff & Container);
 
-    // Logout snapshot persists the Warren ref, not the transient room.
-    const tpl = await TemplateApi.snapshotToTemplate(player as unknown as Stuff);
-    expect(tpl.data.startLocation).toBe(LoungeWarren.WARREN_PATH);
+    // Logout capture persists the Warren ref (place.startLocation), not the
+    // transient room.
+    await PersistableApi.capture(player as unknown as Stuff);
+    const rec = store.find(
+      (d) => (d as Record<string, unknown>).scope === '/obj/Avatar/recall',
+    ) as Record<string, unknown> | undefined;
+    const place = rec?.place as { startLocation?: string } | undefined;
+    expect(place?.startLocation).toBe(LoungeWarren.WARREN_PATH);
 
     // New session: the saved startLocation is the Warren, so recall
     // resolves through getHost() to a LIVE host (the same one, alive).
     const warren2 = await StuffApi.singleton<LoungeWarren>(
-      tpl.data.startLocation as string,
+      place!.startLocation as string,
     );
     const resumed = await warren2.getHost();
     expect((resumed as Stuff).isDestroyed()).toBe(false);

@@ -7,8 +7,9 @@
  * is a member by virtue of being in that set, NOT by composing this
  * mixin. Compose `WarrenMemberMixin` only when the location-side needs a
  * back-ref to its Warren — for the single-warren guard, for "which
- * Warren am I in" reads, and for the durable-recall save-delegation hook
- * (`TemplateApi.snapshotToTemplate` consults `getWarren()`).
+ * Warren am I in" reads, and for the durable-recall capture hook (the
+ * persistence spine's `PersistableLogic.capturePlacement` consults
+ * `getWarren()`).
  *
  * What this mixin is NOT for: it is not a "this is a lounge room" marker
  * (that is `LoungeMixin`), it does not make the host a container of or

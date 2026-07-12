@@ -80,6 +80,12 @@ import type { Author } from '../lib/shell/Author';
 import type { Perceiver } from '../lib/description/Perceiver';
 import type { Scryable } from '../lib/perception/Scryable';
 import type { Slotted } from '../lib/slot/Slotted';
+import type { Persistable } from '../lib/persistence/Persistable';
+import type {
+  MixinSlice,
+  CaptureContext,
+  RestoreContext,
+} from '../lib/persistence/PersistenceSlice';
 import type { Slottable } from '../lib/slot/Slottable';
 import type { Wearable } from '../lib/slot/Wearable';
 import type { Wieldable } from '../lib/slot/Wieldable';
@@ -138,6 +144,25 @@ export { Mixins } from '../lib/mixin';
 export type AnyConstructor = Function & { prototype: unknown };
 
 /** Shape of a mixin constructor — what queryMixins() returns elements of. */
+/**
+ * One entry from {@link MixinApi.getPersistenceContributors}: a
+ * prototype-chain layer that contributes serialization to the persistence
+ * spine. `key` is the layer's stable name (its slice key in a record's
+ * `state`); `fields` are that layer's OWN declared persistent fields (the
+ * default slice); `captureSlice` / `restoreSlice` are the optional non-field
+ * hooks (`Container` / `Slotted`).
+ */
+export interface PersistenceContributor {
+  key: string;
+  fields: string[];
+  captureSlice?: (host: Stuff, ctx: CaptureContext) => MixinSlice;
+  restoreSlice?: (
+    host: Stuff,
+    slice: MixinSlice,
+    ctx: RestoreContext,
+  ) => Promise<void>;
+}
+
 interface MixinClass {
   _mixinName?: string;
   name?: string;
@@ -475,6 +500,78 @@ export class MixinApi {
   }
 
   /**
+   * The persistence-spine per-mixin contributor walk — the sibling of
+   * {@link getAllPersistentFields}, one entry per prototype-chain layer
+   * that contributes serialization. Each entry names the layer (its
+   * `_mixinName` or class name — the key its slice lands under in a
+   * {@link PersistedRecord}'s `state`), that layer's OWN declared
+   * `persistentFields` (the default-slice fields — NOT the aggregated
+   * chain, so each layer's slice is independent), and its optional
+   * `captureSlice` / `restoreSlice` hooks (present on `Container` /
+   * `Slotted`, which serialize non-field state).
+   *
+   * Walked concrete-class-first (chain order) and de-duplicated by key so
+   * the first declaration of a key wins. `PersistableLogic` drives capture
+   * and restore over this list.
+   *
+   * @param constructor - The class constructor to inspect
+   * @returns One descriptor per contributing layer, in chain order
+   */
+  public static getPersistenceContributors(
+    constructor: AnyConstructor,
+  ): PersistenceContributor[] {
+    const out: PersistenceContributor[] = [];
+    const seen = new Set<string>();
+    let current: unknown = constructor;
+
+    while (current && current !== Object && (current as MixinClass).prototype) {
+      const c = current as MixinClass & {
+        captureSlice?: unknown;
+        restoreSlice?: unknown;
+      };
+      // OWN `_mixinName` only — the static is inherited, so a concrete
+      // subclass (e.g. `ContentChest extends ContainerMixin(...)`) would
+      // otherwise borrow its base mixin's name as its key, colliding with
+      // that mixin's real layer. Fall back to the class name for concrete
+      // (non-mixin) layers.
+      const ownMixinName = Object.prototype.hasOwnProperty.call(
+        c,
+        '_mixinName',
+      )
+        ? c._mixinName
+        : undefined;
+      const key = ownMixinName || c.name;
+      const ownFields =
+        Object.prototype.hasOwnProperty.call(c, 'persistentFields') &&
+        Array.isArray(c.persistentFields)
+          ? c.persistentFields
+          : [];
+      const hasCapture =
+        Object.prototype.hasOwnProperty.call(c, 'captureSlice') &&
+        typeof c.captureSlice === 'function';
+      const hasRestore =
+        Object.prototype.hasOwnProperty.call(c, 'restoreSlice') &&
+        typeof c.restoreSlice === 'function';
+      if (key && !seen.has(key) && (ownFields.length > 0 || hasCapture)) {
+        seen.add(key);
+        out.push({
+          key,
+          fields: ownFields,
+          captureSlice: hasCapture
+            ? (c.captureSlice as PersistenceContributor['captureSlice'])
+            : undefined,
+          restoreSlice: hasRestore
+            ? (c.restoreSlice as PersistenceContributor['restoreSlice'])
+            : undefined,
+        });
+      }
+      current = Object.getPrototypeOf(current);
+    }
+
+    return out;
+  }
+
+  /**
    * Type-predicate narrowing helpers.
    *
    * Each predicate performs a runtime mixin check and threads the matching
@@ -727,6 +824,10 @@ export class MixinApi {
 
   public static isRadioactive(obj: Stuff): obj is Stuff & Radioactive {
     return this.hasMixin(obj, Mixins.Radioactive);
+  }
+
+  public static isPersistable(obj: Stuff): obj is Stuff & Persistable {
+    return this.hasMixin(obj, Mixins.Persistable);
   }
 
   public static isSlotted(obj: Stuff): obj is Stuff & Slotted {
