@@ -41,7 +41,7 @@ describe("AppSettingsSeeder", () => {
     pm.setFindResult([]);
     const added = await AppSettingsSeeder.run();
 
-    expect(added).toBe(52);
+    expect(added).toBe(73);
     expect(pm.saves).toHaveLength(1);
     expect(pm.saves[0]!.collection).toBe("app_settings");
     const values = savedValues(pm);
@@ -120,6 +120,28 @@ describe("AppSettingsSeeder", () => {
           [AppSettingKeys.residencyEvictionMode]: "observe",
           [AppSettingKeys.residencyEvictionIntervalMs]: "60000",
           [AppSettingKeys.residencyEvictionIdleThresholdMs]: "1800000",
+          // The 21 materials-response tuning keys.
+          [AppSettingKeys.responseAttenuationDeflect]: "0.98",
+          [AppSettingKeys.responseAttenuationResist]: "0.7",
+          [AppSettingKeys.responseAttenuationAbsorb]: "0.75",
+          [AppSettingKeys.responseAttenuationModerate]: "0.5",
+          [AppSettingKeys.responseAttenuationPoor]: "0.2",
+          [AppSettingKeys.responseAttenuationTransmit]: "0.1",
+          [AppSettingKeys.responseAttenuationFail]: "0",
+          [AppSettingKeys.responseMaterialHardnessRef]: "600",
+          [AppSettingKeys.responseMaterialToughnessRef]: "200",
+          [AppSettingKeys.responseMaterialScaleMax]: "1.5",
+          [AppSettingKeys.responseMaterialHeightFloor]: "0.6",
+          [AppSettingKeys.responseGradeMin]: "0.85",
+          [AppSettingKeys.responseGradeMax]: "1.15",
+          [AppSettingKeys.responseConditionMin]: "0.5",
+          [AppSettingKeys.responseBluntFractureThreshold]: "1.5",
+          [AppSettingKeys.responseNoWoundThreshold]: "0.25",
+          [AppSettingKeys.responseSeverityPerResidual]: "1",
+          [AppSettingKeys.responsePreviewReferenceEnergy]: "2",
+          [AppSettingKeys.responseDeliverySecondaryFactor]: "0.6",
+          [AppSettingKeys.responseBandGrazeMax]: "0.5",
+          [AppSettingKeys.responseBandBiteMax]: "1.5",
         },
       },
     ]);
@@ -145,8 +167,11 @@ describe("AppSettingsSeeder", () => {
     // + 3 social (social.baselineRules, social.defaultColor, social.idleAfter)
     // + 4 bulletin (tickerWindow, maxPins, headlineMaxLength, bodyMaxLength)
     // + 3 residency (eviction.mode, .intervalMs, .idleThresholdMs)
-    // + 4 transit (banking.onboardingStipend + 3 fasttravel fare keys).
-    expect(added).toBe(51);
+    // + 4 transit (banking.onboardingStipend + 3 fasttravel fare keys)
+    // + 21 materials-response (7 attenuation + 4 material + 2 grade
+    //   + condition + fracture + noWound + severityPerResidual
+    //   + referenceEnergy + secondaryFactor + 2 band).
+    expect(added).toBe(72);
     expect(pm.saves).toHaveLength(1);
     const values = savedValues(pm);
     // operator value preserved, missing keys seeded
