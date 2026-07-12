@@ -1,16 +1,21 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, afterEach } from 'vitest';
+import { StuffApi } from '../../../api/stuff';
 import Armor from '../Armor';
 import Weapon from '../Weapon';
 import Material from '../../material/Material';
+import Thing from '../../stuff/Thing';
 import { Construction } from '../../material/Construction';
 import { Grade } from '../../craft/Grade';
 import { MaterialApi } from '../../../api/material';
 import { MixinApi } from '../../../api/mixin';
 import { Quantity } from '../../quantity';
+import type { Stuff } from '../../stuff/Stuff';
 import {
   makeStuff,
   stampTemplatePathForTest,
 } from '../../security/__tests__/test-setup';
+
+afterEach(() => StuffApi.clearAll());
 
 function steel(): Material {
   const m = makeStuff(() => new Material());
@@ -58,6 +63,26 @@ describe('Weapon — delivery half', () => {
     expect(MixinApi.isGraded(w)).toBe(true);
     expect(MixinApi.isTool(w)).toBe(true);
     expect(MixinApi.isWearable(w)).toBe(false);
+  });
+
+  it('renders per-channel pips on the long description (author + player)', () => {
+    const viewer = makeStuff(() => new Thing()) as unknown as Stuff;
+    const steelMat = steel(); // one singleton — shared by both pieces
+
+    const breastplate = makeStuff(() => new Armor());
+    breastplate.setMaterial(steelMat);
+    breastplate.setConstruction(Construction.of('plate'));
+    const armorOut = breastplate.getMarkupLong(viewer);
+    expect(armorOut).toContain('Protection');
+    expect(armorOut).toContain('edge');
+    expect(armorOut).toContain('●'); // at least some filled pips
+
+    const dagger = makeStuff(() => new Weapon());
+    dagger.setMaterial(steelMat);
+    dagger.setConstruction(Construction.of('bladed'));
+    const weaponOut = dagger.getMarkupLong(viewer);
+    expect(weaponOut).toContain('Delivery');
+    expect(weaponOut).toContain('blunt ○○○○'); // a blade delivers no blunt
   });
 
   it('a dagger delivers edge/point; a mace delivers blunt', () => {

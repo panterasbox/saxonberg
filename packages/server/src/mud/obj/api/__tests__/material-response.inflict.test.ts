@@ -227,6 +227,46 @@ describe('materials-response — inflict through the covering stack', () => {
     expect(layeredSeverity).toBeLessThan(mailSeverity);
   });
 
+  it('the preview band matches the resolved inflict outcome (shared chokepoint)', () => {
+    // The legibility invariant: analyze-response previews via the SAME
+    // MaterialApi.previewBand chokepoint inflict resolves through, at the
+    // canonical reference energy (2) — so the previewed band is exactly
+    // what a real blow lands. Assert equality across a few forms/channels.
+    const steelMat = steel();
+    const cases = [
+      ['plate', 'edge'], // deflected → turned
+      ['mail', 'edge'], // resisted
+      ['mail', 'point'], // penetrates
+    ] as const;
+    for (const [form, channel] of cases) {
+      const body = bodied();
+      const a = makeStuff(() => new Armor());
+      a.setMaterial(steelMat);
+      a.setConstruction(Construction.of(form));
+      a.setSlotClaim(planPathOf(body), ['torso']);
+      (body as unknown as { occupy(x: unknown, s: string): void }).occupy(
+        a,
+        'torso',
+      );
+
+      const out = ConditionApi.inflict(body, {
+        mechanism: channel,
+        site: 'body.torso',
+        energy: 2,
+      });
+      const w = trauma(body);
+      const inflictBand = MaterialApi.severityToBand(w ? w.severity : null);
+      const preview = MaterialApi.previewBand(
+        channel,
+        steelMat,
+        Construction.of(form),
+        a.getGrade(),
+        a.getCondition(),
+      );
+      expect(preview).toBe(inflictBand);
+    }
+  });
+
   it('coverage is degree, not presence — a covered site turns what an uncovered gap takes', () => {
     const c = bodied();
     wearTorso(c, steel(), 'plate'); // torso covered, feet bare

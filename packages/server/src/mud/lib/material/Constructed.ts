@@ -19,6 +19,15 @@
 
 import type { MixinConstructor } from '../mixin';
 import { Construction } from './Construction';
+import { CHANNELS } from './Channel';
+import type { Channel } from './Channel';
+import { MixinApi } from '../../api/mixin';
+import { Mixins } from '../mixin';
+import { MaterialApi, OUTCOME_BANDS } from '../../api/material';
+import type { MarkupAugmenter } from '../../api/mml';
+import type { Stuff } from '../stuff/Stuff';
+import type { Graded } from '../craft/Graded';
+import type { Tooled } from '../craft/Tooled';
 
 export interface Constructed {
   /** The persisted form word (e.g. `'plate'`). Host/persist surface. */
@@ -60,5 +69,66 @@ export function ConstructedMixin<TBase extends MixinConstructor>(Base: TBase) {
     setConstruction(value: Construction): void {
       this.constructionForm = value.getForm();
     }
+
+    /**
+     * The per-item legibility pips — a derived per-channel profile line
+     * appended to the host's long description, for author *and* player (the
+     * `BrandedMixin` "a product of X" precedent). Pure server projection
+     * over `MaterialApi.previewBand` — the same chokepoint `inflict` reads.
+     */
+    static markupAugmenters: MarkupAugmenter[] = [responsePipsAugmenter];
   };
+}
+
+/** A 4-cell filled/empty pip bar. */
+function pipBar(intensity: number): string {
+  const n = Math.max(0, Math.min(4, Math.round(intensity)));
+  return '●'.repeat(n) + '○'.repeat(4 - n);
+}
+
+/**
+ * Append the derived per-channel response profile to a Constructed host's
+ * long description. Armor renders **protection** pips (how well it turns
+ * each channel — turned ●●●● … bites-deep ●○○○); a weapon renders
+ * **delivery** pips (the threat it presents on each channel — none ○○○○ …
+ * bites-deep ●●●●). Non-Constructed / formless hosts pass through unchanged.
+ */
+function responsePipsAugmenter(
+  text: string,
+  host: Stuff,
+  _viewer: Stuff,
+): string {
+  if (!MixinApi.isConstructed(host)) return text;
+  const construction = host.getConstruction();
+  if (!construction) return text;
+  const material = MaterialApi.materialOf(host);
+  const grade = MixinApi.isGraded(host)
+    ? (host as unknown as Graded).getGrade()
+    : undefined;
+  const condition = MixinApi.isTool(host)
+    ? (host as unknown as Tooled).getCondition()
+    : undefined;
+
+  const armor = construction.isArmor();
+  const cells = CHANNELS.map((channel: Channel) => {
+    const band = MaterialApi.previewBand(
+      channel,
+      material,
+      construction,
+      grade,
+      condition,
+    );
+    const bandIndex = OUTCOME_BANDS.indexOf(band); // 0 turned … 3 bites-deep
+    let intensity: number;
+    if (armor) {
+      intensity = 4 - bandIndex; // turned → best protection
+    } else {
+      intensity =
+        construction.deliveryFor(channel) === 'none' ? 0 : bandIndex + 1;
+    }
+    return `${channel} ${pipBar(intensity)}`;
+  });
+  const label = armor ? 'Protection' : 'Delivery';
+  const line = `${label} — ${cells.join(' · ')}`;
+  return text && text.length > 0 ? `${text}\n\n${line}` : line;
 }

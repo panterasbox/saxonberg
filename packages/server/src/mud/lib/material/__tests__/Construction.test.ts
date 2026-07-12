@@ -122,4 +122,26 @@ describe('Construction', () => {
       false,
     );
   });
+
+  it('no shipped form does nothing (the does-nothing lint invariant)', () => {
+    for (const form of CONSTRUCTION_FORMS) {
+      expect(Construction.of(form).doesNothing()).toBe(false);
+    }
+  });
+
+  it('the inert predicates flag a deliberately-inert profile', () => {
+    // An all-fail armor profile and an all-none delivery profile do nothing.
+    expect(
+      Construction.resistProfileHasEffect(['fail', 'fail', 'fail']),
+    ).toBe(false);
+    expect(
+      Construction.resistProfileHasEffect(['fail', 'deflect', 'fail']),
+    ).toBe(true);
+    expect(
+      Construction.deliveryProfileHasEffect(['none', 'none', 'none']),
+    ).toBe(false);
+    expect(
+      Construction.deliveryProfileHasEffect(['none', 'primary', 'none']),
+    ).toBe(true);
+  });
 });

@@ -130,6 +130,17 @@ const LAYER_DEPTH: Record<ArmorForm, number> = {
   plate: 3,
 };
 
+/**
+ * Armor-resistance tokens that provide **zero** mitigation — a construction
+ * whose every channel resolves to one of these does nothing to anyone (the
+ * does-nothing lint's smell). `fail` is the only genuinely-inert token
+ * (`transmit` still attenuates a little). Kept beside the profile tables so
+ * a new token forces a conscious inert/not decision.
+ */
+const INERT_RESIST_TOKENS: ReadonlySet<ResistToken> = new Set<ResistToken>([
+  'fail',
+]);
+
 // ---------- predicates ----------
 
 function isArmorForm(s: string): s is ArmorForm {
@@ -285,5 +296,37 @@ export class Construction {
   /** Form-word equality. */
   public equals(other: Construction): boolean {
     return this._form === other._form;
+  }
+
+  /**
+   * True iff this construction has **no effect on any channel** — an armor
+   * form that mitigates nothing everywhere, or a weapon form that delivers
+   * nothing everywhere. The authoring smell the does-nothing lint flags. A
+   * healthy roster returns `false` for every form.
+   */
+  public doesNothing(): boolean {
+    if (isArmorForm(this._form)) {
+      const tokens = CHANNELS.map((c) => ARMOR_PROFILES[this._form as ArmorForm][c]);
+      return !Construction.resistProfileHasEffect(tokens);
+    }
+    const tokens = CHANNELS.map(
+      (c) => DELIVERY_PROFILES[this._form as DeliveryForm][c],
+    );
+    return !Construction.deliveryProfileHasEffect(tokens);
+  }
+
+  /** Does an armor resist profile mitigate on at least one channel? (pure —
+   * fixture-testable by the does-nothing lint). */
+  public static resistProfileHasEffect(
+    tokens: readonly ResistToken[],
+  ): boolean {
+    return tokens.some((t) => !INERT_RESIST_TOKENS.has(t));
+  }
+
+  /** Does a weapon delivery profile deliver on at least one channel? (pure). */
+  public static deliveryProfileHasEffect(
+    tokens: readonly DeliveryToken[],
+  ): boolean {
+    return tokens.some((t) => t !== 'none');
   }
 }
