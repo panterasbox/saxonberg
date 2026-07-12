@@ -43,6 +43,8 @@ const V1_QUANTITY_UNITS: ReadonlyArray<Unit> = [
   'J/(kg·K)',
   'clo',
   'm/s',
+  'MPa',
+  'MJ/m³',
 ];
 
 /**

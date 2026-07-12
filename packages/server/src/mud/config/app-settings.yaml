@@ -234,3 +234,58 @@ settings:
     value: "60000"
   - key: residency.eviction.idleThresholdMs
     value: "1800000"
+
+  # Materials-response — the response function's magnitudes (the "shape"
+  # lives in code on `Construction`; these are the coefficients each
+  # qualitative token resolves to). Tuned against a running game; no code
+  # invariant. See docs/subsystems/materials-response.md.
+  # Per-token base attenuation fraction (0..1): deflect turns almost
+  # everything, transmit passes almost everything, fail is a defeated
+  # construction.
+  - key: response.attenuation.deflect
+    value: "0.98"
+  - key: response.attenuation.resist
+    value: "0.7"
+  - key: response.attenuation.absorb
+    value: "0.75"
+  - key: response.attenuation.moderate
+    value: "0.5"
+  - key: response.attenuation.poor
+    value: "0.2"
+  - key: response.attenuation.transmit
+    value: "0.1"
+  - key: response.attenuation.fail
+    value: "0"
+  # Reference material magnitudes (steel) the height ratio scales against.
+  - key: response.material.hardnessRef
+    value: "600"
+  - key: response.material.toughnessRef
+    value: "200"
+  - key: response.material.scaleMax
+    value: "1.5"
+  - key: response.material.heightFloor
+    value: "0.6"
+  # Grade / condition height-scale bounds (poor..masterful → min..max;
+  # condition floors at conditionMin so a wrecked item still does something).
+  - key: response.grade.min
+    value: "0.85"
+  - key: response.grade.max
+    value: "1.15"
+  - key: response.condition.min
+    value: "0.5"
+  # Tissue tail.
+  - key: response.blunt.fractureThreshold
+    value: "1.5"
+  - key: response.noWoundThreshold
+    value: "0.25"
+  - key: response.severityPerResidual
+    value: "1"
+  # Legibility preview + weapon delivery + outcome bands.
+  - key: response.preview.referenceEnergy
+    value: "2"
+  - key: response.delivery.secondaryFactor
+    value: "0.6"
+  - key: response.band.grazeMax
+    value: "0.5"
+  - key: response.band.biteMax
+    value: "1.5"

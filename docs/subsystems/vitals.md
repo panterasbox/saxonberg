@@ -266,24 +266,22 @@ deferred.
 Remaining deferred: reserve drain/replenish producers, disease/poison/
 affliction content, measure-on-patient instruments, the physical-attribute
 readings, the anatomy graph + part-promotion (avulsion sever — see
-harm.md), postmortem fidelity, contagion, and the **materials-response
-severity function** (v1 severity is magnitude-only; mechanism is recorded,
-not scored — see harm.md).
+harm.md), postmortem fidelity, and contagion.
 
-**Forward-compat — mechanism of injury (combat).** When a combat system
-lands, it plugs into labeled sockets here without reshaping the
-substrate: `afflict()` is the door an insult comes through; a future
-`inflict(target, …)` builds a `Trauma` (mechanism + `site` + energy →
-outcome) and calls it. `TraumaType` is closed-but-extensible (grow it
-additively: `puncture` / `abrasion` / `electrical-injury` / `blast`), and
-the per-part tissue Materials are where a future `Material` damage-
-response will read from — the `resistance.<type>` prop convention is
-deferred with combat (see race.md), to be modeled honestly when the
-mechanism-of-injury system lands. **"Damage type" is explicitly not the
-model** — mechanism-of-injury meets body material; see the
-channels-not-nouns decomposition in
-[capability-magic-slate.md](../slates/deferred-rpg/capability-magic-slate.md)
-for the magic-side mirror.
+**Mechanism of injury — LANDED (materials-response).** The parked "with
+combat" seam is now built: `afflict()` is still the door an insult comes
+through, and `ConditionApi.inflict` builds the `Trauma` — but severity and
+type now derive from the **materials-response function**
+(`f(mechanism, material, construction) × grade × condition`), resolving a
+`Channel` insult outside-in through the covering stack into the per-part
+tissue Materials. `Material` gained real `hardness`/`toughness` `Quantity`s
+(NOT the old `resistance.<type>` 0–1 scalars — that convention is dead);
+`TraumaType` grew `puncture`. **"Damage type" is explicitly not the model** —
+the interactions are (channels-not-nouns). See
+[materials-response.md](./materials-response.md). Still deferred: the combat
+loop / playstyle, the tissue-vulnerability term, other channels
+(crush/heat/cold), and the magic-side mirror
+([capability-magic-slate.md](../slates/deferred-rpg/capability-magic-slate.md)).
 
 ## Cross-references
 

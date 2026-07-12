@@ -16,6 +16,7 @@ import { makeStuff } from '../../security/__tests__/test-setup';
 
 const ALL_TRAUMA: TraumaType[] = [
   'laceration',
+  'puncture',
   'fracture',
   'contusion',
   'avulsion',
@@ -56,6 +57,29 @@ describe('TRAUMA_BEHAVIOR table', () => {
     t.bleeding = false;
     t.dressed = true;
     expect(TRAUMA_BEHAVIOR.laceration.describe(t)).toContain('dressed');
+  });
+
+  it('puncture shares the laceration bleed family (clot-gate parity)', () => {
+    const host = {
+      getVitalSign: () => ({ rawValue: () => 5 }),
+      setVitalSign: () => {},
+    } as never;
+    const t: Trauma = {
+      kind: 'trauma',
+      type: 'puncture',
+      site: 'body.torso',
+      severity: 1,
+    };
+    // onset opens the bleed (laceration parity).
+    TRAUMA_BEHAVIOR.puncture.onset(host, t);
+    expect(t.bleeding).toBe(true);
+    expect(TRAUMA_BEHAVIOR.puncture.describe(t)).toContain('puncture');
+    // resolve dresses + arrests; reopen re-arms above the clot threshold.
+    TRAUMA_BEHAVIOR.puncture.resolve(host, t);
+    expect(t.dressed).toBe(true);
+    expect(t.bleeding).toBe(false);
+    TRAUMA_BEHAVIOR.puncture.reopen(host, t);
+    expect(t.bleeding).toBe(true); // severity 1 > clot threshold
   });
 
   it('the NOOP exemplar tolerates onset/tick/resolve/reopen calls', () => {

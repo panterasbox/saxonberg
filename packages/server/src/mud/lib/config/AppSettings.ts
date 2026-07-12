@@ -308,6 +308,58 @@ export const AppSettingKeys = {
    * auto-rebind). See docs/subsystems/streaming.md.
    */
   youtubeOverlayPollIntervalMs: "youtube.overlayPollIntervalMs",
+
+  /**
+   * Materials-response — the response function's tuning coefficients (the
+   * "magnitude" half of the shape-vs-magnitude split). The engine ships the
+   * qualitative per-channel grid on `Construction` (the *shape* of the
+   * curve, in code) and the algorithm; these keys are the numeric heights
+   * each qualitative token resolves to (the *magnitudes*), plus the
+   * reference material magnitudes and the tissue-tail thresholds. No magic
+   * balance number is a code invariant — consumers read with a fallback to
+   * the seeded literal so a pre-warm / test read is safe. See
+   * docs/subsystems/materials-response.md.
+   */
+  /** Response — per-token base attenuation fraction (0..1). */
+  responseAttenuationDeflect: "response.attenuation.deflect",
+  responseAttenuationResist: "response.attenuation.resist",
+  responseAttenuationAbsorb: "response.attenuation.absorb",
+  responseAttenuationModerate: "response.attenuation.moderate",
+  responseAttenuationPoor: "response.attenuation.poor",
+  responseAttenuationTransmit: "response.attenuation.transmit",
+  responseAttenuationFail: "response.attenuation.fail",
+  /** Response — reference material magnitudes the height ratio scales against. */
+  responseMaterialHardnessRef: "response.material.hardnessRef",
+  responseMaterialToughnessRef: "response.material.toughnessRef",
+  /** Response — clamp ceiling on the normalized material height. */
+  responseMaterialScaleMax: "response.material.scaleMax",
+  /** Response — the structural floor of a material's height on any channel.
+   * A construction's response is largely structural (a hide jerkin's give, a
+   * plate's rigidity), so the token sets the protection ceiling and the
+   * material modulates within `[floor, 1]` rather than gating from zero — a
+   * soft absorber still absorbs, a boot still turns a shallow cut. */
+  responseMaterialHeightFloor: "response.material.heightFloor",
+  /** Response — grade height-scale bounds (poor..masterful → min..max). */
+  responseGradeMin: "response.grade.min",
+  responseGradeMax: "response.grade.max",
+  /** Response — condition height-scale floor (a wrecked item at 0 condition). */
+  responseConditionMin: "response.condition.min",
+  /** Response — residual energy at/above which a blunt blow to a boned part
+   * fractures (vs contuses). */
+  responseBluntFractureThreshold: "response.blunt.fractureThreshold",
+  /** Response — residual energy below which no meaningful wound lands
+   * (deflected). */
+  responseNoWoundThreshold: "response.noWoundThreshold",
+  /** Response — residual-energy → trauma-severity scalar (the tissue tail). */
+  responseSeverityPerResidual: "response.severityPerResidual",
+  /** Response — the canonical incident energy the legibility preview uses. */
+  responsePreviewReferenceEnergy: "response.preview.referenceEnergy",
+  /** Response — energy factor for a weapon's secondary delivery channel. */
+  responseDeliverySecondaryFactor: "response.delivery.secondaryFactor",
+  /** Response — outcome-band cutoffs (severity < grazeMax → grazes; <
+   * biteMax → bites; ≥ → bites-deep). */
+  responseBandGrazeMax: "response.band.grazeMax",
+  responseBandBiteMax: "response.band.biteMax",
 } as const;
 
 export type AppSettingKey =

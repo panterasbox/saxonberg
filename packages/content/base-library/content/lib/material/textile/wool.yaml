@@ -9,6 +9,9 @@ data:
   keywords: [wool]
   density: 1310
   thermalConductivity: 0.04
+  # Mechanical response (materials-response): MPa / MJ·m⁻³, marshalled.
+  hardness: 3
+  toughness: 4
   specificHeat: 1360
   edibility: false
   nutrients: []

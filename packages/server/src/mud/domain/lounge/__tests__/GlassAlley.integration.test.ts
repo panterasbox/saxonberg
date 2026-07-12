@@ -24,6 +24,10 @@ import UndressController from '../../../obj/command/medical/UndressController';
 import { MobileMixin } from '../../../lib/spatial/Mobile';
 import { WearableMixin } from '../../../lib/slot/Wearable';
 import { SlottableMixin } from '../../../lib/slot/Slottable';
+import { ConstructedMixin } from '../../../lib/material/Constructed';
+import { Construction } from '../../../lib/material/Construction';
+import Material from '../../../lib/material/Material';
+import { Quantity } from '../../../lib/quantity';
 import { Creature } from '../../../lib/creature/Creature';
 import Species from '../../../lib/species/Species';
 import BodyPlan from '../../../lib/species/BodyPlan';
@@ -54,9 +58,21 @@ let bodyplanPath = '';
 class MobileCreature extends MobileMixin(Creature) {
   static _mixinName = 'MobileCreature';
 }
-const Boot = WearableMixin(SlottableMixin(Thing));
+// A stout iron-shod boot: a Constructed steel-plate Wearable that turns the
+// alley's edge through the real materials-response covering stack.
+const Boot = WearableMixin(SlottableMixin(ConstructedMixin(Thing)));
 class DemoBoot extends Boot {
   static _mixinName = 'DemoBoot';
+}
+
+/** The steel the demo boot is soled with (registered so materialOf resolves). */
+function demoSteel(): Material {
+  const m = makeStuff(() => new Material());
+  m.setName('steel');
+  m.setHardness(Quantity.of(600, 'MPa'));
+  m.setToughness(Quantity.of(200, 'MJ/m³'));
+  stampTemplatePathForTest(m, `/lib/material/alloy/steel-demo-${n}`);
+  return m;
 }
 
 function footedBodyPlan(): BodyPlan {
@@ -162,12 +178,16 @@ describe('GlassAlley — coverage gate', () => {
     expect(w!.bleeding).toBe(true);
   });
 
-  it('does not cut a shod foot', async () => {
+  it('does not cut a stoutly-shod foot', async () => {
     const m = mover('/obj/Avatar/shod');
     const boot = makeStuff(() => new DemoBoot());
     boot.setSlotClaim(bodyplanPath, ['feet']);
+    boot.setMaterial(demoSteel());
+    boot.setConstruction(Construction.of('plate'));
     m.occupy(boot, 'feet');
     await walkIntoAlley(m);
+    // The steel-plate boot's covering layer attenuates the edge below the
+    // no-wound threshold — coverage *degree*, resolved through inflict.
     expect(wound(m)).toBeUndefined();
   });
 });

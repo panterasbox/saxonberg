@@ -44,7 +44,7 @@ describe('ConditionLogic.inflict — producer spine', () => {
   it('maps mechanism → type, energy → severity, records the mechanism', () => {
     const body = makeStuff(() => new Creature());
     const out = ConditionApi.inflict(body, {
-      mechanism: 'sharp',
+      mechanism: 'edge',
       site: 'body.leg.left.foot',
       energy: 1.5,
     });
@@ -54,18 +54,24 @@ describe('ConditionLogic.inflict — producer spine', () => {
     expect(t.type).toBe('laceration');
     expect(t.site).toBe('body.leg.left.foot');
     expect(t.severity).toBeCloseTo(1.5, 6);
-    expect(t.mechanism).toBe('sharp');
+    expect(t.mechanism).toBe('edge');
   });
 
-  it('maps every mechanism to its trauma type', () => {
-    const cases: Array<[Parameters<typeof ConditionApi.inflict>[1]['mechanism'], string]> =
-      [
-        ['sharp', 'laceration'],
-        ['blunt', 'contusion'],
-        ['crushing', 'fracture'],
-        ['thermal', 'burn'],
-        ['tearing', 'avulsion'],
-      ];
+  it('maps each insult kind to its trauma type (unarmored)', () => {
+    // Channels resolve through the (empty, unarmored) stack to the tissue;
+    // the passthrough tokens map straight to burn / avulsion. This body has
+    // no authored body plan, so blunt contuses (no bone → no fracture); the
+    // blunt-through-plate → fracture path is exercised in the acceptance
+    // test with a boned body plan.
+    const cases: Array<
+      [Parameters<typeof ConditionApi.inflict>[1]['mechanism'], string]
+    > = [
+      ['edge', 'laceration'],
+      ['point', 'puncture'],
+      ['blunt', 'contusion'],
+      ['thermal', 'burn'],
+      ['tearing', 'avulsion'],
+    ];
     for (const [mechanism, type] of cases) {
       const body = makeStuff(() => new Creature());
       ConditionApi.inflict(body, { mechanism, site: 'body.torso', energy: 1 });
@@ -86,7 +92,7 @@ describe('ConditionLogic.inflict — producer spine', () => {
         cmdFrame(giver),
         () => {
           ConditionApi.inflict(body, {
-            mechanism: 'sharp',
+            mechanism: 'edge',
             site: 'body.torso',
             energy: 1,
           });
@@ -110,7 +116,7 @@ describe('ConditionLogic.inflict — producer spine', () => {
         cmdFrame(giver, true),
         () => {
           ConditionApi.inflict(body, {
-            mechanism: 'sharp',
+            mechanism: 'edge',
             site: 'body.torso',
             energy: 1,
           });
@@ -124,7 +130,7 @@ describe('ConditionLogic.inflict — producer spine', () => {
   it('leaves the inflicter undefined outside any command frame', () => {
     const body = makeStuff(() => new Creature());
     ConditionApi.inflict(body, {
-      mechanism: 'sharp',
+      mechanism: 'edge',
       site: 'body.torso',
       energy: 1,
     });
@@ -134,7 +140,7 @@ describe('ConditionLogic.inflict — producer spine', () => {
   it('afflicts nothing on a non-wound-able (non-Vitals) target', () => {
     const notABody = makeStuff(() => new Thing());
     const out = ConditionApi.inflict(notABody, {
-      mechanism: 'sharp',
+      mechanism: 'edge',
       site: 'body.torso',
       energy: 1,
     });
@@ -147,7 +153,7 @@ describe('ConditionLogic.inflict — producer spine', () => {
     const body = makeStuff(() => new Creature());
     let threw = false;
     try {
-      raw.inflict(body, { mechanism: 'sharp', site: 'body.torso', energy: 1 });
+      raw.inflict(body, { mechanism: 'edge', site: 'body.torso', energy: 1 });
     } catch {
       threw = true;
     }

@@ -1,0 +1,14 @@
+class: /lib/equipment/Armor
+hydratorClass: /lib/persistence/PersistentHydrator
+data:
+  shortDescription: a hide jerkin
+  primaryKeyword: jerkin
+  longDescription: >
+    A sleeveless jerkin of boiled leather, moulded to the chest. Middling
+    against everything and cheap — the poor traveller's protection.
+  slotClaims:
+    "/lib/body-plans/biped": [torso]
+  _materialPath: /lib/material/organic/leather
+  constructionForm: hide
+  gradeBand: fair
+  mass: 4

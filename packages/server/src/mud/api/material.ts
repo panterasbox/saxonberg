@@ -28,6 +28,10 @@
 import type { Stuff } from '../lib/stuff/Stuff';
 import type Material from '../lib/material/Material';
 import type { CompositionEntry } from '../lib/material/Material';
+import type { Channel } from '../lib/material/Channel';
+import type { Construction } from '../lib/material/Construction';
+import type { Grade } from '../lib/craft/Grade';
+import type { TraumaType } from '../lib/vitals/Condition';
 import { StuffApi } from './stuff';
 import { HotReloadApi } from './hot-reload';
 import { SecurityApi } from './security';
@@ -78,6 +82,34 @@ export interface MaterialComposition {
    * `flat`.
    */
   flat: Record<string, number>;
+}
+
+// ---------- the materials-response function (three-axis) ----------
+
+/**
+ * The qualitative outcome of a blow — a small ordinal band the legibility
+ * surface renders and the `inflict` outcome can be classified into. Coarse
+ * on purpose (Settled 11 — "bands make the target forgiving"): the exact
+ * severity number is never player-facing.
+ */
+export const OUTCOME_BANDS = ['turned', 'grazes', 'bites', 'bites-deep'] as const;
+/** An outcome band — one of {@link OUTCOME_BANDS}. */
+export type OutcomeBand = (typeof OUTCOME_BANDS)[number];
+
+/** One layer's attenuation result: what energy passes inward, on which channel. */
+export interface AttenuationResult {
+  /** Residual energy passing inward to the next layer / tissue. */
+  residualEnergy: number;
+  /** The channel the residual arrives on (unchanged in v1). */
+  channel: Channel;
+}
+
+/** The tissue meeting's verdict — a trauma type + magnitude, or null (deflected). */
+export interface TraumaResolution {
+  /** Which trauma the residual produces at the tissue. */
+  type: TraumaType;
+  /** The wound severity magnitude. */
+  severity: number;
 }
 
 export class MaterialApi {
@@ -140,6 +172,95 @@ export class MaterialApi {
    */
   public static findByElement(symbol: string): Material[] {
     return logic().findByElement(symbol);
+  }
+
+  // ---------- materials-response (the three-axis response function) ----------
+
+  /**
+   * Attenuate one blow through **one armor layer**. Reads the layer's
+   * construction profile (the qualitative token → an AppSettings base
+   * fraction — the shape-vs-magnitude split), scales that height by the
+   * layer material's hardness/toughness and by its `grade × condition`, and
+   * returns the residual energy passing inward. A non-armor (weapon)
+   * construction passes the energy through unchanged. The per-layer half of
+   * the outside-in covering-stack fold.
+   */
+  public static attenuate(
+    channel: Channel,
+    energy: number,
+    material: Material | null,
+    construction: Construction,
+    grade?: Grade,
+    condition?: number,
+  ): AttenuationResult {
+    return logic().attenuate(
+      channel,
+      energy,
+      material,
+      construction,
+      grade,
+      condition,
+    );
+  }
+
+  /**
+   * Resolve the residual energy meeting tissue into a trauma — the tail of
+   * a blow. `edge → laceration`, `point → puncture`, `blunt → fracture`
+   * (a boned part at/above the fracture threshold) else `contusion`.
+   * Returns `null` when the residual is below the no-wound threshold (the
+   * blow was turned). Both severity AND type derive here — the single
+   * chokepoint harm reads.
+   */
+  public static resolveTrauma(
+    channel: Channel,
+    energy: number,
+    tissueMaterial: Material | null,
+    partHasBone: boolean,
+  ): TraumaResolution | null {
+    return logic().resolveTrauma(channel, energy, tissueMaterial, partHasBone);
+  }
+
+  /**
+   * The legibility preview — "what would this do?". For an **armor**
+   * construction: a canonical reference blow on `channel`, attenuated
+   * through the piece then met at tissue, banded. For a **weapon-delivery**
+   * construction: the blow it delivers on `channel`, banded (or `turned`
+   * when the form delivers nothing there). Runs the SAME functions as
+   * `attenuate` / `resolveTrauma`, so a preview band always matches the
+   * resolved `inflict` outcome for identical inputs.
+   */
+  public static previewBand(
+    channel: Channel,
+    material: Material | null,
+    construction: Construction,
+    grade?: Grade,
+    condition?: number,
+  ): OutcomeBand {
+    return logic().previewBand(
+      channel,
+      material,
+      construction,
+      grade,
+      condition,
+    );
+  }
+
+  /** Band a resolved severity (or `null` = deflected). The shared classifier
+   * the preview and `inflict` both use. */
+  public static severityToBand(severity: number | null): OutcomeBand {
+    return logic().severityToBand(severity);
+  }
+
+  /** The channels a weapon-delivery construction can present (primary first);
+   * empty for an armor form. */
+  public static deliverableChannels(construction: Construction): Channel[] {
+    return logic().deliverableChannels(construction);
+  }
+
+  /** The single primary channel a weapon-delivery construction delivers, or
+   * `null`. */
+  public static primaryChannel(construction: Construction): Channel | null {
+    return logic().primaryChannel(construction);
   }
 }
 

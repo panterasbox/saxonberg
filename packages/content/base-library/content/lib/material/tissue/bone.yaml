@@ -10,6 +10,9 @@ data:
   density: 1900
   specificHeat: 1300
   thermalConductivity: 0.32
+  # Mechanical response (materials-response): MPa / MJ·m⁻³, marshalled.
+  hardness: 100
+  toughness: 6
   edibility: false
   nutrients: ["calcium"]
   tags: ["tissue", "animal", "bone", "mineral", "skeletal"]

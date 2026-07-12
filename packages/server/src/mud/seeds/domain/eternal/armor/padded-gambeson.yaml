@@ -1,0 +1,15 @@
+class: /lib/equipment/Armor
+hydratorClass: /lib/persistence/PersistentHydrator
+data:
+  shortDescription: a padded gambeson
+  primaryKeyword: gambeson
+  longDescription: >
+    A thick quilted coat of layered wool. It does little against an edge or
+    a point on its own, but soaks up a blunt blow — the soft underlayer worn
+    beneath mail.
+  slotClaims:
+    "/lib/body-plans/biped": [torso]
+  _materialPath: /lib/material/textile/wool
+  constructionForm: padded
+  gradeBand: fair
+  mass: 3

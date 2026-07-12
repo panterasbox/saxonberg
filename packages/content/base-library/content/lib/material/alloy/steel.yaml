@@ -9,6 +9,10 @@ data:
   density: 7850
   specificHeat: 466
   thermalConductivity: 50
+  # Mechanical response (materials-response): hard + tough, the
+  # standard for swords and armor. MPa / MJ·m⁻³, marshalled.
+  hardness: 600
+  toughness: 200
   edibility: false
   nutrients: []
   toxicity: []

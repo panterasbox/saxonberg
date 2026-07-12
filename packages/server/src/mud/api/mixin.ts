@@ -65,6 +65,7 @@ import type { FastTravel } from '../lib/fasttravel/FastTravel';
 import type { CredentialWallet } from '../lib/credential/CredentialWallet';
 import type { Perception } from '../lib/perception/Perception';
 import type { Tangible } from '../lib/material/Tangible';
+import type { Constructed } from '../lib/material/Constructed';
 import type { Organism } from '../lib/species/Organism';
 import type { Sexed } from '../lib/character/Sexed';
 import type { Vitals } from '../lib/vitals/Vitals';
@@ -108,6 +109,7 @@ import type { Status } from '../lib/status/Status';
 import type { Identifiable } from '../lib/identification/Identifiable';
 import type { Graded } from '../lib/craft/Graded';
 import type { Tooled } from '../lib/craft/Tooled';
+import type { Durable } from '../lib/material/Durable';
 import type { Dressing } from '../lib/vitals/Dressing';
 import type { Crafted } from '../lib/craft/Crafted';
 import type { Maker } from '../lib/craft/Maker';
@@ -687,6 +689,10 @@ export class MixinApi {
     return this.hasMixin(obj, Mixins.Tangible);
   }
 
+  public static isConstructed(obj: Stuff): obj is Stuff & Constructed {
+    return this.hasMixin(obj, Mixins.Constructed);
+  }
+
   public static isOrganism(obj: Stuff): obj is Stuff & Organism {
     return this.hasMixin(obj, Mixins.Organism);
   }
@@ -829,6 +835,12 @@ export class MixinApi {
 
   public static isTool(obj: Stuff): obj is Stuff & Tooled {
     return this.hasMixin(obj, Mixins.Tool);
+  }
+
+  /** A durable good with a wear-on-use condition gauge (tool / weapon /
+   * armor). A `Tool` is also `Durable`; the reverse does not hold. */
+  public static isDurable(obj: Stuff): obj is Stuff & Durable {
+    return this.hasMixin(obj, Mixins.Durable);
   }
 
   /** A first-aid dressing item (bandage / gauze / rag). See DressingMixin. */
