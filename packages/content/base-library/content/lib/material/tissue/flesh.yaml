@@ -12,6 +12,9 @@ data:
   density: 1060
   specificHeat: 3500
   thermalConductivity: 0.4
+  # Mechanical response (materials-response): MPa / MJ·m⁻³, marshalled.
+  hardness: 1
+  toughness: 1
   edibility: true
   nutrients: ["protein", "fat", "water"]
   toxicity: []

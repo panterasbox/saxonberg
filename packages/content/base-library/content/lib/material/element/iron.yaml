@@ -8,6 +8,9 @@ data:
   density: 7874
   specificHeat: 449
   thermalConductivity: 80
+  # Mechanical response (materials-response): MPa / MJ·m⁻³, marshalled.
+  hardness: 350
+  toughness: 120
   edibility: false
   nutrients: ["iron"]
   toxicity: [{ type: iron-poisoning, amount: 0 }]

@@ -8,6 +8,9 @@ data:
   keywords: [down]
   density: 30
   thermalConductivity: 0.025
+  # Mechanical response (materials-response): MPa / MJ·m⁻³, marshalled.
+  hardness: 1
+  toughness: 2
   specificHeat: 1700
   edibility: false
   nutrients: []

@@ -204,6 +204,51 @@ export default class Material extends SingletonMixin(
     this._specificHeat = value;
   }
 
+  /**
+   * Indentation hardness as a `Quantity<'MPa'>` — resistance to a
+   * concentrated (point / edge) load. A real, tabulated material property
+   * (hardened steel ≫ bronze ≫ leather ≫ cloth), Quantity-typed and strict
+   * on unit like `density`. The *height* a material lends the response
+   * curve for the `edge` / `point` channels; read by `MaterialApi`'s
+   * response function. Zero-default until authored (materials stay
+   * content — packs supply the roster's values).
+   */
+  private _hardness: Quantity<'MPa'> = Quantity.of(0, 'MPa');
+
+  protected get hardness(): Quantity<'MPa'> {
+    return this._hardness;
+  }
+  protected set hardness(value: Quantity<'MPa'>) {
+    if (!(value instanceof Quantity) || value.unit !== 'MPa') {
+      throw new TypeError(
+        `Material.hardness must be a Quantity<'MPa'>; got ${value instanceof Quantity ? `Quantity<'${value.unit}'>` : typeof value}`
+      );
+    }
+    this._hardness = value;
+  }
+
+  /**
+   * Toughness as a `Quantity<'MJ/m³'>` — energy absorbed per unit volume
+   * before fracture (a spread `blunt` load, and the resistance to a point
+   * punching through). Real material property, Quantity-typed and strict on
+   * unit. The *height* a material lends the response curve for the `blunt`
+   * channel and for penetration resistance; read by `MaterialApi`'s
+   * response function. Zero-default until authored.
+   */
+  private _toughness: Quantity<'MJ/m³'> = Quantity.of(0, 'MJ/m³');
+
+  protected get toughness(): Quantity<'MJ/m³'> {
+    return this._toughness;
+  }
+  protected set toughness(value: Quantity<'MJ/m³'>) {
+    if (!(value instanceof Quantity) || value.unit !== 'MJ/m³') {
+      throw new TypeError(
+        `Material.toughness must be a Quantity<'MJ/m³'>; got ${value instanceof Quantity ? `Quantity<'${value.unit}'>` : typeof value}`
+      );
+    }
+    this._toughness = value;
+  }
+
   /** Whether this material can be eaten. v1 has no consumer. */
   protected edibility: boolean = false;
 
@@ -305,6 +350,8 @@ export default class Material extends SingletonMixin(
     'density',
     'thermalConductivity',
     'specificHeat',
+    'hardness',
+    'toughness',
     'edibility',
     'nutrients',
     'nutrientAmounts',
@@ -327,6 +374,8 @@ export default class Material extends SingletonMixin(
     density: QuantityMarshaller.pathFor('kg/m³'),
     thermalConductivity: QuantityMarshaller.pathFor('W/(m·K)'),
     specificHeat: QuantityMarshaller.pathFor('J/(kg·K)'),
+    hardness: QuantityMarshaller.pathFor('MPa'),
+    toughness: QuantityMarshaller.pathFor('MJ/m³'),
     molarMass: QuantityMarshaller.pathFor('g/mol'),
   };
 
@@ -419,9 +468,30 @@ export default class Material extends SingletonMixin(
     this.toxicity = value.map((e) => ({ type: e.type, amount: e.amount }));
   }
 
-  // Damage-resistance accessors removed — the combat / mechanism-of-
-  // injury material-response seam (`resistance.<type>` props) is deferred
-  // until that system lands and can define the model honestly.
+  /**
+   * Read indentation hardness. Strict on `Quantity<'MPa'>`; the
+   * QuantityMarshaller absorbed authoring-shape coercion at the
+   * persistence boundary.
+   */
+  public getHardness(): Quantity<'MPa'> {
+    return this._hardness;
+  }
+  /** Set indentation hardness. Strict on `Quantity<'MPa'>`. */
+  public setHardness(value: Quantity<'MPa'>): void {
+    this.hardness = value;
+  }
+
+  /**
+   * Read toughness. Strict on `Quantity<'MJ/m³'>`; the QuantityMarshaller
+   * absorbed authoring-shape coercion at the persistence boundary.
+   */
+  public getToughness(): Quantity<'MJ/m³'> {
+    return this._toughness;
+  }
+  /** Set toughness. Strict on `Quantity<'MJ/m³'>`. */
+  public setToughness(value: Quantity<'MJ/m³'>): void {
+    this.toughness = value;
+  }
 
   public getTags(): readonly string[] { return this.tags; }
   public setTags(value: string[]): void { this.tags = value; }

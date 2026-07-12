@@ -50,6 +50,45 @@ describe('Material', () => {
     expect(m.getSpecificHeat().unit).toBe('J/(kg·K)');
   });
 
+  it('round-trips hardness and is strict on the MPa unit', () => {
+    const m = makeStuff(() => new Material());
+    m.setHardness(Quantity.of(600, 'MPa'));
+    expect(m.getHardness().rawValue()).toBe(600);
+    expect(m.getHardness().unit).toBe('MPa');
+    expect(() =>
+      m.setHardness(Quantity.of(600, 'Pa') as unknown as Quantity<'MPa'>),
+    ).toThrow(TypeError);
+  });
+
+  it('round-trips toughness and is strict on the MJ/m³ unit', () => {
+    const m = makeStuff(() => new Material());
+    m.setToughness(Quantity.of(200, 'MJ/m³'));
+    expect(m.getToughness().rawValue()).toBe(200);
+    expect(m.getToughness().unit).toBe('MJ/m³');
+    expect(() =>
+      m.setToughness(Quantity.of(200, 'J') as unknown as Quantity<'MJ/m³'>),
+    ).toThrow(TypeError);
+  });
+
+  it('defaults hardness and toughness to zero Quantities', () => {
+    const m = makeStuff(() => new Material());
+    expect(m.getHardness().rawValue()).toBe(0);
+    expect(m.getHardness().unit).toBe('MPa');
+    expect(m.getToughness().rawValue()).toBe(0);
+    expect(m.getToughness().unit).toBe('MJ/m³');
+  });
+
+  it('binds QuantityMarshaller paths for hardness/toughness', () => {
+    // Declarative marshaller binding (the density/specificHeat precedent);
+    // the per-unit marshaller absorbs authoring shapes at the persistence
+    // boundary. Assert the field→marshaller path is wired for both units.
+    expect(Material.fieldMarshallers.hardness).toBeDefined();
+    expect(Material.fieldMarshallers.toughness).toBeDefined();
+    expect(Material.fieldMarshallers.hardness).not.toBe(
+      Material.fieldMarshallers.toughness,
+    );
+  });
+
   it('composes SingletonMixin and PropertiedMixin', () => {
     const m = makeStuff(() => new Material());
     expect(MixinApi.hasMixin(m, Mixins.Singleton)).toBe(true);
