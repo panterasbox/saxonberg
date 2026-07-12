@@ -2042,8 +2042,14 @@ export interface DiagnosticListFilter {
   pathPrefix?: string;
   severity?: DiagnosticSeverity;
   source?: DiagnosticSource;
-  /** Restrict to rows whose `author` equals this (the `--mine` / `?mine` lens). */
+  /** Restrict to rows whose `author` equals this explicit value. */
   author?: string;
+  /**
+   * The "my content" lens: restrict to rows the *acting* author owns. The
+   * author is resolved server-side from the execution context (never
+   * client-supplied), so this is the spoof-safe form of `author`.
+   */
+  mine?: boolean;
   since?: number; // epoch ms
   limit?: number; // default 50
 }

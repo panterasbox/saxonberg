@@ -18,6 +18,7 @@ import { useStore } from "../../store/index";
 import { CmsExplorer } from "./CmsExplorer";
 import { CmsEditor } from "./CmsEditor";
 import { StudioPanel } from "./studio/StudioPanel";
+import { CmsDiagnosticsPane } from "./CmsDiagnosticsPane";
 import { tokens } from "../ui";
 
 const Root = styled.div`
@@ -72,7 +73,9 @@ export const CmsSurface: React.FC = () => {
   const cmsOpen = useStore((s) => s.cmsOpen);
   // Files (explorer + editor) vs Kinds (the content-first Studio surface: the
   // blueprint catalogue + template + class-composer view router).
-  const [mode, setMode] = React.useState<"files" | "kinds">("files");
+  const [mode, setMode] = React.useState<"files" | "kinds" | "diagnostics">(
+    "files",
+  );
 
   useEffect(() => {
     void cmsInit();
@@ -111,6 +114,16 @@ export const CmsSurface: React.FC = () => {
         >
           Kinds
         </ModeTab>
+        <ModeTab
+          type="button"
+          role="tab"
+          aria-selected={mode === "diagnostics"}
+          $active={mode === "diagnostics"}
+          title="Compile / runtime errors in the content you authored"
+          onClick={() => setMode("diagnostics")}
+        >
+          Diagnostics
+        </ModeTab>
       </ModeBar>
       {mode === "files" ? (
         <Screen>
@@ -119,8 +132,10 @@ export const CmsSurface: React.FC = () => {
           </ExplorerColumn>
           <CmsEditor />
         </Screen>
-      ) : (
+      ) : mode === "kinds" ? (
         <StudioPanel onOpenInFiles={openInFiles} />
+      ) : (
+        <CmsDiagnosticsPane />
       )}
     </Root>
   );

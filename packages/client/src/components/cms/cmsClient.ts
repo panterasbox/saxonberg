@@ -19,6 +19,7 @@ import type {
   CmsTreeListing,
   CmsWriteRequest,
   CmsWriteResult,
+  DiagnosticDoc,
 } from "@saxonberg/types";
 import { SERVER_URL } from "../../config";
 
@@ -119,5 +120,35 @@ export const cmsClient = {
       body: JSON.stringify(payload),
     });
     return unwrap<CmsWriteResult>(res);
+  },
+
+  /**
+   * Read the author-diagnostics store (the diagnostics panel). Read-only;
+   * the server resolves the acting author from the session and applies the
+   * author-tier gate + non-wizard compile redaction. `mine` is the
+   * spoof-safe "my content" lens (server-resolved).
+   */
+  async diagnostics(
+    filter: {
+      channel?: string;
+      severity?: string;
+      source?: string;
+      path?: string;
+      mine?: boolean;
+      limit?: number;
+    } = {},
+  ): Promise<DiagnosticDoc[]> {
+    const params = new URLSearchParams();
+    if (filter.channel) params.set("channel", filter.channel);
+    if (filter.severity) params.set("severity", filter.severity);
+    if (filter.source) params.set("source", filter.source);
+    if (filter.path) params.set("path", filter.path);
+    if (filter.mine) params.set("mine", "true");
+    if (filter.limit != null) params.set("limit", String(filter.limit));
+    const res = await fetch(`${BASE}/diagnostics?${params.toString()}`, {
+      credentials: "include",
+    });
+    const body = await unwrap<{ diagnostics: DiagnosticDoc[] }>(res);
+    return body.diagnostics;
   },
 };

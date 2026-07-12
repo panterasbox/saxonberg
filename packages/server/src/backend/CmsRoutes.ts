@@ -24,8 +24,13 @@
  */
 
 import type { Express, Request, Response } from 'express';
-import type { CmsBackend, CmsWriteRequest } from '@saxonberg/types';
+import type {
+  CmsBackend,
+  CmsWriteRequest,
+  DiagnosticListFilter as CmsDiagFilter,
+} from '@saxonberg/types';
 import { CmsApi, CmsError } from '../mud/api/cms';
+import { DiagnosticApi } from '../mud/api/diagnostics';
 import { SourceTreeSandboxError } from '../mud/api/source-tree';
 import { SecurityApi } from '../mud/api/security';
 import { AuthMiddleware } from '../services/auth/AuthMiddleware';
@@ -133,6 +138,34 @@ export class CmsRoutes {
           CmsApi.stat(backend, path)
         );
         res.json(out);
+      } catch (e) {
+        sendCmsError(res, e);
+      }
+    });
+
+    // ---- diagnostics (author-diagnostics panel; read-only) --------
+    // Binds 1:1 to the gated DiagnosticApi.list through the same
+    // attribution bridge — no new authorization surface (the author-tier
+    // gate + non-wizard compile redaction live in DiagnosticLogic).
+    app.get('/api/cms/diagnostics', requireAuth, async (req, res) => {
+      const q = req.query;
+      const asStr = (v: unknown): string | undefined =>
+        typeof v === 'string' && v.length > 0 ? v : undefined;
+      const filter = {
+        channels: asStr(q.channel) ? [asStr(q.channel) as string] : undefined,
+        severity: asStr(q.severity) as CmsDiagFilter['severity'],
+        source: asStr(q.source) as CmsDiagFilter['source'],
+        pathPrefix: asStr(q.path),
+        mine: q.mine === 'true' || q.mine === '1',
+        limit: asStr(q.limit) ? Number(q.limit) : undefined,
+      };
+      try {
+        const out = await CmsSession.runAsSessionPlayer(
+          req,
+          'cms.diagnostics',
+          () => DiagnosticApi.list(filter)
+        );
+        res.json({ diagnostics: out });
       } catch (e) {
         sendCmsError(res, e);
       }
