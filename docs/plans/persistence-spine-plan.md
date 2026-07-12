@@ -9,6 +9,24 @@ requirements at [persistence-spine-requirements.md](../requirements/persistence-
 
 ## Build status (2026-07-11)
 
+**COMPLETE — all 9 phases landed, full server suite green (5772 passed).**
+The universal substrate AND the session-critical Avatar migration + the
+`snapshotToTemplate` retirement are all in.
+
+- **Phases 7–8 (Avatar migration + retirement):** Avatar composes
+  `PersistableMixin` outermost and persists through the spine — its record
+  carries fields + carried inventory + worn gear (NEW; gear was lost on
+  logout) + spawn location (`place`, `WarrenMember`-reconciled). Three
+  generic substrate additions support it: `PersistedRecord.place` (a
+  Containable top-level host's own location), `owner = scope` for a
+  `HasInteractive` host, and the `shouldPersist()` opt-out (guests). Only
+  `snapshotToTemplate` was retired; **`restoreFromTemplate` stays**
+  (`CmsLogic`/`PackLogic` content go-live). The three Warren-recall tests
+  migrated onto `PersistableLogic.capturePlacement`. 20 spine tests +
+  Avatar/Login/loadout/guest/lounge suites green.
+
+The original phase-by-phase notes below are retained for reference.
+
 **Landed (phases 1–6 + tests + docs):** the universal substrate is built,
 green, and regression-free.
 
