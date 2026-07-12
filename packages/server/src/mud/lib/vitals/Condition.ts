@@ -43,9 +43,10 @@ export interface AfflictionRecord {
   elapsed: number;
 }
 
-/** The closed engine trauma vocabulary. Grow additively (puncture, …). */
+/** The closed engine trauma vocabulary. Grow additively. */
 export type TraumaType =
   | 'laceration'
+  | 'puncture'
   | 'fracture'
   | 'contusion'
   | 'avulsion'
@@ -326,12 +327,34 @@ export const AVULSION_BEHAVIOR: TraumaBehavior = {
 };
 
 /**
+ * puncture — a deep, narrow wound (the `point` channel through / past
+ * armor). Behaves as a **laceration** (bleeds, shares the clot gate) — a
+ * puncture is a narrow bleed you dress the same way — with its own prose.
+ * The materials-response point channel mints these; `resolveTrauma` maps
+ * point → puncture.
+ */
+export const PUNCTURE_BEHAVIOR: TraumaBehavior = {
+  onset: LACERATION_BEHAVIOR.onset,
+  tick: LACERATION_BEHAVIOR.tick,
+  resolve: LACERATION_BEHAVIOR.resolve,
+  reopen: LACERATION_BEHAVIOR.reopen,
+  describe(t: Trauma): string {
+    if (t.dressed) {
+      return `a dressed puncture wound of ${t.site} (bleeding controlled)`;
+    }
+    if (t.bleeding) return `a bleeding puncture wound of ${t.site}`;
+    return `a clotted puncture wound of ${t.site}`;
+  },
+};
+
+/**
  * The closed trauma behavior table — every `TraumaType` carries live
- * behavior (the NOOP exemplar remains the fallback shape). `avulsion`
- * delegates to laceration.
+ * behavior (the NOOP exemplar remains the fallback shape). `avulsion` and
+ * `puncture` delegate to the laceration bleed family.
  */
 export const TRAUMA_BEHAVIOR: Record<TraumaType, TraumaBehavior> = {
   laceration: LACERATION_BEHAVIOR,
+  puncture: PUNCTURE_BEHAVIOR,
   fracture: FRACTURE_BEHAVIOR,
   contusion: CONTUSION_BEHAVIOR,
   avulsion: AVULSION_BEHAVIOR,
