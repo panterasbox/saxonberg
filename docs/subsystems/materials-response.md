@@ -141,10 +141,14 @@ presence**. The binary `ConditionApi.isSiteCovered` is retired.
 ## Weapon delivery (delivery-forms only)
 
 An implement *derives* which channel(s) it presents from its
-weapon-delivery-form (`deliverableChannels`). v1 ships the **delivery** half
-only: no `WieldableMixin`, no hand-slot combat loadout, no playstyle — that
-bundle is the combat build. The channel driving a given `inflict` is
-**explicit** at the call site (Settled: no auto-pick).
+weapon-delivery-form (`deliverableChannels`). A `Weapon` **is `Wieldable`**
+— it claims a body-plan hand slot via `slotClaims`, so you can hold it — and
+composes `ToolMixin` **only** for its wear-on-use `condition` gauge (a
+durable good, not a crafting tool; the durability-out-of-`ToolMixin` split
+is a deferred cleanup). What v1 defers is the combat **loadout + playstyle**
+(reach / poise / guard→parry / afforded gambits), orthogonal to holding the
+thing. The channel driving a given `inflict` is **explicit** at the call
+site (Settled: no auto-pick).
 
 ## The legibility surface (mandatory — Settled 11)
 

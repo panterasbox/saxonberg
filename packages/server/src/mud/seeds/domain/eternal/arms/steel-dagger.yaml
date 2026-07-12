@@ -10,3 +10,6 @@ data:
   constructionForm: bladed
   gradeBand: fine
   mass: 0.3
+  # One-handed — claims a single hand slot (wield it in either hand).
+  slotClaims:
+    "/lib/body-plans/biped": ["hand:right"]

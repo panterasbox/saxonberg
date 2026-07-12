@@ -4,6 +4,9 @@ import Armor from '../Armor';
 import Weapon from '../Weapon';
 import Material from '../../material/Material';
 import Thing from '../../stuff/Thing';
+import Species from '../../species/Species';
+import BodyPlan from '../../species/BodyPlan';
+import { Creature } from '../../creature/Creature';
 import { Construction } from '../../material/Construction';
 import { Grade } from '../../craft/Grade';
 import { MaterialApi } from '../../../api/material';
@@ -56,12 +59,14 @@ describe('Armor — emergent composition', () => {
 });
 
 describe('Weapon — delivery half', () => {
-  it('composes material + construction + graded + tool (no wearable)', () => {
+  it('composes material + construction + graded + tool + wieldable (not worn)', () => {
     const w = makeStuff(() => new Weapon());
     expect(MixinApi.isTangible(w)).toBe(true);
     expect(MixinApi.isConstructed(w)).toBe(true);
     expect(MixinApi.isGraded(w)).toBe(true);
     expect(MixinApi.isTool(w)).toBe(true);
+    // Held, not worn — Wieldable (hand slot) yes, Wearable (body slot) no.
+    expect(MixinApi.isWieldable(w)).toBe(true);
     expect(MixinApi.isWearable(w)).toBe(false);
   });
 
@@ -83,6 +88,33 @@ describe('Weapon — delivery half', () => {
     const weaponOut = dagger.getMarkupLong(viewer);
     expect(weaponOut).toContain('Delivery');
     expect(weaponOut).toContain('blunt ○○○○'); // a blade delivers no blunt
+  });
+
+  it('can be wielded into a body-plan hand slot', () => {
+    const planPath = '/lib/body-plans/wield-test';
+    const plan = makeStuff(() => new BodyPlan());
+    plan.setName('wield-test');
+    plan.setSlots([
+      { name: 'hand:right', accepts: 'WieldableMixin', bodyPart: 'body.hand' },
+    ]);
+    plan.setBodyParts([{ key: 'body.hand', parent: null, tissues: [] }]);
+    stampTemplatePathForTest(plan, planPath);
+    const species = makeStuff(() => new Species());
+    species.setBodyPlan(plan);
+    stampTemplatePathForTest(species, '/lib/species/test/wielder');
+    const wielder = makeStuff(() => new Creature());
+    wielder.setSpecies(species);
+
+    const dagger = makeStuff(() => new Weapon());
+    dagger.setConstruction(Construction.of('bladed'));
+    dagger.setSlotClaim(planPath, ['hand:right']);
+
+    expect(dagger.fitsSlot(wielder, 'hand:right')).toBe(true);
+    (wielder as unknown as { occupy(x: unknown, s: string): void }).occupy(
+      dagger,
+      'hand:right',
+    );
+    expect(wielder.getOccupant('hand:right')).toBe(dagger);
   });
 
   it('a dagger delivers edge/point; a mace delivers blunt', () => {

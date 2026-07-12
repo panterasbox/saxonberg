@@ -8,13 +8,21 @@
  * (`bladed`) delivers edge, a mace (`hafted`) blunt — so harm can be driven
  * by real objects.
  *
- * v1 ships the **delivery** half only: no `WieldableMixin`, no hand-slot
- * combat loadout, no playstyle (reach / guard / gambits) — that whole
- * bundle is the combat build. A weapon here is an inspectable, graded,
- * wearing implement whose construction says what it *would* do.
+ * v1 ships the **delivery** half + the ability to be **held**: a weapon is
+ * `WieldableMixin` (it claims a body-plan hand slot via `slotClaims`, so you
+ * can `wield`/`unwield` it), an inspectable graded implement whose
+ * construction says what it *would* do. What's deferred is the combat
+ * **loadout + playstyle** — reach / balance→poise / guard→parry / afforded
+ * gambits, the whole "weapon carries a playstyle" bundle — which is the
+ * combat build, orthogonal to simply holding the thing.
+ *
+ * `ToolMixin` is composed **only** for its wear-on-use `condition` gauge (a
+ * blade dulls with use) — NOT its crafting capabilities, which stay an inert
+ * `[]`. (A weapon is a *durable good*, not a crafting tool; the clean split
+ * of durability out of `ToolMixin` is a deferred cleanup.)
  *
  * Seeded as content (e.g. `/domain/eternal/arms/steel-dagger`) with
- * `_materialPath`, `constructionForm: bladed`, and a `grade`.
+ * `_materialPath`, `constructionForm: bladed`, a `grade`, and `slotClaims`.
  */
 
 import Thing from '../stuff/Thing';
@@ -22,9 +30,13 @@ import { DetailedMixin } from '../description/Detailed';
 import { ConstructedMixin } from '../material/Constructed';
 import { ToolMixin } from '../craft/Tooled';
 import { GradedMixin } from '../craft/Graded';
+import { SlottableMixin } from '../slot/Slottable';
+import { WieldableMixin } from '../slot/Wieldable';
 
-const WeaponBase = GradedMixin(
-  ToolMixin(ConstructedMixin(DetailedMixin(Thing))),
+const WeaponBase = WieldableMixin(
+  SlottableMixin(
+    GradedMixin(ToolMixin(ConstructedMixin(DetailedMixin(Thing)))),
+  ),
 );
 
 export default class Weapon extends WeaponBase {}
