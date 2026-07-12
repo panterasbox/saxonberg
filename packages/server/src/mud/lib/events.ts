@@ -16,7 +16,11 @@
  *      permissive.
  */
 
-import type { RelaySpeaker, StreamStateSnapshot } from '@saxonberg/types';
+import type {
+  RelaySpeaker,
+  StreamStateSnapshot,
+  DiagnosticEvent,
+} from '@saxonberg/types';
 
 /**
  * Well-known engine event names.
@@ -48,6 +52,7 @@ export const Events = {
   ModuleReloadFailed: 'module.reloadFailed',
   StreamStateChanged: 'stream.stateChanged',
   RelayMessage: 'stream.relayMessage',
+  Diagnostic: 'diagnostic.recorded',
 } as const;
 
 export type EventName = (typeof Events)[keyof typeof Events];
@@ -124,6 +129,15 @@ export interface EventPayloads {
    * filters to the `OVERLAY_*` channels — nothing else consumes it.
    */
   [Events.RelayMessage]: RelayMessageEvent;
+  /**
+   * One structured diagnostic recording (runtime guard / compile watcher),
+   * fired per live row by `DiagnosticApi.record`/`recordDiagnostics`. The
+   * boot-registered author-push listener (`DiagnosticApi.startRouter`)
+   * consumes it to notify the content's author; the CMS-delta seam is a
+   * future subscriber. Cold-start compile rows are `live:false` and fire
+   * nothing.
+   */
+  [Events.Diagnostic]: DiagnosticEvent;
 }
 
 /** Payload of {@link Events.RelayMessage}. */

@@ -63,6 +63,7 @@ export enum Collections {
   BankSupply = 'bank_supply',
   Parcels = 'parcels',
   ParcelEvents = 'parcel_events',
+  Diagnostics = 'diagnostics',
 }
 
 /**
@@ -920,6 +921,29 @@ export class PersistenceManager {
       await this.getCollection(Collections.ParcelEvents).createIndex({
         extent: 1,
       });
+
+      // Diagnostics: the author-diagnostics store (runtime / compile rows,
+      // rotated by TTL). Indexed on `{channel, ts}` (tail-by-channel),
+      // `{author, ts}` (the "my content's errors" / `--mine` read), and
+      // `{path, versionId}` (the compile supersede). The TTL index on
+      // `expiresAt` (first-of-kind in this repo) lets Mongo evict rows with
+      // no cron — `expireAfterSeconds: 0` means "at the instant `expiresAt`".
+      await this.getCollection(Collections.Diagnostics).createIndex({
+        channel: 1,
+        ts: -1,
+      });
+      await this.getCollection(Collections.Diagnostics).createIndex({
+        author: 1,
+        ts: -1,
+      });
+      await this.getCollection(Collections.Diagnostics).createIndex({
+        path: 1,
+        versionId: 1,
+      });
+      await this.getCollection(Collections.Diagnostics).createIndex(
+        { expiresAt: 1 },
+        { expireAfterSeconds: 0 }
+      );
 
       console.info('PersistenceManager: Indexes created successfully');
     } catch (error) {
