@@ -29,6 +29,12 @@ import type { MixinConstructor } from '../mixin';
 import type { Stuff, EvictionContext } from '../stuff/Stuff';
 import type { Containable } from './Containable';
 import type { VetoResult } from '../errors';
+import type {
+  CaptureContext,
+  ContainerSlice,
+  ContentEntry,
+  Placement,
+} from '../persistence/PersistenceSlice';
 import { CallSecurity, Final, Unshadowable } from '../security/decorators';
 import { SecurityPolicies } from '../security/SecurityPolicies';
 import { ExecutionContextApi } from '../../api/execution-context';
@@ -107,10 +113,52 @@ export function ContainerMixin<TBase extends MixinConstructor>(Base: TBase) {
      * empty so other composed vetoes still apply.
      */
     public canEvict(context: EvictionContext): VetoResult {
-      if (this.getContents().length > 0) {
+      // A persistable host (persistence spine) does NOT veto on contents:
+      // its contents are captured to a `PersistedRecord` before the cull
+      // (the residency sweep awaits `PersistableApi.capture` first), so it
+      // can evict safely and re-materialize on next reference. Fall through
+      // to `super` so the host's OTHER vetoes still apply (a live Avatar's
+      // `HasInteractive`, a `WarrenMember`). A non-persistable container
+      // keeps the classic contents veto.
+      if (
+        this.getContents().length > 0 &&
+        !MixinApi.isPersistable(this as unknown as Stuff)
+      ) {
         return { ok: false, reason: 'container is not empty' };
       }
       return super.canEvict(context);
+    }
+
+    /**
+     * Persistence-spine capture hook (see
+     * [docs/subsystems/persistence.md]). Serializes this Container's
+     * directly-held content: one {@link ContentEntry} per Containable, in
+     * `getContents()` order (the shared index the Slotted slice references).
+     * A nested **host** (composes `Persistable`) is emitted as a `{ ref }`
+     * (it persists itself); anything else nests its composed `state`,
+     * recursing through `ctx.captureItem`. A surface-resting item records
+     * the index of the Surfaced sibling it rests on.
+     *
+     * Restore of the container slice is centralized in `PersistableLogic`
+     * (it cross-references the Slotted slice by index), so there is no
+     * paired `restoreSlice` here.
+     */
+    static captureSlice(
+      host: Stuff,
+      ctx: CaptureContext,
+    ): ContainerSlice {
+      const container = host as Stuff & Container;
+      const contents = container.getContents();
+      const entries: ContentEntry[] = contents.map((item) => {
+        const placement: Placement = {};
+        const restingOn = item.getRestingOn();
+        if (restingOn) {
+          const idx = ctx.indexOf(restingOn);
+          if (idx >= 0) placement.restingOnIndex = idx;
+        }
+        return ctx.captureItem(item, placement);
+      });
+      return { contents: entries };
     }
 
     /**
