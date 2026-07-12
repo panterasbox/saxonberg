@@ -44,6 +44,7 @@ import { GradedMixin } from "../../craft/Graded";
 import { PropertiedMixin, Property } from "../../stuff/Propertied";
 import { SlottedMixin } from "../../slot/Slotted";
 import { SlottableMixin } from "../../slot/Slottable";
+import { HasInteractiveMixin } from "../../connection/HasInteractive";
 import { makeStuffAtPath } from "../../security/__tests__/test-setup";
 import { installV1QuantityMarshallers } from "./quantity-marshaller-test-helpers";
 import { Quantity } from "../../quantity";
@@ -135,6 +136,27 @@ class GuestLikeHost extends PersistableMixin(
   override shouldPersist(): boolean {
     return false;
   }
+}
+
+// An avatar-shaped host: HasInteractive + Container + Slotted + Containable,
+// persistable. Proves the Avatar-migration behaviors — owner = self, skipped
+// as another host's content, and a fields + inventory + gear + placement
+// round trip — without the full Avatar clone pipeline.
+class AvatarLike extends PersistableMixin(
+  HasInteractiveMixin(
+    SlottedMixin(ContainerMixin(ContainableMixin(PostRegistrationMixin(Idea)))),
+  ),
+) {
+  static persistentFields = ["callsign"];
+  callsign = "";
+  getCallsign(): string {
+    return this.callsign;
+  }
+  setCallsign(v: string): void {
+    this.callsign = v;
+  }
+  protected handleMessage(): void {}
+  protected handleEnvelope(): void {}
 }
 
 // A Slotted host (worn-gear demo) + a Slottable garment.
@@ -629,6 +651,59 @@ describe("host self-placement (Avatar-migration substrate)", () => {
     await PersistableApi.materialize(reborn);
     expect(reborn.getLabel()).toBe("wanderer");
     expect(reborn.getContainer()).toBe(room);
+  });
+});
+
+describe("avatar-shaped host (Avatar migration end-to-end)", () => {
+  it("round-trips fields + inventory + worn gear + own location, owner = self", async () => {
+    cloneFactories = {
+      "/domain/pack": () => new ContentChest(),
+      "/domain/coat": () => new Garment(),
+    };
+    const room = makeStuffAtPath(() => new ContentChest(), "/domain/lounge");
+    const av = makeStuffAtPath(() => new AvatarLike(), "/obj/Avatar/p1");
+    av.setStaticSlots([{ name: "torso", accepts: "SlottableMixin" }]);
+    av.setCallsign("Mallow");
+    const pack = makeStuffAtPath(() => new ContentChest(), "/domain/pack");
+    pack.setLabel("backpack");
+    const coat = makeStuffAtPath(() => new Garment(), "/domain/coat");
+    coat.setTag("greatcoat");
+    ContainmentApi.move(pack, av); // carried
+    ContainmentApi.move(coat, av); // carried...
+    SlotApi.occupyAll(av, coat, ["torso"]); // ...and worn
+    ContainmentApi.move(av, room); // standing in the lounge
+
+    await PersistableApi.capture(av);
+    const rec = snapshots.find((s) => s.scope === "/obj/Avatar/p1")!;
+    expect(rec.owner).toBe("/obj/Avatar/p1"); // self-owned
+    expect(rec.place).toEqual({ container: "/domain/lounge" });
+
+    // A fresh clone (relogin) restores everything.
+    StuffApi.unregister(av);
+    for (const c of [pack, coat]) StuffApi.unregister(c);
+    const reborn = makeStuffAtPath(() => new AvatarLike(), "/obj/Avatar/p1");
+    reborn.setStaticSlots([{ name: "torso", accepts: "SlottableMixin" }]);
+    await PersistableApi.materialize(reborn);
+
+    expect(reborn.getCallsign()).toBe("Mallow");
+    expect(reborn.getContainer()).toBe(room); // re-homed to the lounge
+    const labels = reborn.getContents().map((c) => {
+      const g = c as { getLabel?: () => string; getTag?: () => string };
+      return g.getLabel?.() ?? g.getTag?.();
+    });
+    expect(labels.sort()).toEqual(["backpack", "greatcoat"]);
+    const worn = reborn.getOccupant("torso") as Garment;
+    expect(worn.getTag()).toBe("greatcoat"); // re-worn
+  });
+
+  it("is skipped from another host's captured contents (never content)", async () => {
+    cloneFactories = {};
+    const room = makeStuffAtPath(() => new RoomHost(), "/domain/room");
+    const av = makeStuffAtPath(() => new AvatarLike(), "/obj/Avatar/p2");
+    ContainmentApi.move(av, room);
+    await PersistableApi.capture(room);
+    // The room records no content entry for the live avatar occupant.
+    expect(containerContents(snapshots.find((s) => s.scope === "/domain/room")!)).toEqual([]);
   });
 });
 
