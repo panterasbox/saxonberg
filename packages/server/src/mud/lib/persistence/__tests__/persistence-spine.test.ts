@@ -707,6 +707,19 @@ describe("avatar-shaped host (Avatar migration end-to-end)", () => {
   });
 });
 
+describe("singleton-host invariant (no two clones stepping on each other)", () => {
+  it("capture throws loudly when two live instances share a scope", async () => {
+    cloneFactories = {};
+    const a = makeStuffAtPath(() => new MovableHost(), "/domain/dup");
+    // A second live instance at the SAME templatePath — the footgun the
+    // requirements forbid (a persistable host must be a singleton).
+    makeStuffAtPath(() => new MovableHost(), "/domain/dup");
+    await expect(PersistableApi.capture(a)).rejects.toThrow(
+      /singleton-identifiable/,
+    );
+  });
+});
+
 describe("persistence opt-out (guest skip)", () => {
   it("a host whose shouldPersist() is false writes and restores nothing", async () => {
     cloneFactories = {};

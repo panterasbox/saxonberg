@@ -82,14 +82,41 @@ async function ownerOfScope(scope: string, host: Stuff): Promise<string> {
 }
 
 /**
- * A host's persistence opt-out: a host may implement `shouldPersist()` (an
- * Avatar returns `!isGuest`) to skip capture/materialize entirely. Default
- * (no method) = persist.
+ * A host's persistence opt-out, read through the typed `Persistable`
+ * interface (never duck-typed): `shouldPersist()` is declared on
+ * `Persistable` with a `true` default, and Avatar overrides it to
+ * `!isGuest`. capture/materialize are only ever invoked on persistable
+ * hosts, so the narrow succeeds; a non-persistable argument (a misuse) reads
+ * as "not opted out" and proceeds.
  */
-function shouldPersist(host: Stuff): boolean {
-  const fn = (host as unknown as { shouldPersist?: () => boolean })
-    .shouldPersist;
-  return typeof fn === "function" ? fn.call(host) : true;
+function optedOutOfPersistence(host: Stuff): boolean {
+  return MixinApi.isPersistable(host) && !host.shouldPersist();
+}
+
+/**
+ * Enforce the requirements' **singleton-host** invariant: at most one live
+ * instance per `scope`. A persistable host is identified by its
+ * `templatePath` alone, and its record keys on `(scope, owner)` — so two
+ * live clones sharing a templatePath would both write the SAME record and
+ * silently overwrite each other (and each materialize the other's state).
+ * Fail loud instead of corrupting. Cheap: one `PathTrie` exact lookup.
+ *
+ * The two sanctioned singleton shapes both pass: a `SingletonMixin` host
+ * (one instance by construction) and a unique-per-instance templatePath
+ * (Avatar's `/obj/Avatar/<playerId>`, deduped by `PlayerApi`). Generic
+ * multi-instance objects are **content** nested in a host, never hosts.
+ */
+function assertSingletonScope(scope: string): void {
+  const live = StuffApi.findAllByTemplatePath(scope);
+  if (live.length > 1) {
+    throw new Error(
+      `PersistableLogic: '${scope}' has ${live.length} live instances — a ` +
+        `persistable host must be singleton-identifiable (compose ` +
+        `SingletonMixin, or carry a unique per-instance templatePath like ` +
+        `Avatar's /obj/Avatar/<playerId>). Generic multi-instance objects ` +
+        `are content nested in a host, not hosts themselves.`,
+    );
+  }
 }
 
 /**
@@ -386,11 +413,12 @@ async function cloneHost(scope: string): Promise<Stuff | null> {
 /* ─────────────────────────── impl entry points ──────────────────────── */
 
 async function captureImpl(host: Stuff): Promise<void> {
-  if (!shouldPersist(host)) return; // guest / opted-out host — persist nothing
+  if (optedOutOfPersistence(host)) return; // guest / opted-out host
   const scope = host.getTemplatePath();
   if (!scope) {
     throw new Error("PersistableLogic.capture: host has no templatePath stamp");
   }
+  assertSingletonScope(scope);
   const owner = await ownerOfScope(scope, host);
   // Warm marshallers, THEN take the synchronous snapshot (atomic — the
   // last sync block before the save), so concurrent triggers each write a
@@ -409,9 +437,10 @@ async function captureImpl(host: Stuff): Promise<void> {
 }
 
 async function materializeImpl(host: Stuff): Promise<void> {
-  if (!shouldPersist(host)) return; // guest / opted-out host — nothing to restore
+  if (optedOutOfPersistence(host)) return; // guest / opted-out host
   const scope = host.getTemplatePath();
   if (!scope) return;
+  assertSingletonScope(scope);
   const records = await PersistedRecord.findByScope(scope);
   for (const record of records) {
     const principal = principalFor(record.getOwner(), host);
