@@ -385,54 +385,32 @@ Avatar templates are stored at `/obj/Avatar/<playerId>` and created
 automatically when a Player is added to a User. Cloning happens at user
 connect (see `Application.handleUserConnect`).
 
-The per-player Avatar template is **bidirectional**: it carries the
-initial state at first clone AND receives written-back state on save.
-Other templates (zones, generic items) are read-only from the content
-author's perspective; only the per-player Avatar template's `data`
-block is mutated by the runtime via `Avatar.save()`.
+The per-player Avatar template carries the **initial** (char-gen) state at
+first clone. It is no longer written back to on save: Avatar persists through
+the **self-persistence spine** into its own `holder_snapshots` record (fields
++ inventory + gear + spawn location), NOT the template — see
+[persistence.md § The self-persistence spine](./persistence.md#the-self-persistence-spine-persistable).
+The template is authoritative only on first-ever login (no record yet), then
+the record is (seed-then-persist).
 
-## Persist-Back: snapshot / restore
+## Restore-from-template (content go-live)
 
-`TemplateApi` offers two stateless static methods for Stuff↔Template
-round-trip on a live host:
+`TemplateApi.restoreFromTemplate(stuff)` re-hydrates a live Stuff from its
+backing Template's `data` — looks up the Template by the host's
+runtime-stamped `getTemplatePath()` and runs
+`PersistentHydrator.hydrate(host, tpl.data)`. Operates on the existing live
+instance; preserves identity / stuffId / wired Interactives. Phase 2 appliers
+re-fire (e.g., `applyContainer` moves the host via compare-and-move).
 
-- `TemplateApi.snapshotToTemplate(stuff)` — walks the host's
-  `persistentFields` chain via `MixinApi.getAllPersistentFields`,
-  marshals values per `MixinApi.getAllFieldMarshallers`, derives
-  `data.container` from the live container ref when the host is
-  Containable, merges over the existing `tpl.data` (preserves
-  non-mixin-managed keys), and **returns the mutated Template
-  without committing**. The caller invokes `tpl.save()` when ready.
-  Separating capture from commit makes the snapshot composable.
-  Marshaller resolution is lazy via `await StuffApi.singleton(mPath)`
-  — the first save touching a unit instantiates that unit's
-  marshaller; later saves hit the live ref in the byTemplatePath
-  index. Avoids needing a bootstrap manifest entry per marshaller.
-- `TemplateApi.restoreFromTemplate(stuff)` — looks up the Template
-  by the host's runtime-stamped `getTemplatePath()` and runs
-  `PersistentHydrator.hydrate(host, tpl.data)`. Operates on the
-  existing live instance; preserves identity / stuffId / wired
-  Interactives. Phase 2 appliers re-fire (e.g., `applyContainer`
-  moves the host via compare-and-move).
+Its consumers are the **content go-live** paths: `CmsLogic` and `PackLogic`
+re-hydrate live clones after an author edits a template. It is NOT a
+persistence-of-runtime-state mechanism — that is the spine.
 
-**Synchronous-prefix-before-first-await ordering.** The
-persistentFields walk and container ref read inside
-`snapshotToTemplate` run synchronously, before `Template.findByPath`
-yields. This is load-bearing for `onDestruct`-driven fire-and-forget
-saves: the snapshot captures pre-cleanup field values even though
-the MongoDB write itself is async.
-
-**No in-process coordination.** Concurrent snapshots each produce a
-valid full-state snapshot; MongoDB's `replaceOne` resolves ordering
-as last-write-wins. The redundant-work cost (an extra
-persistentFields walk + an extra Mongo write at the periodic
-cadence) is negligible.
-
-v1 consumer surface: `Avatar.save()` / `Avatar.restore()` are
-two-line shims over these methods. No general persist-back mixin; no
-generalization to arbitrary Stuff — but the substrate is
-class-shape-agnostic so the next consumer doesn't repeat the
-mechanism inline.
+The **snapshot** direction (`snapshotToTemplate`) was **retired** with the
+Avatar migration onto the spine; its capture behavior (per-mixin field
+marshalling, the `WarrenMember`-reconciled location capture, the
+sync-prefix-before-first-await ordering) now lives in `PersistableLogic` and
+is covered by `lib/persistence/__tests__/persistence-spine.test.ts`.
 
 ## `create` and `createSync` (Sister APIs)
 

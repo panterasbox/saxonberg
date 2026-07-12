@@ -251,10 +251,13 @@ deferred.)
 template write funnels through `saveTemplate` except `PackLogic`
 (content-pack import, which writes `PersistApi.save` directly). The
 `pack` verb is `requiresWizard`-gated, so a non-wizard can never reach
-that path. Non-authoring domain writes that skip `saveTemplate`
-(`snapshotToTemplate` → Avatar persist-back) marshal only live
-`persistentFields`, never an author-named class string, and run under
-`null`/system contexts.
+that path. Avatar persist-back no longer writes the `domain` collection at
+all — it captures runtime state into the separate `holder_snapshots` store
+via the self-persistence spine, which drift-guards fields to declared
+`persistentFields` (never an author-named `class`/`hydratorClass`/`brain`
+string) and reconstitutes items only through the gated `StuffApi.clone` — so
+it cannot forge a code-naming field. See
+[persistence.md § The self-persistence spine](./persistence.md#the-self-persistence-spine-persistable).
 
 **The drift-guard.** `codeNamingDriftGuard.test.ts` enumerates every
 module-resolving call site under `mud/` (`resolveExport` /

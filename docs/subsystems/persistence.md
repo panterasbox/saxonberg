@@ -216,18 +216,14 @@ for the rule it enforces. `DomainHook.aroundSave` also calls
 check for the `data.container` declarative-content field shipped with
 the spawn substrate.
 
-### Avatar persist-back uses the existing `Document.save` surface
+### Avatar persist-back rides the self-persistence spine
 
-`Avatar.save()` is a thin two-line shim:
-`TemplateApi.snapshotToTemplate(this)` returns the mutated Template
-(without committing); the caller invokes `tpl.save()`. The
-underlying `Template.save` is the standard `Document.save` path
-(through `PersistenceManager.save(Collections.Domain, doc)` —
-fires `DomainHook` as usual). No new persistence-layer plumbing.
-The snapshot mutation step lives upstream in
-[`TemplateApi.snapshotToTemplate`](./templates.md#persist-back-snapshot--restore);
-the per-call ordering invariant (sync prefix before first await)
-lives there too. Restore-direction documented at the same anchor.
+`Avatar.save()` → `PersistableApi.capture(this)` and `Avatar.restore()` →
+`materialize` — Avatar persists through the universal spine (below), NOT the
+retired `snapshotToTemplate`. Its record (`holder_snapshots`, not the avatar
+template) carries fields + carried inventory + worn gear + spawn location.
+See [The self-persistence spine](#the-self-persistence-spine-persistable) §
+Avatar on the spine.
 
 ## Setter-Based Field Invariants
 
@@ -378,14 +374,12 @@ methods always hit a populated cache. The async barrier sits in
 the already-async `save`/`findById`/`find` boundary; `toDocument`
 / `fromDocument` keep their sync contract.
 
-`TemplateApi.snapshotToTemplate` uses the same lazy-create pattern
-on the save path: rather than throwing when a field's marshaller
-isn't yet live, it calls `await StuffApi.singleton(mPath)` to
-clone the marshaller on demand. The first save touching a unit
-instantiates that unit's marshaller; subsequent saves hit the live
-ref in the byTemplatePath index. This avoids requiring a
-bootstrap manifest entry per marshaller while keeping `toStored`
-calls themselves sync.
+The self-persistence spine's `PersistableLogic.capture` uses the same
+lazy-create pattern: it pre-warms every marshaller referenced by the host
+and its deep contents (`Document.preloadFieldMarshallersFor`) BEFORE the
+synchronous capture snapshot, so the sync `findByTemplatePath` lookup during
+marshalling always hits a populated cache. This avoids requiring a bootstrap
+manifest entry per marshaller while keeping `toStored` calls themselves sync.
 
 In production, the marshaller's CMS template is seeded into the
 `domain` collection by `SeederManager` at boot; the first save /
@@ -587,27 +581,44 @@ eviction write would be silent data loss. The sync `cleanupOnDestruct`
 capture is the non-sweep backstop. Only a hard crash mid-session (before any
 capture) loses since-last-capture changes.
 
-### Status + deferred
+### Avatar on the spine + host self-placement
 
-Built and proven on generic persistable fixtures
-(`lib/persistence/__tests__/persistence-spine.test.ts`, 16 tests over the
-acceptance criteria). **Deferred / not yet in this MR:**
+Avatar persists through the universal spine — the per-player-template
+`snapshotToTemplate` path is **retired**. Avatar composes `PersistableMixin`
+outermost; its record carries its declared fields, its carried inventory
+(`Container` slice), its worn gear (`Slotted` slice — new; gear was lost on
+logout before), and its **own spawn/recall location** (`place`). `Avatar.save`
+→ `PersistableApi.capture`, `Avatar.restore` → `materialize`, and
+`postRegister` drives materialize-on-return / capture-on-signup after the
+born-with loadout settles (the loadout's cranial implant + aether-hosted
+updates aren't in inventory, so they don't double against restored contents).
 
-- **The Avatar migration.** Avatar still persists via `snapshotToTemplate`
-  (above). Migrating it onto the spine needs one net-new substrate capability
-  — capturing a *host's own* placement (its container, with the
-  `WarrenMember` recall reconciliation) into its record and re-placing it on
-  materialize — plus a guest-skip gate and self-owner (`owner = scope`)
-  derivation for a `HasInteractive` host. Session-critical; wants live login
-  validation.
-- **Retiring `snapshotToTemplate`.** Only the **snapshot** direction is
-  Avatar-only in production; **`restoreFromTemplate` must stay** — `CmsLogic`
-  and `PackLogic` use it to re-hydrate live clones from an edited template
-  (content go-live, a distinct concern). So the retirement is `snapshotToTemplate`
-  only, and follows the Avatar migration.
-- Possession (per-owner *loose* items in a shared room), multi-instance
-  persistable hosts (parcel/extent identity), and the compute-allowance
-  persistence cap — property Phase 0b/1.
+Three generic substrate capabilities support it:
+
+- **`PersistedRecord.place`** — a Containable *top-level* host's own durable
+  location (`{startLocation}` or `{container}`), captured with the
+  `WarrenMember` reconciliation the retired `snapshotToTemplate` once did
+  (the Warren, not the transient room clone), and restored via
+  `ContainmentApi.resolveLanding` / `move`, overriding the clone-time template
+  spawn. Null for a room (not Containable) or a host placed by its referrer.
+- **Self-owner** — a `HasInteractive` host owns its own record
+  (`owner = scope`), so the account-deletion cascade `deleteAllFor(<avatar
+  path>)` is a keyed match; and `ContainerMixin.captureSlice` **skips**
+  `HasInteractive` occupants (a live avatar is never a room's content).
+- **`shouldPersist()`** — a per-instance opt-out (an Avatar returns
+  `!isGuest`), consulted by capture / materialize / `postRegister` /
+  `cleanupOnDestruct`, so a guest writes and restores nothing.
+
+Only `snapshotToTemplate` (the Avatar-only snapshot direction) was retired;
+**`restoreFromTemplate` stays** — `CmsLogic` and `PackLogic` use it to
+re-hydrate live clones from an edited template (content go-live, a distinct
+concern).
+
+### Deferred
+
+Possession (per-owner *loose* items in a shared room), multi-instance
+persistable hosts (parcel/extent identity), and the compute-allowance
+persistence cap — property Phase 0b/1.
 
 ## Design Decisions
 
