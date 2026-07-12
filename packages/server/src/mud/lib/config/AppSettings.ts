@@ -333,10 +333,12 @@ export const AppSettingKeys = {
   responseMaterialToughnessRef: "response.material.toughnessRef",
   /** Response — clamp ceiling on the normalized material height. */
   responseMaterialScaleMax: "response.material.scaleMax",
-  /** Response — the structural floor of a material's blunt height (a
-   * construction's blunt response is largely structural, so a soft absorber
-   * still works). */
-  responseMaterialBluntFloor: "response.material.bluntStructuralFloor",
+  /** Response — the structural floor of a material's height on any channel.
+   * A construction's response is largely structural (a hide jerkin's give, a
+   * plate's rigidity), so the token sets the protection ceiling and the
+   * material modulates within `[floor, 1]` rather than gating from zero — a
+   * soft absorber still absorbs, a boot still turns a shallow cut. */
+  responseMaterialHeightFloor: "response.material.heightFloor",
   /** Response — grade height-scale bounds (poor..masterful → min..max). */
   responseGradeMin: "response.grade.min",
   responseGradeMax: "response.grade.max",

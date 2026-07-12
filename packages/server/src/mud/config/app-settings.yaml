@@ -263,8 +263,8 @@ settings:
     value: "200"
   - key: response.material.scaleMax
     value: "1.5"
-  - key: response.material.bluntStructuralFloor
-    value: "0.4"
+  - key: response.material.heightFloor
+    value: "0.6"
   # Grade / condition height-scale bounds (poor..masterful → min..max;
   # condition floors at conditionMin so a wrecked item still does something).
   - key: response.grade.min

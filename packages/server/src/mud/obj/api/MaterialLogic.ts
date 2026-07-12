@@ -225,21 +225,23 @@ function materialHeight(material: Material | null, channel: Channel): number {
     0,
     scaleMax,
   );
-  let h: number;
+  // The channel picks which property dominates (SHAPE, code); the floor and
+  // refs are magnitudes (AppSettings). edge → hardness (a hard surface turns
+  // a cut), blunt → toughness (energy absorbed before failure), point → both.
+  let ratio: number;
   switch (channel) {
     case 'edge':
-      h = hn;
+      ratio = hn;
       break;
     case 'point':
-      h = 0.5 * (hn + tn);
+      ratio = 0.5 * (hn + tn);
       break;
-    case 'blunt': {
-      const floor = dial(AppSettingKeys.responseMaterialBluntFloor, 0.4);
-      h = floor + (1 - floor) * tn;
+    case 'blunt':
+      ratio = tn;
       break;
-    }
   }
-  return clamp(h, 0, scaleMax);
+  const floor = dial(AppSettingKeys.responseMaterialHeightFloor, 0.6);
+  return clamp(floor + (1 - floor) * ratio, 0, scaleMax);
 }
 
 /**

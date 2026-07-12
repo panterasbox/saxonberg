@@ -1,0 +1,14 @@
+class: /lib/equipment/Armor
+hydratorClass: /lib/persistence/PersistentHydrator
+data:
+  shortDescription: a steel mail hauberk
+  primaryKeyword: hauberk
+  longDescription: >
+    A knee-length shirt of riveted steel rings. It resists a cut and
+    softens a blow — but a stiff point finds the gaps between the rings.
+  slotClaims:
+    "/lib/body-plans/biped": [torso]
+  _materialPath: /lib/material/alloy/steel
+  constructionForm: mail
+  gradeBand: fine
+  mass: 10

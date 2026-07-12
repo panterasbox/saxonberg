@@ -1,0 +1,12 @@
+class: /lib/equipment/Weapon
+hydratorClass: /lib/persistence/PersistentHydrator
+data:
+  shortDescription: a steel dagger
+  primaryKeyword: dagger
+  longDescription: >
+    A slim double-edged dagger of good steel, a hand-span of blade. It
+    delivers a cutting edge, and its point will find a gap in mail.
+  _materialPath: /lib/material/alloy/steel
+  constructionForm: bladed
+  gradeBand: fine
+  mass: 0.3

@@ -65,6 +65,7 @@ import type { FastTravel } from '../lib/fasttravel/FastTravel';
 import type { CredentialWallet } from '../lib/credential/CredentialWallet';
 import type { Perception } from '../lib/perception/Perception';
 import type { Tangible } from '../lib/material/Tangible';
+import type { Constructed } from '../lib/material/Constructed';
 import type { Organism } from '../lib/species/Organism';
 import type { Sexed } from '../lib/character/Sexed';
 import type { Vitals } from '../lib/vitals/Vitals';
@@ -685,6 +686,10 @@ export class MixinApi {
 
   public static isTangible(obj: Stuff): obj is Stuff & Tangible {
     return this.hasMixin(obj, Mixins.Tangible);
+  }
+
+  public static isConstructed(obj: Stuff): obj is Stuff & Constructed {
+    return this.hasMixin(obj, Mixins.Constructed);
   }
 
   public static isOrganism(obj: Stuff): obj is Stuff & Organism {
