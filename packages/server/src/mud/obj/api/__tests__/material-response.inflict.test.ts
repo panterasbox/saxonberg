@@ -249,7 +249,7 @@ describe('materials-response — inflict through the covering stack', () => {
         'torso',
       );
 
-      const out = ConditionApi.inflict(body, {
+      ConditionApi.inflict(body, {
         mechanism: channel,
         site: 'body.torso',
         energy: 2,

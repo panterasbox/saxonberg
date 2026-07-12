@@ -22,7 +22,6 @@ import { Construction } from './Construction';
 import { CHANNELS } from './Channel';
 import type { Channel } from './Channel';
 import { MixinApi } from '../../api/mixin';
-import { Mixins } from '../mixin';
 import { MaterialApi, OUTCOME_BANDS } from '../../api/material';
 import type { MarkupAugmenter } from '../../api/mml';
 import type { Stuff } from '../stuff/Stuff';
