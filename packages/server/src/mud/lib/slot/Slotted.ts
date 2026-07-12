@@ -27,6 +27,10 @@ import { Mixins } from '../mixin';
 import type { Stuff } from '../stuff/Stuff';
 import type { Slottable } from './Slottable';
 import { MixinApi } from '../../api/mixin';
+import type {
+  CaptureContext,
+  SlottedSlice,
+} from '../persistence/PersistenceSlice';
 
 /**
  * Sentinel for unbounded-capacity slots. JSON/BSON-safe substitute for
@@ -366,6 +370,40 @@ export function SlottedMixin<TBase extends MixinConstructor<Stuff>>(
      * Iteration safety: snapshot the (host, slot, candidate)
      * tuples first because `host.vacate` mutates the live map.
      */
+    /**
+     * Persistence-spine capture hook (see
+     * [docs/subsystems/persistence.md]). Serializes the worn/equipped
+     * occupancy by **position**: each occupant that is also one of the
+     * host's captured contents (a worn Wearable in the avatar's inventory)
+     * is recorded as its container-slice index plus the slot names it
+     * claims (a Wearable may claim several). Non-content occupants (a rider
+     * on a mount, a sitter on a chair — not in the host's contents) resolve
+     * to index -1 and are skipped: they are separate entities, not this
+     * host's persistent gear. Restore re-wears via `SlotApi.occupyAll`,
+     * centralized in `PersistableLogic` (it needs the restored-contents
+     * array), so there is no paired `restoreSlice` here.
+     */
+    static captureSlice(
+      host: Stuff,
+      ctx: CaptureContext,
+    ): SlottedSlice {
+      const slotted = host as Stuff & Slotted;
+      const byItem = new Map<Stuff & Slottable, string[]>();
+      for (const [slotName, occupants] of slotted.getAllOccupants()) {
+        for (const occupant of occupants) {
+          const list = byItem.get(occupant) ?? [];
+          list.push(slotName);
+          byItem.set(occupant, list);
+        }
+      }
+      const worn: Array<{ index: number; slots: string[] }> = [];
+      for (const [item, slots] of byItem) {
+        const index = ctx.indexOf(item);
+        if (index >= 0) worn.push({ index, slots });
+      }
+      return { worn };
+    }
+
     static cleanupOnDestruct(stuff: Stuff): void {
       const host = stuff as Stuff & Slotted;
       const snapshot: Array<[string, Stuff & Slottable]> = [];

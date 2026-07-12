@@ -38,9 +38,13 @@ export class ResidencyApi {
     logic().installEvictionSweep();
   }
 
-  /** Run one eviction sweep now (test / manual seam). */
-  public static evictNow(): void {
-    logic().evictNow();
+  /**
+   * Run one eviction sweep now (test / manual seam). Returns a promise
+   * that resolves once the sweep — including any persistable host's durable
+   * capture before its cull — has completed.
+   */
+  public static evictNow(): Promise<void> {
+    return logic().evictNow();
   }
 }
 

@@ -1,0 +1,313 @@
+<title>Stream tuning — cockpit demo</title>
+<style>
+  :root {
+    /* light — cool console paper */
+    --bg: #eceff3;
+    --panel: #ffffff;
+    --panel-2: #f4f6f9;
+    --ink: #16202b;
+    --ink-2: #46566a;
+    --ink-dim: #6b7c90;
+    --line: #d6dde6;
+    --line-strong: #c2ccd8;
+    --accent: #0e9384;
+    --accent-soft: #d3efeb;
+    --twitch: #7a3ff2;
+    --youtube: #e11431;
+    --ok: #1a7f4b;
+    --warn: #9a6b12;
+    --shadow: 0 1px 2px rgba(16,32,44,.06), 0 12px 30px -12px rgba(16,32,44,.22);
+    --mono: ui-monospace, "SF Mono", "JetBrains Mono", Menlo, Consolas, monospace;
+    --sans: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0b0f14;
+      --panel: #12181f;
+      --panel-2: #0e141a;
+      --ink: #e6edf4;
+      --ink-2: #a9b7c6;
+      --ink-dim: #7688a0;
+      --line: #212c38;
+      --line-strong: #2c3a49;
+      --accent: #35c9b5;
+      --accent-soft: #0f2b2a;
+      --twitch: #a97bff;
+      --youtube: #ff5a6e;
+      --ok: #46c47c;
+      --warn: #e0b64a;
+      --shadow: 0 1px 2px rgba(0,0,0,.4), 0 18px 40px -16px rgba(0,0,0,.7);
+    }
+  }
+  :root[data-theme="light"] {
+    --bg: #eceff3; --panel: #ffffff; --panel-2: #f4f6f9; --ink: #16202b;
+    --ink-2: #46566a; --ink-dim: #6b7c90; --line: #d6dde6; --line-strong: #c2ccd8;
+    --accent: #0e9384; --accent-soft: #d3efeb; --twitch: #7a3ff2; --youtube: #e11431;
+    --ok: #1a7f4b; --warn: #9a6b12;
+    --shadow: 0 1px 2px rgba(16,32,44,.06), 0 12px 30px -12px rgba(16,32,44,.22);
+  }
+  :root[data-theme="dark"] {
+    --bg: #0b0f14; --panel: #12181f; --panel-2: #0e141a; --ink: #e6edf4;
+    --ink-2: #a9b7c6; --ink-dim: #7688a0; --line: #212c38; --line-strong: #2c3a49;
+    --accent: #35c9b5; --accent-soft: #0f2b2a; --twitch: #a97bff; --youtube: #ff5a6e;
+    --ok: #46c47c; --warn: #e0b64a;
+    --shadow: 0 1px 2px rgba(0,0,0,.4), 0 18px 40px -16px rgba(0,0,0,.7);
+  }
+
+  * { box-sizing: border-box; }
+  body { margin: 0; }
+  .wrap {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--sans);
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+    padding: clamp(1.25rem, 4vw, 3.5rem) 1.25rem 4rem;
+  }
+  .page { max-width: 920px; margin: 0 auto; }
+
+  .eyebrow {
+    font-family: var(--mono);
+    font-size: .72rem;
+    letter-spacing: .18em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin: 0 0 .9rem;
+    display: flex; align-items: center; gap: .6rem;
+  }
+  .eyebrow::before {
+    content: ""; width: 26px; height: 1px; background: var(--accent); opacity: .7;
+  }
+  h1 {
+    font-size: clamp(2rem, 5vw, 3rem);
+    line-height: 1.02;
+    letter-spacing: -.02em;
+    margin: 0 0 .5rem;
+    text-wrap: balance;
+  }
+  .lede {
+    font-size: clamp(1.02rem, 2.1vw, 1.2rem);
+    color: var(--ink-2);
+    max-width: 60ch;
+    margin: 0 0 1.4rem;
+  }
+  .status { display: flex; flex-wrap: wrap; gap: .5rem; margin-bottom: 2.6rem; }
+  .pill {
+    font-family: var(--mono);
+    font-size: .74rem;
+    padding: .26rem .6rem;
+    border: 1px solid var(--line-strong);
+    border-radius: 999px;
+    color: var(--ink-2);
+    background: var(--panel);
+    white-space: nowrap;
+  }
+  .pill.dot::before {
+    content: ""; display: inline-block; width: 7px; height: 7px; border-radius: 50%;
+    background: var(--ok); margin-right: .45rem; vertical-align: middle;
+  }
+  .pill.accent { color: var(--accent); border-color: var(--accent); background: var(--accent-soft); }
+
+  .steps { display: flex; flex-direction: column; gap: 2.4rem; }
+  .step { display: grid; grid-template-columns: 2.2rem 1fr; gap: 1rem; }
+  .num {
+    font-family: var(--mono);
+    font-size: .95rem;
+    color: var(--accent);
+    padding-top: .1rem;
+    font-variant-numeric: tabular-nums;
+  }
+  .step h2 {
+    font-size: 1.16rem; margin: .1rem 0 .5rem; letter-spacing: -.01em;
+  }
+  .step p { margin: 0 0 1rem; color: var(--ink-2); max-width: 64ch; }
+  .step p b { color: var(--ink); font-weight: 600; }
+
+  /* terminal line */
+  .term {
+    font-family: var(--mono);
+    font-size: .82rem;
+    background: var(--panel-2);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: .6rem .75rem;
+    margin: 0 0 1rem;
+    overflow-x: auto;
+  }
+  .term .in { color: var(--ink); white-space: pre; }
+  .term .in .v { color: var(--accent); font-weight: 600; }
+  .term .out { color: var(--ink-dim); white-space: pre-wrap; display: block; margin-top: .25rem; }
+  .term .out.warn { color: var(--warn); }
+  .term .out.ok { color: var(--ok); }
+
+  /* screenshot bezel */
+  figure { margin: 0; }
+  .bezel {
+    border: 1px solid var(--line-strong);
+    border-radius: 12px;
+    overflow: hidden;
+    background: var(--panel);
+    box-shadow: var(--shadow);
+  }
+  .bezel .bar {
+    display: flex; align-items: center; gap: .5rem;
+    padding: .5rem .7rem;
+    background: var(--panel-2);
+    border-bottom: 1px solid var(--line);
+  }
+  .bezel .bar .dots { display: flex; gap: .32rem; }
+  .bezel .bar .dots i { width: 9px; height: 9px; border-radius: 50%; background: var(--line-strong); display: block; }
+  .bezel .bar .cap {
+    font-family: var(--mono); font-size: .7rem; color: var(--ink-dim);
+    margin-left: .35rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .bezel img { display: block; width: 100%; height: auto; }
+
+  .chip {
+    display: inline-block; font-family: var(--mono); font-size: .68rem;
+    padding: .1rem .42rem; border-radius: 5px; vertical-align: middle;
+    border: 1px solid currentColor; font-weight: 600;
+  }
+  .chip.tw { color: var(--twitch); }
+  .chip.yt { color: var(--youtube); }
+
+  .divider { height: 1px; background: var(--line); margin: 3rem 0; border: 0; }
+
+  .fixes { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 1.4rem 1.5rem; }
+  .fixes h2 { margin: 0 0 .3rem; font-size: 1.16rem; }
+  .fixes > p { margin: 0 0 1.1rem; color: var(--ink-2); max-width: 64ch; }
+  .fixlist { display: flex; flex-direction: column; gap: .85rem; }
+  .fix { display: grid; grid-template-columns: auto 1fr; gap: .7rem; align-items: start; }
+  .fix .tag {
+    font-family: var(--mono); font-size: .66rem; text-transform: uppercase; letter-spacing: .06em;
+    color: var(--accent); border: 1px solid var(--accent); border-radius: 5px;
+    padding: .12rem .4rem; white-space: nowrap; margin-top: .12rem;
+  }
+  .fix .body { color: var(--ink-2); font-size: .93rem; }
+  .fix .body b { color: var(--ink); font-weight: 600; }
+  .fix code, .term code { font-family: var(--mono); }
+  code.k { background: var(--panel-2); border: 1px solid var(--line); border-radius: 4px; padding: 0 .3rem; font-size: .85em; color: var(--ink); }
+
+  footer {
+    margin-top: 3rem; padding-top: 1.3rem; border-top: 1px solid var(--line);
+    font-family: var(--mono); font-size: .74rem; color: var(--ink-dim);
+    display: flex; flex-wrap: wrap; gap: .4rem 1.2rem;
+  }
+  footer .k { color: var(--ink-2); }
+
+  @media (max-width: 560px) {
+    .step { grid-template-columns: 1fr; gap: .3rem; }
+    .num { padding-top: 0; }
+  }
+</style>
+
+<div class="wrap">
+  <div class="page">
+
+    <p class="eyebrow">Saxonberg · cockpit walkthrough</p>
+    <h1>Stream tuning</h1>
+    <p class="lede">One command surface for watching and following any live stream — Twitch or YouTube — driven straight from the cockpit's command bar. Every frame below is a real capture from the running app.</p>
+    <div class="status">
+      <span class="pill accent">feature/stream-tuning</span>
+      <span class="pill">MR !123</span>
+      <span class="pill dot">verified live</span>
+      <span class="pill dot">5,585 tests · type-clean</span>
+    </div>
+
+    <div class="steps">
+
+      <section class="step">
+        <div class="num">01</div>
+        <div>
+          <h2>The front door</h2>
+          <p>Sign in with Google or Twitch, drop in as a guest, or take the local dev door straight to a character. The cockpit opens on the ordinary <b>world</b> terminal.</p>
+          <figure class="bezel">
+            <div class="bar"><span class="dots"><i></i><i></i><i></i></span><span class="cap">localhost:5173 — start</span></div>
+            <img src="__IMG_01__" alt="Saxonberg start screen with sign-in options and a dev login" />
+          </figure>
+        </div>
+      </section>
+
+      <section class="step">
+        <div class="num">02</div>
+        <div>
+          <h2>Switch to the livestream layout</h2>
+          <p>The video pane opens empty — and tells you exactly how to fill it. The old operator-curated <code class="k">broadcastSources</code> picker is <b>retired</b>; the focal embed is now per-viewer state you drive with <code class="k">watch</code>.</p>
+          <div class="term"><span class="in"><span class="v">layout</span> livestream-viewer</span><span class="out ok">layout set to livestream-viewer</span></div>
+          <figure class="bezel">
+            <div class="bar"><span class="dots"><i></i><i></i><i></i></span><span class="cap">livestream-viewer — empty embed</span></div>
+            <img src="__IMG_02__" alt="Livestream-viewer layout with an empty embed reading: use the watch command to put a broadcast here" />
+          </figure>
+        </div>
+      </section>
+
+      <section class="step">
+        <div class="num">03</div>
+        <div>
+          <h2>Watch a YouTube stream <span class="chip yt">YouTube</span></h2>
+          <p>Paste a link. The server resolves the target, stores it as your per-viewer <code class="k">cockpit.watch</code> state, and pushes it to the client, which mounts the real player. No wizard config, no reader account — watching just works.</p>
+          <div class="term"><span class="in"><span class="v">watch</span> https://www.youtube.com/watch?v=dQw4w9WgXcQ</span><span class="out">Watching YouTube dQw4w9WgXcQ.</span></div>
+          <figure class="bezel">
+            <div class="bar"><span class="dots"><i></i><i></i><i></i></span><span class="cap">watch · youtube</span></div>
+            <img src="__IMG_03__" alt="The cockpit focal pane showing a live YouTube player embed" />
+          </figure>
+        </div>
+      </section>
+
+      <section class="step">
+        <div class="num">04</div>
+        <div>
+          <h2>Swap to Twitch — same verb <span class="chip tw">Twitch</span></h2>
+          <p>A second <code class="k">watch</code> swaps the single focal embed to Twitch; the platform is inferred from the URL. The Twitch player's <code class="k">parent</code> is the host domain, correct-by-construction. (This channel is offline, so it shows Twitch's own offline card — the embed path is what's on trial.)</p>
+          <div class="term"><span class="in"><span class="v">watch</span> twitch.tv/twitch</span><span class="out">Watching Twitch #twitch.</span></div>
+          <figure class="bezel">
+            <div class="bar"><span class="dots"><i></i><i></i><i></i></span><span class="cap">watch · twitch</span></div>
+            <img src="__IMG_04__" alt="The focal pane swapped to the Twitch player, showing the channel offline card" />
+          </figure>
+        </div>
+      </section>
+
+      <section class="step">
+        <div class="num">05</div>
+        <div>
+          <h2>Follow chat with <code class="k">tune</code> — and fail gracefully</h2>
+          <p>Where <code class="k">watch</code> is the single focal video, <code class="k">tune</code> follows a stream's <b>chat</b> (many at once). Here it also shows two guardrails: a bare word that names no character points you at the platform flag, and an unconfigured relay degrades to a plain message instead of an error.</p>
+          <div class="term"><span class="in"><span class="v">tune</span> shroud</span><span class="out warn">No online character by that name — for a stream handle add --twitch or --youtube (or give a URL).</span><span class="in"><span class="v">tune</span> shroud --twitch</span><span class="out warn">Twitch relay isn't configured.</span></div>
+          <figure class="bezel">
+            <div class="bar"><span class="dots"><i></i><i></i><i></i></span><span class="cap">tune · guardrails</span></div>
+            <img src="__IMG_05__" alt="The game terminal showing tune commands returning the platform-hint and not-configured messages" />
+          </figure>
+        </div>
+      </section>
+
+    </div>
+
+    <hr class="divider" />
+
+    <section class="fixes">
+      <h2>Found &amp; fixed by driving the real app</h2>
+      <p>Running it live — not just the unit suite — surfaced three integration bugs that pass-through tests can't see, because they exercise registration and wiring rather than a controller in isolation. All three are fixed and on the branch.</p>
+      <div class="fixlist">
+        <div class="fix">
+          <span class="tag">affordance</span>
+          <div class="body"><b>Verbs weren't offered to players.</b> <code>watch</code>/<code>tune</code> shipped with no <code>commandContributions</code>, so a normal character got "I don't understand 'watch'." Added them to the Avatar's own console surface.</div>
+        </div>
+        <div class="fix">
+          <span class="tag">registration</span>
+          <div class="body"><b>Missing singleton template.</b> The <code>TwitchRelay → StreamRelay</code> rename dropped the seed, so the chat path threw "Template not found: /obj/StreamRelay." Added the seed, matching the sibling in-memory singletons.</div>
+        </div>
+        <div class="fix">
+          <span class="tag">message</span>
+          <div class="body"><b>Dead-end reject.</b> A bare <code>watch shroud</code> said only "Could not resolve that character" — now it points at <code>--twitch</code>/<code>--youtube</code> or a URL, the message shown above.</div>
+        </div>
+      </div>
+    </section>
+
+    <footer>
+      <span><span class="k">branch</span> feature/stream-tuning</span>
+      <span><span class="k">head</span> 375d9089</span>
+      <span><span class="k">note</span> chat relays need YOUTUBE_READER_* / OVERLAY_* creds to go fully live</span>
+    </footer>
+
+  </div>
+</div>

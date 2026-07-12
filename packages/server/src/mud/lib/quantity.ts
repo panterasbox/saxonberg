@@ -62,6 +62,12 @@ export type Unit =
   | 'g/dL'
   // Pressure / force / energy / power
   | 'Pa' | 'N' | 'J' | 'W'
+  // Mechanical material properties (materials-response) — real, tabulated:
+  // `MPa` = indentation hardness (pressure-shaped, resistance to a point
+  // load); `MJ/m³` = toughness (energy absorbed per unit volume before
+  // fracture — the height a material lends the response curve). Consumed by
+  // `MaterialApi`'s response function.
+  | 'MPa' | 'MJ/m³'
   // Thermal conductivity (W per metre-kelvin) — real material property,
   // tabulated; consumed by the Thermal capability (heat flow / algor mortis)
   | 'W/(m·K)'
@@ -148,6 +154,8 @@ const unitOps: Partial<Record<Unit, UnitOps>> = {
   N: ARITHMETIC_OPS,
   J: ARITHMETIC_OPS,
   W: ARITHMETIC_OPS,
+  MPa: ARITHMETIC_OPS,
+  'MJ/m³': ARITHMETIC_OPS,
   'W/(m·K)': ARITHMETIC_OPS,
   'J/(kg·K)': ARITHMETIC_OPS,
   clo: ARITHMETIC_OPS,

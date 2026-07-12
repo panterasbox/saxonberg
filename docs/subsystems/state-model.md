@@ -265,20 +265,21 @@ exist on every Stuff regardless of mixins.
 - **Hydrator opt-in**: `hydratorClass` is opt-in. Templates that omit
   it skip hydration entirely.
 
-## Persist Direction — v1 (Avatar only)
+## Persist Direction — the self-persistence spine
 
-The persist direction now ships for `Avatar` specifically. The
-substrate machinery is general (`TemplateApi.snapshotToTemplate` /
-`restoreFromTemplate`) but the only consumer is Avatar.
+Avatar persists through the **universal self-persistence spine** (a general
+substrate shared by avatars, rooms, and vessels) into its own
+`holder_snapshots` record — NOT its template. See
+[persistence.md § The self-persistence spine](./persistence.md#the-self-persistence-spine-persistable).
 
-- **`Avatar.save()`** snapshots the avatar's `persistentFields` chain
-  back to its per-player template doc (`/obj/Avatar/<playerId>`).
-  The synchronous prefix in
-  `TemplateApi.snapshotToTemplate` captures field values + derived
-  `data.container` BEFORE the first await; the MongoDB write itself
-  is async.
-- **`Avatar.restore()`** re-hydrates an existing live instance from
-  its template doc. v1 is developer/admin only.
+- **`Avatar.save()`** → `PersistableApi.capture`: captures the avatar's
+  declared fields, **carried inventory** (Container slice), **worn gear**
+  (Slotted slice), and **spawn/recall location** (`place`, WarrenMember-
+  reconciled). The synchronous snapshot prefix reads state BEFORE the first
+  await; the MongoDB write is async.
+- **`Avatar.restore()`** → `materialize`: re-hydrates a live instance from
+  its record. v1 is developer/admin only (and intended for a fresh instance).
+  The normal login path materializes automatically via `postRegister`.
 - **Auto-save fires** on logout/linkdead (via `Avatar.onDestruct`'s
   fire-and-forget save) and on a periodic backstop installed by
   `Avatar.enter()` (called from `Login.enter` after the connection
@@ -286,15 +287,10 @@ substrate machinery is general (`TemplateApi.snapshotToTemplate` /
   setting (default 5 minutes); per-Avatar overrides fall out of the
   standard `resolveSetting` chain.
 
-Out of scope for v1:
-
-- **Inventory persist-back** — only the Avatar's own persistent
-  fields plus derived `data.container` ship. Items in the avatar's
-  inventory don't round-trip; if a player picks up a sword, the
-  sword is gone on restart.
-- **Generalization to non-Avatar Stuff** — no general persist-back
-  mixin, no save/restore on rooms/items/doors. The substrate is shape-
-  agnostic so the next consumer doesn't repeat the mechanism inline.
+Now in scope (the migration onto the spine): **inventory + worn gear
+persist** (the "no naked login" fix — items were lost on restart before) and
+the substrate is **general** — an authored persistable room persists its
+contents the same way. Still out of scope for v1:
 - **Multi-process coordination** — concurrent saves resolve as
   last-write-wins via MongoDB's `replaceOne`. Cross-process locking
   would belong at the Mongo client or lifecycle layer if/when a

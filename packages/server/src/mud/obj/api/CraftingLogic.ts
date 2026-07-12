@@ -379,7 +379,9 @@ async function craftImpl(req: CraftRequest): Promise<CraftOutcome> {
   });
 
   consumeBulkInputs(matched);
-  for (const t of usedTools) t.wear();
+  // Tools wear on use — the durable-good half (a ToolItem composes
+  // DurableMixin alongside ToolMixin).
+  for (const t of usedTools) if (MixinApi.isDurable(t)) t.wear();
 
   return { ok: true, output, grade, recipeId: recipe.getRecipeId() };
 }

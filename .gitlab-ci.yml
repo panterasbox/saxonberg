@@ -88,6 +88,8 @@ lint:
     # Persistence-gating lockdown: PersistenceManager.get() only via the
     # PersistApi facade / sanctioned framework boundary.
     - pnpm -C packages/server lint:pm
+    # Materials-response legibility: no construction/implement does nothing.
+    - pnpm -C packages/server lint:does-nothing
 
 test:
   extends: [.node, .mr-only]

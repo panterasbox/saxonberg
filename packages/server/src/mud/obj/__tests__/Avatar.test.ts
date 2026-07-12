@@ -482,30 +482,41 @@ describe('Avatar', () => {
   });
 
   describe('persist-back shims', () => {
-    it('save() delegates to TemplateApi.snapshotToTemplate + tpl.save()', async () => {
-      const { TemplateApi } = await import('../../api/template');
-      const fakeTpl = { save: vi.fn().mockResolvedValue(undefined) };
-      const snapSpy = vi
-        .spyOn(TemplateApi, 'snapshotToTemplate')
-        .mockResolvedValue(fakeTpl as never);
+    it('save() captures through the persistence spine (PersistableApi.capture)', async () => {
+      const { PersistableApi } = await import('../../api/persistable');
+      const capSpy = vi
+        .spyOn(PersistableApi, 'capture')
+        .mockResolvedValue(undefined);
       const avatar = makeAvatar('save-test');
       await avatar.save();
-      expect(snapSpy).toHaveBeenCalledTimes(1);
-      expect(snapSpy.mock.calls[0]![0]).toBe(avatar);
-      expect(fakeTpl.save).toHaveBeenCalledTimes(1);
-      snapSpy.mockRestore();
+      expect(capSpy).toHaveBeenCalledTimes(1);
+      expect(capSpy.mock.calls[0]![0]).toBe(avatar);
+      capSpy.mockRestore();
     });
 
-    it('restore() delegates to TemplateApi.restoreFromTemplate', async () => {
-      const { TemplateApi } = await import('../../api/template');
-      const restoreSpy = vi
-        .spyOn(TemplateApi, 'restoreFromTemplate')
+    it('save() is a no-op for a guest (zero guest persistence)', async () => {
+      const { PersistableApi } = await import('../../api/persistable');
+      const capSpy = vi
+        .spyOn(PersistableApi, 'capture')
+        .mockResolvedValue(undefined);
+      const guest = makeAvatar('guest-test');
+      (guest as unknown as { isGuest: boolean }).isGuest = true;
+      await guest.save();
+      expect(capSpy).not.toHaveBeenCalled();
+      expect(guest.shouldPersist()).toBe(false);
+      capSpy.mockRestore();
+    });
+
+    it('restore() materializes through the persistence spine (PersistableApi.materialize)', async () => {
+      const { PersistableApi } = await import('../../api/persistable');
+      const matSpy = vi
+        .spyOn(PersistableApi, 'materialize')
         .mockResolvedValue(undefined);
       const avatar = makeAvatar('restore-test');
       await avatar.restore();
-      expect(restoreSpy).toHaveBeenCalledTimes(1);
-      expect(restoreSpy.mock.calls[0]![0]).toBe(avatar);
-      restoreSpy.mockRestore();
+      expect(matSpy).toHaveBeenCalledTimes(1);
+      expect(matSpy.mock.calls[0]![0]).toBe(avatar);
+      matSpy.mockRestore();
     });
   });
 

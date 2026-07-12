@@ -174,7 +174,7 @@ index.
 
 | Host | Vetoes while… | Owns |
 |---|---|---|
-| `Container` | non-empty | cold contents cull first; the emptied container culls a later sweep (bottom-up — R2.4 owning-cascade never surprises) |
+| `Container` | non-empty **AND not a persistence host** | cold contents cull first; the emptied container culls a later sweep (bottom-up — R2.4 owning-cascade never surprises). A **persistable host** (`PersistableMixin`) falls THROUGH this veto — the sweep `await`s `PersistableApi.capture` before `StuffApi.destruct`, so contents are durably captured then re-materialize on next reference (see [persistence.md § eviction seam](./persistence.md#the-eviction-seam)) |
 | `Containable` | inside a `HasInteractive` holder | protects a disconnected-but-in-memory avatar's inventory that presence-touch can't reach |
 | `HasInteractive` | always (Avatar / Login) | the session holder itself; lifecycle owned by connection teardown |
 | shadow | its host is alive | one-directional (checks `host.isDestroyed()`, never `host.canEvict()` — no recursion); orphaned shadow culls |

@@ -25,8 +25,8 @@
  *
  * What this mixin is NOT: a host marker (host-ness is the Warren's
  * `getHost()` / `isCurrentHost`, never a flag here), a container tier, or
- * the durable-recall hook (that rides `WarrenMember.getWarren()` from
- * `snapshotToTemplate`).
+ * the durable-recall hook (that rides `WarrenMember.getWarren()` from the
+ * persistence spine's `PersistableLogic.capturePlacement`).
  */
 
 import type { MixinConstructor } from '../../lib/mixin';

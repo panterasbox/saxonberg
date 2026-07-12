@@ -500,10 +500,13 @@ class WalletMixin {
 }
 ```
 
-`PersistentHydrator.hydrate` and `Persistable.toDocument` /
+`PersistentHydrator.hydrate` and `Document.toDocument` /
 `fromDocument` look up the marshaller via
 `MixinApi.getAllFieldMarshallers(constructor)` and apply
 `fromStored` / `toStored` around the bracket-assign / bracket-read.
+(NB: `Document` is the persistence base class — distinct from the
+self-persistence-spine `PersistableMixin`, which they share no code
+with beyond this marshaller lookup.)
 
 ### Don't reach for a marshaller as a first move
 

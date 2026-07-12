@@ -5,6 +5,7 @@
     "build": "pnpm -r build",
     "lint": "eslint . --ext .ts,.tsx --cache",
     "lint:gates": "pnpm --filter @saxonberg/server run lint:gates",
+    "lint:does-nothing": "pnpm --filter @saxonberg/server run lint:does-nothing",
     "test": "pnpm --filter='!@saxonberg/e2e' -r test",
     "test:watch": "pnpm --filter='!@saxonberg/e2e' -r test:watch",
     "e2e": "pnpm --filter @saxonberg/e2e test",

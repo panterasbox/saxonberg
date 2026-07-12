@@ -64,6 +64,7 @@ export enum Collections {
   Parcels = 'parcels',
   ParcelEvents = 'parcel_events',
   Diagnostics = 'diagnostics',
+  HolderSnapshots = 'holder_snapshots',
 }
 
 /**
@@ -943,6 +944,22 @@ export class PersistenceManager {
       await this.getCollection(Collections.Diagnostics).createIndex(
         { expiresAt: 1 },
         { expireAfterSeconds: 0 }
+      );
+
+      // Holder snapshots: the persistence-spine engine-of-record (one doc
+      // per host `scope` × `owner`). Indexed on `scope` (materialize loads
+      // every record scoped to a host) and `owner` (the account-deletion
+      // cascade, a keyed delete). The compound `{ scope, owner }` serves
+      // the single-record capture upsert.
+      await this.getCollection(Collections.HolderSnapshots).createIndex({
+        scope: 1,
+      });
+      await this.getCollection(Collections.HolderSnapshots).createIndex({
+        owner: 1,
+      });
+      await this.getCollection(Collections.HolderSnapshots).createIndex(
+        { scope: 1, owner: 1 },
+        { unique: true },
       );
 
       console.info('PersistenceManager: Indexes created successfully');

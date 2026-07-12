@@ -390,14 +390,19 @@ Pattern-B pair. The declared path can *initiate* a membership but never
 owned by another Warren (owner wins + warn). Reads always use the runtime
 back-ref, never the declared path.
 
-## Recall (save-delegation)
+## Recall (placement capture)
 
-`TemplateApi.snapshotToTemplate` consults the live container: when it is a
-`WarrenMember` with a Warren, it persists `data.startLocation: <Warren>`
-and drops `data.container` (and reconciles the reverse for an ordinary
-room) — so logout in the lounge resumes via `getHost()` into a *live*
-instance, never a dead clone. The hook rides the existing
-`WarrenMember.getWarren()` back-ref; no extra capability mixin.
+The self-persistence spine's `PersistableLogic.capturePlacement` consults an
+avatar's live container: when it is a `WarrenMember` with a Warren, it
+captures `place.startLocation: <Warren>` on the avatar's record (rather than
+the transient room clone), else a plain `place.container` — so logout in the
+lounge resumes via `getHost()` into a *live* instance, never a dead clone.
+On materialize the placement is restored through
+`ContainmentApi.resolveLanding` / `move`. The hook rides the existing
+`WarrenMember.getWarren()` back-ref; no extra capability mixin. (This is the
+home of the recall logic the retired `TemplateApi.snapshotToTemplate` once
+wrote to the avatar template — see
+[persistence.md](./persistence.md#the-self-persistence-spine-persistable).)
 
 ## Instance identity — live-ref hub exits
 

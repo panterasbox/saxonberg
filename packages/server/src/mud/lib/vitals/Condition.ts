@@ -29,6 +29,7 @@ import { PropertiedMixin } from '../stuff/Propertied';
 import { Quantity } from '../quantity';
 import type { Vitals } from './Vitals';
 import type { ToxinBehavior } from '../metabolism/Metabolic';
+import type { Channel } from '../material/Channel';
 
 // ---------- the active-condition vocabulary ----------
 
@@ -43,36 +44,32 @@ export interface AfflictionRecord {
   elapsed: number;
 }
 
-/** The closed engine trauma vocabulary. Grow additively (puncture, …). */
+/** The closed engine trauma vocabulary. Grow additively. */
 export type TraumaType =
   | 'laceration'
+  | 'puncture'
   | 'fracture'
   | 'contusion'
   | 'avulsion'
   | 'burn';
 
-/**
- * The physical mechanism of an insult — the harm producer records it on
- * the trauma so the deferred **materials-response** severity function can
- * read it later. v1 stores it but it has **NO severity interaction yet**
- * (magnitude-only severity — "damage type is explicitly not the model").
- * The closed vocabulary maps bijectively onto {@link TraumaType} in
- * `ConditionLogic.inflict`. Grow additively.
- */
-export type Mechanism =
-  | 'sharp'
-  | 'blunt'
-  | 'crushing'
-  | 'thermal'
-  | 'tearing';
+// The mechanism vocabulary is unified into the materials-response
+// **channel** set (edge / point / blunt) — the single interface a weapon's
+// delivery, an armor's resistance, and a tissue's failure all transact over.
+// Re-exported here so harm consumers keep one import site.
+export type { Channel } from '../material/Channel';
+export { CHANNELS, Channels } from '../material/Channel';
 
-export const MECHANISMS: readonly Mechanism[] = [
-  'sharp',
-  'blunt',
-  'crushing',
-  'thermal',
-  'tearing',
-];
+/**
+ * The kind of insult an `inflict` describes. A {@link Channel} value runs the
+ * full materials-response resolution (covering stack → tissue → both the
+ * trauma *type* and its *severity*). The two legacy tokens `'thermal'` and
+ * `'tearing'` take a **magnitude-only passthrough** (direct → burn /
+ * avulsion) — the documented seam that folds into a future `heat` channel
+ * and a tearing channel when those land. See
+ * docs/subsystems/materials-response.md.
+ */
+export type InsultKind = Channel | 'thermal' | 'tearing';
 
 /** Kind B — trauma value; behavior resolves from `TRAUMA_BEHAVIOR`. */
 export interface Trauma {
@@ -87,10 +84,12 @@ export interface Trauma {
   /** Pressure / bandage applied → bleed arrested (runtime process flag). */
   dressed?: boolean;
   /**
-   * The physical mechanism that caused it — recorded by the harm producer,
-   * **not yet scored** (the deferred materials-response function reads it).
+   * The insult kind that caused it — recorded raw by the harm producer (a
+   * {@link Channel} for a response-resolved wound, or a passthrough token).
+   * The severity + type were resolved through the materials-response
+   * function; this stays the honest record of *how* it was struck.
    */
-  mechanism?: Mechanism;
+  mechanism?: InsultKind;
   /**
    * The inflicter's durable `templatePath`, for combat's future blame
    * ledger — harm records attribution without owning blame. Undefined for
@@ -326,12 +325,34 @@ export const AVULSION_BEHAVIOR: TraumaBehavior = {
 };
 
 /**
+ * puncture — a deep, narrow wound (the `point` channel through / past
+ * armor). Behaves as a **laceration** (bleeds, shares the clot gate) — a
+ * puncture is a narrow bleed you dress the same way — with its own prose.
+ * The materials-response point channel mints these; `resolveTrauma` maps
+ * point → puncture.
+ */
+export const PUNCTURE_BEHAVIOR: TraumaBehavior = {
+  onset: LACERATION_BEHAVIOR.onset,
+  tick: LACERATION_BEHAVIOR.tick,
+  resolve: LACERATION_BEHAVIOR.resolve,
+  reopen: LACERATION_BEHAVIOR.reopen,
+  describe(t: Trauma): string {
+    if (t.dressed) {
+      return `a dressed puncture wound of ${t.site} (bleeding controlled)`;
+    }
+    if (t.bleeding) return `a bleeding puncture wound of ${t.site}`;
+    return `a clotted puncture wound of ${t.site}`;
+  },
+};
+
+/**
  * The closed trauma behavior table — every `TraumaType` carries live
- * behavior (the NOOP exemplar remains the fallback shape). `avulsion`
- * delegates to laceration.
+ * behavior (the NOOP exemplar remains the fallback shape). `avulsion` and
+ * `puncture` delegate to the laceration bleed family.
  */
 export const TRAUMA_BEHAVIOR: Record<TraumaType, TraumaBehavior> = {
   laceration: LACERATION_BEHAVIOR,
+  puncture: PUNCTURE_BEHAVIOR,
   fracture: FRACTURE_BEHAVIOR,
   contusion: CONTUSION_BEHAVIOR,
   avulsion: AVULSION_BEHAVIOR,

@@ -74,6 +74,9 @@ export const Mixins = {
   Dressing: 'DressingMixin',
   Reserved: 'ReservedMixin',
   Radioactive: 'RadioactiveMixin',
+  // The form axis — a material worked into a Construction (materials-
+  // response). Composed by armor (resist profile) and weapons (delivery).
+  Constructed: 'ConstructedMixin',
   Branded: 'BrandedMixin',
   Workspace: 'WorkspaceMixin',
   Author: 'AuthorMixin',
@@ -93,6 +96,7 @@ export const Mixins = {
   Spawner: 'SpawnerMixin',
   Spawned: 'SpawnedMixin',
   Populates: 'PopulatesMixin',
+  Persistable: 'PersistableMixin',
   Globbable: 'GlobbableMixin',
   Bulkable: 'BulkableMixin',
   UnboundedSource: 'UnboundedSourceMixin',
@@ -121,6 +125,9 @@ export const Mixins = {
   Respiration: 'RespirationMixin',
   Behaved: 'BehavedMixin',
   Graded: 'GradedMixin',
+  // A physical thing that wears out with use (the condition/wear gauge).
+  // Composed by tools, weapons, and armor alike — durability is not "tool".
+  Durable: 'DurableMixin',
   Tool: 'ToolMixin',
   Crafted: 'CraftedMixin',
   Maker: 'MakerMixin',

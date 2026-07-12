@@ -47,17 +47,21 @@ the reconcile-on-read `tickedAt` anchor (see below — no arming).
   else `undefined`) — **never a caller-supplied parameter** (the gated-Api
   actor-from-context rule). Recorded on `Trauma.inflictedBy` for combat's
   future blame ledger; harm records attribution without owning blame.
-- **Severity is magnitude-only.** `energy → severity` through a v1 linear
-  dial (`HARM_DEFAULTS.SEVERITY_PER_ENERGY`). `mechanism` is the physical
-  vocabulary (`sharp`/`blunt`/`crushing`/`thermal`/`tearing`), mapped
-  bijectively to `TraumaType` by a small switch (sharp→laceration,
-  blunt→contusion, crushing→fracture, thermal→burn, tearing→avulsion) and
-  **recorded raw on `Trauma.mechanism`** — but it does **NOT modulate
-  severity yet**. This is deliberately *not* a `type → number` damage-type
-  table (the antipattern vitals.md names). ► **Deferred seam — the
-  materials-response severity function** (`mechanism × material ×
-  construction`, reading the per-part tissue Materials) slots in later at
-  the `severityFromEnergy` site.
+- **Severity AND type from the response function.** As of the
+  materials-response build, `mechanism` is an `InsultKind` — a
+  materials-response **`Channel`** (`edge`/`point`/`blunt`) or a legacy
+  passthrough token. For a `Channel`, `inflict` resolves the covering stack
+  at `site` outside-in, attenuates the incident `energy` through each armor
+  layer, and lets the residual meet the site's tissue — yielding **both**
+  the `Trauma` *severity* AND its *type* (edge→laceration, point→puncture,
+  blunt→fracture-on-bone-else-contusion; a fully-attenuated blow lands no
+  wound, a truthful "deflected"). The old magnitude-only `severityFromEnergy`
+  + bijective `mechanismToType` switch is retired for channels; it survives
+  only on the **`'thermal'`/`'tearing'` passthrough** (direct → burn /
+  avulsion), the documented seam that folds into a future `heat` / tearing
+  channel. `mechanism` is still **recorded raw on `Trauma.mechanism`**. The
+  response function is the single `MaterialApi` chokepoint — see
+  [materials-response.md](./materials-response.md).
 
 ## The five trauma behaviors
 
@@ -140,12 +144,13 @@ reads that must reflect the current bleed — `getVitalSign('bloodVolume')`,
   raw/forceMove traverses skip it structurally. Eases as the wound heals.
   Distinct from fracture's slot-disable (that's a read; this is a movement
   cost).
-- **Coverage-presence** (`ConditionApi.isSiteCovered(host, partKey)`) is a
-  **binary** read: resolves the body plan's `getSlotsCovering(partKey)`
-  (the `covers` edge — NOT `bodyPart`; the `feet` slot couples to the foot
-  parts via `covers`) and returns true iff a covering slot holds a worn
-  (`Wearable`) occupant. No materials / degree — the mitigation *curve*
-  defers with materials-response.
+- **Coverage is degree, not presence.** The binary
+  `ConditionApi.isSiteCovered` read is **retired** (materials-response): the
+  mitigation *curve* now falls out of `inflict` resolving the covering stack
+  outside-in through `getSlotsCovering(partKey)` (the `covers` edge) →
+  `Constructed`+`Wearable` armor layers → the tissue. A covered site turns
+  what an uncovered gap takes, by material + construction + wear, not by a
+  presence flag. See [materials-response.md](./materials-response.md).
 
 ## The medic vertical
 
@@ -195,9 +200,11 @@ nothing here (no multi-host reuse, no consumer narrows on it, no
 composition; the reusable abstraction is `inflict` itself). It overrides
 `onEntered(mover, exit)` (the `Mobile.traverse` presence trigger — NOT a
 teleport arrival): resolve a foot site from the mover's own anatomy (a
-non-biped matches none → graceful no cut), gate on
-`ConditionApi.isSiteCovered`, and cut a barefoot foot through `inflict`
-(never `afflict` directly). Config (mechanism / energy / foot sites) is
+non-biped matches none → graceful no cut) and cut the foot through `inflict`
+with an `edge` insult (never `afflict` directly). There is **no explicit
+coverage gate** any more — the materials-response covering stack decides:
+a bare foot lacerates, a stoutly-shod foot's boot layer attenuates the edge
+below the no-wound threshold. Config (mechanism / energy / foot sites) is
 class constants. It proves the full loop end-to-end — step on glass →
 bleed + limp → assess → treat-or-die — through the real `Mobile.traverse`
 + the medic controllers + the reconcile driver, in the **`GlassAlley`
@@ -219,11 +226,12 @@ real hazard/trap taxonomy is a separate future build over the same seam.
 
 ## Deferred (named seams)
 
-- **Materials-response severity function** — mechanism × material ×
-  construction, at the `severityFromEnergy` site
-  ([materials-response-slate.md](../slates/deferred-rpg/materials-response-slate.md)).
-- **Coverage degree** — the mitigation curve (canvas vs. leather vs.
-  steel-toe); v1 is binary presence.
+- **Materials-response severity function** — ✅ **LANDED**: `inflict`
+  resolves severity + type through the covering stack into the tissue; the
+  binary coverage gate is retired. See
+  [materials-response.md](./materials-response.md). (Still deferred *within*
+  materials-response: the tissue-vulnerability term, combat playstyle, the
+  repair economy, other channels.)
 - **Avulsion sever / part-promotion** — at `AVULSION_BEHAVIOR.onset`.
 - **Combat resolution** — attack verbs, poise, blame ledger,
   `combat.body.*` events, offensive `ActSignature`
@@ -251,8 +259,23 @@ real hazard/trap taxonomy is a separate future build over the same seam.
 
 ## History
 
-The build shipped in the harm-driver branch (the `feat(harm): Phase 0–6`
-commit range through the pre-merge sweep). Two design→implementation
+**Materials-response supersession (`feature/materials-response-build`).**
+The `inflict` producer was upgraded by the follow-on materials-response
+build: what this doc's earlier text called "magnitude-only severity + a
+bijective `mechanismToType` switch + a binary `isSiteCovered` gate" is
+retired. `inflict` now resolves a `Channel` insult outside-in through the
+covering stack into the tissue — **both** severity AND trauma type come from
+`MaterialApi`'s response function, and coverage is a *degree* (the stack),
+not a presence flag. The mechanism vocab unified into the channel set
+(`thermal`/`tearing` keep a magnitude-only passthrough); `TraumaType` grew
+`puncture`. See [materials-response.md](./materials-response.md). The
+sections above are current; this note marks the seam for readers of the
+retired harm plan.
+
+---
+
+The original build shipped in the harm-driver branch (the `feat(harm): Phase
+0–6` commit range through the pre-merge sweep). Two design→implementation
 shifts landed during MR review and are worth noting because the retired
 plan/requirements docs describe the pre-review shape:
 

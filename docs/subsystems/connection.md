@@ -772,8 +772,10 @@ if a caller didn't drop the connections first.
 
 `Avatar.startAutoSave()` is invoked from `Avatar.enter()` during
 session start. It installs a `ScheduleApi.recurring` timer that
-calls `avatar.save()` (which delegates to
-`TemplateApi.snapshotToTemplate` + `Template.save`). Three knobs are set explicitly:
+calls `avatar.save()` (which captures through the self-persistence spine —
+`PersistableApi.capture` → `holder_snapshots`; see
+[persistence.md](./persistence.md#the-self-persistence-spine-persistable)).
+Three knobs are set explicitly:
 
 - **Cadence**: resolved from the `world.autosave.interval` setting
   (declared on `Avatar`, default 5 minutes). Per-Avatar overrides
@@ -796,7 +798,7 @@ called from `Avatar.onDestruct` before the existing detach loop.
 linkdead-driven `onDestruct` save, and any manual `eval avatar.save()`
 can run in parallel; each produces a valid full-state snapshot. The
 correctness invariant — synchronous capture before the first await —
-lives in `TemplateApi.snapshotToTemplate`'s implementation; MongoDB's
+lives in `PersistableApi.capture`'s implementation; MongoDB's
 `replaceOne` resolves write ordering as last-write-wins.
 
 **Multiplexed-session restore.** `Avatar.restore()` is a
