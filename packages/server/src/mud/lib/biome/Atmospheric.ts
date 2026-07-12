@@ -157,19 +157,32 @@ export function AtmosphericMixin<
 
     // ---------- storage ----------
 
+    /** @authorable ref:Biome Authored biome reference (Pattern A path string). */
     public _biomePath: string | null = null;
+    /** @authorable Local room-scope temperature override; `null` falls through the chain. */
     public _temperature: Quantity<'K'> | null = null;
+    /** @authorable Local room-scope pressure override; `null` falls through the chain. */
     public _pressure: Quantity<'Pa'> | null = null;
+    /** @authorable Local room-scope humidity override; `null` falls through the chain. */
     public _humidity: Quantity<'%'> | null = null;
+    /** @authorable Local room-scope wind override; `null` falls through the chain. */
     public _wind: Quantity<'m/s'> | null = null;
+    /** @authorable Local room-scope gravity override; `null` falls through the chain. */
     public _gravity: Quantity<'m/s²'> | null = null;
+    /** @authorable Local room-scope atmosphere override; `null` falls through the chain. */
     public _atmosphere: string | null = null;
 
+    /** @authorable Per-detail temperature overrides. */
     public _detailTemperatures: Record<string, Quantity<'K'>> = {};
+    /** @authorable Per-detail pressure overrides. */
     public _detailPressures: Record<string, Quantity<'Pa'>> = {};
+    /** @authorable Per-detail humidity overrides. */
     public _detailHumidities: Record<string, Quantity<'%'>> = {};
+    /** @authorable Per-detail wind overrides. */
     public _detailWinds: Record<string, Quantity<'m/s'>> = {};
+    /** @authorable Per-detail gravity overrides. */
     public _detailGravities: Record<string, Quantity<'m/s²'>> = {};
+    /** @authorable Per-detail atmosphere overrides. */
     public _detailAtmospheres: Record<string, string> = {};
 
     // ---------- biome reference ----------

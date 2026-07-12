@@ -59,6 +59,8 @@ export function BrandedMixin<TBase extends MixinConstructor>(Base: TBase) {
     /**
      * The durable brand `key` (e.g. `'volk'`). Empty = unbranded. Resolved
      * to its `Brand` / `Corpo` lazily on each read via `CorpoApi`.
+     *
+     * @authorable ref:Brand
      */
     public _brandKey: string = "";
 

@@ -88,11 +88,23 @@ export function CraftedMixin<TBase extends MixinConstructor>(Base: TBase) {
 
     static persistentFields = ['maker', 'recipe', 'craftedAt'];
 
-    /** The maker's durable templatePath; empty until stamped. */
+    /**
+     * The maker's durable templatePath; empty until stamped.
+     *
+     * @runtimeState
+     */
     public maker: string = '';
-    /** The recipe id; empty until stamped. */
+    /**
+     * The recipe id; empty until stamped.
+     *
+     * @runtimeState
+     */
     public recipe: string = '';
-    /** Game-clock seconds of the craft; 0 until stamped. */
+    /**
+     * Game-clock seconds of the craft; 0 until stamped.
+     *
+     * @runtimeState
+     */
     public craftedAt: number = 0;
 
     getMaker(): string {

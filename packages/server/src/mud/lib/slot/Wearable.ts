@@ -59,10 +59,16 @@ export function WearableMixin<
     /**
      * Per-body-plan slot claims. `bodyPlanPath` → ordered list of slot
      * names. Empty / absent = ineligible on that body plan.
+     *
+     * @authorable
      */
     public slotClaims: Record<string, string[]> = {};
 
-    /** Thermal insulation contributed when worn (default 0 clo). */
+    /**
+     * Thermal insulation contributed when worn (default 0 clo).
+     *
+     * @authorable
+     */
     public clo: Quantity<'clo'> = Quantity.of(0, 'clo');
 
     public getClo(): Quantity<'clo'> {

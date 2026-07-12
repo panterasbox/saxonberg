@@ -44,7 +44,11 @@ export function SealableMixin<TBase extends MixinConstructor>(Base: TBase) {
 
     static persistentFields = ['open'];
 
-    /** Backing storage; access via `isOpen()` / `setOpen()`. */
+    /**
+     * Backing storage; access via `isOpen()` / `setOpen()`.
+     *
+     * @authorable
+     */
     private _open: boolean = false;
 
     /** Predicate getter. */

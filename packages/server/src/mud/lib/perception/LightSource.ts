@@ -87,6 +87,8 @@ export function LightSourceMixin<TBase extends MixinConstructor>(Base: TBase) {
      * bracket-assign goes through here so a malformed template
      * (negative, NaN, non-number) crashes loudly. Public API uses
      * the typed `getEmittedFlux` / `setEmittedFlux` pair.
+     *
+     * @authorable Emitted luminous flux (lumens, ≥ 0).
      */
     protected get emittedIntensity(): number {
       return this._emittedIntensity;
@@ -105,6 +107,8 @@ export function LightSourceMixin<TBase extends MixinConstructor>(Base: TBase) {
      * accepts `number | null` (canonical Kelvin) or a tag string
      * (looked up via `Quantity.parse(s, 'K')` against the registered
      * KELVIN_TAGS table). Stored canonically as `number | null`.
+     *
+     * @authorable Emitted color temperature (Kelvin; null = unset).
      */
     protected get emittedColorTemperature(): number | null {
       return this._emittedColorTemperature;

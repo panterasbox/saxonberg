@@ -280,25 +280,49 @@ export function BulkableMixin<TBase extends MixinConstructor<Stuff>>(
     static markupAugmenters: MarkupAugmenter[] = [bulkContentsAugmenter];
 
     // ---- affordance presence flags (authored per host) ----
-    /** Whether this host offers an interior bulk slot. */
+    /**
+     * Whether this host offers an interior bulk slot.
+     *
+     * @authorable
+     */
     public interiorBulk: boolean = false;
-    /** Whether this host offers a surface bulk slot. */
+    /**
+     * Whether this host offers a surface bulk slot.
+     *
+     * @authorable
+     */
     public surfaceBulk: boolean = false;
 
     // ---- interior slot ----
-    /** Interior material templatePath (Pattern A). `null` ⇒ empty. */
+    /**
+     * Interior material templatePath (Pattern A). `null` ⇒ empty.
+     *
+     * @authorable ref:Material
+     */
     public interiorMaterial: string | null = null;
+    /** @runtimeState */
     private _interiorAmount: Quantity<'L'> = Quantity.of(0, BULK_VOLUME_UNIT);
+    /** @authorable */
     private _interiorCapacity: Quantity<'L'> | null = null;
 
     // ---- surface slot ----
-    /** Surface material templatePath (Pattern A). `null` ⇒ empty. */
+    /**
+     * Surface material templatePath (Pattern A). `null` ⇒ empty.
+     *
+     * @authorable ref:Material
+     */
     public surfaceMaterial: string | null = null;
+    /** @runtimeState */
     private _surfaceAmount: Quantity<'L'> = Quantity.of(0, BULK_VOLUME_UNIT);
+    /** @authorable */
     private _surfaceCapacity: Quantity<'L'> | null = null;
 
     // ---- vessel-inherent state ----
-    /** Liquid-retention scale; default `liquidTight`. */
+    /**
+     * Liquid-retention scale; default `liquidTight`.
+     *
+     * @authorable
+     */
     public closure: ClosureLevel = 'liquidTight';
 
     static persistentFields = [

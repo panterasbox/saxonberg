@@ -67,6 +67,8 @@ export function DrivableMixin<TBase extends MixinConstructor<Stuff & Slotted>>(
      * `Mountable.mountSlot`'s default so a Stuff composing both
      * Mountable and Drivable doesn't collide rider and driver on the
      * same slot name. Authors can override to any `<role>:N` form.
+     *
+     * @authorable
      */
     public controllerSlot: string = 'driver:1';
 
@@ -78,6 +80,8 @@ export function DrivableMixin<TBase extends MixinConstructor<Stuff & Slotted>>(
      * traversal flows always go through that resolver, so authoring
      * vehicularMode at template-time is mandatory for any Drivable
      * that's expected to actually be driven.
+     *
+     * @authorable ref:Template
      */
     protected _vehicularModePath: string | null = null;
 

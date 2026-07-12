@@ -36,6 +36,7 @@ import type {
   TopicDescriptor,
 } from "@saxonberg/types";
 import { createCmsSlice, type CmsSlice } from "./cmsSlice";
+import { createStudioSlice, type StudioSlice } from "./studioSlice";
 
 /**
  * The mutually-exclusive top-level UI phase. Derived from the auth /
@@ -239,7 +240,7 @@ export interface Frame {
  * Combined store state. Extends {@link CmsSlice} (the CMS editor's
  * state + actions) — composed in via `createCmsSlice` in the store body.
  */
-interface StoreState extends CmsSlice {
+interface StoreState extends CmsSlice, StudioSlice {
   // Auth state
   auth: AuthState;
   setAuth: (auth: Partial<AuthState>) => void;
@@ -940,6 +941,13 @@ export const useStore = create<StoreState>((set, get) => ({
   ...createCmsSlice(
     set as Parameters<typeof createCmsSlice>[0],
     get as Parameters<typeof createCmsSlice>[1],
+  ),
+
+  // CMS Studio composer slice (state + REST-driven describe). Only
+  // touches the `studio.*` keys; shares the same narrow set/get shape.
+  ...createStudioSlice(
+    set as Parameters<typeof createStudioSlice>[0],
+    get as Parameters<typeof createStudioSlice>[1],
   ),
 
   // Auth state

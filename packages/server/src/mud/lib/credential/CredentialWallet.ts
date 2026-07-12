@@ -90,6 +90,7 @@ export function CredentialWalletMixin<TBase extends MixinConstructor<Stuff>>(
     /**
      * Persistence accessor. The getter yields the storable array; the setter
      * rebuilds records from their serialized rows (travel re-floors).
+     * @runtimeState
      */
     get credentials(): SerializedCredential[] {
       return [...this._credentials.values()].map((c) => c.toData());

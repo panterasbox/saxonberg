@@ -56,8 +56,11 @@ export function DisguiseBearingMixin<TBase extends MixinConstructor>(
 
     static persistentFields = ['appearsAs', 'covers', 'masksIdentity'];
 
+    /** @authorable The masked presentation ("a hooded figure"). */
     public appearsAs: string = '';
+    /** @authorable Body/identity regions this covering hides. */
     public covers: string[] = [];
+    /** @authorable v1 reveal gate: withhold a recognized wearer's name. */
     public masksIdentity: boolean = false;
 
     setAppearsAs(value: string): void {

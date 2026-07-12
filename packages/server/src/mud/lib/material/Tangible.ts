@@ -174,6 +174,8 @@ export function TangibleMixin<TBase extends MixinConstructor>(Base: TBase) {
      * Runtime mass storage as a `Quantity<'kg'>`. The marshaller
      * delivers a Quantity instance on hydrate; in-process callers
      * use `getMass` / `setMass`.
+     *
+     * @authorable
      */
     private _mass: Quantity<'kg'> = Quantity.of(0, 'kg');
 
@@ -198,6 +200,9 @@ export function TangibleMixin<TBase extends MixinConstructor>(Base: TBase) {
      * Path to the bulk default Material singleton. Resolved lazily on
      * each `getMaterial()` call so HMR replacement is observed
      * immediately.
+     *
+     * @authorable ref:Material Pattern-A path-string reference to the
+     *   default Material singleton (resolve-on-read).
      */
     public _materialPath: string | null = null;
 
@@ -206,6 +211,8 @@ export function TangibleMixin<TBase extends MixinConstructor>(Base: TBase) {
      * Material's templatePath. Stored as a plain `Record` (not a
      * `Map`) so default JSON serialization handles it without a
      * marshaller.
+     *
+     * @authorable ref:Material
      */
     public _detailMaterialPaths: Record<string, string> = {};
 

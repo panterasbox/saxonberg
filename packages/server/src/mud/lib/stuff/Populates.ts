@@ -64,6 +64,8 @@ export interface Populates {
    *   a template's `populates` field. **Instruction applier** — consumes
    *   the spec during hydration to spawn/populate; the spec is not
    *   retained and there is no paired getter (not a property).
+   *
+   * @authorable
    */
   applyPopulates(specs: PopulateSpec[]): Promise<void>;
 }
@@ -79,6 +81,8 @@ export function PopulatesMixin<
      * is an array of templatePath strings; Phase 2 dispatches by
      * source-template singleton-shape and moves the resulting
      * instance into self.
+     *
+     * @authorable
      */
     static instructionFields = ['populates'];
 

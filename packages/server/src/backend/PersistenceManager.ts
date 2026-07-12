@@ -55,6 +55,7 @@ export enum Collections {
   AuthoringEvents = 'authoring_events',
   Positions = 'positions',
   Recipes = 'recipes',
+  Blueprints = 'blueprints',
   Bulletins = 'bulletins',
   Documents = 'documents',
   BankLedger = 'bank_ledger',
@@ -648,6 +649,18 @@ export class PersistenceManager {
       // Recipes: unique recipeId for catalogue resolve.
       await this.getCollection(Collections.Recipes).createIndex(
         { recipeId: 1 },
+        { unique: true }
+      );
+
+      // Blueprints: unique blueprintId (durable key, catalogue resolve) +
+      // unique signature (the structural dedup key — two authors composing
+      // the same particles collide to one blueprint).
+      await this.getCollection(Collections.Blueprints).createIndex(
+        { blueprintId: 1 },
+        { unique: true }
+      );
+      await this.getCollection(Collections.Blueprints).createIndex(
+        { signature: 1 },
         { unique: true }
       );
 

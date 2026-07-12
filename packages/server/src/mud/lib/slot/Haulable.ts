@@ -111,6 +111,8 @@ export function HaulableMixin<
      * Rolling-resistance × mechanical-advantage coupling (`0..1`). The
      * pushing-side analog of `Vessel.transmissionFactor` — accessor pair
      * owns the invariant (the project rule), `setDraftFactor` delegates.
+     *
+     * @authorable
      */
     private _draftFactor: number = 0.05;
 
@@ -139,7 +141,11 @@ export function HaulableMixin<
       this.draftFactor = value;
     }
 
-    /** Hands the haul claims when hitched by hand (1 or 2; default 2). */
+    /**
+     * Hands the haul claims when hitched by hand (1 or 2; default 2).
+     *
+     * @authorable
+     */
     private _handedness: number = 2;
 
     protected get handedness(): number {
@@ -167,6 +173,8 @@ export function HaulableMixin<
      * `LocomotionApi.exitAllowsMode(exit, this)`; `wheeled` is admitted
      * by any `media: ['ground']` exit and refused by vertical/water/air.
      * `LocomotionApi.modeOf` accepts either name or path form.
+     *
+     * @authorable
      */
     public passageMode: string = 'wheeled';
 

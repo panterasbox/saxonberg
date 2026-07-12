@@ -149,7 +149,10 @@ export function RespirationMixin<TBase extends MixinConstructor>(Base: TBase) {
       peers: [],
     };
 
-    /** The only persisted field — the drain's elapsed anchor. */
+    /**
+     * The only persisted field — the drain's elapsed anchor.
+     * @runtimeState
+     */
     public respirationClockStamp = 0;
 
     /**

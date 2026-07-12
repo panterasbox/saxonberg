@@ -29,6 +29,7 @@ export function MountableMixin<TBase extends MixinConstructor<Stuff & Slotted>>(
     static _mixinName = 'MountableMixin';
     static persistentFields = ['mountSlot'];
 
+    /** @authorable */
     public mountSlot: string = 'mount:1';
 
     public getMountSlot(): string {

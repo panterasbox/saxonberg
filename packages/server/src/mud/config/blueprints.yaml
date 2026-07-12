@@ -1,0 +1,142 @@
+# blueprints.yaml — the curated overlay for the Studio composition catalogue.
+#
+# The DERIVED skeleton (one `concrete` blueprint per distinct backing `class`
+# path across the `domain` collection) is produced automatically by
+# `BlueprintSeeder`. This file NAMES and BLESSES the reusable compositions and
+# the logic-bearing kinds, and groups them under a `parent` hierarchy.
+#
+# Matching is by structural SIGNATURE, not name: when an entry carries a
+# `classPath` (and no explicit `mixinNames`), the seeder INTROSPECTS that class
+# for the true `baseClass` + effective mixin set, so a curated name ATTACHES to
+# the derived skeleton entry rather than duplicating it. `baseClass` below is
+# documentary — the introspected value wins.
+#
+# `blueprintId` / `signature` are the durable keys; `name` is a mutable label.
+# Idempotent: attaching only fires on an un-blessed row, so a re-run — and a
+# later `publishBlueprint` rename — is never reverted.
+#
+#   kind: composition  → a pure mixin-over-base composition (empty class body);
+#                        recomposable, the palette's building blocks.
+#   kind: concrete     → a logic-bearing class (owns methods/state); a whole
+#                        catalog kind pointing at its classPath, NOT a
+#                        recomposable particle set.
+
+blueprints:
+  # --- containers ---------------------------------------------------------
+  - blueprintId: receptacle
+    name: Receptacle
+    kind: composition
+    baseClass: Thing
+    classPath: /obj/Receptacle
+    parent: containers
+    blessed: true
+    description: >
+      A bulk container that tracks its own temperature — Bulkable + Thermal
+      over a Thing. The base open-mouthed vessel.
+
+  - blueprintId: unbounded-receptacle
+    name: Unbounded Receptacle
+    kind: composition
+    baseClass: Receptacle
+    classPath: /obj/UnboundedReceptacle
+    parent: containers
+    blessed: true
+    description: >
+      A Receptacle that never empties — an inexhaustible source of its
+      contents (the demo tap). Adds UnboundedSource to the receptacle.
+
+  - blueprintId: flask
+    name: Flask
+    kind: concrete
+    baseClass: Thing
+    classPath: /obj/Flask
+    parent: containers
+    blessed: true
+    description: >
+      A sealable insulated flask (a thermos): Sealable + Bulkable + Thermal
+      with calorimetric blending and a vacuum-barrier cooling law. Behaviour
+      lives in the class, so it is a whole kind, not a recomposable set.
+
+  # --- fixtures -----------------------------------------------------------
+  - blueprintId: floor
+    name: Floor
+    kind: composition
+    baseClass: Thing
+    classPath: /obj/Floor
+    parent: fixtures
+    blessed: true
+    description: >
+      A room's floor surface: a bulk-bearing, postured, slotted, adornable
+      described fixture. The default ground you stand on.
+
+  - blueprintId: campfire
+    name: Campfire
+    kind: concrete
+    baseClass: Thing
+    classPath: /obj/Campfire
+    parent: fixtures
+    blessed: true
+    description: >
+      A fuelled fire: a combustion Reserve burns down over game-time, pinning
+      the fire hot (scalding + light) until it cools to embers. A driver-bearing
+      kind, not a recomposable composition.
+
+  # --- things -------------------------------------------------------------
+  - blueprintId: coin
+    name: Coin
+    kind: concrete
+    baseClass: Thing
+    classPath: /obj/Coin
+    parent: things
+    blessed: true
+    description: >
+      Fungible currency: a Globbable whose stack mass scales with count (the
+      honest cap on carried cash). Carries a denomination identity — a kind,
+      not a bare composition.
+
+  - blueprintId: air-tank
+    name: Air Tank
+    kind: concrete
+    baseClass: Thing
+    classPath: /obj/AirTank
+    parent: things
+    blessed: true
+    description: >
+      A worn breathing-air supply: a wearable, slottable Bulkable with a
+      projected gauge you tap to breathe. A kind (own gauge logic).
+
+  - blueprintId: payment-card
+    name: Payment Card
+    kind: concrete
+    baseClass: Thing
+    classPath: /lib/banking/PaymentCard
+    parent: things
+    blessed: true
+    description: >
+      A carried settlement credential (a CredentialWallet Thing) that affords
+      the pay/wallet verbs wherever you hold it. A kind (born-with credential
+      + afforded verbs).
+
+  - blueprintId: branded-bottle
+    name: Branded Bottle
+    kind: composition
+    baseClass: Thing
+    classPath: /lib/corpo/BrandedBottle
+    parent: things
+    blessed: true
+    description: >
+      A branded object: a Thing carrying a corpo mark ("a product of Veshko"),
+      resolved on read. The bare Branded composition.
+
+  # --- creatures ----------------------------------------------------------
+  - blueprintId: npc
+    name: NPC
+    kind: composition
+    baseClass: Character
+    classPath: /lib/npc/NPC
+    parent: creatures
+    blessed: true
+    description: >
+      A non-player character: a Behaved, post-registering Character. Behaviour
+      is supplied as data (the `behaviors:` spec), so the class itself is a
+      bare composition — the reusable NPC shell.

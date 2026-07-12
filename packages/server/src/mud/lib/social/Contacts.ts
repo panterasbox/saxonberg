@@ -118,6 +118,7 @@ export function ContactsMixin<TBase extends MixinConstructor>(Base: TBase) {
      * Persistent storage. Default `[]` matches the Alias.aliases
      * legacy-tolerant pattern — existing avatar docs without the
      * field hydrate cleanly.
+     * @runtimeState
      */
     _contacts: ContactEntry[] = [];
 

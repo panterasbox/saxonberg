@@ -37,6 +37,7 @@ export function GenderedMixin<TBase extends MixinConstructor>(Base: TBase) {
      */
     static persistentFields = ['pronouns'];
 
+    /** @authorable */
     protected pronouns: Pronouns = Pronouns.They;
 
     getPronouns(): Pronouns { return this.pronouns; }

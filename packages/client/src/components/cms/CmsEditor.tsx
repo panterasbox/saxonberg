@@ -13,6 +13,7 @@ import React from "react";
 import styled from "styled-components";
 import { useStore } from "../../store/index";
 import { MonacoLazy } from "./MonacoLazy";
+import { StudioForm } from "./studio/StudioForm";
 import { tokens } from "../ui";
 
 const Pane = styled.div`
@@ -89,6 +90,30 @@ const SaveButton = styled.button`
   }
 `;
 
+const Tabs = styled.div`
+  display: flex;
+  align-items: center;
+  gap: ${tokens.space.xs};
+  flex: none;
+`;
+
+const Tab = styled.button<{ $active: boolean }>`
+  background: ${(p) =>
+    p.$active ? tokens.color.surfaceAlt : "transparent"};
+  border: 1px solid
+    ${(p) => (p.$active ? tokens.color.borderEmphasis : "transparent")};
+  border-radius: ${tokens.radius.md};
+  color: ${(p) => (p.$active ? tokens.color.fg : tokens.color.fgMuted)};
+  font-family: ${tokens.font.family};
+  font-size: ${tokens.font.small};
+  padding: ${tokens.space.xs} ${tokens.space.md};
+  cursor: pointer;
+
+  &:hover {
+    color: ${tokens.color.fg};
+  }
+`;
+
 const ErrorBar = styled.div`
   display: flex;
   align-items: center;
@@ -137,6 +162,45 @@ export const CmsEditor: React.FC = () => {
   const cmsEditDraft = useStore((s) => s.cmsEditDraft);
   const cmsSave = useStore((s) => s.cmsSave);
   const cmsCloseError = useStore((s) => s.cmsCloseError);
+  const studioDescribe = useStore((s) => s.studioDescribe);
+  const studioLoadData = useStore((s) => s.studioLoadData);
+  const studioSerialize = useStore((s) => s.studioSerialize);
+
+  // The Studio composer is offered only for a content leaf whose template
+  // has a backing `class` (the composer describes that class's schema).
+  const studioEligible =
+    !!open && open.backend === "content" && !!open.templateMeta?.class;
+
+  // Editor mode is per-open-leaf UI state: `raw` (Monaco over the body)
+  // vs `studio` (the schema-driven form over the same `template.data`).
+  const [mode, setMode] = React.useState<"raw" | "studio">("raw");
+  // Reset to raw whenever the open leaf changes.
+  const openKey = open ? `${open.backend}:${open.path}` : null;
+  React.useEffect(() => {
+    setMode("raw");
+  }, [openKey]);
+
+  const enterStudio = React.useCallback(() => {
+    if (!open || !open.templateMeta?.class) return;
+    setMode("studio");
+    void studioDescribe(open.templateMeta.class, open.path);
+    studioLoadData(open.body);
+  }, [open, studioDescribe, studioLoadData]);
+
+  // In Studio mode, the save serializes the form overlay through the SAME
+  // content-write path the raw editor uses, then adopts the serialized
+  // string as the new baseline (both the CMS draft and the studio base).
+  const saveStudio = React.useCallback(async () => {
+    const body = studioSerialize();
+    cmsEditDraft(body);
+    await cmsSave();
+    studioLoadData(body);
+  }, [studioSerialize, cmsEditDraft, cmsSave, studioLoadData]);
+
+  // Studio-mode dirtiness: the serialized overlay diverges from the
+  // persisted body. (Computed at render; cheap for the small field set.)
+  const studioDirty =
+    mode === "studio" && !!open && studioSerialize() !== open.body;
 
   if (!open) {
     return (
@@ -162,10 +226,34 @@ export const CmsEditor: React.FC = () => {
         </PathLabel>
         <Actions>
           {notice && !error && <Notice>{notice}</Notice>}
+          {studioEligible && (
+            <Tabs role="tablist" aria-label="Editor mode">
+              <Tab
+                type="button"
+                role="tab"
+                aria-selected={mode === "raw"}
+                $active={mode === "raw"}
+                onClick={() => setMode("raw")}
+              >
+                Raw JSON
+              </Tab>
+              <Tab
+                type="button"
+                role="tab"
+                aria-selected={mode === "studio"}
+                $active={mode === "studio"}
+                onClick={enterStudio}
+              >
+                Studio
+              </Tab>
+            </Tabs>
+          )}
           <Kind>{open.kind}</Kind>
           <SaveButton
-            onClick={() => void cmsSave()}
-            disabled={!dirty || saving}
+            onClick={() =>
+              mode === "studio" ? void saveStudio() : void cmsSave()
+            }
+            disabled={saving || (mode === "studio" ? !studioDirty : !dirty)}
           >
             {saving ? "Saving…" : "Save"}
           </SaveButton>
@@ -180,11 +268,15 @@ export const CmsEditor: React.FC = () => {
         </ErrorBar>
       )}
       <EditorBody>
-        <MonacoLazy
-          language={open.language}
-          value={draft}
-          onChange={cmsEditDraft}
-        />
+        {mode === "studio" ? (
+          <StudioForm />
+        ) : (
+          <MonacoLazy
+            language={open.language}
+            value={draft}
+            onChange={cmsEditDraft}
+          />
+        )}
       </EditorBody>
     </Pane>
   );

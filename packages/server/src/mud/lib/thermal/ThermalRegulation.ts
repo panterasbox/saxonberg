@@ -105,9 +105,13 @@ export function ThermalRegulationMixin<TBase extends MixinConstructor>(
       "thermalRegStamp",
     ];
 
+    /** @authorable */
     public setpointK: number = THERMAL_DEFAULTS.SETPOINT_K;
+    /** @runtimeState */
     public effectiveAmbientK: number = THERMAL_DEFAULTS.SETPOINT_K;
+    /** @runtimeState */
     public cachedHumidity = 50;
+    /** @runtimeState */
     public thermalRegStamp = 0;
 
     /** Reentry guard (TypeScript `private` per the proxy constraint). */
