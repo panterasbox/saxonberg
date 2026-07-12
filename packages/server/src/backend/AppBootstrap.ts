@@ -36,6 +36,8 @@ import { ProducerApi } from '../mud/api/producer';
 import ProducerStanding from '../mud/lib/standing/ProducerStanding';
 import { BankingApi } from '../mud/api/banking';
 import { DiagnosticApi } from '../mud/api/diagnostics';
+import { CompileWatcher } from './CompileWatcher';
+import { fileURLToPath } from 'url';
 import { ResidencyApi } from '../mud/api/residency';
 import { EmploymentApi } from '../mud/api/employment';
 import { SocialApi } from '../mud/api/social';
@@ -258,6 +260,26 @@ export class AppBootstrap {
     // listener (a runtime diagnostic notifies the content's author). Safe
     // and cheap in every environment; nothing fires it if no producer runs.
     DiagnosticApi.startRouter();
+
+    // Author diagnostics Producer 3 — the TS compile watcher. Dev-only:
+    // production runs compiled JS with no TS source to watch. Best-effort:
+    // a missing tsconfig / watcher failure logs and continues (diagnostics
+    // must never block boot).
+    if (process.env.NODE_ENV !== 'production') {
+      try {
+        const tsconfig = fileURLToPath(
+          new URL('../../tsconfig.json', import.meta.url)
+        );
+        CompileWatcher.get().start(tsconfig);
+        console.info('CompileWatcher: watching for TypeScript diagnostics');
+      } catch (err) {
+        console.warn(
+          `CompileWatcher: not started — ${
+            err instanceof Error ? err.message : String(err)
+          }`
+        );
+      }
+    }
   }
 
   /**
@@ -268,6 +290,11 @@ export class AppBootstrap {
    * transport code stays free of engine concerns.
    */
   public static async shutdown(): Promise<void> {
+    try {
+      CompileWatcher.get().stop();
+    } catch (err) {
+      console.error('AppBootstrap: compile-watcher stop failed:', err);
+    }
     try {
       await WorldClockApi.shutdown();
     } catch (err) {
