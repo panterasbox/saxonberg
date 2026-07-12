@@ -1971,6 +1971,91 @@ export interface CmsErrorBody {
   message: string; // human detail
 }
 
+// ============================================================================
+// Git workflow / in-runtime VCS (the GitApi call-shape closure)
+// ============================================================================
+
+/**
+ * One dirty file in `git status` porcelain terms. `path` is
+ * repo-relative (`packages/server/src/mud/obj/Foo.ts`); `index` /
+ * `workingDir` are the porcelain XY status codes (`M`, `A`, `?`, ' ',
+ * …) for the staged and working-tree halves.
+ */
+export interface GitFileStatus {
+  path: string;
+  index: string;
+  workingDir: string;
+}
+
+/** Result of `status` — branch/tracking summary + the dirty set + warnings. */
+export interface GitStatusResult {
+  branch: string;
+  tracking: string | null;
+  ahead: number;
+  behind: number;
+  diverged: boolean;
+  files: GitFileStatus[];
+  /** Non-blocking advisories (e.g. local diverges from its remote). */
+  warnings: string[];
+}
+
+/** One commit in `log`. */
+export interface GitLogEntry {
+  sha: string;
+  author: string;
+  date: string;
+  message: string;
+}
+
+/** Result of `diff` — a unified patch, optionally scoped to one path. */
+export interface GitDiffResult {
+  path?: string;
+  patch: string;
+}
+
+/**
+ * Result of `publish` — the permission-filtered snapshot-and-push. Only
+ * files in zones the actor can write are committed (`committedPaths`);
+ * the rest are left dirty (`skippedPaths`). `pushed` is false when the
+ * commit is durable locally but the push was rejected (protected branch
+ * / non-fast-forward) — the commit is retained, re-pushable.
+ */
+export interface GitPublishResult {
+  committed: boolean;
+  sha?: string;
+  committedPaths: string[];
+  skippedPaths: string[];
+  pushed: boolean;
+  branch: string;
+  detail: string;
+}
+
+/** Result of `revert` — an additive revert commit (or a no-op). */
+export interface GitRevertResult {
+  reverted: boolean;
+  sha?: string;
+  detail: string;
+}
+
+/**
+ * The machine error codes `GitApi` throws, mapped by the REST layer to
+ * HTTP status: `denied` → 403, `bad-ref`/`nothing-to-do` → 400,
+ * `conflict`/`push-rejected` → 409, `not-a-repo` → 404.
+ */
+export type GitErrorCode =
+  | 'not-a-repo'
+  | 'denied'
+  | 'nothing-to-do'
+  | 'push-rejected'
+  | 'conflict'
+  | 'bad-ref';
+
+/** Uniform REST error body for the git surface. */
+export interface GitErrorBody {
+  error: string; // a GitErrorCode, or 'internal'
+  message: string;
+}
+
 // ---- Author diagnostics (the diagnostics subsystem) --------------------
 
 /** Which producer emitted a structured diagnostic. */

@@ -20,6 +20,7 @@ import cors from 'cors';
 import { Backend } from '../backend/Backend';
 import { Application } from '../backend/Application';
 import { CmsRoutes } from '../backend/CmsRoutes';
+import { GitRoutes } from '../backend/GitRoutes';
 import { StudioRoutes } from '../backend/StudioRoutes';
 import { HelpRoutes } from '../backend/HelpRoutes';
 import { BulletinRoutes } from '../backend/BulletinRoutes';
@@ -171,6 +172,10 @@ export class Server {
     // (live since setupMiddleware ran) and before the SPA `*` fallback
     // so the /api/cms/* routes match first.
     CmsRoutes.setup(this.app);
+
+    // Git (in-runtime VCS) REST data surface — the CMS git panel's
+    // transport. Sibling of CmsRoutes, same auth/ordering/CSRF constraints.
+    GitRoutes.setup(this.app);
 
     // Studio (composition) REST data surface — the describeClass read
     // behind the CMS Studio tab. Same auth/ordering constraints as CMS.
