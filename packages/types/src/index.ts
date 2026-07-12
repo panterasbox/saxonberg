@@ -1971,7 +1971,7 @@ export interface CmsErrorBody {
   message: string; // human detail
 }
 
-// ---- Authorable-fields artifact (Studio / composition surface, P0) ------
+// ---- Authorable-fields artifact (Studio / composition surface) ---------
 
 /**
  * One author-facing field of a mixin, as projected from the TypeDoc
@@ -2024,7 +2024,7 @@ export interface AuthorableFieldsArtifact {
   };
 }
 
-// ---- Studio composition surface (describeClass, P1) ---------------------
+// ---- Studio composition surface (describeClass) -------------------------
 
 /**
  * Where an effective field value was read from when describing a class:
@@ -2093,7 +2093,7 @@ export interface StudioErrorBody {
   message: string; // human detail
 }
 
-// ---- Blueprint catalogue (Studio / composition surface, P3) -------------
+// ---- Blueprint catalogue (Studio / composition surface) -----------------
 
 /**
  * The disposition of a Studio write (name/publish/commit). `committed` — the
@@ -2217,7 +2217,7 @@ export interface TemplateWriteResult {
   message?: string;
 }
 
-// ---- New-class scaffold + commit (Studio, P4) ---------------------------
+// ---- New-class scaffold + commit (Studio) -------------------------------
 
 /**
  * One entry of the composition palette — a mixin (or an instantiable base

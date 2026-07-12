@@ -178,8 +178,6 @@ export interface StudioSlice {
     scaffoldSource: string | null;
     /** The wizard-commit target path for the active scaffold. */
     scaffoldTarget: string | null;
-    /** The reserved non-wizard draft path for the active scaffold. */
-    scaffoldDraftPath: string | null;
     /** The last commit disposition (`committed`/`denied`), or null. */
     commitDisposition: StudioDisposition | null;
     /**
@@ -266,8 +264,6 @@ export interface StudioSlice {
   studioComposerReorder: (from: number, to: number) => void;
   /** The effective mixin set: implied ∪ ordered, deduped. */
   studioEffectiveMixins: () => string[];
-  /** The effective structural signature (`<base>|<sorted-mixins>`). */
-  studioEffectiveSignature: () => string;
   /** The exact + superset blueprint matches against the live composition. */
   studioMatchingBlueprints: () => BlueprintMatches;
   /** Scaffold a new backing class; stores the generated source + paths. */
@@ -493,7 +489,6 @@ export const createStudioSlice = (
     composer: { ...EMPTY_COMPOSER },
     scaffoldSource: null,
     scaffoldTarget: null,
-    scaffoldDraftPath: null,
     commitDisposition: null,
     commitReloaded: false,
     commitMessage: null,
@@ -748,7 +743,6 @@ export const createStudioSlice = (
           composer,
           scaffoldSource: null,
           scaffoldTarget: null,
-          scaffoldDraftPath: null,
           commitDisposition: null,
           commitReloaded: false,
           commitMessage: null,
@@ -828,13 +822,6 @@ export const createStudioSlice = (
     return effectiveMixins(base.impliedMixins, orderedMixins);
   },
 
-  studioEffectiveSignature: () => {
-    // The structural signature keys on the FUNDAMENTAL ROOT (a subclass shares
-    // its base's signature root), not the concrete base name.
-    const { base } = get().studio.composer;
-    return signatureFromParts(base.rootBaseClass, get().studioEffectiveMixins());
-  },
-
   studioMatchingBlueprints: () => {
     const { blueprints, composer } = get().studio;
     if (!blueprints) return { exact: [], superset: [] };
@@ -859,7 +846,6 @@ export const createStudioSlice = (
           busy: false,
           scaffoldSource: out.source,
           scaffoldTarget: out.targetPath,
-          scaffoldDraftPath: out.draftPath ?? null,
           commitDisposition: null,
           commitReloaded: false,
           commitMessage: null,
@@ -908,7 +894,6 @@ export const createStudioSlice = (
         ...s.studio,
         scaffoldSource: null,
         scaffoldTarget: null,
-        scaffoldDraftPath: null,
         commitDisposition: null,
         commitReloaded: false,
         commitMessage: null,

@@ -143,7 +143,6 @@ function resetStudio(): void {
       },
       scaffoldSource: null,
       scaffoldTarget: null,
-      scaffoldDraftPath: null,
       commitDisposition: null,
       commitReloaded: false,
       commitMessage: null,
@@ -376,19 +375,6 @@ describe("studioSlice composer", () => {
     ]);
   });
 
-  it("effectiveMixins + signature fold implied and ordered", () => {
-    const s = useStore.getState();
-    s.studioComposerSetBase("Thing"); // implies VisibleMixin
-    s.studioComposerAddMixin("GlobbableMixin");
-    expect(useStore.getState().studioEffectiveMixins()).toEqual([
-      "VisibleMixin",
-      "GlobbableMixin",
-    ]);
-    expect(useStore.getState().studioEffectiveSignature()).toBe(
-      "Thing|GlobbableMixin,VisibleMixin",
-    );
-  });
-
   it("beginComposer(seed) makes the blueprint's CLASS the base with EMPTY added", () => {
     // "Author a new kind from this →" on MoneyBag: the MoneyBag CLASS becomes
     // the superclass (NOT decomposed into Idea + its mixins). Its own mixin
@@ -404,18 +390,6 @@ describe("studioSlice composer", () => {
     expect(st().composer.orderedMixins).toEqual([]);
   });
 
-  it("a bare subclass over a concrete base is an EXACT match to it", () => {
-    // Seed the catalogue so the match filter can run.
-    useStore.setState({ studio: { ...st(), blueprints: [COIN, MONEYBAG] } });
-    // base = MoneyBag class, no added mixins → effective = MoneyBag's mixins,
-    // signature root = Idea → exact match to MoneyBag ("use it?").
-    useStore.getState().studioBeginComposer(MONEYBAG);
-    const matches = useStore.getState().studioMatchingBlueprints();
-    expect(matches.exact.map((b) => b.name)).toEqual(["MoneyBag"]);
-    expect(useStore.getState().studioEffectiveSignature()).toBe(
-      "Idea|ContainerMixin,GlobbableMixin",
-    );
-  });
 });
 
 // ---------------------------------------------------------------------------

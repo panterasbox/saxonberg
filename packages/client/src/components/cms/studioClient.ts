@@ -1,8 +1,8 @@
 /**
  * studioClient — the thin `fetch` REST client for the CMS Studio surface.
  *
- * One method per Studio route. P2 uses a single read
- * (`GET /api/studio/describe?class=&context=` → {@link ClassDescription}).
+ * One method per Studio route (e.g. the read
+ * `GET /api/studio/describe?class=&context=` → {@link ClassDescription}).
  * Mirrors `cmsClient.ts`: the session cookie rides every call
  * (`credentials: 'include'`), and non-2xx responses throw the server's
  * uniform `StudioErrorBody` (`{ code, message }`) so callers surface the

@@ -3,14 +3,19 @@
  *
  * Mirrors {@link CmsRoutes}: each route is 1:1 with a `StudioApi` op through
  * the {@link CmsSession} attribution bridge (which resolves the session
- * Avatar, plants the Root frame, and stamps the acting author). P1 exposes
- * these routes:
+ * Avatar, plants the Root frame, and stamps the acting author). The routes:
  *
  *   GET  /api/studio/describe?class=&context=  → StudioApi.describeClass
+ *   GET  /api/studio/mixin?name=               → StudioApi.describeMixin
  *   GET  /api/studio/blueprints                → StudioApi.listBlueprints
  *   GET  /api/studio/blueprint?id=             → StudioApi.getBlueprint
  *   POST /api/studio/blueprint                 → StudioApi.publishBlueprint
- *                                                (CSRF-protected)
+ *   GET  /api/studio/mixins                    → StudioApi.listMixins
+ *   POST /api/studio/scaffold                  → StudioApi.scaffoldClass
+ *   POST /api/studio/template                  → StudioApi.createTemplate
+ *   POST /api/studio/commit                    → StudioApi.commitClass
+ *
+ * (The POST routes are CSRF-protected.)
  *
  * The blueprint POST reuses the CMS double-submit CSRF token (shared
  * session): the client fetches `/api/cms/csrf` once and sends it in the

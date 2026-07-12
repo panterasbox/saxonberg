@@ -1,5 +1,5 @@
 /**
- * StudioLogic.describeClass — the gated composition read (P1).
+ * StudioLogic.describeClass — the gated composition read.
  *
  * Covers the three load-bearing properties:
  *   1. Multi-mixin join — every `@authorable` field of the effective mixin
@@ -11,7 +11,7 @@
  *      parameter to substitute.
  *
  * Classification comes from the source scan of the mixin declarations (the
- * P0 `@authorable`/`@runtimeState` markers), never a caller-passed list;
+ * `@authorable`/`@runtimeState` markers), never a caller-passed list;
  * the backing class is stubbed via `StuffApi.loadClassByPath`. No Mongo, no
  * live world.
  */
@@ -187,7 +187,7 @@ describe('StudioLogic.describeClass — anti-spoof', () => {
   });
 });
 
-// ---- publishBlueprint (P3 catalog write) --------------------------------
+// ---- publishBlueprint (catalog write) -----------------------------------
 
 /** A minimal in-memory catalogue standing in for the singleton. */
 function makeFakeCatalogue(): BlueprintCatalogue {
@@ -323,7 +323,7 @@ describe('StudioLogic.publishBlueprint — trust + attribution', () => {
   });
 });
 
-// ---- scaffoldClass (P4 — new-class scaffold, author-tier) ---------------
+// ---- scaffoldClass (new-class scaffold, author-tier) --------------------
 
 describe('StudioLogic.scaffoldClass', () => {
   it('composes a source module with resolved imports + the extends clause', async () => {
@@ -450,7 +450,7 @@ describe('StudioLogic.scaffoldClass', () => {
   });
 });
 
-// ---- commitClass (P4 — wizard-gated source commit) ----------------------
+// ---- commitClass (wizard-gated source commit) ---------------------------
 
 /** Open the wizard source-write gate on the context-derived actor. */
 function stubWizardGateOpen(): void {

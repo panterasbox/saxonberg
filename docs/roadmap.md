@@ -816,10 +816,17 @@ slate flags them as separate projects):
   of the SPA (`?surface=cms`) with a unified file/template explorer and
   a lazy-loaded Monaco code editor over the existing source/template
   backends, dev-tier and context-gated (see
-  [cms.md](./subsystems/cms.md)). *Remaining* (per
-  [cms-slate.md](./slates/builds/cms-slate.md)): schema-driven content
-  editors, the external-editor/LSP path, drafts/publish + the law==code
-  forums-review gate, and versioning.
+  [cms.md](./subsystems/cms.md)). **Wave 2 (the Studio) shipped**: the
+  mixin-aware composition surface — a schema-driven, `@authorable`-derived
+  content-editor form, the blueprint catalogue, and the class scaffold/commit
+  bridge across the wizard-lockdown code boundary (see
+  [studio.md](./subsystems/studio.md)); it also lit the first authoring-
+  intelligence catalogs (mixin particles + named blueprints). *Remaining*
+  (per [cms-slate.md](./slates/builds/cms-slate.md) +
+  [authoring-intelligence-slate.md](./slates/builds/authoring-intelligence-slate.md)):
+  per-type / bespoke content editors + the zone/map canvas, the
+  external-editor/LSP / engine-typed IntelliSense path, drafts/publish + the
+  law==code forums-review gate, and versioning.
 - **Mobile cockpit** — different layout (stream + button bar), same
   wire model. Own slate when prioritized.
 

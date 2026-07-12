@@ -400,7 +400,10 @@ cross-stock *dispatcher* with no logic singleton (it delegates to the
 per-stock Apis). `SocialApi` (→ `SocialLogic`; the attention-management
 layer — the shared `ruleFor` resolution, the display-lensing occupant
 formatter, the login presence relay — see
-[social-graph.md](./subsystems/social-graph.md)).
+[social-graph.md](./subsystems/social-graph.md)). `StudioApi` (→
+`StudioLogic`; the CMS **composition** surface — effective-mixin-set + authorable-field
+description, the blueprint catalogue, and the class scaffold/commit path — the
+`CmsApi`/`CmsLogic` twin; see [studio.md](./subsystems/studio.md)).
 
 `MqlSubscriptionApi` is the second wire channel alongside prose /
 dispatch-response. Inbound `mql-subscribe` / `mql-unsubscribe`
@@ -587,6 +590,14 @@ build also adds two singleton registries — `SubjectCatalogue` (the
 Subject-layer index) and `ForumSubscriptionRegistry` (the `forum_events`
 document-change observer) — and the `ForumsUpdate` `AetherHosted`
 implant carrying `ForumsMixin`; see [forums.md](./subsystems/forums.md).
+
+The CMS-composition (**Studio**) build adds `Blueprint` (`lib/studio/`) — a
+reference-data `Document` (`blueprints` collection, the `Recipe` precedent,
+never cloned: a named structural composition `<baseClass>|<sorted mixins>`) —
+plus the boot-warmed `BlueprintCatalogue` singleton (`obj/`, the
+`RecipeCatalogue` shape: id + signature indices) it's loaded into, and the
+`BlueprintSeeder` (`backend/`, a derived skeleton from every backing class + a
+curated `config/blueprints.yaml` overlay). See [studio.md](./subsystems/studio.md).
 
 ## Mixin Organization
 

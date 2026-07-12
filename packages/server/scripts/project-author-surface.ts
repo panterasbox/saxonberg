@@ -177,7 +177,7 @@ export interface ProjectionResult {
   reexportReport: ReexportIssue[];
 }
 
-// ── @authorable projector (Studio / composition surface, P0) ────────
+// ── @authorable projector (Studio / composition surface) ────────────
 //
 // A second pass over the same TypeDoc model, emitting the
 // `authorable-fields.json` artifact the composer form generator reads.

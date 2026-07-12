@@ -70,6 +70,7 @@ gate closed.
 | Op | Gate | Purpose |
 |---|---|---|
 | `describeClass(classPath, contextPath?)` | `isAuthor` | effective mixin set + authorable field list joined to type shape + effective value/source |
+| `describeMixin(name)` | `isAuthor` | one mixin for the composer's inspector pane — its FULL multi-paragraph concept comment + the authorable fields it contributes (name + type shape) + its runtime-state field names (all from the source scan) + optional HelpApi enrichment (typed relations + conferred method names, degrading to empty when the help artifact is absent) |
 | `createTemplate(input)` | `isAuthor` (+ the code-field gate on the `class` set) | **act #1** — save a NEW content template at a fresh path (CREATE-only; updates go through `CmsApi.write`) |
 | `listBlueprints()` / `getBlueprint(id)` | `isAuthor` | browse the catalogue (ungated reads over the singleton) |
 | `publishBlueprint(input)` | `isAuthor` | **act #2** — name/publish a composition of approved classes |
@@ -174,26 +175,63 @@ shape).
 
 ## Client surface
 
-The **Studio** is a mode of the CMS surface (`?surface=cms`), REST-only:
+The **Studio** is the "Kinds" mode of the CMS surface (`?surface=cms`),
+REST-only. The client IA is **catalogue-first**, split by audience — the two
+tiers that authoring a class (wizard/code-tier, artifact = TS source) and
+instantiating a template (everyone/data-tier, artifact = content data) are NOT
+one form. `StudioPanel` is a **view router** (a breadcrumb strip reflecting the
+active view; each view carries its own back/round-trip controls, owns ZERO
+authorization semantics — the server re-gates every write and returns a
+`disposition` surfaced inline) over four sequential surfaces:
 
-- **The form** (`StudioForm` + `widgets/`) — a schema-driven generator over
-  `describeClass`, one widget per field via a registry (lookup order
-  `refShape → enumValues → typeShape prefix/exact → raw-JSON`): text /
-  number / boolean / enum / `Quantity<…>` / the reference-picker (browses
-  in-scope content templates via `cmsClient.listTree`, degrading to a text
-  input for catalogue-data ref types). A header toggle drops to the raw-JSON
-  Monaco editor over the same `data`.
-- **The data-integrity overlay** (the load-bearing correctness rule): the
-  slice holds the full parsed `template.data` as `baseData` plus an `edits`
-  overlay and a `cleared` set. `serializeStudioData` = `{...baseData,
-  ...edits}` minus cleared, `JSON.stringify(…, null, 2)` — **byte-identical
-  to the raw editor for an unedited round-trip**, and non-authorable /
-  unsurfaced keys ride through verbatim (never dropped, inherited defaults
-  never materialized). Save reuses the existing content-write/go-live path.
-- **`StudioPanel`** mounts the `ClassPicker` (browse blueprints, grouped by
-  hierarchy, blessed-first → `describeClass`), the `MixinPalette` (base +
-  mixin set → `scaffoldClass` → the scaffold editor), and the
-  `WarningBanner`.
+- **`CatalogueView`** — the content author's home and the headliner. A local
+  search box filters the blueprint catalogue by name / mixin; compact cards
+  (name + composition/concrete kind badge + ★) are grouped by hierarchy
+  (`parent`), blessed-first, with a chevron expanding the mixin lineage in
+  place. Selecting a card routes to the detail view; a prominent "＋ Author a
+  new kind" button routes to the composer.
+- **`BlueprintDetailView`** — one blueprint's detail (name / description / kind
+  / base class / expanded mixin list / classPath). The load-bearing round-trip
+  is the PRIMARY action **"New template from this →"** (act #1 → the template
+  form); a secondary **"Author a new kind from this →"** routes to the composer
+  pre-seeded with this blueprint's base + mixins (act #3, the any-approved-class
+  superclass path).
+- **`TemplateForm`** — the ONLY data form (act #1). A header names the blueprint
+  being instantiated + a target-path input; the body is a **Form/YAML toggle
+  over the SAME merged data object**. The Form renders `describeClass` fields
+  through the shared `widgets/` registry (lookup order `refShape → enumValues →
+  typeShape prefix/exact → raw-JSON`: text / number / boolean / enum /
+  `Quantity<…>` / the reference-picker, which browses in-scope content templates
+  via `cmsClient.listTree`, degrading to a text input for catalogue-data ref
+  types). Save calls `createTemplate` and surfaces the DISPOSITION inline
+  (committed → offer "open in Files"; denied → the message, e.g. the
+  wizard-lockdown refusal).
+- **`ComposerView`** — the wizard, code-tier surface (act #3). A left column
+  composes a base class (a `<select>` over the palette bases, or an
+  any-approved-class base carried in from a blueprint) + an ordered,
+  drag-reorderable mixin set (the base's implied mixins shown as a read-only
+  "inherited from &lt;Base&gt;" segment); a live one-line preview mirrors the
+  prototype chain. The right column is a **live-scaffolded** Monaco source
+  editor (debounced ~300ms `scaffoldClass` on every composition change — never a
+  data form) with the commit toolbar + inline disposition, docked above a
+  **resizable mixin inspector pane** (the `describeMixin` consumer: sticky,
+  lazy-fetched-and-cached, renders the last-hovered/focused mixin's full concept
+  comment + contributed fields + relations/methods, degrading gracefully when
+  the help artifact is absent). A live **matching-blueprints** panel dedups the
+  current composition against the catalogue: an EXACT match raises "⚠ this is
+  already &lt;Name&gt; — use it?"; SUPERSET matches list "kinds that already
+  include this", each routing back to its detail. The follow-on "create a
+  template" is blocked until a commit returns `reloaded: true`.
+
+The **data-integrity overlay** (the load-bearing correctness rule, shared by
+`TemplateForm`'s Form and YAML views): the slice holds the full parsed
+`template.data` as `baseData` plus an `edits` overlay and a `cleared` set.
+`serializeStudioData` = `{...baseData, ...edits}` minus cleared,
+`JSON.stringify(…, null, 2)` — **byte-identical to the raw editor for an
+unedited round-trip**, and non-authorable / unsurfaced keys ride through
+verbatim (never dropped, inherited defaults never materialized). Save reuses the
+existing content-write/go-live path. The `WarningBanner` (from `auth.isWizard`)
+warns a non-wizard before a commit the server will decline.
 
 ## Deferred seams (do not assume built)
 
@@ -228,3 +266,29 @@ The **Studio** is a mode of the CMS surface (`?surface=cms`), REST-only:
   `behaviors[].brain` code-naming gate), `isWizard`/`isAuthor`.
 - [provenance.md](./provenance.md) — the authoring ledger, `getActingAuthor`,
   the `recordAuthoring` gate (broadened to accept the studio transport).
+
+## History
+
+Three design→implementation shifts are worth recording:
+
+- **The composer IA was reworked at the end of the cycle** from a single
+  "Compose" tab (one form doing both jobs) into the **catalogue-first,
+  audience-split** router documented above: `CatalogueView` → `BlueprintDetailView`
+  → (`TemplateForm` | `ComposerView`). The driver: authoring a backing class is a
+  wizard/code-tier act whose artifact is TS source, while authoring a template is
+  an everyone/data-tier act whose artifact is content data — they are not the same
+  form, so the earlier `ClassPicker`/`MixinPalette`/single-`StudioForm` shape gave
+  way to distinct surfaces, plus the **live-scaffolded** source output (the source
+  regenerates as you compose rather than on an explicit "scaffold" click) and the
+  dedicated **resizable mixin inspector** pane.
+- **The composer base is any approved class**, not only the 8 fundamental roots —
+  "Author a new kind from this →" makes a concrete class (e.g. `Coin`) the
+  *superclass*, resolved by name via the export-source scan. The structural
+  signature still keys on the fundamental root so a bare subclass is flagged as an
+  exact match to its base.
+- **Classification is a source-scan, not TypeDoc.** TypeDoc cannot reflect a mixin
+  factory's instance-field declarations (an anonymous class-expression from a
+  factory), so the emitted `authorable-fields.json` is sparse and the authoritative
+  `@authorable`/`@runtimeState`/`ref:` read is a fast regex scan over the mud source
+  tree (present in the deployed server), with runtime sample-value inference as the
+  type-shape fallback.

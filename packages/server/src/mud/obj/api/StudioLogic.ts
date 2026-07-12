@@ -64,8 +64,7 @@ const StudioApiCallers = SecurityPolicies.FromModule('/api/studio#StudioApi');
  * The CMS source backend is rooted at the mudlib (`packages/server/src/mud`)
  * — the same root `CmsLogic` uses. Scaffold/commit target paths are
  * CMS-relative to this root (`/obj/Coin.ts`, not the absolute FS path).
- * Copied verbatim from `CmsLogic` (the source-write mirror the plan
- * prescribes).
+ * Copied verbatim from `CmsLogic` (the source-write mirror).
  */
 const SOURCE_ROOT_DISPLAY = '/server/src/mud';
 
@@ -103,7 +102,7 @@ const CATALOGUE_PATH = '/obj/BlueprintCatalogue';
 /**
  * Synthetic provenance path for a blueprint's naming act. The curated
  * commons has no per-owner namespace, so `publishBlueprint` attributes the
- * naming act against this stable per-id path (Risk (d)).
+ * naming act against this stable per-id path.
  */
 function blueprintProvenancePath(blueprintId: string): string {
   return `${CATALOGUE_PATH}/${blueprintId}`;
@@ -112,7 +111,7 @@ function blueprintProvenancePath(blueprintId: string): string {
 const HERE = dirname(fileURLToPath(import.meta.url));
 /** Root of the mudlib source tree (`.../src/mud`) — the classification scan. */
 const MUD_ROOT = join(HERE, '..', '..');
-/** The P0 field-schema artifact — OPTIONAL enrichment; absence is fine. */
+/** The field-schema artifact — OPTIONAL enrichment; absence is fine. */
 const ARTIFACT_PATH = join(
   HERE,
   '..',
@@ -132,7 +131,7 @@ interface MixinClassification {
   refs: Map<string, string>;
 }
 
-// ---- source-scan helpers (adapted from the P0 coverage-guard scan) ------
+// ---- source-scan helpers (adapted from the coverage-guard scan) ---------
 
 function walkTsFiles(dir: string, acc: string[]): string[] {
   for (const e of readdirSync(dir, { withFileTypes: true })) {
@@ -156,7 +155,7 @@ function candidates(id: string): Set<string> {
 /**
  * Scan the mud source tree once, folding each file's `@authorable` /
  * `@runtimeState` markers onto the mixin(s) declared in that file. Mirrors
- * the P0 coverage-guard `scan()` (incl. the `apply<Field>` → field applier
+ * the coverage-guard `scan()` (incl. the `apply<Field>` → field applier
  * mapping and the underscore-insensitive candidates), the classification's
  * source of truth (TypeDoc does not reflect mixin instance fields).
  */
@@ -1069,7 +1068,7 @@ export class StudioLogic extends ApiLogic {
   }
 
   /**
-   * The reserved draft-persistence seam ([CALL] #2). A non-wizard's scaffold
+   * The reserved draft-persistence seam. A non-wizard's scaffold
    * has a stable `/home/<self>/drafts/<Name>.ts` path, but v1 keeps the draft
    * in the client Monaco buffer only — persisting a non-executable draft
    * would need a new document `kind` and non-executing go-live semantics the
@@ -1077,8 +1076,8 @@ export class StudioLogic extends ApiLogic {
    * fills it in against the `/home/<self>/` document-store branch.
    */
   private _persistDraft(_path: string, _source: string): void {
-    // Intentionally empty — the review-workflow seam (see StudioApi doc +
-    // docs/plans/cms-composition-plan.md [CALL] #2). Do NOT execute a draft.
+    // Intentionally empty — the review-workflow seam (see the StudioApi
+    // doc comment). Do NOT execute a draft.
   }
 
   /**

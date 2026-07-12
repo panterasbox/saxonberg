@@ -3,8 +3,8 @@
  * form control that edits it. The composer form (`StudioForm`) resolves a
  * widget per field via {@link resolveWidgetKind} and renders it.
  *
- * Registry lookup order (the P2 contract):
- *   1. `refShape`   → {@link ReferencePickerWidget} (stubbed in P2).
+ * Registry lookup order:
+ *   1. `refShape`   → {@link ReferencePickerWidget}.
  *   2. `enumValues` → {@link EnumWidget}.
  *   3. `typeShape`  → prefix `Quantity<` → {@link QuantityWidget}, then
  *      exact `string`/`number`/`boolean` → the primitive widgets.
