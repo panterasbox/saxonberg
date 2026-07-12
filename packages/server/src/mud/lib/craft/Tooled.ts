@@ -31,7 +31,11 @@ export function ToolMixin<TBase extends MixinConstructor>(Base: TBase) {
 
     static persistentFields = ['capabilities'];
 
-    /** The capabilities this tool offers (validated against the vocabulary). */
+    /**
+     * The capabilities this tool offers (validated against the vocabulary).
+     *
+     * @authorable
+     */
     public capabilities: string[] = [];
 
     getCapabilities(): readonly string[] {

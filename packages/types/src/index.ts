@@ -1971,6 +1971,426 @@ export interface CmsErrorBody {
   message: string; // human detail
 }
 
+// ---- Authorable-fields artifact (Studio / composition surface) ---------
+
+/**
+ * One author-facing field of a mixin, as projected from the TypeDoc
+ * model by the `@authorable` projector (see
+ * `packages/server/scripts/project-author-surface.ts`). The composer
+ * form generator reads these to pick a widget per field.
+ *
+ * `typeShape` is the **projected** readable type string (`string`,
+ * `number`, `Quantity<Mass>`, `"a" | "b"`, …) — it is derived from the
+ * signature, never a hand-authored enum. That keeps the artifact a
+ * single source of truth (the code) rather than a second one.
+ */
+export interface AuthorableFieldDescriptor {
+  /** The declaring mixin's `_mixinName` (e.g. `'NamedMixin'`). */
+  mixin: string;
+  /** The persistent- / instruction-field name (e.g. `'name'`). */
+  field: string;
+  /**
+   * `property` — a stored field whose runtime type is `typeShape`.
+   * `instruction` — a declarative field applied by an `apply<Field>`
+   * method; `typeShape` is the applier's **payload** shape, not the
+   * runtime field type.
+   */
+  kind: 'property' | 'instruction';
+  /** Projected readable type string (the widget-selection key). */
+  typeShape: string;
+  /** First-paragraph TSDoc summary; `''` when absent. */
+  description: string;
+  /** For a union-of-string-literals field: the allowed values. */
+  enumValues?: string[];
+  /** Present when the field points at other Stuff by path (Pattern A). */
+  refShape?: 'path';
+  /** The referenced Stuff/type name for a `ref:` field. */
+  refType?: string;
+}
+
+/**
+ * The emitted `authorable-fields.json` — the field descriptors keyed by
+ * mixin name, plus the coverage audit. `coverage.unclassified` holds
+ * `"<mixin>.<field>"` strings for persistent/instruction fields carrying
+ * neither `@authorable` nor `@runtimeState`; `doubleClassified` holds
+ * those carrying both. Both are the audit worklist the coverage-guard
+ * test asserts empty.
+ */
+export interface AuthorableFieldsArtifact {
+  fields: Record<string, AuthorableFieldDescriptor[]>;
+  coverage: {
+    unclassified: string[];
+    doubleClassified: string[];
+  };
+}
+
+// ---- Studio composition surface (describeClass) -------------------------
+
+/**
+ * Where an effective field value was read from when describing a class:
+ *   - `instance` — the value the representative live instance holds itself.
+ *   - `resolution-chain` — the instance had no own value; the value came
+ *     from the engine's `Zone.lookupField` → biome resolution chain.
+ *   - `class-default` — no live instance existed; the value is the class
+ *     field initializer read off a throwaway construction.
+ */
+export type StudioValueSource =
+  | 'instance'
+  | 'resolution-chain'
+  | 'class-default';
+
+/**
+ * One author-facing field of a described class, joined from the runtime
+ * mixin/field introspection to its projected shape and effective value.
+ * The composer form generator reads these to pick a widget per field.
+ */
+export interface StudioFieldDescriptor {
+  /** The persistent- / instruction-field name (e.g. `'name'`). */
+  name: string;
+  /** The declaring mixin's `_mixinName` (e.g. `'NamedMixin'`). */
+  mixin: string;
+  /**
+   * `property` — a stored field whose runtime type is `typeShape`.
+   * `instruction` — a declarative field applied by an `apply<Field>`
+   * method.
+   */
+  kind: 'property' | 'instruction';
+  /**
+   * Projected/inferred readable type string (the widget-selection key):
+   * `string`, `number`, `boolean`, `array`, `Quantity`, a union of string
+   * literals, … or `json` when the shape can't be determined (the
+   * raw-JSON fallback widget).
+   */
+  typeShape: string;
+  /** First-paragraph TSDoc summary; omitted when absent. */
+  description?: string;
+  /** For a union-of-string-literals field: the allowed values. */
+  enumValues?: string[];
+  /** Present when the field points at other Stuff by path (Pattern A). */
+  refShape?: 'path';
+  /** The referenced Stuff/type name for a `ref:` field. */
+  refType?: string;
+  /** The effective value read for the field; omitted when undefined. */
+  defaultValue?: unknown;
+  /** Where {@link defaultValue} was read from. */
+  valueSource: StudioValueSource;
+}
+
+/**
+ * The result of `StudioApi.describeClass` — a backing class's effective
+ * authorable field list joined to shapes + effective value + source.
+ */
+export interface ClassDescription {
+  classPath: string;
+  /** The effective mixin set (each layer's `_mixinName`). */
+  mixins: string[];
+  fields: StudioFieldDescriptor[];
+}
+
+/** Uniform error body for the Studio REST surface. */
+export interface StudioErrorBody {
+  code: string; // machine code: 'denied' | 'not-found' | 'invalid'
+  message: string; // human detail
+}
+
+// ---- Blueprint catalogue (Studio / composition surface) -----------------
+
+/**
+ * The disposition of a Studio write (name/publish/commit). `committed` — the
+ * write landed; `denied` — the trust gate refused it (a graceful refusal, not
+ * a throw). The `proposed` slot is reserved for the future propose →
+ * wizard-review workflow (not implemented this build).
+ */
+export type StudioDisposition = 'committed' | 'denied'; // 'proposed' reserved
+
+/**
+ * A blueprint's structural kind:
+ *   - `composition` — a pure mixin-over-base composition (no custom
+ *     methods/own fields); recomposable, the palette's building blocks.
+ *   - `concrete` — a logic-bearing backing class (owns methods/state);
+ *     catalogued as a whole `kind` pointing at its `classPath`, NOT a
+ *     recomposable particle set.
+ */
+export type BlueprintKind = 'composition' | 'concrete';
+
+/**
+ * A catalogued blueprint — a structural composition (derived from a backing
+ * class or authored in the curated overlay). `blueprintId`/`signature` are
+ * the durable keys; `name` is a mutable display label. The `signature` is
+ * `<baseClass>|<sorted-mixin-names>` — two authors composing the same
+ * particles collide to one blueprint (the dedup key).
+ */
+export interface BlueprintSummary {
+  /** Durable id; stable across rename. The catalogue's primary key. */
+  blueprintId: string;
+  /** Mutable display label (never a key). */
+  name: string;
+  kind: BlueprintKind;
+  /** The composition base class name (`Idea`, `Thing`, `Character`, …). */
+  baseClass: string;
+  /** The effective mixin set's `_mixinName`s, sorted. */
+  mixinNames: string[];
+  /** Concrete kinds only: the backing class path (`/obj/Campfire`). */
+  classPath?: string;
+  /** Hierarchy grouping — a parent blueprintId or category key. */
+  parent?: string;
+  /** Curated + endorsed; blessed blueprints surface first in the picker. */
+  blessed: boolean;
+  /** Optional author-facing description. */
+  description?: string;
+  /**
+   * `<baseClass>|<sorted-mixin-names>` — the structural dedup key. Carried on
+   * the summary (not just the detail) so a client can compute exact-match
+   * (`signature` equality) and superset (`mixinNames ⊇ selected`) filters
+   * locally without a per-row detail fetch.
+   */
+  signature: string;
+}
+
+/**
+ * A blueprint detail — the summary (which already carries `signature`). A
+ * distinct type is retained for API symmetry (`getBlueprint` returns a
+ * detail).
+ */
+export interface BlueprintDetail extends BlueprintSummary {
+  /** `<baseClass>|<sorted-mixin-names>` — the dedup key. */
+  signature: string;
+}
+
+/**
+ * The `StudioApi.publishBlueprint` call shape — name/publish a composition of
+ * already-approved classes (author-tier, no wizard). The **actor is derived
+ * from context, never a parameter** (anti-spoof). Dedup is on the computed
+ * `signature` (`baseClass` + `mixinNames`): a collision reuses the existing
+ * `blueprintId`, so a rename attaches to the derived entry rather than
+ * duplicating it.
+ */
+export interface PublishBlueprintInput {
+  name: string;
+  kind: BlueprintKind;
+  baseClass: string;
+  mixinNames: string[];
+  classPath?: string;
+  parent?: string;
+  blessed?: boolean;
+  description?: string;
+}
+
+/** The result of a `publishBlueprint` — the disposition + the durable id. */
+export interface BlueprintWriteResult {
+  disposition: StudioDisposition;
+  /** The blueprint's durable id when `committed`; absent on `denied`. */
+  blueprintId?: string;
+  /** Human detail on `denied`. */
+  message?: string;
+}
+
+/**
+ * The `StudioApi.createTemplate` call shape — save a NEW content template
+ * pointing at an already-approved backing class (creation act #1: "instantiate
+ * a template"). CREATE-only: an existing path is refused (updates go through
+ * `CmsApi.write('content', …)`). The **actor is derived from context, never a
+ * parameter** (anti-spoof); the wizard-lockdown code-field gate inside
+ * `TemplateApi.saveTemplate` still applies to the `classPath` being set.
+ */
+export interface CreateTemplateInput {
+  /** The new template path (`/domain/<zone>/<leaf>`). Must not already exist. */
+  path: string;
+  /** The backing class the template points at (`/obj/Coin`). */
+  classPath: string;
+  /** The template's initial `data` block. */
+  data: Record<string, unknown>;
+}
+
+/**
+ * The result of `StudioApi.createTemplate` — a graceful disposition, never a
+ * throw for the trust/existence gates. `denied` — a template already exists
+ * at the path, OR the code-field gate refused the `class` set (a non-wizard
+ * naming a class); the message says which. `committed` — the template was
+ * written at `path`.
+ */
+export interface TemplateWriteResult {
+  disposition: StudioDisposition;
+  /** The written template path when `committed`; absent on `denied`. */
+  path?: string;
+  /** Human detail on `denied`. */
+  message?: string;
+}
+
+// ---- New-class scaffold + commit (Studio) -------------------------------
+
+/**
+ * One entry of the composition palette — a mixin (or an instantiable base
+ * class) the author can pick when scaffolding a new backing class. `name`
+ * is the exported identifier used verbatim in the generated `extends`
+ * clause (`GlobbableMixin`, `Idea`, …).
+ */
+export interface MixinPaletteEntry {
+  /** The exported identifier (a mixin factory name or a base class name). */
+  name: string;
+  /**
+   * `mixin` — a class-factory mixin (`FooMixin`), applied over the base.
+   * `base` — an instantiable base class (`Idea`/`Thing`/…) the mixins wrap.
+   */
+  kind: 'mixin' | 'base';
+  /**
+   * A one-line summary — the first sentence of the mixin's TSDoc doc
+   * comment (or its companion interface's), from the server source scan.
+   * Absent when the mixin carries no doc comment. Always available (source-
+   * sourced, no docs-build dependency); surfaced inline in the composer as
+   * per-chip help so a 100-mixin palette is legible.
+   */
+  summary?: string;
+}
+
+/**
+ * One composition base class the palette offers, with the mixin set the base
+ * *already* implies (its own prototype chain's `_mixinName`s, in composition
+ * order). Lets a client pre-seed a base's composition instead of starting
+ * from an empty mixin set (e.g. picking `Character` should not re-offer the
+ * mixins it already composes).
+ */
+export interface BaseClassEntry {
+  /** The base class name (`Idea`, `Thing`, `Character`, …). */
+  name: string;
+  /** The base's backing class path (mud-rooted source path). */
+  classPath: string;
+  /** The `_mixinName`s the base already composes, deduped, composition order. */
+  impliedMixins: string[];
+}
+
+/**
+ * The `StudioApi.listMixins` return — the palette vocabulary split into the
+ * pickable mixin/base entries (`mixins`, unchanged) and the base classes with
+ * their implied mixin sets (`bases`, for composition pre-seeding).
+ */
+export interface MixinPalette {
+  /** The full palette entry list (base entries + every registry mixin). */
+  mixins: MixinPaletteEntry[];
+  /** Each offered base class with its implied mixin set. */
+  bases: BaseClassEntry[];
+}
+
+/**
+ * The `StudioApi.scaffoldClass` call shape — compose a new backing class
+ * from a base plus an ordered mixin set. The **actor is derived from
+ * context, never a parameter** (anti-spoof). Scaffolding is author-tier and
+ * open to all: the generated module is inert text until a wizard commits it.
+ */
+export interface ScaffoldClassInput {
+  /** The new class name (PascalCase identifier). */
+  name: string;
+  /** The base class the mixins are applied over (`Idea`, `Thing`, …). */
+  baseClass: string;
+  /** The mixin factories to compose, outermost-first. */
+  mixinNames: string[];
+}
+
+/**
+ * The result of `StudioApi.scaffoldClass` — the generated TS source module
+ * plus the stable paths the commit / draft workflows write into.
+ */
+export interface ScaffoldResult {
+  /** The generated static TS source module (imports + `extends` clause). */
+  source: string;
+  /** The wizard-commit target: `/obj/<Name>.ts` (a CMS-relative source path). */
+  targetPath: string;
+  /**
+   * The reserved non-wizard draft path (`/home/<self>/drafts/<Name>.ts`).
+   * Present only for a non-wizard scaffolder; v1 does NOT persist here — it
+   * is the stable seam the future review workflow fills in.
+   */
+  draftPath?: string;
+}
+
+/**
+ * The `StudioApi.commitClass` call shape — write a scaffolded backing class
+ * to source (creation act #3, wizard-gated). The **actor is derived from
+ * context, never a parameter** (anti-spoof).
+ */
+export interface CommitClassInput {
+  /** The source path to write (`/obj/<Name>.ts`, from `scaffoldClass`). */
+  targetPath: string;
+  /** The (possibly wizard-edited) TS source module body. */
+  source: string;
+}
+
+/**
+ * The result of `StudioApi.commitClass` — a graceful disposition, never a
+ * throw for the trust gate. `denied` — a non-wizard tried to publish (the
+ * banner warned first). `committed` — the source was written; `reloaded`
+ * reports whether the module went live (a compile failure leaves it
+ * persisted-but-not-live, `reloaded: false` + `reloadDetail`, NOT a 500).
+ */
+export interface ClassCommitResult {
+  disposition: StudioDisposition;
+  /** The committed source path (`/obj/<Name>.ts`); absent on `denied`. */
+  classPath?: string;
+  /** True when the written module compiled + went live. */
+  reloaded?: boolean;
+  /** The reload outcome detail (the compile error on `reloaded: false`). */
+  reloadDetail?: string;
+  /** Human detail on `denied`. */
+  message?: string;
+}
+
+// ---- Mixin inspector (Studio composer) ----------------------------------
+
+/**
+ * One field a mixin contributes, for the Studio inspector pane. `kind`
+ * mirrors {@link StudioFieldDescriptor.kind}; `typeShape` is best-effort
+ * (the same inference `describeClass` uses), degrading to `json` when the
+ * mixin can't be composed for a live read.
+ */
+export interface MixinFieldDetail {
+  /** The persistent- / instruction-field name (e.g. `'quantity'`). */
+  name: string;
+  /** Projected/inferred readable type string, or `json` when unknown. */
+  typeShape: string;
+  /**
+   * `property` — a stored field; `instruction` — a declarative field
+   * applied by an `apply<Field>` method.
+   */
+  kind: 'property' | 'instruction';
+}
+
+/**
+ * The rich detail for a single mixin — the Studio composer's inspector
+ * pane reads this. Assembled from multiple sources with graceful
+ * degradation: `description` + `authorableFields` + `runtimeState` come
+ * from the always-available server source scan; `relations` + `methods`
+ * are optional HelpApi enrichment (empty when the help artifact is
+ * absent — the pane never throws on a missing topic).
+ */
+export interface MixinDetail {
+  /** The mixin's `_mixinName` (e.g. `'GlobbableMixin'`). */
+  name: string;
+  /**
+   * The mixin file's FULL top TSDoc concept comment as clean text —
+   * paragraph breaks and numbered/bulleted list structure preserved,
+   * `{@link}` wrappers and `**bold**` markdown stripped. `''` when the
+   * mixin carries no doc comment. The substance of the pane.
+   */
+  description: string;
+  /** The authorable fields the mixin contributes (name + best-effort type). */
+  authorableFields: MixinFieldDetail[];
+  /** The runtime-state (`@runtimeState`) field names the mixin declares. */
+  runtimeState: string[];
+  /**
+   * Typed help relations (requires/composes/confers/consumed-by/see-also
+   * /method-of) — from the boot-warmed help index. Empty when the help
+   * artifact is absent.
+   */
+  relations: HelpRelation[];
+  /**
+   * Conferred method names the mixin adds to its host — from the help
+   * index's `confers` edges. Empty when the help artifact is absent.
+   */
+  methods: string[];
+  /** A `docs/…` reference named in the concept comment, when present. */
+  docRef?: string;
+}
+
 // ---- Help system --------------------------------------------------------
 
 /**

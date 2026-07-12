@@ -43,12 +43,14 @@ export function OrganismMixin<TBase extends MixinConstructor>(Base: TBase) {
      * Path to the Species singleton this organism belongs to. Resolved
      * lazily on each getSpecies() call so HMR replacement is observed
      * immediately.
+     * @authorable ref:Species
      */
     public _speciesPath: string | null = null;
 
     /**
      * Years (or species-appropriate units; v1 doesn't enforce). 0 at
      * birth/clone-time. Aging is deferred to follow-on builds.
+     * @authorable
      */
     public age: number = 0;
 
@@ -58,6 +60,7 @@ export function OrganismMixin<TBase extends MixinConstructor>(Base: TBase) {
      * `'destroyed'`). Initial value lives on the leaf template's
      * `data` per slate. Empty default keeps unhydrated test fixtures
      * trivially constructable.
+     * @runtimeState
      */
     public lifecycleState: string = '';
 

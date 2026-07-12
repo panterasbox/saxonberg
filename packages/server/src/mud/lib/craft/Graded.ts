@@ -34,7 +34,11 @@ export function GradedMixin<TBase extends MixinConstructor>(Base: TBase) {
 
     static persistentFields = ['gradeBand'];
 
-    /** The band word; default `'fair'` (a neutral middle). */
+    /**
+     * The band word; default `'fair'` (a neutral middle).
+     *
+     * @authorable
+     */
     public gradeBand: string = 'fair';
 
     getGradeBand(): string {

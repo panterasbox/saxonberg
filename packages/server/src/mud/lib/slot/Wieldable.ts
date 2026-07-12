@@ -34,6 +34,7 @@ export function WieldableMixin<
     static _mixinName = 'WieldableMixin';
     static persistentFields = ['slotClaims'];
 
+    /** @authorable */
     public slotClaims: Record<string, string[]> = {};
 
     public getSlotClaims(): Readonly<Record<string, readonly string[]>> {

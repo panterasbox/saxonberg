@@ -52,6 +52,7 @@ export function FixtureMixin<
     /** The seat target path (a Warren or a singleton location). */
     static persistentFields = ['seatIn'];
 
+    /** @authorable ref:Template */
     private _seatIn: string | null = null;
 
     getSeatIn(): string | null {

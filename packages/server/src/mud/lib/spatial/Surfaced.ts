@@ -86,6 +86,7 @@ export function SurfacedMixin<TBase extends MixinConstructor>(Base: TBase) {
       }
     }
 
+    /** @authorable */
     protected userFacingDetail: string | undefined = undefined;
 
     getResting(): readonly (Stuff & Containable)[] {

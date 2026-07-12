@@ -20,6 +20,7 @@ import cors from 'cors';
 import { Backend } from '../backend/Backend';
 import { Application } from '../backend/Application';
 import { CmsRoutes } from '../backend/CmsRoutes';
+import { StudioRoutes } from '../backend/StudioRoutes';
 import { HelpRoutes } from '../backend/HelpRoutes';
 import { BulletinRoutes } from '../backend/BulletinRoutes';
 import { PassportConfig } from './auth/PassportConfig';
@@ -170,6 +171,10 @@ export class Server {
     // (live since setupMiddleware ran) and before the SPA `*` fallback
     // so the /api/cms/* routes match first.
     CmsRoutes.setup(this.app);
+
+    // Studio (composition) REST data surface — the describeClass read
+    // behind the CMS Studio tab. Same auth/ordering constraints as CMS.
+    StudioRoutes.setup(this.app);
 
     // Help REST data surface (the future client help pane's transport).
     // Read-only; same auth/ordering constraints as the CMS routes.

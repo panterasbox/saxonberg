@@ -333,6 +333,7 @@ export function HasInteractiveMixin<TBase extends MixinConstructor>(Base: TBase)
      * declares. Round-trips via the Hydrator like any other
      * persistent field; populated wholesale on session-establish
      * via the welcome payload, updated by `client-state-write`.
+     * @runtimeState
      */
     public _clientState: Record<string, unknown> = {};
 

@@ -78,12 +78,19 @@ export class ProvenanceApi {
    * authoring transport (stored documents aren't templates). Each records
    * authoring for *its own* paths (template paths vs `/home/…`/`/domain/…`
    * document paths); the chokepoint guarantee per kind is preserved.
+   *
+   * `StudioLogic` (`/obj/api/studio`) is a third authoring transport: its
+   * `publishBlueprint` (the composition-naming act #2) records authoring
+   * against the synthetic `/obj/BlueprintCatalogue/<blueprintId>` path — the
+   * curated commons has no per-owner namespace, so the naming act is
+   * attributed even though the blueprint record itself is commons-owned.
    * Nothing else may append a row.
    */
   @CallSecurity(
     SecurityPolicies.AnyOf(
       SecurityPolicies.FromTemplate('/obj/api/template'),
-      SecurityPolicies.FromTemplate('/obj/api/document')
+      SecurityPolicies.FromTemplate('/obj/api/document'),
+      SecurityPolicies.FromTemplate('/obj/api/studio')
     )
   )
   public static async recordAuthoring(

@@ -51,6 +51,7 @@ export function AddressableMixin<TBase extends MixinConstructor<Stuff>>(
      * Declared address path in the namespace, or `null`. Sparse —
      * `null` is the common case and the resolve-walk falls through it
      * to a containment ancestor or the spatial zone.
+     * @authorable ref:Template
      */
     public _address: string | null = null;
 

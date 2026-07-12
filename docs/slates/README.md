@@ -149,8 +149,19 @@ continues with the content + navigation layers on top:
 
 ### 5. Authoring & CMS
 *Creator tooling.*
-- [cms-slate](./builds/cms-slate.md) — content-authoring tools; Monaco editor core.
-- [authoring-intelligence-slate](./builds/authoring-intelligence-slate.md) — compiled `.d.ts` type surface + LSP for authors.
+- [cms-slate](./builds/cms-slate.md) — content-authoring tools; Monaco editor
+  core. **Wave 1 (file/template/document explorer + Monaco) shipped** →
+  [../subsystems/cms.md](../subsystems/cms.md); **Wave 2 (the Studio — the
+  mixin-aware composition surface: `@authorable`-derived schema-driven form,
+  the blueprint catalogue, the class scaffold/commit bridge) shipped** →
+  [../subsystems/studio.md](../subsystems/studio.md). Kept in `builds/` for the
+  deferred remainder (per-type / bespoke content editors + zone/map canvas,
+  drafts/publish + the law==code forums-review gate, versioning).
+- [authoring-intelligence-slate](./builds/authoring-intelligence-slate.md) —
+  compiled `.d.ts` type surface + LSP for authors. **Its first two catalogs
+  (the mixin-particle palette + the named-blueprint catalog) shipped with the
+  Studio** ([../subsystems/studio.md](../subsystems/studio.md)); kept in
+  `builds/` for the engine-typed IntelliSense / LSP / host-isolation remainder.
 - [compile-diagnostics-slate](./builds/compile-diagnostics-slate.md) — in-editor compile diagnostics.
 - [scoped-authoring-slate](./builds/scoped-authoring-slate.md) — personal / scoped authoring permissions.
 - [provenance-slate](./builds/provenance-slate.md) — the authorship substrate bridging
@@ -161,8 +172,10 @@ continues with the content + navigation layers on top:
   (the dependency-DAG credit graph, git-in-runtime VCS, the author≠owner un-fusing that
   [property](./builds/property-slate.md) consumes).
 
-**Phases:** type surface + diagnostics → CMS editor core → scoped authoring · provenance
-(first brick shipped → the DAG + VCS deferred).
+**Phases:** type surface + diagnostics → CMS editor core (shipped → cms.md) →
+the Studio composition surface + first authoring-intelligence catalogs
+(shipped → studio.md) → scoped authoring · provenance (first brick shipped → the
+DAG + VCS deferred).
 
 > The former verb-provisioning slate is retired — its one durable idea
 > (a verb may be afforded by many source objects; the source is the

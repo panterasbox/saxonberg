@@ -246,37 +246,47 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
     };
 
     // ---------- storage; defaults are the universe-default baselines ----------
+    /** @runtimeState */
     public _coreTemperature: Quantity<'K'> = Quantity.of(
       UNIVERSE_DEFAULT_VITAL_PROFILE.coreTemperature.baseline,
       'K',
     );
+    /** @runtimeState */
     public _heartRate: Quantity<'bpm'> = Quantity.of(
       UNIVERSE_DEFAULT_VITAL_PROFILE.heartRate.baseline,
       'bpm',
     );
+    /** @runtimeState */
     public _respiratoryRate: Quantity<'bpm'> = Quantity.of(
       UNIVERSE_DEFAULT_VITAL_PROFILE.respiratoryRate.baseline,
       'bpm',
     );
+    /** @runtimeState */
     public _bloodPressureSystolic: Quantity<'mmHg'> = Quantity.of(
       UNIVERSE_DEFAULT_VITAL_PROFILE.bloodPressureSystolic.baseline,
       'mmHg',
     );
+    /** @runtimeState */
     public _bloodPressureDiastolic: Quantity<'mmHg'> = Quantity.of(
       UNIVERSE_DEFAULT_VITAL_PROFILE.bloodPressureDiastolic.baseline,
       'mmHg',
     );
+    /** @runtimeState */
     public _spo2: Quantity<'%'> = Quantity.of(
       UNIVERSE_DEFAULT_VITAL_PROFILE.spo2.baseline,
       '%',
     );
+    /** @runtimeState */
     public _bloodVolume: Quantity<'L'> = Quantity.of(
       UNIVERSE_DEFAULT_VITAL_PROFILE.bloodVolume.baseline,
       'L',
     );
 
+    /** @runtimeState */
     public causeOfDeath: string | null = null;
+    /** @runtimeState */
     public bodyPartDeltas: Record<string, BodyPartDelta> = {};
+    /** @runtimeState */
     public conditions: ActiveCondition[] = [];
 
     /**

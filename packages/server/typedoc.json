@@ -20,6 +20,8 @@
 
   "blockTags": [
     "@hook",
+    "@authorable",
+    "@runtimeState",
     "@defaultValue",
     "@deprecated",
     "@example",

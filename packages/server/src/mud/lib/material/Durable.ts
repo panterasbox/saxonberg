@@ -38,7 +38,11 @@ export function DurableMixin<TBase extends MixinConstructor>(Base: TBase) {
 
     static persistentFields = ['condition'];
 
-    /** 0..1 wear gauge; default pristine. */
+    /**
+     * 0..1 wear gauge; default pristine.
+     *
+     * @runtimeState
+     */
     private _condition: number = 1;
 
     protected get condition(): number {

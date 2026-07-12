@@ -17,6 +17,7 @@
 import { describe, it, expect } from "vitest";
 import {
   projectAuthorSurface,
+  projectAuthorableFields,
   type Refl,
 } from "../project-author-surface";
 
@@ -387,5 +388,159 @@ describe("projectAuthorSurface — signature renderer + TSDoc", () => {
     expect(m.params).toBeUndefined();
     expect(m.returns).toBeUndefined();
     expect(m.examples).toBeUndefined();
+  });
+});
+
+// ── @authorable projector (Studio composition surface, P0) ──────────
+//
+// A fixture mixin with one field of each shape the composer cares
+// about: a plain property, an instruction field (typeShape = the
+// applier's payload, not the runtime field type), a union-of-literals
+// (enumValues), a Pattern-A ref (refShape/refType), an unannotated
+// field (→ coverage.unclassified), and a @runtimeState field (excluded
+// AND not unclassified).
+
+const authTag = (content = ""): Refl["comment"] => ({
+  blockTags: [
+    { tag: "@authorable", content: content ? [{ kind: "text", text: content }] : [] },
+  ],
+});
+const runtimeTag = (): Refl["comment"] => ({
+  blockTags: [{ tag: "@runtimeState", content: [] }],
+});
+
+/** A static string-array member serialized as a defaultValue literal. */
+function staticArray(name: string, values: string[]): Refl {
+  return {
+    name,
+    kind: Kind.Property,
+    flags: { isStatic: true },
+    type: { type: "array", elementType: { type: "intrinsic", name: "string" } },
+    defaultValue: `[${values.map((v) => `'${v}'`).join(", ")}]`,
+  };
+}
+
+function prop(
+  name: string,
+  type: TdType,
+  comment?: Refl["comment"],
+  summary?: string
+): Refl {
+  const c: Refl["comment"] = comment ?? {};
+  if (summary) c!.summary = [{ kind: "text", text: summary }];
+  return { name, kind: Kind.Property, flags: {}, type: type as Refl["type"], comment: c };
+}
+
+const AUTHORABLE_FIXTURE: Refl = {
+  name: "PROJECT",
+  kind: 1,
+  children: [
+    {
+      name: "mud/lib/demo/Demo",
+      kind: Kind.Module,
+      children: [
+        {
+          name: "DemoMixin",
+          kind: Kind.Class,
+          children: [
+            {
+              name: "_mixinName",
+              kind: Kind.Property,
+              flags: { isStatic: true },
+              type: { type: "intrinsic", name: "string" } as Refl["type"],
+              defaultValue: "'DemoMixin'",
+            },
+            staticArray("persistentFields", [
+              "color",
+              "intensity",
+              "material",
+              "ratio",
+              "leftover",
+            ]),
+            staticArray("instructionFields", ["exits"]),
+            // property field
+            prop("intensity", { type: "intrinsic", name: "number" }, authTag(), "How bright."),
+            // union-of-literals property
+            prop(
+              "color",
+              { type: "union", types: [{ type: "literal", value: "red" }, { type: "literal", value: "blue" }] },
+              authTag()
+            ),
+            // Pattern-A ref property
+            prop("material", { type: "intrinsic", name: "string" }, authTag("ref:Material")),
+            // instruction field + its applier
+            prop("exits", { type: "reference", name: "ExitMap" }, authTag()),
+            {
+              name: "applyExits",
+              kind: Kind.Method,
+              flags: {},
+              signatures: [
+                {
+                  name: "applyExits",
+                  kind: 4096,
+                  parameters: [
+                    { name: "data", kind: 32768, type: { type: "reference", name: "ExitSpec" } as Refl["type"] },
+                  ],
+                },
+              ],
+            },
+            // runtime-state field (excluded, not unclassified)
+            prop("ratio", { type: "intrinsic", name: "number" }, runtimeTag()),
+            // unannotated field → coverage.unclassified
+            prop("leftover", { type: "intrinsic", name: "number" }),
+          ],
+        },
+      ],
+    },
+  ],
+};
+
+describe("projectAuthorableFields", () => {
+  const artifact = projectAuthorableFields(AUTHORABLE_FIXTURE);
+  const demo = artifact.fields["DemoMixin"] ?? [];
+  const byField = (f: string) => demo.find((d) => d.field === f);
+
+  it("keys fields by the mixin's _mixinName", () => {
+    expect(Object.keys(artifact.fields)).toContain("DemoMixin");
+  });
+
+  it("projects a plain property with its rendered typeShape", () => {
+    const d = byField("intensity");
+    expect(d?.kind).toBe("property");
+    expect(d?.typeShape).toBe("number");
+    expect(d?.description).toBe("How bright.");
+  });
+
+  it("projects an instruction field with the applier's payload type, not the field type", () => {
+    const d = byField("exits");
+    expect(d?.kind).toBe("instruction");
+    // ExitSpec is applyExits' param — NOT the runtime ExitMap field type.
+    expect(d?.typeShape).toBe("ExitSpec");
+  });
+
+  it("emits enumValues for a union of string literals", () => {
+    const d = byField("color");
+    expect(d?.enumValues).toEqual(["red", "blue"]);
+  });
+
+  it("emits refShape/refType for an @authorable ref field", () => {
+    const d = byField("material");
+    expect(d?.refShape).toBe("path");
+    expect(d?.refType).toBe("Material");
+  });
+
+  it("puts an unannotated field into coverage.unclassified", () => {
+    expect(artifact.coverage.unclassified).toContain("DemoMixin.leftover");
+  });
+
+  it("excludes a @runtimeState field from descriptors and from unclassified", () => {
+    expect(byField("ratio")).toBeUndefined();
+    expect(artifact.coverage.unclassified).not.toContain("DemoMixin.ratio");
+  });
+
+  it("reports no double-classified fields for a clean fixture", () => {
+    expect(artifact.coverage.doubleClassified).toEqual([]);
+    // The only unclassified field is the deliberately-unmarked one.
+    expect(artifact.coverage.unclassified).toEqual(["DemoMixin.leftover"]);
   });
 });

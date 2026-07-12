@@ -53,6 +53,7 @@ export function SubjectSubscriberMixin<TBase extends MixinConstructor>(
      */
     static persistentFields = ['_subjectSubscriptions'];
 
+    /** @runtimeState */
     _subjectSubscriptions: Record<string, SubjectSubscription> = {};
 
     getSubjectSubscription(

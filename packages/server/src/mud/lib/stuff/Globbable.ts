@@ -101,6 +101,8 @@ export function GlobbableMixin<TBase extends MixinConstructor<Stuff>>(
      * Stack size. Persisted by name; default 1. Template authoring
      * sets the initial value in YAML `data:` and the Hydrator reflects
      * it in here.
+     *
+     * @authorable
      */
     public quantity: number = 1;
 

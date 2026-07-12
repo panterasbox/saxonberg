@@ -16,6 +16,7 @@ import { PersistenceManager } from './PersistenceManager';
 import { SeederManager } from './SeederManager';
 import { EmoteSeeder } from './EmoteSeeder';
 import { RecipeSeeder } from './RecipeSeeder';
+import { BlueprintSeeder } from './BlueprintSeeder';
 import { ScriptSeeder } from './ScriptSeeder';
 import { ChannelSeeder } from './ChannelSeeder';
 import { ParcelSeeder } from './ParcelSeeder';
@@ -145,6 +146,7 @@ export class AppBootstrap {
     // caches from these collections.
     await EmoteSeeder.run();
     await RecipeSeeder.run();
+    await BlueprintSeeder.run();
     await ScriptSeeder.run();
     await ChannelSeeder.run();
     await AppSettingsSeeder.run();

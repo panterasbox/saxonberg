@@ -65,6 +65,7 @@ export function EmployedMixin<TBase extends MixinConstructor>(Base: TBase) {
      * Stored employment records (plain data). Sparse: `null` on an
      * unemployed Character (nothing written to the doc). Wrapped into
      * `Employment` value objects on read.
+     * @runtimeState
      */
     public employments: EmploymentData[] | null = null;
 

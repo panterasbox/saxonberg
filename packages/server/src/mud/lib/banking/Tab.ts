@@ -56,12 +56,18 @@ export function TabMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
 
     static persistentFields = ["tabBalances", "revokedTabs"];
 
-    /** patronKey → accrued minor units. */
+    /**
+     * patronKey → accrued minor units.
+     * @runtimeState
+     */
     public tabBalances: Record<string, number> = {};
     /** Patrons whose tab privilege has been revoked (skipped a tab). */
     private _revokedTabs: Set<string> = new Set();
 
-    /** Persistence accessor for the revoked set (array round-trip). */
+    /**
+     * Persistence accessor for the revoked set (array round-trip).
+     * @runtimeState
+     */
     get revokedTabs(): string[] {
       return [...this._revokedTabs];
     }

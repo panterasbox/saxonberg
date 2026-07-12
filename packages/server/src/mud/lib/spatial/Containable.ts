@@ -80,6 +80,8 @@ export interface Containable {
    *   cascade). **Instruction applier** — no paired getter (not a
    *   property); idempotent (compare-and-move, no-op when already in
    *   the declared container).
+   *
+   * @authorable ref:Template
    */
   applyContainer(path: string): Promise<void>;
 
@@ -208,6 +210,8 @@ export function ContainableMixin<TBase extends MixinConstructor>(Base: TBase) {
      * Auxiliary `restingOn` is different — it's a Pattern A
      * path-string (`_restingOnPath`) that DOES persist; see static
      * `persistentFields` below.
+     *
+     * @runtimeState
      */
     protected environment: (Stuff & Container) | null = null;
 

@@ -41,6 +41,11 @@ export const bootstrapManifest: BootstrapEntry[] = [
   // `RecipeSeeder.run` earlier in the boot sequence). Resolvable via
   // `CraftingApi` after this entry's postRegister fires.
   { templatePath: '/obj/RecipeCatalogue' },
+  // BlueprintCatalogue singleton — the Studio composition catalogue's runtime
+  // index. Warmed at postRegister from the `blueprints` collection (populated
+  // by `BlueprintSeeder.run` earlier in boot). Resolvable via `StudioApi`'s
+  // catalog ops after this entry's postRegister fires.
+  { templatePath: '/obj/BlueprintCatalogue' },
   // BulletinBoard singleton — the runtime news-ticker window. Warmed at
   // postRegister from the `bulletins` collection; resolvable via
   // `BulletinApi` after this entry's postRegister fires. No dependsOn.

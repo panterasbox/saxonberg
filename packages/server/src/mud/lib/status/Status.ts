@@ -85,6 +85,7 @@ export function StatusMixin<TBase extends MixinConstructor>(Base: TBase) {
     // imposed disguise.
     static persistentFields = ['authoredStatus'];
 
+    /** @authorable */
     public authoredStatus: string = '';
     private _runtimeStatus: string | null = null;
 

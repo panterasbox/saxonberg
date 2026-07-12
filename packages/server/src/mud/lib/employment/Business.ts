@@ -67,16 +67,28 @@ export function BusinessMixin<TBase extends MixinConstructor>(Base: TBase) {
       'operatingLocations',
     ];
 
-    /** templatePath of the proprietor (a replaceable edge). Empty = vacant. */
+    /**
+     * templatePath of the proprietor (a replaceable edge). Empty = vacant.
+     * @authorable ref:Template
+     */
     public proprietorPath: string = '';
 
-    /** Authored positions, stored raw; wrapped on read. */
+    /**
+     * Authored positions, stored raw; wrapped on read.
+     * @authorable
+     */
     public positions: PositionData[] = [];
 
-    /** Roster assignments, stored raw; wrapped on read. */
+    /**
+     * Roster assignments, stored raw; wrapped on read.
+     * @authorable
+     */
     public rosterSlots: RosterAssignment[] = [];
 
-    /** Locations this Business operates in (templatePaths). */
+    /**
+     * Locations this Business operates in (templatePaths).
+     * @authorable ref:Template
+     */
     public operatingLocations: string[] = [];
 
     public getProprietor(): string | undefined {

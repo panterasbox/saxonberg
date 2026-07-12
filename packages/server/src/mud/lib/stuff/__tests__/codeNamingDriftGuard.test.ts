@@ -147,6 +147,22 @@ const MANIFEST: ReadonlyArray<{ site: string; classification: string }> = [
     site: "obj/api/PackLogic.ts::loadClassByPath",
     classification: "validation-only",
   },
+  // Studio describeClass introspection: resolves an already-committed
+  // (shipped or gate-passed) class to read its effective mixin set +
+  // effective values; author-supplied path, but only already-trusted code
+  // ever resolves (no author-named new code).
+  {
+    site: "obj/api/StudioLogic.ts::loadClassByPath",
+    classification: "transitive-safe",
+  },
+  // Studio describeMixin introspection: resolves an already-registered
+  // mixin factory to compose over a bare `Idea` and read the fields it
+  // contributes (the inspector pane). Only committed mixin code resolves;
+  // no author-named new code.
+  {
+    site: "obj/api/StudioLogic.ts::resolveExport",
+    classification: "transitive-safe",
+  },
   // container-target mixin validators (does not instantiate).
   {
     site: "obj/api/TemplateLogic.ts::loadClassByPath",

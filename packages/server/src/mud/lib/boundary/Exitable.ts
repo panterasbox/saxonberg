@@ -90,6 +90,8 @@ export interface Exitable {
    *   a template's `exits` field. **Instruction applier** — consumes a
    *   declaration to produce derived runtime state; no paired getter
    *   (not a property). Per-direction idempotent across re-clone.
+   *
+   * @authorable
    */
   applyExits(map: Record<string, ExitInstruction>): Promise<void>;
   verifyOutboundExits(): void;
@@ -206,6 +208,8 @@ export function ExitableMixin<TBase extends MixinConstructor<Stuff & Container>>
      * installs the runtime entries — no paired getter for the spec
      * (the runtime `exits: Map<string, Exit>` has its own API). See
      * `applyExits` and `feedback_property_vs_instruction_fields`.
+     *
+     * @authorable
      */
     static instructionFields = ['exits'];
 
