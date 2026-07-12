@@ -170,11 +170,22 @@ continues with the content + navigation layers on top:
   (the producer faucet's routing input). Kept in `builds/` for the build-sized remainder
   (the dependency-DAG credit graph, git-in-runtime VCS, the author≠owner un-fusing that
   [property](./builds/property-slate.md) consumes).
+- [git-workflow-slate](./builds/git-workflow-slate.md) — the **in-runtime VCS**
+  brick provenance reserved: a gated `GitApi` that turns runtime source edits into
+  commits pushed to GitLab (version history · review · rollback · **durability across
+  redeploy**). Governing insight: **the working tree *is* the live server**, so it's
+  **snapshot-and-push** (box-on-a-long-lived-`authoring`-branch, `publish` = add/commit/push,
+  isolation moves to the MR layer) — never working-tree branch-switching. Security spine:
+  **every git op is gated by the same per-path `can('write')` predicate as a direct source
+  write** (git is not a permission bypass; `publish` stages only writable files → per-owner
+  scoping falls out; `reset`/force-push behind an admin tier). Identity: **one shared push
+  token + per-avatar `--author`** (mirror of the `AuthoringEvent` ledger). **Source-only v1**;
+  content→git (Mongo→file export) + finer-grained review + per-user `/home/` submodules deferred.
 
 **Phases:** type surface + diagnostics (shipped → diagnostics.md) → CMS editor core (shipped → cms.md) →
 the Studio composition surface + first authoring-intelligence catalogs
-(shipped → studio.md) → scoped authoring · provenance (first brick shipped → the
-DAG + VCS deferred).
+(shipped → studio.md) → scoped authoring · provenance (first brick shipped) · **git-workflow
+(in-runtime VCS — the DAG + content-export still deferred)**.
 
 > The former verb-provisioning slate is retired — its one durable idea
 > (a verb may be afforded by many source objects; the source is the
