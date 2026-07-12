@@ -210,6 +210,45 @@ function _assertFrameMutatorAllowed(op: string): void {
   }
 }
 
+/** Best-effort offending-content path for a guarded root's `target`. */
+function _guardPath(target: unknown): string | null {
+  const t = target as { getTemplatePath?: () => string | null } | null;
+  if (t && typeof t.getTemplatePath === 'function') {
+    try {
+      return t.getTemplatePath() ?? null;
+    } catch {
+      return null;
+    }
+  }
+  return null;
+}
+
+/**
+ * Record a caught guard error as a runtime diagnostic. Uses a **dynamic**
+ * import of `DiagnosticApi` — a static import would form a load cycle
+ * (`execution-context` is bootstrap-special and `DiagnosticApi` pulls the
+ * logic graph back through it). Diagnostics must never break the guard, so
+ * every failure here is swallowed.
+ */
+async function _recordGuardError(
+  target: unknown,
+  method: string,
+  err: unknown
+): Promise<void> {
+  try {
+    const { DiagnosticApi } = await import('./diagnostics');
+    const message = err instanceof Error ? err.message : String(err);
+    const stack = err instanceof Error ? (err.stack ?? null) : null;
+    await DiagnosticApi.record({
+      path: _guardPath(target),
+      message: `${method}: ${message}`,
+      stack,
+    });
+  } catch {
+    // never let diagnostics capture propagate out of the guard
+  }
+}
+
 /**
  * Static-class style API. All methods are static so callers don't need to
  * instantiate or import a singleton.
@@ -588,6 +627,52 @@ export class ExecutionContextApi {
       kind: FrameKind.Root,
     };
     return _als.run([root], fn);
+  }
+
+  /**
+   * Like {@link runRoot}, but catches any throw / rejection from `fn`,
+   * records it as a runtime diagnostic (channel + author derived from the
+   * `target`'s content path via `DiagnosticApi.record`), and then applies
+   * `policy`:
+   *
+   *   - `'absorb'`  — swallow and return `undefined` (the command inbound
+   *     path: the giver already saw the real error via the
+   *     `controller-error` note; no generic socket frame is wanted).
+   *   - `'rethrow'` — record and re-throw (the REST bridge: `sendCmsError`
+   *     still maps the error to an HTTP status).
+   *   - `'swallow'` — record and return `undefined` without re-throwing
+   *     (scheduled / background work: a timer callback has no caller to
+   *     rethrow to, and swallowing keeps a recurring schedule alive).
+   *
+   * This is a **sibling** of `runRoot`, deliberately not a change to it:
+   * `runRoot` stays a hot no-catch primitive so framework-internal roots
+   * pay nothing, and only the boundaries that opt in (command / schedule /
+   * REST) take the capture + control-flow change.
+   */
+  public static async runRootGuarded<T>(
+    target: unknown | null,
+    method: string,
+    fn: () => T | Promise<T>,
+    policy: 'absorb' | 'rethrow' | 'swallow'
+  ): Promise<T | undefined> {
+    _assertFrameMutatorAllowed('runRootGuarded');
+    const root: CallFrame = {
+      caller: null,
+      target,
+      method,
+      timestamp: Date.now(),
+      kind: FrameKind.Root,
+    };
+    try {
+      return await _als.run(
+        [root],
+        () => Promise.resolve(fn()) as Promise<T>
+      );
+    } catch (err) {
+      await _recordGuardError(target, method, err);
+      if (policy === 'rethrow') throw err;
+      return undefined;
+    }
   }
 
   /**

@@ -51,6 +51,7 @@ import { MixinApi } from '../../api/mixin';
 import { ShellApi } from '../../api/shell';
 import type { Alias } from '../shell/Alias';
 import { StuffApi } from '../../api/stuff';
+import { DiagnosticApi } from '../../api/diagnostics';
 import type { CommandController } from './CommandController';
 import { CommandDefinition } from './CommandDefinition';
 import type { CommandSchemaPayload } from '../../api/command';
@@ -144,6 +145,26 @@ const ASYNC_BODY_TARGET = { module: 'CommandGiverMixin' } as const;
  * command the detached body calls this in its `finally` so the one
  * (late) envelope carries the body's accumulated notes + final status.
  */
+/**
+ * Author-diagnostics: record a controller throw (store row + author push).
+ * Fire-and-forget and fully swallowing — a controller-error note is already
+ * the giver's surface, and diagnostics capture must never break dispatch or
+ * leak an unhandled rejection (e.g. a disconnected store).
+ */
+function recordControllerThrow(
+  controllerName: string | undefined,
+  error: unknown
+): void {
+  const message = error instanceof Error ? error.message : String(error);
+  void DiagnosticApi.record({
+    path: controllerName ? `/obj/command/${controllerName}` : null,
+    message: `${controllerName ?? '?'}: ${message}`,
+    stack: error instanceof Error ? (error.stack ?? null) : null,
+  }).catch(() => {
+    // diagnostics never breaks dispatch
+  });
+}
+
 function emitDispatchResponse(ctx: CommandContext): void {
   const giverAsStuff = ctx.commandGiver as unknown as Stuff;
   // Framework-failure prose sweep: dispatcher / validator / MQL notes
@@ -794,11 +815,14 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
           // The throw can originate inside a controller's execute(),
           // inside resolveAndValidate, or anywhere else. Attribute to
           // whichever context is currently flowing through the chain.
+          const controllerName = outer.command?.controller;
           claimingCtx.note({
             kind: 'controller-error',
-            controller: outer.command?.controller ?? '?',
+            controller: controllerName ?? '?',
             detail,
           });
+          // The note above is the giver's surface; this is the developer's.
+          recordControllerThrow(controllerName, error);
         }
       }
 
@@ -1135,6 +1159,7 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
               controller: controllerName,
               detail: message,
             });
+            recordControllerThrow(controllerName, error);
           } finally {
             if (controller) StuffApi.destruct(controller);
             emitDispatchResponse(context);
@@ -1156,6 +1181,7 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
           controller: controllerName,
           detail: message,
         });
+        recordControllerThrow(controllerName, error);
       } finally {
         if (controller) StuffApi.destruct(controller);
       }

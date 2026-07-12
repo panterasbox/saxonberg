@@ -11,6 +11,7 @@
 
 import type { EnvelopeTemplate } from '@saxonberg/types';
 import { PlayerApi } from '../../mud/api/player';
+import { ExecutionContextApi } from '../../mud/api/execution-context';
 import { SecurityApi } from '../../mud/api/security';
 import { MixinApi } from '../../mud/api/mixin';
 import { PromptApi } from '../../mud/api/prompt';
@@ -79,21 +80,19 @@ export const handleCommand: InboundHandler = async (ctx, message) => {
 
   const giver = holder as Stuff & CommandGiver;
 
-  // executeCommand's outcome rides the dispatch-response envelope
-  // (fired through the Sensor pipeline). No return value to read
-  // here. If it throws, surface a user-visible error envelope —
-  // command failures are exactly the case where the player needs
-  // to see "something went wrong" rather than have the dispatcher
-  // log silently.
-  try {
-    await giver.executeCommand(commandText, { interactive, bodyFields, barId });
-  } catch (error) {
-    console.error(`Command error for socket ${socketId}:`, error);
-    backend.sendMessageToSocket(socketId, {
-      type: 'error',
-      payload: { message: 'Command execution failed' },
-    });
-  }
+  // executeCommand's outcome rides the dispatch-response envelope (fired
+  // through the Sensor pipeline). Authored-content controller throws are
+  // absorbed *inside* executeCommand into `controller-error` notes (the
+  // giver's real-error surface) + a diagnostics row; anything that still
+  // escapes to here is a residual framework error. The guard records it
+  // and absorbs (policy 'absorb') — retiring the old generic
+  // "Command execution failed" socket frame; the note is the feedback.
+  await ExecutionContextApi.runRootGuarded(
+    giver,
+    'executeCommand',
+    () => giver.executeCommand(commandText, { interactive, bodyFields, barId }),
+    'absorb'
+  );
 };
 
 export type { InboundClientMessage };

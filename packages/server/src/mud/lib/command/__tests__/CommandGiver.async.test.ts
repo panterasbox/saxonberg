@@ -23,6 +23,7 @@ import { ContainmentApi } from '../../../api/containment';
 import { CommandApi } from '../../../api/command';
 import { makeStuff } from '../../security/__tests__/test-setup';
 import PingController from '../../../obj/command/system/PingController';
+import { DiagnosticApi } from '../../../api/diagnostics';
 import { ScriptApi } from '../../../api/script';
 import type {
   EnvelopeTemplate,
@@ -250,6 +251,25 @@ describe('async command dispatch', () => {
     expect(env.outcome.notes).toContainEqual(
       expect.objectContaining({ kind: 'controller-error' })
     );
+  });
+
+  it('a controller throw also records an author diagnostic (store + push)', async () => {
+    const record = vi
+      .spyOn(DiagnosticApi, 'record')
+      .mockResolvedValue(undefined);
+    vi.spyOn(PingController.prototype, 'execute').mockImplementation(
+      async () => {
+        throw new Error('kaboom');
+      }
+    );
+
+    await giver.executeCommand('ping --async');
+    await settleUntil(() => giver.envelopes.length > 0);
+
+    expect(record).toHaveBeenCalledTimes(1);
+    const arg = record.mock.calls[0]?.[0];
+    expect(arg?.path).toBe('/obj/command/system/PingController');
+    expect(arg?.message).toContain('kaboom');
   });
 
   it('async fires exactly one dispatch-response, keyed on the command id', async () => {
