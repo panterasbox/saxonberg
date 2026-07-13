@@ -42,6 +42,10 @@ const REACTABLE_TOPICS: ReadonlySet<string> = new Set([
   'world.speech.shout',
   'world.expression.emote',
   'world.chat.message',
+  // Combat — dramatic exchange beats are reactable (the crowd cheers a
+  // hit). Only dramatic beats call noteReactableAct; tick/pressed stay
+  // silent. See docs/subsystems/combat.md.
+  'world.combat.exchange',
 ]);
 
 /**
