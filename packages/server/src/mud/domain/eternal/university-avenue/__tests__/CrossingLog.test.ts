@@ -7,11 +7,11 @@
 
 import { describe, it, expect, afterEach } from 'vitest';
 import CrossingLog from '../CrossingLog';
-import { Time } from '../../lib/time/Time';
-import { MixinApi } from '../../api/mixin';
-import { Mixins } from '../../lib/mixin';
-import { StuffApi } from '../../api/stuff';
-import { makeStuff } from '../../lib/security/__tests__/test-setup';
+import { Time } from '../../../../lib/time/Time';
+import { MixinApi } from '../../../../api/mixin';
+import { Mixins } from '../../../../lib/mixin';
+import { StuffApi } from '../../../../api/stuff';
+import { makeStuff } from '../../../../lib/security/__tests__/test-setup';
 
 function log(): CrossingLog {
   return makeStuff(() => new CrossingLog());

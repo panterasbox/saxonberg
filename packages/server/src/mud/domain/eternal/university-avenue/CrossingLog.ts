@@ -21,10 +21,10 @@
  * everyone, kept by the man who remembers no one).
  */
 
-import Thing from '../lib/stuff/Thing';
-import { DetailedMixin } from '../lib/description/Detailed';
-import { Time } from '../lib/time/Time';
-import type { CommandContributions } from '../api/command';
+import Thing from '../../../lib/stuff/Thing';
+import { DetailedMixin } from '../../../lib/description/Detailed';
+import { Time } from '../../../lib/time/Time';
+import type { CommandContributions } from '../../../api/command';
 
 const CrossingLogBase = DetailedMixin(Thing);
 
@@ -38,7 +38,7 @@ export default class CrossingLog extends CrossingLogBase {
    */
   static commandContributions: CommandContributions = {
     self: [],
-    inventory: ['device/tally.yaml'],
+    inventory: ['domain/eternal/university-avenue/commands/tally.yaml'],
     environment: [],
     peers: [],
   };

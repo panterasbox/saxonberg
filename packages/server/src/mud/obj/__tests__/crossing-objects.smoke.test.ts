@@ -4,7 +4,7 @@
  */
 
 import { describe, it, expect, afterEach } from 'vitest';
-import Whistle from '../Whistle';
+import Whistle from '../../domain/eternal/university-avenue/Whistle';
 import Paddle from '../Paddle';
 import Thermos from '../Thermos';
 import Beacon from '../Beacon';
@@ -22,7 +22,7 @@ describe('crossing content classes (composition)', () => {
     expect(MixinApi.isAudible(w as never)).toBe(true);
     expect(MixinApi.isWearable(w as never)).toBe(true);
     expect(MixinApi.hasMixin(w as never, Mixins.Detailed)).toBe(true);
-    expect(Whistle.commandContributions.inventory).toContain('device/blow.yaml');
+    expect(Whistle.commandContributions.inventory).toContain('domain/eternal/university-avenue/commands/blow.yaml');
   });
 
   it('Paddle is Wieldable + Detailed with no carried verb', () => {

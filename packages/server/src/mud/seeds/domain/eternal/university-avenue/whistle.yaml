@@ -1,9 +1,9 @@
-# Gus's brass pea whistle — `/obj/Whistle` (Audible + Wearable + Detailed).
+# Gus's brass pea whistle — `/domain/eternal/university-avenue/Whistle` (Audible + Wearable + Detailed).
 # Worn on the neck slot; equipped at standup by Gus.equipLoadout. He blows a
 # fixed clean ~110 dB flourish "to keep it sharp," for no one — the blow-model
 # (breath/skill) is banked for the future player whistle. Generic object:
 # Visible.shortDescription, never Named.
-class: /obj/Whistle
+class: /domain/eternal/university-avenue/Whistle
 hydratorClass: /lib/persistence/PersistentHydrator
 data:
   shortDescription: a brass pea whistle

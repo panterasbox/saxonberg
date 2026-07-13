@@ -9,18 +9,18 @@
  * the room, not the hand. Refuses when the actor holds nothing to blow.
  */
 
-import { CommandController } from '../../../lib/command/CommandController';
-import type { CommandContext, CommandModel } from '../../../api/command';
-import type { Stuff } from '../../../lib/stuff/Stuff';
-import type { Container } from '../../../lib/spatial/Container';
-import type { Slotted } from '../../../lib/slot/Slotted';
-import type { Audible } from '../../../lib/perception/Audible';
-import type { MqlOneResult } from '../../../api/mql';
-import { MixinApi } from '../../../api/mixin';
-import { ContainmentApi } from '../../../api/containment';
-import { SlotApi } from '../../../api/slot';
-import { MessageApi } from '../../../api/message';
-import { Mml } from '../../../api/mml';
+import { CommandController } from '../../../../lib/command/CommandController';
+import type { CommandContext, CommandModel } from '../../../../api/command';
+import type { Stuff } from '../../../../lib/stuff/Stuff';
+import type { Container } from '../../../../lib/spatial/Container';
+import type { Slotted } from '../../../../lib/slot/Slotted';
+import type { Audible } from '../../../../lib/perception/Audible';
+import type { MqlOneResult } from '../../../../api/mql';
+import { MixinApi } from '../../../../api/mixin';
+import { ContainmentApi } from '../../../../api/containment';
+import { SlotApi } from '../../../../api/slot';
+import { MessageApi } from '../../../../api/message';
+import { Mml } from '../../../../api/mml';
 
 interface BlowModel extends CommandModel {
   target?: MqlOneResult;

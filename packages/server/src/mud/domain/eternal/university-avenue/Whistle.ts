@@ -16,12 +16,12 @@
  * propagates from the room, not the hand.
  */
 
-import Thing from '../lib/stuff/Thing';
-import { AudibleMixin } from '../lib/perception/Audible';
-import { WearableMixin } from '../lib/slot/Wearable';
-import { SlottableMixin } from '../lib/slot/Slottable';
-import { DetailedMixin } from '../lib/description/Detailed';
-import type { CommandContributions } from '../api/command';
+import Thing from '../../../lib/stuff/Thing';
+import { AudibleMixin } from '../../../lib/perception/Audible';
+import { WearableMixin } from '../../../lib/slot/Wearable';
+import { SlottableMixin } from '../../../lib/slot/Slottable';
+import { DetailedMixin } from '../../../lib/description/Detailed';
+import type { CommandContributions } from '../../../api/command';
 
 const WhistleBase = AudibleMixin(
   WearableMixin(SlottableMixin(DetailedMixin(Thing))),
@@ -34,7 +34,7 @@ export default class Whistle extends WhistleBase {
    */
   static commandContributions: CommandContributions = {
     self: [],
-    inventory: ['device/blow.yaml'],
+    inventory: ['domain/eternal/university-avenue/commands/blow.yaml'],
     environment: [],
     peers: [],
   };

@@ -146,6 +146,19 @@ const ASYNC_BODY_TARGET = { module: 'CommandGiverMixin' } as const;
  * (late) envelope carries the body's accumulated notes + final status.
  */
 /**
+ * Resolve a `controller:` spec value to the template path dispatch clones.
+ * A `domain/`-prefixed name is a content-local controller living in a
+ * locality bundle (`domain/<sphere>/<locality>/commands/`), rooted at the
+ * MUD tree; everything else is an engine controller under `/obj/command/`.
+ * Mirrors `CommandLogic`'s `domain/`-key resolution for command YAML.
+ */
+function controllerTemplatePath(controllerName: string): string {
+  return controllerName.startsWith('domain/')
+    ? `/${controllerName}`
+    : `/obj/command/${controllerName}`;
+}
+
+/**
  * Author-diagnostics: record a controller throw (store row + author push).
  * Fire-and-forget and fully swallowing — a controller-error note is already
  * the giver's surface, and diagnostics capture must never break dispatch or
@@ -157,7 +170,7 @@ function recordControllerThrow(
 ): void {
   const message = error instanceof Error ? error.message : String(error);
   void DiagnosticApi.record({
-    path: controllerName ? `/obj/command/${controllerName}` : null,
+    path: controllerName ? controllerTemplatePath(controllerName) : null,
     message: `${controllerName ?? '?'}: ${message}`,
     stack: error instanceof Error ? (error.stack ?? null) : null,
   }).catch(() => {
@@ -1148,7 +1161,7 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
           let controller: CommandController | null = null;
           try {
             controller = await StuffApi.clone<CommandController>(
-              `/obj/command/${controllerName}`
+              controllerTemplatePath(controllerName)
             );
             await controller.execute(model, context);
           } catch (error: unknown) {
@@ -1171,7 +1184,7 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
       let controller: CommandController | null = null;
       try {
         controller = await StuffApi.clone<CommandController>(
-          `/obj/command/${controllerName}`
+          controllerTemplatePath(controllerName)
         );
         await controller.execute(model, context);
       } catch (error: unknown) {

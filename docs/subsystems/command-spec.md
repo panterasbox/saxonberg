@@ -31,6 +31,46 @@ than dropping it at the `cmd/` root.
 The schema for the YAML lives at `mud/cmd/command.schema.json` and is
 enforced at boot.
 
+## Domain-local commands — verbs that live with their content
+
+Most verbs are **general engine/capability verbs** and live in the
+global `cmd/<category>/` tree above. But a verb can be **bespoke to one
+locality's object** — a real command with no reuse anywhere else, whose
+only home is a single piece of authored content. Filing such a verb in a
+global engine category is dishonest: it isn't a capability the engine
+offers, it's a fixture of one place. For these, the spec **and**
+controller live *with* the content, in a locality bundle:
+
+| Artifact | Global engine verb | Domain-local verb |
+|---|---|---|
+| **YAML view** | `mud/cmd/<category>/<verb>.yaml` | `mud/domain/<sphere>/<locality>/commands/<verb>.yaml` |
+| **Controller** | `mud/obj/command/<category>/<Name>Controller.ts` | `mud/domain/<sphere>/<locality>/commands/<Name>Controller.ts` |
+| **Controller seed** | `mud/seeds/obj/command/<category>/<Name>.yaml` | `mud/seeds/domain/<sphere>/<locality>/commands/<Name>.yaml` |
+| **`controller:` field / seed `class:` / `commandContributions`** | `<category>/<Name>` etc. | the full `domain/<sphere>/<locality>/commands/…` path |
+
+Discovery finds them via a `domain/**/commands/` scan: `CommandApi`'s
+preloader walks `mud/domain` recursively for any `.yaml` under a
+`commands/` segment and keys it `domain/`-prefixed, exactly as the
+`commandContributions` string on the owning class references it (e.g.
+`'domain/eternal/university-avenue/commands/blow.yaml'`). A `domain/`-
+prefixed `controller:` value / seed `class:` path resolves against the
+MUD root instead of `/obj/command/`, so the controller template is
+seeded straight from `mud/seeds/domain/…`. Nothing else changes — the
+same YAML schema, controller skeleton, validators, and seed contract
+apply.
+
+**The deciding test is reusability, not size or novelty.** If any other
+object anywhere could plausibly afford the verb, it's a general
+capability and belongs in `cmd/<category>/` (that's why `fold`,
+`switch`, `wind`, and `set` stay in the `device` category — many
+gadgets fold or switch). If the verb is meaningful only on one
+locality's fixture, it's domain-local. The exemplars are **`blow`** (the
+Whistle) and **`tally`** (the CrossingLog) in the University Avenue
+crossing bundle — each verb is inseparable from its one object, so the
+spec, controller, and seed all live in
+`mud/domain/eternal/university-avenue/commands/` beside `Whistle.ts` and
+`CrossingLog.ts`.
+
 ### Aside: spec, parser, and the model
 
 Today's parser is **`msh`** — the framework's tokenizer-driven shell

@@ -1,5 +1,5 @@
 verbs: [blow]
-controller: device/BlowController
+controller: domain/eternal/university-avenue/commands/BlowController
 description: "Blow a whistle"
 help: |
   Blow a whistle you're carrying or wearing — one sharp blast, heard
