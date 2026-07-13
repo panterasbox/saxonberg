@@ -1,9 +1,0 @@
-verbs: [subdue]
-controller: combat/GambitController
-description: "Combat gambit: subdue your opponent"
-help: |
-  `subdue` readies the subdue gambit against your current opponent. It is
-  queued intent — it resolves on the next combat beat, and it needs a
-  usable instrument (a wielded weapon or a natural attack) plus an
-  un-impaired limb. A disarmed or wounded fighter loses the gambits that
-  need the affected instrument. Only usable while you're in a fight.

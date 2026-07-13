@@ -58,20 +58,14 @@ export function CombatantMixin<TBase extends MixinConstructor>(Base: TBase) {
     }
 
     /**
-     * Combat affordances. All `self` verbs; the gambits reject at
+     * Combat affordances — two verbs: `attack <target>` opens a fight,
+     * and `fight` handles everything inside one (the read, the gambits,
+     * yield) via subcommands. The gambit subcommands reject at
      * attempt-time when not in combat or when the instrument/limb is
      * unavailable (`CombatApi.eligibilityFor`).
      */
     static commandContributions: CommandContributions = {
-      self: [
-        "combat/attack.yaml",
-        "combat/status.yaml",
-        "combat/yield.yaml",
-        "combat/strike.yaml",
-        "combat/disarm.yaml",
-        "combat/subdue.yaml",
-        "combat/shove.yaml",
-      ],
+      self: ["combat/attack.yaml", "combat/fight.yaml"],
       environment: [],
       inventory: [],
       peers: [],
