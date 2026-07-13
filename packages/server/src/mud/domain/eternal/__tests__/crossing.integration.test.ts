@@ -59,12 +59,28 @@ const DOOR = "/domain/eternal/university-avenue/campus-gate-door";
 const OBJECTS = [
   "/domain/eternal/university-avenue/bench",
   "/domain/eternal/university-avenue/camp-chair",
-  "/domain/eternal/university-avenue/thermos",
   "/domain/eternal/university-avenue/lamp",
   "/domain/eternal/university-avenue/beacon",
   "/domain/eternal/university-avenue/litter-bin",
   "/domain/eternal/university-avenue/gutter-litter",
 ];
+
+// Gus + his gear (Phase 4). Gus is a plain populate into the room; his gear
+// is not populated — the `/obj/Gus` class equips it at standup (there is no
+// declarative seed path to wear/wield gear on a creature). His equip needs a
+// resolvable species + body plan, so the test store carries a minimal human
+// Species pointing at the real biped body plan.
+const GUS = "/domain/eternal/university-avenue/npc/gus";
+const VEST = "/domain/eternal/university-avenue/vest";
+const WHISTLE = "/domain/eternal/university-avenue/whistle";
+const PADDLE = "/domain/eternal/university-avenue/paddle";
+const WATCH = "/domain/eternal/university-avenue/pocket-watch";
+const LOG = "/domain/eternal/university-avenue/crossing-log";
+const THERMOS = "/domain/eternal/university-avenue/thermos";
+const GEAR = [VEST, WHISTLE, PADDLE, WATCH, LOG, THERMOS];
+const HUMAN =
+  "/lib/species/animalia/chordata/mammalia/primates/hominidae/homo/sapiens";
+const BIPED = "/lib/body-plans/biped";
 
 /** The real seeds under test + the light forward-ref stubs. */
 function docs(): Doc[] {
@@ -82,11 +98,27 @@ function docs(): Doc[] {
     seed("domain/eternal/university-avenue/campus-gate-door.yaml", DOOR),
     seed("domain/eternal/university-avenue/bench.yaml", OBJECTS[0]!),
     seed("domain/eternal/university-avenue/camp-chair.yaml", OBJECTS[1]!),
-    seed("domain/eternal/university-avenue/thermos.yaml", OBJECTS[2]!),
-    seed("domain/eternal/university-avenue/lamp.yaml", OBJECTS[3]!),
-    seed("domain/eternal/university-avenue/beacon.yaml", OBJECTS[4]!),
-    seed("domain/eternal/university-avenue/litter-bin.yaml", OBJECTS[5]!),
-    seed("domain/eternal/university-avenue/gutter-litter.yaml", OBJECTS[6]!),
+    seed("domain/eternal/university-avenue/lamp.yaml", OBJECTS[2]!),
+    seed("domain/eternal/university-avenue/beacon.yaml", OBJECTS[3]!),
+    seed("domain/eternal/university-avenue/litter-bin.yaml", OBJECTS[4]!),
+    seed("domain/eternal/university-avenue/gutter-litter.yaml", OBJECTS[5]!),
+    // Gus + his gear templates + the anatomy his equip resolves against.
+    seed("domain/eternal/university-avenue/npc/gus.yaml", GUS),
+    seed("domain/eternal/university-avenue/vest.yaml", VEST),
+    seed("domain/eternal/university-avenue/whistle.yaml", WHISTLE),
+    seed("domain/eternal/university-avenue/paddle.yaml", PADDLE),
+    seed("domain/eternal/university-avenue/pocket-watch.yaml", WATCH),
+    seed("domain/eternal/university-avenue/crossing-log.yaml", LOG),
+    seed("domain/eternal/university-avenue/thermos.yaml", THERMOS),
+    seed("lib/body-plans/biped.yaml", BIPED),
+    // Minimal human species → the real biped body plan (the full species
+    // tree is content-pack installed and out of scope for this seed test).
+    {
+      path: HUMAN,
+      class: "/lib/species/Species",
+      hydratorClass: PH,
+      data: { name: "human", _bodyPlanPath: BIPED },
+    },
     // The reoriented terminal frontage across the avenue.
     seed("domain/terminus/terminal/arrival-gate.yaml", ARRIVAL_GATE),
     seed("domain/terminus/terminal/hall.yaml", HALL),
@@ -208,5 +240,73 @@ describe("University Avenue crossing standup (real seeds)", () => {
     // The furniture actually lives in the room.
     const contents = crossing.getContents();
     expect(contents).toContain(bench as unknown as Stuff & Containable);
+  });
+
+  it("boots Gus into the room, dressed for his shift", async () => {
+    const crossing = (await StuffApi.singleton(
+      CROSSING,
+    )) as unknown as Stuff & Container;
+    const gus = StuffApi.findByTemplatePath(GUS);
+    expect(gus, "Gus stands up in the crossing").toBeTruthy();
+    // He's a plain populate — in the room's contents (his gear is inside HIM,
+    // not loose in the room).
+    expect(crossing.getContents()).toContain(
+      gus as unknown as Stuff & Containable,
+    );
+
+    const g = gus as unknown as {
+      getOccupants(slot: string): ReadonlySet<Stuff>;
+      getContents(): ReadonlyArray<Stuff>;
+    };
+    const wornOn = (slot: string): string[] =>
+      [...g.getOccupants(slot)].map((s) => s.getTemplatePath() ?? "");
+    // Worn: the hi-vis vest on the torso, the whistle on the neck.
+    expect(wornOn("torso")).toContain(VEST);
+    expect(wornOn("neck")).toContain(WHISTLE);
+    // Wielded: the STOP paddle in the right hand.
+    expect(wornOn("hand:right")).toContain(PADDLE);
+    // Carried in inventory: the drifting watch, the crossing-log, the thermos
+    // he never opens.
+    const carried = g.getContents().map((s) => s.getTemplatePath() ?? "");
+    for (const p of [WATCH, LOG, THERMOS]) {
+      expect(carried, `expected Gus to carry ${p}`).toContain(p);
+    }
+    // The loose room thermos was reconciled onto Gus — it is NOT loose in the
+    // room.
+    expect(
+      (crossing.getContents() as ReadonlyArray<Stuff>).map((s) =>
+        s.getTemplatePath(),
+      ),
+    ).not.toContain(THERMOS);
+  });
+
+  it("keeps Gus on the stateless primitive floor (greets/idles, no memory brain)", () => {
+    // Phase 4 authors the behaviour DECLARATIONS; statelessness is achieved by
+    // COMPOSITION (no engine "decline memory" flag exists): `greets` fires
+    // fresh on every arrival (greets.ts does not dedupe by seen-set, so a
+    // repeat crosser is greeted anew), and NO recognition-building / agentic
+    // brain is wired. (The live repeat-greet drive rides the Phase 5 ritual.)
+    const parsed = YAML.parse(
+      readFileSync(`${SEEDS}/domain/eternal/university-avenue/npc/gus.yaml`, {
+        encoding: "utf-8",
+      }),
+    ) as { data: { behaviors: Array<{ brain: string; trigger: string }> } };
+    const behaviors = parsed.data.behaviors ?? [];
+    const brains = behaviors.map((b) => b.brain);
+    expect(brains).toContain("/lib/behavior/idles");
+    // A greet on arrival (the always-fresh crossing greet).
+    const greetTriggers = behaviors
+      .filter((b) => b.brain === "/lib/behavior/greets")
+      .map((b) => b.trigger);
+    expect(greetTriggers).toContain("arrival");
+    // No auto-introduce / branching-tree / trait-chatter — the deliberately
+    // primitive, forgets-you floor.
+    for (const banned of [
+      "/lib/behavior/introduces",
+      "/lib/behavior/tree-dialogue",
+      "/lib/behavior/converses",
+    ]) {
+      expect(brains, `Gus must not wire ${banned}`).not.toContain(banned);
+    }
   });
 });

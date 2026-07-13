@@ -73,17 +73,20 @@ data:
       keywords: [trees, tree, plane, planes, grate, grates]
       description: |
         A row of plane trees stands in iron grates along the kerb, mottled bark peeling in map-shapes, their crowns thin against a real city sky. Somewhere to sit under, if anyone here ever sat.
-  # The room's fixtures + furniture (Gus and his personal gear are Phase 4).
-  # The camp chair is the relief's, kept deployed (unfolded); the thermos sits
-  # loose by it (a chair is not a Surfaced host, so it can't be placed `onto`
-  # — the prose groups them, the mechanics keep it a loose Thing). The lamp
-  # is day/night self-driven; the beacon shows walk/stop; the bin holds
-  # litter, with one takeable gutter ticket-stub loose on the stone.
+  # The room's fixtures + furniture, plus Gus (Phase 4). The camp chair is the
+  # relief's, kept deployed (unfolded). The thermos is NOT loose here anymore
+  # — it is Gus's, carried on his person (his "won't open"), equipped onto him
+  # at standup by Gus.equipLoadout along with the rest of his gear. The lamp is
+  # day/night self-driven; the beacon shows walk/stop; the bin holds litter,
+  # with one takeable gutter ticket-stub loose on the stone. Gus is a plain
+  # bare-string populate (an NPC clone moved into the room); his gear is not
+  # populated here — the class equips it (there is no declarative seed path to
+  # wear/wield gear on a creature).
   populates:
     - /domain/eternal/university-avenue/bench
     - /domain/eternal/university-avenue/camp-chair
-    - /domain/eternal/university-avenue/thermos
     - /domain/eternal/university-avenue/lamp
     - /domain/eternal/university-avenue/beacon
     - /domain/eternal/university-avenue/litter-bin
     - /domain/eternal/university-avenue/gutter-litter
+    - /domain/eternal/university-avenue/npc/gus

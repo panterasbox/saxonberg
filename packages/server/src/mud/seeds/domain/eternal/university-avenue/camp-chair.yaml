@@ -10,7 +10,7 @@ data:
   primaryKeyword: chair
   folded: false
   longDescription: |
-    A folding camp chair of aluminum tube and faded canvas, set up clean and angled just so beside the post — the relief's, kept ready. Nobody sits in it. The thermos waits on the stone beside it, the break and the relief that both never come.
+    A folding camp chair of aluminum tube and faded canvas, set up clean and angled just so beside the post — the relief's, kept ready. Nobody sits in it. It waits there for the someday relief, dusted and empty, the seat forever spoken for.
   staticSlots:
     - name: 'sit:1'
       accepts: SlottableMixin
