@@ -281,11 +281,12 @@ describe("University Avenue crossing standup (real seeds)", () => {
   });
 
   it("keeps Gus on the stateless primitive floor (greets/idles, no memory brain)", () => {
-    // Phase 4 authors the behaviour DECLARATIONS; statelessness is achieved by
-    // COMPOSITION (no engine "decline memory" flag exists): `greets` fires
-    // fresh on every arrival (greets.ts does not dedupe by seen-set, so a
-    // repeat crosser is greeted anew), and NO recognition-building / agentic
-    // brain is wired. (The live repeat-greet drive rides the Phase 5 ritual.)
+    // Statelessness is achieved by COMPOSITION (no engine "decline memory"
+    // flag exists): the crossing-ritual fires fresh on every arrival (it does
+    // not dedupe by seen-set, so a repeat crosser is ceremonied anew), and NO
+    // recognition-building / agentic brain is wired. (Phase 5: the arrival
+    // greet graduated to the dedicated crossing-ritual — tally + performance;
+    // the plain `greets` now carries only the courteous departure see-off.)
     const parsed = YAML.parse(
       readFileSync(`${SEEDS}/domain/eternal/university-avenue/npc/gus.yaml`, {
         encoding: "utf-8",
@@ -294,11 +295,16 @@ describe("University Avenue crossing standup (real seeds)", () => {
     const behaviors = parsed.data.behaviors ?? [];
     const brains = behaviors.map((b) => b.brain);
     expect(brains).toContain("/lib/behavior/idles");
-    // A greet on arrival (the always-fresh crossing greet).
+    // The crossing ritual on arrival (the always-fresh crossing ceremony).
+    const ritualTriggers = behaviors
+      .filter((b) => b.brain === "/lib/behavior/crossing-ritual")
+      .map((b) => b.trigger);
+    expect(ritualTriggers).toContain("arrival");
+    // A courteous see-off on departure (plain greets, no tally).
     const greetTriggers = behaviors
       .filter((b) => b.brain === "/lib/behavior/greets")
       .map((b) => b.trigger);
-    expect(greetTriggers).toContain("arrival");
+    expect(greetTriggers).toContain("departure");
     // No auto-introduce / branching-tree / trait-chatter — the deliberately
     // primitive, forgets-you floor.
     for (const banned of [

@@ -80,17 +80,27 @@ data:
           - { kind: say, value: "Quiet today. Quiet's good." }
           - { kind: say, value: "Had the chosen one through Tuesday — glowing sword, prophecy, the whole article. Wanted the way to the final battle. Saw him over first. Curb's the same for heroes." }
           - { kind: say, value: "Roads don't care how old you are, friend. Physics don't check ID." }
-    # The arrival ritual — the celebrated flow, fired fresh on EVERY arrival
-    # (stateless: a repeat crosser is greeted anew). This is the south-side
-    # arrival out of the terminal = the crossing. The full ritual engagement
-    # + the crossing-log tally ride this in Phase 5; here it is the greet.
-    - brain: /lib/behavior/greets
+    # The arrival ritual (Phase 5) — the celebrated flow, fired fresh on
+    # EVERY arrival (stateless: a repeat crosser is ceremonied anew). This
+    # is the south-side arrival out of the terminal = the crossing. The
+    # dedicated crossing-ritual brain does two load-bearing things:
+    #   (1) TALLY-AS-DEED: it marks the crossing-log on the witnessed
+    #       arrival itself, decoupled from the performance, so an aborted
+    #       ceremony never loses the count (N arrivals → N marks);
+    #   (2) BUSY-HUB BATCH: simultaneous arrivals collapse to ONE
+    #       performance ("the lot of you — mind the curb") while each still
+    #       tallies.
+    # The whistle blast is a real cross-room Audible emit (heard from the
+    # adjacent arrival-gate); the calls/emotes ride the standard helpers
+    # and are reactable. The brain reads his own drifting Watch for the
+    # mark's time and appends to his CrossingLog — when, never who.
+    - brain: /lib/behavior/crossing-ritual
       trigger: arrival
       config:
-        lines:
-          - "Hold it right there— and clear. C'mon across, mind the curb. Big day for you, I'd wager."
-          - "There you are — both ways now — on you go. Mind the curb."
-          - "Atta way. Look both ways next time. But— atta way."
+        soloHeadline: "Hold it right there— and clear. C'mon across, mind the curb. Big day for you, I'd wager."
+        batchHeadline: "Alright, alright — the lot of you — both ways now — mind the curb."
+        paddleEmote: "raises the STOP paddle and gravely checks both ways down the empty avenue, then lowers it."
+        escortEmote: "walks you across the ten feet of empty road, a hand hovering at the ready, then steps back to his post."
     # The courteous see-off on departure — light, NO ritual, NO tally (Gus is
     # arrival-fed). He says it to everyone; he won't remember if they come back.
     - brain: /lib/behavior/greets
