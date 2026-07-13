@@ -44,6 +44,7 @@ import type { CommandGiver } from '../lib/command/CommandGiver';
 import type { Focused } from '../lib/command/Focused';
 import type { Exitable } from '../lib/boundary/Exitable';
 import type { Sealable } from '../lib/spatial/Sealable';
+import type { Timekeeping } from '../lib/time/Timekeeping';
 import type { CartesianCoordinates } from '../lib/location/CartesianCoordinates';
 import type { SphericalCoordinates } from '../lib/location/SphericalCoordinates';
 import type { AroundSaveHook } from '../lib/persistence/AroundSaveHook';
@@ -680,6 +681,10 @@ export class MixinApi {
 
   public static isSealable(obj: Stuff): obj is Stuff & Sealable {
     return this.hasMixin(obj, Mixins.Sealable);
+  }
+
+  public static isTimekeeping(obj: Stuff): obj is Stuff & Timekeeping {
+    return this.hasMixin(obj, Mixins.Timekeeping);
   }
 
   public static isCartesianCoordinates(obj: Stuff): obj is Stuff & CartesianCoordinates {

@@ -1,0 +1,18 @@
+verbs: [set]
+controller: device/SetController
+description: "Set a watch to a time"
+help: |
+  Set the hands of a watch you're carrying to a time you give it, in
+  24-hour `HH:MM` — `set watch 4:00`. There's no clock to sync to; you
+  read the tower, guess, and dial it in by hand. Which is exactly why a
+  watch drifts: it only ever knows the time you last told it.
+validators:
+  - /lib/command/validators/requiresAnimate
+args:
+  - name: target
+    type: object
+    required: true
+    scope: "reachable"
+  - name: time
+    type: string
+    required: true

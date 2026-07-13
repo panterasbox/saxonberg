@@ -1,0 +1,16 @@
+verbs: [wind]
+controller: device/WindController
+description: "Wind a watch's mainspring back to full"
+help: |
+  Wind the mainspring of a watch you're carrying, so it keeps ticking.
+  A watch runs off its mainspring; let it run down and the hands freeze
+  at the moment it stopped. Winding it refills the spring and the watch
+  resumes from the true time. Name the watch (`wind watch`) or, if
+  you're carrying just the one, `wind` on its own.
+validators:
+  - /lib/command/validators/requiresAnimate
+args:
+  - name: target
+    type: object
+    required: false
+    scope: "reachable"

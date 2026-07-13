@@ -49,6 +49,8 @@ export const Mixins = {
   SphericalCoordinates: 'SphericalCoordinatesMixin',
   Exitable: 'ExitableMixin',
   Sealable: 'SealableMixin',
+  // Displays game-time — a pocket watch, a clock tower, a sundial.
+  Timekeeping: 'TimekeepingMixin',
   AroundSaveHook: 'AroundSaveHookMixin',
   AroundDeleteHook: 'AroundDeleteHookMixin',
   PostRegistration: 'PostRegistrationMixin',
