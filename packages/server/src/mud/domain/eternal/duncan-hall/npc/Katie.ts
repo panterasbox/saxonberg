@@ -24,6 +24,7 @@
 
 import NPC from '../../../../lib/npc/NPC';
 import { GroupApi } from '../../../../api/group';
+import { KeyApi } from '../../../../api/key';
 import { Group } from '../../../../lib/social/Group';
 
 /** The landlord group that owns the dorms parcel (Katie's employer). */
@@ -33,6 +34,19 @@ export default class Katie extends NPC {
   public override async postRegister(context?: unknown): Promise<void> {
     await super.postRegister(context);
     await this.enrollAsDormsAgent();
+    // The super's master ring — a physical master key opening any pin-tumbler
+    // dorm lock (her sheet's legitimate master access). An NPC has no implant
+    // keychain, so it lives as the key on her belt. Best-effort: a missing key
+    // template (a misconfigured boot) warns rather than crashing her setup.
+    try {
+      await KeyApi.issueMasterTo(this, 'pin-tumbler');
+    } catch (err) {
+      console.warn(
+        `Katie.postRegister: could not issue the master key: ${
+          err instanceof Error ? err.message : String(err)
+        }`,
+      );
+    }
   }
 
   /**

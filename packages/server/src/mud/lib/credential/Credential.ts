@@ -22,12 +22,13 @@
 import { Money } from "../banking/Money";
 
 /** The credential kinds the wallet can hold. Adding a kind is adding data. */
-export type CredentialKind = "payment" | "travel";
+export type CredentialKind = "payment" | "travel" | "key";
 
 /** Validation array companion to {@link CredentialKind}. */
 export const CREDENTIAL_KINDS: readonly CredentialKind[] = [
   "payment",
   "travel",
+  "key",
 ];
 
 /** A credential with no explicit cap admits any amount (the implant default). */
@@ -65,6 +66,9 @@ export interface SerializedCredential {
   frozen?: boolean;
   // travel
   registered?: string[];
+  // key (the keychain: bearer key entries + master technologies)
+  keys?: { keyway: string; technology: string }[];
+  masterTechs?: string[];
 }
 
 /**
@@ -85,6 +89,8 @@ export abstract class Credential {
         return new PaymentCredential();
       case "travel":
         return new TravelCredential();
+      case "key":
+        return new KeyCredential();
       default:
         throw new Error(`Credential.mint: unknown kind ${String(kind)}`);
     }
@@ -97,6 +103,8 @@ export abstract class Credential {
         return PaymentCredential.fromData(row);
       case "travel":
         return TravelCredential.fromData(row);
+      case "key":
+        return KeyCredential.fromData(row);
       default:
         throw new Error(
           `Credential.fromData: unknown kind ${String(row.kind)}`,
@@ -254,5 +262,97 @@ export class TravelCredential extends Credential {
   /** A copy of the allowed-node set. */
   getRegistered(): ReadonlySet<string> {
     return new Set(this._registered);
+  }
+}
+
+/** One bearer key entry: the keyway token it turns + the lock technology it
+ *  fits (a brass key won't work a keycard reader). */
+export interface KeyEntry {
+  keyway: string;
+  technology: string;
+}
+
+/**
+ * The **keychain** credential: a bag of **bearer** key entries (each a keyway
+ * token + a lock technology) plus a set of **master** technologies. It opens a
+ * lock iff it holds a matching entry — or a master for that technology. This
+ * is the same record whether it lives in the implant keychain (the born-with
+ * wallet) or on a physical `Key` Thing (a card carrying one entry) — the door
+ * check finds either through the reachable-wallet scan.
+ *
+ * Bearer, not credentialed: possession *is* access (no issuer ledger). A lock
+ * is revoked by **re-keying** (a fresh keyway) so the old entry silently stops
+ * matching — see `docs/subsystems/…`. Session-durable in v1 (the physical key
+ * Thing persists with its holder; the implant keychain re-floors on relog).
+ */
+export class KeyCredential extends Credential {
+  readonly kind = "key" as const;
+
+  /** Bearer key entries this keychain holds. */
+  private _keys: KeyEntry[] = [];
+  /** Technologies this keychain is a MASTER for (opens any such lock). */
+  private _masterTechs: Set<string> = new Set();
+
+  static fromData(row: SerializedCredential): KeyCredential {
+    const c = new KeyCredential();
+    c._keys = (row.keys ?? []).map((k) => ({
+      keyway: k.keyway,
+      technology: k.technology,
+    }));
+    c._masterTechs = new Set(row.masterTechs ?? []);
+    return c;
+  }
+
+  toData(): SerializedCredential {
+    return {
+      kind: this.kind,
+      keys: this._keys.map((k) => ({ ...k })),
+      masterTechs: [...this._masterTechs],
+    };
+  }
+
+  /** Add a bearer key (idempotent on the keyway+technology pair). */
+  addKey(keyway: string, technology: string): void {
+    if (
+      !this._keys.some(
+        (k) => k.keyway === keyway && k.technology === technology,
+      )
+    ) {
+      this._keys.push({ keyway, technology });
+    }
+  }
+
+  /** Grant master access to a whole lock technology (a super's ring). */
+  addMaster(technology: string): void {
+    this._masterTechs.add(technology);
+  }
+
+  /** Remove every bearer entry for `keyway` (returns whether any was held). */
+  removeKey(keyway: string): boolean {
+    const before = this._keys.length;
+    this._keys = this._keys.filter((k) => k.keyway !== keyway);
+    return this._keys.length !== before;
+  }
+
+  /**
+   * The core match: does this keychain open a lock with `keyway`+`technology`?
+   * A master for the technology opens it; otherwise a bearer entry must match
+   * BOTH the keyway and the technology (a brass key can't turn a keycard lock).
+   */
+  authorize(keyway: string, technology: string): boolean {
+    if (this._masterTechs.has(technology)) return true;
+    return this._keys.some(
+      (k) => k.keyway === keyway && k.technology === technology,
+    );
+  }
+
+  /** A copy of the bearer entries (for display / audit). */
+  getKeys(): readonly KeyEntry[] {
+    return this._keys.map((k) => ({ ...k }));
+  }
+
+  /** The master technologies this keychain covers. */
+  getMasterTechnologies(): ReadonlySet<string> {
+    return new Set(this._masterTechs);
   }
 }

@@ -142,6 +142,14 @@ export class ParcelApi {
     return logic().hasUseGrant(extent, holder);
   }
 
+  /** Set (re-key) the lock keyway on `extent`; false when no parcel claims it. */
+  public static async setKeyway(
+    extent: string,
+    keyway: string,
+  ): Promise<boolean> {
+    return logic().setKeyway(extent, keyway);
+  }
+
   /** The unit parcel `holder` currently leases, or null (a linear scan). */
   public static async heldUnitOf(
     holder: string,

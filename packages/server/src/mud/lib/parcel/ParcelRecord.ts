@@ -77,6 +77,7 @@ export class ParcelRecord extends Document {
     "parentParcel",
     "grants",
     "allowance",
+    "keyway",
   ];
 
   /** The path this parcel claims — the coverage-index key (longest-prefix). */
@@ -97,8 +98,16 @@ export class ParcelRecord extends Document {
   /** INERT 0a seam — the Phase 1 compute-allowance economy. */
   allowance: unknown | null = null;
 
+  /** The lock keyway a door on this parcel is keyed to (the lock's identity;
+   *  re-minted each provision so old keys stop matching). Empty = unlocked/none. */
+  keyway: string = "";
+
   getExtent(): string {
     return this.extent;
+  }
+
+  getKeyway(): string {
+    return this.keyway;
   }
 
   getZonePath(): string {

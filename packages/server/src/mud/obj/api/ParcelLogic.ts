@@ -126,6 +126,13 @@ export class ParcelLogic extends ApiLogic {
     return reg ? reg.hasUseGrant(extent, holder) : false;
   }
 
+  /** See {@link ParcelApi.setKeyway}. */
+  @CallSecurity(ParcelApiCallers)
+  public async setKeyway(extent: string, keyway: string): Promise<boolean> {
+    const reg = lookupRegistry();
+    return reg ? reg.setKeyway(extent, keyway) : false;
+  }
+
   /** See {@link ParcelApi.heldUnitOf}. */
   @CallSecurity(ParcelApiCallers)
   public async heldUnitOf(holder: string): Promise<ParcelRecord | null> {

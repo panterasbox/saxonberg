@@ -95,13 +95,18 @@ live ref and re-resolve after a reap):
   `canTraverse` off `DormWarren.floorReachable(n)` (the real move path checks
   `canTraverse` before `resolveDestination`).
 - **`DormDoor`** — one per provisioned unit, an exit `unit-<pos>` on its
-  floor corridor. **The door knows its tenant**: `canTraverse(mover)` admits
-  exactly the unit's active leaseholder (a *synchronous* lookup off
-  `DormWarren.leaseholderOf(unitKey)`, a cache refreshed from the durable
-  grants whenever provisioning changes) and blocks everyone else. No verb, no
-  unlock step — you walk through your own door and it lets you in. (There is
-  **no `enter` verb** — a bare verb was a cold-OS surface; deleted.)
-  `resolveDestination()` → `DormWarren.admit(unitKey)`.
+  floor corridor. **The door checks a key, not identity**: `canTraverse(mover)`
+  builds the unit's `Lock` (`{keyway, pin-tumbler}` — the keyway a *synchronous*
+  lookup off `DormWarren.keywayOf(unitKey)`, a cache refreshed from the durable
+  parcel keyway) and admits whoever **presents a matching key** —
+  `KeyApi.presents(mover, lock)`, a sync reachable-wallet scan over the mover's
+  implant keychain + any carried physical `Key` (a master ring passes the same
+  way). No verb, no unlock step — you carry your key (or it's in your implant)
+  and walk through. An empty keyway (unprovisioned / re-keyed) opens for no one.
+  (There is **no `enter` verb** — a bare verb was a cold-OS surface; deleted;
+  the old leaseholder-identity gate was superseded by the key.)
+  `resolveDestination()` → `DormWarren.admit(unitKey)`. See the lock/key
+  substrate in [credential.md](./credential.md) + [boundary.md](./boundary.md).
 
 `admit(unitKey)` returns the cached live room, else clones a `DormRoom`
 (`createMemberSerialized`) → stashes its key → **D1 restore-or-seed**
@@ -141,9 +146,17 @@ The durable slot `(floor, position)` lives on the minted unit
 `f<n>-r<p>` within `DormWarren.ROOMS_PER_FLOOR`, reusing gaps left by
 unprovision before a new floor) → `ParcelApi.subdivide(unitExtent, dorms,
 owner)` (**no backing zone** — the extent is just the key) →
-`ParcelApi.grantUse(unitExtent, playerPath, null)` → `ensureUnitDoor` +
-`refreshProvisioned`. The room/floor materialize lazily on first entry.
-Refuses a double-provision (`heldUnitOf` non-null → already housed).
+`ParcelApi.grantUse(unitExtent, playerPath, null)` → **key the lock + issue the
+key** (`KeyApi.mintKeyway()` → `ParcelApi.setKeyway(unitExtent, keyway)` →
+`KeyApi.issueTo(tenant, keyway, pin-tumbler)` — a physical brass `Key` in hand
+plus an implant-keychain entry, the diegetic "here's your key") →
+`ensureUnitDoor` + `refreshProvisioned`. The room/floor materialize lazily on
+first entry. Refuses a double-provision (`heldUnitOf` non-null → already
+housed). Each provision mints a **fresh keyway**, so **move-out re-keys** —
+`unprovision` retires the parcel (the keyway vanishes), and the ex-tenant's key
+is dead metal until a new lease re-issues one. The lease is *authority* (the
+right to a key); the **key is access** (bearer possession) — lend it, lose it,
+it just works.
 
 **Authorization** is at `execute()` (the real boundary — a dialogue
 `dispatch` `forceCommand`s the verb, and `forced` bypasses the `requiresWizard`
@@ -195,8 +208,9 @@ prose-field state.
 ## Entering + the lease + revert
 
 **Entry is just walking** — there is no `enter` verb. You climb the stairwell
-to your floor's corridor and go through your own door; it opens for its tenant
-(the sync `leaseholderOf` gate) and blocks everyone else.
+to your floor's corridor and go through your own door; it opens for whoever
+**presents a matching key** (the sync `KeyApi.presents` scan over your implant
+keychain + carried physical key) and blocks the keyless.
 
 `unprovision <player>` (alias `unlease`; `system` category, same dorms-agent
 authorization as `provision`, so Katie fronts move-out via a `dispatch
@@ -212,9 +226,18 @@ the floor corridor first (best-effort).
 ## Deferred seams
 
 - **The `open <door>` verb + auto-close-behind door tightening** — v1 folds
-  the lockable `Door` into the `DormDoor` `Exit` gate (a follower could tail a
+  the lock into the `DormDoor` `Exit` gate (a follower could tail a
   holder through an opened door); a `SealableMixin(Boundary)` fixture + the
   close-behind tightening are deferred.
+- **Manual `lock`/`unlock` verbs** (leaving your door open for a friend) — v1
+  is auto-locked doors gated by key possession; the manual verbs are a
+  follow-on.
+- **Keycard / electronic locks as a live second technology** — the `keycard`
+  `LockType` exists in the vocabulary but no door uses it yet (a
+  downtown/corporate build); dorm doors are `pin-tumbler` brass.
+- **Cross-restart keychain persistence + reclaiming a dead key** — the implant
+  keychain is session-durable v1 (the physical key is the cross-restart form);
+  an ex-tenant keeps their (dead) physical key rather than returning it.
 - **Reap grace period** — v1 reaps a room immediately on empty; the
   `LoungeWarren` `reapGraceMs` grace is deferred.
 - **`ROOMS_PER_FLOOR` as an AppSetting** — v1 is a `static readonly` const on

@@ -231,6 +231,21 @@ export default class ParcelRegistry extends ParcelRegistryBase {
     return true;
   }
 
+  /**
+   * Set (re-key) the lock keyway on `extent` — the door's lock identity, minted
+   * fresh at each provision so old keys stop matching. Mutates the live trie
+   * handle in place (so a sync door read via the DormWarren cache stays
+   * consistent) and persists. False when no parcel claims `extent`.
+   */
+  @CallSecurity(ParcelApiCallers)
+  public async setKeyway(extent: string, keyway: string): Promise<boolean> {
+    const record = await this.recordFor(extent);
+    if (!record) return false;
+    record.keyway = keyway;
+    await record.save();
+    return true;
+  }
+
   /** Whether `holder` holds an active (unexpired) lease on `extent`. */
   @CallSecurity(ParcelApiCallers)
   public async hasUseGrant(extent: string, holder: string): Promise<boolean> {

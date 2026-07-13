@@ -28,10 +28,12 @@ export default class CredentialWalletUpdate extends CredentialWalletMixin(
 ) {
   static readonly TEMPLATE_PATH = TemplatePaths.credentialWalletUpdate;
 
-  /** Born holding both an (empty) payment record and a floored travel record. */
+  /** Born holding an (empty) payment record, a floored travel record, and an
+   *  (empty) keychain — the implant keychain a lease adds a dorm keyway to. */
   static defaultCredentialKinds: readonly CredentialKind[] = [
     "payment",
     "travel",
+    "key",
   ];
 
   /**

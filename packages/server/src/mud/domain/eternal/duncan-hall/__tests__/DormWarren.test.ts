@@ -21,6 +21,7 @@ import type { Container } from '../../../../lib/spatial/Container';
 import { StuffApi } from '../../../../api/stuff';
 import { ContainmentApi } from '../../../../api/containment';
 import { ParcelApi } from '../../../../api/parcel';
+import { KeyApi } from '../../../../api/key';
 import { MixinApi } from '../../../../api/mixin';
 import { ExecutionContextApi } from '../../../../api/execution-context';
 import { HasInteractiveMixin } from '../../../../lib/connection/HasInteractive';
@@ -85,6 +86,7 @@ function seedDomain(): void {
   add(DormRoom.FIXTURE_PATHS[2]!, '/domain/eternal/duncan-hall/Footlocker', {
     shortDescription: 'a footlocker',
   });
+  add('/lib/lock/Key', '/lib/lock/Key', { shortDescription: 'a key' });
 }
 
 /** Seed a unit parcel row directly (a provisioned unit). */
@@ -308,14 +310,14 @@ describe('DormWarren — floor reconstitution + reachability', () => {
   });
 });
 
-describe('DormWarren — the DormDoor lease-gate', () => {
+describe('DormWarren — the DormDoor key gate', () => {
   beforeEach(() => {
     reset();
     installStore();
   });
   afterEach(reset);
 
-  it('the door opens for its tenant and blocks everyone else', async () => {
+  it('opens for whoever holds a matching key; blocks the keyless; re-key kills the old key', async () => {
     const k1 = seedUnit(1, 1);
     await bootRegistries();
     const w = await warren();
@@ -325,19 +327,41 @@ describe('DormWarren — the DormDoor lease-gate', () => {
     const bob = makeStuffAtPath(() => new Avatar(), '/obj/Avatar/bob');
     bob.setPlayerId('bob');
 
-    // No lease yet → the door knows no tenant → nobody passes.
+    // No keyway yet → the door is locked → nobody passes.
     await w.refreshProvisioned();
     await w.ensureFloor(1);
     const door = w.doorFor(k1)!;
     expect(door).not.toBeNull();
     expect(door.canTraverse(iris as unknown as never).ok).toBe(false);
 
-    // Grant iris the lease + refresh → the door knows its tenant.
-    await ParcelApi.grantUse(k1, '/obj/Avatar/iris', null);
+    // Key the lock + issue iris a (physical) key → she presents it and passes;
+    // bob holds no key and is blocked. Possession, not identity.
+    await ParcelApi.setKeyway(k1, 'kw-1');
     await w.refreshProvisioned();
-    expect(w.leaseholderOf(k1)).toBe('/obj/Avatar/iris');
-    // The tenant passes; a stranger is blocked — no verb, no unlock step.
+    await KeyApi.issueTo(iris, 'kw-1', 'pin-tumbler');
+    expect(w.keywayOf(k1)).toBe('kw-1');
     expect(door.canTraverse(iris as unknown as never).ok).toBe(true);
     expect(door.canTraverse(bob as unknown as never).ok).toBe(false);
+
+    // Re-key (a new keyway) → iris's old key is dead metal until she's re-issued.
+    await ParcelApi.setKeyway(k1, 'kw-2');
+    await w.refreshProvisioned();
+    expect(door.canTraverse(iris as unknown as never).ok).toBe(false);
+  });
+
+  it("a master key (the super's ring) opens any dorm door", async () => {
+    const k1 = seedUnit(1, 1);
+    await bootRegistries();
+    const w = await warren();
+    await ParcelApi.setKeyway(k1, 'kw-whatever');
+    await w.refreshProvisioned();
+    await w.ensureFloor(1);
+    const door = w.doorFor(k1)!;
+
+    const sam = makeStuffAtPath(() => new Avatar(), '/obj/Avatar/sam');
+    sam.setPlayerId('sam');
+    // No unit key, but a pin-tumbler master → opens regardless of the keyway.
+    await KeyApi.issueMasterTo(sam, 'pin-tumbler');
+    expect(door.canTraverse(sam as unknown as never).ok).toBe(true);
   });
 });

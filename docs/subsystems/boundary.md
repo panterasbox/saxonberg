@@ -41,6 +41,22 @@ Cross-references:
 | `Window` | concrete `Boundary` subclass | `SealableMixin(Boundary)` implementing `LightConduit + LineOfSight + SmellConduit + SoundConduit`. `baseTransmissivity`, optional one-way `aToBOverride` / `bToAOverride`, `colorTint`. Shutters via `Sealable.open` gate all four channels. Declarative `attachedHosts: [string, string]` Pattern A; `setAttachedHosts` resolves hosts lazily and installs anchors. |
 | `BoundaryApi` | static API | `attachExistingBoundary({ boundary, hostA, hostB })`, `create({ factory, hostA, hostB })`, `destruct(boundary)`. |
 
+## Locks & keys (`lib/lock/`)
+
+Locking is **not** a `Boundary` concern — it's a credential check an exit/door
+performs. A `Lock` value-object (`lib/lock/Lock.ts`) is `{ keyway, technology }`
+(a `LockType`: `pin-tumbler` | `keycard`); a **key** is the third
+`CredentialKind` — a `KeyCredential` keychain (bearer `{keyway, technology}`
+entries + master technologies) held **either** in the implant wallet **or** on
+a physical `Key` Thing (`lib/lock/Key`, the `PaymentCard`/`TravelCard`
+precedent). `KeyApi` (`api/key.ts`) is the surface: `mintKeyway()`, `issueTo` /
+`issueMasterTo`, and the **synchronous** `presents(mover, lock)` — a
+reachable-wallet scan (implant + carried key) safe to call from a door's
+`canTraverse`. **Bearer + re-key:** possession is access; a lock is revoked by
+minting a fresh keyway. First consumer: the `DormDoor` (see
+[residence.md](./residence.md)); the substrate is door-agnostic. See
+[credential.md](./credential.md) for the credential-family details.
+
 ## Exits
 
 `lib/boundary/Exit.ts`. An `Exit` is a first-class `Idea` —

@@ -88,6 +88,7 @@ function seedDomain(): void {
   add(DormRoom.FIXTURE_PATHS[2]!, '/domain/eternal/duncan-hall/Footlocker', {
     shortDescription: 'a footlocker',
   });
+  add('/lib/lock/Key', '/lib/lock/Key', { shortDescription: 'a key' });
 }
 
 function seedUnit(floor: number, pos: number): string {

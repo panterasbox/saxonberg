@@ -28,6 +28,7 @@ import { ContainmentApi } from '../../../api/containment';
 import { PersistableApi } from '../../../api/persistable';
 import { ParcelApi } from '../../../api/parcel';
 import { ParcelRecord } from '../../../lib/parcel/ParcelRecord';
+import type { LockType } from '../../../lib/lock/Lock';
 import Exit from '../../../lib/boundary/Exit';
 import LazyFloorExit from './LazyFloorExit';
 import DormDoor from './DormDoor';
@@ -56,6 +57,9 @@ export default class DormWarren extends DormWarrenBase {
   /** Units per floor before provisioning buds the next floor (a static knob;
    *  an AppSetting is a deferred tuning seam). */
   static readonly ROOMS_PER_FLOOR = 12;
+  /** The lock technology dorm doors use — a brass pin-tumbler (a keycard/
+   *  electronic tech is a downtown/corporate thing, deferred). */
+  static readonly DORM_LOCK_TECH: LockType = 'pin-tumbler';
 
   /** Live rooms, keyed by unit parcel extent (the true Warren members). */
   private _unitsByKey: Map<string, MemberStuff> = new Map();
@@ -65,10 +69,10 @@ export default class DormWarren extends DormWarrenBase {
   private _doorsByKey: Map<string, DormDoor> = new Map();
   /** Floors that have (or sit below) a provisioned unit — sync reachability. */
   private _provisionedFloors: Set<number> = new Set();
-  /** unitKey → the active leaseholder's path — the door's SYNC tenant gate
-   *  (a door opens for its own tenant, blocks everyone else). Refreshed from
-   *  the durable grants whenever provisioning changes. */
-  private _leaseholderByUnit: Map<string, string> = new Map();
+  /** unitKey → the unit's lock keyway — the door's SYNC lock identity (the
+   *  door checks whether the mover presents a matching KEY, not who they are).
+   *  Refreshed from the durable parcel keyway whenever provisioning changes. */
+  private _keywayByUnit: Map<string, string> = new Map();
 
   /** Resolve the singleton (async — clones on first access). */
   static async resolve(): Promise<DormWarren> {
@@ -218,30 +222,30 @@ export default class DormWarren extends DormWarrenBase {
 
   // ───────────────────── provisioning support ─────────────────────
 
-  /** Rebuild the sync reachability + leaseholder caches from the durable
-   *  slot set (called at warm and whenever provisioning changes). */
+  /** Rebuild the sync reachability + keyway caches from the durable slot set
+   *  (called at warm and whenever provisioning changes). */
   public async refreshProvisioned(): Promise<void> {
     const floors = new Set<number>();
-    const holders = new Map<string, string>();
-    const now = Date.now();
+    const keyways = new Map<string, string>();
     for (const child of await ParcelApi.childParcelsOf(DormWarren.DORMS_EXTENT)) {
       const extent = child.getExtent();
       const slot = ParcelRecord.slotOfExtent(extent);
       if (slot) floors.add(slot.floor);
-      const holder = ParcelRecord.activeHolderOf(child, now);
-      if (holder) holders.set(extent, holder);
+      const keyway = child.getKeyway();
+      if (keyway) keyways.set(extent, keyway);
     }
     this._provisionedFloors = floors;
-    this._leaseholderByUnit = holders;
+    this._keywayByUnit = keyways;
   }
 
   /**
-   * The active leaseholder's path for a unit, or null — the `DormDoor`'s
-   * synchronous "is this mover my tenant?" gate. The door opens for exactly
-   * this path and blocks everyone else; no verb, no unlock step.
+   * The unit's lock keyway, or null — the `DormDoor`'s synchronous lock
+   * identity. The door opens for whoever presents a KEY matching this keyway
+   * (bearer possession), not for a fixed identity; an empty/absent keyway is
+   * an unprovisioned/re-keyed unit no key opens.
    */
-  public leaseholderOf(unitKey: string): string | null {
-    return this._leaseholderByUnit.get(unitKey) ?? null;
+  public keywayOf(unitKey: string): string | null {
+    return this._keywayByUnit.get(unitKey) ?? null;
   }
 
   /**
@@ -386,6 +390,7 @@ export default class DormWarren extends DormWarrenBase {
     this._corridorsByFloor.clear();
     this._doorsByKey.clear();
     this._provisionedFloors.clear();
+    this._keywayByUnit.clear();
   }
 
   // ───────────────────── private helpers ─────────────────────

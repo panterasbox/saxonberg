@@ -34,6 +34,7 @@ import { Mml } from '../../../api/mml';
 import { AccessApi } from '../../../api/access';
 import { GroupApi } from '../../../api/group';
 import { ParcelApi } from '../../../api/parcel';
+import { KeyApi } from '../../../api/key';
 import { ParcelRecord, type ParcelOwner } from '../../../lib/parcel/ParcelRecord';
 import DormWarren from '../../../domain/eternal/duncan-hall/DormWarren';
 import type { Stuff } from '../../../lib/stuff/Stuff';
@@ -71,7 +72,7 @@ export default class ProvisionController extends CommandController<ProvisionMode
 
     const target = model.player?.stuff as Stuff | undefined;
     const playerPath = target?.getTemplatePath() ?? '';
-    if (!playerPath) {
+    if (!target || !playerPath) {
       return this.fail(context, 'Provision a dorm for whom?', 'no-player');
     }
 
@@ -96,8 +97,17 @@ export default class ProvisionController extends CommandController<ProvisionMode
     await ParcelApi.subdivide(unitExtent, DormWarren.DORMS_EXTENT, owner);
     await ParcelApi.grantUse(unitExtent, playerPath, null);
 
+    // Key the unit's lock (a fresh keyway re-keys any prior tenant's key to
+    // dead metal) and issue the tenant their key — a physical brass key in
+    // hand plus an implant-keychain entry. The door checks the KEY, not
+    // identity, so this is what actually lets them in.
+    const keyway = KeyApi.mintKeyway();
+    await ParcelApi.setKeyway(unitExtent, keyway);
+    await KeyApi.issueTo(target, keyway, DormWarren.DORM_LOCK_TECH);
+
     // Reflect the new unit into the (possibly-live) building now: hang the
-    // door if its floor is already materialized, and refresh reachability.
+    // door if its floor is already materialized, and refresh reachability +
+    // the keyway cache.
     const warren = DormWarren.peek();
     if (warren) {
       await warren.ensureUnitDoor(unitExtent);
@@ -107,7 +117,7 @@ export default class ProvisionController extends CommandController<ProvisionMode
     const who = target?.getPresentation() ?? playerPath;
     this.send(
       context,
-      Mml.compose`\nProvisioned ${unitExtent} and leased it to ${who}.\n`,
+      Mml.compose`\nProvisioned ${unitExtent} and leased it to ${who}; handed over the key.\n`,
     );
   }
 
