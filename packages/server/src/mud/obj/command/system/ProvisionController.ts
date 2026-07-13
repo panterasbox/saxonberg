@@ -38,12 +38,14 @@ import { CredentialApi } from '../../../api/credential';
 import { Lock } from '../../../lib/lock/Lock';
 import { ParcelRecord, type ParcelOwner } from '../../../lib/parcel/ParcelRecord';
 import DormWarren from '../../../domain/eternal/duncan-hall/DormWarren';
+import DormThemes from '../../../domain/eternal/duncan-hall/DormThemes';
 import type { Stuff } from '../../../lib/stuff/Stuff';
 
 const TOPIC = 'system.residence';
 
 interface ProvisionModel extends CommandModel {
   player?: MqlOneResult;
+  theme?: string;
 }
 
 export default class ProvisionController extends CommandController<ProvisionModel> {
@@ -113,6 +115,23 @@ export default class ProvisionController extends CommandController<ProvisionMode
     if (warren) {
       await warren.ensureUnitDoor(unitExtent);
       await warren.refreshProvisioned();
+    }
+
+    // The move-in shell commit: if a style was chosen (Katie's interview
+    // dispatches `provision $player --theme <style>`), set the room's initial
+    // look now, as the institution. Best-effort — a bad style never voids a
+    // provisioned lease; the room is materialized here to seal the overlay.
+    const themeId = (model.theme ?? '').trim();
+    if (themeId) {
+      try {
+        const room = await (await DormWarren.resolve()).admit(unitExtent);
+        await DormThemes.applyTo(room, themeId);
+      } catch (err) {
+        console.warn(
+          `ProvisionController: move-in theme "${themeId}" failed for ` +
+            `${unitExtent}: ${(err as Error).message}`,
+        );
+      }
     }
 
     const who = target?.getPresentation() ?? playerPath;

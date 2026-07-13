@@ -57,9 +57,8 @@ data:
             beat: "Well now — a new face. Katie. I keep Duncan Hall: the keys, the boiler, the lot, near enough since before you were born. What is it you need, love?"
             choices:
               - line: "I need a room."
-                to: assigned
+                to: style
                 effects:
-                  - { verb: dispatch, command: "provision $player" }
                   - { verb: regard, delta: 5 }
               - line: "I'm moving out."
                 to: movedout
@@ -67,8 +66,31 @@ data:
                   - { verb: dispatch, command: "unprovision $player" }
               - line: "Just saying hello."
                 to: hello
+          # The move-in shell commit: picking a style provisions the room WITH
+          # that look in one move — the dialogue tree as the menu. Each choice
+          # dispatches `provision $player --theme <style>` AS Katie (bounded by
+          # her dorms-agent authority).
+          style:
+            beat: "Right you are. I keep a few looks made up so a room's not bare on your first night — what suits you? Spartan and plain, something cosy, a studious sort of set-up, or a bit of neon if you're that way inclined?"
+            choices:
+              - line: "Spartan — keep it plain."
+                to: assigned
+                effects:
+                  - { verb: dispatch, command: "provision $player --theme spartan" }
+              - line: "Cosy, please."
+                to: assigned
+                effects:
+                  - { verb: dispatch, command: "provision $player --theme cozy" }
+              - line: "Something studious."
+                to: assigned
+                effects:
+                  - { verb: dispatch, command: "provision $player --theme studious" }
+              - line: "Neon it is."
+                to: assigned
+                effects:
+                  - { verb: dispatch, command: "provision $player --theme neon" }
           assigned:
-            beat: "Let's have a look at the book... right. You're sorted — up the stairs to your floor, and your door'll open for you and no one else. Settle in, make it yours. One thing: quiet after ten. That rule I do hold to."
+            beat: "Let's have a look at the book... right. You're sorted — up the stairs to your floor, and your door'll open for you and no one else. Changed your mind on the look later, you just redo it from inside. One thing: quiet after ten. That rule I do hold to."
             terminal: true
           movedout:
             beat: "...Off already, then. Well. I'll see the room's put right for the next one. Your door's shut to you now, love — mind how you go."

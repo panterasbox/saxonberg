@@ -18,14 +18,14 @@ export default class Desk extends DeskBase {
 
   /**
    * The desk carries the room's personalization surface: while you're in
-   * your dorm (with your desk), `decorate` / `remodel` light up. The commit
+   * your dorm (with your desk), `remodel` lights up. The commit
    * is lease-gated in the controller; a fixture is the affordance carrier
    * (a container doesn't afford its own verbs to occupants — a co-located
    * sibling does), the Menu-in-the-room precedent.
    */
   static commandContributions: CommandContributions = {
     self: [],
-    environment: ['residence/decorate.yaml'],
+    environment: ['residence/remodel.yaml'],
     inventory: [],
     peers: [],
   };

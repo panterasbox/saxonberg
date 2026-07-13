@@ -186,33 +186,57 @@ holder, grantedAt, expiresAt}`; `ParcelApi.grantUse`/`revokeUse`/`hasUseGrant`/
 surface: `childParcelsOf` (reconstitution + lowest-free) and `retire` (frees
 the slot on unprovision).
 
-## The theme overlay
+## The shell personalization (theme overlay)
 
-Personalization is a **theme-pick commit**, applied via the spine's own
-clone+restore — **not** a per-room synthetic template, **not** a runtime
-shadow, **not** a separate store. The overlay *is* the room's persisted
-prose-field state.
+This is the **residence-general shell-personalization mechanism**, not a dorm
+one-off. The governing model: personalization is a **sealed commit at the
+moment a thing enters your control**, prose-only, function fixed. It has two
+triggers by *what* you personalize — **owned goods** personalize at their
+**craft/buy** moment (the maker's-mark + owner prose, chattel — the apartment
+path), and the **room/shell** (not crafted) personalizes at the **move-in
+commit**. This section is the shell half; apartments reuse the same core one
+rung up.
 
-- **Theme data** (`mud/config/dorm-themes.yaml`): authored themes
-  (spartan/cozy/studious/neon), each a prose bundle keyed by role (`room` +
-  `bed`/`desk`/`footlocker`). Loaded by the controller via a private
-  file-read helper (the `ParcelSeeder` precedent).
-- **`decorate <themeId>`** (alias `remodel`; `residence` category, afforded
-  by the room's `Desk` fixture to occupants — the affordance-carrier
-  precedent): actor from context; `ParcelApi.heldUnitOf` + `hasUseGrant` gate
-  the write (D6); resolve the live room; `applyBundle` the theme across the
-  room + its fixtures (by role); `PersistableApi.capture(room, unitExtent)`
-  seals it. `applyBundle` validates each field against a `PROSE_FIELDS`
-  allowlist (`shortDescription`/`longDescription`/`details`) then writes via
-  the gated setter — a non-prose field is refused (the function-fixed /
-  code-trust boundary). Read is public (a visitor sees the decor).
+A style is a **theme-pick** — one of N authored prose bundles — applied via
+the spine's own clone+restore (the overlay *is* the room's persisted
+prose-field state; **not** a per-room synthetic template, a runtime shadow, or
+a separate store). Theme-pick is a **menu, never a typed verb** (the same
+"NPCs do their jobs / no cold-OS surface" line as provisioning).
+
+- **The core — `DormThemes` (`domain/eternal/duncan-hall/DormThemes.ts`)**, a
+  named value-object (not an Api/subsystem): `ids()`/`labelOf()` (the menu) +
+  `applyTo(room, themeId)` — apply the theme's prose bundle across the room +
+  its fixtures (by role) through a `PROSE_SETTERS` allowlist
+  (`shortDescription`/`longDescription`), then `PersistableApi.capture(room,
+  room.getPersistenceKey())` to seal. A non-prose field throws
+  `DormThemeError` — the bundle is refused **whole**, nothing written (the
+  function-fixed / code-trust boundary). Theme data is authored in
+  `mud/config/dorm-themes.yaml` (spartan/cozy/studious/neon, keyed by role).
+- **Move-in → Katie** (the diegetic front): her intake dialogue's style
+  choices each `dispatch` `provision $player --theme <style>`; `provision`'s
+  `--theme` option admits the room and calls `DormThemes.applyTo` **as the
+  institution** (already authorized — best-effort, a bad style never voids the
+  lease). The dialogue tree *is* the menu.
+- **Remodel → a local prompt** (`remodel` verb, `residence` category, afforded
+  by the room's `Desk` to the occupant): standing in your own room, it opens a
+  `PromptApi.choice` wheel of `DormThemes.ids()` and applies the pick. Gated by
+  holding the lease on the room you're in (D6). **No typed `decorate <theme>`
+  verb** — theme-pick is the menu; you never type a style id. Read is public
+  (a visitor sees the decor).
 - **Fixtures vs overlay** (Hazard 3): fixtures are content of the room host
   (the Container slice). The commit sets prose on the *live* fixtures then
   captures — the record carries each fixture's personalized prose. On wake,
   the spine's `restoreItem` clones each fixture from its **current** template
   (function always current) then applies the captured prose. Fixtures are
-  seeded once (`installFixtures`), never re-seeded (multi-instance
-  `applyPopulates` no-op). No field double-owned.
+  seeded once (`installFixtures`), never re-seeded (`applyPopulates` is a
+  uniform no-op — holders seed imperatively). No field double-owned.
+- **Deferred:** **custom prose** (writing your own room/item descriptions) —
+  a light player input (a `PromptApi.text` box / a summoned pane), validated
+  prose-only and sealed by the same `capture`; **not** the CMS (that's
+  world-building — new rooms/NPCs/code; this is personal expression on a space
+  you hold). The **apartment/home shell** reuses `DormThemes`-shaped core; the
+  **owned-goods** personalization (prose at craft/buy) is the chattel path
+  (property 0b).
 
 ## Entering + the lease + revert
 

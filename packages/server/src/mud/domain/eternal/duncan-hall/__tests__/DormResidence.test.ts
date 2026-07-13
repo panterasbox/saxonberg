@@ -15,7 +15,10 @@ import DormRoom from '../DormRoom';
 import Desk from '../Desk';
 import ProvisionController from '../../../../obj/command/system/ProvisionController';
 import UnprovisionController from '../../../../obj/command/system/UnprovisionController';
-import DecorateController from '../../../../obj/command/residence/DecorateController';
+import RemodelController from '../../../../obj/command/residence/RemodelController';
+import DormThemes from '../DormThemes';
+import { PromptApi } from '../../../../api/prompt';
+import type Interactive from '../../../../obj/Interactive';
 import type { Stuff } from '../../../../lib/stuff/Stuff';
 import type { Container } from '../../../../lib/spatial/Container';
 import { StuffApi } from '../../../../api/stuff';
@@ -187,10 +190,10 @@ function reset(): void {
   vi.restoreAllMocks();
   ParcelApi._resetRegistryRefForReload();
   StuffApi.clearAll();
-  DecorateController.themesPath = defaultThemesPath;
+  DormThemes.themesPath = defaultThemesPath;
 }
 
-const defaultThemesPath = DecorateController.themesPath;
+const defaultThemesPath = DormThemes.themesPath;
 const snapshots = () => col('holder_snapshots');
 
 function makeAvatar(playerId: string): Avatar {
@@ -199,7 +202,11 @@ function makeAvatar(playerId: string): Avatar {
   return av;
 }
 
-function ctxFor(giver: Stuff, verb: string): CommandContext {
+function ctxFor(
+  giver: Stuff,
+  verb: string,
+  interactive?: Interactive,
+): CommandContext {
   return CommandApi.createCommandContext({
     commandGiver: giver as never,
     location: makeStuff(() => new Location()) as never,
@@ -207,11 +214,18 @@ function ctxFor(giver: Stuff, verb: string): CommandContext {
     executionId: 'test',
     commandId: 'test',
     verb,
+    interactive,
     command: CommandDefinition.fromYaml(
       `verbs: [${verb}]\ncontroller: Noop\ndescription: stub\n`,
       '<test>',
     ),
   });
+}
+
+/** A context carrying a stub Interactive — for the `remodel` prompt (the
+ *  choice itself is mocked; the controller only needs a non-null viewer). */
+function ctxWithInteractive(giver: Stuff, verb: string): CommandContext {
+  return ctxFor(giver, verb, {} as unknown as Interactive);
 }
 
 function rejectionReason(ctx: CommandContext): string | null {
@@ -236,61 +250,81 @@ async function run(
 const shortDesc = (s: Stuff): string =>
   (s as unknown as { getShortDescription(): string }).getShortDescription();
 
-/* ─────────────────────────── Phase 5: decorate ─────────────────────────── */
+/* ────────────── Phase 5: shell personalization (move-in + remodel) ────────── */
 
-describe('decorate — theme seal + dormancy survival', () => {
+describe('shell personalization — move-in theme + local remodel', () => {
   beforeEach(() => {
     reset();
     installStore();
   });
   afterEach(reset);
 
-  it('a leaseholder seals a theme across room + fixtures; it survives reap', async () => {
+  it('move-in: `provision --theme` seals the style; it survives reap', async () => {
+    await bootRegistries();
+    const w = await warren();
+    const op = makeAvatar('op'); // a dorms agent (isWizard-open in the harness)
+    const tenant = makeAvatar('tenant');
+
+    const ctx = ctxFor(op, 'provision');
+    await run(
+      makeStuff(() => new ProvisionController()),
+      op,
+      { player: { stuff: tenant }, theme: 'cozy' } as unknown as CommandModel,
+      ctx,
+    );
+    expect(rejectionReason(ctx)).toBeNull();
+
+    const unit = (await ParcelApi.heldUnitOf(tenant.getTemplatePath()!))!.getExtent();
+    const room = await w.admit(unit);
+    expect(shortDesc(room)).toBe('a cozy dorm room');
+    expect(
+      shortDesc(room.getContents().find((c) => c instanceof Desk)!),
+    ).toBe('a cluttered, homey desk');
+
+    // Dormancy: empty room reaps (captured sealed) → re-admit restores cozy.
+    await (w as unknown as { reconcile(): Promise<void> }).reconcile();
+    expect(room.isDestroyed()).toBe(true);
+    const reborn = await w.admit(unit);
+    expect(shortDesc(reborn)).toBe('a cozy dorm room');
+  });
+
+  it('remodel: the leaseholder redoes the room from the menu (a local prompt)', async () => {
     const k1 = seedUnit(1, 1);
     await bootRegistries();
     const w = await warren();
     await w.refreshProvisioned();
     await ParcelApi.grantUse(k1, '/obj/Avatar/iris', null);
     const iris = makeAvatar('iris');
-
     const room = await w.admit(k1);
     ContainmentApi.move(iris, room); // standing in their room
 
-    const ctx = ctxFor(iris, 'decorate');
-    await run(makeStuff(() => new DecorateController()), iris, { theme: 'cozy' } as CommandModel, ctx);
+    // The choice wheel resolves to 'cozy' (the player's pick).
+    vi.spyOn(PromptApi, 'choice').mockResolvedValue('cozy' as never);
+    const ctx = ctxWithInteractive(iris, 'remodel');
+    await run(makeStuff(() => new RemodelController()), iris, {} as CommandModel, ctx);
     expect(rejectionReason(ctx)).toBeNull();
-
     expect(shortDesc(room)).toBe('a cozy dorm room');
-    const desk = room.getContents().find((c) => c instanceof Desk)!;
-    expect(shortDesc(desk)).toBe('a cluttered, homey desk');
-
-    // Dormancy: eject iris, reconcile → the room reaps (captured sealed).
-    ContainmentApi.move(iris, (await w.ensureFloor(1))! as Stuff & Container);
-    await (w as unknown as { reconcile(): Promise<void> }).reconcile();
-    expect(room.isDestroyed()).toBe(true);
-
-    // Re-enter → the cozy theme is restored (not the default look).
-    const reborn = await w.admit(k1);
-    expect(shortDesc(reborn)).toBe('a cozy dorm room');
-    const rDesk = reborn.getContents().find((c) => c instanceof Desk)!;
-    expect(shortDesc(rDesk)).toBe('a cluttered, homey desk');
+    expect(
+      shortDesc(room.getContents().find((c) => c instanceof Desk)!),
+    ).toBe('a cluttered, homey desk');
   });
 
-  it('refuses a non-leaseholder (no lease → no write)', async () => {
+  it('remodel refuses a non-leaseholder', async () => {
     const k1 = seedUnit(1, 1);
     await bootRegistries();
     const w = await warren();
     await w.refreshProvisioned();
     const room = await w.admit(k1); // no grant to anyone
     const stranger = makeAvatar('stranger');
+    ContainmentApi.move(stranger, room);
 
-    const ctx = ctxFor(stranger, 'decorate');
-    await run(makeStuff(() => new DecorateController()), stranger, { theme: 'cozy' } as CommandModel, ctx);
+    const ctx = ctxWithInteractive(stranger, 'remodel');
+    await run(makeStuff(() => new RemodelController()), stranger, {} as CommandModel, ctx);
     expect(rejectionReason(ctx)).toBe('no-lease');
     expect(shortDesc(room)).toBe('a dorm room'); // untouched
   });
 
-  it('function-fixed: a theme naming a non-prose field is refused whole', async () => {
+  it('function-fixed: a style naming a non-prose field is refused whole', async () => {
     const k1 = seedUnit(1, 1);
     await bootRegistries();
     const w = await warren();
@@ -298,19 +332,21 @@ describe('decorate — theme seal + dormancy survival', () => {
     await ParcelApi.grantUse(k1, '/obj/Avatar/iris', null);
     const iris = makeAvatar('iris');
     const room = await w.admit(k1);
+    ContainmentApi.move(iris, room);
 
-    // A malformed theme trying to set an executable-code field.
+    // A malformed style trying to set an executable-code field.
     const bad = join(tmpdir(), `dorm-bad-theme-${Date.now()}.yaml`);
     writeFileSync(
       bad,
       'themes:\n  hack:\n    room:\n      shortDescription: nice\n      class: /obj/evil/Backdoor\n',
       'utf-8',
     );
-    DecorateController.themesPath = bad;
+    DormThemes.themesPath = bad;
 
-    const ctx = ctxFor(iris, 'decorate');
-    await run(makeStuff(() => new DecorateController()), iris, { theme: 'hack' } as CommandModel, ctx);
-    expect(rejectionReason(ctx)).toBe('non-prose-field');
+    vi.spyOn(PromptApi, 'choice').mockResolvedValue('hack' as never);
+    const ctx = ctxWithInteractive(iris, 'remodel');
+    await run(makeStuff(() => new RemodelController()), iris, {} as CommandModel, ctx);
+    expect(rejectionReason(ctx)).toBe('theme-error');
     expect(shortDesc(room)).toBe('a dorm room'); // nothing written (atomic refuse)
   });
 });
@@ -387,13 +423,8 @@ describe('unprovision — revert + free slot; re-provision = default look', () =
     const room = await w.admit(k1);
     ContainmentApi.move(iris, room);
 
-    // Decorate, then move iris out so the unit is vacant.
-    await run(
-      makeStuff(() => new DecorateController()),
-      iris,
-      { theme: 'neon' } as CommandModel,
-      ctxFor(iris, 'decorate'),
-    );
+    // Personalize (seal a style), then move iris out so the unit is vacant.
+    await DormThemes.applyTo(room, 'neon');
     expect(snapshots().filter((s) => s.owner === k1)).toHaveLength(1);
     ContainmentApi.move(iris, (await w.ensureFloor(1))! as Stuff & Container);
 

@@ -17,6 +17,11 @@ examples:
     note: Lease Alice the next free dorm room
 validators:
   - /lib/command/validators/requiresWizard
+options:
+  theme:
+    short: t
+    type: string
+    description: "Set the room's initial style at move-in (e.g. spartan/cozy/studious/neon)."
 args:
   - name: player
     type: object
