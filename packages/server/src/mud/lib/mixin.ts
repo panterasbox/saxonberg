@@ -71,6 +71,8 @@ export const Mixins = {
   LightSource: 'LightSourceMixin',
   SmellSource: 'SmellSourceMixin',
   SoundSource: 'SoundSourceMixin',
+  // Discrete-event sound push — a whistle, a bell, an alarm, a chime.
+  Audible: 'AudibleMixin',
   Augment: 'AugmentMixin',
   Perception: 'PerceptionMixin',
   Tangible: 'TangibleMixin',

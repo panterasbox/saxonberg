@@ -64,6 +64,7 @@ import type { AmbientLit } from '../lib/perception/AmbientLit';
 import type { LightSource } from '../lib/perception/LightSource';
 import type { SmellSource } from '../lib/perception/SmellSource';
 import type { SoundSource } from '../lib/perception/SoundSource';
+import type { Audible } from '../lib/perception/Audible';
 import type { Augment } from '../lib/augmentation/Augment';
 import type { FastTravel } from '../lib/fasttravel/FastTravel';
 import type { CredentialWallet } from '../lib/credential/CredentialWallet';
@@ -788,6 +789,10 @@ export class MixinApi {
 
   public static isSmellSource(obj: Stuff): obj is Stuff & SmellSource {
     return this.hasMixin(obj, Mixins.SmellSource);
+  }
+
+  public static isAudible(obj: Stuff): obj is Stuff & Audible {
+    return this.hasMixin(obj, Mixins.Audible);
   }
 
   public static isSoundSource(obj: Stuff): obj is Stuff & SoundSource {
