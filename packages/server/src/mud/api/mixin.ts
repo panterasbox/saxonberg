@@ -44,6 +44,9 @@ import type { CommandGiver } from '../lib/command/CommandGiver';
 import type { Focused } from '../lib/command/Focused';
 import type { Exitable } from '../lib/boundary/Exitable';
 import type { Sealable } from '../lib/spatial/Sealable';
+import type { Switchable } from '../lib/boundary/Switchable';
+import type { Lockable } from '../lib/boundary/Locked';
+import type { Foldable } from '../lib/slot/Foldable';
 import type { Timekeeping } from '../lib/time/Timekeeping';
 import type { CartesianCoordinates } from '../lib/location/CartesianCoordinates';
 import type { SphericalCoordinates } from '../lib/location/SphericalCoordinates';
@@ -681,6 +684,18 @@ export class MixinApi {
 
   public static isSealable(obj: Stuff): obj is Stuff & Sealable {
     return this.hasMixin(obj, Mixins.Sealable);
+  }
+
+  public static isSwitchable(obj: Stuff): obj is Stuff & Switchable {
+    return this.hasMixin(obj, Mixins.Switchable);
+  }
+
+  public static isLockable(obj: Stuff): obj is Stuff & Lockable {
+    return this.hasMixin(obj, Mixins.Lockable);
+  }
+
+  public static isFoldable(obj: Stuff): obj is Stuff & Foldable {
+    return this.hasMixin(obj, Mixins.Foldable);
   }
 
   public static isTimekeeping(obj: Stuff): obj is Stuff & Timekeeping {

@@ -1,0 +1,20 @@
+verbs: [unfold]
+controller: device/UnfoldController
+description: "Unfold a collapsible thing"
+help: |
+  Unfold something that collapses — a folding camp chair — making it
+  usable again. Name the thing (`unfold chair`).
+
+  The target has to be within reach. If it's already unfolded, or it
+  isn't something that folds at all, the game tells you so and nothing
+  happens.
+validators:
+  - /lib/command/validators/requiresAnimate
+args:
+  - name: target
+    type: object
+    required: true
+    scope: "reachable"
+    updates_focus: extend
+    validators:
+      - /lib/command/validators/canReach

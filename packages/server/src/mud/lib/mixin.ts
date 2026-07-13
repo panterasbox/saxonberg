@@ -49,6 +49,12 @@ export const Mixins = {
   SphericalCoordinates: 'SphericalCoordinatesMixin',
   Exitable: 'ExitableMixin',
   Sealable: 'SealableMixin',
+  // Binary on/off — a lamppost, a beacon, a machine.
+  Switchable: 'SwitchableMixin',
+  // Binary locked/unlocked — composed onto Door beneath Sealable.
+  Lockable: 'LockableMixin',
+  // Binary folded/unfolded — a folding chair refuses its posture slots.
+  Foldable: 'FoldableMixin',
   // Displays game-time — a pocket watch, a clock tower, a sundial.
   Timekeeping: 'TimekeepingMixin',
   AroundSaveHook: 'AroundSaveHookMixin',
