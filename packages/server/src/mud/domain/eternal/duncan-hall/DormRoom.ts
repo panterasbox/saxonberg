@@ -2,9 +2,10 @@
  * DormRoom — one leased dorm room. The shared, multi-instance persistence
  * host: many live rooms clone from THIS one template yet keep distinct
  * persisted state (the tenant's theme prose + its fixtures' captured prose),
- * keyed by the unit's parcel extent (D1). `static multiInstance = true`
- * relaxes the singleton-scope guard and turns `applyPopulates` into a no-op
- * (the `DormWarren` drives seed-vs-restore with the unit key).
+ * keyed by the unit's parcel extent (D1) — the `(scope, key)` identity every
+ * persistable host has, no marker needed. The `DormWarren` drives
+ * seed-vs-restore with the unit key (`installFixtures` on the no-record
+ * branch); `applyPopulates` is a no-op for every persistable host.
  *
  * A non-coordinate `Location` (a clone can't hold fixed grid coords; it
  * hangs off its floor corridor by a live-ref return exit) with the member +
@@ -58,9 +59,6 @@ export default class DormRoom extends DormRoomBase {
     '/domain/eternal/duncan-hall/dorm-fixtures/desk',
     '/domain/eternal/duncan-hall/dorm-fixtures/footlocker',
   ];
-
-  /** Multi-instance host (D1): many rooms share this templatePath. */
-  static multiInstance = true;
 
   /** Prose rides the Visible/Detailed slices; the Warren back-ref + exits
    *  are runtime; the theme overlay + fixtures ride the spine's slices. */

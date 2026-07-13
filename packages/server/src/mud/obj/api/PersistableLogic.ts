@@ -104,33 +104,32 @@ function optedOutOfPersistence(host: Stuff): boolean {
 }
 
 /**
- * Enforce the requirements' **singleton-host** invariant: at most one live
- * instance per `scope`. A persistable host is identified by its
- * `templatePath` alone, and its record keys on `(scope, owner)` — so two
- * live clones sharing a templatePath would both write the SAME record and
- * silently overwrite each other (and each materialize the other's state).
- * Fail loud instead of corrupting. Cheap: one `PathTrie` exact lookup.
+ * The single persistence invariant: **no two live instances may share a
+ * `(scope, key)`** — they'd write the SAME record and silently clobber each
+ * other. Every host is identified by `(scope = templatePath, key)`; a
+ * singleton is simply the degenerate case where the key derives from the
+ * scope (Avatar → self, a titled room → its parcel), so two live clones
+ * resolve the SAME key and collide, while distinct keyed instances (leased
+ * dorm rooms, keyed by unit parcel) never do. One uniform rule — there is no
+ * "singleton vs multi-instance" mode and no marker.
  *
- * The two sanctioned singleton shapes both pass: a `SingletonMixin` host
- * (one instance by construction) and a unique-per-instance templatePath
- * (Avatar's `/obj/Avatar/<playerId>`, deduped by `PlayerApi`). Generic
- * multi-instance objects are **content** nested in a host, never hosts.
+ * Precise, not eager: it fires only when another live instance has already
+ * *claimed* this key (its key is stashed), i.e. exactly when a write would
+ * clobber — not merely because two shells exist. Freshly-cloned, not-yet-keyed
+ * siblings (`getPersistenceKey() === null`) own no record and don't collide.
  */
-function assertSingletonScope(scope: string, host: Stuff): void {
-  // Multi-instance hosts (a leased dorm room) legitimately share one scope
-  // across many live instances — each keyed by an explicit per-instance key
-  // (its unit parcel), writing DISTINCT `(scope, key)` records. The guard is
-  // the singleton default only; a `multiInstance` host opts out.
-  if (MixinApi.isMultiInstanceHost(host)) return;
-  const live = StuffApi.findAllByTemplatePath(scope);
-  if (live.length > 1) {
-    throw new Error(
-      `PersistableLogic: '${scope}' has ${live.length} live instances — a ` +
-        `persistable host must be singleton-identifiable (compose ` +
-        `SingletonMixin, or carry a unique per-instance templatePath like ` +
-        `Avatar's /obj/Avatar/<playerId>). Generic multi-instance objects ` +
-        `are content nested in a host, not hosts themselves.`,
-    );
+function assertUniqueKey(scope: string, key: string, host: Stuff): void {
+  for (const other of StuffApi.findAllByTemplatePath(scope)) {
+    if ((other as unknown) === (host as unknown)) continue;
+    if (MixinApi.isPersistable(other) && other.getPersistenceKey() === key) {
+      throw new Error(
+        `PersistableLogic: two live instances of '${scope}' both keyed ` +
+          `'${key}' — they would clobber one record. A persistable host must ` +
+          `resolve to a unique (scope, key): a singleton derives its key from ` +
+          `its scope (so it must be singleton-identifiable), a multi-instance ` +
+          `host (a leased room) must supply a distinct explicit key.`,
+      );
+    }
   }
 }
 
@@ -445,12 +444,13 @@ async function captureImpl(host: Stuff, key?: string): Promise<void> {
   if (!scope) {
     throw new Error("PersistableLogic.capture: host has no templatePath stamp");
   }
-  assertSingletonScope(scope, host);
-  // The record owner (== key): the explicit key wins; else the stashed key
-  // (a keyless re-capture reuses the materialize/first-capture key); else
-  // today's scope-derived owner (the singleton / self-owned Avatar path).
+  // Resolve the record key (== owner): the explicit key wins; else the
+  // stashed key (a keyless re-capture reuses the materialize/first-capture
+  // key); else the scope-derived key (a singleton's self/parcel owner). Then
+  // enforce the single invariant: no live sibling has already claimed it.
   const owner = key ?? stashedKey(host) ?? (await ownerOfScope(scope, host));
   stashKey(host, owner);
+  assertUniqueKey(scope, owner, host);
   // Warm marshallers, THEN take the synchronous snapshot (atomic — the
   // last sync block before the save), so concurrent triggers each write a
   // valid full snapshot (last-write-wins).
@@ -471,22 +471,16 @@ async function materializeImpl(host: Stuff, key?: string): Promise<void> {
   if (optedOutOfPersistence(host)) return; // guest / opted-out host
   const scope = host.getTemplatePath();
   if (!scope) return;
-  assertSingletonScope(scope, host);
-  // Keyed materialize (multi-instance host): restore the single
-  // `(scope, key)` record, stashing the key for keyless re-capture; a
-  // missing record is a clean no-op (a first-provision seed drives instead).
-  if (key !== undefined) {
-    stashKey(host, key);
-    const record = await PersistedRecord.findByScopeAndOwner(scope, key);
-    if (record) await restoreRecord(host, record);
-    return;
-  }
-  // Keyless (singleton / Avatar) — the legacy path: restore every record
-  // scoped to the host, each as its owning principal.
-  const records = await PersistedRecord.findByScope(scope);
-  for (const record of records) {
-    await restoreRecord(host, record);
-  }
+  // Resolve the key the SAME way capture does (explicit → stashed →
+  // scope-derived), so restore is the exact inverse: one `(scope, key)`
+  // record, keyed identically. A missing record is a clean no-op (the
+  // establishing context seeds instead). No keyless "restore every record"
+  // mode — a scope holds one record per key, and each host restores its own.
+  const owner = key ?? stashedKey(host) ?? (await ownerOfScope(scope, host));
+  stashKey(host, owner);
+  assertUniqueKey(scope, owner, host);
+  const record = await PersistedRecord.findByScopeAndOwner(scope, owner);
+  if (record) await restoreRecord(host, record);
 }
 
 /** Restore one record onto `host` under its owning principal (shared by the

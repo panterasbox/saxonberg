@@ -67,14 +67,13 @@ class RoomHost extends PersistableMixin(
   }
 }
 
-// A MULTI-INSTANCE persistable host (D1): many live instances share this one
+// A multi-instance persistable host (D1): many live instances share this one
 // templatePath, each keyed by an explicit per-instance key (a leased dorm
-// room keyed on its unit parcel). `static multiInstance = true` relaxes the
-// singleton-scope guard and makes `applyPopulates` a no-op.
+// room keyed on its unit parcel). No marker — the `(scope, key)` identity is
+// uniform; distinct keys simply never collide.
 class MultiRoom extends PersistableMixin(
   ContainerMixin(PostRegistrationMixin(Idea)),
 ) {
-  static multiInstance = true;
   static persistentFields = ["label"];
   label = "";
   getLabel(): string {
@@ -591,33 +590,33 @@ describe("eviction seam (AC #9)", () => {
 });
 
 describe("seed-then-persist (AC #10)", () => {
-  it("with NO record, applyPopulates delegates to the real seed path", async () => {
+  it("a persistable holder's applyPopulates is a UNIFORM no-op — it never seeds via populates", async () => {
     cloneFactories = {};
-    // No record for this scope → the gate delegates to PopulatesMixin, which
-    // resolves the (unmocked) template and throws — proving the seed ran
-    // rather than being skipped.
+    // No `hasRecord(scope)` gate, no `populates` delegation, no marker: a
+    // persistable holder is a bare shell here. Its establishing context seeds
+    // born-with content imperatively (Avatar's loadout, a DormRoom's
+    // installFixtures) then captures/restores with the key. So applyPopulates
+    // seeds NOTHING — even with no record, even with specs.
     const fresh = makeStuffAtPath(() => new RoomHost(), "/domain/fresh");
-    await expect(fresh.applyPopulates(["/domain/chest"])).rejects.toThrow(
-      /no template/,
-    );
+    await fresh.applyPopulates(["/domain/chest"]); // does not throw, does not seed
+    expect(fresh.getContents()).toHaveLength(0);
   });
 
-  it("with a record present, applyPopulates SKIPS the seed (no duplication)", async () => {
+  it("never double-seeds on restore — the no-op holds whether or not a record exists", async () => {
     cloneFactories = { "/domain/chest": () => new ContentChest() };
-    // Simulate a first materialization: seed manually, then capture — a
-    // record now exists for the scope.
+    // Seed imperatively (the context's job), capture, evict, re-clone: the
+    // reborn shell's applyPopulates adds nothing on top of what restore will
+    // bring back — no duplication, no scope-gated skip needed.
     const room = makeStuffAtPath(() => new RoomHost(), "/domain/room");
     const chest = makeStuffAtPath(() => new ContentChest(), "/domain/chest");
     ContainmentApi.move(chest, room);
     await PersistableApi.capture(room);
     expect(await PersistableApi.hasRecord("/domain/room")).toBe(true);
 
-    // Re-clone the shell at the same scope; applyPopulates finds the record
-    // and returns early WITHOUT re-seeding.
     evict(room);
     const reborn = makeStuffAtPath(() => new RoomHost(), "/domain/room");
     await reborn.applyPopulates(["/domain/chest"]);
-    expect(reborn.getContents()).toHaveLength(0); // seed did not re-run
+    expect(reborn.getContents()).toHaveLength(0); // never seeds
   });
 });
 
@@ -726,32 +725,35 @@ describe("avatar-shaped host (Avatar migration end-to-end)", () => {
   });
 });
 
-describe("singleton-host invariant (no two clones stepping on each other)", () => {
-  it("capture throws loudly when two live instances share a scope", async () => {
+describe("the (scope, key) uniqueness invariant (no two clones stepping on each other)", () => {
+  it("throws when a second live instance would write the SAME (scope, key)", async () => {
     cloneFactories = {};
     const a = makeStuffAtPath(() => new MovableHost(), "/domain/dup");
-    // A second live instance at the SAME templatePath — the footgun the
-    // requirements forbid (a persistable host must be a singleton).
-    makeStuffAtPath(() => new MovableHost(), "/domain/dup");
-    await expect(PersistableApi.capture(a)).rejects.toThrow(
-      /singleton-identifiable/,
+    const b = makeStuffAtPath(() => new MovableHost(), "/domain/dup");
+    // Both derive the SAME scope-owner (a MovableHost is a singleton shape) —
+    // the footgun. The guard is precise: `a` captures fine (no sibling has
+    // claimed the key yet); `b`'s capture, which would clobber `a`'s record,
+    // throws.
+    await PersistableApi.capture(a);
+    await expect(PersistableApi.capture(b)).rejects.toThrow(
+      /both keyed .* clobber one record/,
     );
   });
 });
 
 describe("multi-instance hosts (D1: explicit-key persistence)", () => {
-  it("two instances of one multiInstance scope, distinct keys → distinct records; no singleton throw", async () => {
+  it("two instances of one scope with DISTINCT keys → distinct records; no collision", async () => {
     cloneFactories = {};
     const k1 = "/domain/dorms/f1-r1";
     const k2 = "/domain/dorms/f1-r2";
-    // Two LIVE instances at the same templatePath — forbidden for a singleton
-    // host, but legitimate for a multiInstance one (each keyed distinctly).
+    // Two LIVE instances at the same templatePath — a collision only if they
+    // share a key; distinct keys never collide (no marker, no relaxation).
     const a = makeStuffAtPath(() => new MultiRoom(), "/domain/dormroom");
     const b = makeStuffAtPath(() => new MultiRoom(), "/domain/dormroom");
     a.setLabel("alice's room");
     b.setLabel("bob's room");
 
-    // Capture does NOT throw with two live instances (guard relaxed).
+    // Capture does NOT throw — distinct keys, distinct records.
     await PersistableApi.capture(a, k1);
     await PersistableApi.capture(b, k2);
 
@@ -828,10 +830,10 @@ describe("multi-instance hosts (D1: explicit-key persistence)", () => {
     ).toBe("edited");
   });
 
-  it("multiInstance applyPopulates is a no-op (context drives seed vs restore)", async () => {
+  it("applyPopulates is a no-op (the context drives seed vs restore with the key)", async () => {
     cloneFactories = { "/domain/chest": () => new ContentChest() };
     const room = makeStuffAtPath(() => new MultiRoom(), "/domain/dormroom");
-    // Even with NO record, a multiInstance host seeds nothing here.
+    // Even with NO record, a keyed host seeds nothing here (context-driven).
     await room.applyPopulates(["/domain/chest"]);
     expect(room.getContents()).toHaveLength(0);
   });

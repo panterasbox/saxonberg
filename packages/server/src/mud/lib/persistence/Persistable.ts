@@ -92,15 +92,6 @@ export function PersistableMixin<TBase extends MixinConstructor<Stuff>>(
   return class PersistableMixin extends Base implements Persistable {
     static _mixinName = "PersistableMixin";
 
-    /**
-     * The multi-instance-host marker (default `false` — a singleton host,
-     * keyed by its `templatePath`). A content host that shares one template
-     * across many keyed instances (a `DormRoom`) sets `static multiInstance =
-     * true`, relaxing the singleton-scope guard and switching `applyPopulates`
-     * to a no-op (the establishing context drives seed-vs-restore with a key).
-     */
-    static multiInstance = false;
-
     /** Stashed explicit persistence key; null until first keyed op. */
     protected _persistenceKey: string | null = null;
 
@@ -144,40 +135,21 @@ export function PersistableMixin<TBase extends MixinConstructor<Stuff>>(
     }
 
     /**
-     * Seed-then-persist gate (Populates override, composed outside
-     * `PopulatesMixin`). First materialization has no record → run the
-     * normal `populates` seed. Thereafter the record is authoritative and
-     * the seed is skipped — the `postRegister` restore owns the contents,
-     * so `populates` never duplicates its seed.
-     *
-     * The `postRegister` companion below is the single materialize driver:
-     * within one clone the record-existence check is stable, so a first
-     * clone here seeds and there captures the first record, while a later
-     * clone here skips the seed and there restores — materialize fires
-     * exactly once (pre-build note #5, no double-load).
+     * A persistable host **does not seed via `populates`** — it is a bare
+     * shell here, and its **establishing context drives seed-vs-restore with
+     * its key**: on first materialization the context seeds the born-with
+     * contents *imperatively* (Avatar's `installDefaultLoadout`, a
+     * `DormRoom`'s `installFixtures`) then captures the first record;
+     * thereafter it restores. This is uniform for every host — a singleton or
+     * a keyed multi-instance room alike — because a `hasRecord(scope)` gate
+     * can't disambiguate a keyed instance at hydration time (the key isn't set
+     * yet), and letting `populates` seed here would double-seed on restore.
+     * So the override is a deliberate **no-op** (it does NOT delegate to
+     * `PopulatesMixin`); a persistable host that needs born-with content seeds
+     * it in its context, never through `populates`.
      */
-    async applyPopulates(specs: PopulateSpec[]): Promise<void> {
-      // Multi-instance hosts (a leased dorm room) share one templatePath, so
-      // the singleton `hasRecord(scope)` gate can't tell one keyed instance
-      // from another — and the establishing context drives seed-vs-restore
-      // with an explicit key. So a multi-instance host applies NO populates
-      // here (a bare shell; the context seeds imperatively or restores).
-      const multiInstance =
-        (this.constructor as { multiInstance?: boolean }).multiInstance ===
-        true;
-      if (multiInstance) return;
-
-      const self = this as unknown as Stuff;
-      const scope = self.getTemplatePath();
-      if (scope && (await PersistableApi.hasRecord(scope))) {
-        return; // record authoritative — establishing context restores
-      }
-      const sup = (
-        Base.prototype as { applyPopulates?: (s: PopulateSpec[]) => Promise<void> }
-      ).applyPopulates;
-      if (typeof sup === "function") {
-        await sup.call(this, specs);
-      }
+    async applyPopulates(_specs: PopulateSpec[]): Promise<void> {
+      /* no-op — persistable holders seed imperatively via their context */
     }
 
     /**

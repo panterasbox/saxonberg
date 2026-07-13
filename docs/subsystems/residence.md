@@ -28,26 +28,35 @@ template yet must keep distinct persisted state. D1 fixes this generally, in
 the spine (`lib/persistence/Persistable.ts`, `obj/api/PersistableLogic.ts`,
 `api/persistable.ts`):
 
-- **The persistence key is supplied explicitly by the establishing context.**
-  `PersistableApi.capture(host, key)` / `materialize(host, key)` /
-  `hasRecord(scope, key)` gain an explicit `key` — the record `owner`. The
-  keyed upsert is on `(scope, key)`. When omitted, the owner falls back to
-  the host's **stashed key** (so a keyless re-capture — the residency sweep,
-  autosave — reuses it), then to the legacy scope-derived owner (Avatar's
-  self-owned path, byte-identical to pre-D1).
-- **The `multiInstance` marker relaxes the singleton guard.** A host sets
-  `static multiInstance = true`; `MixinApi.isMultiInstanceHost` reads it, and
-  `assertSingletonScope` skips its >1-instance throw for exactly those hosts
-  (they legitimately share one scope, writing distinct `(scope, key)`
-  records). For a multi-instance host `applyPopulates` is a **no-op** (the
-  establishing context drives seed-vs-restore with the key; a `DormRoom`
-  seeds its fixtures imperatively — below).
+- **One identity, no modes: `(scope, key)`.** Every host is identified by
+  `(scope = templatePath, key)`; the key is resolved uniformly — the explicit
+  key wins, else the host's **stashed key** (so a keyless re-capture — the
+  residency sweep, autosave — reuses it), else the **scope-derived** key
+  (Avatar → self, a titled room → its parcel owner). A **singleton is just
+  the degenerate case** where the key derives from the scope; a keyed
+  multi-instance host (a leased `DormRoom`) supplies a distinct key. There is
+  **no `multiInstance` marker and no singleton-vs-multi branch.**
+- **The single invariant: no two live instances share a `(scope, key)`.**
+  `assertUniqueKey` fires only when another live sibling has already *claimed*
+  this key (its key is stashed) — i.e. precisely when a write would clobber a
+  record — not merely because two shells exist. Two clones of a singleton
+  resolve the *same* key and collide (the footgun, caught); distinct keyed
+  rooms never do. (This replaced the old eager `assertSingletonScope` +
+  `multiInstance` relaxation with the real invariant.)
+- **`applyPopulates` is a uniform no-op** for *every* persistable host — a
+  host is a bare shell at hydration, and its **establishing context drives
+  seed-vs-restore with the key**: it seeds born-with content *imperatively*
+  on the no-record branch (Avatar's `installDefaultLoadout`, a `DormRoom`'s
+  `installFixtures`) then captures, else restores. (A `hasRecord(scope)` gate
+  can't disambiguate a keyed instance at hydration, and letting `populates`
+  seed would double-seed on restore — so persistable holders never seed via
+  `populates`.)
 - **`postRegister` no longer auto-drives persistence.** The mixin provides
   capture/restore; the establishing context decides *when* and *with what
   key*. Avatar drives an explicit self-keyed materialize/capture at login
   (`obj/Avatar.ts`); `DormWarren.admit` drives a keyed restore-or-seed per
   unit. The `{ref}` nested-host walk self-restores in the spine's `cloneHost`
-  (a keyless materialize on the fresh clone).
+  (a keyless materialize that resolves the nested host's scope-derived key).
 - **`markForRevert()`** sets a host's `shouldPersist()` false so the
   capture-on-destruct backstop writes nothing — the end-lease revert seam
   (a general spine seam, not dorm code).
