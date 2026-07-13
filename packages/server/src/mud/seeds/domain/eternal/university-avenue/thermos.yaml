@@ -1,0 +1,20 @@
+# The thermos by the post — the relief's, waiting on the stone beside the
+# camp chair. `Thermos` = Flask (Thermal + Sealable + Bulkable) + Detailed:
+# a real vacuum flask that really opens and really holds hot coffee. It
+# defaults sealed (SealableMixin default), so the coffee stays hot for hours
+# — the break that never comes, because nobody ever opens it. Placed loose
+# (a chair is not a Surfaced host; the prose groups it with the chair).
+class: /obj/Thermos
+hydratorClass: /lib/persistence/PersistentHydrator
+data:
+  shortDescription: a dented steel thermos
+  primaryKeyword: thermos
+  longDescription: |
+    A dented stainless-steel thermos, the screw-cap doubling as a cup, standing on the stone beside the camp chair. It is cool to the touch on the outside — the vacuum doing its quiet work — and heavy with coffee still hot inside. Sealed, and staying that way; the cup is forever saved for a later that doesn't arrive.
+  details:
+    cap:
+      keywords: [cap, cup, lid, screw]
+      description: The screw-cap is a cup in disguise, seated tight. Unscrew it and the coffee starts going cold; nobody has.
+    body:
+      keywords: [body, steel, dents, dent]
+      description: Brushed steel gone soft-grey with handling, dented along one side from a drop years ago. Cool outside — the insulation working.

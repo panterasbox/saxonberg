@@ -1,0 +1,26 @@
+# The relief's camp chair — a folding chair kept DEPLOYED (unfolded) at the
+# post. `FoldingChair` = Chair + Foldable; `folded: false` is the seeded
+# deployed state (a folded chair refuses its `sit` slot via Slotted.canOccupy).
+# It really seats — it's the relief's, and Gus never uses it (behavior, not a
+# dead prop). The someday, in aluminum and canvas.
+class: /obj/FoldingChair
+hydratorClass: /lib/persistence/PersistentHydrator
+data:
+  shortDescription: a folding camp chair
+  primaryKeyword: chair
+  folded: false
+  longDescription: |
+    A folding camp chair of aluminum tube and faded canvas, set up clean and angled just so beside the post — the relief's, kept ready. Nobody sits in it. The thermos waits on the stone beside it, the break and the relief that both never come.
+  staticSlots:
+    - name: 'sit:1'
+      accepts: SlottableMixin
+      capacity: 1
+      postures: [sit]
+      userFacingDetail: seat
+  details:
+    seat:
+      keywords: [seat, canvas, sling]
+      description: A sling of faded canvas on an aluminum frame — one seat, angled toward the road.
+    frame:
+      keywords: [frame, aluminum, tube, legs]
+      description: Lightweight aluminum tube, scuffed at the feet, folds flat in a second — though this one never has.

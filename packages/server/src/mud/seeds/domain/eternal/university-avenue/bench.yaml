@@ -1,0 +1,21 @@
+# The public bench at the crossing — an ordinary sittable seat (generic
+# object, Visible.shortDescription, never Named). `Bench` = Postured +
+# Slotted + Detailed; the `sit` slot is authored here (capacity 3 — a public
+# bench seats a few) and the global `sit` verb targets it.
+class: /obj/Bench
+hydratorClass: /lib/persistence/PersistentHydrator
+data:
+  shortDescription: a public bench
+  primaryKeyword: bench
+  longDescription: |
+    A municipal bench of grey slats on cast-iron ends, bolted to the stone at the edge of the crossing. The paint is worn to bare metal where a thousand travellers have set down a bag and waited. Somewhere to sit and watch the road.
+  staticSlots:
+    - name: 'sit:1'
+      accepts: SlottableMixin
+      capacity: 3
+      postures: [sit]
+      userFacingDetail: seat
+  details:
+    seat:
+      keywords: [seat, slats, bench]
+      description: A row of worn grey slats, room enough for three.

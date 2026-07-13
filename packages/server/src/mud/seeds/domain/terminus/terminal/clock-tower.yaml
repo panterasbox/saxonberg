@@ -1,0 +1,19 @@
+# The Terminus terminal clock tower — the accurate civic-time fixture mounted
+# high on the station facade, readable from across University Avenue. `/obj/
+# ClockTower` = Timekeeping over a Thing: `currentReading()` reads the world
+# clock straight off `WorldClockApi` (formatted via DefaultCalendar), so it
+# CANNOT drift and never winds down — the fixed point Gus's pocket watch
+# disagrees with (the drift-reveal). The sanctioned single exception to
+# "terminal interior is out of scope": it exists to be SEEN from Gus's room.
+#
+# It is populated into the arrival gate (the terminal's north frontage facing
+# the crossing) so it stands up with the hub; the crossing's dynamic `tower`
+# detail (/obj/Crossing.getDetail) reads it by templatePath — a cross-object
+# read, not cross-room perception.
+class: /obj/ClockTower
+hydratorClass: /lib/persistence/PersistentHydrator
+data:
+  shortDescription: the terminal clock tower
+  primaryKeyword: tower
+  longDescription: |
+    A civic clock tower high on the face of the Terminus station, its four dials facing the four streets. It keeps the standard time the whole station runs on — the honest hour, posted where the whole avenue can check it.

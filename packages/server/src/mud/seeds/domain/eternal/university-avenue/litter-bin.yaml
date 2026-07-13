@@ -1,0 +1,14 @@
+# The litter bin at the crossing — `LitterBin` = Container + Detailed. An
+# ordinary open-topped public bin; players can drop litter into it. Nothing
+# bespoke.
+class: /obj/LitterBin
+hydratorClass: /lib/persistence/PersistentHydrator
+data:
+  shortDescription: a public litter bin
+  primaryKeyword: bin
+  longDescription: |
+    A dented steel drum chained to the lamppost, a swing-lid worn shiny at the flap. It smells faintly of old coffee and newsprint. Whatever the crossing's transients don't want ends up in here — or in the gutter beside it.
+  details:
+    drum:
+      keywords: [drum, steel, lid, flap]
+      description: A battered steel drum, its swing-lid rubbed bright where a hundred thousand hands have pushed it open.

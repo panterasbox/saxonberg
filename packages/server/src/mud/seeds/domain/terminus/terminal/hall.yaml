@@ -6,16 +6,17 @@
 #
 # Exits are declared explicitly on BOTH sides (every template is self-
 # describing — you can read any room and know what it connects to). The hall
-# lists all five of its doorways; each neighbour lists its own way back. South
-# to the arrival gate, east/west/north to departure gates A/B/C, up to the
-# ticket office mezzanine.
+# lists all five of its doorways; each neighbour lists its own way back. North
+# to the arrival gate (reoriented 2026-07-12 — the arrival alcove is now the
+# terminal's north frontage onto University Avenue), south to dead Departure
+# Gate C, east/west to departure gates A/B, up to the ticket office mezzanine.
 class: /lib/location/CartesianLocation
 hydratorClass: /lib/persistence/PersistentHydrator
 data:
   shortDescription: Terminus Terminal, the station hall
   primaryKeyword: hall
   longDescription: |
-    The great hall of Terminus rises three storeys to a ribbed glass vault, grey daylight pooling on a floor worn to a shine by a century of boots. Departure gates open off the concourse to either side; an arrival alcove yawns to the south, and a raised ticket office overlooks it all from a mezzanine reached by a short iron stair.
+    The great hall of Terminus rises three storeys to a ribbed glass vault, grey daylight pooling on a floor worn to a shine by a century of boots. Departure gates open off the concourse to either side and a cordoned dead gate at the south end; an arrival alcove yawns to the north, letting in a slice of University Avenue, and a raised ticket office overlooks it all from a mezzanine reached by a short iron stair.
 
     A loudspeaker crackles overhead at intervals, announcing stops in a bored contralto nobody quite listens to. Rows of bolted benches face a great split-flap departures board; the walls between the gates are papered edge to edge in advertisements, layered so deep the oldest have fossilised. Above the arch to the arrival gate, the Teleport Authority's seal is set in tarnished brass: a compass rose swallowing its own tail.
   coords:
@@ -23,13 +24,13 @@ data:
     y: 0
     z: 0
   exits:
-    south:
+    north:
       destination: /domain/terminus/terminal/arrival-gate
     east:
       destination: /domain/terminus/terminal/departure-gate-a
     west:
       destination: /domain/terminus/terminal/departure-gate-b
-    north:
+    south:
       destination: /domain/terminus/terminal/departure-gate-c
     up:
       destination: /domain/terminus/terminal/office
