@@ -1,7 +1,16 @@
 # Git workflow / in-runtime VCS slate (working doc)
 
-> **Status: model set, four decisions locked; the security spine is the
-> hard part.** The **in-runtime VCS** brick the
+> **Status: Wave 1 SHIPPED** (`feature/git-workflow`, MR !132) →
+> [../../subsystems/git-workflow.md](../../subsystems/git-workflow.md) is
+> the live reference. The `GitApi`/`GitLogic` pair + `git` verb + CMS git
+> panel + the snapshot-and-push model + the permission-scoping spine +
+> the identity model all landed. This slate is **kept** for the
+> build-sized remainder (content/document→git via a Mongo→file export
+> bridge, finer-than-branch review, per-user `/home` submodules). The
+> design below is retained for those waves.
+>
+> **Original framing — model set, four decisions locked; the security
+> spine is the hard part.** The **in-runtime VCS** brick the
 > [provenance-slate](./provenance-slate.md) reserved — a `GitApi` that
 > commits runtime-authored source to GitLab so version history, review,
 > and rollback exist, and so a redeploy's fresh checkout carries every

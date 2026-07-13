@@ -178,14 +178,16 @@ continues with the content + navigation layers on top:
   isolation moves to the MR layer) — never working-tree branch-switching. Security spine:
   **every git op is gated by the same per-path `can('write')` predicate as a direct source
   write** (git is not a permission bypass; `publish` stages only writable files → per-owner
-  scoping falls out; `reset`/force-push behind an admin tier). Identity: **one shared push
-  token + per-avatar `--author`** (mirror of the `AuthoringEvent` ledger). **Source-only v1**;
-  content→git (Mongo→file export) + finer-grained review + per-user `/home/` submodules deferred.
+  scoping falls out; revert-only, `reset`/force-push deferred). Identity: **one shared push
+  token + per-avatar `--author`** (mirror of the `AuthoringEvent` ledger). **Wave 1 (source
+  plane) SHIPPED** (MR !132) → [../subsystems/git-workflow.md](../subsystems/git-workflow.md);
+  kept in `builds/` for the remainder: content/document→git (Mongo→file export) + finer-grained
+  review + per-user `/home/` submodules.
 
 **Phases:** type surface + diagnostics (shipped → diagnostics.md) → CMS editor core (shipped → cms.md) →
 the Studio composition surface + first authoring-intelligence catalogs
 (shipped → studio.md) → scoped authoring · provenance (first brick shipped) · **git-workflow
-(in-runtime VCS — the DAG + content-export still deferred)**.
+(in-runtime VCS Wave 1 shipped → git-workflow.md; content-export / finer-review / subrepos deferred)**.
 
 > The former verb-provisioning slate is retired — its one durable idea
 > (a verb may be afforded by many source objects; the source is the
