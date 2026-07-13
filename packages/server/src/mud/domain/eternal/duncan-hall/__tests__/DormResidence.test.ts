@@ -396,13 +396,14 @@ describe('unprovision — revert + free slot; re-provision = default look', () =
     expect(snapshots().filter((s) => s.owner === k1)).toHaveLength(1);
     ContainmentApi.move(iris, (await w.ensureFloor(1))! as Stuff & Container);
 
-    // Unprovision → revoke + revert + delete record + retire slot.
+    // Unprovision the tenant (iris → her held unit k1) → revoke + revert +
+    // delete record + retire slot.
     const op = makeAvatar('op');
     const ctx = ctxFor(op, 'unprovision');
     await run(
       makeStuff(() => new UnprovisionController()),
       op,
-      { unit: k1 } as CommandModel,
+      { player: { stuff: iris } } as unknown as CommandModel,
       ctx,
     );
     expect(rejectionReason(ctx)).toBeNull();

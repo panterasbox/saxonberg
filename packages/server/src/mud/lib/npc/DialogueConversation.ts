@@ -45,6 +45,7 @@ import { WorldClockApi } from "../../api/worldclock";
 import { SoulApi } from "../../api/soul";
 import { RecognitionApi } from "../../api/recognition";
 import { MixinApi } from "../../api/mixin";
+import { CommandApi } from "../../api/command";
 import { DefaultCalendar } from "../time/DefaultCalendar";
 import type { Containable } from "../spatial/Containable";
 import type {
@@ -383,9 +384,30 @@ export class DialogueConversation implements SustainedEngagement {
         case "end":
           flow.end = true;
           break;
+        case "dispatch":
+          await this.dispatch(effect.command);
+          break;
       }
     }
     return flow;
+  }
+
+  /**
+   * Run a command AS THE NPC — the "NPCs do their jobs" seam. `$player`
+   * renders to the interlocutor's name (co-present, so the command's MQL
+   * resolves it). Dispatched via `forceCommand`, so the boundary is the
+   * TARGET controller's `execute()`-level authorization (the NPC can only
+   * accomplish what a controller will let this NPC actor do — see
+   * `docs/subsystems/npc-dialogue.md § dispatch`). No-op if the NPC is not a
+   * command giver.
+   */
+  private async dispatch(command: string): Promise<void> {
+    const npc = this.npc;
+    if (!MixinApi.isCommandGiver(npc)) return;
+    const name =
+      (this.player as unknown as { getName?: () => string }).getName?.() ?? "";
+    const text = command.replaceAll("$player", name);
+    await CommandApi.forceCommand(npc, text);
   }
 
   private async npcEmote(verb: string): Promise<void> {

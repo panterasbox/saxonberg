@@ -14,10 +14,16 @@
  * floor shows the door + reachability updates now. The room / floor
  * materialize lazily on first entry (nothing is built here).
  *
- * Operator-gated (`requiresWizard`, the `reserve`/`house` operator-verb
- * precedent — operator == wizard in v1). Finer gating to the dorms-parcel
- * owner (`AccessApi` against the `duncan-hall` title) is the refinement seam
- * once the dorms parcel carries a resolvable zone resource.
+ * **Authorization is at `execute()`, not the validator** — the real boundary,
+ * because a dialogue `dispatch` (Katie doing her job) `forceCommand`s this
+ * verb, and `forced` bypasses the `requiresWizard` YAML validator. Allowed
+ * iff the actor `isWizard` (operator) OR is an **agent of the dorms-parcel
+ * owner** (a member of the `duncan-hall` group — the landlord's staff, which
+ * is how Katie is authorized). The agency check does NOT use `AccessApi.can`
+ * (it fails closed for NPCs, which have no `playerId`); it resolves the owner
+ * group ref and checks membership by the actor's `playerId ?? templatePath`.
+ * `requiresWizard` stays on the YAML affordance so only operators *see* the
+ * raw verb.
  */
 
 import { CommandController } from '../../../lib/command/CommandController';
@@ -25,8 +31,10 @@ import type { CommandContext, CommandModel } from '../../../api/command';
 import type { MqlOneResult } from '../../../api/mql';
 import { MessageApi } from '../../../api/message';
 import { Mml } from '../../../api/mml';
+import { AccessApi } from '../../../api/access';
+import { GroupApi } from '../../../api/group';
 import { ParcelApi } from '../../../api/parcel';
-import { ParcelRecord } from '../../../lib/parcel/ParcelRecord';
+import { ParcelRecord, type ParcelOwner } from '../../../lib/parcel/ParcelRecord';
 import DormWarren from '../../../domain/eternal/duncan-hall/DormWarren';
 import type { Stuff } from '../../../lib/stuff/Stuff';
 
@@ -38,11 +46,7 @@ interface ProvisionModel extends CommandModel {
 
 export default class ProvisionController extends CommandController<ProvisionModel> {
   async execute(model: ProvisionModel, context: CommandContext): Promise<void> {
-    const target = model.player?.stuff as Stuff | undefined;
-    const playerPath = target?.getTemplatePath() ?? '';
-    if (!playerPath) {
-      return this.fail(context, 'Provision a dorm for whom?', 'no-player');
-    }
+    const actor = context.commandGiver as Stuff;
 
     // Inherit the owner from the dorms parcel (the landlord).
     const dorms = await ParcelApi.coveringParcelOf(DormWarren.DORMS_EXTENT);
@@ -52,6 +56,33 @@ export default class ProvisionController extends CommandController<ProvisionMode
         context,
         'The dorms wing has no owner to lease under.',
         'no-dorms-parcel',
+      );
+    }
+
+    // The real authorization boundary (execute-level, so a forced dispatch
+    // can't skip it): a wizard, or an agent of the dorms owner (Katie).
+    if (!(await ProvisionController.isDormsAgent(actor, owner))) {
+      return this.fail(
+        context,
+        "You're not authorized to lease out Duncan Hall's dorms.",
+        'not-authorized',
+      );
+    }
+
+    const target = model.player?.stuff as Stuff | undefined;
+    const playerPath = target?.getTemplatePath() ?? '';
+    if (!playerPath) {
+      return this.fail(context, 'Provision a dorm for whom?', 'no-player');
+    }
+
+    // One dorm per tenant — refuse a double-provision (keeps Katie's tree
+    // simple: no lease-state guard needed).
+    if (await ParcelApi.heldUnitOf(playerPath)) {
+      const who = target?.getPresentation() ?? playerPath;
+      return this.fail(
+        context,
+        `${who} already holds a dorm.`,
+        'already-housed',
       );
     }
 
@@ -105,5 +136,28 @@ export default class ProvisionController extends CommandController<ProvisionMode
   ): void {
     this.send(context, Mml.fromMarkup(`\n${detail}\n`));
     context.note({ kind: 'controller-rejected', reason, detail });
+  }
+
+  /**
+   * Whether `actor` may administer the dorms: a wizard (operator), or an
+   * **agent of the dorms owner** — a member of the owner group (the
+   * landlord's staff; how Katie is authorized). NOT via `AccessApi.can`,
+   * which fails closed for NPCs (no `playerId`); membership is checked by the
+   * actor's `playerId ?? templatePath` — the key each principal enrolled
+   * under (a player by playerId, an NPC like Katie by templatePath). Shared
+   * with `UnprovisionController` (a class static, not a free helper). A
+   * first-class `AccessApi` NPC-agency predicate is the clean follow-on.
+   */
+  public static async isDormsAgent(
+    actor: Stuff,
+    owner: ParcelOwner,
+  ): Promise<boolean> {
+    if (await AccessApi.isWizard(actor)) return true;
+    const ref = await ParcelApi.resolveOwnerRef(owner);
+    if (!ref) return false;
+    const key =
+      (actor as unknown as { getPlayerId?: () => string }).getPlayerId?.() ??
+      actor.getTemplatePath();
+    return key ? GroupApi.isMember(key, ref) : false;
   }
 }

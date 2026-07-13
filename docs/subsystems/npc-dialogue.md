@@ -78,13 +78,45 @@ interface DialogueGuard { fact: GuardFact; op: GuardOp; value: string|number|boo
   roster), `time:hour` (world hour-of-day), `state:<key>` (ephemeral
   conversation scratch). Operators: `eq/ne/gt/gte/lt/lte`.
 - **Effect verb set** (registered, extensible): `set-state`, `regard`
-  (delta NPC→player, persists), `say`, `emote`, `goto`, `end`.
+  (delta NPC→player, persists), `say`, `emote`, `goto`, `end`, **`dispatch`**
+  (the "NPCs do their jobs" seam — below).
 - **`DialogueTreeSchema.validate(tree): string[]`** — collect-all-errors,
   never throws, tolerates `unknown`. Checks dangling `entry[].node` /
   `choice.to`, unknown facts/axes/operators, unregistered effect verbs.
   A value-object class owning the operations (the `EmoteGrammarRunner`
   precedent) — satisfies `lib/` export discipline (no free-floating
   `validateTree`).
+
+## The `dispatch` effect — NPCs do their jobs
+
+The **`dispatch`** effect (`{verb:'dispatch', command}`) is how a
+conversation performs a real world-action: the NPC **runs a command as
+itself** through the command bus. It is the reusable seam that lets a service
+NPC *do its job* — Katie the dorm super assigns you a room, a banker opens an
+account, an employer hires you — without a bare player-facing verb. `$player`
+in the command renders to the interlocutor's name (they're co-present, so the
+command's MQL resolves them); `applyEffects` narrows the NPC to a
+`CommandGiver` and calls `CommandApi.forceCommand(npc, text)` from the
+detached loop's context.
+
+**The security model (load-bearing).** The command runs **as the NPC, bounded
+by the NPC's own authority** — but `forceCommand` stamps `forced:true`, which
+bypasses the affordance/YAML-validator gates. So the **real boundary is the
+target controller's `execute()`-level authorization**: an NPC can only
+accomplish what a controller will let *that NPC actor* do. Provisioning, for
+instance, gates `execute()` on "wizard OR agent of the dorms owner", so
+Katie (enrolled in the landlord group) passes and a random NPC's dispatch of
+the same verb is refused. The command string is **not** statically validated
+(the scripting precedent — bounded at runtime by authority, not at save
+time); `DialogueTreeSchema` only checks the effect is well-formed
+(`dispatch` present with a string `command`).
+
+**Best practice (content development).** A player-facing capability gets a
+**diegetic front** — an NPC (or object) doing its job — never a bare typed
+verb; the raw verb stays an operator/debug seam. The **NPC is the
+authorization principal** (its role/membership is why the action is allowed),
+and `dispatch` is the reusable primitive that wires the two together. See
+[residence.md](./residence.md) (Katie) for the first consumer.
 
 ## The conversation engagement (`lib/npc/DialogueConversation.ts`)
 

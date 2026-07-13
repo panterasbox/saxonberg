@@ -95,10 +95,13 @@ live ref and re-resolve after a reap):
   `canTraverse` off `DormWarren.floorReachable(n)` (the real move path checks
   `canTraverse` before `resolveDestination`).
 - **`DormDoor`** — one per provisioned unit, an exit `unit-<pos>` on its
-  floor corridor. Starts **locked**; `unlock()` lease-gates via
-  `ParcelApi.hasUseGrant(unitKey, actor)` (actor from
-  `ExecutionContextApi`) — can't unlock, can't pass (`canTraverse` blocks
-  while locked). `resolveDestination()` → `DormWarren.admit(unitKey)`.
+  floor corridor. **The door knows its tenant**: `canTraverse(mover)` admits
+  exactly the unit's active leaseholder (a *synchronous* lookup off
+  `DormWarren.leaseholderOf(unitKey)`, a cache refreshed from the durable
+  grants whenever provisioning changes) and blocks everyone else. No verb, no
+  unlock step — you walk through your own door and it lets you in. (There is
+  **no `enter` verb** — a bare verb was a cold-OS surface; deleted.)
+  `resolveDestination()` → `DormWarren.admit(unitKey)`.
 
 `admit(unitKey)` returns the cached live room, else clones a `DormRoom`
 (`createMemberSerialized`) → stashes its key → **D1 restore-or-seed**
@@ -133,14 +136,27 @@ The durable slot `(floor, position)` lives on the minted unit
 (`ParcelRecord.slotOfExtent` / `extentForSlot` — zero new field; the extent
 *is* the slot, and already the D1 key + the Warren member key).
 
-`provision <player>` (alias `lease`; `system` category, operator-gated —
-`requiresWizard` in v1, the finer dorms-owner `AccessApi` gate a refinement
-seam): compute the **lowest-free slot** (`ParcelApi.childParcelsOf(dorms)` →
-first free `f<n>-r<p>` within `DormWarren.ROOMS_PER_FLOOR`, reusing gaps left
-by unprovision before a new floor) → `ParcelApi.subdivide(unitExtent, dorms,
+`provision <player>` (alias `lease`; `system` category): compute the
+**lowest-free slot** (`ParcelApi.childParcelsOf(dorms)` → first free
+`f<n>-r<p>` within `DormWarren.ROOMS_PER_FLOOR`, reusing gaps left by
+unprovision before a new floor) → `ParcelApi.subdivide(unitExtent, dorms,
 owner)` (**no backing zone** — the extent is just the key) →
 `ParcelApi.grantUse(unitExtent, playerPath, null)` → `ensureUnitDoor` +
 `refreshProvisioned`. The room/floor materialize lazily on first entry.
+Refuses a double-provision (`heldUnitOf` non-null → already housed).
+
+**Authorization** is at `execute()` (the real boundary — a dialogue
+`dispatch` `forceCommand`s the verb, and `forced` bypasses the `requiresWizard`
+validator): allowed iff the actor `isWizard` (operator) **or is an agent of
+the dorms owner** — a member of the `duncan-hall` group. The agency check does
+NOT use `AccessApi.can` (it fails closed for NPCs, which have no `playerId`);
+it resolves the owner group ref and checks membership by the actor's `playerId
+?? templatePath` (`isDormsAgent` in `ProvisionController`). This is how **Katie
+fronts provisioning in the world**: `talk to Katie` → her intake dialogue
+`dispatch`es `provision $player` **as Katie**, who is authorized because her
+`postRegister` enrolls her into the `duncan-hall` group. A player never types
+the raw verb. See [npc-dialogue.md § dispatch](./npc-dialogue.md) and Katie's
+sheet (`docs/staging/eternal-university/npcs/property-manager.md`).
 
 The lease is a **use-grant** on the parcel `grants[]` (`UseGrant {kind:'lease',
 holder, grantedAt, expiresAt}`; `ParcelApi.grantUse`/`revokeUse`/`hasUseGrant`/
@@ -176,21 +192,22 @@ prose-field state.
   seeded once (`installFixtures`), never re-seeded (multi-instance
   `applyPopulates` no-op). No field double-owned.
 
-## The lease + revert
+## Entering + the lease + revert
 
-`enter` (`residence` category, afforded universally by `MobileMixin`): from
-inside the building, resolve the giver's held unit (`heldUnitOf`), ensure its
-floor + door, `door.unlock()` (lease-gated — a non-holder is refused), and
-traverse into the room.
+**Entry is just walking** — there is no `enter` verb. You climb the stairwell
+to your floor's corridor and go through your own door; it opens for its tenant
+(the sync `leaseholderOf` gate) and blocks everyone else.
 
-`unprovision <unit>` (alias `unlease`; `system` category, operator-gated):
-`ParcelApi.revokeUse` → `DormWarren.dropUnit(unit, {revert:true})`
-(`markForRevert` → tear down the live room → no recapture races the delete) →
-`PersistableApi.deleteAllFor(unitExtent)` (clear the prose overlay record) →
-`ParcelApi.retire(unitExtent)` (free the slot for gap reuse) →
-`refreshProvisioned`. The shell re-leases clean; a re-provision to that slot
-materializes at the **default** look. A live occupant is ejected to the floor
-corridor first (best-effort; v1 assumes a vacant/expired unit).
+`unprovision <player>` (alias `unlease`; `system` category, same dorms-agent
+authorization as `provision`, so Katie fronts move-out via a `dispatch
+unprovision $player`): resolve the tenant's held unit (`heldUnitOf`, symmetric
+with `provision`) → `ParcelApi.revokeUse` → `DormWarren.dropUnit(unit,
+{revert:true})` (`markForRevert` → tear down the live room → no recapture
+races the delete) → `PersistableApi.deleteAllFor(unitExtent)` (clear the prose
+overlay record) → `ParcelApi.retire(unitExtent)` (free the slot for gap
+reuse) → `refreshProvisioned`. The shell re-leases clean; a re-provision to
+that slot materializes at the **default** look. A live occupant is ejected to
+the floor corridor first (best-effort).
 
 ## Deferred seams
 
