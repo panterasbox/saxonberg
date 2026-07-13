@@ -18,6 +18,10 @@ import type { Stuff } from "../lib/stuff/Stuff";
 import type { Engaged } from "../lib/activity/Engaged";
 import type { CombatSession } from "../lib/combat/CombatSession";
 import type { CombatTerms } from "../lib/combat/CombatTerms";
+import type CombatAttributionEvent from "../lib/combat/CombatAttributionEvent";
+import type { BlameVerdict } from "../lib/combat/CombatAttributionEvent";
+
+export type { BlameVerdict } from "../lib/combat/CombatAttributionEvent";
 import { SecurityApi } from "./security";
 import { StuffApi } from "./stuff";
 import { HotReloadApi } from "./hot-reload";
@@ -28,6 +32,20 @@ import { fileURLToPath } from "url";
 export type OpenSessionResult =
   | { ok: true; session: CombatSession }
   | { ok: false; reason: "busy" | "not-engageable" };
+
+/** The tactical read `assess` returns while a fight is live. */
+export interface CombatAssessResult {
+  ok: boolean;
+  reason?: "not-in-combat" | "no-target";
+  /** The opponent's poise band (bands, never numbers). */
+  poiseBand?: string;
+  /** The opponent's active combat flags (disarmed/prone/…). */
+  flags?: string[];
+  /** Whether the opponent is presently armed. */
+  armed?: boolean;
+  /** The opponent's condition band, competence-gated. */
+  conditionBand?: string;
+}
 
 /** Attempt-time eligibility verdict for a gambit. */
 export interface GambitEligibility {
@@ -96,6 +114,39 @@ export class CombatApi {
   /** The actor yields — resolves the fight in the opponent's favour. */
   public static yieldFight(actor: Stuff): boolean {
     return logic().yieldFight(actor);
+  }
+
+  /**
+   * The blame verdict for a victim's death, derived on read by replaying
+   * the append-only attribution ledger. `null` if the victim has no
+   * attributed combat death. `victimId` is the durable `templatePath`.
+   */
+  public static blameFor(victimId: string): Promise<BlameVerdict | null> {
+    return logic().blameFor(victimId);
+  }
+
+  /** Every attribution row for a fight (read/analytics; ordered by realAt). */
+  public static attributionFor(
+    sessionId: string,
+  ): Promise<CombatAttributionEvent[]> {
+    return logic().attributionFor(sessionId);
+  }
+
+  /**
+   * Stay a coup in progress — any present party (or the executioner's own
+   * hand) stops the killing stroke on `target` (the victim or the
+   * executioner of a live coup). Returns true if a coup was interrupted.
+   */
+  public static intervene(actor: Stuff, target: Stuff): boolean {
+    return logic().intervene(actor, target);
+  }
+
+  /**
+   * The costed, competence-graded tactical read of an opponent mid-fight
+   * — spends the actor's next exchange and mints a combat `ActSignature`.
+   */
+  public static assess(actor: Stuff, target: Stuff): CombatAssessResult {
+    return logic().assess(actor, target);
   }
 }
 

@@ -6,6 +6,7 @@ hydratorClass: /lib/persistence/PersistentHydrator
 data:
   illustration: species/eldarinus.png
   binomial: Homo eldarinus
+  sentient: true
   commonNames: ["elf"]
   _bodyPlanPath: /lib/body-plans/biped
   _parentCladePath: /lib/species/animalia

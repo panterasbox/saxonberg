@@ -10,9 +10,25 @@ import { MixinApi } from "../../api/mixin";
 import { MaterialApi } from "../../api/material";
 import { ConditionApi } from "../../api/condition";
 import { SchedulerApi } from "../../api/scheduler";
+import { ScheduleApi } from "../../api/schedule";
 import { StuffApi } from "../../api/stuff";
 import { AppApi } from "../../api/app";
+import { SpeciesApi } from "../../api/species";
+import { ChronicleApi } from "../../api/chronicle";
+import { RegardApi } from "../../api/regard";
+import { AdvancementApi } from "../../api/advancement";
+import { WorldClockApi } from "../../api/worldclock";
 import { AppSettingKeys } from "../../lib/config/AppSettings";
+import CombatAttributionEvent, {
+  type CombatAttributionFields,
+} from "../../lib/combat/CombatAttributionEvent";
+import { Coup, COMBAT_COUP_TYPE } from "../../lib/combat/Coup";
+import type { Sensor } from "../../lib/message/Sensor";
+import type {
+  Subcheck,
+  Difficulty,
+  Outcome,
+} from "../../lib/advancement/ActSignature";
 import type { Channel } from "../../lib/material/Channel";
 import Weapon from "../../lib/equipment/Weapon";
 import type { OutcomeBand } from "../../api/material";
@@ -37,6 +53,8 @@ import {
 import type {
   OpenSessionResult,
   GambitEligibility,
+  BlameVerdict,
+  CombatAssessResult,
 } from "../../api/combat";
 
 const CombatApiCallers = SecurityPolicies.FromModule("/api/combat#CombatApi");
@@ -107,7 +125,33 @@ export class CombatLogic extends ApiLogic {
     // The yielding actor loses; the fight ends on the yield terminus.
     const opp = session.opponentState(actor)?.combatant;
     endWith(session, "yield", actor, opp);
+    if (opp) runResolutionConsumers(session, opp, actor, false, false);
     return true;
+  }
+
+  @CallSecurity(CombatApiCallers)
+  public async blameFor(victimId: string): Promise<BlameVerdict | null> {
+    return blameForImpl(victimId);
+  }
+
+  @CallSecurity(CombatApiCallers)
+  public async attributionFor(
+    sessionId: string,
+  ): Promise<CombatAttributionEvent[]> {
+    const rows = await CombatAttributionEvent.find<CombatAttributionEvent>({
+      sessionId,
+    });
+    return rows.sort((a, b) => a.realAt - b.realAt);
+  }
+
+  @CallSecurity(CombatApiCallers)
+  public intervene(actor: Stuff, target: Stuff): boolean {
+    return interveneImpl(actor, target);
+  }
+
+  @CallSecurity(CombatApiCallers)
+  public assess(actor: Stuff, target: Stuff): CombatAssessResult {
+    return assessImpl(actor, target);
   }
 }
 
@@ -196,6 +240,12 @@ function openSessionImpl(
     SchedulerApi.cancel(session, "cancelled");
     return { ok: false, reason: "busy" };
   }
+
+  // Blame ledger: record the opening. A sentient defender who did NOT
+  // consent to lethal terms is the imposed-terms crime path — write the
+  // standalone `violated` marker at initiation (the append-only ledger is
+  // the system of record; culpability is derived on read).
+  recordOpening(session, initiator, defender, terms);
   return { ok: true, session };
 }
 
@@ -318,6 +368,13 @@ function resolveExchange(
     return;
   }
 
+  if (key === "assess") {
+    // The actor spent the beat reading the opponent (the costed `assess`):
+    // no offense, no poise restore — the read already went out at command
+    // time. The opportunity cost is the forgone exchange.
+    return;
+  }
+
   // An actual exchange trades blows — base autocombat erodes both sides.
   const erode = dial(AppSettingKeys.combatPoiseErodePerExchange, 0.12);
   actorState.poise.erode(erode, beat);
@@ -333,6 +390,11 @@ function resolveExchange(
   const whiffPenalty = dial(AppSettingKeys.combatPoiseWhiffPenalty, 0.25);
   const targetCanParry = resolveInstrument(targetState) !== null;
   const outcome = decideOutcome(actorState, targetState, spec, targetCanParry);
+
+  // Advancement: the actor earns credit for the exchange (self-credit
+  // only). Minted for the player-driven side; a brain-driven beast needs
+  // no transcript. Fire-and-forget — never blocks the beat.
+  mintExchangeSignature(actorState, targetState, outcome);
 
   switch (outcome) {
     case "whiff": {
@@ -527,11 +589,16 @@ function checkFirstBlood(session: CombatSession, report: InflictReport): void {
 }
 
 /**
- * A downed combatant lost the poise contest. Under lethal-authorized
- * terms a Build-1 cull (non-sentient target) finishes here — the winning
- * blow kills, since a non-sentient target skips the two-stage coup. Under
- * non-lethal terms the fight ends at incapacitation. (Build 2 adds
- * `isSentient` + the separate interruptible coup for sentient duels.)
+ * A downed combatant lost the poise contest — the **three-case** severity
+ * keying (Build 2):
+ *
+ *  - **non-sentient + lethal** → the cull: the winning blow finishes the
+ *    beast (stage 2 skipped), no consent, no blame.
+ *  - **sentient + lethal-to-the-death** → the fight resolves at
+ *    incapacitation (winning the poise contest only *defeats*); the kill
+ *    is the separate, interruptible {@link Coup} (stage 2).
+ *  - **sentient + lethal-to-submission, or non-lethal** → incapacitation
+ *    is the terminus; nobody dies.
  */
 function handleDown(
   session: CombatSession,
@@ -541,16 +608,39 @@ function handleDown(
   targetState.down = true;
   const attacker = attackerState.combatant;
   const victim = targetState.combatant;
-  if (session.getTerms().isLethalAuthorized()) {
-    kill(victim);
-    endWith(session, "death", victim, attacker);
-  } else {
+  const terms = session.getTerms();
+
+  if (!terms.isLethalAuthorized()) {
     endWith(session, "incapacitation", victim, attacker);
+    runResolutionConsumers(session, attacker, victim, false, false);
+    return;
   }
+
+  if (!safeIsSentient(victim)) {
+    // The cull — a beast is finished by the winning blow.
+    killImpl(victim, "slain");
+    recordDeath(session, attacker, victim);
+    endWith(session, "death", victim, attacker);
+    runResolutionConsumers(session, attacker, victim, true, false);
+    return;
+  }
+
+  // Sentient + lethal: the winning blow only *defeats* — the fight ends
+  // at incapacitation, and the finish lethality authorizes becomes the
+  // separate, deliberate, interruptible coup (the winner may still choose
+  // mercy, or a bystander may stay the stroke). This is the two-stage
+  // death: `--lethal` finishes a downed opponent, but now it takes a beat
+  // and can be stopped.
+  endWith(session, "incapacitation", victim, attacker);
+  beginCoup(session, attacker, victim);
 }
 
-/** Pull the death seam (the harm-owned lifecycle flip). */
-function kill(target: Stuff): void {
+/** Pull the death seam (the harm-owned lifecycle flip), naming the cause
+ * so a `getCauseOfDeath` read is honest for a combat kill. */
+function killImpl(target: Stuff, cause: string): void {
+  if (MixinApi.isVitals(target) && !target.getCauseOfDeath()) {
+    target.setCauseOfDeath(cause);
+  }
   if (MixinApi.isOrganism(target)) target.setLifecycleState("dead");
 }
 
@@ -562,12 +652,36 @@ function checkVitalsResolution(session: CombatSession): void {
     const opp = session.opponentState(s.combatant)?.combatant;
     const c = s.combatant.getConsciousness();
     if (c === "dead") {
+      // A death from accumulated trauma mid-fight (the bleed-out path).
+      if (opp) recordDeath(session, opp, s.combatant);
       endWith(session, "death", s.combatant, opp);
+      if (opp) {
+        runResolutionConsumers(
+          session,
+          opp,
+          s.combatant,
+          true,
+          isCrime(session.getTerms(), s.combatant),
+        );
+      }
       return;
     }
     if (c === "unconscious" && !s.down) {
       s.down = true;
       endWith(session, "incapacitation", s.combatant, opp);
+      // The two-stage death follows **incapacitation**, however it was
+      // reached: under lethal terms a downed sentient can still be
+      // finished by the deliberate coup whether they lost the poise
+      // contest (`handleDown`) or bled to unconsciousness by attrition.
+      if (
+        opp &&
+        session.getTerms().isLethalAuthorized() &&
+        safeIsSentient(s.combatant)
+      ) {
+        beginCoup(session, opp, s.combatant);
+      } else if (opp) {
+        runResolutionConsumers(session, opp, s.combatant, false, false);
+      }
       return;
     }
   }
@@ -767,5 +881,396 @@ function clamp01(n: number): number {
   if (n < 0) return 0;
   if (n > 1) return 1;
   return n;
+}
+
+/* ═══════════════════ Build 2 — consequence & progression ═══════════════════ */
+
+/** The combat Disciplines credit accrues to (seeded as data). */
+const MELEE_DISCIPLINE = "melee-combat";
+const BLADES_DISCIPLINE = "blades";
+
+/* ───────────────────────── blame ledger ───────────────────────── */
+
+/** A combatant's durable id — the `templatePath` (the renown/provenance key). */
+function durableIdOf(s: Stuff): string {
+  return s.getTemplatePath() ?? "";
+}
+
+/** Sentience read, tolerant of a species not yet resolved. */
+function safeIsSentient(s: Stuff): boolean {
+  try {
+    return SpeciesApi.isSentient(s);
+  } catch {
+    return false;
+  }
+}
+
+/** A death is unlawful — a crime — when a sentient person is killed under
+ * lethal terms they did not consent to. */
+function isCrime(terms: CombatTerms, victim: Stuff): boolean {
+  return (
+    terms.lethality === "lethal" && !terms.consented && safeIsSentient(victim)
+  );
+}
+
+/** Game-time seconds witness, tolerant of a disconnected clock. */
+function gameNow(): number {
+  try {
+    return WorldClockApi.getNow().rawValue();
+  } catch {
+    return 0;
+  }
+}
+
+/** Fire-and-forget append to the blame ledger — never blocks the beat. */
+function noteAttribution(fields: CombatAttributionFields): void {
+  void recordAttributionImpl(fields).catch(() => {
+    /* the ledger is best-effort; a write failure never breaks a fight */
+  });
+}
+
+async function recordAttributionImpl(
+  fields: CombatAttributionFields,
+): Promise<void> {
+  const ev = new CombatAttributionEvent();
+  ev.kind = fields.kind;
+  ev.sessionId = fields.sessionId;
+  ev.initiator = fields.initiator;
+  ev.opponent = fields.opponent;
+  ev.victim = fields.victim ?? "";
+  ev.killer = fields.killer ?? "";
+  ev.lethality = fields.lethality;
+  ev.stopCondition = fields.stopCondition;
+  ev.consented = fields.consented;
+  ev.sentient = fields.sentient;
+  ev.locality = fields.locality ?? null;
+  ev.at = fields.at ?? gameNow();
+  ev.realAt = fields.realAt ?? Date.now();
+  await ev.save();
+}
+
+/** The opening rows: `opened` always; `violated` when lethal terms are
+ * imposed on a non-consenting sentient (the standalone crime marker). */
+function recordOpening(
+  session: CombatSession,
+  initiator: Stuff,
+  defender: Stuff,
+  terms: CombatTerms,
+): void {
+  const sentient = safeIsSentient(defender);
+  const base = {
+    sessionId: session.engagementId,
+    initiator: durableIdOf(initiator),
+    opponent: durableIdOf(defender),
+    lethality: terms.lethality,
+    stopCondition: terms.stopCondition,
+    consented: terms.consented,
+    sentient,
+  };
+  noteAttribution({ ...base, kind: "opened" });
+  if (terms.lethality === "lethal" && sentient && !terms.consented) {
+    noteAttribution({ ...base, kind: "violated" });
+  }
+}
+
+/** The `death` row — the terms in force ride along so the reader derives
+ * lawful-vs-crime without a second lookup. */
+function recordDeath(
+  session: CombatSession,
+  killer: Stuff,
+  victim: Stuff,
+): void {
+  const terms = session.getTerms();
+  noteAttribution({
+    kind: "death",
+    sessionId: session.engagementId,
+    initiator: terms.initiator,
+    opponent: durableIdOf(killer),
+    victim: durableIdOf(victim),
+    killer: durableIdOf(killer),
+    lethality: terms.lethality,
+    stopCondition: terms.stopCondition,
+    consented: terms.consented,
+    sentient: safeIsSentient(victim),
+  });
+}
+
+async function blameForImpl(victimId: string): Promise<BlameVerdict | null> {
+  const rows = await CombatAttributionEvent.find<CombatAttributionEvent>({
+    victim: victimId,
+  });
+  return CombatAttributionEvent.deriveBlame(rows);
+}
+
+/* ───────────────────────── two-stage death (coup) ───────────────────────── */
+
+/**
+ * Begin the stage-2 coup. Deferred one tick (`schedule(0)`) so the
+ * just-resolved session finishes tearing down — freeing the executioner's
+ * `body` slot — before the coup claims it.
+ */
+function beginCoup(
+  session: CombatSession,
+  executioner: Stuff,
+  victim: Stuff,
+): void {
+  ScheduleApi.schedule(0, () => startCoup(session, executioner, victim));
+}
+
+function startCoup(
+  session: CombatSession,
+  executioner: Stuff,
+  victim: Stuff,
+): void {
+  if (!MixinApi.isEngaged(executioner) || !MixinApi.isEngaged(victim)) return;
+  if (!coupEligible(executioner, victim)) return;
+  const durationMs = Math.round(
+    dial(AppSettingKeys.combatCoupSeconds, 6) * 1000,
+  );
+  const coup = new Coup({
+    executioner: executioner as Stuff & Engaged,
+    victim: victim as Stuff & Engaged,
+    durationMs,
+    onComplete: () => completeCoup(session, executioner, victim),
+    onAbort: () => abortCoup(session, executioner, victim),
+  });
+  const started = SchedulerApi.start(coup);
+  if (!started.ok) return;
+  CombatNarration.narrateCoupTelegraph(executioner, victim);
+}
+
+function completeCoup(
+  session: CombatSession,
+  executioner: Stuff,
+  victim: Stuff,
+): void {
+  // Re-check: the victim may have been dragged clear or already died.
+  if (!coupEligible(executioner, victim)) return;
+  killImpl(victim, "put to death");
+  recordDeath(session, executioner, victim);
+  CombatNarration.narrateResolution({
+    combatants: [executioner, victim] as [Stuff, Stuff],
+    outcome: "death",
+    victim,
+    killer: executioner,
+  });
+  runResolutionConsumers(
+    session,
+    executioner,
+    victim,
+    true,
+    isCrime(session.getTerms(), victim),
+  );
+}
+
+function abortCoup(
+  session: CombatSession,
+  executioner: Stuff,
+  victim: Stuff,
+): void {
+  // The stroke never fell — the victim is spared, the winner keeps the
+  // (clean) duel win, and mercy is the recorded deed.
+  CombatNarration.narrateCoupStayed(executioner, victim);
+  runResolutionConsumers(session, executioner, victim, false, false);
+}
+
+/** Both parties present in the same room, neither already dead. */
+function coupEligible(executioner: Stuff, victim: Stuff): boolean {
+  if (
+    MixinApi.isOrganism(executioner) &&
+    executioner.getLifecycleState() === "dead"
+  ) {
+    return false;
+  }
+  if (MixinApi.isOrganism(victim) && victim.getLifecycleState() === "dead") {
+    return false;
+  }
+  if (!MixinApi.isContainable(executioner) || !MixinApi.isContainable(victim)) {
+    return false;
+  }
+  const room = executioner.getContainer();
+  return room != null && victim.getContainer() === room;
+}
+
+function interveneImpl(actor: Stuff, target: Stuff): boolean {
+  const coup = findCoupInRoom(actor, target);
+  if (!coup) return false;
+  SchedulerApi.cancel(coup, "combat-intervened");
+  return true;
+}
+
+/** A live coup in the actor's room where `target` is the executioner or
+ * the victim (so `intervene <foe>` and `intervene <friend>` both work). */
+function findCoupInRoom(actor: Stuff, target: Stuff): Coup | null {
+  if (!MixinApi.isContainable(actor)) return null;
+  const room = actor.getContainer();
+  if (!room || !MixinApi.isContainer(room)) return null;
+  for (const occ of room.getContents()) {
+    if (!MixinApi.isEngaged(occ)) continue;
+    const e = occ.getEngagementByType(COMBAT_COUP_TYPE);
+    if (
+      e instanceof Coup &&
+      ((occ as Stuff) === (target as Stuff) ||
+        (e.getVictim() as Stuff) === (target as Stuff))
+    ) {
+      return e;
+    }
+  }
+  return null;
+}
+
+/* ───────────────────────── resolution consumers ───────────────────────── */
+
+/**
+ * The existing-substrate consumers a resolved fight feeds: a chronicle
+ * deed for the victor (deed vs crime), and a regard nudge from every
+ * witness (a clean duel win earns a little; an unlawful kill makes the
+ * room recoil). Defensive throughout — a consumer failure never breaks a
+ * resolution. The global "X killed Y" presence relay is deferred (the
+ * room-scoped death narration already announces it).
+ */
+function runResolutionConsumers(
+  session: CombatSession,
+  victor: Stuff,
+  vanquished: Stuff,
+  killed: boolean,
+  crime: boolean,
+): void {
+  void session; // reserved for a future session-scoped consumer
+  try {
+    const vName = presentationOf(vanquished);
+    const text = killed
+      ? crime
+        ? `Struck down ${vName} — an unlawful killing.`
+        : `Killed ${vName} in a sanctioned fight.`
+      : `Bested ${vName} in a duel.`;
+    const tags = ["combat", killed ? "kill" : "victory"];
+    if (crime) tags.push("crime");
+    void ChronicleApi.recordDeed(victor, { text, tags }).catch(() => {});
+  } catch {
+    /* chronicle is best-effort */
+  }
+  const delta = crime
+    ? dial(AppSettingKeys.combatRegardUnlawfulKill, -20)
+    : dial(AppSettingKeys.combatRegardDuelWin, 2);
+  for (const w of roomBelievers(victor, [victor, vanquished])) {
+    try {
+      RegardApi.adjustRegard(w, victor, delta);
+    } catch {
+      /* skip a witness that can't hold regard */
+    }
+  }
+}
+
+/** The room's belief-capable witnesses, minus the named exclusions. */
+function roomBelievers(anchor: Stuff, exclude: Stuff[]): (Stuff & Sensor)[] {
+  if (!MixinApi.isContainable(anchor)) return [];
+  const room = anchor.getContainer();
+  if (!room || !MixinApi.isContainer(room)) return [];
+  const out: (Stuff & Sensor)[] = [];
+  for (const occ of room.getContents()) {
+    if (exclude.includes(occ)) continue;
+    if (MixinApi.isSensor(occ)) out.push(occ as Stuff & Sensor);
+  }
+  return out;
+}
+
+/** A readable label for a combatant (its presentation), or a fallback. */
+function presentationOf(s: Stuff): string {
+  const g = (s as unknown as { getPresentation?: () => string }).getPresentation;
+  if (typeof g === "function") {
+    try {
+      return g.call(s);
+    } catch {
+      /* fall through */
+    }
+  }
+  return "someone";
+}
+
+/* ───────────────────────── advancement ───────────────────────── */
+
+/**
+ * Mint the actor's per-exchange `ActSignature` (self-credit only). Only
+ * the player-driven side accrues a transcript — a brain-driven beast
+ * needs none. A bladed instrument additionally credits `blades`. Fire-
+ * and-forget: advancement never blocks the beat.
+ */
+function mintExchangeSignature(
+  actorState: CombatantState,
+  targetState: CombatantState,
+  outcome: OutcomeKind,
+): void {
+  if (actorState.brainPath) return; // player side only
+  const actor = actorState.combatant;
+  const difficulty = difficultyFor(targetState);
+  const result = outcomeToResult(outcome);
+  const subs: Subcheck[] = [
+    { discipline: MELEE_DISCIPLINE, difficulty, outcome: result },
+  ];
+  const instr = resolveInstrument(actorState);
+  if (instr && (instr.channel === "edge" || instr.channel === "point")) {
+    subs.push({ discipline: BLADES_DISCIPLINE, difficulty, outcome: result });
+  }
+  void AdvancementApi.recordSignature(actor, { discipline: subs }).catch(
+    () => {},
+  );
+}
+
+/** The exchange difficulty from the target's tactical state — beating a
+ * composed, armed guard is `hard`; exploiting an open one is `easy`. */
+function difficultyFor(target: CombatantState): Difficulty {
+  const band = target.poise.band();
+  if (band === "open" || band === "broken") return "easy";
+  if (band === "reeling") return "standard";
+  return resolveInstrument(target) ? "hard" : "standard";
+}
+
+/** Map an exchange outcome to a competence outcome. */
+function outcomeToResult(outcome: OutcomeKind): Outcome {
+  switch (outcome) {
+    case "exploit":
+      return "critical";
+    case "land":
+    case "control-land":
+      return "success";
+    case "parried":
+    case "control-resisted":
+      return "partial";
+    case "whiff":
+      return "failure";
+    default:
+      return "partial";
+  }
+}
+
+/** The costed `assess` mints a modest melee-combat read credit. */
+function mintAssessSignature(actor: Stuff): void {
+  void AdvancementApi.recordDeed(actor, {
+    discipline: MELEE_DISCIPLINE,
+    difficulty: "standard",
+    outcome: "success",
+  }).catch(() => {});
+}
+
+function assessImpl(actor: Stuff, _target: Stuff): CombatAssessResult {
+  const session = sessionForImpl(actor);
+  if (!session) return { ok: false, reason: "not-in-combat" };
+  const oppState = session.opponentState(actor);
+  if (!oppState) return { ok: false, reason: "no-target" };
+  // Costs the actor their next exchange (the real opportunity cost).
+  const st = session.getState(actor);
+  if (st) st.queuedGambit = "assess";
+  mintAssessSignature(actor);
+  const opp = oppState.combatant;
+  return {
+    ok: true,
+    poiseBand: oppState.poise.band(),
+    flags: oppState.flags.list(),
+    armed: resolveInstrument(oppState, true) !== null,
+    conditionBand: MixinApi.isVitals(opp)
+      ? opp.getConditionBand()
+      : undefined,
+  };
 }
 

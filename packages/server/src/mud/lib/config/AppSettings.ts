@@ -397,6 +397,12 @@ export const AppSettingKeys = {
   combatEnergyOpen: "combat.energy.open",
   /** Combat — max narration beats per session (bounded-beats backstop). */
   combatMaxBeats: "combat.maxBeats",
+  /** Combat (Build 2) — coup de grâce window, game-time seconds. */
+  combatCoupSeconds: "combat.coupSeconds",
+  /** Combat (Build 2) — regard witnesses grant a clean duel winner. */
+  combatRegardDuelWin: "combat.regard.duelWin",
+  /** Combat (Build 2) — regard witnesses withdraw from an unlawful killer. */
+  combatRegardUnlawfulKill: "combat.regard.unlawfulKill",
 } as const;
 
 export type AppSettingKey =

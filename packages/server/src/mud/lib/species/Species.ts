@@ -229,6 +229,22 @@ export default class Species extends SingletonMixin(
    */
   protected innateMixins: string[] = [];
 
+  /**
+   * Whether members of this species are **sentient** — self-aware moral
+   * persons whose killing is a lawful act with consequences, as opposed
+   * to a beast whose culling is not. Distinct from `isAnimate` (a rock is
+   * inanimate; a wolf is animate-but-not-sentient; a person is both).
+   *
+   * The load-bearing consumer is combat's three-case severity keying:
+   * a non-sentient target is finished by the winning blow (the cull, no
+   * consent/blame), a sentient target is only *defeated* by it (the
+   * separate, interruptible two-stage coup + the attributed blame). See
+   * `SpeciesApi.isSentient` and the combat subsystem doc.
+   *
+   * Defaults false — a species is a beast unless it declares otherwise.
+   */
+  protected sentient: boolean = false;
+
   static persistentFields = [
     'binomial',
     'commonNames',
@@ -247,6 +263,7 @@ export default class Species extends SingletonMixin(
     'vitalProfile',
     'nameBankKeys',
     'innateMixins',
+    'sentient',
   ];
   // `shortDescription` / `longDescription` (the species' generic
   // appearance) come from VisibleMixin's own persistentFields. The
@@ -259,6 +276,9 @@ export default class Species extends SingletonMixin(
 
   public getCommonNames(): readonly string[] { return this.commonNames; }
   public setCommonNames(value: string[]): void { this.commonNames = value; }
+
+  public isSentient(): boolean { return this.sentient; }
+  public setSentient(value: boolean): void { this.sentient = value; }
 
   public getBodyPlan(): BodyPlan | null {
     if (!this._bodyPlanPath) return null;

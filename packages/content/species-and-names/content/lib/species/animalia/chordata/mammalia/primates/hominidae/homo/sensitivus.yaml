@@ -9,6 +9,7 @@ hydratorClass: /lib/persistence/PersistentHydrator
 data:
   illustration: species/sapiens.png
   binomial: Homo sensitivus
+  sentient: true
   commonNames: ["sensitive", "attuned-born"]
   _bodyPlanPath: /lib/body-plans/biped
   _parentCladePath: /lib/species/animalia

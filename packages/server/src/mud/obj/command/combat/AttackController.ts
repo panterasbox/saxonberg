@@ -44,22 +44,37 @@ interface AttackModel extends CommandModel {
   to?: string;
 }
 
-/** Read a combatant's standing combat terms (defaults are frictionless). */
+/**
+ * Read a combatant's standing combat terms (defaults are frictionless).
+ * Posture comes from two surfaces: the player-side `combat.lethality` /
+ * `combat.stopCondition` **settings** (which only resolve for `Environment`
+ * hosts — i.e. players), and the **authored `CombatantMixin` fields**
+ * (`standingLethality` / `standingStopCondition`) an NPC seeds (an NPC
+ * isn't an Environment, so it can't carry settings). Either surface
+ * declaring `lethal` makes this combatant bring lethal terms.
+ */
 function standingTerms(combatant: Stuff, lethalOverride?: boolean, stopOverride?: string): TermsProposal {
   const lethSetting = ShellApi.resolveSetting<string>(combatant, "combat.lethality");
   const stopSetting = ShellApi.resolveSetting<string>(combatant, "combat.stopCondition");
+  const lethField = MixinApi.isCombatant(combatant)
+    ? combatant.getStandingLethality()
+    : "";
+  const stopField = MixinApi.isCombatant(combatant)
+    ? combatant.getStandingStopCondition()
+    : "";
   const lethality: Lethality =
-    lethalOverride === true
+    lethalOverride === true || lethSetting === "lethal" || lethField === "lethal"
       ? "lethal"
-      : lethSetting === "lethal"
-        ? "lethal"
-        : DEFAULT_TERMS.lethality;
+      : DEFAULT_TERMS.lethality;
+  const authoredStop = (val: string | undefined): StopCondition | null =>
+    val && (STOP_CONDITIONS as readonly string[]).includes(val)
+      ? (val as StopCondition)
+      : null;
   const stopCondition: StopCondition =
-    stopOverride && (STOP_CONDITIONS as readonly string[]).includes(stopOverride)
-      ? (stopOverride as StopCondition)
-      : stopSetting && (STOP_CONDITIONS as readonly string[]).includes(stopSetting)
-        ? (stopSetting as StopCondition)
-        : DEFAULT_TERMS.stopCondition;
+    authoredStop(stopOverride) ??
+    authoredStop(stopSetting) ??
+    authoredStop(stopField) ??
+    DEFAULT_TERMS.stopCondition;
   return { lethality, stopCondition, stakes: "" };
 }
 
