@@ -315,40 +315,29 @@ describe('DormWarren — the DormDoor lease-gate', () => {
   });
   afterEach(reset);
 
-  it('a locked door blocks; the leaseholder can unlock; a stranger cannot', async () => {
+  it('the door opens for its tenant and blocks everyone else', async () => {
     const k1 = seedUnit(1, 1);
     await bootRegistries();
     const w = await warren();
-    await w.refreshProvisioned();
-    await w.ensureFloor(1);
-    const door = w.doorFor(k1)!;
-    expect(door).not.toBeNull();
 
-    // Grant iris the lease.
-    await ParcelApi.grantUse(k1, '/obj/Avatar/iris', null);
     const iris = makeStuffAtPath(() => new Avatar(), '/obj/Avatar/iris');
     iris.setPlayerId('iris');
     const bob = makeStuffAtPath(() => new Avatar(), '/obj/Avatar/bob');
     bob.setPlayerId('bob');
-    const mover = occupant();
 
-    // Locked by default → traversal blocked.
-    expect(door.canTraverse(mover as unknown as never).ok).toBe(false);
+    // No lease yet → the door knows no tenant → nobody passes.
+    await w.refreshProvisioned();
+    await w.ensureFloor(1);
+    const door = w.doorFor(k1)!;
+    expect(door).not.toBeNull();
+    expect(door.canTraverse(iris as unknown as never).ok).toBe(false);
 
-    // A stranger can't unlock.
-    await expect(
-      withRootContext(null, 'test', () => {
-        ExecutionContextApi.tagActingAuthor(bob);
-        return door.unlock();
-      }),
-    ).rejects.toThrow(/lease/);
-
-    // The leaseholder can, and then traversal is admitted.
-    await withRootContext(null, 'test', () => {
-      ExecutionContextApi.tagActingAuthor(iris);
-      return door.unlock();
-    });
-    expect(door.isOpen()).toBe(true);
-    expect(door.canTraverse(mover as unknown as never).ok).toBe(true);
+    // Grant iris the lease + refresh → the door knows its tenant.
+    await ParcelApi.grantUse(k1, '/obj/Avatar/iris', null);
+    await w.refreshProvisioned();
+    expect(w.leaseholderOf(k1)).toBe('/obj/Avatar/iris');
+    // The tenant passes; a stranger is blocked — no verb, no unlock step.
+    expect(door.canTraverse(iris as unknown as never).ok).toBe(true);
+    expect(door.canTraverse(bob as unknown as never).ok).toBe(false);
   });
 });

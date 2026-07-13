@@ -65,6 +65,10 @@ export default class DormWarren extends DormWarrenBase {
   private _doorsByKey: Map<string, DormDoor> = new Map();
   /** Floors that have (or sit below) a provisioned unit — sync reachability. */
   private _provisionedFloors: Set<number> = new Set();
+  /** unitKey → the active leaseholder's path — the door's SYNC tenant gate
+   *  (a door opens for its own tenant, blocks everyone else). Refreshed from
+   *  the durable grants whenever provisioning changes. */
+  private _leaseholderByUnit: Map<string, string> = new Map();
 
   /** Resolve the singleton (async — clones on first access). */
   static async resolve(): Promise<DormWarren> {
@@ -214,14 +218,30 @@ export default class DormWarren extends DormWarrenBase {
 
   // ───────────────────── provisioning support ─────────────────────
 
-  /** Rebuild the sync reachability cache from the durable slot set. */
+  /** Rebuild the sync reachability + leaseholder caches from the durable
+   *  slot set (called at warm and whenever provisioning changes). */
   public async refreshProvisioned(): Promise<void> {
     const floors = new Set<number>();
+    const holders = new Map<string, string>();
+    const now = Date.now();
     for (const child of await ParcelApi.childParcelsOf(DormWarren.DORMS_EXTENT)) {
-      const slot = ParcelRecord.slotOfExtent(child.getExtent());
+      const extent = child.getExtent();
+      const slot = ParcelRecord.slotOfExtent(extent);
       if (slot) floors.add(slot.floor);
+      const holder = ParcelRecord.activeHolderOf(child, now);
+      if (holder) holders.set(extent, holder);
     }
     this._provisionedFloors = floors;
+    this._leaseholderByUnit = holders;
+  }
+
+  /**
+   * The active leaseholder's path for a unit, or null — the `DormDoor`'s
+   * synchronous "is this mover my tenant?" gate. The door opens for exactly
+   * this path and blocks everyone else; no verb, no unlock step.
+   */
+  public leaseholderOf(unitKey: string): string | null {
+    return this._leaseholderByUnit.get(unitKey) ?? null;
   }
 
   /**

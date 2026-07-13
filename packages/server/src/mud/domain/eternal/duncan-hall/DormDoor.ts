@@ -1,37 +1,33 @@
 /**
- * DormDoor — the lease-gated, lazy entry passage from a floor corridor into
- * one unit's `DormRoom`. A runtime clone (one per provisioned unit on its
- * floor), created by `DormWarren.ensureUnitDoor`, its `unitKey` set at
- * creation.
+ * DormDoor — the lazy entry passage from a floor corridor into one unit's
+ * `DormRoom`. A runtime clone (one per provisioned unit on its floor),
+ * created by `DormWarren.ensureUnitDoor`, its `unitKey` set at creation.
  *
- * Implemented as an `Exit` subclass (not a Boundary fixture) — the load-
- * bearing behavior is "hold the lease → can pass; don't → can't": the door
- * starts **locked** (`canTraverse` blocks), `unlock(actor)` lease-gates via
- * `ParcelApi.hasUseGrant(unitKey, actor)` (actor from `ExecutionContextApi`),
- * and once unlocked it stays open (a follower could tail in — acceptable
- * v1). Its destination materializes lazily: `resolveDestination()` →
- * `DormWarren.admit(unitKey)`, cached as a within-session live ref.
+ * Implemented as an `Exit` subclass. The load-bearing behavior is "**the door
+ * knows its tenant**": it opens for exactly the unit's active leaseholder and
+ * blocks everyone else — no verb, no unlock step, you just go home and it
+ * lets you in. The lease check is a **synchronous** decision in `canTraverse`
+ * (the real move path checks it before `resolveDestination`), read off the
+ * warren's sync `leaseholderOf(unitKey)` cache (refreshed from the durable
+ * grants whenever provisioning changes). Its destination materializes lazily:
+ * `resolveDestination()` → `DormWarren.admit(unitKey)`, cached as a
+ * within-session live ref.
  *
- * (DEVIATION from dorm-plan DECISION E: v1 folds the lockable `Door`
- * (`SealableMixin(Boundary)`) into this Exit's own gate rather than a
- * separate Boundary fixture surfaced by anchors; the `open <door>` verb
- * surface + auto-close-behind tightening are Phase 7 polish.)
+ * (v1: the door stays a lease-gated `Exit`, not a `SealableMixin(Boundary)`
+ * fixture; the physical `open <door>` verb + auto-close-behind tightening are
+ * deferred. A follower can't tail a holder through — traversal is gated
+ * per-mover, so a non-tenant is blocked even if they follow.)
  */
 
 import Exit, { type TraversalGuard } from '../../../lib/boundary/Exit';
 import type { Stuff } from '../../../lib/stuff/Stuff';
 import type { Container } from '../../../lib/spatial/Container';
 import type { Containable } from '../../../lib/spatial/Containable';
-import { ParcelApi } from '../../../api/parcel';
-import { ExecutionContextApi } from '../../../api/execution-context';
 import DormWarren from './DormWarren';
 
 export default class DormDoor extends Exit {
   /** The unit parcel extent this door fronts (the D1 key + lease key). */
   private unitKey: string;
-
-  /** Locked until a leaseholder unlocks; stays open thereafter (v1). */
-  private _open = false;
 
   /** Cached live room (Pattern B live ref); re-resolved after a reap. */
   private live: (Stuff & Container) | null = null;
@@ -40,31 +36,13 @@ export default class DormDoor extends Exit {
     super({
       direction,
       source,
-      destinationPath: DormWarren.WARREN_PATH, // placeholder; overridden below
+      destinationPath: DormWarren.WARREN_PATH, // placeholder; resolved below
     });
     this.unitKey = unitKey;
   }
 
   public getUnitKey(): string {
     return this.unitKey;
-  }
-
-  public isOpen(): boolean {
-    return this._open;
-  }
-
-  /**
-   * Lease-gate: open the door for the acting principal (from execution
-   * context) iff they hold an active lease on this unit. Throws otherwise —
-   * can't open, can't pass. Once open it stays open.
-   */
-  public async unlock(): Promise<void> {
-    const actor = ExecutionContextApi.getActingAuthor() as Stuff | null;
-    const holder = actor?.getTemplatePath() ?? '';
-    if (!holder || !(await ParcelApi.hasUseGrant(this.unitKey, holder))) {
-      throw new Error("You don't hold this dorm's lease.");
-    }
-    this._open = true;
   }
 
   /** Materialize (or re-materialize) the unit's room and return it. */
@@ -83,13 +61,18 @@ export default class DormDoor extends Exit {
     );
   }
 
-  /** A locked door blocks traversal (the "no lease, no pass" gate). */
+  /**
+   * The tenant gate: the door opens for exactly its unit's active
+   * leaseholder (a sync lookup off the warren's leaseholder cache) and blocks
+   * everyone else. No lease → no one passes (an unprovisioned/expired unit).
+   */
   public override canTraverse(
     mover: Stuff & Containable,
     mode?: string,
   ): TraversalGuard {
-    if (!this._open) {
-      return { ok: false, gate: 'door', reason: 'The door is locked.' };
+    const holder = DormWarren.peek()?.leaseholderOf(this.unitKey) ?? null;
+    if (!holder || mover.getTemplatePath() !== holder) {
+      return { ok: false, gate: 'door', reason: "This isn't your room." };
     }
     return super.canTraverse(mover, mode);
   }

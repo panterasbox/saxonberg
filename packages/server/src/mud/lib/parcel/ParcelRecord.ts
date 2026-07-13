@@ -145,6 +145,18 @@ export class ParcelRecord extends Document {
   }
 
   /**
+   * The holder of the first active (unexpired) lease on `record` at `now`, or
+   * null — the "who leases this unit" reverse of `activeGrantFor` (v1: one
+   * holder per unit). Pure. Lets a door know its tenant synchronously.
+   */
+  static activeHolderOf(record: ParcelRecord, now: number): string | null {
+    for (const grant of record.grants) {
+      if (grant.expiresAt === null || grant.expiresAt > now) return grant.holder;
+    }
+    return null;
+  }
+
+  /**
    * Parse a unit extent's encoded slot — the trailing `…/f<floor>-r<pos>`
    * segment (DECISION J: the extent *is* the slot). Returns null when the
    * extent's last segment isn't a slot token. Pure.
