@@ -1,0 +1,16 @@
+# DormRoom — the ONE template every leased dorm room is a clone of. Many
+# live rooms share this path yet keep distinct persisted state (their tenant
+# theme prose + fixtures), keyed by the unit parcel (D1 multi-instance).
+#
+# No `populates:` — fixtures are seeded imperatively by
+# `DormRoom.installFixtures` on first materialization (the multi-instance
+# `applyPopulates` is a no-op), then respawned by the persistence spine on
+# every wake. Rooms are runtime clones minted by `DormWarren.admit`, never
+# seeded instances. A plain non-coordinate Location; generic label, no Named.
+class: /domain/eternal/duncan-hall/DormRoom
+hydratorClass: /lib/persistence/PersistentHydrator
+data:
+  shortDescription: a dorm room
+  primaryKeyword: room
+  longDescription: |
+    A narrow single room — a bed against one wall, a desk under the window, a footlocker at the foot of the bed. The kind of blank the university hands every new arrival, waiting to be made someone's.

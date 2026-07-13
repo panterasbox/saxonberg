@@ -1,0 +1,10 @@
+# Desk — a university-owned dorm fixture (invariant, respawned from
+# template), cloned into each DormRoom by installFixtures. A work surface;
+# generic label, no Named.
+class: /domain/eternal/duncan-hall/Desk
+hydratorClass: /lib/persistence/PersistentHydrator
+data:
+  shortDescription: a plain desk
+  primaryKeyword: desk
+  longDescription: |
+    A laminate desk with one shallow drawer and a lamp bolted to the corner. A ring from a mug that isn't there marks the surface.

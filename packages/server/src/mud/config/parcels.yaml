@@ -27,3 +27,10 @@ parcels:
   # spatial zone" (was ownerGroupName: terminus).
   - extent: /domain/terminus/terminal
     owner: { kind: group, name: terminus }
+
+  # Duncan Hall's dorms wing — the parent parcel the leased unit parcels
+  # subdivide under (…/dorms/f<n>-r<p>). Owned by the managed `duncan-hall`
+  # group (the landlord). NO unit rows here: they're minted at provisioning.
+  # No backing zone — the extent is just the D1 + Warren-member key string.
+  - extent: /domain/eternal/duncan-hall/dorms
+    owner: { kind: group, name: duncan-hall }

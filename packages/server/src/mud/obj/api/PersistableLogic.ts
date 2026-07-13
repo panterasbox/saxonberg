@@ -231,7 +231,10 @@ function captureFields(
     if (!(field in host)) continue;
     const value = self[field];
     const mPath = marshallers[field];
-    if (mPath) {
+    // A null/undefined marshalled field round-trips as-is: the marshaller's
+    // `toStored` expects a live value (a Quantity), so an unset optional field
+    // (e.g. a room's lazily-null `_temperature`) is stored raw, not marshalled.
+    if (mPath && value != null) {
       const m = StuffApi.findByTemplatePath<Marshaller<unknown, unknown>>(mPath);
       out[field] = m ? m.toStored(value) : value;
     } else {
