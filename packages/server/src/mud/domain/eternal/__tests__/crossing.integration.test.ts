@@ -77,7 +77,6 @@ const PADDLE = "/domain/eternal/university-avenue/paddle";
 const WATCH = "/domain/eternal/university-avenue/pocket-watch";
 const LOG = "/domain/eternal/university-avenue/crossing-log";
 const THERMOS = "/domain/eternal/university-avenue/thermos";
-const GEAR = [VEST, WHISTLE, PADDLE, WATCH, LOG, THERMOS];
 const HUMAN =
   "/lib/species/animalia/chordata/mammalia/primates/hominidae/homo/sapiens";
 const BIPED = "/lib/body-plans/biped";
