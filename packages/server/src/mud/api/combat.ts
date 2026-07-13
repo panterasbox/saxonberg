@@ -27,7 +27,7 @@ import { fileURLToPath } from "url";
 /** Result of opening a session. */
 export type OpenSessionResult =
   | { ok: true; session: CombatSession }
-  | { ok: false; reason: "busy" | "not-engageable" | "start-rejected" };
+  | { ok: false; reason: "busy" | "not-engageable" };
 
 /** Attempt-time eligibility verdict for a gambit. */
 export interface GambitEligibility {

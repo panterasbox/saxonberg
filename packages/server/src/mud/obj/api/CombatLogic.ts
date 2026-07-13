@@ -14,6 +14,7 @@ import { StuffApi } from "../../api/stuff";
 import { AppApi } from "../../api/app";
 import { AppSettingKeys } from "../../lib/config/AppSettings";
 import type { Channel } from "../../lib/material/Channel";
+import Weapon from "../../lib/equipment/Weapon";
 import type { OutcomeBand } from "../../api/material";
 import type { BrainContext, BrainStatics } from "../../lib/behavior/brain";
 import {
@@ -245,9 +246,8 @@ function enduranceRatio(combatant: Stuff): number {
 
 function balanceFactorOf(combatant: Stuff): number {
   const weapon = wieldedWeapon(combatant);
-  const w = weapon as unknown as Partial<WeaponLike> | null;
-  if (w && typeof w.getBalanceFactor === "function") {
-    const bf = w.getBalanceFactor();
+  if (weapon instanceof Weapon) {
+    const bf = weapon.getBalanceFactor();
     return Number.isFinite(bf) && bf > 0 ? bf : 1;
   }
   return 1;
@@ -367,13 +367,13 @@ function resolveExchange(
       narrate(actorState, targetState, spec, "land", report, true, beat, true);
       // Winning the poise contest downs the target (the incapacitation
       // waypoint; a lethal finish follows under lethal terms).
-      handleDown(session, actorState, targetState, beat);
+      handleDown(session, actorState, targetState);
       return;
     }
     case "land": {
       actorState.poise.spend(overextend, beat);
-      const band = targetState.poise.band();
-      const report = commitInflict(actorState, targetState, band);
+      const targetBand = targetState.poise.band();
+      const report = commitInflict(actorState, targetState, targetBand);
       narrate(actorState, targetState, spec, report.deflected ? "deflected" : "land", report, !report.deflected, beat);
       if (!report.deflected) checkFirstBlood(session, report);
       return;
@@ -492,9 +492,6 @@ function siteFor(target: Stuff, open: boolean): string {
   if (open && MixinApi.isVitals(target) && target.getPart("body.head")) {
     return "body.head";
   }
-  if (MixinApi.isVitals(target) && target.getPart("body.torso")) {
-    return "body.torso";
-  }
   return "body.torso";
 }
 
@@ -540,9 +537,7 @@ function handleDown(
   session: CombatSession,
   attackerState: CombatantState,
   targetState: CombatantState,
-  beat: number,
 ): void {
-  void beat;
   targetState.down = true;
   const attacker = attackerState.combatant;
   const victim = targetState.combatant;
@@ -636,7 +631,11 @@ function invokeBrain(state: CombatantState): void {
     emoteFree: () => {},
   };
   try {
-    void brain.act(ctx);
+    // A brain may be sync or async; swallow either failure mode so a
+    // bad turn never leaks (a sync throw here, a rejected promise via
+    // .catch) — the fight continues.
+    const r = brain.act(ctx);
+    if (r) r.catch(() => {});
   } catch {
     // A throwing brain skips its turn; the fight continues.
   }
@@ -770,6 +769,3 @@ function clamp01(n: number): number {
   return n;
 }
 
-interface WeaponLike {
-  getBalanceFactor(): number;
-}

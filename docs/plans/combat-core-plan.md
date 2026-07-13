@@ -1,6 +1,6 @@
 # Combat (core, 1v1) — implementation plan (two-build, terminal-only)
 
-*Cycle 1 of the combat build. Contract: `docs/requirements/combat-core-requirements.md`. Design: `docs/slates/deferred-rpg/combat-slate.md` (mechanism) + `combat-experience-slate.md` (experience, 17 theses). This plan re-cuts the original 7 phases into **two big-swing, terminal-only builds** (cleared between). The client `CombatPane` and the threat-read are **excised to later cycles**. This is the 1v1 foundation only — the full roadmap is `combat-experience-slate.md` → "Corpus & build order".*
+*Cycle 1 of the combat build. Build 1 is **built + merged** (the source of truth for what shipped is now [`docs/subsystems/combat.md`](../subsystems/combat.md); the build-1 requirements doc retired at sweep). **This plan is kept for its Build 2 section** (below) — the pending consequence/progression build. Design: `docs/slates/deferred-rpg/combat-slate.md` (mechanism) + `combat-experience-slate.md` (experience, 17 theses). This plan re-cuts the original 7 phases into **two big-swing, terminal-only builds** (cleared between). The client `CombatPane` and the threat-read are **excised to later cycles**. This is the 1v1 foundation only — the full roadmap is `combat-experience-slate.md` → "Corpus & build order".*
 
 ## 1. Architecture in one screen
 

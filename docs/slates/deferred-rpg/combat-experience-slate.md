@@ -858,8 +858,8 @@ from the event-feed spam), competence-layered:
 ## Corpus & build order (the combat design index)
 
 **Artifacts on disk:**
-- `docs/requirements/combat-core-requirements.md` — the cycle-1 contract (1v1)
-- `docs/plans/combat-core-plan.md` — the cycle-1 7-phase implementation plan
+- `docs/subsystems/combat.md` — the cycle-1 build-1 subsystem doc (the shipped 1v1 core; the requirements doc retired at sweep)
+- `docs/plans/combat-core-plan.md` — the two-build plan (kept for its Build 2 section)
 - `combat-slate.md` — the **mechanism** (session / poise / tempo / hook
   catalog / resolution & exits / 16 settled decisions)
 - `combat-experience-slate.md` — **this**, the **experience** (16 theses)
@@ -918,5 +918,5 @@ alongside as the tuning tool throughout.
 - [mortal-vessel-slate.md](./mortal-vessel-slate.md) — the selfhood
   architecture (participant/vessel/shade), death & recovery, rebirth, and
   moderation-as-diegetic — the death/aftermath consequence of this slate.
-- `docs/requirements/combat-core-requirements.md` — the cycle-1 contract
-  (the no-slots determinism stance lands there as a surface decision).
+- `docs/subsystems/combat.md` — the cycle-1 build-1 subsystem doc
+  (the no-slots determinism stance shipped there; requirements retired at sweep).

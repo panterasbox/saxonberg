@@ -106,7 +106,15 @@ export class CombatTerms {
     );
   }
 
-  /** True iff killing is authorized (lethal terms + a death terminus). */
+  /**
+   * True iff killing is authorized — i.e. the fight is **lethal**.
+   * Lethality is the gate on the finish; the stop-condition is the
+   * *soft* exit (the earliest a fight may end short of a kill), not a
+   * cap on it. So `--lethal` (which defaults to a `yield` stop) still
+   * finishes a downed opponent who didn't yield in time. (Build 2's
+   * two-stage death makes the finish a separate, interruptible coup;
+   * this build kills the winning blow's non-sentient target directly.)
+   */
   isLethalAuthorized(): boolean {
     return this.lethality === "lethal";
   }
