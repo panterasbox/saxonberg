@@ -102,6 +102,22 @@ describe("CombatNarration", () => {
     expect(clauses.size).toBeGreaterThanOrEqual(2);
   });
 
+  it("announces every resolution (no silent fight-end)", () => {
+    const { a, b } = scene();
+    const cid = CombatNarration.narrateResolution({
+      combatants: [a, b],
+      outcome: "death",
+      victim: b,
+      killer: a,
+    });
+    expect(typeof cid).toBe("string");
+    // A line was rendered for each witness (three), and the death
+    // template mentions the fight is over.
+    expect(formatCalls.length).toBe(3);
+    const templates = formatCalls.map((f) => f.tpl).join(" ");
+    expect(templates.toLowerCase()).toContain("the fight is over");
+  });
+
   it("registers a reactable act on a dramatic beat, silent otherwise", () => {
     const note = vi.spyOn(ReactionApi, "noteReactableAct").mockReturnValue();
     const { a, b } = scene();

@@ -34,8 +34,19 @@ import { ReactionApi } from "../../api/reaction";
 import { SecurityApi } from "../../api/security";
 import { MixinApi } from "../../api/mixin";
 import { CombatFlavor, type FlavorOutcome } from "./CombatFlavor";
+import type { CombatResolution } from "./CombatSession";
 
 export const COMBAT_EXCHANGE_TOPIC = "world.combat.exchange";
+
+/** The end-of-fight narration input. */
+export interface ResolutionReport {
+  combatants: readonly [Stuff, Stuff];
+  outcome: CombatResolution;
+  /** The loser (downed / killed / yielded), when there is one. */
+  victim?: Stuff;
+  /** The winner (for a death / incapacitation), when there is one. */
+  killer?: Stuff;
+}
 
 /** What happened this exchange (the narration input). */
 export type ExchangeOutcome =
@@ -123,6 +134,80 @@ export class CombatNarration {
       }
     }
     return commandId;
+  }
+
+  /**
+   * Narrate the **end** of a fight to every witness. Every resolution
+   * path announces itself — a fight must never just stop (the silent
+   * bleed-out / unconsciousness gap): the coup, the collapse, the yield,
+   * the draw all get a line. Reactable (the finish is the most
+   * reaction-worthy beat of all).
+   */
+  static narrateResolution(report: ResolutionReport): string {
+    const commandId = SecurityApi.uuid();
+    const anchor = report.killer ?? report.victim ?? report.combatants[0];
+    for (const viewer of CombatNarration.witnesses(report.combatants[0])) {
+      const body = CombatNarration.resolutionBody(report, viewer as Stuff);
+      try {
+        MessageApi.scene(viewer as Stuff)
+          .topic(COMBAT_EXCHANGE_TOPIC)
+          .meta({ commandId })
+          .toSelf(body)
+          .send();
+      } catch {
+        // best-effort per-viewer relay
+      }
+    }
+    const scope = ReactionApi.locationScopeFor(anchor);
+    if (scope) {
+      ReactionApi.noteReactableAct({ commandId, subject: anchor, scope });
+    }
+    return commandId;
+  }
+
+  /** The per-viewer resolution line (self/target/bystander voice). */
+  private static resolutionBody(
+    report: ResolutionReport,
+    viewer: Stuff,
+  ): Mml {
+    const { killer, victim, outcome } = report;
+    const isVictim = victim && (viewer as Stuff) === (victim as Stuff);
+    const isKiller = killer && (viewer as Stuff) === (killer as Stuff);
+    const K = killer ? Mml.name(killer) : Mml.text("someone");
+    const V = victim ? Mml.name(victim) : Mml.text("someone");
+    let tpl: string;
+    switch (outcome) {
+      case "death":
+        tpl = isVictim
+          ? "{{killer}} cuts you down. You are dead."
+          : isKiller
+            ? "You cut {{victim}} down — dead. The fight is over."
+            : "{{killer}} cuts {{victim}} down. The fight is over.";
+        break;
+      case "incapacitation":
+        tpl = isVictim
+          ? "You drop, senseless. The fight is over."
+          : "{{victim}} drops, senseless. The fight is over.";
+        break;
+      case "first-blood":
+        tpl = "First blood — {{victim}} is cut. The bout is decided.";
+        break;
+      case "yield":
+        tpl = isVictim
+          ? "You yield. The fight is over."
+          : "{{victim}} yields. The fight is over.";
+        break;
+      case "draw":
+        tpl = "You break apart, spent — neither will yield.";
+        break;
+      default:
+        tpl = "The fight is over.";
+    }
+    try {
+      return ProseApi.format(tpl, { killer: K, victim: V });
+    } catch {
+      return Mml.fromMarkup(Mml.escape("The fight is over."));
+    }
   }
 
   /** The best-matching flavor fragment (material, then species), or ''. */

@@ -22,6 +22,7 @@ import {
   COMBAT_SESSION_TYPE,
   COMBAT_PARTNER_TYPE,
   type CombatantState,
+  type CombatResolution,
 } from "../../lib/combat/CombatSession";
 import type { CombatTerms } from "../../lib/combat/CombatTerms";
 import { Poise, type PoiseConfig } from "../../lib/combat/Poise";
@@ -103,7 +104,8 @@ export class CombatLogic extends ApiLogic {
     const session = sessionForImpl(actor);
     if (!session) return false;
     // The yielding actor loses; the fight ends on the yield terminus.
-    session.resolve("yield");
+    const opp = session.opponentState(actor)?.combatant;
+    endWith(session, "yield", actor, opp);
     return true;
   }
 }
@@ -260,7 +262,7 @@ function advanceImpl(session: CombatSession): void {
 
   const maxBeats = Math.round(dial(AppSettingKeys.combatMaxBeats, 200));
   if (beat > maxBeats) {
-    session.resolve("draw");
+    endWith(session, "draw");
     return;
   }
 
@@ -496,9 +498,32 @@ function siteFor(target: Stuff, open: boolean): string {
 
 /* ───────────────────────── resolution ───────────────────────── */
 
-function checkFirstBlood(session: CombatSession, _report: InflictReport): void {
+/**
+ * The single resolution chokepoint: **every** fight-ending path narrates
+ * its outcome before the session resolves — a fight must never just stop
+ * (the silent bleed-out / unconsciousness gap). `victim`/`killer` label
+ * the loser/winner when there is one.
+ */
+function endWith(
+  session: CombatSession,
+  outcome: CombatResolution,
+  victim?: Stuff,
+  killer?: Stuff,
+): void {
+  if (!session.isActive() || session.getResolution()) return;
+  const [a, b] = session.getStates();
+  CombatNarration.narrateResolution({
+    combatants: [a.combatant, b.combatant],
+    outcome,
+    victim,
+    killer,
+  });
+  session.resolve(outcome);
+}
+
+function checkFirstBlood(session: CombatSession, report: InflictReport): void {
   if (session.getTerms().stopCondition === "first-blood") {
-    session.resolve("first-blood");
+    endWith(session, "first-blood", report.target, report.attacker);
   }
 }
 
@@ -517,14 +542,13 @@ function handleDown(
 ): void {
   void beat;
   targetState.down = true;
-  const terms = session.getTerms();
-  if (terms.isLethalAuthorized()) {
-    kill(targetState.combatant);
-    narrate(attackerState, targetState, Gambit.get("strike")!, "killed", null, true);
-    session.resolve("death");
+  const attacker = attackerState.combatant;
+  const victim = targetState.combatant;
+  if (session.getTerms().isLethalAuthorized()) {
+    kill(victim);
+    endWith(session, "death", victim, attacker);
   } else {
-    narrate(attackerState, targetState, Gambit.get("strike")!, "down", null, true);
-    session.resolve("incapacitation");
+    endWith(session, "incapacitation", victim, attacker);
   }
 }
 
@@ -533,18 +557,20 @@ function kill(target: Stuff): void {
   if (MixinApi.isOrganism(target)) target.setLifecycleState("dead");
 }
 
-/** End the fight if trauma has driven a combatant unconscious or dead. */
+/** End the fight if trauma has driven a combatant unconscious or dead
+ * (the bleed-out / knockout path — now narrated, not silent). */
 function checkVitalsResolution(session: CombatSession): void {
   for (const s of session.getStates()) {
     if (!MixinApi.isVitals(s.combatant)) continue;
+    const opp = session.opponentState(s.combatant)?.combatant;
     const c = s.combatant.getConsciousness();
     if (c === "dead") {
-      session.resolve("death");
+      endWith(session, "death", s.combatant, opp);
       return;
     }
     if (c === "unconscious" && !s.down) {
       s.down = true;
-      session.resolve("incapacitation");
+      endWith(session, "incapacitation", s.combatant, opp);
       return;
     }
   }
