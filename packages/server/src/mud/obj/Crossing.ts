@@ -1,37 +1,39 @@
 /**
  * Crossing — the University Avenue street segment Gus guards. A plain
  * `CartesianLocation` with one bespoke behaviour: a **dynamic `tower`
- * detail** that reads the terminal's `ClockTower` fixture live and
- * appends its `currentReading()` to the authored base description.
+ * detail** that reports the accurate civic time on the terminal clock
+ * tower across the avenue.
  *
- * The seed `details:` layer only carries static strings, so the
- * drift-reveal (looking across the avenue at the accurate civic clock)
- * needs a class seam: `getDetail('tower')` composes the static base with
- * the tower's live time. It is a cross-object *read* by templatePath (the
- * `getMarkupLong`-recompute pattern the watch/tower use), NOT cross-room
- * perception. Degrades gracefully — if the tower isn't stood up, the
+ * The tower itself is prose (there is no `ClockTower` Stuff) — its face
+ * only ever reads world-time, so the detail reads `WorldClockApi`
+ * directly (formatted via `DefaultCalendar`) and appends it to the
+ * authored static base. The reveal is the drift: Gus's pocket watch runs
+ * a touch slow, so it disagrees with this honest civic hour. Degrades
+ * gracefully — if no world clock is running / the time can't be read, the
  * static base string is returned unchanged.
  */
 
 import CartesianLocation from '../lib/location/CartesianLocation';
 import { StuffApi } from '../api/stuff';
-import { MixinApi } from '../api/mixin';
+import { WorldClockApi } from '../api/worldclock';
+import { DefaultCalendar } from '../lib/time/DefaultCalendar';
+import { Time } from '../lib/time/Time';
+import { TemplatePaths } from '../lib/paths';
 import type { DetailId } from '../lib/description/Detailed';
 import type { SenseChannel } from '../lib/description/Perceiver';
 
-/** The terminal clock the `tower` detail reads across the avenue. */
-const TOWER_PATH = '/domain/terminus/terminal/clock-tower';
-
 export default class Crossing extends CartesianLocation {
   /**
-   * Read the live civic time off the terminal `ClockTower` fixture, or
-   * `null` when it isn't stood up / can't be read.
+   * The accurate civic time on the tower face — world-time-of-day
+   * formatted `HH:MM`, or `null` when no world clock is running (a bare
+   * test harness).
    */
   private readTowerReading(): string | null {
-    const tower = StuffApi.findByTemplatePath(TOWER_PATH);
-    if (!tower || !MixinApi.isTimekeeping(tower)) return null;
-    const reading = tower.currentReading();
-    return reading ? reading.format() : null;
+    if (!StuffApi.findByTemplatePath(TemplatePaths.worldClockRegistry)) {
+      return null;
+    }
+    const date = DefaultCalendar.singleton().decompose(WorldClockApi.getNow());
+    return Time.ofHourMinute(date.hour, date.minute).format();
   }
 
   /**

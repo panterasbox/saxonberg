@@ -57,6 +57,8 @@ export const Mixins = {
   Foldable: 'FoldableMixin',
   // Displays game-time — a pocket watch, a clock tower, a sundial.
   Timekeeping: 'TimekeepingMixin',
+  // The windable/drifting clockwork inside a mechanical timepiece.
+  MechanicalMovement: 'MechanicalMovementMixin',
   AroundSaveHook: 'AroundSaveHookMixin',
   AroundDeleteHook: 'AroundDeleteHookMixin',
   PostRegistration: 'PostRegistrationMixin',

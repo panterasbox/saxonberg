@@ -18,9 +18,9 @@
 # (never grid-derived); a cardinal name is allowed cross-zone, so this is a
 # plain `north`/`south` pair.
 #
-# `populates` the ClockTower fixture — the accurate civic clock mounted on
-# this frontage, read live from across the avenue by the crossing's `tower`
-# detail (the drift-reveal).
+# The accurate civic clock is a prose fixture on this frontage — no
+# physical Stuff. The crossing across the avenue reads the world clock
+# directly in its `tower` detail (the drift-reveal).
 class: /lib/location/CartesianLocation
 hydratorClass: /lib/persistence/PersistentHydrator
 data:
@@ -40,8 +40,6 @@ data:
       destination: /domain/terminus/terminal/hall
     north:
       destination: /domain/eternal/university-avenue/crossing
-  populates:
-    - /domain/terminus/terminal/clock-tower
   details:
     plate:
       keywords: [plate, arrival, matting, mat]

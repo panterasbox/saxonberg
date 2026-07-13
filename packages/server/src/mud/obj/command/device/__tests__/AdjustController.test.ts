@@ -1,17 +1,21 @@
 /**
- * SetController — sets a carried Watch to an explicit HH:MM; rejects a
- * missing watch and an unparseable time.
+ * AdjustController — sets a reachable mechanical timepiece to an explicit
+ * HH:MM; rejects a non-mechanical / missing target and an unparseable
+ * time. A global capability verb gated on `MixinApi.isMechanicalMovement`
+ * (no `instanceof Watch`).
  */
 
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import SetController from '../SetController';
+import AdjustController from '../AdjustController';
 import Watch from '../../../Watch';
 import Location from '../../../../lib/stuff/Location';
+import Thing from '../../../../lib/stuff/Thing';
 import { CommandGiverMixin } from '../../../../lib/command/CommandGiver';
 import { SensorMixin } from '../../../../lib/message/Sensor';
 import { ContainableMixin } from '../../../../lib/spatial/Containable';
 import { ContainerMixin } from '../../../../lib/spatial/Container';
 import { NamedMixin } from '../../../../lib/description/Named';
+import { VisibleMixin } from '../../../../lib/description/Visible';
 import { MobileMixin } from '../../../../lib/spatial/Mobile';
 import { CommandDefinition } from '../../../../lib/command/CommandDefinition';
 import { Idea } from '../../../../lib/stuff/Idea';
@@ -42,12 +46,12 @@ function ctxFor(avatar: FakeAvatar, loc: Location): CommandContext {
   return CommandApi.createCommandContext({
     commandGiver: avatar as unknown as CommandContext['commandGiver'],
     location: loc as never,
-    commandText: 'set',
+    commandText: 'adjust',
     executionId: 't',
     commandId: 'c',
-    verb: 'set',
+    verb: 'adjust',
     command: CommandDefinition.fromYaml(
-      'verbs: [set]\ncontroller: NoopController\ndescription: stub\n',
+      'verbs: [adjust]\ncontroller: NoopController\ndescription: stub\n',
       '<test>',
     ),
   });
@@ -57,7 +61,7 @@ function one(stuff: unknown, raw: string): MqlOneResult {
   return { stuff, raw } as MqlOneResult;
 }
 
-describe('SetController', () => {
+describe('AdjustController', () => {
   let avatar: FakeAvatar;
   let room: Location;
 
@@ -82,9 +86,9 @@ describe('SetController', () => {
     return w;
   }
 
-  it('sets the named watch to the given time', async () => {
+  it('sets the named mechanical timepiece to the given time', async () => {
     const w = openWatchInHand();
-    await makeStuff(() => new SetController()).execute(
+    await makeStuff(() => new AdjustController()).execute(
       { target: one(w, 'watch'), time: '4:00' } as CommandModel,
       ctxFor(avatar, room),
     );
@@ -94,7 +98,7 @@ describe('SetController', () => {
   it('rejects an unparseable time', async () => {
     const w = openWatchInHand();
     const ctx = ctxFor(avatar, room);
-    await makeStuff(() => new SetController()).execute(
+    await makeStuff(() => new AdjustController()).execute(
       { target: one(w, 'watch'), time: 'noon' } as CommandModel,
       ctx,
     );
@@ -103,9 +107,21 @@ describe('SetController', () => {
     ).toBe(true);
   });
 
-  it('rejects when there is no watch in hand', async () => {
+  it('rejects a non-mechanical target', async () => {
+    const rock = makeStuff(() => new (class extends VisibleMixin(Thing) {})());
     const ctx = ctxFor(avatar, room);
-    await makeStuff(() => new SetController()).execute(
+    await makeStuff(() => new AdjustController()).execute(
+      { target: one(rock, 'rock'), time: '4:00' } as CommandModel,
+      ctx,
+    );
+    expect(
+      ctx.getNotes().some((n) => n.kind === 'controller-rejected'),
+    ).toBe(true);
+  });
+
+  it('rejects a missing target', async () => {
+    const ctx = ctxFor(avatar, room);
+    await makeStuff(() => new AdjustController()).execute(
       { time: '4:00' } as CommandModel,
       ctx,
     );

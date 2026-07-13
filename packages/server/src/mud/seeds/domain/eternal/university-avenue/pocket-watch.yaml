@@ -1,8 +1,9 @@
-# Gus's pocket-watch — `/obj/Watch` (Sealable + Timekeeping + Detailed +
-# Reserved). Carried on its chain; equipped at standup by Gus.equipLoadout.
-# It keeps game-time and DRIFTS: `setTo` is seeded to a wrong hour and `rate`
-# runs a touch under 1.0, so the dial disagrees with the accurate ClockTower
-# across the avenue. It is ALWAYS-WOUND (the mainspring fills at construction
+# Gus's pocket-watch — `/obj/Watch` (Sealable + MechanicalMovement
+# [Timekeeping + Reserved] + Detailed). Carried on its chain; equipped at
+# standup by Gus.equipLoadout. It keeps game-time and DRIFTS: `setTo` is
+# seeded to a wrong hour and `rate` runs a touch under 1.0, so the dial
+# disagrees with the honest civic time on the terminal clock tower across the
+# avenue. It is ALWAYS-WOUND (the mainspring fills at construction
 # and Gus winds it daily), so it never stops — it only drifts. He never SETS
 # it right (the "won't set" of the sit/set/open/cross quartet). The AUGUSTUS
 # engraving hides the full name the badge keeps off. Generic object:

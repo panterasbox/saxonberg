@@ -5,14 +5,17 @@
  *
  * The surface is a single read contract — `currentReading(): Time | null`
  * (null = the face is unreadable right now, e.g. a shut hunter lid). The
- * mixin deliberately grants **no verbs**: `wind`/`set` and friends are
- * object-carried (`commandContributions`), lit up only where a real
- * windable/settable object is present. This is the rejected-Timepiece
- * lesson — the capability marks "reads time", not "operates a mechanism".
+ * mixin deliberately grants **no verbs**: the mechanical verbs `wind` /
+ * `adjust` are global capability verbs gated on the *movement* capability
+ * (`MixinApi.isMechanicalMovement`), lit up only where a windable/settable
+ * mechanism is present. This is the rejected-Timepiece lesson — the
+ * capability marks "reads time", not "operates a mechanism"; an accurate
+ * timepiece is `Timekeeping` with no movement, so it affords neither verb.
  *
  * The base implementation returns null; every real timepiece overrides
- * `currentReading()` with its own physics (a `Watch` drifts off a
- * mainspring `Reserve`; a `ClockTower` reads `WorldClockApi` straight).
+ * `currentReading()` with its own physics — a mechanical movement
+ * (`MechanicalMovementMixin`) drifts off a mainspring `Reserve`; an
+ * accurate movement would read `WorldClockApi` straight.
  */
 
 import type { MixinConstructor } from '../mixin';

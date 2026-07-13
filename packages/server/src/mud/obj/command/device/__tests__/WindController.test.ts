@@ -1,19 +1,23 @@
 /**
- * WindController — winds a carried Watch's mainspring back to full;
- * rejects when the actor holds no watch.
+ * WindController — winds a reachable mechanical timepiece's mainspring
+ * back to full; rejects a non-mechanical / missing target. The verb is a
+ * global capability verb gated on `MixinApi.isMechanicalMovement` (no
+ * `instanceof Watch`), so it operates on any MechanicalMovement.
  */
 
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import WindController from '../WindController';
 import Watch from '../../../Watch';
-import { Reserve } from '../../../../lib/reserve';
+import { Reserve, type Reserved } from '../../../../lib/reserve';
 import { Quantity } from '../../../../lib/quantity';
 import Location from '../../../../lib/stuff/Location';
+import Thing from '../../../../lib/stuff/Thing';
 import { CommandGiverMixin } from '../../../../lib/command/CommandGiver';
 import { SensorMixin } from '../../../../lib/message/Sensor';
 import { ContainableMixin } from '../../../../lib/spatial/Containable';
 import { ContainerMixin } from '../../../../lib/spatial/Container';
 import { NamedMixin } from '../../../../lib/description/Named';
+import { VisibleMixin } from '../../../../lib/description/Visible';
 import { MobileMixin } from '../../../../lib/spatial/Mobile';
 import { CommandDefinition } from '../../../../lib/command/CommandDefinition';
 import { Idea } from '../../../../lib/stuff/Idea';
@@ -80,7 +84,7 @@ describe('WindController', () => {
   function drainedWatch(): Watch {
     const w = makeStuff(() => new Watch());
     w.open();
-    w.setReserve(
+    (w as unknown as Reserved).setReserve(
       new Reserve(
         'mainspring',
         Quantity.of(600, 's'),
@@ -89,26 +93,13 @@ describe('WindController', () => {
         'stopped',
       ),
     );
+    ContainmentApi.move(w as never, avatar as never);
     return w;
   }
 
-  it('winds a watch in hand back to full', async () => {
+  it('winds the named mechanical timepiece back to full', async () => {
     const w = drainedWatch();
-    ContainmentApi.move(w as never, avatar as never);
     expect(w.mainspringRemaining()).toBe(0);
-
-    await makeStuff(() => new WindController()).execute(
-      {} as CommandModel,
-      ctxFor(avatar, room),
-    );
-
-    expect(w.mainspringRemaining()).toBe(600);
-    expect(avatar.received.length).toBeGreaterThan(0);
-  });
-
-  it('winds the named target', async () => {
-    const w = drainedWatch();
-    ContainmentApi.move(w as never, avatar as never);
 
     await makeStuff(() => new WindController()).execute(
       { target: one(w, 'watch') } as CommandModel,
@@ -116,9 +107,22 @@ describe('WindController', () => {
     );
 
     expect(w.mainspringRemaining()).toBe(600);
+    expect(avatar.received.length).toBeGreaterThan(0);
   });
 
-  it('rejects when there is no watch in hand', async () => {
+  it('rejects a non-mechanical target', async () => {
+    const rock = makeStuff(() => new (class extends VisibleMixin(Thing) {})());
+    const ctx = ctxFor(avatar, room);
+    await makeStuff(() => new WindController()).execute(
+      { target: one(rock, 'rock') } as CommandModel,
+      ctx,
+    );
+    expect(
+      ctx.getNotes().some((n) => n.kind === 'controller-rejected'),
+    ).toBe(true);
+  });
+
+  it('rejects a missing target', async () => {
     const ctx = ctxFor(avatar, room);
     await makeStuff(() => new WindController()).execute(
       {} as CommandModel,

@@ -122,11 +122,6 @@ function docs(): Doc[] {
     seed("domain/terminus/terminal/arrival-gate.yaml", ARRIVAL_GATE),
     seed("domain/terminus/terminal/hall.yaml", HALL),
     seed("domain/terminus/terminal/departure-gate-c.yaml", GATE_C),
-    // The clock-tower (arrival-gate populates it by templatePath).
-    seed(
-      "domain/terminus/terminal/clock-tower.yaml",
-      "/domain/terminus/terminal/clock-tower",
-    ),
   ];
   // Light stubs for the rest of the hub the cascade reaches.
   const stub = (p: string, cls = "/lib/stuff/VoidLocation"): Doc => ({
@@ -282,6 +277,22 @@ describe("University Avenue crossing standup (real seeds)", () => {
         s.getTemplatePath(),
       ),
     ).not.toContain(THERMOS);
+  });
+
+  it("renders the terminal clock tower as prose (no ClockTower Stuff stands up)", async () => {
+    // The tower is prose now — no `/domain/terminus/terminal/clock-tower`
+    // Stuff is populated; the crossing's `tower` detail carries the
+    // authored base and reads the world clock directly (the live HH:MM
+    // append + graceful-degrade are covered in Crossing.test.ts).
+    const crossing = (await StuffApi.singleton(CROSSING)) as unknown as {
+      getDetail(id: string): string | null;
+    };
+    expect(
+      StuffApi.findByTemplatePath("/domain/terminus/terminal/clock-tower"),
+    ).toBeFalsy();
+    const detail = crossing.getDetail("tower");
+    expect(detail).toBeTruthy();
+    expect(detail).toContain("civic clock tower");
   });
 
   it("keeps Gus on the stateless primitive floor (greets/idles, no memory brain)", () => {

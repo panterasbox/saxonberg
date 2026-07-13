@@ -9,7 +9,7 @@
  * midnight. `DefaultCalendar` has no minutes-of-day type, so `Time` is
  * that small missing piece: it holds the wrapped minute-of-day and
  * formats it `HH:MM`. It is `Timekeeping.currentReading()`'s return
- * shape — a `Watch` and a `ClockTower` both surface one.
+ * shape — a `Watch` and any other timepiece both surface one.
  *
  * Derived on read, never persisted. Immutable.
  */

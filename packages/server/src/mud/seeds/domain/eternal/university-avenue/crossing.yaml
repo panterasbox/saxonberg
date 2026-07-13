@@ -8,8 +8,9 @@
 # paddle gates nothing — see the crossing-guard sheet).
 #
 # The room is a `/obj/Crossing` (CartesianLocation subclass) for one reason:
-# the dynamic `tower` detail reads the terminal's ClockTower fixture live
-# (the drift-reveal). Everything else is plain seed data.
+# the dynamic `tower` detail reads the world clock directly and appends the
+# terminal clock tower's honest civic hour (the drift-reveal). The tower
+# itself is prose, not Stuff. Everything else is plain seed data.
 #
 # Cross-zone exits are authored explicitly on BOTH sides: `south`→the
 # Terminus arrival gate is the reciprocal of the gate's own `north`→here (two
@@ -52,9 +53,9 @@ data:
   details:
     tower:
       keywords: [tower, clock, clocktower, time]
-      # Static base; /obj/Crossing.getDetail appends the ClockTower's LIVE
-      # reading across the avenue (the drift-reveal). Degrades to this string
-      # alone if the tower isn't stood up.
+      # Static base; /obj/Crossing.getDetail appends the world clock's LIVE
+      # civic reading across the avenue (the drift-reveal). Degrades to this
+      # string alone when no world clock is running.
       description: |
         High on the face of the Terminus station across the avenue, a civic clock tower keeps the standard time the whole station runs on — the honest hour, posted where the whole street can check it.
     gate:

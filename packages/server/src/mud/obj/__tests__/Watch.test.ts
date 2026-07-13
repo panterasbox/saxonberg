@@ -8,7 +8,7 @@
 
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import Watch from '../Watch';
-import { Reserve } from '../../lib/reserve';
+import { Reserve, type Reserved } from '../../lib/reserve';
 import { Quantity } from '../../lib/quantity';
 import { MixinApi } from '../../api/mixin';
 import { Mixins } from '../../lib/mixin';
@@ -37,9 +37,11 @@ describe('Watch', () => {
   });
   afterEach(() => WorldClockApi._resetForTesting());
 
-  it('composes Sealable, Timekeeping, Reserved, Detailed', () => {
+  it('composes Sealable, MechanicalMovement (Timekeeping + Reserved), Detailed', () => {
     const w = watch();
     expect(MixinApi.isSealable(w as never)).toBe(true);
+    expect(MixinApi.isMechanicalMovement(w as never)).toBe(true);
+    // MechanicalMovement folds in the read + reserve capabilities.
     expect(MixinApi.isTimekeeping(w as never)).toBe(true);
     expect(MixinApi.hasMixin(w as never, Mixins.Reserved)).toBe(true);
     expect(MixinApi.hasMixin(w as never, Mixins.Detailed)).toBe(true);
@@ -69,7 +71,7 @@ describe('Watch', () => {
     const w = watch();
     w.open();
     // Small mainspring: 600 game-seconds of run capacity.
-    w.setReserve(
+    (w as unknown as Reserved).setReserve(
       new Reserve(
         'mainspring',
         Quantity.of(600, 's'),

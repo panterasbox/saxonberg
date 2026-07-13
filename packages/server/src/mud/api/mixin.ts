@@ -48,6 +48,7 @@ import type { Switchable } from '../lib/boundary/Switchable';
 import type { Lockable } from '../lib/boundary/Locked';
 import type { Foldable } from '../lib/slot/Foldable';
 import type { Timekeeping } from '../lib/time/Timekeeping';
+import type { MechanicalMovement } from '../lib/time/MechanicalMovement';
 import type { CartesianCoordinates } from '../lib/location/CartesianCoordinates';
 import type { SphericalCoordinates } from '../lib/location/SphericalCoordinates';
 import type { AroundSaveHook } from '../lib/persistence/AroundSaveHook';
@@ -701,6 +702,12 @@ export class MixinApi {
 
   public static isTimekeeping(obj: Stuff): obj is Stuff & Timekeeping {
     return this.hasMixin(obj, Mixins.Timekeeping);
+  }
+
+  public static isMechanicalMovement(
+    obj: Stuff,
+  ): obj is Stuff & MechanicalMovement {
+    return this.hasMixin(obj, Mixins.MechanicalMovement);
   }
 
   public static isCartesianCoordinates(obj: Stuff): obj is Stuff & CartesianCoordinates {
