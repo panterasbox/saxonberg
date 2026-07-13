@@ -8,13 +8,21 @@
 > *(exact path TBD with the zone scaffolding).*
 > **Retire when:** cemented as a Character seed in YAML.
 >
-> **Engine note (read this):** the *full* Gus needs systems that are
-> slate-only — his **routine** wants npc-behavior, his **reactions/dialogue**
-> want npc-dialogue. None are built. So this sheet is two things at once:
-> (1) the **design** of the character, and (2) a **forcing function** —
-> the most concrete spec yet for what those two slates have to support. A
-> reduced Gus is wireable for the demo today (see *What degrades* at the
-> bottom); the rest animates as the systems land.
+> **Engine note (read this):** **npc-behavior and npc-dialogue have both
+> since shipped** — Gus's routine and his keyed reactions/dialogue are now
+> *content*, not a wait. What remains to build for the full Gus is narrow
+> and object-side: the `Watch`/`Timekeeping` drift clock, the `AudibleMixin`
+> whistle-sound seam, and the `CrossingLog` + `tally` verb (see the
+> `objects/` sheets). This sheet stays two things at once: (1) the **design**
+> of the character, and (2) a **forcing function** for those remaining
+> object builds.
+>
+> **Geometry (updated 2026-07-12):** the old "one room = TPA terminal + Gus +
+> a gate exit" frame is retired. The **Terminus terminal is its own branch,
+> `east` across the street** (players arrive there and walk *west* into
+> Gus's room); the **campus gate is `west`, and locked** (campus deferred);
+> the avenue continues **north/south** to unbuilt city. See
+> `../arrival-quad.md` and *The movements*, below.
 
 ---
 
@@ -260,16 +268,17 @@ anonymous as you were to him.* The one trace that you passed through, kept by
 the man who'll never know your name, in a time that isn't even right. The
 no-memory isn't worked around; it's *why the log is shaped this way.*
 
-**The thermos** — full spec in `objects/thermos.md`. **Real as a `Sealable`
-steel vessel** (same standing as the whistle/paddle — not an inert prop);
-its **coffee is honest description, not a modeled entity** (so you can't
-measure or drink it — no thermal model, no simulated temperature); and the
-**consume mechanic** (pour/drink/warmth) is **banked** on the liquid/consume
-subsystem — exactly the half Gus never triggers. The "still hot forever"
-lives in **fiction** (a vacuum flask keeps coffee hot — described, not
-simulated), which makes the deferral perpetual: **Gus never opens his.** The
-*break* that never comes — the cup forever saved for a later that doesn't
-arrive (the **won't-open** of the sit/set/open/cross quartet).
+**The thermos** — full spec in `objects/thermos.md`. **Fully real:** a
+`Flask` = `Thermal + Sealable + Bulkable` (the exemplar now *ships*), holding
+real coffee as a modeled bulk at a real, cooling temperature. Sealed, the
+vacuum keeps it hot for hours; open it and it goes cold — and you *can*
+measure and drink it (Thermal, Bulkable, and metabolism have all since
+shipped, so even the caffeine→alertness effect is buildable, the way alcohol
+already is). Nothing is faked and nothing is left banked. The deferral is
+**pure behavior**: the coffee stays hot precisely *because* **Gus never
+opens it** — the **won't-open** of the sit/set/open/cross quartet, the break
+forever saved for a later that doesn't come. (Supersedes the earlier
+"honest description, not modeled" framing — that shortcut is retired.)
 
 **The STOP paddle.** His working tool — the thing in his hand and the
 center of the idle loop (raise, check both ways, "…clear," lower). Full
@@ -385,16 +394,39 @@ not anyone's listening (fed, not lonely — the flow is enough).
   *"Headin' out? Mind the curb. ...Come back and see us."* (He says it to
   everyone; he won't remember if they do.)
 
-**The four movements (the geometry's behavior set).** The one-room stop has
-two ways in and out — the TPA terminal and the gate — so Gus reacts to four
-things, and only one is his *ritual*: **TPA-in** (fresh arrival → the greet
-ritual) and **cross-in** (stop → campus → walk-across **+ tally**) are the
-celebrated flow; **cross-in-from-campus** (someone leaving the university)
-and **TPA-out** are the light *departure* beat above. The no-memory payoff:
-someone who steps out and right back in gets the **full ceremonial
-walk-across into the campus they just left** — he has no idea. (Tally
-semantics — inbound-only, inflated by re-entries — in `objects/crossing-log.md`
-*What counts*.)
+**The movements (the geometry's behavior set — updated 2026-07-12).** The
+terminal is now `east` across the street and the campus gate is `west`
+(locked), so Gus's real reactions collapse to three:
+
+- **`east`-in — arrival from the terminal.** A player TPs into the terminal
+  (off-stage, a different room — Gus never sees the teleport) and walks
+  *west* into his room. **This entry is the crossing** → the greet ritual +
+  the tally. The celebrated flow, and the room's pulse.
+- **`east`-out — leaving to the terminal.** The courteous see-off beat above.
+  No ritual, no tally.
+- **`west` — the campus gate, locked.** Gus's soft-wall (`"gate's for the
+  gown — not open yet"`) over a real locked `Door`. When campus is built,
+  west-crossing becomes a *second* inbound tally.
+
+(N/S are unbuilt — no exits; his "road's not finished down there" now points
+at the unfinished *city*, not campus haze.)
+
+**Tally is a deed; the ritual is a performance — decoupled.** The mark fires
+on the *witnessed arrival itself*, not on the ritual finishing. So an aborted
+performance (a player who beelines back out mid-line) never loses the mark,
+and the count never depends on the theater completing.
+
+**The busy-hub case.** Because real players pour out of the terminal at once,
+Gus — one agent, one voice/attention slot — can't run N rituals in parallel.
+He processes a short FIFO queue (each gets the full fussy ritual) and, past a
+threshold, **batches**: *"Alright, alright — the lot of you — both ways —
+mind the curb."* The one-man Authority overwhelmed by the busiest crossing in
+town is the joke made mechanical. **But the tally still fires per-arrival** —
+decoupled from the batched performance, so the count stays honest. The
+no-memory payoff survives intact: someone who steps out and right back in
+gets the full ceremony again, freshly, with no idea. (Tally semantics —
+inbound-only, when-never-who, inflated by re-entries — in
+`objects/crossing-log.md` *What counts*.)
 
 **The anecdotes — where the genre-play lives (the heart of tonight).** While
 he works, he reminisces about the trope-y traffic he's seen, and the genre
@@ -507,22 +539,22 @@ resist more.
 
 ---
 
-## What degrades to today's primitives (the demo Gus)
+## Build status (updated 2026-07-12)
 
-Wireable now on shipped systems, so the stop isn't empty for the demo:
+The systems this sheet was a forcing-function for have **shipped**, so the
+full Gus is now buildable:
 
-- **Exists & is `look`-able** — a `Character` with the Look above. ✅ today.
-- **One scripted arrival line** fired when a player materializes. ✅ if
-  there's any on-enter hook; otherwise ambient.
-- **The routine** (pacing, the paddle-check loop, the whistle) → **needs
-  npc-behavior.** Until then: a static presence + maybe one or two ambient
-  emotes on a timer.
-- **The keyed reactions / the help-handoff / the soft-wall dialogue** →
-  **needs npc-dialogue.** Until then: a couple of canned responses at best.
-
-So: ship a static, look-able Gus with an arrival line for the demo; the
-loop and the reactions land when their systems do — and *this sheet is what
-tells those systems what they need to do.*
+- **Exists & is `look`-able** — a `Character` with the Look above. ✅
+- **The routine** (pacing, the paddle-check loop, the whistle) — **npc-behavior
+  shipped.** ✅ (content: the `behaviors:` list above.)
+- **The keyed reactions / help-handoff / soft-wall** — **npc-dialogue shipped.**
+  ✅ Gus stays on the deliberately-primitive `intent-dialogue` brain (keyword
+  → canned line), **not** a branching tree — the honest build for the throwback
+  is the dumb one; the tree machinery is for the *living* NPCs past the gate.
+- **Remaining object builds** — the `Watch`/`Timekeeping` drift clock (his
+  watch + the tally's time), the `AudibleMixin` whistle-sound seam, and the
+  `CrossingLog` + `tally` verb. See the `objects/` sheets; these are the last
+  real work, and small.
 
 ---
 

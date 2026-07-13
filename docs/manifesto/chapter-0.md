@@ -93,7 +93,7 @@ your own copy, fork it, change it, make it yours. It's built to be *yours.*
 Which leaves the question a debate crowd jumps to first. A real government, with
 a real treasury, that runs on money to keep the lights on. So *who* actually
 gets a say in it? And what stops whoever brings the most money from simply
-owning the whole thing? That's chapter one."
+owning the whole thing? That's where we'll start."
 
 Hands Ch 1 the next doubt: *who gets a voice — and what stops the biggest wallet
 from owning the whole thing?* (matches Ch 1 Beats 2–4: three kinds of say +

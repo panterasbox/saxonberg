@@ -72,6 +72,51 @@ after. **Gus winds it daily (habit) so it runs, and never `set`s it, so it
 reads slow** — and he trusts it completely. That's the character, and it
 only works *because* it's mechanical-and-drifting, not synced.
 
+### Drift vs stop — two axes, and the running-elapsed fix *(added 2026-07-12)*
+
+Two **orthogonal** degradation axes, kept separate so "working object + real
+condition" stays clean:
+
+- **Drift** (`rate`, never `set`): a *running* watch that slides off true
+  time. **Gus's condition** — he winds daily so it runs, never sets it so it
+  reads wrong.
+- **Stop** (mainspring, never `wound`): an *un-wound* watch **freezes**. Gus
+  never triggers this; a *neglected* watch does.
+
+**The formula precision.** The closed form `setTo + (now − setAt) × rate` is
+correct **only while always-wound** — `(now − setAt)` grows whether or not the
+spring is wound, so it *cannot* freeze, which quietly contradicts "unwound →
+freezes." The general form is:
+
+```
+reading = setTo + runningElapsed × rate
+```
+
+where `runningElapsed` = game-time that passed **while the spring had charge**.
+
+- **v1 (always-wound — Gus):** spring never empties → `runningElapsed =
+  now − setAt` → collapses to the closed form. Ships as-is; never freezes
+  (correct — Gus keeps it wound).
+- **v2 (mainspring):** model the spring as a **`Reserve`** (game-seconds of
+  charge; `ReservedMixin`, the `Campfire` non-biological precedent). `wind`
+  refills it; a lazy advance-on-read consumes charge and **freezes
+  `runningElapsed` at zero** — *this* is what makes "unwound → frozen"
+  actually true. Deferred; Gus doesn't need it.
+
+Everything is **lazy-on-read** (no tick); `now` is consulted only as the
+elapsed ruler.
+
+**Seed it already-wrong.** Seed `setAt` **in the past** (or `setTo`
+deliberately offset) so accumulated drift shows on the *first* look — a fresh
+`setAt = now` reads true at first and only slides later.
+
+**Homes.** `Timekeeping` mixin → `lib/time/` (with the game-clock substrate;
+confirm vs the "TBD" in *Open dials*). The `Time` reading value-object →
+reuse `DefaultCalendar`'s time-of-day type/formatter if present, else a thin
+minutes-of-day value object. The **reading is derived, never persisted** (the
+derive-on-read discipline); the watch persists `setTo`/`setAt`/`rate`/(v2
+mainspring).
+
 ### The `Timekeeping` capability — `currentReading()`
 
 The reading is exposed by a capability mixin, **`Timekeeping`**, which
@@ -81,8 +126,11 @@ displays (its own belief), or `null` when it can't be read right now.**
 **gated by the lid:**
 
 ```
-Watch.currentReading() = lid shut ? null : (setTo + (now − setAt) × rate)
+Watch.currentReading() = lid shut ? null : (setTo + runningElapsed × rate)
 ```
+
+(where `runningElapsed = now − setAt` in v1 always-wound; the mainspring
+freezes it in v2 — see *Drift vs stop*, above.)
 
 (Unwound-but-open still returns a value — frozen and wronger, but readable.
 Only a *shut* lid returns null.)
@@ -110,6 +158,18 @@ composed onto heterogeneous classes; `tally` reads any of them via
 `Timekeeping` supplies the *reading* only — the `wind`/`set` verbs stay
 object-carried on `Watch`; it is **not** the verb-granting "Timepiece mixin"
 that was rightly rejected.
+
+**The accurate sibling (real second consumer): the terminal clock tower.**
+The heterogeneous case above is now built out — the **Terminus clock tower**
+across the street from Gus (`clock-tower.md`) composes the same `Timekeeping`
+contract but implements `currentReading()` as **`WorldClockApi.now()`
+directly** — no `setTo`/`setAt`/`rate`, so it never drifts: the civic
+reference. Posted opposite Gus, it makes his watch's drift **legible with no
+UI** — two clocks disagreeing across a street. It proves the capability's
+whole point (one read-contract on a *drifting pocket watch* and an *accurate
+civic tower* at once — and, in v2, a `Location` you can enter). Two
+Authorities, two clocks: the Teleport Authority keeps perfect time, the
+Crossing Authority keeps his own.
 
 ---
 

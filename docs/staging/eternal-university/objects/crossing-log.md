@@ -85,29 +85,38 @@ silently.)
 
 ---
 
-## What counts — inbound crossing events
+## What counts — inbound crossing events *(geometry updated 2026-07-12)*
 
-The log marks one tick per **inbound crossing** — someone taking the gate
-exit **stop → campus** (into the university). Resolved from the directional
-question: **Gus guards the crossing both ways, but tallies inbound only** —
-the log is his record of the souls he's *sent into the world*, not a traffic
-counter, and inbound rhymes with his arrival-fed contentment and his never
-crossing the gate himself.
+The log marks one tick per **inbound crossing** — someone arriving from the
+terminal into Gus's room. **Gus guards the crossing both ways, but tallies
+inbound only** — the log is his record of the souls he's seen *in*, not a
+traffic counter, and inbound rhymes with his arrival-fed contentment.
 
-Precisely (the stop is one room — TPA terminal + Gus + a gate exit; see the
-arrival-quad stop doc):
-- **The TPA terminal never marks** — teleport is magic, not a crossing.
-  Arriving or leaving via TPA touches the log not at all.
-- **Outbound (campus → stop) never marks** — a departure isn't an arrival.
-  He still guards you across; he just doesn't tally it.
-- **Inbound (stop → campus) always marks** — every time, including re-entries.
+Precisely, under the current geometry (the terminal is its own branch `east`
+across the street; the campus gate is `west`, locked; see
+`../arrival-quad.md`):
+- **The TPA never marks** — teleport is magic, *and* it happens off-stage in
+  the terminal (a different room); Gus never even witnesses it. Doubly not a
+  crossing.
+- **`east`-in (terminal → Gus's room, on foot) always marks** — this is the
+  crossing he witnesses and walks you across. Every time, including re-entries.
+- **`east`-out (leaving to the terminal) never marks** — a departure isn't an
+  arrival. He sees you off; he doesn't tally it.
+- **`west` (the campus gate) is locked** — no one crosses it yet; when campus
+  lands it becomes a *second* inbound mark.
 
 It counts **crossing *events*, not people.** Cross in, out, in = **two**
-marks for one soul — because **no memory**, he can't tell it's you again, so
-each inward crossing is a fresh arrival. (He'll give the full walk-across
-ceremony to someone stepping back into the campus they left thirty seconds
-ago, with no idea — the geometry makes the no-memory bit *funny*, not just
-sad.)
+marks for one soul — **no memory**, so each inward crossing is a fresh
+arrival. (He'll give the full walk-across ceremony to someone stepping back
+in thirty seconds later, with no idea — the geometry makes the no-memory bit
+*funny*, not just sad.)
+
+**The mark is a deed, decoupled from the ritual.** Gus tallies on the
+*witnessed arrival*, not on his performance finishing — so an aborted ritual
+(a beeliner) still marks, and in the busy-hub case where he *batches* the
+greeting for a crowd, **each arrival still tallies individually**. The count
+stays honest even when the theater collapses. (See `../npcs/crossing-guard.md`
+*The movements* + *the busy-hub case*.)
 
 **The third inaccuracy.** This makes the ledger wrong in *three* ways, all
 from the one root — no memory:
@@ -144,6 +153,42 @@ the actor must `open` it first as a **separate, deliberate act** (springing
 a hunter case is a distinct motion, not part of glancing-and-writing). This
 is the same agency line as the log itself: the actor manages their own gear;
 the verb never decides for them.
+
+## Timepiece resolution — the v1 fallback *(added 2026-07-12)*
+
+Step 1 above ("find a readable timepiece in the actor's **sight** scope")
+depends on the **scope-modality slate** (sight scope + transparent
+containers), which is **unbuilt.** So the shipping v1 narrows it to a strict
+subset that needs no new engine:
+
+- **v1 `resolveReadableTimepiece(actor)`** — scan the actor's **own
+  carried/worn** items for `MixinApi.hasMixin(x, Timekeeping)`, return the
+  first whose `currentReading()` is non-null. Your own watch is trivially in
+  your own sight scope, so this is a *subset* of the eventual model, not a
+  hack. Gus reads his own vest-chain watch; done.
+- **v2** — swap in the sight-scope resolver when scope-modality lands (wall
+  clocks across a lit room, clear cases, darkness → null). **Same call site,**
+  wider search. (The clock tower's cross-street read is the same v2 frontier —
+  `clock-tower.md` sidesteps it for now with an authored dynamic detail.)
+
+`resolveReadableTimepiece` **folds into the `tally` controller** (or a small
+`Timekeeping`-side Api static) — not a free-floating helper.
+
+**The log stays innocent — three inaccuracies, all from outside it.** The log
+records whatever `currentReading()` returned; it neither knows nor applies
+drift. So **wrong times** live in the *watch's* `rate`; **no names** is the
+*log's own deliberate discard*; **inflated counts** are *Gus's no-memory*
+(re-entries). The log's accuracy is always exactly the marker's accuracy.
+
+**Edge matrix:**
+
+| Situation | `currentReading()` | mark |
+|---|---|---|
+| Gus, lid open, wound (normal) | drifted time | timed (wrong, consistent) |
+| Gus, lid shut (didn't bother) | `null` | untimed tick |
+| watch unwound/stopped (not Gus) | frozen time (if lid open) | that frozen time |
+| actor has no timepiece | — | untimed tick |
+| synced/accurate timepiece (the tower's class) | true time | true time |
 
 ---
 
@@ -234,9 +279,9 @@ Reuses, shipped: `Thing`, `Visible`, `Tangible`, `Detailed`, the global
 
 1. **`tally` vs `mark`** — verb name. *Lean `tally`* (it's a tally sheet).
 2. **Direction** — *resolved: guard both ways, tally inbound only.* He guards
-   the crossing in both directions, but only the **inbound** gate-exit
-   traversal (stop → campus) tallies. See *What counts* above (incl. the
-   re-entry inflation — the third inaccuracy).
+   the crossing both directions, but only the **inbound** arrival (terminal →
+   his room, `east`-in) tallies. See *What counts* above (incl. the re-entry
+   inflation — the third inaccuracy).
 3. **Hangs vs wielded** — *lean hangs* (paddle occupies his hands).
 4. **Tail length / windowing** — how many recent marks `look` shows; pin
    when the read model is built. Don't cap the *count* silently.

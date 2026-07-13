@@ -5,9 +5,11 @@
 # foot). The plaza stays in /domain/eternal/ (its EU owner sphere) and is
 # reachable on foot from the bank etc.; only the terminal was removed.
 #
-# The `across` exit is the reciprocal of the Terminus arrival-gate's cross-branch
+# The `east` exit is the reciprocal of the Terminus arrival-gate's cross-branch
 # exit — two independently-owned zones that touch in the world (no shared zone).
-# Non-cardinal + cross-zone → a semantic exit (CartesianLocation.addExit).
+# Cross-zone exits are authored explicitly on both sides (never grid-derived);
+# a cardinal name is allowed cross-zone (CartesianLocation.addExit only forces
+# cross-zone for NON-cardinal names), so this is a plain `east`/`west` pair.
 class: /lib/location/CartesianLocation
 hydratorClass: /lib/persistence/PersistentHydrator
 data:
@@ -21,9 +23,9 @@ data:
     z: 0
   exits:
     # North one cell to the campus bank (the bank declares `south` back here);
-    # `across` the avenue to the Terminus arrival gate (a cross-branch semantic
+    # `east` across the avenue to the Terminus arrival gate (a cross-branch
     # exit, declared on both sides). Every connection is authored explicitly.
     north:
       destination: /domain/eternal/university-avenue/bank
-    across:
+    east:
       destination: /domain/terminus/terminal/arrival-gate

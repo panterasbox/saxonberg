@@ -44,9 +44,11 @@ got nothing real to confer. **You can't mint influence from accounts you
 control. Others give it to you, or it doesn't exist.**"
 
 **[Beat 3 — spent as conviction]**
-"And standing isn't power sitting in a vault. No balance you own, nothing to
-spend down, nothing to cash out. The way you use it is **conviction**: you put
-your standing behind a position, and the longer you hold it, the more it weighs.
+"And here's the thing about standing: it's a capacity you hold — genuinely yours,
+and it doesn't drain away. What it *isn't* is a pile of chips you own: you can't
+trade it, you can't cash it out, and you never spend it down. The way you use it
+is **conviction**: you put your standing behind a position, and the longer you
+hold it, the more it weighs.
 Patience counts; a last-second swing doesn't — flip, and the weight starts over.
 So nobody ambushes a vote by piling in at the end. And you're never rationed —
 full weight on every question, not a budget you spread thin. **You spend it
@@ -111,5 +113,13 @@ a competing visual. Client never shown.
   the community; citizens delegate to each other). Framed designed/future.
 - **[OPEN] throw:** the franchise / personhood gate — the real Sybil-at-scale
   question lives here, *not* in renown.
+- **Standing is a held capacity, not "nothing you own" (Beat 3).** The earlier
+  draft said "no balance you own" — wrong: you *do* hold a standing capacity, and
+  it's yours. The precise claim (per the model): standing is **held**, not **owned
+  as a tradeable/cashable asset** — you can't transfer it, cash it out, or spend
+  it down (conviction applies full weight everywhere without depleting it). So
+  "never owned" in the creed / title means *never a tradeable, cashable
+  possession*, NOT "you hold nothing." Affirm the capacity; deny only the
+  asset/tradeability.
 - **Model B revises draft-constitution Art. IV §2** (the reservoir / "decays
   when moved" language is superseded).

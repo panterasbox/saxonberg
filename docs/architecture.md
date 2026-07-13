@@ -806,6 +806,80 @@ or contributed by a mixin's persistent field set) cannot be `#` — the
 `Hydrator` reflects into them and `#` slots are unreachable from
 outside the class body.
 
+## Bands vs Numbers — presentation default, not security veil
+
+Saxonberg surfaces many derived quantities (competence, traits, renown,
+regard, standing) as **bands** rather than raw scalars — the "honesty
+firewall" language in [advancement.md](./subsystems/advancement.md),
+[trait.md](./subsystems/trait.md),
+[crafting.md](./subsystems/crafting.md), and the bible. That pattern is
+load-bearing in some places and merely cosmetic in others, and the two
+have been conflated. This section draws the line so the reflex stops
+getting over-applied.
+
+**Banding does up to four distinct jobs**, with different criticality:
+
+1. **Epistemic honesty** — a derived estimate (e.g. a BKT `theta`) does
+   not actually carry the precision a float implies. The band is the
+   *honest* readout; the scalar is noise. ("No quantity without a
+   referent.")
+2. **Diegetic realism** — a character experiences "Bob seems to like
+   me," not "regard 47." Numbers are non-diegetic.
+3. **Anti-legibility** — keep social standing *contestable* rather than
+   a public credit score (the *Nosedive* failure). Protects the social
+   fabric.
+4. **Anti-gaming / Goodhart** — blur the gradient so players optimize
+   play, not the metric. **The weakest job** — visible-number grinding
+   is a survivable, often fun failure mode, and (see below) it never
+   defended against the only actors who could truly exploit it.
+
+**The governing question is not "band or number." It is "whose hidden
+state is this?"**
+
+- **A character's OWN derived state** (their competence, traits,
+  standing, self-renown) → banding is **presentation**, not security.
+  Honest and tidy, but **not critical**. There is no exploit in a player
+  seeing their own competence as a number. An author who wants a
+  numeric character sheet may build one; the band is just the friendly
+  default, cheaply overridden, creating no caste.
+- **ANOTHER agent's hidden state** (what Bob believes/feels about you,
+  whether a disguise holds, how good a rival actually is) → the
+  constraint is **genuinely critical**, and it is not really "banding"
+  at all — it is *no mind-reading*. A player-authored "regard-o-meter"
+  exposing others' exact feelings would collapse the bluffing /
+  deception / mediated-belief game for the whole server. This is
+  protecting *shared hidden information*, not veiling a dirty number.
+
+So: **band-as-presentation** (own state, optional) vs
+**opacity-as-mechanic** (others' hidden state, load-bearing). Use the
+security justification only for the second.
+
+**The wizard critique, conceded.** A band was never a defense against
+wizards and cannot be — a wizard reads `RAW_TARGET`, evals, mints. That
+is the code-trust boundary the whole call-security model already rests
+on; banding neither creates nor strengthens it. Invoking "anti-gaming"
+to hide a number *from wizards* is incoherent. What actually contains a
+wizard-authored player-facing exploit is (a) a small vetted wizard
+population, (b) the publish/review gate (law==code), and (c) norms +
+**dogfooding**. The real two-tier risk is not that wizards *see*
+numbers — it is wizards ceasing to *dogfood* and playing a different
+game than the mortals they build for. That is cultural, not a
+number-hiding problem, and no band fixes it. The tier stays healthy by
+being **earnable** (the player→contributor on-ramp) and dogfooded.
+
+**Architectural resolution — kill the "hidden truth" framing.** Wherever
+possible, *do not store an authoritative scalar* — **derive the band on
+read** (competence, renown, traits, standing already do). With no stored
+float there is no secret being veiled: wizard and mortal run the *same*
+computation and get the *same* band; the wizard sees arithmetic, not a
+privileged number. A genuine store-and-hide is justified only where a
+real scalar must persist **and** it is another agent's hidden state
+(belief, regard, disguise). Everywhere else the bias is: **expose the
+data to authors, trust the publish gate, let the band be a default, not
+a wall.** When banding an *own-state* stat, do not cite anti-gaming or
+security as the reason — cite honesty or diegesis, and know it is
+overridable presentation.
+
 ## Code Style
 
 From `.prettierrc.js`:

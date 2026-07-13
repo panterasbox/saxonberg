@@ -123,6 +123,29 @@ So the whistle ships with an actual number, not "it's loud."
 
 ---
 
+## The Audible contract — v1 (what the whistle needs, pinned)
+
+The crossing ritual's whistle-beat is the room's first driver of an
+**`AudibleMixin`** sound-emission seam (the *demo-real* half of the sound
+work; the rich model below stays banked). The minimal v1 contract:
+
+- **`AudibleMixin.emit(...)`** on the object → composes a `MessageApi.scene`
+  carrying `{ source, spl (~110 dB), description ("a sharp whistle"),
+  modality: hearing, timbre-hook (the cork pea → rough trill) }`, routed to
+  the room's sensors filtered by the **hearing** capability (senses substrate,
+  shipped).
+- **The `blow` verb** (object-carried) calls `emit`. For Gus it's a fixed,
+  canned blast; the modulation table below never applies to him.
+- **v1 scope:** a real *heard event in the room*. **Banked (honestly):**
+  distance propagation/attenuation (sound phase 2) and the breath×skill
+  modulation (vitals/skill) — none of which Gus needs.
+
+This is the whole primitive, and it's reusable for every bell, alarm, and
+doorbell after. The whistle is its first consumer; the phased model below is
+what a *player* whistle will draw on.
+
+---
+
 ## The blow model — object × breath × skill *(designed, mostly banked)*
 
 The key question — *does skill or vitals change the dB?* — forces the right

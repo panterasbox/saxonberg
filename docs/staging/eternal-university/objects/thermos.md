@@ -5,13 +5,14 @@
 > **Target seed paths:**
 > - `Thermos` (thin `Thing` subclass) → `mud/obj/`.
 > - Gus's instance → a seed under `mud/seeds/obj/.../thermos.yaml`.
-> **Depends on (banked):** the consume tail = **`Drinkable` + pour/fill/drink
-> mechanics** (`docs/slates/tails/bulkable-slate.md`) + a **declared effect-list**
-> (`docs/slates/builds/vitals-slate.md` — food & potions are one system: a consumable
-> fires effects; eat/drink is just the delivery verb). Both slated, unbuilt —
-> and *not* needed for Gus, who never opens it. A built thermos is just a
-> `Sealable` + `Drinkable` vessel of coffee carrying an alertness effect-list;
-> potions are the identical shape.
+> **Status (updated 2026-07-12): fully buildable now.** `Flask` =
+> `Thermal + Sealable + Bulkable` *ships* (the exemplar), and Thermal,
+> Bulkable, and metabolism have all since landed — so even the once-banked
+> consume tail (the caffeine→alertness drink-effect) is buildable today, the
+> way alcohol/BAC already is. Nothing about the thermos is banked anymore; the
+> only thing that stays un-triggered is the half **Gus** never uses (he never
+> opens it). A built thermos is a `Flask` of coffee carrying an alertness
+> effect-list; potions are the identical shape.
 > **Retire when:** the `Thermos` class + Gus's seed are cemented. Then delete.
 >
 > The prop we abandoned mid-conversation, finally resolved. It's the

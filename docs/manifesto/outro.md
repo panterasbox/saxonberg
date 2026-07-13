@@ -40,7 +40,7 @@ yet. It's just what's on the other side of this, if the interest is there.
 
 **[Beat 4 — three ways + the button]**
 Make, fund, play — build it, back it, or live in it. That's how you take part,
-whenever you're ready. I'll be live. Let's see what this becomes."
+whenever you're ready. All the code is open-source, the content Creative Commons, so I would start there if you'd like to know more. Thanks for watching and I look forward to hearing your feedback.
 
 **Kickers:** *"let me be straight about where it actually is: this is early — but
 there's already enough to start"*; *"a draft constitution to argue with, and a

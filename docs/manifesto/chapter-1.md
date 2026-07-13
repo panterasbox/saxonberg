@@ -43,10 +43,8 @@ apparatus for the community's decisions. First question about it — who gets a
 voice?"
 
 **[Beat 2 — three dimensions of each person]**
-"And here's the part that's easy to get wrong: these aren't three groups of
-people. They're three things almost everyone does. You make stuff — a room, a
-bit, a guide. You chip in to keep the lights on. You show up and play. Make,
-fund, play — three ways the same person gives to the place. And each one earns
+"And here's the part that's easy to get wrong: these aren't really different groups of
+people with different responsibilities. Everyone contributes along three different axes: patronage (the money), labor (making or doing shit for the game), and consumption (actually playing the game, watching the livestream, whatever). They're three things almost everyone does. Make, fund, play — three ways the same person gives to the place. And each one earns
 its own kind of say."
 
 **[Beat 3 — three counts of the same crowd]**
@@ -57,19 +55,14 @@ win two of the three. So the biggest funder can own the funders' count and
 still lose, because money buys nothing in the other two. No single way of
 contributing carries a decision alone. That constraint is the whole design."
 
-**[Beat 4 — money: what it actually buys (compute + a voice), never power]**
-"And these three kinds of say don't convert into each other — which is where
-money comes in. Money's welcome; it's how the lights stay on. And it buys exactly
-two things, neither of them power. **One: compute** — the only thing that's
-actually scarce in a digital world, where everything else copies for free — so a
-dollar grows the world's compute for *everyone*, more room for the place to
-exist. **Two: a voice** in the funders' count. That's the whole list — not a
-maker's say, not a player's say, not power in the world itself. Funding the world
-and running it are two different things, with a wall between them — no token,
-nothing to cash out. It's the obvious trap, the one crypto walked straight into,
-so I closed that door and moved on. **Money can make you the loudest funder in
-the room, and buy the whole world more room to exist. It still can't make you a
-maker, a player, or a winner.**"
+**[Beat 4 — money is just the funder axis (the catch that isn't)]**
+"And I know the one you're waiting for: money. Isn't this where the deepest
+pockets quietly win? No — because money isn't special here. It's just the funder
+axis. Spend it and you earn a say among funders — and nothing else. It can't buy
+a maker's say, or a player's say, or power in the world; it's walled off exactly
+like the other two. Money's welcome — it's how the lights stay on — but it's one
+of three, never above them. **It can make you the loudest funder in the room. It
+can't make you a maker, a player, or a winner.**"
 
 **[Beat 5 — hand forward, with curiosity]**
 "So: an apparatus for the community's decisions, three kinds of say, and money
@@ -100,8 +93,8 @@ The image is **"same crowd, measured three ways,"** never "three rooms."
   three-meter people → three aggregate bars → the 2-of-3 line.
 - **Beat 4 — the firewall.** A **whale**: funder meter maxed, maker/player near
   zero — towers over the funder tally but barely moves the other two, so it
-  can't clear 2 of 3 alone. Money flows only into the funder meter; a wall
-  stops it reaching the others or "advantage." Firewall recurs as a motif in
+  can't clear 2 of 3 alone. Money flows only into the funder meter; a wall stops
+  it reaching the other two counts or "advantage." Firewall recurs as a motif in
   Ch 6 (the floor).
 - **Beat 5 — corner**, for the hand-off. Teaser inset: one figure running a single
   meter sky-high (the "owns one whole count" worry). Back to the corner on "that's
@@ -125,6 +118,24 @@ the **firewall.** Diagram changes ~every 10–15s; client never shown.
 - **Autocrat → Ch 6.** Scale is the *why* behind the dial: keep whatever stake
   you want and **defer selectively** (abstain) — not all-or-nothing. Optional
   one-line reassurance earlier so operator-viewers don't bounce.
+- **Money is not special — it's the funder axis (Beat 4).** Frame money as one of
+  three non-convertible kinds of say, walled off exactly like the other two —
+  never as a special thing that had to be caged. A dedicated "money" beat with its
+  own machinery *implies* specialness and undercuts "none supreme"; keep Beat 4
+  short and symmetric, and name the money fear directly only to defuse it.
+- **Treasury / how-money-is-spent is out of scope for the video.** The single-
+  budget / not-earmarked / compute-events-kickback mechanics are constitution
+  detail — omission is the conversion engine. Don't reintroduce a spending
+  discussion in Ch 1 (it drags the legislature in before Ch 4 introduces it), and
+  note Ch 6 has no treasury beat either. The operator-kickback signal, if kept,
+  lives as one clause in Ch 6 Beat 5, not here.
+- **Don't imply the model prevents cashing out / investment (Beat 4).** Nothing in
+  the model architecturally stops patronage from being structured as a real
+  investment with a return — that's securities law and a design choice, and this
+  could run on real markets. Overclaiming it makes the firewall sound like magic.
+  The wall that *is* real is narrower: **money moves the funder count and stops
+  there — never the other two counts, never advantage in the world.** Keep the
+  wall about advantage, not cash-out. (Don't get into the legal reasons on camera.)
 
 ## Assets & production
 

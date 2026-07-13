@@ -77,9 +77,12 @@ record, and every bit of it tentative.
 
 Then comes **ratification**, where the *community* decides what becomes permanent
 — and here's the part a founder actually cares about, so I'll be straight: **you
-don't have to hand over the keys.** Sunset the extras, keep the patronage match,
-offboard yourself entirely — or keep a standing majority and run the place
-top-down. Be clear-eyed about what that means: a majority of the chambers is the
+don't have to hand over the keys.** And you don't have to run the place for free,
+either — paying the operator is just another expense the community can cover out
+of the treasury, like any other; running it can be your job, not your charity.
+Sunset the extras, keep the patronage match, offboard yourself entirely — or keep
+a standing majority and run the place top-down. Be clear-eyed about what that
+means: a majority of the chambers is the
 legislature *and* the executive both — two branches — and you can keep hearing
 the appeals yourself, courts and all. The whole thing, your call. **And that's a
 legitimate way to run this** — it's how nearly every online community already
@@ -138,6 +141,8 @@ line.
   diluting; consumer ~zero) → a **RATIFICATION gate** where the community sets the
   dial (offboard / sunset / keep-match / autocrat-runs-it-all) → all of it on the
   floor (verify / no-buy / exit) → the honest tendency (open up → more value).
+  Small beat: a coin routed from the treasury back to the operator (running it
+  can be paid work — a community-approved expense, *not* a lever on the outcome).
 - **Beat 6 — corner / no-face. The landing.** The full system drawn in one
   frame — three meters · map · lifecycle · chain · floor · dial — assembling into
   a whole on "that's the design." Hold, then **hard cut to full-screen camera =
@@ -160,6 +165,11 @@ Heroes = the **floor** (Beat 2) + the **dial** (Beat 3).
   bound the tenure threshold so it can't be strangled — so the *open* position is
   genuine, not a sham. This is the mechanics of *turning the dial*, **not** a
   mandate to turn it.
+- **Operator-pay reassurance (Beat 5)** relocated here from Ch 1's old money beat
+  (the "kick it back to the livestreamer" line). Framed as a *treasury expense the
+  community approves*, consistent with no-earmarking — money flowing back to the
+  operator is an ordinary expense, never a lever on outcomes (keeps the firewall
+  intact). It's the operator-customer sweetener; keep it to one clause.
 - **Founder-binding numbers** (matched-plus-one patron margin, etc.) = `founding-
   charter.md` spec, doc-only. The manifesto carries: patron match→majority,
   producer dilutes, consumer none, ratification-community-decides, floor-holds,

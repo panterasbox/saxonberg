@@ -7,11 +7,12 @@
 # doorway to the concourse (the hall lists `south`→here); it also anchors the
 # load cascade — the departure terminals seat their OWN gate rooms, so the
 # station HALL (and via it the office) stands up because this seated room's
-# `north` exit resolves it. The `across` exit is the cross-branch adjacency to
-# the EU campus — Terminus sits on University Avenue, across from the university
-# gate — declared on both sides (the plaza lists its own `across`→here, Phase
-# 6). Non-cardinal + cross-zone, so it is a semantic exit (CartesianLocation
-# .addExit allows it; it can't be grid-derived across zones).
+# `north` exit resolves it. The `west` exit is the cross-branch adjacency to
+# the EU campus — Terminus sits on University Avenue, west across the street
+# from the university gate — declared on both sides (the plaza lists its own
+# `east`→here). Cross-zone exits are authored explicitly (never grid-derived);
+# a cardinal name is allowed cross-zone (CartesianLocation.addExit only forces
+# cross-zone for NON-cardinal names), so this is a plain `west`/`east` pair.
 class: /lib/location/CartesianLocation
 hydratorClass: /lib/persistence/PersistentHydrator
 data:
@@ -29,7 +30,7 @@ data:
   exits:
     north:
       destination: /domain/terminus/terminal/hall
-    across:
+    west:
       destination: /domain/eternal/university-avenue/plaza
   details:
     plate:

@@ -58,6 +58,69 @@ the people who come aboard supply the worlds. The multiverse is exactly what
 others*, so it never has to be authored here. Content is the expensive layer;
 **we spend on systems and let creativity arrive.**
 
+### The geography — the basin **[settled]**
+
+The known world is **one watershed** — a single river basin — and we model no
+more than that. Its edges are unmapped in two honest ways, so no cosmology is
+ever owed: **seaward**, the rivers meet open water at the core, and past the
+coast is ocean you cross only by **TPA**, never by modeled voyage (the
+multiverse's door, not a mapped seaboard); **landward**, the valleys climb to
+**watershed highlands** that thin into frontier wild and then unmapped interior.
+Whether the basin sits on an island, a continent-margin, or something stranger
+is **neither confirmed nor denied by construction** — you hit frontier or open
+water before you could ever find out, and the TPA goes to *elsewhere*, not to
+the next province. We model the basin; the multiverse owns its rim.
+
+The basin **rhymes with the myth.** Eternal City was born of the **Confluence**
+— two worlds joined — and the physical world echoes it: the dead core sits where
+**two rivers become one** and meet the sea. They are the **Marrow** (remembered
+to the bone — the water that runs the way the clergy's thread ran, unbroken
+through the dark) and the **Mere** (still and blank as the dead city's silence);
+they join at the ruin, the mundane confluence a shadow of the cosmic one. It is
+why everything centers there: the strangest place, the trade hub, and the end of
+every river road at once. **Terminus** is the port-city on the ruins at that
+meeting — and, the Rome way, the name of **the whole known world as much as its
+one city**: you live at the *terminus of everything*, the last settled place
+before the waters end and the map runs out. *(The city is Terminus; the Terminus
+is the basin entire.)*
+
+Authority-descends-from-heaven-to-earth runs **outward in space** as it ran
+**downward in time.** The strangeness seeps from the dead core and **fades
+outward** up the valleys, and so does prestige — **nearness to the ruin is
+rank.** Concentrically, core to rim:
+
+- **The dead Eternal core / the Sanctuary** — the impossible ruin at the
+  confluence; highest strangeness, the wired aether-nexus the clergy relit.
+- **The University / campus** — rising out of the ruins, the strangeness seeping
+  up and fading through everything above.
+- **Oldtown** — the original mission-settlement; the first chapel, the clergy's
+  residue.
+- **Terminus (the city)** — the modern cityscape ringing the University; port,
+  field-economy, money rails — where the surviving houses moved and became
+  corpos. *Recent.*
+- **The domains — the countryside** — the dispersed patchwork the great houses
+  administered: each a **manor-seat and its lands**, strung along the fertile
+  **river valleys**, roads and rivers radiating between seats and down to the
+  port. The realm's agrarian body. (The inner, near-core valleys held the great
+  old houses; the outer valleys the lesser ones.)
+- **The Marches — the frontier** — thin highland settlement at the watershed
+  edge, fading to unmapped wild; the most mundane, least-governed land, and
+  where a newcomer begins.
+
+**Terminus is the only true city** — the agrarian peerage never raised a second,
+and the metropolis is a *recent* densification of the center (see *The
+administered realm*). But the realm is not empty between the manors:
+**market-towns** at the river junctions (the counting-houses' trade nodes — some
+withered when the houses walked away), **manor-villages** clustered at each
+domain seat, rough **march-settlements** at the frontier edge, and the odd
+**corpo company-town** (Goodkin's paternalist specialty) give it texture and its
+future buildable anchors — with no second metropolis to author.
+
+The dense city is the *new* thing; the **countryside is the older, truer map** —
+and today it is a landscape of **lapsed administration** (see *The administered
+realm*). *(This is the local stage of Scale & scope, drawn: one basin, filled
+from the frontier inward by the people who come.)*
+
 ## Cosmology — three strata **[settled]**
 
 1. **The emergent.** The natural world is the result of chaos + physics:
@@ -291,6 +354,66 @@ experience. Evil is the enemy of experience itself.
 - **Eschatology.** Its victory condition is *a world that runs perfectly
   and contains no one.* The hollowing complete.
 
+## The Ordinance — Evil with a government **[settled]**
+
+The hollowing is a principle — placeless, mythic, no address (above). But the
+**fear** it preys on has a name and a shape a player can face, and that is the
+**Ordinance.** It is the answer to the symmetry the world otherwise lacks: not
+an evil *people* (that is reskinned bigotry, and it breaks the species work), but
+Evil **made a government** — the purest realization of our Evil, which was always
+a *system*, never a face (misaligned optimization, capture; see *Evil — the
+hollowing*).
+
+**The thesis: the same machine, without the consent.** To live under the
+Ordinance is to be **governed by a machine** — impartial, consistent, data-driven
+law: *exactly what the cooperative also is.* The whole wager is that **building
+the machine democratically** is what makes it legitimate — consent is the hinge
+that turns "governed by a machine" from a nightmare into a commons. The Ordinance
+is that machine **with the consent struck out:** the same efficiency, the same
+tireless impartial law, and *you never agreed, cannot leave, and cannot change
+it.* **The horror is the sameness.** It is the cooperative's exact dark twin —
+the cautionary proof of what the founding becomes the day it drops the word
+*democratically* — a mirror that keeps *us* honest, not a foreign evil to feel
+superior to.
+
+**Lawful Evil, by construction.** A realm with a *government and institutions* is
+**ordered** capture — **Mammon's** register (the hoard, ordered accumulation)
+under **Moloch** the optimizer, never **Mara's** chaotic doomscroll. So the
+Ordinance has ministries, a civil service, a jurisprudence: the **Feed made
+civic**, the Metric enthroned as public policy, the company-town at
+civilizational scale. Its eschatology is Evil's own — *a world that runs
+perfectly and contains no one* — approached as a **state**: gleaming, prosperous,
+frictionless, and hollow. It presents as **utopia** (you earn nothing beating a
+strawman); its horror lives in the *small perfect detail*, the inverse of
+Terminus's decay-with-meaning — a place where **nothing decays because nothing
+has a history.**
+
+**The cast is functionaries and the captured, never a race.** Its "evil
+characters" are **true-believer administrators** — who will argue impartial
+machine-justice is a *mercy*, and argue it *well* (the steelman) — its enforcers,
+and the **hollowed** masses (tragic subjects to pity and free, not a people to
+cull). And there are **refugees** fleeing *out* of it into Terminus — the best
+proof the realms touch, and free harrowing testimony. **No one is Evil by birth;
+they are captured, deluded, or administering.** You resist, sabotage, extract,
+liberate — and because Evil is the *incentive*, not the man in the chair,
+**killing an administrator only frees the seat for the machine to reassign** (no
+boss to unplug; a persistent antagonist, never a final dungeon).
+
+**How it reaches us — near first, far later.** Evil stays canonically placeless
+by keeping the realm-proper **offstage** at first: you feel the Ordinance before
+you ever see it. The **near-siege** rides into Terminus with no second realm
+authored — the **Feed over the shared field** ("one network, two gods"); the
+**Recruiter**, the False-Dawn cult made flesh, selling the hit in a back room and
+calling the machine *mercy* (the drift-tempter, the dark-god arc's local agent);
+the **dead-zones** as its toeholds (drained pockets where the field went silent
+and the Ordinance's order creeps in, Warden-cordoned — a dry well is a cheap
+reader that one is near); and the **refugees** arriving through the TPA. The
+**away-realm** — the Ordinance visited, raided, its subjects liberated — is the
+*later* build (a destination is dear); the multiverse holds **other fallen
+worlds** besides it, an author faucet. *(Players are locked Good and are never
+citizens of the Ordinance; its pull is a moral test — you may find you* like *it
+there — and feeding it is drift, not damnation. See* Alignment*.)*
+
 ## The gods and demigods **[settled]**
 
 Gods live on **belief and attention** — which the engine already models
@@ -456,6 +579,49 @@ it. The whole system is the honest count turned on your own soul.
   *knowingly* tangles with **Mara or Mammon** — boons real and seductive, never
   corrupting, a true push-pull with social and narrative cost — the earned
   religious twin of the False-Dawn cult.
+
+### Sacrifice — blood, presence, and the Feed *[settled]*
+
+Worship's oldest form is **sacrifice**, and its history is a spine of the whole
+theology. The ancient altar was a **slaughter-surface** (the word's own root — a
+"place of slaughter"): a life offered to a god believed to *hunger for death.*
+The **reform** — no savior, no god-dies-once-for-all (we have no Christ, by
+design) — is a **re-conception of what sacrifice *is*:** the gods live on belief
+and attention, so what a god actually hungers for is **presence**, not blood. The
+animal's death was a *proxy for the wrong thing.* So sacrifice moved from **the
+animal's life → your own attention, deeds, and self** — "the deeds are the
+liturgy," and **the honest count is the reformed sacrifice** (offering yourself to
+be truly seen). The change was a *teaching*, an understanding of what the god was
+for — which is exactly why modern worship is **non-transactional.**
+
+**The Feed is that sacrifice inverted.** If the reformed offering is *presence
+freely given*, then **attention is the sacrificial substance now** — and attention
+is what **Mara / the Feed captures.** So the hollowing is blood-sacrifice
+returned, upside-down: the ancient rite offered *another's* life to a god you
+serve; the Feed offers *your own* hours to a god that farms you — *and you don't
+know you're the offering; you think you're the worshipper.* The blood-altar became
+the Feed. **One substance, two gods:** presence given (Aletheia, the honest count)
+or presence drained (Mara, the doomscroll).
+
+**Sentient sacrifice is the evil-*definition*, not a darker sacrifice.** To offer
+a **person** (any experience-bearer — human, species-people, construct-person
+alike; *personhood, not species,* is the line) is to *treat a person as a thing to
+consume* — the literal hollowing, Moloch's signature rite. The reform's deepest
+target was never animals but *this*: **a person is never an offering; personhood
+is the stake, never the payment** — and the good faith is *defined* by that
+refusal. It never vanished, only **industrialized and hid** (the Feed, the
+Ordinance, "people as the crop" — sentient sacrifice at scale, disguised because
+you're *on* the altar). It is **never a player act** (the evil line; players
+locked Good) — only the antagonist's rite and the horror you *uncover.*
+
+The hinge is **consent, at its extreme: self-sacrifice is the highest good;
+sacrificing another is the defining evil.** Same act — a person dies as offering —
+opposite soul: *your own* life freely given (**martyrdom**, the ultimate free gift
+of presence, pure Mitra) versus *another's* taken (person-as-thing, pure Moloch).
+This is the "no-Jesus" answer at its root: a martyr is redeemed not by a dying
+*god* but by giving *himself* — a *human* self-gift, the highest presence.
+(Mechanics — the altar object, the kills-as-sacrifice rite, the patron/alignment
+taxonomy — live in `docs/slates/builds/altar-slate.md`.)
 
 ## History — the five ages
 
@@ -748,6 +914,61 @@ and anything that goes *off the air* to escape capture.
 *Variability:* the **two bodies** are fixed (the lore leans on them), but how the
 aether *entered* the world, whether it can *exit*, and what mechanics harness it
 where stay **deliberately open** — a per-story lever, not a locked cosmology.
+
+### Making & metallurgy — craft, will, and Eternal steel *[settled]*
+
+Two technological histories run through the world, and they **never touch**,
+because the aether is *cognition, not force* (identity-blind, no physical work —
+`eternal-university-narrative-slate.md` §8): the **informational** one, which
+climaxed at the Widening (the implant, the network, the Feed — hyper-modern), and
+the **material** one, which stayed **pre-industrial craft** (mines, forges,
+smiths). The realm **networked its minds but never mechanized its matter** — the
+aether can't smelt iron — which is why implants and blacksmiths share a street,
+and why the corpos own the *pipes and the finance* while the *physical making*
+stays craft (the player economy). The culture's whole demiurgic ambition poured
+into the aether, reaching for the **lost magic**, never toward steam.
+
+**Two kinds of making, two ancients.** In the Eternal Age **will-into-being**
+(the wizards' demiurgic power, the CMS's mythic root) was the **elite tier** —
+reserved for wonders, the impossible towers, willed marvels. Underneath it the
+**ordinary populace mined and smithed like anyone**; the everyday material
+economy ran on plain craft the whole time. (The deep-ancient **attuned** are the
+*other* ancients — paradise creatures who made nothing at all, willed or crafted;
+mining belongs to the Eternal *populace*, not to paradise.) So the
+bronze→iron→steel ladder is **ancient and real** — it is *physics* (melting
+points and technique), not a progress-arrow — and the mines have run **since the
+populace, continuously.** **Ordinary ancient iron is modern iron:** same stuff,
+often the same veins.
+
+**The fall lost the *will*, not the craft.** When Eternal City fell the wizards'
+fiat-power evaporated and they **dropped to the makers' floor the populace always
+worked at** (the fallen wizards → the great houses). Craft survived; only the
+elite will-making died — and with it the power to make *new* willed metal. The
+Reaping still explains *uneven loss* (some houses kept the finer metallurgy, the
+dispossessed lost it), without the false claim that smelting was invented from
+nothing. And the tone is **felix culpa, not tragedy: craft is not degraded magic
+— it is the honest, friction-ful, dignified climb toward what will had for
+free.** The fall into craft was a fall into *friction*, and friction is where
+growth and meaning live. *Will-without-friction is the Ordinance* — effortless,
+hollow, no-growth; *craft-with-friction is the honest path* — the mortal smith
+who chases willed perfection through sweat *grew* doing it, and is the nobler
+maker for it. (This is the crafting↔wizardry ladder made cosmological: craft is
+the **floor** of making, will-into-being the **ceiling**, and the
+protowizard→wizard arc is a re-ascent from one toward the other.)
+
+**Eternal steel — the willed tier (the world's Valyrian steel).** The wizards'
+willed metal survives as a **finite, unreproducible, heirloom material:** it *is*
+iron/steel (chemically ordinary), but willed to a **perfection no forge can
+reach** — off the top of the crafting `Grade` scale. It can be **found and
+reworked, never newly made** (the willing that made it is gone), so a master
+smith may *reforge* an Eternal blade but no one can *smelt* another — the supply
+is **fixed and conserved**, all of it salvaged from the ruins and the deepest
+mine strata (**depth is time:** the deep galleries reach the buried Eternal
+world). Every piece is a **named heirloom with provenance** — a great house's
+ancestral blade, carried in the belief/recognition and chronicle layers — the
+apex of the craft ladder, the highest material demanding the highest competence
+not to ruin. *(Name provisional — "Eternal steel" mirrors "Valyrian
+steel"→Valyria; alts: wright-metal, willsteel.)*
 
 ### The attuned — creatures of presence *[settled]*
 
@@ -1467,6 +1688,128 @@ Independents; this is the *rise and meaning.*)
   out* (the polity wrestling the field back); the real plane has it *legally
   deferred*. The corpos are the **incumbent the model hopes to beat fairly**, not
   a dragon to slay.
+
+## The administered realm — land, home, and office **[settled]**
+
+The realm has one throughline, and it is the cooperative's whole thesis written
+in **real estate**: *who holds the land, and who decides what gets built on it.*
+Under the peerage that power sat in **blood**; in the Grounded Age it sits in
+**accountable office.** Property is not adjacent to governance here — it **is**
+governance's most concrete domain.
+
+**The peerage realm — administered by blood.** The University and the great
+houses coexisted in *time* but divided the *map*. The clerical-academic order
+held the **center** — the dead core, the campus, Oldtown, growing Terminus —
+governing by custom and deference, never codified (see *The Mission*). It
+**ratified** house title but by doctrine ("teach, don't crown") never
+administered the land beyond. The **realm** was the houses': a dispersed feudal
+patchwork of **domains**, each manor-seat the local center of its own lands,
+justice, and resource-tenure, strung along the river valleys. The order granted
+legitimacy; the houses held the ground; **Mammon** — *ordered accumulation,
+hereditary hoarding* — was their patron. It was a **land economy**: extract from
+the estate, trade the surplus down the rivers through the counting-houses (→ the
+commercial banks) at the port. And it was **many** houses — the five modern
+corpos are *consolidations*; the fine grain of feud and cadet-branch and
+swallowed lineage survives in the **geography**, where the corpo roster's
+compression does not reach.
+
+**The lapse — a vacancy, not a conquest.** At the **Widening** the scarcity
+moved from **land** to the **field** (aether at scale — attention, the network,
+the coming compute), and the value of the realm collapsed almost overnight. The
+houses that pivoted converted land-capital into field-capital, moved to the
+densifying city, and became the **corpos**; the ones that stayed land-bound were
+left behind (dispossessed, or **Independent**). So the houses **walked away** —
+and the Charter *inherited the realm as a vacancy, not a prize.* Administration
+didn't transfer; it **lapsed.** Today the countryside is depopulated of its
+*aristocracy* but not its *people*: vacant seats, uncollected tenure, commons
+still working land whose lords simply stopped coming. The reclaimable manor and
+the un-administered march are the live question — *who holds this now?* — waiting
+in the fiction for the property system to answer.
+
+**Some of the abandoned didn't just stay — they organized.** The clearest case is
+the **mining folk**: when a house walked away from its Delving, the miners whose
+whole life was the deep *kept it running*, and over generations built their own
+deep-law, market, and governance to hold a commons no lord administered — an
+**accidental proto-cooperative, the founding's thesis rehearsed in miniature and
+generations early.** They are an **occupational culture, not a race** (a
+mixed-species community of the deep — no "mining race"); their town-below worships
+**Goibniu**, patron of honest work, and holds a wary stance toward the coming
+Charter (recognition, or absorption?); its oldest, dearest quarter is a gnome
+diaspora neighborhood, **Gnometown**. *(Design detail:
+`docs/slates/builds/mining-slate.md`.)*
+
+**The redemptive inversion — administered by office.** The Grounded Age answers
+with the founding's core move: the two powers the houses held by blood —
+**granting land** and **admitting what gets made on it** — are reconstituted as
+a single **accountable executive office** (the **Lands & Works** office, an
+Office-substrate seat: single-holder, filled by election or appointment,
+accountable to the whole deliberating body, removable). The power that sat in a
+bloodline now sits in a **seat anyone can hold and lose.** *(Offices are
+executive functions held by users; they are not held by chambers — every member
+occupies all three chambers as dimensions of one membership, and the office
+stands apart from them, executive to their deliberation.)* The **Warden of the
+Marches** is the redemptive-echo flavor for its frontier-settlement side — a
+pointed inversion of the Eternal Age's **Warden**, who held two laws and *would
+not* govern; the new one does, by consent, with limits.
+
+**The two homes — the field and the wire.** Everyone gets a home, and it is two
+things, split along the aether's two bodies (see *The aether*):
+
+- **The Home is on the field** — public, shared, persistent, part of the
+  networked world, *affecting and affected by game state.* It sits on **titled
+  ground** in the shared geography, and it is authored only by **constrained
+  composition** (a customization layered over sanctioned base-templates): you
+  place approved modules, you never name raw code, so it cannot cheat — the
+  constraint *is* the safety. Real because it holds land; safe because the
+  palette is bounded.
+- **The Holodeck is on the wire** — private, closed-loop, off the public field,
+  **implant-blind, and traceless by construction.** Here you build **however you
+  want, however you skin it,** with no effect on shared state. It holds **no
+  title** — and that absence is the whole anti-cheat: with no land it can claim
+  no permanent world-space, and when you stop tending it, it **evicts to
+  nothing** (the residency sweep on a landless graph). The wire evaporates; the
+  field persists. **Land makes a thing real; the lack of land makes it safe.**
+
+One Holodeck per maker, reached through **many skinned doors** — a wardrobe, a
+turbolift, a mirror, a drafting table, whatever the skin — each a **wire-tap**
+you physically step through into the same private workshop (named projects within
+it for more than one build). The door is content; the destination is yours and
+constant.
+
+**Promotion — wire to field, an act of the polity.** To make a private creation
+**real** is to publish it *from the wire onto the field* — to enter the shared,
+governed commons — and that is an **executive government act**, performed by the
+officer who holds Lands & Works. The creation is **chartered** into the realm
+(the year-0 founding echo — every promotion a little founding): granted a parcel,
+recorded for title and authorship (the provenance ledger), admitted to the
+field. Two **orthogonal gates** guard the crossing: the **civic** one (the office
+— does this get public land and enter the commons?), always required; and the
+**technical** one (the code-trust / wizard review — does this content name code
+that runs on the field?), required only when code is named. A protowizard's
+constrained build needs only the charter; a wizard's code-bearing build needs
+both. Make stays severed from rule: the officer *admits*, the review *vouches*,
+neither is the other.
+
+**The tenure ladder — home mapped to geography.** The concentric basin (see *The
+geography*) houses every scale of belonging, density falling and parcels growing
+as you go outward, prestige concentrating near the core: **dorms** on the campus
+(rented from the University Warren — the newcomer's first home) → **apartments**
+stacked in the city (rented) → **townhomes** on the inner ring (rent, then own) →
+**single-family homes** in the suburban belt (owned) → the **reclaimable manor
+seats** in the near-core valleys (*claimed*, not rented — a lapsed vacancy
+restored) → **homesteads** on the frontier marches (raw-land claim). You do not
+rent a manor; you **inherit its vacancy** and hold it by restoring it — the
+property ladder's aspirational top rung *and* the payoff of the lapse. *(The
+property substrate that carries all of this — title, parcels, rent-vs-own — is
+being built separately; this section fixes only the fiction it clothes.)*
+
+**The frontier is the intake.** The empty land has a purpose beyond a newcomer's
+first fight: the **Marches** and, past them, the **multiverse** (TPA-reachable
+elsewhere) are where **promoted creations land** — a chartered parcel for a
+build, a whole reached-by-travel world for a build too big for Terminus.
+Unclaimed land exists precisely so wire-dreams have somewhere to become real, and
+the basin fills **from the frontier inward, by the people who come.** *Systems,
+not content, given a physical address.*
 
 ## The Museum — the still-burning war *[settled; artifact set illustrative]*
 
