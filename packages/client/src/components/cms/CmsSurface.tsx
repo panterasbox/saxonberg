@@ -19,6 +19,7 @@ import { CmsExplorer } from "./CmsExplorer";
 import { CmsEditor } from "./CmsEditor";
 import { StudioPanel } from "./studio/StudioPanel";
 import { CmsDiagnosticsPane } from "./CmsDiagnosticsPane";
+import { CmsGitPanel } from "./CmsGitPanel";
 import { tokens } from "../ui";
 
 const Root = styled.div`
@@ -73,9 +74,9 @@ export const CmsSurface: React.FC = () => {
   const cmsOpen = useStore((s) => s.cmsOpen);
   // Files (explorer + editor) vs Kinds (the content-first Studio surface: the
   // blueprint catalogue + template + class-composer view router).
-  const [mode, setMode] = React.useState<"files" | "kinds" | "diagnostics">(
-    "files",
-  );
+  const [mode, setMode] = React.useState<
+    "files" | "kinds" | "diagnostics" | "git"
+  >("files");
 
   useEffect(() => {
     void cmsInit();
@@ -124,6 +125,16 @@ export const CmsSurface: React.FC = () => {
         >
           Diagnostics
         </ModeTab>
+        <ModeTab
+          type="button"
+          role="tab"
+          aria-selected={mode === "git"}
+          $active={mode === "git"}
+          title="Version-control your source edits (status / diff / publish / revert)"
+          onClick={() => setMode("git")}
+        >
+          Git
+        </ModeTab>
       </ModeBar>
       {mode === "files" ? (
         <Screen>
@@ -134,8 +145,10 @@ export const CmsSurface: React.FC = () => {
         </Screen>
       ) : mode === "kinds" ? (
         <StudioPanel onOpenInFiles={openInFiles} />
-      ) : (
+      ) : mode === "diagnostics" ? (
         <CmsDiagnosticsPane />
+      ) : (
+        <CmsGitPanel />
       )}
     </Root>
   );

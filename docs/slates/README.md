@@ -170,11 +170,24 @@ continues with the content + navigation layers on top:
   (the producer faucet's routing input). Kept in `builds/` for the build-sized remainder
   (the dependency-DAG credit graph, git-in-runtime VCS, the author≠owner un-fusing that
   [property](./builds/property-slate.md) consumes).
+- [git-workflow-slate](./builds/git-workflow-slate.md) — the **in-runtime VCS**
+  brick provenance reserved: a gated `GitApi` that turns runtime source edits into
+  commits pushed to GitLab (version history · review · rollback · **durability across
+  redeploy**). Governing insight: **the working tree *is* the live server**, so it's
+  **snapshot-and-push** (box-on-a-long-lived-`authoring`-branch, `publish` = add/commit/push,
+  isolation moves to the MR layer) — never working-tree branch-switching. Security spine:
+  **every git op is gated by the same per-path `can('write')` predicate as a direct source
+  write** (git is not a permission bypass; `publish` stages only writable files → per-owner
+  scoping falls out; revert-only, `reset`/force-push deferred). Identity: **one shared push
+  token + per-avatar `--author`** (mirror of the `AuthoringEvent` ledger). **Wave 1 (source
+  plane) SHIPPED** (MR !132) → [../subsystems/git-workflow.md](../subsystems/git-workflow.md);
+  kept in `builds/` for the remainder: content/document→git (Mongo→file export) + finer-grained
+  review + per-user `/home/` submodules.
 
 **Phases:** type surface + diagnostics (shipped → diagnostics.md) → CMS editor core (shipped → cms.md) →
 the Studio composition surface + first authoring-intelligence catalogs
-(shipped → studio.md) → scoped authoring · provenance (first brick shipped → the
-DAG + VCS deferred).
+(shipped → studio.md) → scoped authoring · provenance (first brick shipped) · **git-workflow
+(in-runtime VCS Wave 1 shipped → git-workflow.md; content-export / finer-review / subrepos deferred)**.
 
 > The former verb-provisioning slate is retired — its one durable idea
 > (a verb may be afforded by many source objects; the source is the

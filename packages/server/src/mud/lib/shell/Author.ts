@@ -121,6 +121,13 @@ export function AuthorMixin<TBase extends MixinConstructor>(Base: TBase) {
         // nothing. The finer gates (raw → wizard, clear → author-of-path)
         // are enforced in the controller / DiagnosticApi.
         'system/errors.yaml',
+        // In-runtime VCS — `git status/diff/log/publish/revert` over the
+        // engine source tree. Afforded on the operator command surface
+        // like the rest of this suite; `git.yaml` carries `requiresWizard`
+        // (it version-controls engine TS), so a non-wizard sees it but
+        // can't run it. The per-affected-path `can('write')` refinement
+        // stays in `GitLogic`.
+        'system/git.yaml',
       ],
       environment: [],
       inventory: [],

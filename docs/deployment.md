@@ -210,6 +210,54 @@ re-deploy of a prior pipeline for rollback.
 Both deploys keep AWS off the box: `deploy/materialize-env.sh` runs in
 CI (which holds the creds) and ships the env file in.
 
+### In-runtime VCS (`GitApi`) — the box-on-`authoring` migration
+
+The dev box's working tree **is** the running server (`tsx` runs from the
+checkout), so `GitApi` (`git status`/`diff`/`log`/`publish`/`revert`)
+captures live source edits into commits pushed to GitLab — see
+[git-workflow.md](./subsystems/git-workflow.md). Working-tree branch
+switching is forbidden (it would swap every author's running engine), so
+the box tracks **one long-lived `authoring` branch**; edits accumulate as
+working-tree changes; `publish` commits + pushes them; isolation and
+review move up to the MR layer (`authoring → master`, whole-branch).
+`master` stays the reviewed line prod images are cut from.
+
+`GitApi` itself is **topology-agnostic** — `publish` pushes
+`status().current` (whatever branch the box tracks), so the feature merge
+changes no live state and works on `master` today and `authoring`
+post-migration with zero code change. Adopting `authoring` is a
+**separate, coordinated ops migration** (it touches the live box + CI, is
+unverifiable in CI, and must **not** ride the feature merge — flipping the
+CI rule while the box is still on `master` mismatches the trigger and the
+pulled branch, breaking live deploy). The steps, done deliberately:
+
+1. **Box checkout (one-time, at the box):** `cd /srv/saxonberg && git
+   fetch && git checkout authoring` (create it from `master` first if it
+   doesn't exist). From then on the box lives on `authoring`.
+2. **`deploy-dev` CI rule:** flip the trigger in `.gitlab-ci.yml` from
+   `- if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'` (line ~220, i.e.
+   `master`) to `- if: '$CI_COMMIT_BRANCH == "authoring"'`. Otherwise the
+   job fires on `master` pushes while the box pulls `authoring` — the
+   trigger and the checked-out branch diverge. **This edit is intentionally
+   NOT in the feature merge** (it would break live deploy while the box is
+   still on `master`); land it together with step 1.
+3. **Push-token provisioning:** add a GitLab **project access token** with
+   the `write_repository` scope to the box env as `GITLAB_PUSH_TOKEN`.
+   Store it in the `/saxonberg/dev/*` SSM tree (`SecureString`) so
+   `deploy/materialize-env.sh dev` renders it into `/srv/saxonberg/.env`
+   at deploy time (the same path every other secret takes — see
+   *Configuration & secrets*). `GitLogic` reads it **only** to authenticate
+   the push (per-command `http.extraHeader` bearer); it never enters a
+   remote URL, a returned field, an error string, or a log line. The
+   per-avatar commit `--author` uses a synthetic `<playerId>@saxonberg.local`
+   email (the repo is public — no real Google address enters history); the
+   token is the machine's one push identity.
+4. **`deploy/dev/update.sh` needs no change.** Its `git pull --ff-only`
+   already runs on the box's *checked-out* branch (no hard-coded branch)
+   and the `--ff-only` was chosen precisely to anticipate `GitApi`
+   ("refuses to clobber local work and surfaces the conflict"). It works
+   unchanged on `authoring`.
+
 Required masked CI/CD variables (Settings → CI/CD → Variables).
 `DEPLOY_HOST` / `DEPLOY_USER` / `SSH_PRIVATE_KEY` are **environment-
 scoped** — set distinct values for the `dev` and `production`
