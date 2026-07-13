@@ -9,9 +9,24 @@
 import Thing from '../../../lib/stuff/Thing';
 import { DetailedMixin } from '../../../lib/description/Detailed';
 import { SurfacedMixin } from '../../../lib/spatial/Surfaced';
+import type { CommandContributions } from '../../../api/command';
 
 const DeskBase = SurfacedMixin(DetailedMixin(Thing));
 
 export default class Desk extends DeskBase {
   static persistentFields: string[] = [];
+
+  /**
+   * The desk carries the room's personalization surface: while you're in
+   * your dorm (with your desk), `decorate` / `remodel` light up. The commit
+   * is lease-gated in the controller; a fixture is the affordance carrier
+   * (a container doesn't afford its own verbs to occupants — a co-located
+   * sibling does), the Menu-in-the-room precedent.
+   */
+  static commandContributions: CommandContributions = {
+    self: [],
+    environment: ['residence/decorate.yaml'],
+    inventory: [],
+    peers: [],
+  };
 }

@@ -1,0 +1,24 @@
+verbs: [provision, lease]
+controller: system/ProvisionController
+description: "Provision (lease) a Duncan Hall dorm room to a player"
+help: |
+  Mint and lease a dorm room in Duncan Hall's dorms wing to a player. A unit
+  is assigned the lowest free slot (reusing gaps left by ended leases before
+  a new floor is opened), titled under the dorms parcel, and leased to the
+  named player. The room, its floor, and its door reconstitute lazily the
+  first time someone walks up to them — nothing is built in advance.
+
+  Operator tool (the dorms wing is university-run). The tenant reaches their
+  room by walking: up the stairwell to their floor's corridor, then `enter`.
+examples:
+  - cmd: provision alice
+    note: Lease Alice the next free dorm room
+validators:
+  - /lib/command/validators/requiresWizard
+args:
+  - name: player
+    type: object
+    required: true
+    scope: "online"
+    validators:
+      - /lib/command/validators/mustBeAgent

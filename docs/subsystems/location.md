@@ -291,7 +291,7 @@ geometry classes documented above):**
 |---|---|
 | `Lounge.ts` | The one room template every lounge instance clones from. |
 | `Bar.ts` | Singleton external-neighbor shell (Dave's Bar); self-stocks crafting content via `populates:` (the back-bar fixture + bottles/tools `onto` it, plus Dave + the menu). |
-| `LoungeWarren.ts` | Concrete singleton Warren — the lounge *policy*. |
+| `LoungeWarren.ts` | Concrete singleton Warren — the lounge *policy*. (The **second** Warren subclass, `DormWarren`, is an elastic *two-tier* consumer — keyed persistent members + runtime floor scaffold; see [residence.md](./residence.md).) |
 | `LoungeMixin.ts` | `LoungeMixin` — lounge-room behavior + the home for future room functionality. |
 | `Menu.ts` / `CraftedDrink.ts` / `GradedReceptacle.ts` | Bar crafting content (the offer object, the crafted-drink output glass, the stock bottle) — composed over the general `lib/craft/` substrate. See [crafting.md](./crafting.md). |
 

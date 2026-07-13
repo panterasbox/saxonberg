@@ -53,6 +53,9 @@ export default class DormWarren extends DormWarrenBase {
   static readonly LOBBY_PATH = '/domain/eternal/duncan-hall/lobby';
   /** The parent parcel the unit parcels subdivide under. */
   static readonly DORMS_EXTENT = '/domain/eternal/duncan-hall/dorms';
+  /** Units per floor before provisioning buds the next floor (a static knob;
+   *  an AppSetting is a deferred tuning seam). */
+  static readonly ROOMS_PER_FLOOR = 12;
 
   /** Live rooms, keyed by unit parcel extent (the true Warren members). */
   private _unitsByKey: Map<string, MemberStuff> = new Map();
@@ -193,6 +196,20 @@ export default class DormWarren extends DormWarrenBase {
   public doorFor(unitKey: string): DormDoor | null {
     const door = this._doorsByKey.get(unitKey);
     return door && !door.isDestroyed() ? door : null;
+  }
+
+  /** The live room for a unit (if materialized), or null. */
+  public roomFor(unitKey: string): MemberStuff | null {
+    const room = this._unitsByKey.get(unitKey);
+    return room && !room.isDestroyed() ? room : null;
+  }
+
+  /** The live corridor for a unit's floor (if materialized), or null. */
+  public corridorForUnit(unitKey: string): MemberStuff | null {
+    const slot = ParcelRecord.slotOfExtent(unitKey);
+    if (!slot) return null;
+    const corridor = this._corridorsByFloor.get(slot.floor);
+    return corridor && !corridor.isDestroyed() ? corridor : null;
   }
 
   // ───────────────────── provisioning support ─────────────────────

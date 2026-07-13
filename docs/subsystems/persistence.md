@@ -616,9 +616,15 @@ concern).
 
 ### Deferred
 
-Possession (per-owner *loose* items in a shared room), multi-instance
-persistable hosts (parcel/extent identity), and the compute-allowance
-persistence cap — property Phase 0b/1.
+Possession (per-owner *loose* items in a shared room) and the
+compute-allowance persistence cap — property Phase 0b/1.
+
+**Multi-instance persistable hosts** (many live instances of one template,
+each keyed by an explicit per-instance key) — **shipped (D1)**: the
+`capture/materialize/hasRecord` `key` param, `owner = key`, the host key
+stash, `static multiInstance` relaxing `assertSingletonScope`, and
+`postRegister` no longer auto-driving. First consumer: the leased dorm room
+(keyed on its unit parcel). See [residence.md](./residence.md).
 
 ## Design Decisions
 

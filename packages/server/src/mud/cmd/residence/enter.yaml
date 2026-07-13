@@ -1,0 +1,16 @@
+verbs: [enter]
+controller: residence/EnterDormController
+description: "Unlock and step into your dorm room"
+help: |
+  From your floor's corridor in Duncan Hall, unlock your dorm room's door
+  (only you, the leaseholder, can) and step inside. The room materializes
+  furnished the first time you enter it, and holds whatever you've made of it
+  thereafter.
+
+  You reach your corridor by walking up the stairwell from the lobby; `enter`
+  then takes you the last step through your door.
+examples:
+  - cmd: enter
+    note: Step into your dorm room from the corridor
+validators:
+  - /lib/command/validators/requiresAnimate

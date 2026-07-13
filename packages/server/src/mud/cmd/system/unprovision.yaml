@@ -1,0 +1,20 @@
+verbs: [unprovision, unlease]
+controller: system/UnprovisionController
+description: "End a Duncan Hall dorm lease and reclaim the unit"
+help: |
+  End the lease on a dorm unit (named by its parcel extent, e.g.
+  `/domain/eternal/duncan-hall/dorms/f1-r1`). The lease is revoked, the room
+  reverts to a clean shell (the tenant's personalization is cleared), and the
+  slot is freed so the next provision can reuse it. A live occupant is moved
+  out to the corridor first.
+
+  Operator tool (the dorms wing is university-run).
+examples:
+  - cmd: unprovision /domain/eternal/duncan-hall/dorms/f1-r1
+    note: End the lease on floor 1's first room and free the slot
+validators:
+  - /lib/command/validators/requiresWizard
+args:
+  - name: unit
+    type: string
+    required: true

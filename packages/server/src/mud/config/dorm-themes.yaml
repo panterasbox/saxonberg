@@ -1,0 +1,104 @@
+# Dorm themes — authored prose bundles a leaseholder picks from to seal a
+# room's look (the `decorate <themeId>` / `remodel` commit). Each theme is a
+# pure prose overlay keyed by role: `room` + the three in-room fixtures
+# (`bed` / `desk` / `footlocker`). Only PROSE fields are ever written
+# (shortDescription / longDescription) — function is fixed by the backing
+# class (the code-trust boundary). The DormDoor / Corridor are shared
+# infrastructure, not tenant-personalizable, so they carry no role here.
+#
+# Loaded by `DecorateController` (the ParcelSeeder readFileSync + YAML.parse
+# precedent). NOT a Stuff template — a content data file under mud/config/.
+
+themes:
+  spartan:
+    label: Spartan
+    room:
+      shortDescription: a spare dorm room
+      longDescription: >-
+        A spare, orderly room. Bare walls, a swept floor, and nothing kept
+        that isn't used — the deliberate austerity of someone who travels
+        light.
+    bed:
+      shortDescription: a tightly-made cot
+      longDescription: >-
+        A narrow cot, its blanket drawn drum-tight and squared at the
+        corners.
+    desk:
+      shortDescription: a bare work desk
+      longDescription: >-
+        A plain desk, its surface clear but for a single lamp.
+    footlocker:
+      shortDescription: a plain footlocker
+      longDescription: >-
+        A plain locker at the foot of the bed, latched and unadorned.
+
+  cozy:
+    label: Cozy
+    room:
+      shortDescription: a cozy dorm room
+      longDescription: >-
+        A warm, lived-in room. A string of soft lights loops the walls, a rug
+        softens the floor, and the air holds a faint sweetness of tea gone
+        cold — the kind of room you exhale in.
+    bed:
+      shortDescription: a heaped, pillowed bed
+      longDescription: >-
+        A bed buried under a quilt and a heap of mismatched pillows, one
+        corner turned invitingly down.
+    desk:
+      shortDescription: a cluttered, homey desk
+      longDescription: >-
+        A desk crowded with warm clutter — a mug, a stack of dog-eared books,
+        a photo propped against the lamp.
+    footlocker:
+      shortDescription: a blanket-topped footlocker
+      longDescription: >-
+        A footlocker doubling as a bench, a folded blanket thrown across its
+        lid.
+
+  studious:
+    label: Studious
+    room:
+      shortDescription: a studious dorm room
+      longDescription: >-
+        A room bent to work. Pinned notes crowd the wall, the light is bright
+        and even, and everything sits within arm's reach of the desk — a mind
+        made into a room.
+    bed:
+      shortDescription: a hastily-made bed
+      longDescription: >-
+        A bed made in a hurry, one textbook still open face-down on the
+        blanket where sleep won the argument.
+    desk:
+      shortDescription: a laden study desk
+      longDescription: >-
+        A broad desk laden with the tools of study — a lamp bent low, a
+        battery of pens, and notes annotated in three colours of ink.
+    footlocker:
+      shortDescription: a file-stacked footlocker
+      longDescription: >-
+        A footlocker topped with neat stacks of files and labelled folders.
+
+  neon:
+    label: Neon
+    room:
+      shortDescription: a neon-lit dorm room
+      longDescription: >-
+        A room washed in synthetic colour. Strips of pink and cyan light run
+        the seams of the walls, glints skate across every surface, and the
+        quiet hums faintly electric.
+    bed:
+      shortDescription: an under-lit bed
+      longDescription: >-
+        A bed rimmed with a soft under-glow, its frame throwing coloured
+        light up the wall.
+    desk:
+      shortDescription: a light-strung desk
+      longDescription: >-
+        A desk edged with a thread of colour-shifting light, its glow pooling
+        on the work surface.
+    footlocker:
+      shortDescription: a glowing footlocker
+      longDescription: >-
+        A footlocker banded with a low luminous strip that breathes slowly
+        between colours.

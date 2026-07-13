@@ -208,6 +208,11 @@ occupant is present, so presence + dispatch touch already keep them warm.
 
 ## Deferred
 
+- **Note — first elastic-content consumer:** the leased dorm room
+  dorms-when-empty over exactly this eviction seam (its `DormWarren` reaps an
+  empty room capture-then-cull, and runtime floor corridors reap top-down);
+  see [residence.md](./residence.md).
+
 - **The reset sweep** (game-time repop) — the second sweep this substrate
   is built to host: `resets:` + `ResettableMixin`, restorative-of-self,
   never destructive-of-others, reusing the presence walk as a skip. It

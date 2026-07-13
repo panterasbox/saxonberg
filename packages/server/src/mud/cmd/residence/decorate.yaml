@@ -1,0 +1,23 @@
+verbs: [decorate, remodel]
+controller: residence/DecorateController
+description: "Redecorate your dorm room with an authored theme"
+help: |
+  Seal your dorm room's look by picking a theme. The choice writes a prose
+  overlay across the room and its fixtures (the bed, desk, and footlocker) —
+  the descriptions people read when they look. Re-running is a remodel: it
+  overwrites and re-seals.
+
+  Only descriptions change — a theme can never alter what a thing *is* (its
+  function is fixed). You must hold the room's lease to decorate it; anyone
+  may look and see your decor. Themes: spartan, cozy, studious, neon.
+examples:
+  - cmd: decorate cozy
+    note: Give your room the cozy look
+  - cmd: remodel studious
+    note: Change your room over to the studious look
+validators:
+  - /lib/command/validators/requiresAnimate
+args:
+  - name: theme
+    type: string
+    required: true
