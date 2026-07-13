@@ -337,13 +337,13 @@ function resolveExchange(
   switch (outcome) {
     case "whiff": {
       actorState.poise.spend(whiffPenalty, beat); // self-open
-      narrate(actorState, targetState, spec, "whiff", null, false);
+      narrate(actorState, targetState, spec, "whiff", null, false, beat);
       reactiveDispatch(session, targetState, actorState, "whiff", beat);
       return;
     }
     case "parried": {
       actorState.poise.spend(overextend, beat);
-      narrate(actorState, targetState, spec, "parried", null, false);
+      narrate(actorState, targetState, spec, "parried", null, false, beat);
       // The reactive-affordance dispatch (X): a parry arms the defender's
       // riposte against the attacker.
       reactiveDispatch(session, targetState, actorState, "parried", beat);
@@ -351,20 +351,20 @@ function resolveExchange(
     }
     case "control-resisted": {
       actorState.poise.spend(overextend, beat);
-      narrate(actorState, targetState, spec, "parried", null, false);
+      narrate(actorState, targetState, spec, "parried", null, false, beat);
       return;
     }
     case "control-land": {
       actorState.poise.spend(overextend, beat);
       if (spec.flagOnLand) targetState.flags.add(spec.flagOnLand);
-      narrate(actorState, targetState, spec, "control", null, true);
+      narrate(actorState, targetState, spec, "control", null, true, beat);
       return;
     }
     case "exploit": {
       targetState.poise.consumeOpening();
       actorState.poise.spend(overextend, beat);
       const report = commitInflict(actorState, targetState, "open");
-      narrate(actorState, targetState, spec, "land", report, true);
+      narrate(actorState, targetState, spec, "land", report, true, beat, true);
       // Winning the poise contest downs the target (the incapacitation
       // waypoint; a lethal finish follows under lethal terms).
       handleDown(session, actorState, targetState, beat);
@@ -374,7 +374,7 @@ function resolveExchange(
       actorState.poise.spend(overextend, beat);
       const band = targetState.poise.band();
       const report = commitInflict(actorState, targetState, band);
-      narrate(actorState, targetState, spec, report.deflected ? "deflected" : "land", report, !report.deflected);
+      narrate(actorState, targetState, spec, report.deflected ? "deflected" : "land", report, !report.deflected, beat);
       if (!report.deflected) checkFirstBlood(session, report);
       return;
     }
@@ -427,7 +427,7 @@ function reactiveDispatch(
     defenderState.poise.spend(overextend, beat);
     const band = attackerState.poise.band();
     const report = commitInflict(defenderState, attackerState, band);
-    narrate(defenderState, attackerState, g, report.deflected ? "deflected" : "land", report, !report.deflected);
+    narrate(defenderState, attackerState, g, report.deflected ? "deflected" : "land", report, !report.deflected, beat);
     if (!report.deflected) checkFirstBlood(session, report);
     return; // one reactive per trigger
   }
@@ -444,6 +444,7 @@ interface InflictReport {
   deflected: boolean;
   materialKey?: string;
   attackerSpeciesKey?: string;
+  traumaType?: string;
 }
 
 /**
@@ -481,6 +482,7 @@ function commitInflict(
     deflected: !outcome.afflicted,
     materialKey: instrument?.materialKey,
     attackerSpeciesKey: speciesKeyOf(attacker),
+    traumaType: outcome.afflicted ? outcome.trauma.type : undefined,
   };
 }
 
@@ -585,6 +587,8 @@ function narrate(
   outcome: ExchangeOutcome,
   report: InflictReport | null,
   dramatic: boolean,
+  beat: number,
+  openingExploited = false,
 ): void {
   CombatNarration.narrate({
     attacker: actorState.combatant,
@@ -598,6 +602,14 @@ function narrate(
     attackerSpeciesKey: report?.attackerSpeciesKey,
     flagSet: spec.flagOnLand,
     dramatic,
+    // The arc drivers: the defender's poise after the blow, whether a
+    // window was exploited / freshly cracked, the trauma, and the beat
+    // (rotates phrasing).
+    defenderPoise: targetState.poise.band(),
+    openingExploited,
+    openingCracked: !openingExploited && targetState.poise.isOpen(),
+    traumaType: report?.traumaType,
+    beat,
   });
 }
 

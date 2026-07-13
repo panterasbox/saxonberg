@@ -35,6 +35,8 @@ import { SecurityApi } from "../../api/security";
 import { MixinApi } from "../../api/mixin";
 import { CombatFlavor, type FlavorOutcome } from "./CombatFlavor";
 import type { CombatResolution } from "./CombatSession";
+import type { PoiseBand } from "./Poise";
+import type { Trauma } from "../vitals/Condition";
 
 export const COMBAT_EXCHANGE_TOPIC = "world.combat.exchange";
 
@@ -75,6 +77,18 @@ export interface ExchangeReport {
   flagSet?: string;
   /** Whether this beat is reaction-worthy (a hit / break / down / kill). */
   dramatic: boolean;
+  /** The defender's poise band AFTER this exchange — the arc driver
+   * (steady → pressed → reeling → broken → open). */
+  defenderPoise?: PoiseBand;
+  /** True when this blow exploited an open window (the decisive break). */
+  openingExploited?: boolean;
+  /** True when this exchange *cracked* the defender's guard open (a
+   * fresh opening, not yet exploited) — surfaced as a beat. */
+  openingCracked?: boolean;
+  /** The trauma type inflicted (laceration/puncture/fracture/contusion). */
+  traumaType?: string;
+  /** Beat index — rotates phrasing so the feed doesn't repeat. */
+  beat?: number;
 }
 
 /** Map a mechanical outcome band to the coarser flavor outcome. */
@@ -146,8 +160,9 @@ export class CombatNarration {
   static narrateResolution(report: ResolutionReport): string {
     const commandId = SecurityApi.uuid();
     const anchor = report.killer ?? report.victim ?? report.combatants[0];
+    const cause = causeOf(report.victim);
     for (const viewer of CombatNarration.witnesses(report.combatants[0])) {
-      const body = CombatNarration.resolutionBody(report, viewer as Stuff);
+      const body = CombatNarration.resolutionBody(report, viewer as Stuff, cause);
       try {
         MessageApi.scene(viewer as Stuff)
           .topic(COMBAT_EXCHANGE_TOPIC)
@@ -165,29 +180,32 @@ export class CombatNarration {
     return commandId;
   }
 
-  /** The per-viewer resolution line (self/target/bystander voice). */
+  /** The per-viewer resolution line (self/target/bystander voice), naming
+   * the cause of the fall when there is one (no bare "cut down"). */
   private static resolutionBody(
     report: ResolutionReport,
     viewer: Stuff,
+    cause: string,
   ): Mml {
     const { killer, victim, outcome } = report;
     const isVictim = victim && (viewer as Stuff) === (victim as Stuff);
     const isKiller = killer && (viewer as Stuff) === (killer as Stuff);
     const K = killer ? Mml.name(killer) : Mml.text("someone");
     const V = victim ? Mml.name(victim) : Mml.text("someone");
+    const c = cause ? ` — ${cause}` : "";
     let tpl: string;
     switch (outcome) {
       case "death":
         tpl = isVictim
-          ? "{{killer}} cuts you down. You are dead."
+          ? `{{killer}} cuts you down${c}. You are dead.`
           : isKiller
-            ? "You cut {{victim}} down — dead. The fight is over."
-            : "{{killer}} cuts {{victim}} down. The fight is over.";
+            ? `You cut {{victim}} down${c} — dead. The fight is over.`
+            : `{{killer}} cuts {{victim}} down${c}. The fight is over.`;
         break;
       case "incapacitation":
         tpl = isVictim
-          ? "You drop, senseless. The fight is over."
-          : "{{victim}} drops, senseless. The fight is over.";
+          ? `You drop${c || ", senseless"}. The fight is over.`
+          : `{{victim}} drops${c || ", senseless"}. The fight is over.`;
         break;
       case "first-blood":
         tpl = "First blood — {{victim}} is cut. The bout is decided.";
@@ -247,88 +265,222 @@ export class CombatNarration {
     return out;
   }
 
-  /** Render the per-tier body via ProseApi (Mml-aware, late-bound names). */
+  /**
+   * Render the per-tier body via ProseApi (Mml-aware, late-bound names).
+   * The line is composed from the tactical state — outcome × the
+   * defender's poise band × whether a guard broke this beat — so the feed
+   * reads as an arc (feeling-out → pressure → the break → the finish),
+   * varies by beat instead of repeating, and surfaces state changes
+   * (openings, flags). Verbs conjugate correctly per tier.
+   */
   private static body(
     report: ExchangeReport,
     tier: Tier,
     fragment: string,
   ): Mml {
+    const template = composeExchangeLine(report, tier, fragment);
     const vars = {
       attacker: Mml.name(report.attacker),
       defender: Mml.name(report.defender),
-      fragment,
-      clause: CombatNarration.severityClause(report, tier),
     };
-    const template = CombatNarration.template(report, tier);
     try {
       return ProseApi.format(template, vars);
     } catch {
       return Mml.fromMarkup(Mml.escape("The fight rages on."));
     }
   }
-
-  /** The severity clause: precise for combatants, hedged for bystanders. */
-  private static severityClause(report: ExchangeReport, tier: Tier): string {
-    if (report.outcome !== "land") return "";
-    if (tier === "bystander") {
-      return report.band === "bites-deep" ? "a hard hit" : "a hit";
-    }
-    switch (report.band) {
-      case "bites-deep":
-        return "a deep wound";
-      case "bites":
-        return "a solid wound";
-      case "grazes":
-        return "a graze";
-      default:
-        return "a glancing blow";
-    }
-  }
-
-  /** The Liquid frame for an outcome × tier (self/target/bystander voice). */
-  private static template(report: ExchangeReport, tier: Tier): string {
-    const A = tier === "attacker" ? "You" : "{{attacker}}";
-    const D = tier === "defender" ? "you" : "{{defender}}";
-    const Dcap = tier === "defender" ? "You" : "{{defender}}";
-    // A non-empty flavor fragment folds in parenthetically; a miss
-    // renders nothing (graceful default).
-    const frag = "{% if fragment != '' %} — {{fragment}}{% endif %}";
-    switch (report.outcome) {
-      case "land":
-        return `${A} land a blow on ${D} — {{clause}}${frag}.`;
-      case "control":
-        return CombatNarration.controlTemplate(report, A, D);
-      case "parried":
-        return `${Dcap} turn ${A === "You" ? "your" : "the"} blow aside.`;
-      case "whiff":
-        return `${A} overreach and stumble, wide open.`;
-      case "deflected":
-        return `${A} strike ${D}, but the blow is turned.`;
-      case "down":
-        return `${Dcap} reel and drop, done.`;
-      case "killed":
-        return `${A} finish ${D}.`;
-      default:
-        return `${A} press ${D}.`;
-    }
-  }
-
-  private static controlTemplate(
-    report: ExchangeReport,
-    A: string,
-    D: string,
-  ): string {
-    switch (report.flagSet) {
-      case "disarmed":
-        return `${A} knock the weapon from ${D}'s grip.`;
-      case "prone":
-        return `${A} put ${D} on the ground.`;
-      case "grappled":
-        return `${A} lock ${D} up.`;
-      default:
-        return `${A} gain the upper hand on ${D}.`;
-    }
-  }
 }
 
 type Tier = "attacker" | "defender" | "bystander";
+
+/* ─────────────────── exchange-line composition ─────────────────── */
+
+/** Rotate a phrasing pool by beat so the feed doesn't repeat. */
+function rot(pool: readonly string[], beat = 0): string {
+  return pool[Math.abs(beat) % pool.length]!;
+}
+
+/** English 3rd-person-singular of a bare verb (`you slip` → `it slips`). */
+function conj(verb: string, secondPerson: boolean): string {
+  if (secondPerson) return verb;
+  if (/(s|sh|ch|x|z)$/.test(verb)) return verb + "es";
+  if (/[^aeiou]y$/.test(verb)) return verb.slice(0, -1) + "ies";
+  return verb + "s";
+}
+
+/** A body-part key → a readable site ("body.arm.right" → "right arm"). */
+function siteWord(site: string | undefined): string {
+  if (!site) return "body";
+  const parts = site.replace(/^body\./, "").split(".");
+  const side = parts.find((p) => p === "left" || p === "right");
+  const rest = parts.filter((p) => p !== "left" && p !== "right");
+  const noun = rest[rest.length - 1] ?? "body";
+  return side ? `${side} ${noun}` : noun;
+}
+
+/** The channel's attack verbs (single words so they conjugate cleanly). */
+function channelVerb(channel: Channel | undefined, beat: number): string {
+  switch (channel) {
+    case "edge":
+      return rot(["open", "score", "slash", "cut"], beat);
+    case "point":
+      return rot(["stab", "pierce", "skewer"], beat);
+    case "blunt":
+      return rot(["hammer", "crack", "batter"], beat);
+    default:
+      return "strike";
+  }
+}
+
+/** The wound clause — precise for combatants, hedged for bystanders. */
+function woundWord(report: ExchangeReport, tier: Tier, beat: number): string {
+  if (tier === "bystander") {
+    return report.band === "bites-deep" ? "a hard hit" : "a hit";
+  }
+  switch (report.band) {
+    case "bites-deep":
+      return rot(["a deep wound", "a savage gash", "a wound to the bone"], beat);
+    case "bites":
+      return rot(["a solid wound", "a raking gash", "a real hurt"], beat);
+    case "grazes":
+      return "a graze";
+    default:
+      return "a glancing blow";
+  }
+}
+
+/**
+ * Build the Liquid template for one exchange from the tactical state.
+ * `{{attacker}}`/`{{defender}}` stay for ProseApi to late-bind per viewer.
+ */
+function composeExchangeLine(
+  report: ExchangeReport,
+  tier: Tier,
+  fragment: string,
+): string {
+  const atk = tier === "attacker";
+  const defYou = tier === "defender";
+  const beat = report.beat ?? 0;
+  // Subject strings (sentence-start capitalized where the subject is
+  // "You"; a 3rd-person name renders lower-case, MUD-conventionally).
+  const Acap = atk ? "You" : "{{attacker}}";
+  const Alow = atk ? "you" : "{{attacker}}";
+  const Dcap = defYou ? "You" : "{{defender}}";
+  const Dlow = defYou ? "you" : "{{defender}}";
+  // The defender's possessive: a pronoun for a combatant viewer ("your"
+  // when it's you, "its" when you're the attacker) but the name for a
+  // bystander, where "its" would be ambiguous. Kills the name-repetition.
+  const dp = defYou ? "your" : atk ? "its" : "{{defender}}'s";
+  // Sentence-start form of the defender possessive (capitalised pronoun).
+  const Dp = defYou ? "Your" : atk ? "Its" : "{{defender}}'s";
+  /** Conjugate an attacker-subject verb (`you slip` / `it slips`). */
+  const av = (v: string): string => conj(v, atk);
+  const cv = av(channelVerb(report.channel, beat));
+  const bp = `${dp} ${siteWord(report.site)}`;
+  const frag = fragment ? ` — ${fragment}` : "";
+  const band = report.defenderPoise;
+
+  switch (report.outcome) {
+    case "land": {
+      const wound = woundWord(report, tier, beat);
+      if (report.openingExploited) {
+        return rot(
+          [
+            `${Dp} guard breaks wide — ${Alow} ${cv} ${bp} through the gap — ${wound}${frag}.`,
+            `There — an opening. ${Acap} ${cv} ${bp} — ${wound}${frag}.`,
+          ],
+          beat,
+        );
+      }
+      if (band === "reeling" || band === "broken") {
+        return rot(
+          [
+            `${Dcap} ${conj("reel", defYou)} under it as ${Alow} ${cv} ${bp} — ${wound}${frag}.`,
+            `Pressing hard, ${Alow} ${cv} ${bp} again — ${wound}${frag}.`,
+          ],
+          beat,
+        );
+      }
+      // A clean hit on a still-composed guard.
+      return rot(
+        [
+          `${Acap} ${av("slip")} inside ${dp} guard and ${cv} ${bp} — ${wound}${frag}.`,
+          `${Acap} ${cv} ${bp} — ${wound}${frag}.`,
+          `${Acap} ${av("find")} the angle and ${cv} ${bp} — ${wound}${frag}.`,
+        ],
+        beat,
+      );
+    }
+    case "parried": {
+      const opened = report.openingCracked
+        ? ` — but ${dp} guard cracks open!`
+        : "";
+      return (
+        rot(
+          [
+            `${Dcap} ${conj("read", defYou)} the strike and ${conj("turn", defYou)} it aside`,
+            `${Acap} ${av("test")} ${dp} guard; ${Dlow} ${conj("hold", defYou)}`,
+            `Steel rings as ${Dlow} ${conj("beat", defYou)} the blow away`,
+          ],
+          beat,
+        ) + opened + "."
+      );
+    }
+    case "whiff":
+      return rot(
+        [
+          `${Acap} ${av("overreach")} and ${av("stumble")} past, wide open.`,
+          `${Acap} ${av("lunge")}, spent, and ${av("carry")} past ${dp} shoulder — off balance.`,
+        ],
+        beat,
+      );
+    case "control":
+      return controlLine(report, Acap, av, dp, Dlow);
+    case "deflected":
+      return `${Acap} ${cv} ${bp}, but the blow is turned.`;
+    default:
+      return `${Acap} ${av("press")} ${Dlow}.`;
+  }
+}
+
+/**
+ * The cause of a fall, read from the victim's worst wound — so a death
+ * names *why* ("bled white", "skull broken"), never a bare "cut down".
+ * Empty when there's nothing to read (a clean yield / draw).
+ */
+function causeOf(victim: Stuff | undefined): string {
+  if (!victim || !MixinApi.isVitals(victim)) return "";
+  const traumas = victim
+    .getConditions()
+    .filter((cnd): cnd is Trauma => cnd.kind === "trauma");
+  if (traumas.length === 0) return "";
+  const worst = [...traumas].sort((a, b) => b.severity - a.severity)[0]!;
+  const bleeding = traumas.some((t) => t.bleeding);
+  if (worst.type === "fracture") {
+    return worst.site?.startsWith("body.head") ? "skull broken" : "bones broken";
+  }
+  if (bleeding || worst.type === "laceration" || worst.type === "puncture") {
+    return "bled white";
+  }
+  return "beaten past enduring";
+}
+
+/** Control-gambit lines — surface the flag distinctly (a status effect). */
+function controlLine(
+  report: ExchangeReport,
+  Acap: string,
+  av: (v: string) => string,
+  dp: string,
+  Dlow: string,
+): string {
+  switch (report.flagSet) {
+    case "disarmed":
+      return `${Acap} ${av("knock")} the weapon from ${dp} grip — disarmed.`;
+    case "prone":
+      return `${Acap} ${av("sweep")} ${Dlow} off ${dp} feet — down in the dirt.`;
+    case "grappled":
+      return `${Acap} ${av("lock")} ${Dlow} up, grappling.`;
+    default:
+      return `${Acap} ${av("gain")} the upper hand on ${Dlow}.`;
+  }
+}

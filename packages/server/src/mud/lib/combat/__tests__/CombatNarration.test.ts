@@ -19,6 +19,7 @@ import { ContainmentApi } from "../../../api/containment";
 import { MessageApi } from "../../../api/message";
 import { ProseApi } from "../../../api/prose";
 import { ReactionApi } from "../../../api/reaction";
+import { MixinApi } from "../../../api/mixin";
 import { Mml } from "../../../api/mml";
 import { CombatNarration } from "../CombatNarration";
 
@@ -76,8 +77,10 @@ describe("CombatNarration", () => {
       materialKey: "steel",
       dramatic: true,
     });
-    const fragments = formatCalls.map((f) => f.vars.fragment);
-    expect(fragments).toContain("the keen steel opens a long bright line");
+    // The fragment is woven directly into the composed line (the template
+    // string), not passed as a var.
+    const woven = formatCalls.map((f) => f.tpl).join(" ");
+    expect(woven).toContain("the keen steel opens a long bright line");
   });
 
   it("gives each perception tier a distinct line", () => {
@@ -89,17 +92,73 @@ describe("CombatNarration", () => {
       outcome: "land",
       channel: "edge",
       band: "bites",
+      defenderPoise: "pressed",
       dramatic: true,
+      beat: 0,
     });
     // Three witnesses (attacker, defender, one bystander) → three frames,
-    // each rendered from a distinct per-tier template (self / target /
-    // bystander voice) or a distinct severity clause.
+    // each composed in a distinct per-tier voice (self "You" / target
+    // "you" / bystander third-person) with a hedged bystander wound.
     const templates = new Set(formatCalls.map((f) => f.tpl));
     expect(formatCalls.length).toBe(3);
     expect(templates.size).toBeGreaterThanOrEqual(2);
-    // The combatants read a precise clause; the bystander a hedged one.
-    const clauses = new Set(formatCalls.map((f) => f.vars.clause));
-    expect(clauses.size).toBeGreaterThanOrEqual(2);
+    // The bystander's line hedges the wound ("a hit"); a combatant's is
+    // precise ("a raking gash" / "a solid wound").
+    const joined = formatCalls.map((f) => f.tpl).join(" | ");
+    expect(joined).toMatch(/a hit|a hard hit/);
+  });
+
+  it("escalates the line with the defender's poise (the arc)", () => {
+    const { a, b } = scene();
+    const composed = (poise: string) => {
+      formatCalls = [];
+      CombatNarration.narrate({
+        attacker: a,
+        defender: b,
+        gambitKey: "strike",
+        outcome: "land",
+        channel: "edge",
+        band: "bites",
+        defenderPoise: poise as never,
+        openingExploited: poise === "open",
+        dramatic: true,
+        beat: 0,
+      });
+      return formatCalls.map((f) => f.tpl).join(" ");
+    };
+    // A steady guard reads as a clean hit; a reeling one as pressure; an
+    // exploited opening as the break — each a distinct phrasing.
+    const steady = composed("steady");
+    const reeling = composed("reeling");
+    const open = composed("open");
+    expect(steady).not.toEqual(reeling);
+    expect(reeling).not.toEqual(open);
+    expect(open.toLowerCase()).toMatch(/opening|guard breaks/);
+  });
+
+  it("names the cause of death (no bare 'cut down')", () => {
+    const { a, b } = scene();
+    // The victim reports a bleeding laceration; treat it as a body.
+    vi.spyOn(MixinApi, "isVitals").mockImplementation(
+      (s) => (s as unknown) === (b as unknown),
+    );
+    (b as unknown as { getConditions(): unknown[] }).getConditions = () => [
+      {
+        kind: "trauma",
+        type: "laceration",
+        severity: 2,
+        bleeding: true,
+        site: "body.torso",
+      },
+    ];
+    CombatNarration.narrateResolution({
+      combatants: [a, b],
+      outcome: "death",
+      victim: b,
+      killer: a,
+    });
+    const joined = formatCalls.map((f) => f.tpl).join(" ");
+    expect(joined.toLowerCase()).toContain("bled white");
   });
 
   it("announces every resolution (no silent fight-end)", () => {
