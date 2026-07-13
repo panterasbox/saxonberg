@@ -18,9 +18,14 @@
  * No `get on() / set on()` accessor pair is declared — it would collide
  * with nothing but the noun-form runtime-shape validation lives in
  * `setOn` directly (the Hydrator's Phase 1 tries `setOn` first).
+ *
+ * The guarded-boolean storage is delegated to `BistateMixin` (the
+ * shared substrate under Sealable/Switchable/Foldable); this mixin is
+ * the on/off naming layer over `getState()` / `setState()`.
  */
 
 import type { MixinConstructor } from '../mixin';
+import { BistateMixin, type BistateInternal } from '../Bistate';
 
 /**
  * Public shape added by SwitchableMixin. `isOn()` (predicate getter) /
@@ -35,21 +40,14 @@ export interface Switchable {
 }
 
 export function SwitchableMixin<TBase extends MixinConstructor>(Base: TBase) {
-  return class SwitchableMixin extends Base {
+  return class SwitchableMixin extends BistateMixin(Base) {
     static _mixinName = 'SwitchableMixin';
 
     static persistentFields = ['on'];
 
-    /**
-     * Backing storage; access via `isOn()` / `setOn()`.
-     *
-     * @authorable
-     */
-    private _on: boolean = false;
-
     /** Predicate getter. */
     isOn(): boolean {
-      return this._on;
+      return (this as unknown as BistateInternal).getState();
     }
 
     /**
@@ -58,22 +56,17 @@ export function SwitchableMixin<TBase extends MixinConstructor>(Base: TBase) {
      * rather than being silently coerced.
      */
     setOn(value: boolean): void {
-      if (typeof value !== 'boolean') {
-        throw new TypeError(
-          `Switchable.on must be a boolean, got ${typeof value}`
-        );
-      }
-      this._on = value;
+      (this as unknown as BistateInternal).setState(value, 'Switchable.on');
     }
 
     /** Switch on. Idempotent — switching an already-on one is a no-op. */
     switchOn(): void {
-      this._on = true;
+      (this as unknown as BistateInternal).setState(true, 'Switchable.on');
     }
 
     /** Switch off. Idempotent — switching an already-off one is a no-op. */
     switchOff(): void {
-      this._on = false;
+      (this as unknown as BistateInternal).setState(false, 'Switchable.on');
     }
   };
 }

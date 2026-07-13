@@ -17,9 +17,14 @@
  * and YAML key use the noun form (`folded`); the predicate getter uses
  * the `is` prefix (`isFolded()`). Reads naturally at every site:
  * `chair.setFolded(true)`, `chair.isFolded()`, `data: { folded: true }`.
+ *
+ * The guarded-boolean storage is delegated to `BistateMixin` (the
+ * shared substrate under Sealable/Switchable/Foldable); this mixin is
+ * the folded/unfolded naming layer over `getState()` / `setState()`.
  */
 
 import type { MixinConstructor } from '../mixin';
+import { BistateMixin, type BistateInternal } from '../Bistate';
 
 /**
  * Public shape added by FoldableMixin. `isFolded()` (predicate getter) /
@@ -34,21 +39,14 @@ export interface Foldable {
 }
 
 export function FoldableMixin<TBase extends MixinConstructor>(Base: TBase) {
-  return class FoldableMixin extends Base {
+  return class FoldableMixin extends BistateMixin(Base) {
     static _mixinName = 'FoldableMixin';
 
     static persistentFields = ['folded'];
 
-    /**
-     * Backing storage; access via `isFolded()` / `setFolded()`.
-     *
-     * @authorable
-     */
-    private _folded: boolean = false;
-
     /** Predicate getter. */
     isFolded(): boolean {
-      return this._folded;
+      return (this as unknown as BistateInternal).getState();
     }
 
     /**
@@ -57,22 +55,17 @@ export function FoldableMixin<TBase extends MixinConstructor>(Base: TBase) {
      * time rather than being silently coerced.
      */
     setFolded(value: boolean): void {
-      if (typeof value !== 'boolean') {
-        throw new TypeError(
-          `Foldable.folded must be a boolean, got ${typeof value}`
-        );
-      }
-      this._folded = value;
+      (this as unknown as BistateInternal).setState(value, 'Foldable.folded');
     }
 
     /** Fold it up. Idempotent — folding an already-folded one is a no-op. */
     fold(): void {
-      this._folded = true;
+      (this as unknown as BistateInternal).setState(true, 'Foldable.folded');
     }
 
     /** Unfold it. Idempotent — unfolding an already-unfolded one is a no-op. */
     unfold(): void {
-      this._folded = false;
+      (this as unknown as BistateInternal).setState(false, 'Foldable.folded');
     }
   };
 }
