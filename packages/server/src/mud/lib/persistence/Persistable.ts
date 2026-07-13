@@ -49,15 +49,41 @@ export interface Persistable {
   isPersistenceHost(): boolean;
 
   /**
-   * Whether this host actually persists. Default `true`; a host overrides
-   * to opt out per-instance (an Avatar returns `!isGuest` — a guest is
-   * throwaway and writes nothing). Consulted by `postRegister` /
-   * `cleanupOnDestruct` here and by `PersistableLogic.capture` /
-   * `materialize`, so the opt-out holds across every trigger.
+   * Whether this host actually persists. Default `!markForRevert()` (a host
+   * marked for revert writes nothing on the way out); a host overrides to
+   * opt out per-instance (an Avatar returns `!isGuest` — a guest is throwaway
+   * and writes nothing). Consulted by `postRegister` / `cleanupOnDestruct`
+   * here and by `PersistableLogic.capture` / `materialize`, so the opt-out
+   * holds across every trigger.
    *
    * @hook Override to gate persistence per-instance.
    */
   shouldPersist(): boolean;
+
+  /**
+   * The explicit per-instance persistence key stashed at
+   * materialize/capture. `null` for a host that has never been keyed (a
+   * singleton whose owner derives from its scope). Reused by
+   * capture-on-evict / autosave so a re-capture with no key writes back to
+   * the same `(scope, key)` record. See {@link setPersistenceKey}.
+   */
+  getPersistenceKey(): string | null;
+
+  /**
+   * Stash the explicit per-instance persistence key (the record `owner`).
+   * Written by `PersistableLogic` when a keyed capture/materialize resolves
+   * a key; read back on a keyless re-capture.
+   */
+  setPersistenceKey(key: string): void;
+
+  /**
+   * Mark this live host for revert on its next destruct — its
+   * `shouldPersist()` goes false, so the capture-on-destruct backstop (and
+   * any residency capture) writes nothing. Used by an end-lease path to tear
+   * down a live instance without re-writing the record it is about to
+   * delete. A general spine seam (not dorm code).
+   */
+  markForRevert(): void;
 }
 
 export function PersistableMixin<TBase extends MixinConstructor<Stuff>>(
@@ -66,12 +92,39 @@ export function PersistableMixin<TBase extends MixinConstructor<Stuff>>(
   return class PersistableMixin extends Base implements Persistable {
     static _mixinName = "PersistableMixin";
 
+    /**
+     * The multi-instance-host marker (default `false` — a singleton host,
+     * keyed by its `templatePath`). A content host that shares one template
+     * across many keyed instances (a `DormRoom`) sets `static multiInstance =
+     * true`, relaxing the singleton-scope guard and switching `applyPopulates`
+     * to a no-op (the establishing context drives seed-vs-restore with a key).
+     */
+    static multiInstance = false;
+
+    /** Stashed explicit persistence key; null until first keyed op. */
+    protected _persistenceKey: string | null = null;
+
+    /** Set true by `markForRevert()` — folds into `shouldPersist()`. */
+    protected _reverting = false;
+
     isPersistenceHost(): boolean {
       return true;
     }
 
     shouldPersist(): boolean {
-      return true;
+      return !this._reverting;
+    }
+
+    getPersistenceKey(): string | null {
+      return this._persistenceKey;
+    }
+
+    setPersistenceKey(key: string): void {
+      this._persistenceKey = key;
+    }
+
+    markForRevert(): void {
+      this._reverting = true;
     }
 
     /**
@@ -104,10 +157,20 @@ export function PersistableMixin<TBase extends MixinConstructor<Stuff>>(
      * exactly once (pre-build note #5, no double-load).
      */
     async applyPopulates(specs: PopulateSpec[]): Promise<void> {
+      // Multi-instance hosts (a leased dorm room) share one templatePath, so
+      // the singleton `hasRecord(scope)` gate can't tell one keyed instance
+      // from another — and the establishing context drives seed-vs-restore
+      // with an explicit key. So a multi-instance host applies NO populates
+      // here (a bare shell; the context seeds imperatively or restores).
+      const multiInstance =
+        (this.constructor as { multiInstance?: boolean }).multiInstance ===
+        true;
+      if (multiInstance) return;
+
       const self = this as unknown as Stuff;
       const scope = self.getTemplatePath();
       if (scope && (await PersistableApi.hasRecord(scope))) {
-        return; // record authoritative — postRegister restores; no re-seed
+        return; // record authoritative — establishing context restores
       }
       const sup = (
         Base.prototype as { applyPopulates?: (s: PopulateSpec[]) => Promise<void> }
@@ -118,15 +181,14 @@ export function PersistableMixin<TBase extends MixinConstructor<Stuff>>(
     }
 
     /**
-     * The single materialize driver. Runs after the shell + Phase-2
-     * hydration (so any seed has already settled). With a record present
-     * the host restores its captured contents; with none it captures the
-     * first record (the seeded/empty state) — seed-then-persist. Fires once
-     * per clone.
+     * `postRegister` **no longer auto-drives persistence** (D1). The mixin
+     * provides capture/restore; the **establishing context decides when and
+     * with what key** — Avatar drives an explicit keyed materialize/capture
+     * at login (`obj/Avatar.ts`), and `DormWarren.admit` drives a keyed
+     * restore-or-seed per unit. So this override only preserves the chain.
      *
-     * Requires `PostRegistrationMixin` in the chain (persistable hosts
-     * compose it); `super.postRegister` is optional-chained so a host that
-     * doesn't still composes cleanly.
+     * `super.postRegister` is optional-chained (persistable hosts compose
+     * `PostRegistrationMixin`, but a host that doesn't still composes cleanly).
      */
     async postRegister(context?: unknown): Promise<void> {
       const sup = (
@@ -136,15 +198,6 @@ export function PersistableMixin<TBase extends MixinConstructor<Stuff>>(
       ).postRegister;
       if (typeof sup === "function") {
         await sup.call(this, context);
-      }
-      if (!this.shouldPersist()) return; // guest / opted-out — no record
-      const self = this as unknown as Stuff;
-      const scope = self.getTemplatePath();
-      if (!scope) return;
-      if (await PersistableApi.hasRecord(scope)) {
-        await PersistableApi.materialize(self);
-      } else {
-        await PersistableApi.capture(self);
       }
     }
 

@@ -830,6 +830,22 @@ export class MixinApi {
     return this.hasMixin(obj, Mixins.Persistable);
   }
 
+  /**
+   * Whether `obj` is a **multi-instance persistence host** — a persistable
+   * host that shares one `templatePath` across many live instances, each
+   * keyed by an explicit per-instance key (a leased dorm room keyed on its
+   * unit parcel). Read off the class's `static multiInstance` marker
+   * (`PersistableMixin` defaults it `false`; a content host sets it `true`).
+   * Relaxes the singleton-host invariant (`assertSingletonScope`) for exactly
+   * these hosts.
+   */
+  public static isMultiInstanceHost(obj: Stuff): obj is Stuff & Persistable {
+    return (
+      this.isPersistable(obj) &&
+      (obj.constructor as { multiInstance?: boolean }).multiInstance === true
+    );
+  }
+
   public static isSlotted(obj: Stuff): obj is Stuff & Slotted {
     return this.hasMixin(obj, Mixins.Slotted);
   }

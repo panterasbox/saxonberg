@@ -67,6 +67,24 @@ class RoomHost extends PersistableMixin(
   }
 }
 
+// A MULTI-INSTANCE persistable host (D1): many live instances share this one
+// templatePath, each keyed by an explicit per-instance key (a leased dorm
+// room keyed on its unit parcel). `static multiInstance = true` relaxes the
+// singleton-scope guard and makes `applyPopulates` a no-op.
+class MultiRoom extends PersistableMixin(
+  ContainerMixin(PostRegistrationMixin(Idea)),
+) {
+  static multiInstance = true;
+  static persistentFields = ["label"];
+  label = "";
+  getLabel(): string {
+    return this.label;
+  }
+  setLabel(v: string): void {
+    this.label = v;
+  }
+}
+
 // A generic (non-host) content chest: Container ⊕ Containable, carrying
 // per-instance state. NOT persistable — nests in a host's record.
 class ContentChest extends ContainerMixin(ContainableMixin(Idea)) {
@@ -184,9 +202,10 @@ async function mockClone(path: string): Promise<Stuff> {
   const factory = cloneFactories[path];
   if (!factory) throw new Error(`no clone factory for ${path}`);
   const inst = makeStuffAtPath(factory, path);
-  // A cloned persistable HOST self-materializes its own records via
-  // postRegister (the real clone pipeline runs it) — this drives the
-  // reference walk. `makeStuffAtPath` skips postRegister, so fire it here.
+  // The real clone pipeline runs postRegister (which, post-D1, no longer
+  // auto-materializes); fire it to faithfully simulate the pipeline. The
+  // nested-host `{ref}` restore is driven by the spine's `cloneHost` (a
+  // keyless materialize on the fresh clone), not by postRegister.
   if (MixinApi.isPersistable(inst)) {
     await (inst as unknown as { postRegister: () => Promise<void> }).postRegister();
   }
@@ -717,6 +736,104 @@ describe("singleton-host invariant (no two clones stepping on each other)", () =
     await expect(PersistableApi.capture(a)).rejects.toThrow(
       /singleton-identifiable/,
     );
+  });
+});
+
+describe("multi-instance hosts (D1: explicit-key persistence)", () => {
+  it("two instances of one multiInstance scope, distinct keys → distinct records; no singleton throw", async () => {
+    cloneFactories = {};
+    const k1 = "/domain/dorms/f1-r1";
+    const k2 = "/domain/dorms/f1-r2";
+    // Two LIVE instances at the same templatePath — forbidden for a singleton
+    // host, but legitimate for a multiInstance one (each keyed distinctly).
+    const a = makeStuffAtPath(() => new MultiRoom(), "/domain/dormroom");
+    const b = makeStuffAtPath(() => new MultiRoom(), "/domain/dormroom");
+    a.setLabel("alice's room");
+    b.setLabel("bob's room");
+
+    // Capture does NOT throw with two live instances (guard relaxed).
+    await PersistableApi.capture(a, k1);
+    await PersistableApi.capture(b, k2);
+
+    // Two distinct records, one scope, distinct owners (the keys).
+    expect(snapshots).toHaveLength(2);
+    const owners = snapshots.map((s) => s.owner).sort();
+    expect(owners).toEqual([k1, k2]);
+    expect(snapshots.every((s) => s.scope === "/domain/dormroom")).toBe(true);
+  });
+
+  it("materialize(host, key) restores that key's record only", async () => {
+    cloneFactories = {};
+    const k1 = "/domain/dorms/f1-r1";
+    const k2 = "/domain/dorms/f1-r2";
+    // Two records under ONE scope, distinct keys + distinct content, written
+    // by re-capturing a single instance under each key.
+    const src = makeStuffAtPath(() => new MultiRoom(), "/domain/dormroom");
+    src.setLabel("alice's room");
+    await PersistableApi.capture(src, k1);
+    src.setLabel("bob's room");
+    await PersistableApi.capture(src, k2);
+    expect(snapshots).toHaveLength(2);
+    StuffApi.unregister(src);
+
+    // A fresh shell keyed on k1 restores alice; keyed on k2 restores bob.
+    const r1 = makeStuffAtPath(() => new MultiRoom(), "/domain/dormroom");
+    await PersistableApi.materialize(r1, k1);
+    expect(r1.getLabel()).toBe("alice's room");
+    StuffApi.unregister(r1);
+    const r2 = makeStuffAtPath(() => new MultiRoom(), "/domain/dormroom");
+    await PersistableApi.materialize(r2, k2);
+    expect(r2.getLabel()).toBe("bob's room");
+  });
+
+  it("keyed materialize with no matching record is a clean no-op", async () => {
+    cloneFactories = {};
+    const reborn = makeStuffAtPath(() => new MultiRoom(), "/domain/dormroom");
+    await PersistableApi.materialize(reborn, "/domain/dorms/f9-r9"); // no throw
+    expect(reborn.getLabel()).toBe("");
+  });
+
+  it("hasRecord(scope, key) tests the single keyed record", async () => {
+    cloneFactories = {};
+    const k1 = "/domain/dorms/f1-r1";
+    const a = makeStuffAtPath(() => new MultiRoom(), "/domain/dormroom");
+    await PersistableApi.capture(a, k1);
+    expect(await PersistableApi.hasRecord("/domain/dormroom", k1)).toBe(true);
+    expect(
+      await PersistableApi.hasRecord("/domain/dormroom", "/domain/dorms/f1-r2"),
+    ).toBe(false);
+  });
+
+  it("stashed-key reuse: keyed materialize then keyless capture writes the same record", async () => {
+    cloneFactories = {};
+    const k1 = "/domain/dorms/f1-r1";
+    const seed = makeStuffAtPath(() => new MultiRoom(), "/domain/dormroom");
+    seed.setLabel("original");
+    await PersistableApi.capture(seed, k1);
+    StuffApi.unregister(seed);
+
+    // Materialize with the key (stashes it), mutate, then capture with NO key.
+    const live = makeStuffAtPath(() => new MultiRoom(), "/domain/dormroom");
+    await PersistableApi.materialize(live, k1);
+    expect(live.getLabel()).toBe("original");
+    live.setLabel("edited");
+    await PersistableApi.capture(live); // keyless — reuses the stashed key
+
+    // Still ONE record (same (scope, k1)), now updated.
+    expect(snapshots).toHaveLength(1);
+    expect(snapshots[0]!.owner).toBe(k1);
+    expect(
+      (snapshots[0]!.state as Record<string, { fields: { label: string } }>)
+        .MultiRoom!.fields.label,
+    ).toBe("edited");
+  });
+
+  it("multiInstance applyPopulates is a no-op (context drives seed vs restore)", async () => {
+    cloneFactories = { "/domain/chest": () => new ContentChest() };
+    const room = makeStuffAtPath(() => new MultiRoom(), "/domain/dormroom");
+    // Even with NO record, a multiInstance host seeds nothing here.
+    await room.applyPopulates(["/domain/chest"]);
+    expect(room.getContents()).toHaveLength(0);
   });
 });
 
