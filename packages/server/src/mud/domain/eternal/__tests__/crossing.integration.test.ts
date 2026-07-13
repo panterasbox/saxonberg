@@ -163,6 +163,11 @@ function destOf(room: Stuff, dir: string): string | null {
   return exitsOf(room).get(dir)?.getDestinationTemplatePath() ?? null;
 }
 
+// Booting the crossing loads + clones the real terminal + crossing seed
+// graph from disk; the first (cold) case runs ~11s, over the 5s default.
+// Bump the whole file so it never flakes on timeout in isolation.
+vi.setConfig({ testTimeout: 30000 });
+
 describe("University Avenue crossing standup (real seeds)", () => {
   beforeEach(async () => {
     StuffApi.clearAll();
