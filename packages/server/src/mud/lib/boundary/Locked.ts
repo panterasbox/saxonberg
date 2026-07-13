@@ -9,9 +9,20 @@
  *
  * Scope is intentionally narrow: `isLocked()` / `setLocked()` (the
  * predicate/setter pair), plus `lock()` / `unlock()` (the action verbs).
- * v1 carries no key/credential model — the crossing gate is seeded
- * permanently locked and soft-walled in dialogue. Keys are a future
- * phase.
+ * It carries no key/credential model — the crossing gate is seeded
+ * permanently locked and soft-walled in dialogue.
+ *
+ * ⚠ STOPGAP — superseded by the real lock model in the dorm/apartment
+ * branch (`feature/dorm-apartment-residence`, `lib/lock/`): a `Lock`
+ * value-object (`{ keyway, technology }`, re-keyable) that a door carries,
+ * plus `Key` riding `CredentialWalletMixin` and `CredentialApi` — "the
+ * door checks a key, not identity." This boolean was built blind to that
+ * work (MR !134 predates its merge) and is a degenerate special case of
+ * it (a lock nobody holds a key for). **At merge, reconcile toward
+ * `lib/lock/`:** retire this mixin + the `Exit.canTraverse` `'locked'`
+ * gate, and re-express the campus gate as either a plain `blocked` exit
+ * or a keyless `Lock`. Do NOT grow this into a second lock system, and do
+ * NOT fold it into a shared toggle base — it is leaving the boolean world.
  *
  * Convention (per `feedback_boolean_field_naming`): the field, setter,
  * and YAML key use the noun form (`locked`); the predicate getter uses
