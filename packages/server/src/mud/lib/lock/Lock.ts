@@ -11,9 +11,12 @@
  * this module owns the vocabulary + the lock value-object + the (pure) keyway
  * mint and the key's presentation prose.
  *
- * Not a `Stuff` — a plain value-object. The `KeyApi` is the callable surface
- * (issue a key, ask whether a mover presents one).
+ * Not a `Stuff` — a plain value-object. `CredentialApi` is the callable
+ * surface for keys (issue a key, ask whether a mover presents one); minting a
+ * fresh keyway (a lock *identity*, not a credential) lives here on `Lock`.
  */
+
+import { randomUUID } from "crypto";
 
 /** The lock technologies. A key of one technology can't work another's lock. */
 export type LockType = "pin-tumbler" | "keycard";
@@ -28,6 +31,11 @@ export class Lock {
     /** The lock technology a key must match. */
     readonly technology: LockType,
   ) {}
+
+  /** Mint a fresh, opaque keyway token (a re-key is simply a new keyway). */
+  static mintKeyway(): string {
+    return `kw-${randomUUID()}`;
+  }
 
   /**
    * Prose for a **physical** key that turns locks of `technology` — set on the

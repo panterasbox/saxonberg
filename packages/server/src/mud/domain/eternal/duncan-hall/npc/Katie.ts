@@ -24,7 +24,7 @@
 
 import NPC from '../../../../lib/npc/NPC';
 import { GroupApi } from '../../../../api/group';
-import { KeyApi } from '../../../../api/key';
+import { CredentialApi } from '../../../../api/credential';
 import { Group } from '../../../../lib/social/Group';
 
 /** The landlord group that owns the dorms parcel (Katie's employer). */
@@ -39,7 +39,7 @@ export default class Katie extends NPC {
     // keychain, so it lives as the key on her belt. Best-effort: a missing key
     // template (a misconfigured boot) warns rather than crashing her setup.
     try {
-      await KeyApi.issueMasterTo(this, 'pin-tumbler');
+      await CredentialApi.issueMasterKey(this, 'pin-tumbler');
     } catch (err) {
       console.warn(
         `Katie.postRegister: could not issue the master key: ${

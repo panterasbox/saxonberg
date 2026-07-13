@@ -21,7 +21,8 @@ import type { Container } from '../../../../lib/spatial/Container';
 import { StuffApi } from '../../../../api/stuff';
 import { ContainmentApi } from '../../../../api/containment';
 import { ParcelApi } from '../../../../api/parcel';
-import { KeyApi } from '../../../../api/key';
+import { CredentialApi } from '../../../../api/credential';
+import { Lock } from '../../../../lib/lock/Lock';
 import { MixinApi } from '../../../../api/mixin';
 import { ExecutionContextApi } from '../../../../api/execution-context';
 import { HasInteractiveMixin } from '../../../../lib/connection/HasInteractive';
@@ -338,7 +339,7 @@ describe('DormWarren — the DormDoor key gate', () => {
     // bob holds no key and is blocked. Possession, not identity.
     await ParcelApi.setKeyway(k1, 'kw-1');
     await w.refreshProvisioned();
-    await KeyApi.issueTo(iris, 'kw-1', 'pin-tumbler');
+    await CredentialApi.issueKey(iris, 'kw-1', 'pin-tumbler');
     expect(w.keywayOf(k1)).toBe('kw-1');
     expect(door.canTraverse(iris as unknown as never).ok).toBe(true);
     expect(door.canTraverse(bob as unknown as never).ok).toBe(false);
@@ -361,7 +362,7 @@ describe('DormWarren — the DormDoor key gate', () => {
     const sam = makeStuffAtPath(() => new Avatar(), '/obj/Avatar/sam');
     sam.setPlayerId('sam');
     // No unit key, but a pin-tumbler master → opens regardless of the keyway.
-    await KeyApi.issueMasterTo(sam, 'pin-tumbler');
+    await CredentialApi.issueMasterKey(sam, 'pin-tumbler');
     expect(door.canTraverse(sam as unknown as never).ok).toBe(true);
   });
 });

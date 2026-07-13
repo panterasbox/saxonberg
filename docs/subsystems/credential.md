@@ -69,7 +69,7 @@ reflection). It knows its `kind` and serializes itself to a plain
   possession *is* access — a lock is revoked by **re-keying** (a fresh keyway,
   so the old entry silently stops matching), not a per-key ledger. The lock/key
   substrate lives in `lib/lock/` (`Lock` value-object + `LockType` +
-  `KeyApi`); its first consumer is the dorm door — see
+  `CredentialApi`); its first consumer is the dorm door — see
   [residence.md](./residence.md). **Durability:** the physical `Key` persists
   with its holder (carried inventory rides the spine); the implant keychain is
   session-durable in v1 (the physical key is the cross-restart form).

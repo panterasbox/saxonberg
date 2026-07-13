@@ -7,7 +7,7 @@
  * opens for whoever holds the key**": it is locked with the unit's `keyway`
  * (a `pin-tumbler` `Lock`), and `canTraverse` admits any mover who presents a
  * matching key — a carried physical `Key` or an implant-keychain entry, found
- * by `KeyApi.presents` (a **synchronous** reachable-wallet scan, run before
+ * by `CredentialApi.presentsKey` (a **synchronous** reachable-wallet scan, run before
  * `resolveDestination`). The keyway is read off the warren's sync
  * `keywayOf(unitKey)` cache (refreshed from the durable parcel keyway); an
  * unkeyed unit (empty keyway) is locked to everyone. Access is bearer
@@ -27,7 +27,7 @@ import Exit, { type TraversalGuard } from '../../../lib/boundary/Exit';
 import type { Stuff } from '../../../lib/stuff/Stuff';
 import type { Container } from '../../../lib/spatial/Container';
 import type { Containable } from '../../../lib/spatial/Containable';
-import { KeyApi } from '../../../api/key';
+import { CredentialApi } from '../../../api/credential';
 import { Lock } from '../../../lib/lock/Lock';
 import DormWarren from './DormWarren';
 
@@ -84,7 +84,7 @@ export default class DormDoor extends Exit {
       return { ok: false, gate: 'door', reason: 'The door is locked.' };
     }
     const lock = new Lock(keyway, DormWarren.DORM_LOCK_TECH);
-    if (!KeyApi.presents(mover, lock)) {
+    if (!CredentialApi.presentsKey(mover, lock)) {
       return { ok: false, gate: 'door', reason: "Your key doesn't fit this lock." };
     }
     return super.canTraverse(mover, mode);

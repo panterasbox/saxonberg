@@ -1,21 +1,25 @@
 /**
- * KeyApi — the callable surface for the lock/key substrate: mint a keyway,
- * issue a key to a holder, and (the load-bearing one) ask **synchronously**
- * whether a mover presents a key that opens a lock.
+ * CredentialApi — the unified callable surface for the credential substrate
+ * (the thin `CredentialApi` `credential.md` names as the planned home,
+ * realized here with its first consumer: **keys**). Credentials are data held
+ * in a {@link CredentialWalletMixin}; this Api owns the *operations* over them
+ * that need the framework (cloning a bearer instrument, the reachable-wallet
+ * scan) — the surface author code calls, distinct from the records themselves.
  *
- * A key comes in two forms, one credential: a **physical** `Key` Thing in the
- * holder's inventory (the durable form — it persists with them) and an entry in
- * their **implant keychain** (the born-with wallet — a within-session
- * convenience). Both are `CredentialWallet`s carrying a {@link KeyCredential},
- * so the door's check finds either through one reachable-wallet scan. Issuance
- * is a mechanism gated by its callers (the provisioning verbs are authorized);
- * it is not itself a player-facing surface.
+ * **Keys** (the third credential kind). A key comes in two forms, one record:
+ * a **physical** `Key` Thing in the holder's inventory (the durable form — it
+ * persists with them) and an entry in their **implant keychain** (the born-with
+ * wallet — a within-session convenience). Both are `CredentialWallet`s carrying
+ * a {@link KeyCredential}, so {@link CredentialApi.presentsKey} finds either in
+ * one scan. Issuance is a mechanism gated by its callers (the provisioning
+ * verbs are authorized); it is not itself a player-facing surface. Keys are
+ * **bearer + re-key**: possession is access, and a lock is revoked by minting a
+ * fresh keyway (see {@link Lock.mintKeyway}), not a per-key ledger.
  *
- * Bearer + re-key: possession is access; a lock is revoked by minting a fresh
- * keyway (the old key silently stops matching), not by a per-key ledger.
+ * Payment-card issuance and travel registration are the natural next tenants of
+ * this Api (today they live in `BankingLogic` / the TPA controllers).
  */
 
-import { randomUUID } from "crypto";
 import { SecurityApi } from "./security";
 import { StuffApi } from "./stuff";
 import { ContainmentApi } from "./containment";
@@ -27,19 +31,14 @@ import type { Container } from "../lib/spatial/Container";
 import type { Containable } from "../lib/spatial/Containable";
 import type { CredentialWallet } from "../lib/credential/CredentialWallet";
 
-export class KeyApi {
-  /** Mint a fresh, opaque keyway token (a re-key is a new keyway). */
-  static mintKeyway(): string {
-    return `kw-${randomUUID()}`;
-  }
-
+export class CredentialApi {
   /**
    * Whether `mover` presents a key that opens `lock` — a **synchronous**
    * reachable-wallet scan (implant keychain first, then a carried physical
    * `Key`), so it is safe from a door's `canTraverse`. No matching key (or an
    * unkeyed lock with an empty keyway) → false.
    */
-  static presents(mover: Stuff, lock: Lock): boolean {
+  static presentsKey(mover: Stuff, lock: Lock): boolean {
     if (!lock.keyway) return false;
     const holder = ContainmentApi.findReachable(
       mover,
@@ -56,13 +55,13 @@ export class KeyApi {
    * implant keychain (if they have one) AND a physical `Key` Thing in their
    * inventory. Either opens the lock; the physical key is the durable form.
    */
-  static async issueTo(
+  static async issueKey(
     holder: Stuff,
     keyway: string,
     technology: LockType,
   ): Promise<void> {
-    KeyApi.addToKeychain(holder, keyway, technology, false);
-    await KeyApi.mintPhysical(holder, keyway, technology, false);
+    CredentialApi.addToKeychain(holder, keyway, technology, false);
+    await CredentialApi.mintPhysical(holder, keyway, technology, false);
   }
 
   /**
@@ -70,12 +69,12 @@ export class KeyApi {
    * `holder` — keychain master (if any) + a physical master `Key`. Opens every
    * lock of that technology.
    */
-  static async issueMasterTo(
+  static async issueMasterKey(
     holder: Stuff,
     technology: LockType,
   ): Promise<void> {
-    KeyApi.addToKeychain(holder, "", technology, true);
-    await KeyApi.mintPhysical(holder, "", technology, true);
+    CredentialApi.addToKeychain(holder, "", technology, true);
+    await CredentialApi.mintPhysical(holder, "", technology, true);
   }
 
   /** Add an entry to the holder's implant keychain (the first reachable wallet
@@ -124,4 +123,4 @@ export class KeyApi {
   }
 }
 
-SecurityApi.decorateApiClass(KeyApi);
+SecurityApi.decorateApiClass(CredentialApi);
