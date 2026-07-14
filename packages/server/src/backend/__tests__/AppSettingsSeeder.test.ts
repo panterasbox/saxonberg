@@ -41,7 +41,7 @@ describe("AppSettingsSeeder", () => {
     pm.setFindResult([]);
     const added = await AppSettingsSeeder.run();
 
-    expect(added).toBe(73);
+    expect(added).toBe(75);
     expect(pm.saves).toHaveLength(1);
     expect(pm.saves[0]!.collection).toBe("app_settings");
     const values = savedValues(pm);
@@ -142,6 +142,8 @@ describe("AppSettingsSeeder", () => {
           [AppSettingKeys.responseDeliverySecondaryFactor]: "0.6",
           [AppSettingKeys.responseBandGrazeMax]: "0.5",
           [AppSettingKeys.responseBandBiteMax]: "1.5",
+          [AppSettingKeys.behaviorAmbientCadenceScale]: "1",
+          [AppSettingKeys.behaviorAmbientCadenceFloorMs]: "60000",
         },
       },
     ]);
@@ -170,8 +172,9 @@ describe("AppSettingsSeeder", () => {
     // + 4 transit (banking.onboardingStipend + 3 fasttravel fare keys)
     // + 21 materials-response (7 attenuation + 4 material + 2 grade
     //   + condition + fracture + noWound + severityPerResidual
-    //   + referenceEnergy + secondaryFactor + 2 band).
-    expect(added).toBe(72);
+    //   + referenceEnergy + secondaryFactor + 2 band)
+    // + 2 behavior (ambientCadenceScale, ambientCadenceFloorMs).
+    expect(added).toBe(74);
     expect(pm.saves).toHaveLength(1);
     const values = savedValues(pm);
     // operator value preserved, missing keys seeded

@@ -95,6 +95,17 @@ export interface BrainStatics {
    * off-stage cast.
    */
   readonly presenceGated?: boolean;
+  /**
+   * When true (default), this brain's cadence is **ambient chatter** and
+   * is subject to the global pacing dial (`behavior.ambientCadenceScale` +
+   * `behavior.ambientCadenceFloorMs`) — the "a little goes a long way"
+   * budget. Functional pollers that happen to run on a cadence but whose
+   * timing is load-bearing (`shifts` reading roster state, `covers`
+   * checking for an absent maker) set `false` so their authored interval
+   * is honored exactly. See docs/subsystems/behavior.md § Ambient pacing
+   * budget.
+   */
+  readonly ambient?: boolean;
   /** The entry point the framework invokes when a wired trigger fires. */
   act(ctx: BrainContext): void | Promise<void>;
   /**

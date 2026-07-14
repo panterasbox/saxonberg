@@ -74,12 +74,16 @@ data:
     # sequence is a Phase 5 refinement; the real `blow whistle` verb from idle
     # is likewise deferred, so the whistle is flavour for now.)
     #
-    # Cadence is deliberately UNHURRIED (~45s, jittered): this is ambient
-    # background a player reads *around*, not a performance. Faster (the old
-    # 10s) reads as a nervous tic and drowns the room in Gus. The arrival
-    # ritual below is the showpiece; the idles are just signs of life.
+    # Cadence is deliberately UNHURRIED (~5 min, jittered): this is ambient
+    # background a player reads *around*, not a performance — a little goes
+    # a long way (see docs/subsystems/behavior.md § Ambient pacing budget:
+    # a single NPC's idle beat lands at the stoic end, ~1 per few minutes).
+    # Gus's *life* comes from the arrival ritual below (responsive), not the
+    # puttering; the idles are just proof he didn't turn to stone. The
+    # global `behavior.ambientCadenceScale` dial retunes the whole world at
+    # once during playtest without editing this.
     - brain: /lib/behavior/idles
-      trigger: cadence:45s
+      trigger: cadence:300s
       config:
         pool:
           - { kind: free, value: "paces his stretch of curb, hands behind his back." }

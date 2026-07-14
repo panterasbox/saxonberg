@@ -24,6 +24,9 @@ import type { BrainContext, BrainStatics } from './brain';
 export const brain = class {
   static label = 'covers';
   static presenceGated = true;
+  // Functional poller (checks whether an on-shift maker is present), not
+  // ambient chatter — exempt from the global ambient-cadence dial.
+  static ambient = false;
 
   static async act(ctx: BrainContext): Promise<void> {
     const self = ctx.host;
