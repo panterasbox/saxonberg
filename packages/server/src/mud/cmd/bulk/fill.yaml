@@ -1,5 +1,5 @@
 verbs: [fill]
-controller: bulk/FillController
+controller: /obj/command/bulk/FillController
 description: "Fill a vessel to capacity from a liquid source"
 help: |
   Tops a vessel right up from a source of liquid. Name the empty

@@ -1,5 +1,5 @@
 verbs: [react, re]
-controller: social/ReactController
+controller: /obj/command/social/ReactController
 description: >
   React to something someone just said or did. A reaction is an emote
   aimed at a specific prior act — it is PUBLIC and ATTRIBUTED, counted

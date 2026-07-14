@@ -482,6 +482,10 @@ Surface:
   excludes the actor. Auto-tags `audience:witness`. Throws if the actor
   isn't a Container. Used when the actor IS the container — a haunted
   location speaking to its occupants.
+- `.toAudible(body, { descriptor })` — discrete-event cross-room sound
+  push (attenuated + directional, closed doors block; reads
+  `meta.acousticDb`). See
+  [perception.md § Discrete-event sound push](./perception.md#discrete-event-sound-push--audible--scenetoaudible).
 - `.send()` — dispatches all configured frames.
 
 Per-audience compositional requirements throwing is deliberate. They

@@ -1,5 +1,5 @@
 verbs: [shout]
-controller: social/ShoutController
+controller: /obj/command/social/ShoutController
 description: "Shout — loud, multi-room acoustic reach"
 help: |
   Raise your voice so it carries past your own room. A shout is

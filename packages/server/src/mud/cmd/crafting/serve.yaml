@@ -1,5 +1,5 @@
 verbs: [serve]
-controller: crafting/ServeController
+controller: /obj/command/crafting/ServeController
 description: "Make a cocktail and hand it to someone"
 help: |
   Make a drink and serve it to someone — `serve bob martini`. You're

@@ -1,5 +1,5 @@
 verbs: [house]
-controller: banking/HouseController
+controller: /obj/command/banking/HouseController
 description: "Venue owner — pnl / payroll (operator)"
 help: |
   The venue-owner surface. `house pnl` reads the present venue's

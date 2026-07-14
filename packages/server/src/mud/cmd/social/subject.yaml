@@ -1,5 +1,5 @@
 verbs: [subject]
-controller: social/SubjectController
+controller: /obj/command/social/SubjectController
 description: "Own a subject's identity + audience (make / list); light up surfaces with `chat on` / `forum on`"
 help: |
   A subject is the shared identity and audience that chat channels and

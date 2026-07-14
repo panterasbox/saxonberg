@@ -102,6 +102,13 @@ beforeEach(() => {
     (_v: unknown, t: unknown) =>
       t instanceof Occupant ? t.display : "someone",
   );
+  // The occupant roll-call renders through `describeWithStatus` (presence
+  // decoration). These stub occupants carry no `StatusMixin`, so it mirrors
+  // `describe` — the display name with no status affix.
+  vi.spyOn(RecognitionApi, "describeWithStatus").mockImplementation(
+    (_v: unknown, t: unknown) =>
+      t instanceof Occupant ? t.display : "someone",
+  );
   vi.spyOn(RecognitionApi, "salientFeatures").mockImplementation(
     (t: unknown) => {
       if (!(t instanceof Occupant)) return "someone";

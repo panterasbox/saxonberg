@@ -1,5 +1,5 @@
 verbs: [lie]
-controller: posture/LieController
+controller: /obj/command/posture/LieController
 description: "Lie down on something. With no argument, lie on the ground."
 help: |
   Stretch out flat. Bare `lie` lies down where you are, on the

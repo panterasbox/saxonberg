@@ -1,5 +1,5 @@
 verbs: [tab]
-controller: banking/TabController
+controller: /obj/command/banking/TabController
 description: "Run a tab at the venue — show / settle / skip"
 help: |
   Bare `tab` shows what you owe here. `tab settle` clears it from your

@@ -94,7 +94,9 @@ describe('Exit', () => {
       const result = exit.canTraverse(mover);
       expect(result.ok).toBe(false);
       expect(result.reason).toMatch(/closed/i);
-      expect(result.reason).toContain('oak door');
+      // Sentence-start: the presentation is capitalized, no re-prefixed
+      // article ("Oak door is closed.", not "The oak door…").
+      expect(result.reason).toMatch(/oak door/i);
     });
 
     it('returns ok when door is open', () => {

@@ -1,5 +1,5 @@
 verbs: [intervene, stay]
-controller: combat/InterveneController
+controller: /obj/command/combat/InterveneController
 description: "Stay a killing stroke — stop a coup in progress"
 help: |
   `intervene <target>` steps in to stop a coup de grâce — the slow,

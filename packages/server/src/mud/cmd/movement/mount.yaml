@@ -1,5 +1,5 @@
 verbs: [mount]
-controller: movement/MountController
+controller: /obj/command/movement/MountController
 description: "Mount a rideable creature or vehicle"
 help: |
   Climb aboard something you can ride — a horse, a cart, any mount

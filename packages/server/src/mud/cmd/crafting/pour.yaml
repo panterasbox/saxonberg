@@ -1,5 +1,5 @@
 verbs: [pour, add]
-controller: crafting/PourController
+controller: /obj/command/crafting/PourController
 description: "Pour a measure of a spirit into a shaker (a manual build step)"
 help: |
   Build a drink by hand, one ingredient at a time — `pour gin into

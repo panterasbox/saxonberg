@@ -1,5 +1,5 @@
 verbs: [watch]
-controller: stream/WatchController
+controller: /obj/command/stream/WatchController
 description: "Put a livestream's video in the focal embed (Twitch / YouTube)"
 help: |
   Put a livestream's video in the cockpit's focal embed. Name the

@@ -1,5 +1,5 @@
 verbs: [rm]
-controller: shell/RmController
+controller: /obj/command/shell/RmController
 description: "Remove a content-tree template (default) or source-tree file"
 help: |
   Delete a path. In the content tree `rm` removes a template; in

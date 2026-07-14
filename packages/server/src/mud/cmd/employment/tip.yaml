@@ -1,5 +1,5 @@
 verbs: [tip]
-controller: employment/TipController
+controller: /obj/command/employment/TipController
 description: "Leave a tip — cash in the jar, or by transfer"
 help: |
   Leave a tip for whoever's tending the bar — `tip 5`. By default it's

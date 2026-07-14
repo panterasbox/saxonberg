@@ -1,5 +1,5 @@
 verbs: [attack]
-controller: combat/AttackController
+controller: /obj/command/combat/AttackController
 description: "Start a fight with someone present"
 help: |
   `attack <target>` opens a fight. Terms are consented like an

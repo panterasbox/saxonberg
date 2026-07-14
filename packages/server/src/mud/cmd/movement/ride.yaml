@@ -1,5 +1,5 @@
 verbs: [ride]
-controller: movement/RideController
+controller: /obj/command/movement/RideController
 description: "Ride your mount through a named exit (passthrough to the Mountable host)."
 help: |
   Steer the mount you're on through an exit. Name where you want to

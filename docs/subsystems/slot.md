@@ -15,6 +15,7 @@ boundary fixture system (post-retrofit `Adornable`).
 | `SlotSpec` | `lib/slot/Slotted.ts` | Per-slot declaration (name, accepts, capacity, postures, userFacingDetail, `bodyPart`, `covers`). `bodyPart`/`covers` are optional `body.*` references to anatomy (Vitals) — a slot is its own axis that *references* anatomy where it has a home; see [vitals.md](./vitals.md) |
 | `UNBOUNDED_CAPACITY` | `lib/slot/Slotted.ts` | Sentinel = `Number.MAX_SAFE_INTEGER`; JSON/BSON-safe substitute for `Infinity` |
 | `BodyPlanSlotsMixin` | `lib/slot/BodyPlanSlots.ts` | Sibling provider — Pattern B, derives universe from species → bodyPlan |
+| `Foldable` | `lib/slot/Foldable.ts` | Host capability — two-state fold/unfold; a folded host refuses its posture-bearing slots (gates `canOccupy`) |
 | `SlotApi` | `api/slot.ts` | Cross-cutting helpers (multi-slot transactional ops, inverse lookups, slot resolution, conveyance ripple walker) |
 
 `Slotted` composes on `Stuff` (no `Container` prereq). Composing
@@ -64,6 +65,41 @@ Two-part check:
 Future affordance mixins ship a new mixin, register it in `Mixins`,
 and slots that want it declare `accepts: 'NewMixin'`. No central
 switch, no closed enum.
+
+## Foldable — the folded gate
+
+`FoldableMixin` (`lib/slot/Foldable.ts`) is a two-state fold/unfold
+capability for collapsible furniture — a folding camp chair, a card
+table, a cot. Composed onto a posture-bearing host (a `Chair`), a
+**folded host refuses its posture-bearing slots**: you can't sit on a
+folded chair. The gate is **Part 0.5 of `canOccupy`** — it fires only
+when the host `isFoldable`, is currently folded, and the slot is
+posture-bearing (`spec.postures?.length > 0`), mirroring the
+`fracture-impairs-slot` anatomy gate a few lines above. No verb knows
+about folding; `fold`/`unfold` and `sit` compose because the occupancy
+check owns the coupling.
+
+Surface is deliberately narrow: `isFolded()` / `setFolded(value)` (the
+predicate/setter contract pair, boolean-noun convention) plus the
+idempotent action verbs `fold()` / `unfold()`. The guarded-boolean
+storage delegates to `BistateMixin` (`lib/Bistate.ts`), the shared
+substrate under `Sealable` (open/closed) and `Switchable` (on/off) —
+Foldable is the folded-axis naming layer over `getState()` /
+`setState()`. `folded` is a persistent field; `BistateMixin` itself
+carries **no** `_mixinName` and is not in the `Mixins` registry (it's
+shared implementation, not a queryable capability — consumers narrow on
+`MixinApi.isFoldable`, never an `isBistate`).
+
+Players drive it through the global **`device`-category** verbs
+`fold <thing>` / `unfold <thing>` (`cmd/device/fold.yaml`,
+`cmd/device/unfold.yaml`), which target a reachable object and are
+narrowed to a Foldable by the controller (`MixinApi.isFoldable`,
+`obj/command/device/`). `FoldController` additionally refuses to fold a
+host whose slots are occupied — you can't fold a chair someone is
+sitting on. The concrete host is `FoldingChair` (`obj/FoldingChair.ts`
+= `Chair` + `Foldable`, its own file so seeds resolve it by path); it
+seeds **deployed** (`folded: false`). See [posture.md](./posture.md) for
+the `Chair`/`sit` posture-slot side this gates.
 
 ## Capacity
 
@@ -185,3 +221,16 @@ without re-parsing prose.
 - [race.md](./race.md) — BodyPlan's `slots: SlotSpec[]`.
 - [command-spec.md](./command-spec.md) — `default:` field used by
   posture verbs for the `ground` fallback.
+
+## History
+
+**Foldable landed** in the University Avenue crossing build
+(`feature/university-avenue-crossing`, commits `ab0867ba` Phase 1B–1D),
+introducing the two-state fold/unfold capability, the `FoldingChair`
+host, and the `device`-category `fold`/`unfold` verbs. The camp chair —
+the crossing guard's relief's chair, seeded deployed and never folded in
+practice ("Gus never folds it" is behavior over a real capability, per
+the build's no-dead-props law) — was the first driver. Its
+guarded-boolean storage was later hoisted onto the shared `BistateMixin`
+base (`lib/Bistate.ts`) alongside `Sealable`/`Switchable` in commit
+`a99eccb4`.

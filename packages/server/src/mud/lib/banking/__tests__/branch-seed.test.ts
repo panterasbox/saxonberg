@@ -31,13 +31,13 @@ describe("Goodkin University Avenue branch seed", () => {
     );
   });
 
-  it("is reachable from the University Avenue plaza (south exit)", () => {
+  it("is reachable from the University Avenue crossing (east exit)", () => {
     const branch = seed("domain/eternal/university-avenue/bank.yaml");
     const data = branch.data as {
       exits?: Record<string, { destination?: string }>;
     };
-    expect(data.exits?.south?.destination).toBe(
-      "/domain/eternal/university-avenue/plaza"
+    expect(data.exits?.east?.destination).toBe(
+      "/domain/eternal/university-avenue/crossing"
     );
   });
 

@@ -1,5 +1,5 @@
 verbs: [identify]
-controller: perception/IdentifyController
+controller: /obj/command/perception/IdentifyController
 description: "Read a scroll of identify on something to learn what it is"
 help: |
   Read aloud from a scroll of identify to learn the true nature

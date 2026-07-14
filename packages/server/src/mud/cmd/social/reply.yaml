@@ -1,5 +1,5 @@
 verbs: [reply]
-controller: social/ReplyController
+controller: /obj/command/social/ReplyController
 description: "Reply to the cohort of your last-inbound DM. Defaults to reply-all; --one narrows to the original sender."
 help: |
   Answer the last direct message you received without retyping any

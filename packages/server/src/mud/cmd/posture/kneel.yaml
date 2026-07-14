@@ -1,5 +1,5 @@
 verbs: [kneel]
-controller: posture/KneelController
+controller: /obj/command/posture/KneelController
 description: "Kneel. With no argument, kneel on the ground."
 help: |
   Drop to your knees. Bare `kneel` kneels right where you are,

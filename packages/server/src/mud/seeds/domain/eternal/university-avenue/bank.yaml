@@ -1,8 +1,12 @@
-# The Goodkin University Avenue branch — city content, one cell north of the
-# arrival plaza (so the plaza gets the reciprocal exit and the branch is
+# The Goodkin University Avenue branch — city content, one cell WEST of the
+# crossing (so the crossing gets the reciprocal exit and the branch is
 # reachable from the born-with University Avenue fast-travel node). A pure
 # seed over the generic CartesianLocation; the banking verbs come from the
 # teller-counter fixture within, the face from the teller NPC.
+#
+# Reciprocal geometry (2026-07-12): the crossing declares `west`→here; this
+# branch declares `east`→the crossing (both sides explicit). The old
+# `south`→plaza edge is retired with the plaza rename.
 class: /lib/location/CartesianLocation
 hydratorClass: /lib/persistence/PersistentHydrator
 data:
@@ -12,14 +16,14 @@ data:
     A small, well-kept banking hall in Goodkin grey and brass. Light falls
     from high windows onto a stone floor; a teller counter runs along the
     far wall, and a board by the door lists the day's rates in a tidy hand.
-    The avenue is back through the doors to the south.
+    The avenue is back through the doors to the east.
   coords:
-    x: 0
-    y: 1
+    x: -1
+    y: 0
     z: 0
   exits:
-    south:
-      destination: /domain/eternal/university-avenue/plaza
+    east:
+      destination: /domain/eternal/university-avenue/crossing
   populates:
     - /domain/eternal/university-avenue/bank-counter
     - /domain/eternal/university-avenue/npc/teller

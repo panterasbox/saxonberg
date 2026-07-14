@@ -181,6 +181,26 @@ export const AppSettingKeys = {
   statusMaxLength: "status.maxLength",
 
   /**
+   * Behavior — the global **ambient-chatter pacing** dial. Multiplies
+   * every *ambient* cadence brain's authored interval before jitter (a
+   * stoic NPC stays relatively quieter, a chatty one relatively louder;
+   * this dials the whole world's talkativeness at once during playtest).
+   * `1.0` = author cadences as written; `2.0` = everything half as often.
+   * Only `ambient` cadence brains are scaled — functional pollers
+   * (`shifts`, `covers`) are exempt. See docs/subsystems/behavior.md
+   * § Ambient pacing budget.
+   */
+  behaviorAmbientCadenceScale: "behavior.ambientCadenceScale",
+  /**
+   * Behavior — hard floor (ms) under which an *ambient* cadence brain's
+   * effective interval may not fall, no matter what an author sets. The
+   * anti-spam backstop ("nothing unprompted more often than this"). `0`
+   * disables the floor (the code default when app-settings is unwarmed,
+   * so unit tests keep their fast cadences).
+   */
+  behaviorAmbientCadenceFloorMs: "behavior.ambientCadenceFloorMs",
+
+  /**
    * Scripting — resource governance. The interpreter is non-blocking by
    * construction (every engaged/`wait` step suspends and yields); these
    * bound the one pathological shape — a no-suspension tight loop — plus

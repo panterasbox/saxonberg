@@ -1,5 +1,5 @@
 verbs: [scry]
-controller: perception/ScryController
+controller: /obj/command/perception/ScryController
 description: "Perceive a remote object as if you were there"
 help: |
   See the distant as though you stood beside it. `scry` perceives

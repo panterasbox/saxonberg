@@ -15,12 +15,15 @@
 
 import type { Stuff } from '../stuff/Stuff';
 import type { Sensor } from './Sensor';
+import type { Container } from '../spatial/Container';
 import type { MessageFrame } from '@saxonberg/types';
 import { SecurityApi } from '../../api/security';
 import { MixinApi } from '../../api/mixin';
 import { ExecutionContextApi } from '../../api/execution-context';
 import { Mml } from '../../api/mml';
 import { MessageApi } from '../../api/message';
+import { AudienceGather } from '../perception/AudienceGather';
+import { Sound } from '../perception/Sound';
 
 /**
  * What a producer passes to `.toSelf` / `.toTarget` / `.toPeers` /
@@ -31,12 +34,16 @@ import { MessageApi } from '../../api/message';
 type Body = Mml | string;
 
 interface AudienceFrame {
-  recipientKind: 'self' | 'target' | 'peers' | 'contents';
+  recipientKind: 'self' | 'target' | 'peers' | 'contents' | 'audible';
   body: Body;
   payload?: unknown;
   // Per-audience override of the audience: tag.
   audience: 'actor' | 'target' | 'witness';
   target?: Stuff & Sensor;
+  // 'audible' only: short noun phrase ("whistle") used to compose the
+  // faint directional line delivered to reached-but-not-same-room
+  // sensors ("From the north, a faint whistle.").
+  descriptor?: string;
 }
 
 /**
@@ -197,6 +204,36 @@ export class Scene {
   }
 
   /**
+   * Discrete-event cross-room sound push. Unlike `.toPeers` (the
+   * actor's one room), this fans one attenuated, directional frame to
+   * every hearing sensor the sound reaches — same room plus adjacent
+   * rooms, blocked by closed doors, faded by distance — via the
+   * audience-gather walk over the shipped acoustic graph.
+   *
+   * The source level is read from `.meta({ acousticDb })` at `.send()`
+   * time (finally making that seam live); the per-recipient threshold
+   * drop uses `Sound.DEFAULT_HEARING_THRESHOLD_DB`. `body` is the
+   * same-room full body; `opts.descriptor` is the short noun phrase for
+   * the faint directional line delivered to farther rooms. Stamp
+   * `.modality('hearing')` so no-hearing sensors are dropped by the
+   * existing sensorium gate. Requires the actor to be Containable (it
+   * must sit somewhere in the world).
+   */
+  toAudible(body: Body, opts?: { descriptor?: string }): this {
+    if (!MixinApi.isContainable(this.#actor)) {
+      throw new Error('Scene.toAudible requires the actor to be Containable');
+    }
+    this.#assertNoDuplicate('audible');
+    this.#frames.push({
+      recipientKind: 'audible',
+      audience: 'witness',
+      body,
+      descriptor: opts?.descriptor,
+    });
+    return this;
+  }
+
+  /**
    * Compose every queued audience frame, stamp commandId /
    * causingCommandId from the ambient ExecutionContext, and dispatch.
    */
@@ -279,6 +316,30 @@ export class Scene {
           }
           break;
         }
+        case 'audible': {
+          const sourceLoc = enclosingLocation(this.#actor);
+          if (!sourceLoc) break;
+          const sourceDb = this.#extraMeta.acousticDb;
+          if (typeof sourceDb !== 'number' || !Number.isFinite(sourceDb)) {
+            break;
+          }
+          for (const arrival of AudienceGather.gather(sourceLoc, sourceDb)) {
+            if (arrival.db < Sound.DEFAULT_HEARING_THRESHOLD_DB) continue;
+            // Same-room (direction null) → the full body via buildFrame;
+            // a reached farther room → a faint directional line.
+            const frame = buildFrame(arrival.sensor);
+            if (arrival.direction !== null) {
+              frame.body = composeFaint(
+                af.descriptor,
+                arrival.direction,
+                sourceDb,
+                arrival.db,
+              ).toString(arrival.sensor);
+            }
+            MessageApi.sendMessage(arrival.sensor, frame);
+          }
+          break;
+        }
       }
     }
   }
@@ -295,4 +356,44 @@ export class Scene {
 
 function capitalize(s: string): string {
   return s.charAt(0).toUpperCase() + s.slice(1);
+}
+
+/**
+ * The room a Stuff sits in: walk up the container chain while each hop
+ * is Containable, returning the first Container that is not (a
+ * Location). Resolves the true source room even when the emitter is a
+ * carried object (a whistle in a hand propagates from the room, not the
+ * hand). Mirrors the container-chain walk in `Containable.canEvict`.
+ * Returns the actor itself when it is already a non-Containable
+ * Container (a humming room). `null` when placeless.
+ */
+function enclosingLocation(start: Stuff): (Stuff & Container) | null {
+  let cur: Stuff | null = start;
+  while (cur !== null) {
+    if (MixinApi.isContainable(cur)) {
+      cur = cur.getContainer();
+    } else if (MixinApi.isContainer(cur)) {
+      return cur;
+    } else {
+      return null;
+    }
+  }
+  return null;
+}
+
+/**
+ * The faint directional line for a sound reaching a room past its
+ * source ("From the north, a faint whistle."). Fades the adjective by
+ * how much level was lost: within ~35 dB of source → "faint", beyond →
+ * "distant".
+ */
+function composeFaint(
+  descriptor: string | undefined,
+  direction: string,
+  sourceDb: number,
+  deliveredDb: number,
+): Mml {
+  const noun = descriptor && descriptor.length > 0 ? descriptor : 'sound';
+  const adjective = sourceDb - deliveredDb >= 35 ? 'distant' : 'faint';
+  return Mml.compose`From the ${direction}, a ${adjective} ${noun}.`;
 }

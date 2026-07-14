@@ -46,6 +46,8 @@ import type { Containable } from '../spatial/Containable';
 import type Door from './Door';
 import { StuffApi } from '../../api/stuff';
 import { LocomotionApi } from '../../api/locomotion';
+import { MixinApi } from '../../api/mixin';
+import { GrammarApi } from '../../api/grammar';
 
 /**
  * Discriminator naming which gate failed during `canTraverse`. Backcompat
@@ -55,6 +57,7 @@ import { LocomotionApi } from '../../api/locomotion';
  */
 export type TraversalGate =
   | 'blocked'
+  | 'locked'
   | 'door'
   | 'exitMode'
   | 'bodyPlan'
@@ -508,12 +511,32 @@ export default class Exit extends Idea {
         reason: 'The way is blocked.',
       };
     }
+    // Lock gate runs BEFORE the closed-door gate so a locked door
+    // reports "locked" not "closed". Reads entirely off `this.door`
+    // (already in hand) — the destination is never resolved, so a
+    // locked gate pointing at an unbuilt/dangling destination path is
+    // safe to veto.
+    if (
+      this.door &&
+      MixinApi.isLockable(this.door) &&
+      this.door.isLocked()
+    ) {
+      const doorName = this.door.getPresentation();
+      return {
+        ok: false,
+        gate: 'locked',
+        // `getPresentation()` already carries the article ("the
+        // university gate"); cap the leading char rather than re-prefix
+        // "The " (which double-articles to "The the …").
+        reason: `${GrammarApi.cap(doorName)} is locked.`,
+      };
+    }
     if (this.door && !this.door.isOpen()) {
       const doorName = this.door.getPresentation();
       return {
         ok: false,
         gate: 'door',
-        reason: `The ${doorName} is closed.`,
+        reason: `${GrammarApi.cap(doorName)} is closed.`,
       };
     }
     if (mode != null && !this.allowsMode(mode)) {

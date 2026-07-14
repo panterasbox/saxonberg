@@ -1,5 +1,5 @@
 verbs: [dismount]
-controller: movement/DismountController
+controller: /obj/command/movement/DismountController
 description: "Dismount the creature or vehicle you're currently mounted on"
 help: |
   Get down off whatever you're currently riding. No target needed —

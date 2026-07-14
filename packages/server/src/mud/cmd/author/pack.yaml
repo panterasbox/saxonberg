@@ -1,5 +1,5 @@
 verbs: [pack]
-controller: author/PackController
+controller: /obj/command/author/PackController
 description: "Reconcile a content pack into the world and push edits live"
 help: |
   Reconcile a content pack's files into the database and re-hydrate the

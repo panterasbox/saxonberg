@@ -1,5 +1,5 @@
 verbs: [fight]
-controller: combat/FightController
+controller: /obj/command/combat/FightController
 description: "Act inside a fight — read it, throw a gambit, or yield"
 help: |
   `fight` is your handle on a fight already under way (start one with

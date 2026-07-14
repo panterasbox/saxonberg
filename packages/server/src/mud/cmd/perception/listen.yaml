@@ -1,5 +1,5 @@
 verbs: [listen]
-controller: perception/ListenController
+controller: /obj/command/perception/ListenController
 description: "Listen to your surroundings or a specific source"
 help: |
   Stop and hear what's around you. With no target, `listen`

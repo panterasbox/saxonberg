@@ -1,5 +1,5 @@
 verbs: [affordances]
-controller: system/AffordancesController
+controller: /obj/command/system/AffordancesController
 description: "List your available commands and what affords each"
 help: |
   Lists every command you can run right now, and beside each one

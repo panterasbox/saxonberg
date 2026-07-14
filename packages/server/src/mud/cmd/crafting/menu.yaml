@@ -1,5 +1,5 @@
 verbs: [menu]
-controller: crafting/MenuController
+controller: /obj/command/crafting/MenuController
 description: "Read the menu of cocktails on offer here"
 help: |
   Read what's on offer. `menu` lists the cocktails this place serves —

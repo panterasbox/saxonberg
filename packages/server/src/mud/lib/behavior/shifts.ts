@@ -38,6 +38,10 @@ import type { BrainContext, BrainStatics } from './brain';
 export const brain = class {
   static label = 'shifts';
   static presenceGated = false;
+  // Functional poller (reads roster/shift state), not ambient chatter —
+  // exempt from the global ambient-cadence dial so shift transitions are
+  // detected on the authored interval.
+  static ambient = false;
 
   static async act(ctx: BrainContext): Promise<void> {
     const host = ctx.host;

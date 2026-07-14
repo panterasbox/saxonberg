@@ -1,5 +1,5 @@
 verbs: [locate]
-controller: perception/LocateController
+controller: /obj/command/perception/LocateController
 description: "Report the location chain of an object"
 help: |
   Find out where something is. `locate` walks the containment

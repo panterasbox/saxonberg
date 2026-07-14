@@ -3,9 +3,10 @@
  * decoration slice.
  *
  * Covers: the three sources (verb-style setStatus / authored default /
- * clearing); the setter invariant; and that the status shows up in
- * `getPresentation()` and in `RecognitionApi.describe` (both the
- * recognized and unknown branches), without double-decorating.
+ * clearing); the setter invariant; and that the status is a *presence*
+ * decoration — absent from the pure-identity `getPresentation()` /
+ * `RecognitionApi.describe`, present in `RecognitionApi.describeWithStatus`
+ * (both the recognized and unknown branches), without double-decorating.
  */
 
 import { describe, it, expect } from 'vitest';
@@ -69,26 +70,34 @@ describe('StatusMixin', () => {
     expect(g.getStatus()).toBe('watching the road');
   });
 
-  it('decorates getPresentation', () => {
+  it('getPresentation is pure identity — no status affix', () => {
     const g = makeGus();
     expect(g.getPresentation()).toBe('Gus');
     g.setStatus('watching the road');
-    expect(g.getPresentation()).toBe('Gus, watching the road');
+    // Status is a presence decoration, not identity: it does NOT ride the
+    // viewer-blind baseline (so act-subject naming stays clean).
+    expect(g.getPresentation()).toBe('Gus');
   });
 
-  it('decorates a recognized name in describe (no double-decoration)', () => {
+  it('describe is status-free; describeWithStatus decorates a recognized name', () => {
     const viewer = makeStuff(() => new Viewer());
     const g = makeGus();
     g.setStatus('watching the road');
     viewer.know(RECOGNITION, g.getTemplatePath()!, { knownAs: 'Gus' });
-    expect(RecognitionApi.describe(viewer, g)).toBe('Gus, watching the road');
+    // The act-subject path (describe) shows the bare identity.
+    expect(RecognitionApi.describe(viewer, g)).toBe('Gus');
+    // The presence-scan path weaves the status in (no double-decoration).
+    expect(RecognitionApi.describeWithStatus(viewer, g)).toBe(
+      'Gus, watching the road',
+    );
   });
 
-  it('decorates the salient-feature name for an unknown', () => {
+  it('describeWithStatus decorates the salient-feature name for an unknown', () => {
     const viewer = makeStuff(() => new Viewer());
     const g = makeGus();
     g.setStatus('watching the road');
-    expect(RecognitionApi.describe(viewer, g)).toBe(
+    expect(RecognitionApi.describe(viewer, g)).toBe('a stout man');
+    expect(RecognitionApi.describeWithStatus(viewer, g)).toBe(
       'a stout man, watching the road',
     );
   });
