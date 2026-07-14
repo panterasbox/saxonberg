@@ -10,6 +10,9 @@
  *   - `fight strike | disarm | subdue | shove` — the gambits, queued
  *     intent that resolves on the next beat, attempt-time cross-gated by
  *     `CombatApi.queueGambit` (injury edits the menu).
+ *   - `fight defend` — cover up and recover poise instead of attacking
+ *     (the autocombat default, handed to the player as a deliberate choice
+ *     so they can play the patient defender).
  *   - `fight yield` — concede.
  *
  * Consolidated so combat contributes two verbs (`attack` + `fight`)
@@ -27,7 +30,7 @@ import { CombatApi, type GambitEligibility } from "../../../api/combat";
 import type { CombatantState } from "../../../lib/combat/CombatSession";
 
 const TOPIC = "world.narration.action";
-const GAMBITS = new Set(["strike", "disarm", "subdue", "shove"]);
+const GAMBITS = new Set(["strike", "disarm", "subdue", "shove", "defend"]);
 
 interface FightModel extends CommandModel {
   subcommand?: string;
@@ -88,10 +91,11 @@ export default class FightController extends CommandController<FightModel> {
         result.reason ?? "ineligible",
       );
     }
-    MessageApi.scene(giver)
-      .topic(TOPIC)
-      .toSelf(Mml.compose`You ready a ${verb}.`)
-      .send();
+    const ready =
+      verb === "defend"
+        ? Mml.fromMarkup("You settle into a guard, covering up.")
+        : Mml.compose`You ready a ${verb}.`;
+    MessageApi.scene(giver).topic(TOPIC).toSelf(ready).send();
   }
 
   /** `fight yield` — concede the fight. */

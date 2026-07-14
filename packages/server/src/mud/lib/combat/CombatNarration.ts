@@ -180,6 +180,73 @@ export class CombatNarration {
     return commandId;
   }
 
+  /**
+   * The coup **telegraph** — the slow, deliberate beat where the victor
+   * stands over the fallen with the stroke poised, before it lands. This
+   * is the window a present party has to intervene, so it must read
+   * loudly to every witness. Reactable (a charged, dramatic beat).
+   */
+  static narrateCoupTelegraph(executioner: Stuff, victim: Stuff): string {
+    const commandId = SecurityApi.uuid();
+    const E = Mml.name(executioner);
+    const V = Mml.name(victim);
+    for (const viewer of CombatNarration.witnesses(executioner)) {
+      const isE = (viewer as Stuff) === (executioner as Stuff);
+      const isV = (viewer as Stuff) === (victim as Stuff);
+      const tpl = isE
+        ? `You stand over {{victim}}, fallen and helpless, and raise the killing stroke.`
+        : isV
+          ? `{{executioner}} stands over you, fallen, the killing stroke raised. There is a moment — no more.`
+          : `{{executioner}} stands over the fallen {{victim}}, the killing stroke poised. There is a moment to stop it.`;
+      try {
+        const body = ProseApi.format(tpl, { executioner: E, victim: V });
+        MessageApi.scene(viewer as Stuff)
+          .topic(COMBAT_EXCHANGE_TOPIC)
+          .meta({ commandId })
+          .toSelf(body)
+          .send();
+      } catch {
+        // best-effort per-viewer relay
+      }
+    }
+    const scope = ReactionApi.locationScopeFor(executioner);
+    if (scope) {
+      ReactionApi.noteReactableAct({ commandId, subject: executioner, scope });
+    }
+    return commandId;
+  }
+
+  /**
+   * The coup **stayed** — the killing stroke did not land (an intervention,
+   * the executioner's own second thoughts, the moment lost). The victim
+   * is spared; every witness gets the line so the drama resolves cleanly.
+   */
+  static narrateCoupStayed(executioner: Stuff, victim: Stuff): string {
+    const commandId = SecurityApi.uuid();
+    const E = Mml.name(executioner);
+    const V = Mml.name(victim);
+    for (const viewer of CombatNarration.witnesses(executioner)) {
+      const isE = (viewer as Stuff) === (executioner as Stuff);
+      const isV = (viewer as Stuff) === (victim as Stuff);
+      const tpl = isE
+        ? `You stay your hand. {{victim}} lives.`
+        : isV
+          ? `The stroke never falls. {{executioner}} stays their hand — you live.`
+          : `The stroke never falls — {{executioner}} stays their hand. {{victim}} is spared.`;
+      try {
+        const body = ProseApi.format(tpl, { executioner: E, victim: V });
+        MessageApi.scene(viewer as Stuff)
+          .topic(COMBAT_EXCHANGE_TOPIC)
+          .meta({ commandId })
+          .toSelf(body)
+          .send();
+      } catch {
+        // best-effort per-viewer relay
+      }
+    }
+    return commandId;
+  }
+
   /** The per-viewer resolution line (self/target/bystander voice), naming
    * the cause of the fall when there is one (no bare "cut down"). */
   private static resolutionBody(

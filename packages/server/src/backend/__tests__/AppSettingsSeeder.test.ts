@@ -41,7 +41,7 @@ describe("AppSettingsSeeder", () => {
     pm.setFindResult([]);
     const added = await AppSettingsSeeder.run();
 
-    expect(added).toBe(93);
+    expect(added).toBe(96);
     expect(pm.saves).toHaveLength(1);
     expect(pm.saves[0]!.collection).toBe("app_settings");
     const values = savedValues(pm);
@@ -142,7 +142,7 @@ describe("AppSettingsSeeder", () => {
           [AppSettingKeys.responseDeliverySecondaryFactor]: "0.6",
           [AppSettingKeys.responseBandGrazeMax]: "0.5",
           [AppSettingKeys.responseBandBiteMax]: "1.5",
-          // The 20 combat (core 1v1) tuning keys.
+          // The 20 combat (core 1v1) + 3 combat (Build 2) tuning keys.
           [AppSettingKeys.combatTickSeconds]: "3",
           [AppSettingKeys.combatPoisePressedBelow]: "0.75",
           [AppSettingKeys.combatPoiseReelingBelow]: "0.5",
@@ -163,6 +163,9 @@ describe("AppSettingsSeeder", () => {
           [AppSettingKeys.combatEnergyBroken]: "3",
           [AppSettingKeys.combatEnergyOpen]: "4.5",
           [AppSettingKeys.combatMaxBeats]: "200",
+          [AppSettingKeys.combatCoupSeconds]: "6",
+          [AppSettingKeys.combatRegardDuelWin]: "2",
+          [AppSettingKeys.combatRegardUnlawfulKill]: "-20",
         },
       },
     ]);
@@ -191,8 +194,9 @@ describe("AppSettingsSeeder", () => {
     // + 4 transit (banking.onboardingStipend + 3 fasttravel fare keys)
     // + 21 materials-response (7 attenuation + 4 material + 2 grade
     //   + condition + fracture + noWound + severityPerResidual
-    //   + referenceEnergy + secondaryFactor + 2 band).
-    expect(added).toBe(92);
+    //   + referenceEnergy + secondaryFactor + 2 band)
+    // + 3 combat Build 2 (coupSeconds + 2 regard).
+    expect(added).toBe(95);
     expect(pm.saves).toHaveLength(1);
     const values = savedValues(pm);
     // operator value preserved, missing keys seeded

@@ -11,11 +11,15 @@ them through `ConditionApi.inflict`; the covering stack returns the trauma
 type and severity. The one genuinely-new engine piece is **poise**; the
 rest is a combat-specific arrangement of existing seams.
 
-This doc is the source of truth for **cycle 1, build 1** (the terminal 1v1
-core). The consequence/progression half — the blame ledger, two-stage
-death, `isSentient`, combat `Discipline`s, `assess` — is **cycle-1 build 2**
-(deferred, see [§ Deferred](#deferred)). Multi-party / threat-graph and the
-client pane are later cycles. Design surface lives in
+This doc is the source of truth for **cycle 1, builds 1 + 2** (the terminal
+1v1 core, then its consequence/progression half). Build 2 adds the layer
+that gives a fight lasting stakes: a **person** is only *defeated* by the
+winning blow (killing them is the separate, interruptible **coup**), who is
+to **blame** for a death is derived from an append-only ledger (a consented
+duel is lawful; an imposed lethal attack on the unwilling is a crime), and
+every exchange **advances** the fighter (combat `Discipline`s + a costed
+`assess`). Multi-party / threat-graph and the client pane are later cycles.
+Design surface lives in
 [combat-slate](../slates/deferred-rpg/combat-slate.md) +
 [combat-experience-slate](../slates/deferred-rpg/combat-experience-slate.md).
 
@@ -212,7 +216,12 @@ initial seven per MR review — see [§ History](#history)):
   is the at-a-glance read (own poise/condition/flags/wounds at full fidelity
   + the banded, perception-gated opponent read — all bands, never numbers);
   `fight strike | disarm | subdue | shove` are the gambits (queued intent,
-  resolved on the next beat); `fight yield` concedes.
+  resolved on the next beat); `fight defend` covers up and recovers poise
+  (capped by endurance) instead of attacking — the autocombat default
+  handed to the player as a deliberate choice, so they can play the
+  patient defender on purpose (the build-1 balance finding: a steady armed
+  defender's parry-and-riposte beats a blind aggressor); `fight yield`
+  concedes.
 
 Both verbs are contributed by **`CombatantMixin`** (`lib/combat/Combatant.ts`,
 composed on `Character`) as static `self` affordances; the gambit
@@ -248,18 +257,154 @@ AppSettings seeded from `config/app-settings.yaml` (no code defaults):
 tick, poise thresholds/costs, tempo shape, per-band inflict energy,
 max-beats.
 
+## Build 2 — consequence & progression
+
+Build 1 makes a fight *happen*; build 2 makes it *matter*. The exchange
+engine is unchanged — build 2 hangs consequence off the resolution seams.
+
+### `isSentient` — the person / beast axis
+
+`SpeciesApi.isSentient(o)` (the `isAnimate` twin) reads a `sentient` flag on
+`Species` (default false; the whole `homo` genus + the tutor-bot construct
+are `sentient: true`, wolf / frog / plant are not). It is the key to the
+**three-case** severity of a defeat (`CombatLogic.handleDown`):
+
+- **non-sentient + lethal** → the **cull**: the winning blow finishes the
+  beast (stage 2 skipped), no consent, no blame (build 1, unchanged);
+- **sentient + lethal** → the fight resolves at `incapacitation` (the poise
+  contest only *defeats*); the kill is the separate **coup** (below);
+- **sentient + non-lethal** (or an unauthorized finish) → `incapacitation`,
+  nobody dies.
+
+### Two-stage death — the coup
+
+`lib/combat/Coup.ts` — a `DurativeActivity` (the `ManualBuildStep`
+precedent) that holds the victor's `body` for `combat.coupSeconds`
+game-time. Killing a downed **person** is not the winning blow; it is a
+slow, telegraphed, **interruptible** killing stroke begun *after* the fight
+resolves at incapacitation (deferred one tick via `ScheduleApi.schedule(0)`
+so the session frees the `body` slot first). On completion the kill lands
+(`setLifecycleState('dead')` + a `causeOfDeath` stamp + the death
+attribution row + the resolution consumers); on abort the victim is spared.
+`CombatNarration` gives it its own **telegraph** ("stands over the fallen …
+the stroke poised") and **stayed** lines. The new `combat-intervened` abort
+reason is declaration-merged from `Coup.ts` (the `combat-resolved`
+precedent). `coupEligible` re-checks co-presence + not-already-dead at both
+start and completion, so dragging the victim clear also spares them.
+
+The coup follows **incapacitation, however it was reached** — both the
+poise-contest down (`handleDown`) *and* a bleed-to-unconscious by attrition
+(`checkVitalsResolution`) begin it for a sentient loser under lethal terms.
+(The attrition path was the common outcome in the live demo — the
+defender-advantage from build 1 means a straight fight usually ends by
+accumulated wounds rather than a clean poise break — so wiring the coup to
+attrition too is what makes the two-stage death reliably *reachable*.)
+
+**`intervene <target> | stay`** (`combat/intervene.yaml` +
+`InterveneController`, afforded by `CombatantMixin`) cancels a live coup in
+the room — matched by **victim or executioner**, so a bystander can stop the
+killer, a friend can shield the fallen, and the victor can stay their *own*
+hand (mercy). This is the moral crux: not-killing is a move you can play.
+
+### The blame ledger (derive-on-read)
+
+`lib/combat/CombatAttributionEvent.ts` — an append-only `Document` in the
+`combat_attribution_events` collection (the `RenownEvent`/`AuthoringEvent`
+shape; durable ids are `templatePath`s). Combat never stamps a "murderer"
+flag; it records the objective facts and **derives** culpability on read.
+Three writers, no others: `opened` (initiator + terms + consent +
+sentience, at `openSession`), `violated` (the standalone crime marker,
+written at initiation when lethal terms are *imposed* on a non-consenting
+sentient), and `death` (victim + killer + the terms in force). The pure
+reader `CombatAttributionEvent.deriveBlame(rows)` takes the **earliest**
+death row (the `ProvenanceApi.authorOf` rule) and returns the killer plus
+`crime` — **true iff a sentient was killed under lethal terms they did not
+consent to**. Surfaced by `CombatApi.blameFor(victimId)` /
+`attributionFor(sessionId)`. Re-legislating what counts as a crime
+re-scores history without rewriting a row. Writers are fire-and-forget
+(the ledger never blocks a beat).
+
+### Consent posture — the handshake made real
+
+Build 1's `AttackController` already read `combat.lethality` /
+`combat.stopCondition` standing settings, but **no schema declared them** —
+so no one could hold a lethal standing and a consented *lethal* duel was
+impossible (every lethal attack was imposed → crime). Build 2 makes the
+posture readable from **two surfaces**, because the two audiences carry it
+differently:
+
+- **players** — the `combat.lethality` / `combat.stopCondition` **settings
+  schema** on `CombatantMixin` (`Enum`, defaults `non-lethal`/`yield`),
+  which a player sets at runtime (`settings set combat.lethality lethal`).
+  Settings only resolve for `Environment` hosts.
+- **NPCs** — the authored `CombatantMixin` **fields** `standingLethality` /
+  `standingStopCondition`. An NPC **isn't an `Environment`**, so it can't
+  carry a setting override — a duelist authors its posture in these fields
+  instead (`standingLethality: lethal`).
+
+`standingTerms` reads both: either surface declaring `lethal` makes the
+combatant bring lethal terms. So the gentleman duelist's authored
+`lethal` posture **matches** a `--lethal` challenge → the terms reconcile
+silently to a **consented** duel (no prompt, no crime). The same stroke
+against a townsperson at the non-lethal default is imposed, and the
+`violated` marker fires. *(This NPC-can't-hold-a-setting gap was found and
+fixed during the live demo — the settings-only approach the plan assumed
+never reached NPCs.)*
+
+### Resolution consumers
+
+At every win / kill, `runResolutionConsumers` (defensive, best-effort): a
+`ChronicleApi.recordDeed` for the victor (a **deed**, or a **crime**-tagged
+line for an unlawful kill) + a `RegardApi.adjustRegard` nudge from every
+room witness (`combat.regard.duelWin` for a clean win, the negative
+`combat.regard.unlawfulKill` when the room recoils from a murderer). The
+global "X killed Y" presence relay stays deferred — the room-scoped death
+narration already announces it.
+
+### Advancement + `assess`
+
+Two combat `Discipline`s are seeded as data (the `bartending` precedent,
+auto-harvested by `DisciplineCatalogue`): `melee-combat` (skill) and
+`blades` (specializes it). Each resolved exchange mints the **player
+side's** own `ActSignature` (self-credit; difficulty from the target's
+poise band, outcome from the exchange result; `blades` additionally
+credited on an edge/point instrument) via `AdvancementApi.recordSignature`,
+fire-and-forget. The existing **`assess`** verb (`AssessController`) gains a
+mid-fight branch: assessing your opponent delegates to `CombatApi.assess` —
+a **costed** read (it spends your next exchange, `queuedGambit = 'assess'`)
+that mints a combat signature and returns the opponent's banded tactical
+state (poise / flags / armed / condition). Bands, never numbers.
+
+### The demonstrator — the consented duel
+
+`attack` **the gentleman out of the fog who works with a knife** (the
+crossroads bounty the board already names): `/domain/newbie-wilds/npc/
+duelist` — a sentient human whose standing terms are lethal, waiting in the
+**fog hollow** (`/domain/newbie-wilds/crossroads/hollow`, one step west of
+the treeline). He takes up a knife from the duelling-stone via the new
+`arms` brain (`lib/behavior/arms.ts` — wield the nearest reachable weapon;
+no NPC-arming engine change). `attack the gentleman --lethal` → the terms
+agree silently (a consented duel) → win the poise fight → he is **defeated,
+not killed** → the coup **telegraphs** → you let it land (a *lawful* kill —
+chronicle deed, a small regard cost) **or** `intervene` to spare him. The
+**crime** leg is reachable without extra content: `attack` any
+non-consenting sentient (a townsperson) `--lethal` → the `violated` marker →
+`blameFor` returns `crime: true`.
+
 ## Deferred
 
 Named at their sites; nothing inherited:
 
-- **Consequence & progression (cycle-1 build 2)** — the derive-on-read
-  **blame ledger** (append-only `combat_attribution_events`, the
-  `RenownEvent`/`AuthoringEvent` shape), **two-stage death** (defeat →
-  `unconscious` is separate from a slow, interruptible, telegraphed **coup**
-  `DurativeActivity` on the downed body under lethal terms), **`isSentient`**
-  (the three-case severity keying), combat **`Discipline`**s + per-exchange
-  `ActSignature` minting ([advancement](./advancement.md)), and **`assess`**
-  (a costed engaged perception act). The consented-duel demo.
+- **The `defend` family (with multi-party)** — `intervene` (stay a coup) and
+  `fight defend` (cover yourself) are two leaves of one idea: *warding harm
+  from a life*. The third leaf — **`defend <ally>`** (interpose in an
+  ongoing fight, draw an aggressor's threat onto yourself) — needs the
+  multi-party threat graph to mean anything, so it's deferred. When it
+  lands, `intervene` should likely **fold into** a general `defend`
+  (`defend <fallen>` = today's coup-stay), so the vocabulary converges on
+  one verb rather than three. Kept separate for now so the reachable
+  1v1-era verbs (`intervene`, `fight defend`) don't churn before their
+  sibling exists.
 - **Later cycles** — multi-party / the threat graph (this melee edge goes
   plural), weapon playstyle (reach/guard/balance-as-derived; `balanceFactor`
   populated from construction), full morale / de-escalation, stealth, the
@@ -290,8 +435,7 @@ Named at their sites; nothing inherited:
 - **Design surface:** [combat-slate](../slates/deferred-rpg/combat-slate.md),
   [combat-experience-slate](../slates/deferred-rpg/combat-experience-slate.md),
   [combat-tactics-slate](../slates/deferred-rpg/combat-tactics-slate.md),
-  [party-slate](../slates/deferred-rpg/party-slate.md). Cycle-1 plan:
-  `docs/plans/combat-core-plan.md` (build 2 pending).
+  [party-slate](../slates/deferred-rpg/party-slate.md).
 
 ## History
 
@@ -306,3 +450,22 @@ Named at their sites; nothing inherited:
   fresh-DB bootstrap failure), the silent-fight-end bug, and the flat
   narration. `CombatantMixin` was composed onto `Character`; `Weapon` gained
   `balanceFactor`; `world.combat.exchange` joined `REACTABLE_TOPICS`.
+- **Cycle 1, build 2** (`feature/combat-consequence`) — consequence &
+  progression: `isSentient` (a `Species` flag + the three-case defeat),
+  the two-stage **coup** (`Coup` `DurativeActivity` + the `intervene`
+  verb + `combat-intervened`), the derive-on-read **blame ledger**
+  (`CombatAttributionEvent` in `combat_attribution_events` +
+  `deriveBlame` + `CombatApi.blameFor`), the real **consent handshake**
+  (the `combat.lethality`/`combat.stopCondition` settings schema build 1
+  read but never declared), the resolution consumers (chronicle
+  deed/crime + regard), combat `Discipline`s (`melee-combat`/`blades`) +
+  per-exchange `ActSignature` + the costed combat `assess`, the
+  `fight defend` gambit, and the **consented-duel** demonstrator (the
+  gentleman duelist + the fog hollow + the `arms` brain). Three new
+  `combat.*` dials (`coupSeconds`, `regard.duelWin`, `regard.unlawfulKill`).
+  **Two fixes forced by the live demo:** the coup was wired to fire on a
+  bleed-to-unconscious incapacitation too (not only a poise-contest down),
+  since the defender-advantage means fights usually end by attrition; and
+  NPC consent moved from a settings-only approach (settings only resolve
+  for `Environment`s — which NPCs aren't) to authored
+  `standingLethality`/`standingStopCondition` fields on `CombatantMixin`.

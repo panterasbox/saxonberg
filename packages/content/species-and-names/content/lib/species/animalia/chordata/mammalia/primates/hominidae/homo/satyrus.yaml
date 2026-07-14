@@ -7,6 +7,7 @@ hydratorClass: /lib/persistence/PersistentHydrator
 data:
   illustration: species/satyrus.png
   binomial: Homo satyrus
+  sentient: true
   commonNames: ["satyr"]
   _bodyPlanPath: /lib/body-plans/biped
   _parentCladePath: /lib/species/animalia

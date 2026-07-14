@@ -14,7 +14,10 @@ help: |
     `fight disarm`  — knock your opponent's weapon away
     `fight subdue`  — lock them up
     `fight shove`   — put them on the ground
-  And `fight yield` concedes.
+  Or hold: `fight defend` covers up and recovers your poise (capped by
+  your endurance) instead of attacking — the patient defender's game, and
+  often the wiser one against a steady, armed foe. And `fight yield`
+  concedes.
 examples:
   - cmd: fight
     note: Read your current fight
@@ -33,5 +36,7 @@ subcommands:
     description: "Gambit — lock your opponent up"
   shove:
     description: "Gambit — put your opponent on the ground"
+  defend:
+    description: "Cover up and recover poise instead of attacking"
   yield:
     description: "Concede the fight"

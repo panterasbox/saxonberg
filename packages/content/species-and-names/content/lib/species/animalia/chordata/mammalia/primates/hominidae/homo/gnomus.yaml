@@ -7,6 +7,7 @@ hydratorClass: /lib/persistence/PersistentHydrator
 data:
   illustration: species/gnomus.png
   binomial: Homo gnomus
+  sentient: true
   commonNames: ["gnome"]
   _bodyPlanPath: /lib/body-plans/biped
   _parentCladePath: /lib/species/animalia

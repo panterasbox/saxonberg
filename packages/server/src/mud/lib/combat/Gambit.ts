@@ -24,7 +24,7 @@
 import type { CombatFlag } from "./CombatFlags";
 import type { CompetenceBandName } from "../advancement/CompetenceBand";
 
-export type GambitKind = "offensive" | "control" | "reactive";
+export type GambitKind = "offensive" | "control" | "reactive" | "defensive";
 
 /**
  * The exchange outcome that arms a reactive gambit. `parried` — the
@@ -98,6 +98,23 @@ const GAMBITS: Record<string, GambitSpec> = {
     offensive: false,
     needsInstrument: true,
     flagOnLand: "prone",
+  },
+  /**
+   * The deliberate **defend** — cover up and recover poise (capped by the
+   * `endurance` reserve) instead of attacking. The engine already picks
+   * this as the autocombat default when a fighter is overextended; this
+   * gambit hands the *choice* to the player, so they can play the patient
+   * defender (whose parry-and-riposte beats a blind aggressor — the
+   * build-1 balance finding) on purpose. Needs no instrument; the actual
+   * poise restore lives in `CombatLogic.resolveExchange`'s `defend` branch,
+   * so this descriptor exists only to make the intent *queueable*.
+   */
+  defend: {
+    key: "defend",
+    verb: "defend",
+    kind: "defensive",
+    offensive: false,
+    needsInstrument: false,
   },
   /**
    * The reactive counter — a weapon riposte the session offers the
