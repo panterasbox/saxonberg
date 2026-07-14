@@ -40,10 +40,9 @@ import { Quantity } from "../../../lib/quantity";
 import { CombatApi } from "../../../api/combat";
 import { CombatTerms, type TermsProposal } from "../../../lib/combat/CombatTerms";
 import {
-  COMBAT_SESSION_TYPE,
-  COMBAT_PARTNER_TYPE,
+  COMBAT_PARTICIPANT_TYPE,
   CombatSession,
-  CombatPartnerHold,
+  CombatParticipantHold,
 } from "../../../lib/combat/CombatSession";
 import type { Channel } from "../../../lib/material/Channel";
 import EventRegistry from "../../../obj/EventRegistry";
@@ -144,6 +143,11 @@ const lethal: TermsProposal = {
   stakes: "",
 };
 
+// Track opened sessions so we can tear down their real-time recurring
+// tick after each test (the beat is now a `ScheduleApi.recurring` timer,
+// not a game-clock emission — an unresolved fight would leak a handle).
+const openSessions: CombatSession[] = [];
+
 function open(
   a: TestFighter,
   b: TestFighter,
@@ -157,6 +161,7 @@ function open(
   );
   const res = CombatApi.openSession(a as never, b as never, terms);
   if (!res.ok) throw new Error(`openSession failed: ${res.reason}`);
+  openSessions.push(res.session);
   return res.session;
 }
 
@@ -168,12 +173,17 @@ beforeEach(async () => {
   installV1QuantityMarshallers();
   StuffApi.clearAll();
   SchedulerApi._clearAllForTesting();
-  SchedulerApi.registerActivity(COMBAT_SESSION_TYPE, CombatSession);
-  SchedulerApi.registerActivity(COMBAT_PARTNER_TYPE, CombatPartnerHold);
+  SchedulerApi.registerActivity(
+    COMBAT_PARTICIPANT_TYPE,
+    CombatParticipantHold,
+  );
   await bootRegistry();
 });
 
 afterEach(() => {
+  // Tear down any still-running fight so its recurring tick handle is
+  // cancelled (dissolve is idempotent on a resolved session).
+  for (const s of openSessions.splice(0)) s.dissolve();
   StuffApi.clearAll();
 });
 
@@ -184,8 +194,10 @@ describe("CombatLogic — session lifecycle", () => {
     const b = makeFighter(room, { weaponForm: "bladed" });
     const session = open(a, b, nonLethal);
 
-    expect(a.getEngagementBySlot("body")?.type).toBe(COMBAT_SESSION_TYPE);
-    expect(b.getEngagementBySlot("body")?.type).toBe(COMBAT_PARTNER_TYPE);
+    // Every participant carries the same uniform hold (the initiator no
+    // longer holds a distinct session engagement).
+    expect(a.getEngagementBySlot("body")?.type).toBe(COMBAT_PARTICIPANT_TYPE);
+    expect(b.getEngagementBySlot("body")?.type).toBe(COMBAT_PARTICIPANT_TYPE);
     expect(CombatApi.sessionFor(a)).toBe(session);
     expect(CombatApi.sessionFor(b)).toBe(session);
   });

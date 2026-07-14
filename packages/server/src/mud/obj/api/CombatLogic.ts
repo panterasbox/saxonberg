@@ -35,9 +35,8 @@ import type { OutcomeBand } from "../../api/material";
 import type { BrainContext, BrainStatics } from "../../lib/behavior/brain";
 import {
   CombatSession,
-  CombatPartnerHold,
-  COMBAT_SESSION_TYPE,
-  COMBAT_PARTNER_TYPE,
+  CombatParticipantHold,
+  COMBAT_PARTICIPANT_TYPE,
   type CombatantState,
   type CombatResolution,
 } from "../../lib/combat/CombatSession";
@@ -217,29 +216,38 @@ function openSessionImpl(
   if (!MixinApi.isEngaged(initiator) || !MixinApi.isEngaged(defender)) {
     return { ok: false, reason: "not-engageable" };
   }
-  // 1:1 — a combatant already in a fight can't open a second.
+  // A combatant already engaged in a fight can't open a fresh session
+  // (a second attacker joins the existing one — cycle-2 Phase 4).
   if (
-    initiator.getEngagementByType(COMBAT_SESSION_TYPE) ||
-    defender.getEngagementByType(COMBAT_SESSION_TYPE)
+    initiator.getEngagementByType(COMBAT_PARTICIPANT_TYPE) ||
+    defender.getEngagementByType(COMBAT_PARTICIPANT_TYPE)
   ) {
     return { ok: false, reason: "busy" };
   }
 
   const tickMs = Math.round(dial(AppSettingKeys.combatTickSeconds, 3) * 1000);
-  const a = deriveState(initiator);
-  const b = deriveState(defender);
-  const session = new CombatSession(a, b, terms, tickMs);
+  const session = new CombatSession(terms, tickMs);
+  const holdA = session.addParticipant(deriveState(initiator));
+  const holdB = session.addParticipant(deriveState(defender));
 
-  const started = SchedulerApi.start(session);
-  if (!started.ok) return { ok: false, reason: "busy" };
+  // Seed the threat graph with the mutual 1v1 edges (both directions),
+  // each carrying the session terms (the per-edge-terms seam — cycle-2
+  // Phase 3 moves the terms authority fully onto the edges).
+  const graph = session.getGraph();
+  graph.addEdge(initiator, defender, terms);
+  graph.addEdge(defender, initiator, terms);
 
-  const partner = new CombatPartnerHold(defender, session);
-  session.setPartner(partner);
-  const partnerStarted = SchedulerApi.start(partner);
-  if (!partnerStarted.ok) {
-    SchedulerApi.cancel(session, "cancelled");
+  // Each participant occupies `body` via its own hold; the session owns
+  // the beat (a real-time recurring tick, not a participant's emission).
+  if (!SchedulerApi.start(holdA).ok) {
+    session.dissolve();
     return { ok: false, reason: "busy" };
   }
+  if (!SchedulerApi.start(holdB).ok) {
+    session.dissolve();
+    return { ok: false, reason: "busy" };
+  }
+  session.startTick();
 
   // Blame ledger: record the opening. A sentient defender who did NOT
   // consent to lethal terms is the imposed-terms crime path — write the
@@ -272,6 +280,8 @@ function deriveState(combatant: Stuff & Engaged): CombatantState {
     brainConfig: {},
     balanceFactor: inputs.balanceFactor,
     down: false,
+    side: "",
+    lastStruckBy: null,
   };
 }
 
@@ -308,7 +318,7 @@ function balanceFactorOf(combatant: Stuff): number {
 function advanceImpl(session: CombatSession): void {
   if (!session.isActive()) return;
   const beat = session.advanceBeat();
-  const [sa, sb] = session.getStates();
+  const states = session.getStates();
 
   const maxBeats = Math.round(dial(AppSettingKeys.combatMaxBeats, 200));
   if (beat > maxBeats) {
@@ -317,13 +327,15 @@ function advanceImpl(session: CombatSession): void {
   }
 
   // Let brain-driven combatants choose (queue) their intent this beat.
-  for (const s of [sa, sb]) {
+  for (const s of states) {
     if (s.brainPath && !s.queuedGambit && !s.down) invokeBrain(s);
   }
 
   // Emergent tempo: each combatant acts as often as their accrued tempo
   // allows (fractional carry). Bounded per beat by the tempo ceiling.
-  for (const s of [sa, sb]) {
+  // Targeting is the 1v1 opponent for now; cycle-2 Phase 4 drives it off
+  // the threat graph + `areAllied`.
+  for (const s of states) {
     if (!session.isActive()) break;
     const opp = session.opponentState(s.combatant);
     if (!opp || s.down || opp.down) continue;
@@ -333,8 +345,7 @@ function advanceImpl(session: CombatSession): void {
     }
   }
 
-  sa.poise.tick(beat);
-  sb.poise.tick(beat);
+  for (const s of states) s.poise.tick(beat);
 
   if (session.isActive()) checkVitalsResolution(session);
 }
@@ -572,9 +583,9 @@ function endWith(
   killer?: Stuff,
 ): void {
   if (!session.isActive() || session.getResolution()) return;
-  const [a, b] = session.getStates();
+  const combatants = session.getStates().map((s) => s.combatant);
   CombatNarration.narrateResolution({
-    combatants: [a.combatant, b.combatant],
+    combatants,
     outcome,
     victim,
     killer,
@@ -759,12 +770,10 @@ function invokeBrain(state: CombatantState): void {
 
 function sessionForImpl(combatant: Stuff): CombatSession | undefined {
   if (!MixinApi.isEngaged(combatant)) return undefined;
-  // Combatant A holds the session directly; combatant B holds the partner
-  // hold, which references the session.
-  const direct = combatant.getEngagementByType(COMBAT_SESSION_TYPE);
-  if (direct instanceof CombatSession) return direct;
-  const partner = combatant.getEngagementByType(COMBAT_PARTNER_TYPE);
-  if (partner instanceof CombatPartnerHold) return partner.getSession();
+  // Every participant (including the initiator) holds a uniform
+  // participant hold that references the session.
+  const hold = combatant.getEngagementByType(COMBAT_PARTICIPANT_TYPE);
+  if (hold instanceof CombatParticipantHold) return hold.getSession();
   return undefined;
 }
 
@@ -959,7 +968,7 @@ function recordOpening(
 ): void {
   const sentient = safeIsSentient(defender);
   const base = {
-    sessionId: session.engagementId,
+    sessionId: session.sessionId,
     initiator: durableIdOf(initiator),
     opponent: durableIdOf(defender),
     lethality: terms.lethality,
@@ -983,7 +992,7 @@ function recordDeath(
   const terms = session.getTerms();
   noteAttribution({
     kind: "death",
-    sessionId: session.engagementId,
+    sessionId: session.sessionId,
     initiator: terms.initiator,
     opponent: durableIdOf(killer),
     victim: durableIdOf(victim),

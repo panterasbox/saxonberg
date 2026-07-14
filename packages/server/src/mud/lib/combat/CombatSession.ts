@@ -1,39 +1,42 @@
 /**
- * CombatSession — the live 1v1 fight, a `SustainedEngagement`
- * state-container (the `DialogueConversation` structural twin).
+ * CombatSession — the live melee, a plain N-participant state container.
  *
- * Like a dialogue, a fight spans many beats but a command frame dies
- * after one turn, so the fight state lives on an engagement in the
- * `SchedulerRegistry` active set — **not** on the `Creature`, not on a
- * controller. It is a plain class (never `StuffApi.create`d), holds the
- * two combatants + their `CombatTerms` + each side's transient
- * {@link CombatantState} (poise, tempo, flags), and drives itself on a
- * fixed game-time cadence via one recurring `ScheduledEmission` (the
- * `RespirationDrain` precedent).
+ * Cycle 1 modelled a fight as a two-sided `SustainedEngagement`: the
+ * session *was* combatant A's `body` engagement and carried the beat on
+ * A's game-time `ScheduledEmission`. That shape can't survive a melee —
+ * A can die or flee first, orphaning both the tick and the container. So
+ * cycle 2 makes the session a plain object:
  *
- * Two-sided, exactly like a conversation: this session holds the `body`
- * slot on combatant A, and a companion {@link CombatPartnerHold} holds
- * `body` on combatant B, so both are genuinely occupied (movement
- * vetoed) and either being destroyed/aborted tears the whole fight down
- * through the mutual-idempotent-cancel property.
+ *   - a `Map<Stuff, CombatantState>` of every participant's transient
+ *     fight state (poise / tempo / flags), keyed by the combatant;
+ *   - a {@link CombatGraph} of directed who-attacks-whom edges;
+ *   - a per-participant {@link CombatParticipantHold} occupying `body`
+ *     (so *every* combatant is genuinely occupied — movement vetoed — and
+ *     any one being destroyed/aborted tears its own participation down
+ *     through the mutual-idempotent-cancel property, never the whole
+ *     fight unless it empties a side);
+ *   - its own **real-time** beat via `ScheduleApi.recurring` (the beat no
+ *     longer rides any participant's emissions — so a participant leaving
+ *     never orphans the tick, and the cadence is pace-independent of
+ *     world-clock scale, the coupling the 1v1 live demo exposed). Bleed
+ *     stays game-time: harm reconciles on read, untouched here.
  *
- * This class is deliberately **thin**: it owns lifecycle + state, and
- * delegates every *rule* (exchange resolution, poise mutation, narration,
- * resolution) to the gated `CombatApi`/`CombatLogic` pair — the sole
- * entry to gambit-resolution, so the load-bearing curves live in one
- * hot-reloadable place. `tick()` is the only per-beat entry; it forwards
- * to `CombatApi.advance(this)`.
+ * The session is **never** a scheduler engagement and is **never**
+ * `StuffApi.create`d — it is a transient plain class. It owns lifecycle +
+ * state and delegates every *rule* (exchange resolution, poise mutation,
+ * narration, resolution) to the gated `CombatApi`/`CombatLogic` pair.
+ * `tick()` is the only per-beat entry; it forwards to `CombatApi.advance`.
  */
 
 import type { Stuff } from "../stuff/Stuff";
 import type { Engaged, EngagementSlot } from "../activity/Engaged";
-import type {
-  ScheduledEmission,
-  SustainedEngagement,
-} from "../../api/scheduler";
+import type { SustainedEngagement } from "../../api/scheduler";
 import { SchedulerApi } from "../../api/scheduler";
+import { ScheduleApi, type ScheduleHandle } from "../../api/schedule";
+import { SecurityApi } from "../../api/security";
 import { CombatApi } from "../../api/combat";
 import type { AbortReason } from "@saxonberg/types";
+import { CombatGraph } from "./CombatGraph";
 import type { CombatTerms } from "./CombatTerms";
 import type { Poise } from "./Poise";
 import type { Tempo } from "./Tempo";
@@ -52,8 +55,7 @@ declare module "@saxonberg/types" {
   }
 }
 
-export const COMBAT_SESSION_TYPE = "combat-session";
-export const COMBAT_PARTNER_TYPE = "combat-partner";
+export const COMBAT_PARTICIPANT_TYPE = "combat-participant";
 
 /** Combat occupies the whole `body` (you can't wander off mid-fight). */
 const COMBAT_SLOTS: readonly EngagementSlot[] = ["body"];
@@ -86,71 +88,78 @@ export interface CombatantState {
   balanceFactor: number;
   /** Set when the combatant loses the poise contest (incapacitated). */
   down: boolean;
+  /**
+   * The per-fight alignment key (`PartyApi.sideOf`), frozen at
+   * session-open / join. Two participants are allies iff their `side`
+   * strings are equal. `''` until sides are wired (cycle-2 Phase 4).
+   */
+  side: string;
+  /**
+   * The combatant that last landed a blow on this participant — names the
+   * killing edge for an attrition/bleed-out death that has no single
+   * striker at the moment of resolution. Null until first struck.
+   */
+  lastStruckBy: (Stuff & Engaged) | null;
 }
 
-export class CombatSession implements SustainedEngagement {
-  engagementId = "";
-  readonly type = COMBAT_SESSION_TYPE;
-  readonly actor: Stuff & Engaged;
-  startedAt = 0;
-  readonly slots: ReadonlySet<EngagementSlot> = new Set(COMBAT_SLOTS);
-  readonly interruptibleBy: ReadonlySet<AbortReason> = new Set<AbortReason>();
-  readonly cancelable = true;
-  readonly emissions: readonly ScheduledEmission[];
+export class CombatSession {
+  readonly sessionId: string;
 
-  private readonly a: CombatantState;
-  private readonly b: CombatantState;
-  private readonly terms: CombatTerms;
-  private partner: SustainedEngagement | null = null;
+  private readonly states = new Map<Stuff, CombatantState>();
+  private readonly holds = new Map<Stuff, CombatParticipantHold>();
+  private readonly graph = new CombatGraph();
+  private readonly tickMs: number;
+  private terms: CombatTerms;
+  private tickHandle: ScheduleHandle | null = null;
   private active = true;
   private beat = 0;
   private resolution: CombatResolution | null = null;
 
-  constructor(
-    a: CombatantState,
-    b: CombatantState,
-    terms: CombatTerms,
-    tickMs: number,
-  ) {
-    this.a = a;
-    this.b = b;
+  constructor(terms: CombatTerms, tickMs: number) {
     this.terms = terms;
-    this.actor = a.combatant;
-    // One recurring beat. The closure is pinned at construction (the
-    // activity.md caveat); it stays a thin delegate so the rules in
-    // CombatLogic remain hot-reloadable.
-    this.emissions = [{ intervalMs: tickMs, event: () => this.tick() }];
+    this.tickMs = tickMs;
+    this.sessionId = SecurityApi.uuid();
   }
 
-  /* ───────────────── Engagement contract ───────────────── */
+  /* ───────────────── membership ───────────────── */
 
-  onStart(): void {
-    this.startedAt = Date.now();
+  /** Register a participant + its `body` hold. The hold is started by the
+   * caller (`CombatLogic`), which owns the busy/conflict decision. */
+  addParticipant(state: CombatantState): CombatParticipantHold {
+    this.states.set(state.combatant, state);
+    this.graph.addNode(state.combatant);
+    const hold = new CombatParticipantHold(state.combatant, this);
+    this.holds.set(state.combatant, hold);
+    return hold;
   }
 
   /**
-   * The single teardown path — any cancel/terminate (graceful resolve,
-   * disconnect, host-destroyed, presence loss). Releases the partner
-   * hold and stops the loop. Idempotent.
+   * Remove a participant (departed / dead / disengaged): drop its state,
+   * its graph node (and every edge touching it), and release its hold. If
+   * that empties the fight — one or zero combatants left — dissolve it.
+   * Idempotent.
    */
-  onAbort(_reason: AbortReason): void {
-    this.active = false;
-    if (this.partner) SchedulerApi.cancel(this.partner, "cancelled");
+  removeParticipant(combatant: Stuff): void {
+    const hold = this.holds.get(combatant);
+    this.states.delete(combatant);
+    this.holds.delete(combatant);
+    this.graph.removeNode(combatant);
+    if (hold) SchedulerApi.cancel(hold, "combat-resolved");
+    if (this.states.size <= 1 && this.active) this.dissolve();
   }
 
-  getHost(): Stuff | null {
-    return this.actor;
+  /** The `body` hold for a participant (so a joiner can be started). */
+  getHold(combatant: Stuff): CombatParticipantHold | undefined {
+    return this.holds.get(combatant);
   }
-
-  /* ───────────────── wiring ───────────────── */
-
-  setPartner(partner: SustainedEngagement): void {
-    this.partner = partner;
-  }
-
-  /** Launch is implicit — the recurring emission starts on registration. */
 
   /* ───────────────── the beat ───────────────── */
+
+  /** Start the real-time beat. Idempotent. */
+  startTick(): void {
+    if (this.tickHandle) return;
+    this.tickHandle = ScheduleApi.recurring(this.tickMs, () => this.tick());
+  }
 
   /** One narration beat. Delegates all rules to the gated logic. */
   tick(): void {
@@ -160,20 +169,33 @@ export class CombatSession implements SustainedEngagement {
 
   /* ───────────────── state surface (for CombatLogic) ───────────────── */
 
-  getStates(): readonly [CombatantState, CombatantState] {
-    return [this.a, this.b];
+  getStates(): readonly CombatantState[] {
+    return [...this.states.values()];
+  }
+
+  getCombatants(): readonly (Stuff & Engaged)[] {
+    return this.getStates().map((s) => s.combatant);
   }
 
   getState(combatant: Stuff): CombatantState | null {
-    if ((combatant as Stuff) === (this.a.combatant as Stuff)) return this.a;
-    if ((combatant as Stuff) === (this.b.combatant as Stuff)) return this.b;
+    return this.states.get(combatant) ?? null;
+  }
+
+  /**
+   * The other participant in a 1v1 (the degenerate melee). Returns null
+   * when the fight is not exactly two-sided — melee code paths (cycle-2
+   * Phase 4+) drive off the graph and `areAllied`, not this.
+   */
+  opponentState(combatant: Stuff): CombatantState | null {
+    if (this.states.size !== 2) return null;
+    for (const s of this.states.values()) {
+      if ((s.combatant as Stuff) !== (combatant as Stuff)) return s;
+    }
     return null;
   }
 
-  opponentState(combatant: Stuff): CombatantState | null {
-    if ((combatant as Stuff) === (this.a.combatant as Stuff)) return this.b;
-    if ((combatant as Stuff) === (this.b.combatant as Stuff)) return this.a;
-    return null;
+  getGraph(): CombatGraph {
+    return this.graph;
   }
 
   getTerms(): CombatTerms {
@@ -198,35 +220,45 @@ export class CombatSession implements SustainedEngagement {
 
   /**
    * Record the outcome and end the fight (idempotent). Called by
-   * CombatLogic when a stop-condition is met.
+   * CombatLogic when a stop-condition is met. Dissolving cancels the tick
+   * and every remaining participant hold.
    */
   resolve(outcome: CombatResolution): void {
     if (this.resolution) return;
     this.resolution = outcome;
-    this.end("combat-resolved");
+    this.dissolve();
   }
 
-  /** End from an external trigger (partner side); idempotent. */
-  endExternally(): void {
-    this.end("cancelled");
-  }
-
-  private end(reason: AbortReason): void {
+  /**
+   * Tear the whole fight down: stop the beat and release every remaining
+   * `body` hold. Idempotent — a hold's own `onAbort` calls back into
+   * `removeParticipant`, but the emptied-map guard makes re-entry a no-op.
+   */
+  dissolve(): void {
     if (!this.active) return;
-    SchedulerApi.cancel(this, reason);
+    this.active = false;
+    if (this.tickHandle) {
+      ScheduleApi.cancel(this.tickHandle);
+      this.tickHandle = null;
+    }
+    for (const hold of [...this.holds.values()]) {
+      SchedulerApi.cancel(hold, "combat-resolved");
+    }
+    this.holds.clear();
   }
 }
 
 /**
- * The combatant-B side companion hold: occupies `body` on the other
- * combatant so the fight is observable from their side and they are
- * genuinely occupied. Carries no logic — the {@link CombatSession}
- * drives everything; this just holds the slot and tears the fight down
- * if its combatant is destroyed first (idempotent).
+ * The per-participant companion hold: occupies `body` on one combatant so
+ * they are genuinely engaged (movement vetoed) and the fight is
+ * observable from their side. Carries no logic — the {@link CombatSession}
+ * drives everything; this holds the slot and, if its combatant is
+ * destroyed/aborted first, removes just that participant from the fight
+ * (which dissolves the whole session only if a side empties).
  */
-export class CombatPartnerHold implements SustainedEngagement {
+export class CombatParticipantHold implements SustainedEngagement {
   engagementId = "";
-  readonly type = COMBAT_PARTNER_TYPE;
+  readonly type = COMBAT_PARTICIPANT_TYPE;
   readonly actor: Stuff & Engaged;
   startedAt = 0;
   readonly slots: ReadonlySet<EngagementSlot> = new Set(COMBAT_SLOTS);
@@ -244,22 +276,24 @@ export class CombatPartnerHold implements SustainedEngagement {
   }
 
   onAbort(_reason: AbortReason): void {
-    this.session.endExternally();
+    // The combatant left the fight (destroyed / disconnected / disengaged
+    // / dissolve). Remove just this participant; the session dissolves
+    // itself only if a side empties. Guarded idempotent.
+    this.session.removeParticipant(this.actor);
   }
 
   getHost(): Stuff | null {
     return this.actor;
   }
 
-  /** The fight this hold belongs to (so the B-side combatant can reach
-   * its session from its own engagement). */
+  /** The fight this hold belongs to (so a combatant reaches its session
+   * from its own engagement — the uniform `sessionFor` lookup). */
   getSession(): CombatSession {
     return this.session;
   }
 }
 
-// Register both lifecycle classes at module load (the HMR seam, mirroring
-// RespirationDrain / DialogueConversation — a reload re-runs this and
-// overwrites the entries).
-SchedulerApi.registerActivity(COMBAT_SESSION_TYPE, CombatSession);
-SchedulerApi.registerActivity(COMBAT_PARTNER_TYPE, CombatPartnerHold);
+// Register the participant-hold lifecycle class at module load (the HMR
+// seam, mirroring RespirationDrain / Coup — a reload re-runs this and
+// overwrites the entry). The session itself is not a scheduler activity.
+SchedulerApi.registerActivity(COMBAT_PARTICIPANT_TYPE, CombatParticipantHold);

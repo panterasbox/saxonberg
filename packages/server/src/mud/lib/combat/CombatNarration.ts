@@ -42,7 +42,8 @@ export const COMBAT_EXCHANGE_TOPIC = "world.combat.exchange";
 
 /** The end-of-fight narration input. */
 export interface ResolutionReport {
-  combatants: readonly [Stuff, Stuff];
+  /** Every participant in the resolving fight (≥1; a melee is N-sided). */
+  combatants: readonly Stuff[];
   outcome: CombatResolution;
   /** The loser (downed / killed / yielded), when there is one. */
   victim?: Stuff;
@@ -159,9 +160,11 @@ export class CombatNarration {
    */
   static narrateResolution(report: ResolutionReport): string {
     const commandId = SecurityApi.uuid();
-    const anchor = report.killer ?? report.victim ?? report.combatants[0];
+    const primary = report.combatants[0];
+    const anchor = report.killer ?? report.victim ?? primary;
+    if (!anchor) return commandId;
     const cause = causeOf(report.victim);
-    for (const viewer of CombatNarration.witnesses(report.combatants[0])) {
+    for (const viewer of CombatNarration.witnesses(anchor)) {
       const body = CombatNarration.resolutionBody(report, viewer as Stuff, cause);
       try {
         MessageApi.scene(viewer as Stuff)
