@@ -1,0 +1,33 @@
+# The treeline — the quiet wood just past the crossroads, where the hub's
+# "something huffs" comes due. The combat demonstrator arena: a single
+# wolfshead waits here, and a dagger lies where the last traveller dropped
+# it. Reached by the char-gen spawn override (the demo spawns you here) and
+# by walking south back to the crossroads; deliberately no inbound exit
+# wired from the hub (keeps content-area standup clean). Carries the
+# Last-Counted-Mile locality address like the hub.
+class: /lib/location/CartesianLocation
+hydratorClass: /lib/persistence/PersistentHydrator
+data:
+  shortDescription: the treeline past the crossroads
+  primaryKeyword: treeline
+  _address: last-counted-mile/treeline
+  longDescription: |
+    The road gives out entirely here and the wood closes over it — pines gone black-green in the shadow, needles deep and silent underfoot, the light coming down in coins. This is the quiet the crossroads warned about: not peace, but the held quiet of a place with something in it that has already noticed you.
+
+    A dagger lies half-buried in the needles where someone dropped it and did not come back for it. Behind you, south, the treeline thins toward the crossroads and the humming Line. West, the ground falls away into a hollow where the fog has pooled and something patient is standing in it.
+  coords:
+    x: 0
+    y: 1
+    z: 0
+  exits:
+    south:
+      destination: /domain/newbie-wilds/crossroads/hub
+    # West drops into the fog hollow where the gentleman keeps his ground
+    # (the Build-2 consented-duel demonstrator — a person, not a beast).
+    west:
+      destination: /domain/newbie-wilds/crossroads/hollow
+  # The cull: one wolfshead and a dropped dagger, both cloned fresh at
+  # standup. Pick up the dagger, wield it, and `attack the wolf`.
+  populates:
+    - /domain/newbie-wilds/npc/wolf
+    - /domain/eternal/arms/steel-dagger

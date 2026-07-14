@@ -380,6 +380,49 @@ export const AppSettingKeys = {
    * biteMax → bites; ≥ → bites-deep). */
   responseBandGrazeMax: "response.band.grazeMax",
   responseBandBiteMax: "response.band.biteMax",
+
+  /* ─────────────────────────── combat ─────────────────────────── */
+  /**
+   * Combat — the narration-beat / tempo tick, in game-seconds. The
+   * session resolves finely and narrates coarsely once per beat. See
+   * docs/subsystems/combat.md.
+   */
+  combatTickSeconds: "combat.tickSeconds",
+  /** Combat — poise band thresholds (fractions of the 0..1 gauge). */
+  combatPoisePressedBelow: "combat.poise.pressedBelow",
+  combatPoiseReelingBelow: "combat.poise.reelingBelow",
+  combatPoiseBrokenAt: "combat.poise.brokenAt",
+  /** Combat — ticks an unexploited opening window stays live. */
+  combatPoiseOpeningTicks: "combat.poise.openingTicks",
+  /** Combat — base poise eroded on both sides per exchange. */
+  combatPoiseErodePerExchange: "combat.poise.erodePerExchange",
+  /** Combat — poise the actor spends committing a gambit (overextend). */
+  combatPoiseOverextendCost: "combat.poise.overextendCost",
+  /** Combat — poise restored by a defensive/reactive beat. */
+  combatPoiseRestorePerDefense: "combat.poise.restorePerDefense",
+  /** Combat — extra poise a whiff/parry self-opens the actor. */
+  combatPoiseWhiffPenalty: "combat.poise.whiffPenalty",
+  /** Combat — tempo rate shape. */
+  combatTempoBase: "combat.tempo.base",
+  combatTempoEncumbrancePenalty: "combat.tempo.encumbrancePenalty",
+  combatTempoEnduranceFloor: "combat.tempo.enduranceFloor",
+  combatTempoMinRate: "combat.tempo.minRate",
+  combatTempoMaxRate: "combat.tempo.maxRate",
+  /** Combat — inflict energy by the target's poise band at the moment of
+   * the blow (an open window earns the hardest hit). */
+  combatEnergySteady: "combat.energy.steady",
+  combatEnergyPressed: "combat.energy.pressed",
+  combatEnergyReeling: "combat.energy.reeling",
+  combatEnergyBroken: "combat.energy.broken",
+  combatEnergyOpen: "combat.energy.open",
+  /** Combat — max narration beats per session (bounded-beats backstop). */
+  combatMaxBeats: "combat.maxBeats",
+  /** Combat (Build 2) — coup de grâce window, game-time seconds. */
+  combatCoupSeconds: "combat.coupSeconds",
+  /** Combat (Build 2) — regard witnesses grant a clean duel winner. */
+  combatRegardDuelWin: "combat.regard.duelWin",
+  /** Combat (Build 2) — regard witnesses withdraw from an unlawful killer. */
+  combatRegardUnlawfulKill: "combat.regard.unlawfulKill",
 } as const;
 
 export type AppSettingKey =

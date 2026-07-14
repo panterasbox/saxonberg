@@ -156,6 +156,9 @@ export const Mixins = {
   // relationships (an on-shift Position confers its duties via augments).
   Business: 'BusinessMixin',
   Employed: 'EmployedMixin',
+  // Combat — "I can fight": combat verb affordances + the innate-attack
+  // hook. All fight state is session-scoped, never on the Creature.
+  Combatant: 'CombatantMixin',
 } as const;
 
 /**

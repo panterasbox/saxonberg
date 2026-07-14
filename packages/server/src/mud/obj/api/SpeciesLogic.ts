@@ -122,6 +122,15 @@ export class SpeciesLogic extends ApiLogic {
     return false;
   }
 
+  /** See {@link SpeciesApi.isSentient}. */
+  @CallSecurity(SpeciesApiCallers)
+  public isSentient(o: Stuff): boolean {
+    if (!MixinApi.isOrganism(o)) return false;
+    const species = (o as Stuff & Organism).getSpecies();
+    if (!species) return false;
+    return species.isSentient();
+  }
+
   /** See {@link SpeciesApi.preloadAnatomy}. */
   @CallSecurity(SpeciesApiCallers)
   public async preloadAnatomy(actor: Stuff): Promise<void> {

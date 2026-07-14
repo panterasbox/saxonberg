@@ -10,6 +10,9 @@ data:
   constructionForm: bladed
   gradeBand: fine
   mass: 0.3
+  # A light, fast blade — a favourable emergent-tempo hook (a dagger acts
+  # more often than a heavy weapon). Neutral is 1.0; see combat Tempo.
+  balanceFactor: 1.6
   # One-handed — claims a single hand slot (wield it in either hand).
   slotClaims:
     "/lib/body-plans/biped": ["hand:right"]

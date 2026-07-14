@@ -299,3 +299,58 @@ settings:
     value: "0.5"
   - key: response.band.biteMax
     value: "1.5"
+  # Combat (core 1v1) — see docs/subsystems/combat.md. All tuning; no
+  # code defaults. Poise/tempo/energy are the load-bearing curves.
+  - key: combat.tickSeconds
+    value: "3"
+  - key: combat.poise.pressedBelow
+    value: "0.75"
+  - key: combat.poise.reelingBelow
+    value: "0.5"
+  - key: combat.poise.brokenAt
+    value: "0.25"
+  - key: combat.poise.openingTicks
+    value: "2"
+  - key: combat.poise.erodePerExchange
+    value: "0.12"
+  - key: combat.poise.overextendCost
+    value: "0.2"
+  - key: combat.poise.restorePerDefense
+    value: "0.15"
+  - key: combat.poise.whiffPenalty
+    value: "0.25"
+  - key: combat.tempo.base
+    value: "1"
+  - key: combat.tempo.encumbrancePenalty
+    value: "0.5"
+  - key: combat.tempo.enduranceFloor
+    value: "0.4"
+  - key: combat.tempo.minRate
+    value: "0.1"
+  - key: combat.tempo.maxRate
+    value: "3"
+  - key: combat.energy.steady
+    value: "1.2"
+  - key: combat.energy.pressed
+    value: "1.6"
+  - key: combat.energy.reeling
+    value: "2.2"
+  - key: combat.energy.broken
+    value: "3"
+  - key: combat.energy.open
+    value: "4.5"
+  - key: combat.maxBeats
+    value: "200"
+  # Build 2 — consequence & progression.
+  # The coup de grâce window (game-time seconds): a downed sentient is
+  # finished by a slow, telegraphed, interruptible killing stroke, not the
+  # winning blow. Long enough that a present party can stay the hand.
+  - key: combat.coupSeconds
+    value: "6"
+  # Regard deltas a witnessed resolution writes. A clean, consented duel
+  # win earns the victor a little regard from onlookers; an unlawful kill
+  # (a non-consenting sentient put to death) makes witnesses recoil.
+  - key: combat.regard.duelWin
+    value: "2"
+  - key: combat.regard.unlawfulKill
+    value: "-20"

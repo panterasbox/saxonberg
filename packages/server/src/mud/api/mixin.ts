@@ -129,6 +129,7 @@ import type { Bank } from '../lib/banking/Bank';
 import type { Tab } from '../lib/banking/Tab';
 import type { Business } from '../lib/employment/Business';
 import type { Employed } from '../lib/employment/Employed';
+import type { Combatant } from '../lib/combat/Combatant';
 import { SecurityApi } from './security';
 import { ShadowApi } from './shadow';
 
@@ -1012,6 +1013,11 @@ export class MixinApi {
   /** An actor that can hold employment relationships (`EmployedMixin`). */
   public static isEmployed(obj: Stuff): obj is Stuff & Employed {
     return this.hasMixin(obj, Mixins.Employed);
+  }
+
+  /** An actor that can fight (`CombatantMixin`). */
+  public static isCombatant(obj: Stuff): obj is Stuff & Combatant {
+    return this.hasMixin(obj, Mixins.Combatant);
   }
 
   /**

@@ -1,0 +1,42 @@
+verbs: [fight]
+controller: combat/FightController
+description: "Act inside a fight — read it, throw a gambit, or yield"
+help: |
+  `fight` is your handle on a fight already under way (start one with
+  `attack <target>`). On its own it reads the fray at a glance — your
+  poise, condition, flags, and wounds, plus a banded read of your
+  opponent. Everything is a band, never a number.
+
+  Gambits are queued intent — they resolve on the next beat and need a
+  usable instrument (a wielded weapon or a natural attack) and an
+  un-impaired limb:
+    `fight strike`  — press the attack
+    `fight disarm`  — knock your opponent's weapon away
+    `fight subdue`  — lock them up
+    `fight shove`   — put them on the ground
+  Or hold: `fight defend` covers up and recovers your poise (capped by
+  your endurance) instead of attacking — the patient defender's game, and
+  often the wiser one against a steady, armed foe. And `fight yield`
+  concedes.
+examples:
+  - cmd: fight
+    note: Read your current fight
+  - cmd: fight strike
+    note: Ready a strike for the next beat
+  - cmd: fight yield
+    note: Concede the fight
+subcommands:
+  status:
+    description: "Read your current fight (same as bare `fight`)"
+  strike:
+    description: "Gambit — press the attack"
+  disarm:
+    description: "Gambit — knock your opponent's weapon away"
+  subdue:
+    description: "Gambit — lock your opponent up"
+  shove:
+    description: "Gambit — put your opponent on the ground"
+  defend:
+    description: "Cover up and recover poise instead of attacking"
+  yield:
+    description: "Concede the fight"
