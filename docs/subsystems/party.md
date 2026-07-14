@@ -13,8 +13,8 @@ A party is **not** a managed `Group`. The grouping subsystem
 `GroupProvider` sources — most consumers (chat especially) read a
 `GroupRef` audience whose membership comes from a provider, not from a
 `groups` collection. The party follows that grain: it stores its **own**
-roster on the `Party` document and registers a **fourth provider**
-(`party:<id>`), so a `party:<id>` `GroupRef` resolves through `GroupApi`
+roster on the `Party` Idea and registers a **fourth provider**
+(`party:<path>`), so a `party:<path>` `GroupRef` resolves through `GroupApi`
 exactly like `managed:<id>` — but the members come from the party, not a
 minted managed group. There is exactly one membership store, and no
 group↔party two-store sync.
@@ -24,41 +24,47 @@ Group" sketch: reaching for `GroupApi` to *store* membership is the
 anti-pattern the cycle corrected — most chat membership already comes
 from sources other than a managed store.)*
 
-## The Party document
+## The Party Idea (backed by a document)
 
-`Party` (`lib/party/Party.ts`, the `parties` collection) mirrors the
-`Group` document — the true precedent for a persisted, owned roster — plus
-combat/leadership fields:
+`Party` (`lib/party/Party.ts`) is a first-class **Idea** — a live `Stuff`
+in the object graph — whose state is **encapsulated on the object**:
 
 | field | meaning |
 |---|---|
 | `name` | human-readable, unique-indexed |
 | `founderId` / `captainId` | founder of record / current leader (succession repoints `captainId`) |
 | `memberIds` | durable member refs — an Avatar `playerId`, a Mercenary `templatePath` |
-| `combatSide` | the alignment key members share; `''` = the party's own `party:<id>` (the default) |
-| `durable` | ad-hoc (in-memory) vs durable (persisted) |
+| `combatSide` | the alignment key members share; `''` = the party's own `party:<path>` (the default) |
+| `durable` | ad-hoc (Idea-only) vs durable (mirrored to a record) |
 | `channelRef` | the party chat channel's name, or `''` |
 
-Modelled as a **`Document`** (not a `Stuff`): a runtime-created,
-player-owned, durable roster is exactly what documents are for; `Stuff`
-persists via templates (seeded) or the holder-snapshot spine (host state),
-neither of which fits. Membership mutations go through
-`addMember`/`removeMember`; the captain is the single source of leadership
-authority (`captainId`), so per-member tactic roles are deferred to
-combat-tactics-slate.
+Being an Idea (rather than a bare `Document`) buys three things: the
+state lives on the object (no external store holding it); the party is
+**MQL-visible** — `subscribableFields` project `name`/`memberIds`/
+`captainId`/`combatSide`/`durable`, so parties are queryable by member,
+side, or captain like any other `Stuff`; and it is discovered through the
+**Stuff graph** (`StuffApi.findByTemplatePath`) rather than a hand-rolled
+index. A runtime-minted party gets an instance `templatePath`
+(`/obj/party/<uuid>`), which is also its id in every `party:<path>` ref.
+
+Its *durable* state is mirrored into a dumb **`PartyRecord`** document
+(`lib/party/PartyRecord.ts`, the `parties` collection, keyed on the Idea's
+`path`) — the "Idea backed by a document" shape. Membership mutations go
+through `addMember`/`removeMember`; the captain is the single source of
+leadership authority (`captainId`), so per-member tactic roles are
+deferred to combat-tactics-slate.
 
 ## Two lifetimes over one primitive
 
-- **Ad-hoc** (`durable=false`) — held only in the `PartyRegistry`
-  in-memory map, never `.save()`d, gone on restart, auto-disbands when it
-  empties.
-- **Durable** (`durable=true`) — persisted as a `parties` row so name +
-  roster + captain survive a restart, re-materialized into the registry at
-  boot, and **not** destroyed on empty (it goes dormant; `muster`
-  re-activates it, `standdown` sends it dormant).
+- **Ad-hoc** (`durable=false`) — a live Idea only, never mirrored to a
+  record, `StuffApi.destruct`ed when it empties, gone on restart.
+- **Durable** (`durable=true`) — mirrored into a `PartyRecord` so name +
+  roster + captain survive a restart, re-materialized into a live Idea by
+  `PartyLogic.boot()`, and **not** destroyed on empty (it goes dormant;
+  `muster` re-activates it, `standdown` sends it dormant).
 
 A member may sit on **many** parties' rosters (`memberIds`) but has exactly
-one **`activePartyId`** at a time (the one-active-party rule, rejected at
+one **`activePartyPath`** at a time (the one-active-party rule, rejected at
 `form`/`accept`).
 
 ## Membership on the actor: `PartyMemberMixin`
@@ -67,23 +73,29 @@ one **`activePartyId`** at a time (the one-active-party rule, rejected at
 precedent) is composed on **`Avatar`** and on the hireable **`Mercenary`**
 (`= PartyMemberMixin(NPC)`) — deliberately **not** the base `Character`, so
 a plain townsperson or beast carries no party machinery and resolves
-`solo` for free. It is a dumb store of two pointers — `activePartyId`
-(persisted) and `pendingInvitePartyId` (transient) — with `ApiOnly`-gated
+`solo` for free. It is a dumb store of two pointers — `activePartyPath`
+(persisted) and `pendingInvitePartyPath` (transient) — with `ApiOnly`-gated
 setters (only `PartyApi`/`PartyLogic` write them).
 
-## The registry + the provider
+## Discovery + the provider (no registry)
 
-`PartyRegistry` (`obj/PartyRegistry.ts`, a boot-manifest singleton, depends
-on `GroupRegistry`) holds the in-memory map of **active** parties — the
-**synchronous** read path combat's seam needs — and at boot (a) warms
-durable parties from the `parties` collection and (b) registers the
+There is **no `PartyRegistry`** — the Stuff graph is the index. The combat
+seam's synchronous read is `StuffApi.findByTemplatePath(activePartyPath)`;
+the durable-party queries (`party list` / `muster`) read the `PartyRecord`
+collection (indexed on `memberIds` / `name`), which is exactly the
+"backed by a document gives you a queryable index" payoff. What was a
+stateful singleton collapses to a one-shot **`PartyApi.boot()`** pass (run
+from `AppBootstrap` after the grouping facade warms): it registers the
 `PartyGroupProvider` (`lib/party/PartyGroupProvider.ts`) with the shared
-`GroupRegistry`. The provider resolves `party:<id>` → the party's own
-roster → online Avatars (the `ManagedGroupProvider` shape; Mercenary
-templatePath members are roster entries, not chat recipients). **Party
-chat** is then just a `Channel` whose `Subject.groupRef = 'party:<id>'`
-(minted via `ChatApi.createBoundChannel`, which binds the ref without
-minting a managed group).
+`GroupRegistry` and re-materializes durable `PartyRecord`s into live Party
+Ideas. The provider is **stateless** — the id in a `party:<path>` ref is
+the party Idea's `templatePath`, so it resolves straight through the graph
+(`instanceof Party`), then materializes `playerId` members to online
+Avatars (the `ManagedGroupProvider` shape; Mercenary templatePath members
+are roster entries, not chat recipients). **Party chat** is then just a
+`Channel` whose `Subject.groupRef = 'party:<path>'` (minted via
+`ChatApi.createBoundChannel`, which binds the ref without minting a managed
+group).
 
 ## The combat seam (the crux)
 

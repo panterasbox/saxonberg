@@ -696,9 +696,14 @@ export class PersistenceManager {
       });
       await this.getCollection(Collections.Channels).createIndex({ kind: 1 });
 
-      // Parties: durable parties only (ad-hoc live in-memory). name unique
-      // + memberIds (the "durable crews I'm on" read) + durable (the
-      // boot-warm scan).
+      // Parties: durable-party records (PartyRecord; ad-hoc parties are
+      // live Ideas only, never written). `path` (the party Idea's
+      // templatePath) is the durable join key; `name` unique for the
+      // clash check; `memberIds` for the "durable crews I'm on" read.
+      await this.getCollection(Collections.Parties).createIndex(
+        { path: 1 },
+        { unique: true }
+      );
       await this.getCollection(Collections.Parties).createIndex(
         { name: 1 },
         { unique: true }
@@ -706,7 +711,6 @@ export class PersistenceManager {
       await this.getCollection(Collections.Parties).createIndex({
         memberIds: 1,
       });
-      await this.getCollection(Collections.Parties).createIndex({ durable: 1 });
 
       // Beliefs: per-viewer identity-memory working set (one doc per
       // {viewerId, realm, referent}). Indexed on `viewerId` so a

@@ -6,7 +6,7 @@
  * stays party-less (and `solo` in combat) while a mercenary can be hired
  * into a player's party and fight on their side. Combat resolves a merc's
  * alignment through the same `PartyApi.sideOf` chain as a player: its
- * `activePartyId` → the party's `combatSide`.
+ * `activePartyPath` → the party's `combatSide`.
  *
  * The name deliberately differs from the mixin (the `Business →
  * BusinessEntity` no-merge convention). Cast templates set

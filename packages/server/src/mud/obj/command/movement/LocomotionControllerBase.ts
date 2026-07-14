@@ -129,7 +129,7 @@ export abstract class LocomotionControllerBase extends CommandController<Locomot
         .send();
       context.note({
         kind: 'locomotion-gate-failed',
-        gate: 'engaged',
+        gate: 'breakaway',
         mode: mode.getName(),
       });
       return;

@@ -78,16 +78,6 @@ export const bootstrapManifest: BootstrapEntry[] = [
   // postRegister; downstream consumers (chat audience, future
   // permission gates) reach in via `GroupApi`.
   { templatePath: '/obj/GroupRegistry' },
-  // PartyRegistry — the party operational core's in-memory home for active
-  // parties + the `party:` grouping provider. Warms durable parties from
-  // the `parties` collection and registers its provider with the
-  // GroupRegistry (hence the dependency), so `party:<id>` refs resolve
-  // through `GroupApi` like any other source. Combat's friend/foe seam
-  // reads it synchronously via `PartyApi.sideOf`.
-  {
-    templatePath: '/obj/PartyRegistry',
-    dependsOn: ['/obj/GroupRegistry'],
-  },
   // CentralBank singleton — the monetary mint/sink and world-presence
   // anchor for the banking substrate. Holds the central bank's own account
   // identity; its mint/drain/float logic is surfaced (developer-gated)

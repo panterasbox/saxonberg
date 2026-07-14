@@ -60,6 +60,13 @@ function logic(): PartyLogic {
 export class PartyApi {
   private constructor() {}
 
+  /** Boot: register the `party:` grouping provider + re-materialize
+   * durable parties into live Ideas. Called from `AppBootstrap` after
+   * `GroupRegistry` stands up. */
+  public static boot(): Promise<void> {
+    return logic().boot();
+  }
+
   /* ───────────────── the combat seam ───────────────── */
 
   /**
@@ -81,9 +88,10 @@ export class PartyApi {
     return logic().activePartyOf(member);
   }
 
-  /** Every active party whose roster lists `memberId` (the `party list`
-   * read — a member sits on many parties' rosters). */
-  public static partiesOf(memberId: string): readonly Party[] {
+  /** Every durable party whose roster lists `memberId` (the `party list`
+   * read — a member sits on many parties' rosters). Reads the durable
+   * `PartyRecord` index, so it is async. */
+  public static partiesOf(memberId: string): Promise<readonly Party[]> {
     return logic().partiesOf(memberId);
   }
 

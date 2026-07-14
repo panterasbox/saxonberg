@@ -1,8 +1,10 @@
 /**
  * PartyLogic / PartyApi — the party operational core, driven through the
- * real gated `PartyApi`. Ad-hoc parties (never `.save()`d) let the whole
- * lifecycle + the combat seam be exercised without Mongo; durable
- * persistence + muster is validated by the live demo.
+ * real gated `PartyApi`. A party is a first-class Idea in the graph
+ * (resolved by templatePath, no central registry); ad-hoc parties (never
+ * persisted) let the whole lifecycle + the combat seam be exercised
+ * without Mongo. Durable persistence + muster is validated by the live
+ * demo.
  */
 
 import { describe, it, expect, beforeEach, vi } from "vitest";
@@ -12,18 +14,15 @@ import {
 } from "../../../lib/security/__tests__/test-setup";
 import { Idea } from "../../../lib/stuff/Idea";
 import { StuffApi } from "../../../api/stuff";
-import { SecurityApi } from "../../../api/security";
 import { PartyApi } from "../../../api/party";
 import { ChatApi } from "../../../api/chat";
 import { PartyMemberMixin } from "../../../lib/party/PartyMember";
 import { Party } from "../../../lib/party/Party";
-import PartyRegistry from "../../../obj/PartyRegistry";
 import type { Stuff } from "../../../lib/stuff/Stuff";
 
 class TestMember extends PartyMemberMixin(Idea) {}
 
 let seq = 0;
-let registry: PartyRegistry;
 
 function member(): TestMember {
   const m = makeStuff(() => new TestMember());
@@ -31,26 +30,25 @@ function member(): TestMember {
   return m;
 }
 
-/** An ad-hoc party seeded straight into the registry (bypasses form's
+/** An ad-hoc Party Idea seeded straight into the graph (bypasses form's
  * channel mint), with `captain` as captain + active. */
 function seedParty(captain: TestMember, side = ""): Party {
-  const p = new Party();
-  p._id = SecurityApi.uuid();
-  p.name = `party-${seq++}`;
+  const p = makeStuff(() => new Party());
+  stampTemplatePathForTest(p, `/obj/party/test-${seq++}`);
   const cid = captain.getTemplatePath()!;
-  p.founderId = cid;
-  p.captainId = cid;
-  p.combatSide = side;
+  p.setName(`party-${seq++}`);
+  p.setFounderId(cid);
+  p.setCaptainId(cid);
+  p.setCombatSide(side);
   p.addMember(cid);
-  registry.add(p);
-  captain.activePartyId = p._id;
+  // Direct field write for test setup (the gated setter is ApiOnly).
+  (captain as unknown as { activePartyPath: string }).activePartyPath =
+    p.getTemplatePath()!;
   return p;
 }
 
 beforeEach(() => {
   StuffApi.clearAll();
-  registry = makeStuff(() => new PartyRegistry());
-  stampTemplatePathForTest(registry, "/obj/PartyRegistry");
   // Party chat is out of scope for the unit test — make form's channel
   // mint a fast, swallowed no-op.
   vi.spyOn(ChatApi, "createBoundChannel").mockRejectedValue(
@@ -64,7 +62,8 @@ describe("PartyApi — the combat seam (sideOf / areAllied)", () => {
     const other = member();
     const party = seedParty(cap);
     party.addMember(other.getTemplatePath()!);
-    other.activePartyId = party._id!;
+    (other as unknown as { activePartyPath: string }).activePartyPath =
+      party.getTemplatePath()!;
 
     // Two members of the same party.
     expect(PartyApi.areAllied(cap as Stuff, other as Stuff)).toBe(true);
@@ -100,7 +99,7 @@ describe("PartyApi — lifecycle", () => {
     const acc = await PartyApi.accept(joiner as Stuff);
     expect(acc.ok).toBe(true);
     expect(party.isMember(joiner.getTemplatePath()!)).toBe(true);
-    expect(joiner.getActivePartyId()).toBe(party._id);
+    expect(joiner.getActivePartyPath()).toBe(party.getTemplatePath());
     expect(PartyApi.areAllied(cap as Stuff, joiner as Stuff)).toBe(true);
   });
 
@@ -117,7 +116,8 @@ describe("PartyApi — lifecycle", () => {
     const grunt = member();
     const party = seedParty(cap);
     party.addMember(grunt.getTemplatePath()!);
-    grunt.activePartyId = party._id!;
+    (grunt as unknown as { activePartyPath: string }).activePartyPath =
+      party.getTemplatePath()!;
 
     const outsider = member();
     const res = await PartyApi.invite(grunt as Stuff, outsider as Stuff);
@@ -129,28 +129,32 @@ describe("PartyApi — lifecycle", () => {
     const cap = member();
     const heir = member();
     const party = seedParty(cap);
+    const path = party.getTemplatePath()!;
     party.addMember(heir.getTemplatePath()!);
-    heir.activePartyId = party._id!;
+    (heir as unknown as { activePartyPath: string }).activePartyPath = path;
 
     // Captain leaves → heir promoted.
     await PartyApi.leave(cap as Stuff);
     expect(party.getCaptainId()).toBe(heir.getTemplatePath());
     expect(party.isMember(cap.getTemplatePath()!)).toBe(false);
-    expect(cap.getActivePartyId()).toBe("");
+    expect(cap.getActivePartyPath()).toBe("");
 
-    // Heir leaves → empty ad-hoc party evaporates from the registry.
+    // Heir leaves → empty ad-hoc party is destructed from the graph.
     await PartyApi.leave(heir as Stuff);
-    expect(registry.get(party._id!)).toBeNull();
+    expect(StuffApi.findByTemplatePath(path)).toBeUndefined();
   });
 
-  it("forms an ad-hoc party and sets the founder active + captain", async () => {
+  it("forms an ad-hoc party as an Idea in the graph, founder active + captain", async () => {
     const founder = member();
     const res = await PartyApi.form(founder as Stuff, "Vanguard", false);
     expect(res.ok).toBe(true);
     if (res.ok) {
+      const path = res.party.getTemplatePath()!;
       expect(res.party.isCaptain(founder.getTemplatePath()!)).toBe(true);
-      expect(founder.getActivePartyId()).toBe(res.party._id);
+      expect(founder.getActivePartyPath()).toBe(path);
       expect(res.party.isDurable()).toBe(false);
+      // The party is a live Idea, resolvable through the Stuff graph.
+      expect(StuffApi.findByTemplatePath(path)).toBe(res.party);
     }
   });
 });

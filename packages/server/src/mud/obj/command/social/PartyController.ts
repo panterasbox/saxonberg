@@ -215,8 +215,11 @@ export default class PartyController extends CommandController<PartyModel> {
     this.send(context, Mml.fromMarkup("You stand your party down."));
   }
 
-  private executeList(giver: Stuff, context: CommandContext): void {
-    const parties = PartyApi.partiesOf(refOf(giver)).filter((p) =>
+  private async executeList(
+    giver: Stuff,
+    context: CommandContext,
+  ): Promise<void> {
+    const parties = (await PartyApi.partiesOf(refOf(giver))).filter((p) =>
       p.isDurable(),
     );
     if (parties.length === 0) {

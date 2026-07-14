@@ -44,11 +44,9 @@ import {
   CombatSession,
   CombatParticipantHold,
 } from "../../../lib/combat/CombatSession";
-import { SecurityApi } from "../../../api/security";
 import { PartyApi } from "../../../api/party";
 import { PartyMemberMixin } from "../../../lib/party/PartyMember";
 import { Party } from "../../../lib/party/Party";
-import PartyRegistry from "../../../obj/PartyRegistry";
 import type { Channel } from "../../../lib/material/Channel";
 import EventRegistry from "../../../obj/EventRegistry";
 import { EventApi } from "../../../api/event";
@@ -410,19 +408,17 @@ describe("CombatLogic — the exchange writes consequence", () => {
 });
 
 describe("CombatLogic — melee (sides + join)", () => {
-  /** Seed a two-member party straight into a fresh registry. */
+  /** Seed a two-member ad-hoc Party Idea straight into the graph. */
   function seedParty(a: TestFighter, b: TestFighter): void {
-    const reg = makeStuff(() => new PartyRegistry());
-    stampTemplatePathForTest(reg, "/obj/PartyRegistry");
-    const p = new Party();
-    p._id = SecurityApi.uuid();
-    p.name = `crew-${seq++}`;
-    p.combatSide = "faction:allies";
+    const p = makeStuff(() => new Party());
+    stampTemplatePathForTest(p, `/obj/party/crew-${seq++}`);
+    p.setName(`crew-${seq++}`);
+    p.setCombatSide("faction:allies");
     p.addMember(a.getTemplatePath()!);
     p.addMember(b.getTemplatePath()!);
-    reg.add(p);
-    (a as unknown as { activePartyId: string }).activePartyId = p._id;
-    (b as unknown as { activePartyId: string }).activePartyId = p._id;
+    const path = p.getTemplatePath()!;
+    (a as unknown as { activePartyPath: string }).activePartyPath = path;
+    (b as unknown as { activePartyPath: string }).activePartyPath = path;
   }
 
   it("an ally joins on your side; allies never get an attack edge, and 2v1 downs the lone foe", () => {

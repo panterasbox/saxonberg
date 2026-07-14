@@ -7,16 +7,21 @@ import { SecurityPolicies } from "../../lib/security/SecurityPolicies";
 import type { Stuff } from "../../lib/stuff/Stuff";
 import { MixinApi } from "../../api/mixin";
 import { PlayerApi } from "../../api/player";
+import { GroupApi } from "../../api/group";
 import { ChatApi } from "../../api/chat";
 import { StuffApi } from "../../api/stuff";
 import { SecurityApi } from "../../api/security";
 import { Party } from "../../lib/party/Party";
-import type PartyRegistry from "../PartyRegistry";
+import { PartyRecord } from "../../lib/party/PartyRecord";
+import { PartyGroupProvider } from "../../lib/party/PartyGroupProvider";
 import type { PartyOpResult, PartySimpleResult } from "../../api/party";
 
 const PartyApiCallers = SecurityPolicies.FromModule("/api/party#PartyApi");
 
-const REGISTRY_PATH = "/obj/PartyRegistry";
+/** The party: grouping provider, module-level so it survives a logic-
+ * singleton recreation (fireChange reaches the same instance registered
+ * with GroupRegistry). */
+let partyProvider: PartyGroupProvider | null = null;
 
 /**
  * PartyLogic — the party operational core behind {@link PartyApi}.
@@ -26,9 +31,13 @@ const REGISTRY_PATH = "/obj/PartyRegistry";
  * pure functions combat consumes, read straight off the party's own
  * roster, never `GroupApi`) and the **party lifecycle** (form / invite /
  * accept / leave / kick / disband / transfer / side / muster / stand-down).
- * The party owns its membership; this logic mutates the `Party` Document
- * and keeps the `PartyRegistry` in-memory map + the `party:` grouping
- * provider in sync.
+ *
+ * A party is a first-class **Idea**: its state is encapsulated on the
+ * object and it is discovered through the Stuff graph
+ * (`StuffApi.findByTemplatePath`) — there is no central registry map.
+ * Durable parties are mirrored into a {@link PartyRecord} document (which
+ * doubles as the queryable durable index + the boot-warm source);
+ * ad-hoc parties are Ideas that never persist.
  *
  * Heavy logic lives in module-private functions so nothing routes through
  * the instance proxy mid-operation (the `ConditionLogic` precedent).
@@ -37,6 +46,13 @@ const REGISTRY_PATH = "/obj/PartyRegistry";
  */
 @Unshadowable
 export class PartyLogic extends ApiLogic {
+  /** Boot: register the `party:` provider + re-materialize durable parties
+   * into live Ideas. Called from `AppBootstrap` after `GroupRegistry`. */
+  @CallSecurity(PartyApiCallers)
+  public async boot(): Promise<void> {
+    return bootImpl();
+  }
+
   /* ───────────────── the combat seam (sync) ───────────────── */
 
   @CallSecurity(PartyApiCallers)
@@ -55,8 +71,8 @@ export class PartyLogic extends ApiLogic {
   }
 
   @CallSecurity(PartyApiCallers)
-  public partiesOf(memberId: string): readonly Party[] {
-    return registrySync()?.partiesWithMember(memberId) ?? [];
+  public async partiesOf(memberId: string): Promise<readonly Party[]> {
+    return partiesOfImpl(memberId);
   }
 
   /* ───────────────── lifecycle (async) ───────────────── */
@@ -78,6 +94,11 @@ export class PartyLogic extends ApiLogic {
   @CallSecurity(PartyApiCallers)
   public async accept(invitee: Stuff): Promise<PartyOpResult> {
     return acceptImpl(invitee);
+  }
+
+  @CallSecurity(PartyApiCallers)
+  public async enlist(hirer: Stuff, hiree: Stuff): Promise<PartySimpleResult> {
+    return enlistImpl(hirer, hiree);
   }
 
   @CallSecurity(PartyApiCallers)
@@ -117,28 +138,42 @@ export class PartyLogic extends ApiLogic {
   public async standDown(member: Stuff): Promise<PartySimpleResult> {
     return standDownImpl(member);
   }
+}
 
-  /** Register a hired member directly (the merc-hire path — no invite
-   * handshake). Adds `hiree` to `hirer`'s active party. */
-  @CallSecurity(PartyApiCallers)
-  public async enlist(hirer: Stuff, hiree: Stuff): Promise<PartySimpleResult> {
-    return enlistImpl(hirer, hiree);
+/* ───────────────────────── boot / materialize ───────────────────────── */
+
+async function bootImpl(): Promise<void> {
+  if (!partyProvider) partyProvider = new PartyGroupProvider();
+  const reg = await GroupApi.registry();
+  reg.register(partyProvider);
+  // Re-materialize durable parties from their records into live Ideas.
+  const records = await PartyRecord.find<PartyRecord>({});
+  for (const rec of records) {
+    if (!rec.path || StuffApi.findByTemplatePath(rec.path)) continue;
+    await materializeParty(rec);
   }
 }
 
-/* ───────────────────────── registry resolution ───────────────────────── */
-
-/** Sync registry read (the combat-seam hot path); null until booted. The
- * lookup is an O(1) `byTemplatePath` map read, so no caching (a cache
- * would go stale across a hot-reload / re-clone of the singleton). */
-function registrySync(): PartyRegistry | null {
-  return StuffApi.findByTemplatePath<PartyRegistry>(REGISTRY_PATH) ?? null;
+/** Create a live Party Idea from a durable record (boot warm / lazy). */
+async function materializeParty(rec: PartyRecord): Promise<Party> {
+  const party = await StuffApi.create(() => new Party());
+  party.setTemplatePath(rec.path);
+  party.applyRecord(rec);
+  return party;
 }
 
-async function requireRegistry(): Promise<PartyRegistry> {
-  const sync = registrySync();
-  if (sync) return sync;
-  return StuffApi.singleton<PartyRegistry>(REGISTRY_PATH);
+/** Upsert a durable party's record (a no-op for an ad-hoc party). */
+async function persistParty(party: Party): Promise<void> {
+  if (!party.isDurable()) return;
+  const path = party.getTemplatePath();
+  if (!path) return;
+  const existing = (await PartyRecord.find<PartyRecord>({ path }))[0];
+  await party.toRecord(existing).save();
+}
+
+function fireChange(party: Party): void {
+  const path = party.getTemplatePath();
+  if (path) partyProvider?.fireChange(path);
 }
 
 /* ───────────────────────── member identity ───────────────────────── */
@@ -150,8 +185,7 @@ function memberIdOf(s: Stuff): string {
   return s.getTemplatePath() ?? "";
 }
 
-/** Resolve a member ref back to a live Stuff (an online Avatar or a live
- * NPC by templatePath), or null. */
+/** Resolve a member ref back to a live Stuff, or null. */
 function resolveMember(id: string): Stuff | null {
   if (id.startsWith("/")) {
     return StuffApi.findByTemplatePath<Stuff>(id) ?? null;
@@ -159,14 +193,20 @@ function resolveMember(id: string): Stuff | null {
   return (PlayerApi.findAvatarByPlayerId(id) as Stuff | undefined) ?? null;
 }
 
+/** The live Party Idea at a templatePath, or null. */
+function partyAt(path: string): Party | null {
+  const stuff = StuffApi.findByTemplatePath(path);
+  return stuff instanceof Party ? stuff : null;
+}
+
 /* ───────────────────────── the seam ───────────────────────── */
 
 function sideOfImpl(combatant: Stuff): string {
   // Rung 1 — an active party's combatSide (de jure: Avatar / Mercenary).
   if (MixinApi.isPartyMember(combatant)) {
-    const pid = combatant.getActivePartyId();
-    if (pid) {
-      const party = registrySync()?.get(pid);
+    const path = combatant.getActivePartyPath();
+    if (path) {
+      const party = partyAt(path);
       if (party) return party.getCombatSide();
     }
   }
@@ -179,9 +219,17 @@ function sideOfImpl(combatant: Stuff): string {
 
 function activePartyOfImpl(member: Stuff): Party | null {
   if (!MixinApi.isPartyMember(member)) return null;
-  const pid = member.getActivePartyId();
-  if (!pid) return null;
-  return registrySync()?.get(pid) ?? null;
+  const path = member.getActivePartyPath();
+  return path ? partyAt(path) : null;
+}
+
+async function partiesOfImpl(memberId: string): Promise<readonly Party[]> {
+  const records = await PartyRecord.find<PartyRecord>({ memberIds: memberId });
+  const out: Party[] = [];
+  for (const rec of records) {
+    out.push(partyAt(rec.path) ?? (await materializeParty(rec)));
+  }
+  return out;
 }
 
 /* ───────────────────────── lifecycle impls ───────────────────────── */
@@ -194,36 +242,34 @@ async function formImpl(
   if (!MixinApi.isPartyMember(founder)) {
     return { ok: false, reason: "not-a-party-member" };
   }
-  if (founder.getActivePartyId()) {
+  if (founder.getActivePartyPath()) {
     return { ok: false, reason: "already-in-a-party" };
   }
   const trimmed = name.trim();
   if (!trimmed) return { ok: false, reason: "name-required" };
-
-  const reg = await requireRegistry();
-  const founderId = memberIdOf(founder);
-  const party = new Party();
-  party.name = trimmed;
-  party.founderId = founderId;
-  party.captainId = founderId;
-  party.durable = durable;
-  party.addMember(founderId);
-
   if (durable) {
-    await party.save(); // assigns _id
-  } else {
-    party._id = SecurityApi.uuid(); // ad-hoc lives only in memory
+    const clash = await PartyRecord.find<PartyRecord>({ name: trimmed });
+    if (clash.length > 0) return { ok: false, reason: "name-taken" };
   }
-  reg.add(party);
-  founder._setActivePartyId(party._id!);
+
+  const founderId = memberIdOf(founder);
+  const party = await StuffApi.create(() => new Party());
+  party.setTemplatePath(`/obj/party/${SecurityApi.uuid()}`);
+  party.setName(trimmed);
+  party.setFounderId(founderId);
+  party.setCaptainId(founderId);
+  party.setDurable(durable);
+  party.addMember(founderId);
+  await persistParty(party);
+  founder._setActivePartyPath(party.getTemplatePath()!);
 
   // Party chat: a channel bound to the party's own roster ref (chat is a
   // consumer of the grouping facade — no managed group minted). Best-
   // effort: a name clash never blocks party formation.
   try {
     await ChatApi.createBoundChannel(founder, trimmed, party.partyRef());
-    party.channelRef = trimmed;
-    if (durable) await party.save();
+    party.setChannelRef(trimmed);
+    await persistParty(party);
   } catch {
     /* channel optional; party stands without it */
   }
@@ -242,10 +288,10 @@ async function inviteImpl(
   if (!MixinApi.isPartyMember(invitee)) {
     return { ok: false, reason: "cannot-join" };
   }
-  if (invitee.getActivePartyId()) {
+  if (invitee.getActivePartyPath()) {
     return { ok: false, reason: "target-already-in-a-party" };
   }
-  invitee._setPendingInvitePartyId(party._id!);
+  invitee._setPendingInvitePartyPath(party.getTemplatePath()!);
   return { ok: true, party };
 }
 
@@ -253,20 +299,19 @@ async function acceptImpl(invitee: Stuff): Promise<PartyOpResult> {
   if (!MixinApi.isPartyMember(invitee)) {
     return { ok: false, reason: "cannot-join" };
   }
-  if (invitee.getActivePartyId()) {
+  if (invitee.getActivePartyPath()) {
     return { ok: false, reason: "already-in-a-party" };
   }
-  const pid = invitee.getPendingInvitePartyId();
-  if (!pid) return { ok: false, reason: "no-invite" };
-  const reg = await requireRegistry();
-  const party = reg.get(pid);
+  const path = invitee.getPendingInvitePartyPath();
+  if (!path) return { ok: false, reason: "no-invite" };
+  const party = partyAt(path);
   if (!party) return { ok: false, reason: "invite-expired" };
 
   party.addMember(memberIdOf(invitee));
-  invitee._setActivePartyId(pid);
-  invitee._setPendingInvitePartyId("");
-  if (party.isDurable()) await party.save();
-  reg.provider()?.fireChange(pid);
+  invitee._setActivePartyPath(path);
+  invitee._setPendingInvitePartyPath("");
+  await persistParty(party);
+  fireChange(party);
   return { ok: true, party };
 }
 
@@ -283,13 +328,13 @@ async function enlistImpl(
   if (!MixinApi.isPartyMember(hiree)) {
     return { ok: false, reason: "cannot-join" };
   }
-  if (hiree.getActivePartyId()) {
+  if (hiree.getActivePartyPath()) {
     return { ok: false, reason: "target-already-in-a-party" };
   }
   party.addMember(memberIdOf(hiree));
-  hiree._setActivePartyId(party._id!);
-  if (party.isDurable()) await party.save();
-  (await requireRegistry()).provider()?.fireChange(party._id!);
+  hiree._setActivePartyPath(party.getTemplatePath()!);
+  await persistParty(party);
+  fireChange(party);
   return { ok: true };
 }
 
@@ -299,9 +344,8 @@ async function leaveImpl(member: Stuff): Promise<PartySimpleResult> {
   }
   const party = activePartyOfImpl(member);
   if (!party) return { ok: false, reason: "not-in-a-party" };
-  const memberId = memberIdOf(member);
-  await departFromParty(party, memberId);
-  member._setActivePartyId("");
+  await departFromParty(party, memberIdOf(member));
+  member._setActivePartyPath("");
   return { ok: true };
 }
 
@@ -318,37 +362,39 @@ async function kickImpl(
     return { ok: false, reason: "cannot-kick-self" };
   }
   if (!party.isMember(targetId)) return { ok: false, reason: "not-a-member" };
+  const path = party.getTemplatePath();
   await departFromParty(party, targetId);
   const target = resolveMember(targetId);
   if (target && MixinApi.isPartyMember(target)) {
-    if (target.getActivePartyId() === party._id) target._setActivePartyId("");
+    if (target.getActivePartyPath() === path) target._setActivePartyPath("");
   }
   return { ok: true };
 }
 
 /**
  * Remove `memberId` from `party`, handling captain succession and the
- * empty-party terminus (ad-hoc → destroyed; durable → dormant). Shared by
+ * empty-party terminus (ad-hoc → destructed; durable → dormant). Shared by
  * leave / kick.
  */
 async function departFromParty(party: Party, memberId: string): Promise<void> {
   party.removeMember(memberId);
-  const reg = await requireRegistry();
   if (party.isCaptain(memberId)) {
     const heir = party.getMemberIds()[0];
     if (heir) party.setCaptainId(heir);
   }
   if (party.size() === 0) {
     if (party.isDurable()) {
-      party.setCaptainId("");
-      await party.save(); // persists dormant + empty
+      party.setCaptainId(""); // persists dormant + empty
+      await persistParty(party);
+      fireChange(party);
     } else {
-      reg.remove(party._id!); // ad-hoc evaporates
+      fireChange(party);
+      StuffApi.destruct(party); // ad-hoc evaporates
     }
-  } else if (party.isDurable()) {
-    await party.save();
+    return;
   }
-  reg.provider()?.fireChange(party._id!);
+  await persistParty(party);
+  fireChange(party);
 }
 
 async function disbandImpl(captain: Stuff): Promise<PartySimpleResult> {
@@ -357,12 +403,12 @@ async function disbandImpl(captain: Stuff): Promise<PartySimpleResult> {
   if (!party.isCaptain(memberIdOf(captain))) {
     return { ok: false, reason: "not-the-captain" };
   }
-  const reg = await requireRegistry();
+  const path = party.getTemplatePath();
   // Clear every online member's active pointer.
   for (const id of [...party.getMemberIds()]) {
     const m = resolveMember(id);
-    if (m && MixinApi.isPartyMember(m) && m.getActivePartyId() === party._id) {
-      m._setActivePartyId("");
+    if (m && MixinApi.isPartyMember(m) && m.getActivePartyPath() === path) {
+      m._setActivePartyPath("");
     }
   }
   if (party.getChannelRef()) {
@@ -372,14 +418,17 @@ async function disbandImpl(captain: Stuff): Promise<PartySimpleResult> {
       /* channel teardown best-effort */
     }
   }
-  reg.remove(party._id!);
-  if (party.isDurable()) {
-    try {
-      await party.delete();
-    } catch {
-      /* already gone */
+  if (party.isDurable() && path) {
+    const rec = (await PartyRecord.find<PartyRecord>({ path }))[0];
+    if (rec) {
+      try {
+        await rec.delete();
+      } catch {
+        /* already gone */
+      }
     }
   }
+  StuffApi.destruct(party);
   return { ok: true };
 }
 
@@ -396,7 +445,7 @@ async function transferImpl(
     return { ok: false, reason: "not-a-member" };
   }
   party.setCaptainId(newCaptainId);
-  if (party.isDurable()) await party.save();
+  await persistParty(party);
   return { ok: true };
 }
 
@@ -410,7 +459,7 @@ async function setSideImpl(
     return { ok: false, reason: "not-the-captain" };
   }
   party.setCombatSide(side);
-  if (party.isDurable()) await party.save();
+  await persistParty(party);
   return { ok: true };
 }
 
@@ -422,28 +471,28 @@ async function musterImpl(
     return { ok: false, reason: "not-a-party-member" };
   }
   const memberId = memberIdOf(member);
-  const reg = await requireRegistry();
   const trimmed = name.trim().toLowerCase();
-  const party = reg
-    .partiesWithMember(memberId)
-    .find((p) => p.isDurable() && p.getName().toLowerCase() === trimmed);
-  if (!party) return { ok: false, reason: "no-such-crew" };
+  const records = await PartyRecord.find<PartyRecord>({});
+  const rec = records.find(
+    (r) => r.name.toLowerCase() === trimmed && r.memberIds.includes(memberId),
+  );
+  if (!rec) return { ok: false, reason: "no-such-crew" };
+  const party = partyAt(rec.path) ?? (await materializeParty(rec));
 
   // Stand down the current active party first (one-active-party).
-  const current = member.getActivePartyId();
-  if (current && current !== party._id) {
-    member._setActivePartyId("");
+  if (member.getActivePartyPath() && member.getActivePartyPath() !== rec.path) {
+    member._setActivePartyPath("");
   }
-  member._setActivePartyId(party._id!);
+  member._setActivePartyPath(rec.path);
   return { ok: true, party };
 }
 
 async function standDownImpl(member: Stuff): Promise<PartySimpleResult> {
-  if (!MixinApi.isPartyMember(member) || !member.getActivePartyId()) {
+  if (!MixinApi.isPartyMember(member) || !member.getActivePartyPath()) {
     return { ok: false, reason: "not-in-a-party" };
   }
   const party = activePartyOfImpl(member);
-  member._setActivePartyId("");
+  member._setActivePartyPath("");
   // Stand-down semantics differ by lifetime: a **durable** crew keeps you
   // on its roster (dormant — `muster` re-activates), while an **ad-hoc**
   // party has no dormant state, so standing down is simply leaving it.
