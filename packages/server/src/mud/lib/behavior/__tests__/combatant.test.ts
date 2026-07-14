@@ -7,6 +7,7 @@
 
 import { describe, it, expect, vi, afterEach } from "vitest";
 import { CombatApi } from "../../../api/combat";
+import { PartyApi } from "../../../api/party";
 import { brain as combatant } from "../combatant";
 import type { BrainContext } from "../brain";
 
@@ -25,9 +26,12 @@ function ctxFor(host: object): BrainContext {
   };
 }
 
-function fakeSession(band: string): unknown {
+// A minimal N-container mock: `host` plus one live foe. `areAllied` is
+// mocked to false, so the foe survives the brain's side filter.
+function fakeSession(band: string, host: object, foe: object): unknown {
   return {
     getState: () => ({ poise: { band: () => band }, down: false }),
+    getCombatants: () => [host, foe],
     opponentState: () => ({}),
   };
 }
@@ -35,9 +39,11 @@ function fakeSession(band: string): unknown {
 describe("combatant brain", () => {
   it("presses with a strike when steady", () => {
     const host = {};
+    const foe = {};
     vi.spyOn(CombatApi, "sessionFor").mockReturnValue(
-      fakeSession("steady") as never,
+      fakeSession("steady", host, foe) as never,
     );
+    vi.spyOn(PartyApi, "areAllied").mockReturnValue(false);
     vi.spyOn(CombatApi, "eligibilityFor").mockReturnValue({ ok: false });
     const queue = vi
       .spyOn(CombatApi, "queueGambit")
@@ -49,9 +55,11 @@ describe("combatant brain", () => {
 
   it("holds fire when overextended (lets the engine recover)", () => {
     const host = {};
+    const foe = {};
     vi.spyOn(CombatApi, "sessionFor").mockReturnValue(
-      fakeSession("broken") as never,
+      fakeSession("broken", host, foe) as never,
     );
+    vi.spyOn(PartyApi, "areAllied").mockReturnValue(false);
     const queue = vi
       .spyOn(CombatApi, "queueGambit")
       .mockReturnValue({ ok: true });
