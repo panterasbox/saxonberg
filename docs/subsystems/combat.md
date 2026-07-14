@@ -18,7 +18,10 @@ winning blow (killing them is the separate, interruptible **coup**), who is
 to **blame** for a death is derived from an append-only ledger (a consented
 duel is lawful; an imposed lethal attack on the unwilling is a crime), and
 every exchange **advances** the fighter (combat `Discipline`s + a costed
-`assess`). Multi-party / threat-graph and the client pane are later cycles.
+`assess`). **Cycle 2** turns the 1v1 into an N-party melee — a threat
+graph, join/merge, focus-fire, the `defend` family, fleeing, and the party
+friend/foe seam (see [§ Cycle 2](#cycle-2--multi-party-the-threat-graph--the-party-seam)
++ [party.md](./party.md)); the client pane and NPC-vs-NPC crews are later.
 Design surface lives in
 [combat-slate](../slates/deferred-rpg/combat-slate.md) +
 [combat-experience-slate](../slates/deferred-rpg/combat-experience-slate.md).
@@ -391,37 +394,90 @@ chronicle deed, a small regard cost) **or** `intervene` to spare him. The
 non-consenting sentient (a townsperson) `--lethal` → the `violated` marker →
 `blameFor` returns `crime: true`.
 
+## Cycle 2 — multi-party (the threat graph + the party seam)
+
+The 1v1 core goes plural. The fight becomes an **N-participant melee** and
+reads friend-from-foe off the party operational core through one narrow
+seam (see [party.md](./party.md)).
+
+- **The session is now a plain N-container**, not a `SustainedEngagement`.
+  `CombatSession` holds a `Map<Stuff, CombatantState>`, a `CombatGraph`,
+  and its own **real-time** beat via `ScheduleApi.recurring` (the beat no
+  longer rides any participant's game-time emission — so a participant
+  leaving never orphans the tick, and the cadence is pace-independent of
+  world-clock scale, the coupling the 1v1 live demo exposed). **Bleed stays
+  game-time** (harm reconcile-on-read untouched). Every participant carries
+  one **uniform `CombatParticipantHold`** on `body`; a departure removes
+  just that participant, dissolving only when a side empties. `sessionFor`
+  is a uniform participant-hold lookup.
+- **The threat graph** (`lib/combat/CombatGraph.ts`, pure/unit-tested) is a
+  directed who-attacks-whom graph. Each `ThreatEdge` carries its **own**
+  `CombatTerms` — a duel and an interloper's unlawful blow in the *same*
+  session carry different terms (the per-edge blame foundation). Death /
+  blame sites read `termsFor(session, killer, victim)` (the killing edge's
+  terms, falling back to the session's for the degenerate 1v1);
+  `CombatantState.lastStruckBy` names the killing edge for an attrition
+  death.
+- **Sides + join / merge.** Each participant's `PartyApi.sideOf` is frozen
+  on its node at open/join; the exchange loop is **side-driven**
+  (`pickTarget`: a foe is anyone not on the actor's side). `CombatApi.join`
+  adds a participant + `body` hold + a mutual edge; `CombatApi.merge` folds
+  two colliding fights (holds reparent onto the survivor). `AttackController`
+  is the handshake: attack someone already fighting → join; attack from
+  mid-fight → draw the target in; two fights collide → merge; else open.
+- **Focus-fire** (the balance fix / turtle-breaker): a target's poise
+  erosion scales with `graph.edgeCount(target)` (each attacker beyond the
+  first adds `combat.focusFire.erosionPerEdge`), and a defender pressed by
+  ≥ `combat.focusFire.suppressRecoveryAt` attackers can't spend a beat
+  recovering — the lone turtle beats one but loses to two.
+- **The `defend` family** — one canonical `defend` verb over three
+  cardinalities: `defend` (cover up = the self gambit), `defend <fallen>`
+  (stay a coup = the old `intervene`/`stay`, kept as aliases), `defend
+  <ally>` (interpose — `CombatApi.defendAlly` joins if needed and
+  `CombatGraph.redirect`s a foe's edge off the ally onto the interposer).
+- **Fleeing** — combat's resolution of a **locomotion attempt made while
+  engaged** (not a verb, not a mode). `CombatApi.disengage`, called at the
+  movement controller's pre-traverse gate, is a no-op when not fighting
+  else an **opposed-lite** break: a focus-fire pin vetoes it, foes still
+  locked on get a **parting shot** (same materials-response inflict, at
+  `combat.flee.partingShotEnergy`), success removes the actor and the
+  traverse proceeds. Individual only.
+- **The NPC ally** — the `combatant` brain is side-aware (acts only while a
+  live foe remains; targeting stays the engine's job). A new **`backs-up`**
+  brain gets a party NPC *into* a fight: it watches for a party-mate who
+  has drawn steel and `CombatApi.join`s on their side. The **demonstrator**
+  is a recruitable `Mercenary` sellsword at the treeline: `party form`,
+  `party enlist the sellsword`, walk west, `attack the gentleman --lethal`
+  → she backs you up for a consented **2v1** in the hollow.
+
+The reachable multi-party demonstrator is the 2v1 above; an NPC-vs-NPC
+**crew** (two NPCs sharing a side without a live player forming the party)
+needs a durable-party standup/seeder and is deferred. **Split** (a fight
+fragmenting into two sessions on edge removal) has no acceptance criterion
+and is deferred until a demo produces genuine fragmentation.
+
 ## Deferred
 
 Named at their sites; nothing inherited:
 
-- **The `defend` family (with multi-party)** — `intervene` (stay a coup) and
-  `fight defend` (cover yourself) are two leaves of one idea: *warding harm
-  from a life*. The third leaf — **`defend <ally>`** (interpose in an
-  ongoing fight, draw an aggressor's threat onto yourself) — needs the
-  multi-party threat graph to mean anything, so it's deferred. When it
-  lands, `intervene` should likely **fold into** a general `defend`
-  (`defend <fallen>` = today's coup-stay), so the vocabulary converges on
-  one verb rather than three. Kept separate for now so the reachable
-  1v1-era verbs (`intervene`, `fight defend`) don't churn before their
-  sibling exists.
-- **Later cycles** — multi-party / the threat graph (this melee edge goes
-  plural), weapon playstyle (reach/guard/balance-as-derived; `balanceFactor`
-  populated from construction), full morale / de-escalation, stealth, the
-  chase, non-humanoid bestiary, death/recovery + moderation, the client
-  `CombatPane` (and the contextual gambit affordances — terse verbs afforded
-  only in a fight — that supersede the static ones), and the **combat gym**
-  balance harness.
-- **Known engine seams from the live demo** — combat's tick is **game-time**,
-  so `tickSeconds` doubles as pace *and* bleed-per-beat; a **real-time tick**
-  (`ScheduleApi.recurring`) would decouple pace from the world-clock scale.
-  A steady armed defender *always* parries and acting-first overextends into
-  that guard first, so blind aggression loses to patience — wants attention
-  in the experience pass. The `world.combat.exchange` topic wants a client
-  font-register mapping. Unlike the metabolism/thermal drivers the beat loop
-  has **no presence-freeze** — a fight ticks on against a linkdead combatant
-  until `combat.maxBeats` forces a draw (bounded, not a leak; a presence-gate
-  is a small follow-up, though "you can't rage-quit a fight" may be wanted).
+- **Later cycles** — weapon playstyle (reach/guard/balance-as-derived;
+  `balanceFactor` populated from construction), full morale / de-escalation,
+  stealth, pursuit / the chase (wayfaring) and coordinated party-retreat
+  (rout/rally), non-humanoid bestiary, death/recovery + moderation, the
+  client `CombatPane` (and the contextual gambit affordances — terse verbs
+  afforded only in a fight — that supersede the static ones), the **combat
+  gym** balance harness, and party tactic-roles (combat-tactics-slate).
+- **Split** — connected-component recompute on edge removal spawning a
+  second session; deferred (no criterion requires it) until fragmentation
+  is real.
+- **Known engine seams** — a steady armed defender *always* parries and
+  acting-first overextends into that guard first, so blind aggression loses
+  to patience — wants attention in the experience pass. The
+  `world.combat.exchange` topic wants a client font-register mapping. The
+  beat loop has **no presence-freeze** — a fight ticks on against a
+  linkdead combatant until `combat.maxBeats` forces a draw (bounded, not a
+  leak; "you can't rage-quit a fight" may even be wanted). A parting-shot
+  **narration** (the inflict is mechanical today) is a small polish.
 
 ## Cross-references
 
@@ -469,3 +525,19 @@ Named at their sites; nothing inherited:
   NPC consent moved from a settings-only approach (settings only resolve
   for `Environment`s — which NPCs aren't) to authored
   `standingLethality`/`standingStopCondition` fields on `CombatantMixin`.
+- **Cycle 2** (`feature/multi-party-combat`) — the 1v1 goes plural (see
+  [§ Cycle 2](#cycle-2--multi-party-the-threat-graph--the-party-seam)):
+  `CombatSession` rewritten from a `SustainedEngagement` to a plain
+  N-container with a real-time `ScheduleApi.recurring` tick + uniform
+  `CombatParticipantHold`s; the `CombatGraph` value-object (per-edge terms
+  + `lastStruckBy` attribution); side-driven targeting frozen from the new
+  **party** seam (`PartyApi.sideOf`/`areAllied` — see [party.md](./party.md));
+  `join`/`merge`; focus-fire poise economy (3 `combat.focusFire.*`/`flee.*`
+  dials); the canonical `defend` family (`intervene`/`fight defend` become
+  aliases; `defend <ally>` via `CombatGraph.redirect`); fleeing as an
+  opposed-lite disengage at the movement controller's pre-traverse gate;
+  the side-aware `combatant` brain + the `backs-up` brain + the 2v1
+  Mercenary-sellsword demonstrator. The whole **party operational core**
+  (`lib/party/`, `PartyApi`/`PartyLogic`, `PartyRegistry`, the `parties`
+  collection, the `party:` grouping provider, the `party` verb) landed in
+  the same build.
