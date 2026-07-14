@@ -6,11 +6,14 @@
  * The surface is a single read contract — `currentReading(): Time | null`
  * (null = the face is unreadable right now, e.g. a shut hunter lid). The
  * mixin deliberately grants **no verbs**: the mechanical verbs `wind` /
- * `adjust` are global capability verbs gated on the *movement* capability
- * (`MixinApi.isMechanicalMovement`), lit up only where a windable/settable
- * mechanism is present. This is the rejected-Timepiece lesson — the
- * capability marks "reads time", not "operates a mechanism"; an accurate
- * timepiece is `Timekeeping` with no movement, so it affords neither verb.
+ * `adjust` are content verbs of the University Avenue locality bundle,
+ * gated on the *movement* mixin (`MechanicalMovementMixin`, itself
+ * locality content), lit up only where a windable/settable mechanism is
+ * present. This is the rejected-Timepiece lesson — the capability marks
+ * "reads time", not "operates a mechanism"; an accurate timepiece is
+ * `Timekeeping` with no movement, so it affords neither verb.
+ * `Timekeeping` stays general here in `lib/time` because a future
+ * electronic/aether timepiece still needs the read seam.
  *
  * The base implementation returns null; every real timepiece overrides
  * `currentReading()` with its own physics — a mechanical movement

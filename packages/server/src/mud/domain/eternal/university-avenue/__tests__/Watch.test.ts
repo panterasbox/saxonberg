@@ -8,14 +8,14 @@
 
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import Watch from '../Watch';
-import { Reserve, type Reserved } from '../../lib/reserve';
-import { Quantity } from '../../lib/quantity';
-import { MixinApi } from '../../api/mixin';
-import { Mixins } from '../../lib/mixin';
-import { WorldClockApi } from '../../api/worldclock';
-import '../../obj/WorldClockRegistry';
-import { makeStuff } from '../../lib/security/__tests__/test-setup';
-import { installV1QuantityMarshallers } from '../../lib/persistence/__tests__/quantity-marshaller-test-helpers';
+import { Reserve, type Reserved } from '../../../../lib/reserve';
+import { Quantity } from '../../../../lib/quantity';
+import { MixinApi } from '../../../../api/mixin';
+import { Mixins } from '../../../../lib/mixin';
+import { WorldClockApi } from '../../../../api/worldclock';
+import '../../../../obj/WorldClockRegistry';
+import { makeStuff } from '../../../../lib/security/__tests__/test-setup';
+import { installV1QuantityMarshallers } from '../../../../lib/persistence/__tests__/quantity-marshaller-test-helpers';
 
 const SCALE = 12;
 let real = 0;
@@ -40,7 +40,7 @@ describe('Watch', () => {
   it('composes Sealable, MechanicalMovement (Timekeeping + Reserved), Detailed', () => {
     const w = watch();
     expect(MixinApi.isSealable(w as never)).toBe(true);
-    expect(MixinApi.isMechanicalMovement(w as never)).toBe(true);
+    expect(MixinApi.hasMixin(w as never, Mixins.MechanicalMovement)).toBe(true);
     // MechanicalMovement folds in the read + reserve capabilities.
     expect(MixinApi.isTimekeeping(w as never)).toBe(true);
     expect(MixinApi.hasMixin(w as never, Mixins.Reserved)).toBe(true);

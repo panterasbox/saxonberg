@@ -1,4 +1,4 @@
-# Gus's pocket-watch — `/obj/Watch` (Sealable + MechanicalMovement
+# Gus's pocket-watch — `/domain/eternal/university-avenue/Watch` (Sealable + MechanicalMovement
 # [Timekeeping + Reserved] + Detailed). Carried on its chain; equipped at
 # standup by Gus.equipLoadout. It keeps game-time and DRIFTS: `setTo` is
 # seeded to a wrong hour and `rate` runs a touch under 1.0, so the dial
@@ -8,7 +8,7 @@
 # it right (the "won't set" of the sit/set/open/cross quartet). The AUGUSTUS
 # engraving hides the full name the badge keeps off. Generic object:
 # Visible.shortDescription, never Named.
-class: /obj/Watch
+class: /domain/eternal/university-avenue/Watch
 hydratorClass: /lib/persistence/PersistentHydrator
 data:
   shortDescription: a brass pocket-watch

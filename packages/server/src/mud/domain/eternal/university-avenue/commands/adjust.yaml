@@ -1,5 +1,5 @@
 verbs: [adjust]
-controller: device/AdjustController
+controller: domain/eternal/university-avenue/commands/AdjustController
 description: "Adjust a mechanical timepiece to a time"
 help: |
   Adjust the hands of a mechanical timepiece you're carrying to a time

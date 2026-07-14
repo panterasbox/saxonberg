@@ -4,21 +4,24 @@
  * Sets a reachable mechanical timepiece's hands to an explicit time
  * (24-hour `HH:MM`). There is no clock to sync to — the player reads the
  * tower and dials it in by hand, which is exactly why the movement
- * drifts. Gated by the MechanicalMovement capability the same way
- * `wind`/`switch`/`fold` are: the controller narrows the target with
- * `MixinApi.isMechanicalMovement` and rejects anything else. Rejects a
+ * drifts. Gated by the MechanicalMovement content mixin the same way
+ * `wind` is: the controller narrows the target with a local mixin-presence
+ * guard (`MixinApi.hasMixin(s, Mixins.MechanicalMovement)`) and rejects
+ * anything else. `MechanicalMovement` is locality content, so this gate
+ * lives in the bundle, not as a global `MixinApi.is*` predicate. Rejects a
  * missing target and an unparseable time.
  */
 
-import { CommandController } from '../../../lib/command/CommandController';
-import type { CommandContext, CommandModel } from '../../../api/command';
-import { MqlApi, type MqlOneResult } from '../../../api/mql';
-import { MixinApi } from '../../../api/mixin';
-import { MessageApi } from '../../../api/message';
-import { Mml } from '../../../api/mml';
-import { Time } from '../../../lib/time/Time';
-import type { Stuff } from '../../../lib/stuff/Stuff';
-import type { MechanicalMovement } from '../../../lib/time/MechanicalMovement';
+import { CommandController } from '../../../../lib/command/CommandController';
+import type { CommandContext, CommandModel } from '../../../../api/command';
+import { MqlApi, type MqlOneResult } from '../../../../api/mql';
+import { MixinApi } from '../../../../api/mixin';
+import { Mixins } from '../../../../lib/mixin';
+import { MessageApi } from '../../../../api/message';
+import { Mml } from '../../../../api/mml';
+import { Time } from '../../../../lib/time/Time';
+import type { Stuff } from '../../../../lib/stuff/Stuff';
+import type { MechanicalMovement } from '../MechanicalMovement';
 
 interface AdjustModel extends CommandModel {
   target?: MqlOneResult;
@@ -57,7 +60,7 @@ export default class AdjustController extends CommandController<AdjustModel> {
     const movement = MqlApi.effectiveTarget(
       target,
       (s): s is Stuff & MechanicalMovement =>
-        MixinApi.isMechanicalMovement(s),
+        MixinApi.hasMixin(s, Mixins.MechanicalMovement),
     );
     if (!movement) {
       MessageApi.scene(commandGiver)

@@ -8,20 +8,23 @@
  * `rate`; folds in `Timekeeping` + `Reserved`), and `Detailed` (the
  * engraving) over a `Thing` (brass, via `Tangible`).
  *
- * All the clockwork now lives on `MechanicalMovementMixin`; Watch only
- * adds the two lid-aware overrides — `currentReading()` gates the movement
- * reading on the open lid, and `getLong()` renders the live dial (or the
- * shut case). The `wind`/`adjust` verbs are **global capability verbs**
- * gated on `MixinApi.isMechanicalMovement`, so Watch contributes none — a
- * future accurate/aether timepiece composes plain `Timekeeping` and simply
- * doesn't afford the mechanical verbs.
+ * All the clockwork now lives on `MechanicalMovementMixin` (a
+ * locality-content mixin, not engine substrate — the only realistic
+ * mechanical timepiece is this antique); Watch only adds the two
+ * lid-aware overrides — `currentReading()` gates the movement reading on
+ * the open lid, and `getLong()` renders the live dial (or the shut case).
+ * The `wind`/`adjust` verbs are content verbs of this locality bundle,
+ * gated on the presence of `MechanicalMovementMixin`, so Watch
+ * contributes none — a future accurate/aether timepiece composes plain
+ * `Timekeeping` (the general read seam that stays in `lib/time`) and
+ * simply doesn't afford the mechanical verbs.
  */
 
-import Thing from '../lib/stuff/Thing';
-import { SealableMixin } from '../lib/spatial/Sealable';
-import { MechanicalMovementMixin } from '../lib/time/MechanicalMovement';
-import { DetailedMixin } from '../lib/description/Detailed';
-import { Time } from '../lib/time/Time';
+import Thing from '../../../lib/stuff/Thing';
+import { SealableMixin } from '../../../lib/spatial/Sealable';
+import { MechanicalMovementMixin } from './MechanicalMovement';
+import { DetailedMixin } from '../../../lib/description/Detailed';
+import { Time } from '../../../lib/time/Time';
 
 const WatchBase = SealableMixin(
   MechanicalMovementMixin(DetailedMixin(Thing)),

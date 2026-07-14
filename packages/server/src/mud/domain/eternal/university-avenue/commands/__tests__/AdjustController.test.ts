@@ -1,36 +1,36 @@
 /**
  * AdjustController — sets a reachable mechanical timepiece to an explicit
  * HH:MM; rejects a non-mechanical / missing target and an unparseable
- * time. A global capability verb gated on `MixinApi.isMechanicalMovement`
+ * time. A content verb gated on the MechanicalMovement mixin
  * (no `instanceof Watch`).
  */
 
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import AdjustController from '../AdjustController';
-import Watch from '../../../Watch';
-import Location from '../../../../lib/stuff/Location';
-import Thing from '../../../../lib/stuff/Thing';
-import { CommandGiverMixin } from '../../../../lib/command/CommandGiver';
-import { SensorMixin } from '../../../../lib/message/Sensor';
-import { ContainableMixin } from '../../../../lib/spatial/Containable';
-import { ContainerMixin } from '../../../../lib/spatial/Container';
-import { NamedMixin } from '../../../../lib/description/Named';
-import { VisibleMixin } from '../../../../lib/description/Visible';
-import { MobileMixin } from '../../../../lib/spatial/Mobile';
-import { CommandDefinition } from '../../../../lib/command/CommandDefinition';
-import { Idea } from '../../../../lib/stuff/Idea';
-import { StuffApi } from '../../../../api/stuff';
-import { ContainmentApi } from '../../../../api/containment';
-import { WorldClockApi } from '../../../../api/worldclock';
-import '../../../../obj/WorldClockRegistry';
-import { makeStuff } from '../../../../lib/security/__tests__/test-setup';
-import { installV1QuantityMarshallers } from '../../../../lib/persistence/__tests__/quantity-marshaller-test-helpers';
+import Watch from '../../Watch';
+import Location from '../../../../../lib/stuff/Location';
+import Thing from '../../../../../lib/stuff/Thing';
+import { CommandGiverMixin } from '../../../../../lib/command/CommandGiver';
+import { SensorMixin } from '../../../../../lib/message/Sensor';
+import { ContainableMixin } from '../../../../../lib/spatial/Containable';
+import { ContainerMixin } from '../../../../../lib/spatial/Container';
+import { NamedMixin } from '../../../../../lib/description/Named';
+import { VisibleMixin } from '../../../../../lib/description/Visible';
+import { MobileMixin } from '../../../../../lib/spatial/Mobile';
+import { CommandDefinition } from '../../../../../lib/command/CommandDefinition';
+import { Idea } from '../../../../../lib/stuff/Idea';
+import { StuffApi } from '../../../../../api/stuff';
+import { ContainmentApi } from '../../../../../api/containment';
+import { WorldClockApi } from '../../../../../api/worldclock';
+import '../../../../../obj/WorldClockRegistry';
+import { makeStuff } from '../../../../../lib/security/__tests__/test-setup';
+import { installV1QuantityMarshallers } from '../../../../../lib/persistence/__tests__/quantity-marshaller-test-helpers';
 import {
   CommandApi,
   type CommandContext,
   type CommandModel,
-} from '../../../../api/command';
-import type { MqlOneResult } from '../../../../api/mql';
+} from '../../../../../api/command';
+import type { MqlOneResult } from '../../../../../api/mql';
 
 const FakeAvatarBase = CommandGiverMixin(
   NamedMixin(MobileMixin(ContainerMixin(SensorMixin(ContainableMixin(Idea))))),

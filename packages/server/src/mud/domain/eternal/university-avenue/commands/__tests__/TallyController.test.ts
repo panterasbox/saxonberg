@@ -7,7 +7,7 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import TallyController from '../TallyController';
 import CrossingLog from '../../CrossingLog';
-import Watch from '../../../../../obj/Watch';
+import Watch from '../../Watch';
 import Location from '../../../../../lib/stuff/Location';
 import { CommandGiverMixin } from '../../../../../lib/command/CommandGiver';
 import { SensorMixin } from '../../../../../lib/message/Sensor';

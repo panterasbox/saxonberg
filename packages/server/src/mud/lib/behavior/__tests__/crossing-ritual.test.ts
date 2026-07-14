@@ -50,7 +50,7 @@ import { BehavedMixin } from '../Behaved';
 import { brain as ritual } from '../crossing-ritual';
 import type { BrainContext } from '../brain';
 import CrossingLog from '../../../domain/eternal/university-avenue/CrossingLog';
-import Watch from '../../../obj/Watch';
+import Watch from '../../../domain/eternal/university-avenue/Watch';
 import Whistle from '../../../domain/eternal/university-avenue/Whistle';
 import { installV1QuantityTagTables } from '../../persistence/__tests__/quantity-marshaller-test-helpers';
 import { buildAllModalities } from '../../perception/modalities/__tests__/test-helpers';

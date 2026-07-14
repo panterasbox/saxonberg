@@ -11,8 +11,11 @@
  * movement would be plain `Timekeeping` reading true time straight — no
  * mainspring, no set-point — so it composes NO `MechanicalMovementMixin`
  * and therefore affords neither `wind` nor `adjust`. That fall-out is the
- * whole point: the mechanical verbs gate on `isMechanicalMovement`, not on
- * any concrete class.
+ * whole point: the mechanical verbs gate on the presence of this mixin
+ * (a local `MixinApi.hasMixin(s, Mixins.MechanicalMovement)` guard in the
+ * bundle's controllers), not on any concrete class. This is locality
+ * content, not engine substrate — future timepieces are electronic; only
+ * `Timekeeping` (the general read seam) stays in `lib/time`.
  *
  * Composition: the mixin folds in `TimekeepingMixin` (the read contract it
  * re-defines with its drift physics) over `ReservedMixin` (the mainspring,
@@ -32,14 +35,14 @@
  * hydrate is honoured wholesale), so no mixin constructor is needed.
  */
 
-import type { MixinConstructor } from '../mixin';
-import { TimekeepingMixin } from './Timekeeping';
-import { ReservedMixin, Reserve, type Reserved } from '../reserve';
-import { Time } from './Time';
-import { Quantity } from '../quantity';
-import { StuffApi } from '../../api/stuff';
-import { WorldClockApi } from '../../api/worldclock';
-import { TemplatePaths } from '../paths';
+import type { MixinConstructor } from '../../../lib/mixin';
+import { TimekeepingMixin } from '../../../lib/time/Timekeeping';
+import { ReservedMixin, Reserve, type Reserved } from '../../../lib/reserve';
+import { Time } from '../../../lib/time/Time';
+import { Quantity } from '../../../lib/quantity';
+import { StuffApi } from '../../../api/stuff';
+import { WorldClockApi } from '../../../api/worldclock';
+import { TemplatePaths } from '../../../lib/paths';
 
 /** Mechanical-movement dials. Playtest-tuned, not plan decisions. */
 const MOVEMENT = {
