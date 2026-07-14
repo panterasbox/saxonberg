@@ -19,6 +19,7 @@
 import type { EngagementSlot } from "../activity/Engaged";
 import type { BrainContext, BrainStatics } from "./brain";
 import { CombatApi } from "../../api/combat";
+import { PartyApi } from "../../api/party";
 
 export const brain = class {
   static label = "combatant";
@@ -31,19 +32,29 @@ export const brain = class {
     const state = session.getState(host);
     if (!state || state.down) return;
 
+    // Side-aware: act only while a live foe remains — someone in the fight
+    // who is NOT on our side and not already down. Targeting itself is the
+    // engine's job (side-driven `pickTarget`); the brain only decides the
+    // gambit, and never fights on if only allies are left standing.
+    const foes = session
+      .getCombatants()
+      .filter(
+        (c) =>
+          (c as unknown) !== (host as unknown) &&
+          !session.getState(c)?.down &&
+          !PartyApi.areAllied(host, c),
+      );
+    if (foes.length === 0) return;
+
     // When overextended (broken/open), don't queue — let the engine's
     // state-aware default cover up and recover. A fresh fighter presses
-    // with a strike; a disarm is a situational choice when the opponent
-    // is armed and we've been pressed. Eligibility is enforced by
-    // queueGambit, so an ineligible pick is simply refused.
+    // with a strike; a disarm is a situational choice when we've been
+    // pressed to reeling. Eligibility is enforced by queueGambit, so an
+    // ineligible pick is simply refused.
     const band = state.poise.band();
     if (band === "broken" || band === "open") return;
 
-    if (
-      band === "reeling" &&
-      session.opponentState(host) &&
-      CombatApi.eligibilityFor(host, "disarm").ok
-    ) {
+    if (band === "reeling" && CombatApi.eligibilityFor(host, "disarm").ok) {
       CombatApi.queueGambit(host, "disarm");
       return;
     }

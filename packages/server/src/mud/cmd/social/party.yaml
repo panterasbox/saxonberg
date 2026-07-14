@@ -45,6 +45,22 @@ subcommands:
         validators:
           - /lib/command/validators/mustBeAgent
         onExcess: prompt
+  enlist:
+    description: "Take a mercenary (or willing NPC) into your party (captain-only)"
+    help: |
+      Bring a hireable NPC directly into your party — no invite
+      handshake (they've already agreed to serve). Captain-only.
+    examples:
+      - cmd: party enlist the sellsword
+        note: Recruit a mercenary to fight at your side
+    args:
+      - name: target
+        type: object
+        required: true
+        scope: ["reachable"]
+        validators:
+          - /lib/command/validators/mustBeAgent
+        onExcess: prompt
   accept:
     description: "Accept a party invite"
     help: |

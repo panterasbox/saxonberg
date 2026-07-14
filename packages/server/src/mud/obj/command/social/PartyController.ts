@@ -47,6 +47,8 @@ export default class PartyController extends CommandController<PartyModel> {
         return this.executeForm(giver, model, context);
       case "invite":
         return this.executeInvite(giver, model, context);
+      case "enlist":
+        return this.executeEnlist(giver, model, context);
       case "accept":
         return this.executeAccept(giver, context);
       case "leave":
@@ -99,6 +101,21 @@ export default class PartyController extends CommandController<PartyModel> {
     this.send(
       context,
       Mml.compose`You invite ${Mml.name(target)} to your party.`,
+    );
+  }
+
+  private async executeEnlist(
+    giver: Stuff,
+    model: PartyModel,
+    context: CommandContext,
+  ): Promise<void> {
+    const target = model.target?.stuff;
+    if (!target) return this.fail(context, "Enlist whom?", "empty-result");
+    const res = await PartyApi.enlist(giver, target);
+    if (!res.ok) return this.fail(context, this.reasonText(res.reason), res.reason);
+    this.send(
+      context,
+      Mml.compose`You take ${Mml.name(target)} into your party.`,
     );
   }
 
