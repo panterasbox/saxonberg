@@ -35,7 +35,7 @@ they do, extractive by *structure*, not villainy (you earn nothing beating a
 strawman). The shadow falls on the **governance spine only**; the rest — gods,
 attuned, ages — is free myth with no meta-referent. And the myth dramatizes the
 **wager played out**, not a scoreboard: up on the real plane the experiment is
-legally deferred (patronage, not markets — securities law, not the form), not
+legally deferred (capital, not markets — securities law, not the form), not
 yet won. *(Aether is not compute one-for-one — a projection, not an identity;
 both are scarcities a political body governs, which is the whole rhyme.)*
 
@@ -225,7 +225,7 @@ toward experience*, orthogonal to conscious/unconscious:
 ### Alignment across the three dimensions **[settled]**
 
 Every member participates as **consumer (play) / producer (make) /
-patron (fund)** — our three influence stocks. "The god you serve" is
+capital (fund)** — our three influence stocks. "The god you serve" is
 legible once per dimension. The load-bearing rule:
 
 > **You serve the god you feed, not the god you name.**
@@ -244,7 +244,7 @@ you see what you've fed — the world reflects, never judges.
 
 The platform's secret real subject: teaching you to **wield the creative
 power well** — to build for presence, not capture. The
-consumer→producer→patron arc is a curriculum in aligned creation.
+consumer→producer→capital arc is a curriculum in aligned creation.
 
 ### How alignment is used *[settled]*
 
@@ -453,7 +453,7 @@ religion forms around *Mitra*, not around "presence"). So the names are
 
 **Which gravity wins is decided by authorship, not virtue.** Gamification tunes
 incentives either way; the only thing that keeps the tuning toward Mitra is the
-**incentive-code written by all three** — consumer / producer / patron (play /
+**incentive-code written by all three** — consumer / producer / capital (play /
 make / fund), the three chambers. Capture is what you get when one writes the
 code alone.
 
@@ -1216,7 +1216,7 @@ brief caretaker interim, the world modern and the founding imminent.
   - **Roads:** Eternal Way · Silver Street · Limbo Lane (EC roads, names kept). *[EU slate]*
   - **The Sanctuary** — beneath/within the campus, on the ruins of the **Heart of Eternal City** (and its Operations Room below): the city's old dead center, where the **aether source** was found — *the reason the clergy settled these ruins at all.* The wired reservoir that survived the Fallow (see *The aether*); the aether-nexus, the sacred dead heart (the campus's aether-core — *not* the Museum, which is its own city institution). *[bible: the Mission / the attuned]*
   - **The Palace of Wizards** *(ruin; the Museum's deep anchor)* — on **Glass Way** (the green-glass road that still bleeds green light onto Eternal Way): the EC **wizard council's seat**, where the cabals ruled and **make-and-rule fused** — the throne of the old sin, in ruins on campus. A growth site and the richest deep-lore one: the natural **deepest gallery of the Museum's *Founding* wing** — the seat of fused power, where the new order reads its own warning (the campus's *Founding* counterpart to the city's living **Seat of Government**). *[ec-source-inventory: Glass Way / Palace of Wizards]*
-- **The Seat of Government** *(in Terminus — the city, not the campus)* — the five seats (Court · Executive · Producer · Patron · Consumer houses), mostly **empty**: the steward holds four in trust and governs distributed; the consumer house alone is live. The founding's stage. *[bible: the seats]*
+- **The Seat of Government** *(in Terminus — the city, not the campus)* — the five seats (Court · Executive · Producer · Capital · Consumer houses), mostly **empty**: the steward holds four in trust and governs distributed; the consumer house alone is live. The founding's stage. *[bible: the seats]*
 - **The Lounge** — the universal login landing; Dave's Bar to its north. *[lounge-slate]*
 - **Dave's Bar** — the neighborhood bar, the anti-lounge. *[daves-bar-slate]*
 - **The TPA network** — teleport transit; terminals at the lounge, Arrival, Duncan Hall lobby. *[fasttravel; fast-travel-slate]*
@@ -1231,7 +1231,7 @@ brief caretaker interim, the world modern and the founding imminent.
 ### Factions & institutions
 
 - **The five corpos** — Veshko · Goodkin · Vionne · Hollis · Aevex (+ the **Independents**). Faceless by design (a wordmark, not a figure). *[corpos-slate]*
-- **The cooperative** — the *awaited* polity (not yet founded): five seats — court, executive, and the producer/patron/consumer legislative houses; parliamentary executive, conviction voting. Held provisionally by the steward (four empty, the consumer house live). *[cooperative-slate; bible: the seats]*
+- **The cooperative** — the *awaited* polity (not yet founded): five seats — court, executive, and the producer/capital/consumer legislative houses; parliamentary executive, conviction voting. Held provisionally by the steward (four empty, the consumer house live). *[cooperative-slate; bible: the seats]*
 - **The University** — the Mission's living heir; the clergy persist only as **echoes**.
 - **The attuned** — the returned sensitives (`homo/sensitivus`); a people; **Amos the Attuned** (the herald) is the one named, long dead — see *The herald*.
 
@@ -1315,12 +1315,12 @@ either *outright* the founder.)*
 
 Ratification needs a stage, not an ethereal vote, so there is a real **Seat
 of Government** — and it is **five seats**: the **Court**, the **Executive**,
-and the legislature's three houses, **Producer · Patron · Consumer** (the
+and the legislature's three houses, **Producer · Capital · Consumer** (the
 make / fund / play dimensions; reconcile the exact count with the
 cooperative-slate's chambers later).
 
 **The steward holds four of them — empty.** Solvan wields the authority of
-the Court, the Executive, and the Producer and Patron houses, but he
+the Court, the Executive, and the Producer and Capital houses, but he
 **governs distributed, over the aether** (the offices exist; the work
 happens everywhere — work-from-home at civilizational scale), and he **will
 not sit the seats**: they aren't his, they're the people's. Four empty
@@ -1337,7 +1337,7 @@ while the steward holds the other four alone and watches it grow.
 
 **The founding fills the seats.** Ratification is the day the people — who
 already hold the consumer house — reach **critical mass** and rise to take
-the rest: the producer and patron houses seated as real makers and funders
+the rest: the producer and capital houses seated as real makers and funders
 accrue, the executive elected, the court named, the chambers alive for the
 first time. The steward lets go and dies. *(So the founding is
 honest-count-gated by construction — the consumer house fills with real

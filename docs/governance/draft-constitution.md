@@ -61,7 +61,7 @@
 
 ## Preamble
 
-We, the members of this world — its makers, its patrons, and its players —
+We, the members of this world — its makers, its funders, and its players —
 establish this constitution to govern ourselves as a **cooperative**: a
 polity in which those who fund the world are those who govern it, and in
 which the act of governing is itself part of the world. We hold that a
@@ -108,7 +108,7 @@ unamendable except by founding anew (Article X §4).
 ## Article II — Membership & Citizenship  **[OPEN]**
 
 > **Recommendation.** Membership is open to any real, Sybil-resistant human,
-> *earned by contribution* of any of the three kinds (creation, patronage,
+> *earned by contribution* of any of the three kinds (creation, funding,
 > participation) and gated only by a participation threshold — never by
 > wealth or invitation. A member who meets the threshold is a **citizen**,
 > bearing influence and the franchise; the broad participant base is the
@@ -119,8 +119,8 @@ unamendable except by founding anew (Article X §4).
 
 1. Governance is exercised through **influence**, of three non-fungible
    kinds, each earned by a kind of contribution: **producer** (creation —
-   measured by the engagement one's authored content earns), **patron**
-   (patronage), **consumer** (participation — engaged consumption, measured as
+   measured by the engagement one's authored content earns), **capital**
+   (funding), **consumer** (participation — engaged consumption, measured as
    engagement × regard).
 2. Each kind is exercised only within its own chamber. No kind may be
    converted into another, nor into office in any branch.
@@ -144,7 +144,7 @@ unamendable except by founding anew (Article X §4).
    weight; never reputation → authority.*
 7. **Producer influence may be supplemented by merit pay.** Because producers
    largely contribute unpaid, a bounded **merit award of producer influence —
-   and producer influence only, never consumer or patron** — may recognize
+   and producer influence only, never consumer or capital** — may recognize
    creation **the §1 measure can't capture**: work the instrumentation can't
    *see* (infrastructure), or worth it can't *judge* (whether content betters
    the world is a human call, not a code metric). The **exception**, never the
@@ -156,7 +156,7 @@ unamendable except by founding anew (Article X §4).
 ## Article IV — The Legislature
 
 1. The legislature comprises **three co-equal chambers**: the Producer House,
-   the Patron House, and the Consumer House.
+   the Capital House, and the Consumer House.
 2. **How influence is held and spent.** Influence is not a one-time grant but
    a **stock**: each kind sits in a **reservoir** whose ceiling is set by the
    member's *lifetime* contribution and which **regenerates** with continued
@@ -480,7 +480,7 @@ co-equality (Art. I §5), shown for completeness, not tunable.
 |---|---|---|---|
 | `influence.cap_curve` | reservoir ceiling as a (concave) function of lifetime contribution | organic | calibrate at launch |
 | `influence.regen_rate` | how fast a reservoir refills with continued contribution | organic | calibrate at launch |
-| `influence.patron_curve` | the (concave) dollar→patron-influence curve | organic | calibrate at launch |
+| `influence.capital_curve` | the (concave) dollar→capital-influence curve | organic | calibrate at launch |
 | `vote.build_period` | time an allocation must rest to reach full conviction weight | organic | calibrate at launch |
 | `vote.decay_rate` | how fast weight decays when an allocation is moved | organic | calibrate at launch |
 | `vote.passage_threshold` | per-house weight a bill must hold to carry | amendment | set at ratification |
@@ -552,5 +552,5 @@ These bind from the first dollar, not the convention — see
 
 | Parameter | Meaning | Tier | Value |
 |---|---|---|---|
-| `founder.patron_match` | matched patron influence the founder accrues per donor unit | charter | 1 |
+| `founder.capital_match` | matched capital influence the founder accrues per donor unit | charter | 1 |
 | `founder.majority_margin` | extra units guaranteeing the founder a working majority | charter | +1 |

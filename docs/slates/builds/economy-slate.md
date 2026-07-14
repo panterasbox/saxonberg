@@ -138,7 +138,7 @@ quota — see the tenure module in the
 straitjacket the compute substrate. The narrower kernel that *does* govern
 compute is **presence is never the meter**: compute is metered by **use**
 (a running zone consumes the rival resource, the way a torch burns only
-while lit), and the bill is paid in **engagement + patronage**, never in
+while lit), and the bill is paid in **engagement + capital**, never in
 player attendance — a loved zone earns its own compute; you never log in to
 feed a meter.
 

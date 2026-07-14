@@ -78,7 +78,7 @@ Last frame is the face. No client, ever.
 - **Accuracy fix:** do NOT say "I've taken it as far as one person can" — false.
   The true state: lots still to build, but enough now to start (constitution +
   model). That honesty is the spine of this segment.
-- **Patronage / "someone to stand behind it" kept light.** Named as a real future
+- **Capital / "someone to stand behind it" kept light.** Named as a real future
   hurdle, not a who's-the-face pitch and not pinned on the founder — it's up in
   the air. Make it more explicit only if asked.
 - **The closing bookend.** Ch 0 opens full-screen face; the Outro closes
@@ -86,7 +86,7 @@ Last frame is the face. No client, ever.
   the brief asked about (*where does the final full-screen camera happen*) is the
   Ch 6 → Outro hard cut, held to the last frame.
 - **make/fund/play is a callback, not new vocab** (Ch 1 / Ch 2) — consumer /
-  producer / patron. "Whenever you're ready" = standing doors, not act-now.
+  producer / capital. "Whenever you're ready" = standing doors, not act-now.
 - **No AI named here.** The "exactly once" rule holds — AI is named only in Ch 3.
 - **Distribution hook:** the chapter an interested community gets pointed at —
   keep it linkable and self-contained enough to stand semi-alone.

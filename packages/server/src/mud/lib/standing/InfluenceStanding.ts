@@ -4,10 +4,10 @@
  * `stock` identity tag and its qualitative `band`.
  *
  * This is the **shared three-stock contract** made concrete. Every stock
- * (consumer / patron / producer) emits this same shape, read uniformly by
+ * (consumer / capital / producer) emits this same shape, read uniformly by
  * the future chamber-weighting; only the `stock` tag and the faucet that
  * produced `scalar` differ. The contract lives here at the standing/band
- * layer — never at the formula layer (patron is `concave($)`, not
+ * layer — never at the formula layer (capital is `concave($)`, not
  * `engagement × quality`, so a shared formula would not fit). Homed in
  * `lib/standing/` (the consumer-influence measurement substrate)
  * rather than a single-module `lib/influence/`.
@@ -21,10 +21,10 @@ import { Band } from './Band';
 
 /**
  * The three influence stocks. Only `consumer` is implemented in this build;
- * `patron` and `producer` are reserved values (their faucets are the Twitch
+ * `capital` and `producer` are reserved values (their faucets are the Twitch
  * and CMS/AOP builds), returned as a defined zero standing, never a throw.
  */
-export type Stock = 'consumer' | 'patron' | 'producer';
+export type Stock = 'consumer' | 'capital' | 'producer';
 
 export class InfluenceStanding {
   constructor(

@@ -235,7 +235,7 @@ closes economy's open "deliberate faucet without inflation" thread.
 - [cooperative-slate](./builds/cooperative-slate.md) — the full governance
   design (authoritative; this is only a hook): **stake-is-not-stock** (the
   lawyer-free firewall) + **influence** (three non-fungible kinds = three
-  contributions — creation / patronage / participation) → three co-equal
+  contributions — creation / capital / participation) → three co-equal
   chambers → a parliamentary executive of chartered institutions → a
   judiciary that runs **one async process** from operator-pool-of-one to a
   **sortition** jury (verification + spirit, structured verdicts) → a
@@ -283,10 +283,10 @@ closes economy's open "deliberate faucet without inflation" thread.
   — the founder's **self-binding commitment**, in force from the first dollar
   (the instance-specific instrument the constitution's Art. XI founding-stake
   bound requires; *not* kernel text). The fiat-phase formula: **sole producer**
-  (~100%, diluting) · **0% consumer** (players' house ceded) · **patron-match
+  (~100%, diluting) · **0% consumer** (players' house ceded) · **capital-match
   + 1** (a working majority that erodes as the community grows) · **the
   *granted* control sunsets at ratification** — but the founder's *earned*
-  producer influence persists like any member's (only the patron-match + margin
+  producer influence persists like any member's (only the capital-match + margin
   end), leaving ordinary contribution + legislated wage. The binding isn't law
   (there's none
   yet) but **code + publication + exit** — it ships with the **stake-ledger

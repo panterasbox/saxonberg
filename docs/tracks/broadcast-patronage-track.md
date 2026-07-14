@@ -1,8 +1,8 @@
-# Track: Broadcast & Patronage — the road to going live
+# Track: Broadcast & Capital — the road to going live
 
 *A goal-oriented delivery track: the dependency-ordered path from "the
 substrate is deep" to "we are live on Twitch, the broadcast is
-interactive, and patronage is being recorded as future stake."*
+interactive, and capital is being recorded as future stake."*
 
 ## What this track is
 
@@ -17,7 +17,7 @@ Track B), which split work by whether a *client dependency* gates it.
 This track is organized by a *destination*: the north star below.
 
 **North star.** Go live on Twitch, broadcast the design and development
-of Saxonberg, and convert patronage into *future stake* — the
+of Saxonberg, and convert capital into *future stake* — the
 [cooperative](../slates/builds/cooperative-slate.md) thesis that the
 people who fund the world are the people who govern it. The full polity
 is parked until there's a member body; this track stands up the **funding
@@ -110,7 +110,7 @@ plumbing. Three phases.
 - **Outcome:** the OBS overlay (in `pbox-stream`) has richer state to
   render; the broadcast looks and behaves like a production stream.
 
-### Queued — "Patronage → stake" (next push, scoped but not started)
+### Queued — "Capital → stake" (next push, scoped but not started)
 
 The monetization milestone. Sequenced and decided; deferred out of the
 first push by choice.
@@ -119,7 +119,7 @@ first push by choice.
 - **Decision (locked):** intake is **Twitch-native only** — ingest
   Twitch **EventSub** events (subscriptions, bits/cheers) over the same
   token plumbing the relay uses. No external processor (Patreon/Stripe)
-  in scope; revisit only if off-platform patronage becomes a real need.
+  in scope; revisit only if off-platform capital becomes a real need.
 - **Why this matters:** this is the link the cooperative slate *assumed*
   existed ("a Twitch dono/sub webhook"). No slate covered actually
   ingesting payment events — **this phase is the net-new piece** of the
@@ -133,14 +133,14 @@ first push by choice.
 - **Build:** the honest counter — per Saxonberg identity, record
   `lifetime_total` (drives influence reservoir cap) and `recurring_rate`
   (drives regen). Tamper-evident. **No** chambers/voting/executive/reserve
-  yet; conversion of accrued ledger entries to Patron-House influence +
+  yet; conversion of accrued ledger entries to Capital-House influence +
   citizenship is **deferred to launch**. Ships with the founder's
   **matched-plus-one** self-binding (auto-sunsets at ratification) — the
   first real test of code-first self-binding.
 - **Firewall (entrenched, do not violate):** stake **never** cashes out;
   real money earns *influence (a vote and a name)*, never in-world
   currency or gameplay advantage; the three influence kinds are
-  non-fungible. Words allowed: stake / patron / citizen. Never: investor
+  non-fungible. Words allowed: stake / funder / citizen. Never: investor
   / share / equity / return / dividend.
 - **Depends on:** Phase 1 (identity binding), Phase 4 (intake events).
 

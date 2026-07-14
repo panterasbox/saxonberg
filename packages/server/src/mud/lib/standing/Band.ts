@@ -3,7 +3,7 @@
  * representation of an influence scalar.
  *
  * **Stock-agnostic by design.** A band is a band regardless of which stock
- * produced the scalar (consumer / patron / producer), so the patron and
+ * produced the scalar (consumer / capital / producer), so the capital and
  * producer stocks reuse this vocabulary untouched — the three-stock
  * contract's representation half (register D6: standing is shown as bands,
  * never a grindable number; the exact scalar is reserved for the eventual

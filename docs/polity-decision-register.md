@@ -95,7 +95,7 @@ Recorded briefly here so the load-bearing axioms are visible in one place;
 the cooperative slate is their authoritative source and the place they are
 argued. Changing any of these is changing *what we are building*.
 
-- **Three co-equal chambers, two-of-three passage** (producer / patron /
+- **Three co-equal chambers, two-of-three passage** (producer / capital /
   consumer). The permanent structural check against majoritarian capture
   (cooperative-slate.md:496, 528).
 - **Influence is voice, never equity.** Stake-is-not-stock: membership
@@ -142,7 +142,7 @@ is a module** (see the tenure / compute / federalism module in the
   under "respect people's time" (broader than the economy slate's Law 2
   "no rent on owned space," and the part that is actually inviolable). It
   is what *permits* metering the real compute substrate by use:
-  the bill is paid in engagement + patronage, never in showing up.
+  the bill is paid in engagement + capital, never in showing up.
 - **Rule-of-law over resources.** The executive may *oversee* any
   subdivision but may not seize or override a holder's rights except by
   **due process / published standards / legislated reason.** Authority is
@@ -294,7 +294,7 @@ flagged for the polity to revisit.
 
 - **Decision.** The bootstrap default for how a group comes to *hold* a
   subdivision is **homestead**: build in unclaimed namespace → hold it.
-  Compute is **metered as use** (paid in engagement + patronage, never in
+  Compute is **metered as use** (paid in engagement + capital, never in
   presence); inert/never-built claims **revert by abandonment** (not a
   holding tax — Law 2); content stays free/CC. The two alternative regimes
   (**chartered grant**, **commons**) ship as the other settings of the
@@ -335,7 +335,7 @@ marked as such so an empty seam is never mistaken for a settled answer.
   method.
 - **The compute meter's currency + the precise presence-exclusion line**
   — *that* compute is metered by use is settled; the exact unit
-  (engagement-subsidy vs. patron-allocation vs. a rule-bound market) and
+  (engagement-subsidy vs. capital-allocation vs. a rule-bound market) and
   the precise line that keeps player *presence* out of the meter are not.
 - **The rights-bundle composition + per-right protection levels** — *that*
   a protected floor exists is kernel (Tier 1); *which* rights a holder

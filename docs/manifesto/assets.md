@@ -204,7 +204,7 @@ All single static assets.
 | `ch6-beat3-moderation` | `ch6-beat3-moderation.excalidraw` | — | you-already-run-a-government mapping (operator→exec, mods→police, rules→law, appeals→courts, mod-log→record) + "rules take the heat, not you" | "you're already running a government — you just call it moderation" |
 | `ch6-beat3-dial` | `ch6-beat3-dial.excalidraw` | — | the dial slider (operator ↔ full republic) sitting on the floor; ghosted communities each set their own | "turn the dial as far as you trust your people" |
 | `ch6-beat4-graduated` | `ch6-beat4-graduated.excalidraw` | — | operator hands a call down; a member delegates the vote (revocable) — "nobody carries the whole load" | "an operator can defer… a member can hand their vote to someone they trust" |
-| `ch6-beat5-founder` | `ch6-beat5-founder.excalidraw` | — | pre-ratification across the 3 counts (patron match+1 / producer diluting / consumer none) → RATIFICATION → outcomes (offboard / sunset / keep-match / autocrat) → floor holds | "before a community ratifies… then ratification, the community decides… the floor holds" |
+| `ch6-beat5-founder` | `ch6-beat5-founder.excalidraw` | — | pre-ratification across the 3 counts (capital match+1 / producer diluting / consumer none) → RATIFICATION → outcomes (offboard / sunset / keep-match / autocrat) → floor holds | "before a community ratifies… then ratification, the community decides… the floor holds" |
 | `ch6-beat6-landing` | `ch6-beat6-landing.excalidraw` | — | the series motifs assembled (meters · map · pipeline · chain · floor · dial) → "THAT'S THE DESIGN" → hard-cut to the Outro | "that's the whole thing… that's the design" |
 
 ---

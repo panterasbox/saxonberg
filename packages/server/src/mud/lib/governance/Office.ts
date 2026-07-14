@@ -151,8 +151,8 @@ export const OFFICE_APPARATUS: readonly Office[] = [
     origin: 'constituted',
   }),
   Office.from({
-    key: 'speaker-patron-house',
-    displayName: 'Speaker of the Patron House',
+    key: 'speaker-capital-house',
+    displayName: 'Speaker of the Capital House',
     branch: 'legislative',
     origin: 'constituted',
   }),

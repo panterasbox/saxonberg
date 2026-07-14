@@ -4,7 +4,7 @@
  * **consumer standing** projection (`max(0, renownOf) × participationOf`).
  *
  * One of three sibling stock Apis under the common {@link InfluenceApi}
- * dispatcher (patron and producer join later). ConsumerApi OWNS the
+ * dispatcher (capital and producer join later). ConsumerApi OWNS the
  * participation log + standing and computes the consumer standing; it
  * READS `RenownApi` (the shared, general social-standing substrate) for the
  * quality half, never owning it.

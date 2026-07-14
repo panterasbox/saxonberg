@@ -96,7 +96,7 @@ renown's does.
 ## The three-stock contract (symmetry at the output)
 
 The consumer stock is the first of three influence stocks (consumer /
-patron / producer). It is built consumer-only, but against a shared
+capital / producer). It is built consumer-only, but against a shared
 **output contract** so the others slot in without a refactor:
 
 - **`InfluenceStanding`** `{subject, stock, scalar, band}` — the uniform
@@ -108,11 +108,11 @@ patron / producer). It is built consumer-only, but against a shared
 - **`InfluenceApi`** — the thin common dispatcher: `standingOf(subject,
   stock)` delegates `'consumer'` to `ConsumerApi` and `'producer'` to
   `ProducerApi` (both now live — see [influence.md](./influence.md));
-  `'patron'` is the one reserved value, returning a defined zero standing,
+  `'capital'` is the one reserved value, returning a defined zero standing,
   never a throw.
 
 The symmetry lives at the standing/band layer; the **asymmetry stays at
-the source** — each stock's faucet and formula differ (patron is
+the source** — each stock's faucet and formula differ (capital is
 `concave($)`, *not* `engagement × quality`, so no shared formula could
 fit). Raw logs stay per-faucet.
 
@@ -167,7 +167,7 @@ resulting influence **band** — qualitatively, never the raw scalar.
 
 The ballot / chambers / voting (though the **conviction spend substrate** is
 now built — `ConvictionApi`, no verb yet; see [influence.md](./influence.md));
-the patron faucet (Twitch subs); **second-order engagement** (register D2 —
+the capital faucet (Twitch subs); **second-order engagement** (register D2 —
 "the engagement you cause in others", the population-dependent quality
 enrichment; this build measures the solo-observable quantity); the
 player/human-level rollup for enfranchisement; per-faucet saturation. The

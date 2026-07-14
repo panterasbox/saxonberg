@@ -1,7 +1,7 @@
 # Influence: the three-stock standing substrate
 
 How contribution and conduct become **governance standing**. Influence has
-three stocks — **consumer** (play), **producer** (make), and **patron**
+three stocks — **consumer** (play), **producer** (make), and **capital**
 (fund) — three dimensions of every member, each earned and spent
 independently. This doc covers the cross-stock substrate, the **producer**
 faucet, and the **conviction** spend half. The two halves of the consumer
@@ -12,7 +12,7 @@ authorship input lives in [provenance.md](./provenance.md).
 
 This build ships the producer faucet (measured standing only — it feeds no
 vote yet) and the conviction substrate (Api + tests, no verb). The ballot,
-the chambers, and the patron faucet are deferred.
+the chambers, and the capital faucet are deferred.
 
 ## `lib/standing/` — one home
 
@@ -42,18 +42,18 @@ chamber-weighting; only the `stock` tag and the faucet that produced
 `scalar` differ:
 
 - **`InfluenceStanding`** `{subject, stock, scalar, band}` — `stock` is
-  `'consumer' | 'patron' | 'producer'`. `scalar` is the host-internal
+  `'consumer' | 'capital' | 'producer'`. `scalar` is the host-internal
   magnitude (reserved for the ballot); `band` is the player-facing tier.
 - **`Band`** — a stock-agnostic qualitative tier (register D6: standing is
   shown as a band, never a grindable number). Cutoffs from AppSettings.
 - **`InfluenceApi`** (`api/influence.ts`) — the thin cross-stock dispatcher,
   no faucet, no logic singleton. `standingOf(subject, stock)` delegates
-  `'consumer'` → `ConsumerApi`, `'producer'` → `ProducerApi`; `'patron'`
+  `'consumer'` → `ConsumerApi`, `'producer'` → `ProducerApi`; `'capital'`
   stays a reserved value returning a defined zero standing (the Twitch
   intake build), never a throw. `bandOf` reads the delegated band.
 
 The symmetry lives at the standing/band layer; the **asymmetry stays at the
-source** — patron is `concave($)`, not `engagement × quality`, so no shared
+source** — capital is `concave($)`, not `engagement × quality`, so no shared
 formula fits. Raw logs stay per-faucet.
 
 ## The producer stock (the make faucet)
@@ -168,7 +168,7 @@ sets the quorum-against-full-count rule this encodes.
 read-only self-view (afforded by `PersonaMixin`, sibling to `chronicle`).
 Renders all three stocks as **bands** — **Play** (`consumer`, with its
 participation + regard inputs described qualitatively), **Make** (`producer`),
-**Fund** (`patron`, "not yet earnable") — keyed on the actor's durable
+**Fund** (`capital`, "not yet earnable") — keyed on the actor's durable
 `templatePath`. Bands throughout, never raw scalars (D6).
 
 ## Tuning (AppSettings, no code defaults)
@@ -185,7 +185,7 @@ non-fungible, derive-don't-track / rebuildable) are **code, never keys**.
 ## Deferred (named, not built)
 
 The **ballot / chambers / 2-of-3 / delegation** (population-deferred); the
-**patron** faucet (Twitch intake); the **producer team / co-authorship
+**capital** faucet (Twitch intake); the **producer team / co-authorship
 split** (the weighted `CreditShare[]` vector + the richer team-sandbox +
 explicit `release` action); the **second-order engagement** quality
 enrichment (register D2); the per-Player → User franchise rollup; a

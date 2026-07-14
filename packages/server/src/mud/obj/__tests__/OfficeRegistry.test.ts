@@ -171,7 +171,7 @@ describe('OfficeRegistry', () => {
     expect(keys).toEqual([
       'prime-minister',
       'speaker-producer-house',
-      'speaker-patron-house',
+      'speaker-capital-house',
       'speaker-consumer-house',
       'central-bank-governor',
     ]);

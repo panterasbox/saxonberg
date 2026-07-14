@@ -5,7 +5,7 @@
  *
  * A plain `Document` (not Stuff): the row IS the signal. This is the MAKE
  * faucet's substrate — the third influence stock, sibling of consumer's
- * `participation_events` (PLAY) and the deferred patron stock (FUND).
+ * `participation_events` (PLAY) and the deferred capital stock (FUND).
  * Production standing measures *current draw on an author's released
  * content*: when a player engages (issues a recognized command) inside a
  * zone whose covering content an author is credited for, that author earns

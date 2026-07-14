@@ -5,11 +5,11 @@
  *
  * The three-stock contract made structural. `standingOf(subject, stock)`
  * delegates by stock to the stock's home — today only `'consumer'`
- * (→ {@link ConsumerApi}); `'patron'` and `'producer'` are reserved values
+ * (→ {@link ConsumerApi}); `'capital'` and `'producer'` are reserved values
  * (their faucets are the Twitch and CMS/AOP builds) and return a defined
  * **zero standing** tagged with that stock, never a throw. The symmetry
  * lives here at the standing/band layer; the asymmetry (each stock's faucet
- * and formula) stays in the stock's own Api — patron is `concave($)`, not
+ * and formula) stays in the stock's own Api — capital is `concave($)`, not
  * `engagement × quality`, so no shared formula could fit.
  *
  * InfluenceApi owns no faucet and no logic singleton: the consumer
@@ -29,7 +29,7 @@ export class InfluenceApi {
   /**
    * A subject's measured standing in `stock`, carrying the `stock` tag and
    * its band. `'consumer'` delegates to {@link ConsumerApi}, `'producer'` to
-   * {@link ProducerApi}; the still-reserved `'patron'` stock returns a
+   * {@link ProducerApi}; the still-reserved `'capital'` stock returns a
    * defined zero standing tagged with that stock.
    */
   public static standingOf(subjectId: string, stock: Stock): InfluenceStanding {

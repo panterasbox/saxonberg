@@ -173,7 +173,7 @@ guardrail is baked into the economic frame, not bolted on as a rule.
 | **Bouncer / peacekeeping** | subdual, ejection | non-lethal; stop at yield/removal |
 | **Bounty / apprehension** | bring them in | **alive** default; dead-or-alive a gated, costlier variant |
 | **Sparring / duel / training** | consented | non-lethal, first-blood/yield — the **safe, repeatable advancement engine**; where Master-Apprentice lives |
-| **Arena / exhibition** | spectacle | consented (gladiatorial lethal *or* prizefight non-lethal); ties to the broadcast/patronage layer |
+| **Arena / exhibition** | spectacle | consented (gladiatorial lethal *or* prizefight non-lethal); ties to the broadcast/capital layer |
 | **Sanctioned purge / war** | institutionally declared | the rare authorized-lethal free-for-all |
 
 None is "wander out and kill for loot."

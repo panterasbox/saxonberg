@@ -4,7 +4,7 @@
  * standing projection.
  *
  * One of three sibling stock Apis under the common {@link InfluenceApi}
- * dispatcher (consumer ships; patron is intake-gated). ProducerApi OWNS the
+ * dispatcher (consumer ships; capital is intake-gated). ProducerApi OWNS the
  * attributed-engagement log + standing and computes the producer standing.
  * Its formula is **engagement-only** — the decayed attributed-engagement
  * scalar, NOT `engagement × quality` (an author earns from *draw* on their

@@ -1,7 +1,7 @@
 /**
  * InfluenceApi — the common cross-stock dispatcher. Covers that
  * `'consumer'` delegates to `ConsumerApi` and `'producer'` to `ProducerApi`,
- * that the still-reserved `'patron'` stock returns a defined zero standing
+ * that the still-reserved `'capital'` stock returns a defined zero standing
  * tagged with that stock (never a throw), and that `bandOf` reads the
  * delegated band.
  */
@@ -38,9 +38,9 @@ describe('InfluenceApi', () => {
     expect(InfluenceApi.bandOf(S, 'producer').name).toBe('established'); // 20 ≥ established(20)
   });
 
-  it('returns a defined zero standing for the reserved patron stock (no throw)', () => {
-    const st = InfluenceApi.standingOf(S, 'patron');
-    expect(st.stock).toBe('patron');
+  it('returns a defined zero standing for the reserved capital stock (no throw)', () => {
+    const st = InfluenceApi.standingOf(S, 'capital');
+    expect(st.stock).toBe('capital');
     expect(st.scalar).toBe(0);
     expect(st.band.name).toBe('dormant');
   });

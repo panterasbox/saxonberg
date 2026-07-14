@@ -306,7 +306,7 @@ Ordered by leverage + dependency:
    meter), **producer** (make) faucet, the **conviction** spend substrate
    (abstain/quorum, no verb yet), the durable-`templatePath` re-key, and the
    **authorship ledger** ([provenance.md](./subsystems/provenance.md)) — the
-   patron faucet, the ballot/chambers, and NPC-susceptibility / eigenvector
+   capital faucet, the ballot/chambers, and NPC-susceptibility / eigenvector
    weighting stay deferred. The **social-graph attention layer**
    (crowd-bucket verbosity + the `notify` notification policy) then
    **shipped 2026-06** as social-graph Wave 3

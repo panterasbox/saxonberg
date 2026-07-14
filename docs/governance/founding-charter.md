@@ -53,14 +53,14 @@ these terms, and no other:
 2. **Consumer house — 0%, ceded outright.** The founder takes **no consumer
    influence** — the players' house is theirs from day one. A deliberate
    self-restraint: he earns influence only in the chambers where he bears cost
-   (he produces; he matches patronage), never in the chamber of participation.
-3. **Patron house — matched, plus one.** As money is donated, for every unit
-   of patron influence awarded to a donor the founder accrues an **equal
+   (he produces; he matches capital), never in the chamber of participation.
+3. **Capital house — matched, plus one.** As money is donated, for every unit
+   of capital influence awarded to a donor the founder accrues an **equal
    unit**, **plus one** — a single extra unit that guarantees a working
-   majority of the patron house and prevents deadlock, so sweeping early
+   majority of the capital house and prevents deadlock, so sweeping early
    changes move without red tape.
 4. **Sunset at ratification — of the *granted* levers.** What sunsets is the
-   **granted control**: the patron-match and its **+1** margin (term 3). From
+   **granted control**: the capital-match and its **+1** margin (term 3). From
    ratification the founder holds **no privileged stake and no guaranteed
    majority**, and accrues only (a) **ordinary influence** for ongoing
    contribution, like any member, and (b) what **legislation grants as wage**
@@ -72,12 +72,12 @@ these terms, and no other:
 
 The founder's grip is **two chambers, eroding to fewer**:
 
-- Producer (~100%, diluting) **+** patron (50% + 1) = **two of three chambers**
+- Producer (~100%, diluting) **+** capital (50% + 1) = **two of three chambers**
   → a majority of chambers → effective control *at the start*, when he bears
   all the risk and does all the work.
 - The consumer house is **0%** — entirely the players'.
 - As producers join, the producer share dilutes; the founder's control falls
-  from two chambers toward one (patron alone, which is not a majority). His
+  from two chambers toward one (capital alone, which is not a majority). His
   grip is **strongest now and fades on its own** as the community contributes
   more — the very curve that signals readiness for the **ratifying
   convention.**
@@ -103,7 +103,7 @@ founder's control — is what the polity ultimately entrenches.
 ## Buildable now
 
 This charter is **near-term, not parked with the republic**: it ships with the
-stake-ledger v1. The ledger that turns donations into patron influence is the
+stake-ledger v1. The ledger that turns donations into capital influence is the
 same ledger that accrues the founder's matched-plus-one — one mechanism,
 publicly recorded. The sunset is a single condition (ratification) the ledger
 honors. Open detail deferred to the ledger build: the exact unit accounting,

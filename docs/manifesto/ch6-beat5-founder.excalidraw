@@ -93,13 +93,13 @@
       "updated": 1,
       "link": null,
       "locked": false,
-      "text": "PATRON: match every stake\n+1 \u2014 a majority",
+      "text": "CAPITAL: match every stake\n+1 \u2014 a majority",
       "fontSize": 12,
       "fontFamily": 1,
       "textAlign": "center",
       "verticalAlign": "top",
       "containerId": null,
-      "originalText": "PATRON: match every stake\n+1 \u2014 a majority",
+      "originalText": "CAPITAL: match every stake\n+1 \u2014 a majority",
       "lineHeight": 1.25
     },
     {
@@ -478,13 +478,13 @@
       "updated": 1,
       "link": null,
       "locked": false,
-      "text": "\u00b7 keep the patron match",
+      "text": "\u00b7 keep the capital match",
       "fontSize": 12,
       "fontFamily": 1,
       "textAlign": "left",
       "verticalAlign": "top",
       "containerId": null,
-      "originalText": "\u00b7 keep the patron match",
+      "originalText": "\u00b7 keep the capital match",
       "lineHeight": 1.25
     },
     {

@@ -945,7 +945,7 @@ taxonomy and how `FrameKind`/`runRoot` plant frames.
   `fieldMarshallers` seam there
 - [broadcast-patronage-track.md](../tracks/broadcast-patronage-track.md)
   — this multi-provider build is Phase 1 of the go-live track (the
-  keystone the Twitch chat relay and patronage→stake ledger depend on)
+  keystone the Twitch chat relay and capital→stake ledger depend on)
 
 ## History
 

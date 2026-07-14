@@ -9,7 +9,7 @@
 ## Model — describe THIS (the shipped system), not the constitution draft
 
 - **Standing** = the unit of influence. Three stocks: **make / fund / play**
-  (producer / patron / consumer). **Earned and held** — *no reservoir, no
+  (producer / capital / consumer). **Earned and held** — *no reservoir, no
   lifetime cap, no "decays when moved."*
 - **Conferred by others** (the Sybil answer): make counts only *others'*
   engagement (author ≠ actor, no self-credit); play is participation others

@@ -44,7 +44,7 @@ voice?"
 
 **[Beat 2 — three dimensions of each person]**
 "And here's the part that's easy to get wrong: these aren't really different groups of
-people with different responsibilities. Everyone contributes along three different axes: patronage (the money), labor (making or doing shit for the game), and consumption (actually playing the game, watching the livestream, whatever). They're three things almost everyone does. Make, fund, play — three ways the same person gives to the place. And each one earns
+people with different responsibilities. Everyone contributes along three different axes: capital (the money), labor (making or doing shit for the game), and consumption (actually playing the game, watching the livestream, whatever). They're three things almost everyone does. Make, fund, play — three ways the same person gives to the place. And each one earns
 its own kind of say."
 
 **[Beat 3 — three counts of the same crowd]**
@@ -113,8 +113,8 @@ the **firewall.** Diagram changes ~every 10–15s; client never shown.
   and the formal "three chambers" deferred to Ch 4**, which names them and
   retroactively labels this thing.
 - **Naming:** casual **makers / funders / players** in the video; formal
-  **Producer / Patron / Consumer** stays in the constitution. "Patron" is
-  load-bearing for the brand — swap to "makers / patrons / players" if wanted.
+  **Producer / Capital / Consumer** stays in the constitution. "Capital" is
+  load-bearing for the brand — swap to "makers / funders / players" if wanted.
 - **Autocrat → Ch 6.** Scale is the *why* behind the dial: keep whatever stake
   you want and **defer selectively** (abstain) — not all-or-nothing. Optional
   one-line reassurance earlier so operator-viewers don't bounce.
@@ -130,7 +130,7 @@ the **firewall.** Diagram changes ~every 10–15s; client never shown.
   note Ch 6 has no treasury beat either. The operator-kickback signal, if kept,
   lives as one clause in Ch 6 Beat 5, not here.
 - **Don't imply the model prevents cashing out / investment (Beat 4).** Nothing in
-  the model architecturally stops patronage from being structured as a real
+  the model architecturally stops capital from being structured as a real
   investment with a return — that's securities law and a design choice, and this
   could run on real markets. Overclaiming it makes the firewall sound like magic.
   The wall that *is* real is narrower: **money moves the funder count and stops

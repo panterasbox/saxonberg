@@ -67,8 +67,8 @@ forced to carry the whole load — not the operator, not you.**
 Which leaves the pointed question about the **founder** — won't they just keep
 control? Here's how it works, and the word that matters is *tentative.* Before a
 community ratifies, a founder really does run the place — by a published,
-checkable formula, not a backroom. In the **patrons'** count they match every
-stake patrons earn and hold one more — a majority. In the **producers'** count
+checkable formula, not a backroom. In the **funders'** count they match every
+stake funders earn and hold one more — a majority. In the **producers'** count
 they start on top, having built the core systems, then **dilute** as new builders
 arrive. In the **players'** count, nothing automatic — they earn it by playing,
 like anyone.
@@ -80,7 +80,7 @@ Then comes **ratification**, where the *community* decides what becomes permanen
 don't have to hand over the keys.** And you don't have to run the place for free,
 either — paying the operator is just another expense the community can cover out
 of the treasury, like any other; running it can be your job, not your charity.
-Sunset the extras, keep the patronage match, offboard yourself entirely — or keep
+Sunset the extras, keep the capital match, offboard yourself entirely — or keep
 a standing majority and run the place top-down. Be clear-eyed about what that
 means: a majority of the chambers is the
 legislature *and* the executive both — two branches — and you can keep hearing
@@ -137,7 +137,7 @@ line.
   decisions *down*; a member handing their vote to a trusted delegate (revocable).
   *Nobody carries the whole load.*
 - **Beat 5 — no-face.** The founder mechanism: pre-ratification position across
-  the three counts (patron majority via match-plus-one; producer high →
+  the three counts (capital majority via match-plus-one; producer high →
   diluting; consumer ~zero) → a **RATIFICATION gate** where the community sets the
   dial (offboard / sunset / keep-match / autocrat-runs-it-all) → all of it on the
   floor (verify / no-buy / exit) → the honest tendency (open up → more value).
@@ -170,8 +170,8 @@ Heroes = the **floor** (Beat 2) + the **dial** (Beat 3).
   community approves*, consistent with no-earmarking — money flowing back to the
   operator is an ordinary expense, never a lever on outcomes (keeps the firewall
   intact). It's the operator-customer sweetener; keep it to one clause.
-- **Founder-binding numbers** (matched-plus-one patron margin, etc.) = `founding-
-  charter.md` spec, doc-only. The manifesto carries: patron match→majority,
+- **Founder-binding numbers** (matched-plus-one capital margin, etc.) = `founding-
+  charter.md` spec, doc-only. The manifesto carries: capital match→majority,
   producer dilutes, consumer none, ratification-community-decides, floor-holds,
   open-up-tends-to-pay.
 - **Federalism's substance is already in here** — "same floor in every copy"

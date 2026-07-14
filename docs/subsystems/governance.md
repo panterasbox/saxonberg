@@ -29,7 +29,7 @@ Three population-shaped concepts, deliberately distinct:
   an origin, a single-holder-with-founder-default model, and
   apparatus-defined identity the group model lacks.
 - **Chamber** ([influence.md](./influence.md)) — a population that
-  *falls out of* influence (the Producer / Patron / Consumer Houses),
+  *falls out of* influence (the Producer / Capital / Consumer Houses),
   never "filled". This build models only the Speaker **seats** of those
   houses, not the chamber populations.
 
@@ -61,7 +61,7 @@ vocabulary / registry" module category — one module, one concept).
   |---|---|---|---|
   | `prime-minister` | Prime Minister | executive | constituted |
   | `speaker-producer-house` | Speaker of the Producer House | legislative | constituted |
-  | `speaker-patron-house` | Speaker of the Patron House | legislative | constituted |
+  | `speaker-capital-house` | Speaker of the Capital House | legislative | constituted |
   | `speaker-consumer-house` | Speaker of the Consumer House | legislative | constituted |
   | `central-bank-governor` | Governor of the Central Bank | executive | founder-established |
 

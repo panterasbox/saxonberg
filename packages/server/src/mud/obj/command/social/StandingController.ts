@@ -5,7 +5,7 @@
  * A single-token, zero-arg, self-only, read-only verb. It reads the three
  * influence stocks — **play** (consumer = `engagement × renown`), **make**
  * (producer = attributed engagement on released content), and **fund**
- * (patron, intake-gated → not yet earnable) — and renders each as a band,
+ * (capital, intake-gated → not yet earnable) — and renders each as a band,
  * with the two inputs to the play band (participation + regard) described
  * qualitatively. It emits **bands**, never raw scalars (register D6:
  * standing is shown qualitatively; the precise number is reserved for the
@@ -43,7 +43,7 @@ export default class StandingController extends CommandController<CommandModel> 
     // qualitatively; the precise number is reserved for the eventual ballot).
     const playBand = InfluenceApi.bandOf(subjectId, 'consumer');
     const makeBand = InfluenceApi.bandOf(subjectId, 'producer');
-    // Patron (fund) is intake-gated — a defined zero until Twitch patronage
+    // Capital (fund) is intake-gated — a defined zero until Twitch capital
     // lands; shown as not-yet-earnable rather than a misleading 'dormant'.
 
     // The two inputs to the play (consumer) band, described in words so
@@ -66,7 +66,7 @@ export default class StandingController extends CommandController<CommandModel> 
       Mml.escape(`Play (engagement): ${playBand.name}.`),
       Mml.escape(`${presence} ${regard}`),
       Mml.escape(`Make (creation): ${makeBand.name}.`),
-      Mml.escape('Fund (patronage): not yet earnable.'),
+      Mml.escape('Fund (capital): not yet earnable.'),
     ];
 
     const body = Mml.fromMarkup(blocks.join('\n\n'));

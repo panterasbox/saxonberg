@@ -173,8 +173,8 @@ day one. This is genuinely new design (Twitch had no quota meter):
 
 ## Out of scope (explicit)
 
-- **Patron intake.** YouTube memberships / Super Chat → fund-standing
-  is **not** here. The patronage ledger is **Twitch-native only** by an
+- **Capital intake.** YouTube memberships / Super Chat → fund-standing
+  is **not** here. The capital ledger is **Twitch-native only** by an
   earlier locked decision; YouTube monetization is a separate future
   payload-intake slate. Do not conflate Super Chat with in-world money.
 - **Shared relay core / `externalBinding` unification** — deferred (see

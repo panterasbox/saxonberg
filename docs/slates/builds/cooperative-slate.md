@@ -195,7 +195,7 @@ security — the exact thing this design refuses to be. So:
 
 The discipline in three words an author/operator can hold: never write
 the words **investor, share, equity, return,** or **dividend** where a
-contributor can read them. The funding chamber is the **Patron House**,
+contributor can read them. The funding chamber is the **Capital House**,
 not the investor house. Stake, never stock.
 
 > A backer funds a world and earns a seat in it. They do not buy a piece
@@ -244,11 +244,11 @@ three *kinds of earned standing*, each with its own faucet:
 | Influence type | Earned by | Chamber |
 |---|---|---|
 | **Producer** | labor on the project | Producer House |
-| **Patron** | dollars contributed | Patron House |
+| **Capital** | dollars contributed | Capital House |
 | **Consumer** | engaged consumption (engagement × reputation) | Consumer House |
 
 The load-bearing rule: **the three types are non-fungible.** Producer
-influence votes only on the Producer floor, patron only on the Patron
+influence votes only on the Producer floor, capital only on the Capital
 floor, consumer only on the Consumer floor. **No cross-chamber
 conversion, ever.** Without this, there is really only one resource
 wearing three hats, "majority of chambers" collapses into a single
@@ -271,9 +271,9 @@ deepest reason the chambers are co-equal:
 
 - **Producer = creation** — you *built* valued things, **measured by the
   engagement your content earns** (below), not by anyone's say-so.
-- **Patron = patronage** — you *funded* it (measured dollars).
+- **Capital = capital** — you *funded* it (measured dollars).
 - **Consumer = participation** — you *consume*, and **consumption is the
-  contribution.** Producers build *for* someone; patrons fund *for*
+  contribution.** Producers build *for* someone; funders fund *for*
   someone; without the engaged audience the other two houses have **no
   charter.** The consumer house represents the people who are the *reason*
   — the foundational contribution, not a softer one.
@@ -389,7 +389,7 @@ chambers** (a chamber is *everyone*, with no prior method to vote a new one
 in, and the rule is engineered for stability, so a house can't swap it). What
 *is* chamber-internal is the layer *above* the tally: **representation** —
 whether members vote directly or delegate to seats. The tiny Producer and
-Patron houses can run direct; the huge, volatility-prone **Consumer House** is
+Capital houses can run direct; the huge, volatility-prone **Consumer House** is
 precisely the body that would go **representational** — delegation/seats
 riding on the *same* conviction tally, not a different one. You don't push the
 *rule* down to the chamber (it's kernel); you let the chamber choose its
@@ -407,7 +407,7 @@ Because influence regenerates only through *continued* contribution,
 **money buys moments, not thrones.** A wealthy backer can refill a large
 reservoir and unleash a big vote once — but cannot *hold* dominance
 without paying continuously, and the Consumer House (co-equal, below)
-checks the Patron House regardless. Under a time-weighted voting rule
+checks the Capital House regardless. Under a time-weighted voting rule
 (conviction voting) the purchased strike is weak anyway — weight accrues
 with *time on position*, not with a momentary balance — so the same
 guardrail compounds at the rule layer. The dollar→influence curve should be
@@ -470,7 +470,7 @@ vectors, and the merit mechanism should match each:
   minted **bank of producer influence** recognizing creation that measure can't
   capture — *because producers largely contribute unpaid, and
   this is how the polity compensates good work it can't pay for in money.*
-  - **Producer influence only** — never consumer or patron.
+  - **Producer influence only** — never consumer or capital.
   - **Minted and capped by the legislature** (the central-bank pattern again).
   - **Evaluated by competence** — judging *good work* needs people who can judge
     it, so this is the one place a flat sortition jury is the *wrong* body and
@@ -484,7 +484,7 @@ vectors, and the merit mechanism should match each:
 
 **Why the producer bank isn't a power-pump.** Minting producer influence
 redistributes power *within* the producer house (toward the meritorious) — it
-**cannot tilt producers against consumers or patrons**, because passage is by
+**cannot tilt producers against consumers or funders**, because passage is by
 **co-equal chambers** counted separately, not a pooled tally. The co-equality
 already entrenched is what contains the merit pay; the only residual is
 *intra*-producer cronyism, which recusal + the cap + transparency + review
@@ -492,7 +492,7 @@ address.
 
 So the mechanism is asymmetric by design, matching each house's nature:
 **consumer = social → renown (weight); producer = labor → merit pay (bounded
-mint); patron = dollars → neither** (the firewall axis takes no merit).
+mint); capital = dollars → neither** (the firewall axis takes no merit).
 Placement: the **bounds** are constitutional (Art. III §§6–7); the **specific
 instruments** (the renown sourcing, the producer merit-pay institution) are
 legislated modules.
@@ -512,7 +512,7 @@ The three chambers differ in *center of gravity* — the concerns each
 constituency cares most about — but not in procedure:
 
 - **Producer House** — what gets built, production direction.
-- **Patron House** — the budget (real dollars) and reserve appropriations.
+- **Capital House** — the budget (real dollars) and reserve appropriations.
   The "purse."
 - **Consumer House** — world/community matters: lore, events, world policy.
 
@@ -528,7 +528,7 @@ resolves the old origination question: the answer is *none*.)
 types *independently* into the three house-tallies on the same concurrent
 bill — and they may **disagree**: yes with producer-influence, no with
 consumer-influence. That isn't a quirk; it's the three-contributions design
-paying off — you're a producer *and* a patron *and* a consumer, those roles
+paying off — you're a producer *and* a funder *and* a consumer, those roles
 have different interests, and a bill good for your maker-self may be bad for
 your player-self. Each house tallies its own type; passage is by majority of
 houses.
@@ -536,7 +536,7 @@ houses.
 A deliberate, permanent property of this shape: with three co-equal
 chambers and two-of-three passage, the **Consumer House — however
 enormous its population — is still only one vote of three.** The makers
-and patrons can never be steamrolled by sheer player numbers. This is
+and funders can never be steamrolled by sheer player numbers. This is
 the *permanent* structural check, distinct from any founder's transient
 control (below).
 
@@ -567,7 +567,7 @@ The rule that resolves it without bricking the polity:
 This also **completes the founder's self-binding** — precisely. A polity can
 cross the ratification threshold on consumers while the producer house is still
 basically the founder; under this rule that sparse house *abstains* rather than
-handing the founder a chamber, and the *granted* patron-match sunsets — so the
+handing the founder a chamber, and the *granted* capital-match sunsets — so the
 founder's **control** ends. What does *not* end is the founder's **earned**
 producer influence: it reflects real work (the game awards it the same as for
 any producer), persists like any member's, and becomes a legitimate, diluting
@@ -656,9 +656,9 @@ A "party" here isn't a membership org fielding candidates — it's a
 delegation market: lightweight, fluid, instantly losable. The
 three-chamber structure shapes them: because the PM must bridge ≥2
 chambers, **cross-cutting coalitions** (a "growth" vs. "stability"
-faction, each spanning producers/patrons/players) are favored over
-hostile chamber-tribes — a pure "patrons' party" can't govern alone.
-That's healthy: it keeps the producer/patron/consumer cleavage from
+faction, each spanning producers/funders/players) are favored over
+hostile chamber-tribes — a pure "funders' party" can't govern alone.
+That's healthy: it keeps the producer/capital/consumer cleavage from
 hardening into tribal war.
 
 ### The two real dangers
@@ -716,14 +716,14 @@ lootboxes banned and reopens the legal can stake-is-not-stock closed).
 
 Honesty: the inbound seal isn't perfectly impassable. *Buy enough
 influence and you could pass a law that makes your avatar rich* — each
-step (buy patron influence, legislate, move the reserve) is individually
+step (buy capital influence, legislate, move the reserve) is individually
 legitimate, so the *composition* can't be sealed. The design doesn't claim
 it can; it does what it does everywhere — makes the path **costly,
 visible, and self-defeating** rather than impossible (the same stance as
 the root-power floor and tamper-evidence). To traverse it you'd have to
 beat, in series:
 
-- **buy only one chamber** (patron — concave + capped) but **need 2 of 3**
+- **buy only one chamber** (capital — concave + capped) but **need 2 of 3**
   — so persuade producers and consumers too, with "make me rich" as the
   pitch;
 - **survive transparency** — a self-enriching bill names its own sponsor
@@ -750,7 +750,7 @@ Cheap insurance for the crude case: a **generality requirement** — laws
 must be general; no targeted private benefit, no "enrich avatar X" (the
 private-bill / bill-of-attainder ban). It kills the naked version
 outright; the friction stack handles the subtle ones (a law broadly
-favoring patrons-who-happen-to-be-the-whale is genuinely hard to tell from
+favoring funders-who-happen-to-be-the-whale is genuinely hard to tell from
 policy — there you lean on transparency + spirit-review, not a bright
 line). The one condition under which the whole hill flattens into a ramp
 is a **disengaged electorate** — which is why engagement is the substrate
@@ -902,14 +902,14 @@ coherent order — you can't sample your way through reasoning. Properties:
 Deliberation on a bill is **global** (one shared argument-map on the central
 floor) — but a constituency may also want to deliberate *among itself* first.
 A **caucus** is a **group-scoped deliberation**: the same argument-map
-substrate, scoped to a `GroupRef` (a whole house — *the patrons* working out
+substrate, scoped to a `GroupRef` (a whole house — *the funders* working out
 how they want the money spent — or a guild, or an ad-hoc coalition) instead
 of the whole polity. It's where a slice forms a position before a bill hits
 the floor. Two rules keep it clean:
 
 - **A caucus recommends; it never binds.** "Voting as a bloc" is members
   *choosing* to align with the caucus's position — which is just
-  **delegation** (delegate your patron-influence to the caucus line,
+  **delegation** (delegate your capital-influence to the caucus line,
   revocably). Opt-in coordination, not a whip; any member can split off (the
   vote is per-house and splittable — always the individual's).
 - **Caucuses are emergent, not constitutional organs.** They're
@@ -1106,7 +1106,7 @@ confidence holds.
   chambers will currently back — confidence is the standing, always-on
   form of the ordinary passage rule. A property falls out for free: to
   hold two of three chambers the PM must **bridge at least two of the
-  three constituencies** (producers / patrons / consumers), so the
+  three constituencies** (producers / funders / consumers), so the
   executive can't be captured by money, makers, or players alone —
   anti-capture by construction.
 - **Install by investiture** — a bill (majority of chambers) names the
@@ -1134,7 +1134,7 @@ majority-of-chambers confidence* — drawn from the tamper-evident record,
 certified by the one body with no political power, so no branch
 adjudicates its own claim to the office.
 
-During design the founder is PM trivially (sole Producer + 51% Patron =
+During design the founder is PM trivially (sole Producer + 51% Capital =
 2 of 3) and holds it only while still commanding 2-of-3 confidence — note
 that 51% of *one* chamber doesn't secure it, a majority of *chambers*
 does, so even the PM-ship rides the honest 2-of-3 structure, not a
@@ -1288,7 +1288,7 @@ spirit face pointed at a person.
 Start from the principle that orders everything else: **the judiciary is
 the polity's *egalitarian* branch.** The legislature is
 influence-weighted — more contribution, more say; justice must be
-*equal*, or the cross-branch membrane fails and a patron whale buys a
+*equal*, or the cross-branch membrane fails and a funder whale buys a
 friendly court. So the inverting rule: **influence buys nothing here.**
 The two competences then staff differently:
 
@@ -1625,7 +1625,7 @@ into* real separation as the pool fills.
 
 The non-fungibility rule that keeps the three *influence types* apart
 rises one level to keep the three *branches* apart: **legislative
-influence must not buy executive or judicial office** — else a patron
+influence must not buy executive or judicial office** — else a funder
 whale simply purchases the court that reviews him. So the branches staff
 by **deliberately different mechanisms**: legislative seats are
 influence-weighted; the executive is *appointed by the board*; the
@@ -2057,7 +2057,7 @@ pathological:
 - **Popularity contest / idle grind** — half-killed by construction (the
   quantity×quality product needs both presence and regard), and the
   tricameral check tempers the rest (a popular faction still needs the
-  creation and patronage houses).
+  creation and capital houses).
 - **Goodhart** — once standing buys governance power, people farm both
   axes for politics, not just play. The defense is the **product itself**
   (engagement × regard needs real presence *and* peer regard), the
@@ -2090,7 +2090,7 @@ you can.
 
 The founder's override during design is **structural, not privileged** —
 and that distinction is the point. As sole member of the Producer House
-and holder of ~51% of Patron influence, the founder controls two of
+and holder of ~51% of Capital influence, the founder controls two of
 three chambers, which in a two-of-three system is total override (the
 necessary two for anything to pass; no lone chamber can pass anything
 alone). But this is *honest* control: it exists because the founder is
@@ -2198,7 +2198,7 @@ The **fiat-phase stake** is itself bound by a published, code-enforced
 formula, in force from the first dollar: the founder is the **sole producer**
 (~100% of the producer house, *diluting* as authors join — a starting state,
 not a lock), takes **0% of the consumer house** (the players' chamber is
-theirs from day one), and **matches patron influence one-for-one, plus one
+theirs from day one), and **matches capital influence one-for-one, plus one
 unit** for a working majority — two chambers of control that *erode on their
 own* as the community grows, then **sunset entirely at ratification**, after
 which the founder earns only a **legislated wage**. The binding before
@@ -2252,10 +2252,10 @@ standing up any of the republic:
   co-equal auth + account linking) and the **external-chat-relay**
   integration surface (the dono/sub webhook lands next to the inbound
   chat reader).
-- **Mint-at-launch.** Accrued ledger entries convert to Patron-House
+- **Mint-at-launch.** Accrued ledger entries convert to Capital-House
   influence + citizenship tier when the government comes online.
   Pre-launch, the ledger only *records*; nothing is governed yet.
-- **The Law 1 wording discipline** from day one — "stake," "patron,"
+- **The Law 1 wording discipline** from day one — "stake," "funder,"
   "citizen," never "investor/share/return."
 
 What v1 deliberately does **not** ship: the chambers, voting, the
@@ -2299,7 +2299,7 @@ citizen. Parked until there's a population to govern:
   overclaimed wall; the generality requirement (no targeted private
   benefit) backstops the crude case. Open: how the spirit-review branch
   detects *subtle* self-dealing (a law that broadly favors the
-  whale-as-patron is hard to distinguish from policy).
+  whale-as-funder is hard to distinguish from policy).
 - **Engagement & disengagement — the master risk.** Resolved in
   principle: governance is engagement-optional (delegation/conviction so
   non-voting is still represented; never tax absence) and aims to be
@@ -2333,7 +2333,7 @@ citizen. Parked until there's a population to govern:
   *not* per-circle — per-circle standing is a social/game signal that buys
   no vote) — the
   *participation* third of three kinds of contribution (creation /
-  patronage / participation), and the foundational one (without the
+  capital / participation), and the foundational one (without the
   audience the other houses have no charter). The product beats both the
   popularity contest (reputation alone) and the idle grind (engagement
   alone). Representational form (emergent delegation by default, elections

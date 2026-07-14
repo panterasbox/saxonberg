@@ -242,7 +242,7 @@ below** (kept as the index/map). Full-screen camera lives ONLY in `intro.md` and
   *contribution type*, not geography or headcount. This is the chapter's
   spine, not a detail.
 - **Firewall, folded in where it belongs:** real money earns a voice *in the
-  patron house*; the firewall is what stops that voice from buying the other
+  capital house*; the firewall is what stops that voice from buying the other
   two or converting into dominance — Art. I §2 *"No money buys advantage."*
 - **DGG hook:** the on-sight crypto/grift disarm — no token, money = voice,
   never advantage.
