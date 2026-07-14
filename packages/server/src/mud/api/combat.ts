@@ -93,6 +93,25 @@ export class CombatApi {
     logic().advance(session);
   }
 
+  /**
+   * A new combatant joins an existing fight (a gang-up / a bystander drawn
+   * in): a participant + `body` hold + a mutual threat edge under `terms`,
+   * side frozen from the party seam.
+   */
+  public static join(
+    joiner: Stuff & Engaged,
+    target: Stuff & Engaged,
+    terms: CombatTerms,
+  ): { ok: boolean; reason?: string } {
+    return logic().join(joiner, target, terms);
+  }
+
+  /** Fold two colliding fights into one (participants + edges move onto
+   * the survivor; the other's beat is torn down). */
+  public static merge(a: CombatSession, b: CombatSession): void {
+    logic().merge(a, b);
+  }
+
   /** Set the actor's intent for the next exchange (non-blocking). */
   public static queueGambit(actor: Stuff, gambitKey: string): GambitEligibility {
     return logic().queueGambit(actor, gambitKey);

@@ -14,6 +14,7 @@ import { ScheduleApi } from "../../api/schedule";
 import { StuffApi } from "../../api/stuff";
 import { AppApi } from "../../api/app";
 import { SpeciesApi } from "../../api/species";
+import { PartyApi } from "../../api/party";
 import { ChronicleApi } from "../../api/chronicle";
 import { RegardApi } from "../../api/regard";
 import { AdvancementApi } from "../../api/advancement";
@@ -94,6 +95,20 @@ export class CombatLogic extends ApiLogic {
   @CallSecurity(CombatApiCallers)
   public advance(session: CombatSession): void {
     advanceImpl(session);
+  }
+
+  @CallSecurity(CombatApiCallers)
+  public join(
+    joiner: Stuff & Engaged,
+    target: Stuff & Engaged,
+    terms: CombatTerms,
+  ): { ok: boolean; reason?: string } {
+    return joinImpl(joiner, target, terms);
+  }
+
+  @CallSecurity(CombatApiCallers)
+  public merge(a: CombatSession, b: CombatSession): void {
+    mergeImpl(a, b);
   }
 
   @CallSecurity(CombatApiCallers)
@@ -227,8 +242,12 @@ function openSessionImpl(
 
   const tickMs = Math.round(dial(AppSettingKeys.combatTickSeconds, 3) * 1000);
   const session = new CombatSession(terms, tickMs);
-  const holdA = session.addParticipant(deriveState(initiator));
-  const holdB = session.addParticipant(deriveState(defender));
+  const aState = deriveState(initiator);
+  aState.side = safeSideOf(initiator);
+  const bState = deriveState(defender);
+  bState.side = safeSideOf(defender);
+  const holdA = session.addParticipant(aState);
+  const holdB = session.addParticipant(bState);
 
   // Seed the threat graph with the mutual 1v1 edges (both directions),
   // each carrying the session terms (the per-edge-terms seam — cycle-2
@@ -257,6 +276,58 @@ function openSessionImpl(
   return { ok: true, session };
 }
 
+/**
+ * A new combatant joins an existing fight (a gang-up / a bystander drawn
+ * in). Adds a participant + `body` hold + a mutual threat edge under the
+ * given terms, side frozen from the party seam. The joiner must be free
+ * (not already fighting).
+ */
+function joinImpl(
+  joiner: Stuff & Engaged,
+  target: Stuff & Engaged,
+  terms: CombatTerms,
+): { ok: boolean; reason?: string } {
+  if (!MixinApi.isEngaged(joiner)) return { ok: false, reason: "not-engageable" };
+  if (joiner.getEngagementByType(COMBAT_PARTICIPANT_TYPE)) {
+    return { ok: false, reason: "busy" };
+  }
+  const session = sessionForImpl(target);
+  if (!session || !session.isActive()) return { ok: false, reason: "no-session" };
+
+  const state = deriveState(joiner);
+  state.side = safeSideOf(joiner);
+  const hold = session.addParticipant(state);
+  if (!SchedulerApi.start(hold).ok) {
+    session.removeParticipant(joiner);
+    return { ok: false, reason: "busy" };
+  }
+  const graph = session.getGraph();
+  graph.addEdge(joiner, target, terms);
+  graph.addEdge(target, joiner, terms);
+  // Blame ledger: a fresh engagement opened inside the melee (a lethal,
+  // non-consented join onto a sentient is the interloper crime path).
+  recordOpening(session, joiner, target, terms);
+  return { ok: true };
+}
+
+/**
+ * Fold session `b` into session `a` (two separate fights collide): move
+ * every `b` participant (with its already-started `body` hold) and every
+ * `b` edge onto `a`, then tear down `b`'s beat WITHOUT cancelling the
+ * moved holds. Merges happen at a beat boundary, never mid-exchange.
+ */
+function mergeImpl(a: CombatSession, b: CombatSession): void {
+  if (a === b || !a.isActive() || !b.isActive()) return;
+  for (const st of b.getStates()) {
+    const hold = b.getHold(st.combatant);
+    if (hold) a.adoptParticipant(st, hold);
+  }
+  for (const e of b.getGraph().allEdges()) {
+    a.getGraph().addEdge(e.attacker, e.defender, e.terms, e.instrument);
+  }
+  b.dissolveKeepingHolds();
+}
+
 /** Build a combatant's transient fight state from its body + gear. */
 function deriveState(combatant: Stuff & Engaged): CombatantState {
   const inputs = {
@@ -283,6 +354,41 @@ function deriveState(combatant: Stuff & Engaged): CombatantState {
     side: "",
     lastStruckBy: null,
   };
+}
+
+/** The combatant's per-fight alignment key, frozen on the node at
+ * open/join. Tolerant of an unbooted party subsystem (tests / bare
+ * combat) — a combatant with no active party is its own solo side. */
+function safeSideOf(combatant: Stuff): string {
+  try {
+    return PartyApi.sideOf(combatant);
+  } catch {
+    return `solo:${combatant.getTemplatePath() ?? ""}`;
+  }
+}
+
+/**
+ * The foe this actor presses this exchange: prefer a still-live foe the
+ * actor already has an edge onto (sustained focus), else any live foe
+ * (someone not on the actor's frozen side), opening an edge onto them.
+ * Null when no foe remains (the fight is won / all allies).
+ */
+function pickTarget(
+  session: CombatSession,
+  actorState: CombatantState,
+): CombatantState | null {
+  const graph = session.getGraph();
+  const actor = actorState.combatant;
+  for (const edge of graph.targetsOf(actor)) {
+    const ts = session.getState(edge.defender);
+    if (ts && !ts.down && ts.side !== actorState.side) return ts;
+  }
+  for (const s of session.getStates()) {
+    if (s === actorState || s.down || s.side === actorState.side) continue;
+    graph.addEdge(actor, s.combatant, session.getTerms());
+    return s;
+  }
+  return null;
 }
 
 /** A combatant with no live player Interactive is brain-driven. */
@@ -333,15 +439,16 @@ function advanceImpl(session: CombatSession): void {
 
   // Emergent tempo: each combatant acts as often as their accrued tempo
   // allows (fractional carry). Bounded per beat by the tempo ceiling.
-  // Targeting is the 1v1 opponent for now; cycle-2 Phase 4 drives it off
-  // the threat graph + `areAllied`.
+  // Targeting is side-driven (the threat graph + frozen sides): a foe is
+  // anyone not on the actor's side. A 1v1 is the degenerate case.
   for (const s of states) {
     if (!session.isActive()) break;
-    const opp = session.opponentState(s.combatant);
-    if (!opp || s.down || opp.down) continue;
+    if (s.down) continue;
     let n = s.tempo.advance();
-    while (n-- > 0 && session.isActive() && !s.down && !opp.down) {
-      resolveExchange(session, s, opp, beat);
+    while (n-- > 0 && session.isActive() && !s.down) {
+      const target = pickTarget(session, s);
+      if (!target || target.down) break;
+      resolveExchange(session, s, target, beat);
     }
   }
 

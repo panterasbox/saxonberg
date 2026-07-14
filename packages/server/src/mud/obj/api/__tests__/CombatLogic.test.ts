@@ -44,12 +44,18 @@ import {
   CombatSession,
   CombatParticipantHold,
 } from "../../../lib/combat/CombatSession";
+import { SecurityApi } from "../../../api/security";
+import { PartyApi } from "../../../api/party";
+import { PartyMemberMixin } from "../../../lib/party/PartyMember";
+import { Party } from "../../../lib/party/Party";
+import PartyRegistry from "../../../obj/PartyRegistry";
 import type { Channel } from "../../../lib/material/Channel";
 import EventRegistry from "../../../obj/EventRegistry";
 import { EventApi } from "../../../api/event";
 
 class TestRoom extends ContainerMixin(Idea) {}
 class TestFighter extends Character {}
+class TestPartyFighter extends PartyMemberMixin(TestFighter) {}
 
 let seq = 0;
 
@@ -71,6 +77,7 @@ interface FighterOpts {
   natural?: Channel;
   weaponForm?: string;
   weaponMaterial?: Material;
+  ctor?: new () => TestFighter;
 }
 
 function makeFighter(room: TestRoom, opts: FighterOpts = {}): TestFighter {
@@ -107,7 +114,11 @@ function makeFighter(room: TestRoom, opts: FighterOpts = {}): TestFighter {
   species.setBodyPlan(plan);
   stampTemplatePathForTest(species, `/lib/species/test/fighter-${id}`);
 
-  const f = makeStuff(() => new TestFighter());
+  const f = makeStuff(() => new (opts.ctor ?? TestFighter)());
+  // A distinct templatePath per fighter — combat's side seam keys a
+  // partyless combatant's `solo:<templatePath>` on it (production
+  // combatants always carry one).
+  stampTemplatePathForTest(f, `/test/fighter-${id}`);
   f.setSpecies(species);
   if (opts.natural) f.naturalAttackChannel = opts.natural;
   ContainmentApi.move(f as never, room as never);
@@ -395,6 +406,62 @@ describe("CombatLogic — the exchange writes consequence", () => {
     CombatApi.advance(session);
     // The riposte landed on the attacker.
     expect(atkr.getConditions().some((c) => c.kind === "trauma")).toBe(true);
+  });
+});
+
+describe("CombatLogic — melee (sides + join)", () => {
+  /** Seed a two-member party straight into a fresh registry. */
+  function seedParty(a: TestFighter, b: TestFighter): void {
+    const reg = makeStuff(() => new PartyRegistry());
+    stampTemplatePathForTest(reg, "/obj/PartyRegistry");
+    const p = new Party();
+    p._id = SecurityApi.uuid();
+    p.name = `crew-${seq++}`;
+    p.combatSide = "faction:allies";
+    p.addMember(a.getTemplatePath()!);
+    p.addMember(b.getTemplatePath()!);
+    reg.add(p);
+    (a as unknown as { activePartyId: string }).activePartyId = p._id;
+    (b as unknown as { activePartyId: string }).activePartyId = p._id;
+  }
+
+  it("an ally joins on your side; allies never get an attack edge, and 2v1 downs the lone foe", () => {
+    const room = makeStuff(() => new TestRoom());
+    const player = makeFighter(room, {
+      ctor: TestPartyFighter,
+      weaponForm: "bladed",
+      weaponMaterial: steel(),
+    });
+    const ally = makeFighter(room, {
+      ctor: TestPartyFighter,
+      weaponForm: "bladed",
+      weaponMaterial: steel(),
+    });
+    const foe = makeFighter(room, { weaponForm: "bladed" });
+    seedParty(player, ally);
+
+    // Player and ally are allied; the foe is a solo side.
+    expect(PartyApi.areAllied(player, ally)).toBe(true);
+    expect(PartyApi.areAllied(player, foe)).toBe(false);
+
+    const session = open(player, foe, lethal, true);
+    // The ally joins the fight on the foe.
+    const joined = CombatApi.join(ally as never, foe as never, session.getTerms());
+    expect(joined.ok).toBe(true);
+    expect(session.getCombatants()).toHaveLength(3);
+
+    for (let i = 0; i < 40 && session.isActive(); i++) {
+      CombatApi.advance(session);
+    }
+
+    // Allies never opened an attack edge on each other.
+    const graph = session.getGraph();
+    expect(graph.edgeBetween(player, ally)).toBeUndefined();
+    expect(graph.edgeBetween(ally, player)).toBeUndefined();
+    // The lone foe went down under the 2v1 (dead or the fight resolved).
+    expect(
+      foe.getLifecycleState() === "dead" || !session.isActive(),
+    ).toBe(true);
   });
 });
 

@@ -153,6 +153,36 @@ export class CombatSession {
     return this.holds.get(combatant);
   }
 
+  /**
+   * Adopt a participant from another session (merge): take over its
+   * already-started `body` hold by repointing it at this session. The
+   * hold is NOT restarted (it never left `body`); only its owning session
+   * changes, so its `onAbort` now removes it from here.
+   */
+  adoptParticipant(state: CombatantState, hold: CombatParticipantHold): void {
+    this.states.set(state.combatant, state);
+    this.holds.set(state.combatant, hold);
+    this.graph.addNode(state.combatant);
+    hold.reparent(this);
+  }
+
+  /**
+   * Tear down the beat + mark inactive WITHOUT cancelling the participant
+   * holds — used by the losing side of a merge, whose holds have already
+   * been re-homed onto the surviving session (cancelling them would strip
+   * `body` from combatants who are still fighting). Idempotent.
+   */
+  dissolveKeepingHolds(): void {
+    if (!this.active) return;
+    this.active = false;
+    if (this.tickHandle) {
+      ScheduleApi.cancel(this.tickHandle);
+      this.tickHandle = null;
+    }
+    this.holds.clear();
+    this.states.clear();
+  }
+
   /* ───────────────── the beat ───────────────── */
 
   /** Start the real-time beat. Idempotent. */
@@ -264,10 +294,16 @@ export class CombatParticipantHold implements SustainedEngagement {
   readonly slots: ReadonlySet<EngagementSlot> = new Set(COMBAT_SLOTS);
   readonly interruptibleBy: ReadonlySet<AbortReason> = new Set<AbortReason>();
   readonly cancelable = true;
-  private readonly session: CombatSession;
+  private session: CombatSession;
 
   constructor(combatant: Stuff & Engaged, session: CombatSession) {
     this.actor = combatant;
+    this.session = session;
+  }
+
+  /** Repoint this hold at a new session (merge) — the combatant keeps
+   * holding `body`; only which fight owns it changes. */
+  reparent(session: CombatSession): void {
     this.session = session;
   }
 
