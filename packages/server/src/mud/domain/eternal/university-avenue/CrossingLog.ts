@@ -38,7 +38,7 @@ export default class CrossingLog extends CrossingLogBase {
    */
   static commandContributions: CommandContributions = {
     self: [],
-    inventory: ['domain/eternal/university-avenue/commands/tally.yaml'],
+    inventory: ['domain/eternal/university-avenue/cmd/tally.yaml'],
     environment: [],
     peers: [],
   };

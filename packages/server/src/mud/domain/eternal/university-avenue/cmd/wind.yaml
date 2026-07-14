@@ -1,5 +1,5 @@
 verbs: [wind]
-controller: domain/eternal/university-avenue/commands/WindController
+controller: domain/eternal/university-avenue/command/WindController
 description: "Wind a mechanical timepiece's mainspring back to full"
 help: |
   Wind the mainspring of a mechanical timepiece within reach, so it keeps

@@ -19,10 +19,11 @@
  *     `mud/seeds/obj/command/<category>/<Name>Controller.yaml` with
  *     `class: /obj/command/<category>/<Name>Controller`.
  *   - **Domain-local verbs** — spec under
- *     `domain/<sphere>/<locality>/commands/`, controller referenced with
- *     the `domain/`-prefixed full path, seeded at
- *     `mud/seeds/domain/<sphere>/<locality>/commands/<Name>Controller.yaml`
- *     with `class: /domain/<sphere>/<locality>/commands/<Name>Controller`.
+ *     `domain/<sphere>/<locality>/cmd/` (separate from its controller,
+ *     which lives in `.../command/`), referenced by the `domain/`-prefixed
+ *     full path, seeded at
+ *     `mud/seeds/domain/<sphere>/<locality>/command/<Name>Controller.yaml`
+ *     with `class: /domain/<sphere>/<locality>/command/<Name>Controller`.
  * Both resolution shapes mirror `controllerTemplatePath` in CommandGiver
  * and the `domain/`-key resolution in CommandLogic.
  *
@@ -61,8 +62,8 @@ function walkYaml(dir: string, out: string[]): void {
 
 /**
  * Every command spec on disk: all of `cmd/`, plus the domain-local
- * command bundles (`domain/<sphere>/<locality>/commands/*.yaml`) —
- * the same two roots CommandLogic discovers.
+ * command specs (`domain/<sphere>/<locality>/cmd/*.yaml`) — the same
+ * two roots CommandLogic discovers.
  */
 function collectSpecFiles(): string[] {
   const specs: string[] = [];
@@ -74,7 +75,7 @@ function collectSpecFiles(): string[] {
     // No domain tree in this checkout — nothing to add.
   }
   for (const p of domainAll) {
-    if (p.split(/[\\/]/).includes("commands")) specs.push(p);
+    if (p.split(/[\\/]/).includes("cmd")) specs.push(p);
   }
   return specs;
 }

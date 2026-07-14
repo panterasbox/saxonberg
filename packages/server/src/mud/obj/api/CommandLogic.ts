@@ -329,7 +329,7 @@ export class CommandLogic extends ApiLogic {
       for (const f of domainEntries) {
         const norm = f.split(sep).join('/');
         if (!norm.endsWith('.yaml')) continue;
-        if (!norm.split('/').includes('commands')) continue;
+        if (!norm.split('/').includes('cmd')) continue;
         yamls.push('domain/' + norm);
       }
     } catch (err) {
