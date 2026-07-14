@@ -1175,17 +1175,14 @@ function roomBelievers(anchor: Stuff, exclude: Stuff[]): (Stuff & Sensor)[] {
   return out;
 }
 
-/** A readable label for a combatant (its presentation), or a fallback. */
+/** A readable label for a combatant (its presentation), or a fallback.
+ * `getPresentation` is on the `Stuff` base, so every combatant has it. */
 function presentationOf(s: Stuff): string {
-  const g = (s as unknown as { getPresentation?: () => string }).getPresentation;
-  if (typeof g === "function") {
-    try {
-      return g.call(s);
-    } catch {
-      /* fall through */
-    }
+  try {
+    return s.getPresentation();
+  } catch {
+    return "someone";
   }
-  return "someone";
 }
 
 /* ───────────────────────── advancement ───────────────────────── */

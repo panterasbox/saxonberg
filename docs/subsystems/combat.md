@@ -456,10 +456,16 @@ Named at their sites; nothing inherited:
   verb + `combat-intervened`), the derive-on-read **blame ledger**
   (`CombatAttributionEvent` in `combat_attribution_events` +
   `deriveBlame` + `CombatApi.blameFor`), the real **consent handshake**
-  (the `combat.lethality`/`combat.stopCondition` settings schema on
-  `CombatantMixin` that build 1 read but never declared), the resolution
-  consumers (chronicle deed/crime + regard), combat `Discipline`s
-  (`melee-combat`/`blades`) + per-exchange `ActSignature` + the costed
-  combat `assess`, and the **consented-duel** demonstrator (the gentleman
-  duelist + the fog hollow + the `arms` brain). Three new `combat.*`
-  dials (`coupSeconds`, `regard.duelWin`, `regard.unlawfulKill`).
+  (the `combat.lethality`/`combat.stopCondition` settings schema build 1
+  read but never declared), the resolution consumers (chronicle
+  deed/crime + regard), combat `Discipline`s (`melee-combat`/`blades`) +
+  per-exchange `ActSignature` + the costed combat `assess`, the
+  `fight defend` gambit, and the **consented-duel** demonstrator (the
+  gentleman duelist + the fog hollow + the `arms` brain). Three new
+  `combat.*` dials (`coupSeconds`, `regard.duelWin`, `regard.unlawfulKill`).
+  **Two fixes forced by the live demo:** the coup was wired to fire on a
+  bleed-to-unconscious incapacitation too (not only a poise-contest down),
+  since the defender-advantage means fights usually end by attrition; and
+  NPC consent moved from a settings-only approach (settings only resolve
+  for `Environment`s — which NPCs aren't) to authored
+  `standingLethality`/`standingStopCondition` fields on `CombatantMixin`.
