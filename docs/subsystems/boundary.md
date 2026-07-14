@@ -32,7 +32,10 @@ Cross-references:
 | `ExitableMixin` | mixin | Explicit exit map + zone-delegated lookup; `addExit` wires `Door.attachedTo` and (for doored exits) `BoundaryApi.attachExistingBoundary`. |
 | `ExitableVessel` | concrete class | A Vessel you can enter. `DoorBearingMixin(ExitableMixin(VisibleMixin(AdornableMixin(Vessel))))` — it composes `Adornable` itself (the fixture surface the Door→`BoundaryAnchor` retrofit needs), since the bare `Vessel` base no longer does. Synthesizes `'in'`/`'out'` exits. Migrates the `(vessel, environment)` Boundary anchor pair on `setDoor` / `onMoved`. |
 | `DoorBearingMixin` | mixin | Adds a `door: Door | null` field for hosts whose exits are synthesized rather than authored (`ExitableVessel`). Constrained to `Stuff & Exitable`. |
-| `Door` | concrete `Thing` subclass | `SealableMixin(Boundary)`. Shared open/closed state referenced by exit pairs. Implements all five conduits — `LightConduit`, `LineOfSight`, `MovementConduit`, `SmellConduit`, `SoundConduit` — all gated on `isOpen()`. `attachedTo: Set<Exit>` is the runtime back-reference. |
+| `Door` | concrete `Thing` subclass | `LockableMixin(SealableMixin(Boundary))`. Shared open/closed **and** locked/unlocked state referenced by exit pairs. Implements all five conduits — `LightConduit`, `LineOfSight`, `MovementConduit`, `SmellConduit`, `SoundConduit` — all gated on `isOpen()`. `attachedTo: Set<Exit>` is the runtime back-reference. |
+| `SwitchableMixin` | mixin | Generic binary on/off toggle (`isOn()` / `setOn()`, `switchOn()` / `switchOff()`). The Sealable of the electrical world — a wall switch, a machine, the crossing `Beacon`. Driven by the `switch` / `toggle` verb (in the `device` category). Registered as `Switchable`, `MixinApi.isSwitchable`. |
+| `LockableMixin` | mixin | Binary locked/unlocked state, composed onto `Door` **beneath** `Sealable` (`isLocked()` / `setLocked()`, `lock()` / `unlock()`). A locked door refuses traversal before the closed-door gate fires. **A STOPGAP** superseded by build-3's `lib/lock/` real `Lock`+`Key` model. Registered as `Lockable`, `MixinApi.isLockable`. |
+| `BistateMixin` | mixin (unregistered) | The shared guarded-boolean substrate under `Sealable` (open/closed), `Switchable` (on/off), and `Foldable` (folded/unfolded). One persisted boolean + a `typeof`-boolean guard, reached via protected `getState()` / `setState(value, label)`. Lives at the `lib/` root (`lib/Bistate.ts`), NOT in `lib/boundary/`. **Deliberately carries no `_mixinName` and is not in the `Mixins` registry** — shared implementation, not a queryable capability; consumers narrow on the concrete axis (`isSealable` / `isSwitchable` / `isFoldable`), never an `isBistate`. |
 | `AdornableMixin` | mixin | Container-side surface for non-portable attached Stuff (`getFixtures()` parallel to `getContents()`). Composed onto `Location` and `ExitableVessel` (not the bare `Vessel` base — every fixture consumer narrows on `MixinApi.isAdornable` first). |
 | `AdornmentMixin` | mixin | Host-side back-reference (`adornedTo`) and not-portable invariant. Composed by `BoundaryAnchor` and by content fixtures (e.g. `domain/lounge/NeonSign` = `Adornment(Branded(LightSource(Thing)))`). Attached declaratively via the host's `adornments:` instruction field (see *Declarative adornments* below) or imperatively via `addFixture`. |
 | `Boundary` | concrete `Thing` subclass | The two-anchor abstraction for cross-room channels. Just `extends Thing` — `Visible` / `Perceptible` come baked into Thing's default composition. Subclasses (`Window`, `Door`) compose `Sealable` for shutter / closed state. |
@@ -65,14 +68,24 @@ Carries:
   [locomotion.md](./locomotion.md#exitmedia).
 
 `Exit.canTraverse(mover, mode?)` rejects when `blocked`, when an
-attached door is shut, or — when `mode` is supplied — when
-`allowsMode(mode)` returns false (mode's medium not in `media`). The
-result is a `TraversalGuard` carrying `gate` / `mode` / `context`
-fields so locomotion controllers can compose verb-templated rejection
-prose without re-parsing `reason` (`gate: 'blocked' | 'door' |
-'exitMode' | 'bodyPlan' | 'posture' | 'enablement' | 'capability' |
-'noConveyance'`). Pre-locomotion callers omit `mode` and skip the
-mode gate — additive, no breakage.
+attached door is **locked**, when an attached door is shut, or — when
+`mode` is supplied — when `allowsMode(mode)` returns false (mode's
+medium not in `media`). The result is a `TraversalGuard` carrying `gate`
+/ `mode` / `context` fields so locomotion controllers can compose
+verb-templated rejection prose without re-parsing `reason` (`gate:
+'blocked' | 'locked' | 'door' | 'exitMode' | 'bodyPlan' | 'posture' |
+'enablement' | 'capability' | 'noConveyance'`). Pre-locomotion callers
+omit `mode` and skip the mode gate — additive, no breakage.
+
+The **lock gate runs before the closed-door gate** so a locked door
+reports `'locked'` rather than `'closed'`. It reads entirely off
+`this.door` (already in hand) — the destination is **never resolved**,
+so a locked gate pointing at an unbuilt or dangling destination path is
+safe to veto (this is how the crossing's north gate can be seeded
+locked while its far side is unbuilt). The rejection prose caps the
+leading character of `door.getPresentation()` (which already carries the
+article) rather than re-prefixing `"The "`, avoiding a double-article
+(`"The the university gate is locked."`). See *Locking* under Doors.
 
 Door routing still consults `door.isOpen()` directly (rather than
 going through `MovementConduit.canPassThrough`) — they return the
@@ -206,10 +219,12 @@ exit.resolveDestination()` first.
 
 ## Doors
 
-`lib/boundary/Door.ts`. Composition: `SealableMixin(Boundary)`.
-Boundary supplies `Visible + Perceptible + Thing`. The
-Containable composition (from Thing) is what enables broken /
-unhinged doors to become inventory items.
+`lib/boundary/Door.ts`. Composition:
+`LockableMixin(SealableMixin(Boundary))`. Boundary supplies `Visible +
+Perceptible + Thing`. The Containable composition (from Thing) is what
+enables broken / unhinged doors to become inventory items. The two
+boolean fields (`open` from Sealable, `locked` from Lockable) are
+distinct and coexist on the Door.
 
 The same physical door is referenced by potentially many Exits
 (canonical case: forward + back). The `attachedTo: Set<Exit>`
@@ -267,6 +282,39 @@ Overrides Perceptible to union the explicit keyword list with
 the tokens of the door's `shortDescription`, so a door authored
 with only `shortDescription: 'heavy oak door'` is targetable as
 `oak` / `door` without re-listing.
+
+### Locking
+
+`lib/boundary/Locked.ts`. `LockableMixin` composes onto Door **beneath**
+`Sealable`, adding a second boolean axis:
+
+- `isLocked()` / `setLocked(value)` — the predicate-getter / noun-setter
+  inter-Stuff contract pair. `setLocked` rejects non-booleans with a
+  `TypeError` (a malformed template `locked: 1` crashes loudly at
+  hydrate rather than being silently coerced).
+- `lock()` / `unlock()` — the idempotent action verbs.
+
+The enforcement lives in `Exit.canTraverse` (see *Exits* above): the
+lock gate fires **before** the closed-door gate, reads only `this.door`
+(never resolving the destination), and reports `'locked'`. The `lock` /
+`unlock` verbs (`obj/command/boundary/LockController.ts` /
+`UnlockController.ts`, mirroring `Close` / `Open`) resolve any reachable
+`Lockable` — a direct hit (`lock oak door`) or a direction match (`lock
+north`, door fetched from `via.exit.getDoor()`) via
+`MqlApi.effectiveTarget`.
+
+**⚠ STOPGAP.** `LockableMixin` carries **no key/credential model** — the
+crossing's north gate is seeded permanently locked and soft-walled in
+dialogue (Gus), so `lock` / `unlock` are minimal admin / no-key verbs. It
+is superseded by build-3's `lib/lock/` real model (a re-keyable `Lock`
+value-object a door carries, plus `Key` riding `CredentialWalletMixin` /
+`CredentialApi` — "the door checks a key, not identity"). This boolean is
+a degenerate special case of that (a lock nobody holds a key for). **At
+reconcile toward `lib/lock/`:** retire this mixin + the `'locked'`
+`Exit.canTraverse` gate and re-express the gate as either a plain
+`blocked` exit or a keyless `Lock`. Do NOT grow it into a second lock
+system, and do NOT fold it into the shared `BistateMixin` base — it is
+leaving the boolean world. See commit `17add9a5`.
 
 ### `DoorBearingMixin`
 
@@ -556,13 +604,67 @@ Template authoring: Window is template-loadable like Door
 code calls `BoundaryApi.attachExistingBoundary` to install on
 two rooms.
 
+## Switchable
+
+`lib/boundary/Switchable.ts`. A generic binary on/off toggle — the
+Sealable of the electrical world, the same surface shape as open/close
+over Sealable but on the on/off axis:
+
+- `isOn()` / `setOn(value)` — the predicate-getter / noun-setter
+  inter-Stuff contract pair.
+- `switchOn()` / `switchOff()` — the idempotent action verbs.
+
+Per `feedback_boolean_field_naming` the field, setter, and YAML key use
+the noun form (`on`); only the predicate getter takes the `is` prefix.
+Reads naturally at every site: `beacon.setOn(true)`, `beacon.isOn()`,
+`data: { on: true }`.
+
+The global `switch` / `toggle` verb (`cmd/device/switch.yaml` +
+`obj/command/device/SwitchController.ts` — the **`device` category**, not
+`boundary`) targets any `Switchable` in reach rather than a specific
+class: `switch beacon on`, `switch lamp off`, or `toggle lamp` to flip to
+the opposite of its current state.
+
+The shipped consumer is the crossing's `Beacon` (`obj/Beacon.ts`, a
+`Switchable(Propertied(Detailed(Thing)))` pedestrian signal — on = WALK,
+off = STOP, the walk/stop meaning is prose over the on/off state; the
+beacon gates nothing). The build's lamppost was later cut to prose, so
+`Beacon` is the sole live Switchable.
+
+### The shared `BistateMixin` base
+
+`Switchable`, `Sealable` (open/closed), and `Foldable`
+(folded/unfolded) are the same shape — one persisted boolean, a
+predicate getter, a noun setter that rejects non-booleans loudly, two
+idempotent action verbs — differing **only** by name. The one genuinely
+shared piece, the guarded boolean, is factored into `BistateMixin`
+(`lib/Bistate.ts`, at the `lib/` root because the concept spans
+spatial / boundary / slot with no single subsystem home — the
+`lib/reserve.ts` precedent). Each toggle mixin is then a thin naming
+layer: `class SwitchableMixin extends BistateMixin(Base)` casting `this`
+to the internal `BistateInternal` (`getState()` / `setState(value,
+label)`) shape.
+
+`BistateMixin` is **deliberately unregistered** — it carries no
+`_mixinName` and is absent from the `Mixins` registry. It is shared
+*implementation*, not a contract surface: consumers narrow on the
+concrete axis (`isSwitchable` / `isSealable` / `isFoldable`), never an
+`isBistate`. Registering it would invent a capability nobody queries and
+leak the base into the author-facing mixin roster. (`LockableMixin` is
+NOT part of this family — it is a stopgap leaving the boolean world for
+`lib/lock/`, so it keeps its own inline guarded boolean rather than
+extending `BistateMixin`.)
+
 ## Persistence Notes
 
 - Exits: `direction`, `destinationPath`, flags. The `door` Stuff
   reference goes via custom `persistenceHandler`. Every exit is
   explicit and persisted — the zone no longer derives any.
-- Doors: `isOpen` (from Sealable). The `attachedTo` Set and the
-  anchor pair are runtime-only.
+- Doors: `open` (from Sealable) plus `locked` (from Lockable) — both
+  boolean scalars. The `attachedTo` Set and the anchor pair are
+  runtime-only.
+- Switchables: `on` (from Switchable, stored via `BistateMixin`'s
+  guarded boolean) — a single boolean scalar.
 - Boundaries: subclass-specific (Window's transmissivity +
   overrides + colorTint). Anchors are runtime-only; v1 anchor
   wiring is hydrate-only via seed code calling
@@ -588,6 +690,17 @@ readable without simulating the grid. The zone's remaining job is to
 *enforce* connectivity invariants, not to invent edges. Content that
 relied on derivation (the Terminus hub, the EU campus) migrated to
 explicit-both-sides exits in the same build.
+
+**`Switchable` and `Lockable` landed** in the University Avenue crossing
+build (`feature/university-avenue-crossing`, commits `ab0867ba` Phases
+1B–1D): `SwitchableMixin` for the crossing `Beacon`, and `LockableMixin`
+on `Door` for the permanently-locked north gate soft-walled by Gus. The
+shared **`BistateMixin`** base (`lib/Bistate.ts`) was extracted in
+`a99eccb4`, factoring the guarded boolean out of `Sealable` /
+`Switchable` / `Foldable`. `Lockable` was marked a **stopgap** in
+`17add9a5` — superseded by build-3's `lib/lock/` real `Lock`+`Key`
+model; the keyed-credential lock is the future, and this boolean is to be
+retired (not grown) at reconcile.
 
 ## Cross-References
 

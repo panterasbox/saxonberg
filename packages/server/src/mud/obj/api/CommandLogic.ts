@@ -1404,7 +1404,9 @@ export class CommandLogic extends ApiLogic {
   public getCommandSchemaPayload(cmd: CommandDefinition): CommandSchemaPayload {
     const out: CommandSchemaPayload = {
       verbs: cmd.verbs,
-      controller: cmd.controller,
+      // Report the RESOLVED `/`-rooted path dispatch actually clones (the
+      // controller-path refactor), not the raw relative/authored value.
+      controller: cmd.resolvedController ?? cmd.controller,
       description: cmd.description,
     };
     if (cmd.help) out.help = cmd.help;

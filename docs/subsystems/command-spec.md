@@ -41,35 +41,45 @@ global engine category is dishonest: it isn't a capability the engine
 offers, it's a fixture of one place. For these, the spec **and**
 controller live *with* the content, in a locality bundle:
 
+Specs and controllers stay **separate** (the same split as the global
+tree): the spec goes in a `cmd/` segment, the controller in a sibling
+`command/` segment.
+
 | Artifact | Global engine verb | Domain-local verb |
 |---|---|---|
-| **YAML view** | `mud/cmd/<category>/<verb>.yaml` | `mud/domain/<sphere>/<locality>/commands/<verb>.yaml` |
-| **Controller** | `mud/obj/command/<category>/<Name>Controller.ts` | `mud/domain/<sphere>/<locality>/commands/<Name>Controller.ts` |
-| **Controller seed** | `mud/seeds/obj/command/<category>/<Name>.yaml` | `mud/seeds/domain/<sphere>/<locality>/commands/<Name>.yaml` |
-| **`controller:` field / seed `class:` / `commandContributions`** | `<category>/<Name>` etc. | the full `domain/<sphere>/<locality>/commands/…` path |
+| **YAML view** | `mud/cmd/<category>/<verb>.yaml` | `mud/domain/<sphere>/<locality>/cmd/<verb>.yaml` |
+| **Controller** | `mud/obj/command/<category>/<Name>Controller.ts` | `mud/domain/<sphere>/<locality>/command/<Name>Controller.ts` |
+| **Controller seed** | `mud/seeds/obj/command/<category>/<Name>Controller.yaml` | `mud/seeds/domain/<sphere>/<locality>/command/<Name>Controller.yaml` |
+| **`controller:` field** | absolute `/obj/command/<category>/<Name>Controller` | relative `../command/<Name>Controller` (sibling of the spec) |
+| **`commandContributions`** | `<category>/<verb>.yaml` | `domain/<sphere>/<locality>/cmd/<verb>.yaml` |
 
-Discovery finds them via a `domain/**/commands/` scan: `CommandApi`'s
-preloader walks `mud/domain` recursively for any `.yaml` under a
-`commands/` segment and keys it `domain/`-prefixed, exactly as the
+A `controller:` value is a **path resolved by one rule** — no domain
+special-case (`CommandDefinition.resolveController`): a value starting
+with `/` **is** the `/`-rooted template path; otherwise it resolves
+**relative to the spec file's own directory**. So a domain-local spec in
+`.../cmd/` names its controller `../command/<Name>Controller`, resolving
+to `/domain/<sphere>/<locality>/command/<Name>Controller` — which both
+names the seed (`mud/seeds/<that path>.yaml`) and is the `class:` that
+seed declares (guarded by `controller-seeds.integrity` test).
+
+Discovery: `CommandApi`'s preloader walks `mud/domain` recursively and
+picks up any `.yaml` under a `cmd/` segment, exactly as the
 `commandContributions` string on the owning class references it (e.g.
-`'domain/eternal/university-avenue/commands/blow.yaml'`). A `domain/`-
-prefixed `controller:` value / seed `class:` path resolves against the
-MUD root instead of `/obj/command/`, so the controller template is
-seeded straight from `mud/seeds/domain/…`. Nothing else changes — the
-same YAML schema, controller skeleton, validators, and seed contract
-apply.
+`'domain/eternal/university-avenue/cmd/blow.yaml'`). Nothing else changes
+— the same YAML schema, controller skeleton, validators, and seed
+contract apply.
 
 **The deciding test is reusability, not size or novelty.** If any other
 object anywhere could plausibly afford the verb, it's a general
-capability and belongs in `cmd/<category>/` (that's why `fold`,
-`switch`, `wind`, and `set` stay in the `device` category — many
-gadgets fold or switch). If the verb is meaningful only on one
-locality's fixture, it's domain-local. The exemplars are **`blow`** (the
-Whistle) and **`tally`** (the CrossingLog) in the University Avenue
-crossing bundle — each verb is inseparable from its one object, so the
-spec, controller, and seed all live in
-`mud/domain/eternal/university-avenue/commands/` beside `Whistle.ts` and
-`CrossingLog.ts`.
+capability and belongs in `cmd/<category>/` (that's why `fold`, `unfold`,
+and `switch` stay in the global `device` category — many gadgets fold or
+switch). If the verb is meaningful only on one locality's fixture, it's
+domain-local. The exemplars are **`blow`** (the Whistle), **`tally`**
+(the CrossingLog), and **`wind`**/**`adjust`** (the mechanical Watch) in
+the University Avenue crossing bundle — each inseparable from its one
+object, so spec, controller, and seed all live under
+`mud/domain/eternal/university-avenue/` (`cmd/` + `command/`) beside
+`Whistle.ts`, `CrossingLog.ts`, and `Watch.ts`.
 
 ### Aside: spec, parser, and the model
 

@@ -85,6 +85,13 @@ export interface AudienceArrival {
  */
 const PER_HOP_TAU = 0.01;
 
+// v1 limitation shared verbatim with `SoundModality.walkAt`: this reads
+// only the room's *inline* `_atmosphere` override, not the biome-inherited
+// value — so a biome-default vacuum room does NOT block the walk (a whistle
+// would carry through it). The proper resolve, `Atmospheric.getAtmosphere`
+// → `BiomeApi`, is **async**, and this walk is sync (no await), so the raw
+// field is the only sync source. Closing the gap means making the whole
+// acoustic walk async — a shared change with SoundModality, deferred.
 function inlineAtmosphere(loc: Stuff & Container): string | null {
   if (!MixinApi.isAtmospheric(loc)) return null;
   const atmos = (loc as unknown as { _atmosphere?: string | null })._atmosphere;

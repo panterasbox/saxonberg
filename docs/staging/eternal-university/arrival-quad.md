@@ -52,27 +52,37 @@ public-street / civic / device systems). Two rules:
 
 ---
 
-## 2. Geometry & exits (corrected)
+## 2. Geometry & exits (AS BUILT — supersedes the stale E/W frame below)
 
-- **Room:** `/domain/eternal/university-avenue/plaza` — a
-  `CartesianLocation` in the `university-avenue` `CartesianZone`.
-- **`east`** → `/domain/terminus/terminal/arrival-gate` — **BUILT**. The
-  terminal across the street; players arrive here and cross to the plaza.
-  (Cardinal, cross-zone, reciprocal — renamed from `across` 2026-07-12.)
-- **`west`** → the **university gate** (the EU campus) — **DEFERRED**. Built
-  now as a **closed + locked `Door`** (a real impassable boundary, not
-  flavor); destination = the EU zone entry room, TBD. Consistent with the
-  terminal side, this is a plain **cardinal cross-zone** exit (the campus is
-  west across the avenue, per the terminal's own description).
-- **`north` / `south`** → the avenue continues — **unbuilt stubs**. Real
-  neighbors (financial/market districts) exist in principle but are
-  unknowable until city content lands. Not "haze"; just not-yet-built.
-- **Gus guards the E–W crossing** — the traverse between terminal (east) and
-  campus gate (west). Because arrivals come from the terminal, his ritual
-  fires mostly on the **east** crossing. (Supersedes the old
-  "one exit to campus / down-the-avenue-is-haze" model.)
-- The old **`north → bank`** exit is **dropped**; the bank rehomes to a
-  future financial district (out of scope).
+> **Corrected geometry (as shipped, 2026-07-13).** University Avenue runs
+> **east–west**; the **Gate/TPA terminal is SOUTH**, the **campus is NORTH**
+> (per `terminus-city.md` §2). The earlier "east=terminal / west=campus"
+> wording in this section was the stale frame and is replaced by the below.
+
+- **Room:** `/domain/eternal/university-avenue/crossing` — a
+  `CartesianLocation` in the `university-avenue` `CartesianZone` (renamed
+  from `plaza`; `primaryKeyword: crossing`, `shortDescription` stays
+  `University Avenue`).
+- **`south`** → `/domain/terminus/terminal/arrival-gate` — **BUILT**. The
+  terminal fronts the crossing to the south; players spill out of the
+  arrival gate and cross **north**. Cardinal, cross-zone, reciprocal (the
+  terminal side was re-cardinaled to `north`→here; the arrival alcove was
+  swapped with the dead Departure Gate C so it fronts the avenue).
+- **`north`** → the **university gate** (the EU campus) — **DEFERRED**. A
+  **closed + locked `Door`** (`LockableMixin`; a real impassable boundary,
+  not flavor). The lock vetoes traverse *before* destination resolution, so
+  the destination may point at the unbuilt campus stub safely. Gus
+  soft-walls it ("the gate's for the gown — not yet").
+- **`west`** → the existing **bank** — **TEMPORARY reachable placeholder**
+  (not destroyed, not rehomed) until downtown Terminus gives it a
+  financial-district home.
+- **`east`** → the avenue continues — an **unbuilt stub**, soft-walled
+  in-fiction by Gus (no real exit that way).
+- **Gus guards the S→N crossing** — the traverse from the terminal (south)
+  to the campus gate (north). His ritual fires on the **south-side
+  arrival** (the crossing itself).
+- The old **`north → bank`** exit is **dropped** (north is now the locked
+  campus gate; the bank moved to the west stub).
 
 ---
 

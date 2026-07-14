@@ -42,7 +42,6 @@
 
 import type { Stuff } from '../stuff/Stuff';
 import type { EngagementSlot } from '../activity/Engaged';
-import type { Container } from '../spatial/Container';
 import type { Time } from '../time/Time';
 import { MixinApi } from '../../api/mixin';
 import { ScheduleApi, type ScheduleHandle } from '../../api/schedule';
@@ -141,8 +140,10 @@ export const brain = class CrossingRitual {
    */
   private static tally(host: Stuff): void {
     if (!MixinApi.isContainer(host)) return;
-    const contents = (host as Stuff & Container).getContents();
-    const log = contents.find((c) => isMarkableLog(c as Stuff)) as
+    const contents = host.getContents();
+    // `find` can't narrow through the `Containable` element type here, so the
+    // result cast is load-bearing (the guard confirmed the shape).
+    const log = contents.find((c) => isMarkableLog(c)) as
       | (Stuff & MarkableLog)
       | undefined;
     if (!log) return;
@@ -153,8 +154,8 @@ export const brain = class CrossingRitual {
   /** First readable timepiece reading among the marker's own gear (or null). */
   private static readWatch(contents: readonly Stuff[]): Time | null {
     for (const item of contents) {
-      if (MixinApi.isTimekeeping(item as Stuff)) {
-        return (item as Stuff & { currentReading(): Time | null }).currentReading();
+      if (MixinApi.isTimekeeping(item)) {
+        return item.currentReading();
       }
     }
     return null;
@@ -190,10 +191,9 @@ export const brain = class CrossingRitual {
   /** Resolve the carried whistle and call `AudibleMixin.emit` directly. */
   private static blow(host: Stuff, cfg: RitualConfig): void {
     if (!MixinApi.isContainer(host)) return;
-    for (const item of (host as Stuff & Container).getContents()) {
-      const s = item as Stuff;
-      if (MixinApi.isAudible(s)) {
-        s.emit({ ...WHISTLE_BLAST, ...(cfg.whistle ?? {}) });
+    for (const item of host.getContents()) {
+      if (MixinApi.isAudible(item)) {
+        item.emit({ ...WHISTLE_BLAST, ...(cfg.whistle ?? {}) });
         return;
       }
     }

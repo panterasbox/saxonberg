@@ -196,6 +196,52 @@ The command-giver (Alice) is relevant only for **attribution** —
 error messages, stamina deduction, billing-style accounting.
 **Perception is always answered for the perceiver.**
 
+## Discrete-event sound push — `Audible` / `Scene.toAudible`
+
+The multi-perceiver harness (layer 2) has a **push** variant for
+one-shot sounds. Steady-state object sound already shipped —
+`SoundSourceMixin` carries a stored dB level and the
+`SoundModality.walkAt` field read gathers it *into* a scope on `listen`
+(a pull). The discrete-event seam is the inversion: a whistle blast, a
+bell, an alarm arrives **unbidden** in the source room and adjacent
+rooms, attenuated and directional, blocked by closed doors.
+
+- **`AudibleMixin.emit({ db, character, description?, timbreHook? })`**
+  (`lib/perception/Audible.ts`) is the host facade — a stateless
+  Thing/Location that makes a discrete sound. It carries no physics; it
+  composes a `Scene`, stamps `.meta({ acousticDb: db })` +
+  `.modality('hearing')`, and delegates to `.toAudible(...)`.
+- **`Scene.toAudible(body, { descriptor })`** (`lib/message/Scene.ts`)
+  is the delivery mode. It reads the source level from
+  `meta.acousticDb` (finally making that previously-inert seam live),
+  runs the audience-gather walk, and fans one frame per reached sensor.
+  Same-room sensors get the full `body`; a reached-but-farther sensor
+  gets a per-recipient **directional** line ("From the north, a faint
+  whistle."), the adjective fading with lost level. Each arrival below
+  `Sound.DEFAULT_HEARING_THRESHOLD_DB` is dropped — the same floor the
+  `listen` field read gates at.
+- **`AudienceGather.gather(sourceLoc, sourceDb)`**
+  (`lib/perception/AudienceGather.ts`) is the walk — the push-side fork
+  of `SoundModality.walkAt`. It reuses the shipped acoustic graph
+  verbatim: `MAX_HOPS` + cycle guard, vacuum block, the doored-boundary
+  `SoundConduit.transmissivity` branch (a closed `Door` returns 0 and
+  short-circuits), doorless-exit traversal, and linear-dB attenuation
+  (`sourceDb + 10*log10(cumulativeTau)`). New to the push model: a
+  `PER_HOP_TAU` distance falloff and first-hop direction tracking. It
+  returns every reached `(sensor, deliveredDb, direction)` and leaves
+  thresholding to the caller, so different callers can gate at different
+  floors.
+
+Same-room delivery is the degenerate zero-hop case of the same walk
+(`direction = null`), so `.toAudible` subsumes `.toPeers` for acoustic
+events — no new physics, no new Api; it routes through the existing
+`MessageApi` / `Scene` pipeline. First driver: the University Avenue
+crossing's referee whistle
+(`domain/eternal/university-avenue/Whistle.ts` + `BlowController.ts` —
+a fixed ~110 dB blast), added in the crossing build (commit
+`63a827a0`, "Audible — discrete-event cross-room sound push",
+Phase 1E).
+
 ## Where the pattern is currently used
 
 - (existing) `VisionModality.canSee`, `VisionModality.perceivedBand`,
