@@ -344,3 +344,16 @@ settings:
     value: "2"
   - key: combat.regard.unlawfulKill
     value: "-20"
+  # Cycle 2 — multi-party.
+  # Focus-fire: each attacker beyond the first pressing a target erodes
+  # that target's poise this much faster (2 attackers → 1.5x erosion), and
+  # at/above `suppressRecoveryAt` incoming attackers a defender can't spend
+  # a beat recovering — the pin that breaks the lone turtle who beats one
+  # but loses to two.
+  - key: combat.focusFire.erosionPerEdge
+    value: "0.5"
+  - key: combat.focusFire.suppressRecoveryAt
+    value: "2"
+  # A foe you disengage past gets one parting shot at this inflict energy.
+  - key: combat.flee.partingShotEnergy
+    value: "1.6"

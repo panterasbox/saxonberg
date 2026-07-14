@@ -463,5 +463,37 @@ describe("CombatLogic — melee (sides + join)", () => {
       foe.getLifecycleState() === "dead" || !session.isActive(),
     ).toBe(true);
   });
+
+  it("focus-fire: a lone defender falls faster to two attackers than to one", () => {
+    const beatsToResolve = (nAttackers: number): number => {
+      const room = makeStuff(() => new TestRoom());
+      const attackers = Array.from({ length: nAttackers }, () =>
+        makeFighter(room, {
+          ctor: TestPartyFighter,
+          weaponForm: "bladed",
+          weaponMaterial: steel(),
+        }),
+      );
+      const defender = makeFighter(room, {
+        weaponForm: "bladed",
+        weaponMaterial: steel(),
+      });
+      if (nAttackers === 2) seedParty(attackers[0]!, attackers[1]!);
+      const session = open(attackers[0]!, defender, lethal, true);
+      for (let i = 1; i < nAttackers; i++) {
+        CombatApi.join(attackers[i]! as never, defender as never, session.getTerms());
+      }
+      let beats = 0;
+      while (session.isActive() && beats < 200) {
+        CombatApi.advance(session);
+        beats++;
+      }
+      return beats;
+    };
+    // Deterministic engine (poker, not slots): the same setup resolves in
+    // the same number of beats, and two attackers (focus-fire + double the
+    // exchanges) down the lone defender strictly sooner.
+    expect(beatsToResolve(2)).toBeLessThan(beatsToResolve(1));
+  });
 });
 

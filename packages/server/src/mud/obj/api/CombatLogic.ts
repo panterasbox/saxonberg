@@ -480,6 +480,14 @@ function resolveExchange(
   actorState.queuedGambit = null;
 
   if (key === "defend") {
+    // Focus-fire pin: a defender pressed by enough attackers can't spend a
+    // beat recovering (the turtle who beats one but loses to two). The
+    // beat is still forgone — they're too busy covering to counter.
+    const incoming = session.getGraph().edgeCount(actorState.combatant);
+    const suppressAt = Math.round(
+      dial(AppSettingKeys.combatFocusFireSuppressRecoveryAt, 2),
+    );
+    if (incoming >= suppressAt) return;
     // Defensive/reactive play restores poise, capped by endurance.
     const restore = dial(AppSettingKeys.combatPoiseRestorePerDefense, 0.15);
     actorState.poise.restore(restore, enduranceRatio(actorState.combatant));
@@ -494,9 +502,17 @@ function resolveExchange(
   }
 
   // An actual exchange trades blows — base autocombat erodes both sides.
+  // Focus-fire: the target's erosion scales with how many attackers are
+  // pressing them (each extra attacker beyond the first adds
+  // `erosionPerEdge`), so ganging up wears a defender down faster.
   const erode = dial(AppSettingKeys.combatPoiseErodePerExchange, 0.12);
+  const attackers = session.getGraph().edgeCount(targetState.combatant);
+  const focusMult =
+    1 +
+    Math.max(0, attackers - 1) *
+      dial(AppSettingKeys.combatFocusFireErosionPerEdge, 0.5);
   actorState.poise.erode(erode, beat);
-  targetState.poise.erode(erode, beat);
+  targetState.poise.erode(erode * focusMult, beat);
 
   const spec = Gambit.forVerb(key) ?? Gambit.get("strike")!;
 

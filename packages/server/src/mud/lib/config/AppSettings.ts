@@ -403,6 +403,15 @@ export const AppSettingKeys = {
   combatRegardDuelWin: "combat.regard.duelWin",
   /** Combat (Build 2) — regard witnesses withdraw from an unlawful killer. */
   combatRegardUnlawfulKill: "combat.regard.unlawfulKill",
+  /** Combat (cycle 2) — extra target poise erosion per additional attacker
+   * pressing them (focus-fire: ganging up erodes faster). */
+  combatFocusFireErosionPerEdge: "combat.focusFire.erosionPerEdge",
+  /** Combat (cycle 2) — incoming-attacker count at/above which a defender's
+   * recover/defend beat is suppressed (a pinned turtle can't catch breath). */
+  combatFocusFireSuppressRecoveryAt: "combat.focusFire.suppressRecoveryAt",
+  /** Combat (cycle 2) — inflict energy of a foe's parting shot when a
+   * combatant disengages (flees) past them. */
+  combatFleePartingShotEnergy: "combat.flee.partingShotEnergy",
 } as const;
 
 export type AppSettingKey =
