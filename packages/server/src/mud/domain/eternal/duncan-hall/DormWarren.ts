@@ -24,7 +24,6 @@ import { SingletonMixin } from '../../../lib/stuff/Singleton';
 import { PostRegistrationMixin } from '../../../lib/stuff/PostRegistration';
 import { StuffApi } from '../../../api/stuff';
 import { MixinApi } from '../../../api/mixin';
-import { ContainmentApi } from '../../../api/containment';
 import { PersistableApi } from '../../../api/persistable';
 import { ParcelApi } from '../../../api/parcel';
 import { ParcelRecord } from '../../../lib/parcel/ParcelRecord';
@@ -100,8 +99,9 @@ export default class DormWarren extends DormWarrenBase {
   /**
    * The live room for `unitKey`, materialized if needed. Cached → clone the
    * `DormRoom` shell → stash its key → D1 restore-or-seed (record present →
-   * `materialize`; absent → `installFixtures` + `capture`) → wire the return
-   * leg to its floor corridor → cache.
+   * `materialize`; absent → `seedBornWith` [lay down the declared `populates:`
+   * fixtures] + `capture`) → wire the return leg to its floor corridor →
+   * cache.
    */
   public async admit(unitKey: string): Promise<MemberStuff> {
     const cached = this._unitsByKey.get(unitKey);
@@ -114,7 +114,7 @@ export default class DormWarren extends DormWarrenBase {
     if (await PersistableApi.hasRecord(DormRoom.SCOPE, unitKey)) {
       await PersistableApi.materialize(room, unitKey);
     } else {
-      await (room as unknown as DormRoom).installFixtures();
+      await (room as unknown as Persistable).seedBornWith();
       await PersistableApi.capture(room, unitKey);
     }
 

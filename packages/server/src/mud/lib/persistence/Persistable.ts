@@ -21,10 +21,16 @@
  *      fire-and-forgets the persist. Durable triggers (the residency sweep,
  *      logout, autosave, reload) `await` a full capture; this is the
  *      non-sweep-destruct safety net.
- *   2. **Seed-then-persist** — an `applyPopulates` override: on first
- *      materialization (no record) it seeds via `super.applyPopulates` then
- *      captures the first record; thereafter the record is authoritative and
- *      `populates` never re-runs (no seed duplication).
+ *   2. **Declarative born-with seed** — a host declares its starting contents
+ *      as data (`populates:` in its template, the same field a non-persistent
+ *      container uses), and the establishing context lays them down EXACTLY
+ *      ONCE via {@link Persistable.seedBornWith} on the no-record branch, then
+ *      captures. Thereafter the record is authoritative and the seed never
+ *      re-runs. The `applyPopulates` hydration hook only *retains* the specs —
+ *      a persistable host is a bare shell at hydration (its key isn't set yet,
+ *      so a `hasRecord` gate can't tell seed from restore), so the keyed
+ *      holder drives the seed after stamping the key. This keeps born-with
+ *      content as author-editable DATA rather than imperative code.
  *   3. **Materialize-on-register** — `postRegister` loads and restores every
  *      record scoped to this host after the shell is cloned.
  *
@@ -35,7 +41,7 @@
 import type { MixinConstructor } from "../mixin";
 import type { Stuff, EvictionContext } from "../stuff/Stuff";
 import type { VetoResult } from "../errors";
-import type { PopulateSpec } from "../stuff/Populates";
+import type { PopulateSpec, Populates } from "../stuff/Populates";
 import { MixinApi } from "../../api/mixin";
 import { PersistableApi } from "../../api/persistable";
 
@@ -84,11 +90,23 @@ export interface Persistable {
    * delete. A general spine seam (not dorm code).
    */
   markForRevert(): void;
+
+  /**
+   * Lay down the host's declared born-with contents (its template's
+   * `populates:` specs, retained at hydration) — cloning each into this host
+   * exactly once. The establishing context calls this on the **no-record
+   * branch only** (a fresh instance with no saved state), then captures the
+   * first record; on the has-record branch it restores instead and never
+   * calls this. A no-op when the host declares no `populates:` (e.g. an
+   * Avatar, whose loadout is seeded imperatively). Replaces per-host bespoke
+   * seed methods with author-editable data.
+   */
+  seedBornWith(): Promise<void>;
 }
 
-export function PersistableMixin<TBase extends MixinConstructor<Stuff>>(
-  Base: TBase,
-) {
+export function PersistableMixin<
+  TBase extends MixinConstructor<Stuff & Partial<Populates>>,
+>(Base: TBase) {
   return class PersistableMixin extends Base implements Persistable {
     static _mixinName = "PersistableMixin";
 
@@ -97,6 +115,14 @@ export function PersistableMixin<TBase extends MixinConstructor<Stuff>>(
 
     /** Set true by `markForRevert()` — folds into `shouldPersist()`. */
     protected _reverting = false;
+
+    /**
+     * Born-with content specs retained from the `populates` hydration hook
+     * (transient — NOT persisted; re-populated on every clone/restore). Laid
+     * down once by {@link seedBornWith} on the no-record branch. Empty for a
+     * host that declares no `populates:`.
+     */
+    protected _bornWithSpecs: PopulateSpec[] = [];
 
     isPersistenceHost(): boolean {
       return true;
@@ -135,21 +161,32 @@ export function PersistableMixin<TBase extends MixinConstructor<Stuff>>(
     }
 
     /**
-     * A persistable host **does not seed via `populates`** — it is a bare
-     * shell here, and its **establishing context drives seed-vs-restore with
-     * its key**: on first materialization the context seeds the born-with
-     * contents *imperatively* (Avatar's `installDefaultLoadout`, a
-     * `DormRoom`'s `installFixtures`) then captures the first record;
-     * thereafter it restores. This is uniform for every host — a singleton or
-     * a keyed multi-instance room alike — because a `hasRecord(scope)` gate
-     * can't disambiguate a keyed instance at hydration time (the key isn't set
-     * yet), and letting `populates` seed here would double-seed on restore.
-     * So the override is a deliberate **no-op** (it does NOT delegate to
-     * `PopulatesMixin`); a persistable host that needs born-with content seeds
-     * it in its context, never through `populates`.
+     * A persistable host does not seed at *hydration* — it is a bare shell
+     * here (its per-instance key isn't set yet, so a `hasRecord` gate can't
+     * tell a first seed from a restore, and seeding now would double-seed on
+     * every wake). So this override does NOT delegate to `PopulatesMixin`;
+     * instead it **retains** the declared specs so the establishing context
+     * can lay them down exactly once, keyed, via {@link seedBornWith} on the
+     * no-record branch. The `populates:` field stays author-editable DATA;
+     * only *when* it runs moves to the keyed holder.
      */
-    async applyPopulates(_specs: PopulateSpec[]): Promise<void> {
-      /* no-op — persistable holders seed imperatively via their context */
+    async applyPopulates(specs: PopulateSpec[]): Promise<void> {
+      this._bornWithSpecs = Array.isArray(specs) ? specs.slice() : [];
+    }
+
+    /**
+     * Lay down the retained born-with specs — cloning each into this host —
+     * by delegating to the inner `PopulatesMixin` applier (`super`). Called by
+     * the establishing context on the no-record branch only. A no-op when no
+     * `populates:` was declared (empty specs → nothing to seed, and no
+     * `PopulatesMixin` need be composed).
+     */
+    async seedBornWith(): Promise<void> {
+      if (this._bornWithSpecs.length === 0) return;
+      // Present at runtime whenever specs were retained (specs only arrive via
+      // the Hydrator when `populates` is an instruction field, i.e. the host
+      // composes PopulatesMixin below). The `?.` guards the vacuous case.
+      await super.applyPopulates?.(this._bornWithSpecs);
     }
 
     /**

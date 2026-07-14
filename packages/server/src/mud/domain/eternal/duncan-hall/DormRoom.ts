@@ -3,16 +3,19 @@
  * host: many live rooms clone from THIS one template yet keep distinct
  * persisted state (the tenant's theme prose + its fixtures' captured prose),
  * keyed by the unit's parcel extent (D1) — the `(scope, key)` identity every
- * persistable host has, no marker needed. The `DormWarren` drives
- * seed-vs-restore with the unit key (`installFixtures` on the no-record
- * branch); `applyPopulates` is a no-op for every persistable host.
+ * persistable host has, no marker needed. The room's born-with fixtures are
+ * declared as **data** (`populates:` in its seed, not code): the spine retains
+ * the specs at hydration, and `DormWarren` drives seed-vs-restore with the
+ * unit key — `seedBornWith` (laying the fixtures down once) on the no-record
+ * branch, `materialize` (restoring captured prose) thereafter.
  *
  * A non-coordinate `Location` (a clone can't hold fixed grid coords; it
  * hangs off its floor corridor by a live-ref return exit) with the member +
- * description surface, `PersistableMixin` outermost:
+ * description surface, `PersistableMixin` outermost, `PopulatesMixin` inner
+ * (so the spine's `seedBornWith` reaches its applier via `super`):
  *
  *   Persistable → WarrenMember → PostRegistration → Exitable → Detailed
- *     → Visible → Location  (Location already carries Container/Adornable)
+ *     → Visible → Populates → Location  (Location carries Container/Adornable)
  *
  * The Warren coordinates instances; the room stays an ordinary containment
  * root. No `SingletonMixin` (repeated clones are the point), no `Named` (a
@@ -24,13 +27,12 @@
 
 import Location from '../../../lib/stuff/Location';
 import { PersistableMixin } from '../../../lib/persistence/Persistable';
+import { PopulatesMixin } from '../../../lib/stuff/Populates';
 import { WarrenMemberMixin, type WarrenMember } from '../../../lib/location/WarrenMember';
 import { VisibleMixin } from '../../../lib/description/Visible';
 import { DetailedMixin } from '../../../lib/description/Detailed';
 import { ExitableMixin } from '../../../lib/boundary/Exitable';
 import { PostRegistrationMixin } from '../../../lib/stuff/PostRegistration';
-import { StuffApi } from '../../../api/stuff';
-import { ContainmentApi } from '../../../api/containment';
 import { MixinApi } from '../../../api/mixin';
 import type { Stuff } from '../../../lib/stuff/Stuff';
 import type { Container } from '../../../lib/spatial/Container';
@@ -39,7 +41,7 @@ import type { Containable } from '../../../lib/spatial/Containable';
 const DormRoomBase = PersistableMixin(
   WarrenMemberMixin(
     PostRegistrationMixin(
-      ExitableMixin(DetailedMixin(VisibleMixin(Location))),
+      ExitableMixin(DetailedMixin(VisibleMixin(PopulatesMixin(Location)))),
     ),
   ),
 );
@@ -53,31 +55,14 @@ export default class DormRoom extends DormRoomBase {
   /** The shared clone-namespace path — the D1 record `scope`. */
   static readonly SCOPE = '/domain/eternal/duncan-hall/dormroom';
 
-  /** In-room fixture templates cloned once on first materialization. */
-  static readonly FIXTURE_PATHS = [
-    '/domain/eternal/duncan-hall/dorm-fixtures/bed',
-    '/domain/eternal/duncan-hall/dorm-fixtures/desk',
-    '/domain/eternal/duncan-hall/dorm-fixtures/footlocker',
-  ];
-
-  /** Prose rides the Visible/Detailed slices; the Warren back-ref + exits
-   *  are runtime; the theme overlay + fixtures ride the spine's slices. */
-  static persistentFields: string[] = [];
-
   /**
-   * Seed the three university-owned fixtures (Bed / Desk / Footlocker) into
-   * this room. Called once by `DormWarren.admit` on the no-record branch
-   * (imperative seed — the multi-instance `applyPopulates` is a no-op); on
-   * every later wake the spine's `restoreItem` respawns them from their
-   * current template + overlays the captured prose.
+   * Prose rides the Visible/Detailed slices; the Warren back-ref + exits are
+   * runtime; the theme overlay + fixtures ride the spine's slices. The
+   * born-with fixtures (Bed / Desk / Footlocker) are declared as `populates:`
+   * DATA in the seed and laid down once by the spine's `seedBornWith` — no
+   * imperative install code lives here.
    */
-  public async installFixtures(): Promise<void> {
-    const self = this as unknown as Stuff & Container;
-    for (const path of DormRoom.FIXTURE_PATHS) {
-      const fixture = await StuffApi.clone<Stuff & Containable>(path);
-      ContainmentApi.move(fixture, self);
-    }
-  }
+  static persistentFields: string[] = [];
 
   /**
    * Population witness (folded in — no separate mixin, since `DormRoom` is a

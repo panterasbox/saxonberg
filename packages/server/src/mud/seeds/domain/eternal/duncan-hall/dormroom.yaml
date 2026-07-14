@@ -2,11 +2,13 @@
 # live rooms share this path yet keep distinct persisted state (their tenant
 # theme prose + fixtures), keyed by the unit parcel (D1 multi-instance).
 #
-# No `populates:` — fixtures are seeded imperatively by
-# `DormRoom.installFixtures` on first materialization (the multi-instance
-# `applyPopulates` is a no-op), then respawned by the persistence spine on
-# every wake. Rooms are runtime clones minted by `DormWarren.admit`, never
-# seeded instances. A plain non-coordinate Location; generic label, no Named.
+# The born-with fixtures are DATA (`populates:` below) — the university-owned
+# bed / desk / footlocker. On a persistable host the spine retains these specs
+# at hydration and lays them down exactly ONCE (`DormWarren.admit` →
+# `seedBornWith` on the no-record branch), then captures; every later wake
+# restores the captured prose instead of re-seeding. Edit the fixture set here
+# in content — no code change. Rooms are runtime clones minted by
+# `DormWarren.admit`. A plain non-coordinate Location; generic label, no Named.
 class: /domain/eternal/duncan-hall/DormRoom
 hydratorClass: /lib/persistence/PersistentHydrator
 data:
@@ -14,3 +16,7 @@ data:
   primaryKeyword: room
   longDescription: |
     A narrow single room — a bed against one wall, a desk under the window, a footlocker at the foot of the bed. The kind of blank the university hands every new arrival, waiting to be made someone's.
+  populates:
+    - /domain/eternal/duncan-hall/dorm-fixtures/bed
+    - /domain/eternal/duncan-hall/dorm-fixtures/desk
+    - /domain/eternal/duncan-hall/dorm-fixtures/footlocker

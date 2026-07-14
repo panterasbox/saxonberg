@@ -43,14 +43,19 @@ the spine (`lib/persistence/Persistable.ts`, `obj/api/PersistableLogic.ts`,
   resolve the *same* key and collide (the footgun, caught); distinct keyed
   rooms never do. (This replaced the old eager `assertSingletonScope` +
   `multiInstance` relaxation with the real invariant.)
-- **`applyPopulates` is a uniform no-op** for *every* persistable host — a
-  host is a bare shell at hydration, and its **establishing context drives
-  seed-vs-restore with the key**: it seeds born-with content *imperatively*
-  on the no-record branch (Avatar's `installDefaultLoadout`, a `DormRoom`'s
-  `installFixtures`) then captures, else restores. (A `hasRecord(scope)` gate
-  can't disambiguate a keyed instance at hydration, and letting `populates`
-  seed would double-seed on restore — so persistable holders never seed via
-  `populates`.)
+- **Born-with content is declarative DATA, seeded once.** A persistable host
+  declares its starting contents as `populates:` in its template (the same
+  field a non-persistent container uses). At hydration the spine's
+  `applyPopulates` only **retains** the specs (it does NOT seed — the host is a
+  bare shell whose key isn't set yet, so a `hasRecord` gate can't tell seed
+  from restore, and seeding on every wake would double-seed). The establishing
+  context lays them down exactly once via **`seedBornWith`** on the no-record
+  branch, then captures; thereafter it restores. So a `DormRoom` declares its
+  bed/desk/footlocker as `populates:` data (`dormroom.yaml`) — a content author
+  edits the fixture set with no code change — and carries no imperative install
+  method. (Avatar's loadout stays imperative in `installDefaultLoadout`: it
+  attunes + hosts implant apps, which isn't a plain clone-into-inventory list;
+  `seedBornWith` no-ops when no `populates:` is declared.)
 - **`postRegister` no longer auto-drives persistence.** The mixin provides
   capture/restore; the establishing context decides *when* and *with what
   key*. Avatar drives an explicit self-keyed materialize/capture at login
@@ -119,8 +124,9 @@ live ref and re-resolve after a reap):
 
 `admit(unitKey)` returns the cached live room, else clones a `DormRoom`
 (`createMemberSerialized`) → stashes its key → **D1 restore-or-seed**
-(`hasRecord` ? `materialize(room, unitKey)` : `installFixtures()` +
-`capture(room, unitKey)`) → wires the return leg → caches. `ensureFloor(n)`
+(`hasRecord` ? `materialize(room, unitKey)` : `seedBornWith()` [lay down the
+declared `populates:` fixtures] + `capture(room, unitKey)`) → wires the return
+leg → caches. `ensureFloor(n)`
 clones the corridor, wires `down` to the floor below (lobby for n=1, else
 `ensureFloor(n-1)`, `keepLiveDestination` between clones), installs the `up`
 `LazyFloorExit`, and clones the `DormDoor`s for the units whose slot is on
@@ -264,8 +270,9 @@ pick.)
   captures — the record carries each fixture's personalized prose. On wake,
   the spine's `restoreItem` clones each fixture from its **current** template
   (function always current) then applies the captured prose. Fixtures are
-  seeded once (`installFixtures`), never re-seeded (`applyPopulates` is a
-  uniform no-op — holders seed imperatively). No field double-owned.
+  seeded once from the room's declared `populates:` data (`seedBornWith` on the
+  no-record branch), never re-seeded (`applyPopulates` only retains the specs).
+  No field double-owned.
 - **Deferred:** **custom prose** (writing your own room/item descriptions) —
   a light player input (a `PromptApi.text` box / a summoned pane), validated
   prose-only and sealed by the same `capture`; **not** the CMS (that's

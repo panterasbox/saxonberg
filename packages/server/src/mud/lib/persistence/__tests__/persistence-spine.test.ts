@@ -590,23 +590,38 @@ describe("eviction seam (AC #9)", () => {
 });
 
 describe("seed-then-persist (AC #10)", () => {
-  it("a persistable holder's applyPopulates is a UNIFORM no-op — it never seeds via populates", async () => {
-    cloneFactories = {};
-    // No `hasRecord(scope)` gate, no `populates` delegation, no marker: a
-    // persistable holder is a bare shell here. Its establishing context seeds
-    // born-with content imperatively (Avatar's loadout, a DormRoom's
-    // installFixtures) then captures/restores with the key. So applyPopulates
-    // seeds NOTHING — even with no record, even with specs.
+  it("applyPopulates RETAINS the declared specs but does not seed at hydration", async () => {
+    cloneFactories = { "/domain/chest": () => new ContentChest() };
+    // A persistable host is a bare shell at hydration (its key isn't set yet,
+    // so a hasRecord gate can't tell seed from restore). The `populates` hook
+    // therefore only retains the specs — it seeds NOTHING here, even with a
+    // clone factory available. The keyed holder lays them down later.
     const fresh = makeStuffAtPath(() => new RoomHost(), "/domain/fresh");
-    await fresh.applyPopulates(["/domain/chest"]); // does not throw, does not seed
+    await fresh.applyPopulates(["/domain/chest"]); // retains; does NOT seed now
     expect(fresh.getContents()).toHaveLength(0);
   });
 
-  it("never double-seeds on restore — the no-op holds whether or not a record exists", async () => {
+  // The positive path — seedBornWith → the real PopulatesMixin applier →
+  // clone-into-self — needs a Template store, so it's covered end-to-end by
+  // the dorm integration tests (DormResidence "move-in seals the style; it
+  // survives reap" seeds bed/desk/footlocker via `populates:` and asserts they
+  // land + persist; DormWarren likewise). This suite's stub can't reach the
+  // applier, so it covers the retain / no-op / no-double-seed invariants here.
+
+  it("seedBornWith is a no-op when no populates were declared", async () => {
+    cloneFactories = {};
+    // A persistable host with no `populates:` (an Avatar, whose loadout is
+    // seeded imperatively) seeds nothing — no PopulatesMixin need be composed.
+    const fresh = makeStuffAtPath(() => new RoomHost(), "/domain/fresh");
+    await fresh.seedBornWith(); // empty specs → no-op, no throw
+    expect(fresh.getContents()).toHaveLength(0);
+  });
+
+  it("never double-seeds on restore — the holder restores instead of calling seedBornWith", async () => {
     cloneFactories = { "/domain/chest": () => new ContentChest() };
-    // Seed imperatively (the context's job), capture, evict, re-clone: the
-    // reborn shell's applyPopulates adds nothing on top of what restore will
-    // bring back — no duplication, no scope-gated skip needed.
+    // Seed a room, capture, evict, re-clone: on the has-record branch the
+    // holder restores (never calls seedBornWith), and the reborn shell's
+    // retained specs sit unused — no duplication.
     const room = makeStuffAtPath(() => new RoomHost(), "/domain/room");
     const chest = makeStuffAtPath(() => new ContentChest(), "/domain/chest");
     ContainmentApi.move(chest, room);
@@ -615,8 +630,8 @@ describe("seed-then-persist (AC #10)", () => {
 
     evict(room);
     const reborn = makeStuffAtPath(() => new RoomHost(), "/domain/room");
-    await reborn.applyPopulates(["/domain/chest"]);
-    expect(reborn.getContents()).toHaveLength(0); // never seeds
+    await reborn.applyPopulates(["/domain/chest"]); // retained, but NOT seeded
+    expect(reborn.getContents()).toHaveLength(0); // restore branch: no re-seed
   });
 });
 

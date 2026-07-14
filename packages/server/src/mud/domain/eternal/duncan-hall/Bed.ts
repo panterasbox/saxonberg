@@ -1,7 +1,7 @@
 /**
  * Bed — a dorm's sleeping surface. A university-owned in-room fixture
- * (invariant, respawned from template), cloned into each `DormRoom` by
- * `installFixtures`. A rest surface; no `Named` (a generic labelled thing).
+ * (invariant, respawned from template), seeded into each `DormRoom` via its `populates:` data (the spine's
+ * seed-once). A rest surface; no `Named` (a generic labelled thing).
  *
  *   Surfaced → Detailed → Thing (Thing already carries Tangible/Visible)
  */

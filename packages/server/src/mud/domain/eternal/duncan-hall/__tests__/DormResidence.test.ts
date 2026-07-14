@@ -67,6 +67,14 @@ function col(collection: string): Doc[] {
   return arr;
 }
 
+// The born-with fixtures a DormRoom seeds, declared as `populates:` data (the
+// same list the real dormroom.yaml carries) — no longer a class const.
+const FIXTURES = [
+  '/domain/eternal/duncan-hall/dorm-fixtures/bed',
+  '/domain/eternal/duncan-hall/dorm-fixtures/desk',
+  '/domain/eternal/duncan-hall/dorm-fixtures/footlocker',
+];
+
 function seedDomain(): void {
   const domain = col('domain');
   const add = (path: string, cls: string, data: Record<string, unknown> = {}) =>
@@ -75,6 +83,8 @@ function seedDomain(): void {
   add(DormWarren.WARREN_PATH, '/domain/eternal/duncan-hall/DormWarren');
   add(DormRoom.SCOPE, '/domain/eternal/duncan-hall/DormRoom', {
     shortDescription: 'a dorm room',
+    // Fixtures as data — the spine's seedBornWith lays these down once.
+    populates: FIXTURES,
   });
   add(DormWarren.CORRIDOR_TEMPLATE, '/domain/eternal/duncan-hall/Corridor', {
     shortDescription: 'a dorm corridor',
@@ -82,13 +92,13 @@ function seedDomain(): void {
   add(DormWarren.LOBBY_PATH, '/domain/eternal/duncan-hall/Corridor', {
     shortDescription: 'the lobby',
   });
-  add(DormRoom.FIXTURE_PATHS[0]!, '/domain/eternal/duncan-hall/Bed', {
+  add(FIXTURES[0]!, '/domain/eternal/duncan-hall/Bed', {
     shortDescription: 'a narrow bed',
   });
-  add(DormRoom.FIXTURE_PATHS[1]!, '/domain/eternal/duncan-hall/Desk', {
+  add(FIXTURES[1]!, '/domain/eternal/duncan-hall/Desk', {
     shortDescription: 'a plain desk',
   });
-  add(DormRoom.FIXTURE_PATHS[2]!, '/domain/eternal/duncan-hall/Footlocker', {
+  add(FIXTURES[2]!, '/domain/eternal/duncan-hall/Footlocker', {
     shortDescription: 'a footlocker',
   });
   add('/lib/lock/Key', '/lib/lock/Key', { shortDescription: 'a key' });

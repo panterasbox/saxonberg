@@ -1,7 +1,7 @@
 /**
  * Desk — a dorm's work surface. A university-owned in-room fixture
- * (invariant, respawned from template), cloned into each `DormRoom` by
- * `installFixtures`. A work surface; no `Named`.
+ * (invariant, respawned from template), seeded into each `DormRoom` via its `populates:` data (the spine's
+ * seed-once). A work surface; no `Named`.
  *
  *   Surfaced → Detailed → Thing
  */
