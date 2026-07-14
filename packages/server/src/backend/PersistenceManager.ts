@@ -37,6 +37,7 @@ export enum Collections {
   NameBanks = 'name_banks',
   Groups = 'groups',
   Channels = 'channels',
+  Parties = 'parties',
   Beliefs = 'beliefs',
   Chronicles = 'chronicles',
   Transcripts = 'transcripts',
@@ -694,6 +695,18 @@ export class PersistenceManager {
         memberIds: 1,
       });
       await this.getCollection(Collections.Channels).createIndex({ kind: 1 });
+
+      // Parties: durable parties only (ad-hoc live in-memory). name unique
+      // + memberIds (the "durable crews I'm on" read) + durable (the
+      // boot-warm scan).
+      await this.getCollection(Collections.Parties).createIndex(
+        { name: 1 },
+        { unique: true }
+      );
+      await this.getCollection(Collections.Parties).createIndex({
+        memberIds: 1,
+      });
+      await this.getCollection(Collections.Parties).createIndex({ durable: 1 });
 
       // Beliefs: per-viewer identity-memory working set (one doc per
       // {viewerId, realm, referent}). Indexed on `viewerId` so a

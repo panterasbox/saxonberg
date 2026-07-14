@@ -84,6 +84,16 @@ export class ChatLogic extends ApiLogic {
     return (await requireCatalogue()).createPlayerChannel(owner, name);
   }
 
+  /** See {@link ChatApi.createBoundChannel}. */
+  @CallSecurity(ChatApiCallers)
+  public async createBoundChannel(
+    owner: Stuff,
+    name: string,
+    groupRef: string
+  ): Promise<Channel> {
+    return (await requireCatalogue()).createBoundChannel(owner, name, groupRef);
+  }
+
   /** See {@link ChatApi.attachChatToSubject}. */
   @CallSecurity(ChatApiCallers)
   public async attachChatToSubject(

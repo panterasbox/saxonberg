@@ -75,6 +75,14 @@ export class ChatApi {
     return logic().createPlayerChannel(owner, name);
   }
 
+  static async createBoundChannel(
+    owner: Stuff,
+    name: string,
+    groupRef: string,
+  ): Promise<Channel> {
+    return logic().createBoundChannel(owner, name, groupRef);
+  }
+
   static async attachChatToSubject(
     subject: Subject,
     procedure?: 'free' | 'rules-of-order',
