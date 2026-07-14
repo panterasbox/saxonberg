@@ -216,7 +216,12 @@ initial seven per MR review — see [§ History](#history)):
   is the at-a-glance read (own poise/condition/flags/wounds at full fidelity
   + the banded, perception-gated opponent read — all bands, never numbers);
   `fight strike | disarm | subdue | shove` are the gambits (queued intent,
-  resolved on the next beat); `fight yield` concedes.
+  resolved on the next beat); `fight defend` covers up and recovers poise
+  (capped by endurance) instead of attacking — the autocombat default
+  handed to the player as a deliberate choice, so they can play the
+  patient defender on purpose (the build-1 balance finding: a steady armed
+  defender's parry-and-riposte beats a blind aggressor); `fight yield`
+  concedes.
 
 Both verbs are contributed by **`CombatantMixin`** (`lib/combat/Combatant.ts`,
 composed on `Character`) as static `self` affordances; the gambit
@@ -390,6 +395,16 @@ non-consenting sentient (a townsperson) `--lethal` → the `violated` marker →
 
 Named at their sites; nothing inherited:
 
+- **The `defend` family (with multi-party)** — `intervene` (stay a coup) and
+  `fight defend` (cover yourself) are two leaves of one idea: *warding harm
+  from a life*. The third leaf — **`defend <ally>`** (interpose in an
+  ongoing fight, draw an aggressor's threat onto yourself) — needs the
+  multi-party threat graph to mean anything, so it's deferred. When it
+  lands, `intervene` should likely **fold into** a general `defend`
+  (`defend <fallen>` = today's coup-stay), so the vocabulary converges on
+  one verb rather than three. Kept separate for now so the reachable
+  1v1-era verbs (`intervene`, `fight defend`) don't churn before their
+  sibling exists.
 - **Later cycles** — multi-party / the threat graph (this melee edge goes
   plural), weapon playstyle (reach/guard/balance-as-derived; `balanceFactor`
   populated from construction), full morale / de-escalation, stealth, the
