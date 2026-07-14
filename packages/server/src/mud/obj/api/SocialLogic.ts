@@ -476,14 +476,16 @@ function wornFeatureOf(occ: Stuff): string | null {
 
 /**
  * Build an eager `<name>` fragment for one occupant. The display text is
- * resolved **now** through `RecognitionApi.describe(viewer, occ)` (compose
- * *through* describe, never re-implement naming) because the occupant block
- * is resolved eagerly for a single known viewer (see
+ * resolved **now** through `RecognitionApi.describeWithStatus(viewer, occ)`
+ * (compose *through* describe, never re-implement naming) because the
+ * occupant block is resolved eagerly for a single known viewer (see
  * `composeOccupantsImpl`); a boosted occupant carries its rule's palette
- * token as a `color` attribute the client theme maps to a treatment.
+ * token as a `color` attribute the client theme maps to a treatment. This
+ * is a presence-scan surface, so it carries the activity-status affix
+ * ("…, watching the empty road").
  */
 function nameMml(viewer: Stuff, occ: Stuff, color?: PaletteToken): Mml {
-  const display = RecognitionApi.describe(viewer, occ);
+  const display = RecognitionApi.describeWithStatus(viewer, occ);
   const colorAttr = color ? ` color="${Mml.escape(color)}"` : "";
   return Mml.fromMarkup(
     `<name stuff-id="${Mml.escape(occ.stuffId)}"${colorAttr}>` +

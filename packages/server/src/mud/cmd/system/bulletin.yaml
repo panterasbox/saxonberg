@@ -1,5 +1,5 @@
 verbs: [bulletin]
-controller: system/BulletinController
+controller: /obj/command/system/BulletinController
 description: "The news ticker — the staff→player broadcast feed (post / edit / retract)"
 help: |
   Manage the news ticker that every connected player sees.

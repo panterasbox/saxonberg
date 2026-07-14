@@ -14,6 +14,7 @@
 import type { MixinConstructor } from '../mixin';
 import type { Stuff } from '../stuff/Stuff';
 import type { Containable } from '../spatial/Containable';
+import type { CommandContributions } from '../../api/command';
 import type { Slottable } from './Slottable';
 import type { Slotted } from './Slotted';
 import { SpeciesApi } from '../../api/species';
@@ -33,6 +34,20 @@ export function WieldableMixin<
   return class WieldableMixin extends Base {
     static _mixinName = 'WieldableMixin';
     static persistentFields = ['slotClaims'];
+
+    /**
+     * A wieldable in inventory affords `wield`; once in hand it affords
+     * `unwield` (the `get`/`drop` precedent on `ContainerMixin`). The
+     * verbs shipped with the "Weapon is holdable" build; combat is the
+     * consumer that wires the affordance so you can actually arm
+     * yourself (a prerequisite for the melee gambits).
+     */
+    static commandContributions: CommandContributions = {
+      self: [],
+      environment: [],
+      inventory: ['inventory/wield.yaml', 'inventory/unwield.yaml'],
+      peers: [],
+    };
 
     /** @authorable */
     public slotClaims: Record<string, string[]> = {};

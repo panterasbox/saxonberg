@@ -41,7 +41,7 @@ describe("AppSettingsSeeder", () => {
     pm.setFindResult([]);
     const added = await AppSettingsSeeder.run();
 
-    expect(added).toBe(73);
+    expect(added).toBe(98);
     expect(pm.saves).toHaveLength(1);
     expect(pm.saves[0]!.collection).toBe("app_settings");
     const values = savedValues(pm);
@@ -142,6 +142,33 @@ describe("AppSettingsSeeder", () => {
           [AppSettingKeys.responseDeliverySecondaryFactor]: "0.6",
           [AppSettingKeys.responseBandGrazeMax]: "0.5",
           [AppSettingKeys.responseBandBiteMax]: "1.5",
+          // The two behavior ambient-pacing keys.
+          [AppSettingKeys.behaviorAmbientCadenceScale]: "1",
+          [AppSettingKeys.behaviorAmbientCadenceFloorMs]: "60000",
+          // The 20 combat (core 1v1) + 3 combat (Build 2) tuning keys.
+          [AppSettingKeys.combatTickSeconds]: "3",
+          [AppSettingKeys.combatPoisePressedBelow]: "0.75",
+          [AppSettingKeys.combatPoiseReelingBelow]: "0.5",
+          [AppSettingKeys.combatPoiseBrokenAt]: "0.25",
+          [AppSettingKeys.combatPoiseOpeningTicks]: "2",
+          [AppSettingKeys.combatPoiseErodePerExchange]: "0.12",
+          [AppSettingKeys.combatPoiseOverextendCost]: "0.2",
+          [AppSettingKeys.combatPoiseRestorePerDefense]: "0.15",
+          [AppSettingKeys.combatPoiseWhiffPenalty]: "0.25",
+          [AppSettingKeys.combatTempoBase]: "1",
+          [AppSettingKeys.combatTempoEncumbrancePenalty]: "0.5",
+          [AppSettingKeys.combatTempoEnduranceFloor]: "0.4",
+          [AppSettingKeys.combatTempoMinRate]: "0.1",
+          [AppSettingKeys.combatTempoMaxRate]: "3",
+          [AppSettingKeys.combatEnergySteady]: "1.2",
+          [AppSettingKeys.combatEnergyPressed]: "1.6",
+          [AppSettingKeys.combatEnergyReeling]: "2.2",
+          [AppSettingKeys.combatEnergyBroken]: "3",
+          [AppSettingKeys.combatEnergyOpen]: "4.5",
+          [AppSettingKeys.combatMaxBeats]: "200",
+          [AppSettingKeys.combatCoupSeconds]: "6",
+          [AppSettingKeys.combatRegardDuelWin]: "2",
+          [AppSettingKeys.combatRegardUnlawfulKill]: "-20",
         },
       },
     ]);
@@ -170,8 +197,10 @@ describe("AppSettingsSeeder", () => {
     // + 4 transit (banking.onboardingStipend + 3 fasttravel fare keys)
     // + 21 materials-response (7 attenuation + 4 material + 2 grade
     //   + condition + fracture + noWound + severityPerResidual
-    //   + referenceEnergy + secondaryFactor + 2 band).
-    expect(added).toBe(72);
+    //   + referenceEnergy + secondaryFactor + 2 band)
+    // + 2 behavior (ambientCadenceScale, ambientCadenceFloorMs)
+    // + 23 combat (20 core 1v1 + 3 Build 2).
+    expect(added).toBe(97);
     expect(pm.saves).toHaveLength(1);
     const values = savedValues(pm);
     // operator value preserved, missing keys seeded

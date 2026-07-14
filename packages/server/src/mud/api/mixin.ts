@@ -44,6 +44,10 @@ import type { CommandGiver } from '../lib/command/CommandGiver';
 import type { Focused } from '../lib/command/Focused';
 import type { Exitable } from '../lib/boundary/Exitable';
 import type { Sealable } from '../lib/spatial/Sealable';
+import type { Switchable } from '../lib/boundary/Switchable';
+import type { Lockable } from '../lib/boundary/Locked';
+import type { Foldable } from '../lib/slot/Foldable';
+import type { Timekeeping } from '../lib/time/Timekeeping';
 import type { CartesianCoordinates } from '../lib/location/CartesianCoordinates';
 import type { SphericalCoordinates } from '../lib/location/SphericalCoordinates';
 import type { AroundSaveHook } from '../lib/persistence/AroundSaveHook';
@@ -60,6 +64,7 @@ import type { AmbientLit } from '../lib/perception/AmbientLit';
 import type { LightSource } from '../lib/perception/LightSource';
 import type { SmellSource } from '../lib/perception/SmellSource';
 import type { SoundSource } from '../lib/perception/SoundSource';
+import type { Audible } from '../lib/perception/Audible';
 import type { Augment } from '../lib/augmentation/Augment';
 import type { FastTravel } from '../lib/fasttravel/FastTravel';
 import type { CredentialWallet } from '../lib/credential/CredentialWallet';
@@ -124,6 +129,7 @@ import type { Bank } from '../lib/banking/Bank';
 import type { Tab } from '../lib/banking/Tab';
 import type { Business } from '../lib/employment/Business';
 import type { Employed } from '../lib/employment/Employed';
+import type { Combatant } from '../lib/combat/Combatant';
 import { SecurityApi } from './security';
 import { ShadowApi } from './shadow';
 
@@ -682,6 +688,22 @@ export class MixinApi {
     return this.hasMixin(obj, Mixins.Sealable);
   }
 
+  public static isSwitchable(obj: Stuff): obj is Stuff & Switchable {
+    return this.hasMixin(obj, Mixins.Switchable);
+  }
+
+  public static isLockable(obj: Stuff): obj is Stuff & Lockable {
+    return this.hasMixin(obj, Mixins.Lockable);
+  }
+
+  public static isFoldable(obj: Stuff): obj is Stuff & Foldable {
+    return this.hasMixin(obj, Mixins.Foldable);
+  }
+
+  public static isTimekeeping(obj: Stuff): obj is Stuff & Timekeeping {
+    return this.hasMixin(obj, Mixins.Timekeeping);
+  }
+
   public static isCartesianCoordinates(obj: Stuff): obj is Stuff & CartesianCoordinates {
     return this.hasMixin(obj, Mixins.CartesianCoordinates);
   }
@@ -768,6 +790,10 @@ export class MixinApi {
 
   public static isSmellSource(obj: Stuff): obj is Stuff & SmellSource {
     return this.hasMixin(obj, Mixins.SmellSource);
+  }
+
+  public static isAudible(obj: Stuff): obj is Stuff & Audible {
+    return this.hasMixin(obj, Mixins.Audible);
   }
 
   public static isSoundSource(obj: Stuff): obj is Stuff & SoundSource {
@@ -987,6 +1013,11 @@ export class MixinApi {
   /** An actor that can hold employment relationships (`EmployedMixin`). */
   public static isEmployed(obj: Stuff): obj is Stuff & Employed {
     return this.hasMixin(obj, Mixins.Employed);
+  }
+
+  /** An actor that can fight (`CombatantMixin`). */
+  public static isCombatant(obj: Stuff): obj is Stuff & Combatant {
+    return this.hasMixin(obj, Mixins.Combatant);
   }
 
   /**

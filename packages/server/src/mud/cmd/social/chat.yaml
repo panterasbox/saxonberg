@@ -1,5 +1,5 @@
 verbs: [chat]
-controller: social/ChatController
+controller: /obj/command/social/ChatController
 description: "Post to a chat channel, or manage channel membership (list / join / leave / mute / unmute / who / make / rename / disband / history / promote)"
 help: |
   Talk on a named channel that reaches everyone tuned in, wherever

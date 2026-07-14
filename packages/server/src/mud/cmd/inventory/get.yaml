@@ -1,5 +1,5 @@
 verbs: [get, take]
-controller: inventory/GetController
+controller: /obj/command/inventory/GetController
 description: "Pick up objects from your location"
 help: |
   Pick something up off the ground or out of the room and move it

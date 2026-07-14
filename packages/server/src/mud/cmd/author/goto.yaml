@@ -1,5 +1,5 @@
 verbs: [goto]
-controller: author/GotoController
+controller: /obj/command/author/GotoController
 description: "Move yourself to <target>'s location"
 help: |
   Jump straight to wherever a target is. Name an online player, an

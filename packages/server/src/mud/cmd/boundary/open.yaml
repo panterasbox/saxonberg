@@ -1,5 +1,5 @@
 verbs: [open]
-controller: boundary/OpenController
+controller: /obj/command/boundary/OpenController
 description: "Open a door (by direction or by name)"
 help: |
   Open anything that can be sealed — a door blocking an exit, a

@@ -1,5 +1,5 @@
 verbs: [hitch]
-controller: movement/HitchController
+controller: /obj/command/movement/HitchController
 description: "Hitch yourself (or a draft animal) to a cart to pull it"
 help: |
   Take hold of a cart so you can drag it along. `hitch cart` grips the

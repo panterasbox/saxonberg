@@ -169,7 +169,9 @@ describe('OpenController / CloseController / doors integration', () => {
     );
     const bodies = shellFrames.map((f) => (f as { body?: string }).body ?? '');
     expect(bodies.some((b) => /closed/i.test(b))).toBe(true);
-    expect(bodies.some((b) => b.includes('heavy oak door'))).toBe(true);
+    // Sentence-start: the door presentation is capitalized ("Heavy oak
+    // door is closed."), no re-prefixed article.
+    expect(bodies.some((b) => /heavy oak door/i.test(b))).toBe(true);
   });
 
   it('open <keyword> resolves via MQL and opens the door', async () => {

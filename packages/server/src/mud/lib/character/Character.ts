@@ -47,6 +47,7 @@ import { EngagedMixin } from '../activity/Engaged';
 import { BeliefStoreMixin } from '../belief/BeliefStore';
 import { StatusMixin } from '../status/Status';
 import { EmployedMixin } from '../employment/Employed';
+import { CombatantMixin } from '../combat/Combatant';
 
 // Compose the agency mixins on top of the Creature body layer.
 // Order matters:
@@ -80,6 +81,7 @@ import { EmployedMixin } from '../employment/Employed';
 //   needs CommandGiver's surface (pushCommandSource/popCommandSource) in
 //   its base.
 const CharacterBase = AdvancementMixin(
+  CombatantMixin(
   CommandGiverMixin(
   MobileMixin(
     HaulerMixin(
@@ -101,6 +103,7 @@ const CharacterBase = AdvancementMixin(
       )
     )
     )
+  )
   )
   )
 );

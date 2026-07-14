@@ -42,6 +42,8 @@ import { Mixins } from '../mixin';
 import type { Stuff, EvictionContext } from '../stuff/Stuff';
 import type { VetoResult } from '../errors';
 import { StuffApi } from '../../api/stuff';
+import { AppApi } from '../../api/app';
+import { AppSettingKeys } from '../config/AppSettings';
 import { ScheduleApi, type ScheduleHandle } from '../../api/schedule';
 import { SchedulerApi } from '../../api/scheduler';
 import { MixinApi } from '../../api/mixin';
@@ -75,6 +77,14 @@ interface BehaviorWiring {
   state: Record<string, unknown>;
   handle?: ScheduleHandle;
   live: boolean;
+  /**
+   * Whether this brain's cadence is ambient chatter (subject to the global
+   * pacing dial) — captured once from the brain's `static ambient` at wire
+   * time (a structural flag, not per-fire; the HMR per-fire re-resolve is
+   * for `act`, not pacing). Absent/true = ambient; `false` = functional
+   * poller (exact interval).
+   */
+  ambient: boolean;
 }
 
 /**
@@ -216,6 +226,8 @@ export function BehavedMixin<TBase extends MixinConstructor<Stuff>>(
           parsed,
           state: {},
           live: true,
+          // Structural pacing flag off the brain statics (default ambient).
+          ambient: (warm as { ambient?: boolean }).ambient !== false,
         };
         this._wiring.push(wiring);
         if (parsed.source === 'cadence') {
@@ -239,10 +251,39 @@ export function BehavedMixin<TBase extends MixinConstructor<Stuff>>(
 
     // ───────── cadence ─────────
 
+    /**
+     * The global ambient-chatter pacing dial: scale the authored interval
+     * and clamp it up to the anti-spam floor. Ambient cadence only — a
+     * functional poller (`ambient === false`) keeps its interval exact.
+     * Read per re-arm (a synchronous cached lookup) so a live
+     * `config`-verb change takes effect on the next beat. Defaults are
+     * identity (scale 1, no floor) so an unwarmed app-settings — unit
+     * tests — leaves fast cadences untouched.
+     */
+    private _effectiveCadence(baseMs: number, ambient: boolean): number {
+      if (!ambient) return baseMs;
+      let scale = 1;
+      let floor = 0;
+      try {
+        const s = Number(
+          AppApi.setting(AppSettingKeys.behaviorAmbientCadenceScale)
+        );
+        if (Number.isFinite(s) && s > 0) scale = s;
+        const f = Number(
+          AppApi.setting(AppSettingKeys.behaviorAmbientCadenceFloorMs)
+        );
+        if (Number.isFinite(f) && f > 0) floor = f;
+      } catch {
+        // app-settings unwarmed (tests) — identity pacing.
+      }
+      return Math.max(floor, Math.round(baseMs * scale));
+    }
+
     private _scheduleJittered(wiring: BehaviorWiring, baseMs: number): void {
       if (!wiring.live || !this._behaviorsLive) return;
+      const base = this._effectiveCadence(baseMs, wiring.ambient);
       const jitter = 1 + (Math.random() * 2 - 1) * JITTER_FRACTION;
-      const delay = Math.max(1, Math.round(baseMs * jitter));
+      const delay = Math.max(1, Math.round(base * jitter));
       wiring.handle = ScheduleApi.schedule(delay, () => {
         wiring.handle = undefined;
         if (!wiring.live || !this._behaviorsLive) return;

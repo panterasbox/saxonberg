@@ -6,6 +6,7 @@ hydratorClass: /lib/persistence/PersistentHydrator
 data:
   illustration: species/infernalis.png
   binomial: Homo infernalis
+  sentient: true
   commonNames: ["tiefling"]
   _bodyPlanPath: /lib/body-plans/biped
   _parentCladePath: /lib/species/animalia

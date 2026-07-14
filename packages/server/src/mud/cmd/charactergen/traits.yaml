@@ -1,5 +1,5 @@
 verbs: [traits]
-controller: charactergen/TraitsController
+controller: /obj/command/charactergen/TraitsController
 description: "Read your own defining traits — the dispositions you've grown into."
 help: |
   Your defining traits, as the dispositions your behavior has made

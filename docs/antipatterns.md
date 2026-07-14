@@ -1760,3 +1760,57 @@ if (MixinApi.isAether(avatar)) { ... }  // active state, uniformly
 Build-time-only composition checks (rare; usually content-content
 introspection during seeding) use the low-level
 `MixinApi.hasMixin(stuff.constructor, name)` directly.
+
+## Emotes Stay Side-Effect-Free; Functional Interactions Are Afforded Verbs
+
+An **affordance is a promise**: "this is a real functional command you can
+hook into right now." The affordance list (surfaced contextually, previewed
+on hover in the client) is the player's discoverability contract and the
+answer to "how do they learn the verbs without memorizing a palette." That
+contract only holds if **emotes never silently *do* things** — the moment
+some emotes are load-bearing and others are pure expression, the player has
+to memorize which is which, and the affordance list stops being trustworthy.
+
+So the two namespaces stay disjoint:
+
+- **Functional object interactions are real, afforded verbs**, localized to
+  the thing (or actor capability) that affords them. More real verbs is not
+  the smell — an unafforded, must-memorize palette is. The affordance system
+  *is* the answer to verb-proliferation worry.
+- **Emotes are expression only** — no functional world-effects. They ride the
+  Soul/`EmoteGrammar` surface, always available, and produce messages, never
+  consequences.
+- **`use` / a generic `Usable` responder is the fallback** for interactions
+  not worth minting a named verb — the catch-all *beneath* afforded verbs,
+  not a replacement for them.
+
+### BAD (function smuggled into the emote namespace, or a gesture-verb command squatting it)
+
+```typescript
+// A 'blow' command wired so objects respond to the blow EMOTE — now the
+// player must learn which emotes are load-bearing. OR a global 'blow'
+// gesture command that collides with the expressive `blow <kiss>` emote.
+// Either way the affordance contract is muddied and the namespaces fight.
+```
+
+### GOOD (real afforded verb for the function; emote stays dumb)
+
+```yaml
+# The whistle affords its own functional verb; the affordance surfaces it
+# only when a whistle is in hand. `blow <kiss>` stays a pure emote.
+# Whistle.ts:
+#   static commandContributions = { inventory: ['device/blow.yaml'] };
+```
+
+**A functional verb that collides with a natural emote word is itself a
+smell.** `wind` / `switch` / `fold` / `open` / `lock` are nobody's emote and
+never collide; only gesture-shaped words (`blow`, `poke`, `push`, `kick`,
+`knock`) do. A collision means *either* the interaction is really expressive
+(make it an emote, no function) *or* pick a non-gesture verb / route it
+through `use`. The whistle's `blow` is the deliberate exception — a genuinely
+functional act that happens to wear an emote's word, kept local to the
+whistle so the affordance context (whistle in hand) carries it. Don't distort
+the whole design around one overloaded English word, and don't generalize a
+`Blowable`-style per-gesture capability: "anything can be blown, only some
+respond" is a *responder*, not an object type — and the responder, if you
+ever need it, hangs off `use`, not a new gesture-verb layer.

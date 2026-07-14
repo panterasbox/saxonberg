@@ -16,14 +16,8 @@ import type { SenseChannel } from '../../../lib/description/Perceiver';
 import { MessageApi } from '../../../api/message';
 import { Mml } from '../../../api/mml';
 import { SoundModality } from '../../../lib/perception/modalities/SoundModality';
-import type { Sound } from '../../../lib/perception/Sound';
+import { Sound } from '../../../lib/perception/Sound';
 import { StuffApi } from '../../../api/stuff';
-
-/**
- * Default per-viewer hearing threshold in dB. v1 species have no
- * `hearingProfile`; a future profile field overrides this.
- */
-const DEFAULT_HEARING_THRESHOLD_DB = 10;
 
 export default class ListenController extends SingleSenseControllerBase {
   protected readonly senseChannel: SenseChannel = 'hearing';
@@ -35,7 +29,10 @@ export default class ListenController extends SingleSenseControllerBase {
     if (!location) return; // defensive: placeless avatars are blocked at inbound and Login carries no sense verbs, so location is present in practice; degrade to a quiet no-op otherwise
     const signal = SoundModality.soundAt(location);
 
-    if (signal && signal.amplitude.rawValue() >= DEFAULT_HEARING_THRESHOLD_DB) {
+    if (
+      signal &&
+      signal.amplitude.rawValue() >= Sound.DEFAULT_HEARING_THRESHOLD_DB
+    ) {
       const body = renderListenProse(signal);
       MessageApi.scene(actor).topic(this.sceneTopic).toSelf(body).send();
       return;

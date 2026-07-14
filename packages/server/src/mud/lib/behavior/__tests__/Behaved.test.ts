@@ -17,6 +17,7 @@ import { EngagedMixin } from '../../activity/Engaged';
 import type { Engagement } from '../../../api/scheduler';
 import { SchedulerApi } from '../../../api/scheduler';
 import { ScheduleApi } from '../../../api/schedule';
+import { AppApi } from '../../../api/app';
 import { StuffApi } from '../../../api/stuff';
 import { ContainmentApi } from '../../../api/containment';
 import { BehavedMixin } from '../Behaved';
@@ -150,6 +151,38 @@ describe('cadence wiring + presence gating', () => {
     expect(fired).toBeGreaterThan(0);
     // One resolveExportSync per fire — proves no captured reference.
     expect(spy.mock.calls.filter((c) => c[0] === PROBE).length).toBe(fired);
+  });
+});
+
+describe('ambient pacing dial', () => {
+  it('the floor clamps a fast ambient cadence before jitter', async () => {
+    vi.useFakeTimers();
+    // Warm the dial: a 60s floor, identity scale. (Unwarmed = identity, so
+    // every other test in this file keeps its fast cadence — that safety is
+    // implicitly covered by them all firing on cadence:1s.)
+    vi.spyOn(AppApi, 'setting').mockImplementation((key: string) =>
+      key === 'behavior.ambientCadenceFloorMs'
+        ? '60000'
+        : key === 'behavior.ambientCadenceScale'
+          ? '1'
+          : ''
+    );
+    const delays: number[] = [];
+    vi.spyOn(ScheduleApi, 'schedule').mockImplementation(((ms: number) => {
+      delays.push(ms);
+      return { id: 'x' } as never; // capture-only; don't re-arm/fire
+    }) as never);
+
+    const room = makeStuff(() => new TestRoom());
+    const npc = makeStuff(() => new TestNPC()) as unknown as NPC;
+    ContainmentApi.move(npc as never, room as never);
+    npc.behaviors = [{ brain: PROBE, trigger: 'cadence:1s' }]; // 1000ms authored
+    await npc.postRegister();
+
+    // Authored 1s, but PROBE is ambient (default) → clamped up to the 60s
+    // floor, then ±25% jitter, so never near the raw ~1s.
+    expect(delays.length).toBeGreaterThan(0);
+    expect(delays[0]).toBeGreaterThanOrEqual(60000 * (1 - 0.25));
   });
 });
 

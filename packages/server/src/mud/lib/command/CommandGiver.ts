@@ -146,34 +146,22 @@ const ASYNC_BODY_TARGET = { module: 'CommandGiverMixin' } as const;
  * (late) envelope carries the body's accumulated notes + final status.
  */
 /**
- * Resolve a `controller:` reference to its clone template path. A core
- * controller is named relative to `obj/command/` (`perception/Look` →
- * `/obj/command/perception/Look`); a content-owned controller is named by
- * its full mud-rooted path (`/domain/eternal/duncan-hall/command/Provision`)
- * and used as-is. The leading `/` is the discriminator — so a content pack
- * can own its controllers without landing them in the core `obj/command/`
- * tree.
- */
-function resolveControllerPath(controllerName: string): string {
-  return controllerName.startsWith('/')
-    ? controllerName
-    : `/obj/command/${controllerName}`;
-}
-
-/**
  * Author-diagnostics: record a controller throw (store row + author push).
- * Fire-and-forget and fully swallowing — a controller-error note is already
- * the giver's surface, and diagnostics capture must never break dispatch or
- * leak an unhandled rejection (e.g. a disconnected store).
+ * `controllerPath` is the already-resolved `/`-rooted controller template
+ * path (see `CommandDefinition.resolvedController` /
+ * `controllerForSubcommand`). Fire-and-forget and fully swallowing — a
+ * controller-error note is already the giver's surface, and diagnostics
+ * capture must never break dispatch or leak an unhandled rejection (e.g. a
+ * disconnected store).
  */
 function recordControllerThrow(
-  controllerName: string | undefined,
+  controllerPath: string | undefined,
   error: unknown
 ): void {
   const message = error instanceof Error ? error.message : String(error);
   void DiagnosticApi.record({
-    path: controllerName ? resolveControllerPath(controllerName) : null,
-    message: `${controllerName ?? '?'}: ${message}`,
+    path: controllerPath ?? null,
+    message: `${controllerPath ?? '?'}: ${message}`,
     stack: error instanceof Error ? (error.stack ?? null) : null,
   }).catch(() => {
     // diagnostics never breaks dispatch
@@ -830,14 +818,14 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
           // The throw can originate inside a controller's execute(),
           // inside resolveAndValidate, or anywhere else. Attribute to
           // whichever context is currently flowing through the chain.
-          const controllerName = outer.command?.controller;
+          const controllerPath = outer.command?.resolvedController;
           claimingCtx.note({
             kind: 'controller-error',
-            controller: controllerName ?? '?',
+            controller: controllerPath ?? '?',
             detail,
           });
           // The note above is the giver's surface; this is the developer's.
-          recordControllerThrow(controllerName, error);
+          recordControllerThrow(controllerPath, error);
         }
       }
 
@@ -1138,10 +1126,10 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
       // resolvable controller rejects here, never detaching a phantom
       // body (and its envelope fires the normal sync way).
       const sub = (model as { subcommand?: string }).subcommand;
-      const controllerName = sub
+      const controllerPath = sub
         ? command.controllerForSubcommand(sub)
-        : command.controller;
-      if (!controllerName) {
+        : command.resolvedController;
+      if (!controllerPath) {
         context.note({
           kind: 'command-rejected',
           reason: 'missing-subcommand',
@@ -1163,7 +1151,7 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
           let controller: CommandController | null = null;
           try {
             controller = await StuffApi.clone<CommandController>(
-              resolveControllerPath(controllerName)
+              controllerPath
             );
             await controller.execute(model, context);
           } catch (error: unknown) {
@@ -1171,10 +1159,10 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
               error instanceof Error ? error.message : String(error);
             context.note({
               kind: 'controller-error',
-              controller: controllerName,
+              controller: controllerPath,
               detail: message,
             });
-            recordControllerThrow(controllerName, error);
+            recordControllerThrow(controllerPath, error);
           } finally {
             if (controller) StuffApi.destruct(controller);
             emitDispatchResponse(context);
@@ -1185,18 +1173,16 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
 
       let controller: CommandController | null = null;
       try {
-        controller = await StuffApi.clone<CommandController>(
-          resolveControllerPath(controllerName)
-        );
+        controller = await StuffApi.clone<CommandController>(controllerPath);
         await controller.execute(model, context);
       } catch (error: unknown) {
         const message = error instanceof Error ? error.message : String(error);
         context.note({
           kind: 'controller-error',
-          controller: controllerName,
+          controller: controllerPath,
           detail: message,
         });
-        recordControllerThrow(controllerName, error);
+        recordControllerThrow(controllerPath, error);
       } finally {
         if (controller) StuffApi.destruct(controller);
       }

@@ -1,5 +1,5 @@
 verbs: [collect]
-controller: employment/CollectController
+controller: /obj/command/employment/CollectController
 description: "Collect the tips from the jar (on-shift bartender)"
 help: |
   Scoop the tip jar into your own pocket — `collect` (or `collect tips`).

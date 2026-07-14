@@ -10,6 +10,7 @@ hydratorClass: /lib/persistence/PersistentHydrator
 data:
   illustration: species/trollius.png
   binomial: Homo trollius
+  sentient: true
   commonNames: ["troll"]
   _bodyPlanPath: /lib/body-plans/biped
   _parentCladePath: /lib/species/animalia

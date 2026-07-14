@@ -1,5 +1,5 @@
 verbs: [climb]
-controller: movement/ClimbController
+controller: /obj/command/movement/ClimbController
 description: "Climb through a named exit (must be Climbable-enabled)."
 help: |
   Haul yourself up, down, or across an exit that has to be climbed —

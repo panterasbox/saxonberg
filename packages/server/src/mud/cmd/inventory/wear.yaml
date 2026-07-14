@@ -1,5 +1,5 @@
 verbs: [wear]
-controller: inventory/WearController
+controller: /obj/command/inventory/WearController
 description: "Put on a wearable item from your inventory"
 help: |
   Put on clothing, armor, or any wearable you're carrying. `wear`

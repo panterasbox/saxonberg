@@ -49,6 +49,16 @@ export const Mixins = {
   SphericalCoordinates: 'SphericalCoordinatesMixin',
   Exitable: 'ExitableMixin',
   Sealable: 'SealableMixin',
+  // Binary on/off — a lamppost, a beacon, a machine.
+  Switchable: 'SwitchableMixin',
+  // Binary locked/unlocked — composed onto Door beneath Sealable.
+  Lockable: 'LockableMixin',
+  // Binary folded/unfolded — a folding chair refuses its posture slots.
+  Foldable: 'FoldableMixin',
+  // Displays game-time — a pocket watch, a clock tower, a sundial.
+  Timekeeping: 'TimekeepingMixin',
+  // The windable/drifting clockwork inside a mechanical timepiece.
+  MechanicalMovement: 'MechanicalMovementMixin',
   AroundSaveHook: 'AroundSaveHookMixin',
   AroundDeleteHook: 'AroundDeleteHookMixin',
   PostRegistration: 'PostRegistrationMixin',
@@ -63,6 +73,8 @@ export const Mixins = {
   LightSource: 'LightSourceMixin',
   SmellSource: 'SmellSourceMixin',
   SoundSource: 'SoundSourceMixin',
+  // Discrete-event sound push — a whistle, a bell, an alarm, a chime.
+  Audible: 'AudibleMixin',
   Augment: 'AugmentMixin',
   Perception: 'PerceptionMixin',
   Tangible: 'TangibleMixin',
@@ -144,6 +156,9 @@ export const Mixins = {
   // relationships (an on-shift Position confers its duties via augments).
   Business: 'BusinessMixin',
   Employed: 'EmployedMixin',
+  // Combat — "I can fight": combat verb affordances + the innate-attack
+  // hook. All fight state is session-scoped, never on the Creature.
+  Combatant: 'CombatantMixin',
 } as const;
 
 /**

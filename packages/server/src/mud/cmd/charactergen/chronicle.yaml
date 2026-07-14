@@ -1,5 +1,5 @@
 verbs: [chronicle]
-controller: charactergen/ChronicleController
+controller: /obj/command/charactergen/ChronicleController
 description: "Read your own chronicle — your prologue and your deeds."
 help: |
   Your character's life on the record. `chronicle` reads back your

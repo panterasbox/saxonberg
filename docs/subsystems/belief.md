@@ -83,10 +83,17 @@ Algorithm (per target):
 4. **Recognition** (instance, living beings only): `recall(RECOGNITION,
    templatePath)?.knownAs`. **Identification** (type, any `Identifiable`):
    the known type name. The two **compose** — `"Bob, a city guard"`; each
-   applies alone; an unknown being renders generated `salientFeatures`
-   (species / most-notable worn item / authored appearance), never its
-   true name.
-5. Status decoration is woven last.
+   applies alone; an unknown being renders the **bare stem** — its
+   `shortDescription` ("a crossing guard"), else a species fallback —
+   never its true name.
+5. `describe` is **pure identity**: no worn-feature affix and no
+   status. The two escalations are separate surfaces — the
+   distinguishing worn-feature form ("… wearing a faded hi-vis vest")
+   lives on `salientFeatures` and rides `perceivedKeywords` for
+   *targeting*; the activity-status affix rides
+   `describeWithStatus` (below). Keeping both off `describe` is what
+   makes ambient act lines read "a crossing guard says …", not the
+   whole life story.
 
 `describe` is **pure** — it runs for every perceived target × viewer on
 every look / listing / MQL projection, so it never mutates memory. The
@@ -182,15 +189,21 @@ ordinary keywords). The true name is never a keyword unless revealed, so
 
 ## `StatusMixin` (`lib/status/Status.ts`)
 
-A settable activity-status line feeding the **decoration** slice — "Gus,
-the crossing guard, watching the empty road." Three sources: the `status`
-verb, a runtime setter an NPC behavior pokes (`setStatus`), and a static
-authored default (`authoredStatus`, the only persisted field). Runtime
-overrides the default; clearing reverts to it. Per-field invariant on the
-setter (collapse whitespace, reject over-long). **Distinct from derived
-status-flags** (poisoned, glowing) — don't merge. It rides
-`getPresentation()`'s decoration (viewer-independent) and is re-woven by
-`describe` onto the recognized/salient name (no double-decoration).
+A settable activity-status line — "watching the empty road". Three
+sources: the `status` verb, a runtime setter an NPC behavior pokes
+(`setStatus`), and a static authored default (`authoredStatus`, the only
+persisted field). Runtime overrides the default; clearing reverts to it.
+Per-field invariant on the setter (collapse whitespace, reject over-long).
+**Distinct from derived status-flags** (poisoned, glowing) — don't merge.
+
+**A presence affix, not identity.** The status is *not* woven into
+`getPresentation()` or `describe` (those are pure identity). It rides
+`RecognitionApi.describeWithStatus(viewer, target)` — the presence-scan
+variant used only by the room occupant roll-call ("a crossing guard,
+watching the empty road"), never by act-subject naming ("a crossing guard
+says …") or the look-at header. That split is what keeps the status from
+contradicting the act in flight; see [message-rendering.md] /
+`SocialLogic.composeOccupants` for the one presence consumer.
 
 ## Identification — type axis, thin (`lib/identification/`)
 

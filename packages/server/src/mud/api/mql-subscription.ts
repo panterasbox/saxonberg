@@ -249,7 +249,10 @@ export class MqlSubscriptionApi {
       // viewer-blind so the perception/belief dependency never enters
       // the root `Stuff` module (cycle avoidance). Same
       // `RecognitionApi.describe` routine the prose path uses, so the
-      // pane and the scrollback can't show different names.
+      // pane and the scrollback can't show different *names*. The
+      // activity-status affix is a presence decoration (not identity), so
+      // it rides `describeWithStatus` in the prose occupant-listing only,
+      // never this general identity field.
       const value =
         name === 'displayName'
           ? RecognitionApi.describe(viewer, stuff)

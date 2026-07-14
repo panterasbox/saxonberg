@@ -1,5 +1,5 @@
 verbs: [assess]
-controller: perception/AssessController
+controller: /obj/command/perception/AssessController
 description: "Read a body's condition and wounds"
 help: |
   `assess` reports the state of a body — its overall condition and any

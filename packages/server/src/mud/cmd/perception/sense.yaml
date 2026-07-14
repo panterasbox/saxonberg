@@ -1,5 +1,5 @@
 verbs: [sense]
-controller: perception/SenseController
+controller: /obj/command/perception/SenseController
 description: "Take in your surroundings across every sense you possess"
 help: |
   Open every sense at once. `sense` gathers sight, sound, smell,

@@ -1,5 +1,5 @@
 verbs: [subdivide]
-controller: system/SubdivideController
+controller: /obj/command/system/SubdivideController
 description: "Carve a titled sub-parcel out of the parcel you own here"
 help: |
   Subdivide the parcel you're standing in, minting a titled child area you

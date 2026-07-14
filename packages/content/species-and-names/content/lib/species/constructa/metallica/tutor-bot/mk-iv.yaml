@@ -6,6 +6,7 @@ class: /lib/species/Species
 hydratorClass: /lib/persistence/PersistentHydrator
 data:
   binomial: Constructa metallica
+  sentient: true
   commonNames: ["tutor-bot", "robot"]
   _bodyPlanPath: /lib/body-plans/biped
   _parentCladePath: /lib/species/constructa

@@ -1,5 +1,5 @@
 verbs: [talk, converse]
-controller: social/TalkController
+controller: /obj/command/social/TalkController
 description: "Approach someone and strike up a conversation"
 help: |
   Engage a conversational character. You approach and they speak

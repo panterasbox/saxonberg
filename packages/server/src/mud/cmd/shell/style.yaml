@@ -1,5 +1,5 @@
 verbs: [style]
-controller: shell/StyleController
+controller: /obj/command/shell/StyleController
 description: "Customize cockpit appearance: theme, per-channel color, plain mode, mention prefs."
 help: |
   Tune how the cockpit looks and reads. `style` collects every

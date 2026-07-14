@@ -1,5 +1,5 @@
 verbs: [mv]
-controller: shell/MvController
+controller: /obj/command/shell/MvController
 description: "Move/rename <src> to <dst> in the content (default) or source tree"
 help: |
   Relocate or rename a path. `mv` moves the source to the

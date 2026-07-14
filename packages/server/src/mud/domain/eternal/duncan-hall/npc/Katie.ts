@@ -45,8 +45,8 @@ export default class Katie extends PopulatesMixin(NPC) {
   static commandContributions: CommandContributions = {
     self: [],
     environment: [
-      '/domain/eternal/duncan-hall/cmd/provision.yaml',
-      '/domain/eternal/duncan-hall/cmd/unprovision.yaml',
+      'domain/eternal/duncan-hall/cmd/provision.yaml',
+      'domain/eternal/duncan-hall/cmd/unprovision.yaml',
     ],
     inventory: [],
     peers: [],

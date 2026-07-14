@@ -5,7 +5,7 @@
 # instrument, not a fare — no money changes hands.
 verbs: [procure]
 description: "Procure a fresh Teleport Authority travel card from the clerk (free)."
-controller: tpa/ProcureCardController
+controller: /obj/command/tpa/ProcureCardController
 # An optional trailing word so `procure card` parses (the noun is flavour —
 # the clerk only ever hands out one thing). Bare `procure` works too.
 args:

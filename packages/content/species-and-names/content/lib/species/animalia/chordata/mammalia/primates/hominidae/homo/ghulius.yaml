@@ -12,6 +12,7 @@ hydratorClass: /lib/persistence/PersistentHydrator
 data:
   illustration: species/ghulius.png
   binomial: Homo ghulius
+  sentient: true
   commonNames: ["ghoul"]
   _bodyPlanPath: /lib/body-plans/biped
   _parentCladePath: /lib/species/animalia

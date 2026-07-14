@@ -264,6 +264,18 @@ export function SlottedMixin<TBase extends MixinConstructor<Stuff>>(
       ) {
         return false;
       }
+      // Part 0.5 — folded gate. A folded Foldable host refuses its
+      // posture-bearing slots: you can't sit on a folded chair. No-op
+      // unless the host composes FoldableMixin AND is currently folded
+      // AND the slot is posture-bearing, so ordinary slots and unfolded
+      // hosts behave exactly as before.
+      if (
+        MixinApi.isFoldable(host) &&
+        host.isFolded() &&
+        (spec.postures?.length ?? 0) > 0
+      ) {
+        return false;
+      }
       // Part 1 — slot-side mixin check. `accepts` is validated to be
       // a Mixins-registry value at setStaticSlots() time; safe cast.
       if (!MixinApi.hasMixin(candidate, spec.accepts as MixinName)) {

@@ -94,7 +94,7 @@ const STUBS: Doc[] = [
   },
   { path: "/domain/test/crossroads-room", class: "/lib/stuff/VoidLocation", hydratorClass: PH, data: { shortDescription: "the crossroads" } },
   { path: "/domain/terminus/terminal/clerk", class: "/lib/stuff/Thing", hydratorClass: PH, data: { shortDescription: "the clerk" } },
-  { path: "/domain/eternal/university-avenue/plaza", class: "/lib/stuff/VoidLocation", hydratorClass: PH, data: { shortDescription: "University Avenue" } },
+  { path: "/domain/eternal/university-avenue/crossing", class: "/lib/stuff/VoidLocation", hydratorClass: PH, data: { shortDescription: "University Avenue" } },
 ];
 
 /**
@@ -150,7 +150,7 @@ describe("Terminus content standup (real seeds)", () => {
     }
   });
 
-  it("wires the cross-branch exit from the arrival gate to the EU plaza", async () => {
+  it("wires the cross-branch exit from the arrival gate to the EU crossing", async () => {
     await boot();
     const arrivalGate = StuffApi.findByTemplatePath(
       "/domain/terminus/terminal/arrival-gate",
@@ -162,7 +162,7 @@ describe("Terminus content standup (real seeds)", () => {
       }
     ).getExits();
     const dests = [...exits.values()].map((e) => e.getDestinationTemplatePath());
-    expect(dests).toContain("/domain/eternal/university-avenue/plaza");
+    expect(dests).toContain("/domain/eternal/university-avenue/crossing");
     expect(dests).toContain("/domain/terminus/terminal/hall");
   });
 
@@ -173,10 +173,10 @@ describe("Terminus content standup (real seeds)", () => {
     // (getExits() is the explicit map — grid-derived exits aren't in it). The
     // template is self-describing: read the room, know what it connects to.
     const backExit: Record<string, string> = {
-      "/domain/terminus/terminal/arrival-gate": "north",
+      "/domain/terminus/terminal/arrival-gate": "south",
       "/domain/terminus/terminal/departure-gate-a": "west",
       "/domain/terminus/terminal/departure-gate-b": "east",
-      "/domain/terminus/terminal/departure-gate-c": "south",
+      "/domain/terminus/terminal/departure-gate-c": "north",
       "/domain/terminus/terminal/office": "down",
     };
     for (const [room, dir] of Object.entries(backExit)) {

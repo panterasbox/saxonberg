@@ -1,5 +1,5 @@
 verbs: [contacts]
-controller: social/ContactsController
+controller: /obj/command/social/ContactsController
 description: "Manage personal named lists of other characters (friends, study-group, ignore — labels are free-form)"
 help: |
   Keep your own private lists of other characters. The labels are

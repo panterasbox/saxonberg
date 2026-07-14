@@ -181,6 +181,26 @@ export const AppSettingKeys = {
   statusMaxLength: "status.maxLength",
 
   /**
+   * Behavior — the global **ambient-chatter pacing** dial. Multiplies
+   * every *ambient* cadence brain's authored interval before jitter (a
+   * stoic NPC stays relatively quieter, a chatty one relatively louder;
+   * this dials the whole world's talkativeness at once during playtest).
+   * `1.0` = author cadences as written; `2.0` = everything half as often.
+   * Only `ambient` cadence brains are scaled — functional pollers
+   * (`shifts`, `covers`) are exempt. See docs/subsystems/behavior.md
+   * § Ambient pacing budget.
+   */
+  behaviorAmbientCadenceScale: "behavior.ambientCadenceScale",
+  /**
+   * Behavior — hard floor (ms) under which an *ambient* cadence brain's
+   * effective interval may not fall, no matter what an author sets. The
+   * anti-spam backstop ("nothing unprompted more often than this"). `0`
+   * disables the floor (the code default when app-settings is unwarmed,
+   * so unit tests keep their fast cadences).
+   */
+  behaviorAmbientCadenceFloorMs: "behavior.ambientCadenceFloorMs",
+
+  /**
    * Scripting — resource governance. The interpreter is non-blocking by
    * construction (every engaged/`wait` step suspends and yields); these
    * bound the one pathological shape — a no-suspension tight loop — plus
@@ -360,6 +380,49 @@ export const AppSettingKeys = {
    * biteMax → bites; ≥ → bites-deep). */
   responseBandGrazeMax: "response.band.grazeMax",
   responseBandBiteMax: "response.band.biteMax",
+
+  /* ─────────────────────────── combat ─────────────────────────── */
+  /**
+   * Combat — the narration-beat / tempo tick, in game-seconds. The
+   * session resolves finely and narrates coarsely once per beat. See
+   * docs/subsystems/combat.md.
+   */
+  combatTickSeconds: "combat.tickSeconds",
+  /** Combat — poise band thresholds (fractions of the 0..1 gauge). */
+  combatPoisePressedBelow: "combat.poise.pressedBelow",
+  combatPoiseReelingBelow: "combat.poise.reelingBelow",
+  combatPoiseBrokenAt: "combat.poise.brokenAt",
+  /** Combat — ticks an unexploited opening window stays live. */
+  combatPoiseOpeningTicks: "combat.poise.openingTicks",
+  /** Combat — base poise eroded on both sides per exchange. */
+  combatPoiseErodePerExchange: "combat.poise.erodePerExchange",
+  /** Combat — poise the actor spends committing a gambit (overextend). */
+  combatPoiseOverextendCost: "combat.poise.overextendCost",
+  /** Combat — poise restored by a defensive/reactive beat. */
+  combatPoiseRestorePerDefense: "combat.poise.restorePerDefense",
+  /** Combat — extra poise a whiff/parry self-opens the actor. */
+  combatPoiseWhiffPenalty: "combat.poise.whiffPenalty",
+  /** Combat — tempo rate shape. */
+  combatTempoBase: "combat.tempo.base",
+  combatTempoEncumbrancePenalty: "combat.tempo.encumbrancePenalty",
+  combatTempoEnduranceFloor: "combat.tempo.enduranceFloor",
+  combatTempoMinRate: "combat.tempo.minRate",
+  combatTempoMaxRate: "combat.tempo.maxRate",
+  /** Combat — inflict energy by the target's poise band at the moment of
+   * the blow (an open window earns the hardest hit). */
+  combatEnergySteady: "combat.energy.steady",
+  combatEnergyPressed: "combat.energy.pressed",
+  combatEnergyReeling: "combat.energy.reeling",
+  combatEnergyBroken: "combat.energy.broken",
+  combatEnergyOpen: "combat.energy.open",
+  /** Combat — max narration beats per session (bounded-beats backstop). */
+  combatMaxBeats: "combat.maxBeats",
+  /** Combat (Build 2) — coup de grâce window, game-time seconds. */
+  combatCoupSeconds: "combat.coupSeconds",
+  /** Combat (Build 2) — regard witnesses grant a clean duel winner. */
+  combatRegardDuelWin: "combat.regard.duelWin",
+  /** Combat (Build 2) — regard witnesses withdraw from an unlawful killer. */
+  combatRegardUnlawfulKill: "combat.regard.unlawfulKill",
 } as const;
 
 export type AppSettingKey =

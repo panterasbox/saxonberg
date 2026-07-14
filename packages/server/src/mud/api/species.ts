@@ -124,6 +124,21 @@ export class SpeciesApi {
   }
 
   /**
+   * Sentient iff the Organism's species declares itself a self-aware
+   * moral person (`Species.isSentient`) — a beast is animate but not
+   * sentient; a rock is neither. Orthogonal to {@link isAnimate}.
+   *
+   * The load-bearing consumer is combat's three-case severity keying:
+   * killing a non-sentient target is a cull (the winning blow finishes
+   * it, no consent/blame), while a sentient target is only *defeated* by
+   * it — death is the separate, interruptible coup, and the attack
+   * carries consent + blame. Non-Organism Stuff is never sentient.
+   */
+  public static isSentient(o: Stuff): boolean {
+    return logic().isSentient(o);
+  }
+
+  /**
    * Ensure the actor's species + every clade ancestor + the body
    * plan are live runtime singletons. v1's `Species` / `Clade` /
    * `BodyPlan` templates are NOT bootstrapped — they lazy-load on

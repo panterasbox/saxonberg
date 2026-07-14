@@ -1,0 +1,15 @@
+# The pedestrian crossing beacon — `Beacon` = Switchable + Propertied +
+# Detailed. On = WALK, off = STOP (walk/stop is prose over the on/off state;
+# the beacon gates no movement — theatrical, like Gus's paddle). `switch`/
+# `toggle` drive it.
+class: /obj/Beacon
+hydratorClass: /lib/persistence/PersistentHydrator
+data:
+  shortDescription: a crossing beacon
+  primaryKeyword: beacon
+  longDescription: |
+    A pole-mounted pedestrian beacon at the kerb, a stencilled figure lit behind its lens. Right now it shows STOP in steady red over an empty road — it changes to WALK when someone works it, though nothing out here obeys it either way.
+  details:
+    lens:
+      keywords: [lens, figure, signal, light, red]
+      description: A scratched plastic lens with a stencilled walking figure behind it, red for STOP and white for WALK — the only traffic-control on a street with no traffic.

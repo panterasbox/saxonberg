@@ -156,11 +156,11 @@ describe('Katie — the dorms-agent authorization boundary', () => {
   it('affords the operator provision/unprovision surface as content (not a core mixin)', () => {
     // The raw operator verbs are afforded by Katie herself — she is the
     // front desk. Content commands are afforded by content, referenced by
-    // their mud-rooted absolute key, and those keys resolve to real
-    // definitions (exercising the absolute-key `getCommand` branch).
+    // their `domain/`-prefixed view key, and those keys resolve to real
+    // definitions (the domain-local `getCommand` branch).
     const env = Katie.commandContributions.environment ?? [];
-    expect(env).toContain('/domain/eternal/duncan-hall/cmd/provision.yaml');
-    expect(env).toContain('/domain/eternal/duncan-hall/cmd/unprovision.yaml');
+    expect(env).toContain('domain/eternal/duncan-hall/cmd/provision.yaml');
+    expect(env).toContain('domain/eternal/duncan-hall/cmd/unprovision.yaml');
     for (const key of env) {
       expect(CommandApi.getCommand(key), key).not.toBeNull();
     }

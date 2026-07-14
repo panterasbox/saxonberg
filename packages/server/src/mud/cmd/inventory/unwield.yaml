@@ -1,5 +1,5 @@
 verbs: [unwield]
-controller: inventory/UnwieldController
+controller: /obj/command/inventory/UnwieldController
 description: "Stop wielding a held item"
 help: |
   Lower a weapon or tool you're holding. `unwield` frees your hand

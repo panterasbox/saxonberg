@@ -17,6 +17,7 @@ import type { MqlOneResult } from '../../../api/mql';
 import { MessageApi } from '../../../api/message';
 import { MixinApi } from '../../../api/mixin';
 import { AdvancementApi } from '../../../api/advancement';
+import { CombatApi, type CombatAssessResult } from '../../../api/combat';
 import { Mml } from '../../../api/mml';
 import type { Stuff } from '../../../lib/stuff/Stuff';
 import type { Vitals, ConditionBand } from '../../../lib/vitals/Vitals';
@@ -54,6 +55,20 @@ export default class AssessController extends CommandController<AssessModel> {
       target = giver;
     }
     const isSelf = target === giver;
+
+    // Mid-fight, `assess <opponent>` is the costed combat read: it spends
+    // the actor's next exchange, mints a combat signature, and reveals the
+    // opponent's banded tactical state (poise / flags / armed) at a
+    // fidelity the passive `fight` read hedges. Only against the actual
+    // opponent (1v1) — assessing a bystander stays the medic read.
+    if (!isSelf) {
+      const session = CombatApi.sessionFor(giver);
+      const opp = session?.opponentState(giver)?.combatant;
+      if (opp && (opp as Stuff) === (target as Stuff)) {
+        const read = CombatApi.assess(giver as Stuff, target);
+        if (read.ok) return this.renderCombatAssess(giver, target, read);
+      }
+    }
 
     if (!MixinApi.isVitals(target)) {
       return this.fail(
@@ -101,6 +116,36 @@ export default class AssessController extends CommandController<AssessModel> {
     }
 
     const body = Mml.fromMarkup(blocks.join('\n\n'));
+    MessageApi.scene(giver).topic(TOPIC).toSelf(body).send();
+  }
+
+  /** The mid-fight tactical read — bands only, never a number. */
+  private renderCombatAssess(
+    giver: Stuff,
+    target: Stuff,
+    read: CombatAssessResult,
+  ): void {
+    const label = target.getPresentation();
+    const guard = read.poiseBand ?? 'steady';
+    const arms = read.armed ? 'armed' : 'unarmed';
+    const lines: string[] = [
+      Mml.fromMarkup(
+        `You read ${Mml.strong(Mml.escape(label)).toString()} — guard ${Mml.escape(
+          guard,
+        )}, ${Mml.escape(arms)}.`,
+      ).toString(),
+    ];
+    if (read.conditionBand) {
+      lines.push(
+        Mml.escape(
+          `They ${BAND_PHRASE[read.conditionBand as ConditionBand] ?? 'look hurt'}.`,
+        ),
+      );
+    }
+    if (read.flags && read.flags.length > 0) {
+      lines.push(Mml.escape(`Off balance: ${read.flags.join(', ')}.`));
+    }
+    const body = Mml.fromMarkup(lines.join('\n\n'));
     MessageApi.scene(giver).topic(TOPIC).toSelf(body).send();
   }
 

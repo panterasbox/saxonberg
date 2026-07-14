@@ -85,7 +85,10 @@ describe('RecognitionApi.describe', () => {
     expect(RecognitionApi.describe(viewer, bob)).toBe('Bob');
   });
 
-  it('renders salient features (not the true name) for an unknown being', () => {
+  it('renders the bare stem (not the true name) for an unknown being', () => {
+    // `describe` is the concise identity — the `shortDescription` stem, no
+    // worn-feature affix (that's `salientFeatures`, reserved for targeting)
+    // and no status (that's `describeWithStatus`, the presence roll-call).
     const viewer = makeStuff(() => new Viewer());
     const bob = makeBeing('Bob', 'a tall stranger');
     const rendered = RecognitionApi.describe(viewer, bob);

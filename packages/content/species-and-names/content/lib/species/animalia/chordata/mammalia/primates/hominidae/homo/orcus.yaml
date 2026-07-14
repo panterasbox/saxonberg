@@ -7,6 +7,7 @@ hydratorClass: /lib/persistence/PersistentHydrator
 data:
   illustration: species/orcus.png
   binomial: Homo orcus
+  sentient: true
   commonNames: ["orc"]
   _bodyPlanPath: /lib/body-plans/biped
   _parentCladePath: /lib/species/animalia

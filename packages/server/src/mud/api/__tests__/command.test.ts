@@ -28,7 +28,7 @@ describe('CommandApi', () => {
 
       expect(command).not.toBeNull();
       expect(command?.verbs).toContain('ping');
-      expect(command?.controller).toBe('system/PingController');
+      expect(command?.controller).toBe('/obj/command/system/PingController');
     });
 
     it('returns the same instance on repeat calls (cached)', () => {
@@ -70,7 +70,7 @@ describe('CommandApi', () => {
       CommandApi.clearCache();
       const after = CommandApi.getCommand('system/ping.yaml');
       expect(before).not.toBe(after);
-      expect(after?.controller).toBe('system/PingController');
+      expect(after?.controller).toBe('/obj/command/system/PingController');
     });
   });
 
@@ -92,7 +92,7 @@ describe('CommandApi', () => {
     it('parses ping.yaml as a zero-arg flat verb', () => {
       const cmd = CommandApi.getCommand('system/ping.yaml');
       expect(cmd?.verbs).toContain('ping');
-      expect(cmd?.controller).toBe('system/PingController');
+      expect(cmd?.controller).toBe('/obj/command/system/PingController');
       expect(cmd?.description).toBeDefined();
       expect(cmd?.args).toEqual([]);
     });

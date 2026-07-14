@@ -1,5 +1,5 @@
 verbs: [script]
-controller: shell/ScriptController
+controller: /obj/command/shell/ScriptController
 description: "Run a multi-statement script"
 help: |
   Run a script body directly — `script look; say hi` or a block

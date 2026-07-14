@@ -20,6 +20,7 @@ import { ChronicleApi } from "../api/chronicle";
 import { ContainmentApi } from "../api/containment";
 import { MixinApi } from "../api/mixin";
 import type { Containable } from "../lib/spatial/Containable";
+import type { Container } from "../lib/spatial/Container";
 import type { Stuff } from "../lib/stuff/Stuff";
 import { SpeciesApi } from "../api/species";
 import AetherImplant from "../lib/augmentation/AetherImplant";
@@ -619,6 +620,16 @@ export default class Avatar extends AvatarBase {
           if (this.getOccupants("cranial").size === 0) {
             const implant = await StuffApi.clone<AetherImplant>(
               AetherImplant.TEMPLATE_PATH,
+            );
+            // A cranial implant lives in the avatar's possession AND the
+            // slot — the worn/wielded contract (see `Gus.equipLoadout` /
+            // WearController). Move it in FIRST so it travels with the
+            // avatar and never lists as loose room contents, THEN occupy
+            // the slot. (Occupy alone doesn't set containment, so a
+            // freshly cloned implant would otherwise leak into the room.)
+            ContainmentApi.move(
+              implant as unknown as Stuff & Containable,
+              this as unknown as Stuff & Container,
             );
             this.occupy(implant, "cranial");
           }

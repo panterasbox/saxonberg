@@ -1,5 +1,5 @@
 verbs: [reload]
-controller: author/ReloadController
+controller: /obj/command/author/ReloadController
 description: "Hot-reload a template or runtime instance"
 help: |
   Pull fresh code into a live template or runtime instance without
