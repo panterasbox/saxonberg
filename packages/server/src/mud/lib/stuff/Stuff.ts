@@ -207,14 +207,11 @@ export abstract class Stuff {
       const n = this.getQuantity();
       if (n !== 1) identity = `${n} ${GrammarApi.pluralize(this, base)}`;
     }
-    // Authored activity-status decoration (Character-tier `StatusMixin`):
-    // "Gus, the crossing guard" → "Gus, …, watching the empty road".
-    // Viewer-independent, so it rides the baseline; `RecognitionApi`
-    // re-weaves it onto a recognized name the same way.
-    if (MixinApi.isStatus(this)) {
-      const status = this.getStatus();
-      if (status) return `${identity}, ${status}`;
-    }
+    // `getPresentation()` is pure identity. The authored activity-status
+    // affix (`StatusMixin`, "watching the empty road") is a *presence*
+    // decoration, not identity — it weaves in only through
+    // `RecognitionApi.describeWithStatus` at presence-scan surfaces (the
+    // room occupant roll-call, the profile), never on act-subject naming.
     return identity;
   }
 

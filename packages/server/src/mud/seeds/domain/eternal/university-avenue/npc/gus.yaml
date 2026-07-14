@@ -46,11 +46,15 @@ data:
     - guard
     - authority
   # The salient-feature fallback a true stranger sees before he speaks —
-  # which is almost never, since he speaks immediately. His presentation
-  # composes as name + status: "Gus, the crossing guard, watching the empty
-  # road."
+  # which is almost never, since he speaks immediately. His role ("crossing
+  # guard") rides the shortDescription; the authoredStatus is the *activity*
+  # affix only (no role restatement — that would double as "a crossing
+  # guard …, the crossing guard, watching …"). Status is a presence
+  # decoration: a stranger in the room roll-call reads "a crossing guard
+  # wearing a faded hi-vis vest, watching the empty road", while his
+  # act-subject lines stay clean ("a crossing guard … says …").
   shortDescription: a crossing guard
-  authoredStatus: the crossing guard, watching the empty road
+  authoredStatus: watching the empty road
   longDescription: |
     An older man in a high-vis orange vest gone soft at the seams, with a weathered, kindly face and sensible shoes. His gear rides on him and means business — the watch on its chain, the whistle on its cord, the STOP paddle held ready in one hand — and a laminated CROSSING AUTHORITY badge is clipped square to his chest. Even while his eyes are on you they flick both ways down the empty avenue, out of a habit older than the quiet.
   # NOTE: dispositions (ambition→Content, diligence→Diligent, constancy→
@@ -69,8 +73,13 @@ data:
     # one compressed emote here — the paced multi-beat ScheduledEmission
     # sequence is a Phase 5 refinement; the real `blow whistle` verb from idle
     # is likewise deferred, so the whistle is flavour for now.)
+    #
+    # Cadence is deliberately UNHURRIED (~45s, jittered): this is ambient
+    # background a player reads *around*, not a performance. Faster (the old
+    # 10s) reads as a nervous tic and drowns the room in Gus. The arrival
+    # ritual below is the showpiece; the idles are just signs of life.
     - brain: /lib/behavior/idles
-      trigger: cadence:10s
+      trigger: cadence:45s
       config:
         pool:
           - { kind: free, value: "paces his stretch of curb, hands behind his back." }

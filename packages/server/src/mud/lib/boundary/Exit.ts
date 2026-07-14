@@ -47,6 +47,7 @@ import type Door from './Door';
 import { StuffApi } from '../../api/stuff';
 import { LocomotionApi } from '../../api/locomotion';
 import { MixinApi } from '../../api/mixin';
+import { GrammarApi } from '../../api/grammar';
 
 /**
  * Discriminator naming which gate failed during `canTraverse`. Backcompat
@@ -524,7 +525,10 @@ export default class Exit extends Idea {
       return {
         ok: false,
         gate: 'locked',
-        reason: `The ${doorName} is locked.`,
+        // `getPresentation()` already carries the article ("the
+        // university gate"); cap the leading char rather than re-prefix
+        // "The " (which double-articles to "The the …").
+        reason: `${GrammarApi.cap(doorName)} is locked.`,
       };
     }
     if (this.door && !this.door.isOpen()) {
@@ -532,7 +536,7 @@ export default class Exit extends Idea {
       return {
         ok: false,
         gate: 'door',
-        reason: `The ${doorName} is closed.`,
+        reason: `${GrammarApi.cap(doorName)} is closed.`,
       };
     }
     if (mode != null && !this.allowsMode(mode)) {

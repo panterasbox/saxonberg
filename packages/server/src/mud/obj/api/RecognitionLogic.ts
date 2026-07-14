@@ -114,29 +114,34 @@ function decorate(core: string, target: Stuff): string {
   return core;
 }
 
+/**
+ * The bare "what a stranger sees" stem — authored `shortDescription`
+ * ("a crossing guard"), else a species-generated fallback ("a dwarf"),
+ * else "someone". Never leaks a proper name, carries NO worn-feature or
+ * status affix. This is the concise identity a stranger reads in ambient
+ * act lines; `salientFeaturesImpl` layers the distinguishing worn item on
+ * top of it for the fuller presence / targeting surfaces.
+ */
+function strangerStem(target: Stuff): string {
+  // Authored generic appearance wins — it's the content author's "what a
+  // stranger sees" and never leaks a proper name.
+  if (MixinApi.isVisible(target)) {
+    const short = target.getShortDescription();
+    if (short) return short;
+  }
+  // Generated fallback from species.
+  const species = MixinApi.isOrganism(target)
+    ? target.getSpecies()?.getCommonNames()[0]
+    : undefined;
+  return species ? `${GrammarApi.articleFor(species)} ${species}` : 'someone';
+}
+
 /** See {@link RecognitionApi.salientFeatures}. */
 function salientFeaturesImpl(
   target: Stuff,
   covered: ReadonlySet<string> = EMPTY_COVERAGE
 ): string {
-  let stem = '';
-
-  // Authored generic appearance wins — it's the content author's "what a
-  // stranger sees" and never leaks a proper name.
-  if (MixinApi.isVisible(target)) {
-    const short = target.getShortDescription();
-    if (short) stem = short;
-  }
-
-  // Generated fallback from species.
-  if (!stem) {
-    const species = MixinApi.isOrganism(target)
-      ? target.getSpecies()?.getCommonNames()[0]
-      : undefined;
-    stem = species
-      ? `${GrammarApi.articleFor(species)} ${species}`
-      : 'someone';
-  }
+  let stem = strangerStem(target);
 
   // Most-notable worn item, unless the disguise covers the body region.
   if (covered.size === 0) {
@@ -147,8 +152,31 @@ function salientFeaturesImpl(
   return stem;
 }
 
-/** See {@link RecognitionApi.describe}. */
-function describeImpl(viewer: Stuff, target: Stuff): string {
+/**
+ * The viewer-aware identity core, tiered by two independent affixes:
+ *
+ *   - `withFeatures` — for an unrecognized being, layer the distinguishing
+ *     worn item onto the bare stem ("a crossing guard" →
+ *     "a crossing guard wearing a faded hi-vis vest"). Reserved for
+ *     *targeting* (`perceivedKeywords`), so `look vest` still resolves a
+ *     stranger even though the prose stays concise.
+ *   - `withStatus` — weave the activity-status affix ("…, watching the
+ *     empty road"). Reserved for the **presence-scan** prose (the room
+ *     occupant roll-call).
+ *
+ * The default (`describe`, both false) is the concise identity — a
+ * recognized name or the bare stem — with NO worn feature and NO status,
+ * so ambient act lines read "a crossing guard says …", not the whole life
+ * story. The escalation is deliberate: acts → `describe`, the `look here`
+ * roll-call → `describeWithStatus`, `look <him>` → the long description.
+ * The fallback branches (no-sensor / obscured / masked) never decorate.
+ */
+function describeCore(
+  viewer: Stuff,
+  target: Stuff,
+  withFeatures: boolean,
+  withStatus: boolean
+): string {
   const baseline = target.getPresentation();
 
   // The viewer must be able to run perception queries.
@@ -178,19 +206,36 @@ function describeImpl(viewer: Stuff, target: Stuff): string {
     if (instanceName && typeName) core = `${instanceName}, ${typeName}`;
     else if (instanceName) core = instanceName;
     else if (typeName) core = typeName; // identified, not yet recognized
-    else core = salientFeaturesImpl(target); // a true stranger
-    return decorate(core, target);
+    // A true stranger: the bare stem, or the worn-augmented salient form
+    // when the caller wants distinguishing features (targeting).
+    else core = withFeatures ? salientFeaturesImpl(target) : strangerStem(target);
+    return withStatus ? decorate(core, target) : core;
   }
 
   // Items / inert things: the identified type, else the unidentified
   // baseline.
-  return decorate(typeName ?? baseline, target);
+  const core = typeName ?? baseline;
+  return withStatus ? decorate(core, target) : core;
+}
+
+/** See {@link RecognitionApi.describe}. */
+function describeImpl(viewer: Stuff, target: Stuff): string {
+  return describeCore(viewer, target, false, false);
+}
+
+/** See {@link RecognitionApi.describeWithStatus}. */
+function describeWithStatusImpl(viewer: Stuff, target: Stuff): string {
+  return describeCore(viewer, target, false, true);
 }
 
 /** See {@link RecognitionApi.perceivedKeywords}. */
 function perceivedKeywordsImpl(viewer: Stuff, target: Stuff): string[] {
   if (MixinApi.isOrganism(target)) {
-    return GrammarApi.tokenize(describeImpl(viewer, target));
+    // Targeting keeps the distinguishing worn features (the `withFeatures`
+    // form) even though the prose (`describe`) drops them, so `look vest`
+    // resolves a stranger the roll-call prose names only "a crossing
+    // guard". Status is not a targeting handle, so `withStatus` stays off.
+    return GrammarApi.tokenize(describeCore(viewer, target, true, false));
   }
   return MixinApi.isPerceptible(target) ? target.getKeywords() : [];
 }
@@ -241,6 +286,12 @@ export class RecognitionLogic extends ApiLogic {
   @CallSecurity(RecognitionApiCallers)
   public describe(viewer: Stuff, target: Stuff): string {
     return describeImpl(viewer, target);
+  }
+
+  /** See {@link RecognitionApi.describeWithStatus}. */
+  @CallSecurity(RecognitionApiCallers)
+  public describeWithStatus(viewer: Stuff, target: Stuff): string {
+    return describeWithStatusImpl(viewer, target);
   }
 
   /** See {@link RecognitionApi.learnIdentity}. */

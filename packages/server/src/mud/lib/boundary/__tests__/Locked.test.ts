@@ -100,7 +100,9 @@ describe('Exit.canTraverse — locked gate', () => {
     expect(result.ok).toBe(false);
     expect(result.gate).toBe('locked');
     expect(result.reason).toMatch(/locked/i);
-    expect(result.reason).toContain('iron gate');
+    // Sentence-start: the presentation is capitalized, no re-prefixed
+    // article ("Iron gate is locked.", not "The iron gate…").
+    expect(result.reason).toMatch(/iron gate/i);
   });
 
   it('locked gate fires BEFORE the closed-door gate', () => {

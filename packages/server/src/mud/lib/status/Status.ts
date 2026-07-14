@@ -17,10 +17,15 @@
  * decoration but from a different source. Don't merge them into this
  * authored field.
  *
- * Viewer-independent: the status rides `getPresentation()`'s decoration
- * (so logs and viewer-blind contexts show it) and is re-woven by
- * `RecognitionApi.describe` onto the recognized/salient name so a
- * recognized "Bob" still reads "Bob, watching the road."
+ * A **presence decoration, not an identity affix.** The status is NOT
+ * part of `getPresentation()` / `RecognitionApi.describe` (those are pure
+ * identity) — it weaves in only through
+ * `RecognitionApi.describeWithStatus`, which the presence-scan surfaces
+ * call: the room occupant roll-call ("…, watching the empty road") and
+ * the profile. Act-subject naming ("Bob says …", "Bob arrives") uses the
+ * status-free `describe`, so the idle status never contradicts the act in
+ * flight. Viewer-independent (the affix is the same for every viewer;
+ * only the name it hangs off bends around recognition).
  */
 
 import type { MixinConstructor } from '../mixin';
