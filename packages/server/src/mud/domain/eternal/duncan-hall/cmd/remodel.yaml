@@ -1,5 +1,5 @@
 verbs: [remodel]
-controller: residence/RemodelController
+controller: /domain/eternal/duncan-hall/command/RemodelController
 description: "Redo your dorm room's look — pick a style"
 help: |
   Standing in your own dorm room, `remodel` offers the authored room styles;

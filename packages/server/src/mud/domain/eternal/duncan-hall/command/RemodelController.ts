@@ -1,6 +1,8 @@
 /**
- * RemodelController — the `remodel` verb (the `residence` category): the
- * tenant's **local** shell-personalization commit. Standing in your own dorm
+ * RemodelController — the `remodel` verb (a Duncan Hall *content* verb —
+ * content namespace `domain/eternal/duncan-hall/`, not a core command
+ * category): the tenant's **local** shell-personalization commit. Standing in
+ * your own dorm
  * room, `remodel` opens a `PromptApi.choice` wheel of authored styles; picking
  * one applies the theme's prose overlay across the room + its fixtures and
  * seals it into the unit's D1 record ({@link DormThemes.applyTo}).
@@ -12,19 +14,19 @@
  * standing in (the D6 write-gate); read is public (a visitor sees the decor).
  */
 
-import { CommandController } from '../../../lib/command/CommandController';
-import type { CommandContext, CommandModel } from '../../../api/command';
-import { MessageApi } from '../../../api/message';
-import { Mml } from '../../../api/mml';
-import { ParcelApi } from '../../../api/parcel';
-import { PromptApi } from '../../../api/prompt';
-import { MixinApi } from '../../../api/mixin';
-import DormWarren from '../../../domain/eternal/duncan-hall/DormWarren';
+import { CommandController } from '../../../../lib/command/CommandController';
+import type { CommandContext, CommandModel } from '../../../../api/command';
+import { MessageApi } from '../../../../api/message';
+import { Mml } from '../../../../api/mml';
+import { ParcelApi } from '../../../../api/parcel';
+import { PromptApi } from '../../../../api/prompt';
+import { MixinApi } from '../../../../api/mixin';
+import DormWarren from '../DormWarren';
 import DormThemes, {
   DormThemeError,
-} from '../../../domain/eternal/duncan-hall/DormThemes';
-import type { Stuff } from '../../../lib/stuff/Stuff';
-import type { Container } from '../../../lib/spatial/Container';
+} from '../DormThemes';
+import type { Stuff } from '../../../../lib/stuff/Stuff';
+import type { Container } from '../../../../lib/spatial/Container';
 
 const TOPIC = 'residence.remodel';
 

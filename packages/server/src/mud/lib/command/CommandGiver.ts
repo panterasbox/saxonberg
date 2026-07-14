@@ -146,6 +146,21 @@ const ASYNC_BODY_TARGET = { module: 'CommandGiverMixin' } as const;
  * (late) envelope carries the body's accumulated notes + final status.
  */
 /**
+ * Resolve a `controller:` reference to its clone template path. A core
+ * controller is named relative to `obj/command/` (`perception/Look` →
+ * `/obj/command/perception/Look`); a content-owned controller is named by
+ * its full mud-rooted path (`/domain/eternal/duncan-hall/command/Provision`)
+ * and used as-is. The leading `/` is the discriminator — so a content pack
+ * can own its controllers without landing them in the core `obj/command/`
+ * tree.
+ */
+function resolveControllerPath(controllerName: string): string {
+  return controllerName.startsWith('/')
+    ? controllerName
+    : `/obj/command/${controllerName}`;
+}
+
+/**
  * Author-diagnostics: record a controller throw (store row + author push).
  * Fire-and-forget and fully swallowing — a controller-error note is already
  * the giver's surface, and diagnostics capture must never break dispatch or
@@ -157,7 +172,7 @@ function recordControllerThrow(
 ): void {
   const message = error instanceof Error ? error.message : String(error);
   void DiagnosticApi.record({
-    path: controllerName ? `/obj/command/${controllerName}` : null,
+    path: controllerName ? resolveControllerPath(controllerName) : null,
     message: `${controllerName ?? '?'}: ${message}`,
     stack: error instanceof Error ? (error.stack ?? null) : null,
   }).catch(() => {
@@ -1148,7 +1163,7 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
           let controller: CommandController | null = null;
           try {
             controller = await StuffApi.clone<CommandController>(
-              `/obj/command/${controllerName}`
+              resolveControllerPath(controllerName)
             );
             await controller.execute(model, context);
           } catch (error: unknown) {
@@ -1171,7 +1186,7 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
       let controller: CommandController | null = null;
       try {
         controller = await StuffApi.clone<CommandController>(
-          `/obj/command/${controllerName}`
+          resolveControllerPath(controllerName)
         );
         await controller.execute(model, context);
       } catch (error: unknown) {

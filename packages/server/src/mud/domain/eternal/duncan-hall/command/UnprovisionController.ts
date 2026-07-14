@@ -1,6 +1,8 @@
 /**
  * UnprovisionController — the `unprovision <player>` / `unlease <player>` verb
- * (the `system` category). Ends a tenant's dorm lease and reclaims the unit:
+ * (a Duncan Hall *content* verb — content namespace
+ * `domain/eternal/duncan-hall/`, not a core command category). Ends a
+ * tenant's dorm lease and reclaims the unit:
  * revoke the lease, revert the live room (no recapture races the delete),
  * clear the personalized D1 record, and retire the parcel so its slot frees
  * for reuse. Symmetric with `provision <player>` — you name the tenant, and
@@ -19,22 +21,22 @@
  * see `isDormsAgent` in {@link ProvisionController}.
  */
 
-import { CommandController } from '../../../lib/command/CommandController';
-import type { CommandContext, CommandModel } from '../../../api/command';
-import type { MqlOneResult } from '../../../api/mql';
-import { MessageApi } from '../../../api/message';
-import { Mml } from '../../../api/mml';
-import { ContainmentApi } from '../../../api/containment';
-import { ParcelApi } from '../../../api/parcel';
-import { PersistableApi } from '../../../api/persistable';
-import { MixinApi } from '../../../api/mixin';
+import { CommandController } from '../../../../lib/command/CommandController';
+import type { CommandContext, CommandModel } from '../../../../api/command';
+import type { MqlOneResult } from '../../../../api/mql';
+import { MessageApi } from '../../../../api/message';
+import { Mml } from '../../../../api/mml';
+import { ContainmentApi } from '../../../../api/containment';
+import { ParcelApi } from '../../../../api/parcel';
+import { PersistableApi } from '../../../../api/persistable';
+import { MixinApi } from '../../../../api/mixin';
 import ProvisionController from './ProvisionController';
-import DormWarren from '../../../domain/eternal/duncan-hall/DormWarren';
-import type { Stuff } from '../../../lib/stuff/Stuff';
-import type { Container } from '../../../lib/spatial/Container';
-import type { Containable } from '../../../lib/spatial/Containable';
+import DormWarren from '../DormWarren';
+import type { Stuff } from '../../../../lib/stuff/Stuff';
+import type { Container } from '../../../../lib/spatial/Container';
+import type { Containable } from '../../../../lib/spatial/Containable';
 
-const TOPIC = 'system.residence';
+const TOPIC = 'residence.unprovision';
 
 interface UnprovisionModel extends CommandModel {
   player?: MqlOneResult;

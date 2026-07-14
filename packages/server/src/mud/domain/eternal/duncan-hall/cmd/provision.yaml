@@ -1,5 +1,5 @@
 verbs: [provision, lease]
-controller: system/ProvisionController
+controller: /domain/eternal/duncan-hall/command/ProvisionController
 description: "Provision (lease) a Duncan Hall dorm room to a player"
 help: |
   Mint and lease a dorm room in Duncan Hall's dorms wing to a player. A unit

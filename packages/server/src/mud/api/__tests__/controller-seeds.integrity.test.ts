@@ -18,6 +18,16 @@
  * `mud/seeds/obj/command/<category>/<Name>Controller.yaml` carrying
  * `class: /obj/command/<category>/<Name>Controller` and `data: {}`.
  *
+ * Two command keyspaces are validated:
+ *   - **core** verbs live under `mud/cmd/`; a `controller:` ref is
+ *     relative (`perception/LookController`), cloned from
+ *     `/obj/command/<ref>`, seeded at `seeds/obj/command/<ref>.yaml`.
+ *   - **content-owned** verbs live under a content namespace's own
+ *     `cmd/` dir (`domain/**\/cmd/*.yaml`); a `controller:` ref is a
+ *     mud-rooted absolute path (`/domain/eternal/duncan-hall/command/
+ *     ProvisionController`), cloned as-is, seeded at `seeds/<ref>.yaml`
+ *     with `class: <ref>`.
+ *
  * Controllers are referenced at two levels — verb-level
  * (`controller:` at the spec root) and per-subcommand
  * (`subcommands.<name>.controller:`). Both are dispatch targets, so the
@@ -27,14 +37,16 @@
 import { describe, it, expect } from "vitest";
 import { readFileSync, readdirSync, statSync, existsSync } from "fs";
 import { fileURLToPath } from "url";
-import { dirname, join } from "path";
+import { dirname, join, sep } from "path";
 import YAML from "yaml";
 
 const here = dirname(fileURLToPath(import.meta.url));
 // src/mud/api/__tests__ -> src/mud
 const MUD_ROOT = join(here, "..", "..");
 const CMD_ROOT = join(MUD_ROOT, "cmd");
-const SEEDS_COMMAND_ROOT = join(MUD_ROOT, "seeds", "obj", "command");
+const DOMAIN_ROOT = join(MUD_ROOT, "domain");
+const SEEDS_ROOT = join(MUD_ROOT, "seeds");
+const SEEDS_COMMAND_ROOT = join(SEEDS_ROOT, "obj", "command");
 
 function walkYaml(dir: string, out: string[]): void {
   for (const entry of readdirSync(dir)) {
@@ -47,6 +59,39 @@ function walkYaml(dir: string, out: string[]): void {
       out.push(p);
     }
   }
+}
+
+/**
+ * Content-owned command views: every `*.yaml` under a `cmd/` directory
+ * inside the `domain/` tree (`domain/**\/cmd/*.yaml`), mirroring the
+ * runtime discovery in `CommandLogic.discoverContentCommands`.
+ */
+function walkContentCommandYaml(dir: string, out: string[]): void {
+  const found: string[] = [];
+  walkYaml(dir, found);
+  for (const p of found) {
+    if (p.split(sep).includes("cmd")) out.push(p);
+  }
+}
+
+/**
+ * Resolve a `controller:` ref to its on-disk seed path + the class string
+ * that seed must declare. A leading `/` marks a content-owned controller
+ * (mud-rooted absolute, seeded under `seeds/<ref>.yaml`, `class: <ref>`);
+ * otherwise it's a core controller (`seeds/obj/command/<ref>.yaml`,
+ * `class: /obj/command/<ref>`).
+ */
+function resolveRef(ref: string): { seed: string; expectedClass: string } {
+  if (ref.startsWith("/")) {
+    return {
+      seed: join(SEEDS_ROOT, `${ref}.yaml`),
+      expectedClass: ref,
+    };
+  }
+  return {
+    seed: join(SEEDS_COMMAND_ROOT, `${ref}.yaml`),
+    expectedClass: `/obj/command/${ref}`,
+  };
 }
 
 /** Recursively collect every `controller` string value at any depth. */
@@ -69,6 +114,7 @@ function collectControllers(node: unknown, out: Set<string>): void {
 describe("controller-seed integrity", () => {
   const specFiles: string[] = [];
   walkYaml(CMD_ROOT, specFiles);
+  walkContentCommandYaml(DOMAIN_ROOT, specFiles);
 
   const refs = new Set<string>();
   for (const file of specFiles) {
@@ -82,33 +128,39 @@ describe("controller-seed integrity", () => {
     expect(refs.size).toBeGreaterThan(50);
   });
 
+  it("collects the content-owned controller refs too", () => {
+    // Guards the domain-tree walk: a content verb's absolute controller
+    // ref must reach this set (else a moved content command silently
+    // escapes validation).
+    const contentRefs = [...refs].filter((r) => r.startsWith("/"));
+    expect(contentRefs.length).toBeGreaterThan(0);
+  });
+
   it("every command controller has a seed template on disk", () => {
     const missing: string[] = [];
     for (const ref of refs) {
-      // ref is the dispatch tail, e.g. "perception/LookController";
-      // dispatch clones "/obj/command/<ref>", seeded at
-      // seeds/obj/command/<ref>.yaml.
-      const seed = join(SEEDS_COMMAND_ROOT, `${ref}.yaml`);
+      // Core: dispatch clones "/obj/command/<ref>", seeded at
+      // seeds/obj/command/<ref>.yaml. Content: an absolute ref cloned
+      // as-is, seeded at seeds/<ref>.yaml.
+      const { seed } = resolveRef(ref);
       if (!existsSync(seed)) missing.push(ref);
     }
     expect(
       missing,
-      `command controllers missing a seed template under ` +
-        `mud/seeds/obj/command/ (dispatch would throw "Template not ` +
-        `found" on a fresh DB):\n  ${missing.sort().join("\n  ")}`
+      `command controllers missing a seed template (dispatch would throw ` +
+        `"Template not found" on a fresh DB):\n  ${missing.sort().join("\n  ")}`
     ).toEqual([]);
   });
 
   it("every controller seed declares the matching class path", () => {
     const mismatched: string[] = [];
     for (const ref of refs) {
-      const seed = join(SEEDS_COMMAND_ROOT, `${ref}.yaml`);
+      const { seed, expectedClass } = resolveRef(ref);
       if (!existsSync(seed)) continue; // covered by the test above
       const parsed = YAML.parse(readFileSync(seed, "utf-8")) as {
         class?: string;
       };
-      const expected = `/obj/command/${ref}`;
-      if (parsed?.class !== expected) {
+      if (parsed?.class !== expectedClass) {
         mismatched.push(`${ref}: class=${parsed?.class ?? "<none>"}`);
       }
     }

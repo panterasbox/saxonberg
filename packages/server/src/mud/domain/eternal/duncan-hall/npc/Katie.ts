@@ -26,11 +26,31 @@ import NPC from '../../../../lib/npc/NPC';
 import { GroupApi } from '../../../../api/group';
 import { CredentialApi } from '../../../../api/credential';
 import { Group } from '../../../../lib/social/Group';
+import type { CommandContributions } from '../../../../api/command';
 
 /** The landlord group that owns the dorms parcel (Katie's employer). */
 const DORMS_GROUP = 'duncan-hall';
 
 export default class Katie extends NPC {
+  /**
+   * The operator escape hatch for the dorm landlord verbs. Katie IS the
+   * front desk, so she affords `provision`/`unprovision` to co-located
+   * operators — the raw manual surface behind the diegetic dialogue path.
+   * Both views carry `requiresWizard`, so only an operator (wizard) sees
+   * them; the real dorms-owner authorization lives at the controllers'
+   * `execute()`. This keeps the dorm verbs' affordance in the content
+   * namespace — the core `AuthorMixin` no longer references Duncan Hall.
+   */
+  static commandContributions: CommandContributions = {
+    self: [],
+    environment: [
+      '/domain/eternal/duncan-hall/cmd/provision.yaml',
+      '/domain/eternal/duncan-hall/cmd/unprovision.yaml',
+    ],
+    inventory: [],
+    peers: [],
+  };
+
   public override async postRegister(context?: unknown): Promise<void> {
     await super.postRegister(context);
     await this.enrollAsDormsAgent();

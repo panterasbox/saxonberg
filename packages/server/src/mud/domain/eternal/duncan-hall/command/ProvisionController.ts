@@ -1,6 +1,9 @@
 /**
  * ProvisionController — the `provision <player>` / `lease <player>` verb
- * (the `system` category). The landlord act that grows the elastic dorm
+ * (a Duncan Hall *content* verb — it lives in the content namespace
+ * `domain/eternal/duncan-hall/`, NOT a core command category, because it
+ * hardcodes one content instance's `DormWarren`). The landlord act that grows
+ * the elastic dorm
  * building: mint a unit parcel at the lowest-free slot, lease it to the
  * player, and (if that floor is already live) hang its door immediately.
  *
@@ -26,22 +29,22 @@
  * raw verb.
  */
 
-import { CommandController } from '../../../lib/command/CommandController';
-import type { CommandContext, CommandModel } from '../../../api/command';
-import type { MqlOneResult } from '../../../api/mql';
-import { MessageApi } from '../../../api/message';
-import { Mml } from '../../../api/mml';
-import { AccessApi } from '../../../api/access';
-import { GroupApi } from '../../../api/group';
-import { ParcelApi } from '../../../api/parcel';
-import { CredentialApi } from '../../../api/credential';
-import { Lock } from '../../../lib/lock/Lock';
-import { ParcelRecord, type ParcelOwner } from '../../../lib/parcel/ParcelRecord';
-import DormWarren from '../../../domain/eternal/duncan-hall/DormWarren';
-import DormThemes from '../../../domain/eternal/duncan-hall/DormThemes';
-import type { Stuff } from '../../../lib/stuff/Stuff';
+import { CommandController } from '../../../../lib/command/CommandController';
+import type { CommandContext, CommandModel } from '../../../../api/command';
+import type { MqlOneResult } from '../../../../api/mql';
+import { MessageApi } from '../../../../api/message';
+import { Mml } from '../../../../api/mml';
+import { AccessApi } from '../../../../api/access';
+import { GroupApi } from '../../../../api/group';
+import { ParcelApi } from '../../../../api/parcel';
+import { CredentialApi } from '../../../../api/credential';
+import { Lock } from '../../../../lib/lock/Lock';
+import { ParcelRecord, type ParcelOwner } from '../../../../lib/parcel/ParcelRecord';
+import DormWarren from '../DormWarren';
+import DormThemes from '../DormThemes';
+import type { Stuff } from '../../../../lib/stuff/Stuff';
 
-const TOPIC = 'system.residence';
+const TOPIC = 'residence.provision';
 
 interface ProvisionModel extends CommandModel {
   player?: MqlOneResult;

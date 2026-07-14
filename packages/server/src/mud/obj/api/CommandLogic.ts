@@ -254,7 +254,15 @@ export class CommandLogic extends ApiLogic {
     }
 
     try {
-      const filePath = join(CMD_DIR, filename);
+      // Two keyspaces share one cache: core verbs are keyed relative to
+      // `mud/cmd/` (`perception/look.yaml`); content-owned verbs are keyed
+      // by their mud-rooted absolute path (`/domain/eternal/duncan-hall/
+      // cmd/provision.yaml`) so a content pack owns its own command tree
+      // without polluting the core `cmd/` dir. The leading `/` is the
+      // discriminator.
+      const filePath = filename.startsWith('/')
+        ? join(MUD_ROOT, filename)
+        : join(CMD_DIR, filename);
       const command = CommandDefinition.fromFile(filePath);
       commands.set(filename, command);
       return command;
@@ -302,6 +310,11 @@ export class CommandLogic extends ApiLogic {
       // subdir-qualified references authored in YAML / contributions.
       .map((f) => f.split(sep).join('/'))
       .filter((f) => f.endsWith('.yaml'));
+    // Content-owned verbs live outside the core `cmd/` tree, in each
+    // content namespace's own `cmd/` dir (`domain/**/cmd/*.yaml`). They're
+    // discovered here and keyed by their mud-rooted absolute path so the
+    // core command dir stays core-only.
+    yamls.push(...this.discoverContentCommands());
     const failed: string[] = [];
     let loaded = 0;
     for (const file of yamls) {
@@ -323,6 +336,31 @@ export class CommandLogic extends ApiLogic {
       }
     }
     return { loaded, failed };
+  }
+
+  /**
+   * Discover content-owned command views: every `*.yaml` under a `cmd/`
+   * directory inside the `domain/` tree (`domain/**\/cmd/*.yaml`). Returned
+   * as mud-rooted absolute keys (`/domain/eternal/duncan-hall/cmd/
+   * provision.yaml`) — the form `getCommand` resolves against `MUD_ROOT`
+   * and the form authors reference in `commandContributions`. A content
+   * pack owns its command tree without touching the core `cmd/` dir.
+   */
+  private discoverContentCommands(): string[] {
+    const domainRoot = join(MUD_ROOT, 'domain');
+    let entries: string[];
+    try {
+      entries = readdirSync(domainRoot, { recursive: true }) as string[];
+    } catch {
+      // No `domain/` tree (or unreadable) — nothing content-owned to load.
+      return [];
+    }
+    return entries
+      .map((f) => f.split(sep).join('/'))
+      .filter(
+        (f) => f.endsWith('.yaml') && f.split('/').includes('cmd')
+      )
+      .map((f) => `/domain/${f}`);
   }
 
   /** See {@link CommandApi.collectSelfDefs}. */

@@ -16,8 +16,9 @@ import ParcelRegistry from '../../../../../obj/ParcelRegistry';
 import AccessRegistry from '../../../../../obj/AccessRegistry';
 import Avatar from '../../../../../obj/Avatar';
 import Katie from '../Katie';
-import ProvisionController from '../../../../../obj/command/system/ProvisionController';
+import ProvisionController from '../../command/ProvisionController';
 import { GroupApi } from '../../../../../api/group';
+import { CommandApi } from '../../../../../api/command';
 import { ParcelApi } from '../../../../../api/parcel';
 import { AccessApi } from '../../../../../api/access';
 import { StuffApi } from '../../../../../api/stuff';
@@ -134,6 +135,19 @@ describe('Katie — the dorms-agent authorization boundary', () => {
     const ref = await ParcelApi.resolveOwnerRef(DORMS_OWNER);
     expect(ref).not.toBeNull();
     expect(await GroupApi.isMember(katie.getTemplatePath()!, ref!)).toBe(true);
+  });
+
+  it('affords the operator provision/unprovision surface as content (not a core mixin)', () => {
+    // The raw operator verbs are afforded by Katie herself — she is the
+    // front desk. Content commands are afforded by content, referenced by
+    // their mud-rooted absolute key, and those keys resolve to real
+    // definitions (exercising the absolute-key `getCommand` branch).
+    const env = Katie.commandContributions.environment ?? [];
+    expect(env).toContain('/domain/eternal/duncan-hall/cmd/provision.yaml');
+    expect(env).toContain('/domain/eternal/duncan-hall/cmd/unprovision.yaml');
+    for (const key of env) {
+      expect(CommandApi.getCommand(key), key).not.toBeNull();
+    }
   });
 
   it('authorizes Katie (a dorms agent) and refuses a random principal', async () => {

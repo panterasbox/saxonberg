@@ -51,6 +51,23 @@ describe('Command-YAML migration parity', () => {
     expect(cmd?.verbs).toContain("'");
   });
 
+  it('loads a content-owned command by its mud-rooted absolute key', () => {
+    // Content verbs live outside the core `cmd/` tree, in a content
+    // namespace's own `cmd/` dir, and are keyed by absolute path
+    // (`getCommand` resolves them against MUD_ROOT, not `cmd/`). The
+    // Duncan Hall dorm `provision` verb is the exemplar.
+    const cmd = CommandApi.getCommand(
+      '/domain/eternal/duncan-hall/cmd/provision.yaml'
+    );
+    expect(cmd, 'content-owned provision.yaml must load').not.toBeNull();
+    expect(cmd!.verbs).toContain('provision');
+    // Its controller is a content-namespace absolute path (dispatched
+    // as-is, not under `/obj/command/`).
+    expect(cmd!.controller).toBe(
+      '/domain/eternal/duncan-hall/command/ProvisionController'
+    );
+  });
+
   it('var/settings set use a greedy value field', () => {
     const v = CommandApi.getCommand('shell/var.yaml');
     const vSet = v?.getSubcommand('set')?.args ?? [];

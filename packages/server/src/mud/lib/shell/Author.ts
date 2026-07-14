@@ -128,13 +128,6 @@ export function AuthorMixin<TBase extends MixinConstructor>(Base: TBase) {
         // can't run it. The per-affected-path `can('write')` refinement
         // stays in `GitLogic`.
         'system/git.yaml',
-        // Dorm provisioning — the landlord surface for Duncan Hall's dorms
-        // wing (mint + lease a unit / end a lease). Afforded on the operator
-        // command surface; both carry `requiresWizard` (operator == wizard
-        // in v1 — the finer dorms-owner gate is a refinement seam), so a
-        // non-operator sees nothing.
-        'system/provision.yaml',
-        'system/unprovision.yaml',
       ],
       environment: [],
       inventory: [],

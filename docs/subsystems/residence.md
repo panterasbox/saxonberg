@@ -150,7 +150,7 @@ The durable slot `(floor, position)` lives on the minted unit
 (`ParcelRecord.slotOfExtent` / `extentForSlot` — zero new field; the extent
 *is* the slot, and already the D1 key + the Warren member key).
 
-`provision <player>` (alias `lease`; `system` category): compute the
+`provision <player>` (alias `lease`; the `duncan-hall` content namespace, not `system` — it hardcodes this building): compute the
 **lowest-free slot** (`ParcelApi.childParcelsOf(dorms)` → first free
 `f<n>-r<p>` within `DormWarren.ROOMS_PER_FLOOR`, reusing gaps left by
 unprovision before a new floor) → `ParcelApi.subdivide(unitExtent, dorms,
@@ -179,6 +179,15 @@ fronts provisioning in the world**: `talk to Katie` → her intake dialogue
 `postRegister` enrolls her into the `duncan-hall` group. A player never types
 the raw verb. See [npc-dialogue.md § dispatch](./npc-dialogue.md) and Katie's
 sheet (`docs/staging/eternal-university/npcs/property-manager.md`).
+
+Because these are **content** verbs, their affordance is content-owned too:
+the operator escape hatch (the raw `provision`/`unprovision` surface) is
+afforded by **Katie's `commandContributions.environment`** — she *is* the
+front desk, so a co-located operator sees the verbs; both views carry
+`requiresWizard` so only an operator (wizard) sees them, and the real
+dorms-owner gate stays at `execute()`. The core `AuthorMixin` no longer
+references Duncan Hall at all — a content command is afforded by its content,
+never by a core mixin.
 
 The lease is a **use-grant** on the parcel `grants[]` (`UseGrant {kind:'lease',
 holder, grantedAt, expiresAt}`; `ParcelApi.grantUse`/`revokeUse`/`hasUseGrant`/
@@ -226,7 +235,7 @@ pick.)
   `--theme` option admits the room and calls `DormThemes.applyTo` **as the
   institution** (already authorized — best-effort, a bad style never voids the
   lease). The dialogue tree *is* the menu.
-- **Remodel → a local prompt** (`remodel` verb, `residence` category, afforded
+- **Remodel → a local prompt** (`remodel` verb, `duncan-hall` content namespace, afforded
   by the room's `Desk` to the occupant): standing in your own room, it opens a
   `PromptApi.choice` wheel of `DormThemes.ids()` and applies the pick. Gated by
   holding the lease on the room you're in (D6). **No typed `decorate <theme>`
@@ -254,7 +263,7 @@ to your floor's corridor and go through your own door; it opens for whoever
 **presents a matching key** (the sync `CredentialApi.presentsKey` scan over your implant
 keychain + carried physical key) and blocks the keyless.
 
-`unprovision <player>` (alias `unlease`; `system` category, same dorms-agent
+`unprovision <player>` (alias `unlease`; `duncan-hall` content namespace, same dorms-agent
 authorization as `provision`, so Katie fronts move-out via a `dispatch
 unprovision $player`): resolve the tenant's held unit (`heldUnitOf`, symmetric
 with `provision`) → `ParcelApi.revokeUse` → `DormWarren.dropUnit(unit,
