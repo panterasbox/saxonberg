@@ -495,5 +495,29 @@ describe("CombatLogic — melee (sides + join)", () => {
     // exchanges) down the lone defender strictly sooner.
     expect(beatsToResolve(2)).toBeLessThan(beatsToResolve(1));
   });
+
+  it("defend <ally> interposes: the foe's edge redirects off the ally onto you", () => {
+    const room = makeStuff(() => new TestRoom());
+    const player = makeFighter(room, {
+      ctor: TestPartyFighter,
+      weaponForm: "bladed",
+    });
+    const ally = makeFighter(room, { ctor: TestPartyFighter, weaponForm: "bladed" });
+    const foe = makeFighter(room, { weaponForm: "bladed" });
+    seedParty(player, ally);
+
+    // The ally is fighting the foe; the player is not yet engaged.
+    const session = open(ally, foe, lethal, true);
+    expect(session.getGraph().edgeBetween(foe, ally)).toBeDefined();
+    expect(CombatApi.sessionFor(player)).toBeUndefined();
+
+    const res = CombatApi.defendAlly(player, ally);
+    expect(res.ok).toBe(true);
+    // The player joined the fight; the foe now presses the player, not the ally.
+    expect(CombatApi.sessionFor(player)).toBe(session);
+    const graph = session.getGraph();
+    expect(graph.edgeBetween(foe, ally)).toBeUndefined();
+    expect(graph.edgeBetween(foe, player)).toBeDefined();
+  });
 });
 

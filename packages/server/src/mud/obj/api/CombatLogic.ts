@@ -164,6 +164,14 @@ export class CombatLogic extends ApiLogic {
   }
 
   @CallSecurity(CombatApiCallers)
+  public defendAlly(
+    interposer: Stuff,
+    ally: Stuff,
+  ): { ok: boolean; reason?: string } {
+    return defendAllyImpl(interposer, ally);
+  }
+
+  @CallSecurity(CombatApiCallers)
   public assess(actor: Stuff, target: Stuff): CombatAssessResult {
     return assessImpl(actor, target);
   }
@@ -1251,6 +1259,47 @@ function interveneImpl(actor: Stuff, target: Stuff): boolean {
   if (!coup) return false;
   SchedulerApi.cancel(coup, "combat-intervened");
   return true;
+}
+
+/**
+ * `defend <ally>` — interpose: take an attacker's pressure off a pressed
+ * ally onto yourself. Finds a live foe pressing the ally, joins their
+ * fight (if not already in it), and redirects that foe's edge off the ally
+ * onto the interposer (`CombatGraph.redirect`) — the ally's incoming
+ * pressure drops, the interposer's rises.
+ */
+function defendAllyImpl(
+  interposer: Stuff,
+  ally: Stuff,
+): { ok: boolean; reason?: string } {
+  const session = sessionForImpl(ally);
+  if (!session || !session.isActive()) {
+    return { ok: false, reason: "ally-not-fighting" };
+  }
+  const graph = session.getGraph();
+  const incoming = graph
+    .incomingEdges(ally)
+    .filter((e) => !session.getState(e.attacker)?.down);
+  if (incoming.length === 0) return { ok: false, reason: "ally-not-pressed" };
+  const attacker = incoming[0]!.attacker;
+
+  const interposerSession = sessionForImpl(interposer);
+  if (!interposerSession) {
+    if (!MixinApi.isEngaged(interposer) || !MixinApi.isEngaged(attacker)) {
+      return { ok: false, reason: "not-engageable" };
+    }
+    const joined = joinImpl(
+      interposer as Stuff & Engaged,
+      attacker as Stuff & Engaged,
+      incoming[0]!.terms,
+    );
+    if (!joined.ok) return joined;
+  } else if (interposerSession !== session) {
+    return { ok: false, reason: "busy-elsewhere" };
+  }
+  // The foe now presses the interposer instead of the ally.
+  graph.redirect(attacker, ally, interposer);
+  return { ok: true };
 }
 
 /** A live coup in the actor's room where `target` is the executioner or

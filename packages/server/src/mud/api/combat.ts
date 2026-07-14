@@ -161,6 +161,18 @@ export class CombatApi {
   }
 
   /**
+   * `defend <ally>` — interpose: pull a foe's pressure off a pressed ally
+   * onto yourself (join the fight if needed, then redirect the foe's
+   * threat edge from the ally onto you).
+   */
+  public static defendAlly(
+    interposer: Stuff,
+    ally: Stuff,
+  ): { ok: boolean; reason?: string } {
+    return logic().defendAlly(interposer, ally);
+  }
+
+  /**
    * The costed, competence-graded tactical read of an opponent mid-fight
    * — spends the actor's next exchange and mints a combat `ActSignature`.
    */

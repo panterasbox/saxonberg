@@ -1,0 +1,29 @@
+verbs: [defend]
+controller: combat/DefendController
+description: "Cover up, stay a killing stroke, or interpose for an ally"
+help: |
+  `defend` is one verb over three moves, chosen by what you name:
+
+    `defend`            — cover up: recover your poise this beat instead
+                          of attacking (the same as `fight defend`).
+    `defend <fallen>`   — stay a killing stroke poised over a downed
+                          fighter (the same as `intervene`/`stay`).
+    `defend <ally>`     — interpose: step between a pressed ally and a
+                          foe, pulling that foe's attack onto yourself.
+                          You join the fight if you weren't already in it.
+
+  Interposing drops your ally's incoming pressure and raises your own —
+  the shield's whole point.
+examples:
+  - cmd: defend
+    note: Cover up and weather the next blow
+  - cmd: defend the wanderer
+    note: Take a foe off a hard-pressed ally
+args:
+  - name: target
+    type: object
+    required: false
+    scope: ["$focus", "reachable"]
+    updates_focus: extend
+    validators:
+      - /lib/command/validators/mustBeVisible
