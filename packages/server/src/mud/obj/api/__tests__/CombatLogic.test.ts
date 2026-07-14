@@ -519,5 +519,29 @@ describe("CombatLogic — melee (sides + join)", () => {
     expect(graph.edgeBetween(foe, ally)).toBeUndefined();
     expect(graph.edgeBetween(foe, player)).toBeDefined();
   });
+
+  it("fleeing: a lone foe lets you break off; two attackers pin you", () => {
+    // 1v1 → the disengage succeeds and drops you from the fight.
+    const room1 = makeStuff(() => new TestRoom());
+    const attacker = makeFighter(room1, { weaponForm: "bladed" });
+    const fleer = makeFighter(room1, { weaponForm: "bladed" });
+    const session1 = open(attacker, fleer, lethal, true);
+    expect(CombatApi.sessionFor(fleer)).toBe(session1);
+    const broke = CombatApi.disengage(fleer);
+    expect(broke.ok).toBe(true);
+    expect(CombatApi.sessionFor(fleer)).toBeUndefined();
+
+    // 2-on-1 → the focus-fire pin vetoes the break.
+    const room2 = makeStuff(() => new TestRoom());
+    const a1 = makeFighter(room2, { ctor: TestPartyFighter, weaponForm: "bladed" });
+    const a2 = makeFighter(room2, { ctor: TestPartyFighter, weaponForm: "bladed" });
+    const pinned = makeFighter(room2, { weaponForm: "bladed" });
+    seedParty(a1, a2);
+    const session2 = open(a1, pinned, lethal, true);
+    CombatApi.join(a2 as never, pinned as never, session2.getTerms());
+    const blocked = CombatApi.disengage(pinned);
+    expect(blocked.ok).toBe(false);
+    expect(CombatApi.sessionFor(pinned)).toBe(session2); // still stuck in it
+  });
 });
 

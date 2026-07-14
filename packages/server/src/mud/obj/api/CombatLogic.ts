@@ -172,6 +172,11 @@ export class CombatLogic extends ApiLogic {
   }
 
   @CallSecurity(CombatApiCallers)
+  public disengage(actor: Stuff): { ok: boolean; message?: string } {
+    return disengageImpl(actor);
+  }
+
+  @CallSecurity(CombatApiCallers)
   public assess(actor: Stuff, target: Stuff): CombatAssessResult {
     return assessImpl(actor, target);
   }
@@ -1320,6 +1325,63 @@ function findCoupInRoom(actor: Stuff, target: Stuff): Coup | null {
     }
   }
   return null;
+}
+
+/* ───────────────────────── fleeing (disengage) ───────────────────────── */
+
+/**
+ * Fleeing is combat's resolution of a **locomotion attempt made while
+ * engaged** — not a verb, not a mode. The movement controller calls this
+ * before a traverse: a no-op (free to go) when the actor isn't fighting;
+ * an **opposed-lite** break otherwise. A focus-fire pin (incoming attacker
+ * count ≥ the recovery-suppress threshold, reusing Phase 5) blocks the
+ * break for the beat; every foe still locked on gets one **parting shot**;
+ * on success the actor is removed from the fight and the traverse proceeds.
+ * Individual only — coordinated party-retreat + pursuit stay deferred.
+ */
+function disengageImpl(actor: Stuff): { ok: boolean; message?: string } {
+  const session = sessionForImpl(actor);
+  if (!session || !session.isActive()) return { ok: true };
+  const graph = session.getGraph();
+  const incoming = graph
+    .incomingEdges(actor)
+    .filter((e) => !session.getState(e.attacker)?.down);
+
+  const suppressAt = Math.round(
+    dial(AppSettingKeys.combatFocusFireSuppressRecoveryAt, 2),
+  );
+  if (incoming.length >= suppressAt) {
+    return { ok: false, message: "You're too hard-pressed to break away!" };
+  }
+
+  // Parting shots from every foe still locked on.
+  const energy = dial(AppSettingKeys.combatFleePartingShotEnergy, 1.6);
+  const fleerState = session.getState(actor);
+  for (const e of incoming) {
+    const attackerState = session.getState(e.attacker);
+    if (attackerState && fleerState) {
+      partingShot(attackerState, fleerState, energy);
+    }
+  }
+  session.removeParticipant(actor);
+  return { ok: true };
+}
+
+/** One foe's parting shot at a disengaging combatant — routed through the
+ * same materials-response inflict as any blow, at the flee energy. */
+function partingShot(
+  attackerState: CombatantState,
+  fleerState: CombatantState,
+  energy: number,
+): void {
+  const instrument = resolveInstrument(attackerState);
+  const channel: Channel = instrument?.channel ?? "blunt";
+  const site = siteFor(fleerState.combatant, false);
+  ConditionApi.inflict(fleerState.combatant, {
+    mechanism: channel,
+    site,
+    energy,
+  });
 }
 
 /* ───────────────────────── resolution consumers ───────────────────────── */

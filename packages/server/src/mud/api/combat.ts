@@ -173,6 +173,17 @@ export class CombatApi {
   }
 
   /**
+   * Break off from a fight to leave (fleeing = a locomotion attempt made
+   * while engaged). A no-op when the actor isn't fighting; otherwise an
+   * opposed-lite disengage — a focus-fire pin blocks it (`ok:false`), and
+   * every foe still locked on gets a parting shot. The movement controller
+   * calls this before a traverse.
+   */
+  public static disengage(actor: Stuff): { ok: boolean; message?: string } {
+    return logic().disengage(actor);
+  }
+
+  /**
    * The costed, competence-graded tactical read of an opponent mid-fight
    * — spends the actor's next exchange and mints a combat `ActSignature`.
    */
