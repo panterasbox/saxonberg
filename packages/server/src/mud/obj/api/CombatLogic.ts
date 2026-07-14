@@ -543,6 +543,11 @@ function commitInflict(
     site,
     energy,
   });
+  // Name the killing edge for an attrition/bleed-out death that has no
+  // single striker at resolution time (the per-edge blame foundation).
+  if (outcome.afflicted) {
+    targetState.lastStruckBy = actorState.combatant;
+  }
   const band = outcome.afflicted
     ? MaterialApi.severityToBand(outcome.trauma.severity)
     : ("turned" as OutcomeBand);
@@ -619,7 +624,7 @@ function handleDown(
   targetState.down = true;
   const attacker = attackerState.combatant;
   const victim = targetState.combatant;
-  const terms = session.getTerms();
+  const terms = termsFor(session, attacker, victim);
 
   if (!terms.isLethalAuthorized()) {
     endWith(session, "incapacitation", victim, attacker);
@@ -660,38 +665,41 @@ function killImpl(target: Stuff, cause: string): void {
 function checkVitalsResolution(session: CombatSession): void {
   for (const s of session.getStates()) {
     if (!MixinApi.isVitals(s.combatant)) continue;
-    const opp = session.opponentState(s.combatant)?.combatant;
+    // The killer of an attrition death is whoever last landed a blow (the
+    // killing edge); fall back to the 1v1 opponent when unstruck.
+    const killer =
+      s.lastStruckBy ?? session.opponentState(s.combatant)?.combatant ?? null;
     const c = s.combatant.getConsciousness();
     if (c === "dead") {
       // A death from accumulated trauma mid-fight (the bleed-out path).
-      if (opp) recordDeath(session, opp, s.combatant);
-      endWith(session, "death", s.combatant, opp);
-      if (opp) {
+      if (killer) recordDeath(session, killer, s.combatant);
+      endWith(session, "death", s.combatant, killer ?? undefined);
+      if (killer) {
         runResolutionConsumers(
           session,
-          opp,
+          killer,
           s.combatant,
           true,
-          isCrime(session.getTerms(), s.combatant),
+          isCrime(termsFor(session, killer, s.combatant), s.combatant),
         );
       }
       return;
     }
     if (c === "unconscious" && !s.down) {
       s.down = true;
-      endWith(session, "incapacitation", s.combatant, opp);
+      endWith(session, "incapacitation", s.combatant, killer ?? undefined);
       // The two-stage death follows **incapacitation**, however it was
       // reached: under lethal terms a downed sentient can still be
       // finished by the deliberate coup whether they lost the poise
       // contest (`handleDown`) or bled to unconsciousness by attrition.
       if (
-        opp &&
-        session.getTerms().isLethalAuthorized() &&
+        killer &&
+        termsFor(session, killer, s.combatant).isLethalAuthorized() &&
         safeIsSentient(s.combatant)
       ) {
-        beginCoup(session, opp, s.combatant);
-      } else if (opp) {
-        runResolutionConsumers(session, opp, s.combatant, false, false);
+        beginCoup(session, killer, s.combatant);
+      } else if (killer) {
+        runResolutionConsumers(session, killer, s.combatant, false, false);
       }
       return;
     }
@@ -905,6 +913,20 @@ function durableIdOf(s: Stuff): string {
   return s.getTemplatePath() ?? "";
 }
 
+/**
+ * The terms in force on the `killer → victim` engagement edge (the
+ * per-edge blame foundation): a duel and an interloper's unlawful blow in
+ * the *same* session carry different terms. Falls back to the session
+ * terms when no edge is found (the degenerate 1v1, where they coincide).
+ */
+function termsFor(
+  session: CombatSession,
+  killer: Stuff,
+  victim: Stuff,
+): CombatTerms {
+  return session.getGraph().edgeBetween(killer, victim)?.terms ?? session.getTerms();
+}
+
 /** Sentience read, tolerant of a species not yet resolved. */
 function safeIsSentient(s: Stuff): boolean {
   try {
@@ -989,7 +1011,7 @@ function recordDeath(
   killer: Stuff,
   victim: Stuff,
 ): void {
-  const terms = session.getTerms();
+  const terms = termsFor(session, killer, victim);
   noteAttribution({
     kind: "death",
     sessionId: session.sessionId,
