@@ -1,5 +1,5 @@
 verbs: [switch, toggle]
-controller: device/SwitchController
+controller: /obj/command/device/SwitchController
 description: "Switch a device on or off"
 help: |
   Switch a device — a lamppost, a beacon, a machine — on or off. Name

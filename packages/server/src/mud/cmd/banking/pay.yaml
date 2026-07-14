@@ -1,5 +1,5 @@
 verbs: [pay]
-controller: banking/PayController
+controller: /obj/command/banking/PayController
 description: "Pay someone — by cash or from your account"
 help: |
   Pay someone by name — `pay bob 25`. By default it clears from your

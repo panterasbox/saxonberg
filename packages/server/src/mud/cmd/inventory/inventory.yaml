@@ -1,5 +1,5 @@
 verbs: [inventory, inv, i]
-controller: inventory/InventoryController
+controller: /obj/command/inventory/InventoryController
 description: "List items you are carrying"
 help: |
   Take stock of everything you're carrying. `inventory` lists what's

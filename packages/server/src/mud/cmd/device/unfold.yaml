@@ -1,5 +1,5 @@
 verbs: [unfold]
-controller: device/UnfoldController
+controller: /obj/command/device/UnfoldController
 description: "Unfold a collapsible thing"
 help: |
   Unfold something that collapses — a folding camp chair — making it

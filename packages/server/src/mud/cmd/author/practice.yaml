@@ -1,5 +1,5 @@
 verbs: [practice]
-controller: author/PracticeController
+controller: /obj/command/author/PracticeController
 description: "Record a practice deed against a Discipline (advancement harness)"
 help: |
   Developer harness for the advancement substrate. Records a single

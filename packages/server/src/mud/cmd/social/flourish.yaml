@@ -1,5 +1,5 @@
 verbs: [flourish]
-controller: social/FlourishController
+controller: /obj/command/social/FlourishController
 description: "Show off a bit of bartending flair"
 help: |
   A flashy flourish at the rail — the kind of move that only comes

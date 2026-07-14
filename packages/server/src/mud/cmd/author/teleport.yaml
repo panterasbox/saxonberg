@@ -11,7 +11,7 @@
 # credential, being at a node) lives inside the TPA fork so it never
 # blocks the privileged self-powered path.
 verbs: [teleport, tp]
-controller: author/TeleportController
+controller: /obj/command/author/TeleportController
 description: "Teleport yourself (or --target something) — self-powered if able, else via the Teleport Authority."
 help: |
   Cross the world in a single step. How `teleport` behaves depends

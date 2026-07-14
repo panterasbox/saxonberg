@@ -1,5 +1,5 @@
 verbs: [vomit]
-controller: bulk/VomitController
+controller: /obj/command/bulk/VomitController
 description: "Empty your stomach — dump the un-absorbed contents"
 help: |
   Empties your stomach of whatever hasn't yet been absorbed. Reach

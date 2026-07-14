@@ -1,5 +1,5 @@
 verbs: [transfer]
-controller: system/TransferController
+controller: /obj/command/system/TransferController
 description: "Transfer a parcel's title to another player (bilateral consent)"
 help: |
   Hand the title to a parcel you own to another player. Name the parcel by

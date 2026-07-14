@@ -1,5 +1,5 @@
 verbs: [swim]
-controller: movement/SwimController
+controller: /obj/command/movement/SwimController
 description: "Swim through a named exit (must be Swimmable-enabled)."
 help: |
   Cross water by swimming through an exit that leads into or through

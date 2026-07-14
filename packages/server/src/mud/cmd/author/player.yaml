@@ -1,5 +1,5 @@
 verbs: [player, me]
-controller: author/PlayerController
+controller: /obj/command/author/PlayerController
 description: "Manage your player character settings"
 help: |
   Adjust the basics of who your character is. Use the subcommands

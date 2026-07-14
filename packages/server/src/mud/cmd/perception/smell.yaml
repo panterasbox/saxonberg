@@ -1,5 +1,5 @@
 verbs: [smell]
-controller: perception/SmellController
+controller: /obj/command/perception/SmellController
 description: "Smell your surroundings or a specific thing"
 help: |
   Take a breath and notice what it carries. With no target,

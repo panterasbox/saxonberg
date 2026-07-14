@@ -1,5 +1,5 @@
 verbs: [wallet]
-controller: banking/WalletController
+controller: /obj/command/banking/WalletController
 description: "Your payment wallet — show / use / freeze"
 help: |
   Bare `wallet` shows which account your implant pays from. `wallet use

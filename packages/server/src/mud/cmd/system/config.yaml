@@ -1,5 +1,5 @@
 verbs: [config]
-controller: system/ConfigController
+controller: /obj/command/system/ConfigController
 description: "View or set application settings (developer-gated)"
 help: |
   Inspects and changes the game's application-wide settings. Plain

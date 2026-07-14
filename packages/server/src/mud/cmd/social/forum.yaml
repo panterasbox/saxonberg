@@ -1,5 +1,5 @@
 verbs: [forum]
-controller: social/ForumController
+controller: /obj/command/social/ForumController
 description: "Read and post on forum boards (list / make / on / post / reply / edit / read / vote / promote / follow)"
 help: |
   Forums are the game's persistent, asynchronous discussion boards —

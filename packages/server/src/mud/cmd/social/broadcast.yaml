@@ -1,5 +1,5 @@
 verbs: [broadcast]
-controller: social/BroadcastController
+controller: /obj/command/social/BroadcastController
 description: "Send a message to every online player (or an MQL-refined subset)"
 help: |
   Reach every online player at once with a single line. This is a

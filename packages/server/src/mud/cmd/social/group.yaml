@@ -1,5 +1,5 @@
 verbs: [group]
-controller: social/GroupController
+controller: /obj/command/social/GroupController
 description: "Manage persistent named groups of players (managed-provider source for grouping facade)"
 help: |
   Build and run persistent named groups of players — a guild, a

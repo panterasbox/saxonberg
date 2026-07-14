@@ -1,5 +1,5 @@
 verbs: [wizard]
-controller: author/WizardController
+controller: /obj/command/author/WizardController
 description: "Confer or revoke wizard (code-trust) status (archwizard-only)"
 help: |
   Manage who holds wizard status — the code-trust capability that lets a

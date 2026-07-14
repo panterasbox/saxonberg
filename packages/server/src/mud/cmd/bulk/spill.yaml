@@ -1,5 +1,5 @@
 verbs: [spill]
-controller: bulk/SpillController
+controller: /obj/command/bulk/SpillController
 description: "Spill a vessel's contents onto the floor"
 help: |
   Dumps a vessel's entire contents onto the ground, leaving it

@@ -1,5 +1,5 @@
 verbs: [wield]
-controller: inventory/WieldController
+controller: /obj/command/inventory/WieldController
 description: "Wield a weapon or held item from your inventory"
 help: |
   Take a weapon or tool in hand. `wield` readies an item from your

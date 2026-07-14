@@ -1,5 +1,5 @@
 verbs: [var]
-controller: shell/VarController
+controller: /obj/command/shell/VarController
 description: "Manage your ad-hoc session variables"
 help: |
   Session variables are scratch values you name yourself and reuse

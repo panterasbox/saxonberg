@@ -1,5 +1,5 @@
 verbs: [fold]
-controller: device/FoldController
+controller: /obj/command/device/FoldController
 description: "Fold up a collapsible thing"
 help: |
   Fold up something that collapses — a folding camp chair. Name the

@@ -1,5 +1,5 @@
 verbs: [reserve]
-controller: banking/ReserveController
+controller: /obj/command/banking/ReserveController
 description: "Central bank — mint / supply (Governor-gated)"
 help: |
   The central-bank surface. `reserve mint <amount>` mints subsidy into the

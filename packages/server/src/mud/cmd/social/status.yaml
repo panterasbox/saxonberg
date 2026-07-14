@@ -1,5 +1,5 @@
 verbs: [status]
-controller: social/StatusController
+controller: /obj/command/social/StatusController
 description: "Set your activity status — what others see you doing (omit to clear)"
 help: |
   Set a short note about what you're up to. Others see it alongside

@@ -1,5 +1,5 @@
 verbs: [garnish]
-controller: crafting/GarnishController
+controller: /obj/command/crafting/GarnishController
 description: "Garnish a finished drink (the finishing flourish)"
 help: |
   Finish a drink off — `garnish glass with olive`. A flourish that takes

@@ -1,5 +1,5 @@
 verbs: [remove, doff]
-controller: inventory/RemoveController
+controller: /obj/command/inventory/RemoveController
 description: "Take off a worn item"
 help: |
   Take off something you're wearing. `remove` frees up the body slot

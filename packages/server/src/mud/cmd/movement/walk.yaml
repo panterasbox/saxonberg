@@ -1,5 +1,5 @@
 verbs: [walk]
-controller: movement/WalkController
+controller: /obj/command/movement/WalkController
 description: "Walk through a named exit (compass, door, or vessel)."
 help: |
   Move on foot through an exit you name. `walk north`, `walk gate`,

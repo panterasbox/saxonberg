@@ -1,5 +1,5 @@
 verbs: [look, l]
-controller: perception/LookController
+controller: /obj/command/perception/LookController
 description: "Examine your surroundings or an object"
 help: |
   With no target, `look` surveys your whole location — its

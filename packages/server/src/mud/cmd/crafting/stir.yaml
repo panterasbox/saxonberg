@@ -1,5 +1,5 @@
 verbs: [stir, shake]
-controller: crafting/StirController
+controller: /obj/command/crafting/StirController
 description: "Stir or shake a build in progress"
 help: |
   Work the drink you're building — `stir` (or `shake`) the shaker. It

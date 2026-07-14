@@ -1,5 +1,5 @@
 verbs: [unlock]
-controller: boundary/UnlockController
+controller: /obj/command/boundary/UnlockController
 description: "Unlock a door (by direction or by name)"
 help: |
   Unlock anything that can be locked — a door blocking an exit. Name a

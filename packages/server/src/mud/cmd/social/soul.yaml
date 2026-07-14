@@ -1,5 +1,5 @@
 verbs: [soul]
-controller: social/SoulController
+controller: /obj/command/social/SoulController
 description: "Author the emote catalog (mint / edit / delete / show / list emotes). Author-gated by composition — non-authors don't see the verb in their recency stack."
 help: |
   Author the catalog of built-in emotes — the curated verbs like

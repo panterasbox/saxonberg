@@ -1,5 +1,5 @@
 verbs: [layout]
-controller: shell/LayoutController
+controller: /obj/command/shell/LayoutController
 description: "Switch the cockpit layout (world | forum | livestream-viewer | streamer | builder)."
 help: |
   Choose how your cockpit is arranged. A layout is the whole
