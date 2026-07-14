@@ -71,23 +71,29 @@ data:
       description: |
         University Avenue runs east and west, swept stone gone smooth down the middle and grittier at the gutters. It is a passage, not a place — nobody's shopfront, nobody's corner; the doors along it are shut and dark, businesses that keep their custom somewhere the locals actually live.
     trees:
-      keywords: [trees, tree, plane, planes, grate, grates]
+      keywords: [trees, tree, plane, planes, grate, grates, bench, seat]
       description: |
-        A row of plane trees stands in iron grates along the kerb, mottled bark peeling in map-shapes, their crowns thin against a real city sky. Somewhere to sit under, if anyone here ever sat.
-  # The room's fixtures + furniture, plus Gus (Phase 4). The camp chair is the
-  # relief's, kept deployed (unfolded). The thermos is NOT loose here anymore
-  # — it is Gus's, carried on his person (his "won't open"), equipped onto him
-  # at standup by Gus.equipLoadout along with the rest of his gear. The lamp is
-  # day/night self-driven; the beacon shows walk/stop; the bin holds litter,
-  # with one takeable gutter ticket-stub loose on the stone. Gus is a plain
-  # bare-string populate (an NPC clone moved into the room); his gear is not
-  # populated here — the class equips it (there is no declarative seed path to
-  # wear/wield gear on a creature).
+        A row of plane trees stands in iron grates along the kerb, mottled bark peeling in map-shapes, their crowns thin against a real city sky. A single municipal bench sits beneath them, bolted to the stone and clean of wear — somewhere to sit, if anyone here ever sat.
+    lamp:
+      keywords: [lamp, lamppost, lamp-post, post, iron, light]
+      description: |
+        A cast-iron lamppost leans a little at the kerb, fluted and old, dark by day. Come dusk it will find its own light without anyone asking — the one bit of the street that keeps a schedule as faithfully as Gus does.
+  # Realized Stuff is kept DELIBERATELY sparse — only things a player would
+  # reach out and touch that also carry the room's flavor (the curation pass,
+  # 2026-07-13). The generic municipal furniture (a bench, a lamppost, a litter
+  # bin) is now prose in `details:` above, not a prop table in the contents
+  # list. What stands up as real objects:
+  #   - the camp chair — the *relief's*, kept deployed (unfolded); the running
+  #     joke that an empty crossing has a whole shift roster. Foldable, sit-able.
+  #   - the beacon — the walk/stop signal for a road no cart comes down.
+  #   - the gutter ticket-stub — one takeable bit of an arrival's litter loose
+  #     on the stone (the churn of the terminal made touchable).
+  #   - Gus — a plain bare-string populate (an NPC clone moved into the room);
+  #     his gear is NOT populated here (the `/obj/Gus` class equips it at
+  #     standup — no declarative seed path to wear/wield gear on a creature).
+  # The thermos rides on Gus (his "won't open"), not loose here.
   populates:
-    - /domain/eternal/university-avenue/bench
     - /domain/eternal/university-avenue/camp-chair
-    - /domain/eternal/university-avenue/lamp
     - /domain/eternal/university-avenue/beacon
-    - /domain/eternal/university-avenue/litter-bin
     - /domain/eternal/university-avenue/gutter-litter
     - /domain/eternal/university-avenue/npc/gus

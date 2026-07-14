@@ -56,12 +56,13 @@ const BANK = "/domain/eternal/university-avenue/bank";
 const CAMPUS_GATE = "/domain/eternal/university-avenue/campus-gate";
 const DOOR = "/domain/eternal/university-avenue/campus-gate-door";
 
+// The curated realized set: only the flavorful touchables survive as Stuff
+// (the camp chair, the beacon, the gutter ticket-stub). The generic municipal
+// furniture (bench / lamppost / litter bin) is now room `details:` prose, not
+// populated objects — see crossing.yaml.
 const OBJECTS = [
-  "/domain/eternal/university-avenue/bench",
   "/domain/eternal/university-avenue/camp-chair",
-  "/domain/eternal/university-avenue/lamp",
   "/domain/eternal/university-avenue/beacon",
-  "/domain/eternal/university-avenue/litter-bin",
   "/domain/eternal/university-avenue/gutter-litter",
 ];
 
@@ -95,12 +96,9 @@ function docs(): Doc[] {
     seed("domain/eternal/university-avenue/crossing.yaml", CROSSING),
     seed("domain/eternal/university-avenue/campus-gate.yaml", CAMPUS_GATE),
     seed("domain/eternal/university-avenue/campus-gate-door.yaml", DOOR),
-    seed("domain/eternal/university-avenue/bench.yaml", OBJECTS[0]!),
-    seed("domain/eternal/university-avenue/camp-chair.yaml", OBJECTS[1]!),
-    seed("domain/eternal/university-avenue/lamp.yaml", OBJECTS[2]!),
-    seed("domain/eternal/university-avenue/beacon.yaml", OBJECTS[3]!),
-    seed("domain/eternal/university-avenue/litter-bin.yaml", OBJECTS[4]!),
-    seed("domain/eternal/university-avenue/gutter-litter.yaml", OBJECTS[5]!),
+    seed("domain/eternal/university-avenue/camp-chair.yaml", OBJECTS[0]!),
+    seed("domain/eternal/university-avenue/beacon.yaml", OBJECTS[1]!),
+    seed("domain/eternal/university-avenue/gutter-litter.yaml", OBJECTS[2]!),
     // Gus + his gear templates + the anatomy his equip resolves against.
     seed("domain/eternal/university-avenue/npc/gus.yaml", GUS),
     seed("domain/eternal/university-avenue/vest.yaml", VEST),
@@ -221,7 +219,7 @@ describe("University Avenue crossing standup (real seeds)", () => {
     expect(guard.gate).toBe("locked");
   });
 
-  it("populates the crossing with its furniture and fixtures", async () => {
+  it("populates the crossing with its curated flavor objects", async () => {
     const crossing = (await StuffApi.singleton(
       CROSSING,
     )) as unknown as Stuff & Container;
@@ -229,16 +227,27 @@ describe("University Avenue crossing standup (real seeds)", () => {
       const obj = StuffApi.findByTemplatePath(p);
       expect(obj, `expected ${p} to be populated`).toBeTruthy();
     }
-    // The bench is a Postured host (its authored `sit` slot lit up).
-    const bench = StuffApi.findByTemplatePath(OBJECTS[0]!)!;
-    expect(MixinApi.isPostured(bench)).toBe(true);
-    // The camp chair is Foldable and seeded deployed (unfolded).
-    const chair = StuffApi.findByTemplatePath(OBJECTS[1]!)!;
+    // The camp chair (the relief's) is Foldable and seeded deployed (unfolded).
+    const chair = StuffApi.findByTemplatePath(OBJECTS[0]!)!;
     expect(MixinApi.isFoldable(chair)).toBe(true);
     expect((chair as unknown as { isFolded(): boolean }).isFolded()).toBe(false);
-    // The furniture actually lives in the room.
+    // The kept objects actually live in the room.
     const contents = crossing.getContents();
-    expect(contents).toContain(bench as unknown as Stuff & Containable);
+    expect(contents).toContain(chair as unknown as Stuff & Containable);
+    // The generic municipal furniture was cut to prose — no bench / lamppost /
+    // litter bin stands up as loose Stuff.
+    const contentPaths = (contents as ReadonlyArray<Stuff>).map((s) =>
+      s.getTemplatePath(),
+    );
+    expect(contentPaths).not.toContain(
+      "/domain/eternal/university-avenue/bench",
+    );
+    expect(contentPaths).not.toContain(
+      "/domain/eternal/university-avenue/lamp",
+    );
+    expect(contentPaths).not.toContain(
+      "/domain/eternal/university-avenue/litter-bin",
+    );
   });
 
   it("boots Gus into the room, dressed for his shift", async () => {

@@ -8,7 +8,7 @@ import Whistle from '../../domain/eternal/university-avenue/Whistle';
 import Paddle from '../Paddle';
 import Thermos from '../Thermos';
 import Beacon from '../Beacon';
-import LitterBin from '../LitterBin';
+import FoldingChair from '../FoldingChair';
 import { MixinApi } from '../../api/mixin';
 import { Mixins } from '../../lib/mixin';
 import { StuffApi } from '../../api/stuff';
@@ -46,9 +46,9 @@ describe('crossing content classes (composition)', () => {
     expect(MixinApi.hasMixin(b as never, Mixins.Detailed)).toBe(true);
   });
 
-  it('LitterBin is a Detailed Container', () => {
-    const bin = makeStuff(() => new LitterBin());
-    expect(MixinApi.isContainer(bin as never)).toBe(true);
-    expect(MixinApi.hasMixin(bin as never, Mixins.Detailed)).toBe(true);
+  it("FoldingChair (the relief's camp chair) is Foldable + Postured", () => {
+    const chair = makeStuff(() => new FoldingChair());
+    expect(MixinApi.isFoldable(chair as never)).toBe(true);
+    expect(MixinApi.isPostured(chair as never)).toBe(true);
   });
 });
