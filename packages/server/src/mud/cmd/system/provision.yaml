@@ -21,7 +21,7 @@ options:
   theme:
     short: t
     type: string
-    description: "Set the room's initial style at move-in (e.g. spartan/cozy/studious/neon)."
+    description: "Set the room's initial style at move-in by vocation (e.g. miner/nautical/medic/scholar)."
 args:
   - name: player
     type: object

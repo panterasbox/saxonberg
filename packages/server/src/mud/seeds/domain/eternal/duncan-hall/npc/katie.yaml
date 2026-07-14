@@ -71,24 +71,36 @@ data:
           # dispatches `provision $player --theme <style>` AS Katie (bounded by
           # her dorms-agent authority).
           style:
-            beat: "Right you are. I keep a few looks made up so a room's not bare on your first night — what suits you? Spartan and plain, something cosy, a studious sort of set-up, or a bit of neon if you're that way inclined?"
+            beat: "Right you are. And what's your line of study, love? I dress the room to suit the trade — saves it looking bare your first night, and there's comfort in a room that knows what you're for. Digging, growing things, the sea, trade, mending folk, the service, or the books?"
             choices:
-              - line: "Spartan — keep it plain."
+              - line: "Mining."
                 to: assigned
                 effects:
-                  - { verb: dispatch, command: "provision $player --theme spartan" }
-              - line: "Cosy, please."
+                  - { verb: dispatch, command: "provision $player --theme miner" }
+              - line: "Farming."
                 to: assigned
                 effects:
-                  - { verb: dispatch, command: "provision $player --theme cozy" }
-              - line: "Something studious."
+                  - { verb: dispatch, command: "provision $player --theme farmer" }
+              - line: "The sea — navigation."
                 to: assigned
                 effects:
-                  - { verb: dispatch, command: "provision $player --theme studious" }
-              - line: "Neon it is."
+                  - { verb: dispatch, command: "provision $player --theme nautical" }
+              - line: "Trade."
                 to: assigned
                 effects:
-                  - { verb: dispatch, command: "provision $player --theme neon" }
+                  - { verb: dispatch, command: "provision $player --theme merchant" }
+              - line: "Medicine."
+                to: assigned
+                effects:
+                  - { verb: dispatch, command: "provision $player --theme medic" }
+              - line: "The service."
+                to: assigned
+                effects:
+                  - { verb: dispatch, command: "provision $player --theme military" }
+              - line: "The books — scholarship."
+                to: assigned
+                effects:
+                  - { verb: dispatch, command: "provision $player --theme scholar" }
           assigned:
             beat: "Let's have a look at the book... right. You're sorted — up the stairs to your floor, and your door'll open for you and no one else. Changed your mind on the look later, you just redo it from inside. One thing: quiet after ten. That rule I do hold to."
             terminal: true

@@ -269,23 +269,23 @@ describe('shell personalization — move-in theme + local remodel', () => {
     await run(
       makeStuff(() => new ProvisionController()),
       op,
-      { player: { stuff: tenant }, theme: 'cozy' } as unknown as CommandModel,
+      { player: { stuff: tenant }, theme: 'nautical' } as unknown as CommandModel,
       ctx,
     );
     expect(rejectionReason(ctx)).toBeNull();
 
     const unit = (await ParcelApi.heldUnitOf(tenant.getTemplatePath()!))!.getExtent();
     const room = await w.admit(unit);
-    expect(shortDesc(room)).toBe('a cozy dorm room');
+    expect(shortDesc(room)).toBe('a nautical dorm room');
     expect(
       shortDesc(room.getContents().find((c) => c instanceof Desk)!),
-    ).toBe('a cluttered, homey desk');
+    ).toBe('a chart-laden desk');
 
-    // Dormancy: empty room reaps (captured sealed) → re-admit restores cozy.
+    // Dormancy: empty room reaps (captured sealed) → re-admit restores nautical.
     await (w as unknown as { reconcile(): Promise<void> }).reconcile();
     expect(room.isDestroyed()).toBe(true);
     const reborn = await w.admit(unit);
-    expect(shortDesc(reborn)).toBe('a cozy dorm room');
+    expect(shortDesc(reborn)).toBe('a nautical dorm room');
   });
 
   it('remodel: the leaseholder redoes the room from the menu (a local prompt)', async () => {
@@ -298,15 +298,15 @@ describe('shell personalization — move-in theme + local remodel', () => {
     const room = await w.admit(k1);
     ContainmentApi.move(iris, room); // standing in their room
 
-    // The choice wheel resolves to 'cozy' (the player's pick).
-    vi.spyOn(PromptApi, 'choice').mockResolvedValue('cozy' as never);
+    // The choice wheel resolves to 'nautical' (the player's pick).
+    vi.spyOn(PromptApi, 'choice').mockResolvedValue('nautical' as never);
     const ctx = ctxWithInteractive(iris, 'remodel');
     await run(makeStuff(() => new RemodelController()), iris, {} as CommandModel, ctx);
     expect(rejectionReason(ctx)).toBeNull();
-    expect(shortDesc(room)).toBe('a cozy dorm room');
+    expect(shortDesc(room)).toBe('a nautical dorm room');
     expect(
       shortDesc(room.getContents().find((c) => c instanceof Desk)!),
-    ).toBe('a cluttered, homey desk');
+    ).toBe('a chart-laden desk');
   });
 
   it('remodel refuses a non-leaseholder', async () => {
@@ -424,7 +424,7 @@ describe('unprovision — revert + free slot; re-provision = default look', () =
     ContainmentApi.move(iris, room);
 
     // Personalize (seal a style), then move iris out so the unit is vacant.
-    await DormThemes.applyTo(room, 'neon');
+    await DormThemes.applyTo(room, 'medic');
     expect(snapshots().filter((s) => s.owner === k1)).toHaveLength(1);
     ContainmentApi.move(iris, (await w.ensureFloor(1))! as Stuff & Container);
 
@@ -443,7 +443,7 @@ describe('unprovision — revert + free slot; re-provision = default look', () =
     expect(await ParcelApi.hasUseGrant(k1, '/obj/Avatar/iris')).toBe(false);
     expect(await ParcelRecordFor(k1)).toBeNull(); // slot freed
 
-    // Re-provision the same slot → a fresh, DEFAULT room (no phantom neon).
+    // Re-provision the same slot → a fresh, DEFAULT room (no phantom medic).
     seedUnit(1, 1); // re-mint the slot (a fresh provision would)
     await w.refreshProvisioned();
     const reborn = await w.admit(k1);

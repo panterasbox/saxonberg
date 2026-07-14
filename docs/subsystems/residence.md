@@ -203,6 +203,15 @@ prose-field state; **not** a per-room synthetic template, a runtime shadow, or
 a separate store). Theme-pick is a **menu, never a typed verb** (the same
 "NPCs do their jobs / no cold-OS surface" line as provisioning).
 
+The style set is **by vocation**, not decorating mood — a university dorm
+dressed to the trade you're training for (miner / farmer / nautical /
+merchant / medic / military / scholar), so the space says *what you're
+becoming*. The same bed/desk/footlocker reads completely differently by
+trade. (Genres — sci-fi / horror / … — are the holodeck's job, pure aesthetic
+play, not a grounded first home. **Near-future**: derived from your char-gen
+major — Katie just *knows*, no move-in menu — with `remodel` staying the
+pick.)
+
 - **The core — `DormThemes` (`domain/eternal/duncan-hall/DormThemes.ts`)**, a
   named value-object (not an Api/subsystem): `ids()`/`labelOf()` (the menu) +
   `applyTo(room, themeId)` — apply the theme's prose bundle across the room +
@@ -211,7 +220,7 @@ a separate store). Theme-pick is a **menu, never a typed verb** (the same
   room.getPersistenceKey())` to seal. A non-prose field throws
   `DormThemeError` — the bundle is refused **whole**, nothing written (the
   function-fixed / code-trust boundary). Theme data is authored in
-  `mud/config/dorm-themes.yaml` (spartan/cozy/studious/neon, keyed by role).
+  `mud/config/dorm-themes.yaml` (the vocation set, keyed by role).
 - **Move-in → Katie** (the diegetic front): her intake dialogue's style
   choices each `dispatch` `provision $player --theme <style>`; `provision`'s
   `--theme` option admits the room and calls `DormThemes.applyTo` **as the

@@ -1,104 +1,187 @@
-# Dorm themes — authored prose bundles a leaseholder picks from to seal a
-# room's look (the `decorate <themeId>` / `remodel` commit). Each theme is a
-# pure prose overlay keyed by role: `room` + the three in-room fixtures
-# (`bed` / `desk` / `footlocker`). Only PROSE fields are ever written
+# Dorm themes — authored prose bundles a tenant's room is dressed in, sealing
+# its look (Katie's move-in `provision --theme`, or the local `remodel`
+# prompt). The set is by **vocation**, not decorating mood: a university dorm
+# room dressed to the trade you're training for, so the space says what you're
+# becoming. (Near-future: derived from your char-gen major — Katie just knows;
+# remodel stays the pick. Genres — sci-fi / horror / …  — are the holodeck's
+# job, pure aesthetic play, not a grounded first home.)
+#
+# Each theme is a pure PROSE overlay keyed by role: `room` + the three in-room
+# fixtures (`bed` / `desk` / `footlocker`). Only prose fields are written
 # (shortDescription / longDescription) — function is fixed by the backing
 # class (the code-trust boundary). The DormDoor / Corridor are shared
 # infrastructure, not tenant-personalizable, so they carry no role here.
 #
-# Loaded by `DecorateController` (the ParcelSeeder readFileSync + YAML.parse
+# Loaded by `DormThemes` (the ParcelSeeder readFileSync + YAML.parse
 # precedent). NOT a Stuff template — a content data file under mud/config/.
 
 themes:
-  spartan:
-    label: Spartan
+  miner:
+    label: Miner
     room:
-      shortDescription: a spare dorm room
+      shortDescription: a miner's dorm room
       longDescription: >-
-        A spare, orderly room. Bare walls, a swept floor, and nothing kept
-        that isn't used — the deliberate austerity of someone who travels
-        light.
+        Rough-hewn and close, lit low against the dark it's made for. A
+        dusting of rock-grit on every ledge, the faint mineral tang of deep
+        stone, and a coil of rope by the door — a room that half-remembers
+        the tunnels.
     bed:
-      shortDescription: a tightly-made cot
+      shortDescription: a rock-hard cot
       longDescription: >-
-        A narrow cot, its blanket drawn drum-tight and squared at the
-        corners.
+        A hard, low cot, its blanket the grey of pit-dust, made for a body
+        that sleeps heavy and wakes before the light.
     desk:
-      shortDescription: a bare work desk
+      shortDescription: an ore-strewn desk
       longDescription: >-
-        A plain desk, its surface clear but for a single lamp.
+        A stout desk scattered with ore samples and a folded assay chart, a
+        scarred pick leaned in the corner within reach.
     footlocker:
-      shortDescription: a plain footlocker
+      shortDescription: an iron-banded footlocker
       longDescription: >-
-        A plain locker at the foot of the bed, latched and unadorned.
+        A heavy footlocker banded in iron, a dented lantern and a coil of
+        fuse-cord stowed on its lid.
 
-  cozy:
-    label: Cozy
+  farmer:
+    label: Farmer
     room:
-      shortDescription: a cozy dorm room
+      shortDescription: a farmer's dorm room
       longDescription: >-
-        A warm, lived-in room. A string of soft lights loops the walls, a rug
-        softens the floor, and the air holds a faint sweetness of tea gone
-        cold — the kind of room you exhale in.
+        Earthy and unhurried, the light coming soft as through a barn door.
+        Seed packets pinned in rows, a worn straw hat on a peg, and the good
+        brown smell of soil and dry hay in everything.
     bed:
-      shortDescription: a heaped, pillowed bed
+      shortDescription: a quilt-heaped bed
       longDescription: >-
-        A bed buried under a quilt and a heap of mismatched pillows, one
-        corner turned invitingly down.
+        A broad bed under a patchwork quilt worn soft — the kind you fall
+        into after a long day in the sun.
     desk:
-      shortDescription: a cluttered, homey desk
+      shortDescription: a seed-strewn desk
       longDescription: >-
-        A desk crowded with warm clutter — a mug, a stack of dog-eared books,
-        a photo propped against the lamp.
+        A plain desk crowded with seed packets, a dog-eared weather almanac,
+        and a jar of dark earth pressed with a thumbprint.
     footlocker:
-      shortDescription: a blanket-topped footlocker
+      shortDescription: a straw-topped footlocker
       longDescription: >-
-        A footlocker doubling as a bench, a folded blanket thrown across its
-        lid.
+        A sturdy footlocker with a burlap sack and a coil of twine thrown
+        across its lid.
 
-  studious:
-    label: Studious
+  nautical:
+    label: Nautical
     room:
-      shortDescription: a studious dorm room
+      shortDescription: a nautical dorm room
       longDescription: >-
-        A room bent to work. Pinned notes crowd the wall, the light is bright
-        and even, and everything sits within arm's reach of the desk — a mind
-        made into a room.
+        Snug as a ship's cabin, all brass and rope and dark wood. A
+        porthole-round window, charts pinned and curling at the corners, and
+        the salt-and-tar smell of a place that dreams of open water.
     bed:
-      shortDescription: a hastily-made bed
+      shortDescription: a slung bunk
       longDescription: >-
-        A bed made in a hurry, one textbook still open face-down on the
-        blanket where sleep won the argument.
+        A narrow bunk built snug against the wall, its blanket rolled and
+        lashed sailor-tight.
     desk:
-      shortDescription: a laden study desk
+      shortDescription: a chart-laden desk
       longDescription: >-
-        A broad desk laden with the tools of study — a lamp bent low, a
-        battery of pens, and notes annotated in three colours of ink.
+        A desk spread with rolled charts and a brass instrument or two, a
+        length of knotted rope coiled where a hand can find it.
+    footlocker:
+      shortDescription: a brass-cornered sea chest
+      longDescription: >-
+        A dark footlocker cornered in brass, a coil of rope and a battered
+        lantern stowed atop it.
+
+  merchant:
+    label: Merchant
+    room:
+      shortDescription: a merchant's dorm room
+      longDescription: >-
+        Trim and well-appointed a touch above its station — everything a
+        shade nicer than it needs to be. A good coat on the hook, a ledger
+        open on the desk, and the quiet confidence of a room that means to go
+        up in the world.
+    bed:
+      shortDescription: a well-dressed bed
+      longDescription: >-
+        A bed made up in decent linen, plumped and presentable — a room that
+        receives visitors.
+    desk:
+      shortDescription: a ledger-topped desk
+      longDescription: >-
+        A polished desk with an open ledger, a small brass coin-scale, and a
+        few sample wares set out as if for a buyer.
+    footlocker:
+      shortDescription: a brass-latched footlocker
+      longDescription: >-
+        A tidy footlocker with a good brass latch, a folded fine coat laid
+        across the top.
+
+  medic:
+    label: Medic
+    room:
+      shortDescription: a medic's dorm room
+      longDescription: >-
+        Clean-lined and orderly, everything wiped and squared. An anatomical
+        chart on the wall, a row of labelled specimen jars, and a faint
+        antiseptic sharpness that never quite leaves the air.
+    bed:
+      shortDescription: a crisp, cornered bed
+      longDescription: >-
+        A bed made hospital-crisp, the blanket squared and the sheet turned
+        down in a precise white band.
+    desk:
+      shortDescription: an instrument-laid desk
+      longDescription: >-
+        A clean desk with instruments laid in a row on a folded cloth, a
+        stack of case-notes, and a jar of pale specimens catching the light.
+    footlocker:
+      shortDescription: a white-latched footlocker
+      longDescription: >-
+        A spotless footlocker, a folded white coat and a small kit stowed
+        with care on its lid.
+
+  military:
+    label: Military
+    room:
+      shortDescription: a soldier's dorm room
+      longDescription: >-
+        Squared away to the last inch. The floor's swept to the grain, boots
+        stand paired by the door, and everything not in use is stowed,
+        folded, and out of sight.
+    bed:
+      shortDescription: a coin-tight bed
+      longDescription: >-
+        A bed made drum-tight, hospital corners knife-sharp, the blanket taut
+        enough to bounce a coin.
+    desk:
+      shortDescription: a squared-away desk
+      longDescription: >-
+        A bare desk, its few items squared to the edges — a folded cap, a kit
+        laid out, nothing a hair out of line.
+    footlocker:
+      shortDescription: a regulation footlocker
+      longDescription: >-
+        A regulation footlocker, latched and stencilled, everything within
+        folded to the same crease.
+
+  scholar:
+    label: Scholar
+    room:
+      shortDescription: a scholar's dorm room
+      longDescription: >-
+        A room bent to the mind. Books stacked in leaning towers, notes
+        pinned three-deep on the wall, a lamp burned low into the night, and
+        the dry papery smell of ink and old bindings.
+    bed:
+      shortDescription: a book-strewn bed
+      longDescription: >-
+        A bed half-claimed by books, one still open face-down on the blanket
+        where reading beat sleep.
+    desk:
+      shortDescription: a book-laden desk
+      longDescription: >-
+        A broad desk laden under books and annotated notes, a lamp bent close
+        and a battery of pens in three colours of ink.
     footlocker:
       shortDescription: a file-stacked footlocker
       longDescription: >-
-        A footlocker topped with neat stacks of files and labelled folders.
-
-  neon:
-    label: Neon
-    room:
-      shortDescription: a neon-lit dorm room
-      longDescription: >-
-        A room washed in synthetic colour. Strips of pink and cyan light run
-        the seams of the walls, glints skate across every surface, and the
-        quiet hums faintly electric.
-    bed:
-      shortDescription: an under-lit bed
-      longDescription: >-
-        A bed rimmed with a soft under-glow, its frame throwing coloured
-        light up the wall.
-    desk:
-      shortDescription: a light-strung desk
-      longDescription: >-
-        A desk edged with a thread of colour-shifting light, its glow pooling
-        on the work surface.
-    footlocker:
-      shortDescription: a glowing footlocker
-      longDescription: >-
-        A footlocker banded with a low luminous strip that breathes slowly
-        between colours.
+        A footlocker topped with neat towers of labelled folders and a
+        lockbox of finished work.
