@@ -175,10 +175,28 @@ NOT use `AccessApi.can` (it fails closed for NPCs, which have no `playerId`);
 it resolves the owner group ref and checks membership by the actor's `playerId
 ?? templatePath` (`isDormsAgent` in `ProvisionController`). This is how **Katie
 fronts provisioning in the world**: `talk to Katie` → her intake dialogue
-`dispatch`es `provision $player` **as Katie**, who is authorized because her
-`postRegister` enrolls her into the `duncan-hall` group. A player never types
-the raw verb. See [npc-dialogue.md § dispatch](./npc-dialogue.md) and Katie's
-sheet (`docs/staging/eternal-university/npcs/property-manager.md`).
+`dispatch`es `provision $player` **as Katie**, who is authorized because she is
+a member of the `duncan-hall` group. A player never types the raw verb. See
+[npc-dialogue.md § dispatch](./npc-dialogue.md) and Katie's sheet
+(`docs/staging/eternal-university/npcs/property-manager.md`).
+
+**Authority is owner-conferred, never self-claimed** (the security-critical
+point — a self-issued credential is no credential). Katie's membership in the
+`duncan-hall` group is **authored data**: `config/groups.yaml` lists her
+`templatePath`, seeded idempotently by `GroupSeeder` at boot (the
+`ChannelSeeder`/`ParcelSeeder` precedent — a `Group` is a Document, so it's
+config-not-`seeds/`). She does **not** enroll herself in her own class code —
+that would be circular (an agent "authorized" only because it wrote its own
+name into the ledger). The same rule governs her master ring (legitimate master
+access to every pin-tumbler dorm lock): it is a physical `Key` `populates`d
+into her inventory from `npc/master-ring.yaml` (the serialized `key` credential
+carries `masterTechs: [pin-tumbler]`), an owner-authored spawn loadout — not a
+credential she issues herself. Her `Katie` class thus carries **no bespoke
+authority code**: only `PopulatesMixin` (to accept the loadout) and the
+operator-verb `commandContributions`. The `isDormsAgent` `execute()` check
+still earns its keep — it scopes the *forced-dispatch* capability so a random
+or misauthored NPC's `dispatch provision $player` can't provision — but it now
+reads an honestly-conferred ledger.
 
 Because these are **content** verbs, their affordance is content-owned too:
 the operator escape hatch (the raw `provision`/`unprovision` surface) is

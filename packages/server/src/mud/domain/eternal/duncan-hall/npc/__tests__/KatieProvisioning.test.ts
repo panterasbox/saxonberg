@@ -19,12 +19,15 @@ import Katie from '../Katie';
 import ProvisionController from '../../command/ProvisionController';
 import { GroupApi } from '../../../../../api/group';
 import { CommandApi } from '../../../../../api/command';
+import { MixinApi } from '../../../../../api/mixin';
+import { Mixins } from '../../../../../lib/mixin';
 import { ParcelApi } from '../../../../../api/parcel';
 import { AccessApi } from '../../../../../api/access';
 import { StuffApi } from '../../../../../api/stuff';
 import { DialogueTreeSchema } from '../../../../../lib/npc/tree';
-import { ParcelRecord, type ParcelOwner } from '../../../../../lib/parcel/ParcelRecord';
+import { type ParcelOwner } from '../../../../../lib/parcel/ParcelRecord';
 import { PersistenceManager } from '../../../../../../backend/PersistenceManager';
+import { GroupSeeder } from '../../../../../../backend/GroupSeeder';
 import { makeStuffAtPath } from '../../../../../lib/security/__tests__/test-setup';
 
 const DORMS_OWNER: ParcelOwner = { kind: 'group', name: 'duncan-hall' };
@@ -124,17 +127,30 @@ describe('Katie — the dorms-agent authorization boundary', () => {
   });
   afterEach(reset);
 
-  it('enrolls herself into the duncan-hall group at postRegister', async () => {
+  it('is conferred dorms-agent membership from authored group data (GroupSeeder), not self-enrolled', async () => {
     await bootWithAccess();
+    // The landlord's `duncan-hall` group and Katie's membership are authored
+    // in config/groups.yaml and seeded by GroupSeeder — the owner confers it.
+    // Katie's class runs no enrollment code.
+    await GroupSeeder.run();
+
+    const ref = await ParcelApi.resolveOwnerRef(DORMS_OWNER);
+    expect(ref).not.toBeNull();
+    expect(
+      await GroupApi.isMember('/domain/eternal/duncan-hall/npc/katie', ref!),
+    ).toBe(true);
+  });
+
+  it('composes PopulatesMixin so her master ring is an authored loadout, not self-issued', () => {
+    // The master ring is `populates`d in from npc/master-ring.yaml (an
+    // owner-authored spawn loadout). That only works if Katie is a Populates
+    // host — this pins the composition (the seed row's credential is proven a
+    // working pin-tumbler master in lib/lock/__tests__/Lock.test.ts).
     const katie = makeStuffAtPath(
       () => new Katie(),
       '/domain/eternal/duncan-hall/npc/katie',
     );
-    await katie.postRegister();
-
-    const ref = await ParcelApi.resolveOwnerRef(DORMS_OWNER);
-    expect(ref).not.toBeNull();
-    expect(await GroupApi.isMember(katie.getTemplatePath()!, ref!)).toBe(true);
+    expect(MixinApi.hasMixin(katie, Mixins.Populates)).toBe(true);
   });
 
   it('affords the operator provision/unprovision surface as content (not a core mixin)', () => {
@@ -158,7 +174,9 @@ describe('Katie — the dorms-agent authorization boundary', () => {
       () => new Katie(),
       '/domain/eternal/duncan-hall/npc/katie',
     );
-    await katie.postRegister();
+    // Membership is conferred by the owner's authored group data (seeded),
+    // not by Katie enrolling herself.
+    await GroupSeeder.run();
     // Katie is an agent of the dorms owner → authorized (not via a wizard
     // bit — an NPC has no playerId, so isWizard is false; the group is why).
     expect(await AccessApi.isWizard(katie)).toBe(false);

@@ -72,6 +72,20 @@ describe('KeyCredential — round-trip', () => {
     expect(c.getKeys()).toHaveLength(0);
     expect(c.authorize('kw-1', 'pin-tumbler')).toBe(false);
   });
+
+  it('deserializes a hand-authored master-key seed row (the master-ring contract)', () => {
+    // Katie's master ring is authored data, not self-issued code: the seed
+    // `credentials` row `{ kind: 'key', masterTechs: ['pin-tumbler'] }`
+    // (npc/master-ring.yaml) must deserialize — via the same fromData the
+    // `credentials` hydration setter calls — into a working pin-tumbler master.
+    const restored = Credential.fromData({
+      kind: 'key',
+      masterTechs: ['pin-tumbler'],
+    }) as KeyCredential;
+    expect(restored.kind).toBe('key');
+    expect(restored.authorize('any-keyway', 'pin-tumbler')).toBe(true);
+    expect(restored.authorize('any-keyway', 'keycard')).toBe(false);
+  });
 });
 
 describe('Lock', () => {

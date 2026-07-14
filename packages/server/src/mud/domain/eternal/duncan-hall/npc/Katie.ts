@@ -7,31 +7,32 @@
  * (`talk to Katie`), so a player never types the raw operator verb.
  *
  * She is almost entirely **content** (name + species + dispositions + an
- * intake dialogue tree in her seed). The ONE reason she needs a class: she
- * holds a **job**, and that job is a capability — she must be an *agent of
- * the dorms owner* to be authorized to `provision`/`unprovision`. So her
- * `postRegister` idempotently enrolls her into the `duncan-hall` managed
- * group (the landlord's staff), keyed by her templatePath (NPCs have no
- * playerId). The provisioning controllers authorize `isDormsAgent` — a
- * wizard, or a member of that group — so Katie's dialogue `dispatch` of
- * `provision $player` passes, and a random NPC's would not.
+ * intake dialogue tree in her seed). Her authority is content too, and — the
+ * point — **owner-conferred, never self-claimed**:
  *
- * The full character (the murder on-ramp, the clearing-hand, the ambient
- * maintenance routine, the code-switch enforcement beats) is deferred to the
- * EU narrative build — see
+ *   - She is an *agent of the dorms owner* (so `provision`/`unprovision`
+ *     authorize her) because the landlord's `duncan-hall` group lists her
+ *     `templatePath` as a member — authored in `config/groups.yaml`, seeded by
+ *     `GroupSeeder`. She does NOT enroll herself; a member writing its own name
+ *     into the ledger is circular and no real authority.
+ *   - Her master ring (legitimate master access to every pin-tumbler dorm
+ *     lock) is a physical `Key` `populates`d into her inventory from
+ *     `npc/master-ring.yaml` — an owner-authored spawn loadout, not a
+ *     self-issued credential.
+ *
+ * So the class carries no bespoke authority code — only the composition needed
+ * to accept a declarative loadout (`PopulatesMixin`) and the operator-verb
+ * affordance (content affords its own commands). The full character (the
+ * murder on-ramp, the clearing-hand, the ambient maintenance routine, the
+ * code-switch enforcement beats) is deferred to the EU narrative build — see
  * `docs/staging/eternal-university/npcs/property-manager.md`.
  */
 
 import NPC from '../../../../lib/npc/NPC';
-import { GroupApi } from '../../../../api/group';
-import { CredentialApi } from '../../../../api/credential';
-import { Group } from '../../../../lib/social/Group';
+import { PopulatesMixin } from '../../../../lib/stuff/Populates';
 import type { CommandContributions } from '../../../../api/command';
 
-/** The landlord group that owns the dorms parcel (Katie's employer). */
-const DORMS_GROUP = 'duncan-hall';
-
-export default class Katie extends NPC {
+export default class Katie extends PopulatesMixin(NPC) {
   /**
    * The operator escape hatch for the dorm landlord verbs. Katie IS the
    * front desk, so she affords `provision`/`unprovision` to co-located
@@ -50,48 +51,4 @@ export default class Katie extends NPC {
     inventory: [],
     peers: [],
   };
-
-  public override async postRegister(context?: unknown): Promise<void> {
-    await super.postRegister(context);
-    await this.enrollAsDormsAgent();
-    // The super's master ring — a physical master key opening any pin-tumbler
-    // dorm lock (her sheet's legitimate master access). An NPC has no implant
-    // keychain, so it lives as the key on her belt. Best-effort: a missing key
-    // template (a misconfigured boot) warns rather than crashing her setup.
-    try {
-      await CredentialApi.issueMasterKey(this, 'pin-tumbler');
-    } catch (err) {
-      console.warn(
-        `Katie.postRegister: could not issue the master key: ${
-          err instanceof Error ? err.message : String(err)
-        }`,
-      );
-    }
-  }
-
-  /**
-   * Idempotently enroll Katie into the `duncan-hall` managed group so she is
-   * an agent of the dorms owner (authorized to provision/unprovision). Her
-   * member key is her templatePath — the key the provisioning controllers
-   * check for a non-player principal. Mint-or-find mirrors
-   * `ParcelRegistry.resolveGroupByName` (the dorms owner resolves to the same
-   * group by name).
-   */
-  private async enrollAsDormsAgent(): Promise<void> {
-    const path = this.getTemplatePath();
-    if (!path) return;
-    const reg = await GroupApi.registry();
-    const provider = reg.managed();
-    let group = await provider.findByName(DORMS_GROUP);
-    if (!group) {
-      group = new Group();
-      group.name = DORMS_GROUP;
-      group.owner = 'system';
-      await group.save();
-    }
-    if (group.addMember(path, 'member')) {
-      await group.save();
-      if (group._id) provider.fireChange(group._id);
-    }
-  }
 }

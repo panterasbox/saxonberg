@@ -1,0 +1,17 @@
+# Katie's master ring — the super's legitimate master access to every
+# pin-tumbler dorm lock, expressed as authored data rather than self-issued in
+# her class code. A physical `Key` Thing whose keychain credential holds the
+# `pin-tumbler` MASTER technology, so `CredentialApi.presentsKey` opens any dorm
+# door for its bearer. It is `populates`d into Katie's inventory at spawn (see
+# her seed) — an owner-authored loadout, the guard-spawns-holding-a-sword idiom.
+#
+# The prose matches `Lock.keyDescription('pin-tumbler', master=true)`; the
+# master state lives in the serialized `key` credential row (`masterTechs`).
+class: /lib/lock/Key
+hydratorClass: /lib/persistence/PersistentHydrator
+data:
+  shortDescription: a heavy ring of master keys
+  keywords: [ring, keys, master, key]
+  credentials:
+    - kind: key
+      masterTechs: [pin-tumbler]
