@@ -280,29 +280,18 @@ export abstract class Stuff {
   }
 
   /**
-   * The controlling player's id, or `null` when this Stuff is not a
+   * The controlling player's account id, or `null` when this Stuff is not a
    * player-controlled body (an NPC, a prop, a fixture). `Avatar` overrides to
-   * return its `playerId`. This is the typed replacement for the
-   * `(x as { getPlayerId?(): string }).getPlayerId?.()` duck-typing that used
-   * to be copy-pasted wherever code asked "is this subject a player?" — ask
-   * any Stuff directly.
+   * return its `playerId`. This is the auth/account identity (OAuth id,
+   * `User.playerIds`) — NOT a membership key. Group / authority membership
+   * keys uniformly on `getTemplatePath()` (a player as `/obj/Avatar/<id>`, an
+   * NPC as its own path), so a membership check never branches on player-vs-NPC
+   * and never mixes id shapes. Kept as a typed method (rather than the old
+   * `(x as { getPlayerId?() }).getPlayerId?.()` duck-typing) so the auth-layer
+   * call sites that legitimately need the account id can ask any Stuff.
    */
   public getPlayerId(): string | null {
     return null;
-  }
-
-  /**
-   * This Stuff's **principal identity** — the durable key by which it is
-   * recognized as an actor in membership / authority contexts (group
-   * membership, agency checks). A player-controlled body answers with its
-   * `playerId`; everything else (an NPC agent, a fixture) with its
-   * `templatePath`. This is the ONE place the "player id else template path"
-   * resolution lives: a membership check is
-   * `GroupApi.isMember(actor.getPrincipalId(), ref)`, never a re-derived
-   * per-call-site fallback.
-   */
-  public getPrincipalId(): string {
-    return this.getPlayerId() ?? this.getTemplatePath() ?? "";
   }
 
   /**

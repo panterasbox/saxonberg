@@ -954,8 +954,10 @@ export class CommandLogic extends ApiLogic {
             const members = await GroupApi.membersOf(coreRef);
             coreMemberIds = new Set<string>();
             for (const m of members) {
-              const pid = m.getPlayerId();
-              if (pid) coreMemberIds.add(pid);
+              // Uniform member key = templatePath (matches the `isAdmin`
+              // predicate's `target.getTemplatePath()` lookup).
+              const key = m.getTemplatePath();
+              if (key) coreMemberIds.add(key);
             }
           }
         }

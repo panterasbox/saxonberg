@@ -86,10 +86,23 @@ The Registry is an `Idea + PostRegistrationMixin` singleton at
   `cachedStreamersRef` / `cachedArchwizardsRef` — resolved
   `GroupRef`s for the bootstrap-seeded groups.
 - `cachedWizardPlayerIds` / `cachedStreamerPlayerIds` /
-  `cachedArchwizardPlayerIds` — Sets of playerIds in `'wizards'` /
+  `cachedArchwizardPlayerIds` — Sets of the **member keys** in `'wizards'` /
   `'streamers'` / `'archwizards'`; warmed lazily on first
   `isWizard` / `isStreamer` / `isArchwizard` call, invalidated via
   the managed provider's `onChange` callback.
+
+**Group membership keys on the member's `templatePath`, uniformly** — a player
+as `/obj/Avatar/<playerId>`, an NPC (a staff agent) as its own path. There is
+NO player-vs-NPC branch anywhere: the member key of any subject is just
+`subject.getTemplatePath()` (`memberKeyOf`), and an authority roster (which
+holds only players) simply never contains an NPC's path. The bare `playerId`
+stays the **auth/account** identity (`getPlayerId`, `User.playerIds`, session,
+the env `WIZARD_PLAYER_IDS`-style seeds and the `wizard grant <playerId>` verb)
+— those boundaries convert once via `Avatar.getTemplatePath(playerId)`. Legacy
+bare-id membership is migrated to paths at boot by
+`GroupSeeder.migrateMemberKeysToPaths` (idempotent). Offices (single-holder
+seats) stay playerId-keyed — they are player-only and never exhibit the
+avatar-vs-NPC mix.
 - `cachedAuthorGroups` — list of `GroupRef`s that count as
   "author scope"; every group named by a `group`-kind parcel owner
   (via `ParcelApi.groupOwnerRefs`), plus `'core'`.

@@ -157,6 +157,9 @@ export class AppBootstrap {
     // Groups before parcels: a parcel's owner group (`duncan-hall`) is
     // authored here with its staff members, so the owner-ref resolution the
     // parcel/provisioning path does later converges on the seeded group.
+    // Migrate legacy bare-playerId membership to templatePath keys first
+    // (idempotent), then seed authored memberships.
+    await GroupSeeder.migrateMemberKeysToPaths();
     await GroupSeeder.run();
     await ParcelSeeder.run();
 

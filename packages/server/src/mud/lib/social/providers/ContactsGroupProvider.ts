@@ -49,11 +49,9 @@ export class ContactsGroupProvider implements GroupProvider {
    * a contacts-side concern (enforced at the verb layer + provider
    * privacy gate), not a coarse-role concern.
    */
-  async roleOf(playerId: string, id: string): Promise<GroupRole | null> {
+  async roleOf(memberKey: string, id: string): Promise<GroupRole | null> {
     const members = await this.members(id);
-    const present = members.some(
-      (s) => PlayerApi.isAvatarStuff(s) && s.getPlayerId() === playerId,
-    );
+    const present = members.some((s) => s.getTemplatePath() === memberKey);
     return present ? 'member' : null;
   }
 

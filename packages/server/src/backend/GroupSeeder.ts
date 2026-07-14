@@ -30,6 +30,7 @@ import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 import YAML from 'yaml';
 import { Group, type GroupRole } from '../mud/lib/social/Group';
+import Avatar from '../mud/obj/Avatar';
 
 interface GroupMemberSeed {
   id: string;
@@ -48,6 +49,46 @@ interface GroupSeedOptions {
 }
 
 export class GroupSeeder {
+  /**
+   * One-time keyspace migration: group membership now keys on the member's
+   * **templatePath** (a player as `/obj/Avatar/<playerId>`, an NPC as its own
+   * path), not the bare playerId. Rewrite any legacy bare-id entry in every
+   * group's `memberIds` / `owner` to its avatar path. Idempotent: an id that
+   * already starts with `/` (a path — an NPC agent, or an already-migrated
+   * player) and the `system`/`core` owner sentinels are left untouched, so
+   * re-running (every boot) is a no-op once converted. Env-seeded authority
+   * rosters (`wizards` etc.) also self-heal via their path re-seed, but this
+   * covers player-created groups + curated channel groups. Returns the count
+   * of groups rewritten.
+   */
+  public static async migrateMemberKeysToPaths(): Promise<number> {
+    const toKey = (id: string): string =>
+      id.startsWith('/') ? id : Avatar.getTemplatePath(id);
+    let changed = 0;
+    for (const g of await Group.find({})) {
+      let dirty = false;
+      const migrated = g.memberIds.map(toKey);
+      if (migrated.some((k, i) => k !== g.memberIds[i])) {
+        g.memberIds = migrated;
+        dirty = true;
+      }
+      if (g.owner && g.owner !== 'system' && !g.owner.startsWith('/')) {
+        g.owner = toKey(g.owner);
+        dirty = true;
+      }
+      if (dirty) {
+        await g.save();
+        changed++;
+      }
+    }
+    if (changed > 0) {
+      console.info(
+        `GroupSeeder: migrated ${changed} group(s) to templatePath keys.`,
+      );
+    }
+    return changed;
+  }
+
   public static async run(opts: GroupSeedOptions = {}): Promise<number> {
     const path = opts.seedPath ?? GroupSeeder.#defaultSeedPath();
     let raw: string;

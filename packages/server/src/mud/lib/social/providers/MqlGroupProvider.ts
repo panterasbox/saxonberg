@@ -49,11 +49,9 @@ export class MqlGroupProvider implements GroupProvider {
    * the result set. Project everything in `members()` as `'member'`;
    * anything not in the set surfaces `null`.
    */
-  async roleOf(playerId: string, id: string): Promise<GroupRole | null> {
+  async roleOf(memberKey: string, id: string): Promise<GroupRole | null> {
     const members = await this.members(id);
-    const present = members.some(
-      (s) => PlayerApi.isAvatarStuff(s) && s.getPlayerId() === playerId,
-    );
+    const present = members.some((s) => s.getTemplatePath() === memberKey);
     return present ? 'member' : null;
   }
 

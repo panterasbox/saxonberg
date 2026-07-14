@@ -18,7 +18,10 @@ import SubjectCatalogue from '../SubjectCatalogue';
 import { Idea } from '../../lib/stuff/Idea';
 import { PropertiedMixin } from '../../lib/stuff/Propertied';
 import { SubjectSubscriberMixin } from '../../lib/forum/SubjectSubscriber';
-import { makeStuff } from '../../lib/security/__tests__/test-setup';
+import {
+  makeStuff,
+  makeStuffAtPath,
+} from '../../lib/security/__tests__/test-setup';
 import { PersistenceManager } from '../../../backend/PersistenceManager';
 import { StuffApi } from '../../api/stuff';
 import { PlayerApi } from '../../api/player';
@@ -53,7 +56,12 @@ class FakeAvatar extends SubjectSubscriberMixin(PropertiedMixin(Idea)) {
 }
 
 function makeAvatar(playerId: string): Avatar {
-  return makeStuff(() => new FakeAvatar(playerId)) as unknown as Avatar;
+  // Stable path per playerId — group membership keys on templatePath, so two
+  // avatars with the same playerId must share `/obj/Avatar/<playerId>`.
+  return makeStuffAtPath(
+    () => new FakeAvatar(playerId),
+    `/obj/Avatar/${playerId}`,
+  ) as unknown as Avatar;
 }
 
 // Group membership the GroupApi mock answers from: managed ref -> playerIds.

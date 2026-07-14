@@ -5,6 +5,7 @@ import { ApiLogic } from '../../lib/stuff/ApiLogic';
 import { CallSecurity, Unshadowable } from '../../lib/security/decorators';
 import { SecurityPolicies } from '../../lib/security/SecurityPolicies';
 import { StuffApi } from '../../api/stuff';
+import { PlayerApi } from '../../api/player';
 import { TemplatePaths } from '../../lib/paths';
 import type { Stuff } from '../../lib/stuff/Stuff';
 import type AccessRegistry from '../AccessRegistry';
@@ -13,18 +14,6 @@ const REGISTRY_PATH = TemplatePaths.accessRegistry;
 
 const AccessApiCallers = SecurityPolicies.FromModule('/api/access#AccessApi'
 );
-
-/**
- * Avatar-shaped sniff: only Avatar instances carry a non-empty
- * playerId. NPCs and props fail closed without touching the Registry.
- * Keeping this check at the facade lets the predicates short-circuit
- * cheaply for the common case (NPC chains, prop targets) without forcing
- * the Registry to lazy-resolve.
- */
-function playerIdOfQuick(subject: Stuff): string | null {
-  const id = subject.getPlayerId();
-  return id && id.length > 0 ? id : null;
-}
 
 /**
  * Resolve the Registry without forcing a clone. In production the
@@ -70,7 +59,7 @@ export class AccessLogic extends ApiLogic {
     if (subject === null) return false;
     const reg = lookupRegistry();
     if (!reg) return true;
-    if (playerIdOfQuick(subject) === null) return false;
+    if (!PlayerApi.isAvatarStuff(subject)) return false;
     return reg.can(subject, action, resource);
   }
 
@@ -83,7 +72,7 @@ export class AccessLogic extends ApiLogic {
     if (subject === null) return false;
     const reg = lookupRegistry();
     if (!reg) return true;
-    if (playerIdOfQuick(subject) === null) return false;
+    if (!PlayerApi.isAvatarStuff(subject)) return false;
     return reg.canMutateZone(subject, zone);
   }
 
@@ -93,7 +82,7 @@ export class AccessLogic extends ApiLogic {
     if (subject === null) return false;
     const reg = lookupRegistry();
     if (!reg) return false;
-    if (playerIdOfQuick(subject) === null) return false;
+    if (!PlayerApi.isAvatarStuff(subject)) return false;
     return reg.isAuthor(subject);
   }
 
@@ -103,7 +92,7 @@ export class AccessLogic extends ApiLogic {
     if (subject === null) return false;
     const reg = lookupRegistry();
     if (!reg) return true;
-    if (playerIdOfQuick(subject) === null) return false;
+    if (!PlayerApi.isAvatarStuff(subject)) return false;
     return reg.isWizard(subject);
   }
 
@@ -113,7 +102,7 @@ export class AccessLogic extends ApiLogic {
     if (subject === null) return false;
     const reg = lookupRegistry();
     if (!reg) return true;
-    if (playerIdOfQuick(subject) === null) return false;
+    if (!PlayerApi.isAvatarStuff(subject)) return false;
     return reg.isStreamer(subject);
   }
 
@@ -123,7 +112,7 @@ export class AccessLogic extends ApiLogic {
     if (subject === null) return false;
     const reg = lookupRegistry();
     if (!reg) return true;
-    if (playerIdOfQuick(subject) === null) return false;
+    if (!PlayerApi.isAvatarStuff(subject)) return false;
     return reg.isArchwizard(subject);
   }
 

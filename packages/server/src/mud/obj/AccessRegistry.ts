@@ -58,20 +58,20 @@ export default class AccessRegistry extends AccessRegistryBase {
    *  api/access.ts reload because it lives on the Stuff. */
   private cachedCoreRef: GroupRef | null = null;
   private cachedWizardsRef: GroupRef | null = null;
-  /** Set of playerIds in `'wizards'` — warmed lazily, invalidated
+  /** Set of member keys (templatePaths) in `'wizards'` — warmed lazily, invalidated
    *  via the managed provider's onChange callback. */
   private cachedWizardPlayerIds: ReadonlySet<string> | null = null;
   /** Cancellation handle for the wizard onChange subscription. */
   private wizardCacheCancel: (() => void) | null = null;
   private cachedStreamersRef: GroupRef | null = null;
-  /** Set of playerIds in `'streamers'` — the livestream-control axis.
+  /** Set of member keys (templatePaths) in `'streamers'` — the livestream-control axis.
    *  Warmed lazily, invalidated via the managed provider's onChange
    *  callback. Mirrors the wizard cache exactly. */
   private cachedStreamerPlayerIds: ReadonlySet<string> | null = null;
   /** Cancellation handle for the streamer onChange subscription. */
   private streamerCacheCancel: (() => void) | null = null;
   private cachedArchwizardsRef: GroupRef | null = null;
-  /** Set of playerIds in `'archwizards'` — the wizard-conferral axis.
+  /** Set of member keys (templatePaths) in `'archwizards'` — the wizard-conferral axis.
    *  Archwizards run `wizard grant/revoke`. Warmed lazily, invalidated
    *  via the managed provider's onChange callback. Mirrors the wizard
    *  cache exactly. */
@@ -121,11 +121,11 @@ export default class AccessRegistry extends AccessRegistryBase {
     resource: Stuff | null,
   ): Promise<boolean> {
     if (subject === null) return false;
-    const playerId = this.playerIdOf(subject);
-    if (playerId === null) return false;
+    const memberKey = this.memberKeyOf(subject);
+    if (memberKey === null) return false;
     const path = this.zoneOf(resource)?.getTemplatePath() ?? '';
     const owner = await ParcelApi.ownerOf(path);
-    return this.subjectIsOwnerMember(subject, playerId, owner);
+    return this.subjectIsOwnerMember(subject, memberKey, owner);
   }
 
   /**
@@ -145,10 +145,10 @@ export default class AccessRegistry extends AccessRegistryBase {
   ): Promise<boolean> {
     if (subject === null) return false;
     if (!(zone instanceof Zone)) return false;
-    const playerId = this.playerIdOf(subject);
-    if (playerId === null) return false;
+    const memberKey = this.memberKeyOf(subject);
+    if (memberKey === null) return false;
     const owner = await ParcelApi.ownerOf(zone.getTemplatePath() ?? '');
-    return this.subjectHasOwnerRole(subject, playerId, owner);
+    return this.subjectHasOwnerRole(subject, memberKey, owner);
   }
 
   /**
@@ -161,11 +161,11 @@ export default class AccessRegistry extends AccessRegistryBase {
   @CallSecurity(AccessApiCallers)
   public async isAuthor(subject: Stuff | null): Promise<boolean> {
     if (subject === null) return false;
-    const playerId = this.playerIdOf(subject);
-    if (playerId === null) return false;
+    const memberKey = this.memberKeyOf(subject);
+    if (memberKey === null) return false;
     const groups = await this.ensureAuthorGroups();
     for (const ref of groups) {
-      if (await GroupApi.isMember(playerId, ref)) return true;
+      if (await GroupApi.isMember(memberKey, ref)) return true;
     }
     return false;
   }
@@ -183,10 +183,10 @@ export default class AccessRegistry extends AccessRegistryBase {
   @CallSecurity(AccessApiCallers)
   public async isWizard(subject: Stuff | null): Promise<boolean> {
     if (subject === null) return false;
-    const playerId = this.playerIdOf(subject);
-    if (playerId === null) return false;
+    const memberKey = this.memberKeyOf(subject);
+    if (memberKey === null) return false;
     const cache = await this.ensureWizardCache();
-    return cache.has(playerId);
+    return cache.has(memberKey);
   }
 
   /**
@@ -199,10 +199,10 @@ export default class AccessRegistry extends AccessRegistryBase {
   @CallSecurity(AccessApiCallers)
   public async isStreamer(subject: Stuff | null): Promise<boolean> {
     if (subject === null) return false;
-    const playerId = this.playerIdOf(subject);
-    if (playerId === null) return false;
+    const memberKey = this.memberKeyOf(subject);
+    if (memberKey === null) return false;
     const cache = await this.ensureStreamerCache();
-    return cache.has(playerId);
+    return cache.has(memberKey);
   }
 
   /**
@@ -215,10 +215,10 @@ export default class AccessRegistry extends AccessRegistryBase {
   @CallSecurity(AccessApiCallers)
   public async isArchwizard(subject: Stuff | null): Promise<boolean> {
     if (subject === null) return false;
-    const playerId = this.playerIdOf(subject);
-    if (playerId === null) return false;
+    const memberKey = this.memberKeyOf(subject);
+    if (memberKey === null) return false;
     const cache = await this.ensureArchwizardCache();
-    return cache.has(playerId);
+    return cache.has(memberKey);
   }
 
   /**
@@ -240,9 +240,13 @@ export default class AccessRegistry extends AccessRegistryBase {
     const provider = reg.managed();
     const wizards = await provider.findByName('wizards');
     if (!wizards || !wizards._id) return false;
+    // Store the member key (templatePath), not the bare playerId — the
+    // `wizard grant <playerId>` verb + the env seed both speak account ids;
+    // membership keys uniformly on `/obj/Avatar/<playerId>`.
+    const memberKey = Avatar.getTemplatePath(id);
     const changed = makeWizard
-      ? wizards.addMember(id, 'member')
-      : wizards.removeMember(id);
+      ? wizards.addMember(memberKey, 'member')
+      : wizards.removeMember(memberKey);
     if (changed) {
       await wizards.save();
       provider.fireChange(wizards._id);
@@ -289,12 +293,16 @@ export default class AccessRegistry extends AccessRegistryBase {
 
   // ── Private helpers ──
 
-  private playerIdOf(subject: Stuff): string | null {
-    if (subject instanceof Avatar) {
-      const id = subject.getPlayerId();
-      return id && id.length > 0 ? id : null;
-    }
-    return null;
+  /**
+   * The uniform group-membership key for any subject — its `templatePath`
+   * (a player as `/obj/Avatar/<id>`, an NPC as its own path). Null for an
+   * unregistered subject (no path). Authority groups (wizards / streamers /
+   * archwizards / author scopes) hold player keys only, so an NPC's path
+   * simply isn't in them — no player-vs-NPC branch is needed anywhere.
+   */
+  private memberKeyOf(subject: Stuff): string | null {
+    const path = subject.getTemplatePath();
+    return path && path.length > 0 ? path : null;
   }
 
   private zoneOf(resource: Stuff | null): Zone | null {
@@ -498,7 +506,7 @@ export default class AccessRegistry extends AccessRegistryBase {
       .filter((s) => s.length > 0);
     let changed = false;
     for (const id of ids) {
-      if (wizards.addMember(id)) changed = true;
+      if (wizards.addMember(Avatar.getTemplatePath(id))) changed = true;
     }
     if (changed) {
       await wizards.save();
@@ -535,7 +543,7 @@ export default class AccessRegistry extends AccessRegistryBase {
       .filter((s) => s.length > 0);
     let changed = false;
     for (const id of ids) {
-      if (streamers.addMember(id)) changed = true;
+      if (streamers.addMember(Avatar.getTemplatePath(id))) changed = true;
     }
     if (changed) {
       await streamers.save();
@@ -569,7 +577,7 @@ export default class AccessRegistry extends AccessRegistryBase {
       .filter((s) => s.length > 0);
     let changed = false;
     for (const id of ids) {
-      if (archwizards.addMember(id)) changed = true;
+      if (archwizards.addMember(Avatar.getTemplatePath(id))) changed = true;
     }
     if (changed) {
       await archwizards.save();

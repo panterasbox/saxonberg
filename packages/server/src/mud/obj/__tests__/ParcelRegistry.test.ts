@@ -158,7 +158,9 @@ async function addGroupMember(
     await ParcelApi.resolveOwnerRef({ kind: "group", name });
     group = await provider.findByName(name);
   }
-  group!.addMember(playerId, role);
+  // Membership keys on the member's templatePath (a player as
+  // `/obj/Avatar/<playerId>`), matching how `makeAvatar` places the avatar.
+  group!.addMember(`/obj/Avatar/${playerId}`, role);
   await group!.save();
   if (group!._id) provider.fireChange(group!._id);
 }
