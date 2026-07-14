@@ -22,9 +22,7 @@ const AccessApiCallers = SecurityPolicies.FromModule('/api/access#AccessApi'
  * the Registry to lazy-resolve.
  */
 function playerIdOfQuick(subject: Stuff): string | null {
-  const av = subject as Stuff & { getPlayerId?: () => string };
-  if (typeof av.getPlayerId !== 'function') return null;
-  const id = av.getPlayerId();
+  const id = subject.getPlayerId();
   return id && id.length > 0 ? id : null;
 }
 

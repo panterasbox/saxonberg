@@ -232,7 +232,7 @@ export default class Avatar extends AvatarBase {
    * context, or seeded by the test/direct-construction data blob.
    */
   protected playerId: string = "";
-  public getPlayerId(): string {
+  public override getPlayerId(): string {
     return this.playerId;
   }
   public setPlayerId(value: string): void {

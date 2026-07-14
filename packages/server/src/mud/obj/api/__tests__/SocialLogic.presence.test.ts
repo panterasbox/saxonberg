@@ -117,8 +117,12 @@ beforeEach(async () => {
 
   // The actor + every viewer is an Avatar; persons resolve by playerId.
   vi.spyOn(PlayerApi, "isAvatarStuff").mockImplementation(
+    // Every Stuff now has getPlayerId (base returns null); an avatar is one
+    // that returns a real id (Viewer/Actor), not merely that the method
+    // exists.
     (o: unknown) =>
-      o === actor || (o as { getPlayerId?: unknown }).getPlayerId !== undefined,
+      o === actor ||
+      (o as { getPlayerId?: () => string | null }).getPlayerId?.() != null,
   );
   vi.spyOn(PlayerApi, "findAvatarByPlayerId").mockImplementation(
     (pid: string) => (pid === "actor" ? (actor as never) : undefined),

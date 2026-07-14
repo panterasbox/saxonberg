@@ -280,6 +280,32 @@ export abstract class Stuff {
   }
 
   /**
+   * The controlling player's id, or `null` when this Stuff is not a
+   * player-controlled body (an NPC, a prop, a fixture). `Avatar` overrides to
+   * return its `playerId`. This is the typed replacement for the
+   * `(x as { getPlayerId?(): string }).getPlayerId?.()` duck-typing that used
+   * to be copy-pasted wherever code asked "is this subject a player?" — ask
+   * any Stuff directly.
+   */
+  public getPlayerId(): string | null {
+    return null;
+  }
+
+  /**
+   * This Stuff's **principal identity** — the durable key by which it is
+   * recognized as an actor in membership / authority contexts (group
+   * membership, agency checks). A player-controlled body answers with its
+   * `playerId`; everything else (an NPC agent, a fixture) with its
+   * `templatePath`. This is the ONE place the "player id else template path"
+   * resolution lives: a membership check is
+   * `GroupApi.isMember(actor.getPrincipalId(), ref)`, never a re-derived
+   * per-call-site fallback.
+   */
+  public getPrincipalId(): string {
+    return this.getPlayerId() ?? this.getTemplatePath() ?? "";
+  }
+
+  /**
    * Stamp this Stuff's `templatePath` and re-key the
    * `byTemplatePath` index so future `findByTemplatePath` lookups
    * see the new path. No-op when `path` matches the current value.

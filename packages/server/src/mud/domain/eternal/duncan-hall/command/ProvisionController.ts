@@ -176,10 +176,10 @@ export default class ProvisionController extends CommandController<ProvisionMode
    * **agent of the dorms owner** — a member of the owner group (the
    * landlord's staff; how Katie is authorized). NOT via `AccessApi.can`,
    * which fails closed for NPCs (no `playerId`); membership is checked by the
-   * actor's `playerId ?? templatePath` — the key each principal enrolled
-   * under (a player by playerId, an NPC like Katie by templatePath). Shared
-   * with `UnprovisionController` (a class static, not a free helper). A
-   * first-class `AccessApi` NPC-agency predicate is the clean follow-on.
+   * actor's **principal id** — `getPrincipalId()` resolves a player by
+   * playerId and an NPC (like Katie) by templatePath, so this call site
+   * carries no player-vs-NPC branching. Shared with `UnprovisionController`
+   * (a class static, not a free helper).
    */
   public static async isDormsAgent(
     actor: Stuff,
@@ -188,9 +188,7 @@ export default class ProvisionController extends CommandController<ProvisionMode
     if (await AccessApi.isWizard(actor)) return true;
     const ref = await ParcelApi.resolveOwnerRef(owner);
     if (!ref) return false;
-    const key =
-      (actor as unknown as { getPlayerId?: () => string }).getPlayerId?.() ??
-      actor.getTemplatePath();
+    const key = actor.getPrincipalId();
     return key ? GroupApi.isMember(key, ref) : false;
   }
 }

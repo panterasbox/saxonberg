@@ -954,7 +954,7 @@ export class CommandLogic extends ApiLogic {
             const members = await GroupApi.membersOf(coreRef);
             coreMemberIds = new Set<string>();
             for (const m of members) {
-              const pid = (m as { getPlayerId?: () => string }).getPlayerId?.();
+              const pid = m.getPlayerId();
               if (pid) coreMemberIds.add(pid);
             }
           }

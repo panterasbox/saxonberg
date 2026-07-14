@@ -93,7 +93,7 @@ function isAdmin(
   // (the prior `_MqlAdminFlag.granter` default).
   const ids = ctx.permission?.coreMemberIds;
   if (!ids) return false;
-  const playerId = (target as { getPlayerId?: () => string }).getPlayerId?.();
+  const playerId = target.getPlayerId();
   if (!playerId) return false;
   return ids.has(playerId);
 }
