@@ -98,11 +98,9 @@ NO player-vs-NPC branch anywhere: the member key of any subject is just
 holds only players) simply never contains an NPC's path. The bare `playerId`
 stays the **auth/account** identity (`getPlayerId`, `User.playerIds`, session,
 the env `WIZARD_PLAYER_IDS`-style seeds and the `wizard grant <playerId>` verb)
-— those boundaries convert once via `Avatar.getTemplatePath(playerId)`. Legacy
-bare-id membership is migrated to paths at boot by
-`GroupSeeder.migrateMemberKeysToPaths` (idempotent). Offices (single-holder
-seats) stay playerId-keyed — they are player-only and never exhibit the
-avatar-vs-NPC mix.
+— those boundaries convert once via `Avatar.getTemplatePath(playerId)`. Offices
+(single-holder seats) stay playerId-keyed — they are player-only and never
+exhibit the avatar-vs-NPC mix.
 - `cachedAuthorGroups` — list of `GroupRef`s that count as
   "author scope"; every group named by a `group`-kind parcel owner
   (via `ParcelApi.groupOwnerRefs`), plus `'core'`.
