@@ -143,6 +143,7 @@ continues with the content + navigation layers on top:
 - [lounge-slate](./builds/lounge-slate.md) — the full spawn lounge content (locked slate); the rudimentary lounge that shipped with the substrate is the seed.
 - [fast-travel-slate](./tails/fast-travel-slate.md) — **shipped (v1)** → [fasttravel.md](../subsystems/fasttravel.md); the Teleport Authority network (terminals + scan-to-register credential + dual-mode `teleport`). Slate now a tail holding the living-infrastructure wave.
 - [eternal-university-slate](./builds/eternal-university-slate.md) — campus content area; built after char-gen + lounge.
+- [inquiry-slate](./builds/inquiry-slate.md) — the **learn-by-discovery substrate**: how *sim-native* knowledge is discovered (observe→measure→hypothesize→**predict**→verify), banked (Competence), published (teachable goods), and corrupted (the **wrong-paper** mechanic — self-defending, so misinformation is a *social/temporal* exploit gated by verification cost; the insidious case is the evidential-range **overreach** paper). Truth is **demonstrated, not argued** (the deduction-slate spine). Spun out of capability-magic Part IV (2026-07-15); magic is its first consumer, combat/medicine/crafting/farming are peers. The gamification-mirror "teach *how to know*" engine. **Loose now, tight-seam reserved** on real-course credit.
 - [onboarding-slate](./builds/onboarding-slate.md) — new-player onboarding; starts at campus arrival.
 - [map-slate](./builds/map-slate.md) — spatial-visualization client pane; an enhancement built when earned.
 
