@@ -1,0 +1,27 @@
+# Authored managed-group memberships — the owner-conferred "who is staff"
+# ledger. Seeded idempotently by `GroupSeeder` at boot (the ChannelSeeder /
+# ParcelSeeder precedent; config-not-seeds because a `Group` is a Document, not
+# a Stuff template, so it doesn't belong in the `domain` collection).
+#
+# The governing rule: group membership is CONFERRED HERE by the content owner,
+# never self-claimed by the member. An NPC that is an agent of a parcel owner
+# is authorized because the OWNER put it in the owning group as authored data —
+# not because the NPC enrolled itself in its own class code (self-issued
+# authority is no authority; see residence.md § provisioning authorization).
+#
+# `id` is the member reference the membership check keys on: a player's
+# `playerId`, or an NPC's `templatePath` (an NPC has no playerId — the same key
+# `isDormsAgent` resolves).
+groups:
+  - name: duncan-hall
+    # The dorms-owning landlord group. It owns
+    # /domain/eternal/duncan-hall/dorms in parcels.yaml; its members are the
+    # landlord's staff. Owner `system` — matches ParcelRegistry's mint-or-find
+    # (so this seed and the lazy owner-ref resolution converge on one group).
+    owner: system
+    members:
+      # Katie, the live-in super — an agent of the landlord, so her intake
+      # dialogue's `dispatch provision $player` clears the execute-level
+      # dorms-agent gate in ProvisionController. She no longer enrolls herself.
+      - id: /domain/eternal/duncan-hall/npc/katie
+        role: member

@@ -54,25 +54,39 @@ export class PersistableApi {
    * `await` (the snapshot-before-yield invariant), then an upsert keyed on
    * `(scope = host.templatePath, owner)`. Idempotent — a later capture
    * overwrites the record with the newer full snapshot.
+   *
+   * `key` is the explicit **record owner** (the multi-instance key — a leased
+   * dorm room's unit parcel). Supplied by the establishing context; when
+   * omitted the owner falls back to the host's stashed key, then to the
+   * scope-derived owner (the singleton / self-owned Avatar path — unchanged).
+   * A resolved key is stashed on the host so a later keyless re-capture (the
+   * residency sweep / autosave) writes back to the same `(scope, key)` record.
    */
-  static capture(host: Stuff): Promise<void> {
-    return logic().capture(host);
+  static capture(host: Stuff, key?: string): Promise<void> {
+    return logic().capture(host, key);
   }
 
   /**
-   * Restore every {@link PersistedRecord} scoped to `host` — reconstituting
-   * its captured content tree and worn gear onto the already-cloned shell,
-   * each record restored **as its owner** (the principal). A no-op when the
-   * host has no records. Atomic per record (a mid-tree failure leaves the
-   * prior record untouched).
+   * Restore `host` from its {@link PersistedRecord}(s) — reconstituting the
+   * captured content tree and worn gear onto the already-cloned shell, each
+   * record restored **as its owner** (the principal). Atomic per record.
+   *
+   * With `key` (a multi-instance host) restores the single `(scope, key)`
+   * record (a clean no-op if none — the first-provision seed drives instead)
+   * and stashes the key. Without `key` (a singleton / Avatar) restores every
+   * record scoped to the host — the legacy path.
    */
-  static materialize(host: Stuff): Promise<void> {
-    return logic().materialize(host);
+  static materialize(host: Stuff, key?: string): Promise<void> {
+    return logic().materialize(host, key);
   }
 
-  /** True when at least one record is scoped to `scope` (the host's path). */
-  static hasRecord(scope: string): Promise<boolean> {
-    return logic().hasRecord(scope);
+  /**
+   * True when a record exists for `scope`. With `key`, tests the single
+   * `(scope, key)` record (a multi-instance host); without, whether any
+   * record is scoped to `scope` (the host's path).
+   */
+  static hasRecord(scope: string, key?: string): Promise<boolean> {
+    return logic().hasRecord(scope, key);
   }
 
   /**

@@ -6,20 +6,19 @@
  * touches an account, so it is off the books by construction — the strongest
  * possible "off the proprietor's P&L", and a lump you *take*, not a trickle.
  *
- * A plain `Container` Thing (holds coin), `Detailed` so it reads as a fixture
- * and shows its contents when inspected — you can watch it fill. It lights up
- * the `tip` + `collect` verbs from the room (`commandContributions`), the
- * `Menu` precedent. Lounge content, so it lives beside `Menu` / `Bar` in
- * `domain/lounge/`.
+ * A `Vessel` (the canonical container-object — holds coin), `Detailed` so it
+ * reads as a fixture and shows its contents when inspected — you can watch it
+ * fill. It lights up the `tip` + `collect` verbs from the room
+ * (`commandContributions`), the `Menu` precedent. Lounge content, so it lives
+ * beside `Menu` / `Bar` in `domain/lounge/`.
  */
 
-import Thing from '../../lib/stuff/Thing';
-import { ContainerMixin } from '../../lib/spatial/Container';
+import { Vessel } from '../../lib/stuff/Vessel';
 import { DetailedMixin } from '../../lib/description/Detailed';
 import { MqlApi } from '../../api/mql';
 import type { CommandContext, CommandContributions } from '../../api/command';
 
-const TipJarBase = ContainerMixin(DetailedMixin(Thing));
+const TipJarBase = DetailedMixin(Vessel);
 
 export default class TipJar extends TipJarBase {
   /**

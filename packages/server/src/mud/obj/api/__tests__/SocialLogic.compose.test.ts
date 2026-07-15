@@ -83,7 +83,11 @@ beforeEach(() => {
   verbosity = undefined;
 
   vi.spyOn(PlayerApi, "isAvatarStuff").mockImplementation(
-    (o: unknown) => (o as { getPlayerId?: unknown }).getPlayerId !== undefined,
+    // Every Stuff now has getPlayerId (base returns null); an avatar is one
+    // that returns a real id (the viewer host), not merely that the method
+    // exists.
+    (o: unknown) =>
+      (o as { getPlayerId?: () => string | null }).getPlayerId?.() != null,
   );
   vi.spyOn(MixinApi, "isOrganism").mockImplementation(
     (o: unknown): o is never => o instanceof Occupant,

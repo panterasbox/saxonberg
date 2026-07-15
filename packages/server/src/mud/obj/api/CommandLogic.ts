@@ -318,10 +318,10 @@ export class CommandLogic extends ApiLogic {
       .filter((f) => f.endsWith('.yaml'));
 
     // Content-local command bundles: a locality's bespoke verbs live with
-    // its content under `domain/<sphere>/<locality>/commands/`. Scan the
-    // content tree for any `commands/` bundle and key each `domain/`-
-    // prefixed so `getCommand` resolves it against the MUD root. Guarded
-    // in its own try/catch — a repo without a `domain/` dir must not crash.
+    // its content under `domain/<sphere>/<locality>/cmd/`. Scan the content
+    // tree for any `cmd/` bundle and key each `domain/`-prefixed so
+    // `getCommand` resolves it against the MUD root. Guarded in its own
+    // try/catch — a repo without a `domain/` dir must not crash.
     try {
       const domainEntries = readdirSync(DOMAIN_DIR, {
         recursive: true,
@@ -950,8 +950,10 @@ export class CommandLogic extends ApiLogic {
             const members = await GroupApi.membersOf(coreRef);
             coreMemberIds = new Set<string>();
             for (const m of members) {
-              const pid = (m as { getPlayerId?: () => string }).getPlayerId?.();
-              if (pid) coreMemberIds.add(pid);
+              // Uniform member key = templatePath (matches the `isAdmin`
+              // predicate's `target.getTemplatePath()` lookup).
+              const key = m.getTemplatePath();
+              if (key) coreMemberIds.add(key);
             }
           }
         }

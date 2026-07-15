@@ -7,18 +7,26 @@
  * vs. a bearer's capacity (see the encumbrance subsystem), never a type
  * flag. Vessels are both Container (they hold things — cargo, passengers)
  * and Containable (they live somewhere — a pocket, a harbor, a parking
- * lot). Distinct from `Thing` (item-scale, holds nothing), `Location`
- * (stationary place), and `Agent` (sentient actor).
+ * lot). Its **own top-level branch**, NOT a `Thing` subtype: a Vessel spans
+ * scales (bag → cart → ship), and a ship is place-like, not a pocketable item
+ * — so `instanceof Thing` must stay false for it ("you can't pocket a ship";
+ * see architecture.md § Top-level branches). Distinct from `Thing` (item,
+ * holds nothing), `Location` (stationary place), and `Agent` (sentient actor).
  *
- * Composition: `AtmosphericMixin(TangibleMixin(ContainerMixin(
- * ContainableMixin(Stuff))))`. A Vessel is **already `Tangible`**
- * (`getMass()`), so a carriable container — a backpack, a bag of holding —
- * works mechanically as a plain Vessel (or a thin wearable subclass; see
- * `lib/equipment/Pack`). No inheritance edge to `Thing`. Code that needs
+ * Composition: `AtmosphericMixin(ContainerMixin(VisibleMixin(PerceptibleMixin(
+ * TangibleMixin(ContainableMixin(Stuff))))))`. It carries the **same
+ * describable-physical-object baseline as `Thing`** — `Tangible` (`getMass()`)
+ * + `Visible` (describable) + `Perceptible` (keyword-referenceable) — because a
+ * bag AND a ship are both describable and referenceable; it composes that
+ * baseline **directly** (not by extending `Thing`, so a ship never reads as a
+ * pocketable item) and adds `Container` (holds things) + `Atmospheric` (an
+ * interior climate). So a describable container — a footlocker, a backpack, a
+ * bank counter — is a plain `Vessel` (`DetailedMixin(Vessel)` for look-at
+ * details), with **no need to re-add `Visible`/`Perceptible`**. Code that needs
  * "is this a place?" should use `MixinApi.isContainer(obj)` (which catches
- * `Location ∪ Vessel ∪ Agent ∪ container-Thing`); `instanceof Vessel` is
- * reserved for genuine vessel-role checks (e.g. the encumbrance
- * transmission read).
+ * `Location ∪ Vessel ∪ Agent ∪ container-Thing`) rather than `instanceof`;
+ * `instanceof Vessel` is reserved for genuine vessel-role checks (e.g. the
+ * encumbrance transmission read).
  *
  * **`Adornable` lives on `ExitableVessel`, not here.** Fixtures
  * (`getFixtures()`/`addFixture()`) are needed only by the Door →
@@ -34,10 +42,18 @@ import { Stuff } from './Stuff';
 import { ContainerMixin } from '../spatial/Container';
 import { ContainableMixin } from '../spatial/Containable';
 import { TangibleMixin } from '../material/Tangible';
+import { VisibleMixin } from '../description/Visible';
+import { PerceptibleMixin } from '../description/Perceptible';
 import { AtmosphericMixin } from '../biome/Atmospheric';
 
+// The Thing baseline (Visible + Perceptible + Tangible + Containable) composed
+// DIRECTLY — not by extending Thing, so a ship-scale Vessel never reads as a
+// pocketable item — plus Container (holds things) + Atmospheric (interior
+// climate). Mirrors Thing's mixin order for the shared baseline.
 const VesselBase = AtmosphericMixin(
-  TangibleMixin(ContainerMixin(ContainableMixin(Stuff)))
+  ContainerMixin(
+    VisibleMixin(PerceptibleMixin(TangibleMixin(ContainableMixin(Stuff))))
+  )
 );
 
 export class Vessel extends VesselBase {

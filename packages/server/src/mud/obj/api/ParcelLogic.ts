@@ -101,6 +101,59 @@ export class ParcelLogic extends ApiLogic {
     return reg ? reg.transfer(extent, newOwner) : null;
   }
 
+  /** See {@link ParcelApi.grantUse}. */
+  @CallSecurity(ParcelApiCallers)
+  public async grantUse(
+    extent: string,
+    holder: string,
+    expiresAt: number | null,
+  ): Promise<boolean> {
+    const reg = lookupRegistry();
+    return reg ? reg.grantUse(extent, holder, expiresAt) : false;
+  }
+
+  /** See {@link ParcelApi.revokeUse}. */
+  @CallSecurity(ParcelApiCallers)
+  public async revokeUse(extent: string, holder: string): Promise<boolean> {
+    const reg = lookupRegistry();
+    return reg ? reg.revokeUse(extent, holder) : false;
+  }
+
+  /** See {@link ParcelApi.hasUseGrant}. */
+  @CallSecurity(ParcelApiCallers)
+  public async hasUseGrant(extent: string, holder: string): Promise<boolean> {
+    const reg = lookupRegistry();
+    return reg ? reg.hasUseGrant(extent, holder) : false;
+  }
+
+  /** See {@link ParcelApi.setKeyway}. */
+  @CallSecurity(ParcelApiCallers)
+  public async setKeyway(extent: string, keyway: string): Promise<boolean> {
+    const reg = lookupRegistry();
+    return reg ? reg.setKeyway(extent, keyway) : false;
+  }
+
+  /** See {@link ParcelApi.heldUnitOf}. */
+  @CallSecurity(ParcelApiCallers)
+  public async heldUnitOf(holder: string): Promise<ParcelRecord | null> {
+    const reg = lookupRegistry();
+    return reg ? reg.heldUnitOf(holder) : null;
+  }
+
+  /** See {@link ParcelApi.childParcelsOf}. */
+  @CallSecurity(ParcelApiCallers)
+  public async childParcelsOf(parentExtent: string): Promise<ParcelRecord[]> {
+    const reg = lookupRegistry();
+    return reg ? reg.childParcelsOf(parentExtent) : [];
+  }
+
+  /** See {@link ParcelApi.retire}. */
+  @CallSecurity(ParcelApiCallers)
+  public async retire(extent: string): Promise<void> {
+    const reg = lookupRegistry();
+    if (reg) await reg.retire(extent);
+  }
+
   /** See {@link ParcelApi.rebuildCoverageIndex}. */
   @CallSecurity(ParcelApiCallers)
   public async rebuildCoverageIndex(): Promise<void> {

@@ -107,6 +107,14 @@ export interface DialogueGuard {
  *   - `emote`     performs an NPC catalog emote (composes with speech).
  *   - `goto`      branches to a node.
  *   - `end`       ends the conversation.
+ *   - `dispatch`  runs a command AS THE NPC (the "NPCs do their jobs" seam):
+ *                 the NPC performs a real world-action through the command
+ *                 bus, bounded by its own authority. `$player` in the command
+ *                 renders to the interlocutor. See
+ *                 `docs/subsystems/npc-dialogue.md § dispatch` for the
+ *                 security model (the target controller's `execute()`
+ *                 authorization is the boundary — `forced` bypasses the
+ *                 affordance/validator gates).
  */
 export type DialogueEffect =
   | { verb: "set-state"; key: string; value: string | number | boolean }
@@ -114,7 +122,8 @@ export type DialogueEffect =
   | { verb: "say"; line: string }
   | { verb: "emote"; emote: string }
   | { verb: "goto"; node: string }
-  | { verb: "end" };
+  | { verb: "end" }
+  | { verb: "dispatch"; command: string };
 
 /** The registered effect verbs (validation array). */
 export const EFFECT_VERBS = [
@@ -124,6 +133,7 @@ export const EFFECT_VERBS = [
   "emote",
   "goto",
   "end",
+  "dispatch",
 ] as const;
 
 /** The recognized world facts under the `time:` namespace. */
@@ -309,6 +319,9 @@ export class DialogueTreeSchema {
       }
       if (verb === "set-state" && typeof e.key !== "string") {
         errors.push(`${at} set-state requires a string 'key'`);
+      }
+      if (verb === "dispatch" && typeof e.command !== "string") {
+        errors.push(`${at} dispatch requires a string 'command'`);
       }
     });
   }

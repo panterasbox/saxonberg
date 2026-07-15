@@ -47,6 +47,9 @@ data:
     - /obj/instrument/hygrometer
     - /obj/instrument/altimeter
     - /obj/instrument/balance
+    # Katie, the live-in super — the day-one housing touchpoint. Talk to her
+    # to get a room; she fronts provisioning (see her seed + Katie.ts).
+    - /domain/eternal/duncan-hall/npc/katie
   details:
     counter:
       keywords: [counter, marble]

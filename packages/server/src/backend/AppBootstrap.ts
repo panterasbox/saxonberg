@@ -19,6 +19,7 @@ import { RecipeSeeder } from './RecipeSeeder';
 import { BlueprintSeeder } from './BlueprintSeeder';
 import { ScriptSeeder } from './ScriptSeeder';
 import { ChannelSeeder } from './ChannelSeeder';
+import { GroupSeeder } from './GroupSeeder';
 import { ParcelSeeder } from './ParcelSeeder';
 import { TwitchRelayReader } from './TwitchRelayReader';
 import { YoutubeRelayReader } from './YoutubeRelayReader';
@@ -153,6 +154,10 @@ export class AppBootstrap {
     await ScriptSeeder.run();
     await ChannelSeeder.run();
     await AppSettingsSeeder.run();
+    // Groups before parcels: a parcel's owner group (`duncan-hall`) is
+    // authored here with its staff members, so the owner-ref resolution the
+    // parcel/provisioning path does later converges on the seeded group.
+    await GroupSeeder.run();
     await ParcelSeeder.run();
 
     const cmd = await CommandApi.preloadAll();

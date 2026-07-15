@@ -277,6 +277,21 @@ export abstract class Stuff {
   }
 
   /**
+   * The controlling player's account id, or `null` when this Stuff is not a
+   * player-controlled body (an NPC, a prop, a fixture). `Avatar` overrides to
+   * return its `playerId`. This is the auth/account identity (OAuth id,
+   * `User.playerIds`) — NOT a membership key. Group / authority membership
+   * keys uniformly on `getTemplatePath()` (a player as `/obj/Avatar/<id>`, an
+   * NPC as its own path), so a membership check never branches on player-vs-NPC
+   * and never mixes id shapes. Kept as a typed method (rather than the old
+   * `(x as { getPlayerId?() }).getPlayerId?.()` duck-typing) so the auth-layer
+   * call sites that legitimately need the account id can ask any Stuff.
+   */
+  public getPlayerId(): string | null {
+    return null;
+  }
+
+  /**
    * Stamp this Stuff's `templatePath` and re-key the
    * `byTemplatePath` index so future `findByTemplatePath` lookups
    * see the new path. No-op when `path` matches the current value.

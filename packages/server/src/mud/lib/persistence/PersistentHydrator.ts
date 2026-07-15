@@ -77,7 +77,7 @@ export default class PersistentHydrator extends Idea implements Hydrator {
       const raw = data[field];
       const path = marshallerPaths[field];
       let value: unknown;
-      if (path) {
+      if (path && raw != null) {
         // Lazy resolution: `singleton(path)` returns the cached
         // marshaller if one exists, else clones from the seeded
         // template. Mirrors how `StuffApi.clone` resolves
@@ -86,6 +86,10 @@ export default class PersistentHydrator extends Idea implements Hydrator {
         // `__tests__/quantity-marshaller-test-helpers.ts`); in
         // production the seeder put the template doc in `domain`
         // at boot, and singleton clones on first need.
+        //
+        // A null/undefined stored value skips the marshaller (its
+        // `fromStored` expects a live value) — the null round-trip mirrors
+        // the capture-side guard for an unset optional marshalled field.
         const marshaller = await StuffApi.singleton<
           Marshaller<unknown, unknown>
         >(path);

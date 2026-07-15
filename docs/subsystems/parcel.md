@@ -232,7 +232,11 @@ their indexes are declared in `PersistenceManager` (declaring
 
 - **Chattel / possession** + `PersistableHolder` → 0b.
 - **Lease mechanics** (`useRightOf`, the lease verb, revert-on-leave) — the
-  `grants[]` field ships inert; behavior → 0b.
+  `grants[]` field ships inert in 0a; the **use-grant lease is now typed +
+  live** (`UseGrant`, `grantUse`/`revokeUse`/`hasUseGrant`/`heldUnitOf`,
+  plus `childParcelsOf`/`retire` for unit provisioning), consumed by the
+  leased dorm — see [residence.md](./residence.md). Payment-coupled rent
+  economics stay → 0b/Phase 3.
 - **`sell` / payment-coupled transfer + Contract atomicity** → 0b/later.
 - **Compute allowance metering + degradation** → Phase 1 (`allowance` inert).
 - **Coordinate-region ("region") sub-zone spatial ownership** → deferred,

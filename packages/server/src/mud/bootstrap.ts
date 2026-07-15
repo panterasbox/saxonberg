@@ -218,6 +218,13 @@ export const bootstrapManifest: BootstrapEntry[] = [
   // migration, so the warren no longer hand-seats it. Without this entry
   // nothing instantiates the cascade root and the network never stands up.
   { templatePath: '/domain/lounge/terminal' },
+  // Duncan Hall dorms Warren — the elastic two-tier dorm manager. Boot-warmed
+  // so its `postRegister` installs the lobby's `up` FloorStairExit and rebuilds
+  // the sync floor-reachability cache from the durable unit-parcel slot set.
+  // The building starts as just the lobby and grows on provisioning; rooms /
+  // corridors / doors reconstitute lazily on entry. It faults in the lobby
+  // singleton itself, so no dependsOn.
+  { templatePath: '/domain/eternal/duncan-hall/dorm-warren' },
   // Terminus TPA terminals are NOT manifest entries — the whole hub
   // cascade-loads lazily from the single lounge root: the lounge terminal's
   // `armNetwork` resolves its route to the Terminus **arrival** terminal,

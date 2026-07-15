@@ -87,12 +87,12 @@ function viewerPlayerId(viewer: Stuff): string {
 }
 
 /**
- * The durable identity key for a person used in membership tests:
- * `playerId` for an Avatar, else the runtime `templatePath` (NPCs). Null
- * when neither resolves — such a person can't match a group ref.
+ * The membership key for a person used in group tests — uniformly the
+ * `templatePath` (a player as `/obj/Avatar/<playerId>`, an NPC as its own
+ * path), so no avatar-vs-NPC branch. Null when it has no path (can't match a
+ * group ref).
  */
 function durablePersonId(person: Stuff): string | null {
-  if (PlayerApi.isAvatarStuff(person)) return person.getPlayerId();
   return person.getTemplatePath() ?? null;
 }
 

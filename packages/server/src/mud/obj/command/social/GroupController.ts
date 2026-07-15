@@ -85,8 +85,8 @@ export default class GroupController extends CommandController<GroupModel> {
     }
     const g = new Group();
     g.name = name;
-    g.owner = avatar.getPlayerId();
-    g.memberIds = [avatar.getPlayerId()];
+    g.owner = avatar.getTemplatePath() ?? '';
+    g.memberIds = [avatar.getTemplatePath() ?? ''];
     g.memberRoles = ['owner'];
     await g.save();
     this.send(context, Mml.compose`\nCreated group '${name}'.\n`);
@@ -101,7 +101,7 @@ export default class GroupController extends CommandController<GroupModel> {
     if (!name) return this.fail(context, 'group name required', 'name-required');
     const g = await this.findGroupByName(name);
     if (!g) return this.fail(context, `No group '${name}'.`, 'no-such-group');
-    if (g.owner !== avatar.getPlayerId()) {
+    if (g.owner !== (avatar.getTemplatePath() ?? '')) {
       return this.fail(context, 'Only the owner may disband.', 'not-owner');
     }
     const id = g._id;
@@ -125,7 +125,7 @@ export default class GroupController extends CommandController<GroupModel> {
     }
     const g = await this.findGroupByName(oldName);
     if (!g) return this.fail(context, `No group '${oldName}'.`, 'no-such-group');
-    if (g.owner !== avatar.getPlayerId()) {
+    if (g.owner !== (avatar.getTemplatePath() ?? '')) {
       return this.fail(context, 'Only the owner may rename.', 'not-owner');
     }
     g.name = newName;
@@ -146,7 +146,7 @@ export default class GroupController extends CommandController<GroupModel> {
     if (!name) return this.fail(context, 'group name required', 'name-required');
     const g = await this.findGroupByName(name);
     if (!g) return this.fail(context, `No group '${name}'.`, 'no-such-group');
-    if (g.owner !== avatar.getPlayerId() && g.roleOf(avatar.getPlayerId()) !== 'admin') {
+    if (g.owner !== (avatar.getTemplatePath() ?? '') && g.roleOf(avatar.getTemplatePath() ?? '') !== 'admin') {
       return this.fail(context, 'Only owners and admins may add.', 'not-permitted');
     }
     const resolved =
@@ -160,7 +160,7 @@ export default class GroupController extends CommandController<GroupModel> {
     if (!PlayerApi.isAvatarStuff(target)) {
       return this.fail(context, 'Targets must be Avatars in v1.', 'avatar-required');
     }
-    const added = g.addMember(target.getPlayerId());
+    const added = g.addMember(target.getTemplatePath() ?? '');
     if (!added) {
       return this.fail(context, 'Already a member.', 'already-member');
     }
@@ -187,7 +187,7 @@ export default class GroupController extends CommandController<GroupModel> {
     }
     const g = await this.findGroupByName(name);
     if (!g) return this.fail(context, `No group '${name}'.`, 'no-such-group');
-    if (g.owner !== avatar.getPlayerId() && g.roleOf(avatar.getPlayerId()) !== 'admin') {
+    if (g.owner !== (avatar.getTemplatePath() ?? '') && g.roleOf(avatar.getTemplatePath() ?? '') !== 'admin') {
       return this.fail(context, 'Only owners and admins may remove.', 'not-permitted');
     }
     const removed = g.removeMember(targetId);
@@ -215,7 +215,7 @@ export default class GroupController extends CommandController<GroupModel> {
     }
     const g = await this.findGroupByName(name);
     if (!g) return this.fail(context, `No group '${name}'.`, 'no-such-group');
-    if (g.owner !== avatar.getPlayerId()) {
+    if (g.owner !== (avatar.getTemplatePath() ?? '')) {
       return this.fail(context, 'Only the owner may set roles.', 'not-owner');
     }
     const changed = g.setMemberRole(targetId, role);
@@ -249,7 +249,7 @@ export default class GroupController extends CommandController<GroupModel> {
     avatar: Avatar,
     context: CommandContext,
   ): Promise<void> {
-    const all = await Group.find({ memberIds: avatar.getPlayerId() });
+    const all = await Group.find({ memberIds: avatar.getTemplatePath() ?? '' });
     // Hide channel-backing Groups — they're an implementation detail
     // of chat, not "your groups." Chat owns this bookkeeping (Group
     // itself knows nothing about chat).
@@ -261,7 +261,7 @@ export default class GroupController extends CommandController<GroupModel> {
     }
     const lines = ['You belong to:'];
     for (const g of groups) {
-      const role = g.roleOf(avatar.getPlayerId()) ?? 'member';
+      const role = g.roleOf(avatar.getTemplatePath() ?? '') ?? 'member';
       lines.push(`  ${g.name}  [${role}]`);
     }
     this.send(context, Mml.fromMarkup(`\n${lines.join('\n')}\n`));

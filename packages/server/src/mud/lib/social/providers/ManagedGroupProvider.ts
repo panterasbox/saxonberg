@@ -1,9 +1,12 @@
 /**
  * ManagedGroupProvider — writable, persistent `Group` Documents.
  *
- * Reads materialize each `playerId` to a live Avatar (online filter:
- * only currently-spawned Avatars surface). The read surface is
- * `Promise<Stuff[]>`; offline members materialize to nothing.
+ * Membership keys on the member's **templatePath** — a player as
+ * `/obj/Avatar/<playerId>`, an NPC (a staff agent like Katie) as its own
+ * path — so a group holds players and NPCs in one uniform keyspace (no
+ * player-vs-NPC branch at any call site). Reads materialize each key to a
+ * live `Stuff` via `findByTemplatePath` (online filter: only currently-spawned
+ * instances surface); offline members materialize to nothing.
  *
  * v1 ad-hoc Groups are NOT shipped as a separate provider — the
  * requirements doc reserves them as a lifetime variant of the managed
@@ -19,7 +22,7 @@ import type {
   GroupChangeHandle,
   GroupChangeListener,
 } from '../GroupProvider';
-import { PlayerApi } from '../../../api/player';
+import { StuffApi } from '../../../api/stuff';
 
 export class ManagedGroupProvider implements GroupProvider {
   readonly source = 'managed';
@@ -43,23 +46,23 @@ export class ManagedGroupProvider implements GroupProvider {
     const group = await Group.findById(id);
     if (!group) return [];
     const out: Stuff[] = [];
-    for (const playerId of group.memberIds) {
-      const av = PlayerApi.findAvatarByPlayerId(playerId);
-      if (av) out.push(av);
+    for (const memberKey of group.memberIds) {
+      const member = StuffApi.findByTemplatePath(memberKey);
+      if (member) out.push(member);
     }
     return out;
   }
 
-  async roleOf(playerId: string, id: string): Promise<GroupRole | null> {
+  async roleOf(memberKey: string, id: string): Promise<GroupRole | null> {
     const group = await Group.findById(id);
     if (!group) return null;
-    return group.roleOf(playerId);
+    return group.roleOf(memberKey);
   }
 
-  async isMember(playerId: string, id: string): Promise<boolean> {
+  async isMember(memberKey: string, id: string): Promise<boolean> {
     const group = await Group.findById(id);
     if (!group) return false;
-    return group.isMember(playerId);
+    return group.isMember(memberKey);
   }
 
   onChange(id: string, cb: GroupChangeListener): GroupChangeHandle {
