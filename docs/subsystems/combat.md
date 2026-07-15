@@ -456,6 +456,85 @@ needs a durable-party standup/seeder and is deferred. **Split** (a fight
 fragmenting into two sessions on edge removal) has no acceptance criterion
 and is deferred until a demo produces genuine fragmentation.
 
+## The experience pass — poker, not slots (the feint, the fog, the gym)
+
+Builds 1+2 make a fight *happen* and *matter*, but the exchange had a dead
+seam the live demos exposed: **a steady armed defender always parries, so
+blind patience beat aggression** and there was no read-and-react tension.
+The experience pass makes the exchange **poker, not slots** — the outcome is
+determined by inputs you can't fully *see* (you lose because you *misread*,
+never because a die spiked) — closes rock-paper-scissors so patience is no
+longer a free win, and ships the tool that *proves* the balance.
+
+**The feint** (`Gambit.ts` `feint`, the read/deception channel). A feint
+inflicts nothing; it presents as bait and reads the *defender's*
+commitment. A **committed** defender — a steady, armed turtle poised to
+parry, exactly who patience-as-dominant-strategy relies on — who fails to
+**read** the bait over-commits and cracks their own guard (`feint-bit`):
+the defender loses `combat.poise.feintBitPenalty` (enough to break a steady
+guard, arming their opening via the existing `Poise.lower` crossing), the
+feinter pays only the small `combat.poise.feintCost`, and the opening is
+cashed on the feinter's **next strike** through the unchanged `exploit`
+path (the two-beat feint→exploit, no new inflict site). A defender who
+**reads** it (competence-gated) or isn't committed (an aggressor, not
+turtling) isn't fooled (`feint-read`, the bait wasted). This closes
+**strike ▸ feint ▸ defend ▸ strike**: a feint beats a turtle, patience
+beats blind aggression, aggression beats a feinter.
+
+**The fog** (`lib/combat/CombatFog.ts`, pure, deterministic). The read is
+*epistemic* — you see the opponent's poise **fogged by your own sharpness**.
+`CombatFog.perceive(trueBand, sharpness, feinting)` distorts deterministically
+(no RNG): a dull reader under-reads (band shifts one step toward `steady`)
+and **mistakes a feint for a real opening** (`open`); a sharp reader sees the
+true band and the feint's **tell**. `assess` now surfaces the fogged band +
+the `read` tell. The **same** `CombatFog.reads(sharpness)` gate decides both
+the fog's tell and whether a defender bites a feint, so "the fog says open"
+and "I bit the feint" can never contradict. **The fog is the only dice; skill
+shrinks it.**
+
+**Sharpness** (`lib/combat/Sharpness.ts`, pure). One scalar,
+`f(competence) · g(composure)`, modulating **both** poise recovery (a
+sharper fighter recovers more per defensive beat) and the read-fog.
+`g(composure)` is the **inert** `traits-stress` seam (`≡ 1` today — a
+stubbed composure composes without touching the exchange engine). Competence
+is snapshotted **synchronously at open** (`CombatOpenOptions.competenceBands`,
+keyed on `templatePath`; `AttackController` awaits `AdvancementApi.bandFor`
+*before* opening — the async band can't be read mid-beat, and reading it once
+keeps a single session deterministic). Bare/test/gym/NPC paths default to
+`untrained`.
+
+**Zero new aleatory randomness.** No to-hit / damage / crit dice; severity
+stays the deterministic materials-response function, a "miss" stays a
+*caused* event, the crit stays the **earned** opening (with the called shot
+to the exposed part). **A single session is bit-for-bit deterministic** —
+the property the gym rides.
+
+**The dramatic arc** (Thesis 2). Every beat carries a
+`BeatIntensity` — `roar` at a threshold crossing (first-blood /
+the break, cracked or exploited / the down or kill — `CombatSession.bloodDrawn`
+fires the first-blood roar once), `murmur` for an ordinary hit, `silent`
+otherwise. It **volume-gates the crowd**: `CombatNarration` marks an act
+reactable (`noteReactableAct`) only on murmur/roar, and scales the narration
+swell — "the crowd roars" *is* the engagement feedback that the beat
+mattered. (The reactions substrate carries no per-act weight, so intensity
+gates *whether* the reactable act fires + the prose swell, not a counter;
+an empty-room roar is the swell, and an automated bystander crowd is
+deferred.)
+
+**The combat gym** (`scripts/combat-gym.ts` + `scripts/__tests__/combat-gym.test.ts`).
+Because a session is a deterministic single-thread coroutine, a whole fight
+runs **headless, to resolution, with no scheduler** — loop
+`CombatApi.advance`. A **dev tool** (no Api, no verb, no world state; the
+`scripts/` precedent) that runs a matrix of skill × policy × loadout
+matchups and reads the outcome distribution. It is the **balance regression
+guard**: it asserts the parry seam is dead (a feint beats a low-competence
+turtle; blind aggression still loses to one; an expert *reads* the feint and
+isn't cracked), a contested win-rate (no policy sweeps), single-session
+determinism, and **NPC ≈ PC** parity (the same model fights itself to a
+decisive result). Variation is the matrix, never RNG. This de-risks the
+competence→exchange-rate curve (combat-slate OQ1 — "numbers are the risk";
+the gym is how you find them).
+
 ## Deferred
 
 Named at their sites; nothing inherited:
@@ -465,19 +544,24 @@ Named at their sites; nothing inherited:
   stealth, pursuit / the chase (wayfaring) and coordinated party-retreat
   (rout/rally), non-humanoid bestiary, death/recovery + moderation, the
   client `CombatPane` (and the contextual gambit affordances — terse verbs
-  afforded only in a fight — that supersede the static ones), the **combat
-  gym** balance harness, and party tactic-roles (combat-tactics-slate).
+  afforded only in a fight — that supersede the static ones), and party
+  tactic-roles (combat-tactics-slate).
+- **The composure/luck axis itself** (`traits-stress`) — the bidirectional
+  stress ↔ inspiration emotional reserve that fills `Sharpness`'s
+  `g(composure)`. The experience pass leaves only the inert modulation seam;
+  the axis, its accrual pipe, and the estimator are deferred.
+- **A broader deception menu** — false-opening, guard-baiting, bluff-stacking.
+  The feint is the one read gambit this pass; the wider mind-game is deferred.
 - **Split** — connected-component recompute on edge removal spawning a
   second session; deferred (no criterion requires it) until fragmentation
   is real.
-- **Known engine seams** — a steady armed defender *always* parries and
-  acting-first overextends into that guard first, so blind aggression loses
-  to patience — wants attention in the experience pass. The
-  `world.combat.exchange` topic wants a client font-register mapping. The
-  beat loop has **no presence-freeze** — a fight ticks on against a
-  linkdead combatant until `combat.maxBeats` forces a draw (bounded, not a
-  leak; "you can't rage-quit a fight" may even be wanted). A parting-shot
-  **narration** (the inflict is mechanical today) is a small polish.
+- **Known engine seams** — the `world.combat.exchange` topic wants a client
+  font-register mapping. The beat loop has **no presence-freeze** — a fight
+  ticks on against a linkdead combatant until `combat.maxBeats` forces a
+  draw (bounded, not a leak; "you can't rage-quit a fight" may even be
+  wanted). A parting-shot **narration** (the inflict is mechanical today) is
+  a small polish. An **automated bystander crowd** (so an empty-room duel
+  still draws a reacting audience) is a behavior concern, out of scope.
 
 ## Cross-references
 
@@ -541,3 +625,18 @@ Named at their sites; nothing inherited:
   (`lib/party/`, `PartyApi`/`PartyLogic`, `PartyRegistry`, the `parties`
   collection, the `party:` grouping provider, the `party` verb) landed in
   the same build.
+- **Experience pass** (`feature/combat-experience`) — the exchange becomes
+  poker, not slots (see [§ The experience pass](#the-experience-pass--poker-not-slots-the-feint-the-fog-the-gym)):
+  the **feint** gambit (`feint-bit`/`feint-read`, the two-beat feint→exploit
+  reusing the earned-opening path) closing rock-paper-scissors and killing
+  the always-parries seam; the deterministic competence-hedged **fog**
+  (`CombatFog`) fed into `assess`; the `f(competence)·g(composure)`
+  **`Sharpness`** scalar modulating recovery + fog (composure the inert
+  `traits-stress` seam) snapshotted at open via `CombatOpenOptions`; the
+  **beat-intensity** arc (`BeatIntensity` silent/murmur/roar +
+  `CombatSession.bloodDrawn`) volume-gating the crowd; and the **combat
+  gym** (`scripts/combat-gym.ts` + bench) proving the parry seam dead +
+  single-session determinism + NPC≈PC parity. Six new `combat.*` dials
+  (`poise.feintCost`/`poise.feintBitPenalty`/`fog.readSharpness`/
+  `fog.clearSharpness`/`sharpness.min`/`sharpness.max`). `Gambit` grew a
+  `feint` kind; `fight feint` joined the gambit surface.
