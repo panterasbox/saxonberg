@@ -187,6 +187,11 @@ export class CombatLogic extends ApiLogic {
   public assess(actor: Stuff, target: Stuff): CombatAssessResult {
     return assessImpl(actor, target);
   }
+
+  @CallSecurity(CombatApiCallers)
+  public perceive(actor: Stuff): CombatAssessResult {
+    return perceiveImpl(actor);
+  }
 }
 
 /* ───────────────────────── config dials ───────────────────────── */
@@ -1641,19 +1646,21 @@ function mintAssessSignature(actor: Stuff): void {
   }).catch(() => {});
 }
 
-function assessImpl(actor: Stuff, _target: Stuff): CombatAssessResult {
+/**
+ * The **free** fogged read of the actor's opponent — no cost, no
+ * side-effects. The opponent's poise is hedged by the actor's own sharpness
+ * (poker, not slots): a dull reader under-reads the band and mistakes a
+ * feint for a real opening; a sharp reader sees the true band and the
+ * feint's `tell`. Powers the always-available `fight` status line; the
+ * costed `assess` verb wraps it.
+ */
+function perceiveImpl(actor: Stuff): CombatAssessResult {
   const session = sessionForImpl(actor);
   if (!session) return { ok: false, reason: "not-in-combat" };
   const oppState = session.opponentState(actor);
   if (!oppState) return { ok: false, reason: "no-target" };
-  // Costs the actor their next exchange (the real opportunity cost).
   const st = session.getState(actor);
-  if (st) st.queuedGambit = "assess";
-  mintAssessSignature(actor);
   const opp = oppState.combatant;
-  // The read is fogged by the actor's own sharpness (poker, not slots): a
-  // dull reader under-reads the opponent's poise and mistakes a feint for a
-  // real opening; a sharp reader sees the true band and the feint's tell.
   const viewerSharpness = st ? sharpnessFor(st) : 0;
   const oppFeinting = oppState.queuedGambit === "feint";
   const reading = CombatFog.perceive(
@@ -1672,5 +1679,17 @@ function assessImpl(actor: Stuff, _target: Stuff): CombatAssessResult {
       ? opp.getConditionBand()
       : undefined,
   };
+}
+
+function assessImpl(actor: Stuff, _target: Stuff): CombatAssessResult {
+  const read = perceiveImpl(actor);
+  if (!read.ok) return read;
+  // The costed read: spend the actor's next exchange (the opportunity cost)
+  // and mint the melee-read credit. The fogged read itself is `perceiveImpl`.
+  const session = sessionForImpl(actor);
+  const st = session?.getState(actor);
+  if (st) st.queuedGambit = "assess";
+  mintAssessSignature(actor);
+  return read;
 }
 

@@ -209,6 +209,15 @@ export class CombatApi {
   public static assess(actor: Stuff, target: Stuff): CombatAssessResult {
     return logic().assess(actor, target);
   }
+
+  /**
+   * The **free** fogged read of the actor's opponent — the competence-hedged
+   * band + feint `tell`, with no cost and no side-effects. Powers the
+   * always-available `fight` status line; `assess` is the costed wrapper.
+   */
+  public static perceive(actor: Stuff): CombatAssessResult {
+    return logic().perceive(actor);
+  }
 }
 
 SecurityApi.decorateApiClass(CombatApi);

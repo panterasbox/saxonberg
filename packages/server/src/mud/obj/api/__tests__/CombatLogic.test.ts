@@ -635,4 +635,18 @@ describe("CombatLogic — the fog (competence-graded read)", () => {
     expect(read.poiseBand).toBe("steady"); // sees b's true (fresh) band
     expect(read.read).toBe("feint"); // and the tell
   });
+
+  it("perceive is free (no beat cost) — the fight status read", () => {
+    const room = makeStuff(() => new TestRoom());
+    const a = makeFighter(room, { weaponForm: "bladed" });
+    const b = makeFighter(room, { weaponForm: "bladed" });
+    const session = open(a, b, nonLethal);
+    session.getState(a)!.sharpness = 0.9;
+
+    const read = CombatApi.perceive(a);
+    expect(read.ok).toBe(true);
+    expect(read.poiseBand).toBe("steady");
+    // Unlike assess, a free glance does NOT spend the actor's next exchange.
+    expect(session.getState(a)!.queuedGambit).toBeNull();
+  });
 });
