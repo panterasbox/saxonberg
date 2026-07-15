@@ -312,7 +312,7 @@ describe('DormWarren — floor reconstitution + reachability', () => {
     const door = w.doorFor(k1);
     expect(door).not.toBeNull();
     expect((corridor as unknown as { getExit(d: string): unknown }).getExit('unit-3')).toBeDefined();
-    // The stairwell: down to the lobby, up is a LazyFloorExit.
+    // The stairwell: down to the lobby, up is a FloorStairExit.
     expect((corridor as unknown as { getExit(d: string): unknown }).getExit('down')).toBeDefined();
     expect((corridor as unknown as { getExit(d: string): unknown }).getExit('up')).toBeDefined();
 

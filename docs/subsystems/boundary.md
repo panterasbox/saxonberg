@@ -110,6 +110,36 @@ going through `MovementConduit.canPassThrough`) — they return the
 same answer. Routing through the conduit is deferred to a future Door
 subclass that varies on traversal mode.
 
+### Deferred destinations — `DeferredDestinationExit`
+
+`lib/boundary/DeferredDestinationExit.ts` — the base for an exit whose
+**destination `Stuff` is faulted in on traversal** while the exit itself
+stays **eager**. The reconstitution seam for content that doesn't exist
+until you walk toward it: an elastic building's floors/rooms, a
+procedurally-generated level, a per-player instanced space.
+
+The name says *destination*, not *lazy exit*, deliberately — the exit is
+present and describable the moment you're in its source room:
+
+- **Eager exit.** The Exit object lives in the source room's exit map, and
+  its `getDirection()` + `getDestinationTemplatePath()` are read by
+  `look` / a future map to render the edge **without materializing the far
+  side**. The template path is stored **accurately** (the destination's real
+  class template, never a placeholder), so the edge reads honestly before
+  it's been walked. Describing an exit never resolves anything.
+- **Deferred destination.** The live destination faults in only on
+  `resolveDestination()` — the base runs the subclass's
+  `computeDestination()` hook, caches the live ref (Pattern B), and
+  re-materializes after a reap. For **multi-instance** destinations (many
+  clones sharing one template) the template path names the *class*, not the
+  clone, so resolution goes through the hook, never path lookup.
+
+The base owns the fault-in lifecycle; subclasses supply only
+`computeDestination()` + their own `canTraverse` (passability varies —
+a key check vs. a reachability check). Consumers: the dorm's `DormDoor`
+(a unit's room) and `FloorStairExit` (a floor's corridor) — see
+[residence.md](./residence.md).
+
 #### `addExit` is async
 
 `Exitable.addExit(exit)` returns `Promise<boolean>`. The async return

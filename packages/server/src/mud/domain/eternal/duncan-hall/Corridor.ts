@@ -8,7 +8,7 @@
  * A plain non-coordinate `Location` (a clone can't hold fixed grid coords;
  * it hangs off the lobby / the floor below by live-ref stair exits, not grid
  * adjacency) with the exit + description surface. It holds the floor's
- * `DormDoor`s and the `down` (to the floor below) + `up` (a `LazyFloorExit`)
+ * `DormDoor`s and the `down` (to the floor below) + `up` (a `FloorStairExit`)
  * stairs. No persistence — floors reconstitute from the durable slot set.
  * No `Named` — a generic labelled room.
  *

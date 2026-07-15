@@ -7,7 +7,7 @@
  * The reconstitution seam for content that doesn't exist until you walk toward
  * it — an elastic building's floors/rooms, a procedurally-generated level, a
  * per-player instanced space. Two live consumers today: `DormDoor` (a unit's
- * room) and `LazyFloorExit` (a floor's corridor).
+ * room) and `FloorStairExit` (a floor's corridor).
  *
  * The split it enforces (and why the name says *destination*, not *lazy exit*):
  *

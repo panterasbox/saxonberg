@@ -1,5 +1,5 @@
 /**
- * LazyFloorExit — a `DeferredDestinationExit` that materializes a dorm floor's
+ * FloorStairExit — a `DeferredDestinationExit` that materializes a dorm floor's
  * corridor on demand (the lobby's `up`, and each corridor's `up`).
  *
  * The elastic dorm building keeps NO runtime graph across restart: only the
@@ -24,7 +24,7 @@ import type { Container } from '../../../lib/spatial/Container';
 import type { Containable } from '../../../lib/spatial/Containable';
 import DormWarren from './DormWarren';
 
-export default class LazyFloorExit extends DeferredDestinationExit {
+export default class FloorStairExit extends DeferredDestinationExit {
   /** The floor this exit climbs TO (lobby's up → 1; corridor n's up → n+1). */
   private targetFloor: number;
 
@@ -50,7 +50,7 @@ export default class LazyFloorExit extends DeferredDestinationExit {
     const corridor = await warren.ensureFloor(this.targetFloor);
     if (!corridor) {
       throw new Error(
-        `LazyFloorExit: floor ${this.targetFloor} has no provisioned units`,
+        `FloorStairExit: floor ${this.targetFloor} has no provisioned units`,
       );
     }
     return corridor;

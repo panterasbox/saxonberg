@@ -15,8 +15,8 @@
  * it grows on provisioning and reconstitutes from the durable slot set (the
  * child parcels of `dorms`). `_hostMember` stays **null forever** — the
  * Warren never uses the placement kernel (`getHost`); entry is driven by
- * `admit`, and vertical travel by `LazyFloorExit`s. See dorm-plan.md
- * DECISIONS A/F/H/I.
+ * `admit`, and vertical travel by `FloorStairExit`s. See
+ * `docs/subsystems/residence.md`.
  */
 
 import { Warren, type Attachment } from '../../../lib/location/Warren';
@@ -29,7 +29,7 @@ import { ParcelApi } from '../../../api/parcel';
 import { ParcelRecord } from '../../../lib/parcel/ParcelRecord';
 import type { LockType } from '../../../lib/lock/Lock';
 import Exit from '../../../lib/boundary/Exit';
-import LazyFloorExit from './LazyFloorExit';
+import FloorStairExit from './FloorStairExit';
 import DormDoor from './DormDoor';
 import DormRoom from './DormRoom';
 import type { Stuff } from '../../../lib/stuff/Stuff';
@@ -85,7 +85,7 @@ export default class DormWarren extends DormWarrenBase {
 
   /**
    * On warm: rebuild the sync reachability cache from the durable slot set
-   * and install the lobby's `up` `LazyFloorExit` (→ `ensureFloor(1)`), so the
+   * and install the lobby's `up` `FloorStairExit` (→ `ensureFloor(1)`), so the
    * building reconstitutes from just the parcel rows.
    */
   public override async postRegister(context?: unknown): Promise<void> {
@@ -129,7 +129,7 @@ export default class DormWarren extends DormWarrenBase {
    * The live corridor for floor `n`, built if needed. Returns null when the
    * floor is unreachable (no provisioned unit on it or above). Clones the
    * corridor → wires its `down` to the floor below (lobby for n=1, else
-   * `ensureFloor(n-1)`) + its `up` `LazyFloorExit` → clones the `DormDoor`s
+   * `ensureFloor(n-1)`) + its `up` `FloorStairExit` → clones the `DormDoor`s
    * for the units whose slot is on floor n → caches.
    */
   public async ensureFloor(n: number): Promise<MemberStuff | null> {
@@ -144,7 +144,7 @@ export default class DormWarren extends DormWarrenBase {
     const corrEx = this.requireExitable(corridor);
 
     // Wire `down` to the floor below (one-way; the below-side `up` is that
-    // floor's own LazyFloorExit / the lobby's).
+    // floor's own FloorStairExit / the lobby's).
     const below =
       n === 1 ? await this.lobby() : await this.ensureFloor(n - 1);
     if (below && MixinApi.isExitable(below)) {
@@ -161,9 +161,9 @@ export default class DormWarren extends DormWarrenBase {
       await corrEx.addExit(down);
     }
 
-    // Install this floor's `up` LazyFloorExit → ensureFloor(n+1).
+    // Install this floor's `up` FloorStairExit → ensureFloor(n+1).
     if (!corrEx.getExit('up')) {
-      const up = StuffApi.createSync(() => new LazyFloorExit(corridor, n + 1));
+      const up = StuffApi.createSync(() => new FloorStairExit(corridor, n + 1));
       await corrEx.addExit(up);
     }
 
@@ -405,7 +405,7 @@ export default class DormWarren extends DormWarrenBase {
   private async installLobbyUpExit(): Promise<void> {
     const lobby = await this.lobby();
     if (!lobby || lobby.getExit('up')) return;
-    const up = StuffApi.createSync(() => new LazyFloorExit(lobby, 1));
+    const up = StuffApi.createSync(() => new FloorStairExit(lobby, 1));
     await lobby.addExit(up);
   }
 

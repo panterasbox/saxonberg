@@ -93,7 +93,7 @@ Two tiers:
 
 `_hostMember` stays **null forever** — the Warren never uses the placement
 kernel (`getHost`); entry is driven by `admit`, and vertical travel by
-`LazyFloorExit`s. The overrides: `wireHubExit` (wire a room's one-way `out`
+`FloorStairExit`s. The overrides: `wireHubExit` (wire a room's one-way `out`
 return leg to *its floor corridor*, not a host), `wireHostFixtures` /
 `unwireHostFixtures` / `admitArrival` → no-ops, and `teardown` (super, then
 destruct the out-of-`_members` corridors + doors).
@@ -110,7 +110,7 @@ its own `canTraverse`). Both carry the destination's **accurate** class
 template (`CORRIDOR_TEMPLATE` / `DORMROOM_TEMPLATE`) — a real path, not a
 placeholder — so the edge reads honestly before it's been walked:
 
-- **`LazyFloorExit`** — the lobby's `up` and each corridor's `up`.
+- **`FloorStairExit`** — the lobby's `up` and each corridor's `up`.
   `computeDestination()` → `DormWarren.ensureFloor(n+1)`. A floor with no
   provisioned units is **impassable**, gated *synchronously* in
   `canTraverse` off `DormWarren.floorReachable(n)` (the real move path checks
@@ -137,7 +137,7 @@ declared `populates:` fixtures] + `capture(room, unitKey)`) → wires the return
 leg → caches. `ensureFloor(n)`
 clones the corridor, wires `down` to the floor below (lobby for n=1, else
 `ensureFloor(n-1)`, `keepLiveDestination` between clones), installs the `up`
-`LazyFloorExit`, and clones the `DormDoor`s for the units whose slot is on
+`FloorStairExit`, and clones the `DormDoor`s for the units whose slot is on
 floor n.
 
 ### Reap (residency dormancy)
@@ -338,8 +338,9 @@ the floor corridor first (best-effort).
   tenant-scoped contents); the apartment build, property 0b's back half.
 - **Hand-authored custom prose**, **the roommate half**, **multi-room
   apartments**, **timed auto-revert on expiry**, **first-class keyed members
-  in the base `Warren`**, **a TPA convenience to your building** — all clean
-  attach points, not stubs.
+  in the base `Warren`**, **a real elevator** (a moving room / `Switchable`
+  in place of the `FloorStairExit` stairwell), **a TPA convenience to your
+  building** — all clean attach points, not stubs.
 
 ## Cross-references
 
@@ -348,7 +349,8 @@ the floor corridor first (best-effort).
 - [parcel.md](./parcel.md) — the `grants[]` lease + provisioning mint
 - [location.md](./location.md) — the `Warren` (the second elastic subclass)
 - [residency.md](./residency.md) — dorm-when-empty
-- Requirements: `docs/requirements/dorm-requirements.md`; plan:
-  `docs/plans/dorm-plan.md`; the rich rung:
-  `docs/requirements/apartment-requirements.md`
+- The rich rung (downstream apartment build):
+  `docs/requirements/apartment-requirements.md` +
+  `docs/plans/apartment-plan.md`. (The dorm build's own requirements + plan
+  retired at merge — this doc is the live reference.)
 </content>

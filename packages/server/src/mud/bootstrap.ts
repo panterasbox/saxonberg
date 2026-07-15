@@ -219,7 +219,7 @@ export const bootstrapManifest: BootstrapEntry[] = [
   // nothing instantiates the cascade root and the network never stands up.
   { templatePath: '/domain/lounge/terminal' },
   // Duncan Hall dorms Warren — the elastic two-tier dorm manager. Boot-warmed
-  // so its `postRegister` installs the lobby's `up` LazyFloorExit and rebuilds
+  // so its `postRegister` installs the lobby's `up` FloorStairExit and rebuilds
   // the sync floor-reachability cache from the durable unit-parcel slot set.
   // The building starts as just the lobby and grows on provisioning; rooms /
   // corridors / doors reconstitute lazily on entry. It faults in the lobby
