@@ -1,5 +1,5 @@
 verbs: [introduce]
-controller: social/IntroduceController
+controller: /obj/command/social/IntroduceController
 description: "Introduce yourself — or someone you know — to those nearby"
 help: |
   Tell the people around you who you are. Until you introduce

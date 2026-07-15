@@ -1,5 +1,5 @@
 verbs: [weigh]
-controller: perception/WeighController
+controller: /obj/command/perception/WeighController
 description: "Weigh a tangible object on a balance"
 help: |
   Put a thing on the scale and read its mass. `weigh` needs a

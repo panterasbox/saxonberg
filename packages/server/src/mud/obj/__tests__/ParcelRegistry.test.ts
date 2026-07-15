@@ -158,7 +158,9 @@ async function addGroupMember(
     await ParcelApi.resolveOwnerRef({ kind: "group", name });
     group = await provider.findByName(name);
   }
-  group!.addMember(playerId, role);
+  // Membership keys on the member's templatePath (a player as
+  // `/obj/Avatar/<playerId>`), matching how `makeAvatar` places the avatar.
+  group!.addMember(`/obj/Avatar/${playerId}`, role);
   await group!.save();
   if (group!._id) provider.fireChange(group!._id);
 }
@@ -366,6 +368,129 @@ describe("ParcelRegistry — the narrow-entry gate", () => {
     expect(reg).not.toBeNull();
     // A direct call from this test module (not ParcelApi) is denied.
     expect(() => reg!.coveringParcelOf("/x")).toThrow(SecurityError);
+  });
+});
+
+describe("ParcelApi — the lease (use-grant) surface", () => {
+  beforeEach(() => {
+    reset();
+    installStore();
+  });
+  afterEach(reset);
+
+  it("grant → hasUseGrant true; heldUnitOf returns it; another holder false", async () => {
+    seedParcel({
+      extent: "/dorms/f1-r1",
+      owner: { kind: "group", name: "duncan" },
+      parentParcel: "/dorms",
+    });
+    await boot();
+
+    expect(await ParcelApi.grantUse("/dorms/f1-r1", "/obj/Avatar/iris", null)).toBe(true);
+    expect(await ParcelApi.hasUseGrant("/dorms/f1-r1", "/obj/Avatar/iris")).toBe(true);
+    expect(await ParcelApi.hasUseGrant("/dorms/f1-r1", "/obj/Avatar/bob")).toBe(false);
+
+    const held = await ParcelApi.heldUnitOf("/obj/Avatar/iris");
+    expect(held?.getExtent()).toBe("/dorms/f1-r1");
+    expect(await ParcelApi.heldUnitOf("/obj/Avatar/bob")).toBeNull();
+  });
+
+  it("a past-expiry grant is inactive; revoke clears it", async () => {
+    seedParcel({
+      extent: "/dorms/f1-r2",
+      owner: { kind: "group", name: "duncan" },
+      parentParcel: "/dorms",
+    });
+    await boot();
+
+    await ParcelApi.grantUse("/dorms/f1-r2", "/obj/Avatar/iris", Date.now() - 1000);
+    expect(await ParcelApi.hasUseGrant("/dorms/f1-r2", "/obj/Avatar/iris")).toBe(false);
+
+    // A fresh indefinite grant, then revoke.
+    await ParcelApi.grantUse("/dorms/f1-r2", "/obj/Avatar/iris", null);
+    expect(await ParcelApi.hasUseGrant("/dorms/f1-r2", "/obj/Avatar/iris")).toBe(true);
+    expect(await ParcelApi.revokeUse("/dorms/f1-r2", "/obj/Avatar/iris")).toBe(true);
+    expect(await ParcelApi.hasUseGrant("/dorms/f1-r2", "/obj/Avatar/iris")).toBe(false);
+  });
+
+  it("grant persists through save / findByExtent", async () => {
+    seedParcel({
+      extent: "/dorms/f1-r3",
+      owner: { kind: "group", name: "duncan" },
+      parentParcel: "/dorms",
+    });
+    await boot();
+    await ParcelApi.grantUse("/dorms/f1-r3", "/obj/Avatar/iris", null);
+
+    const row = await ParcelRecord.findByExtent("/dorms/f1-r3");
+    expect(row?.getGrants()).toHaveLength(1);
+    expect(row?.getGrants()[0]?.holder).toBe("/obj/Avatar/iris");
+    expect(row?.getGrants()[0]?.kind).toBe("lease");
+  });
+
+  it("grantUse returns false when no parcel claims the extent", async () => {
+    await boot();
+    expect(await ParcelApi.grantUse("/nope", "/obj/Avatar/iris", null)).toBe(false);
+  });
+});
+
+describe("ParcelApi — child enumeration + retire (unit provisioning)", () => {
+  beforeEach(() => {
+    reset();
+    installStore();
+  });
+  afterEach(reset);
+
+  it("childParcelsOf returns exactly the minted unit rows; retire frees a slot", async () => {
+    seedParcel({ extent: "/dorms", owner: { kind: "group", name: "duncan" } });
+    seedParcel({
+      extent: "/dorms/f1-r1",
+      owner: { kind: "group", name: "duncan" },
+      parentParcel: "/dorms",
+    });
+    seedParcel({
+      extent: "/dorms/f1-r2",
+      owner: { kind: "group", name: "duncan" },
+      parentParcel: "/dorms",
+    });
+    await boot();
+
+    const kids = await ParcelApi.childParcelsOf("/dorms");
+    expect(kids.map((k) => k.getExtent()).sort()).toEqual([
+      "/dorms/f1-r1",
+      "/dorms/f1-r2",
+    ]);
+
+    await ParcelApi.retire("/dorms/f1-r1");
+    const after = await ParcelApi.childParcelsOf("/dorms");
+    expect(after.map((k) => k.getExtent())).toEqual(["/dorms/f1-r2"]);
+    // The freed extent can be re-minted (a fresh subdivide reuses the gap).
+    expect(await ParcelRecord.findByExtent("/dorms/f1-r1")).toBeNull();
+  });
+});
+
+describe("ParcelRecord — slot helpers (pure)", () => {
+  it("round-trips (floor, pos) through the extent encoding", () => {
+    const extent = ParcelRecord.extentForSlot("/dorms", 2, 7);
+    expect(extent).toBe("/dorms/f2-r7");
+    expect(ParcelRecord.slotOfExtent(extent)).toEqual({ floor: 2, pos: 7 });
+  });
+
+  it("slotOfExtent returns null for a non-slot leaf", () => {
+    expect(ParcelRecord.slotOfExtent("/dorms/lobby")).toBeNull();
+    expect(ParcelRecord.slotOfExtent("/dorms")).toBeNull();
+  });
+
+  it("activeGrantFor / hasActiveGrant honor expiry", () => {
+    const rec = new ParcelRecord();
+    rec.grants = [
+      { kind: "lease", holder: "a", grantedAt: 0, expiresAt: null },
+      { kind: "lease", holder: "b", grantedAt: 0, expiresAt: 100 },
+    ];
+    expect(ParcelRecord.hasActiveGrant(rec, "a", 999)).toBe(true);
+    expect(ParcelRecord.hasActiveGrant(rec, "b", 50)).toBe(true);
+    expect(ParcelRecord.hasActiveGrant(rec, "b", 150)).toBe(false);
+    expect(ParcelRecord.hasActiveGrant(rec, "c", 0)).toBe(false);
   });
 });
 

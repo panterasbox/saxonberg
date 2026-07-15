@@ -150,7 +150,7 @@ describe("AccessRegistry — wizard axis", () => {
     const reg = await GroupApi.registry();
     const wizards = await reg.managed().findByName("wizards");
     expect(wizards).not.toBeNull();
-    wizards!.addMember("alice");
+    wizards!.addMember("/obj/Avatar/alice");
     await wizards!.save();
     if (wizards!._id) reg.managed().fireChange(wizards!._id);
 
@@ -167,7 +167,7 @@ describe("AccessRegistry — wizard axis", () => {
 
     const reg = await GroupApi.registry();
     let wizards = await reg.managed().findByName("wizards");
-    expect(wizards!.memberIds.sort()).toEqual(["p1", "p2"]);
+    expect(wizards!.memberIds.sort()).toEqual(["/obj/Avatar/p1", "/obj/Avatar/p2"]);
 
     // A second boot against the already-seeded group is a no-op (no
     // duplicates, members intact).
@@ -176,7 +176,7 @@ describe("AccessRegistry — wizard axis", () => {
     await bootRegistry();
     const reg2 = await GroupApi.registry();
     wizards = await reg2.managed().findByName("wizards");
-    expect(wizards!.memberIds.sort()).toEqual(["p1", "p2"]);
+    expect(wizards!.memberIds.sort()).toEqual(["/obj/Avatar/p1", "/obj/Avatar/p2"]);
   });
 });
 
@@ -203,7 +203,7 @@ describe("AccessRegistry — developers→wizards migration", () => {
       {
         name: "developers",
         owner: "system",
-        memberIds: ["legacy-a", "legacy-b"],
+        memberIds: ["/obj/Avatar/legacy-a", "/obj/Avatar/legacy-b"],
         memberRoles: ["member", "member"],
       },
     ]);
@@ -215,7 +215,7 @@ describe("AccessRegistry — developers→wizards migration", () => {
     const wizards = await reg.managed().findByName("wizards");
     expect(wizards).not.toBeNull();
     expect(wizards!._id).toBe(legacyId); // same doc, renamed forward
-    expect(wizards!.memberIds.sort()).toEqual(["legacy-a", "legacy-b"]);
+    expect(wizards!.memberIds.sort()).toEqual(["/obj/Avatar/legacy-a", "/obj/Avatar/legacy-b"]);
 
     // No `developers` group remains.
     expect(await reg.managed().findByName("developers")).toBeNull();
@@ -232,7 +232,7 @@ describe("AccessRegistry — developers→wizards migration", () => {
       {
         name: "developers",
         owner: "system",
-        memberIds: ["legacy-a"],
+        memberIds: ["/obj/Avatar/legacy-a"],
         memberRoles: ["member"],
       },
     ]);
@@ -245,7 +245,7 @@ describe("AccessRegistry — developers→wizards migration", () => {
 
     const reg = await GroupApi.registry();
     const wizards = await reg.managed().findByName("wizards");
-    expect(wizards!.memberIds).toEqual(["legacy-a"]);
+    expect(wizards!.memberIds).toEqual(["/obj/Avatar/legacy-a"]);
     expect(await reg.managed().findByName("developers")).toBeNull();
   });
 });
@@ -282,7 +282,7 @@ describe("AccessRegistry — archwizard axis + wizard conferral", () => {
     const reg = await GroupApi.registry();
     const arch = await reg.managed().findByName("archwizards");
     expect(arch).not.toBeNull();
-    arch!.addMember("boss");
+    arch!.addMember("/obj/Avatar/boss");
     await arch!.save();
     if (arch!._id) reg.managed().fireChange(arch!._id);
 
@@ -297,7 +297,7 @@ describe("AccessRegistry — archwizard axis + wizard conferral", () => {
 
     const reg = await GroupApi.registry();
     const arch = await reg.managed().findByName("archwizards");
-    expect(arch!.memberIds.sort()).toEqual(["boss1", "boss2"]);
+    expect(arch!.memberIds.sort()).toEqual(["/obj/Avatar/boss1", "/obj/Avatar/boss2"]);
   });
 
   it("setWizardMembership is narrow-entry gated (rejects a non-WizardController caller)", () => {
@@ -319,7 +319,7 @@ describe("AccessRegistry — archwizard axis + wizard conferral", () => {
     // fireChange → the lazy wizard cache invalidates.
     const reg = await GroupApi.registry();
     const wizards = await reg.managed().findByName("wizards");
-    wizards!.addMember("alice");
+    wizards!.addMember("/obj/Avatar/alice");
     await wizards!.save();
     reg.managed().fireChange(wizards!._id!);
 
@@ -363,7 +363,7 @@ describe("AccessRegistry — author scope from parcel group owners", () => {
     const reg = await GroupApi.registry();
     const group = await reg.managed().findByName("testarea");
     expect(group).not.toBeNull(); // minted by the owner-ref resolution
-    group!.addMember("dana");
+    group!.addMember("/obj/Avatar/dana");
     await group!.save();
 
     // Now a member of the resolved owner group is an author of that area.

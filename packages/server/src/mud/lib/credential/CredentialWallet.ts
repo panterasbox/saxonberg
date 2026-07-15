@@ -30,12 +30,14 @@ import {
   type SerializedCredential,
   type PaymentCredential,
   type TravelCredential,
+  type KeyCredential,
 } from "./Credential";
 
 /** Maps a kind to the concrete record type {@link CredentialWallet} returns. */
 export interface CredentialByKind {
   payment: PaymentCredential;
   travel: TravelCredential;
+  key: KeyCredential;
 }
 
 /** Public shape provided by {@link CredentialWalletMixin}. */

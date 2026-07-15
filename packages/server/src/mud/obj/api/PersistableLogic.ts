@@ -81,6 +81,16 @@ async function ownerOfScope(scope: string, host: Stuff): Promise<string> {
   }
 }
 
+/** The stashed explicit key, read through the typed `Persistable`. */
+function stashedKey(host: Stuff): string | null {
+  return MixinApi.isPersistable(host) ? host.getPersistenceKey() : null;
+}
+
+/** Stash a resolved key so a later keyless re-capture reuses it. */
+function stashKey(host: Stuff, key: string): void {
+  if (MixinApi.isPersistable(host)) host.setPersistenceKey(key);
+}
+
 /**
  * A host's persistence opt-out, read through the typed `Persistable`
  * interface (never duck-typed): `shouldPersist()` is declared on
@@ -94,28 +104,32 @@ function optedOutOfPersistence(host: Stuff): boolean {
 }
 
 /**
- * Enforce the requirements' **singleton-host** invariant: at most one live
- * instance per `scope`. A persistable host is identified by its
- * `templatePath` alone, and its record keys on `(scope, owner)` — so two
- * live clones sharing a templatePath would both write the SAME record and
- * silently overwrite each other (and each materialize the other's state).
- * Fail loud instead of corrupting. Cheap: one `PathTrie` exact lookup.
+ * The single persistence invariant: **no two live instances may share a
+ * `(scope, key)`** — they'd write the SAME record and silently clobber each
+ * other. Every host is identified by `(scope = templatePath, key)`; a
+ * singleton is simply the degenerate case where the key derives from the
+ * scope (Avatar → self, a titled room → its parcel), so two live clones
+ * resolve the SAME key and collide, while distinct keyed instances (leased
+ * dorm rooms, keyed by unit parcel) never do. One uniform rule — there is no
+ * "singleton vs multi-instance" mode and no marker.
  *
- * The two sanctioned singleton shapes both pass: a `SingletonMixin` host
- * (one instance by construction) and a unique-per-instance templatePath
- * (Avatar's `/obj/Avatar/<playerId>`, deduped by `PlayerApi`). Generic
- * multi-instance objects are **content** nested in a host, never hosts.
+ * Precise, not eager: it fires only when another live instance has already
+ * *claimed* this key (its key is stashed), i.e. exactly when a write would
+ * clobber — not merely because two shells exist. Freshly-cloned, not-yet-keyed
+ * siblings (`getPersistenceKey() === null`) own no record and don't collide.
  */
-function assertSingletonScope(scope: string): void {
-  const live = StuffApi.findAllByTemplatePath(scope);
-  if (live.length > 1) {
-    throw new Error(
-      `PersistableLogic: '${scope}' has ${live.length} live instances — a ` +
-        `persistable host must be singleton-identifiable (compose ` +
-        `SingletonMixin, or carry a unique per-instance templatePath like ` +
-        `Avatar's /obj/Avatar/<playerId>). Generic multi-instance objects ` +
-        `are content nested in a host, not hosts themselves.`,
-    );
+function assertUniqueKey(scope: string, key: string, host: Stuff): void {
+  for (const other of StuffApi.findAllByTemplatePath(scope)) {
+    if ((other as unknown) === (host as unknown)) continue;
+    if (MixinApi.isPersistable(other) && other.getPersistenceKey() === key) {
+      throw new Error(
+        `PersistableLogic: two live instances of '${scope}' both keyed ` +
+          `'${key}' — they would clobber one record. A persistable host must ` +
+          `resolve to a unique (scope, key): a singleton derives its key from ` +
+          `its scope (so it must be singleton-identifiable), a multi-instance ` +
+          `host (a leased room) must supply a distinct explicit key.`,
+      );
+    }
   }
 }
 
@@ -216,7 +230,10 @@ function captureFields(
     if (!(field in host)) continue;
     const value = self[field];
     const mPath = marshallers[field];
-    if (mPath) {
+    // A null/undefined marshalled field round-trips as-is: the marshaller's
+    // `toStored` expects a live value (a Quantity), so an unset optional field
+    // (e.g. a room's lazily-null `_temperature`) is stored raw, not marshalled.
+    if (mPath && value != null) {
       const m = StuffApi.findByTemplatePath<Marshaller<unknown, unknown>>(mPath);
       out[field] = m ? m.toStored(value) : value;
     } else {
@@ -407,19 +424,33 @@ async function cloneHost(scope: string): Promise<Stuff | null> {
   if (!scope) return null;
   const existing = StuffApi.findByTemplatePath(scope);
   if (existing) return existing;
-  return StuffApi.clone<Stuff>(scope);
+  const nested = await StuffApi.clone<Stuff>(scope);
+  // The spine no longer auto-materializes on register (D1). A nested host
+  // reached by the `{ref}` walk is a singleton (unique templatePath), so it
+  // self-restores its own records here with a keyless materialize —
+  // reconstructing the whole tree. (Multi-instance hosts are never nested by
+  // ref; their establishing context drives their keyed restore.)
+  if (nested && MixinApi.isPersistable(nested)) {
+    await materializeImpl(nested);
+  }
+  return nested;
 }
 
 /* ─────────────────────────── impl entry points ──────────────────────── */
 
-async function captureImpl(host: Stuff): Promise<void> {
+async function captureImpl(host: Stuff, key?: string): Promise<void> {
   if (optedOutOfPersistence(host)) return; // guest / opted-out host
   const scope = host.getTemplatePath();
   if (!scope) {
     throw new Error("PersistableLogic.capture: host has no templatePath stamp");
   }
-  assertSingletonScope(scope);
-  const owner = await ownerOfScope(scope, host);
+  // Resolve the record key (== owner): the explicit key wins; else the
+  // stashed key (a keyless re-capture reuses the materialize/first-capture
+  // key); else the scope-derived key (a singleton's self/parcel owner). Then
+  // enforce the single invariant: no live sibling has already claimed it.
+  const owner = key ?? stashedKey(host) ?? (await ownerOfScope(scope, host));
+  stashKey(host, owner);
+  assertUniqueKey(scope, owner, host);
   // Warm marshallers, THEN take the synchronous snapshot (atomic — the
   // last sync block before the save), so concurrent triggers each write a
   // valid full snapshot (last-write-wins).
@@ -436,36 +467,50 @@ async function captureImpl(host: Stuff): Promise<void> {
   await rec.save();
 }
 
-async function materializeImpl(host: Stuff): Promise<void> {
+async function materializeImpl(host: Stuff, key?: string): Promise<void> {
   if (optedOutOfPersistence(host)) return; // guest / opted-out host
   const scope = host.getTemplatePath();
   if (!scope) return;
-  assertSingletonScope(scope);
-  const records = await PersistedRecord.findByScope(scope);
-  for (const record of records) {
-    const principal = principalFor(record.getOwner(), host);
-    // Run the restore AS the owning principal: a pushed frame whose acting
-    // author is the principal, so `getActingAuthor` and any principal-based
-    // gate resolve to it, and restore is isolated from the ambient frame.
-    // Atomic per record — a mid-tree throw aborts this record's restore
-    // (leaving the prior record untouched) without corrupting siblings.
-    await ExecutionContextApi.run(
-      host,
-      principal,
-      "persistenceRestore",
-      undefined,
-      async () => {
-        ExecutionContextApi.tagActingAuthor(principal);
-        await restoreState(host, record.getState(), principal);
-        // A Containable top-level host re-places itself at its captured
-        // location (overriding the clone-time template spawn).
-        await restorePlacement(host, record.getPlace());
-      },
-    );
-  }
+  // Resolve the key the SAME way capture does (explicit → stashed →
+  // scope-derived), so restore is the exact inverse: one `(scope, key)`
+  // record, keyed identically. A missing record is a clean no-op (the
+  // establishing context seeds instead). No keyless "restore every record"
+  // mode — a scope holds one record per key, and each host restores its own.
+  const owner = key ?? stashedKey(host) ?? (await ownerOfScope(scope, host));
+  stashKey(host, owner);
+  assertUniqueKey(scope, owner, host);
+  const record = await PersistedRecord.findByScopeAndOwner(scope, owner);
+  if (record) await restoreRecord(host, record);
 }
 
-async function hasRecordImpl(scope: string): Promise<boolean> {
+/** Restore one record onto `host` under its owning principal (shared by the
+ * keyed and keyless materialize paths). */
+async function restoreRecord(host: Stuff, record: PersistedRecord): Promise<void> {
+  const principal = principalFor(record.getOwner(), host);
+  // Run the restore AS the owning principal: a pushed frame whose acting
+  // author is the principal, so `getActingAuthor` and any principal-based
+  // gate resolve to it, and restore is isolated from the ambient frame.
+  // Atomic per record — a mid-tree throw aborts this record's restore
+  // (leaving the prior record untouched) without corrupting siblings.
+  await ExecutionContextApi.run(
+    host,
+    principal,
+    "persistenceRestore",
+    undefined,
+    async () => {
+      ExecutionContextApi.tagActingAuthor(principal);
+      await restoreState(host, record.getState(), principal);
+      // A Containable top-level host re-places itself at its captured
+      // location (overriding the clone-time template spawn).
+      await restorePlacement(host, record.getPlace());
+    },
+  );
+}
+
+async function hasRecordImpl(scope: string, key?: string): Promise<boolean> {
+  if (key !== undefined) {
+    return (await PersistedRecord.findByScopeAndOwner(scope, key)) !== null;
+  }
   const records = await PersistedRecord.findByScope(scope);
   return records.length > 0;
 }
@@ -496,20 +541,20 @@ async function deleteAllForImpl(owner: string): Promise<number> {
 export class PersistableLogic extends ApiLogic {
   /** See {@link PersistableApi.capture}. */
   @CallSecurity(PersistableApiCallers)
-  public async capture(host: Stuff): Promise<void> {
-    return captureImpl(host);
+  public async capture(host: Stuff, key?: string): Promise<void> {
+    return captureImpl(host, key);
   }
 
   /** See {@link PersistableApi.materialize}. */
   @CallSecurity(PersistableApiCallers)
-  public async materialize(host: Stuff): Promise<void> {
-    return materializeImpl(host);
+  public async materialize(host: Stuff, key?: string): Promise<void> {
+    return materializeImpl(host, key);
   }
 
   /** See {@link PersistableApi.hasRecord}. */
   @CallSecurity(PersistableApiCallers)
-  public async hasRecord(scope: string): Promise<boolean> {
-    return hasRecordImpl(scope);
+  public async hasRecord(scope: string, key?: string): Promise<boolean> {
+    return hasRecordImpl(scope, key);
   }
 
   /** See {@link PersistableApi.deleteAllFor}. */

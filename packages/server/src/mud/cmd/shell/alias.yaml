@@ -1,5 +1,5 @@
 verbs: [alias]
-controller: shell/AliasController
+controller: /obj/command/shell/AliasController
 description: "Manage your command aliases"
 help: |
   Aliases are personal shortcuts that rewrite the start of a

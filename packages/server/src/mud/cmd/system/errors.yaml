@@ -1,5 +1,5 @@
 verbs: [errors]
-controller: system/ErrorsController
+controller: /obj/command/system/ErrorsController
 description: "Show compile / runtime / console diagnostics from the dev tooling"
 help: |
   Read the author-diagnostics store: TypeScript compile errors, runtime

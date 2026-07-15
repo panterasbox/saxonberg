@@ -191,6 +191,106 @@ export default class ParcelRegistry extends ParcelRegistryBase {
     return record;
   }
 
+  // ── Lease (use-grant) + unit enumeration (gated) ──
+
+  /**
+   * Grant a lease on `extent` to `holder` (the tenant's durable player
+   * path), replacing any prior grant for that holder. `expiresAt` is
+   * epoch-ms or null (indefinite). Mutates the live trie handle in place
+   * (identity-keyed, so `hasUseGrant` reads the same object) and persists.
+   * Returns false when no parcel claims `extent`.
+   */
+  @CallSecurity(ParcelApiCallers)
+  public async grantUse(
+    extent: string,
+    holder: string,
+    expiresAt: number | null,
+  ): Promise<boolean> {
+    const record = await this.recordFor(extent);
+    if (!record) return false;
+    record.grants = record.grants.filter((g) => g.holder !== holder);
+    record.grants.push({
+      kind: "lease",
+      holder,
+      grantedAt: Date.now(),
+      expiresAt,
+    });
+    await record.save();
+    return true;
+  }
+
+  /** Revoke `holder`'s lease on `extent`; true when a grant was removed. */
+  @CallSecurity(ParcelApiCallers)
+  public async revokeUse(extent: string, holder: string): Promise<boolean> {
+    const record = await this.recordFor(extent);
+    if (!record) return false;
+    const before = record.grants.length;
+    record.grants = record.grants.filter((g) => g.holder !== holder);
+    if (record.grants.length === before) return false;
+    await record.save();
+    return true;
+  }
+
+  /**
+   * Set (re-key) the lock keyway on `extent` — the door's lock identity, minted
+   * fresh at each provision so old keys stop matching. Mutates the live trie
+   * handle in place (so a sync door read via the DormWarren cache stays
+   * consistent) and persists. False when no parcel claims `extent`.
+   */
+  @CallSecurity(ParcelApiCallers)
+  public async setKeyway(extent: string, keyway: string): Promise<boolean> {
+    const record = await this.recordFor(extent);
+    if (!record) return false;
+    record.keyway = keyway;
+    await record.save();
+    return true;
+  }
+
+  /** Whether `holder` holds an active (unexpired) lease on `extent`. */
+  @CallSecurity(ParcelApiCallers)
+  public async hasUseGrant(extent: string, holder: string): Promise<boolean> {
+    const record = await this.recordFor(extent);
+    return record
+      ? ParcelRecord.hasActiveGrant(record, holder, Date.now())
+      : false;
+  }
+
+  /**
+   * The unit parcel `holder` currently leases, or null — a linear scan over
+   * the parcel rows (the deferred `heldUnitOf` index is a later seam; a
+   * player leases at most one dorm in v1).
+   */
+  @CallSecurity(ParcelApiCallers)
+  public async heldUnitOf(holder: string): Promise<ParcelRecord | null> {
+    const now = Date.now();
+    for (const record of await ParcelRecord.findAll()) {
+      if (ParcelRecord.hasActiveGrant(record, holder, now)) return record;
+    }
+    return null;
+  }
+
+  /**
+   * Every child parcel of `parentExtent` (the provisioned units under a
+   * dorms parcel) — the reconstitution + lowest-free-slot input.
+   */
+  @CallSecurity(ParcelApiCallers)
+  public async childParcelsOf(parentExtent: string): Promise<ParcelRecord[]> {
+    return ParcelRecord.findChildren(parentExtent);
+  }
+
+  /**
+   * Retire the unit row claiming `extent` (frees its slot for gap reuse) and
+   * drop it from the coverage trie. Grants + the row vanish; the D1
+   * persistence record is cleared separately by the caller.
+   */
+  @CallSecurity(ParcelApiCallers)
+  public async retire(extent: string): Promise<void> {
+    await ParcelRecord.deleteByExtent(extent);
+    for (const stale of this.coverage.exact(extent)) {
+      this.coverage.remove(extent, stale);
+    }
+  }
+
   /** Drop + rebuild the coverage index from the `parcels` collection. */
   @CallSecurity(ParcelApiCallers)
   public async rebuildCoverageIndex(): Promise<void> {
@@ -203,6 +303,12 @@ export default class ParcelRegistry extends ParcelRegistryBase {
 
   private coveringImpl(path: string): ParcelRecord | null {
     return this.coverage.longestPrefix(path)[0] ?? null;
+  }
+
+  /** The record claiming exactly `extent` — the live trie handle first (so
+   *  in-memory grant mutations stay consistent with reads), else a DB load. */
+  private async recordFor(extent: string): Promise<ParcelRecord | null> {
+    return this.coverage.exact(extent)[0] ?? ParcelRecord.findByExtent(extent);
   }
 
   /** Ensure `extent` maps to exactly `record` in the trie (identity-keyed:

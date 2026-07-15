@@ -1,5 +1,5 @@
 verbs: [drive]
-controller: movement/DriveController
+controller: /obj/command/movement/DriveController
 description: "Drive your vehicle through a named exit (passthrough to the Drivable host)."
 help: |
   Take the vehicle you're aboard through an exit. Name your

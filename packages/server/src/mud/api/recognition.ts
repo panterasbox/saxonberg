@@ -26,9 +26,21 @@
  *      or can't *see* the target → baseline.
  *   3. **Recognition** (instance axis) applies to living beings
  *      (`OrganismMixin`). A masked target withholds any known name; an
- *      unknown being renders a generated salient-features string.
+ *      unknown being renders the **bare stem** — its `shortDescription`
+ *      ("a crossing guard"), else a species fallback.
  *   4. **Identification** (type axis) applies to everything else.
- *   5. Status decoration weaves in last.
+ *
+ * `describe` returns the concise identity — the recognized name or the
+ * bare stem, with **no** worn-feature and **no** status affix — so ambient
+ * act lines stay terse ("a crossing guard says …"). The two escalations
+ * are separate surfaces:
+ *   - the distinguishing worn-feature form ("… wearing a faded hi-vis
+ *     vest") lives on {@link RecognitionApi.salientFeatures} and rides
+ *     {@link RecognitionApi.perceivedKeywords} for targeting;
+ *   - the activity-status affix ("…, watching the empty road") is a
+ *     **presence decoration** that weaves in only through
+ *     {@link RecognitionApi.describeWithStatus}, used by the `look here`
+ *     occupant roll-call — never act-subject naming.
  *
  * **Pure — no record mutation.** `describe` runs for every perceived
  * target × viewer on every look / listing / MQL projection.
@@ -79,6 +91,19 @@ export class RecognitionApi {
    */
   public static describe(viewer: Stuff, target: Stuff): string {
     return logic().describe(viewer, target);
+  }
+
+  /**
+   * Like {@link RecognitionApi.describe}, but weaves the activity-status
+   * affix (`StatusMixin`) onto the resolved identity — "the crossing
+   * guard, watching the empty road". For the **presence-scan** surfaces
+   * only (room-occupant listing, look-at a being, the inspection pane),
+   * where the viewer is taking stock of who's present and what they're
+   * doing. Act-subject naming ("X says …", "X arrives") uses `describe`
+   * so the idle status never contradicts the act in flight.
+   */
+  public static describeWithStatus(viewer: Stuff, target: Stuff): string {
+    return logic().describeWithStatus(viewer, target);
   }
 
   /**

@@ -1,5 +1,5 @@
 verbs: [party]
-controller: social/PartyController
+controller: /obj/command/social/PartyController
 description: "Form and run a party — the operational unit that fights as one side"
 help: |
   A party is your operational unit: the people (and hired

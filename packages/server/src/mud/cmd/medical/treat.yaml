@@ -1,5 +1,5 @@
 verbs: [treat, bind, dress]
-controller: medical/TreatController
+controller: /obj/command/medical/TreatController
 description: "Dress a wound to arrest bleeding"
 help: |
   `treat` (also `bind` or `dress`) dresses a bleeding wound, using up a

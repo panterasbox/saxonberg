@@ -1,5 +1,5 @@
 verbs: [emote]
-controller: social/EmoteController
+controller: /obj/command/social/EmoteController
 description: "Free-form emote — perform any expressive act in your own prose"
 help: |
   Perform an action in your own words. Whatever you type is shown to

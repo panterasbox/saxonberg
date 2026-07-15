@@ -1,5 +1,5 @@
 verbs: [competence]
-controller: charactergen/CompetenceController
+controller: /obj/command/charactergen/CompetenceController
 description: "Read your own competence — the bands you've reached."
 help: |
   Your competence on the record, as *bands* — never a number. The

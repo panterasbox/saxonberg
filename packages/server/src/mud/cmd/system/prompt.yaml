@@ -7,7 +7,7 @@ help: |
 
   Use `prompt cancel` when a question is stuck or you'd rather not
   answer it.
-controller: system/PromptController
+controller: /obj/command/system/PromptController
 validators:
   - /lib/command/validators/requiresHasInteractive
 subcommands:

@@ -1,5 +1,5 @@
 verbs: [undress]
-controller: medical/UndressController
+controller: /obj/command/medical/UndressController
 description: "Remove a wound's dressing"
 help: |
   `undress` takes the dressing off a wound (not to be confused with

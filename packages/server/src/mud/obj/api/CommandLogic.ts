@@ -99,9 +99,17 @@ const __dirname = dirname(__filename);
 // The logic singleton lives one directory deeper than the face
 // (`obj/api/` vs `api/`); the cmd dir is `mud/cmd`, the mud root is
 // `mud/`, so the relative offsets are one extra `..` from here.
-const CMD_DIR = join(__dirname, '../../cmd');
-/** Project's `src/mud/` — root for absolute (`/X`) validator specs. */
+/**
+ * Project's `src/mud/` — root for absolute (`/X`) validator specs AND
+ * for `domain/`-prefixed content-local command bundles (a locality's
+ * bespoke verb specs living with its content under
+ * `domain/<sphere>/<locality>/commands/`).
+ */
 const MUD_ROOT = resolvePath(__dirname, '../..');
+/** The global engine command tree — `mud/cmd`. */
+const CMD_DIR = join(MUD_ROOT, 'cmd');
+/** The content tree — `mud/domain` — scanned for `commands/` bundles. */
+const DOMAIN_DIR = join(MUD_ROOT, 'domain');
 
 /**
  * Status auto-escalation table. A note of the given kind implies
@@ -254,7 +262,13 @@ export class CommandLogic extends ApiLogic {
     }
 
     try {
-      const filePath = join(CMD_DIR, filename);
+      // A `domain/`-prefixed key is a content-local command bundle and
+      // resolves against the MUD root; everything else is an engine verb
+      // under `cmd/`. The key == the `commandContributions` string == the
+      // cache key, so this mapping is the single source of resolution.
+      const filePath = filename.startsWith('domain/')
+        ? join(MUD_ROOT, filename)
+        : join(CMD_DIR, filename);
       const command = CommandDefinition.fromFile(filePath);
       commands.set(filename, command);
       return command;
@@ -302,6 +316,26 @@ export class CommandLogic extends ApiLogic {
       // subdir-qualified references authored in YAML / contributions.
       .map((f) => f.split(sep).join('/'))
       .filter((f) => f.endsWith('.yaml'));
+
+    // Content-local command bundles: a locality's bespoke verbs live with
+    // its content under `domain/<sphere>/<locality>/cmd/`. Scan the content
+    // tree for any `cmd/` bundle and key each `domain/`-prefixed so
+    // `getCommand` resolves it against the MUD root. Guarded in its own
+    // try/catch — a repo without a `domain/` dir must not crash.
+    try {
+      const domainEntries = readdirSync(DOMAIN_DIR, {
+        recursive: true,
+      }) as string[];
+      for (const f of domainEntries) {
+        const norm = f.split(sep).join('/');
+        if (!norm.endsWith('.yaml')) continue;
+        if (!norm.split('/').includes('cmd')) continue;
+        yamls.push('domain/' + norm);
+      }
+    } catch (err) {
+      // No content tree (or unreadable) — nothing content-local to load.
+    }
+
     const failed: string[] = [];
     let loaded = 0;
     for (const file of yamls) {
@@ -916,8 +950,10 @@ export class CommandLogic extends ApiLogic {
             const members = await GroupApi.membersOf(coreRef);
             coreMemberIds = new Set<string>();
             for (const m of members) {
-              const pid = (m as { getPlayerId?: () => string }).getPlayerId?.();
-              if (pid) coreMemberIds.add(pid);
+              // Uniform member key = templatePath (matches the `isAdmin`
+              // predicate's `target.getTemplatePath()` lookup).
+              const key = m.getTemplatePath();
+              if (key) coreMemberIds.add(key);
             }
           }
         }
@@ -1370,7 +1406,9 @@ export class CommandLogic extends ApiLogic {
   public getCommandSchemaPayload(cmd: CommandDefinition): CommandSchemaPayload {
     const out: CommandSchemaPayload = {
       verbs: cmd.verbs,
-      controller: cmd.controller,
+      // Report the RESOLVED `/`-rooted path dispatch actually clones (the
+      // controller-path refactor), not the raw relative/authored value.
+      controller: cmd.resolvedController ?? cmd.controller,
       description: cmd.description,
     };
     if (cmd.help) out.help = cmd.help;

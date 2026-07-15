@@ -1,5 +1,5 @@
 verbs: [score, me]
-controller: social/ProfileController
+controller: /obj/command/social/ProfileController
 description: "Your own identity card and standing."
 help: |
   `score` (or `me`) shows your own identity card in full — your name,

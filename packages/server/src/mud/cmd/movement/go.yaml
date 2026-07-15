@@ -1,5 +1,5 @@
 verbs: [go]
-controller: movement/GoController
+controller: /obj/command/movement/GoController
 description: "Move to a named exit or into a named vessel"
 help: |
   Travel through an exit or board a vessel by name. Name the

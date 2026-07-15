@@ -1,5 +1,5 @@
 verbs: [strain]
-controller: crafting/StrainController
+controller: /obj/command/crafting/StrainController
 description: "Strain a finished build into a glass (the terminal step)"
 help: |
   Finish the drink — `strain into glass`, or `strain shaker into glass`.

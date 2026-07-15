@@ -69,6 +69,16 @@ export class Sound {
     [],
   );
 
+  /**
+   * Default per-viewer hearing floor in dB — the level below which a
+   * signal isn't perceived. Shared by the `listen` field read
+   * (`ListenController`) and the discrete-event push
+   * (`Scene.toAudible`) so both gate at the same threshold. v1 species
+   * have no `hearingProfile`; a future profile field overrides this
+   * per-viewer.
+   */
+  public static readonly DEFAULT_HEARING_THRESHOLD_DB = 10;
+
   public static of(
     amplitude: number | Quantity<'dB'>,
     character: string,

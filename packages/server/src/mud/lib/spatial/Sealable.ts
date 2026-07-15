@@ -21,9 +21,14 @@
  * setter exists), the bracket-assign-fallback path is never reached
  * for `open` because `setOpen` is defined; the runtime-shape
  * validation lives in `setOpen` directly.
+ *
+ * The guarded-boolean storage is delegated to `BistateMixin` (the
+ * shared substrate under Sealable/Switchable/Foldable); this mixin is
+ * the open/closed naming layer over `getState()` / `setState()`.
  */
 
 import type { MixinConstructor } from '../mixin';
+import { BistateMixin, type BistateInternal } from '../Bistate';
 
 /**
  * Public shape added by SealableMixin. `isOpen()` (predicate getter) /
@@ -39,20 +44,15 @@ export interface Sealable {
 }
 
 export function SealableMixin<TBase extends MixinConstructor>(Base: TBase) {
-  return class SealableMixin extends Base {
+  return class SealableMixin extends BistateMixin(Base) {
     static _mixinName = 'SealableMixin';
 
     static persistentFields = ['open'];
 
-    /**
-     * Backing storage; access via `isOpen()` / `setOpen()`.
-     *
-     * @authorable
-     */
-    private _open: boolean = false;
-
     /** Predicate getter. */
-    isOpen(): boolean { return this._open; }
+    isOpen(): boolean {
+      return (this as unknown as BistateInternal).getState();
+    }
 
     /**
      * Noun setter. Rejects non-boolean assignments with `TypeError`
@@ -60,22 +60,17 @@ export function SealableMixin<TBase extends MixinConstructor>(Base: TBase) {
      * time rather than being silently coerced.
      */
     setOpen(value: boolean): void {
-      if (typeof value !== 'boolean') {
-        throw new TypeError(
-          `Sealable.open must be a boolean, got ${typeof value}`
-        );
-      }
-      this._open = value;
+      (this as unknown as BistateInternal).setState(value, 'Sealable.open');
     }
 
     /** Open the sealable. Idempotent — opening an already-open one is a no-op. */
     open(): void {
-      this._open = true;
+      (this as unknown as BistateInternal).setState(true, 'Sealable.open');
     }
 
     /** Close the sealable. Idempotent — closing an already-closed one is a no-op. */
     close(): void {
-      this._open = false;
+      (this as unknown as BistateInternal).setState(false, 'Sealable.open');
     }
   };
 }

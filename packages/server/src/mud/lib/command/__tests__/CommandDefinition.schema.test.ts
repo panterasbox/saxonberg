@@ -195,17 +195,20 @@ verbs: [analyze]
 description: ok
 subcommands:
   light:
-    controller: AnalyzeLightController
+    controller: /obj/command/analyze/AnalyzeLightController
     description: light
 `);
-    expect(cmd.controllerForSubcommand('light')).toBe('AnalyzeLightController');
+    // Absolute controller values resolve to themselves.
+    expect(cmd.controllerForSubcommand('light')).toBe(
+      '/obj/command/analyze/AnalyzeLightController'
+    );
     expect(cmd.controller).toBeUndefined();
   });
 
   it('controllerForSubcommand falls back to verb-level controller', () => {
     const cmd = load(`
 verbs: [settings]
-controller: SettingsController
+controller: /obj/command/shell/SettingsController
 description: ok
 subcommands:
   list:
@@ -213,24 +216,32 @@ subcommands:
   set:
     description: set
 `);
-    expect(cmd.controllerForSubcommand('list')).toBe('SettingsController');
-    expect(cmd.controllerForSubcommand('set')).toBe('SettingsController');
+    expect(cmd.controllerForSubcommand('list')).toBe(
+      '/obj/command/shell/SettingsController'
+    );
+    expect(cmd.controllerForSubcommand('set')).toBe(
+      '/obj/command/shell/SettingsController'
+    );
   });
 
   it('per-subcommand controller wins when both are declared', () => {
     const cmd = load(`
 verbs: [test]
-controller: VerbLevel
+controller: /obj/command/test/VerbLevel
 description: ok
 subcommands:
   fast:
-    controller: SubFast
+    controller: /obj/command/test/SubFast
     description: fast
   slow:
     description: slow
 `);
-    expect(cmd.controllerForSubcommand('fast')).toBe('SubFast');
-    expect(cmd.controllerForSubcommand('slow')).toBe('VerbLevel');
+    expect(cmd.controllerForSubcommand('fast')).toBe(
+      '/obj/command/test/SubFast'
+    );
+    expect(cmd.controllerForSubcommand('slow')).toBe(
+      '/obj/command/test/VerbLevel'
+    );
   });
 
   it('rejects a verb with no controller and no subcommands', () => {

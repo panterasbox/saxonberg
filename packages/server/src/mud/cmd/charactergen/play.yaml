@@ -1,5 +1,5 @@
 verbs: [play]
-controller: charactergen/PlayController
+controller: /obj/command/charactergen/PlayController
 description: "Enter the world as one of your characters (from the character-select roster)."
 help: |
   Step into the world as one of your existing characters. At the

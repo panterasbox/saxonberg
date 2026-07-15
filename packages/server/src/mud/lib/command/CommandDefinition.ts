@@ -27,7 +27,7 @@
 import { parse as parseYaml } from 'yaml';
 import { readFileSync } from 'fs';
 import { fileURLToPath } from 'url';
-import { dirname, join } from 'path';
+import { dirname, join, relative, resolve as resolvePath, sep } from 'path';
 import Ajv, { type ValidateFunction } from 'ajv';
 import type {
   CommandView,
@@ -42,6 +42,24 @@ import { SUBCOMMAND_FIELD } from '../../api/command';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 const SCHEMA_PATH = join(__dirname, '../../cmd/command.schema.json');
+// src/mud/lib/command -> src/mud. The `/`-rooted mud template namespace
+// is anchored here: a controller ref resolves to a path relative to this.
+const MUD_ROOT = join(__dirname, '../..');
+
+/**
+ * Resolve a raw `controller:` spec value to the `/`-rooted mud template
+ * path that dispatch clones. The single rule:
+ *   - starts with `/` → it IS the absolute template path; use verbatim.
+ *   - otherwise → resolve relative to the spec file's own directory,
+ *     then map to the posix `/`-rooted mud template path.
+ * This is the one resolution axis for the `controller:` field — no
+ * implicit `/obj/command/` prefix, no `domain/` special case.
+ */
+function resolveController(rawController: string, specFilePath: string): string {
+  if (rawController.startsWith('/')) return rawController;
+  const abs = resolvePath(dirname(specFilePath), rawController);
+  return '/' + relative(MUD_ROOT, abs).split(sep).join('/');
+}
 
 let _validate: ValidateFunction | null = null;
 
@@ -276,15 +294,30 @@ export class CommandDefinition {
   }
 
   /**
-   * Resolve the controller template name for a given subcommand.
+   * The verb-level controller resolved to its `/`-rooted mud template
+   * path (see `resolveController`). Dispatch clones this path directly.
+   * Undefined when the verb declares no verb-level controller (an
+   * Option-E subcommanded verb).
+   */
+  get resolvedController(): string | undefined {
+    return this.controller === undefined
+      ? undefined
+      : resolveController(this.controller, this.filePath);
+  }
+
+  /**
+   * Resolve the controller template path for a given subcommand.
    * Per-subcommand `controller:` wins; otherwise falls back to the
-   * verb-level controller. Returns undefined when neither is set
-   * (load-time validation prevents this for declared subcommands).
+   * verb-level controller. The returned value is the resolved
+   * `/`-rooted template path (not the raw spec value). Returns
+   * undefined when neither is set (load-time validation prevents this
+   * for declared subcommands).
    */
   controllerForSubcommand(name: string): string | undefined {
     const sub = this.subcommands[name];
-    if (sub?.controller) return sub.controller;
-    return this.controller;
+    const raw = sub?.controller ?? this.controller;
+    if (raw === undefined) return undefined;
+    return resolveController(raw, this.filePath);
   }
 
   hasSubcommands(): boolean {

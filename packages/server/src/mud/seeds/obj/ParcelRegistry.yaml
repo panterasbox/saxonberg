@@ -1,2 +1,7 @@
+# ParcelRegistry — the real-property title substrate singleton (the
+# PathTrie coverage index + mint-or-find group-ref store behind ParcelApi).
+# Bootstrap clones this template at /obj/ParcelRegistry (see mud/bootstrap.ts);
+# like its peer registries (OfficeRegistry, AddressRegistry, ...) the template
+# is a plain seed so a fresh DB can stand it up.
 class: /obj/ParcelRegistry
 data: {}

@@ -56,6 +56,7 @@
 
 import { Boundary } from './Boundary';
 import { SealableMixin } from '../spatial/Sealable';
+import { LockableMixin } from './Locked';
 import type Exit from './Exit';
 import type {
   Conduit,
@@ -67,7 +68,7 @@ import type {
 import type { SmellConduit } from './SmellConduit';
 import type { SoundConduit } from './SoundConduit';
 
-const DoorBase = SealableMixin(Boundary);
+const DoorBase = LockableMixin(SealableMixin(Boundary));
 
 export default class Door extends DoorBase {
   /**

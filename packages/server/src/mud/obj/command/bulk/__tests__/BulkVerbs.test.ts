@@ -148,11 +148,11 @@ const MEASURE = (value: number, unit: 'cup' | 'L'): MqlQuantity => ({
 
 describe('Bulk verbs — command YAML views load + validate', () => {
   it.each([
-    ['bulk/fill.yaml', 'fill', 'bulk/FillController'],
-    ['bulk/pour.yaml', 'pour', 'bulk/PourController'],
-    ['bulk/spill.yaml', 'spill', 'bulk/SpillController'],
-    ['bulk/drink.yaml', 'drink', 'bulk/DrinkController'],
-    ['bulk/sip.yaml', 'sip', 'bulk/SipController'],
+    ['bulk/fill.yaml', 'fill', '/obj/command/bulk/FillController'],
+    ['bulk/pour.yaml', 'pour', '/obj/command/bulk/PourController'],
+    ['bulk/spill.yaml', 'spill', '/obj/command/bulk/SpillController'],
+    ['bulk/drink.yaml', 'drink', '/obj/command/bulk/DrinkController'],
+    ['bulk/sip.yaml', 'sip', '/obj/command/bulk/SipController'],
   ])('%s parses, exposes %s, binds %s', (file, verb, controller) => {
     const cmd = CommandApi.getCommand(file);
     expect(cmd).not.toBeNull();

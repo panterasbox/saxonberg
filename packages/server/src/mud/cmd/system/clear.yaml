@@ -1,5 +1,5 @@
 verbs: [clear]
-controller: system/ClearController
+controller: /obj/command/system/ClearController
 description: "Clear the terminal scrollback"
 help: |
   Wipes your terminal's scrollback, leaving you with a clean,

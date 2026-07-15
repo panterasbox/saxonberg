@@ -1,5 +1,5 @@
 verbs: [put, place]
-controller: inventory/PutController
+controller: /obj/command/inventory/PutController
 description: "Place an item from your inventory in or on a target"
 help: |
   Stow something you're carrying into a container or rest it on a

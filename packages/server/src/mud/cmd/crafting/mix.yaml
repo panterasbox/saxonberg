@@ -1,5 +1,5 @@
 verbs: [mix]
-controller: crafting/MixController
+controller: /obj/command/crafting/MixController
 description: "Mix a cocktail for yourself"
 help: |
   Make a drink and keep it — `mix martini`. You're the maker. Steer the

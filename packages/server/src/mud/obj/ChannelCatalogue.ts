@@ -209,15 +209,13 @@ export default class ChannelCatalogue extends ChannelCatalogueBase {
       }
       if (await subjects.isAudienceMember(actor, subj)) persistent.push(c);
     }
-    const playerId = PlayerApi.isAvatarStuff(actor) ? actor.getPlayerId() : '';
+    const memberKey = actor.getTemplatePath() ?? '';
     const adHoc: AdHocChannel[] = [];
     for (const ad of this.byHandle.values()) {
       if (ad.members.has(actor)) adHoc.push(ad);
       else if (
-        playerId &&
-        [...ad.members].some(
-          (m) => PlayerApi.isAvatarStuff(m) && m.getPlayerId() === playerId,
-        )
+        memberKey &&
+        [...ad.members].some((m) => m.getTemplatePath() === memberKey)
       ) {
         adHoc.push(ad);
       }
@@ -410,9 +408,10 @@ export default class ChannelCatalogue extends ChannelCatalogueBase {
 
     const curatedMembers: { id: string; role: GroupRole }[] = [];
     for (const m of ad.members) {
-      if (!PlayerApi.isAvatarStuff(m)) continue;
       if (m === promoter) continue;
-      curatedMembers.push({ id: m.getPlayerId(), role: 'member' });
+      const key = m.getTemplatePath();
+      if (!key) continue;
+      curatedMembers.push({ id: key, role: 'member' });
     }
 
     const subjects = await this.requireSubjects();

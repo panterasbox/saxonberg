@@ -1,5 +1,5 @@
 verbs: [sit]
-controller: posture/SitController
+controller: /obj/command/posture/SitController
 description: "Sit on something. With no argument, sit on the ground."
 help: |
   Take a seat. Bare `sit` sits down where you are, on the ground.

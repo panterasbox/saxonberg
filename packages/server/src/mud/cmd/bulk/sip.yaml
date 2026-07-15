@@ -1,5 +1,5 @@
 verbs: [sip]
-controller: bulk/SipController
+controller: /obj/command/bulk/SipController
 description: "Take a small sip from a holder"
 help: |
   Takes a single small mouthful from a holder and leaves the rest

@@ -1,5 +1,5 @@
 verbs: [grep]
-controller: shell/GrepController
+controller: /obj/command/shell/GrepController
 description: "Search for <pattern> in the content (default) or source tree"
 help: |
   Hunt for text. Give `grep` a pattern and it scans the content

@@ -1,5 +1,5 @@
 verbs: [eval]
-controller: author/EvalController
+controller: /obj/command/author/EvalController
 description: "Run a code snippet against the avatar (or --on target)"
 help: |
   Execute a code snippet in the sandbox, with `this` bound to your

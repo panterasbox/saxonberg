@@ -1,5 +1,5 @@
 verbs: [defend]
-controller: combat/DefendController
+controller: /obj/command/combat/DefendController
 description: "Cover up, stay a killing stroke, or interpose for an ally"
 help: |
   `defend` is one verb over three moves, chosen by what you name:

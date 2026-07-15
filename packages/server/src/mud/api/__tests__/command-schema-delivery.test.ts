@@ -174,7 +174,7 @@ describe('CommandGiverMixin schema-delivery', () => {
     }>;
     const ping = payload.find((p) => p.verbs.includes('ping'));
     expect(ping).toBeDefined();
-    expect(ping?.controller).toBe('system/PingController');
+    expect(ping?.controller).toBe('/obj/command/system/PingController');
   });
 
   it('the giver host with no Sensor mixin would skip emits silently', () => {

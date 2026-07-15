@@ -1,5 +1,5 @@
 verbs: [pwd]
-controller: shell/PwdController
+controller: /obj/command/shell/PwdController
 description: "Print the avatar's current working directory"
 help: |
   Print where you are. `pwd` reports your current working

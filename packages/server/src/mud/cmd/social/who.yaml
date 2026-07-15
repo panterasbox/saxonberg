@@ -1,5 +1,5 @@
 verbs: [who]
-controller: social/WhoController
+controller: /obj/command/social/WhoController
 description: "See who's online."
 help: |
   `who` lists everyone currently online. You always appear on it when

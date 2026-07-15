@@ -1,5 +1,5 @@
 verbs: [cp]
-controller: shell/CpController
+controller: /obj/command/shell/CpController
 description: "Copy <src> to <dst> in the content (default) or source tree"
 help: |
   Duplicate a path. Name a source and a destination and `cp`

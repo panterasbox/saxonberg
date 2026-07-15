@@ -48,6 +48,26 @@ export type ParcelOwner =
   | { kind: "group"; name?: string; ref?: GroupRef }
   | { kind: "player"; templatePath: string };
 
+/**
+ * A **use-grant** on a parcel — the minimal property-0b lease relationship
+ * (a tenant's time-bounded right to occupy + use a unit, distinct from its
+ * title). `holder` is the tenant's durable player templatePath; `expiresAt`
+ * is epoch-ms or `null` for an indefinite lease. Stored on `grants[]` (the
+ * 0a seam, now typed); a grant-event log is a deferred seam.
+ */
+export interface UseGrant {
+  kind: "lease";
+  holder: string;
+  grantedAt: number;
+  expiresAt: number | null;
+}
+
+/** The durable slot `(floor, position)` a unit parcel encodes in its extent. */
+export interface UnitSlot {
+  floor: number;
+  pos: number;
+}
+
 export class ParcelRecord extends Document {
   static collectionName = "parcels";
   static persistentFields = [
@@ -57,6 +77,7 @@ export class ParcelRecord extends Document {
     "parentParcel",
     "grants",
     "allowance",
+    "keyway",
   ];
 
   /** The path this parcel claims — the coverage-index key (longest-prefix). */
@@ -71,14 +92,22 @@ export class ParcelRecord extends Document {
   /** The parent parcel's `extent` (the sparse-hierarchy edge), or null. */
   parentParcel: string | null = null;
 
-  /** INERT 0a seam — 0b lease/grant mechanics (`useRightOf`). */
-  grants: unknown[] = [];
+  /** Use-grants (leases) on this parcel — the 0b lease relationship. */
+  grants: UseGrant[] = [];
 
   /** INERT 0a seam — the Phase 1 compute-allowance economy. */
   allowance: unknown | null = null;
 
+  /** The lock keyway a door on this parcel is keyed to (the lock's identity;
+   *  re-minted each provision so old keys stop matching). Empty = unlocked/none. */
+  keyway: string = "";
+
   getExtent(): string {
     return this.extent;
+  }
+
+  getKeyway(): string {
+    return this.keyway;
   }
 
   getZonePath(): string {
@@ -91,6 +120,70 @@ export class ParcelRecord extends Document {
 
   getParentParcel(): string | null {
     return this.parentParcel;
+  }
+
+  getGrants(): UseGrant[] {
+    return this.grants;
+  }
+
+  /**
+   * The active lease held by `holder` at `now` (epoch-ms), or null. A grant
+   * is active when its `holder` matches and it has not expired
+   * (`expiresAt === null` = indefinite). Pure — no I/O.
+   */
+  static activeGrantFor(
+    record: ParcelRecord,
+    holder: string,
+    now: number,
+  ): UseGrant | null {
+    for (const grant of record.grants) {
+      if (grant.holder !== holder) continue;
+      if (grant.expiresAt !== null && grant.expiresAt <= now) continue;
+      return grant;
+    }
+    return null;
+  }
+
+  /** Whether `holder` holds an active lease on `record` at `now`. */
+  static hasActiveGrant(
+    record: ParcelRecord,
+    holder: string,
+    now: number,
+  ): boolean {
+    return ParcelRecord.activeGrantFor(record, holder, now) !== null;
+  }
+
+  /**
+   * The holder of the first active (unexpired) lease on `record` at `now`, or
+   * null — the "who leases this unit" reverse of `activeGrantFor` (v1: one
+   * holder per unit). Pure. Lets a door know its tenant synchronously.
+   */
+  static activeHolderOf(record: ParcelRecord, now: number): string | null {
+    for (const grant of record.grants) {
+      if (grant.expiresAt === null || grant.expiresAt > now) return grant.holder;
+    }
+    return null;
+  }
+
+  /**
+   * Parse a unit extent's encoded slot — the trailing `…/f<floor>-r<pos>`
+   * segment (DECISION J: the extent *is* the slot). Returns null when the
+   * extent's last segment isn't a slot token. Pure.
+   */
+  static slotOfExtent(extent: string): UnitSlot | null {
+    const leaf = extent.slice(extent.lastIndexOf("/") + 1);
+    const match = /^f(\d+)-r(\d+)$/.exec(leaf);
+    if (!match) return null;
+    return { floor: Number(match[1]), pos: Number(match[2]) };
+  }
+
+  /** Format a unit extent from its parent (dorms) extent + a `(floor, pos)`. */
+  static extentForSlot(
+    parentExtent: string,
+    floor: number,
+    pos: number,
+  ): string {
+    return `${parentExtent}/f${floor}-r${pos}`;
   }
 
   /**
@@ -118,5 +211,16 @@ export class ParcelRecord extends Document {
   /** Every parcel row (the coverage-index rebuild input). */
   static async findAll(): Promise<ParcelRecord[]> {
     return ParcelRecord.find<ParcelRecord>({});
+  }
+
+  /** Every parcel whose `parentParcel` is `parentExtent` (child units). */
+  static async findChildren(parentExtent: string): Promise<ParcelRecord[]> {
+    return ParcelRecord.find<ParcelRecord>({ parentParcel: parentExtent });
+  }
+
+  /** Delete the row claiming exactly `extent` (frees its slot). */
+  static async deleteByExtent(extent: string): Promise<void> {
+    const row = await ParcelRecord.findByExtent(extent);
+    if (row) await row.delete();
   }
 }

@@ -20,6 +20,7 @@ import { ChronicleApi } from "../api/chronicle";
 import { ContainmentApi } from "../api/containment";
 import { MixinApi } from "../api/mixin";
 import type { Containable } from "../lib/spatial/Containable";
+import type { Container } from "../lib/spatial/Container";
 import type { Stuff } from "../lib/stuff/Stuff";
 import { SpeciesApi } from "../api/species";
 import AetherImplant from "../lib/augmentation/AetherImplant";
@@ -235,7 +236,7 @@ export default class Avatar extends AvatarBase {
    * context, or seeded by the test/direct-construction data blob.
    */
   protected playerId: string = "";
-  public getPlayerId(): string {
+  public override getPlayerId(): string {
     return this.playerId;
   }
   public setPlayerId(value: string): void {
@@ -291,13 +292,30 @@ export default class Avatar extends AvatarBase {
 
     await this.installDefaultLoadout();
 
-    // Drive the persistence spine LAST, after the born-with loadout is in
-    // place: `PersistableMixin.postRegister` materializes this avatar's
-    // record (restoring fields + carried inventory + worn gear + spawn
-    // location, overriding the clone-time template defaults) on a returning
-    // login, or captures the first record on signup. A guest's
-    // `shouldPersist()` is false, so this is a no-op for guests.
+    // Preserve the PostRegistration chain (the spine no longer auto-drives
+    // here — D1).
     await super.postRegister(context);
+
+    // Drive the persistence spine LAST, after the born-with loadout is in
+    // place, with an EXPLICIT key (D1). The key is this avatar's own
+    // templatePath (`/obj/Avatar/<playerId>`) — the self-owned singleton
+    // owner, byte-identical to the pre-D1 scope-derived owner, so the record
+    // `owner` column and the account-deletion cascade
+    // (`deleteAllFor('/obj/Avatar/<pid>')`) are unchanged. A returning login
+    // materializes (restoring fields + carried inventory + worn gear + spawn
+    // location, overriding the clone-time template defaults); a fresh signup
+    // captures the first record. A guest's `shouldPersist()` is false, so
+    // this is a no-op for guests.
+    if (this.shouldPersist()) {
+      const key = this.getTemplatePath();
+      if (key) {
+        if (await PersistableApi.hasRecord(key, key)) {
+          await PersistableApi.materialize(this, key);
+        } else {
+          await PersistableApi.capture(this, key);
+        }
+      }
+    }
   }
 
   /**
@@ -334,7 +352,9 @@ export default class Avatar extends AvatarBase {
     if (this.isGuest) return;
     // Persist through the universal spine: fields + carried inventory + worn
     // gear + spawn location, into the avatar's `holder_snapshots` record.
-    await PersistableApi.capture(this);
+    // Explicit self-key (D1); a keyless capture would also reuse the stashed
+    // key set at login, but pass it for clarity and independence from order.
+    await PersistableApi.capture(this, this.getTemplatePath() ?? undefined);
   }
 
   /**
@@ -349,7 +369,7 @@ export default class Avatar extends AvatarBase {
    * top). Should not be invoked during the initial clone cascade.
    */
   public async restore(): Promise<void> {
-    await PersistableApi.materialize(this);
+    await PersistableApi.materialize(this, this.getTemplatePath() ?? undefined);
   }
 
   /**
@@ -603,6 +623,16 @@ export default class Avatar extends AvatarBase {
           if (this.getOccupants("cranial").size === 0) {
             const implant = await StuffApi.clone<AetherImplant>(
               AetherImplant.TEMPLATE_PATH,
+            );
+            // A cranial implant lives in the avatar's possession AND the
+            // slot — the worn/wielded contract (see `Gus.equipLoadout` /
+            // WearController). Move it in FIRST so it travels with the
+            // avatar and never lists as loose room contents, THEN occupy
+            // the slot. (Occupy alone doesn't set containment, so a
+            // freshly cloned implant would otherwise leak into the room.)
+            ContainmentApi.move(
+              implant as unknown as Stuff & Containable,
+              this as unknown as Stuff & Container,
             );
             this.occupy(implant, "cranial");
           }

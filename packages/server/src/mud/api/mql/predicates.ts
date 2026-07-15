@@ -93,9 +93,9 @@ function isAdmin(
   // (the prior `_MqlAdminFlag.granter` default).
   const ids = ctx.permission?.coreMemberIds;
   if (!ids) return false;
-  const playerId = (target as { getPlayerId?: () => string }).getPlayerId?.();
-  if (!playerId) return false;
-  return ids.has(playerId);
+  const key = target.getTemplatePath();
+  if (!key) return false;
+  return ids.has(key);
 }
 
 /**

@@ -207,14 +207,11 @@ export abstract class Stuff {
       const n = this.getQuantity();
       if (n !== 1) identity = `${n} ${GrammarApi.pluralize(this, base)}`;
     }
-    // Authored activity-status decoration (Character-tier `StatusMixin`):
-    // "Gus, the crossing guard" → "Gus, …, watching the empty road".
-    // Viewer-independent, so it rides the baseline; `RecognitionApi`
-    // re-weaves it onto a recognized name the same way.
-    if (MixinApi.isStatus(this)) {
-      const status = this.getStatus();
-      if (status) return `${identity}, ${status}`;
-    }
+    // `getPresentation()` is pure identity. The authored activity-status
+    // affix (`StatusMixin`, "watching the empty road") is a *presence*
+    // decoration, not identity — it weaves in only through
+    // `RecognitionApi.describeWithStatus` at presence-scan surfaces (the
+    // room occupant roll-call, the profile), never on act-subject naming.
     return identity;
   }
 
@@ -277,6 +274,21 @@ export abstract class Stuff {
    */
   public getTemplatePath(): string | null {
     return ProxyApi.unwrap(this as unknown as Stuff).#templatePath;
+  }
+
+  /**
+   * The controlling player's account id, or `null` when this Stuff is not a
+   * player-controlled body (an NPC, a prop, a fixture). `Avatar` overrides to
+   * return its `playerId`. This is the auth/account identity (OAuth id,
+   * `User.playerIds`) — NOT a membership key. Group / authority membership
+   * keys uniformly on `getTemplatePath()` (a player as `/obj/Avatar/<id>`, an
+   * NPC as its own path), so a membership check never branches on player-vs-NPC
+   * and never mixes id shapes. Kept as a typed method (rather than the old
+   * `(x as { getPlayerId?() }).getPlayerId?.()` duck-typing) so the auth-layer
+   * call sites that legitimately need the account id can ask any Stuff.
+   */
+  public getPlayerId(): string | null {
+    return null;
   }
 
   /**

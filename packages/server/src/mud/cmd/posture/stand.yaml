@@ -1,5 +1,5 @@
 verbs: [stand]
-controller: posture/StandController
+controller: /obj/command/posture/StandController
 description: "Stand up. With no argument, vacate any current posture-bearing slot."
 help: |
   Get to your feet. Bare `stand` rises out of whatever you were

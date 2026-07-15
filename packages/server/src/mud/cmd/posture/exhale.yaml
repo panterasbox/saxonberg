@@ -1,5 +1,5 @@
 verbs: [exhale]
-controller: posture/ExhaleController
+controller: /obj/command/posture/ExhaleController
 description: "Let your breath out — release a held breath."
 help: |
   Release a breath you were holding. If you set up a breath-hold

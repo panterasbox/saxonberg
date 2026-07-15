@@ -1,5 +1,5 @@
 verbs: [drop]
-controller: inventory/DropController
+controller: /obj/command/inventory/DropController
 description: "Drop objects from your inventory"
 help: |
   Set something down where you're standing. `drop` takes one or

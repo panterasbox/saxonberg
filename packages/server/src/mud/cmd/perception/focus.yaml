@@ -1,5 +1,5 @@
 verbs: [focus]
-controller: perception/FocusController
+controller: /obj/command/perception/FocusController
 description: "Display or set your focus (the anchor your queries are pointed at)"
 help: |
   Your focus is the thing your other commands point at when you

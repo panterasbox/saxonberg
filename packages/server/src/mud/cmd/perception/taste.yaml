@@ -1,5 +1,5 @@
 verbs: [taste]
-controller: perception/TasteController
+controller: /obj/command/perception/TasteController
 description: "Taste your surroundings or a specific thing"
 help: |
   Put it to your tongue. With no target, `taste` reports whatever

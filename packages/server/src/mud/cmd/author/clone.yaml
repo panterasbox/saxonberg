@@ -1,5 +1,5 @@
 verbs: [clone]
-controller: author/CloneController
+controller: /obj/command/author/CloneController
 description: "Clone a fresh instance from a template"
 help: |
   Spin up a brand-new runtime object from an existing template.

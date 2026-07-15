@@ -67,6 +67,23 @@ class RoomHost extends PersistableMixin(
   }
 }
 
+// A multi-instance persistable host (D1): many live instances share this one
+// templatePath, each keyed by an explicit per-instance key (a leased dorm
+// room keyed on its unit parcel). No marker — the `(scope, key)` identity is
+// uniform; distinct keys simply never collide.
+class MultiRoom extends PersistableMixin(
+  ContainerMixin(PostRegistrationMixin(Idea)),
+) {
+  static persistentFields = ["label"];
+  label = "";
+  getLabel(): string {
+    return this.label;
+  }
+  setLabel(v: string): void {
+    this.label = v;
+  }
+}
+
 // A generic (non-host) content chest: Container ⊕ Containable, carrying
 // per-instance state. NOT persistable — nests in a host's record.
 class ContentChest extends ContainerMixin(ContainableMixin(Idea)) {
@@ -184,9 +201,10 @@ async function mockClone(path: string): Promise<Stuff> {
   const factory = cloneFactories[path];
   if (!factory) throw new Error(`no clone factory for ${path}`);
   const inst = makeStuffAtPath(factory, path);
-  // A cloned persistable HOST self-materializes its own records via
-  // postRegister (the real clone pipeline runs it) — this drives the
-  // reference walk. `makeStuffAtPath` skips postRegister, so fire it here.
+  // The real clone pipeline runs postRegister (which, post-D1, no longer
+  // auto-materializes); fire it to faithfully simulate the pipeline. The
+  // nested-host `{ref}` restore is driven by the spine's `cloneHost` (a
+  // keyless materialize on the fresh clone), not by postRegister.
   if (MixinApi.isPersistable(inst)) {
     await (inst as unknown as { postRegister: () => Promise<void> }).postRegister();
   }
@@ -572,33 +590,48 @@ describe("eviction seam (AC #9)", () => {
 });
 
 describe("seed-then-persist (AC #10)", () => {
-  it("with NO record, applyPopulates delegates to the real seed path", async () => {
-    cloneFactories = {};
-    // No record for this scope → the gate delegates to PopulatesMixin, which
-    // resolves the (unmocked) template and throws — proving the seed ran
-    // rather than being skipped.
+  it("applyPopulates RETAINS the declared specs but does not seed at hydration", async () => {
+    cloneFactories = { "/domain/chest": () => new ContentChest() };
+    // A persistable host is a bare shell at hydration (its key isn't set yet,
+    // so a hasRecord gate can't tell seed from restore). The `populates` hook
+    // therefore only retains the specs — it seeds NOTHING here, even with a
+    // clone factory available. The keyed holder lays them down later.
     const fresh = makeStuffAtPath(() => new RoomHost(), "/domain/fresh");
-    await expect(fresh.applyPopulates(["/domain/chest"])).rejects.toThrow(
-      /no template/,
-    );
+    await fresh.applyPopulates(["/domain/chest"]); // retains; does NOT seed now
+    expect(fresh.getContents()).toHaveLength(0);
   });
 
-  it("with a record present, applyPopulates SKIPS the seed (no duplication)", async () => {
+  // The positive path — seedBornWith → the real PopulatesMixin applier →
+  // clone-into-self — needs a Template store, so it's covered end-to-end by
+  // the dorm integration tests (DormResidence "move-in seals the style; it
+  // survives reap" seeds bed/desk/footlocker via `populates:` and asserts they
+  // land + persist; DormWarren likewise). This suite's stub can't reach the
+  // applier, so it covers the retain / no-op / no-double-seed invariants here.
+
+  it("seedBornWith is a no-op when no populates were declared", async () => {
+    cloneFactories = {};
+    // A persistable host with no `populates:` (an Avatar, whose loadout is
+    // seeded imperatively) seeds nothing — no PopulatesMixin need be composed.
+    const fresh = makeStuffAtPath(() => new RoomHost(), "/domain/fresh");
+    await fresh.seedBornWith(); // empty specs → no-op, no throw
+    expect(fresh.getContents()).toHaveLength(0);
+  });
+
+  it("never double-seeds on restore — the holder restores instead of calling seedBornWith", async () => {
     cloneFactories = { "/domain/chest": () => new ContentChest() };
-    // Simulate a first materialization: seed manually, then capture — a
-    // record now exists for the scope.
+    // Seed a room, capture, evict, re-clone: on the has-record branch the
+    // holder restores (never calls seedBornWith), and the reborn shell's
+    // retained specs sit unused — no duplication.
     const room = makeStuffAtPath(() => new RoomHost(), "/domain/room");
     const chest = makeStuffAtPath(() => new ContentChest(), "/domain/chest");
     ContainmentApi.move(chest, room);
     await PersistableApi.capture(room);
     expect(await PersistableApi.hasRecord("/domain/room")).toBe(true);
 
-    // Re-clone the shell at the same scope; applyPopulates finds the record
-    // and returns early WITHOUT re-seeding.
     evict(room);
     const reborn = makeStuffAtPath(() => new RoomHost(), "/domain/room");
-    await reborn.applyPopulates(["/domain/chest"]);
-    expect(reborn.getContents()).toHaveLength(0); // seed did not re-run
+    await reborn.applyPopulates(["/domain/chest"]); // retained, but NOT seeded
+    expect(reborn.getContents()).toHaveLength(0); // restore branch: no re-seed
   });
 });
 
@@ -707,16 +740,117 @@ describe("avatar-shaped host (Avatar migration end-to-end)", () => {
   });
 });
 
-describe("singleton-host invariant (no two clones stepping on each other)", () => {
-  it("capture throws loudly when two live instances share a scope", async () => {
+describe("the (scope, key) uniqueness invariant (no two clones stepping on each other)", () => {
+  it("throws when a second live instance would write the SAME (scope, key)", async () => {
     cloneFactories = {};
     const a = makeStuffAtPath(() => new MovableHost(), "/domain/dup");
-    // A second live instance at the SAME templatePath — the footgun the
-    // requirements forbid (a persistable host must be a singleton).
-    makeStuffAtPath(() => new MovableHost(), "/domain/dup");
-    await expect(PersistableApi.capture(a)).rejects.toThrow(
-      /singleton-identifiable/,
+    const b = makeStuffAtPath(() => new MovableHost(), "/domain/dup");
+    // Both derive the SAME scope-owner (a MovableHost is a singleton shape) —
+    // the footgun. The guard is precise: `a` captures fine (no sibling has
+    // claimed the key yet); `b`'s capture, which would clobber `a`'s record,
+    // throws.
+    await PersistableApi.capture(a);
+    await expect(PersistableApi.capture(b)).rejects.toThrow(
+      /both keyed .* clobber one record/,
     );
+  });
+});
+
+describe("multi-instance hosts (D1: explicit-key persistence)", () => {
+  it("two instances of one scope with DISTINCT keys → distinct records; no collision", async () => {
+    cloneFactories = {};
+    const k1 = "/domain/dorms/f1-r1";
+    const k2 = "/domain/dorms/f1-r2";
+    // Two LIVE instances at the same templatePath — a collision only if they
+    // share a key; distinct keys never collide (no marker, no relaxation).
+    const a = makeStuffAtPath(() => new MultiRoom(), "/domain/dormroom");
+    const b = makeStuffAtPath(() => new MultiRoom(), "/domain/dormroom");
+    a.setLabel("alice's room");
+    b.setLabel("bob's room");
+
+    // Capture does NOT throw — distinct keys, distinct records.
+    await PersistableApi.capture(a, k1);
+    await PersistableApi.capture(b, k2);
+
+    // Two distinct records, one scope, distinct owners (the keys).
+    expect(snapshots).toHaveLength(2);
+    const owners = snapshots.map((s) => s.owner).sort();
+    expect(owners).toEqual([k1, k2]);
+    expect(snapshots.every((s) => s.scope === "/domain/dormroom")).toBe(true);
+  });
+
+  it("materialize(host, key) restores that key's record only", async () => {
+    cloneFactories = {};
+    const k1 = "/domain/dorms/f1-r1";
+    const k2 = "/domain/dorms/f1-r2";
+    // Two records under ONE scope, distinct keys + distinct content, written
+    // by re-capturing a single instance under each key.
+    const src = makeStuffAtPath(() => new MultiRoom(), "/domain/dormroom");
+    src.setLabel("alice's room");
+    await PersistableApi.capture(src, k1);
+    src.setLabel("bob's room");
+    await PersistableApi.capture(src, k2);
+    expect(snapshots).toHaveLength(2);
+    StuffApi.unregister(src);
+
+    // A fresh shell keyed on k1 restores alice; keyed on k2 restores bob.
+    const r1 = makeStuffAtPath(() => new MultiRoom(), "/domain/dormroom");
+    await PersistableApi.materialize(r1, k1);
+    expect(r1.getLabel()).toBe("alice's room");
+    StuffApi.unregister(r1);
+    const r2 = makeStuffAtPath(() => new MultiRoom(), "/domain/dormroom");
+    await PersistableApi.materialize(r2, k2);
+    expect(r2.getLabel()).toBe("bob's room");
+  });
+
+  it("keyed materialize with no matching record is a clean no-op", async () => {
+    cloneFactories = {};
+    const reborn = makeStuffAtPath(() => new MultiRoom(), "/domain/dormroom");
+    await PersistableApi.materialize(reborn, "/domain/dorms/f9-r9"); // no throw
+    expect(reborn.getLabel()).toBe("");
+  });
+
+  it("hasRecord(scope, key) tests the single keyed record", async () => {
+    cloneFactories = {};
+    const k1 = "/domain/dorms/f1-r1";
+    const a = makeStuffAtPath(() => new MultiRoom(), "/domain/dormroom");
+    await PersistableApi.capture(a, k1);
+    expect(await PersistableApi.hasRecord("/domain/dormroom", k1)).toBe(true);
+    expect(
+      await PersistableApi.hasRecord("/domain/dormroom", "/domain/dorms/f1-r2"),
+    ).toBe(false);
+  });
+
+  it("stashed-key reuse: keyed materialize then keyless capture writes the same record", async () => {
+    cloneFactories = {};
+    const k1 = "/domain/dorms/f1-r1";
+    const seed = makeStuffAtPath(() => new MultiRoom(), "/domain/dormroom");
+    seed.setLabel("original");
+    await PersistableApi.capture(seed, k1);
+    StuffApi.unregister(seed);
+
+    // Materialize with the key (stashes it), mutate, then capture with NO key.
+    const live = makeStuffAtPath(() => new MultiRoom(), "/domain/dormroom");
+    await PersistableApi.materialize(live, k1);
+    expect(live.getLabel()).toBe("original");
+    live.setLabel("edited");
+    await PersistableApi.capture(live); // keyless — reuses the stashed key
+
+    // Still ONE record (same (scope, k1)), now updated.
+    expect(snapshots).toHaveLength(1);
+    expect(snapshots[0]!.owner).toBe(k1);
+    expect(
+      (snapshots[0]!.state as Record<string, { fields: { label: string } }>)
+        .MultiRoom!.fields.label,
+    ).toBe("edited");
+  });
+
+  it("applyPopulates is a no-op (the context drives seed vs restore with the key)", async () => {
+    cloneFactories = { "/domain/chest": () => new ContentChest() };
+    const room = makeStuffAtPath(() => new MultiRoom(), "/domain/dormroom");
+    // Even with NO record, a keyed host seeds nothing here (context-driven).
+    await room.applyPopulates(["/domain/chest"]);
+    expect(room.getContents()).toHaveLength(0);
   });
 });
 
