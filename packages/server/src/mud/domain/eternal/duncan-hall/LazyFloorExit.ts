@@ -1,55 +1,51 @@
 /**
- * LazyFloorExit — a thin `Exit` subclass that materializes a dorm floor's
+ * LazyFloorExit — a `DeferredDestinationExit` that materializes a dorm floor's
  * corridor on demand (the lobby's `up`, and each corridor's `up`).
  *
  * The elastic dorm building keeps NO runtime graph across restart: only the
- * durable slot set (the provisioned unit parcels) survives. A LazyFloorExit
- * is the reconstitution seam — its `resolveDestination()` asks the
- * `DormWarren` to `ensureFloor(targetFloor)`, cloning the corridor + its
- * unit doors lazily on the first `up` traversal (or after a reap).
+ * durable slot set (the provisioned unit parcels) survives. This exit is the
+ * reconstitution seam — eager on its face (direction `up`, destination template
+ * `CORRIDOR_TEMPLATE`, so `look`/a map describe it without conjuring the floor)
+ * with a deferred destination: `computeDestination` asks the `DormWarren` to
+ * `ensureFloor(targetFloor)`, cloning the corridor + its unit doors lazily on
+ * the first `up` traversal (or after a reap). The live corridor is cached by
+ * the base (corridors share a template path, so path resolution would be
+ * ambiguous — the base routes through the hook, never the path).
  *
- * The base `Exit` resolves a fixed destination; this one computes it. The
- * live corridor is cached (a within-session live ref — corridors share a
- * template path, so path resolution would be ambiguous), and re-resolved
- * when it has been reaped. Impassability (a floor with no provisioned units)
- * is a **sync** decision in `canTraverse` (the real move path checks it
- * before `resolveDestination`), read off the warren's sync
- * `floorReachable(n)`.
+ * Impassability (a floor with no provisioned units) is a **sync** decision in
+ * `canTraverse` (the real move path checks it before `resolveDestination`),
+ * read off the warren's sync `floorReachable(n)`.
  */
 
-import Exit, { type TraversalGuard } from '../../../lib/boundary/Exit';
+import DeferredDestinationExit from '../../../lib/boundary/DeferredDestinationExit';
+import { type TraversalGuard } from '../../../lib/boundary/Exit';
 import type { Stuff } from '../../../lib/stuff/Stuff';
 import type { Container } from '../../../lib/spatial/Container';
 import type { Containable } from '../../../lib/spatial/Containable';
 import DormWarren from './DormWarren';
 
-export default class LazyFloorExit extends Exit {
+export default class LazyFloorExit extends DeferredDestinationExit {
   /** The floor this exit climbs TO (lobby's up → 1; corridor n's up → n+1). */
   private targetFloor: number;
 
-  /** Cached live corridor (Pattern B live ref); re-resolved after a reap. */
-  private live: (Stuff & Container) | null = null;
-
   constructor(source: Stuff & Container, targetFloor: number) {
-    // The base requires a destination or destinationPath; hand it the
-    // (singleton) warren path as a harmless placeholder — every real
-    // resolution overrides through `resolveDestination` / the sync getter.
     super({
       direction: 'up',
       source,
-      destinationPath: DormWarren.WARREN_PATH,
+      // The destination's class template (accurate + eager); the specific
+      // floor's corridor is faulted in via `computeDestination`.
+      destinationTemplatePath: DormWarren.CORRIDOR_TEMPLATE,
     });
     this.targetFloor = targetFloor;
   }
 
   /**
-   * Materialize (or re-materialize) the target floor's corridor and return
-   * it. `ensureFloor` returns null when the floor has no provisioned units;
-   * that path is guarded off by `canTraverse` before the move ever calls
-   * here, so a null is an internal error worth surfacing.
+   * Materialize (or re-materialize) the target floor's corridor. `ensureFloor`
+   * returns null when the floor has no provisioned units; that path is guarded
+   * off by `canTraverse` before the move ever calls here, so a null is an
+   * internal error worth surfacing.
    */
-  public override async resolveDestination(): Promise<Stuff & Container> {
-    if (this.live && !this.live.isDestroyed()) return this.live;
+  protected override async computeDestination(): Promise<Stuff & Container> {
     const warren = await DormWarren.resolve();
     const corridor = await warren.ensureFloor(this.targetFloor);
     if (!corridor) {
@@ -57,16 +53,7 @@ export default class LazyFloorExit extends Exit {
         `LazyFloorExit: floor ${this.targetFloor} has no provisioned units`,
       );
     }
-    this.live = corridor;
     return corridor;
-  }
-
-  /** Sync destination — the cached live corridor, else fail loudly. */
-  public override getDestination(): Stuff & Container {
-    if (this.live && !this.live.isDestroyed()) return this.live;
-    throw new Error(
-      'LazyFloorExit: destination not materialized; await resolveDestination()',
-    );
   }
 
   /**

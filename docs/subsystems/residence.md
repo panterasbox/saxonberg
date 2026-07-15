@@ -100,11 +100,18 @@ destruct the out-of-`_members` corridors + doors).
 
 ### Lazy materialization
 
-Two `Exit`-subclass seams (content, not base — both cache a within-session
-live ref and re-resolve after a reap):
+Two `DeferredDestinationExit` subclasses (`lib/boundary/` — the generalized
+eager-exit / deferred-destination primitive: the exit's direction + destination
+**template path** are eager and describable by `look`/a map with zero
+materialization; only the live destination `Stuff` faults in on
+`resolveDestination()`, cached within-session, re-resolved after a reap. The
+base owns that lifecycle; each subclass supplies just `computeDestination()` +
+its own `canTraverse`). Both carry the destination's **accurate** class
+template (`CORRIDOR_TEMPLATE` / `DORMROOM_TEMPLATE`) — a real path, not a
+placeholder — so the edge reads honestly before it's been walked:
 
 - **`LazyFloorExit`** — the lobby's `up` and each corridor's `up`.
-  `resolveDestination()` → `DormWarren.ensureFloor(n+1)`. A floor with no
+  `computeDestination()` → `DormWarren.ensureFloor(n+1)`. A floor with no
   provisioned units is **impassable**, gated *synchronously* in
   `canTraverse` off `DormWarren.floorReachable(n)` (the real move path checks
   `canTraverse` before `resolveDestination`).
@@ -119,8 +126,9 @@ live ref and re-resolve after a reap):
   and walk through. An empty keyway (unprovisioned / re-keyed) opens for no one.
   (There is **no `enter` verb** — a bare verb was a cold-OS surface; deleted;
   the old leaseholder-identity gate was superseded by the key.)
-  `resolveDestination()` → `DormWarren.admit(unitKey)`. See the lock/key
-  substrate in [credential.md](./credential.md) + [boundary.md](./boundary.md).
+  `computeDestination()` → `DormWarren.admit(unitKey)` (the deferred fault-in).
+  See the lock/key substrate in [credential.md](./credential.md) +
+  [boundary.md](./boundary.md).
 
 `admit(unitKey)` returns the cached live room, else clones a `DormRoom`
 (`createMemberSerialized`) → stashes its key → **D1 restore-or-seed**

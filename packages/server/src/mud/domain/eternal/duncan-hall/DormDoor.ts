@@ -3,7 +3,11 @@
  * `DormRoom`. A runtime clone (one per provisioned unit on its floor),
  * created by `DormWarren.ensureUnitDoor`, its `unitKey` set at creation.
  *
- * Implemented as an `Exit` subclass. The load-bearing behavior is "**the door
+ * Implemented as a `DeferredDestinationExit` — eager on its face (its
+ * destination template is `DORMROOM_TEMPLATE`, so `look`/a map describe it
+ * without conjuring the room), with the room faulted in on traversal via
+ * `computeDestination` → `DormWarren.admit(unitKey)` (cached by the base). The
+ * load-bearing behavior is "**the door
  * opens for whoever holds the key**": it is locked with the unit's `keyway`
  * (a `pin-tumbler` `Lock`), and `canTraverse` admits any mover who presents a
  * matching key — a carried physical `Key` or an implant-keychain entry, found
@@ -13,8 +17,7 @@
  * unkeyed unit (empty keyway) is locked to everyone. Access is bearer
  * (transferable — lend your key); the lease is the authority that *issues*
  * the key at provisioning, and move-out **re-keys** so the old key is dead
- * metal. Its destination materializes lazily: `resolveDestination()` →
- * `DormWarren.admit(unitKey)`, cached as a within-session live ref.
+ * metal.
  *
  * (v1: the door stays an `Exit` with a lock, not a `SealableMixin(Boundary)`
  * fixture; the physical `open <door>` / manual `lock`/`unlock` verbs +
@@ -23,7 +26,8 @@
  * follow.)
  */
 
-import Exit, { type TraversalGuard } from '../../../lib/boundary/Exit';
+import DeferredDestinationExit from '../../../lib/boundary/DeferredDestinationExit';
+import { type TraversalGuard } from '../../../lib/boundary/Exit';
 import type { Stuff } from '../../../lib/stuff/Stuff';
 import type { Container } from '../../../lib/spatial/Container';
 import type { Containable } from '../../../lib/spatial/Containable';
@@ -31,18 +35,17 @@ import { CredentialApi } from '../../../api/credential';
 import { Lock } from '../../../lib/lock/Lock';
 import DormWarren from './DormWarren';
 
-export default class DormDoor extends Exit {
+export default class DormDoor extends DeferredDestinationExit {
   /** The unit parcel extent this door fronts (the D1 key + lease key). */
   private unitKey: string;
-
-  /** Cached live room (Pattern B live ref); re-resolved after a reap. */
-  private live: (Stuff & Container) | null = null;
 
   constructor(source: Stuff & Container, unitKey: string, direction: string) {
     super({
       direction,
       source,
-      destinationPath: DormWarren.WARREN_PATH, // placeholder; resolved below
+      // The destination's class template (accurate + eager); the specific
+      // unit's room is faulted in via `computeDestination`.
+      destinationTemplatePath: DormWarren.DORMROOM_TEMPLATE,
     });
     this.unitKey = unitKey;
   }
@@ -51,20 +54,10 @@ export default class DormDoor extends Exit {
     return this.unitKey;
   }
 
-  /** Materialize (or re-materialize) the unit's room and return it. */
-  public override async resolveDestination(): Promise<Stuff & Container> {
-    if (this.live && !this.live.isDestroyed()) return this.live;
+  /** Materialize (or re-materialize) the unit's room. */
+  protected override async computeDestination(): Promise<Stuff & Container> {
     const warren = await DormWarren.resolve();
-    const room = await warren.admit(this.unitKey);
-    this.live = room;
-    return room;
-  }
-
-  public override getDestination(): Stuff & Container {
-    if (this.live && !this.live.isDestroyed()) return this.live;
-    throw new Error(
-      'DormDoor: destination not materialized; await resolveDestination()',
-    );
+    return warren.admit(this.unitKey);
   }
 
   /**
