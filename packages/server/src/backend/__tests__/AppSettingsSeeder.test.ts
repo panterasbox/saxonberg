@@ -41,7 +41,7 @@ describe("AppSettingsSeeder", () => {
     pm.setFindResult([]);
     const added = await AppSettingsSeeder.run();
 
-    expect(added).toBe(101);
+    expect(added).toBe(107);
     expect(pm.saves).toHaveLength(1);
     expect(pm.saves[0]!.collection).toBe("app_settings");
     const values = savedValues(pm);
@@ -173,6 +173,13 @@ describe("AppSettingsSeeder", () => {
           [AppSettingKeys.combatFocusFireErosionPerEdge]: "0.5",
           [AppSettingKeys.combatFocusFireSuppressRecoveryAt]: "2",
           [AppSettingKeys.combatFleePartingShotEnergy]: "1.6",
+          // The 6 experience-pass combat tuning keys (feint + fog + sharpness).
+          [AppSettingKeys.combatPoiseFeintCost]: "0.08",
+          [AppSettingKeys.combatPoiseFeintBitPenalty]: "0.8",
+          [AppSettingKeys.combatFogReadSharpness]: "0.7",
+          [AppSettingKeys.combatFogClearSharpness]: "0.7",
+          [AppSettingKeys.combatSharpnessMin]: "0.35",
+          [AppSettingKeys.combatSharpnessMax]: "1",
         },
       },
     ]);
@@ -204,8 +211,9 @@ describe("AppSettingsSeeder", () => {
     //   + referenceEnergy + secondaryFactor + 2 band)
     // + 2 behavior (ambientCadenceScale, ambientCadenceFloorMs)
     // + 23 combat (20 core 1v1 + 3 Build 2)
-    // + N multi-party combat (focus-fire + flee).
-    expect(added).toBe(100);
+    // + 3 multi-party combat (2 focus-fire + 1 flee)
+    // + 6 experience combat (2 feint poise + 2 fog + 2 sharpness).
+    expect(added).toBe(106);
     expect(pm.saves).toHaveLength(1);
     const values = savedValues(pm);
     // operator value preserved, missing keys seeded

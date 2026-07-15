@@ -30,7 +30,14 @@ import { CombatApi, type GambitEligibility } from "../../../api/combat";
 import type { CombatantState } from "../../../lib/combat/CombatSession";
 
 const TOPIC = "world.narration.action";
-const GAMBITS = new Set(["strike", "disarm", "subdue", "shove", "defend"]);
+const GAMBITS = new Set([
+  "strike",
+  "feint",
+  "disarm",
+  "subdue",
+  "shove",
+  "defend",
+]);
 
 interface FightModel extends CommandModel {
   subcommand?: string;
