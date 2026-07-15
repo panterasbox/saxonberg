@@ -159,6 +159,9 @@ export const Mixins = {
   // Combat — "I can fight": combat verb affordances + the innate-attack
   // hook. All fight state is session-scoped, never on the Creature.
   Combatant: 'CombatantMixin',
+  // Party — "I can belong to a party": the sparse active-party pointer on
+  // Avatars + the hireable Mercenary NPC. Combat's friend/foe seam reads it.
+  PartyMember: 'PartyMemberMixin',
 } as const;
 
 /**

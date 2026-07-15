@@ -14,6 +14,7 @@ import { ScheduleApi } from "../../api/schedule";
 import { StuffApi } from "../../api/stuff";
 import { AppApi } from "../../api/app";
 import { SpeciesApi } from "../../api/species";
+import { PartyApi } from "../../api/party";
 import { ChronicleApi } from "../../api/chronicle";
 import { RegardApi } from "../../api/regard";
 import { AdvancementApi } from "../../api/advancement";
@@ -35,9 +36,8 @@ import type { OutcomeBand } from "../../api/material";
 import type { BrainContext, BrainStatics } from "../../lib/behavior/brain";
 import {
   CombatSession,
-  CombatPartnerHold,
-  COMBAT_SESSION_TYPE,
-  COMBAT_PARTNER_TYPE,
+  CombatParticipantHold,
+  COMBAT_PARTICIPANT_TYPE,
   type CombatantState,
   type CombatResolution,
 } from "../../lib/combat/CombatSession";
@@ -98,6 +98,20 @@ export class CombatLogic extends ApiLogic {
   }
 
   @CallSecurity(CombatApiCallers)
+  public join(
+    joiner: Stuff & Engaged,
+    target: Stuff & Engaged,
+    terms: CombatTerms,
+  ): { ok: boolean; reason?: string } {
+    return joinImpl(joiner, target, terms);
+  }
+
+  @CallSecurity(CombatApiCallers)
+  public merge(a: CombatSession, b: CombatSession): void {
+    mergeImpl(a, b);
+  }
+
+  @CallSecurity(CombatApiCallers)
   public queueGambit(actor: Stuff, gambitKey: string): GambitEligibility {
     const session = sessionForImpl(actor);
     if (!session) return { ok: false, reason: "not-in-combat" };
@@ -147,6 +161,19 @@ export class CombatLogic extends ApiLogic {
   @CallSecurity(CombatApiCallers)
   public intervene(actor: Stuff, target: Stuff): boolean {
     return interveneImpl(actor, target);
+  }
+
+  @CallSecurity(CombatApiCallers)
+  public defendAlly(
+    interposer: Stuff,
+    ally: Stuff,
+  ): { ok: boolean; reason?: string } {
+    return defendAllyImpl(interposer, ally);
+  }
+
+  @CallSecurity(CombatApiCallers)
+  public disengage(actor: Stuff): { ok: boolean; message?: string } {
+    return disengageImpl(actor);
   }
 
   @CallSecurity(CombatApiCallers)
@@ -217,29 +244,42 @@ function openSessionImpl(
   if (!MixinApi.isEngaged(initiator) || !MixinApi.isEngaged(defender)) {
     return { ok: false, reason: "not-engageable" };
   }
-  // 1:1 — a combatant already in a fight can't open a second.
+  // A combatant already engaged in a fight can't open a fresh session
+  // (a second attacker joins the existing one — cycle-2 Phase 4).
   if (
-    initiator.getEngagementByType(COMBAT_SESSION_TYPE) ||
-    defender.getEngagementByType(COMBAT_SESSION_TYPE)
+    initiator.getEngagementByType(COMBAT_PARTICIPANT_TYPE) ||
+    defender.getEngagementByType(COMBAT_PARTICIPANT_TYPE)
   ) {
     return { ok: false, reason: "busy" };
   }
 
   const tickMs = Math.round(dial(AppSettingKeys.combatTickSeconds, 3) * 1000);
-  const a = deriveState(initiator);
-  const b = deriveState(defender);
-  const session = new CombatSession(a, b, terms, tickMs);
+  const session = new CombatSession(terms, tickMs);
+  const aState = deriveState(initiator);
+  aState.side = safeSideOf(initiator);
+  const bState = deriveState(defender);
+  bState.side = safeSideOf(defender);
+  const holdA = session.addParticipant(aState);
+  const holdB = session.addParticipant(bState);
 
-  const started = SchedulerApi.start(session);
-  if (!started.ok) return { ok: false, reason: "busy" };
+  // Seed the threat graph with the mutual 1v1 edges (both directions),
+  // each carrying the session terms (the per-edge-terms seam — cycle-2
+  // Phase 3 moves the terms authority fully onto the edges).
+  const graph = session.getGraph();
+  graph.addEdge(initiator, defender, terms);
+  graph.addEdge(defender, initiator, terms);
 
-  const partner = new CombatPartnerHold(defender, session);
-  session.setPartner(partner);
-  const partnerStarted = SchedulerApi.start(partner);
-  if (!partnerStarted.ok) {
-    SchedulerApi.cancel(session, "cancelled");
+  // Each participant occupies `body` via its own hold; the session owns
+  // the beat (a real-time recurring tick, not a participant's emission).
+  if (!SchedulerApi.start(holdA).ok) {
+    session.dissolve();
     return { ok: false, reason: "busy" };
   }
+  if (!SchedulerApi.start(holdB).ok) {
+    session.dissolve();
+    return { ok: false, reason: "busy" };
+  }
+  session.startTick();
 
   // Blame ledger: record the opening. A sentient defender who did NOT
   // consent to lethal terms is the imposed-terms crime path — write the
@@ -247,6 +287,58 @@ function openSessionImpl(
   // the system of record; culpability is derived on read).
   recordOpening(session, initiator, defender, terms);
   return { ok: true, session };
+}
+
+/**
+ * A new combatant joins an existing fight (a gang-up / a bystander drawn
+ * in). Adds a participant + `body` hold + a mutual threat edge under the
+ * given terms, side frozen from the party seam. The joiner must be free
+ * (not already fighting).
+ */
+function joinImpl(
+  joiner: Stuff & Engaged,
+  target: Stuff & Engaged,
+  terms: CombatTerms,
+): { ok: boolean; reason?: string } {
+  if (!MixinApi.isEngaged(joiner)) return { ok: false, reason: "not-engageable" };
+  if (joiner.getEngagementByType(COMBAT_PARTICIPANT_TYPE)) {
+    return { ok: false, reason: "busy" };
+  }
+  const session = sessionForImpl(target);
+  if (!session || !session.isActive()) return { ok: false, reason: "no-session" };
+
+  const state = deriveState(joiner);
+  state.side = safeSideOf(joiner);
+  const hold = session.addParticipant(state);
+  if (!SchedulerApi.start(hold).ok) {
+    session.removeParticipant(joiner);
+    return { ok: false, reason: "busy" };
+  }
+  const graph = session.getGraph();
+  graph.addEdge(joiner, target, terms);
+  graph.addEdge(target, joiner, terms);
+  // Blame ledger: a fresh engagement opened inside the melee (a lethal,
+  // non-consented join onto a sentient is the interloper crime path).
+  recordOpening(session, joiner, target, terms);
+  return { ok: true };
+}
+
+/**
+ * Fold session `b` into session `a` (two separate fights collide): move
+ * every `b` participant (with its already-started `body` hold) and every
+ * `b` edge onto `a`, then tear down `b`'s beat WITHOUT cancelling the
+ * moved holds. Merges happen at a beat boundary, never mid-exchange.
+ */
+function mergeImpl(a: CombatSession, b: CombatSession): void {
+  if (a === b || !a.isActive() || !b.isActive()) return;
+  for (const st of b.getStates()) {
+    const hold = b.getHold(st.combatant);
+    if (hold) a.adoptParticipant(st, hold);
+  }
+  for (const e of b.getGraph().allEdges()) {
+    a.getGraph().addEdge(e.attacker, e.defender, e.terms, e.instrument);
+  }
+  b.dissolveKeepingHolds();
 }
 
 /** Build a combatant's transient fight state from its body + gear. */
@@ -272,7 +364,44 @@ function deriveState(combatant: Stuff & Engaged): CombatantState {
     brainConfig: {},
     balanceFactor: inputs.balanceFactor,
     down: false,
+    side: "",
+    lastStruckBy: null,
   };
+}
+
+/** The combatant's per-fight alignment key, frozen on the node at
+ * open/join. Tolerant of an unbooted party subsystem (tests / bare
+ * combat) — a combatant with no active party is its own solo side. */
+function safeSideOf(combatant: Stuff): string {
+  try {
+    return PartyApi.sideOf(combatant);
+  } catch {
+    return `solo:${combatant.getTemplatePath() ?? ""}`;
+  }
+}
+
+/**
+ * The foe this actor presses this exchange: prefer a still-live foe the
+ * actor already has an edge onto (sustained focus), else any live foe
+ * (someone not on the actor's frozen side), opening an edge onto them.
+ * Null when no foe remains (the fight is won / all allies).
+ */
+function pickTarget(
+  session: CombatSession,
+  actorState: CombatantState,
+): CombatantState | null {
+  const graph = session.getGraph();
+  const actor = actorState.combatant;
+  for (const edge of graph.targetsOf(actor)) {
+    const ts = session.getState(edge.defender);
+    if (ts && !ts.down && ts.side !== actorState.side) return ts;
+  }
+  for (const s of session.getStates()) {
+    if (s === actorState || s.down || s.side === actorState.side) continue;
+    graph.addEdge(actor, s.combatant, session.getTerms());
+    return s;
+  }
+  return null;
 }
 
 /** A combatant with no live player Interactive is brain-driven. */
@@ -308,7 +437,7 @@ function balanceFactorOf(combatant: Stuff): number {
 function advanceImpl(session: CombatSession): void {
   if (!session.isActive()) return;
   const beat = session.advanceBeat();
-  const [sa, sb] = session.getStates();
+  const states = session.getStates();
 
   const maxBeats = Math.round(dial(AppSettingKeys.combatMaxBeats, 200));
   if (beat > maxBeats) {
@@ -317,24 +446,26 @@ function advanceImpl(session: CombatSession): void {
   }
 
   // Let brain-driven combatants choose (queue) their intent this beat.
-  for (const s of [sa, sb]) {
+  for (const s of states) {
     if (s.brainPath && !s.queuedGambit && !s.down) invokeBrain(s);
   }
 
   // Emergent tempo: each combatant acts as often as their accrued tempo
   // allows (fractional carry). Bounded per beat by the tempo ceiling.
-  for (const s of [sa, sb]) {
+  // Targeting is side-driven (the threat graph + frozen sides): a foe is
+  // anyone not on the actor's side. A 1v1 is the degenerate case.
+  for (const s of states) {
     if (!session.isActive()) break;
-    const opp = session.opponentState(s.combatant);
-    if (!opp || s.down || opp.down) continue;
+    if (s.down) continue;
     let n = s.tempo.advance();
-    while (n-- > 0 && session.isActive() && !s.down && !opp.down) {
-      resolveExchange(session, s, opp, beat);
+    while (n-- > 0 && session.isActive() && !s.down) {
+      const target = pickTarget(session, s);
+      if (!target || target.down) break;
+      resolveExchange(session, s, target, beat);
     }
   }
 
-  sa.poise.tick(beat);
-  sb.poise.tick(beat);
+  for (const s of states) s.poise.tick(beat);
 
   if (session.isActive()) checkVitalsResolution(session);
 }
@@ -362,6 +493,14 @@ function resolveExchange(
   actorState.queuedGambit = null;
 
   if (key === "defend") {
+    // Focus-fire pin: a defender pressed by enough attackers can't spend a
+    // beat recovering (the turtle who beats one but loses to two). The
+    // beat is still forgone — they're too busy covering to counter.
+    const incoming = session.getGraph().edgeCount(actorState.combatant);
+    const suppressAt = Math.round(
+      dial(AppSettingKeys.combatFocusFireSuppressRecoveryAt, 2),
+    );
+    if (incoming >= suppressAt) return;
     // Defensive/reactive play restores poise, capped by endurance.
     const restore = dial(AppSettingKeys.combatPoiseRestorePerDefense, 0.15);
     actorState.poise.restore(restore, enduranceRatio(actorState.combatant));
@@ -376,9 +515,17 @@ function resolveExchange(
   }
 
   // An actual exchange trades blows — base autocombat erodes both sides.
+  // Focus-fire: the target's erosion scales with how many attackers are
+  // pressing them (each extra attacker beyond the first adds
+  // `erosionPerEdge`), so ganging up wears a defender down faster.
   const erode = dial(AppSettingKeys.combatPoiseErodePerExchange, 0.12);
+  const attackers = session.getGraph().edgeCount(targetState.combatant);
+  const focusMult =
+    1 +
+    Math.max(0, attackers - 1) *
+      dial(AppSettingKeys.combatFocusFireErosionPerEdge, 0.5);
   actorState.poise.erode(erode, beat);
-  targetState.poise.erode(erode, beat);
+  targetState.poise.erode(erode * focusMult, beat);
 
   const spec = Gambit.forVerb(key) ?? Gambit.get("strike")!;
 
@@ -532,6 +679,11 @@ function commitInflict(
     site,
     energy,
   });
+  // Name the killing edge for an attrition/bleed-out death that has no
+  // single striker at resolution time (the per-edge blame foundation).
+  if (outcome.afflicted) {
+    targetState.lastStruckBy = actorState.combatant;
+  }
   const band = outcome.afflicted
     ? MaterialApi.severityToBand(outcome.trauma.severity)
     : ("turned" as OutcomeBand);
@@ -572,9 +724,9 @@ function endWith(
   killer?: Stuff,
 ): void {
   if (!session.isActive() || session.getResolution()) return;
-  const [a, b] = session.getStates();
+  const combatants = session.getStates().map((s) => s.combatant);
   CombatNarration.narrateResolution({
-    combatants: [a.combatant, b.combatant],
+    combatants,
     outcome,
     victim,
     killer,
@@ -608,7 +760,7 @@ function handleDown(
   targetState.down = true;
   const attacker = attackerState.combatant;
   const victim = targetState.combatant;
-  const terms = session.getTerms();
+  const terms = termsFor(session, attacker, victim);
 
   if (!terms.isLethalAuthorized()) {
     endWith(session, "incapacitation", victim, attacker);
@@ -649,38 +801,41 @@ function killImpl(target: Stuff, cause: string): void {
 function checkVitalsResolution(session: CombatSession): void {
   for (const s of session.getStates()) {
     if (!MixinApi.isVitals(s.combatant)) continue;
-    const opp = session.opponentState(s.combatant)?.combatant;
+    // The killer of an attrition death is whoever last landed a blow (the
+    // killing edge); fall back to the 1v1 opponent when unstruck.
+    const killer =
+      s.lastStruckBy ?? session.opponentState(s.combatant)?.combatant ?? null;
     const c = s.combatant.getConsciousness();
     if (c === "dead") {
       // A death from accumulated trauma mid-fight (the bleed-out path).
-      if (opp) recordDeath(session, opp, s.combatant);
-      endWith(session, "death", s.combatant, opp);
-      if (opp) {
+      if (killer) recordDeath(session, killer, s.combatant);
+      endWith(session, "death", s.combatant, killer ?? undefined);
+      if (killer) {
         runResolutionConsumers(
           session,
-          opp,
+          killer,
           s.combatant,
           true,
-          isCrime(session.getTerms(), s.combatant),
+          isCrime(termsFor(session, killer, s.combatant), s.combatant),
         );
       }
       return;
     }
     if (c === "unconscious" && !s.down) {
       s.down = true;
-      endWith(session, "incapacitation", s.combatant, opp);
+      endWith(session, "incapacitation", s.combatant, killer ?? undefined);
       // The two-stage death follows **incapacitation**, however it was
       // reached: under lethal terms a downed sentient can still be
       // finished by the deliberate coup whether they lost the poise
       // contest (`handleDown`) or bled to unconsciousness by attrition.
       if (
-        opp &&
-        session.getTerms().isLethalAuthorized() &&
+        killer &&
+        termsFor(session, killer, s.combatant).isLethalAuthorized() &&
         safeIsSentient(s.combatant)
       ) {
-        beginCoup(session, opp, s.combatant);
-      } else if (opp) {
-        runResolutionConsumers(session, opp, s.combatant, false, false);
+        beginCoup(session, killer, s.combatant);
+      } else if (killer) {
+        runResolutionConsumers(session, killer, s.combatant, false, false);
       }
       return;
     }
@@ -759,12 +914,10 @@ function invokeBrain(state: CombatantState): void {
 
 function sessionForImpl(combatant: Stuff): CombatSession | undefined {
   if (!MixinApi.isEngaged(combatant)) return undefined;
-  // Combatant A holds the session directly; combatant B holds the partner
-  // hold, which references the session.
-  const direct = combatant.getEngagementByType(COMBAT_SESSION_TYPE);
-  if (direct instanceof CombatSession) return direct;
-  const partner = combatant.getEngagementByType(COMBAT_PARTNER_TYPE);
-  if (partner instanceof CombatPartnerHold) return partner.getSession();
+  // Every participant (including the initiator) holds a uniform
+  // participant hold that references the session.
+  const hold = combatant.getEngagementByType(COMBAT_PARTICIPANT_TYPE);
+  if (hold instanceof CombatParticipantHold) return hold.getSession();
   return undefined;
 }
 
@@ -896,6 +1049,20 @@ function durableIdOf(s: Stuff): string {
   return s.getTemplatePath() ?? "";
 }
 
+/**
+ * The terms in force on the `killer → victim` engagement edge (the
+ * per-edge blame foundation): a duel and an interloper's unlawful blow in
+ * the *same* session carry different terms. Falls back to the session
+ * terms when no edge is found (the degenerate 1v1, where they coincide).
+ */
+function termsFor(
+  session: CombatSession,
+  killer: Stuff,
+  victim: Stuff,
+): CombatTerms {
+  return session.getGraph().edgeBetween(killer, victim)?.terms ?? session.getTerms();
+}
+
 /** Sentience read, tolerant of a species not yet resolved. */
 function safeIsSentient(s: Stuff): boolean {
   try {
@@ -959,7 +1126,7 @@ function recordOpening(
 ): void {
   const sentient = safeIsSentient(defender);
   const base = {
-    sessionId: session.engagementId,
+    sessionId: session.sessionId,
     initiator: durableIdOf(initiator),
     opponent: durableIdOf(defender),
     lethality: terms.lethality,
@@ -980,10 +1147,10 @@ function recordDeath(
   killer: Stuff,
   victim: Stuff,
 ): void {
-  const terms = session.getTerms();
+  const terms = termsFor(session, killer, victim);
   noteAttribution({
     kind: "death",
-    sessionId: session.engagementId,
+    sessionId: session.sessionId,
     initiator: terms.initiator,
     opponent: durableIdOf(killer),
     victim: durableIdOf(victim),
@@ -1099,6 +1266,47 @@ function interveneImpl(actor: Stuff, target: Stuff): boolean {
   return true;
 }
 
+/**
+ * `defend <ally>` — interpose: take an attacker's pressure off a pressed
+ * ally onto yourself. Finds a live foe pressing the ally, joins their
+ * fight (if not already in it), and redirects that foe's edge off the ally
+ * onto the interposer (`CombatGraph.redirect`) — the ally's incoming
+ * pressure drops, the interposer's rises.
+ */
+function defendAllyImpl(
+  interposer: Stuff,
+  ally: Stuff,
+): { ok: boolean; reason?: string } {
+  const session = sessionForImpl(ally);
+  if (!session || !session.isActive()) {
+    return { ok: false, reason: "ally-not-fighting" };
+  }
+  const graph = session.getGraph();
+  const incoming = graph
+    .incomingEdges(ally)
+    .filter((e) => !session.getState(e.attacker)?.down);
+  if (incoming.length === 0) return { ok: false, reason: "ally-not-pressed" };
+  const attacker = incoming[0]!.attacker;
+
+  const interposerSession = sessionForImpl(interposer);
+  if (!interposerSession) {
+    if (!MixinApi.isEngaged(interposer) || !MixinApi.isEngaged(attacker)) {
+      return { ok: false, reason: "not-engageable" };
+    }
+    const joined = joinImpl(
+      interposer as Stuff & Engaged,
+      attacker as Stuff & Engaged,
+      incoming[0]!.terms,
+    );
+    if (!joined.ok) return joined;
+  } else if (interposerSession !== session) {
+    return { ok: false, reason: "busy-elsewhere" };
+  }
+  // The foe now presses the interposer instead of the ally.
+  graph.redirect(attacker, ally, interposer);
+  return { ok: true };
+}
+
 /** A live coup in the actor's room where `target` is the executioner or
  * the victim (so `intervene <foe>` and `intervene <friend>` both work). */
 function findCoupInRoom(actor: Stuff, target: Stuff): Coup | null {
@@ -1117,6 +1325,63 @@ function findCoupInRoom(actor: Stuff, target: Stuff): Coup | null {
     }
   }
   return null;
+}
+
+/* ───────────────────────── fleeing (disengage) ───────────────────────── */
+
+/**
+ * Fleeing is combat's resolution of a **locomotion attempt made while
+ * engaged** — not a verb, not a mode. The movement controller calls this
+ * before a traverse: a no-op (free to go) when the actor isn't fighting;
+ * an **opposed-lite** break otherwise. A focus-fire pin (incoming attacker
+ * count ≥ the recovery-suppress threshold, reusing Phase 5) blocks the
+ * break for the beat; every foe still locked on gets one **parting shot**;
+ * on success the actor is removed from the fight and the traverse proceeds.
+ * Individual only — coordinated party-retreat + pursuit stay deferred.
+ */
+function disengageImpl(actor: Stuff): { ok: boolean; message?: string } {
+  const session = sessionForImpl(actor);
+  if (!session || !session.isActive()) return { ok: true };
+  const graph = session.getGraph();
+  const incoming = graph
+    .incomingEdges(actor)
+    .filter((e) => !session.getState(e.attacker)?.down);
+
+  const suppressAt = Math.round(
+    dial(AppSettingKeys.combatFocusFireSuppressRecoveryAt, 2),
+  );
+  if (incoming.length >= suppressAt) {
+    return { ok: false, message: "You're too hard-pressed to break away!" };
+  }
+
+  // Parting shots from every foe still locked on.
+  const energy = dial(AppSettingKeys.combatFleePartingShotEnergy, 1.6);
+  const fleerState = session.getState(actor);
+  for (const e of incoming) {
+    const attackerState = session.getState(e.attacker);
+    if (attackerState && fleerState) {
+      partingShot(attackerState, fleerState, energy);
+    }
+  }
+  session.removeParticipant(actor);
+  return { ok: true };
+}
+
+/** One foe's parting shot at a disengaging combatant — routed through the
+ * same materials-response inflict as any blow, at the flee energy. */
+function partingShot(
+  attackerState: CombatantState,
+  fleerState: CombatantState,
+  energy: number,
+): void {
+  const instrument = resolveInstrument(attackerState);
+  const channel: Channel = instrument?.channel ?? "blunt";
+  const site = siteFor(fleerState.combatant, false);
+  ConditionApi.inflict(fleerState.combatant, {
+    mechanism: channel,
+    site,
+    energy,
+  });
 }
 
 /* ───────────────────────── resolution consumers ───────────────────────── */

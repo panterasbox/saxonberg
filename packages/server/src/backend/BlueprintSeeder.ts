@@ -60,13 +60,21 @@ export class BlueprintSeeder {
     // dedup spine for both layers.
     const existing = await Blueprint.find<Blueprint>({});
     const bySignature = new Map<string, Blueprint>();
+    // The set of blueprintIds already stored. A class whose *signature*
+    // changed (e.g. a mixin added to Avatar) derives the same `blueprintId`
+    // but a new signature, so the signature-dedup passes yet the unique
+    // `blueprintId` index would throw E11000 on insert. Guarding on the id
+    // too keeps the derived-skeleton pass idempotent across signature drift
+    // — a redeploy re-seeds a populated DB without a fatal boot crash.
+    const byId = new Set<string>();
     for (const bp of existing) {
       const sig = bp.getSignature();
       if (sig) bySignature.set(sig, bp);
+      if (bp.blueprintId) byId.add(bp.blueprintId);
     }
 
     let inserted = 0;
-    inserted += await BlueprintSeeder.#deriveSkeleton(bySignature);
+    inserted += await BlueprintSeeder.#deriveSkeleton(bySignature, byId);
     inserted += await BlueprintSeeder.#curatedOverlay(bySignature, opts);
 
     console.info(
@@ -81,7 +89,8 @@ export class BlueprintSeeder {
    * (stale/moved modules) are skipped with a warning, never fatal.
    */
   static async #deriveSkeleton(
-    bySignature: Map<string, Blueprint>
+    bySignature: Map<string, Blueprint>,
+    byId: Set<string>
   ): Promise<number> {
     let classPaths: string[];
     try {
@@ -113,8 +122,16 @@ export class BlueprintSeeder {
       const signature = Blueprint.signatureOf(ctor);
       if (bySignature.has(signature)) continue; // dedup on signature
 
+      const id = BlueprintSeeder.#derivedId(classPath);
+      // A blueprint already holds this id under a *different* signature
+      // (the class's structure drifted since it was last seeded). Skip
+      // rather than collide on the unique `blueprintId` index — additive,
+      // never-removes, and the curated overlay / on-demand regen own
+      // accuracy for a drifted skeleton.
+      if (byId.has(id)) continue;
+
       const bp = new Blueprint();
-      bp.blueprintId = BlueprintSeeder.#derivedId(classPath);
+      bp.blueprintId = id;
       bp.signature = signature;
       bp.baseClass = Blueprint.baseClassOf(ctor);
       bp.mixinNames = Blueprint.mixinNamesOf(ctor);
@@ -124,6 +141,7 @@ export class BlueprintSeeder {
       bp.name = BlueprintSeeder.#derivedName(classPath);
       await bp.save();
       bySignature.set(signature, bp);
+      byId.add(id);
       inserted++;
     }
     return inserted;

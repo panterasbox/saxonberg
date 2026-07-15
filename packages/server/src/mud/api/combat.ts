@@ -93,6 +93,25 @@ export class CombatApi {
     logic().advance(session);
   }
 
+  /**
+   * A new combatant joins an existing fight (a gang-up / a bystander drawn
+   * in): a participant + `body` hold + a mutual threat edge under `terms`,
+   * side frozen from the party seam.
+   */
+  public static join(
+    joiner: Stuff & Engaged,
+    target: Stuff & Engaged,
+    terms: CombatTerms,
+  ): { ok: boolean; reason?: string } {
+    return logic().join(joiner, target, terms);
+  }
+
+  /** Fold two colliding fights into one (participants + edges move onto
+   * the survivor; the other's beat is torn down). */
+  public static merge(a: CombatSession, b: CombatSession): void {
+    logic().merge(a, b);
+  }
+
   /** Set the actor's intent for the next exchange (non-blocking). */
   public static queueGambit(actor: Stuff, gambitKey: string): GambitEligibility {
     return logic().queueGambit(actor, gambitKey);
@@ -139,6 +158,29 @@ export class CombatApi {
    */
   public static intervene(actor: Stuff, target: Stuff): boolean {
     return logic().intervene(actor, target);
+  }
+
+  /**
+   * `defend <ally>` — interpose: pull a foe's pressure off a pressed ally
+   * onto yourself (join the fight if needed, then redirect the foe's
+   * threat edge from the ally onto you).
+   */
+  public static defendAlly(
+    interposer: Stuff,
+    ally: Stuff,
+  ): { ok: boolean; reason?: string } {
+    return logic().defendAlly(interposer, ally);
+  }
+
+  /**
+   * Break off from a fight to leave (fleeing = a locomotion attempt made
+   * while engaged). A no-op when the actor isn't fighting; otherwise an
+   * opposed-lite disengage — a focus-fire pin blocks it (`ok:false`), and
+   * every foe still locked on gets a parting shot. The movement controller
+   * calls this before a traverse.
+   */
+  public static disengage(actor: Stuff): { ok: boolean; message?: string } {
+    return logic().disengage(actor);
   }
 
   /**

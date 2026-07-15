@@ -105,9 +105,6 @@ export default class AttackController extends CommandController<AttackModel> {
     if (!MixinApi.isEngaged(giver)) {
       return this.fail(context, "You can't fight.", "not-a-combatant");
     }
-    if (CombatApi.sessionFor(giver)) {
-      return this.fail(context, "You're already fighting.", "busy");
-    }
 
     const mine = standingTerms(giver, model.lethal, model.to);
     const theirs = standingTerms(target);
@@ -143,13 +140,41 @@ export default class AttackController extends CommandController<AttackModel> {
       consented,
     );
 
-    const opened = CombatApi.openSession(
-      giver as Stuff & Engaged,
-      target as Stuff & Engaged,
-      terms,
-    );
-    if (!opened.ok) {
-      return this.fail(context, "You can't start that fight.", opened.reason);
+    // The handshake: attacking someone already fighting *joins* their
+    // melee; attacking from mid-fight *draws the target in*; two separate
+    // fights colliding *merge*; otherwise a fresh session opens.
+    const giverSession = CombatApi.sessionFor(giver);
+    const targetSession = CombatApi.sessionFor(target);
+    let result: { ok: boolean; reason?: string };
+    if (giverSession && targetSession && giverSession !== targetSession) {
+      CombatApi.merge(giverSession, targetSession);
+      result = { ok: true };
+    } else if (targetSession) {
+      result = CombatApi.join(
+        giver as Stuff & Engaged,
+        target as Stuff & Engaged,
+        terms,
+      );
+    } else if (giverSession) {
+      result = CombatApi.join(
+        target as Stuff & Engaged,
+        giver as Stuff & Engaged,
+        terms,
+      );
+    } else {
+      const opened = CombatApi.openSession(
+        giver as Stuff & Engaged,
+        target as Stuff & Engaged,
+        terms,
+      );
+      result = opened.ok ? { ok: true } : { ok: false, reason: opened.reason };
+    }
+    if (!result.ok) {
+      return this.fail(
+        context,
+        "You can't start that fight.",
+        result.reason ?? "failed",
+      );
     }
 
     MessageApi.scene(giver)

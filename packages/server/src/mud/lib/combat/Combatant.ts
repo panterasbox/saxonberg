@@ -107,6 +107,7 @@ export function CombatantMixin<TBase extends MixinConstructor>(Base: TBase) {
         "combat/attack.yaml",
         "combat/fight.yaml",
         "combat/intervene.yaml",
+        "combat/defend.yaml",
       ],
       environment: [],
       inventory: [],

@@ -41,7 +41,7 @@ describe("AppSettingsSeeder", () => {
     pm.setFindResult([]);
     const added = await AppSettingsSeeder.run();
 
-    expect(added).toBe(98);
+    expect(added).toBe(101);
     expect(pm.saves).toHaveLength(1);
     expect(pm.saves[0]!.collection).toBe("app_settings");
     const values = savedValues(pm);
@@ -169,6 +169,10 @@ describe("AppSettingsSeeder", () => {
           [AppSettingKeys.combatCoupSeconds]: "6",
           [AppSettingKeys.combatRegardDuelWin]: "2",
           [AppSettingKeys.combatRegardUnlawfulKill]: "-20",
+          // The 3 cycle-2 multi-party combat tuning keys.
+          [AppSettingKeys.combatFocusFireErosionPerEdge]: "0.5",
+          [AppSettingKeys.combatFocusFireSuppressRecoveryAt]: "2",
+          [AppSettingKeys.combatFleePartingShotEnergy]: "1.6",
         },
       },
     ]);
@@ -199,8 +203,9 @@ describe("AppSettingsSeeder", () => {
     //   + condition + fracture + noWound + severityPerResidual
     //   + referenceEnergy + secondaryFactor + 2 band)
     // + 2 behavior (ambientCadenceScale, ambientCadenceFloorMs)
-    // + 23 combat (20 core 1v1 + 3 Build 2).
-    expect(added).toBe(97);
+    // + 23 combat (20 core 1v1 + 3 Build 2)
+    // + N multi-party combat (focus-fire + flee).
+    expect(added).toBe(100);
     expect(pm.saves).toHaveLength(1);
     const values = savedValues(pm);
     // operator value preserved, missing keys seeded

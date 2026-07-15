@@ -44,6 +44,7 @@ import { AetherMixin } from "../lib/message/Aether";
 import { ContactsMixin } from "../lib/social/Contacts";
 import { NotifyPolicyMixin } from "../lib/social/NotifyPolicy";
 import { SubjectSubscriberMixin } from "../lib/forum/SubjectSubscriber";
+import { PartyMemberMixin } from "../lib/party/PartyMember";
 import { Events } from "../lib/events";
 import type { User } from "../lib/identity/User";
 import type {
@@ -92,7 +93,9 @@ const AvatarBase = PersistableMixin(
     HasInteractiveMixin(
       AetherMixin(
         NotifyPolicyMixin(
-          ContactsMixin(SubjectSubscriberMixin(ShelledCharacter)),
+          ContactsMixin(
+            PartyMemberMixin(SubjectSubscriberMixin(ShelledCharacter)),
+          ),
         ),
       ),
     ),

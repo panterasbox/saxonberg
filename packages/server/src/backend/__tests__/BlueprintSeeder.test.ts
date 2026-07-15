@@ -115,4 +115,22 @@ describe('BlueprintSeeder — idempotency', () => {
     const second = await BlueprintSeeder.run(NO_OVERLAY);
     expect(second).toBe(0);
   });
+
+  it('does not collide on blueprintId when a class signature drifts', async () => {
+    // A class's structure can change between deploys (e.g. Avatar gaining a
+    // mixin). Its derived `blueprintId` is stable (from the class path) but
+    // its signature is new — so signature-dedup alone would try to insert a
+    // second row under the same unique `blueprintId` (the E11000 boot crash
+    // caught live). The id-dedup must skip it.
+    const ctors: Record<string, unknown> = { '/x/Foo': Alpha };
+    const { rows } = stubStore(['/x/Foo'], ctors);
+
+    expect(await BlueprintSeeder.run(NO_OVERLAY)).toBe(1);
+    expect(rows).toHaveLength(1);
+
+    // The class at /x/Foo gained a mixin: same blueprintId, new signature.
+    ctors['/x/Foo'] = Gamma;
+    expect(await BlueprintSeeder.run(NO_OVERLAY)).toBe(0);
+    expect(rows).toHaveLength(1); // no duplicate-id row inserted
+  });
 });

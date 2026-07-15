@@ -40,17 +40,20 @@ import { Quantity } from "../../../lib/quantity";
 import { CombatApi } from "../../../api/combat";
 import { CombatTerms, type TermsProposal } from "../../../lib/combat/CombatTerms";
 import {
-  COMBAT_SESSION_TYPE,
-  COMBAT_PARTNER_TYPE,
+  COMBAT_PARTICIPANT_TYPE,
   CombatSession,
-  CombatPartnerHold,
+  CombatParticipantHold,
 } from "../../../lib/combat/CombatSession";
+import { PartyApi } from "../../../api/party";
+import { PartyMemberMixin } from "../../../lib/party/PartyMember";
+import { Party } from "../../../lib/party/Party";
 import type { Channel } from "../../../lib/material/Channel";
 import EventRegistry from "../../../obj/EventRegistry";
 import { EventApi } from "../../../api/event";
 
 class TestRoom extends ContainerMixin(Idea) {}
 class TestFighter extends Character {}
+class TestPartyFighter extends PartyMemberMixin(TestFighter) {}
 
 let seq = 0;
 
@@ -72,6 +75,7 @@ interface FighterOpts {
   natural?: Channel;
   weaponForm?: string;
   weaponMaterial?: Material;
+  ctor?: new () => TestFighter;
 }
 
 function makeFighter(room: TestRoom, opts: FighterOpts = {}): TestFighter {
@@ -108,7 +112,11 @@ function makeFighter(room: TestRoom, opts: FighterOpts = {}): TestFighter {
   species.setBodyPlan(plan);
   stampTemplatePathForTest(species, `/lib/species/test/fighter-${id}`);
 
-  const f = makeStuff(() => new TestFighter());
+  const f = makeStuff(() => new (opts.ctor ?? TestFighter)());
+  // A distinct templatePath per fighter — combat's side seam keys a
+  // partyless combatant's `solo:<templatePath>` on it (production
+  // combatants always carry one).
+  stampTemplatePathForTest(f, `/test/fighter-${id}`);
   f.setSpecies(species);
   if (opts.natural) f.naturalAttackChannel = opts.natural;
   ContainmentApi.move(f as never, room as never);
@@ -144,6 +152,11 @@ const lethal: TermsProposal = {
   stakes: "",
 };
 
+// Track opened sessions so we can tear down their real-time recurring
+// tick after each test (the beat is now a `ScheduleApi.recurring` timer,
+// not a game-clock emission — an unresolved fight would leak a handle).
+const openSessions: CombatSession[] = [];
+
 function open(
   a: TestFighter,
   b: TestFighter,
@@ -157,6 +170,7 @@ function open(
   );
   const res = CombatApi.openSession(a as never, b as never, terms);
   if (!res.ok) throw new Error(`openSession failed: ${res.reason}`);
+  openSessions.push(res.session);
   return res.session;
 }
 
@@ -168,12 +182,17 @@ beforeEach(async () => {
   installV1QuantityMarshallers();
   StuffApi.clearAll();
   SchedulerApi._clearAllForTesting();
-  SchedulerApi.registerActivity(COMBAT_SESSION_TYPE, CombatSession);
-  SchedulerApi.registerActivity(COMBAT_PARTNER_TYPE, CombatPartnerHold);
+  SchedulerApi.registerActivity(
+    COMBAT_PARTICIPANT_TYPE,
+    CombatParticipantHold,
+  );
   await bootRegistry();
 });
 
 afterEach(() => {
+  // Tear down any still-running fight so its recurring tick handle is
+  // cancelled (dissolve is idempotent on a resolved session).
+  for (const s of openSessions.splice(0)) s.dissolve();
   StuffApi.clearAll();
 });
 
@@ -184,8 +203,10 @@ describe("CombatLogic — session lifecycle", () => {
     const b = makeFighter(room, { weaponForm: "bladed" });
     const session = open(a, b, nonLethal);
 
-    expect(a.getEngagementBySlot("body")?.type).toBe(COMBAT_SESSION_TYPE);
-    expect(b.getEngagementBySlot("body")?.type).toBe(COMBAT_PARTNER_TYPE);
+    // Every participant carries the same uniform hold (the initiator no
+    // longer holds a distinct session engagement).
+    expect(a.getEngagementBySlot("body")?.type).toBe(COMBAT_PARTICIPANT_TYPE);
+    expect(b.getEngagementBySlot("body")?.type).toBe(COMBAT_PARTICIPANT_TYPE);
     expect(CombatApi.sessionFor(a)).toBe(session);
     expect(CombatApi.sessionFor(b)).toBe(session);
   });
@@ -264,7 +285,7 @@ describe("CombatLogic — gambit eligibility (injury edits the menu)", () => {
     const room = makeStuff(() => new TestRoom());
     const a = makeFighter(room, { weaponForm: "bladed" });
     const b = makeFighter(room, { weaponForm: "bladed" });
-    const session = open(a, b, nonLethal);
+    open(a, b, nonLethal);
     expect(CombatApi.eligibilityFor(a, "strike").ok).toBe(true);
 
     // Fracture the grip slot's part (body.arm.right) hard enough to impair.
@@ -383,6 +404,140 @@ describe("CombatLogic — the exchange writes consequence", () => {
     CombatApi.advance(session);
     // The riposte landed on the attacker.
     expect(atkr.getConditions().some((c) => c.kind === "trauma")).toBe(true);
+  });
+});
+
+describe("CombatLogic — melee (sides + join)", () => {
+  /** Seed a two-member ad-hoc Party Idea straight into the graph. */
+  function seedParty(a: TestFighter, b: TestFighter): void {
+    const p = makeStuff(() => new Party());
+    stampTemplatePathForTest(p, `/obj/party/crew-${seq++}`);
+    p.setName(`crew-${seq++}`);
+    p.setCombatSide("faction:allies");
+    p.addMember(a.getTemplatePath()!);
+    p.addMember(b.getTemplatePath()!);
+    const path = p.getTemplatePath()!;
+    (a as unknown as { activePartyPath: string }).activePartyPath = path;
+    (b as unknown as { activePartyPath: string }).activePartyPath = path;
+  }
+
+  it("an ally joins on your side; allies never get an attack edge, and 2v1 downs the lone foe", () => {
+    const room = makeStuff(() => new TestRoom());
+    const player = makeFighter(room, {
+      ctor: TestPartyFighter,
+      weaponForm: "bladed",
+      weaponMaterial: steel(),
+    });
+    const ally = makeFighter(room, {
+      ctor: TestPartyFighter,
+      weaponForm: "bladed",
+      weaponMaterial: steel(),
+    });
+    const foe = makeFighter(room, { weaponForm: "bladed" });
+    seedParty(player, ally);
+
+    // Player and ally are allied; the foe is a solo side.
+    expect(PartyApi.areAllied(player, ally)).toBe(true);
+    expect(PartyApi.areAllied(player, foe)).toBe(false);
+
+    const session = open(player, foe, lethal, true);
+    // The ally joins the fight on the foe.
+    const joined = CombatApi.join(ally as never, foe as never, session.getTerms());
+    expect(joined.ok).toBe(true);
+    expect(session.getCombatants()).toHaveLength(3);
+
+    for (let i = 0; i < 40 && session.isActive(); i++) {
+      CombatApi.advance(session);
+    }
+
+    // Allies never opened an attack edge on each other.
+    const graph = session.getGraph();
+    expect(graph.edgeBetween(player, ally)).toBeUndefined();
+    expect(graph.edgeBetween(ally, player)).toBeUndefined();
+    // The lone foe went down under the 2v1 (dead or the fight resolved).
+    expect(
+      foe.getLifecycleState() === "dead" || !session.isActive(),
+    ).toBe(true);
+  });
+
+  it("focus-fire: a lone defender falls faster to two attackers than to one", () => {
+    const beatsToResolve = (nAttackers: number): number => {
+      const room = makeStuff(() => new TestRoom());
+      const attackers = Array.from({ length: nAttackers }, () =>
+        makeFighter(room, {
+          ctor: TestPartyFighter,
+          weaponForm: "bladed",
+          weaponMaterial: steel(),
+        }),
+      );
+      const defender = makeFighter(room, {
+        weaponForm: "bladed",
+        weaponMaterial: steel(),
+      });
+      if (nAttackers === 2) seedParty(attackers[0]!, attackers[1]!);
+      const session = open(attackers[0]!, defender, lethal, true);
+      for (let i = 1; i < nAttackers; i++) {
+        CombatApi.join(attackers[i]! as never, defender as never, session.getTerms());
+      }
+      let beats = 0;
+      while (session.isActive() && beats < 200) {
+        CombatApi.advance(session);
+        beats++;
+      }
+      return beats;
+    };
+    // Deterministic engine (poker, not slots): the same setup resolves in
+    // the same number of beats, and two attackers (focus-fire + double the
+    // exchanges) down the lone defender strictly sooner.
+    expect(beatsToResolve(2)).toBeLessThan(beatsToResolve(1));
+  });
+
+  it("defend <ally> interposes: the foe's edge redirects off the ally onto you", () => {
+    const room = makeStuff(() => new TestRoom());
+    const player = makeFighter(room, {
+      ctor: TestPartyFighter,
+      weaponForm: "bladed",
+    });
+    const ally = makeFighter(room, { ctor: TestPartyFighter, weaponForm: "bladed" });
+    const foe = makeFighter(room, { weaponForm: "bladed" });
+    seedParty(player, ally);
+
+    // The ally is fighting the foe; the player is not yet engaged.
+    const session = open(ally, foe, lethal, true);
+    expect(session.getGraph().edgeBetween(foe, ally)).toBeDefined();
+    expect(CombatApi.sessionFor(player)).toBeUndefined();
+
+    const res = CombatApi.defendAlly(player, ally);
+    expect(res.ok).toBe(true);
+    // The player joined the fight; the foe now presses the player, not the ally.
+    expect(CombatApi.sessionFor(player)).toBe(session);
+    const graph = session.getGraph();
+    expect(graph.edgeBetween(foe, ally)).toBeUndefined();
+    expect(graph.edgeBetween(foe, player)).toBeDefined();
+  });
+
+  it("fleeing: a lone foe lets you break off; two attackers pin you", () => {
+    // 1v1 → the disengage succeeds and drops you from the fight.
+    const room1 = makeStuff(() => new TestRoom());
+    const attacker = makeFighter(room1, { weaponForm: "bladed" });
+    const fleer = makeFighter(room1, { weaponForm: "bladed" });
+    const session1 = open(attacker, fleer, lethal, true);
+    expect(CombatApi.sessionFor(fleer)).toBe(session1);
+    const broke = CombatApi.disengage(fleer);
+    expect(broke.ok).toBe(true);
+    expect(CombatApi.sessionFor(fleer)).toBeUndefined();
+
+    // 2-on-1 → the focus-fire pin vetoes the break.
+    const room2 = makeStuff(() => new TestRoom());
+    const a1 = makeFighter(room2, { ctor: TestPartyFighter, weaponForm: "bladed" });
+    const a2 = makeFighter(room2, { ctor: TestPartyFighter, weaponForm: "bladed" });
+    const pinned = makeFighter(room2, { weaponForm: "bladed" });
+    seedParty(a1, a2);
+    const session2 = open(a1, pinned, lethal, true);
+    CombatApi.join(a2 as never, pinned as never, session2.getTerms());
+    const blocked = CombatApi.disengage(pinned);
+    expect(blocked.ok).toBe(false);
+    expect(CombatApi.sessionFor(pinned)).toBe(session2); // still stuck in it
   });
 });
 
