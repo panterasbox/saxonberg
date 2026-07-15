@@ -285,7 +285,7 @@ describe("CombatLogic — gambit eligibility (injury edits the menu)", () => {
     const room = makeStuff(() => new TestRoom());
     const a = makeFighter(room, { weaponForm: "bladed" });
     const b = makeFighter(room, { weaponForm: "bladed" });
-    const session = open(a, b, nonLethal);
+    open(a, b, nonLethal);
     expect(CombatApi.eligibilityFor(a, "strike").ok).toBe(true);
 
     // Fracture the grip slot's part (body.arm.right) hard enough to impair.

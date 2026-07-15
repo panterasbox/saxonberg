@@ -53,11 +53,11 @@ export class Party extends Idea {
   /** Party fields are MQL-projectable — a party is queryable by member,
    * side, captain, and name like any other Stuff. */
   static subscribableFields: SubscribableFieldDescriptor[] = [
-    { name: "name", read: (s) => (s as unknown as Party).getName() },
-    { name: "memberIds", read: (s) => [...(s as unknown as Party).getMemberIds()] },
-    { name: "captainId", read: (s) => (s as unknown as Party).getCaptainId() },
-    { name: "combatSide", read: (s) => (s as unknown as Party).getCombatSide() },
-    { name: "durable", read: (s) => (s as unknown as Party).isDurable() },
+    { name: "name", read: (s) => (s as Party).getName() },
+    { name: "memberIds", read: (s) => [...(s as Party).getMemberIds()] },
+    { name: "captainId", read: (s) => (s as Party).getCaptainId() },
+    { name: "combatSide", read: (s) => (s as Party).getCombatSide() },
+    { name: "durable", read: (s) => (s as Party).isDurable() },
   ];
 
   /** @authorable */ public name: string = "";
