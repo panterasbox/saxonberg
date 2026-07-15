@@ -575,7 +575,7 @@ points readers here.
 | `Idea` | `Stuff` | No spatial mixin. Default for incorporeal entities. |
 | `Thing` | `ContainableMixin(Stuff)` | "I live somewhere." |
 | `Location` | `ContainerMixin(Stuff)` | "I'm a place." Subclasses (`CartesianLocation`, `SphericalLocation`, …) layer on coordinate / Visible / Exitable mixins. |
-| `Vessel` | `ContainerMixin(ContainableMixin(Stuff))` | Both Container AND Containable. `ExitableVessel` etc. layer on navigation. |
+| `Vessel` | `Atmospheric(Container(Visible(Perceptible(Tangible(Containable(Stuff))))))` | Both Container AND Containable, and carries Thing's describable-physical baseline (`Visible`/`Perceptible`/`Tangible`) **directly** (not by extending Thing — a ship isn't a pocketable item), so a describable container is a plain `DetailedMixin(Vessel)` with no re-added `Visible`. `ExitableVessel` etc. layer on navigation. |
 | `Agent` | `Stuff` | Subclasses (Character → Avatar) layer on Mobile / Container / Containable / Sensor / Vocal / etc. |
 | `Shadow` | `Stuff` (abstract) | Framework-internal — not in-world Stuff. See [call-security.md](./subsystems/call-security.md). |
 
