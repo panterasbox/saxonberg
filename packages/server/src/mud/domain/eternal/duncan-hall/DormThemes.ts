@@ -6,7 +6,8 @@
  * `remodel` prompt — so neither is a typed `decorate <theme>` verb.
  *
  * A *theme* is a prose bundle keyed by role (`room` + `bed`/`desk`/
- * `footlocker`), authored in `config/dorm-themes.yaml`. **Function is fixed by
+ * `footlocker`), authored in `dorm-themes.yaml` alongside this class (Duncan
+ * Hall content, not global config). **Function is fixed by
  * the backing class**: {@link applyTo} writes only `PROSE_SETTERS` fields
  * (short/long description) through the gated setters; a bundle naming any other
  * field is refused **whole** (nothing is written) — the function-fixed /
@@ -51,7 +52,7 @@ interface Theme {
 
 function defaultThemesPath(): string {
   const here = dirname(fileURLToPath(import.meta.url));
-  return join(here, '../../../config/dorm-themes.yaml');
+  return join(here, 'dorm-themes.yaml');
 }
 
 /** Thrown by {@link DormThemes.applyTo} — an unknown theme or a non-prose

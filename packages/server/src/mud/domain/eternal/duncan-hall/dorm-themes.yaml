@@ -13,7 +13,8 @@
 # infrastructure, not tenant-personalizable, so they carry no role here.
 #
 # Loaded by `DormThemes` (the ParcelSeeder readFileSync + YAML.parse
-# precedent). NOT a Stuff template — a content data file under mud/config/.
+# precedent). NOT a Stuff template — a content data file living alongside the
+# Duncan Hall content it belongs to, not in the global mud/config/ dir.
 
 themes:
   miner:

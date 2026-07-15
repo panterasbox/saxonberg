@@ -253,7 +253,7 @@ pick.)
   room.getPersistenceKey())` to seal. A non-prose field throws
   `DormThemeError` — the bundle is refused **whole**, nothing written (the
   function-fixed / code-trust boundary). Theme data is authored in
-  `mud/config/dorm-themes.yaml` (the vocation set, keyed by role).
+  `domain/eternal/duncan-hall/dorm-themes.yaml` (the vocation set, keyed by role).
 - **Move-in → Katie** (the diegetic front): her intake dialogue's style
   choices each `dispatch` `provision $player --theme <style>`; `provision`'s
   `--theme` option admits the room and calls `DormThemes.applyTo` **as the
