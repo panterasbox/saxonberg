@@ -1,4 +1,4 @@
-# Service — the storefront-attention substrate (staging)
+# Attendant — the storefront-attention substrate (staging)
 
 > **Status: locked design, 2026-07-15. NOT built.** A *universal* subsystem —
 > "walk into a storefront, wait, get attended to one at a time." Every service
@@ -28,13 +28,13 @@ exclusive access.
 An **attention relationship**: a *server* attends *customers* one at a time; the
 rest wait in an *order*; being-attended unlocks a venue-specific *service act*.
 
-- **Service Point** — the counter / desk / window / register where service
+- **Attendant Point** — the counter / desk / window / register where service
   happens. A venue has one or more. It owns the queue.
 - **Server(s)** — who attends (an NPC, or a player employee), drawn from the
   employment roster's **on-shift** set. A server attends *one* customer at a time
   — that's where "one at a time" comes from. More servers = more parallel lanes.
 - **The Queue** — the ordered set of those waiting for a server to free up.
-- **The Service Act** — the venue's own verb (`order` / `deposit` / `buy-fare`),
+- **The Attendant Act** — the venue's own verb (`order` / `deposit` / `buy-fare`),
   gated on *being currently attended*. **The subsystem is the wrapping (getting
   seen); the verb is the payload.** Bar, bank, ticket office = the same wrapping
   around a different payload verb.
@@ -59,7 +59,7 @@ Every venue sets these; the substrate is shared:
    staff).
 2. **Queue discipline** — FIFO line / take-a-number / by-appointment / scrum /
    status-priority. *How the order is decided.*
-3. **Service duration** — instant / a beat / a real dwell. *How long a server is
+3. **Attendant duration** — instant / a beat / a real dwell. *How long a server is
    occupied per customer* (a soda is instant; a loan talk is a dwell).
 4. **Priority & skip** — who jumps (recognized / premium / staff). *The status
    lever* (being known = being received).
@@ -136,8 +136,8 @@ reached for now. Idle-eviction + back-of-line is the complete-enough core.
 
 ## 5. In Stuff terms (and what's shipped)
 
-- **A `ServiceMixin`** on the service-point fixture (a `Thing`) — holds the queue
-  state + the config above. New — this is a real new subsystem (`lib/service/`,
+- **A `AttendantMixin`** on the service-point fixture (a `Thing`) — holds the queue
+  state + the config above. New — this is a real new subsystem (`lib/attendant/`,
   name provisional).
 - **Servers = on-shift employees** — the employment engine already models "who's
   working"; servers are the staff assigned to a point. Reuse.
@@ -163,8 +163,8 @@ reached for now. Idle-eviction + back-of-line is the complete-enough core.
 
 The bar (`order`/`serve`/`mix`), the bank (`bank open`/`deposit`/`pay`), the TPA
 ticket office (`buy` a fare), future shops — **same wrapping, venue payload verb,
-per-venue config.** Adopting Service **retrofits the existing venues**: the bar
-becomes a Service instance (it can configure *zero-wait* to behave exactly as it
+per-venue config.** Adopting Attendant **retrofits the existing venues**: the bar
+becomes a Attendant instance (it can configure *zero-wait* to behave exactly as it
 does today, but it *runs the subsystem*); the ticket office likewise. The Goodkin
 bank is then just the config *reception / priority-skip, near-zero duration, warm
 eviction*.
@@ -186,7 +186,7 @@ the exclusive access. Anything less is the half-grown, exploitable version we
 don't build.
 
 It's a **foundational subsystem, not a bank feature.** The correct scope: build
-Service *complete* (the disciplines that matter, the engagement, the lease) and
+Attendant *complete* (the disciplines that matter, the engagement, the lease) and
 make bar + bank + ticket-office real instances — bigger than "the bank," but
 right. **Sequence it before the Goodkin bank** (it's underneath everything), so
 the bank arrives as one clean instance of it.
@@ -202,7 +202,7 @@ guard** (see the `anti-grief-resource-guards` memory):
 - **Exclusive resource** — one holder at a time (a server's attention, a
   workbench, a single-occupancy machine, a podium, a research station) → a
   **LEASE**: held only while actively used, **revoked on idle** (§4). The
-  lock-*hog* guard; kin to residency's eviction. Service's service-lease is its
+  lock-*hog* guard; kin to residency's eviction. Attendant's service-lease is its
   first consumer.
 - **Common-pool resource** — a shared pool everyone draws from (a cash till, a
   limited stock, a shared supply) → a **QUOTA**: a per-actor cap so no one

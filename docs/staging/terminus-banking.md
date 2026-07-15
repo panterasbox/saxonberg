@@ -286,7 +286,7 @@ status-gated / value-gated) and *the knowing* (the basis trust is earned on).
   standing exist now. Goodkin's is the **Circle** (a persistent membership marker
   set by the enrollment ceremony). **The Circle is NOT inert in v1** — it's the
   recognized-standing *key* the perks we already designed hang off: **reception**
-  (skip the queue — the recognition-gated Service config) + a **higher cash quota**
+  (skip the queue — the recognition-gated Attendant config) + a **higher cash quota**
   (the standing-scaled withdrawal limit §8). So being in the Circle *does
   something* (you're received, you can pull more cash) without building the
   deferred faction system — a complete record with deferred *further* consumers
@@ -305,7 +305,7 @@ isn't *required* to open (Goodkin's minimum is 0 — even the broke are welcomed
 it's what makes the account (and the card) actually *work*.
 
 1. **Intercept (hall)** — the officer (Halloran) crosses to the newcomer rather
-   than let them queue. *(Goodkin's Service config: the recognized / newcomers are
+   than let them queue. *(Goodkin's Attendant config: the recognized / newcomers are
    **received**, not lined up — see the queue/skin note below.)*
 2. **Welcome + name (parlor)** — coffee you didn't ask for; you give your name →
    **recognition begins** (a belief write; he greets you by name next time).
@@ -332,15 +332,15 @@ leash lives in the Circle/housing steer, not in hiding the mechanics). (b)
 little parlor↔hall movement. (c) the enrollment is a **dialogue tree**
 (`SustainedEngagement`) with the banking verbs run inside its frame.
 
-### Queuing / being-served = the Service subsystem
+### Queuing / being-served = the Attendant subsystem
 
 "You queue up and get heard one at a time" is **not** a bank feature — it's a
 universal storefront-attention pattern now designed as its own foundational
-substrate: [service-subsystem.md](./service-subsystem.md). The bank *runs* it; the
+substrate: [attendant-subsystem.md](./attendant-subsystem.md). The bank *runs* it; the
 per-corpo queue behavior (Goodkin **reception** / Veshko **take-a-number** /
 Hollis scrum / Vionne appointment) is **config** on the shared subsystem, and the
 **anti-grief lease/eviction** (exclusive attention is a lease, not a lock — revoked
-on idle) is core to it. Build Service *before* the bank so the bank is one clean
+on idle) is core to it. Build Attendant *before* the bank so the bank is one clean
 instance.
 
 ### The Dave's Bar tab — remove it
@@ -424,8 +424,8 @@ in wanting money-services and the district tells you where you stand.
   deferred banking wave.
 - **The till is a common-pool resource → it needs a quota (anti-grief).** A single
   actor draining the whole reserve to deny others is a **commons-drain** grief —
-  the sibling of the Service lock-hog (see
-  [service-subsystem.md](./service-subsystem.md) §8 + the anti-grief-resource-guards
+  the sibling of the Attendant lock-hog (see
+  [attendant-subsystem.md](./attendant-subsystem.md) §8 + the anti-grief-resource-guards
   memory). Guard = a **per-account cash-withdrawal cap per period** (real-finance:
   ATM / daily limits, for exactly this liquidity + fraud reason). Over the cap →
   diegetic refusal + push onto the ledger (transfer / card) — which *also*
