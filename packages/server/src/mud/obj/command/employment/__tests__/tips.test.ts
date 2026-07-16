@@ -38,7 +38,7 @@ import {
   teardownBankingHarness,
 } from '../../../../lib/banking/__tests__/banking-test-harness';
 
-const BANK = '/domain/eternal/university-avenue/bank';
+const BANK = '/domain/terminus/counting-houses/bank-counter';
 const PATRON = '/obj/Avatar/patron';
 const MARA = '/domain/lounge/npc/mara';
 

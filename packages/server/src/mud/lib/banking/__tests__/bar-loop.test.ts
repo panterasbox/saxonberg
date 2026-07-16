@@ -35,7 +35,7 @@ class TestAvatar extends ContainerMixin(ContainableMixin(Idea)) {
   static _mixinName = "TestAvatar";
 }
 
-const BANK = "/domain/eternal/university-avenue/bank";
+const BANK = "/domain/terminus/counting-houses/bank-counter";
 const BAR = "/domain/lounge/bar";
 const PATRON = "/obj/Avatar/patron";
 
