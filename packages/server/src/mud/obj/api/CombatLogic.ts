@@ -9,6 +9,7 @@ import type { Engaged } from "../../lib/activity/Engaged";
 import { MixinApi } from "../../api/mixin";
 import { MaterialApi } from "../../api/material";
 import { ConditionApi } from "../../api/condition";
+import { ElectricityApi } from "../../api/electricity";
 import { SchedulerApi } from "../../api/scheduler";
 import { ScheduleApi } from "../../api/schedule";
 import { StuffApi } from "../../api/stuff";
@@ -684,6 +685,14 @@ function commitInflict(
   // single striker at resolution time (the per-edge blame foundation).
   if (outcome.afflicted) {
     targetState.lastStruckBy = actorState.combatant;
+  }
+  // An energized weapon (a stun baton) ALSO delivers a shock on contact —
+  // a direct two-terminal circuit through the target, routed via
+  // ElectricityApi.shockContact → ConditionApi.inflict({mechanism:'shock'}),
+  // never the mechanical fold. The mechanical blow above is untouched.
+  const weapon = instrument?.weapon;
+  if (weapon && MixinApi.isEnergized(weapon)) {
+    ElectricityApi.shockContact(weapon, target);
   }
   const band = outcome.afflicted
     ? MaterialApi.severityToBand(outcome.trauma.severity)

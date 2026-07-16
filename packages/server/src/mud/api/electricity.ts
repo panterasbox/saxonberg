@@ -89,6 +89,23 @@ export class ElectricityApi {
   }
 
   /**
+   * A **direct two-terminal contact shock** — a stun baton / taser. A contact
+   * device completes its own circuit through its electrodes on the victim, so
+   * it needs no ground path and no conductive medium: `I = V / R_body`
+   * straight through the contact, inflicted via the same
+   * `ConditionApi.inflict({mechanism:'shock'})` door as the ambient walk.
+   * The combat toe-hold — a landed baton hit routes here, never the
+   * mechanical fold. Returns the (single) outcome, or empty for a dead source
+   * / non-body victim.
+   */
+  public static shockContact(
+    source: Stuff & Energized,
+    victim: Stuff,
+  ): ConductionOutcome[] {
+    return logic().shockContact(source, victim);
+  }
+
+  /**
    * Does `node` have a conductive path to ground (the room's `Floor`)? The
    * grounding-legibility read: false for a body on a dry insulated step, in
    * rubber boots, or perched touching only a live node (bird-on-a-wire).

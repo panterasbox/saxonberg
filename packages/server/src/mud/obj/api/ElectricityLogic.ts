@@ -60,6 +60,15 @@ export class ElectricityLogic extends ApiLogic {
     return divideCurrent(source, victim, buildConductiveGraph(room));
   }
 
+  /** See {@link ElectricityApi.shockContact}. */
+  @CallSecurity(ElectricityApiCallers)
+  public shockContact(
+    source: Stuff & Energized,
+    victim: Stuff,
+  ): ConductionOutcome[] {
+    return shockContactImpl(source, victim);
+  }
+
   /** See {@link ElectricityApi.pathToGround}. */
   @CallSecurity(ElectricityApiCallers)
   public pathToGround(node: Stuff): boolean {
@@ -452,6 +461,36 @@ function conductImpl(source: Stuff & Energized): ConductionOutcome[] {
     out.push({ victim, currentThrough: current });
   }
   return out;
+}
+
+/**
+ * A **direct two-terminal contact shock** — the stun-baton / taser path. A
+ * contact device completes its own circuit through its two electrodes on the
+ * victim, so it needs NO ground path and NO conductive medium: the current
+ * is `I = V / (bodyResistance + worn-series)` straight through the contact.
+ * Distinct from `conduct` (the ambient graph walk) — the honest unification
+ * is that both end at `ConditionApi.inflict({mechanism:'shock', current})`.
+ * A single victim; still upserts the being-shocked sustain (a held baton
+ * keeps shocking). A no-op for a de-energized source.
+ */
+function shockContactImpl(
+  source: Stuff & Energized,
+  victim: Stuff,
+): ConductionOutcome[] {
+  if (!MixinApi.isVitals(victim)) return [];
+  const v = effectiveVoltage(source);
+  if (v.rawValue() <= 0) return [];
+  const bodyR = MaterialApi.bodyResistance(
+    MaterialApi.materialOf(victim),
+    false,
+  ).rawValue();
+  const rPath = Quantity.of(pathResistance(bodyR, victim), 'Ω');
+  const current = MaterialApi.ohmsCurrent(v, rPath);
+  if (current.rawValue() <= 0) return [];
+  const site = contactSiteFor(victim);
+  ConditionApi.inflict(victim, { mechanism: 'shock', site, current });
+  maybeSustain(source, victim, current.rawValue(), site);
+  return [{ victim, currentThrough: current }];
 }
 
 /**
