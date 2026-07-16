@@ -395,12 +395,13 @@ Goodkin bank runs.
   vault coin; the banking verbs open a disbursement window
   (`_beginDisbursing`/`_endDisbursing`, gated to the banking module) around the
   one legitimate withdrawal, so "loot the drawer" is impossible.
-- **The opening float (`seedFloat`).** A branch's founding capital: mint coin into
-  the till AND credit the branch's own operating account against it (backed 1:1 →
-  conservation holds). Seeded lazily on the first `openAccount` at the branch (the
-  counter is guaranteed live then, which a boot-time seed can't guarantee),
-  idempotent. Lets early ledger-credit withdrawals work before deposits
-  accumulate. `banking.openingFloat` AppSetting.
+- **The opening float.** A branch's founding capital: mint coin into the till
+  AND credit the branch's own operating account against it (backed 1:1 →
+  conservation holds). Seeded **lazily inside `openAccount`** on the first
+  customer at the branch (the counter is guaranteed live then, which a boot-time
+  seed can't guarantee), idempotent — a module-internal op, not a public verb.
+  Lets early ledger-credit withdrawals work before deposits accumulate.
+  `banking.openingFloat` AppSetting.
 - **Goodkin re-homed.** From the placeholder `/domain/eternal/university-avenue/bank`
   into the Terminus **Counting-Houses** (`domain/terminus/counting-houses/`): a
   Locality + zone + a public avenue block (the four rival frontages as prose) +

@@ -1357,41 +1357,11 @@ export class BankingLogic extends ApiLogic {
     return ensureCorpoTreasuryImpl(corpoKey, bankPath);
   }
 
-  /**
-   * See {@link BankingApi.seedFloat}. Seed a live branch's opening vault float:
-   * mint coin into the till (supply grows) AND credit the branch's own
-   * operating account against it, so the founding cash is backed 1:1 by the
-   * bank's own balance (conservation + the custodial invariant hold). Best-
-   * effort + idempotent — a no-op if the branch isn't live yet or already has a
-   * balance. Returns whether it seeded. Lets early withdrawals work before
-   * customer deposits accumulate.
-   */
-  @CallSecurity(BankingApiCallers)
-  public async seedFloat(bankPath: string, amount: Money): Promise<boolean> {
-    return seedFloatImpl(bankPath, amount);
-  }
-
-  /** See {@link BankingApi.withdrawnToday}. Cash drawn from an account today. */
-  @CallSecurity(BankingApiCallers)
-  public async withdrawnToday(accountId: string): Promise<number> {
-    return withdrawnTodayImpl(accountId);
-  }
-
-  /**
-   * See {@link BankingApi.setAccountCircle}. Set the Circle affiliation marker
-   * on an account (the enrollment ceremony's write) — confers the raised
-   * withdrawal quota. Idempotent; a no-op for an unknown account.
-   */
-  @CallSecurity(BankingApiCallers)
-  public async setAccountCircle(
-    accountId: string,
-    isCircle: boolean,
-  ): Promise<void> {
-    const account = await accountByIdImpl(accountId);
-    if (!account) return;
-    account.isCircle = isCircle;
-    await account.save();
-  }
+  // The opening float (seedFloatImpl) and the withdrawal-quota reader
+  // (withdrawnTodayImpl) are NOT public Api methods: the float triggers lazily
+  // on the first openAccount, and the quota is read inside withdraw. Both are
+  // module-internal — exposing them would put internal ops on the author
+  // surface (callable == visible == cared-about) with no author consumer.
 
   /**
    * See {@link BankingApi.enrollCircle}. Enrol `ownerKey`'s account at a

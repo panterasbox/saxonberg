@@ -150,8 +150,9 @@ describe("Withdrawal quota — the common-pool till guard", () => {
     });
     // First 50 is under the 60 cap.
     await asOwner(alice, () => BankingApi.withdraw(bank, Money.of(50)));
-    expect(await BankingApi.withdrawnToday(acct)).toBe(50);
-    // A further 25 would breach the cap (50 + 25 > 60) → refused.
+    expect(BankingApi.balanceOf(acct).minor).toBe(50);
+    // A further 25 would breach the cap (50 already drawn + 25 > 60) → refused
+    // (the quota derives the day's withdrawals over the ledger).
     await expect(
       asOwner(alice, () => BankingApi.withdraw(bank, Money.of(25))),
     ).rejects.toThrow(/limit/);
@@ -173,7 +174,8 @@ describe("Withdrawal quota — the common-pool till guard", () => {
       await BankingApi.deposit(bank, coins);
       return id;
     });
-    await BankingApi.setAccountCircle(acct, true);
+    // Enrol Alice into the Circle (the real enrollment write) → raised cap.
+    expect(await BankingApi.enrollCircle(ALICE, "goodkin")).toBe(true);
     // 90 would breach the stranger cap (60) but is under the Circle cap (500).
     await asOwner(alice, () => BankingApi.withdraw(bank, Money.of(90)));
     expect(BankingApi.balanceOf(acct).minor).toBe(10);
