@@ -132,6 +132,7 @@ const FORM_GUARD: Record<DeliveryForm, GuardClass> = {
   pointed: "fair",
   hafted: "fair",
   flail: "none",
+  whip: "none",
 };
 
 /** Numeric guard factor per guard class (the reactive-parry multiplier). */
@@ -148,13 +149,15 @@ const GUARD_FACTOR: Record<GuardClass, number> = {
  * mass nudge (a heavier weapon of a form runs a touch longer). */
 function defaultLengthFor(form: DeliveryForm | null, massKg: number): number {
   const base =
-    form === "pointed"
-      ? 1.6
-      : form === "hafted" || form === "flail"
-        ? 0.9
-        : form === "bladed"
-          ? 0.55
-          : 0.4;
+    form === "whip"
+      ? 2.2 // a whip is the long-reach extreme
+      : form === "pointed"
+        ? 1.6
+        : form === "hafted" || form === "flail"
+          ? 0.9
+          : form === "bladed"
+            ? 0.55
+            : 0.4;
   return base + Math.min(3, Math.max(0, massKg)) * 0.12;
 }
 

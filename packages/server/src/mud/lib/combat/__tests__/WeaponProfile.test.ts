@@ -45,6 +45,13 @@ const SWORD: WeaponProfileInputs = {
   lengthM: 0.9,
   handSlots: 1,
 };
+/** The seeded whip's shape (the long, guardless reach extreme). */
+const WHIP: WeaponProfileInputs = {
+  deliveryForm: "whip",
+  massKg: 0.6,
+  lengthM: 2.5,
+  handSlots: 1,
+};
 
 describe("WeaponProfile — reach derives from length", () => {
   it("short / medium / long track the authored length", () => {
@@ -123,6 +130,27 @@ describe("WeaponProfile — guard derives from form", () => {
     // The flail's own guard is still 'none', but the assist gives it a
     // non-zero factor (a dual-wield off-hand covers the guardless main).
     expect(flailWithOffhand.guardFactor()).toBeGreaterThan(0);
+  });
+});
+
+describe("WeaponProfile — the whip (long, guardless reach extreme)", () => {
+  it("is long-reach and cannot self-guard", () => {
+    const whip = WeaponProfile.derive(WHIP);
+    expect(whip.reach()).toBe("long");
+    expect(whip.guard()).toBe("none");
+    expect(whip.canParry()).toBe(false);
+    expect(whip.delivery()).toBe("whip");
+    expect(whip.isInert()).toBe(false);
+  });
+
+  it("defaults to long reach even unauthored (the reach extreme)", () => {
+    const bare = WeaponProfile.derive({
+      deliveryForm: "whip",
+      massKg: 0.5,
+      lengthM: 0,
+      handSlots: 1,
+    });
+    expect(bare.reach()).toBe("long");
   });
 });
 

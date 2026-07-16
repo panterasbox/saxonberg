@@ -198,6 +198,22 @@ const GAMBITS: Record<string, GambitSpec> = {
     flagOnLand: "prone",
   },
   /**
+   * The **entangle** — a whip's signature: wrap the lash round a limb or
+   * weapon and bind the foe up. Afforded only by a `whip` form (you need a
+   * flexible cord to snare with); lands the `grappled` control flag. This is
+   * the "the weapon edits the menu" answer to a whip's poor raw damage —
+   * a whip fights by *control*, not by the sting of the lash.
+   */
+  entangle: {
+    key: "entangle",
+    verb: "entangle",
+    kind: "control",
+    offensive: false,
+    needsInstrument: true,
+    affordedByForm: ["whip"],
+    flagOnLand: "grappled",
+  },
+  /**
    * The reactive counter — a weapon riposte the session offers the
    * defender when an attacker's blow is parried. Weapon-only (needs an
    * instrument), so a disarmed defender can't riposte.

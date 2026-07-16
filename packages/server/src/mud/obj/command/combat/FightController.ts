@@ -41,6 +41,7 @@ const GAMBITS = new Set([
   "close",
   "bash",
   "sweep",
+  "entangle",
 ]);
 
 interface FightModel extends CommandModel {

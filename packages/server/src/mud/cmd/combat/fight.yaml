@@ -49,6 +49,8 @@ subcommands:
     description: "Gambit — slam a wielded shield to stagger a foe (shield only)"
   sweep:
     description: "Gambit — a hafted weapon's low sweep that takes the legs (hafted only)"
+  entangle:
+    description: "Gambit — wrap a whip's lash around a foe to bind them up (whip only)"
   defend:
     description: "Cover up and recover poise instead of attacking"
   switch:

@@ -1148,4 +1148,42 @@ describe("CombatLogic — weapon-shaped gambits (the weapon edits the menu)", ()
     expect(bareTry.ok).toBe(false);
     expect(bareTry.reason).toBe("no-shield");
   });
+
+  it("a whip affords entangle; other weapons don't", () => {
+    const room = makeStuff(() => new TestRoom());
+    const whip = makeFighter(room, {
+      weaponForm: "whip",
+      weaponMass: 0.6,
+      weaponLength: 2.5,
+    });
+    const bladed = makeFighter(room, { weaponForm: "bladed" });
+    open(whip, bladed, nonLethal);
+    expect(CombatApi.eligibilityFor(whip, "entangle").ok).toBe(true);
+    const bladedTry = CombatApi.eligibilityFor(bladed, "entangle");
+    expect(bladedTry.ok).toBe(false);
+    expect(bladedTry.reason).toBe("wrong-weapon");
+  });
+
+  it("entangle binds a foe with the grappled flag", () => {
+    const room = makeStuff(() => new TestRoom());
+    const whip = makeFighter(room, {
+      weaponForm: "whip",
+      weaponMass: 0.6,
+      weaponLength: 2.5,
+    });
+    // An unarmed target (can't guard, can't answer at the whip's reach) — the
+    // whip lashes at its reach advantage and the entangle lands.
+    const target = makeFighter(room, {});
+    const s = open(whip, target, nonLethal);
+    let bound = false;
+    for (let i = 0; i < 40 && s.isActive(); i++) {
+      CombatApi.queueGambit(whip, "entangle");
+      CombatApi.advance(s);
+      if (s.getState(target)?.flags.has("grappled")) {
+        bound = true;
+        break;
+      }
+    }
+    expect(bound).toBe(true);
+  });
 });

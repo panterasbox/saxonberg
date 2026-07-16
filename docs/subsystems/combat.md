@@ -564,10 +564,12 @@ weapon engine):
   distance. Inside (`close`) the term **reverses** — the dagger/unarmed owns
   the clinch, the spear is a liability. Per-edge, so a 2v1 carries mixed ranges.
 - **guard** ← form (× a light material term). A crossguard parries + ripostes;
-  a **flail** (`guard: none`, a new weapon-delivery form that delivers blunt
-  like a mace) can't self-guard, so a guard-breaker **bypasses** its steady
-  defence. Rides the existing steady-guard → parry → riposte seam (the binary
-  `targetCanParry` became a guard-graded read).
+  the two **guardless** forms (`guard: none`, new weapon-delivery forms) can't
+  self-guard, so a guard-breaker **bypasses** their steady defence: `flail`
+  (blunt, a chained head) and `whip` (a cutting-lash `edge`, and the **long-
+  reach extreme** — it controls at `reach` and is helpless inside). Rides the
+  existing steady-guard → parry → riposte seam (the binary `targetCanParry`
+  became a guard-graded read).
 - **handedness** ← the `slotClaims` count (a 2H weapon claims both grips).
 - **delivery** ← the `Construction` delivery form (unchanged).
 
@@ -598,10 +600,12 @@ focus-fire keyed on `graph.incomingEdges`), it grants its holder a large
   experience-pass competence seam).
 
 **Weapon-shaped gambits** ("the weapon edits the menu" beside "injury edits
-the menu"): `bash` (shield-afforded) and `sweep` (hafted-afforded) carry
-equipment requirements (`affordedByForm`/`affordedByShield` on `GambitSpec`),
-gated at `eligibilityImpl` like any gambit; `analyze weapon` lists a form's
-afforded moves.
+the menu"): `bash` (shield-afforded), `sweep` (hafted-afforded), and
+`entangle` (whip-afforded — wraps the lash to bind a foe `grappled`; the
+whip's real weapon, since it fights by *control* not the sting of the lash)
+carry equipment requirements (`affordedByForm`/`affordedByShield` on
+`GambitSpec`), gated at `eligibilityImpl` like any gambit; `analyze weapon`
+lists a form's afforded moves.
 
 **Determinism** is preserved — every axis is a deterministic function of the
 tactical state (no new RNG); the **gym** gains a weapon × allocation matrix
@@ -611,7 +615,8 @@ world — a session is deterministic, but a matrix must not accumulate the prior
 fight's objects). All tunables are `combat.weapon.*` / `combat.reach.*` /
 `combat.switch.*`/`combat.draw.*`/`combat.offhand.*`/`combat.dualWield.*`
 AppSettings. Content: the `steel-spear`/`steel-warhammer`/`steel-flail`/
-`steel-sword`/`steel-shield` arms + the `sidearm` biped slot.
+`steel-sword`/`steel-shield`/`leather-whip` arms (in `/obj/arms/`) + the
+`sidearm` biped slot.
 
 ## Deferred
 
