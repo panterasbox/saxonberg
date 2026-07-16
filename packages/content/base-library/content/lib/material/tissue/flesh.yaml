@@ -15,6 +15,9 @@ data:
   # Mechanical response (materials-response): MPa / MJ·m⁻³, marshalled.
   hardness: 1
   toughness: 1
+  # Electrical conductivity (S/m) — moist tissue conducts (~0.2); the
+  # body-resistance model reads this, wet skin drops the path resistance.
+  electricalConductivity: 0.2
   edibility: true
   nutrients: ["protein", "fat", "water"]
   toxicity: []

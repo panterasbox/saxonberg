@@ -13,6 +13,8 @@ data:
   hardness: 3
   toughness: 4
   specificHeat: 1360
+  # Electrical conductivity (S/m) — dry wool insulates (~1×10⁻¹¹).
+  electricalConductivity: 1.0e-11
   edibility: false
   nutrients: []
   toxicity: []

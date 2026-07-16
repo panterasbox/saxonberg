@@ -1,0 +1,21 @@
+# Salt water — seawater / brine. The dissolved ions make it a far better
+# conductor than fresh water (~5 S/m, ~500×), the cheap teachable for why
+# the flooded cell is lethal. Otherwise a flat bulk Material like water.
+class: /lib/material/Material
+hydratorClass: /lib/persistence/PersistentHydrator
+data:
+  name: salt water
+  appearance: murky brine
+  keywords: [brine, "salt water", saltwater, seawater]
+  density: 1025
+  thermalConductivity: 0.6
+  specificHeat: 3990
+  # Electrical conductivity (S/m) — seawater, ~5 (dissolved-ion driven;
+  # ~500× fresh water). The reason a shorted pool is deadly.
+  electricalConductivity: 5
+  edibility: false
+  nutrients: []
+  toxicity: []
+  tags: [liquid, brine, conductive]
+  composition: []
+  biologicalSource: null

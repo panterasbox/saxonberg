@@ -8,6 +8,8 @@ data:
   density: 8960
   specificHeat: 385
   thermalConductivity: 401
+  # Electrical conductivity (S/m) — the wiring standard, ~6×10⁷.
+  electricalConductivity: 6.0e7
   edibility: false
   nutrients: ["copper"]
   toxicity: [{ type: copper-poisoning, amount: 0 }]
