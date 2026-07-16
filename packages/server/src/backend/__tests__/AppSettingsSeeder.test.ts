@@ -41,7 +41,7 @@ describe("AppSettingsSeeder", () => {
     pm.setFindResult([]);
     const added = await AppSettingsSeeder.run();
 
-    expect(added).toBe(101);
+    expect(added).toBe(117); // + 16 electricity
     expect(pm.saves).toHaveLength(1);
     expect(pm.saves[0]!.collection).toBe("app_settings");
     const values = savedValues(pm);
@@ -173,6 +173,23 @@ describe("AppSettingsSeeder", () => {
           [AppSettingKeys.combatFocusFireErosionPerEdge]: "0.5",
           [AppSettingKeys.combatFocusFireSuppressRecoveryAt]: "2",
           [AppSettingKeys.combatFleePartingShotEnergy]: "1.6",
+          // The 16 electricity (shock channel + conduction) tuning keys.
+          [AppSettingKeys.electricityBodyDryResistanceOhms]: "100000",
+          [AppSettingKeys.electricityBodyWetFactor]: "100",
+          [AppSettingKeys.electricityBodyGeometryFactor]: "20000",
+          [AppSettingKeys.electricityContactGeometryFactor]: "0.01",
+          [AppSettingKeys.electricityContactMaxOhms]: "1000000000000",
+          [AppSettingKeys.electricityResistanceFloorOhms]: "1",
+          [AppSettingKeys.electricityLetGoAmps]: "0.01",
+          [AppSettingKeys.electricityTetanicAmps]: "0.02",
+          [AppSettingKeys.electricityFibrillationAmps]: "0.1",
+          [AppSettingKeys.electricityBurnThresholdAmps]: "0.02",
+          [AppSettingKeys.electricityBurnSeverityPerAmp]: "10",
+          [AppSettingKeys.electricityPoolMinConductivity]: "0.005",
+          [AppSettingKeys.electricityInsulatorMaxConductivity]: "0.001",
+          [AppSettingKeys.electricityArmorConductiveSkinFactor]: "0.15",
+          [AppSettingKeys.electricitySustainBurnPerAmpSec]: "2",
+          [AppSettingKeys.electricityArrestDrivePerSec]: "40",
         },
       },
     ]);
@@ -204,8 +221,9 @@ describe("AppSettingsSeeder", () => {
     //   + referenceEnergy + secondaryFactor + 2 band)
     // + 2 behavior (ambientCadenceScale, ambientCadenceFloorMs)
     // + 23 combat (20 core 1v1 + 3 Build 2)
-    // + N multi-party combat (focus-fire + flee).
-    expect(added).toBe(100);
+    // + N multi-party combat (focus-fire + flee)
+    // + 16 electricity (shock channel + conduction).
+    expect(added).toBe(116);
     expect(pm.saves).toHaveLength(1);
     const values = savedValues(pm);
     // operator value preserved, missing keys seeded
