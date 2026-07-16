@@ -41,7 +41,7 @@ describe("AppSettingsSeeder", () => {
     pm.setFindResult([]);
     const added = await AppSettingsSeeder.run();
 
-    expect(added).toBe(101);
+    expect(added).toBe(108);
     expect(pm.saves).toHaveLength(1);
     expect(pm.saves[0]!.collection).toBe("app_settings");
     const values = savedValues(pm);
@@ -173,6 +173,16 @@ describe("AppSettingsSeeder", () => {
           [AppSettingKeys.combatFocusFireErosionPerEdge]: "0.5",
           [AppSettingKeys.combatFocusFireSuppressRecoveryAt]: "2",
           [AppSettingKeys.combatFleePartingShotEnergy]: "1.6",
+          // The 4 Attendant+Goodkin banking keys (withdrawal quota ×2,
+          // corpo royalty, opening float).
+          [AppSettingKeys.bankingWithdrawalDailyCap]: "500",
+          [AppSettingKeys.bankingWithdrawalDailyCapCircle]: "2000",
+          [AppSettingKeys.bankingCorpoRoyaltyRate]: "0.1",
+          [AppSettingKeys.bankingOpeningFloat]: "500",
+          // The 3 Attendant lease/queue idle-eviction keys.
+          [AppSettingKeys.attendantLeaseSweepIntervalMs]: "15000",
+          [AppSettingKeys.attendantLeaseIdleThresholdMs]: "120000",
+          [AppSettingKeys.attendantQueueIdleThresholdMs]: "180000",
         },
       },
     ]);
@@ -204,8 +214,10 @@ describe("AppSettingsSeeder", () => {
     //   + referenceEnergy + secondaryFactor + 2 band)
     // + 2 behavior (ambientCadenceScale, ambientCadenceFloorMs)
     // + 23 combat (20 core 1v1 + 3 Build 2)
-    // + N multi-party combat (focus-fire + flee).
-    expect(added).toBe(100);
+    // + 3 multi-party combat (focus-fire + flee)
+    // + 4 Attendant+Goodkin banking (withdrawal cap ×2, royalty, float)
+    // + 3 Attendant lease/queue (lease sweep/idle, queue idle).
+    expect(added).toBe(107);
     expect(pm.saves).toHaveLength(1);
     const values = savedValues(pm);
     // operator value preserved, missing keys seeded
