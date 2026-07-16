@@ -331,6 +331,10 @@ settings:
     value: "0.001"
   - key: electricity.armor.conductiveSkinFactor
     value: "0.15"
+  - key: electricity.sustain.burnSeverityPerAmpSec
+    value: "2"
+  - key: electricity.heartRate.arrestDrivePerSec
+    value: "40"
   # Combat (core 1v1) — see docs/subsystems/combat.md. All tuning; no
   # code defaults. Poise/tempo/energy are the load-bearing curves.
   - key: combat.tickSeconds

@@ -16,6 +16,7 @@ import { AppSettingKeys } from '../../lib/config/AppSettings';
 import { Quantity } from '../../lib/quantity';
 import type Material from '../../lib/material/Material';
 import type { Energized } from '../../lib/electricity/Energized';
+import type { SustainedShock } from '../../lib/vitals/Condition';
 import type { ConductionOutcome } from '../../api/electricity';
 
 const ElectricityApiCallers = SecurityPolicies.FromModule(
@@ -438,12 +439,57 @@ function conductImpl(source: Stuff & Energized): ConductionOutcome[] {
     if (!MixinApi.isVitals(victim)) continue;
     const current = divideCurrent(source, victim, graph);
     if (current.rawValue() <= 0) continue;
+    const site = contactSiteFor(victim);
     ConditionApi.inflict(victim, {
       mechanism: 'shock',
-      site: contactSiteFor(victim),
+      site,
       current,
     });
+    // Hand a persisting circuit off to the reconcile-on-read sustain (the
+    // being-shocked condition): above let-go the circuit holds, at the
+    // tetanic band the "can't let go" flag latches it closed.
+    maybeSustain(source, victim, current.rawValue(), site);
     out.push({ victim, currentThrough: current });
   }
   return out;
+}
+
+/**
+ * Upsert the being-shocked `SustainedShock` on a bridged body. Only when the
+ * source carries a durable `templatePath` (the reconcile re-verify re-probes
+ * it) and the current is at/above let-go (below that it's a one-shot tingle,
+ * no sustain). Idempotent — a re-conduct updates the live record rather than
+ * stacking duplicates.
+ */
+function maybeSustain(
+  source: Stuff & Energized,
+  victim: Stuff,
+  amps: number,
+  site: string,
+): void {
+  const sourcePath = (source as unknown as Stuff).getTemplatePath?.();
+  if (!sourcePath) return;
+  const letGo = dial(AppSettingKeys.electricityLetGoAmps, 0.01);
+  if (amps < letGo) return;
+  const tetanic = dial(AppSettingKeys.electricityTetanicAmps, 0.02);
+  const tetany = amps >= tetanic;
+
+  const existing = ConditionApi.conditionsOf(victim).find(
+    (c): c is SustainedShock =>
+      c.kind === 'shock' && c.source === sourcePath,
+  );
+  if (existing) {
+    existing.current = amps;
+    if (tetany) existing.tetany = true;
+    if (!existing.sites.includes(site)) existing.sites.push(site);
+    return;
+  }
+  const record: SustainedShock = {
+    kind: 'shock',
+    current: amps,
+    source: sourcePath,
+    sites: [site],
+  };
+  if (tetany) record.tetany = true;
+  ConditionApi.afflict(victim, record);
 }

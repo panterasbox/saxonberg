@@ -438,6 +438,12 @@ export const AppSettingKeys = {
    * plate-armored body takes MORE current than a bare one. The armor
    * inversion's magnitude (insulating coverings instead ADD series R). */
   electricityArmorConductiveSkinFactor: "electricity.armor.conductiveSkinFactor",
+  /** Electricity — contact-burn severity accrued per amp-second while a
+   * being-shocked circuit stays closed (the reconcile-on-read sustain). */
+  electricitySustainBurnPerAmpSec: "electricity.sustain.burnSeverityPerAmpSec",
+  /** Electricity — bpm the heart rate is driven toward arrest per game-second
+   * while a fibrillating current flows (the electrocution death drive). */
+  electricityArrestDrivePerSec: "electricity.heartRate.arrestDrivePerSec",
 
   /* ─────────────────────────── combat ─────────────────────────── */
   /**
