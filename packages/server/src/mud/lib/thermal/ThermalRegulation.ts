@@ -46,8 +46,22 @@ import { BiomeApi } from "../../api/biome";
 import { WorldClockApi } from "../../api/worldclock";
 import { MessageApi } from "../../api/message";
 import { Mml } from "../../api/mml";
+import { AppApi } from "../../api/app";
+import { AppSettingKeys } from "../config/AppSettings";
 import { TemplatePaths } from "../paths";
 import { THERMAL_DEFAULTS } from "./Thermal";
+
+/** Numeric AppSetting read with a seeded-literal fallback (test/pre-warm safe). */
+function readDial(key: string, fallback: number): number {
+  try {
+    const raw = AppApi.setting(key);
+    if (raw === "" || raw == null) return fallback;
+    const n = Number.parseFloat(raw);
+    return Number.isFinite(n) ? n : fallback;
+  } catch {
+    return fallback;
+  }
+}
 
 /**
  * The inner-host surface the regulation layer composes over — Thermal
@@ -384,11 +398,34 @@ export function ThermalRegulationMixin<TBase extends MixinConstructor>(
         if (immersion > 2) {
           ambientK -= (this.setpointK - ambientK) * 0.5;
         }
+        // Wet body loses heat faster (weather Wave 2 — the wet-collapse
+        // coupling). Independent of wind (evaporative + conductive), so a
+        // soaked body chills faster even in still cold air: fold an extra
+        // fraction of the core→ambient gap, scaled by the stored saturation.
+        // Sync gauge read at re-stamp only. `1` = dry / no gauge (no-op).
+        const wetAmp = this.wetHeatLossAmplifier();
+        if (wetAmp > 0) {
+          ambientK -= (this.setpointK - ambientK) * Math.min(0.9, wetAmp);
+        }
       } else if (ambientK > this.setpointK && humidity > 50) {
         ambientK += (humidity - 50) * 0.05; // crude heat-index bump
       }
 
       return Quantity.of(Math.max(0, ambientK), "K");
+    }
+
+    /**
+     * The wet heat-loss amplifier (weather Wave 2): `saturation *
+     * thermal.wetHeatLossFactor`, or `0` when the body is dry / carries no
+     * wetness gauge. Read synchronously off the stored gauge at re-stamp.
+     */
+    private wetHeatLossAmplifier(): number {
+      const self = this.regHost as unknown as Stuff;
+      if (!MixinApi.isWet(self)) return 0;
+      const sat = self.getWetness();
+      if (sat <= 0) return 0;
+      const factor = readDial(AppSettingKeys.thermalWetHeatLossFactor, 1.5);
+      return sat * factor;
     }
 
     /**
