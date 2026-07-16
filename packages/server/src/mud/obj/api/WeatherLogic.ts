@@ -24,6 +24,7 @@ import type Material from '../../lib/material/Material';
 import type { Bulkable } from '../../lib/bulk/Bulkable';
 import type { Adornable } from '../../lib/boundary/Adornable';
 import type { Energized } from '../../lib/electricity/Energized';
+import type { AmbientLit } from '../../lib/perception/AmbientLit';
 import {
   WEATHER_PROFILES,
   TRANSITIONS,
@@ -506,6 +507,16 @@ async function runBoundaryFanout(): Promise<void> {
     // Puddle accrual / evaporation (Wave 2, D): source-indifferent — an
     // authored indoor rain fills a Floor pool exactly as procgen rain does.
     maintainPuddle(room, resolved);
+
+    // Cloud → light dimming (Wave 2, F): stamp a cached dim factor onto a
+    // SkyExposed AmbientLit scope so the sync perception walk reads dimmer
+    // under overcast / storm (the `lastAmbientK` cache-invalidation
+    // precedent). SkyExposed only — an indoor scope's light is its own.
+    if (sky && MixinApi.isAmbientLit(room)) {
+      const dimFactor = dial(AppSettingKeys.weatherCloudDimFactor, 0.6);
+      const dim = Math.max(0, 1 - dimFactor * resolved.sample.cloud);
+      (room as unknown as AmbientLit).setWeatherDimFactor(dim);
+    }
   }
 }
 

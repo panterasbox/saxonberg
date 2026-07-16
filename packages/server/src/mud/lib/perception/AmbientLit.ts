@@ -29,6 +29,16 @@ export interface AmbientLit {
   setAmbientColorTemperature(
     value: Quantity<'K'> | string | number | null
   ): void;
+  /**
+   * The weather cloud-dimming factor `[0, 1]` (weather Wave 2). A cached,
+   * **transient** multiplier the perception walk applies to `getAmbientFlux`
+   * — overcast / storm dims the sky. `1` = undimmed (clear / no weather).
+   * Stamped by the weather boundary fan-out (the thermal `lastAmbientK`
+   * cache-invalidation precedent), read synchronously on the light path so
+   * perception never does an async weather resolve. Never persisted.
+   */
+  getWeatherDimFactor(): number;
+  setWeatherDimFactor(value: number): void;
 }
 
 export function AmbientLitMixin<TBase extends MixinConstructor>(Base: TBase) {
@@ -50,6 +60,13 @@ export function AmbientLitMixin<TBase extends MixinConstructor>(Base: TBase) {
      * @authorable
      */
     private _ambientColorTemperature: number | null = null;
+
+    /**
+     * Cached weather cloud-dimming factor `[0, 1]` (transient, not
+     * persisted — a `lastAmbientK`-style cache the boundary fan-out
+     * invalidates). `1` = undimmed.
+     */
+    private _weatherDimFactor: number = 1;
 
     /**
      * Host-internal accessor pair for the lumen scalar. The
@@ -103,6 +120,17 @@ export function AmbientLitMixin<TBase extends MixinConstructor>(Base: TBase) {
     /** Lumen-typed runtime API. Reads the stored scalar each call. */
     getAmbientFlux(): Quantity<'lumen'> {
       return Quantity.of(this._ambientIntensity, 'lumen');
+    }
+
+    /** The cached weather cloud-dimming factor `[0, 1]` (transient). */
+    getWeatherDimFactor(): number {
+      return this._weatherDimFactor;
+    }
+
+    /** Stamp the cached weather cloud-dimming factor (clamped to `[0, 1]`). */
+    setWeatherDimFactor(value: number): void {
+      if (typeof value !== 'number' || !Number.isFinite(value)) return;
+      this._weatherDimFactor = value < 0 ? 0 : value > 1 ? 1 : value;
     }
 
     /**
