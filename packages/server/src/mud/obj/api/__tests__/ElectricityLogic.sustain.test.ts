@@ -1,5 +1,5 @@
 /**
- * Phase 6 + 7 — the reconcile-on-read being-shocked sustain, tetany, and the
+ * The reconcile-on-read being-shocked sustain, tetany, and the
  * electrocution death seam (the previously-undriven heartRate). A persisting
  * closed circuit becomes a SustainedShock that integrates current × time
  * lazily on read (presence-frozen), clears when the circuit breaks, is held

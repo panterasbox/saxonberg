@@ -31,7 +31,6 @@ import { ContainmentApi } from '../../api/containment';
 import { ElectricityApi } from '../../api/electricity';
 import type { Stuff } from '../../lib/stuff/Stuff';
 import type { Container } from '../../lib/spatial/Container';
-import type { Energized } from '../../lib/electricity/Energized';
 
 export default class FloodedCell extends CartesianLocation {
   /**
@@ -44,8 +43,9 @@ export default class FloodedCell extends CartesianLocation {
   public onEntered(_mover: Stuff, _exit: unknown): void {
     const self = this as unknown as Stuff & Container;
     for (const content of ContainmentApi.getContents(self)) {
-      if (MixinApi.isEnergized(content as Stuff)) {
-        ElectricityApi.conduct(content as unknown as Stuff & Energized);
+      // `isEnergized` narrows the containable to `Stuff & Energized`.
+      if (MixinApi.isEnergized(content)) {
+        ElectricityApi.conduct(content);
       }
     }
   }

@@ -1,5 +1,5 @@
 /**
- * Phase 2 — the shock channel + the Ohm's-law circuit primitives on
+ * The shock channel + the Ohm's-law circuit primitives on
  * MaterialApi, in isolation (no graph, no bodies). Pure math over
  * `I = V/R`, `P = I²R`, material→resistance, the covering-stack series
  * sum, and current→trauma. Dials fall back to their seeded literals when
@@ -25,7 +25,6 @@ function mkMat(conductivity: number): Material {
 
 // Roster magnitudes (see base-library material content).
 const copper = () => mkMat(6.0e7);
-const saltWater = () => mkMat(5);
 const flesh = () => mkMat(0.2);
 const rubber = () => mkMat(1.0e-13);
 const steel = () => mkMat(6.0e6);

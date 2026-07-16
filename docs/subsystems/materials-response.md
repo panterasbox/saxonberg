@@ -190,6 +190,22 @@ channel) are explicit non-goals. `InsultKind = Channel | 'thermal' |
 avulsion, byte-preserving harm's shipped math), the documented seam that
 folds into a `heat` / tearing channel when those land.
 
+## The `shock` channel — resolves by circuit, not the fold
+
+The [electricity](./electricity.md) build added **`shock`** to the `Channel`
+vocabulary — but it does **not** resolve through the energy-attenuate covering
+fold. The three mechanical channels (edge/point/blunt) are now their own
+closed subtype **`MECHANICAL_CHANNELS`**: `Construction`'s shape tables, the
+`materialHeight`/`attenuate`/`resolveTrauma` fold, and the `analyze response` /
+pip loops all key on *that*, so `Construction` stays honestly mechanical
+(`responseFor('shock')` throws — a shock is not a construction-shape axis).
+`shock` resolves by **circuit** (`I = V/R`, reading conductivity not hardness)
+on the same `MaterialApi`/`MaterialLogic` home, and `ConditionApi.inflict`
+intercepts it into a **third path** that skips the fold entirely (the
+mechanical + passthrough paths are byte-identical). The armor inversion falls
+out — metal conducts (betrays), rubber insulates. See
+[electricity.md](./electricity.md).
+
 ## Deferred (named seams)
 
 - **Combat playstyle + loop** — reach/guard/gambits, shield-as-armor,

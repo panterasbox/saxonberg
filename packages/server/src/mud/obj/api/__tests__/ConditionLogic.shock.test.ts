@@ -1,5 +1,5 @@
 /**
- * Phase 3 — the `inflict` shock branch. A `{mechanism:'shock', current}`
+ * The `inflict` shock branch. A `{mechanism:'shock', current}`
  * insult lands a local contact `burn` WITHOUT running the covering-stack
  * attenuate fold (the path resistance was resolved upstream). The proof is
  * behavioural: a shock burns a plate-armored body exactly as it burns a

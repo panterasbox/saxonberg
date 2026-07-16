@@ -655,7 +655,8 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
             continue;
           }
           this.accrueShockBurn(s, elapsed);
-          // Fibrillation drives the heart toward arrest (Phase 7 death seam).
+          // Fibrillation drives the heart toward arrest (the electrocution
+          // death seam — see docs/subsystems/electricity.md).
           const fib = elecDial(AppSettingKeys.electricityFibrillationAmps, 0.1);
           if (s.current >= fib) {
             const drive =

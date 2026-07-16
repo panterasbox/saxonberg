@@ -1,5 +1,5 @@
 /**
- * Phase 9 — the shock-column pips (the armor inversion made legible). A steel
+ * The shock-column pips (the armor inversion made legible). A steel
  * breastplate reads near-empty on the shock column ("conducts, barely
  * protects"); a rubber layer reads full. Renders `ConstructedMixin`'s
  * `responsePipsAugmenter` directly.

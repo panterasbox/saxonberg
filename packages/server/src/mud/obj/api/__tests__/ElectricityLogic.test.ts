@@ -1,5 +1,5 @@
 /**
- * Phase 4 — the conduction-graph walk. A live source imposes a potential;
+ * The conduction-graph walk. A live source imposes a potential;
  * the walk over the conductive-contact graph (co-immersion in a shared
  * conductive pool, with the room's Floor as ground) computes the current
  * through each bridged body. Grounding, insulation, and bird-on-a-wire are
@@ -8,7 +8,6 @@
 
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { ElectricityApi } from '../../../api/electricity';
-import { ConditionApi } from '../../../api/condition';
 import { EnergizedMixin } from '../../../lib/electricity/Energized';
 import { ContainableMixin } from '../../../lib/spatial/Containable';
 import { NamedMixin } from '../../../lib/description/Named';
