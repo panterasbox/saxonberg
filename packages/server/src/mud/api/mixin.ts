@@ -126,7 +126,6 @@ import type { Crafted } from '../lib/craft/Crafted';
 import type { Maker } from '../lib/craft/Maker';
 import type { Builds } from '../lib/craft/ManualBuild';
 import type { Bank } from '../lib/banking/Bank';
-import type { Tab } from '../lib/banking/Tab';
 import type { Business } from '../lib/employment/Business';
 import type { Employed } from '../lib/employment/Employed';
 import type { Combatant } from '../lib/combat/Combatant';
@@ -1000,10 +999,6 @@ export class MixinApi {
 
   public static isBank(obj: Stuff): obj is Stuff & Bank {
     return this.hasMixin(obj, Mixins.Bank);
-  }
-
-  public static isTab(obj: Stuff): obj is Stuff & Tab {
-    return this.hasMixin(obj, Mixins.Tab);
   }
 
   /** A standalone employing Business (the `BusinessMixin` marker). */

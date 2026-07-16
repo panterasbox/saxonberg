@@ -1,9 +1,9 @@
 /**
  * The whole money loop, end to end (the bar demo, AC): open an account →
  * deposit cash → buy a drink (a presented Charge settled from the implant) →
- * run a tab and settle it → the bar pays cogs + a wage and runs RED → the
- * central bank mints subsidy to cover it → the P&L shows the deficit → the
- * reconciliation invariant holds throughout.
+ * the bar pays cogs + a wage and runs RED → the central bank mints subsidy to
+ * cover it → the P&L shows the deficit → the reconciliation invariant holds
+ * throughout. (Pay-per-drink only — no tab; the soft-credit tab was retired.)
  */
 
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
@@ -12,9 +12,6 @@ import type { Charge } from "../../../api/banking";
 import Coin from "../../../obj/Coin";
 import BankCounter from "../BankCounter";
 import PaymentCard from "../PaymentCard";
-import { TabMixin } from "../Tab";
-import { RecognitionApi } from "../../../api/recognition";
-import { BeliefStoreMixin } from "../../belief/BeliefStore";
 import { Idea } from "../../stuff/Idea";
 import { ContainerMixin } from "../../spatial/Container";
 import { ContainableMixin } from "../../spatial/Containable";
@@ -36,14 +33,6 @@ import {
 
 class TestAvatar extends ContainerMixin(ContainableMixin(Idea)) {
   static _mixinName = "TestAvatar";
-}
-/** The bar: a TabMixin venue + Container, with a durable path. */
-class BarVenue extends TabMixin(ContainerMixin(ContainableMixin(Idea))) {
-  static _mixinName = "BarVenue";
-}
-/** The bartender: a belief-holder so recognition works. */
-class Bartender extends BeliefStoreMixin(ContainerMixin(ContainableMixin(Idea))) {
-  static _mixinName = "Bartender";
 }
 
 const BANK = "/domain/eternal/university-avenue/bank";
@@ -80,14 +69,12 @@ describe("The bar money loop (end to end)", () => {
     teardownBankingHarness();
   });
 
-  it("open → deposit → buy → tab → wages/cogs run red → subsidy covers", async () => {
+  it("open → deposit → buy → wages/cogs run red → subsidy covers", async () => {
     const bank = makeStuffAtPath(() => {
       const b = new BankCounter();
       b.setCorpoKey("goodkin");
       return b;
     }, BANK);
-    const bar = makeStuffAtPath(() => new BarVenue(), BAR);
-    const bartender = makeStuffAtPath(() => new Bartender(), "/obj/Avatar/mara");
     const patron = avatar(PATRON);
     const card = makeStuffAtPath(() => new PaymentCard(), "/obj/PaymentCard");
     ContainmentApi.move(card, patron as never);
@@ -118,44 +105,23 @@ describe("The bar money loop (end to end)", () => {
     expect(BankingApi.balanceOf(patronAcct).minor).toBe(240);
     expect(BankingApi.balanceOf(barAcct).minor).toBe(60);
 
-    // 3. run a tab (recognition-gated) and settle it
-    RecognitionApi.learnIdentity(bartender, patron, "Reg");
-    expect(bar.canRunTab(patron, bartender)).toBe(true);
-    bar.accrueToTab(PATRON, Money.of(40)); // a round added to the tab
-    const owed = bar.getTabBalance(PATRON);
-    await asOwner(patron, () =>
-      BankingApi.settle(
-        {
-          amount: owed,
-          reason: "settle tab",
-          presented: true,
-          payeeAccountId: barAcct,
-          category: "sales",
-        },
-        { kind: "credential" }
-      )
-    );
-    bar.clearTab(PATRON);
-    expect(BankingApi.balanceOf(patronAcct).minor).toBe(200);
-    expect(BankingApi.balanceOf(barAcct).minor).toBe(100);
-
-    // 4. the bar pays a wage that exceeds its takings → it runs RED
+    // 3. the bar pays a wage that exceeds its takings → it runs RED
     await asOwner(worker, () => BankingApi.openAccount(BANK, "goodkin"));
     await BankingApi.payWage(barAcct, "/obj/Avatar/wenna", Money.of(150));
-    expect(BankingApi.balanceOf(barAcct).minor).toBe(-50); // red by design
+    expect(BankingApi.balanceOf(barAcct).minor).toBe(-90); // red by design
 
-    // 5. the P&L shows the deficit
+    // 4. the P&L shows the deficit
     const pnl = await BankingApi.profitAndLoss(barAcct);
-    expect(pnl.lines.sales).toBe(100);
+    expect(pnl.lines.sales).toBe(60);
     expect(pnl.lines.wages).toBe(-150);
-    expect(pnl.balance).toBe(-50);
+    expect(pnl.balance).toBe(-90);
 
-    // 6. the central bank mints subsidy to cover the red — logged + visible
+    // 5. the central bank mints subsidy to cover the red — logged + visible
     const red = -BankingApi.balanceOf(barAcct).minor;
     await BankingApi.mint(barAcct, Money.of(red), "deficit subsidy", "subsidy");
     expect(BankingApi.balanceOf(barAcct).minor).toBe(0);
 
-    // 7. the conservation invariant holds across the whole loop
+    // 6. the conservation invariant holds across the whole loop
     expect(BankingApi.reconcile().balanced).toBe(true);
   });
 });

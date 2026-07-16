@@ -65,9 +65,6 @@ export default class Menu extends MenuBase {
       'crafting/strain.yaml',
       'crafting/garnish.yaml',
       'crafting/make.yaml',
-      // The bar's patron-facing money surface: run a tab here (the venue
-      // owns the tab state; this is just the affordance carrier in the room).
-      'banking/tab.yaml',
     ],
     inventory: [
       'crafting/menu.yaml',
@@ -79,7 +76,6 @@ export default class Menu extends MenuBase {
       'crafting/strain.yaml',
       'crafting/garnish.yaml',
       'crafting/make.yaml',
-      'banking/tab.yaml',
     ],
     peers: [],
   };

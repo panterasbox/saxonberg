@@ -148,7 +148,6 @@ export const Mixins = {
   // The unified credential holder — one keyed store of credentials-as-data,
   // composed on the born-with wallet app and on the physical cards.
   CredentialWallet: 'CredentialWalletMixin',
-  Tab: 'TabMixin',
   // Haulage — a dragged container (cart) and the creature that pulls it.
   Haulable: 'HaulableMixin',
   Hauler: 'HaulerMixin',
