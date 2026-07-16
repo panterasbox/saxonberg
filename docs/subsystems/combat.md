@@ -732,3 +732,24 @@ Named at their sites; nothing inherited:
   it dispatched "I don't understand" for every character) — afforded it
   alongside `look`/`scry`/`feel`, and fixed a "They looks unhurt" number
   disagreement in its combat-read prose.
+- **Weapon playstyle & the hand-slot economy** (`feature/weapon-playstyle`,
+  MR !140) — a weapon becomes a **derived playstyle bundle** (see [§ Weapon
+  playstyle & the hand-slot economy](#weapon-playstyle--the-hand-slot-economy)):
+  `WeaponProfile` (reach/balance/guard/handedness/delivery from form × material
+  × `mass` × `length` × hand-claims), the geometry-free `reach|close` tier on
+  `CombatGraph`, shield-as-wielded-armor in the covering stack, the switch/
+  sidearm/dual-wield hand-slot economy, and the `bash`/`sweep`/`entangle`
+  weapon-shaped gambits. `analyze weapon` + a `check-inert-weapon` lint; the
+  gym gained a weapon × allocation matrix; 23 new `combat.weapon.*`/`reach.*`/
+  `switch.*`/`draw.*`/`offhand.*`/`dualWield.*` dials. Two **design→impl
+  shifts** worth recording: (1) `WeaponSwitch` is a **beat-driven
+  value-object, not a scheduler `DurativeActivity`** as the plan proposed — a
+  combat participant already holds the whole `body` engagement slot, so a
+  second `body`-claiming activity would conflict; the vulnerable window
+  (`resolveInstrument` returns null for N beats) is unchanged. (2) The
+  reach **out-of-range whiff** is gated on a genuine 2-rank gap
+  (`REACH_OUT_OF_RANGE_GAP`), so a 1-rank gap (sword-vs-dagger, weapon-vs-
+  natural) stays a mild energy nudge and the wolf/cull fights are unperturbed.
+  A follow-on added the `whip` delivery form (guardless, long-reach extreme)
+  + its `entangle` gambit. The generic arms/armor/gear/clothes/items seeds
+  were relocated out of `domain/eternal/` into `/obj/` in the same branch.

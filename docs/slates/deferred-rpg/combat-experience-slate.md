@@ -618,7 +618,15 @@ brain capability), the surrender/rout mechanics, the `shaken`/`wavering`
 status. Cycle-1: individual NPC yield-when-losing (the consented-duel demo
 needs it); rout / rally / berserk are multi-party, later.
 
-## Thesis 14 — Weapon playstyle & the hand-slot economy (derivation, not stat blocks)
+## Thesis 14 — Weapon playstyle & the hand-slot economy (derivation, not stat blocks) ✅ SHIPPED
+
+**Realized** by the weapon-playstyle build (MR !140) — `WeaponProfile` +
+the reach tier + shield-as-armor + the switch/sidearm/dual-wield hand-slot
+economy + weapon-shaped gambits (`bash`/`sweep`/`entangle`) + the `whip`/
+`flail` guardless forms + the gym weapon matrix. See
+[combat.md § Weapon playstyle & the hand-slot economy](../../subsystems/combat.md#weapon-playstyle--the-hand-slot-economy).
+Deferred from Thesis 14: ranged/thrown (the sixth archetype), the deep
+grapple/clinch control game, and spatial formation/geometry.
 
 A weapon is a **derived playstyle bundle**, not a stat block: you author a
 *shape* (long, balanced, double-edged steel) and the playstyle **computes**

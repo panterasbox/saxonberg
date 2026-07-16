@@ -43,9 +43,13 @@ picks its *shape*:
   value-object (the `Grade`/`WeatherType` data-table precedent, **not** a
   mixin) carrying a per-channel profile. Two v1 vocabularies share one
   shape: **armor forms** (`plate`/`mail`/`padded`/`hide`) with a *resist*
-  profile, and **weapon-delivery forms** (`bladed`/`pointed`/`hafted`) with
-  a *deliver* profile. Persisted by hosts as the form word, reconstructed
-  via `Construction.of`.
+  profile, and **weapon-delivery forms** (`bladed`/`pointed`/`hafted`, plus
+  the guardless `flail` (blunt) and `whip` (a cutting `edge` lash) added by
+  the weapon-playstyle build — the guardless/reach distinctions are a
+  *playstyle* concern keyed on the form in `WeaponProfile`, see
+  [combat.md](./combat.md), not a delivery-shape one) with a *deliver*
+  profile. Persisted by hosts as the form word, reconstructed via
+  `Construction.of`.
 
 ### The taxonomy grid (shape, in code)
 

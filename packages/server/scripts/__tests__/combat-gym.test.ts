@@ -320,8 +320,6 @@ describe("combat-gym — weapon × allocation matrix", () => {
       { label: "sword-v-sword", a: brain("sword-a", Loadouts.sword!), b: brain("sword-b", Loadouts.sword!) },
     ];
     const { results } = runMatrix(matchups, resetState);
-    // eslint-disable-next-line no-console
-    console.error("MATRIX:", results.map((r) => `${r.label}=${r.winner}(${r.beats})`).join("  "));
     // Outcomes vary across loadouts (not one loadout sweeping to a single
     // result) — no strictly-dominant weapon.
     const distinctOutcomes = new Set(results.map((r) => r.winner));
