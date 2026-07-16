@@ -9,6 +9,8 @@ import { MixinApi } from '../../api/mixin';
 import { MaterialApi } from '../../api/material';
 import { ConditionApi } from '../../api/condition';
 import { ContainmentApi } from '../../api/containment';
+import { WeatherApi } from '../../api/weather';
+import { WorldClockApi } from '../../api/worldclock';
 import { AppApi } from '../../api/app';
 import { AppSettingKeys } from '../../lib/config/AppSettings';
 import { Quantity } from '../../lib/quantity';
@@ -272,11 +274,12 @@ function resolvePotentials(
   const grounded = groundPath(body, graph);
 
   // Live contact — direct (the body holds / is held by the source) or via a
-  // shared conductive pool (co-immersion).
+  // shared conductive medium: a surface pool (co-immersion) OR the floor's
+  // own conductive material (a live wire on a metal floor electrifies it).
   let live = touchesDirectly(body, source);
   if (
     !live &&
-    graph.poolConducts &&
+    (graph.poolConducts || graph.floorConducts) &&
     immersedInFloorMedium(body, graph) &&
     sourceInFloorMedium(source, graph)
   ) {
@@ -307,14 +310,72 @@ function groundPath(body: Stuff, graph: ConductiveGraph): boolean {
   return graph.poolConducts || graph.floorConducts;
 }
 
-/** Is the body wet (lower skin resistance)? v1: co-immersed in a conductive
- * pool. Phase 5 folds in active rain in a SkyExposed scope. */
+/**
+ * Is the body wet (lower skin resistance → markedly more vulnerable)?
+ * Derived at resolution time, nothing stored (the "potential is computed,
+ * not stored" philosophy). Two drivers: co-immersion in a conductive pool,
+ * or standing in a SkyExposed scope under active rain (`WeatherApi`). A
+ * stored drying gauge is the flagged upgrade.
+ */
 function isWet(body: Stuff, graph: ConductiveGraph): boolean {
-  return graph.poolConducts && immersedInFloorMedium(body, graph);
+  if (graph.poolConducts && immersedInFloorMedium(body, graph)) return true;
+  return isRainWet(graph.room);
+}
+
+/** A SkyExposed room under active rain wets everyone in it. Sync + defensive
+ * (the walk is sync; a missing clock / weather resolver reads dry). v1 reads
+ * the global weather field (`null` locality); a per-locality read is the
+ * flagged upgrade. */
+function isRainWet(room: Stuff): boolean {
+  try {
+    if (!MixinApi.isSkyExposed(room)) return false;
+    if (!WeatherApi.isActive()) return false;
+    const sample = WeatherApi.weatherAt(WorldClockApi.getNow(), null);
+    return sample.precipitation === 'rain';
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * The **armor inversion**, emergent from conductivity alone (no
+ * `isElectrical` narrowing). The worn covering re-shapes the body's path
+ * resistance: a **conductive** layer (metal plate/mail) spreads the current
+ * over the body and bypasses the high-resistance skin contact — multiplying
+ * the body resistance by a `<1` factor, so a plate-armored body takes MORE
+ * current than a bare one; an **insulating** layer (rubber / leather / wool)
+ * instead ADDS its series contact resistance, collapsing the current. A bare
+ * body is just its own resistance. This is the "metal spreads current →
+ * lower protection" distribution effect rendered as through-current (the
+ * observable acceptance criterion), the deferred multi-site entry/exit
+ * distribution left as a seam.
+ */
+function pathResistance(bodyResistanceOhms: number, victim: Stuff): number {
+  const poolMin = dial(AppSettingKeys.electricityPoolMinConductivity, 0.005);
+  const insulatorMax = dial(
+    AppSettingKeys.electricityInsulatorMaxConductivity,
+    0.001,
+  );
+  const skinFactor = dial(
+    AppSettingKeys.electricityArmorConductiveSkinFactor,
+    0.15,
+  );
+  let r = bodyResistanceOhms;
+  for (const mat of wornConstructedMaterials(victim)) {
+    const sigma = mat ? mat.getElectricalConductivity().rawValue() : 0;
+    if (sigma >= poolMin) {
+      // Conductive covering — spreads the current, lowers the skin path.
+      r *= skinFactor;
+    } else if (sigma <= insulatorMax) {
+      // Insulating covering — adds series resistance (a rubber suit).
+      r += MaterialApi.contactResistance(mat).rawValue();
+    }
+  }
+  return r;
 }
 
 /** The worn `Constructed` armor-layer materials — the series-resistance path
- * (the armor inversion: metal ~0, rubber/leather large). */
+ * (the armor inversion: metal spreads/lowers, rubber/leather adds). */
 function wornConstructedMaterials(body: Stuff): Array<Material | null> {
   if (!MixinApi.isOrganism(body) || !MixinApi.isSlotted(body)) return [];
   const plan = body.getSpecies()?.getBodyPlan();
@@ -352,11 +413,8 @@ function divideCurrent(
   const bodyR = MaterialApi.bodyResistance(
     MaterialApi.materialOf(victim),
     wet,
-  );
-  const seriesR = MaterialApi.seriesResistanceOfCoveringStack(
-    wornConstructedMaterials(victim),
-  );
-  const rPath = Quantity.of(bodyR.rawValue() + seriesR.rawValue(), 'Ω');
+  ).rawValue();
+  const rPath = Quantity.of(pathResistance(bodyR, victim), 'Ω');
   return MaterialApi.ohmsCurrent(v, rPath);
 }
 

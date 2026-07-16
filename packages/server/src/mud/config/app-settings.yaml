@@ -329,6 +329,8 @@ settings:
     value: "0.005"
   - key: electricity.insulator.maxConductivity
     value: "0.001"
+  - key: electricity.armor.conductiveSkinFactor
+    value: "0.15"
   # Combat (core 1v1) — see docs/subsystems/combat.md. All tuning; no
   # code defaults. Poise/tempo/energy are the load-bearing curves.
   - key: combat.tickSeconds

@@ -432,6 +432,12 @@ export const AppSettingKeys = {
    * ground). Rubber / leather / wool / dry wood insulate; flesh / water
    * / metal do not. */
   electricityInsulatorMaxConductivity: "electricity.insulator.maxConductivity",
+  /** Electricity — the factor a **conductive** worn covering multiplies the
+   * body's skin-contact resistance by (<1): metal armor spreads the current
+   * over the whole body and bypasses the high-resistance skin contact, so a
+   * plate-armored body takes MORE current than a bare one. The armor
+   * inversion's magnitude (insulating coverings instead ADD series R). */
+  electricityArmorConductiveSkinFactor: "electricity.armor.conductiveSkinFactor",
 
   /* ─────────────────────────── combat ─────────────────────────── */
   /**

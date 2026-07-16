@@ -16,6 +16,7 @@ import { Idea } from '../../../lib/stuff/Idea';
 import Location from '../../../lib/stuff/Location';
 import Floor from '../../../obj/Floor';
 import Armor from '../../../lib/equipment/Armor';
+import { Construction } from '../../../lib/material/Construction';
 import { Creature } from '../../../lib/creature/Creature';
 import Species from '../../../lib/species/Species';
 import BodyPlan from '../../../lib/species/BodyPlan';
@@ -46,6 +47,7 @@ function mkConductor(name: string, conductivity: number): Material {
 
 const saltWater = () => mkConductor('salt-water', 5);
 const rubber = () => mkConductor('rubber', 1.0e-13);
+const steel = () => mkConductor('steel', 6.0e6);
 
 function makeRoom(): Location {
   return makeStuff(() => new Location());
@@ -64,6 +66,34 @@ function floodFloor(room: Location, pool: Material | null, litres: number): Floo
     floor.setBulkAmount('surface', Quantity.of(litres, 'L'));
   }
   return floor;
+}
+
+/** A dry room whose Floor's own material conducts (a metal floor) — grounds
+ * and bridges without wetting anyone. */
+function metalFloor(room: Location, material: Material): Floor {
+  const floor = makeStuff(() => {
+    const f = new Floor();
+    f.surfaceBulk = true;
+    return f;
+  });
+  floor.setMaterial(material);
+  (room as unknown as { addFixture(f: unknown): boolean }).addFixture(floor);
+  return floor;
+}
+
+/** Wear a Constructed armor layer of `material` + `form` on the torso. */
+function wearTorso(c: Creature, material: Material, form: string): Armor {
+  const plan = makeBodyPlanTorso(c);
+  const a = makeStuff(() => new Armor());
+  a.setMaterial(material);
+  a.setConstruction(Construction.of(form));
+  a.setSlotClaim(plan, ['torso']);
+  (c as unknown as { occupy(x: unknown, s: string): void }).occupy(a, 'torso');
+  return a;
+}
+
+function makeBodyPlanTorso(c: Creature): string {
+  return c.getSpecies()!.getBodyPlan()!.getTemplatePath()!;
 }
 
 function makeWire(room: Location, volts: number): TestWire {
@@ -87,6 +117,7 @@ function makeBody(room: Location | null): Creature {
       accepts: 'WearableMixin',
       covers: ['body.leg.left.foot', 'body.leg.right.foot'],
     },
+    { name: 'torso', accepts: 'WearableMixin', covers: ['body.torso'] },
   ]);
   plan.setBodyParts([
     { key: 'body.torso', parent: null, tissues: [] },
@@ -200,5 +231,60 @@ describe('ElectricityLogic — the conduction walk', () => {
     const floor = floodFloor(room, saltWater(), 20);
     const wire = makeWire(room, 120);
     expect(ElectricityApi.groundNodeFor(wire)).toBe(floor);
+  });
+});
+
+describe('ElectricityLogic — the armor inversion + wet-skin', () => {
+  beforeEach(() => installV1QuantityMarshallers());
+  afterEach(() => StuffApi.clearAll());
+
+  it('plate armor takes MORE current than bare; rubber takes LESS (inversion)', () => {
+    const room = makeRoom();
+    floodFloor(room, saltWater(), 20);
+    const wire = makeWire(room, 120);
+
+    const bare = makeBody(room);
+    const plated = makeBody(room);
+    wearTorso(plated, steel(), 'plate');
+    const rubberClad = makeBody(room);
+    wearTorso(rubberClad, rubber(), 'plate');
+
+    const iBare = ElectricityApi.currentThrough(wire, bare).rawValue();
+    const iPlate = ElectricityApi.currentThrough(wire, plated).rawValue();
+    const iRubber = ElectricityApi.currentThrough(wire, rubberClad).rawValue();
+
+    expect(iPlate).toBeGreaterThan(iBare); // metal conducts → betrays armor
+    expect(iRubber).toBeLessThan(iBare); // rubber adds series R → protects
+  });
+
+  it('rubber-soled boots still break the ground path even under plate', () => {
+    const room = makeRoom();
+    floodFloor(room, saltWater(), 20);
+    const wire = makeWire(room, 120);
+    const shod = bootBody(room, rubber());
+    wearTorso(shod, steel(), 'plate');
+    // Insulation at the feet dominates the conductive plate — no ground, no
+    // current.
+    expect(ElectricityApi.currentThrough(wire, shod).rawValue()).toBe(0);
+  });
+
+  it('a wet body takes markedly more current than a dry (grounded) one', () => {
+    // Wet: co-immersed in a salt pool (skin ~1 kΩ). Dry: standing on a
+    // conductive metal floor that grounds + bridges but does not wet.
+    const wetRoom = makeRoom();
+    floodFloor(wetRoom, saltWater(), 20);
+    const wetWire = makeWire(wetRoom, 120);
+    const wetBody = makeBody(wetRoom);
+
+    const dryRoom = makeRoom();
+    metalFloor(dryRoom, steel());
+    const dryWire = makeWire(dryRoom, 120);
+    const dryBody = makeBody(dryRoom);
+
+    const iWet = ElectricityApi.currentThrough(wetWire, wetBody).rawValue();
+    const iDry = ElectricityApi.currentThrough(dryWire, dryBody).rawValue();
+    expect(iWet).toBeGreaterThan(0);
+    expect(iDry).toBeGreaterThan(0);
+    expect(iWet).toBeGreaterThan(iDry); // wet skin ~100× lower resistance
   });
 });
