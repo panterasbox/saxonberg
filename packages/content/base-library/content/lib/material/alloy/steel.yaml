@@ -9,6 +9,9 @@ data:
   density: 7850
   specificHeat: 466
   thermalConductivity: 50
+  # Electrical conductivity (S/m) — carbon steel, ~6×10⁶ (a fine
+  # conductor; the low-resistance series path that betrays plate armor).
+  electricalConductivity: 6.0e6
   # Mechanical response (materials-response): hard + tough, the
   # standard for swords and armor. MPa / MJ·m⁻³, marshalled.
   hardness: 600

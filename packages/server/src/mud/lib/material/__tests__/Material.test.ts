@@ -70,6 +70,31 @@ describe('Material', () => {
     ).toThrow(TypeError);
   });
 
+  it('round-trips electricalConductivity and is strict on the S/m unit', () => {
+    const m = makeStuff(() => new Material());
+    m.setElectricalConductivity(Quantity.of(6.0e7, 'S/m'));
+    expect(m.getElectricalConductivity().rawValue()).toBe(6.0e7);
+    expect(m.getElectricalConductivity().unit).toBe('S/m');
+    expect(() =>
+      m.setElectricalConductivity(
+        Quantity.of(5, 'A') as unknown as Quantity<'S/m'>,
+      ),
+    ).toThrow(TypeError);
+  });
+
+  it('defaults electricalConductivity to 0 S/m (insulator territory)', () => {
+    const m = makeStuff(() => new Material());
+    expect(m.getElectricalConductivity().rawValue()).toBe(0);
+    expect(m.getElectricalConductivity().unit).toBe('S/m');
+  });
+
+  it('binds a QuantityMarshaller path for electricalConductivity', () => {
+    expect(Material.fieldMarshallers.electricalConductivity).toBeDefined();
+    expect(Material.fieldMarshallers.electricalConductivity).toBe(
+      '/lib/persistence/QuantityMarshaller/S-per-m',
+    );
+  });
+
   it('defaults hardness and toughness to zero Quantities', () => {
     const m = makeStuff(() => new Material());
     expect(m.getHardness().rawValue()).toBe(0);

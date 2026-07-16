@@ -82,6 +82,14 @@ export type Unit =
   | 'm/s'
   // Ratio (humidity, etc.) — bare percent string
   | '%'
+  // Electricity (electricity subsystem) — real, tabulated. `S/m` =
+  // electrical conductivity (the material property the shock model reads,
+  // sibling of `hardness`/`toughness`); `V`/`A`/`Ω` = the Ohm's-law triple
+  // (`I = V/R`) resolved by `MaterialApi`. Coursework sub/super scales
+  // (`kV`/`mV`/`mA`/`kΩ`/`MΩ`) round-trip to the base unit via converters —
+  // a taser reads `50 kV`, a let-go current `10 mA`, dry skin `100 kΩ`.
+  | 'V' | 'A' | 'Ω' | 'S/m'
+  | 'kV' | 'mV' | 'mA' | 'kΩ' | 'MΩ'
   // Vitals (rate / pressure / volume)
   | 'bpm' | 'mmHg' | 'L'
   // Acceleration (gravity)
@@ -168,6 +176,15 @@ const unitOps: Partial<Record<Unit, UnitOps>> = {
   degrees: ARITHMETIC_OPS,
   mL: ARITHMETIC_OPS,
   cup: ARITHMETIC_OPS,
+  V: ARITHMETIC_OPS,
+  A: ARITHMETIC_OPS,
+  Ω: ARITHMETIC_OPS,
+  'S/m': ARITHMETIC_OPS,
+  kV: ARITHMETIC_OPS,
+  mV: ARITHMETIC_OPS,
+  mA: ARITHMETIC_OPS,
+  kΩ: ARITHMETIC_OPS,
+  MΩ: ARITHMETIC_OPS,
 };
 
 /**
@@ -262,6 +279,22 @@ registerConverter('L', 'cup', (n) => n / 0.2365882365);
 // absorbed-dose math (metabolism).
 registerConverter('mg', 'g', (n) => n / 1000);
 registerConverter('g', 'mg', (n) => n * 1000);
+
+// Electricity coursework scales round-trip to the base SI unit. `S/m`
+// (conductivity, the material axis) is a base axis with no converter,
+// like `bpm`. Voltage `kV`/`mV ↔ V`, current `mA ↔ A`, resistance
+// `kΩ`/`MΩ ↔ Ω` — so `Quantity.parse('50 kV', 'V')` = 50000 V and a
+// `10 mA` authored current hydrates as `0.01 A`.
+registerConverter('kV', 'V', (n) => n * 1000);
+registerConverter('V', 'kV', (n) => n / 1000);
+registerConverter('mV', 'V', (n) => n / 1000);
+registerConverter('V', 'mV', (n) => n * 1000);
+registerConverter('mA', 'A', (n) => n / 1000);
+registerConverter('A', 'mA', (n) => n * 1000);
+registerConverter('kΩ', 'Ω', (n) => n * 1000);
+registerConverter('Ω', 'kΩ', (n) => n / 1000);
+registerConverter('MΩ', 'Ω', (n) => n * 1_000_000);
+registerConverter('Ω', 'MΩ', (n) => n / 1_000_000);
 
 /**
  * Thrown by same-unit math when a cast bypasses the compile-time

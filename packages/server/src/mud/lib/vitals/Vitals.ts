@@ -37,11 +37,28 @@ import { QuantityMarshaller } from '../persistence/QuantityMarshaller';
 import { MixinApi } from '../../api/mixin';
 import type { VitalBand, VitalProfile } from '../species/Species';
 import type { BodyPart } from '../species/BodyPlan';
-import type { ActiveCondition, Trauma } from './Condition';
+import type { ActiveCondition, Trauma, SustainedShock } from './Condition';
 import { HARM_DEFAULTS, TRAUMA_BEHAVIOR } from './Condition';
 import { StuffApi } from '../../api/stuff';
 import { WorldClockApi } from '../../api/worldclock';
+import { ElectricityApi } from '../../api/electricity';
+import { AppApi } from '../../api/app';
+import { AppSettingKeys } from '../config/AppSettings';
+import type { Energized } from '../electricity/Energized';
 import { TemplatePaths } from '../paths';
+
+/** Numeric AppSetting read, falling back to the seeded literal (the harm /
+ * electricity dial idiom). */
+function elecDial(key: string, fallback: number): number {
+  try {
+    const raw = AppApi.setting(key);
+    if (raw === '' || raw == null) return fallback;
+    const n = Number.parseFloat(raw);
+    return Number.isFinite(n) ? n : fallback;
+  } catch {
+    return fallback;
+  }
+}
 
 /**
  * The engine's vital-sign vocabulary — the canonical key list, used by
@@ -204,6 +221,11 @@ export interface Vitals {
   afflict(condition: ActiveCondition): void;
   /** Remove a condition by reference; true if it was present. */
   relieve(condition: ActiveCondition): boolean;
+  /** Is the body held fast by a shock's tetany ("can't let go")? The volition
+   * gate release / drop / move verbs consult. */
+  isTetanized(): boolean;
+  /** Is a being-shocked circuit currently closed on this body? */
+  isBeingShocked(): boolean;
 
   // ---------- storage (public for the Hydrator) ----------
   _coreTemperature: Quantity<'K'>;
@@ -300,8 +322,12 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
     // ---------- vital signs ----------
 
     public getVitalSign(sign: VitalSign): Quantity<Unit> {
-      // A blood-volume read must reflect any in-flight bleed.
-      if (sign === 'bloodVolume') this.reconcileConditions();
+      // A blood-volume read must reflect any in-flight bleed; a heart-rate
+      // read must reflect a fibrillating shock (the electrocution death seam
+      // — the previously-undriven heartRate is armed here).
+      if (sign === 'bloodVolume' || sign === 'heartRate') {
+        this.reconcileConditions();
+      }
       return (this as unknown as Record<string, Quantity<Unit>>)[
         VITAL_FIELD[sign]
       ]!;
@@ -561,7 +587,10 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
       const traumas = this.conditions.filter(
         (c): c is Trauma => c.kind === 'trauma',
       );
-      if (traumas.length === 0) return;
+      const shocks = this.conditions.filter(
+        (c): c is SustainedShock => c.kind === 'shock',
+      );
+      if (traumas.length === 0 && shocks.length === 0) return;
 
       // Linkdead freeze: the body lingers in-world but its clock is paused —
       // re-stamp so the away-gap never accumulates.
@@ -596,6 +625,51 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
           TRAUMA_BEHAVIOR[t.type].tick(this, t, elapsed);
         }
 
+        // Sustained shock — the being-shocked circuit. Same presence-freeze
+        // machinery as trauma: integrate current × elapsed as contact burn,
+        // drive heartRate at the fibrillation band, and relieve the moment the
+        // circuit breaks (unless tetany holds it closed). Reuses the trauma
+        // stamp idiom verbatim.
+        for (const s of shocks) {
+          if (s.tickedAt === undefined) {
+            s.tickedAt = nowS;
+            continue;
+          }
+          if (linkdead) {
+            s.tickedAt = nowS;
+            continue;
+          }
+          const elapsed = nowS - s.tickedAt;
+          if (elapsed <= 0) {
+            s.tickedAt = nowS;
+            continue;
+          }
+          if (elapsed > HARM_DEFAULTS.MAX_REASONABLE_GAP_SEC) {
+            s.tickedAt = nowS;
+            continue;
+          }
+          s.tickedAt = nowS;
+          // Re-verify the circuit is still closed (tetany holds it shut).
+          if (!this.shockCircuitClosed(s)) {
+            this.relieve(s);
+            continue;
+          }
+          this.accrueShockBurn(s, elapsed);
+          // Fibrillation drives the heart toward arrest (the electrocution
+          // death seam — see docs/subsystems/electricity.md).
+          const fib = elecDial(AppSettingKeys.electricityFibrillationAmps, 0.1);
+          if (s.current >= fib) {
+            const drive =
+              elecDial(AppSettingKeys.electricityArrestDrivePerSec, 40) *
+              elapsed;
+            const hr = this.getVitalSign('heartRate').rawValue();
+            this.setVitalSign(
+              'heartRate',
+              Quantity.of(Math.max(0, hr - drive), 'bpm'),
+            );
+          }
+        }
+
         // Relieve any wound healed to (near) zero severity.
         for (const t of traumas) {
           if (t.severity <= HARM_DEFAULTS.CLEARED_SEVERITY) this.relieve(t);
@@ -614,9 +688,89 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
             self.setLifecycleState('dead');
           }
         }
+
+        // Electrocution → death floor. A fibrillating current drove heartRate
+        // to/below its survivable floor → arrest. Death ≠ destruction — the
+        // vitals seam stamps it, never `StuffApi.destruct`. `getConsciousness`
+        // already reads the failing heart as unconscious, so the waypoint is
+        // free.
+        if (shocks.length > 0) {
+          const hrFloor = this.getVitalBand('heartRate').survivableMin;
+          if (
+            this._heartRate.rawValue() <= hrFloor &&
+            MixinApi.isOrganism(self) &&
+            self.getLifecycleState() !== 'dead'
+          ) {
+            this.setCauseOfDeath('electrocution');
+            self.setLifecycleState('dead');
+          }
+        }
       } finally {
         this._reconcilingConditions = false;
       }
+    }
+
+    /**
+     * Is the being-shocked circuit still closed? Tetany holds it shut
+     * regardless of volition ("can't let go"); otherwise re-probe the source
+     * — the body may have stepped out of the pool or the source may have died.
+     * Cheap: the whole graph is re-walked only when a shock is active (rare).
+     */
+    private shockCircuitClosed(s: SustainedShock): boolean {
+      if (s.tetany) return true;
+      if (!s.source) return false;
+      const source = StuffApi.findByTemplatePath(s.source);
+      if (!source || !MixinApi.isEnergized(source)) return false;
+      const self = this as unknown as Stuff;
+      return (
+        ElectricityApi.currentThrough(
+          source as Stuff & Energized,
+          self,
+        ).rawValue() > 0
+      );
+    }
+
+    /** Accrue contact-burn severity from current × elapsed at the shock's
+     * sites (find-or-create one shock burn per site). */
+    private accrueShockBurn(s: SustainedShock, elapsedSec: number): void {
+      const perAmpSec = elecDial(
+        AppSettingKeys.electricitySustainBurnPerAmpSec,
+        2,
+      );
+      const add = Math.max(0, s.current) * perAmpSec * elapsedSec;
+      if (add <= 0) return;
+      const site = s.sites[0] ?? 'body.torso';
+      let burn = this.conditions.find(
+        (c): c is Trauma =>
+          c.kind === 'trauma' &&
+          c.type === 'burn' &&
+          c.site === site &&
+          c.mechanism === 'shock',
+      );
+      if (!burn) {
+        burn = {
+          kind: 'trauma',
+          type: 'burn',
+          site,
+          severity: 0,
+          mechanism: 'shock',
+        };
+        this.conditions.push(burn);
+      }
+      burn.severity += add;
+    }
+
+    /** Is the body held fast by a shock's tetany ("can't let go")? The
+     * volition gate release / drop / move verbs consult. */
+    public isTetanized(): boolean {
+      return this.conditions.some(
+        (c) => c.kind === 'shock' && c.tetany === true,
+      );
+    }
+
+    /** Is a being-shocked circuit currently closed on this body? */
+    public isBeingShocked(): boolean {
+      return this.conditions.some((c) => c.kind === 'shock');
     }
 
     public hasCondition(pred: (c: ActiveCondition) => boolean): boolean {

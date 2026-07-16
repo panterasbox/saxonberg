@@ -9,6 +9,7 @@ import type { Engaged } from "../../lib/activity/Engaged";
 import { MixinApi } from "../../api/mixin";
 import { MaterialApi } from "../../api/material";
 import { ConditionApi } from "../../api/condition";
+import { ElectricityApi } from "../../api/electricity";
 import { SchedulerApi } from "../../api/scheduler";
 import { ScheduleApi } from "../../api/schedule";
 import { StuffApi } from "../../api/stuff";
@@ -30,7 +31,8 @@ import type {
   Difficulty,
   Outcome,
 } from "../../lib/advancement/ActSignature";
-import type { Channel } from "../../lib/material/Channel";
+import type { Channel, MechanicalChannel } from "../../lib/material/Channel";
+import { Channels } from "../../lib/material/Channel";
 import Weapon from "../../lib/equipment/Weapon";
 import type { OutcomeBand } from "../../api/material";
 import type { BrainContext, BrainStatics } from "../../lib/behavior/brain";
@@ -783,7 +785,7 @@ function commitInflict(
   const attacker = actorState.combatant;
   const target = targetState.combatant;
   const instrument = resolveInstrument(actorState);
-  const channel: Channel = instrument?.channel ?? "blunt";
+  const channel: MechanicalChannel = instrument?.channel ?? "blunt";
   const site = siteFor(target, bandForEnergy === "open");
   const energy = energyFor(bandForEnergy);
 
@@ -796,6 +798,14 @@ function commitInflict(
   // single striker at resolution time (the per-edge blame foundation).
   if (outcome.afflicted) {
     targetState.lastStruckBy = actorState.combatant;
+  }
+  // An energized weapon (a stun baton) ALSO delivers a shock on contact —
+  // a direct two-terminal circuit through the target, routed via
+  // ElectricityApi.shockContact → ConditionApi.inflict({mechanism:'shock'}),
+  // never the mechanical fold. The mechanical blow above is untouched.
+  const weapon = instrument?.weapon;
+  if (weapon && MixinApi.isEnergized(weapon)) {
+    ElectricityApi.shockContact(weapon, target);
   }
   const band = outcome.afflicted
     ? MaterialApi.severityToBand(outcome.trauma.severity)
@@ -1074,7 +1084,10 @@ function eligibilityImpl(actor: Stuff, gambitKey: string): GambitEligibility {
 }
 
 interface ResolvedInstrument {
-  channel: Channel;
+  // Combat delivers only mechanical channels; a shock is delivered by a
+  // source into the conduction graph (ElectricityApi.conduct), never routed
+  // as a combat blow through this covering-fold inflict.
+  channel: MechanicalChannel;
   materialKey?: string;
   weapon?: Stuff;
 }
@@ -1115,7 +1128,10 @@ function resolveInstrument(
   if (weaponOnly) return null;
   if (MixinApi.isCombatant(actor)) {
     const ch = actor.getNaturalAttackChannel();
-    if (ch) return { channel: ch };
+    // Only a mechanical innate attack arms this combat path; a (future)
+    // non-mechanical innate channel (an electric-eel jolt) would deliver
+    // through ElectricityApi.conduct, not here.
+    if (ch && Channels.isMechanicalChannel(ch)) return { channel: ch };
   }
   return null;
 }
@@ -1506,7 +1522,7 @@ function partingShot(
   energy: number,
 ): void {
   const instrument = resolveInstrument(attackerState);
-  const channel: Channel = instrument?.channel ?? "blunt";
+  const channel: MechanicalChannel = instrument?.channel ?? "blunt";
   const site = siteFor(fleerState.combatant, false);
   ConditionApi.inflict(fleerState.combatant, {
     mechanism: channel,

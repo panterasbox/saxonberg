@@ -381,6 +381,70 @@ export const AppSettingKeys = {
   responseBandGrazeMax: "response.band.grazeMax",
   responseBandBiteMax: "response.band.biteMax",
 
+  /* ────────────────────────── electricity ────────────────────────── */
+  /**
+   * Electricity — the Ohm's-law shock model's magnitudes (the "magnitude"
+   * half of the shape-vs-magnitude split; the physics SHAPE — `I = V/R`,
+   * conductance-to-ground current division, the covering stack as series
+   * resistance — is in code). Seeded literals are **real-world-grounded**
+   * (dry-skin ≈ 100 kΩ, wet ≈ 100× lower, let-go ≈ 10 mA, fibrillation ≈
+   * 100 mA) so a student's multimeter reads coursework values, and every
+   * magnitude reads with a fallback to the literal so a pre-warm / test
+   * read is safe. See docs/subsystems/electricity.md.
+   */
+  /** Electricity — a body's dry contact-to-contact resistance (Ω), the
+   * fallback when a body carries no flesh-conductivity material. */
+  electricityBodyDryResistanceOhms: "electricity.body.dryResistanceOhms",
+  /** Electricity — the factor a wet body's resistance drops by (~100×). */
+  electricityBodyWetFactor: "electricity.body.wetFactor",
+  /** Electricity — nominal body path geometry L/A (per metre); with flesh
+   * conductivity (~0.2 S/m) → the ~100 kΩ dry-skin anchor. */
+  electricityBodyGeometryFactor: "electricity.body.geometryFactor",
+  /** Electricity — nominal contact/edge path geometry L/A (per metre), the
+   * series resistance a material's conductivity resolves to at a node. */
+  electricityContactGeometryFactor: "electricity.contact.geometryFactor",
+  /** Electricity — ceiling clamp on a contact/series resistance (Ω), so an
+   * insulator reads a large-but-finite resistance (an open break). */
+  electricityContactMaxOhms: "electricity.contact.maxOhms",
+  /** Electricity — floor clamp on any resistance (Ω), the R→0 guard for
+   * `I = V/R`. */
+  electricityResistanceFloorOhms: "electricity.resistanceFloorOhms",
+  /** Electricity — let-go current (A): at/above this a shock's muscle
+   * tetany prevents voluntary release (~0.01 A = 10 mA). */
+  electricityLetGoAmps: "electricity.letGoAmps",
+  /** Electricity — tetanic current (A): sustained whole-muscle contraction
+   * (~0.02 A). */
+  electricityTetanicAmps: "electricity.tetanicAmps",
+  /** Electricity — fibrillation current (A): disrupts heart rhythm → arrest
+   * (~0.1 A = 100 mA), the electrocution death threshold. */
+  electricityFibrillationAmps: "electricity.fibrillationAmps",
+  /** Electricity — current (A) below which a shock leaves no contact burn
+   * (perception/tingle only). */
+  electricityBurnThresholdAmps: "electricity.burnThresholdAmps",
+  /** Electricity — contact-burn severity per amp above the burn threshold. */
+  electricityBurnSeverityPerAmp: "electricity.burnSeverityPerAmp",
+  /** Electricity — the conductivity (S/m) at/above which a surface pool
+   * bridges the conduction graph (salt water yes, dry-ish floors no). The
+   * topology gate — separate from the resistance magnitudes. */
+  electricityPoolMinConductivity: "electricity.pool.minConductivity",
+  /** Electricity — the conductivity (S/m) at/below which a material
+   * insulates a contact (footwear / a step / a floor breaks the path to
+   * ground). Rubber / leather / wool / dry wood insulate; flesh / water
+   * / metal do not. */
+  electricityInsulatorMaxConductivity: "electricity.insulator.maxConductivity",
+  /** Electricity — the factor a **conductive** worn covering multiplies the
+   * body's skin-contact resistance by (<1): metal armor spreads the current
+   * over the whole body and bypasses the high-resistance skin contact, so a
+   * plate-armored body takes MORE current than a bare one. The armor
+   * inversion's magnitude (insulating coverings instead ADD series R). */
+  electricityArmorConductiveSkinFactor: "electricity.armor.conductiveSkinFactor",
+  /** Electricity — contact-burn severity accrued per amp-second while a
+   * being-shocked circuit stays closed (the reconcile-on-read sustain). */
+  electricitySustainBurnPerAmpSec: "electricity.sustain.burnSeverityPerAmpSec",
+  /** Electricity — bpm the heart rate is driven toward arrest per game-second
+   * while a fibrillating current flows (the electrocution death drive). */
+  electricityArrestDrivePerSec: "electricity.heartRate.arrestDrivePerSec",
+
   /* ─────────────────────────── combat ─────────────────────────── */
   /**
    * Combat — the narration-beat / tempo tick, in game-seconds. The

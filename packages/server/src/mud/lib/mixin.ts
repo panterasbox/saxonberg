@@ -162,6 +162,10 @@ export const Mixins = {
   // Party — "I can belong to a party": the sparse active-party pointer on
   // Avatars + the hireable Mercenary NPC. Combat's friend/foe seam reads it.
   PartyMember: 'PartyMemberMixin',
+  // Electricity — "I am a source held at a potential": a live wire, a stun
+  // baton, the deferred wall socket / Lightning bolt. Read by the
+  // conduction walk (ElectricityApi) to impose a potential difference.
+  Energized: 'EnergizedMixin',
 } as const;
 
 /**
