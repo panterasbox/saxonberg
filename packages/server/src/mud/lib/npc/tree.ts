@@ -123,7 +123,8 @@ export type DialogueEffect =
   | { verb: "emote"; emote: string }
   | { verb: "goto"; node: string }
   | { verb: "end" }
-  | { verb: "dispatch"; command: string };
+  | { verb: "dispatch"; command: string }
+  | { verb: "bank-circle"; corpo: string };
 
 /** The registered effect verbs (validation array). */
 export const EFFECT_VERBS = [
@@ -134,6 +135,7 @@ export const EFFECT_VERBS = [
   "goto",
   "end",
   "dispatch",
+  "bank-circle",
 ] as const;
 
 /** The recognized world facts under the `time:` namespace. */
@@ -322,6 +324,9 @@ export class DialogueTreeSchema {
       }
       if (verb === "dispatch" && typeof e.command !== "string") {
         errors.push(`${at} dispatch requires a string 'command'`);
+      }
+      if (verb === "bank-circle" && typeof e.corpo !== "string") {
+        errors.push(`${at} bank-circle requires a string 'corpo'`);
       }
     });
   }

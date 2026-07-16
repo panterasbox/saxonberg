@@ -91,6 +91,7 @@ data:
           - { kind: free, value: "polishes the paddle on his sleeve, squares his badge, and straightens a vest that doesn't need it." }
           - { kind: free, value: "blows one short, clean note on his whistle — at nothing, just to keep it sharp." }
           - { kind: say, value: "Quiet today. Quiet's good." }
+          - { kind: say, value: "New in town? Counting-houses are down the avenue, west — Goodkin's the warm one with the doors open. Get your coin on the books before you lose it." }
           - { kind: say, value: "Had the chosen one through Tuesday — glowing sword, prophecy, the whole article. Wanted the way to the final battle. Saw him over first. Curb's the same for heroes." }
           - { kind: say, value: "Roads don't care how old you are, friend. Physics don't check ID." }
     # The arrival ritual (Phase 5) — the celebrated flow, fired fresh on

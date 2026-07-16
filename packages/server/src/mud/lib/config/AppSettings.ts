@@ -261,6 +261,13 @@ export const AppSettingKeys = {
    * from the first fee. `0` disables. See docs/subsystems/banking.md.
    */
   bankingCorpoRoyaltyRate: "banking.corpoRoyaltyRate",
+  /**
+   * Banking — the opening vault float (minor units) seeded into a fresh
+   * branch's till at boot, backed 1:1 by the branch's own operating balance
+   * (founding capital). Lets early ledger-credit withdrawals work before
+   * customer cash deposits accumulate. `0` disables. See docs/subsystems/banking.md.
+   */
+  bankingOpeningFloat: "banking.openingFloat",
 
   /**
    * Attendant — the lease anti-grief sweep cadence (real-time ms). Griefing

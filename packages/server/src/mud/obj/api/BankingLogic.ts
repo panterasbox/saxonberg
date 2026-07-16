@@ -155,6 +155,16 @@ async function openAccountImpl(
   // Auto-register the new account onto the owner's implant wallet (the
   // implant links all the owner's accounts; first opened becomes active).
   autoLinkToWallet(actingPrincipal(), row.accountId);
+  // Lazily capitalize the branch on its first customer: seed the opening vault
+  // float (idempotent, best-effort). The counter is guaranteed live here (the
+  // customer is standing at it), which a boot-time seed can't guarantee. A
+  // no-op in tests (the float AppSetting is unwarmed → 0).
+  const floatMinor = openingFloatMinor();
+  if (floatMinor > 0) {
+    await seedFloatImpl(bankPath, Money.of(floatMinor)).catch(() => {
+      /* best-effort — a float failure never blocks opening an account */
+    });
+  }
   return row.accountId;
 }
 
@@ -308,7 +318,10 @@ async function resolveBranchAccountImpl(bank: Stuff & Bank): Promise<string> {
   let ownerPath = bankPath;
   try {
     const { EmploymentApi } = await import("../../api/employment");
-    const business = EmploymentApi.businessAt(bankPath);
+    // `ensureOperatorAt` stands the branch Business up lazily (off its
+    // operatingLocations) so fee income + wages + the opening float all share
+    // the one account keyed on the Business path.
+    const business = await EmploymentApi.ensureOperatorAt(bankPath);
     if (business) ownerPath = business.getAccountPath();
   } catch {
     // No employment engine available (unit tests / pre-boot) → branch-keyed.
@@ -327,6 +340,40 @@ async function ensureCorpoTreasuryImpl(
   bankPath: string,
 ): Promise<string> {
   return ensureVenueAccountImpl(`corpo:${corpoKey}`, bankPath, corpoKey);
+}
+
+/**
+ * Seed a live branch's opening vault float: mint coin into the till AND credit
+ * the branch's own operating account against it (founding capital, backed 1:1
+ * → conservation holds). Best-effort + idempotent (a no-op if the branch isn't
+ * live or already has a balance). Returns whether it seeded.
+ */
+async function seedFloatImpl(bankPath: string, amount: Money): Promise<boolean> {
+  if (amount.minor <= 0) return false;
+  const bank = StuffApi.findByTemplatePath<Stuff & Bank>(bankPath);
+  if (!bank || !MixinApi.isBank(bank)) return false;
+  const branchAccount = await resolveBranchAccountImpl(bank);
+  if (AccountBalance.cachedBalance(branchAccount) > 0) return false;
+  await issueCashImpl(bank as unknown as Stuff & Container, amount, "float");
+  await postTransaction("deposit", [
+    {
+      from: Account.CASH_BRIDGE,
+      to: branchAccount,
+      amount: amount.minor,
+      category: "float",
+    },
+  ]);
+  return true;
+}
+
+/** The configured opening float (minor units), 0 if unset/pre-warm. */
+function openingFloatMinor(): number {
+  try {
+    const raw = Number(AppApi.setting(AppSettingKeys.bankingOpeningFloat));
+    return Number.isFinite(raw) && raw > 0 ? Math.floor(raw) : 0;
+  } catch {
+    return 0;
+  }
 }
 
 /**
@@ -1310,6 +1357,20 @@ export class BankingLogic extends ApiLogic {
     return ensureCorpoTreasuryImpl(corpoKey, bankPath);
   }
 
+  /**
+   * See {@link BankingApi.seedFloat}. Seed a live branch's opening vault float:
+   * mint coin into the till (supply grows) AND credit the branch's own
+   * operating account against it, so the founding cash is backed 1:1 by the
+   * bank's own balance (conservation + the custodial invariant hold). Best-
+   * effort + idempotent — a no-op if the branch isn't live yet or already has a
+   * balance. Returns whether it seeded. Lets early withdrawals work before
+   * customer deposits accumulate.
+   */
+  @CallSecurity(BankingApiCallers)
+  public async seedFloat(bankPath: string, amount: Money): Promise<boolean> {
+    return seedFloatImpl(bankPath, amount);
+  }
+
   /** See {@link BankingApi.withdrawnToday}. Cash drawn from an account today. */
   @CallSecurity(BankingApiCallers)
   public async withdrawnToday(accountId: string): Promise<number> {
@@ -1330,5 +1391,24 @@ export class BankingLogic extends ApiLogic {
     if (!account) return;
     account.isCircle = isCircle;
     await account.save();
+  }
+
+  /**
+   * See {@link BankingApi.enrollCircle}. Enrol `ownerKey`'s account at a
+   * `corpoKey`-affiliated bank into the Circle (the recognized-standing perk).
+   * Returns whether an account was found (false → the player hasn't opened one
+   * yet, so the officer nudges rather than enrols). The enrollment-tree effect.
+   */
+  @CallSecurity(BankingApiCallers)
+  public async enrollCircle(
+    ownerKey: string,
+    corpoKey: string,
+  ): Promise<boolean> {
+    const accounts = await accountsOfImpl(ownerKey);
+    const account = accounts.find((a) => a.corpoKey === corpoKey);
+    if (!account) return false;
+    account.isCircle = true;
+    await account.save();
+    return true;
   }
 }

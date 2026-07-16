@@ -348,6 +348,19 @@ export class BankingApi {
   }
 
   /**
+   * Seed a live branch's opening vault float — mint coin into the till backed
+   * 1:1 by the branch's own operating balance (the bank's founding capital),
+   * so early withdrawals work before customer deposits accumulate. Best-effort,
+   * idempotent, conserved. Returns whether it seeded.
+   */
+  public static async seedFloat(
+    bankPath: string,
+    amount: Money,
+  ): Promise<boolean> {
+    return logic().seedFloat(bankPath, amount);
+  }
+
+  /**
    * Cash withdrawn from `accountId` this game-day (derive-on-read over the
    * ledger) — the value the per-account common-pool quota reads against its cap.
    */
@@ -365,6 +378,19 @@ export class BankingApi {
     isCircle: boolean,
   ): Promise<void> {
     return logic().setAccountCircle(accountId, isCircle);
+  }
+
+  /**
+   * Enrol an owner's account at a `corpoKey`-affiliated bank into the Circle
+   * (the Goodkin enrollment write) — the recognized-standing perk (raised
+   * quota). Returns false when the owner has no such account yet (the officer
+   * nudges instead of enrolling). The `bank-circle` dialogue effect.
+   */
+  public static async enrollCircle(
+    ownerKey: string,
+    corpoKey: string,
+  ): Promise<boolean> {
+    return logic().enrollCircle(ownerKey, corpoKey);
   }
 }
 

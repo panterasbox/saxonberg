@@ -40,6 +40,7 @@ import type { AbortReason } from "@saxonberg/types";
 import type Interactive from "../../obj/Interactive";
 import { PromptApi, PromptCancelledError } from "../../api/prompt";
 import { RegardApi } from "../../api/regard";
+import { BankingApi } from "../../api/banking";
 import { TraitApi } from "../../api/trait";
 import { WorldClockApi } from "../../api/worldclock";
 import { SoulApi } from "../../api/soul";
@@ -387,9 +388,23 @@ export class DialogueConversation implements SustainedEngagement {
         case "dispatch":
           await this.dispatch(effect.command);
           break;
+        case "bank-circle":
+          await this.bankCircle(effect.corpo);
+          break;
       }
     }
     return flow;
+  }
+
+  /**
+   * Enrol the interlocutor into a bank's Circle — the Goodkin enrollment
+   * effect. A no-op (the officer's dialogue nudges instead) if the player
+   * hasn't yet opened an account at that corpo's bank; the write is idempotent.
+   */
+  private async bankCircle(corpo: string): Promise<void> {
+    const key = this.player.getTemplatePath();
+    if (!key) return;
+    await BankingApi.enrollCircle(key, corpo);
   }
 
   /**
