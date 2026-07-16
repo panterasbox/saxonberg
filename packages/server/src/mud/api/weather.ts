@@ -178,11 +178,31 @@ export class WeatherApi {
 
   /**
    * The segment-boundary callback, fired by the WorldClock system
-   * schedule. Runs the presence-gated thermal restamp fan-out; weather
-   * arms nothing itself.
+   * schedule. Runs the presence-gated thermal restamp fan-out + Wave-2
+   * puddle accrual/evaporation; weather arms nothing itself.
    */
   public static onBoundary(): void {
     logic().onBoundary();
+  }
+
+  /**
+   * The storm-strike callback, fired by the `weather:strike` WorldClock
+   * system schedule (Wave 2). Runs the presence-gated strike fan-out:
+   * occupied SkyExposed `storm` scopes roll `storm.strikeRate` and, on a
+   * hit, take an ambient strike routed through `ElectricityApi.conduct`.
+   * No weather state stored — the schedule owns the handle.
+   */
+  public static onStormTick(): void {
+    logic().onStormTick();
+  }
+
+  /**
+   * The `weather:strike` schedule interval in game-seconds
+   * (`storm.strikeIntervalS`). Boot reads this when registering the strike
+   * system schedule.
+   */
+  public static strikeIntervalSeconds(): number {
+    return logic().strikeIntervalSeconds();
   }
 
   /* ──────────────── test seams ──────────────── */
@@ -201,6 +221,15 @@ export class WeatherApi {
   static _resetForTesting(): void {
     SecurityApi.assertTestOnly('_resetForTesting');
     logic()._resetForTesting();
+  }
+
+  /**
+   * Force the per-scope strike roll (0 = always strike, 1 = never), or
+   * `null` to restore `Math.random`. Makes the strike tests deterministic.
+   */
+  static _forceStrikeRollForTesting(roll: number | null): void {
+    SecurityApi.assertTestOnly('_forceStrikeRollForTesting');
+    logic()._forceStrikeRollForTesting(roll);
   }
 }
 

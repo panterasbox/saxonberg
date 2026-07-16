@@ -14,6 +14,8 @@ import { WorldClockApi } from '../../api/worldclock';
 import { CelestialApi } from '../../api/celestial';
 import { ConnectionApi } from '../../api/connection';
 import { StuffApi } from '../../api/stuff';
+import { ContainmentApi } from '../../api/containment';
+import { MaterialApi } from '../../api/material';
 import { AppApi } from '../../api/app';
 import { AppSettingKeys } from '../../lib/config/AppSettings';
 import { EARTH_LIKE, type Season } from '../../lib/time/CelestialProfile';
@@ -21,6 +23,7 @@ import type Locality from '../../lib/address/Locality';
 import type Material from '../../lib/material/Material';
 import type { Bulkable } from '../../lib/bulk/Bulkable';
 import type { Adornable } from '../../lib/boundary/Adornable';
+import type { Energized } from '../../lib/electricity/Energized';
 import {
   WEATHER_PROFILES,
   TRANSITIONS,
@@ -54,6 +57,14 @@ const WeatherApiCallers = SecurityPolicies.AnyOf(
  * weather is fully procedural and stateless.
  */
 let forcedType: WeatherType | null = null;
+
+/**
+ * Test-only override for the per-scope strike roll. When set, every storm
+ * scope rolls this fixed value (0 = always strike, 1 = never) instead of
+ * `Math.random()`, so the strike tests are deterministic. A strike need not
+ * be reproducible in production — this exists only for tests.
+ */
+let forcedStrikeRoll: number | null = null;
 
 /* ─────────────────────────── grammar (module-private) ─────────────────────────── */
 
@@ -589,6 +600,120 @@ function maintainPuddle(room: Stuff & Container, resolved: ResolvedWeather): voi
   }
 }
 
+/* ─────────────────────────── Wave-2 storm strikes ─────────────────────────── */
+
+/** The per-scope strike roll in [0, 1) — the test override or `Math.random`. */
+function stormRoll(): number {
+  return forcedStrikeRoll !== null ? forcedStrikeRoll : Math.random();
+}
+
+/**
+ * The presence-gated storm-strike fan-out (the strike-tick sibling of the
+ * boundary fan-out). Over each occupied SkyExposed scope whose **resolved**
+ * type is `storm`, rolls `storm.strikeRate`; on a hit fires an ambient
+ * strike through the shipped `ElectricityApi.conduct` (never a bespoke shock
+ * path). No weather state stored — the schedule handle lives on the
+ * scheduler; this recomputes everything from `getNow()`. `ElectricityApi` is
+ * reached via a **dynamic import** to keep WeatherLogic's static graph clean.
+ */
+async function runStormFanout(): Promise<void> {
+  const nowS = nowSecondsOrNull();
+  if (nowS === null) return;
+  const { BiomeApi } = await import('../../api/biome');
+  const { ElectricityApi } = await import('../../api/electricity');
+  const rate = dial(AppSettingKeys.stormStrikeRate, 0.15);
+  const visited = new Set<string>();
+  for (const interactive of ConnectionApi.getAllInteractives()) {
+    const holder = interactive.getHolder();
+    if (holder === null || !MixinApi.isContainable(holder)) continue;
+    const room = (holder as Stuff & Containable).getContainer();
+    if (room === null || !MixinApi.isContainer(room)) continue;
+    if (visited.has(room.stuffId)) continue;
+    visited.add(room.stuffId);
+    if (!BiomeApi.isSkyExposed(room)) continue;
+    const locality = await AddressApi.resolveLocalityFor(room);
+    const resolved = computeResolved(room, locality, nowS, true);
+    if (resolved.sample.type !== 'storm') continue;
+    if (stormRoll() >= rate) continue;
+    await fireStrike(room, ElectricityApi);
+  }
+}
+
+/**
+ * The strike attractor — the occupant most likely to draw the bolt: the
+ * most electrically-conductive thing in the scope (a raised metal rod /
+ * drawn sword). `null` when nothing conductive stands out (the bolt hits the
+ * ground). A cheap emergent "lightning rod" bonus, conductivity-driven.
+ */
+function pickAttractor(room: Stuff & Container): Stuff | null {
+  let best: Stuff | null = null;
+  let bestSigma = 0;
+  for (const occ of room.getContents()) {
+    const sigma = conductivityOf(occ as unknown as Stuff);
+    if (sigma > bestSigma) {
+      bestSigma = sigma;
+      best = occ as unknown as Stuff;
+    }
+  }
+  // Only a genuinely conductive object (metal) biases the strike.
+  return bestSigma >= dial(AppSettingKeys.electricityPoolMinConductivity, 0.005)
+    ? best
+    : null;
+}
+
+/** A Stuff's material electrical conductivity (S/m), or 0 when materialless. */
+function conductivityOf(s: Stuff): number {
+  const mat = MaterialApi.materialOf(s);
+  return mat === null ? 0 : mat.getElectricalConductivity().rawValue();
+}
+
+/**
+ * Fire one ambient strike at a stormed scope: mint a transient high-potential
+ * `LightningStrike` in the room, route it through `conduct` (fans to bridged
+ * / immersed bodies via the shipped graph — wet ground + a strike = the
+ * conductive-puddle shock falls out for free), bias a direct hit onto the
+ * attractor, crack a thunderclap the whole locale hears, then reap the
+ * source. A strike into an empty scope harms no one but is still heard.
+ */
+async function fireStrike(
+  room: Stuff & Container,
+  ElectricityApi: typeof import('../../api/electricity').ElectricityApi,
+): Promise<void> {
+  const { default: LightningStrike } = await import(
+    '../../lib/weather/LightningStrike'
+  );
+  const volts = dial(AppSettingKeys.stormStrikeVoltage, 30_000_000);
+  const strike = await StuffApi.create(() => {
+    const s = new LightningStrike();
+    s.setVoltage(Quantity.of(volts, 'V'));
+    return s;
+  });
+  await ContainmentApi.move(
+    strike as unknown as Stuff & Containable,
+    room as unknown as Stuff & Container,
+  );
+  try {
+    // Ambient fan through the conduction graph (ground / pool / immersion).
+    ElectricityApi.conduct(strike as unknown as Stuff & Energized);
+    // Attractor bias: a raised conductive rod draws a direct hit.
+    const attractor = pickAttractor(room);
+    if (attractor !== null && attractor !== (strike as unknown as Stuff)) {
+      ElectricityApi.shockContact(
+        strike as unknown as Stuff & Energized,
+        attractor,
+      );
+    }
+    // The world weathers whether you watch — the crack is heard regardless.
+    (strike as unknown as { emit(o: unknown): void }).emit({
+      db: 130,
+      character: 'thunderclap',
+      description: 'a blinding flash and a deafening crack of thunder',
+    });
+  } finally {
+    StuffApi.destruct(strike as unknown as Stuff);
+  }
+}
+
 /**
  * WeatherLogic — the hot-reloadable logic singleton behind
  * {@link WeatherApi}.
@@ -725,6 +850,24 @@ export class WeatherLogic extends ApiLogic {
     void runBoundaryFanout();
   }
 
+  /** See {@link WeatherApi.onStormTick}. */
+  @CallSecurity(WeatherApiCallers)
+  public onStormTick(): void {
+    void runStormFanout();
+  }
+
+  /** See {@link WeatherApi.strikeIntervalSeconds}. */
+  @CallSecurity(WeatherApiCallers)
+  public strikeIntervalSeconds(): number {
+    return dial(AppSettingKeys.stormStrikeIntervalS, 1800);
+  }
+
+  /** See {@link WeatherApi._forceStrikeRollForTesting}. */
+  @CallSecurity(WeatherApiCallers)
+  public _forceStrikeRollForTesting(roll: number | null): void {
+    forcedStrikeRoll = roll;
+  }
+
   /** See {@link WeatherApi._forceTypeForTesting}. */
   @CallSecurity(WeatherApiCallers)
   public _forceTypeForTesting(type: WeatherType | null): void {
@@ -735,5 +878,6 @@ export class WeatherLogic extends ApiLogic {
   @CallSecurity(WeatherApiCallers)
   public _resetForTesting(): void {
     forcedType = null;
+    forcedStrikeRoll = null;
   }
 }
