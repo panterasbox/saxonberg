@@ -40,7 +40,6 @@ import type { AbortReason } from "@saxonberg/types";
 import type Interactive from "../../obj/Interactive";
 import { PromptApi, PromptCancelledError } from "../../api/prompt";
 import { RegardApi } from "../../api/regard";
-import { BankingApi } from "../../api/banking";
 import { TraitApi } from "../../api/trait";
 import { WorldClockApi } from "../../api/worldclock";
 import { SoulApi } from "../../api/soul";
@@ -55,7 +54,9 @@ import type {
   DialogueChoice,
   DialogueGuard,
   DialogueEffect,
+  DomainDialogueEffect,
 } from "./tree";
+import { DialogueEffectRegistry } from "./DialogueEffects";
 
 /** The engagement type for the NPC-side state machine. */
 export const DIALOGUE_CONVERSATION_TYPE = "tree-dialogue-conversation";
@@ -388,23 +389,20 @@ export class DialogueConversation implements SustainedEngagement {
         case "dispatch":
           await this.dispatch(effect.command);
           break;
-        case "bank-circle":
-          await this.bankCircle(effect.corpo);
-          break;
+        default: {
+          // A domain effect (banking's `bank-circle`, etc.) — apply through the
+          // registered handler; the substrate never imports the domain. The
+          // authored config is open data, so it reaches here as a domain effect.
+          const domain = effect as DomainDialogueEffect;
+          await DialogueEffectRegistry.get(domain.verb)?.apply({
+            npc: this.npc,
+            player: this.player,
+            effect: domain,
+          });
+        }
       }
     }
     return flow;
-  }
-
-  /**
-   * Enrol the interlocutor into a bank's Circle — the Goodkin enrollment
-   * effect. A no-op (the officer's dialogue nudges instead) if the player
-   * hasn't yet opened an account at that corpo's bank; the write is idempotent.
-   */
-  private async bankCircle(corpo: string): Promise<void> {
-    const key = this.player.getTemplatePath();
-    if (!key) return;
-    await BankingApi.enrollCircle(key, corpo);
   }
 
   /**

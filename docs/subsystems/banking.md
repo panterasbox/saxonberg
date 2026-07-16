@@ -408,7 +408,10 @@ Goodkin bank runs.
   the banking hall (counter + Wenna) + the Circle parlor (Halloran). A complete
   **`Business`** (teller + officer positions, roster = hours, one P&L). The
   **enrollment** is a `tree-dialogue` on Halloran (verb-guided: the officer walks
-  you through the real `bank open`/`deposit`/`pay` verbs) with a new
-  **`bank-circle`** dialogue effect that enrolls you into the Circle. The old
+  you through the real `bank open`/`bank deposit`/`pay` verbs) with a
+  **`bank-circle`** dialogue effect that enrolls you into the Circle — registered
+  from `lib/banking/BankDialogueEffect.ts` into the generic
+  `DialogueEffectRegistry` (banking → the dialogue substrate, so the substrate
+  never imports banking; see [npc-dialogue.md](./npc-dialogue.md)). The old
   university-avenue seeds are retired (a live-DB reseed is delete-and-restart;
   fresh DBs correct automatically).

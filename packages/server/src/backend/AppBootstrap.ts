@@ -36,6 +36,9 @@ import ParticipationStanding from '../mud/lib/standing/ParticipationStanding';
 import { ProducerApi } from '../mud/api/producer';
 import ProducerStanding from '../mud/lib/standing/ProducerStanding';
 import { BankingApi } from '../mud/api/banking';
+// Loaded for its side effect: registers banking's `bank-circle` dialogue
+// effect into the generic DialogueEffectRegistry (consumer → substrate).
+import '../mud/lib/banking/BankDialogueEffect';
 import { DiagnosticApi } from '../mud/api/diagnostics';
 import { CompileWatcher } from './CompileWatcher';
 import { fileURLToPath } from 'url';

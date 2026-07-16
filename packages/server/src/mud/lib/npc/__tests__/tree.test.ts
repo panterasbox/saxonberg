@@ -5,6 +5,7 @@ import {
   GUARD_OPS,
   type DialogueTree,
 } from "../tree";
+import { DialogueEffectRegistry } from "../DialogueEffects";
 
 /** A small, fully-valid tree exercising every guard/effect feature. */
 function validTree(): DialogueTree {
@@ -85,6 +86,28 @@ describe("DialogueTreeSchema.validate", () => {
     expect(
       errors.some((e) => e.includes("'teleport' is not a registered effect")),
     ).toBe(true);
+  });
+
+  it("delegates a registered domain effect to its handler's validate", () => {
+    DialogueEffectRegistry.register("test-effect", {
+      validate: (e) =>
+        typeof e.slug === "string" ? [] : ["test-effect requires a 'slug'"],
+      apply: () => {},
+    });
+    const setEffect = (effects: unknown[]) => {
+      const tree = validTree() as unknown as Record<string, unknown>;
+      (tree.nodes as Record<string, { choices: { effects: unknown[] }[] }>)
+        .warm!.choices[0]!.effects = effects;
+      return DialogueTreeSchema.validate(tree);
+    };
+    // Malformed → the handler's own error surfaces.
+    expect(
+      setEffect([{ verb: "test-effect" }]).some((e) =>
+        e.includes("test-effect requires a 'slug'"),
+      ),
+    ).toBe(true);
+    // Well-formed → clean (the substrate never had to know the verb).
+    expect(setEffect([{ verb: "test-effect", slug: "ok" }])).toEqual([]);
   });
 
   it("rejects an unknown guard fact", () => {
