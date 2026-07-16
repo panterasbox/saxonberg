@@ -203,4 +203,28 @@ describe("CombatNarration", () => {
     expect(note).toHaveBeenCalledTimes(1);
     expect(note.mock.calls[0]![0].subject).toBe(a);
   });
+
+  it("beat-intensity gates the crowd: silent stays quiet, murmur/roar fan out", () => {
+    const note = vi.spyOn(ReactionApi, "noteReactableAct").mockReturnValue();
+    const { a, b } = scene();
+    const base = {
+      attacker: a,
+      defender: b,
+      gambitKey: "strike",
+      outcome: "land" as const,
+      channel: "edge" as const,
+      band: "bites" as const,
+      // `dramatic` says "yes" — but intensity, when present, is what governs.
+      dramatic: true,
+    };
+
+    CombatNarration.narrate({ ...base, intensity: "silent" });
+    expect(note).not.toHaveBeenCalled(); // silence overrides a dramatic hit
+
+    CombatNarration.narrate({ ...base, intensity: "murmur" });
+    expect(note).toHaveBeenCalledTimes(1);
+
+    CombatNarration.narrate({ ...base, intensity: "roar" });
+    expect(note).toHaveBeenCalledTimes(2);
+  });
 });

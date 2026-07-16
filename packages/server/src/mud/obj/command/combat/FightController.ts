@@ -30,7 +30,14 @@ import { CombatApi, type GambitEligibility } from "../../../api/combat";
 import type { CombatantState } from "../../../lib/combat/CombatSession";
 
 const TOPIC = "world.narration.action";
-const GAMBITS = new Set(["strike", "disarm", "subdue", "shove", "defend"]);
+const GAMBITS = new Set([
+  "strike",
+  "feint",
+  "disarm",
+  "subdue",
+  "shove",
+  "defend",
+]);
 
 interface FightModel extends CommandModel {
   subcommand?: string;
@@ -146,9 +153,16 @@ export default class FightController extends CommandController<FightModel> {
 
     if (opp) {
       const name = opp.combatant.getPresentation();
+      // The opponent's poise is a FOGGED read — hedged by your own sharpness
+      // (a dull reader under-reads it and can be shown a feint as an
+      // opening; a sharp reader sees the tell). Free (unlike `assess`).
+      const read = CombatApi.perceive(giver);
+      const oppBand = read.ok && read.poiseBand ? read.poiseBand : opp.poise.band();
       lines.push("");
       lines.push(`Opponent — ${name}`);
-      lines.push(`  Poise: ${opp.poise.band()}`);
+      lines.push(
+        `  Poise: ${oppBand}${read.read === "feint" ? " (a feint?)" : ""}`,
+      );
       lines.push(`  Bearing: ${conditionBand(opp.combatant)}`);
       lines.push(`  Flags: ${flagsWord(opp)}`);
       if (opp.down) lines.push("  They are down.");

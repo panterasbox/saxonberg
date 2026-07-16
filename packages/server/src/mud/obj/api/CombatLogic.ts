@@ -46,15 +46,20 @@ import { Poise, type PoiseConfig } from "../../lib/combat/Poise";
 import { Tempo, type TempoConfig } from "../../lib/combat/Tempo";
 import { CombatFlags } from "../../lib/combat/CombatFlags";
 import { Gambit, type GambitSpec } from "../../lib/combat/Gambit";
+import { Sharpness, type SharpnessConfig } from "../../lib/combat/Sharpness";
+import { CombatFog, type FogConfig } from "../../lib/combat/CombatFog";
+import type { CompetenceBandName } from "../../lib/advancement/CompetenceBand";
 import {
   CombatNarration,
   type ExchangeOutcome,
+  type BeatIntensity,
 } from "../../lib/combat/CombatNarration";
 import type {
   OpenSessionResult,
   GambitEligibility,
   BlameVerdict,
   CombatAssessResult,
+  CombatOpenOptions,
 } from "../../api/combat";
 
 const CombatApiCallers = SecurityPolicies.FromModule("/api/combat#CombatApi");
@@ -88,8 +93,9 @@ export class CombatLogic extends ApiLogic {
     initiator: Stuff & Engaged,
     defender: Stuff & Engaged,
     terms: CombatTerms,
+    opts?: CombatOpenOptions,
   ): OpenSessionResult {
-    return openSessionImpl(initiator, defender, terms);
+    return openSessionImpl(initiator, defender, terms, opts);
   }
 
   @CallSecurity(CombatApiCallers)
@@ -102,8 +108,9 @@ export class CombatLogic extends ApiLogic {
     joiner: Stuff & Engaged,
     target: Stuff & Engaged,
     terms: CombatTerms,
+    opts?: CombatOpenOptions,
   ): { ok: boolean; reason?: string } {
-    return joinImpl(joiner, target, terms);
+    return joinImpl(joiner, target, terms, opts);
   }
 
   @CallSecurity(CombatApiCallers)
@@ -180,6 +187,11 @@ export class CombatLogic extends ApiLogic {
   public assess(actor: Stuff, target: Stuff): CombatAssessResult {
     return assessImpl(actor, target);
   }
+
+  @CallSecurity(CombatApiCallers)
+  public perceive(actor: Stuff): CombatAssessResult {
+    return perceiveImpl(actor);
+  }
 }
 
 /* ───────────────────────── config dials ───────────────────────── */
@@ -217,6 +229,37 @@ function tempoConfig(): TempoConfig {
   };
 }
 
+function sharpnessConfig(): SharpnessConfig {
+  const K = AppSettingKeys;
+  return {
+    min: dial(K.combatSharpnessMin, 0.35),
+    max: dial(K.combatSharpnessMax, 1),
+  };
+}
+
+function fogConfig(): FogConfig {
+  const K = AppSettingKeys;
+  return {
+    clearSharpness: dial(K.combatFogClearSharpness, 0.7),
+    readSharpness: dial(K.combatFogReadSharpness, 0.7),
+  };
+}
+
+/**
+ * The combatant's sharpness this fight — competence today (composure joins
+ * later via `Sharpness`), memoized on the state so it's resolved once and a
+ * single session stays deterministic.
+ */
+function sharpnessFor(state: CombatantState): number {
+  if (state.sharpness !== null) return state.sharpness;
+  const s = Sharpness.resolve(
+    { competenceBand: state.competenceBand },
+    sharpnessConfig(),
+  );
+  state.sharpness = s;
+  return s;
+}
+
 /** Inflict energy for the target's poise band at the moment of the blow. */
 function energyFor(band: string): number {
   const K = AppSettingKeys;
@@ -240,6 +283,7 @@ function openSessionImpl(
   initiator: Stuff & Engaged,
   defender: Stuff & Engaged,
   terms: CombatTerms,
+  opts?: CombatOpenOptions,
 ): OpenSessionResult {
   if (!MixinApi.isEngaged(initiator) || !MixinApi.isEngaged(defender)) {
     return { ok: false, reason: "not-engageable" };
@@ -257,8 +301,10 @@ function openSessionImpl(
   const session = new CombatSession(terms, tickMs);
   const aState = deriveState(initiator);
   aState.side = safeSideOf(initiator);
+  aState.competenceBand = bandFromOpts(initiator, opts);
   const bState = deriveState(defender);
   bState.side = safeSideOf(defender);
+  bState.competenceBand = bandFromOpts(defender, opts);
   const holdA = session.addParticipant(aState);
   const holdB = session.addParticipant(bState);
 
@@ -299,6 +345,7 @@ function joinImpl(
   joiner: Stuff & Engaged,
   target: Stuff & Engaged,
   terms: CombatTerms,
+  opts?: CombatOpenOptions,
 ): { ok: boolean; reason?: string } {
   if (!MixinApi.isEngaged(joiner)) return { ok: false, reason: "not-engageable" };
   if (joiner.getEngagementByType(COMBAT_PARTICIPANT_TYPE)) {
@@ -309,6 +356,7 @@ function joinImpl(
 
   const state = deriveState(joiner);
   state.side = safeSideOf(joiner);
+  state.competenceBand = bandFromOpts(joiner, opts);
   const hold = session.addParticipant(state);
   if (!SchedulerApi.start(hold).ok) {
     session.removeParticipant(joiner);
@@ -363,10 +411,31 @@ function deriveState(combatant: Stuff & Engaged): CombatantState {
     brainPath: brainPathFor(combatant),
     brainConfig: {},
     balanceFactor: inputs.balanceFactor,
+    competenceBand: "untrained",
+    sharpness: null,
     down: false,
     side: "",
     lastStruckBy: null,
   };
+}
+
+/**
+ * The competence band the caller snapshotted for this combatant (keyed by
+ * durable `templatePath`), or `untrained` when no controller resolved it
+ * (bare/test/gym/NPC-vs-NPC paths). Synchronous by construction — the async
+ * `AdvancementApi.bandFor` is awaited by the controller *before* open, never
+ * mid-beat, so a single session stays deterministic.
+ */
+function bandFromOpts(
+  combatant: Stuff,
+  opts?: CombatOpenOptions,
+): CompetenceBandName {
+  const key = combatant.getTemplatePath();
+  if (opts?.competenceBands && key) {
+    const band = opts.competenceBands.get(key);
+    if (band) return band;
+  }
+  return "untrained";
 }
 
 /** The combatant's per-fight alignment key, frozen on the node at
@@ -501,8 +570,12 @@ function resolveExchange(
       dial(AppSettingKeys.combatFocusFireSuppressRecoveryAt, 2),
     );
     if (incoming >= suppressAt) return;
-    // Defensive/reactive play restores poise, capped by endurance.
-    const restore = dial(AppSettingKeys.combatPoiseRestorePerDefense, 0.15);
+    // Defensive/reactive play restores poise, capped by endurance and
+    // scaled by sharpness — a sharper fighter recovers footing better per
+    // defensive beat (the composure seam rides this scalar too, later).
+    const restore =
+      dial(AppSettingKeys.combatPoiseRestorePerDefense, 0.15) *
+      sharpnessFor(actorState);
     actorState.poise.restore(restore, enduranceRatio(actorState.combatant));
     return;
   }
@@ -573,7 +646,8 @@ function resolveExchange(
       targetState.poise.consumeOpening();
       actorState.poise.spend(overextend, beat);
       const report = commitInflict(actorState, targetState, "open");
-      narrate(actorState, targetState, spec, "land", report, true, beat, true);
+      const firstBlood = !report.deflected && session.markBloodDrawn();
+      narrate(actorState, targetState, spec, "land", report, true, beat, true, firstBlood);
       // Winning the poise contest downs the target (the incapacitation
       // waypoint; a lethal finish follows under lethal terms).
       handleDown(session, actorState, targetState);
@@ -583,8 +657,31 @@ function resolveExchange(
       actorState.poise.spend(overextend, beat);
       const targetBand = targetState.poise.band();
       const report = commitInflict(actorState, targetState, targetBand);
-      narrate(actorState, targetState, spec, report.deflected ? "deflected" : "land", report, !report.deflected, beat);
-      if (!report.deflected) checkFirstBlood(session, report);
+      const landed = !report.deflected;
+      const firstBlood = landed && session.markBloodDrawn();
+      narrate(actorState, targetState, spec, report.deflected ? "deflected" : "land", report, landed, beat, false, firstBlood);
+      if (landed) checkFirstBlood(session, report);
+      return;
+    }
+    case "feint-bit": {
+      // The defender bit the bait — over-committed to a parry that wasn't
+      // there and cracked their own guard open. The feinter pays only the
+      // small bait cost; the opening it armed is cashed on the next strike
+      // (the two-beat feint → exploit, reusing the earned-opening path).
+      const feintCost = dial(AppSettingKeys.combatPoiseFeintCost, 0.08);
+      const bitPenalty = dial(AppSettingKeys.combatPoiseFeintBitPenalty, 0.8);
+      actorState.poise.spend(feintCost, beat);
+      targetState.poise.spend(bitPenalty, beat); // arms the opening on crossing
+      narrate(actorState, targetState, spec, "feinted", null, true, beat);
+      return;
+    }
+    case "feint-read": {
+      // Seen through (or wasted on a non-turtle): the bait fizzles and the
+      // feinter eats the small cost for nothing — which is why blind
+      // patience against a reader, and pure aggression, both beat a feinter.
+      const feintCost = dial(AppSettingKeys.combatPoiseFeintCost, 0.08);
+      actorState.poise.spend(feintCost, beat);
+      narrate(actorState, targetState, spec, "feint-read", null, false, beat);
       return;
     }
   }
@@ -596,7 +693,9 @@ type OutcomeKind =
   | "control-resisted"
   | "control-land"
   | "exploit"
-  | "land";
+  | "land"
+  | "feint-bit"
+  | "feint-read";
 
 /** Deterministic outcome from the tactical state. */
 function decideOutcome(
@@ -608,6 +707,18 @@ function decideOutcome(
   const actorBand = actorState.poise.band();
   const overextended = actorBand === "broken" || actorBand === "open";
   const control = spec.kind === "control";
+
+  // The feint reads the *defender's* commitment (poker, not slots). A
+  // committed defender — a steady, armed turtle poised to parry, the
+  // patient defender the feint exists to punish — who fails to *read* the
+  // bait over-commits and cracks their own guard (`feint-bit`). A defender
+  // who reads it (competence-gated, the shared `CombatFog` gate) or isn't
+  // committed (an aggressor, not turtling) isn't fooled (`feint-read`).
+  if (spec.kind === "feint") {
+    const committed = targetState.poise.band() === "steady" && targetCanParry;
+    const reads = CombatFog.reads(sharpnessFor(targetState), fogConfig());
+    return committed && !reads ? "feint-bit" : "feint-read";
+  }
 
   if (overextended && spec.offensive) return "whiff";
   if (targetState.poise.isOpen()) return control ? "control-land" : "exploit";
@@ -636,8 +747,10 @@ function reactiveDispatch(
     defenderState.poise.spend(overextend, beat);
     const band = attackerState.poise.band();
     const report = commitInflict(defenderState, attackerState, band);
-    narrate(defenderState, attackerState, g, report.deflected ? "deflected" : "land", report, !report.deflected, beat);
-    if (!report.deflected) checkFirstBlood(session, report);
+    const landed = !report.deflected;
+    const firstBlood = landed && session.markBloodDrawn();
+    narrate(defenderState, attackerState, g, report.deflected ? "deflected" : "land", report, landed, beat, false, firstBlood);
+    if (landed) checkFirstBlood(session, report);
     return; // one reactive per trigger
   }
 }
@@ -853,7 +966,23 @@ function narrate(
   dramatic: boolean,
   beat: number,
   openingExploited = false,
+  firstBlood = false,
 ): void {
+  const openingCracked = !openingExploited && targetState.poise.isOpen();
+  // Beat-intensity: the arc's punctuation. A roar at the emergent
+  // thresholds (first-blood / the break — cracked or exploited / the down
+  // or kill); a murmur for an ordinary notable beat; silence otherwise.
+  // Narration swells and the crowd's reaction fan-out both scale to this.
+  const intensity: BeatIntensity =
+    firstBlood ||
+    openingExploited ||
+    openingCracked ||
+    outcome === "down" ||
+    outcome === "killed"
+      ? "roar"
+      : dramatic
+        ? "murmur"
+        : "silent";
   CombatNarration.narrate({
     attacker: actorState.combatant,
     defender: targetState.combatant,
@@ -866,12 +995,14 @@ function narrate(
     attackerSpeciesKey: report?.attackerSpeciesKey,
     flagSet: spec.flagOnLand,
     dramatic,
+    intensity,
     // The arc drivers: the defender's poise after the blow, whether a
     // window was exploited / freshly cracked, the trauma, and the beat
     // (rotates phrasing).
     defenderPoise: targetState.poise.band(),
     openingExploited,
-    openingCracked: !openingExploited && targetState.poise.isOpen(),
+    openingCracked,
+    firstBlood,
     traumaType: report?.traumaType,
     beat,
   });
@@ -1515,24 +1646,50 @@ function mintAssessSignature(actor: Stuff): void {
   }).catch(() => {});
 }
 
-function assessImpl(actor: Stuff, _target: Stuff): CombatAssessResult {
+/**
+ * The **free** fogged read of the actor's opponent — no cost, no
+ * side-effects. The opponent's poise is hedged by the actor's own sharpness
+ * (poker, not slots): a dull reader under-reads the band and mistakes a
+ * feint for a real opening; a sharp reader sees the true band and the
+ * feint's `tell`. Powers the always-available `fight` status line; the
+ * costed `assess` verb wraps it.
+ */
+function perceiveImpl(actor: Stuff): CombatAssessResult {
   const session = sessionForImpl(actor);
   if (!session) return { ok: false, reason: "not-in-combat" };
   const oppState = session.opponentState(actor);
   if (!oppState) return { ok: false, reason: "no-target" };
-  // Costs the actor their next exchange (the real opportunity cost).
   const st = session.getState(actor);
-  if (st) st.queuedGambit = "assess";
-  mintAssessSignature(actor);
   const opp = oppState.combatant;
+  const viewerSharpness = st ? sharpnessFor(st) : 0;
+  const oppFeinting = oppState.queuedGambit === "feint";
+  const reading = CombatFog.perceive(
+    oppState.poise.band(),
+    viewerSharpness,
+    oppFeinting,
+    fogConfig(),
+  );
   return {
     ok: true,
-    poiseBand: oppState.poise.band(),
+    poiseBand: reading.band,
+    read: reading.tell,
     flags: oppState.flags.list(),
     armed: resolveInstrument(oppState, true) !== null,
     conditionBand: MixinApi.isVitals(opp)
       ? opp.getConditionBand()
       : undefined,
   };
+}
+
+function assessImpl(actor: Stuff, _target: Stuff): CombatAssessResult {
+  const read = perceiveImpl(actor);
+  if (!read.ok) return read;
+  // The costed read: spend the actor's next exchange (the opportunity cost)
+  // and mint the melee-read credit. The fogged read itself is `perceiveImpl`.
+  const session = sessionForImpl(actor);
+  const st = session?.getState(actor);
+  if (st) st.queuedGambit = "assess";
+  mintAssessSignature(actor);
+  return read;
 }
 
