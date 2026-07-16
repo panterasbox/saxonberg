@@ -5,11 +5,17 @@
  * shocked (faction-blind). Plus the stun baton's direct-contact shock.
  *
  * Drives the real `ElectricityApi.conduct` / `shockContact` through the room
- * class; fixtures constructed (no clone pipeline / world needed).
+ * class. The hazard fixtures (the brine-pooled Floor + the LiveWire) are
+ * authored templates the room's seed places declaratively (`adornments:` /
+ * `populates:`) at boot; this test stands the same fixtures up directly (the
+ * seed clone pipeline needs a live world) so it exercises the room's real
+ * `onEntered` → conduct behavior.
  */
 
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import FloodedCell from '../FloodedCell';
+import LiveWire from '../../../lib/electricity/LiveWire';
+import Floor from '../../../obj/Floor';
 import StunBaton from '../../../lib/electricity/StunBaton';
 import { Construction } from '../../../lib/material/Construction';
 import Armor from '../../../lib/equipment/Armor';
@@ -45,9 +51,29 @@ function rubber(): Material {
   return m;
 }
 
+/**
+ * Stand up the cell + its hazard fixtures the way the seed does declaratively
+ * (`adornments:` a brine-pooled Floor, `populates:` a LiveWire) — done
+ * directly here since the faked-Mongo test has no clone pipeline.
+ */
 async function makeCell(): Promise<FloodedCell> {
   const cell = await StuffApi.create(() => new FloodedCell());
-  await cell.provisionHazard();
+
+  const floor = makeStuff(() => new Floor());
+  floor.surfaceBulk = true;
+  floor.setBulkMaterial(
+    'surface',
+    StuffApi.findByTemplatePath<Material>('/lib/material/bulk/salt-water') ??
+      null,
+  );
+  floor.setBulkAmount('surface', Quantity.of(40, 'L'));
+  (cell as unknown as { addFixture(f: unknown): boolean }).addFixture(floor);
+
+  const wire = makeStuff(() => new LiveWire());
+  wire.setVoltage(Quantity.of(120, 'V'));
+  wire.switchOn();
+  ContainmentApi.move(wire as never, cell as never);
+
   return cell;
 }
 

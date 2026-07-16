@@ -1,9 +1,11 @@
 # The flooded switch-cell — the electricity demonstrator (the duncan-hall
 # cistern precedent: a flooded hazard room a body ENTERS by walking). A
-# `FloodedCell` (bespoke class — its hazard is `onEntered` → conduct, unlike
-# the cistern's declarative `_atmosphere: water`) at the substation's origin
-# cell. Provisions its own hazard fixtures at standup: a salt-water-pooled
-# `Floor` (ground + conductive medium) and a downed `LiveWire` in the pool.
+# `FloodedCell` (bespoke class — its ONLY bespoke behavior is the `onEntered`
+# → conduct hazard trigger, unlike the cistern's declarative `_atmosphere:
+# water`) at the substation's origin cell. Its hazard fixtures are authored
+# templates placed **declaratively**: the salt-water-pooled `Floor` (ground +
+# conductive medium) via `adornments:`, the downed `LiveWire` via `populates:`
+# — no imperative construction.
 #
 # Wade in barefoot and the current bridges you to ground through the water —
 # a shock. On the dry catwalk, or in rubber boots, the ground path breaks:
@@ -16,8 +18,15 @@ data:
   shortDescription: a flooded switch-cell
   primaryKeyword: cell
   longDescription: |
-    A low concrete switch-cell, ankle-deep in brackish standing water that never drained. Ranks of dead breakers line one wall, their handles furred with corrosion; a raised steel catwalk runs dry along the other. A heavy cable has come down from the ceiling and lies half-submerged in the water, its frayed end still humming faintly — the one thing down here that is not dead.
+    A low concrete switch-cell, ankle-deep in brackish standing water that never drained. Ranks of dead breakers line one wall, their handles furred with corrosion; a raised steel catwalk runs dry along the other.
   coords:
     x: 0
     y: 0
     z: 0
+  # The pooled floor (ground + conductive brine) — a fixture.
+  adornments:
+    - /domain/substation/flooded-floor
+  # The downed live cable, lying in the pool — a room content, cloned fresh
+  # each standup.
+  populates:
+    - /domain/substation/live-wire
