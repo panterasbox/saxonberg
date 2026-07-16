@@ -27,6 +27,7 @@ import { ExecutionContextApi } from "../../../api/execution-context";
 import { Idea } from "../../../lib/stuff/Idea";
 import { ContainerMixin } from "../../../lib/spatial/Container";
 import { ContainableMixin } from "../../../lib/spatial/Containable";
+import { PropertiedMixin } from "../../../lib/stuff/Propertied";
 import type { Stuff } from "../../../lib/stuff/Stuff";
 import {
   makeStuffAtPath,
@@ -50,7 +51,10 @@ const CH = "domain/terminus/counting-houses";
 const COUNTER_PATH = "/domain/terminus/counting-houses/bank-counter";
 const ALICE = "/obj/Avatar/alice";
 
-class TestAvatar extends ContainerMixin(ContainableMixin(Idea)) {
+// Mirrors a real avatar closely enough for the money arc: Propertied (so the
+// Circle membership can ride a `<corpoKey>.circle` saved prop, as on a real
+// Creature/Avatar) + a container so it can hold coin.
+class TestAvatar extends ContainerMixin(ContainableMixin(PropertiedMixin(Idea))) {
   static _mixinName = "TestAvatar";
 }
 

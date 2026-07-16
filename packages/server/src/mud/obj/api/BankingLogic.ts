@@ -38,6 +38,7 @@ import { GlobbableApi } from "../../api/glob";
 import { MixinApi } from "../../api/mixin";
 import { StuffApi } from "../../api/stuff";
 import { TemplatePaths } from "../../lib/paths";
+import { Property } from "../../lib/stuff/Propertied";
 import type { Stuff } from "../../lib/stuff/Stuff";
 import type { Container } from "../../lib/spatial/Container";
 import type { Containable } from "../../lib/spatial/Containable";
@@ -453,9 +454,30 @@ async function withdrawnTodayImpl(accountId: string): Promise<number> {
   return total;
 }
 
-/** The per-account daily cash-withdrawal cap (Circle members get the raised one). */
-function withdrawalCapFor(account: AccountBalance): number {
-  const key = account.isCircle
+/**
+ * Circle membership is a corpo loyalty program — an attribute of the *member*
+ * (the player), NOT of any one bank account. It lives as a plain saved boolean
+ * prop on the member, keyed `<corpoKey>.circle` (e.g. `goodkin.circle`), via the
+ * general `PropertiedMixin` every Creature carries. The write chokepoint
+ * (`enrollCircle`) is the security boundary; the prop itself is ungated state,
+ * consistent with how the codebase persists per-Avatar props.
+ */
+function circleProp(corpoKey: string): Property<boolean> {
+  return Property.of<boolean>(`${corpoKey}.circle`);
+}
+
+/** Whether `member` belongs to `corpoKey`'s Circle (reads the saved prop). */
+function isCircleMember(member: Stuff | null, corpoKey: string): boolean {
+  if (!member || !MixinApi.isPropertied(member)) return false;
+  return member.getProp(circleProp(corpoKey)) === true;
+}
+
+/**
+ * The per-account daily cash-withdrawal cap. Circle members (of the account's
+ * corpo) get the raised one — read off the withdrawing `member`, not the row.
+ */
+function withdrawalCapFor(account: AccountBalance, member: Stuff | null): number {
+  const key = isCircleMember(member, account.corpoKey || "")
     ? AppSettingKeys.bankingWithdrawalDailyCapCircle
     : AppSettingKeys.bankingWithdrawalDailyCap;
   try {
@@ -1157,7 +1179,7 @@ export class BankingLogic extends ApiLogic {
     // the ledger; per-account, never collective (a bank run is a feature);
     // over the cap → refuse and push onto the ledger (card/transfer). Scales
     // with standing (Circle → higher cap).
-    const cap = withdrawalCapFor(account);
+    const cap = withdrawalCapFor(account, actingPrincipal());
     if (cap > 0) {
       const already = await withdrawnTodayImpl(account.accountId);
       if (already + amount.minor > cap) {
@@ -1359,11 +1381,20 @@ export class BankingLogic extends ApiLogic {
     ownerKey: string,
     corpoKey: string,
   ): Promise<boolean> {
+    // The gameplay gate: you must have opened an account at this corpo's bank
+    // before its Circle will have you (the officer nudges otherwise).
     const accounts = await accountsOfImpl(ownerKey);
-    const account = accounts.find((a) => a.corpoKey === corpoKey);
-    if (!account) return false;
-    account.isCircle = true;
-    await account.save();
+    if (!accounts.some((a) => a.corpoKey === corpoKey)) return false;
+    // The membership itself rides the *member*, not the account — a saved prop
+    // on the player. Resolve the live member Stuff (present in the dialogue) and
+    // write it. Persist through the member's own spine save when it offers one
+    // (Avatar), matching the old account.save() immediacy; otherwise the next
+    // autosave capture carries it (the per-Avatar-prop idiom, e.g. contacts).
+    const member = StuffApi.findByTemplatePath<Stuff>(ownerKey);
+    if (!member || !MixinApi.isPropertied(member)) return false;
+    member.setProp(circleProp(corpoKey), true);
+    const savable = member as Stuff & { save?: () => Promise<void> };
+    if (typeof savable.save === "function") await savable.save();
     return true;
   }
 }

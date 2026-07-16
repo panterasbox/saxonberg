@@ -388,8 +388,12 @@ Goodkin bank runs.
 - **The withdrawal quota (common-pool till guard).** A per-account daily
   cash-withdrawal cap, **derive-on-read** over the ledger's `withdraw` legs since
   the game-day boundary (no counter, no scheduler — Law-2 clean), **never
-  collective** (a bank run is a feature), **scaling with standing** (the Circle
-  marker on `AccountBalance.isCircle` → the raised cap; set by `enrollCircle`).
+  collective** (a bank run is a feature), **scaling with standing** (Circle
+  membership → the raised cap; set by `enrollCircle`). Circle membership is an
+  attribute of the **member**, not the account — a `<corpoKey>.circle` saved
+  boolean prop on the player (the general `PropertiedMixin` every `Creature`
+  carries), read off the withdrawing principal, never a field on
+  `AccountBalance`.
   The sibling of the Attendant lease (exclusive) — the common-pool guard.
 - **Till security.** `BankMixin.canRemoveContainable` vetoes loose removal of
   vault coin; the banking verbs open a disbursement window

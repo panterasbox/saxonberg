@@ -30,7 +30,6 @@ export default class AccountBalance extends Document {
     "isPrimary",
     "isActive",
     "balance",
-    "isCircle",
   ];
 
   /** Durable, opaque ledger key. */
@@ -47,13 +46,10 @@ export default class AccountBalance extends Document {
   isActive = true;
   /** Materialized balance in minor units — derived from the ledger. */
   balance = 0;
-  /**
-   * The **Circle** affiliation marker (Goodkin's recognized-standing perk),
-   * set by the enrollment ceremony. Confers the raised withdrawal quota (and,
-   * on the Attendant side, reception skip). A complete record with deferred
-   * further consumers (faction/housing), not half-grown.
-   */
-  isCircle = false;
+  // Circle membership (Goodkin's recognized-standing perk) is NOT an account
+  // field — it's an attribute of the *member*, held as a `<corpoKey>.circle`
+  // saved prop on the player (PropertiedMixin). See BankingLogic.enrollCircle
+  // / withdrawalCapFor.
 
   /**
    * The warmed read cache: `accountId → balance`. Always a Map (starts

@@ -20,6 +20,7 @@ import { ExecutionContextApi } from "../../../api/execution-context";
 import { Idea } from "../../stuff/Idea";
 import { ContainerMixin } from "../../spatial/Container";
 import { ContainableMixin } from "../../spatial/Containable";
+import { PropertiedMixin } from "../../stuff/Propertied";
 import type { Stuff } from "../../stuff/Stuff";
 import {
   makeStuffAtPath,
@@ -31,7 +32,9 @@ import {
   teardownBankingHarness,
 } from "./banking-test-harness";
 
-class TestAvatar extends ContainerMixin(ContainableMixin(Idea)) {
+// Propertied (like a real Creature/Avatar) so Circle membership can ride a
+// `<corpoKey>.circle` saved prop; a container so it can hold coin.
+class TestAvatar extends ContainerMixin(ContainableMixin(PropertiedMixin(Idea))) {
   static _mixinName = "TestAvatar";
 }
 
