@@ -79,16 +79,24 @@ to lift later.
 
 ## The pieces, in Stuff terms
 
-`AttendantApi` (thin gated forwarding shell) → `AttendantLogic` (`/obj/api/attendant`,
-the orchestration): `requestAttention` (grant a lease on a free server / queue /
-instant / closed / self-service), `release`, `bumpLease`, `serveNext` (poke the
-front), `leaveQueue`, `boot` (install the sweep + the linkdead subscription).
-The queue/lease bookkeeping mutators on `AttendantMixin` are ungated internal
-methods (the scheduler's abort-dispatch frame isn't a recognized module, and the
-state is transient in-memory queue order — the real guards, lease eviction and
-linkdead release, are enforced in the logic). `Mixins.Attendant` /
-`MixinApi.isAttendant`. Booted after employment (server resolution reads
-on-shift state).
+**The venue's behavior lives on the mixin, not in an Api.** The point owns its
+queue and leases, so it owns the verbs over them: `AttendantMixin.requestAttention`
+(grant a lease on a free server / queue / instant / closed / self-service),
+`release`, `bumpLease`, `serveNext`, `leaveQueue`, `evictIdleLeases`,
+`dropCustomer`, plus its own `resolveServer` (roster → present, on-shift,
+attention-free). A controller calls `point.requestAttention(key)` directly —
+it's the venue's behavior, not an Api's, and there's no privilege gate to route
+through (an early design assumed one, but the queue/lease state is transient
+in-memory order, not persisted or economic — the real guards are the sweep and
+the till/quota). `Mixins.Attendant` / `MixinApi.isAttendant`.
+
+The **one genuinely Api-shaped piece** is `AttendantLogic` (`/obj/api/attendant`,
+behind the thin `AttendantApi`): a process-level **background service** — the
+real-time idle-eviction sweep (a retained `ScheduleApi.recurring` handle) + the
+`PlayerDisconnected` subscription + the `boot` seam. It's the ResidencyLogic
+shape: the engine drives cadence and **informs** each point (`point.evictIdleLeases(now, threshold)`
+/ `point.dropCustomer(key)`); the **point decides**. Booted after employment
+(server resolution reads on-shift state).
 
 ## Instances
 

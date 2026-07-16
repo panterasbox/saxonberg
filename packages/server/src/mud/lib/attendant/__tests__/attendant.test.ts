@@ -54,7 +54,8 @@ function customer(path: string): TestCustomer {
   return makeStuffAtPath(() => new TestCustomer(), path);
 }
 
-/** Run through a root frame so the gated AttendantApi calls have a principal. */
+/** Run through a root frame — SchedulerApi.start subscribes to events, which
+ * needs an execution-context root. */
 function act<T>(fn: () => T): T {
   return withRootContext(null, "attendant.test", fn) as T;
 }
@@ -100,7 +101,7 @@ describe("Attendant — instant vs durative service", () => {
     const point = makePoint({ discipline: "scrum", attendDurationMs: 0 });
     customer(ALICE);
     const server = makeStuff(() => new TestServer());
-    const r = act(() => AttendantApi.requestAttention(point, ALICE, server));
+    const r = act(() => point.requestAttention(ALICE, server));
     expect(r.status).toBe("attending");
     expect(r).toMatchObject({ instant: true });
     // No lease held — the server's attention is free (scrum, no serialization).
@@ -114,14 +115,14 @@ describe("Attendant — instant vs durative service", () => {
     customer(BOB);
     const server = makeStuff(() => new TestServer());
 
-    const r1 = act(() => AttendantApi.requestAttention(point, ALICE, server));
+    const r1 = act(() => point.requestAttention(ALICE, server));
     expect(r1.status).toBe("attending");
     expect(point.isAttending(ALICE)).toBe(true);
     // The server's attention is now held — serialization falls out of the slot.
     expect(server.getEngagementBySlot("attention")).toBeDefined();
 
     // A second customer can't be attended by the busy server → queued.
-    const r2 = act(() => AttendantApi.requestAttention(point, BOB, server));
+    const r2 = act(() => point.requestAttention(BOB, server));
     expect(r2).toMatchObject({ status: "queued", position: 1 });
     expect(point.getQueue()).toEqual([BOB]);
   });
@@ -131,15 +132,15 @@ describe("Attendant — instant vs durative service", () => {
     customer(ALICE);
     customer(BOB);
     const server = makeStuff(() => new TestServer());
-    act(() => AttendantApi.requestAttention(point, ALICE, server));
-    act(() => AttendantApi.requestAttention(point, BOB, server));
+    act(() => point.requestAttention(ALICE, server));
+    act(() => point.requestAttention(BOB, server));
 
-    act(() => AttendantApi.release(point, ALICE));
+    act(() => point.release(ALICE));
     // Alice's lease is gone; the server is free again.
     expect(point.isAttending(ALICE)).toBe(false);
     expect(server.getEngagementBySlot("attention")).toBeUndefined();
     // Bob, still queued, can now be attended.
-    const r = act(() => AttendantApi.requestAttention(point, BOB, server));
+    const r = act(() => point.requestAttention(BOB, server));
     expect(r.status).toBe("attending");
     expect(point.getQueue()).toEqual([]);
   });
@@ -164,13 +165,13 @@ describe("Attendant — the lease idle-eviction sweep (anti-grief)", () => {
     customer(ALICE);
     customer(BOB);
     const server = makeStuff(() => new TestServer());
-    act(() => AttendantApi.requestAttention(point, ALICE, server));
-    act(() => AttendantApi.requestAttention(point, BOB, server));
+    act(() => point.requestAttention(ALICE, server));
+    act(() => point.requestAttention(BOB, server));
     expect(point.isAttending(ALICE)).toBe(true);
 
     // A service act resets recency: still fresh, not swept.
     clock += 800;
-    act(() => AttendantApi.bumpLease(point, ALICE));
+    act(() => point.bumpLease(ALICE));
     clock += 800; // 800 since the bump — under the 1000 threshold
     act(() => AttendantApi.sweepNowForTesting());
     expect(point.isAttending(ALICE)).toBe(true); // legit-slow, kept
@@ -196,8 +197,8 @@ describe("Attendant — linkdead release", () => {
     customer(ALICE);
     customer(BOB);
     const server = makeStuff(() => new TestServer());
-    act(() => AttendantApi.requestAttention(point, ALICE, server));
-    act(() => AttendantApi.requestAttention(point, BOB, server));
+    act(() => point.requestAttention(ALICE, server));
+    act(() => point.requestAttention(BOB, server));
 
     // Alice (holding the lease) and Bob (queued) both go linkdead.
     act(() => AttendantApi.disconnectForTesting("alice"));
@@ -222,7 +223,7 @@ describe("Attendant — staffing states", () => {
     });
     customer(ALICE);
     // No server resolvable (no business/roster) → closed.
-    const r = act(() => AttendantApi.requestAttention(point, ALICE));
+    const r = act(() => point.requestAttention(ALICE));
     expect(r.status).toBe("closed");
   });
 
@@ -233,7 +234,7 @@ describe("Attendant — staffing states", () => {
       staffingPolicy: "self-service",
     });
     customer(ALICE);
-    const r = act(() => AttendantApi.requestAttention(point, ALICE));
+    const r = act(() => point.requestAttention(ALICE));
     expect(r).toMatchObject({ status: "attending", selfService: true });
   });
 });

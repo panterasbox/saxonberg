@@ -18,7 +18,6 @@ import Menu from '../../../domain/lounge/Menu';
 import { BankingApi, Money } from '../../../api/banking';
 import type { Charge } from '../../../api/banking';
 import { EmploymentApi } from '../../../api/employment';
-import { AttendantApi } from '../../../api/attendant';
 import type { Attendant } from '../../../lib/attendant/Attendant';
 import type { Stuff } from '../../../lib/stuff/Stuff';
 import type { Container } from '../../../lib/spatial/Container';
@@ -52,7 +51,7 @@ export default class OrderController extends CraftController<OrderModel> {
     const point = this.resolveAttendantPoint(context);
     if (point) {
       const key = giver.getTemplatePath();
-      if (key && AttendantApi.requestAttention(point, key).status === 'closed') {
+      if (key && point.requestAttention(key).status === 'closed') {
         MessageApi.scene(giver)
           .topic(TOPIC)
           .toSelf(Mml.compose`There's no one tending the bar just now.`)
