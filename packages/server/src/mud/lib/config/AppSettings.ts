@@ -263,6 +263,26 @@ export const AppSettingKeys = {
   bankingCorpoRoyaltyRate: "banking.corpoRoyaltyRate",
 
   /**
+   * Attendant — the lease anti-grief sweep cadence (real-time ms). Griefing
+   * is a real-time act, so the watchdog is real-time (the residency sweep
+   * pattern), not game-time. See docs/subsystems/attendant.md.
+   */
+  attendantLeaseSweepIntervalMs: "attendant.lease.sweepIntervalMs",
+  /**
+   * Attendant — the idle threshold (real-time ms): a service lease with no
+   * service act for this long is revoked (`service-idle`) and the next
+   * customer pulled up. The venue's generosity dial (a legit-slow customer is
+   * distinguished from a griefer by each act resetting the counter).
+   */
+  attendantLeaseIdleThresholdMs: "attendant.lease.idleThresholdMs",
+  /**
+   * Attendant — a take-a-number ticket / queue place idle-expiry (real-time
+   * ms): a waiting place held idle blocks others as much as the front, so the
+   * idle-drop applies to the whole queue.
+   */
+  attendantQueueIdleThresholdMs: "attendant.queue.idleThresholdMs",
+
+  /**
    * Fast-travel — the tunable TPA **network-fee percentage** levied on every
    * paid ride into the TPA operating budget (the payment-processor share).
    * Read try/catch → 0-fallback like `banking.salesTaxRate`. See

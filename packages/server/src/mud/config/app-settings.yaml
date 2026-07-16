@@ -186,6 +186,17 @@ settings:
   # income begins from the first fee; invisible to the player. 0 disables.
   - key: banking.corpoRoyaltyRate
     value: "0.1"
+  # Attendant — the anti-grief lease sweep (real-time). Griefing is a real-time
+  # act, so the watchdog is real-time (the residency pattern), not game-time.
+  # The idle threshold is the venue's generosity dial: a service act resets it,
+  # so a legit-slow customer keeps the counter while an idle hold is revoked.
+  # The queue idle-drop reaps a waiting place (a ticket) held idle.
+  - key: attendant.lease.sweepIntervalMs
+    value: "15000"
+  - key: attendant.lease.idleThresholdMs
+    value: "120000"
+  - key: attendant.queue.idleThresholdMs
+    value: "180000"
   # Fast-travel — the TPA network fee (a flat base + a percentage) levied on
   # every PAID ride into the TPA operating budget (both budgets recirculate;
   # the sink lever is a deferred CB drain, not accumulation). The base

@@ -155,6 +155,9 @@ export const Mixins = {
   // relationships (an on-shift Position confers its duties via augments).
   Business: 'BusinessMixin',
   Employed: 'EmployedMixin',
+  // Attendant — the universal storefront-attention substrate: a service-point
+  // fixture holding the queue + being-attended leases (a server's attention).
+  Attendant: 'AttendantMixin',
   // Combat — "I can fight": combat verb affordances + the innate-attack
   // hook. All fight state is session-scoped, never on the Creature.
   Combatant: 'CombatantMixin',
