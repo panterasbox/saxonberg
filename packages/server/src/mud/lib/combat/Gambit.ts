@@ -23,6 +23,7 @@
 
 import type { CombatFlag } from "./CombatFlags";
 import type { CompetenceBandName } from "../advancement/CompetenceBand";
+import type { DeliveryForm } from "../material/Construction";
 
 export type GambitKind =
   | "offensive"
@@ -63,6 +64,14 @@ export interface GambitSpec {
   reactiveTrigger?: ReactiveTrigger;
   /** Competence-band gate (informational until Build 2 conferrals). */
   minBand?: CompetenceBandName;
+  /**
+   * The weapon-delivery forms that **afford** this gambit ("the weapon edits
+   * the menu"): a `sweep` needs a hafted weapon. Absent = any weapon. Checked
+   * at attempt-time in `CombatLogic.eligibilityImpl`.
+   */
+  affordedByForm?: DeliveryForm[];
+  /** Requires a wielded **shield** to afford (e.g. `bash`). */
+  affordedByShield?: boolean;
 }
 
 /**
@@ -142,6 +151,53 @@ const GAMBITS: Record<string, GambitSpec> = {
     needsInstrument: true,
   },
   /**
+   * The **close** — step inside a longer weapon's reach (the reach tier's
+   * approach half). A tempo-costed opposed maneuver: it flips the pair's
+   * engagement range from `reach` to `close`, where a dagger/unarmed fighter
+   * owns the clinch and the spear becomes a liability. The reach-holder can
+   * contest it (keep you at bay) while composed and genuinely longer. Needs
+   * no instrument (you can close bare-handed); the flip/contest logic lives
+   * in `CombatLogic.resolveExchange`'s `close` branch. The reversal (pushing
+   * back out to `reach`) is the reach-holder's `defend`.
+   */
+  close: {
+    key: "close",
+    verb: "close",
+    kind: "control",
+    offensive: false,
+    needsInstrument: false,
+  },
+  /**
+   * The **shield-bash** — a weapon-shaped gambit *afforded by the shield*,
+   * not the weapon (the "weapon edits the menu" seam, over the equipment):
+   * slam the shield forward to stagger a foe prone. Needs no weapon
+   * instrument (the shield IS the instrument), but is only eligible while a
+   * shield is wielded.
+   */
+  bash: {
+    key: "bash",
+    verb: "bash",
+    kind: "control",
+    offensive: false,
+    needsInstrument: false,
+    affordedByShield: true,
+    flagOnLand: "prone",
+  },
+  /**
+   * The **sweep** — a hafted weapon's low, wide swing that takes a foe's
+   * legs. Afforded only by a hafted/flail form (a long haft to sweep with);
+   * a bladed or pointed weapon can't. Lands the `prone` control flag.
+   */
+  sweep: {
+    key: "sweep",
+    verb: "sweep",
+    kind: "control",
+    offensive: false,
+    needsInstrument: true,
+    affordedByForm: ["hafted", "flail"],
+    flagOnLand: "prone",
+  },
+  /**
    * The reactive counter — a weapon riposte the session offers the
    * defender when an attacker's blow is parried. Weapon-only (needs an
    * instrument), so a disarmed defender can't riposte.
@@ -180,5 +236,15 @@ export class Gambit {
     return Object.values(GAMBITS).filter(
       (g) => g.kind === "reactive" && g.reactiveTrigger === trigger,
     );
+  }
+
+  /** The verbs of the extra gambits a weapon-delivery form affords ("the
+   * weapon edits the menu") — e.g. a hafted weapon affords `sweep`. Used by
+   * the `analyze weapon` legibility preview. Null form → none. */
+  static affordedByForm(form: DeliveryForm | null): string[] {
+    if (!form) return [];
+    return Object.values(GAMBITS)
+      .filter((g) => g.affordedByForm?.includes(form))
+      .map((g) => g.verb);
   }
 }

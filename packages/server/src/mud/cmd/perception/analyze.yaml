@@ -31,6 +31,27 @@ subcommands:
         type: object
         required: true
         scope: ["reachable"]
+  weapon:
+    description: "Preview a weapon's derived playstyle — reach, guard, balance, handedness, delivery (bands/pips)"
+    help: |
+      Point at a weapon and read its playstyle before you draw it. The
+      whole bundle is *derived* from the weapon's shape — its form,
+      material, mass, and length — never hand-tuned: `reach medium ●●○○ ·
+      guard good ●●●○ · balance heavy · one-handed`. A long weapon controls
+      the approach; a heavy one breaks guards but is slow; a crossguard
+      parries where a flail can't. The bands shown are the same ones the
+      fight applies.
+    examples:
+      - cmd: analyze weapon the spear
+        note: See a weapon's reach / guard / balance / handedness
+      - cmd: analyze weapon my sword
+        note: Read the playstyle of a weapon you're carrying
+    controller: /obj/command/combat/AnalyzeWeaponController
+    args:
+      - name: target
+        type: object
+        required: true
+        scope: ["reachable"]
   light:
     description: "Analyze light at a location with source breakdown"
     help: |

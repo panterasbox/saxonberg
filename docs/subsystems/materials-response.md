@@ -142,6 +142,16 @@ inflict(target, { mechanism: Channel, site, energy })
 A covered site turns what an uncovered gap takes — coverage is **degree, not
 presence**. The binary `ConditionApi.isSiteCovered` is retired.
 
+**Wielded shields** join the same stack (the weapon-playstyle build): a
+`Wieldable` carrying an *armor* `Construction` (a shield — armor you hold, not
+wear) is folded in as a **directional** front cover, gated by an optional
+`InflictSpec.shieldFacing` hint — `true`/absent (a faced or non-combat blow) →
+the shield attenuates; `false` (combat routing a flanking blow under
+focus-fire) → it is bypassed. Keyed off the `Wieldable`-carries-armor
+composition (not a slot-name), so it's a general front cover over any struck
+part, not tied to a body-plan `covers` slot. See [combat.md](./combat.md) §
+weapon playstyle.
+
 ## Weapon delivery (delivery-forms only)
 
 An implement *derives* which channel(s) it presents from its

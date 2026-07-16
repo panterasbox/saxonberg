@@ -1,0 +1,20 @@
+class: /lib/equipment/Weapon
+hydratorClass: /lib/persistence/PersistentHydrator
+data:
+  shortDescription: a steel war-hammer
+  primaryKeyword: warhammer
+  longDescription: >
+    A brutal wedge of steel on a long two-handed haft. It is all commitment
+    — slow to bring round, punishing to answer, and it breaks a guard by
+    main force where a lighter weapon would only be turned.
+  _materialPath: /lib/material/alloy/steel
+  _detailMaterialPaths:
+    haft: /lib/material/wood/oak
+  constructionForm: hafted
+  gradeBand: fine
+  # The heavy guard-breaker archetype — heavy mass drives high poise damage,
+  # slow tempo, and an expensive commit. Two-handed.
+  mass: 3.2
+  length: 1.1
+  slotClaims:
+    "/lib/body-plans/biped": ["hand:left", "hand:right"]

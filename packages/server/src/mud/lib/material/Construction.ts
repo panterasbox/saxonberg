@@ -38,8 +38,20 @@ export const ARMOR_FORMS = ['plate', 'mail', 'padded', 'hide'] as const;
 /** An armor form — one of {@link ARMOR_FORMS}. */
 export type ArmorForm = (typeof ARMOR_FORMS)[number];
 
-/** The v1 weapon-delivery forms (carry a deliver profile). */
-export const WEAPON_DELIVERY_FORMS = ['bladed', 'pointed', 'hafted'] as const;
+/**
+ * The v1 weapon-delivery forms (carry a deliver profile). `flail` shares
+ * `hafted`'s blunt delivery but is the **guardless** form — a flail/whip
+ * can't be brought back to parry, so its derived `WeaponProfile.guard` is
+ * `none` (the distinction is a *playstyle* one, keyed on the form in
+ * `WeaponProfile`, not a delivery-shape one — the delivery grid is
+ * blunt-primary like a mace).
+ */
+export const WEAPON_DELIVERY_FORMS = [
+  'bladed',
+  'pointed',
+  'hafted',
+  'flail',
+] as const;
 /** A weapon-delivery form — one of {@link WEAPON_DELIVERY_FORMS}. */
 export type DeliveryForm = (typeof WEAPON_DELIVERY_FORMS)[number];
 
@@ -115,6 +127,7 @@ const DELIVERY_PROFILES: Record<DeliveryForm, Record<Channel, DeliveryToken>> =
     bladed: { edge: 'primary', point: 'secondary', blunt: 'none' },
     pointed: { point: 'primary', edge: 'secondary', blunt: 'none' },
     hafted: { blunt: 'primary', edge: 'none', point: 'none' },
+    flail: { blunt: 'primary', edge: 'none', point: 'none' },
   };
 
 /**

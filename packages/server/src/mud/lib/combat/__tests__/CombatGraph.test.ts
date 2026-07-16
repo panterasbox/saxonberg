@@ -94,4 +94,57 @@ describe("CombatGraph", () => {
     const c = node("c");
     expect(g.redirect(a, b, c)).toBeUndefined();
   });
+
+  describe("range (the reach tier)", () => {
+    it("a new edge defaults to `close`", () => {
+      const g = new CombatGraph();
+      const a = node("a");
+      const b = node("b");
+      g.addEdge(a, b, terms("a"));
+      expect(g.edgeBetween(a, b)!.range).toBe("close");
+      expect(g.rangeBetween(a, b)).toBe("close");
+    });
+
+    it("setRange writes BOTH directed edges (physically symmetric)", () => {
+      const g = new CombatGraph();
+      const a = node("a");
+      const b = node("b");
+      g.addEdge(a, b, terms("a"));
+      g.addEdge(b, a, terms("b"));
+      g.setRange(a, b, "reach");
+      expect(g.edgeBetween(a, b)!.range).toBe("reach");
+      expect(g.edgeBetween(b, a)!.range).toBe("reach");
+      // rangeBetween reads either direction.
+      expect(g.rangeBetween(a, b)).toBe("reach");
+      expect(g.rangeBetween(b, a)).toBe("reach");
+    });
+
+    it("rangeBetween falls back to `close` for an unknown pair", () => {
+      const g = new CombatGraph();
+      expect(g.rangeBetween(node("x"), node("y"))).toBe("close");
+    });
+
+    it("redirect carries the range onto the new edge", () => {
+      const g = new CombatGraph();
+      const attacker = node("attacker");
+      const ally = node("ally");
+      const interposer = node("interposer");
+      g.addEdge(attacker, ally, terms("attacker"), "edge", "reach");
+      g.redirect(attacker, ally, interposer);
+      expect(g.edgeBetween(attacker, interposer)!.range).toBe("reach");
+    });
+
+    it("addEdge preserves the range on an existing edge unless overridden", () => {
+      const g = new CombatGraph();
+      const a = node("a");
+      const b = node("b");
+      g.addEdge(a, b, terms("a"), undefined, "reach");
+      // Re-adding without a range keeps the existing one.
+      g.addEdge(a, b, terms("a2"));
+      expect(g.edgeBetween(a, b)!.range).toBe("reach");
+      // Explicitly overriding updates it.
+      g.addEdge(a, b, terms("a3"), undefined, "close");
+      expect(g.edgeBetween(a, b)!.range).toBe("close");
+    });
+  });
 });

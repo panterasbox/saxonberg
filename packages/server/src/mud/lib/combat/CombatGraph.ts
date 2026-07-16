@@ -19,6 +19,15 @@
 import type { Stuff } from "../stuff/Stuff";
 import type { CombatTerms } from "./CombatTerms";
 
+/**
+ * The engagement **range** on a pair (the geometry-free reach tier): `reach`
+ * — fighting at the end of a long weapon (a spear controls, a dagger is out
+ * of range); `close` — inside, where a dagger/unarmed owns the clinch and a
+ * long weapon is a liability. Physically symmetric per pair (both directed
+ * edges carry the same value); flipped by the `close` gambit.
+ */
+export type RangeState = "reach" | "close";
+
 /** One directed engagement: `attacker` presses `defender` under `terms`. */
 export interface ThreatEdge {
   readonly attacker: Stuff;
@@ -27,6 +36,9 @@ export interface ThreatEdge {
   instrument?: string;
   /** The terms in force on THIS edge (the per-edge blame foundation). */
   terms: CombatTerms;
+  /** The engagement range on this pair (default `close`; kept in sync on
+   * both directed edges via {@link CombatGraph.setRange}). */
+  range: RangeState;
 }
 
 export class CombatGraph {
@@ -71,6 +83,7 @@ export class CombatGraph {
     defender: Stuff,
     terms: CombatTerms,
     instrument?: string,
+    range?: RangeState,
   ): ThreatEdge {
     this.nodes.add(attacker);
     this.nodes.add(defender);
@@ -78,11 +91,35 @@ export class CombatGraph {
     if (existing) {
       existing.terms = terms;
       if (instrument !== undefined) existing.instrument = instrument;
+      if (range !== undefined) existing.range = range;
       return existing;
     }
-    const edge: ThreatEdge = { attacker, defender, terms, instrument };
+    const edge: ThreatEdge = {
+      attacker,
+      defender,
+      terms,
+      instrument,
+      range: range ?? "close",
+    };
     this.edges.push(edge);
     return edge;
+  }
+
+  /** Set the engagement range on a pair (physically symmetric): writes it
+   * onto BOTH directed edges that exist between `a` and `b`. */
+  setRange(a: Stuff, b: Stuff, range: RangeState): void {
+    const e1 = this.edgeBetween(a, b);
+    const e2 = this.edgeBetween(b, a);
+    if (e1) e1.range = range;
+    if (e2) e2.range = range;
+  }
+
+  /** The engagement range on a pair (either direction), defaulting to
+   * `close` when no edge exists yet. */
+  rangeBetween(a: Stuff, b: Stuff): RangeState {
+    return (
+      this.edgeBetween(a, b)?.range ?? this.edgeBetween(b, a)?.range ?? "close"
+    );
   }
 
   removeEdge(attacker: Stuff, defender: Stuff): void {
@@ -138,6 +175,12 @@ export class CombatGraph {
     if (!edge) return undefined;
     this.removeEdge(attacker, fromDefender);
     this.nodes.add(toDefender);
-    return this.addEdge(attacker, toDefender, edge.terms, edge.instrument);
+    return this.addEdge(
+      attacker,
+      toDefender,
+      edge.terms,
+      edge.instrument,
+      edge.range,
+    );
   }
 }
