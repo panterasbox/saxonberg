@@ -60,7 +60,7 @@ export class AttendantLogic extends ApiLogic {
   /** Boot seam (idempotent): install the lease sweep + linkdead release. */
   @CallSecurity(AttendantApiCallers)
   public boot(): void {
-    this.installLeaseSweep();
+    this.doInstallLeaseSweep();
     if (!this.disconnectSub) {
       this.disconnectSub = EventApi.on<{ playerId: string }>(
         Events.PlayerDisconnected,
@@ -72,6 +72,13 @@ export class AttendantLogic extends ApiLogic {
   /** Install the real-time idle-eviction sweep (mirrors ResidencyLogic). */
   @CallSecurity(AttendantApiCallers)
   public installLeaseSweep(): void {
+    this.doInstallLeaseSweep();
+  }
+
+  // Private impl — `boot` and the public `installLeaseSweep` both call it; a
+  // gated method can't call another gated method via `this` (the self-caller
+  // isn't the AttendantApi module).
+  private doInstallLeaseSweep(): void {
     if (this.sweepHandle) return;
     this.sweepHandle = ScheduleApi.recurring(
       readInt(AppSettingKeys.attendantLeaseSweepIntervalMs, DEFAULT_SWEEP_MS),

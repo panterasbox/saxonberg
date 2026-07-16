@@ -78,9 +78,10 @@ data:
             beat: >-
               "Simplest thing in the world. Step over to Wenna at the counter
               and say `bank open` — I'll not charge a newcomer a penny for it.
-              Then `deposit 20`, or whatever you've got, to put your coin on the
-              books; you'll watch it become a number you can spend by card. Come
-              back to me when it's done and I'll make it official."
+              Then `bank deposit coins` to put what you're carrying on the
+              books; you'll watch that cash become a number you can spend by
+              card, and pull it back with `bank withdraw` whenever you need it.
+              Come back to me when it's done and I'll make it official."
             choices:
               - { line: "Done — I've opened and funded it.", to: circle }
               - { line: "Give me a moment to do that.", to: later }

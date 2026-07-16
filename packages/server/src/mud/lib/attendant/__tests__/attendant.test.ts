@@ -85,6 +85,17 @@ describe("Attendant — instant vs durative service", () => {
     StuffApi.clearAll();
   });
 
+  it("boot() installs the sweep without a self-call gate error (regression)", () => {
+    // AttendantLogic.boot() calls the sweep-install internally; a gated method
+    // self-calling another gated method throws SecurityError (the self-caller
+    // isn't the AttendantApi module) — which crashed server boot. boot() must
+    // succeed and be idempotent.
+    act(() => {
+      AttendantApi.boot();
+      AttendantApi.boot(); // idempotent — no throw on the second call
+    });
+  });
+
   it("instant (scrum, attendDurationMs 0) holds no slot", () => {
     const point = makePoint({ discipline: "scrum", attendDurationMs: 0 });
     customer(ALICE);
