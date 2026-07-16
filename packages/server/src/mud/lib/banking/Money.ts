@@ -10,13 +10,15 @@
  * ({@link Money.faceValueOf}), not a value written onto the object.
  *
  * All ledger math is integer minor units — never floats — so balances
- * reconcile exactly. v1 ships a single currency (`credit`) whose one
- * denomination is worth one minor unit; the substrate keys on the currency
- * tag and a denomination→value map so a richer denomination set (or a
+ * reconcile exactly. The currency is the civic **credit**, minted in the
+ * denomination set held by {@link Coinage} (1 / 5 / 25); the substrate keys
+ * on the currency tag and a denomination→value map so a richer set (or a
  * second currency) is an additive change, not a refactor.
  *
  * The home that kills a `types.ts` reflex for the banking subsystem.
  */
+
+import { Coinage } from "./Coinage";
 
 /** A currency tag. v1 ships exactly one: {@link DEFAULT_CURRENCY}. */
 export type Currency = string;
@@ -27,13 +29,12 @@ export const DEFAULT_CURRENCY: Currency = "credit";
 /**
  * Coin face values in minor units, keyed by denomination — the *currency's*
  * coin spec (intrinsic to what the money is), NOT a worth stamped on any
- * good. v1: one denomination, worth one minor unit. Unknown denominations
- * resolve to 1 (the v1 unit), so a coin always has a well-defined value for
- * reconciliation.
+ * good. Derived from {@link Coinage.DENOMINATIONS} (the single source of the
+ * face-value ⊕ per-coin-mass spec). Unknown denominations resolve to 1, so a
+ * coin always has a well-defined value for reconciliation.
  */
-export const COIN_FACE_VALUES: Readonly<Record<string, number>> = {
-  credit: 1,
-};
+export const COIN_FACE_VALUES: Readonly<Record<string, number>> =
+  Object.fromEntries(Coinage.DENOMINATIONS.map((d) => [d.key, d.value]));
 
 export class Money {
   /**

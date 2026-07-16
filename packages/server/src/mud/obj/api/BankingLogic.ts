@@ -15,6 +15,8 @@ import AccountBalance from "../../lib/banking/AccountBalance";
 import SupplyAggregate from "../../lib/banking/SupplyAggregate";
 import { Account } from "../../lib/banking/Account";
 import { Money } from "../../lib/banking/Money";
+import { Coinage } from "../../lib/banking/Coinage";
+import type { CoinLine, CoinSupply } from "../../lib/banking/Coinage";
 import { BankTransaction } from "../../lib/banking/Transaction";
 import type { LedgerLeg } from "../../lib/banking/Transaction";
 import type { Bank } from "../../lib/banking/Bank";
@@ -186,69 +188,95 @@ async function ensureVenueAccountImpl(
   return row.accountId;
 }
 
+/** The cash-like contents of a container, grouped by denomination (per-stack). */
+function cashSupply(holder: Stuff & Container): CoinSupply[] {
+  const supply: CoinSupply[] = [];
+  for (const item of ContainmentApi.getContents(holder)) {
+    if (isCashLike(item)) {
+      supply.push({
+        denomination: item.getDenomination(),
+        quantity: item.getQuantity(),
+      });
+    }
+  }
+  return supply;
+}
+
 /**
- * Move `count` coins (value-1 units) from `from`'s contents to `to`,
- * splitting a stack when it holds more than needed. Used for both withdrawal
- * (vault → owner) and cash settlement (payer → payee). v1 assumes face value
- * 1 (count === minor units); denomination change-making is deferred.
+ * Take exactly the planned coins out of `from`, calling `dispose` on each
+ * removed stack/piece. Splits a stack when it holds more than the plan needs.
+ * Returns false only if the container didn't actually hold the planned coins
+ * (a concurrent-mutation guard; the plan is pre-validated against the supply).
+ */
+async function takeCoins(
+  from: Stuff & Container,
+  plan: readonly CoinLine[],
+  dispose: (piece: Stuff & Containable) => void,
+): Promise<boolean> {
+  for (const line of plan) {
+    let need = line.count;
+    for (const item of [...ContainmentApi.getContents(from)]) {
+      if (need <= 0) break;
+      if (!isCashLike(item) || item.getDenomination() !== line.denomination) {
+        continue;
+      }
+      const have = item.getQuantity();
+      if (have <= need) {
+        dispose(item as unknown as Stuff & Containable);
+        need -= have;
+      } else {
+        const piece = await GlobbableApi.split(item, need);
+        dispose(piece as unknown as Stuff & Containable);
+        need = 0;
+      }
+    }
+    if (need > 0) return false;
+  }
+  return true;
+}
+
+/**
+ * Move coins summing to exactly `value` (minor units) from `from` to `to`,
+ * making change largest-first and splitting a stack when it holds more than
+ * needed. Used for withdrawal (vault → owner) and cash settlement (payer →
+ * payee). Returns false when the source cannot make the value exactly from
+ * its denominations (the till-can't-make-change / exact-cash-or-card signal).
  */
 async function moveCoins(
   from: Stuff & Container,
   to: Stuff & Container,
-  count: number,
+  value: number,
 ): Promise<boolean> {
-  let remaining = count;
-  for (const item of [...ContainmentApi.getContents(from)]) {
-    if (remaining <= 0) break;
-    if (!isCashLike(item)) continue;
-    const have = item.getQuantity();
-    if (have <= remaining) {
-      ContainmentApi.move(item, to);
-      remaining -= have;
-    } else {
-      const piece = await GlobbableApi.split(item, remaining);
-      ContainmentApi.move(piece as unknown as Stuff & Containable, to);
-      remaining = 0;
-    }
-  }
-  return remaining === 0;
+  const plan = Coinage.planSpend(cashSupply(from), value);
+  if (!plan) return false;
+  return takeCoins(from, plan, (piece) => ContainmentApi.move(piece, to));
 }
 
-/** Total cash-like value on hand in a container (top-level coin stacks). */
+/** Total cash-like value on hand in a container (Σ face-value × quantity). */
 function cashOnHand(holder: Stuff & Container): number {
   let total = 0;
   for (const item of ContainmentApi.getContents(holder)) {
-    if (isCashLike(item)) total += item.getQuantity();
+    if (isCashLike(item)) total += stackValue(item);
   }
   return total;
 }
 
 /**
- * Remove exactly `count` worth of cash from `holder`, destroying the coin
- * (it leaves circulation). Caller must have pre-checked sufficiency
- * ({@link cashOnHand}); returns whether the full amount was drained. Used by
- * the on-ledger cash bridge (a cash payment with no physical till): coin is
+ * Remove exactly `value` (minor units) of cash from `holder`, destroying the
+ * coin (it leaves circulation). Returns whether the full value was drained
+ * (false when the held denominations can't make it exactly). Used by the
+ * on-ledger cash bridge (a cash payment with no physical till): coin is
  * consumed, equal value credited on-ledger — supply-neutral.
  */
 async function drainCoins(
   holder: Stuff & Container,
-  count: number,
+  value: number,
 ): Promise<boolean> {
-  let remaining = count;
-  for (const item of [...ContainmentApi.getContents(holder)]) {
-    if (remaining <= 0) break;
-    if (!isCashLike(item)) continue;
-    const have = item.getQuantity();
-    if (have <= remaining) {
-      StuffApi.destruct(item as unknown as Stuff);
-      remaining -= have;
-    } else {
-      const piece = await GlobbableApi.split(item, remaining);
-      StuffApi.destruct(piece as unknown as Stuff);
-      remaining = 0;
-    }
-  }
-  return remaining === 0;
+  const plan = Coinage.planSpend(cashSupply(holder), value);
+  if (!plan) return false;
+  return takeCoins(holder, plan, (piece) =>
+    StuffApi.destruct(piece as unknown as Stuff),
+  );
 }
 
 /**
@@ -321,7 +349,14 @@ async function settleImpl(
     if (cashSplitTotal > charge.amount.minor) {
       throw new Error("BankingLogic.settle: splits exceed the charge");
     }
-    await drainCoins(payerC, charge.amount.minor);
+    // Exact-cash-or-card: consume coins summing to exactly the charge, or
+    // refuse before any ledger leg posts (the caller falls back to the card).
+    const drained = await drainCoins(payerC, charge.amount.minor);
+    if (!drained) {
+      throw new Error(
+        "BankingLogic.settle: can't make the exact amount in cash",
+      );
+    }
     const bridgeLegs: LedgerLeg[] = [];
     const bridgeMain = charge.amount.minor - cashSplitTotal;
     if (bridgeMain > 0) {
@@ -487,6 +522,9 @@ async function issueCashImpl(
   amount: Money,
   category: PnlCategory = "float",
 ): Promise<Stuff> {
+  if (amount.minor <= 0) {
+    throw new Error("BankingLogic.issueCash: amount must be positive");
+  }
   await postTransaction("mint", [
     {
       from: Account.ISSUANCE,
@@ -496,10 +534,22 @@ async function issueCashImpl(
       category,
     },
   ]);
-  const coin = await StuffApi.clone(COIN_PATH);
-  (coin as unknown as Globbable).setQuantity(amount.minor);
-  ContainmentApi.move(coin as unknown as Stuff & Containable, into);
-  return coin;
+  // Dispense largest-first: a real cash faucet hands out efficient coins
+  // (25s, then 5s, then 1s), not a heap of ones. Each denomination is its own
+  // stack (they never merge — `globIdentityFields = ['denomination']`).
+  const lines = Coinage.dispense(amount.minor);
+  let representative: Stuff | null = null;
+  for (const line of lines) {
+    const coin = await StuffApi.clone(COIN_PATH);
+    (coin as unknown as { denomination: string }).denomination =
+      line.denomination;
+    (coin as unknown as Globbable).setQuantity(line.count);
+    ContainmentApi.move(coin as unknown as Stuff & Containable, into);
+    if (!representative) representative = coin;
+  }
+  // `dispense` yields ≥1 line for a positive amount; the largest is returned
+  // as a convenience handle (all stacks are already placed in `into`).
+  return representative as Stuff;
 }
 
 /**
@@ -894,6 +944,18 @@ export class BankingLogic extends ApiLogic {
     if (!principal || !MixinApi.isContainer(principal)) {
       throw new Error("BankingLogic.withdraw: nowhere to hand the cash");
     }
+    // Dispense largest-first, bounded by the till's denominations. The till
+    // can hold enough total value yet be unable to make the amount *exactly*
+    // (e.g. only 25s for a 10-credit pull) — a distinct, diegetic refusal from
+    // till-low, checked before the ledger moves so the debit never outruns the
+    // coin. Exact-cash-or-card: push the customer onto card / transfer.
+    const bankContainer = bank as unknown as Stuff & Container;
+    if (Coinage.planSpend(cashSupply(bankContainer), amount.minor) === null) {
+      throw new Error(
+        `BankingLogic.withdraw: the branch can't make ${amount.render()} ` +
+          `in exact change right now (try a card payment or transfer)`,
+      );
+    }
     await postTransaction("withdraw", [
       {
         from: account.accountId,
@@ -901,11 +963,7 @@ export class BankingLogic extends ApiLogic {
         amount: amount.minor,
       },
     ]);
-    await moveCoins(
-      bank as unknown as Stuff & Container,
-      principal,
-      amount.minor,
-    );
+    await moveCoins(bankContainer, principal, amount.minor);
   }
 
   /** See {@link BankingApi.transfer}. Balance → balance (conserving). */
