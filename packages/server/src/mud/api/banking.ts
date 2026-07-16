@@ -240,18 +240,10 @@ export class BankingApi {
     return logic().activeCredential();
   }
 
-  /** Switch a credential's active account (the `wallet` verb; persists). */
-  public static setActiveAccount(
-    credential: PaymentCredential,
-    accountId: string,
-  ): void {
-    return logic().setActiveAccount(credential, accountId);
-  }
-
-  /** Report-lost: freeze a credential (account + balance untouched). */
-  public static freezeCredential(credential: PaymentCredential): void {
-    return logic().freezeCredential(credential);
-  }
+  // Note: switching a credential's active account and freezing it are the
+  // `PaymentCredential` value-object's own behavior — call `credential
+  // .setActiveAccount(id)` / `.setFrozen(true)` directly (the caller holds the
+  // record). They were thin forwards through here with no gate to route.
 
   /** Issue/reissue a payment card linked 1:1 to `accountId`, into inventory. */
   public static async issueCard(

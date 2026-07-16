@@ -1264,26 +1264,11 @@ export class BankingLogic extends ApiLogic {
     return settleImpl(charge, method);
   }
 
-  /** See {@link BankingApi.setActiveAccount}. Switch the wallet's active acct. */
-  @CallSecurity(BankingApiCallers)
-  public setActiveAccount(
-    credential: PaymentCredential,
-    accountId: string,
-  ): void {
-    credential.setActiveAccount(accountId);
-  }
-
   /** See {@link BankingApi.activeCredential}. The actor's routing credential. */
   @CallSecurity(BankingApiCallers)
   public activeCredential(): PaymentCredential | null {
     const actor = actingPrincipal();
     return actor ? reachableCredential(actor) : null;
-  }
-
-  /** See {@link BankingApi.freezeCredential}. Report-lost — revoke a credential. */
-  @CallSecurity(BankingApiCallers)
-  public freezeCredential(credential: PaymentCredential): void {
-    credential.setFrozen(true);
   }
 
   /** See {@link BankingApi.issueCard}. Issue/reissue a card for an account. */
