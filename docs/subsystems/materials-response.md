@@ -43,9 +43,13 @@ picks its *shape*:
   value-object (the `Grade`/`WeatherType` data-table precedent, **not** a
   mixin) carrying a per-channel profile. Two v1 vocabularies share one
   shape: **armor forms** (`plate`/`mail`/`padded`/`hide`) with a *resist*
-  profile, and **weapon-delivery forms** (`bladed`/`pointed`/`hafted`) with
-  a *deliver* profile. Persisted by hosts as the form word, reconstructed
-  via `Construction.of`.
+  profile, and **weapon-delivery forms** (`bladed`/`pointed`/`hafted`, plus
+  the guardless `flail` (blunt) and `whip` (a cutting `edge` lash) added by
+  the weapon-playstyle build — the guardless/reach distinctions are a
+  *playstyle* concern keyed on the form in `WeaponProfile`, see
+  [combat.md](./combat.md), not a delivery-shape one) with a *deliver*
+  profile. Persisted by hosts as the form word, reconstructed via
+  `Construction.of`.
 
 ### The taxonomy grid (shape, in code)
 
@@ -141,6 +145,16 @@ inflict(target, { mechanism: Channel, site, energy })
 
 A covered site turns what an uncovered gap takes — coverage is **degree, not
 presence**. The binary `ConditionApi.isSiteCovered` is retired.
+
+**Wielded shields** join the same stack (the weapon-playstyle build): a
+`Wieldable` carrying an *armor* `Construction` (a shield — armor you hold, not
+wear) is folded in as a **directional** front cover, gated by an optional
+`InflictSpec.shieldFacing` hint — `true`/absent (a faced or non-combat blow) →
+the shield attenuates; `false` (combat routing a flanking blow under
+focus-fire) → it is bypassed. Keyed off the `Wieldable`-carries-armor
+composition (not a slot-name), so it's a general front cover over any struck
+part, not tied to a body-plan `covers` slot. See [combat.md](./combat.md) §
+weapon playstyle.
 
 ## Weapon delivery (delivery-forms only)
 

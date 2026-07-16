@@ -5,7 +5,7 @@
  * Per the `Garment` philosophy, added behavior is a composed mixin, not
  * a new noun: this is a Garment that *also* composes
  * `DisguiseBearingMixin`. Seeded as `domain` content (e.g.
- * `/domain/eternal/clothes/hood`) with `data.appearsAs` /
+ * `/obj/clothes/hood`) with `data.appearsAs` /
  * `data.masksIdentity` / `data.covers` alongside the usual
  * `slotClaims`.
  */

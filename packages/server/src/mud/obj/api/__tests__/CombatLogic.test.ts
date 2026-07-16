@@ -29,6 +29,9 @@ import Species from "../../../lib/species/Species";
 import BodyPlan from "../../../lib/species/BodyPlan";
 import Weapon from "../../../lib/equipment/Weapon";
 import Armor from "../../../lib/equipment/Armor";
+import Shield from "../../../lib/equipment/Shield";
+import type { Stuff } from "../../../lib/stuff/Stuff";
+import type { CompetenceBandName } from "../../../lib/advancement/CompetenceBand";
 import Material from "../../../lib/material/Material";
 import { Construction } from "../../../lib/material/Construction";
 import { ContainerMixin } from "../../../lib/spatial/Container";
@@ -75,6 +78,18 @@ interface FighterOpts {
   natural?: Channel;
   weaponForm?: string;
   weaponMaterial?: Material;
+  /** Authored weapon mass (kg) — drives the derived balance → tempo/poise. */
+  weaponMass?: number;
+  /** Authored weapon length (m) — drives the derived reach. */
+  weaponLength?: number;
+  /** Give the fighter a wielded shield (off-hand). */
+  shield?: boolean;
+  /** Shield armor construction form (default `plate`). */
+  shieldForm?: string;
+  /** Shield material. */
+  shieldMaterial?: Material;
+  /** A second weapon in the off-hand (dual-wield). */
+  offWeaponForm?: string;
   ctor?: new () => TestFighter;
 }
 
@@ -85,6 +100,7 @@ function makeFighter(room: TestRoom, opts: FighterOpts = {}): TestFighter {
   plan.setSlots([
     { name: "torso", accepts: "WearableMixin", capacity: 2, covers: ["body.torso"] },
     { name: "grip", accepts: "WieldableMixin", covers: ["body.arm.right"] },
+    { name: "offgrip", accepts: "WieldableMixin" },
   ]);
   plan.setBodyParts([
     {
@@ -124,8 +140,25 @@ function makeFighter(room: TestRoom, opts: FighterOpts = {}): TestFighter {
     const w = makeStuff(() => new Weapon());
     if (opts.weaponMaterial) w.setMaterial(opts.weaponMaterial);
     w.setConstruction(Construction.of(opts.weaponForm));
+    if (opts.weaponMass !== undefined) w.setMass(Quantity.of(opts.weaponMass, "kg"));
+    if (opts.weaponLength !== undefined) {
+      w.setLength(Quantity.of(opts.weaponLength, "m"));
+    }
     w.setSlotClaim(planPathOf(f), ["grip"]);
     (f as unknown as { occupy(x: unknown, s: string): void }).occupy(w, "grip");
+  }
+  if (opts.shield) {
+    const sh = makeStuff(() => new Shield());
+    if (opts.shieldMaterial) sh.setMaterial(opts.shieldMaterial);
+    sh.setConstruction(Construction.of(opts.shieldForm ?? "plate"));
+    sh.setSlotClaim(planPathOf(f), ["offgrip"]);
+    (f as unknown as { occupy(x: unknown, s: string): void }).occupy(sh, "offgrip");
+  }
+  if (opts.offWeaponForm) {
+    const ow = makeStuff(() => new Weapon());
+    ow.setConstruction(Construction.of(opts.offWeaponForm));
+    ow.setSlotClaim(planPathOf(f), ["offgrip"]);
+    (f as unknown as { occupy(x: unknown, s: string): void }).occupy(ow, "offgrip");
   }
   return f;
 }
@@ -648,5 +681,509 @@ describe("CombatLogic — the fog (competence-graded read)", () => {
     expect(read.poiseBand).toBe("steady");
     // Unlike assess, a free glance does NOT spend the actor's next exchange.
     expect(session.getState(a)!.queuedGambit).toBeNull();
+  });
+});
+
+/** A standalone weapon (not wielded) for reading its derived profile. */
+function makeWeapon(
+  form: string,
+  massKg: number,
+  lengthM: number,
+  material?: Material,
+): Weapon {
+  const w = makeStuff(() => new Weapon());
+  if (material) w.setMaterial(material);
+  w.setConstruction(Construction.of(form));
+  w.setMass(Quantity.of(massKg, "kg"));
+  w.setLength(Quantity.of(lengthM, "m"));
+  stampTemplatePathForTest(w, `/test/weapon-${seq++}`);
+  return w;
+}
+
+describe("CombatLogic — balance → poise/tempo (guard-breaker ↔ exploiter)", () => {
+  it("weaponProfileOf derives ordered factors (config-injected)", () => {
+    const dagger = CombatApi.weaponProfileOf(makeWeapon("bladed", 0.3, 0.25, steel()))!;
+    const hammer = CombatApi.weaponProfileOf(makeWeapon("hafted", 3.2, 1.1, steel()))!;
+    // Exploiter faster, guard-breaker slower.
+    expect(dagger.tempoFactor()).toBeGreaterThan(hammer.tempoFactor());
+    // Guard-breaker hits harder and commits dearer.
+    expect(hammer.poiseDamageFactor()).toBeGreaterThan(dagger.poiseDamageFactor());
+    expect(hammer.overextendFactor()).toBeGreaterThan(dagger.overextendFactor());
+  });
+
+  it("a heavier weapon lands a more severe wound (energy scales with poise-damage)", () => {
+    // Same channel (bladed) + same steel + open target: the only difference is
+    // mass, so the wound severity isolates the poise-damage energy scaling.
+    function severityOfExploit(weaponMass: number): number {
+      const room = makeStuff(() => new TestRoom());
+      const atkr = makeFighter(room, {
+        weaponForm: "bladed",
+        weaponMaterial: steel(),
+        weaponMass,
+        weaponLength: 0.9,
+      });
+      const target = makeFighter(room, { weaponForm: "bladed" });
+      const session = open(atkr, target, nonLethal);
+      // Keep the target OPEN each beat (the hardest energy band) until the
+      // attacker — slow for a heavy weapon — lands its exploit.
+      for (let i = 0; i < 12 && session.isActive(); i++) {
+        const ts = session.getState(target);
+        if (!ts) break;
+        ts.poise.erode(0.9, i);
+        CombatApi.queueGambit(atkr, "strike");
+        CombatApi.advance(session);
+        const traumas = target
+          .getConditions()
+          .filter((c) => c.kind === "trauma") as { severity: number }[];
+        if (traumas.length) {
+          return traumas.reduce((m, t) => Math.max(m, t.severity), 0);
+        }
+      }
+      return 0;
+    }
+    const heavy = severityOfExploit(3.0);
+    const light = severityOfExploit(0.3);
+    expect(heavy).toBeGreaterThan(light);
+  });
+});
+
+describe("CombatLogic — guard → parry (a flail bypasses a steady guard)", () => {
+  it("a crossguard defender parries + ripostes; a guardless flail does neither", () => {
+    // A steady, armed crossguard defender parries the reeling attacker's
+    // strike and ripostes it → the attacker takes a wound.
+    const room1 = makeStuff(() => new TestRoom());
+    const atkr1 = makeFighter(room1, { weaponForm: "bladed" });
+    const sword = makeFighter(room1, {
+      weaponForm: "bladed",
+      weaponMaterial: steel(),
+      weaponMass: 1.0,
+      weaponLength: 0.9,
+    });
+    const s1 = open(atkr1, sword, nonLethal);
+    let riposted = false;
+    for (let i = 0; i < 6 && s1.isActive(); i++) {
+      const as = s1.getState(atkr1);
+      if (!as) break;
+      as.poise.erode(0.55, i); // keep the attacker reeling (hard riposte)
+      CombatApi.queueGambit(atkr1, "strike");
+      CombatApi.queueGambit(sword, "defend"); // stay steady, no offense
+      CombatApi.advance(s1);
+      if (atkr1.getConditions().some((c) => c.kind === "trauma")) {
+        riposted = true;
+        break;
+      }
+    }
+    expect(riposted).toBe(true);
+
+    // A guardless flail defender can't self-guard: the same strike is NOT
+    // parried (no riposte), so the attacker takes no counter-wound — the
+    // guard-breaker bypasses the steady defence.
+    const room2 = makeStuff(() => new TestRoom());
+    const atkr2 = makeFighter(room2, { weaponForm: "bladed" });
+    const flail = makeFighter(room2, {
+      weaponForm: "flail",
+      weaponMaterial: steel(),
+      weaponMass: 1.4,
+      weaponLength: 0.9,
+    });
+    const s2 = open(atkr2, flail, nonLethal);
+    for (let i = 0; i < 6 && s2.isActive(); i++) {
+      const as = s2.getState(atkr2);
+      if (!as) break;
+      as.poise.erode(0.55, i);
+      CombatApi.queueGambit(atkr2, "strike");
+      CombatApi.queueGambit(flail, "defend");
+      CombatApi.advance(s2);
+    }
+    // The flail can't parry → never ripostes → the attacker is never
+    // counter-wounded (the guard-breaker bypasses the steady flail defence).
+    expect(atkr2.getConditions().some((c) => c.kind === "trauma")).toBe(false);
+  });
+});
+
+describe("CombatLogic — reach range tier (control until closed, reversed inside)", () => {
+  // Reach derives from length + mass (not material), so these stay
+  // material-free — avoids sharing a Material captured at collection time.
+  const spearOpts = {
+    weaponForm: "pointed",
+    weaponMass: 1.8,
+    weaponLength: 2.4,
+  } as const;
+  const daggerOpts = {
+    weaponForm: "bladed",
+    weaponMass: 0.3,
+    weaponLength: 0.25,
+  } as const;
+
+  it("a longer weapon opens the pair at `reach`; equal reaches open `close`", () => {
+    const room = makeStuff(() => new TestRoom());
+    const spear = makeFighter(room, spearOpts);
+    const dagger = makeFighter(room, daggerOpts);
+    const s = open(spear, dagger, nonLethal);
+    expect(s.getGraph().rangeBetween(spear, dagger)).toBe("reach");
+
+    const room2 = makeStuff(() => new TestRoom());
+    const d1 = makeFighter(room2, daggerOpts);
+    const d2 = makeFighter(room2, daggerOpts);
+    const s2 = open(d1, d2, nonLethal);
+    expect(s2.getGraph().rangeBetween(d1, d2)).toBe("close");
+  });
+
+  function trauma(f: TestFighter): number {
+    return f.getConditions().filter((c) => c.kind === "trauma").length;
+  }
+
+  /** Run a forced attrition matchup (both always strike) with the range
+   * pinned each beat; report how many wounds each side TOOK. The
+   * out-of-ranged fighter can't connect, so it inflicts none — a
+   * deterministic invariant, robust to the exact fight timing. */
+  function pinnedWounds(
+    spear: TestFighter,
+    dagger: TestFighter,
+    range: "reach" | "close",
+  ): { spearHurt: number; daggerHurt: number } {
+    const session = open(spear, dagger, nonLethal);
+    for (let i = 0; i < 150 && session.isActive(); i++) {
+      session.getGraph().setRange(spear, dagger, range);
+      CombatApi.queueGambit(spear, "strike");
+      CombatApi.queueGambit(dagger, "strike");
+      CombatApi.advance(session);
+    }
+    session.dissolve();
+    return { spearHurt: trauma(spear), daggerHurt: trauma(dagger) };
+  }
+
+  it("the spear controls at reach (the dagger can't connect), reversed once closed", () => {
+    const room1 = makeStuff(() => new TestRoom());
+    const reach = pinnedWounds(
+      makeFighter(room1, spearOpts),
+      makeFighter(room1, daggerOpts),
+      "reach",
+    );
+    // At reach the dagger is out of range: it wounds the spear zero times,
+    // while the spear reaches and wounds the dagger.
+    expect(reach.spearHurt).toBe(0);
+    expect(reach.daggerHurt).toBeGreaterThan(0);
+
+    const room2 = makeStuff(() => new TestRoom());
+    const close = pinnedWounds(
+      makeFighter(room2, spearOpts),
+      makeFighter(room2, daggerOpts),
+      "close",
+    );
+    // Inside, it reverses: the spear is the liability and can't land; the
+    // dagger owns the clinch.
+    expect(close.daggerHurt).toBe(0);
+    expect(close.spearHurt).toBeGreaterThan(0);
+  });
+
+  it("a composed reach-holder contests a close; a reeling one can't", () => {
+    const room = makeStuff(() => new TestRoom());
+    const spear = makeFighter(room, spearOpts);
+    const dagger = makeFighter(room, daggerOpts);
+    const s = open(spear, dagger, nonLethal);
+    expect(s.getGraph().rangeBetween(spear, dagger)).toBe("reach");
+
+    // A steady spear-holder keeps the dagger out — the close stays contested
+    // for several beats (the dagger keeps trying, the spear keeps composed).
+    for (let i = 0; i < 5 && s.isActive(); i++) {
+      s.getState(spear)!.poise.restore(1, 1); // pin the spear composed
+      CombatApi.queueGambit(dagger, "close");
+      CombatApi.queueGambit(spear, "defend");
+      CombatApi.advance(s);
+    }
+    expect(s.getGraph().rangeBetween(spear, dagger)).toBe("reach");
+
+    // Break the spear-holder's poise → it can no longer hold distance, so a
+    // persistent dagger finally closes.
+    for (let i = 0; i < 6 && s.isActive(); i++) {
+      s.getState(spear)!.poise.erode(0.7, i); // keep it reeling
+      CombatApi.queueGambit(dagger, "close");
+      CombatApi.advance(s);
+      if (s.getGraph().rangeBetween(spear, dagger) === "close") break;
+    }
+    expect(s.getGraph().rangeBetween(spear, dagger)).toBe("close");
+  });
+
+  it("a 2v1 carries independent per-edge ranges (one reach, one close)", () => {
+    const room = makeStuff(() => new TestRoom());
+    const spear = makeFighter(room, spearOpts);
+    const target = makeFighter(room, daggerOpts);
+    const dagger2 = makeFighter(room, daggerOpts);
+    const s = open(spear, target, nonLethal);
+    // A second dagger joins onto the target (short vs short → close), while
+    // the spear stays at reach with the same target.
+    const joined = CombatApi.join(dagger2 as never, target as never, s.getTerms());
+    expect(joined.ok).toBe(true);
+    expect(s.getGraph().rangeBetween(spear, target)).toBe("reach");
+    expect(s.getGraph().rangeBetween(dagger2, target)).toBe("close");
+  });
+});
+
+describe("CombatLogic — shield (wielded armor-construction)", () => {
+  function shieldOf(f: TestFighter): Stuff {
+    const occ = [
+      ...(
+        f as unknown as { getOccupants(s: string): Iterable<Stuff> }
+      ).getOccupants("offgrip"),
+    ];
+    return occ[0]!;
+  }
+
+  it("a faced shield turns the blow through the covering stack; a flank bypasses it", () => {
+    const room = makeStuff(() => new TestRoom());
+    const def = makeFighter(room, { shield: true, shieldMaterial: steel() });
+    // A faced edge blow is deflected by the steel (plate) shield — no wound.
+    const faced = ConditionApi.inflict(def as never, {
+      mechanism: "edge",
+      site: "body.torso",
+      energy: 3,
+      shieldFacing: true,
+    });
+    // A flanking blow (a second attacker under focus-fire) slips past the
+    // shield and wounds at full force — directional coverage.
+    const flank = ConditionApi.inflict(def as never, {
+      mechanism: "edge",
+      site: "body.torso",
+      energy: 3,
+      shieldFacing: false,
+    });
+    expect(flank.afflicted).toBe(true);
+    // The steel shield turns the faced blow into a scratch — a fraction of
+    // the flank's severity (the shield is in the covering stack).
+    expect(faced.trauma.severity).toBeLessThan(flank.trauma.severity * 0.5);
+  });
+
+  it("a sundered (worn-out) shield stops protecting", () => {
+    const room = makeStuff(() => new TestRoom());
+    const pristine = makeFighter(room, { shield: true, shieldMaterial: steel() });
+    const before = ConditionApi.inflict(pristine as never, {
+      mechanism: "edge",
+      site: "body.torso",
+      energy: 3,
+      shieldFacing: true,
+    });
+
+    const broken = makeFighter(room, { shield: true, shieldMaterial: steel() });
+    // Wear the shield down (a shield-bash / sunder over many blows).
+    (
+      shieldOf(broken) as unknown as { setCondition(n: number): void }
+    ).setCondition(0.01);
+    const after = ConditionApi.inflict(broken as never, {
+      mechanism: "edge",
+      site: "body.torso",
+      energy: 3,
+      shieldFacing: true,
+    });
+    // A worn-out shield turns far less than a pristine one — the wound is worse.
+    expect(after.trauma.severity).toBeGreaterThan(before.trauma.severity);
+  });
+
+  it("a 2v1 target carries two incoming edges (the shield fronts the first)", () => {
+    const room = makeStuff(() => new TestRoom());
+    const first = makeFighter(room, { weaponForm: "bladed" });
+    const target = makeFighter(room, { shield: true, shieldMaterial: steel() });
+    const flanker = makeFighter(room, { weaponForm: "bladed" });
+    const s = open(first, target, nonLethal);
+    CombatApi.join(flanker as never, target as never, s.getTerms());
+    expect(s.getGraph().incomingEdges(target).length).toBe(2);
+  });
+
+  it("a shield lets even a guardless flail-wielder parry (the guard bonus)", () => {
+    const room = makeStuff(() => new TestRoom());
+    const atkr = makeFighter(room, { weaponForm: "bladed" });
+    const flailShield = makeFighter(room, {
+      weaponForm: "flail",
+      weaponMaterial: steel(),
+      weaponMass: 1.4,
+      weaponLength: 0.9,
+      shield: true,
+      shieldMaterial: steel(),
+    });
+    const s = open(atkr, flailShield, nonLethal);
+    let riposted = false;
+    for (let i = 0; i < 6 && s.isActive(); i++) {
+      const as = s.getState(atkr);
+      if (!as) break;
+      as.poise.erode(0.55, i);
+      CombatApi.queueGambit(atkr, "strike");
+      CombatApi.queueGambit(flailShield, "defend");
+      CombatApi.advance(s);
+      if (atkr.getConditions().some((c) => c.kind === "trauma")) {
+        riposted = true;
+        break;
+      }
+    }
+    // The shield's guard bonus restores the parry+riposte a bare flail lacks.
+    expect(riposted).toBe(true);
+  });
+});
+
+describe("CombatLogic — hand-slot economy (switch / sidearm / dual-wield)", () => {
+  function gripOccupants(f: TestFighter): Stuff[] {
+    return [
+      ...(
+        f as unknown as { getOccupants(s: string): Iterable<Stuff> }
+      ).getOccupants("grip"),
+    ];
+  }
+  function carriedWeapon(f: TestFighter, form: string): Weapon {
+    const w = makeStuff(() => new Weapon());
+    w.setConstruction(Construction.of(form));
+    w.setSlotClaim(planPathOf(f), ["grip"]);
+    ContainmentApi.move(w as never, f as never);
+    return w;
+  }
+
+  it("switching is a vulnerable durative beat (guard down) then swaps the grip", () => {
+    const room = makeStuff(() => new TestRoom());
+    const f = makeFighter(room, { weaponForm: "bladed", weaponMaterial: steel() });
+    const opp = makeFighter(room, { weaponForm: "bladed" });
+    const backup = carriedWeapon(f, "hafted"); // a carried mace
+    const s = open(f, opp, nonLethal);
+
+    expect(CombatApi.beginSwitch(f, backup as never).ok).toBe(true);
+    // Mid-switch: guard down, nothing to strike with.
+    expect(CombatApi.eligibilityFor(f, "strike").ok).toBe(false);
+
+    // Advance past the switch window (opp holds off so f survives the gap).
+    for (let i = 0; i < 4 && s.isActive(); i++) {
+      CombatApi.queueGambit(opp, "defend");
+      CombatApi.advance(s);
+    }
+    // The backup is now in the grip and f can strike again.
+    expect(gripOccupants(f)).toContain(backup);
+    expect(CombatApi.eligibilityFor(f, "strike").ok).toBe(true);
+  });
+
+  it("a sidearm draw re-arms after a disarm (a setback, not a fight-ender)", () => {
+    const room = makeStuff(() => new TestRoom());
+    const f = makeFighter(room, { weaponForm: "bladed", weaponMaterial: steel() });
+    const opp = makeFighter(room, { weaponForm: "bladed" });
+    carriedWeapon(f, "hafted"); // a sheathed backup
+    const s = open(f, opp, nonLethal);
+    // Simulate being disarmed.
+    s.getState(f)!.flags.add("disarmed");
+    expect(CombatApi.eligibilityFor(f, "strike").ok).toBe(false); // no weapon
+
+    // Draw the sidearm (fast) and let the beat complete.
+    expect(CombatApi.drawSidearm(f).ok).toBe(true);
+    for (let i = 0; i < 3 && s.isActive(); i++) {
+      CombatApi.queueGambit(opp, "defend");
+      CombatApi.advance(s);
+    }
+    // Re-armed: the disarmed flag is cleared and f can strike again.
+    expect(s.getState(f)?.flags.has("disarmed")).toBe(false);
+    expect(CombatApi.eligibilityFor(f, "strike").ok).toBe(true);
+  });
+
+  it("draw fails cleanly when there's no sidearm to draw", () => {
+    const room = makeStuff(() => new TestRoom());
+    const f = makeFighter(room, { weaponForm: "bladed" });
+    const opp = makeFighter(room, { weaponForm: "bladed" });
+    open(f, opp, nonLethal);
+    expect(CombatApi.drawSidearm(f).ok).toBe(false);
+  });
+
+  it("dual-wield is band-gated: a proficient off-hand parries where a novice fumbles", () => {
+    // A flail (guard: none) can't self-guard — but a second (off-hand) weapon
+    // covers it *if* the wielder is skilled enough. A novice fumbles it.
+    function flailPlusOffhandRipostes(band: CompetenceBandName): boolean {
+      const room = makeStuff(() => new TestRoom());
+      const atkr = makeFighter(room, { weaponForm: "bladed" });
+      const dw = makeFighter(room, {
+        weaponForm: "flail",
+        weaponMaterial: steel(),
+        weaponMass: 1.4,
+        weaponLength: 0.9,
+        offWeaponForm: "bladed", // an off-hand blade
+      });
+      const s = open(atkr, dw, nonLethal);
+      s.getState(dw)!.competenceBand = band;
+      let riposted = false;
+      for (let i = 0; i < 6 && s.isActive(); i++) {
+        const as = s.getState(atkr);
+        if (!as) break;
+        as.poise.erode(0.55, i);
+        CombatApi.queueGambit(atkr, "strike");
+        CombatApi.queueGambit(dw, "defend");
+        CombatApi.advance(s);
+        if (atkr.getConditions().some((c) => c.kind === "trauma")) {
+          riposted = true;
+          break;
+        }
+      }
+      return riposted;
+    }
+    // Proficient: the off-hand covers the guardless flail → parry + riposte.
+    expect(flailPlusOffhandRipostes("proficient")).toBe(true);
+    // Novice: the off-hand is a net penalty → still can't parry.
+    expect(flailPlusOffhandRipostes("untrained")).toBe(false);
+  });
+});
+
+describe("CombatLogic — weapon-shaped gambits (the weapon edits the menu)", () => {
+  it("a hafted weapon affords sweep; a bladed one does not", () => {
+    const room = makeStuff(() => new TestRoom());
+    const hafted = makeFighter(room, { weaponForm: "hafted" });
+    const bladed = makeFighter(room, { weaponForm: "bladed" });
+    open(hafted, bladed, nonLethal);
+    expect(CombatApi.eligibilityFor(hafted, "sweep").ok).toBe(true);
+    const bladedTry = CombatApi.eligibilityFor(bladed, "sweep");
+    expect(bladedTry.ok).toBe(false);
+    expect(bladedTry.reason).toBe("wrong-weapon");
+  });
+
+  it("a shield affords bash; without one it's ineligible", () => {
+    const room = makeStuff(() => new TestRoom());
+    const shielded = makeFighter(room, {
+      weaponForm: "bladed",
+      shield: true,
+      shieldMaterial: steel(),
+    });
+    const bare = makeFighter(room, { weaponForm: "bladed" });
+    open(shielded, bare, nonLethal);
+    expect(CombatApi.eligibilityFor(shielded, "bash").ok).toBe(true);
+    const bareTry = CombatApi.eligibilityFor(bare, "bash");
+    expect(bareTry.ok).toBe(false);
+    expect(bareTry.reason).toBe("no-shield");
+  });
+
+  it("a whip affords entangle; other weapons don't", () => {
+    const room = makeStuff(() => new TestRoom());
+    const whip = makeFighter(room, {
+      weaponForm: "whip",
+      weaponMass: 0.6,
+      weaponLength: 2.5,
+    });
+    const bladed = makeFighter(room, { weaponForm: "bladed" });
+    open(whip, bladed, nonLethal);
+    expect(CombatApi.eligibilityFor(whip, "entangle").ok).toBe(true);
+    const bladedTry = CombatApi.eligibilityFor(bladed, "entangle");
+    expect(bladedTry.ok).toBe(false);
+    expect(bladedTry.reason).toBe("wrong-weapon");
+  });
+
+  it("entangle binds a foe with the grappled flag", () => {
+    const room = makeStuff(() => new TestRoom());
+    const whip = makeFighter(room, {
+      weaponForm: "whip",
+      weaponMass: 0.6,
+      weaponLength: 2.5,
+    });
+    // An unarmed target (can't guard, can't answer at the whip's reach) — the
+    // whip lashes at its reach advantage and the entangle lands.
+    const target = makeFighter(room, {});
+    const s = open(whip, target, nonLethal);
+    let bound = false;
+    for (let i = 0; i < 40 && s.isActive(); i++) {
+      CombatApi.queueGambit(whip, "entangle");
+      CombatApi.advance(s);
+      if (s.getState(target)?.flags.has("grappled")) {
+        bound = true;
+        break;
+      }
+    }
+    expect(bound).toBe(true);
   });
 });

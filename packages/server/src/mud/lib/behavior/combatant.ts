@@ -37,6 +37,12 @@ export const brain = class {
     const state = session.getState(host);
     if (!state || state.down) return;
 
+    // Disarmed? Draw a sidearm — losing your weapon is a tempo setback, not
+    // the end of the fight (the fast draw re-arms after a couple of beats).
+    if (state.flags.has("disarmed")) {
+      if (CombatApi.drawSidearm(host).ok) return;
+    }
+
     // Side-aware: act only while a live foe remains — someone in the fight
     // who is NOT on our side and not already down. Targeting itself is the
     // engine's job (side-driven `pickTarget`); the brain only decides the
@@ -58,6 +64,20 @@ export const brain = class {
     // ineligible pick is simply refused.
     const band = state.poise.band();
     if (band === "broken" || band === "open") return;
+
+    // Reach tier: if a longer weapon is holding us at bay (we're at `reach`
+    // and out-reached), close the gap first — a shorter weapon owns the
+    // clinch, so turning the tables beats trading at a disadvantage.
+    const rs = CombatApi.rangeStanding(host);
+    if (
+      rs &&
+      rs.range === "reach" &&
+      rs.reachDelta < 0 &&
+      CombatApi.eligibilityFor(host, "close").ok
+    ) {
+      CombatApi.queueGambit(host, "close");
+      return;
+    }
 
     if (band === "reeling" && CombatApi.eligibilityFor(host, "disarm").ok) {
       CombatApi.queueGambit(host, "disarm");

@@ -239,7 +239,7 @@ Each rides an existing seam when wanted; none is blocked by v1's shape.
 - `seeds/lib/respiration/conditions/asphyxiation.yaml` — the anoxia
   condition Idea.
 - `seeds/lib/material/bulk/air.yaml`,
-  `seeds/domain/eternal/gear/{air-tank,air-compressor}.yaml`,
+  `seeds/obj/gear/{air-tank,air-compressor}.yaml`,
   `seeds/domain/eternal/duncan-hall/cistern.yaml` — proof content.
 - `cmd/posture/{inhale,exhale}.yaml` +
   `obj/command/posture/{Inhale,Exhale}Controller.ts` — the verbs.

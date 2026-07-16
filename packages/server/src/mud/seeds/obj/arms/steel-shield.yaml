@@ -1,0 +1,19 @@
+class: /lib/equipment/Shield
+hydratorClass: /lib/persistence/PersistentHydrator
+data:
+  shortDescription: a steel-faced shield
+  primaryKeyword: shield
+  longDescription: >
+    A broad round shield, oak-boarded and faced in steel. Held up between you
+    and one foe it turns almost anything — but it guards only what it faces,
+    and two attackers will find the side it can't cover.
+  _materialPath: /lib/material/alloy/steel
+  _detailMaterialPaths:
+    boards: /lib/material/wood/oak
+  # An armor construction (it resists like plate) worn in the hand, not on the
+  # body — combat folds it into the covering stack as a directional front
+  # cover and grants its holder a large guard bonus. Occupies the off-hand.
+  constructionForm: plate
+  gradeBand: fine
+  slotClaims:
+    "/lib/body-plans/biped": ["hand:left"]

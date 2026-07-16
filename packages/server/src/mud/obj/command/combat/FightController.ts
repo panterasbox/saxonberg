@@ -28,6 +28,7 @@ import { Mml } from "../../../api/mml";
 import type { Stuff } from "../../../lib/stuff/Stuff";
 import { CombatApi, type GambitEligibility } from "../../../api/combat";
 import type { CombatantState } from "../../../lib/combat/CombatSession";
+import type { MqlOneResult } from "../../../api/mql";
 
 const TOPIC = "world.narration.action";
 const GAMBITS = new Set([
@@ -37,10 +38,15 @@ const GAMBITS = new Set([
   "subdue",
   "shove",
   "defend",
+  "close",
+  "bash",
+  "sweep",
+  "entangle",
 ]);
 
 interface FightModel extends CommandModel {
   subcommand?: string;
+  target?: MqlOneResult;
 }
 
 /** Turn an eligibility reason into a player-facing sentence. */
@@ -56,6 +62,10 @@ function reasonMessage(verb: string, elig: GambitEligibility): string {
       return "Your opponent has no weapon to take.";
     case "wrong-band":
       return "You're not skilled enough for that yet.";
+    case "wrong-weapon":
+      return `Your weapon can't ${verb} — you need the right kind.`;
+    case "no-shield":
+      return "You need a shield in hand for that.";
     default:
       return `You can't ${verb} right now.`;
   }
@@ -79,9 +89,63 @@ export default class FightController extends CommandController<FightModel> {
   execute(model: FightModel, context: CommandContext): void {
     const sub = model.subcommand;
     if (sub === "yield") return this.doYield(context);
+    if (sub === "switch") return this.doSwitch(model, context);
+    if (sub === "draw") return this.doDraw(context);
     if (sub && GAMBITS.has(sub)) return this.doGambit(sub, context);
     // Bare `fight` or `fight status` → the read.
     return this.doStatus(context);
+  }
+
+  /** `fight switch <weapon>` — a vulnerable armament change. */
+  private doSwitch(model: FightModel, context: CommandContext): void {
+    const giver = context.commandGiver;
+    if (!CombatApi.sessionFor(giver)) {
+      return this.fail(context, "You're not in a fight.", "not-in-combat");
+    }
+    const target = model.target;
+    if (!target || target.stuff === null) {
+      return this.fail(
+        context,
+        `You don't have any '${target?.raw ?? ""}' to switch to.`,
+        "no-target",
+      );
+    }
+    const result = CombatApi.beginSwitch(giver, target.stuff as Stuff);
+    if (!result.ok) {
+      return this.fail(
+        context,
+        result.reason === "already-switching"
+          ? "You're already changing weapons."
+          : "You can't switch right now.",
+        result.reason ?? "ineligible",
+      );
+    }
+    MessageApi.scene(giver)
+      .topic(TOPIC)
+      .toSelf(Mml.fromMarkup("You start to change weapons — your guard drops."))
+      .toPeers(Mml.compose`${Mml.name(giver)} moves to change weapons.`)
+      .send();
+  }
+
+  /** `fight draw` — fast-draw a sidearm (the disarm answer). */
+  private doDraw(context: CommandContext): void {
+    const giver = context.commandGiver;
+    if (!CombatApi.sessionFor(giver)) {
+      return this.fail(context, "You're not in a fight.", "not-in-combat");
+    }
+    const result = CombatApi.drawSidearm(giver);
+    if (!result.ok) {
+      return this.fail(
+        context,
+        "You've no sidearm to draw.",
+        result.reason ?? "no-sidearm",
+      );
+    }
+    MessageApi.scene(giver)
+      .topic(TOPIC)
+      .toSelf(Mml.fromMarkup("You snatch for a sidearm."))
+      .toPeers(Mml.compose`${Mml.name(giver)} draws a sidearm.`)
+      .send();
   }
 
   /** `fight strike|disarm|subdue|shove` — queue a gambit for the next beat. */
@@ -101,7 +165,9 @@ export default class FightController extends CommandController<FightModel> {
     const ready =
       verb === "defend"
         ? Mml.fromMarkup("You settle into a guard, covering up.")
-        : Mml.compose`You ready a ${verb}.`;
+        : verb === "close"
+          ? Mml.fromMarkup("You move to close the distance.")
+          : Mml.compose`You ready a ${verb}.`;
     MessageApi.scene(giver).topic(TOPIC).toSelf(ready).send();
   }
 
@@ -165,6 +231,16 @@ export default class FightController extends CommandController<FightModel> {
       );
       lines.push(`  Bearing: ${conditionBand(opp.combatant)}`);
       lines.push(`  Flags: ${flagsWord(opp)}`);
+      const rs = CombatApi.rangeStanding(giver);
+      if (rs) {
+        const reachWord =
+          rs.reachDelta > 0
+            ? " — you out-reach them"
+            : rs.reachDelta < 0
+              ? " — they out-reach you"
+              : "";
+        lines.push(`  Range: ${rs.range}${reachWord}`);
+      }
       if (opp.down) lines.push("  They are down.");
     }
 

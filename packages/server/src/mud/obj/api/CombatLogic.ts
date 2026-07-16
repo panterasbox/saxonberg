@@ -47,10 +47,19 @@ import type { CombatTerms } from "../../lib/combat/CombatTerms";
 import { Poise, type PoiseConfig } from "../../lib/combat/Poise";
 import { Tempo, type TempoConfig } from "../../lib/combat/Tempo";
 import { CombatFlags } from "../../lib/combat/CombatFlags";
+import type { RangeState } from "../../lib/combat/CombatGraph";
 import { Gambit, type GambitSpec } from "../../lib/combat/Gambit";
 import { Sharpness, type SharpnessConfig } from "../../lib/combat/Sharpness";
+import {
+  WeaponProfile,
+  type WeaponProfileConfig,
+} from "../../lib/combat/WeaponProfile";
+import { WeaponSwitch } from "../../lib/combat/WeaponSwitch";
 import { CombatFog, type FogConfig } from "../../lib/combat/CombatFog";
-import type { CompetenceBandName } from "../../lib/advancement/CompetenceBand";
+import {
+  CompetenceBand,
+  type CompetenceBandName,
+} from "../../lib/advancement/CompetenceBand";
 import {
   CombatNarration,
   type ExchangeOutcome,
@@ -62,6 +71,7 @@ import type {
   BlameVerdict,
   CombatAssessResult,
   CombatOpenOptions,
+  RangeStanding,
 } from "../../api/combat";
 
 const CombatApiCallers = SecurityPolicies.FromModule("/api/combat#CombatApi");
@@ -191,8 +201,31 @@ export class CombatLogic extends ApiLogic {
   }
 
   @CallSecurity(CombatApiCallers)
+  public weaponProfileOf(weapon: Stuff): WeaponProfile | null {
+    return weaponProfileOfImpl(weapon);
+  }
+
+  @CallSecurity(CombatApiCallers)
   public perceive(actor: Stuff): CombatAssessResult {
     return perceiveImpl(actor);
+  }
+
+  @CallSecurity(CombatApiCallers)
+  public rangeStanding(actor: Stuff): RangeStanding | null {
+    return rangeStandingImpl(actor);
+  }
+
+  @CallSecurity(CombatApiCallers)
+  public beginSwitch(
+    actor: Stuff,
+    target: Stuff,
+  ): { ok: boolean; reason?: string } {
+    return beginSwitchImpl(actor, target, false);
+  }
+
+  @CallSecurity(CombatApiCallers)
+  public drawSidearm(actor: Stuff): { ok: boolean; reason?: string } {
+    return drawSidearmImpl(actor);
   }
 }
 
@@ -245,6 +278,310 @@ function fogConfig(): FogConfig {
     clearSharpness: dial(K.combatFogClearSharpness, 0.7),
     readSharpness: dial(K.combatFogReadSharpness, 0.7),
   };
+}
+
+function weaponProfileConfig(): WeaponProfileConfig {
+  const K = AppSettingKeys;
+  return {
+    balanceRefMass: dial(K.combatWeaponBalanceRefMass, 0.9),
+    tempoExponent: dial(K.combatWeaponTempoExponent, 0.35),
+    tempoMin: dial(K.combatWeaponTempoMin, 0.5),
+    tempoMax: dial(K.combatWeaponTempoMax, 1.6),
+    poiseDamageExponent: dial(K.combatWeaponPoiseDamageExponent, 0.4),
+    poiseDamageMin: dial(K.combatWeaponPoiseDamageMin, 0.6),
+    poiseDamageMax: dial(K.combatWeaponPoiseDamageMax, 1.5),
+    overextendExponent: dial(K.combatWeaponOverextendExponent, 0.35),
+    overextendMin: dial(K.combatWeaponOverextendMin, 0.6),
+    overextendMax: dial(K.combatWeaponOverextendMax, 1.5),
+    balanceHeavyBelow: dial(K.combatWeaponBalanceHeavyBelow, 0.92),
+    balanceLightAbove: dial(K.combatWeaponBalanceLightAbove, 1.08),
+    reachShortBelow: dial(K.combatWeaponReachShortBelow, 0.5),
+    reachLongAbove: dial(K.combatWeaponReachLongAbove, 1.5),
+    guardHardnessRef: dial(K.combatWeaponGuardHardnessRef, 300),
+  };
+}
+
+/** The derived {@link WeaponProfile} for a weapon Stuff (config-injected),
+ * or null when it isn't a `Weapon`. The live playstyle read behind
+ * `CombatApi.weaponProfileOf` and the couplings below. */
+function weaponProfileOfImpl(weapon: Stuff): WeaponProfile | null {
+  if (!(weapon instanceof Weapon)) return null;
+  return WeaponProfile.derive(weapon.getProfileInputs(), weaponProfileConfig());
+}
+
+/** The profile of the weapon an actor is wielding right now (impairment-
+ * aware via `state`), or null when unarmed / bare-handed. */
+function actorWeaponProfile(
+  actor: Stuff,
+  state?: CombatantState,
+): WeaponProfile | null {
+  const weapon = wieldedWeapon(actor, state);
+  return weapon ? weaponProfileOfImpl(weapon) : null;
+}
+
+/** A natural-attack defender (a beast's claws — no weapon profile) keeps the
+ * build-1 nominal guard, so a wolf still parries as it always did. */
+const NOMINAL_NATURAL_GUARD = 1;
+
+/**
+ * A defender's effective **guard factor** — how well they can bring a
+ * parry: their wielded weapon's `guardFactor` plus any off-hand / shield
+ * assist ({@link offhandGuardBonus}). A truly unarmed defender can't parry
+ * (0); a guardless weapon (a flail) returns 0 *for the weapon* but still
+ * picks up an off-hand bonus if one covers it; a natural-attack beast keeps
+ * a nominal guard.
+ */
+function defenderGuardFactor(state: CombatantState): number {
+  const bonus = offhandGuardBonus(state);
+  if (resolveInstrument(state) === null) {
+    // No main instrument at all — only an off-hand assist (a lone shield)
+    // can guard, and only barely.
+    return bonus;
+  }
+  const profile = actorWeaponProfile(state.combatant, state);
+  const base = profile ? profile.guardFactor() : NOMINAL_NATURAL_GUARD;
+  return base + bonus;
+}
+
+/** Whether a defender can bring their guard to a parry at all — the seam a
+ * guardless weapon (flail) fails so a guard-breaker bypasses it. */
+function canGuard(state: CombatantState): boolean {
+  return defenderGuardFactor(state) > 0;
+}
+
+/** The wielded **shield** on an actor — a `Wieldable` item carrying an
+ * armor construction (armor you hold, not wear) — or null. */
+function wieldedShield(actor: Stuff): Stuff | null {
+  if (!MixinApi.isSlotted(actor)) return null;
+  for (const [, occupants] of actor.getAllOccupants()) {
+    for (const occ of occupants) {
+      if (
+        MixinApi.isWieldable(occ) &&
+        MixinApi.isConstructed(occ) &&
+        occ.getConstruction()?.isArmor()
+      ) {
+        return occ as Stuff;
+      }
+    }
+  }
+  return null;
+}
+
+/**
+ * The guard bonus a defender's **off-hand** contributes — a wielded shield
+ * (a raised shield parries well) or a dual-wield off-hand weapon (Phase 6:
+ * a sword-and-dagger's off-hand parries like a tiny shield). Read by
+ * {@link defenderGuardFactor}.
+ */
+function offhandGuardBonus(state: CombatantState): number {
+  if (wieldedShield(state.combatant)) {
+    return dial(AppSettingKeys.combatOffhandGuardBonus, 0.6);
+  }
+  return offhandWeaponGuardBonus(state);
+}
+
+/** Every weapon-construction Wieldable an actor is holding (both grips). */
+function allWieldedWeapons(actor: Stuff): Stuff[] {
+  const out: Stuff[] = [];
+  if (!MixinApi.isSlotted(actor)) return out;
+  for (const [, occupants] of actor.getAllOccupants()) {
+    for (const occ of occupants) {
+      if (!MixinApi.isConstructed(occ)) continue;
+      if (occ.getConstruction()?.isWeapon()) out.push(occ as Stuff);
+    }
+  }
+  return out;
+}
+
+/**
+ * The guard bonus a **dual-wield off-hand weapon** contributes (a
+ * sword-and-dagger's off-hand parries like a tiny shield) — **band-gated**
+ * on the wielder's competence: a novice (below the mastery rank) fumbles the
+ * off-hand and takes a *net penalty*; a proficient wielder gains. You grow
+ * into dual-wielding (the experience-pass competence seam).
+ */
+function offhandWeaponGuardBonus(state: CombatantState): number {
+  if (allWieldedWeapons(state.combatant).length < 2) return 0;
+  const rank = CompetenceBand.rank(state.competenceBand);
+  const mastery = Math.round(dial(AppSettingKeys.combatDualWieldMasteryRank, 2));
+  return rank >= mastery
+    ? dial(AppSettingKeys.combatOffhandGuardBonus, 0.6)
+    : dial(AppSettingKeys.combatDualWieldNoviceGuardBonus, -0.3);
+}
+
+/** Whether a shield held by `defender` faces `attacker` — always in a 1v1,
+ * but under focus-fire the shield fronts only the primary (first) incoming
+ * edge; other attackers flank past it (directional coverage). */
+function shieldFacesAttacker(
+  session: CombatSession,
+  defender: Stuff,
+  attacker: Stuff,
+): boolean {
+  const incoming = session.getGraph().incomingEdges(defender);
+  if (incoming.length <= 1) return true;
+  return incoming[0]?.attacker === attacker;
+}
+
+/* ───────────────────────── reach range tier ───────────────────────── */
+
+/**
+ * The reach-rank gap (in the 3-class short/medium/long scale) at which an
+ * attacker is genuinely **out of range** — a long weapon (rank 2) against a
+ * short one (rank 0). A 1-rank gap (sword-vs-dagger, weapon-vs-natural) is a
+ * mild disadvantage (an energy nudge), not out of range — so the ordinary
+ * armed-vs-beast fight is unperturbed. A structural rank threshold (derived
+ * from the class count), not a tunable magnitude.
+ */
+const REACH_OUT_OF_RANGE_GAP = 2;
+
+/** A combatant's reach rank (short 0 … long 2) — their wielded weapon's
+ * reach, or 0 (shortest) when unarmed/bare-handed. */
+function reachRankOf(combatant: Stuff): number {
+  const profile = actorWeaponProfile(combatant);
+  return profile ? profile.reachRank() : 0;
+}
+
+/**
+ * The engagement range a fresh pair opens at: `reach` when their reaches
+ * DIFFER (someone controls the approach — spear-vs-dagger), `close` when
+ * they're equal (no approach phase — dagger-vs-dagger, sword-vs-sword).
+ */
+function openingRangeFor(a: Stuff, b: Stuff): RangeState {
+  return reachRankOf(a) !== reachRankOf(b) ? "reach" : "close";
+}
+
+/** Seed the opening range on the pair's edges (called right after the pair's
+ * threat edges are created). */
+function seedRange(session: CombatSession, a: Stuff, b: Stuff): void {
+  session.getGraph().setRange(a, b, openingRangeFor(a, b));
+}
+
+/**
+ * The reach advantage the actor's strike carries against `target` right now:
+ * at `reach` a longer weapon is advantaged (positive), the shorter penalised
+ * (negative); at `close` it **reverses** (the dagger/unarmed owns the
+ * clinch). Zero for equal reach. A deterministic function of reach ranks ×
+ * the current range — no RNG.
+ */
+function reachAdvantage(
+  session: CombatSession,
+  actor: Stuff,
+  target: Stuff,
+): number {
+  const range = session.getGraph().rangeBetween(actor, target);
+  const diff = reachRankOf(actor) - reachRankOf(target);
+  return range === "reach" ? diff : -diff;
+}
+
+/** A small clamp helper (bands the reach scale). */
+function clampNum(n: number, lo: number, hi: number): number {
+  return n < lo ? lo : n > hi ? hi : n;
+}
+
+/** A combatant's best reach advantage across its live `reach`-range edges
+ * (floored at 0) — the sort key that lets a reach-advantaged actor resolve
+ * before a shorter foe can answer (deterministic, stable-sorted). */
+function reachOrderScore(
+  session: CombatSession,
+  state: CombatantState,
+): number {
+  const graph = session.getGraph();
+  const actor = state.combatant;
+  const myReach = reachRankOf(actor);
+  let best = 0;
+  for (const edge of graph.targetsOf(actor)) {
+    if (edge.range !== "reach") continue;
+    const d = myReach - reachRankOf(edge.defender);
+    if (d > best) best = d;
+  }
+  return best;
+}
+
+/**
+ * The `close` maneuver: step inside a longer weapon (flip the pair to
+ * `close`). A tempo-costed opposed beat — the closer always pays the poise
+ * cost; the reach-holder KEEPS them out only while composed (steady/pressed)
+ * and genuinely longer (a gap ≥ `contestStrength`). A reeling/broken holder,
+ * or an equal/shorter one, can't stop the close. Deterministic — no RNG.
+ */
+function resolveClose(
+  session: CombatSession,
+  actorState: CombatantState,
+  targetState: CombatantState,
+  beat: number,
+): void {
+  const graph = session.getGraph();
+  const actor = actorState.combatant;
+  const target = targetState.combatant;
+  const spec = Gambit.get("close")!;
+  actorState.poise.spend(dial(AppSettingKeys.combatReachCloseCost, 0.18), beat);
+
+  if (graph.rangeBetween(actor, target) === "close") {
+    // Already inside — the cost of the wasted beat is the only effect.
+    return;
+  }
+  const gap = reachRankOf(target) - reachRankOf(actor);
+  const holderBand = targetState.poise.band();
+  const holderComposed = holderBand === "steady" || holderBand === "pressed";
+  const contest = dial(AppSettingKeys.combatReachContestStrength, 0.5);
+  if (gap >= contest && holderComposed) {
+    // Kept at bay — the reach-holder holds distance; the close fails.
+    narrate(actorState, targetState, spec, "control", null, false, beat);
+    return;
+  }
+  graph.setRange(actor, target, "close");
+  narrate(actorState, targetState, spec, "control", null, true, beat);
+}
+
+/** A live foe of the actor (read-only — no edge side-effect, unlike
+ * `pickTarget`): a still-standing combatant not on the actor's side,
+ * preferring one the actor already has an edge onto. */
+function currentFoeState(
+  session: CombatSession,
+  st: CombatantState,
+): CombatantState | null {
+  const graph = session.getGraph();
+  for (const edge of graph.targetsOf(st.combatant)) {
+    const ts = session.getState(edge.defender);
+    if (ts && !ts.down && ts.side !== st.side) return ts;
+  }
+  for (const s of session.getStates()) {
+    if (s === st || s.down || s.side === st.side) continue;
+    return s;
+  }
+  return null;
+}
+
+/** The actor's range + reach delta vs its current primary foe (read-only). */
+function rangeStandingImpl(actor: Stuff): RangeStanding | null {
+  const session = sessionForImpl(actor);
+  if (!session || !session.isActive()) return null;
+  const st = session.getState(actor);
+  if (!st) return null;
+  const foe = currentFoeState(session, st);
+  if (!foe) return null;
+  return {
+    range: session.getGraph().rangeBetween(actor, foe.combatant),
+    reachDelta: reachRankOf(actor) - reachRankOf(foe.combatant),
+  };
+}
+
+/** A reach-holder who spends a beat on defence also re-opens distance: any
+ * foe who had closed on them, and whom they out-reach, is pushed back to
+ * `reach` (the reversal half of the reach dance). */
+function resetReachOnDefend(
+  session: CombatSession,
+  defenderState: CombatantState,
+): void {
+  const graph = session.getGraph();
+  const me = defenderState.combatant;
+  const myReach = reachRankOf(me);
+  for (const edge of graph.incomingEdges(me)) {
+    if (edge.range !== "close") continue;
+    if (myReach > reachRankOf(edge.attacker)) {
+      graph.setRange(me, edge.attacker, "reach");
+    }
+  }
 }
 
 /**
@@ -316,6 +653,9 @@ function openSessionImpl(
   const graph = session.getGraph();
   graph.addEdge(initiator, defender, terms);
   graph.addEdge(defender, initiator, terms);
+  // Reach tier: the pair opens at `reach` when their reaches differ (a spear
+  // controls the approach), `close` when equal.
+  seedRange(session, initiator, defender);
 
   // Each participant occupies `body` via its own hold; the session owns
   // the beat (a real-time recurring tick, not a participant's emission).
@@ -367,6 +707,7 @@ function joinImpl(
   const graph = session.getGraph();
   graph.addEdge(joiner, target, terms);
   graph.addEdge(target, joiner, terms);
+  seedRange(session, joiner, target);
   // Blame ledger: a fresh engagement opened inside the melee (a lethal,
   // non-consented join onto a sentient is the interloper crime path).
   recordOpening(session, joiner, target, terms);
@@ -410,6 +751,7 @@ function deriveState(combatant: Stuff & Engaged): CombatantState {
     tempo,
     flags: new CombatFlags(),
     queuedGambit: null,
+    weaponSwitch: null,
     brainPath: brainPathFor(combatant),
     brainConfig: {},
     balanceFactor: inputs.balanceFactor,
@@ -470,6 +812,11 @@ function pickTarget(
   for (const s of session.getStates()) {
     if (s === actorState || s.down || s.side === actorState.side) continue;
     graph.addEdge(actor, s.combatant, session.getTerms());
+    // A freshly-picked foe opens at the reach-derived range (unless an edge
+    // the other direction already set it).
+    if (graph.rangeBetween(actor, s.combatant) === "close") {
+      seedRange(session, actor, s.combatant);
+    }
     return s;
   }
   return null;
@@ -494,13 +841,16 @@ function enduranceRatio(combatant: Stuff): number {
   return cap > 0 ? clamp01(r.current.rawValue() / cap) : 1;
 }
 
+/**
+ * The tempo hook the emergent-cadence function consumes — now **derived**
+ * from the wielded weapon's {@link WeaponProfile} (`tempoFactor`: light →
+ * fast, heavy → slow), not the inert stored `balanceFactor`. `Tempo.rateFor`
+ * is untouched; only what feeds its `balanceFactor` input changed. Unarmed →
+ * neutral 1.0.
+ */
 function balanceFactorOf(combatant: Stuff): number {
-  const weapon = wieldedWeapon(combatant);
-  if (weapon instanceof Weapon) {
-    const bf = weapon.getBalanceFactor();
-    return Number.isFinite(bf) && bf > 0 ? bf : 1;
-  }
-  return 1;
+  const profile = actorWeaponProfile(combatant);
+  return profile ? profile.tempoFactor() : 1;
 }
 
 /* ───────────────────────── the beat ───────────────────────── */
@@ -516,6 +866,15 @@ function advanceImpl(session: CombatSession): void {
     return;
   }
 
+  // Hand-slot economy: advance any in-progress weapon switch, completing the
+  // grip swap when its vulnerable window elapses (the guard was down the
+  // whole time — resolveInstrument returned null).
+  for (const s of states) {
+    if (!s.weaponSwitch || s.down) continue;
+    s.weaponSwitch.advance();
+    if (s.weaponSwitch.isReady()) completeSwitch(s);
+  }
+
   // Let brain-driven combatants choose (queue) their intent this beat.
   for (const s of states) {
     if (s.brainPath && !s.queuedGambit && !s.down) invokeBrain(s);
@@ -525,9 +884,22 @@ function advanceImpl(session: CombatSession): void {
   // allows (fractional carry). Bounded per beat by the tempo ceiling.
   // Targeting is side-driven (the threat graph + frozen sides): a foe is
   // anyone not on the actor's side. A 1v1 is the degenerate case.
-  for (const s of states) {
+  //
+  // Reach tier: resolve reach-advantaged actors FIRST (a stable sort by
+  // reach-order score — deterministic, no wall-clock), so a longer weapon
+  // strikes while the foe is still out at `reach` and can't answer in kind.
+  const ordered = [...states].sort(
+    (a, b) => reachOrderScore(session, b) - reachOrderScore(session, a),
+  );
+  for (const s of ordered) {
     if (!session.isActive()) break;
     if (s.down) continue;
+    // Mid-switch: hands full, guard down — the combatant forgoes this beat's
+    // actions (but still accrues tempo carry for when the swap completes).
+    if (s.weaponSwitch && !s.weaponSwitch.isReady()) {
+      s.tempo.advance();
+      continue;
+    }
     let n = s.tempo.advance();
     while (n-- > 0 && session.isActive() && !s.down) {
       const target = pickTarget(session, s);
@@ -579,6 +951,9 @@ function resolveExchange(
       dial(AppSettingKeys.combatPoiseRestorePerDefense, 0.15) *
       sharpnessFor(actorState);
     actorState.poise.restore(restore, enduranceRatio(actorState.combatant));
+    // Reach reset: a reach-holder who spends a beat covering also uses the
+    // breathing room to push a foe who had closed back out to `reach`.
+    resetReachOnDefend(session, actorState);
     return;
   }
 
@@ -589,10 +964,48 @@ function resolveExchange(
     return;
   }
 
+  if (key === "close") {
+    resolveClose(session, actorState, targetState, beat);
+    return;
+  }
+
+  // The actor's weapon playstyle scales the poise economy (balance → the
+  // guard-breaker↔exploiter axis): a heavy guard-breaker erodes the target's
+  // poise faster and lands harder (`poiseDamageFactor`) but pays more to
+  // commit (`overextendFactor`); a light exploiter is the mirror. Unarmed →
+  // neutral 1.0. Complementary — the gym proves neither sweeps.
+  const actorProfile = actorWeaponProfile(actorState.combatant, actorState);
+  const poiseDamage = actorProfile?.poiseDamageFactor() ?? 1;
+  const overextendScale = actorProfile?.overextendFactor() ?? 1;
+  // Reach term (the signature): the reach advantage the actor's strike
+  // carries right now — at `reach` a longer weapon is advantaged, at `close`
+  // it reverses (the dagger owns the clinch). A too-short attacker is simply
+  // **out of range** (reachAdv ≤ −1): it can't connect at all — it whiffs and
+  // self-opens, pressuring nobody. That's what makes a long weapon *control
+  // until closed* (and forces the shorter fighter to `close` the gap).
+  const reachAdv = reachAdvantage(
+    session,
+    actorState.combatant,
+    targetState.combatant,
+  );
+  const reachCoef = dial(AppSettingKeys.combatReachAdvantageEnergy, 0.2);
+  const reachScale = clampNum(1 + reachAdv * reachCoef, 0.3, 2);
+  const effectiveDamage = poiseDamage * reachScale;
+  const outOfRange = reachAdv <= -REACH_OUT_OF_RANGE_GAP;
+  // The target's shield fronts this attacker only if it faces them (bypassed
+  // by a flanking blow under focus-fire).
+  const shieldFacing = shieldFacesAttacker(
+    session,
+    targetState.combatant,
+    actorState.combatant,
+  );
+
   // An actual exchange trades blows — base autocombat erodes both sides.
   // Focus-fire: the target's erosion scales with how many attackers are
   // pressing them (each extra attacker beyond the first adds
-  // `erosionPerEdge`), so ganging up wears a defender down faster.
+  // `erosionPerEdge`), so ganging up wears a defender down faster; the
+  // guard-breaker's `poiseDamage` + the reach advantage scale it further. An
+  // out-of-range actor pressures nobody (only self-erodes on the whiff).
   const erode = dial(AppSettingKeys.combatPoiseErodePerExchange, 0.12);
   const attackers = session.getGraph().edgeCount(targetState.combatant);
   const focusMult =
@@ -600,7 +1013,9 @@ function resolveExchange(
     Math.max(0, attackers - 1) *
       dial(AppSettingKeys.combatFocusFireErosionPerEdge, 0.5);
   actorState.poise.erode(erode, beat);
-  targetState.poise.erode(erode * focusMult, beat);
+  if (!outOfRange) {
+    targetState.poise.erode(erode * focusMult * effectiveDamage, beat);
+  }
 
   const spec = Gambit.forVerb(key) ?? Gambit.get("strike")!;
 
@@ -608,10 +1023,21 @@ function resolveExchange(
   // only, no narration) — the injury-edits-the-menu reject.
   if (!eligibilityImpl(actorState.combatant, spec.key).ok) return;
 
-  const overextend = dial(AppSettingKeys.combatPoiseOverextendCost, 0.2);
+  // Overextend scales with the weapon's commitment (guard-breaker dear,
+  // exploiter cheap — the exploiter *cashes* openings without self-opening).
+  const overextend =
+    dial(AppSettingKeys.combatPoiseOverextendCost, 0.2) * overextendScale;
   const whiffPenalty = dial(AppSettingKeys.combatPoiseWhiffPenalty, 0.25);
-  const targetCanParry = resolveInstrument(targetState) !== null;
-  const outcome = decideOutcome(actorState, targetState, spec, targetCanParry);
+  // Guard-graded: the defender parries only if their weapon (or off-hand)
+  // can bring a guard — a guardless flail is "armed" but can't self-guard,
+  // so a guard-breaker bypasses its steady defence (the offense↔defense
+  // axis, §4). Rides the existing steady-guard → parry → riposte seam.
+  const targetCanParry = canGuard(targetState);
+  // Out of range → the blow finds only air (a whiff that self-opens); the
+  // reach-holder is untouched. Otherwise resolve the tactical outcome.
+  const outcome = outOfRange
+    ? "whiff"
+    : decideOutcome(actorState, targetState, spec, targetCanParry);
 
   // Advancement: the actor earns credit for the exchange (self-credit
   // only). Minted for the player-driven side; a brain-driven beast needs
@@ -647,7 +1073,13 @@ function resolveExchange(
     case "exploit": {
       targetState.poise.consumeOpening();
       actorState.poise.spend(overextend, beat);
-      const report = commitInflict(actorState, targetState, "open");
+      const report = commitInflict(
+        actorState,
+        targetState,
+        "open",
+        effectiveDamage,
+        shieldFacing,
+      );
       const firstBlood = !report.deflected && session.markBloodDrawn();
       narrate(actorState, targetState, spec, "land", report, true, beat, true, firstBlood);
       // Winning the poise contest downs the target (the incapacitation
@@ -658,7 +1090,13 @@ function resolveExchange(
     case "land": {
       actorState.poise.spend(overextend, beat);
       const targetBand = targetState.poise.band();
-      const report = commitInflict(actorState, targetState, targetBand);
+      const report = commitInflict(
+        actorState,
+        targetState,
+        targetBand,
+        effectiveDamage,
+        shieldFacing,
+      );
       const landed = !report.deflected;
       const firstBlood = landed && session.markBloodDrawn();
       narrate(actorState, targetState, spec, report.deflected ? "deflected" : "land", report, landed, beat, false, firstBlood);
@@ -744,11 +1182,33 @@ function reactiveDispatch(
     // Eligibility filter over the reactive affordance — a disarmed
     // defender can't riposte (no instrument).
     if (g.needsInstrument && resolveInstrument(defenderState) === null) continue;
-    // The riposte is an offensive counter against the attacker.
-    const overextend = dial(AppSettingKeys.combatPoiseOverextendCost, 0.2);
+    // Range filter: a counter can't land from out of range either — a
+    // dagger-wielder held at a spear's `reach` can't riposte the spear (this
+    // is what makes reach control decisive, not just a poise nudge).
+    if (
+      reachAdvantage(
+        session,
+        defenderState.combatant,
+        attackerState.combatant,
+      ) <= -REACH_OUT_OF_RANGE_GAP
+    ) {
+      continue;
+    }
+    // The riposte is an offensive counter against the attacker, scaled by
+    // the defender's own weapon playstyle (a heavy riposte lands harder).
+    const dProfile = actorWeaponProfile(defenderState.combatant, defenderState);
+    const overextend =
+      dial(AppSettingKeys.combatPoiseOverextendCost, 0.2) *
+      (dProfile?.overextendFactor() ?? 1);
     defenderState.poise.spend(overextend, beat);
     const band = attackerState.poise.band();
-    const report = commitInflict(defenderState, attackerState, band);
+    const report = commitInflict(
+      defenderState,
+      attackerState,
+      band,
+      dProfile?.poiseDamageFactor() ?? 1,
+      shieldFacesAttacker(session, attackerState.combatant, defenderState.combatant),
+    );
     const landed = !report.deflected;
     const firstBlood = landed && session.markBloodDrawn();
     narrate(defenderState, attackerState, g, report.deflected ? "deflected" : "land", report, landed, beat, false, firstBlood);
@@ -781,18 +1241,23 @@ function commitInflict(
   actorState: CombatantState,
   targetState: CombatantState,
   bandForEnergy: string,
+  energyScale = 1,
+  shieldFacing = true,
 ): InflictReport {
   const attacker = actorState.combatant;
   const target = targetState.combatant;
   const instrument = resolveInstrument(actorState);
   const channel: MechanicalChannel = instrument?.channel ?? "blunt";
   const site = siteFor(target, bandForEnergy === "open");
-  const energy = energyFor(bandForEnergy);
+  const energy = energyFor(bandForEnergy) * (energyScale > 0 ? energyScale : 1);
 
   const outcome = ConditionApi.inflict(target, {
     mechanism: channel,
     site,
     energy,
+    // The target's wielded shield fronts a faced attacker; a flanking blow
+    // under focus-fire bypasses it (directional coverage).
+    shieldFacing,
   });
   // Name the killing edge for an attrition/bleed-out death that has no
   // single striker at resolution time (the per-edge blame foundation).
@@ -1080,6 +1545,21 @@ function eligibilityImpl(actor: Stuff, gambitKey: string): GambitEligibility {
       return { ok: false, reason: "target-unarmed" };
     }
   }
+  // "The weapon edits the menu": a form-afforded gambit (a hafted sweep) needs
+  // the right weapon; a shield-afforded one (bash) needs a wielded shield.
+  if (spec.affordedByForm && spec.affordedByForm.length > 0) {
+    const weapon = wieldedWeapon(actor, state);
+    const form =
+      weapon && MixinApi.isConstructed(weapon)
+        ? weapon.getConstruction()?.getForm()
+        : undefined;
+    if (!form || !spec.affordedByForm.includes(form as never)) {
+      return { ok: false, reason: "wrong-weapon" };
+    }
+  }
+  if (spec.affordedByShield && !wieldedShield(actor)) {
+    return { ok: false, reason: "no-shield" };
+  }
   return { ok: true };
 }
 
@@ -1107,6 +1587,9 @@ function resolveInstrument(
   weaponOnly = false,
 ): ResolvedInstrument | null {
   const actor = state.combatant;
+  // Mid-switch: the guard is down and there is nothing to strike with (the
+  // vulnerable window). Both offence and parry read this as unarmed.
+  if (state.weaponSwitch && !state.weaponSwitch.isReady()) return null;
   if (!state.flags.has("disarmed")) {
     const weapon = wieldedWeapon(actor, state);
     if (weapon) {
@@ -1158,6 +1641,130 @@ function wieldedWeapon(
     }
   }
   return null;
+}
+
+/* ───────────────────────── hand-slot economy ───────────────────────── */
+
+/** Beats a game-time-seconds window maps to at the current tick length. */
+function beatsForSeconds(seconds: number): number {
+  const tick = dial(AppSettingKeys.combatTickSeconds, 3);
+  return Math.max(1, Math.round(seconds / Math.max(0.1, tick)));
+}
+
+/** Is `occ` a wieldable weapon item (a candidate to switch/draw to)? */
+function isWeaponItem(occ: Stuff): boolean {
+  return (
+    MixinApi.isWieldable(occ) &&
+    MixinApi.isConstructed(occ) &&
+    !!occ.getConstruction()?.isWeapon()
+  );
+}
+
+/** The grip slot a weapon claims on the actor's body plan (its first hand). */
+function gripSlotFor(actor: Stuff, target: Stuff): string | null {
+  if (!MixinApi.isWieldable(target)) return null;
+  const planPath = SpeciesApi.tryGetBodyPlanPath(actor);
+  if (!planPath) return null;
+  return target.getSlotClaim(planPath)[0] ?? null;
+}
+
+/**
+ * Perform the actual grip swap at switch completion: clear the target's
+ * current grip, pull it out of whatever slot it sits in (a sidearm sheath),
+ * and occupy it in the grip. Defensive — a swap that can't complete (target
+ * gone, no grip) just leaves the combatant as they were.
+ */
+function performSwap(actor: Stuff, target: Stuff | null): void {
+  if (!MixinApi.isSlotted(actor) || !target) return;
+  const grip = gripSlotFor(actor, target);
+  if (!grip) return;
+  for (const occ of [...actor.getOccupants(grip)]) {
+    if (MixinApi.isSlottable(occ)) actor.vacate(grip, occ);
+  }
+  for (const [slot, occs] of actor.getAllOccupants()) {
+    if (MixinApi.isSlottable(target) && occs.has(target)) {
+      actor.vacate(slot, target);
+    }
+  }
+  try {
+    if (MixinApi.isSlottable(target)) actor.occupy(target, grip);
+  } catch {
+    /* a swap that violates slot rules just no-ops; the state is consistent */
+  }
+}
+
+/** Re-derive a combatant's tempo after a gear change (a lighter/heavier
+ * weapon changes the cadence). */
+function reDeriveTempo(state: CombatantState): void {
+  const combatant = state.combatant;
+  const balanceFactor = balanceFactorOf(combatant);
+  state.tempo.setRate(
+    Tempo.rateFor(
+      {
+        encumbrance: MixinApi.isLoadBearing(combatant)
+          ? combatant.getLoadRatio()
+          : 0,
+        endurance: enduranceRatio(combatant),
+        competence: 1,
+        balanceFactor,
+      },
+      tempoConfig(),
+    ),
+  );
+  state.balanceFactor = balanceFactor;
+}
+
+/** Complete a switch: swap the grip, re-arm (clear the disarmed flag), and
+ * re-derive tempo from the new weapon. */
+function completeSwitch(state: CombatantState): void {
+  const sw = state.weaponSwitch;
+  if (!sw) return;
+  performSwap(state.combatant, sw.getTarget());
+  state.flags.remove("disarmed");
+  state.weaponSwitch = null;
+  reDeriveTempo(state);
+}
+
+/** A backup weapon the actor can draw — a dedicated `sidearm` sheath slot
+ * first, else any carried (inventory) weapon that isn't the wielded one. */
+function findBackupWeapon(actor: Stuff): Stuff | null {
+  const wielded = wieldedWeapon(actor);
+  if (MixinApi.isSlotted(actor)) {
+    for (const occ of actor.getOccupants("sidearm")) {
+      if (isWeaponItem(occ)) return occ as Stuff;
+    }
+  }
+  if (MixinApi.isContainer(actor)) {
+    for (const item of actor.getContents()) {
+      if ((item as Stuff) !== wielded && isWeaponItem(item)) return item as Stuff;
+    }
+  }
+  return null;
+}
+
+function beginSwitchImpl(
+  actor: Stuff,
+  target: Stuff,
+  fast: boolean,
+): { ok: boolean; reason?: string } {
+  const session = sessionForImpl(actor);
+  const state = session?.getState(actor);
+  if (!state) return { ok: false, reason: "not-in-combat" };
+  if (state.down) return { ok: false, reason: "downed" };
+  if (state.weaponSwitch && !state.weaponSwitch.isReady()) {
+    return { ok: false, reason: "already-switching" };
+  }
+  const seconds = fast
+    ? dial(AppSettingKeys.combatDrawSeconds, 1.5)
+    : dial(AppSettingKeys.combatSwitchSeconds, 6);
+  state.weaponSwitch = new WeaponSwitch(target, beatsForSeconds(seconds), fast);
+  return { ok: true };
+}
+
+function drawSidearmImpl(actor: Stuff): { ok: boolean; reason?: string } {
+  const backup = findBackupWeapon(actor);
+  if (!backup) return { ok: false, reason: "no-sidearm" };
+  return beginSwitchImpl(actor, backup, true);
 }
 
 /* ───────────────────────── small reads ───────────────────────── */

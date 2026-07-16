@@ -112,7 +112,17 @@ export function runMatchup(
   a: GymSide,
   b: GymSide,
   maxBeats = 400,
+  /**
+   * A per-matchup state reset, called BEFORE the fighters are built. A
+   * `CombatSession` is deterministic in a *clean* world, so a matrix that
+   * runs several matchups back-to-back must reset between them (else each
+   * fight runs in a registry littered with the previous fight's objects — a
+   * different world, a different result). The gym is a dev tool and imports
+   * nothing from the test harness, so the reset is supplied by the caller.
+   */
+  reset?: () => void,
 ): MatchupResult {
+  reset?.();
   const fa = a.make();
   const fb = b.make();
   const competenceBands = new Map<string, CompetenceBandName>();
@@ -172,6 +182,9 @@ export interface MatchupSpec extends MatchupResult {
  */
 export function runMatrix(
   specs: Array<{ label: string; a: GymSide; b: GymSide }>,
+  /** Per-matchup state reset (see {@link runMatchup}) — each matrix cell is
+   * an independent clean-world experiment. */
+  reset?: () => void,
 ): {
   results: MatchupSpec[];
   aWinRate: number;
@@ -181,7 +194,7 @@ export function runMatrix(
 } {
   const results: MatchupSpec[] = specs.map(({ label, a, b }) => ({
     label,
-    ...runMatchup(a, b),
+    ...runMatchup(a, b, 400, reset),
   }));
   const aWins = results.filter((r) => r.winner === "A").length;
   const bWins = results.filter((r) => r.winner === "B").length;

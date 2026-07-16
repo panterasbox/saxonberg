@@ -517,6 +517,55 @@ export const AppSettingKeys = {
   /** Combat (experience) — sharpness at the top (`expert`) band (the
    * competence→sharpness curve ceiling). */
   combatSharpnessMax: "combat.sharpness.max",
+
+  /* ── weapon playstyle — the derived WeaponProfile curves (all shape ×
+   * magnitude split; a bare weapon still works off these seeded fallbacks).
+   * See docs/subsystems/combat.md (WeaponProfile). ── */
+  /** Weapon mass (kg) that maps to a neutral 1.0 balance. */
+  combatWeaponBalanceRefMass: "combat.weapon.balanceRefMass",
+  /** Tempo curve exponent (light↔heavy spread) + clamp. */
+  combatWeaponTempoExponent: "combat.weapon.tempoExponent",
+  combatWeaponTempoMin: "combat.weapon.tempoMin",
+  combatWeaponTempoMax: "combat.weapon.tempoMax",
+  /** Poise-damage curve exponent (heavier → more per blow) + clamp. */
+  combatWeaponPoiseDamageExponent: "combat.weapon.poiseDamageExponent",
+  combatWeaponPoiseDamageMin: "combat.weapon.poiseDamageMin",
+  combatWeaponPoiseDamageMax: "combat.weapon.poiseDamageMax",
+  /** Overextend curve exponent (heavier → costlier to commit) + clamp. */
+  combatWeaponOverextendExponent: "combat.weapon.overextendExponent",
+  combatWeaponOverextendMin: "combat.weapon.overextendMin",
+  combatWeaponOverextendMax: "combat.weapon.overextendMax",
+  /** Balance-class band edges on the tempo factor. */
+  combatWeaponBalanceHeavyBelow: "combat.weapon.balanceHeavyBelow",
+  combatWeaponBalanceLightAbove: "combat.weapon.balanceLightAbove",
+  /** Reach-class length thresholds (m). */
+  combatWeaponReachShortBelow: "combat.weapon.reachShortBelow",
+  combatWeaponReachLongAbove: "combat.weapon.reachLongAbove",
+  /** Material hardness (MPa) reference for the guard nudge. */
+  combatWeaponGuardHardnessRef: "combat.weapon.guardHardnessRef",
+
+  /* ── reach range tier (the per-edge reach|close state). ── */
+  /** Poise the closer spends attempting to close the gap. */
+  combatReachCloseCost: "combat.reach.closeCost",
+  /** Poise/energy edge the longer weapon strikes with while the foe is at
+   * `reach` (and the shorter weapon is penalised). */
+  combatReachAdvantageEnergy: "combat.reach.advantageEnergy",
+  /** The reach-holder's contest strength when a foe tries to close. */
+  combatReachContestStrength: "combat.reach.contestStrength",
+
+  /* ── hand-slot economy. ── */
+  /** Weapon-switch vulnerable-beat window (game-time seconds). */
+  combatSwitchSeconds: "combat.switch.seconds",
+  /** Fast sidearm-draw window (game-time seconds) — the disarm answer. */
+  combatDrawSeconds: "combat.draw.seconds",
+  /** Guard/parry bonus a wielded shield or a dual-wield off-hand adds. */
+  combatOffhandGuardBonus: "combat.offhand.guardBonus",
+  /** Competence band rank at/below which dual-wield is a net penalty
+   * (novice fumbles the off-hand; you grow into it). */
+  combatDualWieldMasteryRank: "combat.dualWield.masteryRank",
+  /** Off-hand guard bonus a *below-mastery* dual-wielder actually gets
+   * (a novice's off-hand hurts more than it helps). */
+  combatDualWieldNoviceGuardBonus: "combat.dualWield.noviceGuardBonus",
 } as const;
 
 export type AppSettingKey =

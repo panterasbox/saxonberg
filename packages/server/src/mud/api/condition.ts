@@ -62,6 +62,14 @@ export interface EnergyInflictSpec {
    * tissue); for a passthrough, mapped straight to severity.
    */
   energy: number;
+  /**
+   * Directional-coverage hint for a **wielded shield** (a Constructed-armor
+   * item held in a hand slot). A shield covers a *facing* attacker only —
+   * combat sets this `false` for a flanking blow under focus-fire so the
+   * shield is bypassed, `true`/absent for a faced (or non-combat) blow so a
+   * held shield joins the covering stack. Worn armor is unaffected either way.
+   */
+  shieldFacing?: boolean;
 }
 
 /**

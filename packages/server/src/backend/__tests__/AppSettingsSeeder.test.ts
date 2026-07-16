@@ -41,7 +41,7 @@ describe("AppSettingsSeeder", () => {
     pm.setFindResult([]);
     const added = await AppSettingsSeeder.run();
 
-    expect(added).toBe(123); // + 6 experience combat + 16 electricity
+    expect(added).toBe(146); // + 23 weapon-playstyle combat + 16 electricity
     expect(pm.saves).toHaveLength(1);
     expect(pm.saves[0]!.collection).toBe("app_settings");
     const values = savedValues(pm);
@@ -180,6 +180,31 @@ describe("AppSettingsSeeder", () => {
           [AppSettingKeys.combatFogClearSharpness]: "0.7",
           [AppSettingKeys.combatSharpnessMin]: "0.35",
           [AppSettingKeys.combatSharpnessMax]: "1",
+          // The 23 weapon-playstyle combat tuning keys (15 weapon-profile
+          // + 3 reach + 5 hand-slot).
+          [AppSettingKeys.combatWeaponBalanceRefMass]: "0.9",
+          [AppSettingKeys.combatWeaponTempoExponent]: "0.35",
+          [AppSettingKeys.combatWeaponTempoMin]: "0.5",
+          [AppSettingKeys.combatWeaponTempoMax]: "1.6",
+          [AppSettingKeys.combatWeaponPoiseDamageExponent]: "0.4",
+          [AppSettingKeys.combatWeaponPoiseDamageMin]: "0.6",
+          [AppSettingKeys.combatWeaponPoiseDamageMax]: "1.5",
+          [AppSettingKeys.combatWeaponOverextendExponent]: "0.35",
+          [AppSettingKeys.combatWeaponOverextendMin]: "0.6",
+          [AppSettingKeys.combatWeaponOverextendMax]: "1.5",
+          [AppSettingKeys.combatWeaponBalanceHeavyBelow]: "0.92",
+          [AppSettingKeys.combatWeaponBalanceLightAbove]: "1.08",
+          [AppSettingKeys.combatWeaponReachShortBelow]: "0.5",
+          [AppSettingKeys.combatWeaponReachLongAbove]: "1.5",
+          [AppSettingKeys.combatWeaponGuardHardnessRef]: "300",
+          [AppSettingKeys.combatReachCloseCost]: "0.18",
+          [AppSettingKeys.combatReachAdvantageEnergy]: "0.2",
+          [AppSettingKeys.combatReachContestStrength]: "1",
+          [AppSettingKeys.combatSwitchSeconds]: "6",
+          [AppSettingKeys.combatDrawSeconds]: "1.5",
+          [AppSettingKeys.combatOffhandGuardBonus]: "0.6",
+          [AppSettingKeys.combatDualWieldMasteryRank]: "2",
+          [AppSettingKeys.combatDualWieldNoviceGuardBonus]: "-0.3",
           // The 16 electricity (shock channel + conduction) tuning keys.
           [AppSettingKeys.electricityBodyDryResistanceOhms]: "100000",
           [AppSettingKeys.electricityBodyWetFactor]: "100",
@@ -230,8 +255,9 @@ describe("AppSettingsSeeder", () => {
     // + 23 combat (20 core 1v1 + 3 Build 2)
     // + 3 multi-party combat (2 focus-fire + 1 flee)
     // + 6 experience combat (2 feint poise + 2 fog + 2 sharpness)
+    // + 23 weapon-playstyle combat (15 weapon-profile + 3 reach + 5 hand-slot)
     // + 16 electricity (shock channel + conduction).
-    expect(added).toBe(122);
+    expect(added).toBe(145);
     expect(pm.saves).toHaveLength(1);
     const values = savedValues(pm);
     // operator value preserved, missing keys seeded

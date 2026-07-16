@@ -214,7 +214,7 @@ when it lands.
 
 ## Demo content
 
-Three real templates under `seeds/domain/eternal/gear/`, each exercising
+Three real templates under `seeds/obj/gear/`, each exercising
 one axis:
 
 - **`backpack`** (`/lib/equipment/Pack`, a wearable `Vessel`) — placement

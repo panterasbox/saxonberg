@@ -16,7 +16,7 @@
  * bag of holding worn on the back) is content + composition, not
  * subclassing.
  *
- * Seeded as `domain` content (e.g. `/domain/eternal/gear/backpack`) with
+ * Seeded as `domain` content (e.g. `/obj/gear/backpack`) with
  * `data.slotClaims: { /lib/body-plans/biped: [torso] }`.
  */
 

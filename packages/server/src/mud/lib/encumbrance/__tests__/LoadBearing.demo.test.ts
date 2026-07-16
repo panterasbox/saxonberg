@@ -1,6 +1,6 @@
 /**
  * The three demo objects, each exercising one encumbrance axis with the
- * real shipped classes (the seeds at `domain/eternal/gear/*` are these
+ * real shipped classes (the seeds at `obj/gear/*` are these
  * same classes + authored data):
  *
  *   - a worn `Pack` (backpack) — placement coupling: a stowed load

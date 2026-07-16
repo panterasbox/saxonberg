@@ -22,12 +22,18 @@ data:
 
     In the middle of the hollow a flat stone sits proud of the fog, worn pale on top by long use, and a pair of matched knives lie across it — one for each hand that means to settle a thing here. The whole place has the arranged quiet of a ground that has been fought on before, and swept after, and made ready again.
 
+    Against a leaning pine at the hollow's edge someone has set a rack of longer arms — a steel-tipped spear, a plain arming sword, a broad steel-faced shield, and a coiled leather whip — for a challenger who would rather not settle it at knife-length.
+
     East, the fog thins and the land climbs back toward the treeline.
   details:
     stone:
       keywords: [stone, duelling-stone, slab, rock]
       description: |
         A flat slab worn smooth and pale on top — a duelling-stone, the kind two people stand across when they have agreed on how the standing ends. A pair of matched knives rest on it, kept — one for each hand.
+    rack:
+      keywords: [rack, arms, weapons, pine, whip]
+      description: |
+        A few longer weapons leaned against a pine: a spear that would keep the knife-man at the end of its reach until he could close, a plain sword, a shield to raise between you and his blade, and a coiled leather whip — longest of all, no guard to it, but a lash that can wrap a wrist and bind. Take up what suits the fight you mean to have.
     fog:
       keywords: [fog, mist, hollow]
       description: |
@@ -41,5 +47,12 @@ data:
   # fresh at standup.
   populates:
     - /domain/newbie-wilds/npc/duelist
-    - /domain/eternal/arms/steel-dagger
-    - /domain/eternal/arms/steel-dagger
+    - /obj/arms/steel-dagger
+    - /obj/arms/steel-dagger
+    # A rack of longer arms for the reach / shield demo — the spear
+    # out-reaches the duelist's knife until he closes; the sword + shield
+    # show the wielded-armor covering path. All cloned fresh at standup.
+    - /obj/arms/steel-spear
+    - /obj/arms/steel-sword
+    - /obj/arms/steel-shield
+    - /obj/arms/leather-whip
