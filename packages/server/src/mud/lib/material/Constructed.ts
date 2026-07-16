@@ -129,7 +129,34 @@ function responsePipsAugmenter(
     }
     return `${channel} ${pipBar(intensity)}`;
   });
+  // The shock column — the armor inversion, made legible. Protection against
+  // a shock is INVERSE to conductivity: an insulating layer (rubber/leather)
+  // protects (full pips); a conductor (metal plate/mail) betrays you (empty
+  // pips — "conducts, barely protects"). Only meaningful for armor.
+  if (armor && material) {
+    cells.push(`shock ${pipBar(shockProtectionPips(material))}`);
+  }
   const label = armor ? 'Protection' : 'Delivery';
   const line = `${label} — ${cells.join(' · ')}`;
   return text && text.length > 0 ? `${text}\n\n${line}` : line;
+}
+
+/**
+ * Shock-protection pips from a material's electrical conductivity (the
+ * inverse of the mechanical channels): a good insulator turns a shock (4
+ * pips), a good conductor conducts it into you (0 pips). Log-scaled across
+ * the ~20-order-of-magnitude conductivity span. Reads the same
+ * `electricalConductivity` axis the shock model resolves against — the
+ * inversion is emergent, never an `isElectrical` flag.
+ */
+function shockProtectionPips(material: {
+  getElectricalConductivity(): { rawValue(): number };
+}): number {
+  const sigma = material.getElectricalConductivity().rawValue();
+  if (!(sigma > 0)) return 4; // a perfect insulator (unauthored / vacuum)
+  // Map log10(σ): insulators (σ ≤ 1e-6, log ≤ -6) → 4 pips; conductors
+  // (σ ≥ 1, log ≥ 0) → 0 pips; linear between.
+  const l = Math.log10(sigma);
+  const t = (l - -6) / (0 - -6); // 0 at log-6 (insulator) … 1 at log0 (conductor)
+  return Math.max(0, Math.min(4, Math.round(4 * (1 - t))));
 }
