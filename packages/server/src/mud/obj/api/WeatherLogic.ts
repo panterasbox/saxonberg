@@ -13,8 +13,14 @@ import { AddressApi } from '../../api/address';
 import { WorldClockApi } from '../../api/worldclock';
 import { CelestialApi } from '../../api/celestial';
 import { ConnectionApi } from '../../api/connection';
+import { StuffApi } from '../../api/stuff';
+import { AppApi } from '../../api/app';
+import { AppSettingKeys } from '../../lib/config/AppSettings';
 import { EARTH_LIKE, type Season } from '../../lib/time/CelestialProfile';
 import type Locality from '../../lib/address/Locality';
+import type Material from '../../lib/material/Material';
+import type { Bulkable } from '../../lib/bulk/Bulkable';
+import type { Adornable } from '../../lib/boundary/Adornable';
 import {
   WEATHER_PROFILES,
   TRANSITIONS,
@@ -467,6 +473,7 @@ function computeResolved(
  */
 async function runBoundaryFanout(): Promise<void> {
   const { BiomeApi } = await import('../../api/biome');
+  const nowS = nowSecondsOrNull();
   const visited = new Set<string>();
   for (const interactive of ConnectionApi.getAllInteractives()) {
     const holder = interactive.getHolder();
@@ -475,8 +482,110 @@ async function runBoundaryFanout(): Promise<void> {
     if (room === null || !MixinApi.isContainer(room)) continue;
     if (visited.has(room.stuffId)) continue;
     visited.add(room.stuffId);
-    if (!BiomeApi.isSkyExposed(room)) continue;
-    BiomeApi.restampThermalContentsOf(room);
+
+    const sky = BiomeApi.isSkyExposed(room);
+    // Thermal restamp (Wave 1): SkyExposed only — the field deviation stays
+    // sky-gated. The now-weathered ambient re-resolves on each Thermal read.
+    if (sky) BiomeApi.restampThermalContentsOf(room);
+
+    if (nowS === null) continue;
+    const locality = await AddressApi.resolveLocalityFor(room);
+    const resolved = computeResolved(room, locality, nowS, sky);
+
+    // Puddle accrual / evaporation (Wave 2, D): source-indifferent — an
+    // authored indoor rain fills a Floor pool exactly as procgen rain does.
+    maintainPuddle(room, resolved);
+  }
+}
+
+/* ─────────────────────────── Wave-2 puddle sink ─────────────────────────── */
+
+/** Numeric AppSetting read with a seeded-literal fallback (pre-warm safe). */
+function dial(key: string, fallback: number): number {
+  try {
+    const raw = AppApi.setting(key);
+    if (raw === '' || raw == null) return fallback;
+    const n = Number.parseFloat(raw);
+    return Number.isFinite(n) ? n : fallback;
+  } catch {
+    return fallback;
+  }
+}
+
+/** String AppSetting read with a seeded-literal fallback. */
+function dialStr(key: string, fallback: string): string {
+  try {
+    const raw = AppApi.setting(key);
+    return raw == null || raw === '' ? fallback : raw;
+  } catch {
+    return fallback;
+  }
+}
+
+/**
+ * The room's puddle-bearing `Floor` — a fixture (or content) carrying a
+ * surface bulk slot. Mirrors `ElectricityLogic.findFloor` so rain fills the
+ * same pool the conduction walk reads (the weather→bulk→electricity loop).
+ */
+function findRoomFloor(room: Stuff & Container): (Stuff & Bulkable) | null {
+  if (MixinApi.isAdornable(room)) {
+    for (const fx of (room as Stuff & Adornable).getFixtures()) {
+      if (MixinApi.isBulkable(fx) && fx.hasSurfaceBulk()) {
+        return fx as unknown as Stuff & Bulkable;
+      }
+    }
+  }
+  if (MixinApi.isContainer(room)) {
+    for (const c of room.getContents()) {
+      if (MixinApi.isBulkable(c) && c.hasSurfaceBulk()) {
+        return c as unknown as Stuff & Bulkable;
+      }
+    }
+  }
+  return null;
+}
+
+/** The authored fresh-water material a new rain puddle fills with (weakly conductive). */
+function freshWaterMaterial(): Material | null {
+  const path = dialStr(
+    AppSettingKeys.stormPuddleFreshWaterMaterialPath,
+    '/lib/material/bulk/water',
+  );
+  return StuffApi.findByTemplatePath<Material>(path) ?? null;
+}
+
+/**
+ * Accrue (under resolved rain) or evaporate (otherwise) the room's Floor
+ * surface pool. Source-indifferent: reads `resolved.precipitationHere`, so
+ * authored indoor rain and procgen rain fill the same sink. Evaporation
+ * scales with the resolved sky (a clearer sky dries the ground faster).
+ * Floor / bulk state — allowed (never weather state).
+ */
+function maintainPuddle(room: Stuff & Container, resolved: ResolvedWeather): void {
+  const floor = findRoomFloor(room);
+  if (floor === null) return;
+  const capQ = floor.getBulkCapacity('surface');
+  const cap = capQ ? capQ.rawValue() : Number.POSITIVE_INFINITY;
+  const cur = floor.getBulkAmount('surface').rawValue();
+
+  if (resolved.precipitationHere === 'rain') {
+    // Fill toward capacity; seed a fresh-water pool if the floor is dry.
+    if (cur <= 0 || floor.getBulkMaterial('surface') === null) {
+      const mat = freshWaterMaterial();
+      if (mat) floor.setBulkMaterial('surface', mat);
+    }
+    const accrual = dial(
+      AppSettingKeys.stormPuddleAccrualLitersPerSegment,
+      12,
+    );
+    const next = Math.min(cap, cur + accrual);
+    if (next !== cur) floor.setBulkAmount('surface', Quantity.of(next, 'L'));
+  } else if (cur > 0) {
+    // Evaporate a fraction per non-rain segment; a clearer sky dries faster.
+    const base = dial(AppSettingKeys.stormPuddleEvaporationFactor, 0.2);
+    const evap = base * (1 - 0.5 * resolved.sample.cloud);
+    const next = Math.max(0, cur - cur * evap);
+    if (next !== cur) floor.setBulkAmount('surface', Quantity.of(next, 'L'));
   }
 }
 
