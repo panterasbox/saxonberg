@@ -20,7 +20,7 @@ import { MixinApi } from '../../../api/mixin';
 import { MessageApi } from '../../../api/message';
 import { Mml } from '../../../api/mml';
 import { MaterialApi } from '../../../api/material';
-import { CHANNELS } from '../../../lib/material/Channel';
+import { MECHANICAL_CHANNELS } from '../../../lib/material/Channel';
 
 interface AnalyzeResponseModel extends CommandModel {
   target?: MqlOneResult;
@@ -84,7 +84,7 @@ export default class AnalyzeResponseController extends CommandController<Analyze
     lines.push(
       Mml.compose`Response of ${Mml.name(stuff)} (${construction.getForm()}) — how it ${verb} each channel:`,
     );
-    for (const channel of CHANNELS) {
+    for (const channel of MECHANICAL_CHANNELS) {
       if (!armor && construction.deliveryFor(channel) === 'none') {
         lines.push(Mml.compose`  ${channel}: — (not delivered)`);
         continue;

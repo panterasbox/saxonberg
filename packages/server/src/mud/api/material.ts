@@ -32,6 +32,7 @@ import type { Channel } from '../lib/material/Channel';
 import type { Construction } from '../lib/material/Construction';
 import type { Grade } from '../lib/craft/Grade';
 import type { TraumaType } from '../lib/vitals/Condition';
+import type { Quantity } from '../lib/quantity';
 import { StuffApi } from './stuff';
 import { HotReloadApi } from './hot-reload';
 import { SecurityApi } from './security';
@@ -261,6 +262,82 @@ export class MaterialApi {
    * `null`. */
   public static primaryChannel(construction: Construction): Channel | null {
     return logic().primaryChannel(construction);
+  }
+
+  // ---------- electricity (the Ohm's-law circuit primitives) ----------
+
+  /**
+   * `I = V/R` — the current through a path. The honest, scale-invariant
+   * primitive: the shock, the stun baton, and the deferred substation all
+   * resolve through this one formula. Resistance is floored (an
+   * `electricity.*` dial) to dodge divide-by-zero.
+   */
+  public static ohmsCurrent(
+    voltage: Quantity<'V'>,
+    resistance: Quantity<'Ω'>,
+  ): Quantity<'A'> {
+    return logic().ohmsCurrent(voltage, resistance);
+  }
+
+  /**
+   * `P = I²R` — the Joule (resistive) loss / heating term. Ships now as the
+   * honest formula; the Joule→fire coupling (current heats water, ignites
+   * oil) is a named post-v1 consumer, so nothing reads it for harm yet.
+   */
+  public static jouleHeat(
+    current: Quantity<'A'>,
+    resistance: Quantity<'Ω'>,
+  ): Quantity<'W'> {
+    return logic().jouleHeat(current, resistance);
+  }
+
+  /**
+   * A body's contact-to-contact resistance, read from its flesh
+   * conductivity through a nominal internal-path geometry (dial). A `wet`
+   * body divides by the wet-skin factor (~100×) — the real reason water is
+   * deadly. Falls back to the dry-skin dial when the body carries no
+   * conductivity material.
+   */
+  public static bodyResistance(
+    material: Material | null,
+    wet: boolean,
+  ): Quantity<'Ω'> {
+    return logic().bodyResistance(material, wet);
+  }
+
+  /**
+   * The series resistance one material contributes at a contact / covering
+   * node (`R = (L/A)/σ`). A conductor → ~0; an insulator (or unknown
+   * material) → a large-but-finite ceiling (an open break). The per-layer
+   * half of the covering-stack series sum — the armor inversion's engine.
+   */
+  public static contactResistance(material: Material | null): Quantity<'Ω'> {
+    return logic().contactResistance(material);
+  }
+
+  /**
+   * The covering stack's total series resistance — the outside-in sum of
+   * each layer's `contactResistance`. Shock adds resistances (it does NOT
+   * subtract energy like the mechanical fold): steel barely raises the sum,
+   * rubber/leather collapses the current. The armor inversion falls out of
+   * conductivity alone — no `isElectrical` narrowing.
+   */
+  public static seriesResistanceOfCoveringStack(
+    materials: ReadonlyArray<Material | null>,
+  ): Quantity<'Ω'> {
+    return logic().seriesResistanceOfCoveringStack(materials);
+  }
+
+  /**
+   * Map a current through a body to the local contact trauma — a `burn`
+   * whose severity scales with current above the burn threshold, or `null`
+   * below it (perception / tingle only). The whole-body outcomes (let-go /
+   * tetany / fibrillation → arrest) are the vitals coupling's job.
+   */
+  public static resolveShock(
+    current: Quantity<'A'>,
+  ): TraumaResolution | null {
+    return logic().resolveShock(current);
   }
 }
 

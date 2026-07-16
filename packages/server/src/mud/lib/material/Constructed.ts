@@ -19,8 +19,8 @@
 
 import type { MixinConstructor } from '../mixin';
 import { Construction } from './Construction';
-import { CHANNELS } from './Channel';
-import type { Channel } from './Channel';
+import { MECHANICAL_CHANNELS } from './Channel';
+import type { MechanicalChannel } from './Channel';
 import { MixinApi } from '../../api/mixin';
 import { MaterialApi, OUTCOME_BANDS } from '../../api/material';
 import type { MarkupAugmenter } from '../../api/mml';
@@ -111,7 +111,7 @@ function responsePipsAugmenter(
     : undefined;
 
   const armor = construction.isArmor();
-  const cells = CHANNELS.map((channel: Channel) => {
+  const cells = MECHANICAL_CHANNELS.map((channel: MechanicalChannel) => {
     const band = MaterialApi.previewBand(
       channel,
       material,

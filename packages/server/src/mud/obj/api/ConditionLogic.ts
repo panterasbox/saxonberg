@@ -42,6 +42,10 @@ function channelDefaultType(channel: Channel): TraumaType {
       return 'puncture';
     case 'blunt':
       return 'contusion';
+    case 'shock':
+      // A shock's local wound is a contact burn (the whole-body
+      // let-go/tetany/fibrillation outcomes are the vitals coupling).
+      return 'burn';
   }
 }
 
