@@ -423,6 +423,15 @@ export const AppSettingKeys = {
   electricityBurnThresholdAmps: "electricity.burnThresholdAmps",
   /** Electricity — contact-burn severity per amp above the burn threshold. */
   electricityBurnSeverityPerAmp: "electricity.burnSeverityPerAmp",
+  /** Electricity — the conductivity (S/m) at/above which a surface pool
+   * bridges the conduction graph (salt water yes, dry-ish floors no). The
+   * topology gate — separate from the resistance magnitudes. */
+  electricityPoolMinConductivity: "electricity.pool.minConductivity",
+  /** Electricity — the conductivity (S/m) at/below which a material
+   * insulates a contact (footwear / a step / a floor breaks the path to
+   * ground). Rubber / leather / wool / dry wood insulate; flesh / water
+   * / metal do not. */
+  electricityInsulatorMaxConductivity: "electricity.insulator.maxConductivity",
 
   /* ─────────────────────────── combat ─────────────────────────── */
   /**

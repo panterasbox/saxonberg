@@ -45,6 +45,7 @@ import type { Focused } from '../lib/command/Focused';
 import type { Exitable } from '../lib/boundary/Exitable';
 import type { Sealable } from '../lib/spatial/Sealable';
 import type { Switchable } from '../lib/boundary/Switchable';
+import type { Energized } from '../lib/electricity/Energized';
 import type { Lockable } from '../lib/boundary/Locked';
 import type { Foldable } from '../lib/slot/Foldable';
 import type { Timekeeping } from '../lib/time/Timekeeping';
@@ -691,6 +692,11 @@ export class MixinApi {
 
   public static isSwitchable(obj: Stuff): obj is Stuff & Switchable {
     return this.hasMixin(obj, Mixins.Switchable);
+  }
+
+  /** Is `obj` an electrical source (held at a potential)? */
+  public static isEnergized(obj: Stuff): obj is Stuff & Energized {
+    return this.hasMixin(obj, Mixins.Energized);
   }
 
   public static isLockable(obj: Stuff): obj is Stuff & Lockable {
