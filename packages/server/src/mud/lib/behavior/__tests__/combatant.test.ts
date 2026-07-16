@@ -27,10 +27,15 @@ function ctxFor(host: object): BrainContext {
 }
 
 // A minimal N-container mock: `host` plus one live foe. `areAllied` is
-// mocked to false, so the foe survives the brain's side filter.
+// mocked to false, so the foe survives the brain's side filter. The state
+// carries a `flags` set (the brain checks `disarmed` for the sidearm draw).
 function fakeSession(band: string, host: object, foe: object): unknown {
   return {
-    getState: () => ({ poise: { band: () => band }, down: false }),
+    getState: () => ({
+      poise: { band: () => band },
+      down: false,
+      flags: { has: () => false },
+    }),
     getCombatants: () => [host, foe],
     opponentState: () => ({}),
   };
@@ -45,6 +50,8 @@ describe("combatant brain", () => {
     );
     vi.spyOn(PartyApi, "areAllied").mockReturnValue(false);
     vi.spyOn(CombatApi, "eligibilityFor").mockReturnValue({ ok: false });
+    // No reach info → the brain skips the close-the-gap policy and presses.
+    vi.spyOn(CombatApi, "rangeStanding").mockReturnValue(null);
     const queue = vi
       .spyOn(CombatApi, "queueGambit")
       .mockReturnValue({ ok: true });
