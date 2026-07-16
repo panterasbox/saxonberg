@@ -47,11 +47,11 @@ data:
   # fresh at standup.
   populates:
     - /domain/newbie-wilds/npc/duelist
-    - /domain/eternal/arms/steel-dagger
-    - /domain/eternal/arms/steel-dagger
+    - /obj/arms/steel-dagger
+    - /obj/arms/steel-dagger
     # A rack of longer arms for the reach / shield demo — the spear
     # out-reaches the duelist's knife until he closes; the sword + shield
     # show the wielded-armor covering path. All cloned fresh at standup.
-    - /domain/eternal/arms/steel-spear
-    - /domain/eternal/arms/steel-sword
-    - /domain/eternal/arms/steel-shield
+    - /obj/arms/steel-spear
+    - /obj/arms/steel-sword
+    - /obj/arms/steel-shield

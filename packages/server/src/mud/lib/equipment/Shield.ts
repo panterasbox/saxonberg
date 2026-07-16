@@ -16,7 +16,7 @@
  * shield parries well). It composes {@link DurableMixin}, so a shield-bash or
  * a sunder wears its `condition` down and it can be broken.
  *
- * Seeded as content (e.g. `/domain/eternal/arms/steel-shield`) with
+ * Seeded as content (e.g. `/obj/arms/steel-shield`) with
  * `_materialPath`, an armor `constructionForm` (`plate` / `hide`), a `grade`,
  * and `slotClaims` (the off-hand).
  */
