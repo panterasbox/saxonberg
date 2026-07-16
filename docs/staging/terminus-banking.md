@@ -1,6 +1,8 @@
 # Terminus Banking & the Business Landscape (staging)
 
-> **Status: locked design, 2026-07-15. NOT built.** Captured from a design
+> **Status: BUILT + GRADUATED (2026-07-16).** Shipped in the Attendant+Goodkin cycle; the source of truth is now [../subsystems/banking.md](../subsystems/banking.md) + [../subsystems/attendant.md](../subsystems/attendant.md). Retained for design rationale.
+>
+> _(original: locked design, 2026-07-15.)_ Captured from a design
 > conversation that started as "move the rubber-stamped Dave's-Bar bank into its
 > permanent home" and became the deliberate design of (a) how economic activity
 > in Terminus is modelled at all, (b) the bank as a repeated, corpo-flavored

@@ -1,6 +1,8 @@
 # Attendant — the storefront-attention substrate (staging)
 
-> **Status: locked design, 2026-07-15. NOT built.** A *universal* subsystem —
+> **Status: BUILT + GRADUATED (2026-07-16).** Shipped in the Attendant+Goodkin cycle; the source of truth is now [../subsystems/attendant.md](../subsystems/attendant.md). Retained for design rationale.
+>
+> _(original: locked design, 2026-07-15.)_ A *universal* subsystem —
 > "walk into a storefront, wait, get attended to one at a time." Every service
 > venue (bar, bank, ticket office, future shops) runs it, configured differently.
 > Surfaced from the Terminus banking design
