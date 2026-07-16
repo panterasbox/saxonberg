@@ -34,6 +34,7 @@ import type {
   InsultKind,
   Trauma,
 } from '../lib/vitals/Condition';
+import type { Quantity } from '../lib/quantity';
 import { StuffApi } from './stuff';
 import { HotReloadApi } from './hot-reload';
 import { SecurityApi } from './security';
@@ -43,24 +44,48 @@ import { fileURLToPath } from 'url';
 export type { InsultKind, Channel } from '../lib/vitals/Condition';
 export { CHANNELS, Channels } from '../lib/vitals/Condition';
 
-/** The insult a producer describes: what kind, where, and how hard. */
-export interface InflictSpec {
-  /**
-   * The insult kind — a materials-response `Channel` (edge / point / blunt),
-   * resolved outside-in through the covering stack into the tissue (yielding
-   * BOTH the trauma type and its severity), or a `'thermal'` / `'tearing'`
-   * passthrough (magnitude-only → burn / avulsion). Recorded raw.
-   */
-  mechanism: InsultKind;
+/**
+ * An **energy** insult — a mechanical materials-response `Channel`
+ * (edge / point / blunt), resolved outside-in through the covering stack
+ * into the tissue (yielding BOTH the trauma type and its severity), or a
+ * `'thermal'` / `'tearing'` passthrough (magnitude-only → burn / avulsion).
+ * The magnitude is an `energy` scalar.
+ */
+export interface EnergyInflictSpec {
+  /** The insult kind — any non-`shock` {@link InsultKind}. Recorded raw. */
+  mechanism: Exclude<InsultKind, 'shock'>;
   /** A `body.*` part key (anatomy) the wound sits at. */
   site: string;
   /**
-   * Magnitude of the incident insult. For a `Channel`, the energy delivered
-   * to the covering stack (attenuated inward, the residual meeting tissue);
-   * for a passthrough, mapped straight to severity.
+   * Magnitude of the incident insult. For a mechanical `Channel`, the energy
+   * delivered to the covering stack (attenuated inward, the residual meeting
+   * tissue); for a passthrough, mapped straight to severity.
    */
   energy: number;
 }
+
+/**
+ * A **shock** insult — the electrical channel. Its magnitude is the
+ * **current through the victim** (`Quantity<'A'>`), not an energy: the path
+ * resistance was already resolved upstream by the conduction walk
+ * (`ElectricityApi`), so shock **skips the covering-stack fold** entirely
+ * and maps current → a local contact burn. It is the current that harms,
+ * not the voltage.
+ */
+export interface ShockInflictSpec {
+  mechanism: 'shock';
+  /** A `body.*` part key (anatomy) the contact wound sits at. */
+  site: string;
+  /** The current through the victim on this path (A). */
+  current: Quantity<'A'>;
+}
+
+/**
+ * The insult a producer describes: what kind, where, and how hard. A
+ * discriminated union on `mechanism` — energy-carrying (mechanical /
+ * passthrough) vs current-carrying (shock).
+ */
+export type InflictSpec = EnergyInflictSpec | ShockInflictSpec;
 
 /** The result of an `inflict` call — the built trauma and whether it landed. */
 export interface InflictOutcome {

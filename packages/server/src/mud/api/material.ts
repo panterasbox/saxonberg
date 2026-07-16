@@ -28,7 +28,7 @@
 import type { Stuff } from '../lib/stuff/Stuff';
 import type Material from '../lib/material/Material';
 import type { CompositionEntry } from '../lib/material/Material';
-import type { Channel } from '../lib/material/Channel';
+import type { Channel, MechanicalChannel } from '../lib/material/Channel';
 import type { Construction } from '../lib/material/Construction';
 import type { Grade } from '../lib/craft/Grade';
 import type { TraumaType } from '../lib/vitals/Condition';
@@ -253,14 +253,19 @@ export class MaterialApi {
   }
 
   /** The channels a weapon-delivery construction can present (primary first);
-   * empty for an armor form. */
-  public static deliverableChannels(construction: Construction): Channel[] {
+   * empty for an armor form. Only mechanical channels — shock delivery is a
+   * source capability, never a weapon form. */
+  public static deliverableChannels(
+    construction: Construction,
+  ): MechanicalChannel[] {
     return logic().deliverableChannels(construction);
   }
 
   /** The single primary channel a weapon-delivery construction delivers, or
-   * `null`. */
-  public static primaryChannel(construction: Construction): Channel | null {
+   * `null`. Mechanical only. */
+  public static primaryChannel(
+    construction: Construction,
+  ): MechanicalChannel | null {
     return logic().primaryChannel(construction);
   }
 

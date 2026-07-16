@@ -64,7 +64,7 @@ describe('ConditionLogic.inflict — producer spine', () => {
     // blunt-through-plate → fracture path is exercised in the acceptance
     // test with a boned body plan.
     const cases: Array<
-      [Parameters<typeof ConditionApi.inflict>[1]['mechanism'], string]
+      [Exclude<Parameters<typeof ConditionApi.inflict>[1]['mechanism'], 'shock'>, string]
     > = [
       ['edge', 'laceration'],
       ['point', 'puncture'],
