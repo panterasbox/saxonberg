@@ -174,14 +174,17 @@ metal armor does NOT protect against a shock).
   end-to-end integration test; no cross-area inbound exit is wired this cycle
   (the treeline precedent — keeps content-area standup clean; reachable by
   teleport / a future travel node).
-- **`StunBaton`** (`lib/electricity/StunBaton.ts`) — a `Weapon` + `Energized`
-  + `Switchable` (the combat toe-hold). A landed hit routes through
-  **`ElectricityApi.shockContact`** — a **direct two-terminal contact** (a
-  taser/baton completes its own circuit through its electrodes, so it needs
-  no ground path and no conductive medium) into the same
+- **`StunBaton`** (`lib/electricity/StunBaton.ts`, authored as a template at
+  `/domain/substation/stun-baton` and `populates:`-placed in the cell) — a
+  `Weapon` + `Energized` + `Switchable` (the combat toe-hold). A landed hit
+  routes through **`ElectricityApi.shockContact`** — a **direct two-terminal
+  contact** (a taser/baton completes its own circuit through its electrodes,
+  so it needs no ground path and no conductive medium) into the same
   `ConditionApi.inflict({mechanism:'shock'})` door, never the mechanical fold.
   Wired in `CombatLogic.commitInflict`: an energized weapon adds a shock on
-  contact, the mechanical blow untouched.
+  contact, the mechanical blow untouched. Ships **safed** (`on: false`) — it
+  only becomes a source when armed (an armed baton dropped in the pool would
+  electrify it — correct physics; safe because it ships off).
 
 ## Legibility
 

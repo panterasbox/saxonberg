@@ -27,6 +27,8 @@ data:
   adornments:
     - /domain/substation/flooded-floor
   # The downed live cable, lying in the pool — a room content, cloned fresh
-  # each standup.
+  # each standup. The stun baton lies here too (safed): pick it up, arm it,
+  # and it becomes the combat toe-hold.
   populates:
     - /domain/substation/live-wire
+    - /domain/substation/stun-baton

@@ -55,6 +55,7 @@ describe('The Drowned Substation — content integrity', () => {
     const populates = (cell.data?.populates ?? []) as string[];
     expect(adornments).toContain('/domain/substation/flooded-floor');
     expect(populates).toContain('/domain/substation/live-wire');
+    expect(populates).toContain('/domain/substation/stun-baton');
     for (const path of [...adornments, ...populates]) {
       expect(templateExists(path), path).toBe(true);
     }
@@ -75,5 +76,16 @@ describe('The Drowned Substation — content integrity', () => {
     expect(wire.class).toBe('/lib/electricity/LiveWire');
     expect(wire.data?.voltage).toBeGreaterThan(0);
     expect(wire.data?.on).toBe(true);
+  });
+
+  it('the stun baton is an authored Energized weapon, shipped safed', () => {
+    const baton = seed('domain/substation/stun-baton');
+    expect(baton.class).toBe('/lib/electricity/StunBaton');
+    // A hafted weapon (mechanical) with an electrical layer on top.
+    expect(baton.data?.constructionForm).toBe('hafted');
+    expect(baton.data?.voltage).toBeGreaterThan(0);
+    expect(baton.data?.on).toBe(false); // ships off — inert in the pool
+    const material = String(baton.data?._materialPath ?? '');
+    expect(templateExists(material), material).toBe(true);
   });
 });
