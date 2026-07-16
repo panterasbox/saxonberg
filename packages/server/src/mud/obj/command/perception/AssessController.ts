@@ -136,10 +136,14 @@ export default class AssessController extends CommandController<AssessModel> {
       ).toString(),
     ];
     if (read.conditionBand) {
+      // Reuse the label subject (as the medical read does) so the singular
+      // `BAND_PHRASE` verbs agree — "…looks unhurt", never "They looks…".
       lines.push(
-        Mml.escape(
-          `They ${BAND_PHRASE[read.conditionBand as ConditionBand] ?? 'look hurt'}.`,
-        ),
+        Mml.fromMarkup(
+          `${Mml.strong(Mml.escape(label)).toString()} ${Mml.escape(
+            BAND_PHRASE[read.conditionBand as ConditionBand] ?? 'looks hurt',
+          )}.`,
+        ).toString(),
       );
     }
     if (read.flags && read.flags.length > 0) {

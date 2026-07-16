@@ -486,11 +486,13 @@ beats blind aggression, aggression beats a feinter.
 `CombatFog.perceive(trueBand, sharpness, feinting)` distorts deterministically
 (no RNG): a dull reader under-reads (band shifts one step toward `steady`)
 and **mistakes a feint for a real opening** (`open`); a sharp reader sees the
-true band and the feint's **tell**. `assess` now surfaces the fogged band +
-the `read` tell. The **same** `CombatFog.reads(sharpness)` gate decides both
-the fog's tell and whether a defender bites a feint, so "the fog says open"
-and "I bit the feint" can never contradict. **The fog is the only dice; skill
-shrinks it.**
+true band and the feint's **tell**. Two surfaces carry the fogged read:
+the **free** `fight` status opponent line (`CombatApi.perceive` — no cost,
+no side-effects), and the **costed** `assess` verb (`CombatApi.assess`
+wraps `perceive` and adds the beat cost + the melee-read `ActSignature`).
+The **same** `CombatFog.reads(sharpness)` gate decides both the fog's tell
+and whether a defender bites a feint, so "the fog says open" and "I bit the
+feint" can never contradict. **The fog is the only dice; skill shrinks it.**
 
 **Sharpness** (`lib/combat/Sharpness.ts`, pure). One scalar,
 `f(competence) · g(composure)`, modulating **both** poise recovery (a
@@ -639,4 +641,12 @@ Named at their sites; nothing inherited:
   single-session determinism + NPC≈PC parity. Six new `combat.*` dials
   (`poise.feintCost`/`poise.feintBitPenalty`/`fog.readSharpness`/
   `fog.clearSharpness`/`sharpness.min`/`sharpness.max`). `Gambit` grew a
-  `feint` kind; `fight feint` joined the gambit surface.
+  `feint` kind; `fight feint` joined the gambit surface. **Two fixes forced
+  by the live run:** the fog was only on the costed `assess` path, so the
+  free `fight` status still showed the raw opponent band — split a free
+  `CombatApi.perceive` out of `assess` and used it in the status read; and
+  `assess` had never been added to `PerceiverMixin`'s affordances (it was
+  categorized as a perception verb, its AssessController branches wired, but
+  it dispatched "I don't understand" for every character) — afforded it
+  alongside `look`/`scry`/`feel`, and fixed a "They looks unhurt" number
+  disagreement in its combat-read prose.
