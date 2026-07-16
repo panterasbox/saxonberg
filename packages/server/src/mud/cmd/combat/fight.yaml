@@ -11,13 +11,17 @@ help: |
   usable instrument (a wielded weapon or a natural attack) and an
   un-impaired limb:
     `fight strike`  — press the attack
+    `fight feint`   — bait a patient defender into over-committing
     `fight disarm`  — knock your opponent's weapon away
     `fight subdue`  — lock them up
     `fight shove`   — put them on the ground
+  `fight feint` is the answer to a steady, armed defender who just parries
+  everything: present a false opening and, if they bite it (and don't read
+  it — skill sees through a feint), their guard cracks wide for your next
+  strike. A reader, or a foe who isn't turtling, isn't fooled.
   Or hold: `fight defend` covers up and recovers your poise (capped by
-  your endurance) instead of attacking — the patient defender's game, and
-  often the wiser one against a steady, armed foe. And `fight yield`
-  concedes.
+  your endurance) instead of attacking — the patient defender's game.
+  And `fight yield` concedes.
 examples:
   - cmd: fight
     note: Read your current fight
@@ -30,6 +34,8 @@ subcommands:
     description: "Read your current fight (same as bare `fight`)"
   strike:
     description: "Gambit — press the attack"
+  feint:
+    description: "Gambit — bait a patient defender into cracking their guard"
   disarm:
     description: "Gambit — knock your opponent's weapon away"
   subdue:

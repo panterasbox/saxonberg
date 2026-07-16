@@ -10,10 +10,15 @@
  *
  * The brain stays stateless per the category contract: it reads the live
  * fight through `CombatApi` and expresses intent through
- * `CombatApi.queueGambit` — it never mutates session state itself. Build 1
- * ships a lean tactician: press with `strike`, and exploit an obvious
- * opening (the engine turns a strike into the exploit when the opponent
- * is open). Richer enemy tactics ride the deferred combat cycles.
+ * `CombatApi.queueGambit` — it never mutates session state itself. It ships
+ * a lean tactician: press with `strike`, exploit an obvious opening (the
+ * engine turns a strike into the exploit when the opponent is open), and
+ * — the experience pass — **feint** a patient turtle (a steady, armed foe
+ * that would just parry a strike) to crack their guard, then strike the
+ * gap it opened. Feint/strike alternate by beat parity, so a foe who
+ * *reads* the feint (higher competence) never traps the brain in a wasted
+ * feint loop — the reader beating the feinter is the intended outcome.
+ * Richer enemy tactics ride the deferred combat cycles.
  */
 
 import type { EngagementSlot } from "../activity/Engaged";
@@ -56,6 +61,23 @@ export const brain = class {
 
     if (band === "reeling" && CombatApi.eligibilityFor(host, "disarm").ok) {
       CombatApi.queueGambit(host, "disarm");
+      return;
+    }
+
+    // Feint a patient turtle: a steady foe who is armed (so they'd parry a
+    // strike) is exactly who the feint punishes. Alternate feint/strike by
+    // beat parity so a reader can't trap us in a wasted-feint loop, and so
+    // the beat after a successful feint we strike the opening it cracked.
+    const foe = foes[0];
+    const foeSteady = (foe && session.getState(foe)?.poise.band()) === "steady";
+    const foeArmed = CombatApi.eligibilityFor(host, "disarm").ok;
+    if (
+      foeSteady &&
+      foeArmed &&
+      session.getBeat() % 2 === 0 &&
+      CombatApi.eligibilityFor(host, "feint").ok
+    ) {
+      CombatApi.queueGambit(host, "feint");
       return;
     }
     CombatApi.queueGambit(host, "strike");

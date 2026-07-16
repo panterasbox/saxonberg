@@ -403,3 +403,23 @@ settings:
   # A foe you disengage past gets one parting shot at this inflict energy.
   - key: combat.flee.partingShotEnergy
     value: "1.6"
+  # Experience pass — the feint (poker, not slots).
+  # The feinter spends little to present the bait (aggression is cheap vs a turtle).
+  - key: combat.poise.feintCost
+    value: "0.08"
+  # A baited defender who fails to read the feint over-commits and loses this
+  # much poise — enough to crack a steady guard (1 - brokenAt), arming their
+  # opening for the feinter's next strike.
+  - key: combat.poise.feintBitPenalty
+    value: "0.8"
+  # Sharpness at/above which a defender reads a feint (won't bite; sees the tell).
+  - key: combat.fog.readSharpness
+    value: "0.7"
+  # Sharpness at/above which ordinary band fog clears (you see the true band).
+  - key: combat.fog.clearSharpness
+    value: "0.7"
+  # The competence -> sharpness curve: floor at `untrained`, ceiling at `expert`.
+  - key: combat.sharpness.min
+    value: "0.35"
+  - key: combat.sharpness.max
+    value: "1"

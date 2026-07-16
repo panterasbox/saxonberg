@@ -541,3 +541,112 @@ describe("CombatLogic — melee (sides + join)", () => {
   });
 });
 
+
+describe("CombatLogic — determinism (the gym's foundation)", () => {
+  function runToEnd(session: CombatSession): {
+    resolution: string | null;
+    beats: number;
+  } {
+    let beats = 0;
+    while (session.isActive() && beats < 300) {
+      CombatApi.advance(session);
+      beats++;
+    }
+    return { resolution: session.getResolution(), beats };
+  }
+
+  it("a single session is deterministic — identical inputs, identical outcome", () => {
+    const room1 = makeStuff(() => new TestRoom());
+    const a1 = makeFighter(room1, { weaponForm: "bladed", weaponMaterial: steel() });
+    const b1 = makeFighter(room1, { weaponForm: "bladed", weaponMaterial: steel() });
+    const r1 = runToEnd(open(a1, b1, lethal, true));
+
+    const room2 = makeStuff(() => new TestRoom());
+    const a2 = makeFighter(room2, { weaponForm: "bladed", weaponMaterial: steel() });
+    const b2 = makeFighter(room2, { weaponForm: "bladed", weaponMaterial: steel() });
+    const r2 = runToEnd(open(a2, b2, lethal, true));
+
+    // No aleatory randomness anywhere in the exchange path: same inputs →
+    // the same resolution and the same beat count, bit-for-bit.
+    expect(r1.resolution).toBe(r2.resolution);
+    expect(r1.beats).toBe(r2.beats);
+  });
+});
+
+describe("CombatLogic — the feint (poker, not slots)", () => {
+  it("a committed, un-reading defender bites — their guard cracks open", () => {
+    const room = makeStuff(() => new TestRoom());
+    const attacker = makeFighter(room, { weaponForm: "bladed" });
+    const defender = makeFighter(room, { weaponForm: "bladed" });
+    const session = open(attacker, defender, nonLethal);
+    // A dull defender (below the read gate) — will bite the feint.
+    session.getState(defender)!.sharpness = 0.2;
+    // Fresh defender is steady + armed (the turtle the feint punishes).
+    expect(session.getState(defender)!.poise.band()).toBe("steady");
+
+    CombatApi.queueGambit(attacker, "feint");
+    CombatApi.advance(session);
+
+    // The bait worked: the defender over-committed and is now wide open.
+    expect(session.getState(defender)!.poise.isOpen()).toBe(true);
+  });
+
+  it("a defender who reads the feint is not fooled — no opening", () => {
+    const room = makeStuff(() => new TestRoom());
+    const attacker = makeFighter(room, { weaponForm: "bladed" });
+    const defender = makeFighter(room, { weaponForm: "bladed" });
+    const session = open(attacker, defender, nonLethal);
+    // A sharp defender (at/above the read gate) reads the feint.
+    session.getState(defender)!.sharpness = 0.95;
+
+    CombatApi.queueGambit(attacker, "feint");
+    CombatApi.advance(session);
+
+    // The feint fizzled — the reader's guard never cracked from the bait.
+    expect(session.getState(defender)!.poise.isOpen()).toBe(false);
+  });
+});
+
+describe("CombatLogic — the fog (competence-graded read)", () => {
+  it("a dull reader mistakes a feint for a real opening", () => {
+    const room = makeStuff(() => new TestRoom());
+    const a = makeFighter(room, { weaponForm: "bladed" });
+    const b = makeFighter(room, { weaponForm: "bladed" });
+    const session = open(a, b, nonLethal);
+    session.getState(a)!.sharpness = 0.2; // dull reader
+    CombatApi.queueGambit(b, "feint"); // b presents a feint
+
+    const read = CombatApi.assess(a, b);
+    expect(read.ok).toBe(true);
+    expect(read.poiseBand).toBe("open"); // bait reads as a real opening
+    expect(read.read).toBeUndefined(); // no tell — didn't see through it
+  });
+
+  it("a sharp reader sees the true band and the feint's tell", () => {
+    const room = makeStuff(() => new TestRoom());
+    const a = makeFighter(room, { weaponForm: "bladed" });
+    const b = makeFighter(room, { weaponForm: "bladed" });
+    const session = open(a, b, nonLethal);
+    session.getState(a)!.sharpness = 0.95; // sharp reader
+    CombatApi.queueGambit(b, "feint");
+
+    const read = CombatApi.assess(a, b);
+    expect(read.ok).toBe(true);
+    expect(read.poiseBand).toBe("steady"); // sees b's true (fresh) band
+    expect(read.read).toBe("feint"); // and the tell
+  });
+
+  it("perceive is free (no beat cost) — the fight status read", () => {
+    const room = makeStuff(() => new TestRoom());
+    const a = makeFighter(room, { weaponForm: "bladed" });
+    const b = makeFighter(room, { weaponForm: "bladed" });
+    const session = open(a, b, nonLethal);
+    session.getState(a)!.sharpness = 0.9;
+
+    const read = CombatApi.perceive(a);
+    expect(read.ok).toBe(true);
+    expect(read.poiseBand).toBe("steady");
+    // Unlike assess, a free glance does NOT spend the actor's next exchange.
+    expect(session.getState(a)!.queuedGambit).toBeNull();
+  });
+});

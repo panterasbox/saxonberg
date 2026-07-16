@@ -1,5 +1,17 @@
 # Combat — the experience layer (working slate)
 
+> **Partially realized (`feature/combat-experience`).** The first
+> experience-pass build shipped Theses **3** (poker/feint/fog), **4**
+> (crit = the earned opening + called shot), **9** (the combat gym +
+> band-tolerance balancing), **10** (NPC ≈ PC, asserted in the gym), and a
+> slice of **2** (beat-intensity → crowd-roar). Thesis **5** (luck /
+> composure) landed only as the inert `Sharpness.g(composure)` seam — the
+> bidirectional stress↔inspiration axis is deferred to `traits-stress`.
+> The rest (loadout-as-chemistry 7/8, weapon playstyle 14, de-escalation
+> 12, morale 13, aftermath 11, bestiary 15, expressive authoring 16) remain
+> design surface for later cycles. See
+> [../../subsystems/combat.md § The experience pass](../../subsystems/combat.md).
+
 > **Status: design-phase companion to [combat-slate.md](./combat-slate.md).**
 > That slate owns the *mechanism* — the session, poise, tempo, the hook
 > catalog, resolution & exits. This one owns the *felt experience*: the

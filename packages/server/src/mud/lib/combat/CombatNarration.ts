@@ -59,7 +59,17 @@ export type ExchangeOutcome =
   | "whiff" // missed and self-opened
   | "deflected" // reached the body but armor turned it (no trauma)
   | "down" // defender lost the poise contest (incapacitated)
-  | "killed"; // lethal finish on a downed body
+  | "killed" // lethal finish on a downed body
+  | "feinted" // a feint baited the defender — their guard cracked open
+  | "feint-read"; // a feint was read/wasted — no effect
+
+/**
+ * The beat's punctuation intensity — the emergent dramatic arc (Thesis 2).
+ * `roar` at a threshold crossing (first-blood / the break / the down/kill),
+ * `murmur` for an ordinary notable beat, `silent` otherwise. Narration
+ * swells and the crowd's reaction fan-out both scale to this.
+ */
+export type BeatIntensity = "silent" | "murmur" | "roar";
 
 export interface ExchangeReport {
   attacker: Stuff;
@@ -78,6 +88,12 @@ export interface ExchangeReport {
   flagSet?: string;
   /** Whether this beat is reaction-worthy (a hit / break / down / kill). */
   dramatic: boolean;
+  /** The beat's dramatic-arc intensity — gates the crowd's reaction fan-out
+   * (`silent` = no reactable act) and scales the narration swell. Falls back
+   * to `dramatic` when absent (older callers). */
+  intensity?: BeatIntensity;
+  /** True when this beat drew the fight's first blood (a roar). */
+  firstBlood?: boolean;
   /** The defender's poise band AFTER this exchange — the arc driver
    * (steady → pressed → reeling → broken → open). */
   defenderPoise?: PoiseBand;
@@ -138,7 +154,15 @@ export class CombatNarration {
       }
     }
 
-    if (report.dramatic) {
+    // The crowd's reaction fan-out is volume-gated by beat-intensity: an
+    // ordinary/silent beat notes nothing; a murmur or a roar marks the act
+    // reactable so witnesses can react to it (the roar's swell is carried in
+    // the prose above). Falls back to the older `dramatic` boolean.
+    const reactable =
+      report.intensity !== undefined
+        ? report.intensity !== "silent"
+        : report.dramatic;
+    if (reactable) {
       const scope = ReactionApi.locationScopeFor(report.attacker);
       if (scope) {
         ReactionApi.noteReactableAct({
@@ -508,6 +532,25 @@ function composeExchangeLine(
       return controlLine(report, Acap, av, dp, Dlow);
     case "deflected":
       return `${Acap} ${cv} ${bp}, but the blow is turned.`;
+    case "feinted":
+      // The bait worked — the defender over-committed and their guard is
+      // wide open (the roar; the feinter cashes it next strike).
+      return rot(
+        [
+          `${Acap} ${av("feint")} — ${Dlow} ${conj("bite", defYou)} on it, and ${dp} guard is flung wide open.`,
+          `A false opening. ${Acap} ${av("feint")}, ${Dlow} ${conj("commit", defYou)} to the parry — and ${dp} guard cracks open.`,
+        ],
+        beat,
+      );
+    case "feint-read":
+      // The bait was seen through (or wasted on a non-turtle) — no effect.
+      return rot(
+        [
+          `${Acap} ${av("feint")}, but ${Dlow} ${conj("read", defYou)} it and ${conj("stay", defYou)} composed.`,
+          `${Acap} ${av("feint")} — ${Dlow} ${conj("refuse", defYou)} the bait.`,
+        ],
+        beat,
+      );
     default:
       return `${Acap} ${av("press")} ${Dlow}.`;
   }

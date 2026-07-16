@@ -20,6 +20,7 @@ import type { CombatSession } from "../lib/combat/CombatSession";
 import type { CombatTerms } from "../lib/combat/CombatTerms";
 import type CombatAttributionEvent from "../lib/combat/CombatAttributionEvent";
 import type { BlameVerdict } from "../lib/combat/CombatAttributionEvent";
+import type { CompetenceBandName } from "../lib/advancement/CompetenceBand";
 
 export type { BlameVerdict } from "../lib/combat/CombatAttributionEvent";
 import { SecurityApi } from "./security";
@@ -33,12 +34,28 @@ export type OpenSessionResult =
   | { ok: true; session: CombatSession }
   | { ok: false; reason: "busy" | "not-engageable" };
 
+/**
+ * Optional inputs the caller snapshots at open/join. `competenceBands` maps
+ * a combatant's durable `templatePath` → its competence band in this fight's
+ * discipline, resolved *synchronously* by the controller (the async
+ * `AdvancementApi.bandFor` awaited before open, never mid-beat) so a single
+ * session stays deterministic. Absent entries default to `untrained`.
+ */
+export interface CombatOpenOptions {
+  competenceBands?: Map<string, CompetenceBandName>;
+}
+
 /** The tactical read `assess` returns while a fight is live. */
 export interface CombatAssessResult {
   ok: boolean;
   reason?: "not-in-combat" | "no-target";
-  /** The opponent's poise band (bands, never numbers). */
+  /** The opponent's poise band (bands, never numbers) — fogged by the
+   * reader's own sharpness (a dull reader under-reads, and a feint shows as
+   * `open`). */
   poiseBand?: string;
+  /** Present when the reader saw through a feint (`"feint"`) — the tell only
+   * a sharp enough reader perceives. */
+  read?: "feint";
   /** The opponent's active combat flags (disarmed/prone/…). */
   flags?: string[];
   /** Whether the opponent is presently armed. */
@@ -84,8 +101,9 @@ export class CombatApi {
     initiator: Stuff & Engaged,
     defender: Stuff & Engaged,
     terms: CombatTerms,
+    opts?: CombatOpenOptions,
   ): OpenSessionResult {
-    return logic().openSession(initiator, defender, terms);
+    return logic().openSession(initiator, defender, terms, opts);
   }
 
   /** Advance one narration beat. Called by `CombatSession.tick()`. */
@@ -102,8 +120,9 @@ export class CombatApi {
     joiner: Stuff & Engaged,
     target: Stuff & Engaged,
     terms: CombatTerms,
+    opts?: CombatOpenOptions,
   ): { ok: boolean; reason?: string } {
-    return logic().join(joiner, target, terms);
+    return logic().join(joiner, target, terms, opts);
   }
 
   /** Fold two colliding fights into one (participants + edges move onto
@@ -189,6 +208,15 @@ export class CombatApi {
    */
   public static assess(actor: Stuff, target: Stuff): CombatAssessResult {
     return logic().assess(actor, target);
+  }
+
+  /**
+   * The **free** fogged read of the actor's opponent — the competence-hedged
+   * band + feint `tell`, with no cost and no side-effects. Powers the
+   * always-available `fight` status line; `assess` is the costed wrapper.
+   */
+  public static perceive(actor: Stuff): CombatAssessResult {
+    return logic().perceive(actor);
   }
 }
 

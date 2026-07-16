@@ -26,7 +26,9 @@ import { PromptApi, PromptCancelledError } from "../../../api/prompt";
 import { Mml } from "../../../api/mml";
 import type { Stuff } from "../../../lib/stuff/Stuff";
 import type { Engaged } from "../../../lib/activity/Engaged";
-import { CombatApi } from "../../../api/combat";
+import { CombatApi, type CombatOpenOptions } from "../../../api/combat";
+import { AdvancementApi } from "../../../api/advancement";
+import type { CompetenceBandName } from "../../../lib/advancement/CompetenceBand";
 import {
   CombatTerms,
   DEFAULT_TERMS,
@@ -37,6 +39,10 @@ import {
 } from "../../../lib/combat/CombatTerms";
 
 const TOPIC = "world.narration.action";
+
+/** The discipline whose competence band drives combat sharpness (fog +
+ * poise recovery). Mirrors `CombatLogic`'s `MELEE_DISCIPLINE`. */
+const MELEE_COMBAT_DISCIPLINE = "melee-combat";
 
 interface AttackModel extends CommandModel {
   target?: MqlOneResult;
@@ -140,6 +146,12 @@ export default class AttackController extends CommandController<AttackModel> {
       consented,
     );
 
+    // Snapshot both fighters' melee competence *before* opening — the
+    // read-fog + poise-recovery need it, and `AdvancementApi.bandFor` is
+    // async so it can't be read mid-beat (a single session must stay
+    // deterministic). Absent/unresolved bands default to `untrained`.
+    const opts = await this.snapshotBands([giver, target]);
+
     // The handshake: attacking someone already fighting *joins* their
     // melee; attacking from mid-fight *draws the target in*; two separate
     // fights colliding *merge*; otherwise a fresh session opens.
@@ -154,18 +166,21 @@ export default class AttackController extends CommandController<AttackModel> {
         giver as Stuff & Engaged,
         target as Stuff & Engaged,
         terms,
+        opts,
       );
     } else if (giverSession) {
       result = CombatApi.join(
         target as Stuff & Engaged,
         giver as Stuff & Engaged,
         terms,
+        opts,
       );
     } else {
       const opened = CombatApi.openSession(
         giver as Stuff & Engaged,
         target as Stuff & Engaged,
         terms,
+        opts,
       );
       result = opened.ok ? { ok: true } : { ok: false, reason: opened.reason };
     }
@@ -219,5 +234,27 @@ export default class AttackController extends CommandController<AttackModel> {
       .topic(TOPIC)
       .toSelf(Mml.fromMarkup(Mml.escape(detail)))
       .send();
+  }
+
+  /** Resolve each combatant's melee competence band into the open-options
+   * map (keyed by durable `templatePath`), best-effort — a failed read just
+   * leaves the fighter at the `untrained` default. */
+  private async snapshotBands(
+    combatants: Stuff[],
+  ): Promise<CombatOpenOptions> {
+    const competenceBands = new Map<string, CompetenceBandName>();
+    for (const c of combatants) {
+      const key = c.getTemplatePath();
+      if (!key) continue;
+      try {
+        competenceBands.set(
+          key,
+          await AdvancementApi.bandFor(c, MELEE_COMBAT_DISCIPLINE),
+        );
+      } catch {
+        // Unresolved → the combatant defaults to `untrained` sharpness.
+      }
+    }
+    return { competenceBands };
   }
 }

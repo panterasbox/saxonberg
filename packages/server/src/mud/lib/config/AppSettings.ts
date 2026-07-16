@@ -496,6 +496,27 @@ export const AppSettingKeys = {
   /** Combat (cycle 2) — inflict energy of a foe's parting shot when a
    * combatant disengages (flees) past them. */
   combatFleePartingShotEnergy: "combat.flee.partingShotEnergy",
+
+  /** Combat (experience) — poise the feinter spends to present the bait
+   * (cheap; aggression is rewarded against a turtle). */
+  combatPoiseFeintCost: "combat.poise.feintCost",
+  /** Combat (experience) — poise a baited (committed, un-reading) defender
+   * loses when they bite a feint — large enough to crack a steady guard,
+   * arming their opening for the feinter's next strike. */
+  combatPoiseFeintBitPenalty: "combat.poise.feintBitPenalty",
+  /** Combat (experience) — sharpness at/above which a defender *reads* a
+   * feint (won't bite; sees the tell). The fog and the bite decision share
+   * this gate so they never contradict. */
+  combatFogReadSharpness: "combat.fog.readSharpness",
+  /** Combat (experience) — sharpness at/above which ordinary band fog
+   * clears (you perceive the opponent's true poise band). */
+  combatFogClearSharpness: "combat.fog.clearSharpness",
+  /** Combat (experience) — sharpness at the `untrained` band (the
+   * competence→sharpness curve floor). */
+  combatSharpnessMin: "combat.sharpness.min",
+  /** Combat (experience) — sharpness at the top (`expert`) band (the
+   * competence→sharpness curve ceiling). */
+  combatSharpnessMax: "combat.sharpness.max",
 } as const;
 
 export type AppSettingKey =

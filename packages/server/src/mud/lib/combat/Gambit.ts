@@ -24,7 +24,12 @@
 import type { CombatFlag } from "./CombatFlags";
 import type { CompetenceBandName } from "../advancement/CompetenceBand";
 
-export type GambitKind = "offensive" | "control" | "reactive" | "defensive";
+export type GambitKind =
+  | "offensive"
+  | "control"
+  | "reactive"
+  | "defensive"
+  | "feint";
 
 /**
  * The exchange outcome that arms a reactive gambit. `parried` — the
@@ -61,10 +66,11 @@ export interface GambitSpec {
 }
 
 /**
- * The minimal demonstrative gambit set. Enough to show the affordance
- * model, attempt-time cross-gating, and injury-edits-the-menu; the full
- * four-channel breadth (feint / read / command) is deferred. Module-
- * private; read through {@link Gambit}'s statics.
+ * The gambit set. Enough to show the affordance model, attempt-time
+ * cross-gating, and injury-edits-the-menu, plus the experience-pass
+ * **feint** (the read/deception channel). The remaining four-channel
+ * breadth (read / command) is deferred. Module-private; read through
+ * {@link Gambit}'s statics.
  */
 const GAMBITS: Record<string, GambitSpec> = {
   strike: {
@@ -115,6 +121,25 @@ const GAMBITS: Record<string, GambitSpec> = {
     kind: "defensive",
     offensive: false,
     needsInstrument: false,
+  },
+  /**
+   * The **feint** — the read/deception move (poker, not slots). It inflicts
+   * nothing itself; it presents as a threat/opening and reads the
+   * *defender's* commitment. A committed defender (a steady, armed turtle
+   * poised to parry) who fails to *read* the feint over-commits and cracks
+   * their own guard open — which the feinter cashes in on the next strike.
+   * A defender who reads it, or an un-committed aggressor, isn't fooled and
+   * the bait is wasted. This is the one move that punishes patience, closing
+   * rock-paper-scissors (strike ▸ feint ▸ defend ▸ strike). Weapon-only (you
+   * feint *with* something); the bite/read logic lives in
+   * `CombatLogic.decideOutcome` via the shared `CombatFog` gate.
+   */
+  feint: {
+    key: "feint",
+    verb: "feint",
+    kind: "feint",
+    offensive: false,
+    needsInstrument: true,
   },
   /**
    * The reactive counter — a weapon riposte the session offers the
