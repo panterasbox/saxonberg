@@ -38,7 +38,7 @@ function plateArmor(conductivity: number): Armor {
 function shockPips(a: Armor): number {
   const augment = (Armor as unknown as {
     markupAugmenters: Array<(t: string, h: unknown, v: unknown) => string>;
-  }).markupAugmenters[0];
+  }).markupAugmenters[0]!;
   const rendered = augment('', a, a);
   const m = /shock (●*)○*/.exec(rendered);
   return m ? m[1]!.length : -1;

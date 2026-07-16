@@ -1,33 +1,34 @@
 /**
- * FloodedCell — the electricity **demonstrator**: a flooded utility cell with
- * a downed live wire lying in the water. Wade in barefoot and the current
- * flows from the wire, through the salt-water pool + the grounded `Floor`,
- * through you — a shock. Stay on the dry raised step, or wear rubber boots,
- * and the ground path is broken: you're untouched. Two allies wading in both
- * take it — the current is faction-blind. It teaches the WHOLE model with no
- * magic: Ohm's law, conduction-spread, grounding, insulation, the armor
- * inversion (metal boots wouldn't save you), wet-skin.
+ * FloodedCell — the electricity **demonstrator**: a flooded switch-cell in a
+ * derelict substation, ankle-deep in brackish water with a downed live cable
+ * lying in it. Wade in barefoot and the current flows from the cable, through
+ * the salt-water pool + the grounded `Floor`, through you — a shock. Stay on
+ * the dry raised catwalk, or wear rubber boots, and the ground path is broken:
+ * you're untouched. Two allies wading in both take it — the current is
+ * faction-blind. It teaches the WHOLE model with no magic: Ohm's law,
+ * conduction-spread, grounding, insulation, the armor inversion (metal boots
+ * wouldn't save you), wet-skin.
  *
- * A **one-off demonstrator room class** (the {@link GlassAlley} precedent),
- * deliberately NOT a reusable `HazardMixin` — the reusable abstraction is
- * `ElectricityApi.conduct` itself. Config is class constants. The trigger is
- * **movement/presence** (`onEntered`): your feet meet the water. It calls
- * `conduct` (never `afflict`/`inflict` directly — the walk decides who is
- * bridged and how much passes through each).
+ * A **one-off demonstrator room** (the `GlassAlley` precedent) — NOT a
+ * reusable `HazardMixin`; the reusable abstraction is `ElectricityApi.conduct`
+ * itself. Unlike GlassAlley (a hand-composed `Location`), this is a proper
+ * {@link CartesianLocation}: it lives at `[x,y,z]` in the substation's
+ * {@link CartesianZone} (`/domain/substation`), so it carries coordinates,
+ * volume, and an exit map like any real room. Config is class constants.
  *
- * The hazard fixtures (a salt-water-pooled `Floor` + a `LiveWire` in the
- * pool) are provisioned idempotently in `postRegister` / on first entry.
+ * The trigger is **movement/presence** (`onEntered`): your feet meet the
+ * water. It calls `conduct` (never `afflict`/`inflict` directly — the walk
+ * decides who is bridged and how much passes through each). The hazard
+ * fixtures (a salt-water-pooled `Floor` + a `LiveWire` in the pool) are
+ * provisioned idempotently at `postRegister`.
+ *
+ * The substation is also where the deferred **power grid** content grows —
+ * the grid is this same Ohm's-law physics scaled up.
  *
  * See docs/subsystems/electricity.md.
  */
 
-import Location from '../../lib/stuff/Location';
-import { VisibleMixin } from '../../lib/description/Visible';
-import { DetailedMixin } from '../../lib/description/Detailed';
-import { ExitableMixin } from '../../lib/boundary/Exitable';
-import { PostRegistrationMixin } from '../../lib/stuff/PostRegistration';
-import { PopulatesMixin } from '../../lib/stuff/Populates';
-import { SingletonMixin } from '../../lib/stuff/Singleton';
+import CartesianLocation from '../../lib/location/CartesianLocation';
 import { MixinApi } from '../../api/mixin';
 import { StuffApi } from '../../api/stuff';
 import { ContainmentApi } from '../../api/containment';
@@ -39,15 +40,7 @@ import type { Stuff } from '../../lib/stuff/Stuff';
 import type Material from '../../lib/material/Material';
 import type { Energized } from '../../lib/electricity/Energized';
 
-const FloodedCellBase = SingletonMixin(
-  PostRegistrationMixin(
-    PopulatesMixin(ExitableMixin(DetailedMixin(VisibleMixin(Location)))),
-  ),
-);
-
-export default class FloodedCell extends FloodedCellBase {
-  static persistentFields: string[] = [];
-
+export default class FloodedCell extends CartesianLocation {
   /** Mains-ish potential of the downed cable. */
   private static readonly WIRE_VOLTAGE = 120;
   /** The conductive pool's material (the base-library brine). */
@@ -58,8 +51,10 @@ export default class FloodedCell extends FloodedCellBase {
   /** The provisioned live wire (Pattern B live handle; re-resolved by id). */
   private wireId: string | null = null;
 
-  public override async postRegister(_context?: unknown): Promise<void> {
-    this.verifyOutboundExits();
+  public override async postRegister(context?: unknown): Promise<void> {
+    // Wire exits / verify topology (CartesianLocation), then stand up the
+    // hazard fixtures.
+    await super.postRegister(context);
     await this.provisionHazard();
   }
 

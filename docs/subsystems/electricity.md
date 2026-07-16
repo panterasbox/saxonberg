@@ -161,14 +161,19 @@ metal armor does NOT protect against a shock).
 
 - **`LiveWire`** (`lib/electricity/LiveWire.ts`) — a `Thing` + `Energized` +
   `Switchable`, ~120–240 V. The downed cable.
-- **`FloodedCell`** (`domain/lounge/FloodedCell.ts`) — the primary
-  demonstrator (the `GlassAlley` precedent): a salt-water-pooled `Floor` + a
-  `LiveWire` in the pool; `onEntered` → `ElectricityApi.conduct`. Teaches the
-  whole model with no magic — barefoot → shocked, rubber boots / dry step →
-  unharmed, two allies → both shocked. **Reachability**: the class + its
-  fixtures + an end-to-end integration test ship; a reachable in-world exit is
-  deferred (the GlassAlley precedent — a seed exit broke content-area
-  standup invariants).
+- **`FloodedCell`** (`domain/substation/FloodedCell.ts`) — the primary
+  demonstrator (the duncan-hall cistern precedent: a flooded hazard room a
+  body ENTERS by walking). A proper **`CartesianLocation`** with coordinates,
+  living in its own self-contained **`CartesianZone`** — *The Drowned
+  Substation* (`/domain/substation`), electricity's own home (and where the
+  deferred power-grid content grows), so it never pollutes another themed
+  area. Provisions a salt-water-pooled `Floor` + a `LiveWire` at standup;
+  `onEntered` → `ElectricityApi.conduct`. Teaches the whole model with no
+  magic — barefoot → shocked, rubber boots / dry step → unharmed, two allies →
+  both shocked. **Reachability**: seeded with coords in its zone + an
+  end-to-end integration test; no cross-area inbound exit is wired this cycle
+  (the treeline precedent — keeps content-area standup clean; reachable by
+  teleport / a future travel node).
 - **`StunBaton`** (`lib/electricity/StunBaton.ts`) — a `Weapon` + `Energized`
   + `Switchable` (the combat toe-hold). A landed hit routes through
   **`ElectricityApi.shockContact`** — a **direct two-terminal contact** (a
