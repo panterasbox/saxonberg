@@ -13,7 +13,7 @@
  * barrow, a dragged sledge with a high draftFactor) is content +
  * data, not subclassing.
  *
- * Seeded as `domain` content (e.g. `/domain/eternal/gear/handcart`) with
+ * Seeded as `domain` content (e.g. `/obj/gear/handcart`) with
  * `data.draftFactor` / `data.handedness` / `data.mass`.
  */
 

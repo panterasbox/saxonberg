@@ -30,5 +30,5 @@ data:
   # flooded cistern below) and a compressor to refill it. The cistern is
   # the gear-gated water spot — survivable only while the tank has air.
   populates:
-    - /domain/eternal/gear/air-tank
-    - /domain/eternal/gear/air-compressor
+    - /obj/gear/air-tank
+    - /obj/gear/air-compressor
