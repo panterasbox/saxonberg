@@ -44,6 +44,11 @@ export type {
   WeatherSample,
   WeatherForecast,
   WeatherForecastEntry,
+  WeatherPin,
+  WeatherPinMode,
+  ClimateLean,
+  WeatherProvenance,
+  ResolvedWeather,
 } from '../lib/weather/WeatherType';
 
 import type {
@@ -51,6 +56,7 @@ import type {
   WeatherFieldUnit,
   WeatherSample,
   WeatherForecast,
+  ResolvedWeather,
 } from '../lib/weather/WeatherType';
 
 const LOGIC_PATH = '/obj/api/weather';
@@ -114,6 +120,40 @@ export class WeatherApi {
   /** The current weather sample at a scope (resolves its covering Locality). */
   public static sampleFor(scope: Stuff & Container): Promise<WeatherSample> {
     return logic().sampleFor(scope);
+  }
+
+  /* ──────────────── the coexistence resolve (Wave 2) ──────────────── */
+
+  /**
+   * The single resolved atmospheric state for a scope (Wave 2), folding
+   * **authored pin → procgen(climate-lean-shaped) → biome** in precedence,
+   * with a provenance tag and a resolved `precipitationHere` read. **Every
+   * Wave-2 consumer reads this** (wetness / thermal / electricity / light /
+   * `analyze`) — nobody calls `weatherAt`/`deviationFor` directly except
+   * this resolver and the biome field-fold. Async (resolves the covering
+   * Locality + the sky-exposure walk).
+   */
+  public static resolveWeatherFor(
+    scope: Stuff & Container,
+  ): Promise<ResolvedWeather> {
+    return logic().resolveWeatherFor(scope);
+  }
+
+  /**
+   * Pin-aware single-field deviation for the biome field-fold (SYNC). The
+   * caller (`BiomeLogic.resolveQuantityFor`) has already passed the cheap
+   * field-in-set → isActive → skyExposed gates and resolved the
+   * `Locality | null`; this folds the **pinned type's** deviation when a
+   * pin governs the scope, else the procgen deviation — byte-identical to
+   * `deviationFor` when no pin applies.
+   */
+  public static deviatedFieldFor(
+    scope: Stuff & Container,
+    locality: Locality | null,
+    field: WeatherField,
+    timeS: Quantity<'s'>,
+  ): Quantity<WeatherFieldUnit> {
+    return logic().deviatedFieldFor(scope, locality, field, timeS);
   }
 
   /* ──────────────── activation / boundary ──────────────── */

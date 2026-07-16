@@ -488,3 +488,47 @@ settings:
     value: "2"
   - key: combat.dualWield.noviceGuardBonus
     value: "-0.3"
+  # Wetness (weather Wave 2) — the per-object saturation gauge (0..1).
+  # Drainage is reconcile-on-read (presence-frozen); accrual is pushed by
+  # rain exposure / immersion. See docs/subsystems/weather.md.
+  - key: wetness.dryRatePerHour
+    value: "0.25"
+  - key: wetness.warmthFactor
+    value: "0.03"
+  - key: wetness.warmthReferenceK
+    value: "295"
+  - key: wetness.rainAccrualPerHour
+    value: "1.5"
+  - key: wetness.immersionSaturation
+    value: "1"
+  - key: wetness.band.dampAt
+    value: "0.15"
+  - key: wetness.band.wetAt
+    value: "0.45"
+  - key: wetness.band.soakedAt
+    value: "0.8"
+  # Storm (weather Wave 2) — puddle accrual/evaporation + lightning strikes
+  # routed through ElectricityApi.conduct. See docs/subsystems/weather.md.
+  - key: storm.puddle.accrualLitersPerSegment
+    value: "12"
+  - key: storm.puddle.evaporationFactor
+    value: "0.2"
+  - key: storm.puddle.freshWaterMaterialPath
+    value: "/lib/material/bulk/fresh-water"
+  - key: storm.strikeRate
+    value: "0.15"
+  - key: storm.strikeIntervalS
+    value: "1800"
+  - key: storm.strikeVoltage
+    value: "30000000"
+  - key: storm.attractorBias
+    value: "4"
+  # Weather (Wave 2 light / sky) — cloud dimming on the sync light path +
+  # the deterministic sky-read forecast window.
+  - key: weather.cloudDimFactor
+    value: "0.6"
+  - key: weather.skyForecastSegments
+    value: "2"
+  # Thermal (Wave 2 wet coupling) — a wet body loses heat faster.
+  - key: thermal.wetHeatLossFactor
+    value: "1.5"

@@ -566,6 +566,67 @@ export const AppSettingKeys = {
   /** Off-hand guard bonus a *below-mastery* dual-wielder actually gets
    * (a novice's off-hand hurts more than it helps). */
   combatDualWieldNoviceGuardBonus: "combat.dualWield.noviceGuardBonus",
+
+  /* ────────────────────────── wetness (weather Wave 2) ────────────────────────── */
+  /**
+   * Wetness — the per-object saturation gauge's magnitudes (weather
+   * Wave 2). Saturation is 0..1; drainage is reconcile-on-read
+   * (presence-frozen), accrual is pushed by rain-exposure / immersion.
+   * "Shelter dries faster" emerges (no accrual push when sheltered);
+   * warmth accelerates the drain. See docs/subsystems/weather.md.
+   */
+  /** Wetness — base saturation drained per game-hour when not re-wetted. */
+  wetnessDryRatePerHour: "wetness.dryRatePerHour",
+  /** Wetness — extra fractional drying per K the body/object is above the
+   * warmth reference (a warm body / a fire dries you faster). */
+  wetnessWarmthFactor: "wetness.warmthFactor",
+  /** Wetness — the reference temperature (K) above which warmth accelerates
+   * drying. */
+  wetnessWarmthReferenceK: "wetness.warmthReferenceK",
+  /** Wetness — saturation gained per game-hour of standing in rain. */
+  wetnessRainAccrualPerHour: "wetness.rainAccrualPerHour",
+  /** Wetness — saturation an immersion event drives toward (full soak). */
+  wetnessImmersionSaturation: "wetness.immersionSaturation",
+  /** Wetness — saturation at/above which the band reads `damp`. */
+  wetnessBandDampAt: "wetness.band.dampAt",
+  /** Wetness — saturation at/above which the band reads `wet`. */
+  wetnessBandWetAt: "wetness.band.wetAt",
+  /** Wetness — saturation at/above which the band reads `soaked`. */
+  wetnessBandSoakedAt: "wetness.band.soakedAt",
+
+  /* ────────────────────────── storm (weather Wave 2) ────────────────────────── */
+  /** Storm — Floor surface-bulk puddle litres accrued per rain segment. */
+  stormPuddleAccrualLitersPerSegment: "storm.puddle.accrualLitersPerSegment",
+  /** Storm — fraction of a puddle that evaporates per non-rain segment
+   * (scaled by resolved warmth / dryness). */
+  stormPuddleEvaporationFactor: "storm.puddle.evaporationFactor",
+  /** Storm — the fresh-water material path a new rain puddle fills with. */
+  stormPuddleFreshWaterMaterialPath: "storm.puddle.freshWaterMaterialPath",
+  /** Storm — per-storm-scope probability of a lightning strike per strike
+   * tick (0..1). */
+  stormStrikeRate: "storm.strikeRate",
+  /** Storm — the strike-tick interval, in game-seconds. */
+  stormStrikeIntervalS: "storm.strikeIntervalS",
+  /** Storm — the potential (V) a lightning strike source imposes. */
+  stormStrikeVoltage: "storm.strikeVoltage",
+  /** Storm — the relative weight bias a tall / conductive attractor adds to
+   * being the struck node. */
+  stormAttractorBias: "storm.attractorBias",
+
+  /* ────────────────────────── weather (Wave 2 light / sky) ────────────────────────── */
+  /** Weather — the maximum ambient-light dimming at full cloud (cloud=1);
+   * the resolved cloud coverage scales the SkyExposed ambient by
+   * `1 - cloudDimFactor * cloud`. */
+  weatherCloudDimFactor: "weather.cloudDimFactor",
+  /** Weather — how many upcoming segments the `look up` sky-read scans to
+   * pick a presaging cloud form (the deterministic forecast tell). */
+  weatherSkyForecastSegments: "weather.skyForecastSegments",
+
+  /* ────────────────────────── thermal (Wave 2 wet coupling) ────────────────────────── */
+  /** Thermal — how strongly a wet body loses heat faster: at full
+   * saturation the cold-side wind-chill / immersion term is scaled by
+   * `1 + wetHeatLossFactor`. */
+  thermalWetHeatLossFactor: "thermal.wetHeatLossFactor",
 } as const;
 
 export type AppSettingKey =

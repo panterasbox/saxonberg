@@ -277,7 +277,91 @@ export const WEATHER_DEFAULTS = {
    * boundaries; the type is always the current segment's.
    */
   INTERP_BAND: 0.15,
+  /**
+   * The floor of the `alive`-pin intensity animation (Wave 2). A
+   * `pinned-but-alive` scope forces its `type` but lets the model still
+   * animate the deviation magnitude — a per-segment deterministic scale
+   * in `[ALIVE_ANIM_MIN, 1]` of the pinned type's profile deviation.
+   * `1` would make `alive` indistinguishable from `frozen`; a lower floor
+   * gives a visibly breathing storm without ever changing the type. The
+   * exact formula is a playtest dial; the type-forcing is the invariant.
+   */
+  ALIVE_ANIM_MIN: 0.6,
 } as const;
+
+/* ─────────────────────────── Wave-2 coexistence resolve ─────────────────────────── */
+
+/**
+ * An authored climate lean (Surface decision C): a soft per-`Locality`
+ * multiplicative bias over the procgen transition/anchor distribution — a
+ * direct `SEASON_BIAS` sibling multiplied into `pickWeighted`. "Narnia is
+ * polar" is `{ snow: 4, storm: 1.5, clear: 0.5 }`. A missing / `1` entry is
+ * neutral. It shapes only the **procgen branch** a hard pin outranks, so
+ * "author always wins" (D) is preserved.
+ */
+export type ClimateLean = Partial<Record<WeatherType, number>>;
+
+/**
+ * The two flavors an authored weather pin carries (Surface decision B):
+ * `frozen` — fully static, the weather never changes here (the cheap
+ * narrative set-piece); `alive` — the *type* is forced but the model still
+ * animates its intensity by season / time-of-day.
+ */
+export type WeatherPinMode = 'frozen' | 'alive';
+
+/**
+ * An authored weather pin (Surface decision A/B): "this scope is *always*
+ * this weather." One declarative `{ type, mode }` field, authored on both
+ * the `Locality` tier (covers its address subtree) and the scope tier
+ * (`AtmosphericMixin`, a single room overriding within an otherwise-
+ * modelled Locality), resolved by one shared upward walk. Higher-precedence
+ * than the {@link ClimateLean}; the model never overrides it (D).
+ */
+export interface WeatherPin {
+  type: WeatherType;
+  mode: WeatherPinMode;
+}
+
+/**
+ * How the resolved atmospheric state was reached, for `analyze weather`
+ * legibility (the provenance the acceptance criterion requires):
+ * - `pin-frozen` / `pin-alive` — an authored pin won (frozen static /
+ *   type-forced animated).
+ * - `climate-leaned` — no pin, procgen, but a `Locality` climate lean
+ *   shaped the distribution.
+ * - `procgen` — no pin, no lean; the shipped per-Locality field.
+ * - `biome` — weather is inactive (or the scope resolves no sky); the
+ *   static biome baseline, zero deviation.
+ */
+export type WeatherProvenance =
+  | 'pin-frozen'
+  | 'pin-alive'
+  | 'climate-leaned'
+  | 'procgen'
+  | 'biome';
+
+/**
+ * The single resolved atmospheric state every Wave-2 consumer reads
+ * (wetness / thermal / electricity / light / `analyze`), folding
+ * **authored pin → procgen (climate-lean-shaped) → biome** in precedence.
+ * Indifferent to whether the weather is authored or modelled — an authored
+ * always-rainy room and a procgen storm produce the same `precipitationHere`
+ * downstream (the spine invariant). Nobody calls `weatherAt`/`deviationFor`
+ * directly except the resolver and the biome fold.
+ */
+export interface ResolvedWeather {
+  /** The resolved weather sample (type / deviation / cloud / precipitation). */
+  sample: WeatherSample;
+  /** How the state was reached (for legibility). */
+  provenance: WeatherProvenance;
+  /**
+   * The resolved "is it raining here" read — **not** sky-gated for an
+   * authored pin (an indoor weeping chamber rains), sky-gated for the
+   * procgen branch (Wave-1 field-deviation behavior preserved). The
+   * wetness / puddle consumers read this, never the raw sample.
+   */
+  precipitationHere: 'none' | 'rain' | 'snow';
+}
 
 /* ─────────────────────────── output shapes ─────────────────────────── */
 

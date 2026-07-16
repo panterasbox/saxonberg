@@ -29,7 +29,11 @@ import {
   type WeatherSample,
   type WeatherForecast,
   type WeatherForecastEntry,
+  type ClimateLean,
+  type WeatherPin,
+  type ResolvedWeather,
 } from '../../lib/weather/WeatherType';
+import type { Atmospheric } from '../../lib/biome/Atmospheric';
 
 const WeatherApiCallers = SecurityPolicies.AnyOf(
   SecurityPolicies.FromModule('/api/weather#WeatherApi'),
@@ -140,19 +144,24 @@ function seasonAtSegment(seg: number): Season {
 
 /**
  * Season-biased weighted pick over a candidate row. Each candidate's
- * weight is multiplied by `SEASON_BIAS[season][type]` (default 1); the
- * roll in [0,1) selects proportionally. A fully-zeroed row degenerates
- * to the first candidate (defensive; the tables never zero a whole row).
+ * weight is multiplied by `SEASON_BIAS[season][type]` (default 1) **and**
+ * the authored per-Locality {@link ClimateLean} (default 1, Wave 2) — the
+ * lean is a soft `SEASON_BIAS` sibling that shapes only this procgen
+ * branch, so an authored hard pin (resolved upstream) always outranks it
+ * (D). The roll in [0,1) selects proportionally. A fully-zeroed row
+ * degenerates to the first candidate (defensive; the tables never zero a
+ * whole row).
  */
 function pickWeighted(
   row: WeatherTransition[],
   season: Season,
   roll: number,
+  lean: ClimateLean | null,
 ): WeatherType {
   const bias = SEASON_BIAS[season];
   let total = 0;
   const weights = row.map((e) => {
-    const w = e.weight * (bias[e.type] ?? 1);
+    const w = e.weight * (bias[e.type] ?? 1) * (lean?.[e.type] ?? 1);
     total += w;
     return w;
   });
@@ -166,10 +175,14 @@ function pickWeighted(
 }
 
 /** The absolute, season-evaluated starting type at a warmup anchor (D-C). */
-function anchorTypeFor(anchorSeg: number, seed: number): WeatherType {
+function anchorTypeFor(
+  anchorSeg: number,
+  seed: number,
+  lean: ClimateLean | null,
+): WeatherType {
   const season = seasonAtSegment(anchorSeg);
   const roll = roll01(anchorSeg, seed ^ 0x0000_a5a5);
-  return pickWeighted(ANCHOR_CANDIDATES, season, roll);
+  return pickWeighted(ANCHOR_CANDIDATES, season, roll, lean);
 }
 
 /** Pick the next type from the transition grammar, season-biased. */
@@ -177,8 +190,9 @@ function nextTypeFrom(
   prev: WeatherType,
   season: Season,
   roll: number,
+  lean: ClimateLean | null,
 ): WeatherType {
-  return pickWeighted(TRANSITIONS[prev], season, roll);
+  return pickWeighted(TRANSITIONS[prev], season, roll, lean);
 }
 
 /**
@@ -189,16 +203,25 @@ function nextTypeFrom(
  * a future segment computed now equals the segment after advancing the
  * clock (the forecast property).
  */
-function typeForSegment(seg: number, seed: number): WeatherType {
+function typeForSegment(
+  seg: number,
+  seed: number,
+  lean: ClimateLean | null,
+): WeatherType {
   if (forcedType !== null) return forcedType;
   const warm = WEATHER_DEFAULTS.GRAMMAR_WARMUP;
   const anchorSeg = Math.floor(seg / warm) * warm;
-  let cur = anchorTypeFor(anchorSeg, seed);
+  let cur = anchorTypeFor(anchorSeg, seed, lean);
   for (let i = anchorSeg; i < seg; i++) {
     const season = seasonAtSegment(i + 1);
-    cur = nextTypeFrom(cur, season, roll01(i + 1, seed));
+    cur = nextTypeFrom(cur, season, roll01(i + 1, seed), lean);
   }
   return cur;
+}
+
+/** The authored climate lean of a covering Locality (Wave 2), or `null`. */
+function leanOf(locality: Locality | null): ClimateLean | null {
+  return locality?.getClimateLean() ?? null;
 }
 
 /** Component-wise linear interpolation between two deviation bundles. */
@@ -229,17 +252,18 @@ function lerpDeviation(
  */
 function computeSample(nowS: number, locality: Locality | null): WeatherSample {
   const seed = localitySeed(locality);
+  const lean = leanOf(locality);
   const seg = segmentIndexAt(nowS);
   const segStart = seg * WEATHER_DEFAULTS.SEGMENT_LENGTH_S;
   const frac = (nowS - segStart) / WEATHER_DEFAULTS.SEGMENT_LENGTH_S;
 
-  const curType = typeForSegment(seg, seed);
+  const curType = typeForSegment(seg, seed, lean);
   const curProfile = WEATHER_PROFILES[curType];
 
   let deviation = curProfile.deviation;
   const band = WEATHER_DEFAULTS.INTERP_BAND;
   if (band > 0 && frac < band) {
-    const prevType = typeForSegment(seg - 1, seed);
+    const prevType = typeForSegment(seg - 1, seed, lean);
     const prevDev = WEATHER_PROFILES[prevType].deviation;
     deviation = lerpDeviation(prevDev, curProfile.deviation, frac / band);
   }
@@ -251,6 +275,179 @@ function computeSample(nowS: number, locality: Locality | null): WeatherSample {
     cloud: curProfile.cloud,
     precipitation: curProfile.precipitation,
     season: seasonAtSegment(seg),
+  };
+}
+
+/* ─────────────────────────── Wave-2 coexistence resolve ─────────────────────────── */
+
+/** Depth cap for the scope-pin containment walk (defensive, like biome's). */
+const PIN_WALK_DEPTH_CAP = 32;
+
+/** One outward step (containment) for the pin walk. */
+function stepOutwardForPin(
+  cursor: Stuff & Container,
+): (Stuff & Container) | null {
+  if (!MixinApi.isContainable(cursor)) return null;
+  const next = (cursor as Stuff & Containable).getContainer();
+  if (next === null || !MixinApi.isContainer(next)) return null;
+  return next as Stuff & Container;
+}
+
+/**
+ * Resolve the authored weather pin governing a scope (H2 — the shared sync
+ * helper both `resolveWeatherFor` and the biome field-fold consult). Walks
+ * innermost-container-outward reading each `AtmosphericMixin` host's
+ * `_weatherPin` (first found wins — a room pin overrides an outer one),
+ * then falls back to the covering Locality's tier pin. `null` = no pin
+ * anywhere, the procgen branch applies.
+ */
+function resolveWeatherPin(
+  scope: Stuff & Container,
+  locality: Locality | null,
+): WeatherPin | null {
+  let cursor: (Stuff & Container) | null = scope;
+  let depth = PIN_WALK_DEPTH_CAP;
+  while (cursor !== null && depth-- > 0) {
+    if (MixinApi.isAtmospheric(cursor)) {
+      const pin = (cursor as unknown as Atmospheric).getWeatherPin();
+      if (pin !== null) return pin;
+    }
+    cursor = stepOutwardForPin(cursor);
+  }
+  return locality?.getWeatherPin() ?? null;
+}
+
+/**
+ * The `alive`-pin intensity animation scale (H3). A per-segment
+ * deterministic value in `[ALIVE_ANIM_MIN, 1]`, so a `pinned-but-alive`
+ * scope's deviation magnitude visibly breathes segment-to-segment while
+ * the type never leaves the pin. The exact formula is a dial; the
+ * type-forcing is the invariant.
+ */
+function aliveScale(nowS: number, locality: Locality | null): number {
+  const seg = segmentIndexAt(nowS);
+  const seed = localitySeed(locality);
+  const base = roll01(seg, (seed ^ 0x00a1_11e5) >>> 0);
+  const min = WEATHER_DEFAULTS.ALIVE_ANIM_MIN;
+  return min + (1 - min) * base;
+}
+
+/** Scale every field of a deviation bundle by a scalar. */
+function scaleDeviation(d: WeatherDeviation, s: number): WeatherDeviation {
+  return {
+    temperature: d.temperature.scale(s),
+    humidity: d.humidity.scale(s),
+    wind: d.wind.scale(s),
+    pressure: d.pressure.scale(s),
+  };
+}
+
+/**
+ * The per-field deviation a resolved pin folds — the pinned type's profile
+ * deviation, verbatim for `frozen`, `aliveScale`-scaled for `alive`. The
+ * biome field-fold reads one field of this; `resolveWeatherFor` carries the
+ * whole bundle.
+ */
+function pinnedDeviation(
+  pin: WeatherPin,
+  locality: Locality | null,
+  nowS: number,
+): WeatherDeviation {
+  const profile = WEATHER_PROFILES[pin.type];
+  if (pin.mode === 'frozen') return profile.deviation;
+  return scaleDeviation(profile.deviation, aliveScale(nowS, locality));
+}
+
+/** The full resolved sample for a pin: type/cloud/precip forced, deviation per mode. */
+function pinnedSample(
+  pin: WeatherPin,
+  locality: Locality | null,
+  nowS: number,
+): WeatherSample {
+  const profile = WEATHER_PROFILES[pin.type];
+  const seg = segmentIndexAt(nowS);
+  return {
+    type: pin.type,
+    segmentIndex: seg,
+    deviation: pinnedDeviation(pin, locality, nowS),
+    cloud: profile.cloud,
+    precipitation: profile.precipitation,
+    season: seasonAtSegment(seg),
+  };
+}
+
+/** The biome-baseline sample: `clear`, zero deviation (indoor / no-sky, no pin). */
+function baselineSample(nowS: number): WeatherSample {
+  const seg = segmentIndexAt(nowS);
+  const p = WEATHER_PROFILES.clear;
+  return {
+    type: 'clear',
+    segmentIndex: seg,
+    deviation: p.deviation,
+    cloud: p.cloud,
+    precipitation: p.precipitation,
+    season: seasonAtSegment(seg),
+  };
+}
+
+/** True iff a lean carries any non-neutral entry. */
+function hasLean(lean: ClimateLean | null): boolean {
+  if (lean === null) return false;
+  for (const k of Object.keys(lean)) {
+    const v = lean[k as WeatherType];
+    if (v !== undefined && v !== 1) return true;
+  }
+  return false;
+}
+
+/** Game-seconds now, or `null` when no world clock is running (unit tests). */
+function nowSecondsOrNull(): number | null {
+  try {
+    return WorldClockApi.getNow().rawValue();
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * The core resolve (H1) — pure over `(scope, locality, nowS)`. Folds
+ * authored pin → procgen(climate-lean-shaped) → biome baseline in
+ * precedence, and pre-applies the sky-gate to `precipitationHere` (a pin
+ * is ungated — an indoor weeping chamber rains; the procgen branch is
+ * sky-gated — Wave-1 field-deviation behavior). Sky-exposure is only
+ * consulted on the no-pin branch, so an authored indoor pin never triggers
+ * the walk's cost path for the common case.
+ */
+function computeResolved(
+  scope: Stuff & Container,
+  locality: Locality | null,
+  nowS: number,
+  skyExposed: boolean,
+): ResolvedWeather {
+  const pin = resolveWeatherPin(scope, locality);
+  if (pin !== null) {
+    const sample = pinnedSample(pin, locality, nowS);
+    return {
+      sample,
+      provenance: pin.mode === 'frozen' ? 'pin-frozen' : 'pin-alive',
+      precipitationHere: sample.precipitation,
+    };
+  }
+  // No pin: the procgen sky field only reaches SkyExposed scopes; an
+  // indoor scope reads the biome baseline (weather = sky dynamics).
+  if (!skyExposed) {
+    return {
+      sample: baselineSample(nowS),
+      provenance: 'biome',
+      precipitationHere: 'none',
+    };
+  }
+  const sample = computeSample(nowS, locality);
+  const leaned = hasLean(leanOf(locality));
+  return {
+    sample,
+    provenance: leaned ? 'climate-leaned' : 'procgen',
+    precipitationHere: sample.precipitation,
   };
 }
 
@@ -332,6 +529,45 @@ export class WeatherLogic extends ApiLogic {
     return sample.deviation[field] as Quantity<WeatherFieldUnit>;
   }
 
+  /** See {@link WeatherApi.deviatedFieldFor}. Pin-aware, SYNC — no I/O. */
+  @CallSecurity(WeatherApiCallers)
+  public deviatedFieldFor(
+    scope: Stuff & Container,
+    locality: Locality | null,
+    field: WeatherField,
+    timeS: Quantity<'s'>,
+  ): Quantity<WeatherFieldUnit> {
+    const nowS = timeS.rawValue();
+    const pin = resolveWeatherPin(scope, locality);
+    const dev =
+      pin !== null
+        ? pinnedDeviation(pin, locality, nowS)
+        : computeSample(nowS, locality).deviation;
+    return dev[field] as Quantity<WeatherFieldUnit>;
+  }
+
+  /** See {@link WeatherApi.resolveWeatherFor}. Async — resolves locality + sky. */
+  @CallSecurity(WeatherApiCallers)
+  public async resolveWeatherFor(
+    scope: Stuff & Container,
+  ): Promise<ResolvedWeather> {
+    const nowS = nowSecondsOrNull();
+    if (nowS === null) {
+      return {
+        sample: baselineSample(0),
+        provenance: 'biome',
+        precipitationHere: 'none',
+      };
+    }
+    const locality = await AddressApi.resolveLocalityFor(scope);
+    // BiomeApi via dynamic import — keep WeatherLogic's static graph
+    // biome-free (the runBoundaryFanout precedent). Module cache makes
+    // this ~free after the first call.
+    const { BiomeApi } = await import('../../api/biome');
+    const sky = BiomeApi.isSkyExposed(scope);
+    return computeResolved(scope, locality, nowS, sky);
+  }
+
   /** See {@link WeatherApi.forecastFor}. Async — resolves the locality. */
   @CallSecurity(WeatherApiCallers)
   public async forecastFor(
@@ -341,6 +577,7 @@ export class WeatherLogic extends ApiLogic {
     const locality = await AddressApi.resolveLocalityFor(scope);
     const nowS = WorldClockApi.getNow().rawValue();
     const seed = localitySeed(locality);
+    const lean = leanOf(locality);
     const current = computeSample(nowS, locality);
     const n = Math.max(0, segments ?? WEATHER_DEFAULTS.FORECAST_SEGMENTS);
     const seg = current.segmentIndex;
@@ -349,7 +586,7 @@ export class WeatherLogic extends ApiLogic {
       const s = seg + i;
       upcoming.push({
         segmentIndex: s,
-        type: typeForSegment(s, seed),
+        type: typeForSegment(s, seed, lean),
         startsAt: Quantity.of(s * WEATHER_DEFAULTS.SEGMENT_LENGTH_S, 's'),
       });
     }

@@ -41,7 +41,7 @@ describe("AppSettingsSeeder", () => {
     pm.setFindResult([]);
     const added = await AppSettingsSeeder.run();
 
-    expect(added).toBe(146); // + 23 weapon-playstyle combat + 16 electricity
+    expect(added).toBe(164); // + 18 storms-and-wetness (weather Wave 2)
     expect(pm.saves).toHaveLength(1);
     expect(pm.saves[0]!.collection).toBe("app_settings");
     const values = savedValues(pm);
@@ -222,6 +222,25 @@ describe("AppSettingsSeeder", () => {
           [AppSettingKeys.electricityArmorConductiveSkinFactor]: "0.15",
           [AppSettingKeys.electricitySustainBurnPerAmpSec]: "2",
           [AppSettingKeys.electricityArrestDrivePerSec]: "40",
+          [AppSettingKeys.wetnessDryRatePerHour]: "0.25",
+          [AppSettingKeys.wetnessWarmthFactor]: "0.03",
+          [AppSettingKeys.wetnessWarmthReferenceK]: "295",
+          [AppSettingKeys.wetnessRainAccrualPerHour]: "1.5",
+          [AppSettingKeys.wetnessImmersionSaturation]: "1",
+          [AppSettingKeys.wetnessBandDampAt]: "0.15",
+          [AppSettingKeys.wetnessBandWetAt]: "0.45",
+          [AppSettingKeys.wetnessBandSoakedAt]: "0.8",
+          [AppSettingKeys.stormPuddleAccrualLitersPerSegment]: "12",
+          [AppSettingKeys.stormPuddleEvaporationFactor]: "0.2",
+          [AppSettingKeys.stormPuddleFreshWaterMaterialPath]:
+            "/lib/material/bulk/fresh-water",
+          [AppSettingKeys.stormStrikeRate]: "0.15",
+          [AppSettingKeys.stormStrikeIntervalS]: "1800",
+          [AppSettingKeys.stormStrikeVoltage]: "30000000",
+          [AppSettingKeys.stormAttractorBias]: "4",
+          [AppSettingKeys.weatherCloudDimFactor]: "0.6",
+          [AppSettingKeys.weatherSkyForecastSegments]: "2",
+          [AppSettingKeys.thermalWetHeatLossFactor]: "1.5",
         },
       },
     ]);
@@ -256,8 +275,9 @@ describe("AppSettingsSeeder", () => {
     // + 3 multi-party combat (2 focus-fire + 1 flee)
     // + 6 experience combat (2 feint poise + 2 fog + 2 sharpness)
     // + 23 weapon-playstyle combat (15 weapon-profile + 3 reach + 5 hand-slot)
-    // + 16 electricity (shock channel + conduction).
-    expect(added).toBe(145);
+    // + 16 electricity (shock channel + conduction)
+    // + 18 storms-and-wetness (8 wetness + 7 storm + 2 weather + 1 thermal).
+    expect(added).toBe(163);
     expect(pm.saves).toHaveLength(1);
     const values = savedValues(pm);
     // operator value preserved, missing keys seeded

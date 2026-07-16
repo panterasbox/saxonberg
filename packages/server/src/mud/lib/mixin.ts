@@ -135,6 +135,8 @@ export const Mixins = {
   Thermal: 'ThermalMixin',
   ThermalRegulation: 'ThermalRegulationMixin',
   Respiration: 'RespirationMixin',
+  // The cross-cutting wetness gauge — any Thing / body can be wet.
+  Wet: 'WetMixin',
   Behaved: 'BehavedMixin',
   Graded: 'GradedMixin',
   // A physical thing that wears out with use (the condition/wear gauge).
