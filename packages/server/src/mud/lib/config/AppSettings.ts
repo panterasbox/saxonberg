@@ -240,6 +240,27 @@ export const AppSettingKeys = {
    * `0` disables the grant. See docs/subsystems/banking.md.
    */
   bankingOnboardingStipend: "banking.onboardingStipend",
+  /**
+   * Banking — the per-account **cash-withdrawal cap per game-day** (minor
+   * units), the common-pool till guard: over the cap → refuse + push onto the
+   * ledger (card/transfer). Derive-on-read over the ledger (no counter, no
+   * scheduler — Law-2 clean). Per-account, never collective (a bank run is a
+   * feature). `0` disables the cap. See docs/subsystems/banking.md.
+   */
+  bankingWithdrawalDailyCap: "banking.withdrawalDailyCap",
+  /**
+   * Banking — the raised withdrawal cap (minor units) for a **Circle** member
+   * (recognized standing → higher cash quota; the status perk that ties
+   * Relationship to the common-pool guard).
+   */
+  bankingWithdrawalDailyCapCircle: "banking.withdrawalDailyCapCircle",
+  /**
+   * Banking — the **corpo royalty** rate: the fraction of every collected fee
+   * split off the top to the affiliated corpo's treasury (the rest to the
+   * branch operating account). Event-driven, conserved — corpo income begins
+   * from the first fee. `0` disables. See docs/subsystems/banking.md.
+   */
+  bankingCorpoRoyaltyRate: "banking.corpoRoyaltyRate",
 
   /**
    * Fast-travel — the tunable TPA **network-fee percentage** levied on every

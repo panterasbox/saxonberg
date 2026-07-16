@@ -334,6 +334,38 @@ export class BankingApi {
   ): Promise<string> {
     return logic().ensureVenueAccount(ownerPath, bankPath, corpoKey);
   }
+
+  /**
+   * Ensure the corpo's own treasury account exists — the royalty target,
+   * keyed on `corpoKey`, held at `bankPath` (the corpo's own bank). The mirror
+   * of {@link ensureVenueAccount}; corpo income begins from the first fee.
+   */
+  public static async ensureCorpoTreasury(
+    corpoKey: string,
+    bankPath: string,
+  ): Promise<string> {
+    return logic().ensureCorpoTreasury(corpoKey, bankPath);
+  }
+
+  /**
+   * Cash withdrawn from `accountId` this game-day (derive-on-read over the
+   * ledger) — the value the per-account common-pool quota reads against its cap.
+   */
+  public static async withdrawnToday(accountId: string): Promise<number> {
+    return logic().withdrawnToday(accountId);
+  }
+
+  /**
+   * Set the **Circle** affiliation marker on an account (the Goodkin
+   * enrollment write) — confers the raised withdrawal quota (and the Attendant
+   * reception skip). Idempotent.
+   */
+  public static async setAccountCircle(
+    accountId: string,
+    isCircle: boolean,
+  ): Promise<void> {
+    return logic().setAccountCircle(accountId, isCircle);
+  }
 }
 
 SecurityApi.decorateApiClass(BankingApi);

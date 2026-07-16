@@ -279,6 +279,163 @@ async function drainCoins(
   );
 }
 
+/* ─────────────────────── Terms · fees · royalty ─────────────────────── */
+
+/** Game seconds in one calendar day (the quota window; DefaultCalendar). */
+const GAME_SECONDS_PER_DAY = 86_400;
+
+/** The corpo royalty rate (fraction of each fee → the corpo treasury). */
+function royaltyRate(): number {
+  try {
+    const raw = Number(AppApi.setting(AppSettingKeys.bankingCorpoRoyaltyRate));
+    return Number.isFinite(raw) && raw > 0 ? Math.min(1, raw) : 0;
+  } catch {
+    return 0;
+  }
+}
+
+/**
+ * The branch's operating account — where fee income lands and wages pay from
+ * (one P&L). Resolved via the Business operating at the branch (the bar's
+ * `getAccountPath()` precedent) so the bank's income + wages share an account;
+ * a bare bank falls back to a branch-keyed venue account. EmploymentApi is
+ * dynamically imported to dodge the banking↔employment module cycle (the
+ * DiagnosticApi precedent).
+ */
+async function resolveBranchAccountImpl(bank: Stuff & Bank): Promise<string> {
+  const bankPath = bank.getBankPath();
+  const corpoKey = bank.getCorpoKey();
+  let ownerPath = bankPath;
+  try {
+    const { EmploymentApi } = await import("../../api/employment");
+    const business = EmploymentApi.businessAt(bankPath);
+    if (business) ownerPath = business.getAccountPath();
+  } catch {
+    // No employment engine available (unit tests / pre-boot) → branch-keyed.
+  }
+  return ensureVenueAccountImpl(ownerPath, bankPath, corpoKey);
+}
+
+/**
+ * The corpo's own treasury — a well-known account keyed on `corpoKey`, held at
+ * `bankPath` (the corpo's own bank; intra-bank, 1:1 clean). The mirror of
+ * {@link ensureVenueAccountImpl}; created lazily so the corpo has income from
+ * the first fee. The corpo `Idea` stays pure data — this is an account it owns.
+ */
+async function ensureCorpoTreasuryImpl(
+  corpoKey: string,
+  bankPath: string,
+): Promise<string> {
+  return ensureVenueAccountImpl(`corpo:${corpoKey}`, bankPath, corpoKey);
+}
+
+/**
+ * Charge a conserved fee: debit `customerAccountId` by `feeMinor`, splitting a
+ * royalty off the top to the affiliated corpo's treasury (the rest to the
+ * branch operating account). Both legs are pure real-account movement (a
+ * `transfer`, category `fee`) → the branch P&L as income, the corpo treasury
+ * accumulating from the first transaction, the customer's statement a line.
+ * A zero fee (Goodkin's near-state) is a no-op; a self-fee (customer == branch)
+ * is skipped. Caller must have ensured the customer holds the fee.
+ */
+async function chargeFeeImpl(
+  bank: Stuff & Bank,
+  customerAccountId: string,
+  feeMinor: number,
+  memo: string,
+): Promise<void> {
+  if (feeMinor <= 0) return;
+  const branchAccount = await resolveBranchAccountImpl(bank);
+  if (branchAccount === customerAccountId) return;
+  const corpoKey = bank.getCorpoKey();
+  const rate = royaltyRate();
+  let royalty = 0;
+  let treasury: string | null = null;
+  if (corpoKey && rate > 0) {
+    royalty = Math.floor(feeMinor * rate);
+    if (royalty > 0) {
+      treasury = await ensureCorpoTreasuryImpl(corpoKey, bank.getBankPath());
+      // A treasury that resolves to the branch itself (or the customer) can't
+      // take a distinct royalty leg — fold it back into the branch share.
+      if (treasury === branchAccount || treasury === customerAccountId) {
+        royalty = 0;
+        treasury = null;
+      }
+    }
+  }
+  const legs: LedgerLeg[] = [];
+  const toBranch = feeMinor - royalty;
+  if (toBranch > 0) {
+    legs.push({
+      from: customerAccountId,
+      to: branchAccount,
+      amount: toBranch,
+      category: "fee",
+      memo,
+    });
+  }
+  if (royalty > 0 && treasury) {
+    legs.push({
+      from: customerAccountId,
+      to: treasury,
+      amount: royalty,
+      category: "fee",
+      memo,
+    });
+  }
+  if (legs.length > 0) await postTransaction("transfer", legs);
+}
+
+/**
+ * Cash withdrawn from `accountId` **this game-day** — a derive-on-read sum
+ * over the append-only ledger's `withdraw` legs since the day boundary (no
+ * stored counter, no scheduler; Law-2 clean). The common-pool till guard reads
+ * this against the per-account cap.
+ */
+async function withdrawnTodayImpl(accountId: string): Promise<number> {
+  const dayStart =
+    Math.floor(WorldClockApi.getNow().rawValue() / GAME_SECONDS_PER_DAY) *
+    GAME_SECONDS_PER_DAY;
+  const rows = await entriesForImpl(accountId);
+  let total = 0;
+  for (const r of rows) {
+    if (r.kind === "withdraw" && r.fromAccount === accountId && r.at >= dayStart) {
+      total += r.amount;
+    }
+  }
+  return total;
+}
+
+/** The per-account daily cash-withdrawal cap (Circle members get the raised one). */
+function withdrawalCapFor(account: AccountBalance): number {
+  const key = account.isCircle
+    ? AppSettingKeys.bankingWithdrawalDailyCapCircle
+    : AppSettingKeys.bankingWithdrawalDailyCap;
+  try {
+    const raw = Number(AppApi.setting(key));
+    return Number.isFinite(raw) && raw > 0 ? Math.floor(raw) : 0;
+  } catch {
+    return 0;
+  }
+}
+
+/**
+ * The wire fee (minor units) a transfer levies, read off the *source* bank's
+ * Terms: intra-bank (same branch) is free; cross-*bank* same-corpo costs the
+ * wire fee; cross-*corpo* costs the heavier cross-corpo fee.
+ */
+async function transferFeeFor(
+  from: AccountBalance,
+  to: AccountBalance | null,
+): Promise<number> {
+  if (!to || from.bankPath === to.bankPath) return 0;
+  const sourceBank = StuffApi.findByTemplatePath<Stuff & Bank>(from.bankPath);
+  if (!sourceBank || !MixinApi.isBank(sourceBank)) return 0;
+  const terms = sourceBank.getTerms();
+  const crossCorpo = (from.corpoKey || "") !== (to.corpoKey || "");
+  return crossCorpo ? terms.getCrossCorpoFee() : terms.getWireFee();
+}
+
 /**
  * The actor's routing payment credential (implant-first via findReachable's
  * self-hosted leg, then carried cards). A **frozen** credential is skipped —
@@ -917,6 +1074,12 @@ export class BankingLogic extends ApiLogic {
     await postTransaction("deposit", [
       { from: Account.CASH_BRIDGE, to: account.accountId, amount: value },
     ]);
+    // The convenience fee (Terms), conserved → branch + corpo royalty. Zero
+    // for Goodkin (no-op); charged out of the just-credited balance.
+    const fee = bank.getTerms().getTransactionFee();
+    if (fee > 0 && AccountBalance.cachedBalance(account.accountId) >= fee) {
+      await chargeFeeImpl(bank, account.accountId, fee, "deposit fee");
+    }
   }
 
   /** See {@link BankingApi.withdraw}. Balance → cash, bounded by the till. */
@@ -927,10 +1090,35 @@ export class BankingLogic extends ApiLogic {
     if (!account) {
       throw new Error("BankingLogic.withdraw: no account here");
     }
-    if (AccountBalance.cachedBalance(account.accountId) < amount.minor) {
+    const terms = bank.getTerms();
+    const fee = terms.getTransactionFee();
+    const balance = AccountBalance.cachedBalance(account.accountId);
+    if (balance < amount.minor + fee) {
       throw new Error(
-        `BankingLogic.withdraw: your balance is under ${amount.render()}`,
+        `BankingLogic.withdraw: your balance is under ${amount.render()}` +
+          (fee > 0 ? ` (plus a ${fee}-credit fee)` : ""),
       );
+    }
+    // Minimum-balance floor (Terms) — a withdrawal can't drop you below it.
+    if (balance - amount.minor - fee < terms.getMinBalance()) {
+      throw new Error(
+        `BankingLogic.withdraw: that would drop you below the ${terms.getMinBalance()}-credit minimum`,
+      );
+    }
+    // Common-pool guard (anti-grief): a per-account daily cash cap so one
+    // actor can't drain the shared till to deny others. Derive-on-read over
+    // the ledger; per-account, never collective (a bank run is a feature);
+    // over the cap → refuse and push onto the ledger (card/transfer). Scales
+    // with standing (Circle → higher cap).
+    const cap = withdrawalCapFor(account);
+    if (cap > 0) {
+      const already = await withdrawnTodayImpl(account.accountId);
+      if (already + amount.minor > cap) {
+        throw new Error(
+          `BankingLogic.withdraw: that exceeds today's ${cap}-credit cash ` +
+            `limit (you've drawn ${already}) — pay by card or transfer instead`,
+        );
+      }
     }
     // The diegetic limit (AC#13): a branch can run low on physical coin even
     // when the account is solvent — bounded by the actual till, not a gate.
@@ -963,7 +1151,18 @@ export class BankingLogic extends ApiLogic {
         amount: amount.minor,
       },
     ]);
-    await moveCoins(bankContainer, principal, amount.minor);
+    // Till security: open the disbursement window around the one legitimate
+    // vault-coin removal so `canRemoveContainable` permits it (loose `get` of
+    // the till stays vetoed). `finally` guarantees the window closes.
+    bank._beginDisbursing();
+    try {
+      await moveCoins(bankContainer, principal, amount.minor);
+    } finally {
+      bank._endDisbursing();
+    }
+    // The convenience fee (Terms), conserved → branch + corpo royalty. Zero
+    // for Goodkin (no-op). Charged after the cash is handed over.
+    await chargeFeeImpl(bank, account.accountId, fee, "withdrawal fee");
   }
 
   /** See {@link BankingApi.transfer}. Balance → balance (conserving). */
@@ -981,14 +1180,30 @@ export class BankingLogic extends ApiLogic {
     if (from.owner !== actingActorKey()) {
       throw new Error("BankingLogic.transfer: that isn't your account");
     }
-    if (AccountBalance.cachedBalance(fromAccountId) < amount.minor) {
+    // A wire fee (Terms) on movement/convenience — the only live Goodkin fee.
+    // Intra-bank (same branch) is free; cross-*bank* (same corpo) costs the
+    // wire fee; cross-*corpo* costs the (heavier) cross-corpo fee — rivalry
+    // has a cost. The source bank's schedule prices it. Read before the move
+    // so the balance check covers amount + fee.
+    const to = await accountByIdImpl(toAccountId);
+    const wireFee = await transferFeeFor(from, to);
+    if (AccountBalance.cachedBalance(fromAccountId) < amount.minor + wireFee) {
       throw new Error(
-        `BankingLogic.transfer: balance under ${amount.render()}`,
+        `BankingLogic.transfer: balance under ${amount.render()}` +
+          (wireFee > 0 ? ` (plus a ${wireFee}-credit wire fee)` : ""),
       );
     }
     await postTransaction("transfer", [
       { from: fromAccountId, to: toAccountId, amount: amount.minor, memo },
     ]);
+    if (wireFee > 0) {
+      const sourceBank = StuffApi.findByTemplatePath<Stuff & Bank>(
+        from.bankPath,
+      );
+      if (sourceBank && MixinApi.isBank(sourceBank)) {
+        await chargeFeeImpl(sourceBank, fromAccountId, wireFee, "wire fee");
+      }
+    }
   }
 
   /* ──────────────── settlement + the credential ladder ──────────────── */
@@ -1084,5 +1299,36 @@ export class BankingLogic extends ApiLogic {
     corpoKey: string,
   ): Promise<string> {
     return ensureVenueAccountImpl(ownerPath, bankPath, corpoKey);
+  }
+
+  /** See {@link BankingApi.ensureCorpoTreasury}. The corpo's royalty account. */
+  @CallSecurity(BankingApiCallers)
+  public async ensureCorpoTreasury(
+    corpoKey: string,
+    bankPath: string,
+  ): Promise<string> {
+    return ensureCorpoTreasuryImpl(corpoKey, bankPath);
+  }
+
+  /** See {@link BankingApi.withdrawnToday}. Cash drawn from an account today. */
+  @CallSecurity(BankingApiCallers)
+  public async withdrawnToday(accountId: string): Promise<number> {
+    return withdrawnTodayImpl(accountId);
+  }
+
+  /**
+   * See {@link BankingApi.setAccountCircle}. Set the Circle affiliation marker
+   * on an account (the enrollment ceremony's write) — confers the raised
+   * withdrawal quota. Idempotent; a no-op for an unknown account.
+   */
+  @CallSecurity(BankingApiCallers)
+  public async setAccountCircle(
+    accountId: string,
+    isCircle: boolean,
+  ): Promise<void> {
+    const account = await accountByIdImpl(accountId);
+    if (!account) return;
+    account.isCircle = isCircle;
+    await account.save();
   }
 }
