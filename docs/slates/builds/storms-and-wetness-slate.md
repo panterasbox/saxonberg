@@ -130,6 +130,21 @@ real. Settle at requirements.
   cool emergent bonus (a rod, a sword held aloft).
 - **Cloud → light dimming** — the straightforward weather-teeth consumer
   (overcast/storm read dimmer; the perception/light seam).
+- **Cloud forms — the sky as a readable instrument.** A small cloud-genus
+  vocabulary (cirrus / cumulus / stratus / cumulonimbus / …) **derived** from
+  the resolved weather type + the near-term forecast trend, surfaced through
+  `analyze weather` and a `look up` sky read. Rides two things we already have:
+  the **transition grammar** (which *is* the "front approaching" sequence — a
+  clear sky trending toward rain shows cirrus thickening) and **free
+  deterministic forecasting** (so the tell is a *true, learnable* sky-reading
+  signal — the observe→predict→verify inquiry loop, hedged in prose since our
+  tell is certain where the real sky's is probabilistic). Presentation + an
+  inquiry tell, **never a physics input** (no consequence reads the form).
+  Luke Howard's cloud grammar as the amateur-naturalist patron saint of the
+  whole "player as sky-reader" idea. Clouds *grown from* vertical
+  convection/advection (a real vertical atmosphere + moving fronts) stay
+  **deferred** with the vector-wind / spatial work — this is clouds *described
+  from* the resolved weather, honestly abstracted.
 
 ## Scope
 
@@ -140,13 +155,17 @@ real. Settle at requirements.
 - Precipitation → outdoor `Floor` puddle accumulation.
 - Storm lightning strikes (the magic-Lightning proof).
 - Cloud → light dimming.
+- Cloud forms (the derived genus + the deterministic forecast tell — the
+  sky-reading inquiry surface).
 
 **Deferred (named, not built):** fog → visibility; snow depth; vector wind
-(direction — sailing / fire-spread / scent / precip drift); wet firewood /
-fire coupling (needs the Fire noun); the far economy (farming, sailing,
-travel-gating a storm-blocked pass); weather-sense / "storm's coming" NPC
-content (forecasting is *free* from determinism, but the NPC content is
-deferred); ambient flavor (petrichor, sun-after-rain).
+(direction — sailing / fire-spread / scent / precip drift); **clouds grown
+from vertical convection / advection** (a real vertical atmosphere + moving
+fronts producing form — v1 *describes* the cloud from the resolved type
+instead); wet firewood / fire coupling (needs the Fire noun); the far economy
+(farming, sailing, travel-gating a storm-blocked pass); weather-sense /
+"storm's coming" NPC content (forecasting is *free* from determinism, but the
+NPC content is deferred); ambient flavor (petrichor, sun-after-rain).
 
 ## Dealbreakers
 

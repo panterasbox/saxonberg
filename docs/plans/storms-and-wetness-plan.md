@@ -472,6 +472,56 @@ substation precedent).
 (keeps content standup clean, the treeline/substation precedent) — reachable by
 teleport + the integration test.
 
+### Phase H — Cloud forms (descriptive read + the forecast tell)
+**Outcome.** The resolved weather gains a **visible cloud form** — a small
+`CloudForm` genus vocabulary (`clear` / `cirrus` / `cirrostratus` / `cumulus` /
+`stratus` / `nimbostratus` / `cumulonimbus`) **derived** from the resolved type
++ the near-term forecast trend, surfaced through `analyze weather` and a
+`look up` sky read, and usable as a **true forecast tell** (our weather is
+deterministic → cirrus genuinely presages a front, the observe→predict→verify
+inquiry loop). Pure presentation + a pure derivation — **no new weather state,
+no vertical-dynamics sim.** The honest line: clouds are *described from* the
+resolved type, not *grown from* convection/advection (that stays deferred with
+the vector-wind / spatial work). The Wave-1 `cloud: number` scalar becomes the
+sky's *coverage*; the genus is its *form*. Maps to AC "Cloud forms" +
+"Legibility" (extended).
+
+**Files to change.**
+- `lib/weather/WeatherType.ts` — add `CLOUD_FORMS` vocabulary + `CloudForm`
+  type + a **pure** `cloudFormFor(sample, forecastTrend)`: form =
+  f(current type/tier, and whether the near-term forecast leans toward
+  rain/storm over a currently clear/overcast sky → cirrus/cirrostratus
+  thickening). `storm → cumulonimbus`, `overcast → stratus`, `rain →
+  nimbostratus`, `clear-convective → cumulus`, `clear-before-a-front → cirrus`.
+  Altitude tier + heaped/layered fall out of the genus.
+- `obj/api/WeatherLogic.ts` — add `cloudForm` to `ResolvedWeather`; a thin
+  `skyReadFor(scope)` that reads the near-term `forecastFor` trend (a bounded
+  look-ahead over the segment grammar — forecasting is free from determinism)
+  to pick a presaging form. Deterministic; no state.
+- `obj/command/perception/AnalyzeWeatherController.ts` — render the cloud form
+  + the **honestly-hedged** tell ("high wisps — a front *may* be moving in").
+- A **`look up` / sky prose detail** — a dynamic room detail (the
+  Timekeeping clock-tower-is-prose precedent, `time.md`) reading
+  `resolveWeatherFor(here).cloudForm` for SkyExposed scopes; **no new Stuff.**
+- `config/app-settings.yaml` — `weather.skyForecastSegments` (the presage
+  look-ahead window) if tuned (bump count if seeded).
+
+**Tests.** `lib/weather/__tests__/CloudForm.test.ts` (pure — genus derivation:
+storm→cumulonimbus, overcast→stratus, rain→nimbostratus,
+clear-trending-rain→cirrus/cirrostratus, clear-staying-clear→clear/cumulus;
+deterministic). Extend `AnalyzeWeatherController.test.ts` (the form + hedged
+tell render). A sky-detail read test (SkyExposed shows the form; indoor/no-sky
+shows nothing).
+
+**Risk/decision.** The tell must stay **honestly hedged** in prose — our
+in-game tell is *certain* (deterministic), the real sky's is *probabilistic*;
+the prose says "may," teaching the correlation without implying real-world
+forecastability (the same honesty caveat as the barometer). **Presentation-only
+invariant:** no consequence (light / wetness / electricity) reads the cloud
+*form* — those read the resolved *type / cloud-coverage* (the one-resolve
+invariant). Cloud forms are a legibility + inquiry surface, never a physics
+input.
+
 ## 4. Cross-cutting constraints honored (checklist)
 
 - **Weather stays stateless / no-tick / no stored weather state** — no field
@@ -543,6 +593,13 @@ teleport + the integration test.
     chamber**, declaratively authored, reachable-by-teleport with an integration
     test (the substation/treeline precedent), carrying the spine invariant test
     (authored rain ≡ procgen rain downstream).
+11. **Cloud forms are a derived descriptive + forecast-tell legibility layer**
+    (a `CloudForm` vocabulary + a pure `cloudFormFor` over the resolved type +
+    the free deterministic forecast trend), surfaced via `analyze weather` + a
+    `look up` sky prose detail — **presentation-only** (no consequence reads the
+    form) and **honestly hedged** (our tell is certain, the real sky's is not).
+    Clouds *grown from* vertical convection/advection stay deferred with the
+    vector-wind / spatial work. (Phase H)
 
 ## Cross-references
 

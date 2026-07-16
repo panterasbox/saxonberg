@@ -53,6 +53,12 @@ of the build is consequences hanging off that resolve.
   `Create·Lightning` bolt.
 - **Cloud → light dimming** — overcast / storm read dimmer (the perception /
   light seam).
+- **Cloud forms** — the resolved weather carries a **derived visible cloud
+  form** (a small genus vocabulary — cirrus / cumulus / stratus /
+  cumulonimbus / …), surfaced through `analyze weather` and a `look up` sky
+  read, and usable as a **deterministic forecast tell** (cirrus presages a
+  front). A legibility + inquiry (sky-reading) surface, *described from* the
+  resolved weather — never a physics input.
 - **Legibility** — `analyze weather` reveals the resolved state **and its
   provenance** (authored-pin vs procgen vs climate-leaned); wetness is
   inspectable (a band, not a number); a strike is perceivable.
@@ -67,6 +73,11 @@ of the build is consequences hanging off that resolve.
 - **Weather simulation / stored weather state / a weather tick** — the
   inherited dealbreaker. Weather stays a stateless procedural field computed
   on read; only *wetness* stores per-object state.
+- **Clouds grown from vertical convection / advection** — the visible cloud
+  form is *derived from* the resolved weather type + trend (a legibility
+  read), NOT *grown from* a modelled vertical atmosphere or moving fronts
+  (the deferred vector-wind / spatial work). No consequence reads the cloud
+  form — it is presentation + a forecast tell, never a physics input.
 - **Fog → visibility, snow depth** — deferred Wave-2 teeth (the weather tail
   keeps them).
 - **Vector wind / wind direction** — scalar `Quantity<'m/s'>` stays; direction
@@ -204,6 +215,25 @@ invariant). A fresh-water rain pool is weakly conductive; the loop to a lethal
 shock still wants a real source (a wire / a strike), matching electricity's
 model.
 
+### Cloud forms — descriptive derivation + an honest forecast tell
+
+**Question:** can the sky show cloud *formations*, the way a kid reads clouds?
+
+**Decision:** yes — a small **cloud-genus vocabulary** *derived* from the
+resolved weather type + the near-term forecast trend (the transition grammar
++ free deterministic forecasting), surfaced through `analyze weather` and a
+`look up` sky read. It is **presentation + a forecast tell**, not a
+simulation: `storm → cumulonimbus`, `overcast → stratus`, `rain →
+nimbostratus`, a clear sky trending toward a front → `cirrus` thickening to
+`cirrostratus`. Because our weather is deterministic, the tell is a *true,
+learnable* sky-reading signal (the observe→predict→verify inquiry loop) — but
+the player-facing prose stays **honestly hedged** ("high wisps — a front *may*
+be moving in"), since our in-game tell is certain where the real sky's is
+probabilistic (the barometer honesty caveat). **Presentation-only:** no
+consequence (light / wetness / electricity) reads the cloud *form* — those read
+the resolved *type / cloud-coverage* (the one-resolve invariant). Clouds grown
+from vertical dynamics are deferred (a non-goal above).
+
 ## Constraints
 
 - **Weather stays stateless / no-tick / no-stored-weather-state** — the
@@ -272,6 +302,11 @@ model.
   perceivable (thunderclap). Tested / demonstrated.
 - **Light:** overcast / storm dims the scope's light (perception seam).
   Tested.
+- **Cloud forms:** `analyze weather` / `look up` reveals a cloud form
+  appropriate to the resolved weather (storm→cumulonimbus, overcast→stratus,
+  clear-before-a-front→cirrus), the forecast tell is honestly hedged, and the
+  derivation is pure / deterministic (tested); **no consequence reads the
+  cloud form** (the form is legibility + inquiry, never a physics input).
 - **Legibility:** `analyze weather` reveals the resolved state **and its
   provenance** (authored-pin vs procgen vs climate-leaned); wetness is
   inspectable.
