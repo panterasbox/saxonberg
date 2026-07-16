@@ -12,6 +12,9 @@ data:
   density: 1000
   thermalConductivity: 0.6
   specificHeat: 4186
+  # Electrical conductivity (S/m) — fresh/tap water is a poor conductor
+  # (~0.01, dissolved-mineral dependent); salt water is ~500× higher.
+  electricalConductivity: 0.01
   edibility: true
   nutrients: [water]
   toxicity: []

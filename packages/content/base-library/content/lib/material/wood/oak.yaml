@@ -14,6 +14,8 @@ data:
   density: 750
   specificHeat: 2000
   thermalConductivity: 0.17
+  # Electrical conductivity (S/m) — dry wood is a poor conductor (~1×10⁻⁴).
+  electricalConductivity: 1.0e-4
   edibility: false
   nutrients: ["cellulose"]
   toxicity: []

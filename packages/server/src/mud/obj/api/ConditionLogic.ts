@@ -22,7 +22,12 @@ import type {
   Trauma,
   TraumaType,
 } from '../../lib/vitals/Condition';
-import type { InflictSpec, InflictOutcome } from '../../api/condition';
+import type {
+  InflictSpec,
+  InflictOutcome,
+  EnergyInflictSpec,
+  ShockInflictSpec,
+} from '../../api/condition';
 
 const ConditionApiCallers = SecurityPolicies.FromModule(
   '/api/condition#ConditionApi'
@@ -42,6 +47,10 @@ function channelDefaultType(channel: Channel): TraumaType {
       return 'puncture';
     case 'blunt':
       return 'contusion';
+    case 'shock':
+      // A shock's local wound is a contact burn (the whole-body
+      // let-go/tetany/fibrillation outcomes are the vitals coupling).
+      return 'burn';
   }
 }
 
@@ -189,6 +198,14 @@ export class ConditionLogic extends ApiLogic {
   @CallSecurity(ConditionApiCallers)
   public inflict(target: Stuff, spec: InflictSpec): InflictOutcome {
     const inflicter = resolveInflicter();
+    // Shock is intercepted FIRST — its path resistance was resolved upstream
+    // in the conduction walk, so it skips the covering-stack fold entirely (a
+    // third path beside the mechanical fold + the thermal/tearing passthrough,
+    // leaving both byte-identical).
+    if (spec.mechanism === 'shock') {
+      return inflictShock(target, spec, inflicter);
+    }
+    // `spec` is now the energy-carrying variant (shock excluded).
     return Channels.isChannel(spec.mechanism)
       ? inflictThroughStack(target, spec, spec.mechanism, inflicter)
       : inflictPassthrough(target, spec, inflicter);
@@ -225,7 +242,7 @@ export class ConditionLogic extends ApiLogic {
  */
 function inflictThroughStack(
   target: Stuff,
-  spec: InflictSpec,
+  spec: EnergyInflictSpec,
   channel: Channel,
   inflicter: string | undefined,
 ): InflictOutcome {
@@ -292,7 +309,7 @@ function inflictThroughStack(
  */
 function inflictPassthrough(
   target: Stuff,
-  spec: InflictSpec,
+  spec: EnergyInflictSpec,
   inflicter: string | undefined,
 ): InflictOutcome {
   const type: TraumaType = spec.mechanism === 'thermal' ? 'burn' : 'avulsion';
@@ -311,6 +328,45 @@ function inflictPassthrough(
   const nowS = conditionNowSeconds();
   if (nowS !== null) trauma.tickedAt = nowS;
   TRAUMA_BEHAVIOR[type].onset(target, trauma);
+  target.afflict(trauma);
+  return { trauma, afflicted: true };
+}
+
+/**
+ * The **shock** path — a `{mechanism:'shock', current}` insult. The path
+ * resistance was resolved upstream (the conduction walk divided current
+ * toward ground), so this does **NOT** consult the covering stack /
+ * `MaterialApi.attenuate` — it maps the current-through-victim straight to
+ * a local contact `burn` via `MaterialApi.resolveShock`. Below the burn
+ * threshold (a tingle) the record is truthful but nothing is afflicted.
+ * Module-private (off-class, so no intra-singleton self-call). The
+ * whole-body outcomes (tetany / fibrillation → arrest) are the vitals
+ * coupling's job (the being-shocked sustain + the electrocution death seam),
+ * not this local wound.
+ */
+function inflictShock(
+  target: Stuff,
+  spec: ShockInflictSpec,
+  inflicter: string | undefined,
+): InflictOutcome {
+  const resolution = MaterialApi.resolveShock(spec.current);
+  const trauma: Trauma = {
+    kind: 'trauma',
+    type: resolution?.type ?? 'burn',
+    site: spec.site,
+    severity: resolution?.severity ?? 0,
+    mechanism: 'shock',
+  };
+  if (inflicter !== undefined) trauma.inflictedBy = inflicter;
+
+  // Non-body target, or a below-threshold current (tingle) → nothing
+  // afflicted, but a truthful record.
+  if (!MixinApi.isVitals(target) || resolution === null) {
+    return { trauma, afflicted: false };
+  }
+  const nowS = conditionNowSeconds();
+  if (nowS !== null) trauma.tickedAt = nowS;
+  TRAUMA_BEHAVIOR[trauma.type].onset(target, trauma);
   target.afflict(trauma);
   return { trauma, afflicted: true };
 }

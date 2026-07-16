@@ -17,11 +17,13 @@ import { MixinApi } from '../../api/mixin';
 import { StuffApi } from '../../api/stuff';
 import { AppApi } from '../../api/app';
 import { AppSettingKeys } from '../../lib/config/AppSettings';
-import type { Channel } from '../../lib/material/Channel';
+import { Channels } from '../../lib/material/Channel';
+import type { Channel, MechanicalChannel } from '../../lib/material/Channel';
 import type {
   Construction,
   ResistToken,
 } from '../../lib/material/Construction';
+import { Quantity } from '../../lib/quantity';
 import type { Grade } from '../../lib/craft/Grade';
 import type { TraumaType } from '../../lib/vitals/Condition';
 
@@ -140,14 +142,63 @@ export class MaterialLogic extends ApiLogic {
 
   /** See {@link MaterialApi.deliverableChannels}. */
   @CallSecurity(MaterialApiCallers)
-  public deliverableChannels(construction: Construction): Channel[] {
+  public deliverableChannels(construction: Construction): MechanicalChannel[] {
     return construction.deliveredChannels();
   }
 
   /** See {@link MaterialApi.primaryChannel}. */
   @CallSecurity(MaterialApiCallers)
-  public primaryChannel(construction: Construction): Channel | null {
+  public primaryChannel(construction: Construction): MechanicalChannel | null {
     return construction.primaryChannel();
+  }
+
+  // ---------- electricity: the Ohm's-law circuit primitives ----------
+
+  /** See {@link MaterialApi.ohmsCurrent}. */
+  @CallSecurity(MaterialApiCallers)
+  public ohmsCurrent(
+    voltage: Quantity<'V'>,
+    resistance: Quantity<'Ω'>,
+  ): Quantity<'A'> {
+    return ohmsCurrentImpl(voltage, resistance);
+  }
+
+  /** See {@link MaterialApi.jouleHeat}. */
+  @CallSecurity(MaterialApiCallers)
+  public jouleHeat(
+    current: Quantity<'A'>,
+    resistance: Quantity<'Ω'>,
+  ): Quantity<'W'> {
+    return jouleHeatImpl(current, resistance);
+  }
+
+  /** See {@link MaterialApi.bodyResistance}. */
+  @CallSecurity(MaterialApiCallers)
+  public bodyResistance(
+    material: Material | null,
+    wet: boolean,
+  ): Quantity<'Ω'> {
+    return bodyResistanceImpl(material, wet);
+  }
+
+  /** See {@link MaterialApi.contactResistance}. */
+  @CallSecurity(MaterialApiCallers)
+  public contactResistance(material: Material | null): Quantity<'Ω'> {
+    return contactResistanceImpl(material);
+  }
+
+  /** See {@link MaterialApi.seriesResistanceOfCoveringStack}. */
+  @CallSecurity(MaterialApiCallers)
+  public seriesResistanceOfCoveringStack(
+    materials: ReadonlyArray<Material | null>,
+  ): Quantity<'Ω'> {
+    return seriesResistanceOfCoveringStackImpl(materials);
+  }
+
+  /** See {@link MaterialApi.resolveShock}. */
+  @CallSecurity(MaterialApiCallers)
+  public resolveShock(current: Quantity<'A'>): TraumaResolution | null {
+    return resolveShockImpl(current);
   }
 }
 
@@ -239,6 +290,11 @@ function materialHeight(material: Material | null, channel: Channel): number {
     case 'blunt':
       ratio = tn;
       break;
+    default:
+      // Non-mechanical channel (shock) — no mechanical height. Never
+      // reached in practice (shock skips the fold); guards exhaustiveness.
+      ratio = 0;
+      break;
   }
   const floor = dial(AppSettingKeys.responseMaterialHeightFloor, 0.6);
   return clamp(floor + (1 - floor) * ratio, 0, scaleMax);
@@ -274,6 +330,11 @@ function attenuateImpl(
   if (!construction.isArmor()) {
     return { residualEnergy: e, channel };
   }
+  // A non-mechanical channel (shock) doesn't fold through the covering
+  // stack — it resolves by circuit upstream. Passes through untouched.
+  if (!Channels.isMechanicalChannel(channel)) {
+    return { residualEnergy: e, channel };
+  }
   const token = construction.responseFor(channel);
   const base = baseAttenuationFor(token);
   const height = materialHeight(material, channel);
@@ -288,6 +349,9 @@ function resolveTraumaImpl(
   _tissueMaterial: Material | null,
   partHasBone: boolean,
 ): TraumaResolution | null {
+  // A non-mechanical channel (shock) has no mechanical-fold trauma — its
+  // trauma is resolved by the circuit path (`resolveShock`), not here.
+  if (!Channels.isMechanicalChannel(channel)) return null;
   const e = Math.max(0, energy);
   if (e < dial(AppSettingKeys.responseNoWoundThreshold, 0.25)) {
     return null; // turned — no meaningful wound reached tissue
@@ -399,6 +463,113 @@ function isMaterial(stuff: Stuff): stuff is Material {
     typeof (stuff as Partial<Material>).getDensity === 'function' &&
     typeof (stuff as Partial<Material>).getTags === 'function'
   );
+}
+
+// ---------- electricity: circuit internals (module-private free functions) ----------
+//
+// The honest, scale-invariant Ohm's-law core. `I = V/R` and `P = I²R` hold
+// at every scale — the shock, the baton, and the deferred substation are one
+// formula set. The SHAPE (which property inverts to resistance, the covering
+// stack as a series sum) is code; every MAGNITUDE (geometry, floors/ceilings,
+// the current bands) is an `electricity.*` dial with a seeded-literal
+// fallback. No graph here — that is `ElectricityLogic`; these are the
+// per-element primitives it composes.
+
+/** `I = V/R` — current through a path, R floored to dodge divide-by-zero. */
+function ohmsCurrentImpl(
+  voltage: Quantity<'V'>,
+  resistance: Quantity<'Ω'>,
+): Quantity<'A'> {
+  const floor = dial(AppSettingKeys.electricityResistanceFloorOhms, 1);
+  const r = Math.max(resistance.rawValue(), floor);
+  return Quantity.of(voltage.rawValue() / r, 'A');
+}
+
+/** `P = I²R` — the Joule loss term (seeds the deferred Joule→fire coupling;
+ * the honest formula ships now, unused for harm in v1). */
+function jouleHeatImpl(
+  current: Quantity<'A'>,
+  resistance: Quantity<'Ω'>,
+): Quantity<'W'> {
+  const i = current.rawValue();
+  return Quantity.of(i * i * resistance.rawValue(), 'W');
+}
+
+/**
+ * A body's contact-to-contact resistance. Reads flesh conductivity through
+ * a nominal internal-path geometry (`R = (L/A)/σ`) so the material axis is
+ * honest; falls back to the dry-skin dial when a body carries no
+ * conductivity material. A `wet` body divides by the wet-skin factor (the
+ * real reason water is deadly). Floored.
+ */
+function bodyResistanceImpl(
+  material: Material | null,
+  wet: boolean,
+): Quantity<'Ω'> {
+  const floor = dial(AppSettingKeys.electricityResistanceFloorOhms, 1);
+  const sigma = material
+    ? material.getElectricalConductivity().rawValue()
+    : 0;
+  let r: number;
+  if (sigma > 0) {
+    const geo = dial(AppSettingKeys.electricityBodyGeometryFactor, 20000);
+    r = geo / sigma;
+  } else {
+    r = dial(AppSettingKeys.electricityBodyDryResistanceOhms, 100000);
+  }
+  if (wet) {
+    r /= Math.max(1, dial(AppSettingKeys.electricityBodyWetFactor, 100));
+  }
+  return Quantity.of(Math.max(r, floor), 'Ω');
+}
+
+/**
+ * The series resistance one material contributes to a path at a contact /
+ * covering node — `R = (L/A)/σ`. A conductor (copper) resolves to ~0; an
+ * insulator (rubber) resolves to a large-but-finite ceiling (an open break).
+ * A null/unknown material reads as an insulator. This is the engine of the
+ * armor inversion: metal adds ~0, rubber adds orders of magnitude.
+ */
+function contactResistanceImpl(material: Material | null): Quantity<'Ω'> {
+  const maxOhms = dial(AppSettingKeys.electricityContactMaxOhms, 1e12);
+  const sigma = material
+    ? material.getElectricalConductivity().rawValue()
+    : 0;
+  if (sigma <= 0) return Quantity.of(maxOhms, 'Ω');
+  const geo = dial(AppSettingKeys.electricityContactGeometryFactor, 0.01);
+  return Quantity.of(clamp(geo / sigma, 0, maxOhms), 'Ω');
+}
+
+/**
+ * The covering stack's total series resistance — the sum of each layer's
+ * `contactResistance`. NOT the mechanical attenuate fold: shock adds
+ * resistances, it doesn't subtract energy. Steel layers barely raise the
+ * sum; a rubber/leather layer collapses the current. The armor inversion,
+ * emergent from conductivity alone (no `isElectrical` narrowing).
+ */
+function seriesResistanceOfCoveringStackImpl(
+  materials: ReadonlyArray<Material | null>,
+): Quantity<'Ω'> {
+  let total = 0;
+  for (const m of materials) {
+    total += contactResistanceImpl(m).rawValue();
+  }
+  return Quantity.of(total, 'Ω');
+}
+
+/**
+ * Map a current through a body to the local contact trauma — a `burn` whose
+ * severity scales with the current above the burn threshold. Below the
+ * threshold there's no burn (perception / tingle only) → `null`. The
+ * whole-body outcomes (let-go / tetany / fibrillation → arrest) are the
+ * vitals coupling's job, not this local wound.
+ */
+function resolveShockImpl(current: Quantity<'A'>): TraumaResolution | null {
+  const i = Math.max(0, current.rawValue());
+  const threshold = dial(AppSettingKeys.electricityBurnThresholdAmps, 0.02);
+  if (i < threshold) return null;
+  const perAmp = dial(AppSettingKeys.electricityBurnSeverityPerAmp, 10);
+  return { type: 'burn', severity: (i - threshold) * perAmp };
 }
 
 function expandInto(

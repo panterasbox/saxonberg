@@ -28,8 +28,8 @@
  * by hosts as the form word and reconstructed via {@link Construction.of}.
  */
 
-import { CHANNELS } from './Channel';
-import type { Channel } from './Channel';
+import { MECHANICAL_CHANNELS, Channels } from './Channel';
+import type { Channel, MechanicalChannel } from './Channel';
 
 // ---------- form vocabularies ----------
 
@@ -113,7 +113,10 @@ export type DeliveryToken = (typeof DELIVERY_TOKENS)[number];
  * `ArmorForm × Channel` cell is a {@link ResistToken}. The single
  * authoritative shape table; magnitudes live in AppSettings.
  */
-const ARMOR_PROFILES: Record<ArmorForm, Record<Channel, ResistToken>> = {
+const ARMOR_PROFILES: Record<
+  ArmorForm,
+  Record<MechanicalChannel, ResistToken>
+> = {
   plate: { edge: 'deflect', point: 'resist', blunt: 'transmit' },
   mail: { edge: 'resist', point: 'fail', blunt: 'transmit' },
   padded: { edge: 'poor', point: 'poor', blunt: 'absorb' },
@@ -122,10 +125,14 @@ const ARMOR_PROFILES: Record<ArmorForm, Record<Channel, ResistToken>> = {
 
 /**
  * Per-delivery-form profile — which channel(s) an implement of this form
- * presents. Every `DeliveryForm × Channel` cell is a {@link DeliveryToken}.
+ * presents. Every `DeliveryForm × MechanicalChannel` cell is a
+ * {@link DeliveryToken}. (Shock delivery is a source capability, not a
+ * construction shape — it lives on `EnergizedMixin`, not here.)
  */
-const DELIVERY_PROFILES: Record<DeliveryForm, Record<Channel, DeliveryToken>> =
-  {
+const DELIVERY_PROFILES: Record<
+  DeliveryForm,
+  Record<MechanicalChannel, DeliveryToken>
+> = {
     bladed: { edge: 'primary', point: 'secondary', blunt: 'none' },
     pointed: { point: 'primary', edge: 'secondary', blunt: 'none' },
     hafted: { blunt: 'primary', edge: 'none', point: 'none' },
@@ -244,6 +251,11 @@ export class Construction {
         `Construction.responseFor: '${this._form}' is a weapon-delivery form, not armor`,
       );
     }
+    if (!Channels.isMechanicalChannel(channel)) {
+      throw new RangeError(
+        `Construction.responseFor: '${channel}' is not a mechanical channel (shock resolves by circuit, not the covering fold)`,
+      );
+    }
     return ARMOR_PROFILES[this._form][channel];
   }
 
@@ -257,29 +269,31 @@ export class Construction {
         `Construction.deliveryFor: '${this._form}' is an armor form, not a weapon`,
       );
     }
+    if (!Channels.isMechanicalChannel(channel)) return 'none';
     return DELIVERY_PROFILES[this._form][channel];
   }
 
   /**
    * The channels this weapon form actually delivers (token !== `none`),
-   * primary channel(s) first. Empty for an armor form.
+   * primary channel(s) first. Empty for an armor form. Only the mechanical
+   * channels — shock delivery is a source capability, not a weapon form.
    */
-  public deliveredChannels(): Channel[] {
+  public deliveredChannels(): MechanicalChannel[] {
     if (!isDeliveryForm(this._form)) return [];
-    const primaries = CHANNELS.filter(
+    const primaries = MECHANICAL_CHANNELS.filter(
       (c) => DELIVERY_PROFILES[this._form as DeliveryForm][c] === 'primary',
     );
-    const secondaries = CHANNELS.filter(
+    const secondaries = MECHANICAL_CHANNELS.filter(
       (c) => DELIVERY_PROFILES[this._form as DeliveryForm][c] === 'secondary',
     );
     return [...primaries, ...secondaries];
   }
 
   /** The single primary channel this weapon delivers, or null. */
-  public primaryChannel(): Channel | null {
+  public primaryChannel(): MechanicalChannel | null {
     if (!isDeliveryForm(this._form)) return null;
     return (
-      CHANNELS.find(
+      MECHANICAL_CHANNELS.find(
         (c) => DELIVERY_PROFILES[this._form as DeliveryForm][c] === 'primary',
       ) ?? null
     );
@@ -322,10 +336,12 @@ export class Construction {
    */
   public doesNothing(): boolean {
     if (isArmorForm(this._form)) {
-      const tokens = CHANNELS.map((c) => ARMOR_PROFILES[this._form as ArmorForm][c]);
+      const tokens = MECHANICAL_CHANNELS.map(
+        (c) => ARMOR_PROFILES[this._form as ArmorForm][c],
+      );
       return !Construction.resistProfileHasEffect(tokens);
     }
-    const tokens = CHANNELS.map(
+    const tokens = MECHANICAL_CHANNELS.map(
       (c) => DELIVERY_PROFILES[this._form as DeliveryForm][c],
     );
     return !Construction.deliveryProfileHasEffect(tokens);

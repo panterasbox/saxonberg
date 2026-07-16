@@ -5,7 +5,7 @@ import {
   WEAPON_DELIVERY_FORMS,
   CONSTRUCTION_FORMS,
 } from '../Construction';
-import { CHANNELS } from '../Channel';
+import { MECHANICAL_CHANNELS } from '../Channel';
 
 describe('Construction', () => {
   it('constructs every known form; of() throws on junk', () => {
@@ -33,19 +33,28 @@ describe('Construction', () => {
     expect(Construction.of('bladed').isWeapon()).toBe(true);
   });
 
-  it('armor grid is complete — every ArmorForm × Channel resolves', () => {
+  it('armor grid is complete — every ArmorForm × MechanicalChannel resolves', () => {
     for (const form of ARMOR_FORMS) {
       const c = Construction.of(form);
-      for (const ch of CHANNELS) {
+      for (const ch of MECHANICAL_CHANNELS) {
         expect(typeof c.responseFor(ch)).toBe('string');
       }
     }
   });
 
-  it('delivery grid is complete — every DeliveryForm × Channel resolves', () => {
+  it('shock is not a construction shape — responseFor(shock) throws', () => {
+    // Construction stays honestly mechanical; a shock resolves by circuit
+    // (MaterialApi), never through the covering-shape grid.
+    expect(() => Construction.of('plate').responseFor('shock')).toThrow(
+      RangeError,
+    );
+    expect(Construction.of('bladed').deliveryFor('shock')).toBe('none');
+  });
+
+  it('delivery grid is complete — every DeliveryForm × MechanicalChannel resolves', () => {
     for (const form of WEAPON_DELIVERY_FORMS) {
       const c = Construction.of(form);
-      for (const ch of CHANNELS) {
+      for (const ch of MECHANICAL_CHANNELS) {
         expect(typeof c.deliveryFor(ch)).toBe('string');
       }
     }

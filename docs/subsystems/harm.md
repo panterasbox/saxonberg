@@ -28,11 +28,18 @@ the Api ADDS a facade, it does not re-route them.
 
 ## The `inflict` producer
 
-`ConditionApi.inflict(target, { mechanism, site, energy }) → InflictOutcome`
-is the **single seam every harm source calls** — this build's floor-glass
-hazard, and later combat. It builds a `Trauma`, lands it through the
-existing `VitalsMixin.afflict()` door, runs the trauma's `onset`, and stamps
-the reconcile-on-read `tickedAt` anchor (see below — no arming).
+`ConditionApi.inflict(target, spec) → InflictOutcome` is the **single seam
+every harm source calls** — this build's floor-glass hazard, and later
+combat. It builds a `Trauma`, lands it through the existing
+`VitalsMixin.afflict()` door, runs the trauma's `onset`, and stamps the
+reconcile-on-read `tickedAt` anchor (see below — no arming).
+
+`InflictSpec` is a **discriminated union** (added by the
+[electricity](./electricity.md) build): the energy variant
+`{ mechanism, site, energy }` (mechanical channel or thermal/tearing
+passthrough) vs the shock variant `{ mechanism:'shock', site, current }` —
+whose magnitude is the *current through the victim* (`Quantity<'A'>`), not an
+energy.
 
 - **Gated producer.** `inflict` is a powerful primitive that must not be
   callable by arbitrary content. `ConditionLogic.inflict` carries
@@ -62,6 +69,13 @@ the reconcile-on-read `tickedAt` anchor (see below — no arming).
   channel. `mechanism` is still **recorded raw on `Trauma.mechanism`**. The
   response function is the single `MaterialApi` chokepoint — see
   [materials-response.md](./materials-response.md).
+- **The `shock` third path.** A `mechanism:'shock'` insult is intercepted
+  **before** the covering-stack fold and routed to a third path that maps the
+  current-through-victim straight to a contact `burn` (`MaterialApi.
+  resolveShock`) — the path resistance was resolved upstream by the
+  conduction walk, so shock **skips the fold** (metal armor does not protect).
+  The mechanical fold + the thermal/tearing passthrough stay byte-identical.
+  See [electricity.md](./electricity.md).
 
 ## The five trauma behaviors
 

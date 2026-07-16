@@ -41,7 +41,7 @@ describe("AppSettingsSeeder", () => {
     pm.setFindResult([]);
     const added = await AppSettingsSeeder.run();
 
-    expect(added).toBe(130);
+    expect(added).toBe(146); // + 23 weapon-playstyle combat + 16 electricity
     expect(pm.saves).toHaveLength(1);
     expect(pm.saves[0]!.collection).toBe("app_settings");
     const values = savedValues(pm);
@@ -205,6 +205,23 @@ describe("AppSettingsSeeder", () => {
           [AppSettingKeys.combatOffhandGuardBonus]: "0.6",
           [AppSettingKeys.combatDualWieldMasteryRank]: "2",
           [AppSettingKeys.combatDualWieldNoviceGuardBonus]: "-0.3",
+          // The 16 electricity (shock channel + conduction) tuning keys.
+          [AppSettingKeys.electricityBodyDryResistanceOhms]: "100000",
+          [AppSettingKeys.electricityBodyWetFactor]: "100",
+          [AppSettingKeys.electricityBodyGeometryFactor]: "20000",
+          [AppSettingKeys.electricityContactGeometryFactor]: "0.01",
+          [AppSettingKeys.electricityContactMaxOhms]: "1000000000000",
+          [AppSettingKeys.electricityResistanceFloorOhms]: "1",
+          [AppSettingKeys.electricityLetGoAmps]: "0.01",
+          [AppSettingKeys.electricityTetanicAmps]: "0.02",
+          [AppSettingKeys.electricityFibrillationAmps]: "0.1",
+          [AppSettingKeys.electricityBurnThresholdAmps]: "0.02",
+          [AppSettingKeys.electricityBurnSeverityPerAmp]: "10",
+          [AppSettingKeys.electricityPoolMinConductivity]: "0.005",
+          [AppSettingKeys.electricityInsulatorMaxConductivity]: "0.001",
+          [AppSettingKeys.electricityArmorConductiveSkinFactor]: "0.15",
+          [AppSettingKeys.electricitySustainBurnPerAmpSec]: "2",
+          [AppSettingKeys.electricityArrestDrivePerSec]: "40",
         },
       },
     ]);
@@ -238,8 +255,9 @@ describe("AppSettingsSeeder", () => {
     // + 23 combat (20 core 1v1 + 3 Build 2)
     // + 3 multi-party combat (2 focus-fire + 1 flee)
     // + 6 experience combat (2 feint poise + 2 fog + 2 sharpness)
-    // + 23 weapon-playstyle combat (15 weapon-profile + 3 reach + 5 hand-slot).
-    expect(added).toBe(129);
+    // + 23 weapon-playstyle combat (15 weapon-profile + 3 reach + 5 hand-slot)
+    // + 16 electricity (shock channel + conduction).
+    expect(added).toBe(145);
     expect(pm.saves).toHaveLength(1);
     const values = savedValues(pm);
     // operator value preserved, missing keys seeded
