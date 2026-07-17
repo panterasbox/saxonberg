@@ -560,6 +560,31 @@ settings:
     value: "4"
   - key: concealment.examineBonus
     value: "2"
+  # Stealth (hide) — the hider's derived concealment level (the actor-face,
+  # the opposed sibling of awareness/detection). score = stealth-rank ×
+  # competencePerBand + cover × coverWeight + darkness × lightWeight +
+  # stillnessBonus(low posture); mapped to a ConcealmentLevel band by the
+  # thresholds below. With competencePerBand=2 and band.hidden=4, a
+  # `competent`(rank 2) hider in a lit empty room reaches `hidden`(req 4):
+  # a competent-awareness watcher (capacity 6) perceives, a novice (3) does
+  # not. A score below band.subtle fails to conceal (obvious). See
+  # docs/subsystems/stealth.md.
+  - key: stealth.hide.competencePerBand
+    value: "2"
+  - key: stealth.hide.coverWeight
+    value: "1"
+  - key: stealth.hide.lightWeight
+    value: "1"
+  - key: stealth.hide.stillnessBonus
+    value: "1"
+  - key: stealth.hide.band.subtle
+    value: "0"
+  - key: stealth.hide.band.hidden
+    value: "4"
+  - key: stealth.hide.band.deep
+    value: "7"
+  - key: stealth.hide.band.buried
+    value: "10"
   # Hazards / traps (Phase 4). pinSeconds: a snare holds the body slot.
   # dropFallEnergy: the blunt a pit-fall adds on landing. disarmSeconds:
   # the hands-slot window to defuse a found trap. Per-trap wound energies

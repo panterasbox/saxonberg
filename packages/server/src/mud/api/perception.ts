@@ -27,6 +27,8 @@
  */
 
 import type { Stuff } from '../lib/stuff/Stuff';
+import type { CompetenceBandName } from '../lib/advancement/CompetenceBand';
+import type { ConcealmentLevel } from '../lib/concealment/ConcealmentLevel';
 import type { Container } from '../lib/spatial/Container';
 import type { Sensor } from '../lib/message/Sensor';
 import { Modality } from '../lib/perception/Modality';
@@ -266,6 +268,25 @@ export class PerceptionApi {
    */
   public static modeAttention(mode: string): number {
     return logic().modeAttention(mode);
+  }
+
+  /**
+   * The **hider's** derived concealment level (the actor-side, opposed
+   * sibling of the detection engine). A pure, deterministic score of the
+   * hider's `stealth` competence × available room cover × darkness ×
+   * stillness (a low posture), mapped to a {@link ConcealmentLevel} band by
+   * the `stealth.hide.band.*` thresholds. `stealthBand` is resolved by the
+   * caller (`AdvancementApi.bandFor(actor, 'stealth')`, awaited at command
+   * time) and the result snapshotted into `HidingMixin.hiddenLevel`, so the
+   * sync perceive gate reads only the stored band — never this. A score
+   * below `band.subtle` returns `'obvious'` (the hide failed). See
+   * docs/subsystems/stealth.md.
+   */
+  public static hideLevelFor(
+    actor: Stuff,
+    stealthBand: CompetenceBandName,
+  ): ConcealmentLevel {
+    return logic().hideLevelFor(actor, stealthBand);
   }
 
   /**

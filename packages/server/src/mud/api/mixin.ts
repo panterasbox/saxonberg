@@ -71,6 +71,7 @@ import type { FastTravel } from '../lib/fasttravel/FastTravel';
 import type { CredentialWallet } from '../lib/credential/CredentialWallet';
 import type { Perception } from '../lib/perception/Perception';
 import type { Concealable } from '../lib/concealment/Concealable';
+import type { Hiding } from '../lib/concealment/Hiding';
 import type { Hazard } from '../lib/hazard/Hazard';
 import type { Tangible } from '../lib/material/Tangible';
 import type { Constructed } from '../lib/material/Constructed';
@@ -662,6 +663,11 @@ export class MixinApi {
   /** Does `obj` carry a concealment level (presence-concealment)? */
   public static isConcealable(obj: Stuff): obj is Stuff & Concealable {
     return this.hasMixin(obj, Mixins.Concealable);
+  }
+
+  /** Can `obj` enter a dynamic `hide` state (the actor-side concealment)? */
+  public static isHiding(obj: Stuff): obj is Stuff & Hiding {
+    return this.hasMixin(obj, Mixins.Hiding);
   }
 
   /** Is `obj` a self-resolving trap/hazard (springs at a traverse/interact)? */
