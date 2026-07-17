@@ -9,12 +9,17 @@
 
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import Thing from '../../lib/stuff/Thing';
+import Location from '../../lib/stuff/Location';
 import Material from '../../lib/material/Material';
+import Forge from '../../obj/Forge';
 import { ThermalMixin } from '../../lib/thermal/Thermal';
 import { ThermalApi } from '../thermal';
+import { FireApi } from '../fire';
 import { ThermalLogic } from '../../obj/api/ThermalLogic';
 import { StuffApi } from '../stuff';
+import { ContainmentApi } from '../containment';
 import { SecurityError } from '../../lib/security/errors';
+import { Reserve } from '../../lib/reserve';
 import { Quantity } from '../../lib/quantity';
 import {
   makeStuff,
@@ -25,6 +30,7 @@ import { installV1QuantityMarshallers } from '../../lib/persistence/__tests__/qu
 class ThermalThing extends ThermalMixin(Thing) {
   static _mixinName = 'ThermalThing';
 }
+class ReachRoom extends Location {}
 
 let matCounter = 0;
 function material(specificHeat: number): Material {
@@ -108,5 +114,45 @@ describe('ThermalApi.depositHeat', () => {
     expect(() => logic!.depositHeat(thing(1, 1000), 10000)).toThrow(
       SecurityError,
     );
+  });
+});
+
+describe('ThermalApi.reachableHeatFor — the inert crafting seam', () => {
+  beforeEach(() => installV1QuantityMarshallers());
+  afterEach(() => StuffApi.clearAll());
+
+  function forge(heldK: number): Forge {
+    return makeStuff(() => {
+      const f = new Forge();
+      f.setBurnTemperatureK(heldK);
+      f.setReserve(
+        new Reserve('fuel', Quantity.of(100, '%'), Quantity.of(100, '%'), 'combustion', null),
+      );
+      return f;
+    });
+  }
+
+  it('returns the hottest lit furnace reachable from a position', () => {
+    const room = makeStuff(() => new ReachRoom());
+    const cool = forge(900);
+    const hot = forge(1500);
+    const maker = makeStuff(() => new Thing());
+    ContainmentApi.move(cool, room);
+    ContainmentApi.move(hot, room);
+    ContainmentApi.move(maker, room);
+    expect(ThermalApi.reachableHeatFor(maker)).toBe(1500);
+  });
+
+  it('returns 0 when no lit furnace is in reach', () => {
+    const room = makeStuff(() => new ReachRoom());
+    const maker = makeStuff(() => new Thing());
+    ContainmentApi.move(maker, room);
+    expect(ThermalApi.reachableHeatFor(maker)).toBe(0);
+
+    // An unlit forge does not count.
+    const f = forge(1500);
+    FireApi.douse(f);
+    ContainmentApi.move(f, room);
+    expect(ThermalApi.reachableHeatFor(maker)).toBe(0);
   });
 });

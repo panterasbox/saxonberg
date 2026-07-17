@@ -73,6 +73,21 @@ export class ThermalApi {
   public static reconcilePhase(stuff: Stuff): void {
     logic().reconcilePhase(stuff);
   }
+
+  /**
+   * The maximum sustained temperature (K) reachable from `position` — the
+   * hottest lit furnace in its scope (the crafting emergent-reachability
+   * principle applied to heat). Returns 0 when nothing hot is in reach.
+   *
+   * **The inert heat-as-crafting-control seam.** Built + tested, consumed by
+   * NO recipe this build: the future smithing branch will gate on it as its
+   * temperature `control` (a recipe needs `reachableHeatFor(maker) >=
+   * material.meltingPoint`) with zero retrofit. Homed in thermal (heat, not
+   * fire).
+   */
+  public static reachableHeatFor(position: Stuff): number {
+    return logic().reachableHeatFor(position);
+  }
 }
 
 SecurityApi.decorateApiClass(ThermalApi);

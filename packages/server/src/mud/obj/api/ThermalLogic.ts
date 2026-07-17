@@ -55,6 +55,35 @@ export class ThermalLogic extends ApiLogic {
   public reconcilePhase(stuff: Stuff): void {
     reconcilePhaseImpl(stuff);
   }
+
+  /** See {@link ThermalApi.reachableHeatFor}. */
+  @CallSecurity(ThermalApiCallers)
+  public reachableHeatFor(position: Stuff): number {
+    return reachableHeatForImpl(position);
+  }
+}
+
+/**
+ * The maximum sustained temperature (K) reachable from `position` — the hottest
+ * lit `Furnace` in its scope (the crafting emergent-reachability principle
+ * applied to heat: a smith's control gate is "what's the hottest thing I can
+ * reach?"). Returns 0 when nothing hot is in reach. **Inert this build** — the
+ * future smithing branch reads it as its temperature-control gate; no recipe
+ * calls it today.
+ */
+function reachableHeatForImpl(position: Stuff): number {
+  const scope = (position as unknown as { getContainer(): Stuff | null })
+    .getContainer();
+  if (scope === null || !MixinApi.isContainer(scope)) return 0;
+  let hottest = 0;
+  for (const occ of (scope as Stuff & Container).getContents()) {
+    const s = occ as unknown as Stuff;
+    if (s.isDestroyed() || !MixinApi.isFurnace(s)) continue;
+    if (!s.isLit() || s.fuelRemaining() <= 0) continue;
+    const t = s.getHeldTemperatureK();
+    if (t > hottest) hottest = t;
+  }
+  return hottest;
 }
 
 // ---------- phase-change internals (module-private free functions) ----------
