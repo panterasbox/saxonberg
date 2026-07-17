@@ -1,13 +1,16 @@
-# Coin — the one physical cash object (v1: a single 'credit' denomination,
-# face value 1 minor unit). Cloned per cash issuance / withdrawal split; a
-# massed Globbable, so a large stack blows past carry capacity through the
-# shipped encumbrance gauge (the honest cap on cash). data.mass is the
-# per-coin mass; the stack's borne mass is per-coin × quantity.
+# Coin — the one physical cash object, cloned per cash issuance / withdrawal.
+# The default clone is the base 1-credit denomination; `issueCash` re-stamps
+# the `denomination` per dispensed stack (1 / 5 / 25 → credit / crown /
+# sovereign). A massed Globbable, so a large stack blows past carry capacity
+# through the shipped encumbrance gauge (the honest cap on cash). Per-coin mass
+# is DERIVED from the denomination (`Coinage.perCoinMass`, currency-intrinsic)
+# — the `mass` below is the base-credit value for a bare clone; `Coin.getMass`
+# reads the denomination, so higher denominations are correctly heavier.
 class: /obj/Coin
 hydratorClass: /lib/persistence/PersistentHydrator
 data:
   shortDescription: a credit coin
   keywords: [coin, coins, credit, cash, money]
   denomination: credit
-  mass: 0.008
+  mass: 0.002
   quantity: 1

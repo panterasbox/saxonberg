@@ -46,7 +46,7 @@ data:
     south:
       destination: /domain/terminus/terminal/arrival-gate
     west:
-      destination: /domain/eternal/university-avenue/bank
+      destination: /domain/terminus/counting-houses/avenue-block
     north:
       destination: /domain/eternal/university-avenue/campus-gate
       door: /domain/eternal/university-avenue/campus-gate-door

@@ -353,3 +353,69 @@ relationship (banking ships wage *payment* only); live/governed taxation;
 player-run banks; the corpo faction-approval consequence of an account's
 affiliation; the grey market; a full reporting/analytics surface (v1 ships
 only the P&L + supply/reconcile consumers).
+
+---
+
+## The Attendant + Goodkin cycle (Terms · quota · royalty · coinage · re-home)
+
+Additions from the Attendant-substrate cycle. See
+[attendant.md](./attendant.md) for the storefront-attention substrate the
+Goodkin bank runs.
+
+- **The tab is gone.** The soft-credit `TabMixin` (skippable, redundant with
+  pay-per-drink) was removed — **zero credit anywhere** until credit is designed
+  for real.
+- **Coinage — 1 / 5 / 25 (`lib/banking/Coinage.ts`).** The civic credit mints in
+  three denominations (`credit`/`crown`/`sovereign`); a coin's **per-coin mass is
+  derived from its denomination** (`Coin.getMass` → `Coinage.perCoinMass`,
+  currency-intrinsic like face value, robust across clone/split/merge). Two
+  make-change routines: `dispense` (largest-first, for mint/withdraw) and
+  `planSpend` (bounded exact-selection, for cash payment). `issueCash` /
+  `moveCoins` / `drainCoins` / `cashOnHand` / `withdraw` and the cash settlement
+  path are value/denomination-aware; withdrawal + cash payment **refuse
+  gracefully before any ledger leg** when exact change is impossible
+  (till-can't-make-change / **exact-cash-or-card**). Wealth is now physical — a
+  fortune is too heavy to carry (the mass cap), so it must go on the weightless
+  ledger.
+- **Terms (`lib/banking/Terms.ts`).** A per-bank fee/minimum schedule authored on
+  `BankMixin` (`data.terms`), read at each verb. Every fee is a **conserved leg**
+  (customer → the branch operating account), with a corpo **royalty** split off
+  the top to the corpo treasury (`ensureCorpoTreasury`, keyed on `corpoKey`) — so
+  corpo income begins from the first fee. The core custodial loop (open, deposit,
+  withdraw your own money) is free everywhere; fees live only on
+  movement/convenience. Goodkin's schedule is near-fee-free (the one live fee is a
+  light cross-corpo wire).
+- **The withdrawal quota (common-pool till guard).** A per-account daily
+  cash-withdrawal cap, **derive-on-read** over the ledger's `withdraw` legs since
+  the game-day boundary (no counter, no scheduler — Law-2 clean), **never
+  collective** (a bank run is a feature), **scaling with standing** (Circle
+  membership → the raised cap; set by `enrollCircle`). Circle membership is an
+  attribute of the **member**, not the account — a `<corpoKey>.circle` saved
+  boolean prop on the player (the general `PropertiedMixin` every `Creature`
+  carries), read off the withdrawing principal, never a field on
+  `AccountBalance`.
+  The sibling of the Attendant lease (exclusive) — the common-pool guard.
+- **Till security.** `BankMixin.canRemoveContainable` vetoes loose removal of
+  vault coin; the banking verbs open a disbursement window
+  (`_beginDisbursing`/`_endDisbursing`, gated to the banking module) around the
+  one legitimate withdrawal, so "loot the drawer" is impossible.
+- **The opening float.** A branch's founding capital: mint coin into the till
+  AND credit the branch's own operating account against it (backed 1:1 →
+  conservation holds). Seeded **lazily inside `openAccount`** on the first
+  customer at the branch (the counter is guaranteed live then, which a boot-time
+  seed can't guarantee), idempotent — a module-internal op, not a public verb.
+  Lets early ledger-credit withdrawals work before deposits accumulate.
+  `banking.openingFloat` AppSetting.
+- **Goodkin re-homed.** From the placeholder `/domain/eternal/university-avenue/bank`
+  into the Terminus **Counting-Houses** (`domain/terminus/counting-houses/`): a
+  Locality + zone + a public avenue block (the four rival frontages as prose) +
+  the banking hall (counter + Wenna) + the Circle parlor (Halloran). A complete
+  **`Business`** (teller + officer positions, roster = hours, one P&L). The
+  **enrollment** is a `tree-dialogue` on Halloran (verb-guided: the officer walks
+  you through the real `bank open`/`bank deposit`/`pay` verbs) with a
+  **`bank-circle`** dialogue effect that enrolls you into the Circle — registered
+  from `lib/banking/BankDialogueEffect.ts` into the generic
+  `DialogueEffectRegistry` (banking → the dialogue substrate, so the substrate
+  never imports banking; see [npc-dialogue.md](./npc-dialogue.md)). The old
+  university-avenue seeds are retired (a live-DB reseed is delete-and-restart;
+  fresh DBs correct automatically).

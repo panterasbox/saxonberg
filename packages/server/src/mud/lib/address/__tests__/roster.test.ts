@@ -114,6 +114,8 @@ describe('Address roster — slim demonstrative inventory', () => {
       'last-counted-mile.yaml',
       // The University Avenue crossing locality (Phase 3).
       'university-avenue.yaml',
+      // The Terminus Counting-Houses financial-quarter locality.
+      'counting-houses.yaml',
     ]);
     const actual = new Set(listYamlsRelative(SEEDS_DIR));
     expect(actual).toEqual(expected);

@@ -276,6 +276,12 @@ global mint). Default-safe: an ungoverned server holds the band on `τ` alone.
 
 ## Open forks / next
 
+- The **business-landscape model** (what's real vs Atmosphere) is now settled and
+  the **bank** is its first fully worked institution — see
+  [terminus-banking.md](./terminus-banking.md) (locked design, 2026-07-15): the
+  "everything is a business / one money-tier per business, fixed at birth / real
+  is derived from player money-loops" refinement of §6, plus the five corpo
+  banks, Terms, and early corpo income.
 - Spec the **tavern** as the first real institution archetype (substrate's built).
 - Finish the last zones at neighborhood grain (**Port**, **Garrison**).
 - The **admin-sim** surface (what the city-administrator/governor actually do).

@@ -1,0 +1,16 @@
+# The Counting-Houses — the downtown financial-quarter building zone (the
+# second zone of the /domain/terminus/ area, after the terminal). A
+# CartesianZone holding the public avenue block and the Goodkin branch (banking
+# hall + Circle parlor). "The Counting-Houses" as the district label rides this
+# zone `name` + the room prose (generic rooms, no NamedMixin).
+#
+# Owned by the Terminus municipality — but ownership is NOT declared here (the
+# governing security invariant). It lives in the gated `parcels` collection
+# (`/domain/terminus/counting-houses` → the managed `terminus` group; see
+# mud/config/parcels.yaml). Goodkin owns its *branch* by corpo affiliation on
+# the BankCounter fixture, not by zone title — the city owns the street.
+class: /lib/location/CartesianZone
+hydratorClass: /lib/persistence/PersistentHydrator
+data:
+  name: The Counting-Houses
+  cellSize: 3.0

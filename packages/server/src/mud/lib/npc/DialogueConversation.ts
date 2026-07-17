@@ -54,7 +54,9 @@ import type {
   DialogueChoice,
   DialogueGuard,
   DialogueEffect,
+  DomainDialogueEffect,
 } from "./tree";
+import { DialogueEffectRegistry } from "./DialogueEffects";
 
 /** The engagement type for the NPC-side state machine. */
 export const DIALOGUE_CONVERSATION_TYPE = "tree-dialogue-conversation";
@@ -387,6 +389,17 @@ export class DialogueConversation implements SustainedEngagement {
         case "dispatch":
           await this.dispatch(effect.command);
           break;
+        default: {
+          // A domain effect (banking's `bank-circle`, etc.) — apply through the
+          // registered handler; the substrate never imports the domain. The
+          // authored config is open data, so it reaches here as a domain effect.
+          const domain = effect as DomainDialogueEffect;
+          await DialogueEffectRegistry.get(domain.verb)?.apply({
+            npc: this.npc,
+            player: this.player,
+            effect: domain,
+          });
+        }
       }
     }
     return flow;

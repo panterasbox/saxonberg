@@ -89,7 +89,7 @@ describe("Wallet routing", () => {
     expect(BankingApi.balanceOf(acctB).minor).toBe(1000);
 
     // switch active to B → default pay now routes from B
-    BankingApi.setActiveAccount(pay, acctB);
+    pay.setActiveAccount(acctB);
     receipt = await asOwner(alice, () =>
       BankingApi.settle(charge(100), { kind: "credential" })
     );
