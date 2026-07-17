@@ -121,7 +121,7 @@ The gate consumes the existing per-viewer perception (`VisionModality`, and thro
 
 **Decision.**
 - Seed **`seeds/lib/locomotion/sneak.yaml`** and **`run.yaml`** (medium `ground`, bracketing `walk`: sneak `speed < 1` + `noiseLevel: quiet`; run `speed > 1` + `noiseLevel: loud`). The `noiseLevel`/self-concealment side is authored-as-data but its observer-detection is the reserved stealth consumer (no test asserts others-can't-see-a-sneaker).
-- **Verbs** `sneak`/`run` (`SneakController`/`RunController` extends `LocomotionControllerBase`, overriding `modeName()` — the shipped one-line pattern) **and** a **`pace` setting** (`movement.pace` → resolved by `defaultModeFor`) so a player can set a persistent default. Both surfaces, minimal cost.
+- **Verbs** `sneak`/`run` (`SneakController`/`RunController` extends `LocomotionControllerBase`, overriding `modeName()` — the shipped one-line pattern). The persistent default rides the **existing `movement.defaultMode` setting** (`set movement.defaultMode sneak`) — no separate `movement.pace` knob (it was redundant with `defaultMode`, which already selects the mode `go` dispatches under and now accepts `sneak`/`run`).
 - The **detection modifier** is *not* a mode seed field — it's an AppSettings dial map read by `PerceptionLogic`: `movement.attention.sneak` (+), `movement.attention.run` (−), walk = 0. `HazardMixin.resolveTraversal` passes `modeAttention(mode)` into `PerceptionApi.perceives`.
 
 **Rationale.** "Two more singletons, not a new model" (the requirement's own line) — the substrate already carries per-mode attributes and per-traverse mode selection. Keeping the *magnitude* in AppSettings (not the seed) honors "all tunables are dials" and lets the gym tune the risk-dial without re-seeding.
@@ -264,7 +264,7 @@ Paths below are rooted at `packages/server/src/mud/` unless noted.
 **Edited files:**
 - `obj/api/PerceptionLogic.ts` — `perceives` reads the `movement.attention.*` modifier for the passed mode.
 - `lib/hazard/Hazard.ts` — `resolveTraversal` passes `modeAttention(mode)` into `perceives` (already receives `mode`).
-- `LocomotionApi.defaultModeFor` chain / `movement.pace` setting wiring (`api/locomotion.ts`) — the `pace` setting selects sneak/walk/run as the default.
+- `LocomotionApi.defaultModeFor` (`api/locomotion.ts`) — no change needed; the existing `movement.defaultMode` setting already selects the default mode and now accepts `sneak`/`run` (its description enriched to say so).
 - command discovery wiring.
 
 **Design calls:** D8.

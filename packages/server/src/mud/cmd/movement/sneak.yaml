@@ -10,7 +10,7 @@ help: |
 
   This is the careful end of the care↔speed axis. Reach for `run` when
   you'd rather trade caution for speed, or set a standing default with
-  `set movement.pace sneak`.
+  `set movement.defaultMode sneak`.
 validators:
   - /lib/command/validators/requiresAnimate
   - /lib/command/validators/requiresConscious
