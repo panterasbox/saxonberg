@@ -169,6 +169,82 @@ export class PerceptionApi {
   }
 
   /**
+   * The concealment gate — does `target` resolve for `viewer` at all?
+   *
+   * `true` when the target isn't concealable or its concealment level is
+   * `obvious` (backcompat — everything currently visible stays visible),
+   * when the viewer has already **discovered** it (a sticky per-viewer
+   * belief), or when the viewer's {@link effectivePerception} meets the
+   * band's requirement. Pure, deterministic (no RNG), monotone in
+   * `attention` up to the capacity-vs-concealment ceiling.
+   *
+   * `attention` defaults to the `concealment.passiveBaseline` dial (a
+   * passive glance); active search / care↔speed modes pass a bonus in
+   * later phases. This is the predicate the enumeration seams (look,
+   * scope-walk, MQL `visible`, the wire projection, viewer-aware exits)
+   * consult so a concealed-undiscovered thing is absent from a viewer's
+   * world AND the wire.
+   *
+   * Reads the actor's `awareness` band from the snapshot warmed by
+   * {@link preloadForSenseGate}; call it per-command so the sync gate has
+   * a live band (a miss degrades to the floor band, not an error).
+   */
+  public static perceives(
+    viewer: Stuff,
+    target: Stuff,
+    attention?: number,
+  ): boolean {
+    return logic().perceives(viewer, target, attention);
+  }
+
+  /**
+   * The viewer's effective perception against `target`:
+   * `capacity + attention + conditions`. `capacity` = the viewer's
+   * `awareness` competence band rank × the `detection.capacityPerBand`
+   * dial (floor 0 when the Discipline is unseeded or the band snapshot is
+   * cold); `attention` = the passed value; `conditions` = the light-band
+   * penalty from the existing per-viewer vision path (0 in adequate light
+   * or when vision can't be evaluated). Pure + deterministic.
+   */
+  public static effectivePerception(
+    viewer: Stuff,
+    target: Stuff,
+    attention: number,
+  ): number {
+    return logic().effectivePerception(viewer, target, attention);
+  }
+
+  /**
+   * Has `viewer` discovered `target`? Reads the `DISCOVERY` belief realm
+   * (keyed on the target's `templatePath`). `false` when the viewer keeps
+   * no belief store or the target has no durable templatePath.
+   */
+  public static hasDiscovered(viewer: Stuff, target: Stuff): boolean {
+    return logic().hasDiscovered(viewer, target);
+  }
+
+  /**
+   * Record that `viewer` has discovered `target` — writes the `DISCOVERY`
+   * belief realm (a bare `found` flag), the sticky per-viewer sink for the
+   * detection gate. No-op when the viewer keeps no belief store or the
+   * target has no durable templatePath.
+   */
+  public static recordDiscovery(viewer: Stuff, target: Stuff): void {
+    logic().recordDiscovery(viewer, target);
+  }
+
+  /**
+   * Passive-hint candidates in `scope`: concealed-and-undiscovered things
+   * the viewer *nearly* perceives — `requirement − effectivePerception ≤
+   * concealment.hintCutoff`. The "the bookshelf sits oddly" nudge that
+   * directs attention without revealing. (Phase 2 reads the cutoff dial
+   * with a seeded fallback; Phase 3 wires the surfacing render.)
+   */
+  public static hintsFor(viewer: Stuff, scope: readonly Stuff[]): Stuff[] {
+    return logic().hintsFor(viewer, scope);
+  }
+
+  /**
    * Drop the modality cache so the next access rebuilds with the
    * current singleton set. Test seam for suites that mutate the
    * modality registry; gated by `assertTestOnly` so production code

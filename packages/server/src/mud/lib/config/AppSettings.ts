@@ -588,6 +588,23 @@ export const AppSettingKeys = {
    * `hidden`.
    */
   concealmentHiddenDefaultLevel: "concealment.hiddenDefaultLevel",
+  /**
+   * Detection — the passive attention a viewer brings to bear on a
+   * concealed thing without actively searching (the `attention` baseline
+   * folded into effective perception). Active search / care↔speed
+   * modifiers layer on top in later phases. Read with a seeded-literal
+   * fallback. See docs/subsystems/concealment.md.
+   */
+  concealmentPassiveBaseline: "concealment.passiveBaseline",
+  /**
+   * Detection — perception "points" conferred per `awareness` competence
+   * band rank (untrained = rank 0 … expert = rank 4). `capacity = rank ×
+   * this`, the competence half of effective perception. Degrades to a
+   * floor capacity when the `awareness` Discipline is unseeded (a viewer
+   * with no evidence reads as rank 0). Read with a seeded-literal
+   * fallback. See docs/subsystems/concealment.md.
+   */
+  detectionCapacityPerBand: "detection.capacityPerBand",
 } as const;
 
 export type AppSettingKey =

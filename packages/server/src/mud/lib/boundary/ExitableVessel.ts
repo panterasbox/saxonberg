@@ -48,6 +48,7 @@ import type { Container } from '../spatial/Container';
 import type Door from './Door';
 import { StuffApi } from '../../api/stuff';
 import { BoundaryApi } from '../../api/boundary';
+import { PerceptionApi } from '../../api/perception';
 import { MixinApi } from '../../api/mixin';
 
 const ExitableVesselBase = DoorBearingMixin(
@@ -82,6 +83,15 @@ export default class ExitableVessel extends ExitableVesselBase {
     const base = super.getObviousExits();
     const out = this.getOrSynthesizeOutExit();
     if (out && !out.isHidden()) base.push(out);
+    return base;
+  }
+
+  public override obviousExitsFor(viewer: Stuff): Exit[] {
+    const base = super.obviousExitsFor(viewer);
+    const out = this.getOrSynthesizeOutExit();
+    // The synthesized `out` rides the same viewer-aware gate as the
+    // explicit exits (an un-concealed `out` always perceives-true).
+    if (out && PerceptionApi.perceives(viewer, out)) base.push(out);
     return base;
   }
 

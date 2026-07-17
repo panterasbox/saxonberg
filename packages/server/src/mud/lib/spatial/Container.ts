@@ -40,6 +40,7 @@ import { SecurityPolicies } from '../security/SecurityPolicies';
 import { ExecutionContextApi } from '../../api/execution-context';
 import { MixinApi } from '../../api/mixin';
 import { ContainmentApi } from '../../api/containment';
+import { PerceptionApi } from '../../api/perception';
 import { StuffApi } from '../../api/stuff';
 import type { CommandContributions } from '../../api/command';
 import { AppApi } from '../../api/app';
@@ -293,7 +294,11 @@ export function ContainerMixin<TBase extends MixinConstructor>(Base: TBase) {
             (child) =>
               child.stuffId !== viewer.stuffId &&
               !MixinApi.isAdornment(child) &&
-              MixinApi.isVisible(child),
+              MixinApi.isVisible(child) &&
+              // Honest fog on the wire: a concealed-undiscovered child never
+              // enters the client projection. `perceives` short-circuits
+              // true for un-concealed children (the common path).
+              PerceptionApi.perceives(viewer, child),
           );
           // Surface-resting items (the back-bar's bottles) render under their
           // surface, not as loose contents — the same rule `look`/`sense` use

@@ -36,6 +36,7 @@ import { ContainmentApi } from '../../../api/containment';
 import { MessageApi } from '../../../api/message';
 import { BulkableApi } from '../../../api/bulk';
 import { RecognitionApi } from '../../../api/recognition';
+import { PerceptionApi } from '../../../api/perception';
 import { SocialApi } from '../../../api/social';
 import { Mml } from '../../../api/mml';
 import type Exit from '../../../lib/boundary/Exit';
@@ -167,6 +168,9 @@ export default class LookController extends CommandController<LookModel> {
         if (item.stuffId === actor.stuffId) return false;
         if (MixinApi.isAdornment(item)) return false;
         if (!MixinApi.isVisible(item)) return false;
+        // Honest fog: a concealed thing the actor hasn't discovered /
+        // can't yet perceive is absent from the actor's world.
+        if (!PerceptionApi.perceives(actor, item)) return false;
         return true;
       });
 
@@ -219,7 +223,7 @@ export default class LookController extends CommandController<LookModel> {
       body = Mml.compose`${body}\n${puddle}`;
     }
     if (hasExits) {
-      const exitsLine = this.formatExits(location.getObviousExits());
+      const exitsLine = this.formatExits(location.obviousExitsFor(actor));
       if (exitsLine) {
         body = Mml.compose`${body}\n${exitsLine}`;
       }

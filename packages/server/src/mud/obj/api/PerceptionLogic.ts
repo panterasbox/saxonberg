@@ -9,15 +9,64 @@ import type { Stuff } from '../../lib/stuff/Stuff';
 import type { Container } from '../../lib/spatial/Container';
 import type { Sensor } from '../../lib/message/Sensor';
 import type { Organism } from '../../lib/species/Organism';
+import type { Perception } from '../../lib/perception/Perception';
 import { Modality } from '../../lib/perception/Modality';
 import type { Signal, Percept } from '../../lib/perception/Modality';
 import { MixinApi } from '../../api/mixin';
 import { StuffApi } from '../../api/stuff';
 import { SpeciesApi } from '../../api/species';
+import { AdvancementApi } from '../../api/advancement';
+import { AppApi } from '../../api/app';
+import { AppSettingKeys } from '../../lib/config/AppSettings';
 import { TemplatePathPrefixes } from '../../lib/paths';
+import { DISCOVERY } from '../../lib/belief/BeliefStore';
+import { ConcealmentLevels } from '../../lib/concealment/ConcealmentLevel';
+import {
+  CompetenceBand,
+  type CompetenceBandName,
+} from '../../lib/advancement/CompetenceBand';
+import { LIGHT_BANDS } from '../../lib/perception/Light';
+// Type-only — the vision singleton's class is resolved lazily off its
+// registered clone (the RecognitionLogic `canSeeGate` idiom); a *static*
+// value import of a specific modality would drag the whole modality
+// subsystem into this module's eval.
+import type { VisionModality } from '../../lib/perception/modalities/VisionModality';
 
 /** Template-path prefix shared by every modality singleton. */
 const MODALITY_PREFIX = TemplatePathPrefixes.perceptionModalities;
+
+/** Template path of the vision modality singleton (light conditions read). */
+const VISION_PATH = `${MODALITY_PREFIX}vision`;
+
+/** The perception/awareness Discipline key (seeded as data in Phase 3). */
+const AWARENESS_DISCIPLINE = 'awareness';
+
+/** The light band at which conditions are neutral (0). Darker bands penalize. */
+const NEUTRAL_LIGHT_INDEX = LIGHT_BANDS.indexOf('lit');
+
+/**
+ * Seeded-literal dial fallbacks (safe pre-warm / unit-test reads — the
+ * harm / electricity / concealment dial idiom). Kept in sync with
+ * `config/app-settings.yaml`.
+ */
+const DEFAULT_CAPACITY_PER_BAND = 3;
+const DEFAULT_PASSIVE_BASELINE = 0;
+/** Phase-3 `concealment.hintCutoff` fallback (the dial key lands in Phase 3). */
+const DEFAULT_HINT_CUTOFF = 2;
+
+/**
+ * Per-actor `awareness` competence-band snapshot, warmed by the async
+ * `preloadForSenseGate(actor)` so the sync detection gate (`perceives` /
+ * `effectivePerception`, called at the sync enumeration seams — look,
+ * scope-walk, projection) reads a cached band with no `await`. Keyed by
+ * `stuffId` (session-ephemeral, exactly the cache's lifetime — a per-
+ * command preload re-warms it). A miss degrades to the floor band, so
+ * Phase 2 is self-contained without Phase 3's `awareness` seed.
+ *
+ * Module-scope (not instance state): resets with the module on HMR
+ * reload, the same invalidation point as the modality caches.
+ */
+const awarenessBandCache = new Map<string, CompetenceBandName>();
 
 const PerceptionApiCallers = SecurityPolicies.AnyOf(
   SecurityPolicies.FromModule('/api/perception#PerceptionApi'),
@@ -125,10 +174,53 @@ export class PerceptionLogic extends ApiLogic {
   /** See {@link PerceptionApi.preloadForSenseGate}. */
   @CallSecurity(PerceptionApiCallers)
   public async preloadForSenseGate(actor: Stuff): Promise<void> {
-    await Promise.all([
+    // Warm anatomy + modalities AND the actor's `awareness` band in
+    // parallel, then snapshot the band so the sync detection gate reads it
+    // without an await. `bandFor` returns the floor band when the
+    // `awareness` Discipline is unseeded (Phase 3 seeds it), so this is
+    // safe today; a throw degrades to the floor too.
+    const [, , band] = await Promise.all([
       SpeciesApi.preloadAnatomy(actor),
       this.preloadModalities(),
+      AdvancementApi.bandFor(actor, AWARENESS_DISCIPLINE).catch(
+        () => CompetenceBand.FLOOR,
+      ),
     ]);
+    awarenessBandCache.set(actor.stuffId, band);
+  }
+
+  /** See {@link PerceptionApi.perceives}. */
+  @CallSecurity(PerceptionApiCallers)
+  public perceives(viewer: Stuff, target: Stuff, attention?: number): boolean {
+    return perceivesImpl(viewer, target, attention);
+  }
+
+  /** See {@link PerceptionApi.effectivePerception}. */
+  @CallSecurity(PerceptionApiCallers)
+  public effectivePerception(
+    viewer: Stuff,
+    target: Stuff,
+    attention: number,
+  ): number {
+    return effectivePerceptionImpl(viewer, target, attention);
+  }
+
+  /** See {@link PerceptionApi.hasDiscovered}. */
+  @CallSecurity(PerceptionApiCallers)
+  public hasDiscovered(viewer: Stuff, target: Stuff): boolean {
+    return hasDiscoveredImpl(viewer, target);
+  }
+
+  /** See {@link PerceptionApi.recordDiscovery}. */
+  @CallSecurity(PerceptionApiCallers)
+  public recordDiscovery(viewer: Stuff, target: Stuff): void {
+    recordDiscoveryImpl(viewer, target);
+  }
+
+  /** See {@link PerceptionApi.hintsFor}. */
+  @CallSecurity(PerceptionApiCallers)
+  public hintsFor(viewer: Stuff, scope: readonly Stuff[]): Stuff[] {
+    return hintsForImpl(viewer, scope);
   }
 
   /** See {@link PerceptionApi._resetModalityCacheForTest}. */
@@ -279,6 +371,149 @@ function dedupe(modalities: readonly Modality[]): readonly Modality[] {
     if (seen.has(m)) continue;
     seen.add(m);
     out.push(m);
+  }
+  return out;
+}
+
+// ---------------------------------------------------------------------------
+// Detection — the concealment gate (D2/D3). Pure + deterministic (no RNG):
+//   perceives = discovered-in-belief OR effectivePerception >= requirement
+//   effectivePerception = capacity + attention + conditions
+// The band read (`capacity`) is warmed synchronously by
+// `preloadForSenseGate`; everything else is a pure read of durable state,
+// so a single input tuple always yields the same answer, monotone in
+// attention up to the capacity-vs-concealment ceiling.
+// ---------------------------------------------------------------------------
+
+/** Numeric AppSetting read with a seeded-literal fallback. */
+function dialNumber(key: string, fallback: number): number {
+  try {
+    const raw = AppApi.setting(key);
+    if (raw === '' || raw == null) return fallback;
+    const n = Number.parseFloat(raw);
+    return Number.isFinite(n) ? n : fallback;
+  } catch {
+    return fallback;
+  }
+}
+
+/** The passive attention baseline (no active search / mode bonus). */
+function passiveBaseline(): number {
+  return dialNumber(
+    AppSettingKeys.concealmentPassiveBaseline,
+    DEFAULT_PASSIVE_BASELINE,
+  );
+}
+
+/**
+ * The viewer's perception `capacity` = `awareness` band rank × the per-band
+ * dial. Reads the warmed snapshot; a cache miss (never preloaded) or an
+ * unseeded `awareness` Discipline both read as the floor band (rank 0 →
+ * capacity 0) — the Phase-2-self-contained degrade.
+ */
+function capacityOf(viewer: Stuff): number {
+  const band = awarenessBandCache.get(viewer.stuffId) ?? CompetenceBand.FLOOR;
+  return CompetenceBand.rank(band) * dialNumber(
+    AppSettingKeys.detectionCapacityPerBand,
+    DEFAULT_CAPACITY_PER_BAND,
+  );
+}
+
+/**
+ * The light `conditions` term — darkness makes a concealed thing harder to
+ * notice. Reuses the existing per-viewer vision path
+ * (`VisionModality.perceivedBand`, which threads the viewer's Shadow seam,
+ * so night-vision / blindness enter here — no second light read). Neutral
+ * (0) at `lit` and brighter; a negative penalty in dimmer bands. Degrades
+ * to 0 (no effect) whenever the viewer can't run vision queries or the
+ * vision singleton isn't loaded (unit fixtures), so detection stays
+ * deterministic and testable without a light substrate.
+ */
+function lightConditionsFor(viewer: Stuff, target: Stuff): number {
+  if (!MixinApi.isSensor(viewer) || !MixinApi.isPerception(viewer)) return 0;
+  if (!MixinApi.isContainable(target)) return 0;
+  const env = target.getContainer();
+  if (!env || !MixinApi.isContainer(env)) return 0;
+  const vision = StuffApi.findByTemplatePath(VISION_PATH);
+  if (!vision) return 0;
+  const VisionCtor = vision.constructor as typeof VisionModality;
+  let idx: number;
+  try {
+    const band = VisionCtor.perceivedBand(
+      viewer as Stuff & Sensor & Perception,
+      env as Stuff & Container,
+    );
+    idx = LIGHT_BANDS.indexOf(band);
+  } catch {
+    return 0;
+  }
+  if (idx < 0) return 0;
+  return Math.min(0, idx - NEUTRAL_LIGHT_INDEX);
+}
+
+/** See {@link PerceptionApi.effectivePerception}. */
+function effectivePerceptionImpl(
+  viewer: Stuff,
+  target: Stuff,
+  attention: number,
+): number {
+  return capacityOf(viewer) + attention + lightConditionsFor(viewer, target);
+}
+
+/** See {@link PerceptionApi.hasDiscovered}. */
+function hasDiscoveredImpl(viewer: Stuff, target: Stuff): boolean {
+  if (!MixinApi.isBeliefStore(viewer)) return false;
+  const referent = target.getTemplatePath();
+  if (!referent) return false;
+  return !!viewer.recall(DISCOVERY, referent)?.payload.found;
+}
+
+/** See {@link PerceptionApi.recordDiscovery}. */
+function recordDiscoveryImpl(viewer: Stuff, target: Stuff): void {
+  if (!MixinApi.isBeliefStore(viewer)) return;
+  const referent = target.getTemplatePath();
+  if (!referent) return;
+  viewer.know(DISCOVERY, referent, { found: true });
+}
+
+/** See {@link PerceptionApi.perceives}. */
+function perceivesImpl(
+  viewer: Stuff,
+  target: Stuff,
+  attention?: number,
+): boolean {
+  // Backcompat: a non-concealable or `obvious` thing is always present —
+  // everything currently visible stays visible.
+  if (!MixinApi.isConcealable(target)) return true;
+  const level = target.getConcealment();
+  if (!ConcealmentLevels.isConcealed(level)) return true;
+  // Once found, always seen (the per-viewer discovery belief sticks).
+  if (hasDiscoveredImpl(viewer, target)) return true;
+  const att = attention ?? passiveBaseline();
+  return (
+    effectivePerceptionImpl(viewer, target, att) >=
+    ConcealmentLevels.requirementFor(level)
+  );
+}
+
+/** See {@link PerceptionApi.hintsFor}. */
+function hintsForImpl(viewer: Stuff, scope: readonly Stuff[]): Stuff[] {
+  // Reads the Phase-3 `concealment.hintCutoff` dial by its raw key (absent
+  // until Phase 3, so it falls back to the seeded literal — harmless now).
+  const cutoff = dialNumber('concealment.hintCutoff', DEFAULT_HINT_CUTOFF);
+  const att = passiveBaseline();
+  const out: Stuff[] = [];
+  for (const cand of scope) {
+    if (!MixinApi.isConcealable(cand)) continue;
+    const level = cand.getConcealment();
+    if (!ConcealmentLevels.isConcealed(level)) continue;
+    if (hasDiscoveredImpl(viewer, cand)) continue; // already found, not a hint
+    // A thing already passively perceived isn't a hint — it's visible.
+    if (perceivesImpl(viewer, cand, att)) continue;
+    const gap =
+      ConcealmentLevels.requirementFor(level) -
+      effectivePerceptionImpl(viewer, cand, att);
+    if (gap <= cutoff) out.push(cand);
   }
   return out;
 }

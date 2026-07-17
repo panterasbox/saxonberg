@@ -503,3 +503,12 @@ settings:
     value: "11"
   - key: concealment.hiddenDefaultLevel
     value: "hidden"
+  # Detection — the passive attention a viewer brings without actively
+  # searching, and the perception "points" per awareness competence band
+  # rank (capacity = rank x capacityPerBand). With the level requirements
+  # above (subtle 2, hidden 4, deep 7, buried 11), a rank-1 novice
+  # passively notices subtle; searching / higher bands reach the rest.
+  - key: concealment.passiveBaseline
+    value: "0"
+  - key: detection.capacityPerBand
+    value: "3"

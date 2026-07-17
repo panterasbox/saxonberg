@@ -19,6 +19,7 @@ import type { Stuff } from '../../lib/stuff/Stuff';
 import { ContainmentApi } from '../containment';
 import { MixinApi } from '../mixin';
 import { RecognitionApi } from '../recognition';
+import { PerceptionApi } from '../perception';
 import type { Detail } from '../../lib/description/Detailed';
 import type { BulkAffordance } from '../../lib/bulk/Bulkable';
 import type { MqlMatch, MqlMatchVia } from './types';
@@ -78,7 +79,7 @@ export function candidatesForHere(
     // cardinal directions) appear in the candidate pool the same
     // way explicit exits do.
     const seenDirs = new Set<string>();
-    for (const exit of location.getObviousExits()) {
+    for (const exit of location.obviousExitsFor(viewer)) {
       const direction = exit.getDirection();
       if (seenDirs.has(direction)) continue;
       seenDirs.add(direction);
@@ -174,6 +175,11 @@ export function candidatesForFlat(
 }
 
 function pushDirect(out: ScopeCandidate[], stuff: Stuff, viewer: Stuff): void {
+  // Honest fog: a concealed thing the viewer hasn't discovered / can't yet
+  // perceive isn't a targetable candidate (it isn't in the viewer's world).
+  // `perceives` short-circuits true for un-concealed things, so the common
+  // path is untouched.
+  if (!PerceptionApi.perceives(viewer, stuff)) return;
   // Viewer-relative name + keywords: a target resolves only by what the
   // viewer can perceive — its `knownAs` if recognized, salient features
   // if not, the disguise's descriptors if masked — never its true name.
