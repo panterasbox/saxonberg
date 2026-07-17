@@ -1,0 +1,9 @@
+# A coil of hemp rope — a discrete Thing (a coil, not a fungible length).
+class: /lib/stuff/Thing
+hydratorClass: /lib/persistence/PersistentHydrator
+data:
+  shortDescription: a coil of hemp rope
+  primaryKeyword: rope
+  keywords: [rope, coil, hemp, line]
+  longDescription: |
+    Fifty feet of good hemp rope, coiled and whipped at both ends so it won't fray. It smells of tar and a little of the sea. Every delver's second thought, right after light, and the one they curse themselves for leaving behind.

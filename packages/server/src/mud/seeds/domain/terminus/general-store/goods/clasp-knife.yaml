@@ -1,0 +1,9 @@
+# A clasp knife — the store's "a basic tool" staple, a discrete Thing.
+class: /lib/stuff/Thing
+hydratorClass: /lib/persistence/PersistentHydrator
+data:
+  shortDescription: a folding clasp knife
+  primaryKeyword: knife
+  keywords: [knife, clasp, tool, blade, pocketknife]
+  longDescription: |
+    A workmanlike clasp knife, the sort that cuts rope and whittles a peg and opens a ration pack and does none of it beautifully. The bone handle is worn smooth by someone else's thumb. A tool, not a weapon, and honest about which it is.

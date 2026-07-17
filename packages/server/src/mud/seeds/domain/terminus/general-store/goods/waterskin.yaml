@@ -1,0 +1,9 @@
+# A leather waterskin — a discrete Thing.
+class: /lib/stuff/Thing
+hydratorClass: /lib/persistence/PersistentHydrator
+data:
+  shortDescription: a leather waterskin
+  primaryKeyword: waterskin
+  keywords: [waterskin, skin, water, flask, bottle]
+  longDescription: |
+    A stitched leather skin with a horn stopper, empty and waiting to be filled. Sling it over a shoulder and forget it's there until the passage runs dry and the dust gets in your throat — then it's the most valuable thing you own.

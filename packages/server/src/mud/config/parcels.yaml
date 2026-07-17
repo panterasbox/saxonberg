@@ -34,6 +34,11 @@ parcels:
   - extent: /domain/terminus/counting-houses
     owner: { kind: group, name: terminus }
 
+  # The general store off the avenue block — the city owns the building; the
+  # store owns its Business (its P&L account), not the street it stands on.
+  - extent: /domain/terminus/general-store
+    owner: { kind: group, name: terminus }
+
   # Duncan Hall's dorms wing — the parent parcel the leased unit parcels
   # subdivide under (…/dorms/f<n>-r<p>). Owned by the managed `duncan-hall`
   # group (the landlord). NO unit rows here: they're minted at provisioning.

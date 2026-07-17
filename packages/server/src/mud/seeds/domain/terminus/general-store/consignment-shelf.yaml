@@ -1,0 +1,14 @@
+# The consignment shelf — a persistable Container fixture that holds
+# player-owned goods in custody (their owner-stamps stay with the consignors)
+# and the brokerage listings. Persistable is load-bearing: it captures the
+# consigned goods + their chattel ids into a durable record, so a consigned
+# good survives a relog while in the shop's custody. Affords consign / reclaim
+# / buy (a listing can be bought where it sits).
+class: /lib/retail/ConsignmentShelf
+hydratorClass: /lib/persistence/PersistentHydrator
+data:
+  shortDescription: the consignment shelf
+  primaryKeyword: shelf
+  keywords: [consignment, board, secondhand, resale]
+  longDescription: |
+    A tall open shelf by the door under a hand-lettered card — BRING IT IN, WE'LL SELL IT ON, SMALL CUT FOR THE TROUBLE. Odds and ends left by other delvers wait here for a buyer: someone's spare lantern, a coil of rope that turned out surplus. Whatever sits here still belongs to whoever brought it, until the day it sells.

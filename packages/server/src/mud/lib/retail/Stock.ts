@@ -18,6 +18,7 @@ import { DetailedMixin } from "../description/Detailed";
 import { PricedOfferMixin } from "../commerce/PricedOffer";
 import { AttendantMixin } from "../attendant/Attendant";
 import { ResettableMixin } from "../residency/Resettable";
+import { PostRegistrationMixin } from "../stuff/PostRegistration";
 import { MqlApi } from "../../api/mql";
 import { ContainmentApi } from "../../api/containment";
 import { MixinApi } from "../../api/mixin";
@@ -38,11 +39,17 @@ export interface StockLine {
 }
 
 const StockBase = ResettableMixin(
-  AttendantMixin(PricedOfferMixin(DetailedMixin(Vessel))),
+  AttendantMixin(PricedOfferMixin(DetailedMixin(PostRegistrationMixin(Vessel)))),
 );
 
 export default class Stock extends StockBase {
   static persistentFields = ["stockLines"];
+
+  /** Boot-stock the shelf to par (then the reset sweep maintains it). */
+  public override async postRegister(context?: unknown): Promise<void> {
+    await super.postRegister(context);
+    await this.reset();
+  }
 
   /** The authored stock lines (what the store carries). @authorable */
   public stockLines: StockLine[] = [];
