@@ -322,6 +322,63 @@ export interface WeatherPin {
   mode: WeatherPinMode;
 }
 
+/* ─────────────────────────── cloud forms (Wave 2, Phase H) ─────────────────────────── */
+
+/**
+ * A small cloud-genus vocabulary (Phase H) — the sky's visible *form*,
+ * **derived** from the resolved weather type + the near-term forecast trend
+ * (the Wave-1 `cloud` scalar is the sky's *coverage*; this is its *form*).
+ * A legibility + inquiry (sky-reading) surface — **presentation only, never
+ * a physics input**. High wisps (`cirrus`) genuinely presage a front because
+ * our weather is deterministic, so the tell is a *true, learnable* signal —
+ * but the player-facing prose stays honestly hedged.
+ */
+export type CloudForm =
+  | 'clear'
+  | 'cirrus'
+  | 'cirrostratus'
+  | 'cumulus'
+  | 'stratus'
+  | 'nimbostratus'
+  | 'cumulonimbus';
+
+/** Validation array for {@link CloudForm}. */
+export const CLOUD_FORMS: readonly CloudForm[] = [
+  'clear',
+  'cirrus',
+  'cirrostratus',
+  'cumulus',
+  'stratus',
+  'nimbostratus',
+  'cumulonimbus',
+] as const;
+
+/**
+ * The base cloud form each resolved weather *type* shows when nothing is
+ * changing (no presaging front). `storm → cumulonimbus`, `overcast →
+ * stratus`, `rain → nimbostratus`. The presage upgrade (a fair sky with a
+ * front in the near forecast → `cirrus`/`cirrostratus` thickening) is layered
+ * on top by the derivation, not stored here.
+ */
+export const CLOUD_FORM_BY_TYPE: Record<WeatherType, CloudForm> = {
+  clear: 'clear',
+  overcast: 'stratus',
+  rain: 'nimbostratus',
+  storm: 'cumulonimbus',
+  fog: 'stratus',
+  snow: 'nimbostratus',
+};
+
+/** A derived sky reading (`look up` / `analyze weather`, Phase H). */
+export interface SkyRead {
+  /** The current resolved weather type. */
+  currentType: WeatherType;
+  /** The derived visible cloud form. */
+  cloudForm: CloudForm;
+  /** True iff the form presages a front (a hedged forecast tell). */
+  presageFront: boolean;
+}
+
 /**
  * How the resolved atmospheric state was reached, for `analyze weather`
  * legibility (the provenance the acceptance criterion requires):
@@ -361,6 +418,12 @@ export interface ResolvedWeather {
    * wetness / puddle consumers read this, never the raw sample.
    */
   precipitationHere: 'none' | 'rain' | 'snow';
+  /**
+   * The derived base cloud form for the resolved type (Phase H) — the sky's
+   * visible genus with no presaging trend applied. `skyReadFor` layers the
+   * presage upgrade on top. Presentation only — no consequence reads it.
+   */
+  cloudForm: CloudForm;
 }
 
 /* ─────────────────────────── output shapes ─────────────────────────── */

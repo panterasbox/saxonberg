@@ -39,9 +39,12 @@ import {
   type WeatherSample,
   type WeatherForecast,
   type WeatherForecastEntry,
+  CLOUD_FORM_BY_TYPE,
   type ClimateLean,
   type WeatherPin,
   type ResolvedWeather,
+  type CloudForm,
+  type SkyRead,
 } from '../../lib/weather/WeatherType';
 import type { Atmospheric } from '../../lib/biome/Atmospheric';
 
@@ -449,15 +452,18 @@ function computeResolved(
       sample,
       provenance: pin.mode === 'frozen' ? 'pin-frozen' : 'pin-alive',
       precipitationHere: sample.precipitation,
+      cloudForm: cloudFormFor(sample.type, []),
     };
   }
   // No pin: the procgen sky field only reaches SkyExposed scopes; an
   // indoor scope reads the biome baseline (weather = sky dynamics).
   if (!skyExposed) {
+    const sample = baselineSample(nowS);
     return {
-      sample: baselineSample(nowS),
+      sample,
       provenance: 'biome',
       precipitationHere: 'none',
+      cloudForm: cloudFormFor(sample.type, []),
     };
   }
   const sample = computeSample(nowS, locality);
@@ -466,6 +472,67 @@ function computeResolved(
     sample,
     provenance: leaned ? 'climate-leaned' : 'procgen',
     precipitationHere: sample.precipitation,
+    cloudForm: cloudFormFor(sample.type, []),
+  };
+}
+
+/**
+ * The pure cloud-form derivation (Phase H). The base genus is the resolved
+ * type's {@link CLOUD_FORM_BY_TYPE}; a **fair sky (clear/overcast) with a
+ * front (rain/storm) in the near-term forecast** upgrades to the presage
+ * form — `cirrus` over a clear sky thickening to `cirrostratus` over an
+ * overcast one. Deterministic, total, no state — clouds are *described from*
+ * the resolved weather, never grown from a vertical-dynamics sim.
+ */
+function cloudFormFor(
+  current: WeatherType,
+  upcoming: readonly WeatherType[],
+): CloudForm {
+  const fair = current === 'clear' || current === 'overcast';
+  const frontComing = upcoming.some((t) => t === 'rain' || t === 'storm');
+  if (fair && frontComing) {
+    return current === 'clear' ? 'cirrus' : 'cirrostratus';
+  }
+  return CLOUD_FORM_BY_TYPE[current];
+}
+
+/**
+ * A derived sky reading for `look up` / `analyze weather` (Phase H). The
+ * cloud form is presage-aware **only for a genuinely modelled sky** (procgen
+ * / climate-leaned): an authored pin or the biome baseline reports its base
+ * form with no procgen presage. Reads the near-term forecast trend over the
+ * `weather.skyForecastSegments` window (forecasting is free from
+ * determinism).
+ */
+function computeSkyRead(
+  resolved: ResolvedWeather,
+  locality: Locality | null,
+  nowS: number,
+): SkyRead {
+  const modelled =
+    resolved.provenance === 'procgen' ||
+    resolved.provenance === 'climate-leaned';
+  const currentType = resolved.sample.type;
+  if (!modelled) {
+    return {
+      currentType,
+      cloudForm: resolved.cloudForm,
+      presageFront: false,
+    };
+  }
+  const seed = localitySeed(locality);
+  const lean = leanOf(locality);
+  const seg = segmentIndexAt(nowS);
+  const n = Math.max(0, Math.floor(dial(AppSettingKeys.weatherSkyForecastSegments, 2)));
+  const upcoming: WeatherType[] = [];
+  for (let i = 1; i <= n; i++) {
+    upcoming.push(typeForSegment(seg + i, seed, lean));
+  }
+  const cloudForm = cloudFormFor(currentType, upcoming);
+  return {
+    currentType,
+    cloudForm,
+    presageFront: cloudForm === 'cirrus' || cloudForm === 'cirrostratus',
   };
 }
 
@@ -798,10 +865,12 @@ export class WeatherLogic extends ApiLogic {
   ): Promise<ResolvedWeather> {
     const nowS = nowSecondsOrNull();
     if (nowS === null) {
+      const sample = baselineSample(0);
       return {
-        sample: baselineSample(0),
+        sample,
         provenance: 'biome',
         precipitationHere: 'none',
+        cloudForm: cloudFormFor(sample.type, []),
       };
     }
     const locality = await AddressApi.resolveLocalityFor(scope);
@@ -811,6 +880,31 @@ export class WeatherLogic extends ApiLogic {
     const { BiomeApi } = await import('../../api/biome');
     const sky = BiomeApi.isSkyExposed(scope);
     return computeResolved(scope, locality, nowS, sky);
+  }
+
+  /** See {@link WeatherApi.skyReadFor}. Async — resolves locality + forecast. */
+  @CallSecurity(WeatherApiCallers)
+  public async skyReadFor(scope: Stuff & Container): Promise<SkyRead> {
+    const nowS = nowSecondsOrNull();
+    const resolved = await this.resolveWeatherFor(scope);
+    if (nowS === null) {
+      return {
+        currentType: resolved.sample.type,
+        cloudForm: resolved.cloudForm,
+        presageFront: false,
+      };
+    }
+    const locality = await AddressApi.resolveLocalityFor(scope);
+    return computeSkyRead(resolved, locality, nowS);
+  }
+
+  /** See {@link WeatherApi.cloudFormFor}. Pure. */
+  @CallSecurity(WeatherApiCallers)
+  public cloudFormFor(
+    current: WeatherType,
+    upcoming: readonly WeatherType[],
+  ): CloudForm {
+    return cloudFormFor(current, upcoming);
   }
 
   /** See {@link WeatherApi.forecastFor}. Async — resolves the locality. */

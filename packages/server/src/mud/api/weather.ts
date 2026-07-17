@@ -49,6 +49,8 @@ export type {
   ClimateLean,
   WeatherProvenance,
   ResolvedWeather,
+  CloudForm,
+  SkyRead,
 } from '../lib/weather/WeatherType';
 
 import type {
@@ -56,7 +58,10 @@ import type {
   WeatherFieldUnit,
   WeatherSample,
   WeatherForecast,
+  WeatherType,
   ResolvedWeather,
+  CloudForm,
+  SkyRead,
 } from '../lib/weather/WeatherType';
 
 const LOGIC_PATH = '/obj/api/weather';
@@ -154,6 +159,31 @@ export class WeatherApi {
     timeS: Quantity<'s'>,
   ): Quantity<WeatherFieldUnit> {
     return logic().deviatedFieldFor(scope, locality, field, timeS);
+  }
+
+  /* ──────────────── cloud forms (Wave 2, Phase H) ──────────────── */
+
+  /**
+   * A derived sky reading for `look up` / `analyze weather` (Phase H) — the
+   * resolved type, its visible cloud form, and whether that form presages a
+   * front (a hedged, deterministic forecast tell). Presage-aware only for a
+   * genuinely modelled sky (procgen / climate-leaned); a pin / biome reports
+   * its base form. **Presentation only** — no consequence reads the form.
+   */
+  public static skyReadFor(scope: Stuff & Container): Promise<SkyRead> {
+    return logic().skyReadFor(scope);
+  }
+
+  /**
+   * The pure cloud-form derivation: the base genus of `current`, upgraded to
+   * the presage form (`cirrus`/`cirrostratus`) when `current` is fair and
+   * `upcoming` carries a rain/storm front. Deterministic + total.
+   */
+  public static cloudFormFor(
+    current: WeatherType,
+    upcoming: readonly WeatherType[],
+  ): CloudForm {
+    return logic().cloudFormFor(current, upcoming);
   }
 
   /* ──────────────── activation / boundary ──────────────── */
