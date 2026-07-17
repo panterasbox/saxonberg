@@ -300,7 +300,10 @@ export default class LookController extends CommandController<LookModel> {
     return;
   }
 
-  private lookAtTarget(target: Stuff, context: CommandContext): void {
+  private async lookAtTarget(
+    target: Stuff,
+    context: CommandContext,
+  ): Promise<void> {
     const actor = context.commandGiver;
     // Non-Visible targets fall through to a polite refusal rather
     // than rendering "You see nothing special." against the target's
@@ -344,6 +347,35 @@ export default class LookController extends CommandController<LookModel> {
       if (resting.length > 0) {
         const list = Mml.list(resting.map((r) => Mml.item(r)));
         body = Mml.compose`${body}── On it: ${list}.`;
+      }
+    }
+
+    // Close look: attending to a container peers in for anything
+    // half-concealed — the directed-attention glance that `examine`
+    // used to be, folded onto `look <thing>` (the `glance` depth =
+    // the cheap `concealment.examineBonus`). Silent unless the glance
+    // actually turns something up; a deliberate over-a-place scan
+    // that ties up your hands and takes time is `search`.
+    if (MixinApi.isContainer(target)) {
+      const contents = [...ContainmentApi.getContents(target)];
+      if (contents.length > 0) {
+        // Warm the `awareness` band so the glance reads a live snapshot.
+        await PerceptionApi.preloadForSenseGate(actor);
+        const found = PerceptionApi.resolveSearch(actor, contents, 'glance');
+        if (found.length > 0) {
+          const noticed = Mml.list(found.map((f) => Mml.item(f)));
+          body = Mml.compose`${body}\nLooking closely, you notice ${noticed}.`;
+        }
+        for (const cand of PerceptionApi.hintsFor(actor, contents)) {
+          const tell = MixinApi.isConcealable(cand)
+            ? cand.getConcealmentHint()
+            : undefined;
+          body = Mml.compose`${body}\n${
+            tell
+              ? Mml.fromMarkup(tell)
+              : Mml.compose`Something here almost catches your eye.`
+          }`;
+        }
       }
     }
 
