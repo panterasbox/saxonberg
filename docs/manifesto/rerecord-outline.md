@@ -8,6 +8,15 @@
 >
 > Last revision: 2026-07-13.
 
+## Format update (2026-07-15): separate videos, not one
+
+Supersedes [constitution-video.md § Format](./constitution-video.md) ("one video,
+chapter stops"): **each chapter is its own YouTube video in a playlist.** So
+**length is relaxed** — chapters no longer compress to fit a single runtime; each
+can breathe and stand a little more on its own (a bit of self-contained framing
+per video). The playlist carries continuity; the doubt-cascade hand-forwards still
+chain across videos.
+
 ## The reframe: trailer → explainer
 
 The old video was a **trailer** — "omission is the conversion engine," withhold
@@ -25,64 +34,17 @@ Vocabulary locked this cycle: **capital** (not patronage) for the money/stock/
 chamber; **funders** for the people; **chamber** (not house). See the
 patronage→capital sweep across the constitution + design docs.
 
-## Chapter 1 — How a decision moves *(≈5 min, settled content)*
+## Chapter 1 — The whole machine, end to end *(the summary; content moved)*
 
-Corner/no-face; the visual builds the machine one piece per beat.
-
-**① What this is.**
-Start with the thing itself: it's a game. A multiplayer world people live in —
-some **make** it, some **fund** it, some **play** it. And a game has rules; a
-government has laws. Those are the same thing — a rule is just a law by another
-name. Here's what's special about a rule in a *computer* game: the machine can
-enforce it directly. You can't walk through a wall; you can't spend money you
-don't have. It doesn't warn you — it just won't let you. But not every rule is
-like that. Some can't be reduced to code; they need a person to judge. Hold onto
-that split — it's the shape of everything that follows.
-
-**② A proposal.**
-Someone wants to change the world — not lobby for a change, *make* one. So they
-put a proposal on the floor. One floor, everyone's proposals, in the open.
-That's where every decision starts. Watch where it goes.
-
-**③ It gets argued.** *(droppable — cut to one line if tight)*
-First it's argued — not upvoted, *argued* — on a surface that organizes claims
-by how they answer each other, not by who's loudest. An objection nobody has
-answered stays lit until someone does. More on that later; for now, just know
-the debate is structured, not a mob.
-
-**④ Three chambers decide.**
-Then it's voted on. Those three kinds of people — makers, funders, players —
-each get a **chamber**, and none can outvote the other two: a law needs a
-majority of chambers, two of three. So nothing passes by capturing one group —
-makers can't rule without players, players can't rule without makers. And money
-— capital — earns a real voice, but only in its own chamber. Never a vote in the
-other two, never an advantage in the world itself. Those three chambers are the
-legislature.
-
-**⑤ Three branches build it.**
-A chamber passing a bill doesn't change anything by itself — because here, a law
-*is* a change to the software. The legislature writes the **requirement**: what
-should be true. The executive **builds it** — writes the code — and works to one
-rule: **what can be enforced by code, shall be.** What a machine can enforce, it
-enforces — automatic, uniform, no one's discretion. The rest — the rules that
-take a human to judge — *that* judgment is the executive's real job. Then a court
-checks the work, and it mirrors that split: where the executive wrote **code**,
-the court reviews the code — *did the build do what the law asked?* — judicial
-review, except what's under review is a pull request; where a **human** made the
-call, the court hears the appeal — *was it fair?* Code gets verified; judgment
-gets appealed. Governing this world is shipping software.
-
-**⑥ And all of it is written down.**
-Every step — the proposal, each chamber's count, the code, the ruling — is
-written to a record no one can quietly rewrite. Not "trust us, the vote was
-honest." Check it yourself. You never have to take anyone's word for it.
-
-**Close.**
-It starts the way these always do: one founder holding all the levers — at the
-outset, there's no one else to hold them. From there, control dilutes as the
-community comes on board — every member who joins takes a share out of the
-founder's hands. The structure is built to give itself away. That's what the
-rest of this is about.
+> **Canonical Ch 1 now lives in [rerecord-ch1.md](./rerecord-ch1.md)** (a peer of the
+> deep-dive chapter files). It supersedes the "How a decision moves" narration that used
+> to sit here. Reworked 2026-07-16: a **why-it-exists** opener (the one justification kept),
+> the decision-moves spine (proposal → argued → three chambers + **standing** → three
+> branches → the record), and a **Close on the dial** (any community, operator → republic,
+> the founder's choice — which replaces the old "built to give itself away" auto-handover
+> and fixes the Ch 1↔Ch 7 inconsistency). **Scope: the main chapters (Ch 2–7) only — no
+> appendix material.** The fractal structure below is unchanged: each later chapter is one
+> Ch 1 beat at higher resolution.
 
 ## The deep dive — Chapter 1, exploded (6 chapters, ~18–22 min)
 
@@ -127,7 +89,7 @@ established.
 - **Payload:** the typed argument map (claims attach by `supports` / `objects-to`
   / `responds-to`); **reputation-blind and enforced** (voting refused on an
   argument board, scores zeroed); the **open-objection** signal makes dissent
-  structurally un-buryable; the one named **AI** use (librarian, never judge —
+  structurally un-buryable; the one named **LLM** use (librarian, never judge —
   suggests merges, touches the view never the record).
 - **Anchors:** Art. III §5, Art. I §4.
 - **Content source:** `chapter-3.md`.
@@ -172,7 +134,7 @@ established.
 
 The production pipeline is unchanged — hand-drawn Excalidraw builds, corner/PiP
 default, full-screen face reserved for intro/outro, visual carries structure /
-audio carries argument, AI named exactly once (Ch 4). See
+audio carries argument, the LLM named exactly once (Ch 4). See
 [constitution-video.md § Production pipeline](./constitution-video.md). The
 existing `.excalidraw` assets are reusable; the capital/chamber vocabulary
 change means the affected diagram **text** needs re-export (source updated,

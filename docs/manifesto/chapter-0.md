@@ -180,3 +180,55 @@ machine-underneath (→ Ch 6 platform/dial), the money-worry (→ Ch 1 firewall)
   it caught up" is the unnamed gesture Ch 3 cashes out.
 - **Handoff matches Ch 1.** Ch 0 hands forward both "who gets a say" (Ch 1 Beats
   2–3) and "what stops the biggest wallet owning it" (Ch 1 Beat 4).
+
+## Design substance — why a game (the real answer + one requirement)
+
+> Interrogated 2026-07-15. The old Beat-3 answer ("people show up because they
+> *want* to") was a hand-wave. The mechanism under it, and the one design
+> requirement it surfaced.
+
+**The mechanism (Schell — the actual "why a game"):** a game is an *experience
+machine*; immersion manufactures **caring.** Once you're inside a world it
+becomes yours, and you care about it without being asked. That caring *is* civic
+engagement, pointed at the collective. Self-government's fatal flaw is that it
+can't manufacture caring — it can only *beg*; a game makes you care about the
+world's rules for free, because they're the rules of a place you live in. And the
+incentive **inverts**: in civics participation is a cost (→ free-riding wins,
+rooms stay empty); in a game it's the reward you came for. Immersion is the
+**fuel**; the deliberation/education/record machinery is the **steering.**
+
+**The flywheel (the through-line):** immersed → care about the world → governance
+visibly reshapes the world → see you could shape governance → participate → the
+world reflects the participants → deeper investment. The apathy graveyard is a
+graveyard of *broken* flywheels (the council never touched the world). Two
+existing pieces close it and should be **said, not built:**
+- **law-is-code is the bridge** — a law here edits the world you're immersed in,
+  so governance can't *not* touch the lived world (promote it from
+  "elegant/verifiable" to "why immersion can power the polity").
+- **citizenship = contribution** — you're a member by living here, so there's no
+  professional political class and no "them"; "the government did this to me" has
+  nowhere to land.
+- corollary: the **dial** = how-much-governance-touches-the-world =
+  how-much-immersion-converts → a *mechanical* reason opening up powers the
+  polity, not only a moral one.
+
+**The one real design requirement — point-of-consequence attribution.** For the
+flywheel to catch, a governed world-change must announce itself *as governance, by
+us, that I can shape* — at the point it's felt. Four parts (only the record
+exists today): tag-at-contact ("ore levy applied") · trace-to-the-bill + counts ·
+a **forward door** (propose / repeal / weigh in) · a **precision discipline** (tag
+governed effects, NEVER mis-tag emergent ones — false grievance poisons the
+flywheel). **Downstream of governance actually running** (bills / weighted ballot
+are deferred) — a requirement to record now, buildable when governance lands.
+
+**Salience discipline:** the governance exposed to players must operate on things
+they *feel* (economy, spaces, rules of play), not sequestered civic procedure —
+especially early.
+
+**Open problem:** **diffuse / delayed-effect attribution** — a tax's slow drag on
+the economy has no single window to tag; point-of-consequence doesn't reach it,
+and the changelog fallback risks being ignored. Unsolved.
+
+**→ Propagate:** the attribution requirement + salience discipline belong in the
+governance spec (`cooperative-slate.md` / `subsystems/governance.md`); parked here
+for now because those docs are mid-edit.

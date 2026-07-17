@@ -1724,6 +1724,12 @@ fix: the admin can still *act*, but can no longer make it *unprovable.*
 
 ## The money membrane — two unrelated concerns
 
+> **See also** [land-compute-and-license.md](./land-compute-and-license.md) (2026-07-16)
+> — the compute economy (compute as *the* scarce resource, riding on parcels; the
+> self-balancing title-vs-entitlement allocation; subsidiarity/federated allocation) and
+> the AGPL-core-plus-composition-exception license regime. That doc deepens both this
+> economy section and § *How territory is held*.
+
 The real operating budget and the in-world reserve get lumped together as
 "money," but they're **different universes, not two treasuries**: one is
 *business finance*, the other a *game mechanic.* They're so distinct
