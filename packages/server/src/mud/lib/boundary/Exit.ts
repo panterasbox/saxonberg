@@ -393,7 +393,14 @@ export default class Exit extends ConcealableMixin(Idea) {
    * the exit-gate call site (see `LocomotionControllerBase.execute`).
    */
   public allowsMode(modeName: string): boolean {
-    if (this.media.length === 0) return modeName === 'walk';
+    // Empty `media` is the legacy walk-only default — now widened to the
+    // ground *pace* family (walk / sneak / run, the care↔speed siblings),
+    // since anywhere you can walk you can sneak or run. Non-ground media
+    // (climb / swim / fly) and wheeled conveyance still require an explicit
+    // `media` declaration, so this stays backcompat-safe for old content.
+    if (this.media.length === 0) {
+      return modeName === 'walk' || modeName === 'sneak' || modeName === 'run';
+    }
     const mode = LocomotionApi.modeOf(modeName);
     if (!mode) return false;
     const medium = mode.getMedium();

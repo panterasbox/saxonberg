@@ -38,6 +38,16 @@ const BAND_PHRASE: Record<ConditionBand, string> = {
   dead: 'is dead',
 };
 
+// Second-person conjugation for a self-assess (subject is "You") — the
+// singular third-person verbs above ("looks", "is") don't agree with "You".
+const BAND_PHRASE_SELF: Record<ConditionBand, string> = {
+  healthy: 'look unhurt',
+  hurt: 'look hurt',
+  serious: 'are seriously injured',
+  critical: 'are in critical condition',
+  dead: 'are dead',
+};
+
 export default class AssessController extends CommandController<AssessModel> {
   async execute(model: AssessModel, context: CommandContext): Promise<void> {
     const giver = context.commandGiver;
@@ -93,7 +103,9 @@ export default class AssessController extends CommandController<AssessModel> {
     const band = (target as Stuff & Vitals).getConditionBand();
     const blocks: string[] = [
       Mml.fromMarkup(
-        `${Mml.strong(label).toString()} ${Mml.escape(BAND_PHRASE[band])}.`
+        `${Mml.strong(label).toString()} ${Mml.escape(
+          isSelf ? BAND_PHRASE_SELF[band] : BAND_PHRASE[band]
+        )}.`
       ).toString(),
     ];
 

@@ -33,6 +33,8 @@ import {
   HAZARD_PIN_TYPE,
 } from './HazardActivity';
 import { MixinApi } from '../../api/mixin';
+import { MessageApi } from '../../api/message';
+import { Mml } from '../../api/mml';
 import { ConditionApi } from '../../api/condition';
 import { PerceptionApi } from '../../api/perception';
 import { LocomotionApi } from '../../api/locomotion';
@@ -104,6 +106,7 @@ export function HazardMixin<TBase extends MixinConstructor>(Base: TBase) {
       'traverseConsequence',
       'groundTriggered',
       'dropDestination',
+      'springMessage',
     ];
 
     /**
@@ -145,6 +148,14 @@ export function HazardMixin<TBase extends MixinConstructor>(Base: TBase) {
      * blunt but relocates no one. @authorable
      */
     public dropDestination?: string;
+
+    /**
+     * Optional authored line the victim sees when this hazard springs (a
+     * flavor override, e.g. "A poisoned needle drives up through the slab!").
+     * Left blank, a generic spring line is used. Witnesses always get a
+     * generic "…springs a hidden trap." @authorable
+     */
+    public springMessage = '';
 
     // ---------------------------------------------------------------
     // Accessors + state
@@ -231,6 +242,7 @@ export function HazardMixin<TBase extends MixinConstructor>(Base: TBase) {
       if (this.moverAvoids(mover, mode)) return;
       // Spend it FIRST — the drop-reentrancy guard.
       this.spring();
+      this.narrateSpring(mover);
       this.deliverHarm(mover);
       this.applyTraverseConsequence(mover);
     }
@@ -238,9 +250,30 @@ export function HazardMixin<TBase extends MixinConstructor>(Base: TBase) {
     public resolveInteract(actor: Stuff): void {
       if (!this.isArmed() || this.trigger !== 'interact') return;
       this.spring();
+      this.narrateSpring(actor);
       this.deliverHarm(actor);
       // Interact hazards deliver harm only — no traverse veto/redirect
       // (you weren't moving; you touched it).
+    }
+
+    /**
+     * Announce the spring to the victim + any witnesses. `ConditionApi.inflict`
+     * is silent (it only mutates the body state), so without this a player
+     * walks into a trap, takes the wound, and sees nothing — the feedback
+     * beat a trap needs. The victim gets the authored `springMessage` if set,
+     * else a generic line; witnesses always get a generic one.
+     */
+    private narrateSpring(victim: Stuff): void {
+      const authored = this.springMessage.trim();
+      MessageApi.scene(victim)
+        .topic('world.hazard.spring')
+        .toSelf(
+          authored
+            ? Mml.fromMarkup(authored)
+            : Mml.compose`Something gives way beneath you — a hidden trap springs!`
+        )
+        .toPeers(Mml.compose`${Mml.name(victim)} springs a hidden trap.`)
+        .send();
     }
 
     /**

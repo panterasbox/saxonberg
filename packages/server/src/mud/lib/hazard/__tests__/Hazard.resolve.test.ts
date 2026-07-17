@@ -229,6 +229,30 @@ describe('HazardMixin.resolveTraversal — spring vs avoid', () => {
     expect(trap.getHazardState()).toBe('sprung');
   });
 
+  it('narrates the spring to the victim (inflict is silent — the feedback beat)', async () => {
+    // Regression: ConditionApi.inflict only mutates the body, so without a
+    // spring line a player walks into a trap, takes the wound, and sees
+    // NOTHING (a live run confirmed the silence). Capture the self-facing
+    // scene lines and assert one announces the spring.
+    const selfLines: string[] = [];
+    vi.spyOn(MessageApi, 'scene').mockImplementation(() => {
+      const b: Record<string, unknown> = {};
+      b.topic = () => b;
+      b.toSelf = (line: unknown) => {
+        selfLines.push(String(line));
+        return b;
+      };
+      b.toPeers = () => b;
+      b.send = () => {};
+      return b as never;
+    });
+    const m = plainMover('/obj/Avatar/hz-narrate');
+    const trap = makeTrap({ channel: 'edge', energy: 2, siteSelector: FEET });
+    await walkInto(m, trap);
+    expect(trap.getHazardState()).toBe('sprung');
+    expect(selfLines.some((l) => /hidden trap springs/i.test(l))).toBe(true);
+  });
+
   it('armor mitigates — a steel-plate boot takes the edge below the wound threshold', async () => {
     const m = plainMover('/obj/Avatar/hz-shod');
     const boot = makeStuff(() => new DemoBoot());
