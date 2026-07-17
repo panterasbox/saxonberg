@@ -41,7 +41,7 @@ describe("AppSettingsSeeder", () => {
     pm.setFindResult([]);
     const added = await AppSettingsSeeder.run();
 
-    expect(added).toBe(146); // + 23 weapon-playstyle combat + 16 electricity
+    expect(added).toBe(151); // + 23 weapon-playstyle combat + 16 electricity + 5 concealment
     expect(pm.saves).toHaveLength(1);
     expect(pm.saves[0]!.collection).toBe("app_settings");
     const values = savedValues(pm);
@@ -222,6 +222,12 @@ describe("AppSettingsSeeder", () => {
           [AppSettingKeys.electricityArmorConductiveSkinFactor]: "0.15",
           [AppSettingKeys.electricitySustainBurnPerAmpSec]: "2",
           [AppSettingKeys.electricityArrestDrivePerSec]: "40",
+          // The 5 concealment (detection gate — Phase 1) tuning keys.
+          [AppSettingKeys.concealmentLevelSubtle]: "2",
+          [AppSettingKeys.concealmentLevelHidden]: "4",
+          [AppSettingKeys.concealmentLevelDeep]: "7",
+          [AppSettingKeys.concealmentLevelBuried]: "11",
+          [AppSettingKeys.concealmentHiddenDefaultLevel]: "hidden",
         },
       },
     ]);
@@ -256,8 +262,9 @@ describe("AppSettingsSeeder", () => {
     // + 3 multi-party combat (2 focus-fire + 1 flee)
     // + 6 experience combat (2 feint poise + 2 fog + 2 sharpness)
     // + 23 weapon-playstyle combat (15 weapon-profile + 3 reach + 5 hand-slot)
-    // + 16 electricity (shock channel + conduction).
-    expect(added).toBe(145);
+    // + 16 electricity (shock channel + conduction)
+    // + 5 concealment (detection gate — Phase 1).
+    expect(added).toBe(150);
     expect(pm.saves).toHaveLength(1);
     const values = savedValues(pm);
     // operator value preserved, missing keys seeded

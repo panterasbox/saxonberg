@@ -566,6 +566,28 @@ export const AppSettingKeys = {
   /** Off-hand guard bonus a *below-mastery* dual-wielder actually gets
    * (a novice's off-hand hurts more than it helps). */
   combatDualWieldNoviceGuardBonus: "combat.dualWield.noviceGuardBonus",
+
+  /* ───────────────────────── concealment ───────────────────────── */
+  /**
+   * Concealment — the effective-perception a viewer must muster to notice
+   * a thing at each concealed band (the "magnitude" half of the
+   * shape-vs-magnitude split; the band *names* + monotone ordering are code
+   * — `lib/concealment/ConcealmentLevel.ts`). `obvious` is a hardcoded 0
+   * (no key); these four are monotone increasing. Read with a fallback to
+   * the seeded literal so a pre-warm / test read is safe. See
+   * docs/subsystems/concealment.md.
+   */
+  concealmentLevelSubtle: "concealment.level.subtle",
+  concealmentLevelHidden: "concealment.level.hidden",
+  concealmentLevelDeep: "concealment.level.deep",
+  concealmentLevelBuried: "concealment.level.buried",
+  /**
+   * Concealment — the band a legacy `Exit.hidden: true` migrates to (D1 —
+   * `Exit.hidden` is subsumed by the concealment vocabulary). A level word
+   * (`subtle`|`hidden`|`deep`|`buried`), never `obvious`; defaults to
+   * `hidden`.
+   */
+  concealmentHiddenDefaultLevel: "concealment.hiddenDefaultLevel",
 } as const;
 
 export type AppSettingKey =

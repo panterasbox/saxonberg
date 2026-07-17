@@ -40,6 +40,10 @@ export const Mixins = {
   Comms: 'CommsMixin',
   Forums: 'ForumsMixin',
   Perceptible: 'PerceptibleMixin',
+  // Presence-concealment — "how hard is it to notice this is here?". One
+  // level on every loose perceivable (Thing/Creature/Exit); subsumes the
+  // old Exit.hidden boolean. Read by the detection gate (PerceptionApi).
+  Concealable: 'ConcealableMixin',
   Detailed: 'DetailedMixin',
   Propertied: 'PropertiedMixin',
   CommandGiver: 'CommandGiverMixin',

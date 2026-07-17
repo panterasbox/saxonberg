@@ -39,6 +39,8 @@
  */
 
 import { Idea } from '../stuff/Idea';
+import { ConcealableMixin } from '../concealment/Concealable';
+import { ConcealmentLevels } from '../concealment/ConcealmentLevel';
 import type { Stuff, EvictionContext } from '../stuff/Stuff';
 import type { VetoResult } from '../errors';
 import type { Container } from '../spatial/Container';
@@ -140,7 +142,7 @@ export interface ExitOptions {
   wheelPassable?: boolean;
 }
 
-export default class Exit extends Idea {
+export default class Exit extends ConcealableMixin(Idea) {
   protected direction: string;
   public getDirection(): string { return this.direction; }
   public setDirection(value: string): void { this.direction = value; }
@@ -260,9 +262,6 @@ export default class Exit extends Idea {
   public getDoor(): Door | null { return this.door; }
   public setDoor(value: Door | null): void { this.door = value; }
 
-  /** Hidden exits are skipped by `getObviousExits()` (and therefore by `look`). */
-  protected hidden: boolean;
-
   /** Permanently blocked regardless of door state. */
   protected blocked: boolean;
 
@@ -278,8 +277,19 @@ export default class Exit extends Idea {
    */
   protected oneWay: boolean;
 
-  public isHidden(): boolean { return this.hidden; }
-  public setHidden(value: boolean): void { this.hidden = value; }
+  /**
+   * Legacy hidden-flag surface, now a thin view over the concealment band
+   * (D1 — `Exit.hidden` is subsumed by {@link ConcealableMixin}).
+   * `getObviousExits()` still drops a hidden exit because it reads this.
+   * `isHidden()` is true iff concealed; `setHidden(true)` raises the band
+   * to the migration default (`concealment.hiddenDefaultLevel`),
+   * `setHidden(false)` clears it back to `obvious`. Authors and the reveal
+   * path can also address the band directly via `setConcealment()`.
+   */
+  public isHidden(): boolean { return this.isConcealed(); }
+  public setHidden(value: boolean): void {
+    this.setConcealment(value ? ConcealmentLevels.hiddenDefault() : 'obvious');
+  }
   public isBlocked(): boolean { return this.blocked; }
   public setBlocked(value: boolean): void { this.blocked = value; }
   public isMuffled(): boolean { return this.muffled; }
@@ -424,7 +434,11 @@ export default class Exit extends Idea {
     // `ExitableMixin.addExit`, which is the only legitimate way to
     // install an Exit on an Exitable host.
     this._door = opts.door ?? null;
-    this.hidden = opts.hidden ?? false;
+    // D1: map the legacy `hidden` flag onto the concealment band. An
+    // un-hidden exit stays at the mixin's `obvious` default.
+    if (opts.hidden) {
+      this.setConcealment(ConcealmentLevels.hiddenDefault());
+    }
     this.blocked = opts.blocked ?? false;
     this.muffled = opts.muffled ?? false;
     this.noFollow = opts.noFollow ?? false;

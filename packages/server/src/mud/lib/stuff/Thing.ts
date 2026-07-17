@@ -34,9 +34,13 @@ import { ContainableMixin } from '../spatial/Containable';
 import { TangibleMixin } from '../material/Tangible';
 import { PerceptibleMixin } from '../description/Perceptible';
 import { VisibleMixin } from '../description/Visible';
+import { ConcealableMixin } from '../concealment/Concealable';
 
-const ThingBase = VisibleMixin(
-  PerceptibleMixin(TangibleMixin(ContainableMixin(Stuff))),
+// ConcealableMixin (default `obvious`) lets any Thing carry a concealment
+// level — a hidden cache, a dropped-and-buried item — resolved per-viewer
+// by the detection gate. Inert until authored (see concealment subsystem).
+const ThingBase = ConcealableMixin(
+  VisibleMixin(PerceptibleMixin(TangibleMixin(ContainableMixin(Stuff)))),
 );
 
 export default class Thing extends ThingBase {
