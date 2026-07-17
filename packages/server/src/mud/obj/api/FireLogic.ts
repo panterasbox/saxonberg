@@ -116,6 +116,14 @@ function fireNowSeconds(): number {
  * addition; a Phase-3 fire assumes air.
  */
 function igniteImpl(stuff: Stuff): IgniteOutcome {
+  // A furnace appliance (forge / kiln / oven / campfire): lighting it is
+  // toggling its lit state — it holds a fuel-driven pin, not a Burning object.
+  if (MixinApi.isFurnace(stuff)) {
+    if (stuff.isLit()) return { lit: false, reason: 'already-burning' };
+    if (stuff.fuelRemaining() <= 0) return { lit: false, reason: 'not-flammable' };
+    stuff._setLit(true);
+    return { lit: true };
+  }
   if (!MixinApi.isCombustible(stuff)) {
     return { lit: false, reason: 'not-flammable' };
   }
@@ -162,6 +170,15 @@ function igniteNow(stuff: Stuff & Combustible): void {
  * or non-combustible target.
  */
 function douseImpl(stuff: Stuff): boolean {
+  // A lit furnace — put it out.
+  if (MixinApi.isFurnace(stuff)) {
+    if (!stuff.isLit()) return false;
+    stuff._setLit(false);
+    if (MixinApi.isWet(stuff)) {
+      stuff.wet(dial(AppSettingKeys.wetnessImmersionSaturation, 1));
+    }
+    return true;
+  }
   if (!MixinApi.isCombustible(stuff) || !stuff.isBurning()) return false;
   stuff._extinguishState();
   if (MixinApi.isWet(stuff)) {
@@ -212,6 +229,15 @@ function onFireTickImpl(): void {
  * ignition point — so a wet log resists, emergent from the energy balance.
  */
 function advanceFireInRoom(room: Stuff & Container): void {
+  // Lit furnaces heat the Meltables in the scope toward their held temperature
+  // (the forge melting an ingot) — independent of any Burning objects.
+  for (const occ of room.getContents()) {
+    const s = occ as unknown as Stuff;
+    if (!s.isDestroyed() && MixinApi.isFurnace(s) && s.isLit()) {
+      s.heatContents();
+    }
+  }
+
   const combustibles = liveCombustiblesIn(room);
   // Advance the fires first (fuel drain → char / destruct at exhaustion).
   for (const c of combustibles) {

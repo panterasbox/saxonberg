@@ -15,7 +15,6 @@ import { MessageApi } from '../../../api/message';
 import { Mml } from '../../../api/mml';
 import { FireApi } from '../../../api/fire';
 import type { Stuff } from '../../../lib/stuff/Stuff';
-import type { Combustible } from '../../../lib/fire/Combustible';
 
 interface IgniteModel extends CommandModel {
   target?: MqlOneResult;
@@ -46,11 +45,11 @@ export default class IgniteController extends CommandController<IgniteModel> {
       return;
     }
 
-    const combustible = MqlApi.effectiveTarget(
+    const ignitable = MqlApi.effectiveTarget(
       target,
-      (s): s is Stuff & Combustible => MixinApi.isCombustible(s),
+      (s): s is Stuff => MixinApi.isCombustible(s) || MixinApi.isFurnace(s),
     );
-    if (!combustible) {
+    if (!ignitable) {
       MessageApi.scene(commandGiver)
         .topic('world.narration.action')
         .toSelf(Mml.compose`That won't burn.`)
@@ -63,7 +62,7 @@ export default class IgniteController extends CommandController<IgniteModel> {
       return;
     }
 
-    const outcome = FireApi.ignite(combustible);
+    const outcome = FireApi.ignite(ignitable);
     if (!outcome.lit) {
       const detail =
         outcome.reason === 'already-burning'
@@ -83,12 +82,11 @@ export default class IgniteController extends CommandController<IgniteModel> {
       return;
     }
 
-    const obj = combustible as unknown as Stuff;
     MessageApi.scene(commandGiver)
       .topic('world.narration.action')
-      .toSelf(Mml.compose`You set ${Mml.object(obj)} alight.`)
+      .toSelf(Mml.compose`You set ${Mml.object(ignitable)} alight.`)
       .toPeers(
-        Mml.compose`${Mml.name(commandGiver)} sets ${Mml.object(obj)} alight.`,
+        Mml.compose`${Mml.name(commandGiver)} sets ${Mml.object(ignitable)} alight.`,
       )
       .send();
   }

@@ -15,7 +15,6 @@ import { MessageApi } from '../../../api/message';
 import { Mml } from '../../../api/mml';
 import { FireApi } from '../../../api/fire';
 import type { Stuff } from '../../../lib/stuff/Stuff';
-import type { Combustible } from '../../../lib/fire/Combustible';
 
 interface DouseModel extends CommandModel {
   target?: MqlOneResult;
@@ -46,12 +45,12 @@ export default class DouseController extends CommandController<DouseModel> {
       return;
     }
 
-    const combustible = MqlApi.effectiveTarget(
+    const target2 = MqlApi.effectiveTarget(
       target,
-      (s): s is Stuff & Combustible => MixinApi.isCombustible(s),
+      (s): s is Stuff => MixinApi.isCombustible(s) || MixinApi.isFurnace(s),
     );
-    const obj = combustible as unknown as Stuff | null;
-    if (!combustible || !combustible.isBurning()) {
+    const doused = target2 !== null && FireApi.douse(target2);
+    if (!doused) {
       MessageApi.scene(commandGiver)
         .topic('world.narration.action')
         .toSelf(Mml.compose`That isn't burning.`)
@@ -64,12 +63,11 @@ export default class DouseController extends CommandController<DouseModel> {
       return;
     }
 
-    FireApi.douse(combustible);
     MessageApi.scene(commandGiver)
       .topic('world.narration.action')
-      .toSelf(Mml.compose`You douse ${Mml.object(obj as Stuff)}; it hisses out.`)
+      .toSelf(Mml.compose`You douse ${Mml.object(target2 as Stuff)}; it hisses out.`)
       .toPeers(
-        Mml.compose`${Mml.name(commandGiver)} douses ${Mml.object(obj as Stuff)}; it hisses out.`,
+        Mml.compose`${Mml.name(commandGiver)} douses ${Mml.object(target2 as Stuff)}; it hisses out.`,
       )
       .send();
   }

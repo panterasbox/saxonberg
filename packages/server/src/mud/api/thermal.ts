@@ -59,6 +59,20 @@ export class ThermalApi {
   public static depositHeat(stuff: Stuff, joules: number): void {
     logic().depositHeat(stuff, joules);
   }
+
+  /**
+   * Reconcile `stuff`'s phase against its temperature — the bidirectional
+   * phase-change pass, driven by any heat source (a hearth, the sun, a fire).
+   * A **Meltable** solid at/above its melting point holds the temperature at a
+   * latent-heat plateau and, once the latent heat is absorbed, melts — flowing
+   * its mass to a molten pool in the scope's `Floor`. A **Bulkable** vessel
+   * holding a liquid boils it to gas above the boiling point, or solidifies it
+   * to a cast solid below the melting point. Unlocks ice → water → steam from
+   * the shipped water material. No-op on anything with no phase behavior.
+   */
+  public static reconcilePhase(stuff: Stuff): void {
+    logic().reconcilePhase(stuff);
+  }
 }
 
 SecurityApi.decorateApiClass(ThermalApi);

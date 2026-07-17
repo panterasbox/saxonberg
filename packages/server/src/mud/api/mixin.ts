@@ -81,6 +81,8 @@ import type { Metabolic } from '../lib/metabolism/Metabolic';
 import type { Thermal } from '../lib/thermal/Thermal';
 import type { Wet } from '../lib/wetness/Wet';
 import type { Combustible } from '../lib/fire/Combustible';
+import type { Meltable } from '../lib/thermal/Meltable';
+import type { Furnace } from '../lib/fire/Furnace';
 import type { Respiration } from '../lib/respiration/Respiration';
 import type { Radioactive } from '../lib/material/Radioactive';
 import type { Workspace } from '../lib/shell/Workspace';
@@ -859,6 +861,14 @@ export class MixinApi {
 
   public static isCombustible(obj: Stuff): obj is Stuff & Combustible {
     return this.hasMixin(obj, Mixins.Combustible);
+  }
+
+  public static isMeltable(obj: Stuff): obj is Stuff & Meltable {
+    return this.hasMixin(obj, Mixins.Meltable);
+  }
+
+  public static isFurnace(obj: Stuff): obj is Stuff & Furnace {
+    return this.hasMixin(obj, Mixins.Furnace);
   }
 
   public static isRespiration(obj: Stuff): obj is Stuff & Respiration {
