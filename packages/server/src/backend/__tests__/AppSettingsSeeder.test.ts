@@ -222,7 +222,7 @@ describe("AppSettingsSeeder", () => {
           [AppSettingKeys.electricityArmorConductiveSkinFactor]: "0.15",
           [AppSettingKeys.electricitySustainBurnPerAmpSec]: "2",
           [AppSettingKeys.electricityArrestDrivePerSec]: "40",
-          [AppSettingKeys.wetnessDryRatePerHour]: "0.25",
+          [AppSettingKeys.wetnessEvaporationRatePct]: "1.25",
           [AppSettingKeys.wetnessWarmthFactor]: "0.03",
           [AppSettingKeys.wetnessWarmthReferenceK]: "295",
           [AppSettingKeys.wetnessRainAccrualPerHour]: "1.5",
@@ -230,7 +230,7 @@ describe("AppSettingsSeeder", () => {
           [AppSettingKeys.wetnessBandDampAt]: "0.15",
           [AppSettingKeys.wetnessBandWetAt]: "0.45",
           [AppSettingKeys.wetnessBandSoakedAt]: "0.8",
-          [AppSettingKeys.wetnessAbsorbencyDryScale]: "1.6",
+          [AppSettingKeys.wetnessAbsorptionCapacityDefaultPct]: "5",
           [AppSettingKeys.stormPuddleAccrualLitersPerSegment]: "12",
           [AppSettingKeys.stormPuddleEvaporationFactor]: "0.2",
           [AppSettingKeys.stormPuddleFreshWaterMaterialPath]:

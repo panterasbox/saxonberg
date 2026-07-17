@@ -279,29 +279,32 @@ export default class Material extends SingletonMixin(
   }
 
   /**
-   * Water **absorbency** — a dimensionless `0..1` measure of how readily
-   * this material soaks up and *holds* water (weather Wave 2). It is the
-   * coefficient the {@link ../wetness/Wet WetMixin} gauge reads for its dry
-   * rate (the Thermal/Electricity precedent — the mixin holds per-object
-   * saturation state; the Material supplies the physics number). High
-   * (wool ≈ 0.9, wood / flesh ≈ 0.6–0.7) → soaks and stays wet for a long
-   * time; low (steel ≈ 0.05, glass, oilcloth) → sheds / beads off and dries
-   * almost at once. `0.5` is the neutral default (a materialless object, or
-   * one whose absorbency was never authored, reads the baseline rate). Plain
-   * scalar — round-trips as native JSON, no marshaller.
+   * Water **absorption capacity** — the real, tabulated material property
+   * (ASTM D570 / ISO 62): the mass of water the material holds at
+   * saturation, as a **percent of its dry mass** (`Quantity<'%'>`). Real
+   * figures: wool ≈ 33 %, wood ≈ 28 % (fibre-saturation point), cotton ≈
+   * 25 %, leather ≈ 15 %, ceramic ≈ 8 %, and metals / glass ≈ 0 (a surface
+   * film only). Quantity-typed and strict on unit like the other measured
+   * properties (`hardness`, `electricalConductivity`) — **not** a fake 0–1
+   * index. The {@link ../wetness/Wet WetMixin} gauge reads it to derive the
+   * dry rate from evaporation physics: at a fixed evaporation rate a
+   * high-capacity material holds more water, so its saturation decays
+   * slower (wet wool lingers; a wet blade sheds at once). `0 %` until
+   * authored — the neutral fallback for a materialless object lives on the
+   * gauge, not here.
    */
-  protected _absorbency: number = 0.5;
+  private _waterAbsorptionCapacity: Quantity<'%'> = Quantity.of(0, '%');
 
-  protected get absorbency(): number {
-    return this._absorbency;
+  protected get waterAbsorptionCapacity(): Quantity<'%'> {
+    return this._waterAbsorptionCapacity;
   }
-  protected set absorbency(value: number) {
-    if (typeof value !== 'number' || !Number.isFinite(value)) {
+  protected set waterAbsorptionCapacity(value: Quantity<'%'>) {
+    if (!(value instanceof Quantity) || value.unit !== '%') {
       throw new TypeError(
-        `Material.absorbency must be a finite number in [0, 1]; got ${value}`
+        `Material.waterAbsorptionCapacity must be a Quantity<'%'>; got ${value instanceof Quantity ? `Quantity<'${value.unit}'>` : typeof value}`
       );
     }
-    this._absorbency = value < 0 ? 0 : value > 1 ? 1 : value;
+    this._waterAbsorptionCapacity = value;
   }
 
   /** Whether this material can be eaten. v1 has no consumer. */
@@ -408,7 +411,7 @@ export default class Material extends SingletonMixin(
     'hardness',
     'toughness',
     'electricalConductivity',
-    'absorbency',
+    'waterAbsorptionCapacity',
     'edibility',
     'nutrients',
     'nutrientAmounts',
@@ -434,6 +437,7 @@ export default class Material extends SingletonMixin(
     hardness: QuantityMarshaller.pathFor('MPa'),
     toughness: QuantityMarshaller.pathFor('MJ/m³'),
     electricalConductivity: QuantityMarshaller.pathFor('S/m'),
+    waterAbsorptionCapacity: QuantityMarshaller.pathFor('%'),
     molarMass: QuantityMarshaller.pathFor('g/mol'),
   };
 
@@ -564,13 +568,13 @@ export default class Material extends SingletonMixin(
     this.electricalConductivity = value;
   }
 
-  /** Read water absorbency (`0..1`; `0.5` neutral default). */
-  public getAbsorbency(): number {
-    return this._absorbency;
+  /** Read water absorption capacity (`Quantity<'%'>` of dry mass). */
+  public getWaterAbsorptionCapacity(): Quantity<'%'> {
+    return this._waterAbsorptionCapacity;
   }
-  /** Set water absorbency (clamped to `[0, 1]`). */
-  public setAbsorbency(value: number): void {
-    this.absorbency = value;
+  /** Set water absorption capacity. Strict on `Quantity<'%'>`. */
+  public setWaterAbsorptionCapacity(value: Quantity<'%'>): void {
+    this.waterAbsorptionCapacity = value;
   }
 
   public getTags(): readonly string[] { return this.tags; }

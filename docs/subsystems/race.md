@@ -65,11 +65,12 @@ orthogonal layers of classification. (The old fake 0–1 `hardness` /
 zero consumers; they return as real Quantities when a consumer — fire,
 electricity, combat — actually lands.) Later builds add more measured
 properties as their consumers land: `hardness`/`toughness` (materials-
-response), `electricalConductivity` (electricity), and **`absorbency`**
-(a dimensionless `0..1`; weather Wave 2 — how readily the material soaks
-and *holds* water, read by the `WetMixin` gauge for its dry rate: wool /
-wood / flesh hold water, steel / glass shed it; see
-[weather.md](./weather.md)).
+response), `electricalConductivity` (electricity), and
+**`waterAbsorptionCapacity`** (`Quantity<'%'>`; weather Wave 2 — the real
+ASTM-D570 figure for the water a material holds at saturation, as a percent
+of dry mass: wool ≈ 33 %, wood ≈ 28 %, flesh ≈ 25 %, metals / glass ≈ 0.
+The `WetMixin` gauge reads it to derive the dry rate from evaporation
+physics; see [weather.md](./weather.md)).
 
 - **Tags** (`tags: string[]`) — free-form classification strings
   (`'metal'`, `'alloy'`, `'igneous'`, `'organic'`, `'fantasy'`).

@@ -17,8 +17,8 @@ data:
   # Electrical conductivity (S/m) — dry granite is near-inert (~1×10⁻⁵);
   # a dry stone floor does not ground you.
   electricalConductivity: 1.0e-5
-  # Water absorbency (0..1, weather Wave 2): dense stone takes little water.
-  absorbency: 0.12
+  # Water absorption capacity (% of dry mass, ASTM D570): dense stone, near-nil porosity.
+  waterAbsorptionCapacity: 0.3
   edibility: false
   nutrients: []
   toxicity: []

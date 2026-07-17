@@ -491,8 +491,8 @@ settings:
   # Wetness (weather Wave 2) — the per-object saturation gauge (0..1).
   # Drainage is reconcile-on-read (presence-frozen); accrual is pushed by
   # rain exposure / immersion. See docs/subsystems/weather.md.
-  - key: wetness.dryRatePerHour
-    value: "0.25"
+  - key: wetness.evaporationRatePct
+    value: "1.25"
   - key: wetness.warmthFactor
     value: "0.03"
   - key: wetness.warmthReferenceK
@@ -507,8 +507,8 @@ settings:
     value: "0.45"
   - key: wetness.band.soakedAt
     value: "0.8"
-  - key: wetness.absorbencyDryScale
-    value: "1.6"
+  - key: wetness.absorptionCapacityDefaultPct
+    value: "5"
   # Storm (weather Wave 2) — puddle accrual/evaporation + lightning strikes
   # routed through ElectricityApi.conduct. See docs/subsystems/weather.md.
   - key: storm.puddle.accrualLitersPerSegment

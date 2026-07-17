@@ -575,8 +575,14 @@ export const AppSettingKeys = {
    * "Shelter dries faster" emerges (no accrual push when sheltered);
    * warmth accelerates the drain. See docs/subsystems/weather.md.
    */
-  /** Wetness — base saturation drained per game-hour when not re-wetted. */
-  wetnessDryRatePerHour: "wetness.dryRatePerHour",
+  /** Wetness — water evaporated per game-hour, in % of the object's dry
+   * mass (the fixed-mass evaporation rate). The dry rate in *saturation* is
+   * `evaporationRatePct / Material.waterAbsorptionCapacity`, so a thirsty
+   * material loses saturation slower. */
+  wetnessEvaporationRatePct: "wetness.evaporationRatePct",
+  /** Wetness — the water-absorption-capacity (%) a materialless object (or
+   * a gauge whose host carries no material) reads as its neutral fallback. */
+  wetnessAbsorptionCapacityDefaultPct: "wetness.absorptionCapacityDefaultPct",
   /** Wetness — extra fractional drying per K the body/object is above the
    * warmth reference (a warm body / a fire dries you faster). */
   wetnessWarmthFactor: "wetness.warmthFactor",
@@ -593,10 +599,6 @@ export const AppSettingKeys = {
   wetnessBandWetAt: "wetness.band.wetAt",
   /** Wetness — saturation at/above which the band reads `soaked`. */
   wetnessBandSoakedAt: "wetness.band.soakedAt",
-  /** Wetness — how strongly `Material.absorbency` shifts the dry rate: an
-   * absorbent material (→1) dries slower, a shedding one (→0) faster;
-   * neutral at absorbency 0.5. `dryMult = 1 - (absorbency - 0.5) * scale`. */
-  wetnessAbsorbencyDryScale: "wetness.absorbencyDryScale",
 
   /* ────────────────────────── storm (weather Wave 2) ────────────────────────── */
   /** Storm — Floor surface-bulk puddle litres accrued per rain segment. */

@@ -46,19 +46,21 @@ function material(): Material {
     m.setName(`wet-test-mat-${matCounter}`);
     m.setSpecificHeat(Quantity.of(4186, 'J/(kg·K)'));
     m.setThermalConductivity(Quantity.of(0.6, 'W/(m·K)'));
+    m.setWaterAbsorptionCapacity(Quantity.of(5, '%')); // neutral, so the warmth test isolates warmth
     return m;
   }, `/lib/material/_test/wet-mat-${matCounter}`) as unknown as Material;
 }
 
 let absSeq = 0;
-function absorbentThing(absorbency: number): WetThing {
+/** A WetThing made of a material with the given water absorption capacity (%). */
+function capacityThing(capacityPct: number): WetThing {
   absSeq += 1;
   const mat = makeStuffAtPath(() => {
     const m = new Material();
-    m.setName(`abs-mat-${absSeq}`);
-    m.setAbsorbency(absorbency);
+    m.setName(`cap-mat-${absSeq}`);
+    m.setWaterAbsorptionCapacity(Quantity.of(capacityPct, '%'));
     return m;
-  }, `/lib/material/_test/abs-${absSeq}`) as unknown as Material;
+  }, `/lib/material/_test/cap-${absSeq}`) as unknown as Material;
   const t = makeStuff(() => new WetThing());
   (t as unknown as { setMaterial(m: Material): void }).setMaterial(mat);
   return t;
@@ -109,7 +111,8 @@ describe('WetMixin — the wetness gauge', () => {
     const t = makeStuff(() => new WetThing());
     t.wet(1); // seeds the stamp at now=BASE
     setNow(HOUR); // one game-hour later
-    // 1 - dryRatePerHour(0.25) * 1h == 0.75
+    // No material → default capacity 5% → dry rate = evap 1.25 / 5 =
+    // 0.25 saturation/hr, so 1 - 0.25 == 0.75.
     expect(t.getWetness()).toBeCloseTo(0.75, 5);
     setNow(2 * HOUR);
     expect(t.getWetness()).toBeCloseTo(0.5, 5);
@@ -166,15 +169,16 @@ describe('WetMixin — the wetness gauge', () => {
     expect(wetText).not.toMatch(/0\.9|0\.[0-9]/); // no raw number
   });
 
-  it('an absorbent material dries slower than a shedding one (material-driven)', () => {
-    const wool = absorbentThing(0.9); // holds water
-    const steel = absorbentThing(0.05); // beads off
+  it('a high-capacity material dries slower than a low one (real absorption %)', () => {
+    const wool = capacityThing(33); // wool ≈ 33% water by dry mass — holds it
+    const steel = capacityThing(0.5); // metal ≈ surface film — sheds
     wool.wet(1);
     steel.wet(1);
     setNow(2 * HOUR);
-    // Both start soaked, but the wool stays far wetter than the steel.
+    // Same evaporation rate, but the wool holds far more water, so its
+    // saturation decays far slower (ds/dt = evap / capacity).
     expect(wool.getWetness()).toBeGreaterThan(steel.getWetness());
-    // The shedding metal has dried out; the absorbent wool has barely.
+    // The metal has dried out; the wool has barely.
     expect(steel.getWetness()).toBeLessThan(0.4);
     expect(wool.getWetness()).toBeGreaterThan(0.6);
   });

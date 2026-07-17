@@ -323,20 +323,28 @@ contents, not a room-level scalar. (Removing the vestigial `TangibleMixin`
 from `Location` — dead weight, nothing consumed it — is what makes
 `Tangible` a clean matter seam.)
 
-**Material-driven.** Wetness reads its coefficient off `Material`
-(`Material.absorbency`, `0..1`) exactly as thermal reads `specificHeat` and
-electricity reads `electricalConductivity` — the mixin holds the per-object
-*state*, the Material supplies the *physics number*. Absorbency governs the
-**dry rate**: wool / wood / flesh (≈ 0.6–0.9) soak and hold water for a
-long time, while steel / glass / oilcloth (≈ 0.02–0.05) bead it off and dry
-almost at once. Neutral at `0.5` (a materialless object reads the baseline
-rate). `wetness.absorbencyDryScale` tunes the strength.
+**Material-driven, from a real number.** Wetness reads its coefficient off
+`Material` exactly as thermal reads `specificHeat` and electricity reads
+`electricalConductivity` — the mixin holds the per-object *state*, the
+Material supplies the *physics number*. That number is
+`Material.waterAbsorptionCapacity`, a **real `Quantity<'%'>`** (the tabulated
+ASTM-D570 water-a-material-holds-at-saturation, as a percent of dry mass:
+wool ≈ 33 %, wood ≈ 28 %, flesh ≈ 25 %, leather ≈ 15 %, metals / glass ≈ 0),
+**not** a fake 0–1 index (the discipline race.md's Material substrate
+enforces). The **dry rate falls out of evaporation physics**: evaporation
+sheds a roughly fixed water *mass* per hour (`wetness.evaporationRatePct`),
+so a material that holds more water loses *saturation* slower —
+`ds/dt = evaporationRate / capacity`. Wet wool lingers for game-hours; a wet
+blade sheds at once. The **saturation gauge stays a normalized `0..1`** (so
+even a non-absorbent steel blade still surface-soaks and conducts — the
+electricity path is preserved); capacity governs only how fast it *dries*.
+A materialless object reads `wetness.absorptionCapacityDefaultPct`.
 
 - **Drainage is reconcile-on-read** over game-time, presence-frozen (the
   metabolism / harm / electricity-sustain idiom — no tick; first-touch /
   linkdead / far-past guards), warmth-accelerated (the object's own sync
-  `ThermalMixin.getTemperature`) and **material-modulated** (`absorbency`
-  above).
+  `ThermalMixin.getTemperature`) and **material-modulated**
+  (`waterAbsorptionCapacity` above).
 - **Accrual is *pushed***, not pulled: "is it raining here" is an *async*
   resolve, which the sync getter can't do — so precipitation exposure
   (the presence-gated boundary fan-out, source-indifferent) and immersion

@@ -16,8 +16,8 @@ data:
   thermalConductivity: 0.17
   # Electrical conductivity (S/m) — dry wood is a poor conductor (~1×10⁻⁴).
   electricalConductivity: 1.0e-4
-  # Water absorbency (0..1, weather Wave 2): wood drinks water and dries slowly.
-  absorbency: 0.7
+  # Water absorption capacity (% of dry mass, ASTM D570): wood at its fibre-saturation point.
+  waterAbsorptionCapacity: 28
   edibility: false
   nutrients: ["cellulose"]
   toxicity: []

@@ -8,8 +8,8 @@ data:
   appearance: glazed ceramic
   keywords: [ceramic, clay]
   density: 2300
-  # Water absorbency (0..1, weather Wave 2): glazed ceramic takes a little water.
-  absorbency: 0.2
+  # Water absorption capacity (% of dry mass, ASTM D570): glazed/porous ceramic.
+  waterAbsorptionCapacity: 8
   thermalConductivity: 1.5
   specificHeat: 880
   edibility: false

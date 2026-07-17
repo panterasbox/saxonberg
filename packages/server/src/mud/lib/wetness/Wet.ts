@@ -197,10 +197,7 @@ export function WetMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
       this._reconcilingWet = true;
       try {
         const hours = elapsed / WET_DEFAULTS.SECONDS_PER_HOUR;
-        const rate =
-          dial(AppSettingKeys.wetnessDryRatePerHour, 0.25) *
-          this.warmthMultiplier() *
-          this.absorbencyDryMultiplier();
+        const rate = this.dryRatePerHour() * this.warmthMultiplier();
         this._saturation = clamp01(this._saturation - rate * hours);
         this.wetnessClockStamp = nowS;
       } finally {
@@ -209,23 +206,32 @@ export function WetMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
     }
 
     /**
-     * Material-driven dry-rate factor (weather Wave 2 — the coefficient the
-     * gauge reads off `Material`, the Thermal/Electricity precedent). An
-     * absorbent material (wool / wood / flesh) *holds* water and dries slow;
-     * a shedding one (steel / glass / oilcloth) beads off and dries fast.
-     * Neutral at absorbency `0.5` (and for a materialless object), so a
-     * gauge with no authored material behaves at the baseline rate.
+     * The material-driven dry rate (saturation lost per game-hour), derived
+     * from real evaporation physics rather than a fudge factor. Evaporation
+     * removes a roughly fixed water *mass* per hour
+     * (`wetness.evaporationRatePct`, in % of dry mass); a material that holds
+     * more water at saturation (`Material.waterAbsorptionCapacity`, a real
+     * `%` — wool ≈ 33, steel ≈ 0) therefore loses saturation *slower*:
+     * `ds/dt = evaporationRate / capacity`. So wet wool lingers and a wet
+     * blade sheds at once, emergent from a tabulated number. The capacity is
+     * floored so a near-zero (metal / glass) material dries fast but finitely,
+     * never instantly; a materialless object reads the neutral default.
      */
-    private absorbencyDryMultiplier(): number {
+    private dryRatePerHour(): number {
+      const evapPct = dial(AppSettingKeys.wetnessEvaporationRatePct, 1.25);
+      let capacityPct = dial(
+        AppSettingKeys.wetnessAbsorptionCapacityDefaultPct,
+        5,
+      );
       const self = this as unknown as Stuff;
-      let absorbency = 0.5;
       if (MixinApi.isTangible(self)) {
         const mat = self.getMaterial();
-        if (mat) absorbency = mat.getAbsorbency();
+        if (mat) capacityPct = mat.getWaterAbsorptionCapacity().rawValue();
       }
-      const scale = dial(AppSettingKeys.wetnessAbsorbencyDryScale, 1.6);
-      const mult = 1 - (absorbency - 0.5) * scale;
-      return mult < 0.15 ? 0.15 : mult > 3 ? 3 : mult;
+      const CAPACITY_FLOOR_PCT = 0.1;
+      const cap =
+        capacityPct < CAPACITY_FLOOR_PCT ? CAPACITY_FLOOR_PCT : capacityPct;
+      return evapPct / cap;
     }
 
     /**
