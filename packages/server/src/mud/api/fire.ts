@@ -110,11 +110,17 @@ export class FireApi {
   }
 
   /** The fire-tick interval in game-seconds (the `fire.tickIntervalSeconds`
-   * dial). Read by `WorldClockRegistry` to arm the recurring tick. */
+   * dial). Read by `WorldClockRegistry` to arm the recurring tick. Falls back
+   * to the seeded literal when AppSettings isn't warmed yet (a pre-warm boot /
+   * test read is safe — the weather-dial precedent). */
   public static fireTickIntervalSeconds(): number {
-    const raw = AppApi.setting(AppSettingKeys.fireTickIntervalSeconds);
-    const n = raw == null || raw === '' ? NaN : Number.parseFloat(raw);
-    return Number.isFinite(n) ? n : 30;
+    try {
+      const raw = AppApi.setting(AppSettingKeys.fireTickIntervalSeconds);
+      const n = raw == null || raw === '' ? NaN : Number.parseFloat(raw);
+      return Number.isFinite(n) ? n : 30;
+    } catch {
+      return 30;
+    }
   }
 }
 

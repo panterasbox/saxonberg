@@ -243,7 +243,7 @@ function advanceFireInRoom(room: Stuff & Container): void {
   for (const c of combustibles) {
     if (c.isBurning()) advanceImpl(c as unknown as Stuff);
   }
-  let burning = liveCombustiblesIn(room).filter((c) => c.isBurning());
+  const burning = liveCombustiblesIn(room).filter((c) => c.isBurning());
 
   // ── Combustion chemistry: the oxygen leg + complete/incomplete verdict ──
   const airHolder = airReserveOf(room);
