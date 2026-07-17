@@ -41,7 +41,7 @@ describe("AppSettingsSeeder", () => {
     pm.setFindResult([]);
     const added = await AppSettingsSeeder.run();
 
-    expect(added).toBe(172); // 146 base + 7 Attendant+Goodkin + 19 storms-and-wetness
+    expect(added).toBe(179); // 146 base + 7 Attendant+Goodkin + 19 storms-and-wetness + 3 fire heat-channel + 4 fire combustion
     expect(pm.saves).toHaveLength(1);
     expect(pm.saves[0]!.collection).toBe("app_settings");
     const values = savedValues(pm);
@@ -252,6 +252,13 @@ describe("AppSettingsSeeder", () => {
           [AppSettingKeys.weatherCloudDimFactor]: "0.6",
           [AppSettingKeys.weatherSkyForecastSegments]: "2",
           [AppSettingKeys.thermalWetHeatLossFactor]: "1.5",
+          [AppSettingKeys.responseHeatBaseAttenuation]: "0.9",
+          [AppSettingKeys.responseHeatInsulationRefConductivity]: "2.0",
+          [AppSettingKeys.responseHeatDepthFactor]: "0.1",
+          [AppSettingKeys.fireBurnRatePerMin]: "0.5",
+          [AppSettingKeys.fireFlameTemperatureK]: "1000",
+          [AppSettingKeys.fireIgnitionWaterLatentHeatJPerKg]: "2260000",
+          [AppSettingKeys.fireIgnitionMaxManualDryingK]: "150",
         },
       },
     ]);
@@ -290,8 +297,12 @@ describe("AppSettingsSeeder", () => {
     // + 4 Attendant+Goodkin banking (withdrawal cap ×2, royalty, float)
     // + 3 Attendant lease/queue (lease sweep/idle, queue idle)
     // + 19 storms-and-wetness (8 wetness + 7 storm + 2 weather + 1 thermal
-    //   + 1 wetness.absorptionCapacityDefaultPct).
-    expect(added).toBe(171);
+    //   + 1 wetness.absorptionCapacityDefaultPct)
+    // + 3 fire heat-channel (response.heat baseAttenuation / insulationRef /
+    //   depthFactor)
+    // + 4 fire combustion (burnRatePerMin / flameTemperatureK /
+    //   ignition.waterLatentHeatJPerKg / ignition.maxManualDryingK).
+    expect(added).toBe(178);
     expect(pm.saves).toHaveLength(1);
     const values = savedValues(pm);
     // operator value preserved, missing keys seeded

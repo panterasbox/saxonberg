@@ -170,6 +170,11 @@ export const Mixins = {
   // baton, the deferred wall socket / Lightning bolt. Read by the
   // conduction walk (ElectricityApi) to impose a potential difference.
   Energized: 'EnergizedMixin',
+  // Fire — "I can burn": flammable matter carrying a fuel reserve + a
+  // Burning active state, driven past its (wetness-adjusted) ignition point
+  // by the combustion driver (FireApi). Reads its material's
+  // autoignitionTemperature / heatOfCombustion.
+  Combustible: 'CombustibleMixin',
 } as const;
 
 /**

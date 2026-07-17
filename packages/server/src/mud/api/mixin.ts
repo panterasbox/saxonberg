@@ -80,6 +80,7 @@ import type { LoadBearing } from '../lib/encumbrance/LoadBearing';
 import type { Metabolic } from '../lib/metabolism/Metabolic';
 import type { Thermal } from '../lib/thermal/Thermal';
 import type { Wet } from '../lib/wetness/Wet';
+import type { Combustible } from '../lib/fire/Combustible';
 import type { Respiration } from '../lib/respiration/Respiration';
 import type { Radioactive } from '../lib/material/Radioactive';
 import type { Workspace } from '../lib/shell/Workspace';
@@ -854,6 +855,10 @@ export class MixinApi {
 
   public static isWet(obj: Stuff): obj is Stuff & Wet {
     return this.hasMixin(obj, Mixins.Wet);
+  }
+
+  public static isCombustible(obj: Stuff): obj is Stuff & Combustible {
+    return this.hasMixin(obj, Mixins.Combustible);
   }
 
   public static isRespiration(obj: Stuff): obj is Stuff & Respiration {

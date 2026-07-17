@@ -15,6 +15,13 @@ data:
   # Electrical conductivity (S/m) — fresh/tap water is a poor conductor
   # (~0.01, dissolved-mineral dependent); salt water is ~500× higher.
   electricalConductivity: 0.01
+  # Phase change (thermal): freezes at 273 K, boils at 373 K; the latent
+  # heats are the reserve-clamp plateaus (fusion 334 kJ/kg, vaporization
+  # 2.26 MJ/kg). Unlocks ice → water → steam for free.
+  meltingPoint: 273
+  latentHeatOfFusion: 334000
+  boilingPoint: 373
+  latentHeatOfVaporization: 2260000
   edibility: true
   nutrients: [water]
   toxicity: []

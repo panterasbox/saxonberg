@@ -154,6 +154,8 @@ export interface Thermal {
   getContentsTemperature(): Quantity<"K">;
   /** Set the fluid temperature directly + re-anchor (bulk coupling). */
   setContentsTemperature(k: number): void;
+  /** Deposit `joules` of heat, raising temperature by ΔT = Q / C + re-anchor. */
+  depositHeat(joules: number): void;
   /** Time constant τ = R·C. */
   getTau(): Quantity<"s">;
   /** Lazy reconcile — drift the stamped temperature over elapsed game-time. */
@@ -311,6 +313,36 @@ export function ThermalMixin<TBase extends MixinConstructor>(Base: TBase) {
       assertFiniteNonNeg(k, "ThermalMixin.setContentsTemperature");
       if (!this._thermalReconciling) this.reconcileThermal();
       this.stampedTemperatureK = k;
+      const nowS = this.thermalNowSeconds();
+      if (nowS !== null) this.thermalClockStamp = nowS;
+    }
+
+    /**
+     * Deposit `joules` of heat into the object, raising its temperature by
+     * `ΔT = Q / C` (C = heat capacity, `mass × specificHeat`) and re-anchoring
+     * the drift clock — the single heat-DELIVERY primitive the sync model
+     * lacked (the shipped reconcile only cools *toward* ambient; nothing
+     * *added* heat). **Thermal inertia gates it**: the same joules barely move
+     * a heavy, high-`C` log but shove a match's flame temperature up sharply,
+     * so ignition ("did the delivered heat cross autoignition?") becomes a
+     * real, derivable energy balance. Reconciles the pending drift first, then
+     * bumps the stamped temperature — the read stays SYNC. A negative `joules`
+     * removes heat (a douse); the temperature floors at absolute zero. A host
+     * with no heat capacity (massless / material-less) re-equilibrates to
+     * ambient instantly, so a deposit is a no-op there.
+     */
+    public depositHeat(joules: number): void {
+      if (typeof joules !== "number" || !Number.isFinite(joules)) {
+        throw new RangeError(
+          `ThermalMixin.depositHeat: expected a finite number, got ${String(joules)}`,
+        );
+      }
+      if (!this._thermalReconciling) this.reconcileThermal();
+      const capacity = this.thermalCapacity(); // J/K
+      if (capacity > 0) {
+        const deltaT = joules / capacity;
+        this.stampedTemperatureK = Math.max(0, this.stampedTemperatureK + deltaT);
+      }
       const nowS = this.thermalNowSeconds();
       if (nowS !== null) this.thermalClockStamp = nowS;
     }

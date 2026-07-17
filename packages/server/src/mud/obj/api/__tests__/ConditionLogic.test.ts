@@ -69,7 +69,7 @@ describe('ConditionLogic.inflict — producer spine', () => {
       ['edge', 'laceration'],
       ['point', 'puncture'],
       ['blunt', 'contusion'],
-      ['thermal', 'burn'],
+      ['heat', 'burn'],
       ['tearing', 'avulsion'],
     ];
     for (const [mechanism, type] of cases) {

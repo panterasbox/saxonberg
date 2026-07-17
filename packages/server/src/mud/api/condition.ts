@@ -45,11 +45,11 @@ export type { InsultKind, Channel } from '../lib/vitals/Condition';
 export { CHANNELS, Channels } from '../lib/vitals/Condition';
 
 /**
- * An **energy** insult — a mechanical materials-response `Channel`
- * (edge / point / blunt), resolved outside-in through the covering stack
- * into the tissue (yielding BOTH the trauma type and its severity), or a
- * `'thermal'` / `'tearing'` passthrough (magnitude-only → burn / avulsion).
- * The magnitude is an `energy` scalar.
+ * An **energy** insult — a materials-response `Channel` (edge / point /
+ * blunt through the mechanical fold, or `heat` through the insulation fold),
+ * resolved outside-in through the covering stack into the tissue (yielding
+ * BOTH the trauma type and its severity), or the `'tearing'` passthrough
+ * (magnitude-only → avulsion). The magnitude is an `energy` scalar.
  */
 export interface EnergyInflictSpec {
   /** The insult kind — any non-`shock` {@link InsultKind}. Recorded raw. */
@@ -126,10 +126,10 @@ export class ConditionApi {
    * insult, resolves the covering stack at `spec.site` (armor occupants
    * outside-in), attenuates the energy through each layer, and lets the
    * residual meet the site's tissue — yielding BOTH the {@link Trauma}
-   * *type* (edge→laceration, point→puncture, blunt→fracture/contusion) AND
-   * its *severity*; a fully-attenuated blow lands no wound (`afflicted:
-   * false`, a truthful "deflected"). For a `'thermal'`/`'tearing'`
-   * passthrough, maps magnitude straight to a burn / avulsion. Stamps the
+   * *type* (edge→laceration, point→puncture, blunt→fracture/contusion,
+   * heat→burn) AND its *severity*; a fully-attenuated blow lands no wound
+   * (`afflicted: false`, a truthful "deflected"). For the `'tearing'`
+   * passthrough, maps magnitude straight to an avulsion. Stamps the
    * context-derived inflicter, runs the trauma's `onset`, and stamps the
    * reconcile-on-read `tickedAt` anchor. No-op-afflict when `target` is not
    * a wound-able body.

@@ -39,6 +39,14 @@ function mat(hardness: number, toughness: number): Material {
 const steel = () => mat(600, 200);
 const wool = () => mat(3, 4);
 
+/** A Material with a thermal conductivity — the heat channel's height. */
+function thermalMat(conductivityWmK: number): Material {
+  const m = makeStuff(() => new Material());
+  m.setThermalConductivity(Quantity.of(conductivityWmK, 'W/(m·K)'));
+  stampTemplatePathForTest(m, `/lib/material/test/tm-${seq++}`);
+  return m;
+}
+
 /** The plan path a body was stamped with (for slot claims). */
 function planPathOf(c: Creature): string {
   return c.getSpecies()!.getBodyPlan()!.getTemplatePath()!;
@@ -285,5 +293,44 @@ describe('materials-response — inflict through the covering stack', () => {
     });
     expect(gap.afflicted).toBe(true); // the uncovered foot is opened
     expect(trauma(c)!.site).toBe('body.leg.left.foot');
+  });
+
+  it('heat burns bare flesh but insulating leather turns it', () => {
+    const bare = bodied();
+    const out = ConditionApi.inflict(bare, {
+      mechanism: 'heat',
+      site: 'body.torso',
+      energy: 1,
+    });
+    expect(out.afflicted).toBe(true);
+    expect(trauma(bare)!.type).toBe('burn');
+
+    // Leather (thermalConductivity ≈ 0.14) hide over the torso insulates the
+    // heat below the no-wound floor — coverage as degree, emergent from the
+    // material property, no `isThermal` special case.
+    const clad = bodied();
+    wearTorso(clad, thermalMat(0.14), 'hide');
+    const turned = ConditionApi.inflict(clad, {
+      mechanism: 'heat',
+      site: 'body.torso',
+      energy: 1,
+    });
+    expect(turned.afflicted).toBe(false);
+    expect(trauma(clad)).toBeUndefined();
+  });
+
+  it('heat conducts through a metal plate to a burn (the armor inversion)', () => {
+    // A conductive plate (thermalConductivity ≈ 80) barely insulates — metal
+    // armor is WORSE against heat than none, emergent from conductivity.
+    const plated = bodied();
+    wearTorso(plated, thermalMat(80), 'plate');
+    const out = ConditionApi.inflict(plated, {
+      mechanism: 'heat',
+      site: 'body.torso',
+      energy: 1,
+    });
+    expect(out.afflicted).toBe(true);
+    expect(trauma(plated)!.type).toBe('burn');
+    expect(trauma(plated)!.mechanism).toBe('heat');
   });
 });

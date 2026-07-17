@@ -201,3 +201,75 @@ describe('materials-response — the response function', () => {
     ).toThrow(SecurityError);
   });
 });
+
+/** A Material carrying just the thermal conductivity the heat fold reads. */
+function mkThermalMat(conductivityWmK: number): Material {
+  const m = makeStuff(() => new Material());
+  m.setThermalConductivity(Quantity.of(conductivityWmK, 'W/(m·K)'));
+  return m;
+}
+
+describe('materials-response — the heat channel (insulation fold)', () => {
+  beforeEach(() => StuffApi.clearAll());
+  afterEach(() => StuffApi.clearAll());
+
+  // Real conductivities: leather ≈ 0.14 (insulator), iron ≈ 80 (conductor).
+  const leather = () => mkThermalMat(0.14);
+  const iron = () => mkThermalMat(80);
+
+  it('an insulating layer (leather/hide) turns a modest burn', () => {
+    // Heat folds through the covering stack by INSULATION, not hardness.
+    const { residualEnergy } = MaterialApi.attenuate(
+      'heat',
+      1,
+      leather(),
+      Construction.of('hide'),
+      fair,
+      1,
+    );
+    // Most of the heat is blocked → residual below the no-wound floor.
+    expect(residualEnergy).toBeLessThan(0.25);
+    const trauma = MaterialApi.resolveTrauma('heat', residualEnergy, null, false);
+    expect(trauma).toBeNull();
+  });
+
+  it('a conductive layer (iron/plate) passes the heat → a burn lands', () => {
+    const { residualEnergy } = MaterialApi.attenuate(
+      'heat',
+      1,
+      iron(),
+      Construction.of('plate'),
+      fair,
+      1,
+    );
+    // A conductor barely insulates → nearly all the heat reaches tissue.
+    expect(residualEnergy).toBeGreaterThan(0.9);
+    const trauma = MaterialApi.resolveTrauma('heat', residualEnergy, null, false);
+    expect(trauma).not.toBeNull();
+    expect(trauma!.type).toBe('burn');
+    expect(trauma!.severity).toBeGreaterThan(0);
+  });
+
+  it('a weapon (non-armor) construction attenuates no heat', () => {
+    const { residualEnergy } = MaterialApi.attenuate(
+      'heat',
+      1,
+      leather(),
+      Construction.of('bladed'),
+    );
+    expect(residualEnergy).toBe(1);
+  });
+
+  it('resolveTrauma maps surviving heat straight to a burn', () => {
+    const trauma = MaterialApi.resolveTrauma('heat', 0.8, null, false);
+    expect(trauma).not.toBeNull();
+    expect(trauma!.type).toBe('burn');
+  });
+
+  it('previewBand for heat over plate armor bands the residual burn', () => {
+    // The SAME chokepoint the analyze preview reads — heat over a conductor
+    // reads as a real burn band, not `turned`.
+    const band = MaterialApi.previewBand('heat', iron(), Construction.of('plate'));
+    expect(band).not.toBe('turned');
+  });
+});
