@@ -41,7 +41,7 @@ describe("AppSettingsSeeder", () => {
     pm.setFindResult([]);
     const added = await AppSettingsSeeder.run();
 
-    expect(added).toBe(153); // + 23 weapon-playstyle combat + 16 electricity + 5 concealment + 2 detection
+    expect(added).toBe(158); // + 23 weapon-playstyle combat + 16 electricity + 5 concealment + 2 detection + 5 detection search/hint (Phase 3)
     expect(pm.saves).toHaveLength(1);
     expect(pm.saves[0]!.collection).toBe("app_settings");
     const values = savedValues(pm);
@@ -57,6 +57,9 @@ describe("AppSettingsSeeder", () => {
     expect(values[AppSettingKeys.renownQualityWeight]).toBe("1");
     expect(values[AppSettingKeys.concealmentPassiveBaseline]).toBe("0");
     expect(values[AppSettingKeys.detectionCapacityPerBand]).toBe("3");
+    expect(values[AppSettingKeys.concealmentSearchBonus]).toBe("4");
+    expect(values[AppSettingKeys.concealmentHintCutoff]).toBe("4");
+    expect(values[AppSettingKeys.concealmentExamineBonus]).toBe("2");
   });
 
   it("is idempotent — a fully-populated row is left alone (no save)", async () => {
@@ -233,6 +236,12 @@ describe("AppSettingsSeeder", () => {
           // The 2 detection (Phase 2) dials.
           [AppSettingKeys.concealmentPassiveBaseline]: "0",
           [AppSettingKeys.detectionCapacityPerBand]: "3",
+          // The 5 detection search / hint (Phase 3) dials.
+          [AppSettingKeys.concealmentSearchBonus]: "4",
+          [AppSettingKeys.concealmentSearchDepthBonus]: "3",
+          [AppSettingKeys.concealmentSearchSeconds]: "4",
+          [AppSettingKeys.concealmentHintCutoff]: "4",
+          [AppSettingKeys.concealmentExamineBonus]: "2",
         },
       },
     ]);
@@ -269,8 +278,10 @@ describe("AppSettingsSeeder", () => {
     // + 23 weapon-playstyle combat (15 weapon-profile + 3 reach + 5 hand-slot)
     // + 16 electricity (shock channel + conduction)
     // + 5 concealment (detection gate — Phase 1)
-    // + 2 detection (Phase 2 — passiveBaseline, capacityPerBand).
-    expect(added).toBe(152);
+    // + 2 detection (Phase 2 — passiveBaseline, capacityPerBand)
+    // + 5 detection (Phase 3 — searchBonus, searchDepthBonus, searchSeconds,
+    //   hintCutoff, examineBonus).
+    expect(added).toBe(157);
     expect(pm.saves).toHaveLength(1);
     const values = savedValues(pm);
     // operator value preserved, missing keys seeded

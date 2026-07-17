@@ -41,6 +41,7 @@
 import { Idea } from '../stuff/Idea';
 import { ConcealableMixin } from '../concealment/Concealable';
 import { ConcealmentLevels } from '../concealment/ConcealmentLevel';
+import type { ConcealmentLevel } from '../concealment/ConcealmentLevel';
 import type { Stuff, EvictionContext } from '../stuff/Stuff';
 import type { VetoResult } from '../errors';
 import type { Container } from '../spatial/Container';
@@ -115,6 +116,14 @@ export interface ExitOptions {
   keepLiveDestination?: boolean;
   door?: Door | null;
   hidden?: boolean;
+  /**
+   * Explicit concealment band (D1 — subsumes `hidden`). When set, it wins
+   * over the legacy `hidden` flag; `concealment: 'hidden'` is the authored
+   * equivalent of `hidden: true`, `'deep'`/`'buried'` bury it further.
+   */
+  concealment?: ConcealmentLevel;
+  /** Authored hint / "tell" surfaced when a viewer nearly perceives it. */
+  concealmentHint?: string;
   blocked?: boolean;
   muffled?: boolean;
   noFollow?: boolean;
@@ -290,6 +299,19 @@ export default class Exit extends ConcealableMixin(Idea) {
   public setHidden(value: boolean): void {
     this.setConcealment(value ? ConcealmentLevels.hiddenDefault() : 'obvious');
   }
+
+  /**
+   * Durable discovery key (D3) — an `Exit` is a runtime instance with no
+   * `templatePath` of its own, so it keys its `DISCOVERY` belief on a
+   * synthetic `<source-templatePath>#exit:<direction>` handle, stable across
+   * re-clones (the bar's secret north door stays discovered). `undefined`
+   * when the source has no durable templatePath (a shared multi-clone room —
+   * the deferred player-placed-concealment case).
+   */
+  public override getDiscoveryKey(): string | undefined {
+    const src = this.source.getTemplatePath();
+    return src ? `${src}#exit:${this.direction}` : undefined;
+  }
   public isBlocked(): boolean { return this.blocked; }
   public setBlocked(value: boolean): void { this.blocked = value; }
   public isMuffled(): boolean { return this.muffled; }
@@ -435,9 +457,16 @@ export default class Exit extends ConcealableMixin(Idea) {
     // install an Exit on an Exitable host.
     this._door = opts.door ?? null;
     // D1: map the legacy `hidden` flag onto the concealment band. An
-    // un-hidden exit stays at the mixin's `obvious` default.
-    if (opts.hidden) {
+    // un-hidden exit stays at the mixin's `obvious` default. An explicit
+    // `concealment` band (the authored form) takes precedence over the
+    // legacy flag; an authored `hint` rides the ConcealableMixin carrier.
+    if (opts.concealment) {
+      this.setConcealment(opts.concealment);
+    } else if (opts.hidden) {
       this.setConcealment(ConcealmentLevels.hiddenDefault());
+    }
+    if (opts.concealmentHint !== undefined) {
+      this.concealmentHint = opts.concealmentHint;
     }
     this.blocked = opts.blocked ?? false;
     this.muffled = opts.muffled ?? false;

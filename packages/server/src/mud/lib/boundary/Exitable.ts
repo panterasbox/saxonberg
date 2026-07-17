@@ -23,6 +23,7 @@ import type { VetoResult } from '../errors';
 import type Door from './Door';
 import type { Mobile, MovementBodies } from '../spatial/Mobile';
 import Exit from './Exit';
+import type { ConcealmentLevel } from '../concealment/ConcealmentLevel';
 import { NavigationApi } from '../../api/navigation';
 import { StuffApi } from '../../api/stuff';
 import { MixinApi } from '../../api/mixin';
@@ -190,6 +191,15 @@ export interface ExitInstruction {
   bidirectional?: boolean;
   opposite?: string;
   hidden?: boolean;
+  /**
+   * Explicit concealment band (D1 — subsumes `hidden`). Authored form of a
+   * concealed exit: `concealment: hidden` (a secret door), `deep`/`buried`
+   * to bury it. Wins over the legacy `hidden` flag. See
+   * `lib/concealment/ConcealmentLevel.ts`.
+   */
+  concealment?: ConcealmentLevel;
+  /** Authored hint / "tell" surfaced when a viewer nearly perceives it. */
+  hint?: string;
   blocked?: boolean;
   muffled?: boolean;
   noFollow?: boolean;
@@ -562,6 +572,8 @@ export function ExitableMixin<TBase extends MixinConstructor<Stuff & Container>>
             destination: destStuff,
             door: doorStuff ?? null,
             hidden: spec.hidden,
+            concealment: spec.concealment,
+            concealmentHint: spec.hint,
             blocked: spec.blocked,
             muffled: spec.muffled,
             noFollow: spec.noFollow,

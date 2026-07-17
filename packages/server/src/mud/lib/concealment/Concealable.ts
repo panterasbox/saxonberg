@@ -33,12 +33,32 @@ export interface Concealable {
   setConcealment(level: ConcealmentLevel): void;
   /** True iff the band is anything other than `'obvious'`. */
   isConcealed(): boolean;
+  /**
+   * The authored *hint* — the "tell" a viewer who nearly-but-not-quite
+   * perceives this thing notices ("a draft," "the bookshelf sits oddly").
+   * `undefined` when the author left none (a generic nudge is used).
+   * Honest fog: a hint names a tell, never the concealed thing's identity.
+   */
+  getConcealmentHint(): string | undefined;
+  /** Set the authored hint / "tell" (pass `undefined` to clear). */
+  setConcealmentHint(hint: string | undefined): void;
+  /**
+   * The durable, per-viewer **discovery key** this concealable is recorded
+   * under in the `DISCOVERY` belief realm (D3). Defaults to the thing's own
+   * `templatePath` (stable for authored singleton content). A perceivable
+   * that carries no templatePath of its own — an `Exit` is a runtime
+   * instance — overrides this to a durable synthetic key (source + label),
+   * so a discovered secret door stays discovered across re-clones. Returns
+   * `undefined` when no durable key exists (a generic multi-clone — the
+   * player-placed-concealment case the requirements defer).
+   */
+  getDiscoveryKey(): string | undefined;
 }
 
 export function ConcealableMixin<TBase extends MixinConstructor>(Base: TBase) {
   return class ConcealableMixin extends Base implements Concealable {
     static _mixinName = 'ConcealableMixin';
-    static persistentFields = ['concealment'];
+    static persistentFields = ['concealment', 'concealmentHint'];
 
     /**
      * The concealment band; `'obvious'` (the default) = not concealed.
@@ -47,6 +67,17 @@ export function ConcealableMixin<TBase extends MixinConstructor>(Base: TBase) {
      * @authorable
      */
     public concealment: ConcealmentLevel = 'obvious';
+
+    /**
+     * The authored hint / "tell" surfaced to a viewer who nearly perceives
+     * this thing (via `PerceptionApi.hintsFor` → the room render). Left
+     * `undefined` by default; authored on seeds that want a directed nudge
+     * (`concealmentHint: "a draft from the north wall"`). Never names the
+     * concealed thing's identity — honest fog.
+     *
+     * @authorable
+     */
+    public concealmentHint?: string;
 
     getConcealment(): ConcealmentLevel {
       return this.concealment;
@@ -63,6 +94,23 @@ export function ConcealableMixin<TBase extends MixinConstructor>(Base: TBase) {
 
     isConcealed(): boolean {
       return ConcealmentLevels.isConcealed(this.concealment);
+    }
+
+    getConcealmentHint(): string | undefined {
+      return this.concealmentHint;
+    }
+
+    setConcealmentHint(hint: string | undefined): void {
+      this.concealmentHint = hint;
+    }
+
+    getDiscoveryKey(): string | undefined {
+      // Default: the thing's own durable templatePath (authored singletons).
+      // Exit overrides — it carries no templatePath of its own.
+      return (
+        (this as unknown as { getTemplatePath(): string | null }).getTemplatePath() ??
+        undefined
+      );
     }
   };
 }

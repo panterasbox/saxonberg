@@ -279,6 +279,13 @@ export function BeliefStoreMixin<TBase extends MixinConstructor>(Base: TBase) {
       const k = keyOf(realm, referent);
       const record = this._beliefs.get(k);
       if (!record) return null;
+      // The DISCOVERY realm is exempt from the liveness-GC: its referent is a
+      // durable *feature* handle (a concealable's `getDiscoveryKey()` — e.g.
+      // an `Exit`'s synthetic `source#exit:dir`), NOT necessarily a live
+      // Stuff's `templatePath`, so a templatePath-absence check would wrongly
+      // reap a valid discovery. A found-flag is a cheap, per-viewer world
+      // fact worth keeping regardless.
+      if (realm === DISCOVERY) return record;
       // Lazy liveness-GC: if nothing in the world carries this referent
       // anymore, the memory is dead. `findAllByTemplatePath` is the
       // non-throwing multi-instance lookup (type referents are shared

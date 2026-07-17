@@ -31,6 +31,7 @@ import { LIGHT_BANDS } from '../../lib/perception/Light';
 // value import of a specific modality would drag the whole modality
 // subsystem into this module's eval.
 import type { VisionModality } from '../../lib/perception/modalities/VisionModality';
+import type { SearchDepth } from '../../api/perception';
 
 /** Template-path prefix shared by every modality singleton. */
 const MODALITY_PREFIX = TemplatePathPrefixes.perceptionModalities;
@@ -51,8 +52,14 @@ const NEUTRAL_LIGHT_INDEX = LIGHT_BANDS.indexOf('lit');
  */
 const DEFAULT_CAPACITY_PER_BAND = 3;
 const DEFAULT_PASSIVE_BASELINE = 0;
-/** Phase-3 `concealment.hintCutoff` fallback (the dial key lands in Phase 3). */
-const DEFAULT_HINT_CUTOFF = 2;
+/** `concealment.hintCutoff` fallback (Phase 3). Kept in sync with the dial. */
+const DEFAULT_HINT_CUTOFF = 4;
+/** `concealment.searchBonus` fallback (Phase 3, broad-search attention). */
+const DEFAULT_SEARCH_BONUS = 4;
+/** `concealment.searchDepthBonus` fallback (Phase 3, narrow-search extra). */
+const DEFAULT_SEARCH_DEPTH_BONUS = 3;
+/** `concealment.examineBonus` fallback (Phase 3, the cheap instantaneous look). */
+const DEFAULT_EXAMINE_BONUS = 2;
 
 /**
  * Per-actor `awareness` competence-band snapshot, warmed by the async
@@ -221,6 +228,16 @@ export class PerceptionLogic extends ApiLogic {
   @CallSecurity(PerceptionApiCallers)
   public hintsFor(viewer: Stuff, scope: readonly Stuff[]): Stuff[] {
     return hintsForImpl(viewer, scope);
+  }
+
+  /** See {@link PerceptionApi.resolveSearch}. */
+  @CallSecurity(PerceptionApiCallers)
+  public resolveSearch(
+    viewer: Stuff,
+    scope: readonly Stuff[],
+    depth: SearchDepth,
+  ): Stuff[] {
+    return resolveSearchImpl(viewer, scope, depth);
   }
 
   /** See {@link PerceptionApi._resetModalityCacheForTest}. */
@@ -460,10 +477,23 @@ function effectivePerceptionImpl(
   return capacityOf(viewer) + attention + lightConditionsFor(viewer, target);
 }
 
+/**
+ * The durable `DISCOVERY`-realm key a target is recorded under. A
+ * concealable's own `getDiscoveryKey()` (default = `templatePath`; an `Exit`
+ * overrides to a synthetic `source#exit:dir` handle so a secret door is
+ * discoverable despite carrying no templatePath). Falls back to the raw
+ * `templatePath` for a non-concealable (never reached by the gate, but keeps
+ * the read total).
+ */
+function discoveryReferentOf(target: Stuff): string | null {
+  if (MixinApi.isConcealable(target)) return target.getDiscoveryKey() ?? null;
+  return target.getTemplatePath() ?? null;
+}
+
 /** See {@link PerceptionApi.hasDiscovered}. */
 function hasDiscoveredImpl(viewer: Stuff, target: Stuff): boolean {
   if (!MixinApi.isBeliefStore(viewer)) return false;
-  const referent = target.getTemplatePath();
+  const referent = discoveryReferentOf(target);
   if (!referent) return false;
   return !!viewer.recall(DISCOVERY, referent)?.payload.found;
 }
@@ -471,7 +501,7 @@ function hasDiscoveredImpl(viewer: Stuff, target: Stuff): boolean {
 /** See {@link PerceptionApi.recordDiscovery}. */
 function recordDiscoveryImpl(viewer: Stuff, target: Stuff): void {
   if (!MixinApi.isBeliefStore(viewer)) return;
-  const referent = target.getTemplatePath();
+  const referent = discoveryReferentOf(target);
   if (!referent) return;
   viewer.know(DISCOVERY, referent, { found: true });
 }
@@ -496,11 +526,67 @@ function perceivesImpl(
   );
 }
 
+/**
+ * The active-attention bonus a search of the given depth folds in on top of
+ * the passive baseline (D5). `broad` = a whole-room scan (`searchBonus`);
+ * `narrow` = rummaging one container/detail deeper (`+ searchDepthBonus`);
+ * `glance` = the cheap instantaneous `examine` (`examineBonus`, weaker). All
+ * dial-backed with seeded-literal fallbacks.
+ */
+function activeBonusFor(depth: SearchDepth): number {
+  switch (depth) {
+    case 'narrow':
+      return (
+        dialNumber(AppSettingKeys.concealmentSearchBonus, DEFAULT_SEARCH_BONUS) +
+        dialNumber(
+          AppSettingKeys.concealmentSearchDepthBonus,
+          DEFAULT_SEARCH_DEPTH_BONUS,
+        )
+      );
+    case 'glance':
+      return dialNumber(
+        AppSettingKeys.concealmentExamineBonus,
+        DEFAULT_EXAMINE_BONUS,
+      );
+    case 'broad':
+    default:
+      return dialNumber(
+        AppSettingKeys.concealmentSearchBonus,
+        DEFAULT_SEARCH_BONUS,
+      );
+  }
+}
+
+/** See {@link PerceptionApi.resolveSearch}. */
+function resolveSearchImpl(
+  viewer: Stuff,
+  scope: readonly Stuff[],
+  depth: SearchDepth,
+): Stuff[] {
+  const attention = passiveBaseline() + activeBonusFor(depth);
+  const found: Stuff[] = [];
+  for (const cand of scope) {
+    if (!MixinApi.isConcealable(cand)) continue;
+    const level = cand.getConcealment();
+    if (!ConcealmentLevels.isConcealed(level)) continue;
+    if (hasDiscoveredImpl(viewer, cand)) continue; // already found
+    if (
+      effectivePerceptionImpl(viewer, cand, attention) >=
+      ConcealmentLevels.requirementFor(level)
+    ) {
+      recordDiscoveryImpl(viewer, cand);
+      found.push(cand);
+    }
+  }
+  return found;
+}
+
 /** See {@link PerceptionApi.hintsFor}. */
 function hintsForImpl(viewer: Stuff, scope: readonly Stuff[]): Stuff[] {
-  // Reads the Phase-3 `concealment.hintCutoff` dial by its raw key (absent
-  // until Phase 3, so it falls back to the seeded literal — harmless now).
-  const cutoff = dialNumber('concealment.hintCutoff', DEFAULT_HINT_CUTOFF);
+  const cutoff = dialNumber(
+    AppSettingKeys.concealmentHintCutoff,
+    DEFAULT_HINT_CUTOFF,
+  );
   const att = passiveBaseline();
   const out: Stuff[] = [];
   for (const cand of scope) {

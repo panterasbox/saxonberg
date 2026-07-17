@@ -605,6 +605,38 @@ export const AppSettingKeys = {
    * fallback. See docs/subsystems/concealment.md.
    */
   detectionCapacityPerBand: "detection.capacityPerBand",
+  /**
+   * Detection — the active-attention bonus a broad `search` folds into
+   * effective perception (on top of the passive baseline). A rank-0 seeker
+   * reaches the `hidden` band by searching. Read with a seeded-literal
+   * fallback. See docs/subsystems/concealment.md.
+   */
+  concealmentSearchBonus: "concealment.searchBonus",
+  /**
+   * Detection — the extra bonus a **narrow** `search <container>` adds on
+   * top of {@link concealmentSearchBonus} (narrow-deep beats broad-shallow).
+   * Read with a seeded-literal fallback.
+   */
+  concealmentSearchDepthBonus: "concealment.searchDepthBonus",
+  /**
+   * Detection — the game-time window (seconds) a `search` occupies the
+   * seeker's `hands` slot before it resolves. Interruptible: an abort
+   * mid-search finds nothing. Read with a seeded-literal fallback.
+   */
+  concealmentSearchSeconds: "concealment.searchSeconds",
+  /**
+   * Detection — the passive-hint cutoff: a concealed-and-undiscovered thing
+   * whose `requirement − effectivePerception ≤ this` surfaces a *hint* (the
+   * "something sits oddly" nudge) without revealing. Read with a
+   * seeded-literal fallback.
+   */
+  concealmentHintCutoff: "concealment.hintCutoff",
+  /**
+   * Detection — the smaller active-attention bonus the instantaneous
+   * `examine <target>` folds in (a cheap close look, weaker than a full
+   * `search`). Read with a seeded-literal fallback.
+   */
+  concealmentExamineBonus: "concealment.examineBonus",
 } as const;
 
 export type AppSettingKey =

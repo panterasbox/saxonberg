@@ -512,3 +512,20 @@ settings:
     value: "0"
   - key: detection.capacityPerBand
     value: "3"
+  # Detection — the active-search loop (Phase 3). searchBonus: the attention
+  # a broad `search` folds in (rank-0 seeker reaches `hidden`=4).
+  # searchDepthBonus: extra for a narrow `search <container>`. searchSeconds:
+  # the game-time the search holds the `hands` slot. hintCutoff: a concealed
+  # thing within this gap of the viewer's perception surfaces a hint (`hidden`
+  # hints a passive floor viewer). examineBonus: the smaller instantaneous
+  # `examine` bump. See docs/subsystems/concealment.md.
+  - key: concealment.searchBonus
+    value: "4"
+  - key: concealment.searchDepthBonus
+    value: "3"
+  - key: concealment.searchSeconds
+    value: "4"
+  - key: concealment.hintCutoff
+    value: "4"
+  - key: concealment.examineBonus
+    value: "2"

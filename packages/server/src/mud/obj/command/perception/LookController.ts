@@ -268,6 +268,30 @@ export default class LookController extends CommandController<LookModel> {
       }
     }
 
+    // Passive hints (honest fog): a concealed-and-undiscovered thing the
+    // actor *nearly* perceives surfaces its authored "tell" — a draft, a
+    // seam, a stone sitting proud — so attention is *directed*, not
+    // pixel-hunted. A hint names the tell, NEVER the hidden thing's identity
+    // (that would leak concealed data). The candidate set is the full room
+    // contents + every exit (including hidden ones), which `hintsFor`
+    // narrows to the close-but-unperceived.
+    const hintCandidates: Stuff[] = [...location.getContents()];
+    if (MixinApi.isExitable(location)) {
+      for (const exit of location.getExits().values()) {
+        hintCandidates.push(exit as unknown as Stuff);
+      }
+    }
+    for (const cand of PerceptionApi.hintsFor(actor, hintCandidates)) {
+      const tell = MixinApi.isConcealable(cand)
+        ? cand.getConcealmentHint()
+        : undefined;
+      body = Mml.compose`${body}\n${
+        tell
+          ? Mml.fromMarkup(tell)
+          : Mml.compose`Something here doesn't sit quite right.`
+      }`;
+    }
+
     MessageApi.scene(actor)
       .topic('world.perception.sense.look')
       .toSelf(body)

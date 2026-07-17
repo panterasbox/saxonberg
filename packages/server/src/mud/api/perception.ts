@@ -37,6 +37,14 @@ import { SecurityApi } from './security';
 import { PerceptionLogic } from '../obj/api/PerceptionLogic';
 import { fileURLToPath } from 'url';
 
+/**
+ * The depth of an active detection act (D5). `broad` = a whole-room
+ * `search` scan; `narrow` = `search <container>` rummaging one scope
+ * deeper (a depth bonus); `glance` = the cheap instantaneous `examine`.
+ * Each maps to a dial-backed attention bonus in {@link PerceptionApi.resolveSearch}.
+ */
+export type SearchDepth = 'broad' | 'narrow' | 'glance';
+
 const LOGIC_PATH = '/obj/api/perception';
 const LOGIC_CLASS_FILE = fileURLToPath(
   new URL('../obj/api/PerceptionLogic', import.meta.url)
@@ -242,6 +250,25 @@ export class PerceptionApi {
    */
   public static hintsFor(viewer: Stuff, scope: readonly Stuff[]): Stuff[] {
     return logic().hintsFor(viewer, scope);
+  }
+
+  /**
+   * The active-search resolver (D5) — walk the concealable candidates in
+   * `scope`, and for each one the viewer's boosted effective perception now
+   * clears, record the sticky per-viewer discovery and collect it. Returns
+   * the newly-discovered things (already-found and still-hidden ones are
+   * omitted). `depth` folds in the dial-backed attention bonus: `broad`
+   * (whole-room `search`), `narrow` (`search <container>`, a depth bonus),
+   * or `glance` (the instantaneous `examine`). Pure + deterministic given
+   * the viewer's warmed `awareness` band — no RNG. The `search` / `examine`
+   * verbs (and `SearchActivity.onComplete`) call this.
+   */
+  public static resolveSearch(
+    viewer: Stuff,
+    scope: readonly Stuff[],
+    depth: SearchDepth,
+  ): Stuff[] {
+    return logic().resolveSearch(viewer, scope, depth);
   }
 
   /**
