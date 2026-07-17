@@ -34,9 +34,10 @@ import { ContainableMixin } from '../spatial/Containable';
 import { TangibleMixin } from '../material/Tangible';
 import { PerceptibleMixin } from '../description/Perceptible';
 import { VisibleMixin } from '../description/Visible';
+import { WetMixin } from '../wetness/Wet';
 
-const ThingBase = VisibleMixin(
-  PerceptibleMixin(TangibleMixin(ContainableMixin(Stuff))),
+const ThingBase = WetMixin(
+  VisibleMixin(PerceptibleMixin(TangibleMixin(ContainableMixin(Stuff)))),
 );
 
 export default class Thing extends ThingBase {

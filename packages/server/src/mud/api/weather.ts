@@ -44,6 +44,13 @@ export type {
   WeatherSample,
   WeatherForecast,
   WeatherForecastEntry,
+  WeatherPin,
+  WeatherPinMode,
+  ClimateLean,
+  WeatherProvenance,
+  ResolvedWeather,
+  CloudForm,
+  SkyRead,
 } from '../lib/weather/WeatherType';
 
 import type {
@@ -51,6 +58,10 @@ import type {
   WeatherFieldUnit,
   WeatherSample,
   WeatherForecast,
+  WeatherType,
+  ResolvedWeather,
+  CloudForm,
+  SkyRead,
 } from '../lib/weather/WeatherType';
 
 const LOGIC_PATH = '/obj/api/weather';
@@ -116,6 +127,65 @@ export class WeatherApi {
     return logic().sampleFor(scope);
   }
 
+  /* ──────────────── the coexistence resolve (Wave 2) ──────────────── */
+
+  /**
+   * The single resolved atmospheric state for a scope (Wave 2), folding
+   * **authored pin → procgen(climate-lean-shaped) → biome** in precedence,
+   * with a provenance tag and a resolved `precipitationHere` read. **Every
+   * Wave-2 consumer reads this** (wetness / thermal / electricity / light /
+   * `analyze`) — nobody calls `weatherAt`/`deviationFor` directly except
+   * this resolver and the biome field-fold. Async (resolves the covering
+   * Locality + the sky-exposure walk).
+   */
+  public static resolveWeatherFor(
+    scope: Stuff & Container,
+  ): Promise<ResolvedWeather> {
+    return logic().resolveWeatherFor(scope);
+  }
+
+  /**
+   * Pin-aware single-field deviation for the biome field-fold (SYNC). The
+   * caller (`BiomeLogic.resolveQuantityFor`) has already passed the cheap
+   * field-in-set → isActive → skyExposed gates and resolved the
+   * `Locality | null`; this folds the **pinned type's** deviation when a
+   * pin governs the scope, else the procgen deviation — byte-identical to
+   * `deviationFor` when no pin applies.
+   */
+  public static deviatedFieldFor(
+    scope: Stuff & Container,
+    locality: Locality | null,
+    field: WeatherField,
+    timeS: Quantity<'s'>,
+  ): Quantity<WeatherFieldUnit> {
+    return logic().deviatedFieldFor(scope, locality, field, timeS);
+  }
+
+  /* ──────────────── cloud forms (Wave 2, Phase H) ──────────────── */
+
+  /**
+   * A derived sky reading for `look up` / `analyze weather` (Phase H) — the
+   * resolved type, its visible cloud form, and whether that form presages a
+   * front (a hedged, deterministic forecast tell). Presage-aware only for a
+   * genuinely modelled sky (procgen / climate-leaned); a pin / biome reports
+   * its base form. **Presentation only** — no consequence reads the form.
+   */
+  public static skyReadFor(scope: Stuff & Container): Promise<SkyRead> {
+    return logic().skyReadFor(scope);
+  }
+
+  /**
+   * The pure cloud-form derivation: the base genus of `current`, upgraded to
+   * the presage form (`cirrus`/`cirrostratus`) when `current` is fair and
+   * `upcoming` carries a rain/storm front. Deterministic + total.
+   */
+  public static cloudFormFor(
+    current: WeatherType,
+    upcoming: readonly WeatherType[],
+  ): CloudForm {
+    return logic().cloudFormFor(current, upcoming);
+  }
+
   /* ──────────────── activation / boundary ──────────────── */
 
   /**
@@ -138,11 +208,31 @@ export class WeatherApi {
 
   /**
    * The segment-boundary callback, fired by the WorldClock system
-   * schedule. Runs the presence-gated thermal restamp fan-out; weather
-   * arms nothing itself.
+   * schedule. Runs the presence-gated thermal restamp fan-out + Wave-2
+   * puddle accrual/evaporation; weather arms nothing itself.
    */
   public static onBoundary(): void {
     logic().onBoundary();
+  }
+
+  /**
+   * The storm-strike callback, fired by the `weather:strike` WorldClock
+   * system schedule (Wave 2). Runs the presence-gated strike fan-out:
+   * occupied SkyExposed `storm` scopes roll `storm.strikeRate` and, on a
+   * hit, take an ambient strike routed through `ElectricityApi.conduct`.
+   * No weather state stored — the schedule owns the handle.
+   */
+  public static onStormTick(): void {
+    logic().onStormTick();
+  }
+
+  /**
+   * The `weather:strike` schedule interval in game-seconds
+   * (`storm.strikeIntervalS`). Boot reads this when registering the strike
+   * system schedule.
+   */
+  public static strikeIntervalSeconds(): number {
+    return logic().strikeIntervalSeconds();
   }
 
   /* ──────────────── test seams ──────────────── */
@@ -161,6 +251,15 @@ export class WeatherApi {
   static _resetForTesting(): void {
     SecurityApi.assertTestOnly('_resetForTesting');
     logic()._resetForTesting();
+  }
+
+  /**
+   * Force the per-scope strike roll (0 = always strike, 1 = never), or
+   * `null` to restore `Math.random`. Makes the strike tests deterministic.
+   */
+  static _forceStrikeRollForTesting(roll: number | null): void {
+    SecurityApi.assertTestOnly('_forceStrikeRollForTesting');
+    logic()._forceStrikeRollForTesting(roll);
   }
 }
 

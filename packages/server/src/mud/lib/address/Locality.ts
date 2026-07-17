@@ -33,6 +33,10 @@
 import { Idea } from '../stuff/Idea';
 import { PostRegistrationMixin } from '../stuff/PostRegistration';
 import { AddressApi } from '../../api/address';
+import type {
+  ClimateLean,
+  WeatherPin,
+} from '../weather/WeatherType';
 
 export default class Locality extends PostRegistrationMixin(Idea) {
   /** Display name (e.g. `'Narnia'`, `'Cair Paravel'`). */
@@ -47,7 +51,25 @@ export default class Locality extends PostRegistrationMixin(Idea) {
    */
   protected _address: string = '';
 
-  static persistentFields = ['name', '_address'];
+  /**
+   * The Locality-tier authored weather pin (weather Wave 2 — the reserved
+   * tier field). `{ type, mode }` or `null`. Covers this Locality's whole
+   * address subtree; a scope-tier pin (`AtmosphericMixin._weatherPin`)
+   * overrides it within a single room. Higher-precedence than the climate
+   * lean; the procgen model never overrides it. A plain-object field —
+   * round-trips as native JSON, no marshaller.
+   */
+  protected _weatherPin: WeatherPin | null = null;
+
+  /**
+   * The Locality-tier authored climate lean (weather Wave 2). A soft
+   * multiplicative bias over the procgen distribution ("this region tends
+   * snowy/grim") — distinct from, and lower-precedence than, a hard pin.
+   * `null` (or an empty record) is neutral. Plain-object native JSON.
+   */
+  protected _climateLean: ClimateLean | null = null;
+
+  static persistentFields = ['name', '_address', '_weatherPin', '_climateLean'];
 
   // ---------- name ----------
 
@@ -65,6 +87,24 @@ export default class Locality extends PostRegistrationMixin(Idea) {
   }
   public setAddress(value: string): void {
     this._address = value;
+  }
+
+  // ---------- weather pin (Locality tier) ----------
+
+  public getWeatherPin(): WeatherPin | null {
+    return this._weatherPin;
+  }
+  public setWeatherPin(value: WeatherPin | null): void {
+    this._weatherPin = value;
+  }
+
+  // ---------- climate lean (Locality tier) ----------
+
+  public getClimateLean(): ClimateLean | null {
+    return this._climateLean;
+  }
+  public setClimateLean(value: ClimateLean | null): void {
+    this._climateLean = value;
   }
 
   // ---------- coverage-index lifecycle ----------

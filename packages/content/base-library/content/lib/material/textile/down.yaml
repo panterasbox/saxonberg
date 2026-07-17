@@ -7,6 +7,8 @@ data:
   appearance: soft lofted down
   keywords: [down]
   density: 30
+  # Water absorption capacity (% of dry mass, ASTM D570): down soaks heavily and clumps when wet.
+  waterAbsorptionCapacity: 40
   thermalConductivity: 0.025
   # Mechanical response (materials-response): MPa / MJ·m⁻³, marshalled.
   hardness: 1

@@ -177,6 +177,33 @@ describe('AnalyzeWeatherController', () => {
     expect(p.rawValue()).toBeLessThan(101_325);
   });
 
+  it('shows provenance + the cloud form for a procgen scope', async () => {
+    const room = skyRoom();
+    room.setAddress('narnia/castle');
+    WeatherApi._forceTypeForTesting('storm');
+
+    const { body } = await runVerb(room);
+    expect(body).toContain('provenance: modelled');
+    expect(body).toContain('rain precipitation here'); // storm precip
+    expect(body).toContain('cumulonimbus'); // the storm cloud form
+  });
+
+  it('shows an authored provenance for a pinned scope', async () => {
+    const room = skyRoom();
+    room.setAddress('narnia/castle');
+    (room as unknown as { setWeatherPin(p: unknown): void }).setWeatherPin({
+      type: 'rain',
+      mode: 'frozen',
+    });
+    // Procgen forced clear; the pin must win, and be labelled authored.
+    WeatherApi._forceTypeForTesting('clear');
+
+    const { body } = await runVerb(room);
+    expect(body).toContain('type: rain');
+    expect(body).toContain('provenance: authored');
+    expect(body).toContain('nimbostratus'); // rain cloud form
+  });
+
   it('rejects a non-place target', async () => {
     const room = skyRoom();
     const thing = makeStuff(() => new Idea());

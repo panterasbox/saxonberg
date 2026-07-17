@@ -41,7 +41,7 @@ describe("AppSettingsSeeder", () => {
     pm.setFindResult([]);
     const added = await AppSettingsSeeder.run();
 
-    expect(added).toBe(153); // 146 master + 7 Attendant+Goodkin
+    expect(added).toBe(172); // 146 base + 7 Attendant+Goodkin + 19 storms-and-wetness
     expect(pm.saves).toHaveLength(1);
     expect(pm.saves[0]!.collection).toBe("app_settings");
     const values = savedValues(pm);
@@ -232,6 +232,26 @@ describe("AppSettingsSeeder", () => {
           [AppSettingKeys.electricityArmorConductiveSkinFactor]: "0.15",
           [AppSettingKeys.electricitySustainBurnPerAmpSec]: "2",
           [AppSettingKeys.electricityArrestDrivePerSec]: "40",
+          [AppSettingKeys.wetnessEvaporationRatePct]: "1.25",
+          [AppSettingKeys.wetnessWarmthFactor]: "0.03",
+          [AppSettingKeys.wetnessWarmthReferenceK]: "295",
+          [AppSettingKeys.wetnessRainAccrualPerHour]: "1.5",
+          [AppSettingKeys.wetnessImmersionSaturation]: "1",
+          [AppSettingKeys.wetnessBandDampAt]: "0.15",
+          [AppSettingKeys.wetnessBandWetAt]: "0.45",
+          [AppSettingKeys.wetnessBandSoakedAt]: "0.8",
+          [AppSettingKeys.wetnessAbsorptionCapacityDefaultPct]: "5",
+          [AppSettingKeys.stormPuddleAccrualLitersPerSegment]: "12",
+          [AppSettingKeys.stormPuddleEvaporationFactor]: "0.2",
+          [AppSettingKeys.stormPuddleFreshWaterMaterialPath]:
+            "/lib/material/bulk/water",
+          [AppSettingKeys.stormStrikeRate]: "0.15",
+          [AppSettingKeys.stormStrikeIntervalS]: "1800",
+          [AppSettingKeys.stormStrikeVoltage]: "30000000",
+          [AppSettingKeys.stormAttractorBias]: "4",
+          [AppSettingKeys.weatherCloudDimFactor]: "0.6",
+          [AppSettingKeys.weatherSkyForecastSegments]: "2",
+          [AppSettingKeys.thermalWetHeatLossFactor]: "1.5",
         },
       },
     ]);
@@ -268,8 +288,10 @@ describe("AppSettingsSeeder", () => {
     // + 23 weapon-playstyle combat (15 weapon-profile + 3 reach + 5 hand-slot)
     // + 16 electricity (shock channel + conduction)
     // + 4 Attendant+Goodkin banking (withdrawal cap ×2, royalty, float)
-    // + 3 Attendant lease/queue (lease sweep/idle, queue idle).
-    expect(added).toBe(152);
+    // + 3 Attendant lease/queue (lease sweep/idle, queue idle)
+    // + 19 storms-and-wetness (8 wetness + 7 storm + 2 weather + 1 thermal
+    //   + 1 wetness.absorptionCapacityDefaultPct).
+    expect(added).toBe(171);
     expect(pm.saves).toHaveLength(1);
     const values = savedValues(pm);
     // operator value preserved, missing keys seeded

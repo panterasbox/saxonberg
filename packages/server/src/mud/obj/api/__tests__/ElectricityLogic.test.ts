@@ -286,4 +286,27 @@ describe('ElectricityLogic — the armor inversion + wet-skin', () => {
     expect(iDry).toBeGreaterThan(0);
     expect(iWet).toBeGreaterThan(iDry); // wet skin ~100× lower resistance
   });
+
+  it('a body wet via the stored gauge (as rain leaves it) shocks harder', () => {
+    // Both stand on a conductive metal floor (grounds + bridges, NO pool),
+    // so the ONLY difference is the stored wetness gauge — proving the
+    // Wave-2 gauge (not the retired procgen `isRainWet` read) drives the
+    // shock. Rain would leave a body wet exactly this way.
+    const mat = steel();
+
+    const wetRoom = makeRoom();
+    metalFloor(wetRoom, mat);
+    const wetWire = makeWire(wetRoom, 120);
+    const wetBody = makeBody(wetRoom);
+    (wetBody as unknown as { wet(n: number): void }).wet(1); // soaked gauge
+
+    const dryRoom = makeRoom();
+    metalFloor(dryRoom, mat);
+    const dryWire = makeWire(dryRoom, 120);
+    const dryBody = makeBody(dryRoom); // gauge dry
+
+    const iWet = ElectricityApi.currentThrough(wetWire, wetBody).rawValue();
+    const iDry = ElectricityApi.currentThrough(dryWire, dryBody).rawValue();
+    expect(iWet).toBeGreaterThan(iDry);
+  });
 });
