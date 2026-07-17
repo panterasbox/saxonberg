@@ -512,9 +512,11 @@ vitals/reserve) + `RespirationMixin` (the air-exchange / `spo2` death
 driver, outer of metabolism) + `ThermalMixin` + `ThermalRegulationMixin`
 (the heat-exchange substrate + Option-C body driver, outer of
 respiration/metabolism; drives `coreTemperature`) + `LoadBearingMixin`
-(the encumbrance gauge, outermost) + `DisguisableMixin` (creature
-masking, outer of `Visible`) + the anatomy-slot / posture / description /
-containment mixins. `Character`
+(the encumbrance gauge, outermost) + `ConcealableMixin` (presence-
+concealment, so a lurking creature can be hidden — see
+[concealment.md](./subsystems/concealment.md)) + `DisguisableMixin`
+(creature masking, outer of `Visible`) + the anatomy-slot / posture /
+description / containment mixins. `Character`
 extends it with the **agency** mixins (commands, perception, speech,
 movement, engagement) + the social-identity mixins (`PersonaMixin`,
 `GenderedMixin`) + the per-viewer concerns (`BeliefStoreMixin`,
@@ -573,7 +575,7 @@ points readers here.
 | Branch | Composition | Notes |
 |---|---|---|
 | `Idea` | `Stuff` | No spatial mixin. Default for incorporeal entities. |
-| `Thing` | `ContainableMixin(Stuff)` | "I live somewhere." |
+| `Thing` | `ConcealableMixin(ContainableMixin(Stuff))` | "I live somewhere." `ConcealableMixin` (default `obvious`) is baseline so any Thing can be hidden — the presence-concealment axis, see [concealment.md](./subsystems/concealment.md). |
 | `Location` | `ContainerMixin(Stuff)` | "I'm a place." Subclasses (`CartesianLocation`, `SphericalLocation`, …) layer on coordinate / Visible / Exitable mixins. |
 | `Vessel` | `Atmospheric(Container(Visible(Perceptible(Tangible(Containable(Stuff))))))` | Both Container AND Containable, and carries Thing's describable-physical baseline (`Visible`/`Perceptible`/`Tangible`) **directly** (not by extending Thing — a ship isn't a pocketable item), so a describable container is a plain `DetailedMixin(Vessel)` with no re-added `Visible`. `ExitableVessel` etc. layer on navigation. |
 | `Agent` | `Stuff` | Subclasses (Character → Avatar) layer on Mobile / Container / Containable / Sensor / Vocal / etc. |
@@ -598,6 +600,22 @@ plus the boot-warmed `BlueprintCatalogue` singleton (`obj/`, the
 `RecipeCatalogue` shape: id + signature indices) it's loaded into, and the
 `BlueprintSeeder` (`backend/`, a derived skeleton from every backing class + a
 curated `config/blueprints.yaml` overlay). See [studio.md](./subsystems/studio.md).
+
+The **concealment / traps** build adds two capability mixins and one class,
+both deliberately **without a new Api**: `ConcealableMixin`
+(`lib/concealment/`, the presence-concealment carrier, baseline on
+`Thing`/`Creature`/`Exit`) — its detection *surface* is folded onto the
+existing `PerceptionApi`/`PerceptionLogic` (no `DetectionApi`, since
+detection *is* concealment-gated perception); and `HazardMixin`
+(`lib/hazard/`, a **self-resolving** trap capability) plus the concrete
+`Trap = HazardMixin(DetailedMixin(Thing))` — with **no `HazardApi`/
+`HazardLogic`**, because a hazard owns its own state + resolution and the
+powerful steps it orchestrates (`ConditionApi.inflict`,
+`PerceptionApi.perceives`) are each already gated, so an orchestrator gate
+buys nothing. Both are the "an Api is earned by a *powerful primitive*, not
+by every feature" rule read the other way — a capability with nothing new to
+protect stays a mixin. See [concealment.md](./subsystems/concealment.md) /
+[hazard.md](./subsystems/hazard.md).
 
 ## Mixin Organization
 

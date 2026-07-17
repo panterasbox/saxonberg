@@ -382,9 +382,13 @@ requirements.
   mixins (`Climbable`/`Swimmable`/`Flyable`); `LocomotionApi`
   emission walk; four-gate cascade (body-plan, posture,
   exit.canTraverse, enablement). The original locomotion
-  slate was retired; forward-looking trap / pathfinder /
-  detection / run-as-mode notes live in the subsystem doc's
-  Future work section.
+  slate was retired. Its forward-looking **trap / detection /
+  run-as-mode** notes have now **shipped** — the concealment /
+  detection gate + the `HazardMixin` trap substrate + the
+  `sneak`/`run` care↔speed modes (see
+  [concealment.md](./subsystems/concealment.md) /
+  [hazard.md](./subsystems/hazard.md)); **pathfinder** remains
+  the open forward note.
 - [docs/subsystems/activity.md](./subsystems/activity.md) — Wave 1
   substrate shipped: `SchedulerApi`, `EngagedMixin` on `Character`,
   engagement slots, the five framework-intrinsic abort reasons,

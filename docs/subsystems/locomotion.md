@@ -25,6 +25,8 @@ nine v1 modes live at `/lib/locomotion/<name>`.
 | Name | Medium | Passthrough | Enablement | Required body-plan |
 |---|---|---|---|---|
 | walk | ground | — | — | `['walk']` |
+| sneak | ground | — | — | `['walk']` |
+| run | ground | — | — | `['walk']` |
 | climb | vertical | — | `ClimbableMixin` | `['climb']` |
 | swim | water | — | `SwimmableMixin` | `['swim']` |
 | fly | air | — | `FlyableMixin` | `['fly']` |
@@ -33,6 +35,25 @@ nine v1 modes live at `/lib/locomotion/<name>`.
 | wheeled | ground | — | — | — |
 | sailed | water | — | — | — |
 | aerial | air | — | — | — |
+
+**The care↔speed axis** — `sneak` / `walk` / `run` are the three ground
+*paces*, bracketing `walk` (sneak `speed 0.5` / `noiseLevel quiet` /
+`costMultiplier 1.5`; run `speed 2.0` / `loud` / `2.0`). They share `walk`'s
+`['walk']` body-plan requirement (any ground mover can sneak or run) and the
+ground medium, so every `media: ['ground']` exit admits them with no
+re-authoring — an **empty `media` list now admits the whole ground-pace
+family** (`walk`/`sneak`/`run`), widened from walk-only. Their detection
+edge is **not** a mode field: it's the `movement.attention.{sneak,run}`
+AppSettings dials read by `PerceptionLogic.modeAttention`, so sneaking spots
+a trap a walk would spring and running blunders into one a walk would notice
+(see [concealment.md](./concealment.md)). The `noiseLevel` self-hiding side
+is authored-as-data but its observer-detection is the reserved stealth
+consumer. Thin `sneak` / `run` verbs (`SneakController` / `RunController`
+override `modeName()`); the **persistent pace default rides the existing
+`movement.defaultMode` setting** (`set movement.defaultMode sneak`) — there
+is no separate `movement.pace` knob (it was redundant with `defaultMode`,
+which already selects the mode `go` dispatches under and now accepts
+`sneak`/`run`).
 
 Walk / climb / swim / fly are organism modes — actors engage directly.
 Ride / drive are passthrough — the actor's slot occupancy on a
