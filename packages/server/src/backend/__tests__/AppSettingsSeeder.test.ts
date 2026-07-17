@@ -41,7 +41,7 @@ describe("AppSettingsSeeder", () => {
     pm.setFindResult([]);
     const added = await AppSettingsSeeder.run();
 
-    expect(added).toBe(164); // + 18 storms-and-wetness (weather Wave 2)
+    expect(added).toBe(165); // + 19 storms-and-wetness (weather Wave 2)
     expect(pm.saves).toHaveLength(1);
     expect(pm.saves[0]!.collection).toBe("app_settings");
     const values = savedValues(pm);
@@ -230,6 +230,7 @@ describe("AppSettingsSeeder", () => {
           [AppSettingKeys.wetnessBandDampAt]: "0.15",
           [AppSettingKeys.wetnessBandWetAt]: "0.45",
           [AppSettingKeys.wetnessBandSoakedAt]: "0.8",
+          [AppSettingKeys.wetnessAbsorbencyDryScale]: "1.6",
           [AppSettingKeys.stormPuddleAccrualLitersPerSegment]: "12",
           [AppSettingKeys.stormPuddleEvaporationFactor]: "0.2",
           [AppSettingKeys.stormPuddleFreshWaterMaterialPath]:
@@ -277,7 +278,7 @@ describe("AppSettingsSeeder", () => {
     // + 23 weapon-playstyle combat (15 weapon-profile + 3 reach + 5 hand-slot)
     // + 16 electricity (shock channel + conduction)
     // + 18 storms-and-wetness (8 wetness + 7 storm + 2 weather + 1 thermal).
-    expect(added).toBe(163);
+    expect(added).toBe(164);
     expect(pm.saves).toHaveLength(1);
     const values = savedValues(pm);
     // operator value preserved, missing keys seeded

@@ -7,8 +7,13 @@
 
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import Thing from '../../stuff/Thing';
+import { Vessel } from '../../stuff/Vessel';
+import { Agent } from '../../stuff/Agent';
+import Location from '../../stuff/Location';
+import { Idea } from '../../stuff/Idea';
 import { ThermalMixin } from '../../thermal/Thermal';
 import Material from '../../material/Material';
+import { MixinApi } from '../../../api/mixin';
 import { WorldClockApi } from '../../../api/worldclock';
 import { Quantity } from '../../quantity';
 import {
@@ -43,6 +48,20 @@ function material(): Material {
     m.setThermalConductivity(Quantity.of(0.6, 'W/(m·K)'));
     return m;
   }, `/lib/material/_test/wet-mat-${matCounter}`) as unknown as Material;
+}
+
+let absSeq = 0;
+function absorbentThing(absorbency: number): WetThing {
+  absSeq += 1;
+  const mat = makeStuffAtPath(() => {
+    const m = new Material();
+    m.setName(`abs-mat-${absSeq}`);
+    m.setAbsorbency(absorbency);
+    return m;
+  }, `/lib/material/_test/abs-${absSeq}`) as unknown as Material;
+  const t = makeStuff(() => new WetThing());
+  (t as unknown as { setMaterial(m: Material): void }).setMaterial(mat);
+  return t;
 }
 
 function warmThing(tempK: number): WarmWetThing {
@@ -147,6 +166,19 @@ describe('WetMixin — the wetness gauge', () => {
     expect(wetText).not.toMatch(/0\.9|0\.[0-9]/); // no raw number
   });
 
+  it('an absorbent material dries slower than a shedding one (material-driven)', () => {
+    const wool = absorbentThing(0.9); // holds water
+    const steel = absorbentThing(0.05); // beads off
+    wool.wet(1);
+    steel.wet(1);
+    setNow(2 * HOUR);
+    // Both start soaked, but the wool stays far wetter than the steel.
+    expect(wool.getWetness()).toBeGreaterThan(steel.getWetness());
+    // The shedding metal has dried out; the absorbent wool has barely.
+    expect(steel.getWetness()).toBeLessThan(0.4);
+    expect(wool.getWetness()).toBeGreaterThan(0.6);
+  });
+
   it('bands map by threshold', () => {
     const mk = (s: number): WetThing => {
       const t = makeStuff(() => new WetThing());
@@ -157,5 +189,19 @@ describe('WetMixin — the wetness gauge', () => {
     expect(mk(0.2).getWetnessBand()).toBe('damp');
     expect(mk(0.5).getWetnessBand()).toBe('wet');
     expect(mk(0.9).getWetnessBand()).toBe('soaked');
+  });
+});
+
+describe('WetMixin — the host set is the matter seam', () => {
+  afterEach(() => WorldClockApi._resetForTesting());
+
+  it('matter (Thing / Vessel / Agent) is wettable; space + Ideas are not', () => {
+    // "Can get wet" ⟺ "is matter" (Tangible). A Location is *space*, not
+    // matter, so it is neither Tangible nor Wet; a pure Idea is neither.
+    expect(MixinApi.isWet(makeStuff(() => new Thing()))).toBe(true);
+    expect(MixinApi.isWet(makeStuff(() => new Vessel()))).toBe(true);
+    expect(MixinApi.isWet(makeStuff(() => new Agent()))).toBe(true);
+    expect(MixinApi.isWet(makeStuff(() => new Location()))).toBe(false);
+    expect(MixinApi.isWet(makeStuff(() => new Idea()))).toBe(false);
   });
 });

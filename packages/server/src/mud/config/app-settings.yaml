@@ -507,6 +507,8 @@ settings:
     value: "0.45"
   - key: wetness.band.soakedAt
     value: "0.8"
+  - key: wetness.absorbencyDryScale
+    value: "1.6"
   # Storm (weather Wave 2) — puddle accrual/evaporation + lightning strikes
   # routed through ElectricityApi.conduct. See docs/subsystems/weather.md.
   - key: storm.puddle.accrualLitersPerSegment

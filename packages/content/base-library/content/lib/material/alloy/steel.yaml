@@ -12,6 +12,8 @@ data:
   # Electrical conductivity (S/m) — carbon steel, ~6×10⁶ (a fine
   # conductor; the low-resistance series path that betrays plate armor).
   electricalConductivity: 6.0e6
+  # Water absorbency (0..1, weather Wave 2): metal beads water off and dries almost at once.
+  absorbency: 0.03
   # Mechanical response (materials-response): hard + tough, the
   # standard for swords and armor. MPa / MJ·m⁻³, marshalled.
   hardness: 600

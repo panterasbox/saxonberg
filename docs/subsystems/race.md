@@ -63,7 +63,13 @@ orthogonal layers of classification. (The old fake 0–1 `hardness` /
 `flammability` / `opacity` / electrical / magnetic fields and the
 `resistance.<type>` damage seam were removed: normalized scales with
 zero consumers; they return as real Quantities when a consumer — fire,
-electricity, combat — actually lands.)
+electricity, combat — actually lands.) Later builds add more measured
+properties as their consumers land: `hardness`/`toughness` (materials-
+response), `electricalConductivity` (electricity), and **`absorbency`**
+(a dimensionless `0..1`; weather Wave 2 — how readily the material soaks
+and *holds* water, read by the `WetMixin` gauge for its dry rate: wool /
+wood / flesh hold water, steel / glass shed it; see
+[weather.md](./weather.md)).
 
 - **Tags** (`tags: string[]`) — free-form classification strings
   (`'metal'`, `'alloy'`, `'igneous'`, `'organic'`, `'fantasy'`).

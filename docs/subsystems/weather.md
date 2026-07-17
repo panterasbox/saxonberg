@@ -307,17 +307,36 @@ deviation when a pin governs the scope, else the procgen deviation
 
 Any physical object — a cloak, firewood, a body — can be **wet**, tracked
 as a per-object stored, decaying **saturation** `[0,1]` (`WetMixin`,
-`lib/wetness/Wet.ts`; composed on `Thing` + the `Creature` body;
-`MixinApi.isWet`). It is the upgrade the electricity build flagged over
-its derived `isRainWet` stopgap. **Not** `ReservedMixin` reuse — it
-borrows only the decomposed-scalar persistence shape (two plain scalar
-fields, no keyed map), so it rides onto a plain `Thing` without the
+`lib/wetness/Wet.ts`; `MixinApi.isWet`). It is the upgrade the electricity
+build flagged over its derived `isRainWet` stopgap. **Not** `ReservedMixin`
+reuse — it borrows only the decomposed-scalar persistence shape (two plain
+scalar fields, no keyed map), so it rides onto plain matter without the
 biological reserve machinery.
+
+**The host set is the matter seam.** "Can get wet" ⟺ "is matter" ⟺
+`Tangible`, so `WetMixin` is composed at the three matter baselines —
+`Thing`, `Vessel`, and `Agent` (which covers every `Creature` / `Avatar`).
+A `Location` represents *space*, not matter — it is **not** `Tangible` (a
+room has no material or mass, and nothing ever read them) and therefore not
+`Wet`; a room's wetness reads as its `Floor` puddle (bulk) and its
+contents, not a room-level scalar. (Removing the vestigial `TangibleMixin`
+from `Location` — dead weight, nothing consumed it — is what makes
+`Tangible` a clean matter seam.)
+
+**Material-driven.** Wetness reads its coefficient off `Material`
+(`Material.absorbency`, `0..1`) exactly as thermal reads `specificHeat` and
+electricity reads `electricalConductivity` — the mixin holds the per-object
+*state*, the Material supplies the *physics number*. Absorbency governs the
+**dry rate**: wool / wood / flesh (≈ 0.6–0.9) soak and hold water for a
+long time, while steel / glass / oilcloth (≈ 0.02–0.05) bead it off and dry
+almost at once. Neutral at `0.5` (a materialless object reads the baseline
+rate). `wetness.absorbencyDryScale` tunes the strength.
 
 - **Drainage is reconcile-on-read** over game-time, presence-frozen (the
   metabolism / harm / electricity-sustain idiom — no tick; first-touch /
-  linkdead / far-past guards), warmth-accelerated (reads the object's own
-  sync `ThermalMixin.getTemperature`).
+  linkdead / far-past guards), warmth-accelerated (the object's own sync
+  `ThermalMixin.getTemperature`) and **material-modulated** (`absorbency`
+  above).
 - **Accrual is *pushed***, not pulled: "is it raining here" is an *async*
   resolve, which the sync getter can't do — so precipitation exposure
   (the presence-gated boundary fan-out, source-indifferent) and immersion

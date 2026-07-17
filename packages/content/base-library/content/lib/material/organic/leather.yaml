@@ -16,6 +16,8 @@ data:
   # Electrical conductivity (S/m) — dry leather insulates (~1×10⁻⁹);
   # a hide jerkin adds real series resistance (the armor inversion).
   electricalConductivity: 1.0e-9
+  # Water absorbency (0..1, weather Wave 2): leather takes water but is somewhat water-resistant.
+  absorbency: 0.3
   edibility: false
   nutrients: []
   toxicity: []

@@ -8,6 +8,8 @@ data:
   appearance: smooth clear glass
   keywords: [glass]
   density: 2500
+  # Water absorbency (0..1, weather Wave 2): glass sheds water.
+  absorbency: 0.02
   thermalConductivity: 1.0
   specificHeat: 840
   edibility: false

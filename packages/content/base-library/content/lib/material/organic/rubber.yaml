@@ -17,6 +17,8 @@ data:
   # Electrical conductivity (S/m) — a near-perfect insulator (~1×10⁻¹³);
   # the material that breaks a ground path (rubber boots, an insulating mat).
   electricalConductivity: 1.0e-13
+  # Water absorbency (0..1, weather Wave 2): rubber sheds water entirely.
+  absorbency: 0.02
   edibility: false
   nutrients: []
   toxicity: []

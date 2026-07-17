@@ -16,8 +16,12 @@
 
 import { Stuff } from './Stuff';
 import { TangibleMixin } from '../material/Tangible';
+import { WetMixin } from '../wetness/Wet';
 
-const AgentBase = TangibleMixin(Stuff);
+// Agent is matter (`Tangible`) → it can get wet (`WetMixin`), so every
+// embodied actor (Character / Avatar / NPC) carries the wetness gauge here
+// rather than each re-composing it. The invariant: matter ⟺ wettable.
+const AgentBase = WetMixin(TangibleMixin(Stuff));
 
 export class Agent extends AgentBase {
   constructor() {

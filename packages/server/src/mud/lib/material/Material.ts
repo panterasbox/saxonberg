@@ -278,6 +278,32 @@ export default class Material extends SingletonMixin(
     this._electricalConductivity = value;
   }
 
+  /**
+   * Water **absorbency** — a dimensionless `0..1` measure of how readily
+   * this material soaks up and *holds* water (weather Wave 2). It is the
+   * coefficient the {@link ../wetness/Wet WetMixin} gauge reads for its dry
+   * rate (the Thermal/Electricity precedent — the mixin holds per-object
+   * saturation state; the Material supplies the physics number). High
+   * (wool ≈ 0.9, wood / flesh ≈ 0.6–0.7) → soaks and stays wet for a long
+   * time; low (steel ≈ 0.05, glass, oilcloth) → sheds / beads off and dries
+   * almost at once. `0.5` is the neutral default (a materialless object, or
+   * one whose absorbency was never authored, reads the baseline rate). Plain
+   * scalar — round-trips as native JSON, no marshaller.
+   */
+  protected _absorbency: number = 0.5;
+
+  protected get absorbency(): number {
+    return this._absorbency;
+  }
+  protected set absorbency(value: number) {
+    if (typeof value !== 'number' || !Number.isFinite(value)) {
+      throw new TypeError(
+        `Material.absorbency must be a finite number in [0, 1]; got ${value}`
+      );
+    }
+    this._absorbency = value < 0 ? 0 : value > 1 ? 1 : value;
+  }
+
   /** Whether this material can be eaten. v1 has no consumer. */
   protected edibility: boolean = false;
 
@@ -382,6 +408,7 @@ export default class Material extends SingletonMixin(
     'hardness',
     'toughness',
     'electricalConductivity',
+    'absorbency',
     'edibility',
     'nutrients',
     'nutrientAmounts',
@@ -535,6 +562,15 @@ export default class Material extends SingletonMixin(
   /** Set electrical conductivity. Strict on `Quantity<'S/m'>`. */
   public setElectricalConductivity(value: Quantity<'S/m'>): void {
     this.electricalConductivity = value;
+  }
+
+  /** Read water absorbency (`0..1`; `0.5` neutral default). */
+  public getAbsorbency(): number {
+    return this._absorbency;
+  }
+  /** Set water absorbency (clamped to `[0, 1]`). */
+  public setAbsorbency(value: number): void {
+    this.absorbency = value;
   }
 
   public getTags(): readonly string[] { return this.tags; }

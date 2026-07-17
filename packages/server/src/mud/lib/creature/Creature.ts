@@ -51,7 +51,6 @@ import { LoadBearingMixin } from '../encumbrance/LoadBearing';
 import { MetabolicMixin } from '../metabolism/Metabolic';
 import { ThermalMixin } from '../thermal/Thermal';
 import { ThermalRegulationMixin } from '../thermal/ThermalRegulation';
-import { WetMixin } from '../wetness/Wet';
 import { RespirationMixin } from '../respiration/Respiration';
 import { DisguisableMixin } from '../disguise/Disguisable';
 import { Quantity } from '../quantity';
@@ -96,18 +95,16 @@ const CreatureBase = LoadBearingMixin(
     ContainableMixin(
       DisguisableMixin(
         VisibleMixin(
-          WetMixin(
-            ThermalRegulationMixin(
-              ThermalMixin(
-                RespirationMixin(
-                  MetabolicMixin(
-                    VitalsMixin(
-                      ReservedMixin(
-                        PosedMixin(
-                          BodyPlanSlotsMixin(
-                            SlottedMixin(
-                              SexedMixin(OrganismMixin(NamedMixin(Agent)))
-                            )
+          ThermalRegulationMixin(
+            ThermalMixin(
+              RespirationMixin(
+                MetabolicMixin(
+                  VitalsMixin(
+                    ReservedMixin(
+                      PosedMixin(
+                        BodyPlanSlotsMixin(
+                          SlottedMixin(
+                            SexedMixin(OrganismMixin(NamedMixin(Agent)))
                           )
                         )
                       )

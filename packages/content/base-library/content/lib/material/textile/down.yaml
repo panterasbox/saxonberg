@@ -7,6 +7,8 @@ data:
   appearance: soft lofted down
   keywords: [down]
   density: 30
+  # Water absorbency (0..1, weather Wave 2): down soaks and clumps when wet.
+  absorbency: 0.85
   thermalConductivity: 0.025
   # Mechanical response (materials-response): MPa / MJ·m⁻³, marshalled.
   hardness: 1

@@ -199,12 +199,33 @@ export function WetMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
         const hours = elapsed / WET_DEFAULTS.SECONDS_PER_HOUR;
         const rate =
           dial(AppSettingKeys.wetnessDryRatePerHour, 0.25) *
-          this.warmthMultiplier();
+          this.warmthMultiplier() *
+          this.absorbencyDryMultiplier();
         this._saturation = clamp01(this._saturation - rate * hours);
         this.wetnessClockStamp = nowS;
       } finally {
         this._reconcilingWet = false;
       }
+    }
+
+    /**
+     * Material-driven dry-rate factor (weather Wave 2 — the coefficient the
+     * gauge reads off `Material`, the Thermal/Electricity precedent). An
+     * absorbent material (wool / wood / flesh) *holds* water and dries slow;
+     * a shedding one (steel / glass / oilcloth) beads off and dries fast.
+     * Neutral at absorbency `0.5` (and for a materialless object), so a
+     * gauge with no authored material behaves at the baseline rate.
+     */
+    private absorbencyDryMultiplier(): number {
+      const self = this as unknown as Stuff;
+      let absorbency = 0.5;
+      if (MixinApi.isTangible(self)) {
+        const mat = self.getMaterial();
+        if (mat) absorbency = mat.getAbsorbency();
+      }
+      const scale = dial(AppSettingKeys.wetnessAbsorbencyDryScale, 1.6);
+      const mult = 1 - (absorbency - 0.5) * scale;
+      return mult < 0.15 ? 0.15 : mult > 3 ? 3 : mult;
     }
 
     /**

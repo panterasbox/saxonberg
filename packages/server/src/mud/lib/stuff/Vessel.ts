@@ -45,14 +45,19 @@ import { TangibleMixin } from '../material/Tangible';
 import { VisibleMixin } from '../description/Visible';
 import { PerceptibleMixin } from '../description/Perceptible';
 import { AtmosphericMixin } from '../biome/Atmospheric';
+import { WetMixin } from '../wetness/Wet';
 
 // The Thing baseline (Visible + Perceptible + Tangible + Containable) composed
 // DIRECTLY — not by extending Thing, so a ship-scale Vessel never reads as a
 // pocketable item — plus Container (holds things) + Atmospheric (interior
-// climate). Mirrors Thing's mixin order for the shared baseline.
-const VesselBase = AtmosphericMixin(
-  ContainerMixin(
-    VisibleMixin(PerceptibleMixin(TangibleMixin(ContainableMixin(Stuff))))
+// climate). Mirrors Thing's mixin order for the shared baseline. `WetMixin`
+// rides the Tangible seam — a Vessel is matter, so it can get wet (a cart / a
+// bag left out in the rain).
+const VesselBase = WetMixin(
+  AtmosphericMixin(
+    ContainerMixin(
+      VisibleMixin(PerceptibleMixin(TangibleMixin(ContainableMixin(Stuff))))
+    )
   )
 );
 
