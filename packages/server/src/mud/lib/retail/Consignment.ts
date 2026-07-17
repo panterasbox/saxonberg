@@ -13,13 +13,13 @@
  * shelf would drop consigned items on a server bounce.
  */
 
-import { randomUUID } from "crypto";
 import type { MixinConstructor } from "../mixin";
 import type { Stuff } from "../stuff/Stuff";
 import type { Container } from "../spatial/Container";
 import type { Containable } from "../spatial/Containable";
 import { ContainmentApi } from "../../api/containment";
 import { MixinApi } from "../../api/mixin";
+import { SecurityApi } from "../../api/security";
 
 /** A brokerage record — a good on the shelf for sale on its owner's behalf. */
 export interface ConsignmentListing {
@@ -66,7 +66,7 @@ export function ConsignmentShelfMixin<TBase extends MixinConstructor<Stuff>>(
       askMinor: number,
     ): ConsignmentListing {
       const listing: ConsignmentListing = {
-        listingId: `cl-${randomUUID()}`,
+        listingId: `cl-${SecurityApi.uuid()}`,
         itemChattelId,
         consignorKey,
         askMinor,

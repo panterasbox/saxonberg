@@ -17,12 +17,12 @@
  * deliberate divergence from parcel `retire`, which is a silent delete).
  */
 
-import { randomUUID } from "crypto";
 import { Idea } from "../lib/stuff/Idea";
 import { PostRegistrationMixin } from "../lib/stuff/PostRegistration";
 import { CallSecurity } from "../lib/security/decorators";
 import { SecurityPolicies } from "../lib/security/SecurityPolicies";
 import { ExecutionContextApi } from "../api/execution-context";
+import { SecurityApi } from "../api/security";
 import {
   ChattelRecord,
   type ChattelOwner,
@@ -55,7 +55,7 @@ export default class ChattelRegistry extends ChattelRegistryBase {
   /** A fresh, collision-resistant per-instance id. */
   @CallSecurity(ChattelApiCallers)
   public newId(): string {
-    return `ch-${randomUUID()}`;
+    return `ch-${SecurityApi.uuid()}`;
   }
 
   /** The current owner of `chattelId`, or null (no title on file). */
