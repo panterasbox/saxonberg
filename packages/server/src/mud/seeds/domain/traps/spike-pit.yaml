@@ -1,0 +1,24 @@
+# The spike pit — one authored point in the Trap axis-space (NO subclass):
+# trigger=traversal, delivery=point channel, traverseConsequence=drop to the
+# authored pit-below, groundTriggered so an air/water crossing (fly/swim)
+# clears it. Stepping onto the false floor drops the mover through — `sprung`
+# is set BEFORE the forced relocation (the drop-reentrancy guard), and the
+# pit-below climbs back up, so the fall wounds and delays but never strands.
+# `hidden` (requirement 4).
+class: /lib/hazard/Trap
+hydratorClass: /lib/persistence/PersistentHydrator
+data:
+  shortDescription: a covered spike pit
+  primaryKeyword: pit
+  longDescription: |
+    A stone-lined pit floored with old spikes, roofed over with a dressed-board lid dusted to pass for the corridor floor. The lid holds a careful weight and nothing more.
+  concealment: hidden
+  concealmentHint: the wide floor gives a faint hollow drum-note underfoot
+  trigger: traversal
+  traverseConsequence: drop
+  dropDestination: /domain/traps/pit-below
+  groundTriggered: true
+  delivery:
+    channel: point
+    energy: 3
+    siteSelector: [body.leg.left.foot, body.leg.right.foot]
