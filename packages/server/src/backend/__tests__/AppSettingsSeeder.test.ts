@@ -41,7 +41,7 @@ describe("AppSettingsSeeder", () => {
     pm.setFindResult([]);
     const added = await AppSettingsSeeder.run();
 
-    expect(added).toBe(108);
+    expect(added).toBe(153); // 146 master + 7 Attendant+Goodkin
     expect(pm.saves).toHaveLength(1);
     expect(pm.saves[0]!.collection).toBe("app_settings");
     const values = savedValues(pm);
@@ -183,6 +183,55 @@ describe("AppSettingsSeeder", () => {
           [AppSettingKeys.attendantLeaseSweepIntervalMs]: "15000",
           [AppSettingKeys.attendantLeaseIdleThresholdMs]: "120000",
           [AppSettingKeys.attendantQueueIdleThresholdMs]: "180000",
+          // The 6 experience-pass combat tuning keys (feint + fog + sharpness).
+          [AppSettingKeys.combatPoiseFeintCost]: "0.08",
+          [AppSettingKeys.combatPoiseFeintBitPenalty]: "0.8",
+          [AppSettingKeys.combatFogReadSharpness]: "0.7",
+          [AppSettingKeys.combatFogClearSharpness]: "0.7",
+          [AppSettingKeys.combatSharpnessMin]: "0.35",
+          [AppSettingKeys.combatSharpnessMax]: "1",
+          // The 23 weapon-playstyle combat tuning keys (15 weapon-profile
+          // + 3 reach + 5 hand-slot).
+          [AppSettingKeys.combatWeaponBalanceRefMass]: "0.9",
+          [AppSettingKeys.combatWeaponTempoExponent]: "0.35",
+          [AppSettingKeys.combatWeaponTempoMin]: "0.5",
+          [AppSettingKeys.combatWeaponTempoMax]: "1.6",
+          [AppSettingKeys.combatWeaponPoiseDamageExponent]: "0.4",
+          [AppSettingKeys.combatWeaponPoiseDamageMin]: "0.6",
+          [AppSettingKeys.combatWeaponPoiseDamageMax]: "1.5",
+          [AppSettingKeys.combatWeaponOverextendExponent]: "0.35",
+          [AppSettingKeys.combatWeaponOverextendMin]: "0.6",
+          [AppSettingKeys.combatWeaponOverextendMax]: "1.5",
+          [AppSettingKeys.combatWeaponBalanceHeavyBelow]: "0.92",
+          [AppSettingKeys.combatWeaponBalanceLightAbove]: "1.08",
+          [AppSettingKeys.combatWeaponReachShortBelow]: "0.5",
+          [AppSettingKeys.combatWeaponReachLongAbove]: "1.5",
+          [AppSettingKeys.combatWeaponGuardHardnessRef]: "300",
+          [AppSettingKeys.combatReachCloseCost]: "0.18",
+          [AppSettingKeys.combatReachAdvantageEnergy]: "0.2",
+          [AppSettingKeys.combatReachContestStrength]: "1",
+          [AppSettingKeys.combatSwitchSeconds]: "6",
+          [AppSettingKeys.combatDrawSeconds]: "1.5",
+          [AppSettingKeys.combatOffhandGuardBonus]: "0.6",
+          [AppSettingKeys.combatDualWieldMasteryRank]: "2",
+          [AppSettingKeys.combatDualWieldNoviceGuardBonus]: "-0.3",
+          // The 16 electricity (shock channel + conduction) tuning keys.
+          [AppSettingKeys.electricityBodyDryResistanceOhms]: "100000",
+          [AppSettingKeys.electricityBodyWetFactor]: "100",
+          [AppSettingKeys.electricityBodyGeometryFactor]: "20000",
+          [AppSettingKeys.electricityContactGeometryFactor]: "0.01",
+          [AppSettingKeys.electricityContactMaxOhms]: "1000000000000",
+          [AppSettingKeys.electricityResistanceFloorOhms]: "1",
+          [AppSettingKeys.electricityLetGoAmps]: "0.01",
+          [AppSettingKeys.electricityTetanicAmps]: "0.02",
+          [AppSettingKeys.electricityFibrillationAmps]: "0.1",
+          [AppSettingKeys.electricityBurnThresholdAmps]: "0.02",
+          [AppSettingKeys.electricityBurnSeverityPerAmp]: "10",
+          [AppSettingKeys.electricityPoolMinConductivity]: "0.005",
+          [AppSettingKeys.electricityInsulatorMaxConductivity]: "0.001",
+          [AppSettingKeys.electricityArmorConductiveSkinFactor]: "0.15",
+          [AppSettingKeys.electricitySustainBurnPerAmpSec]: "2",
+          [AppSettingKeys.electricityArrestDrivePerSec]: "40",
         },
       },
     ]);
@@ -214,10 +263,13 @@ describe("AppSettingsSeeder", () => {
     //   + referenceEnergy + secondaryFactor + 2 band)
     // + 2 behavior (ambientCadenceScale, ambientCadenceFloorMs)
     // + 23 combat (20 core 1v1 + 3 Build 2)
-    // + 3 multi-party combat (focus-fire + flee)
+    // + 3 multi-party combat (2 focus-fire + 1 flee)
+    // + 6 experience combat (2 feint poise + 2 fog + 2 sharpness)
+    // + 23 weapon-playstyle combat (15 weapon-profile + 3 reach + 5 hand-slot)
+    // + 16 electricity (shock channel + conduction)
     // + 4 Attendant+Goodkin banking (withdrawal cap ×2, royalty, float)
     // + 3 Attendant lease/queue (lease sweep/idle, queue idle).
-    expect(added).toBe(107);
+    expect(added).toBe(152);
     expect(pm.saves).toHaveLength(1);
     const values = savedValues(pm);
     // operator value preserved, missing keys seeded

@@ -10,6 +10,9 @@ data:
   appearance: compressed air
   keywords: [air]
   density: 1.225
+  # Electrical conductivity (S/m) — dry air is a near-perfect insulator
+  # (~1×10⁻¹⁴); breakdown/arcing is out of v1 scope.
+  electricalConductivity: 1.0e-14
   edibility: false
   nutrients: []
   toxicity: []

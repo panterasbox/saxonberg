@@ -1,0 +1,21 @@
+class: /lib/equipment/Weapon
+hydratorClass: /lib/persistence/PersistentHydrator
+data:
+  shortDescription: a steel flail
+  primaryKeyword: flail
+  longDescription: >
+    A spiked steel head on a length of chain. Its blow whips round a shield's
+    edge and can't be parried away — but the same chain that makes it
+    unblockable means it can never be brought back to guard its wielder.
+  _materialPath: /lib/material/alloy/steel
+  _detailMaterialPaths:
+    haft: /lib/material/wood/oak
+  constructionForm: flail
+  gradeBand: fine
+  # The guardless archetype — it delivers blunt like a mace, but its derived
+  # WeaponProfile guard is `none`: it bypasses a steady defender's parry and
+  # cannot itself parry (the offense<->defense axis). One-handed.
+  mass: 1.4
+  length: 0.9
+  slotClaims:
+    "/lib/body-plans/biped": ["hand:right"]

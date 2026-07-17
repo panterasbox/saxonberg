@@ -16,7 +16,7 @@
  * A wielded sibling (`Weapon`, composing `WieldableMixin`) belongs in
  * this same `equipment` subsystem when weapons arrive.
  *
- * Seeded as `domain` content (e.g. `/domain/eternal/clothes/white-coat`)
+ * Seeded as `domain` content (e.g. `/obj/clothes/white-coat`)
  * with `data.slotClaims: { /lib/body-plans/biped: [torso] }`.
  */
 

@@ -30,10 +30,10 @@ data:
   # standup. Pick up the dagger, wield it, and `attack the wolf`.
   populates:
     - /domain/newbie-wilds/npc/wolf
-    - /domain/eternal/arms/steel-dagger
+    - /obj/arms/steel-dagger
     # The cycle-2 multi-party demonstrator: a recruitable sellsword and a
     # second blade for her to take up. Form a party, `party enlist the
     # sellsword`, then walk west and `attack the gentleman --lethal` — she
     # backs you up (join) for a consented 2v1 duel in the hollow.
     - /domain/newbie-wilds/npc/sellsword
-    - /domain/eternal/arms/steel-dagger
+    - /obj/arms/steel-dagger

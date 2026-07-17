@@ -77,9 +77,9 @@ aspirations:
       degree, a door, a different life. You don't have it all figured out
       yet. That's rather the point.
     outfit:
-      - /domain/eternal/clothes/student-shirt
-      - /domain/eternal/clothes/student-trousers
-      - /domain/eternal/clothes/canvas-shoes
+      - /obj/clothes/student-shirt
+      - /obj/clothes/student-trousers
+      - /obj/clothes/canvas-shoes
     claimSeeds:
       - order: 1
         text: "Left home with little but resolve and a one-way ticket."
@@ -92,9 +92,9 @@ aspirations:
       You came to learn how to mend — bodies, minds, the small broken
       things people carry. You've always been the one others come to.
     outfit:
-      - /domain/eternal/clothes/white-coat
-      - /domain/eternal/clothes/student-trousers
-      - /domain/eternal/clothes/canvas-shoes
+      - /obj/clothes/white-coat
+      - /obj/clothes/student-trousers
+      - /obj/clothes/canvas-shoes
     claimSeeds:
       - order: 1
         text: "Was always the one others came to when something broke."
@@ -107,9 +107,9 @@ aspirations:
       You want to teach — to be the one who finally makes it click for
       someone. You remember the teacher who did that for you.
     outfit:
-      - /domain/eternal/clothes/tweed-jacket
-      - /domain/eternal/clothes/student-trousers
-      - /domain/eternal/clothes/canvas-shoes
+      - /obj/clothes/tweed-jacket
+      - /obj/clothes/student-trousers
+      - /obj/clothes/canvas-shoes
     claimSeeds:
       - order: 1
         text: "Remembers the teacher who finally made it click."
@@ -122,9 +122,9 @@ aspirations:
       You came to stand the watch — to be steady when it matters, to put
       yourself between people and the worst of it.
     outfit:
-      - /domain/eternal/clothes/field-jacket
-      - /domain/eternal/clothes/student-trousers
-      - /domain/eternal/clothes/canvas-shoes
+      - /obj/clothes/field-jacket
+      - /obj/clothes/student-trousers
+      - /obj/clothes/canvas-shoes
     claimSeeds:
       - order: 1
         text: "Learned early to stand between people and the worst of it."
@@ -137,9 +137,9 @@ aspirations:
       You're here to build something of your own — a company, a stake, a
       name on a door. You think in deals and in years.
     outfit:
-      - /domain/eternal/clothes/blazer
-      - /domain/eternal/clothes/student-trousers
-      - /domain/eternal/clothes/canvas-shoes
+      - /obj/clothes/blazer
+      - /obj/clothes/student-trousers
+      - /obj/clothes/canvas-shoes
     claimSeeds:
       - order: 1
         text: "Thinks in deals and in years."
@@ -152,9 +152,9 @@ aspirations:
       You came for the questions — how it works, why it works, what's
       underneath. You'd take the truth over the comfort any day.
     outfit:
-      - /domain/eternal/clothes/lab-hoodie
-      - /domain/eternal/clothes/student-trousers
-      - /domain/eternal/clothes/canvas-shoes
+      - /obj/clothes/lab-hoodie
+      - /obj/clothes/student-trousers
+      - /obj/clothes/canvas-shoes
     claimSeeds:
       - order: 1
         text: "Took the truth over the comfort, always."

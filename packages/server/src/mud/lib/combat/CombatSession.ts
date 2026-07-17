@@ -41,6 +41,8 @@ import type { CombatTerms } from "./CombatTerms";
 import type { Poise } from "./Poise";
 import type { Tempo } from "./Tempo";
 import type { CombatFlags } from "./CombatFlags";
+import type { WeaponSwitch } from "./WeaponSwitch";
+import type { CompetenceBandName } from "../advancement/CompetenceBand";
 
 /**
  * Combat's own `AbortReasonRegistry` augmentation — the reasons the
@@ -80,12 +82,29 @@ export interface CombatantState {
   readonly flags: CombatFlags;
   /** The gambit verb the combatant intends next exchange (player intent). */
   queuedGambit: string | null;
+  /**
+   * An in-progress armament change (the hand-slot economy): while set and
+   * not ready, the combatant's instrument resolves to nothing (guard down,
+   * can't strike). The session advances it each beat and performs the grip
+   * swap when it completes. Null when not switching.
+   */
+  weaponSwitch: WeaponSwitch | null;
   /** Combat-brain module path when brain-driven; null for player-driven. */
   readonly brainPath: string | null;
   /** Brain config blob (from the combatant's combat behavior spec). */
   readonly brainConfig: Record<string, unknown>;
   /** Weapon-balance tempo hook (neutral 1.0); re-read when gear changes. */
   balanceFactor: number;
+  /**
+   * The combatant's competence band in this fight's discipline, snapshotted
+   * synchronously at open/join (the async `AdvancementApi.bandFor` can't be
+   * read mid-beat, and reading it once keeps a single session deterministic).
+   * Feeds `Sharpness` → the read-fog + poise-recovery. Defaults `untrained`
+   * for bare/test/gym/NPC paths that open without a controller.
+   */
+  competenceBand: CompetenceBandName;
+  /** Memoized sharpness (from `competenceBand`); null until first resolved. */
+  sharpness: number | null;
   /** Set when the combatant loses the poise contest (incapacitated). */
   down: boolean;
   /**
@@ -114,6 +133,7 @@ export class CombatSession {
   private active = true;
   private beat = 0;
   private resolution: CombatResolution | null = null;
+  private bloodDrawn = false;
 
   constructor(terms: CombatTerms, tickMs: number) {
     this.terms = terms;
@@ -234,6 +254,20 @@ export class CombatSession {
 
   getBeat(): number {
     return this.beat;
+  }
+
+  /** Whether the first trauma of the fight has landed (the first-blood
+   * roar fires once; the beat-intensity arc reads this). */
+  hasDrawnBlood(): boolean {
+    return this.bloodDrawn;
+  }
+
+  /** Mark first-blood drawn. Idempotent; returns true only on the crossing
+   * (so the caller can roar exactly once). */
+  markBloodDrawn(): boolean {
+    if (this.bloodDrawn) return false;
+    this.bloodDrawn = true;
+    return true;
   }
 
   advanceBeat(): number {

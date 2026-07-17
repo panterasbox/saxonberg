@@ -429,6 +429,70 @@ export const AppSettingKeys = {
   responseBandGrazeMax: "response.band.grazeMax",
   responseBandBiteMax: "response.band.biteMax",
 
+  /* ────────────────────────── electricity ────────────────────────── */
+  /**
+   * Electricity — the Ohm's-law shock model's magnitudes (the "magnitude"
+   * half of the shape-vs-magnitude split; the physics SHAPE — `I = V/R`,
+   * conductance-to-ground current division, the covering stack as series
+   * resistance — is in code). Seeded literals are **real-world-grounded**
+   * (dry-skin ≈ 100 kΩ, wet ≈ 100× lower, let-go ≈ 10 mA, fibrillation ≈
+   * 100 mA) so a student's multimeter reads coursework values, and every
+   * magnitude reads with a fallback to the literal so a pre-warm / test
+   * read is safe. See docs/subsystems/electricity.md.
+   */
+  /** Electricity — a body's dry contact-to-contact resistance (Ω), the
+   * fallback when a body carries no flesh-conductivity material. */
+  electricityBodyDryResistanceOhms: "electricity.body.dryResistanceOhms",
+  /** Electricity — the factor a wet body's resistance drops by (~100×). */
+  electricityBodyWetFactor: "electricity.body.wetFactor",
+  /** Electricity — nominal body path geometry L/A (per metre); with flesh
+   * conductivity (~0.2 S/m) → the ~100 kΩ dry-skin anchor. */
+  electricityBodyGeometryFactor: "electricity.body.geometryFactor",
+  /** Electricity — nominal contact/edge path geometry L/A (per metre), the
+   * series resistance a material's conductivity resolves to at a node. */
+  electricityContactGeometryFactor: "electricity.contact.geometryFactor",
+  /** Electricity — ceiling clamp on a contact/series resistance (Ω), so an
+   * insulator reads a large-but-finite resistance (an open break). */
+  electricityContactMaxOhms: "electricity.contact.maxOhms",
+  /** Electricity — floor clamp on any resistance (Ω), the R→0 guard for
+   * `I = V/R`. */
+  electricityResistanceFloorOhms: "electricity.resistanceFloorOhms",
+  /** Electricity — let-go current (A): at/above this a shock's muscle
+   * tetany prevents voluntary release (~0.01 A = 10 mA). */
+  electricityLetGoAmps: "electricity.letGoAmps",
+  /** Electricity — tetanic current (A): sustained whole-muscle contraction
+   * (~0.02 A). */
+  electricityTetanicAmps: "electricity.tetanicAmps",
+  /** Electricity — fibrillation current (A): disrupts heart rhythm → arrest
+   * (~0.1 A = 100 mA), the electrocution death threshold. */
+  electricityFibrillationAmps: "electricity.fibrillationAmps",
+  /** Electricity — current (A) below which a shock leaves no contact burn
+   * (perception/tingle only). */
+  electricityBurnThresholdAmps: "electricity.burnThresholdAmps",
+  /** Electricity — contact-burn severity per amp above the burn threshold. */
+  electricityBurnSeverityPerAmp: "electricity.burnSeverityPerAmp",
+  /** Electricity — the conductivity (S/m) at/above which a surface pool
+   * bridges the conduction graph (salt water yes, dry-ish floors no). The
+   * topology gate — separate from the resistance magnitudes. */
+  electricityPoolMinConductivity: "electricity.pool.minConductivity",
+  /** Electricity — the conductivity (S/m) at/below which a material
+   * insulates a contact (footwear / a step / a floor breaks the path to
+   * ground). Rubber / leather / wool / dry wood insulate; flesh / water
+   * / metal do not. */
+  electricityInsulatorMaxConductivity: "electricity.insulator.maxConductivity",
+  /** Electricity — the factor a **conductive** worn covering multiplies the
+   * body's skin-contact resistance by (<1): metal armor spreads the current
+   * over the whole body and bypasses the high-resistance skin contact, so a
+   * plate-armored body takes MORE current than a bare one. The armor
+   * inversion's magnitude (insulating coverings instead ADD series R). */
+  electricityArmorConductiveSkinFactor: "electricity.armor.conductiveSkinFactor",
+  /** Electricity — contact-burn severity accrued per amp-second while a
+   * being-shocked circuit stays closed (the reconcile-on-read sustain). */
+  electricitySustainBurnPerAmpSec: "electricity.sustain.burnSeverityPerAmpSec",
+  /** Electricity — bpm the heart rate is driven toward arrest per game-second
+   * while a fibrillating current flows (the electrocution death drive). */
+  electricityArrestDrivePerSec: "electricity.heartRate.arrestDrivePerSec",
+
   /* ─────────────────────────── combat ─────────────────────────── */
   /**
    * Combat — the narration-beat / tempo tick, in game-seconds. The
@@ -480,6 +544,76 @@ export const AppSettingKeys = {
   /** Combat (cycle 2) — inflict energy of a foe's parting shot when a
    * combatant disengages (flees) past them. */
   combatFleePartingShotEnergy: "combat.flee.partingShotEnergy",
+
+  /** Combat (experience) — poise the feinter spends to present the bait
+   * (cheap; aggression is rewarded against a turtle). */
+  combatPoiseFeintCost: "combat.poise.feintCost",
+  /** Combat (experience) — poise a baited (committed, un-reading) defender
+   * loses when they bite a feint — large enough to crack a steady guard,
+   * arming their opening for the feinter's next strike. */
+  combatPoiseFeintBitPenalty: "combat.poise.feintBitPenalty",
+  /** Combat (experience) — sharpness at/above which a defender *reads* a
+   * feint (won't bite; sees the tell). The fog and the bite decision share
+   * this gate so they never contradict. */
+  combatFogReadSharpness: "combat.fog.readSharpness",
+  /** Combat (experience) — sharpness at/above which ordinary band fog
+   * clears (you perceive the opponent's true poise band). */
+  combatFogClearSharpness: "combat.fog.clearSharpness",
+  /** Combat (experience) — sharpness at the `untrained` band (the
+   * competence→sharpness curve floor). */
+  combatSharpnessMin: "combat.sharpness.min",
+  /** Combat (experience) — sharpness at the top (`expert`) band (the
+   * competence→sharpness curve ceiling). */
+  combatSharpnessMax: "combat.sharpness.max",
+
+  /* ── weapon playstyle — the derived WeaponProfile curves (all shape ×
+   * magnitude split; a bare weapon still works off these seeded fallbacks).
+   * See docs/subsystems/combat.md (WeaponProfile). ── */
+  /** Weapon mass (kg) that maps to a neutral 1.0 balance. */
+  combatWeaponBalanceRefMass: "combat.weapon.balanceRefMass",
+  /** Tempo curve exponent (light↔heavy spread) + clamp. */
+  combatWeaponTempoExponent: "combat.weapon.tempoExponent",
+  combatWeaponTempoMin: "combat.weapon.tempoMin",
+  combatWeaponTempoMax: "combat.weapon.tempoMax",
+  /** Poise-damage curve exponent (heavier → more per blow) + clamp. */
+  combatWeaponPoiseDamageExponent: "combat.weapon.poiseDamageExponent",
+  combatWeaponPoiseDamageMin: "combat.weapon.poiseDamageMin",
+  combatWeaponPoiseDamageMax: "combat.weapon.poiseDamageMax",
+  /** Overextend curve exponent (heavier → costlier to commit) + clamp. */
+  combatWeaponOverextendExponent: "combat.weapon.overextendExponent",
+  combatWeaponOverextendMin: "combat.weapon.overextendMin",
+  combatWeaponOverextendMax: "combat.weapon.overextendMax",
+  /** Balance-class band edges on the tempo factor. */
+  combatWeaponBalanceHeavyBelow: "combat.weapon.balanceHeavyBelow",
+  combatWeaponBalanceLightAbove: "combat.weapon.balanceLightAbove",
+  /** Reach-class length thresholds (m). */
+  combatWeaponReachShortBelow: "combat.weapon.reachShortBelow",
+  combatWeaponReachLongAbove: "combat.weapon.reachLongAbove",
+  /** Material hardness (MPa) reference for the guard nudge. */
+  combatWeaponGuardHardnessRef: "combat.weapon.guardHardnessRef",
+
+  /* ── reach range tier (the per-edge reach|close state). ── */
+  /** Poise the closer spends attempting to close the gap. */
+  combatReachCloseCost: "combat.reach.closeCost",
+  /** Poise/energy edge the longer weapon strikes with while the foe is at
+   * `reach` (and the shorter weapon is penalised). */
+  combatReachAdvantageEnergy: "combat.reach.advantageEnergy",
+  /** The reach-holder's contest strength when a foe tries to close. */
+  combatReachContestStrength: "combat.reach.contestStrength",
+
+  /* ── hand-slot economy. ── */
+  /** Weapon-switch vulnerable-beat window (game-time seconds). */
+  combatSwitchSeconds: "combat.switch.seconds",
+  /** Fast sidearm-draw window (game-time seconds) — the disarm answer. */
+  combatDrawSeconds: "combat.draw.seconds",
+  /** Guard/parry bonus a wielded shield or a dual-wield off-hand adds. */
+  combatOffhandGuardBonus: "combat.offhand.guardBonus",
+  /** Competence band rank at/below which dual-wield is a net penalty
+   * (novice fumbles the off-hand; you grow into it). */
+  combatDualWieldMasteryRank: "combat.dualWield.masteryRank",
+  /** Off-hand guard bonus a *below-mastery* dual-wielder actually gets
+   * (a novice's off-hand hurts more than it helps). */
+  combatDualWieldNoviceGuardBonus: "combat.dualWield.noviceGuardBonus",
 } as const;
 
 export type AppSettingKey =

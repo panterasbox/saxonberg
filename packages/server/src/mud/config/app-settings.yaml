@@ -330,6 +330,42 @@ settings:
     value: "0.5"
   - key: response.band.biteMax
     value: "1.5"
+  # Electricity (the shock channel + conduction) — see
+  # docs/subsystems/electricity.md. Real-world-grounded magnitudes: the
+  # multimeter should read what coursework predicts. SHAPE (I=V/R, the
+  # current-division walk) is code; these are the magnitudes.
+  - key: electricity.body.dryResistanceOhms
+    value: "100000"
+  - key: electricity.body.wetFactor
+    value: "100"
+  - key: electricity.body.geometryFactor
+    value: "20000"
+  - key: electricity.contact.geometryFactor
+    value: "0.01"
+  - key: electricity.contact.maxOhms
+    value: "1000000000000"
+  - key: electricity.resistanceFloorOhms
+    value: "1"
+  - key: electricity.letGoAmps
+    value: "0.01"
+  - key: electricity.tetanicAmps
+    value: "0.02"
+  - key: electricity.fibrillationAmps
+    value: "0.1"
+  - key: electricity.burnThresholdAmps
+    value: "0.02"
+  - key: electricity.burnSeverityPerAmp
+    value: "10"
+  - key: electricity.pool.minConductivity
+    value: "0.005"
+  - key: electricity.insulator.maxConductivity
+    value: "0.001"
+  - key: electricity.armor.conductiveSkinFactor
+    value: "0.15"
+  - key: electricity.sustain.burnSeverityPerAmpSec
+    value: "2"
+  - key: electricity.heartRate.arrestDrivePerSec
+    value: "40"
   # Combat (core 1v1) — see docs/subsystems/combat.md. All tuning; no
   # code defaults. Poise/tempo/energy are the load-bearing curves.
   - key: combat.tickSeconds
@@ -398,3 +434,88 @@ settings:
   # A foe you disengage past gets one parting shot at this inflict energy.
   - key: combat.flee.partingShotEnergy
     value: "1.6"
+  # Experience pass — the feint (poker, not slots).
+  # The feinter spends little to present the bait (aggression is cheap vs a turtle).
+  - key: combat.poise.feintCost
+    value: "0.08"
+  # A baited defender who fails to read the feint over-commits and loses this
+  # much poise — enough to crack a steady guard (1 - brokenAt), arming their
+  # opening for the feinter's next strike.
+  - key: combat.poise.feintBitPenalty
+    value: "0.8"
+  # Sharpness at/above which a defender reads a feint (won't bite; sees the tell).
+  - key: combat.fog.readSharpness
+    value: "0.7"
+  # Sharpness at/above which ordinary band fog clears (you see the true band).
+  - key: combat.fog.clearSharpness
+    value: "0.7"
+  # The competence -> sharpness curve: floor at `untrained`, ceiling at `expert`.
+  - key: combat.sharpness.min
+    value: "0.35"
+  - key: combat.sharpness.max
+    value: "1"
+  # Weapon playstyle — the derived WeaponProfile curves (shape-vs-magnitude:
+  # form/dimensions are the shape, these are the magnitudes). A bare weapon
+  # still works off these. See docs/subsystems/combat.md (WeaponProfile).
+  # Balance: mass -> tempo (light fast, heavy slow) and -> poise/overextend
+  # (heavy hits harder & commits harder). refMass maps to a neutral 1.0.
+  - key: combat.weapon.balanceRefMass
+    value: "0.9"
+  - key: combat.weapon.tempoExponent
+    value: "0.35"
+  - key: combat.weapon.tempoMin
+    value: "0.5"
+  - key: combat.weapon.tempoMax
+    value: "1.6"
+  - key: combat.weapon.poiseDamageExponent
+    value: "0.4"
+  - key: combat.weapon.poiseDamageMin
+    value: "0.6"
+  - key: combat.weapon.poiseDamageMax
+    value: "1.5"
+  - key: combat.weapon.overextendExponent
+    value: "0.35"
+  - key: combat.weapon.overextendMin
+    value: "0.6"
+  - key: combat.weapon.overextendMax
+    value: "1.5"
+  # Balance-class band edges on the tempo factor (below -> heavy, above -> light).
+  - key: combat.weapon.balanceHeavyBelow
+    value: "0.92"
+  - key: combat.weapon.balanceLightAbove
+    value: "1.08"
+  # Reach-class length thresholds (m): below -> short, above -> long.
+  - key: combat.weapon.reachShortBelow
+    value: "0.5"
+  - key: combat.weapon.reachLongAbove
+    value: "1.5"
+  # Material hardness (MPa) reference for the guard nudge (hard binds better).
+  - key: combat.weapon.guardHardnessRef
+    value: "300"
+  # Reach range tier — the per-edge reach|close state (geometry-free).
+  # Closing costs the closer this much poise. The reach term scales a
+  # strike's erosion/energy by (1 + reachRankDelta * advantageEnergy): a
+  # spear (2 ranks longer) at reach hits ~1.4x, and ~0.6x once closed.
+  # contestStrength = the reach-rank gap a composed holder needs to keep a
+  # closer out.
+  - key: combat.reach.closeCost
+    value: "0.18"
+  - key: combat.reach.advantageEnergy
+    value: "0.2"
+  - key: combat.reach.contestStrength
+    value: "1"
+  # Hand-slot economy — switching armament is a vulnerable durative beat;
+  # the sidearm draws fast (the disarm answer). Game-time seconds.
+  - key: combat.switch.seconds
+    value: "6"
+  - key: combat.draw.seconds
+    value: "1.5"
+  # Guard bonus a wielded shield / dual-wield off-hand adds; dual-wield is a
+  # net penalty at/below this competence rank (a novice fumbles the off-hand),
+  # getting only the reduced novice bonus until they grow into it.
+  - key: combat.offhand.guardBonus
+    value: "0.6"
+  - key: combat.dualWield.masteryRank
+    value: "2"
+  - key: combat.dualWield.noviceGuardBonus
+    value: "-0.3"

@@ -202,6 +202,41 @@ L:
     - { tag: low,    threshold: 3 }
     - { tag: normal, threshold: 5 }
 
+# Electricity — current through a body (amperes). The physiological
+# shock ladder: perception → the let-go threshold (above which muscle
+# tetany prevents release) → sustained tetanic contraction →
+# ventricular fibrillation. Real-world-grounded (let-go ≈ 10 mA,
+# fibrillation ≈ 100 mA); the engine's behavioural cutoffs are the
+# `electricity.*` dials, this table is the banded read `analyze`
+# surfaces. Banding is presentation, never security.
+A:
+  default:
+    - { tag: imperceptible, threshold: 0 }
+    - { tag: tingle,        threshold: 0.001 }
+    - { tag: let-go,        threshold: 0.01 }
+    - { tag: tetanic,       threshold: 0.02 }
+    - { tag: fibrillating,  threshold: 0.1 }
+
+# Electricity — resistance of a path (ohms). Coarse three-band read
+# for `analyze` (a conductor offers near-zero resistance, an insulator
+# near-infinite). Real spans are enormous; these are display bands.
+Ω:
+  default:
+    - { tag: conductor, threshold: 0 }
+    - { tag: resistive, threshold: 1000 }
+    - { tag: insulator, threshold: 1000000 }
+
+# Electricity — electrical conductivity of a material (siemens/metre),
+# the axis the shock model reads. Spans ~20 orders of magnitude
+# (rubber ≈ 1e-13, wood ≈ 1e-4, flesh ≈ 0.2, salt water ≈ 5, copper ≈
+# 6e7); these bands name the rungs for the multimeter.
+S/m:
+  default:
+    - { tag: insulator, threshold: 0 }
+    - { tag: poor,      threshold: 0.000001 }
+    - { tag: good,      threshold: 0.1 }
+    - { tag: conductor, threshold: 100000 }
+
 # Tagless units (declared in the Unit type but with no tag table):
 #   - g/mol, mol, mol/L — molar quantities don't have a casual
 #     vocabulary; analyze readouts use canonical format.

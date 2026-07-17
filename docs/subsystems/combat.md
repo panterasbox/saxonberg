@@ -456,28 +456,196 @@ needs a durable-party standup/seeder and is deferred. **Split** (a fight
 fragmenting into two sessions on edge removal) has no acceptance criterion
 and is deferred until a demo produces genuine fragmentation.
 
+## The experience pass — poker, not slots (the feint, the fog, the gym)
+
+Builds 1+2 make a fight *happen* and *matter*, but the exchange had a dead
+seam the live demos exposed: **a steady armed defender always parries, so
+blind patience beat aggression** and there was no read-and-react tension.
+The experience pass makes the exchange **poker, not slots** — the outcome is
+determined by inputs you can't fully *see* (you lose because you *misread*,
+never because a die spiked) — closes rock-paper-scissors so patience is no
+longer a free win, and ships the tool that *proves* the balance.
+
+**The feint** (`Gambit.ts` `feint`, the read/deception channel). A feint
+inflicts nothing; it presents as bait and reads the *defender's*
+commitment. A **committed** defender — a steady, armed turtle poised to
+parry, exactly who patience-as-dominant-strategy relies on — who fails to
+**read** the bait over-commits and cracks their own guard (`feint-bit`):
+the defender loses `combat.poise.feintBitPenalty` (enough to break a steady
+guard, arming their opening via the existing `Poise.lower` crossing), the
+feinter pays only the small `combat.poise.feintCost`, and the opening is
+cashed on the feinter's **next strike** through the unchanged `exploit`
+path (the two-beat feint→exploit, no new inflict site). A defender who
+**reads** it (competence-gated) or isn't committed (an aggressor, not
+turtling) isn't fooled (`feint-read`, the bait wasted). This closes
+**strike ▸ feint ▸ defend ▸ strike**: a feint beats a turtle, patience
+beats blind aggression, aggression beats a feinter.
+
+**The fog** (`lib/combat/CombatFog.ts`, pure, deterministic). The read is
+*epistemic* — you see the opponent's poise **fogged by your own sharpness**.
+`CombatFog.perceive(trueBand, sharpness, feinting)` distorts deterministically
+(no RNG): a dull reader under-reads (band shifts one step toward `steady`)
+and **mistakes a feint for a real opening** (`open`); a sharp reader sees the
+true band and the feint's **tell**. Two surfaces carry the fogged read:
+the **free** `fight` status opponent line (`CombatApi.perceive` — no cost,
+no side-effects), and the **costed** `assess` verb (`CombatApi.assess`
+wraps `perceive` and adds the beat cost + the melee-read `ActSignature`).
+The **same** `CombatFog.reads(sharpness)` gate decides both the fog's tell
+and whether a defender bites a feint, so "the fog says open" and "I bit the
+feint" can never contradict. **The fog is the only dice; skill shrinks it.**
+
+**Sharpness** (`lib/combat/Sharpness.ts`, pure). One scalar,
+`f(competence) · g(composure)`, modulating **both** poise recovery (a
+sharper fighter recovers more per defensive beat) and the read-fog.
+`g(composure)` is the **inert** `traits-stress` seam (`≡ 1` today — a
+stubbed composure composes without touching the exchange engine). Competence
+is snapshotted **synchronously at open** (`CombatOpenOptions.competenceBands`,
+keyed on `templatePath`; `AttackController` awaits `AdvancementApi.bandFor`
+*before* opening — the async band can't be read mid-beat, and reading it once
+keeps a single session deterministic). Bare/test/gym/NPC paths default to
+`untrained`.
+
+**Zero new aleatory randomness.** No to-hit / damage / crit dice; severity
+stays the deterministic materials-response function, a "miss" stays a
+*caused* event, the crit stays the **earned** opening (with the called shot
+to the exposed part). **A single session is bit-for-bit deterministic** —
+the property the gym rides.
+
+**The dramatic arc** (Thesis 2). Every beat carries a
+`BeatIntensity` — `roar` at a threshold crossing (first-blood /
+the break, cracked or exploited / the down or kill — `CombatSession.bloodDrawn`
+fires the first-blood roar once), `murmur` for an ordinary hit, `silent`
+otherwise. It **volume-gates the crowd**: `CombatNarration` marks an act
+reactable (`noteReactableAct`) only on murmur/roar, and scales the narration
+swell — "the crowd roars" *is* the engagement feedback that the beat
+mattered. (The reactions substrate carries no per-act weight, so intensity
+gates *whether* the reactable act fires + the prose swell, not a counter;
+an empty-room roar is the swell, and an automated bystander crowd is
+deferred.)
+
+**The combat gym** (`scripts/combat-gym.ts` + `scripts/__tests__/combat-gym.test.ts`).
+Because a session is a deterministic single-thread coroutine, a whole fight
+runs **headless, to resolution, with no scheduler** — loop
+`CombatApi.advance`. A **dev tool** (no Api, no verb, no world state; the
+`scripts/` precedent) that runs a matrix of skill × policy × loadout
+matchups and reads the outcome distribution. It is the **balance regression
+guard**: it asserts the parry seam is dead (a feint beats a low-competence
+turtle; blind aggression still loses to one; an expert *reads* the feint and
+isn't cracked), a contested win-rate (no policy sweeps), single-session
+determinism, and **NPC ≈ PC** parity (the same model fights itself to a
+decisive result). Variation is the matrix, never RNG. This de-risks the
+competence→exchange-rate curve (combat-slate OQ1 — "numbers are the risk";
+the gym is how you find them).
+
+## Weapon playstyle & the hand-slot economy
+
+A weapon is a **derived playstyle bundle**, never a stat block. From its
+*shape* — `Construction` (form) × `Material` × `mass` × `length` × the
+hand-slot claim count — a pure {@link WeaponProfile} (`lib/combat/`) computes
+five axes, each an **input to a system that already exists** (no parallel
+weapon engine):
+
+- **balance** ← `mass`. Light = an **exploiter** (fast tempo, cheap commit —
+  it *cashes* openings); heavy = a **guard-breaker** (slow, high poise damage,
+  expensive commit — it *creates* them). The numeric getters
+  (`tempoFactor`/`poiseDamageFactor`/`overextendFactor`) are what
+  `CombatLogic` multiplies into `Tempo.rateFor` (the seam the old inert
+  `balanceFactor` occupied — retargeted, the field kept only so old rows
+  hydrate) and the exchange's erosion / inflict energy.
+- **reach** ← `length` (a real magnitude, symmetric with `mass`). A banded
+  class (`short`/`medium`/`long`) drives a **geometry-free engagement-range
+  tier** on `CombatGraph`: each pair carries a `reach | close` state
+  (`ThreatEdge.range`, `setRange`/`rangeBetween` keeping both directed edges
+  in sync). A longer weapon **controls until closed** — a genuinely out-ranged
+  attacker (a 2-rank gap) is simply **out of range** and *whiffs* (offence AND
+  riposte); reach-advantaged actors resolve first (a stable reach-order sort).
+  **Closing** is a tempo-costed opposed beat (the `close` gambit), *contested*
+  by a composed, longer reach-holder; a reach-holder's `defend` re-opens
+  distance. Inside (`close`) the term **reverses** — the dagger/unarmed owns
+  the clinch, the spear is a liability. Per-edge, so a 2v1 carries mixed ranges.
+- **guard** ← form (× a light material term). A crossguard parries + ripostes;
+  the two **guardless** forms (`guard: none`, new weapon-delivery forms) can't
+  self-guard, so a guard-breaker **bypasses** their steady defence: `flail`
+  (blunt, a chained head) and `whip` (a cutting-lash `edge`, and the **long-
+  reach extreme** — it controls at `reach` and is helpless inside). Rides the
+  existing steady-guard → parry → riposte seam (the binary `targetCanParry`
+  became a guard-graded read).
+- **handedness** ← the `slotClaims` count (a 2H weapon claims both grips).
+- **delivery** ← the `Construction` delivery form (unchanged).
+
+Surfaced as **bands/pips** (`analyze weapon`, a combat-owned `analyze`
+subcommand + a playstyle-pips `markupAugmenter` on `Weapon`); an
+`check-inert-weapon` CI lint (the `check-does-nothing` sibling) guards that no
+seeded weapon derives an inert profile.
+
+**Shield = wielded armor-construction** (no `ShieldMixin`): a `Wieldable`
+carrying an *armor* `Construction`. `ConditionApi.inflict` folds it into the
+materials-response covering stack as **directional** front cover (the
+`shieldFacing` hint — strong facing one foe, bypassed by a flank under
+focus-fire keyed on `graph.incomingEdges`), it grants its holder a large
+**guard** bonus (`combat.offhand.guardBonus`), it **costs a hand**, and it is
+**sunderable** (`DurableMixin` — a worn-out shield turns less).
+
+**The hand-slot economy** — two hands as a live allocation:
+- **Switch** (`fight switch <weapon>`) — a vulnerable durative beat
+  (`lib/combat/WeaponSwitch.ts`, a beat-driven countdown, NOT a scheduler
+  activity, since the participant already holds `body`): guard down, no
+  instrument, for `combat.switch.seconds`, then the grip swaps + tempo
+  re-derives.
+- **Sidearm draw** (`fight draw`) — a *fast* switch to a sheathed (`sidearm`
+  slot) / carried backup: **disarm becomes a tempo setback, not a fight-ender**
+  (the `combatant` brain draws when disarmed).
+- **Dual-wield** — two weapons: the off-hand adds a guard bonus **band-gated**
+  on competence (a novice fumbles it — a net penalty; you grow into it, the
+  experience-pass competence seam).
+
+**Weapon-shaped gambits** ("the weapon edits the menu" beside "injury edits
+the menu"): `bash` (shield-afforded), `sweep` (hafted-afforded), and
+`entangle` (whip-afforded — wraps the lash to bind a foe `grappled`; the
+whip's real weapon, since it fights by *control* not the sting of the lash)
+carry equipment requirements (`affordedByForm`/`affordedByShield` on
+`GambitSpec`), gated at `eligibilityImpl` like any gambit; `analyze weapon`
+lists a form's afforded moves.
+
+**Determinism** is preserved — every axis is a deterministic function of the
+tactical state (no new RNG); the **gym** gains a weapon × allocation matrix
+(the `GymLoadout` axis) asserting no loadout strictly dominates + single-
+session reproducibility with weapons (each matrix cell runs in a reset clean
+world — a session is deterministic, but a matrix must not accumulate the prior
+fight's objects). All tunables are `combat.weapon.*` / `combat.reach.*` /
+`combat.switch.*`/`combat.draw.*`/`combat.offhand.*`/`combat.dualWield.*`
+AppSettings. Content: the `steel-spear`/`steel-warhammer`/`steel-flail`/
+`steel-sword`/`steel-shield`/`leather-whip` arms (in `/obj/arms/`) + the
+`sidearm` biped slot.
+
 ## Deferred
 
 Named at their sites; nothing inherited:
 
-- **Later cycles** — weapon playstyle (reach/guard/balance-as-derived;
-  `balanceFactor` populated from construction), full morale / de-escalation,
-  stealth, pursuit / the chase (wayfaring) and coordinated party-retreat
-  (rout/rally), non-humanoid bestiary, death/recovery + moderation, the
-  client `CombatPane` (and the contextual gambit affordances — terse verbs
-  afforded only in a fight — that supersede the static ones), the **combat
-  gym** balance harness, and party tactic-roles (combat-tactics-slate).
+- **Later cycles** — ranged & thrown weapons (a whole engagement mode of its
+  own), the deep grapple/choke control game, spatial formation/geometry, a
+  weapon crafting/repair economy, full morale / de-escalation, stealth,
+  pursuit / the chase (wayfaring) and coordinated party-retreat (rout/rally),
+  non-humanoid bestiary, death/recovery + moderation, the client `CombatPane`
+  (and the contextual gambit affordances — terse verbs afforded only in a
+  fight — that supersede the static ones), and party tactic-roles
+  (combat-tactics-slate).
+- **The composure/luck axis itself** (`traits-stress`) — the bidirectional
+  stress ↔ inspiration emotional reserve that fills `Sharpness`'s
+  `g(composure)`. The experience pass leaves only the inert modulation seam;
+  the axis, its accrual pipe, and the estimator are deferred.
+- **A broader deception menu** — false-opening, guard-baiting, bluff-stacking.
+  The feint is the one read gambit this pass; the wider mind-game is deferred.
 - **Split** — connected-component recompute on edge removal spawning a
   second session; deferred (no criterion requires it) until fragmentation
   is real.
-- **Known engine seams** — a steady armed defender *always* parries and
-  acting-first overextends into that guard first, so blind aggression loses
-  to patience — wants attention in the experience pass. The
-  `world.combat.exchange` topic wants a client font-register mapping. The
-  beat loop has **no presence-freeze** — a fight ticks on against a
-  linkdead combatant until `combat.maxBeats` forces a draw (bounded, not a
-  leak; "you can't rage-quit a fight" may even be wanted). A parting-shot
-  **narration** (the inflict is mechanical today) is a small polish.
+- **Known engine seams** — the `world.combat.exchange` topic wants a client
+  font-register mapping. The beat loop has **no presence-freeze** — a fight
+  ticks on against a linkdead combatant until `combat.maxBeats` forces a
+  draw (bounded, not a leak; "you can't rage-quit a fight" may even be
+  wanted). A parting-shot **narration** (the inflict is mechanical today) is
+  a small polish. An **automated bystander crowd** (so an empty-room duel
+  still draws a reacting audience) is a behavior concern, out of scope.
 
 ## Cross-references
 
@@ -541,3 +709,47 @@ Named at their sites; nothing inherited:
   (`lib/party/`, `PartyApi`/`PartyLogic`, `PartyRegistry`, the `parties`
   collection, the `party:` grouping provider, the `party` verb) landed in
   the same build.
+- **Experience pass** (`feature/combat-experience`) — the exchange becomes
+  poker, not slots (see [§ The experience pass](#the-experience-pass--poker-not-slots-the-feint-the-fog-the-gym)):
+  the **feint** gambit (`feint-bit`/`feint-read`, the two-beat feint→exploit
+  reusing the earned-opening path) closing rock-paper-scissors and killing
+  the always-parries seam; the deterministic competence-hedged **fog**
+  (`CombatFog`) fed into `assess`; the `f(competence)·g(composure)`
+  **`Sharpness`** scalar modulating recovery + fog (composure the inert
+  `traits-stress` seam) snapshotted at open via `CombatOpenOptions`; the
+  **beat-intensity** arc (`BeatIntensity` silent/murmur/roar +
+  `CombatSession.bloodDrawn`) volume-gating the crowd; and the **combat
+  gym** (`scripts/combat-gym.ts` + bench) proving the parry seam dead +
+  single-session determinism + NPC≈PC parity. Six new `combat.*` dials
+  (`poise.feintCost`/`poise.feintBitPenalty`/`fog.readSharpness`/
+  `fog.clearSharpness`/`sharpness.min`/`sharpness.max`). `Gambit` grew a
+  `feint` kind; `fight feint` joined the gambit surface. **Two fixes forced
+  by the live run:** the fog was only on the costed `assess` path, so the
+  free `fight` status still showed the raw opponent band — split a free
+  `CombatApi.perceive` out of `assess` and used it in the status read; and
+  `assess` had never been added to `PerceiverMixin`'s affordances (it was
+  categorized as a perception verb, its AssessController branches wired, but
+  it dispatched "I don't understand" for every character) — afforded it
+  alongside `look`/`scry`/`feel`, and fixed a "They looks unhurt" number
+  disagreement in its combat-read prose.
+- **Weapon playstyle & the hand-slot economy** (`feature/weapon-playstyle`,
+  MR !140) — a weapon becomes a **derived playstyle bundle** (see [§ Weapon
+  playstyle & the hand-slot economy](#weapon-playstyle--the-hand-slot-economy)):
+  `WeaponProfile` (reach/balance/guard/handedness/delivery from form × material
+  × `mass` × `length` × hand-claims), the geometry-free `reach|close` tier on
+  `CombatGraph`, shield-as-wielded-armor in the covering stack, the switch/
+  sidearm/dual-wield hand-slot economy, and the `bash`/`sweep`/`entangle`
+  weapon-shaped gambits. `analyze weapon` + a `check-inert-weapon` lint; the
+  gym gained a weapon × allocation matrix; 23 new `combat.weapon.*`/`reach.*`/
+  `switch.*`/`draw.*`/`offhand.*`/`dualWield.*` dials. Two **design→impl
+  shifts** worth recording: (1) `WeaponSwitch` is a **beat-driven
+  value-object, not a scheduler `DurativeActivity`** as the plan proposed — a
+  combat participant already holds the whole `body` engagement slot, so a
+  second `body`-claiming activity would conflict; the vulnerable window
+  (`resolveInstrument` returns null for N beats) is unchanged. (2) The
+  reach **out-of-range whiff** is gated on a genuine 2-rank gap
+  (`REACH_OUT_OF_RANGE_GAP`), so a 1-rank gap (sword-vs-dagger, weapon-vs-
+  natural) stays a mild energy nudge and the wolf/cull fights are unperturbed.
+  A follow-on added the `whip` delivery form (guardless, long-reach extreme)
+  + its `entangle` gambit. The generic arms/armor/gear/clothes/items seeds
+  were relocated out of `domain/eternal/` into `/obj/` in the same branch.

@@ -23,8 +23,14 @@
 
 import type { CombatFlag } from "./CombatFlags";
 import type { CompetenceBandName } from "../advancement/CompetenceBand";
+import type { DeliveryForm } from "../material/Construction";
 
-export type GambitKind = "offensive" | "control" | "reactive" | "defensive";
+export type GambitKind =
+  | "offensive"
+  | "control"
+  | "reactive"
+  | "defensive"
+  | "feint";
 
 /**
  * The exchange outcome that arms a reactive gambit. `parried` — the
@@ -58,13 +64,22 @@ export interface GambitSpec {
   reactiveTrigger?: ReactiveTrigger;
   /** Competence-band gate (informational until Build 2 conferrals). */
   minBand?: CompetenceBandName;
+  /**
+   * The weapon-delivery forms that **afford** this gambit ("the weapon edits
+   * the menu"): a `sweep` needs a hafted weapon. Absent = any weapon. Checked
+   * at attempt-time in `CombatLogic.eligibilityImpl`.
+   */
+  affordedByForm?: DeliveryForm[];
+  /** Requires a wielded **shield** to afford (e.g. `bash`). */
+  affordedByShield?: boolean;
 }
 
 /**
- * The minimal demonstrative gambit set. Enough to show the affordance
- * model, attempt-time cross-gating, and injury-edits-the-menu; the full
- * four-channel breadth (feint / read / command) is deferred. Module-
- * private; read through {@link Gambit}'s statics.
+ * The gambit set. Enough to show the affordance model, attempt-time
+ * cross-gating, and injury-edits-the-menu, plus the experience-pass
+ * **feint** (the read/deception channel). The remaining four-channel
+ * breadth (read / command) is deferred. Module-private; read through
+ * {@link Gambit}'s statics.
  */
 const GAMBITS: Record<string, GambitSpec> = {
   strike: {
@@ -117,6 +132,88 @@ const GAMBITS: Record<string, GambitSpec> = {
     needsInstrument: false,
   },
   /**
+   * The **feint** — the read/deception move (poker, not slots). It inflicts
+   * nothing itself; it presents as a threat/opening and reads the
+   * *defender's* commitment. A committed defender (a steady, armed turtle
+   * poised to parry) who fails to *read* the feint over-commits and cracks
+   * their own guard open — which the feinter cashes in on the next strike.
+   * A defender who reads it, or an un-committed aggressor, isn't fooled and
+   * the bait is wasted. This is the one move that punishes patience, closing
+   * rock-paper-scissors (strike ▸ feint ▸ defend ▸ strike). Weapon-only (you
+   * feint *with* something); the bite/read logic lives in
+   * `CombatLogic.decideOutcome` via the shared `CombatFog` gate.
+   */
+  feint: {
+    key: "feint",
+    verb: "feint",
+    kind: "feint",
+    offensive: false,
+    needsInstrument: true,
+  },
+  /**
+   * The **close** — step inside a longer weapon's reach (the reach tier's
+   * approach half). A tempo-costed opposed maneuver: it flips the pair's
+   * engagement range from `reach` to `close`, where a dagger/unarmed fighter
+   * owns the clinch and the spear becomes a liability. The reach-holder can
+   * contest it (keep you at bay) while composed and genuinely longer. Needs
+   * no instrument (you can close bare-handed); the flip/contest logic lives
+   * in `CombatLogic.resolveExchange`'s `close` branch. The reversal (pushing
+   * back out to `reach`) is the reach-holder's `defend`.
+   */
+  close: {
+    key: "close",
+    verb: "close",
+    kind: "control",
+    offensive: false,
+    needsInstrument: false,
+  },
+  /**
+   * The **shield-bash** — a weapon-shaped gambit *afforded by the shield*,
+   * not the weapon (the "weapon edits the menu" seam, over the equipment):
+   * slam the shield forward to stagger a foe prone. Needs no weapon
+   * instrument (the shield IS the instrument), but is only eligible while a
+   * shield is wielded.
+   */
+  bash: {
+    key: "bash",
+    verb: "bash",
+    kind: "control",
+    offensive: false,
+    needsInstrument: false,
+    affordedByShield: true,
+    flagOnLand: "prone",
+  },
+  /**
+   * The **sweep** — a hafted weapon's low, wide swing that takes a foe's
+   * legs. Afforded only by a hafted/flail form (a long haft to sweep with);
+   * a bladed or pointed weapon can't. Lands the `prone` control flag.
+   */
+  sweep: {
+    key: "sweep",
+    verb: "sweep",
+    kind: "control",
+    offensive: false,
+    needsInstrument: true,
+    affordedByForm: ["hafted", "flail"],
+    flagOnLand: "prone",
+  },
+  /**
+   * The **entangle** — a whip's signature: wrap the lash round a limb or
+   * weapon and bind the foe up. Afforded only by a `whip` form (you need a
+   * flexible cord to snare with); lands the `grappled` control flag. This is
+   * the "the weapon edits the menu" answer to a whip's poor raw damage —
+   * a whip fights by *control*, not by the sting of the lash.
+   */
+  entangle: {
+    key: "entangle",
+    verb: "entangle",
+    kind: "control",
+    offensive: false,
+    needsInstrument: true,
+    affordedByForm: ["whip"],
+    flagOnLand: "grappled",
+  },
+  /**
    * The reactive counter — a weapon riposte the session offers the
    * defender when an attacker's blow is parried. Weapon-only (needs an
    * instrument), so a disarmed defender can't riposte.
@@ -155,5 +252,15 @@ export class Gambit {
     return Object.values(GAMBITS).filter(
       (g) => g.kind === "reactive" && g.reactiveTrigger === trigger,
     );
+  }
+
+  /** The verbs of the extra gambits a weapon-delivery form affords ("the
+   * weapon edits the menu") — e.g. a hafted weapon affords `sweep`. Used by
+   * the `analyze weapon` legibility preview. Null form → none. */
+  static affordedByForm(form: DeliveryForm | null): string[] {
+    if (!form) return [];
+    return Object.values(GAMBITS)
+      .filter((g) => g.affordedByForm?.includes(form))
+      .map((g) => g.verb);
   }
 }

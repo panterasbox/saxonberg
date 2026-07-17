@@ -9,10 +9,11 @@ data:
   _materialPath: /lib/material/alloy/steel
   constructionForm: bladed
   gradeBand: fine
+  # The authored *shape* — a light, short blade. Playstyle derives: light
+  # mass -> fast tempo + an exploiter (cashes openings), short length ->
+  # a close-range weapon that owns the clinch. See combat WeaponProfile.
   mass: 0.3
-  # A light, fast blade — a favourable emergent-tempo hook (a dagger acts
-  # more often than a heavy weapon). Neutral is 1.0; see combat Tempo.
-  balanceFactor: 1.6
+  length: 0.25
   # One-handed — claims a single hand slot (wield it in either hand).
   slotClaims:
     "/lib/body-plans/biped": ["hand:right"]

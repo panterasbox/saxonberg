@@ -203,7 +203,12 @@ is emergent: a hard-material Wearable covering a part *is* armor.
 
 ---
 
-## Weapons — the symmetric dual
+## Weapons — the symmetric dual ✅ SHIPPED
+
+**Realized** by the weapon-playstyle build (MR !140): this delivery/playstyle
+model is now `WeaponProfile` + the derived reach/balance/guard bundle over the
+`Construction` × `Material` grammar. See
+[combat.md § Weapon playstyle](../../subsystems/combat.md#weapon-playstyle--the-hand-slot-economy).
 
 A sword and a mace are **both steel**; construction decides which channel
 each *delivers*. So the same axis sits on **both sides of the blow**,

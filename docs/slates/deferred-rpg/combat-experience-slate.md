@@ -1,5 +1,17 @@
 # Combat — the experience layer (working slate)
 
+> **Partially realized (`feature/combat-experience`).** The first
+> experience-pass build shipped Theses **3** (poker/feint/fog), **4**
+> (crit = the earned opening + called shot), **9** (the combat gym +
+> band-tolerance balancing), **10** (NPC ≈ PC, asserted in the gym), and a
+> slice of **2** (beat-intensity → crowd-roar). Thesis **5** (luck /
+> composure) landed only as the inert `Sharpness.g(composure)` seam — the
+> bidirectional stress↔inspiration axis is deferred to `traits-stress`.
+> The rest (loadout-as-chemistry 7/8, weapon playstyle 14, de-escalation
+> 12, morale 13, aftermath 11, bestiary 15, expressive authoring 16) remain
+> design surface for later cycles. See
+> [../../subsystems/combat.md § The experience pass](../../subsystems/combat.md).
+
 > **Status: design-phase companion to [combat-slate.md](./combat-slate.md).**
 > That slate owns the *mechanism* — the session, poise, tempo, the hook
 > catalog, resolution & exits. This one owns the *felt experience*: the
@@ -606,7 +618,15 @@ brain capability), the surrender/rout mechanics, the `shaken`/`wavering`
 status. Cycle-1: individual NPC yield-when-losing (the consented-duel demo
 needs it); rout / rally / berserk are multi-party, later.
 
-## Thesis 14 — Weapon playstyle & the hand-slot economy (derivation, not stat blocks)
+## Thesis 14 — Weapon playstyle & the hand-slot economy (derivation, not stat blocks) ✅ SHIPPED
+
+**Realized** by the weapon-playstyle build (MR !140) — `WeaponProfile` +
+the reach tier + shield-as-armor + the switch/sidearm/dual-wield hand-slot
+economy + weapon-shaped gambits (`bash`/`sweep`/`entangle`) + the `whip`/
+`flail` guardless forms + the gym weapon matrix. See
+[combat.md § Weapon playstyle & the hand-slot economy](../../subsystems/combat.md#weapon-playstyle--the-hand-slot-economy).
+Deferred from Thesis 14: ranged/thrown (the sixth archetype), the deep
+grapple/clinch control game, and spatial formation/geometry.
 
 A weapon is a **derived playstyle bundle**, not a stat block: you author a
 *shape* (long, balanced, double-edged steel) and the playstyle **computes**

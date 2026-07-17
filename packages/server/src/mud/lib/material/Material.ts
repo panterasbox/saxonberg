@@ -157,9 +157,11 @@ export default class Material extends SingletonMixin(
    * by the Thermal capability (heat flow / algor-mortis time-of-death);
    * no live consumer yet — seeded ahead per the reality-shaped
    * discipline. (The old 0–1 `hardness` / `flammability` / `opacity` /
-   * `electricalConductivity` / `magneticSusceptibility` fields were
-   * removed: fake normalized scales with zero consumers. Re-add as real
-   * Quantities when a consumer — fire, electricity — actually lands.)
+   * `magneticSusceptibility` fields were removed: fake normalized scales
+   * with zero consumers. Re-add as real Quantities when a consumer — fire,
+   * magnetism — actually lands. `electricalConductivity` has since been
+   * re-added below as a real `Quantity<'S/m'>`: the electricity build is
+   * the consumer that landed.)
    */
   private _thermalConductivity: Quantity<'W/(m·K)'> = Quantity.of(
     0,
@@ -247,6 +249,33 @@ export default class Material extends SingletonMixin(
       );
     }
     this._toughness = value;
+  }
+
+  /**
+   * Electrical conductivity as a `Quantity<'S/m'>` — a real, tabulated
+   * material property spanning ~20 orders of magnitude (copper ≈ 6×10⁷,
+   * salt water ≈ 5, flesh ≈ 0.2, rubber ≈ 1×10⁻¹³). Quantity-typed and
+   * strict on unit like `hardness`. The *height* the shock model reads:
+   * `MaterialApi` inverts it to a path resistance for `I = V/R`, so metal
+   * conducts (betrays armor) and rubber insulates — the armor inversion is
+   * emergent from this one number, never an `isElectrical` special case.
+   * Zero-default until authored (materials stay content — the base-library
+   * pack supplies the roster's values). Re-added here as the real
+   * `Quantity` the removed 0–1 scalar reserved a seam for — electricity is
+   * the consumer that landed.
+   */
+  private _electricalConductivity: Quantity<'S/m'> = Quantity.of(0, 'S/m');
+
+  protected get electricalConductivity(): Quantity<'S/m'> {
+    return this._electricalConductivity;
+  }
+  protected set electricalConductivity(value: Quantity<'S/m'>) {
+    if (!(value instanceof Quantity) || value.unit !== 'S/m') {
+      throw new TypeError(
+        `Material.electricalConductivity must be a Quantity<'S/m'>; got ${value instanceof Quantity ? `Quantity<'${value.unit}'>` : typeof value}`
+      );
+    }
+    this._electricalConductivity = value;
   }
 
   /** Whether this material can be eaten. v1 has no consumer. */
@@ -352,6 +381,7 @@ export default class Material extends SingletonMixin(
     'specificHeat',
     'hardness',
     'toughness',
+    'electricalConductivity',
     'edibility',
     'nutrients',
     'nutrientAmounts',
@@ -376,6 +406,7 @@ export default class Material extends SingletonMixin(
     specificHeat: QuantityMarshaller.pathFor('J/(kg·K)'),
     hardness: QuantityMarshaller.pathFor('MPa'),
     toughness: QuantityMarshaller.pathFor('MJ/m³'),
+    electricalConductivity: QuantityMarshaller.pathFor('S/m'),
     molarMass: QuantityMarshaller.pathFor('g/mol'),
   };
 
@@ -491,6 +522,19 @@ export default class Material extends SingletonMixin(
   /** Set toughness. Strict on `Quantity<'MJ/m³'>`. */
   public setToughness(value: Quantity<'MJ/m³'>): void {
     this.toughness = value;
+  }
+
+  /**
+   * Read electrical conductivity. Strict on `Quantity<'S/m'>`; the
+   * QuantityMarshaller absorbed authoring-shape coercion at the
+   * persistence boundary.
+   */
+  public getElectricalConductivity(): Quantity<'S/m'> {
+    return this._electricalConductivity;
+  }
+  /** Set electrical conductivity. Strict on `Quantity<'S/m'>`. */
+  public setElectricalConductivity(value: Quantity<'S/m'>): void {
+    this.electricalConductivity = value;
   }
 
   public getTags(): readonly string[] { return this.tags; }
