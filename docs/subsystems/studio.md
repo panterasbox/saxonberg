@@ -121,6 +121,16 @@ key**. `kind` is `composition` (a bare recomposable mixin stack) or
   step*), plus a **curated overlay** (`config/blueprints.yaml` — named,
   `blessed` pure-composition blueprints and hierarchy, matched onto the
   derived rows by signature so a name *attaches* rather than duplicates).
+  Both layers are idempotent **across mixin-signature drift**: a class whose
+  *signature* changes (e.g. a new mixin composed onto a widely-used base)
+  derives the same `blueprintId` but a new `signature`, which the
+  signature-dedup passes yet the unique `blueprintId` index would collide on
+  — so the seeder guards on the id too (the derived pass skips a drifted id;
+  `#curatedOverlay` **reconciles the existing row in place** — re-points its
+  signature/composition — rather than inserting a duplicate). Without this,
+  adding `ConcealableMixin` to `Thing` (which shifted every Thing-based
+  blueprint's signature) would throw `E11000` on a re-seed against a
+  populated DB and take boot down.
 
 `publishBlueprint` dedups on signature (reusing the existing `blueprintId`
 on collision) and records an `AuthoringEvent` against a synthetic
@@ -292,3 +302,12 @@ Three design→implementation shifts are worth recording:
   `@authorable`/`@runtimeState`/`ref:` read is a fast regex scan over the mud source
   tree (present in the deployed server), with runtime sample-value inference as the
   type-shape fallback.
+- **`BlueprintSeeder` was made idempotent across signature drift** (the
+  concealment build). Composing `ConcealableMixin` onto `Thing` shifted the
+  structural `signature` of every Thing-based blueprint; the seeder's
+  signature-dedup passed but the unique `blueprintId` index collided, so a
+  re-seed against a populated DB threw `E11000` and killed boot. Fixed by
+  guarding the derived pass on the `blueprintId` set and reconciling a
+  drifted curated row's signature/composition **in place** in
+  `#curatedOverlay` — the reconcile-by-`blueprintId` fix. A base-class mixin
+  addition is now a safe, boot-surviving re-seed.

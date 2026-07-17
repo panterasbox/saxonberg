@@ -54,6 +54,7 @@ import { ThermalMixin } from '../thermal/Thermal';
 import { ThermalRegulationMixin } from '../thermal/ThermalRegulation';
 import { RespirationMixin } from '../respiration/Respiration';
 import { DisguisableMixin } from '../disguise/Disguisable';
+import { ConcealableMixin } from '../concealment/Concealable';
 import { Quantity } from '../quantity';
 
 // Body stack (inner → outer):
@@ -97,8 +98,13 @@ import { Quantity } from '../quantity';
 // Container + Slotted + Tangible (Agent) + Reserved + Vitals, so it
 // must compose outer of all of them (same placement logic as Vitals
 // outer of Reserved).
-const CreatureBase = LoadBearingMixin(
-  ContainerMixin(
+// ConcealableMixin sits outermost (default `obvious`, a plain field
+// carrier — placement is immaterial to the ordered body stack below). It
+// lets a creature carry a concealment level so a lurking beast can be
+// hidden until noticed; inert until authored (see concealment subsystem).
+const CreatureBase = ConcealableMixin(
+  LoadBearingMixin(
+    ContainerMixin(
     ContainableMixin(
       DisguisableMixin(
         VisibleMixin(
@@ -128,6 +134,7 @@ const CreatureBase = LoadBearingMixin(
         )
       )
     )
+  )
   )
 );
 

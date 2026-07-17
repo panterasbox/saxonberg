@@ -204,6 +204,18 @@ potency / bands / storeRaw) live on the toxin's **`Condition` seed**
 v1 ships acute content: alcohol, ptomaine (spoiled food), venom, and lead
 (wired, chronic content deferred).
 
+### `introduceToxin` — the bloodstream seam (past digestion)
+
+`introduceToxin(type, amount)` injects a toxin dose **directly onto the
+body burden, bypassing the digestion pool + absorption curve** — the
+bloodstream path a poisoned dart or needle uses. Unlike `ingest` (which
+fills a pool that the reconcile then drains into the burden at an
+`absorptionRate`), the resolved dose lands on the burden immediately; the
+banded `Condition` then reads live off the burden (reconcile-on-read),
+exactly as an eaten toxin's does. It is *how the dose arrives*, not a new
+toxin model. First consumer: a hazard's `delivery.toxin` (a step-dart) —
+see [hazard.md](./hazard.md).
+
 ### Alcohol / BAC exemplar
 
 The `alcohol` burden is the **store-raw exception**: it stores ethanol

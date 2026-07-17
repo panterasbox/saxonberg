@@ -39,6 +39,9 @@
  */
 
 import { Idea } from '../stuff/Idea';
+import { ConcealableMixin } from '../concealment/Concealable';
+import { ConcealmentLevels } from '../concealment/ConcealmentLevel';
+import type { ConcealmentLevel } from '../concealment/ConcealmentLevel';
 import type { Stuff, EvictionContext } from '../stuff/Stuff';
 import type { VetoResult } from '../errors';
 import type { Container } from '../spatial/Container';
@@ -113,6 +116,14 @@ export interface ExitOptions {
   keepLiveDestination?: boolean;
   door?: Door | null;
   hidden?: boolean;
+  /**
+   * Explicit concealment band (D1 — subsumes `hidden`). When set, it wins
+   * over the legacy `hidden` flag; `concealment: 'hidden'` is the authored
+   * equivalent of `hidden: true`, `'deep'`/`'buried'` bury it further.
+   */
+  concealment?: ConcealmentLevel;
+  /** Authored hint / "tell" surfaced when a viewer nearly perceives it. */
+  concealmentHint?: string;
   blocked?: boolean;
   muffled?: boolean;
   noFollow?: boolean;
@@ -140,7 +151,7 @@ export interface ExitOptions {
   wheelPassable?: boolean;
 }
 
-export default class Exit extends Idea {
+export default class Exit extends ConcealableMixin(Idea) {
   protected direction: string;
   public getDirection(): string { return this.direction; }
   public setDirection(value: string): void { this.direction = value; }
@@ -260,9 +271,6 @@ export default class Exit extends Idea {
   public getDoor(): Door | null { return this.door; }
   public setDoor(value: Door | null): void { this.door = value; }
 
-  /** Hidden exits are skipped by `getObviousExits()` (and therefore by `look`). */
-  protected hidden: boolean;
-
   /** Permanently blocked regardless of door state. */
   protected blocked: boolean;
 
@@ -278,8 +286,32 @@ export default class Exit extends Idea {
    */
   protected oneWay: boolean;
 
-  public isHidden(): boolean { return this.hidden; }
-  public setHidden(value: boolean): void { this.hidden = value; }
+  /**
+   * Legacy hidden-flag surface, now a thin view over the concealment band
+   * (D1 — `Exit.hidden` is subsumed by {@link ConcealableMixin}).
+   * `getObviousExits()` still drops a hidden exit because it reads this.
+   * `isHidden()` is true iff concealed; `setHidden(true)` raises the band
+   * to the migration default (`concealment.hiddenDefaultLevel`),
+   * `setHidden(false)` clears it back to `obvious`. Authors and the reveal
+   * path can also address the band directly via `setConcealment()`.
+   */
+  public isHidden(): boolean { return this.isConcealed(); }
+  public setHidden(value: boolean): void {
+    this.setConcealment(value ? ConcealmentLevels.hiddenDefault() : 'obvious');
+  }
+
+  /**
+   * Durable discovery key (D3) — an `Exit` is a runtime instance with no
+   * `templatePath` of its own, so it keys its `DISCOVERY` belief on a
+   * synthetic `<source-templatePath>#exit:<direction>` handle, stable across
+   * re-clones (the bar's secret north door stays discovered). `undefined`
+   * when the source has no durable templatePath (a shared multi-clone room —
+   * the deferred player-placed-concealment case).
+   */
+  public override getDiscoveryKey(): string | undefined {
+    const src = this.source.getTemplatePath();
+    return src ? `${src}#exit:${this.direction}` : undefined;
+  }
   public isBlocked(): boolean { return this.blocked; }
   public setBlocked(value: boolean): void { this.blocked = value; }
   public isMuffled(): boolean { return this.muffled; }
@@ -361,7 +393,14 @@ export default class Exit extends Idea {
    * the exit-gate call site (see `LocomotionControllerBase.execute`).
    */
   public allowsMode(modeName: string): boolean {
-    if (this.media.length === 0) return modeName === 'walk';
+    // Empty `media` is the legacy walk-only default — now widened to the
+    // ground *pace* family (walk / sneak / run, the care↔speed siblings),
+    // since anywhere you can walk you can sneak or run. Non-ground media
+    // (climb / swim / fly) and wheeled conveyance still require an explicit
+    // `media` declaration, so this stays backcompat-safe for old content.
+    if (this.media.length === 0) {
+      return modeName === 'walk' || modeName === 'sneak' || modeName === 'run';
+    }
     const mode = LocomotionApi.modeOf(modeName);
     if (!mode) return false;
     const medium = mode.getMedium();
@@ -424,7 +463,18 @@ export default class Exit extends Idea {
     // `ExitableMixin.addExit`, which is the only legitimate way to
     // install an Exit on an Exitable host.
     this._door = opts.door ?? null;
-    this.hidden = opts.hidden ?? false;
+    // D1: map the legacy `hidden` flag onto the concealment band. An
+    // un-hidden exit stays at the mixin's `obvious` default. An explicit
+    // `concealment` band (the authored form) takes precedence over the
+    // legacy flag; an authored `hint` rides the ConcealableMixin carrier.
+    if (opts.concealment) {
+      this.setConcealment(opts.concealment);
+    } else if (opts.hidden) {
+      this.setConcealment(ConcealmentLevels.hiddenDefault());
+    }
+    if (opts.concealmentHint !== undefined) {
+      this.concealmentHint = opts.concealmentHint;
+    }
     this.blocked = opts.blocked ?? false;
     this.muffled = opts.muffled ?? false;
     this.noFollow = opts.noFollow ?? false;

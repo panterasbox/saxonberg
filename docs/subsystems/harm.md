@@ -228,6 +228,20 @@ wired into the world seed graph** (see the note below); the
 reachable-in-world demo is deferred until a safe walkable host exists. A
 real hazard/trap taxonomy is a separate future build over the same seam.
 
+> **Shipped (concealment build): `HazardMixin` generalizes this seam.**
+> The real hazard/trap taxonomy landed — a self-resolving `HazardMixin`
+> (`lib/hazard/`, no `HazardApi` — the powerful steps route through the
+> already-gated `ConditionApi.inflict` / `PerceptionApi.perceives`), a
+> `HazardDelivery` value-object producing the `InflictSpec` (armor mitigates
+> for free through the covering stack, as it does a blow), and the trigger
+> fired from `Mobile.traverse`. See [hazard.md](./hazard.md). **`GlassAlley`
+> stays separate on purpose**: it is an *obvious* underfoot hazard — always
+> perceived, therefore always avoided — which is a different case from a
+> *spottable, concealed* trap (`HazardMixin` resolves against the detection
+> gate). Migrating GlassAlley onto `HazardMixin` is an optional, skippable
+> proof; it remains a class + integration fixture so unavoidable-glass and
+> spottable-trap coexist as distinct demonstrators.
+
 > **In-world placement deferred.** The demo was briefly wired off Dave's
 > Bar, then the Terminus Terminal hall, but every real content-area host
 > broke a standup/fast-travel invariant (a cross-domain exit fails the

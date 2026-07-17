@@ -70,6 +70,8 @@ import type { Augment } from '../lib/augmentation/Augment';
 import type { FastTravel } from '../lib/fasttravel/FastTravel';
 import type { CredentialWallet } from '../lib/credential/CredentialWallet';
 import type { Perception } from '../lib/perception/Perception';
+import type { Concealable } from '../lib/concealment/Concealable';
+import type { Hazard } from '../lib/hazard/Hazard';
 import type { Tangible } from '../lib/material/Tangible';
 import type { Constructed } from '../lib/material/Constructed';
 import type { Organism } from '../lib/species/Organism';
@@ -655,6 +657,16 @@ export class MixinApi {
 
   public static isPerceptible(obj: Stuff): obj is Stuff & Perceptible {
     return this.hasMixin(obj, Mixins.Perceptible);
+  }
+
+  /** Does `obj` carry a concealment level (presence-concealment)? */
+  public static isConcealable(obj: Stuff): obj is Stuff & Concealable {
+    return this.hasMixin(obj, Mixins.Concealable);
+  }
+
+  /** Is `obj` a self-resolving trap/hazard (springs at a traverse/interact)? */
+  public static isHazard(obj: Stuff): obj is Stuff & Hazard {
+    return this.hasMixin(obj, Mixins.Hazard);
   }
 
   public static isDetailed(obj: Stuff): obj is Stuff & Detailed {

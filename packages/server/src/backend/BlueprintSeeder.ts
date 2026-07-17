@@ -67,15 +67,26 @@ export class BlueprintSeeder {
     // too keeps the derived-skeleton pass idempotent across signature drift
     // — a redeploy re-seeds a populated DB without a fatal boot crash.
     const byId = new Set<string>();
+    // id → row, so the curated overlay can reconcile a blueprint whose
+    // *signature* drifted (a mixin added to a base class it composes) in
+    // place, rather than colliding on the unique `blueprintId` index.
+    const byBlueprintId = new Map<string, Blueprint>();
     for (const bp of existing) {
       const sig = bp.getSignature();
       if (sig) bySignature.set(sig, bp);
-      if (bp.blueprintId) byId.add(bp.blueprintId);
+      if (bp.blueprintId) {
+        byId.add(bp.blueprintId);
+        byBlueprintId.set(bp.blueprintId, bp);
+      }
     }
 
     let inserted = 0;
     inserted += await BlueprintSeeder.#deriveSkeleton(bySignature, byId);
-    inserted += await BlueprintSeeder.#curatedOverlay(bySignature, opts);
+    inserted += await BlueprintSeeder.#curatedOverlay(
+      bySignature,
+      byBlueprintId,
+      opts
+    );
 
     console.info(
       `BlueprintSeeder: ${inserted} new blueprint${inserted === 1 ? '' : 's'}`
@@ -154,6 +165,7 @@ export class BlueprintSeeder {
    */
   static async #curatedOverlay(
     bySignature: Map<string, Blueprint>,
+    byBlueprintId: Map<string, Blueprint>,
     opts: BlueprintSeedOptions
   ): Promise<number> {
     const path = opts.seedPath ?? BlueprintSeeder.#defaultSeedPath();
@@ -214,6 +226,30 @@ export class BlueprintSeeder {
         continue;
       }
 
+      // A blueprint already holds this id, but under a *different*
+      // signature — the class's mixin set drifted since it was last seeded
+      // (e.g. a mixin added to a base class it composes). Reconcile the
+      // existing row in place: re-point its signature/composition and
+      // re-attach the curated identity. Inserting instead would collide on
+      // the unique `blueprintId` index (E11000) and take the boot down —
+      // this keeps the overlay idempotent across signature drift so a
+      // redeploy re-seeds a populated DB cleanly.
+      const drifted = byBlueprintId.get(entry.blueprintId);
+      if (drifted) {
+        drifted.signature = signature;
+        drifted.baseClass = baseClass;
+        drifted.mixinNames = mixinNames;
+        drifted.name = entry.name ?? drifted.getName();
+        drifted.kind = entry.kind ?? drifted.getKind();
+        if (entry.classPath) drifted.classPath = entry.classPath;
+        drifted.parent = entry.parent ?? '';
+        drifted.description = entry.description ?? '';
+        drifted.blessed = entry.blessed ?? true;
+        await drifted.save();
+        bySignature.set(signature, drifted);
+        continue;
+      }
+
       // No class produced this composition — insert the curated blueprint.
       const bp = new Blueprint();
       bp.blueprintId = entry.blueprintId;
@@ -228,6 +264,7 @@ export class BlueprintSeeder {
       bp.description = entry.description ?? '';
       await bp.save();
       bySignature.set(signature, bp);
+      byBlueprintId.set(bp.blueprintId, bp);
       inserted++;
     }
     return inserted;

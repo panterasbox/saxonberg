@@ -442,6 +442,10 @@ export class LocomotionLogic extends ApiLogic {
   /** See {@link LocomotionApi.defaultModeFor}. */
   @CallSecurity(LocomotionApiCallers)
   public defaultModeFor(actor: Stuff): string {
+    // The care↔speed pace (Phase 5) rides this same setting: a player sets
+    // `movement.defaultMode sneak`/`run` for a standing pace, exactly as
+    // they'd default to any locomotion mode. No separate `movement.pace`
+    // knob — it was redundant with this one.
     const explicit = ShellApi.ownSetting<string>(actor, 'movement.defaultMode');
     if (explicit) return explicit;
     if (MixinApi.isOrganism(actor)) {

@@ -41,7 +41,7 @@ describe("AppSettingsSeeder", () => {
     pm.setFindResult([]);
     const added = await AppSettingsSeeder.run();
 
-    expect(added).toBe(172); // 146 base + 7 Attendant+Goodkin + 19 storms-and-wetness
+    expect(added).toBe(189); // 146 base + 7 Attendant+Goodkin + 19 storms-and-wetness + 17 concealment/detection/hazard/movement
     expect(pm.saves).toHaveLength(1);
     expect(pm.saves[0]!.collection).toBe("app_settings");
     const values = savedValues(pm);
@@ -55,6 +55,13 @@ describe("AppSettingsSeeder", () => {
     expect(values[AppSettingKeys.forumsAntiSnowballMinVotes]).toBe("5");
     expect(values[AppSettingKeys.forumsAntiSnowballMinMinutes]).toBe("30");
     expect(values[AppSettingKeys.renownQualityWeight]).toBe("1");
+    expect(values[AppSettingKeys.concealmentPassiveBaseline]).toBe("0");
+    expect(values[AppSettingKeys.detectionCapacityPerBand]).toBe("3");
+    expect(values[AppSettingKeys.concealmentSearchBonus]).toBe("4");
+    expect(values[AppSettingKeys.concealmentHintCutoff]).toBe("4");
+    expect(values[AppSettingKeys.concealmentExamineBonus]).toBe("2");
+    expect(values[AppSettingKeys.movementAttentionSneak]).toBe("2");
+    expect(values[AppSettingKeys.movementAttentionRun]).toBe("-2");
   });
 
   it("is idempotent — a fully-populated row is left alone (no save)", async () => {
@@ -232,6 +239,28 @@ describe("AppSettingsSeeder", () => {
           [AppSettingKeys.electricityArmorConductiveSkinFactor]: "0.15",
           [AppSettingKeys.electricitySustainBurnPerAmpSec]: "2",
           [AppSettingKeys.electricityArrestDrivePerSec]: "40",
+          // The 5 concealment (detection gate — Phase 1) tuning keys.
+          [AppSettingKeys.concealmentLevelSubtle]: "2",
+          [AppSettingKeys.concealmentLevelHidden]: "4",
+          [AppSettingKeys.concealmentLevelDeep]: "7",
+          [AppSettingKeys.concealmentLevelBuried]: "11",
+          [AppSettingKeys.concealmentHiddenDefaultLevel]: "hidden",
+          // The 2 detection (Phase 2) dials.
+          [AppSettingKeys.concealmentPassiveBaseline]: "0",
+          [AppSettingKeys.detectionCapacityPerBand]: "3",
+          // The 5 detection search / hint (Phase 3) dials.
+          [AppSettingKeys.concealmentSearchBonus]: "4",
+          [AppSettingKeys.concealmentSearchDepthBonus]: "3",
+          [AppSettingKeys.concealmentSearchSeconds]: "4",
+          [AppSettingKeys.concealmentHintCutoff]: "4",
+          [AppSettingKeys.concealmentExamineBonus]: "2",
+          // The 3 hazard (Phase 4) dials.
+          [AppSettingKeys.hazardPinSeconds]: "6",
+          [AppSettingKeys.hazardDropFallEnergy]: "4",
+          [AppSettingKeys.hazardDisarmSeconds]: "5",
+          // The 2 care↔speed movement attention (Phase 5) dials.
+          [AppSettingKeys.movementAttentionSneak]: "2",
+          [AppSettingKeys.movementAttentionRun]: "-2",
           [AppSettingKeys.wetnessEvaporationRatePct]: "1.25",
           [AppSettingKeys.wetnessWarmthFactor]: "0.03",
           [AppSettingKeys.wetnessWarmthReferenceK]: "295",
@@ -287,11 +316,10 @@ describe("AppSettingsSeeder", () => {
     // + 6 experience combat (2 feint poise + 2 fog + 2 sharpness)
     // + 23 weapon-playstyle combat (15 weapon-profile + 3 reach + 5 hand-slot)
     // + 16 electricity (shock channel + conduction)
-    // + 4 Attendant+Goodkin banking (withdrawal cap ×2, royalty, float)
-    // + 3 Attendant lease/queue (lease sweep/idle, queue idle)
-    // + 19 storms-and-wetness (8 wetness + 7 storm + 2 weather + 1 thermal
-    //   + 1 wetness.absorptionCapacityDefaultPct).
-    expect(added).toBe(171);
+    // + 7 Attendant+Goodkin (4 banking + 3 lease/queue)
+    // + 19 storms-and-wetness (8 wetness + 7 storm + 2 weather + 1 thermal + 1 absorptionCap)
+    // + 17 concealment/detection/hazard/movement (5+2+5+3+2, Phases 1-5)
+    expect(added).toBe(188);
     expect(pm.saves).toHaveLength(1);
     const values = savedValues(pm);
     // operator value preserved, missing keys seeded

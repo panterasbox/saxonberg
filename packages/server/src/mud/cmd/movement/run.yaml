@@ -1,0 +1,23 @@
+verbs: [run]
+controller: /obj/command/movement/RunController
+description: "Move quickly through an exit, heedless of what you pass."
+help: |
+  Move through an exit at a fast, headlong pace — `run north`, `run
+  gate`, or `run through the oak door`. Same destinations `go` reaches,
+  but committed to running: you go faster and louder, and because
+  you're barreling along you're likelier to blunder into a hidden trap
+  that a careful step would have caught.
+
+  This is the fast end of the care↔speed axis. Reach for `sneak` when
+  you'd rather trade speed for caution, or set a standing default with
+  `set movement.defaultMode run`.
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresConscious
+args:
+  - name: target
+    type: object
+    scope: ["$focus", "reachable"]
+    required: true
+    validators:
+      - /lib/command/validators/canReach

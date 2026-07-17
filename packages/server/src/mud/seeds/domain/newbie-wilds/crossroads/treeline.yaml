@@ -14,7 +14,7 @@ data:
   longDescription: |
     The road gives out entirely here and the wood closes over it — pines gone black-green in the shadow, needles deep and silent underfoot, the light coming down in coins. This is the quiet the crossroads warned about: not peace, but the held quiet of a place with something in it that has already noticed you.
 
-    A dagger lies half-buried in the needles where someone dropped it and did not come back for it. Behind you, south, the treeline thins toward the crossroads and the humming Line. West, the ground falls away into a hollow where the fog has pooled and something patient is standing in it.
+    A dagger lies half-buried in the needles where someone dropped it and did not come back for it. Behind you, south, the treeline thins toward the crossroads and the humming Line. West, the ground falls away into a hollow where the fog has pooled and something patient is standing in it. North, worked stone shows through the needles — a doorway, and a stair going down into the hill.
   coords:
     x: 0
     y: 1
@@ -26,6 +26,14 @@ data:
     # (the Build-2 consented-duel demonstrator — a person, not a beast).
     west:
       destination: /domain/newbie-wilds/crossroads/hollow
+    # North goes down into the Sunken Delve — the concealment/traps
+    # demonstrator (docs/subsystems/concealment.md). The SINGLE ordinary
+    # ground exit into that self-contained sphere; hung here off the treeline
+    # exactly as the hollow is (the treeline is reached by spawn-override and
+    # stood up by NO test, so this exit pulls the delve into no standup/
+    # fast-travel cascade — the GlassAlley failure, avoided by construction).
+    north:
+      destination: /domain/newbie-wilds/delve/vestibule
   # The cull: one wolfshead and a dropped dagger, both cloned fresh at
   # standup. Pick up the dagger, wield it, and `attack the wolf`.
   populates:

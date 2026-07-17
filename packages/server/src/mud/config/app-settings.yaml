@@ -519,6 +519,69 @@ settings:
     value: "2"
   - key: combat.dualWield.noviceGuardBonus
     value: "-0.3"
+  # Concealment — effective-perception a viewer needs to notice a thing at
+  # each concealed band (obvious = 0, no key). Monotone increasing. The band
+  # names + ordering are code (lib/concealment/ConcealmentLevel.ts); these
+  # are the tunable magnitudes. hiddenDefaultLevel = the band a legacy
+  # Exit.hidden:true migrates to. See docs/subsystems/concealment.md.
+  - key: concealment.level.subtle
+    value: "2"
+  - key: concealment.level.hidden
+    value: "4"
+  - key: concealment.level.deep
+    value: "7"
+  - key: concealment.level.buried
+    value: "11"
+  - key: concealment.hiddenDefaultLevel
+    value: "hidden"
+  # Detection — the passive attention a viewer brings without actively
+  # searching, and the perception "points" per awareness competence band
+  # rank (capacity = rank x capacityPerBand). With the level requirements
+  # above (subtle 2, hidden 4, deep 7, buried 11), a rank-1 novice
+  # passively notices subtle; searching / higher bands reach the rest.
+  - key: concealment.passiveBaseline
+    value: "0"
+  - key: detection.capacityPerBand
+    value: "3"
+  # Detection — the active-search loop (Phase 3). searchBonus: the attention
+  # a broad `search` folds in (rank-0 seeker reaches `hidden`=4).
+  # searchDepthBonus: extra for a narrow `search <container>`. searchSeconds:
+  # the game-time the search holds the `hands` slot. hintCutoff: a concealed
+  # thing within this gap of the viewer's perception surfaces a hint (`hidden`
+  # hints a passive floor viewer). examineBonus: the smaller instantaneous
+  # `examine` bump. See docs/subsystems/concealment.md.
+  - key: concealment.searchBonus
+    value: "4"
+  - key: concealment.searchDepthBonus
+    value: "3"
+  - key: concealment.searchSeconds
+    value: "4"
+  - key: concealment.hintCutoff
+    value: "4"
+  - key: concealment.examineBonus
+    value: "2"
+  # Hazards / traps (Phase 4). pinSeconds: a snare holds the body slot.
+  # dropFallEnergy: the blunt a pit-fall adds on landing. disarmSeconds:
+  # the hands-slot window to defuse a found trap. Per-trap wound energies
+  # are authored content data, NOT dials. See docs/subsystems/concealment.md.
+  - key: hazard.pinSeconds
+    value: "6"
+  - key: hazard.dropFallEnergy
+    value: "4"
+  - key: hazard.disarmSeconds
+    value: "5"
+  # Care↔speed movement axis (Phase 5). The detection attention a mode
+  # folds into the trap-traverse perceive check, on top of the passive
+  # baseline (walk = 0, no key). sneak (+): careful movement notices more,
+  # so sneak avoids a trap walk springs. run (−): careless movement notices
+  # less, so run springs a trap walk avoids. With capacityPerBand=3, a
+  # novice (capacity 3) walking avoids `subtle`(2) but running (3−2=1) does
+  # not, and walking springs `hidden`(4) but sneaking (3+2=5) avoids it.
+  # See docs/subsystems/concealment.md.
+  - key: movement.attention.sneak
+    value: "2"
+  - key: movement.attention.run
+    value: "-2"
   # Wetness (weather Wave 2) — the per-object saturation gauge (0..1).
   # Drainage is reconcile-on-read (presence-frozen); accrual is pushed by
   # rain exposure / immersion. See docs/subsystems/weather.md.

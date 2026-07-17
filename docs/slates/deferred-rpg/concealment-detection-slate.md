@@ -1,13 +1,21 @@
 # Concealment & detection — stealth, searching & secrets (working slate)
 
-> **Status: design-phase, deferred-rpg.** A perception substrate — the
-> *sibling of combat, parent of stealth* — surfaced by the stealth and
+> **Status: PARTIALLY SHIPPED (MR!142).** **Thesis 1** (one concealment gate
+> on every perceivable) and **Thesis 3** (searching) shipped as the
+> concealment/detection + traps build — see
+> [concealment.md](../../subsystems/concealment.md) +
+> [hazard.md](../../subsystems/hazard.md). **Deferred and retained here:**
+> **Thesis 2** — the *hiding* half of stealth (actor-face self-concealment,
+> motion-degrades-concealment, NPC detection/response, surprise/ambush
+> initiation) — and the **knowledge economy** (sharing/selling/transferring
+> found secrets, `frisk`, player-placed concealment). A perception substrate
+> — the *sibling of combat, parent of stealth* — surfaced by the stealth and
 > searching interrogations off
 > [combat-experience-slate.md](./combat-experience-slate.md). Combat consumes
 > it (trap-spotting, stealth-detection, frisking, searching the downed) but
-> it is broader — the exploration/perception layer. Nothing here is a build;
-> it leans entirely on shipped substrate (perception, belief, senses, light,
-> the activity framework).
+> it is broader — the exploration/perception layer. It leans entirely on
+> shipped substrate (perception, belief, senses, light, the activity
+> framework).
 
 The one-sentence thesis: **every perceivable thing carries a *concealment*,
 and what you perceive is concealment vs. your perception resolved by
