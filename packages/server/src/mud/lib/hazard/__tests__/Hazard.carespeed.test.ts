@@ -32,14 +32,12 @@ import { MobileMixin } from '../../spatial/Mobile';
 import { Creature } from '../../creature/Creature';
 import Species from '../../species/Species';
 import BodyPlan from '../../species/BodyPlan';
-import Thing from '../../stuff/Thing';
 import Location from '../../stuff/Location';
 import { MessageApi } from '../../../api/message';
 import { ContainmentApi } from '../../../api/containment';
 import { PerceptionApi } from '../../../api/perception';
 import { AdvancementApi } from '../../../api/advancement';
 import { SpeciesApi } from '../../../api/species';
-import { Stuff } from '../../stuff/Stuff';
 import { PersistenceManager } from '../../../../backend/PersistenceManager';
 import {
   makeStuff,
