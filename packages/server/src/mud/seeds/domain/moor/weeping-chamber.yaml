@@ -1,0 +1,34 @@
+# The weeping chamber — the *indoor* authored-rain demonstrator (weather =
+# sky dynamics; authored atmosphere = anywhere). A sheltered CartesianLocation
+# with NO sky, yet it rains: a **scope-tier** weather pin (`AtmosphericMixin.
+# _weatherPin`) declares a frozen rain, and an authored humidity override sets
+# the sodden air directly. The consequence layer is source-indifferent — this
+# authored indoor rain accrues wetness and fills a Floor puddle exactly as the
+# heath's modelled storm does (the spine invariant).
+#
+# The field deviations stay SkyExposed-gated (an indoor scope gets no storm
+# wind-chill); the precipitation read is NOT sky-gated (the pin rains). No
+# exits wired (reachable by teleport).
+class: /lib/location/CartesianLocation
+hydratorClass: /lib/persistence/PersistentHydrator
+data:
+  shortDescription: a weeping chamber
+  primaryKeyword: chamber
+  longDescription: |
+    A windowless stone vault, its ceiling lost in the dark above. Water beads on every surface and falls in a thin, ceaseless indoor rain, pattering into a spreading pool across the flagstones. The air is cold and utterly saturated. No sky reaches here — and still it weeps.
+  # A sheltered indoor biome (no sky) — the field deviations don't reach here.
+  _biomePath: /lib/biome/indoor/baseline
+  # The authored atmosphere: a sodden air (a direct humidity override) …
+  _humidity: 98
+  # … and a scope-tier precipitation pin (frozen rain) the wetness / puddle
+  # consumers read, even with no sky.
+  _weatherPin:
+    type: rain
+    mode: frozen
+  address: moor/chamber
+  coords:
+    x: 1
+    y: 0
+    z: 0
+  adornments:
+    - /domain/moor/weeping-floor

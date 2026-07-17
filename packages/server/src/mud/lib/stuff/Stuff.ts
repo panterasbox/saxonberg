@@ -669,9 +669,11 @@ export abstract class Stuff {
    * Top-level branches registered via `_registerTopLevelBranch`.
    * Every concrete Stuff subclass must trace through one of these in
    * its prototype chain. Identity-based — entries are the actual
-   * branch constructors (Thing, Location, Idea, Agent, Vessel,
-   * Shadow), not names or markers, so the membership check can't be
-   * spoofed by a same-named class declared elsewhere.
+   * branch constructors (Thing, Location, Idea, Agent, Shadow), not
+   * names or markers, so the membership check can't be spoofed by a
+   * same-named class declared elsewhere. (A `Vessel` is a container-
+   * object that `extends Thing`, so it traces the Thing branch — it is
+   * not a branch of its own.)
    */
   static #branches: Set<AnyClassRef> = new Set();
 
@@ -682,14 +684,14 @@ export abstract class Stuff {
    * list AND its registration call site.
    */
   static #branchRegistrationAllowlist: ReadonlyArray<RegExp> = [
-    /\/mud\/lib\/stuff\/(Thing|Location|Idea|Agent|Vessel|Shadow)\.(ts|js)$/,
+    /\/mud\/lib\/stuff\/(Thing|Location|Idea|Agent|Shadow)\.(ts|js)$/,
   ];
 
   static #branchRegistrationCache: Map<string, boolean> = new Map();
 
   /**
    * Register a class as a top-level branch. Called by Thing /
-   * Location / Idea / Agent / Vessel / Shadow at module load. Caller
+   * Location / Idea / Agent / Shadow at module load. Caller
    * URL must match `#branchRegistrationAllowlist`; everything else
    * throws.
    *
@@ -712,7 +714,7 @@ export abstract class Stuff {
     if (cached === false) {
       throw new Error(
         `Stuff._registerTopLevelBranch refused from ${url}: only the ` +
-          `six branch files (lib/stuff/{Thing,Location,Idea,Agent,Vessel,Shadow}.ts) ` +
+          `five branch files (lib/stuff/{Thing,Location,Idea,Agent,Shadow}.ts) ` +
           `may register branches.`
       );
     }
@@ -721,7 +723,7 @@ export abstract class Stuff {
     if (!allowed) {
       throw new Error(
         `Stuff._registerTopLevelBranch refused from ${url}: only the ` +
-          `six branch files (lib/stuff/{Thing,Location,Idea,Agent,Vessel,Shadow}.ts) ` +
+          `five branch files (lib/stuff/{Thing,Location,Idea,Agent,Shadow}.ts) ` +
           `may register branches.`
       );
     }
@@ -754,7 +756,7 @@ export abstract class Stuff {
     throw new Error(
       `Stuff subclass '${ctor.name || '<anonymous>'}' does not extend ` +
         `through one of the top-level branches: Thing, Location, Idea, ` +
-        `Agent, Vessel, or Shadow. See ` +
+        `Agent, or Shadow. See ` +
         `docs/architecture.md § Top-level branches.`
     );
   }

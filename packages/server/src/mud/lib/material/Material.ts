@@ -278,6 +278,35 @@ export default class Material extends SingletonMixin(
     this._electricalConductivity = value;
   }
 
+  /**
+   * Water **absorption capacity** — the real, tabulated material property
+   * (ASTM D570 / ISO 62): the mass of water the material holds at
+   * saturation, as a **percent of its dry mass** (`Quantity<'%'>`). Real
+   * figures: wool ≈ 33 %, wood ≈ 28 % (fibre-saturation point), cotton ≈
+   * 25 %, leather ≈ 15 %, ceramic ≈ 8 %, and metals / glass ≈ 0 (a surface
+   * film only). Quantity-typed and strict on unit like the other measured
+   * properties (`hardness`, `electricalConductivity`) — **not** a fake 0–1
+   * index. The {@link ../wetness/Wet WetMixin} gauge reads it to derive the
+   * dry rate from evaporation physics: at a fixed evaporation rate a
+   * high-capacity material holds more water, so its saturation decays
+   * slower (wet wool lingers; a wet blade sheds at once). `0 %` until
+   * authored — the neutral fallback for a materialless object lives on the
+   * gauge, not here.
+   */
+  private _waterAbsorptionCapacity: Quantity<'%'> = Quantity.of(0, '%');
+
+  protected get waterAbsorptionCapacity(): Quantity<'%'> {
+    return this._waterAbsorptionCapacity;
+  }
+  protected set waterAbsorptionCapacity(value: Quantity<'%'>) {
+    if (!(value instanceof Quantity) || value.unit !== '%') {
+      throw new TypeError(
+        `Material.waterAbsorptionCapacity must be a Quantity<'%'>; got ${value instanceof Quantity ? `Quantity<'${value.unit}'>` : typeof value}`
+      );
+    }
+    this._waterAbsorptionCapacity = value;
+  }
+
   /** Whether this material can be eaten. v1 has no consumer. */
   protected edibility: boolean = false;
 
@@ -382,6 +411,7 @@ export default class Material extends SingletonMixin(
     'hardness',
     'toughness',
     'electricalConductivity',
+    'waterAbsorptionCapacity',
     'edibility',
     'nutrients',
     'nutrientAmounts',
@@ -407,6 +437,7 @@ export default class Material extends SingletonMixin(
     hardness: QuantityMarshaller.pathFor('MPa'),
     toughness: QuantityMarshaller.pathFor('MJ/m³'),
     electricalConductivity: QuantityMarshaller.pathFor('S/m'),
+    waterAbsorptionCapacity: QuantityMarshaller.pathFor('%'),
     molarMass: QuantityMarshaller.pathFor('g/mol'),
   };
 
@@ -535,6 +566,15 @@ export default class Material extends SingletonMixin(
   /** Set electrical conductivity. Strict on `Quantity<'S/m'>`. */
   public setElectricalConductivity(value: Quantity<'S/m'>): void {
     this.electricalConductivity = value;
+  }
+
+  /** Read water absorption capacity (`Quantity<'%'>` of dry mass). */
+  public getWaterAbsorptionCapacity(): Quantity<'%'> {
+    return this._waterAbsorptionCapacity;
+  }
+  /** Set water absorption capacity. Strict on `Quantity<'%'>`. */
+  public setWaterAbsorptionCapacity(value: Quantity<'%'>): void {
+    this.waterAbsorptionCapacity = value;
   }
 
   public getTags(): readonly string[] { return this.tags; }

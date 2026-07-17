@@ -8,6 +8,8 @@ hydratorClass: /lib/persistence/PersistentHydrator
 data:
   name: bronze
   density: 8800
+  # Water absorption capacity (% of dry mass, ASTM D570): metal wets only as a surface film.
+  waterAbsorptionCapacity: 0.2
   specificHeat: 380
   thermalConductivity: 60
   # Mechanical response: softer + less tough than steel (MPa / MJ·m⁻³).

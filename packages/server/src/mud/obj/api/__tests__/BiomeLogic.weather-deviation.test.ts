@@ -138,4 +138,48 @@ describe('BiomeLogic — weather deviation seam (D2)', () => {
     expect((await BiomeApi.resolveHumidityFor(room)).rawValue()).toBe(BASE_H);
     expect((await BiomeApi.resolveWindFor(room)).rawValue()).toBe(BASE_W);
   });
+
+  // ── Wave 2: the fold is pin-aware ──
+
+  it('a pinned SkyExposed scope folds the PINNED type deviation', async () => {
+    const room = skyRoom();
+    // Procgen forced clear (zero deviation); the authored pin must still
+    // fold the storm deviation — author wins over the model in the fold.
+    WeatherApi._forceTypeForTesting('clear');
+    (room as unknown as { setWeatherPin(p: unknown): void }).setWeatherPin({
+      type: 'storm',
+      mode: 'frozen',
+    });
+
+    const d = WEATHER_PROFILES.storm.deviation;
+    expect((await BiomeApi.resolveTemperatureFor(room)).rawValue()).toBe(
+      BASE_T + d.temperature.rawValue(),
+    );
+    expect((await BiomeApi.resolvePressureFor(room)).rawValue()).toBe(
+      BASE_P + d.pressure.rawValue(),
+    );
+  });
+
+  it('a pin still does NOT deviate an indoor (non-SkyExposed) scope', async () => {
+    const room = indoorRoom();
+    WeatherApi._forceTypeForTesting('clear');
+    (room as unknown as { setWeatherPin(p: unknown): void }).setWeatherPin({
+      type: 'storm',
+      mode: 'frozen',
+    });
+    // Field-deviation stays SkyExposed-gated (Wave-1 preserved); the pin's
+    // precipitation reaches indoors via the resolve, but the temperature
+    // fold does not.
+    expect((await BiomeApi.resolveTemperatureFor(room)).rawValue()).toBe(BASE_T);
+  });
+
+  it('regression: a no-pin SkyExposed scope is byte-identical to baseline', async () => {
+    const room = skyRoom();
+    WeatherApi._forceTypeForTesting('storm'); // no pin set
+    const d = WEATHER_PROFILES.storm.deviation;
+    // Unchanged from the pre-Wave-2 fold: procgen deviation, not a pin.
+    expect((await BiomeApi.resolveTemperatureFor(room)).rawValue()).toBe(
+      BASE_T + d.temperature.rawValue(),
+    );
+  });
 });

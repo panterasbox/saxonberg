@@ -464,6 +464,22 @@ export default class WorldClockRegistry extends Idea {
       () => WeatherApi.onBoundary(),
       { startAt: nextBoundary, tag: 'weather:boundary' },
     );
+
+    // Storm lightning strikes (Wave 2). A sub-segment recurring tick fires
+    // the presence-gated strike fan-out: occupied SkyExposed `storm` scopes
+    // roll `storm.strikeRate` and, on a hit, take an ambient strike routed
+    // through ElectricityApi.conduct. Scheduler owns the handle; weather
+    // holds nothing (no stored strike state) — the callback recomputes from
+    // game-time. The interval is the `storm.strikeIntervalS` dial.
+    const strikeInterval = WeatherApi.strikeIntervalSeconds();
+    this.every(
+      Quantity.of(strikeInterval, 's'),
+      () => WeatherApi.onStormTick(),
+      {
+        startAt: Quantity.of(this.getNow().rawValue() + strikeInterval, 's'),
+        tag: 'weather:strike',
+      },
+    );
   }
 
   private parseDelayToSeconds(d: Quantity<'s'> | string): number {

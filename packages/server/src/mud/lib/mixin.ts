@@ -142,6 +142,8 @@ export const Mixins = {
   Thermal: 'ThermalMixin',
   ThermalRegulation: 'ThermalRegulationMixin',
   Respiration: 'RespirationMixin',
+  // The cross-cutting wetness gauge — any Thing / body can be wet.
+  Wet: 'WetMixin',
   Behaved: 'BehavedMixin',
   Graded: 'GradedMixin',
   // A physical thing that wears out with use (the condition/wear gauge).
@@ -155,7 +157,6 @@ export const Mixins = {
   // The unified credential holder — one keyed store of credentials-as-data,
   // composed on the born-with wallet app and on the physical cards.
   CredentialWallet: 'CredentialWalletMixin',
-  Tab: 'TabMixin',
   // Haulage — a dragged container (cart) and the creature that pulls it.
   Haulable: 'HaulableMixin',
   Hauler: 'HaulerMixin',
@@ -163,6 +164,9 @@ export const Mixins = {
   // relationships (an on-shift Position confers its duties via augments).
   Business: 'BusinessMixin',
   Employed: 'EmployedMixin',
+  // Attendant — the universal storefront-attention substrate: a service-point
+  // fixture holding the queue + being-attended leases (a server's attention).
+  Attendant: 'AttendantMixin',
   // Combat — "I can fight": combat verb affordances + the innate-attack
   // hook. All fight state is session-scoped, never on the Creature.
   Combatant: 'CombatantMixin',

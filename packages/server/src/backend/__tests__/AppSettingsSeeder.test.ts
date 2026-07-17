@@ -41,7 +41,7 @@ describe("AppSettingsSeeder", () => {
     pm.setFindResult([]);
     const added = await AppSettingsSeeder.run();
 
-    expect(added).toBe(163); // + 23 weapon-playstyle combat + 16 electricity + 5 concealment + 2 detection + 5 detection search/hint (Phase 3) + 3 hazard (Phase 4) + 2 care↔speed movement attention (Phase 5)
+    expect(added).toBe(189); // 146 base + 7 Attendant+Goodkin + 19 storms-and-wetness + 17 concealment/detection/hazard/movement
     expect(pm.saves).toHaveLength(1);
     expect(pm.saves[0]!.collection).toBe("app_settings");
     const values = savedValues(pm);
@@ -180,6 +180,16 @@ describe("AppSettingsSeeder", () => {
           [AppSettingKeys.combatFocusFireErosionPerEdge]: "0.5",
           [AppSettingKeys.combatFocusFireSuppressRecoveryAt]: "2",
           [AppSettingKeys.combatFleePartingShotEnergy]: "1.6",
+          // The 4 Attendant+Goodkin banking keys (withdrawal quota ×2,
+          // corpo royalty, opening float).
+          [AppSettingKeys.bankingWithdrawalDailyCap]: "500",
+          [AppSettingKeys.bankingWithdrawalDailyCapCircle]: "2000",
+          [AppSettingKeys.bankingCorpoRoyaltyRate]: "0.1",
+          [AppSettingKeys.bankingOpeningFloat]: "500",
+          // The 3 Attendant lease/queue idle-eviction keys.
+          [AppSettingKeys.attendantLeaseSweepIntervalMs]: "15000",
+          [AppSettingKeys.attendantLeaseIdleThresholdMs]: "120000",
+          [AppSettingKeys.attendantQueueIdleThresholdMs]: "180000",
           // The 6 experience-pass combat tuning keys (feint + fog + sharpness).
           [AppSettingKeys.combatPoiseFeintCost]: "0.08",
           [AppSettingKeys.combatPoiseFeintBitPenalty]: "0.8",
@@ -251,6 +261,26 @@ describe("AppSettingsSeeder", () => {
           // The 2 care↔speed movement attention (Phase 5) dials.
           [AppSettingKeys.movementAttentionSneak]: "2",
           [AppSettingKeys.movementAttentionRun]: "-2",
+          [AppSettingKeys.wetnessEvaporationRatePct]: "1.25",
+          [AppSettingKeys.wetnessWarmthFactor]: "0.03",
+          [AppSettingKeys.wetnessWarmthReferenceK]: "295",
+          [AppSettingKeys.wetnessRainAccrualPerHour]: "1.5",
+          [AppSettingKeys.wetnessImmersionSaturation]: "1",
+          [AppSettingKeys.wetnessBandDampAt]: "0.15",
+          [AppSettingKeys.wetnessBandWetAt]: "0.45",
+          [AppSettingKeys.wetnessBandSoakedAt]: "0.8",
+          [AppSettingKeys.wetnessAbsorptionCapacityDefaultPct]: "5",
+          [AppSettingKeys.stormPuddleAccrualLitersPerSegment]: "12",
+          [AppSettingKeys.stormPuddleEvaporationFactor]: "0.2",
+          [AppSettingKeys.stormPuddleFreshWaterMaterialPath]:
+            "/lib/material/bulk/water",
+          [AppSettingKeys.stormStrikeRate]: "0.15",
+          [AppSettingKeys.stormStrikeIntervalS]: "1800",
+          [AppSettingKeys.stormStrikeVoltage]: "30000000",
+          [AppSettingKeys.stormAttractorBias]: "4",
+          [AppSettingKeys.weatherCloudDimFactor]: "0.6",
+          [AppSettingKeys.weatherSkyForecastSegments]: "2",
+          [AppSettingKeys.thermalWetHeatLossFactor]: "1.5",
         },
       },
     ]);
@@ -286,13 +316,10 @@ describe("AppSettingsSeeder", () => {
     // + 6 experience combat (2 feint poise + 2 fog + 2 sharpness)
     // + 23 weapon-playstyle combat (15 weapon-profile + 3 reach + 5 hand-slot)
     // + 16 electricity (shock channel + conduction)
-    // + 5 concealment (detection gate — Phase 1)
-    // + 2 detection (Phase 2 — passiveBaseline, capacityPerBand)
-    // + 5 detection (Phase 3 — searchBonus, searchDepthBonus, searchSeconds,
-    //   hintCutoff, examineBonus).
-    // + 3 hazard (Phase 4 — pinSeconds, dropFallEnergy, disarmSeconds).
-    // + 2 care↔speed movement attention (Phase 5 — sneak, run).
-    expect(added).toBe(162);
+    // + 7 Attendant+Goodkin (4 banking + 3 lease/queue)
+    // + 19 storms-and-wetness (8 wetness + 7 storm + 2 weather + 1 thermal + 1 absorptionCap)
+    // + 17 concealment/detection/hazard/movement (5+2+5+3+2, Phases 1-5)
+    expect(added).toBe(188);
     expect(pm.saves).toHaveLength(1);
     const values = savedValues(pm);
     // operator value preserved, missing keys seeded

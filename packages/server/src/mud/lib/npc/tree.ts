@@ -26,6 +26,7 @@
  */
 
 import { DISPOSITION_AXES } from "../trait/Disposition";
+import { DialogueEffectRegistry } from "./DialogueEffects";
 
 /** A whole tree — the `tree-dialogue` brain spec's `config`. */
 export interface DialogueTree {
@@ -99,8 +100,8 @@ export interface DialogueGuard {
 }
 
 /**
- * The registered effect-verb set — extensible by future builds (quest,
- * advancement) without reopening the format.
+ * The **intrinsic** effect verbs — conversation primitives that manipulate the
+ * conversation itself, hardcoded because they need its private machinery:
  *   - `set-state` writes ephemeral conversation scratch.
  *   - `regard`    applies a regard delta NPC→player (persists, clamps).
  *   - `say`       emits an extra NPC beat.
@@ -115,6 +116,11 @@ export interface DialogueGuard {
  *                 security model (the target controller's `execute()`
  *                 authorization is the boundary — `forced` bypasses the
  *                 affordance/validator gates).
+ *
+ * A **domain** effect (banking's `bank-circle`, a future quest's) is genuinely
+ * extensible without reopening the format: a domain registers a handler in the
+ * {@link DialogueEffectRegistry}, and both validation and application here
+ * delegate to it. The generic substrate never imports the domain.
  */
 export type DialogueEffect =
   | { verb: "set-state"; key: string; value: string | number | boolean }
@@ -125,7 +131,19 @@ export type DialogueEffect =
   | { verb: "end" }
   | { verb: "dispatch"; command: string };
 
-/** The registered effect verbs (validation array). */
+/**
+ * A domain-registered effect — the open shape a `DialogueEffectRegistry`
+ * handler validates + applies. Not part of the intrinsic {@link DialogueEffect}
+ * discriminated union (a `verb: string` member would break its narrowing); the
+ * authored config is `Record<string, unknown>`, so a domain effect reaches the
+ * runtime as data and is dispatched by verb.
+ */
+export interface DomainDialogueEffect {
+  verb: string;
+  [key: string]: unknown;
+}
+
+/** The intrinsic effect verbs (domain verbs live in the registry). */
 export const EFFECT_VERBS = [
   "set-state",
   "regard",
@@ -301,8 +319,15 @@ export class DialogueTreeSchema {
         return;
       }
       const verb = e.verb;
-      if (typeof verb !== "string" || !EFFECT_VERBS.includes(verb as never)) {
-        errors.push(`${at}.verb '${String(verb)}' is not a registered effect`);
+      if (typeof verb !== "string") {
+        errors.push(`${at}.verb must be a string`);
+        return;
+      }
+      // A domain effect (not intrinsic) validates through its registered handler.
+      if (!EFFECT_VERBS.includes(verb as never)) {
+        for (const err of DialogueEffectRegistry.validate(verb, e)) {
+          errors.push(`${at} ${err}`);
+        }
         return;
       }
       if (verb === "goto" && !(typeof e.node === "string" && nodeIds.has(e.node))) {

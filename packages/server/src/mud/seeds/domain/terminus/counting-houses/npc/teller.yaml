@@ -1,0 +1,46 @@
+# Wenna — the Goodkin teller (the hall, the transaction face). Brisk, warm,
+# "has counted a great deal of other people's money and judged none of it."
+# Salaried employee of the Goodkin branch Business (she draws a wage; the
+# counter loop closes on her). The one deepening: a faint tell that the warmth
+# is corporate-issued — a Goodkin script she's said ten thousand times, and
+# you can hear the seam if you listen. Human (canon).
+class: /lib/npc/NPC
+hydratorClass: /lib/persistence/PersistentHydrator
+data:
+  name: Wenna
+  pronouns: she
+  _speciesPath: /lib/species/animalia/chordata/mammalia/primates/hominidae/homo/sapiens
+  lifecycleState: alive
+  primaryKeyword: teller
+  alternateNames:
+    - wenna
+    - clerk
+  shortDescription: a brisk Goodkin teller
+  longDescription: |
+    Neat in a grey Goodkin blazer with a small sunrise pin at the collar, with
+    a teller's unhurried efficiency and a pen she taps when she's waiting. She
+    has the look of someone who has counted a great deal of other people's
+    money and judged none of it. Her welcome is warm and lands a half-beat too
+    smoothly, the way a line does when it's been said ten thousand times — the
+    warmth is real, and it is also, unmistakably, issued.
+  dispositions:
+    - { disposition: diligence, valence: 65 }
+    - { disposition: patience, valence: 35 }
+  behaviors:
+    - brain: /lib/behavior/introduces
+      trigger: arrival
+    - brain: /lib/behavior/greets
+      trigger: arrival
+      config:
+        lines:
+          - "\"Welcome to Goodkin,\" Wenna says, warm and smooth. \"How can I help you today?\""
+          - "\"Opening an account? Just say the word — Mr. Halloran's through the back if you'd like to get set up.\""
+          - "Wenna smiles the practised Goodkin smile. \"You're among friends here.\""
+    - brain: /lib/behavior/idles
+      trigger: cadence:19s
+      config:
+        pool:
+          - { kind: free, value: "squares a stack of forms against the counter." }
+          - { kind: free, value: "taps her pen, waiting, the sunrise pin catching the light." }
+          - { kind: say, value: "Take your time. We're never in a hurry to see you go." }
+          - { kind: free, value: "tops up the coffee urn without being asked." }

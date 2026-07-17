@@ -25,6 +25,8 @@ import {
   WEATHER_DEFAULTS,
   type WeatherField,
   type WeatherDeviation,
+  type WeatherProvenance,
+  type CloudForm,
 } from '../../../lib/weather/WeatherType';
 
 interface AnalyzeWeatherModel extends CommandModel {
@@ -55,6 +57,26 @@ function describeDeviation(dev: WeatherDeviation, field: WeatherField): string {
   return `${sign}${dev[field].format()}`;
 }
 
+/** How the resolved state was reached (the legibility acceptance criterion). */
+const PROVENANCE_LABELS: Record<WeatherProvenance, string> = {
+  'pin-frozen': 'authored — a frozen pin (never changes here)',
+  'pin-alive': 'authored — a living pin (type forced, intensity animated)',
+  'climate-leaned': 'modelled — procedural, climate-leaned',
+  procgen: 'modelled — procedural',
+  biome: 'biome baseline (no active sky weather here)',
+};
+
+/** A plain-language gloss of the visible cloud form. */
+const CLOUD_FORM_LABELS: Record<CloudForm, string> = {
+  clear: 'a clear sky',
+  cirrus: 'high, thin wisps (cirrus)',
+  cirrostratus: 'a thin, spreading veil (cirrostratus)',
+  cumulus: 'fair-weather heaps (cumulus)',
+  stratus: 'a flat grey sheet (stratus)',
+  nimbostratus: 'a low, sodden ceiling (nimbostratus)',
+  cumulonimbus: 'a towering anvil (cumulonimbus)',
+};
+
 export default class AnalyzeWeatherController extends CommandController<AnalyzeWeatherModel> {
   async execute(
     model: AnalyzeWeatherModel,
@@ -79,18 +101,34 @@ export default class AnalyzeWeatherController extends CommandController<AnalyzeW
     }
 
     const scope = target.stuff as Stuff & Container;
+    // The Wave-2 resolved state (authored pin → procgen(lean) → biome) — the
+    // ONE read every consumer sees. `forecastFor` still supplies the upcoming
+    // types; `skyReadFor` the cloud form + hedged tell.
+    const resolved = await WeatherApi.resolveWeatherFor(scope);
+    const skyRead = await WeatherApi.skyReadFor(scope);
     const forecast = await WeatherApi.forecastFor(
       scope,
       WEATHER_DEFAULTS.FORECAST_SEGMENTS,
     );
     const locality = await AddressApi.resolveLocalityFor(scope);
-    const sample = forecast.current;
+    const sample = resolved.sample;
 
     const lines: Mml[] = [];
     lines.push(Mml.compose`Weather at ${Mml.location(scope)}:`);
     lines.push(
-      Mml.compose`  type: ${sample.type} (${sample.season}) — cloud ${sample.cloud.toFixed(2)}, ${sample.precipitation} precipitation`,
+      Mml.compose`  type: ${sample.type} (${sample.season}) — cloud ${sample.cloud.toFixed(2)}, ${resolved.precipitationHere} precipitation here`,
     );
+    lines.push(
+      Mml.compose`  provenance: ${PROVENANCE_LABELS[resolved.provenance]}`,
+    );
+    // The cloud form + the honestly-hedged forecast tell (Phase H).
+    if (skyRead.presageFront) {
+      lines.push(
+        Mml.compose`  sky: ${CLOUD_FORM_LABELS[skyRead.cloudForm]} — a front *may* be moving in`,
+      );
+    } else {
+      lines.push(Mml.compose`  sky: ${CLOUD_FORM_LABELS[skyRead.cloudForm]}`);
+    }
     lines.push(Mml.compose`  deviations from the local climate:`);
     for (const field of FIELD_ORDER) {
       lines.push(

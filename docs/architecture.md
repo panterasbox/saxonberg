@@ -491,22 +491,35 @@ runtime call still resolves.
 ### Top-level branches
 
 Every concrete `Stuff` subclass MUST extend through exactly one of
-six top-level branches, each capturing a distinct role:
+five top-level branches, each capturing a distinct role:
 
 ```
 Stuff (base — runtime ID, FINAL destroy, construction sentinel)
   ├── Idea          incorporeal identity (Exit, Login, Zone, …)
-  ├── Thing         portable physical item
-  ├── Location      stationary place
-  ├── Vessel        mobile place (Container + Containable)
+  ├── Thing         physical matter (an item; describable, Tangible, Wet)
+  │     └── Vessel  a Thing that also holds things (Container + interior
+  │                 Atmospheric) — matter outside, a place inside
+  ├── Location      stationary place — pure space, NOT matter (not Tangible)
   ├── Agent         runtime active object (Creature → Character → Avatar)
   └── Shadow        function-shadowing host — see call-security.md
 ```
 
+The space/matter axis is load-bearing: `Thing` (and its `Vessel`
+subtype) and `Agent` are **matter** — they compose `TangibleMixin`
+(material + mass) and therefore `WetMixin` (can get wet). `Location` is
+**space** — a room has no material or mass, so it is deliberately not
+`Tangible`. `Vessel` is the one dual citizen: matter you can also be
+*inside*. (A `Vessel` is not its own branch — it traces through `Thing`;
+"you can't pocket a ship" is a mass gate, not a type gate.)
+
 Under `Agent` the hierarchy splits **body** from **agent**:
 `Agent → Creature → Character → Avatar`. `Creature` (`lib/creature/`)
 is the body layer — a living physical thing that can break, with or
-without agency: it carries `OrganismMixin` + `VitalsMixin` +
+without agency: it carries `PropertiedMixin` (innermost, just outer of
+`Agent` — the general dynamic per-instance property store, so every body
+/ Character / Avatar can hold state other objects park on it; e.g. the
+banking Circle-membership flag rides a `<corpoKey>.circle` prop here) +
+`OrganismMixin` + `VitalsMixin` +
 `ReservedMixin` + `MetabolicMixin` (intake/chemistry driver, outer of
 vitals/reserve) + `RespirationMixin` (the air-exchange / `spo2` death
 driver, outer of metabolism) + `ThermalMixin` + `ThermalRegulationMixin`
@@ -554,14 +567,18 @@ points readers here.
 - **Roles, not capabilities.** Class identity (`instanceof`) is for
   role checks (`instanceof Avatar`, `instanceof Vessel`); capability
   checks (`is this place-like / item-like / navigable?`) go through
-  `MixinApi.isContainer` / `isContainable` / `isExitable`. The seven
-  branches give every role a clean `instanceof` that doesn't lie.
-- **Vessel as its own branch.** A vessel is a *mobile place* — both
-  Container (it holds passengers/cargo) and Containable (it lives
-  somewhere). Putting it under `Thing` would say "vessels are items"
-  (false — you can't pocket a ship); putting it under `Location`
-  would say "locations don't move" (false for vessels). It's its own
-  role.
+  `MixinApi.isContainer` / `isContainable` / `isExitable`. The branches
+  give every role a clean `instanceof` that doesn't lie.
+- **Vessel is a `Thing`, not its own branch.** A container-object (bag →
+  cart → ship) *is* physical matter — describable, `Tangible`, `Wet`,
+  carryable, `Containable` — that additionally holds an interior
+  (`Container` + `Atmospheric`). So it extends `Thing` and adds those two
+  mixins: matter from the outside, a place from the inside. "You can't
+  pocket a ship" is a **mass** gate (encumbrance), not a type gate —
+  nothing consumes `instanceof Thing` — so the earlier "mobile place,
+  sibling of `Location`" framing bought nothing and was dropped in review.
+  `instanceof Vessel` still identifies the vessel role (it is still a
+  distinct class).
 - **Persisted records are NOT a branch.** Auth/CMS records (`User`,
   `GoogleProfile`, `Template`) are plain `Document`s, outside the Stuff
   hierarchy entirely — they only need to persist, not to participate in
@@ -575,9 +592,9 @@ points readers here.
 | Branch | Composition | Notes |
 |---|---|---|
 | `Idea` | `Stuff` | No spatial mixin. Default for incorporeal entities. |
-| `Thing` | `ConcealableMixin(ContainableMixin(Stuff))` | "I live somewhere." `ConcealableMixin` (default `obvious`) is baseline so any Thing can be hidden — the presence-concealment axis, see [concealment.md](./subsystems/concealment.md). |
-| `Location` | `ContainerMixin(Stuff)` | "I'm a place." Subclasses (`CartesianLocation`, `SphericalLocation`, …) layer on coordinate / Visible / Exitable mixins. |
-| `Vessel` | `Atmospheric(Container(Visible(Perceptible(Tangible(Containable(Stuff))))))` | Both Container AND Containable, and carries Thing's describable-physical baseline (`Visible`/`Perceptible`/`Tangible`) **directly** (not by extending Thing — a ship isn't a pocketable item), so a describable container is a plain `DetailedMixin(Vessel)` with no re-added `Visible`. `ExitableVessel` etc. layer on navigation. |
+| `Thing` | `Concealable(Wet(Visible(Perceptible(Tangible(Containable(Stuff))))))` | Physical matter: describable, `Tangible` (material + mass), `Wet` (can get wet), `Containable` ("I live somewhere"), and `Concealable` (default `obvious` — the presence-concealment axis so any Thing can be hidden, see [concealment.md](./subsystems/concealment.md)). |
+| `Location` | `Addressable(Atmospheric(Adornable(Container(Stuff))))` | "I'm a place." Pure *space* — NOT `Tangible` (a room has no material/mass). Subclasses (`CartesianLocation`, …) layer on coordinate / Visible / Exitable mixins. |
+| `Vessel` | `Atmospheric(Container(Thing))` | **Extends `Thing`** — a container-object that adds `Container` (holds things) + `Atmospheric` (interior climate) on top of Thing's matter baseline. A describable container is a plain `DetailedMixin(Vessel)`. `ExitableVessel` etc. layer on navigation. |
 | `Agent` | `Stuff` | Subclasses (Character → Avatar) layer on Mobile / Container / Containable / Sensor / Vocal / etc. |
 | `Shadow` | `Stuff` (abstract) | Framework-internal — not in-world Stuff. See [call-security.md](./subsystems/call-security.md). |
 
@@ -699,6 +716,7 @@ registry) lives in `lib/mixin.ts`.
 | `lib/respiration/` | `RespirationMixin` | the air-exchange driver and the first concrete engagement producer: an event-triggered bounded `RespirationDrain`/`RespirationRecovery` `SustainedEngagement` that drives `Vitals.spo2` past the consciousness floor to the anoxia death seam when the surrounding medium is unbreathable (drowning / vacuum), then recovers on return to air. Reads `BodyPlan.breathableMedia` (water-breather inversion) + the biome `breathable` column; W2 taps a worn `AirTank` `Bulkable`. Composed outer of `Metabolic` by `Creature`. No Api. See [respiration.md](./subsystems/respiration.md). |
 | `lib/thermal/` | `ThermalMixin` | the generic heat-exchange capability: lazy Newton's-cooling-on-read (mirrors `Metabolic`) with a **sync** `getTemperature()` via a cached ambient refreshed at re-stamp events (`onMoved` / ambient-shift fan-out / seal toggle / bulk transfer); τ = R·C from `Tangible` mass × `Material` specific heat + the medium/wall conductivity series; a sealed `Sealable` host → vacuum barrier. Composed by any Tangible+Containable Stuff (`Receptacle`/`Flask`/`Campfire`) and by `Creature` (corpse algor mortis). No Api. See [thermal.md](./subsystems/thermal.md). |
 | `lib/thermal/` | `ThermalRegulationMixin` | the Option-C body driver: overrides `getVitalSign` (sync, cached effective ambient) to **drive** `coreTemperature` — pin at setpoint within the thermoneutral band, else spend satiation (cold) / hydration (hot, wet-bulb-capped) to defend it, fail into passive `Thermal` drift; endo/ecto split (`BodyPlan.thermalStrategy`) + Q10; the hypothermia/hyperthermia/torpor cascade → death seam. Composed over `ThermalMixin`/`Metabolic`, inner of `LoadBearing`, by `Creature`. No Api. See [thermal.md](./subsystems/thermal.md). |
+| `lib/wetness/` | `WetMixin` | the cross-cutting wetness gauge (weather Wave 2): a per-object stored, decaying `0..1` saturation (decomposed-scalar persistence, reconcile-on-read drainage presence-frozen, pushed accrual, banded `dry/damp/wet/soaked`). Drives electricity (wet skin) + thermal (wet heat-loss); dry rate from real `Material.waterAbsorptionCapacity` via evaporation physics. Rides the **matter seam** — composed on `Thing` + `Agent` (so all matter, incl. `Vessel` via `Thing`, is wettable; `Location` is space, not matter). No Api. See [weather.md](./subsystems/weather.md). |
 | `lib/forums/` | `ForumsMixin` | the forums transmission capability (post / reply / vote / subscribe verb family), composed on a hosted update (`ForumsUpdate`). Born-with: the `ForumsUpdate` is an `AetherHosted` implant conferring this mixin, granted at intake. Acts on behalf of its host via `getHost()`. See [forums.md](./subsystems/forums.md). |
 | `lib/forums/` | `SubjectSubscriberMixin` | per-Avatar forum-subscription storage: the keyed set of subscribed `Subject`s feeding the `ForumSubscriptionRegistry` fan-out. Composed by `Avatar`. See [forums.md](./subsystems/forums.md). |
 | `lib/behavior/` | `BehavedMixin` | the NPC automation layer (first behavior consumer of the activity substrate): runs a declarative `behaviors:` data-spec list, path-resolving + re-resolving "brain" code modules per fire (HMR), wiring cadence (jittered, presence-gated) + `handleMessage`-witness triggers, with slot contention over `EngagedMixin`. Branch-agnostic; composed by the thin `NPC` class. See [behavior.md](./subsystems/behavior.md). |
@@ -711,6 +729,7 @@ registry) lives in `lib/mixin.ts`.
 | `lib/craft/` | `MakerMixin` | minimal role marker (`isMaker()`) identifying an agent that can fulfill an `order` (the bartender). **Augment-gated** (`_augmentGated = true`): active only while conferred (the on-shift Position), so `MixinApi.isMaker` (routed through `isActive`) selects the on-shift bartender. Not used to gate `serve`/`mix`. Composed by `Crafter`. See [crafting.md](./subsystems/crafting.md) + [employment.md](./subsystems/employment.md). |
 | `lib/employment/` | `BusinessMixin` | the standalone **`Business`** entity (concrete default-export `BusinessEntity`): proprietor edge + positions + roster + operating-locations + account path. NOT a mixin on the venue — a job spans locations and outlives its proprietor. Composed by `BusinessEntity` (over `PostRegistrationMixin(Idea)`). See [employment.md](./subsystems/employment.md). |
 | `lib/employment/` | `EmployedMixin` | an actor's employment relationships (sparse null-default `employments` store, gated `ApiOnly` mutators, `getConferredMixinNames` = the on-shift Position's `confers` — the augment conferral seam). Composed by `Character` (actor-agnostic; NPCs are the v1 consumer). See [employment.md](./subsystems/employment.md). |
+| `lib/attendant/` | `AttendantMixin` | the **storefront-attention** service-point capability (on a `Thing` fixture, the `BankMixin`-on-a-fixture precedent): owns the queue + leases **and the behavior over them** (`requestAttention`/`release`/`serveNext`/`evictIdleLeases`/`dropCustomer` are mixin methods called directly — no Api hop) + per-venue config (`discipline`/`serverPositionKeys`/`staffingPolicy`/`attendDurationMs`/`skin`). Being-attended = an `AttendanceEngagement` on the **server's** attention slot (one-at-a-time falls out of the slot; waiting is free). The lease's idle-eviction sweep is the one Api-shaped piece (`AttendantApi`/`AttendantLogic`, the `ResidencyLogic` "engine informs, object decides" shape). Composed by `AttendancePoint` (and `BankCounter`). `MixinApi.isAttendant`. See [attendant.md](./subsystems/attendant.md). |
 | `lib/persistence/` | `PersistableMixin` | the self-persistence-spine **host** capability: marks a `Stuff` as a singleton persistence host (keyed by `templatePath`) whose runtime state captures into a `PersistedRecord` (`holder_snapshots`) and restores on materialize. Drives materialize-on-`postRegister` / seed-then-persist, the capture-on-`cleanupOnDestruct` backstop, the persistable `canEvict` fall-through, and the `shouldPersist()` opt-out hook (Avatar → `!isGuest`). Composed **outermost** by `Avatar` (and by authored persistable rooms / host chests). Logic in `PersistableApi`/`PersistableLogic`. See [persistence.md](./subsystems/persistence.md). |
 | `lib/combat/` | `CombatantMixin` | the "I can fight" capability: the `attack` + `fight` + `intervene` command affordances, the species-declared innate-attack hook (`naturalAttackChannel` → `getNaturalAttackChannel`), a banded `look` augmenter (the combat-state line while a fight is live), and (Build 2) the **standing combat posture** the consent handshake reads — the player-side `combat.lethality`/`combat.stopCondition` settings schema **plus** the authored `standingLethality`/`standingStopCondition` fields NPCs carry (NPCs aren't `Environment`s, so they can't hold settings). Carries **no** transient fight state — poise/tempo/flags all live on the `CombatSession`, never on the `Creature`. Composed by `Character`. Cycle 2 adds the canonical `defend` verb affordance. See [combat.md](./subsystems/combat.md). |
 | `lib/party/` | `PartyMemberMixin` | "I can belong to a party": a sparse `activePartyPath` pointer (+ transient `pendingInvitePartyPath`) with `ApiOnly`-gated setters (the `Employed` precedent), the `party` verb affordance, and the read surface combat's `PartyApi.sideOf` seam consumes. Composed by **`Avatar`** and by the hireable **`Mercenary`** (`= PartyMemberMixin(NPC)`) — never the base `Character`, so a plain NPC/beast is `solo`. See [party.md](./subsystems/party.md). |

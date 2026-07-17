@@ -143,10 +143,12 @@ three-base model — see [augmentation.md](./augmentation.md)).
 
 - **Banking** (`BankingLogic`) — `reachableCredential` resolves the holder,
   returns its `payment` record; `settle` / `openAccount` (auto-link) /
-  `activeCredential` / `setActiveAccount` / `freezeCredential` / `issueCard`
-  read it. `BankingApi`'s credential surface traffics in the
-  `PaymentCredential` record; `issueCard` returns the card holder
-  (`Stuff & CredentialWallet`). See [banking.md](./banking.md).
+  `activeCredential` (context-derive the actor's routing credential) / `issueCard`
+  read/mint it. `issueCard` returns the card holder (`Stuff & CredentialWallet`).
+  Mutating a resolved credential (`setActiveAccount` / `setFrozen`) is the
+  `PaymentCredential` value-object's own behavior — the wallet verb holds the
+  record and calls it directly (no gate to route through `BankingApi`). See
+  [banking.md](./banking.md).
 - **Fast travel** — the `teleport` TPA fork and `register`
   (`TeleportController` / `RegisterController`), the
   `requiresTravelCredential` validator, and `FastTravel.renderDepartures` all

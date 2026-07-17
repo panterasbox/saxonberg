@@ -35,12 +35,17 @@ import { TangibleMixin } from '../material/Tangible';
 import { PerceptibleMixin } from '../description/Perceptible';
 import { VisibleMixin } from '../description/Visible';
 import { ConcealableMixin } from '../concealment/Concealable';
+import { WetMixin } from '../wetness/Wet';
 
 // ConcealableMixin (default `obvious`) lets any Thing carry a concealment
 // level — a hidden cache, a dropped-and-buried item — resolved per-viewer
 // by the detection gate. Inert until authored (see concealment subsystem).
+// WetMixin gives every Thing a material-driven wetness gauge (inert until
+// wetted). Both are additive attribute mixins; composition order is moot.
 const ThingBase = ConcealableMixin(
-  VisibleMixin(PerceptibleMixin(TangibleMixin(ContainableMixin(Stuff)))),
+  WetMixin(
+    VisibleMixin(PerceptibleMixin(TangibleMixin(ContainableMixin(Stuff)))),
+  ),
 );
 
 export default class Thing extends ThingBase {

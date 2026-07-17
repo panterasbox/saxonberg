@@ -268,10 +268,12 @@ describe("TPA fare settlement (integration)", () => {
     const { dRoom } = seedNetwork(15);
     const t = makeWalletTraveller("erin"); // no payment account
     ContainmentApi.move(t, dRoom);
-    // Cash-fund the traveller (a CB mint — the one supply increase).
+    // Cash-fund the traveller (a CB mint — the one supply increase). 20 credits
+    // dispenses as four 5-credit crowns, so the 15 fare is payable in exact
+    // cash (three crowns) — the coinage make-change path, not just 1s.
     await withRootContext(null, "fund", async () => {
       ExecutionContextApi.tagActingAuthor(t as unknown as Stuff);
-      await BankingApi.issueCash(t as unknown as Stuff & Container, Money.of(100));
+      await BankingApi.issueCash(t as unknown as Stuff & Container, Money.of(20));
     });
     const supplyBefore = BankingApi.moneySupply().minor;
 

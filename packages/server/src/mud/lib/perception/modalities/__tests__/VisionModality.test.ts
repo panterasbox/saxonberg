@@ -49,6 +49,26 @@ describe('VisionModality.signalAt — propagation core', () => {
     expect(VisionModality.bandAt(loc)).toBe('lit');
   });
 
+  it('the weather cloud-dim factor scales the ambient flux (Wave 2)', () => {
+    const zone = makeStuff(() => new CartesianZone());
+    zone.setCellSize(1);
+    const loc = makeStuff(() => new AmbientCartesianLocation());
+    zone.addLocation(loc, 0, 0, 0);
+    loc.setAmbientFlux(40);
+
+    // Default (undimmed) is byte-identical to pre-Wave-2.
+    expect(loc.getWeatherDimFactor()).toBe(1);
+    expect(VisionModality.lightAt(loc).intensity.rawValue()).toBe(40);
+
+    // A stormed / overcast sky dims the read.
+    loc.setWeatherDimFactor(0.4);
+    expect(VisionModality.lightAt(loc).intensity.rawValue()).toBeCloseTo(16, 5);
+
+    // Clearing restores full brightness.
+    loc.setWeatherDimFactor(1);
+    expect(VisionModality.lightAt(loc).intensity.rawValue()).toBe(40);
+  });
+
   it('exits leak ambient light from neighbors', async () => {
     const zone = makeStuff(() => new CartesianZone());
     zone.setCellSize(1);

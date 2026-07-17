@@ -9,8 +9,6 @@ import { MixinApi } from '../../api/mixin';
 import { MaterialApi } from '../../api/material';
 import { ConditionApi } from '../../api/condition';
 import { ContainmentApi } from '../../api/containment';
-import { WeatherApi } from '../../api/weather';
-import { WorldClockApi } from '../../api/worldclock';
 import { AppApi } from '../../api/app';
 import { AppSettingKeys } from '../../lib/config/AppSettings';
 import { Quantity } from '../../lib/quantity';
@@ -322,29 +320,26 @@ function groundPath(body: Stuff, graph: ConductiveGraph): boolean {
 
 /**
  * Is the body wet (lower skin resistance → markedly more vulnerable)?
- * Derived at resolution time, nothing stored (the "potential is computed,
- * not stored" philosophy). Two drivers: co-immersion in a conductive pool,
- * or standing in a SkyExposed scope under active rain (`WeatherApi`). A
- * stored drying gauge is the flagged upgrade.
+ * Reads the **stored wetness gauge** (weather Wave 2 — the upgrade over the
+ * old derived `isRainWet` stopgap that read the raw global procgen field).
+ * Rain wets a body via the presence-gated weather fan-out into the same
+ * gauge, so this is **source-indifferent**: authored rain and procgen rain
+ * both light up the shock path. Co-immersion in a conductive pool is wet
+ * regardless of the gauge's prior state, and **also accrues** the gauge
+ * (standing in the water soaks you) so the thermal / later reads see it.
  */
 function isWet(body: Stuff, graph: ConductiveGraph): boolean {
-  if (graph.poolConducts && immersedInFloorMedium(body, graph)) return true;
-  return isRainWet(graph.room);
-}
-
-/** A SkyExposed room under active rain wets everyone in it. Sync + defensive
- * (the walk is sync; a missing clock / weather resolver reads dry). v1 reads
- * the global weather field (`null` locality); a per-locality read is the
- * flagged upgrade. */
-function isRainWet(room: Stuff): boolean {
-  try {
-    if (!MixinApi.isSkyExposed(room)) return false;
-    if (!WeatherApi.isActive()) return false;
-    const sample = WeatherApi.weatherAt(WorldClockApi.getNow(), null);
-    return sample.precipitation === 'rain';
-  } catch {
-    return false;
+  if (graph.poolConducts && immersedInFloorMedium(body, graph)) {
+    if (MixinApi.isWet(body)) {
+      body.wet(dial(AppSettingKeys.wetnessImmersionSaturation, 1));
+    }
+    return true;
   }
+  if (MixinApi.isWet(body)) {
+    const band = body.getWetnessBand();
+    return band === 'wet' || band === 'soaked';
+  }
+  return false;
 }
 
 /**

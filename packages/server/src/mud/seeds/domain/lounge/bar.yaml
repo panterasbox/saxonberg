@@ -100,6 +100,10 @@ data:
     # The tip jar on the rail — patrons `tip`, the on-shift bartender
     # `collect`s it (physical coin, off the books).
     - { template: /domain/lounge/tip-jar, onto: /domain/lounge/back-bar }
+    # The Attendant service point — the bar as an instance of the storefront-
+    # attention substrate (scrum / zero-wait: the feel is unchanged, the lease
+    # is earned). `order` consults it before serving.
+    - /domain/lounge/bar-counter
     - /domain/lounge/bar-menu
     - /domain/lounge/npc/mara
     - /domain/lounge/npc/remy

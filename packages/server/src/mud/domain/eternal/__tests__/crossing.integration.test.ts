@@ -52,7 +52,7 @@ const CROSSING = "/domain/eternal/university-avenue/crossing";
 const ARRIVAL_GATE = "/domain/terminus/terminal/arrival-gate";
 const HALL = "/domain/terminus/terminal/hall";
 const GATE_C = "/domain/terminus/terminal/departure-gate-c";
-const BANK = "/domain/eternal/university-avenue/bank";
+const AVENUE_BLOCK = "/domain/terminus/counting-houses/avenue-block";
 const CAMPUS_GATE = "/domain/eternal/university-avenue/campus-gate";
 const DOOR = "/domain/eternal/university-avenue/campus-gate-door";
 
@@ -129,7 +129,7 @@ function docs(): Doc[] {
     data: { shortDescription: p.split("/").pop()! },
   });
   const stubs: Doc[] = [
-    stub(BANK),
+    stub(AVENUE_BLOCK),
     stub("/domain/terminus/terminal/departure-gate-a"),
     stub("/domain/terminus/terminal/departure-gate-b"),
     stub("/domain/terminus/terminal/office"),
@@ -195,8 +195,8 @@ describe("University Avenue crossing standup (real seeds)", () => {
     // hall.south <-> gate-c.north
     expect(destOf(hall, "south")).toBe(GATE_C);
     expect(destOf(gateC, "north")).toBe(HALL);
-    // crossing.west -> bank
-    expect(destOf(crossing, "west")).toBe(BANK);
+    // crossing.west -> the Counting-Houses avenue block (re-homed)
+    expect(destOf(crossing, "west")).toBe(AVENUE_BLOCK);
     // No east exit (Gus soft-walls it).
     expect(exitsOf(crossing).has("east")).toBe(false);
   });

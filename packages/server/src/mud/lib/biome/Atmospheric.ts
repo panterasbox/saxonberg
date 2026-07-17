@@ -40,6 +40,7 @@ import { QuantityMarshaller } from '../persistence/QuantityMarshaller';
 import { BiomeApi } from '../../api/biome';
 import { MixinApi } from '../../api/mixin';
 import type Biome from './Biome';
+import type { WeatherPin } from '../weather/WeatherType';
 
 export interface Atmospheric {
   // ---------- biome reference ----------
@@ -80,6 +81,18 @@ export interface Atmospheric {
   getAtmosphere(detailKey?: string): Promise<string>;
   setAtmosphere(value: string | null, detailKey?: string): void;
 
+  // ---------- weather pin (scope tier) ----------
+
+  /**
+   * The scope-tier authored weather pin (weather Wave 2). `{ type, mode }`
+   * or `null`. Sits beside the `_temperature`/`_atmosphere` overrides — an
+   * authored room that is *always* raining, overriding the procgen field
+   * (and any Locality pin) within this single scope. Read by the weather
+   * resolve's upward walk.
+   */
+  getWeatherPin(): WeatherPin | null;
+  setWeatherPin(value: WeatherPin | null): void;
+
   // ---------- derived geometry ----------
 
   /**
@@ -117,6 +130,7 @@ export interface Atmospheric {
   _detailWinds: Record<string, Quantity<'m/s'>>;
   _detailGravities: Record<string, Quantity<'m/s²'>>;
   _detailAtmospheres: Record<string, string>;
+  _weatherPin: WeatherPin | null;
 }
 
 export function AtmosphericMixin<
@@ -139,6 +153,7 @@ export function AtmosphericMixin<
       '_detailWinds',
       '_detailGravities',
       '_detailAtmospheres',
+      '_weatherPin',
     ];
 
     /**
@@ -184,6 +199,9 @@ export function AtmosphericMixin<
     public _detailGravities: Record<string, Quantity<'m/s²'>> = {};
     /** @authorable Per-detail atmosphere overrides. */
     public _detailAtmospheres: Record<string, string> = {};
+
+    /** @authorable Scope-tier authored weather pin (`{type,mode}` or null). */
+    public _weatherPin: WeatherPin | null = null;
 
     // ---------- biome reference ----------
 
@@ -365,6 +383,15 @@ export function AtmosphericMixin<
         return;
       }
       this._atmosphere = value;
+    }
+
+    // ---------- weather pin (scope tier) ----------
+
+    public getWeatherPin(): WeatherPin | null {
+      return this._weatherPin;
+    }
+    public setWeatherPin(value: WeatherPin | null): void {
+      this._weatherPin = value;
     }
 
     // ---------- derived geometry (null defaults; concrete subclasses override) ----------

@@ -81,6 +81,7 @@ import type { Reserved } from '../lib/reserve';
 import type { LoadBearing } from '../lib/encumbrance/LoadBearing';
 import type { Metabolic } from '../lib/metabolism/Metabolic';
 import type { Thermal } from '../lib/thermal/Thermal';
+import type { Wet } from '../lib/wetness/Wet';
 import type { Respiration } from '../lib/respiration/Respiration';
 import type { Radioactive } from '../lib/material/Radioactive';
 import type { Workspace } from '../lib/shell/Workspace';
@@ -129,8 +130,8 @@ import type { Crafted } from '../lib/craft/Crafted';
 import type { Maker } from '../lib/craft/Maker';
 import type { Builds } from '../lib/craft/ManualBuild';
 import type { Bank } from '../lib/banking/Bank';
-import type { Tab } from '../lib/banking/Tab';
 import type { Business } from '../lib/employment/Business';
+import type { Attendant } from '../lib/attendant/Attendant';
 import type { Employed } from '../lib/employment/Employed';
 import type { Combatant } from '../lib/combat/Combatant';
 import type { PartyMember } from '../lib/party/PartyMember';
@@ -863,6 +864,10 @@ export class MixinApi {
     return this.hasMixin(obj, Mixins.Thermal);
   }
 
+  public static isWet(obj: Stuff): obj is Stuff & Wet {
+    return this.hasMixin(obj, Mixins.Wet);
+  }
+
   public static isRespiration(obj: Stuff): obj is Stuff & Respiration {
     return this.hasMixin(obj, Mixins.Respiration);
   }
@@ -1020,13 +1025,14 @@ export class MixinApi {
     return this.hasMixin(obj, Mixins.Bank);
   }
 
-  public static isTab(obj: Stuff): obj is Stuff & Tab {
-    return this.hasMixin(obj, Mixins.Tab);
-  }
-
   /** A standalone employing Business (the `BusinessMixin` marker). */
   public static isBusiness(obj: Stuff): obj is Stuff & Business {
     return this.hasMixin(obj, Mixins.Business);
+  }
+
+  /** A storefront-attention service point (`AttendantMixin`). */
+  public static isAttendant(obj: Stuff): obj is Stuff & Attendant {
+    return this.hasMixin(obj, Mixins.Attendant);
   }
 
   /** An actor that can hold employment relationships (`EmployedMixin`). */

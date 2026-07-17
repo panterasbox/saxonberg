@@ -36,6 +36,7 @@
  */
 
 import { Agent } from '../stuff/Agent';
+import { PropertiedMixin } from '../stuff/Propertied';
 import { NamedMixin } from '../description/Named';
 import { OrganismMixin } from '../species/Organism';
 import { SexedMixin } from '../character/Sexed';
@@ -59,7 +60,13 @@ import { Quantity } from '../quantity';
 // Body stack (inner → outer):
 //   Container + Containable + Disguisable + Visible + Respiration +
 //   Metabolic + Vitals + Reserved + Posed + BodyPlanSlots + Slotted +
-//   Sexed + Organism + Named + Agent, with LoadBearing outermost.
+//   Sexed + Organism + Named + Propertied + Agent, with LoadBearing
+//   outermost.
+// PropertiedMixin sits innermost (just outer of Agent) — the general
+// dynamic per-instance property store. It carries no composition
+// requirements and every body (frog, corpse, Character, Avatar) is a
+// legitimate place for other objects to park state, so it belongs on
+// the shared Creature base rather than being re-declared per subclass.
 // DisguisableMixin sits outer of Visible (it scans worn slots and reads
 // shortDescription to resolve the masking presentation); Stuff's
 // getPresentation defers to it.
@@ -110,7 +117,11 @@ const CreatureBase = ConcealableMixin(
                       PosedMixin(
                         BodyPlanSlotsMixin(
                           SlottedMixin(
-                            SexedMixin(OrganismMixin(NamedMixin(Agent)))
+                            SexedMixin(
+                              OrganismMixin(
+                                NamedMixin(PropertiedMixin(Agent))
+                              )
+                            )
                           )
                         )
                       )
