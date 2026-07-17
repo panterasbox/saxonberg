@@ -15,9 +15,13 @@ import { readFileSync, readdirSync } from "fs";
 import { fileURLToPath } from "url";
 import YAML from "yaml";
 import { StuffApi } from "../../../api/stuff";
+import { MixinApi } from "../../../api/mixin";
 import { AppSettings } from "../../../lib/config/AppSettings";
 import PersistentHydrator from "../../../lib/persistence/PersistentHydrator";
 import Stock from "../../../lib/retail/Stock";
+import type { Stuff } from "../../../lib/stuff/Stuff";
+import type { Switchable } from "../../../lib/boundary/Switchable";
+import type { LightSource } from "../../../lib/perception/LightSource";
 import { installStore, type Doc } from "../../lounge/__tests__/lounge-fixtures";
 import { installV1QuantityMarshallers } from "../../../lib/persistence/__tests__/quantity-marshaller-test-helpers";
 
@@ -70,5 +74,34 @@ describe("general-store standup (real seeds)", () => {
     const torch = counter.resolveBuy("torch");
     expect(torch).not.toBeNull();
     expect(torch!.getTemplatePath()).toBe(TORCH);
+  });
+
+  it("every stocked good is discrete + chattel-stampable (never Globbable)", async () => {
+    const counter = await StuffApi.singleton<Stock>(COUNTER);
+    const shelf = counter.offeredItems();
+    expect(shelf.length).toBeGreaterThan(0);
+    for (const good of shelf) {
+      expect(MixinApi.isGlobbable(good)).toBe(false); // discrete
+      expect(MixinApi.isChattel(good)).toBe(true); // stampable
+    }
+  });
+
+  it("the goods are real — the torch lights, the skin holds fluid, the knife is a weapon", async () => {
+    const counter = await StuffApi.singleton<Stock>(COUNTER);
+
+    // The torch is a real switchable light: dark off the shelf, lights when
+    // switched on, dark again when off (VisionModality reads this flux).
+    const torch = counter.resolveBuy("torch") as unknown as Stuff &
+      Switchable &
+      LightSource;
+    expect(torch.getEmittedFlux().rawValue()).toBe(0); // unlit off the shelf
+    torch.switchOn();
+    expect(torch.getEmittedFlux().rawValue()).toBeGreaterThan(0); // it lights
+    torch.switchOff();
+    expect(torch.getEmittedFlux().rawValue()).toBe(0); // and goes dark
+
+    // The waterskin is a real fluid container; the knife a real wielded weapon.
+    expect(MixinApi.isBulkable(counter.resolveBuy("waterskin")!)).toBe(true);
+    expect(MixinApi.isWieldable(counter.resolveBuy("knife")!)).toBe(true);
   });
 });

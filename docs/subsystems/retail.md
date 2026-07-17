@@ -105,10 +105,15 @@ Authored off the counting-houses avenue block
 arrival→campus path. Its own zone + parcel (terminus-titled), addressed
 under the counting-houses Locality. A shop floor `populates` the counter,
 the consignment shelf, and the cast (Pemby the clerk on the roster, Odell
-Marrow the keeper/proprietor). Six discrete-Thing staples
-(torch/rope/rations/waterskin/clasp-knife/lantern), priced a coinage-clean
-ladder (2..10) against the 20-credit stipend. **Independent** (no corpo —
-franchising is retail S4).
+Marrow the keeper/proprietor). Five **real** discrete staples — each backed
+by a shipped system, not a decorative prop: a **torch** + **lantern**
+(`PortableLight` = `LightSource` ⊕ `Switchable` — `switch` it on and it
+genuinely casts light, off goes dark), a **waterskin** (`Receptacle`, a real
+`Bulkable` fluid holder), a **clasp knife** (a real bladed `Weapon` —
+wieldable, delivers an edge), and a **ration pack** (a `Thing` of an edible
+`trail-ration` food material — `eat` routes its carbs to satiation). Priced a
+coinage-clean ladder (2..10) against the 20-credit stipend. **Independent**
+(no corpo — franchising is retail S4).
 
 ## Deferred
 

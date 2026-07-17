@@ -1,12 +1,16 @@
-# A pitch-pine torch — an adventuring staple off the general-store shelf. A
-# discrete Thing (NOT a Globbable stack): chattel ownership is stamped on a
-# discrete instance, so the store's ownable goods must each be their own
-# object. Priced on the store's price-list (Law 1), never here.
-class: /lib/stuff/Thing
+# A pitch-pine torch — a real, carriable light. A PortableLight (LightSource
+# ⊕ Switchable): sold unlit off the shelf; `switch torch on` lights it and it
+# genuinely casts light (VisionModality reads its flux), off goes dark. A
+# discrete Thing (chattel-stampable, never Globbable). Priced on the store's
+# price-list (Law 1), never here.
+class: /lib/equipment/PortableLight
 hydratorClass: /lib/persistence/PersistentHydrator
 data:
   shortDescription: a pitch-pine torch
   primaryKeyword: torch
   keywords: [torch, brand, light]
   longDescription: |
-    A stout length of pitch-pine, one end bound in oil-soaked rag ready for a spark. It will burn for an hour or two and light a dark passage well enough — the cheapest light a delver ever bought, and the one they never regret carrying.
+    A stout length of pitch-pine, one end bound in oil-soaked rag. Struck alight it throws a guttering, ruddy glow good enough to light a dark passage — the cheapest light a delver ever bought, and the one they never regret carrying.
+  on: false
+  emittedIntensity: 80
+  emittedColorTemperature: 1900

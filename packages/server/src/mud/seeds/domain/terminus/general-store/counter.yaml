@@ -16,7 +16,7 @@ data:
   primaryKeyword: counter
   keywords: [counter, shelf, shelves, goods, stock]
   longDescription: |
-    A long plank counter worn pale by decades of elbows, and behind it shelves stacked to the ceiling with the honest gear of getting by underground: torches and rope, waterskins and ration packs, a tray of clasp knives, a row of tin lanterns catching the light. A chalk slate by the till lists the prices in a plain hand. Nothing here is fine; everything here works.
+    A long plank counter worn pale by decades of elbows, and behind it shelves stacked to the ceiling with the honest gear of getting by underground: torches and waterskins, ration packs and a tray of clasp knives, a row of tin lanterns catching the light. A chalk slate by the till lists the prices in a plain hand. Nothing here is fine; everything here works.
   discipline: scrum
   attendDurationMs: 0
   staffingPolicy: self-service
@@ -24,14 +24,12 @@ data:
   businessPath: /domain/terminus/general-store/business
   stockLines:
     - { itemTemplatePath: /domain/terminus/general-store/goods/torch, par: 4 }
-    - { itemTemplatePath: /domain/terminus/general-store/goods/rope, par: 3 }
     - { itemTemplatePath: /domain/terminus/general-store/goods/rations, par: 5 }
     - { itemTemplatePath: /domain/terminus/general-store/goods/waterskin, par: 3 }
     - { itemTemplatePath: /domain/terminus/general-store/goods/clasp-knife, par: 2 }
     - { itemTemplatePath: /domain/terminus/general-store/goods/lantern, par: 2 }
   prices:
     /domain/terminus/general-store/goods/torch: 2
-    /domain/terminus/general-store/goods/rope: 5
     /domain/terminus/general-store/goods/rations: 3
     /domain/terminus/general-store/goods/waterskin: 4
     /domain/terminus/general-store/goods/clasp-knife: 6

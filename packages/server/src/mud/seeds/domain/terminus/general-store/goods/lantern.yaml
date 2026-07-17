@@ -1,9 +1,14 @@
-# A tin lantern — the shelf's small luxury, a discrete Thing.
-class: /lib/stuff/Thing
+# A punched-tin lantern — a real, carriable light (steadier + brighter than a
+# torch). A PortableLight (LightSource ⊕ Switchable): sold unlit; `switch
+# lantern on` casts a steady patterned light, off goes dark. Discrete Thing.
+class: /lib/equipment/PortableLight
 hydratorClass: /lib/persistence/PersistentHydrator
 data:
   shortDescription: a punched-tin lantern
   primaryKeyword: lantern
   keywords: [lantern, lamp, light, tin]
   longDescription: |
-    A punched-tin lantern with a little glass door and a hook to hang it by, throwing a steady patterned light where a torch only gutters. It costs more than a fistful of torches and is worth it the first time you need both hands and still want to see.
+    A punched-tin lantern with a little glass door and a hook to hang it by. Lit, it throws a steady patterned light where a torch only gutters. It costs more than a fistful of torches and is worth it the first time you need both hands and still want to see.
+  on: false
+  emittedIntensity: 220
+  emittedColorTemperature: 2700

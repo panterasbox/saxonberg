@@ -61,27 +61,60 @@ describe("general-store content integrity", () => {
     expect(load(STORE_DIR, "npc/keeper.yaml").class).toBe("/lib/npc/NPC");
   });
 
-  it("every priced/stocked good is a discrete Thing (never Globbable)", () => {
+  // The real, discrete item classes the store sells — each extends `Thing`
+  // (chattel-stampable) and none composes GlobbableMixin. A stray Globbable
+  // class would fail the allowlist; the runtime `!isGlobbable` proof lives in
+  // the standup integration test (which clones the goods for real).
+  const DISCRETE_ITEM_CLASSES = new Set([
+    "/lib/stuff/Thing",
+    "/lib/equipment/PortableLight",
+    "/lib/equipment/Weapon",
+    "/obj/Receptacle",
+  ]);
+
+  it("every priced/stocked good is a real, discrete item (never Globbable)", () => {
     const counter = load(STORE_DIR, "counter.yaml");
     const lines = counter.data?.stockLines as { itemTemplatePath: string; par: number }[];
     const prices = counter.data?.prices as Record<string, number>;
     expect(lines.length).toBeGreaterThan(0);
 
     for (const line of lines) {
-      // The good seed exists, is a plain Thing (Chattel-bearing, not Globbable).
       const rel = line.itemTemplatePath.replace(
         "/domain/terminus/general-store/",
         "",
       );
       expect(existsSync(`${STORE_DIR}${rel}.yaml`)).toBe(true);
       const good = load(STORE_DIR, `${rel}.yaml`);
-      expect(good.class).toBe("/lib/stuff/Thing"); // NOT a Globbable subclass
+      // A real, discrete item class (backed by a shipped system, not a prop).
+      expect(DISCRETE_ITEM_CLASSES.has(good.class ?? "")).toBe(true);
       // Priced, coinage-clean (a positive integer minor amount).
       const price = prices[line.itemTemplatePath];
       expect(Number.isInteger(price)).toBe(true);
       expect(price).toBeGreaterThan(0);
       expect(line.par).toBeGreaterThan(0);
     }
+  });
+
+  it("the goods are backed by real systems (not decorative props)", () => {
+    // The rations are genuinely edible — their material is a food material.
+    const rations = load(STORE_DIR, "goods/rations.yaml");
+    expect(rations.class).toBe("/lib/stuff/Thing");
+    expect(String(rations.data?._materialPath)).toMatch(/^\/lib\/material\/food\//);
+    // The lights actually emit (authored flux + warmth), start unlit.
+    for (const f of ["torch", "lantern"]) {
+      const light = load(STORE_DIR, `goods/${f}.yaml`);
+      expect(light.class).toBe("/lib/equipment/PortableLight");
+      expect(Number(light.data?.emittedIntensity)).toBeGreaterThan(0);
+      expect(light.data?.on).toBe(false);
+    }
+    // The waterskin is a real fluid holder (a capacity to fill).
+    const skin = load(STORE_DIR, "goods/waterskin.yaml");
+    expect(skin.class).toBe("/obj/Receptacle");
+    expect(Number(skin.data?.interiorCapacity)).toBeGreaterThan(0);
+    // The knife is a real bladed weapon (delivers an edge, wieldable).
+    const knife = load(STORE_DIR, "goods/clasp-knife.yaml");
+    expect(knife.class).toBe("/lib/equipment/Weapon");
+    expect(knife.data?.constructionForm).toBe("bladed");
   });
 
   it("the Business operates the counter and rosters the clerk", () => {
@@ -123,14 +156,14 @@ describe("general-store content integrity", () => {
     expect(row?.owner).toEqual({ kind: "group", name: "terminus" });
   });
 
-  it("no shelf good composes GlobbableMixin (the discreteness lint)", () => {
+  it("no shelf good uses an off-allowlist (Globbable-risking) class", () => {
     const goods = readdirSync(`${STORE_DIR}goods/`).filter((f) =>
       f.endsWith(".yaml"),
     );
     expect(goods.length).toBeGreaterThan(0);
     for (const f of goods) {
       const good = load(STORE_DIR, `goods/${f}`);
-      expect(good.class).toBe("/lib/stuff/Thing");
+      expect(DISCRETE_ITEM_CLASSES.has(good.class ?? "")).toBe(true);
     }
   });
 });

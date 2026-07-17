@@ -1,9 +1,23 @@
-# A clasp knife — the store's "a basic tool" staple, a discrete Thing.
-class: /lib/stuff/Thing
+# A clasp knife — the store's "a basic tool", a real bladed Weapon (the
+# steel-dagger pattern). It carries a Material + a bladed Construction + a
+# Grade + a wear-on-use condition, derives which channel it delivers
+# (`bladed` → a cutting edge) and its playstyle from its shape, and is
+# Wieldable (claims a hand slot — you can `wield` and fight with it). A
+# short, light, plain blade: fast tempo, close range, a fair working grade.
+# A discrete Thing (chattel-stampable, never Globbable).
+class: /lib/equipment/Weapon
 hydratorClass: /lib/persistence/PersistentHydrator
 data:
   shortDescription: a folding clasp knife
   primaryKeyword: knife
   keywords: [knife, clasp, tool, blade, pocketknife]
   longDescription: |
-    A workmanlike clasp knife, the sort that cuts rope and whittles a peg and opens a ration pack and does none of it beautifully. The bone handle is worn smooth by someone else's thumb. A tool, not a weapon, and honest about which it is.
+    A workmanlike clasp knife, the sort that cuts rope and whittles a peg and opens a ration pack — and, unfolded, will hold off a rat or worse in a pinch. The bone handle is worn smooth by someone else's thumb.
+  _materialPath: /lib/material/alloy/steel
+  constructionForm: bladed
+  gradeBand: fair
+  # A small, light folding blade — short reach, quick.
+  mass: 0.12
+  length: 0.1
+  slotClaims:
+    "/lib/body-plans/biped": ["hand:right"]
