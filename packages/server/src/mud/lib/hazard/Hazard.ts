@@ -86,6 +86,12 @@ export interface Hazard {
   /** Defuse the hazard (armed → disarmed); a no-op once sprung. */
   disarm(): void;
   /**
+   * Defuse this hazard on behalf of `actor` — flip state + narrate the
+   * outcome (the disarm interaction lives here, not in the command
+   * controller). A no-op once sprung/disarmed.
+   */
+  disarmBy(actor: Stuff): void;
+  /**
    * A mover has entered this hazard's locus. Springs it unless the mover
    * *avoids* it (already-discovered, actively-perceived, or clearing a
    * ground hazard by flying/swimming). `mode` is the locomotion mode name
@@ -273,6 +279,26 @@ export function HazardMixin<TBase extends MixinConstructor>(Base: TBase) {
             : Mml.compose`Something gives way beneath you — a hidden trap springs!`
         )
         .toPeers(Mml.compose`${Mml.name(victim)} springs a hidden trap.`)
+        .send();
+    }
+
+    /**
+     * Defuse this hazard on behalf of `actor`: flip it to `disarmed` and
+     * narrate the outcome. The disarm *interaction* is a side effect of the
+     * hazard's own identity, so it lives here on the interface (symmetric
+     * with {@link narrateSpring}) rather than in the command controller,
+     * which owns only the command machinery (target resolution, the
+     * found/armed gates, the costed activity, the actor's advancement deed).
+     * No-op if already sprung/disarmed.
+     */
+    public disarmBy(actor: Stuff): void {
+      if (!this.isArmed()) return;
+      this.disarm();
+      const self = this as unknown as Stuff;
+      MessageApi.scene(actor)
+        .topic('world.hazard.disarm')
+        .toSelf(Mml.compose`You defuse ${Mml.object(self)}.`)
+        .toPeers(Mml.compose`${Mml.name(actor)} defuses ${Mml.object(self)}.`)
         .send();
     }
 

@@ -106,19 +106,17 @@ export default class DisarmController extends CommandController<DisarmModel> {
     const onComplete = (): void => {
       // Re-check: another party may have sprung / defused it meanwhile.
       if (!hazard.isArmed()) return;
-      hazard.disarm();
-      // Fire-and-forget the graded deed (the activity's onComplete is sync);
+      // The disarm interaction (state flip + narration) is a side effect of
+      // the hazard's identity, so it lives on the hazard interface. The
+      // controller owns only the actor-side command machinery — here,
+      // crediting the graded deed. Fire-and-forget (the onComplete is sync);
       // a disconnected Transcript must not surface as an unhandled rejection.
+      hazard.disarmBy(actor);
       void AdvancementApi.recordDeed(actor, {
         discipline: 'awareness',
         difficulty: 'standard',
         outcome: 'success',
       }).catch(() => {});
-      MessageApi.scene(actor)
-        .topic(TOPIC)
-        .toSelf(Mml.compose`You defuse ${Mml.object(trap)}.`)
-        .toPeers(Mml.compose`${Mml.name(actor)} defuses ${Mml.object(trap)}.`)
-        .send();
     };
 
     // No engagement capacity (bare fixture / sessile actor) → resolve now
