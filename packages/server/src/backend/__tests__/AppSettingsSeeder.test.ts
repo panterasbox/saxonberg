@@ -41,7 +41,7 @@ describe("AppSettingsSeeder", () => {
     pm.setFindResult([]);
     const added = await AppSettingsSeeder.run();
 
-    expect(added).toBe(174); // 146 base + 7 Attendant+Goodkin + 19 storms-and-wetness + 2 residency reset
+    expect(added).toBe(176); // 146 base + 7 Attendant+Goodkin + 19 storms-and-wetness + 2 residency reset + 2 retail consignment
     expect(pm.saves).toHaveLength(1);
     expect(pm.saves[0]!.collection).toBe("app_settings");
     const values = savedValues(pm);
@@ -254,6 +254,8 @@ describe("AppSettingsSeeder", () => {
           [AppSettingKeys.thermalWetHeatLossFactor]: "1.5",
           [AppSettingKeys.residencyResetMode]: "enforce",
           [AppSettingKeys.residencyResetIntervalS]: "3600",
+          [AppSettingKeys.retailConsignmentListingCap]: "5",
+          [AppSettingKeys.retailConsignmentCommissionRate]: "0.15",
         },
       },
     ]);
@@ -294,7 +296,8 @@ describe("AppSettingsSeeder", () => {
     // + 19 storms-and-wetness (8 wetness + 7 storm + 2 weather + 1 thermal
     //   + 1 wetness.absorptionCapacityDefaultPct).
     // + 2 residency reset (mode + intervalS).
-    expect(added).toBe(173);
+    // + 2 retail consignment (listingCap + commissionRate).
+    expect(added).toBe(175);
     expect(pm.saves).toHaveLength(1);
     const values = savedValues(pm);
     // operator value preserved, missing keys seeded

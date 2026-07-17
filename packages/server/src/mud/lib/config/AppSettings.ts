@@ -364,6 +364,16 @@ export const AppSettingKeys = {
   residencyResetIntervalS: "residency.reset.intervalS",
 
   /**
+   * Retail — the general store. `listingCap` is the per-consignor active-
+   * listing cap (the withdrawal-quota sibling anti-grief guard on the shared
+   * consignment shelf; `0` disables). `commissionRate` is the store's cut of
+   * a consignment sale (0..1) — the remainder settles to the consignor's
+   * primary account. See docs/subsystems/retail.md.
+   */
+  retailConsignmentListingCap: "retail.consignment.listingCap",
+  retailConsignmentCommissionRate: "retail.consignment.commissionRate",
+
+  /**
    * YouTube relay (read-only) dials. The Twitch relay's hardcoded constants
    * are grandfathered; new YouTube code reads these operator knobs instead:
    * per-channel history-ring cap, per-stream reconnect backoff, and the

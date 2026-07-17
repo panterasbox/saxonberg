@@ -100,6 +100,9 @@ export const Mixins = {
   // Residency — the game-time reset (repop) sweep's consumer marker: an
   // object that restores itself on the sweep (the shop's Stock tops up).
   Resettable: 'ResettableMixin',
+  // Consignment — the store's brokerage shelf: holds player-owned goods in
+  // custody (ownership stays with the consignor) + the listing registry.
+  ConsignmentShelf: 'ConsignmentShelfMixin',
   Workspace: 'WorkspaceMixin',
   Author: 'AuthorMixin',
   Perceiver: 'PerceiverMixin',
