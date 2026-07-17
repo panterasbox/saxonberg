@@ -637,6 +637,27 @@ export const AppSettingKeys = {
    * `search`). Read with a seeded-literal fallback.
    */
   concealmentExamineBonus: "concealment.examineBonus",
+  /* ───────────────────────── hazards / traps ───────────────────────── */
+  /**
+   * Hazard — the game-time window (seconds) a `pin` traverse-consequence
+   * (a snare) holds the sprung mover's `body` slot before releasing. The
+   * global consequence constant; a trap's *wound energy* stays authored
+   * content data (a trap's bite is authored like a weapon's, not a dial).
+   * Read with a seeded-literal fallback. See docs/subsystems/concealment.md.
+   */
+  hazardPinSeconds: "hazard.pinSeconds",
+  /**
+   * Hazard — the blunt fall energy a `drop` traverse-consequence (a pit)
+   * inflicts on landing, on top of the trap's own delivery (the spikes).
+   * Read with a seeded-literal fallback.
+   */
+  hazardDropFallEnergy: "hazard.dropFallEnergy",
+  /**
+   * Hazard — the game-time window (seconds) the `disarm` act occupies the
+   * disarmer's `hands` before the trap is defused. Interruptible: an abort
+   * mid-disarm defuses nothing. Read with a seeded-literal fallback.
+   */
+  hazardDisarmSeconds: "hazard.disarmSeconds",
 } as const;
 
 export type AppSettingKey =

@@ -41,7 +41,7 @@ describe("AppSettingsSeeder", () => {
     pm.setFindResult([]);
     const added = await AppSettingsSeeder.run();
 
-    expect(added).toBe(158); // + 23 weapon-playstyle combat + 16 electricity + 5 concealment + 2 detection + 5 detection search/hint (Phase 3)
+    expect(added).toBe(161); // + 23 weapon-playstyle combat + 16 electricity + 5 concealment + 2 detection + 5 detection search/hint (Phase 3) + 3 hazard (Phase 4)
     expect(pm.saves).toHaveLength(1);
     expect(pm.saves[0]!.collection).toBe("app_settings");
     const values = savedValues(pm);
@@ -242,6 +242,10 @@ describe("AppSettingsSeeder", () => {
           [AppSettingKeys.concealmentSearchSeconds]: "4",
           [AppSettingKeys.concealmentHintCutoff]: "4",
           [AppSettingKeys.concealmentExamineBonus]: "2",
+          // The 3 hazard (Phase 4) dials.
+          [AppSettingKeys.hazardPinSeconds]: "6",
+          [AppSettingKeys.hazardDropFallEnergy]: "4",
+          [AppSettingKeys.hazardDisarmSeconds]: "5",
         },
       },
     ]);
@@ -281,7 +285,8 @@ describe("AppSettingsSeeder", () => {
     // + 2 detection (Phase 2 — passiveBaseline, capacityPerBand)
     // + 5 detection (Phase 3 — searchBonus, searchDepthBonus, searchSeconds,
     //   hintCutoff, examineBonus).
-    expect(added).toBe(157);
+    // + 3 hazard (Phase 4 — pinSeconds, dropFallEnergy, disarmSeconds).
+    expect(added).toBe(160);
     expect(pm.saves).toHaveLength(1);
     const values = savedValues(pm);
     // operator value preserved, missing keys seeded

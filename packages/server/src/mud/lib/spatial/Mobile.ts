@@ -462,6 +462,29 @@ export function MobileMixin<TBase extends MixinConstructor<Stuff & Containable>>
       }
       callTraverseHook(this, 'onTraversed', [exit]);
 
+      // Hazard trigger — the generalized `GlassAlley.onEntered`. A trap is
+      // self-resolving: each armed traversal-hazard the mover just met
+      // (the destination if it's a hazard host, its deployable hazard
+      // contents, or the traversed exit itself) decides for itself whether
+      // to spring (`resolveTraversal` avoids it when the mover discovered
+      // or perceives it, or flies/swims over a ground hazard). Reaching the
+      // trap through its `resolveTraversal` *method* honors the inter-Stuff
+      // methods-only contract. Fires on walked/ridden/conveyed entry only —
+      // teleport arrival uses `autoSenseOnArrival`, a different path.
+      const hazardSeen = new Set<Stuff>();
+      const considerHazard = (cand: Stuff): void => {
+        if (hazardSeen.has(cand)) return;
+        hazardSeen.add(cand);
+        if (MixinApi.isHazard(cand)) cand.resolveTraversal(mover, mode);
+      };
+      considerHazard(destination as unknown as Stuff);
+      if (MixinApi.isContainer(destination)) {
+        for (const item of ContainmentApi.getContents(destination)) {
+          considerHazard(item as unknown as Stuff);
+        }
+      }
+      considerHazard(exit as unknown as Stuff);
+
       // Auto-sense on arrival. Fired through the dispatcher so the
       // resulting Command frame is tagged `forced: true` and `sense`'s
       // `updates_focus: extend` re-anchors the mover's focus chain
