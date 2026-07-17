@@ -52,3 +52,21 @@ describe('MobileMixin default aliases', () => {
     expect(aliasByName.get(abbrev)).toBe(`go ${fullName}`);
   });
 });
+
+describe('MobileMixin command contributions', () => {
+  const MobileHost = MobileMixin(ContainableMixin(Idea));
+  const selfContributions = (
+    MobileHost as unknown as { commandContributions: { self: string[] } }
+  ).commandContributions.self;
+
+  it('affords the care↔speed movement verbs (sneak + run) so a player can invoke them', () => {
+    // Regression guard: a movement verb YAML being loaded is NOT enough —
+    // it must be CONTRIBUTED here or a player gets "I don't understand
+    // 'sneak'". sneak/run shipped afforded only after a live run caught it;
+    // every unit/integration test drove resolveTraversal directly, past the
+    // affordance gate.
+    expect(selfContributions).toContain('movement/go.yaml');
+    expect(selfContributions).toContain('movement/sneak.yaml');
+    expect(selfContributions).toContain('movement/run.yaml');
+  });
+});

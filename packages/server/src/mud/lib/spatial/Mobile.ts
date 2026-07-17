@@ -205,7 +205,14 @@ export function MobileMixin<TBase extends MixinConstructor<Stuff & Containable>>
      * `close`.
      */
     static commandContributions: CommandContributions = {
-      self: ['movement/go.yaml', 'boundary/open.yaml', 'boundary/close.yaml', 'author/goto.yaml'],
+      self: [
+        'movement/go.yaml',
+        'movement/sneak.yaml',
+        'movement/run.yaml',
+        'boundary/open.yaml',
+        'boundary/close.yaml',
+        'author/goto.yaml',
+      ],
       environment: [],
       inventory: [],
       peers: [],

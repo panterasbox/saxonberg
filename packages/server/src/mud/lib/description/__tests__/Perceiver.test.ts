@@ -44,6 +44,21 @@ describe('PerceiverMixin', () => {
     expect(selfContributions).toContain('shell/find.yaml');
   });
 
+  it('affords the concealment verbs (search + disarm) so a player can invoke them', () => {
+    // Regression guard: a command YAML being loaded is NOT enough — a verb
+    // is only usable in-world if a mixin CONTRIBUTES it (getAffordances).
+    // search.yaml/disarm.yaml shipped without being wired here, so a real
+    // player got "I don't understand 'search'" while every unit/integration
+    // test passed (they call the controllers directly, past the affordance
+    // gate). This asserts the actor-side wiring so it can't regress.
+    class Looker extends PerceiverMixin(SensorMixin(Idea)) {}
+    const selfContributions = (Looker as unknown as {
+      commandContributions: { self: string[] };
+    }).commandContributions.self;
+    expect(selfContributions).toContain('perception/search.yaml');
+    expect(selfContributions).toContain('device/disarm.yaml');
+  });
+
   describe('composition validation', () => {
     it('throws when PerceiverMixin is composed without SensorMixin', () => {
       class LonePerceiver extends PerceiverMixin(Idea) {
