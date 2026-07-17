@@ -491,17 +491,26 @@ runtime call still resolves.
 ### Top-level branches
 
 Every concrete `Stuff` subclass MUST extend through exactly one of
-six top-level branches, each capturing a distinct role:
+five top-level branches, each capturing a distinct role:
 
 ```
 Stuff (base — runtime ID, FINAL destroy, construction sentinel)
   ├── Idea          incorporeal identity (Exit, Login, Zone, …)
-  ├── Thing         portable physical item
-  ├── Location      stationary place
-  ├── Vessel        mobile place (Container + Containable)
+  ├── Thing         physical matter (an item; describable, Tangible, Wet)
+  │     └── Vessel  a Thing that also holds things (Container + interior
+  │                 Atmospheric) — matter outside, a place inside
+  ├── Location      stationary place — pure space, NOT matter (not Tangible)
   ├── Agent         runtime active object (Creature → Character → Avatar)
   └── Shadow        function-shadowing host — see call-security.md
 ```
+
+The space/matter axis is load-bearing: `Thing` (and its `Vessel`
+subtype) and `Agent` are **matter** — they compose `TangibleMixin`
+(material + mass) and therefore `WetMixin` (can get wet). `Location` is
+**space** — a room has no material or mass, so it is deliberately not
+`Tangible`. `Vessel` is the one dual citizen: matter you can also be
+*inside*. (A `Vessel` is not its own branch — it traces through `Thing`;
+"you can't pocket a ship" is a mass gate, not a type gate.)
 
 Under `Agent` the hierarchy splits **body** from **agent**:
 `Agent → Creature → Character → Avatar`. `Creature` (`lib/creature/`)
@@ -552,14 +561,18 @@ points readers here.
 - **Roles, not capabilities.** Class identity (`instanceof`) is for
   role checks (`instanceof Avatar`, `instanceof Vessel`); capability
   checks (`is this place-like / item-like / navigable?`) go through
-  `MixinApi.isContainer` / `isContainable` / `isExitable`. The seven
-  branches give every role a clean `instanceof` that doesn't lie.
-- **Vessel as its own branch.** A vessel is a *mobile place* — both
-  Container (it holds passengers/cargo) and Containable (it lives
-  somewhere). Putting it under `Thing` would say "vessels are items"
-  (false — you can't pocket a ship); putting it under `Location`
-  would say "locations don't move" (false for vessels). It's its own
-  role.
+  `MixinApi.isContainer` / `isContainable` / `isExitable`. The branches
+  give every role a clean `instanceof` that doesn't lie.
+- **Vessel is a `Thing`, not its own branch.** A container-object (bag →
+  cart → ship) *is* physical matter — describable, `Tangible`, `Wet`,
+  carryable, `Containable` — that additionally holds an interior
+  (`Container` + `Atmospheric`). So it extends `Thing` and adds those two
+  mixins: matter from the outside, a place from the inside. "You can't
+  pocket a ship" is a **mass** gate (encumbrance), not a type gate —
+  nothing consumes `instanceof Thing` — so the earlier "mobile place,
+  sibling of `Location`" framing bought nothing and was dropped in review.
+  `instanceof Vessel` still identifies the vessel role (it is still a
+  distinct class).
 - **Persisted records are NOT a branch.** Auth/CMS records (`User`,
   `GoogleProfile`, `Template`) are plain `Document`s, outside the Stuff
   hierarchy entirely — they only need to persist, not to participate in
@@ -573,9 +586,9 @@ points readers here.
 | Branch | Composition | Notes |
 |---|---|---|
 | `Idea` | `Stuff` | No spatial mixin. Default for incorporeal entities. |
-| `Thing` | `ContainableMixin(Stuff)` | "I live somewhere." |
-| `Location` | `ContainerMixin(Stuff)` | "I'm a place." Subclasses (`CartesianLocation`, `SphericalLocation`, …) layer on coordinate / Visible / Exitable mixins. |
-| `Vessel` | `Atmospheric(Container(Visible(Perceptible(Tangible(Containable(Stuff))))))` | Both Container AND Containable, and carries Thing's describable-physical baseline (`Visible`/`Perceptible`/`Tangible`) **directly** (not by extending Thing — a ship isn't a pocketable item), so a describable container is a plain `DetailedMixin(Vessel)` with no re-added `Visible`. `ExitableVessel` etc. layer on navigation. |
+| `Thing` | `Wet(Visible(Perceptible(Tangible(Containable(Stuff)))))` | Physical matter: describable, `Tangible` (material + mass), `Wet` (can get wet), and `Containable` ("I live somewhere"). |
+| `Location` | `Addressable(Atmospheric(Adornable(Container(Stuff))))` | "I'm a place." Pure *space* — NOT `Tangible` (a room has no material/mass). Subclasses (`CartesianLocation`, …) layer on coordinate / Visible / Exitable mixins. |
+| `Vessel` | `Atmospheric(Container(Thing))` | **Extends `Thing`** — a container-object that adds `Container` (holds things) + `Atmospheric` (interior climate) on top of Thing's matter baseline. A describable container is a plain `DetailedMixin(Vessel)`. `ExitableVessel` etc. layer on navigation. |
 | `Agent` | `Stuff` | Subclasses (Character → Avatar) layer on Mobile / Container / Containable / Sensor / Vocal / etc. |
 | `Shadow` | `Stuff` (abstract) | Framework-internal — not in-world Stuff. See [call-security.md](./subsystems/call-security.md). |
 
