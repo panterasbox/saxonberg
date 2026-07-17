@@ -285,6 +285,7 @@ export interface Metabolic {
   setSolidVolume(value: number): void;
   setLiquidVolume(value: number): void;
   setToxinBurdens(value: Record<string, number>): void;
+  addToxinBurden(type: string, amount: number): void;
   setMetabolicClockStamp(value: number): void;
   setLastMealLabel(value: string | null): void;
 
@@ -369,6 +370,17 @@ export function MetabolicMixin<TBase extends MixinConstructor>(Base: TBase) {
     public setToxinBurdens(value: Record<string, number>): void {
       assertRecordOfNonNeg(value, "MetabolicMixin.setToxinBurdens");
       this.toxinBurdens = { ...value };
+    }
+    /**
+     * Add `amount` (>= 0) to the `type` toxin burden directly — the
+     * **inhaled / injected** entry point, bypassing the digestion pool that
+     * `ingest` fills (the respiration contaminant read is the first caller: a
+     * body breathing a contaminated medium takes on the toxin without eating
+     * it). Clearance still runs off the toxin's `Condition` seed.
+     */
+    public addToxinBurden(type: string, amount: number): void {
+      if (!Number.isFinite(amount) || amount <= 0) return;
+      this.toxinBurdens[type] = (this.toxinBurdens[type] ?? 0) + amount;
     }
     public setMetabolicClockStamp(value: number): void {
       assertFiniteNonNeg(value, "MetabolicMixin.setMetabolicClockStamp");

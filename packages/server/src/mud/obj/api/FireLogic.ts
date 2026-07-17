@@ -5,11 +5,19 @@ import { ApiLogic } from '../../lib/stuff/ApiLogic';
 import { CallSecurity, Unshadowable } from '../../lib/security/decorators';
 import { SecurityPolicies } from '../../lib/security/SecurityPolicies';
 import type { Stuff } from '../../lib/stuff/Stuff';
+import type { Container } from '../../lib/spatial/Container';
+import type { Containable } from '../../lib/spatial/Containable';
+import type { Reserved } from '../../lib/reserve';
+import type { Atmospheric } from '../../lib/biome/Atmospheric';
 import { MixinApi } from '../../api/mixin';
 import { StuffApi } from '../../api/stuff';
+import { ThermalApi } from '../../api/thermal';
+import { BiomeApi } from '../../api/biome';
+import { ConnectionApi } from '../../api/connection';
 import { WorldClockApi } from '../../api/worldclock';
 import { AppApi } from '../../api/app';
 import { AppSettingKeys } from '../../lib/config/AppSettings';
+import { Quantity } from '../../lib/quantity';
 import { TemplatePaths } from '../../lib/paths';
 import type { Combustible } from '../../lib/fire/Combustible';
 import type { IgniteOutcome } from '../../api/fire';
@@ -64,6 +72,12 @@ export class FireLogic extends ApiLogic {
   @CallSecurity(FireApiCallers)
   public isBurning(stuff: Stuff): boolean {
     return MixinApi.isCombustible(stuff) && stuff.isBurning();
+  }
+
+  /** See {@link FireApi.onFireTick}. */
+  @CallSecurity(FireApiCallers)
+  public onFireTick(): void {
+    onFireTickImpl();
   }
 }
 
@@ -168,4 +182,185 @@ function advanceImpl(stuff: Stuff): void {
   if (stuff.hasBurnedThrough()) {
     StuffApi.destruct(stuff);
   }
+}
+
+/**
+ * The presence-gated fire tick — fan out over **occupied** scopes only (the
+ * weather-boundary / storm-strike precedent), advancing each burning object
+ * and spreading to neighbours. An unwatched fire freezes (zero server work in
+ * empty rooms, no offline-arson grief surface). Dedupes scopes by room id.
+ */
+function onFireTickImpl(): void {
+  const visited = new Set<string>();
+  for (const interactive of ConnectionApi.getAllInteractives()) {
+    const holder = interactive.getHolder();
+    if (holder === null || !MixinApi.isContainable(holder)) continue;
+    const room = (holder as Stuff & Containable).getContainer();
+    if (room === null || !MixinApi.isContainer(room)) continue;
+    if (visited.has(room.stuffId)) continue;
+    visited.add(room.stuffId);
+    advanceFireInRoom(room);
+  }
+}
+
+/**
+ * Advance every fire in one occupied scope: drain each burning object (which
+ * chars / destructs at fuel exhaustion), then spread — radiate heat into
+ * co-located combustibles and, through **open** boundaries only (a closed /
+ * locked door is a firebreak), into the adjacent scope's combustibles. A
+ * neighbour catches iff the delivered heat crossed its (wetness-adjusted)
+ * ignition point — so a wet log resists, emergent from the energy balance.
+ */
+function advanceFireInRoom(room: Stuff & Container): void {
+  const combustibles = liveCombustiblesIn(room);
+  // Advance the fires first (fuel drain → char / destruct at exhaustion).
+  for (const c of combustibles) {
+    if (c.isBurning()) advanceImpl(c as unknown as Stuff);
+  }
+  let burning = liveCombustiblesIn(room).filter((c) => c.isBurning());
+
+  // ── Combustion chemistry: the oxygen leg + complete/incomplete verdict ──
+  const airHolder = airReserveOf(room);
+  const ventilated =
+    BiomeApi.isSkyExposed(room) || openNeighboursOf(room).length > 0;
+
+  if (burning.length === 0) {
+    // No fire: a ventilated scope recovers its air, and any fire-set smoke
+    // clears (the room breathes again).
+    if (airHolder && ventilated) {
+      airHolder.adjustReserve(
+        'air',
+        Quantity.of(dial(AppSettingKeys.fireAirReplenishPerTick, 30), '%'),
+      );
+    }
+    clearFireSmoke(room);
+    return;
+  }
+
+  if (airHolder) {
+    // Enclosed scope with a finite air budget: burning consumes it; a
+    // ventilated boundary (open door / sky) replenishes.
+    const consume =
+      dial(AppSettingKeys.fireAirConsumePerTick, 8) * burning.length;
+    airHolder.adjustReserve('air', Quantity.of(-consume, '%'));
+    if (ventilated) {
+      airHolder.adjustReserve(
+        'air',
+        Quantity.of(dial(AppSettingKeys.fireAirReplenishPerTick, 30), '%'),
+      );
+    }
+  }
+
+  const airPct = airHolder
+    ? (airHolder.getReserve('air')?.current.rawValue() ?? 0)
+    : 100; // no air budget = open air (unlimited)
+
+  // The oxygen leg: air floored → the fire smothers (self-extinguish).
+  if (airHolder && airPct <= 0) {
+    for (const b of burning) (b as unknown as Combustible)._extinguishState();
+    clearFireSmoke(room);
+    return;
+  }
+
+  // Complete (hot, clean) with enough air / ventilation; incomplete (cooler,
+  // soot + CO) when a sealed scope starves.
+  const complete =
+    ventilated ||
+    !airHolder ||
+    airPct >= dial(AppSettingKeys.fireAirCompleteThresholdPct, 40);
+  for (const b of burning) (b as unknown as Combustible)._setComplete(complete);
+
+  // Incomplete combustion in an enclosed scope fills it with smoke + CO — the
+  // scope's medium becomes un-breathable (asphyxiation) and carries the
+  // carbon-monoxide contaminant (poisoning). Ventilation clears it.
+  if (!complete && airHolder) {
+    markFireSmoke(room);
+  } else {
+    clearFireSmoke(room);
+  }
+
+  // ── Spread — radiate to co-located + open-boundary combustibles ──
+  const radiant = dial(AppSettingKeys.fireRadiantJoulesPerTick, 700000);
+  const crossFraction = dial(AppSettingKeys.fireCrossBoundaryFraction, 0.4);
+  for (const c of liveCombustiblesIn(room)) {
+    if (c.isBurning()) continue;
+    ThermalApi.depositHeat(c as unknown as Stuff, radiant);
+    tryAutoigniteImpl(c as unknown as Stuff);
+  }
+  for (const dest of openNeighboursOf(room)) {
+    for (const c of liveCombustiblesIn(dest)) {
+      if (c.isBurning()) continue;
+      ThermalApi.depositHeat(c as unknown as Stuff, radiant * crossFraction);
+      tryAutoigniteImpl(c as unknown as Stuff);
+    }
+  }
+  void burning;
+}
+
+/** The scope's finite air budget — an `'air'` Reserve authored on an enclosed
+ * room, or null (open air = unlimited combustion oxygen). */
+function airReserveOf(room: Stuff & Container): (Stuff & Reserved) | null {
+  const s = room as unknown as Stuff;
+  if (MixinApi.isReserved(s) && s.hasReserve('air')) {
+    return s as Stuff & Reserved;
+  }
+  return null;
+}
+
+/** Fill `room` with smoke — the fire-driver's atmosphere override, cleared
+ * back to null when the fire goes out / ventilates. Only stamps a scope that
+ * isn't already smoky (idempotent) and never clobbers a non-air authored
+ * atmosphere it didn't set. */
+function markFireSmoke(room: Stuff & Container): void {
+  const atm = room as unknown as Atmospheric;
+  if (atm._atmosphere === 'smoke') return;
+  // Only overlay smoke onto a default (null) scope — respect an authored one.
+  if (atm._atmosphere === null) atm.setAtmosphere('smoke');
+}
+
+/** Clear fire-set smoke (only if the fire set it — the raw override reads
+ * 'smoke'), restoring the scope's default atmosphere. */
+function clearFireSmoke(room: Stuff & Container): void {
+  const atm = room as unknown as Atmospheric;
+  if (atm._atmosphere === 'smoke') atm.setAtmosphere(null);
+}
+
+/** The live (non-destroyed) Combustibles directly in `room`. */
+function liveCombustiblesIn(room: Stuff & Container): (Stuff & Combustible)[] {
+  const out: (Stuff & Combustible)[] = [];
+  for (const occ of room.getContents()) {
+    const s = occ as unknown as Stuff;
+    if (s.isDestroyed()) continue;
+    if (MixinApi.isCombustible(s)) out.push(s);
+  }
+  return out;
+}
+
+/**
+ * The adjacent scopes fire can reach — the destinations of `room`'s exits that
+ * are passable to fire: not permanently blocked, and either doorless or with
+ * an OPEN door (a closed or locked door is a firebreak — the `Sealable` read).
+ * Skips an exit whose destination hasn't materialized (fire doesn't reach an
+ * unbuilt room).
+ */
+function openNeighboursOf(room: Stuff & Container): (Stuff & Container)[] {
+  if (!MixinApi.isExitable(room)) return [];
+  const out: (Stuff & Container)[] = [];
+  for (const exit of room.getExits().values()) {
+    if (exit.isBlocked()) continue;
+    const door = exit.getDoor();
+    if (door !== null && MixinApi.isSealable(door) && !door.isOpen()) {
+      continue; // firebreak
+    }
+    let dest: Stuff & Container | null = null;
+    try {
+      dest = exit.getDestination();
+    } catch {
+      dest = null; // unresolved deferred destination — fire doesn't reach it
+    }
+    if (dest !== null && MixinApi.isContainer(dest) && !dest.isDestroyed()) {
+      out.push(dest);
+    }
+  }
+  return out;
 }

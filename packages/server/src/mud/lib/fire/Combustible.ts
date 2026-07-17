@@ -216,9 +216,13 @@ export function CombustibleMixin<TBase extends MixinConstructor<Stuff>>(
     }
 
     public getFlameTemperatureK(): number {
-      // Phase 3: a single flame temperature; Phase 5 splits it by the
-      // complete/incomplete air-fuel verdict on `burning.complete`.
-      return dial(AppSettingKeys.fireFlameTemperatureK, 1000);
+      // Complete combustion (enough air) burns hot; incomplete (starved) runs
+      // cooler — the forge's why. Defaults to complete when not aflame (for the
+      // burnout stamp freeze).
+      const complete = this.burning === null || this.burning.complete !== false;
+      return complete
+        ? dial(AppSettingKeys.fireFlameTemperatureK, 1000)
+        : dial(AppSettingKeys.fireFlameTemperatureIncompleteK, 750);
     }
 
     public isStructural(): boolean {

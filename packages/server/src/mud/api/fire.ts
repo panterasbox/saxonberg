@@ -20,6 +20,8 @@ import type { Stuff } from '../lib/stuff/Stuff';
 import { StuffApi } from './stuff';
 import { HotReloadApi } from './hot-reload';
 import { SecurityApi } from './security';
+import { AppApi } from './app';
+import { AppSettingKeys } from '../lib/config/AppSettings';
 import { FireLogic } from '../obj/api/FireLogic';
 import { fileURLToPath } from 'url';
 
@@ -96,6 +98,23 @@ export class FireApi {
   /** Is `stuff` a Combustible that is currently on fire? */
   public static isBurning(stuff: Stuff): boolean {
     return logic().isBurning(stuff);
+  }
+
+  /**
+   * The presence-gated fire tick — advance and spread every fire in an
+   * **occupied** scope (the weather-boundary / storm-strike precedent). Armed
+   * by `WorldClockRegistry` on the game clock; an unwatched fire freezes.
+   */
+  public static onFireTick(): void {
+    logic().onFireTick();
+  }
+
+  /** The fire-tick interval in game-seconds (the `fire.tickIntervalSeconds`
+   * dial). Read by `WorldClockRegistry` to arm the recurring tick. */
+  public static fireTickIntervalSeconds(): number {
+    const raw = AppApi.setting(AppSettingKeys.fireTickIntervalSeconds);
+    const n = raw == null || raw === '' ? NaN : Number.parseFloat(raw);
+    return Number.isFinite(n) ? n : 30;
   }
 }
 

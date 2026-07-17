@@ -51,6 +51,7 @@ import type {
 } from '../api/worldclock';
 import { WorldClockApi } from '../api/worldclock';
 import { WeatherApi } from '../api/weather';
+import { FireApi } from '../api/fire';
 import { WEATHER_DEFAULTS } from '../lib/weather/WeatherType';
 import { registerWorldClockRegistryClass } from '../api/worldclock';
 
@@ -480,6 +481,19 @@ export default class WorldClockRegistry extends Idea {
         tag: 'weather:strike',
       },
     );
+
+    // Fire spread (the combustion driver). A presence-gated recurring tick
+    // fires the fan-out over occupied scopes: each burning object drains its
+    // fuel + radiates heat to co-located combustibles and through OPEN
+    // boundaries (a closed door is a firebreak), igniting any that cross their
+    // ignition point. An unwatched fire freezes (zero work in empty rooms).
+    // Scheduler owns the handle; fire holds nothing (Burning state lives on
+    // the objects). The interval is the `fire.tickIntervalSeconds` dial.
+    const fireInterval = FireApi.fireTickIntervalSeconds();
+    this.every(Quantity.of(fireInterval, 's'), () => FireApi.onFireTick(), {
+      startAt: Quantity.of(this.getNow().rawValue() + fireInterval, 's'),
+      tag: 'fire:tick',
+    });
   }
 
   private parseDelayToSeconds(d: Quantity<'s'> | string): number {

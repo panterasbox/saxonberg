@@ -40,6 +40,9 @@ const ATMOSPHERE_DENSITIES: Record<string, Quantity<'kg/m³'>> = {
   air: Quantity.of(1.225, 'kg/m³'),
   water: Quantity.of(1000, 'kg/m³'),
   vacuum: Quantity.of(0, 'kg/m³'),
+  // Smoke — combustion products (the fire driver's incomplete-burn output).
+  // Slightly hotter/less dense than air; carries carbon monoxide.
+  smoke: Quantity.of(1.1, 'kg/m³'),
 };
 
 /**
@@ -55,6 +58,7 @@ const ATMOSPHERE_CONDUCTIVITIES: Record<string, Quantity<'W/(m·K)'>> = {
   air: Quantity.of(0.026, 'W/(m·K)'),
   water: Quantity.of(0.6, 'W/(m·K)'),
   vacuum: Quantity.of(1e-4, 'W/(m·K)'),
+  smoke: Quantity.of(0.03, 'W/(m·K)'),
 };
 
 /**
@@ -67,20 +71,25 @@ const ATMOSPHERE_BREATHABLE: Record<string, boolean> = {
   air: true,
   water: false,
   vacuum: false,
+  // Smoke displaces breathable air — an air-breather asphyxiates in it (the
+  // respiration medium crisis fires), the fire-driver's "kills by CO, not
+  // flame" seam.
+  smoke: false,
 };
 
 /**
  * Per-atmosphere contaminant tag — the breathable≠safe axis (an
- * atmosphere a body *can* exchange gas in but which carries an
- * inhaled toxin). Laid unread in v1: no reader ships, no engine
- * consults it. The inhaled-toxin lung channel (gated on metabolism's
- * toxin-burden) is the future consumer. All v1 tags are clean.
+ * atmosphere carrying an inhaled toxin). **The fire driver is the first
+ * consumer**: `smoke` carries `carbonMonoxide`, read by `RespirationMixin`
+ * (via {@link BiomeApi.contaminantOf}) and folded into the breather's
+ * metabolism toxin burden — an enclosed fire poisons as well as smothers.
+ * The clean tags stay `null`.
  */
-// eslint-disable-next-line @typescript-eslint/no-unused-vars -- laid-unread seam; see respiration.md
 const ATMOSPHERE_CONTAMINANT: Record<string, string | null> = {
   air: null,
   water: null,
   vacuum: null,
+  smoke: 'carbonMonoxide',
 };
 
 /**
@@ -181,6 +190,15 @@ export class BiomeLogic extends ApiLogic {
       );
     }
     return b;
+  }
+
+  /** See {@link BiomeApi.contaminantOf}. */
+  @CallSecurity(BiomeApiCallers)
+  public contaminantOf(tag: string): string | null {
+    // Unknown tags read as clean (no throw) — the contaminant axis is
+    // best-effort; a caller that already resolved a medium shouldn't crash on
+    // a tag missing from this one sparse table.
+    return ATMOSPHERE_CONTAMINANT[tag] ?? null;
   }
 
   /** See {@link BiomeApi.getRootBiome}. */

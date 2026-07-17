@@ -41,7 +41,7 @@ describe("AppSettingsSeeder", () => {
     pm.setFindResult([]);
     const added = await AppSettingsSeeder.run();
 
-    expect(added).toBe(179); // 146 base + 7 Attendant+Goodkin + 19 storms-and-wetness + 3 fire heat-channel + 4 fire combustion
+    expect(added).toBe(187); // 146 base + 7 Attendant+Goodkin + 19 storms-and-wetness + 3 fire heat-channel + 4 fire combustion + 3 fire tick/spread + 5 fire chemistry
     expect(pm.saves).toHaveLength(1);
     expect(pm.saves[0]!.collection).toBe("app_settings");
     const values = savedValues(pm);
@@ -259,6 +259,14 @@ describe("AppSettingsSeeder", () => {
           [AppSettingKeys.fireFlameTemperatureK]: "1000",
           [AppSettingKeys.fireIgnitionWaterLatentHeatJPerKg]: "2260000",
           [AppSettingKeys.fireIgnitionMaxManualDryingK]: "150",
+          [AppSettingKeys.fireTickIntervalSeconds]: "30",
+          [AppSettingKeys.fireRadiantJoulesPerTick]: "700000",
+          [AppSettingKeys.fireCrossBoundaryFraction]: "0.4",
+          [AppSettingKeys.fireFlameTemperatureIncompleteK]: "750",
+          [AppSettingKeys.fireAirConsumePerTick]: "8",
+          [AppSettingKeys.fireAirReplenishPerTick]: "30",
+          [AppSettingKeys.fireAirCompleteThresholdPct]: "40",
+          [AppSettingKeys.respirationContaminantBurdenPerBreath]: "5",
         },
       },
     ]);
@@ -301,8 +309,13 @@ describe("AppSettingsSeeder", () => {
     // + 3 fire heat-channel (response.heat baseAttenuation / insulationRef /
     //   depthFactor)
     // + 4 fire combustion (burnRatePerMin / flameTemperatureK /
-    //   ignition.waterLatentHeatJPerKg / ignition.maxManualDryingK).
-    expect(added).toBe(178);
+    //   ignition.waterLatentHeatJPerKg / ignition.maxManualDryingK)
+    // + 3 fire tick/spread (tickIntervalSeconds / radiantJoulesPerTick /
+    //   crossBoundaryFraction)
+    // + 5 fire chemistry (flameTemperatureIncompleteK / air.consumePerTick /
+    //   air.replenishPerTick / air.completeThresholdPct +
+    //   respiration.contaminantBurdenPerBreath).
+    expect(added).toBe(186);
     expect(pm.saves).toHaveLength(1);
     const values = savedValues(pm);
     // operator value preserved, missing keys seeded
