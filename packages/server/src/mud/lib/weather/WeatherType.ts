@@ -292,7 +292,7 @@ export const WEATHER_DEFAULTS = {
 /* ─────────────────────────── Wave-2 coexistence resolve ─────────────────────────── */
 
 /**
- * An authored climate lean (Surface decision C): a soft per-`Locality`
+ * An authored climate lean: a soft per-`Locality`
  * multiplicative bias over the procgen transition/anchor distribution — a
  * direct `SEASON_BIAS` sibling multiplied into `pickWeighted`. "Narnia is
  * polar" is `{ snow: 4, storm: 1.5, clear: 0.5 }`. A missing / `1` entry is
@@ -302,7 +302,7 @@ export const WEATHER_DEFAULTS = {
 export type ClimateLean = Partial<Record<WeatherType, number>>;
 
 /**
- * The two flavors an authored weather pin carries (Surface decision B):
+ * The two flavors an authored weather pin carries:
  * `frozen` — fully static, the weather never changes here (the cheap
  * narrative set-piece); `alive` — the *type* is forced but the model still
  * animates its intensity by season / time-of-day.
@@ -310,7 +310,7 @@ export type ClimateLean = Partial<Record<WeatherType, number>>;
 export type WeatherPinMode = 'frozen' | 'alive';
 
 /**
- * An authored weather pin (Surface decision A/B): "this scope is *always*
+ * An authored weather pin: "this scope is *always*
  * this weather." One declarative `{ type, mode }` field, authored on both
  * the `Locality` tier (covers its address subtree) and the scope tier
  * (`AtmosphericMixin`, a single room overriding within an otherwise-

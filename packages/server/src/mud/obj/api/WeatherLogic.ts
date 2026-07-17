@@ -169,7 +169,8 @@ function seasonAtSegment(seg: number): Season {
  * the authored per-Locality {@link ClimateLean} (default 1, Wave 2) — the
  * lean is a soft `SEASON_BIAS` sibling that shapes only this procgen
  * branch, so an authored hard pin (resolved upstream) always outranks it
- * (D). The roll in [0,1) selects proportionally. A fully-zeroed row
+ * (author always wins). The roll in [0,1) selects proportionally. A
+ * fully-zeroed row
  * degenerates to the first candidate (defensive; the tables never zero a
  * whole row).
  */
@@ -339,7 +340,7 @@ function resolveWeatherPin(
 }
 
 /**
- * The `alive`-pin intensity animation scale (H3). A per-segment
+ * The `alive`-pin intensity animation scale. A per-segment
  * deterministic value in `[ALIVE_ANIM_MIN, 1]`, so a `pinned-but-alive`
  * scope's deviation magnitude visibly breathes segment-to-segment while
  * the type never leaves the pin. The exact formula is a dial; the
@@ -431,7 +432,7 @@ function nowSecondsOrNull(): number | null {
 }
 
 /**
- * The core resolve (H1) — pure over `(scope, locality, nowS)`. Folds
+ * The core resolve — pure over `(scope, locality, nowS)`. Folds
  * authored pin → procgen(climate-lean-shaped) → biome baseline in
  * precedence, and pre-applies the sky-gate to `precipitationHere` (a pin
  * is ungated — an indoor weeping chamber rains; the procgen branch is
