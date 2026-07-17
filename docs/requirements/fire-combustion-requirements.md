@@ -74,7 +74,11 @@ heat-control + phase-change substrate).
   (forge / kiln / oven), `Combustible`-fed sources holding a real,
   **fuel-and-air-driven** temperature (charcoal hotter than wood; a bellows
   hotter still). The shipped `Campfire`'s pinned-hot-while-fuelled pattern
-  generalized.
+  generalized. Includes a **`Candle`** — the compact object where the furnace
+  layer, the wax phase-change, and the light converge: lit by another flame
+  (a wet wick won't catch), it gives light and its wax melts to a pool and
+  wicks down, snuffs/douses out (the pool resolidifies), burns to a stub, and
+  self-smothers under a jar. The "does it all hold together" fixture.
 - **The inert heat-as-crafting-control seam** — a built, tested
   **`ThermalApi.reachableHeatFor`** read (the maximum sustained temperature
   reachable from a position — the crafting-reachability precedent), **left
@@ -297,6 +301,12 @@ Lightning will reuse `conduct`). No new inert magic field needed.
 - **Furnaces:** a `Forge`/`Kiln`/`Oven` holds a fuel-and-air-driven
   temperature (charcoal hotter than wood; bellows hotter than not); reaches
   smelting heat only with the bellows. Tested.
+- **The candle:** a `Candle` composes furnace + wax `Meltable` + `LightSource`
+  + `Combustible` — igniting a **dry** wick lights it (emit light + melt the
+  wax to a pool + drain the fuel), a **wet** wick won't catch; snuff/douse
+  extinguishes it and the pool resolidifies; left lit it burns to a stub;
+  under a sealed jar it self-smothers. One integration test exercising all
+  those layers together. Tested.
 - **The inert crafting seam:** `ThermalApi.reachableHeatFor` returns the
   reachable max temperature and is **called by no recipe** (grep-verified /
   test-verified inert).

@@ -343,18 +343,32 @@ Api pair exactly like `Material`/`Weather`/`Electricity`.
   route strictly through `StuffApi`/`BulkableApi`/`ContainmentApi` per the
   constraint.
 
-### Phase 7 — the furnace family: `FurnaceMixin` + Campfire refactor + Forge/Kiln/Oven (H7, D8)
+### Phase 7 — the furnace family: `FurnaceMixin` + Campfire refactor + Forge/Kiln/Oven + Candle (H7, D8)
 - **Outcome.** `Forge`/`Kiln`/`Oven` hold a fuel-and-air-driven temperature
   (charcoal hotter than wood; bellows hotter than not; smelting heat only with the
-  bellows). (Goals §"Furnace family"; AC "Furnaces".)
+  bellows). Plus the **`Candle`** — the compact convergence fixture where the
+  furnace layer, the wax phase-change (Phase 6), and the light all compose into one
+  honest object. (Goals §"Furnace family"; AC "Furnaces", "The candle".)
 - **Files (create).** `lib/fire/Furnace.ts` (`FurnaceMixin`), `obj/Forge.ts` /
-  `obj/Kiln.ts` / `obj/Oven.ts` + their seeds. **(edit).** `obj/Campfire.ts`
-  (refactor the pin onto `FurnaceMixin`); `lib/mixin.ts`/`api/mixin.ts` (`isFurnace`).
+  `obj/Kiln.ts` / `obj/Oven.ts` + their seeds; **`obj/Candle.ts`** =
+  `FurnaceMixin(LightSourceMixin(MeltableMixin(CombustibleMixin(Thing))))` + a seed
+  (small wax fuel `Reserve`; low pin temperature; the wick is the `Combustible`
+  ignition site; wax `meltingPoint` ~330 K feeds the melt). **(edit).**
+  `obj/Campfire.ts` (refactor the pin onto `FurnaceMixin`); `lib/mixin.ts`/`api/mixin.ts`
+  (`isFurnace`).
 - **Tests.** Campfire's existing tests pass unchanged (byte-compat pin at 800 K);
   charcoal forge > wood; bellows > no-bellows; only the bellows-forced forge reaches
-  iron's 1811 K.
+  iron's 1811 K. **Candle:** `ignite` lights it (a dry wick catches, a wet one does
+  not) → it emits light (`LightSource` gated on lit) and its wax **melts** to a pool
+  (the Phase-6 `Meltable` clamp) and **wicks-down** (the fuel `Reserve` drains) →
+  `douse`/snuff extinguishes it and the pool **resolidifies** as it cools below the
+  melting point → left burning, it burns down to a spent stub → a candle in a sealed
+  container **self-smothers** (the Phase-5 air reserve). One fixture exercising
+  Combustible + Furnace + Meltable + LightSource + the air model together.
 - **Risk/decision.** The Campfire refactor is guarded by its own suite; behaviour
-  identical either way (D8).
+  identical either way (D8). The `Candle` is pure composition over the phases below
+  it — the "does it all hold together" proof, and a demonstrator fixture in its own
+  right (a lit candle on the forge/woodshed bench).
 
 ### Phase 8 — the inert `ThermalApi.reachableHeatFor` seam (D9)
 - **Outcome.** A gated read returns the max sustained temperature reachable from a
