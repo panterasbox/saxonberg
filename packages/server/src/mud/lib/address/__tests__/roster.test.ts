@@ -114,6 +114,9 @@ describe('Address roster — slim demonstrative inventory', () => {
       'last-counted-mile.yaml',
       // The University Avenue crossing locality (Phase 3).
       'university-avenue.yaml',
+      // The Weeping Moor — the storms-and-wetness demonstrator (weather
+      // Wave 2): a Locality carrying an authored alive-storm weather pin.
+      'moor.yaml',
     ]);
     const actual = new Set(listYamlsRelative(SEEDS_DIR));
     expect(actual).toEqual(expected);
