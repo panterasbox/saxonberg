@@ -6,7 +6,9 @@
  *   - release → the next in line is pulled up;
  *   - the lease idle-eviction sweep (default-evict);
  *   - linkdead release;
- *   - the staffing states (closed / self-service when unstaffed).
+ *   - the staffing states (closed / self-service when unstaffed);
+ *   - the config-label disciplines with no v1 content venue (reception /
+ *     appointment) — pinned to their current FIFO fall-through behavior.
  */
 
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
@@ -265,6 +267,41 @@ describe("Attendant — config + take-a-number ticket", () => {
     expect(t.getPointPath()).toBe(POINT);
     expect(t.getNumber()).toBe(42);
   });
+});
+
+// The two disciplines with no v1 content venue — their demo vehicles. Both are
+// authored config labels today; the queue engine branches on attendDurationMs +
+// staffingPolicy, not on `discipline`, so a durative reception/appointment point
+// currently falls through to the FIFO + server-resolve path (the recognition
+// priority-skip and true scheduled slots are the named Deferred seams — see
+// docs/subsystems/attendant.md). These tests pin that current behavior so the
+// shipped vocabulary members are exercised, not merely stubbed.
+describe("Attendant — reception + appointment (config-label disciplines)", () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+    StuffApi.clearAll();
+  });
+
+  for (const discipline of ["reception", "appointment"] as const) {
+    it(`${discipline} round-trips its config and attends FIFO (skip/scheduling deferred)`, () => {
+      const point = makePoint({ discipline, attendDurationMs: 5000 });
+      expect(point.getDiscipline()).toBe(discipline);
+      customer(ALICE);
+      customer(BOB);
+      const server = makeStuff(() => new TestServer());
+
+      // First customer is attended; the server's attention slot is held.
+      const r1 = act(() => point.requestAttention(ALICE, server));
+      expect(r1.status).toBe("attending");
+      expect(point.isAttending(ALICE)).toBe(true);
+
+      // Second customer waits in FIFO order — no priority skip / scheduled slot
+      // in v1 (the deferred seams); the queue is the plain line.
+      const r2 = act(() => point.requestAttention(BOB, server));
+      expect(r2).toMatchObject({ status: "queued", position: 1 });
+      expect(point.getQueue()).toEqual([BOB]);
+    });
+  }
 });
 
 // Keep the scheduler registry clean between files.
