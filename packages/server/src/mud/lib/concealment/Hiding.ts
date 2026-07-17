@@ -48,6 +48,13 @@ export interface Hiding {
   enterHide(level: ConcealmentLevel): void;
   /** Leave the hidden state (motion / attacking / an unhide). Idempotent. */
   breakHide(): void;
+  /**
+   * Degrade the hidden level by `bands` (the motion-exposure step): drop
+   * that many concealment bands, and break hiding entirely if it falls to
+   * `obvious`. `0` (a sneak) holds; a large count (a run) clears. No-op when
+   * not hiding. See `PerceptionApi.motionExposure`.
+   */
+  degradeHide(bands: number): void;
 }
 
 export function HidingMixin<TBase extends MixinConstructor<Concealable>>(
@@ -85,6 +92,17 @@ export function HidingMixin<TBase extends MixinConstructor<Concealable>>(
 
     public breakHide(): void {
       this.hiding = false;
+    }
+
+    public degradeHide(bands: number): void {
+      if (!this.hiding || bands <= 0) return;
+      const rank = ConcealmentLevels.rankOf(this.hiddenLevel);
+      const newRank = Math.max(0, rank - Math.floor(bands));
+      if (newRank <= 0) {
+        this.breakHide();
+        return;
+      }
+      this.hiddenLevel = ConcealmentLevels.ALL[newRank]!;
     }
 
     /**

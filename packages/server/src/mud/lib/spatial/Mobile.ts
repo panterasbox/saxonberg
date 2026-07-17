@@ -39,6 +39,7 @@ import type Exit from '../boundary/Exit';
 import type { Slotted } from '../slot/Slotted';
 import type { LocomotionMode } from '../locomotion/LocomotionMode';
 import { MixinApi } from '../../api/mixin';
+import { PerceptionApi } from '../../api/perception';
 import { ContainmentApi, ContainmentError } from '../../api/containment';
 import { MessageApi } from '../../api/message';
 import { RecognitionApi } from '../../api/recognition';
@@ -494,6 +495,18 @@ export function MobileMixin<TBase extends MixinConstructor<Stuff & Containable>>
         }
       }
       considerHazard(exit as unknown as Stuff);
+
+      // Motion degrades concealment — the observer-side of the care↔speed
+      // axis (the shipped `movement.attention.*` self-side's sibling). A
+      // hiding mover who crosses gives themselves away by their pace:
+      // `sneak` holds, `walk` degrades a band, `run` breaks hiding outright
+      // (`movement.concealment.*` → `PerceptionApi.motionExposure`). Applied
+      // to the mover's own hidden state (persistent until they re-hide), so
+      // the shipped perceive gate resolves the newly-exposed mover
+      // per-observer for free.
+      if (MixinApi.isHiding(mover) && mover.isHiding()) {
+        mover.degradeHide(PerceptionApi.motionExposure(mode));
+      }
 
       // Auto-sense on arrival. Fired through the dispatcher so the
       // resulting Command frame is tagged `forced: true` and `sense`'s

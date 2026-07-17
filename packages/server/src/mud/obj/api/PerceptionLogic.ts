@@ -80,6 +80,11 @@ const DEFAULT_HIDE_BAND_DEEP = 7;
 const DEFAULT_HIDE_BAND_BURIED = 10;
 /** Max room-cover objects folded into the hide score (bounds the term). */
 const HIDE_COVER_CAP = 6;
+/** `movement.concealment.*` fallbacks (observer-side motion-degrade — bands
+ * of concealment a move at each mode strips from a hiding mover). */
+const DEFAULT_MOVEMENT_CONCEALMENT_SNEAK = 0;
+const DEFAULT_MOVEMENT_CONCEALMENT_WALK = 1;
+const DEFAULT_MOVEMENT_CONCEALMENT_RUN = 99;
 
 /**
  * Per-actor `awareness` competence-band snapshot, warmed by the async
@@ -254,6 +259,12 @@ export class PerceptionLogic extends ApiLogic {
   @CallSecurity(PerceptionApiCallers)
   public modeAttention(mode: string): number {
     return modeAttentionImpl(mode);
+  }
+
+  /** See {@link PerceptionApi.motionExposure}. */
+  @CallSecurity(PerceptionApiCallers)
+  public motionExposure(mode: string): number {
+    return motionExposureImpl(mode);
   }
 
   /** See {@link PerceptionApi.hideLevelFor}. */
@@ -468,6 +479,36 @@ function passiveBaseline(): number {
  */
 function modeAttentionImpl(mode: string): number {
   return passiveBaseline() + modeModifier(mode);
+}
+
+/**
+ * The observer-side motion-degrade (the mirror of {@link modeAttentionImpl}):
+ * how many concealment bands a move at the given mode strips from a hiding
+ * mover — `sneak` holds (0), `walk` degrades one band, `run` clears hiding
+ * (a large count). `Mobile.traverse` passes this to `HidingMixin.degradeHide`
+ * after a move. Accepts a short mode name or a full templatePath.
+ */
+function motionExposureImpl(mode: string): number {
+  const name = mode.startsWith('/')
+    ? mode.slice(mode.lastIndexOf('/') + 1)
+    : mode;
+  switch (name) {
+    case 'sneak':
+      return dialNumber(
+        AppSettingKeys.movementConcealmentSneak,
+        DEFAULT_MOVEMENT_CONCEALMENT_SNEAK,
+      );
+    case 'run':
+      return dialNumber(
+        AppSettingKeys.movementConcealmentRun,
+        DEFAULT_MOVEMENT_CONCEALMENT_RUN,
+      );
+    default:
+      return dialNumber(
+        AppSettingKeys.movementConcealmentWalk,
+        DEFAULT_MOVEMENT_CONCEALMENT_WALK,
+      );
+  }
 }
 
 /** The per-mode attention delta (0 for walk / any non-care↔speed mode). */

@@ -753,6 +753,18 @@ export const AppSettingKeys = {
    * walk avoids). Read with a seeded-literal fallback.
    */
   movementAttentionRun: "movement.attention.run",
+  /**
+   * Movement — the **observer-side** of the care↔speed axis (the mirror of
+   * {@link movementAttentionSneak}/{@link movementAttentionRun}): the number
+   * of concealment bands a move at each mode strips from a *hiding* mover.
+   * `sneak` holds (0), `walk` degrades one band, `run` clears hiding (a
+   * large count). Read by `PerceptionApi.motionExposure`, applied at
+   * `Mobile.traverse`. Read with seeded-literal fallbacks. See
+   * docs/subsystems/stealth.md.
+   */
+  movementConcealmentSneak: "movement.concealment.sneak",
+  movementConcealmentWalk: "movement.concealment.walk",
+  movementConcealmentRun: "movement.concealment.run",
   /* ────────────────────────── wetness (weather Wave 2) ────────────────────────── */
   /**
    * Wetness — the per-object saturation gauge's magnitudes (weather

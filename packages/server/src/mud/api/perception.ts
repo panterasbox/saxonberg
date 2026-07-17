@@ -290,6 +290,19 @@ export class PerceptionApi {
   }
 
   /**
+   * The **observer-side** motion-degrade (the mirror of
+   * {@link modeAttention}) — how many concealment bands a move at `mode`
+   * strips from a hiding mover: `sneak` holds (0), `walk` degrades one band,
+   * `run` clears hiding (a large count). `Mobile.traverse` feeds this to
+   * `HidingMixin.degradeHide` after a move, lighting the observer-side of
+   * the care↔speed axis (a runner can't stay hidden). Dial-backed
+   * (`movement.concealment.*`). See docs/subsystems/stealth.md.
+   */
+  public static motionExposure(mode: string): number {
+    return logic().motionExposure(mode);
+  }
+
+  /**
    * The active-search resolver (D5) — walk the concealable candidates in
    * `scope`, and for each one the viewer's boosted effective perception now
    * clears, record the sticky per-viewer discovery and collect it. Returns
