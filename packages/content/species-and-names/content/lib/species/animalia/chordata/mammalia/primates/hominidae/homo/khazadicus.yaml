@@ -8,6 +8,7 @@ hydratorClass: /lib/persistence/PersistentHydrator
 data:
   illustration: species/khazadicus.png
   binomial: Homo khazadicus
+  sentient: true
   commonNames: ["dwarf"]
   _bodyPlanPath: /lib/body-plans/biped
   _parentCladePath: /lib/species/animalia

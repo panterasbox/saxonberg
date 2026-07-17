@@ -1,44 +1,52 @@
 /**
- * Vessel — a container-object: a `Thing` that holds things, at any scale.
+ * Vessel — a container-object: a `Thing` that is *also* a mobile place.
  *
  * A bag, box, chest, cart, ship, and star-system harbor are one
  * category — *a thing that holds things* — differing only in **scale**.
  * Carry / drag / ride / can't-budge is therefore **emergent** from mass
  * vs. a bearer's capacity (see the encumbrance subsystem), never a type
- * flag. Vessels are both Container (they hold things — cargo, passengers)
- * and Containable (they live somewhere — a pocket, a harbor, a parking
- * lot). Distinct from `Thing` (item-scale, holds nothing), `Location`
- * (stationary place), and `Agent` (sentient actor).
+ * flag — "you can't pocket a ship" is a mass gate, not `instanceof`.
  *
- * Composition: `AtmosphericMixin(TangibleMixin(ContainerMixin(
- * ContainableMixin(Stuff))))`. A Vessel is **already `Tangible`**
- * (`getMass()`), so a carriable container — a backpack, a bag of holding —
- * works mechanically as a plain Vessel (or a thin wearable subclass; see
- * `lib/equipment/Pack`). No inheritance edge to `Thing`. Code that needs
- * "is this a place?" should use `MixinApi.isContainer(obj)` (which catches
- * `Location ∪ Vessel ∪ Agent ∪ container-Thing`); `instanceof Vessel` is
+ * **A Vessel `extends Thing`.** It is genuine matter — describable, made
+ * of a material, with mass, wettable, carryable, haulable, and itself
+ * `Containable` (it lives somewhere — a pocket, a harbor, a parking lot).
+ * On top of the Thing baseline it adds `Container` (it holds things —
+ * cargo, passengers) + `Atmospheric` (an interior climate). So it is the
+ * one genuine dual citizen of the space/matter split: **matter from the
+ * outside, a place from the inside** (you go *inside* a Vessel). It is not
+ * a separate top-level branch — it traces through `Thing` — because a
+ * container-object *is* a physical thing that additionally holds an
+ * interior; the earlier "mobile place, sibling of Location" framing was
+ * dropped in review (nothing consumed `instanceof Thing`, and pocketing is
+ * mass-gated). Distinct from a plain `Thing` (holds nothing), `Location`
+ * (a stationary place — pure space, *not* matter), and `Agent` (actor).
+ *
+ * Composition: `AtmosphericMixin(ContainerMixin(Thing))`. `Thing` already
+ * brings the describable-physical baseline — `Visible` + `Perceptible` +
+ * `Tangible` (`getMass()`) + `Containable` + `Wet` — so a describable
+ * container (a footlocker, a backpack, a bank counter) is a plain `Vessel`
+ * (`DetailedMixin(Vessel)` for look-at details) with no need to re-add any
+ * of it. Code that needs "is this a place?" should use
+ * `MixinApi.isContainer(obj)` (which catches `Location ∪ Vessel ∪ Agent ∪
+ * container-Thing`) rather than `instanceof`; `instanceof Vessel` is
  * reserved for genuine vessel-role checks (e.g. the encumbrance
- * transmission read).
+ * transmission read) and still identifies a Vessel — it now extends Thing.
  *
  * **`Adornable` lives on `ExitableVessel`, not here.** Fixtures
  * (`getFixtures()`/`addFixture()`) are needed only by the Door →
  * `BoundaryAnchor` retrofit, which is an `ExitableVessel` concern; a bare
  * Vessel composes no fixture machinery (every fixture consumer narrows on
  * `MixinApi.isAdornable` first). See `docs/subsystems/boundary.md`.
- *
- * Lives in `lib/stuff/` because it's a top-level branch — see
- * [docs/architecture.md § Top-level branches](../../../../../../docs/architecture.md).
  */
 
-import { Stuff } from './Stuff';
 import { ContainerMixin } from '../spatial/Container';
-import { ContainableMixin } from '../spatial/Containable';
-import { TangibleMixin } from '../material/Tangible';
 import { AtmosphericMixin } from '../biome/Atmospheric';
+import Thing from './Thing';
 
-const VesselBase = AtmosphericMixin(
-  TangibleMixin(ContainerMixin(ContainableMixin(Stuff)))
-);
+// A Vessel is a Thing (matter — describable / Tangible / Wet / Containable)
+// that additionally holds things (Container) with an interior climate
+// (Atmospheric). It traces the `Thing` top-level branch, not its own.
+const VesselBase = AtmosphericMixin(ContainerMixin(Thing));
 
 export class Vessel extends VesselBase {
   /**
@@ -83,5 +91,3 @@ export class Vessel extends VesselBase {
     this.transmissionFactor = value;
   }
 }
-
-Stuff._registerTopLevelBranch(Vessel);

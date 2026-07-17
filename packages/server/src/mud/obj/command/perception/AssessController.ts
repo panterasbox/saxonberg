@@ -17,6 +17,7 @@ import type { MqlOneResult } from '../../../api/mql';
 import { MessageApi } from '../../../api/message';
 import { MixinApi } from '../../../api/mixin';
 import { AdvancementApi } from '../../../api/advancement';
+import { CombatApi, type CombatAssessResult } from '../../../api/combat';
 import { Mml } from '../../../api/mml';
 import type { Stuff } from '../../../lib/stuff/Stuff';
 import type { Vitals, ConditionBand } from '../../../lib/vitals/Vitals';
@@ -37,6 +38,16 @@ const BAND_PHRASE: Record<ConditionBand, string> = {
   dead: 'is dead',
 };
 
+// Second-person conjugation for a self-assess (subject is "You") — the
+// singular third-person verbs above ("looks", "is") don't agree with "You".
+const BAND_PHRASE_SELF: Record<ConditionBand, string> = {
+  healthy: 'look unhurt',
+  hurt: 'look hurt',
+  serious: 'are seriously injured',
+  critical: 'are in critical condition',
+  dead: 'are dead',
+};
+
 export default class AssessController extends CommandController<AssessModel> {
   async execute(model: AssessModel, context: CommandContext): Promise<void> {
     const giver = context.commandGiver;
@@ -54,6 +65,20 @@ export default class AssessController extends CommandController<AssessModel> {
       target = giver;
     }
     const isSelf = target === giver;
+
+    // Mid-fight, `assess <opponent>` is the costed combat read: it spends
+    // the actor's next exchange, mints a combat signature, and reveals the
+    // opponent's banded tactical state (poise / flags / armed) at a
+    // fidelity the passive `fight` read hedges. Only against the actual
+    // opponent (1v1) — assessing a bystander stays the medic read.
+    if (!isSelf) {
+      const session = CombatApi.sessionFor(giver);
+      const opp = session?.opponentState(giver)?.combatant;
+      if (opp && (opp as Stuff) === (target as Stuff)) {
+        const read = CombatApi.assess(giver as Stuff, target);
+        if (read.ok) return this.renderCombatAssess(giver, target, read);
+      }
+    }
 
     if (!MixinApi.isVitals(target)) {
       return this.fail(
@@ -78,7 +103,9 @@ export default class AssessController extends CommandController<AssessModel> {
     const band = (target as Stuff & Vitals).getConditionBand();
     const blocks: string[] = [
       Mml.fromMarkup(
-        `${Mml.strong(label).toString()} ${Mml.escape(BAND_PHRASE[band])}.`
+        `${Mml.strong(label).toString()} ${Mml.escape(
+          isSelf ? BAND_PHRASE_SELF[band] : BAND_PHRASE[band]
+        )}.`
       ).toString(),
     ];
 
@@ -101,6 +128,40 @@ export default class AssessController extends CommandController<AssessModel> {
     }
 
     const body = Mml.fromMarkup(blocks.join('\n\n'));
+    MessageApi.scene(giver).topic(TOPIC).toSelf(body).send();
+  }
+
+  /** The mid-fight tactical read — bands only, never a number. */
+  private renderCombatAssess(
+    giver: Stuff,
+    target: Stuff,
+    read: CombatAssessResult,
+  ): void {
+    const label = target.getPresentation();
+    const guard = read.poiseBand ?? 'steady';
+    const arms = read.armed ? 'armed' : 'unarmed';
+    const lines: string[] = [
+      Mml.fromMarkup(
+        `You read ${Mml.strong(Mml.escape(label)).toString()} — guard ${Mml.escape(
+          guard,
+        )}, ${Mml.escape(arms)}.`,
+      ).toString(),
+    ];
+    if (read.conditionBand) {
+      // Reuse the label subject (as the medical read does) so the singular
+      // `BAND_PHRASE` verbs agree — "…looks unhurt", never "They looks…".
+      lines.push(
+        Mml.fromMarkup(
+          `${Mml.strong(Mml.escape(label)).toString()} ${Mml.escape(
+            BAND_PHRASE[read.conditionBand as ConditionBand] ?? 'looks hurt',
+          )}.`,
+        ).toString(),
+      );
+    }
+    if (read.flags && read.flags.length > 0) {
+      lines.push(Mml.escape(`Off balance: ${read.flags.join(', ')}.`));
+    }
+    const body = Mml.fromMarkup(lines.join('\n\n'));
     MessageApi.scene(giver).topic(TOPIC).toSelf(body).send();
   }
 

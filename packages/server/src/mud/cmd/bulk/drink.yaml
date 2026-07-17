@@ -1,5 +1,5 @@
 verbs: [drink]
-controller: bulk/DrinkController
+controller: /obj/command/bulk/DrinkController
 description: "Drink the entire contents of a holder"
 help: |
   Drains a holder dry in one go — point `drink` at a cup, flask,

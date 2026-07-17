@@ -1,9 +1,11 @@
 # PerceiverMixin
 
-Owns the verbs of perception: `look`, `scry`, `locate`, `find`, and
-the five sense verbs (`smell`, `listen`, `feel`, `taste`, `sense`).
-Composed on `Character`, so every Avatar and NPC inherits the
-perception verb surface.
+Owns the verbs of perception: `look`, `scry`, `locate`, `find`, the
+five sense verbs (`smell`, `listen`, `feel`, `taste`, `sense`), and
+`assess` (a body's condition/wounds — medicine-gated detail out of
+combat, the costed fog-graded tactical read mid-fight). Composed on
+`Character`, so every Avatar and NPC inherits the perception verb
+surface.
 
 The split is by responsibility. Three mixins co-compose on
 Character:
@@ -17,7 +19,7 @@ Character:
 - **`Perceiver`** (`lib/description/Perceiver.ts`) — issues
   perception verbs. Contributes `look` / `scry` / `locate` / `find`
   plus the five sense verbs (`smell` / `listen` / `feel` / `taste` /
-  `sense`) on the **actor-side** bucket (`self`).
+  `sense`) and `assess` on the **actor-side** bucket (`self`).
 
 The split fixes a semantic conflation: `Visible` used to contribute
 `look` to both `self` and the target-side buckets

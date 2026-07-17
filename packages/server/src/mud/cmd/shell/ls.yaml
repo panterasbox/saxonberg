@@ -1,5 +1,5 @@
 verbs: [ls]
-controller: shell/LsController
+controller: /obj/command/shell/LsController
 description: "List children of <path> (or cwd) in the content or source tree"
 help: |
   See what lives under a path. With no argument `ls` lists the

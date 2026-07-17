@@ -60,6 +60,14 @@ See also:
   coup attribution all operate over (first-class Stuff; captain + roles;
   party-vs-combat-side; the guild≠party≠corp wall; reputation + odometer
   progression). Combat is the heaviest consumer of the party axis.
+- [combat-experience-slate.md](./combat-experience-slate.md) — the
+  **felt-experience companion**: the dramatic arc + beat-punctuation, the
+  **poker-not-slots** randomness stance (epistemic not aleatory, the fog is
+  the dice), earned crits, luck-as-emotional-weather, the loadout as a bag
+  of portable reagents + genre-as-costume, the chemistry-set reagent shelf +
+  composition rules, and how a determinism-first system gets balanced (the
+  **combat gym** headless matchup-sweep). This slate owns the *mechanism*;
+  that one owns the *experience*.
 
 ---
 
@@ -965,7 +973,14 @@ your own precise, buttons that are really verbs.
    Must be steep enough that defensive play flips from fatal to generative
    across the mentoring band, shallow enough that high-level fights don't
    trivialize. Estimator/tuning territory (the advancement-slate residual).
-   The **structure is sound; the numbers are the risk.**
+   The **structure is sound; the numbers are the risk.** *De-risking
+   approach:* the **combat gym** — because the session is a
+   deterministic-given-information single-thread coroutine, run it headless
+   at scale (skill × loadout × terrain matchup sweeps) and read the outcome
+   distribution to find the numbers before players do. See
+   [combat-experience-slate.md](./combat-experience-slate.md) Thesis 9.
+   (RNG, crits, and luck are also resolved there: poker-not-slots, earned
+   crits, luck-as-emotional-weather — not open questions.)
 2. **Tick tempo** — how many game-seconds per tick balances readability vs
    responsiveness in text.
 3. **Transient-state storage** — session-scoped state object vs a third

@@ -1,5 +1,5 @@
 verbs: [inhale]
-controller: posture/InhaleController
+controller: /obj/command/posture/InhaleController
 description: "Take a deep breath and hold it — extend how long you can go without air before a dive."
 help: |
   Draw a deep breath and hold it. While you hold, your body coasts

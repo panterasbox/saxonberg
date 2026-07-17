@@ -19,6 +19,7 @@ import type { CommandGiver } from '../../lib/command/CommandGiver';
 // position on the `command.ts → MqlApi` chain creates with
 // `ConnectionManager → Interactive → Idea`.
 import { MixinApi } from '../mixin';
+import { PerceptionApi } from '../perception';
 import { getOnlineHolders } from './online-provider';
 import type { MqlContext, PermissionTier } from './types';
 
@@ -71,14 +72,17 @@ function isHere(target: Stuff, giver: Stuff & CommandGiver): boolean {
 }
 
 /**
- * Visible-to-giver — for v1 we treat anything in the giver's
- * neighborhood (location, inventory, or own person) as visible. A
- * real perception subsystem will refine this (light levels,
- * concealment, etc.).
+ * Visible-to-giver — a thing in the giver's neighborhood (location,
+ * inventory, or own person) that the giver actually perceives. The
+ * neighborhood is the presence prefilter; `PerceptionApi.perceives`
+ * refines it with concealment + per-viewer discovery (the refinement this
+ * placeholder's comment reserved). `perceives` short-circuits true for an
+ * un-concealed thing, so ordinary items stay visible.
  */
 function isVisible(target: Stuff, giver: Stuff & CommandGiver): boolean {
   if (target.stuffId === giver.stuffId) return true;
-  return isHere(target, giver);
+  if (!isHere(target, giver)) return false;
+  return PerceptionApi.perceives(giver, target);
 }
 
 function isAdmin(
@@ -93,9 +97,9 @@ function isAdmin(
   // (the prior `_MqlAdminFlag.granter` default).
   const ids = ctx.permission?.coreMemberIds;
   if (!ids) return false;
-  const playerId = (target as { getPlayerId?: () => string }).getPlayerId?.();
-  if (!playerId) return false;
-  return ids.has(playerId);
+  const key = target.getTemplatePath();
+  if (!key) return false;
+  return ids.has(key);
 }
 
 /**

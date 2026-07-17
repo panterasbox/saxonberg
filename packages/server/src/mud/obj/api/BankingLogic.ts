@@ -15,6 +15,8 @@ import AccountBalance from "../../lib/banking/AccountBalance";
 import SupplyAggregate from "../../lib/banking/SupplyAggregate";
 import { Account } from "../../lib/banking/Account";
 import { Money } from "../../lib/banking/Money";
+import { Coinage } from "../../lib/banking/Coinage";
+import type { CoinLine, CoinSupply } from "../../lib/banking/Coinage";
 import { BankTransaction } from "../../lib/banking/Transaction";
 import type { LedgerLeg } from "../../lib/banking/Transaction";
 import type { Bank } from "../../lib/banking/Bank";
@@ -36,6 +38,7 @@ import { GlobbableApi } from "../../api/glob";
 import { MixinApi } from "../../api/mixin";
 import { StuffApi } from "../../api/stuff";
 import { TemplatePaths } from "../../lib/paths";
+import { Property } from "../../lib/stuff/Propertied";
 import type { Stuff } from "../../lib/stuff/Stuff";
 import type { Container } from "../../lib/spatial/Container";
 import type { Containable } from "../../lib/spatial/Containable";
@@ -153,6 +156,16 @@ async function openAccountImpl(
   // Auto-register the new account onto the owner's implant wallet (the
   // implant links all the owner's accounts; first opened becomes active).
   autoLinkToWallet(actingPrincipal(), row.accountId);
+  // Lazily capitalize the branch on its first customer: seed the opening vault
+  // float (idempotent, best-effort). The counter is guaranteed live here (the
+  // customer is standing at it), which a boot-time seed can't guarantee. A
+  // no-op in tests (the float AppSetting is unwarmed → 0).
+  const floatMinor = openingFloatMinor();
+  if (floatMinor > 0) {
+    await seedFloatImpl(bankPath, Money.of(floatMinor)).catch(() => {
+      /* best-effort — a float failure never blocks opening an account */
+    });
+  }
   return row.accountId;
 }
 
@@ -186,69 +199,310 @@ async function ensureVenueAccountImpl(
   return row.accountId;
 }
 
+/** The cash-like contents of a container, grouped by denomination (per-stack). */
+function cashSupply(holder: Stuff & Container): CoinSupply[] {
+  const supply: CoinSupply[] = [];
+  for (const item of ContainmentApi.getContents(holder)) {
+    if (isCashLike(item)) {
+      supply.push({
+        denomination: item.getDenomination(),
+        quantity: item.getQuantity(),
+      });
+    }
+  }
+  return supply;
+}
+
 /**
- * Move `count` coins (value-1 units) from `from`'s contents to `to`,
- * splitting a stack when it holds more than needed. Used for both withdrawal
- * (vault → owner) and cash settlement (payer → payee). v1 assumes face value
- * 1 (count === minor units); denomination change-making is deferred.
+ * Take exactly the planned coins out of `from`, calling `dispose` on each
+ * removed stack/piece. Splits a stack when it holds more than the plan needs.
+ * Returns false only if the container didn't actually hold the planned coins
+ * (a concurrent-mutation guard; the plan is pre-validated against the supply).
+ */
+async function takeCoins(
+  from: Stuff & Container,
+  plan: readonly CoinLine[],
+  dispose: (piece: Stuff & Containable) => void,
+): Promise<boolean> {
+  for (const line of plan) {
+    let need = line.count;
+    for (const item of [...ContainmentApi.getContents(from)]) {
+      if (need <= 0) break;
+      if (!isCashLike(item) || item.getDenomination() !== line.denomination) {
+        continue;
+      }
+      const have = item.getQuantity();
+      if (have <= need) {
+        dispose(item as unknown as Stuff & Containable);
+        need -= have;
+      } else {
+        const piece = await GlobbableApi.split(item, need);
+        dispose(piece as unknown as Stuff & Containable);
+        need = 0;
+      }
+    }
+    if (need > 0) return false;
+  }
+  return true;
+}
+
+/**
+ * Move coins summing to exactly `value` (minor units) from `from` to `to`,
+ * making change largest-first and splitting a stack when it holds more than
+ * needed. Used for withdrawal (vault → owner) and cash settlement (payer →
+ * payee). Returns false when the source cannot make the value exactly from
+ * its denominations (the till-can't-make-change / exact-cash-or-card signal).
  */
 async function moveCoins(
   from: Stuff & Container,
   to: Stuff & Container,
-  count: number,
+  value: number,
 ): Promise<boolean> {
-  let remaining = count;
-  for (const item of [...ContainmentApi.getContents(from)]) {
-    if (remaining <= 0) break;
-    if (!isCashLike(item)) continue;
-    const have = item.getQuantity();
-    if (have <= remaining) {
-      ContainmentApi.move(item, to);
-      remaining -= have;
-    } else {
-      const piece = await GlobbableApi.split(item, remaining);
-      ContainmentApi.move(piece as unknown as Stuff & Containable, to);
-      remaining = 0;
-    }
-  }
-  return remaining === 0;
+  const plan = Coinage.planSpend(cashSupply(from), value);
+  if (!plan) return false;
+  return takeCoins(from, plan, (piece) => ContainmentApi.move(piece, to));
 }
 
-/** Total cash-like value on hand in a container (top-level coin stacks). */
+/** Total cash-like value on hand in a container (Σ face-value × quantity). */
 function cashOnHand(holder: Stuff & Container): number {
   let total = 0;
   for (const item of ContainmentApi.getContents(holder)) {
-    if (isCashLike(item)) total += item.getQuantity();
+    if (isCashLike(item)) total += stackValue(item);
   }
   return total;
 }
 
 /**
- * Remove exactly `count` worth of cash from `holder`, destroying the coin
- * (it leaves circulation). Caller must have pre-checked sufficiency
- * ({@link cashOnHand}); returns whether the full amount was drained. Used by
- * the on-ledger cash bridge (a cash payment with no physical till): coin is
+ * Remove exactly `value` (minor units) of cash from `holder`, destroying the
+ * coin (it leaves circulation). Returns whether the full value was drained
+ * (false when the held denominations can't make it exactly). Used by the
+ * on-ledger cash bridge (a cash payment with no physical till): coin is
  * consumed, equal value credited on-ledger — supply-neutral.
  */
 async function drainCoins(
   holder: Stuff & Container,
-  count: number,
+  value: number,
 ): Promise<boolean> {
-  let remaining = count;
-  for (const item of [...ContainmentApi.getContents(holder)]) {
-    if (remaining <= 0) break;
-    if (!isCashLike(item)) continue;
-    const have = item.getQuantity();
-    if (have <= remaining) {
-      StuffApi.destruct(item as unknown as Stuff);
-      remaining -= have;
-    } else {
-      const piece = await GlobbableApi.split(item, remaining);
-      StuffApi.destruct(piece as unknown as Stuff);
-      remaining = 0;
+  const plan = Coinage.planSpend(cashSupply(holder), value);
+  if (!plan) return false;
+  return takeCoins(holder, plan, (piece) =>
+    StuffApi.destruct(piece as unknown as Stuff),
+  );
+}
+
+/* ─────────────────────── Terms · fees · royalty ─────────────────────── */
+
+/** Game seconds in one calendar day (the quota window; DefaultCalendar). */
+const GAME_SECONDS_PER_DAY = 86_400;
+
+/** The corpo royalty rate (fraction of each fee → the corpo treasury). */
+function royaltyRate(): number {
+  try {
+    const raw = Number(AppApi.setting(AppSettingKeys.bankingCorpoRoyaltyRate));
+    return Number.isFinite(raw) && raw > 0 ? Math.min(1, raw) : 0;
+  } catch {
+    return 0;
+  }
+}
+
+/**
+ * The branch's operating account — where fee income lands and wages pay from
+ * (one P&L). Resolved via the Business operating at the branch (the bar's
+ * `getAccountPath()` precedent) so the bank's income + wages share an account;
+ * a bare bank falls back to a branch-keyed venue account. EmploymentApi is
+ * dynamically imported to dodge the banking↔employment module cycle (the
+ * DiagnosticApi precedent).
+ */
+async function resolveBranchAccountImpl(bank: Stuff & Bank): Promise<string> {
+  const bankPath = bank.getBankPath();
+  const corpoKey = bank.getCorpoKey();
+  let ownerPath = bankPath;
+  try {
+    const { EmploymentApi } = await import("../../api/employment");
+    // `ensureOperatorAt` stands the branch Business up lazily (off its
+    // operatingLocations) so fee income + wages + the opening float all share
+    // the one account keyed on the Business path.
+    const business = await EmploymentApi.ensureOperatorAt(bankPath);
+    if (business) ownerPath = business.getAccountPath();
+  } catch {
+    // No employment engine available (unit tests / pre-boot) → branch-keyed.
+  }
+  return ensureVenueAccountImpl(ownerPath, bankPath, corpoKey);
+}
+
+/**
+ * The corpo's own treasury — a well-known account keyed on `corpoKey`, held at
+ * `bankPath` (the corpo's own bank; intra-bank, 1:1 clean). The mirror of
+ * {@link ensureVenueAccountImpl}; created lazily so the corpo has income from
+ * the first fee. The corpo `Idea` stays pure data — this is an account it owns.
+ */
+async function ensureCorpoTreasuryImpl(
+  corpoKey: string,
+  bankPath: string,
+): Promise<string> {
+  return ensureVenueAccountImpl(`corpo:${corpoKey}`, bankPath, corpoKey);
+}
+
+/**
+ * Seed a live branch's opening vault float: mint coin into the till AND credit
+ * the branch's own operating account against it (founding capital, backed 1:1
+ * → conservation holds). Best-effort + idempotent (a no-op if the branch isn't
+ * live or already has a balance). Returns whether it seeded.
+ */
+async function seedFloatImpl(bankPath: string, amount: Money): Promise<boolean> {
+  if (amount.minor <= 0) return false;
+  const bank = StuffApi.findByTemplatePath<Stuff & Bank>(bankPath);
+  if (!bank || !MixinApi.isBank(bank)) return false;
+  const branchAccount = await resolveBranchAccountImpl(bank);
+  if (AccountBalance.cachedBalance(branchAccount) > 0) return false;
+  await issueCashImpl(bank as unknown as Stuff & Container, amount, "float");
+  await postTransaction("deposit", [
+    {
+      from: Account.CASH_BRIDGE,
+      to: branchAccount,
+      amount: amount.minor,
+      category: "float",
+    },
+  ]);
+  return true;
+}
+
+/** The configured opening float (minor units), 0 if unset/pre-warm. */
+function openingFloatMinor(): number {
+  try {
+    const raw = Number(AppApi.setting(AppSettingKeys.bankingOpeningFloat));
+    return Number.isFinite(raw) && raw > 0 ? Math.floor(raw) : 0;
+  } catch {
+    return 0;
+  }
+}
+
+/**
+ * Charge a conserved fee: debit `customerAccountId` by `feeMinor`, splitting a
+ * royalty off the top to the affiliated corpo's treasury (the rest to the
+ * branch operating account). Both legs are pure real-account movement (a
+ * `transfer`, category `fee`) → the branch P&L as income, the corpo treasury
+ * accumulating from the first transaction, the customer's statement a line.
+ * A zero fee (Goodkin's near-state) is a no-op; a self-fee (customer == branch)
+ * is skipped. Caller must have ensured the customer holds the fee.
+ */
+async function chargeFeeImpl(
+  bank: Stuff & Bank,
+  customerAccountId: string,
+  feeMinor: number,
+  memo: string,
+): Promise<void> {
+  if (feeMinor <= 0) return;
+  const branchAccount = await resolveBranchAccountImpl(bank);
+  if (branchAccount === customerAccountId) return;
+  const corpoKey = bank.getCorpoKey();
+  const rate = royaltyRate();
+  let royalty = 0;
+  let treasury: string | null = null;
+  if (corpoKey && rate > 0) {
+    royalty = Math.floor(feeMinor * rate);
+    if (royalty > 0) {
+      treasury = await ensureCorpoTreasuryImpl(corpoKey, bank.getBankPath());
+      // A treasury that resolves to the branch itself (or the customer) can't
+      // take a distinct royalty leg — fold it back into the branch share.
+      if (treasury === branchAccount || treasury === customerAccountId) {
+        royalty = 0;
+        treasury = null;
+      }
     }
   }
-  return remaining === 0;
+  const legs: LedgerLeg[] = [];
+  const toBranch = feeMinor - royalty;
+  if (toBranch > 0) {
+    legs.push({
+      from: customerAccountId,
+      to: branchAccount,
+      amount: toBranch,
+      category: "fee",
+      memo,
+    });
+  }
+  if (royalty > 0 && treasury) {
+    legs.push({
+      from: customerAccountId,
+      to: treasury,
+      amount: royalty,
+      category: "fee",
+      memo,
+    });
+  }
+  if (legs.length > 0) await postTransaction("transfer", legs);
+}
+
+/**
+ * Cash withdrawn from `accountId` **this game-day** — a derive-on-read sum
+ * over the append-only ledger's `withdraw` legs since the day boundary (no
+ * stored counter, no scheduler; Law-2 clean). The common-pool till guard reads
+ * this against the per-account cap.
+ */
+async function withdrawnTodayImpl(accountId: string): Promise<number> {
+  const dayStart =
+    Math.floor(WorldClockApi.getNow().rawValue() / GAME_SECONDS_PER_DAY) *
+    GAME_SECONDS_PER_DAY;
+  const rows = await entriesForImpl(accountId);
+  let total = 0;
+  for (const r of rows) {
+    if (r.kind === "withdraw" && r.fromAccount === accountId && r.at >= dayStart) {
+      total += r.amount;
+    }
+  }
+  return total;
+}
+
+/**
+ * Circle membership is a corpo loyalty program — an attribute of the *member*
+ * (the player), NOT of any one bank account. It lives as a plain saved boolean
+ * prop on the member, keyed `<corpoKey>.circle` (e.g. `goodkin.circle`), via the
+ * general `PropertiedMixin` every Creature carries. The write chokepoint
+ * (`enrollCircle`) is the security boundary; the prop itself is ungated state,
+ * consistent with how the codebase persists per-Avatar props.
+ */
+function circleProp(corpoKey: string): Property<boolean> {
+  return Property.of<boolean>(`${corpoKey}.circle`);
+}
+
+/** Whether `member` belongs to `corpoKey`'s Circle (reads the saved prop). */
+function isCircleMember(member: Stuff | null, corpoKey: string): boolean {
+  if (!member || !MixinApi.isPropertied(member)) return false;
+  return member.getProp(circleProp(corpoKey)) === true;
+}
+
+/**
+ * The per-account daily cash-withdrawal cap. Circle members (of the account's
+ * corpo) get the raised one — read off the withdrawing `member`, not the row.
+ */
+function withdrawalCapFor(account: AccountBalance, member: Stuff | null): number {
+  const key = isCircleMember(member, account.corpoKey || "")
+    ? AppSettingKeys.bankingWithdrawalDailyCapCircle
+    : AppSettingKeys.bankingWithdrawalDailyCap;
+  try {
+    const raw = Number(AppApi.setting(key));
+    return Number.isFinite(raw) && raw > 0 ? Math.floor(raw) : 0;
+  } catch {
+    return 0;
+  }
+}
+
+/**
+ * The wire fee (minor units) a transfer levies, read off the *source* bank's
+ * Terms: intra-bank (same branch) is free; cross-*bank* same-corpo costs the
+ * wire fee; cross-*corpo* costs the heavier cross-corpo fee.
+ */
+async function transferFeeFor(
+  from: AccountBalance,
+  to: AccountBalance | null,
+): Promise<number> {
+  if (!to || from.bankPath === to.bankPath) return 0;
+  const sourceBank = StuffApi.findByTemplatePath<Stuff & Bank>(from.bankPath);
+  if (!sourceBank || !MixinApi.isBank(sourceBank)) return 0;
+  const terms = sourceBank.getTerms();
+  const crossCorpo = (from.corpoKey || "") !== (to.corpoKey || "");
+  return crossCorpo ? terms.getCrossCorpoFee() : terms.getWireFee();
 }
 
 /**
@@ -321,7 +575,14 @@ async function settleImpl(
     if (cashSplitTotal > charge.amount.minor) {
       throw new Error("BankingLogic.settle: splits exceed the charge");
     }
-    await drainCoins(payerC, charge.amount.minor);
+    // Exact-cash-or-card: consume coins summing to exactly the charge, or
+    // refuse before any ledger leg posts (the caller falls back to the card).
+    const drained = await drainCoins(payerC, charge.amount.minor);
+    if (!drained) {
+      throw new Error(
+        "BankingLogic.settle: can't make the exact amount in cash",
+      );
+    }
     const bridgeLegs: LedgerLeg[] = [];
     const bridgeMain = charge.amount.minor - cashSplitTotal;
     if (bridgeMain > 0) {
@@ -487,6 +748,9 @@ async function issueCashImpl(
   amount: Money,
   category: PnlCategory = "float",
 ): Promise<Stuff> {
+  if (amount.minor <= 0) {
+    throw new Error("BankingLogic.issueCash: amount must be positive");
+  }
   await postTransaction("mint", [
     {
       from: Account.ISSUANCE,
@@ -496,10 +760,22 @@ async function issueCashImpl(
       category,
     },
   ]);
-  const coin = await StuffApi.clone(COIN_PATH);
-  (coin as unknown as Globbable).setQuantity(amount.minor);
-  ContainmentApi.move(coin as unknown as Stuff & Containable, into);
-  return coin;
+  // Dispense largest-first: a real cash faucet hands out efficient coins
+  // (25s, then 5s, then 1s), not a heap of ones. Each denomination is its own
+  // stack (they never merge — `globIdentityFields = ['denomination']`).
+  const lines = Coinage.dispense(amount.minor);
+  let representative: Stuff | null = null;
+  for (const line of lines) {
+    const coin = await StuffApi.clone(COIN_PATH);
+    (coin as unknown as { denomination: string }).denomination =
+      line.denomination;
+    (coin as unknown as Globbable).setQuantity(line.count);
+    ContainmentApi.move(coin as unknown as Stuff & Containable, into);
+    if (!representative) representative = coin;
+  }
+  // `dispense` yields ≥1 line for a positive amount; the largest is returned
+  // as a convenience handle (all stacks are already placed in `into`).
+  return representative as Stuff;
 }
 
 /**
@@ -867,6 +1143,12 @@ export class BankingLogic extends ApiLogic {
     await postTransaction("deposit", [
       { from: Account.CASH_BRIDGE, to: account.accountId, amount: value },
     ]);
+    // The convenience fee (Terms), conserved → branch + corpo royalty. Zero
+    // for Goodkin (no-op); charged out of the just-credited balance.
+    const fee = bank.getTerms().getTransactionFee();
+    if (fee > 0 && AccountBalance.cachedBalance(account.accountId) >= fee) {
+      await chargeFeeImpl(bank, account.accountId, fee, "deposit fee");
+    }
   }
 
   /** See {@link BankingApi.withdraw}. Balance → cash, bounded by the till. */
@@ -877,10 +1159,35 @@ export class BankingLogic extends ApiLogic {
     if (!account) {
       throw new Error("BankingLogic.withdraw: no account here");
     }
-    if (AccountBalance.cachedBalance(account.accountId) < amount.minor) {
+    const terms = bank.getTerms();
+    const fee = terms.getTransactionFee();
+    const balance = AccountBalance.cachedBalance(account.accountId);
+    if (balance < amount.minor + fee) {
       throw new Error(
-        `BankingLogic.withdraw: your balance is under ${amount.render()}`,
+        `BankingLogic.withdraw: your balance is under ${amount.render()}` +
+          (fee > 0 ? ` (plus a ${fee}-credit fee)` : ""),
       );
+    }
+    // Minimum-balance floor (Terms) — a withdrawal can't drop you below it.
+    if (balance - amount.minor - fee < terms.getMinBalance()) {
+      throw new Error(
+        `BankingLogic.withdraw: that would drop you below the ${terms.getMinBalance()}-credit minimum`,
+      );
+    }
+    // Common-pool guard (anti-grief): a per-account daily cash cap so one
+    // actor can't drain the shared till to deny others. Derive-on-read over
+    // the ledger; per-account, never collective (a bank run is a feature);
+    // over the cap → refuse and push onto the ledger (card/transfer). Scales
+    // with standing (Circle → higher cap).
+    const cap = withdrawalCapFor(account, actingPrincipal());
+    if (cap > 0) {
+      const already = await withdrawnTodayImpl(account.accountId);
+      if (already + amount.minor > cap) {
+        throw new Error(
+          `BankingLogic.withdraw: that exceeds today's ${cap}-credit cash ` +
+            `limit (you've drawn ${already}) — pay by card or transfer instead`,
+        );
+      }
     }
     // The diegetic limit (AC#13): a branch can run low on physical coin even
     // when the account is solvent — bounded by the actual till, not a gate.
@@ -894,6 +1201,18 @@ export class BankingLogic extends ApiLogic {
     if (!principal || !MixinApi.isContainer(principal)) {
       throw new Error("BankingLogic.withdraw: nowhere to hand the cash");
     }
+    // Dispense largest-first, bounded by the till's denominations. The till
+    // can hold enough total value yet be unable to make the amount *exactly*
+    // (e.g. only 25s for a 10-credit pull) — a distinct, diegetic refusal from
+    // till-low, checked before the ledger moves so the debit never outruns the
+    // coin. Exact-cash-or-card: push the customer onto card / transfer.
+    const bankContainer = bank as unknown as Stuff & Container;
+    if (Coinage.planSpend(cashSupply(bankContainer), amount.minor) === null) {
+      throw new Error(
+        `BankingLogic.withdraw: the branch can't make ${amount.render()} ` +
+          `in exact change right now (try a card payment or transfer)`,
+      );
+    }
     await postTransaction("withdraw", [
       {
         from: account.accountId,
@@ -901,11 +1220,18 @@ export class BankingLogic extends ApiLogic {
         amount: amount.minor,
       },
     ]);
-    await moveCoins(
-      bank as unknown as Stuff & Container,
-      principal,
-      amount.minor,
-    );
+    // Till security: open the disbursement window around the one legitimate
+    // vault-coin removal so `canRemoveContainable` permits it (loose `get` of
+    // the till stays vetoed). `finally` guarantees the window closes.
+    bank._beginDisbursing();
+    try {
+      await moveCoins(bankContainer, principal, amount.minor);
+    } finally {
+      bank._endDisbursing();
+    }
+    // The convenience fee (Terms), conserved → branch + corpo royalty. Zero
+    // for Goodkin (no-op). Charged after the cash is handed over.
+    await chargeFeeImpl(bank, account.accountId, fee, "withdrawal fee");
   }
 
   /** See {@link BankingApi.transfer}. Balance → balance (conserving). */
@@ -923,14 +1249,30 @@ export class BankingLogic extends ApiLogic {
     if (from.owner !== actingActorKey()) {
       throw new Error("BankingLogic.transfer: that isn't your account");
     }
-    if (AccountBalance.cachedBalance(fromAccountId) < amount.minor) {
+    // A wire fee (Terms) on movement/convenience — the only live Goodkin fee.
+    // Intra-bank (same branch) is free; cross-*bank* (same corpo) costs the
+    // wire fee; cross-*corpo* costs the (heavier) cross-corpo fee — rivalry
+    // has a cost. The source bank's schedule prices it. Read before the move
+    // so the balance check covers amount + fee.
+    const to = await accountByIdImpl(toAccountId);
+    const wireFee = await transferFeeFor(from, to);
+    if (AccountBalance.cachedBalance(fromAccountId) < amount.minor + wireFee) {
       throw new Error(
-        `BankingLogic.transfer: balance under ${amount.render()}`,
+        `BankingLogic.transfer: balance under ${amount.render()}` +
+          (wireFee > 0 ? ` (plus a ${wireFee}-credit wire fee)` : ""),
       );
     }
     await postTransaction("transfer", [
       { from: fromAccountId, to: toAccountId, amount: amount.minor, memo },
     ]);
+    if (wireFee > 0) {
+      const sourceBank = StuffApi.findByTemplatePath<Stuff & Bank>(
+        from.bankPath,
+      );
+      if (sourceBank && MixinApi.isBank(sourceBank)) {
+        await chargeFeeImpl(sourceBank, fromAccountId, wireFee, "wire fee");
+      }
+    }
   }
 
   /* ──────────────── settlement + the credential ladder ──────────────── */
@@ -944,26 +1286,11 @@ export class BankingLogic extends ApiLogic {
     return settleImpl(charge, method);
   }
 
-  /** See {@link BankingApi.setActiveAccount}. Switch the wallet's active acct. */
-  @CallSecurity(BankingApiCallers)
-  public setActiveAccount(
-    credential: PaymentCredential,
-    accountId: string,
-  ): void {
-    credential.setActiveAccount(accountId);
-  }
-
   /** See {@link BankingApi.activeCredential}. The actor's routing credential. */
   @CallSecurity(BankingApiCallers)
   public activeCredential(): PaymentCredential | null {
     const actor = actingPrincipal();
     return actor ? reachableCredential(actor) : null;
-  }
-
-  /** See {@link BankingApi.freezeCredential}. Report-lost — revoke a credential. */
-  @CallSecurity(BankingApiCallers)
-  public freezeCredential(credential: PaymentCredential): void {
-    credential.setFrozen(true);
   }
 
   /** See {@link BankingApi.issueCard}. Issue/reissue a card for an account. */
@@ -1026,5 +1353,48 @@ export class BankingLogic extends ApiLogic {
     corpoKey: string,
   ): Promise<string> {
     return ensureVenueAccountImpl(ownerPath, bankPath, corpoKey);
+  }
+
+  /** See {@link BankingApi.ensureCorpoTreasury}. The corpo's royalty account. */
+  @CallSecurity(BankingApiCallers)
+  public async ensureCorpoTreasury(
+    corpoKey: string,
+    bankPath: string,
+  ): Promise<string> {
+    return ensureCorpoTreasuryImpl(corpoKey, bankPath);
+  }
+
+  // The opening float (seedFloatImpl) and the withdrawal-quota reader
+  // (withdrawnTodayImpl) are NOT public Api methods: the float triggers lazily
+  // on the first openAccount, and the quota is read inside withdraw. Both are
+  // module-internal — exposing them would put internal ops on the author
+  // surface (callable == visible == cared-about) with no author consumer.
+
+  /**
+   * See {@link BankingApi.enrollCircle}. Enrol `ownerKey`'s account at a
+   * `corpoKey`-affiliated bank into the Circle (the recognized-standing perk).
+   * Returns whether an account was found (false → the player hasn't opened one
+   * yet, so the officer nudges rather than enrols). The enrollment-tree effect.
+   */
+  @CallSecurity(BankingApiCallers)
+  public async enrollCircle(
+    ownerKey: string,
+    corpoKey: string,
+  ): Promise<boolean> {
+    // The gameplay gate: you must have opened an account at this corpo's bank
+    // before its Circle will have you (the officer nudges otherwise).
+    const accounts = await accountsOfImpl(ownerKey);
+    if (!accounts.some((a) => a.corpoKey === corpoKey)) return false;
+    // The membership itself rides the *member*, not the account — a saved prop
+    // on the player. Resolve the live member Stuff (present in the dialogue) and
+    // write it. Persist through the member's own spine save when it offers one
+    // (Avatar), matching the old account.save() immediacy; otherwise the next
+    // autosave capture carries it (the per-Avatar-prop idiom, e.g. contacts).
+    const member = StuffApi.findByTemplatePath<Stuff>(ownerKey);
+    if (!member || !MixinApi.isPropertied(member)) return false;
+    member.setProp(circleProp(corpoKey), true);
+    const savable = member as Stuff & { save?: () => Promise<void> };
+    if (typeof savable.save === "function") await savable.save();
+    return true;
   }
 }

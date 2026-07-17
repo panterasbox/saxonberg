@@ -1,5 +1,5 @@
 verbs: [make]
-controller: crafting/MakeController
+controller: /obj/command/crafting/MakeController
 description: "Run a recipe you've defined or learned (a named recipe-script)"
 help: |
   Run a named recipe-script — `make martini`, or steer it with a param:

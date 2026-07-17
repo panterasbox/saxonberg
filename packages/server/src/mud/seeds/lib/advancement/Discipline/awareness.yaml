@@ -1,0 +1,22 @@
+# Awareness — the practiced attention that notices what is *there*: a
+# concealed cache, a secret door, a lurking watcher, the wrongness of a
+# tripped floor. The Discipline that grades detection — it modulates a
+# viewer's effective perception (the `capacity` term), the reach of an
+# active `search`/`examine`, and (later) `disarm`. Seeded as pure data (the
+# bartending / melee-combat precedent); the DisciplineCatalogue harvests
+# every /lib/advancement/Discipline/* leaf at boot. No `conferrals`: search
+# / examine are universally afforded verbs — competence only *grades* them,
+# it doesn't gate the menu.
+class: /lib/advancement/Discipline
+hydratorClass: /lib/persistence/PersistentHydrator
+data:
+  key: awareness
+  channel: skill
+  label: Awareness
+  iscedf: "0288"  # ISCED-F 2013 — Inter-disciplinary (skills, not a field)
+  description: >-
+    Perception, attention, and the art of searching — noticing that
+    something is present when it does not want to be found. A novice reads
+    only the obvious; a practised eye catches the hairline seam, the draft,
+    the stone that sits a shade too proud. Earned by looking, and by
+    looking closely.

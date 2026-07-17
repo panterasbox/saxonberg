@@ -2,11 +2,13 @@
  * ExitableVessel — an enterable, portable-by-shape container.
  *
  * Composition:
- *   `DoorBearingMixin(ExitableMixin(VisibleMixin(Vessel)))`
- *   where `Vessel = ContainerMixin(Thing)` and `Thing = ContainableMixin(Stuff)`.
+ *   `DoorBearingMixin(ExitableMixin(AdornableMixin(Vessel)))`.
+ * `Vessel` already carries the describable-physical baseline
+ * (`Visible`/`Perceptible`/`Tangible`) + Container + Containable, so nothing
+ * is re-added here beyond the enterable-container machinery.
  *
- * The result is a Thing that is both Containable (so it can live inside
- * a Location or another ExitableVessel) and Container + Exitable +
+ * The result is a container-object that is both Containable (so it can live
+ * inside a Location or another ExitableVessel) and Container + Exitable +
  * DoorBearing (so players can enter it, look/act inside it, and so it
  * can carry a defining Door — wardrobe, refrigerator, car).
  *
@@ -38,7 +40,6 @@
 
 import { Vessel } from '../stuff/Vessel';
 import { ExitableMixin } from './Exitable';
-import { VisibleMixin } from '../description/Visible';
 import { AdornableMixin } from './Adornable';
 import { DoorBearingMixin } from './DoorBearing';
 import Exit from './Exit';
@@ -47,10 +48,11 @@ import type { Container } from '../spatial/Container';
 import type Door from './Door';
 import { StuffApi } from '../../api/stuff';
 import { BoundaryApi } from '../../api/boundary';
+import { PerceptionApi } from '../../api/perception';
 import { MixinApi } from '../../api/mixin';
 
 const ExitableVesselBase = DoorBearingMixin(
-  ExitableMixin(VisibleMixin(AdornableMixin(Vessel)))
+  ExitableMixin(AdornableMixin(Vessel))
 );
 
 export default class ExitableVessel extends ExitableVesselBase {
@@ -81,6 +83,15 @@ export default class ExitableVessel extends ExitableVesselBase {
     const base = super.getObviousExits();
     const out = this.getOrSynthesizeOutExit();
     if (out && !out.isHidden()) base.push(out);
+    return base;
+  }
+
+  public override obviousExitsFor(viewer: Stuff): Exit[] {
+    const base = super.obviousExitsFor(viewer);
+    const out = this.getOrSynthesizeOutExit();
+    // The synthesized `out` rides the same viewer-aware gate as the
+    // explicit exits (an un-concealed `out` always perceives-true).
+    if (out && PerceptionApi.perceives(viewer, out)) base.push(out);
     return base;
   }
 

@@ -166,8 +166,15 @@ export default class SubjectCatalogue extends SubjectCatalogueBase {
       groupRef = opts.groupRef;
     } else {
       // Curated: mint a backing managed group, owner-owned (plus any
-      // extra cohort members from a promotion).
-      const ids = [ownerId, ...(opts.curatedMembers ?? []).map((m) => m.id)];
+      // extra cohort members from a promotion). Group membership keys on the
+      // member's templatePath (a player as `/obj/Avatar/<id>`) — the uniform
+      // key the managed provider resolves and the audience check compares;
+      // `ownerId` (the playerId) stays the Subject.owner *identity*.
+      const ownerMemberKey = owner.getTemplatePath() ?? ownerId;
+      const ids = [
+        ownerMemberKey,
+        ...(opts.curatedMembers ?? []).map((m) => m.id),
+      ];
       const roles: GroupRole[] = [
         'owner',
         ...(opts.curatedMembers ?? []).map((m) => m.role),
@@ -235,7 +242,9 @@ export default class SubjectCatalogue extends SubjectCatalogueBase {
    */
   public async visibleSubjects(actor: Stuff): Promise<Subject[]> {
     await this.ensureCache();
-    const playerId = PlayerApi.isAvatarStuff(actor) ? actor.getPlayerId() : '';
+    // Uniform member key: the actor's templatePath (a player as
+    // `/obj/Avatar/<id>`, an NPC as its own path) — no player-vs-NPC branch.
+    const memberKey = actor.getTemplatePath() ?? '';
     const out: Subject[] = [];
     for (const s of this.byTitle.values()) {
       if (s.state !== 'active') continue;
@@ -243,8 +252,8 @@ export default class SubjectCatalogue extends SubjectCatalogueBase {
         out.push(s);
         continue;
       }
-      if (!playerId) continue;
-      if (await GroupApi.isMember(playerId, s.getGroupRef())) out.push(s);
+      if (!memberKey) continue;
+      if (await GroupApi.isMember(memberKey, s.getGroupRef())) out.push(s);
     }
     return out;
   }
@@ -252,9 +261,9 @@ export default class SubjectCatalogue extends SubjectCatalogueBase {
   /** True when `actor` is in `subject`'s audience (open ⇒ everyone). */
   public async isAudienceMember(actor: Stuff, subject: Subject): Promise<boolean> {
     if (subject.isOpen()) return true;
-    const playerId = PlayerApi.isAvatarStuff(actor) ? actor.getPlayerId() : '';
-    if (!playerId) return false;
-    return GroupApi.isMember(playerId, subject.getGroupRef());
+    const memberKey = actor.getTemplatePath() ?? '';
+    if (!memberKey) return false;
+    return GroupApi.isMember(memberKey, subject.getGroupRef());
   }
 
   // --- Subscription store -------------------------------------------

@@ -1,7 +1,9 @@
 # Terminus Terminal — Departure Gate C (out of service). One of two dead
 # gates: authored-static out-of-service content (D8). Its terminal shows a
 # grey status light and refuses travel. Generic room; connections declared
-# explicitly on both sides — the hall lies one cell south.
+# explicitly on both sides — the hall lies one cell north (reoriented
+# 2026-07-12: the arrival alcove and this dead gate swapped ends so the
+# terminal's north frontage opens onto University Avenue).
 class: /lib/location/CartesianLocation
 hydratorClass: /lib/persistence/PersistentHydrator
 data:
@@ -11,12 +13,12 @@ data:
     A departure gate off the hall, cordoned off behind a folding barrier. Its terminal stands dark, the status light a dead grey; a laminated notice zip-tied to the rail reads OUT OF SERVICE — thank you for your patience. Dust has settled on the platform. Whatever line ran from here doesn't, for now.
   coords:
     x: 0
-    y: 1
+    y: -1
     z: 0
   populates:
     - /domain/terminus/terminal/departure-terminal-c
   exits:
-    south:
+    north:
       destination: /domain/terminus/terminal/hall
   details:
     notice:

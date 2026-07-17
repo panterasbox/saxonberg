@@ -1,5 +1,5 @@
 verbs: [order]
-controller: crafting/OrderController
+controller: /obj/command/crafting/OrderController
 description: "Order a cocktail from the menu"
 help: |
   Order a drink off the menu — `order martini`. Whoever's tending the

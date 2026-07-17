@@ -1,5 +1,5 @@
 verbs: [pour]
-controller: bulk/PourController
+controller: /obj/command/bulk/PourController
 description: "Pour liquid from one holder into another"
 help: |
   Moves liquid from one holder into another. Name the source

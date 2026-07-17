@@ -41,7 +41,7 @@ describe("AppSettingsSeeder", () => {
     pm.setFindResult([]);
     const added = await AppSettingsSeeder.run();
 
-    expect(added).toBe(73);
+    expect(added).toBe(189); // 146 base + 7 Attendant+Goodkin + 19 storms-and-wetness + 17 concealment/detection/hazard/movement
     expect(pm.saves).toHaveLength(1);
     expect(pm.saves[0]!.collection).toBe("app_settings");
     const values = savedValues(pm);
@@ -55,6 +55,13 @@ describe("AppSettingsSeeder", () => {
     expect(values[AppSettingKeys.forumsAntiSnowballMinVotes]).toBe("5");
     expect(values[AppSettingKeys.forumsAntiSnowballMinMinutes]).toBe("30");
     expect(values[AppSettingKeys.renownQualityWeight]).toBe("1");
+    expect(values[AppSettingKeys.concealmentPassiveBaseline]).toBe("0");
+    expect(values[AppSettingKeys.detectionCapacityPerBand]).toBe("3");
+    expect(values[AppSettingKeys.concealmentSearchBonus]).toBe("4");
+    expect(values[AppSettingKeys.concealmentHintCutoff]).toBe("4");
+    expect(values[AppSettingKeys.concealmentExamineBonus]).toBe("2");
+    expect(values[AppSettingKeys.movementAttentionSneak]).toBe("2");
+    expect(values[AppSettingKeys.movementAttentionRun]).toBe("-2");
   });
 
   it("is idempotent — a fully-populated row is left alone (no save)", async () => {
@@ -142,6 +149,138 @@ describe("AppSettingsSeeder", () => {
           [AppSettingKeys.responseDeliverySecondaryFactor]: "0.6",
           [AppSettingKeys.responseBandGrazeMax]: "0.5",
           [AppSettingKeys.responseBandBiteMax]: "1.5",
+          // The two behavior ambient-pacing keys.
+          [AppSettingKeys.behaviorAmbientCadenceScale]: "1",
+          [AppSettingKeys.behaviorAmbientCadenceFloorMs]: "60000",
+          // The 20 combat (core 1v1) + 3 combat (Build 2) tuning keys.
+          [AppSettingKeys.combatTickSeconds]: "3",
+          [AppSettingKeys.combatPoisePressedBelow]: "0.75",
+          [AppSettingKeys.combatPoiseReelingBelow]: "0.5",
+          [AppSettingKeys.combatPoiseBrokenAt]: "0.25",
+          [AppSettingKeys.combatPoiseOpeningTicks]: "2",
+          [AppSettingKeys.combatPoiseErodePerExchange]: "0.12",
+          [AppSettingKeys.combatPoiseOverextendCost]: "0.2",
+          [AppSettingKeys.combatPoiseRestorePerDefense]: "0.15",
+          [AppSettingKeys.combatPoiseWhiffPenalty]: "0.25",
+          [AppSettingKeys.combatTempoBase]: "1",
+          [AppSettingKeys.combatTempoEncumbrancePenalty]: "0.5",
+          [AppSettingKeys.combatTempoEnduranceFloor]: "0.4",
+          [AppSettingKeys.combatTempoMinRate]: "0.1",
+          [AppSettingKeys.combatTempoMaxRate]: "3",
+          [AppSettingKeys.combatEnergySteady]: "1.2",
+          [AppSettingKeys.combatEnergyPressed]: "1.6",
+          [AppSettingKeys.combatEnergyReeling]: "2.2",
+          [AppSettingKeys.combatEnergyBroken]: "3",
+          [AppSettingKeys.combatEnergyOpen]: "4.5",
+          [AppSettingKeys.combatMaxBeats]: "200",
+          [AppSettingKeys.combatCoupSeconds]: "6",
+          [AppSettingKeys.combatRegardDuelWin]: "2",
+          [AppSettingKeys.combatRegardUnlawfulKill]: "-20",
+          // The 3 cycle-2 multi-party combat tuning keys.
+          [AppSettingKeys.combatFocusFireErosionPerEdge]: "0.5",
+          [AppSettingKeys.combatFocusFireSuppressRecoveryAt]: "2",
+          [AppSettingKeys.combatFleePartingShotEnergy]: "1.6",
+          // The 4 Attendant+Goodkin banking keys (withdrawal quota ×2,
+          // corpo royalty, opening float).
+          [AppSettingKeys.bankingWithdrawalDailyCap]: "500",
+          [AppSettingKeys.bankingWithdrawalDailyCapCircle]: "2000",
+          [AppSettingKeys.bankingCorpoRoyaltyRate]: "0.1",
+          [AppSettingKeys.bankingOpeningFloat]: "500",
+          // The 3 Attendant lease/queue idle-eviction keys.
+          [AppSettingKeys.attendantLeaseSweepIntervalMs]: "15000",
+          [AppSettingKeys.attendantLeaseIdleThresholdMs]: "120000",
+          [AppSettingKeys.attendantQueueIdleThresholdMs]: "180000",
+          // The 6 experience-pass combat tuning keys (feint + fog + sharpness).
+          [AppSettingKeys.combatPoiseFeintCost]: "0.08",
+          [AppSettingKeys.combatPoiseFeintBitPenalty]: "0.8",
+          [AppSettingKeys.combatFogReadSharpness]: "0.7",
+          [AppSettingKeys.combatFogClearSharpness]: "0.7",
+          [AppSettingKeys.combatSharpnessMin]: "0.35",
+          [AppSettingKeys.combatSharpnessMax]: "1",
+          // The 23 weapon-playstyle combat tuning keys (15 weapon-profile
+          // + 3 reach + 5 hand-slot).
+          [AppSettingKeys.combatWeaponBalanceRefMass]: "0.9",
+          [AppSettingKeys.combatWeaponTempoExponent]: "0.35",
+          [AppSettingKeys.combatWeaponTempoMin]: "0.5",
+          [AppSettingKeys.combatWeaponTempoMax]: "1.6",
+          [AppSettingKeys.combatWeaponPoiseDamageExponent]: "0.4",
+          [AppSettingKeys.combatWeaponPoiseDamageMin]: "0.6",
+          [AppSettingKeys.combatWeaponPoiseDamageMax]: "1.5",
+          [AppSettingKeys.combatWeaponOverextendExponent]: "0.35",
+          [AppSettingKeys.combatWeaponOverextendMin]: "0.6",
+          [AppSettingKeys.combatWeaponOverextendMax]: "1.5",
+          [AppSettingKeys.combatWeaponBalanceHeavyBelow]: "0.92",
+          [AppSettingKeys.combatWeaponBalanceLightAbove]: "1.08",
+          [AppSettingKeys.combatWeaponReachShortBelow]: "0.5",
+          [AppSettingKeys.combatWeaponReachLongAbove]: "1.5",
+          [AppSettingKeys.combatWeaponGuardHardnessRef]: "300",
+          [AppSettingKeys.combatReachCloseCost]: "0.18",
+          [AppSettingKeys.combatReachAdvantageEnergy]: "0.2",
+          [AppSettingKeys.combatReachContestStrength]: "1",
+          [AppSettingKeys.combatSwitchSeconds]: "6",
+          [AppSettingKeys.combatDrawSeconds]: "1.5",
+          [AppSettingKeys.combatOffhandGuardBonus]: "0.6",
+          [AppSettingKeys.combatDualWieldMasteryRank]: "2",
+          [AppSettingKeys.combatDualWieldNoviceGuardBonus]: "-0.3",
+          // The 16 electricity (shock channel + conduction) tuning keys.
+          [AppSettingKeys.electricityBodyDryResistanceOhms]: "100000",
+          [AppSettingKeys.electricityBodyWetFactor]: "100",
+          [AppSettingKeys.electricityBodyGeometryFactor]: "20000",
+          [AppSettingKeys.electricityContactGeometryFactor]: "0.01",
+          [AppSettingKeys.electricityContactMaxOhms]: "1000000000000",
+          [AppSettingKeys.electricityResistanceFloorOhms]: "1",
+          [AppSettingKeys.electricityLetGoAmps]: "0.01",
+          [AppSettingKeys.electricityTetanicAmps]: "0.02",
+          [AppSettingKeys.electricityFibrillationAmps]: "0.1",
+          [AppSettingKeys.electricityBurnThresholdAmps]: "0.02",
+          [AppSettingKeys.electricityBurnSeverityPerAmp]: "10",
+          [AppSettingKeys.electricityPoolMinConductivity]: "0.005",
+          [AppSettingKeys.electricityInsulatorMaxConductivity]: "0.001",
+          [AppSettingKeys.electricityArmorConductiveSkinFactor]: "0.15",
+          [AppSettingKeys.electricitySustainBurnPerAmpSec]: "2",
+          [AppSettingKeys.electricityArrestDrivePerSec]: "40",
+          // The 5 concealment (detection gate — Phase 1) tuning keys.
+          [AppSettingKeys.concealmentLevelSubtle]: "2",
+          [AppSettingKeys.concealmentLevelHidden]: "4",
+          [AppSettingKeys.concealmentLevelDeep]: "7",
+          [AppSettingKeys.concealmentLevelBuried]: "11",
+          [AppSettingKeys.concealmentHiddenDefaultLevel]: "hidden",
+          // The 2 detection (Phase 2) dials.
+          [AppSettingKeys.concealmentPassiveBaseline]: "0",
+          [AppSettingKeys.detectionCapacityPerBand]: "3",
+          // The 5 detection search / hint (Phase 3) dials.
+          [AppSettingKeys.concealmentSearchBonus]: "4",
+          [AppSettingKeys.concealmentSearchDepthBonus]: "3",
+          [AppSettingKeys.concealmentSearchSeconds]: "4",
+          [AppSettingKeys.concealmentHintCutoff]: "4",
+          [AppSettingKeys.concealmentExamineBonus]: "2",
+          // The 3 hazard (Phase 4) dials.
+          [AppSettingKeys.hazardPinSeconds]: "6",
+          [AppSettingKeys.hazardDropFallEnergy]: "4",
+          [AppSettingKeys.hazardDisarmSeconds]: "5",
+          // The 2 care↔speed movement attention (Phase 5) dials.
+          [AppSettingKeys.movementAttentionSneak]: "2",
+          [AppSettingKeys.movementAttentionRun]: "-2",
+          [AppSettingKeys.wetnessEvaporationRatePct]: "1.25",
+          [AppSettingKeys.wetnessWarmthFactor]: "0.03",
+          [AppSettingKeys.wetnessWarmthReferenceK]: "295",
+          [AppSettingKeys.wetnessRainAccrualPerHour]: "1.5",
+          [AppSettingKeys.wetnessImmersionSaturation]: "1",
+          [AppSettingKeys.wetnessBandDampAt]: "0.15",
+          [AppSettingKeys.wetnessBandWetAt]: "0.45",
+          [AppSettingKeys.wetnessBandSoakedAt]: "0.8",
+          [AppSettingKeys.wetnessAbsorptionCapacityDefaultPct]: "5",
+          [AppSettingKeys.stormPuddleAccrualLitersPerSegment]: "12",
+          [AppSettingKeys.stormPuddleEvaporationFactor]: "0.2",
+          [AppSettingKeys.stormPuddleFreshWaterMaterialPath]:
+            "/lib/material/bulk/water",
+          [AppSettingKeys.stormStrikeRate]: "0.15",
+          [AppSettingKeys.stormStrikeIntervalS]: "1800",
+          [AppSettingKeys.stormStrikeVoltage]: "30000000",
+          [AppSettingKeys.stormAttractorBias]: "4",
+          [AppSettingKeys.weatherCloudDimFactor]: "0.6",
+          [AppSettingKeys.weatherSkyForecastSegments]: "2",
+          [AppSettingKeys.thermalWetHeatLossFactor]: "1.5",
         },
       },
     ]);
@@ -170,8 +309,17 @@ describe("AppSettingsSeeder", () => {
     // + 4 transit (banking.onboardingStipend + 3 fasttravel fare keys)
     // + 21 materials-response (7 attenuation + 4 material + 2 grade
     //   + condition + fracture + noWound + severityPerResidual
-    //   + referenceEnergy + secondaryFactor + 2 band).
-    expect(added).toBe(72);
+    //   + referenceEnergy + secondaryFactor + 2 band)
+    // + 2 behavior (ambientCadenceScale, ambientCadenceFloorMs)
+    // + 23 combat (20 core 1v1 + 3 Build 2)
+    // + 3 multi-party combat (2 focus-fire + 1 flee)
+    // + 6 experience combat (2 feint poise + 2 fog + 2 sharpness)
+    // + 23 weapon-playstyle combat (15 weapon-profile + 3 reach + 5 hand-slot)
+    // + 16 electricity (shock channel + conduction)
+    // + 7 Attendant+Goodkin (4 banking + 3 lease/queue)
+    // + 19 storms-and-wetness (8 wetness + 7 storm + 2 weather + 1 thermal + 1 absorptionCap)
+    // + 17 concealment/detection/hazard/movement (5+2+5+3+2, Phases 1-5)
+    expect(added).toBe(188);
     expect(pm.saves).toHaveLength(1);
     const values = savedValues(pm);
     // operator value preserved, missing keys seeded

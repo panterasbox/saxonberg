@@ -52,22 +52,23 @@ data:
       keywords: [stool, stools, seat, seats, leather, rail]
       description: |
         Worn leather, each one shaped a little differently by the body that owns it — and on a quiet night one at the end of the rail sits empty on purpose, kept for whichever of the staff is off-shift and drinking here anyway. Where else would they go.
-  # The way into Dave's office. Declared `hidden` and `bidirectional:
-  # false` (the office declares its own plain south exit back out; the
-  # bar->lounge south exit is wired imperatively by the Warren and not
-  # declared here). IMPORTANT: `hidden` exits are excluded from BOTH the
-  # obvious-exits list AND movement targeting — `canReach` and the MQL
-  # exit resolver iterate getObviousExits(), so a hidden exit is not
-  # walkable by name (`north` -> "you can't walk that way"). So today
-  # the office is a SEALED inner sanctum, reachable by no one — the
-  # intended "inaccessible until earned" placeholder. Lighting it up
-  # (a regard-gated reveal, a `search`-reveals-hidden mechanic, or just
-  # flipping `hidden: false` to make it freely walkable) is the deferred
-  # follow-up. Verified live 2026-06-28: `north` is correctly blocked.
+  # The way into Dave's office — now a DISCOVERABLE secret door (D1/Phase 3
+  # closes the documented dead-end). Authored `concealment: hidden` (the
+  # concealment vocabulary that subsumed the old `hidden: true` flag) plus a
+  # `hint` (the "tell" the passive room `look` surfaces to direct attention
+  # without revealing the door). The exit stays absent from `getObviousExits`
+  # (`isConcealed()` is still true) — so the landing exit-count assertion is
+  # unchanged, and the office is unreachable — UNTIL a viewer `search`es the
+  # bar and discovers it (a sticky per-viewer DISCOVERY belief), after which
+  # `obviousExitsFor`/the MQL scope-walk list it and `go north` works.
+  # `bidirectional: false` (the office declares its own plain south exit
+  # back out; the bar->lounge south exit is wired imperatively by the
+  # Warren and not declared here).
   exits:
     north:
       destination: /domain/lounge/office
-      hidden: true
+      concealment: hidden
+      hint: A hairline seam runs up the north wall behind the taps, and a thread of cooler air leaks from it — as though a door were pretending to be a wall.
       bidirectional: false
   # The corpo battlefield, lit. Branded neon signs attached as non-
   # portable wall fixtures (AdornableMixin.applyAdornments): each carries
@@ -99,6 +100,10 @@ data:
     # The tip jar on the rail — patrons `tip`, the on-shift bartender
     # `collect`s it (physical coin, off the books).
     - { template: /domain/lounge/tip-jar, onto: /domain/lounge/back-bar }
+    # The Attendant service point — the bar as an instance of the storefront-
+    # attention substrate (scrum / zero-wait: the feel is unchanged, the lease
+    # is earned). `order` consults it before serving.
+    - /domain/lounge/bar-counter
     - /domain/lounge/bar-menu
     - /domain/lounge/npc/mara
     - /domain/lounge/npc/remy

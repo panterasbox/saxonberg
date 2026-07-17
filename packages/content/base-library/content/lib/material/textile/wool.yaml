@@ -13,6 +13,10 @@ data:
   hardness: 3
   toughness: 4
   specificHeat: 1360
+  # Electrical conductivity (S/m) — dry wool insulates (~1×10⁻¹¹).
+  electricalConductivity: 1.0e-11
+  # Water absorption capacity (% of dry mass, ASTM D570): wool holds ~a third of its weight in water.
+  waterAbsorptionCapacity: 33
   edibility: false
   nutrients: []
   toxicity: []

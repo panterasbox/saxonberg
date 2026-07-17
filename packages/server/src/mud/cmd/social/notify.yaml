@@ -1,5 +1,5 @@
 verbs: [notify]
-controller: social/NotifyController
+controller: /obj/command/social/NotifyController
 description: "Manage your attention rules — how a group's connect / disconnect / message surfaces, and how they render in a room (keyed on any group ref, ordered by precedence)"
 help: |
   Decide whose comings, goings, and messages reach you, and how the

@@ -90,6 +90,8 @@ lint:
     - pnpm -C packages/server lint:pm
     # Materials-response legibility: no construction/implement does nothing.
     - pnpm -C packages/server lint:does-nothing
+    # Weapon-playstyle legibility: no seeded weapon derives an inert profile.
+    - pnpm -C packages/server lint:inert-weapon
 
 test:
   extends: [.node, .mr-only]

@@ -22,7 +22,12 @@ import type {
   Trauma,
   TraumaType,
 } from '../../lib/vitals/Condition';
-import type { InflictSpec, InflictOutcome } from '../../api/condition';
+import type {
+  InflictSpec,
+  InflictOutcome,
+  EnergyInflictSpec,
+  ShockInflictSpec,
+} from '../../api/condition';
 
 const ConditionApiCallers = SecurityPolicies.FromModule(
   '/api/condition#ConditionApi'
@@ -42,6 +47,10 @@ function channelDefaultType(channel: Channel): TraumaType {
       return 'puncture';
     case 'blunt':
       return 'contusion';
+    case 'shock':
+      // A shock's local wound is a contact burn (the whole-body
+      // let-go/tetany/fibrillation outcomes are the vitals coupling).
+      return 'burn';
   }
 }
 
@@ -70,29 +79,54 @@ interface CoveringLayer {
  * `Wearable`, and sorts by construction layer depth (plate outer … padded
  * inner). A module-private free function (no intra-singleton self-call).
  */
-function resolveCoveringStack(host: Stuff, partKey: string): CoveringLayer[] {
+function resolveCoveringStack(
+  host: Stuff,
+  partKey: string,
+  shieldFacing = true
+): CoveringLayer[] {
   if (!MixinApi.isOrganism(host) || !MixinApi.isSlotted(host)) return [];
-  const covering = host.getSpecies()?.getBodyPlan()?.getSlotsCovering(partKey);
-  if (!covering || covering.length === 0) return [];
   const layers: CoveringLayer[] = [];
-  for (const spec of covering) {
+  const covering = host.getSpecies()?.getBodyPlan()?.getSlotsCovering(partKey);
+  for (const spec of covering ?? []) {
     for (const occ of host.getOccupants(spec.name)) {
       if (!MixinApi.isConstructed(occ) || !MixinApi.isWearable(occ)) continue;
       const construction = occ.getConstruction();
       if (!construction || !construction.isArmor()) continue;
-      layers.push({
-        material: MaterialApi.materialOf(occ),
-        construction,
-        grade: MixinApi.isGraded(occ) ? occ.getGrade() : undefined,
-        condition: MixinApi.isDurable(occ) ? occ.getCondition() : 1,
-      });
+      layers.push(layerOf(occ, construction));
     }
   }
-  // Outside-in: highest layer depth first (plate outer, padded innermost).
+  // A wielded **shield** — a `Wieldable` item carrying an *armor*
+  // construction (armor you hold, not wear; distinct from a weapon's
+  // delivery construction and from worn `Wearable` armor) — covers a
+  // *facing* attacker (directional; combat gates `shieldFacing` so a
+  // flanking blow under focus-fire bypasses it). Unlike worn armor it isn't
+  // tied to a body-plan `covers` slot: a raised shield fronts any struck part.
+  if (shieldFacing) {
+    for (const [, occupants] of host.getAllOccupants()) {
+      for (const occ of occupants) {
+        if (!MixinApi.isWieldable(occ) || !MixinApi.isConstructed(occ)) continue;
+        const construction = occ.getConstruction();
+        if (!construction || !construction.isArmor()) continue;
+        layers.push(layerOf(occ, construction));
+      }
+    }
+  }
+  if (layers.length === 0) return [];
+  // Outside-in: highest layer depth first (plate/shield outer, padded inner).
   layers.sort(
     (a, b) => b.construction.getLayerDepth() - a.construction.getLayerDepth(),
   );
   return layers;
+}
+
+/** Build a covering layer from an armor/shield occupant. */
+function layerOf(occ: Stuff, construction: Construction): CoveringLayer {
+  return {
+    material: MaterialApi.materialOf(occ),
+    construction,
+    grade: MixinApi.isGraded(occ) ? occ.getGrade() : undefined,
+    condition: MixinApi.isDurable(occ) ? occ.getCondition() : 1,
+  };
 }
 
 /** Does the resolved part carry a bone tissue (gates blunt → fracture)? */
@@ -164,6 +198,14 @@ export class ConditionLogic extends ApiLogic {
   @CallSecurity(ConditionApiCallers)
   public inflict(target: Stuff, spec: InflictSpec): InflictOutcome {
     const inflicter = resolveInflicter();
+    // Shock is intercepted FIRST — its path resistance was resolved upstream
+    // in the conduction walk, so it skips the covering-stack fold entirely (a
+    // third path beside the mechanical fold + the thermal/tearing passthrough,
+    // leaving both byte-identical).
+    if (spec.mechanism === 'shock') {
+      return inflictShock(target, spec, inflicter);
+    }
+    // `spec` is now the energy-carrying variant (shock excluded).
     return Channels.isChannel(spec.mechanism)
       ? inflictThroughStack(target, spec, spec.mechanism, inflicter)
       : inflictPassthrough(target, spec, inflicter);
@@ -200,7 +242,7 @@ export class ConditionLogic extends ApiLogic {
  */
 function inflictThroughStack(
   target: Stuff,
-  spec: InflictSpec,
+  spec: EnergyInflictSpec,
   channel: Channel,
   inflicter: string | undefined,
 ): InflictOutcome {
@@ -210,7 +252,11 @@ function inflictThroughStack(
   let tissueMaterial: Material | null = null;
 
   if (isBody) {
-    for (const layer of resolveCoveringStack(target, spec.site)) {
+    for (const layer of resolveCoveringStack(
+      target,
+      spec.site,
+      spec.shieldFacing ?? true
+    )) {
       residual = MaterialApi.attenuate(
         channel,
         residual,
@@ -263,7 +309,7 @@ function inflictThroughStack(
  */
 function inflictPassthrough(
   target: Stuff,
-  spec: InflictSpec,
+  spec: EnergyInflictSpec,
   inflicter: string | undefined,
 ): InflictOutcome {
   const type: TraumaType = spec.mechanism === 'thermal' ? 'burn' : 'avulsion';
@@ -282,6 +328,45 @@ function inflictPassthrough(
   const nowS = conditionNowSeconds();
   if (nowS !== null) trauma.tickedAt = nowS;
   TRAUMA_BEHAVIOR[type].onset(target, trauma);
+  target.afflict(trauma);
+  return { trauma, afflicted: true };
+}
+
+/**
+ * The **shock** path — a `{mechanism:'shock', current}` insult. The path
+ * resistance was resolved upstream (the conduction walk divided current
+ * toward ground), so this does **NOT** consult the covering stack /
+ * `MaterialApi.attenuate` — it maps the current-through-victim straight to
+ * a local contact `burn` via `MaterialApi.resolveShock`. Below the burn
+ * threshold (a tingle) the record is truthful but nothing is afflicted.
+ * Module-private (off-class, so no intra-singleton self-call). The
+ * whole-body outcomes (tetany / fibrillation → arrest) are the vitals
+ * coupling's job (the being-shocked sustain + the electrocution death seam),
+ * not this local wound.
+ */
+function inflictShock(
+  target: Stuff,
+  spec: ShockInflictSpec,
+  inflicter: string | undefined,
+): InflictOutcome {
+  const resolution = MaterialApi.resolveShock(spec.current);
+  const trauma: Trauma = {
+    kind: 'trauma',
+    type: resolution?.type ?? 'burn',
+    site: spec.site,
+    severity: resolution?.severity ?? 0,
+    mechanism: 'shock',
+  };
+  if (inflicter !== undefined) trauma.inflictedBy = inflicter;
+
+  // Non-body target, or a below-threshold current (tingle) → nothing
+  // afflicted, but a truthful record.
+  if (!MixinApi.isVitals(target) || resolution === null) {
+    return { trauma, afflicted: false };
+  }
+  const nowS = conditionNowSeconds();
+  if (nowS !== null) trauma.tickedAt = nowS;
+  TRAUMA_BEHAVIOR[trauma.type].onset(target, trauma);
   target.afflict(trauma);
   return { trauma, afflicted: true };
 }

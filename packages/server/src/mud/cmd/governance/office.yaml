@@ -1,5 +1,5 @@
 verbs: [office, offices]
-controller: governance/OfficeController
+controller: /obj/command/governance/OfficeController
 description: "Inspect government offices; the founder hands seats off"
 help: |
   The seats of government — a fixed apparatus of named offices, each held

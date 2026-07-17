@@ -1,0 +1,16 @@
+verbs: [wind]
+controller: ../command/WindController
+description: "Wind a mechanical timepiece's mainspring back to full"
+help: |
+  Wind the mainspring of a mechanical timepiece within reach, so it keeps
+  ticking — `wind watch`. A mechanical movement runs off its mainspring;
+  let it run down and the hands freeze at the moment it stopped. Winding
+  it refills the spring and the movement resumes from the time it last
+  showed.
+validators:
+  - /lib/command/validators/requiresAnimate
+args:
+  - name: target
+    type: object
+    required: true
+    scope: "reachable"

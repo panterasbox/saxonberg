@@ -33,6 +33,7 @@ import type { LocomotionMode } from '../../../lib/locomotion/LocomotionMode';
 import { MessageApi } from '../../../api/message';
 import { MixinApi } from '../../../api/mixin';
 import { Mml } from '../../../api/mml';
+import { CombatApi } from '../../../api/combat';
 
 export interface LocomotionModel extends CommandModel {
   target?: MqlOneResult;
@@ -112,6 +113,25 @@ export abstract class LocomotionControllerBase extends CommandController<Locomot
     const guard = LocomotionApi.canTraverseExit(actor, exit, mode, direction);
     if (!guard.ok) {
       this.emitRejection(guard, mode, model, context);
+      return;
+    }
+
+    // Fleeing = a locomotion attempt made while engaged. Combat resolves
+    // it here: a no-op when not fighting, else an opposed-lite disengage
+    // (a focus-fire pin can veto the break; foes still locked on get a
+    // parting shot). On a successful break the actor has left the fight and
+    // the traverse proceeds under the chosen mode.
+    const broke = CombatApi.disengage(actor);
+    if (!broke.ok) {
+      MessageApi.scene(actor)
+        .topic('system.shell.movement')
+        .toSelf(Mml.fromMarkup(broke.message ?? "You can't break away!"))
+        .send();
+      context.note({
+        kind: 'locomotion-gate-failed',
+        gate: 'breakaway',
+        mode: mode.getName(),
+      });
       return;
     }
 

@@ -28,6 +28,7 @@
 import Thing from "../lib/stuff/Thing";
 import { GlobbableMixin } from "../lib/stuff/Globbable";
 import { DEFAULT_CURRENCY } from "../lib/banking/Money";
+import { Coinage } from "../lib/banking/Coinage";
 import { Quantity } from "../lib/quantity";
 
 const CoinBase = GlobbableMixin(Thing);
@@ -45,14 +46,17 @@ export default class Coin extends CoinBase {
   }
 
   /**
-   * The **stack's** total mass: the per-coin mass (stored via `Tangible`,
-   * the per-unit value the template seeds + persists) scaled by the stack
-   * size. This is what flows through the shipped `LoadBearing` tree-walk
-   * (which reads `getMass()`), so a large stack measurably blows past carry
-   * capacity — the cap on cash is the honest physics. Persistence still
-   * round-trips the per-coin mass via the `mass` accessor, untouched here.
+   * The **stack's** total mass: the per-coin mass — derived from the
+   * denomination ({@link Coinage.perCoinMass}, currency-intrinsic like face
+   * value, NOT a worth on the good) — scaled by the stack size. Deriving from
+   * the denomination (a preserved `globIdentityField`) makes mass correct
+   * across clone / split / merge without depending on the stored `Tangible`
+   * mass, so a 25-credit sovereign stack is always heavier per coin than a
+   * pile of 1-credit pieces of the same value. This is what flows through the
+   * shipped `LoadBearing` tree-walk (which reads `getMass()`), so a large
+   * fortune measurably blows past carry capacity — the honest-physics cash cap.
    */
   public override getMass(): Quantity<"kg"> {
-    return super.getMass().scale(this.getQuantity());
+    return Coinage.perCoinMass(this.denomination).scale(this.getQuantity());
   }
 }

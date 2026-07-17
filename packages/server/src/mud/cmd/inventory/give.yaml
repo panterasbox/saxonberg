@@ -1,5 +1,5 @@
 verbs: [give, hand]
-controller: inventory/GiveController
+controller: /obj/command/inventory/GiveController
 description: "Give an item from your inventory to another actor"
 help: |
   Hand something you're carrying to someone else in the room. Name

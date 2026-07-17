@@ -64,6 +64,10 @@ export const TemplatePaths = {
   // with one account); the reissue path after a report-lost freeze.
   paymentCard: "/lib/banking/PaymentCard",
 
+  // Physical key template — cloned per issue (a bearer instrument holding a
+  // keychain credential); the durable form of dorm/lock access.
+  key: "/lib/lock/Key",
+
   // Metabolism cascade conditions — the `floorEffect`-named `Condition`
   // Ideas the reconcile spawns/clears off a floored biological reserve.
   metabolismStarvation: "/lib/metabolism/conditions/starvation",

@@ -14,6 +14,11 @@ data:
   density: 2750
   specificHeat: 790
   thermalConductivity: 2.9
+  # Electrical conductivity (S/m) — dry granite is near-inert (~1×10⁻⁵);
+  # a dry stone floor does not ground you.
+  electricalConductivity: 1.0e-5
+  # Water absorption capacity (% of dry mass, ASTM D570): dense stone, near-nil porosity.
+  waterAbsorptionCapacity: 0.3
   edibility: false
   nutrients: []
   toxicity: []

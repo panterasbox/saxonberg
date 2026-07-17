@@ -1,5 +1,5 @@
 verbs: [bank]
-controller: banking/BankController
+controller: /obj/command/banking/BankController
 description: "Bank here — balance / statement / open / deposit / withdraw / transfer"
 help: |
   Do your banking at the branch you're standing in. Bare `bank` shows your

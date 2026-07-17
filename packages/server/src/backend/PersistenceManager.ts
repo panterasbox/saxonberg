@@ -37,6 +37,7 @@ export enum Collections {
   NameBanks = 'name_banks',
   Groups = 'groups',
   Channels = 'channels',
+  Parties = 'parties',
   Beliefs = 'beliefs',
   Chronicles = 'chronicles',
   Transcripts = 'transcripts',
@@ -65,6 +66,7 @@ export enum Collections {
   ParcelEvents = 'parcel_events',
   Diagnostics = 'diagnostics',
   HolderSnapshots = 'holder_snapshots',
+  CombatAttributionEvents = 'combat_attribution_events',
 }
 
 /**
@@ -694,6 +696,22 @@ export class PersistenceManager {
       });
       await this.getCollection(Collections.Channels).createIndex({ kind: 1 });
 
+      // Parties: durable-party records (PartyRecord; ad-hoc parties are
+      // live Ideas only, never written). `path` (the party Idea's
+      // templatePath) is the durable join key; `name` unique for the
+      // clash check; `memberIds` for the "durable crews I'm on" read.
+      await this.getCollection(Collections.Parties).createIndex(
+        { path: 1 },
+        { unique: true }
+      );
+      await this.getCollection(Collections.Parties).createIndex(
+        { name: 1 },
+        { unique: true }
+      );
+      await this.getCollection(Collections.Parties).createIndex({
+        memberIds: 1,
+      });
+
       // Beliefs: per-viewer identity-memory working set (one doc per
       // {viewerId, realm, referent}). Indexed on `viewerId` so a
       // session's lazy-hydrate (`BeliefDocument.find({ viewerId })`) and
@@ -861,6 +879,17 @@ export class PersistenceManager {
       await this.getCollection(Collections.AuthoringEvents).createIndex({
         author: 1,
       });
+
+      // Combat attribution: the append-only blame ledger (one doc per
+      // attribution act; nothing overwritten). Indexed on `victim`
+      // (derive who is to blame for a death) and `sessionId` (a fight's
+      // whole chain of rows).
+      await this.getCollection(Collections.CombatAttributionEvents).createIndex(
+        { victim: 1 },
+      );
+      await this.getCollection(Collections.CombatAttributionEvents).createIndex(
+        { sessionId: 1 },
+      );
 
       // Positions: held conviction, one doc per (subject, stock, target).
       // Indexed on `{ subject, stock, target }` (the upsert / positionOf key)

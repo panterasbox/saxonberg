@@ -207,14 +207,11 @@ export abstract class Stuff {
       const n = this.getQuantity();
       if (n !== 1) identity = `${n} ${GrammarApi.pluralize(this, base)}`;
     }
-    // Authored activity-status decoration (Character-tier `StatusMixin`):
-    // "Gus, the crossing guard" → "Gus, …, watching the empty road".
-    // Viewer-independent, so it rides the baseline; `RecognitionApi`
-    // re-weaves it onto a recognized name the same way.
-    if (MixinApi.isStatus(this)) {
-      const status = this.getStatus();
-      if (status) return `${identity}, ${status}`;
-    }
+    // `getPresentation()` is pure identity. The authored activity-status
+    // affix (`StatusMixin`, "watching the empty road") is a *presence*
+    // decoration, not identity — it weaves in only through
+    // `RecognitionApi.describeWithStatus` at presence-scan surfaces (the
+    // room occupant roll-call, the profile), never on act-subject naming.
     return identity;
   }
 
@@ -277,6 +274,21 @@ export abstract class Stuff {
    */
   public getTemplatePath(): string | null {
     return ProxyApi.unwrap(this as unknown as Stuff).#templatePath;
+  }
+
+  /**
+   * The controlling player's account id, or `null` when this Stuff is not a
+   * player-controlled body (an NPC, a prop, a fixture). `Avatar` overrides to
+   * return its `playerId`. This is the auth/account identity (OAuth id,
+   * `User.playerIds`) — NOT a membership key. Group / authority membership
+   * keys uniformly on `getTemplatePath()` (a player as `/obj/Avatar/<id>`, an
+   * NPC as its own path), so a membership check never branches on player-vs-NPC
+   * and never mixes id shapes. Kept as a typed method (rather than the old
+   * `(x as { getPlayerId?() }).getPlayerId?.()` duck-typing) so the auth-layer
+   * call sites that legitimately need the account id can ask any Stuff.
+   */
+  public getPlayerId(): string | null {
+    return null;
   }
 
   /**
@@ -657,9 +669,11 @@ export abstract class Stuff {
    * Top-level branches registered via `_registerTopLevelBranch`.
    * Every concrete Stuff subclass must trace through one of these in
    * its prototype chain. Identity-based — entries are the actual
-   * branch constructors (Thing, Location, Idea, Agent, Vessel,
-   * Shadow), not names or markers, so the membership check can't be
-   * spoofed by a same-named class declared elsewhere.
+   * branch constructors (Thing, Location, Idea, Agent, Shadow), not
+   * names or markers, so the membership check can't be spoofed by a
+   * same-named class declared elsewhere. (A `Vessel` is a container-
+   * object that `extends Thing`, so it traces the Thing branch — it is
+   * not a branch of its own.)
    */
   static #branches: Set<AnyClassRef> = new Set();
 
@@ -670,14 +684,14 @@ export abstract class Stuff {
    * list AND its registration call site.
    */
   static #branchRegistrationAllowlist: ReadonlyArray<RegExp> = [
-    /\/mud\/lib\/stuff\/(Thing|Location|Idea|Agent|Vessel|Shadow)\.(ts|js)$/,
+    /\/mud\/lib\/stuff\/(Thing|Location|Idea|Agent|Shadow)\.(ts|js)$/,
   ];
 
   static #branchRegistrationCache: Map<string, boolean> = new Map();
 
   /**
    * Register a class as a top-level branch. Called by Thing /
-   * Location / Idea / Agent / Vessel / Shadow at module load. Caller
+   * Location / Idea / Agent / Shadow at module load. Caller
    * URL must match `#branchRegistrationAllowlist`; everything else
    * throws.
    *
@@ -700,7 +714,7 @@ export abstract class Stuff {
     if (cached === false) {
       throw new Error(
         `Stuff._registerTopLevelBranch refused from ${url}: only the ` +
-          `six branch files (lib/stuff/{Thing,Location,Idea,Agent,Vessel,Shadow}.ts) ` +
+          `five branch files (lib/stuff/{Thing,Location,Idea,Agent,Shadow}.ts) ` +
           `may register branches.`
       );
     }
@@ -709,7 +723,7 @@ export abstract class Stuff {
     if (!allowed) {
       throw new Error(
         `Stuff._registerTopLevelBranch refused from ${url}: only the ` +
-          `six branch files (lib/stuff/{Thing,Location,Idea,Agent,Vessel,Shadow}.ts) ` +
+          `five branch files (lib/stuff/{Thing,Location,Idea,Agent,Shadow}.ts) ` +
           `may register branches.`
       );
     }
@@ -742,7 +756,7 @@ export abstract class Stuff {
     throw new Error(
       `Stuff subclass '${ctor.name || '<anonymous>'}' does not extend ` +
         `through one of the top-level branches: Thing, Location, Idea, ` +
-        `Agent, Vessel, or Shadow. See ` +
+        `Agent, or Shadow. See ` +
         `docs/architecture.md § Top-level branches.`
     );
   }

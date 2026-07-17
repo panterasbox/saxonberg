@@ -103,6 +103,14 @@ export default class OpenController extends CommandController<OpenModel> {
 
     sealable.open();
 
+    // Interact-hazard (a trapped chest): opening it is the touch that
+    // springs it. The hazard self-resolves — armed + `trigger: interact`
+    // is checked inside `resolveInteract`; a plain chest is a no-op.
+    const opened = sealable as unknown as Stuff;
+    if (MixinApi.isHazard(opened)) {
+      opened.resolveInteract(commandGiver);
+    }
+
     MessageApi.scene(commandGiver)
       .topic('world.narration.action')
       .toSelf(Mml.compose`You open ${Mml.object(sealable as unknown as Stuff)}.`)

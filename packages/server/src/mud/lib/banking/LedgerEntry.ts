@@ -57,6 +57,7 @@ export type PnlCategory =
   | "float"
   | "fare"
   | "networkFee"
+  | "fee"
   | "onboarding"
   | "other";
 

@@ -1,5 +1,5 @@
 verbs: [cat]
-controller: shell/CatController
+controller: /obj/command/shell/CatController
 description: "Print a content-tree template (default) or source-tree file"
 help: |
   Dump the contents of one path to your screen. By default `cat`

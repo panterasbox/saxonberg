@@ -1,5 +1,5 @@
 verbs: [feel]
-controller: perception/FeelController
+controller: /obj/command/perception/FeelController
 description: "Feel your surroundings or a specific thing"
 help: |
   Reach out and touch. With no target, `feel` reports the tactile

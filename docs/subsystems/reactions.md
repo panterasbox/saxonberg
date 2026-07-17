@@ -32,6 +32,11 @@ cross-viewer aggregation falls out **for free** from keying on
 - `world.speech.say`, `world.speech.whisper`, `world.speech.shout`
 - `world.expression.emote`
 - `world.chat.message`
+- `world.combat.exchange` — a **dramatic** combat beat (a hit / break /
+  down / kill; tick/pressed stay silent). The producer is `CombatNarration`,
+  which mints its own `commandId` and calls `noteReactableAct` at the
+  narration site (the beat runs in a detached scheduler root). See
+  [combat.md](./combat.md).
 
 A frame is reactable iff **topic ∈ REACTABLE_TOPICS ∧ `commandId`
 present ∧ a broadcast audience exists**. A whisper is reactable exactly

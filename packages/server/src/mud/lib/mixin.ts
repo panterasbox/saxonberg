@@ -40,6 +40,13 @@ export const Mixins = {
   Comms: 'CommsMixin',
   Forums: 'ForumsMixin',
   Perceptible: 'PerceptibleMixin',
+  // Presence-concealment — "how hard is it to notice this is here?". One
+  // level on every loose perceivable (Thing/Creature/Exit); subsumes the
+  // old Exit.hidden boolean. Read by the detection gate (PerceptionApi).
+  Concealable: 'ConcealableMixin',
+  // A self-resolving trap/hazard — state + delivery + its own resolution,
+  // sprung at the traverse (Mobile) or an interact (OpenController). No Api.
+  Hazard: 'HazardMixin',
   Detailed: 'DetailedMixin',
   Propertied: 'PropertiedMixin',
   CommandGiver: 'CommandGiverMixin',
@@ -49,6 +56,16 @@ export const Mixins = {
   SphericalCoordinates: 'SphericalCoordinatesMixin',
   Exitable: 'ExitableMixin',
   Sealable: 'SealableMixin',
+  // Binary on/off — a lamppost, a beacon, a machine.
+  Switchable: 'SwitchableMixin',
+  // Binary locked/unlocked — composed onto Door beneath Sealable.
+  Lockable: 'LockableMixin',
+  // Binary folded/unfolded — a folding chair refuses its posture slots.
+  Foldable: 'FoldableMixin',
+  // Displays game-time — a pocket watch, a clock tower, a sundial.
+  Timekeeping: 'TimekeepingMixin',
+  // The windable/drifting clockwork inside a mechanical timepiece.
+  MechanicalMovement: 'MechanicalMovementMixin',
   AroundSaveHook: 'AroundSaveHookMixin',
   AroundDeleteHook: 'AroundDeleteHookMixin',
   PostRegistration: 'PostRegistrationMixin',
@@ -63,6 +80,8 @@ export const Mixins = {
   LightSource: 'LightSourceMixin',
   SmellSource: 'SmellSourceMixin',
   SoundSource: 'SoundSourceMixin',
+  // Discrete-event sound push — a whistle, a bell, an alarm, a chime.
+  Audible: 'AudibleMixin',
   Augment: 'AugmentMixin',
   Perception: 'PerceptionMixin',
   Tangible: 'TangibleMixin',
@@ -123,6 +142,8 @@ export const Mixins = {
   Thermal: 'ThermalMixin',
   ThermalRegulation: 'ThermalRegulationMixin',
   Respiration: 'RespirationMixin',
+  // The cross-cutting wetness gauge — any Thing / body can be wet.
+  Wet: 'WetMixin',
   Behaved: 'BehavedMixin',
   Graded: 'GradedMixin',
   // A physical thing that wears out with use (the condition/wear gauge).
@@ -136,7 +157,6 @@ export const Mixins = {
   // The unified credential holder — one keyed store of credentials-as-data,
   // composed on the born-with wallet app and on the physical cards.
   CredentialWallet: 'CredentialWalletMixin',
-  Tab: 'TabMixin',
   // Haulage — a dragged container (cart) and the creature that pulls it.
   Haulable: 'HaulableMixin',
   Hauler: 'HaulerMixin',
@@ -144,6 +164,19 @@ export const Mixins = {
   // relationships (an on-shift Position confers its duties via augments).
   Business: 'BusinessMixin',
   Employed: 'EmployedMixin',
+  // Attendant — the universal storefront-attention substrate: a service-point
+  // fixture holding the queue + being-attended leases (a server's attention).
+  Attendant: 'AttendantMixin',
+  // Combat — "I can fight": combat verb affordances + the innate-attack
+  // hook. All fight state is session-scoped, never on the Creature.
+  Combatant: 'CombatantMixin',
+  // Party — "I can belong to a party": the sparse active-party pointer on
+  // Avatars + the hireable Mercenary NPC. Combat's friend/foe seam reads it.
+  PartyMember: 'PartyMemberMixin',
+  // Electricity — "I am a source held at a potential": a live wire, a stun
+  // baton, the deferred wall socket / Lightning bolt. Read by the
+  // conduction walk (ElectricityApi) to impose a potential difference.
+  Energized: 'EnergizedMixin',
 } as const;
 
 /**

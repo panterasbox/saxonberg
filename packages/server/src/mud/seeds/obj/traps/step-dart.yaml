@@ -1,0 +1,24 @@
+# The step-dart — one authored point in the Trap axis-space (NO subclass):
+# trigger=traversal, delivery=point channel + a venom toxin, no movement
+# consequence. Treading its plate drives a poisoned needle into the foot: a
+# small puncture through the covering stack (a boot mitigates it for free)
+# plus a toxin dose injected past digestion onto the metabolism burden.
+# `hidden` (requirement 4): a walking novice springs it, a sneaking one
+# notices and steps around it (the care-speed demonstrator's walk/sneak case).
+class: /lib/hazard/Trap
+hydratorClass: /lib/persistence/PersistentHydrator
+data:
+  shortDescription: a needle-slotted dart plate
+  primaryKeyword: dart
+  longDescription: |
+    A flagstone rigged over a spring: tread it and a poisoned needle drives up through a slot no wider than a straw. The venom is old but not dead.
+  concealment: hidden
+  concealmentHint: one flagstone sits a hair proud, ringed by a too-clean seam
+  trigger: traversal
+  delivery:
+    channel: point
+    energy: 2
+    siteSelector: [body.leg.left.foot, body.leg.right.foot]
+    toxin:
+      type: venom
+      amount: 4

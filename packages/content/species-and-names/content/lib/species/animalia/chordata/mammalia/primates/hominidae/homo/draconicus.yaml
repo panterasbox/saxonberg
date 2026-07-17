@@ -6,6 +6,7 @@ hydratorClass: /lib/persistence/PersistentHydrator
 data:
   illustration: species/draconicus.png
   binomial: Homo draconicus
+  sentient: true
   commonNames: ["dragonborn"]
   _bodyPlanPath: /lib/body-plans/biped
   _parentCladePath: /lib/species/animalia

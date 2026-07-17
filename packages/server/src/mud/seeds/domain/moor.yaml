@@ -1,0 +1,16 @@
+# The Weeping Moor — the storms-and-wetness demonstrator zone (the Drowned
+# Substation precedent). A self-contained CartesianZone holding two rooms that
+# prove the coexistence resolve end-to-end: the always-stormy heath (an
+# authored **Locality-tier** weather pin — the moor is *always* under storm)
+# and the weeping chamber (an authored **scope-tier** pin — it rains *indoors*,
+# no sky). Both feed the same wetness gauge + puddle sink as a procgen storm
+# would — the spine invariant (authored ≡ modelled downstream).
+#
+# No inbound exit is wired from another content area (the treeline / substation
+# precedent — keeps content-area standup clean); reachable by teleport / a
+# future travel node. Collects nothing, so no ownerGroup this cycle.
+class: /lib/location/CartesianZone
+hydratorClass: /lib/persistence/PersistentHydrator
+data:
+  name: The Weeping Moor
+  cellSize: 3.0

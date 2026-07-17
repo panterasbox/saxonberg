@@ -44,6 +44,11 @@ import type { CommandGiver } from '../lib/command/CommandGiver';
 import type { Focused } from '../lib/command/Focused';
 import type { Exitable } from '../lib/boundary/Exitable';
 import type { Sealable } from '../lib/spatial/Sealable';
+import type { Switchable } from '../lib/boundary/Switchable';
+import type { Energized } from '../lib/electricity/Energized';
+import type { Lockable } from '../lib/boundary/Locked';
+import type { Foldable } from '../lib/slot/Foldable';
+import type { Timekeeping } from '../lib/time/Timekeeping';
 import type { CartesianCoordinates } from '../lib/location/CartesianCoordinates';
 import type { SphericalCoordinates } from '../lib/location/SphericalCoordinates';
 import type { AroundSaveHook } from '../lib/persistence/AroundSaveHook';
@@ -60,10 +65,13 @@ import type { AmbientLit } from '../lib/perception/AmbientLit';
 import type { LightSource } from '../lib/perception/LightSource';
 import type { SmellSource } from '../lib/perception/SmellSource';
 import type { SoundSource } from '../lib/perception/SoundSource';
+import type { Audible } from '../lib/perception/Audible';
 import type { Augment } from '../lib/augmentation/Augment';
 import type { FastTravel } from '../lib/fasttravel/FastTravel';
 import type { CredentialWallet } from '../lib/credential/CredentialWallet';
 import type { Perception } from '../lib/perception/Perception';
+import type { Concealable } from '../lib/concealment/Concealable';
+import type { Hazard } from '../lib/hazard/Hazard';
 import type { Tangible } from '../lib/material/Tangible';
 import type { Constructed } from '../lib/material/Constructed';
 import type { Organism } from '../lib/species/Organism';
@@ -73,6 +81,7 @@ import type { Reserved } from '../lib/reserve';
 import type { LoadBearing } from '../lib/encumbrance/LoadBearing';
 import type { Metabolic } from '../lib/metabolism/Metabolic';
 import type { Thermal } from '../lib/thermal/Thermal';
+import type { Wet } from '../lib/wetness/Wet';
 import type { Respiration } from '../lib/respiration/Respiration';
 import type { Radioactive } from '../lib/material/Radioactive';
 import type { Workspace } from '../lib/shell/Workspace';
@@ -121,9 +130,11 @@ import type { Crafted } from '../lib/craft/Crafted';
 import type { Maker } from '../lib/craft/Maker';
 import type { Builds } from '../lib/craft/ManualBuild';
 import type { Bank } from '../lib/banking/Bank';
-import type { Tab } from '../lib/banking/Tab';
 import type { Business } from '../lib/employment/Business';
+import type { Attendant } from '../lib/attendant/Attendant';
 import type { Employed } from '../lib/employment/Employed';
+import type { Combatant } from '../lib/combat/Combatant';
+import type { PartyMember } from '../lib/party/PartyMember';
 import { SecurityApi } from './security';
 import { ShadowApi } from './shadow';
 
@@ -648,6 +659,16 @@ export class MixinApi {
     return this.hasMixin(obj, Mixins.Perceptible);
   }
 
+  /** Does `obj` carry a concealment level (presence-concealment)? */
+  public static isConcealable(obj: Stuff): obj is Stuff & Concealable {
+    return this.hasMixin(obj, Mixins.Concealable);
+  }
+
+  /** Is `obj` a self-resolving trap/hazard (springs at a traverse/interact)? */
+  public static isHazard(obj: Stuff): obj is Stuff & Hazard {
+    return this.hasMixin(obj, Mixins.Hazard);
+  }
+
   public static isDetailed(obj: Stuff): obj is Stuff & Detailed {
     return this.hasMixin(obj, Mixins.Detailed);
   }
@@ -680,6 +701,27 @@ export class MixinApi {
 
   public static isSealable(obj: Stuff): obj is Stuff & Sealable {
     return this.hasMixin(obj, Mixins.Sealable);
+  }
+
+  public static isSwitchable(obj: Stuff): obj is Stuff & Switchable {
+    return this.hasMixin(obj, Mixins.Switchable);
+  }
+
+  /** Is `obj` an electrical source (held at a potential)? */
+  public static isEnergized(obj: Stuff): obj is Stuff & Energized {
+    return this.hasMixin(obj, Mixins.Energized);
+  }
+
+  public static isLockable(obj: Stuff): obj is Stuff & Lockable {
+    return this.hasMixin(obj, Mixins.Lockable);
+  }
+
+  public static isFoldable(obj: Stuff): obj is Stuff & Foldable {
+    return this.hasMixin(obj, Mixins.Foldable);
+  }
+
+  public static isTimekeeping(obj: Stuff): obj is Stuff & Timekeeping {
+    return this.hasMixin(obj, Mixins.Timekeeping);
   }
 
   public static isCartesianCoordinates(obj: Stuff): obj is Stuff & CartesianCoordinates {
@@ -770,6 +812,10 @@ export class MixinApi {
     return this.hasMixin(obj, Mixins.SmellSource);
   }
 
+  public static isAudible(obj: Stuff): obj is Stuff & Audible {
+    return this.hasMixin(obj, Mixins.Audible);
+  }
+
   public static isSoundSource(obj: Stuff): obj is Stuff & SoundSource {
     return this.hasMixin(obj, Mixins.SoundSource);
   }
@@ -816,6 +862,10 @@ export class MixinApi {
 
   public static isThermal(obj: Stuff): obj is Stuff & Thermal {
     return this.hasMixin(obj, Mixins.Thermal);
+  }
+
+  public static isWet(obj: Stuff): obj is Stuff & Wet {
+    return this.hasMixin(obj, Mixins.Wet);
   }
 
   public static isRespiration(obj: Stuff): obj is Stuff & Respiration {
@@ -975,18 +1025,29 @@ export class MixinApi {
     return this.hasMixin(obj, Mixins.Bank);
   }
 
-  public static isTab(obj: Stuff): obj is Stuff & Tab {
-    return this.hasMixin(obj, Mixins.Tab);
-  }
-
   /** A standalone employing Business (the `BusinessMixin` marker). */
   public static isBusiness(obj: Stuff): obj is Stuff & Business {
     return this.hasMixin(obj, Mixins.Business);
   }
 
+  /** A storefront-attention service point (`AttendantMixin`). */
+  public static isAttendant(obj: Stuff): obj is Stuff & Attendant {
+    return this.hasMixin(obj, Mixins.Attendant);
+  }
+
   /** An actor that can hold employment relationships (`EmployedMixin`). */
   public static isEmployed(obj: Stuff): obj is Stuff & Employed {
     return this.hasMixin(obj, Mixins.Employed);
+  }
+
+  /** An actor that can fight (`CombatantMixin`). */
+  public static isCombatant(obj: Stuff): obj is Stuff & Combatant {
+    return this.hasMixin(obj, Mixins.Combatant);
+  }
+
+  /** An actor that can belong to a party (`PartyMemberMixin`). */
+  public static isPartyMember(obj: Stuff): obj is Stuff & PartyMember {
+    return this.hasMixin(obj, Mixins.PartyMember);
   }
 
   /**

@@ -1,5 +1,5 @@
 verbs: [eat]
-controller: bulk/EatController
+controller: /obj/command/bulk/EatController
 description: "Eat a discrete edible item"
 help: |
   Consume a whole edible item — an apple, a loaf, a ration. Unlike

@@ -126,6 +126,16 @@ settings:
   # one-liner (a one-liner, not a paragraph).
   - key: status.maxLength
     value: "100"
+  # Behavior — the global ambient-chatter pacing dial + anti-spam floor.
+  # scale multiplies every ambient cadence brain's authored interval
+  # (1.0 = as written; crank it up during playtest to quiet the whole
+  # world at once); floor is the hard minimum (60s) no unprompted ambient
+  # beat may fire faster than. Functional pollers (shifts/covers) are
+  # exempt. See docs/subsystems/behavior.md § Ambient pacing budget.
+  - key: behavior.ambientCadenceScale
+    value: "1"
+  - key: behavior.ambientCadenceFloorMs
+    value: "60000"
   # Scripting — resource governance. The slice yields the single-threaded
   # event loop every N interpreter steps so a no-suspension tight loop
   # cannot freeze other players; the ceilings stop a runaway run (steps =
@@ -162,6 +172,37 @@ settings:
   # guests get nothing; 0 disables the grant.
   - key: banking.onboardingStipend
     value: "20"
+  # Banking — the per-account cash-withdrawal cap per game-day (minor units),
+  # the common-pool till guard. Derive-on-read over the ledger (no counter);
+  # per-account, never collective. Generous in v1 — a 20-coin newcomer never
+  # nears it. The Circle cap is the recognized-standing perk (a higher quota).
+  # 0 disables the cap.
+  - key: banking.withdrawalDailyCap
+    value: "500"
+  - key: banking.withdrawalDailyCapCircle
+    value: "2000"
+  # Banking — the corpo royalty: the fraction of every collected fee split off
+  # the top to the affiliated corpo's treasury (the rest to the branch). Corpo
+  # income begins from the first fee; invisible to the player. 0 disables.
+  - key: banking.corpoRoyaltyRate
+    value: "0.1"
+  # Banking — the opening vault float (minor units) minted into a fresh branch's
+  # till at boot, backed 1:1 by the branch's own operating balance (founding
+  # capital) so early ledger-credit withdrawals work before deposits accumulate.
+  # 0 disables.
+  - key: banking.openingFloat
+    value: "500"
+  # Attendant — the anti-grief lease sweep (real-time). Griefing is a real-time
+  # act, so the watchdog is real-time (the residency pattern), not game-time.
+  # The idle threshold is the venue's generosity dial: a service act resets it,
+  # so a legit-slow customer keeps the counter while an idle hold is revoked.
+  # The queue idle-drop reaps a waiting place (a ticket) held idle.
+  - key: attendant.lease.sweepIntervalMs
+    value: "15000"
+  - key: attendant.lease.idleThresholdMs
+    value: "120000"
+  - key: attendant.queue.idleThresholdMs
+    value: "180000"
   # Fast-travel — the TPA network fee (a flat base + a percentage) levied on
   # every PAID ride into the TPA operating budget (both budgets recirculate;
   # the sink lever is a deferred CB drain, not accumulation). The base
@@ -288,4 +329,302 @@ settings:
   - key: response.band.grazeMax
     value: "0.5"
   - key: response.band.biteMax
+    value: "1.5"
+  # Electricity (the shock channel + conduction) — see
+  # docs/subsystems/electricity.md. Real-world-grounded magnitudes: the
+  # multimeter should read what coursework predicts. SHAPE (I=V/R, the
+  # current-division walk) is code; these are the magnitudes.
+  - key: electricity.body.dryResistanceOhms
+    value: "100000"
+  - key: electricity.body.wetFactor
+    value: "100"
+  - key: electricity.body.geometryFactor
+    value: "20000"
+  - key: electricity.contact.geometryFactor
+    value: "0.01"
+  - key: electricity.contact.maxOhms
+    value: "1000000000000"
+  - key: electricity.resistanceFloorOhms
+    value: "1"
+  - key: electricity.letGoAmps
+    value: "0.01"
+  - key: electricity.tetanicAmps
+    value: "0.02"
+  - key: electricity.fibrillationAmps
+    value: "0.1"
+  - key: electricity.burnThresholdAmps
+    value: "0.02"
+  - key: electricity.burnSeverityPerAmp
+    value: "10"
+  - key: electricity.pool.minConductivity
+    value: "0.005"
+  - key: electricity.insulator.maxConductivity
+    value: "0.001"
+  - key: electricity.armor.conductiveSkinFactor
+    value: "0.15"
+  - key: electricity.sustain.burnSeverityPerAmpSec
+    value: "2"
+  - key: electricity.heartRate.arrestDrivePerSec
+    value: "40"
+  # Combat (core 1v1) — see docs/subsystems/combat.md. All tuning; no
+  # code defaults. Poise/tempo/energy are the load-bearing curves.
+  - key: combat.tickSeconds
+    value: "3"
+  - key: combat.poise.pressedBelow
+    value: "0.75"
+  - key: combat.poise.reelingBelow
+    value: "0.5"
+  - key: combat.poise.brokenAt
+    value: "0.25"
+  - key: combat.poise.openingTicks
+    value: "2"
+  - key: combat.poise.erodePerExchange
+    value: "0.12"
+  - key: combat.poise.overextendCost
+    value: "0.2"
+  - key: combat.poise.restorePerDefense
+    value: "0.15"
+  - key: combat.poise.whiffPenalty
+    value: "0.25"
+  - key: combat.tempo.base
+    value: "1"
+  - key: combat.tempo.encumbrancePenalty
+    value: "0.5"
+  - key: combat.tempo.enduranceFloor
+    value: "0.4"
+  - key: combat.tempo.minRate
+    value: "0.1"
+  - key: combat.tempo.maxRate
+    value: "3"
+  - key: combat.energy.steady
+    value: "1.2"
+  - key: combat.energy.pressed
+    value: "1.6"
+  - key: combat.energy.reeling
+    value: "2.2"
+  - key: combat.energy.broken
+    value: "3"
+  - key: combat.energy.open
+    value: "4.5"
+  - key: combat.maxBeats
+    value: "200"
+  # Build 2 — consequence & progression.
+  # The coup de grâce window (game-time seconds): a downed sentient is
+  # finished by a slow, telegraphed, interruptible killing stroke, not the
+  # winning blow. Long enough that a present party can stay the hand.
+  - key: combat.coupSeconds
+    value: "6"
+  # Regard deltas a witnessed resolution writes. A clean, consented duel
+  # win earns the victor a little regard from onlookers; an unlawful kill
+  # (a non-consenting sentient put to death) makes witnesses recoil.
+  - key: combat.regard.duelWin
+    value: "2"
+  - key: combat.regard.unlawfulKill
+    value: "-20"
+  # Cycle 2 — multi-party.
+  # Focus-fire: each attacker beyond the first pressing a target erodes
+  # that target's poise this much faster (2 attackers → 1.5x erosion), and
+  # at/above `suppressRecoveryAt` incoming attackers a defender can't spend
+  # a beat recovering — the pin that breaks the lone turtle who beats one
+  # but loses to two.
+  - key: combat.focusFire.erosionPerEdge
+    value: "0.5"
+  - key: combat.focusFire.suppressRecoveryAt
+    value: "2"
+  # A foe you disengage past gets one parting shot at this inflict energy.
+  - key: combat.flee.partingShotEnergy
+    value: "1.6"
+  # Experience pass — the feint (poker, not slots).
+  # The feinter spends little to present the bait (aggression is cheap vs a turtle).
+  - key: combat.poise.feintCost
+    value: "0.08"
+  # A baited defender who fails to read the feint over-commits and loses this
+  # much poise — enough to crack a steady guard (1 - brokenAt), arming their
+  # opening for the feinter's next strike.
+  - key: combat.poise.feintBitPenalty
+    value: "0.8"
+  # Sharpness at/above which a defender reads a feint (won't bite; sees the tell).
+  - key: combat.fog.readSharpness
+    value: "0.7"
+  # Sharpness at/above which ordinary band fog clears (you see the true band).
+  - key: combat.fog.clearSharpness
+    value: "0.7"
+  # The competence -> sharpness curve: floor at `untrained`, ceiling at `expert`.
+  - key: combat.sharpness.min
+    value: "0.35"
+  - key: combat.sharpness.max
+    value: "1"
+  # Weapon playstyle — the derived WeaponProfile curves (shape-vs-magnitude:
+  # form/dimensions are the shape, these are the magnitudes). A bare weapon
+  # still works off these. See docs/subsystems/combat.md (WeaponProfile).
+  # Balance: mass -> tempo (light fast, heavy slow) and -> poise/overextend
+  # (heavy hits harder & commits harder). refMass maps to a neutral 1.0.
+  - key: combat.weapon.balanceRefMass
+    value: "0.9"
+  - key: combat.weapon.tempoExponent
+    value: "0.35"
+  - key: combat.weapon.tempoMin
+    value: "0.5"
+  - key: combat.weapon.tempoMax
+    value: "1.6"
+  - key: combat.weapon.poiseDamageExponent
+    value: "0.4"
+  - key: combat.weapon.poiseDamageMin
+    value: "0.6"
+  - key: combat.weapon.poiseDamageMax
+    value: "1.5"
+  - key: combat.weapon.overextendExponent
+    value: "0.35"
+  - key: combat.weapon.overextendMin
+    value: "0.6"
+  - key: combat.weapon.overextendMax
+    value: "1.5"
+  # Balance-class band edges on the tempo factor (below -> heavy, above -> light).
+  - key: combat.weapon.balanceHeavyBelow
+    value: "0.92"
+  - key: combat.weapon.balanceLightAbove
+    value: "1.08"
+  # Reach-class length thresholds (m): below -> short, above -> long.
+  - key: combat.weapon.reachShortBelow
+    value: "0.5"
+  - key: combat.weapon.reachLongAbove
+    value: "1.5"
+  # Material hardness (MPa) reference for the guard nudge (hard binds better).
+  - key: combat.weapon.guardHardnessRef
+    value: "300"
+  # Reach range tier — the per-edge reach|close state (geometry-free).
+  # Closing costs the closer this much poise. The reach term scales a
+  # strike's erosion/energy by (1 + reachRankDelta * advantageEnergy): a
+  # spear (2 ranks longer) at reach hits ~1.4x, and ~0.6x once closed.
+  # contestStrength = the reach-rank gap a composed holder needs to keep a
+  # closer out.
+  - key: combat.reach.closeCost
+    value: "0.18"
+  - key: combat.reach.advantageEnergy
+    value: "0.2"
+  - key: combat.reach.contestStrength
+    value: "1"
+  # Hand-slot economy — switching armament is a vulnerable durative beat;
+  # the sidearm draws fast (the disarm answer). Game-time seconds.
+  - key: combat.switch.seconds
+    value: "6"
+  - key: combat.draw.seconds
+    value: "1.5"
+  # Guard bonus a wielded shield / dual-wield off-hand adds; dual-wield is a
+  # net penalty at/below this competence rank (a novice fumbles the off-hand),
+  # getting only the reduced novice bonus until they grow into it.
+  - key: combat.offhand.guardBonus
+    value: "0.6"
+  - key: combat.dualWield.masteryRank
+    value: "2"
+  - key: combat.dualWield.noviceGuardBonus
+    value: "-0.3"
+  # Concealment — effective-perception a viewer needs to notice a thing at
+  # each concealed band (obvious = 0, no key). Monotone increasing. The band
+  # names + ordering are code (lib/concealment/ConcealmentLevel.ts); these
+  # are the tunable magnitudes. hiddenDefaultLevel = the band a legacy
+  # Exit.hidden:true migrates to. See docs/subsystems/concealment.md.
+  - key: concealment.level.subtle
+    value: "2"
+  - key: concealment.level.hidden
+    value: "4"
+  - key: concealment.level.deep
+    value: "7"
+  - key: concealment.level.buried
+    value: "11"
+  - key: concealment.hiddenDefaultLevel
+    value: "hidden"
+  # Detection — the passive attention a viewer brings without actively
+  # searching, and the perception "points" per awareness competence band
+  # rank (capacity = rank x capacityPerBand). With the level requirements
+  # above (subtle 2, hidden 4, deep 7, buried 11), a rank-1 novice
+  # passively notices subtle; searching / higher bands reach the rest.
+  - key: concealment.passiveBaseline
+    value: "0"
+  - key: detection.capacityPerBand
+    value: "3"
+  # Detection — the active-search loop (Phase 3). searchBonus: the attention
+  # a broad `search` folds in (rank-0 seeker reaches `hidden`=4).
+  # searchDepthBonus: extra for a narrow `search <container>`. searchSeconds:
+  # the game-time the search holds the `hands` slot. hintCutoff: a concealed
+  # thing within this gap of the viewer's perception surfaces a hint (`hidden`
+  # hints a passive floor viewer). examineBonus: the smaller instantaneous
+  # `examine` bump. See docs/subsystems/concealment.md.
+  - key: concealment.searchBonus
+    value: "4"
+  - key: concealment.searchDepthBonus
+    value: "3"
+  - key: concealment.searchSeconds
+    value: "4"
+  - key: concealment.hintCutoff
+    value: "4"
+  - key: concealment.examineBonus
+    value: "2"
+  # Hazards / traps (Phase 4). pinSeconds: a snare holds the body slot.
+  # dropFallEnergy: the blunt a pit-fall adds on landing. disarmSeconds:
+  # the hands-slot window to defuse a found trap. Per-trap wound energies
+  # are authored content data, NOT dials. See docs/subsystems/concealment.md.
+  - key: hazard.pinSeconds
+    value: "6"
+  - key: hazard.dropFallEnergy
+    value: "4"
+  - key: hazard.disarmSeconds
+    value: "5"
+  # Care↔speed movement axis (Phase 5). The detection attention a mode
+  # folds into the trap-traverse perceive check, on top of the passive
+  # baseline (walk = 0, no key). sneak (+): careful movement notices more,
+  # so sneak avoids a trap walk springs. run (−): careless movement notices
+  # less, so run springs a trap walk avoids. With capacityPerBand=3, a
+  # novice (capacity 3) walking avoids `subtle`(2) but running (3−2=1) does
+  # not, and walking springs `hidden`(4) but sneaking (3+2=5) avoids it.
+  # See docs/subsystems/concealment.md.
+  - key: movement.attention.sneak
+    value: "2"
+  - key: movement.attention.run
+    value: "-2"
+  # Wetness (weather Wave 2) — the per-object saturation gauge (0..1).
+  # Drainage is reconcile-on-read (presence-frozen); accrual is pushed by
+  # rain exposure / immersion. See docs/subsystems/weather.md.
+  - key: wetness.evaporationRatePct
+    value: "1.25"
+  - key: wetness.warmthFactor
+    value: "0.03"
+  - key: wetness.warmthReferenceK
+    value: "295"
+  - key: wetness.rainAccrualPerHour
+    value: "1.5"
+  - key: wetness.immersionSaturation
+    value: "1"
+  - key: wetness.band.dampAt
+    value: "0.15"
+  - key: wetness.band.wetAt
+    value: "0.45"
+  - key: wetness.band.soakedAt
+    value: "0.8"
+  - key: wetness.absorptionCapacityDefaultPct
+    value: "5"
+  # Storm (weather Wave 2) — puddle accrual/evaporation + lightning strikes
+  # routed through ElectricityApi.conduct. See docs/subsystems/weather.md.
+  - key: storm.puddle.accrualLitersPerSegment
+    value: "12"
+  - key: storm.puddle.evaporationFactor
+    value: "0.2"
+  - key: storm.puddle.freshWaterMaterialPath
+    value: "/lib/material/bulk/water"
+  - key: storm.strikeRate
+    value: "0.15"
+  - key: storm.strikeIntervalS
+    value: "1800"
+  - key: storm.strikeVoltage
+    value: "30000000"
+  - key: storm.attractorBias
+    value: "4"
+  # Weather (Wave 2 light / sky) — cloud dimming on the sync light path +
+  # the deterministic sky-read forecast window.
+  - key: weather.cloudDimFactor
+    value: "0.6"
+  - key: weather.skyForecastSegments
+    value: "2"
+  # Thermal (Wave 2 wet coupling) — a wet body loses heat faster.
+  - key: thermal.wetHeatLossFactor
     value: "1.5"

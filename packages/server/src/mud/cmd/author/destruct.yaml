@@ -1,5 +1,5 @@
 verbs: [destruct]
-controller: author/DestructController
+controller: /obj/command/author/DestructController
 description: "Destruct a runtime instance or template"
 help: |
   Permanently remove a runtime instance — or a whole template —

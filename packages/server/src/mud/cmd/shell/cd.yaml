@@ -1,5 +1,5 @@
 verbs: [cd]
-controller: shell/CdController
+controller: /obj/command/shell/CdController
 description: "Change working directory in the content (default) or source tree"
 help: |
   Move your working position within a tree, just like a filesystem

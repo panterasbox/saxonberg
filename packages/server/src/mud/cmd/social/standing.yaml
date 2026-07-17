@@ -1,5 +1,5 @@
 verbs: [standing]
-controller: social/StandingController
+controller: /obj/command/social/StandingController
 description: "See where you stand — your influence across all three stocks."
 help: |
   `standing` reads back your own influence standing in the cooperative

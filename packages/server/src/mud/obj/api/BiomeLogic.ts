@@ -600,7 +600,12 @@ async function resolveQuantityFor<U extends Unit>(
     skyExposedWalk(scope)
   ) {
     const locality = await AddressApi.resolveLocalityFor(scope);
-    const dev = WeatherApi.deviationFor(
+    // Pin-aware (Wave 2): when an authored pin governs this scope, fold the
+    // pinned type's deviation instead of the procgen field; byte-identical
+    // to the old `deviationFor` when no pin applies. The pin walk runs only
+    // here, after the three cheap gates above passed.
+    const dev = WeatherApi.deviatedFieldFor(
+      scope,
       locality,
       fieldBare as WeatherField,
       WorldClockApi.getNow(),

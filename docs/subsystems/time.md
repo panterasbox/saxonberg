@@ -360,6 +360,102 @@ path. Instruments are `Thing`s carrying the verb via
 
 ---
 
+## Timepieces — the display seam (`Timekeeping`)
+
+The clock authority above answers "what time is it"; **`Timekeeping`**
+(`lib/time/Timekeeping.ts`) is the in-world capability of *displaying*
+that time. Anything you can look at to read a clock face — a pocket
+watch, a wristwatch, a sundial — composes `TimekeepingMixin`. Its whole
+inter-Stuff contract is a single read method:
+
+```ts
+interface Timekeeping {
+  currentReading(): Time | null; // null = no legible reading right now
+}
+```
+
+`Time` (`lib/time/Time.ts`) is the return shape — a small named
+value-object (peer of `Quantity`/`Reserve`) holding a wrapped
+minute-of-day (`0..1439`) and formatting it `HH:MM`. It fills the one
+gap `DefaultCalendar` leaves: the calendar decomposes the game-time axis
+into a full `{year, month, day, …}` date, but a clock face shows only
+the hour-and-minute, wrapping at midnight. Derived on read, never
+persisted, immutable.
+
+The base `currentReading()` returns null; every real timepiece overrides
+it with its own read physics. `TimekeepingMixin` deliberately grants
+**no verbs** — the capability marks "reads time", not "operates a
+mechanism". An accurate timepiece is plain `Timekeeping` reading
+`WorldClockApi` straight, so it affords nothing extra. That is why the
+read seam stays general in `lib/time/`: a future default player
+timepiece is electronic/aether (designed, not built), and it still needs
+this seam without any of the clockwork below.
+
+### The clock tower is prose, not Stuff
+
+The University Avenue crossing's tower is **not** a `Timekeeping` object
+and there is no `ClockTower` class. It's a dynamic `tower` *detail* on
+the room that reads `WorldClockApi` directly at look-time and renders the
+civic time in prose. Fixed scenery whose only job is to show true time
+needs no mechanism and no instanceable class — the detail seam is
+enough. The tower is the honest reference: it always shows true civic
+time.
+
+### `MechanicalMovement` — locality content, the drift source
+
+A *mechanical* timepiece drifts because nobody ever sets it right and its
+mainspring runs down. That physics lives in
+**`MechanicalMovementMixin`** — and it lives in
+`domain/eternal/university-avenue/`, **not** `lib/`. It is locality
+content, not engine substrate: the only realistic mechanical timepiece is
+this antique, and every future timepiece is electronic. The mixin folds
+`TimekeepingMixin` over `ReservedMixin` (a composing class is
+`isTimekeeping` and `isReserved` for free), re-defining the read with its
+drift model:
+
+```
+displayed = setTo + runningElapsed × rate
+```
+
+`rate` sits a touch under 1.0 (`0.995`) — the honest drift that makes it
+disagree with the tower. `runningElapsed` (`runSeconds`) is the game-time
+the mainspring has *permitted* the movement to run since it was last set.
+The mainspring is a `Reserve` depleted lazily against elapsed game-time
+(the `Campfire.reconcileFuel` non-biological-reserve pattern); when it
+floors, `runSeconds` freezes and the movement holds at its stop-time
+until wound. The full spring installs lazily on first touch (a stored
+`reserves` record from hydrate is honoured wholesale), so no mixin
+constructor is needed.
+
+Two content verbs, both in the locality bundle
+(`domain/eternal/university-avenue/command/`):
+
+- **`wind <timepiece>`** (`WindController`) — refills the mainspring to
+  full; the movement resumes ticking.
+- **`adjust <timepiece> <HH:MM>`** (`AdjustController`, renamed from an
+  earlier `set`) — sets the hands to an explicit time and re-anchors the
+  drift. There is no clock to sync to: the player reads the tower and
+  dials it in by hand, which is exactly why it re-drifts.
+
+Both verbs gate on the **presence of `MechanicalMovementMixin`**, not on
+`instanceof Watch` — a local `MixinApi.hasMixin(s,
+Mixins.MechanicalMovement)` guard in the bundle's controllers (locality
+content earns a bundle-local guard, not a global `MixinApi.is*`
+predicate). An accurate/aether timepiece composing plain `Timekeeping`
+affords neither verb, which is the whole point.
+
+`Watch` (`.../university-avenue/Watch.ts`) is the concrete demonstrator —
+a brass hunter-cased pocket watch = `Sealable` (the lid; shut → dial
+hidden → `currentReading()` null) + `MechanicalMovement` + `Detailed`
+over `Thing`. It adds only the two lid-aware overrides.
+
+**The drift-reveal (the payoff):** the tower shows true civic time, the
+watch reads slightly slow, and they disagree with no UI pointing it out —
+the world is legibly inconsistent because its objects have honest
+physics.
+
+---
+
 ## Module placement
 
 | Artifact | Category | Path |
@@ -372,6 +468,11 @@ path. Instruments are `Thing`s carrying the verb via
 | `DefaultCalendar` | domain | `lib/time/DefaultCalendar.ts` |
 | `CelestialProfile` / `EARTH_LIKE` / `SunDef` / `MoonDef` / `Season` | domain | `lib/time/CelestialProfile.ts` |
 | `Sundial` / `Sextant` | Stuff | `obj/instrument/` |
+| `TimekeepingMixin` (+ `Timekeeping`) | Mixin | `lib/time/Timekeeping.ts` |
+| `Time` | Named value-object | `lib/time/Time.ts` |
+| `MechanicalMovementMixin` (+ `MechanicalMovement`) | Mixin (locality content) | `domain/eternal/university-avenue/MechanicalMovement.ts` |
+| `Watch` | Stuff (locality content) | `domain/eternal/university-avenue/Watch.ts` |
+| `Wind{,}Controller` / `AdjustController` | Controller (locality content) | `domain/eternal/university-avenue/command/` |
 | `Analyze{Time,Sky}Controller`, `Measure{Shadow,Altitude}Controller` | Controller | `obj/command/` |
 | `analyze` / `measure` subcommands | Command YAML | `cmd/perception/analyze.yaml`, `cmd/perception/measure.yaml` |
 | `scale` default / `CAMPUS_LATITUDE` / `CAMPUS_LONGITUDE` / `SNAPSHOT_INTERVAL_MS` | module constants | on the two Apis (NOT settings) |
@@ -442,3 +543,16 @@ doesn't affect the substrate.
   function module isn't a value-object class; it belongs on the Api.
 - **`boot`/`shutdown` `SystemRoot`-gated** (MR review) — they were
   public; now only the empty-stack process boundary can call them.
+
+## History — the Timekeeping seam
+
+The display layer landed with the **University Avenue crossing** build,
+not the world-clock waves above. It arrived first (Phase 1A,
+`e31ad023`) as a single `Watch` class carrying all the clockwork, then
+was refactored into the shape documented here: `206745f1` /
+`e99404ce` split it into the general `Timekeeping` read seam (kept in
+`lib/time/`) + the locality-content `MechanicalMovement` movement, and
+demoted the clock tower from a would-be Stuff to a dynamic room-detail
+prose reader — the rejected-`Timepiece`/rejected-`ClockTower` lesson
+that keeps the engine seam general while the antique clockwork stays
+content.

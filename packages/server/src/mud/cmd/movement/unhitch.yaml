@@ -1,5 +1,5 @@
 verbs: [unhitch]
-controller: movement/UnhitchController
+controller: /obj/command/movement/UnhitchController
 description: "Let go of a cart you (or your mount) are pulling"
 help: |
   Release a cart you're hauling. Bare `unhitch` lets go of whatever

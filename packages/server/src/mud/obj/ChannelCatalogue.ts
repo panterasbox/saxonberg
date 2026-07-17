@@ -209,15 +209,13 @@ export default class ChannelCatalogue extends ChannelCatalogueBase {
       }
       if (await subjects.isAudienceMember(actor, subj)) persistent.push(c);
     }
-    const playerId = PlayerApi.isAvatarStuff(actor) ? actor.getPlayerId() : '';
+    const memberKey = actor.getTemplatePath() ?? '';
     const adHoc: AdHocChannel[] = [];
     for (const ad of this.byHandle.values()) {
       if (ad.members.has(actor)) adHoc.push(ad);
       else if (
-        playerId &&
-        [...ad.members].some(
-          (m) => PlayerApi.isAvatarStuff(m) && m.getPlayerId() === playerId,
-        )
+        memberKey &&
+        [...ad.members].some((m) => m.getTemplatePath() === memberKey)
       ) {
         adHoc.push(ad);
       }
@@ -410,9 +408,10 @@ export default class ChannelCatalogue extends ChannelCatalogueBase {
 
     const curatedMembers: { id: string; role: GroupRole }[] = [];
     for (const m of ad.members) {
-      if (!PlayerApi.isAvatarStuff(m)) continue;
       if (m === promoter) continue;
-      curatedMembers.push({ id: m.getPlayerId(), role: 'member' });
+      const key = m.getTemplatePath();
+      if (!key) continue;
+      curatedMembers.push({ id: key, role: 'member' });
     }
 
     const subjects = await this.requireSubjects();
@@ -467,6 +466,42 @@ export default class ChannelCatalogue extends ChannelCatalogueBase {
     c.procedure = 'free';
     await c.save();
     await subjects.addManifestation(subject, 'free-chat', c._id!);
+
+    const map = await this.ensureNameCache();
+    map.set(name.toLowerCase(), c);
+    return c;
+  }
+
+  /**
+   * Create a channel whose Subject is **bound to an existing groupRef**
+   * (rather than minting a fresh managed group). The party subsystem uses
+   * this to give a party a chat surface keyed on its own `party:<id>`
+   * roster — so chat is a pure consumer of the grouping facade and no
+   * managed `Group` is created. Returns the minted Channel.
+   */
+  public async createBoundChannel(
+    owner: Stuff,
+    name: string,
+    groupRef: string,
+  ): Promise<Channel> {
+    const subjects = await this.requireSubjects();
+    if (RESERVED_NAMES.has(name.toLowerCase())) {
+      throw new Error(`Reserved name '${name}' — pick another.`);
+    }
+    const existing = await this.resolveByName(name);
+    if (existing) {
+      throw new Error(`A channel named '${name}' already exists.`);
+    }
+    // Bind the existing ref — makeSubject mints nothing when groupRef is
+    // supplied (the `opts.groupRef` branch).
+    const subject = await subjects.makeSubject(owner, name, { groupRef });
+    const c = new Channel();
+    c.name = name;
+    c.kind = "player-created";
+    c.subject = subject._id!;
+    c.procedure = "free";
+    await c.save();
+    await subjects.addManifestation(subject, "free-chat", c._id!);
 
     const map = await this.ensureNameCache();
     map.set(name.toLowerCase(), c);

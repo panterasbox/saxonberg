@@ -1,5 +1,5 @@
 verbs: [stream]
-controller: stream/StreamController
+controller: /obj/command/stream/StreamController
 description: "Drive the livestream overlay (standby countdown / go live)"
 help: |
   Control what the livestream overlay shows to viewers watching the

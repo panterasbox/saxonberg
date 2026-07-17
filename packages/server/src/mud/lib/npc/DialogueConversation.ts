@@ -45,6 +45,7 @@ import { WorldClockApi } from "../../api/worldclock";
 import { SoulApi } from "../../api/soul";
 import { RecognitionApi } from "../../api/recognition";
 import { MixinApi } from "../../api/mixin";
+import { CommandApi } from "../../api/command";
 import { DefaultCalendar } from "../time/DefaultCalendar";
 import type { Containable } from "../spatial/Containable";
 import type {
@@ -53,7 +54,9 @@ import type {
   DialogueChoice,
   DialogueGuard,
   DialogueEffect,
+  DomainDialogueEffect,
 } from "./tree";
+import { DialogueEffectRegistry } from "./DialogueEffects";
 
 /** The engagement type for the NPC-side state machine. */
 export const DIALOGUE_CONVERSATION_TYPE = "tree-dialogue-conversation";
@@ -383,9 +386,41 @@ export class DialogueConversation implements SustainedEngagement {
         case "end":
           flow.end = true;
           break;
+        case "dispatch":
+          await this.dispatch(effect.command);
+          break;
+        default: {
+          // A domain effect (banking's `bank-circle`, etc.) — apply through the
+          // registered handler; the substrate never imports the domain. The
+          // authored config is open data, so it reaches here as a domain effect.
+          const domain = effect as DomainDialogueEffect;
+          await DialogueEffectRegistry.get(domain.verb)?.apply({
+            npc: this.npc,
+            player: this.player,
+            effect: domain,
+          });
+        }
       }
     }
     return flow;
+  }
+
+  /**
+   * Run a command AS THE NPC — the "NPCs do their jobs" seam. `$player`
+   * renders to the interlocutor's name (co-present, so the command's MQL
+   * resolves it). Dispatched via `forceCommand`, so the boundary is the
+   * TARGET controller's `execute()`-level authorization (the NPC can only
+   * accomplish what a controller will let this NPC actor do — see
+   * `docs/subsystems/npc-dialogue.md § dispatch`). No-op if the NPC is not a
+   * command giver.
+   */
+  private async dispatch(command: string): Promise<void> {
+    const npc = this.npc;
+    if (!MixinApi.isCommandGiver(npc)) return;
+    const name =
+      (this.player as unknown as { getName?: () => string }).getName?.() ?? "";
+    const text = command.replaceAll("$player", name);
+    await CommandApi.forceCommand(npc, text);
   }
 
   private async npcEmote(verb: string): Promise<void> {

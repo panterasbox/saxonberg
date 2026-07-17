@@ -19,6 +19,7 @@ import { RecipeSeeder } from './RecipeSeeder';
 import { BlueprintSeeder } from './BlueprintSeeder';
 import { ScriptSeeder } from './ScriptSeeder';
 import { ChannelSeeder } from './ChannelSeeder';
+import { GroupSeeder } from './GroupSeeder';
 import { ParcelSeeder } from './ParcelSeeder';
 import { TwitchRelayReader } from './TwitchRelayReader';
 import { YoutubeRelayReader } from './YoutubeRelayReader';
@@ -35,12 +36,17 @@ import ParticipationStanding from '../mud/lib/standing/ParticipationStanding';
 import { ProducerApi } from '../mud/api/producer';
 import ProducerStanding from '../mud/lib/standing/ProducerStanding';
 import { BankingApi } from '../mud/api/banking';
+// Loaded for its side effect: registers banking's `bank-circle` dialogue
+// effect into the generic DialogueEffectRegistry (consumer → substrate).
+import '../mud/lib/banking/BankDialogueEffect';
 import { DiagnosticApi } from '../mud/api/diagnostics';
 import { CompileWatcher } from './CompileWatcher';
 import { fileURLToPath } from 'url';
 import { ResidencyApi } from '../mud/api/residency';
 import { EmploymentApi } from '../mud/api/employment';
+import { AttendantApi } from '../mud/api/attendant';
 import { SocialApi } from '../mud/api/social';
+import { PartyApi } from '../mud/api/party';
 import { BulletinApi } from '../mud/api/bulletin';
 import AccountBalance from '../mud/lib/banking/AccountBalance';
 import SupplyAggregate from '../mud/lib/banking/SupplyAggregate';
@@ -153,6 +159,10 @@ export class AppBootstrap {
     await ScriptSeeder.run();
     await ChannelSeeder.run();
     await AppSettingsSeeder.run();
+    // Groups before parcels: a parcel's owner group (`duncan-hall`) is
+    // authored here with its staff members, so the owner-ref resolution the
+    // parcel/provisioning path does later converges on the seeded group.
+    await GroupSeeder.run();
     await ParcelSeeder.run();
 
     const cmd = await CommandApi.preloadAll();
@@ -230,6 +240,13 @@ export class AppBootstrap {
     // after the bootstrap manifest stood up the Business + cast.
     EmploymentApi.boot();
 
+    // Attendant — install the storefront-attention anti-grief guards: the
+    // real-time lease idle-eviction sweep + the linkdead release. Booted after
+    // employment (server resolution reads on-shift state). Activation = the
+    // AttendantLogic singleton's presence; the sweep no-ops until a venue
+    // grants a lease.
+    AttendantApi.boot();
+
     // Social graph (Wave 3) — install the presence relay: the net-new
     // consumer that fans the four in-world-gated presence transitions
     // (login / reconnect / disconnect / logout) out to online viewers
@@ -240,6 +257,12 @@ export class AppBootstrap {
     // the presence-PUBLIC roster-delta tap (feeding the "Who's Online"
     // pane) — same four presence events, two consumers. In-memory.
     SocialApi.boot();
+
+    // Party operational core — register the `party:` grouping provider with
+    // the (already-warmed) GroupRegistry and re-materialize durable parties
+    // from their `parties` records into live Party Ideas. After SocialApi so
+    // the grouping facade is fully warmed.
+    await PartyApi.boot();
 
     // Bulletin (news ticker) — a thin warm/activation seam. The board warms
     // via its manifest postRegister; the staff→player feed fan-out is inline

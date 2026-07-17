@@ -1,0 +1,11 @@
+# Bed — a university-owned dorm fixture (invariant, respawned from template),
+# seeded into each DormRoom via its `populates:` data. A rest surface; generic
+# label, no Named. Its personalized prose is captured/restored per-room by
+# the persistence spine (the theme overlay).
+class: /domain/eternal/duncan-hall/Bed
+hydratorClass: /lib/persistence/PersistentHydrator
+data:
+  shortDescription: a narrow bed
+  primaryKeyword: bed
+  longDescription: |
+    A university-issue single bed — a steel frame, a thin mattress, a folded blanket squared off at the foot.

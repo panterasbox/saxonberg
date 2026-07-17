@@ -1,5 +1,5 @@
 verbs: [ping]
-controller: system/PingController
+controller: /obj/command/system/PingController
 description: "Test command - responds with pong"
 help: |
   Sends a `pong` straight back to you. It does nothing to the world

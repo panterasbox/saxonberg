@@ -146,8 +146,37 @@ export const HARM_DEFAULTS = {
   LIMP_DRAIN_PER_SEVERITY: 4,
 } as const;
 
-/** Both kinds behind one collection element. */
-export type ActiveCondition = AfflictionRecord | Trauma;
+/**
+ * Kind C — a **sustained shock**: the reconcile-on-read state of a *persisting
+ * closed circuit* (standing in a live pool, held fast by tetany). It carries a
+ * live `current` (amps) and integrates current × time lazily on read — the
+ * harm-bleed idiom applied to electricity: it accrues contact burn, drives
+ * `heartRate` at the fibrillation band (the electrocution death seam), and is
+ * relieved the moment the circuit breaks (the body steps out / the source
+ * dies) — UNLESS `tetany` holds it closed ("can't let go"). The event that
+ * mints it is `ElectricityApi.conduct`; the integration lives in
+ * `VitalsMixin.reconcileConditions`. Plain-scalar fields → default-Hydrator
+ * round-trip (the `Trauma` precedent), no marshaller.
+ */
+export interface SustainedShock {
+  kind: 'shock';
+  /** The current through the body on this circuit (amps). */
+  current: number;
+  /** The source's durable `templatePath` — re-probed to verify the circuit
+   * is still closed. Undefined for an unattributable / ambient source. */
+  source?: string;
+  /** The contact site keys the shock burn accrues at. */
+  sites: string[];
+  /** Tetany holds the circuit closed regardless of volition ("can't let go")
+   * and gates volitional verbs (release / drop / move). */
+  tetany?: boolean;
+  /** The game-time (seconds) this shock was last integrated — the
+   * reconcile-on-read anchor (the `Trauma.tickedAt` precedent). */
+  tickedAt?: number;
+}
+
+/** All three kinds behind one collection element. */
+export type ActiveCondition = AfflictionRecord | Trauma | SustainedShock;
 
 /** How a condition perturbs a vital sign (shape only — no consumer v1). */
 export interface VitalEffect {

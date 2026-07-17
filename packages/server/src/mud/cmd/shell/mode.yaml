@@ -1,5 +1,5 @@
 verbs: [mode]
-controller: shell/ModeController
+controller: /obj/command/shell/ModeController
 description: "Scope a command bar: type bare lines as `<prefix> …` until you turn it off."
 help: |
   Put a command bar into a mode so everything you type there is

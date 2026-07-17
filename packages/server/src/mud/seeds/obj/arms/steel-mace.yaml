@@ -1,0 +1,20 @@
+class: /lib/equipment/Weapon
+hydratorClass: /lib/persistence/PersistentHydrator
+data:
+  shortDescription: a steel mace
+  primaryKeyword: mace
+  longDescription: >
+    A flanged steel head on a stout oak haft. It delivers nothing but blunt
+    force — and blunt force is exactly what shrugs off a plated foe.
+  _materialPath: /lib/material/alloy/steel
+  _detailMaterialPaths:
+    haft: /lib/material/wood/oak
+  constructionForm: hafted
+  gradeBand: fine
+  # A heavy, medium-length bar of steel — playstyle derives: heavy mass ->
+  # a guard-breaker (high poise damage, slow tempo, costly to commit).
+  mass: 1.6
+  length: 0.7
+  # One-handed — claims a single hand slot.
+  slotClaims:
+    "/lib/body-plans/biped": ["hand:right"]

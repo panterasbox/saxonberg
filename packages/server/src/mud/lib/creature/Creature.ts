@@ -36,6 +36,7 @@
  */
 
 import { Agent } from '../stuff/Agent';
+import { PropertiedMixin } from '../stuff/Propertied';
 import { NamedMixin } from '../description/Named';
 import { OrganismMixin } from '../species/Organism';
 import { SexedMixin } from '../character/Sexed';
@@ -53,12 +54,19 @@ import { ThermalMixin } from '../thermal/Thermal';
 import { ThermalRegulationMixin } from '../thermal/ThermalRegulation';
 import { RespirationMixin } from '../respiration/Respiration';
 import { DisguisableMixin } from '../disguise/Disguisable';
+import { ConcealableMixin } from '../concealment/Concealable';
 import { Quantity } from '../quantity';
 
 // Body stack (inner → outer):
 //   Container + Containable + Disguisable + Visible + Respiration +
 //   Metabolic + Vitals + Reserved + Posed + BodyPlanSlots + Slotted +
-//   Sexed + Organism + Named + Agent, with LoadBearing outermost.
+//   Sexed + Organism + Named + Propertied + Agent, with LoadBearing
+//   outermost.
+// PropertiedMixin sits innermost (just outer of Agent) — the general
+// dynamic per-instance property store. It carries no composition
+// requirements and every body (frog, corpse, Character, Avatar) is a
+// legitimate place for other objects to park state, so it belongs on
+// the shared Creature base rather than being re-declared per subclass.
 // DisguisableMixin sits outer of Visible (it scans worn slots and reads
 // shortDescription to resolve the masking presentation); Stuff's
 // getPresentation defers to it.
@@ -90,8 +98,13 @@ import { Quantity } from '../quantity';
 // Container + Slotted + Tangible (Agent) + Reserved + Vitals, so it
 // must compose outer of all of them (same placement logic as Vitals
 // outer of Reserved).
-const CreatureBase = LoadBearingMixin(
-  ContainerMixin(
+// ConcealableMixin sits outermost (default `obvious`, a plain field
+// carrier — placement is immaterial to the ordered body stack below). It
+// lets a creature carry a concealment level so a lurking beast can be
+// hidden until noticed; inert until authored (see concealment subsystem).
+const CreatureBase = ConcealableMixin(
+  LoadBearingMixin(
+    ContainerMixin(
     ContainableMixin(
       DisguisableMixin(
         VisibleMixin(
@@ -104,7 +117,11 @@ const CreatureBase = LoadBearingMixin(
                       PosedMixin(
                         BodyPlanSlotsMixin(
                           SlottedMixin(
-                            SexedMixin(OrganismMixin(NamedMixin(Agent)))
+                            SexedMixin(
+                              OrganismMixin(
+                                NamedMixin(PropertiedMixin(Agent))
+                              )
+                            )
                           )
                         )
                       )
@@ -117,6 +134,7 @@ const CreatureBase = LoadBearingMixin(
         )
       )
     )
+  )
   )
 );
 

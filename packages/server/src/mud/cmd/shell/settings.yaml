@@ -1,5 +1,5 @@
 verbs: [settings]
-controller: shell/SettingsController
+controller: /obj/command/shell/SettingsController
 description: "Manage your declared settings"
 help: |
   Settings are the named knobs that tune how the game behaves for

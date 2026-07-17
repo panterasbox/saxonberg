@@ -68,7 +68,7 @@ const STUBS: Doc[] = [
     data: { seatIn: "/domain/test/lounge-room", shortDescription: "The Lounge", keywords: ["lounge"], directionality: "both", routes: [] },
   },
   { path: "/domain/test/lounge-room", class: "/lib/stuff/VoidLocation", hydratorClass: PH, data: { shortDescription: "the lounge" } },
-  { path: "/domain/eternal/university-avenue/plaza", class: "/lib/stuff/VoidLocation", hydratorClass: PH, data: { shortDescription: "University Avenue" } },
+  { path: "/domain/eternal/university-avenue/crossing", class: "/lib/stuff/VoidLocation", hydratorClass: PH, data: { shortDescription: "University Avenue" } },
   // The office populates the clerk (a full NPC, Phase 4) — stub it here so the
   // cascade resolves without heavy NPC hydration.
   { path: "/domain/terminus/terminal/clerk", class: "/lib/stuff/Thing", hydratorClass: PH, data: { shortDescription: "the clerk" } },

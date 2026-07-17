@@ -113,6 +113,62 @@ export class ParcelApi {
     return logic().transfer(extent, newOwner);
   }
 
+  /**
+   * Grant a lease (use-grant) on `extent` to `holder` (a durable player
+   * path), replacing any prior grant for that holder; `expiresAt` is
+   * epoch-ms or null (indefinite). False when no parcel claims `extent`.
+   */
+  public static async grantUse(
+    extent: string,
+    holder: string,
+    expiresAt: number | null,
+  ): Promise<boolean> {
+    return logic().grantUse(extent, holder, expiresAt);
+  }
+
+  /** Revoke `holder`'s lease on `extent`; true when a grant was removed. */
+  public static async revokeUse(
+    extent: string,
+    holder: string,
+  ): Promise<boolean> {
+    return logic().revokeUse(extent, holder);
+  }
+
+  /** Whether `holder` holds an active (unexpired) lease on `extent`. */
+  public static async hasUseGrant(
+    extent: string,
+    holder: string,
+  ): Promise<boolean> {
+    return logic().hasUseGrant(extent, holder);
+  }
+
+  /** Set (re-key) the lock keyway on `extent`; false when no parcel claims it. */
+  public static async setKeyway(
+    extent: string,
+    keyway: string,
+  ): Promise<boolean> {
+    return logic().setKeyway(extent, keyway);
+  }
+
+  /** The unit parcel `holder` currently leases, or null (a linear scan). */
+  public static async heldUnitOf(
+    holder: string,
+  ): Promise<ParcelRecord | null> {
+    return logic().heldUnitOf(holder);
+  }
+
+  /** Every child parcel of `parentExtent` (the provisioned units). */
+  public static async childParcelsOf(
+    parentExtent: string,
+  ): Promise<ParcelRecord[]> {
+    return logic().childParcelsOf(parentExtent);
+  }
+
+  /** Retire (delete) the unit row claiming `extent`; frees its slot. */
+  public static async retire(extent: string): Promise<void> {
+    return logic().retire(extent);
+  }
+
   /** Drop + rebuild the coverage index from the `parcels` collection. */
   public static async rebuildCoverageIndex(): Promise<void> {
     return logic().rebuildCoverageIndex();

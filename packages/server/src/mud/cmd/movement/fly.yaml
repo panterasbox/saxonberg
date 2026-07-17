@@ -1,5 +1,5 @@
 verbs: [fly]
-controller: movement/FlyController
+controller: /obj/command/movement/FlyController
 description: "Fly through a named exit (must be Flyable-enabled)."
 help: |
   Take to the air and travel through an exit that has to be flown —

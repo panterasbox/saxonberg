@@ -18,6 +18,9 @@ import Menu from '../../../domain/lounge/Menu';
 import { BankingApi, Money } from '../../../api/banking';
 import type { Charge } from '../../../api/banking';
 import { EmploymentApi } from '../../../api/employment';
+import type { Attendant } from '../../../lib/attendant/Attendant';
+import type { Stuff } from '../../../lib/stuff/Stuff';
+import type { Container } from '../../../lib/spatial/Container';
 
 const TOPIC = 'world.narration.action';
 
@@ -37,6 +40,29 @@ export default class OrderController extends CraftController<OrderModel> {
         .send();
       context.note({ kind: 'empty-result', field: 'cocktail', query: model.cocktail });
       return;
+    }
+
+    // Attendant: the bar runs the storefront-attention substrate. Being served
+    // is gated on being attended — for the bar's scrum / zero-wait config this
+    // is instant (the bartender gets to you), so behaviorally a no-op, but it
+    // earns the lease (no idle hogging) and makes the bar run the same
+    // subsystem the bank and ticket office do. A `closed` point (unstaffed +
+    // close policy) refuses; the bar is self-service, so it won't.
+    const point = this.resolveAttendantPoint(context);
+    if (point) {
+      const key = giver.getTemplatePath();
+      if (key && point.requestAttention(key).status === 'closed') {
+        MessageApi.scene(giver)
+          .topic(TOPIC)
+          .toSelf(Mml.compose`There's no one tending the bar just now.`)
+          .send();
+        context.note({
+          kind: 'controller-rejected',
+          reason: 'unattended',
+          detail: 'no one tending the bar',
+        });
+        return;
+      }
     }
 
     const recipeId = await menu.resolveOrder(model.cocktail);
@@ -81,6 +107,18 @@ export default class OrderController extends CraftController<OrderModel> {
       .toSelf(Mml.compose`${Mml.item(drink)} is set down in front of you.${tail}`)
       .toPeers(Mml.compose`${Mml.name(giver)} is served ${Mml.item(drink)}.`)
       .send();
+  }
+
+  /** The Attendant service point present in the room, if the venue runs one. */
+  private resolveAttendantPoint(
+    context: CommandContext,
+  ): (Stuff & Attendant) | null {
+    const loc = context.location;
+    if (!loc || !MixinApi.isContainer(loc)) return null;
+    for (const s of ContainmentApi.getContents(loc as Stuff & Container)) {
+      if (MixinApi.isAttendant(s)) return s as Stuff & Attendant;
+    }
+    return null;
   }
 
   /**

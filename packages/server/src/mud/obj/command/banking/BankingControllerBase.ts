@@ -13,7 +13,6 @@ import { MqlApi } from "../../../api/mql";
 import { MixinApi } from "../../../api/mixin";
 import type { Stuff } from "../../../lib/stuff/Stuff";
 import type { Bank } from "../../../lib/banking/Bank";
-import type { Tab } from "../../../lib/banking/Tab";
 
 export abstract class BankingControllerBase<
   T extends CommandModel = CommandModel,
@@ -41,13 +40,6 @@ export abstract class BankingControllerBase<
         MixinApi.isBank(s),
       ) ?? null
     );
-  }
-
-  /** The establishment the actor is in (a TabMixin Location), or null. */
-  protected resolveVenue(context: CommandContext): (Stuff & Tab) | null {
-    const loc = context.location;
-    if (loc && MixinApi.isTab(loc)) return loc as Stuff & Tab;
-    return null;
   }
 
   /** A present bartender (an active MakerMixin agent) — the house's rep. */

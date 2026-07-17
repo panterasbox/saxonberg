@@ -21,9 +21,9 @@ this doc notes the seams they plug into.
 class: /lib/npc/NPC
 data:
   behaviors:
-    - { brain: /lib/behavior/shifts, trigger: cadence:60s, config: { behindBar, offstage } }
-    - { brain: /lib/behavior/idles,  trigger: cadence:9s,  config: { pool: [...] } }
-    - { brain: /lib/behavior/greets, trigger: arrival,     config: { lines: [...] } }
+    - { brain: /lib/behavior/shifts, trigger: cadence:60s,  config: { behindBar, offstage } }
+    - { brain: /lib/behavior/idles,  trigger: cadence:300s, config: { pool: [...] } }
+    - { brain: /lib/behavior/greets, trigger: arrival,      config: { lines: [...] } }
 ```
 
 A **behavior spec** (`BehaviorSpec`) is `{ brain, trigger, config }` —
@@ -149,6 +149,68 @@ marks the host conversational for the `talk` affordance. See
 
 `addressed` and `given` are deferred (dialogue Wave 2 / later); both slot
 in as additional `handleMessage` topic predicates with no new event.
+
+## Ambient pacing budget
+
+**These are starting points we expect to tune by feel — not a spec.** The
+mechanism (below) is fixed; the *numbers* are provisional and dialable at
+runtime. The goal is a consistent baseline as content grows so the world
+doesn't drift toward chatter.
+
+**The governing principle: responsive over ambient.** A room feels alive
+because NPCs react to *you*, not because they talk to themselves. Those are
+two separate budgets:
+
+- **Responsive beats** — a brain firing on a **witness** trigger (you
+  arrived, spoke, emoted) or a `talk`/`engage` open. Earned by player
+  action, these are the good stuff; fire them freely. They do **not** count
+  against the ambient budget.
+- **Ambient idle** — a **cadence** brain firing unprompted ("signs of life
+  when nothing's happening"). This is seasoning, and it's what grates when
+  overdone. Keep it scarce. Silence is legitimate — a quiet room is often
+  better than a busy one.
+
+The budget (tune by feel; NPCs are rare hand-built carves, so a room is
+usually 1–3 of them and per-NPC pacing sets the room aggregate):
+
+| Scope | Ambient idle rate | Cadence |
+|---|---|---|
+| A whole room, all sources | ~1/min, ceiling ~2/min | — |
+| A "normal" NPC | ~1 per 3–5 min | `cadence:180s`–`300s` |
+| A deliberately chatty/performative NPC (rare) | ~1 per 1–2 min | `cadence:60s`–`120s` |
+| A stoic / background NPC | 5–10 min, or **event-only** (no idle spec) | `cadence:300s`+ |
+| Hard floor, anything unprompted | never under ~60s | (enforced, below) |
+
+Two multipliers matter as much as the interval:
+
+- **Variety beats frequency.** Even at 4-minute spacing, a 3-line pool
+  reads as a loop. Give ambient pools generous entries; the sampler avoids
+  immediate repeats.
+- **Speech is heavier than emotes.** A wordless `{kind: free}` emote
+  ("*paces the curb*") is cheap on attention; a `{kind: say}` line draws the
+  eye like a real message. Bias idle pools toward emotes and let *speech* be
+  mostly responsive.
+
+**The global dial.** Two AppSettings retune the whole world's talkativeness
+at once (playtest without editing every NPC), applied in
+`BehavedMixin._effectiveCadence` before jitter:
+
+- `behavior.ambientCadenceScale` (default `1.0`) — multiplies every
+  *ambient* cadence interval. `2.0` = everything half as often. Authored
+  cadences stay *relative* (a stoic NPC vs a barker); the dial moves them
+  together.
+- `behavior.ambientCadenceFloorMs` (default `60000`) — the anti-spam floor
+  no ambient beat may fire faster than, whatever an author sets.
+
+Both read per re-arm (a live `config` change lands on the next beat) and
+default to identity (scale 1, floor 0) when app-settings is unwarmed, so
+unit tests keep their fast cadences.
+
+**Scope: the dial touches only ambient cadence.** A brain is ambient by
+default; a **functional poller** whose timing is load-bearing sets
+`static ambient = false` (today `shifts` reading roster state, `covers`
+checking for an absent maker) so its authored interval is honored exactly.
+Witness triggers are never scaled — responsiveness is never throttled.
 
 ## Slot contention
 

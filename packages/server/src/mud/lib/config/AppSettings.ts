@@ -181,6 +181,26 @@ export const AppSettingKeys = {
   statusMaxLength: "status.maxLength",
 
   /**
+   * Behavior — the global **ambient-chatter pacing** dial. Multiplies
+   * every *ambient* cadence brain's authored interval before jitter (a
+   * stoic NPC stays relatively quieter, a chatty one relatively louder;
+   * this dials the whole world's talkativeness at once during playtest).
+   * `1.0` = author cadences as written; `2.0` = everything half as often.
+   * Only `ambient` cadence brains are scaled — functional pollers
+   * (`shifts`, `covers`) are exempt. See docs/subsystems/behavior.md
+   * § Ambient pacing budget.
+   */
+  behaviorAmbientCadenceScale: "behavior.ambientCadenceScale",
+  /**
+   * Behavior — hard floor (ms) under which an *ambient* cadence brain's
+   * effective interval may not fall, no matter what an author sets. The
+   * anti-spam backstop ("nothing unprompted more often than this"). `0`
+   * disables the floor (the code default when app-settings is unwarmed,
+   * so unit tests keep their fast cadences).
+   */
+  behaviorAmbientCadenceFloorMs: "behavior.ambientCadenceFloorMs",
+
+  /**
    * Scripting — resource governance. The interpreter is non-blocking by
    * construction (every engaged/`wait` step suspends and yields); these
    * bound the one pathological shape — a no-suspension tight loop — plus
@@ -220,6 +240,54 @@ export const AppSettingKeys = {
    * `0` disables the grant. See docs/subsystems/banking.md.
    */
   bankingOnboardingStipend: "banking.onboardingStipend",
+  /**
+   * Banking — the per-account **cash-withdrawal cap per game-day** (minor
+   * units), the common-pool till guard: over the cap → refuse + push onto the
+   * ledger (card/transfer). Derive-on-read over the ledger (no counter, no
+   * scheduler — Law-2 clean). Per-account, never collective (a bank run is a
+   * feature). `0` disables the cap. See docs/subsystems/banking.md.
+   */
+  bankingWithdrawalDailyCap: "banking.withdrawalDailyCap",
+  /**
+   * Banking — the raised withdrawal cap (minor units) for a **Circle** member
+   * (recognized standing → higher cash quota; the status perk that ties
+   * Relationship to the common-pool guard).
+   */
+  bankingWithdrawalDailyCapCircle: "banking.withdrawalDailyCapCircle",
+  /**
+   * Banking — the **corpo royalty** rate: the fraction of every collected fee
+   * split off the top to the affiliated corpo's treasury (the rest to the
+   * branch operating account). Event-driven, conserved — corpo income begins
+   * from the first fee. `0` disables. See docs/subsystems/banking.md.
+   */
+  bankingCorpoRoyaltyRate: "banking.corpoRoyaltyRate",
+  /**
+   * Banking — the opening vault float (minor units) seeded into a fresh
+   * branch's till at boot, backed 1:1 by the branch's own operating balance
+   * (founding capital). Lets early ledger-credit withdrawals work before
+   * customer cash deposits accumulate. `0` disables. See docs/subsystems/banking.md.
+   */
+  bankingOpeningFloat: "banking.openingFloat",
+
+  /**
+   * Attendant — the lease anti-grief sweep cadence (real-time ms). Griefing
+   * is a real-time act, so the watchdog is real-time (the residency sweep
+   * pattern), not game-time. See docs/subsystems/attendant.md.
+   */
+  attendantLeaseSweepIntervalMs: "attendant.lease.sweepIntervalMs",
+  /**
+   * Attendant — the idle threshold (real-time ms): a service lease with no
+   * service act for this long is revoked (`service-idle`) and the next
+   * customer pulled up. The venue's generosity dial (a legit-slow customer is
+   * distinguished from a griefer by each act resetting the counter).
+   */
+  attendantLeaseIdleThresholdMs: "attendant.lease.idleThresholdMs",
+  /**
+   * Attendant — a take-a-number ticket / queue place idle-expiry (real-time
+   * ms): a waiting place held idle blocks others as much as the front, so the
+   * idle-drop applies to the whole queue.
+   */
+  attendantQueueIdleThresholdMs: "attendant.queue.idleThresholdMs",
 
   /**
    * Fast-travel — the tunable TPA **network-fee percentage** levied on every
@@ -360,6 +428,367 @@ export const AppSettingKeys = {
    * biteMax → bites; ≥ → bites-deep). */
   responseBandGrazeMax: "response.band.grazeMax",
   responseBandBiteMax: "response.band.biteMax",
+
+  /* ────────────────────────── electricity ────────────────────────── */
+  /**
+   * Electricity — the Ohm's-law shock model's magnitudes (the "magnitude"
+   * half of the shape-vs-magnitude split; the physics SHAPE — `I = V/R`,
+   * conductance-to-ground current division, the covering stack as series
+   * resistance — is in code). Seeded literals are **real-world-grounded**
+   * (dry-skin ≈ 100 kΩ, wet ≈ 100× lower, let-go ≈ 10 mA, fibrillation ≈
+   * 100 mA) so a student's multimeter reads coursework values, and every
+   * magnitude reads with a fallback to the literal so a pre-warm / test
+   * read is safe. See docs/subsystems/electricity.md.
+   */
+  /** Electricity — a body's dry contact-to-contact resistance (Ω), the
+   * fallback when a body carries no flesh-conductivity material. */
+  electricityBodyDryResistanceOhms: "electricity.body.dryResistanceOhms",
+  /** Electricity — the factor a wet body's resistance drops by (~100×). */
+  electricityBodyWetFactor: "electricity.body.wetFactor",
+  /** Electricity — nominal body path geometry L/A (per metre); with flesh
+   * conductivity (~0.2 S/m) → the ~100 kΩ dry-skin anchor. */
+  electricityBodyGeometryFactor: "electricity.body.geometryFactor",
+  /** Electricity — nominal contact/edge path geometry L/A (per metre), the
+   * series resistance a material's conductivity resolves to at a node. */
+  electricityContactGeometryFactor: "electricity.contact.geometryFactor",
+  /** Electricity — ceiling clamp on a contact/series resistance (Ω), so an
+   * insulator reads a large-but-finite resistance (an open break). */
+  electricityContactMaxOhms: "electricity.contact.maxOhms",
+  /** Electricity — floor clamp on any resistance (Ω), the R→0 guard for
+   * `I = V/R`. */
+  electricityResistanceFloorOhms: "electricity.resistanceFloorOhms",
+  /** Electricity — let-go current (A): at/above this a shock's muscle
+   * tetany prevents voluntary release (~0.01 A = 10 mA). */
+  electricityLetGoAmps: "electricity.letGoAmps",
+  /** Electricity — tetanic current (A): sustained whole-muscle contraction
+   * (~0.02 A). */
+  electricityTetanicAmps: "electricity.tetanicAmps",
+  /** Electricity — fibrillation current (A): disrupts heart rhythm → arrest
+   * (~0.1 A = 100 mA), the electrocution death threshold. */
+  electricityFibrillationAmps: "electricity.fibrillationAmps",
+  /** Electricity — current (A) below which a shock leaves no contact burn
+   * (perception/tingle only). */
+  electricityBurnThresholdAmps: "electricity.burnThresholdAmps",
+  /** Electricity — contact-burn severity per amp above the burn threshold. */
+  electricityBurnSeverityPerAmp: "electricity.burnSeverityPerAmp",
+  /** Electricity — the conductivity (S/m) at/above which a surface pool
+   * bridges the conduction graph (salt water yes, dry-ish floors no). The
+   * topology gate — separate from the resistance magnitudes. */
+  electricityPoolMinConductivity: "electricity.pool.minConductivity",
+  /** Electricity — the conductivity (S/m) at/below which a material
+   * insulates a contact (footwear / a step / a floor breaks the path to
+   * ground). Rubber / leather / wool / dry wood insulate; flesh / water
+   * / metal do not. */
+  electricityInsulatorMaxConductivity: "electricity.insulator.maxConductivity",
+  /** Electricity — the factor a **conductive** worn covering multiplies the
+   * body's skin-contact resistance by (<1): metal armor spreads the current
+   * over the whole body and bypasses the high-resistance skin contact, so a
+   * plate-armored body takes MORE current than a bare one. The armor
+   * inversion's magnitude (insulating coverings instead ADD series R). */
+  electricityArmorConductiveSkinFactor: "electricity.armor.conductiveSkinFactor",
+  /** Electricity — contact-burn severity accrued per amp-second while a
+   * being-shocked circuit stays closed (the reconcile-on-read sustain). */
+  electricitySustainBurnPerAmpSec: "electricity.sustain.burnSeverityPerAmpSec",
+  /** Electricity — bpm the heart rate is driven toward arrest per game-second
+   * while a fibrillating current flows (the electrocution death drive). */
+  electricityArrestDrivePerSec: "electricity.heartRate.arrestDrivePerSec",
+
+  /* ─────────────────────────── combat ─────────────────────────── */
+  /**
+   * Combat — the narration-beat / tempo tick, in game-seconds. The
+   * session resolves finely and narrates coarsely once per beat. See
+   * docs/subsystems/combat.md.
+   */
+  combatTickSeconds: "combat.tickSeconds",
+  /** Combat — poise band thresholds (fractions of the 0..1 gauge). */
+  combatPoisePressedBelow: "combat.poise.pressedBelow",
+  combatPoiseReelingBelow: "combat.poise.reelingBelow",
+  combatPoiseBrokenAt: "combat.poise.brokenAt",
+  /** Combat — ticks an unexploited opening window stays live. */
+  combatPoiseOpeningTicks: "combat.poise.openingTicks",
+  /** Combat — base poise eroded on both sides per exchange. */
+  combatPoiseErodePerExchange: "combat.poise.erodePerExchange",
+  /** Combat — poise the actor spends committing a gambit (overextend). */
+  combatPoiseOverextendCost: "combat.poise.overextendCost",
+  /** Combat — poise restored by a defensive/reactive beat. */
+  combatPoiseRestorePerDefense: "combat.poise.restorePerDefense",
+  /** Combat — extra poise a whiff/parry self-opens the actor. */
+  combatPoiseWhiffPenalty: "combat.poise.whiffPenalty",
+  /** Combat — tempo rate shape. */
+  combatTempoBase: "combat.tempo.base",
+  combatTempoEncumbrancePenalty: "combat.tempo.encumbrancePenalty",
+  combatTempoEnduranceFloor: "combat.tempo.enduranceFloor",
+  combatTempoMinRate: "combat.tempo.minRate",
+  combatTempoMaxRate: "combat.tempo.maxRate",
+  /** Combat — inflict energy by the target's poise band at the moment of
+   * the blow (an open window earns the hardest hit). */
+  combatEnergySteady: "combat.energy.steady",
+  combatEnergyPressed: "combat.energy.pressed",
+  combatEnergyReeling: "combat.energy.reeling",
+  combatEnergyBroken: "combat.energy.broken",
+  combatEnergyOpen: "combat.energy.open",
+  /** Combat — max narration beats per session (bounded-beats backstop). */
+  combatMaxBeats: "combat.maxBeats",
+  /** Combat (Build 2) — coup de grâce window, game-time seconds. */
+  combatCoupSeconds: "combat.coupSeconds",
+  /** Combat (Build 2) — regard witnesses grant a clean duel winner. */
+  combatRegardDuelWin: "combat.regard.duelWin",
+  /** Combat (Build 2) — regard witnesses withdraw from an unlawful killer. */
+  combatRegardUnlawfulKill: "combat.regard.unlawfulKill",
+  /** Combat (cycle 2) — extra target poise erosion per additional attacker
+   * pressing them (focus-fire: ganging up erodes faster). */
+  combatFocusFireErosionPerEdge: "combat.focusFire.erosionPerEdge",
+  /** Combat (cycle 2) — incoming-attacker count at/above which a defender's
+   * recover/defend beat is suppressed (a pinned turtle can't catch breath). */
+  combatFocusFireSuppressRecoveryAt: "combat.focusFire.suppressRecoveryAt",
+  /** Combat (cycle 2) — inflict energy of a foe's parting shot when a
+   * combatant disengages (flees) past them. */
+  combatFleePartingShotEnergy: "combat.flee.partingShotEnergy",
+
+  /** Combat (experience) — poise the feinter spends to present the bait
+   * (cheap; aggression is rewarded against a turtle). */
+  combatPoiseFeintCost: "combat.poise.feintCost",
+  /** Combat (experience) — poise a baited (committed, un-reading) defender
+   * loses when they bite a feint — large enough to crack a steady guard,
+   * arming their opening for the feinter's next strike. */
+  combatPoiseFeintBitPenalty: "combat.poise.feintBitPenalty",
+  /** Combat (experience) — sharpness at/above which a defender *reads* a
+   * feint (won't bite; sees the tell). The fog and the bite decision share
+   * this gate so they never contradict. */
+  combatFogReadSharpness: "combat.fog.readSharpness",
+  /** Combat (experience) — sharpness at/above which ordinary band fog
+   * clears (you perceive the opponent's true poise band). */
+  combatFogClearSharpness: "combat.fog.clearSharpness",
+  /** Combat (experience) — sharpness at the `untrained` band (the
+   * competence→sharpness curve floor). */
+  combatSharpnessMin: "combat.sharpness.min",
+  /** Combat (experience) — sharpness at the top (`expert`) band (the
+   * competence→sharpness curve ceiling). */
+  combatSharpnessMax: "combat.sharpness.max",
+
+  /* ── weapon playstyle — the derived WeaponProfile curves (all shape ×
+   * magnitude split; a bare weapon still works off these seeded fallbacks).
+   * See docs/subsystems/combat.md (WeaponProfile). ── */
+  /** Weapon mass (kg) that maps to a neutral 1.0 balance. */
+  combatWeaponBalanceRefMass: "combat.weapon.balanceRefMass",
+  /** Tempo curve exponent (light↔heavy spread) + clamp. */
+  combatWeaponTempoExponent: "combat.weapon.tempoExponent",
+  combatWeaponTempoMin: "combat.weapon.tempoMin",
+  combatWeaponTempoMax: "combat.weapon.tempoMax",
+  /** Poise-damage curve exponent (heavier → more per blow) + clamp. */
+  combatWeaponPoiseDamageExponent: "combat.weapon.poiseDamageExponent",
+  combatWeaponPoiseDamageMin: "combat.weapon.poiseDamageMin",
+  combatWeaponPoiseDamageMax: "combat.weapon.poiseDamageMax",
+  /** Overextend curve exponent (heavier → costlier to commit) + clamp. */
+  combatWeaponOverextendExponent: "combat.weapon.overextendExponent",
+  combatWeaponOverextendMin: "combat.weapon.overextendMin",
+  combatWeaponOverextendMax: "combat.weapon.overextendMax",
+  /** Balance-class band edges on the tempo factor. */
+  combatWeaponBalanceHeavyBelow: "combat.weapon.balanceHeavyBelow",
+  combatWeaponBalanceLightAbove: "combat.weapon.balanceLightAbove",
+  /** Reach-class length thresholds (m). */
+  combatWeaponReachShortBelow: "combat.weapon.reachShortBelow",
+  combatWeaponReachLongAbove: "combat.weapon.reachLongAbove",
+  /** Material hardness (MPa) reference for the guard nudge. */
+  combatWeaponGuardHardnessRef: "combat.weapon.guardHardnessRef",
+
+  /* ── reach range tier (the per-edge reach|close state). ── */
+  /** Poise the closer spends attempting to close the gap. */
+  combatReachCloseCost: "combat.reach.closeCost",
+  /** Poise/energy edge the longer weapon strikes with while the foe is at
+   * `reach` (and the shorter weapon is penalised). */
+  combatReachAdvantageEnergy: "combat.reach.advantageEnergy",
+  /** The reach-holder's contest strength when a foe tries to close. */
+  combatReachContestStrength: "combat.reach.contestStrength",
+
+  /* ── hand-slot economy. ── */
+  /** Weapon-switch vulnerable-beat window (game-time seconds). */
+  combatSwitchSeconds: "combat.switch.seconds",
+  /** Fast sidearm-draw window (game-time seconds) — the disarm answer. */
+  combatDrawSeconds: "combat.draw.seconds",
+  /** Guard/parry bonus a wielded shield or a dual-wield off-hand adds. */
+  combatOffhandGuardBonus: "combat.offhand.guardBonus",
+  /** Competence band rank at/below which dual-wield is a net penalty
+   * (novice fumbles the off-hand; you grow into it). */
+  combatDualWieldMasteryRank: "combat.dualWield.masteryRank",
+  /** Off-hand guard bonus a *below-mastery* dual-wielder actually gets
+   * (a novice's off-hand hurts more than it helps). */
+  combatDualWieldNoviceGuardBonus: "combat.dualWield.noviceGuardBonus",
+
+  /* ───────────────────────── concealment ───────────────────────── */
+  /**
+   * Concealment — the effective-perception a viewer must muster to notice
+   * a thing at each concealed band (the "magnitude" half of the
+   * shape-vs-magnitude split; the band *names* + monotone ordering are code
+   * — `lib/concealment/ConcealmentLevel.ts`). `obvious` is a hardcoded 0
+   * (no key); these four are monotone increasing. Read with a fallback to
+   * the seeded literal so a pre-warm / test read is safe. See
+   * docs/subsystems/concealment.md.
+   */
+  concealmentLevelSubtle: "concealment.level.subtle",
+  concealmentLevelHidden: "concealment.level.hidden",
+  concealmentLevelDeep: "concealment.level.deep",
+  concealmentLevelBuried: "concealment.level.buried",
+  /**
+   * Concealment — the band a legacy `Exit.hidden: true` migrates to (D1 —
+   * `Exit.hidden` is subsumed by the concealment vocabulary). A level word
+   * (`subtle`|`hidden`|`deep`|`buried`), never `obvious`; defaults to
+   * `hidden`.
+   */
+  concealmentHiddenDefaultLevel: "concealment.hiddenDefaultLevel",
+  /**
+   * Detection — the passive attention a viewer brings to bear on a
+   * concealed thing without actively searching (the `attention` baseline
+   * folded into effective perception). Active search / care↔speed
+   * modifiers layer on top in later phases. Read with a seeded-literal
+   * fallback. See docs/subsystems/concealment.md.
+   */
+  concealmentPassiveBaseline: "concealment.passiveBaseline",
+  /**
+   * Detection — perception "points" conferred per `awareness` competence
+   * band rank (untrained = rank 0 … expert = rank 4). `capacity = rank ×
+   * this`, the competence half of effective perception. Degrades to a
+   * floor capacity when the `awareness` Discipline is unseeded (a viewer
+   * with no evidence reads as rank 0). Read with a seeded-literal
+   * fallback. See docs/subsystems/concealment.md.
+   */
+  detectionCapacityPerBand: "detection.capacityPerBand",
+  /**
+   * Detection — the active-attention bonus a broad `search` folds into
+   * effective perception (on top of the passive baseline). A rank-0 seeker
+   * reaches the `hidden` band by searching. Read with a seeded-literal
+   * fallback. See docs/subsystems/concealment.md.
+   */
+  concealmentSearchBonus: "concealment.searchBonus",
+  /**
+   * Detection — the extra bonus a **narrow** `search <container>` adds on
+   * top of {@link concealmentSearchBonus} (narrow-deep beats broad-shallow).
+   * Read with a seeded-literal fallback.
+   */
+  concealmentSearchDepthBonus: "concealment.searchDepthBonus",
+  /**
+   * Detection — the game-time window (seconds) a `search` occupies the
+   * seeker's `hands` slot before it resolves. Interruptible: an abort
+   * mid-search finds nothing. Read with a seeded-literal fallback.
+   */
+  concealmentSearchSeconds: "concealment.searchSeconds",
+  /**
+   * Detection — the passive-hint cutoff: a concealed-and-undiscovered thing
+   * whose `requirement − effectivePerception ≤ this` surfaces a *hint* (the
+   * "something sits oddly" nudge) without revealing. Read with a
+   * seeded-literal fallback.
+   */
+  concealmentHintCutoff: "concealment.hintCutoff",
+  /**
+   * Detection — the smaller active-attention bonus the instantaneous
+   * `examine <target>` folds in (a cheap close look, weaker than a full
+   * `search`). Read with a seeded-literal fallback.
+   */
+  concealmentExamineBonus: "concealment.examineBonus",
+  /* ───────────────────────── hazards / traps ───────────────────────── */
+  /**
+   * Hazard — the game-time window (seconds) a `pin` traverse-consequence
+   * (a snare) holds the sprung mover's `body` slot before releasing. The
+   * global consequence constant; a trap's *wound energy* stays authored
+   * content data (a trap's bite is authored like a weapon's, not a dial).
+   * Read with a seeded-literal fallback. See docs/subsystems/concealment.md.
+   */
+  hazardPinSeconds: "hazard.pinSeconds",
+  /**
+   * Hazard — the blunt fall energy a `drop` traverse-consequence (a pit)
+   * inflicts on landing, on top of the trap's own delivery (the spikes).
+   * Read with a seeded-literal fallback.
+   */
+  hazardDropFallEnergy: "hazard.dropFallEnergy",
+  /**
+   * Hazard — the game-time window (seconds) the `disarm` act occupies the
+   * disarmer's `hands` before the trap is defused. Interruptible: an abort
+   * mid-disarm defuses nothing. Read with a seeded-literal fallback.
+   */
+  hazardDisarmSeconds: "hazard.disarmSeconds",
+  /* ─────────────────── care↔speed movement axis ─────────────────── */
+  /**
+   * Movement — the detection attention modifier a `sneak` crossing folds
+   * in on top of the passive baseline. Positive: moving carefully notices
+   * more, so a sneaker raises their traverse-time perception over a
+   * concealed trap (sneak avoids where walk springs). `walk` (and every
+   * other mode) is an implicit 0 — no key. Read with a seeded-literal
+   * fallback. See docs/subsystems/concealment.md.
+   */
+  movementAttentionSneak: "movement.attention.sneak",
+  /**
+   * Movement — the detection attention modifier a `run` crossing folds in.
+   * Negative: barreling along notices less, so a runner drops their
+   * traverse-time perception below a concealed trap (run springs where
+   * walk avoids). Read with a seeded-literal fallback.
+   */
+  movementAttentionRun: "movement.attention.run",
+  /* ────────────────────────── wetness (weather Wave 2) ────────────────────────── */
+  /**
+   * Wetness — the per-object saturation gauge's magnitudes (weather
+   * Wave 2). Saturation is 0..1; drainage is reconcile-on-read
+   * (presence-frozen), accrual is pushed by rain-exposure / immersion.
+   * "Shelter dries faster" emerges (no accrual push when sheltered);
+   * warmth accelerates the drain. See docs/subsystems/weather.md.
+   */
+  /** Wetness — water evaporated per game-hour, in % of the object's dry
+   * mass (the fixed-mass evaporation rate). The dry rate in *saturation* is
+   * `evaporationRatePct / Material.waterAbsorptionCapacity`, so a thirsty
+   * material loses saturation slower. */
+  wetnessEvaporationRatePct: "wetness.evaporationRatePct",
+  /** Wetness — the water-absorption-capacity (%) a materialless object (or
+   * a gauge whose host carries no material) reads as its neutral fallback. */
+  wetnessAbsorptionCapacityDefaultPct: "wetness.absorptionCapacityDefaultPct",
+  /** Wetness — extra fractional drying per K the body/object is above the
+   * warmth reference (a warm body / a fire dries you faster). */
+  wetnessWarmthFactor: "wetness.warmthFactor",
+  /** Wetness — the reference temperature (K) above which warmth accelerates
+   * drying. */
+  wetnessWarmthReferenceK: "wetness.warmthReferenceK",
+  /** Wetness — saturation gained per game-hour of standing in rain. */
+  wetnessRainAccrualPerHour: "wetness.rainAccrualPerHour",
+  /** Wetness — saturation an immersion event drives toward (full soak). */
+  wetnessImmersionSaturation: "wetness.immersionSaturation",
+  /** Wetness — saturation at/above which the band reads `damp`. */
+  wetnessBandDampAt: "wetness.band.dampAt",
+  /** Wetness — saturation at/above which the band reads `wet`. */
+  wetnessBandWetAt: "wetness.band.wetAt",
+  /** Wetness — saturation at/above which the band reads `soaked`. */
+  wetnessBandSoakedAt: "wetness.band.soakedAt",
+
+  /* ────────────────────────── storm (weather Wave 2) ────────────────────────── */
+  /** Storm — Floor surface-bulk puddle litres accrued per rain segment. */
+  stormPuddleAccrualLitersPerSegment: "storm.puddle.accrualLitersPerSegment",
+  /** Storm — fraction of a puddle that evaporates per non-rain segment
+   * (scaled by resolved warmth / dryness). */
+  stormPuddleEvaporationFactor: "storm.puddle.evaporationFactor",
+  /** Storm — the fresh-water material path a new rain puddle fills with. */
+  stormPuddleFreshWaterMaterialPath: "storm.puddle.freshWaterMaterialPath",
+  /** Storm — per-storm-scope probability of a lightning strike per strike
+   * tick (0..1). */
+  stormStrikeRate: "storm.strikeRate",
+  /** Storm — the strike-tick interval, in game-seconds. */
+  stormStrikeIntervalS: "storm.strikeIntervalS",
+  /** Storm — the potential (V) a lightning strike source imposes. */
+  stormStrikeVoltage: "storm.strikeVoltage",
+  /** Storm — the relative weight bias a tall / conductive attractor adds to
+   * being the struck node. */
+  stormAttractorBias: "storm.attractorBias",
+
+  /* ────────────────────────── weather (Wave 2 light / sky) ────────────────────────── */
+  /** Weather — the maximum ambient-light dimming at full cloud (cloud=1);
+   * the resolved cloud coverage scales the SkyExposed ambient by
+   * `1 - cloudDimFactor * cloud`. */
+  weatherCloudDimFactor: "weather.cloudDimFactor",
+  /** Weather — how many upcoming segments the `look up` sky-read scans to
+   * pick a presaging cloud form (the deterministic forecast tell). */
+  weatherSkyForecastSegments: "weather.skyForecastSegments",
+
+  /* ────────────────────────── thermal (Wave 2 wet coupling) ────────────────────────── */
+  /** Thermal — how strongly a wet body loses heat faster: at full
+   * saturation the cold-side wind-chill / immersion term is scaled by
+   * `1 + wetHeatLossFactor`. */
+  thermalWetHeatLossFactor: "thermal.wetHeatLossFactor",
 } as const;
 
 export type AppSettingKey =

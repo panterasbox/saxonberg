@@ -85,10 +85,8 @@ export class ConnectionLogic extends ApiLogic {
     // origin. Returns COUNTRY ONLY — the raw IP never leaves the
     // connection layer (the developer-gated IP read is deferred).
     for (const interactive of ConnectionManager.get().getAllInteractives()) {
-      const holder = interactive.getHolder() as {
-        getPlayerId?: () => string;
-      } | null;
-      if (holder?.getPlayerId?.() === playerId) {
+      const holder = interactive.getHolder();
+      if (holder?.getPlayerId() === playerId) {
         const origin = interactive.getOrigin();
         return origin?.country ? { country: origin.country } : {};
       }

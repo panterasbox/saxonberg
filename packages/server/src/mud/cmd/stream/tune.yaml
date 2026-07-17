@@ -1,5 +1,5 @@
 verbs: [tune]
-controller: stream/TuneController
+controller: /obj/command/stream/TuneController
 description: "Follow a livestream's chat (Twitch / YouTube) in your console; post (Twitch)"
 help: |
   Follow a livestream's chat into your console and read it alongside the

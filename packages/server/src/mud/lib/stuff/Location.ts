@@ -23,12 +23,15 @@
 import { Stuff } from './Stuff';
 import { ContainerMixin } from '../spatial/Container';
 import { AdornableMixin } from '../boundary/Adornable';
-import { TangibleMixin } from '../material/Tangible';
 import { AtmosphericMixin } from '../biome/Atmospheric';
 import { AddressableMixin } from '../address/Addressable';
 
+// A Location represents *space*, not *matter* — so it is NOT `Tangible`
+// (rooms have no material or mass; nothing ever read them). "Made of matter"
+// is the Tangible seam (Thing / Vessel / Agent), which is also exactly the
+// "can get wet" set — see lib/wetness/Wet.ts.
 const LocationBase = AddressableMixin(
-  AtmosphericMixin(TangibleMixin(AdornableMixin(ContainerMixin(Stuff)))),
+  AtmosphericMixin(AdornableMixin(ContainerMixin(Stuff))),
 );
 
 export default class Location extends LocationBase {

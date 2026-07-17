@@ -163,11 +163,12 @@ capability-magic-slate) — so it is modeled in full.
 `suppliedBy` declared, no reader); part-as-Stuff promotion (severed
 limbs, transplants); MQL anatomy queries.
 
-## Conditions — the two-kind type system
+## Conditions — the three-kind type system
 
-A condition is a discrete affliction on the body. Both kinds present
+A condition is a discrete affliction on the body. All kinds present
 behind one `ActiveCondition` collection (`getConditions` / `afflict` /
-`relieve`); they differ only in where *behavior* lives.
+`relieve`); they differ only in where *behavior* lives. (Kind C —
+`SustainedShock` — was added by the [electricity](./electricity.md) build.)
 
 - **Kind A — afflictions** (`Condition` in `lib/vitals/Condition.ts`):
   identity-bearing authored content as `Condition extends Idea` templates, resolved
@@ -185,8 +186,16 @@ behind one `ActiveCondition` collection (`getConditions` / `afflict` /
   avulsion | burn`) and the `TRAUMA_BEHAVIOR` strategy table
   (`onset`/`tick`/`resolve`/`describe`). The table ships its **no-op
   exemplar** for every type — the shape, not live behavior.
+- **Kind C — sustained shock** (the `SustainedShock` value, added by
+  [electricity](./electricity.md)): `{ kind: 'shock', current, source?,
+  sites, tetany?, tickedAt? }` — the reconcile-on-read state of a *persisting
+  closed circuit*. It integrates current × time on the `reconcileConditions`
+  read path (a contact burn), re-verifies the circuit each read (tetany holds
+  it closed), and at the fibrillation band drives `heartRate` to the
+  electrocution death seam. The first condition kind with live drive on the
+  read path beyond trauma's bleed.
 
-Both records are plain-serializable → the collection persists with no
+All records are plain-serializable → the collection persists with no
 marshaller. Progression shapes (`ProgressionSpec`) target
 **`ScheduleApi.recurring`**, NOT the engagement-bound `ScheduledEmission`
 (a condition occupies no engagement slot — see [activity.md](./activity.md)).
@@ -242,6 +251,13 @@ build shipped only the **seams** (metabolism is the first consumer):
   and the floor stamps `setCauseOfDeath('exsanguination')` +
   `setLifecycleState('dead')`. Harm is the `inflict` producer + the five
   live `TRAUMA_BEHAVIOR` behaviors + the medic vertical (assess/treat).
+- **`heartRate` is now driven** — [electricity](./electricity.md) claims the
+  previously-undriven `heartRate` death seam: a fibrillating current (a
+  `SustainedShock` at/above the fibrillation band) drives `heartRate` toward
+  arrest on the same reconcile-on-read path; when it floors below the
+  survivable band the seam stamps `setCauseOfDeath('electrocution')` +
+  `setLifecycleState('dead')` (a `getVitalSign('heartRate')` read arms it,
+  mirroring the `bloodVolume` bleed read).
 
 ## Reserves
 

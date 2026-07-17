@@ -8,6 +8,8 @@ data:
   density: 7874
   specificHeat: 449
   thermalConductivity: 80
+  # Electrical conductivity (S/m) — a good conductor, ~1×10⁷.
+  electricalConductivity: 1.0e7
   # Mechanical response (materials-response): MPa / MJ·m⁻³, marshalled.
   hardness: 350
   toughness: 120

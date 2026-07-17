@@ -31,8 +31,8 @@ credential. The payment credential did both.
 
 ## The records — `lib/credential/Credential.ts`
 
-`CredentialKind` is a vocabulary (`payment` | `travel`); `CREDENTIAL_KINDS`
-is its validation array. **Adding a kind is adding data.**
+`CredentialKind` is a vocabulary (`payment` | `travel` | `key`);
+`CREDENTIAL_KINDS` is its validation array. **Adding a kind is adding data.**
 
 `Credential` is an abstract value-object base (NOT a `Stuff` — a plain object
 the wallet owns, so its surface is ordinary methods, no proxy/persistence
@@ -58,6 +58,21 @@ reflection). It knows its `kind` and serializes itself to a plain
   authorization store — a narrow, non-ledger down-payment on the
   credential-wallet tail's "a credential is a presentation, not the source of
   truth" principle (the full issuer-authorization ledger stays deferred).
+- **`KeyCredential`** — the **keychain**: a bag of **bearer** key entries
+  (each a `{keyway, technology}` — an opaque lock-identity token + the lock
+  technology it fits) plus a set of **master** technologies.
+  `addKey`/`addMaster`/`removeKey`/`authorize(keyway, technology)` — it opens a
+  lock iff it holds a matching entry, or a master for that technology (a
+  brass key can't turn a keycard reader). The **same record** whether it lives
+  in the implant keychain (the born-with wallet) or on a physical `Key` Thing
+  (`lib/lock/Key`, a card carrying one entry). **Bearer, not credentialed:**
+  possession *is* access — a lock is revoked by **re-keying** (a fresh keyway,
+  so the old entry silently stops matching), not a per-key ledger. The lock/key
+  substrate lives in `lib/lock/` (`Lock` value-object + `LockType` +
+  `CredentialApi`); its first consumer is the dorm door — see
+  [residence.md](./residence.md). **Durability:** the physical `Key` persists
+  with its holder (carried inventory rides the spine); the implant keychain is
+  session-durable in v1 (the physical key is the cross-restart form).
 
 ## The holder — `CredentialWalletMixin` (`lib/credential/CredentialWallet.ts`)
 
@@ -128,10 +143,12 @@ three-base model — see [augmentation.md](./augmentation.md)).
 
 - **Banking** (`BankingLogic`) — `reachableCredential` resolves the holder,
   returns its `payment` record; `settle` / `openAccount` (auto-link) /
-  `activeCredential` / `setActiveAccount` / `freezeCredential` / `issueCard`
-  read it. `BankingApi`'s credential surface traffics in the
-  `PaymentCredential` record; `issueCard` returns the card holder
-  (`Stuff & CredentialWallet`). See [banking.md](./banking.md).
+  `activeCredential` (context-derive the actor's routing credential) / `issueCard`
+  read/mint it. `issueCard` returns the card holder (`Stuff & CredentialWallet`).
+  Mutating a resolved credential (`setActiveAccount` / `setFrozen`) is the
+  `PaymentCredential` value-object's own behavior — the wallet verb holds the
+  record and calls it directly (no gate to route through `BankingApi`). See
+  [banking.md](./banking.md).
 - **Fast travel** — the `teleport` TPA fork and `register`
   (`TeleportController` / `RegisterController`), the
   `requiresTravelCredential` validator, and `FastTravel.renderDepartures` all

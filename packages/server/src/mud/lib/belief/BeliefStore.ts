@@ -82,6 +82,20 @@ export const IDENTIFICATION = 'identification';
 export const REGARD = 'regard';
 
 /**
+ * Realm constant: **world-fact discovery memory** — "viewer V has found
+ * feature F." Keyed by the concealed thing's `templatePath`, exactly like
+ * {@link RECOGNITION}; the payload is a bare `found` flag (flag-by-default
+ * under the payload rule). This is the *presence* cut — whether a viewer
+ * has ever pierced a thing's concealment — distinct from recognition
+ * (*who* a perceived thing is). Written once by
+ * `PerceptionApi.recordDiscovery`, read by `PerceptionApi.hasDiscovered`;
+ * per-viewer isolation, no-inherit, and the lazy liveness-GC fall out
+ * unchanged. The world-fact cut of the deferred place-memory realm (a
+ * found *feature*, not room familiarity). See `docs/subsystems/belief.md`.
+ */
+export const DISCOVERY = 'discovery';
+
+/**
  * The thin, axis-specific payload riding on a {@link BeliefRecord}.
  *
  * **Payload rule (the slate's): flag by default, value only for planned
@@ -107,6 +121,13 @@ export interface BeliefPayload {
    * the consumer (`RegardApi`/`RegardLogic`), never in the store.
    */
   regard?: number;
+  /**
+   * Discovery realm: the viewer has found this (concealed) referent — a
+   * bare **flag** (flag-by-default under the payload rule; a concealment
+   * level lives on the referent, never snapshotted here). Absent = not yet
+   * found. Set once via `PerceptionApi.recordDiscovery`.
+   */
+  found?: boolean;
 }
 
 /**
@@ -233,12 +254,15 @@ export function BeliefStoreMixin<TBase extends MixinConstructor>(Base: TBase) {
         // Regard overwrites (not raise-only): the consumer computes the
         // new value before calling.
         if (update.regard !== undefined) existing.payload.regard = update.regard;
+        // Discovery flag: a bare found-flag (flag-by-default).
+        if (update.found !== undefined) existing.payload.found = update.found;
         this._writeThrough(existing);
         return;
       }
       const payload: BeliefPayload = {};
       if (update.typeKnown !== undefined) payload.typeKnown = update.typeKnown;
       if (update.regard !== undefined) payload.regard = update.regard;
+      if (update.found !== undefined) payload.found = update.found;
       const record: BeliefRecord = {
         realm,
         referent,
@@ -255,6 +279,13 @@ export function BeliefStoreMixin<TBase extends MixinConstructor>(Base: TBase) {
       const k = keyOf(realm, referent);
       const record = this._beliefs.get(k);
       if (!record) return null;
+      // The DISCOVERY realm is exempt from the liveness-GC: its referent is a
+      // durable *feature* handle (a concealable's `getDiscoveryKey()` — e.g.
+      // an `Exit`'s synthetic `source#exit:dir`), NOT necessarily a live
+      // Stuff's `templatePath`, so a templatePath-absence check would wrongly
+      // reap a valid discovery. A found-flag is a cheap, per-viewer world
+      // fact worth keeping regardless.
+      if (realm === DISCOVERY) return record;
       // Lazy liveness-GC: if nothing in the world carries this referent
       // anymore, the memory is dead. `findAllByTemplatePath` is the
       // non-throwing multi-instance lookup (type referents are shared

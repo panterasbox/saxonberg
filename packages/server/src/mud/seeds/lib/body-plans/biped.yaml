@@ -29,6 +29,11 @@ data:
     - { name: neck,           accepts: WearableMixin }
     - { name: 'hand:left',    accepts: WieldableMixin, bodyPart: body.arm.left.hand }
     - { name: 'hand:right',   accepts: WieldableMixin, bodyPart: body.arm.right.hand }
+    # Belt sheath — a carry slot for a sheathed sidearm (the disarm answer:
+    # `fight draw` fast-switches a weapon from here into a grip). Accepts the
+    # broad SlottableMixin so a weapon can be sheathed here without claiming
+    # it as a wield slot. See docs/subsystems/combat.md (hand-slot economy).
+    - { name: 'sidearm',      accepts: SlottableMixin }
     # Cranial implant slot — accepts SlottableMixin (the broad
     # interface every augment composes). The "implant" semantic
     # lives in the slot's name and the augment's targetSlot field,

@@ -1,5 +1,5 @@
-verbs: [look, l]
-controller: perception/LookController
+verbs: [look, l, examine, exa]
+controller: /obj/command/perception/LookController
 description: "Examine your surroundings or an object"
 help: |
   With no target, `look` surveys your whole location — its
@@ -7,9 +7,14 @@ help: |
   examine one thing closely; the target also becomes your focus, so
   follow-up commands can refer to it without naming it again.
 
-  `look at` reads the same as plain `look` — the preposition is
-  optional. Use `--peek` to read something without disturbing your
-  focus trail.
+  A close look into a container peers in for anything half-hidden —
+  you may notice something a passing glance would miss. To go over a
+  whole place thoroughly (ties up your hands, takes time), use
+  `search`. `examine` is the same command by another name.
+
+  `look at` (or `look in`) reads the same as plain `look` — the
+  preposition is optional. Use `--peek` to read something without
+  disturbing your focus trail.
 examples:
   - cmd: look at the brass lantern
     note: Examine one object up close
@@ -21,7 +26,7 @@ args:
     required: false
     scope: ["$focus", "reachable"]
     updates_focus: extend
-    prepositions: [at]
+    prepositions: [at, in, inside]
     default: "$focus"
     # Typed ambiguity → disambiguation prompt. The click-affordance
     # path is fine without this: MmlRenderer.commandFor emits

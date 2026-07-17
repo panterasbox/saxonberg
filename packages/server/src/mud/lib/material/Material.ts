@@ -157,9 +157,11 @@ export default class Material extends SingletonMixin(
    * by the Thermal capability (heat flow / algor-mortis time-of-death);
    * no live consumer yet — seeded ahead per the reality-shaped
    * discipline. (The old 0–1 `hardness` / `flammability` / `opacity` /
-   * `electricalConductivity` / `magneticSusceptibility` fields were
-   * removed: fake normalized scales with zero consumers. Re-add as real
-   * Quantities when a consumer — fire, electricity — actually lands.)
+   * `magneticSusceptibility` fields were removed: fake normalized scales
+   * with zero consumers. Re-add as real Quantities when a consumer — fire,
+   * magnetism — actually lands. `electricalConductivity` has since been
+   * re-added below as a real `Quantity<'S/m'>`: the electricity build is
+   * the consumer that landed.)
    */
   private _thermalConductivity: Quantity<'W/(m·K)'> = Quantity.of(
     0,
@@ -247,6 +249,62 @@ export default class Material extends SingletonMixin(
       );
     }
     this._toughness = value;
+  }
+
+  /**
+   * Electrical conductivity as a `Quantity<'S/m'>` — a real, tabulated
+   * material property spanning ~20 orders of magnitude (copper ≈ 6×10⁷,
+   * salt water ≈ 5, flesh ≈ 0.2, rubber ≈ 1×10⁻¹³). Quantity-typed and
+   * strict on unit like `hardness`. The *height* the shock model reads:
+   * `MaterialApi` inverts it to a path resistance for `I = V/R`, so metal
+   * conducts (betrays armor) and rubber insulates — the armor inversion is
+   * emergent from this one number, never an `isElectrical` special case.
+   * Zero-default until authored (materials stay content — the base-library
+   * pack supplies the roster's values). Re-added here as the real
+   * `Quantity` the removed 0–1 scalar reserved a seam for — electricity is
+   * the consumer that landed.
+   */
+  private _electricalConductivity: Quantity<'S/m'> = Quantity.of(0, 'S/m');
+
+  protected get electricalConductivity(): Quantity<'S/m'> {
+    return this._electricalConductivity;
+  }
+  protected set electricalConductivity(value: Quantity<'S/m'>) {
+    if (!(value instanceof Quantity) || value.unit !== 'S/m') {
+      throw new TypeError(
+        `Material.electricalConductivity must be a Quantity<'S/m'>; got ${value instanceof Quantity ? `Quantity<'${value.unit}'>` : typeof value}`
+      );
+    }
+    this._electricalConductivity = value;
+  }
+
+  /**
+   * Water **absorption capacity** — the real, tabulated material property
+   * (ASTM D570 / ISO 62): the mass of water the material holds at
+   * saturation, as a **percent of its dry mass** (`Quantity<'%'>`). Real
+   * figures: wool ≈ 33 %, wood ≈ 28 % (fibre-saturation point), cotton ≈
+   * 25 %, leather ≈ 15 %, ceramic ≈ 8 %, and metals / glass ≈ 0 (a surface
+   * film only). Quantity-typed and strict on unit like the other measured
+   * properties (`hardness`, `electricalConductivity`) — **not** a fake 0–1
+   * index. The {@link ../wetness/Wet WetMixin} gauge reads it to derive the
+   * dry rate from evaporation physics: at a fixed evaporation rate a
+   * high-capacity material holds more water, so its saturation decays
+   * slower (wet wool lingers; a wet blade sheds at once). `0 %` until
+   * authored — the neutral fallback for a materialless object lives on the
+   * gauge, not here.
+   */
+  private _waterAbsorptionCapacity: Quantity<'%'> = Quantity.of(0, '%');
+
+  protected get waterAbsorptionCapacity(): Quantity<'%'> {
+    return this._waterAbsorptionCapacity;
+  }
+  protected set waterAbsorptionCapacity(value: Quantity<'%'>) {
+    if (!(value instanceof Quantity) || value.unit !== '%') {
+      throw new TypeError(
+        `Material.waterAbsorptionCapacity must be a Quantity<'%'>; got ${value instanceof Quantity ? `Quantity<'${value.unit}'>` : typeof value}`
+      );
+    }
+    this._waterAbsorptionCapacity = value;
   }
 
   /** Whether this material can be eaten. v1 has no consumer. */
@@ -352,6 +410,8 @@ export default class Material extends SingletonMixin(
     'specificHeat',
     'hardness',
     'toughness',
+    'electricalConductivity',
+    'waterAbsorptionCapacity',
     'edibility',
     'nutrients',
     'nutrientAmounts',
@@ -376,6 +436,8 @@ export default class Material extends SingletonMixin(
     specificHeat: QuantityMarshaller.pathFor('J/(kg·K)'),
     hardness: QuantityMarshaller.pathFor('MPa'),
     toughness: QuantityMarshaller.pathFor('MJ/m³'),
+    electricalConductivity: QuantityMarshaller.pathFor('S/m'),
+    waterAbsorptionCapacity: QuantityMarshaller.pathFor('%'),
     molarMass: QuantityMarshaller.pathFor('g/mol'),
   };
 
@@ -491,6 +553,28 @@ export default class Material extends SingletonMixin(
   /** Set toughness. Strict on `Quantity<'MJ/m³'>`. */
   public setToughness(value: Quantity<'MJ/m³'>): void {
     this.toughness = value;
+  }
+
+  /**
+   * Read electrical conductivity. Strict on `Quantity<'S/m'>`; the
+   * QuantityMarshaller absorbed authoring-shape coercion at the
+   * persistence boundary.
+   */
+  public getElectricalConductivity(): Quantity<'S/m'> {
+    return this._electricalConductivity;
+  }
+  /** Set electrical conductivity. Strict on `Quantity<'S/m'>`. */
+  public setElectricalConductivity(value: Quantity<'S/m'>): void {
+    this.electricalConductivity = value;
+  }
+
+  /** Read water absorption capacity (`Quantity<'%'>` of dry mass). */
+  public getWaterAbsorptionCapacity(): Quantity<'%'> {
+    return this._waterAbsorptionCapacity;
+  }
+  /** Set water absorption capacity. Strict on `Quantity<'%'>`. */
+  public setWaterAbsorptionCapacity(value: Quantity<'%'>): void {
+    this.waterAbsorptionCapacity = value;
   }
 
   public getTags(): readonly string[] { return this.tags; }

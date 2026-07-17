@@ -7,8 +7,8 @@ help: |
   comes from, the full provenance behind the reading.
 
   Pick a channel as a subcommand: `light`, `chemistry`,
-  `atmosphere`, `time`, `sky`, `address`, `weather`, or
-  `response`. Most default to where you stand, so the bare
+  `atmosphere`, `time`, `sky`, `address`, `weather`, `response`,
+  or `electrical`. Most default to where you stand, so the bare
   subcommand usually does what you want.
 subcommands:
   response:
@@ -25,7 +25,47 @@ subcommands:
         note: See a weapon's delivered channels
       - cmd: analyze response the breastplate
         note: See a piece of armor's per-channel protection
-    controller: perception/AnalyzeResponseController
+    controller: /obj/command/perception/AnalyzeResponseController
+    args:
+      - name: target
+        type: object
+        required: true
+        scope: ["reachable"]
+  weapon:
+    description: "Preview a weapon's derived playstyle — reach, guard, balance, handedness, delivery (bands/pips)"
+    help: |
+      Point at a weapon and read its playstyle before you draw it. The
+      whole bundle is *derived* from the weapon's shape — its form,
+      material, mass, and length — never hand-tuned: `reach medium ●●○○ ·
+      guard good ●●●○ · balance heavy · one-handed`. A long weapon controls
+      the approach; a heavy one breaks guards but is slow; a crossguard
+      parries where a flail can't. The bands shown are the same ones the
+      fight applies.
+    examples:
+      - cmd: analyze weapon the spear
+        note: See a weapon's reach / guard / balance / handedness
+      - cmd: analyze weapon my sword
+        note: Read the playstyle of a weapon you're carrying
+    controller: /obj/command/combat/AnalyzeWeaponController
+    args:
+      - name: target
+        type: object
+        required: true
+        scope: ["reachable"]
+  electrical:
+    description: "Read a thing's electrical character — conductivity / resistance / path-to-ground bands, and the raw V/A/Ω on measurement (the multimeter)"
+    help: |
+      Point at a material, a made thing, a live source, or a body
+      and read its electrical character: how well it conducts, the
+      resistance it offers, whether a body has a path to ground, and
+      a source's potential. Bands for a glance; the raw numbers
+      (volts / amps / ohms / S·m) on measurement — a real multimeter.
+    examples:
+      - cmd: analyze electrical the copper wire
+        note: Read a material's conductivity + resistance
+      - cmd: analyze electrical the guard
+        note: Is a body grounded (shockable) or insulated?
+    controller: /obj/command/perception/AnalyzeElectricalController
     args:
       - name: target
         type: object
@@ -40,7 +80,7 @@ subcommands:
     examples:
       - cmd: analyze light the cellar
         note: Analyze light at another place
-    controller: perception/AnalyzeLightController
+    controller: /obj/command/perception/AnalyzeLightController
     args:
       - name: location
         type: object
@@ -55,7 +95,7 @@ subcommands:
       Inspect what a thing is made of — its chemistry, the
       substances and proportions that compose it. The target must
       be tangible and within reach.
-    controller: perception/AnalyzeChemistryController
+    controller: /obj/command/perception/AnalyzeChemistryController
     args:
       - name: target
         type: object
@@ -70,7 +110,7 @@ subcommands:
       field with the provenance of where each value came from.
       Reach for it when a plain `measure` reading surprises you and
       you want to see why.
-    controller: perception/AnalyzeAtmosphereController
+    controller: /obj/command/perception/AnalyzeAtmosphereController
     args:
       - name: detail
         type: string
@@ -80,7 +120,7 @@ subcommands:
     help: |
       Report the game clock: the current world time, how fast it
       runs against real time, and today's date in your calendar.
-    controller: perception/AnalyzeTimeController
+    controller: /obj/command/perception/AnalyzeTimeController
     args:
       - name: detail
         type: string
@@ -94,7 +134,7 @@ subcommands:
     examples:
       - cmd: analyze sky the rooftop
         note: Check the sky over another place
-    controller: perception/AnalyzeSkyController
+    controller: /obj/command/perception/AnalyzeSkyController
     args:
       - name: location
         type: object
@@ -109,7 +149,7 @@ subcommands:
       Resolve where a place sits in the address namespace: its
       declared or inherited address, where that came from, and the
       Locality that covers it. Defaults to where you stand.
-    controller: perception/AnalyzeAddressController
+    controller: /obj/command/perception/AnalyzeAddressController
     args:
       - name: location
         type: object
@@ -124,7 +164,7 @@ subcommands:
       Report the weather at a place: the current weather type, how
       it nudges each atmospheric field, the Locality it belongs to,
       and a short forecast. Defaults to where you stand.
-    controller: perception/AnalyzeWeatherController
+    controller: /obj/command/perception/AnalyzeWeatherController
     args:
       - name: location
         type: object

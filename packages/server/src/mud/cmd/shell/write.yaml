@@ -1,5 +1,5 @@
 verbs: [write]
-controller: shell/WriteController
+controller: /obj/command/shell/WriteController
 description: "Author a content-tree template or source-tree file (uses workspace.tree default; require -c / -s under mirror mode)"
 help: |
   Create or replace authored material at a path. A content-tree

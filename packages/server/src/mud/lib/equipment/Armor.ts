@@ -17,7 +17,7 @@
  * {@link DurableMixin} for its wear-on-use `condition` (armor degrades) — a
  * *durable good*, NOT a crafting tool (no capabilities).
  *
- * Seeded as content (e.g. `/domain/eternal/armor/steel-breastplate`) with
+ * Seeded as content (e.g. `/obj/armor/steel-breastplate`) with
  * `data.slotClaims: { /lib/body-plans/biped: [torso] }`, `_materialPath`,
  * and `constructionForm: plate`.
  */

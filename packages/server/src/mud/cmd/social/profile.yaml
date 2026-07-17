@@ -1,5 +1,5 @@
 verbs: [profile, finger]
-controller: social/ProfileController
+controller: /obj/command/social/ProfileController
 description: "Look someone up — their identity card."
 help: |
   `profile <person>` shows what you can learn about someone: who they

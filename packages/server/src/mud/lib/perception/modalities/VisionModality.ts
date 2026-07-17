@@ -276,9 +276,14 @@ function walkFluxAt(
   if (visited.has(id)) return acc;
   visited.add(id);
 
-  // (a) Ambient — the location itself contributes flux + color temp.
+  // (a) Ambient — the location itself contributes flux + color temp,
+  // scaled by the cached weather cloud-dimming factor (Wave 2): overcast /
+  // storm reads dimmer. The factor is stamped by the weather boundary
+  // fan-out and read synchronously here — no async weather resolve on the
+  // perception hot path. `1` (the default) is byte-identical to pre-Wave-2.
   if (MixinApi.isAmbientLit(loc)) {
-    const ambientFlux = loc.getAmbientFlux().rawValue();
+    const ambientFlux =
+      loc.getAmbientFlux().rawValue() * loc.getWeatherDimFactor();
     if (ambientFlux > 0) {
       const ambientColorTemp = loc.getAmbientColorTemperature();
       addContribution(acc, ambientFlux, {

@@ -62,12 +62,16 @@ describe("Dave's Bar — corpo shelf", () => {
 });
 
 describe("Dave's Bar — the office", () => {
-  it("the bar declares a hidden, one-way north exit into the office", () => {
+  it("the bar declares a concealed, one-way north exit into the office", () => {
     const exits = loadLounge("bar.yaml").data?.exits as
       | Record<string, Record<string, unknown>>
       | undefined;
     expect(exits?.north?.destination).toBe("/domain/lounge/office");
-    expect(exits?.north?.hidden).toBe(true);
+    // Phase 3: `hidden: true` was raised to an authored concealment band
+    // (the vocabulary that subsumed the flag) + a hint, so the office is
+    // discoverable via `search`.
+    expect(exits?.north?.concealment).toBe("hidden");
+    expect(typeof exits?.north?.hint).toBe("string");
     // One-way declared so it never auto-installs a colliding inverse on
     // the bar (the office wires its own south).
     expect(exits?.north?.bidirectional).toBe(false);

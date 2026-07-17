@@ -1,5 +1,5 @@
 verbs: [say, "'"]
-controller: social/SayController
+controller: /obj/command/social/SayController
 description: "Say something to everyone in your location"
 help: |
   Speak aloud. Everyone in your location hears it. Speech is

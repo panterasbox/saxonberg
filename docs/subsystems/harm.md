@@ -28,11 +28,18 @@ the Api ADDS a facade, it does not re-route them.
 
 ## The `inflict` producer
 
-`ConditionApi.inflict(target, { mechanism, site, energy }) → InflictOutcome`
-is the **single seam every harm source calls** — this build's floor-glass
-hazard, and later combat. It builds a `Trauma`, lands it through the
-existing `VitalsMixin.afflict()` door, runs the trauma's `onset`, and stamps
-the reconcile-on-read `tickedAt` anchor (see below — no arming).
+`ConditionApi.inflict(target, spec) → InflictOutcome` is the **single seam
+every harm source calls** — this build's floor-glass hazard, and later
+combat. It builds a `Trauma`, lands it through the existing
+`VitalsMixin.afflict()` door, runs the trauma's `onset`, and stamps the
+reconcile-on-read `tickedAt` anchor (see below — no arming).
+
+`InflictSpec` is a **discriminated union** (added by the
+[electricity](./electricity.md) build): the energy variant
+`{ mechanism, site, energy }` (mechanical channel or thermal/tearing
+passthrough) vs the shock variant `{ mechanism:'shock', site, current }` —
+whose magnitude is the *current through the victim* (`Quantity<'A'>`), not an
+energy.
 
 - **Gated producer.** `inflict` is a powerful primitive that must not be
   callable by arbitrary content. `ConditionLogic.inflict` carries
@@ -62,6 +69,13 @@ the reconcile-on-read `tickedAt` anchor (see below — no arming).
   channel. `mechanism` is still **recorded raw on `Trauma.mechanism`**. The
   response function is the single `MaterialApi` chokepoint — see
   [materials-response.md](./materials-response.md).
+- **The `shock` third path.** A `mechanism:'shock'` insult is intercepted
+  **before** the covering-stack fold and routed to a third path that maps the
+  current-through-victim straight to a contact `burn` (`MaterialApi.
+  resolveShock`) — the path resistance was resolved upstream by the
+  conduction walk, so shock **skips the fold** (metal armor does not protect).
+  The mechanical fold + the thermal/tearing passthrough stay byte-identical.
+  See [electricity.md](./electricity.md).
 
 ## The five trauma behaviors
 
@@ -213,6 +227,20 @@ which constructs the alley + a body + an `Exit` in-memory). It is **not
 wired into the world seed graph** (see the note below); the
 reachable-in-world demo is deferred until a safe walkable host exists. A
 real hazard/trap taxonomy is a separate future build over the same seam.
+
+> **Shipped (concealment build): `HazardMixin` generalizes this seam.**
+> The real hazard/trap taxonomy landed — a self-resolving `HazardMixin`
+> (`lib/hazard/`, no `HazardApi` — the powerful steps route through the
+> already-gated `ConditionApi.inflict` / `PerceptionApi.perceives`), a
+> `HazardDelivery` value-object producing the `InflictSpec` (armor mitigates
+> for free through the covering stack, as it does a blow), and the trigger
+> fired from `Mobile.traverse`. See [hazard.md](./hazard.md). **`GlassAlley`
+> stays separate on purpose**: it is an *obvious* underfoot hazard — always
+> perceived, therefore always avoided — which is a different case from a
+> *spottable, concealed* trap (`HazardMixin` resolves against the detection
+> gate). Migrating GlassAlley onto `HazardMixin` is an optional, skippable
+> proof; it remains a class + integration fixture so unavoidable-glass and
+> spottable-trap coexist as distinct demonstrators.
 
 > **In-world placement deferred.** The demo was briefly wired off Dave's
 > Bar, then the Terminus Terminal hall, but every real content-area host

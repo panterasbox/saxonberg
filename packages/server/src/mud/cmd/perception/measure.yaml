@@ -21,7 +21,7 @@ subcommands:
     examples:
       - cmd: measure light the cellar
         note: Read the light at another place
-    controller: perception/MeasureLightController
+    controller: /obj/command/perception/MeasureLightController
     args:
       - name: location
         type: object
@@ -35,7 +35,7 @@ subcommands:
     help: |
       Read the air temperature around you in Kelvin. Measures your
       immediate surroundings; it doesn't take a location.
-    controller: perception/MeasureTemperatureController
+    controller: /obj/command/perception/MeasureTemperatureController
     args:
       - name: detail
         type: string
@@ -45,7 +45,7 @@ subcommands:
     help: |
       Read the air pressure around you in pascals. Measures your
       immediate surroundings; it doesn't take a location.
-    controller: perception/MeasurePressureController
+    controller: /obj/command/perception/MeasurePressureController
     args:
       - name: detail
         type: string
@@ -56,7 +56,7 @@ subcommands:
       Read the relative humidity around you as a percentage.
       Measures your immediate surroundings; it doesn't take a
       location.
-    controller: perception/MeasureHumidityController
+    controller: /obj/command/perception/MeasureHumidityController
     args:
       - name: detail
         type: string
@@ -68,7 +68,7 @@ subcommands:
       squared — handy off-world or anywhere the pull feels wrong.
       Measures your immediate surroundings; it doesn't take a
       location.
-    controller: perception/MeasureGravityController
+    controller: /obj/command/perception/MeasureGravityController
     args:
       - name: detail
         type: string
@@ -80,7 +80,7 @@ subcommands:
       whatever else fills the space. Useful before you trust a
       breath. Measures your immediate surroundings; it doesn't take
       a location.
-    controller: perception/MeasureAtmosphereController
+    controller: /obj/command/perception/MeasureAtmosphereController
     args:
       - name: detail
         type: string
@@ -94,7 +94,7 @@ subcommands:
     examples:
       - cmd: measure altitude sun
         note: Read the sun's angle with a sextant
-    controller: perception/MeasureAltitudeController
+    controller: /obj/command/perception/MeasureAltitudeController
     args:
       - name: body
         type: string
@@ -105,7 +105,7 @@ subcommands:
       Read the sun's elevation and bearing off the cast of your
       shadow — an old way to tell the time and direction outdoors.
       Needs a sundial to hand and a sun in the sky.
-    controller: perception/MeasureShadowController
+    controller: /obj/command/perception/MeasureShadowController
     args:
       - name: detail
         type: string

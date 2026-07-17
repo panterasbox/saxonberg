@@ -1,5 +1,5 @@
 verbs: [help, h, "?"]
-controller: system/HelpController
+controller: /obj/command/system/HelpController
 description: "Get help: bare lists verbs; `help verb`, `help api`, `help search`"
 help: |
   Your way into everything the game can do. Plain `help` lists every

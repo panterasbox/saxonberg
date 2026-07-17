@@ -1,0 +1,142 @@
+# Gus — the Crossing Authority. A one-man crossing guard for a crossing with
+# no traffic, working a ten-foot beat with total professional gravity and
+# genuine pride. Deliberately PRIMITIVE on purpose (the black-and-white before
+# the campus's Technicolor): the dumbest brains on the shared substrate,
+# STATELESS per-interactor. DO NOT upgrade him to a live agent — the contrast
+# past the gate is the whole point. Full character sheet:
+# docs/staging/eternal-university/npcs/crossing-guard.md.
+#
+# Class is `/obj/Gus`, a thin NPC subclass whose ONLY divergence is that it
+# boots already wearing the vest + whistle, wielding the paddle, and carrying
+# the watch/log/thermos — because there is no declarative seed path to equip
+# gear on a creature (see obj/Gus.ts). Everything else here is plain content.
+#
+# STATELESS RECOGNITION (load-bearing, the feature not a bug): every meeting
+# is the first. There is no per-NPC "decline memory" flag in the engine, so
+# statelessness is achieved by COMPOSITION: (1) `greets` fires fresh on every
+# arrival (the brain does not dedupe by seen-set), so a repeat crosser is
+# greeted anew; (2) NO `introduces`/auto-introduce brain is wired, so Gus
+# builds no per-conversant recognition relationship; (3) NPC belief is not
+# persisted across reboot. Diegetically: he forgets you, warmly.
+#
+# PHASE 4 SCOPE = behaviour DECLARATIONS only (idles + greets — the primitive
+# floor). The crossing RITUAL (the engagement + the crossing-log `tally` fired
+# on the witnessed south-side arrival, decoupled so an aborted performance
+# still tallies, and the simultaneous-arrival batch) is Phase 5. Trigger-alias
+# resolution against the SHIPPED npc-behavior substrate (real triggers:
+# cadence:<N>[ms|s|m] / arrival / departure / emote / speech / engage):
+#   - the sheet's `cross-in`  → the `arrival` witness (the terminal is now
+#     SOUTH, so the crossing IS the south-side arrival into this room);
+#   - the sheet's `depart`    → the `departure` witness (courteous see-off,
+#     NO tally — Phase 5 keeps the tally on arrival only);
+#   - the sheet's `blocked:down-avenue` → NO such trigger, and there is no
+#     east exit anyway; the soft-wall is prose, deferred;
+#   - the sheet's `intent-dialogue` (keyword→canned line) → NO such brain
+#     ships; Gus stays on the idles+greets floor (a branching tree-dialogue
+#     is explicitly WRONG for the throwback), keyword Q&A deferred.
+class: /obj/Gus
+hydratorClass: /lib/persistence/PersistentHydrator
+data:
+  name: Gus
+  pronouns: he
+  _speciesPath: /lib/species/animalia/chordata/mammalia/primates/hominidae/homo/sapiens
+  lifecycleState: alive
+  primaryKeyword: gus
+  alternateNames:
+    - guard
+    - authority
+  # The salient-feature fallback a true stranger sees before he speaks —
+  # which is almost never, since he speaks immediately. His role ("crossing
+  # guard") rides the shortDescription; the authoredStatus is the *activity*
+  # affix only (no role restatement — that would double as "a crossing
+  # guard …, the crossing guard, watching …"). Status is a presence
+  # decoration: a stranger in the room roll-call reads "a crossing guard
+  # wearing a faded hi-vis vest, watching the empty road", while his
+  # act-subject lines stay clean ("a crossing guard … says …").
+  shortDescription: a crossing guard
+  authoredStatus: watching the empty road
+  longDescription: |
+    An older man in a high-vis orange vest gone soft at the seams, with a weathered, kindly face and sensible shoes. His gear rides on him and means business — the watch on its chain, the whistle on its cord, the STOP paddle held ready in one hand — and a laminated CROSSING AUTHORITY badge is clipped square to his chest. Even while his eyes are on you they flick both ways down the empty avenue, out of a habit older than the quiet.
+  # NOTE: dispositions (ambition→Content, diligence→Diligent, constancy→
+  # Stubborn, composure→Calm, sociability→Gregarious, curiosity→Incurious) are
+  # authored *targets* per the sheet, not load-bearing for Phase 4 — and
+  # seeding them drives the trait-evidence ledger through the persistence
+  # layer, which the in-memory standup test can't satisfy. Cast his personality
+  # via `claim` evidence / a connected fixture when the trait layer is wired
+  # live (see docs/subsystems/trait.md); the behaviour floor below is the
+  # Phase-4 deliverable.
+  behaviors:
+    # Idle business — a MIXED pool (free-form emotes + the odd spoken line)
+    # sampled on a cadence: pacing, the paddle-check, tidying his kit, a sharp
+    # whistle "to keep it sharp", the "quiet's good" mutter, and a genre
+    # anecdote flattened to the same fussy curb-minding. (The paddle-check is
+    # one compressed emote here — the paced multi-beat ScheduledEmission
+    # sequence is a Phase 5 refinement; the real `blow whistle` verb from idle
+    # is likewise deferred, so the whistle is flavour for now.)
+    #
+    # Cadence is deliberately UNHURRIED (~5 min, jittered): this is ambient
+    # background a player reads *around*, not a performance — a little goes
+    # a long way (see docs/subsystems/behavior.md § Ambient pacing budget:
+    # a single NPC's idle beat lands at the stoic end, ~1 per few minutes).
+    # Gus's *life* comes from the arrival ritual below (responsive), not the
+    # puttering; the idles are just proof he didn't turn to stone. The
+    # global `behavior.ambientCadenceScale` dial retunes the whole world at
+    # once during playtest without editing this.
+    - brain: /lib/behavior/idles
+      trigger: cadence:300s
+      config:
+        pool:
+          - { kind: free, value: "paces his stretch of curb, hands behind his back." }
+          - { kind: free, value: "stops, raises the STOP paddle, checks both ways down the empty avenue, holds a beat, then lowers it, satisfied." }
+          - { kind: free, value: "polishes the paddle on his sleeve, squares his badge, and straightens a vest that doesn't need it." }
+          - { kind: free, value: "blows one short, clean note on his whistle — at nothing, just to keep it sharp." }
+          - { kind: say, value: "Quiet today. Quiet's good." }
+          - { kind: say, value: "New in town? Counting-houses are down the avenue, west — Goodkin's the warm one with the doors open. Get your coin on the books before you lose it." }
+          - { kind: say, value: "Had the chosen one through Tuesday — glowing sword, prophecy, the whole article. Wanted the way to the final battle. Saw him over first. Curb's the same for heroes." }
+          - { kind: say, value: "Roads don't care how old you are, friend. Physics don't check ID." }
+    # The arrival ritual (Phase 5) — the celebrated flow, fired fresh on
+    # EVERY arrival (stateless: a repeat crosser is ceremonied anew). This
+    # is the south-side arrival out of the terminal = the crossing. The
+    # dedicated crossing-ritual brain does two load-bearing things:
+    #   (1) TALLY-AS-DEED: it marks the crossing-log on the witnessed
+    #       arrival itself, decoupled from the performance, so an aborted
+    #       ceremony never loses the count (N arrivals → N marks);
+    #   (2) BUSY-HUB BATCH: simultaneous arrivals collapse to ONE
+    #       performance ("the lot of you — mind the curb") while each still
+    #       tallies.
+    # The whistle blast is a real cross-room Audible emit (heard from the
+    # adjacent arrival-gate); the calls/emotes ride the standard helpers
+    # and are reactable. The brain reads his own drifting Watch for the
+    # mark's time and appends to his CrossingLog — when, never who.
+    - brain: /lib/behavior/crossing-ritual
+      trigger: arrival
+      config:
+        soloHeadline: "Hold it right there— and clear. C'mon across, mind the curb. Big day for you, I'd wager."
+        batchHeadline: "Alright, alright — the lot of you — both ways now — mind the curb."
+        paddleEmote: "raises the STOP paddle and gravely checks both ways down the empty avenue, then lowers it."
+        escortEmote: "walks you across the ten feet of empty road, a hand hovering at the ready, then steps back to his post."
+    # The courteous see-off on departure — light, NO ritual, NO tally (Gus is
+    # arrival-fed). He says it to everyone; he won't remember if they come back.
+    - brain: /lib/behavior/greets
+      trigger: departure
+      config:
+        lines:
+          - "Headin' out? Mind the curb. ...Come back and see us."
+          - "Off you go, then. Look both ways. ...Come back and see us."
+  # Detailed sub-features — the parts of HIM (the gear stays separate worn/
+  # wielded objects). The badge is his hero detail (homemade, and he has no
+  # idea): the whole joke in one card.
+  details:
+    badge:
+      keywords: [badge, card, laminated, crossing, authority]
+      description: |
+        A hand-printed, laminated card clipped to his vest, the lamination cloudy and one corner bubbled, the letters CROSSING AUTHORITY centered not-quite-right. Three lines do the work: BADGE No. 001 — as if there were a series; EST. ____ — the founding date left blank, because he genuinely cannot say when he started; and, in his own hand, AUTHORIZED BY: Gus. He believes it is an official designation. It is not.
+    vest:
+      keywords: [vest, hi-vis, hivis, orange]
+      description: High-visibility orange gone soft and dull, the reflective striping crazed, a little constellation of pinholes over the heart where the badge has been re-clipped a thousand times and never quite squared.
+    face:
+      keywords: [face, eyes, crows-feet, crowsfeet]
+      description: A weathered, kindly face, deep crow's-feet fanned from a lifetime of squinting down a bright and empty road. The eyes are warm, and they never quite stop checking both ways.
+    hands:
+      keywords: [hands, thumb, grip]
+      description: Worn, capable hands, the right thumb smoothed pale where it flips the watch open — the same worn grip that works the whistle's mouthpiece and the paddle's stick.
