@@ -1,0 +1,111 @@
+/**
+ * Stock — the general-store counter: a container fixture that holds the
+ * shelf goods, prices them (via `PricedOfferMixin`, Law 1: worth on the
+ * offer), and attends its customers (via `AttendantMixin`, the storefront
+ * lease). One fixture, the `BankCounter` precedent (a `Vessel` that composes
+ * its capability). The `buy` verb resolves this fixture as both the shelf
+ * and the attend point.
+ *
+ * Stock is authored declaratively: `stockLines` names each line
+ * (`itemTemplatePath` + `par` + optional `brandKey`), the shelf inventory is
+ * `populates`-cloned into the container, and `prices` is keyed by the item
+ * template path (the offer key). A buy moves one shelf item to the buyer;
+ * the reset sweep (see `ResettableMixin`) tops each line back to `par`.
+ */
+
+import { Vessel } from "../stuff/Vessel";
+import { DetailedMixin } from "../description/Detailed";
+import { PricedOfferMixin } from "../commerce/PricedOffer";
+import { AttendantMixin } from "../attendant/Attendant";
+import { MqlApi } from "../../api/mql";
+import { ContainmentApi } from "../../api/containment";
+import { MixinApi } from "../../api/mixin";
+import type { CommandContext, CommandContributions } from "../../api/command";
+import type { Stuff } from "../stuff/Stuff";
+import type { Container } from "../spatial/Container";
+import type { Containable } from "../spatial/Containable";
+
+/** One authored stock line: what to shelve, how deep, and any brand. */
+export interface StockLine {
+  /** The good's clone-source template path (the offer key too). */
+  itemTemplatePath: string;
+  /** The target shelf depth the reset sweep tops back up to. */
+  par: number;
+  /** Optional brand key (an independent shelf mark). */
+  brandKey?: string;
+}
+
+const StockBase = AttendantMixin(PricedOfferMixin(DetailedMixin(Vessel)));
+
+export default class Stock extends StockBase {
+  static persistentFields = ["stockLines"];
+
+  /** The authored stock lines (what the store carries). @authorable */
+  public stockLines: StockLine[] = [];
+
+  /**
+   * Resolve the store counter a `buy` command works off: the affording
+   * fixture itself, or a `Stock` reachable from the giver (the `Menu`
+   * precedent).
+   */
+  static resolveIn(context: CommandContext): Stock | null {
+    const source = context.commandSource;
+    if (source instanceof Stock) return source;
+    const peers = MqlApi.resolveMany("peers", {
+      commandGiver: context.commandGiver,
+      scope: "reachable",
+    });
+    return peers.stuff.find((s): s is Stock => s instanceof Stock) ?? null;
+  }
+
+  static commandContributions: CommandContributions = {
+    self: [],
+    environment: ["retail/buy.yaml"],
+    inventory: ["retail/buy.yaml"],
+    peers: [],
+  };
+
+  /** The buyable goods currently on the shelf. */
+  offeredItems(): (Stuff & Containable)[] {
+    return ContainmentApi.getContents(this as unknown as Stuff & Container);
+  }
+
+  /** Resolve a shelf good by keyword, or null. */
+  resolveBuy(keyword: string): (Stuff & Containable) | null {
+    for (const item of this.offeredItems()) {
+      if (MixinApi.isPerceptible(item) && item.hasKeyword(keyword)) {
+        return item;
+      }
+    }
+    return null;
+  }
+
+  /** The authored par depth for a line (by item template path). */
+  parFor(itemTemplatePath: string): number {
+    return (
+      this.stockLines.find((l) => l.itemTemplatePath === itemTemplatePath)
+        ?.par ?? 0
+    );
+  }
+
+  /** The shelf count currently on hand for a line (by item template path). */
+  onHand(itemTemplatePath: string): number {
+    let n = 0;
+    for (const item of this.offeredItems()) {
+      if (item.getTemplatePath() === itemTemplatePath) n++;
+    }
+    return n;
+  }
+
+  override getLong(): string {
+    const base = super.getLong();
+    const lines = this.stockLines
+      .map((l) => {
+        const price = this.priceFor(l.itemTemplatePath);
+        const name = l.itemTemplatePath.split("/").pop() ?? l.itemTemplatePath;
+        return price != null ? `${name} (${price})` : name;
+      })
+      .join(", ");
+    return lines.length > 0 ? `${base} On the shelves: ${lines}.` : base;
+  }
+}
