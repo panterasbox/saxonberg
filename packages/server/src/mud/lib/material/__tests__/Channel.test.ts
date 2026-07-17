@@ -4,7 +4,7 @@ import type { Channel } from '../Channel';
 
 describe('Channel vocabulary', () => {
   it('ships edge / point / blunt (mechanical) + shock (electrical)', () => {
-    expect([...CHANNELS]).toEqual(['edge', 'point', 'blunt', 'shock']);
+    expect([...CHANNELS]).toEqual(['edge', 'point', 'blunt', 'shock', 'heat']);
   });
 
   it('the mechanical subset is edge / point / blunt (shock excluded)', () => {
@@ -31,7 +31,7 @@ describe('Channel vocabulary', () => {
   });
 
   it('isChannel rejects non-members', () => {
-    for (const bad of ['heat', 'thermal', 'crush', '', 'Edge', 'slash']) {
+    for (const bad of ['thermal', 'crush', '', 'Edge', 'slash']) {
       expect(Channels.isChannel(bad)).toBe(false);
     }
   });
