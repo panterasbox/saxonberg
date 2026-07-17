@@ -18,13 +18,13 @@ import type { Stuff } from "../lib/stuff/Stuff";
 import type { Engaged } from "../lib/activity/Engaged";
 import type { CombatSession } from "../lib/combat/CombatSession";
 import type { CombatTerms } from "../lib/combat/CombatTerms";
-import type CombatAttributionEvent from "../lib/combat/CombatAttributionEvent";
-import type { BlameVerdict } from "../lib/combat/CombatAttributionEvent";
+import type AccountabilityEvent from "../lib/accountability/AccountabilityEvent";
+import type { BlameVerdict } from "../lib/accountability/AccountabilityEvent";
 import type { CompetenceBandName } from "../lib/advancement/CompetenceBand";
 import type { WeaponProfile } from "../lib/combat/WeaponProfile";
 import type { RangeState } from "../lib/combat/CombatGraph";
 
-export type { BlameVerdict } from "../lib/combat/CombatAttributionEvent";
+export type { BlameVerdict } from "../lib/accountability/AccountabilityEvent";
 import { SecurityApi } from "./security";
 import { StuffApi } from "./stuff";
 import { HotReloadApi } from "./hot-reload";
@@ -181,7 +181,7 @@ export class CombatApi {
   /** Every attribution row for a fight (read/analytics; ordered by realAt). */
   public static attributionFor(
     sessionId: string,
-  ): Promise<CombatAttributionEvent[]> {
+  ): Promise<AccountabilityEvent[]> {
     return logic().attributionFor(sessionId);
   }
 
