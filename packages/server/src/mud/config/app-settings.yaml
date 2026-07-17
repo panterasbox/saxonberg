@@ -267,7 +267,10 @@ settings:
   # it ships in observe mode (logs what it WOULD cull, destructs nothing)
   # so the go-live memory profile can be measured before enforcement —
   # flip mode to `enforce` (re-read each sweep, no restart) to cull for
-  # real. The deferred game-time reset sweep will add `residency.reset.*`.
+  # real. The game-time reset (repop) sweep (`residency.reset.*`) is the
+  # eviction sibling — restorative-of-self over ResettableMixin, on the
+  # game clock; it ships in observe mode too (flip to enforce to repop for
+  # real). Only the general store's stock is wired today.
   # See docs/subsystems/residency.md.
   - key: residency.eviction.mode
     value: observe
@@ -275,6 +278,10 @@ settings:
     value: "60000"
   - key: residency.eviction.idleThresholdMs
     value: "1800000"
+  - key: residency.reset.mode
+    value: enforce
+  - key: residency.reset.intervalS
+    value: "3600"
 
   # Materials-response — the response function's magnitudes (the "shape"
   # lives in code on `Construction`; these are the coefficients each

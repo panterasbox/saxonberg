@@ -17,9 +17,11 @@ import { Vessel } from "../stuff/Vessel";
 import { DetailedMixin } from "../description/Detailed";
 import { PricedOfferMixin } from "../commerce/PricedOffer";
 import { AttendantMixin } from "../attendant/Attendant";
+import { ResettableMixin } from "../residency/Resettable";
 import { MqlApi } from "../../api/mql";
 import { ContainmentApi } from "../../api/containment";
 import { MixinApi } from "../../api/mixin";
+import { StuffApi } from "../../api/stuff";
 import type { CommandContext, CommandContributions } from "../../api/command";
 import type { Stuff } from "../stuff/Stuff";
 import type { Container } from "../spatial/Container";
@@ -35,7 +37,9 @@ export interface StockLine {
   brandKey?: string;
 }
 
-const StockBase = AttendantMixin(PricedOfferMixin(DetailedMixin(Vessel)));
+const StockBase = ResettableMixin(
+  AttendantMixin(PricedOfferMixin(DetailedMixin(Vessel))),
+);
 
 export default class Stock extends StockBase {
   static persistentFields = ["stockLines"];
@@ -95,6 +99,29 @@ export default class Stock extends StockBase {
       if (item.getTemplatePath() === itemTemplatePath) n++;
     }
     return n;
+  }
+
+  /**
+   * Reset (repop): top each stock line back to its authored par by cloning
+   * fresh goods from the line's template into the shelf. Notional restock —
+   * items, never money (Law 2). The shelf clones are author-owned until
+   * bought (they resolve via the chattel author fallback).
+   */
+  override async reset(): Promise<void> {
+    for (const line of this.stockLines) {
+      const need = line.par - this.onHand(line.itemTemplatePath);
+      for (let i = 0; i < need; i++) {
+        const item = await StuffApi.clone<Stuff & Containable>(
+          line.itemTemplatePath,
+        );
+        ContainmentApi.move(item, this as unknown as Stuff & Container);
+      }
+    }
+  }
+
+  /** The shop restocks while browsed — repop-ing a watched room is fine. */
+  override resetsWhilePresent(): boolean {
+    return true;
   }
 
   override getLong(): string {

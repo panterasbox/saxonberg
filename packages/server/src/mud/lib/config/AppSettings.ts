@@ -358,6 +358,10 @@ export const AppSettingKeys = {
   residencyEvictionIntervalMs: "residency.eviction.intervalMs",
   /** Eviction — idle grace window (ms) before an object is a candidate. */
   residencyEvictionIdleThresholdMs: "residency.eviction.idleThresholdMs",
+  /** Reset — `observe` (log only) | `enforce` (actually repop). */
+  residencyResetMode: "residency.reset.mode",
+  /** Reset — game-time sweep cadence in game-seconds. */
+  residencyResetIntervalS: "residency.reset.intervalS",
 
   /**
    * YouTube relay (read-only) dials. The Twitch relay's hardcoded constants

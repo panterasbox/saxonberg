@@ -97,6 +97,9 @@ export const Mixins = {
   // Commerce — the shared authored price-list (Law 1: worth on the offer,
   // not the good). Composed by the bar's Menu and the store's Stock.
   PricedOffer: 'PricedOfferMixin',
+  // Residency — the game-time reset (repop) sweep's consumer marker: an
+  // object that restores itself on the sweep (the shop's Stock tops up).
+  Resettable: 'ResettableMixin',
   Workspace: 'WorkspaceMixin',
   Author: 'AuthorMixin',
   Perceiver: 'PerceiverMixin',

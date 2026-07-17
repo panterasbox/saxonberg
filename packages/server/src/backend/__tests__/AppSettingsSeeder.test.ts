@@ -41,7 +41,7 @@ describe("AppSettingsSeeder", () => {
     pm.setFindResult([]);
     const added = await AppSettingsSeeder.run();
 
-    expect(added).toBe(172); // 146 base + 7 Attendant+Goodkin + 19 storms-and-wetness
+    expect(added).toBe(174); // 146 base + 7 Attendant+Goodkin + 19 storms-and-wetness + 2 residency reset
     expect(pm.saves).toHaveLength(1);
     expect(pm.saves[0]!.collection).toBe("app_settings");
     const values = savedValues(pm);
@@ -252,6 +252,8 @@ describe("AppSettingsSeeder", () => {
           [AppSettingKeys.weatherCloudDimFactor]: "0.6",
           [AppSettingKeys.weatherSkyForecastSegments]: "2",
           [AppSettingKeys.thermalWetHeatLossFactor]: "1.5",
+          [AppSettingKeys.residencyResetMode]: "enforce",
+          [AppSettingKeys.residencyResetIntervalS]: "3600",
         },
       },
     ]);
@@ -291,7 +293,8 @@ describe("AppSettingsSeeder", () => {
     // + 3 Attendant lease/queue (lease sweep/idle, queue idle)
     // + 19 storms-and-wetness (8 wetness + 7 storm + 2 weather + 1 thermal
     //   + 1 wetness.absorptionCapacityDefaultPct).
-    expect(added).toBe(171);
+    // + 2 residency reset (mode + intervalS).
+    expect(added).toBe(173);
     expect(pm.saves).toHaveLength(1);
     const values = savedValues(pm);
     // operator value preserved, missing keys seeded
