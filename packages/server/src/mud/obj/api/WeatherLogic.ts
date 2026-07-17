@@ -575,6 +575,12 @@ async function runBoundaryFanout(): Promise<void> {
     // authored indoor rain fills a Floor pool exactly as procgen rain does.
     maintainPuddle(room, resolved);
 
+    // Precipitation exposure (Wave 2, B): a body/object standing in resolved
+    // rain (procgen OR authored — source-indifferent) gets wet. The wetness
+    // gauge's reconcile drains it back when sheltered. This is the *push*
+    // accrual side (the reconcile can't do an async weather resolve).
+    if (resolved.precipitationHere === 'rain') wetOccupants(room);
+
     // Cloud → light dimming (Wave 2, F): stamp a cached dim factor onto a
     // SkyExposed AmbientLit scope so the sync perception walk reads dimmer
     // under overcast / storm (the `lastAmbientK` cache-invalidation
@@ -608,6 +614,23 @@ function dialStr(key: string, fallback: string): string {
     return raw == null || raw === '' ? fallback : raw;
   } catch {
     return fallback;
+  }
+}
+
+/**
+ * Wet every wetness-bearing occupant of a rain scope by one segment's worth
+ * of exposure (the precipitation-exposure accrual push). Source-indifferent:
+ * the caller has already resolved that it is raining *here*. The gauge clamps
+ * at soaked; the reconcile drains it once the body leaves the rain.
+ */
+function wetOccupants(room: Stuff & Container): void {
+  const perHour = dial(AppSettingKeys.wetnessRainAccrualPerHour, 1.5);
+  const hours = WEATHER_DEFAULTS.SEGMENT_LENGTH_S / 3600;
+  const delta = perHour * hours;
+  for (const occ of room.getContents()) {
+    if (MixinApi.isWet(occ as unknown as Stuff)) {
+      (occ as unknown as { wet(n: number): void }).wet(delta);
+    }
   }
 }
 

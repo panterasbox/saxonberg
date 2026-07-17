@@ -122,6 +122,31 @@ describe('WetMixin — the wetness gauge', () => {
     expect(w).toBeLessThan(c); // warmth accelerated the drain
   });
 
+  it('a wet object shows a band line in its long description (not a number)', () => {
+    const t = makeStuff(() => new WetThing());
+    // Dry: no wetness line appended.
+    const dryText = (
+      t as unknown as {
+        constructor: {
+          markupAugmenters: Array<(s: string, h: unknown, v: unknown) => string>;
+        };
+      }
+    ).constructor.markupAugmenters[0]!('A plain cloak.', t, t);
+    expect(dryText).toBe('A plain cloak.');
+
+    // Soaked: a band phrase, never the raw saturation number.
+    t.wet(0.9);
+    const wetText = (
+      t as unknown as {
+        constructor: {
+          markupAugmenters: Array<(s: string, h: unknown, v: unknown) => string>;
+        };
+      }
+    ).constructor.markupAugmenters[0]!('A plain cloak.', t, t);
+    expect(wetText).toContain('soaked');
+    expect(wetText).not.toMatch(/0\.9|0\.[0-9]/); // no raw number
+  });
+
   it('bands map by threshold', () => {
     const mk = (s: number): WetThing => {
       const t = makeStuff(() => new WetThing());

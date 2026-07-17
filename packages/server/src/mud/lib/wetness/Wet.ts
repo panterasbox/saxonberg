@@ -38,6 +38,7 @@ import { WorldClockApi } from '../../api/worldclock';
 import { AppApi } from '../../api/app';
 import { AppSettingKeys } from '../config/AppSettings';
 import { TemplatePaths } from '../paths';
+import type { MarkupAugmenter } from '../../api/mml';
 
 /** The player-facing wetness band (presentation, never a raw number). */
 export type WetnessBand = 'dry' | 'damp' | 'wet' | 'soaked';
@@ -85,11 +86,35 @@ export interface Wet {
   wetnessClockStamp: number;
 }
 
+/** The player-facing phrase for a non-dry band (presence affix, never dry). */
+const WETNESS_PHRASE: Record<Exclude<WetnessBand, 'dry'>, string> = {
+  damp: 'It is damp.',
+  wet: 'It is wet.',
+  soaked: 'It is soaked through.',
+};
+
+/**
+ * Append a wetness band line to a wet host's long description — band only,
+ * never a raw number (the banding-is-presentation rule). A dry object says
+ * nothing. Reads through the reconcile-on-read getter, so a linkdead / dried
+ * object reads truthfully.
+ */
+function wetnessAugmenter(text: string, host: Stuff, _viewer: Stuff): string {
+  if (!MixinApi.isWet(host)) return text;
+  const band = (host as unknown as Wet).getWetnessBand();
+  if (band === 'dry') return text;
+  const line = WETNESS_PHRASE[band];
+  return text && text.length > 0 ? `${text}\n\n${line}` : line;
+}
+
 export function WetMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
   return class WetMixin extends Base implements Wet {
     static _mixinName = 'WetMixin';
 
     static persistentFields = ['_saturation', 'wetnessClockStamp'];
+
+    /** Derived wetness band line appended to the host's long description. */
+    static markupAugmenters: MarkupAugmenter[] = [wetnessAugmenter];
 
     /** Saturation `[0, 1]`; `0` = bone dry (the sparse default). */
     public _saturation = 0;
