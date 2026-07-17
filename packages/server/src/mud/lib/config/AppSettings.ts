@@ -658,6 +658,23 @@ export const AppSettingKeys = {
    * mid-disarm defuses nothing. Read with a seeded-literal fallback.
    */
   hazardDisarmSeconds: "hazard.disarmSeconds",
+  /* ─────────────────── care↔speed movement axis ─────────────────── */
+  /**
+   * Movement — the detection attention modifier a `sneak` crossing folds
+   * in on top of the passive baseline. Positive: moving carefully notices
+   * more, so a sneaker raises their traverse-time perception over a
+   * concealed trap (sneak avoids where walk springs). `walk` (and every
+   * other mode) is an implicit 0 — no key. Read with a seeded-literal
+   * fallback. See docs/subsystems/concealment.md.
+   */
+  movementAttentionSneak: "movement.attention.sneak",
+  /**
+   * Movement — the detection attention modifier a `run` crossing folds in.
+   * Negative: barreling along notices less, so a runner drops their
+   * traverse-time perception below a concealed trap (run springs where
+   * walk avoids). Read with a seeded-literal fallback.
+   */
+  movementAttentionRun: "movement.attention.run",
 } as const;
 
 export type AppSettingKey =

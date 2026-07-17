@@ -253,6 +253,22 @@ export class PerceptionApi {
   }
 
   /**
+   * The care↔speed attention a locomotion mode brings to a trap-traverse
+   * perceive check (D8) — the `concealment.passiveBaseline` plus a per-mode
+   * dial modifier: `movement.attention.sneak` (positive — careful movement
+   * notices more) for `sneak`, `movement.attention.run` (negative —
+   * careless movement notices less) for `run`, and 0 for `walk` and every
+   * other mode (so a walk crossing reads identically to the passive
+   * baseline). `HazardMixin.resolveTraversal` passes this into
+   * {@link perceives} so the mode changes the trap outcome — sneak avoids a
+   * trap walk springs, run springs a trap walk avoids. Accepts a short mode
+   * name (`'sneak'`) or a full templatePath.
+   */
+  public static modeAttention(mode: string): number {
+    return logic().modeAttention(mode);
+  }
+
+  /**
    * The active-search resolver (D5) — walk the concealable candidates in
    * `scope`, and for each one the viewer's boosted effective perception now
    * clears, record the sticky per-viewer discovery and collect it. Returns

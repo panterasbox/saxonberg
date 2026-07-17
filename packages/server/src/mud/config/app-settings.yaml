@@ -539,3 +539,15 @@ settings:
     value: "4"
   - key: hazard.disarmSeconds
     value: "5"
+  # Care↔speed movement axis (Phase 5). The detection attention a mode
+  # folds into the trap-traverse perceive check, on top of the passive
+  # baseline (walk = 0, no key). sneak (+): careful movement notices more,
+  # so sneak avoids a trap walk springs. run (−): careless movement notices
+  # less, so run springs a trap walk avoids. With capacityPerBand=3, a
+  # novice (capacity 3) walking avoids `subtle`(2) but running (3−2=1) does
+  # not, and walking springs `hidden`(4) but sneaking (3+2=5) avoids it.
+  # See docs/subsystems/concealment.md.
+  - key: movement.attention.sneak
+    value: "2"
+  - key: movement.attention.run
+    value: "-2"

@@ -444,6 +444,13 @@ export class LocomotionLogic extends ApiLogic {
   public defaultModeFor(actor: Stuff): string {
     const explicit = ShellApi.ownSetting<string>(actor, 'movement.defaultMode');
     if (explicit) return explicit;
+    // The care↔speed pace (Phase 5): a player's standing sneak/walk/run
+    // choice. Read as an explicit override only (like `movement.defaultMode`)
+    // so an unset pace falls through to the bodyplan/universe defaults —
+    // never overriding the current behavior. `movement.defaultMode` (the
+    // broader mode override) still wins when both are set.
+    const pace = ShellApi.ownSetting<string>(actor, 'movement.pace');
+    if (pace) return pace;
     if (MixinApi.isOrganism(actor)) {
       const planDefault =
         actor.getSpecies()?.getBodyPlan()?.getDefaultLocomotionMode();

@@ -269,6 +269,20 @@ export function MobileMixin<TBase extends MixinConstructor<Stuff & Containable>>
           '`climb`, …) override per-call.',
       },
       {
+        key: 'movement.pace',
+        type: SettingTypes.Enum,
+        default: 'walk',
+        enumValues: ['sneak', 'walk', 'run'],
+        description:
+          'Your standing pace on the care↔speed axis — how carefully ' +
+          'you get around by default. `sneak` moves slowly and notices ' +
+          'more (avoids traps a careless walk springs); `run` is fast ' +
+          'and careless (springs traps a walk avoids); `walk` is the ' +
+          'balanced default. Selects the mode `go` dispatches under ' +
+          '(the explicit `sneak`/`walk`/`run` verbs override per-call). ' +
+          'An explicit `movement.defaultMode` takes precedence.',
+      },
+      {
         key: 'messages.movement.departSelf',
         type: SettingTypes.String,
         default: 'You leave to the {{ direction }}.',

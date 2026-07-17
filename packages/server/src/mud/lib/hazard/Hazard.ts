@@ -251,8 +251,12 @@ export function HazardMixin<TBase extends MixinConstructor>(Base: TBase) {
     private moverAvoids(mover: Stuff, mode: string): boolean {
       const self = this as unknown as Stuff;
       if (PerceptionApi.hasDiscovered(mover, self)) return true;
-      // Baseline attention. Phase 5 folds the care↔speed `modeAttention`.
-      if (PerceptionApi.perceives(mover, self)) return true;
+      // The care↔speed axis (D8): the mode's attention modifier folds into
+      // the perceive check — sneaking raises traverse-time perception (avoids
+      // a trap a walk would spring), running lowers it (springs one a walk
+      // avoids). `walk` and every other mode contribute the passive baseline.
+      if (PerceptionApi.perceives(mover, self, PerceptionApi.modeAttention(mode)))
+        return true;
       if (this.groundTriggered && this.clearedByMedium(mode)) return true;
       return false;
     }

@@ -1,0 +1,23 @@
+verbs: [sneak]
+controller: /obj/command/movement/SneakController
+description: "Move carefully and quietly through an exit."
+help: |
+  Move through an exit at a slow, careful pace — `sneak north`, `sneak
+  gate`, or `sneak through the oak door`. Same destinations `go`
+  reaches, but committed to sneaking: you go slower and quieter, and
+  because you're watching your step you're likelier to notice — and
+  step around — a hidden trap that a brisk walk would set off.
+
+  This is the careful end of the care↔speed axis. Reach for `run` when
+  you'd rather trade caution for speed, or set a standing default with
+  `set movement.pace sneak`.
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresConscious
+args:
+  - name: target
+    type: object
+    scope: ["$focus", "reachable"]
+    required: true
+    validators:
+      - /lib/command/validators/canReach

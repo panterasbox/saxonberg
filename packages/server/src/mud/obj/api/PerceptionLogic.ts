@@ -60,6 +60,10 @@ const DEFAULT_SEARCH_BONUS = 4;
 const DEFAULT_SEARCH_DEPTH_BONUS = 3;
 /** `concealment.examineBonus` fallback (Phase 3, the cheap instantaneous look). */
 const DEFAULT_EXAMINE_BONUS = 2;
+/** `movement.attention.sneak` fallback (Phase 5, careful → notices more). */
+const DEFAULT_MOVEMENT_ATTENTION_SNEAK = 2;
+/** `movement.attention.run` fallback (Phase 5, careless → notices less). */
+const DEFAULT_MOVEMENT_ATTENTION_RUN = -2;
 
 /**
  * Per-actor `awareness` competence-band snapshot, warmed by the async
@@ -228,6 +232,12 @@ export class PerceptionLogic extends ApiLogic {
   @CallSecurity(PerceptionApiCallers)
   public hintsFor(viewer: Stuff, scope: readonly Stuff[]): Stuff[] {
     return hintsForImpl(viewer, scope);
+  }
+
+  /** See {@link PerceptionApi.modeAttention}. */
+  @CallSecurity(PerceptionApiCallers)
+  public modeAttention(mode: string): number {
+    return modeAttentionImpl(mode);
   }
 
   /** See {@link PerceptionApi.resolveSearch}. */
@@ -420,6 +430,38 @@ function passiveBaseline(): number {
     AppSettingKeys.concealmentPassiveBaseline,
     DEFAULT_PASSIVE_BASELINE,
   );
+}
+
+/**
+ * The care↔speed attention a locomotion mode brings to a trap-traverse
+ * perceive check (D8): the passive baseline plus a per-mode dial modifier.
+ * `sneak` adds a positive dial (careful → notices more), `run` a negative
+ * one (careless → notices less), and `walk` (and every other mode) is a 0
+ * modifier — so a walk crossing reads byte-identically to the passive
+ * baseline. `HazardMixin.resolveTraversal` passes this into `perceives`.
+ * Accepts a short mode name (`'sneak'`) or a full templatePath.
+ */
+function modeAttentionImpl(mode: string): number {
+  return passiveBaseline() + modeModifier(mode);
+}
+
+/** The per-mode attention delta (0 for walk / any non-care↔speed mode). */
+function modeModifier(mode: string): number {
+  const name = mode.startsWith('/') ? mode.slice(mode.lastIndexOf('/') + 1) : mode;
+  switch (name) {
+    case 'sneak':
+      return dialNumber(
+        AppSettingKeys.movementAttentionSneak,
+        DEFAULT_MOVEMENT_ATTENTION_SNEAK,
+      );
+    case 'run':
+      return dialNumber(
+        AppSettingKeys.movementAttentionRun,
+        DEFAULT_MOVEMENT_ATTENTION_RUN,
+      );
+    default:
+      return 0;
+  }
 }
 
 /**

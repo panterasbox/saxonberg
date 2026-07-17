@@ -41,7 +41,7 @@ describe("AppSettingsSeeder", () => {
     pm.setFindResult([]);
     const added = await AppSettingsSeeder.run();
 
-    expect(added).toBe(161); // + 23 weapon-playstyle combat + 16 electricity + 5 concealment + 2 detection + 5 detection search/hint (Phase 3) + 3 hazard (Phase 4)
+    expect(added).toBe(163); // + 23 weapon-playstyle combat + 16 electricity + 5 concealment + 2 detection + 5 detection search/hint (Phase 3) + 3 hazard (Phase 4) + 2 care↔speed movement attention (Phase 5)
     expect(pm.saves).toHaveLength(1);
     expect(pm.saves[0]!.collection).toBe("app_settings");
     const values = savedValues(pm);
@@ -60,6 +60,8 @@ describe("AppSettingsSeeder", () => {
     expect(values[AppSettingKeys.concealmentSearchBonus]).toBe("4");
     expect(values[AppSettingKeys.concealmentHintCutoff]).toBe("4");
     expect(values[AppSettingKeys.concealmentExamineBonus]).toBe("2");
+    expect(values[AppSettingKeys.movementAttentionSneak]).toBe("2");
+    expect(values[AppSettingKeys.movementAttentionRun]).toBe("-2");
   });
 
   it("is idempotent — a fully-populated row is left alone (no save)", async () => {
@@ -246,6 +248,9 @@ describe("AppSettingsSeeder", () => {
           [AppSettingKeys.hazardPinSeconds]: "6",
           [AppSettingKeys.hazardDropFallEnergy]: "4",
           [AppSettingKeys.hazardDisarmSeconds]: "5",
+          // The 2 care↔speed movement attention (Phase 5) dials.
+          [AppSettingKeys.movementAttentionSneak]: "2",
+          [AppSettingKeys.movementAttentionRun]: "-2",
         },
       },
     ]);
@@ -286,7 +291,8 @@ describe("AppSettingsSeeder", () => {
     // + 5 detection (Phase 3 — searchBonus, searchDepthBonus, searchSeconds,
     //   hintCutoff, examineBonus).
     // + 3 hazard (Phase 4 — pinSeconds, dropFallEnergy, disarmSeconds).
-    expect(added).toBe(160);
+    // + 2 care↔speed movement attention (Phase 5 — sneak, run).
+    expect(added).toBe(162);
     expect(pm.saves).toHaveLength(1);
     const values = savedValues(pm);
     // operator value preserved, missing keys seeded
