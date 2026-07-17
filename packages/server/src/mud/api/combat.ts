@@ -45,6 +45,17 @@ export type OpenSessionResult =
  */
 export interface CombatOpenOptions {
   competenceBands?: Map<string, CompetenceBandName>;
+  /**
+   * The opening was an **ambush** — struck from concealment the defender
+   * did not perceive. Surprise **denies the opening poise contest**: the
+   * defender starts broken/open (a `combat.ambush.poisePenalty` drop that
+   * arms the aggressor's free first exchange). Resolved by the attacker's
+   * controller (`hiding && !perceives(defender, attacker)`); consumed only
+   * when a *fresh* session opens (a target already fighting isn't
+   * ambushed). Not a damage multiplier — the exchange still routes through
+   * `ConditionApi.inflict`; the "crit" is the earned open window.
+   */
+  ambush?: boolean;
 }
 
 /** The tactical read `assess` returns while a fight is live. */

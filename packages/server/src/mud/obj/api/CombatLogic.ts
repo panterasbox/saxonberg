@@ -640,6 +640,14 @@ function openSessionImpl(
   const bState = deriveState(defender);
   bState.side = safeSideOf(defender);
   bState.competenceBand = bandFromOpts(defender, opts);
+  // Ambush — surprise DENIES the opening poise contest: an unaware defender
+  // (struck from concealment they didn't perceive) starts broken/open,
+  // arming the aggressor's free first exchange. Erode from full poise at
+  // tick 0 so the crossing into `broken` arms a live opening window. Not a
+  // damage multiplier — the exchange still routes through inflict.
+  if (opts?.ambush) {
+    bState.poise.erode(dial(AppSettingKeys.combatAmbushPoisePenalty, 0.85), 0);
+  }
   const holdA = session.addParticipant(aState);
   const holdB = session.addParticipant(bState);
 

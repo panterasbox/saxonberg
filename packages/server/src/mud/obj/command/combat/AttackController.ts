@@ -21,6 +21,7 @@ import type { CommandContext, CommandModel } from "../../../api/command";
 import type { MqlOneResult } from "../../../api/mql";
 import { MessageApi } from "../../../api/message";
 import { MixinApi } from "../../../api/mixin";
+import { PerceptionApi } from "../../../api/perception";
 import { ShellApi } from "../../../api/shell";
 import { PromptApi, PromptCancelledError } from "../../../api/prompt";
 import { Mml } from "../../../api/mml";
@@ -152,6 +153,12 @@ export default class AttackController extends CommandController<AttackModel> {
     // deterministic). Absent/unresolved bands default to `untrained`.
     const opts = await this.snapshotBands([giver, target]);
 
+    // Ambush: opening from concealment the defender doesn't perceive denies
+    // their opening poise contest (consumed only by a *fresh* openSession).
+    // Read the attacker's hidden state FIRST, then reveal them — striking
+    // gives you away, ambush or not.
+    opts.ambush = await this.resolveAmbush(giver, target);
+
     // The handshake: attacking someone already fighting *joins* their
     // melee; attacking from mid-fight *draws the target in*; two separate
     // fights colliding *merge*; otherwise a fresh session opens.
@@ -239,6 +246,25 @@ export default class AttackController extends CommandController<AttackModel> {
   /** Resolve each combatant's melee competence band into the open-options
    * map (keyed by durable `templatePath`), best-effort — a failed read just
    * leaves the fighter at the `untrained` default. */
+  /**
+   * Ambush read — is the attacker striking from concealment the defender
+   * does not perceive? Reads the attacker's hidden state FIRST (warming the
+   * defender's `awareness` so `perceives` uses their real capacity), then
+   * clears the attacker's hide (striking reveals you, ambush or not).
+   * Returns whether a fresh session should deny the defender's poise
+   * contest.
+   */
+  private async resolveAmbush(
+    attacker: Stuff,
+    defender: Stuff,
+  ): Promise<boolean> {
+    if (!MixinApi.isHiding(attacker) || !attacker.isHiding()) return false;
+    await PerceptionApi.preloadForSenseGate(defender);
+    const unseen = !PerceptionApi.perceives(defender, attacker);
+    attacker.breakHide();
+    return unseen;
+  }
+
   private async snapshotBands(
     combatants: Stuff[],
   ): Promise<CombatOpenOptions> {

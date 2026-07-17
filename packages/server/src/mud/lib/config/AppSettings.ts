@@ -514,6 +514,15 @@ export const AppSettingKeys = {
   combatPoiseRestorePerDefense: "combat.poise.restorePerDefense",
   /** Combat — extra poise a whiff/parry self-opens the actor. */
   combatPoiseWhiffPenalty: "combat.poise.whiffPenalty",
+  /**
+   * Combat — the poise an **ambush** strips from an unaware defender at the
+   * opening (a struck-from-concealment surprise). Large enough to cross
+   * `combat.poise.brokenAt` from full poise, arming the aggressor's free
+   * first exchange — surprise DENIES the opening poise contest (not a damage
+   * multiplier). Read with a seeded-literal fallback. See
+   * docs/subsystems/stealth.md.
+   */
+  combatAmbushPoisePenalty: "combat.ambush.poisePenalty",
   /** Combat — tempo rate shape. */
   combatTempoBase: "combat.tempo.base",
   combatTempoEncumbrancePenalty: "combat.tempo.encumbrancePenalty",

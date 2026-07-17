@@ -386,6 +386,12 @@ settings:
     value: "0.15"
   - key: combat.poise.whiffPenalty
     value: "0.25"
+  # Ambush (stealth build): the poise an unaware defender loses at the
+  # opening when struck from concealment. Poise starts at 1.0 and breaks at
+  # combat.poise.brokenAt (0.25); 0.85 drops it to 0.15 < 0.25, arming the
+  # opening — surprise denies the poise contest. See docs/subsystems/stealth.md.
+  - key: combat.ambush.poisePenalty
+    value: "0.85"
   - key: combat.tempo.base
     value: "1"
   - key: combat.tempo.encumbrancePenalty
