@@ -35,9 +35,15 @@ import { TangibleMixin } from '../material/Tangible';
 import { PerceptibleMixin } from '../description/Perceptible';
 import { VisibleMixin } from '../description/Visible';
 import { WetMixin } from '../wetness/Wet';
+import { ChattelMixin } from '../chattel/Chattel';
 
-const ThingBase = WetMixin(
-  VisibleMixin(PerceptibleMixin(TangibleMixin(ContainableMixin(Stuff)))),
+// ChattelMixin composes at the movable-good tier so every Thing carries a
+// durable per-instance identity its unspoofable ownership can be keyed
+// against (empty until stamped; fungible stacks stay owned-by-possession).
+const ThingBase = ChattelMixin(
+  WetMixin(
+    VisibleMixin(PerceptibleMixin(TangibleMixin(ContainableMixin(Stuff)))),
+  ),
 );
 
 export default class Thing extends ThingBase {

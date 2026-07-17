@@ -90,6 +90,10 @@ export const Mixins = {
   // response). Composed by armor (resist profile) and weapons (delivery).
   Constructed: 'ConstructedMixin',
   Branded: 'BrandedMixin',
+  // Chattel — a movable good's durable per-instance identity, the key its
+  // unspoofable ownership is stamped against (the parcel-title twin).
+  // Composed at the Thing tier; refused on fungible stacks (Globbable).
+  Chattel: 'ChattelMixin',
   Workspace: 'WorkspaceMixin',
   Author: 'AuthorMixin',
   Perceiver: 'PerceiverMixin',

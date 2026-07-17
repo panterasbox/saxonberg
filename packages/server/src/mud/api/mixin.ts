@@ -105,6 +105,7 @@ import type { Hauler } from '../lib/slot/Hauler';
 import type { Spawner } from '../lib/stuff/Spawner';
 import type { Spawned } from '../lib/stuff/Spawned';
 import type { Globbable } from '../lib/stuff/Globbable';
+import type { Chattel } from '../lib/chattel/Chattel';
 import type { Bulkable } from '../lib/bulk/Bulkable';
 import type { Engaged } from '../lib/activity/Engaged';
 import type { Behaved } from '../lib/behavior/Behaved';
@@ -918,6 +919,11 @@ export class MixinApi {
 
   public static isGlobbable(obj: Stuff): obj is Stuff & Globbable {
     return this.hasMixin(obj, Mixins.Globbable);
+  }
+
+  /** A movable good carrying a durable per-instance chattel identity. */
+  public static isChattel(obj: Stuff): obj is Stuff & Chattel {
+    return this.hasMixin(obj, Mixins.Chattel);
   }
 
   public static isBulkable(obj: Stuff): obj is Stuff & Bulkable {
