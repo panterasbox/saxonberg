@@ -77,9 +77,17 @@ interface DialogueGuard { fact: GuardFact; op: GuardOp; value: string|number|boo
   (`TraitApi.positionFor(npc, axis).position`, axis ∈ the disposition
   roster), `time:hour` (world hour-of-day), `state:<key>` (ephemeral
   conversation scratch). Operators: `eq/ne/gt/gte/lt/lte`.
-- **Effect verb set** (registered, extensible): `set-state`, `regard`
-  (delta NPC→player, persists), `say`, `emote`, `goto`, `end`, **`dispatch`**
-  (the "NPCs do their jobs" seam — below).
+- **Intrinsic effect verbs** (conversation primitives, hardcoded — they touch
+  the conversation's own machinery): `set-state`, `regard` (delta NPC→player,
+  persists), `say`, `emote`, `goto`, `end`, **`dispatch`** (the "NPCs do their
+  jobs" seam — below).
+- **Domain effect verbs** (genuinely extensible — no reopening the format): a
+  domain registers a handler in the **`DialogueEffectRegistry`**
+  (`lib/npc/DialogueEffects.ts`, `{validate?, apply}`), and both
+  `validate`/`apply` here delegate to it — so the generic dialogue substrate
+  never imports the domain (consumer → substrate). Banking's **`bank-circle`**
+  (enrol the interlocutor into a corpo's Circle) is the first, registered from
+  `lib/banking/BankDialogueEffect.ts` at boot.
 - **`DialogueTreeSchema.validate(tree): string[]`** — collect-all-errors,
   never throws, tolerates `unknown`. Checks dangling `entry[].node` /
   `choice.to`, unknown facts/axes/operators, unregistered effect verbs.

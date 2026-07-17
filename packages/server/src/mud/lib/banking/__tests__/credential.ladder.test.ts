@@ -106,7 +106,7 @@ describe("Credential risk ladder", () => {
     expect(BankingApi.balanceOf(accountId).minor).toBe(900);
 
     // report-lost → frozen; the account/balance are untouched
-    BankingApi.freezeCredential(card.getCredential("payment")!);
+    card.getCredential("payment")!.setFrozen(true);
     expect(card.getCredential("payment")!.isFrozen()).toBe(true);
     expect(BankingApi.balanceOf(accountId).minor).toBe(900);
 

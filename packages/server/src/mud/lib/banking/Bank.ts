@@ -26,11 +26,30 @@
 import type { MixinConstructor } from "../mixin";
 import type { Stuff } from "../stuff/Stuff";
 import type { Container } from "../spatial/Container";
+import type { Containable } from "../spatial/Containable";
 import type { CommandContributions } from "../../api/command";
 import { CorpoApi } from "../../api/corpo";
 import type { CorpoDescriptor } from "../corpo/Corpo";
 import { ContainmentApi } from "../../api/containment";
+import { CallSecurity, Final, Unshadowable } from "../security/decorators";
+import { SecurityPolicies } from "../security/SecurityPolicies";
+import type { VetoResult } from "../errors";
 import { Money } from "./Money";
+import { Terms } from "./Terms";
+import type { TermsData } from "./Terms";
+
+/**
+ * The banking subsystem's own gate — admits the `BankingApi` face and the
+ * `BankingLogic` singleton (its template path), mirroring `FromContainmentApi`.
+ * The vault-disbursement seam (`_beginDisbursing`/`_endDisbursing`) is reachable
+ * only through the banking verbs, never player code.
+ */
+const FromBankingApi = SecurityPolicies.AnyOf(
+  SecurityPolicies.FromModule("/api/banking#BankingApi", {
+    includeSubclasses: false,
+  }),
+  SecurityPolicies.FromTemplate("/obj/api/banking"),
+);
 
 /** Public shape added by BankMixin. */
 export interface Bank {
@@ -43,6 +62,16 @@ export interface Bank {
   getBankPath(): string;
   /** The branch's physical cash on hand (Σ vault coin face-values). */
   getTillLiquidity(): Money;
+  /** The authored fee/minimum schedule read at each verb. */
+  getTerms(): Terms;
+  /**
+   * Open the vault-disbursement window (privileged — banking verbs only): while
+   * open, {@link Bank.canRemoveContainable} permits vault-coin removal. Pair
+   * with {@link Bank._endDisbursing} in a `finally`.
+   */
+  _beginDisbursing(): void;
+  /** Close the vault-disbursement window. */
+  _endDisbursing(): void;
 }
 
 /** Coin-shaped duck type — avoids a lib→obj import of the Coin class. */
@@ -65,10 +94,10 @@ function stackValue(stuff: CashLike): number {
 }
 
 export function BankMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
-  return class BankMixin extends Base implements Bank {
+  class BankMixin extends Base implements Bank {
     static _mixinName = "BankMixin";
 
-    static persistentFields = ["corpoKey"];
+    static persistentFields = ["corpoKey", "terms"];
 
     /**
      * The banking verb surface lights up wherever this counter is present in
@@ -100,6 +129,17 @@ export function BankMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
       return CorpoApi.getCorpo(this.corpoKey);
     }
 
+    /**
+     * The authored fee/minimum schedule (seed `data.terms`), round-tripped
+     * through the raw `terms` field. Absent → the fee-free default.
+     * @authorable
+     */
+    public terms: TermsData = {};
+
+    public getTerms(): Terms {
+      return Terms.fromData(this.terms);
+    }
+
     public getBankPath(): string {
       return (this as unknown as Stuff).getTemplatePath() ?? "";
     }
@@ -113,5 +153,43 @@ export function BankMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
       }
       return Money.of(total);
     }
-  };
+
+    /**
+     * Till security: the vault is real `Coin` in a `Container`, so its
+     * contents must never be loose-`get`table — "loot the drawer" would be
+     * free money with no withdrawal. The banking verbs open a disbursement
+     * window (`_beginDisbursing`) around the one legitimate removal; any other
+     * removal of cash-like coin from the vault is vetoed. (Non-cash items, if
+     * ever placed here, are unrestricted.) The sibling of the exclusive lease
+     * and the common-pool quota — the third anti-grief guard.
+     * @runtimeState
+     */
+    private _disbursing = false;
+
+    @CallSecurity(FromBankingApi)
+    @Final
+    @Unshadowable
+    public _beginDisbursing(): void {
+      this._disbursing = true;
+    }
+
+    @CallSecurity(FromBankingApi)
+    @Final
+    @Unshadowable
+    public _endDisbursing(): void {
+      this._disbursing = false;
+    }
+
+    public canRemoveContainable(thing: Stuff & Containable): VetoResult {
+      if (this._disbursing) return { ok: true };
+      if (isCashLike(thing)) {
+        return {
+          ok: false,
+          reason: "The till is secured — withdraw through the teller.",
+        };
+      }
+      return { ok: true };
+    }
+  }
+  return BankMixin;
 }

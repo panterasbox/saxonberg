@@ -240,18 +240,10 @@ export class BankingApi {
     return logic().activeCredential();
   }
 
-  /** Switch a credential's active account (the `wallet` verb; persists). */
-  public static setActiveAccount(
-    credential: PaymentCredential,
-    accountId: string,
-  ): void {
-    return logic().setActiveAccount(credential, accountId);
-  }
-
-  /** Report-lost: freeze a credential (account + balance untouched). */
-  public static freezeCredential(credential: PaymentCredential): void {
-    return logic().freezeCredential(credential);
-  }
+  // Note: switching a credential's active account and freezing it are the
+  // `PaymentCredential` value-object's own behavior — call `credential
+  // .setActiveAccount(id)` / `.setFrozen(true)` directly (the caller holds the
+  // record). They were thin forwards through here with no gate to route.
 
   /** Issue/reissue a payment card linked 1:1 to `accountId`, into inventory. */
   public static async issueCard(
@@ -333,6 +325,31 @@ export class BankingApi {
     corpoKey: string,
   ): Promise<string> {
     return logic().ensureVenueAccount(ownerPath, bankPath, corpoKey);
+  }
+
+  /**
+   * Ensure the corpo's own treasury account exists — the royalty target,
+   * keyed on `corpoKey`, held at `bankPath` (the corpo's own bank). The mirror
+   * of {@link ensureVenueAccount}; corpo income begins from the first fee.
+   */
+  public static async ensureCorpoTreasury(
+    corpoKey: string,
+    bankPath: string,
+  ): Promise<string> {
+    return logic().ensureCorpoTreasury(corpoKey, bankPath);
+  }
+
+  /**
+   * Enrol an owner's account at a `corpoKey`-affiliated bank into the Circle
+   * (the Goodkin enrollment write) — the recognized-standing perk (raised
+   * quota). Returns false when the owner has no such account yet (the officer
+   * nudges instead of enrolling). The `bank-circle` dialogue effect.
+   */
+  public static async enrollCircle(
+    ownerKey: string,
+    corpoKey: string,
+  ): Promise<boolean> {
+    return logic().enrollCircle(ownerKey, corpoKey);
   }
 }
 

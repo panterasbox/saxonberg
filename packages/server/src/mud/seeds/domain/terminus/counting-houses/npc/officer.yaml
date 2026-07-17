@@ -1,0 +1,130 @@
+# Halloran — the Goodkin branch officer / Circle host (the parlor, the
+# relationship face). Avuncular, remembers everything about you, pours coffee
+# you didn't ask for, opens your account personally and welcomes you "to the
+# family," gently asks whether you've somewhere to stay. The paternalism made
+# flesh — the warmth is real and it binds; with credit deferred, the leash is
+# implied, not mechanical (all warmth, the teeth arrive when credit is designed
+# for real). Salaried employee of the Goodkin branch Business. Human (canon).
+#
+# The open-and-fund enrollment is his `tree-dialogue` brain (verb-guided,
+# officer-wrapped): the player runs the REAL `bank open` / `deposit` / `pay`
+# verbs at Wenna's counter (learning the CLI); Halloran supplies the WARMTH,
+# not the doing, and enrols you into the Circle (the `bank-circle` effect sets
+# the recognized-standing marker → the raised withdrawal quota) with the
+# Enclave-housing steer — the velvet cage in one gesture.
+class: /lib/npc/NPC
+hydratorClass: /lib/persistence/PersistentHydrator
+data:
+  name: Halloran
+  pronouns: he
+  _speciesPath: /lib/species/animalia/chordata/mammalia/primates/hominidae/homo/sapiens
+  lifecycleState: alive
+  primaryKeyword: halloran
+  alternateNames:
+    - officer
+    - mr halloran
+    - manager
+  shortDescription: the Goodkin branch officer
+  longDescription: |
+    A broad, comfortable man in a good grey suit gone soft at the elbows, with
+    a warm handshake already half-extended and a way of remembering your name a
+    beat before you'd expect him to. He runs the Circle parlor the way a
+    favourite uncle runs a Sunday table — coffee pressed on you, a chair pulled
+    out, every question about your circumstances arriving so gently you answer
+    before you've decided to. There is a photograph of the smiling Goodkin
+    family behind him, and something in his face that matches it a little too
+    well.
+  dispositions:
+    - { disposition: compassion, valence: 55 }
+    - { disposition: patience, valence: 60 }
+    - { disposition: greed, valence: 30 }
+  behaviors:
+    - brain: /lib/behavior/introduces
+      trigger: arrival
+    - brain: /lib/behavior/greets
+      trigger: arrival
+      config:
+        lines:
+          - "Halloran is on his feet before you've fully entered. \"There you are — come in, come in. Coffee?\""
+          - "\"Sit, sit,\" Halloran says, pulling out a chair. \"Let's get you set up.\""
+    - brain: /lib/behavior/idles
+      trigger: cadence:23s
+      config:
+        pool:
+          - { kind: free, value: "refills a cup nobody emptied." }
+          - { kind: say, value: "No rush at all. We look after our own here." }
+          - { kind: free, value: "straightens the photograph of the smiling Goodkin family." }
+    - brain: /lib/behavior/tree-dialogue
+      trigger: engage
+      config:
+        entry:
+          - node: member
+            guard:
+              - { fact: regard, op: gte, value: 15 }
+          - node: welcome
+        nodes:
+          welcome:
+            beat: >-
+              Halloran clasps your hand in both of his. "Welcome to Goodkin —
+              truly. First time downtown? Then let's do this properly. An
+              account here costs you nothing to open, and once there's a little
+              in it, that card you're carrying comes alive and you can pay
+              anywhere without fumbling for coin. Shall I walk you through it?"
+            choices:
+              - { line: "Yes — set me up.", to: how }
+              - { line: "What's the catch?", to: catch }
+              - { line: "Maybe later.", to: later }
+          how:
+            beat: >-
+              "Simplest thing in the world. Step over to Wenna at the counter
+              and say `bank open` — I'll not charge a newcomer a penny for it.
+              Then `bank deposit coins` to put what you're carrying on the
+              books; you'll watch that cash become a number you can spend by
+              card, and pull it back with `bank withdraw` whenever you need it.
+              Come back to me when it's done and I'll make it official."
+            choices:
+              - { line: "Done — I've opened and funded it.", to: circle }
+              - { line: "Give me a moment to do that.", to: later }
+          catch:
+            beat: >-
+              He laughs, warm and unbothered. "No catch. Open, deposit, withdraw
+              your own money — always free, here. We make our little bit on
+              wiring money out to the other houses, and frankly we'd rather you
+              never needed to. Goodkin looks after its own. That's not a slogan
+              — well, it is, but it's also true." Behind him the photographed
+              family beams.
+            choices:
+              - { line: "All right. Walk me through it.", to: how }
+              - { line: "Hm. Later.", to: later }
+          circle:
+            beat: >-
+              "There now — you're one of ours." Halloran slides a glossy leaflet
+              across the desk: an Enclave terrace in warm light, GOODKIN HOMES.
+              "The Circle's just our way of saying you belong — you'll find the
+              counter a little quicker to serve you, and a little freer with the
+              cash, from here on. And if you're ever wanting somewhere to
+              stay..." He taps the leaflet, and smiles the family's smile.
+            effects:
+              - { verb: bank-circle, corpo: goodkin }
+              - { verb: regard, delta: 10 }
+            choices:
+              - { line: "Thank you, Mr. Halloran.", to: done, effects: [ { verb: regard, delta: 3 } ] }
+              - { line: "I'll think about the housing.", to: done }
+          member:
+            beat: >-
+              "Back again — good, good." Halloran already has the coffee
+              pouring. "Everything sitting right with the account? Anything the
+              Circle can do for you?"
+            choices:
+              - { line: "Just checking in.", to: done, effects: [ { verb: regard, delta: 2 } ] }
+              - { line: "Tell me about the Circle again.", to: circle }
+          later:
+            beat: >-
+              "Of course, of course — no hurry at all. We're not going
+              anywhere, and neither, I suspect, are you." He says it kindly. "The
+              counter's right through there whenever you're ready. Say `bank
+              open` to Wenna and come find me."
+            choices:
+              - { line: "Thanks.", to: done }
+          done:
+            beat: "\"Mind how you go,\" Halloran says. \"And remember — you're family now.\""

@@ -36,11 +36,15 @@ import ParticipationStanding from '../mud/lib/standing/ParticipationStanding';
 import { ProducerApi } from '../mud/api/producer';
 import ProducerStanding from '../mud/lib/standing/ProducerStanding';
 import { BankingApi } from '../mud/api/banking';
+// Loaded for its side effect: registers banking's `bank-circle` dialogue
+// effect into the generic DialogueEffectRegistry (consumer → substrate).
+import '../mud/lib/banking/BankDialogueEffect';
 import { DiagnosticApi } from '../mud/api/diagnostics';
 import { CompileWatcher } from './CompileWatcher';
 import { fileURLToPath } from 'url';
 import { ResidencyApi } from '../mud/api/residency';
 import { EmploymentApi } from '../mud/api/employment';
+import { AttendantApi } from '../mud/api/attendant';
 import { SocialApi } from '../mud/api/social';
 import { PartyApi } from '../mud/api/party';
 import { BulletinApi } from '../mud/api/bulletin';
@@ -235,6 +239,13 @@ export class AppBootstrap {
     // wages. Booted AFTER banking (the wage settlement calls BankingApi) and
     // after the bootstrap manifest stood up the Business + cast.
     EmploymentApi.boot();
+
+    // Attendant — install the storefront-attention anti-grief guards: the
+    // real-time lease idle-eviction sweep + the linkdead release. Booted after
+    // employment (server resolution reads on-shift state). Activation = the
+    // AttendantLogic singleton's presence; the sweep no-ops until a venue
+    // grants a lease.
+    AttendantApi.boot();
 
     // Social graph (Wave 3) — install the presence relay: the net-new
     // consumer that fans the four in-world-gated presence transitions

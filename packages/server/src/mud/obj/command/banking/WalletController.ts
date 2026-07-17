@@ -75,7 +75,7 @@ export default class WalletController extends BankingControllerBase<WalletModel>
       return;
     }
     try {
-      BankingApi.setActiveAccount(credential, match.accountId);
+      credential.setActiveAccount(match.accountId);
     } catch (err) {
       MessageApi.scene(giver)
         .topic(TOPIC)
@@ -107,7 +107,7 @@ export default class WalletController extends BankingControllerBase<WalletModel>
     }
     const account = pay.getActiveAccount();
     const cap = pay.getSpendCap();
-    BankingApi.freezeCredential(pay);
+    pay.setFrozen(true);
     if (account) await BankingApi.issueCard(account, cap);
     MessageApi.scene(giver)
       .topic(TOPIC)

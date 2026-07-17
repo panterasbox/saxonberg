@@ -26,7 +26,7 @@ import {
 } from './banking-test-harness';
 
 const BUSINESS = '/domain/lounge/business';
-const BANK = '/domain/eternal/university-avenue/bank';
+const BANK = '/domain/terminus/counting-houses/bank-counter';
 const DAVE = '/domain/lounge/npc/dave';
 const MARA = '/domain/lounge/npc/mara';
 const HOUR = 3_600;
