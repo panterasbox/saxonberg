@@ -11,12 +11,16 @@ sweeps live here:
   nobody returns for, a room nobody re-enters, an NPC nobody visits, a
   shadow lifted off its host and orphaned). Before it, the only way a
   live `Stuff` left memory was an explicit `StuffApi.destruct()`.
-- **Reset (deferred, same shape, same home)** — a game-time repop sweep
-  over `ResettableMixin`, restorative-of-self. Not built yet; it slots in
-  as a sibling sweep (`installResetSweep()` on the game-time clock,
-  `residency.reset.*` knobs) — see *Deferred* below.
+- **Reset (SHIPPED — same shape, same home)** — a **game-time** repop
+  sweep over `ResettableMixin`, restorative-of-self (the eviction
+  sibling). `ResidencyApi.boot` installs it alongside eviction
+  (`installResetSweep()` on the game-time `WorldClockApi.every` clock, so
+  it freezes with a paused world — the eviction divergence);
+  `runResetSweep` visits every resettable and lets it restore itself, and
+  `residency.reset.*` knobs govern it. See *The reset sweep* below. Only
+  the general store's `Stock` is wired as a consumer today.
 
-The rest of this doc describes the eviction sweep.
+The rest of this doc describes the eviction sweep, then the reset sweep.
 
 **This is a garbage-culler, not a swapfile.** Memory *scaling* is an
 explicit non-goal (the answer to that is a distributive model). The
@@ -206,6 +210,47 @@ occupant is present, so presence + dispatch touch already keep them warm.
 - `lib/stuff/ApiLogic.ts` — the logic-singleton base carrying the
   categorical veto.
 
+## The reset sweep
+
+The second sweep this substrate hosts (SHIPPED) — a **game-time repop**
+scan, restorative-of-self, never destructive-of-others. It shares the
+eviction sweep's home (`ResidencyLogic`), the presence walk, and the
+observe/enforce discipline, but diverges on three axes:
+
+- **Clock.** `installResetSweep()` rides `WorldClockApi.every` (game
+  time), not `ScheduleApi.recurring` (real time) — so restock freezes
+  with a paused world (the employment-tick / crafting precedent). One
+  retained `ClockHandle`; re-install is a no-op.
+- **Predicate.** Not eviction's idle + `canEvict`; instead
+  **presence-SKIP + object-override**. `runResetSweep` visits every
+  `MixinApi.isResettable(raw)` object and, if it sits (at any depth) in a
+  room a player occupies, **skips** it — *unless* the object opts in via
+  `resetsWhilePresent()` (the shop restocks while browsed). To share the
+  present-room set, `presenceWalkImpl` now **returns** the visited-room
+  `stuffId` set (the eviction sweep ignores the return; reset reads it).
+- **Default mode.** `residency.reset.mode` ships **`enforce`** (repop is
+  additive and safe), where `residency.eviction.mode` ships `observe`
+  (culling is destructive). `residency.reset.intervalS` is the game-time
+  cadence.
+
+`ResettableMixin` (`lib/residency/Resettable.ts`) is the marker + the
+two-decision contract (engine informs, object decides): `reset()`
+(restorative-of-self, **never a money leg** — Law 2) and
+`resetsWhilePresent()` (default `false`). The **first and only wired
+consumer** is the general store's `Stock` (see [retail.md](./retail.md)):
+its `reset()` tops each stock line back to authored par by cloning fresh
+goods (items, never coin), and it overrides `resetsWhilePresent() → true`.
+The `Stock` also self-stocks on standup by calling `reset()` from
+`postRegister`, so the same one mechanism handles boot-stock and ongoing
+topup. (Note the subsumption: a *cold* resettable object is simply culled
+and re-cloned fresh by eviction — its template state *is* its reset state
+— so explicit reset only earns its keep for **warm/resident** objects
+like a browsed shop.)
+
+Other reset consumers (respawning NPCs, resource nodes, container/door
+repop) are deferred — the sweep ships complete-at-tier, only the shop is
+wired.
+
 ## Deferred
 
 - **Note — first elastic-content consumer:** the leased dorm room
@@ -213,16 +258,6 @@ occupant is present, so presence + dispatch touch already keep them warm.
   empty room capture-then-cull, and runtime floor corridors reap top-down);
   see [residence.md](./residence.md).
 
-- **The reset sweep** (game-time repop) — the second sweep this substrate
-  is built to host: `resets:` + `ResettableMixin`, restorative-of-self,
-  never destructive-of-others, reusing the presence walk as a skip. It
-  installs a sibling `installResetSweep()` on the game-time clock (vs.
-  eviction's real-time clock), reads `residency.reset.*`, and its
-  `runResetSweep` body mirrors `runEvictionSweep`. Designed in the slate;
-  a separate follow-on build. (Note the subsumption: a cold resettable
-  object is simply culled and re-cloned fresh — its template state *is*
-  its reset state — so explicit reset only earns its keep for
-  warm/resident objects.)
 - **Memory-pressure-driven aggressiveness** — a sweep-side threshold
   modulation (shrink the grace window under heap pressure), *not* an
   input to `canEvict`. Documented seam; not built.

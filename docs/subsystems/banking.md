@@ -195,7 +195,12 @@ reissue).
   not governed — the corpo-affiliation-edge precedent), so the tax shows in
   the *seller's* P&L (a `tax` line) and the treasury merely accumulates (no
   appropriation path). (The general payer-side remittance-split seam from
-  Phase 3 stays for tips/fees.)
+  Phase 3 stays for tips/fees.) The **general store's consignment sale**
+  (see [retail.md](./retail.md)) is a second split consumer: one `settle`
+  routes the ask's remainder to the consignor's primary account (a
+  `consignment` `PnlCategory` leg) while the store keeps the commission as
+  its taxable revenue (`remitDemoTax` on the commission only) — the store
+  fronts no coin, conservation holds.
 - **The P&L** — `BankingApi.profitAndLoss(account)`: a derive-on-read
   categorized read (per-category signed net + running balance) — the
   deficit-as-target instrument, red by design. `house pnl` (operator-gated)
