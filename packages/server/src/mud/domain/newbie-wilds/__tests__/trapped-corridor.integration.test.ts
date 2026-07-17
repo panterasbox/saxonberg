@@ -94,26 +94,35 @@ function seedDoc(file: string, path: string): Doc {
   };
 }
 
-/** Load the real `seeds/domain/traps/*` rooms + traps + things. */
-function loadTrapsSeeds(): Doc[] {
-  const dir = join(SEEDS, 'domain', 'traps');
+/** Load every `*.yaml` in `dir`, mapping each to a template path under `prefix`. */
+function loadSeedDir(dir: string, prefix: string): Doc[] {
   const out: Doc[] = [];
   for (const entry of readdirSync(dir)) {
     const full = join(dir, entry);
     if (!statSync(full).isFile() || !entry.endsWith('.yaml')) continue;
     const leaf = entry.replace(/\.yaml$/, '');
-    out.push(seedDoc(full, `/domain/traps/${leaf}`));
+    out.push(seedDoc(full, `${prefix}/${leaf}`));
   }
   return out;
 }
 
-/** The whole in-memory store: PH + the traps zone + its rooms + a treeline stub. */
+/** The whole in-memory store: PH + the delve zone + its rooms + the generic
+ *  trap objects (now homed in `/obj/traps/`) + a treeline stub. */
 function trapsStore(): Doc[] {
   return [
     { path: PH, class: PH, data: {} },
-    // The zone (sibling of the rooms dir).
-    seedDoc(join(SEEDS, 'domain', 'traps.yaml'), '/domain/traps'),
-    ...loadTrapsSeeds(),
+    // The delve zone — now a sub-area of the newbie-wilds locality.
+    seedDoc(
+      join(SEEDS, 'domain', 'newbie-wilds', 'delve.yaml'),
+      '/domain/newbie-wilds/delve',
+    ),
+    // The delve's rooms + fixtures (the hidden cache, the vault reward).
+    ...loadSeedDir(
+      join(SEEDS, 'domain', 'newbie-wilds', 'delve'),
+      '/domain/newbie-wilds/delve',
+    ),
+    // The generic trap objects, cloned into the corridors via `populates`.
+    ...loadSeedDir(join(SEEDS, 'obj', 'traps'), '/obj/traps'),
     // The treeline the vestibule's back-out exit cascades — stubbed as a bare
     // void (the real treeline, with its wolf, is never stood up by a test).
     {
@@ -226,7 +235,7 @@ function wound(m: Creature): Trauma | undefined {
 // --- room / trap / secret accessors over the stood-up real zone -----------
 function room(leaf: string): Stuff & Location {
   return StuffApi.findByTemplatePath(
-    `/domain/traps/${leaf}`,
+    `/domain/newbie-wilds/delve/${leaf}`,
   ) as unknown as Stuff & Location;
 }
 function trapIn(leaf: string): Trap {
@@ -303,7 +312,7 @@ beforeEach(async () => {
   stampTemplatePathForTest(sharedSpecies, `/lib/species/traps/biped-${n}`);
   // Stand the whole sphere up from a single anchor (cascades every room +
   // clones every trap + secret).
-  await StuffApi.singleton('/domain/traps/vestibule');
+  await StuffApi.singleton('/domain/newbie-wilds/delve/vestibule');
 });
 
 afterEach(() => {
@@ -334,7 +343,7 @@ describe('The Sunken Delve — real-seed standup', () => {
     expect(pit.getConcealment()).toBe('hidden');
     expect(pit.getDelivery().channel).toBe('point');
     expect(pit.getTraverseConsequence()).toBe('drop');
-    expect(pit.getDropDestination()).toBe('/domain/traps/pit-below');
+    expect(pit.getDropDestination()).toBe('/domain/newbie-wilds/delve/pit-below');
     expect(pit.isGroundTriggered()).toBe(true);
 
     const blade = trapIn('corridor-3');
@@ -348,7 +357,7 @@ describe('The Sunken Delve — real-seed standup', () => {
     }).getExit('east')!;
     expect(secret.isConcealed()).toBe(true);
     expect(cacheIn('corridor-1').getTemplatePath()).toBe(
-      '/domain/traps/hidden-cache',
+      '/domain/newbie-wilds/delve/hidden-cache',
     );
   });
 });

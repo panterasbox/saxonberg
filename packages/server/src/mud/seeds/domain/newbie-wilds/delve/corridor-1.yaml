@@ -28,17 +28,17 @@ data:
   exits:
     # The obvious way on — plainly listed, always visible, no perception wall.
     north:
-      destination: /domain/traps/corridor-2
+      destination: /domain/newbie-wilds/delve/corridor-2
     # A concealed SHORTCUT to the vault (pure upside — the corridor reaches
     # the vault plainly by going north; this only skips the pit + the blade).
     east:
-      destination: /domain/traps/vault
+      destination: /domain/newbie-wilds/delve/vault
       concealment: hidden
       hint: a thread of cool air leaks from a hairline seam in the east wall
     south:
-      destination: /domain/traps/vestibule
+      destination: /domain/newbie-wilds/delve/vestibule
   # The step-dart (cloned fresh at standup) + the concealed cache (a bonus,
   # with the obvious reward waiting in the vault).
   populates:
-    - /domain/traps/step-dart
-    - /domain/traps/hidden-cache
+    - /obj/traps/step-dart
+    - /domain/newbie-wilds/delve/hidden-cache

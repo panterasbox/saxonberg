@@ -23,7 +23,7 @@ data:
         Chiselled by the lintel, half struck out: STEP WHERE I STEPPED. Under it, cruder: he didn't. Whoever laid this passage meant the floor to be read, not trusted — move carefully, or move blind.
   exits:
     north:
-      destination: /domain/traps/corridor-1
+      destination: /domain/newbie-wilds/delve/corridor-1
     # The back-out to the treeline — the one cross-zone edge from inside the
     # sphere. Its inbound partner is authored on the treeline seed.
     south:

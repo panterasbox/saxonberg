@@ -33,7 +33,7 @@ data:
     # stood up by NO test, so this exit pulls the delve into no standup/
     # fast-travel cascade — the GlassAlley failure, avoided by construction).
     north:
-      destination: /domain/traps/vestibule
+      destination: /domain/newbie-wilds/delve/vestibule
   # The cull: one wolfshead and a dropped dagger, both cloned fresh at
   # standup. Pick up the dagger, wield it, and `attack the wolf`.
   populates:

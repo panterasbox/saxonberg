@@ -130,7 +130,7 @@ The gate consumes the existing per-viewer perception (`VisionModality`, and thro
 
 **Finding.** The GlassAlley failure (harm.md:231-239): *every real content host broke a standup/fast-travel invariant* — a cross-domain exit fails the terminus standup's isolated boot; the lounge landing **asserts its exit count** (`domain/lounge/__tests__/landing.integration.test.ts:190`); the TPA terminals pull rooms into the **fast-travel cascade** (`FastTravelMixin`, `lib/fasttravel/FastTravel.ts`). So the host must (a) not be a fast-travel node and (b) not have an asserted exit count.
 
-**Decision.** Build the demonstrator as its **own standalone zone** (`domain/traps/`, a fresh sphere) — a vestibule → trapped corridor → far room — reached by a **single ordinary ground exit** from a host chosen *specifically* for tolerating a new exit. The candidate is a **generic lounge-warren member room** (Warren members are runtime clones, not exit-count-asserted — `LoungeWarren`) or, if that carries its own assertion, a new plain exit whose source is confirmed assertion-free at build time. The demonstrator zone composes **no `FastTravelMixin`** and is **not** in any TPA boot manifest. See § The demonstrator for the confirm-the-host build gate (the top build risk).
+**Decision.** Build the demonstrator as its **own standalone zone** (`domain/newbie-wilds/delve/` (rooms) + `/obj/traps/` (generic traps), a fresh sphere) — a vestibule → trapped corridor → far room — reached by a **single ordinary ground exit** from a host chosen *specifically* for tolerating a new exit. The candidate is a **generic lounge-warren member room** (Warren members are runtime clones, not exit-count-asserted — `LoungeWarren`) or, if that carries its own assertion, a new plain exit whose source is confirmed assertion-free at build time. The demonstrator zone composes **no `FastTravelMixin`** and is **not** in any TPA boot manifest. See § The demonstrator for the confirm-the-host build gate (the top build risk).
 
 **Rationale.** A purpose-built room that stands up cleanly is the explicit requirement; re-homing onto real content is the exact mistake harm.md documents.
 
@@ -281,8 +281,8 @@ Paths below are rooted at `packages/server/src/mud/` unless noted.
 
 **Outcome (criterion: "a reachable trapped-corridor demonstrator"; content-discipline check).**
 
-**New files (a fresh `domain/traps/` sphere):**
-- The zone + rooms: a **vestibule**, the **trapped corridor**, a **far room** (`domain/traps/*.ts` + `seeds/domain/traps/*.yaml`), composing no `FastTravelMixin`.
+**New files (a fresh `domain/newbie-wilds/delve/` (rooms) + `/obj/traps/` (generic traps) sphere):**
+- The zone + rooms: a **vestibule**, the **trapped corridor**, a **far room** (`domain/newbie-wilds/delve/*.ts` + `seeds/domain/newbie-wilds/delve/*.yaml`), composing no `FastTravelMixin`.
 - Three authored `Trap` points (zero new classes): **spike pit** (`trigger: traversal`, `delivery: { channel: point, … }`, `traverseConsequence: drop`, ground → `fly` clears); **step-dart** (`trigger: traversal`, `delivery: { channel: point, toxin }`); **pressure-plate blade** (`trigger: traversal`, `delivery: { channel: edge }`, `traverseConsequence: trip`).
 - A **secret exit** (concealed `Exit`) — a shortcut, with an obvious alternate through-route.
 - A **hidden cache** (concealed `Container`) — a bonus, with an obvious reward elsewhere.
@@ -290,7 +290,7 @@ Paths below are rooted at `packages/server/src/mud/` unless noted.
 
 **Design calls:** D9. **Content discipline (non-negotiable):** the far room is reachable by a **plainly-visible exit** through the corridor — traps *wound/redirect* but don't hard-block (a baseline mover survives; `drop` lands somewhere recoverable). The secret exit and cache are extras. The demonstrator test asserts a zero-`awareness` mover can reach the far room without discovering any secret (no critical content behind a perception wall).
 
-**Tests:** `domain/traps/__tests__/trapped-corridor.integration.test.ts` — the whole loop: sneak-avoids / walk-springs / run-springs a trap; armor mitigates; `fly` clears the pit; `search` reveals the secret exit + cache; `disarm` a found trap; **the content-discipline assertion** (an obvious path exists). Plus a **live run** through the demonstrator (the `verify` skill) as the integration proof.
+**Tests:** `domain/newbie-wilds/delve/__tests__/trapped-corridor.integration.test.ts` — the whole loop: sneak-avoids / walk-springs / run-springs a trap; armor mitigates; `fly` clears the pit; `search` reveals the secret exit + cache; `disarm` a found trap; **the content-discipline assertion** (an obvious path exists). Plus a **live run** through the demonstrator (the `verify` skill) as the integration proof.
 
 **Risks/ordering:** **the top build risk is the entry host** (D9 / the GlassAlley lesson). Before wiring the entrance, confirm the chosen source room has no exit-count assertion and is not a fast-travel node; if none is safe, the entrance is a wizard/`go`-reachable seed and the live run reaches it explicitly. Do not degrade a tested content area for the demo.
 
@@ -300,7 +300,7 @@ Paths below are rooted at `packages/server/src/mud/` unless noted.
 
 ## The demonstrator
 
-A purpose-built `domain/traps/` zone — vestibule → **trapped corridor** → far room — placed per D9: its **only** cross-zone exit lands from a room confirmed (at build time) to be **not** a fast-travel node and **without** an asserted exit count, and the zone composes **no** `FastTravelMixin` and appears in **no** TPA manifest (the three ways GlassAlley broke: cross-domain standup boot, the landing's exit-count assertion, the fast-travel cascade — all avoided by construction). The corridor authors **three distinct points** in the trap axis-space with **zero new classes**: a **spike pit** (traversal + point + `drop`; `fly` clears), a **step-dart** (traversal + point + toxin via metabolism), a **pressure-plate blade** (traversal + edge + `trip`). It also holds a **secret exit** (concealed `Exit`, a shortcut) and a **hidden cache** (concealed `Container`, a bonus). **Every secret has an obvious alternative** — the far room is reachable by a visible exit through the corridor; traps wound/redirect but never hard-gate; the secret exit and cache are pure upside. The content-discipline invariant is a test assertion, not a hope.
+A purpose-built `domain/newbie-wilds/delve/` (rooms) + `/obj/traps/` (generic traps) zone — vestibule → **trapped corridor** → far room — placed per D9: its **only** cross-zone exit lands from a room confirmed (at build time) to be **not** a fast-travel node and **without** an asserted exit count, and the zone composes **no** `FastTravelMixin` and appears in **no** TPA manifest (the three ways GlassAlley broke: cross-domain standup boot, the landing's exit-count assertion, the fast-travel cascade — all avoided by construction). The corridor authors **three distinct points** in the trap axis-space with **zero new classes**: a **spike pit** (traversal + point + `drop`; `fly` clears), a **step-dart** (traversal + point + toxin via metabolism), a **pressure-plate blade** (traversal + edge + `trip`). It also holds a **secret exit** (concealed `Exit`, a shortcut) and a **hidden cache** (concealed `Container`, a bonus). **Every secret has an obvious alternative** — the far room is reachable by a visible exit through the corridor; traps wound/redirect but never hard-gate; the secret exit and cache are pure upside. The content-discipline invariant is a test assertion, not a hope.
 
 ---
 

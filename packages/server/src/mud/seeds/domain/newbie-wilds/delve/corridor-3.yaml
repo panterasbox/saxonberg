@@ -24,8 +24,8 @@ data:
         A dark slot no wider than a coin runs wall to wall at ankle height, and a single flag before it sits proud. Tread the flag and the slot answers — a low blade on a short arc, meant to take the legs, not the life.
   exits:
     north:
-      destination: /domain/traps/vault
+      destination: /domain/newbie-wilds/delve/vault
     south:
-      destination: /domain/traps/corridor-2
+      destination: /domain/newbie-wilds/delve/corridor-2
   populates:
-    - /domain/traps/pressure-blade
+    - /obj/traps/pressure-blade

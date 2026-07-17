@@ -18,4 +18,4 @@ data:
     z: -1
   exits:
     up:
-      destination: /domain/traps/corridor-2
+      destination: /domain/newbie-wilds/delve/corridor-2
