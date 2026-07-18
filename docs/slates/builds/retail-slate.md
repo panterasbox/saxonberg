@@ -138,18 +138,19 @@ unlocks real pricing + closes the loop → S4 makes it player-owned.** Each
 build ships a *complete* shop at its tier; the deferred beats are clean
 seams, not stubs.
 
-### S1 — The general store (the retail primitive) · *small–medium*
+### S1 — The general store (the retail primitive) · *small–medium* — **SHIPPED (MR!143)**
 
-**Prerequisite (property-first, decided): the chattel possession core.** S1
-is built as one cycle behind the [property slate](./property-slate.md)'s
-Phase-0 chattel half — the per-instance **owner-stamp** (`ownerOf(item) =
-stamp ?? authorOf`, a gated registry twin of `parcels`), with the store as
-its **proving consumer**. Goods carry *real* ownership, and consignment is
-modeled as **custody (containment) vs ownership (stamp)** — not a shop-local
-pointer. Minimal chattel slice (owner-stamp + `ownerOf` + transfer); the
-compute/economy of property stays deferred. Requirements:
-`docs/requirements/chattel-and-general-store-requirements.md` (splittable
-into two MRs at the substrate↔consumer seam).
+**SHIPPED** → [retail.md](../../subsystems/retail.md) + [chattel.md](../../subsystems/chattel.md).
+Built property-first as one cycle: the **chattel possession core** (the
+per-instance owner-stamp, `ownerOf(item) = stamp ?? authorOf`, a gated
+registry twin of `parcels` keyed on a durable per-instance id — the
+[property slate](./property-slate.md)'s Phase-0 chattel half) + the general
+store as its **proving consumer**. Goods carry *real* ownership;
+**buy-that-stamps** + **custody-vs-ownership consignment**; the reset sweep
+graduated ([residency.md](../../subsystems/residency.md)); `PricedOfferMixin`
+extracted from the bar's `Menu`; five real system-backed staples. The
+compute/economy of property stays deferred (property slate Phase 1). The
+rest of the arc (S2–S4 below) is unbuilt.
 
 The net-new system: the **retail counter** — a priced, bounded,
 depletable stock, with a two-way surface over it.

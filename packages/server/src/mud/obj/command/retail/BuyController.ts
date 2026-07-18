@@ -33,7 +33,6 @@ import { EmploymentApi } from "../../../api/employment";
 import { AppApi } from "../../../api/app";
 import { AppSettingKeys } from "../../../lib/config/AppSettings";
 import type { Stuff } from "../../../lib/stuff/Stuff";
-import type { Container } from "../../../lib/spatial/Container";
 import type { Containable } from "../../../lib/spatial/Containable";
 
 const TOPIC = "world.narration.action";
@@ -247,7 +246,7 @@ export default class BuyController extends CommandController<BuyModel> {
 
   private handOver(item: Stuff & Containable, giver: Stuff): void {
     if (MixinApi.isContainer(giver)) {
-      ContainmentApi.move(item, giver as unknown as Stuff & Container);
+      ContainmentApi.move(item, giver); // narrowed to Stuff & Container
     }
   }
 

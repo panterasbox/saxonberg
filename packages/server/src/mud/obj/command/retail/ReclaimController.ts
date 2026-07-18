@@ -15,7 +15,6 @@ import { MessageApi } from "../../../api/message";
 import { Mml } from "../../../api/mml";
 import { ChattelApi } from "../../../api/chattel";
 import type { Stuff } from "../../../lib/stuff/Stuff";
-import type { Container } from "../../../lib/spatial/Container";
 
 const TOPIC = "world.narration.action";
 
@@ -59,7 +58,7 @@ export default class ReclaimController extends CommandController<ReclaimModel> {
 
     // Custody → you; clear the listing. No chattel op (ownership never left).
     if (MixinApi.isContainer(giver)) {
-      ContainmentApi.move(item, giver as unknown as Stuff & Container);
+      ContainmentApi.move(item, giver); // narrowed to Stuff & Container
     }
     if (MixinApi.isChattel(item)) shelf.removeListing(item.getChattelId());
 
