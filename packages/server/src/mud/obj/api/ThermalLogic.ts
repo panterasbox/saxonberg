@@ -6,6 +6,7 @@ import { CallSecurity, Unshadowable } from '../../lib/security/decorators';
 import { SecurityPolicies } from '../../lib/security/SecurityPolicies';
 import type { Stuff } from '../../lib/stuff/Stuff';
 import type { Container } from '../../lib/spatial/Container';
+import type { Containable } from '../../lib/spatial/Containable';
 import type { Bulkable, BulkAffordance } from '../../lib/bulk/Bulkable';
 import type { Thermal } from '../../lib/thermal/Thermal';
 import type { Meltable } from '../../lib/thermal/Meltable';
@@ -16,7 +17,6 @@ import { StuffApi } from '../../api/stuff';
 import { ContainmentApi } from '../../api/containment';
 import { THERMAL_DEFAULTS } from '../../lib/thermal/Thermal';
 import { Quantity } from '../../lib/quantity';
-import Thing from '../../lib/stuff/Thing';
 
 const ThermalApiCallers = SecurityPolicies.FromModule(
   '/api/thermal#ThermalApi',
@@ -195,26 +195,36 @@ function reconcileBulkPhase(v: Stuff & Bulkable & Thermal): void {
 
   const mp = mat.getMeltingPoint().rawValue();
   if (mp > 0 && temp <= mp) {
-    // Freeze — the liquid solidifies into a cast solid Thing of the same
-    // material, mass derived back from the pooled volume.
+    // Freeze — the liquid solidifies into a cast solid of the same material,
+    // mass derived back from the pooled volume. The casting is a **clone of the
+    // `/obj/Casting` template** (a re-meltable content object), not a raw
+    // construction — its material / mass / prose are stamped per freeze.
     const massKg = (amount / 1000) * mat.getDensity().rawValue();
     v.setBulkAmount(aff, Quantity.of(0, 'L'));
     v.setBulkMaterial(aff, null);
-    void StuffApi.create(() => {
-      const cast = new Thing();
-      cast.setShortDescription(`a cast lump of ${mat.getName()}`);
-      cast.setMaterial(mat as never);
-      cast.setMass(Quantity.of(massKg, 'kg'));
-      return cast;
-    }).then((cast) => {
-      const scope = (v as unknown as { getContainer(): Stuff | null })
-        .getContainer();
+    const scope = (v as unknown as { getContainer(): Stuff | null })
+      .getContainer();
+    void StuffApi.clone(CASTING_TEMPLATE_PATH).then((cast) => {
+      const c = cast as unknown as Stuff & {
+        setShortDescription(s: string): void;
+        setMaterial(m: Material): void;
+        setMass(q: Quantity<'kg'>): void;
+      };
+      c.setShortDescription(`a cast lump of ${mat.getName()}`);
+      c.setMaterial(mat);
+      c.setMass(Quantity.of(massKg, 'kg'));
       if (scope && MixinApi.isContainer(scope)) {
-        void ContainmentApi.move(cast, scope as Stuff & Container);
+        void ContainmentApi.move(
+          cast as unknown as Stuff & Containable,
+          scope as Stuff & Container,
+        );
       }
     });
   }
 }
+
+/** The template a frozen molten pool clones into (a re-meltable cast lump). */
+const CASTING_TEMPLATE_PATH = '/obj/Casting';
 
 /** The scope's puddle-bearing `Floor` — a surface-bulk fixture / content (the
  * WeatherLogic.findRoomFloor precedent). */

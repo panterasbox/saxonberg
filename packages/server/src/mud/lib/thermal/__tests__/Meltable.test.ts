@@ -7,12 +7,13 @@
  * material. Driven against real `Material` numbers.
  */
 
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import Thing from '../../stuff/Thing';
 import Location from '../../stuff/Location';
 import Material from '../../material/Material';
 import Floor from '../../../obj/Floor';
 import Flask from '../../../obj/Flask';
+import Casting from '../../../obj/Casting';
 import { ThermalMixin } from '../Thermal';
 import { MeltableMixin } from '../Meltable';
 import { ThermalApi } from '../../../api/thermal';
@@ -140,18 +141,30 @@ describe('phase change — boil + freeze (ice → water → steam)', () => {
   });
 
   it('solidifies a liquid to a cast below its melting point', async () => {
-    const { flask, room } = waterFlask(260); // < 273 K → ice
-    ThermalApi.reconcilePhase(flask);
-    expect(flask.getBulkAmount('interior').rawValue()).toBe(0);
-    await flush();
-    await flush();
-    // A cast solid of the frozen water dropped into the scope.
-    const cast = room
-      .getContents()
-      .map((c) => c as unknown as Stuff)
-      .find((s) => !s.isDestroyed() && s !== (flask as unknown as Stuff) &&
-        MixinApi.isTangible(s) && s.getMaterial()?.getName() === 'water');
-    expect(cast).toBeDefined();
+    // The freeze clones the `/obj/Casting` template; the faked-Mongo test has
+    // no clone pipeline, so stub `StuffApi.clone` to mint a fresh Casting (the
+    // banking-suite precedent).
+    const cloneSpy = vi
+      .spyOn(StuffApi, 'clone')
+      .mockImplementation((async () =>
+        makeStuff(() => new Casting())) as unknown as typeof StuffApi.clone);
+    try {
+      const { flask, room } = waterFlask(260); // < 273 K → ice
+      ThermalApi.reconcilePhase(flask);
+      expect(flask.getBulkAmount('interior').rawValue()).toBe(0);
+      await flush();
+      await flush();
+      expect(cloneSpy).toHaveBeenCalledWith('/obj/Casting');
+      // A cast solid of the frozen water dropped into the scope.
+      const cast = room
+        .getContents()
+        .map((c) => c as unknown as Stuff)
+        .find((s) => !s.isDestroyed() && s !== (flask as unknown as Stuff) &&
+          MixinApi.isTangible(s) && s.getMaterial()?.getName() === 'water');
+      expect(cast).toBeDefined();
+    } finally {
+      cloneSpy.mockRestore();
+    }
   });
 
   it('a liquid between its melting and boiling points is stable', () => {
