@@ -136,6 +136,8 @@ export function PerceiverMixin<TBase extends MixinConstructor>(Base: TBase) {
         'perception/taste.yaml',
         'perception/sense.yaml',
         'perception/assess.yaml',
+        'perception/search.yaml',
+        'device/disarm.yaml',
       ],
       environment: [],
       inventory: [],

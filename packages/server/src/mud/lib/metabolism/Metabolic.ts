@@ -300,6 +300,16 @@ export interface Metabolic {
   vomit(): void;
   /** Accelerated clearance — crash a toxin burden (the antidote seam). */
   applyAntidote(toxinType: string): void;
+  /**
+   * Inject a toxin dose **directly into the body burden**, past digestion
+   * — the bloodstream seam a poisoned dart / needle uses (a hazard's
+   * `delivery.toxin`, {@link HazardMixin.resolveTraversal}). Unlike
+   * `ingest`, there is no digestion pool + absorption curve: the resolved
+   * dose lands on the burden immediately. The banded `Condition` then
+   * reads live off the burden (reconcile-on-read), exactly as an eaten
+   * toxin's does — this is *how the dose arrives*, not a new toxin model.
+   */
+  introduceToxin(type: string, amount: number): void;
 }
 
 function assertFiniteNonNeg(value: number, what: string): void {
@@ -908,6 +918,14 @@ export function MetabolicMixin<TBase extends MixinConstructor>(Base: TBase) {
       const next = cur * (1 - METABOLIC_DEFAULTS.ANTIDOTE_CRASH_FRACTION);
       if (next <= 1e-9) delete this.toxinBurdens[toxinType];
       else this.toxinBurdens[toxinType] = next;
+    }
+
+    public introduceToxin(type: string, amount: number): void {
+      assertFiniteNonNeg(amount, "MetabolicMixin.introduceToxin");
+      if (amount === 0) return;
+      // Straight to the burden — the injected route skips digestion. The
+      // burden entry is created on first exposure (the `absorbToxin` idiom).
+      this.toxinBurdens[type] = (this.toxinBurdens[type] ?? 0) + amount;
     }
 
     // ---------- inert seams (wired, return identity in v1) ----------

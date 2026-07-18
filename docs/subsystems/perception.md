@@ -242,8 +242,31 @@ a fixed ~110 dB blast), added in the crossing build (commit
 `63a827a0`, "Audible — discrete-event cross-room sound push",
 Phase 1E).
 
+## Concealment / detection — the presence face on `PerceptionApi`
+
+The exploration layer — **whether a thing is *there* at all**, resolved
+per-viewer — is folded onto this same pair as `PerceptionApi.perceives` /
+`effectivePerception` / `hasDiscovered` / `recordDiscovery` / `hintsFor` /
+`resolveSearch`. **There is no `DetectionApi`**: detection *is*
+concealment-gated perception, so the presence face is `PerceptionApi`, not a
+fourth module — it is the real refinement the MQL `isVisible` **placeholder**
+long reserved ("a real perception subsystem will refine this — light levels,
+concealment, etc."). `perceives(viewer, target)` is a deterministic,
+viewer-explicit query (this pattern exactly): un-concealable/`obvious`
+targets short-circuit true, else `effectivePerception ≥ requirement` OR the
+find is already in the viewer's `DISCOVERY` belief. It consumes the existing
+per-viewer vision path (`VisionModality.perceivedBand`, and through it the
+Shadow seam) as its light `conditions` term — so darkness/night-vision enter
+detection with no second light read. The async `awareness` band read is kept
+sync at the enumeration seams by warming it into
+`PerceptionLogic.preloadForSenseGate`'s per-command snapshot. Full detail in
+[concealment.md](./concealment.md).
+
 ## Where the pattern is currently used
 
+- (existing) `PerceptionApi.perceives(viewer, target)` — the concealment /
+  detection gate, threaded through the `look` / `sense` / exit / MQL / wire
+  enumeration seams. See [concealment.md](./concealment.md).
 - (existing) `VisionModality.canSee`, `VisionModality.perceivedBand`,
   `VisionModality.viewerVisionProfile` — Light & Boundary subsystem.
   Viewer-side overrides via Shadow seam methods

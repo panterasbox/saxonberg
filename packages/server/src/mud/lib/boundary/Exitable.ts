@@ -23,9 +23,11 @@ import type { VetoResult } from '../errors';
 import type Door from './Door';
 import type { Mobile, MovementBodies } from '../spatial/Mobile';
 import Exit from './Exit';
+import type { ConcealmentLevel } from '../concealment/ConcealmentLevel';
 import { NavigationApi } from '../../api/navigation';
 import { StuffApi } from '../../api/stuff';
 import { MixinApi } from '../../api/mixin';
+import { PerceptionApi } from '../../api/perception';
 import { BoundaryApi } from '../../api/boundary';
 import type { SubscribableFieldDescriptor } from '../../api/mql-subscription';
 
@@ -67,6 +69,13 @@ export interface Exitable {
   getExits(): ReadonlyMap<string, Exit>;
   hasExit(direction: string): boolean;
   getObviousExits(): Exit[];
+  /**
+   * The viewer-aware obvious exits — obvious exits always, a concealed
+   * exit only when this `viewer` has discovered or can perceive it. The
+   * perception paths (`look`, scope-walk) use this; the viewer-blind
+   * {@link getObviousExits} stays the seam for physics/propagation walks.
+   */
+  obviousExitsFor(viewer: Stuff): Exit[];
   getExitDoors(): Door[];
   /**
    * Install a forward/back exit pair. Async because it internally
@@ -182,6 +191,15 @@ export interface ExitInstruction {
   bidirectional?: boolean;
   opposite?: string;
   hidden?: boolean;
+  /**
+   * Explicit concealment band (D1 — subsumes `hidden`). Authored form of a
+   * concealed exit: `concealment: hidden` (a secret door), `deep`/`buried`
+   * to bury it. Wins over the legacy `hidden` flag. See
+   * `lib/concealment/ConcealmentLevel.ts`.
+   */
+  concealment?: ConcealmentLevel;
+  /** Authored hint / "tell" surfaced when a viewer nearly perceives it. */
+  hint?: string;
   blocked?: boolean;
   muffled?: boolean;
   noFollow?: boolean;
@@ -345,6 +363,27 @@ export function ExitableMixin<TBase extends MixinConstructor<Stuff & Container>>
       const result: Exit[] = [];
       for (const exit of this.exits.values()) {
         if (!exit.isHidden()) result.push(exit);
+      }
+      return result;
+    }
+
+    /**
+     * The viewer-aware obvious exits — the perception paths (`look`,
+     * scope-walk) call this so a **concealed** exit is listed only when
+     * that viewer has discovered it or can passively perceive it, while an
+     * obvious exit is always shown. Delegates the whole decision to
+     * {@link PerceptionApi.perceives} (which short-circuits true for an
+     * un-concealed / `obvious` exit — backcompat, byte-identical to
+     * {@link getObviousExits} when nothing is hidden).
+     *
+     * The viewer-blind {@link getObviousExits} stays the seam for the
+     * physics/propagation walks (they carry no viewer; concealment is a
+     * per-viewer presence fact, not a physical barrier).
+     */
+    obviousExitsFor(viewer: Stuff): Exit[] {
+      const result: Exit[] = [];
+      for (const exit of this.exits.values()) {
+        if (PerceptionApi.perceives(viewer, exit)) result.push(exit);
       }
       return result;
     }
@@ -533,6 +572,8 @@ export function ExitableMixin<TBase extends MixinConstructor<Stuff & Container>>
             destination: destStuff,
             door: doorStuff ?? null,
             hidden: spec.hidden,
+            concealment: spec.concealment,
+            concealmentHint: spec.hint,
             blocked: spec.blocked,
             muffled: spec.muffled,
             noFollow: spec.noFollow,

@@ -77,13 +77,39 @@ Carries:
 - `door: Door | null` — optional; both sides of a bidirectional
   pair reference the same instance.
 - Flags: `hidden`, `blocked`, `muffled`, `noFollow`, `oneWay`.
+  `hidden` is now **subsumed into the concealment gate** (below).
 - Optional Liquid templates: `messageOut` / `messageIn` for
   movement narration.
 - `inverse?: Exit` — counterpart on the other side, wired by
   `addBidirectionalExit` or by the mutual-exit verifier.
 - `media: string[]` — locomotion media this exit admits (`'ground'`,
-  `'water'`, etc.). Empty list = walk-only (legacy default). See
+  `'water'`, etc.). Empty list = the **ground pace family**
+  (`walk`/`sneak`/`run`) — widened from walk-only when the care↔speed
+  axis landed, since anywhere you can walk you can sneak or run; non-ground
+  media (climb/swim/fly) and wheeled conveyance still require an explicit
+  `media` declaration, so old content stays backcompat-safe. See
   [locomotion.md](./locomotion.md#exitmedia).
+
+### `Exit.hidden` — subsumed into the concealment gate
+
+`Exit` now composes `ConcealableMixin` (`Exit extends
+ConcealableMixin(Idea)`, the `LocomotionMode` mixin-on-`Idea` precedent).
+The legacy `hidden` boolean — a dead-end "never displayed" flag with **no
+reveal path** — is a thin view over the concealment band: `isHidden()`
+re-derives as `isConcealed()`, `setHidden(true)` raises the band to
+`ConcealmentLevels.hiddenDefault()` (the `concealment.hiddenDefaultLevel`
+dial, default `'hidden'`), `setHidden(false)` clears to `'obvious'`. At
+construction `ExitOptions.hidden: true` maps onto the same default, and an
+explicit `concealment` band on the seed **wins** over the legacy flag. An
+`Exit` carries no `templatePath` of its own, so it overrides
+`getDiscoveryKey()` to a durable synthetic `` `${source.path}#exit:<dir>` ``
+handle (so a discovered secret door stays discovered across re-clones).
+`getObviousExits()` still drops a hidden exit (it reads `isHidden()`) — but
+the **reveal path now exists**: `Exitable.obviousExitsFor(viewer)` lists a
+concealed exit once the viewer has discovered it (or perceives it), and
+`search` turns it up. This closes the bar's documented sealed `north →
+office` dead-end. Full detail in
+[concealment.md](./concealment.md).
 
 `Exit.canTraverse(mover, mode?)` rejects when `blocked`, when an
 attached door is **locked**, when an attached door is shut, or — when
@@ -164,7 +190,11 @@ self-describing. `getExit(direction)` resolves:
 2. **Subclass hook.** `ExitableVessel.getExit` overrides for
    `direction === 'out'`.
 
-`getObviousExits()` (used by `look`) is the explicit exits, `!hidden`.
+`getObviousExits()` is the explicit exits, `!hidden` — the viewer-blind
+seam kept for the physics/propagation walks. The **viewer-aware**
+`obviousExitsFor(viewer)` is what `look` and the perception paths consult:
+a concealed exit shows iff the viewer has discovered or perceives it (see
+[concealment.md](./concealment.md)).
 
 **No auto-reciprocal.** `applyExits` installs only the edge it declares
 (`bidirectional` defaults to **false**); the return trip is a separate

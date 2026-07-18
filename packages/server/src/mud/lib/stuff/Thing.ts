@@ -34,15 +34,23 @@ import { ContainableMixin } from '../spatial/Containable';
 import { TangibleMixin } from '../material/Tangible';
 import { PerceptibleMixin } from '../description/Perceptible';
 import { VisibleMixin } from '../description/Visible';
+import { ConcealableMixin } from '../concealment/Concealable';
 import { WetMixin } from '../wetness/Wet';
 import { ChattelMixin } from '../chattel/Chattel';
 
 // ChattelMixin composes at the movable-good tier so every Thing carries a
 // durable per-instance identity its unspoofable ownership can be keyed
 // against (empty until stamped; fungible stacks stay owned-by-possession).
+// ConcealableMixin (default `obvious`) lets any Thing carry a concealment
+// level — a hidden cache, a dropped-and-buried item — resolved per-viewer by
+// the detection gate (inert until authored). WetMixin gives every Thing a
+// material-driven wetness gauge (inert until wetted). All three are additive
+// attribute mixins; composition order is moot.
 const ThingBase = ChattelMixin(
-  WetMixin(
-    VisibleMixin(PerceptibleMixin(TangibleMixin(ContainableMixin(Stuff)))),
+  ConcealableMixin(
+    WetMixin(
+      VisibleMixin(PerceptibleMixin(TangibleMixin(ContainableMixin(Stuff)))),
+    ),
   ),
 );
 

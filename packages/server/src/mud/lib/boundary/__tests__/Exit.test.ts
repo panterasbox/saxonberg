@@ -303,10 +303,20 @@ describe('Exit.media', () => {
     ContainmentApi.move(mover, locA);
   });
 
-  describe('default behavior (empty media → walk-only)', () => {
+  describe('default behavior (empty media → ground pace family)', () => {
     it('allowsMode("walk") returns true on a fresh Exit', () => {
       const exit = makeStuff(() => new Exit({ direction: 'n', source: locA, destination: locB }));
       expect(exit.allowsMode('walk')).toBe(true);
+    });
+
+    it('allowsMode("sneak"/"run") returns true on a fresh Exit — the care↔speed pace siblings', () => {
+      // Regression: an empty-media exit used to admit ONLY 'walk', so the
+      // new sneak/run modes were rejected on every un-authored exit ("You
+      // can't sneak that way") — the care↔speed axis was non-functional
+      // in-world. Anywhere you can walk you can sneak or run.
+      const exit = makeStuff(() => new Exit({ direction: 'n', source: locA, destination: locB }));
+      expect(exit.allowsMode('sneak')).toBe(true);
+      expect(exit.allowsMode('run')).toBe(true);
     });
 
     it('allowsMode("climb") returns false on a fresh Exit', () => {

@@ -222,6 +222,15 @@ domain; the skill / conditioning distinction is a leaf attribute) and the
 adaptation isn't a field of study). The slice is illustrative, **not
 exhaustive** — the full ISCED-F is content authored over time.
 
+Later builds seed their own leaves the same way (pure data, zero code): the
+combat build's `melee-combat` / `blades`, and the concealment build's
+**`awareness`** (`channel: skill`, `iscedf: "0288"`) — the perception /
+attention Discipline that grades a viewer's effective perception (the
+`capacity` term), the reach of an active `search` / `examine`, and `disarm`.
+It carries **no `conferrals`** (`search` / `look` / `disarm` are universally
+afforded; competence only *grades* them, it doesn't gate the menu). See
+[concealment.md](./concealment.md).
+
 ## Deferred (seams left open)
 
 The loadout (capacity-not-decay, savings warm-up); guilds (venue / mentors
