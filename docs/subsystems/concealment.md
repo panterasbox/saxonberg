@@ -267,13 +267,16 @@ consumer — no test asserts others-can't-see-a-sneaker.
 
 ## Deferred
 
-- **The *hiding* half of stealth (the actor face)** — the `sneak` mode
-  ships its *detection* effect (it helps *you* notice), not its
-  *concealment* effect (others fail to perceive *you*). That pulls in
-  motion-degrades-concealment, NPC detection/response, and surprise-attack
-  combat initiation. A *passively-authored* concealed creature is already
-  in scope (the gate resolves it for free); an actor *actively hiding
-  itself* is the next consumer.
+- **The *hiding* half of stealth (the actor face)** — ✅ **shipped** (see
+  [stealth.md](./stealth.md)): `HidingMixin` gives an actor a dynamic
+  `hide` state whose *level* derives on `PerceptionApi.hideLevelFor`;
+  motion-degrades-concealment lights the observer-side of the `sneak`/`run`
+  axis (`movement.concealment.*` → `motionExposure`); the `wary` brain is
+  the NPC detection/response; ambush (`CombatOpenOptions.ambush`) is the
+  surprise-attack initiation; and the player-trapper (`TrapKit`/`arm`)
+  places concealed traps at the placer's `stealth`. Consent/blame for
+  ambush + traps rides the unified [accountability.md](./accountability.md)
+  ledger.
 - **The knowledge economy** — sharing / selling / transferring found
   secrets, maps as social currency. Only the *personal* per-viewer
   found-memory ships.
