@@ -320,7 +320,6 @@ function advanceFireInRoom(room: Stuff & Container): void {
       tryAutoigniteImpl(c as unknown as Stuff);
     }
   }
-  void burning;
 }
 
 /** The scope's finite air budget — an `'air'` Reserve authored on an enclosed

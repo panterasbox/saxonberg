@@ -26,7 +26,7 @@ class TestRoom extends Location {}
 
 const COLD_K = 265; // well below the ~310 K endotherm setpoint
 
-let now = 1_000_000;
+const now = 1_000_000;
 
 function installRootBiome(): void {
   makeStuffAtPath(() => {

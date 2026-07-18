@@ -21,7 +21,7 @@ import Ingot from '../../../obj/Ingot';
 import Forge from '../../../obj/Forge';
 import Floor from '../../../obj/Floor';
 import SealedCellar from '../SealedCellar';
-import { ReservedMixin, Reserve } from '../../../lib/reserve';
+import { Reserve } from '../../../lib/reserve';
 import { HasInteractiveMixin } from '../../../lib/connection/HasInteractive';
 import type { HasInteractive } from '../../../lib/connection/HasInteractive';
 import { FireApi } from '../../../api/fire';
@@ -38,7 +38,6 @@ import { installV1QuantityMarshallers } from '../../../lib/persistence/__tests__
 class TestOccupant extends HasInteractiveMixin(Thing) {
   static _mixinName = 'TestOccupantHearth';
 }
-void ReservedMixin; // (SealedCellar composes it — imported for clarity)
 
 let seq = 0;
 function oak(): Material {

@@ -6,10 +6,10 @@ the high-heat materials physics the crafting system will later stand on (phase
 change, the furnace family, an inert heat-as-crafting-control seam). Built for
 its own sake — the electricity → mundane-`conduct` precedent — and the exact
 channel the magic **Fire school** will later actuate (inject heat → the same
-physics). Traces to
-[fire-combustion-requirements.md](../requirements/fire-combustion-requirements.md)
-(the 11 surface decisions D1–D11) and the
-[fire-combustion-slate.md](../slates/builds/fire-combustion-slate.md).
+physics). Design surface in the
+[fire-combustion-slate.md](../slates/builds/fire-combustion-slate.md); the 11
+surface decisions (D1–D11) the build's retired requirements settled are now
+captured below.
 
 Homes: **`lib/fire/`** (combustion — `Combustible`/`Burning`/`Furnace`, the
 `FireApi`/`FireLogic` gated pair), **`lib/thermal/`** (the phase-change layer —
@@ -115,8 +115,10 @@ Dials: `response.heat.*`.
   overshoot into the accumulator) then **melts**, destructing and flowing its
   mass to a molten `Bulkable` pool in the scope's `Floor`; a liquid-holding
   vessel **boils** to gas above the boiling point and **solidifies** to a cast
-  `Thing` below the melting point. Bidirectional — **ice → water → steam falls
-  out of one water material**.
+  below the melting point (a **clone of the `/obj/Casting` template** — a
+  re-meltable content object, material/mass/prose stamped per freeze; not a raw
+  construction). Bidirectional — **ice → water → steam falls out of one water
+  material**.
 - **The furnace family (D8).** `FurnaceMixin` generalizes the Campfire pin — a
   `Combustible`-fuelled appliance holding a `burnTemperatureK × bellows`
   temperature while lit + fuelled, releasing to embers on burnout, and
@@ -165,7 +167,8 @@ self-contained fire zone (teleport-reachable, the substation precedent) with a
 **woodshed** (spread + wet-resist), a **sealed cellar** (`SealedCellar` — the
 CO/ventilation lesson), and a **smithy** (a bellows-fed `Forge` melting an
 `Ingot` to a molten pool). `obj/Firewood` (a Combustible log), `obj/Ingot` (a
-Meltable metal bar), `obj/Forge`/`Kiln`/`Oven`, `obj/Candle`.
+Meltable metal bar), `obj/Casting` (the re-meltable frozen-pool cast),
+`obj/Forge`/`Kiln`/`Oven`, `obj/Candle`.
 
 ## Deferred
 
