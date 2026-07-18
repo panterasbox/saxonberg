@@ -3,12 +3,14 @@
 Emits a valid .excalidraw (deliverable) + a mirror .svg (preview) per state.
 Canvas 1920x1080; content authored 1080p, exported 2x -> 4K to match background.png.
 """
-import json, os, html
+import json, os, html, subprocess
 
 W, H = 1920, 1080
 OUT_EX = "/home/bobalu/play/saxonberg/master/docs/manifesto"
 OUT_SVG = "/tmp/claude-1000/-home-bobalu-play-saxonberg-master/78ae706e-b284-4586-b904-ddedf0aa7aaf/scratchpad/prev"
+OUT_PNG = "/home/bobalu/play/saxonberg/master/docs/manifesto/exports"  # final transparent 4K PNGs (gitignored)
 os.makedirs(OUT_SVG, exist_ok=True)
+os.makedirs(OUT_PNG, exist_ok=True)
 
 # ---- palette (reads on royal blue) ----
 WHITE = "#ffffff"; SOFT = "#dbe4ff"
@@ -166,7 +168,17 @@ def emit(name, elements):
                appState=dict(gridSize=None, viewBackgroundColor="transparent", theme="light"),
                files={})
     with open(f"{OUT_EX}/{name}.excalidraw","w") as f: json.dump(doc,f)
-    with open(f"{OUT_SVG}/{name}.svg","w") as f: f.write(to_svg(elements))
+    svgp = f"{OUT_SVG}/{name}.svg"
+    with open(svgp,"w") as f: f.write(to_svg(elements))
+    # final deliverable: transparent 4K PNG (density 192 on a 1920x1080 SVG -> 3840x2160).
+    # heavy frames can trip ImageMagick's time-limit policy -> fall back to a 96-density
+    # render upscaled to 4K (slightly softer but complete).
+    pngp = f"{OUT_PNG}/{name}.png"
+    r = subprocess.run(["convert","-background","none","-density","192",svgp,pngp],
+                       check=False, capture_output=True)
+    if r.returncode != 0 or not os.path.exists(pngp):
+        subprocess.run(["convert","-background","none","-density","96",svgp,
+                        "-resize","3840x2160",pngp], check=False)
     print("wrote", name)
 
 # ================= BEAT 0 =================

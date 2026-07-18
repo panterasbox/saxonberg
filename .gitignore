@@ -29,3 +29,6 @@ out/
 
 # Manifesto diagram exports (regenerable from .excalidraw sources)
 docs/manifesto/*.png
+
+# generated slide PNG exports (Descript inputs; regenerate via slide-generator.py)
+docs/manifesto/exports/
