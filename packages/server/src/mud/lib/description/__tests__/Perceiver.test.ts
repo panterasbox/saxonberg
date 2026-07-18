@@ -57,6 +57,10 @@ describe('PerceiverMixin', () => {
     }).commandContributions.self;
     expect(selfContributions).toContain('perception/search.yaml');
     expect(selfContributions).toContain('device/disarm.yaml');
+    // The stealth build's actor-side verbs — same wiring, same guard.
+    expect(selfContributions).toContain('perception/hide.yaml');
+    expect(selfContributions).toContain('perception/unhide.yaml');
+    expect(selfContributions).toContain('device/arm.yaml');
   });
 
   describe('composition validation', () => {
