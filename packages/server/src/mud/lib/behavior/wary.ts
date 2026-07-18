@@ -26,8 +26,7 @@
  */
 
 import { MixinApi } from '../../api/mixin';
-import { PerceptionApi } from '../../api/perception';
-import { ContainmentApi } from '../../api/containment';
+import { MqlApi } from '../../api/mql';
 import { CombatApi } from '../../api/combat';
 import { CombatTerms } from '../combat/CombatTerms';
 import type { Stuff } from '../stuff/Stuff';
@@ -38,17 +37,23 @@ import type { BrainContext, BrainStatics } from './brain';
 /** Default active attention a sentry brings to the concealment gate. */
 const DEFAULT_ALERTNESS = 4;
 
-/** The creatures sharing the host's room (the host excluded). */
-function roomCreatures(host: Stuff): Stuff[] {
-  if (!MixinApi.isContainable(host)) return [];
-  const room = ContainmentApi.getContainer(host);
-  if (!room || !MixinApi.isContainer(room)) return [];
-  const out: Stuff[] = [];
-  for (const c of ContainmentApi.getContents(room)) {
-    if (c === host) continue;
-    if (MixinApi.isMobile(c)) out.push(c); // a mover = a possible intruder
-  }
-  return out;
+/**
+ * The intruders the sentry detects sharing its room — the MQL `peers:living`
+ * selection (room contents minus the giver, Mobile-only) resolved at the
+ * sentry's active `alertness`. The scope-walk's concealment gate runs at
+ * that attention (`MqlContext.attention`), so the result is exactly the
+ * movers a watch of this intensity picks out — the detection is folded into
+ * the query. (A passive `peers` would pre-hide a concealed intruder the
+ * alert sentry should still catch, which is why the attention term matters.)
+ * Empty for a host that can't anchor a query.
+ */
+function detectedIntruders(host: Stuff, alertness: number): Stuff[] {
+  if (!MixinApi.isCommandGiver(host)) return [];
+  return MqlApi.resolveMany('peers:living', {
+    commandGiver: host,
+    scope: 'reachable',
+    attention: alertness,
+  }).stuff;
 }
 
 /** Best-effort: open a fight on a detected intruder (non-lethal). */
@@ -95,9 +100,11 @@ export const brain = class {
         ? (ctx.state.detected as Set<string>)
         : new Set<string>();
 
+    // MQL folds the detection in: `detectedIntruders` returns only the
+    // movers the sentry perceives at its `alertness` (concealed hiders it
+    // can't pick out are already absent — no second gate needed here).
     const detectedNow = new Set<string>();
-    for (const cand of roomCreatures(host)) {
-      if (!PerceptionApi.perceives(host, cand, alertness)) continue; // oblivious
+    for (const cand of detectedIntruders(host, alertness)) {
       detectedNow.add(cand.stuffId);
       if (seen.has(cand.stuffId)) continue; // already reacted to this one
 
