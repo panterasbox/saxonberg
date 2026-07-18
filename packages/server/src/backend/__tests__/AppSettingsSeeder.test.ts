@@ -41,7 +41,7 @@ describe("AppSettingsSeeder", () => {
     pm.setFindResult([]);
     const added = await AppSettingsSeeder.run();
 
-    expect(added).toBe(189); // 146 base + 7 Attendant+Goodkin + 19 storms-and-wetness + 17 concealment/detection/hazard/movement
+    expect(added).toBe(201); // 146 base + 7 Attendant+Goodkin + 19 storms-and-wetness + 17 concealment/detection/hazard/movement + 12 stealth-deployables
     expect(pm.saves).toHaveLength(1);
     expect(pm.saves[0]!.collection).toBe("app_settings");
     const values = savedValues(pm);
@@ -281,6 +281,18 @@ describe("AppSettingsSeeder", () => {
           [AppSettingKeys.weatherCloudDimFactor]: "0.6",
           [AppSettingKeys.weatherSkyForecastSegments]: "2",
           [AppSettingKeys.thermalWetHeatLossFactor]: "1.5",
+          [AppSettingKeys.stealthHideCompetencePerBand]: "2",
+          [AppSettingKeys.stealthHideCoverWeight]: "1",
+          [AppSettingKeys.stealthHideLightWeight]: "1",
+          [AppSettingKeys.stealthHideStillnessBonus]: "1",
+          [AppSettingKeys.stealthHideBandSubtle]: "0",
+          [AppSettingKeys.stealthHideBandHidden]: "4",
+          [AppSettingKeys.stealthHideBandDeep]: "7",
+          [AppSettingKeys.stealthHideBandBuried]: "10",
+          [AppSettingKeys.movementConcealmentSneak]: "0",
+          [AppSettingKeys.movementConcealmentWalk]: "1",
+          [AppSettingKeys.movementConcealmentRun]: "99",
+          [AppSettingKeys.combatAmbushPoisePenalty]: "0.85",
         },
       },
     ]);
@@ -319,7 +331,8 @@ describe("AppSettingsSeeder", () => {
     // + 7 Attendant+Goodkin (4 banking + 3 lease/queue)
     // + 19 storms-and-wetness (8 wetness + 7 storm + 2 weather + 1 thermal + 1 absorptionCap)
     // + 17 concealment/detection/hazard/movement (5+2+5+3+2, Phases 1-5)
-    expect(added).toBe(188);
+    // + 12 stealth-deployables (8 stealth.hide + 3 movement.concealment + 1 combat.ambush)
+    expect(added).toBe(200);
     expect(pm.saves).toHaveLength(1);
     const values = savedValues(pm);
     // operator value preserved, missing keys seeded

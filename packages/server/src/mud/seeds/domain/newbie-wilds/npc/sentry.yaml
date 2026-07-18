@@ -1,0 +1,45 @@
+# The watchpost sentry — the concealment/stealth demonstrator's living
+# obstacle. A wary picket who scans the ground in front of the wood and
+# challenges anyone they catch. A sentient person (homo sapiens — so a
+# player who ambushes them down triggers the two-stage defeat, not a cull),
+# with no proper name (Visible.shortDescription per the NamedMixin rule).
+#
+# The `wary` brain (docs/subsystems/stealth.md) runs the shipped detection
+# gate at a modest `alertness` of 3: it catches a poor hide (`subtle`,
+# requirement 2) but a decent one (`hidden`, requirement 4) slips past — so
+# hiding well, from cover and stillness, is the difference between sneaking
+# through and being hailed. Not `hostile`: it challenges, it doesn't open a
+# fight — leaving the player to sneak on, retreat, or ambush it themselves.
+class: /lib/npc/NPC
+hydratorClass: /lib/persistence/PersistentHydrator
+data:
+  _speciesPath: /lib/species/animalia/chordata/mammalia/primates/hominidae/homo/sapiens
+  lifecycleState: alive
+  primaryKeyword: sentry
+  shortDescription: a watchful sentry
+  longDescription: >-
+    A picket in a patched oilcloth coat, planted where the road meets the
+    trees, eyes going slow across the ground in front of the wood. A
+    crossbow rides slack across one knee. Nothing about the posture is
+    relaxed — it is the stillness of someone whose whole job is to notice
+    you before you notice them.
+  # A non-lethal standing posture: challenging a trespasser is not a duel,
+  # so a player who ambushes the sentry under lethal terms gets the
+  # imposed-terms crime marker (the accountability substrate at work).
+  standingLethality: non-lethal
+  standingStopCondition: yield
+  behaviors:
+    - brain: /lib/behavior/wary
+      trigger: cadence:6s
+      config:
+        alertness: 3
+        lines:
+          - "Halt — hold it right there. I see you."
+          - "Far enough. State your business at the wood."
+          - "You there — step into the light where I can look at you."
+    - brain: /lib/behavior/idles
+      trigger: cadence:17s
+      config:
+        pool:
+          - { kind: free, value: "sweeps a slow look across the treeline and back." }
+          - { kind: free, value: "shifts the crossbow an inch and settles again." }
