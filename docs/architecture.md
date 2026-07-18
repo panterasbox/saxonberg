@@ -634,6 +634,20 @@ by every feature" rule read the other way — a capability with nothing new to
 protect stays a mixin. See [concealment.md](./subsystems/concealment.md) /
 [hazard.md](./subsystems/hazard.md).
 
+The **stealth & deployables** build (the actor-face of concealment) adds
+`HidingMixin` (`lib/concealment/`, a `Character`'s dynamic `hide` state,
+composed *outside* `Creature`'s `ConcealableMixin` so it overrides
+`getConcealment()`) and the `TrapKit` class (`lib/hazard/`, the carried
+deployable), and — earning an Api by the *powerful-primitive* rule — the
+gated `AccountabilityApi`/`AccountabilityLogic` pair (`lib/accountability/`,
+the unified harm-consent ledger combat migrated onto and the trap feeds).
+The hide-*level* rule and the observer-side `motionExposure` fold onto the
+existing `PerceptionApi` (no `StealthApi` — mirroring "no `DetectionApi`"),
+and MQL's scope-walk gained a code-only `MqlContext.attention` term so a
+detection consumer resolves `peers` at an active attention. See
+[stealth.md](./subsystems/stealth.md) /
+[accountability.md](./subsystems/accountability.md).
+
 ## Mixin Organization
 
 Mixins are higher-order functions that extend a base class with new

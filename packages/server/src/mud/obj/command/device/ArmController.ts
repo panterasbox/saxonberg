@@ -24,7 +24,6 @@ import type { CommandContext, CommandModel } from '../../../api/command';
 import type { MqlOneResult } from '../../../api/mql';
 import type { Stuff } from '../../../lib/stuff/Stuff';
 import type { Container } from '../../../lib/spatial/Container';
-import type { Containable } from '../../../lib/spatial/Containable';
 import { MixinApi } from '../../../api/mixin';
 import { MessageApi } from '../../../api/message';
 import { ContainmentApi } from '../../../api/containment';
@@ -96,7 +95,11 @@ export default class ArmController extends CommandController<ArmModel> {
     // Deploy: clone the generic, conceal + attribute it, place it, spend
     // the kit.
     const trap = await StuffApi.clone<Stuff>(kit.getTrapTemplate());
-    if (!MixinApi.isHazard(trap) || !MixinApi.isConcealable(trap)) {
+    if (
+      !MixinApi.isHazard(trap) ||
+      !MixinApi.isConcealable(trap) ||
+      !MixinApi.isContainable(trap)
+    ) {
       StuffApi.destruct(trap);
       return this.reject(
         context,
@@ -107,10 +110,7 @@ export default class ArmController extends CommandController<ArmModel> {
     }
     trap.setConcealment(level);
     trap.setPlacedBy(giver.getTemplatePath() ?? '');
-    ContainmentApi.move(
-      trap as unknown as Stuff & Containable,
-      room as Stuff & Container,
-    );
+    ContainmentApi.move(trap, room as Stuff & Container);
     StuffApi.destruct(kit);
 
     MessageApi.scene(giver)

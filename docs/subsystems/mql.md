@@ -683,6 +683,21 @@ the snapshot is **absent** the gate permits — server-internal callers
 that build an `MqlContext` directly (without the dispatcher) continue
 to work unchanged.
 
+`ctx.attention` (added by the stealth & deployables build) is the
+perception attention the scope-walk resolves concealed candidates at —
+the `PerceptionApi.perceives` gate's attention term, threaded into
+`pushDirect` across every seed builder (`peers` / `reachable` / `here` /
+`inventory` / `flat`) and their mid-chain element-derived forms. It is a
+**code-only** field: the command dispatcher never sets it, so player-typed
+MQL always resolves at the passive baseline and **honest fog is unchanged**
+(concealed things a player can't passively perceive stay un-targetable).
+Only in-code detection consumers opt in — the `wary` sentry brain passes
+its active `alertness` so `peers:living` enumerates the movers it perceives
+*when actively watching*, folding detection into the query (see
+[stealth.md](./stealth.md)). Absent → the passive baseline (byte-identical
+to prior behavior). No grammar change — it rides the context struct, not the
+query string.
+
 Tier defaults:
 
 - **public** — bareword keyword search, `me`, `here`, pronouns,

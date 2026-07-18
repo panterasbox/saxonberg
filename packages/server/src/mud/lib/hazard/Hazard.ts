@@ -378,6 +378,7 @@ export function HazardMixin<TBase extends MixinConstructor>(Base: TBase) {
       if (!placer) return;
       const victimId = mover.getTemplatePath();
       if (!victimId) return;
+      const self = this as unknown as Stuff;
       let sentient = false;
       try {
         sentient = SpeciesApi.isSentient(mover);
@@ -386,7 +387,7 @@ export function HazardMixin<TBase extends MixinConstructor>(Base: TBase) {
       }
       AccountabilityApi.record({
         kind: 'harm',
-        sessionId: `trap:${(this as unknown as Stuff).stuffId}`,
+        sessionId: `trap:${self.stuffId}`,
         initiator: placer,
         opponent: victimId,
         victim: victimId,
