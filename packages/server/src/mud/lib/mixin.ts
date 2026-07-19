@@ -97,6 +97,19 @@ export const Mixins = {
   // response). Composed by armor (resist profile) and weapons (delivery).
   Constructed: 'ConstructedMixin',
   Branded: 'BrandedMixin',
+  // Chattel — a movable good's durable per-instance identity, the key its
+  // unspoofable ownership is stamped against (the parcel-title twin).
+  // Composed at the Thing tier; refused on fungible stacks (Globbable).
+  Chattel: 'ChattelMixin',
+  // Commerce — the shared authored price-list (Law 1: worth on the offer,
+  // not the good). Composed by the bar's Menu and the store's Stock.
+  PricedOffer: 'PricedOfferMixin',
+  // Residency — the game-time reset (repop) sweep's consumer marker: an
+  // object that restores itself on the sweep (the shop's Stock tops up).
+  Resettable: 'ResettableMixin',
+  // Consignment — the store's brokerage shelf: holds player-owned goods in
+  // custody (ownership stays with the consignor) + the listing registry.
+  ConsignmentShelf: 'ConsignmentShelfMixin',
   Workspace: 'WorkspaceMixin',
   Author: 'AuthorMixin',
   Perceiver: 'PerceiverMixin',

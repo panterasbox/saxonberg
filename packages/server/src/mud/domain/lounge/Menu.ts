@@ -18,15 +18,18 @@
 
 import Thing from '../../lib/stuff/Thing';
 import { DetailedMixin } from '../../lib/description/Detailed';
+import { PricedOfferMixin } from '../../lib/commerce/PricedOffer';
 import { MqlApi } from '../../api/mql';
 import type { CommandContext, CommandContributions } from '../../api/command';
 import { CraftingApi } from '../../api/crafting';
 
-// Thing already composes Visible + Perceptible + Tangible + Containable.
-const MenuBase = DetailedMixin(Thing);
+// Thing already composes Visible + Perceptible + Tangible + Containable;
+// PricedOfferMixin supplies the shared `prices` list + `priceFor`.
+const MenuBase = PricedOfferMixin(DetailedMixin(Thing));
 
 export default class Menu extends MenuBase {
-  static persistentFields = ['offeredRecipes', 'prices'];
+  // `prices` rides in via PricedOfferMixin; only the offer list is local.
+  static persistentFields = ['offeredRecipes'];
 
   /**
    * Resolve the menu an `order` / `menu` command works off: the affording
@@ -83,19 +86,8 @@ export default class Menu extends MenuBase {
   /** Recipe ids this menu offers (references the `recipes` collection). */
   public offeredRecipes: string[] = [];
 
-  /**
-   * Authored flat prices per recipe id, in minor units (the bartender's
-   * willingness — an authored stance, the banking-requirements resolution
-   * for the order→Charge hook since crafting exposes no price). A recipe
-   * with no entry is served free (backward-compatible: order stays free
-   * where no price is authored).
-   */
-  public prices: Record<string, number> = {};
-
-  /** The authored price (minor units) for a recipe, or null if unpriced. */
-  priceFor(recipeId: string): number | null {
-    return this.prices[recipeId] ?? null;
-  }
+  // `prices` + `priceFor(recipeId)` are inherited from PricedOfferMixin
+  // (the shared authored price-list; an unpriced recipe is served free).
 
   getOfferedRecipeIds(): readonly string[] {
     return this.offeredRecipes;

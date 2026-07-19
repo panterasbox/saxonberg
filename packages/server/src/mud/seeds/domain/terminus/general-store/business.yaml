@@ -1,0 +1,24 @@
+# The general store as a Business (its own Idea, not a mixin on the room). It
+# owns the proprietor edge, the clerk position + roster (= hours), the
+# operating location (the counter fixture), and — via its own path — the P&L
+# account (buy income + consignment commission − clerk wages). Independent (no
+# corpoKey — an independent shop, not a corpo franchise; that's retail S4).
+#
+# Stands up LAZILY off `operatingLocations` on the first buy/wage query
+# (EmploymentApi.ensureOperatorAt) — no manifest entry, no standup hook.
+class: /lib/employment/Business
+hydratorClass: /lib/persistence/PersistentHydrator
+data:
+  proprietorPath: /domain/terminus/general-store/npc/keeper
+  positions:
+    - key: clerk
+      label: working the general-store counter
+      wageRate: 5
+      confers: []
+  rosterSlots:
+    - positionKey: clerk
+      assignee: /domain/terminus/general-store/npc/clerk
+      schedule:
+        - { days: [0, 1, 2, 3, 4, 5, 6], hours: [6, 22] }
+  operatingLocations:
+    - /domain/terminus/general-store/counter

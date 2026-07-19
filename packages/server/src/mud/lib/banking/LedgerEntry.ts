@@ -59,6 +59,7 @@ export type PnlCategory =
   | "networkFee"
   | "fee"
   | "onboarding"
+  | "consignment"
   | "other";
 
 /**

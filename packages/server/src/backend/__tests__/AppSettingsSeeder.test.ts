@@ -41,7 +41,7 @@ describe("AppSettingsSeeder", () => {
     pm.setFindResult([]);
     const added = await AppSettingsSeeder.run();
 
-    expect(added).toBe(189); // 146 base + 7 Attendant+Goodkin + 19 storms-and-wetness + 17 concealment/detection/hazard/movement
+    expect(added).toBe(193); // 146 base + 7 Attendant+Goodkin + 19 storms-and-wetness + 17 concealment/detection/hazard/movement + 2 residency reset + 2 retail consignment
     expect(pm.saves).toHaveLength(1);
     expect(pm.saves[0]!.collection).toBe("app_settings");
     const values = savedValues(pm);
@@ -281,6 +281,10 @@ describe("AppSettingsSeeder", () => {
           [AppSettingKeys.weatherCloudDimFactor]: "0.6",
           [AppSettingKeys.weatherSkyForecastSegments]: "2",
           [AppSettingKeys.thermalWetHeatLossFactor]: "1.5",
+          [AppSettingKeys.residencyResetMode]: "enforce",
+          [AppSettingKeys.residencyResetIntervalS]: "3600",
+          [AppSettingKeys.retailConsignmentListingCap]: "5",
+          [AppSettingKeys.retailConsignmentCommissionRate]: "0.15",
         },
       },
     ]);
@@ -319,7 +323,9 @@ describe("AppSettingsSeeder", () => {
     // + 7 Attendant+Goodkin (4 banking + 3 lease/queue)
     // + 19 storms-and-wetness (8 wetness + 7 storm + 2 weather + 1 thermal + 1 absorptionCap)
     // + 17 concealment/detection/hazard/movement (5+2+5+3+2, Phases 1-5)
-    expect(added).toBe(188);
+    // + 2 residency reset (mode + intervalS).
+    // + 2 retail consignment (listingCap + commissionRate).
+    expect(added).toBe(192); // 193 total − 1 operator-preset key
     expect(pm.saves).toHaveLength(1);
     const values = savedValues(pm);
     // operator value preserved, missing keys seeded

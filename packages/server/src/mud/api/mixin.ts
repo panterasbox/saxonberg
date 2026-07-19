@@ -107,6 +107,9 @@ import type { Hauler } from '../lib/slot/Hauler';
 import type { Spawner } from '../lib/stuff/Spawner';
 import type { Spawned } from '../lib/stuff/Spawned';
 import type { Globbable } from '../lib/stuff/Globbable';
+import type { Chattel } from '../lib/chattel/Chattel';
+import type { Resettable } from '../lib/residency/Resettable';
+import type { ConsignmentShelf } from '../lib/retail/Consignment';
 import type { Bulkable } from '../lib/bulk/Bulkable';
 import type { Engaged } from '../lib/activity/Engaged';
 import type { Behaved } from '../lib/behavior/Behaved';
@@ -930,6 +933,23 @@ export class MixinApi {
 
   public static isGlobbable(obj: Stuff): obj is Stuff & Globbable {
     return this.hasMixin(obj, Mixins.Globbable);
+  }
+
+  /** A movable good carrying a durable per-instance chattel identity. */
+  public static isChattel(obj: Stuff): obj is Stuff & Chattel {
+    return this.hasMixin(obj, Mixins.Chattel);
+  }
+
+  /** An object that restores itself on the game-time reset sweep. */
+  public static isResettable(obj: Stuff): obj is Stuff & Resettable {
+    return this.hasMixin(obj, Mixins.Resettable);
+  }
+
+  /** The store's brokerage shelf (holds consigned goods + listings). */
+  public static isConsignmentShelf(
+    obj: Stuff,
+  ): obj is Stuff & ConsignmentShelf {
+    return this.hasMixin(obj, Mixins.ConsignmentShelf);
   }
 
   public static isBulkable(obj: Stuff): obj is Stuff & Bulkable {

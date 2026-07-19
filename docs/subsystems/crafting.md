@@ -207,10 +207,15 @@ deferred — not faked.
 
 ## The offer: `Menu` (`domain/lounge/Menu.ts`)
 
-A standalone `DetailedMixin(Thing)` object (a `Tangible` you `read`/
-`order` from), **not** a place capability and **not** a mixin. Holds
-`offeredRecipes: string[]` (recipeIds); `resolveOrder(keyword)` maps an
-order to an offered recipe (gates on the **offer**, not craftability).
+A standalone `PricedOfferMixin(DetailedMixin(Thing))` object (a `Tangible`
+you `read`/`order` from), **not** a place capability and **not** a mixin.
+Holds `offeredRecipes: string[]` (recipeIds); `resolveOrder(keyword)` maps
+an order to an offered recipe (gates on the **offer**, not craftability).
+Its `prices` map + `priceFor(recipeId)` are inherited from the shared
+**`PricedOfferMixin`** (`lib/commerce/`, Law 1: worth on the offer) — the
+same abstraction the general store's `Stock` composes, so the bar and the
+store price offers one way (see [retail.md](./retail.md); bar parity was
+the extraction's hard constraint).
 Its `getLong()` appends the offered list. Its presence is what **lights
 up the crafting verb surface** — `static commandContributions`
 contributes `menu`/`order`/`serve`/`mix` to the `environment` (and
