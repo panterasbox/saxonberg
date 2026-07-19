@@ -22,6 +22,7 @@ import { GlobbableApi, type ApplyQuantityResult } from '../../../api/glob';
 import { MessageApi } from '../../../api/message';
 import { MixinApi } from '../../../api/mixin';
 import { Mml } from '../../../api/mml';
+import { ConditionApi } from '../../../api/condition';
 import { Touch } from '../../../lib/perception/Touch';
 
 interface GetModel extends CommandModel {
@@ -271,15 +272,24 @@ export default class GetController extends CommandController<GetModel> {
   /**
    * The scalding-band burn hook applied to a bare-handed grab. Any
    * Thermal object whose surface scalds afflicts a `burn` trauma on the
-   * grabber — the rule itself lives in `Touch.contactBurn` (shared with
-   * `feel`), so this is just the `get`-side application + prose. No-op
+   * grabber via the `heat` channel — the scalding-band rule itself lives in
+   * `Touch.contactBurnEnergy` (shared with `feel`), so this is just the
+   * `get`-side application + prose. No-op
    * below the band or on a giver with no vitals.
    */
   private burnOnGrab(operand: Stuff, giver: Stuff): void {
     if (!MixinApi.isThermal(operand)) return;
-    const trauma = Touch.contactBurn(operand.getSurfaceTemperature().rawValue());
-    if (!trauma || !MixinApi.isVitals(giver)) return;
-    giver.afflict(trauma);
+    const energy = Touch.contactBurnEnergy(
+      operand.getSurfaceTemperature().rawValue(),
+    );
+    if (energy === null || !MixinApi.isVitals(giver)) return;
+    // Route through the `heat` materials-response channel so a glove / gauntlet
+    // insulates the hand before the residual burns tissue.
+    ConditionApi.inflict(giver, {
+      mechanism: 'heat',
+      site: 'body.hand',
+      energy,
+    });
     MessageApi.scene(giver)
       .topic('world.perception.inventory')
       .toSelf(Mml.compose`It scalds your hand!`)

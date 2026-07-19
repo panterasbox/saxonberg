@@ -131,6 +131,16 @@ export class BiomeApi {
   }
 
   /**
+   * The inhaled contaminant an atmosphere tag carries (`'carbonMonoxide'` for
+   * `smoke`), or `null` for a clean medium. The breathable≠safe axis — the
+   * fire driver's first consumer (`RespirationMixin` folds it into the
+   * breather's metabolism toxin burden). Unknown tags read clean (no throw).
+   */
+  public static contaminantOf(tag: string): string | null {
+    return logic().contaminantOf(tag);
+  }
+
+  /**
    * Cached accessor for the root universe biome at `/lib/biome/`.
    * Used by chain step 6 (universe terminal) and by `Altimeter`'s
    * sea-level reference. Throws when the root biome isn't loaded —

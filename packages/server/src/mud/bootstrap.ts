@@ -129,6 +129,15 @@ export const bootstrapManifest: BootstrapEntry[] = [
     templatePath: '/obj/ParcelRegistry',
     dependsOn: ['/obj/GroupRegistry'],
   },
+  // ChattelRegistry — movable-good title substrate singleton (the parcel
+  // twin, one cardinality down). Holds the `chattelId → owner` index over
+  // the `chattel` collection + the mint-a-fresh-id seam; `postRegister`
+  // rebuilds the index idempotently from the collection. Standalone (no
+  // dependency): ownership resolution reads only its own index + the
+  // author fallback via ProvenanceApi.
+  {
+    templatePath: '/obj/ChattelRegistry',
+  },
   // OfficeRegistry — government-office substrate singleton (the seats of
   // government, distinct from groups). `postRegister` warms only the
   // founder credential config (FOUNDER_GOOGLE_EMAIL / FOUNDER_TWITCH_HANDLE)

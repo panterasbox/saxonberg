@@ -1,0 +1,21 @@
+# The smithy — the FORGE demonstrator (the crafting substrate proven, no
+# recipe). A bellows-fed forge, a stone floor to catch the melt, and a cold
+# iron ingot. Light the forge (`ignite forge`), work the bellows, and the
+# ingot heats past iron's 1811 K melting point and runs to a molten pool on
+# the floor — a pourable liquid. Without the bellows it never gets there.
+class: /lib/location/CartesianLocation
+hydratorClass: /lib/persistence/PersistentHydrator
+data:
+  shortDescription: a smithy
+  primaryKeyword: smithy
+  longDescription: |
+    A soot-blackened smithy, an anvil squat on its stump and a great stone forge banked along the wall. A leather bellows hangs ready at its side.
+  coords:
+    x: 1
+    y: 0
+    z: 0
+  adornments:
+    - /domain/hearthworks/forge-floor
+  populates:
+    - /obj/Forge
+    - /domain/hearthworks/iron-ingot

@@ -101,6 +101,19 @@ export const Mixins = {
   // response). Composed by armor (resist profile) and weapons (delivery).
   Constructed: 'ConstructedMixin',
   Branded: 'BrandedMixin',
+  // Chattel — a movable good's durable per-instance identity, the key its
+  // unspoofable ownership is stamped against (the parcel-title twin).
+  // Composed at the Thing tier; refused on fungible stacks (Globbable).
+  Chattel: 'ChattelMixin',
+  // Commerce — the shared authored price-list (Law 1: worth on the offer,
+  // not the good). Composed by the bar's Menu and the store's Stock.
+  PricedOffer: 'PricedOfferMixin',
+  // Residency — the game-time reset (repop) sweep's consumer marker: an
+  // object that restores itself on the sweep (the shop's Stock tops up).
+  Resettable: 'ResettableMixin',
+  // Consignment — the store's brokerage shelf: holds player-owned goods in
+  // custody (ownership stays with the consignor) + the listing registry.
+  ConsignmentShelf: 'ConsignmentShelfMixin',
   Workspace: 'WorkspaceMixin',
   Author: 'AuthorMixin',
   Perceiver: 'PerceiverMixin',
@@ -181,6 +194,19 @@ export const Mixins = {
   // baton, the deferred wall socket / Lightning bolt. Read by the
   // conduction walk (ElectricityApi) to impose a potential difference.
   Energized: 'EnergizedMixin',
+  // Fire — "I can burn": flammable matter carrying a fuel reserve + a
+  // Burning active state, driven past its (wetness-adjusted) ignition point
+  // by the combustion driver (FireApi). Reads its material's
+  // autoignitionTemperature / heatOfCombustion.
+  Combustible: 'CombustibleMixin',
+  // Phase change — "I can melt": a solid whose material melts past its
+  // meltingPoint (a latent-heat plateau), flowing to a Bulkable liquid.
+  // Driven by heat (ThermalApi.reconcilePhase), not fire-specific.
+  Meltable: 'MeltableMixin',
+  // Furnace — a Combustible-fuelled sustained heat source (forge/kiln/oven/
+  // campfire): pinned hot while lit + fuelled, bellows-boosted, heats the
+  // Meltables in its scope. Generalizes the Campfire pin.
+  Furnace: 'FurnaceMixin',
 } as const;
 
 /**

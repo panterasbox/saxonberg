@@ -307,6 +307,138 @@ export default class Material extends SingletonMixin(
     this._waterAbsorptionCapacity = value;
   }
 
+  // ---------- Fire / phase-change — real thermal properties ----------
+  // Each is a real, tabulated `Quantity` (strict on unit, `0`-default
+  // until authored — the `electricalConductivity`/`hardness` precedent).
+  // `autoignitionTemperature` + `heatOfCombustion` feed the combustion
+  // driver (`FireApi`); `meltingPoint`/`latentHeatOfFusion` +
+  // `boilingPoint`/`latentHeatOfVaporization` feed the phase-change layer
+  // (`ThermalApi.reconcilePhase`). Zero means "does not participate" (an
+  // unauthored material never ignites, never melts).
+
+  /**
+   * Autoignition temperature (`K`) — the temperature at which the material
+   * spontaneously ignites in air with no external spark. Paper ≈ 506 K,
+   * wood ≈ 570 K. The combustion driver reads it: an object whose
+   * temperature crosses this point (raised by the latent heat of any water
+   * it holds) catches fire. `0` = non-flammable (never crosses).
+   */
+  private _autoignitionTemperature: Quantity<'K'> = Quantity.of(0, 'K');
+
+  protected get autoignitionTemperature(): Quantity<'K'> {
+    return this._autoignitionTemperature;
+  }
+  protected set autoignitionTemperature(value: Quantity<'K'>) {
+    if (!(value instanceof Quantity) || value.unit !== 'K') {
+      throw new TypeError(
+        `Material.autoignitionTemperature must be a Quantity<'K'>; got ${value instanceof Quantity ? `Quantity<'${value.unit}'>` : typeof value}`
+      );
+    }
+    this._autoignitionTemperature = value;
+  }
+
+  /**
+   * Heat of combustion (`MJ/kg`) — the energy released burning a kilogram
+   * of the material (wood ≈ 16, charcoal ≈ 30, wax ≈ 42). The combustion
+   * driver derives the fuel `Reserve`'s energy from it: burning a unit of
+   * fuel deposits `heatOfCombustion × mass-burnt` joules back into the fire
+   * and its surroundings. `0` = no fuel value.
+   */
+  private _heatOfCombustion: Quantity<'MJ/kg'> = Quantity.of(0, 'MJ/kg');
+
+  protected get heatOfCombustion(): Quantity<'MJ/kg'> {
+    return this._heatOfCombustion;
+  }
+  protected set heatOfCombustion(value: Quantity<'MJ/kg'>) {
+    if (!(value instanceof Quantity) || value.unit !== 'MJ/kg') {
+      throw new TypeError(
+        `Material.heatOfCombustion must be a Quantity<'MJ/kg'>; got ${value instanceof Quantity ? `Quantity<'${value.unit}'>` : typeof value}`
+      );
+    }
+    this._heatOfCombustion = value;
+  }
+
+  /**
+   * Melting point (`K`) — the solid↔liquid transition temperature (iron
+   * 1811, wax ≈ 330, water 273). `ThermalApi.reconcilePhase` holds
+   * temperature at this plateau while `latentHeatOfFusion` is absorbed,
+   * then flows the mass to a `Bulkable` liquid. `0` = does not melt in the
+   * modelled range.
+   */
+  private _meltingPoint: Quantity<'K'> = Quantity.of(0, 'K');
+
+  protected get meltingPoint(): Quantity<'K'> {
+    return this._meltingPoint;
+  }
+  protected set meltingPoint(value: Quantity<'K'>) {
+    if (!(value instanceof Quantity) || value.unit !== 'K') {
+      throw new TypeError(
+        `Material.meltingPoint must be a Quantity<'K'>; got ${value instanceof Quantity ? `Quantity<'${value.unit}'>` : typeof value}`
+      );
+    }
+    this._meltingPoint = value;
+  }
+
+  /**
+   * Latent heat of fusion (`J/kg`) — energy per kilogram to melt the
+   * material at its `meltingPoint` (water 334000, iron ≈ 247000, wax ≈
+   * 200000). The reserve-clamp plateau size: temperature holds at the
+   * melting point until this much heat per kilogram has been absorbed. `0`
+   * = an instantaneous transition (no plateau).
+   */
+  private _latentHeatOfFusion: Quantity<'J/kg'> = Quantity.of(0, 'J/kg');
+
+  protected get latentHeatOfFusion(): Quantity<'J/kg'> {
+    return this._latentHeatOfFusion;
+  }
+  protected set latentHeatOfFusion(value: Quantity<'J/kg'>) {
+    if (!(value instanceof Quantity) || value.unit !== 'J/kg') {
+      throw new TypeError(
+        `Material.latentHeatOfFusion must be a Quantity<'J/kg'>; got ${value instanceof Quantity ? `Quantity<'${value.unit}'>` : typeof value}`
+      );
+    }
+    this._latentHeatOfFusion = value;
+  }
+
+  /**
+   * Boiling point (`K`) — the liquid↔gas transition temperature (water
+   * 373, iron ≈ 3134). `ThermalApi.reconcilePhase` boils a liquid past it
+   * to a gas emission (steam). `0` = does not boil in the modelled range.
+   */
+  private _boilingPoint: Quantity<'K'> = Quantity.of(0, 'K');
+
+  protected get boilingPoint(): Quantity<'K'> {
+    return this._boilingPoint;
+  }
+  protected set boilingPoint(value: Quantity<'K'>) {
+    if (!(value instanceof Quantity) || value.unit !== 'K') {
+      throw new TypeError(
+        `Material.boilingPoint must be a Quantity<'K'>; got ${value instanceof Quantity ? `Quantity<'${value.unit}'>` : typeof value}`
+      );
+    }
+    this._boilingPoint = value;
+  }
+
+  /**
+   * Latent heat of vaporization (`J/kg`) — energy per kilogram to boil the
+   * material at its `boilingPoint` (water 2260000). The reserve-clamp
+   * plateau for the liquid→gas transition, and the water term ignition must
+   * out-heat to dry a wet fuel. `0` = an instantaneous transition.
+   */
+  private _latentHeatOfVaporization: Quantity<'J/kg'> = Quantity.of(0, 'J/kg');
+
+  protected get latentHeatOfVaporization(): Quantity<'J/kg'> {
+    return this._latentHeatOfVaporization;
+  }
+  protected set latentHeatOfVaporization(value: Quantity<'J/kg'>) {
+    if (!(value instanceof Quantity) || value.unit !== 'J/kg') {
+      throw new TypeError(
+        `Material.latentHeatOfVaporization must be a Quantity<'J/kg'>; got ${value instanceof Quantity ? `Quantity<'${value.unit}'>` : typeof value}`
+      );
+    }
+    this._latentHeatOfVaporization = value;
+  }
+
   /** Whether this material can be eaten. v1 has no consumer. */
   protected edibility: boolean = false;
 
@@ -412,6 +544,12 @@ export default class Material extends SingletonMixin(
     'toughness',
     'electricalConductivity',
     'waterAbsorptionCapacity',
+    'autoignitionTemperature',
+    'heatOfCombustion',
+    'meltingPoint',
+    'latentHeatOfFusion',
+    'boilingPoint',
+    'latentHeatOfVaporization',
     'edibility',
     'nutrients',
     'nutrientAmounts',
@@ -438,6 +576,12 @@ export default class Material extends SingletonMixin(
     toughness: QuantityMarshaller.pathFor('MJ/m³'),
     electricalConductivity: QuantityMarshaller.pathFor('S/m'),
     waterAbsorptionCapacity: QuantityMarshaller.pathFor('%'),
+    autoignitionTemperature: QuantityMarshaller.pathFor('K'),
+    heatOfCombustion: QuantityMarshaller.pathFor('MJ/kg'),
+    meltingPoint: QuantityMarshaller.pathFor('K'),
+    latentHeatOfFusion: QuantityMarshaller.pathFor('J/kg'),
+    boilingPoint: QuantityMarshaller.pathFor('K'),
+    latentHeatOfVaporization: QuantityMarshaller.pathFor('J/kg'),
     molarMass: QuantityMarshaller.pathFor('g/mol'),
   };
 
@@ -575,6 +719,60 @@ export default class Material extends SingletonMixin(
   /** Set water absorption capacity. Strict on `Quantity<'%'>`. */
   public setWaterAbsorptionCapacity(value: Quantity<'%'>): void {
     this.waterAbsorptionCapacity = value;
+  }
+
+  /** Read autoignition temperature (`Quantity<'K'>`; `0` = non-flammable). */
+  public getAutoignitionTemperature(): Quantity<'K'> {
+    return this._autoignitionTemperature;
+  }
+  /** Set autoignition temperature. Strict on `Quantity<'K'>`. */
+  public setAutoignitionTemperature(value: Quantity<'K'>): void {
+    this.autoignitionTemperature = value;
+  }
+
+  /** Read heat of combustion (`Quantity<'MJ/kg'>`; `0` = no fuel value). */
+  public getHeatOfCombustion(): Quantity<'MJ/kg'> {
+    return this._heatOfCombustion;
+  }
+  /** Set heat of combustion. Strict on `Quantity<'MJ/kg'>`. */
+  public setHeatOfCombustion(value: Quantity<'MJ/kg'>): void {
+    this.heatOfCombustion = value;
+  }
+
+  /** Read melting point (`Quantity<'K'>`; `0` = does not melt). */
+  public getMeltingPoint(): Quantity<'K'> {
+    return this._meltingPoint;
+  }
+  /** Set melting point. Strict on `Quantity<'K'>`. */
+  public setMeltingPoint(value: Quantity<'K'>): void {
+    this.meltingPoint = value;
+  }
+
+  /** Read latent heat of fusion (`Quantity<'J/kg'>`; the melt plateau). */
+  public getLatentHeatOfFusion(): Quantity<'J/kg'> {
+    return this._latentHeatOfFusion;
+  }
+  /** Set latent heat of fusion. Strict on `Quantity<'J/kg'>`. */
+  public setLatentHeatOfFusion(value: Quantity<'J/kg'>): void {
+    this.latentHeatOfFusion = value;
+  }
+
+  /** Read boiling point (`Quantity<'K'>`; `0` = does not boil). */
+  public getBoilingPoint(): Quantity<'K'> {
+    return this._boilingPoint;
+  }
+  /** Set boiling point. Strict on `Quantity<'K'>`. */
+  public setBoilingPoint(value: Quantity<'K'>): void {
+    this.boilingPoint = value;
+  }
+
+  /** Read latent heat of vaporization (`Quantity<'J/kg'>`; the boil plateau). */
+  public getLatentHeatOfVaporization(): Quantity<'J/kg'> {
+    return this._latentHeatOfVaporization;
+  }
+  /** Set latent heat of vaporization. Strict on `Quantity<'J/kg'>`. */
+  public setLatentHeatOfVaporization(value: Quantity<'J/kg'>): void {
+    this.latentHeatOfVaporization = value;
   }
 
   public getTags(): readonly string[] { return this.tags; }

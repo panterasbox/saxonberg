@@ -1,0 +1,24 @@
+# The sealed cellar — the CO-death / ventilation lesson. A `SealedCellar` with
+# a finite `air` Reserve. A fire lit here starves as it eats the air: it burns
+# incomplete (smoke + carbon monoxide), the medium turns un-breathable, and it
+# self-smothers — an enclosed fire kills by CO, not flame.
+class: /domain/hearthworks/SealedCellar
+hydratorClass: /lib/persistence/PersistentHydrator
+data:
+  shortDescription: a sealed cellar
+  primaryKeyword: cellar
+  longDescription: |
+    A cramped stone cellar behind a heavy, ill-fitting door. The air is close and still; there is no window, no flue.
+  coords:
+    x: 2
+    y: 0
+    z: 0
+  reserves:
+    air:
+      capacityValue: 100
+      currentValue: 100
+      unit: "%"
+      theme: atmosphere
+      floorEffect: null
+  populates:
+    - /domain/hearthworks/dry-log

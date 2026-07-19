@@ -267,7 +267,10 @@ settings:
   # it ships in observe mode (logs what it WOULD cull, destructs nothing)
   # so the go-live memory profile can be measured before enforcement —
   # flip mode to `enforce` (re-read each sweep, no restart) to cull for
-  # real. The deferred game-time reset sweep will add `residency.reset.*`.
+  # real. The game-time reset (repop) sweep (`residency.reset.*`) is the
+  # eviction sibling — restorative-of-self over ResettableMixin, on the
+  # game clock; it ships in observe mode too (flip to enforce to repop for
+  # real). Only the general store's stock is wired today.
   # See docs/subsystems/residency.md.
   - key: residency.eviction.mode
     value: observe
@@ -275,6 +278,19 @@ settings:
     value: "60000"
   - key: residency.eviction.idleThresholdMs
     value: "1800000"
+  - key: residency.reset.mode
+    value: enforce
+  - key: residency.reset.intervalS
+    value: "3600"
+
+  # Retail — the general store. The per-consignor listing cap guards the
+  # shared consignment shelf (anti-grief, the withdrawal-quota sibling); the
+  # commission rate is the store's cut of a consignment sale (the remainder
+  # settles to the consignor). See docs/subsystems/retail.md.
+  - key: retail.consignment.listingCap
+    value: "5"
+  - key: retail.consignment.commissionRate
+    value: "0.15"
 
   # Materials-response — the response function's magnitudes (the "shape"
   # lives in code on `Construction`; these are the coefficients each
@@ -330,6 +346,15 @@ settings:
     value: "0.5"
   - key: response.band.biteMax
     value: "1.5"
+  # Heat channel (fire) — a covering attenuates heat by insulation:
+  # leather/padding turns a burn, plate conducts it. See docs/subsystems/
+  # materials-response.md + fire.md.
+  - key: response.heat.baseAttenuation
+    value: "0.9"
+  - key: response.heat.insulationRefConductivity
+    value: "2.0"
+  - key: response.heat.depthFactor
+    value: "0.1"
   # Electricity (the shock channel + conduction) — see
   # docs/subsystems/electricity.md. Real-world-grounded magnitudes: the
   # multimeter should read what coursework predicts. SHAPE (I=V/R, the
@@ -672,3 +697,29 @@ settings:
   # Thermal (Wave 2 wet coupling) — a wet body loses heat faster.
   - key: thermal.wetHeatLossFactor
     value: "1.5"
+  # Fire (combustion driver) — see docs/subsystems/fire.md. SHAPE (the fire
+  # triangle, the energy balance) is code; these are the magnitudes.
+  - key: fire.burnRatePerMin
+    value: "0.5"
+  - key: fire.flameTemperatureK
+    value: "1000"
+  - key: fire.ignition.waterLatentHeatJPerKg
+    value: "2260000"
+  - key: fire.ignition.maxManualDryingK
+    value: "150"
+  - key: fire.tickIntervalSeconds
+    value: "30"
+  - key: fire.radiantJoulesPerTick
+    value: "700000"
+  - key: fire.crossBoundaryFraction
+    value: "0.4"
+  - key: fire.flameTemperatureIncompleteK
+    value: "750"
+  - key: fire.air.consumePerTick
+    value: "8"
+  - key: fire.air.replenishPerTick
+    value: "30"
+  - key: fire.air.completeThresholdPct
+    value: "40"
+  - key: respiration.contaminantBurdenPerBreath
+    value: "5"

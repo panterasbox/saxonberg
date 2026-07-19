@@ -41,7 +41,7 @@ describe("AppSettingsSeeder", () => {
     pm.setFindResult([]);
     const added = await AppSettingsSeeder.run();
 
-    expect(added).toBe(201); // 146 base + 7 Attendant+Goodkin + 19 storms-and-wetness + 17 concealment/detection/hazard/movement + 12 stealth-deployables
+    expect(added).toBe(220); // 146 base + 7 Attendant+Goodkin + 19 storms-and-wetness + 17 concealment/detection/hazard/movement + 12 stealth-deployables + 2 residency reset + 2 retail consignment + 15 fire (3 heat-channel + 4 combustion + 3 tick/spread + 5 chemistry)
     expect(pm.saves).toHaveLength(1);
     expect(pm.saves[0]!.collection).toBe("app_settings");
     const values = savedValues(pm);
@@ -293,6 +293,25 @@ describe("AppSettingsSeeder", () => {
           [AppSettingKeys.movementConcealmentWalk]: "1",
           [AppSettingKeys.movementConcealmentRun]: "99",
           [AppSettingKeys.combatAmbushPoisePenalty]: "0.85",
+          [AppSettingKeys.residencyResetMode]: "enforce",
+          [AppSettingKeys.residencyResetIntervalS]: "3600",
+          [AppSettingKeys.retailConsignmentListingCap]: "5",
+          [AppSettingKeys.retailConsignmentCommissionRate]: "0.15",
+          [AppSettingKeys.responseHeatBaseAttenuation]: "0.9",
+          [AppSettingKeys.responseHeatInsulationRefConductivity]: "2.0",
+          [AppSettingKeys.responseHeatDepthFactor]: "0.1",
+          [AppSettingKeys.fireBurnRatePerMin]: "0.5",
+          [AppSettingKeys.fireFlameTemperatureK]: "1000",
+          [AppSettingKeys.fireIgnitionWaterLatentHeatJPerKg]: "2260000",
+          [AppSettingKeys.fireIgnitionMaxManualDryingK]: "150",
+          [AppSettingKeys.fireTickIntervalSeconds]: "30",
+          [AppSettingKeys.fireRadiantJoulesPerTick]: "700000",
+          [AppSettingKeys.fireCrossBoundaryFraction]: "0.4",
+          [AppSettingKeys.fireFlameTemperatureIncompleteK]: "750",
+          [AppSettingKeys.fireAirConsumePerTick]: "8",
+          [AppSettingKeys.fireAirReplenishPerTick]: "30",
+          [AppSettingKeys.fireAirCompleteThresholdPct]: "40",
+          [AppSettingKeys.respirationContaminantBurdenPerBreath]: "5",
         },
       },
     ]);
@@ -332,7 +351,10 @@ describe("AppSettingsSeeder", () => {
     // + 19 storms-and-wetness (8 wetness + 7 storm + 2 weather + 1 thermal + 1 absorptionCap)
     // + 17 concealment/detection/hazard/movement (5+2+5+3+2, Phases 1-5)
     // + 12 stealth-deployables (8 stealth.hide + 3 movement.concealment + 1 combat.ambush)
-    expect(added).toBe(200);
+    // + 2 residency reset (mode + intervalS)
+    // + 2 retail consignment (listingCap + commissionRate)
+    // + 15 fire (3 heat-channel + 4 combustion + 3 tick/spread + 5 chemistry).
+    expect(added).toBe(219); // 220 total − 1 operator-preset key
     expect(pm.saves).toHaveLength(1);
     const values = savedValues(pm);
     // operator value preserved, missing keys seeded

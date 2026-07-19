@@ -10,11 +10,13 @@
 //     choreography. A garbage-culler for abandoned world state, NOT a
 //     swapfile — culled objects are gone; a later reference re-clones
 //     them fresh from template.
-//   - Reset (DEFERRED — same shape, same home): a game-time repop sweep
-//     over `ResettableMixin`, restorative-of-self. When built it installs
-//     a sibling `installResetSweep()` on the game-time clock and reads
-//     `residency.reset.*`; the `runResetSweep` body mirrors the eviction
-//     body below.
+//   - Reset (SHIPPED): a game-time repop sweep over `ResettableMixin`,
+//     restorative-of-self (the eviction sibling). Installs
+//     `installResetSweep()` on the game-time clock (`WorldClockApi.every`
+//     — it freezes with a paused world) and reads `residency.reset.*`; the
+//     `runResetSweep` body mirrors the eviction body, but the predicate is
+//     presence-SKIP + object-override (a shop restocks while browsed), not
+//     eviction's idle + `canEvict`. Only the shop's Stock is wired today.
 //
 // See docs/subsystems/residency.md.
 
@@ -22,8 +24,10 @@ import { ApiLogic } from '../../lib/stuff/ApiLogic';
 import { StuffApi } from '../../api/stuff';
 import { ProxyApi } from '../../api/proxy';
 import { ScheduleApi, type ScheduleHandle } from '../../api/schedule';
+import { WorldClockApi, type ClockHandle } from '../../api/worldclock';
 import { AppApi } from '../../api/app';
 import { AppSettingKeys } from '../../lib/config/AppSettings';
+import { Quantity } from '../../lib/quantity';
 import { CallSecurity } from '../../lib/security/decorators';
 import { SecurityPolicies } from '../../lib/security/SecurityPolicies';
 import { ConnectionApi } from '../../api/connection';
@@ -32,6 +36,7 @@ import { PersistableApi } from '../../api/persistable';
 import type { Stuff } from '../../lib/stuff/Stuff';
 import type { Container } from '../../lib/spatial/Container';
 import type { Containable } from '../../lib/spatial/Containable';
+import type { Resettable } from '../../lib/residency/Resettable';
 
 const ResidencyApiCallers = SecurityPolicies.FromModule(
   '/api/residency#ResidencyApi',
@@ -40,6 +45,7 @@ const ResidencyApiCallers = SecurityPolicies.FromModule(
 /** Fallbacks used when AppSettings isn't warmed yet (tests / pre-boot). */
 const DEFAULT_EVICTION_INTERVAL_MS = 60_000;
 const DEFAULT_IDLE_MS = 1_800_000;
+const DEFAULT_RESET_INTERVAL_S = 3_600; // one game-hour
 const OBSERVE_SAMPLE_CAP = 20;
 
 function readInt(key: string, fallback: number): number {
@@ -62,6 +68,16 @@ function readEvictionMode(): 'observe' | 'enforce' {
   }
 }
 
+function readResetMode(): 'observe' | 'enforce' {
+  try {
+    return AppApi.setting(AppSettingKeys.residencyResetMode) === 'enforce'
+      ? 'enforce'
+      : 'observe';
+  } catch {
+    return 'observe'; // fail safe: never repop when settings are unavailable
+  }
+}
+
 /**
  * Presence walk (the `WeatherLogic.runBoundaryFanout` pattern). A
  * connected player *in* a room is the strongest form of touch, so before
@@ -70,8 +86,12 @@ function readEvictionMode(): 'observe' | 'enforce' {
  * player is himself deep-contents of his room — each player's inventory).
  * This keeps a silently-occupied room warm even when nobody's dispatching
  * methods. It is a touch *source*, not a pin: it just bumps `lastTouched`.
+ *
+ * Returns the set of present-room `stuffId`s — the eviction sweep ignores
+ * it (calls for the touch side-effect), the reset sweep reads it to skip
+ * repop-ing a room a player occupies (`isInPresentRoom`).
  */
-function presenceWalkImpl(): void {
+function presenceWalkImpl(): Set<string> {
   const visited = new Set<string>();
   for (const interactive of ConnectionApi.getAllInteractives()) {
     const holder = interactive.getHolder();
@@ -84,6 +104,80 @@ function presenceWalkImpl(): void {
     for (const item of (room as Stuff & Container).getDeepContents()) {
       ProxyApi.unwrap(item).touch();
     }
+  }
+  return visited;
+}
+
+/** Whether `raw` sits (at any depth) inside one of the present rooms. */
+function isInPresentRoom(raw: Stuff, presentRooms: Set<string>): boolean {
+  if (presentRooms.size === 0) return false;
+  let node: Stuff | null = MixinApi.isContainable(raw)
+    ? (raw as Stuff & Containable).getContainer()
+    : null;
+  while (node !== null) {
+    if (presentRooms.has(node.stuffId)) return true;
+    node = MixinApi.isContainable(node)
+      ? (node as Stuff & Containable).getContainer()
+      : null;
+  }
+  return false;
+}
+
+/**
+ * The reset sweep — the game-time repop scan, the eviction sibling. Visits
+ * every `ResettableMixin` object and lets it restore itself (`reset`). The
+ * predicate is presence-SKIP + object-override: an object in a room a
+ * player occupies is skipped *unless* it opts in via `resetsWhilePresent()`
+ * (a shop restocks while browsed). Runs on the game clock, so it freezes
+ * with a paused world; mode (`residency.reset.mode`) is re-read each sweep.
+ */
+async function runResetSweep(): Promise<void> {
+  let presentRooms: Set<string>;
+  try {
+    presentRooms = presenceWalkImpl();
+  } catch (err) {
+    console.warn('[residency] presence walk failed; resetting anyway', err);
+    presentRooms = new Set();
+  }
+
+  const mode = readResetMode();
+  let candidates = 0;
+  let reset = 0;
+  const sample: string[] = [];
+
+  for (const obj of StuffApi.getAllObjects()) {
+    const raw = ProxyApi.unwrap(obj);
+    if (!MixinApi.isResettable(raw)) continue;
+    // Ask/act on the proxy so `this`-relative framework state resolves.
+    const r = obj as Stuff & Resettable;
+    // Presence skip (respect a watched room) unless the object opts in.
+    if (isInPresentRoom(raw, presentRooms) && !r.resetsWhilePresent()) {
+      continue;
+    }
+    candidates++;
+    if (mode === 'enforce') {
+      try {
+        await r.reset();
+        reset++;
+      } catch (err) {
+        console.warn(`[residency] reset failed for ${raw.stuffId}`, err);
+      }
+    } else if (sample.length < OBSERVE_SAMPLE_CAP) {
+      sample.push(raw.getTemplatePath() || raw.stuffId);
+    }
+  }
+
+  if (mode === 'observe') {
+    if (candidates > 0) {
+      console.info(
+        `[residency] reset observe: ${candidates} resettable candidate(s); ` +
+          `sample: ${sample.join(', ')}`,
+      );
+    }
+  } else if (candidates > 0) {
+    console.info(
+      `[residency] reset enforce: reset ${reset}/${candidates} candidate(s)`,
+    );
   }
 }
 
@@ -209,5 +303,34 @@ export class ResidencyLogic extends ApiLogic {
   @CallSecurity(ResidencyApiCallers)
   public async evictNow(): Promise<void> {
     await runEvictionSweep();
+  }
+
+  /** The recurring reset-sweep handle (game-time) — retained so re-install no-ops. */
+  private resetHandle: ClockHandle | null = null;
+
+  /** Install the game-time reset (repop) sweep (idempotent). */
+  @CallSecurity(ResidencyApiCallers)
+  public installResetSweep(): void {
+    if (this.resetHandle) return;
+    this.resetHandle = WorldClockApi.every(
+      Quantity.of(
+        readInt(
+          AppSettingKeys.residencyResetIntervalS,
+          DEFAULT_RESET_INTERVAL_S,
+        ),
+        's',
+      ),
+      () => {
+        void runResetSweep().catch((err) =>
+          console.warn('[residency] reset sweep failed', err),
+        );
+      },
+    );
+  }
+
+  /** Run one reset sweep (test / manual seam). */
+  @CallSecurity(ResidencyApiCallers)
+  public async resetNow(): Promise<void> {
+    await runResetSweep();
   }
 }
