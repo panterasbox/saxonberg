@@ -32,6 +32,10 @@ data:
       destination: /domain/eternal/university-avenue/crossing
     west:
       destination: /domain/terminus/counting-houses/banking-hall
+    # NORTH into the general store (its own zone; cross-zone cardinal exit,
+    # both sides explicit — the shop floor declares SOUTH back here).
+    north:
+      destination: /domain/terminus/general-store/shop-floor
   details:
     hollis:
       keywords: [hollis, jingle, free]

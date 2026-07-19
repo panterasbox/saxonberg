@@ -1,0 +1,14 @@
+verbs: [buy, purchase]
+controller: /obj/command/retail/BuyController
+description: "Buy a good from a store's shelves"
+help: |
+  Buy a good off a store counter — `buy torch`. The clerk rings it up;
+  you pay by card or in coin, and the good is yours (owned, not just
+  carried). Consigned goods on the shelf are bought the same way.
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresConscious
+args:
+  - name: thing
+    type: string
+    required: true

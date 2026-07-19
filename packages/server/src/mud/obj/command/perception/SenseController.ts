@@ -154,6 +154,9 @@ export default class SenseController extends CommandController<SenseModel> {
         if (item.stuffId === actor.stuffId) return false;
         if (MixinApi.isAdornment(item)) return false;
         if (!MixinApi.isVisible(item)) return false;
+        // Honest fog: a concealed, undiscovered/imperceptible thing is
+        // absent from the actor's world.
+        if (!PerceptionApi.perceives(actor, item)) return false;
         return true;
       });
 
@@ -186,7 +189,7 @@ export default class SenseController extends CommandController<SenseModel> {
       body = Mml.compose`${body}\n${Mml.fromMarkup(longText)}`;
     }
     if (hasExits) {
-      const exitsLine = this.formatExits(location.getObviousExits());
+      const exitsLine = this.formatExits(location.obviousExitsFor(actor));
       if (exitsLine) {
         body = Mml.compose`${body}\n${exitsLine}`;
       }

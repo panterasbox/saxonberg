@@ -16,7 +16,7 @@
  * fresh keyway (a lock *identity*, not a credential) lives here on `Lock`.
  */
 
-import { randomUUID } from "crypto";
+import { SecurityApi } from "../../api/security";
 
 /** The lock technologies. A key of one technology can't work another's lock. */
 export type LockType = "pin-tumbler" | "keycard";
@@ -34,7 +34,7 @@ export class Lock {
 
   /** Mint a fresh, opaque keyway token (a re-key is simply a new keyway). */
   static mintKeyway(): string {
-    return `kw-${randomUUID()}`;
+    return `kw-${SecurityApi.uuid()}`;
   }
 
   /**

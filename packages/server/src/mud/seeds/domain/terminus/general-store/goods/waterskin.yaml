@@ -1,0 +1,14 @@
+# A leather waterskin — a real fluid holder. A Receptacle (BulkableMixin):
+# sold empty; fill it at a source and it carries the water (its contents
+# have a real, drifting temperature), `drink` from it when the passage runs
+# dry. Capacity ~2 L. A discrete Thing (chattel-stampable, never Globbable).
+class: /obj/Receptacle
+hydratorClass: /lib/persistence/PersistentHydrator
+data:
+  shortDescription: a leather waterskin
+  primaryKeyword: waterskin
+  keywords: [waterskin, skin, water, flask, bottle]
+  longDescription: |
+    A stitched leather skin with a horn stopper, empty and waiting to be filled. Sling it over a shoulder and forget it's there until the passage runs dry and the dust gets in your throat — then it's the most valuable thing you own.
+  interiorBulk: true
+  interiorCapacity: 2.0

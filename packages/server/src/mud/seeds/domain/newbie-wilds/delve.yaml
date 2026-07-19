@@ -1,0 +1,22 @@
+# The Sunken Delve — the concealment/traps demonstrator, a sub-area of the
+# newbie-wilds locality (its own sub-zone under `/domain/newbie-wilds/`; the
+# trap OBJECTS are generics in `/obj/traps/`, cloned in via `populates`). A
+# small, self-contained ruin (vestibule -> trapped corridor -> vault) hung off the
+# newbie-wilds treeline by a SINGLE ordinary ground exit (the exact
+# treeline/hollow precedent — the hollow already hangs off the treeline via
+# `west`; this hangs off it via `north`). Chosen host because NOTHING stands
+# the treeline up (it is reached by the char-gen spawn override, not a
+# cascade), so an added exit pulls this sphere into NO standup/fast-travel
+# test — the three ways GlassAlley broke are all avoided by construction:
+#   - no cross-domain standup cascade (the treeline is never booted by a test);
+#   - no exit-count assertion on the host (the treeline asserts none);
+#   - no FastTravelMixin anywhere here, and no TPA manifest entry.
+#
+# Its own generic classes only (CartesianZone / CartesianLocation / Trap /
+# Thing) — zero new code; every trap "kind" is a Trap field combination.
+# See docs/subsystems/concealment.md.
+class: /lib/location/CartesianZone
+hydratorClass: /lib/persistence/PersistentHydrator
+data:
+  name: The Sunken Delve
+  cellSize: 3.0

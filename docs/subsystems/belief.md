@@ -39,7 +39,7 @@ NPC carries it). Pure CRUD; all per-realm intelligence lives in consumers.
 
 - Storage: `Map<string, BeliefRecord>` keyed `` `${realm}:${referent}` ``.
 - Realms are string conventions, not a registry: `RECOGNITION`,
-  `IDENTIFICATION`, `REGARD` exported consts.
+  `IDENTIFICATION`, `REGARD`, `DISCOVERY` exported consts.
 - **Keyed on `referent.getTemplatePath()`**, never `stuffId` — `stuffId`
   is reboot-ephemeral and would imply the viewer "knows which runtime
   Stuff"; `templatePath` is durable and the engine always has it. The
@@ -269,6 +269,33 @@ polity Sybil keystone.
   susceptibility, decay tuning, and verbs all project *from* this scalar
   later. The substrate ships designed-for-them but ships none of them.
 
+## Discovery — the world-fact realm, the fourth realm (`DISCOVERY`)
+
+A **fourth realm** (`DISCOVERY`), the belief store generalized from
+*identity* memory to **world-facts** — "viewer V has found feature F." It
+is the place-memory that belief.md long named as a future realm, shipped in
+its **world-fact cut** (a found *feature* — a secret door, a hidden cache, a
+trap — not room familiarity, still distinct). Added by the concealment build
+(see [concealment.md](./concealment.md)):
+
+- Payload is a bare `found?: boolean` flag (flag-by-default — no value
+  divergence, unlike identification's `knownAs`).
+- Keyed on the concealed thing's **discovery key** — a `Concealable`'s
+  `getDiscoveryKey()`, defaulting to its `templatePath`, but an `Exit`
+  (which carries none of its own) keys on a synthetic
+  `` `${source.path}#exit:<dir>` `` handle so a secret door stays
+  discovered across re-clones.
+- Written only through `PerceptionApi.recordDiscovery` (`know(DISCOVERY,
+  referent, { found: true })`) and read through `hasDiscovered`
+  (`recall(...).payload.found`) — the presence face owns the sink, not
+  `RecognitionApi` (the identity face).
+- **GC-exempt.** The lazy liveness-GC that reaps records whose referent is a
+  dead Stuff is bypassed for `DISCOVERY` — its referent can be an `Exit`'s
+  synthetic key with no live Stuff to resolve, so reaping it would forget a
+  valid discovery. A found-flag is a cheap, durable, per-viewer world fact.
+- Per-viewer isolation, no-inherit, and persistence (`beliefs` collection)
+  are inherited from the store unchanged.
+
 ## Persistence — lazily-hydrated working set (`api/belief.ts`)
 
 `BeliefStoreApi` over `BeliefDocument extends Document` — a dedicated
@@ -315,8 +342,10 @@ holds; sequential single-viewer commands keep the race benign).
   real Material-substrate chemistry), **partial identification**,
   experience-/social-ID verbs, **misidentification** (belief-vs-truth,
   cursed items, illusion content).
-- **Place-memory** (a future realm, alongside the shipped recognition /
-  identification / regard trio), social-graph crowd verbosity,
+- **Place-memory** — the *feature-discovery* cut shipped as the `DISCOVERY`
+  realm (above); *room-familiarity* place-memory is still a future realm,
+  alongside the shipped recognition / identification / regard / discovery
+  set. Social-graph crowd verbosity,
   player-set **nicknames**, memory **decay**, voice/scent recognition, MQL
   compound feature-handles (`talk to tall-stranger`).
 

@@ -28,14 +28,15 @@ function logic(): ResidencyLogic {
 
 export class ResidencyApi {
   /**
-   * Boot seam (idempotent): install the residency sweeps. Today that's
-   * the real-time cold-tail eviction sweep; the deferred reset sweep will
-   * be installed here too. Activation = the `ResidencyLogic` singleton's
-   * presence. Eviction ships in observe mode (`residency.eviction.mode`),
-   * so booting culls nothing until an operator flips it to `enforce`.
+   * Boot seam (idempotent): install the residency sweeps — the real-time
+   * cold-tail eviction sweep and the game-time reset (repop) sweep.
+   * Activation = the `ResidencyLogic` singleton's presence. Both ship in
+   * observe mode (`residency.eviction.mode` / `residency.reset.mode`), so
+   * booting culls/repops nothing until an operator flips it to `enforce`.
    */
   public static boot(): void {
     logic().installEvictionSweep();
+    logic().installResetSweep();
   }
 
   /**
@@ -45,6 +46,14 @@ export class ResidencyApi {
    */
   public static evictNow(): Promise<void> {
     return logic().evictNow();
+  }
+
+  /**
+   * Run one reset (repop) sweep now (test / manual seam). Resolves once
+   * every enforced `ResettableMixin` object has restored itself.
+   */
+  public static resetNow(): Promise<void> {
+    return logic().resetNow();
   }
 }
 

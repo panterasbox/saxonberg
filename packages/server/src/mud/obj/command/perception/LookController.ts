@@ -36,6 +36,7 @@ import { ContainmentApi } from '../../../api/containment';
 import { MessageApi } from '../../../api/message';
 import { BulkableApi } from '../../../api/bulk';
 import { RecognitionApi } from '../../../api/recognition';
+import { PerceptionApi } from '../../../api/perception';
 import { SocialApi } from '../../../api/social';
 import { Mml } from '../../../api/mml';
 import type Exit from '../../../lib/boundary/Exit';
@@ -167,6 +168,9 @@ export default class LookController extends CommandController<LookModel> {
         if (item.stuffId === actor.stuffId) return false;
         if (MixinApi.isAdornment(item)) return false;
         if (!MixinApi.isVisible(item)) return false;
+        // Honest fog: a concealed thing the actor hasn't discovered /
+        // can't yet perceive is absent from the actor's world.
+        if (!PerceptionApi.perceives(actor, item)) return false;
         return true;
       });
 
@@ -219,7 +223,7 @@ export default class LookController extends CommandController<LookModel> {
       body = Mml.compose`${body}\n${puddle}`;
     }
     if (hasExits) {
-      const exitsLine = this.formatExits(location.getObviousExits());
+      const exitsLine = this.formatExits(location.obviousExitsFor(actor));
       if (exitsLine) {
         body = Mml.compose`${body}\n${exitsLine}`;
       }
@@ -264,6 +268,30 @@ export default class LookController extends CommandController<LookModel> {
       }
     }
 
+    // Passive hints (honest fog): a concealed-and-undiscovered thing the
+    // actor *nearly* perceives surfaces its authored "tell" — a draft, a
+    // seam, a stone sitting proud — so attention is *directed*, not
+    // pixel-hunted. A hint names the tell, NEVER the hidden thing's identity
+    // (that would leak concealed data). The candidate set is the full room
+    // contents + every exit (including hidden ones), which `hintsFor`
+    // narrows to the close-but-unperceived.
+    const hintCandidates: Stuff[] = [...location.getContents()];
+    if (MixinApi.isExitable(location)) {
+      for (const exit of location.getExits().values()) {
+        hintCandidates.push(exit as unknown as Stuff);
+      }
+    }
+    for (const cand of PerceptionApi.hintsFor(actor, hintCandidates)) {
+      const tell = MixinApi.isConcealable(cand)
+        ? cand.getConcealmentHint()
+        : undefined;
+      body = Mml.compose`${body}\n${
+        tell
+          ? Mml.fromMarkup(tell)
+          : Mml.compose`Something here doesn't sit quite right.`
+      }`;
+    }
+
     MessageApi.scene(actor)
       .topic('world.perception.sense.look')
       .toSelf(body)
@@ -272,7 +300,10 @@ export default class LookController extends CommandController<LookModel> {
     return;
   }
 
-  private lookAtTarget(target: Stuff, context: CommandContext): void {
+  private async lookAtTarget(
+    target: Stuff,
+    context: CommandContext,
+  ): Promise<void> {
     const actor = context.commandGiver;
     // Non-Visible targets fall through to a polite refusal rather
     // than rendering "You see nothing special." against the target's
@@ -316,6 +347,35 @@ export default class LookController extends CommandController<LookModel> {
       if (resting.length > 0) {
         const list = Mml.list(resting.map((r) => Mml.item(r)));
         body = Mml.compose`${body}── On it: ${list}.`;
+      }
+    }
+
+    // Close look: attending to a container peers in for anything
+    // half-concealed — the directed-attention glance that `examine`
+    // used to be, folded onto `look <thing>` (the `glance` depth =
+    // the cheap `concealment.examineBonus`). Silent unless the glance
+    // actually turns something up; a deliberate over-a-place scan
+    // that ties up your hands and takes time is `search`.
+    if (MixinApi.isContainer(target)) {
+      const contents = [...ContainmentApi.getContents(target)];
+      if (contents.length > 0) {
+        // Warm the `awareness` band so the glance reads a live snapshot.
+        await PerceptionApi.preloadForSenseGate(actor);
+        const found = PerceptionApi.resolveSearch(actor, contents, 'glance');
+        if (found.length > 0) {
+          const noticed = Mml.list(found.map((f) => Mml.item(f)));
+          body = Mml.compose`${body}\nLooking closely, you notice ${noticed}.`;
+        }
+        for (const cand of PerceptionApi.hintsFor(actor, contents)) {
+          const tell = MixinApi.isConcealable(cand)
+            ? cand.getConcealmentHint()
+            : undefined;
+          body = Mml.compose`${body}\n${
+            tell
+              ? Mml.fromMarkup(tell)
+              : Mml.compose`Something here almost catches your eye.`
+          }`;
+        }
       }
     }
 

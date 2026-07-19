@@ -358,6 +358,20 @@ export const AppSettingKeys = {
   residencyEvictionIntervalMs: "residency.eviction.intervalMs",
   /** Eviction — idle grace window (ms) before an object is a candidate. */
   residencyEvictionIdleThresholdMs: "residency.eviction.idleThresholdMs",
+  /** Reset — `observe` (log only) | `enforce` (actually repop). */
+  residencyResetMode: "residency.reset.mode",
+  /** Reset — game-time sweep cadence in game-seconds. */
+  residencyResetIntervalS: "residency.reset.intervalS",
+
+  /**
+   * Retail — the general store. `listingCap` is the per-consignor active-
+   * listing cap (the withdrawal-quota sibling anti-grief guard on the shared
+   * consignment shelf; `0` disables). `commissionRate` is the store's cut of
+   * a consignment sale (0..1) — the remainder settles to the consignor's
+   * primary account. See docs/subsystems/retail.md.
+   */
+  retailConsignmentListingCap: "retail.consignment.listingCap",
+  retailConsignmentCommissionRate: "retail.consignment.commissionRate",
 
   /**
    * YouTube relay (read-only) dials. The Twitch relay's hardcoded constants
@@ -627,6 +641,114 @@ export const AppSettingKeys = {
    * (a novice's off-hand hurts more than it helps). */
   combatDualWieldNoviceGuardBonus: "combat.dualWield.noviceGuardBonus",
 
+  /* ───────────────────────── concealment ───────────────────────── */
+  /**
+   * Concealment — the effective-perception a viewer must muster to notice
+   * a thing at each concealed band (the "magnitude" half of the
+   * shape-vs-magnitude split; the band *names* + monotone ordering are code
+   * — `lib/concealment/ConcealmentLevel.ts`). `obvious` is a hardcoded 0
+   * (no key); these four are monotone increasing. Read with a fallback to
+   * the seeded literal so a pre-warm / test read is safe. See
+   * docs/subsystems/concealment.md.
+   */
+  concealmentLevelSubtle: "concealment.level.subtle",
+  concealmentLevelHidden: "concealment.level.hidden",
+  concealmentLevelDeep: "concealment.level.deep",
+  concealmentLevelBuried: "concealment.level.buried",
+  /**
+   * Concealment — the band a legacy `Exit.hidden: true` migrates to (D1 —
+   * `Exit.hidden` is subsumed by the concealment vocabulary). A level word
+   * (`subtle`|`hidden`|`deep`|`buried`), never `obvious`; defaults to
+   * `hidden`.
+   */
+  concealmentHiddenDefaultLevel: "concealment.hiddenDefaultLevel",
+  /**
+   * Detection — the passive attention a viewer brings to bear on a
+   * concealed thing without actively searching (the `attention` baseline
+   * folded into effective perception). Active search / care↔speed
+   * modifiers layer on top in later phases. Read with a seeded-literal
+   * fallback. See docs/subsystems/concealment.md.
+   */
+  concealmentPassiveBaseline: "concealment.passiveBaseline",
+  /**
+   * Detection — perception "points" conferred per `awareness` competence
+   * band rank (untrained = rank 0 … expert = rank 4). `capacity = rank ×
+   * this`, the competence half of effective perception. Degrades to a
+   * floor capacity when the `awareness` Discipline is unseeded (a viewer
+   * with no evidence reads as rank 0). Read with a seeded-literal
+   * fallback. See docs/subsystems/concealment.md.
+   */
+  detectionCapacityPerBand: "detection.capacityPerBand",
+  /**
+   * Detection — the active-attention bonus a broad `search` folds into
+   * effective perception (on top of the passive baseline). A rank-0 seeker
+   * reaches the `hidden` band by searching. Read with a seeded-literal
+   * fallback. See docs/subsystems/concealment.md.
+   */
+  concealmentSearchBonus: "concealment.searchBonus",
+  /**
+   * Detection — the extra bonus a **narrow** `search <container>` adds on
+   * top of {@link concealmentSearchBonus} (narrow-deep beats broad-shallow).
+   * Read with a seeded-literal fallback.
+   */
+  concealmentSearchDepthBonus: "concealment.searchDepthBonus",
+  /**
+   * Detection — the game-time window (seconds) a `search` occupies the
+   * seeker's `hands` slot before it resolves. Interruptible: an abort
+   * mid-search finds nothing. Read with a seeded-literal fallback.
+   */
+  concealmentSearchSeconds: "concealment.searchSeconds",
+  /**
+   * Detection — the passive-hint cutoff: a concealed-and-undiscovered thing
+   * whose `requirement − effectivePerception ≤ this` surfaces a *hint* (the
+   * "something sits oddly" nudge) without revealing. Read with a
+   * seeded-literal fallback.
+   */
+  concealmentHintCutoff: "concealment.hintCutoff",
+  /**
+   * Detection — the smaller active-attention bonus the instantaneous
+   * `examine <target>` folds in (a cheap close look, weaker than a full
+   * `search`). Read with a seeded-literal fallback.
+   */
+  concealmentExamineBonus: "concealment.examineBonus",
+  /* ───────────────────────── hazards / traps ───────────────────────── */
+  /**
+   * Hazard — the game-time window (seconds) a `pin` traverse-consequence
+   * (a snare) holds the sprung mover's `body` slot before releasing. The
+   * global consequence constant; a trap's *wound energy* stays authored
+   * content data (a trap's bite is authored like a weapon's, not a dial).
+   * Read with a seeded-literal fallback. See docs/subsystems/concealment.md.
+   */
+  hazardPinSeconds: "hazard.pinSeconds",
+  /**
+   * Hazard — the blunt fall energy a `drop` traverse-consequence (a pit)
+   * inflicts on landing, on top of the trap's own delivery (the spikes).
+   * Read with a seeded-literal fallback.
+   */
+  hazardDropFallEnergy: "hazard.dropFallEnergy",
+  /**
+   * Hazard — the game-time window (seconds) the `disarm` act occupies the
+   * disarmer's `hands` before the trap is defused. Interruptible: an abort
+   * mid-disarm defuses nothing. Read with a seeded-literal fallback.
+   */
+  hazardDisarmSeconds: "hazard.disarmSeconds",
+  /* ─────────────────── care↔speed movement axis ─────────────────── */
+  /**
+   * Movement — the detection attention modifier a `sneak` crossing folds
+   * in on top of the passive baseline. Positive: moving carefully notices
+   * more, so a sneaker raises their traverse-time perception over a
+   * concealed trap (sneak avoids where walk springs). `walk` (and every
+   * other mode) is an implicit 0 — no key. Read with a seeded-literal
+   * fallback. See docs/subsystems/concealment.md.
+   */
+  movementAttentionSneak: "movement.attention.sneak",
+  /**
+   * Movement — the detection attention modifier a `run` crossing folds in.
+   * Negative: barreling along notices less, so a runner drops their
+   * traverse-time perception below a concealed trap (run springs where
+   * walk avoids). Read with a seeded-literal fallback.
+   */
+  movementAttentionRun: "movement.attention.run",
   /* ────────────────────────── wetness (weather Wave 2) ────────────────────────── */
   /**
    * Wetness — the per-object saturation gauge's magnitudes (weather

@@ -5,13 +5,13 @@
 # duncan-hall CartesianLocation precedent), distinct from the singleton
 # Bar so it never inherits the Warren wiring.
 #
-# The north exit INTO this room is declared `hidden` on the bar. NOTE:
-# hidden exits are excluded from movement targeting (canReach + the MQL
-# resolver use getObviousExits), so the office is currently reachable by
-# no one — the intended "inaccessible inner sanctum" placeholder. The
-# unlock (a regard-gated reveal / a search mechanic / or flipping the
-# bar's north `hidden: false`) is the deferred follow-up. The south exit
-# back out is plain and visible for when entry is enabled.
+# The north exit INTO this room is a concealed (`concealment: hidden`)
+# secret door on the bar, with an authored `hint`. It stays out of the
+# obvious-exits list until a viewer `search`es the bar and DISCOVERS it (a
+# sticky per-viewer belief), after which `obviousExitsFor` / the MQL
+# scope-walk list it and `go north` works — the search-reveals-hidden
+# unlock (concealment-detection Phase 3). The south exit back out is plain
+# and visible.
 class: /lib/location/CartesianLocation
 hydratorClass: /lib/persistence/PersistentHydrator
 data:

@@ -105,6 +105,19 @@ describe('AssessController — self vs other fidelity', () => {
     expect(captured).not.toContain('severity'); // untrained → gated
     expect(captured.toLowerCase()).toContain('bleeding'); // qualitative gist
   });
+
+  it('self-assess conjugates for the second person ("You look", not "You looks")', async () => {
+    // Grammar regression: BAND_PHRASE is third-person singular ("looks
+    // unhurt"), which disagrees with the self subject "You" — a live run
+    // rendered "You looks hurt". Self reads use the second-person phrase.
+    const me = makeStuff(() => new Creature());
+    stampTemplatePathForTest(me, '/obj/Avatar/self');
+    await makeStuff(() => new AssessController()).execute({}, ctxFor(me, null));
+    // (the subject "You" carries <strong> markup, so it isn't adjacent to
+    // the verb in the raw string — assert on the phrase + absence of "looks")
+    expect(captured).toContain('look unhurt');
+    expect(captured).not.toContain('looks');
+  });
 });
 
 describe('AssessController — dressed vs open readout', () => {
