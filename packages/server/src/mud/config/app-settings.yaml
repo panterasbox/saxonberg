@@ -411,6 +411,12 @@ settings:
     value: "0.15"
   - key: combat.poise.whiffPenalty
     value: "0.25"
+  # Ambush (stealth build): the poise an unaware defender loses at the
+  # opening when struck from concealment. Poise starts at 1.0 and breaks at
+  # combat.poise.brokenAt (0.25); 0.85 drops it to 0.15 < 0.25, arming the
+  # opening — surprise denies the poise contest. See docs/subsystems/stealth.md.
+  - key: combat.ambush.poisePenalty
+    value: "0.85"
   - key: combat.tempo.base
     value: "1"
   - key: combat.tempo.encumbrancePenalty
@@ -585,6 +591,31 @@ settings:
     value: "4"
   - key: concealment.examineBonus
     value: "2"
+  # Stealth (hide) — the hider's derived concealment level (the actor-face,
+  # the opposed sibling of awareness/detection). score = stealth-rank ×
+  # competencePerBand + cover × coverWeight + darkness × lightWeight +
+  # stillnessBonus(low posture); mapped to a ConcealmentLevel band by the
+  # thresholds below. With competencePerBand=2 and band.hidden=4, a
+  # `competent`(rank 2) hider in a lit empty room reaches `hidden`(req 4):
+  # a competent-awareness watcher (capacity 6) perceives, a novice (3) does
+  # not. A score below band.subtle fails to conceal (obvious). See
+  # docs/subsystems/stealth.md.
+  - key: stealth.hide.competencePerBand
+    value: "2"
+  - key: stealth.hide.coverWeight
+    value: "1"
+  - key: stealth.hide.lightWeight
+    value: "1"
+  - key: stealth.hide.stillnessBonus
+    value: "1"
+  - key: stealth.hide.band.subtle
+    value: "0"
+  - key: stealth.hide.band.hidden
+    value: "4"
+  - key: stealth.hide.band.deep
+    value: "7"
+  - key: stealth.hide.band.buried
+    value: "10"
   # Hazards / traps (Phase 4). pinSeconds: a snare holds the body slot.
   # dropFallEnergy: the blunt a pit-fall adds on landing. disarmSeconds:
   # the hands-slot window to defuse a found trap. Per-trap wound energies
@@ -607,6 +638,19 @@ settings:
     value: "2"
   - key: movement.attention.run
     value: "-2"
+  # Motion-degrades (observer-side, the care↔speed sibling above): the
+  # concealment bands a move at each mode strips from a HIDING mover. sneak
+  # holds (0 — a careful crossing keeps cover); walk degrades one band
+  # (you're gradually exposed as you cross); run clears hiding outright (99
+  # → falls to obvious — you can't sprint and stay unseen). Applied at
+  # Mobile.traverse via PerceptionApi.motionExposure. See
+  # docs/subsystems/stealth.md.
+  - key: movement.concealment.sneak
+    value: "0"
+  - key: movement.concealment.walk
+    value: "1"
+  - key: movement.concealment.run
+    value: "99"
   # Wetness (weather Wave 2) — the per-object saturation gauge (0..1).
   # Drainage is reconcile-on-read (presence-frozen); accrual is pushed by
   # rain exposure / immersion. See docs/subsystems/weather.md.

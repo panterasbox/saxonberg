@@ -66,7 +66,7 @@ export enum Collections {
   ParcelEvents = 'parcel_events',
   Diagnostics = 'diagnostics',
   HolderSnapshots = 'holder_snapshots',
-  CombatAttributionEvents = 'combat_attribution_events',
+  AccountabilityEvents = 'accountability_events',
 }
 
 /**
@@ -880,16 +880,17 @@ export class PersistenceManager {
         author: 1,
       });
 
-      // Combat attribution: the append-only blame ledger (one doc per
-      // attribution act; nothing overwritten). Indexed on `victim`
-      // (derive who is to blame for a death) and `sessionId` (a fight's
-      // whole chain of rows).
-      await this.getCollection(Collections.CombatAttributionEvents).createIndex(
-        { victim: 1 },
-      );
-      await this.getCollection(Collections.CombatAttributionEvents).createIndex(
-        { sessionId: 1 },
-      );
+      // Accountability: the append-only harm-attribution ledger (one doc
+      // per attribution act; nothing overwritten). The generalized home of
+      // combat's former blame ledger — combat + traps both produce here.
+      // Indexed on `victim` (derive who is to blame) and `sessionId` (a
+      // producer's whole chain of rows).
+      await this.getCollection(Collections.AccountabilityEvents).createIndex({
+        victim: 1,
+      });
+      await this.getCollection(Collections.AccountabilityEvents).createIndex({
+        sessionId: 1,
+      });
 
       // Positions: held conviction, one doc per (subject, stock, target).
       // Indexed on `{ subject, stock, target }` (the upsert / positionOf key)

@@ -540,6 +540,15 @@ export const AppSettingKeys = {
   combatPoiseRestorePerDefense: "combat.poise.restorePerDefense",
   /** Combat — extra poise a whiff/parry self-opens the actor. */
   combatPoiseWhiffPenalty: "combat.poise.whiffPenalty",
+  /**
+   * Combat — the poise an **ambush** strips from an unaware defender at the
+   * opening (a struck-from-concealment surprise). Large enough to cross
+   * `combat.poise.brokenAt` from full poise, arming the aggressor's free
+   * first exchange — surprise DENIES the opening poise contest (not a damage
+   * multiplier). Read with a seeded-literal fallback. See
+   * docs/subsystems/stealth.md.
+   */
+  combatAmbushPoisePenalty: "combat.ambush.poisePenalty",
   /** Combat — tempo rate shape. */
   combatTempoBase: "combat.tempo.base",
   combatTempoEncumbrancePenalty: "combat.tempo.encumbrancePenalty",
@@ -711,6 +720,36 @@ export const AppSettingKeys = {
    * `search`). Read with a seeded-literal fallback.
    */
   concealmentExamineBonus: "concealment.examineBonus",
+  /* ─────────────── stealth — the hider's derived level ─────────────── */
+  /**
+   * Stealth (hide) — perception "cover" conferred per `stealth` competence
+   * band rank (untrained 0 … expert 4) when an actor enters `hide`. The
+   * competence half of `PerceptionApi.hideLevelFor`'s derived score (the
+   * opposed sibling of {@link detectionCapacityPerBand}). Read with a
+   * seeded-literal fallback. See docs/subsystems/stealth.md.
+   */
+  stealthHideCompetencePerBand: "stealth.hide.competencePerBand",
+  /** Stealth (hide) — score per unit of available room cover (each
+   * non-creature object in the room the hider can duck behind, capped).
+   * Read with a seeded-literal fallback. */
+  stealthHideCoverWeight: "stealth.hide.coverWeight",
+  /** Stealth (hide) — score per band of darkness below neutral light (a
+   * dark corner hides better). Read with a seeded-literal fallback. */
+  stealthHideLightWeight: "stealth.hide.lightWeight",
+  /** Stealth (hide) — flat bonus for hiding from a low, still posture
+   * (crouched/sitting/lying, not standing). Read with a seeded-literal
+   * fallback. */
+  stealthHideStillnessBonus: "stealth.hide.stillnessBonus",
+  /**
+   * Stealth (hide) — the derived-score thresholds mapping to each
+   * {@link ConcealmentLevel} band the hider reaches. Monotone increasing; a
+   * score below `band.subtle` fails to conceal at all (`obvious`). Read with
+   * seeded-literal fallbacks.
+   */
+  stealthHideBandSubtle: "stealth.hide.band.subtle",
+  stealthHideBandHidden: "stealth.hide.band.hidden",
+  stealthHideBandDeep: "stealth.hide.band.deep",
+  stealthHideBandBuried: "stealth.hide.band.buried",
   /* ───────────────────────── hazards / traps ───────────────────────── */
   /**
    * Hazard — the game-time window (seconds) a `pin` traverse-consequence
@@ -749,6 +788,18 @@ export const AppSettingKeys = {
    * walk avoids). Read with a seeded-literal fallback.
    */
   movementAttentionRun: "movement.attention.run",
+  /**
+   * Movement — the **observer-side** of the care↔speed axis (the mirror of
+   * {@link movementAttentionSneak}/{@link movementAttentionRun}): the number
+   * of concealment bands a move at each mode strips from a *hiding* mover.
+   * `sneak` holds (0), `walk` degrades one band, `run` clears hiding (a
+   * large count). Read by `PerceptionApi.motionExposure`, applied at
+   * `Mobile.traverse`. Read with seeded-literal fallbacks. See
+   * docs/subsystems/stealth.md.
+   */
+  movementConcealmentSneak: "movement.concealment.sneak",
+  movementConcealmentWalk: "movement.concealment.walk",
+  movementConcealmentRun: "movement.concealment.run",
   /* ────────────────────────── wetness (weather Wave 2) ────────────────────────── */
   /**
    * Wetness — the per-object saturation gauge's magnitudes (weather

@@ -231,6 +231,13 @@ It carries **no `conferrals`** (`search` / `look` / `disarm` are universally
 afforded; competence only *grades* them, it doesn't gate the menu). See
 [concealment.md](./concealment.md).
 
+The stealth & deployables build seeds `awareness`'s opposed sibling —
+**`stealth`** (`channel: skill`, `iscedf: "1032"`, no `conferrals`) — the
+hiding face of the same contest: it grades a hider's derived concealment
+level (`PerceptionApi.hideLevelFor`) and a placed trap's concealment, where
+`awareness` grades the watcher trying to see through them. One contest, two
+competences. See [stealth.md](./stealth.md).
+
 ## Deferred (seams left open)
 
 The loadout (capacity-not-decay, savings warm-up); guilds (venue / mentors

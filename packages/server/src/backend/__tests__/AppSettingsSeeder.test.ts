@@ -41,7 +41,7 @@ describe("AppSettingsSeeder", () => {
     pm.setFindResult([]);
     const added = await AppSettingsSeeder.run();
 
-    expect(added).toBe(208); // 146 base + 7 Attendant+Goodkin + 19 storms-and-wetness + 17 concealment/detection/hazard/movement + 2 residency reset + 2 retail consignment + 15 fire (3 heat-channel + 4 combustion + 3 tick/spread + 5 chemistry)
+    expect(added).toBe(220); // 146 base + 7 Attendant+Goodkin + 19 storms-and-wetness + 17 concealment/detection/hazard/movement + 12 stealth-deployables + 2 residency reset + 2 retail consignment + 15 fire (3 heat-channel + 4 combustion + 3 tick/spread + 5 chemistry)
     expect(pm.saves).toHaveLength(1);
     expect(pm.saves[0]!.collection).toBe("app_settings");
     const values = savedValues(pm);
@@ -281,6 +281,18 @@ describe("AppSettingsSeeder", () => {
           [AppSettingKeys.weatherCloudDimFactor]: "0.6",
           [AppSettingKeys.weatherSkyForecastSegments]: "2",
           [AppSettingKeys.thermalWetHeatLossFactor]: "1.5",
+          [AppSettingKeys.stealthHideCompetencePerBand]: "2",
+          [AppSettingKeys.stealthHideCoverWeight]: "1",
+          [AppSettingKeys.stealthHideLightWeight]: "1",
+          [AppSettingKeys.stealthHideStillnessBonus]: "1",
+          [AppSettingKeys.stealthHideBandSubtle]: "0",
+          [AppSettingKeys.stealthHideBandHidden]: "4",
+          [AppSettingKeys.stealthHideBandDeep]: "7",
+          [AppSettingKeys.stealthHideBandBuried]: "10",
+          [AppSettingKeys.movementConcealmentSneak]: "0",
+          [AppSettingKeys.movementConcealmentWalk]: "1",
+          [AppSettingKeys.movementConcealmentRun]: "99",
+          [AppSettingKeys.combatAmbushPoisePenalty]: "0.85",
           [AppSettingKeys.residencyResetMode]: "enforce",
           [AppSettingKeys.residencyResetIntervalS]: "3600",
           [AppSettingKeys.retailConsignmentListingCap]: "5",
@@ -338,10 +350,11 @@ describe("AppSettingsSeeder", () => {
     // + 7 Attendant+Goodkin (4 banking + 3 lease/queue)
     // + 19 storms-and-wetness (8 wetness + 7 storm + 2 weather + 1 thermal + 1 absorptionCap)
     // + 17 concealment/detection/hazard/movement (5+2+5+3+2, Phases 1-5)
+    // + 12 stealth-deployables (8 stealth.hide + 3 movement.concealment + 1 combat.ambush)
     // + 2 residency reset (mode + intervalS)
     // + 2 retail consignment (listingCap + commissionRate)
     // + 15 fire (3 heat-channel + 4 combustion + 3 tick/spread + 5 chemistry).
-    expect(added).toBe(207); // 208 total − 1 operator-preset key
+    expect(added).toBe(219); // 220 total − 1 operator-preset key
     expect(pm.saves).toHaveLength(1);
     const values = savedValues(pm);
     // operator value preserved, missing keys seeded

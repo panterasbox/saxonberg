@@ -18,13 +18,13 @@ import type { Stuff } from "../lib/stuff/Stuff";
 import type { Engaged } from "../lib/activity/Engaged";
 import type { CombatSession } from "../lib/combat/CombatSession";
 import type { CombatTerms } from "../lib/combat/CombatTerms";
-import type CombatAttributionEvent from "../lib/combat/CombatAttributionEvent";
-import type { BlameVerdict } from "../lib/combat/CombatAttributionEvent";
+import type AccountabilityEvent from "../lib/accountability/AccountabilityEvent";
+import type { BlameVerdict } from "../lib/accountability/AccountabilityEvent";
 import type { CompetenceBandName } from "../lib/advancement/CompetenceBand";
 import type { WeaponProfile } from "../lib/combat/WeaponProfile";
 import type { RangeState } from "../lib/combat/CombatGraph";
 
-export type { BlameVerdict } from "../lib/combat/CombatAttributionEvent";
+export type { BlameVerdict } from "../lib/accountability/AccountabilityEvent";
 import { SecurityApi } from "./security";
 import { StuffApi } from "./stuff";
 import { HotReloadApi } from "./hot-reload";
@@ -45,6 +45,17 @@ export type OpenSessionResult =
  */
 export interface CombatOpenOptions {
   competenceBands?: Map<string, CompetenceBandName>;
+  /**
+   * The opening was an **ambush** — struck from concealment the defender
+   * did not perceive. Surprise **denies the opening poise contest**: the
+   * defender starts broken/open (a `combat.ambush.poisePenalty` drop that
+   * arms the aggressor's free first exchange). Resolved by the attacker's
+   * controller (`hiding && !perceives(defender, attacker)`); consumed only
+   * when a *fresh* session opens (a target already fighting isn't
+   * ambushed). Not a damage multiplier — the exchange still routes through
+   * `ConditionApi.inflict`; the "crit" is the earned open window.
+   */
+  ambush?: boolean;
 }
 
 /** The tactical read `assess` returns while a fight is live. */
@@ -181,7 +192,7 @@ export class CombatApi {
   /** Every attribution row for a fight (read/analytics; ordered by realAt). */
   public static attributionFor(
     sessionId: string,
-  ): Promise<CombatAttributionEvent[]> {
+  ): Promise<AccountabilityEvent[]> {
     return logic().attributionFor(sessionId);
   }
 

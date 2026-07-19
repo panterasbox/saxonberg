@@ -58,6 +58,20 @@ export interface MqlContext {
     isAuthor: boolean;
     coreMemberIds?: ReadonlySet<string>;
   };
+  /**
+   * The perception attention the scope-walk resolves concealed candidates
+   * at — the `PerceptionApi.perceives` gate's attention term. A **code-only**
+   * field: the command dispatcher never sets it, so player-typed MQL always
+   * resolves at the passive baseline and honest fog is unchanged. Only
+   * in-code callers opt in — a detection consumer (the `wary` sentry brain)
+   * passes its active `alertness` so `peers:living` enumerates the creatures
+   * it perceives *when actively watching*, not merely what a passing glance
+   * would catch. Absent → the passive baseline (byte-identical to prior
+   * behavior). Applies to direct-seed resolution (`peers` / `reachable` /
+   * `here` / `inventory` / `online` / `world`) and their mid-chain
+   * element-derived forms.
+   */
+  attention?: number;
 }
 
 /**

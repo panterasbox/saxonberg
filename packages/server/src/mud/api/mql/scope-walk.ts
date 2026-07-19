@@ -60,10 +60,11 @@ export interface ScopeCandidate {
 export function candidatesForHere(
   location: Stuff,
   viewer: Stuff,
+  attention?: number,
 ): ScopeCandidate[] {
   const out: ScopeCandidate[] = [];
 
-  pushDirect(out, location, viewer);
+  pushDirect(out, location, viewer, attention);
   pushDetails(out, location);
 
   if (MixinApi.isExitable(location)) {
@@ -71,7 +72,7 @@ export function candidatesForHere(
     for (const door of location.getExitDoors()) {
       if (seenDoors.has(door.stuffId)) continue;
       seenDoors.add(door.stuffId);
-      pushDirect(out, door, viewer);
+      pushDirect(out, door, viewer, attention);
       pushDetails(out, door);
     }
     // Use `getObviousExits()` so synthesized exits (an
@@ -102,11 +103,14 @@ export function candidatesForHere(
  * deferred (typical inventory item descriptions are short, and the
  * keyword matcher already handles the common case).
  */
-export function candidatesForInventory(giver: Stuff): ScopeCandidate[] {
+export function candidatesForInventory(
+  giver: Stuff,
+  attention?: number,
+): ScopeCandidate[] {
   if (!MixinApi.isContainer(giver)) return [];
   const out: ScopeCandidate[] = [];
   for (const item of ContainmentApi.getContents(giver)) {
-    pushDirect(out, item, giver);
+    pushDirect(out, item, giver, attention);
   }
   return out;
 }
@@ -116,14 +120,17 @@ export function candidatesForInventory(giver: Stuff): ScopeCandidate[] {
  * the giver's location, excluding the giver itself. Each peer
  * contributes its direct entry plus any Details it carries.
  */
-export function candidatesForPeers(giver: Stuff): ScopeCandidate[] {
+export function candidatesForPeers(
+  giver: Stuff,
+  attention?: number,
+): ScopeCandidate[] {
   if (!MixinApi.isContainable(giver)) return [];
   const env = giver.getContainer();
   if (!env || !MixinApi.isContainer(env)) return [];
   const out: ScopeCandidate[] = [];
   for (const item of ContainmentApi.getContents(env)) {
     if (item.stuffId === giver.stuffId) continue;
-    pushDirect(out, item, giver);
+    pushDirect(out, item, giver, attention);
     pushDetails(out, item);
   }
   return out;
@@ -146,17 +153,20 @@ export function candidatesForPeers(giver: Stuff): ScopeCandidate[] {
  * Duplicates across the sub-pools are tolerated; the resolver's
  * `finalize` step dedupes by stuffId before reporting matches.
  */
-export function candidatesForReachable(giver: Stuff): ScopeCandidate[] {
+export function candidatesForReachable(
+  giver: Stuff,
+  attention?: number,
+): ScopeCandidate[] {
   const out: ScopeCandidate[] = [];
-  pushDirect(out, giver, giver);
+  pushDirect(out, giver, giver, attention);
   if (MixinApi.isContainable(giver)) {
     const env = giver.getContainer();
     if (env) {
-      for (const c of candidatesForHere(env, giver)) out.push(c);
+      for (const c of candidatesForHere(env, giver, attention)) out.push(c);
     }
   }
-  for (const c of candidatesForPeers(giver)) out.push(c);
-  for (const c of candidatesForInventory(giver)) out.push(c);
+  for (const c of candidatesForPeers(giver, attention)) out.push(c);
+  for (const c of candidatesForInventory(giver, attention)) out.push(c);
   return out;
 }
 
@@ -168,18 +178,26 @@ export function candidatesForReachable(giver: Stuff): ScopeCandidate[] {
 export function candidatesForFlat(
   items: ReadonlyArray<Stuff>,
   viewer: Stuff,
+  attention?: number,
 ): ScopeCandidate[] {
   const out: ScopeCandidate[] = [];
-  for (const item of items) pushDirect(out, item, viewer);
+  for (const item of items) pushDirect(out, item, viewer, attention);
   return out;
 }
 
-function pushDirect(out: ScopeCandidate[], stuff: Stuff, viewer: Stuff): void {
+function pushDirect(
+  out: ScopeCandidate[],
+  stuff: Stuff,
+  viewer: Stuff,
+  attention?: number,
+): void {
   // Honest fog: a concealed thing the viewer hasn't discovered / can't yet
   // perceive isn't a targetable candidate (it isn't in the viewer's world).
   // `perceives` short-circuits true for un-concealed things, so the common
-  // path is untouched.
-  if (!PerceptionApi.perceives(viewer, stuff)) return;
+  // path is untouched. `attention` (undefined for player queries → passive
+  // baseline) lets a detection consumer resolve what it perceives when
+  // actively watching (see MqlContext.attention).
+  if (!PerceptionApi.perceives(viewer, stuff, attention)) return;
   // Viewer-relative name + keywords: a target resolves only by what the
   // viewer can perceive — its `knownAs` if recognized, salient features
   // if not, the disguise's descriptors if masked — never its true name.

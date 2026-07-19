@@ -44,6 +44,10 @@ export const Mixins = {
   // level on every loose perceivable (Thing/Creature/Exit); subsumes the
   // old Exit.hidden boolean. Read by the detection gate (PerceptionApi).
   Concealable: 'ConcealableMixin',
+  // The actor-side of concealment — a Character's dynamic `hide` state,
+  // overriding getConcealment() with a derived level while hidden. Composed
+  // outside Creature's ConcealableMixin. See lib/concealment/Hiding.
+  Hiding: 'HidingMixin',
   // A self-resolving trap/hazard — state + delivery + its own resolution,
   // sprung at the traverse (Mobile) or an interact (OpenController). No Api.
   Hazard: 'HazardMixin',

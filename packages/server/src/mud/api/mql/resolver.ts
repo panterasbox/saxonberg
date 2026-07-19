@@ -317,10 +317,10 @@ function resolveKeywordSeed(node: KeywordsNode, ctx: MqlContext): MqlMatch[] {
       return matchesFromStuff(StuffApi.getAllObjects());
     }
     if (w === 'peers') {
-      return candidatesToMatches(candidatesForPeers(ctx.commandGiver));
+      return candidatesToMatches(candidatesForPeers(ctx.commandGiver, ctx.attention));
     }
     if (w === 'reachable') {
-      return candidatesToMatches(candidatesForReachable(ctx.commandGiver));
+      return candidatesToMatches(candidatesForReachable(ctx.commandGiver, ctx.attention));
     }
   }
   // Otherwise: keyword search against the field's scope.
@@ -390,7 +390,7 @@ export function candidatesForScope(
   ctx: MqlContext
 ): ScopeCandidate[] {
   const trimmed = scope.trim();
-  if (!trimmed) return candidatesForReachable(ctx.commandGiver);
+  if (!trimmed) return candidatesForReachable(ctx.commandGiver, ctx.attention);
 
   // Fast path: comma-union of recognized seed names. Every part has
   // to be recognized; a single unrecognized part bumps the whole
@@ -412,7 +412,7 @@ export function candidatesForScope(
   // neighborhood. Reachable backstops on miss.
   const slow = candidatesFromQuery(trimmed, ctx);
   if (slow.length > 0) return slow;
-  return candidatesForReachable(ctx.commandGiver);
+  return candidatesForReachable(ctx.commandGiver, ctx.attention);
 }
 
 /**
@@ -570,13 +570,13 @@ function candidatesForScopePart(
 ): ScopeCandidate[] | null {
   const lower = part.toLowerCase();
   if (lower === 'here' || lower === '') return candidatesForHereScope(ctx);
-  if (lower === 'inventory') return candidatesForInventory(ctx.commandGiver);
-  if (lower === 'peers') return candidatesForPeers(ctx.commandGiver);
-  if (lower === 'reachable') return candidatesForReachable(ctx.commandGiver);
+  if (lower === 'inventory') return candidatesForInventory(ctx.commandGiver, ctx.attention);
+  if (lower === 'peers') return candidatesForPeers(ctx.commandGiver, ctx.attention);
+  if (lower === 'reachable') return candidatesForReachable(ctx.commandGiver, ctx.attention);
   if (lower === 'online') {
     // Ungated for the same reason as the seed promotion above —
     // who's online is normal social fabric, not privacy-tier info.
-    return candidatesForFlat(allOnlineCommandGivers(), ctx.commandGiver);
+    return candidatesForFlat(allOnlineCommandGivers(), ctx.commandGiver, ctx.attention);
   }
   if (lower === 'world') {
     try {
@@ -584,7 +584,7 @@ function candidatesForScopePart(
     } catch {
       return [];
     }
-    return candidatesForFlat(StuffApi.getAllObjects(), ctx.commandGiver);
+    return candidatesForFlat(StuffApi.getAllObjects(), ctx.commandGiver, ctx.attention);
   }
   if (lower === 'me') {
     return [
@@ -601,7 +601,7 @@ function candidatesForScopePart(
     } catch {
       return [];
     }
-    return candidatesForFlat(StuffApi.findByPathGlob(part), ctx.commandGiver);
+    return candidatesForFlat(StuffApi.findByPathGlob(part), ctx.commandGiver, ctx.attention);
   }
   if (part.startsWith('#') && part.length > 1) {
     try {
@@ -610,7 +610,7 @@ function candidatesForScopePart(
       return [];
     }
     const found = StuffApi.findById(part.slice(1));
-    return found ? candidatesForFlat([found], ctx.commandGiver) : [];
+    return found ? candidatesForFlat([found], ctx.commandGiver, ctx.attention) : [];
   }
   return null;
 }
@@ -619,7 +619,7 @@ function candidatesForHereScope(ctx: MqlContext): ScopeCandidate[] {
   if (!MixinApi.isContainable(ctx.commandGiver)) return [];
   const env = ctx.commandGiver.getContainer();
   if (!env) return [];
-  return candidatesForHere(env, ctx.commandGiver);
+  return candidatesForHere(env, ctx.commandGiver, ctx.attention);
 }
 
 function scopeKeywordSearch(words: string[], ctx: MqlContext): MqlMatch[] {
@@ -691,7 +691,7 @@ function applyColon(
       if (el.words.length === 1) {
         const name = el.words[0]!;
         if (ELEMENT_DERIVABLE_SEEDS.has(name)) {
-          return flatMapBySeed(input, name);
+          return flatMapBySeed(input, name, ctx.attention);
         }
         if (NAMED_SEED_KEYWORDS.has(name)) {
           return intersectWithSeed(input, el, ctx);
@@ -776,7 +776,8 @@ function intersectWithSeed(
  */
 function flatMapBySeed(
   input: MqlMatch[],
-  seedName: string
+  seedName: string,
+  attention?: number
 ): MqlMatch[] {
   if (input.length === 0) return [];
   const excludePriorSet = SEEDS_EXCLUDING_PRIOR.has(seedName);
@@ -786,7 +787,11 @@ function flatMapBySeed(
   const out: MqlMatch[] = [];
   const seen = new Set<string>();
   for (const m of input) {
-    const candidates = candidatesForElementDerivable(seedName, m.stuff);
+    const candidates = candidatesForElementDerivable(
+      seedName,
+      m.stuff,
+      attention,
+    );
     for (const c of candidates) {
       if (priorIds && priorIds.has(c.stuff.stuffId)) continue;
       const key = c.stuff.stuffId + '|' + (c.via ? JSON.stringify(c.via) : '');
@@ -818,15 +823,16 @@ const SEEDS_EXCLUDING_PRIOR: ReadonlySet<string> = new Set([
 
 function candidatesForElementDerivable(
   seedName: string,
-  anchor: Stuff
+  anchor: Stuff,
+  attention?: number
 ): ScopeCandidate[] {
   switch (seedName) {
     case 'peers':
-      return candidatesForPeers(anchor);
+      return candidatesForPeers(anchor, attention);
     case 'inventory':
-      return candidatesForInventory(anchor);
+      return candidatesForInventory(anchor, attention);
     case 'reachable':
-      return candidatesForReachable(anchor);
+      return candidatesForReachable(anchor, attention);
     default:
       return [];
   }

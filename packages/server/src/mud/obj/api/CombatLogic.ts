@@ -19,11 +19,10 @@ import { PartyApi } from "../../api/party";
 import { ChronicleApi } from "../../api/chronicle";
 import { RegardApi } from "../../api/regard";
 import { AdvancementApi } from "../../api/advancement";
-import { WorldClockApi } from "../../api/worldclock";
 import { AppSettingKeys } from "../../lib/config/AppSettings";
-import CombatAttributionEvent, {
-  type CombatAttributionFields,
-} from "../../lib/combat/CombatAttributionEvent";
+import { AccountabilityApi } from "../../api/accountability";
+import type { AccountabilityFields } from "../../api/accountability";
+import type AccountabilityEvent from "../../lib/accountability/AccountabilityEvent";
 import { Coup, COMBAT_COUP_TYPE } from "../../lib/combat/Coup";
 import type { Sensor } from "../../lib/message/Sensor";
 import type {
@@ -170,11 +169,8 @@ export class CombatLogic extends ApiLogic {
   @CallSecurity(CombatApiCallers)
   public async attributionFor(
     sessionId: string,
-  ): Promise<CombatAttributionEvent[]> {
-    const rows = await CombatAttributionEvent.find<CombatAttributionEvent>({
-      sessionId,
-    });
-    return rows.sort((a, b) => a.realAt - b.realAt);
+  ): Promise<AccountabilityEvent[]> {
+    return AccountabilityApi.eventsForSession(sessionId);
   }
 
   @CallSecurity(CombatApiCallers)
@@ -644,6 +640,14 @@ function openSessionImpl(
   const bState = deriveState(defender);
   bState.side = safeSideOf(defender);
   bState.competenceBand = bandFromOpts(defender, opts);
+  // Ambush — surprise DENIES the opening poise contest: an unaware defender
+  // (struck from concealment they didn't perceive) starts broken/open,
+  // arming the aggressor's free first exchange. Erode from full poise at
+  // tick 0 so the crossing into `broken` arms a live opening window. Not a
+  // damage multiplier — the exchange still routes through inflict.
+  if (opts?.ambush) {
+    bState.poise.erode(dial(AppSettingKeys.combatAmbushPoisePenalty, 0.85), 0);
+  }
   const holdA = session.addParticipant(aState);
   const holdB = session.addParticipant(bState);
 
@@ -1834,40 +1838,11 @@ function isCrime(terms: CombatTerms, victim: Stuff): boolean {
   );
 }
 
-/** Game-time seconds witness, tolerant of a disconnected clock. */
-function gameNow(): number {
-  try {
-    return WorldClockApi.getNow().rawValue();
-  } catch {
-    return 0;
-  }
-}
-
-/** Fire-and-forget append to the blame ledger — never blocks the beat. */
-function noteAttribution(fields: CombatAttributionFields): void {
-  void recordAttributionImpl(fields).catch(() => {
-    /* the ledger is best-effort; a write failure never breaks a fight */
-  });
-}
-
-async function recordAttributionImpl(
-  fields: CombatAttributionFields,
-): Promise<void> {
-  const ev = new CombatAttributionEvent();
-  ev.kind = fields.kind;
-  ev.sessionId = fields.sessionId;
-  ev.initiator = fields.initiator;
-  ev.opponent = fields.opponent;
-  ev.victim = fields.victim ?? "";
-  ev.killer = fields.killer ?? "";
-  ev.lethality = fields.lethality;
-  ev.stopCondition = fields.stopCondition;
-  ev.consented = fields.consented;
-  ev.sentient = fields.sentient;
-  ev.locality = fields.locality ?? null;
-  ev.at = fields.at ?? gameNow();
-  ev.realAt = fields.realAt ?? Date.now();
-  await ev.save();
+/** Append one combat attribution row to the unified accountability ledger.
+ * Fire-and-forget (the Api swallows write failures) — never blocks the
+ * beat; the game-time / wall-clock defaulting happens in the Logic. */
+function noteAttribution(fields: AccountabilityFields): void {
+  AccountabilityApi.record(fields);
 }
 
 /** The opening rows: `opened` always; `violated` when lethal terms are
@@ -1916,11 +1891,8 @@ function recordDeath(
   });
 }
 
-async function blameForImpl(victimId: string): Promise<BlameVerdict | null> {
-  const rows = await CombatAttributionEvent.find<CombatAttributionEvent>({
-    victim: victimId,
-  });
-  return CombatAttributionEvent.deriveBlame(rows);
+function blameForImpl(victimId: string): Promise<BlameVerdict | null> {
+  return AccountabilityApi.blameFor(victimId);
 }
 
 /* ───────────────────────── two-stage death (coup) ───────────────────────── */

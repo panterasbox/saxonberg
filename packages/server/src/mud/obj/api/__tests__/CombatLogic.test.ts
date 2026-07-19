@@ -1187,3 +1187,39 @@ describe("CombatLogic — weapon-shaped gambits (the weapon edits the menu)", ()
     expect(bound).toBe(true);
   });
 });
+
+describe("CombatLogic — ambush (surprise denies the poise contest)", () => {
+  function openWith(
+    a: TestFighter,
+    b: TestFighter,
+    proposal: TermsProposal,
+    opts: { ambush?: boolean },
+  ): CombatSession {
+    const terms = CombatTerms.agreed(a.getTemplatePath() ?? "a", proposal, true);
+    const res = CombatApi.openSession(a as never, b as never, terms, opts);
+    if (!res.ok) throw new Error(`openSession failed: ${res.reason}`);
+    openSessions.push(res.session);
+    return res.session;
+  }
+
+  it("an ambush open starts the DEFENDER broken/open, the attacker steady", () => {
+    const room = makeStuff(() => new TestRoom());
+    const a = makeFighter(room, { weaponForm: "bladed" });
+    const b = makeFighter(room, { weaponForm: "bladed" });
+    const session = openWith(a, b, nonLethal, { ambush: true });
+    const sb = session.getState(b)!;
+    expect(sb.poise.isBroken() || sb.poise.isOpen()).toBe(true);
+    // Surprise hits only the surprised — the ambusher is untouched.
+    const sa = session.getState(a)!;
+    expect(sa.poise.band()).toBe("steady");
+  });
+
+  it("a normal (non-ambush) open leaves both fighters steady", () => {
+    const room = makeStuff(() => new TestRoom());
+    const a = makeFighter(room, { weaponForm: "bladed" });
+    const b = makeFighter(room, { weaponForm: "bladed" });
+    const session = openWith(a, b, nonLethal, {});
+    expect(session.getState(a)!.poise.band()).toBe("steady");
+    expect(session.getState(b)!.poise.band()).toBe("steady");
+  });
+});

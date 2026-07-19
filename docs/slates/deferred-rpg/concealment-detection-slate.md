@@ -1,14 +1,18 @@
 # Concealment & detection — stealth, searching & secrets (working slate)
 
-> **Status: PARTIALLY SHIPPED (MR!142).** **Thesis 1** (one concealment gate
-> on every perceivable) and **Thesis 3** (searching) shipped as the
+> **Status: MOSTLY SHIPPED (MR!142 + MR!145).** **Thesis 1** (one concealment
+> gate on every perceivable) and **Thesis 3** (searching) shipped as the
 > concealment/detection + traps build — see
 > [concealment.md](../../subsystems/concealment.md) +
-> [hazard.md](../../subsystems/hazard.md). **Deferred and retained here:**
-> **Thesis 2** — the *hiding* half of stealth (actor-face self-concealment,
-> motion-degrades-concealment, NPC detection/response, surprise/ambush
-> initiation) — and the **knowledge economy** (sharing/selling/transferring
-> found secrets, `frisk`, player-placed concealment). A perception substrate
+> [hazard.md](../../subsystems/hazard.md). **Thesis 2** — the *hiding* half
+> of stealth (actor-face self-concealment, motion-degrades-concealment, NPC
+> detection/response, surprise/ambush initiation, the player-trapper) —
+> shipped as the **stealth & deployables** build (MR!145), see
+> [stealth.md](../../subsystems/stealth.md) +
+> [accountability.md](../../subsystems/accountability.md). **Deferred and
+> retained here:** only the **knowledge economy** (sharing/selling/transferring
+> found secrets as social currency, `frisk`, player-placed concealment beyond
+> pick-up-your-own, ranged/remote/resettable traps). A perception substrate
 > — the *sibling of combat, parent of stealth* — surfaced by the stealth and
 > searching interrogations off
 > [combat-experience-slate.md](./combat-experience-slate.md). Combat consumes
@@ -48,7 +52,12 @@ Searching is the *environmental* face of the exact contest stealth is the
 
 ---
 
-## Thesis 2 — Stealth (the actor face)
+## Thesis 2 — Stealth (the actor face) — ✅ SHIPPED (MR!145)
+
+> Shipped as the stealth & deployables build. `HidingMixin` + the derived
+> `PerceptionApi.hideLevelFor`, observer-side `motionExposure`, the ambush
+> poise-denial, the `wary` brain, the `TrapKit`/`arm` player-trapper, and the
+> unified accountability ledger. See [stealth.md](../../subsystems/stealth.md).
 
 Stealth is **managing others' belief about you** — the fog engine pointed at
 your own presence/location/intent. Not a stat-vs-stat roll.

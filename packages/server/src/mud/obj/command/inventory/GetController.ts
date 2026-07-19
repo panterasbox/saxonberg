@@ -197,6 +197,31 @@ export default class GetController extends CommandController<GetModel> {
       );
     }
 
+    // Pick-up-your-own-trap: a placed, still-armed trap can only be lifted
+    // by the one who set it — you can't pocket someone else's rigged snare
+    // (and a concealed one a stranger can't perceive never resolves here
+    // anyway). An authored/environmental hazard (no `placedBy`) isn't
+    // player-pocketable through this path.
+    if (
+      MixinApi.isHazard(operand) &&
+      operand.isArmed() &&
+      operand.getPlacedBy() &&
+      operand.getPlacedBy() !== giver.getTemplatePath()
+    ) {
+      context.note({
+        kind: 'controller-rejected',
+        reason: 'not-your-trap',
+        detail: `${operand.getPresentation()} isn't yours to take`,
+      });
+      MessageApi.scene(giver)
+        .topic('world.perception.inventory')
+        .toSelf(
+          Mml.compose`You'd rather not lay a hand on ${Mml.item(operand)} — it isn't yours, and it's live.`,
+        )
+        .send();
+      return false;
+    }
+
     // Hands-occupied while hauling: you can't pick a thing up into your
     // hands while gripping a cart's handle. Keyed on the giver being the
     // hauler (a mounted rider whose horse hauls keeps their hands free).

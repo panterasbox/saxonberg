@@ -34,6 +34,13 @@ data:
     # fast-travel cascade — the GlassAlley failure, avoided by construction).
     north:
       destination: /domain/newbie-wilds/delve/vestibule
+    # East into the watchpost — the stealth/concealment demonstrator
+    # (docs/subsystems/stealth.md: hide, sneak-past/ambush a wary sentry,
+    # arm a trap kit). One plain ground exit; the watchpost pulls into no
+    # standup/fast-travel cascade (the treeline is spawn-override-reached
+    # and stood up by no test — an added exit pulls in nothing).
+    east:
+      destination: /domain/newbie-wilds/crossroads/watchpost
   # The cull: one wolfshead and a dropped dagger, both cloned fresh at
   # standup. Pick up the dagger, wield it, and `attack the wolf`.
   populates:
