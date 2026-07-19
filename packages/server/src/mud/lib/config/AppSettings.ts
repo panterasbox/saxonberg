@@ -442,6 +442,18 @@ export const AppSettingKeys = {
    * biteMax → bites; ≥ → bites-deep). */
   responseBandGrazeMax: "response.band.grazeMax",
   responseBandBiteMax: "response.band.biteMax",
+  /** Response (heat channel) — the fraction a single fully-insulating layer
+   * blocks; scaled by material insulation height + layer depth. A conductive
+   * layer (metal) blocks near-zero, an insulator (leather/padding) near this. */
+  responseHeatBaseAttenuation: "response.heat.baseAttenuation",
+  /** Response (heat channel) — the reference thermal conductivity (W/(m·K))
+   * where a material is half-insulating; below it insulates hard, above it
+   * conducts. Insulation height = ref / (ref + conductivity). */
+  responseHeatInsulationRefConductivity:
+    "response.heat.insulationRefConductivity",
+  /** Response (heat channel) — extra insulation per outside-in layer depth
+   * (padded 0 … plate 3); the covering stack's depth amplifies the block. */
+  responseHeatDepthFactor: "response.heat.depthFactor",
 
   /* ────────────────────────── electricity ────────────────────────── */
   /**
@@ -803,6 +815,46 @@ export const AppSettingKeys = {
    * saturation the cold-side wind-chill / immersion term is scaled by
    * `1 + wetHeatLossFactor`. */
   thermalWetHeatLossFactor: "thermal.wetHeatLossFactor",
+
+  /* ────────────────────────── fire (combustion) ────────────────────────── */
+  /** Fire — fuel consumed per game-minute while burning (`%`-points of the
+   * fuel `Reserve`; the Campfire precedent). */
+  fireBurnRatePerMin: "fire.burnRatePerMin",
+  /** Fire — the temperature (K) a burning object holds while aflame
+   * (complete combustion). Incomplete/starved fires run cooler — Phase 5. */
+  fireFlameTemperatureK: "fire.flameTemperatureK",
+  /** Fire — the latent heat of vaporization of water (J/kg) the ignition
+   * energy balance must out-supply to boil a fuel's held water off before it
+   * can catch (the wet-firewood term). */
+  fireIgnitionWaterLatentHeatJPerKg: "fire.ignition.waterLatentHeatJPerKg",
+  /** Fire — the maximum wetness-elevated ignition headroom (K) a deliberate
+   * hand-flame (`ignite` verb) can dry through. A fuel whose water penalty
+   * exceeds this is "too wet to catch" until it dries. */
+  fireIgnitionMaxManualDryingK: "fire.ignition.maxManualDryingK",
+  /** Fire — the presence-gated fire-tick interval, in game-seconds (the
+   * spread + advance cadence over occupied scopes). */
+  fireTickIntervalSeconds: "fire.tickIntervalSeconds",
+  /** Fire — the heat (joules) a burning object radiates into each co-located
+   * combustible per tick; thermal inertia + wetness gate whether it ignites. */
+  fireRadiantJoulesPerTick: "fire.radiantJoulesPerTick",
+  /** Fire — the fraction of radiant heat that crosses an OPEN boundary into
+   * the adjacent scope (a closed / locked door is a firebreak → 0). */
+  fireCrossBoundaryFraction: "fire.crossBoundaryFraction",
+  /** Fire — the temperature (K) an air-starved (incomplete) fire holds;
+   * cooler than complete combustion (the ventilation lesson). */
+  fireFlameTemperatureIncompleteK: "fire.flameTemperatureIncompleteK",
+  /** Fire — scope-air (`%` of the room's `'air'` Reserve) each burning object
+   * consumes per tick in an enclosed scope. */
+  fireAirConsumePerTick: "fire.air.consumePerTick",
+  /** Fire — scope-air (`%`) a VENTILATED scope (sky-exposed or an open
+   * boundary) regains per tick — the bellows / cracked-door replenishment. */
+  fireAirReplenishPerTick: "fire.air.replenishPerTick",
+  /** Fire — scope-air level (`%`) at/above which combustion is complete
+   * (hot, clean); below it starves to incomplete (cooler, soot + CO). */
+  fireAirCompleteThresholdPct: "fire.air.completeThresholdPct",
+  /** Respiration — carbon-monoxide (contaminant) toxin burden a breather
+   * takes on per reassess while in a contaminated (smoke) medium. */
+  respirationContaminantBurdenPerBreath: "respiration.contaminantBurdenPerBreath",
 } as const;
 
 export type AppSettingKey =

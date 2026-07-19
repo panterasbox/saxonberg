@@ -1,0 +1,20 @@
+verbs: [ignite, light, kindle]
+controller: /obj/command/device/IgniteController
+description: "Set fire to something flammable"
+help: |
+  Set fire to something flammable — kindling, a log, a torch — within
+  reach (`ignite kindling`, `light torch`). You need a flame to hand;
+  the fire catches only if the thing is dry enough and has fuel left.
+
+  A soaked log won't catch until it dries; something already burning is
+  left alone; something that doesn't burn at all just tells you so.
+validators:
+  - /lib/command/validators/requiresAnimate
+args:
+  - name: target
+    type: object
+    required: true
+    scope: "reachable"
+    updates_focus: extend
+    validators:
+      - /lib/command/validators/canReach

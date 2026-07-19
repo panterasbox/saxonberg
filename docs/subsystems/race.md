@@ -70,7 +70,13 @@ response), `electricalConductivity` (electricity), and
 ASTM-D570 figure for the water a material holds at saturation, as a percent
 of dry mass: wool ≈ 33 %, wood ≈ 28 %, flesh ≈ 25 %, metals / glass ≈ 0.
 The `WetMixin` gauge reads it to derive the dry rate from evaporation
-physics; see [weather.md](./weather.md)).
+physics; see [weather.md](./weather.md)). The **fire build** adds six more:
+`autoignitionTemperature` (`Quantity<'K'>`) + `heatOfCombustion`
+(`Quantity<'MJ/kg'>`) drive the combustion driver, and `meltingPoint` /
+`latentHeatOfFusion` (`J/kg`) + `boilingPoint` / `latentHeatOfVaporization`
+(`J/kg`) drive the phase-change layer — real figures (wood 570 K / 16 MJ/kg,
+iron mp 1811 K, water mp 273 / bp 373), `0`-until-authored (an unauthored
+material never ignites, never melts); see [fire.md](./fire.md).
 
 - **Tags** (`tags: string[]`) — free-form classification strings
   (`'metal'`, `'alloy'`, `'igneous'`, `'organic'`, `'fantasy'`).

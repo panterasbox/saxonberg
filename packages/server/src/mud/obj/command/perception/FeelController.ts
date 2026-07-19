@@ -24,6 +24,7 @@ import type { Container } from '../../../lib/spatial/Container';
 import { MixinApi } from '../../../api/mixin';
 import { MessageApi } from '../../../api/message';
 import { Mml } from '../../../api/mml';
+import { ConditionApi } from '../../../api/condition';
 import { TouchModality } from '../../../lib/perception/modalities/TouchModality';
 import { Touch } from '../../../lib/perception/Touch';
 import type { Thermal } from '../../../lib/thermal/Thermal';
@@ -101,14 +102,20 @@ export default class FeelController extends SingleSenseControllerBase {
 
   /**
    * The scalding-band burn hook. Any contact with a surface in the
-   * `scalding` touch band (>= 345 K) afflicts a `burn` trauma on the
-   * toucher — a kettle, a forged blade, the campfire (Step 2.3 is one
-   * consumer, not its own mechanic). No-op below the band, or when the
-   * toucher has no vitals to wound.
+   * `scalding` touch band (>= 345 K) burns the toucher — a kettle, a forged
+   * blade, the campfire. The heat routes through the `heat` materials-response
+   * channel (`ConditionApi.inflict`) so a glove / gauntlet on the hand
+   * insulates before the residual burns tissue. No-op below the band, or when
+   * the toucher has no vitals to wound.
    */
   protected burnOnContact(actor: Stuff, surfaceK: number): void {
-    const trauma = Touch.contactBurn(surfaceK);
-    if (trauma && MixinApi.isVitals(actor)) actor.afflict(trauma);
+    const energy = Touch.contactBurnEnergy(surfaceK);
+    if (energy === null || !MixinApi.isVitals(actor)) return;
+    ConditionApi.inflict(actor, {
+      mechanism: 'heat',
+      site: 'body.hand',
+      energy,
+    });
   }
 
   private async feelAmbient(context: CommandContext): Promise<void> {

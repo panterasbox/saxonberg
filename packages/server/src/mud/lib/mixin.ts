@@ -190,6 +190,19 @@ export const Mixins = {
   // baton, the deferred wall socket / Lightning bolt. Read by the
   // conduction walk (ElectricityApi) to impose a potential difference.
   Energized: 'EnergizedMixin',
+  // Fire — "I can burn": flammable matter carrying a fuel reserve + a
+  // Burning active state, driven past its (wetness-adjusted) ignition point
+  // by the combustion driver (FireApi). Reads its material's
+  // autoignitionTemperature / heatOfCombustion.
+  Combustible: 'CombustibleMixin',
+  // Phase change — "I can melt": a solid whose material melts past its
+  // meltingPoint (a latent-heat plateau), flowing to a Bulkable liquid.
+  // Driven by heat (ThermalApi.reconcilePhase), not fire-specific.
+  Meltable: 'MeltableMixin',
+  // Furnace — a Combustible-fuelled sustained heat source (forge/kiln/oven/
+  // campfire): pinned hot while lit + fuelled, bellows-boosted, heats the
+  // Meltables in its scope. Generalizes the Campfire pin.
+  Furnace: 'FurnaceMixin',
 } as const;
 
 /**

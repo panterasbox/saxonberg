@@ -74,6 +74,12 @@ export type Unit =
   // Specific heat capacity (joules per kilogram-kelvin) — real material
   // property; the `C = m·c` half of the Thermal capability's τ = R·C
   | 'J/(kg·K)'
+  // Energy per mass (fire / phase change) — real, tabulated. `MJ/kg` =
+  // heat of combustion (energy released burning a kilogram of fuel: wood
+  // ≈ 16, charcoal ≈ 30); `J/kg` = latent heat of fusion / vaporization
+  // (energy per kilogram to melt / boil at the phase transition — the
+  // reserve-clamp plateau). Consumed by `FireApi` / `ThermalApi`.
+  | 'MJ/kg' | 'J/kg'
   // Clothing insulation (the clo unit) — its own thermal-resistance axis,
   // summed across worn garments by the body's thermoregulation layer
   | 'clo'
@@ -166,6 +172,8 @@ const unitOps: Partial<Record<Unit, UnitOps>> = {
   'MJ/m³': ARITHMETIC_OPS,
   'W/(m·K)': ARITHMETIC_OPS,
   'J/(kg·K)': ARITHMETIC_OPS,
+  'MJ/kg': ARITHMETIC_OPS,
+  'J/kg': ARITHMETIC_OPS,
   clo: ARITHMETIC_OPS,
   'm/s': ARITHMETIC_OPS,
   '%': ARITHMETIC_OPS,

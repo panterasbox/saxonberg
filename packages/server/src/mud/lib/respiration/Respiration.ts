@@ -48,6 +48,8 @@ import { WorldClockApi } from '../../api/worldclock';
 import { StuffApi } from '../../api/stuff';
 import { MessageApi } from '../../api/message';
 import { Mml } from '../../api/mml';
+import { AppApi } from '../../api/app';
+import { AppSettingKeys } from '../config/AppSettings';
 import { TemplatePaths } from '../paths';
 import type { CommandContributions } from '../../api/command';
 import type { RespirationCause } from './RespirationDrain';
@@ -93,6 +95,18 @@ export const RESPIRATION_DEFAULTS = {
     channel: 'strangulation',
   } as Record<RespirationCause, string>,
 };
+
+/** Numeric AppSetting read, falling back to the seeded literal (test-safe). */
+function respirationDial(key: string, fallback: number): number {
+  try {
+    const raw = AppApi.setting(key);
+    if (raw === '' || raw == null) return fallback;
+    const n = Number.parseFloat(raw);
+    return Number.isFinite(n) ? n : fallback;
+  } catch {
+    return fallback;
+  }
+}
 
 /**
  * The inner-mixin surface a respiring body composes over — the host cast
@@ -280,6 +294,30 @@ export function RespirationMixin<TBase extends MixinConstructor>(Base: TBase) {
 
     /* ──────────────────── the central re-resolve ──────────────────── */
 
+    /**
+     * Fold the current medium's inhaled contaminant (if any) into the body's
+     * metabolism toxin burden — the biome `contaminant` seam's first consumer.
+     * No-op for a clean medium or a non-Metabolic body. Bounded: one
+     * increment per reassess, cleared over time by the toxin's `Condition`.
+     */
+    private async applyMediumContaminant(): Promise<void> {
+      const self = this as unknown as Stuff;
+      if (!MixinApi.isMetabolic(self)) return;
+      let contaminant: string | null = null;
+      try {
+        const medium = await this.resolveCurrentMedium();
+        contaminant = BiomeApi.contaminantOf(medium);
+      } catch {
+        return;
+      }
+      if (!contaminant) return;
+      const perBreath = respirationDial(
+        AppSettingKeys.respirationContaminantBurdenPerBreath,
+        5,
+      );
+      self.addToxinBurden(contaminant, perBreath);
+    }
+
     public async reassess(): Promise<void> {
       const self = this as unknown as Stuff;
 
@@ -311,6 +349,12 @@ export function RespirationMixin<TBase extends MixinConstructor>(Base: TBase) {
       // `replaceableBy` respiration (or this start would no-op on
       // conflict, silently suppressing the crisis).
       const { exchanging, cause } = await this.assessExchange();
+      // Inhaled-contaminant fold (the fire driver's first consumer of the
+      // biome `contaminant` seam): a body breathing a contaminated medium
+      // (smoke → carbon monoxide) takes on the toxin as a metabolism burden,
+      // whether or not it can still exchange O₂. An enclosed fire poisons as
+      // well as smothers.
+      await this.applyMediumContaminant();
       const drain = engaged.getEngagementByType('respiration-drain');
       const recovery = engaged.getEngagementByType('respiration-recovery');
 

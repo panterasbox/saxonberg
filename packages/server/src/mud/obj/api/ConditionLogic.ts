@@ -51,14 +51,17 @@ function channelDefaultType(channel: Channel): TraumaType {
       // A shock's local wound is a contact burn (the whole-body
       // let-go/tetany/fibrillation outcomes are the vitals coupling).
       return 'burn';
+    case 'heat':
+      // Heat that survives the insulation stack burns the tissue.
+      return 'burn';
   }
 }
 
 /**
  * The legacy magnitude-only severity — `energy → severity`, linear via a
- * single dial. Used ONLY by the `'thermal'` / `'tearing'` passthrough (burn
- * / avulsion) until those fold into a `heat` / tearing channel. Channel
- * insults derive severity from the materials-response function instead.
+ * single dial. Used ONLY by the `'tearing'` passthrough (avulsion) until it
+ * folds into a tearing channel. Channel insults (including `heat`) derive
+ * severity from the materials-response function instead.
  */
 function severityFromEnergy(energy: number): number {
   return Math.max(0, energy) * HARM_DEFAULTS.SEVERITY_PER_ENERGY;
@@ -302,9 +305,10 @@ function inflictThroughStack(
 }
 
 /**
- * The legacy magnitude-only passthrough — `'thermal'` → burn, `'tearing'`
- * → avulsion — byte-preserving harm's shipped burn/avulsion math until
- * those fold into a `heat` / tearing channel. See
+ * The magnitude-only passthrough — the sole remaining token is `'tearing'`
+ * → avulsion, byte-preserving harm's shipped avulsion math until tearing
+ * folds into its own channel. (`'thermal'` was retired — heat now resolves
+ * through the `heat` {@link Channel} + the insulation fold.) See
  * docs/subsystems/materials-response.md.
  */
 function inflictPassthrough(
@@ -312,7 +316,8 @@ function inflictPassthrough(
   spec: EnergyInflictSpec,
   inflicter: string | undefined,
 ): InflictOutcome {
-  const type: TraumaType = spec.mechanism === 'thermal' ? 'burn' : 'avulsion';
+  // Only `'tearing'` reaches here (every Channel routes through the stack).
+  const type: TraumaType = 'avulsion';
   const trauma: Trauma = {
     kind: 'trauma',
     type,

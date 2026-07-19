@@ -23,7 +23,6 @@
  */
 
 import { Quantity } from '../quantity';
-import type { Trauma } from '../vitals/Condition';
 
 export type TouchBand =
   | 'cold'
@@ -89,24 +88,22 @@ export class Touch {
   }
 
   /**
-   * The `burn` trauma a bare-handed contact with a surface at
-   * `temperatureK` inflicts, or `null` when the surface isn't in the
-   * `scalding` band. **Pure** — returns the value; the caller afflicts it
-   * and emits its own verb-specific prose. The single home for the
-   * scalding-band burn rule the contact verbs share (`feel`, `get`), so
-   * the threshold + severity ramp aren't duplicated per controller.
-   * Severity rises with how far past the scalding floor the surface sits
-   * (a tuning detail, not a plan decision).
+   * The **heat-channel energy** a bare-handed contact with a surface at
+   * `temperatureK` delivers, or `null` when the surface isn't in the
+   * `scalding` band (no burn). **Pure** — returns the value; the caller
+   * routes it through `ConditionApi.inflict({mechanism:'heat', energy, site})`
+   * so any covering on the hand insulates before the residual burns tissue.
+   * The single home for the scalding-band contact rule the contact verbs
+   * share (`feel`, `get`), so the threshold + energy ramp aren't duplicated
+   * per controller. On an unarmored hand the residual equals this energy and,
+   * with the default `response.severityPerResidual` = 1, reproduces the burn
+   * severity the old direct-afflict produced (byte-compatible). Energy rises
+   * with how far past the scalding floor the surface sits (a tuning detail).
    */
-  public static contactBurn(temperatureK: number): Trauma | null {
+  public static contactBurnEnergy(temperatureK: number): number | null {
     if (Touch.bandFor(temperatureK) !== 'scalding') return null;
     const scaldingFloor = BAND_THRESHOLDS_K.hot; // < this is `hot`, ≥ scalds
-    return {
-      kind: 'trauma',
-      type: 'burn',
-      site: 'body.hand',
-      severity: Math.min(1, 0.5 + (temperatureK - scaldingFloor) / 80),
-    };
+    return Math.min(1, 0.5 + (temperatureK - scaldingFloor) / 80);
   }
 
   public toJSON(): {

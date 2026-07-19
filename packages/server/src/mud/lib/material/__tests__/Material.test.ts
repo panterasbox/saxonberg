@@ -114,6 +114,58 @@ describe('Material', () => {
     );
   });
 
+  it('round-trips the fire / phase-change properties, strict on units', () => {
+    const m = makeStuff(() => new Material());
+    m.setAutoignitionTemperature(Quantity.of(570, 'K'));
+    m.setHeatOfCombustion(Quantity.of(16, 'MJ/kg'));
+    m.setMeltingPoint(Quantity.of(1811, 'K'));
+    m.setLatentHeatOfFusion(Quantity.of(247000, 'J/kg'));
+    m.setBoilingPoint(Quantity.of(3134, 'K'));
+    m.setLatentHeatOfVaporization(Quantity.of(6340000, 'J/kg'));
+
+    expect(m.getAutoignitionTemperature().rawValue()).toBe(570);
+    expect(m.getAutoignitionTemperature().unit).toBe('K');
+    expect(m.getHeatOfCombustion().rawValue()).toBe(16);
+    expect(m.getHeatOfCombustion().unit).toBe('MJ/kg');
+    expect(m.getMeltingPoint().rawValue()).toBe(1811);
+    expect(m.getLatentHeatOfFusion().rawValue()).toBe(247000);
+    expect(m.getLatentHeatOfFusion().unit).toBe('J/kg');
+    expect(m.getBoilingPoint().rawValue()).toBe(3134);
+    expect(m.getLatentHeatOfVaporization().rawValue()).toBe(6340000);
+
+    expect(() =>
+      m.setHeatOfCombustion(
+        Quantity.of(16, 'MJ/m³') as unknown as Quantity<'MJ/kg'>,
+      ),
+    ).toThrow(TypeError);
+    expect(() =>
+      m.setLatentHeatOfFusion(
+        Quantity.of(1, 'J') as unknown as Quantity<'J/kg'>,
+      ),
+    ).toThrow(TypeError);
+  });
+
+  it('defaults the fire / phase-change properties to zero Quantities', () => {
+    const m = makeStuff(() => new Material());
+    // An unauthored material never ignites, never melts.
+    expect(m.getAutoignitionTemperature().rawValue()).toBe(0);
+    expect(m.getAutoignitionTemperature().unit).toBe('K');
+    expect(m.getHeatOfCombustion().rawValue()).toBe(0);
+    expect(m.getMeltingPoint().rawValue()).toBe(0);
+    expect(m.getLatentHeatOfFusion().rawValue()).toBe(0);
+    expect(m.getBoilingPoint().rawValue()).toBe(0);
+    expect(m.getLatentHeatOfVaporization().rawValue()).toBe(0);
+  });
+
+  it('binds QuantityMarshaller paths for the fire / phase-change props', () => {
+    expect(Material.fieldMarshallers.autoignitionTemperature).toBeDefined();
+    expect(Material.fieldMarshallers.heatOfCombustion).toBeDefined();
+    expect(Material.fieldMarshallers.meltingPoint).toBeDefined();
+    expect(Material.fieldMarshallers.latentHeatOfFusion).toBeDefined();
+    expect(Material.fieldMarshallers.boilingPoint).toBeDefined();
+    expect(Material.fieldMarshallers.latentHeatOfVaporization).toBeDefined();
+  });
+
   it('composes SingletonMixin and PropertiedMixin', () => {
     const m = makeStuff(() => new Material());
     expect(MixinApi.hasMixin(m, Mixins.Singleton)).toBe(true);

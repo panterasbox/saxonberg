@@ -1,0 +1,12 @@
+# The Hearthworks — the fire zone: a workshop yard where the combustion driver
+# and the high-heat physics live as reachable content — a woodshed (spread +
+# wet-resist), a sealed cellar (the CO/ventilation lesson), and a smithy (a
+# bellows-fed forge melting metal to a pourable liquid). A self-contained
+# CartesianZone, its own home (the electricity-substation precedent). No
+# inbound exit wired this cycle — reachable by teleport / a future travel node
+# (the treeline reachability precedent keeps content-area standup clean).
+class: /lib/location/CartesianZone
+hydratorClass: /lib/persistence/PersistentHydrator
+data:
+  name: The Hearthworks
+  cellSize: 3.0

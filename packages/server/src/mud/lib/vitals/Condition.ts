@@ -63,13 +63,13 @@ export { CHANNELS, Channels } from '../material/Channel';
 /**
  * The kind of insult an `inflict` describes. A {@link Channel} value runs the
  * full materials-response resolution (covering stack → tissue → both the
- * trauma *type* and its *severity*). The two legacy tokens `'thermal'` and
- * `'tearing'` take a **magnitude-only passthrough** (direct → burn /
- * avulsion) — the documented seam that folds into a future `heat` channel
- * and a tearing channel when those land. See
- * docs/subsystems/materials-response.md.
+ * trauma *type* and its *severity*) — this now includes `heat` (resolving
+ * through the insulation fold into a `burn`), which retired the old
+ * magnitude-only `'thermal'` token. The one remaining passthrough token is
+ * `'tearing'` (direct → avulsion) — the documented seam that folds into a
+ * tearing channel when it lands. See docs/subsystems/materials-response.md.
  */
-export type InsultKind = Channel | 'thermal' | 'tearing';
+export type InsultKind = Channel | 'tearing';
 
 /** Kind B — trauma value; behavior resolves from `TRAUMA_BEHAVIOR`. */
 export interface Trauma {

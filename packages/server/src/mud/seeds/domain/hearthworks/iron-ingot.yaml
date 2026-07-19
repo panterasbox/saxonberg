@@ -1,0 +1,10 @@
+# A cold iron ingot — a Meltable the forge melts. Iron's melting point
+# (1811 K) is reachable only by a bellows-fed forge; heated past it the ingot
+# runs to a molten pool on the floor.
+class: /obj/Ingot
+hydratorClass: /lib/persistence/PersistentHydrator
+data:
+  shortDescription: a cold iron ingot
+  keywords: [ingot, iron, bar, billet]
+  _materialPath: /lib/material/element/iron
+  mass: 0.5
