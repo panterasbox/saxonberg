@@ -8,7 +8,7 @@
 
 import type { CommandValidator } from "../../../api/command";
 import { SpeciesApi } from "../../../api/species";
-import { ContainmentApi } from "../../../api/containment";
+import { MqlApi } from "../../../api/mql";
 import { MixinApi } from "../../../api/mixin";
 import type { CredentialWallet } from "../../credential/CredentialWallet";
 import type { Stuff } from "../../stuff/Stuff";
@@ -17,12 +17,14 @@ import type { Stuff } from "../../stuff/Stuff";
 // (no free-standing module-scope statement).
 const validator: CommandValidator = Object.assign(
   (context: Parameters<CommandValidator>[0]) => {
-    const cred = ContainmentApi.findReachable(
-      context.commandGiver,
-      context.location,
-      (s: Stuff): s is Stuff & CredentialWallet =>
-        MixinApi.isCredentialWallet(s) && !!s.getCredential("travel"),
-    );
+    const cred =
+      MqlApi.resolveMany("reachable", {
+        commandGiver: context.commandGiver,
+        scope: "reachable",
+      }).stuff.find(
+        (s): s is Stuff & CredentialWallet =>
+          MixinApi.isCredentialWallet(s) && !!s.getCredential("travel"),
+      ) ?? null;
     if (cred) return undefined;
     return "you have no Teleport Authority credential";
   },

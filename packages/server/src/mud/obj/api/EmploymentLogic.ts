@@ -7,6 +7,7 @@ import { SecurityPolicies } from '../../lib/security/SecurityPolicies';
 import type { Stuff } from '../../lib/stuff/Stuff';
 import { StuffApi } from '../../api/stuff';
 import { MixinApi } from '../../api/mixin';
+import { MqlApi } from '../../api/mql';
 import { AccessApi } from '../../api/access';
 import { BankingApi, Money } from '../../api/banking';
 import { WorldClockApi } from '../../api/worldclock';
@@ -199,12 +200,15 @@ export class EmploymentLogic extends ApiLogic {
 
   private allBusinesses(): BusinessStuff[] {
     if (this.businessCache) return this.businessCache;
-    const out: BusinessStuff[] = [];
-    for (const obj of StuffApi.getAllObjects()) {
-      if (MixinApi.hasMixin(obj, Mixins.Business)) {
-        out.push(obj as BusinessStuff);
-      }
-    }
+    // MQL system enumeration (null giver — the roster tick must govern
+    // every business regardless of any viewer's fog).
+    const matches = MqlApi.resolveMany('world:[mixin.BusinessMixin]', {
+      commandGiver: null,
+      scope: 'world',
+    });
+    const out = matches.stuff.filter((s): s is BusinessStuff =>
+      MixinApi.hasMixin(s, Mixins.Business),
+    );
     this.businessCache = out;
     return out;
   }

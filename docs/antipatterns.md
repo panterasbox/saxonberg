@@ -109,6 +109,44 @@ boot seam), or a lazy first-use initializer. Full pattern table:
 [architecture.md § Module scope declares; lifecycles initialize](./architecture.md).
 Enforced by `pnpm lint:module-scope` (CI-gating).
 
+## Bespoke Object-Search Algorithms
+
+**ANTIPATTERN**: Hand-rolled runtime Stuff searches — a
+`getAllObjects()` loop with a filter, a custom multi-leg containment
+walk with a predicate.
+
+```typescript
+// BAD — a private world scan
+for (const obj of StuffApi.getAllObjects()) {
+  if (MixinApi.isAttendant(obj)) out.push(obj);
+}
+// BAD — a bespoke reachability walk (the deleted findReachable)
+```
+
+**INSTEAD**: MQL is how you search for Stuff at runtime; grow MQL when
+it can't express the search.
+
+```typescript
+// Engine sweep (viewer-blind): the code-only system mode
+const points = MqlApi.resolveMany('world:[mixin.AttendantMixin]', {
+  commandGiver: null,
+  scope: 'world',
+});
+// Actor-anchored capability scan: the reachable/person seeds + local
+// narrowing (the resolveIn pattern)
+const wallet = MqlApi.resolveMany('person', { commandGiver: actor, scope: 'person' })
+  .stuff.find((s): s is Stuff & CredentialWallet =>
+    MixinApi.isCredentialWallet(s));
+```
+
+Pick the anchor honestly: `person` for bearer semantics (a key on the
+floor is never "presented"), `reachable` for what the actor can act
+on, system mode only for engine bookkeeping with no character in the
+frame. The two sanctioned exceptions are `ResidencyLogic`'s raw-proxy
+sweeps (enumeration must not count as a touch — commented at the
+loops) and single-object reads (one container's contents, one host's
+hosted updates) — those are object-local reads, not searches.
+
 ## Duck Typing with Mixins
 
 **ANTIPATTERN**: Checking for method existence using `typeof` instead of

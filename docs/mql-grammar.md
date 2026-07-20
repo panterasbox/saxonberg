@@ -35,7 +35,10 @@ me                        the command-giver
 here                      the giver's current location
 peers                     everything in the room except the giver
 inventory                 the giver's contents
-reachable                 me ∪ here ∪ peers ∪ inventory
+person                    everything on your person (you, your implant
+                          apps, installed gear + its apps, carried
+                          items + their apps)
+reachable                 person ∪ here ∪ peers (your own gear first)
 me:i                      the giver's inventory (immediate contents)
 me:I                      everything reachable through inventory
                           recursively (apple in pouch in pack…)
@@ -126,7 +129,8 @@ seed yields a list of Stuff (possibly empty).
 | `me` | the command-giver |
 | `here` | the giver's current location |
 | `peers` | the location's contents minus the giver, each with its details |
-| `reachable` | union of the giver, `here`, `peers`, and `inventory` (you can reach yourself) |
+| `person` | everything on your person: you, your own attunement-hosted apps, installed slot occupants (+ their apps), carried items (+ their apps). Never the room's contents |
+| `reachable` | `person` ∪ `here` ∪ `peers`, your own gear emitted first (you can reach yourself) |
 | `inventory` | the giver's contents (the giver itself is `me`) |
 | `online` | every connected command-giver (admin) |
 | `world` | every Stuff (admin) |

@@ -9,7 +9,7 @@ import type { Stuff } from '../../lib/stuff/Stuff';
 import type { Slotted } from '../../lib/slot/Slotted';
 import type { Slottable } from '../../lib/slot/Slottable';
 import { MixinApi } from '../../api/mixin';
-import { StuffApi } from '../../api/stuff';
+import { MqlApi } from '../../api/mql';
 import type { SlotResolutionQuery } from '../../api/slot';
 
 // `AnyOf(FromModule, SelfOnly)`: `FromModule` admits the `SlotApi`
@@ -98,10 +98,18 @@ export class SlotLogic extends ApiLogic {
   public findOccupiedSlots(
     candidate: Stuff & Slottable
   ): ReadonlyMap<Stuff & Slotted, readonly string[]> {
-    // O(N) over the global Stuff registry — fine for v1's world sizes;
-    // promote to an inverse index if profiling demands.
+    // The candidate pool is an MQL system enumeration (null giver —
+    // slot bookkeeping must see every host regardless of any viewer's
+    // fog); the inner occupancy test is a reverse-relational read MQL
+    // has no predicate for, so it stays local. O(N) over the pool —
+    // fine for v1's world sizes; promote to an inverse index if
+    // profiling demands.
+    const hosts = MqlApi.resolveMany('world:[mixin.SlottedMixin]', {
+      commandGiver: null,
+      scope: 'world',
+    });
     const out = new Map<Stuff & Slotted, string[]>();
-    for (const obj of StuffApi.getAllObjects()) {
+    for (const obj of hosts.stuff) {
       if (!MixinApi.isSlotted(obj)) continue;
       const slotNames: string[] = [];
       for (const [name, occupants] of obj.getAllOccupants().entries()) {

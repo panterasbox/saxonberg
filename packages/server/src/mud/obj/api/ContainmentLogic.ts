@@ -35,28 +35,6 @@ const ContainmentApiCallers = SecurityPolicies.AnyOf(
 );
 
 /**
- * Descend-into-host helper: when `host` is an attunement host, test each
- * of its hosted update Ideas (the incorporeal capability base). One level
- * only — matching the one-flat-level discipline of the corporeal legs.
- * `actor` is the actor whose scan this is, skipped to avoid self-recursion.
- * Module-private (off-class, ungated, un-callable from outside) — shared by
- * `findReachable`'s leg 2/3/4 and the leg-2-only `findHostedUpdate`.
- */
-function hostedMatch<T>(
-  host: Stuff,
-  actor: Stuff,
-  predicate: (s: Stuff) => s is Stuff & T,
-): (Stuff & T) | null {
-  // `isAether` narrows `host` to an `AetherHost` — no cast needed.
-  if (!MixinApi.isAether(host)) return null;
-  for (const u of host.getHostedUpdates()) {
-    if (u === actor) continue; // defensive — no self-recursion
-    if (predicate(u)) return u;
-  }
-  return null;
-}
-
-/**
  * ContainmentLogic — the hot-reloadable logic singleton behind
  * {@link ContainmentApi}.
  *
@@ -164,60 +142,9 @@ export class ContainmentLogic extends ApiLogic {
     return container.getContents().some((obj) => obj.stuffId === item.stuffId);
   }
 
-  /** See {@link ContainmentApi.findReachable}. */
-  @CallSecurity(ContainmentApiCallers)
-  public findReachable<T>(
-    actor: Stuff,
-    location: ContainerStuff | null,
-    predicate: (s: Stuff) => s is Stuff & T,
-  ): (Stuff & T) | null {
-    // 1. Self (intrinsic leg) — a capability composed directly on the
-    //    actor (or its species). On-your-person, so it goes first.
-    if (predicate(actor)) return actor;
-    // 2. Self's hosted updates — the implant-hosted comms / credential
-    //    updates plugged into the actor's own attunement.
-    const onSelf = hostedMatch(actor, actor, predicate);
-    if (onSelf) return onSelf;
-    // 3. Installed augmentations — slot occupants ("on your person"),
-    //    plus each attuned occupant's hosted updates.
-    if (MixinApi.isSlotted(actor)) {
-      for (const occupants of actor.getAllOccupants().values()) {
-        for (const occ of occupants) {
-          if (predicate(occ)) return occ;
-          const hosted = hostedMatch(occ, actor, predicate);
-          if (hosted) return hosted;
-        }
-      }
-    }
-    // 4. Carried inventory, plus each carried attuned host's hosted
-    //    updates (the future radio: a carried Thing hosting comms).
-    if (MixinApi.isContainer(actor)) {
-      for (const item of actor.getContents()) {
-        if (predicate(item)) return item;
-        const hosted = hostedMatch(item, actor, predicate);
-        if (hosted) return hosted;
-      }
-    }
-    // 5. Surrounding location contents.
-    if (location) {
-      for (const item of location.getContents()) {
-        if (predicate(item)) return item;
-      }
-    }
-    return null;
-  }
-
-  /** See {@link ContainmentApi.findHostedUpdate}. */
-  @CallSecurity(ContainmentApiCallers)
-  public findHostedUpdate<T>(
-    actor: Stuff,
-    predicate: (s: Stuff) => s is Stuff & T,
-  ): (Stuff & T) | null {
-    // Leg-2 in isolation: the actor's OWN hosted updates, one level. No
-    // slot-occupant / carried-inventory / location legs — this is
-    // identity binding, not the reachable-instrument scan.
-    return hostedMatch(actor, actor, predicate);
-  }
+  // `findReachable` / `findHostedUpdate` were removed — the reachable
+  // walk now lives in MQL's `reachable` seed (api/mql/scope-walk.ts
+  // `candidatesForReachable`).
 
   /** See {@link ContainmentApi.resolveLanding}. */
   @CallSecurity(ContainmentApiCallers)

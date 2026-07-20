@@ -14,6 +14,7 @@ import { LocomotionMode } from '../../lib/locomotion/LocomotionMode';
 import type { Enablement } from '../../lib/locomotion/Enablement';
 import { StuffApi } from '../../api/stuff';
 import { MixinApi } from '../../api/mixin';
+import { MqlApi } from '../../api/mql';
 import { SpeciesApi } from '../../api/species';
 import { SlotApi } from '../../api/slot';
 import type { MixinName } from '../../lib/mixin';
@@ -137,11 +138,15 @@ export class LocomotionLogic extends ApiLogic {
   /** See {@link LocomotionApi.allModes}. */
   @CallSecurity(LocomotionApiCallers)
   public allModes(): readonly LocomotionMode[] {
-    const out: LocomotionMode[] = [];
-    for (const obj of StuffApi.getAllObjects()) {
-      if (obj instanceof LocomotionMode) out.push(obj);
-    }
-    return out;
+    // MQL system enumeration (null giver — the mode roster is engine
+    // vocabulary, not a viewer's perception).
+    const matches = MqlApi.resolveMany('world:[class.LocomotionMode]', {
+      commandGiver: null,
+      scope: 'world',
+    });
+    return matches.stuff.filter(
+      (s): s is LocomotionMode => s instanceof LocomotionMode,
+    );
   }
 
   /** See {@link LocomotionApi.resolveHostMode}. */

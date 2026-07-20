@@ -324,7 +324,8 @@ Ordered by leverage + dependency:
    [augmentation.md](./subsystems/augmentation.md)); the
    capability-hosting build (2026-06) then shipped the **three-base
    capability model** + aether-as-host (comms + travel credential as
-   hosted updates, `findReachable` self + host-descent legs, species
+   hosted updates, the reachable scan's self + host-descent legs (now
+   the MQL `reachable` seed), species
    intrinsic conferral). Wave 2+ adds the install/remove medical
    procedure, char-gen loadout, other augment Stuff (translation,
    prosthetics, sensor packages, motor / cognitive), and failure

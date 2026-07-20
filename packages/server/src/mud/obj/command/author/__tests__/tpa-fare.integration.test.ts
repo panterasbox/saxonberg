@@ -48,6 +48,7 @@ import {
   installBankingHarness,
   teardownBankingHarness,
 } from "../../../../lib/banking/__tests__/banking-test-harness";
+import type { AetherHosted } from "../../../../lib/augmentation/AetherHosted";
 import type { CredentialWallet } from "../../../../lib/credential/CredentialWallet";
 import Coin from "../../../../obj/Coin";
 import { Quantity } from "../../../../lib/quantity";
@@ -160,12 +161,18 @@ async function bal(accountId: string): Promise<number> {
   return BankingApi.balanceOf(accountId).minor;
 }
 
-/** The traveller's identity wallet (the hosted CredentialWalletUpdate). */
+/** The traveller's identity wallet (the hosted CredentialWalletUpdate —
+ *  a single-object read on the traveller's own hosted updates). */
 function walletOf(t: Stuff): CredentialWallet {
-  return ContainmentApi.findHostedUpdate(
-    t,
-    (s: Stuff): s is Stuff & CredentialWallet => MixinApi.isCredentialWallet(s),
-  )!;
+  if (!MixinApi.isAether(t)) {
+    throw new Error("traveller is not an aether host");
+  }
+  return t
+    .getHostedUpdates()
+    .find(
+      (s): s is Stuff & AetherHosted & CredentialWallet =>
+        MixinApi.isCredentialWallet(s),
+    )!;
 }
 
 /** Link + fund a payment account on the traveller's wallet. */

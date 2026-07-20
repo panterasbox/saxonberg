@@ -11,13 +11,13 @@
 // See docs/subsystems/attendant.md.
 
 import { ApiLogic } from "../../lib/stuff/ApiLogic";
-import { StuffApi } from "../../api/stuff";
 import { ScheduleApi, type ScheduleHandle } from "../../api/schedule";
 import { AppApi } from "../../api/app";
 import { AppSettingKeys } from "../../lib/config/AppSettings";
 import { CallSecurity } from "../../lib/security/decorators";
 import { SecurityPolicies } from "../../lib/security/SecurityPolicies";
 import { MixinApi } from "../../api/mixin";
+import { MqlApi } from "../../api/mql";
 import { EventApi, type Subscription } from "../../api/event";
 import { Events } from "../../lib/events";
 import type { Attendant } from "../../lib/attendant/Attendant";
@@ -90,10 +90,14 @@ export class AttendantLogic extends ApiLogic {
   }
 
   private allPoints(): (Stuff & Attendant)[] {
-    const out: (Stuff & Attendant)[] = [];
-    for (const obj of StuffApi.getAllObjects()) {
-      if (MixinApi.isAttendant(obj)) out.push(obj as Stuff & Attendant);
-    }
-    return out;
+    // MQL system enumeration (null giver — viewer-blind engine sweep;
+    // a concealed point must still evict its idle leases): the world
+    // seed + mixin filter is the declarative form of the old
+    // getAllObjects scan.
+    const matches = MqlApi.resolveMany('world:[mixin.AttendantMixin]', {
+      commandGiver: null,
+      scope: 'world',
+    });
+    return matches.stuff.filter((s) => MixinApi.isAttendant(s));
   }
 }

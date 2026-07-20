@@ -3,8 +3,8 @@
  *
  * Afforded by the hosted `ForumsUpdate` (the born-with forum capability,
  * `ForumsMixin.commandContributions`). The capability is reached via the
- * `commandSource` that afforded the verb, else a `findReachable`
- * host-descent fallback (the `DmController` pattern); an actor without a
+ * `commandSource` that afforded the verb, else an MQL `reachable`-pool
+ * fallback (the `DmController` pattern); an actor without a
  * forum update is refused.
  *
  * Subcommands (subcommand-first, `fallthrough: true` for a bare
@@ -34,7 +34,7 @@ import type { CommandContext, CommandModel } from '../../../api/command';
 import { MessageApi } from '../../../api/message';
 import { Mml } from '../../../api/mml';
 import { MixinApi } from '../../../api/mixin';
-import { ContainmentApi } from '../../../api/containment';
+import { MqlApi } from '../../../api/mql';
 import { ForumsApi } from '../../../api/forums';
 import { SubjectApi } from '../../../api/subject';
 import { PlayerApi } from '../../../api/player';
@@ -65,14 +65,16 @@ interface ForumModel extends CommandModel {
 
 const VALID_SORTS = new Set<EntrySort>(['new', 'top', 'hot', 'controversial']);
 
-/** Resolve the operator's hosted forum update — commandSource or findReachable. */
+/** Resolve the operator's hosted forum update — commandSource or the MQL
+ *  `reachable` pool. */
 function resolveForums(context: CommandContext): (Stuff & Forums) | null {
   const source = context.commandSource;
   if (source && MixinApi.isForums(source)) return source;
-  return ContainmentApi.findReachable(
-    context.commandGiver,
-    null,
-    (s: Stuff): s is Stuff & Forums => MixinApi.isForums(s),
+  return (
+    MqlApi.resolveMany('person', {
+      commandGiver: context.commandGiver,
+      scope: 'person',
+    }).stuff.find((s): s is Stuff & Forums => MixinApi.isForums(s)) ?? null
   );
 }
 

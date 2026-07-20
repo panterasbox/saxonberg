@@ -18,6 +18,7 @@
 
 import { CommandController } from "../../../lib/command/CommandController";
 import type { CommandContext, CommandModel } from "../../../api/command";
+import { MqlApi } from "../../../api/mql";
 import type { MqlOneResult } from "../../../api/mql";
 import { MessageApi } from "../../../api/message";
 import { Mml } from "../../../api/mml";
@@ -30,6 +31,7 @@ import type { Charge } from "../../../api/banking";
 import { EmploymentApi } from "../../../api/employment";
 import { AppApi } from "../../../api/app";
 import { AppSettingKeys } from "../../../lib/config/AppSettings";
+import type { AetherHosted } from "../../../lib/augmentation/AetherHosted";
 import type { CredentialWallet } from "../../../lib/credential/CredentialWallet";
 import type { FastTravel } from "../../../lib/fasttravel/FastTravel";
 import type { Container } from "../../../lib/spatial/Container";
@@ -134,11 +136,14 @@ export default class TeleportController extends CommandController<TeleportModel>
     const giver: Stuff = context.commandGiver;
     // `teleport` is a general verb (not terminal-afforded), so the TPA fork
     // finds the node the actor can reach rather than reading commandSource.
-    const node = ContainmentApi.findReachable(
-      giver,
-      context.location,
-      (s: Stuff): s is Stuff & FastTravel => MixinApi.isFastTravel(s),
-    );
+    const reachable = MqlApi.resolveMany("reachable", {
+      commandGiver: context.commandGiver,
+      scope: "reachable",
+    }).stuff;
+    const node =
+      reachable.find(
+        (s): s is Stuff & FastTravel => MixinApi.isFastTravel(s),
+      ) ?? null;
     if (!node) {
       return this.fail(context, "there is no terminal here", "no-terminal");
     }
@@ -146,12 +151,11 @@ export default class TeleportController extends CommandController<TeleportModel>
     // Instrument gate: "do you have the means to use the TPA at all?" — any
     // reachable travel holder satisfies it (a carried card OR the born-with
     // implant), so onboarding and the un-implanted are never stranded.
-    const instrument = ContainmentApi.findReachable(
-      giver,
-      context.location,
-      (s: Stuff): s is Stuff & CredentialWallet =>
-        MixinApi.isCredentialWallet(s) && !!s.getCredential("travel"),
-    );
+    const instrument =
+      reachable.find(
+        (s): s is Stuff & CredentialWallet =>
+          MixinApi.isCredentialWallet(s) && !!s.getCredential("travel"),
+      ) ?? null;
     if (!instrument) {
       return this.fail(
         context,
@@ -160,15 +164,18 @@ export default class TeleportController extends CommandController<TeleportModel>
       );
     }
     // Clearance is read off IDENTITY, never the carried instrument: the
-    // actor's own aether-hosted wallet (leg-2 isolation). A loaded card
-    // handed to another player confers no clearance. When the actor hosts no
-    // wallet (un-attuned, card-only) the clearance store is the born-with
-    // floor only.
-    const identity = ContainmentApi.findHostedUpdate(
-      giver,
-      (s: Stuff): s is Stuff & CredentialWallet =>
-        MixinApi.isCredentialWallet(s) && !!s.getCredential("travel"),
-    );
+    // actor's own aether-hosted wallet (a single-object read on the giver's
+    // own hosted updates). A loaded card handed to another player confers no
+    // clearance. When the actor hosts no wallet (un-attuned, card-only) the
+    // clearance store is the born-with floor only.
+    const identity = MixinApi.isAether(giver)
+      ? (giver
+          .getHostedUpdates()
+          .find(
+            (s): s is Stuff & AetherHosted & CredentialWallet =>
+              MixinApi.isCredentialWallet(s) && !!s.getCredential("travel"),
+          ) ?? null)
+      : null;
     const cred = identity?.getCredential("travel") ?? null;
 
     if (!node.isDeparture()) {

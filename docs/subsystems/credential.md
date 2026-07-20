@@ -123,12 +123,16 @@ trivial subclasses avoids touching the command hot path.
 
 ## Resolution — one scan, either base
 
-Consumers no longer scan for a typed credential; they scan for the **holder**
-and read the record:
+Consumers no longer scan for a typed credential; the scan is an **MQL
+`person` pool** (bearer semantics — the on-person seed: self + hosted
+apps + slot occupants + carried; a card on the floor is never
+"presented") filtered on `isCredentialWallet` + record-presence /
+`!frozen` — they find the **holder** and read the record:
 
 ```ts
-ContainmentApi.findReachable(actor, loc, (s): s is Stuff & CredentialWallet =>
-  MixinApi.isCredentialWallet(s) && !!s.getCredential('travel'))
+MqlApi.resolveMany('person', { commandGiver: actor, scope: 'person' })
+  .stuff.find((s): s is Stuff & CredentialWallet =>
+    MixinApi.isCredentialWallet(s) && !!s.getCredential('travel')) ?? null
 ```
 
 `MixinApi.isCredentialWallet` (registry constant `Mixins.CredentialWallet`) +
@@ -136,8 +140,9 @@ a record-presence filter reproduces the old per-kind `isPaymentCredential` /
 `isTravelCredential` scans exactly — including the **frozen-skip** (the
 payment predicate filters `!record.isFrozen()`, so a reissued card is found
 in place of a revoked one) and the **either-base** reach (a carried card via
-the inventory leg, the hosted wallet via the host-descent leg of the
-three-base model — see [augmentation.md](./augmentation.md)).
+the seed's inventory leg, the hosted wallet via its host-descent leg of the
+three-base model — see [augmentation.md](./augmentation.md)); the seed's
+on-person-first emission keeps the implant-first preference.
 
 ## Consumers
 

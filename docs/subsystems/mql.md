@@ -331,7 +331,7 @@ outer try/catch converts the throw into a command-level failure.
 | `'literal'` | `LiteralNode` | exact name/keyword match (whitespace preserved) |
 | `me` | `PronounNode` | the giver |
 | `here` | `PronounNode` | the giver's location |
-| `peers` / `reachable` / `inventory` / `online` / `world` | name-promoted `KeywordsNode` | the corresponding scope-walk pool |
+| `peers` / `reachable` / `person` / `inventory` / `online` / `world` | name-promoted `KeywordsNode` | the corresponding scope-walk pool |
 | `it` / `him` / `her` / `them` | `PronounNode` | pronoun memory read |
 | `$$` | `LastResultNode` | pronoun memory `last` slot |
 | `/path/with/*globs` | `PathNode` | template-path glob seed (PathTrie) |
@@ -505,7 +505,8 @@ Built-in scopes:
 | `here` | location + its details + exits/doors |
 | `peers` | location's contents (each item + its details), minus the giver |
 | `inventory` | giver's contents (Container check) |
-| `reachable` | union of the giver, `here`, `peers`, and `inventory` (you can reach yourself) |
+| `person` | the **on-person** pool: the giver + their own attunement-hosted updates + installed slot occupants (+ each occupant's hosted updates) + carried inventory (+ each carried attuned host's hosted updates). Bearer semantics — no location leg; the anchor for `presentsKey` / payment-credential / hosted-app resolution (a matching key on the floor is never "presented") |
+| `reachable` | `person` + `here` + `peers`, emitted **on-person-first** (the former `ContainmentApi.findReachable` contract, absorbed into the seed): first-match consumers and tie-broken targeting prefer your own gear over the floor's |
 | `online` | every connected interactive's holder Stuff |
 | `world` | every Stuff |
 
@@ -714,6 +715,32 @@ Permission failure is loud — fail at parse-time or resolve-time with
 a message naming the tier ("You don't have permission to use
 'mixin' filters here."). We don't silently strip operators; that
 creates surprising behavior.
+
+## System mode (`commandGiver: null`)
+
+`MqlContext.commandGiver` may be `null` — the **code-only system
+mode** (the `attention` precedent: the command dispatcher always
+stamps a real giver, so player-typed MQL can never reach it). A null
+giver is the engine's own viewer-blind enumeration for registry
+sweeps and fixture indexes (`AttendantLogic.allPoints`,
+`EmploymentLogic.allBusinesses`, `LocomotionLogic.allModes`,
+`SlotLogic.findOccupiedSlots` — the former `getAllObjects` scans):
+
+- the viewer-free seeds resolve (`world`, `/path` globs, `#id`,
+  `online`) with **no perception gate** and baseline
+  (`getPresentation`) names — omniscient, not fogged;
+- the giver-anchored seeds (`me`/`here`/`peers`/`reachable`/`person`/
+  `inventory`) and the bareword predicates (`visible`/`mine`/`admin`
+  all read the giver) **throw** a clear resolver error — nothing
+  guesses a viewer;
+- namespace filters (`[mixin.X]`/`[class.X]`) work: the permission
+  snapshot is absent for server-internal contexts, which permits
+  (the pre-existing internal-caller rule).
+
+The one deliberate NON-consumer is `ResidencyLogic`'s pair of sweeps
+— they operate on raw unwrapped proxies so enumeration never counts
+as a residency touch, which MQL's proxy-mediated emission can't
+express (the exemption is commented at both loops).
 
 ## Predicate registry (`mql/predicates.ts`)
 

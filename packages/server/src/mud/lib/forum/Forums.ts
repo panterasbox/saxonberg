@@ -11,7 +11,7 @@
  * operations are Board/Entry CRUD that live on `ForumsApi` /
  * `ForumsLogic`; this mixin is the capability *gate* + verb contributor +
  * operator resolver. The `forum` controller reaches a holder's update via
- * `ContainmentApi.findReachable(actor, null, MixinApi.isForums)` (the
+ * the MQL `reachable` pool filtered on `MixinApi.isForums` (the
  * `DmController` pattern) and confirms the capability is active.
  *
  * **Soft pairing with `AetherHostedMixin`** — same as `CommsMixin`:

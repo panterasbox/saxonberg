@@ -39,7 +39,21 @@ import type { Unit } from '../../lib/quantity';
  *   details, environment, exits) to score query candidates.
  */
 export interface MqlContext {
-  commandGiver: Stuff & CommandGiver;
+  /**
+   * The viewer the query resolves for — perception (honest fog),
+   * recognition-relative naming, and the giver-anchored seeds
+   * (`me`/`here`/`peers`/`reachable`/`inventory`) all key off it.
+   *
+   * `null` is the **code-only system mode** (the `attention`
+   * precedent — the command dispatcher always sets a giver, so
+   * player-typed MQL can never reach it): a viewer-blind enumeration
+   * for engine mechanics (registry sweeps, fixture indexes). Under a
+   * null giver only the viewer-free seeds resolve (`world`, path
+   * globs, `#id`, `online`); giver-anchored seeds and bareword
+   * predicates throw, candidates emit with baseline names and no
+   * perception gate.
+   */
+  commandGiver: (Stuff & CommandGiver) | null;
   scope: string;
   /**
    * Precomputed permission snapshot stamped by the command dispatcher

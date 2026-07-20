@@ -135,10 +135,11 @@ BOTH a `PaymentCard` (`= CredentialWalletMixin(Thing)`, a 1:1 bearer
 instrument you can lose) and the born-with `CredentialWalletUpdate`
 (`= CredentialWalletMixin(AetherHostedMixin(Idea))`, the one wallet app holding
 every credential kind — installed once by `Avatar.installDefaultLoadout`,
-body-bound). Reached via `ContainmentApi.findReachable` keyed on
+body-bound). Reached via the MQL `reachable` pool filtered on
 `MixinApi.isCredentialWallet` + a **non-frozen** `payment` record
-(implant-first — the self-hosted leg precedes carried cards), so a reissued
-card is found in place of a revoked one. `openAccount` auto-links each new
+(implant-first — the seed's on-person-first ordering puts the self-hosted
+leg before carried cards), so a reissued card is found in place of a
+revoked one. `openAccount` auto-links each new
 account to the owner's wallet (first opened → active). `BankingApi`'s
 credential surface (`activeCredential` / `setActiveAccount` /
 `freezeCredential`) traffics in the `PaymentCredential` record; `issueCard`

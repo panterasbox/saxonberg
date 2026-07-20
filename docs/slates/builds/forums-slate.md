@@ -59,8 +59,9 @@ discard their content — it absorbs it as organizer modes):
 - [docs/subsystems/comms.md](../../subsystems/comms.md) +
   [docs/subsystems/augmentation.md](../../subsystems/augmentation.md) — the
   aether host ⊕ hosted-update relation the forum capability rides (DM-style:
-  a hosted capability on the universal aether implant; `findReachable`
-  host-descent; `Species.innateMixins` conferral).
+  a hosted capability on the universal aether implant; the reachable
+  scan's host-descent (now the MQL `reachable` seed);
+  `Species.innateMixins` conferral).
 - [docs/subsystems/reactions.md](../../subsystems/reactions.md) — the
   `commandId` gutter / message-id substrate the thread-tree threading rides,
   and the emote-aggregation reaction layer entries reuse.
@@ -117,7 +118,8 @@ discard their content — it absorbs it as organizer modes):
    surface, behavior pays).
 5. **Forums ride the aether implant (DM-style).** Participation is a hosted
    capability on the universal aether implant — the same host that carries
-   comms — reached via `findReachable` host-descent, conferred by implant or
+   comms — reached via the reachable scan's host-descent (now the MQL
+   `reachable` seed), conferred by implant or
    `Species.innateMixins`. A board is an aether board; there is no external
    store (delivery-slate's diegesis + bus-primacy calls hold).
 6. **Entries are durable Documents.** Unlike chat's default ephemeral ring,
