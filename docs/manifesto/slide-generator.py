@@ -76,14 +76,15 @@ def _seats(cx,py,filled):
     else:
         for i in range(3): g+=[L(cx-90,ty+22+i*18,cx-30,ty+22+i*18,DIMB,4,0.8)]
     return g
-def f_machinery():
+def f_machinery(stage=2):
     g=[CT(960,110,"self-government always lacked one thing — people who show up",38,SOFT)]
     g+=_seats(500,640,False)+[CT(500,205,"they built the machinery",30,SOFT),
         CT(500,720,"DAOs · online democracies · token votes",24,DIMB), CT(500,772,"— nobody came",26,CORAL)]
-    g+=_seats(1400,640,True)+[CT(1400,205,"a game fills it",30,WHITE)]
-    for i in range(6): g+=ARR(1745+i*6,300+i*40,1665-i*6,360+i*30,STEEL,3,0.7)
-    g+=[CT(1400,720,"the same machinery",24,SOFT), CT(1400,772,"— now full",26,GREEN)]
-    g+=[CT(960,960,"civic duty is a cost.  a game makes taking part the reward.",32,WHITE)]
+    if stage>=2:
+        g+=_seats(1400,640,True)+[CT(1400,205,"a game fills it",30,WHITE)]
+        for i in range(6): g+=ARR(1745+i*6,300+i*40,1665-i*6,360+i*30,STEEL,3,0.7)
+        g+=[CT(1400,720,"the same machinery",24,SOFT), CT(1400,772,"— now full",26,GREEN)]
+        g+=[CT(960,960,"civic duty is a cost.  a game makes taking part the reward.",32,WHITE)]
     return g
 
 # ── Ch 3 hero: the three rings (legislative chambers) ──
@@ -126,26 +127,31 @@ def f_openfloor():
     for i,sx in enumerate(slots): g+=[person(fx0+40+i*100,270+(i%2)*30,10,STEEL)]+ARR(fx0+40+i*100,282+(i%2)*30,sx,fy-52,STEEL,2,0.7)
     g+=[CT(1240,700,"anyone puts one down — where everyone can see",24,SOFT)]; return g
 
-# ── Ch 4 hero: the claim graph ──
-def f_graph():
+# ── Ch 4 hero: the claim graph (builds: claims attach -> one answered -> one stays open) ──
+def f_graph(stage=3):
     g=[CT(860,105,"claims attach by how they answer each other",38,SOFT)]
     def node(x,y,w,label,col): return [R(x-w/2,y,w,64,col,3),CT(x,y+42,label,28,col)]
     g+=node(830,175,300,"proposal",WHITE)+node(450,395,290,"supports",GREEN)+node(830,395,300,"objects to",CORAL)+node(1250,395,300,"objects to",CORAL)
     g+=[L(760,239,530,395,GREEN,3),CT(590,300,"supports",22,GREEN),L(830,239,830,395,CORAL,3),CT(880,320,"objects to",22,CORAL),
         L(900,239,1190,395,CORAL,3),CT(1090,295,"objects to",22,CORAL)]
-    g+=node(830,640,300,"answers it",GREEN)+[L(830,459,830,640,GREEN,3),CT(880,560,"answers",22,GREEN),CT(830,760,"answered → closed",26,GREEN)]
-    g+=[C(1250,427,125,AMBER,4,op=0.5),C(1250,427,155,AMBER,2,op=0.25),CT(1250,620,"nothing answers it",26,AMBER),CT(1250,665,"STAYS OPEN",32,AMBER,weight="bold")]
-    g+=[CT(830,1010,"you cannot bury it — only answer it",34,WHITE)]; return g
+    if stage>=2:  # one objection gets answered -> closes
+        g+=node(830,640,300,"answers it",GREEN)+[L(830,459,830,640,GREEN,3),CT(880,560,"answers",22,GREEN),CT(830,760,"answered → closed",26,GREEN)]
+    if stage>=3:  # the other has no answer -> stays open
+        g+=[C(1250,427,125,AMBER,4,op=0.5),C(1250,427,155,AMBER,2,op=0.25),CT(1250,620,"nothing answers it",26,AMBER),CT(1250,665,"STAYS OPEN",32,AMBER,weight="bold")]
+        g+=[CT(830,1010,"you cannot bury it — only answer it",34,WHITE)]
+    return g
 
-# ── Ch 5 hero: the pipeline with remand ──
-def f_pipeline():
+# ── Ch 5 hero: the pipeline with remand (builds: stations -> ships -> remand) ──
+def f_pipeline(stage=3):
     g=[CT(860,110,"decide  ·  build  ·  check",40,SOFT)]; sy,sh,sw_=330,180,380
     for (sx,t1,t2) in [(120,"REQUIREMENT","what should be true"),(560,"BUILD","make it real"),(1000,"REVIEW","did it do what was asked?")]:
         g+=[R(sx,sy,sw_,sh,WHITE,4),CT(sx+sw_/2,sy+70,t1,32,WHITE,weight="bold"),CT(sx+sw_/2,sy+125,t2,24,SOFT)]
     g+=ARR(500,sy+sh/2,560,sy+sh/2,SOFT,4)+ARR(940,sy+sh/2,1000,sy+sh/2,SOFT,4)
-    g+=ARR(1380,sy+sh/2,1462,sy+sh/2,GREEN,5)+[CT(1420,sy+sh/2-30,"ships",26,GREEN)]
-    g+=[PATH(f"M 1190 {sy+sh} C 1190 {sy+sh+150}, 750 {sy+sh+150}, 750 {sy+sh+6}",CORAL,4)]+ARR(752,sy+sh+40,750,sy+sh+8,CORAL,4)
-    g+=[CT(970,sy+sh+185,"misses → here's exactly where",28,CORAL),CT(860,1020,"the court says where it misses; the builder decides how to fix it",32,WHITE)]
+    if stage>=2:  # conforms -> ships
+        g+=ARR(1380,sy+sh/2,1462,sy+sh/2,GREEN,5)+[CT(1420,sy+sh/2-30,"ships",26,GREEN)]
+    if stage>=3:  # misses -> remand loop back to build
+        g+=[PATH(f"M 1190 {sy+sh} C 1190 {sy+sh+150}, 750 {sy+sh+150}, 750 {sy+sh+6}",CORAL,4)]+ARR(752,sy+sh+40,750,sy+sh+8,CORAL,4)
+        g+=[CT(970,sy+sh+185,"misses → here's exactly where",28,CORAL),CT(860,1020,"the court says where it misses; the builder decides how to fix it",32,WHITE)]
     return g
 
 # ── the SPINE: master architecture (assembles across the branch beats) ──
@@ -201,21 +207,26 @@ def f_continuum(safe_line="the setting moves. the floor doesn't."):
 # ================= CH 1 — THE HERO MONTAGE =================
 CH1=[
  ("ch1-01-hub", f_hub()),                                              # 0  tools route through one point
- ("ch1-02-machinery", f_machinery()),                                  # 0/① why a game  [Ch2 hero]
- ("ch1-03-rings", f_rings(False)),                                     # ①  three contributors  [Ch3 hero]
- ("ch1-04-fork", f_fork()),                                            # ①  machine vs human (sets up Ch5)
- ("ch1-05-openfloor", f_openfloor()),                                  # ②  a proposal on the open floor
- ("ch1-06-graph", f_graph()),                                          # ③  it gets argued  [Ch4 hero]
- ("ch1-07-chambers", f_rings(True, title="each force gets its own count",
+ ("ch1-02-machinery-empty", f_machinery(1)),                          # 0/① machinery built…  [Ch2 hero build]
+ ("ch1-03-machinery-full", f_machinery(2)),                           # 0/① …a game fills it
+ ("ch1-04-rings", f_rings(False)),                                     # ①  three contributors  [Ch3 hero]
+ ("ch1-05-fork", f_fork()),                                            # ①  machine vs human (sets up Ch5)
+ ("ch1-06-openfloor", f_openfloor()),                                  # ②  a proposal on the open floor
+ ("ch1-07-graph-attach", f_graph(1)),                                 # ③  claims attach  [Ch4 hero build]
+ ("ch1-08-graph-answered", f_graph(2)),                               # ③  …one answered, closes
+ ("ch1-09-graph-open", f_graph(3)),                                   # ③  …one stays open
+ ("ch1-10-chambers", f_rings(True, title="each force gets its own count",
                              cap="nothing passes by capturing just one")),  # ④  chambers, 2-of-3  [Ch3 hero]
- ("ch1-08-model-leg", master(level=2, title="a law is a change to the code — three branches make it real")),  # ⑤ assemble…
- ("ch1-09-model-exec", master(level=3)),                               # ⑤  …+executive
- ("ch1-10-model-jud", master(level=4)),                                # ⑤  …+judicial  [Ch5 hero: the architecture]
- ("ch1-11-pipeline", f_pipeline()),                                    # ⑤  build like software  [Ch5 hero]
- ("ch1-12-model-record", master(level=5)),                             # ⑥  all written down  [Ch6 hero]
- ("ch1-13-fill", master(level=5, pop="one", title="the same model, whatever the population",
+ ("ch1-11-model-leg", master(level=2, title="a law is a change to the code — three branches make it real")),  # ⑤ assemble…
+ ("ch1-12-model-exec", master(level=3)),                               # ⑤  …+executive
+ ("ch1-13-model-jud", master(level=4)),                                # ⑤  …+judicial
+ ("ch1-14-pipeline-stations", f_pipeline(1)),                          # ⑤  build like software…  [Ch5 hero build]
+ ("ch1-15-pipeline-ships", f_pipeline(2)),                             # ⑤  …conforms → ships
+ ("ch1-16-pipeline-remand", f_pipeline(3)),                            # ⑤  …misses → remand
+ ("ch1-17-model-record", master(level=5)),                             # ⑥  all written down  [Ch6 hero]
+ ("ch1-18-fill", master(level=5, pop="one", title="the same model, whatever the population",
                         cap="one founder can hold every seat", sub="the model doesn't change — only who fills it")),  # close
- ("ch1-14-dial", f_continuum(safe_line="it opens up as far as the founder chooses — it just makes it safe to")),  # close [Ch7 hero]
+ ("ch1-19-dial", f_continuum(safe_line="it opens up as far as the founder chooses — it just makes it safe to")),  # close [Ch7 hero]
 ]
 
 def emit(name,parts):
