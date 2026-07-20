@@ -401,8 +401,9 @@ CH3=[
 # ── Ch 4 frames (the argument; hero = the claim graph, f_graph) ──
 def f_modes(stage=2):
     g=[CT(960,110,"match the mode to the moment",40,SOFT)]
-    x0,y0,cw,chh,gap=560,240,400,230,40
-    for j,cl in enumerate(["CHAT — live","FORUM — posted"]): g+=[CT(x0+cw/2+j*(cw+gap),y0-30,cl,26,SOFT)]
+    x0,y0,cw,chh,gap=560,260,400,230,40
+    for j,(big,small) in enumerate([("SYNC","chat · real-time"),("ASYNC","the forum · over time")]):
+        cxh=x0+cw/2+j*(cw+gap); g+=[CT(cxh,y0-52,big,30,WHITE,weight="bold"),CT(cxh,y0-18,small,20,SOFT)]
     for i,rl in enumerate(["LOOSE","STRUCTURED"]): g+=[T(x0-170,y0+chh/2+i*(chh+gap)+10,rl,26,SOFT)]
     cells=[[("casual chat","talk"),("a forum feed","talk")],[("the live floor","decisions"),("the argument map","decisions")]]
     for i in range(2):
