@@ -306,10 +306,13 @@ def f_two_three_body(stage=2):  # builds: the two-body deadlock → the three-bo
     g+=[L(320,fy,680,fy,WHITE,5),L(500,fy,500,fy-40,WHITE,4),C(360,fy,30,STEEL,3,STEEL),CT(360,fy+70,"labor",22,SOFT),
         C(640,fy,30,AMBER,3,AMBER),CT(640,fy+70,"capital",22,SOFT),CT(500,fy+150,"tug-of-war — no one to break the tie",22,SOFT)]
     if stage>=2:
-        g+=[CT(1420,230,"seat the third — co-equal",26,GREEN)]; cx,cy=1420,430
-        g+=[L(1240,cy+40,1600,cy-40,WHITE,5),L(1420,cy,1420,cy+30,WHITE,4),C(1260,cy+40,26,STEEL,3,STEEL),
-            C(1420,cy,26,AMBER,3,AMBER),C(1590,cy-46,30,GREEN,3,GREEN),CT(1590,cy-96,"consumer",22,GREEN),
-            CT(1420,cy+150,"the tie falls toward the people it's FOR",22,SOFT)]
+        g+=[CT(1400,230,"seat the third — co-equal",26,GREEN)]
+        top=(1400,320); bl=(1275,560); br=(1525,560)   # three bodies = a triangle
+        g+=[L(top[0],top[1],bl[0],bl[1],WHITE,4,0.7),L(bl[0],bl[1],br[0],br[1],WHITE,4,0.7),L(br[0],br[1],top[0],top[1],WHITE,4,0.7)]
+        g+=[C(bl[0],bl[1],28,STEEL,3,STEEL),CT(bl[0]-6,bl[1]+58,"labor",22,SOFT),
+            C(br[0],br[1],28,AMBER,3,AMBER),CT(br[0]+6,br[1]+58,"capital",22,SOFT),
+            C(top[0],top[1],28,GREEN,3,GREEN),CT(top[0],top[1]-44,"consumer",22,GREEN)]
+        g+=[CT(1400,680,"the deadlock ends — the tie falls toward the people it's FOR",22,SOFT)]
     return g
 def f_counts():
     g=[CT(860,110,"the same crowd, measured three ways",40,SOFT)]
