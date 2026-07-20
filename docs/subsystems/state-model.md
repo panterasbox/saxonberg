@@ -88,9 +88,12 @@ guideline, because the cost factors that guideline targets don't apply:
   belongs on User. Scanning the avatar collection for ownership would
   be semantically backwards.
 
-Character creation appends to `user.playerIds` and writes the avatar
-template. Character deletion removes the id and deletes the template.
-Two writes on rare events; not atomic, acceptable.
+Character creation appends to `user.playerIds` and captures the first
+persistence-spine snapshot (**no per-player template row** — the
+identity doctrine, ref-shapes.md; a legacy pre-retirement character's
+row is read once as a fallback, then superseded by its snapshot).
+Character deletion removes the id and the snapshot. Two writes on rare
+events; not atomic, acceptable.
 
 ### No Player class
 
@@ -99,7 +102,7 @@ Under the unified model it earned no keep — its state was entirely
 pointers to other records. Its responsibilities dissolve into:
 
 - "Which characters does this user own?" → `user.playerIds`
-- Character state → Avatar's own template doc
+- Character state → the Avatar's persistence-spine snapshot
 
 The id is **still called `playerId`**. It represents "one of a user's
 owned character slots" — that meaning survives the class's death.
@@ -108,9 +111,10 @@ Paths use `/obj/Avatar/<playerId>`.
 ### No CharacterSheet class
 
 `CharacterSheet` existed to hold persistent character state across
-clones. Under the unified model, Avatar's own template doc at
-`/obj/Avatar/<playerId>` holds that state directly. The sheet would be
-indirection for a problem the unified model already solves.
+clones. Under the unified model, the Avatar's persistence-spine
+snapshot (keyed on the minted identity path `/obj/Avatar/<playerId>`)
+holds that state directly. The sheet would be indirection for a problem
+the unified model already solves.
 
 ### Avatar is self-contained
 

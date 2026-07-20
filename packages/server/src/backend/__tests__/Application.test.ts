@@ -526,23 +526,33 @@ describe('Application', () => {
         save: vi.fn().mockResolvedValue(undefined),
       };
       vi.spyOn(User, 'findById').mockResolvedValue(user as never);
-      vi.spyOn(Template, 'findByPath').mockResolvedValue({
-        path: Avatar.SEED_TEMPLATE_PATH,
-        class: '/obj/Avatar',
-        data: {},
-        hydratorClass: '/lib/persistence/PersistentHydrator',
-      } as never);
-      const tmplSave = vi
-        .spyOn(TemplateApi, 'saveTemplate')
-        .mockResolvedValue(undefined as never);
+      // Snapshot-backed mint (no per-player row): the provision clones
+      // the shared seed with the overlay + minted identity path, then
+      // destructs the transient instance (the snapshot was captured in
+      // postRegister). Mock the clone + destruct — the persistence
+      // spine's own tests cover the capture.
+      const fakeAvatar = { stuffId: 'a1' };
+      const cloneSpy = vi
+        .spyOn(StuffApi, 'clone')
+        .mockResolvedValue(fakeAvatar as never);
+      const destructSpy = vi
+        .spyOn(StuffApi, 'destruct')
+        .mockReturnValue(undefined as never);
 
       await app.provisionTestCharacter('u1', 'Tester');
       expect(user.playerIds).toHaveLength(1);
       expect(user.save).toHaveBeenCalledTimes(1);
-      expect(tmplSave).toHaveBeenCalledTimes(1);
+      expect(cloneSpy).toHaveBeenCalledTimes(1);
+      const [src, , opts] = cloneSpy.mock.calls[0]! as [
+        string,
+        unknown,
+        { dataOverlay?: Record<string, unknown>; asTemplatePath?: string },
+      ];
+      expect(src).toBe(Avatar.SEED_TEMPLATE_PATH);
+      expect(opts.asTemplatePath).toMatch(/^\/obj\/Avatar\//);
       // Spawn home injected from app config (defaultStartLocation).
-      const savedData = tmplSave.mock.calls[0]![2] as Record<string, unknown>;
-      expect(savedData.startLocation).toBe('/domain/lounge/warren');
+      expect(opts.dataOverlay!.startLocation).toBe('/domain/lounge/warren');
+      expect(destructSpy).toHaveBeenCalledWith(fakeAvatar);
     });
 
     it('honors a startLocation override (spawn-room pin for co-location E2E)', async () => {
@@ -553,21 +563,18 @@ describe('Application', () => {
         save: vi.fn().mockResolvedValue(undefined),
       };
       vi.spyOn(User, 'findById').mockResolvedValue(user as never);
-      vi.spyOn(Template, 'findByPath').mockResolvedValue({
-        path: Avatar.SEED_TEMPLATE_PATH,
-        class: '/obj/Avatar',
-        data: {},
-        hydratorClass: '/lib/persistence/PersistentHydrator',
-      } as never);
-      const tmplSave = vi
-        .spyOn(TemplateApi, 'saveTemplate')
-        .mockResolvedValue(undefined as never);
+      const cloneSpy = vi
+        .spyOn(StuffApi, 'clone')
+        .mockResolvedValue({ stuffId: 'a1' } as never);
+      vi.spyOn(StuffApi, 'destruct').mockReturnValue(undefined as never);
 
       await app.provisionTestCharacter('u1', 'Tester', '/domain/lounge/bar');
       // The override wins over the app-config default — the avatar is
       // pinned to the named singleton room rather than the lounge Warren.
-      const savedData = tmplSave.mock.calls[0]![2] as Record<string, unknown>;
-      expect(savedData.startLocation).toBe('/domain/lounge/bar');
+      const opts = cloneSpy.mock.calls[0]![2] as {
+        dataOverlay?: Record<string, unknown>;
+      };
+      expect(opts.dataOverlay!.startLocation).toBe('/domain/lounge/bar');
     });
 
     it('is idempotent — no-op when the user already has a character', async () => {

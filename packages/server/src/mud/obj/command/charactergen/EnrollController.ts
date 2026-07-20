@@ -35,7 +35,6 @@ import { ConnectionApi } from "../../../api/connection";
 import { ContainmentApi } from "../../../api/containment";
 import { MixinApi } from "../../../api/mixin";
 import { SlotApi } from "../../../api/slot";
-import { TemplateApi } from "../../../api/template";
 import { ChronicleApi } from "../../../api/chronicle";
 import { Template } from "../../../lib/stuff/Template";
 import Avatar from "../../Avatar";
@@ -509,15 +508,19 @@ export default class EnrollController extends CommandController<EnrollModel> {
       : null;
     const aspiration = cfg.aspirations.find((a) => a.key === draft.aspiration);
 
-    // 1. Fork the per-character template (picks overlay the seed).
+    // 1. Build the per-character overlay (picks over the shared seed).
+    //    NO per-player template row is forked (the identity doctrine —
+    //    ref-shapes.md: a `domain` row is a hydration source for
+    //    authored content only; a character's durable state is its
+    //    persistence-spine snapshot, captured in `postRegister` right
+    //    after this clone).
     const seed = await Template.findByPath(Avatar.SEED_TEMPLATE_PATH);
     if (!seed) {
       throw new Error(`EnrollController.commit: no Avatar seed template.`);
     }
     const playerId = SecurityApi.uuid();
     const path = Avatar.getTemplatePath(playerId);
-    const data: Record<string, unknown> = {
-      ...seed.data,
+    const overlay: Record<string, unknown> = {
       // Initial spawn/recall home — sourced from app config (no longer a
       // seed-YAML literal), so an operator can move the new-player spawn
       // in-game without a deploy.
@@ -535,17 +538,21 @@ export default class EnrollController extends CommandController<EnrollModel> {
         species?.getLongDescription() ||
         (seed.data as Record<string, unknown>).longDescription,
     };
-    if (draft.surname) data.surname = draft.surname;
-    await TemplateApi.saveTemplate(path, seed.class, data, seed.hydratorClass);
+    if (draft.surname) overlay.surname = draft.surname;
 
     // 2. Register ownership — THE atomicity boundary. Nothing before
     //    this persisted into the user's roster.
     user.playerIds.push(playerId);
     await user.save();
 
-    // 3. Clone the runtime Avatar (postRegister stamps + installs the
-    //    baseline implant + places at the seed's spawn — the lounge).
-    const avatar = await StuffApi.clone<Avatar>(path, { user, playerId });
+    // 3. Clone the runtime Avatar from the SHARED seed, overlaying the
+    //    picks and minting the identity path (postRegister stamps +
+    //    installs the baseline implant + captures the first snapshot).
+    const avatar = await StuffApi.clone<Avatar>(
+      Avatar.SEED_TEMPLATE_PATH,
+      { user, playerId },
+      { dataOverlay: overlay, asTemplatePath: path },
+    );
 
     // 4. Sex is species-constrained, so set it on the live avatar after
     //    species is in place (avoids hydration-order coupling).

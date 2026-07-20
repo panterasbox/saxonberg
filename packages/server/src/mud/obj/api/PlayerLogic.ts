@@ -7,6 +7,12 @@ import { CallSecurity, Unshadowable } from '../../lib/security/decorators';
 import { SecurityPolicies } from '../../lib/security/SecurityPolicies';
 import Avatar from '../Avatar';
 import type { User } from '../../lib/identity/User';
+
+/** The lazily-imported Avatar class's static surface this logic uses. */
+interface AvatarClassRef {
+  getTemplatePath(playerId: string): string;
+  SEED_TEMPLATE_PATH: string;
+}
 import { StuffApi } from '../../api/stuff';
 import type { Stuff } from '../../lib/stuff/Stuff';
 
@@ -139,9 +145,10 @@ export class PlayerLogic extends ApiLogic {
         // already in flight" guard and tears down both connections.
         let pending = this.inFlightClones.get(playerId);
         if (!pending) {
-          pending = StuffApi.clone<Avatar>(
-            AvatarClass.getTemplatePath(playerId),
-            { user, playerId }
+          pending = this.materializeAvatar(
+            AvatarClass as unknown as AvatarClassRef,
+            user,
+            playerId
           ).finally(() => this.inFlightClones.delete(playerId));
           this.inFlightClones.set(playerId, pending);
         }
@@ -150,6 +157,50 @@ export class PlayerLogic extends ApiLogic {
       avatars.push(avatar);
     }
     return avatars;
+  }
+
+  /**
+   * Materialize one avatar for a returning login. The character's
+   * durable state is its persistence-spine snapshot; the identity path
+   * (`/obj/Avatar/<playerId>`) is MINTED, not template-backed (the
+   * identity doctrine — no per-player `domain` row):
+   *
+   *   1. Snapshot exists → clone the SHARED seed template with the
+   *      identity minted via `asTemplatePath`; `Avatar.postRegister`
+   *      materializes the snapshot over the seed defaults.
+   *   2. No snapshot but a LEGACY per-player row exists (a pre-spine /
+   *      pre-retirement character that never logged in since) → clone
+   *      the row one last time; `postRegister` captures the first
+   *      snapshot, after which the row is dead weight (deletable by
+   *      the operator cleanup — see deployment notes).
+   *   3. Neither → the roster references a character with no state;
+   *      clone the seed bare (defaults) so login still succeeds, and
+   *      the capture creates its snapshot.
+   */
+  private async materializeAvatar(
+    AvatarClass: AvatarClassRef,
+    user: User,
+    playerId: string
+  ): Promise<Avatar> {
+    const identityPath = AvatarClass.getTemplatePath(playerId);
+    const { PersistableApi } = await import('../../api/persistable');
+    const hasSnapshot = await PersistableApi.hasRecord(
+      identityPath,
+      identityPath
+    );
+    if (!hasSnapshot) {
+      const { Template } = await import('../../lib/stuff/Template');
+      const legacyRow = await Template.findByPath(identityPath);
+      if (legacyRow) {
+        // Legacy fallback (case 2): hydrate from the per-player row.
+        return StuffApi.clone<Avatar>(identityPath, { user, playerId });
+      }
+    }
+    return StuffApi.clone<Avatar>(
+      AvatarClass.SEED_TEMPLATE_PATH,
+      { user, playerId },
+      { asTemplatePath: identityPath }
+    );
   }
 
   /** See {@link PlayerApi.clearAll}. */

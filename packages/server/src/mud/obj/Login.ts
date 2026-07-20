@@ -35,7 +35,6 @@ import { Mml } from "../api/mml";
 import { ContainmentApi } from "../api/containment";
 import { MixinApi } from "../api/mixin";
 import { SlotApi } from "../api/slot";
-import { TemplateApi } from "../api/template";
 import { Template } from "../lib/stuff/Template";
 import { NameBank } from "../lib/species/NameBank";
 import { HasInteractiveMixin } from "../lib/connection/HasInteractive";
@@ -272,18 +271,17 @@ export default class Login extends LoginBase {
         (seed.data as Record<string, unknown>).longDescription,
     };
     if (guestName.surname) data.surname = guestName.surname;
-    await TemplateApi.saveTemplate(path, seed.class, data, seed.hydratorClass);
 
     // No playerId → not registered with PlayerApi; `isGuest` marks it.
-    const avatar = await StuffApi.clone<Avatar>(path, { user, isGuest: true });
-
-    // Delete the transient template — guests persist nothing.
-    try {
-      const tpl = await Template.findByPath(path);
-      if (tpl) await tpl.delete();
-    } catch {
-      /* best-effort cleanup; the avatar never writes back anyway */
-    }
+    // The guest data rides the clone's `dataOverlay` and the random
+    // guest path is minted via `asTemplatePath` — no transient template
+    // row to write and delete (the identity doctrine: rows are for
+    // authored content; a throwaway guest gets none).
+    const avatar = await StuffApi.clone<Avatar>(
+      Avatar.SEED_TEMPLATE_PATH,
+      { user, isGuest: true },
+      { dataOverlay: data, asTemplatePath: path },
+    );
 
     // Sex is species-constrained, so set it post-clone (as `commit` does).
     if (sex) {

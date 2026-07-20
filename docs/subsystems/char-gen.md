@@ -174,14 +174,19 @@ for species, a `SpeciesDossier` (below).
 `commit` (`EnrollController.ts:620`) is the only step that persists. The
 sequence, in order:
 
-1. **Save the Avatar template** at `/obj/Avatar/<playerId>` via
-   `TemplateApi.saveTemplate`.
+1. **Build the per-character overlay** (the picks over the shared seed
+   at `Avatar.SEED_TEMPLATE_PATH`). **No per-player template row is
+   written** (the identity doctrine — ref-shapes.md § Identity,
+   lineage, and backing): the character's durable state is its
+   persistence-spine snapshot, not `domain` data.
 2. **Register ownership — the atomicity boundary.** Push `playerId`
    onto `user.playerIds` and `user.save()`. Nothing before this entered
    the roster, so a crash mid-char-gen leaves no trace.
-3. **Clone the runtime Avatar** from the template (`postRegister` stamps
-   identity, installs the baseline implant, and self-places at the spawn
-   the seed pins — `startLocation: /domain/lounge/warren`, the lounge).
+3. **Clone the runtime Avatar from the SHARED seed** with the overlay
+   riding `StuffApi.clone`'s `dataOverlay` and the minted identity path
+   via `asTemplatePath` (`postRegister` stamps identity, installs the
+   baseline implant, self-places at the app-config spawn, and captures
+   the FIRST snapshot — the moment the character becomes durable).
 4. **Set sex** on the live avatar (species-constrained, so applied after
    the species is in place to avoid hydration-order coupling).
 5. **Dress in the aspiration's themed outfit** — best-effort: each
