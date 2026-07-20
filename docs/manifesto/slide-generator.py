@@ -60,21 +60,25 @@ def f_hub():
     return g
 
 # ── Ch 2 hero: games get your hours, governing doesn't → put the gov IN the game ──
-def f_opener():
+# builds: game bar → empty governing bar → the graveyard (Beat 3) → the turn
+def f_opener(stage=4):
     g=[CT(860,120,"people pour themselves into games — and not into governing",38,SOFT)]
-    base=720; bw=200; gx=430; gh=420
+    base=720; bw=200; gx=430; gh=420; cx=930; ch=42
+    g+=[L(gx-40,base,cx+bw+40,base,SOFT,2,0.5)]
     g+=[R(gx,base-gh,bw,gh,GREEN,3,fill=GREEN),CT(gx+bw/2,base-gh-72,"hundreds of hours",22,SOFT),
         CT(gx+bw/2,base-gh-30,"a game",30,GREEN,weight="bold"),
         CT(gx+bw/2,base+42,"a character you built",22,SOFT),CT(gx+bw/2,base+76,"a reputation you earned",22,SOFT)]
-    cx=930; ch=42
-    g+=[R(cx,base-ch,bw,ch,DIMB,3),CT(cx+bw/2,base-ch-30,"governing",30,DIMB,weight="bold"),
-        CT(cx+bw/2,base+42,"the meeting nobody",22,DIM),CT(cx+bw/2,base+76,"comes to",22,DIM)]
-    g+=[L(gx-40,base,cx+bw+40,base,SOFT,2,0.5)]
-    g+=[PATH(f"M {gx+bw+30} {base-gh+60} C {gx+bw+220} {base-gh+40}, 1360 {base-260}, 1360 {base-120}",AMBER,4)]
-    g+=ARR(1360,base-140,1360,base-70,AMBER,4)
-    g+=[CT(1440,base-300,"the participation",26,AMBER),CT(1440,base-262,"is real —",26,AMBER),
-        CT(1440,base-40,"just aimed",24,SOFT),CT(1440,base-6,"at games",24,SOFT)]
-    g+=[CT(860,960,"so we aim a game at governing — and put the government inside it",32,WHITE)]
+    if stage>=2:
+        g+=[R(cx,base-ch,bw,ch,DIMB,3),CT(cx+bw/2,base-ch-30,"governing",30,DIMB,weight="bold"),
+            CT(cx+bw/2,base+42,"the meeting nobody",22,DIM),CT(cx+bw/2,base+76,"comes to",22,DIM)]
+    if stage>=3:  # Beat 3 — the graveyard of prior digital attempts
+        g+=[CT(860,858,"the DAOs · the online democracies · the token votes — built it, and nobody came",26,CORAL)]
+    if stage>=4:  # the turn
+        g+=[PATH(f"M {gx+bw+30} {base-gh+60} C {gx+bw+220} {base-gh+40}, 1360 {base-260}, 1360 {base-120}",AMBER,4)]
+        g+=ARR(1360,base-140,1360,base-70,AMBER,4)
+        g+=[CT(1440,base-300,"the participation",26,AMBER),CT(1440,base-262,"is real —",26,AMBER),
+            CT(1440,base-40,"just aimed",24,SOFT),CT(1440,base-6,"at games",24,SOFT)]
+        g+=[CT(860,958,"so we aim a game at governing — and put the government inside it",32,WHITE)]
     return g
 
 # ── Ch 3 hero: the three rings (legislative chambers) ──
@@ -195,7 +199,7 @@ def f_continuum(safe_line="the setting moves. the floor doesn't."):
     g+=[CT(860,1000,safe_line,34,WHITE)]; return g
 
 # ── Ch 2 supporting frames (hero = f_opener) ──
-def f_investment():
+def f_investment(stage=3):  # builds: the chain → data-you-earned → cost/reward inversion
     g=[CT(860,120,"a game pulls people in — through investment",40,SOFT)]
     nodes=[("you sink\nhours in",300,STEEL),("it matters\nto you",640,AMBER),("so do\nits rules",980,GREEN),("you're in\nthe governing",1320,WHITE)]
     y,bw,bh=330,300,150
@@ -203,40 +207,51 @@ def f_investment():
         g+=[R(x,y,bw,bh,col,4)]
         for j,ln in enumerate(lab.split("\n")): g+=[CT(x+bw/2,y+60+j*40,ln,30,col)]
         if i<3: g+=ARR(x+bw,y+bh/2,x+bw+40,y+bh/2,SOFT,4)
-    g+=[CT(860,600,"it's all just data — but data you earned, so what happens to it lands like it's real",26,SOFT)]
-    g+=[CT(560,760,"civic life:",28,SOFT)]+ARR(660,752,760,752,CORAL,4)+[CT(880,760,"a cost",28,CORAL)]
-    g+=[CT(1120,760,"a game:",28,SOFT)]+ARR(1220,752,1320,752,GREEN,4)+[CT(1430,760,"the reward",28,GREEN)]
+    if stage>=2:
+        g+=[CT(860,600,"it's all just data — but data you earned, so what happens to it lands like it's real",26,SOFT)]
+    if stage>=3:
+        g+=[CT(560,760,"civic life:",28,SOFT)]+ARR(660,752,760,752,CORAL,4)+[CT(880,760,"a cost",28,CORAL)]
+        g+=[CT(1120,760,"a game:",28,SOFT)]+ARR(1220,752,1320,752,GREEN,4)+[CT(1430,760,"the reward",28,GREEN)]
     return g
-def f_forkable():
+def f_forkable(stage=2):  # builds: the polity block → fork off your own copy
     g=[CT(860,120,"a polity made of words — inspect it, verify it, carry it off",38,SOFT)]
     bx,by,bw,bh=250,320,520,340; g+=[R(bx,by,bw,bh,WHITE,4)]
     for i,r in enumerate(["argument  10110…","vote      01101…","law       11001…","code      00111…","record    10100…"]):
         g+=[T(bx+34,by+62+i*56,r,28,STEEL,mono=True)]
     g+=[CT(bx+bw/2,by-24,"the whole polity — all just information",24,SOFT)]
-    g+=ARR(bx+bw,by+bh/2,bx+bw+180,by+bh/2,GREEN,5)+[CT(bx+bw+130,by+bh/2-26,"fork",22,GREEN)]
-    fx,fy=bx+bw+200,by+40; g+=[R(fx,fy,300,260,GREEN,3)]
-    for i in range(5): g+=[L(fx+30,fy+48+i*44,fx+250,fy+48+i*44,STEEL,3,0.7)]
-    g+=[CT(fx+150,fy+300,"your own copy — carry it off",22,GREEN)]
-    g+=[CT(860,1000,"legible · verifiable · forkable — in a way paper and stone never were",30,WHITE)]
+    if stage>=2:
+        g+=ARR(bx+bw,by+bh/2,bx+bw+180,by+bh/2,GREEN,5)+[CT(bx+bw+130,by+bh/2-26,"fork",22,GREEN)]
+        fx,fy=bx+bw+200,by+40; g+=[R(fx,fy,300,260,GREEN,3)]
+        for i in range(5): g+=[L(fx+30,fy+48+i*44,fx+250,fy+48+i*44,STEEL,3,0.7)]
+        g+=[CT(fx+150,fy+300,"your own copy — carry it off",22,GREEN)]
+        g+=[CT(860,1000,"legible · verifiable · forkable — in a way paper and stone never were",30,WHITE)]
     return g
-def f_laboratory():
+def f_laboratory(stage=2):  # builds: real politics one-shot → the try/break/retry loop
     g=[CT(960,120,"a laboratory — not a model OF a government, a place to RUN one",38,SOFT)]
     g+=[CT(500,240,"real politics",28,CORAL)]+ARR(300,420,720,420,CORAL,6)
     g+=[CT(510,380,"one shot · enormous scale",24,SOFT),L(560,470,600,510,CORAL,4),L(600,470,560,510,CORAL,4),CT(600,560,"no rewind",24,CORAL)]
-    g+=[CT(1400,240,"here",28,GREEN)]; cx,cy,r=1400,470,120
-    for (a0,a1) in [(-80,30),(40,150),(160,270)]:
-        th0=math.radians(a0); th1=math.radians(a1); x0,y0=cx+r*math.cos(th0),cy+r*math.sin(th0); x1,y1=cx+r*math.cos(th1),cy+r*math.sin(th1)
-        g+=[PATH(f"M {x0} {y0} A {r} {r} 0 0 1 {x1} {y1}",GREEN,5)]+ARR(x1-6*math.cos(th1),y1-6*math.sin(th1),x1,y1,GREEN,4)
-    for lab,a in [("try",-25),("it breaks",95),("try again",215)]:
-        th=math.radians(a); g+=[CT(cx+(r+62)*math.cos(th),cy+(r+62)*math.sin(th)+8,lab,24,GREEN)]
-    g+=[CT(960,760,"build the idea into a working world — watch how it holds up",28,SOFT),CT(960,900,"try it.  watch it break.  try again.",34,WHITE)]
+    if stage>=2:
+        g+=[CT(1400,240,"here",28,GREEN)]; cx,cy,r=1400,470,120
+        for (a0,a1) in [(-80,30),(40,150),(160,270)]:
+            th0=math.radians(a0); th1=math.radians(a1); x0,y0=cx+r*math.cos(th0),cy+r*math.sin(th0); x1,y1=cx+r*math.cos(th1),cy+r*math.sin(th1)
+            g+=[PATH(f"M {x0} {y0} A {r} {r} 0 0 1 {x1} {y1}",GREEN,5)]+ARR(x1-6*math.cos(th1),y1-6*math.sin(th1),x1,y1,GREEN,4)
+        for lab,a in [("try",-25),("it breaks",95),("try again",215)]:
+            th=math.radians(a); g+=[CT(cx+(r+62)*math.cos(th),cy+(r+62)*math.sin(th)+8,lab,24,GREEN)]
+        g+=[CT(960,760,"build the idea into a working world — watch how it holds up",28,SOFT),CT(960,900,"try it.  watch it break.  try again.",34,WHITE)]
     return g
 
 CH2=[
- ("ch2-01-opener", f_opener()),                    # 1  games get your hours, not governing  [Ch2 hero]
- ("ch2-02-investment", f_investment()),            # 2  why a game — the investment mechanism
- ("ch2-03-forkable", f_forkable()),                # 4  made of words — forkable
- ("ch2-04-laboratory", f_laboratory()),            # 5  the laboratory
+ ("ch2-01-opener-game",   f_opener(1)),   # 1  the game gets your hours  [Ch2 hero build]
+ ("ch2-02-opener-govern", f_opener(2)),   # 1  …governing gets none
+ ("ch2-03-opener-graveyard", f_opener(3)),# 3  …the DAOs built it, nobody came
+ ("ch2-04-opener-turn",   f_opener(4)),   # 1  …so put the government in the game
+ ("ch2-05-investment-chain",   f_investment(1)),  # 2  invest → it matters → its rules → govern
+ ("ch2-06-investment-earned",  f_investment(2)),  # 2  …data you earned
+ ("ch2-07-investment-inversion",f_investment(3)), # 2  …civic=cost, game=reward
+ ("ch2-08-forkable-block", f_forkable(1)),        # 4  a polity made of words
+ ("ch2-09-forkable-fork",  f_forkable(2)),        # 4  …fork off your own copy
+ ("ch2-10-lab-oneshot",   f_laboratory(1)),       # 5  real politics: one shot, no rewind
+ ("ch2-11-lab-loop",      f_laboratory(2)),       # 5  …here: try, break, try again
 ]
 
 # ================= CH 1 — THE HERO MONTAGE =================
