@@ -204,6 +204,67 @@ def f_continuum(safe_line="the setting moves. the floor doesn't."):
     for xx in range(ax0+80,ax1,150): g+=[L(xx,ay+22,xx,fy-8,STEEL,2,0.35,dash="6 10")]
     g+=[CT(860,1000,safe_line,34,WHITE)]; return g
 
+# ── Ch 2 supporting frames (hero = f_machinery) ──
+def f_gap():
+    g=[CT(960,110,"self-organizing is constant — turning it into self-government is the gap",36,SOFT)]
+    g+=[CT(470,205,"hanging out",28,WHITE)]
+    for (cx,cy) in [(340,360),(560,340),(440,520)]:
+        for k in range(6):
+            a=k*(2*math.pi/6); g+=[person(cx+42*math.cos(a),cy+42*math.sin(a),9,GREEN)]
+        g+=[R(cx-30,cy-14,60,28,GREEN,2,op=0.7)]
+    g+=[CT(470,640,"make their own rules, keep their own order",24,SOFT)]
+    g+=[PATH("M 820 300 L 860 400 L 820 500 L 860 620",DIMB,4,dash="4 12")]
+    g+=[CT(1440,205,"taking part in the deciding",28,SOFT)]
+    g+=[R(1360,360,160,180,DIMB,4,op=0.9),L(1400,390,1480,390,DIMB,5,0.9),CT(1440,470,"0",50,DIMB,weight="bold")]
+    g+=[CT(1440,640,"— where it breaks down",24,CORAL)]
+    g+=[CT(960,900,"people show up to hang out.  the hard part is getting them to govern.",30,WHITE)]
+    return g
+def f_investment():
+    g=[CT(860,120,"a game pulls people in — through investment",40,SOFT)]
+    nodes=[("you sink\nhours in",300,STEEL),("it matters\nto you",640,AMBER),("so do\nits rules",980,GREEN),("you're in\nthe governing",1320,WHITE)]
+    y,bw,bh=330,300,150
+    for i,(lab,x,col) in enumerate(nodes):
+        g+=[R(x,y,bw,bh,col,4)]
+        for j,ln in enumerate(lab.split("\n")): g+=[CT(x+bw/2,y+60+j*40,ln,30,col)]
+        if i<3: g+=ARR(x+bw,y+bh/2,x+bw+40,y+bh/2,SOFT,4)
+    g+=[CT(860,600,"it's all just data — but data you earned, so what happens to it lands like it's real",26,SOFT)]
+    g+=[CT(560,760,"civic life:",28,SOFT)]+ARR(660,752,760,752,CORAL,4)+[CT(880,760,"a cost",28,CORAL)]
+    g+=[CT(1120,760,"a game:",28,SOFT)]+ARR(1220,752,1320,752,GREEN,4)+[CT(1430,760,"the reward",28,GREEN)]
+    return g
+def f_forkable():
+    g=[CT(860,120,"a polity made of words — inspect it, verify it, carry it off",38,SOFT)]
+    bx,by,bw,bh=250,320,520,340; g+=[R(bx,by,bw,bh,WHITE,4)]
+    for i,r in enumerate(["argument  10110…","vote      01101…","law       11001…","code      00111…","record    10100…"]):
+        g+=[T(bx+34,by+62+i*56,r,28,STEEL,mono=True)]
+    g+=[CT(bx+bw/2,by-24,"the whole polity — all just information",24,SOFT)]
+    g+=ARR(bx+bw,by+bh/2,bx+bw+180,by+bh/2,GREEN,5)+[CT(bx+bw+130,by+bh/2-26,"fork",22,GREEN)]
+    fx,fy=bx+bw+200,by+40; g+=[R(fx,fy,300,260,GREEN,3)]
+    for i in range(5): g+=[L(fx+30,fy+48+i*44,fx+250,fy+48+i*44,STEEL,3,0.7)]
+    g+=[CT(fx+150,fy+300,"your own copy — carry it off",22,GREEN)]
+    g+=[CT(860,1000,"legible · verifiable · forkable — in a way paper and stone never were",30,WHITE)]
+    return g
+def f_laboratory():
+    g=[CT(960,120,"a laboratory — not a model OF a government, a place to RUN one",38,SOFT)]
+    g+=[CT(500,240,"real politics",28,CORAL)]+ARR(300,420,720,420,CORAL,6)
+    g+=[CT(510,380,"one shot · enormous scale",24,SOFT),L(560,470,600,510,CORAL,4),L(600,470,560,510,CORAL,4),CT(600,560,"no rewind",24,CORAL)]
+    g+=[CT(1400,240,"here",28,GREEN)]; cx,cy,r=1400,470,120
+    for (a0,a1) in [(-80,30),(40,150),(160,270)]:
+        th0=math.radians(a0); th1=math.radians(a1); x0,y0=cx+r*math.cos(th0),cy+r*math.sin(th0); x1,y1=cx+r*math.cos(th1),cy+r*math.sin(th1)
+        g+=[PATH(f"M {x0} {y0} A {r} {r} 0 0 1 {x1} {y1}",GREEN,5)]+ARR(x1-6*math.cos(th1),y1-6*math.sin(th1),x1,y1,GREEN,4)
+    for lab,a in [("try",-25),("it breaks",95),("try again",215)]:
+        th=math.radians(a); g+=[CT(cx+(r+62)*math.cos(th),cy+(r+62)*math.sin(th)+8,lab,24,GREEN)]
+    g+=[CT(960,760,"build the idea into a working world — watch how it holds up",28,SOFT),CT(960,900,"try it.  watch it break.  try again.",34,WHITE)]
+    return g
+
+CH2=[
+ ("ch2-01-gap", f_gap()),                          # 1  self-organize vs self-govern
+ ("ch2-02-investment", f_investment()),            # 2  why a game — investment
+ ("ch2-03-machinery-empty", f_machinery(1)),       # 3  the graveyard  [hero]
+ ("ch2-04-machinery-full", f_machinery(2)),        # 3  …a game fills it
+ ("ch2-05-forkable", f_forkable()),                # 4  made of words — forkable
+ ("ch2-06-laboratory", f_laboratory()),            # 5  the laboratory
+]
+
 # ================= CH 1 — THE HERO MONTAGE =================
 CH1=[
  ("ch1-01-hub", f_hub()),                                              # 0  tools route through one point
@@ -237,7 +298,8 @@ def emit(name,parts):
         subprocess.run(["convert","-background","none","-density","96",sp,"-resize","3840x2160",pp],check=False)
     print("  ",name)
 
+ALL=CH1+CH2
 if __name__=="__main__":
-    print(f"Ch 1 hero montage — {len(CH1)} frames -> {OUT_PNG}")
-    for n,p in CH1: emit(n,p)
+    print(f"{len(ALL)} frames -> {OUT_PNG}")
+    for n,p in ALL: emit(n,p)
     print("done")
