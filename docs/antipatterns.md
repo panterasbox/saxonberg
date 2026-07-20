@@ -147,6 +147,33 @@ sweeps (enumeration must not count as a touch — commented at the
 loops) and single-object reads (one container's contents, one host's
 hosted updates) — those are object-local reads, not searches.
 
+## `StuffApi.create()` Instead of a Template
+
+**ANTIPATTERN**: Building a statically-describable object with
+`StuffApi.create(() => new X())` instead of authoring a template and
+`StuffApi.clone(path)`-ing it. Templates are the content system —
+CMS-editable, pack-shippable, hot-rehydratable; a raw `create` opts
+the object out of all of that.
+
+`create`/`createSync` are ONLY for objects a template genuinely cannot
+describe ahead of time. The recognized categories (the whole current
+population — audited 2026-07):
+
+- **Live-ref relational** — the object binds specific live instances
+  (an `Exit`'s source/destination, a `BoundaryAnchor`, a `Login`/
+  `Interactive` holding a live connection). A static template cannot
+  hold a live ref.
+- **Dynamically-minted uniques** — identity paths minted at runtime
+  (`Party` at `/obj/party/<uuid>`, the per-player `_eval` scratch).
+- **Transient single-use vessels** — minted, used, and reaped inside
+  one call (`LightningStrike`); a template would be a seed row
+  nothing ever edits.
+- **Framework fallbacks / introspection** — a test-harness registry
+  lazy-mint, `StudioLogic`'s read-a-class-default throwaway.
+
+Anything else — a fixture, an item, an NPC, a room — gets a template
+and a seed. When in doubt, it's a template.
+
 ## Duck Typing with Mixins
 
 **ANTIPATTERN**: Checking for method existence using `typeof` instead of

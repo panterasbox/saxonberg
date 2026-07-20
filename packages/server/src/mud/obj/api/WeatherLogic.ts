@@ -785,6 +785,10 @@ async function fireStrike(
   );
   const volts = dial(AppSettingKeys.stormStrikeVoltage, 30_000_000);
   const strike = await StuffApi.create(() => {
+    // `create` (not clone): a strike is a transient single-use vessel —
+    // minted, conducted, and reaped inside this one call, never
+    // authored, never persisted, its only datum a settings-derived
+    // voltage. A template would be a seed row nothing ever edits.
     const s = new LightningStrike();
     s.setVoltage(Quantity.of(volts, 'V'));
     return s;
