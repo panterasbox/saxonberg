@@ -502,15 +502,29 @@ def f_maxim(stage=2):
             for j,ln in enumerate(desc.split("\n")): g+=[CT(x,430+j*36,ln,22,SOFT)]
         g+=[CT(960,600,"in a way no human enforcer can be",26,SOFT),CT(960,900,"so wherever a rule CAN be code, it is — and it's out of anyone's hands",28,WHITE)]
     return g
-def f_administration():
-    g=[CT(960,110,"the executive is the whole administration — headed by the PM",36,SOFT)]
-    g+=rings(360,430,60,(WHITE,WHITE,WHITE),labels=False)[0]+[CT(360,560,"the legislature",22,SOFT)]
-    g+=ARR(470,430,640,430,GREEN,5)+[CT(560,390,"elects",22,GREEN)]
-    g+=[C(760,430,52,WHITE,4),CT(760,442,"PM",30,WHITE,weight="bold"),CT(760,560,"backed by the chambers",20,SOFT)]
-    g+=ARR(820,430,990,430,AMBER,5)+[CT(905,390,"grants",22,AMBER)]
-    for y in [360,430,500]: g+=[person(1090,y,20,AMBER)]
-    g+=[CT(1090,570,"wizards — write + run code",20,SOFT)]
-    g+=[CT(1440,380,"+ the administration",22,SOFT),CT(1440,420,"institutions, the day-to-day,",20,SOFT),CT(1440,456,"the human half",20,SOFT)]
+def f_admin_split():  # the builders (wizards) vs the users (the administration) — NOT all wizards
+    import random; g=[CT(960,110,"the executive isn't all engineers — it's the whole administration",36,SOFT)]
+    wx,wy=360,460
+    for (dx,dy) in [(-32,-38),(32,-38),(0,22)]: g+=[person(wx+dx,wy+dy,18,AMBER)]
+    g+=[CT(wx,wy+120,"wizards",26,AMBER,weight="bold"),CT(wx,wy+156,"write the code",22,SOFT)]
+    g+=ARR(wx+80,wy,700,wy,GREEN,5)+[CT(575,wy-42,"build",22,GREEN)]
+    g+=[R(720,wy-110,360,220,WHITE,3),CT(900,wy-130,"the tools",24,SOFT)]
+    for i,lab in enumerate(["menu","ban","tally","report"]):
+        g+=[R(750+(i%2)*180,wy-80+(i//2)*90,160,60,STEEL,2),CT(830+(i%2)*180,wy-42+(i//2)*90,lab,22,SOFT)]
+    g+=ARR(1100,wy,1260,wy,GREEN,5)+[CT(1180,wy-42,"used by",22,GREEN)]
+    ax,ay=1500,460; random.seed(5)
+    for i in range(14):
+        a=math.radians(i*(360/14)); r=95+(i%3)*14; g+=[person(ax+r*math.cos(a),ay+r*math.sin(a)*0.85,14,STEEL)]
+    g+=[CT(ax,ay+190,"the administration",26,WHITE,weight="bold"),CT(ax,ay+226,"runs the day-to-day",22,SOFT)]
+    g+=[CT(960,940,"the ones who build the tools and the ones who run on them are different people",30,WHITE)]
+    return g
+def f_admin_pm():  # the PM: elected by the legislature, grants wizardhood
+    g=[CT(960,110,"the head of the executive isn't whoever codes best — it's who's trusted",36,SOFT)]
+    g+=rings(360,440,60,labels=False)[0]+[CT(360,575,"the legislature",22,SOFT)]
+    g+=ARR(470,440,650,440,GREEN,5)+[CT(560,400,"elects",22,GREEN)]
+    g+=[C(790,440,56,WHITE,4),CT(790,452,"PM",32,WHITE,weight="bold"),CT(790,575,"heads the administration",22,SOFT)]
+    g+=ARR(860,440,1050,440,AMBER,5)+[CT(955,400,"grants",22,AMBER)]
+    g+=[R(1090,380,440,120,AMBER,3),CT(1310,426,"wizardhood",28,AMBER,weight="bold"),CT(1310,466,"who's trusted to run a live world",22,SOFT)]
     g+=[CT(960,940,"hold the legislature, and you hold the executive",30,WHITE)]
     return g
 def f_sortition(stage=2):
@@ -541,9 +555,10 @@ CH5=[
  ("ch5-08-maxim", f_maxim(1)),                  # 3  the maxim
  ("ch5-09-maxim-why", f_maxim(2)),              # 3  uniform · incorruptible · transparent
  ("ch5-10-fork", f_fork()),                     # 3  code handles the mechanical; people the rest
- ("ch5-11-admin", f_administration()),          # 4  PM: elected by the legislature, grants wizardhood
- ("ch5-12-sortition", f_sortition(1)),          # 5  drawn by lot, no seat to capture
- ("ch5-13-sortition-checks", f_sortition(2)),   # 5  checks both — code review + appeal
+ ("ch5-11-admin-split", f_admin_split()),       # 4  builders (wizards) vs users (the administration)
+ ("ch5-12-admin-pm", f_admin_pm()),             # 4  the PM: elected by the legislature, grants wizardhood
+ ("ch5-13-sortition", f_sortition(1)),          # 5  drawn by lot, no seat to capture
+ ("ch5-14-sortition-checks", f_sortition(2)),   # 5  checks both — code review + appeal
 ]
 
 # ================= CH 1 — THE HERO MONTAGE =================
