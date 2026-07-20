@@ -199,21 +199,6 @@ export class SchedulerLogic extends ApiLogic {
 
   /* ──────────────────── introspection ──────────────────── */
 
-  /** See {@link SchedulerApi.getEngagements}. Reads off the actor. */
-  @CallSecurity(SchedulerApiCallers)
-  public getEngagements(actor: Stuff & Engaged): readonly Engagement[] {
-    return actor.getEngagements();
-  }
-
-  /** See {@link SchedulerApi.getEngagementBySlot}. Reads off the actor. */
-  @CallSecurity(SchedulerApiCallers)
-  public getEngagementBySlot(
-    actor: Stuff & Engaged,
-    slot: EngagementSlot
-  ): Engagement | undefined {
-    return actor.getEngagementBySlot(slot);
-  }
-
   /** See {@link SchedulerApi.getEngagementById}. */
   @CallSecurity(SchedulerApiCallers)
   public getEngagementById(id: string): Engagement | undefined {

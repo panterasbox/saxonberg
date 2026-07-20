@@ -30,7 +30,6 @@ import type { MixinConstructor } from '../mixin';
 import { Mixins } from '../mixin';
 import type { Stuff } from '../stuff/Stuff';
 import type { Containable } from './Containable';
-import { ContainmentApi } from '../../api/containment';
 import { MixinApi, type AnyConstructor } from '../../api/mixin';
 
 /**
@@ -96,7 +95,7 @@ export function SurfacedMixin<TBase extends MixinConstructor>(Base: TBase) {
       const self = this as unknown as Stuff & Containable;
       const env = self.getContainer();
       if (!env) return [];
-      const candidates = ContainmentApi.getContents(env);
+      const candidates = env.getContents();
       const selfStuff = this as unknown as Stuff;
       return candidates.filter((c) => {
         if (!MixinApi.isContainable(c)) return false;

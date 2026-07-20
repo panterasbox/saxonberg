@@ -125,7 +125,7 @@ function resolveCoveringStack(
 /** Build a covering layer from an armor/shield occupant. */
 function layerOf(occ: Stuff, construction: Construction): CoveringLayer {
   return {
-    material: MaterialApi.materialOf(occ),
+    material: MixinApi.isTangible(occ) ? occ.getMaterial() : null,
     construction,
     grade: MixinApi.isGraded(occ) ? occ.getGrade() : undefined,
     condition: MixinApi.isDurable(occ) ? occ.getCondition() : 1,

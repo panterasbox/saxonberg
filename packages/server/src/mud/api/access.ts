@@ -1,50 +1,52 @@
 /**
  * AccessApi — thin facade over the `AccessRegistry` singleton.
  *
- * Stable caller-facing surface for the access substrate. Every method
- * delegates through the hot-reloadable {@link AccessLogic} singleton at
- * `/obj/api/access` to the Registry; the Registry's methods carry
- * `@CallSecurity(AnyOf(FromModule('/api/access#AccessApi'),
- * FromTemplate('/obj/api/access')))` so the security gate denies any
- * caller outside the access subsystem. External code that grabs the
- * Registry Stuff via `StuffApi.findByTemplatePath` cannot call its
- * methods; this Api is the only legitimate path.
+ * Stable caller-facing surface for the access substrate. The facade
+ * talks to the Registry **directly** — there is no `AccessLogic` tier
+ * (it held no logic; the antipattern sweep collapsed it). The Registry's
+ * methods carry `@CallSecurity(FromModule('/api/access#AccessApi'))` so
+ * the security gate denies any caller outside this facade. External code
+ * that grabs the Registry Stuff via `StuffApi.findByTemplatePath` cannot
+ * call its methods; this Api is the only legitimate path. Behavior
+ * hot-reloads with the Registry itself (an `/obj/` singleton).
  *
- * State lives on the Registry (cached refs, wizard playerId Set,
- * etc.); the cached pointer lives in the logic singleton's module scope
- * (a lookup convenience, not domain state). Reload of `api/access.ts` or
- * `obj/api/AccessLogic.ts` re-resolves the pointer; reload of
- * `obj/AccessRegistry.ts` re-clones the Stuff per HotReloadApi's pattern.
+ * State lives on the Registry (cached refs, wizard playerId Set, etc.);
+ * the cached pointer below is a lookup convenience, not domain state.
  *
  * The narrow-entry pattern: `AccessApi` is reachable from anywhere,
  * mediating every call into the Registry. State has one home, one
  * calling surface, and one structurally-enforced path between them.
+ *
+ * **No-Registry test path** (per-method fallback decision): the broad
+ * capability predicates (`can`/`canMutateZone`/`isWizard`/`isStreamer`/
+ * `isArchwizard`) fail *open* — the dispatcher already pre-gated the
+ * resolver in those harnesses — while `isAuthor` fails closed.
  */
 
 import { SecurityApi } from './security';
 import { StuffApi } from './stuff';
-import { HotReloadApi } from './hot-reload';
+import { PlayerApi } from './player';
 import { CallSecurity } from '../lib/security/decorators';
 import { SecurityPolicies } from '../lib/security/SecurityPolicies';
+import { TemplatePaths } from '../lib/paths';
 import type { Stuff } from '../lib/stuff/Stuff';
-import { AccessLogic } from '../obj/api/AccessLogic';
-import { fileURLToPath } from 'url';
+import type AccessRegistry from '../obj/AccessRegistry';
 
-const LOGIC_PATH = '/obj/api/access';
-const LOGIC_CLASS_FILE = fileURLToPath(
-  new URL('../obj/api/AccessLogic', import.meta.url)
-);
+const REGISTRY_PATH = TemplatePaths.accessRegistry;
 
-/** Resolve the HMR-able AccessLogic singleton (sync). */
-function logic(): AccessLogic {
-  return StuffApi.singletonSync(
-    LOGIC_PATH,
-    () =>
-      new ((HotReloadApi.getCurrentExport(
-        LOGIC_CLASS_FILE,
-        'AccessLogic'
-      ) as typeof AccessLogic | null) ?? AccessLogic)()
-  );
+/**
+ * Resolve the Registry without forcing a clone. In production the
+ * Registry is cloned by `AppBootstrap`, so this returns it cheaply. In
+ * test harnesses without a live Registry it returns `null` — the public
+ * predicates use the fallback-decision option to choose permit vs deny
+ * per-method (see the class doc). Cleared by the reload seam below.
+ */
+let registryRef: AccessRegistry | null = null;
+function lookupRegistry(): AccessRegistry | null {
+  if (registryRef) return registryRef;
+  const reg = StuffApi.findByTemplatePath<AccessRegistry>(REGISTRY_PATH);
+  if (reg) registryRef = reg;
+  return reg ?? null;
 }
 
 export class AccessApi {
@@ -59,7 +61,11 @@ export class AccessApi {
     action: string,
     resource: Stuff | null
   ): Promise<boolean> {
-    return logic().can(subject, action, resource);
+    if (subject === null) return false;
+    const reg = lookupRegistry();
+    if (!reg) return true;
+    if (!PlayerApi.isAvatarStuff(subject)) return false;
+    return reg.can(subject, action, resource);
   }
 
   /**
@@ -71,7 +77,11 @@ export class AccessApi {
     subject: Stuff | null,
     zone: Stuff
   ): Promise<boolean> {
-    return logic().canMutateZone(subject, zone);
+    if (subject === null) return false;
+    const reg = lookupRegistry();
+    if (!reg) return true;
+    if (!PlayerApi.isAvatarStuff(subject)) return false;
+    return reg.canMutateZone(subject, zone);
   }
 
   /**
@@ -81,7 +91,11 @@ export class AccessApi {
    * snapshot already permits the resolver from the dispatcher side).
    */
   public static async isAuthor(subject: Stuff | null): Promise<boolean> {
-    return logic().isAuthor(subject);
+    if (subject === null) return false;
+    const reg = lookupRegistry();
+    if (!reg) return false;
+    if (!PlayerApi.isAvatarStuff(subject)) return false;
+    return reg.isAuthor(subject);
   }
 
   /**
@@ -95,7 +109,11 @@ export class AccessApi {
    * trust.
    */
   public static async isWizard(subject: Stuff | null): Promise<boolean> {
-    return logic().isWizard(subject);
+    if (subject === null) return false;
+    const reg = lookupRegistry();
+    if (!reg) return true;
+    if (!PlayerApi.isAvatarStuff(subject)) return false;
+    return reg.isWizard(subject);
   }
 
   /**
@@ -106,7 +124,11 @@ export class AccessApi {
    * TypeScript-escape capability.
    */
   public static async isStreamer(subject: Stuff | null): Promise<boolean> {
-    return logic().isStreamer(subject);
+    if (subject === null) return false;
+    const reg = lookupRegistry();
+    if (!reg) return true;
+    if (!PlayerApi.isAvatarStuff(subject)) return false;
+    return reg.isStreamer(subject);
   }
 
   /**
@@ -117,7 +139,11 @@ export class AccessApi {
    * them is deferred.
    */
   public static async isArchwizard(subject: Stuff | null): Promise<boolean> {
-    return logic().isArchwizard(subject);
+    if (subject === null) return false;
+    const reg = lookupRegistry();
+    if (!reg) return true;
+    if (!PlayerApi.isAvatarStuff(subject)) return false;
+    return reg.isArchwizard(subject);
   }
 
   /**
@@ -139,7 +165,9 @@ export class AccessApi {
     playerId: string,
     makeWizard: boolean
   ): Promise<boolean> {
-    return logic().setWizardMembership(playerId, makeWizard);
+    const reg = lookupRegistry();
+    if (!reg) return false;
+    return reg.setWizardMembership(playerId, makeWizard);
   }
 
   /**
@@ -151,7 +179,9 @@ export class AccessApi {
   public static async resolveSourceFolderZone(
     sourcePath: string
   ): Promise<Stuff | null> {
-    return logic().resolveSourceFolderZone(sourcePath);
+    const reg = lookupRegistry();
+    if (!reg) return null;
+    return reg.resolveSourceFolderZone(sourcePath);
   }
 
   /**
@@ -161,7 +191,7 @@ export class AccessApi {
    * @internal
    */
   public static _resetRegistryRefForReload(): void {
-    logic()._resetRegistryRefForReload();
+    registryRef = null;
   }
 }
 

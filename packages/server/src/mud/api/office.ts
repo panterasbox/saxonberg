@@ -1,12 +1,13 @@
 /**
  * OfficeApi — thin facade over the `OfficeRegistry` singleton.
  *
- * Stable caller-facing surface for the government-office substrate.
- * Every method delegates through the hot-reloadable {@link OfficeLogic}
- * singleton at `/obj/api/office` to the Registry; the Registry's methods
- * carry `@CallSecurity(AnyOf(FromModule('/api/office#OfficeApi'),
- * FromTemplate('/obj/api/office')))` so the security gate denies any
- * caller outside the office subsystem.
+ * Stable caller-facing surface for the government-office substrate. The
+ * facade talks to the Registry **directly** — there is no `OfficeLogic`
+ * tier (it held no logic; the antipattern sweep collapsed it). The
+ * Registry's methods carry
+ * `@CallSecurity(FromModule('/api/office#OfficeApi'))` so the security
+ * gate denies any caller outside this facade; behavior hot-reloads with
+ * the Registry itself (an `/obj/` singleton).
  *
  * Two surfaces:
  *   - **Public (ungated) reads** — the occupancy check + roster surface.
@@ -20,9 +21,18 @@
  *     `requiresFoundingAuthority` subcommand-level validator (the meta
  *     governance-root gate), not re-checked here.
  *
+ * **No-registry test path fails CLOSED.** Unlike `AccessApi.can`/
+ * `isWizard` (which fail *open* because the dispatcher already pre-gated
+ * the resolver), governance has no dispatcher-side pre-gate to lean on:
+ * a missing Registry means "we cannot prove this player holds office /
+ * is the founder", so `holdsOffice`/`isFounder` return `false`,
+ * `officesOf`/`roster` return `[]`, `holderOf` returns an `unknown`
+ * result, and the mutations no-op. Failing open here would silently
+ * grant office authority.
+ *
  * Parameter convention (the `gated-api-actor-from-context` rule): the
  * read predicates that take a *subject* accept `Stuff | null` (an Avatar)
- * and let the Logic resolve playerId. The mutations take a resolved
+ * and resolve playerId here. The mutations take a resolved
  * `playerId: string` appointee (the controller resolved the MQL target).
  * The **appointer** is never a parameter — it is derived from execution
  * context by `requiresFoundingAuthority`. `vacate(officeKey)` takes no
@@ -31,33 +41,40 @@
 
 import { SecurityApi } from './security';
 import { StuffApi } from './stuff';
-import { HotReloadApi } from './hot-reload';
 import { CallSecurity } from '../lib/security/decorators';
 import { SecurityPolicies } from '../lib/security/SecurityPolicies';
+import { TemplatePaths } from '../lib/paths';
 import type { Stuff } from '../lib/stuff/Stuff';
 import type {
   OfficeHolderResult,
   OfficeRosterRow,
   OfficeAssignResult,
 } from '../lib/governance/Office';
-import { OfficeLogic } from '../obj/api/OfficeLogic';
-import { fileURLToPath } from 'url';
+import type OfficeRegistry from '../obj/OfficeRegistry';
 
-const LOGIC_PATH = '/obj/api/office';
-const LOGIC_CLASS_FILE = fileURLToPath(
-  new URL('../obj/api/OfficeLogic', import.meta.url),
-);
+const REGISTRY_PATH = TemplatePaths.officeRegistry;
 
-/** Resolve the HMR-able OfficeLogic singleton (sync). */
-function logic(): OfficeLogic {
-  return StuffApi.singletonSync(
-    LOGIC_PATH,
-    () =>
-      new ((HotReloadApi.getCurrentExport(
-        LOGIC_CLASS_FILE,
-        'OfficeLogic',
-      ) as typeof OfficeLogic | null) ?? OfficeLogic)(),
-  );
+/**
+ * Avatar-shaped sniff: only Avatar instances carry a non-empty
+ * playerId. NPCs and props fail closed without touching the Registry.
+ */
+function playerIdOfQuick(subject: Stuff): string | null {
+  const id = subject.getPlayerId();
+  return id && id.length > 0 ? id : null;
+}
+
+/**
+ * Resolve the Registry without forcing a clone. In production the
+ * Registry is cloned by `AppBootstrap`, so this returns it cheaply. In
+ * test harnesses without a live Registry it returns `null` — the public
+ * predicates then fail **closed** (see the class doc).
+ */
+let registryRef: OfficeRegistry | null = null;
+function lookupRegistry(): OfficeRegistry | null {
+  if (registryRef) return registryRef;
+  const reg = StuffApi.findByTemplatePath<OfficeRegistry>(REGISTRY_PATH);
+  if (reg) registryRef = reg;
+  return reg ?? null;
 }
 
 export class OfficeApi {
@@ -69,7 +86,9 @@ export class OfficeApi {
   public static async holderOf(
     officeKey: string,
   ): Promise<OfficeHolderResult> {
-    return logic().holderOf(officeKey);
+    const reg = lookupRegistry();
+    if (!reg) return { kind: 'unknown', officeKey };
+    return reg.holderOf(officeKey);
   }
 
   /**
@@ -81,7 +100,12 @@ export class OfficeApi {
     subject: Stuff | null,
     officeKey: string,
   ): Promise<boolean> {
-    return logic().holdsOffice(subject, officeKey);
+    if (subject === null) return false;
+    const reg = lookupRegistry();
+    if (!reg) return false;
+    const playerId = playerIdOfQuick(subject);
+    if (playerId === null) return false;
+    return reg.holdsOffice(playerId, officeKey);
   }
 
   /**
@@ -90,7 +114,12 @@ export class OfficeApi {
    * anyone else. Public read.
    */
   public static async officesOf(subject: Stuff | null): Promise<string[]> {
-    return logic().officesOf(subject);
+    if (subject === null) return [];
+    const reg = lookupRegistry();
+    if (!reg) return [];
+    const playerId = playerIdOfQuick(subject);
+    if (playerId === null) return [];
+    return reg.officesOf(playerId);
   }
 
   /**
@@ -99,7 +128,12 @@ export class OfficeApi {
    * False until the founder has logged in. Public read.
    */
   public static async isFounder(subject: Stuff | null): Promise<boolean> {
-    return logic().isFounder(subject);
+    if (subject === null) return false;
+    const reg = lookupRegistry();
+    if (!reg) return false;
+    const playerId = playerIdOfQuick(subject);
+    if (playerId === null) return false;
+    return reg.isFounder(playerId);
   }
 
   /**
@@ -108,12 +142,16 @@ export class OfficeApi {
    * default). Publicly readable (Art. VII).
    */
   public static async roster(): Promise<OfficeRosterRow[]> {
-    return logic().roster();
+    const reg = lookupRegistry();
+    if (!reg) return [];
+    return reg.roster();
   }
 
   /** The configured founder display handle (offline presentation). */
   public static founderLabel(): string {
-    return logic().founderLabel();
+    const reg = lookupRegistry();
+    if (!reg) return '(founder unset)';
+    return reg.founderLabel();
   }
 
   /**
@@ -134,7 +172,9 @@ export class OfficeApi {
     playerId: string,
     officeKey: string,
   ): Promise<OfficeAssignResult> {
-    return logic().assign(playerId, officeKey);
+    const reg = lookupRegistry();
+    if (!reg) return { changed: false, priorHolderId: null, ok: false };
+    return reg.assign(playerId, officeKey);
   }
 
   /**
@@ -146,7 +186,9 @@ export class OfficeApi {
     SecurityPolicies.FromModule('/obj/command/governance/OfficeController'),
   )
   public static async vacate(officeKey: string): Promise<boolean> {
-    return logic().vacate(officeKey);
+    const reg = lookupRegistry();
+    if (!reg) return false;
+    return reg.vacate(officeKey);
   }
 
   /**
@@ -155,7 +197,7 @@ export class OfficeApi {
    * @internal
    */
   public static _resetRegistryRefForReload(): void {
-    logic()._resetRegistryRefForReload();
+    registryRef = null;
   }
 }
 

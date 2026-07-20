@@ -323,14 +323,12 @@ export default class SchedulerRegistry extends Idea {
 
   private register(e: Engagement): void {
     const actor = e.actor;
-    // Plant SchedulerApi as the synthetic root so `_setEngagement`'s
-    // ApiOnly check passes. The Registry isn't in mud/api/**, so a
-    // raw call from this scope would be denied.
-    ExecutionContextApi.runRoot(SchedulerApi, 'register', () => {
-      for (const slot of e.slots) {
-        actor._setEngagement(slot, e);
-      }
-    });
+    // Direct participant call: `_setEngagement` is gated on THIS
+    // registry (`FromTemplate('/obj/SchedulerRegistry')`), so the
+    // registry calls as itself — no synthetic SchedulerApi root needed.
+    for (const slot of e.slots) {
+      actor._setEngagement(slot, e);
+    }
     this.engagementsById.set(e.engagementId, e);
 
     const host = this.dispatchGetHost(e);
@@ -537,14 +535,13 @@ export default class SchedulerRegistry extends Idea {
 
   private deregister(e: Engagement): void {
     const actor = e.actor;
-    ExecutionContextApi.runRoot(SchedulerApi, 'deregister', () => {
-      for (const slot of ENGAGEMENT_SLOTS) {
-        const occupant = actor.getEngagementBySlot(slot);
-        if (occupant && occupant.engagementId === e.engagementId) {
-          actor._clearEngagement(slot);
-        }
+    // Direct participant call — see `register` for the gating note.
+    for (const slot of ENGAGEMENT_SLOTS) {
+      const occupant = actor.getEngagementBySlot(slot);
+      if (occupant && occupant.engagementId === e.engagementId) {
+        actor._clearEngagement(slot);
       }
-    });
+    }
     this.engagementsById.delete(e.engagementId);
   }
 

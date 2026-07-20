@@ -30,8 +30,25 @@ import { PostRegistrationMixin } from '../stuff/PostRegistration';
 import type { MixinConstructor } from '../mixin';
 import type { Stuff } from '../stuff/Stuff';
 import type { VetoResult } from '../errors';
+import { CallSecurity } from '../security/decorators';
+import { SecurityPolicies } from '../security/SecurityPolicies';
 import { Position, type PositionData } from './Position';
 import { Roster, type RosterAssignment } from './Roster';
+import {
+  Employment,
+  type EmploymentData,
+  type EmploymentStatus,
+} from './Employment';
+import type { Employed } from './Employed';
+
+/**
+ * The business's own mutation surface: itself, or the employment engine
+ * orchestrating a lifecycle step. Reads stay Public.
+ */
+const BusinessSurface = SecurityPolicies.AnyOf(
+  SecurityPolicies.SelfOnly,
+  SecurityPolicies.FromTemplate('/obj/api/employment'),
+);
 
 /**
  * Public method surface (methods only, per the inter-stuff contract). The
@@ -54,10 +71,36 @@ export interface Business {
   getOperatingLocations(): readonly string[];
   /** The account key for this Business — its own durable path. */
   getAccountPath(): string;
+
+  /** Hire `actor` into `positionKey` (employed, off-shift). */
+  hire(
+    actor: Stuff & Employed,
+    positionKey: string,
+    nowRaw: number,
+  ): Employment | null;
+  /** Flip `actor`'s record with this business to a terminal status. */
+  endEmployment(actor: Stuff & Employed, status: 'fired' | 'quit'): void;
+  /** The existing record, or a lazily-materialized off-shift one. */
+  ensureRostered(
+    actor: Stuff & Employed,
+    positionKey: string,
+    nowRaw: number,
+  ): Employment;
+  /** Stamp `actor` on-shift (`onShiftSince = nowRaw`). */
+  beginShift(actor: Stuff & Employed, nowRaw: number): void;
+  /** Flip `actor` off-shift (caller settles the wage off the captured
+   * record first). */
+  endShift(actor: Stuff & Employed): void;
+  /** Begin a proprietor's transient on-shift cover. */
+  beginCover(actor: Stuff & Employed, nowRaw: number): Employment | null;
+  /** End a proprietor's cover: drop the transient record. */
+  endCover(actor: Stuff & Employed): void;
 }
 
 export function BusinessMixin<TBase extends MixinConstructor>(Base: TBase) {
-  return class BusinessMixin extends Base implements Business {
+  // Class *declaration* (not a returned expression) so the method
+  // decorators are valid under legacy-decorator rules.
+  class BusinessMixin extends Base implements Business {
     static _mixinName = 'BusinessMixin';
 
     static persistentFields = [
@@ -119,7 +162,103 @@ export function BusinessMixin<TBase extends MixinConstructor>(Base: TBase) {
     public getAccountPath(): string {
       return (this as unknown as Stuff).getTemplatePath() ?? '';
     }
-  };
+
+    /* ───── employment transitions (the business acts on its employee) ─────
+     *
+     * Every record write is keyed on THIS business's own path — which is
+     * exactly the participant contract on `Employed`'s gated mutators
+     * (`FromMixin(Mixins.Business)` + a `where` requiring the written key
+     * to be the calling business's path). A business can never touch a
+     * record it isn't party to. The engine (`EmploymentLogic`) supplies
+     * the clock and keeps orchestration (roster evaluation, wage
+     * settlement, capability re-resolve); the relationship mutation is
+     * the business's own behavior.
+     */
+
+    @CallSecurity(BusinessSurface)
+    public hire(
+      actor: Stuff & Employed,
+      positionKey: string,
+      nowRaw: number,
+    ): Employment | null {
+      const businessPath = this.getAccountPath();
+      if (!businessPath) return null;
+      const record: EmploymentData = {
+        businessPath,
+        positionKey,
+        status: 'employed',
+        hiredAt: nowRaw,
+        onShiftSince: null,
+      };
+      actor._upsertEmployment(record);
+      return Employment.of(record);
+    }
+
+    @CallSecurity(BusinessSurface)
+    public endEmployment(
+      actor: Stuff & Employed,
+      status: 'fired' | 'quit',
+    ): void {
+      actor._setEmploymentStatus(this.getAccountPath(), status);
+    }
+
+    @CallSecurity(BusinessSurface)
+    public ensureRostered(
+      actor: Stuff & Employed,
+      positionKey: string,
+      nowRaw: number,
+    ): Employment {
+      const businessPath = this.getAccountPath();
+      const existing = actor.getEmployment(businessPath);
+      if (existing) return existing;
+      const record: EmploymentData = {
+        businessPath,
+        positionKey,
+        status: 'off-shift' as EmploymentStatus,
+        hiredAt: nowRaw,
+        onShiftSince: null,
+      };
+      actor._upsertEmployment(record);
+      return Employment.of(record);
+    }
+
+    @CallSecurity(BusinessSurface)
+    public beginShift(actor: Stuff & Employed, nowRaw: number): void {
+      const emp = actor.getEmployment(this.getAccountPath());
+      if (!emp) return;
+      actor._upsertEmployment(emp.withStatus('on-shift', nowRaw).serialize());
+    }
+
+    @CallSecurity(BusinessSurface)
+    public endShift(actor: Stuff & Employed): void {
+      actor._setEmploymentStatus(this.getAccountPath(), 'off-shift');
+    }
+
+    @CallSecurity(BusinessSurface)
+    public beginCover(
+      actor: Stuff & Employed,
+      nowRaw: number,
+    ): Employment | null {
+      const businessPath = this.getAccountPath();
+      const positionKey = this.positions[0]?.key;
+      if (!businessPath || !positionKey) return null;
+      const record: EmploymentData = {
+        businessPath,
+        positionKey,
+        status: 'on-shift',
+        hiredAt: nowRaw,
+        onShiftSince: nowRaw,
+      };
+      actor._upsertEmployment(record);
+      return Employment.of(record);
+    }
+
+    @CallSecurity(BusinessSurface)
+    public endCover(actor: Stuff & Employed): void {
+      actor._removeEmployment(this.getAccountPath());
+    }
+  }
+  return BusinessMixin;
 }
 
 /**

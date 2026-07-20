@@ -9,9 +9,11 @@
  *
  * **Pure storage + the derived conferral read.** The mixin holds the
  * `Employment` records (as plain data) and dumb CRUD over them. It flips no
- * shift state itself: the privileged mutators are gated `ApiOnly` (the
- * `Engaged._setEngagement` precedent) so only the employment engine
- * (`EmploymentLogic`, an `obj/api/` logic singleton) writes them.
+ * shift state itself: the privileged mutators are written under a
+ * **participant contract** — the Business party to the record (its
+ * transition methods `hire`/`endEmployment`/`ensureRostered`/`beginShift`/
+ * `endShift`/`beginCover`/`endCover` are the callers), with a narrow
+ * janitorial arm for the employment engine.
  *
  * `getConferredMixinNames()` is the knowing→doing seam the augment
  * substrate reads: the union of every **on-shift** Employment's Position
@@ -20,13 +22,38 @@
  * `MakerMixin` goes active — and an off-shift one's goes inert.
  */
 
-import type { MixinConstructor } from '../mixin';
+import { Mixins, type MixinConstructor } from '../mixin';
 import type { Stuff } from '../stuff/Stuff';
 import { CallSecurity, Final, Unshadowable } from '../security/decorators';
 import { SecurityPolicies } from '../security/SecurityPolicies';
 import { StuffApi } from '../../api/stuff';
 import { Employment, type EmploymentData, type EmploymentStatus } from './Employment';
 import type { Business } from './Business';
+
+/**
+ * The participant contract on an employment-record write: the caller is
+ * **the Business party to the record** — a `BusinessMixin` composer whose
+ * own path is the record key being written (`_upsertEmployment` carries
+ * it inside the record; the other two take it as the first argument). A
+ * business can never touch a record it isn't party to. The employment
+ * engine keeps a narrow janitorial arm (`FromTemplate('/obj/api/employment')`)
+ * for records whose Business Idea isn't standing (lazy standup means a
+ * `quit` can outlive its business's live instance).
+ */
+const ByEmployingBusiness = SecurityPolicies.AnyOf(
+  SecurityPolicies.FromMixin(Mixins.Business, {
+    where: (caller, _target, method, args) => {
+      const path = (caller as Stuff).getTemplatePath() ?? '';
+      if (!path) return false;
+      const keyed =
+        method === '_upsertEmployment'
+          ? (args[0] as EmploymentData | undefined)?.businessPath
+          : (args[0] as string | undefined);
+      return keyed === path;
+    },
+  }),
+  SecurityPolicies.FromTemplate('/obj/api/employment'),
+);
 
 /**
  * Public method surface (methods only). `employments` is public for the
@@ -44,11 +71,14 @@ export interface Employed {
   /** Mixin names conferred by every on-shift Employment's Position. */
   getConferredMixinNames(): readonly string[];
 
-  /** Privileged: set an existing record's status. `ApiOnly`. */
+  /** Participant-gated: set an existing record's status — written by the
+   * Business party to the record. */
   _setEmploymentStatus(businessPath: string, status: EmploymentStatus): void;
-  /** Privileged: replace-or-append a full record. `ApiOnly`. */
+  /** Participant-gated: replace-or-append a full record — written by the
+   * Business party to the record. */
   _upsertEmployment(record: EmploymentData): void;
-  /** Privileged: drop the record at `businessPath`. `ApiOnly`. */
+  /** Participant-gated: drop the record at `businessPath` — written by the
+   * Business party to the record. */
   _removeEmployment(businessPath: string): void;
 }
 
@@ -108,7 +138,7 @@ export function EmployedMixin<TBase extends MixinConstructor>(Base: TBase) {
       return [...out];
     }
 
-    @CallSecurity(SecurityPolicies.ApiOnly)
+    @CallSecurity(ByEmployingBusiness)
     @Final
     @Unshadowable
     public _setEmploymentStatus(
@@ -126,7 +156,7 @@ export function EmployedMixin<TBase extends MixinConstructor>(Base: TBase) {
       if (status !== 'on-shift') record.onShiftSince = null;
     }
 
-    @CallSecurity(SecurityPolicies.ApiOnly)
+    @CallSecurity(ByEmployingBusiness)
     @Final
     @Unshadowable
     public _upsertEmployment(record: EmploymentData): void {
@@ -138,7 +168,7 @@ export function EmployedMixin<TBase extends MixinConstructor>(Base: TBase) {
       else this.employments.push(record);
     }
 
-    @CallSecurity(SecurityPolicies.ApiOnly)
+    @CallSecurity(ByEmployingBusiness)
     @Final
     @Unshadowable
     public _removeEmployment(businessPath: string): void {

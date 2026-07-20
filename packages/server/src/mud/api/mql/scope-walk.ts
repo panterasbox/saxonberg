@@ -16,7 +16,6 @@
  */
 
 import type { Stuff } from '../../lib/stuff/Stuff';
-import { ContainmentApi } from '../containment';
 import { MixinApi } from '../mixin';
 import { RecognitionApi } from '../recognition';
 import { PerceptionApi } from '../perception';
@@ -109,7 +108,7 @@ export function candidatesForInventory(
 ): ScopeCandidate[] {
   if (!MixinApi.isContainer(giver)) return [];
   const out: ScopeCandidate[] = [];
-  for (const item of ContainmentApi.getContents(giver)) {
+  for (const item of giver.getContents()) {
     pushDirect(out, item, giver, attention);
   }
   return out;
@@ -128,7 +127,7 @@ export function candidatesForPeers(
   const env = giver.getContainer();
   if (!env || !MixinApi.isContainer(env)) return [];
   const out: ScopeCandidate[] = [];
-  for (const item of ContainmentApi.getContents(env)) {
+  for (const item of env.getContents()) {
     if (item.stuffId === giver.stuffId) continue;
     pushDirect(out, item, giver, attention);
     pushDetails(out, item);

@@ -35,9 +35,24 @@
  */
 
 import { Idea } from "../stuff/Idea";
+import type { Stuff } from "../stuff/Stuff";
 import type { VetoResult } from "../errors";
 import type { SubscribableFieldDescriptor } from "../../api/mql-subscription";
+import { CallSecurity } from "../security/decorators";
+import { SecurityPolicies } from "../security/SecurityPolicies";
 import { PartyRecord } from "./PartyRecord";
+import type { PartyMember } from "./PartyMember";
+
+/**
+ * The party's own mutation surface: the party acting on itself (its
+ * transition methods drive the roster primitives through the proxy) or
+ * the party subsystem's logic singleton orchestrating a lifecycle step.
+ * Reads stay Public.
+ */
+const PartySurface = SecurityPolicies.AnyOf(
+  SecurityPolicies.SelfOnly,
+  SecurityPolicies.FromTemplate("/obj/api/party"),
+);
 
 export class Party extends Idea {
   static persistentFields = [
@@ -74,14 +89,79 @@ export class Party extends Idea {
     return { ok: false, reason: "a party is a managed object, not clutter" };
   }
 
-  /* ───────────────── membership ───────────────── */
+  /* ───────── membership transitions (the party acts on its member) ─────────
+   *
+   * Each transition owns BOTH sides of the change — this roster and the
+   * member's own pointer — so the two stores can never disagree about a
+   * step. The member's `_set*PartyPath` writers are participant-gated on
+   * `FromClass(() => Party)` with a relational `where`, which is exactly
+   * the contract these methods exercise: the party is the calling
+   * participant, acting on a member it rosters (or is releasing).
+   */
 
+  /** Admit a member: roster them, point their active pointer here, and
+   * consume a pending invite that pointed here. Roster-first, so the
+   * member-side contract ("only a party that rosters me may claim me")
+   * holds at write time. */
+  @CallSecurity(PartySurface)
+  admit(member: Stuff & PartyMember): void {
+    const myPath = this.getTemplatePath() ?? "";
+    this.addMember(member.partyMemberId());
+    member._setActivePartyPath(myPath);
+    if (member.getPendingInvitePartyPath() === myPath) {
+      member._setPendingInvitePartyPath("");
+    }
+  }
+
+  /** Offer membership: set the member's pending-invite pointer here. */
+  @CallSecurity(PartySurface)
+  extendInvite(member: Stuff & PartyMember): void {
+    member._setPendingInvitePartyPath(this.getTemplatePath() ?? "");
+  }
+
+  /** Release a member: roster removal + captain succession + clearing the
+   * member's pointer when it points here. `member` may be null/absent for
+   * an offline member — the roster side still settles. The empty-party
+   * terminus (dormancy / destruct) is the logic's concern, not the
+   * party's. */
+  @CallSecurity(PartySurface)
+  release(memberId: string, member?: (Stuff & PartyMember) | null): void {
+    this.removeMember(memberId);
+    if (this.isCaptain(memberId)) {
+      const heir = this.memberIds[0];
+      if (heir) this.setCaptainId(heir);
+    }
+    if (member && member.getActivePartyPath() === this.getTemplatePath()) {
+      member._setActivePartyPath("");
+    }
+  }
+
+  /** Re-point an existing roster member's active pointer here (muster —
+   * the durable-crew reactivation; overwrites any prior active party). */
+  @CallSecurity(PartySurface)
+  recall(member: Stuff & PartyMember): void {
+    member._setActivePartyPath(this.getTemplatePath() ?? "");
+  }
+
+  /** Stand a member down without touching the roster (durable dormancy /
+   * disband teardown): clear their pointer if it points here. */
+  @CallSecurity(PartySurface)
+  dismiss(member: Stuff & PartyMember): void {
+    if (member.getActivePartyPath() === this.getTemplatePath()) {
+      member._setActivePartyPath("");
+    }
+  }
+
+  /* ───────────────── roster primitives ───────────────── */
+
+  @CallSecurity(PartySurface)
   addMember(id: string): boolean {
     if (this.memberIds.includes(id)) return false;
     this.memberIds.push(id);
     return true;
   }
 
+  @CallSecurity(PartySurface)
   removeMember(id: string): boolean {
     const idx = this.memberIds.indexOf(id);
     if (idx < 0) return false;
@@ -107,6 +187,7 @@ export class Party extends Idea {
     return this.captainId;
   }
 
+  @CallSecurity(PartySurface)
   setCaptainId(id: string): void {
     this.captainId = id;
   }
@@ -119,6 +200,7 @@ export class Party extends Idea {
     return this.founderId;
   }
 
+  @CallSecurity(PartySurface)
   setFounderId(id: string): void {
     this.founderId = id;
   }
@@ -129,6 +211,7 @@ export class Party extends Idea {
     return this.name;
   }
 
+  @CallSecurity(PartySurface)
   setName(name: string): void {
     this.name = name;
   }
@@ -137,6 +220,7 @@ export class Party extends Idea {
     return this.durable;
   }
 
+  @CallSecurity(PartySurface)
   setDurable(durable: boolean): void {
     this.durable = durable;
   }
@@ -145,6 +229,7 @@ export class Party extends Idea {
     return this.channelRef;
   }
 
+  @CallSecurity(PartySurface)
   setChannelRef(ref: string): void {
     this.channelRef = ref;
   }
@@ -163,6 +248,7 @@ export class Party extends Idea {
     return this.combatSide || this.partyRef();
   }
 
+  @CallSecurity(PartySurface)
   setCombatSide(side: string): void {
     this.combatSide = side;
   }
@@ -183,6 +269,7 @@ export class Party extends Idea {
   }
 
   /** Hydrate this Idea's fields from a durable {@link PartyRecord}. */
+  @CallSecurity(PartySurface)
   applyRecord(record: PartyRecord): void {
     this.name = record.name;
     this.founderId = record.founderId;

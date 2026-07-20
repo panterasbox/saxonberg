@@ -43,13 +43,11 @@ import Avatar from './Avatar';
 
 const AccessRegistryBase = PostRegistrationMixin(Idea);
 
-// AccessApi's logic now lives in the /obj/api/access logic singleton
-// (the Api face is a thin forwarding shell). Admit both the face module
-// and the logic singleton's template path so the Registry's methods stay
-// callable only through the access subsystem.
-const AccessApiCallers = SecurityPolicies.AnyOf(
-  SecurityPolicies.FromModule('/api/access#AccessApi'),
-  SecurityPolicies.FromTemplate('/obj/api/access'),
+// The AccessApi facade calls the Registry directly (there is no
+// AccessLogic tier — it held no logic), so the Registry's methods admit
+// exactly the face module and nothing else.
+const AccessApiCallers = SecurityPolicies.FromModule(
+  '/api/access#AccessApi',
 );
 
 

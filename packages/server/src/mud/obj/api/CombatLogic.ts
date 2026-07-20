@@ -1774,7 +1774,7 @@ function drawSidearmImpl(actor: Stuff): { ok: boolean; reason?: string } {
 /* ───────────────────────── small reads ───────────────────────── */
 
 function materialKeyOf(stuff: Stuff): string | undefined {
-  const m = MaterialApi.materialOf(stuff);
+  const m = MixinApi.isTangible(stuff) ? stuff.getMaterial() : null;
   return m ? m.getName().toLowerCase() : undefined;
 }
 

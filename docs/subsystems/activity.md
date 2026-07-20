@@ -319,19 +319,17 @@ throw isn't a watchdog case — the scheduler hasn't registered
 timers yet. The throw converts to
 `{ ok: false, reason: 'start-rejected', error }`.
 
-### Timer-callback ApiOnly gating
+### Timer-callback gating
 
-Timer callbacks (setTimeout / setInterval) fire on Node's event
-loop with no calling frame on the call-security stack — that's a
-problem for the privileged `EngagedMixin._setEngagement` /
-`_clearEngagement` mutators which carry
-`@CallSecurity(SecurityPolicies.ApiOnly)`. The scheduler wraps
-every timer-fired callback with
-`ExecutionContextApi.runRoot(SchedulerApi, 'fire', fn)` so the
-synthetic root frame's `target` is `SchedulerApi`, which the
-`ApiOnly` (= `FromModule('/api/**')`) policy permits. Same
-pattern for the host-destruction subscription's `EventApi` listener
-callback.
+Timer callbacks (setTimeout / setInterval) fire on Node's event loop
+with no calling frame on the call-security stack. The scheduler still
+plants a fresh root for context hygiene where a callback fires, but the
+privileged `EngagedMixin._setEngagement` / `_clearEngagement` mutators
+no longer need a synthetic `SchedulerApi` frame to pass their gate:
+they carry the **participant contract**
+`FromTemplate('/obj/SchedulerRegistry')` — the registry (the machinery
+whose timer set must stay in sync with the map) calls them as itself
+from `register`/`deregister`, with its own frame on the stack.
 
 ## EngagedMixin
 
@@ -348,7 +346,8 @@ interface Engaged {
   getEngagementByType(type): Engagement | undefined;
   hasEngagement(slot): boolean;
 
-  // Privileged — only SchedulerApi may call. Runtime-rejected via ApiOnly.
+  // Privileged — participant-gated: only the SchedulerRegistry
+  // singleton may call. Runtime-rejected for every other caller.
   _setEngagement(slot, engagement): void;
   _clearEngagement(slot): void;
 }
@@ -359,9 +358,10 @@ The map is **runtime-only** — `_engagements` is deliberately NOT in
 engagements (no timers to recover, no subscriptions to re-stitch).
 Mirrors `Mobile._engagedModePath`'s runtime-only treatment.
 
-`_setEngagement` / `_clearEngagement` are `@Final @Unshadowable
-@CallSecurity(SecurityPolicies.ApiOnly)` — only `SchedulerApi` may
-mutate the map. The leading `_` flags the surface as method-only-via-Api.
+`_setEngagement` / `_clearEngagement` are `@Final @Unshadowable` +
+participant-gated `FromTemplate('/obj/SchedulerRegistry')` — only the
+scheduler registry may mutate the map. The leading `_` flags the
+surface as privileged, not for general callers.
 
 EngagedMixin also contributes the `cancel` verb and the `stop`
 default alias (collected via `AliasMixin.queryMixins`-driven

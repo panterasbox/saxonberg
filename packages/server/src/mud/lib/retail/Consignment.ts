@@ -17,7 +17,6 @@ import type { MixinConstructor } from "../mixin";
 import type { Stuff } from "../stuff/Stuff";
 import type { Container } from "../spatial/Container";
 import type { Containable } from "../spatial/Containable";
-import { ContainmentApi } from "../../api/containment";
 import { MixinApi } from "../../api/mixin";
 import { SecurityApi } from "../../api/security";
 
@@ -100,9 +99,7 @@ export function ConsignmentShelfMixin<TBase extends MixinConstructor<Stuff>>(
     }
 
     public resolveConsigned(keyword: string): (Stuff & Containable) | null {
-      const contents = ContainmentApi.getContents(
-        this as unknown as Stuff & Container,
-      );
+      const contents = (this as unknown as Stuff & Container).getContents();
       for (const item of contents) {
         if (
           MixinApi.isPerceptible(item) &&

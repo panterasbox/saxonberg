@@ -61,14 +61,6 @@ function logic(): EmploymentLogic {
 }
 
 export class EmploymentApi {
-  /** The actor's employment at `businessPath`, or undefined. */
-  public static employmentOf(
-    actor: Stuff,
-    businessPath: string,
-  ): Employment | undefined {
-    return logic().employmentOf(actor, businessPath);
-  }
-
   /**
    * Whether `subject` may act as the proprietor of `business` — the direct
    * `proprietorPath` edge, or the `AccessApi.isAuthor` operator override.

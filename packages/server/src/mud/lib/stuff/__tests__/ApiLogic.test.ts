@@ -8,7 +8,7 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import type { Stuff, EvictionContext } from '../Stuff';
 import { Idea } from '../Idea';
 import { ApiLogic } from '../ApiLogic';
-import { OfficeLogic } from '../../../obj/api/OfficeLogic';
+import { PartyLogic } from '../../../obj/api/PartyLogic';
 import { StuffApi } from '../../../api/stuff';
 import { ProxyApi } from '../../../api/proxy';
 import { makeStuff } from '../../security/__tests__/test-setup';
@@ -29,7 +29,7 @@ describe('ApiLogic residency exemption', () => {
   });
 
   it('a migrated *Logic is still an Idea and inherits the veto', () => {
-    const s: Stuff = ProxyApi.unwrap(makeStuff(() => new OfficeLogic()));
+    const s: Stuff = ProxyApi.unwrap(makeStuff(() => new PartyLogic()));
     expect(s).toBeInstanceOf(Idea);
     expect(s).toBeInstanceOf(ApiLogic);
     expect(s.canEvict(IDLE).ok).toBe(false);

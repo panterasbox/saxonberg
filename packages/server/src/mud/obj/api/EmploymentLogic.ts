@@ -9,7 +9,6 @@ import { StuffApi } from '../../api/stuff';
 import { MixinApi } from '../../api/mixin';
 import { AccessApi } from '../../api/access';
 import { BankingApi, Money } from '../../api/banking';
-import { ContainmentApi } from '../../api/containment';
 import { WorldClockApi } from '../../api/worldclock';
 import type { ClockHandle } from '../../api/worldclock';
 import { Quantity } from '../../lib/quantity';
@@ -19,7 +18,6 @@ import type { Business } from '../../lib/employment/Business';
 import type { Employed } from '../../lib/employment/Employed';
 import {
   Employment,
-  type EmploymentData,
   type EmploymentStatus,
 } from '../../lib/employment/Employment';
 
@@ -58,26 +56,28 @@ function hireImpl(
   positionKey: string,
 ): Employment | null {
   if (!MixinApi.isEmployed(actor)) return null;
-  const businessPath = business.getTemplatePath() ?? '';
-  if (!businessPath) return null;
-  const record: EmploymentData = {
-    businessPath,
+  return business.hire(
+    actor as EmployedActor,
     positionKey,
-    status: 'employed',
-    hiredAt: WorldClockApi.getNow().rawValue(),
-    onShiftSince: null,
-  };
-  (actor as EmployedActor)._upsertEmployment(record);
-  return Employment.of(record);
+    WorldClockApi.getNow().rawValue(),
+  );
 }
 
-/** Fire / quit — flip the record's status (history is preserved). */
+/** Fire / quit — flip the record's status (history is preserved). The
+ * mutation is the business's own transition when its Idea is standing;
+ * lazy standup means a record can outlive the live instance, so the
+ * engine's janitorial arm covers the direct write. */
 function endEmploymentImpl(
   actor: Stuff,
   businessPath: string,
   status: 'fired' | 'quit',
 ): void {
   if (!MixinApi.isEmployed(actor)) return;
+  const business = StuffApi.findByTemplatePath(businessPath);
+  if (business && MixinApi.hasMixin(business, Mixins.Business)) {
+    (business as BusinessStuff).endEmployment(actor as EmployedActor, status);
+    return;
+  }
   (actor as EmployedActor)._setEmploymentStatus(businessPath, status);
 }
 
@@ -95,25 +95,16 @@ function beginCoverImpl(
   business: BusinessStuff,
 ): Employment | null {
   if (!MixinApi.isEmployed(self)) return null;
-  const businessPath = business.getTemplatePath() ?? '';
-  const positionKey = business.getPositions()[0]?.key;
-  if (!businessPath || !positionKey) return null;
-  const now = WorldClockApi.getNow().rawValue();
-  const record: EmploymentData = {
-    businessPath,
-    positionKey,
-    status: 'on-shift',
-    hiredAt: now,
-    onShiftSince: now,
-  };
-  (self as EmployedActor)._upsertEmployment(record);
-  return Employment.of(record);
+  return business.beginCover(
+    self as EmployedActor,
+    WorldClockApi.getNow().rawValue(),
+  );
 }
 
 /** End a proprietor's cover: drop the transient cover Employment. */
 function endCoverImpl(self: Stuff, business: BusinessStuff): void {
   if (!MixinApi.isEmployed(self)) return;
-  (self as EmployedActor)._removeEmployment(business.getTemplatePath() ?? '');
+  business.endCover(self as EmployedActor);
 }
 
 /**
@@ -124,9 +115,9 @@ function endCoverImpl(self: Stuff, business: BusinessStuff): void {
  */
 function tipRecipientForImpl(patron: Stuff): Stuff | null {
   if (!MixinApi.isContainable(patron)) return null;
-  const loc = ContainmentApi.getContainer(patron);
+  const loc = patron.getContainer();
   if (!loc || !MixinApi.isContainer(loc)) return null;
-  for (const c of ContainmentApi.getContents(loc)) {
+  for (const c of loc.getContents()) {
     if (c !== patron && MixinApi.isMaker(c)) return c;
   }
   return null;
@@ -260,26 +251,17 @@ export class EmploymentLogic extends ApiLogic {
         if (!actor || !MixinApi.isEmployed(actor)) continue;
         const employed = actor as EmployedActor;
 
-        let emp = employed.getEmployment(businessPath);
-        if (!emp) {
-          const record: EmploymentData = {
-            businessPath,
-            positionKey: assignment.positionKey,
-            status: 'off-shift',
-            hiredAt: nowRaw,
-            onShiftSince: null,
-          };
-          employed._upsertEmployment(record);
-          emp = Employment.of(record);
-        }
+        const emp = business.ensureRostered(
+          employed,
+          assignment.positionKey,
+          nowRaw,
+        );
         if (TERMINAL.includes(emp.status)) continue;
 
         const desired = roster.evaluate(assignment, date);
         const currentlyOn = emp.status === 'on-shift';
         if (desired === 'on-shift' && !currentlyOn) {
-          employed._upsertEmployment(
-            emp.withStatus('on-shift', nowRaw).serialize(),
-          );
+          business.beginShift(employed, nowRaw);
         } else if (desired === 'off-shift' && currentlyOn) {
           // Settle off the captured record (has `onShiftSince`) at this
           // tick's instant, before the synchronous clear below — no race.
@@ -291,7 +273,7 @@ export class EmploymentLogic extends ApiLogic {
           ).catch((err) =>
             console.error('EmploymentLogic: shift-wage settle failed', err),
           );
-          employed._setEmploymentStatus(businessPath, 'off-shift');
+          business.endShift(employed);
         }
       }
     }
@@ -310,16 +292,6 @@ export class EmploymentLogic extends ApiLogic {
         }
       },
     );
-  }
-
-  /** See {@link EmploymentApi.employmentOf}. */
-  @CallSecurity(EmploymentApiCallers)
-  public employmentOf(
-    actor: Stuff,
-    businessPath: string,
-  ): Employment | undefined {
-    if (!MixinApi.isEmployed(actor)) return undefined;
-    return (actor as EmployedActor).getEmployment(businessPath);
   }
 
   /** See {@link EmploymentApi.isProprietorOf}. */

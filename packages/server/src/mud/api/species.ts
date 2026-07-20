@@ -1,11 +1,12 @@
 /**
- * SpeciesApi — kingdom resolution, lifecycle predicates, animacy.
+ * SpeciesApi — kingdom resolution, animacy, anatomy orchestration.
  *
- * The single dispatch point for "what is this Organism, biologically?"
- * questions: which kingdom does it belong to (`getKingdom`,
- * `isInKingdom`), what lifecycle state is it in (`isAlive`, `isDead`,
- * `isUndead`, `isPowered`, `isDestroyed`), and the composed predicate
- * for command-layer gating (`isAnimate`).
+ * The dispatch point for "what is this Organism, biologically?"
+ * questions that need cross-object resolution: which kingdom does it
+ * belong to (`getKingdom`, a taxonomy walk), and the composed predicate
+ * for command-layer gating (`isAnimate`). Plain lifecycle-state reads
+ * live on the organism itself (`OrganismMixin.isAlive()` etc.), not
+ * here.
  *
  * `isAnimate` is the load-bearing surface — the verb-level
  * `requires-animate` validator (Item 6) reads it to decide whether a
@@ -63,34 +64,11 @@ export class SpeciesApi {
     return logic().getKingdom(o);
   }
 
-  public static isInKingdom(
-    o: Stuff & Organism,
-    kingdomName: string
-  ): boolean {
-    return logic().isInKingdom(o, kingdomName);
-  }
-
-  /** Lifecycle predicates — read the Organism's `lifecycleState`. */
-
-  public static isAlive(o: Stuff & Organism): boolean {
-    return logic().isAlive(o);
-  }
-
-  public static isDead(o: Stuff & Organism): boolean {
-    return logic().isDead(o);
-  }
-
-  public static isUndead(o: Stuff & Organism): boolean {
-    return logic().isUndead(o);
-  }
-
-  public static isPowered(o: Stuff & Organism): boolean {
-    return logic().isPowered(o);
-  }
-
-  public static isDestroyed(o: Stuff & Organism): boolean {
-    return logic().isDestroyedState(o);
-  }
+  /* The former lifecycle predicates (`isAlive`/`isDead`/`isUndead`/
+   * `isPowered`/`isDestroyed`) and `isInKingdom` were thin restatements
+   * of the organism's own state — they now live where they belong: the
+   * organism answers for itself (`OrganismMixin.isAlive()` etc.; compare
+   * `getLifecycleState()` for the `destroyed` reading). */
 
   /**
    * Resolve the body-plan template path for a Stuff. Walks

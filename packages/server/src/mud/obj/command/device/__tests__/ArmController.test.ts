@@ -100,7 +100,7 @@ describe('ArmController — deploy', () => {
 
     expect(deployed.getConcealment()).toBe('hidden');
     expect(deployed.getPlacedBy()).toBe(placer.getTemplatePath());
-    expect(ContainmentApi.getContainer(deployed)).toBe(room);
+    expect(deployed.getContainer()).toBe(room);
     expect(StuffApi.destruct).toHaveBeenCalledWith(kit);
     expect(context.note).not.toHaveBeenCalled(); // no rejection
   });
@@ -154,7 +154,7 @@ describe('pick-up-your-own-trap (GetController gate)', () => {
       getModel(trap) as never,
       ctx(placer, room) as never,
     );
-    expect(ContainmentApi.getContainer(trap)).toBe(placer);
+    expect(trap.getContainer()).toBe(placer);
   });
 
   it('a non-placer cannot pick up someone else\'s live trap', async () => {
@@ -170,7 +170,7 @@ describe('pick-up-your-own-trap (GetController gate)', () => {
       getModel(trap) as never,
       context as never,
     );
-    expect(ContainmentApi.getContainer(trap)).toBe(room); // left behind
+    expect(trap.getContainer()).toBe(room); // left behind
     expect(context.note).toHaveBeenCalledWith(
       expect.objectContaining({ reason: 'not-your-trap' }),
     );

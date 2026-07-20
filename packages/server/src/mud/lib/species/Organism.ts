@@ -31,6 +31,11 @@ export interface Organism {
   setAge(value: number): void;
   getLifecycleState(): string;
   setLifecycleState(value: string): void;
+  /** Lifecycle predicates — the organism answers for its own state. */
+  isAlive(): boolean;
+  isDead(): boolean;
+  isUndead(): boolean;
+  isPowered(): boolean;
   getSex(): string | null;
 }
 
@@ -78,6 +83,15 @@ export function OrganismMixin<TBase extends MixinConstructor>(Base: TBase) {
 
     public getLifecycleState(): string { return this.lifecycleState; }
     public setLifecycleState(value: string): void { this.lifecycleState = value; }
+
+    /* Lifecycle predicates — object-owned sugar over `lifecycleState`
+     * (the `destroyed` state has no predicate here: `isDestroyed` is
+     * Stuff's own lifecycle method; compare `getLifecycleState()`
+     * directly for the organism-state reading). */
+    public isAlive(): boolean { return this.lifecycleState === 'alive'; }
+    public isDead(): boolean { return this.lifecycleState === 'dead'; }
+    public isUndead(): boolean { return this.lifecycleState === 'undead'; }
+    public isPowered(): boolean { return this.lifecycleState === 'powered'; }
 
     /**
      * Sex default — `null` for biology-only organisms (v1 plants,

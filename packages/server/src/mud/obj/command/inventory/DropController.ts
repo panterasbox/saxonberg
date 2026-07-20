@@ -60,7 +60,7 @@ export default class DropController extends CommandController<DropModel> {
     // `giver` is narrowed to `Stuff & Container` from here on — the
     // narrowing has to survive across the two paths because each
     // wants the inventory snapshot.
-    const inventory = ContainmentApi.getContents(giver);
+    const inventory = giver.getContents();
 
     if (!quantity) {
       return this.executeWholeSet(stuff, inventory, raw, context);

@@ -21,7 +21,6 @@
  */
 
 import type { Stuff } from '../../lib/stuff/Stuff';
-import { ContainmentApi } from '../containment';
 import { MixinApi } from '../mixin';
 import { PathPatternApi } from '../path-pattern';
 import { StuffApi } from '../stuff';
@@ -505,7 +504,7 @@ function candidatesForAnchor(
   // Stuff containment context only when not inside a detail tree.
   if (!insideDetail) {
     if (MixinApi.isContainer(stuff)) {
-      for (const item of ContainmentApi.getContents(stuff)) {
+      for (const item of stuff.getContents()) {
         out.push({
           stuff: item,
           name: nameOf(item),
@@ -901,7 +900,7 @@ function applyTransform(
         }
       } else {
         if (!MixinApi.isContainer(m.stuff)) continue;
-        for (const item of ContainmentApi.getContents(m.stuff)) {
+        for (const item of m.stuff.getContents()) {
           out.push({ stuff: item, score: m.score });
         }
       }

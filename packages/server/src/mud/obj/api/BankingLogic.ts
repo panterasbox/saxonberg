@@ -202,7 +202,7 @@ async function ensureVenueAccountImpl(
 /** The cash-like contents of a container, grouped by denomination (per-stack). */
 function cashSupply(holder: Stuff & Container): CoinSupply[] {
   const supply: CoinSupply[] = [];
-  for (const item of ContainmentApi.getContents(holder)) {
+  for (const item of holder.getContents()) {
     if (isCashLike(item)) {
       supply.push({
         denomination: item.getDenomination(),
@@ -226,7 +226,7 @@ async function takeCoins(
 ): Promise<boolean> {
   for (const line of plan) {
     let need = line.count;
-    for (const item of [...ContainmentApi.getContents(from)]) {
+    for (const item of [...from.getContents()]) {
       if (need <= 0) break;
       if (!isCashLike(item) || item.getDenomination() !== line.denomination) {
         continue;
@@ -266,7 +266,7 @@ async function moveCoins(
 /** Total cash-like value on hand in a container (Σ face-value × quantity). */
 function cashOnHand(holder: Stuff & Container): number {
   let total = 0;
-  for (const item of ContainmentApi.getContents(holder)) {
+  for (const item of holder.getContents()) {
     if (isCashLike(item)) total += stackValue(item);
   }
   return total;

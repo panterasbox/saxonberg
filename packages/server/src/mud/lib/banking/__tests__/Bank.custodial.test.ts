@@ -16,6 +16,7 @@ import { ContainmentApi } from "../../../api/containment";
 import { ExecutionContextApi } from "../../../api/execution-context";
 import { Idea } from "../../stuff/Idea";
 import { ContainerMixin } from "../../spatial/Container";
+import type { Container } from "../../spatial/Container";
 import { ContainableMixin } from "../../spatial/Containable";
 import { Quantity } from "../../quantity";
 import type { Stuff } from "../../stuff/Stuff";
@@ -128,7 +129,7 @@ describe("Custodial ops — open / deposit / withdraw (AC#4, AC#5)", () => {
     // After withdraw: vault 0, balance 0 — 1:1, coin back with alice.
     expect(bank.getTillLiquidity().minor).toBe(0);
     expect(BankingApi.balanceOf(accountId).minor).toBe(0);
-    const aliceCoins = ContainmentApi.getContents(alice as never).filter(
+    const aliceCoins = (alice as Stuff & Container).getContents().filter(
       (s) => s instanceof Coin
     );
     expect((aliceCoins[0] as Coin).getQuantity()).toBe(100);

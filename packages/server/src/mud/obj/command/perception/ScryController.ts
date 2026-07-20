@@ -18,7 +18,6 @@ import type { MqlOneResult } from '../../../api/mql';
 import { MessageApi } from '../../../api/message';
 import { Mml } from '../../../api/mml';
 import { MixinApi } from '../../../api/mixin';
-import { ContainmentApi } from '../../../api/containment';
 import type { Stuff } from '../../../lib/stuff/Stuff';
 import type { Scryable } from '../../../lib/perception/Scryable';
 
@@ -83,14 +82,14 @@ export default class ScryController extends CommandController<ScryModel> {
     // Auto-resolve: walk the avatar's environment for any Scryable.
     const env = MixinApi.isContainable(giver) ? giver.getContainer() : null;
     if (env && MixinApi.isContainer(env)) {
-      for (const item of ContainmentApi.getContents(env)) {
+      for (const item of env.getContents()) {
         if (MixinApi.isScryable(item)) {
           if (item.canScryFor(target).ok) return item;
         }
       }
     }
     if (MixinApi.isContainer(giver)) {
-      for (const item of ContainmentApi.getContents(giver)) {
+      for (const item of giver.getContents()) {
         if (MixinApi.isScryable(item)) {
           if (item.canScryFor(target).ok) return item;
         }

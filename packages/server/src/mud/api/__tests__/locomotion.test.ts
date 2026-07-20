@@ -31,6 +31,7 @@ import {
   buildMode,
 } from '../../lib/locomotion/__tests__/test-helpers';
 import { Mixins } from '../../lib/mixin';
+import { MixinApi } from '../mixin';
 
 // Test classes — compose the mixins this Api exercises.
 const ClimbableLoc = ClimbableMixin(Location);
@@ -389,18 +390,18 @@ describe('LocomotionApi', () => {
     });
   });
 
-  describe('engagedMode (untyped-safe)', () => {
+  describe('engagedMode', () => {
     it('returns the resolved singleton for Mobile actors', () => {
       const walk = buildMode('walk');
       const actor = makeStuff(() => new Actor());
       actor.setEngagedMode(walk);
-      expect(LocomotionApi.engagedMode(actor)).toBe(walk);
+      expect(actor.getEngagedMode()).toBe(walk);
     });
 
-    it('returns null for non-Mobile Stuff', () => {
+    it('non-Mobile Stuff has no engaged mode surface', () => {
       class Bare extends Idea {}
       const obj = makeStuff(() => new Bare());
-      expect(LocomotionApi.engagedMode(obj)).toBeNull();
+      expect(MixinApi.isMobile(obj)).toBe(false);
     });
   });
 

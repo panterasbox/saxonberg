@@ -7,7 +7,6 @@ import { SecurityPolicies } from '../../lib/security/SecurityPolicies';
 import type { Stuff } from '../../lib/stuff/Stuff';
 import { MixinApi } from '../../api/mixin';
 import { StuffApi } from '../../api/stuff';
-import { ContainmentApi } from '../../api/containment';
 import { BulkableApi } from '../../api/bulk';
 import { ExecutionContextApi } from '../../api/execution-context';
 import { WorldClockApi } from '../../api/worldclock';
@@ -84,9 +83,9 @@ function resolveMaker(mode: MakerMode): Stuff | null {
   if (mode === 'self') return giver;
   // fulfilling-bartender: the giver is the patron; find a present maker.
   if (!MixinApi.isContainable(giver)) return null;
-  const loc = ContainmentApi.getContainer(giver);
+  const loc = giver.getContainer();
   if (!loc || !MixinApi.isContainer(loc)) return null;
-  for (const c of ContainmentApi.getContents(loc)) {
+  for (const c of loc.getContents()) {
     if (c !== giver && MixinApi.isMaker(c)) return c;
   }
   return null;
@@ -110,7 +109,7 @@ async function gatherMatter(location: Stuff): Promise<{
   const bottles: BottleCandidate[] = [];
   const tools: (Stuff & Tooled)[] = [];
   if (!MixinApi.isContainer(location)) return { bottles, tools };
-  for (const c of ContainmentApi.getContents(location)) {
+  for (const c of location.getContents()) {
     if (MixinApi.isTool(c)) tools.push(c);
     if (MixinApi.isBulkable(c) && MixinApi.isGraded(c)) {
       const slot = BulkableApi.slotFor(c, undefined);
@@ -327,7 +326,7 @@ async function craftImpl(req: CraftRequest): Promise<CraftOutcome> {
   const maker = resolveMaker(req.makerMode);
   if (!maker) return { ok: false, reason: 'no-maker' };
   if (!MixinApi.isContainable(maker)) return { ok: false, reason: 'no-maker' };
-  const location = ContainmentApi.getContainer(maker);
+  const location = maker.getContainer();
   if (!location) {
     return { ok: false, reason: 'insufficient-input', detail: 'no-location' };
   }

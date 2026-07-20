@@ -171,9 +171,9 @@ it's state, not identity. Iron is solid at room temp, liquid at
 `getMaterial()` resolves on each call via
 `StuffApi.findByTemplatePath` — HMR-safe.
 
-`MaterialApi.materialOf(stuff, detailKey?)` is the single dispatch
-point for "what is this made of?" — returns the singleton if
-Tangible, `null` otherwise.
+`stuff.getMaterial(detailKey?)` is the direct read for "what is this
+made of?" — callers narrow with `MixinApi.isTangible(stuff)` first
+(a non-Tangible has no material).
 
 `getMaterial(detailKey)` walks **longest dotted prefix first** down
 to the bulk default — so a sub-detail without its own override

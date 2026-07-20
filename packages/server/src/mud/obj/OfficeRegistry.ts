@@ -54,13 +54,11 @@ import type { EvictionContext } from '../lib/stuff/Stuff';
 
 const OfficeRegistryBase = PostRegistrationMixin(Idea);
 
-// OfficeApi's logic lives in the /obj/api/office logic singleton (the
-// Api face is a thin forwarding shell). Admit both the face module and
-// the logic singleton's template path so the Registry's methods stay
-// callable only through the office subsystem.
-const OfficeApiCallers = SecurityPolicies.AnyOf(
-  SecurityPolicies.FromModule('/api/office#OfficeApi'),
-  SecurityPolicies.FromTemplate('/obj/api/office'),
+// The OfficeApi facade calls the Registry directly (there is no
+// OfficeLogic tier — it held no logic), so the Registry's methods admit
+// exactly the face module and nothing else.
+const OfficeApiCallers = SecurityPolicies.FromModule(
+  '/api/office#OfficeApi',
 );
 
 export default class OfficeRegistry extends OfficeRegistryBase {

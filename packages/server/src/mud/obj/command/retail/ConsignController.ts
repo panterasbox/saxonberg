@@ -137,7 +137,7 @@ export default class ConsignController extends CommandController<ConsignModel> {
     keyword: string,
   ): (Stuff & Containable & { getChattelId(): string }) | null {
     if (!MixinApi.isContainer(giver)) return null;
-    for (const item of ContainmentApi.getContents(giver)) {
+    for (const item of giver.getContents()) {
       if (
         MixinApi.isPerceptible(item) &&
         item.hasKeyword(keyword) &&

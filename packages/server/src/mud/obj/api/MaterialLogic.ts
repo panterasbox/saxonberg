@@ -13,7 +13,6 @@ import type {
   TraumaResolution,
   OutcomeBand,
 } from '../../api/material';
-import { MixinApi } from '../../api/mixin';
 import { StuffApi } from '../../api/stuff';
 import { AppApi } from '../../api/app';
 import { AppSettingKeys } from '../../lib/config/AppSettings';
@@ -58,13 +57,6 @@ const MaterialApiCallers = SecurityPolicies.FromModule('/api/material#MaterialAp
  */
 @Unshadowable
 export class MaterialLogic extends ApiLogic {
-  /** See {@link MaterialApi.materialOf}. */
-  @CallSecurity(MaterialApiCallers)
-  public materialOf(stuff: Stuff, detailKey?: string): Material | null {
-    if (!MixinApi.isTangible(stuff)) return null;
-    return stuff.getMaterial(detailKey);
-  }
-
   /** See {@link MaterialApi.compositionOf}. */
   @CallSecurity(MaterialApiCallers)
   public compositionOf(material: Material): MaterialComposition {

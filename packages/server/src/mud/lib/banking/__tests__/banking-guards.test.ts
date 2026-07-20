@@ -19,6 +19,7 @@ import { StuffApi } from "../../../api/stuff";
 import { ExecutionContextApi } from "../../../api/execution-context";
 import { Idea } from "../../stuff/Idea";
 import { ContainerMixin } from "../../spatial/Container";
+import type { Container } from "../../spatial/Container";
 import { ContainableMixin } from "../../spatial/Containable";
 import { PropertiedMixin } from "../../stuff/Propertied";
 import type { Stuff } from "../../stuff/Stuff";
@@ -117,7 +118,7 @@ describe("Till security — vault coin leaves only via the banking verbs", () =>
       await BankingApi.deposit(bank, coins);
     });
     // The vault now holds the coin. A loose grab is vetoed by till security.
-    const vaultCoin = ContainmentApi.getContents(bank as never).find(
+    const vaultCoin = (bank as Stuff & Container).getContents().find(
       (s) => s instanceof Coin,
     ) as Coin;
     expect(vaultCoin).toBeTruthy();

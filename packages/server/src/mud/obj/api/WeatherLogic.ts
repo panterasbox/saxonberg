@@ -15,7 +15,6 @@ import { CelestialApi } from '../../api/celestial';
 import { ConnectionApi } from '../../api/connection';
 import { StuffApi } from '../../api/stuff';
 import { ContainmentApi } from '../../api/containment';
-import { MaterialApi } from '../../api/material';
 import { AppApi } from '../../api/app';
 import { AppSettingKeys } from '../../lib/config/AppSettings';
 import { EARTH_LIKE, type Season } from '../../lib/time/CelestialProfile';
@@ -765,7 +764,7 @@ function pickAttractor(room: Stuff & Container): Stuff | null {
 
 /** A Stuff's material electrical conductivity (S/m), or 0 when materialless. */
 function conductivityOf(s: Stuff): number {
-  const mat = MaterialApi.materialOf(s);
+  const mat = MixinApi.isTangible(s) ? s.getMaterial() : null;
   return mat === null ? 0 : mat.getElectricalConductivity().rawValue();
 }
 

@@ -324,7 +324,7 @@ describe('HazardMixin — veto / redirect consequences', () => {
       { traverseConsequence: 'drop', dropDestination: belowPath },
     );
     await walkInto(m, trap);
-    expect(ContainmentApi.getContainer(m)).toBe(below);
+    expect(m.getContainer()).toBe(below);
     // The pit still sprang exactly once (reentrancy guard).
     expect(trap.getHazardState()).toBe('sprung');
   });
@@ -370,7 +370,7 @@ describe('disarm — found-gated', () => {
     const m = plainMover('/obj/Avatar/hz-blind');
     ContainmentApi.move(m, makeStuff(() => new Location()));
     const trap = makeTrap({ channel: 'edge', energy: 2, siteSelector: FEET });
-    const context = ctx(m, ContainmentApi.getContainer(m));
+    const context = ctx(m, m.getContainer());
     await makeStuff(() => new DisarmController()).execute({ target: target(trap) }, context);
     expect(trap.isArmed()).toBe(true); // still live — you can't defuse what you can't see
   });
@@ -380,7 +380,7 @@ describe('disarm — found-gated', () => {
     ContainmentApi.move(m, makeStuff(() => new Location()));
     const trap = makeTrap({ channel: 'edge', energy: 2, siteSelector: FEET });
     PerceptionApi.recordDiscovery(m, trap as unknown as Thing);
-    const context = ctx(m, ContainmentApi.getContainer(m));
+    const context = ctx(m, m.getContainer());
     await makeStuff(() => new DisarmController()).execute({ target: target(trap) }, context);
     expect(trap.getHazardState()).toBe('disarmed');
   });

@@ -377,7 +377,7 @@ export class SecurityApi {
     const wrapped = function (this: unknown, ...args: unknown[]): unknown {
       const policy = SecurityApi.resolveStaticCallPolicy(cls, methodName);
       const caller = ExecutionContextApi.getCurrentTarget();
-      const allowed = policy.allows(caller, cls, methodName);
+      const allowed = policy.allows(caller, cls, methodName, args);
       const deny = (): never => {
         throw new SecurityError(
           `Policy ${policy.name} denied ${(cls as { name?: string }).name ?? '<class>'}.${methodName}()`,
@@ -602,7 +602,7 @@ export class SecurityApi {
     // 2. entry policy
     const policy = SecurityApi.resolveCallPolicy(ctx.target, ctx.prop);
     const caller = ExecutionContextApi.getCurrentTarget();
-    const allowedOrPromise = policy.allows(caller, ctx.proxy, ctx.prop);
+    const allowedOrPromise = policy.allows(caller, ctx.proxy, ctx.prop, ctx.args);
     const deny = (): never => {
       throw new SecurityError(
         `Policy ${policy.name} denied ${ctx.prop}() on Stuff ${ctx.target.stuffId}`,

@@ -284,16 +284,6 @@ export class LocomotionApi {
     return logic().eligibleModes(actor);
   }
 
-  // ── engaged-mode introspection (untyped-safe) ────────────────────
-
-  /**
-   * Type-safe convenience for non-Mobile callers ("what mode is X
-   * engaged in, if any?"). Returns `null` for non-Mobile Stuff.
-   */
-  public static engagedMode(actor: Stuff): LocomotionMode | null {
-    return logic().engagedMode(actor);
-  }
-
   // ── engagement lifecycle ─────────────────────────────────────────
 
   /**

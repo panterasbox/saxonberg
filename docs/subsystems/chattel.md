@@ -39,7 +39,8 @@ stamp, that survives the persistence round-trip. `ChattelMixin`
   Avatar-inventory (or consignment-shelf) snapshot, and the registry row
   is independently durable in Mongo. A stamped good, logged out and back,
   resolves to the same owner.
-- **`getChattelId()`** + a **gated `_setChattelId(id)`** (`ApiOnly`,
+- **`getChattelId()`** + a **gated `_setChattelId(id)`** (chattel-logic-only —
+  `FromTemplate('/obj/api/chattel')`, the minting authority named directly,
   `@Final @Unshadowable`) — so the identity is server-minted, never
   forged by an author or player. (The persistence hydrator bracket-assigns
   `_chattelId` on restore — it looks for `set_chattelId`, not

@@ -241,9 +241,7 @@ describe("chattel possession core", () => {
     const reborn = makeStuffAtPath(() => new Vault(), "/obj/test/vault");
     await PersistableApi.materialize(reborn);
 
-    const contents = ContainmentApi.getContents(
-      reborn as unknown as Stuff & Container,
-    );
+    const contents = (reborn as unknown as Stuff & Container).getContents();
     const restored = contents.find((s) => MixinApi.isChattel(s)) as
       | (Stuff & { getChattelId(): string })
       | undefined;

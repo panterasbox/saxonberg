@@ -14,7 +14,7 @@
  * 'central-bank-governor')`; the dispatcher threads it back to the sync
  * body via `allowed`. `context.commandGiver` is framework-stamped (the
  * `gated-api-actor-from-context` rule). Imports `OfficeApi` from
- * `api/office.ts` — no cycle (validator → OfficeApi → OfficeLogic →
+ * `api/office.ts` — no cycle (validator → OfficeApi →
  * registry; banking is untouched).
  */
 

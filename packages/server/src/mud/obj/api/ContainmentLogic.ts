@@ -164,18 +164,6 @@ export class ContainmentLogic extends ApiLogic {
     return container.getContents().some((obj) => obj.stuffId === item.stuffId);
   }
 
-  /** See {@link ContainmentApi.getContainer}. */
-  @CallSecurity(ContainmentApiCallers)
-  public getContainer(item: ContainableStuff): ContainerStuff | null {
-    return item.getContainer();
-  }
-
-  /** See {@link ContainmentApi.getContents}. */
-  @CallSecurity(ContainmentApiCallers)
-  public getContents(container: ContainerStuff): ContainableStuff[] {
-    return container.getContents();
-  }
-
   /** See {@link ContainmentApi.findReachable}. */
   @CallSecurity(ContainmentApiCallers)
   public findReachable<T>(

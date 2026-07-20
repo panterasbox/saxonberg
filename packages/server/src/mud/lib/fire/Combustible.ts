@@ -32,7 +32,6 @@ import type { Thermal } from '../thermal/Thermal';
 import type { Reserved } from '../reserve';
 import { Quantity } from '../quantity';
 import { MixinApi } from '../../api/mixin';
-import { MaterialApi } from '../../api/material';
 import { StuffApi } from '../../api/stuff';
 import { WorldClockApi } from '../../api/worldclock';
 import { AppApi } from '../../api/app';
@@ -181,7 +180,8 @@ export function CombustibleMixin<TBase extends MixinConstructor<Stuff>>(
     }
 
     public getAutoignitionTemperatureK(): number {
-      const mat = MaterialApi.materialOf(this as unknown as Stuff);
+      const self = this as unknown as Stuff;
+      const mat = MixinApi.isTangible(self) ? self.getMaterial() : null;
       return mat ? mat.getAutoignitionTemperature().rawValue() : 0;
     }
 
@@ -203,7 +203,7 @@ export function CombustibleMixin<TBase extends MixinConstructor<Stuff>>(
       if (!MixinApi.isWet(self)) return 0;
       const saturation = self.getWetness();
       if (saturation <= 0) return 0;
-      const mat = MaterialApi.materialOf(self);
+      const mat = MixinApi.isTangible(self) ? self.getMaterial() : null;
       if (!mat) return 0;
       const capacityFraction = mat.getWaterAbsorptionCapacity().rawValue() / 100;
       const c = mat.getSpecificHeat().rawValue();

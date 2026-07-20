@@ -38,7 +38,6 @@ import type { Tangible } from '../material/Tangible';
 import type { Reserved } from '../reserve';
 import type { Vitals, ConditionBand } from '../vitals/Vitals';
 import { MixinApi } from '../../api/mixin';
-import { ContainmentApi } from '../../api/containment';
 import type { SubscribableFieldDescriptor } from '../../api/mql-subscription';
 
 /**
@@ -152,7 +151,7 @@ function walk(
     const childTransmission =
       transmission *
       (item instanceof Vessel ? item.getTransmissionFactor() : 1.0);
-    for (const child of ContainmentApi.getContents(item)) {
+    for (const child of item.getContents()) {
       contribution += walk(child, childTransmission, placement, depth + 1, visited);
     }
   }
@@ -234,7 +233,7 @@ export function LoadBearingMixin<TBase extends MixinConstructor>(Base: TBase) {
       // a) General contents — carried loose, paying the held surcharge
       // (v1 has no hand-slot-claiming on `get`; loose contents couple
       // like a held item — see docs/subsystems/encumbrance.md).
-      for (const item of ContainmentApi.getContents(bearer)) {
+      for (const item of bearer.getContents()) {
         total += walk(
           item,
           1.0,

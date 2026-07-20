@@ -164,13 +164,12 @@ describe('materials-response — the response function', () => {
   });
 
   it('derives a weapon-delivery form channels', () => {
-    expect(
-      MaterialApi.deliverableChannels(Construction.of('bladed')),
-    ).toEqual(['edge', 'point']);
-    expect(
-      MaterialApi.deliverableChannels(Construction.of('hafted')),
-    ).toEqual(['blunt']);
-    expect(MaterialApi.primaryChannel(Construction.of('hafted'))).toBe('blunt');
+    expect(Construction.of('bladed').deliveredChannels()).toEqual([
+      'edge',
+      'point',
+    ]);
+    expect(Construction.of('hafted').deliveredChannels()).toEqual(['blunt']);
+    expect(Construction.of('hafted').primaryChannel()).toBe('blunt');
   });
 
   it('a worn dagger delivers a weaker blow than a pristine one', () => {
@@ -191,7 +190,8 @@ describe('materials-response — the response function', () => {
   });
 
   it('gates the logic methods against a non-MaterialApi caller', () => {
-    MaterialApi.deliverableChannels(Construction.of('bladed'));
+    // Any Api call lazily materializes the logic singleton.
+    MaterialApi.previewBand('edge', steel(), Construction.of('plate'), fair, 1);
     const logic = StuffApi.findByTemplatePath<MaterialLogic>(
       '/obj/api/material',
     );

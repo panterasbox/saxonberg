@@ -30,21 +30,21 @@ function member(): TestMember {
   return m;
 }
 
-/** An ad-hoc Party Idea seeded straight into the graph (bypasses form's
- * channel mint), with `captain` as captain + active. */
-function seedParty(captain: TestMember, side = ""): Party {
-  const p = makeStuff(() => new Party());
-  stampTemplatePathForTest(p, `/obj/party/test-${seq++}`);
-  const cid = captain.getTemplatePath()!;
-  p.setName(`party-${seq++}`);
-  p.setFounderId(cid);
-  p.setCaptainId(cid);
-  p.setCombatSide(side);
-  p.addMember(cid);
-  // Direct field write for test setup (the gated setter is ApiOnly).
-  (captain as unknown as { activePartyPath: string }).activePartyPath =
-    p.getTemplatePath()!;
-  return p;
+/** An ad-hoc Party seeded through the real Api surface (`form` swallows
+ * the mocked channel mint), with `captain` as captain + active. The
+ * party's mutation surface is participant/subsystem-gated now, so the
+ * test drives the same path production does. */
+async function seedParty(captain: TestMember, side = ""): Promise<Party> {
+  const res = await PartyApi.form(captain as Stuff, `party-${seq++}`, false);
+  if (!res.ok) throw new Error(`seedParty: ${res.reason}`);
+  if (side) await PartyApi.setSide(captain as Stuff, side);
+  return res.party;
+}
+
+/** Grow a seeded party by one member via the no-handshake hire path. */
+async function seedJoin(captain: TestMember, joiner: TestMember): Promise<void> {
+  const res = await PartyApi.enlist(captain as Stuff, joiner as Stuff);
+  if (!res.ok) throw new Error(`seedJoin: ${res.reason}`);
 }
 
 beforeEach(() => {
@@ -57,13 +57,11 @@ beforeEach(() => {
 });
 
 describe("PartyApi — the combat seam (sideOf / areAllied)", () => {
-  it("members of one party share a side; distinct solos never ally", () => {
+  it("members of one party share a side; distinct solos never ally", async () => {
     const cap = member();
     const other = member();
-    const party = seedParty(cap);
-    party.addMember(other.getTemplatePath()!);
-    (other as unknown as { activePartyPath: string }).activePartyPath =
-      party.getTemplatePath()!;
+    const party = await seedParty(cap);
+    await seedJoin(cap, other);
 
     // Two members of the same party.
     expect(PartyApi.areAllied(cap as Stuff, other as Stuff)).toBe(true);
@@ -79,11 +77,11 @@ describe("PartyApi — the combat seam (sideOf / areAllied)", () => {
     expect(PartyApi.areAllied(loner as Stuff, loner2 as Stuff)).toBe(false);
   });
 
-  it("two parties pointed at the same combatSide are allied", () => {
+  it("two parties pointed at the same combatSide are allied", async () => {
     const capA = member();
     const capB = member();
-    seedParty(capA, "faction:red");
-    seedParty(capB, "faction:red");
+    await seedParty(capA, "faction:red");
+    await seedParty(capB, "faction:red");
     expect(PartyApi.areAllied(capA as Stuff, capB as Stuff)).toBe(true);
   });
 });
@@ -92,7 +90,7 @@ describe("PartyApi — lifecycle", () => {
   it("invite + accept grows the roster and sets the active pointer", async () => {
     const cap = member();
     const joiner = member();
-    const party = seedParty(cap);
+    const party = await seedParty(cap);
 
     const inv = await PartyApi.invite(cap as Stuff, joiner as Stuff);
     expect(inv.ok).toBe(true);
@@ -105,7 +103,7 @@ describe("PartyApi — lifecycle", () => {
 
   it("rejects a second active party (one-active-party)", async () => {
     const cap = member();
-    seedParty(cap);
+    await seedParty(cap);
     const res = await PartyApi.form(cap as Stuff, "Second", false);
     expect(res.ok).toBe(false);
     if (!res.ok) expect(res.reason).toBe("already-in-a-party");
@@ -114,10 +112,8 @@ describe("PartyApi — lifecycle", () => {
   it("only the captain can invite", async () => {
     const cap = member();
     const grunt = member();
-    const party = seedParty(cap);
-    party.addMember(grunt.getTemplatePath()!);
-    (grunt as unknown as { activePartyPath: string }).activePartyPath =
-      party.getTemplatePath()!;
+    await seedParty(cap);
+    await seedJoin(cap, grunt);
 
     const outsider = member();
     const res = await PartyApi.invite(grunt as Stuff, outsider as Stuff);
@@ -128,10 +124,9 @@ describe("PartyApi — lifecycle", () => {
   it("captain leaving promotes an heir; last member out disbands ad-hoc", async () => {
     const cap = member();
     const heir = member();
-    const party = seedParty(cap);
+    const party = await seedParty(cap);
     const path = party.getTemplatePath()!;
-    party.addMember(heir.getTemplatePath()!);
-    (heir as unknown as { activePartyPath: string }).activePartyPath = path;
+    await seedJoin(cap, heir);
 
     // Captain leaves → heir promoted.
     await PartyApi.leave(cap as Stuff);

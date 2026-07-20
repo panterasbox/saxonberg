@@ -59,8 +59,18 @@ Four value objects + two mixins + the concrete entity:
   `employments` field — the `BeliefStore`/`Status` precedent, so an
   unemployed Character carries nothing). Pure storage + the derived
   conferral read. The privileged mutators (`_setEmploymentStatus` /
-  `_upsertEmployment` / `_removeEmployment`) are gated `ApiOnly` (the
-  `Engaged._setEngagement` precedent), so only the engine flips shift state.
+  `_upsertEmployment` / `_removeEmployment`) carry a **participant
+  contract** — the caller must be the **Business party to the record**
+  (`FromMixin(Mixins.Business)` + a relational `where` requiring the
+  written record key to be the calling business's own path), with a
+  narrow `FromTemplate('/obj/api/employment')` janitorial arm (lazy
+  standup means a `quit` can outlive its business's live Idea). The
+  employment *transitions* live on `BusinessMixin` itself — `hire` /
+  `endEmployment` / `ensureRostered` / `beginShift` / `endShift` /
+  `beginCover` / `endCover` (gated `AnyOf(SelfOnly,
+  FromTemplate('/obj/api/employment'))`) — so the business acts on its
+  own employee records and the engine keeps orchestration (roster
+  evaluation, wage settlement, the clock).
   `getConferredMixinNames()` = the `confers` of every **on-shift**
   Employment's Position — the augment substrate's conferral seam (below).
 
@@ -274,9 +284,9 @@ plan. Notable design→implementation shifts:
 - `MixinApi.isMaker` was **not** active-aware (the plan's one load-bearing
   assumption); the fix routes it through `isActive` (flipping both consumers
   at once) rather than the surgical fallback.
-- The `EmployedMixin` mutators are gated `ApiOnly`, not the plan's
-  `FromModule(...EmploymentApi)` — the real caller is `EmploymentLogic` (in
-  `obj/api/`), which the tighter gate would reject.
+- The `EmployedMixin` mutators were first gated `ApiOnly`; the antipattern
+  sweep (Jul 2026) re-gated them to the participant contract above and
+  moved the transitions onto `BusinessMixin`.
 - `OrderController` income re-keyed to the Business account too (the plan
   only named `HouseController`) — required for a combined P&L.
 - The Business stands up **lazily** (derived from `operatingLocations` via

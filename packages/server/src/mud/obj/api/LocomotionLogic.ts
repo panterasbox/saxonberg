@@ -372,13 +372,6 @@ export class LocomotionLogic extends ApiLogic {
 
   // ── engaged-mode introspection (untyped-safe) ────────────────────
 
-  /** See {@link LocomotionApi.engagedMode}. */
-  @CallSecurity(LocomotionApiCallers)
-  public engagedMode(actor: Stuff): LocomotionMode | null {
-    if (!MixinApi.isMobile(actor)) return null;
-    return actor.getEngagedMode();
-  }
-
   // ── engagement lifecycle ─────────────────────────────────────────
 
   /** See {@link LocomotionApi.engageAround}. */

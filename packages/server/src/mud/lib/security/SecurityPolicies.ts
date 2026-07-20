@@ -36,6 +36,7 @@ export interface SecurityPolicy {
     caller: unknown | null,
     target: unknown | null,
     method: string,
+    args?: readonly unknown[],
   ): boolean | Promise<boolean>;
 }
 
@@ -215,6 +216,140 @@ function FromModule(
 }
 
 /**
+ * The **participant policies** — `FromClass` / `FromMixin` — express a
+ * contract in terms of *which Stuff is on the other end of this call*,
+ * not which source module the code came from. They are the preferred
+ * gate for object-owned surfaces (a member's party pointer is set by
+ * *the Party admitting it*; an employment record is written by *the
+ * Business employing you*): the identity half answers "what kind of
+ * Stuff is calling", and the optional `where` half answers "is that
+ * instance actually in the right relationship to me, for these
+ * arguments". A future trust-layer expansion (ownership / authorship /
+ * group membership via async lookups) slots in as sibling policies with
+ * the same shape — `allows` is already async-capable.
+ */
+
+/**
+ * Relational predicate for participant policies. Receives the same
+ * caller/target/method as `allows`, plus the **call arguments** — so a
+ * contract can validate not just who is calling but what they're asking
+ * for ("a Party may only set my pointer *to itself*"). `args` is empty
+ * for getter reads.
+ */
+export type ParticipantWhere = (
+  caller: unknown,
+  target: unknown | null,
+  method: string,
+  args: readonly unknown[],
+) => boolean | Promise<boolean>;
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type ParticipantClass = abstract new (...args: any[]) => unknown;
+
+/**
+ * `FromClass(() => Party, opts?)` — the caller is an **instance of the
+ * given class** (subclasses included, ordinary `instanceof` semantics).
+ *
+ * The class is supplied as a thunk so a mixin/value module can gate
+ * against a class it has an import cycle with — the thunk resolves at
+ * call time, fail-closed if it throws (TDZ during module evaluation).
+ *
+ * HMR note: after a hot reload the *new* class object is a different
+ * identity, so `instanceof` against the captured binding would deny
+ * fresh instances. The policy therefore falls back to comparing
+ * **module ids** along the caller's class chain against the thunked
+ * class's module id — the same stable identity `FromModule` trusts.
+ *
+ * `opts.where` adds the relational half of the contract (see
+ * {@link ParticipantWhere}).
+ */
+function FromClass(
+  clsThunk: () => ParticipantClass,
+  opts: { where?: ParticipantWhere } = {}
+): SecurityPolicy {
+  return {
+    get name() {
+      try {
+        return `FromClass(${clsThunk().name || '<class>'})`;
+      } catch {
+        return 'FromClass(<unresolved>)';
+      }
+    },
+    allows(caller, target, method, args) {
+      if (caller === null || typeof caller !== 'object') return false;
+      let cls: ParticipantClass;
+      try {
+        cls = clsThunk();
+      } catch {
+        return false; // thunk unresolvable (import cycle mid-eval) — fail closed
+      }
+      let match = caller instanceof cls;
+      if (!match) {
+        // Cross-reload fallback: match by the stable module-id identity.
+        const clsId = ModuleApi.lookup(cls);
+        if (clsId !== null) {
+          let walker: unknown = (caller as { constructor?: unknown })
+            .constructor;
+          while (
+            typeof walker === 'function' &&
+            walker !== Function.prototype
+          ) {
+            if (ModuleApi.lookup(walker as object) === clsId) {
+              match = true;
+              break;
+            }
+            walker = Object.getPrototypeOf(walker);
+          }
+        }
+      }
+      if (!match) return false;
+      if (!opts.where) return true;
+      return opts.where(caller, target, method, args ?? []);
+    },
+  };
+}
+
+/**
+ * `FromMixin(Mixins.Business, opts?)` — the caller **composes the named
+ * mixin**. Checked by walking the caller's class chain for the
+ * `_mixinName` static marker, so it is a pure string identity —
+ * inherently HMR-stable and import-cycle-free (no class value needed).
+ *
+ * The check is class composition only — mixins granted through an
+ * attached Shadow do not confer *caller* privilege (a runtime buff
+ * should not widen what its host may call).
+ *
+ * `opts.where` adds the relational half of the contract (see
+ * {@link ParticipantWhere}).
+ */
+function FromMixin(
+  mixinName: string,
+  opts: { where?: ParticipantWhere } = {}
+): SecurityPolicy {
+  return {
+    name: `FromMixin(${mixinName})`,
+    allows(caller, target, method, args) {
+      if (caller === null || typeof caller !== 'object') return false;
+      let walker: unknown = (caller as { constructor?: unknown }).constructor;
+      let match = false;
+      while (typeof walker === 'function' && walker !== Function.prototype) {
+        if (
+          Object.hasOwn(walker, '_mixinName') &&
+          (walker as { _mixinName?: string })._mixinName === mixinName
+        ) {
+          match = true;
+          break;
+        }
+        walker = Object.getPrototypeOf(walker);
+      }
+      if (!match) return false;
+      if (!opts.where) return true;
+      return opts.where(caller, target, method, args ?? []);
+    },
+  };
+}
+
+/**
  * `ApiOnly` — the Api tier: callers under `api/**` plus the Api's
  * hot-reloadable logic singletons under `obj/api/**`.
  *
@@ -306,8 +441,10 @@ function AllOf(...policies: SecurityPolicy[]): SecurityPolicy {
   const policyNames = policies.map((p) => p.name).join(' & ');
   return {
     name: `AllOf(${policyNames})`,
-    allows(caller, target, method) {
-      const results = policies.map((p) => p.allows(caller, target, method));
+    allows(caller, target, method, args) {
+      const results = policies.map((p) =>
+        p.allows(caller, target, method, args)
+      );
       if (results.some((r) => r instanceof Promise)) {
         return (async () => {
           for (const r of results) {
@@ -325,8 +462,10 @@ function AnyOf(...policies: SecurityPolicy[]): SecurityPolicy {
   const policyNames = policies.map((p) => p.name).join(' | ');
   return {
     name: `AnyOf(${policyNames})`,
-    allows(caller, target, method) {
-      const results = policies.map((p) => p.allows(caller, target, method));
+    allows(caller, target, method, args) {
+      const results = policies.map((p) =>
+        p.allows(caller, target, method, args)
+      );
       if (results.some((r) => r instanceof Promise)) {
         return (async () => {
           for (const r of results) {
@@ -343,8 +482,8 @@ function AnyOf(...policies: SecurityPolicy[]): SecurityPolicy {
 function Not(policy: SecurityPolicy): SecurityPolicy {
   return {
     name: `Not(${policy.name})`,
-    allows(caller, target, method) {
-      const r = policy.allows(caller, target, method);
+    allows(caller, target, method, args) {
+      const r = policy.allows(caller, target, method, args);
       if (r instanceof Promise) return r.then((v) => !v);
       return !r;
     },
@@ -360,6 +499,7 @@ function Custom(
     caller: unknown | null,
     target: unknown | null,
     method: string,
+    args?: readonly unknown[],
   ) => boolean | Promise<boolean>,
   name = 'Custom'
 ): SecurityPolicy {
@@ -389,6 +529,8 @@ export const SecurityPolicies = {
   Not,
   FromTemplate,
   FromModule,
+  FromClass,
+  FromMixin,
   FromController,
 } as const;
 

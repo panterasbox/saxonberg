@@ -3,6 +3,91 @@
 This document lists coding patterns that should be avoided in the Saxonberg
 codebase, with the correct alternative for each.
 
+## Thin Api Wrappers over Object Methods
+
+**ANTIPATTERN**: An Api method whose whole job is
+`if (MixinApi.isX(stuff)) return stuff.foo()` — a forwarder that adds no
+orchestration, no cross-object logic, and no security value.
+
+### BAD (Api hop for a single object read)
+
+```typescript
+// An Api method that just relays the object's own answer
+public static conditionsOf(target: Stuff): readonly ActiveCondition[] {
+  if (!MixinApi.isVitals(target)) return [];
+  return target.getConditions();
+}
+// ...and every caller paying the hop:
+const conditions = ConditionApi.conditionsOf(victim);
+```
+
+### GOOD (call the object; narrow locally)
+
+```typescript
+if (MixinApi.isVitals(victim)) {
+  const conditions = victim.getConditions();
+}
+```
+
+It's an OO world: methods are the contract between Stuff objects, and the
+caller's own `MixinApi.isX` narrowing is the type check — localized where
+the composition assumption actually lives. An Api method earns its
+existence by *orchestrating* (e.g. `ContainmentApi.move`,
+`ConditionApi.inflict`) — never by relaying one object's answer. The
+2026-07 sweep removed this family (`getContainer`/`getContents`/
+`materialOf`/`conditionsOf`/`afflict`/`relieve`/lifecycle predicates/…);
+don't reintroduce it.
+
+## `ApiOnly` as a Substitute for a Real Security Contract
+
+**ANTIPATTERN**: Gating a privileged object mutator `ApiOnly` (any
+`api/**` / `obj/api/**` caller) and adding an Api method purely so
+*something in the Api tier* is the caller. The gate then says nothing
+about *who* legitimately performs the mutation.
+
+### BAD
+
+```typescript
+@CallSecurity(SecurityPolicies.ApiOnly) // "someone in the Api tier"
+public _setActivePartyPath(path: string): void { ... }
+```
+
+### GOOD (participant contract)
+
+```typescript
+// The Party acting on this member is the legitimate writer — and only
+// to itself, and only if it actually rosters me.
+const ByRosteringParty = SecurityPolicies.FromClass(() => Party, {
+  where: (caller, target, _m, args) =>
+    args[0] === '' ||
+    (args[0] === (caller as Party).getTemplatePath() &&
+      (caller as Party).isMember((target as PartyMember).partyMemberId())),
+});
+
+@CallSecurity(ByRosteringParty)
+public _setActivePartyPath(path: string): void { ... }
+```
+
+Express the contract in terms of **which Stuff is participating in the
+call** (`FromClass` / `FromMixin` + a relational `where` over the call
+args), or name the one privileged caller by its stable identity
+(`FromTemplate('/obj/api/<feature>')` for an owning logic singleton).
+See [subsystems/call-security.md § Participant contracts](./subsystems/call-security.md).
+
+## A `*Logic` Tier That Holds No Logic
+
+**ANTIPATTERN**: A `obj/api/<X>Logic.ts` singleton whose every method is
+a verbatim forward to a registry/state singleton. The facade→logic→
+registry triple hop earns nothing when the middle tier has no behavior
+to hot-reload.
+
+**INSTEAD**: The facade calls the registry directly; the registry's
+methods gate on `FromModule('/api/<x>#<X>Api')`; behavior hot-reloads
+with the registry itself. (The `office` and `access` tiers were
+collapsed this way.) A logic singleton is for *logic* — real
+degradation, dispatch, orchestration (`ParcelLogic`, `MaterialLogic`).
+See [subsystems/call-security.md § A logic tier must hold logic](./subsystems/call-security.md).
+
 ## Duck Typing with Mixins
 
 **ANTIPATTERN**: Checking for method existence using `typeof` instead of
@@ -52,8 +137,8 @@ if (MixinApi.hasMixin(obj.constructor, Mixins.Container)) {
 ContainmentApi.move(sword, avatar);    // pick up (source inferred)
 ContainmentApi.move(sword, location);  // drop (source inferred)
 
-// Use ContainmentApi.getContents() for safe container access
-const items = ContainmentApi.getContents(container);
+// Read contents directly off the narrowed container
+const items = container.getContents();
 ```
 
 ### Narrowing predicates vs. `hasMixin()`
@@ -267,11 +352,13 @@ ContainmentApi.move(item, toContainer);
 // Check if item is in container
 const isInside = ContainmentApi.isContainedIn(item, container);
 
-// Get the container holding an item
-const container = ContainmentApi.getContainer(item);
+// Get the container holding an item (direct object read; narrow the
+// receiver with MixinApi.isContainable first when needed)
+const container = item.getContainer();
 
-// Get contents from a container (safe, returns [] if not a container)
-const contents = ContainmentApi.getContents(container);
+// Get contents from a container (direct object read; narrow with
+// MixinApi.isContainer first when needed)
+const contents = container.getContents();
 ```
 
 ### Stuff template-path read / stamp
@@ -335,9 +422,6 @@ if (typeof obj.getContents === 'function') {
 if (MixinApi.isContainer(obj)) {
   const items = obj.getContents();
 }
-
-// OR (safe convenience helper)
-const items = ContainmentApi.getContents(obj); // [] if not a container
 ```
 
 ## Display Names — Use `Stuff.getPresentation()`
@@ -396,7 +480,8 @@ status-light tint.
   when the mode is known. Don't manually
   `setEngagedMode` around a `Mobile.traverse` call — `engageAround`
   handles the transient/persistent decision + error-path cleanup.
-- **Container access** (get contents): use `ContainmentApi.getContents()`
+- **Container access** (get contents): narrow with
+  `MixinApi.isContainer(obj)` and call `obj.getContents()` directly
 - **Narrow and call**: use `MixinApi.isX(obj)` type predicates
 - **Introspection only**: use `MixinApi.hasMixin(ctor, Mixins.X)`
 - **Display text** (names/descriptions): use `Stuff.getPresentation()`

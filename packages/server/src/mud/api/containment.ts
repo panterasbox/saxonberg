@@ -261,25 +261,9 @@ export class ContainmentApi {
     return logic().isContainedIn(item, container);
   }
 
-  /**
-   * Get the container that holds an item
-   */
-  public static getContainer(item: ContainableStuff): ContainerStuff | null {
-    return logic().getContainer(item);
-  }
-
-  /**
-   * Get contents from a container object
-   *
-   * Usage:
-   * ```typescript
-   * const inventory = ContainmentApi.getContents(avatar);
-   * const locationContents = ContainmentApi.getContents(location);
-   * ```
-   */
-  public static getContents(container: ContainerStuff): ContainableStuff[] {
-    return logic().getContents(container);
-  }
+  // The `getContainer`/`getContents` read-wrappers were removed: those
+  // reads live on the objects themselves — call `item.getContainer()` /
+  // `container.getContents()` directly (narrow with MixinApi as needed).
 
   /**
    * Filter a contents snapshot to the **loose** (top-level) items — those

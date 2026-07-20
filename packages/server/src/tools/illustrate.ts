@@ -22,7 +22,6 @@ import { createHash } from "node:crypto";
 
 import { AppBootstrap } from "../backend/AppBootstrap";
 import { StuffApi } from "../mud/api/stuff";
-import { ContainmentApi } from "../mud/api/containment";
 import { MediaAsset } from "../mud/lib/media/MediaAsset";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
@@ -67,6 +66,9 @@ interface DescribedLike {
 interface ExitableLike {
   getExits?(): ReadonlyMap<string, ExitLike>;
 }
+interface ContainerLike {
+  getContents(): { getPresentation(): string }[];
+}
 interface ExitLike {
   getDirection(): string;
   getDoor(): { isOpen(): boolean; getShortDescription(): string } | null;
@@ -79,7 +81,7 @@ function locationPrompt(loc: unknown): { prompt: string; size: string } {
   const long = d.getLongDescription?.() ?? "";
 
   // Composed state #1 — what's actually in the room (the `populates` clones).
-  const contents = ContainmentApi.getContents(loc as never)
+  const contents = (loc as ContainerLike).getContents()
     .map((c) => c.getPresentation())
     .filter(Boolean);
 
