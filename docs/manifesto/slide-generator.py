@@ -47,6 +47,14 @@ def ARR(x1,y1,x2,y2,stroke=WHITE,sw=4,op=1.0):
     p1=(x2-h*math.cos(a-0.42),y2-h*math.sin(a-0.42)); p2=(x2-h*math.cos(a+0.42),y2-h*math.sin(a+0.42))
     return [L(x1,y1,x2,y2,stroke,sw,op), f'<polygon points="{x2},{y2} {p1[0]},{p1[1]} {p2[0]},{p2[1]}" fill="{stroke}" opacity="{op}"/>']
 def person(x,y,r=11,col=STEEL,op=1.0): return C(x,y,r,col,2,col,op)
+def BAR(x,y,w,h,frac,col):  # meter: outline + solid filled fraction (no fill-opacity)
+    return [R(x,y,w,h,SOFT,2), f'<rect x="{x+3}" y="{y+3+h-6-(h-6)*frac}" width="{w-6}" height="{(h-6)*frac}" rx="4" fill="{col}"/>']
+def seat(x,y,filled,col=WHITE):  # a chair; a person seated if filled
+    c=col if filled else DIMB
+    g=[R(x-38,y,76,16,c,3,fill=c if filled else "none"),R(x-38,y-58,14,58,c,3,fill=c if filled else "none")]
+    g+=[L(x-30,y+16,x-30,y+40,c,3),L(x+30,y+16,x+30,y+40,c,3)]
+    if filled: g+=[C(x+6,y-28,15,col,2,col)]
+    return g
 
 # ── Beat 0: why current tools fail ──
 def f_hub():
@@ -268,6 +276,125 @@ CH2=[
  ("ch2-13-lab-loop",      f_laboratory(2)),       # 5  …here: try, break, try again
 ]
 
+# ── Ch 3 frames (chambers & currency; hero = the three rings) ──
+def f_seat_missing(stage=2):  # builds: labor+capital seated → the consumer's empty seat
+    g=[CT(960,110,"every economy runs on three forces — only two ever got organized",36,SOFT)]
+    cols=[(400,"LABOR","the people who make it","unions",True),(960,"CAPITAL","the people who fund it","boards · shareholders",True)]
+    if stage>=2: cols.append((1520,"CONSUMER","the people it's FOR","only exit — never voice",False))
+    for (x,name,who,organ,filled) in cols:
+        g+=[CT(x,230,name,34,WHITE if filled else AMBER,weight="bold"),CT(x,272,who,22,SOFT)]
+        g+=seat(x,430,filled,WHITE if filled else AMBER)+[CT(x,540,organ,24,GREEN if filled else CORAL)]
+    if stage>=2:
+        g+=[CT(960,700,"you can't seat a hundred million people who've never met —",28,SOFT),
+            CT(960,742,"all the consumer ever had was exit: buy it, or don't",28,SOFT),
+            CT(960,900,"the party the whole thing exists to serve never had a seat",30,WHITE)]
+    return g
+def f_seat_gained():
+    g=[CT(960,110,"real-time, two-way communication changes that",38,SOFT)]
+    import random; random.seed(3)
+    for i in range(60): g+=[person(200+random.random()*520,260+random.random()*460,7,DIMB,0.8)]
+    g+=[CT(470,780,"a hundred million private decisions — noise, not a seat",24,DIM)]
+    g+=ARR(780,500,940,500,STEEL,5)+[CT(860,460,"gathered,",24,STEEL),CT(860,540,"continuously",24,STEEL)]
+    g+=seat(1300,470,True,GREEN)+[CT(1300,600,"a standing voice",26,GREEN)]
+    for i in range(10):
+        a=math.radians(200+i*14); g+=[person(1300+150*math.cos(a),470+150*math.sin(a),7,GREEN,0.6)]
+    g+=[CT(960,900,"for the first time, the third force can take a seat",30,WHITE)]
+    return g
+def f_two_three_body(stage=2):  # builds: the two-body deadlock → the three-body tie-break
+    g=[CT(960,110,"and it breaks a very old deadlock",38,SOFT)]
+    g+=[CT(500,230,"a two-body problem",26,CORAL)]; fy=430
+    g+=[L(320,fy,680,fy,WHITE,5),L(500,fy,500,fy-40,WHITE,4),C(360,fy,30,STEEL,3,STEEL),CT(360,fy+70,"labor",22,SOFT),
+        C(640,fy,30,AMBER,3,AMBER),CT(640,fy+70,"capital",22,SOFT),CT(500,fy+150,"tug-of-war — no one to break the tie",22,SOFT)]
+    if stage>=2:
+        g+=[CT(1420,230,"seat the third — co-equal",26,GREEN)]; cx,cy=1420,430
+        g+=[L(1240,cy+40,1600,cy-40,WHITE,5),L(1420,cy,1420,cy+30,WHITE,4),C(1260,cy+40,26,STEEL,3,STEEL),
+            C(1420,cy,26,AMBER,3,AMBER),C(1590,cy-46,30,GREEN,3,GREEN),CT(1590,cy-96,"consumer",22,GREEN),
+            CT(1420,cy+150,"the tie falls toward the people it's FOR",22,SOFT)]
+    return g
+def f_counts():
+    g=[CT(860,110,"the same crowd, measured three ways",40,SOFT)]
+    boxes=[(300,230,"labor",GREEN),(690,230,"capital",AMBER),(1080,230,"consumer",STEEL)]
+    for (bx,by,lab,col) in boxes: g+=[R(bx,by,300,110,col,4),CT(bx+150,by+68,lab,32,col)]
+    rowy=700; n=15; x0=330; step=76
+    for i in range(n):
+        px=x0+i*step
+        for k,(bx,by,lab,col) in enumerate(boxes): g+=[L(px,rowy+k*26+10,bx+150,by+110,col,1.5,0.20)]
+    for i in range(n):
+        px=x0+i*step
+        for k,col in enumerate([GREEN,AMBER,STEEL]): g+=[f'<rect x="{px-13}" y="{rowy+k*26}" width="26" height="22" rx="4" fill="{col}"/>']
+    g+=[CT(860,rowy+140,"one person contributes to all three — in different proportions",28,SOFT),
+        CT(860,1020,"not three groups. three readings of one group.",34,WHITE)]
+    return g
+def f_money_stops():
+    g=[CT(860,110,"money earns a real voice — but stops at its own count",36,SOFT)]
+    r,cs=rings(760,520,200,(WHITE,GREEN,WHITE)); g+=r
+    g+=[CT(cs[0][0]-40,cs[0][1]-230,"labor",26,WHITE),CT(cs[1][0]+40,cs[1][1]-230,"capital",26,GREEN),CT(cs[2][0],cs[2][1]+250,"consumer",26,WHITE)]
+    g+=[C(cs[1][0],cs[1][1],26,AMBER,3,DARK),CT(cs[1][0],cs[1][1]+10,"$",30,AMBER)]
+    g+=[CT(1300,470,"moves the",26,GREEN),CT(1300,510,"funders' count",26,GREEN),CT(1300,610,"— and no further",24,SOFT)]
+    g+=[CT(860,940,"the loudest funder in the room. not a maker, not a player, not a winner.",30,WHITE)]
+    return g
+def f_qq(stage=2):  # builds: the equation → the two zero-cases
+    g=[CT(860,110,"standing = how much you contribute × how much others value it",36,SOFT)]; y=240; bh=200
+    g+=BAR(300,y,150,bh,0.7,STEEL)+[CT(375,y+bh+40,"QUANTITY",24,STEEL,weight="bold"),CT(375,y+bh+74,"how much",20,SOFT)]
+    g+=[CT(560,y+bh/2,"×",50,WHITE)]
+    g+=BAR(660,y,150,bh,0.7,GREEN)+[CT(735,y+bh+40,"QUALITY",24,GREEN,weight="bold"),CT(735,y+bh+74,"how much others value it",20,SOFT)]
+    g+=[CT(920,y+bh/2,"=",50,WHITE)]+BAR(1020,y,150,bh,0.6,AMBER)+[CT(1095,y+bh+40,"STANDING",24,AMBER,weight="bold")]
+    if stage>=2:
+        fy=760
+        g+=[CT(430,fy,"all grind, nobody cares:",22,SOFT),CT(760,fy,"full × 0 = 0",26,CORAL,weight="bold"),
+            CT(430,fy+50,"a name, then you vanish:",22,SOFT),CT(760,fy+50,"0 × full = 0",26,CORAL,weight="bold"),
+            CT(1350,fy+25,"a product —",26,WHITE),CT(1350,fy+62,"zero of either, and it's zero",26,WHITE)]
+    return g
+def f_conferral():
+    g=[CT(860,110,"quality is conferred by others — you can't manufacture it",36,SOFT)]; cx,cy=560,540
+    g+=[C(cx,cy,58,GREEN,4,DARK),C(cx,cy,40,GREEN,0,GREEN)]
+    for i in range(7):
+        a=math.radians(i*(360/7)); px=cx+250*math.cos(a); py=cy+250*math.sin(a)
+        g+=[person(px,py,13,STEEL)]+ARR(px,py,cx+58*math.cos(a),cy+58*math.sin(a),STEEL,3,0.85)
+    g+=[CT(cx,cy+330,"others give it → it's real",26,GREEN)]; fx,fy=1300,540; g+=[C(fx,fy,58,CORAL,4,DARK)]
+    ring=[(fx+210*math.cos(math.radians(i*45)),fy+210*math.sin(math.radians(i*45))) for i in range(8)]
+    for (px,py) in ring: g+=[C(px,py,12,CORAL,2,"none",0.8)]
+    for i in range(8): g+=[L(ring[i][0],ring[i][1],ring[(i+1)%8][0],ring[(i+1)%8][1],CORAL,2,0.5)]
+    g+=[CT(fx,fy+8,"0",44,CORAL,weight="bold"),CT(fx,fy+330,"a thousand fakes give nothing",26,CORAL)]
+    return g
+def f_conviction(stage=2):  # builds: the weight ramp → the flip-resets
+    g=[CT(860,110,"you don't spend standing — you hold it as conviction",38,SOFT)]; ax0,ax1,ay=260,1400,720
+    g+=[L(ax0,ay,ax1,ay,SOFT,2,0.6)]+ARR(ax1,ay,ax1+40,ay,SOFT,3)+[CT(ax1+90,ay+8,"time",22,SOFT)]
+    g+=[L(ax0,ay,ax0,300,SOFT,2,0.4),T(ax0-150,320,"weight",22,SOFT)]
+    g+=[f'<path d="M {ax0} {ay} L 1060 360 L 1060 {ay} Z" fill="{GREEN}" fill-opacity="0.5"/>',L(ax0,ay,1060,360,GREEN,5),CT(660,470,"hold it → it weighs more",26,GREEN)]
+    if stage>=2:
+        g+=[L(1060,360,1120,ay,CORAL,5,1.0,dash="10 8"),CT(1240,470,"a last-second flip",24,CORAL),CT(1240,508,"resets to nothing",24,CORAL)]
+        g+=[CT(860,900,"full weight on every question — spent as patience, never used up",30,WHITE)]
+    return g
+def f_delegation():
+    g=[CT(860,110,"can't follow every issue? hand your standing to someone you trust",36,SOFT)]
+    g+=[C(500,470,52,WHITE,4),CT(500,482,"you",26,WHITE),CT(500,590,"your standing",22,SOFT)]
+    g+=ARR(560,470,1000,470,GREEN,5)+[CT(780,430,"delegate",24,GREEN)]
+    g+=[C(1080,470,52,GREEN,4,DARK),CT(1080,482,"proxy",24,GREEN),CT(1080,590,"someone you trust",22,SOFT)]
+    g+=[CT(1420,420,"per topic",24,SOFT),CT(1420,470,"revocable —",24,SOFT),CT(1420,520,"cut it anytime",24,SOFT),L(1160,470,1360,470,SOFT,2,0.5,dash="8 8")]
+    g+=[CT(860,900,"liquid delegation — borrowed, not invented",30,WHITE)]
+    return g
+
+CH3=[
+ ("ch3-01-seat-two",  f_seat_missing(1)),                                     # 1  labor & capital got seats
+ ("ch3-02-seat-missing", f_seat_missing(2)),                                  # 1  …the consumer never did
+ ("ch3-03-seat-gained", f_seat_gained()),                                     # 1  real-time comms → the third seat
+ ("ch3-04-twobody", f_two_three_body(1)),                                     # 1  the two-body deadlock…
+ ("ch3-05-threebody", f_two_three_body(2)),                                   # 1  …seat the third, tie breaks
+ ("ch3-06-rings", f_rings(False, title="each force gets its own count — co-equal",
+                          cap="none can outvote the other two")),             # 2  the three rings  [hero]
+ ("ch3-07-rings-pass", f_rings(True, title="a decision needs two of three",
+                               cap="no one wins alone")),                     # 2  2-of-3 to pass
+ ("ch3-08-counts", f_counts()),                                               # 2  same crowd, three readings
+ ("ch3-09-money", f_money_stops()),                                           # 3  money stops at its own count
+ ("ch3-10-qq-equation", f_qq(1)),                                             # 4  standing = quantity × quality
+ ("ch3-11-qq-zero", f_qq(2)),                                                 # 4  …zero of either, and it's zero
+ ("ch3-12-conferral", f_conferral()),                                         # 4  conferred by others
+ ("ch3-13-conviction-hold", f_conviction(1)),                                 # 5  hold it → it weighs more
+ ("ch3-14-conviction-flip", f_conviction(2)),                                 # 5  …a flip resets to nothing
+ ("ch3-15-delegation", f_delegation()),                                       # 5  liquid delegation
+]
+
 # ================= CH 1 — THE HERO MONTAGE =================
 CH1=[
  ("ch1-01-hub", f_hub()),                                              # 0  tools route through one point
@@ -300,7 +427,7 @@ def emit(name,parts):
         subprocess.run(["convert","-background","none","-density","96",sp,"-resize","3840x2160",pp],check=False)
     print("  ",name)
 
-ALL=CH1+CH2
+ALL=CH1+CH2+CH3
 if __name__=="__main__":
     print(f"{len(ALL)} frames -> {OUT_PNG}")
     for n,p in ALL: emit(n,p)
