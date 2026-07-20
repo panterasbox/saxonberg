@@ -40,6 +40,8 @@ import { StuffApi } from '../mud/api/stuff';
 import { AppApi } from '../mud/api/app';
 import { AppSettingKeys } from '../mud/lib/config/AppSettings';
 import Avatar from '../mud/obj/Avatar';
+import { Template } from '../mud/lib/stuff/Template';
+import { TemplateApi } from '../mud/api/template';
 import { SecurityApi } from '../mud/api/security';
 import { CallSecurity } from '../mud/lib/security/decorators';
 import { SecurityPolicies } from '../mud/lib/security/SecurityPolicies';
@@ -655,45 +657,51 @@ export class Application {
 
   /**
    * Mint a default character: NO per-player template row (the identity
-   * doctrine — a character's identity path is minted, its durable state
-   * is a persistence-spine snapshot). Clones the shared seed with the
-   * name/spawn overlay + the minted identity path, which makes
-   * `Avatar.postRegister` capture the first snapshot; the transient
-   * live instance is then destructed (the test-auth provision runs
-   * outside any session — the character exists as its snapshot until
-   * a real login materializes it).
+   * doctrine — production enroll mints a snapshot-backed character with
+   * no `domain` row). This TEST seam instead writes a **legacy-style
+   * template row** and lets the FIRST login migrate it via
+   * `PlayerLogic.materializeAvatar`'s legacy-row fallback (clone the
+   * row → capture the first snapshot). Two payoffs over a headless
+   * clone-capture-destruct: it can't corrupt a snapshot by re-capturing
+   * a mid-teardown avatar (the bug that shipped otherwise), and it
+   * gives the deployed pre-retirement-character migration path real
+   * end-to-end coverage on every e2e login. The row is test-DB-only
+   * (`AUTH_MODE === 'test'`), so the no-per-player-row doctrine — which
+   * governs the production authoring surface — is not in scope.
    *
    * @returns the generated playerId (identity path:
    * `/obj/Avatar/<playerId>`)
    */
   private async createDefaultCharacter(
-    user: User,
+    _user: User,
     name: string,
     surname?: string,
     startLocation?: string
   ): Promise<string> {
+    const seed = await Template.findByPath(Avatar.SEED_TEMPLATE_PATH);
+    if (!seed) {
+      throw new Error(
+        `Application.createDefaultCharacter: no seed at ` +
+          `'${Avatar.SEED_TEMPLATE_PATH}'. Did SeederManager run?`
+      );
+    }
     const playerId = SecurityApi.uuid();
     const path = Avatar.getTemplatePath(playerId);
-    const overlay: Record<string, unknown> = {
+    const data: Record<string, unknown> = {
+      ...seed.data,
       // Initial spawn home: an explicit override (the test-auth seam uses
       // this to land co-location E2E avatars in a stable singleton room,
-      // bypassing the elastic lounge Warren) else the app-config default
-      // (the seed YAML no longer carries a startLocation literal).
+      // bypassing the elastic lounge Warren) else the app-config default.
       startLocation:
         startLocation ?? AppApi.setting(AppSettingKeys.defaultStartLocation),
       name,
     };
-    if (surname) overlay.surname = surname;
-
-    const avatar = await StuffApi.clone<Avatar>(
-      Avatar.SEED_TEMPLATE_PATH,
-      { user, playerId },
-      { dataOverlay: overlay, asTemplatePath: path }
+    if (surname) data.surname = surname;
+    await TemplateApi.saveTemplate(path, seed.class, data, seed.hydratorClass);
+    console.info(
+      `Application: Provisioned test character ${path} (legacy-row; ` +
+        `migrates to a snapshot on first login)`
     );
-    // First snapshot captured in postRegister; the provisioned instance
-    // itself is transient (capture-on-destruct re-captures harmlessly).
-    StuffApi.destruct(avatar as unknown as Parameters<typeof StuffApi.destruct>[0]);
-    console.info(`Application: Provisioned character ${path} (snapshot-backed)`);
     return playerId;
   }
 

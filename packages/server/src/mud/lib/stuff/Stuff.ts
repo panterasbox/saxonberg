@@ -666,25 +666,82 @@ export abstract class Stuff {
   }
 
   /**
-   * The five sanctioned top-level branches, identified by their
-   * loader-stamped **module ids**. Every concrete Stuff subclass must
-   * trace through one of these in its prototype chain. Derive-on-read:
-   * there is NO registration step — the branch check resolves each
-   * ancestor's module id via `ModuleApi.lookup` at first construction,
-   * so membership can't be spoofed by a same-named class declared
-   * elsewhere (a foreign class stamps with its real URL) and survives
-   * HMR re-evaluation for free (the fresh binding stamps under the
-   * same id). Adding a branch is a deliberate edit to this set. (A
-   * `Vessel` is a container-object that `extends Thing`, so it traces
-   * the Thing branch — it is not a branch of its own.)
+   * The sanctioned top-level branch constructors (Thing / Location /
+   * Idea / Agent / Shadow), by **class identity**. Every concrete Stuff
+   * subclass must trace through one of these in its prototype chain.
+   * Identity — not module id — because it's robust across every module
+   * loader (the vite-plugin, tsx, and the production node-hook stamp
+   * default exports differently; a module-id check that passes under
+   * one silently fails under another). A foreign same-named class is a
+   * different constructor object and never matches. (A `Vessel` is a
+   * container-object that `extends Thing`, so it traces the Thing
+   * branch — it is not a branch of its own.)
+   *
+   * Populated ONCE via {@link registerTopLevelBranches} at framework
+   * wiring (`BootstrapManager.installFrameworkWiring`, and the vitest
+   * setup file) — a lifecycle call, not a module-scope statement (the
+   * no-module-scope-statements rule). The value-import of the five
+   * classes lives at the wiring site (backend), which sidesteps the
+   * `Stuff` ↔ branch load cycle a value-import into this file would
+   * create.
    */
-  static #BRANCH_MODULE_IDS: ReadonlySet<string> = new Set([
-    '/lib/stuff/Thing',
-    '/lib/stuff/Location',
-    '/lib/stuff/Idea#Idea',
-    '/lib/stuff/Agent#Agent',
-    '/lib/stuff/Shadow#Shadow',
-  ]);
+  static #branches: Set<AnyClassRef> = new Set();
+
+  /**
+   * File-URL patterns whose code may call `_registerTopLevelBranch`.
+   * Same machinery as the frame-mutator allowlist: only the five branch
+   * files may register, so the branch set can't be extended from a
+   * subclass or a third-party file.
+   */
+  static #branchRegistrationAllowlist: ReadonlyArray<RegExp> = [
+    /\/mud\/lib\/stuff\/(Thing|Location|Idea|Agent|Shadow)\.(ts|js)$/,
+  ];
+
+  static #branchRegistrationCache: Map<string, boolean> = new Map();
+
+  /**
+   * Register a top-level branch by **class identity**. Each of the five
+   * branch modules (Thing / Location / Idea / Agent / Shadow) calls this
+   * once at its own module tail.
+   *
+   * WHY this is a module-scope self-registration (the one sanctioned
+   * exception to "module scope declares; lifecycles initialize" — see
+   * `scripts/check-module-scope.ts`'s allowlist): the branch check is
+   * the type hierarchy's ROOT invariant, enforced in the `Stuff`
+   * constructor, so the branch set must be populated before ANY Stuff
+   * is constructed — including lazy singletons built during seeding /
+   * pack-install, before any boot-lifecycle seam runs. Self-registration
+   * from within each branch module guarantees that ordering AND that the
+   * registered class is the SAME copy the rest of mudlib extends (a
+   * lifecycle call from `backend/` force-imports the hierarchy early and
+   * trips latent mixin-composition load cycles). Identity — not module
+   * id — because the vite-plugin / tsx / node-hook loaders stamp default
+   * exports differently; identity is loader-agnostic.
+   *
+   * @internal
+   */
+  public static _registerTopLevelBranch(ctor: AnyClassRef): void {
+    const url = ModuleApi.getImmediateCallerUrl(Stuff.#SELF_URL);
+    if (url === null) {
+      throw new Error(
+        `Stuff._registerTopLevelBranch refused: caller URL could not be determined`
+      );
+    }
+    let allowed = Stuff.#branchRegistrationCache.get(url);
+    if (allowed === undefined) {
+      allowed = Stuff.#branchRegistrationAllowlist.some((re) => re.test(url));
+      Stuff.#branchRegistrationCache.set(url, allowed);
+    }
+    if (!allowed) {
+      throw new Error(
+        `Stuff._registerTopLevelBranch refused from ${url}: only the ` +
+          `five branch files (lib/stuff/{Thing,Location,Idea,Agent,Shadow}.ts) ` +
+          `may register branches.`
+      );
+    }
+    Stuff.#branches.add(ctor);
+    Stuff.#branchCheckCache = new WeakSet();
+  }
 
   /**
    * Cache of constructors known to trace through a registered branch.
@@ -696,16 +753,15 @@ export abstract class Stuff {
   /**
    * Throw if `ctor` doesn't trace through one of the sanctioned
    * top-level branches. Walks `Object.getPrototypeOf(ctor)` upward
-   * resolving each ancestor's stamped module id against
-   * `#BRANCH_MODULE_IDS`. See `docs/architecture.md § Top-level
-   * branches` for the rule and the rationale.
+   * comparing constructor identity against `#branches`. See
+   * `docs/architecture.md § Top-level branches` for the rule and the
+   * rationale.
    */
   static #assertTopLevelBranch(ctor: AnyClassRef): void {
     if (Stuff.#branchCheckCache.has(ctor)) return;
     let cur: AnyClassRef | null = ctor;
     while (cur) {
-      const id = ModuleApi.lookup(cur);
-      if (id !== null && Stuff.#BRANCH_MODULE_IDS.has(id)) {
+      if (Stuff.#branches.has(cur)) {
         Stuff.#branchCheckCache.add(ctor);
         return;
       }

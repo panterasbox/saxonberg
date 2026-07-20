@@ -543,16 +543,22 @@ a corpse) is valid. `Character` has two leaf subclasses: `Avatar`
 `Character` + `BehavedMixin`) for authored, automation-driven characters —
 which keeps `Behaved` off players. See [behavior.md](./subsystems/behavior.md).
 
-Each branch lives in `lib/stuff/` and registers itself with `Stuff` at
-module load via `Stuff._registerTopLevelBranch(BranchClass)`. The
-registration is gated by a URL allowlist on `Stuff` — only those six
-files may register, so the branch set can't be silently extended from
-a subclass or a third-party file.
+The five branch constructors are registered with `Stuff` **by class
+identity** through `Stuff.registerTopLevelBranches([...])`, called once
+from `BootstrapManager.installFrameworkWiring` (production boot's
+first step, and the vitest setup file) — a lifecycle call, not a
+module-scope statement (the no-module-scope-statements rule). Identity,
+not module id: the vite-plugin, tsx, and the production node-hook stamp
+default exports differently, so a module-id check that passes under one
+loader silently fails under another — an identity comparison is loader-
+agnostic and a foreign same-named class (a different constructor
+object) never matches. The call is caller-gated to the framework wiring
+layer, so the branch set can't be silently extended from content.
 
 `Stuff`'s constructor walks the prototype chain at instance-creation
 time and throws if no registered branch is found. Class-time work is
 done once per class (cached); the per-instance cost is a single
-WeakSet lookup. The error message lists the six branches and
+WeakSet lookup. The error message lists the five branches and
 points readers here.
 
 > **Not a branch: `Document`.** Plain MongoDB-backed records (`User`,
@@ -1014,7 +1020,7 @@ runtime lifecycle:
 | `SchedulerApi.registerActivity(type, cls)` in every activity module | **Capture-at-start** — `SchedulerRegistry.start(engagement)` captures `engagement.constructor` into the type→class dispatch index; `reloadActivity` re-points it after a hot reload. Registration doesn't exist as a concept. |
 | `SecurityApi.decorateApiClass(XApi)` tail in every `api/*.ts` | **The `ModuleApi.stamp` module lifecycle** — the loader-injected stamp hands every direct-child `/api/* # *Api` class to `SecurityApi._decorateApiFacade` (the four bootstrap-special Apis excluded). Same timing as the old tails; re-stamp on hot reload re-decorates. |
 | `DialogueEffectRegistry.register('bank-circle', …)` at module scope + a boot side-effect import | **Instance lifecycle** — `BankCounter.postRegister` registers it: a live bank fixture is exactly when the verb becomes real. |
-| `Stuff._registerTopLevelBranch(Thing)` in each of the five branch files | **Derive-on-read** — the branch check resolves each ancestor's stamped module id against a frozen five-entry set; no registration, HMR-stable. |
+| `Stuff._registerTopLevelBranch(Thing)` in each of the five branch files | **Identity registration via the boot lifecycle** — `Stuff.registerTopLevelBranches([...])` from `BootstrapManager.installFrameworkWiring` (boot + vitest setup), compared by class identity (loader-agnostic, unlike a module-id check). |
 | Registry-class handoffs (`register<X>RegistryClass`), the security↔shadow slot, the shadow↔command bridge, the glob merge-on-arrival ripple | **`BootstrapManager.installFrameworkWiring()`** — one idempotent boot call, invoked by `BootstrapManager.run()` in production and by the vitest setup file (`src/test-setup-registries.ts`) before every suite. |
 | `installOnlineHoldersProvider()` auto-install on import | Called explicitly from `AppBootstrap.run()`. |
 | `engine.registerFilter(…)` ×14 (Prose), `registerConverter(…)` ×23 (Quantity), `validator.preload = …` (validators) | **Lazy first-use initializers** (memoized builder functions) / folded into the `const` initializer (`Object.assign`). |

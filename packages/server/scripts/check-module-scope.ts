@@ -77,10 +77,29 @@ interface Finding {
   text: string;
 }
 
+/**
+ * The sanctioned module-scope self-registrations. These are framework
+ * PRIMITIVES whose registration is load-order-coupled to the type
+ * hierarchy's root invariant — the branch set must be populated at
+ * branch-module load, before any Stuff is constructed (including lazy
+ * singletons built during seeding, ahead of any boot-lifecycle seam),
+ * and the registered class must be the same module copy the rest of
+ * mudlib extends (a lifecycle call from `backend/` force-imports the
+ * hierarchy early and trips latent mixin-composition load cycles). Same
+ * category as the loader-injected `ModuleApi.stamp` tail: framework
+ * substrate, not authored initialization. See
+ * `Stuff._registerTopLevelBranch` + docs/architecture.md § Top-level
+ * branches. Keep this list to the five branch files ONLY.
+ */
+const EXEMPT_CALL = /^Stuff\._registerTopLevelBranch\(/;
+const EXEMPT_FILES =
+  /\/mud\/lib\/stuff\/(Thing|Location|Idea|Agent|Shadow)\.ts$/;
+
 const findings: Finding[] = [];
 
 for (const file of files) {
   const source = readFileSync(file, "utf8");
+  const exemptFile = EXEMPT_FILES.test(file);
   const sf = ts.createSourceFile(
     file,
     source,
@@ -95,6 +114,14 @@ for (const file of files) {
     if (
       ts.isExpressionStatement(stmt) &&
       ts.isStringLiteral(stmt.expression)
+    ) {
+      continue;
+    }
+    // The five branch files' self-registration (documented exception).
+    if (
+      exemptFile &&
+      ts.isExpressionStatement(stmt) &&
+      EXEMPT_CALL.test(source.slice(stmt.getStart(sf), stmt.getEnd()))
     ) {
       continue;
     }
