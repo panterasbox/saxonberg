@@ -618,18 +618,29 @@ Adoption:
 Special per-method Api gates (e.g. `SystemRoot` on
 `WorldClockApi.boot/shutdown`) stay on the Api forwarder.
 
-### A logic tier must hold logic (the collapse rule)
+### The Api ↔ logic-singleton split is the hot-reload boundary
 
-The recipe above earns its two hops only when the logic singleton
-actually *holds logic*. Where it turned out to be a verbatim
-registry-forwarder, the antipattern sweep (Jul 2026) **collapsed the
-tier**: `access` and `office` lost their `*Logic` singletons — the
-facade now calls the registry directly, and the registry's gate names
-exactly `FromModule('/api/<feature>#<Feature>Api')` (no
-`FromTemplate('/obj/api/<feature>')` arm). Behavior hot-reloads with
-the registry itself. Don't add a `*Logic` file whose every method is
-`reg.foo(...)` — put behavior on the registry (or the facade, when it's
-degradation/nulling only) until there is real logic to home.
+The two hops are **not** an optional optimization — they *are* the
+hot-reload boundary, and the split is mandatory for every substrate Api.
+The `XApi` facade is imported directly across the codebase, so it is
+**not** HMR-able: anything living on it is frozen until a full restart.
+The `XLogic` singleton lives at `/obj/api/<feature>` and is resolved
+fresh per call (`StuffApi.singletonSync` + `HotReloadApi.getCurrentExport`),
+so editing it hot-reloads into every caller.
+
+Do **not** collapse the tier on the theory that "the logic only forwards
+to a registry, so it earns nothing." A logic singleton that resolves a
+state registry still owns the resolution, caching, and fail-open/
+fail-closed policy — and even a genuine pure-forward tier must stay, so
+that logic *added later* lands in the HMR-able unit rather than on the
+frozen facade. State registries (`AccessRegistry`, `OfficeRegistry`) hold
+durable *state* and are gated to admit their logic singleton
+(`FromTemplate('/obj/api/<feature>')`) — they are not a substitute for
+the logic tier. The 2026-07 sweep briefly collapsed `access`/`office`
+this way; it was **reverted**. The method-level cut that sweep *should*
+have made — deleting empty public predicates off the Api *surface* in
+favor of Stuff-to-Stuff contracts — is a separate, correct move (see
+[antipatterns.md § Thin Api Wrappers over Object Methods](../antipatterns.md)).
 
 ### Override hooks are ungateable — `@hook`, not policy
 

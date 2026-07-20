@@ -123,9 +123,9 @@ chain-of-title *readout* are deferred consumers.
 
 ## The Api three-tier
 
-Mirrors the `AccessRegistry` / `AccessApi` shape (plus a logic tier —
-parcel's logic singleton holds real degradation logic, unlike the
-collapsed `AccessLogic`):
+Mirrors the `AccessRegistry` / `AccessApi` / `AccessLogic` shape —
+facade (non-HMR) → logic singleton (`/obj/api/parcel`, hot-reloadable) →
+state registry:
 
 | File | Role |
 |---|---|

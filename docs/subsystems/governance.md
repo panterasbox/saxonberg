@@ -126,14 +126,16 @@ absence of a row = the founder default holds the seat.**
 ## The Api / Logic surface
 
 `OfficeRegistry` (`/obj/OfficeRegistry`, `Idea` + `PostRegistrationMixin`,
-manifest-warmed) holds the state + behavior, mirroring `AccessRegistry`
-minus all seeding. The gated `OfficeApi` (`api/office.ts`) facade is the
-surface and talks to the Registry **directly** — the former `OfficeLogic`
-tier held no logic and was collapsed by the antipattern sweep (Jul 2026);
-the Registry's methods carry
-`@CallSecurity(FromModule('/api/office#OfficeApi'))` (the narrow-entry
+manifest-warmed) holds the durable state, mirroring `AccessRegistry` minus
+all seeding. The gated `OfficeApi` (`api/office.ts`) facade is the
+non-HMR surface; it forwards to the hot-reloadable `OfficeLogic` singleton
+(`/obj/api/office`), which owns registry resolution + the playerId
+short-circuit + the fail-closed policy. The Registry's methods carry
+`@CallSecurity` admitting the logic singleton
+(`FromTemplate('/obj/api/office')`) and the Api module (the narrow-entry
 pattern — one state home, one calling surface, one structurally-enforced
-path).
+path). (The Jul-2026 sweep briefly collapsed this tier and it was
+reverted — the Api↔Logic split is the hot-reload boundary.)
 
 - **Public (ungated) reads** — `holderOf` / `holdsOffice` / `officesOf` /
   `isFounder` / `roster` / `founderLabel`. The roster (offices, branch,

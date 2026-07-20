@@ -620,11 +620,15 @@ The complement (the 2026-07 antipattern sweep): an Api method exists to
 mutation that belongs to ONE object lives on that object, and other
 Stuff call it directly with their own local `MixinApi.isX` narrowing
 (`container.getContents()`, `victim.afflict(...)`, `organism.isAlive()`).
-Don't add a thin Api wrapper around a single object method, don't gate
-an object mutator `ApiOnly` when a **participant contract** says who the
-legitimate caller actually is (`FromClass`/`FromMixin` + relational
-`where` — see call-security.md § Participant contracts), and don't add a
-`*Logic` singleton that holds no logic. Common orchestration cases:
+Don't add a thin Api wrapper around a single object method, and don't
+gate an object mutator `ApiOnly` when a **participant contract** says who
+the legitimate caller actually is (`FromClass`/`FromMixin` + relational
+`where` — see call-security.md § Participant contracts). But the
+`XApi`↔`XLogic` split is **mandatory** and separate from all of this: the
+Api is the non-HMR interface, the logic singleton at `/obj/api/<x>` is
+the hot-reload boundary — never collapse it (deleting empty *surface
+predicates* is a method-level cut, never a tier-level one). Common
+orchestration cases: 
 
 | Don't | Do |
 |---|---|

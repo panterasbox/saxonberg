@@ -74,19 +74,38 @@ args), or name the one privileged caller by its stable identity
 (`FromTemplate('/obj/api/<feature>')` for an owning logic singleton).
 See [subsystems/call-security.md § Participant contracts](./subsystems/call-security.md).
 
-## A `*Logic` Tier That Holds No Logic
+## Collapsing the Api ↔ Logic Split
 
-**ANTIPATTERN**: A `obj/api/<X>Logic.ts` singleton whose every method is
-a verbatim forward to a registry/state singleton. The facade→logic→
-registry triple hop earns nothing when the middle tier has no behavior
-to hot-reload.
+**ANTIPATTERN**: Deleting a `obj/api/<X>Logic.ts` singleton and having
+the `XApi` facade (or a state registry) hold the resolution logic
+directly, on the theory that "the logic tier only forwarded, so it
+earned nothing."
 
-**INSTEAD**: The facade calls the registry directly; the registry's
-methods gate on `FromModule('/api/<x>#<X>Api')`; behavior hot-reloads
-with the registry itself. (The `office` and `access` tiers were
-collapsed this way.) A logic singleton is for *logic* — real
-degradation, dispatch, orchestration (`ParcelLogic`, `MaterialLogic`).
-See [subsystems/call-security.md § A logic tier must hold logic](./subsystems/call-security.md).
+The split is **not** an optimization to be collapsed — it is the
+**hot-reload boundary**. The `XApi` facade is imported directly all over
+the codebase, so it is *not* HMR-able; anything living on it is frozen
+until a full restart. The `XLogic` singleton lives at `/obj/api/<x>` and
+is resolved fresh per call (`StuffApi.singletonSync` +
+`HotReloadApi.getCurrentExport`), so editing it hot-reloads into every
+caller. A logic tier that "only forwards to a registry" still owns
+registry resolution, caching, and the fail-open/fail-closed policy — and
+even if it were a pure forward, the tier must stay so that logic *added
+later* lands in the HMR-able unit, not on the frozen facade.
+
+**INSTEAD**: Every substrate Api keeps its `XApi` (thin interface,
+non-HMR) → `XLogic` (`/obj/api/<x>`, HMR-able) pair. The facade forwards
+`return logic().m(...)`; the logic holds the behavior. State registries
+(`AccessRegistry`, `OfficeRegistry`) hold durable *state*, gated to admit
+the logic singleton (`FromTemplate('/obj/api/<x>')`) — they are not a
+substitute for the logic tier. (The 2026-07 sweep briefly collapsed
+`access`/`office` this way and it was reverted — the split is
+mandatory.) See [subsystems/call-security.md § The Api ↔ logic-singleton split is the hot-reload boundary](./subsystems/call-security.md).
+
+The genuinely-empty thing worth deleting is a *public method on the Api
+surface* that only relays a Stuff parameter's own answer — see
+[§ Thin Api Wrappers over Object Methods](#thin-api-wrappers-over-object-methods)
+above. That is a method-level cut (→ a Stuff-to-Stuff contract), never a
+tier-level one.
 
 ## Free-Standing Module-Scope Statements
 
