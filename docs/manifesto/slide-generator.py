@@ -502,21 +502,16 @@ def f_maxim(stage=2):
             for j,ln in enumerate(desc.split("\n")): g+=[CT(x,430+j*36,ln,22,SOFT)]
         g+=[CT(960,600,"in a way no human enforcer can be",26,SOFT),CT(960,900,"so wherever a rule CAN be code, it is — and it's out of anyone's hands",28,WHITE)]
     return g
-def f_admin_split():  # the builders (wizards) vs the users (the administration) — NOT all wizards
-    import random; g=[CT(960,110,"the executive isn't all engineers — it's the whole administration",36,SOFT)]
-    wx,wy=360,460
-    for (dx,dy) in [(-32,-38),(32,-38),(0,22)]: g+=[person(wx+dx,wy+dy,18,AMBER)]
-    g+=[CT(wx,wy+120,"wizards",26,AMBER,weight="bold"),CT(wx,wy+156,"write the code",22,SOFT)]
-    g+=ARR(wx+80,wy,700,wy,GREEN,5)+[CT(575,wy-42,"build",22,GREEN)]
-    g+=[R(720,wy-110,360,220,WHITE,3),CT(900,wy-130,"the tools",24,SOFT)]
-    for i,lab in enumerate(["menu","ban","tally","report"]):
-        g+=[R(750+(i%2)*180,wy-80+(i//2)*90,160,60,STEEL,2),CT(830+(i%2)*180,wy-42+(i//2)*90,lab,22,SOFT)]
-    g+=ARR(1100,wy,1260,wy,GREEN,5)+[CT(1180,wy-42,"used by",22,GREEN)]
-    ax,ay=1500,460; random.seed(5)
-    for i in range(14):
-        a=math.radians(i*(360/14)); r=95+(i%3)*14; g+=[person(ax+r*math.cos(a),ay+r*math.sin(a)*0.85,14,STEEL)]
-    g+=[CT(ax,ay+190,"the administration",26,WHITE,weight="bold"),CT(ax,ay+226,"runs the day-to-day",22,SOFT)]
-    g+=[CT(960,940,"the ones who build the tools and the ones who run on them are different people",30,WHITE)]
+def f_admin_body():  # wizards = a code-capable SUBSET of the administration (script: "engineering sits inside")
+    g=[CT(960,110,"the executive isn't all engineers — it's the whole administration",36,SOFT)]
+    bx,by,bw,bh=430,260,1060,420
+    g+=[R(bx,by,bw,bh,WHITE,3,rx=18),CT(bx+bw/2,by-22,"THE ADMINISTRATION — runs the place, handles the human half",24,SOFT)]
+    wcx,wcy=650,470
+    g+=[C(wcx,wcy,120,AMBER,3,op=0.9)]
+    for (px,py) in [(wcx-45,wcy-30),(wcx+40,wcy-38),(wcx-10,wcy+35),(wcx+55,wcy+25)]: g+=[person(px,py,16,AMBER)]
+    g+=[CT(wcx,wcy+165,"wizards — write + run code",22,AMBER)]
+    for i in range(24): g+=[person(980+(i%6)*80,340+(i//6)*90,15,STEEL)]
+    g+=[CT(960,940,"the engineering sits inside — being a wizard is one capability, not the whole job",30,WHITE)]
     return g
 def f_admin_pm():  # the PM: elected by the legislature, grants wizardhood
     g=[CT(960,110,"the head of the executive isn't whoever codes best — it's who's trusted",36,SOFT)]
@@ -555,7 +550,7 @@ CH5=[
  ("ch5-08-maxim", f_maxim(1)),                  # 3  the maxim
  ("ch5-09-maxim-why", f_maxim(2)),              # 3  uniform · incorruptible · transparent
  ("ch5-10-fork", f_fork()),                     # 3  code handles the mechanical; people the rest
- ("ch5-11-admin-split", f_admin_split()),       # 4  builders (wizards) vs users (the administration)
+ ("ch5-11-admin-body", f_admin_body()),          # 4  wizards = a code-capable subset of the administration
  ("ch5-12-admin-pm", f_admin_pm()),             # 4  the PM: elected by the legislature, grants wizardhood
  ("ch5-13-sortition", f_sortition(1)),          # 5  drawn by lot, no seat to capture
  ("ch5-14-sortition-checks", f_sortition(2)),   # 5  checks both — code review + appeal
