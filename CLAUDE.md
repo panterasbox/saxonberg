@@ -26,7 +26,14 @@ behavior. Read the relevant doc before editing in its area.
   singletons, Pattern B live ref for within-session instances,
   Pattern C resolve-on-read for cross-scope singletons), the
   R2.1–R2.4 cleanup rules for live-ref fields, method-surface
-  conventions, exemplars, antipatterns
+  conventions, exemplars, antipatterns; the **identity/lineage/backing
+  doctrine** (class=lineage, templatePath=identity — kind for content,
+  instance for minted singletons with scheme-derived keys; a template
+  ROW is a hydration source for authored content only — minted
+  identities back onto `holder_snapshots` / a purpose Document /
+  nothing, and a per-instance `domain` row is the anti-pattern, the
+  legacy per-player Avatar row's retirement being tracked work;
+  template inheritance does not exist)
 - [docs/vision.md](./docs/vision.md) — product vision
 - [docs/roadmap.md](./docs/roadmap.md) — what's left to build
 - [docs/deployment.md](./docs/deployment.md) — deployment & infra:
@@ -93,7 +100,7 @@ behavior. Read the relevant doc before editing in its area.
   - [zone.md](./docs/subsystems/zone.md) — Zone hierarchy roots (Zone/SpatialZone/FolderZone) in lib/zone/, ZoneApi.resolveZoneForPath, field inheritance
   - [spatial.md](./docs/subsystems/spatial.md) — the containment/movement substrate in lib/spatial/ (Container/Containable/Mobile/Surfaced/Sealable): containment chokepoint, surface placement, locomotion, vessels (geometry moved to location.md)
   - [location.md](./docs/subsystems/location.md) — the lib/location/ subsystem: room/coordinate/zone geometry (Location/CartesianLocation/SphericalLocation, coordinate mixins, CartesianZone/SphericalZone, ZoneApi resolution) + the Warren elastic-graph (MultiLocation) substrate (host-as-runtime-role + migration; bud/merge; live-ref hub exits) + the lounge content in domain/lounge/ (LoungeWarren/Lounge/Bar/LoungeMixin), the `startLocation` spawn instruction + `StuffApi.singletonOrClone`, save-delegation recall
-  - [boundary.md](./docs/subsystems/boundary.md) — exits, doors, Adornable/Adornment (incl. the declarative `adornments:` instruction-field seam for authoring wall fixtures), Boundary substrate, Window, ExitableVessel; the **`DeferredDestinationExit`** primitive (an eager exit — direction + accurate destination template path describable by `look`/a map with zero materialization — whose live destination faults in on `resolveDestination` via a `computeDestination` hook, cached + re-resolved after reap; consumers `DormDoor`/`FloorStairExit`); the **`SwitchableMixin`** generic two-state toggle (`switch` verb; Beacon walk/stop) + **`LockableMixin`** (`Lockable`, lock state over `Door`, vetoes traverse *before* destination resolution so a locked gate can point at an unbuilt path; a **stopgap** superseded by build-3's `lib/lock/`; minimal `lock`/`unlock`, keyed model deferred) — both over the shared **`BistateMixin`** guarded-boolean base (`lib/Bistate.ts`, also under `Sealable`/`Foldable`); **`Exit.hidden` is subsumed into the concealment gate** (a thin band view + a reveal path via `obviousExitsFor(viewer)`) and an empty-`media` exit now admits the **ground pace family** (`walk`/`sneak`/`run`) — see [concealment.md](./docs/subsystems/concealment.md) / [locomotion.md](./docs/subsystems/locomotion.md)
+  - [boundary.md](./docs/subsystems/boundary.md) — exits, doors, Adornable/Adornment (incl. the declarative `adornments:` instruction-field seam for authoring wall fixtures), Boundary substrate, Window, ExitableVessel; **exit-kind templates** (`/obj/exits/<kind>` — authored passage-nature defaults cloned per edge + completed via the participant-gated delta-aware `Exit.bind`; the identity doctrine's first consumer, see ref-shapes.md); the **`DeferredDestinationExit`** primitive (an eager exit — direction + accurate destination template path describable by `look`/a map with zero materialization — whose live destination faults in on `resolveDestination` via a `computeDestination` hook, cached + re-resolved after reap; consumers `DormDoor`/`FloorStairExit`); the **`SwitchableMixin`** generic two-state toggle (`switch` verb; Beacon walk/stop) + **`LockableMixin`** (`Lockable`, lock state over `Door`, vetoes traverse *before* destination resolution so a locked gate can point at an unbuilt path; a **stopgap** superseded by build-3's `lib/lock/`; minimal `lock`/`unlock`, keyed model deferred) — both over the shared **`BistateMixin`** guarded-boolean base (`lib/Bistate.ts`, also under `Sealable`/`Foldable`); **`Exit.hidden` is subsumed into the concealment gate** (a thin band view + a reveal path via `obviousExitsFor(viewer)`) and an empty-`media` exit now admits the **ground pace family** (`walk`/`sneak`/`run`) — see [concealment.md](./docs/subsystems/concealment.md) / [locomotion.md](./docs/subsystems/locomotion.md)
   - [bulk.md](./docs/subsystems/bulk.md) — continuous matter as a holder attribute (BulkableMixin interior/surface slots, closure scale, BulkableApi.transfer + drain-through, via.bulk + `:b` + material-keyword + `:{N unit}` measure grammar, Floor surface-bulk, fill/pour/spill/drink/sip, Creature.ingest seam)
   - [light.md](./docs/subsystems/light.md) — Light value object, VisionModality.signalAt, AmbientLitMixin, LightSourceMixin, per-viewer perception
   - [augmentation.md](./docs/subsystems/augmentation.md) — augment-confers-mixin substrate: AugmentMixin.confers(), getActiveMixins/isActive, @RequiresActive; the **three-base capability model** + aether-as-host (the AetherMixin host ⊕ AetherHostedMixin update hosting relation, the MQL `reachable` seed's self + host-descent legs, Species.innateMixins intrinsic conferral)
@@ -677,7 +684,7 @@ Some specific reminders worth keeping in front of mind:
 Google OAuth2 via Passport. Sequence: `/auth/google` → Google →
 `/auth/google/callback` → `Backend.handleAuthenticationSuccess` →
 `Application.findOrCreateUserFromGoogle` (creates/updates
-`GoogleProfile`, `User`, default Avatar template at `/obj/Avatar/<playerId>`)
+`GoogleProfile`, `User`; characters are minted at enroll — identity path `/obj/Avatar/<playerId>` with NO per-player template row, snapshot-backed via the persistence spine)
 → session cookie → client redirected with `auth=success`. WebSocket
 upgrade reuses the express-session middleware.
 

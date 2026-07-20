@@ -48,6 +48,9 @@ import type { Container } from '../spatial/Container';
 import type { Containable } from '../spatial/Containable';
 import type Door from './Door';
 import { StuffApi } from '../../api/stuff';
+import { CallSecurity, Final, Unshadowable } from '../security/decorators';
+import { SecurityPolicies } from '../security/SecurityPolicies';
+import { Mixins } from '../mixin';
 import { LocomotionApi } from '../../api/locomotion';
 import { MixinApi } from '../../api/mixin';
 import { GrammarApi } from '../../api/grammar';
@@ -151,7 +154,44 @@ export interface ExitOptions {
   wheelPassable?: boolean;
 }
 
+/**
+ * The bind contract: only an `Exitable` room that is PARTY to the edge
+ * (the source, or the destination of the reciprocal edge it is
+ * installing) may complete an unbound kind-cloned Exit. The where
+ * clause reads the bind options' endpoints from the call args.
+ */
+const ByPartyRoom = SecurityPolicies.FromMixin(Mixins.Exitable, {
+  where: (caller, _target, _method, args) => {
+    const o = args[0] as ExitOptions | undefined;
+    if (!o) return false;
+    return (
+      caller === (o.source as unknown) ||
+      caller === (o.destination as unknown)
+    );
+  },
+});
+
 export default class Exit extends ConcealableMixin(Idea) {
+  /**
+   * The exit-KIND hydration allowlist (the Hydrator applies only
+   * declared fields). Exits are never saved — no persistence host
+   * captures them — so this list exists purely so a kind template's
+   * authored defaults (`/obj/exits/<kind>` data) hydrate onto a fresh
+   * clone before `bind()` completes identity. Identity fields
+   * (direction / source / destination) are deliberately absent:
+   * they're bind-owned, never authored data.
+   */
+  static persistentFields = [
+    'messageIn',
+    'messageOut',
+    'media',
+    'wheelPassable',
+    'blocked',
+    'muffled',
+    'noFollow',
+    'oneWay',
+  ];
+
   protected direction: string;
   public getDirection(): string { return this.direction; }
   public setDirection(value: string): void { this.direction = value; }
@@ -166,6 +206,9 @@ export default class Exit extends ConcealableMixin(Idea) {
    * owned). An exit of a destroyed room is cullable.
    */
   public override canEvict(context: EvictionContext): VetoResult {
+    // An unbound kind clone (post-clone, pre-bind) owns no room; it is
+    // ordinary cullable clutter if its installer never bound it.
+    if (!this.source) return super.canEvict(context);
     if (!this.source.isDestroyed()) {
       return { ok: false, reason: 'exit of a live room' };
     }
@@ -309,6 +352,7 @@ export default class Exit extends ConcealableMixin(Idea) {
    * the deferred player-placed-concealment case).
    */
   public override getDiscoveryKey(): string | undefined {
+    if (!this.source) return undefined; // unbound kind clone
     const src = this.source.getTemplatePath();
     return src ? `${src}#exit:${this.direction}` : undefined;
   }
@@ -418,8 +462,28 @@ export default class Exit extends ConcealableMixin(Idea) {
   public getInverse(): Exit | undefined { return this.inverse; }
   public setInverse(value: Exit | undefined): void { this.inverse = value; }
 
-  constructor(opts: ExitOptions) {
+  constructor(opts?: ExitOptions) {
     super();
+    if (!opts) {
+      // UNBOUND construction — the exit-kind clone path. The clone
+      // pipeline builds the instance bare, hydration applies the
+      // kind's authored fields (messages / media / concealment /
+      // wheelPassable), and the installing room completes identity
+      // via `bind()` (participant-gated). Every authored field keeps
+      // its declaration default here; identity slots stay empty.
+      this.direction = '';
+      this.source = null as unknown as Stuff & Container;
+      this._destination = null;
+      this._destinationPath = null;
+      this._door = null;
+      this.blocked = false;
+      this.muffled = false;
+      this.noFollow = false;
+      this.oneWay = false;
+      this.messageIn = null;
+      this.messageOut = null;
+      return;
+    }
     if (!opts.destination && !opts.destinationPath) {
       throw new Error(
         'Exit requires either destination (live ref) or destinationPath (templatePath).'
@@ -485,6 +549,89 @@ export default class Exit extends ConcealableMixin(Idea) {
     // default preserves backcompat for callers that don't pass it.
     this.setMedia(opts.media ?? []);
     this._wheelPassable = opts.wheelPassable ?? true;
+  }
+
+  /**
+   * Whether identity has been bound (source + direction + a
+   * destination). An unbound exit is a freshly-cloned kind instance
+   * awaiting `bind()`; nothing should traverse or install it yet.
+   */
+  public isBound(): boolean {
+    return this.source !== null && this.direction !== '';
+  }
+
+  /**
+   * Complete a kind-cloned exit's identity: source, direction,
+   * destination (live ref or path), door — plus any per-site
+   * overrides. **Delta-aware**: an override field is applied only when
+   * the caller passed it, so the kind template's hydrated defaults
+   * (traverse messages, media, concealment, wheelPassable) survive
+   * unless the site explicitly overrides them.
+   *
+   * Participant-gated (`FromMixin(Mixins.Exitable)` + party-to-the-edge
+   * `where`): only the room installing the edge may bind. `@Final
+   * @Unshadowable` — identity writes are unspoofable. Throws if
+   * already bound.
+   */
+  @CallSecurity(ByPartyRoom)
+  @Final
+  @Unshadowable
+  public bind(opts: ExitOptions): void {
+    if (this.isBound()) {
+      throw new Error(
+        `Exit.bind: already bound ('${this.direction}' from ` +
+          `${this.source.getTemplatePath() ?? this.source.stuffId})`
+      );
+    }
+    if (!opts.destination && !opts.destinationPath) {
+      throw new Error(
+        'Exit.bind requires either destination (live ref) or destinationPath (templatePath).'
+      );
+    }
+    this.direction = opts.direction;
+    this.source = opts.source;
+    this._destinationPath = opts.destinationPath ?? null;
+    if (opts.destination) {
+      if (opts.keepLiveDestination) {
+        this._destination = opts.destination;
+        this._destinationPath = opts.destinationPath ?? null;
+      } else {
+        const path = opts.destination.getTemplatePath();
+        if (path) {
+          if (!this._destinationPath) this._destinationPath = path;
+          this._destination = null;
+        } else {
+          this._destination = opts.destination;
+        }
+      }
+    } else {
+      this._destination = null;
+    }
+    // Direct `_door` write for the same pre-`addExit` reason as the
+    // constructor: proxy-aware attachedTo registration happens in
+    // `ExitableMixin.addExit`, the only legitimate installer.
+    this._door = opts.door ?? null;
+    // Per-site overrides — delta-only from here down.
+    if (opts.concealment) {
+      this.setConcealment(opts.concealment);
+    } else if (opts.hidden) {
+      this.setConcealment(ConcealmentLevels.hiddenDefault());
+    }
+    if (opts.concealmentHint !== undefined) {
+      this.concealmentHint = opts.concealmentHint;
+    }
+    if (opts.blocked !== undefined) this.blocked = opts.blocked;
+    if (opts.muffled !== undefined) this.muffled = opts.muffled;
+    if (opts.noFollow !== undefined) this.noFollow = opts.noFollow;
+    if (opts.oneWay !== undefined) this.oneWay = opts.oneWay;
+    if (opts.messageIn !== undefined) this.messageIn = opts.messageIn ?? null;
+    if (opts.messageOut !== undefined) {
+      this.messageOut = opts.messageOut ?? null;
+    }
+    if (opts.media !== undefined) this.setMedia(opts.media);
+    if (opts.wheelPassable !== undefined) {
+      this._wheelPassable = opts.wheelPassable;
+    }
   }
 
   /**
