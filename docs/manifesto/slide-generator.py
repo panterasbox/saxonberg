@@ -398,6 +398,81 @@ CH3=[
  ("ch3-15-delegation", f_delegation()),                                       # 5  liquid delegation
 ]
 
+# ── Ch 4 frames (the argument; hero = the claim graph, f_graph) ──
+def f_modes(stage=2):
+    g=[CT(960,110,"match the mode to the moment",40,SOFT)]
+    x0,y0,cw,chh,gap=560,240,400,230,40
+    for j,cl in enumerate(["CHAT — live","FORUM — posted"]): g+=[CT(x0+cw/2+j*(cw+gap),y0-30,cl,26,SOFT)]
+    for i,rl in enumerate(["LOOSE","STRUCTURED"]): g+=[T(x0-170,y0+chh/2+i*(chh+gap)+10,rl,26,SOFT)]
+    cells=[[("casual chat","talk"),("a forum feed","talk")],[("the live floor","decisions"),("the argument map","decisions")]]
+    for i in range(2):
+        for j in range(2):
+            lab,tag=cells[i][j]; cx=x0+j*(cw+gap); cy=y0+i*(chh+gap); lit=(i==1 and stage>=2)
+            g+=[R(cx,cy,cw,chh,GREEN if lit else DIMB,4,op=1 if lit else 0.7)]
+            g+=[CT(cx+cw/2,cy+chh/2-6,lab,30,WHITE if lit else DIM,weight="bold" if lit else "normal"),CT(cx+cw/2,cy+chh/2+40,tag,22,GREEN if lit else DIM)]
+    g+=[CT(960,1000,"casual talk stays loose — decisions get organized by structure",30,WHITE)]
+    return g
+def f_pamphlet():
+    g=[CT(760,110,"you already know the structured form — it comes in the mail",36,SOFT)]
+    bx,by,bw,bh=340,240,460,560; g+=[R(bx,by,bw,bh,WHITE,4)]
+    for i,(s,col) in enumerate([("PROPOSAL",WHITE),("THE CASE FOR",GREEN),("THE CASE AGAINST",CORAL),("REBUTTALS",AMBER)]):
+        yy=by+50+i*135; g+=[CT(bx+bw/2,yy,s,26,col,weight="bold")]
+        for k in range(3): g+=[L(bx+50,yy+30+k*24,bx+bw-50,yy+30+k*24,SOFT,3,0.4)]
+    g+=ARR(bx+bw+40,by+bh/2,bx+bw+230,by+bh/2,GREEN,5)+[CT(bx+bw+135,by+bh/2-30,"made",24,GREEN),CT(bx+bw+135,by+bh/2+40,"interactive",24,GREEN)]
+    g+=[CT(1420,by+bh/2-20,"a living map",30,WHITE),CT(1420,by+bh/2+30,"the whole community",24,SOFT),CT(1420,by+bh/2+66,"builds",24,SOFT)]
+    g+=[CT(760,900,"the argument laid out by its structure — not by who shouted loudest",30,WHITE)]
+    return g
+def f_reputation_blind(stage=2):
+    g=[CT(860,110,"the map is blind to who wrote it",38,SOFT)]
+    g+=[R(730,220,300,64,WHITE,3),CT(880,262,"proposal",28,WHITE),L(820,284,560,430,CORAL,3),L(940,284,1200,430,CORAL,3),
+        R(410,430,300,64,CORAL,3),CT(560,472,"objects to",26,CORAL),R(1050,430,300,64,CORAL,3),CT(1200,472,"objects to",26,CORAL)]
+    if stage<2:
+        g+=[person(560,570,26,STEEL),CT(560,640,"a nobody",24,SOFT),person(1200,570,26,AMBER),CT(1200,540,"★",30,AMBER),CT(1200,640,"the biggest name",24,SOFT),
+            CT(860,760,"an unknown and a big name — do they attach differently?",26,SOFT)]
+    else:
+        for x in (560,1200): g+=[C(x,570,26,DIMB,2,op=0.5),L(x-30,540,x+30,600,CORAL,4),L(x+30,540,x-30,600,CORAL,4),CT(x,660,"identical",24,GREEN)]
+        g+=[CT(860,860,"same place, same weight — what holds a point up is its structure, not the name",30,WHITE)]
+    return g
+def f_live_floor(stage=2):
+    g=[CT(960,110,"the live floor — a real-time debate by rules of order",36,SOFT)]
+    g+=[R(560,300,800,140,WHITE,4),CT(960,285,"the floor",22,SOFT)]
+    for x in [720,960,1200]: g+=[person(x,370,16,GREEN)]
+    g+=[R(300,300,180,140,STEEL,3),CT(390,285,"floor-bot",22,STEEL),CT(390,350,"speaking queue",18,SOFT),CT(390,392,"time limits",18,SOFT)]
+    for i in range(4): g+=[person(340+i*30,430,8,STEEL,0.7)]
+    g+=[CT(960,490,"opening · rebuttal · cross-examination · closing",24,SOFT)]
+    for i in range(40): g+=[person(600+(i%20)*40,580+(i//20)*40,8,DIMB,0.7)]
+    g+=[CT(960,690,"a gallery watches and reacts",22,SOFT)]
+    if stage>=2:
+        g+=ARR(1420,400,1560,400,AMBER,5)+[C(1620,400,50,AMBER,3),CT(1620,410,"map",22,AMBER),CT(1560,330,"claims captured",22,AMBER),
+            CT(960,900,"live surfaces; async decides — nothing binding happens on the floor",30,WHITE)]
+    return g
+def f_llm_librarian(stage=2):
+    import random; random.seed(7)
+    g=[CT(960,110,"at scale — the one place an LLM helps",38,SOFT)]
+    for i in range(16): g+=[R(300+random.random()*360,280+random.random()*380,120,40,STEEL,2,op=0.7)]
+    g+=[CT(490,720,"ten thousand near-identical claims",24,SOFT)]
+    if stage>=2:
+        g+=ARR(760,470,900,470,SOFT,5)+[CT(830,430,"LLM",24,AMBER),CT(830,510,"librarian",22,AMBER),
+            R(1000,410,360,120,AMBER,3),CT(1180,458,"one merged claim",26,WHITE),CT(1180,502,"— proposed —",22,AMBER)]
+        g+=ARR(1400,470,1520,470,GREEN,5)+[C(1580,470,44,GREEN,3),CT(1580,480,"✓",34,GREEN),CT(1580,550,"a human confirms",22,GREEN),
+            CT(960,900,"a librarian, never a judge — it proposes only; touches the view, never the record",30,WHITE)]
+    return g
+
+CH4=[
+ ("ch4-01-modes-off", f_modes(1)),                # 1  the four modes…
+ ("ch4-02-modes", f_modes(2)),                    # 1  …two structured ones decide
+ ("ch4-03-pamphlet", f_pamphlet()),               # 2  the voter guide, made interactive
+ ("ch4-04-graph-attach", f_graph(1)),             # 2  claims attach  [hero]
+ ("ch4-05-repblind-who", f_reputation_blind(1)),  # 3  a nobody vs a big name…
+ ("ch4-06-repblind", f_reputation_blind(2)),      # 3  …names stripped, identical
+ ("ch4-07-graph-answered", f_graph(2)),           # 4  one answered → closed
+ ("ch4-08-graph-open", f_graph(3)),               # 4  one stays open — can't be buried
+ ("ch4-09-floor", f_live_floor(1)),               # 5  the live floor…
+ ("ch4-10-floor-captured", f_live_floor(2)),      # 5  …claims captured; async decides
+ ("ch4-11-llm-scale", f_llm_librarian(1)),        # 6  drowning in duplicates…
+ ("ch4-12-llm", f_llm_librarian(2)),              # 6  …LLM proposes a merge
+]
+
 # ================= CH 1 — THE HERO MONTAGE =================
 CH1=[
  ("ch1-01-hub", f_hub()),                                              # 0  tools route through one point
@@ -430,7 +505,7 @@ def emit(name,parts):
         subprocess.run(["convert","-background","none","-density","96",sp,"-resize","3840x2160",pp],check=False)
     print("  ",name)
 
-ALL=CH1+CH2+CH3
+ALL=CH1+CH2+CH3+CH4
 if __name__=="__main__":
     print(f"{len(ALL)} frames -> {OUT_PNG}")
     for n,p in ALL: emit(n,p)
