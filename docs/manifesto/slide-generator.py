@@ -59,32 +59,22 @@ def f_hub():
     g+=[CT(860,1010,"it works small. it cannot scale.",34,WHITE)]
     return g
 
-# ── Ch 2 hero: the machinery, empty vs full ──
-def _seats(cx,py,filled):
-    g=[]; palette=[GREEN,AMBER,STEEL]
-    for bi,(Rr,ns) in enumerate([(150,10),(215,13),(280,16)]):
-        for k in range(ns):
-            th=math.radians(18+k*(144/(ns-1))); x=cx+Rr*math.cos(th); y=py-Rr*math.sin(th)
-            g+=[person(x,y,10,palette[(bi+k)%3])] if filled else [C(x,y,10,DIMB,2,"none",0.9)]
-    pc=WHITE if filled else DIMB
-    g+=[R(cx-46,py-6,92,44,pc,3,op=1 if filled else 0.8)]
-    if filled: g+=[person(cx,py+16,9,AMBER)]
-    ty=py-360; g+=[R(cx-105,ty,210,74,pc,3,op=1 if filled else 0.8)]
-    if filled:
-        for i,(bw,col) in enumerate([(150,GREEN),(96,AMBER),(60,STEEL)]):
-            g+=[f'<rect x="{cx-90}" y="{ty+14+i*18}" width="{bw}" height="12" rx="3" fill="{col}"/>']
-    else:
-        for i in range(3): g+=[L(cx-90,ty+22+i*18,cx-30,ty+22+i*18,DIMB,4,0.8)]
-    return g
-def f_machinery(stage=2):
-    g=[CT(960,110,"self-government always lacked one thing — people who show up",38,SOFT)]
-    g+=_seats(500,640,False)+[CT(500,205,"they built the machinery",30,SOFT),
-        CT(500,720,"DAOs · online democracies · token votes",24,DIMB), CT(500,772,"— nobody came",26,CORAL)]
-    if stage>=2:
-        g+=_seats(1400,640,True)+[CT(1400,205,"a game fills it",30,WHITE)]
-        for i in range(6): g+=ARR(1745+i*6,300+i*40,1665-i*6,360+i*30,STEEL,3,0.7)
-        g+=[CT(1400,720,"the same machinery",24,SOFT), CT(1400,772,"— now full",26,GREEN)]
-        g+=[CT(960,960,"civic duty is a cost.  a game makes taking part the reward.",32,WHITE)]
+# ── Ch 2 hero: games get your hours, governing doesn't → put the gov IN the game ──
+def f_opener():
+    g=[CT(860,120,"people pour themselves into games — and not into governing",38,SOFT)]
+    base=720; bw=200; gx=430; gh=420
+    g+=[R(gx,base-gh,bw,gh,GREEN,3,fill=GREEN),CT(gx+bw/2,base-gh-72,"hundreds of hours",22,SOFT),
+        CT(gx+bw/2,base-gh-30,"a game",30,GREEN,weight="bold"),
+        CT(gx+bw/2,base+42,"a character you built",22,SOFT),CT(gx+bw/2,base+76,"a reputation you earned",22,SOFT)]
+    cx=930; ch=42
+    g+=[R(cx,base-ch,bw,ch,DIMB,3),CT(cx+bw/2,base-ch-30,"governing",30,DIMB,weight="bold"),
+        CT(cx+bw/2,base+42,"the meeting nobody",22,DIM),CT(cx+bw/2,base+76,"comes to",22,DIM)]
+    g+=[L(gx-40,base,cx+bw+40,base,SOFT,2,0.5)]
+    g+=[PATH(f"M {gx+bw+30} {base-gh+60} C {gx+bw+220} {base-gh+40}, 1360 {base-260}, 1360 {base-120}",AMBER,4)]
+    g+=ARR(1360,base-140,1360,base-70,AMBER,4)
+    g+=[CT(1440,base-300,"the participation",26,AMBER),CT(1440,base-262,"is real —",26,AMBER),
+        CT(1440,base-40,"just aimed",24,SOFT),CT(1440,base-6,"at games",24,SOFT)]
+    g+=[CT(860,960,"so we aim a game at governing — and put the government inside it",32,WHITE)]
     return g
 
 # ── Ch 3 hero: the three rings (legislative chambers) ──
@@ -204,21 +194,7 @@ def f_continuum(safe_line="the setting moves. the floor doesn't."):
     for xx in range(ax0+80,ax1,150): g+=[L(xx,ay+22,xx,fy-8,STEEL,2,0.35,dash="6 10")]
     g+=[CT(860,1000,safe_line,34,WHITE)]; return g
 
-# ── Ch 2 supporting frames (hero = f_machinery) ──
-def f_gap():
-    g=[CT(960,110,"self-organizing is constant — turning it into self-government is the gap",36,SOFT)]
-    g+=[CT(470,205,"hanging out",28,WHITE)]
-    for (cx,cy) in [(340,360),(560,340),(440,520)]:
-        for k in range(6):
-            a=k*(2*math.pi/6); g+=[person(cx+42*math.cos(a),cy+42*math.sin(a),9,GREEN)]
-        g+=[R(cx-30,cy-14,60,28,GREEN,2,op=0.7)]
-    g+=[CT(470,640,"make their own rules, keep their own order",24,SOFT)]
-    g+=[PATH("M 820 300 L 860 400 L 820 500 L 860 620",DIMB,4,dash="4 12")]
-    g+=[CT(1440,205,"taking part in the deciding",28,SOFT)]
-    g+=[R(1360,360,160,180,DIMB,4,op=0.9),L(1400,390,1480,390,DIMB,5,0.9),CT(1440,470,"0",50,DIMB,weight="bold")]
-    g+=[CT(1440,640,"— where it breaks down",24,CORAL)]
-    g+=[CT(960,900,"people show up to hang out.  the hard part is getting them to govern.",30,WHITE)]
-    return g
+# ── Ch 2 supporting frames (hero = f_opener) ──
 def f_investment():
     g=[CT(860,120,"a game pulls people in — through investment",40,SOFT)]
     nodes=[("you sink\nhours in",300,STEEL),("it matters\nto you",640,AMBER),("so do\nits rules",980,GREEN),("you're in\nthe governing",1320,WHITE)]
@@ -257,37 +233,34 @@ def f_laboratory():
     return g
 
 CH2=[
- ("ch2-01-gap", f_gap()),                          # 1  self-organize vs self-govern
- ("ch2-02-investment", f_investment()),            # 2  why a game — investment
- ("ch2-03-machinery-empty", f_machinery(1)),       # 3  the graveyard  [hero]
- ("ch2-04-machinery-full", f_machinery(2)),        # 3  …a game fills it
- ("ch2-05-forkable", f_forkable()),                # 4  made of words — forkable
- ("ch2-06-laboratory", f_laboratory()),            # 5  the laboratory
+ ("ch2-01-opener", f_opener()),                    # 1  games get your hours, not governing  [Ch2 hero]
+ ("ch2-02-investment", f_investment()),            # 2  why a game — the investment mechanism
+ ("ch2-03-forkable", f_forkable()),                # 4  made of words — forkable
+ ("ch2-04-laboratory", f_laboratory()),            # 5  the laboratory
 ]
 
 # ================= CH 1 — THE HERO MONTAGE =================
 CH1=[
  ("ch1-01-hub", f_hub()),                                              # 0  tools route through one point
- ("ch1-02-machinery-empty", f_machinery(1)),                          # 0/① machinery built…  [Ch2 hero build]
- ("ch1-03-machinery-full", f_machinery(2)),                           # 0/① …a game fills it
- ("ch1-04-rings", f_rings(False)),                                     # ①  three contributors  [Ch3 hero]
- ("ch1-05-fork", f_fork()),                                            # ①  machine vs human (sets up Ch5)
- ("ch1-06-openfloor", f_openfloor()),                                  # ②  a proposal on the open floor
- ("ch1-07-graph-attach", f_graph(1)),                                 # ③  claims attach  [Ch4 hero build]
- ("ch1-08-graph-answered", f_graph(2)),                               # ③  …one answered, closes
- ("ch1-09-graph-open", f_graph(3)),                                   # ③  …one stays open
- ("ch1-10-chambers", f_rings(True, title="each force gets its own count",
+ ("ch1-02-whyagame", f_opener()),                                     # 0/① why a game  [Ch2 hero]
+ ("ch1-03-rings", f_rings(False)),                                     # ①  three contributors  [Ch3 hero]
+ ("ch1-04-fork", f_fork()),                                            # ①  machine vs human (sets up Ch5)
+ ("ch1-05-openfloor", f_openfloor()),                                  # ②  a proposal on the open floor
+ ("ch1-06-graph-attach", f_graph(1)),                                 # ③  claims attach  [Ch4 hero build]
+ ("ch1-07-graph-answered", f_graph(2)),                               # ③  …one answered, closes
+ ("ch1-08-graph-open", f_graph(3)),                                   # ③  …one stays open
+ ("ch1-09-chambers", f_rings(True, title="each force gets its own count",
                              cap="nothing passes by capturing just one")),  # ④  chambers, 2-of-3  [Ch3 hero]
- ("ch1-11-model-leg", master(level=2, title="a law is a change to the code — three branches make it real")),  # ⑤ assemble…
- ("ch1-12-model-exec", master(level=3)),                               # ⑤  …+executive
- ("ch1-13-model-jud", master(level=4)),                                # ⑤  …+judicial
- ("ch1-14-pipeline-stations", f_pipeline(1)),                          # ⑤  build like software…  [Ch5 hero build]
- ("ch1-15-pipeline-ships", f_pipeline(2)),                             # ⑤  …conforms → ships
- ("ch1-16-pipeline-remand", f_pipeline(3)),                            # ⑤  …misses → remand
- ("ch1-17-model-record", master(level=5)),                             # ⑥  all written down  [Ch6 hero]
- ("ch1-18-fill", master(level=5, pop="one", title="the same model, whatever the population",
+ ("ch1-10-model-leg", master(level=2, title="a law is a change to the code — three branches make it real")),  # ⑤ assemble…
+ ("ch1-11-model-exec", master(level=3)),                               # ⑤  …+executive
+ ("ch1-12-model-jud", master(level=4)),                                # ⑤  …+judicial
+ ("ch1-13-pipeline-stations", f_pipeline(1)),                          # ⑤  build like software…  [Ch5 hero build]
+ ("ch1-14-pipeline-ships", f_pipeline(2)),                             # ⑤  …conforms → ships
+ ("ch1-15-pipeline-remand", f_pipeline(3)),                            # ⑤  …misses → remand
+ ("ch1-16-model-record", master(level=5)),                             # ⑥  all written down  [Ch6 hero]
+ ("ch1-17-fill", master(level=5, pop="one", title="the same model, whatever the population",
                         cap="one founder can hold every seat", sub="the model doesn't change — only who fills it")),  # close
- ("ch1-19-dial", f_continuum(safe_line="it opens up as far as the founder chooses — it just makes it safe to")),  # close [Ch7 hero]
+ ("ch1-18-dial", f_continuum(safe_line="it opens up as far as the founder chooses — it just makes it safe to")),  # close [Ch7 hero]
 ]
 
 def emit(name,parts):
