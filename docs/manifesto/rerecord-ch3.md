@@ -42,7 +42,7 @@ paid for by another — and nearly every economy resolves that tension the same 
 one force captures the other two, capital buying out the makers and treating the
 players as inventory. This government is built so that capture can't happen.
 
-**[2 — co-equal, non-convertible, two of three]**
+**[2 — co-equal, two of three]**
 Each force gets its own count — its own chamber — and the three are co-equal: none
 can outvote the other two. A decision needs a majority of chambers, two of three.
 So makers can't win without players, players can't win without makers, and no one
@@ -51,13 +51,12 @@ Everyone makes, funds, and plays, in different proportions — a chamber isn't a
 full of different people, it's the same crowd measured by what they contribute. One
 decision, read three ways, passing only when two of the readings agree.
 
-**[3 — the firewall]**
+**[3 — money, and where it stops]**
 Money is the case everyone watches, so here's the exact line. Capital earns a real voice —
-it's how the lights stay on — but only in its own count. It can never convert into a
-maker's say, a player's say, or advantage out in the world. Money can make you the
-loudest funder in the room; it cannot make you a maker, a player, or a winner. And
-that wall is a narrow, honest one: it isn't a promise you can't invest or profit —
-it's that money moves the funders' count and stops there.
+it's how the lights stay on — but the counts are separate, so it stops at its own. Money
+can make you the loudest funder in the room; it can't make you a maker, a player, or a
+winner. That's a narrow claim, not a grand one: nothing stops you investing or profiting —
+money just moves the funders' count and stops there.
 
 **[4 — standing: a product of quantity and quality, given by others]**
 So what is a "voice" actually made of? It's called standing — and standing is a
@@ -103,6 +102,20 @@ room of different people — it's the same crowd measured by what they contribut
 
 ## Notes
 
+- **⚠ Beat 3 de-reified (2026-07-18): non-convertibility is a CONSEQUENCE, not a mechanism.**
+  Renamed `the firewall` → `money, and where it stops`. If the three counts are separate
+  and co-equal (Beat 2), then "money can't vote in the other two" **is just what separate
+  counts means** — there is no extra barrier installed. The old prose reified it ("that
+  wall is a narrow, honest one") and stated the same proposition **four times**; both
+  trimmed. Now: "the counts are separate, so it stops at its own."
+  - **Do NOT give this its own diagram.** The three interlocking rings already *are* the
+    firewall — drawing a wall around capital implies a second mechanism exists and actively
+    misleads. (A containment frame was designed and cut for exactly this reason.) Rule of
+    thumb this produced: **draw a structure once where it's established; anything that falls
+    out of it gets said, not re-drawn.**
+  - **"Firewall" survives as a NAME**, not as a built object — it's still the handle for the
+    floor guarantee in Ch 7 Beat 2. Don't purge the word there; just don't build prose or
+    pictures that treat it as an installed wall.
 - **Forward hand-off to Ch 4 added (2026-07-17 coherence pass).** Ch 3's close ("only
   earned, and only given") handed nowhere, and Ch 4 opened cold — the most abrupt seam in
   the series (worsened by the deep-dive order doing chambers/Ch 3 before argument/Ch 4).
