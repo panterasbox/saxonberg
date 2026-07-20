@@ -36,7 +36,7 @@ existence by *orchestrating* (e.g. `ContainmentApi.move`,
 `ConditionApi.inflict`) — never by relaying one object's answer. The
 2026-07 sweep removed this family (`getContainer`/`getContents`/
 `materialOf`/`conditionsOf`/`afflict`/`relieve`/lifecycle predicates/…);
-don't reintroduce it.
+don't reintroduce it. Enforced by `pnpm lint:thin-forwarder` (CI-gating).
 
 ## `ApiOnly` as a Substitute for a Real Security Contract
 
@@ -145,7 +145,9 @@ on, system mode only for engine bookkeeping with no character in the
 frame. The two sanctioned exceptions are `ResidencyLogic`'s raw-proxy
 sweeps (enumeration must not count as a touch — commented at the
 loops) and single-object reads (one container's contents, one host's
-hosted updates) — those are object-local reads, not searches.
+hosted updates) — those are object-local reads, not searches. The
+`getAllObjects()` half is enforced by `pnpm lint:world-scan`
+(CI-gating; the allowlist is the three sanctioned scan sites).
 
 ## `StuffApi.create()` Instead of a Template
 

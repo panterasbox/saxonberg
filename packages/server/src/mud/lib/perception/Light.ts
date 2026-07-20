@@ -86,7 +86,7 @@ export const LIGHT_SOURCE_CAP = 3;
  * propagation walk that produces a Light value lives in
  * `lib/perception/modalities/VisionModality.ts` as the modality's
  * `signalAt`; outside consumers dispatch via
- * `PerceptionApi.signalAt(loc, VisionModality)`.
+ * `vision.signalAt(loc)` (the modality's own method).
  */
 export const LIGHT_BANDS = [
   'pitch-black',

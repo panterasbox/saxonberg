@@ -167,15 +167,4 @@ export class ShellApi {
     return logic().resolveSetting<T>(host, key);
   }
 
-  /**
-   * Cross-host explicit-override resolution. Returns the user-explicit
-   * override for `key` (no schema-default fallback), or `undefined`
-   * when the host can't carry overrides (non-Environment) OR hasn't
-   * set the key. Companion to {@link resolveSetting}; chain-resolution
-   * consumers use this to distinguish "user set X" from "schema
-   * default is X".
-   */
-  public static ownSetting<T>(host: Stuff, key: string): T | undefined {
-    return logic().ownSetting<T>(host, key);
-  }
 }

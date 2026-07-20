@@ -337,7 +337,8 @@ export class LocomotionApi {
    *
    * `ShellApi.resolveSetting('movement.defaultMode')` is deliberately
    * NOT used — its built-in schema-default fallback to `'walk'` would
-   * short-circuit the bodyplan layer. `ShellApi.ownSetting` returns the
+   * short-circuit the bodyplan layer. the giver's own explicit `movement.defaultMode` override (via
+   * `Environment.getOwnSetting`) returns the
    * explicit override only.
    */
   public static defaultModeFor(actor: Stuff): string {

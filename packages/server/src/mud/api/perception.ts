@@ -32,7 +32,7 @@ import type { ConcealmentLevel } from '../lib/concealment/ConcealmentLevel';
 import type { Container } from '../lib/spatial/Container';
 import type { Sensor } from '../lib/message/Sensor';
 import { Modality } from '../lib/perception/Modality';
-import type { Signal, Percept } from '../lib/perception/Modality';
+import type { Percept } from '../lib/perception/Modality';
 import { StuffApi } from './stuff';
 import { HotReloadApi } from './hot-reload';
 import { SecurityApi } from './security';
@@ -91,20 +91,7 @@ export class PerceptionApi {
     return logic().modalityByOrganKey(organKey);
   }
 
-  /**
-   * Compute the modality's signal at `loc`. Dispatch is on the
-   * modality singleton's `signalAt` — vision walks light, smell
-   * walks odor, sound walks dB, touch reads ambient temperature.
-   * Contact + network modalities (taste, ESP) return null.
-   */
-  public static signalAt(
-    loc: Stuff & Container,
-    modality: Modality,
-  ): Signal | null {
-    return logic().signalAt(loc, modality);
-  }
-
-  /**
+    /**
    * Compute the viewer's percept at `loc` for `modality`. Walks
    * `signalAt` then `perceiveFor`. Returns null when the signal is
    * null OR the modality's `perceiveFor` returns null (the default).

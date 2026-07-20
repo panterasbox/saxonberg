@@ -151,7 +151,7 @@ export class Modality extends SingletonMixin(PropertiedMixin(Idea)) {
    * environment (touch) override with a non-propagating read.
    *
    * Callers narrow the return type at the call site. e.g.
-   * `PerceptionApi.signalAt(loc, vision) as Light | null`.
+   * `vision.signalAt(loc) as Light | null` (call the modality directly).
    */
   public signalAt(_loc: Stuff & Container): Signal | null {
     return null;

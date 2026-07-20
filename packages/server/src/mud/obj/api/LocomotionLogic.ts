@@ -20,7 +20,6 @@ import { SlotApi } from '../../api/slot';
 import type { MixinName } from '../../lib/mixin';
 import { LOAD_BEARING_DEFAULTS } from '../../lib/encumbrance/LoadBearing';
 import { Postures } from '../../lib/slot/Postured';
-import { ShellApi } from '../../api/shell';
 import type { EmissionData } from '../../api/locomotion';
 
 /** Hard depth cap for the passthrough chain walk; matches the conveyance ripple. */
@@ -444,7 +443,9 @@ export class LocomotionLogic extends ApiLogic {
     // `movement.defaultMode sneak`/`run` for a standing pace, exactly as
     // they'd default to any locomotion mode. No separate `movement.pace`
     // knob — it was redundant with this one.
-    const explicit = ShellApi.ownSetting<string>(actor, 'movement.defaultMode');
+    const explicit = MixinApi.isEnvironment(actor)
+      ? actor.getOwnSetting<string>('movement.defaultMode')
+      : undefined;
     if (explicit) return explicit;
     if (MixinApi.isOrganism(actor)) {
       const planDefault =

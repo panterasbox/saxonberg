@@ -120,12 +120,6 @@ export class ShellLogic extends ApiLogic {
       .find((x) => x.entry.key === key)?.entry.default as T | undefined;
   }
 
-  /** See {@link ShellApi.ownSetting}. */
-  @CallSecurity(ShellApiCallers)
-  public ownSetting<T>(host: Stuff, key: string): T | undefined {
-    if (!MixinApi.isEnvironment(host)) return undefined;
-    return host.getOwnSetting<T>(key);
-  }
 }
 
 /* ───────────── Alias expansion — file-private helpers ───────────── */
