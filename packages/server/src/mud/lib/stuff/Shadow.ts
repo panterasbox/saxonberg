@@ -133,4 +133,3 @@ export abstract class Shadow extends Stuff {
   }
 }
 
-Stuff._registerTopLevelBranch(Shadow);

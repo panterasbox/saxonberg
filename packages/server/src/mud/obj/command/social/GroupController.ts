@@ -14,7 +14,6 @@ import type {
   CommandModel,
 } from '../../../api/command';
 import { MessageApi } from '../../../api/message';
-import { MixinApi } from '../../../api/mixin';
 import type { MqlOneResult } from '../../../api/mql';
 import { Mml } from '../../../api/mml';
 import { Group, type GroupRole } from '../../../lib/social/Group';
@@ -289,5 +288,3 @@ export default class GroupController extends CommandController<GroupModel> {
   }
 }
 
-// Suppress unused warning — MixinApi kept for future predicate use.
-void MixinApi;

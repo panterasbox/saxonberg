@@ -99,7 +99,6 @@ class TestEngagement {
 }
 
 function makeEngagement(actor: TestActor, type: string): TestEngagement {
-  SchedulerApi.registerActivity(type, TestEngagement as never);
   return new TestEngagement(actor, type);
 }
 

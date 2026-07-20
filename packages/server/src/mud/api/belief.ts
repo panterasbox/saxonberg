@@ -47,7 +47,6 @@ import type { Stuff } from '../lib/stuff/Stuff';
 import type { BeliefRecord } from '../lib/belief/BeliefStore';
 import { StuffApi } from './stuff';
 import { HotReloadApi } from './hot-reload';
-import { SecurityApi } from './security';
 import { BeliefStoreLogic } from '../obj/api/BeliefStoreLogic';
 import { fileURLToPath } from 'url';
 
@@ -109,5 +108,3 @@ export class BeliefStoreApi {
     return logic().evictAndFlush(viewer);
   }
 }
-
-SecurityApi.decorateApiClass(BeliefStoreApi);

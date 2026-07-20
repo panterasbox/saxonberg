@@ -23,7 +23,6 @@
 import type { Stuff } from '../lib/stuff/Stuff';
 import { StuffApi } from './stuff';
 import { HotReloadApi } from './hot-reload';
-import { SecurityApi } from './security';
 import { MqlLogic } from '../obj/api/MqlLogic';
 import { fileURLToPath } from 'url';
 
@@ -145,5 +144,3 @@ export class MqlApi {
     return logic().effectiveTarget(value, predicate);
   }
 }
-
-SecurityApi.decorateApiClass(MqlApi);

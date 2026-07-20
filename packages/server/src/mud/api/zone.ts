@@ -32,7 +32,6 @@ import { StuffApi } from './stuff';
 import type { Zone } from '../lib/zone/Zone';
 import type { SpatialZone } from '../lib/zone/SpatialZone';
 import { HotReloadApi } from './hot-reload';
-import { SecurityApi } from './security';
 import { ZoneLogic } from '../obj/api/ZoneLogic';
 import { fileURLToPath } from 'url';
 
@@ -131,5 +130,3 @@ export class ZoneApi {
     return logic().resolveZoneForPath(templatePath);
   }
 }
-
-SecurityApi.decorateApiClass(ZoneApi);

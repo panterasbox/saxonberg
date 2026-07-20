@@ -24,7 +24,6 @@
 import type { Stuff } from '../lib/stuff/Stuff';
 import { StuffApi } from './stuff';
 import { HotReloadApi } from './hot-reload';
-import { SecurityApi } from './security';
 import { RegardLogic } from '../obj/api/RegardLogic';
 import { fileURLToPath } from 'url';
 
@@ -94,5 +93,3 @@ export class RegardApi {
     return logic().regardsHeldBy(viewer);
   }
 }
-
-SecurityApi.decorateApiClass(RegardApi);

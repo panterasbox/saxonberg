@@ -32,7 +32,6 @@ import type { Energized } from '../lib/electricity/Energized';
 import type { Quantity } from '../lib/quantity';
 import { StuffApi } from './stuff';
 import { HotReloadApi } from './hot-reload';
-import { SecurityApi } from './security';
 import { ElectricityLogic } from '../obj/api/ElectricityLogic';
 import { fileURLToPath } from 'url';
 
@@ -120,5 +119,3 @@ export class ElectricityApi {
     return logic().groundNodeFor(node);
   }
 }
-
-SecurityApi.decorateApiClass(ElectricityApi);

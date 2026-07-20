@@ -34,7 +34,6 @@ import type { Boundary } from '../lib/boundary/Boundary';
 import type { Adornable } from '../lib/boundary/Adornable';
 import { StuffApi } from './stuff';
 import { HotReloadApi } from './hot-reload';
-import { SecurityApi } from './security';
 import { BoundaryLogic } from '../obj/api/BoundaryLogic';
 import { fileURLToPath } from 'url';
 
@@ -107,5 +106,3 @@ export class BoundaryApi {
     logic().destruct(boundary);
   }
 }
-
-SecurityApi.decorateApiClass(BoundaryApi);

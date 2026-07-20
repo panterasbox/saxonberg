@@ -38,7 +38,6 @@ import { ConvictionTally } from '../lib/standing/ConvictionTally';
 import type { Stock } from '../lib/standing/InfluenceStanding';
 import { StuffApi } from './stuff';
 import { HotReloadApi } from './hot-reload';
-import { SecurityApi } from './security';
 import { ConvictionLogic } from '../obj/api/ConvictionLogic';
 import { fileURLToPath } from 'url';
 
@@ -153,5 +152,3 @@ export class ConvictionApi {
     return logic().quorumWeight(stock, target);
   }
 }
-
-SecurityApi.decorateApiClass(ConvictionApi);

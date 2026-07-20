@@ -321,8 +321,6 @@ export class PromptApi {
   }
 }
 
-SecurityApi.decorateApiClass(PromptApi);
-
 /* ─────────────────── Base-prompt rendering ─────────────────── */
 
 /**

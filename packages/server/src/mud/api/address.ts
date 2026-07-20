@@ -19,7 +19,6 @@
  * its own read path) then does covering lookups synchronously.
  */
 
-import { SecurityApi } from './security';
 import { StuffApi } from './stuff';
 import { HotReloadApi } from './hot-reload';
 import type { Stuff } from '../lib/stuff/Stuff';
@@ -147,5 +146,3 @@ export class AddressApi {
     logic()._resetRegistryRefForReload();
   }
 }
-
-SecurityApi.decorateApiClass(AddressApi);

@@ -39,7 +39,6 @@
  * player.
  */
 
-import { SecurityApi } from './security';
 import { StuffApi } from './stuff';
 import { CallSecurity } from '../lib/security/decorators';
 import { SecurityPolicies } from '../lib/security/SecurityPolicies';
@@ -200,5 +199,3 @@ export class OfficeApi {
     registryRef = null;
   }
 }
-
-SecurityApi.decorateApiClass(OfficeApi);

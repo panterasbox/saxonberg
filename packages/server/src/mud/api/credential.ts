@@ -20,7 +20,6 @@
  * this Api (today they live in `BankingLogic` / the TPA controllers).
  */
 
-import { SecurityApi } from "./security";
 import { StuffApi } from "./stuff";
 import { ContainmentApi } from "./containment";
 import { MixinApi } from "./mixin";
@@ -122,5 +121,3 @@ export class CredentialApi {
     );
   }
 }
-
-SecurityApi.decorateApiClass(CredentialApi);

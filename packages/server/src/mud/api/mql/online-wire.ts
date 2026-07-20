@@ -45,7 +45,3 @@ export function installOnlineHoldersProvider(): void {
     return out;
   });
 }
-
-// Auto-install on import — the only caller of this module is code
-// that wants the provider live.
-installOnlineHoldersProvider();

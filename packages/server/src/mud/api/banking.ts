@@ -45,7 +45,6 @@ import type { Stuff } from "../lib/stuff/Stuff";
 import type { Globbable } from "../lib/stuff/Globbable";
 import { StuffApi } from "./stuff";
 import { HotReloadApi } from "./hot-reload";
-import { SecurityApi } from "./security";
 import { BankingLogic } from "../obj/api/BankingLogic";
 import { fileURLToPath } from "url";
 
@@ -352,5 +351,3 @@ export class BankingApi {
     return logic().enrollCircle(ownerKey, corpoKey);
   }
 }
-
-SecurityApi.decorateApiClass(BankingApi);

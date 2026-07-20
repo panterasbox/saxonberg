@@ -60,7 +60,6 @@ import {
   type SubscribeRequest,
   type QueryRequest,
 } from '../api/mql-subscription';
-import { registerMqlSubscriptionRegistryClass } from '../api/mql-subscription';
 
 /**
  * See WorldClockRegistry — same gate shape, same rationale. Admits the
@@ -835,7 +834,3 @@ export default class MqlSubscriptionRegistry extends Idea {
   }
 }
 
-// Side-effect: hand the class to MqlSubscriptionLogic for its
-// lazy-create path. The Logic type-imports this class, so the call is
-// safe at module load.
-registerMqlSubscriptionRegistryClass(MqlSubscriptionRegistry);

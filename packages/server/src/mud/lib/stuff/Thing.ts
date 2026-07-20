@@ -62,4 +62,3 @@ export default class Thing extends ThingBase {
   }
 }
 
-Stuff._registerTopLevelBranch(Thing);

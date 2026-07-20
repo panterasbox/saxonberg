@@ -5,7 +5,6 @@
 
 import { StuffApi } from './stuff';
 import { HotReloadApi } from './hot-reload';
-import { SecurityApi } from './security';
 import { ResidencyLogic } from '../obj/api/ResidencyLogic';
 import { fileURLToPath } from 'url';
 
@@ -56,5 +55,3 @@ export class ResidencyApi {
     return logic().resetNow();
   }
 }
-
-SecurityApi.decorateApiClass(ResidencyApi);

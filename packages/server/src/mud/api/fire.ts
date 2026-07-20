@@ -19,7 +19,6 @@
 import type { Stuff } from '../lib/stuff/Stuff';
 import { StuffApi } from './stuff';
 import { HotReloadApi } from './hot-reload';
-import { SecurityApi } from './security';
 import { AppApi } from './app';
 import { AppSettingKeys } from '../lib/config/AppSettings';
 import { FireLogic } from '../obj/api/FireLogic';
@@ -123,5 +122,3 @@ export class FireApi {
     }
   }
 }
-
-SecurityApi.decorateApiClass(FireApi);

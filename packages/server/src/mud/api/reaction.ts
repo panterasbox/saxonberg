@@ -298,5 +298,3 @@ export class ReactionApi {
     resolveRegistry()._clearAll();
   }
 }
-
-SecurityApi.decorateApiClass(ReactionApi);

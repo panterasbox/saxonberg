@@ -314,6 +314,18 @@ From `.eslintrc.js`:
 - Unused variables warning (allow `_` prefix)
 - TypeScript recommended rules
 
+## Module Scope Declares; Lifecycles Initialize
+
+No free-standing executable statements at module scope in
+`src/mud/**` — imports/exports, class/function/type declarations, and
+`const`/`let` declarations (pure value construction included) only.
+Initialization goes through a runtime lifecycle: capture-at-use,
+`ModuleApi.stamp` (Api-facade decoration), `postRegister`,
+`BootstrapManager.installFrameworkWiring()`, or a lazy first-use
+initializer. Enforced by `pnpm lint:module-scope` (CI-gating). Pattern
+table: [architecture.md § Module scope declares; lifecycles
+initialize](./docs/architecture.md).
+
 ## Import Statement Style
 
 **NEVER use `.js` extensions in import statements.** TypeScript with

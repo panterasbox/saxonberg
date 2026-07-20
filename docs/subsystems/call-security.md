@@ -484,13 +484,16 @@ and wraps each one via `_wrapStaticDescriptor`. The wrapper:
    methodName, undefined, () => original.apply(this, args))`.
 4. On deny, throws `SecurityError`.
 
-Each Api file ends with an explicit call:
-
-```typescript
-SecurityApi.decorateApiClass(StuffApi);
-SecurityApi.decorateApiClass(ContainmentApi);
-// etc.
-```
+Decoration rides the **module-registration lifecycle** (the
+no-module-scope-statements rule — see
+[architecture.md § Module scope declares](../architecture.md)): the
+loader-injected `ModuleApi.stamp` at every module's tail hands each
+direct-child `/api/* # *Api` export to
+`SecurityApi._decorateApiFacade`, which calls `decorateApiClass` for
+everything outside the four bootstrap-special Apis. No per-file
+tail-calls; timing is identical (the stamp is the last thing a module
+runs), and a hot reload re-stamps the fresh class binding, which
+re-decorates it.
 
 Wrappers carry a `_callSecWrapped` marker so re-decoration is a no-op.
 The class-form `@CallSecurity` decorator does the same thing under the

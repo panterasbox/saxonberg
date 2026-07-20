@@ -21,7 +21,6 @@
  * {@link PathPatternApi.compile} for the regex backend.
  */
 
-import { SecurityApi } from './security';
 
 export class PathPatternApi {
   private constructor() {}
@@ -77,8 +76,6 @@ export class PathPatternApi {
     return /[.+?^${}()|[\]\\]/.test(ch) ? '\\' + ch : ch;
   }
 }
-
-SecurityApi.decorateApiClass(PathPatternApi);
 
 /**
  * The {@link PathTrie} collection now lives in `lib/collections/`

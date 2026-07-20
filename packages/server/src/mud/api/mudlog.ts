@@ -27,7 +27,6 @@ import type { Sensor } from '../lib/message/Sensor';
 import type { LogLevel } from '@saxonberg/types';
 import { StuffApi } from './stuff';
 import { HotReloadApi } from './hot-reload';
-import { SecurityApi } from './security';
 import { MudlogLogic } from '../obj/api/MudlogLogic';
 import { Mml } from './mml';
 import { fileURLToPath } from 'url';
@@ -141,5 +140,3 @@ export class MudlogApi {
 // Re-export the level constant list for diagnostic UIs that want to
 // render every level.
 export const MUDLOG_LEVELS = LEVELS;
-
-SecurityApi.decorateApiClass(MudlogApi);

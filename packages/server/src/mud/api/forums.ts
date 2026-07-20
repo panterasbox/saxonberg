@@ -16,7 +16,6 @@
 
 import { StuffApi } from './stuff';
 import { HotReloadApi } from './hot-reload';
-import { SecurityApi } from './security';
 import type { Stuff } from '../lib/stuff/Stuff';
 import type Board from '../lib/forum/Board';
 import type Entry from '../lib/forum/Entry';
@@ -238,5 +237,3 @@ export class ForumsApi {
     subscriptions().cancelAllForInteractive(interactive);
   }
 }
-
-SecurityApi.decorateApiClass(ForumsApi);

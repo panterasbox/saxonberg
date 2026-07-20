@@ -16,7 +16,6 @@
 import { Pronouns } from '@saxonberg/types';
 import type { Stuff } from '../lib/stuff/Stuff';
 import { MixinApi } from './mixin';
-import { SecurityApi } from './security';
 
 export type PronounKind = 'subj' | 'obj' | 'poss' | 'reflex';
 
@@ -221,5 +220,3 @@ export class GrammarApi {
     return `${items.slice(0, -1).join(', ')}, and ${items[items.length - 1]}`;
   }
 }
-
-SecurityApi.decorateApiClass(GrammarApi);

@@ -40,7 +40,6 @@ import type {
 } from '@saxonberg/types';
 import { StuffApi } from './stuff';
 import { HotReloadApi } from './hot-reload';
-import { SecurityApi } from './security';
 import { DiagnosticLogic } from '../obj/api/DiagnosticLogic';
 import { ConsoleTap } from '../../backend/ConsoleTap';
 import {
@@ -158,5 +157,3 @@ export class DiagnosticApi {
     return DiagnosticChannel.matches(channel, expanded);
   }
 }
-
-SecurityApi.decorateApiClass(DiagnosticApi);

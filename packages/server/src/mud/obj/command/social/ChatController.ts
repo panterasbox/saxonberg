@@ -23,7 +23,6 @@ import { Mml } from '../../../api/mml';
 import { ChatApi } from '../../../api/chat';
 import { SubjectApi } from '../../../api/subject';
 import { PlayerApi } from '../../../api/player';
-import type { Channel } from '../../../lib/social/Channel';
 
 interface ChatModel extends CommandModel {
   channel?: string;
@@ -400,5 +399,3 @@ export default class ChatController extends CommandController<ChatModel> {
   }
 }
 
-// Channel type referenced — keep the import alive.
-void (null as unknown as Channel);

@@ -32,7 +32,6 @@ import type {
 } from "../lib/advancement/ActSignature";
 import { StuffApi } from "./stuff";
 import { HotReloadApi } from "./hot-reload";
-import { SecurityApi } from "./security";
 import { AdvancementLogic } from "../obj/api/AdvancementLogic";
 import type { CompetenceBandName } from "../lib/advancement/CompetenceBand";
 import { fileURLToPath } from "url";
@@ -143,5 +142,3 @@ export class AdvancementApi {
     return logic().conferredVerbs(owner);
   }
 }
-
-SecurityApi.decorateApiClass(AdvancementApi);

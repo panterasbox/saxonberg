@@ -74,4 +74,3 @@ export default class Location extends LocationBase {
   }
 }
 
-Stuff._registerTopLevelBranch(Location);

@@ -41,10 +41,11 @@ import { SecurityError } from '../lib/security/errors';
  * module-bottom, which would crash mid-cycle if `security.ts` were
  * ALSO depending on `shadow.ts` to load first.
  *
- * Instead, ShadowApi calls `SecurityApi._registerShadowApi(ShadowApi)`
- * once at its own module-load time (see the bottom of `shadow.ts`).
- * The interceptor dereferences this slot at runtime only, by which
- * point all imports have resolved.
+ * Instead, `BootstrapManager.installFrameworkWiring()` calls
+ * `SecurityApi._registerShadowApi(ShadowApi)` at boot (and the vitest
+ * setup file does the same before every suite). The interceptor
+ * dereferences this slot at runtime only, by which point the wiring
+ * pass has run.
  */
 interface ShadowApiLike {
   _consumeBypass(): boolean;
@@ -508,16 +509,16 @@ export class SecurityApi {
   static #interceptorInstalled = false;
 
   /**
-   * Late-bound ShadowApi reference. ShadowApi calls
-   * `SecurityApi._registerShadowApi(ShadowApi)` at its module-bottom.
+   * Late-bound ShadowApi reference, installed by
+   * `BootstrapManager.installFrameworkWiring()` (boot + test setup).
    * The interceptor reads this slot at runtime only, so the
    * security-shadow load cycle stays acyclic at module-eval time.
    */
   static #shadowApi: ShadowApiLike | null = null;
 
   /**
-   * Slot for `ShadowApi` to register itself with the security gate.
-   * Called once at `shadow.ts`'s module-bottom; idempotent.
+   * Slot for the boot wiring to hand `ShadowApi` to the security gate
+   * (`BootstrapManager.installFrameworkWiring`); idempotent.
    * @internal
    */
   public static _registerShadowApi(impl: ShadowApiLike): void {
@@ -682,6 +683,33 @@ export class SecurityApi {
    * the test seam — implicitly triggers this. No side-effect imports
    * required at the call sites.
    */
+  /**
+   * The four bootstrap-special Apis that are never security-wrapped —
+   * wrapping them recurses or pollutes the stack (see call-security.md
+   * § Why Some Api Files Don't Self-Decorate).
+   */
+  static #UNDECORATED_APIS: ReadonlySet<string> = new Set([
+    '/api/security#SecurityApi',
+    '/api/module#ModuleApi',
+    '/api/proxy#ProxyApi',
+    '/api/execution-context#ExecutionContextApi',
+  ]);
+
+  /**
+   * Api-facade decoration, invoked by `ModuleApi.stamp` for every
+   * direct-child `/api/* # *Api` export — decoration rides the
+   * module-registration lifecycle, replacing the per-file
+   * `decorateApiClass` tail-calls (the no-module-scope-statements
+   * rule). The stamp call sits at each module's tail, so timing is
+   * identical to the old tail-calls; hot reload re-stamps the fresh
+   * class binding, which re-decorates it.
+   * @internal
+   */
+  public static _decorateApiFacade(cls: object, moduleId: string): void {
+    if (SecurityApi.#UNDECORATED_APIS.has(moduleId)) return;
+    SecurityApi.decorateApiClass(cls);
+  }
+
   static {
     SecurityApi.installInterceptor();
   }

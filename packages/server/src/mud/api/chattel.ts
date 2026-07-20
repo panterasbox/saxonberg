@@ -11,7 +11,6 @@
  * is owned-by-possession, and `stamp`/`transfer` refuse it.
  */
 
-import { SecurityApi } from "./security";
 import { StuffApi } from "./stuff";
 import { HotReloadApi } from "./hot-reload";
 import { ChattelLogic } from "../obj/api/ChattelLogic";
@@ -96,5 +95,3 @@ export class ChattelApi {
     logic()._resetRegistryRefForReload();
   }
 }
-
-SecurityApi.decorateApiClass(ChattelApi);

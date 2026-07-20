@@ -30,7 +30,6 @@
 import type { Unit, ScaleName } from '../lib/quantity';
 import { StuffApi } from './stuff';
 import { HotReloadApi } from './hot-reload';
-import { SecurityApi } from './security';
 import { QuantityLogic } from '../obj/api/QuantityLogic';
 import { fileURLToPath } from 'url';
 
@@ -121,5 +120,3 @@ export class QuantityApi {
     return logic().reloadTagTables(yamlPath);
   }
 }
-
-SecurityApi.decorateApiClass(QuantityApi);

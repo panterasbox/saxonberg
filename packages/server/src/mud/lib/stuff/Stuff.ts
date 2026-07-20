@@ -666,68 +666,25 @@ export abstract class Stuff {
   }
 
   /**
-   * Top-level branches registered via `_registerTopLevelBranch`.
-   * Every concrete Stuff subclass must trace through one of these in
-   * its prototype chain. Identity-based — entries are the actual
-   * branch constructors (Thing, Location, Idea, Agent, Shadow), not
-   * names or markers, so the membership check can't be spoofed by a
-   * same-named class declared elsewhere. (A `Vessel` is a container-
-   * object that `extends Thing`, so it traces the Thing branch — it is
-   * not a branch of its own.)
+   * The five sanctioned top-level branches, identified by their
+   * loader-stamped **module ids**. Every concrete Stuff subclass must
+   * trace through one of these in its prototype chain. Derive-on-read:
+   * there is NO registration step — the branch check resolves each
+   * ancestor's module id via `ModuleApi.lookup` at first construction,
+   * so membership can't be spoofed by a same-named class declared
+   * elsewhere (a foreign class stamps with its real URL) and survives
+   * HMR re-evaluation for free (the fresh binding stamps under the
+   * same id). Adding a branch is a deliberate edit to this set. (A
+   * `Vessel` is a container-object that `extends Thing`, so it traces
+   * the Thing branch — it is not a branch of its own.)
    */
-  static #branches: Set<AnyClassRef> = new Set();
-
-  /**
-   * File-URL patterns whose code may call `_registerTopLevelBranch`.
-   * Same machinery as `#constructionGateAllowlist`: caller's source
-   * URL must match. Adding a new branch is a deliberate edit to this
-   * list AND its registration call site.
-   */
-  static #branchRegistrationAllowlist: ReadonlyArray<RegExp> = [
-    /\/mud\/lib\/stuff\/(Thing|Location|Idea|Agent|Shadow)\.(ts|js)$/,
-  ];
-
-  static #branchRegistrationCache: Map<string, boolean> = new Map();
-
-  /**
-   * Register a class as a top-level branch. Called by Thing /
-   * Location / Idea / Agent / Shadow at module load. Caller
-   * URL must match `#branchRegistrationAllowlist`; everything else
-   * throws.
-   *
-   * @internal
-   */
-  public static _registerTopLevelBranch(ctor: AnyClassRef): void {
-    Stuff.#assertBranchRegistrationAllowed();
-    Stuff.#branches.add(ctor);
-  }
-
-  static #assertBranchRegistrationAllowed(): void {
-    const url = ModuleApi.getImmediateCallerUrl(Stuff.#SELF_URL);
-    if (url === null) {
-      throw new Error(
-        `Stuff._registerTopLevelBranch refused: caller URL could not be determined`
-      );
-    }
-    const cached = Stuff.#branchRegistrationCache.get(url);
-    if (cached === true) return;
-    if (cached === false) {
-      throw new Error(
-        `Stuff._registerTopLevelBranch refused from ${url}: only the ` +
-          `five branch files (lib/stuff/{Thing,Location,Idea,Agent,Shadow}.ts) ` +
-          `may register branches.`
-      );
-    }
-    const allowed = Stuff.#branchRegistrationAllowlist.some((re) => re.test(url));
-    Stuff.#branchRegistrationCache.set(url, allowed);
-    if (!allowed) {
-      throw new Error(
-        `Stuff._registerTopLevelBranch refused from ${url}: only the ` +
-          `five branch files (lib/stuff/{Thing,Location,Idea,Agent,Shadow}.ts) ` +
-          `may register branches.`
-      );
-    }
-  }
+  static #BRANCH_MODULE_IDS: ReadonlySet<string> = new Set([
+    '/lib/stuff/Thing',
+    '/lib/stuff/Location',
+    '/lib/stuff/Idea#Idea',
+    '/lib/stuff/Agent#Agent',
+    '/lib/stuff/Shadow#Shadow',
+  ]);
 
   /**
    * Cache of constructors known to trace through a registered branch.
@@ -737,17 +694,18 @@ export abstract class Stuff {
   static #branchCheckCache: WeakSet<object> = new WeakSet();
 
   /**
-   * Throw if `ctor` doesn't trace through one of the registered
+   * Throw if `ctor` doesn't trace through one of the sanctioned
    * top-level branches. Walks `Object.getPrototypeOf(ctor)` upward
-   * comparing constructor identity against `#branches`. See
-   * `docs/architecture.md § Top-level branches` for the rule and the
-   * rationale.
+   * resolving each ancestor's stamped module id against
+   * `#BRANCH_MODULE_IDS`. See `docs/architecture.md § Top-level
+   * branches` for the rule and the rationale.
    */
   static #assertTopLevelBranch(ctor: AnyClassRef): void {
     if (Stuff.#branchCheckCache.has(ctor)) return;
     let cur: AnyClassRef | null = ctor;
     while (cur) {
-      if (Stuff.#branches.has(cur)) {
+      const id = ModuleApi.lookup(cur);
+      if (id !== null && Stuff.#BRANCH_MODULE_IDS.has(id)) {
         Stuff.#branchCheckCache.add(ctor);
         return;
       }

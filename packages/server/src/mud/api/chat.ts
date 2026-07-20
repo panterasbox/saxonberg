@@ -13,7 +13,6 @@
 
 import { StuffApi } from './stuff';
 import { HotReloadApi } from './hot-reload';
-import { SecurityApi } from './security';
 import type { Stuff } from '../lib/stuff/Stuff';
 import type { Channel } from '../lib/social/Channel';
 import type Subject from '../lib/forum/Subject';
@@ -148,5 +147,3 @@ export class ChatApi {
     return logic().getBackingGroupIds();
   }
 }
-
-SecurityApi.decorateApiClass(ChatApi);

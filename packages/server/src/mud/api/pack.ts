@@ -31,7 +31,6 @@
 
 import { StuffApi } from './stuff';
 import { HotReloadApi } from './hot-reload';
-import { SecurityApi } from './security';
 import { PackLogic } from '../obj/api/PackLogic';
 import { fileURLToPath } from 'url';
 
@@ -115,5 +114,3 @@ export class PackApi {
     return logic().discoverPacks();
   }
 }
-
-SecurityApi.decorateApiClass(PackApi);

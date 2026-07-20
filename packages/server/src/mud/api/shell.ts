@@ -49,7 +49,6 @@ import type { AliasExpansionInfo } from "./command";
 import type { ParsedCommand } from "./command-line";
 import { StuffApi } from "./stuff";
 import { HotReloadApi } from "./hot-reload";
-import { SecurityApi } from "./security";
 import { ShellLogic } from "../obj/api/ShellLogic";
 import { fileURLToPath } from "url";
 
@@ -180,5 +179,3 @@ export class ShellApi {
     return logic().ownSetting<T>(host, key);
   }
 }
-
-SecurityApi.decorateApiClass(ShellApi);

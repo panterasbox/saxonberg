@@ -29,7 +29,6 @@ import type {
 import type { Enablement } from '../lib/locomotion/Enablement';
 import { StuffApi } from './stuff';
 import { HotReloadApi } from './hot-reload';
-import { SecurityApi } from './security';
 import { LocomotionLogic } from '../obj/api/LocomotionLogic';
 import { fileURLToPath } from 'url';
 
@@ -364,5 +363,3 @@ export class LocomotionApi {
     return logic().traverseWithDefault(actor, exit);
   }
 }
-
-SecurityApi.decorateApiClass(LocomotionApi);

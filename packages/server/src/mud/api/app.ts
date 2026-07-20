@@ -29,7 +29,6 @@
 
 import { StuffApi } from "./stuff";
 import { HotReloadApi } from "./hot-reload";
-import { SecurityApi } from "./security";
 import { AppLogic } from "../obj/api/AppLogic";
 import { fileURLToPath } from "url";
 
@@ -80,5 +79,3 @@ export class AppApi {
     return logic().setSetting(key, value);
   }
 }
-
-SecurityApi.decorateApiClass(AppApi);

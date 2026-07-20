@@ -92,6 +92,9 @@ lint:
     - pnpm -C packages/server lint:does-nothing
     # Weapon-playstyle legibility: no seeded weapon derives an inert profile.
     - pnpm -C packages/server lint:inert-weapon
+    # No-module-scope-statements rule: module scope declares; lifecycles
+    # initialize (the 2026-07 antipattern sweep's tripwire).
+    - pnpm -C packages/server lint:module-scope
 
 test:
   extends: [.node, .mr-only]

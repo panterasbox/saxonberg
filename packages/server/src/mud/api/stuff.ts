@@ -1239,5 +1239,3 @@ function assertDestructVetoOk(
     cause: { hookVeto: result, hookName },
   });
 }
-
-SecurityApi.decorateApiClass(StuffApi);

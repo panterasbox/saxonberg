@@ -2,14 +2,15 @@
  * SchedulerApi tests — exercises the engagement-lifecycle surface
  * exhaustively against class-shaped fixture activities. Wave 1 ships
  * no real activities; the suite uses `TestDurativeActivity` and
- * `TestSustainedEngagement` registered on the activity-class
- * registry, with per-instance closures for the customizable hooks.
+ * `TestSustainedEngagement`, whose classes are captured into the
+ * activity-class dispatch index at `start` (capture-at-start), with
+ * per-instance closures for the customizable hooks.
  *
  * Covers: start (five outcomes), cancel family, completion-on-timer,
  * watchdog (throw inside onComplete / onAbort / emission), emissions
- * cadence, activity-class registry HMR (registry-routed lifecycle
- * dispatch picks up reloaded code), sub-100ms completed-sync being
- * wire-silent.
+ * cadence, the capture-at-start dispatch index (index-routed
+ * lifecycle dispatch picks up the freshest class), sub-100ms
+ * completed-sync being wire-silent.
  *
  * Host-destruction is exercised in `SchedulerApi.hostDestruction.test.ts`
  * because it requires the EventRegistry singleton to be bootstrapped.
@@ -78,9 +79,9 @@ interface DurativeOpts {
  * per-engagement behaviour by passing closures into the
  * constructor's `opts`.
  *
- * Tests register this class under whatever `type` string they want
- * (`'test-durative'`, `'walking'`, `'forging'`, ...) via
- * `registerTestActivity`.
+ * Tests use whatever `type` string they want (`'test-durative'`,
+ * `'walking'`, `'forging'`, ...); `SchedulerApi.start` captures the
+ * class into the dispatch index under that type.
  */
 class TestDurativeActivity {
   engagementId = '';
@@ -174,38 +175,23 @@ class TestSustainedEngagement {
 }
 
 /**
- * Self-registering factory — builds an engagement instance from
- * `TestDurativeActivity` and ensures the registry has the class
- * under the requested `type`. The plan calls for every engagement
- * to be associated with a registered class so registry-routed
- * lifecycle dispatch resolves the latest code.
+ * Fixture factories — build an engagement instance. No registration
+ * step: `SchedulerApi.start` captures the instance's class into the
+ * dispatch index (capture-at-start), so index-routed lifecycle
+ * dispatch resolves the latest code.
  */
 function makeDurative(
   actor: TestActor,
   opts: DurativeOpts = {},
 ): TestDurativeActivity {
-  const e = new TestDurativeActivity(actor, opts);
-  SchedulerApi.registerActivity(
-    e.type,
-    TestDurativeActivity as unknown as Parameters<
-      typeof SchedulerApi.registerActivity
-    >[1],
-  );
-  return e;
+  return new TestDurativeActivity(actor, opts);
 }
 
 function makeSustained(
   actor: TestActor,
   opts: SustainedOpts = {},
 ): TestSustainedEngagement {
-  const e = new TestSustainedEngagement(actor, opts);
-  SchedulerApi.registerActivity(
-    e.type,
-    TestSustainedEngagement as unknown as Parameters<
-      typeof SchedulerApi.registerActivity
-    >[1],
-  );
-  return e;
+  return new TestSustainedEngagement(actor, opts);
 }
 
 /* ─────────────────────────── Suite ─────────────────────────── */
@@ -710,7 +696,7 @@ describe('SchedulerApi emissions', () => {
   });
 });
 
-describe('SchedulerApi activity-class registry (HMR seam)', () => {
+describe('SchedulerApi activity-class dispatch index (capture-at-start)', () => {
   let actor: TestActor;
 
   beforeEach(() => {
@@ -729,53 +715,50 @@ describe('SchedulerApi activity-class registry (HMR seam)', () => {
     expect(SchedulerApi.getActivityClass('walk')).toBeUndefined();
   });
 
-  it('registerActivity + getActivityClass round-trip', () => {
-    class FakeActivity {}
-    SchedulerApi.registerActivity(
-      'test',
-      FakeActivity as never,
-    );
-    expect(SchedulerApi.getActivityClass('test')).toBe(FakeActivity);
+  it('start captures the engagement class into the dispatch index', () => {
+    class FakeActivity extends TestDurativeActivity {}
+    const e = new FakeActivity(actor, { type: 'capture-test' });
+    SchedulerApi.start(e);
+    expect(SchedulerApi.getActivityClass('capture-test')).toBe(FakeActivity);
   });
 
-  it('re-registering the same type overwrites the entry', () => {
-    class V1 {}
-    class V2 {}
-    SchedulerApi.registerActivity('test', V1 as never);
-    SchedulerApi.registerActivity('test', V2 as never);
-    expect(SchedulerApi.getActivityClass('test')).toBe(V2);
+  it('starting a second class under the same type re-points the index', () => {
+    class V1 extends TestDurativeActivity {}
+    class V2 extends TestDurativeActivity {}
+    SchedulerApi.start(new V1(actor, { type: 'capture-test' }));
+    expect(SchedulerApi.getActivityClass('capture-test')).toBe(V1);
+    const actor2 = makeStuff(() => new TestActor());
+    SchedulerApi.start(new V2(actor2, { type: 'capture-test' }));
+    expect(SchedulerApi.getActivityClass('capture-test')).toBe(V2);
   });
 
   it('reloadActivity throws for unknown type', async () => {
     await expect(SchedulerApi.reloadActivity('unknown')).rejects.toThrow(
-      /not registered/,
+      /has not been started this session/,
     );
   });
 
   it('reloadActivity throws when the class has no ModuleApi stamp', async () => {
-    class Untracked {}
-    SchedulerApi.registerActivity(
-      'untracked',
-      Untracked as never,
-    );
+    class Untracked extends TestDurativeActivity {}
+    SchedulerApi.start(new Untracked(actor, { type: 'untracked' }));
     await expect(
       SchedulerApi.reloadActivity('untracked'),
     ).rejects.toThrow(/has no module record/);
   });
 
   it(
-    'lifecycle dispatch routes through the registry: re-registering ' +
-      'a class between start and completion fires the NEW prototype ' +
+    'lifecycle dispatch routes through the index: a fresher class ' +
+      'captured between start and completion fires the NEW prototype ' +
       'onComplete',
     () => {
       // Two classes share the same shape; what matters is which one
-      // is registered at completion-fire time. Each class records a
-      // tag string when its onComplete runs, so the test can assert
-      // identity. The engagement is constructed from `V1` (the
-      // class that was registered at construction time), but the
-      // completion timer fires AFTER `V2` overwrites the registry —
-      // and `cls.prototype.onComplete.call(e)` should hit `V2`'s
-      // method.
+      // the dispatch index holds at completion-fire time. Each class
+      // records a tag string when its onComplete runs, so the test
+      // can assert identity. The engagement is constructed from `V1`
+      // (the class captured at its own start), but the completion
+      // timer fires AFTER starting a `V2` instance under the same
+      // type re-points the index — and
+      // `cls.prototype.onComplete.call(e)` should hit `V2`'s method.
       const ran: string[] = [];
       class V1 {
         engagementId = '';
@@ -785,7 +768,7 @@ describe('SchedulerApi activity-class registry (HMR seam)', () => {
         readonly slots: ReadonlySet<EngagementSlot> = new Set(['body']);
         readonly interruptibleBy = new Set<AbortReason>();
         readonly cancelable = true;
-        readonly duration = 1000;
+        readonly duration: number = 1000;
         readonly replaceableBy: readonly string[] = [];
         constructor(actor: TestActor) {
           this.actor = actor;
@@ -796,20 +779,22 @@ describe('SchedulerApi activity-class registry (HMR seam)', () => {
         }
         onAbort(): void {}
       }
-      class V2 {
-        onStart(): void {}
-        onComplete(): void {
+      class V2 extends V1 {
+        // Long duration: this instance never completes inside the
+        // test window; it exists only to re-point the index.
+        override readonly duration = 60000;
+        override onComplete(): void {
           ran.push('v2');
         }
-        onAbort(): void {}
       }
-      SchedulerApi.registerActivity('hmr-test', V1 as never);
       const e = new V1(actor);
       SchedulerApi.start(e as never);
 
-      // Simulate HMR: overwrite the registry entry before the
+      // Simulate the HMR re-point: capture V2 under the same type
+      // (fresh actor — the first one's body slot is held) before the
       // completion timer fires.
-      SchedulerApi.registerActivity('hmr-test', V2 as never);
+      const actor2 = makeStuff(() => new TestActor());
+      SchedulerApi.start(new V2(actor2) as never);
 
       WorldClockApi._advanceForTesting(1000);
       expect(ran).toEqual(['v2']);

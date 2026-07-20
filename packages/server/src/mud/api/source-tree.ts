@@ -28,7 +28,6 @@
 
 import { StuffApi } from './stuff';
 import { HotReloadApi } from './hot-reload';
-import { SecurityApi } from './security';
 import { SourceTreeLogic } from '../obj/api/SourceTreeLogic';
 import { fileURLToPath } from 'url';
 
@@ -175,5 +174,3 @@ export class SourceTreeApi {
     return logic().mv(src, dst);
   }
 }
-
-SecurityApi.decorateApiClass(SourceTreeApi);

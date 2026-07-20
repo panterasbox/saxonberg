@@ -22,7 +22,6 @@
 
 import { StuffApi } from './stuff';
 import { HotReloadApi } from './hot-reload';
-import { SecurityApi } from './security';
 import { ArrayLogic } from '../obj/api/ArrayLogic';
 import { fileURLToPath } from 'url';
 
@@ -71,5 +70,3 @@ export class ArrayApi {
     return logic().isPrefix(prefix, full);
   }
 }
-
-SecurityApi.decorateApiClass(ArrayApi);

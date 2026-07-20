@@ -22,7 +22,6 @@
 
 import { StuffApi } from './stuff';
 import { HotReloadApi } from './hot-reload';
-import { SecurityApi } from './security';
 import { CommandLineLogic } from '../obj/api/CommandLineLogic';
 import { fileURLToPath } from 'url';
 
@@ -126,5 +125,3 @@ export class CommandLineApi {
     return logic().processOutsideEscapes(s);
   }
 }
-
-SecurityApi.decorateApiClass(CommandLineApi);

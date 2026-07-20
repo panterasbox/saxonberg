@@ -185,8 +185,9 @@ class SchedulerApi {
   static getEngagementBySlot(actor, slot): Engagement | undefined;
   static getEngagementById(id): Engagement | undefined;
 
-  // Activity-class registry (HMR seam — see below)
-  static registerActivity(type: string, cls: ActivityClass): void;
+  // Activity-class dispatch index (HMR seam — see below). There is
+  // no registration surface: start() captures the engagement's own
+  // class (capture-at-start).
   static getActivityClass(type: string): ActivityClass | undefined;
   static reloadActivity(type: string): Promise<void>;
 }
@@ -237,17 +238,14 @@ SchedulerApi.start(next):
 ### Lifecycle dispatch — HMR-aware
 
 Post-construction lifecycle hooks (`onComplete`, `onAbort`,
-`getHost?`) route through the activity-class registry, NOT through
-the instance prototype. Each activity class registers itself at
-module load:
-
-```typescript
-export class MountActivity { /* ... */ }
-SchedulerApi.registerActivity('mount', MountActivity);
-```
-
-When `HotReloadApi.reload()` re-imports the file, the registration
-side-effect runs again and overwrites the entry. Lifecycle dispatch
+`getHost?`) route through the activity-class dispatch index, NOT
+through the instance prototype. The index populates by
+**capture-at-start**: `start(engagement)` records
+`engagement.constructor` under `engagement.type` — no registration
+step exists (the no-module-scope-statements rule). After a
+`SchedulerApi.reloadActivity(type)` (which re-points the entry
+explicitly), or simply the next `start` of that type, the index holds
+the freshest class. Lifecycle dispatch
 is `cls.prototype.onComplete.call(engagement)` — bound to the
 instance, but resolved through the latest class. In-flight
 engagements pick up newly-reloaded code on their next fire.
@@ -541,13 +539,13 @@ why this shape was chosen.
    short-running server makes this a non-issue.
 3. **Lifecycle dispatch routes through `SchedulerRegistry`'s
    `activityRegistry`, not instance prototype.** Activities are plain
-   TS classes (not
-   Stuff-templated), so they don't pick up HMR like controllers do.
-   The registry is the smallest indirection that makes activity
-   edits hot-reload-friendly: each activity file registers itself
-   at module load (`SchedulerApi.registerActivity('mount',
-   MountActivity)`); a `HotReloadApi.reload` re-runs the module
-   and overwrites the entry; the next lifecycle fire uses the
+   TS classes (not Stuff-templated), so they don't pick up HMR like
+   controllers do. The dispatch index is the smallest indirection
+   that makes activity edits hot-reload-friendly: `start()` captures
+   each engagement's own class under its type (capture-at-start — no
+   registration step), and `SchedulerApi.reloadActivity(type)`
+   re-points the entry to the freshly-reloaded class (as does the
+   next `start` of that type); the next lifecycle fire uses the
    latest class's prototype. Construction-time `import` references
    would pin to the old class otherwise. **Caveat:** emission
    closures and per-instance field shape are pinned to

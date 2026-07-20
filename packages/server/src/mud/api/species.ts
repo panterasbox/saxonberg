@@ -25,7 +25,6 @@ import type Species from '../lib/species/Species';
 import type { SpeciesDossier } from '@saxonberg/types';
 import { StuffApi } from './stuff';
 import { HotReloadApi } from './hot-reload';
-import { SecurityApi } from './security';
 import { SpeciesLogic } from '../obj/api/SpeciesLogic';
 import { fileURLToPath } from 'url';
 
@@ -155,5 +154,3 @@ export class SpeciesApi {
     return logic().buildDossier(species, speciesPath);
   }
 }
-
-SecurityApi.decorateApiClass(SpeciesApi);

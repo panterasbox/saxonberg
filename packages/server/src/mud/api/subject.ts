@@ -13,7 +13,6 @@
 
 import { StuffApi } from './stuff';
 import { HotReloadApi } from './hot-reload';
-import { SecurityApi } from './security';
 import type { Stuff } from '../lib/stuff/Stuff';
 import type Subject from '../lib/forum/Subject';
 import type { SubjectSurface } from '../lib/forum/Subject';
@@ -151,5 +150,3 @@ export class SubjectApi {
     return logic().catalogue();
   }
 }
-
-SecurityApi.decorateApiClass(SubjectApi);

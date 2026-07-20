@@ -36,10 +36,6 @@ import { Quantity } from "../../src/mud/lib/quantity";
 import type { Stuff } from "../../src/mud/lib/stuff/Stuff";
 import type { Engaged } from "../../src/mud/lib/activity/Engaged";
 import type { CompetenceBandName } from "../../src/mud/lib/advancement/CompetenceBand";
-import {
-  COMBAT_PARTICIPANT_TYPE,
-  CombatParticipantHold,
-} from "../../src/mud/lib/combat/CombatSession";
 import EventRegistry from "../../src/mud/obj/EventRegistry";
 import { EventApi } from "../../src/mud/api/event";
 import {
@@ -167,7 +163,6 @@ function side(
 function resetState(): void {
   StuffApi.clearAll();
   SchedulerApi._clearAllForTesting();
-  SchedulerApi.registerActivity(COMBAT_PARTICIPANT_TYPE, CombatParticipantHold);
   const reg = makeStuff(() => new EventRegistry());
   stampTemplatePathForTest(reg, "/obj/EventRegistry");
   StuffApi.unregister(reg);
@@ -194,7 +189,6 @@ beforeEach(async () => {
   installV1QuantityMarshallers();
   StuffApi.clearAll();
   SchedulerApi._clearAllForTesting();
-  SchedulerApi.registerActivity(COMBAT_PARTICIPANT_TYPE, CombatParticipantHold);
   await bootRegistry();
 });
 

@@ -46,7 +46,6 @@ import { CombatTerms, type TermsProposal } from "../../../lib/combat/CombatTerms
 import {
   COMBAT_PARTICIPANT_TYPE,
   CombatSession,
-  CombatParticipantHold,
 } from "../../../lib/combat/CombatSession";
 import { PartyApi } from "../../../api/party";
 import { PartyMemberMixin } from "../../../lib/party/PartyMember";
@@ -216,10 +215,6 @@ beforeEach(async () => {
   installV1QuantityMarshallers();
   StuffApi.clearAll();
   SchedulerApi._clearAllForTesting();
-  SchedulerApi.registerActivity(
-    COMBAT_PARTICIPANT_TYPE,
-    CombatParticipantHold,
-  );
   await bootRegistry();
 });
 

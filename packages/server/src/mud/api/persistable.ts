@@ -26,7 +26,6 @@
 import type { Stuff } from "../lib/stuff/Stuff";
 import { StuffApi } from "./stuff";
 import { HotReloadApi } from "./hot-reload";
-import { SecurityApi } from "./security";
 import { PersistableLogic } from "../obj/api/PersistableLogic";
 import { fileURLToPath } from "url";
 
@@ -99,5 +98,3 @@ export class PersistableApi {
     return logic().deleteAllFor(owner);
   }
 }
-
-SecurityApi.decorateApiClass(PersistableApi);

@@ -27,7 +27,6 @@ import type { ProducerEventFields } from '../lib/standing/ProducerEvent';
 import type { InfluenceStanding } from '../lib/standing/InfluenceStanding';
 import { StuffApi } from './stuff';
 import { HotReloadApi } from './hot-reload';
-import { SecurityApi } from './security';
 import { ProducerLogic } from '../obj/api/ProducerLogic';
 import { fileURLToPath } from 'url';
 
@@ -103,5 +102,3 @@ export class ProducerApi {
     return logic().eventsFor(authorId);
   }
 }
-
-SecurityApi.decorateApiClass(ProducerApi);

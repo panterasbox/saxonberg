@@ -16,7 +16,6 @@
 
 import { StuffApi } from './stuff';
 import { HotReloadApi } from './hot-reload';
-import { SecurityApi } from './security';
 import { StreamLogic } from '../obj/api/StreamLogic';
 import { fileURLToPath } from 'url';
 import type { Stuff } from '../lib/stuff/Stuff';
@@ -210,5 +209,3 @@ export class StreamApi {
     return logic().setOverlayReading(on);
   }
 }
-
-SecurityApi.decorateApiClass(StreamApi);

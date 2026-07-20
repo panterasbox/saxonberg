@@ -18,7 +18,10 @@ import type { CommandValidator } from '../../../api/command';
 import { SpeciesApi } from '../../../api/species';
 import { MixinApi } from '../../../api/mixin';
 
-const validator: CommandValidator = (context) => {
+// `Object.assign` in the initializer keeps this a pure declaration
+// (no free-standing module-scope statement).
+const validator: CommandValidator = Object.assign(
+  (context: Parameters<CommandValidator>[0]) => {
   const giver = context.commandGiver;
   if (SpeciesApi.isAnimate(giver)) return undefined;
 
@@ -33,20 +36,22 @@ const validator: CommandValidator = (context) => {
     return `${name} can't do that — not currently animate.`;
   }
   return `${name} can't do that.`;
-};
-
-/**
- * Async preload — ensures the giver's species + every clade
- * ancestor + the body plan are live runtime singletons before the
- * sync `isAnimate` body runs. Without this preload, a fresh
- * dispatch into the void would find `getSpecies()` returning `null`
- * (species template never cloned) and `isAnimate` would report
- * false for an otherwise-alive Homo sapiens avatar. Delegates to
- * `SpeciesApi.preloadAnatomy` — the shared substrate helper that
- * the sense / ESP validators and `Avatar.installDefaultLoadout`
- * also use.
- */
-validator.preload = (context) =>
-  SpeciesApi.preloadAnatomy(context.commandGiver);
+  },
+  {
+    /**
+     * Async preload — ensures the giver's species + every clade
+     * ancestor + the body plan are live runtime singletons before the
+     * sync `isAnimate` body runs. Without this preload, a fresh
+     * dispatch into the void would find `getSpecies()` returning
+     * `null` (species template never cloned) and `isAnimate` would
+     * report false for an otherwise-alive Homo sapiens avatar.
+     * Delegates to `SpeciesApi.preloadAnatomy` — the shared substrate
+     * helper that the sense / ESP validators and
+     * `Avatar.installDefaultLoadout` also use.
+     */
+    preload: (context: Parameters<CommandValidator>[0]) =>
+      SpeciesApi.preloadAnatomy(context.commandGiver),
+  }
+);
 
 export default validator;

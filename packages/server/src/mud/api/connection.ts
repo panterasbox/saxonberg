@@ -18,7 +18,6 @@ import type { Stuff } from '../lib/stuff/Stuff';
 import type { HasInteractive } from '../lib/connection/HasInteractive';
 import { StuffApi } from './stuff';
 import { HotReloadApi } from './hot-reload';
-import { SecurityApi } from './security';
 import { ConnectionLogic } from '../obj/api/ConnectionLogic';
 import { fileURLToPath } from 'url';
 
@@ -167,5 +166,3 @@ export interface ConnectionOrigin {
   /** Country display name (e.g. "Germany"), or absent when unresolved. */
   country?: string;
 }
-
-SecurityApi.decorateApiClass(ConnectionApi);

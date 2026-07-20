@@ -53,13 +53,6 @@ function outputEscapeMmlAware(value: unknown): string {
   return Mml.escape(String(value));
 }
 
-const engine = new Liquid({
-  strictVariables: false,
-  strictFilters: true,
-  ownPropertyOnly: true,
-  outputEscape: outputEscapeMmlAware,
-});
-
 /**
  * Narrow an unknown Liquid input to a Stuff. Filters operating on a
  * Stuff use this as the first gate; non-Stuff inputs render empty.
@@ -73,80 +66,102 @@ function asStuff(v: unknown): Stuff | null {
     : null;
 }
 
-// `| name` is strict — Named only. A non-Named stuff has no proper
-// name to render, so the filter renders empty rather than wrapping a
-// fallback string in a `<name>` tag (which would lie about identity).
-engine.registerFilter('name', (v) => {
-  const s = asStuff(v);
-  return s && MixinApi.isNamed(s) ? Mml.name(s) : '';
-});
+/** Memoized shared engine; built on first use by {@link engine}. */
+let _engine: Liquid | null = null;
 
-// `| item`, `| location`, `| object` accept any Stuff. The underlying
-// `Mml.*` factories already drop to a sensible last-stitch fallback
-// (`'an item'`, `'somewhere'`, `'something'`) via
-// `Stuff.getPresentation()` when neither Named nor Visible is
-// present — so the filter is the right place to let that fallback
-// surface rather than swallowing the call.
-engine.registerFilter('item', (v) => {
-  const s = asStuff(v);
-  return s ? Mml.item(s) : '';
-});
-engine.registerFilter('location', (v) => {
-  const s = asStuff(v);
-  return s ? Mml.location(s) : '';
-});
-engine.registerFilter('object', (v) => {
-  const s = asStuff(v);
-  return s ? Mml.object(s) : '';
-});
-engine.registerFilter('direction', (v) =>
-  v == null || v === '' ? '' : Mml.direction(String(v)),
-);
+/**
+ * Lazily construct the shared prose engine and register the default
+ * filter set on it. Lazy-init keeps this module free of module-scope
+ * statements (the no-free-standing-statements rule) at the cost of
+ * one null-check per parse/render.
+ */
+function engine(): Liquid {
+  if (_engine) return _engine;
+  const built = new Liquid({
+    strictVariables: false,
+    strictFilters: true,
+    ownPropertyOnly: true,
+    outputEscape: outputEscapeMmlAware,
+  });
 
-// Grammar filters.
-engine.registerFilter('cap', (v) =>
-  v == null ? '' : GrammarApi.cap(String(v)),
-);
-engine.registerFilter('pronoun', (v, kind) => {
-  const s = asStuff(v);
-  if (!s || !MixinApi.isGendered(s)) return '';
-  return GrammarApi.pronoun(s, (kind ?? 'subj') as PronounKind);
-});
-engine.registerFilter('possessive', (v) => {
-  const s = asStuff(v);
-  return s && MixinApi.isGendered(s) ? GrammarApi.possessive(s) : '';
-});
-// `| article` accepts any Stuff; `GrammarApi.article` already returns
-// `'a'` as the last-stitch default when the display name is missing.
-engine.registerFilter('article', (v) => {
-  const s = asStuff(v);
-  return s ? GrammarApi.article(s) : '';
-});
+  // `| name` is strict — Named only. A non-Named stuff has no proper
+  // name to render, so the filter renders empty rather than wrapping a
+  // fallback string in a `<name>` tag (which would lie about identity).
+  built.registerFilter('name', (v) => {
+    const s = asStuff(v);
+    return s && MixinApi.isNamed(s) ? Mml.name(s) : '';
+  });
 
-// Quantity rendering. Two flavors:
-//   - `quantity`           — tag-flavored markup (the default for
-//                            prose; inner text is the registered tag
-//                            string, or the canonical format for
-//                            tagless units).
-//   - `quantity_canonical` — canonical-flavored markup (instrument
-//                            and analyze readouts; inner text is
-//                            always the canonical "<n> <unit>"
-//                            form).
-// Both produce `<quantity unit value [tag]>inner</quantity>` markup.
-engine.registerFilter('quantity', (v) => {
-  if (v && typeof v === 'object' && 'toMml' in (v as object)) {
-    const fragment = (v as { toMml: () => unknown }).toMml();
-    return fragment instanceof Mml ? fragment : '';
-  }
-  return '';
-});
-engine.registerFilter('quantity_canonical', (v) => {
-  if (v && typeof v === 'object' && 'formatMml' in (v as object)) {
-    const fragment = (v as { formatMml: () => unknown }).formatMml();
-    return fragment instanceof Mml ? fragment : '';
-  }
-  return '';
-});
+  // `| item`, `| location`, `| object` accept any Stuff. The underlying
+  // `Mml.*` factories already drop to a sensible last-stitch fallback
+  // (`'an item'`, `'somewhere'`, `'something'`) via
+  // `Stuff.getPresentation()` when neither Named nor Visible is
+  // present — so the filter is the right place to let that fallback
+  // surface rather than swallowing the call.
+  built.registerFilter('item', (v) => {
+    const s = asStuff(v);
+    return s ? Mml.item(s) : '';
+  });
+  built.registerFilter('location', (v) => {
+    const s = asStuff(v);
+    return s ? Mml.location(s) : '';
+  });
+  built.registerFilter('object', (v) => {
+    const s = asStuff(v);
+    return s ? Mml.object(s) : '';
+  });
+  built.registerFilter('direction', (v) =>
+    v == null || v === '' ? '' : Mml.direction(String(v)),
+  );
+
+  // Grammar filters.
+  built.registerFilter('cap', (v) =>
+    v == null ? '' : GrammarApi.cap(String(v)),
+  );
+  built.registerFilter('pronoun', (v, kind) => {
+    const s = asStuff(v);
+    if (!s || !MixinApi.isGendered(s)) return '';
+    return GrammarApi.pronoun(s, (kind ?? 'subj') as PronounKind);
+  });
+  built.registerFilter('possessive', (v) => {
+    const s = asStuff(v);
+    return s && MixinApi.isGendered(s) ? GrammarApi.possessive(s) : '';
+  });
+  // `| article` accepts any Stuff; `GrammarApi.article` already returns
+  // `'a'` as the last-stitch default when the display name is missing.
+  built.registerFilter('article', (v) => {
+    const s = asStuff(v);
+    return s ? GrammarApi.article(s) : '';
+  });
+
+  // Quantity rendering. Two flavors:
+  //   - `quantity`           — tag-flavored markup (the default for
+  //                            prose; inner text is the registered tag
+  //                            string, or the canonical format for
+  //                            tagless units).
+  //   - `quantity_canonical` — canonical-flavored markup (instrument
+  //                            and analyze readouts; inner text is
+  //                            always the canonical "<n> <unit>"
+  //                            form).
+  // Both produce `<quantity unit value [tag]>inner</quantity>` markup.
+  built.registerFilter('quantity', (v) => {
+    if (v && typeof v === 'object' && 'toMml' in (v as object)) {
+      const fragment = (v as { toMml: () => unknown }).toMml();
+      return fragment instanceof Mml ? fragment : '';
+    }
+    return '';
+  });
+  built.registerFilter('quantity_canonical', (v) => {
+    if (v && typeof v === 'object' && 'formatMml' in (v as object)) {
+      const fragment = (v as { formatMml: () => unknown }).formatMml();
+      return fragment instanceof Mml ? fragment : '';
+    }
+    return '';
+  });
+
+  _engine = built;
+  return built;
+}
 
 /**
  * A compiled Liquid prose template. Created via `Prose.parse`; the
@@ -156,12 +171,12 @@ engine.registerFilter('quantity_canonical', (v) => {
 export class Prose {
   private constructor(
     private readonly source: string,
-    private readonly compiled: ReturnType<typeof engine.parse>,
+    private readonly compiled: ReturnType<Liquid['parse']>,
   ) {}
 
   /** Compile a template once for repeated rendering. */
   static parse(source: string): Prose {
-    return new Prose(source, engine.parse(source));
+    return new Prose(source, engine().parse(source));
   }
 
   /**
@@ -172,7 +187,7 @@ export class Prose {
    * Exposed to authors through {@link ProseApi.registerFilter}.
    */
   static registerFilter(name: string, fn: FilterFn): void {
-    engine.registerFilter(name, fn);
+    engine().registerFilter(name, fn);
   }
 
   /**
@@ -180,7 +195,7 @@ export class Prose {
    * raw strings are escaped. Result is a finished Mml fragment.
    */
   render(vars: Record<string, unknown>): Mml {
-    const rendered = engine.renderSync(this.compiled, vars);
+    const rendered = engine().renderSync(this.compiled, vars);
     return Mml.fromMarkup(String(rendered ?? ''));
   }
 

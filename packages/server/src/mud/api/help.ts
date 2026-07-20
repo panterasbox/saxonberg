@@ -27,7 +27,6 @@ import type {
   HelpSearchResult,
 } from "@saxonberg/types";
 import { StuffApi } from "./stuff";
-import { SecurityApi } from "./security";
 import { TemplatePaths } from "../lib/paths";
 import type HelpCatalogue from "../obj/HelpCatalogue";
 
@@ -168,5 +167,3 @@ export class HelpApi {
     return items.filter((it) => !spoilerOf(it));
   }
 }
-
-SecurityApi.decorateApiClass(HelpApi);

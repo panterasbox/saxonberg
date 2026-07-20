@@ -304,16 +304,13 @@ don't pick up HMR through `StuffApi.clone`'s blueprint dance.
 class registry (`#activityRegistry: Map<string, ActivityClass>`)
 as the HMR seam.
 
-Each activity file ends with a module-load side-effect block:
-
-```typescript
-export class MountActivity { /* ... */ }
-SchedulerApi.registerActivity('mount', MountActivity);
-```
-
-When `HotReloadApi.reload()` re-evaluates the file, the
-side-effect runs again and overwrites the registry entry. Two
-consequences:
+The index populates by **capture-at-start** (the
+no-module-scope-statements rule — activity files declare only):
+`start(engagement)` records `engagement.constructor` under
+`engagement.type`, and `SchedulerApi.reloadActivity(type)` re-points
+the entry to the freshly-reloaded class after
+`HotReloadApi.reload()` re-evaluates the file (the next `start` of
+the type would also re-point it). Two consequences:
 
 - **Newly-constructed engagements use the new class.** Callers
   resolve activity classes via `SchedulerApi.getActivityClass(type)`

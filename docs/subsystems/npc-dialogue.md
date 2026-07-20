@@ -140,10 +140,10 @@ the controller or the stateless brain.
   companion `DialoguePartnerHold` holds them on the player. They
   reference each other; ending or aborting either releases both
   (mutual-cancel is idempotent — `SchedulerApi.cancel` of an
-  already-deregistered engagement is a no-op). Both classes register via
-  `SchedulerApi.registerActivity` at module load — **mandatory**, since
-  `SchedulerRegistry` dispatches `onAbort`/`getHost` through the
-  activity-class registry (an unregistered class silently skips cleanup).
+  already-deregistered engagement is a no-op). Both classes land in the
+  activity-class dispatch index automatically at `start()`
+  (capture-at-start), which `SchedulerRegistry` consults for
+  `onAbort`/`getHost` dispatch.
 - **The detached loop.** `open` validates, picks the guard-selected
   entry, starts both engagements, then `launch()`es the choice-await loop
   via `ScheduleApi.schedule(0, …)` — **not** `ExecutionContextApi.runRoot`

@@ -33,7 +33,6 @@ import type AuthoringEvent from '../lib/standing/AuthoringEvent';
 import type { AuthoringEventFields } from '../lib/standing/AuthoringEvent';
 import { StuffApi } from './stuff';
 import { HotReloadApi } from './hot-reload';
-import { SecurityApi } from './security';
 import { CallSecurity } from '../lib/security/decorators';
 import { SecurityPolicies } from '../lib/security/SecurityPolicies';
 import { ProvenanceLogic } from '../obj/api/ProvenanceLogic';
@@ -113,5 +112,3 @@ export class ProvenanceApi {
     return logic().eventsFor(path);
   }
 }
-
-SecurityApi.decorateApiClass(ProvenanceApi);

@@ -334,5 +334,3 @@ export class PerceptionApi {
     logic()._resetModalityCacheForTest();
   }
 }
-
-SecurityApi.decorateApiClass(PerceptionApi);

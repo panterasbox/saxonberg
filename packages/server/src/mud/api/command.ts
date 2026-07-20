@@ -21,7 +21,6 @@ import { fileURLToPath } from 'url';
 import type { Note, Status } from '@saxonberg/types';
 import { StuffApi } from './stuff';
 import { HotReloadApi } from './hot-reload';
-import { SecurityApi } from './security';
 import { ShadowApi } from './shadow';
 import type { MqlManyResult, MqlOneResult } from './mql';
 import type { ParsedCommand } from './command-line';
@@ -1292,6 +1291,24 @@ export class CommandApi {
   }
 
   /**
+   * Inject the command-recency-stack delta into the shadow subsystem
+   * (a boot-lifecycle call from
+   * `BootstrapManager.installFrameworkWiring` — never a module-scope
+   * side effect). `shadow.ts` doesn't statically import `command`
+   * (that edge was a layering inversion that pulled the whole command
+   * closure onto the boot path); instead `ShadowApi.attach`/`detach`
+   * call the registered hook synchronously. The hook is a LATE-BOUND
+   * thunk (property lookup per call), not the static's value, so it
+   * always dispatches through the security-wrapped facade. Idempotent.
+   * @internal
+   */
+  static installShadowBridge(): void {
+    ShadowApi._registerCommandShadowHook((host, shadow, op) =>
+      CommandApi.applyShadowDelta(host, shadow, op)
+    );
+  }
+
+  /**
    * Construct a fresh `CommandContext` for one dispatch attempt.
    * The dispatcher mints a per-`_executeOne` context so the
    * accumulator captures exactly the claiming attempt's notes —
@@ -1702,12 +1719,4 @@ export class CommandApi {
   }
 }
 
-SecurityApi.decorateApiClass(CommandApi);
 
-// Inject the command-recency-stack delta into the shadow subsystem.
-// `shadow.ts` no longer statically imports `command` (that edge was a
-// layering inversion that pulled the whole command closure onto the
-// boot path); instead `ShadowApi.attach`/`detach` call this hook
-// synchronously. Requires `command` to be eager-imported at boot — see
-// `bootstrap.ts` / the test-registry setup.
-ShadowApi._registerCommandShadowHook(CommandApi.applyShadowDelta);

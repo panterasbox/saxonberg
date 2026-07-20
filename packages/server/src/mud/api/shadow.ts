@@ -555,11 +555,3 @@ export class ShadowApi {
   }
 }
 
-SecurityApi.decorateApiClass(ShadowApi);
-
-// Register ShadowApi with SecurityApi's interceptor. SecurityApi
-// can't `import { ShadowApi }` directly without forming a load-time
-// cycle (security.ts → shadow.ts → SecurityApi.decorateApiClass while
-// SecurityApi is still mid-load). Instead, the interceptor reads a
-// late-bound slot which we populate here at module-bottom.
-SecurityApi._registerShadowApi(ShadowApi);

@@ -17,10 +17,8 @@
 
 import type { Stuff } from '../lib/stuff/Stuff';
 import type { Business } from '../lib/employment/Business';
-import type { Employed } from '../lib/employment/Employed';
 import { StuffApi } from './stuff';
 import { HotReloadApi } from './hot-reload';
-import { SecurityApi } from './security';
 import { EmploymentLogic } from '../obj/api/EmploymentLogic';
 import { fileURLToPath } from 'url';
 
@@ -180,5 +178,3 @@ export class EmploymentApi {
     return logic().boot();
   }
 }
-
-SecurityApi.decorateApiClass(EmploymentApi);

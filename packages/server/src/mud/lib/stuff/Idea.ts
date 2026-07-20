@@ -35,4 +35,3 @@ export class Idea extends Stuff {
   }
 }
 
-Stuff._registerTopLevelBranch(Idea);

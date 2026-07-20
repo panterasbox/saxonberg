@@ -16,7 +16,6 @@
  * self-home rule).
  */
 
-import { SecurityApi } from "./security";
 import { StuffApi } from "./stuff";
 import { HotReloadApi } from "./hot-reload";
 import { ParcelLogic } from "../obj/api/ParcelLogic";
@@ -194,5 +193,3 @@ export class ParcelApi {
     logic()._resetRegistryRefForReload();
   }
 }
-
-SecurityApi.decorateApiClass(ParcelApi);

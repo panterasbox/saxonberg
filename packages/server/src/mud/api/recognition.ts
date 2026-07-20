@@ -58,7 +58,6 @@
 import type { Stuff } from '../lib/stuff/Stuff';
 import { StuffApi } from './stuff';
 import { HotReloadApi } from './hot-reload';
-import { SecurityApi } from './security';
 import { RecognitionLogic } from '../obj/api/RecognitionLogic';
 import { fileURLToPath } from 'url';
 
@@ -158,5 +157,3 @@ export class RecognitionApi {
     return logic().perceivedKeywords(viewer, target);
   }
 }
-
-SecurityApi.decorateApiClass(RecognitionApi);

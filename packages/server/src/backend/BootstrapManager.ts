@@ -23,6 +23,18 @@ import { StuffApi } from '../mud/api/stuff';
 import type { Stuff } from '../mud/lib/stuff/Stuff';
 import { Template } from '../mud/lib/stuff/Template';
 import { bootstrapManifest } from '../mud/bootstrap';
+import { EventApi } from '../mud/api/event';
+import { SecurityApi } from '../mud/api/security';
+import { ShadowApi } from '../mud/api/shadow';
+import { CommandApi } from '../mud/api/command';
+import { GlobbableApi } from '../mud/api/glob';
+import { registerSchedulerRegistryClass } from '../mud/api/scheduler';
+import { registerWorldClockRegistryClass } from '../mud/api/worldclock';
+import { registerMqlSubscriptionRegistryClass } from '../mud/api/mql-subscription';
+import EventSubscriptions from '../mud/obj/EventSubscriptions';
+import SchedulerRegistry from '../mud/obj/SchedulerRegistry';
+import WorldClockRegistry from '../mud/obj/WorldClockRegistry';
+import MqlSubscriptionRegistry from '../mud/obj/MqlSubscriptionRegistry';
 
 /**
  * One entry in the engine bootstrap manifest. Owned by
@@ -70,6 +82,28 @@ export interface BootstrapEntry {
 
 export class BootstrapManager {
   /**
+   * Wire the framework's cross-module seams — the boot-lifecycle home
+   * for what used to be module-scope registration statements (the
+   * no-module-scope-statements rule): the four singleton-registry
+   * class handoffs (each Logic lazy-creates its Registry for
+   * harnesses that never run the manifest; the class can't be
+   * value-imported there — cycle avoidance), the security↔shadow
+   * slot, the shadow↔command recency bridge, and the glob
+   * merge-on-arrival ripple. Idempotent — `run()` calls it every
+   * time, and the vitest setup file calls it before every suite
+   * (tests get the same wiring production does).
+   */
+  public static installFrameworkWiring(): void {
+    EventApi._registerSubsClass(EventSubscriptions);
+    registerSchedulerRegistryClass(SchedulerRegistry);
+    registerWorldClockRegistryClass(WorldClockRegistry);
+    registerMqlSubscriptionRegistryClass(MqlSubscriptionRegistry);
+    SecurityApi._registerShadowApi(ShadowApi);
+    CommandApi.installShadowBridge();
+    GlobbableApi.installMergeOnArrival();
+  }
+
+  /**
    * Run the engine manifest. Every entry is cloned through
    * `StuffApi.clone(...)` in dep-sorted order; `awaitInit` (if
    * provided) runs immediately after that entry's clone resolves.
@@ -79,6 +113,7 @@ export class BootstrapManager {
   public static async run(
     manifest: BootstrapEntry[] = bootstrapManifest
   ): Promise<void> {
+    BootstrapManager.installFrameworkWiring();
     const expanded = await this.#expandPrefixEntries(manifest);
     const sorted = this.#topologicalSort(expanded);
 

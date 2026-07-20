@@ -19,7 +19,6 @@
 
 import { StuffApi } from './stuff';
 import { HotReloadApi } from './hot-reload';
-import { SecurityApi } from './security';
 import { NavigationLogic } from '../obj/api/NavigationLogic';
 import { fileURLToPath } from 'url';
 
@@ -101,5 +100,3 @@ export class NavigationApi {
     return logic().cardinalDirections();
   }
 }
-
-SecurityApi.decorateApiClass(NavigationApi);

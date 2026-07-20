@@ -17,7 +17,6 @@
 
 import { StuffApi } from './stuff';
 import { HotReloadApi } from './hot-reload';
-import { SecurityApi } from './security';
 import { BulletinLogic } from '../obj/api/BulletinLogic';
 import {
   Bulletin,
@@ -161,5 +160,3 @@ export class BulletinApi {
     };
   }
 }
-
-SecurityApi.decorateApiClass(BulletinApi);

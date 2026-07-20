@@ -23,7 +23,6 @@ import type { AbortReason } from "@saxonberg/types";
 import type { Stuff } from "../stuff/Stuff";
 import type { EngagementSlot, Engaged } from "../activity/Engaged";
 import type { DurativeActivity } from "../../api/scheduler";
-import { SchedulerApi } from "../../api/scheduler";
 
 export const MANUAL_BUILD_STEP_TYPE = "manual-build-step" as const;
 
@@ -81,4 +80,3 @@ export class ManualBuildStep implements DurativeActivity {
   }
 }
 
-SchedulerApi.registerActivity(MANUAL_BUILD_STEP_TYPE, ManualBuildStep);

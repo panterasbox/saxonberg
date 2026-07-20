@@ -20,7 +20,6 @@ import type { ScriptAbortReason } from "../lib/script/AbortReason";
 import type { Stuff } from "../lib/stuff/Stuff";
 import { StuffApi } from "./stuff";
 import { HotReloadApi } from "./hot-reload";
-import { SecurityApi } from "./security";
 import { ExecutionContextApi } from "./execution-context";
 import { ScriptLogic } from "../obj/api/ScriptLogic";
 import { fileURLToPath } from "url";
@@ -154,5 +153,3 @@ export class ScriptApi {
     return logic().captureManualBuild(recipeId, name, sources);
   }
 }
-
-SecurityApi.decorateApiClass(ScriptApi);

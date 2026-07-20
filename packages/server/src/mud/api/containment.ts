@@ -37,7 +37,6 @@ import type { Warren } from '../lib/location/Warren';
 import { StuffApi } from './stuff';
 import { MixinApi } from './mixin';
 import { HotReloadApi } from './hot-reload';
-import { SecurityApi } from './security';
 import { CallSecurity } from '../lib/security/decorators';
 import { SecurityPolicies } from '../lib/security/SecurityPolicies';
 import { ContainmentLogic } from '../obj/api/ContainmentLogic';
@@ -375,5 +374,3 @@ export class ContainmentApi {
     return logic().resolveLanding(ref);
   }
 }
-
-SecurityApi.decorateApiClass(ContainmentApi);

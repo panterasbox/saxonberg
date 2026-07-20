@@ -26,7 +26,6 @@ import { EventApi } from '../../../api/event';
 import EventRegistry from '../../../obj/EventRegistry';
 import { Stuff } from '../../stuff/Stuff';
 import { RESPIRATION_DEFAULTS } from '../Respiration';
-import { RespirationDrain, RespirationRecovery } from '../RespirationDrain';
 import { StuffApi } from '../../../api/stuff';
 import {
   makeStuff,
@@ -105,8 +104,6 @@ describe('RespirationMixin — the crisis core', () => {
     SchedulerApi._clearAllForTesting();
     // `_clearAllForTesting` wipes the activity registry; re-register the
     // respiration lifecycle classes (the module side-effect ran once).
-    SchedulerApi.registerActivity('respiration-drain', RespirationDrain);
-    SchedulerApi.registerActivity('respiration-recovery', RespirationRecovery);
   });
   afterEach(() => {
     SchedulerApi._clearAllForTesting();

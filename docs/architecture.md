@@ -991,6 +991,42 @@ bypass it.
 
 See [antipatterns.md](./antipatterns.md) for the full rule with examples.
 
+## Module scope declares; lifecycles initialize
+
+Module evaluation in `src/mud/**` may only **declare**: imports/exports,
+classes, functions, interfaces/types/enums, `declare module`
+augmentations, and `const`/`let` declarations (initializers included —
+pure value construction is a declaration). It must not contain
+**free-standing executable statements**: bare calls, registrations into
+other modules' state, loops, conditionals, assignments. Enforced by
+`pnpm lint:module-scope` (`scripts/check-module-scope.ts`, CI-gating —
+a real TS-parser statement scan, not a regex).
+
+Why: import-time side effects couple correctness to import order, make
+HMR re-evaluation a semantic event ("what re-runs when this module
+reloads?" had per-site answers), and hide initialization from every
+lifecycle you can reason about. The 2026-07 antipattern sweep removed
+the whole population (~130 statements) and replaced each family with a
+runtime lifecycle:
+
+| Was (module-scope statement) | Now (lifecycle) |
+|---|---|
+| `SchedulerApi.registerActivity(type, cls)` in every activity module | **Capture-at-start** — `SchedulerRegistry.start(engagement)` captures `engagement.constructor` into the type→class dispatch index; `reloadActivity` re-points it after a hot reload. Registration doesn't exist as a concept. |
+| `SecurityApi.decorateApiClass(XApi)` tail in every `api/*.ts` | **The `ModuleApi.stamp` module lifecycle** — the loader-injected stamp hands every direct-child `/api/* # *Api` class to `SecurityApi._decorateApiFacade` (the four bootstrap-special Apis excluded). Same timing as the old tails; re-stamp on hot reload re-decorates. |
+| `DialogueEffectRegistry.register('bank-circle', …)` at module scope + a boot side-effect import | **Instance lifecycle** — `BankCounter.postRegister` registers it: a live bank fixture is exactly when the verb becomes real. |
+| `Stuff._registerTopLevelBranch(Thing)` in each of the five branch files | **Derive-on-read** — the branch check resolves each ancestor's stamped module id against a frozen five-entry set; no registration, HMR-stable. |
+| Registry-class handoffs (`register<X>RegistryClass`), the security↔shadow slot, the shadow↔command bridge, the glob merge-on-arrival ripple | **`BootstrapManager.installFrameworkWiring()`** — one idempotent boot call, invoked by `BootstrapManager.run()` in production and by the vitest setup file (`src/test-setup-registries.ts`) before every suite. |
+| `installOnlineHoldersProvider()` auto-install on import | Called explicitly from `AppBootstrap.run()`. |
+| `engine.registerFilter(…)` ×14 (Prose), `registerConverter(…)` ×23 (Quantity), `validator.preload = …` (validators) | **Lazy first-use initializers** (memoized builder functions) / folded into the `const` initializer (`Object.assign`). |
+
+Entry-point scripts are exempt by nature — `main()`, `AppBootstrap`,
+seeders, and the vitest setup file are *where lifecycle calls live*,
+not modules someone imports for their exports. The loader-injected
+`ModuleApi.stamp` tail is machine-generated framework lifecycle, not
+authored code. When new initialization is needed, pick the matching
+lifecycle above; do not add a module-scope statement (the lint will
+refuse it).
+
 ## Phase Numbering Note
 
 If you're reading the older planning docs and wondering where Phases

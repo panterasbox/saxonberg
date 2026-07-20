@@ -46,7 +46,6 @@ import type {
 } from '../lib/chronicle/ChronicleEntry';
 import { StuffApi } from './stuff';
 import { HotReloadApi } from './hot-reload';
-import { SecurityApi } from './security';
 import { ChronicleLogic } from '../obj/api/ChronicleLogic';
 import { fileURLToPath } from 'url';
 
@@ -130,5 +129,3 @@ export class ChronicleApi {
     return logic().seedClaims(owner, seeds);
   }
 }
-
-SecurityApi.decorateApiClass(ChronicleApi);

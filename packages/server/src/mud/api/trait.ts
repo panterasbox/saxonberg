@@ -35,7 +35,6 @@ import type { AxisEstimate } from "../lib/trait/TraitPosition";
 import type { TraitBandName } from "../lib/trait/TraitBand";
 import { StuffApi } from "./stuff";
 import { HotReloadApi } from "./hot-reload";
-import { SecurityApi } from "./security";
 import { TraitLogic } from "../obj/api/TraitLogic";
 import { fileURLToPath } from "url";
 
@@ -175,5 +174,3 @@ export class TraitApi {
     return logic().seedClaims(owner, seeds);
   }
 }
-
-SecurityApi.decorateApiClass(TraitApi);

@@ -32,7 +32,6 @@ import type { TraumaType } from '../lib/vitals/Condition';
 import type { Quantity } from '../lib/quantity';
 import { StuffApi } from './stuff';
 import { HotReloadApi } from './hot-reload';
-import { SecurityApi } from './security';
 import { MaterialLogic } from '../obj/api/MaterialLogic';
 import { fileURLToPath } from 'url';
 
@@ -313,5 +312,3 @@ export class MaterialApi {
     return logic().resolveShock(current);
   }
 }
-
-SecurityApi.decorateApiClass(MaterialApi);

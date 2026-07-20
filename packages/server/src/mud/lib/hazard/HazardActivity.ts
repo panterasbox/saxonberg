@@ -20,7 +20,6 @@ import type { AbortReason } from '@saxonberg/types';
 import type { Stuff } from '../stuff/Stuff';
 import type { EngagementSlot, Engaged } from '../activity/Engaged';
 import type { DurativeActivity } from '../../api/scheduler';
-import { SchedulerApi } from '../../api/scheduler';
 
 /** The pin (snare) traverse-consequence — holds the mover's `body`. */
 export const HAZARD_PIN_TYPE = 'hazard-pin' as const;
@@ -87,6 +86,3 @@ export class HazardActivity implements DurativeActivity {
   }
 }
 
-// Register both types at module load (the HMR seam, mirroring Coup).
-SchedulerApi.registerActivity(HAZARD_PIN_TYPE, HazardActivity);
-SchedulerApi.registerActivity(HAZARD_DISARM_TYPE, HazardActivity);

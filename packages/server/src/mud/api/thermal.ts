@@ -23,7 +23,6 @@
 import type { Stuff } from '../lib/stuff/Stuff';
 import { StuffApi } from './stuff';
 import { HotReloadApi } from './hot-reload';
-import { SecurityApi } from './security';
 import { ThermalLogic } from '../obj/api/ThermalLogic';
 import { fileURLToPath } from 'url';
 
@@ -89,5 +88,3 @@ export class ThermalApi {
     return logic().reachableHeatFor(position);
   }
 }
-
-SecurityApi.decorateApiClass(ThermalApi);

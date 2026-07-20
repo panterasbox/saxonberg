@@ -23,7 +23,6 @@
 
 import { StuffApi } from './stuff';
 import { HotReloadApi } from './hot-reload';
-import { SecurityApi } from './security';
 import { AccountabilityLogic } from '../obj/api/AccountabilityLogic';
 import type {
   AccountabilityFields,
@@ -91,5 +90,3 @@ export class AccountabilityApi {
     return logic().eventsForSession(sessionId);
   }
 }
-
-SecurityApi.decorateApiClass(AccountabilityApi);

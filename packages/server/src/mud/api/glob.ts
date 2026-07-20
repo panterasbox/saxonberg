@@ -45,7 +45,6 @@ import type { Stuff } from '../lib/stuff/Stuff';
 import type { Globbable } from '../lib/stuff/Globbable';
 import type { MqlQuantity } from './mql';
 import { MixinApi } from './mixin';
-import { SecurityApi } from './security';
 import { StuffApi } from './stuff';
 import { HotReloadApi } from './hot-reload';
 import { ContainmentApi } from './containment';
@@ -245,28 +244,34 @@ export class GlobbableApi {
   ): Promise<ApplyQuantityResult<R>> {
     return logic().applyQuantity(candidates, quantity, action, opts);
   }
-}
 
-SecurityApi.decorateApiClass(GlobbableApi);
-
-// Install the merge-on-arrival ripple. Fires after
-// `onContainableAdded` for every `ContainmentApi.move` into a
-// container that ends up holding a mergeable sibling of the
-// arriving Stuff. Non-globbable arrivals are skipped here; a sole
-// mergeable sibling absorbs the arrival via `GlobbableApi.merge`.
-ContainmentApi._registerMergeOnArrivalHook((moved, to) => {
-  if (!MixinApi.isGlobbable(moved)) return;
-  if (!MixinApi.isContainer(to)) return;
-  for (const sibling of to.getContents()) {
-    if (sibling === (moved as unknown as Stuff)) continue;
-    if (!MixinApi.isGlobbable(sibling)) continue;
-    if (!GlobbableApi.canMerge(sibling, moved)) continue;
-    // Resident absorbs the arrival. First mergeable sibling wins —
-    // multiple mergeable globs in the same container should never
-    // exist by invariant; if they do (initial-state seed, an edge
-    // case the slate's "PostRegistration sweep" defers), absorbing
-    // into the first one is the conservative pick.
-    GlobbableApi.merge(sibling, moved);
-    return;
+  /**
+   * Install the merge-on-arrival ripple (a boot-lifecycle call from
+   * `BootstrapManager.installFrameworkWiring` — never a module-scope
+   * side effect). Fires after `onContainableAdded` for every
+   * `ContainmentApi.move` into a container that ends up holding a
+   * mergeable sibling of the arriving Stuff. Non-globbable arrivals
+   * are skipped; a sole mergeable sibling absorbs the arrival via
+   * `GlobbableApi.merge`. Idempotent (the containment slot holds one
+   * hook).
+   * @internal
+   */
+  static installMergeOnArrival(): void {
+    ContainmentApi._registerMergeOnArrivalHook((moved, to) => {
+      if (!MixinApi.isGlobbable(moved)) return;
+      if (!MixinApi.isContainer(to)) return;
+      for (const sibling of to.getContents()) {
+        if (sibling === (moved as unknown as Stuff)) continue;
+        if (!MixinApi.isGlobbable(sibling)) continue;
+        if (!GlobbableApi.canMerge(sibling, moved)) continue;
+        // Resident absorbs the arrival. First mergeable sibling wins —
+        // multiple mergeable globs in the same container should never
+        // exist by invariant; if they do (initial-state seed, an edge
+        // case the slate's "PostRegistration sweep" defers), absorbing
+        // into the first one is the conservative pick.
+        GlobbableApi.merge(sibling, moved);
+        return;
+      }
+    });
   }
-});
+}

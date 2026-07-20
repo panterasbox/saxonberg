@@ -23,7 +23,6 @@ import type { CorpoDescriptor } from "../lib/corpo/Corpo";
 import type { BrandDescriptor } from "../lib/corpo/Brand";
 import { StuffApi } from "./stuff";
 import { HotReloadApi } from "./hot-reload";
-import { SecurityApi } from "./security";
 import { CorpoLogic } from "../obj/api/CorpoLogic";
 import { fileURLToPath } from "url";
 
@@ -107,5 +106,3 @@ export class CorpoApi {
     return logic().listBrands();
   }
 }
-
-SecurityApi.decorateApiClass(CorpoApi);

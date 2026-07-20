@@ -30,14 +30,12 @@
 
 import type { Stuff } from '../lib/stuff/Stuff';
 import type {
-  ActiveCondition,
   InsultKind,
   Trauma,
 } from '../lib/vitals/Condition';
 import type { Quantity } from '../lib/quantity';
 import { StuffApi } from './stuff';
 import { HotReloadApi } from './hot-reload';
-import { SecurityApi } from './security';
 import { ConditionLogic } from '../obj/api/ConditionLogic';
 import { fileURLToPath } from 'url';
 
@@ -139,5 +137,3 @@ export class ConditionApi {
   }
 
       }
-
-SecurityApi.decorateApiClass(ConditionApi);

@@ -40,7 +40,6 @@ import type Biome from '../lib/biome/Biome';
 import type { Quantity } from '../lib/quantity';
 import { StuffApi } from './stuff';
 import { HotReloadApi } from './hot-reload';
-import { SecurityApi } from './security';
 import { BiomeLogic } from '../obj/api/BiomeLogic';
 import { fileURLToPath } from 'url';
 
@@ -288,5 +287,3 @@ export class BiomeApi {
     logic().restampThermalContentsOf(room);
   }
 }
-
-SecurityApi.decorateApiClass(BiomeApi);

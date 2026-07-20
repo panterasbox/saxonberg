@@ -41,7 +41,6 @@ import {
 } from './worldclock';
 import { StuffApi } from './stuff';
 import { HotReloadApi } from './hot-reload';
-import { SecurityApi } from './security';
 import {
   CelestialLogic,
   CAMPUS_LATITUDE,
@@ -376,5 +375,3 @@ export class CelestialApi {
     return logic().moonAzimuthDeg(profile, latitudeDegrees, synodicPeriodDays, t);
   }
 }
-
-SecurityApi.decorateApiClass(CelestialApi);

@@ -41,7 +41,6 @@ import type Material from '../lib/material/Material';
 import type { MqlQuantity } from './mql';
 import { StuffApi } from './stuff';
 import { HotReloadApi } from './hot-reload';
-import { SecurityApi } from './security';
 import { BulkableLogic } from '../obj/api/BulkableLogic';
 import { fileURLToPath } from 'url';
 
@@ -229,5 +228,3 @@ export class BulkableApi {
     return logic().floorSurfaceNear(near);
   }
 }
-
-SecurityApi.decorateApiClass(BulkableApi);

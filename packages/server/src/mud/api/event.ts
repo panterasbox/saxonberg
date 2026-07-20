@@ -684,5 +684,3 @@ export class EventApi {
 export { Events } from '../lib/events';
 export type { EventName, EventPayloads } from '../lib/events';
 export type { HistoryRecord } from '../obj/EventSubscriptions';
-
-SecurityApi.decorateApiClass(EventApi);

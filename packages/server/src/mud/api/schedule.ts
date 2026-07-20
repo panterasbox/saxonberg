@@ -213,5 +213,3 @@ export class ScheduleApi {
     (handle as InternalHandle).cancel?.();
   }
 }
-
-SecurityApi.decorateApiClass(ScheduleApi);

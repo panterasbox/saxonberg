@@ -88,6 +88,27 @@ collapsed this way.) A logic singleton is for *logic* — real
 degradation, dispatch, orchestration (`ParcelLogic`, `MaterialLogic`).
 See [subsystems/call-security.md § A logic tier must hold logic](./subsystems/call-security.md).
 
+## Free-Standing Module-Scope Statements
+
+**ANTIPATTERN**: Executable statements at module scope — registration
+calls, hook installs, state mutation — running as an import side
+effect.
+
+```typescript
+// BAD — import-time registration
+SchedulerApi.registerActivity(SEARCH_ACTIVITY_TYPE, SearchActivity);
+SecurityApi.decorateApiClass(FooApi);
+DialogueEffectRegistry.register('bank-circle', BANK_CIRCLE_EFFECT);
+```
+
+**INSTEAD**: module scope *declares*; initialization happens through a
+runtime lifecycle — capture-at-use (the scheduler dispatch index),
+the `ModuleApi.stamp` module lifecycle (Api decoration), `postRegister`
+(instance lifecycle), `BootstrapManager.installFrameworkWiring()` (the
+boot seam), or a lazy first-use initializer. Full pattern table:
+[architecture.md § Module scope declares; lifecycles initialize](./architecture.md).
+Enforced by `pnpm lint:module-scope` (CI-gating).
+
 ## Duck Typing with Mixins
 
 **ANTIPATTERN**: Checking for method existence using `typeof` instead of

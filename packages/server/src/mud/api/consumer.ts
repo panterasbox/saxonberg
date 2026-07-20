@@ -26,7 +26,6 @@ import type { ParticipationEventFields } from '../lib/standing/ParticipationEven
 import type { InfluenceStanding } from '../lib/standing/InfluenceStanding';
 import { StuffApi } from './stuff';
 import { HotReloadApi } from './hot-reload';
-import { SecurityApi } from './security';
 import { ConsumerLogic } from '../obj/api/ConsumerLogic';
 import { fileURLToPath } from 'url';
 
@@ -105,5 +104,3 @@ export class ConsumerApi {
     return logic().eventsFor(subjectId);
   }
 }
-
-SecurityApi.decorateApiClass(ConsumerApi);

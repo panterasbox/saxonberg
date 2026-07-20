@@ -23,7 +23,6 @@
  * resolver in those harnesses — while `isAuthor` fails closed.
  */
 
-import { SecurityApi } from './security';
 import { StuffApi } from './stuff';
 import { PlayerApi } from './player';
 import { CallSecurity } from '../lib/security/decorators';
@@ -194,5 +193,3 @@ export class AccessApi {
     registryRef = null;
   }
 }
-
-SecurityApi.decorateApiClass(AccessApi);

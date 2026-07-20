@@ -32,4 +32,3 @@ export class Agent extends AgentBase {
   // subclasses (or shadows) define `onDestruct()` if they need cleanup.
 }
 
-Stuff._registerTopLevelBranch(Agent);

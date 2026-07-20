@@ -25,7 +25,6 @@ import type { WeaponProfile } from "../lib/combat/WeaponProfile";
 import type { RangeState } from "../lib/combat/CombatGraph";
 
 export type { BlameVerdict } from "../lib/accountability/AccountabilityEvent";
-import { SecurityApi } from "./security";
 import { StuffApi } from "./stuff";
 import { HotReloadApi } from "./hot-reload";
 import { CombatLogic } from "../obj/api/CombatLogic";
@@ -287,5 +286,3 @@ export class CombatApi {
     return logic().drawSidearm(actor);
   }
 }
-
-SecurityApi.decorateApiClass(CombatApi);

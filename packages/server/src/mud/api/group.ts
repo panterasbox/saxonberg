@@ -13,7 +13,6 @@
 
 import { StuffApi } from './stuff';
 import { HotReloadApi } from './hot-reload';
-import { SecurityApi } from './security';
 import type { Stuff } from '../lib/stuff/Stuff';
 import type {
   GroupRef,
@@ -95,5 +94,3 @@ export class GroupApi {
     return logic().registry();
   }
 }
-
-SecurityApi.decorateApiClass(GroupApi);

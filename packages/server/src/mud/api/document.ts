@@ -25,7 +25,6 @@
 import type { StoredDocument } from "../lib/document/StoredDocument";
 import { StuffApi } from "./stuff";
 import { HotReloadApi } from "./hot-reload";
-import { SecurityApi } from "./security";
 import { DocumentLogic } from "../obj/api/DocumentLogic";
 import { fileURLToPath } from "url";
 
@@ -78,5 +77,3 @@ export class DocumentApi {
     return logic().save(path, kind, data);
   }
 }
-
-SecurityApi.decorateApiClass(DocumentApi);

@@ -19,7 +19,6 @@ import type { AbortReason } from '@saxonberg/types';
 import type { Stuff } from '../stuff/Stuff';
 import type { EngagementSlot, Engaged } from '../activity/Engaged';
 import type { DurativeActivity } from '../../api/scheduler';
-import { SchedulerApi } from '../../api/scheduler';
 
 export const BEHAVIOR_BEAT_TYPE = 'behavior-beat' as const;
 
@@ -61,4 +60,3 @@ export class BehaviorBeat implements DurativeActivity {
   }
 }
 
-SchedulerApi.registerActivity(BEHAVIOR_BEAT_TYPE, BehaviorBeat);

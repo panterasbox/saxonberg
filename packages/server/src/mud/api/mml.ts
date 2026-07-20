@@ -55,7 +55,6 @@ import type { Stuff } from '../lib/stuff/Stuff';
 import type { Sensor } from '../lib/message/Sensor';
 import type Exit from '../lib/boundary/Exit';
 import type { SenseChannel } from '../lib/description/Perceiver';
-import { SecurityApi } from './security';
 import { MixinApi } from './mixin';
 import { escapeText, decodeEntity } from './mml/entities';
 import { flatten as flattenInternal } from './mml/flatten';
@@ -885,5 +884,3 @@ function serializeTree(nodes: readonly MmlNode[]): string {
   }
   return out;
 }
-
-SecurityApi.decorateApiClass(Mml);
