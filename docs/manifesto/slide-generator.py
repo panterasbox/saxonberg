@@ -226,6 +226,18 @@ def f_forkable(stage=2):  # builds: the polity block → fork off your own copy
         g+=[CT(fx+150,fy+300,"your own copy — carry it off",22,GREEN)]
         g+=[CT(860,1000,"legible · verifiable · forkable — in a way paper and stone never were",30,WHITE)]
     return g
+def f_honest(stage=2):  # builds: the honest-world foundation → real questions rise from it
+    g=[CT(860,110,"the world underneath is modeled honestly — so its debates are real",38,SOFT)]
+    fy=580
+    g+=[R(150,fy,1620,150,GREEN,6,fill=DARK),CT(860,fy+58,"AN HONESTLY-MODELED WORLD",30,WHITE,weight="bold"),
+        CT(860,fy+104,"real scarcity · real trade · real commons · real costs that land on people who didn't choose them",24,SOFT)]
+    if stage>=2:
+        for lab,x in [("tax what comes\nout of the ground?",380),("who pays for the\ncommons nobody funds?",860),("one group's freedom,\nanother group's cost?",1340)]:
+            g+=[R(x-190,250,380,130,WHITE,3)]
+            for j,ln in enumerate(lab.split("\n")): g+=[CT(x,304+j*40,ln,26,WHITE)]
+            g+=ARR(x,fy-6,x,392,SOFT,3,0.8)
+        g+=[CT(860,900,"not game problems in political costume — the real ones every government faces",30,WHITE)]
+    return g
 def f_laboratory(stage=2):  # builds: real politics one-shot → the try/break/retry loop
     g=[CT(960,120,"a laboratory — not a model OF a government, a place to RUN one",38,SOFT)]
     g+=[CT(500,240,"real politics",28,CORAL)]+ARR(300,420,720,420,CORAL,6)
@@ -250,8 +262,10 @@ CH2=[
  ("ch2-07-investment-inversion",f_investment(3)), # 2  …civic=cost, game=reward
  ("ch2-08-forkable-block", f_forkable(1)),        # 4  a polity made of words
  ("ch2-09-forkable-fork",  f_forkable(2)),        # 4  …fork off your own copy
- ("ch2-10-lab-oneshot",   f_laboratory(1)),       # 5  real politics: one shot, no rewind
- ("ch2-11-lab-loop",      f_laboratory(2)),       # 5  …here: try, break, try again
+ ("ch2-10-honest-world",   f_honest(1)),          # 5  built on an honestly-modeled world
+ ("ch2-11-honest-questions", f_honest(2)),        # 5  …so the real questions rise
+ ("ch2-12-lab-oneshot",   f_laboratory(1)),       # 5  real politics: one shot, no rewind
+ ("ch2-13-lab-loop",      f_laboratory(2)),       # 5  …here: try, break, try again
 ]
 
 # ================= CH 1 — THE HERO MONTAGE =================
