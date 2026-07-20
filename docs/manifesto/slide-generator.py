@@ -1,417 +1,232 @@
 #!/usr/bin/env python3
-"""Generator for re-record manifesto Excalidraw slides.
-Emits a valid .excalidraw (deliverable) + a mirror .svg (preview) per state.
-Canvas 1920x1080; content authored 1080p, exported 2x -> 4K to match background.png.
 """
-import json, os, html, subprocess
+Manifesto re-record — slide generator (Ch 1 = the hero montage).
 
-W, H = 1920, 1080
-OUT_EX = "/home/bobalu/play/saxonberg/master/docs/manifesto"
-OUT_SVG = "/tmp/claude-1000/-home-bobalu-play-saxonberg-master/78ae706e-b284-4586-b904-ddedf0aa7aaf/scratchpad/prev"
-OUT_PNG = "/home/bobalu/play/saxonberg/master/docs/manifesto/exports"  # final transparent 4K PNGs (gitignored)
-os.makedirs(OUT_SVG, exist_ok=True)
-os.makedirs(OUT_PNG, exist_ok=True)
+Emits transparent 4K PNGs -> docs/manifesto/exports/ (Descript drops them over the
+blue background layer). SVG-native; no Excalidraw.
 
-# ---- palette (reads on royal blue) ----
-WHITE = "#ffffff"; SOFT = "#dbe4ff"
-GREEN = "#69db7c"; CORAL = "#ff8787"; AMBER = "#ffd43b"; STEEL = "#74c0fc"
-TRANSP = "transparent"
+DESIGN (converged — see memory `manifesto-visuals-batch-mode`):
+  * VISUAL-FIRST. Every beat is a diagram; abstract "why it matters" lines are camera
+    moments in Descript, never text cards.
+  * HERO-PER-CHAPTER. Each downstream chapter has ONE central graphic; Ch 1 shows them
+    at altitude, then chapters revisit in depth.
+  * The three rings are the LEGISLATIVE chambers only — not the whole-system motif.
+  * Draw a structure once where it's established; consequences get said, not re-drawn.
+  * dots-as-people. No stick figures / gears / decorative rails.
+  * Cam keep-out: nothing load-bearing past x>1500 AND y>820.
+  * ImageMagick ignores fill-opacity -> use SOLID or DARK(#0a2c55) fills, or stroke-only.
+Run: python3 slide-generator.py
+"""
+import html, subprocess, os, math
 
-_seed = [1000]
-def _sid():
-    _seed[0] += 1
-    return _seed[0]
+W,H=1920,1080
+HERE=os.path.dirname(os.path.abspath(__file__))
+OUT_PNG=os.path.join(HERE,"exports"); OUT_SVG=os.path.join(OUT_PNG,"_svg")
+os.makedirs(OUT_PNG,exist_ok=True); os.makedirs(OUT_SVG,exist_ok=True)
 
-# ---------------- Excalidraw element factories ----------------
-def _base(t, x, y, w, h, stroke=WHITE, bg=TRANSP, sw=2, rough=1, op=100,
-          fill="solid", roundness=None, sstyle="solid"):
-    i = _sid()
-    return dict(id=f"e{i}", type=t, x=x, y=y, width=w, height=h, angle=0,
-                strokeColor=stroke, backgroundColor=bg, fillStyle=fill,
-                strokeWidth=sw, strokeStyle=sstyle, roughness=rough, opacity=op,
-                groupIds=[], frameId=None, roundness=roundness, seed=i*13 % 2000000,
-                version=1, versionNonce=i*7 % 2000000, isDeleted=False,
-                boundElements=[], updated=1, link=None, locked=False)
+WHITE="#ffffff"; SOFT="#c7d6f5"; DIM="#8fa9d8"; DIMB="#3f5a86"
+CORAL="#ff8787"; STEEL="#6f9ae0"; GREEN="#69db7c"; AMBER="#ffd43b"; DARK="#0a2c55"
 
-def rect(x, y, w, h, **k):
-    r = _base("rectangle", x, y, w, h, **k)
-    if r["roundness"] is None: r["roundness"] = {"type": 3}
-    return r
+def T(x,y,s,size=32,fill=WHITE,anchor="start",weight="normal",op=1.0,mono=False):
+    fam="DejaVu Sans Mono" if mono else "DejaVu Sans"
+    return (f'<text x="{x}" y="{y}" fill="{fill}" font-size="{size}" font-family="{fam}" '
+            f'font-weight="{weight}" text-anchor="{anchor}" opacity="{op}">{html.escape(s)}</text>')
+def CT(cx,y,s,size=32,fill=WHITE,weight="normal",op=1.0): return T(cx,y,s,size,fill,"middle",weight,op)
+def C(cx,cy,r,stroke=WHITE,sw=3,fill="none",op=1.0):
+    return f'<circle cx="{cx}" cy="{cy}" r="{r}" fill="{fill}" stroke="{stroke}" stroke-width="{sw}" stroke-opacity="{op}"/>'
+def L(x1,y1,x2,y2,stroke=WHITE,sw=3,op=1.0,dash=None):
+    d=f' stroke-dasharray="{dash}"' if dash else ""
+    return f'<line x1="{x1}" y1="{y1}" x2="{x2}" y2="{y2}" stroke="{stroke}" stroke-width="{sw}" stroke-opacity="{op}"{d}/>'
+def R(x,y,w,h,stroke=WHITE,sw=3,fill="none",rx=12,op=1.0):
+    return f'<rect x="{x}" y="{y}" width="{w}" height="{h}" rx="{rx}" fill="{fill}" stroke="{stroke}" stroke-width="{sw}" stroke-opacity="{op}"/>'
+def PATH(d,stroke=WHITE,sw=3,fill="none",op=1.0,dash=None):
+    ds=f' stroke-dasharray="{dash}"' if dash else ""
+    return f'<path d="{d}" fill="{fill}" stroke="{stroke}" stroke-width="{sw}" stroke-opacity="{op}"{ds}/>'
+def ARR(x1,y1,x2,y2,stroke=WHITE,sw=4,op=1.0):
+    a=math.atan2(y2-y1,x2-x1); h=15
+    p1=(x2-h*math.cos(a-0.42),y2-h*math.sin(a-0.42)); p2=(x2-h*math.cos(a+0.42),y2-h*math.sin(a+0.42))
+    return [L(x1,y1,x2,y2,stroke,sw,op), f'<polygon points="{x2},{y2} {p1[0]},{p1[1]} {p2[0]},{p2[1]}" fill="{stroke}" opacity="{op}"/>']
+def person(x,y,r=11,col=STEEL,op=1.0): return C(x,y,r,col,2,col,op)
 
-def ellipse(x, y, w, h, **k):
-    return _base("ellipse", x, y, w, h, **k)
-
-def circle(cx, cy, r, **k):
-    return ellipse(cx-r, cy-r, 2*r, 2*r, **k)
-
-def diamond(x, y, w, h, **k):
-    return _base("diamond", x, y, w, h, **k)
-
-def line(pts, arrow=False, **k):
-    xs = [p[0] for p in pts]; ys = [p[1] for p in pts]
-    x0, y0 = min(xs), min(ys)
-    w = max(xs)-x0 or 1; h = max(ys)-y0 or 1
-    e = _base("arrow" if arrow else "line", x0, y0, w, h, **k)
-    e["points"] = [[p[0]-x0, p[1]-y0] for p in pts]
-    e["lastCommittedPoint"] = None
-    e["startBinding"] = None; e["endBinding"] = None
-    e["startArrowhead"] = None
-    e["endArrowhead"] = "arrow" if arrow else None
-    return e
-
-def text(x, y, s, size=28, stroke=WHITE, align="left", op=100, bold=False):
-    lines = s.split("\n")
-    w = int(max(len(l) for l in lines) * size * 0.56) or 10
-    h = int(len(lines) * size * 1.25)
-    e = _base("text", x, y, w, h, stroke=stroke, op=op)
-    e.update(text=s, fontSize=size, fontFamily=1, textAlign=align,
-             verticalAlign="top", containerId=None, originalText=s, lineHeight=1.25)
-    return e
-
-def anchor():
-    # invisible full-frame element -> identical export bounds every state.
-    # transparent stroke+bg at FULL opacity (op=0 can be dropped from export bounds
-    # by some Excalidraw builds); present-but-invisible pins the 0,0..W,H crop.
-    return _base("rectangle", 0, 0, W, H, stroke=TRANSP, bg=TRANSP, op=100)
-
-# ---------------- composite glyph helpers ----------------
-def stick(cx, top, scale=1.0, color=WHITE, op=100):
-    """simple person: head circle + body/arms/legs"""
-    hr = 14*scale
-    els = [circle(cx, top+hr, hr, stroke=color, op=op, sw=2)]
-    by = top+2*hr
-    els.append(line([[cx, by],[cx, by+40*scale]], stroke=color, op=op))          # body
-    els.append(line([[cx-22*scale, by+14*scale],[cx+22*scale, by+14*scale]], stroke=color, op=op))  # arms
-    els.append(line([[cx, by+40*scale],[cx-18*scale, by+70*scale]], stroke=color, op=op))  # leg
-    els.append(line([[cx, by+40*scale],[cx+18*scale, by+70*scale]], stroke=color, op=op))  # leg
-    return els
-
-def crowd(x, y, cols, rows, color=SOFT, op=100, gap=34, r=7):
-    els = []
-    for c in range(cols):
-        for rr in range(rows):
-            els.append(circle(x+c*gap, y+rr*gap, r, stroke=color, bg=color, op=op, sw=1.5))
-    return els
-
-def screen_glyph(x, y, label):
-    """livestream + chat"""
-    els = [rect(x, y, 170, 110, stroke=WHITE)]
-    els.append(line([[x+65, y+35],[x+65, y+75],[x+105, y+55],[x+65, y+35]], stroke=WHITE))  # play tri
-    for i in range(3):
-        els.append(line([[x+185, y+25+i*28],[x+275, y+25+i*28]], stroke=SOFT))  # chat lines
-    els.append(text(x+10, y+120, label, size=24, stroke=SOFT))
-    return els
-
-def discord_glyph(x, y, label):
-    els = [rect(x, y, 200, 120, stroke=WHITE, roundness={"type":3})]
-    for i in range(3):
-        els.append(circle(x+30, y+30+i*30, 6, stroke=SOFT, bg=SOFT))
-        els.append(line([[x+48, y+30+i*30],[x+150, y+30+i*30]], stroke=SOFT))
-    els.append(text(x+10, y+130, label, size=24, stroke=SOFT))
-    return els
-
-def ring_trio(cx, cy, R, colors=(WHITE,WHITE,WHITE), labels=None, ops=(100,100,100), sw=6):
-    """three interlocking rings echoing the logo: two top, one bottom"""
-    centers = [(cx-0.58*R, cy-0.34*R), (cx+0.58*R, cy-0.34*R), (cx, cy+0.62*R)]
-    els = []
-    for (ex,ey), col, op in zip(centers, colors, ops):
-        els.append(circle(ex, ey, R, stroke=col, op=op, sw=sw))
-    if labels:
-        offs = [(-0, -R-30), (0, -R-30), (0, R+18)]
-        for (ex,ey),(dx,dy),lab,op in zip(centers, offs, labels, ops):
-            els.append(text(ex - len(lab)*7, ey+dy, lab, size=24, stroke=WHITE, op=op, align="center"))
-    return els, centers
-
-def rail(y=70, slots=6, filled=0):
-    els = [line([[120,y],[1500,y]], stroke=STEEL, op=55)]
-    for i in range(slots):
-        sx = 200 + i*210
-        col = WHITE if i < filled else STEEL
-        op = 90 if i < filled else 40
-        els.append(circle(sx, y, 16, stroke=col, op=op, sw=2))
-    return els
-
-# ---------------- SVG mirror (for preview only) ----------------
-def to_svg(elements):
-    out = [f'<svg xmlns="http://www.w3.org/2000/svg" width="{W}" height="{H}">']
-    for e in elements:
-        op = e.get("opacity",100)/100.0
-        sc = e["strokeColor"]; sw = e.get("strokeWidth",2)
-        bg = e.get("backgroundColor","transparent")
-        fill = bg if bg!="transparent" else "none"
-        t = e["type"]
-        if t=="rectangle":
-            out.append(f'<rect x="{e["x"]}" y="{e["y"]}" width="{e["width"]}" height="{e["height"]}" rx="8" fill="{fill}" stroke="{sc}" stroke-width="{sw}" opacity="{op}"/>')
-        elif t=="ellipse":
-            out.append(f'<ellipse cx="{e["x"]+e["width"]/2}" cy="{e["y"]+e["height"]/2}" rx="{e["width"]/2}" ry="{e["height"]/2}" fill="{fill}" stroke="{sc}" stroke-width="{sw}" opacity="{op}"/>')
-        elif t=="diamond":
-            x,y,w,h=e["x"],e["y"],e["width"],e["height"]
-            pts=f"{x+w/2},{y} {x+w},{y+h/2} {x+w/2},{y+h} {x},{y+h/2}"
-            out.append(f'<polygon points="{pts}" fill="{fill}" stroke="{sc}" stroke-width="{sw}" opacity="{op}"/>')
-        elif t in ("line","arrow"):
-            pts=" ".join(f"{e['x']+p[0]},{e['y']+p[1]}" for p in e["points"])
-            out.append(f'<polyline points="{pts}" fill="none" stroke="{sc}" stroke-width="{sw}" opacity="{op}"/>')
-            if t=="arrow" and len(e["points"])>=2:
-                (ax,ay),(bx,by)=e["points"][-2],e["points"][-1]
-                out.append(f'<circle cx="{e["x"]+bx}" cy="{e["y"]+by}" r="6" fill="{sc}" opacity="{op}"/>')
-        elif t=="text":
-            fs=e["fontSize"]
-            anchor={"left":"start","center":"middle","right":"end"}[e["textAlign"]]
-            for i,ln in enumerate(e["text"].split("\n")):
-                out.append(f'<text x="{e["x"]}" y="{e["y"]+fs*(0.9+i*1.25)}" fill="{sc}" font-size="{fs}" font-family="DejaVu Sans" text-anchor="{anchor}" opacity="{op}">{html.escape(ln)}</text>')
-    out.append('</svg>')
-    return "\n".join(out)
-
-def emit(name, elements):
-    doc = dict(type="excalidraw", version=2, source="https://excalidraw.com",
-               elements=[anchor()]+elements,
-               appState=dict(gridSize=None, viewBackgroundColor="transparent", theme="light"),
-               files={})
-    with open(f"{OUT_EX}/{name}.excalidraw","w") as f: json.dump(doc,f)
-    svgp = f"{OUT_SVG}/{name}.svg"
-    with open(svgp,"w") as f: f.write(to_svg(elements))
-    # final deliverable: transparent 4K PNG (density 192 on a 1920x1080 SVG -> 3840x2160).
-    # heavy frames can trip ImageMagick's time-limit policy -> fall back to a 96-density
-    # render upscaled to 4K (slightly softer but complete).
-    pngp = f"{OUT_PNG}/{name}.png"
-    r = subprocess.run(["convert","-background","none","-density","192",svgp,pngp],
-                       check=False, capture_output=True)
-    if r.returncode != 0 or not os.path.exists(pngp):
-        subprocess.run(["convert","-background","none","-density","96",svgp,
-                        "-resize","3840x2160",pngp], check=False)
-    print("wrote", name)
-
-# ================= BEAT 0 =================
-def beat0():
-    # 0.1 two communities
-    s1 = screen_glyph(230, 250, "a livestream + chat") + discord_glyph(650, 245, "a Discord")
-    emit("rerecord-ch1-0-1", s1)
-
-    # 0.2 one hand over both, crowd with no say
-    hand = [text(360, 90, "one hand decides everything", size=30, stroke=WHITE),
-            line([[560,150],[440,235]], arrow=True, stroke=WHITE),
-            line([[560,150],[760,235]], arrow=True, stroke=WHITE)]
-    cr = crowd(240, 470, 12, 3, color=STEEL, op=70)
-    emit("rerecord-ch1-0-2", s1 + hand + cr)
-
-    # 0.3 crowd grows, spokes crack
-    crack = [line([[560,150],[430,235]], stroke=CORAL, sw=3),
-             line([[560,150],[770,235]], stroke=CORAL, sw=3),
-             line([[600,180],[585,205],[615,220],[600,245]], stroke=CORAL, sw=3),
-             text(360, 90, "works small — breaks as it grows", size=30, stroke=CORAL)]
-    cr2 = crowd(200, 470, 20, 4, color=STEEL, op=70)
-    emit("rerecord-ch1-0-3", s1 + crack + cr2)
-
-    # 0.4 balanced-forces rig replaces it
-    beam = [line([[380,300],[900,300]], stroke=GREEN, sw=4),                 # level beam
-            line([[640,300],[640,260]], stroke=GREEN, sw=3),                 # fulcrum
-            circle(440,300,26,stroke=GREEN,sw=3), circle(640,300,26,stroke=GREEN,sw=3), circle(840,300,26,stroke=GREEN,sw=3),
-            text(300, 360, "scales  ·  balances the community's forces", size=30, stroke=WHITE)]
-    emit("rerecord-ch1-0-4", beam)
-
-    # 0.5 game engine gets people to show up
-    game = beam + [rect(520, 470, 240, 150, stroke=WHITE),
-                   circle(640, 545, 42, stroke=WHITE, sw=3),
-                   line([[625,530],[625,560],[660,545],[625,530]], stroke=WHITE, sw=2),
-                   text(430, 640, "a game gets people to show up and care", size=30, stroke=WHITE)]
-    game += [line([[300,545],[500,545]], arrow=True, stroke=AMBER),
-             line([[980,545],[790,545]], arrow=True, stroke=AMBER)]
-    emit("rerecord-ch1-0-5", game)
-
-    # 0.6 transition: empty assembly rail
-    emit("rerecord-ch1-0-6", rail(70, 6, 0) + [text(700, 150, "here's the whole thing —", size=30, stroke=SOFT)])
-
-def ctext(cx, y, s, size=28, stroke=WHITE, op=100):
-    w = int(max(len(l) for l in s.split("\n")) * size * 0.56) or 10
-    return text(int(cx - w/2), y, s, size=size, stroke=stroke, op=op, align="left")
-
-def station(x, y, w, h, title, sub=None, color=WHITE, op=100):
-    els = [rect(x, y, w, h, stroke=color, op=op)]
-    els.append(ctext(x+w/2, y+18, title, size=26, stroke=color, op=op))
-    if sub:
-        els.append(ctext(x+w/2, y+h-42, sub, size=20, stroke=SOFT, op=op))
-    return els
-
-def gear(cx, cy, r, color=GREEN, op=100):
-    els=[circle(cx,cy,r,stroke=color,op=op), circle(cx,cy,r*0.4,stroke=color,op=op)]
-    import math
-    for k in range(8):
-        a=k*math.pi/4
-        els.append(line([[cx+r*math.cos(a),cy+r*math.sin(a)],[cx+(r+8)*math.cos(a),cy+(r+8)*math.sin(a)]],stroke=color,op=op,sw=3))
-    return els
-
-def coin(cx, cy, r=22, color=AMBER, op=100, label="$"):
-    return [circle(cx,cy,r,stroke=color,op=op,sw=3), ctext(cx, cy-14, label, size=26, stroke=color, op=op)]
-
-# ================= BEAT 1 =================
-def beat1():
-    r1=rail(70,6,0)
-    emit("rerecord-ch1-1-1", r1+[ctext(760,300,"GAME",size=90),ctext(1010,300,"=",size=70,stroke=SOFT),ctext(1260,300,"GOVERNMENT",size=64)])
-    # EVE emergent society
-    nodes=[(560,360,"corporations"),(900,300,"alliances"),(760,560,"an economy")]
-    eve=[ctext(760,120,"a real society, emerged on its own  (EVE Online)",size=28,stroke=SOFT)]
-    for (x,y,l) in nodes: eve+= [circle(x,y,40,stroke=STEEL,sw=3)]+[ctext(x,y+52,l,size=22,stroke=SOFT)]
-    eve+=[line([[600,375],[860,320]],stroke=STEEL,op=70),line([[880,340],[790,520]],stroke=STEEL,op=70),line([[600,395],[730,525]],stroke=STEEL,op=70)]
-    emit("rerecord-ch1-1-2", r1+eve)
-    # MUD genre card
-    card=[rect(560,260,560,240,stroke=WHITE)]
-    card+=[ctext(840,290,"a modern MUD",size=40)]
-    for i,l in enumerate(["a text-based world  ·  like a text MMO","the government built in on purpose"]):
-        card+=[ctext(840,370+i*48,l,size=24,stroke=SOFT)]
-    emit("rerecord-ch1-1-3", r1+card)
-    # THREE RINGS (the motif) — spine words only; gloss is spoken
-    rings,centers=ring_trio(820,470,190,labels=["labor","capital","consumer"])
-    emit("rerecord-ch1-1-4", [ctext(820,110,"three kinds of contributor",size=30,stroke=SOFT)]+rings)
-    # wall + blocked coin
-    wall=[rect(430,260,40,300,stroke=WHITE,bg="#ffffff",fill="solid",op=100)]
-    wall+=stick(360,330,1.0,WHITE)
-    wall+=[line([[430,360],[400,360]],arrow=True,stroke=CORAL,sw=3)]
-    wall+=coin(760,400,26,CORAL,label="$")
-    wall+=[line([[760,440],[760,500]],stroke=CORAL,sw=3),line([[735,475],[785,475]],stroke=CORAL,sw=3,sstyle="solid")]
-    wall+=[ctext(760,540,"can't walk through a wall  ·  can't spend money you don't have",size=22,stroke=SOFT)]
-    emit("rerecord-ch1-1-5", wall)
-    # fork: machine vs human
-    fork=[line([[760,240],[760,340]],stroke=WHITE,sw=3),
-          line([[760,340],[520,430]],stroke=WHITE,sw=3),line([[760,340],[1000,430]],stroke=WHITE,sw=3),
-          ctext(760,190,"some rules can't reduce to code",size=28,stroke=SOFT)]
-    fork+=gear(520,500,46,GREEN)+[ctext(520,580,"machine-enforced",size=22,stroke=GREEN)]
-    fork+=stick(1000,455,1.2,STEEL)+[ctext(1000,590,"needs a human to judge",size=22,stroke=STEEL)]
-    emit("rerecord-ch1-1-6", fork)
-
-# ================= BEAT 2 =================
-def beat2():
-    r=rail(70,6,1)
-    fig=stick(360,300,1.2,WHITE)+[circle(360,270,10,stroke=AMBER,bg=AMBER)]+[ctext(360,430,"you want to change a rule",size=22,stroke=SOFT)]
-    emit("rerecord-ch1-2-1", r+fig)
-    floor=[line([[300,560],[1250,560]],stroke=WHITE,sw=4),ctext(775,610,"one open floor — every proposal goes here",size=26,stroke=SOFT)]
-    floor+=[rect(720,500,110,50,stroke=AMBER)]  # the slip dropped
-    floor+=[line([[400,300],[700,490]],arrow=True,stroke=STEEL,op=60)]
-    floor+=[ctext(1050,330,"not petition\nan authority",size=22,stroke=CORAL)]+[line([[1120,380],[1120,430]],stroke=CORAL,sw=3),line([[1095,405],[1145,405]],stroke=CORAL,sw=3,sstyle="solid")]
-    emit("rerecord-ch1-2-2", r+floor)
-    floor2=[line([[300,560],[1250,560]],stroke=WHITE,sw=4),ctext(775,610,"anyone can — the community decides",size=26)]
-    for i,x in enumerate([500,640,780,920]):
-        floor2+=[rect(x-55,500,110,50,stroke=AMBER,op=90)]
-    floor2+=[line([[430,250],[520,490]],arrow=True,stroke=STEEL,op=60),line([[1120,250],[960,490]],arrow=True,stroke=STEEL,op=60)]
-    emit("rerecord-ch1-2-3", r+floor2)
-
-# ================= BEAT 3 =================
-def beat3():
-    r=rail(70,6,2)
-    spine=[rect(700,250,150,60,stroke=WHITE)]+[ctext(775,262,"proposal",size=22)]
-    kids=[(500,430,"support",GREEN),(775,470,"objection",AMBER),(1050,430,"question",STEEL)]
-    m=[]
-    for (x,y,l,c) in kids:
-        m+=[rect(x-80,y,160,54,stroke=c)]+[ctext(x,y+12,l,size=20,stroke=c)]
-    edges=[line([[730,310],[520,430]],stroke=SOFT,op=70),line([[775,310],[775,470]],stroke=SOFT,op=70),line([[820,310],[1050,430]],stroke=SOFT,op=70)]
-    thumb=[ctext(1180,250,"no upvotes",size=22,stroke=CORAL)]+[line([[1230,290],[1230,330]],stroke=CORAL,sw=3),line([[1205,310],[1255,310]],stroke=CORAL,sw=3)]
-    emit("rerecord-ch1-3-1", r+spine+m+edges+thumb+[ctext(775,160,"argued — organized by how claims answer each other",size=26,stroke=SOFT)])
-    # objection lit
-    lit=[circle(775,497,60,stroke=AMBER,op=60,sw=3)]+[ctext(775,590,"unanswered — stays lit",size=22,stroke=AMBER)]
-    emit("rerecord-ch1-3-2", r+spine+m+edges+lit)
-    # structured not a mob
-    mob=[ctext(1120,430,"a mob",size=24,stroke=CORAL)]
+# ── Beat 0: why current tools fail ──
+def f_hub():
+    g=[CT(860,120,"every decision routes through one point",40,SOFT)]
+    hx,hy=800,560
     for i in range(30):
-        import math
-        a=i*2.3; rr=60+ (i%5)*10
-        mob+=[circle(1120+rr*math.cos(a),470+rr*math.sin(a)*0.6,4,stroke=CORAL,bg=CORAL,op=70,sw=1)]
-    mob+=[line([[1030,380],[1210,560]],stroke=CORAL,sw=4),line([[1210,380],[1030,560]],stroke=CORAL,sw=4)]
-    emit("rerecord-ch1-3-3", r+spine+m+edges+[ctext(500,640,"structured, not a mob",size=26)]+mob)
+        a=i*(2*math.pi/30); r=340; x,y=hx+r*math.cos(a),hy+r*math.sin(a)*0.80
+        g+=[L(hx,hy,x,y,STEEL,2,0.5), person(x,y,12,STEEL)]
+    g+=[C(hx,hy,50,CORAL,7,DARK), CT(hx,hy+18,"1",56,CORAL,weight="bold")]
+    g+=[CT(860,1010,"it works small. it cannot scale.",34,WHITE)]
+    return g
 
-# ================= BEAT 4 =================
-def beat4():
-    r=rail(70,6,3)
-    rings,centers=ring_trio(700,430,175,labels=["labor","capital","consumer"])
-    head=[ctext(700,110,"each force gets its own chamber",size=28,stroke=SOFT)]
-    emit("rerecord-ch1-4-1", r+head+rings)
-    # 2 of 3 lit green
-    rings2,c2=ring_trio(700,430,175,colors=(GREEN,GREEN,WHITE),labels=["labor","capital","consumer"])
-    pass_=[ctext(1150,380,"2 of 3 = PASS",size=30,stroke=GREEN)]+[ctext(1150,440,"can't pull one\nring free",size=22,stroke=SOFT)]
-    emit("rerecord-ch1-4-2", r+rings2+pass_)
-    # same crowd counted three ways
-    cr=crowd(560,640,14,3,color=STEEL,op=80)
-    tallies=[line([[700,700],[560,540]],arrow=True,stroke=SOFT,op=60),line([[720,700],[760,540]],arrow=True,stroke=SOFT,op=60),line([[740,700],[880,540]],arrow=True,stroke=SOFT,op=60)]
-    emit("rerecord-ch1-4-3", r+rings+cr+tallies+[ctext(700,760,"same crowd, counted three ways",size=24,stroke=SOFT)])
-    # standing token handed by others
-    st=[ctext(760,140,"standing — earned, and given to you by others",size=26,stroke=SOFT)]
-    st+=[diamond(720,300,80,80,stroke=AMBER)]+[ctext(760,325,"◆",size=20,stroke=AMBER)]
-    st+=[line([[560,360],[700,330]],arrow=True,stroke=WHITE,op=80),line([[980,360],[830,330]],arrow=True,stroke=WHITE,op=80)]
-    st+=stick(500,360,1.0,STEEL)+stick(1020,360,1.0,STEEL)
-    st+=[ctext(760,430,"spent by holding a position over time",size=22,stroke=SOFT)]
-    emit("rerecord-ch1-4-4", r+st)
-    # capital firewall
-    fw,cf=ring_trio(700,430,175,colors=(WHITE,GREEN,WHITE),labels=["labor","capital","consumer"])
-    fwc=coin(cf[1][0],cf[1][1],24,GREEN,label="$")
-    bounce=[line([[cf[1][0],cf[1][1]],[cf[0][0]+40,cf[0][1]]],stroke=CORAL,sw=3),
-            line([[cf[1][0],cf[1][1]],[cf[2][0],cf[2][1]-40]],stroke=CORAL,sw=3)]
-    world=[rect(1120,360,150,90,stroke=CORAL)]+[ctext(1195,392,"the world",size=22,stroke=CORAL)]+[line([[cf[1][0]+40,cf[1][1]],[1120,410]],stroke=CORAL,sw=3)]
-    emit("rerecord-ch1-4-5", r+fw+fwc+bounce+world+[ctext(700,760,"money: real voice in its own chamber — never a vote in the others, never an advantage in the world",size=22,stroke=SOFT)])
+# ── Ch 2 hero: the machinery, empty vs full ──
+def _seats(cx,py,filled):
+    g=[]; palette=[GREEN,AMBER,STEEL]
+    for bi,(Rr,ns) in enumerate([(150,10),(215,13),(280,16)]):
+        for k in range(ns):
+            th=math.radians(18+k*(144/(ns-1))); x=cx+Rr*math.cos(th); y=py-Rr*math.sin(th)
+            g+=[person(x,y,10,palette[(bi+k)%3])] if filled else [C(x,y,10,DIMB,2,"none",0.9)]
+    pc=WHITE if filled else DIMB
+    g+=[R(cx-46,py-6,92,44,pc,3,op=1 if filled else 0.8)]
+    if filled: g+=[person(cx,py+16,9,AMBER)]
+    ty=py-360; g+=[R(cx-105,ty,210,74,pc,3,op=1 if filled else 0.8)]
+    if filled:
+        for i,(bw,col) in enumerate([(150,GREEN),(96,AMBER),(60,STEEL)]):
+            g+=[f'<rect x="{cx-90}" y="{ty+14+i*18}" width="{bw}" height="12" rx="3" fill="{col}"/>']
+    else:
+        for i in range(3): g+=[L(cx-90,ty+22+i*18,cx-30,ty+22+i*18,DIMB,4,0.8)]
+    return g
+def f_machinery():
+    g=[CT(960,110,"self-government always lacked one thing — people who show up",38,SOFT)]
+    g+=_seats(500,640,False)+[CT(500,205,"they built the machinery",30,SOFT),
+        CT(500,720,"DAOs · online democracies · token votes",24,DIMB), CT(500,772,"— nobody came",26,CORAL)]
+    g+=_seats(1400,640,True)+[CT(1400,205,"a game fills it",30,WHITE)]
+    for i in range(6): g+=ARR(1745+i*6,300+i*40,1665-i*6,360+i*30,STEEL,3,0.7)
+    g+=[CT(1400,720,"the same machinery",24,SOFT), CT(1400,772,"— now full",26,GREEN)]
+    g+=[CT(960,960,"civic duty is a cost.  a game makes taking part the reward.",32,WHITE)]
+    return g
 
-# ================= BEAT 5 =================
-def beat5():
-    r=rail(70,6,4)
-    base=r+[ctext(910,140,"a law is a change to the code — built like software",size=28,stroke=SOFT)]
-    y=280;h=200;w=420
-    x1,x2,x3=140,730,1320
-    p=base+[line([[x1+w,y+h/2],[x2,y+h/2]],arrow=True,stroke=SOFT,op=70),line([[x2+w,y+h/2],[x3,y+h/2]],arrow=True,stroke=SOFT,op=70)]
-    p+=[rect(x1,y,w,h,stroke=STEEL,op=40),rect(x2,y,w,h,stroke=STEEL,op=40),rect(x3-0,y,W-x3-40,h,stroke=STEEL,op=40)]
-    emit("rerecord-ch1-5-1", p)
-    s1=station(x1,y,w,h,"LEGISLATURE","requirement — what should be true")
-    emit("rerecord-ch1-5-2", base+s1+[line([[x1+w,y+h/2],[x2,y+h/2]],arrow=True,stroke=SOFT,op=70)])
-    s2=station(x2,y,w,h,"EXECUTIVE","builds it")
-    s2+=gear(x2+130,y+130,34,GREEN)+stick(x2+300,y+95,0.9,STEEL)
-    emit("rerecord-ch1-5-3", base+s1+s2+[line([[x1+w,y+h/2],[x2,y+h/2]],arrow=True,stroke=SOFT,op=70),line([[x2+w,y+h/2],[x3,y+h/2]],arrow=True,stroke=SOFT,op=70)])
-    s3=station(x3,y,W-x3-40,h,"JUDICIARY")
-    cxj=x3+(W-x3-40)/2
-    s3+=[ctext(cxj,y+95,"reads the code",size=22,stroke=GREEN),ctext(cxj,y+135,"hears the appeal",size=22,stroke=AMBER)]
-    emit("rerecord-ch1-5-4", base+s1+s2+s3+[line([[x1+w,y+h/2],[x2,y+h/2]],arrow=True,stroke=SOFT,op=70),line([[x2+w,y+h/2],[x3,y+h/2]],arrow=True,stroke=SOFT,op=70)])
-    green=[rect(x1,y,w,h,stroke=GREEN,op=90),rect(x2,y,w,h,stroke=GREEN,op=90),rect(x3,y,W-x3-40,h,stroke=GREEN,op=90)]
-    emit("rerecord-ch1-5-5", base+s1+s2+s3+green+[ctext(910,540,"requirements · build · review — governing is shipping software",size=26)])
+# ── Ch 3 hero: the three rings (legislative chambers) ──
+def rings(cx,cy,Rr,cols=(WHITE,WHITE,WHITE),sw=7,labels=True):
+    cs=[(cx-0.58*Rr,cy-0.34*Rr),(cx+0.58*Rr,cy-0.34*Rr),(cx,cy+0.62*Rr)]
+    g=[C(ex,ey,Rr,col,sw) for (ex,ey),col in zip(cs,cols)]
+    if labels:
+        g+=[CT(cs[0][0]-40,cs[0][1]-Rr-28,"labor",32,WHITE),CT(cs[1][0]+40,cs[1][1]-Rr-28,"capital",32,WHITE),
+            CT(cs[2][0],cs[2][1]+Rr+56,"consumer",32,WHITE)]
+    return g,cs
+def f_rings(lit=False,title="three kinds of contributor",cap="none can be pulled free of the other two"):
+    cols=(GREEN,GREEN,WHITE) if lit else (WHITE,WHITE,WHITE)
+    g=[CT(860,120,title,40,SOFT)]; r,_=rings(830,545,215,cols); g+=r
+    if lit: g+=[CT(1500,520,"2 of 3",44,GREEN,weight="bold"),CT(1500,575,"= PASS",30,GREEN)]
+    g+=[CT(830,1010,cap,34,WHITE)]; return g
 
-# ================= BEAT 6 =================
-def beat6():
-    r=rail(70,6,5)
-    labels=["proposal","counts","code","ruling"]
-    chain=[];x=360
-    for i,l in enumerate(labels):
-        chain+=[rect(x,320,180,80,stroke=WHITE)]+[ctext(x+90,346,l,size=22)]
-        if i<3: chain+=[line([[x+180,360],[x+230,360]],stroke=SOFT)]
-        x+=230
-    crack=[line([[x-230+90,300],[x-230+70,340],[x-230+110,360],[x-230+90,400]],stroke=CORAL,sw=4)]
-    emit("rerecord-ch1-6-1", r+chain+crack+[ctext(760,220,"written to a record no one can quietly rewrite",size=26,stroke=SOFT)])
-    verify=stick(700,470,1.0,WHITE)+[line([[760,500],[900,470]],arrow=True,stroke=GREEN),ctext(1010,455,"60–40 ✓",size=30,stroke=GREEN),ctext(760,600,"check it yourself",size=26)]
-    emit("rerecord-ch1-6-2", r+chain+verify)
+# ── Beat ①: the code/judgment fork (sets up Ch 5 executive) ──
+def f_fork():
+    g=[CT(860,120,"not every rule reduces to code",40,SOFT), L(860,190,860,330,WHITE,4)]
+    g+=ARR(860,330,560,470,GREEN,4)+ARR(860,330,1160,470,AMBER,4)
+    g+=[R(400,490,330,170,GREEN,5), CT(565,560,"the machine holds it",30,GREEN), CT(565,610,"closed — no discretion",24,SOFT)]
+    x0,y0,w0,h0=1000,490,330,170
+    g+=[PATH(f"M {x0} {y0} L {x0} {y0+h0} L {x0+w0} {y0+h0} L {x0+w0} {y0}",AMBER,5),
+        PATH(f"M {x0} {y0} L {x0+w0*0.22} {y0}",AMBER,5),PATH(f"M {x0+w0*0.78} {y0} L {x0+w0} {y0}",AMBER,5),
+        CT(x0+w0/2,560,"a person must judge",30,AMBER),CT(x0+w0/2,610,"open — stays open",24,SOFT)]
+    g+=[CT(860,1010,"one half closes itself. the other never will.",34,WHITE)]; return g
 
-# ================= CLOSE =================
-def close():
-    import math
-    r=rail(70,6,6)
-    # assembled machine (mini glyphs) center-left
-    mach=[rect(300,250,900,300,stroke=STEEL,op=40)]
-    for i,(gx,l) in enumerate([(400,"floor"),(600,"argue"),(800,"chambers"),(1000,"record")]):
-        mach+=[circle(gx,360,34,stroke=WHITE)]+[ctext(gx,410,l,size=20,stroke=SOFT)]
-        if i<3: mach+=[line([[gx+34,360],[gx+166,360]],arrow=True,stroke=SOFT,op=60)]
-    ghosts=[ctext(760,180,"one machine any community can pick up",size=28,stroke=SOFT)]
-    for gx in [300,760,1180]:
-        ghosts+=[rect(gx-40,600,80,50,stroke=STEEL,op=35)]
-    emit("rerecord-ch1-close-1", r+mach+ghosts)
-    # the dial
-    def dial(frac):
-        cx,cy,R=700,470,150
-        arc=[]
-        for k in range(0,181,10):
-            a=math.pi - k*math.pi/180
-            arc.append([cx+R*math.cos(a),cy-R*math.sin(a)])
-        els=[line(arc,stroke=WHITE,sw=3)]
-        els+=[ctext(cx-R,cy+40,"operator",size=20,stroke=SOFT),ctext(cx+R,cy+40,"republic",size=20,stroke=SOFT)]
-        a=math.pi-frac*math.pi
-        els+=[line([[cx,cy],[cx+R*0.9*math.cos(a),cy-R*0.9*math.sin(a)]],arrow=True,stroke=AMBER,sw=4)]
-        els+=[circle(cx,cy,8,stroke=WHITE,bg=WHITE)]
-        return els
-    emit("rerecord-ch1-close-2", r+dial(0.0)+[ctext(700,120,"a dial: operator → republic",size=30)])
-    emit("rerecord-ch1-close-3", r+dial(0.0)+stick(700,640,0.9,STEEL)+[ctext(700,740,"starts at the operator end — one founder holds it all",size=24,stroke=SOFT)])
-    emit("rerecord-ch1-close-4", r+dial(0.45)+[ctext(700,700,"opens up as far, as fast, as the founder chooses — nobody forced",size=24,stroke=SOFT)])
-    fin=r+dial(0.45)+[ctext(700,690,"the structure doesn't make you give it away —",size=26)]+[ctext(700,730,"it just makes it safe to",size=26,stroke=GREEN)]
-    emit("rerecord-ch1-close-5", fin)
+# ── Beat ②: the open floor (convergence vs gatekeeper) ──
+def f_openfloor():
+    g=[CT(860,110,"you don't lobby whoever's in charge — you put it down in the open",34,SOFT)]
+    g+=[CT(470,215,"petition an authority",26,CORAL)]; gate=(470,560)
+    for i in range(9):
+        a=math.radians(200+i*17); x=gate[0]+230*math.cos(a); y=gate[1]-40+230*math.sin(a)*0.7
+        g+=[person(x,y,10,CORAL,0.85)]+ARR(x,y,gate[0]-10,gate[1]-30,CORAL,2,0.7)
+    g+=[R(gate[0]-55,gate[1]-20,110,150,CORAL,4),CT(gate[0],gate[1]+70,"1",44,CORAL,weight="bold"),
+        L(360,300,600,760,CORAL,6,0.9),L(600,300,360,760,CORAL,6,0.9)]
+    g+=[CT(1240,215,"one open floor",26,WHITE)]; fx0,fx1,fy=920,1560,600
+    g+=[L(fx0,fy,fx1,fy,WHITE,6)]; slots=[1000,1090,1180,1270,1360,1450]
+    for sx in slots: g+=[R(sx-28,fy-46,56,44,AMBER,3)]
+    for i,sx in enumerate(slots): g+=[person(fx0+40+i*100,270+(i%2)*30,10,STEEL)]+ARR(fx0+40+i*100,282+(i%2)*30,sx,fy-52,STEEL,2,0.7)
+    g+=[CT(1240,700,"anyone puts one down — where everyone can see",24,SOFT)]; return g
 
-beat0(); beat1(); beat2(); beat3(); beat4(); beat5(); beat6(); close()
-print("done")
+# ── Ch 4 hero: the claim graph ──
+def f_graph():
+    g=[CT(860,105,"claims attach by how they answer each other",38,SOFT)]
+    def node(x,y,w,label,col): return [R(x-w/2,y,w,64,col,3),CT(x,y+42,label,28,col)]
+    g+=node(830,175,300,"proposal",WHITE)+node(450,395,290,"supports",GREEN)+node(830,395,300,"objects to",CORAL)+node(1250,395,300,"objects to",CORAL)
+    g+=[L(760,239,530,395,GREEN,3),CT(590,300,"supports",22,GREEN),L(830,239,830,395,CORAL,3),CT(880,320,"objects to",22,CORAL),
+        L(900,239,1190,395,CORAL,3),CT(1090,295,"objects to",22,CORAL)]
+    g+=node(830,640,300,"answers it",GREEN)+[L(830,459,830,640,GREEN,3),CT(880,560,"answers",22,GREEN),CT(830,760,"answered → closed",26,GREEN)]
+    g+=[C(1250,427,125,AMBER,4,op=0.5),C(1250,427,155,AMBER,2,op=0.25),CT(1250,620,"nothing answers it",26,AMBER),CT(1250,665,"STAYS OPEN",32,AMBER,weight="bold")]
+    g+=[CT(830,1010,"you cannot bury it — only answer it",34,WHITE)]; return g
+
+# ── Ch 5 hero: the pipeline with remand ──
+def f_pipeline():
+    g=[CT(860,110,"decide  ·  build  ·  check",40,SOFT)]; sy,sh,sw_=330,180,380
+    for (sx,t1,t2) in [(120,"REQUIREMENT","what should be true"),(560,"BUILD","make it real"),(1000,"REVIEW","did it do what was asked?")]:
+        g+=[R(sx,sy,sw_,sh,WHITE,4),CT(sx+sw_/2,sy+70,t1,32,WHITE,weight="bold"),CT(sx+sw_/2,sy+125,t2,24,SOFT)]
+    g+=ARR(500,sy+sh/2,560,sy+sh/2,SOFT,4)+ARR(940,sy+sh/2,1000,sy+sh/2,SOFT,4)
+    g+=ARR(1380,sy+sh/2,1462,sy+sh/2,GREEN,5)+[CT(1420,sy+sh/2-30,"ships",26,GREEN)]
+    g+=[PATH(f"M 1190 {sy+sh} C 1190 {sy+sh+150}, 750 {sy+sh+150}, 750 {sy+sh+6}",CORAL,4)]+ARR(752,sy+sh+40,750,sy+sh+8,CORAL,4)
+    g+=[CT(970,sy+sh+185,"misses → here's exactly where",28,CORAL),CT(860,1020,"the court says where it misses; the builder decides how to fix it",32,WHITE)]
+    return g
+
+# ── the SPINE: master architecture (assembles across the branch beats) ──
+def master(level=4,pop="many",title="the model — three co-equal branches on one record",cap=None,sub=None):
+    g=[CT(860,92,title,38,SOFT)]; colx=[170,610,1050]; colw=380; cy0=180; ch=430
+    lit=AMBER if pop=="one" else WHITE
+    # left->right = process order (matches the pipeline): legislative -> executive -> judicial
+    heads=[("LEGISLATIVE","three chambers — two of three"),("EXECUTIVE","institutions, headed by a PM"),("JUDICIAL","juries empaneled from a pool")]
+    show=[level>=2,level>=3,level>=4]
+    for i,(x,(t1,t2)) in enumerate(zip(colx,heads)):
+        on=show[i]; g+=[R(x,cy0,colw,ch,WHITE if on else STEEL,4,op=1 if on else 0.45),
+            CT(x+colw/2,cy0+52,t1,32,WHITE if on else DIM,weight="bold")]
+        if on: g+=[CT(x+colw/2,cy0+96,t2,21,SOFT)]
+    if show[0]:  # LEGISLATIVE (rings) — left column
+        x=colx[0]; rc=(x+colw/2,cy0+250); cols=(AMBER,AMBER,AMBER) if pop=="one" else (WHITE,WHITE,WHITE)
+        r,_=rings(rc[0],rc[1],62,cols,sw=5,labels=False); g+=r+[CT(rc[0],cy0+385,"labor · capital · consumer",20,SOFT)]
+    if show[1]:  # EXECUTIVE — middle column
+        x=colx[1]; g+=[person(x+colw/2,cy0+175,26,lit),CT(x+colw/2,cy0+150,"PM",20,SOFT)]
+        for k in range(3):
+            bx=x+52+k*100; g+=[R(bx,cy0+250,80,72,WHITE,3),L(x+colw/2,cy0+201,bx+40,cy0+250,SOFT,2,0.6)]
+        g+=[CT(x+colw/2,cy0+385,"institutions",20,SOFT)]
+    if show[2]:  # JUDICIAL (pool -> panel) — right column
+        x=colx[2]; pc=(x+106,cy0+248)
+        if pop=="one": g+=[person(pc[0],pc[1],10,STEEL)]
+        else:
+            for k in range(14):
+                a=k*(2*math.pi/14); rr=60; g+=[person(pc[0]+rr*math.cos(a),pc[1]+rr*math.sin(a),9,STEEL)]
+        g+=[C(pc[0],pc[1],84,STEEL,2,op=0.5),CT(pc[0],cy0+385,"the pool",20,SOFT)]
+        px,py=x+266,cy0+198; g+=[R(px-14,py-10,104,116,SOFT,2,rx=16,op=0.55)]
+        for (dx,dy) in ([(40,48)] if pop=="one" else [(12,18),(58,12),(28,58),(68,64)]): g+=[person(px+dx,py+dy,13,lit)]
+        g+=[CT(px+38,cy0+385,"drawn by lot",20,SOFT),L(pc[0]+90,pc[1],px-22,cy0+248,SOFT,2,0.6,dash="6 6")]
+    if level>=5:
+        ry=690; g+=[R(colx[0],ry,colx[2]+colw-colx[0],120,GREEN,6,fill=DARK),CT(860,ry+52,"THE RECORD",30,WHITE,weight="bold"),
+            CT(860,ry+92,"tamper-evident — every step above is written here",22,SOFT)]
+        for x in colx: g+=[L(x+colw/2,cy0+ch,x+colw/2,ry,SOFT,2,0.55,dash="7 7")]
+    if cap: g+=[CT(860,900,cap,34,AMBER if pop=="one" else WHITE)]
+    if sub: g+=[CT(860,960,sub,28,SOFT)]
+    return g
+
+# ── Ch 7 hero: the dial on a fixed floor ──
+def f_continuum(safe_line="the setting moves. the floor doesn't."):
+    g=[CT(860,110,"one dial. one floor.",40,SOFT)]; ax0,ax1,ay=260,1420,360
+    g+=[L(ax0,ay,ax1,ay,WHITE,5)]
+    for xx in (ax0,ax1): g+=[L(xx,ay-18,xx,ay+18,WHITE,5)]
+    g+=[T(ax0,ay-52,"operator decides everything",26,SOFT),T(ax1,ay-52,"community decides everything",26,SOFT,anchor="end")]
+    mk=ax0+(ax1-ax0)*0.26; g+=[C(mk,ay,20,AMBER,0,AMBER),CT(mk,ay-90,"you set this",26,AMBER),L(mk,ay-78,mk,ay-24,AMBER,2,0.8)]
+    fy=640; g+=[R(ax0,fy,ax1-ax0,150,GREEN,6,fill=DARK)]
+    for i,lab in enumerate(["money can't buy power","the record can't be faked","anyone can leave"]):
+        g+=[CT(ax0+193+i*387,fy+90,lab,26,WHITE)]
+    for xx in range(ax0+80,ax1,150): g+=[L(xx,ay+22,xx,fy-8,STEEL,2,0.35,dash="6 10")]
+    g+=[CT(860,1000,safe_line,34,WHITE)]; return g
+
+# ================= CH 1 — THE HERO MONTAGE =================
+CH1=[
+ ("ch1-01-hub", f_hub()),                                              # 0  tools route through one point
+ ("ch1-02-machinery", f_machinery()),                                  # 0/① why a game  [Ch2 hero]
+ ("ch1-03-rings", f_rings(False)),                                     # ①  three contributors  [Ch3 hero]
+ ("ch1-04-fork", f_fork()),                                            # ①  machine vs human (sets up Ch5)
+ ("ch1-05-openfloor", f_openfloor()),                                  # ②  a proposal on the open floor
+ ("ch1-06-graph", f_graph()),                                          # ③  it gets argued  [Ch4 hero]
+ ("ch1-07-chambers", f_rings(True, title="each force gets its own count",
+                             cap="nothing passes by capturing just one")),  # ④  chambers, 2-of-3  [Ch3 hero]
+ ("ch1-08-model-leg", master(level=2, title="a law is a change to the code — three branches make it real")),  # ⑤ assemble…
+ ("ch1-09-model-exec", master(level=3)),                               # ⑤  …+executive
+ ("ch1-10-model-jud", master(level=4)),                                # ⑤  …+judicial  [Ch5 hero: the architecture]
+ ("ch1-11-pipeline", f_pipeline()),                                    # ⑤  build like software  [Ch5 hero]
+ ("ch1-12-model-record", master(level=5)),                             # ⑥  all written down  [Ch6 hero]
+ ("ch1-13-fill", master(level=5, pop="one", title="the same model, whatever the population",
+                        cap="one founder can hold every seat", sub="the model doesn't change — only who fills it")),  # close
+ ("ch1-14-dial", f_continuum(safe_line="it opens up as far as the founder chooses — it just makes it safe to")),  # close [Ch7 hero]
+]
+
+def emit(name,parts):
+    svg=f'<svg xmlns="http://www.w3.org/2000/svg" width="{W}" height="{H}">'+"\n".join(parts)+'</svg>'
+    sp=os.path.join(OUT_SVG,name+".svg"); open(sp,"w").write(svg); pp=os.path.join(OUT_PNG,name+".png")
+    r=subprocess.run(["convert","-background","none","-density","192",sp,pp],check=False,capture_output=True)
+    if r.returncode!=0 or not os.path.exists(pp):
+        subprocess.run(["convert","-background","none","-density","96",sp,"-resize","3840x2160",pp],check=False)
+    print("  ",name)
+
+if __name__=="__main__":
+    print(f"Ch 1 hero montage — {len(CH1)} frames -> {OUT_PNG}")
+    for n,p in CH1: emit(n,p)
+    print("done")
