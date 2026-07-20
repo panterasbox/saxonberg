@@ -474,6 +474,78 @@ CH4=[
  ("ch4-12-llm", f_llm_librarian(2)),              # 6  …LLM proposes a merge
 ]
 
+# ── Ch 5 frames (governing is shipping software; hero = pipeline + master) ──
+def f_enforce(stage=2):
+    g=[CT(960,110,"the world itself is made of code — a law can be written in, so it just holds",34,SOFT)]
+    g+=[CT(500,220,"every government",28,CORAL)]
+    g+=[person(340,360,18,STEEL)]+ARR(370,360,520,360,SOFT,3)+[R(540,320,150,80,SOFT,3),CT(615,368,"the act",22,SOFT)]
+    g+=ARR(615,410,615,480,CORAL,3)+[CT(615,540,"caught after —",22,CORAL),CT(615,576,"if at all",22,CORAL),
+        CT(500,660,"enforced through institutions, always after the fact",22,SOFT)]
+    if stage>=2:
+        g+=[CT(1420,220,"here",28,GREEN),R(1380,300,26,220,WHITE,3,fill=WHITE)]
+        g+=[person(1300,400,18,STEEL)]+ARR(1330,400,1372,400,CORAL,4)+[L(1372,380,1372,420,CORAL,5),CT(1560,400,"can't pass",22,GREEN),
+            CT(1420,660,"written into the world — it just can't happen",22,SOFT),CT(960,940,"nothing catches you after the fact — the rule simply holds",30,WHITE)]
+    return g
+def f_wizard():
+    g=[CT(960,110,"in a world made of code, the ability to write it is a power",38,SOFT)]
+    g+=[R(1120,280,520,440,STEEL,3),CT(1380,255,"the world — made of code",24,SOFT)]
+    for i in range(7): g+=[T(1160,330+i*52,"if (…) then rule …",26,STEEL if i!=3 else GREEN,mono=True)]
+    g+=[person(430,470,30,GREEN),CT(430,560,"writes + runs code",24,GREEN)]
+    g+=ARR(490,470,1110,470,GREEN,5)+[CT(760,430,"reaches in — makes a rule part of reality",24,SOFT)]
+    g+=[CT(960,860,"it makes them WIZARDS —",30,AMBER,weight="bold"),CT(960,908,"the force behind everything the machine enforces here",28,SOFT)]
+    return g
+def f_maxim(stage=2):
+    g=[CT(960,150,"what can be enforced by code, shall be enforced by code",40,WHITE,weight="bold"),CT(960,210,"— the maxim —",24,AMBER)]
+    if stage>=2:
+        for (name,desc,x) in [("UNIFORM","the same for everyone,\nevery time",470),("INCORRUPTIBLE","no discretion to bend it,\nno one to bribe",960),("TRANSPARENT","nothing hidden",1450)]:
+            g+=[R(x-190,320,380,180,GREEN,4),CT(x,378,name,30,GREEN,weight="bold")]
+            for j,ln in enumerate(desc.split("\n")): g+=[CT(x,430+j*36,ln,22,SOFT)]
+        g+=[CT(960,600,"in a way no human enforcer can be",26,SOFT),CT(960,900,"so wherever a rule CAN be code, it is — and it's out of anyone's hands",28,WHITE)]
+    return g
+def f_administration():
+    g=[CT(960,110,"the executive is the whole administration — headed by the PM",36,SOFT)]
+    g+=rings(360,430,60,(WHITE,WHITE,WHITE),labels=False)[0]+[CT(360,560,"the legislature",22,SOFT)]
+    g+=ARR(470,430,640,430,GREEN,5)+[CT(560,390,"elects",22,GREEN)]
+    g+=[C(760,430,52,WHITE,4),CT(760,442,"PM",30,WHITE,weight="bold"),CT(760,560,"backed by the chambers",20,SOFT)]
+    g+=ARR(820,430,990,430,AMBER,5)+[CT(905,390,"grants",22,AMBER)]
+    for y in [360,430,500]: g+=[person(1090,y,20,AMBER)]
+    g+=[CT(1090,570,"wizards — write + run code",20,SOFT)]
+    g+=[CT(1440,380,"+ the administration",22,SOFT),CT(1440,420,"institutions, the day-to-day,",20,SOFT),CT(1440,456,"the human half",20,SOFT)]
+    g+=[CT(960,940,"hold the legislature, and you hold the executive",30,WHITE)]
+    return g
+def f_sortition(stage=2):
+    g=[CT(960,110,"the judiciary — no seat to appoint, drawn by lot",36,SOFT)]
+    pc=(400,410)
+    for k in range(16):
+        a=math.radians(k*(360/16)); g+=[person(pc[0]+130*math.cos(a),pc[1]+130*math.sin(a)*0.9,10,STEEL)]
+    g+=[CT(pc[0],pc[1]+195,"the citizens — past a seniority bar",22,SOFT)]
+    g+=[R(pc[0]-38,700,76,16,CORAL,3),R(pc[0]-38,642,14,58,CORAL,3),L(pc[0]-70,650,pc[0]+70,760,CORAL,5),L(pc[0]+70,650,pc[0]-70,760,CORAL,5),CT(pc[0],810,"no seat to capture",22,CORAL)]
+    g+=ARR(575,410,735,410,GREEN,5)+[CT(655,370,"drawn",22,GREEN),CT(655,450,"by lot",22,GREEN)]
+    g+=[R(810,320,220,180,WHITE,3),CT(920,300,"a panel",22,SOFT)]
+    for (dx,dy) in [(60,60),(110,50),(85,110),(150,95)]: g+=[person(810+dx,320+dy,13,GREEN)]
+    if stage>=2:
+        g+=ARR(1040,410,1160,410,SOFT,4)
+        g+=[R(1180,300,440,110,GREEN,3),CT(1400,342,"code review —",24,GREEN),CT(1400,380,"did the law come true?",22,SOFT)]
+        g+=[R(1180,450,440,110,AMBER,3),CT(1400,492,"the appeal —",24,AMBER),CT(1400,530,"was the call fair?",22,SOFT)]
+    g+=[CT(960,940,"a chosen judge is a captured judge — no bench to lobby or pack",30,WHITE)]
+    return g
+
+CH5=[
+ ("ch5-01-branches", master(level=4, title="turning a decision into a running system — the three branches")),  # 1
+ ("ch5-02-pipeline-stations", f_pipeline(1)),   # 1  decide · build · check  [hero]
+ ("ch5-03-pipeline-ships", f_pipeline(2)),      # 1  conforms → ships
+ ("ch5-04-pipeline-remand", f_pipeline(3)),     # 1/5  misses → remand
+ ("ch5-05-enforce-after", f_enforce(1)),        # 2  every gov enforces after the fact…
+ ("ch5-06-enforce", f_enforce(2)),              # 2  …here it just can't happen
+ ("ch5-07-wizard", f_wizard()),                 # 2  writing the code makes you a wizard
+ ("ch5-08-maxim", f_maxim(1)),                  # 3  the maxim
+ ("ch5-09-maxim-why", f_maxim(2)),              # 3  uniform · incorruptible · transparent
+ ("ch5-10-fork", f_fork()),                     # 3  code handles the mechanical; people the rest
+ ("ch5-11-admin", f_administration()),          # 4  PM: elected by the legislature, grants wizardhood
+ ("ch5-12-sortition", f_sortition(1)),          # 5  drawn by lot, no seat to capture
+ ("ch5-13-sortition-checks", f_sortition(2)),   # 5  checks both — code review + appeal
+]
+
 # ================= CH 1 — THE HERO MONTAGE =================
 CH1=[
  ("ch1-01-hub", f_hub()),                                              # 0  tools route through one point
@@ -506,7 +578,7 @@ def emit(name,parts):
         subprocess.run(["convert","-background","none","-density","96",sp,"-resize","3840x2160",pp],check=False)
     print("  ",name)
 
-ALL=CH1+CH2+CH3+CH4
+ALL=CH1+CH2+CH3+CH4+CH5
 if __name__=="__main__":
     print(f"{len(ALL)} frames -> {OUT_PNG}")
     for n,p in ALL: emit(n,p)
