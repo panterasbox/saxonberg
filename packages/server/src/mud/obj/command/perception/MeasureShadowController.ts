@@ -9,7 +9,6 @@ import type { CommandContext, CommandModel } from '../../../api/command';
 import type { Stuff } from '../../../lib/stuff/Stuff';
 import type { Container } from '../../../lib/spatial/Container';
 import { MixinApi } from '../../../api/mixin';
-import { ContainmentApi } from '../../../api/containment';
 import { MessageApi } from '../../../api/message';
 import { Mml } from '../../../api/mml';
 import { CelestialApi } from '../../../api/celestial';
@@ -25,7 +24,7 @@ export default class MeasureShadowController extends CommandController<MeasureSh
   async execute(_model: MeasureShadowModel, ctx: CommandContext): Promise<void> {
     const giver = ctx.commandGiver;
     const inv = MixinApi.isContainer(giver)
-      ? ContainmentApi.getContents(giver as Stuff & Container)
+      ? (giver as Stuff & Container).getContents()
       : [];
     if (!inv.some((i) => i instanceof Sundial)) {
       ctx.note({

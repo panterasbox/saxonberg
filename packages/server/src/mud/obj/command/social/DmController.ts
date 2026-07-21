@@ -14,7 +14,8 @@
  * requirements doc's acceptance criteria.
  *
  * Transmission routes through the hosted **comms update** (the
- * `commandSource` that afforded `dm`, or a `findReachable` fallback),
+ * `commandSource` that afforded `dm`, or an MQL `reachable`-pool
+ * fallback),
  * which sends on behalf of its operator (the speaker). Cohort state
  * (`getLastInboundCohort` / `getLastOutboundCohort`) lives on the comms
  * update and is stamped automatically by `tell` — no controller-side
@@ -35,9 +36,9 @@ import type {
 } from '../../../api/command';
 import { MessageApi } from '../../../api/message';
 import { MixinApi } from '../../../api/mixin';
-import { ContainmentApi } from '../../../api/containment';
 import type { Comms } from '../../../lib/comms/Comms';
 import type { Stuff } from '../../../lib/stuff/Stuff';
+import { MqlApi } from '../../../api/mql';
 import type { MqlManyResult } from '../../../api/mql';
 import { Mml } from '../../../api/mml';
 import { ChatApi } from '../../../api/chat';
@@ -45,16 +46,17 @@ import { ChatApi } from '../../../api/chat';
 /**
  * Resolve the operator's hosted comms update — preferring the
  * `commandSource` that afforded the verb (the comms update, when
- * dispatched through the recency stack), else a `findReachable`
- * host-descent fallback. `null` when attuned but update-less.
+ * dispatched through the recency stack), else the MQL `reachable`-pool
+ * fallback. `null` when attuned but update-less.
  */
 function resolveComms(context: CommandContext): (Stuff & Comms) | null {
   const source = context.commandSource;
   if (source && MixinApi.isComms(source)) return source;
-  return ContainmentApi.findReachable(
-    context.commandGiver,
-    null,
-    (s: Stuff): s is Stuff & Comms => MixinApi.isComms(s),
+  return (
+    MqlApi.resolveMany('person', {
+      commandGiver: context.commandGiver,
+      scope: 'person',
+    }).stuff.find((s): s is Stuff & Comms => MixinApi.isComms(s)) ?? null
   );
 }
 

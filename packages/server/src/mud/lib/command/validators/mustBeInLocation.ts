@@ -22,7 +22,6 @@
 
 import type { Stuff } from '../../stuff/Stuff';
 import type { FieldValidator } from '../../../api/command';
-import { ContainmentApi } from '../../../api/containment';
 import { MqlApi } from '../../../api/mql';
 
 const validator: FieldValidator = (value, field, context) => {
@@ -34,7 +33,7 @@ const validator: FieldValidator = (value, field, context) => {
   // No location → nothing is "here", so every bound stuff fails the
   // membership check below and gets the "you don't see X here" message.
   const locationIds = new Set(
-    (location ? ContainmentApi.getContents(location) : []).map(
+    (location ? location.getContents() : []).map(
       (s) => s.stuffId,
     ),
   );

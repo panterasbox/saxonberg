@@ -36,6 +36,7 @@ import Material from "../../../lib/material/Material";
 import { Construction } from "../../../lib/material/Construction";
 import { ContainerMixin } from "../../../lib/spatial/Container";
 import { ContainmentApi } from "../../../api/containment";
+import { ProxyApi } from "../../../api/proxy";
 import { StuffApi } from "../../../api/stuff";
 import { SchedulerApi } from "../../../api/scheduler";
 import { ConditionApi } from "../../../api/condition";
@@ -45,7 +46,6 @@ import { CombatTerms, type TermsProposal } from "../../../lib/combat/CombatTerms
 import {
   COMBAT_PARTICIPANT_TYPE,
   CombatSession,
-  CombatParticipantHold,
 } from "../../../lib/combat/CombatSession";
 import { PartyApi } from "../../../api/party";
 import { PartyMemberMixin } from "../../../lib/party/PartyMember";
@@ -215,10 +215,6 @@ beforeEach(async () => {
   installV1QuantityMarshallers();
   StuffApi.clearAll();
   SchedulerApi._clearAllForTesting();
-  SchedulerApi.registerActivity(
-    COMBAT_PARTICIPANT_TYPE,
-    CombatParticipantHold,
-  );
   await bootRegistry();
 });
 
@@ -441,14 +437,18 @@ describe("CombatLogic — the exchange writes consequence", () => {
 });
 
 describe("CombatLogic — melee (sides + join)", () => {
-  /** Seed a two-member ad-hoc Party Idea straight into the graph. */
+  /** Seed a two-member ad-hoc Party Idea straight into the graph. Party
+   * mechanics aren't under test here — combat just needs a rostered side
+   * — so the fixture writes the raw target past the participant-gated
+   * mutation surface (the sanctioned RAW_TARGET test seam). */
   function seedParty(a: TestFighter, b: TestFighter): void {
     const p = makeStuff(() => new Party());
     stampTemplatePathForTest(p, `/obj/party/crew-${seq++}`);
-    p.setName(`crew-${seq++}`);
-    p.setCombatSide("faction:allies");
-    p.addMember(a.getTemplatePath()!);
-    p.addMember(b.getTemplatePath()!);
+    const raw = ProxyApi.unwrap(p) as Party;
+    raw.setName(`crew-${seq++}`);
+    raw.setCombatSide("faction:allies");
+    raw.addMember(a.getTemplatePath()!);
+    raw.addMember(b.getTemplatePath()!);
     const path = p.getTemplatePath()!;
     (a as unknown as { activePartyPath: string }).activePartyPath = path;
     (b as unknown as { activePartyPath: string }).activePartyPath = path;

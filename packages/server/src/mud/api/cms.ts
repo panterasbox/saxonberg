@@ -23,9 +23,9 @@
 
 import { StuffApi } from './stuff';
 import { HotReloadApi } from './hot-reload';
-import { SecurityApi } from './security';
 import { CmsLogic } from '../obj/api/CmsLogic';
 import { fileURLToPath } from 'url';
+import { SecurityApi } from './security';
 import type {
   CmsBackend,
   CmsTreeListing,

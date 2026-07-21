@@ -55,7 +55,7 @@ export default class AnalyzeLightController extends CommandController<AnalyzeLig
     }
     const loc = target.stuff as Stuff & Container;
     const vision = PerceptionApi.modalityByName('vision');
-    const light = (PerceptionApi.signalAt(loc, vision) as Light | null) ?? Light.ZERO;
+    const light = (vision.signalAt(loc) as Light | null) ?? Light.ZERO;
 
     const lines: Mml[] = [];
     lines.push(Mml.compose`Light analysis at ${Mml.location(loc)}:`);

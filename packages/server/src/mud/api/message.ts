@@ -34,10 +34,10 @@ import type {
 } from '@saxonberg/types';
 import { StuffApi } from './stuff';
 import { HotReloadApi } from './hot-reload';
-import { SecurityApi } from './security';
 import { MessageLogic } from '../obj/api/MessageLogic';
 import type { Scene } from '../lib/message/Scene';
 import { fileURLToPath } from 'url';
+import { SecurityApi } from './security';
 
 export { Scene } from '../lib/message/Scene';
 

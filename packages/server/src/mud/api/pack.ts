@@ -31,9 +31,9 @@
 
 import { StuffApi } from './stuff';
 import { HotReloadApi } from './hot-reload';
-import { SecurityApi } from './security';
 import { PackLogic } from '../obj/api/PackLogic';
 import { fileURLToPath } from 'url';
+import { SecurityApi } from './security';
 
 /** A content pack's manifest (`pack.yaml`). */
 export interface PackManifest {

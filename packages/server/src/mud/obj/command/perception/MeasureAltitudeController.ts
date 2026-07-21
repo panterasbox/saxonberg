@@ -14,7 +14,6 @@ import type { CommandContext, CommandModel } from '../../../api/command';
 import type { Stuff } from '../../../lib/stuff/Stuff';
 import type { Container } from '../../../lib/spatial/Container';
 import { MixinApi } from '../../../api/mixin';
-import { ContainmentApi } from '../../../api/containment';
 import { MessageApi } from '../../../api/message';
 import { BiomeApi } from '../../../api/biome';
 import { Mml } from '../../../api/mml';
@@ -45,7 +44,7 @@ export default class MeasureAltitudeController extends CommandController<Measure
       return;
     }
     const inv = MixinApi.isContainer(giver)
-      ? ContainmentApi.getContents(giver as Stuff & Container)
+      ? (giver as Stuff & Container).getContents()
       : [];
     if (!inv.some((i) => i instanceof Altimeter)) {
       ctx.note({
@@ -138,7 +137,7 @@ export default class MeasureAltitudeController extends CommandController<Measure
   ): Promise<void> {
     const giver = ctx.commandGiver;
     const inv = MixinApi.isContainer(giver)
-      ? ContainmentApi.getContents(giver as Stuff & Container)
+      ? (giver as Stuff & Container).getContents()
       : [];
     if (!inv.some((i) => i instanceof Sextant)) {
       ctx.note({

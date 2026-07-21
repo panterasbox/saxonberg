@@ -1,3 +1,4 @@
+import { SecurityApi } from './security';
 /**
  * PathPatternApi - generic glob matcher for path-shaped strings.
  *
@@ -21,7 +22,6 @@
  * {@link PathPatternApi.compile} for the regex backend.
  */
 
-import { SecurityApi } from './security';
 
 export class PathPatternApi {
   private constructor() {}
@@ -78,8 +78,6 @@ export class PathPatternApi {
   }
 }
 
-SecurityApi.decorateApiClass(PathPatternApi);
-
 /**
  * The {@link PathTrie} collection now lives in `lib/collections/`
  * (a `lib/` value-object, not Api surface). Value re-exported here so
@@ -87,3 +85,5 @@ SecurityApi.decorateApiClass(PathPatternApi);
  * importers should import it from `lib/collections/PathTrie` directly.
  */
 export { PathTrie } from '../lib/collections/PathTrie';
+
+SecurityApi.decorateApiClass(PathPatternApi);

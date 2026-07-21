@@ -27,11 +27,19 @@
 import type { CommandValidator } from '../../../api/command';
 import { OfficeApi } from '../../../api/office';
 
-const validator: CommandValidator<boolean> = (_context, allowed) => {
+// Split declaration: the annotated body const gives the arrow its
+// contextual typing; `Object.assign` in the initializer keeps the
+// whole thing a pure declaration (no free-standing module-scope
+// statement). The preload rides the validator function as a
+// property, same shape as before.
+const body: CommandValidator<boolean> = (_context, allowed) => {
   if (allowed) return undefined;
   return 'only the founder may seat or unseat officeholders';
 };
-
-validator.preload = (context) => OfficeApi.isFounder(context.commandGiver);
+const preload: NonNullable<CommandValidator<boolean>['preload']> =
+  (context) => OfficeApi.isFounder(context.commandGiver);
+const validator: CommandValidator<boolean> = Object.assign(body, {
+  preload,
+});
 
 export default validator;

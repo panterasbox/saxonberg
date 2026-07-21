@@ -46,10 +46,6 @@ import { SensorMixin } from '../../../lib/message/Sensor';
 import { ContainableMixin } from '../../../lib/spatial/Containable';
 import { EngagedMixin } from '../../../lib/activity/Engaged';
 import { BeliefStoreMixin } from '../../../lib/belief/BeliefStore';
-import {
-  SearchActivity,
-  SEARCH_ACTIVITY_TYPE,
-} from '../../../lib/concealment/SearchActivity';
 import { makeStuff } from '../../../lib/security/__tests__/test-setup';
 
 const PH = '/lib/persistence/PersistentHydrator';
@@ -169,7 +165,6 @@ describe('bar office reveal — search unlocks the concealed north exit', () => 
     WorldClockApi.setScale(1);
     WorldClockApi._setNowProviderForTesting(() => 1000);
     SchedulerApi._clearAllForTesting();
-    SchedulerApi.registerActivity(SEARCH_ACTIVITY_TYPE, SearchActivity as never);
     const reg = await StuffApi.create(() => {
       const r = new EventRegistry();
       Stuff._stampTemplatePath(r, '/obj/EventRegistry');

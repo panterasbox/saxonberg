@@ -25,11 +25,11 @@ import type { WeaponProfile } from "../lib/combat/WeaponProfile";
 import type { RangeState } from "../lib/combat/CombatGraph";
 
 export type { BlameVerdict } from "../lib/accountability/AccountabilityEvent";
-import { SecurityApi } from "./security";
 import { StuffApi } from "./stuff";
 import { HotReloadApi } from "./hot-reload";
 import { CombatLogic } from "../obj/api/CombatLogic";
 import { fileURLToPath } from "url";
+import { SecurityApi } from './security';
 
 /** Result of opening a session. */
 export type OpenSessionResult =

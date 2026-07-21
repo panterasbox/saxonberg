@@ -32,9 +32,9 @@ import type { Energized } from '../lib/electricity/Energized';
 import type { Quantity } from '../lib/quantity';
 import { StuffApi } from './stuff';
 import { HotReloadApi } from './hot-reload';
-import { SecurityApi } from './security';
 import { ElectricityLogic } from '../obj/api/ElectricityLogic';
 import { fileURLToPath } from 'url';
+import { SecurityApi } from './security';
 
 /** One body reached by a conduction event: who, and the current through it. */
 export interface ConductionOutcome {

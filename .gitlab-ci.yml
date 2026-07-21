@@ -92,6 +92,13 @@ lint:
     - pnpm -C packages/server lint:does-nothing
     # Weapon-playstyle legibility: no seeded weapon derives an inert profile.
     - pnpm -C packages/server lint:inert-weapon
+    # No-module-scope-statements rule: module scope declares; lifecycles
+    # initialize (the 2026-07 antipattern sweep's tripwire).
+    - pnpm -C packages/server lint:module-scope
+    # MQL is how you search: no bespoke getAllObjects() scans.
+    - pnpm -C packages/server lint:world-scan
+    # No thin Api wrapper around a single object method.
+    - pnpm -C packages/server lint:thin-forwarder
 
 test:
   extends: [.node, .mr-only]

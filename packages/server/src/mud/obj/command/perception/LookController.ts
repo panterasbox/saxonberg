@@ -357,7 +357,7 @@ export default class LookController extends CommandController<LookModel> {
     // actually turns something up; a deliberate over-a-place scan
     // that ties up your hands and takes time is `search`.
     if (MixinApi.isContainer(target)) {
-      const contents = [...ContainmentApi.getContents(target)];
+      const contents = [...target.getContents()];
       if (contents.length > 0) {
         // Warm the `awareness` band so the glance reads a live snapshot.
         await PerceptionApi.preloadForSenseGate(actor);

@@ -24,7 +24,6 @@ import type { Reserved } from '../reserve';
 import type { Container } from '../spatial/Container';
 import { Quantity } from '../quantity';
 import { MixinApi } from '../../api/mixin';
-import { MaterialApi } from '../../api/material';
 import { ThermalApi } from '../../api/thermal';
 import { StuffApi } from '../../api/stuff';
 import { WorldClockApi } from '../../api/worldclock';
@@ -178,7 +177,7 @@ export function FurnaceMixin<TBase extends MixinConstructor<Stuff>>(
         if (!MixinApi.isThermal(s) || !MixinApi.isMeltable(s)) continue;
         const temp = s.getTemperature().rawValue();
         if (temp >= held) continue; // already at the furnace's heat
-        const mat = MaterialApi.materialOf(s);
+        const mat = MixinApi.isTangible(s) ? s.getMaterial() : null;
         const massKg = (s as unknown as { getMass(): Quantity<'kg'> })
           .getMass()
           .rawValue();

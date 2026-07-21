@@ -36,6 +36,7 @@ import {
 } from "../../../../api/command";
 import type { Stuff } from "../../../../lib/stuff/Stuff";
 import type { Container } from "../../../../lib/spatial/Container";
+import type { AetherHosted } from "../../../../lib/augmentation/AetherHosted";
 import type { CredentialWallet } from "../../../../lib/credential/CredentialWallet";
 import type { FastTravel } from "../../../../lib/fasttravel/FastTravel";
 import { makeStuff } from "../../../../lib/security/__tests__/test-setup";
@@ -153,11 +154,16 @@ function makeTraveller(name: string): Traveller {
 }
 
 function identityTravel(t: Stuff): CredentialWallet {
-  const w = ContainmentApi.findHostedUpdate(
-    t,
-    (s: Stuff): s is Stuff & CredentialWallet =>
-      MixinApi.isCredentialWallet(s) && !!s.getCredential("travel"),
-  );
+  // A single-object read on the traveller's own hosted updates (the old
+  // findHostedUpdate leg-2 isolation, now a direct read).
+  const w = MixinApi.isAether(t)
+    ? (t
+        .getHostedUpdates()
+        .find(
+          (s): s is Stuff & AetherHosted & CredentialWallet =>
+            MixinApi.isCredentialWallet(s) && !!s.getCredential("travel"),
+        ) ?? null)
+    : null;
   if (!w) throw new Error("no identity wallet");
   return w;
 }

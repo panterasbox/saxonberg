@@ -261,48 +261,84 @@ function registerConverter(
   row.set(to, fn);
 }
 
-// `g ↔ kg` for mass authoring (`mass: "12000 g"` → 12 kg).
-registerConverter('g', 'kg', (n) => n / 1000);
-registerConverter('kg', 'g', (n) => n * 1000);
+/** One-shot guard for {@link ensureDefaultRegistrations}. */
+let defaultsRegistered = false;
 
-// Vitals: `mmHg ↔ Pa` (blood pressure) and `L ↔ m³` (blood volume).
-// `bpm` is its own rate axis with no converter (pulse vs respiration is
-// a tag-scale distinction, not a unit conversion).
-registerConverter('mmHg', 'Pa', (n) => n * 133.322368);
-registerConverter('Pa', 'mmHg', (n) => n / 133.322368);
-registerConverter('L', 'm³', (n) => n / 1000);
-registerConverter('m³', 'L', (n) => n * 1000);
+/**
+ * Populate the default converters and the substrate-declared tag
+ * scales on first use. Lazy-init keeps this module free of
+ * module-scope statements (the no-free-standing-statements rule) at
+ * the cost of one boolean check per registry read. Called by every
+ * read/mutation path that touches the converter or tag-table maps,
+ * so observable behavior matches the old at-import registration.
+ */
+function ensureDefaultRegistrations(): void {
+  if (defaultsRegistered) return;
+  // Set the flag first: `Quantity.registerTagTable` below re-enters
+  // this guard and must see it already satisfied.
+  defaultsRegistered = true;
 
-// Bulk liquid volume: `mL` and `cup` round-trip against the canonical
-// bulk-slot unit `L`. One US-customary cup is 236.5882365 mL. The bulk
-// substrate stores every liquid amount as `Quantity<'L'>`; authored or
-// player-typed `cup` / `mL` measures convert to `L` at the boundary
-// (`Quantity.parse` / `Quantity.to`).
-registerConverter('mL', 'L', (n) => n / 1000);
-registerConverter('L', 'mL', (n) => n * 1000);
-registerConverter('cup', 'L', (n) => n * 0.2365882365);
-registerConverter('L', 'cup', (n) => n / 0.2365882365);
+  // `g ↔ kg` for mass authoring (`mass: "12000 g"` → 12 kg).
+  registerConverter('g', 'kg', (n) => n / 1000);
+  registerConverter('kg', 'g', (n) => n * 1000);
 
-// Sub-gram mass: `mg ↔ g` for toxin / nutrient authored amounts and the
-// absorbed-dose math (metabolism).
-registerConverter('mg', 'g', (n) => n / 1000);
-registerConverter('g', 'mg', (n) => n * 1000);
+  // Vitals: `mmHg ↔ Pa` (blood pressure) and `L ↔ m³` (blood volume).
+  // `bpm` is its own rate axis with no converter (pulse vs respiration
+  // is a tag-scale distinction, not a unit conversion).
+  registerConverter('mmHg', 'Pa', (n) => n * 133.322368);
+  registerConverter('Pa', 'mmHg', (n) => n / 133.322368);
+  registerConverter('L', 'm³', (n) => n / 1000);
+  registerConverter('m³', 'L', (n) => n * 1000);
 
-// Electricity coursework scales round-trip to the base SI unit. `S/m`
-// (conductivity, the material axis) is a base axis with no converter,
-// like `bpm`. Voltage `kV`/`mV ↔ V`, current `mA ↔ A`, resistance
-// `kΩ`/`MΩ ↔ Ω` — so `Quantity.parse('50 kV', 'V')` = 50000 V and a
-// `10 mA` authored current hydrates as `0.01 A`.
-registerConverter('kV', 'V', (n) => n * 1000);
-registerConverter('V', 'kV', (n) => n / 1000);
-registerConverter('mV', 'V', (n) => n / 1000);
-registerConverter('V', 'mV', (n) => n * 1000);
-registerConverter('mA', 'A', (n) => n / 1000);
-registerConverter('A', 'mA', (n) => n * 1000);
-registerConverter('kΩ', 'Ω', (n) => n * 1000);
-registerConverter('Ω', 'kΩ', (n) => n / 1000);
-registerConverter('MΩ', 'Ω', (n) => n * 1_000_000);
-registerConverter('Ω', 'MΩ', (n) => n / 1_000_000);
+  // Bulk liquid volume: `mL` and `cup` round-trip against the
+  // canonical bulk-slot unit `L`. One US-customary cup is 236.5882365
+  // mL. The bulk substrate stores every liquid amount as
+  // `Quantity<'L'>`; authored or player-typed `cup` / `mL` measures
+  // convert to `L` at the boundary (`Quantity.parse` / `Quantity.to`).
+  registerConverter('mL', 'L', (n) => n / 1000);
+  registerConverter('L', 'mL', (n) => n * 1000);
+  registerConverter('cup', 'L', (n) => n * 0.2365882365);
+  registerConverter('L', 'cup', (n) => n / 0.2365882365);
+
+  // Sub-gram mass: `mg ↔ g` for toxin / nutrient authored amounts and
+  // the absorbed-dose math (metabolism).
+  registerConverter('mg', 'g', (n) => n / 1000);
+  registerConverter('g', 'mg', (n) => n * 1000);
+
+  // Electricity coursework scales round-trip to the base SI unit.
+  // `S/m` (conductivity, the material axis) is a base axis with no
+  // converter, like `bpm`. Voltage `kV`/`mV ↔ V`, current `mA ↔ A`,
+  // resistance `kΩ`/`MΩ ↔ Ω` — so `Quantity.parse('50 kV', 'V')` =
+  // 50000 V and a `10 mA` authored current hydrates as `0.01 A`.
+  registerConverter('kV', 'V', (n) => n * 1000);
+  registerConverter('V', 'kV', (n) => n / 1000);
+  registerConverter('mV', 'V', (n) => n / 1000);
+  registerConverter('V', 'mV', (n) => n * 1000);
+  registerConverter('mA', 'A', (n) => n / 1000);
+  registerConverter('A', 'mA', (n) => n * 1000);
+  registerConverter('kΩ', 'Ω', (n) => n * 1000);
+  registerConverter('Ω', 'kΩ', (n) => n / 1000);
+  registerConverter('MΩ', 'Ω', (n) => n * 1_000_000);
+  registerConverter('Ω', 'MΩ', (n) => n / 1_000_000);
+
+  // ---------- substrate-declared tag-scale registrations ----------
+  // Registered here (rather than from a channel module) because the
+  // unit + its scale are declared together in this substrate file.
+  // The blood-alcohol "drunk ladder" — a `'bac'` scale on `g/dL`
+  // (metabolism's alcohol exemplar reads `getBAC()` against it).
+  // Ascending thresholds; `Quantity.of(bac, 'g/dL').tag('bac')` names
+  // the rung and `compareTag('g/dL', a, b, 'bac')` orders them. Same
+  // scale-tag mechanism as the lux light bands / future thermal-K
+  // scale.
+  Quantity.registerTagTable('g/dL', 'bac', [
+    { tag: 'sober', threshold: 0 },
+    { tag: 'tipsy', threshold: 0.03 },
+    { tag: 'drunk', threshold: 0.08 },
+    { tag: 'very-drunk', threshold: 0.15 },
+    { tag: 'incapacitated', threshold: 0.25 },
+    { tag: 'life-threatening', threshold: 0.4 },
+  ]);
+}
 
 /**
  * Thrown by same-unit math when a cast bypasses the compile-time
@@ -329,6 +365,7 @@ export class QuantityUnitMismatchError extends Error {
  * scale is registered for the unit at all.
  */
 function resolveScaleName(unit: Unit, scaleName?: ScaleName): ScaleName | null {
+  ensureDefaultRegistrations();
   if (scaleName !== undefined) return scaleName;
   return defaultScaleByUnit.get(unit) ?? null;
 }
@@ -503,6 +540,7 @@ export class Quantity<U extends Unit> {
       if (literalUnit === targetUnit) {
         return Quantity.of(n, targetUnit);
       }
+      ensureDefaultRegistrations();
       const converter = unitConverters.get(literalUnit)?.get(targetUnit);
       if (!converter) {
         throw new Error(
@@ -560,6 +598,10 @@ export class Quantity<U extends Unit> {
     scaleName: ScaleName,
     entries: ReadonlyArray<TagTableEntry>
   ): void {
+    // Run the default registrations first so registration order (and
+    // with it the first-scale-becomes-default rule) matches the old
+    // at-import behavior.
+    ensureDefaultRegistrations();
     // Sort ascending by threshold so `tagFor` can walk descending
     // deterministically and `thresholdFor` reads the registered
     // values back unchanged.
@@ -588,6 +630,7 @@ export class Quantity<U extends Unit> {
     unit: Unit,
     scaleName: ScaleName
   ): void {
+    ensureDefaultRegistrations();
     const scales = tagTableRegistry.get(unit);
     if (!scales || !scales.has(scaleName)) {
       throw new Error(
@@ -604,6 +647,7 @@ export class Quantity<U extends Unit> {
    * from the YAML, and by tests to reset registry state.
    */
   public static _clearTagTable(unit: Unit, scaleName?: ScaleName): void {
+    ensureDefaultRegistrations();
     if (scaleName === undefined) {
       tagTableRegistry.delete(unit);
       defaultScaleByUnit.delete(unit);
@@ -636,6 +680,7 @@ export class Quantity<U extends Unit> {
     unit: Unit;
     scaleName: ScaleName;
   }> {
+    ensureDefaultRegistrations();
     const out: Array<{ unit: Unit; scaleName: ScaleName }> = [];
     for (const [unit, scales] of tagTableRegistry) {
       for (const scaleName of scales.keys()) {
@@ -647,6 +692,7 @@ export class Quantity<U extends Unit> {
 
   /** Inspect the registered default scale for a unit; null if unset. */
   public static _defaultScaleFor(unit: Unit): ScaleName | null {
+    ensureDefaultRegistrations();
     return defaultScaleByUnit.get(unit) ?? null;
   }
 
@@ -792,6 +838,7 @@ export class Quantity<U extends Unit> {
     if (targetUnit === this.unit) {
       return this as Quantity<Unit>;
     }
+    ensureDefaultRegistrations();
     const converter = unitConverters.get(this.unit)?.get(targetUnit);
     if (!converter) {
       throw new Error(
@@ -916,20 +963,3 @@ export class Quantity<U extends Unit> {
     }
   }
 }
-
-// ---------- module-load tag-scale registrations ----------
-// Registered here (after the class) rather than from a channel module
-// because the unit + its scale are declared together in this substrate
-// file. The blood-alcohol "drunk ladder" — a `'bac'` scale on `g/dL`
-// (metabolism's alcohol exemplar reads `getBAC()` against it). Ascending
-// thresholds; `Quantity.of(bac, 'g/dL').tag('bac')` names the rung and
-// `compareTag('g/dL', a, b, 'bac')` orders them. Same scale-tag
-// mechanism as the lux light bands / future thermal-K scale.
-Quantity.registerTagTable('g/dL', 'bac', [
-  { tag: 'sober', threshold: 0 },
-  { tag: 'tipsy', threshold: 0.03 },
-  { tag: 'drunk', threshold: 0.08 },
-  { tag: 'very-drunk', threshold: 0.15 },
-  { tag: 'incapacitated', threshold: 0.25 },
-  { tag: 'life-threatening', threshold: 0.4 },
-]);

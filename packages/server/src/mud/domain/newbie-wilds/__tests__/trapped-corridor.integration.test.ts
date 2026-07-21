@@ -372,27 +372,27 @@ describe('The Sunken Delve — content discipline (the required invariant)', () 
 
     // vestibule -> corridor-1 (the hidden dart springs: wounded, not blocked)
     await m.traverse(exit('vestibule', 'north'), 'walk');
-    expect(ContainmentApi.getContainer(m)).toBe(room('corridor-1'));
+    expect(m.getContainer()).toBe(room('corridor-1'));
     expect(trapIn('corridor-1').getHazardState()).toBe('sprung');
 
     // corridor-1 -> corridor-2 (the hidden pit springs: DROP to the pit-below)
     await m.traverse(exit('corridor-1', 'north'), 'walk');
-    expect(ContainmentApi.getContainer(m)).toBe(room('pit-below'));
+    expect(m.getContainer()).toBe(room('pit-below'));
     expect(trapIn('corridor-2').getHazardState()).toBe('sprung');
 
     // recover: climb up (the pit is spent — re-crossing does not re-drop)
     await m.traverse(exit('pit-below', 'up'), 'walk');
-    expect(ContainmentApi.getContainer(m)).toBe(room('corridor-2'));
+    expect(m.getContainer()).toBe(room('corridor-2'));
 
     // corridor-2 -> corridor-3 (the subtle blade trips: knocked prone)
     await m.traverse(exit('corridor-2', 'north'), 'walk');
-    expect(ContainmentApi.getContainer(m)).toBe(room('corridor-3'));
+    expect(m.getContainer()).toBe(room('corridor-3'));
     expect(m.getPosture()).toBe(Postures.Lie);
     m.setPosture(Postures.Stand); // pick yourself up
 
     // corridor-3 -> the vault: the destination is REACHED
     await m.traverse(exit('corridor-3', 'north'), 'walk');
-    expect(ContainmentApi.getContainer(m)).toBe(room('vault'));
+    expect(m.getContainer()).toBe(room('vault'));
 
     // ...and NO secret was discovered along the plainly-visible path.
     const secret = (room('corridor-1') as unknown as {
@@ -507,7 +507,7 @@ describe('The Sunken Delve — armor + medium', () => {
     pit.resolveTraversal(m, 'fly');
     expect(pit.isArmed()).toBe(true); // flew over it — never sprang
     expect(wound(m)).toBeUndefined();
-    expect(ContainmentApi.getContainer(m)).toBe(room('corridor-2')); // no drop
+    expect(m.getContainer()).toBe(room('corridor-2')); // no drop
   });
 });
 

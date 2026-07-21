@@ -27,9 +27,9 @@ import type {
   HelpSearchResult,
 } from "@saxonberg/types";
 import { StuffApi } from "./stuff";
-import { SecurityApi } from "./security";
 import { TemplatePaths } from "../lib/paths";
 import type HelpCatalogue from "../obj/HelpCatalogue";
+import { SecurityApi } from './security';
 
 /**
  * The viewer's capability tier. `anonymous` is the floor — sees

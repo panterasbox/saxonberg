@@ -284,18 +284,14 @@ export class Coroutine {
   private engagementIds(): ReadonlySet<string> {
     const actor = this.interp.getActor();
     if (!MixinApi.isEngaged(actor)) return new Set();
-    return new Set(
-      SchedulerApi.getEngagements(actor as Stuff & Engaged).map(
-        (e) => e.engagementId,
-      ),
-    );
+    return new Set(actor.getEngagements().map((e) => e.engagementId));
   }
 
   /** A new engagement id that appeared since `before`, or null. */
   private newEngagementId(before: ReadonlySet<string>): string | null {
     const actor = this.interp.getActor();
     if (!MixinApi.isEngaged(actor)) return null;
-    for (const e of SchedulerApi.getEngagements(actor as Stuff & Engaged)) {
+    for (const e of actor.getEngagements()) {
       if (!before.has(e.engagementId)) return e.engagementId;
     }
     return null;

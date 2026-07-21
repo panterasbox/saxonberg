@@ -11,7 +11,7 @@ import type { Sensor } from '../../lib/message/Sensor';
 import type { Organism } from '../../lib/species/Organism';
 import type { Perception } from '../../lib/perception/Perception';
 import { Modality } from '../../lib/perception/Modality';
-import type { Signal, Percept } from '../../lib/perception/Modality';
+import type { Percept } from '../../lib/perception/Modality';
 import { MixinApi } from '../../api/mixin';
 import { StuffApi } from '../../api/stuff';
 import { SpeciesApi } from '../../api/species';
@@ -156,12 +156,6 @@ export class PerceptionLogic extends ApiLogic {
   @CallSecurity(PerceptionApiCallers)
   public modalityByOrganKey(organKey: string): Modality | null {
     return resolveByOrganKey(organKey);
-  }
-
-  /** See {@link PerceptionApi.signalAt}. */
-  @CallSecurity(PerceptionApiCallers)
-  public signalAt(loc: Stuff & Container, modality: Modality): Signal | null {
-    return modality.signalAt(loc);
   }
 
   /** See {@link PerceptionApi.perceiveAt}. */

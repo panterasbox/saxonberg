@@ -72,7 +72,9 @@ export default class AnalyzeResponseController extends CommandController<Analyze
       return;
     }
 
-    const material = MaterialApi.materialOf(stuff);
+    const material = MixinApi.isTangible(stuff)
+      ? stuff.getMaterial()
+      : null;
     const grade = MixinApi.isGraded(stuff) ? stuff.getGrade() : undefined;
     const condition = MixinApi.isDurable(stuff)
       ? stuff.getCondition()

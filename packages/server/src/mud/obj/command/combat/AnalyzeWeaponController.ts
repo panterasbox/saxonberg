@@ -73,7 +73,7 @@ export default class AnalyzeWeaponController extends CommandController<AnalyzeWe
       ? stuff.getConstruction()
       : null;
     const channels = construction
-      ? MaterialApi.deliverableChannels(construction)
+      ? construction.deliveredChannels()
       : [];
     const delivery = channels.length ? channels.join(", ") : "—";
 

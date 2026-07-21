@@ -591,3 +591,47 @@ When in doubt: Pattern A for singleton Ideas (Material / Species /
 BodyPlan / Clade / LocomotionMode), Pattern B for everything else
 unless you specifically need cross-scope addressability for a
 singleton — in which case Pattern C.
+
+---
+
+## Identity, lineage, and backing (the antipattern-sweep doctrine)
+
+Three facts about a Stuff that the codebase historically let one field
+blur together, now named separately:
+
+- **Lineage is the class.** What kind of behavior this is, in code —
+  the thing `FromModule`, the top-level-branch check, and hot-reload
+  identity already trust. Lineage never lives in data.
+- **`templatePath` is identity.** For authored content it identifies
+  the *kind* (`/obj/exits/oak-door` — one identity, N anonymous
+  clones). For minted singletons it identifies the *instance*
+  (`/obj/party/<uuid>`, `/obj/Avatar/<playerId>`). When an instance of
+  a multi-instance kind needs its own address, the instance key is
+  **scheme-derived**, never random-per-need: the dorm extent slot
+  (`…/dorms/f<n>-r<p>`), the persistence spine's uniform
+  `(scope, key)`, an exit's relational `<sourcePath>#exit:<dir>`
+  (the concealment discovery key). New schemes follow those exemplars.
+- **A template *row* is a hydration source, and only authored content
+  gets one.** The `domain` collection is the protowizard-editable
+  authoring space — nothing else belongs in it. A minted identity
+  picks its durable backing by need:
+  - **`holder_snapshots`** (the persistence spine) when the thing is a
+    persistence host — runtime state, gated writer, never hand-edited
+    (Avatars, dorm rooms).
+  - **A purpose `Document`** when consumers need queryable fields a
+    snapshot can't index (`PartyRecord.memberIds`).
+  - **Nothing** when it's transient (`_eval`, `LightningStrike`).
+
+  A per-instance row in `domain` is the **anti-pattern** — it parks
+  runtime data in the CMS tree where hand-edits bypass call security.
+  The per-player `/obj/Avatar/<playerId>` row is the legacy instance
+  (pre-spine); its retirement is tracked work, and no new code should
+  copy it.
+
+**Template inheritance does not exist.** The near-precedents are
+path-*ancestry* as taxonomy (species clades read the path chain, not
+field data) and `Zone.lookupField` (field inheritance through the
+*zone* tree). A child template does NOT inherit a parent template's
+fields — don't author as if it does, and don't fake it locally; if
+real template-data inheritance is ever wanted, it's a deliberate
+platform feature, not a per-subsystem hack.

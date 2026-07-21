@@ -55,7 +55,6 @@ import type { Stuff } from '../lib/stuff/Stuff';
 import type { Sensor } from '../lib/message/Sensor';
 import type Exit from '../lib/boundary/Exit';
 import type { SenseChannel } from '../lib/description/Perceiver';
-import { SecurityApi } from './security';
 import { MixinApi } from './mixin';
 import { escapeText, decodeEntity } from './mml/entities';
 import { flatten as flattenInternal } from './mml/flatten';
@@ -68,6 +67,7 @@ import {
 import { parseMarkdown } from './mml/markdown';
 import { parseToTree, type MmlNode } from './mml/tree';
 import { RecognitionApi } from './recognition';
+import { SecurityApi } from './security';
 
 // Re-export the MentionResolver interface so consumers can keep
 // `import { MentionResolver } from '../mml'`.

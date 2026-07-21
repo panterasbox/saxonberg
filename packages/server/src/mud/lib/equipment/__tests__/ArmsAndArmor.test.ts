@@ -9,7 +9,6 @@ import BodyPlan from '../../species/BodyPlan';
 import { Creature } from '../../creature/Creature';
 import { Construction } from '../../material/Construction';
 import { Grade } from '../../craft/Grade';
-import { MaterialApi } from '../../../api/material';
 import { MixinApi } from '../../../api/mixin';
 import { Quantity } from '../../quantity';
 import type { Stuff } from '../../stuff/Stuff';
@@ -50,7 +49,7 @@ describe('Armor — emergent composition', () => {
     a.setConstruction(Construction.of('plate'));
     a.setGrade(Grade.of('fine'));
 
-    expect(MaterialApi.materialOf(a)!.getName()).toBe('steel');
+    expect(a.getMaterial()!.getName()).toBe('steel');
     expect(a.getConstruction()!.getForm()).toBe('plate');
     expect(a.getGrade().getBand()).toBe('fine');
 
@@ -124,15 +123,14 @@ describe('Weapon — delivery half', () => {
   it('a dagger delivers edge/point; a mace delivers blunt', () => {
     const dagger = makeStuff(() => new Weapon());
     dagger.setConstruction(Construction.of('bladed'));
-    expect(
-      MaterialApi.deliverableChannels(dagger.getConstruction()!),
-    ).toEqual(['edge', 'point']);
+    expect(dagger.getConstruction()!.deliveredChannels()).toEqual([
+      'edge',
+      'point',
+    ]);
 
     const mace = makeStuff(() => new Weapon());
     mace.setConstruction(Construction.of('hafted'));
-    expect(MaterialApi.deliverableChannels(mace.getConstruction()!)).toEqual([
-      'blunt',
-    ]);
-    expect(MaterialApi.primaryChannel(mace.getConstruction()!)).toBe('blunt');
+    expect(mace.getConstruction()!.deliveredChannels()).toEqual(['blunt']);
+    expect(mace.getConstruction()!.primaryChannel()).toBe('blunt');
   });
 });

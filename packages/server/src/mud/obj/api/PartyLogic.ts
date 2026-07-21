@@ -179,8 +179,11 @@ function fireChange(party: Party): void {
 /* ───────────────────────── member identity ───────────────────────── */
 
 /** A combatant's durable member ref: an Avatar's playerId, else its
- * templatePath (a Mercenary NPC). */
+ * templatePath. Party members answer for themselves
+ * (`PartyMember.partyMemberId`); the fallback covers the non-member
+ * combatants `sideOf` keys (rung 3). */
 function memberIdOf(s: Stuff): string {
+  if (MixinApi.isPartyMember(s)) return s.partyMemberId();
   if (PlayerApi.isAvatarStuff(s)) return s.getPlayerId() ?? "";
   return s.getTemplatePath() ?? "";
 }
@@ -259,9 +262,8 @@ async function formImpl(
   party.setFounderId(founderId);
   party.setCaptainId(founderId);
   party.setDurable(durable);
-  party.addMember(founderId);
+  party.admit(founder);
   await persistParty(party);
-  founder._setActivePartyPath(party.getTemplatePath()!);
 
   // Party chat: a channel bound to the party's own roster ref (chat is a
   // consumer of the grouping facade — no managed group minted). Best-
@@ -291,7 +293,7 @@ async function inviteImpl(
   if (invitee.getActivePartyPath()) {
     return { ok: false, reason: "target-already-in-a-party" };
   }
-  invitee._setPendingInvitePartyPath(party.getTemplatePath()!);
+  party.extendInvite(invitee);
   return { ok: true, party };
 }
 
@@ -307,9 +309,7 @@ async function acceptImpl(invitee: Stuff): Promise<PartyOpResult> {
   const party = partyAt(path);
   if (!party) return { ok: false, reason: "invite-expired" };
 
-  party.addMember(memberIdOf(invitee));
-  invitee._setActivePartyPath(path);
-  invitee._setPendingInvitePartyPath("");
+  party.admit(invitee);
   await persistParty(party);
   fireChange(party);
   return { ok: true, party };
@@ -331,8 +331,7 @@ async function enlistImpl(
   if (hiree.getActivePartyPath()) {
     return { ok: false, reason: "target-already-in-a-party" };
   }
-  party.addMember(memberIdOf(hiree));
-  hiree._setActivePartyPath(party.getTemplatePath()!);
+  party.admit(hiree);
   await persistParty(party);
   fireChange(party);
   return { ok: true };
@@ -344,8 +343,8 @@ async function leaveImpl(member: Stuff): Promise<PartySimpleResult> {
   }
   const party = activePartyOfImpl(member);
   if (!party) return { ok: false, reason: "not-in-a-party" };
-  await departFromParty(party, memberIdOf(member));
-  member._setActivePartyPath("");
+  party.release(memberIdOf(member), member);
+  await settleAfterDeparture(party);
   return { ok: true };
 }
 
@@ -362,26 +361,23 @@ async function kickImpl(
     return { ok: false, reason: "cannot-kick-self" };
   }
   if (!party.isMember(targetId)) return { ok: false, reason: "not-a-member" };
-  const path = party.getTemplatePath();
-  await departFromParty(party, targetId);
   const target = resolveMember(targetId);
-  if (target && MixinApi.isPartyMember(target)) {
-    if (target.getActivePartyPath() === path) target._setActivePartyPath("");
-  }
+  party.release(
+    targetId,
+    target && MixinApi.isPartyMember(target) ? target : null,
+  );
+  await settleAfterDeparture(party);
   return { ok: true };
 }
 
 /**
- * Remove `memberId` from `party`, handling captain succession and the
- * empty-party terminus (ad-hoc → destructed; durable → dormant). Shared by
- * leave / kick.
+ * Settle a party after `Party.release` ran a departure: the empty-party
+ * terminus (ad-hoc → destructed; durable → dormant) + persist + change
+ * fan-out. Shared by leave / kick / stand-down. The roster removal and
+ * captain succession are the party's own transition (`release`), not
+ * repeated here.
  */
-async function departFromParty(party: Party, memberId: string): Promise<void> {
-  party.removeMember(memberId);
-  if (party.isCaptain(memberId)) {
-    const heir = party.getMemberIds()[0];
-    if (heir) party.setCaptainId(heir);
-  }
+async function settleAfterDeparture(party: Party): Promise<void> {
   if (party.size() === 0) {
     if (party.isDurable()) {
       party.setCaptainId(""); // persists dormant + empty
@@ -404,12 +400,10 @@ async function disbandImpl(captain: Stuff): Promise<PartySimpleResult> {
     return { ok: false, reason: "not-the-captain" };
   }
   const path = party.getTemplatePath();
-  // Clear every online member's active pointer.
+  // Stand every online member down (their pointer, the party acting).
   for (const id of [...party.getMemberIds()]) {
     const m = resolveMember(id);
-    if (m && MixinApi.isPartyMember(m) && m.getActivePartyPath() === path) {
-      m._setActivePartyPath("");
-    }
+    if (m && MixinApi.isPartyMember(m)) party.dismiss(m);
   }
   if (party.getChannelRef()) {
     try {
@@ -479,11 +473,10 @@ async function musterImpl(
   if (!rec) return { ok: false, reason: "no-such-crew" };
   const party = partyAt(rec.path) ?? (await materializeParty(rec));
 
-  // Stand down the current active party first (one-active-party).
-  if (member.getActivePartyPath() && member.getActivePartyPath() !== rec.path) {
-    member._setActivePartyPath("");
-  }
-  member._setActivePartyPath(rec.path);
+  // Recall overwrites the current active pointer — the one-active-party
+  // rule is the overwrite (a durable crew keeps you on its roster, so
+  // the prior party needs no roster-side settling here).
+  party.recall(member);
   return { ok: true, party };
 }
 
@@ -492,12 +485,20 @@ async function standDownImpl(member: Stuff): Promise<PartySimpleResult> {
     return { ok: false, reason: "not-in-a-party" };
   }
   const party = activePartyOfImpl(member);
-  member._setActivePartyPath("");
   // Stand-down semantics differ by lifetime: a **durable** crew keeps you
   // on its roster (dormant — `muster` re-activates), while an **ad-hoc**
   // party has no dormant state, so standing down is simply leaving it.
-  if (party && !party.isDurable()) {
-    await departFromParty(party, memberIdOf(member));
+  if (party) {
+    if (party.isDurable()) {
+      party.dismiss(member);
+    } else {
+      party.release(memberIdOf(member), member);
+      await settleAfterDeparture(party);
+    }
+  } else {
+    // Janitorial: a stale pointer with no live Party Idea to act — the
+    // logic's own arm on the member contract covers this.
+    member._setActivePartyPath("");
   }
   return { ok: true };
 }

@@ -66,9 +66,9 @@ export default class CancelController extends CommandController<CancelModel> {
       return;
     }
 
-    const before = SchedulerApi.getEngagements(giver).length;
+    const before = giver.getEngagements().length;
     SchedulerApi.cancelByType(giver, targetType);
-    const after = SchedulerApi.getEngagements(giver).length;
+    const after = giver.getEngagements().length;
 
     if (before === after) {
       ctx.note({

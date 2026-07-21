@@ -53,7 +53,6 @@ import { WorldClockApi } from '../api/worldclock';
 import { WeatherApi } from '../api/weather';
 import { FireApi } from '../api/fire';
 import { WEATHER_DEFAULTS } from '../lib/weather/WeatherType';
-import { registerWorldClockRegistryClass } from '../api/worldclock';
 
 /**
  * Gate every public Registry method to the Api facade, the
@@ -735,9 +734,3 @@ export default class WorldClockRegistry extends Idea {
   }
 }
 
-// Side-effect: hand the class to WorldClockLogic so its lazy-create
-// path can mint a fresh in-memory Registry for test harnesses
-// (production gets the cloned singleton via the bootstrap manifest).
-// See `registerWorldClockRegistryClass` for the cycle-avoidance
-// rationale.
-registerWorldClockRegistryClass(WorldClockRegistry);

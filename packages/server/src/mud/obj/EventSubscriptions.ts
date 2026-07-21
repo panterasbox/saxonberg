@@ -133,5 +133,3 @@ export default class EventSubscriptions extends Idea {
   }
 }
 
-// Side-effect: hand the class to EventApi for its lazy-create path.
-EventApi._registerSubsClass(EventSubscriptions);

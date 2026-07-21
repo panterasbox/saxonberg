@@ -52,7 +52,11 @@ import { fileURLToPath } from 'url';
 // `MqlSubscriptionLogic`; this is a pure pass-through re-export.
 export { registerMqlSubscriptionRegistryClass } from '../obj/api/MqlSubscriptionLogic';
 
-void (undefined as unknown as _MqlSubscriptionErrorReason);
+/** Declaration-shaped keep for the wire-error vocabulary import above —
+ * the reason strings ride envelopes typed in `@saxonberg/types`; this
+ * alias pins the import so the vocabulary stays navigable from here. */
+type MqlSubscriptionErrorReason = _MqlSubscriptionErrorReason;
+export type { MqlSubscriptionErrorReason };
 
 /* ───────────────────── Public descriptor surface ────────────────── */
 

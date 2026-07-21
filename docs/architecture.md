@@ -543,16 +543,22 @@ a corpse) is valid. `Character` has two leaf subclasses: `Avatar`
 `Character` + `BehavedMixin`) for authored, automation-driven characters —
 which keeps `Behaved` off players. See [behavior.md](./subsystems/behavior.md).
 
-Each branch lives in `lib/stuff/` and registers itself with `Stuff` at
-module load via `Stuff._registerTopLevelBranch(BranchClass)`. The
-registration is gated by a URL allowlist on `Stuff` — only those six
-files may register, so the branch set can't be silently extended from
-a subclass or a third-party file.
+The five branch constructors are registered with `Stuff` **by class
+identity** through `Stuff.registerTopLevelBranches([...])`, called once
+from `BootstrapManager.installFrameworkWiring` (production boot's
+first step, and the vitest setup file) — a lifecycle call, not a
+module-scope statement (the no-module-scope-statements rule). Identity,
+not module id: the vite-plugin, tsx, and the production node-hook stamp
+default exports differently, so a module-id check that passes under one
+loader silently fails under another — an identity comparison is loader-
+agnostic and a foreign same-named class (a different constructor
+object) never matches. The call is caller-gated to the framework wiring
+layer, so the branch set can't be silently extended from content.
 
 `Stuff`'s constructor walks the prototype chain at instance-creation
 time and throws if no registered branch is found. Class-time work is
 done once per class (cached); the per-instance cost is a single
-WeakSet lookup. The error message lists the six branches and
+WeakSet lookup. The error message lists the five branches and
 points readers here.
 
 > **Not a branch: `Document`.** Plain MongoDB-backed records (`User`,
@@ -990,6 +996,42 @@ bypass it.
 | `creature.move(loc)` (raw containment) | `creature.travel(loc, 'walk')` (locomotion) |
 
 See [antipatterns.md](./antipatterns.md) for the full rule with examples.
+
+## Module scope declares; lifecycles initialize
+
+Module evaluation in `src/mud/**` may only **declare**: imports/exports,
+classes, functions, interfaces/types/enums, `declare module`
+augmentations, and `const`/`let` declarations (initializers included —
+pure value construction is a declaration). It must not contain
+**free-standing executable statements**: bare calls, registrations into
+other modules' state, loops, conditionals, assignments. Enforced by
+`pnpm lint:module-scope` (`scripts/check-module-scope.ts`, CI-gating —
+a real TS-parser statement scan, not a regex).
+
+Why: import-time side effects couple correctness to import order, make
+HMR re-evaluation a semantic event ("what re-runs when this module
+reloads?" had per-site answers), and hide initialization from every
+lifecycle you can reason about. The 2026-07 antipattern sweep removed
+the whole population (~130 statements) and replaced each family with a
+runtime lifecycle:
+
+| Was (module-scope statement) | Now (lifecycle) |
+|---|---|
+| `SchedulerApi.registerActivity(type, cls)` in every activity module | **Capture-at-start** — `SchedulerRegistry.start(engagement)` captures `engagement.constructor` into the type→class dispatch index; `reloadActivity` re-points it after a hot reload. Registration doesn't exist as a concept. |
+| ~~`SecurityApi.decorateApiClass(XApi)` tail in every `api/*.ts`~~ | **Kept as a sanctioned module-scope exception.** An `*Api` class is a thin, non-HMR-able interface imported directly, so the module tail IS its registration — there is no lifecycle to route it through. The sweep briefly moved this to `ModuleApi.stamp`; it was reverted. The tail lives in `check-module-scope`'s allowlist (`EXEMPT_API_DECORATE` on `mud/api/*.ts`). The four bootstrap-special Apis (`security`/`module`/`proxy`/`execution-context`) still self-decorate not at all. |
+| `DialogueEffectRegistry.register('bank-circle', …)` at module scope + a boot side-effect import | **Instance lifecycle** — `BankCounter.postRegister` registers it: a live bank fixture is exactly when the verb becomes real. |
+| `Stuff._registerTopLevelBranch(Thing)` in each of the five branch files | **Identity registration via the boot lifecycle** — `Stuff.registerTopLevelBranches([...])` from `BootstrapManager.installFrameworkWiring` (boot + vitest setup), compared by class identity (loader-agnostic, unlike a module-id check). |
+| Registry-class handoffs (`register<X>RegistryClass`), the security↔shadow slot, the shadow↔command bridge, the glob merge-on-arrival ripple | **`BootstrapManager.installFrameworkWiring()`** — one idempotent boot call, invoked by `BootstrapManager.run()` in production and by the vitest setup file (`src/test-setup-registries.ts`) before every suite. |
+| `installOnlineHoldersProvider()` auto-install on import | Called explicitly from `AppBootstrap.run()`. |
+| `engine.registerFilter(…)` ×14 (Prose), `registerConverter(…)` ×23 (Quantity), `validator.preload = …` (validators) | **Lazy first-use initializers** (memoized builder functions) / folded into the `const` initializer (`Object.assign`). |
+
+Entry-point scripts are exempt by nature — `main()`, `AppBootstrap`,
+seeders, and the vitest setup file are *where lifecycle calls live*,
+not modules someone imports for their exports. The loader-injected
+`ModuleApi.stamp` tail is machine-generated framework lifecycle, not
+authored code. When new initialization is needed, pick the matching
+lifecycle above; do not add a module-scope statement (the lint will
+refuse it).
 
 ## Phase Numbering Note
 

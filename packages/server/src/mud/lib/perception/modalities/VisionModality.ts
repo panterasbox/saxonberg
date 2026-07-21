@@ -34,7 +34,7 @@ import { Quantity } from '../../quantity';
 import { MixinApi } from '../../../api/mixin';
 import { StuffApi } from '../../../api/stuff';
 import { PerceptionApi } from '../../../api/perception';
-import type { LightConduit, BoundarySide } from '../../boundary/Conduit';
+import type { LightConduit } from '../../boundary/Conduit';
 import type { Conduit } from '../../boundary/Conduit';
 import type { Boundary } from '../../boundary/Boundary';
 import { BoundaryAnchor } from '../../boundary/BoundaryAnchor';
@@ -404,5 +404,3 @@ function isLightConduit(c: Conduit): c is LightConduit {
   return c.conduitKind === 'light';
 }
 
-const _SIDE_TAG: BoundarySide = 'A';
-void _SIDE_TAG;

@@ -41,8 +41,6 @@ import type Interactive from "../../../obj/Interactive";
 import type { PromptChoice } from "@saxonberg/types";
 import { brain as treeDialogue } from "../../behavior/tree-dialogue";
 import {
-  DialogueConversation,
-  DialoguePartnerHold,
   DIALOGUE_CONVERSATION_TYPE,
   DIALOGUE_PARTNER_TYPE,
 } from "../DialogueConversation";
@@ -169,13 +167,6 @@ beforeAll(async () => {
 beforeEach(async () => {
   StuffApi.clearAll();
   SchedulerApi._clearAllForTesting();
-  // _clearAllForTesting wipes the activity registry; re-register (the
-  // module-load side-effect won't re-run — modules are cached).
-  SchedulerApi.registerActivity(
-    DIALOGUE_CONVERSATION_TYPE,
-    DialogueConversation,
-  );
-  SchedulerApi.registerActivity(DIALOGUE_PARTNER_TYPE, DialoguePartnerHold);
   await bootRegistry();
   vi.spyOn(RegardApi, "getRegard").mockReturnValue(0);
   vi.spyOn(RegardApi, "adjustRegard").mockReturnValue(undefined);

@@ -18,11 +18,11 @@
 
 import { CommandController } from '../../../lib/command/CommandController';
 import type { CommandContext, CommandModel } from '../../../api/command';
+import { MqlApi } from '../../../api/mql';
 import type { MqlOneResult } from '../../../api/mql';
 import { MessageApi } from '../../../api/message';
 import { MixinApi } from '../../../api/mixin';
 import { StuffApi } from '../../../api/stuff';
-import { ContainmentApi } from '../../../api/containment';
 import { AdvancementApi } from '../../../api/advancement';
 import { Mml } from '../../../api/mml';
 import type { Stuff } from '../../../lib/stuff/Stuff';
@@ -129,11 +129,13 @@ export default class TreatController extends CommandController<TreatModel> {
       return this.fail(context, `${who} no wound to dress.`, 'no-wound');
     }
 
-    const dressing = ContainmentApi.findReachable(
-      giver,
-      context.location,
-      (s: Stuff): s is Stuff & Dressing => MixinApi.isDressing(s)
-    );
+    const dressing =
+      MqlApi.resolveMany('reachable', {
+        commandGiver: giver,
+        scope: 'reachable',
+      }).stuff.find(
+        (s): s is Stuff & Dressing => MixinApi.isDressing(s)
+      ) ?? null;
     if (!dressing) {
       return this.fail(
         context,

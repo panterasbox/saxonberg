@@ -142,8 +142,8 @@ import type { Attendant } from '../lib/attendant/Attendant';
 import type { Employed } from '../lib/employment/Employed';
 import type { Combatant } from '../lib/combat/Combatant';
 import type { PartyMember } from '../lib/party/PartyMember';
-import { SecurityApi } from './security';
 import { ShadowApi } from './shadow';
+import { SecurityApi } from './security';
 
 // Re-export Mixins constants for convenience
 export { Mixins } from '../lib/mixin';

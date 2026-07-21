@@ -23,7 +23,6 @@
 
 import { StuffApi } from './stuff';
 import { HotReloadApi } from './hot-reload';
-import { SecurityApi } from './security';
 import { AccountabilityLogic } from '../obj/api/AccountabilityLogic';
 import type {
   AccountabilityFields,
@@ -31,6 +30,7 @@ import type {
 } from '../lib/accountability/AccountabilityEvent';
 import type AccountabilityEvent from '../lib/accountability/AccountabilityEvent';
 import { fileURLToPath } from 'url';
+import { SecurityApi } from './security';
 
 export type {
   AccountabilityFields,

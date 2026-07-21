@@ -4,9 +4,9 @@
  * A keyed store of {@link Credential} records (one per {@link CredentialKind}).
  * Base-agnostic, so it composes around BOTH an incorporeal hosted
  * {@link CredentialWalletUpdate} (the born-with "wallet app") and a corporeal
- * card `Thing` (`PaymentCard` / `TravelCard`) — one scan
- * (`ContainmentApi.findReachable` keyed on {@link MixinApi.isCredentialWallet})
- * finds the holder in either base.
+ * card `Thing` (`PaymentCard` / `TravelCard`) — one scan (the MQL `reachable`
+ * pool filtered on {@link MixinApi.isCredentialWallet}) finds the holder in
+ * either base.
  *
  * It is a **dumb store**: it knows nothing about what any credential *means*.
  * The semantics live in the smart consumers that already exist — `BankingApi`

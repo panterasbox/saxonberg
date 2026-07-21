@@ -11,13 +11,13 @@
  * is owned-by-possession, and `stamp`/`transfer` refuse it.
  */
 
-import { SecurityApi } from "./security";
 import { StuffApi } from "./stuff";
 import { HotReloadApi } from "./hot-reload";
 import { ChattelLogic } from "../obj/api/ChattelLogic";
 import type { ChattelOwner } from "../lib/chattel/ChattelRecord";
 import type { Stuff } from "../lib/stuff/Stuff";
 import { fileURLToPath } from "url";
+import { SecurityApi } from './security';
 
 const LOGIC_PATH = "/obj/api/chattel";
 const LOGIC_CLASS_FILE = fileURLToPath(

@@ -41,13 +41,13 @@ import {
 } from './worldclock';
 import { StuffApi } from './stuff';
 import { HotReloadApi } from './hot-reload';
-import { SecurityApi } from './security';
 import {
   CelestialLogic,
   CAMPUS_LATITUDE,
   CAMPUS_LONGITUDE,
 } from '../obj/api/CelestialLogic';
 import { fileURLToPath } from 'url';
+import { SecurityApi } from './security';
 
 const LOGIC_PATH = '/obj/api/celestial';
 const LOGIC_CLASS_FILE = fileURLToPath(

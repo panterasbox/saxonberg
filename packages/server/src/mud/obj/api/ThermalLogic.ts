@@ -12,7 +12,6 @@ import type { Thermal } from '../../lib/thermal/Thermal';
 import type { Meltable } from '../../lib/thermal/Meltable';
 import type Material from '../../lib/material/Material';
 import { MixinApi } from '../../api/mixin';
-import { MaterialApi } from '../../api/material';
 import { StuffApi } from '../../api/stuff';
 import { ContainmentApi } from '../../api/containment';
 import { THERMAL_DEFAULTS } from '../../lib/thermal/Thermal';
@@ -137,7 +136,7 @@ function reconcileMelt(m: Stuff & Meltable & Thermal): void {
   const temp = m.getTemperature().rawValue();
   if (temp < mp) return; // below the melting point — no transition yet
 
-  const mat = MaterialApi.materialOf(m as unknown as Stuff);
+  const mat = MixinApi.isTangible(m) ? m.getMaterial() : null;
   const overshootJ = (temp - mp) * thermalCapacityOf(m as unknown as Stuff, mat);
   if (overshootJ > 0) {
     m._absorbLatent(overshootJ);

@@ -49,11 +49,11 @@ export default class GetController extends CommandController<GetModel> {
 
     // `giver` is narrowed to `Stuff & Container`; carry the inventory
     // / location snapshots into both paths so neither has to re-cast.
-    const inventory = ContainmentApi.getContents(giver);
+    const inventory = giver.getContents();
     // Defensive: placeless avatars are blocked at the inbound gate, so a
     // real `get` always has a location by the time the controller runs.
     if (!context.location) return;
-    const here = ContainmentApi.getContents(context.location);
+    const here = context.location.getContents();
 
     if (!quantity) {
       return this.executeWholeSet(stuff, inventory, here, raw, context);

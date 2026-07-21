@@ -31,9 +31,9 @@ import type {
 } from '../lib/standing/RenownEvent';
 import { StuffApi } from './stuff';
 import { HotReloadApi } from './hot-reload';
-import { SecurityApi } from './security';
 import { RenownLogic } from '../obj/api/RenownLogic';
 import { fileURLToPath } from 'url';
+import { SecurityApi } from './security';
 
 export type { RenownEventFields, RenownScope };
 

@@ -45,9 +45,9 @@ import type { Stuff } from "../lib/stuff/Stuff";
 import type { Globbable } from "../lib/stuff/Globbable";
 import { StuffApi } from "./stuff";
 import { HotReloadApi } from "./hot-reload";
-import { SecurityApi } from "./security";
 import { BankingLogic } from "../obj/api/BankingLogic";
 import { fileURLToPath } from "url";
+import { SecurityApi } from './security';
 
 export { Money, Account };
 export type {

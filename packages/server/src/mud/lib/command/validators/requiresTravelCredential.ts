@@ -8,25 +8,32 @@
 
 import type { CommandValidator } from "../../../api/command";
 import { SpeciesApi } from "../../../api/species";
-import { ContainmentApi } from "../../../api/containment";
+import { MqlApi } from "../../../api/mql";
 import { MixinApi } from "../../../api/mixin";
 import type { CredentialWallet } from "../../credential/CredentialWallet";
 import type { Stuff } from "../../stuff/Stuff";
 
-const validator: CommandValidator = (context) => {
-  const cred = ContainmentApi.findReachable(
-    context.commandGiver,
-    context.location,
-    (s: Stuff): s is Stuff & CredentialWallet =>
-      MixinApi.isCredentialWallet(s) && !!s.getCredential("travel"),
-  );
-  if (cred) return undefined;
-  return "you have no Teleport Authority credential";
-};
-
-// Preload the giver's anatomy so the cranial slot is live before the
-// implant-first credential scan runs (mirrors requiresAnimate).
-validator.preload = (context) =>
-  SpeciesApi.preloadAnatomy(context.commandGiver);
+// `Object.assign` in the initializer keeps this a pure declaration
+// (no free-standing module-scope statement).
+const validator: CommandValidator = Object.assign(
+  (context: Parameters<CommandValidator>[0]) => {
+    const cred =
+      MqlApi.resolveMany("reachable", {
+        commandGiver: context.commandGiver,
+        scope: "reachable",
+      }).stuff.find(
+        (s): s is Stuff & CredentialWallet =>
+          MixinApi.isCredentialWallet(s) && !!s.getCredential("travel"),
+      ) ?? null;
+    if (cred) return undefined;
+    return "you have no Teleport Authority credential";
+  },
+  {
+    // Preload the giver's anatomy so the cranial slot is live before
+    // the implant-first credential scan runs (mirrors requiresAnimate).
+    preload: (context: Parameters<CommandValidator>[0]) =>
+      SpeciesApi.preloadAnatomy(context.commandGiver),
+  },
+);
 
 export default validator;

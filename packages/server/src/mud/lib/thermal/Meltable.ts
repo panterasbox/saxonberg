@@ -25,7 +25,7 @@
 
 import type { MixinConstructor } from '../mixin';
 import type { Stuff } from '../stuff/Stuff';
-import { MaterialApi } from '../../api/material';
+import { MixinApi } from '../../api/mixin';
 import { CallSecurity, Final, Unshadowable } from '../security/decorators';
 import { SecurityPolicies } from '../security/SecurityPolicies';
 
@@ -84,13 +84,14 @@ export function MeltableMixin<TBase extends MixinConstructor<Stuff>>(
     }
 
     public getMeltingPointK(): number {
-      const mat = MaterialApi.materialOf(this as unknown as Stuff);
+      const self = this as unknown as Stuff;
+      const mat = MixinApi.isTangible(self) ? self.getMaterial() : null;
       return mat ? mat.getMeltingPoint().rawValue() : 0;
     }
 
     public getLatentHeatToMeltJ(): number {
       const self = this as unknown as Stuff & { getMass(): { rawValue(): number } };
-      const mat = MaterialApi.materialOf(this as unknown as Stuff);
+      const mat = MixinApi.isTangible(self) ? self.getMaterial() : null;
       if (!mat) return 0;
       const lhf = mat.getLatentHeatOfFusion().rawValue();
       const massKg = self.getMass().rawValue();

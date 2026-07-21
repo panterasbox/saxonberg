@@ -156,10 +156,6 @@ describe('SchedulerApi host-destruction hook', () => {
 
   it('fires onAbort("host-destroyed") when host destructs mid-flight', async () => {
     const reasons: AbortReason[] = [];
-    SchedulerApi.registerActivity(
-      'test-host',
-      TestHostedActivity as never,
-    );
     const e = new TestHostedActivity(
       actor,
       host,
@@ -179,10 +175,6 @@ describe('SchedulerApi host-destruction hook', () => {
   it('does NOT fire when an unrelated Stuff destructs', async () => {
     const reasons: AbortReason[] = [];
     const otherStuff = makeStuff(() => new TestHost());
-    SchedulerApi.registerActivity(
-      'test-host',
-      TestHostedActivity as never,
-    );
     const e = new TestHostedActivity(
       actor,
       host,
@@ -200,10 +192,6 @@ describe('SchedulerApi host-destruction hook', () => {
 
   it('does NOT subscribe when getHost is absent (no eager hook)', async () => {
     const reasons: AbortReason[] = [];
-    SchedulerApi.registerActivity(
-      'test-hostless',
-      TestHostlessActivity as never,
-    );
     const e = new TestHostlessActivity(
       actor,
       (r) => reasons.push(r),

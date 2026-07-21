@@ -36,12 +36,12 @@ import { ConnectionApi } from '../mud/api/connection';
 import { User } from '../mud/lib/identity/User';
 import { TwitchProfile } from '../mud/lib/identity/TwitchProfile';
 import { GoogleProfile } from '../mud/lib/identity/GoogleProfile';
-import { TemplateApi } from '../mud/api/template';
 import { StuffApi } from '../mud/api/stuff';
 import { AppApi } from '../mud/api/app';
 import { AppSettingKeys } from '../mud/lib/config/AppSettings';
 import Avatar from '../mud/obj/Avatar';
 import { Template } from '../mud/lib/stuff/Template';
+import { TemplateApi } from '../mud/api/template';
 import { SecurityApi } from '../mud/api/security';
 import { CallSecurity } from '../mud/lib/security/decorators';
 import { SecurityPolicies } from '../mud/lib/security/SecurityPolicies';
@@ -656,18 +656,24 @@ export class Application {
   }
 
   /**
-   * Fork a per-user avatar template from the seed avatar at
-   * `Avatar.SEED_TEMPLATE_PATH` (initial doc seeded from
-   * `seeds/obj/Avatar/seed.yaml`; thereafter the live Mongo doc is
-   * source of truth). Class, hydratorClass, and starting data come
-   * from the seed; the user's name/surname overlay on top.
-   * Runtime-only fields (`user`, `playerId`) are stamped later by
-   * `Avatar.postRegister` from the clone context.
+   * Mint a default character: NO per-player template row (the identity
+   * doctrine — production enroll mints a snapshot-backed character with
+   * no `domain` row). This TEST seam instead writes a **legacy-style
+   * template row** and lets the FIRST login migrate it via
+   * `PlayerLogic.materializeAvatar`'s legacy-row fallback (clone the
+   * row → capture the first snapshot). Two payoffs over a headless
+   * clone-capture-destruct: it can't corrupt a snapshot by re-capturing
+   * a mid-teardown avatar (the bug that shipped otherwise), and it
+   * gives the deployed pre-retirement-character migration path real
+   * end-to-end coverage on every e2e login. The row is test-DB-only
+   * (`AUTH_MODE === 'test'`), so the no-per-player-row doctrine — which
+   * governs the production authoring surface — is not in scope.
    *
-   * @returns the generated playerId (template path:
+   * @returns the generated playerId (identity path:
    * `/obj/Avatar/<playerId>`)
    */
-  private async createDefaultAvatarTemplate(
+  private async createDefaultCharacter(
+    _user: User,
     name: string,
     surname?: string,
     startLocation?: string
@@ -675,32 +681,27 @@ export class Application {
     const seed = await Template.findByPath(Avatar.SEED_TEMPLATE_PATH);
     if (!seed) {
       throw new Error(
-        `Application.createDefaultAvatarTemplate: no seed at ` +
+        `Application.createDefaultCharacter: no seed at ` +
           `'${Avatar.SEED_TEMPLATE_PATH}'. Did SeederManager run?`
       );
     }
-
     const playerId = SecurityApi.uuid();
     const path = Avatar.getTemplatePath(playerId);
     const data: Record<string, unknown> = {
       ...seed.data,
       // Initial spawn home: an explicit override (the test-auth seam uses
       // this to land co-location E2E avatars in a stable singleton room,
-      // bypassing the elastic lounge Warren) else the app-config default
-      // (the seed YAML no longer carries a startLocation literal).
+      // bypassing the elastic lounge Warren) else the app-config default.
       startLocation:
         startLocation ?? AppApi.setting(AppSettingKeys.defaultStartLocation),
       name,
     };
     if (surname) data.surname = surname;
-
-    await TemplateApi.saveTemplate(
-      path,
-      seed.class,
-      data,
-      seed.hydratorClass
+    await TemplateApi.saveTemplate(path, seed.class, data, seed.hydratorClass);
+    console.info(
+      `Application: Provisioned test character ${path} (legacy-row; ` +
+        `migrates to a snapshot on first login)`
     );
-    console.info(`Application: Created avatar template at ${path}`);
     return playerId;
   }
 
@@ -725,7 +726,8 @@ export class Application {
       throw new Error(`Application.provisionTestCharacter: no user ${userId}`);
     }
     if (user.playerIds.length > 0) return;
-    const playerId = await this.createDefaultAvatarTemplate(
+    const playerId = await this.createDefaultCharacter(
+      user,
       name,
       undefined,
       startLocation

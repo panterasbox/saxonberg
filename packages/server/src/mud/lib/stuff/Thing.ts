@@ -62,4 +62,9 @@ export default class Thing extends ThingBase {
   }
 }
 
+
+// Self-register as a top-level branch (the one sanctioned module-scope
+// self-registration — see `Stuff._registerTopLevelBranch` for why the
+// hierarchy's root invariant must populate at branch-module load, and
+// `scripts/check-module-scope.ts`'s allowlist).
 Stuff._registerTopLevelBranch(Thing);

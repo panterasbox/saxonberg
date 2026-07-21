@@ -21,7 +21,6 @@
  * calling surface, and one structurally-enforced path between them.
  */
 
-import { SecurityApi } from './security';
 import { StuffApi } from './stuff';
 import { HotReloadApi } from './hot-reload';
 import { CallSecurity } from '../lib/security/decorators';
@@ -29,6 +28,7 @@ import { SecurityPolicies } from '../lib/security/SecurityPolicies';
 import type { Stuff } from '../lib/stuff/Stuff';
 import { AccessLogic } from '../obj/api/AccessLogic';
 import { fileURLToPath } from 'url';
+import { SecurityApi } from './security';
 
 const LOGIC_PATH = '/obj/api/access';
 const LOGIC_CLASS_FILE = fileURLToPath(

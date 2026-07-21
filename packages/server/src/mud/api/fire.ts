@@ -19,11 +19,11 @@
 import type { Stuff } from '../lib/stuff/Stuff';
 import { StuffApi } from './stuff';
 import { HotReloadApi } from './hot-reload';
-import { SecurityApi } from './security';
 import { AppApi } from './app';
 import { AppSettingKeys } from '../lib/config/AppSettings';
 import { FireLogic } from '../obj/api/FireLogic';
 import { fileURLToPath } from 'url';
+import { SecurityApi } from './security';
 
 /** The result of a deliberate {@link FireApi.ignite} attempt. */
 export interface IgniteOutcome {

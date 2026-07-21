@@ -20,10 +20,6 @@ import type { CommandContext } from "../../../../api/command";
 import type { MqlOneResult } from "../../../../api/mql";
 import { CommandDefinition } from "../../../../lib/command/CommandDefinition";
 import { SchedulerApi } from "../../../../api/scheduler";
-import {
-  ManualBuildStep,
-  MANUAL_BUILD_STEP_TYPE,
-} from "../../../../lib/craft/ManualBuildStep";
 import { WorldClockApi } from "../../../../api/worldclock";
 import { StuffApi } from "../../../../api/stuff";
 import { ContainmentApi } from "../../../../api/containment";
@@ -122,9 +118,6 @@ beforeEach(async () => {
   WorldClockApi.setScale(1);
   WorldClockApi._setNowProviderForTesting(() => 1000);
   SchedulerApi._clearAllForTesting();
-  // _clearAllForTesting wipes the activity-class registry too; re-register
-  // the step type so completion can dispatch its onComplete.
-  SchedulerApi.registerActivity(MANUAL_BUILD_STEP_TYPE, ManualBuildStep as never);
   StuffApi.clearAll();
   // The scheduler subscribes to StuffDestructed (the host-destruction hook)
   // on start → the EventRegistry must be bootstrapped.

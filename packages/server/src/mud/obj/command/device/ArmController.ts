@@ -60,7 +60,7 @@ export default class ArmController extends CommandController<ArmModel> {
     }
 
     const room = MixinApi.isContainable(giver)
-      ? ContainmentApi.getContainer(giver)
+      ? giver.getContainer()
       : null;
     if (!room || !MixinApi.isContainer(room)) {
       return this.reject(

@@ -156,19 +156,19 @@ describe('ContainmentApi', () => {
     it('should return container holding the item', () => {
       ContainmentApi.move(item, container1);
 
-      expect(ContainmentApi.getContainer(item)).toBe(container1);
+      expect(item.getContainer()).toBe(container1);
     });
 
     it('should return null when item has no environment', () => {
-      expect(ContainmentApi.getContainer(item)).toBeNull();
+      expect(item.getContainer()).toBeNull();
     });
 
     it('should update when item moves between containers', () => {
       ContainmentApi.move(item, container1);
-      expect(ContainmentApi.getContainer(item)).toBe(container1);
+      expect(item.getContainer()).toBe(container1);
 
       ContainmentApi.move(item, container2);
-      expect(ContainmentApi.getContainer(item)).toBe(container2);
+      expect(item.getContainer()).toBe(container2);
     });
   });
 
@@ -176,14 +176,14 @@ describe('ContainmentApi', () => {
     it('should return contents of container', () => {
       ContainmentApi.move(item, container1);
 
-      const contents = ContainmentApi.getContents(container1);
+      const contents = container1.getContents();
 
       expect(contents).toHaveLength(1);
       expect(contents[0]).toBe(item);
     });
 
     it('should return empty array for empty container', () => {
-      const contents = ContainmentApi.getContents(container1);
+      const contents = container1.getContents();
 
       expect(contents).toHaveLength(0);
     });
@@ -196,7 +196,7 @@ describe('ContainmentApi', () => {
       ContainmentApi.move(item2, container1);
       ContainmentApi.move(item3, container1);
 
-      const contents = ContainmentApi.getContents(container1);
+      const contents = container1.getContents();
 
       expect(contents).toHaveLength(3);
       expect(contents).toContain(item);
@@ -209,21 +209,21 @@ describe('ContainmentApi', () => {
     it('should handle item moving through multiple containers', () => {
       // Start in location1
       ContainmentApi.move(item, location1);
-      expect(ContainmentApi.getContainer(item)).toBe(location1);
+      expect(item.getContainer()).toBe(location1);
 
       // Pick up into container1
       ContainmentApi.move(item, container1);
-      expect(ContainmentApi.getContainer(item)).toBe(container1);
+      expect(item.getContainer()).toBe(container1);
       expect(location1.hasContainable(item)).toBe(false);
 
       // Transfer to container2
       ContainmentApi.move(item, container2);
-      expect(ContainmentApi.getContainer(item)).toBe(container2);
+      expect(item.getContainer()).toBe(container2);
       expect(container1.hasContainable(item)).toBe(false);
 
       // Drop in location2
       ContainmentApi.move(item, location2);
-      expect(ContainmentApi.getContainer(item)).toBe(location2);
+      expect(item.getContainer()).toBe(location2);
       expect(container2.hasContainable(item)).toBe(false);
     });
 
@@ -419,7 +419,7 @@ describe('ContainmentLogic singleton encapsulation', () => {
   it('lives at /obj/api/containment once the facade has materialized it', () => {
     // A facade call lazily creates the logic singleton.
     const probe = makeStuff(() => new TestContainer());
-    ContainmentApi.getContents(probe);
+    ContainmentApi.isContainedIn(probe, probe);
     const found = StuffApi.findByTemplatePath('/obj/api/containment');
     expect(found).toBeDefined();
     expect(StuffApi.findByPathGlob('/obj/api/*')).toContain(found);
@@ -427,7 +427,7 @@ describe('ContainmentLogic singleton encapsulation', () => {
 
   it('denies a direct logic-method call from a non-ContainmentApi caller', () => {
     const probe = makeStuff(() => new TestContainer());
-    ContainmentApi.getContents(probe);
+    ContainmentApi.isContainedIn(probe, probe);
     const logic = StuffApi.findByTemplatePath<ContainmentLogic>(
       '/obj/api/containment'
     );
@@ -435,7 +435,7 @@ describe('ContainmentLogic singleton encapsulation', () => {
     // The test module is not `mud/api/containment#ContainmentApi`, so the
     // FromModule gate on the logic's own methods denies the call. The
     // gate throws synchronously even for async-bodied methods, so a
-    // direct call to the void getContents path is sufficient.
-    expect(() => logic!.getContents(probe)).toThrow(SecurityError);
+    // direct call to the isContainedIn path is sufficient.
+    expect(() => logic!.isContainedIn(probe, probe)).toThrow(SecurityError);
   });
 });

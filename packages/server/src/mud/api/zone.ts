@@ -32,9 +32,9 @@ import { StuffApi } from './stuff';
 import type { Zone } from '../lib/zone/Zone';
 import type { SpatialZone } from '../lib/zone/SpatialZone';
 import { HotReloadApi } from './hot-reload';
-import { SecurityApi } from './security';
 import { ZoneLogic } from '../obj/api/ZoneLogic';
 import { fileURLToPath } from 'url';
+import { SecurityApi } from './security';
 
 const LOGIC_PATH = '/obj/api/zone';
 const LOGIC_CLASS_FILE = fileURLToPath(

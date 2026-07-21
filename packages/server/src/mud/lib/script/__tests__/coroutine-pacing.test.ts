@@ -14,10 +14,7 @@ import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import { Coroutine } from "../Coroutine";
 import { Interpreter } from "../Interpreter";
 import type { Eval, DispatchFn, RescheduleFn, ResourceLimits } from "../Interpreter";
-import {
-  ManualBuildStep,
-  MANUAL_BUILD_STEP_TYPE,
-} from "../../craft/ManualBuildStep";
+import { ManualBuildStep } from "../../craft/ManualBuildStep";
 import { SchedulerApi } from "../../../api/scheduler";
 import { WorldClockApi } from "../../../api/worldclock";
 import { StuffApi } from "../../../api/stuff";
@@ -53,7 +50,6 @@ beforeEach(async () => {
   WorldClockApi._resetForTesting();
   WorldClockApi.setScale(1);
   SchedulerApi._clearAllForTesting();
-  SchedulerApi.registerActivity(MANUAL_BUILD_STEP_TYPE, ManualBuildStep as never);
   StuffApi.clearAll();
   const reg = await StuffApi.create(() => {
     const r = new EventRegistry();

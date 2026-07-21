@@ -70,12 +70,11 @@ describe('SpeciesApi', () => {
     StuffApi.clearAll();
   });
 
-  describe('getKingdom / isInKingdom', () => {
+  describe('getKingdom', () => {
     it('walks the species template path to find the kingdom Clade', () => {
       const { organism, animalia } = setupAnimaliaOrganism();
       expect(SpeciesApi.getKingdom(organism)).toBe(animalia);
-      expect(SpeciesApi.isInKingdom(organism, 'Animalia')).toBe(true);
-      expect(SpeciesApi.isInKingdom(organism, 'Plantae')).toBe(false);
+      expect(SpeciesApi.getKingdom(organism)?.getName()).toBe('Animalia');
     });
 
     it('returns null when species is unset', () => {
@@ -84,27 +83,27 @@ describe('SpeciesApi', () => {
     });
   });
 
-  describe('lifecycle predicates', () => {
+  describe('lifecycle predicates (object-owned on OrganismMixin)', () => {
     it('isAlive / isDead / isUndead', () => {
       const organism = makeStuff(() => new OrganismThing());
       organism.setLifecycleState('alive');
-      expect(SpeciesApi.isAlive(organism)).toBe(true);
-      expect(SpeciesApi.isDead(organism)).toBe(false);
+      expect(organism.isAlive()).toBe(true);
+      expect(organism.isDead()).toBe(false);
 
       organism.setLifecycleState('dead');
-      expect(SpeciesApi.isAlive(organism)).toBe(false);
-      expect(SpeciesApi.isDead(organism)).toBe(true);
+      expect(organism.isAlive()).toBe(false);
+      expect(organism.isDead()).toBe(true);
 
       organism.setLifecycleState('undead');
-      expect(SpeciesApi.isUndead(organism)).toBe(true);
+      expect(organism.isUndead()).toBe(true);
     });
 
-    it('isPowered / isDestroyed', () => {
+    it('isPowered / destroyed-state read', () => {
       const organism = makeStuff(() => new OrganismThing());
       organism.setLifecycleState('powered');
-      expect(SpeciesApi.isPowered(organism)).toBe(true);
+      expect(organism.isPowered()).toBe(true);
       organism.setLifecycleState('destroyed');
-      expect(SpeciesApi.isDestroyed(organism)).toBe(true);
+      expect(organism.getLifecycleState()).toBe('destroyed');
     });
   });
 

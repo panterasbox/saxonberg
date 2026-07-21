@@ -467,8 +467,8 @@ the comms + travel-credential updates. The `forum` verbs surface on the
 host's recency stack via the hosted-update self-seeding
 (`CommandApi.collectHostedUpdateDefs` + `applyHostedUpdateDelta`); the
 controller reaches the holder's update via the `commandSource` that
-afforded the verb, else `ContainmentApi.findReachable(actor, null,
-MixinApi.isForums)` (the `DmController` fallback).
+afforded the verb, else the MQL `reachable` pool filtered on
+`MixinApi.isForums` (the `DmController` fallback).
 
 ## The command body side-channel
 
@@ -683,7 +683,7 @@ the nav target) and click-driven; the player stays in
   read-only for audience/roles.
 - [comms.md](./comms.md) + [augmentation.md](./augmentation.md) — the
   aether host ⊕ hosted-update relation `ForumsUpdate` rides (the
-  `CommsUpdate` precedent; `findReachable` host-descent).
+  `CommsUpdate` precedent; the MQL `reachable` seed's host-descent).
 - [chronicle.md](./chronicle.md) — the append-only ledger precedent (dumb
   store / smart consumers, silent append) the `forum_events` log follows.
 - [mql-subscription.md](./mql-subscription.md) — the *sibling observer*

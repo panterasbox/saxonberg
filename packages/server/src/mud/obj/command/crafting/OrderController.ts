@@ -115,7 +115,7 @@ export default class OrderController extends CraftController<OrderModel> {
   ): (Stuff & Attendant) | null {
     const loc = context.location;
     if (!loc || !MixinApi.isContainer(loc)) return null;
-    for (const s of ContainmentApi.getContents(loc as Stuff & Container)) {
+    for (const s of (loc as Stuff & Container).getContents()) {
       if (MixinApi.isAttendant(s)) return s as Stuff & Attendant;
     }
     return null;

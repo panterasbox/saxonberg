@@ -13,12 +13,11 @@ import type {
   TraumaResolution,
   OutcomeBand,
 } from '../../api/material';
-import { MixinApi } from '../../api/mixin';
 import { StuffApi } from '../../api/stuff';
 import { AppApi } from '../../api/app';
 import { AppSettingKeys } from '../../lib/config/AppSettings';
 import { Channels } from '../../lib/material/Channel';
-import type { Channel, MechanicalChannel } from '../../lib/material/Channel';
+import type { Channel } from '../../lib/material/Channel';
 import type {
   Construction,
   ResistToken,
@@ -58,13 +57,6 @@ const MaterialApiCallers = SecurityPolicies.FromModule('/api/material#MaterialAp
  */
 @Unshadowable
 export class MaterialLogic extends ApiLogic {
-  /** See {@link MaterialApi.materialOf}. */
-  @CallSecurity(MaterialApiCallers)
-  public materialOf(stuff: Stuff, detailKey?: string): Material | null {
-    if (!MixinApi.isTangible(stuff)) return null;
-    return stuff.getMaterial(detailKey);
-  }
-
   /** See {@link MaterialApi.compositionOf}. */
   @CallSecurity(MaterialApiCallers)
   public compositionOf(material: Material): MaterialComposition {
@@ -139,18 +131,10 @@ export class MaterialLogic extends ApiLogic {
   public severityToBand(severity: number | null): OutcomeBand {
     return severityToBand(severity);
   }
-
-  /** See {@link MaterialApi.deliverableChannels}. */
-  @CallSecurity(MaterialApiCallers)
-  public deliverableChannels(construction: Construction): MechanicalChannel[] {
-    return construction.deliveredChannels();
-  }
-
-  /** See {@link MaterialApi.primaryChannel}. */
-  @CallSecurity(MaterialApiCallers)
-  public primaryChannel(construction: Construction): MechanicalChannel | null {
-    return construction.primaryChannel();
-  }
+  // The former `deliverableChannels` / `primaryChannel` thin forwarders
+  // were removed (item-1 antipattern sweep): callers hold a
+  // `Construction` and call `.deliveredChannels()` / `.primaryChannel()`
+  // directly.
 
   // ---------- electricity: the Ohm's-law circuit primitives ----------
 

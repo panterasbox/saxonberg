@@ -58,9 +58,9 @@
 import type { Stuff } from '../lib/stuff/Stuff';
 import { StuffApi } from './stuff';
 import { HotReloadApi } from './hot-reload';
-import { SecurityApi } from './security';
 import { RecognitionLogic } from '../obj/api/RecognitionLogic';
 import { fileURLToPath } from 'url';
+import { SecurityApi } from './security';
 
 const LOGIC_PATH = '/obj/api/recognition';
 const LOGIC_CLASS_FILE = fileURLToPath(

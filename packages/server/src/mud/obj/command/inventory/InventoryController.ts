@@ -7,7 +7,6 @@ import type {
   CommandContext,
   CommandModel,
   } from '../../../api/command';
-import { ContainmentApi } from '../../../api/containment';
 import { MixinApi } from '../../../api/mixin';
 import { MessageApi } from '../../../api/message';
 import { Mml } from '../../../api/mml';
@@ -23,7 +22,7 @@ export default class InventoryController extends CommandController {
       context.note({ kind: 'mixin-missing', mixin: 'ContainerMixin' });
       return;
     }
-    const contents = ContainmentApi.getContents(actor);
+    const contents = actor.getContents();
 
     let body: Mml;
     if (contents.length === 0) {

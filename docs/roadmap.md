@@ -30,8 +30,8 @@ The substrate is in place. Major shipped surfaces:
   doors, windows, the Boundary substrate (Adornable +
   Adornment + Conduit), Sealable.
 - **Light & Boundary subsystem** — Light value object,
-  propagation walk via `VisionModality.signalAt` (dispatched through
-  `PerceptionApi.signalAt`), per-viewer perception
+  propagation walk via `VisionModality.signalAt` (called directly on the
+  vision singleton), per-viewer perception
   (`VisionModality.canSee`, `perceivedBand`), the Boundary
   substrate's channel-keyed transmissivity (one of five conduit
   kinds shipped with the perception substrate).
@@ -324,7 +324,8 @@ Ordered by leverage + dependency:
    [augmentation.md](./subsystems/augmentation.md)); the
    capability-hosting build (2026-06) then shipped the **three-base
    capability model** + aether-as-host (comms + travel credential as
-   hosted updates, `findReachable` self + host-descent legs, species
+   hosted updates, the reachable scan's self + host-descent legs (now
+   the MQL `reachable` seed), species
    intrinsic conferral). Wave 2+ adds the install/remove medical
    procedure, char-gen loadout, other augment Stuff (translation,
    prosthetics, sensor packages, motor / cognitive), and failure

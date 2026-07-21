@@ -27,13 +27,13 @@ import type {
 } from "../lib/social/NotifyRule";
 import { StuffApi } from "./stuff";
 import { HotReloadApi } from "./hot-reload";
-import { SecurityApi } from "./security";
 import type Avatar from "../obj/Avatar";
 import type { PresenceStatus, RosterRow } from "@saxonberg/types";
 import { SocialLogic } from "../obj/api/SocialLogic";
 import { PresenceLogic } from "../obj/api/PresenceLogic";
 import { ProfileLogic } from "../obj/api/ProfileLogic";
 import { fileURLToPath } from "url";
+import { SecurityApi } from './security';
 
 export type { NotifyRule, ResolvedRule, RuleForOptions, SetResult };
 

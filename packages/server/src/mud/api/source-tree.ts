@@ -28,9 +28,9 @@
 
 import { StuffApi } from './stuff';
 import { HotReloadApi } from './hot-reload';
-import { SecurityApi } from './security';
 import { SourceTreeLogic } from '../obj/api/SourceTreeLogic';
 import { fileURLToPath } from 'url';
+import { SecurityApi } from './security';
 
 export { SourceTreeSandboxError } from '../lib/shell/SourceTreeSandboxError';
 

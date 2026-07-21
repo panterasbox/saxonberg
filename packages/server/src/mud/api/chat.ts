@@ -13,7 +13,6 @@
 
 import { StuffApi } from './stuff';
 import { HotReloadApi } from './hot-reload';
-import { SecurityApi } from './security';
 import type { Stuff } from '../lib/stuff/Stuff';
 import type { Channel } from '../lib/social/Channel';
 import type Subject from '../lib/forum/Subject';
@@ -23,6 +22,7 @@ import type { ChannelSubscription } from '../obj/ChannelCatalogue';
 import type { MessageFrame } from '@saxonberg/types';
 import { ChatLogic } from '../obj/api/ChatLogic';
 import { fileURLToPath } from 'url';
+import { SecurityApi } from './security';
 
 const LOGIC_PATH = '/obj/api/chat';
 const LOGIC_CLASS_FILE = fileURLToPath(

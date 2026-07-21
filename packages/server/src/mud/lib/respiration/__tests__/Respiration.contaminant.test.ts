@@ -26,7 +26,6 @@ import { ContainmentApi } from '../../../api/containment';
 import { EventApi } from '../../../api/event';
 import EventRegistry from '../../../obj/EventRegistry';
 import { Stuff } from '../../stuff/Stuff';
-import { RespirationDrain, RespirationRecovery } from '../RespirationDrain';
 import { StuffApi } from '../../../api/stuff';
 import {
   makeStuff,
@@ -88,8 +87,6 @@ describe('RespirationMixin — the smoke contaminant fold', () => {
     WorldClockApi._resetForTesting();
     WorldClockApi.setScale(1);
     SchedulerApi._clearAllForTesting();
-    SchedulerApi.registerActivity('respiration-drain', RespirationDrain);
-    SchedulerApi.registerActivity('respiration-recovery', RespirationRecovery);
   });
   afterEach(() => {
     SchedulerApi._clearAllForTesting();

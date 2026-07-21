@@ -8,8 +8,9 @@
  * authorOf` (see `ChattelApi.ownerOf`). The id is:
  *
  *   - **server-minted** — empty until `ChattelApi.stamp`/`transfer` mints
- *     one via the registry; the mutator `_setChattelId` is gated `ApiOnly`
- *     so no author/player can forge an identity.
+ *     one via the registry; the mutator `_setChattelId` is gated to the
+ *     chattel logic singleton alone, so no author/player can forge an
+ *     identity.
  *   - **durable across the persistence round-trip** — declared in
  *     `persistentFields`, so the drift-guarded capture/restore re-applies
  *     it (the id rides the Avatar-inventory snapshot; the registry row is
@@ -28,11 +29,19 @@ import type { Stuff } from "../stuff/Stuff";
 import { CallSecurity, Final, Unshadowable } from "../security/decorators";
 import { SecurityPolicies } from "../security/SecurityPolicies";
 
+/**
+ * The id-minting contract: chattel identity has no in-world participant
+ * (no domain Idea mints it — the chattel logic singleton is the minting
+ * authority), so the gate names that one caller by its stable template
+ * path instead of admitting the whole Api tier.
+ */
+const ByChattelLogic = SecurityPolicies.FromTemplate("/obj/api/chattel");
+
 /** The public method surface a chattel-bearing good exposes. */
 export interface Chattel {
   /** The durable per-instance id, or "" before first stamp. */
   getChattelId(): string;
-  /** Privileged: set the server-minted id. `ApiOnly`. */
+  /** Privileged: set the server-minted id — chattel-logic-only. */
   _setChattelId(id: string): void;
 }
 
@@ -58,11 +67,11 @@ export function ChattelMixin<TBase extends MixinConstructor<Stuff>>(
     }
 
     /**
-     * Server-mint the id. `ApiOnly` (only the Api tier — the chattel
-     * logic — mints), `@Final @Unshadowable` so the identity write is
-     * unspoofable by a subclass override or a shadow.
+     * Server-mint the id. Gated to the chattel logic singleton (the
+     * minting authority), `@Final @Unshadowable` so the identity write
+     * is unspoofable by a subclass override or a shadow.
      */
-    @CallSecurity(SecurityPolicies.ApiOnly)
+    @CallSecurity(ByChattelLogic)
     @Final
     @Unshadowable
     public _setChattelId(id: string): void {

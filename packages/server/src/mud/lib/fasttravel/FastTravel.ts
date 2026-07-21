@@ -27,9 +27,9 @@ import type { CommandContributions } from "../../api/command";
 import type { CronPattern, ClockHandle } from "../../api/worldclock";
 import { WorldClockApi } from "../../api/worldclock";
 import { StuffApi } from "../../api/stuff";
-import { ContainmentApi } from "../../api/containment";
 import { MixinApi } from "../../api/mixin";
 import { AddressApi } from "../../api/address";
+import type { AetherHosted } from "../augmentation/AetherHosted";
 import type { CredentialWallet } from "../credential/CredentialWallet";
 
 export type Directionality = "arrival" | "departure" | "both";
@@ -316,12 +316,16 @@ export function FastTravelMixin<TBase extends MixinConstructor<Stuff>>(
 
     async renderDepartures(viewer: Stuff & Sensor): Promise<string> {
       // "— not yet registered" reflects IDENTITY clearance (the viewer's own
-      // aether-hosted wallet), not whatever card they happen to carry.
-      const holder = ContainmentApi.findHostedUpdate(
-        viewer,
-        (s: Stuff): s is Stuff & CredentialWallet =>
-          MixinApi.isCredentialWallet(s) && !!s.getCredential("travel"),
-      );
+      // aether-hosted wallet — a single-object read on the viewer's own
+      // hosted updates), not whatever card they happen to carry.
+      const holder = MixinApi.isAether(viewer)
+        ? (viewer
+            .getHostedUpdates()
+            .find(
+              (s): s is Stuff & AetherHosted & CredentialWallet =>
+                MixinApi.isCredentialWallet(s) && !!s.getCredential("travel"),
+            ) ?? null)
+        : null;
       const cred = holder?.getCredential("travel");
       const selected = this.selectedDestinationRef;
       const lines: string[] = [

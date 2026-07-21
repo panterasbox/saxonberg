@@ -38,7 +38,6 @@ import ProducerStanding from '../mud/lib/standing/ProducerStanding';
 import { BankingApi } from '../mud/api/banking';
 // Loaded for its side effect: registers banking's `bank-circle` dialogue
 // effect into the generic DialogueEffectRegistry (consumer → substrate).
-import '../mud/lib/banking/BankDialogueEffect';
 import { DiagnosticApi } from '../mud/api/diagnostics';
 import { CompileWatcher } from './CompileWatcher';
 import { fileURLToPath } from 'url';
@@ -53,15 +52,17 @@ import SupplyAggregate from '../mud/lib/banking/SupplyAggregate';
 import { Document } from '../mud/lib/persistence/Document';
 import { StuffApi } from '../mud/api/stuff';
 import type { Marshaller } from '../mud/lib/persistence/Marshaller';
-// Side-effecting import: registers the live `online`/`world` provider
-// so MQL queries against admin-tier seeds reflect connected
-// interactives. Pulled in here (off the eager command/MqlApi chain)
-// to avoid the `ConnectionApi → ConnectionManager → Interactive →
-// Idea` load-time cycle. This is the one sanctioned reach into the
-// mql/ pipeline from outside the facade: routing it through api/mql.ts
-// would drag in the resolver chain and reintroduce that very cycle.
-// eslint-disable-next-line no-restricted-imports -- documented cycle-avoidance; side-effecting provider registration that must bypass the facade's eager load chain
-import '../mud/api/mql/online-wire';
+// Registers the live `online`/`world` provider so MQL queries against
+// admin-tier seeds reflect connected interactives. Imported here (off
+// the eager command/MqlApi chain) to avoid the `ConnectionApi →
+// ConnectionManager → Interactive → Idea` load-time cycle, and CALLED
+// explicitly from `run()` (the no-module-scope-statements rule — the
+// module declares; the boot lifecycle installs). This is the one
+// sanctioned reach into the mql/ pipeline from outside the facade:
+// routing it through api/mql.ts would drag in the resolver chain and
+// reintroduce that very cycle.
+// eslint-disable-next-line no-restricted-imports -- documented cycle-avoidance; provider registration that must bypass the facade's eager load chain
+import { installOnlineHoldersProvider } from '../mud/api/mql/online-wire';
 
 export interface AppBootstrapConfig {
   /** Mongo connection URI. */
@@ -105,6 +106,14 @@ export class AppBootstrap {
    *      boot.
    */
   public static async run(config: AppBootstrapConfig): Promise<void> {
+    // Framework cross-module wiring (registry-class handoffs, the
+    // security/shadow/command/glob seams). Idempotent; `BootstrapManager.run`
+    // re-invokes it. Branch registration is NOT here — the five branch
+    // classes self-register at their own module load (the hierarchy's
+    // root invariant must populate before any construction, including
+    // the lazy singletons built during seeding below).
+    BootstrapManager.installFrameworkWiring();
+
     // Wire the Document marshaller-resolution seam before any save/clone
     // path can run. Marshallers remain Idea-rooted Stuff (resolved via the
     // registry / singleton lazy-clone); Document stays free of a StuffApi
@@ -174,6 +183,7 @@ export class AppBootstrap {
     }
     console.info(`CommandApi: ${cmd.loaded} command YAML(s) preloaded`);
 
+    installOnlineHoldersProvider();
     await BootstrapManager.run();
 
     // App settings — warm the synchronous read cache from the seeded

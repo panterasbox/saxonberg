@@ -484,13 +484,17 @@ and wraps each one via `_wrapStaticDescriptor`. The wrapper:
    methodName, undefined, () => original.apply(this, args))`.
 4. On deny, throws `SecurityError`.
 
-Each Api file ends with an explicit call:
-
-```typescript
-SecurityApi.decorateApiClass(StuffApi);
-SecurityApi.decorateApiClass(ContainmentApi);
-// etc.
-```
+Decoration is a **module-scope tail** — each `api/*.ts` facade ends with
+`SecurityApi.decorateApiClass(FooApi)`. This is one of the two sanctioned
+exceptions to the no-module-scope-statements rule (see
+[architecture.md § Module scope declares](../architecture.md)): an `*Api`
+class is a thin, non-HMR-able *interface* imported directly, so the
+module tail IS its registration — there is no lifecycle for it to join
+the world through. The four bootstrap-special Apis
+(`execution-context`/`module`/`security`/`proxy`) omit the tail (see
+§ Why Some Api Files Don't Self-Decorate below). (The 2026-07 sweep
+briefly routed decoration through a `ModuleApi.stamp` hook to avoid the
+module-scope call; that was reverted.)
 
 Wrappers carry a `_callSecWrapped` marker so re-decoration is a no-op.
 The class-form `@CallSecurity` decorator does the same thing under the
@@ -518,7 +522,7 @@ halves are supported:
   treats a static-method synthesised frame's class as a first-class
   caller identity, and `decorateApiClass`'s static wrapper runs the
   forwarder body with frame **target = the Api class**. So when
-  `MaterialApi.materialOf()` calls `logic().materialOf(...)`, the
+  `MaterialApi.compositionOf()` calls `logic().compositionOf(...)`, the
   singleton sees `MaterialApi` as its caller.
 
 Each logic method therefore carries
@@ -614,6 +618,30 @@ Adoption:
 
 Special per-method Api gates (e.g. `SystemRoot` on
 `WorldClockApi.boot/shutdown`) stay on the Api forwarder.
+
+### The Api ↔ logic-singleton split is the hot-reload boundary
+
+The two hops are **not** an optional optimization — they *are* the
+hot-reload boundary, and the split is mandatory for every substrate Api.
+The `XApi` facade is imported directly across the codebase, so it is
+**not** HMR-able: anything living on it is frozen until a full restart.
+The `XLogic` singleton lives at `/obj/api/<feature>` and is resolved
+fresh per call (`StuffApi.singletonSync` + `HotReloadApi.getCurrentExport`),
+so editing it hot-reloads into every caller.
+
+Do **not** collapse the tier on the theory that "the logic only forwards
+to a registry, so it earns nothing." A logic singleton that resolves a
+state registry still owns the resolution, caching, and fail-open/
+fail-closed policy — and even a genuine pure-forward tier must stay, so
+that logic *added later* lands in the HMR-able unit rather than on the
+frozen facade. State registries (`AccessRegistry`, `OfficeRegistry`) hold
+durable *state* and are gated to admit their logic singleton
+(`FromTemplate('/obj/api/<feature>')`) — they are not a substitute for
+the logic tier. The 2026-07 sweep briefly collapsed `access`/`office`
+this way; it was **reverted**. The method-level cut that sweep *should*
+have made — deleting empty public predicates off the Api *surface* in
+favor of Stuff-to-Stuff contracts — is a separate, correct move (see
+[antipatterns.md § Thin Api Wrappers over Object Methods](../antipatterns.md)).
 
 ### Override hooks are ungateable — `@hook`, not policy
 
@@ -803,10 +831,14 @@ the bottom of the chain, not that every frame between is a test.
 
 ## Built-in Policies
 
-A `SecurityPolicy` is just `{ name, allows(caller, target, method) }`.
-`SecurityApi` resolves the policy attached to the called method
-(per-method, then class-level fallback, then framework `Public`
-default) and runs it before invoking the body.
+A `SecurityPolicy` is just `{ name, allows(caller, target, method,
+args?) }` — the fourth parameter carries the **call arguments** (empty
+for getter reads), threaded through by both dispatch sites (the
+instance security gate passes `ctx.args`, the static Api wrapper its
+`args`) and forwarded by the combinators. Policies that don't care
+simply ignore it. `SecurityApi` resolves the policy attached to the
+called method (per-method, then class-level fallback, then framework
+`Public` default) and runs it before invoking the body.
 
 | Policy | Allows |
 |---|---|
@@ -816,11 +848,38 @@ default) and runs it before invoking the body.
 | `ApiOnly` | Sugar for `FromModule('/api/**', { includeSubclasses: true })`. |
 | `FromTemplate(glob)` | Caller's **clone-instance template path** (`getTemplatePath`) matches `glob` — trust by clone lineage. A caller that isn't a cloned Stuff has no template identity and fails closed. |
 | `FromModule(glob, opts?)` | Caller's **class module ID** (`ModuleApi.lookup` on the class) matches `glob` — trust by code provenance, independent of any template path. With `{ includeSubclasses: true }`, walks the prototype chain so any ancestor whose module ID matches passes. Module IDs are `/`-absolute (same shape as template paths); the two policies are told apart by which identity each reads, not by the slash. |
+| `FromClass(() => Cls, opts?)` | **Participant policy** — the caller is an *instance* of the thunked class (subclasses included, ordinary `instanceof`). The thunk defers class resolution past import cycles, fail-closed if it throws. Cross-HMR-reload safety: falls back to comparing module ids along the caller's class chain against the thunked class's module id when `instanceof` misses (a reloaded class is a fresh identity; the module id is the stable one). `opts.where(caller, target, method, args)` adds the **relational half** of the contract — e.g. "the Party calling me must be writing *its own* path and already roster me". |
+| `FromMixin(name, opts?)` | **Participant policy** — the caller *composes* the named mixin, checked by walking the caller's class chain for the `_mixinName` static marker (pure string identity: HMR-stable, import-cycle-free). Class composition only — a Shadow-granted mixin does not confer caller privilege. Same `opts.where` relational half as `FromClass`. |
 | `FromController(...controllers)` | Sugar over `FromModule` keyed by a controller class's stamped module id. For one controller, lazy `FromModule(moduleIdOf(c))`. For many, `AnyOf(FromModule(idOf(c1)), …)`. The lazy form resolves `ModuleApi.lookup(cls)` at call-time, fail-closed if the class isn't stamped yet — handles the cyclic-import edge case where the controller class isn't stamped at decorator-evaluation time. The **narrow-entry pattern**'s policy half — see [access.md](./access.md). |
 | `Custom(pred, name?)` | Wrap an arbitrary predicate `(caller, target, method) => boolean | Promise<boolean>`. |
 | `AllOf(...)` | Composition: every policy passes. |
 | `AnyOf(...)` | Composition: at least one policy passes. |
 | `Not(p)` | Composition: invert. |
+
+### Participant contracts — the preferred gate for object-owned surfaces
+
+`ApiOnly` says "someone in the Api tier is calling" — a *module*
+allowlist that tells you nothing about whether the call makes sense.
+The participant policies (`FromClass` / `FromMixin` + `where`) instead
+express the contract in the OO terms the object graph already speaks:
+**which Stuff is on the other end of this call, and is it in the right
+relationship to me for these arguments**. The exemplar is the party
+subsystem: `PartyMemberMixin._setActivePartyPath` is gated on
+`FromClass(() => Party)` with a `where` requiring that the path being
+written is the *calling party's own* path and that the member is
+already on that party's roster — the `Party.admit()` transition is the
+code that satisfies it. A narrow `FromTemplate('/obj/api/<feature>')`
+arm may ride along for the owning logic's janitorial cases (stale
+state with no live participant to act).
+
+New object-owned mutators should reach for a participant contract
+first; `ApiOnly` on an object method is the legacy shape. The planned
+expansion is **trust-layer policies** (ownership via `ParcelApi`,
+authorship via `ProvenanceApi`, group membership via `GroupApi`) as
+sibling policies of the same shape — `allows` is already
+async-capable, so relationship-derived trust needs no new machinery,
+and new code qualifies by relationship instead of by joining a module
+list.
 
 ### Async `allows`
 

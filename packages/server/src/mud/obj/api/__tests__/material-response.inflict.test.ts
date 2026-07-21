@@ -190,8 +190,8 @@ describe('materials-response — inflict through the covering stack', () => {
     const mace = makeStuff(() => new Weapon());
     mace.setConstruction(Construction.of('hafted'));
 
-    const edgeChannel = MaterialApi.primaryChannel(dagger.getConstruction()!)!;
-    const bluntChannel = MaterialApi.primaryChannel(mace.getConstruction()!)!;
+    const edgeChannel = dagger.getConstruction()!.primaryChannel()!;
+    const bluntChannel = mace.getConstruction()!.primaryChannel()!;
 
     const struckByDagger = bodied();
     wearTorso(struckByDagger, steel(), 'plate');

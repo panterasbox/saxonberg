@@ -13,7 +13,7 @@ import type { CommandContext, CommandModel } from "../../../api/command";
 import { MessageApi } from "../../../api/message";
 import { Mml } from "../../../api/mml";
 import { MixinApi } from "../../../api/mixin";
-import { ContainmentApi } from "../../../api/containment";
+import type { AetherHosted } from "../../../lib/augmentation/AetherHosted";
 import type { CredentialWallet } from "../../../lib/credential/CredentialWallet";
 import type { Stuff } from "../../../lib/stuff/Stuff";
 
@@ -38,13 +38,16 @@ export default class RegisterController extends CommandController<CommandModel> 
     }
     // Clearance is bound to the traveller's IDENTITY (the born-with,
     // aether-hosted wallet), never to a carried, transferable card — so the
-    // write targets the actor's own hosted wallet directly (leg-2 isolation),
-    // not the general reachable-instrument scan.
-    const holder = ContainmentApi.findHostedUpdate(
-      giver,
-      (s: Stuff): s is Stuff & CredentialWallet =>
-        MixinApi.isCredentialWallet(s) && !!s.getCredential("travel"),
-    );
+    // write targets the actor's own hosted wallet directly (a single-object
+    // read on the giver), not the general reachable-instrument scan.
+    const holder = MixinApi.isAether(giver)
+      ? (giver
+          .getHostedUpdates()
+          .find(
+            (s): s is Stuff & AetherHosted & CredentialWallet =>
+              MixinApi.isCredentialWallet(s) && !!s.getCredential("travel"),
+          ) ?? null)
+      : null;
     if (!holder) {
       return this.fail(
         context,

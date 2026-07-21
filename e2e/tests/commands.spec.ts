@@ -41,15 +41,20 @@ test('`smile` renders the emote back to the actor', async ({ browser }) => {
   }
 });
 
-test('`inventory` reports an empty pack for a fresh avatar', async ({
+test('`inventory` lists a fresh avatar\'s born-with implant', async ({
   browser,
 }) => {
+  // A fresh avatar carries only its born-with cranial aether implant
+  // (installed via the default loadout — it's on your person, so it
+  // lists under inventory). Nothing else is carried; the aspiration
+  // outfit is WORN, not carried, and the credential apps are
+  // aether-hosted, not container contents.
   const { page, close } = await openWorldAs(browser, 'cmd-inv');
   try {
     await sendUntil(
       page,
       'inventory',
-      page.getByText(/You are not carrying anything/i).first()
+      page.getByText(/You are carrying:.*aether implant/i).first()
     );
   } finally {
     await close();

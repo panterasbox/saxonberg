@@ -3,6 +3,209 @@
 This document lists coding patterns that should be avoided in the Saxonberg
 codebase, with the correct alternative for each.
 
+## Thin Api Wrappers over Object Methods
+
+**ANTIPATTERN**: An Api method whose whole job is
+`if (MixinApi.isX(stuff)) return stuff.foo()` — a forwarder that adds no
+orchestration, no cross-object logic, and no security value.
+
+### BAD (Api hop for a single object read)
+
+```typescript
+// An Api method that just relays the object's own answer
+public static conditionsOf(target: Stuff): readonly ActiveCondition[] {
+  if (!MixinApi.isVitals(target)) return [];
+  return target.getConditions();
+}
+// ...and every caller paying the hop:
+const conditions = ConditionApi.conditionsOf(victim);
+```
+
+### GOOD (call the object; narrow locally)
+
+```typescript
+if (MixinApi.isVitals(victim)) {
+  const conditions = victim.getConditions();
+}
+```
+
+It's an OO world: methods are the contract between Stuff objects, and the
+caller's own `MixinApi.isX` narrowing is the type check — localized where
+the composition assumption actually lives. An Api method earns its
+existence by *orchestrating* (e.g. `ContainmentApi.move`,
+`ConditionApi.inflict`) — never by relaying one object's answer. The
+2026-07 sweep removed this family (`getContainer`/`getContents`/
+`materialOf`/`conditionsOf`/`afflict`/`relieve`/lifecycle predicates/…);
+don't reintroduce it. Enforced by `pnpm lint:thin-forwarder` (CI-gating).
+
+## `ApiOnly` as a Substitute for a Real Security Contract
+
+**ANTIPATTERN**: Gating a privileged object mutator `ApiOnly` (any
+`api/**` / `obj/api/**` caller) and adding an Api method purely so
+*something in the Api tier* is the caller. The gate then says nothing
+about *who* legitimately performs the mutation.
+
+### BAD
+
+```typescript
+@CallSecurity(SecurityPolicies.ApiOnly) // "someone in the Api tier"
+public _setActivePartyPath(path: string): void { ... }
+```
+
+### GOOD (participant contract)
+
+```typescript
+// The Party acting on this member is the legitimate writer — and only
+// to itself, and only if it actually rosters me.
+const ByRosteringParty = SecurityPolicies.FromClass(() => Party, {
+  where: (caller, target, _m, args) =>
+    args[0] === '' ||
+    (args[0] === (caller as Party).getTemplatePath() &&
+      (caller as Party).isMember((target as PartyMember).partyMemberId())),
+});
+
+@CallSecurity(ByRosteringParty)
+public _setActivePartyPath(path: string): void { ... }
+```
+
+Express the contract in terms of **which Stuff is participating in the
+call** (`FromClass` / `FromMixin` + a relational `where` over the call
+args), or name the one privileged caller by its stable identity
+(`FromTemplate('/obj/api/<feature>')` for an owning logic singleton).
+See [subsystems/call-security.md § Participant contracts](./subsystems/call-security.md).
+
+## Collapsing the Api ↔ Logic Split
+
+**ANTIPATTERN**: Deleting a `obj/api/<X>Logic.ts` singleton and having
+the `XApi` facade (or a state registry) hold the resolution logic
+directly, on the theory that "the logic tier only forwarded, so it
+earned nothing."
+
+The split is **not** an optimization to be collapsed — it is the
+**hot-reload boundary**. The `XApi` facade is imported directly all over
+the codebase, so it is *not* HMR-able; anything living on it is frozen
+until a full restart. The `XLogic` singleton lives at `/obj/api/<x>` and
+is resolved fresh per call (`StuffApi.singletonSync` +
+`HotReloadApi.getCurrentExport`), so editing it hot-reloads into every
+caller. A logic tier that "only forwards to a registry" still owns
+registry resolution, caching, and the fail-open/fail-closed policy — and
+even if it were a pure forward, the tier must stay so that logic *added
+later* lands in the HMR-able unit, not on the frozen facade.
+
+**INSTEAD**: Every substrate Api keeps its `XApi` (thin interface,
+non-HMR) → `XLogic` (`/obj/api/<x>`, HMR-able) pair. The facade forwards
+`return logic().m(...)`; the logic holds the behavior. State registries
+(`AccessRegistry`, `OfficeRegistry`) hold durable *state*, gated to admit
+the logic singleton (`FromTemplate('/obj/api/<x>')`) — they are not a
+substitute for the logic tier. (The 2026-07 sweep briefly collapsed
+`access`/`office` this way and it was reverted — the split is
+mandatory.) See [subsystems/call-security.md § The Api ↔ logic-singleton split is the hot-reload boundary](./subsystems/call-security.md).
+
+The genuinely-empty thing worth deleting is a *public method on the Api
+surface* that only relays a Stuff parameter's own answer — see
+[§ Thin Api Wrappers over Object Methods](#thin-api-wrappers-over-object-methods)
+above. That is a method-level cut (→ a Stuff-to-Stuff contract), never a
+tier-level one.
+
+## Free-Standing Module-Scope Statements
+
+**ANTIPATTERN**: Executable statements at module scope — registration
+calls, hook installs, state mutation — running as an import side
+effect.
+
+```typescript
+// BAD — import-time registration
+SchedulerApi.registerActivity(SEARCH_ACTIVITY_TYPE, SearchActivity);
+SecurityApi.decorateApiClass(FooApi);
+DialogueEffectRegistry.register('bank-circle', BANK_CIRCLE_EFFECT);
+```
+
+**INSTEAD**: module scope *declares*; initialization happens through a
+runtime lifecycle — capture-at-use (the scheduler dispatch index),
+`postRegister` (instance lifecycle),
+`BootstrapManager.installFrameworkWiring()` (the boot seam), or a lazy
+first-use initializer.
+
+**The two sanctioned module-scope exceptions** (both in the lint's
+allowlist): the five branch files' `Stuff._registerTopLevelBranch(...)`
+self-registration (a load-order-coupled root invariant), and an `*Api`
+facade's trailing `SecurityApi.decorateApiClass(FooApi)`. An Api class is
+a thin, caller-facing *interface* — imported directly, never hot-reloaded
+— so there is no lifecycle for it to join the world through; the module
+tail IS its registration. (The 2026-07 sweep briefly routed Api
+decoration through `ModuleApi.stamp` to avoid the module-scope call; that
+was reverted — the self-decorate tail is the pattern.) Full pattern
+table:
+[architecture.md § Module scope declares; lifecycles initialize](./architecture.md).
+Enforced by `pnpm lint:module-scope` (CI-gating).
+
+## Bespoke Object-Search Algorithms
+
+**ANTIPATTERN**: Hand-rolled runtime Stuff searches — a
+`getAllObjects()` loop with a filter, a custom multi-leg containment
+walk with a predicate.
+
+```typescript
+// BAD — a private world scan
+for (const obj of StuffApi.getAllObjects()) {
+  if (MixinApi.isAttendant(obj)) out.push(obj);
+}
+// BAD — a bespoke reachability walk (the deleted findReachable)
+```
+
+**INSTEAD**: MQL is how you search for Stuff at runtime; grow MQL when
+it can't express the search.
+
+```typescript
+// Engine sweep (viewer-blind): the code-only system mode
+const points = MqlApi.resolveMany('world:[mixin.AttendantMixin]', {
+  commandGiver: null,
+  scope: 'world',
+});
+// Actor-anchored capability scan: the reachable/person seeds + local
+// narrowing (the resolveIn pattern)
+const wallet = MqlApi.resolveMany('person', { commandGiver: actor, scope: 'person' })
+  .stuff.find((s): s is Stuff & CredentialWallet =>
+    MixinApi.isCredentialWallet(s));
+```
+
+Pick the anchor honestly: `person` for bearer semantics (a key on the
+floor is never "presented"), `reachable` for what the actor can act
+on, system mode only for engine bookkeeping with no character in the
+frame. The two sanctioned exceptions are `ResidencyLogic`'s raw-proxy
+sweeps (enumeration must not count as a touch — commented at the
+loops) and single-object reads (one container's contents, one host's
+hosted updates) — those are object-local reads, not searches. The
+`getAllObjects()` half is enforced by `pnpm lint:world-scan`
+(CI-gating; the allowlist is the three sanctioned scan sites).
+
+## `StuffApi.create()` Instead of a Template
+
+**ANTIPATTERN**: Building a statically-describable object with
+`StuffApi.create(() => new X())` instead of authoring a template and
+`StuffApi.clone(path)`-ing it. Templates are the content system —
+CMS-editable, pack-shippable, hot-rehydratable; a raw `create` opts
+the object out of all of that.
+
+`create`/`createSync` are ONLY for objects a template genuinely cannot
+describe ahead of time. The recognized categories (the whole current
+population — audited 2026-07):
+
+- **Live-ref relational** — the object binds specific live instances
+  (an `Exit`'s source/destination, a `BoundaryAnchor`, a `Login`/
+  `Interactive` holding a live connection). A static template cannot
+  hold a live ref.
+- **Dynamically-minted uniques** — identity paths minted at runtime
+  (`Party` at `/obj/party/<uuid>`, the per-player `_eval` scratch).
+- **Transient single-use vessels** — minted, used, and reaped inside
+  one call (`LightningStrike`); a template would be a seed row
+  nothing ever edits.
+- **Framework fallbacks / introspection** — a test-harness registry
+  lazy-mint, `StudioLogic`'s read-a-class-default throwaway.
+
+Anything else — a fixture, an item, an NPC, a room — gets a template
+and a seed. When in doubt, it's a template.
+
 ## Duck Typing with Mixins
 
 **ANTIPATTERN**: Checking for method existence using `typeof` instead of
@@ -52,8 +255,8 @@ if (MixinApi.hasMixin(obj.constructor, Mixins.Container)) {
 ContainmentApi.move(sword, avatar);    // pick up (source inferred)
 ContainmentApi.move(sword, location);  // drop (source inferred)
 
-// Use ContainmentApi.getContents() for safe container access
-const items = ContainmentApi.getContents(container);
+// Read contents directly off the narrowed container
+const items = container.getContents();
 ```
 
 ### Narrowing predicates vs. `hasMixin()`
@@ -267,11 +470,13 @@ ContainmentApi.move(item, toContainer);
 // Check if item is in container
 const isInside = ContainmentApi.isContainedIn(item, container);
 
-// Get the container holding an item
-const container = ContainmentApi.getContainer(item);
+// Get the container holding an item (direct object read; narrow the
+// receiver with MixinApi.isContainable first when needed)
+const container = item.getContainer();
 
-// Get contents from a container (safe, returns [] if not a container)
-const contents = ContainmentApi.getContents(container);
+// Get contents from a container (direct object read; narrow with
+// MixinApi.isContainer first when needed)
+const contents = container.getContents();
 ```
 
 ### Stuff template-path read / stamp
@@ -335,9 +540,6 @@ if (typeof obj.getContents === 'function') {
 if (MixinApi.isContainer(obj)) {
   const items = obj.getContents();
 }
-
-// OR (safe convenience helper)
-const items = ContainmentApi.getContents(obj); // [] if not a container
 ```
 
 ## Display Names — Use `Stuff.getPresentation()`
@@ -396,7 +598,8 @@ status-light tint.
   when the mode is known. Don't manually
   `setEngagedMode` around a `Mobile.traverse` call — `engageAround`
   handles the transient/persistent decision + error-path cleanup.
-- **Container access** (get contents): use `ContainmentApi.getContents()`
+- **Container access** (get contents): narrow with
+  `MixinApi.isContainer(obj)` and call `obj.getContents()` directly
 - **Narrow and call**: use `MixinApi.isX(obj)` type predicates
 - **Introspection only**: use `MixinApi.hasMixin(ctor, Mixins.X)`
 - **Display text** (names/descriptions): use `Stuff.getPresentation()`
@@ -1534,14 +1737,18 @@ class SmellApi {
 class SmellModality extends Modality {
   signalAt(loc) { ... }
 }
-// Outside callers go through PerceptionApi:
-PerceptionApi.signalAt(loc, smellModality);
+// signalAt is one modality's own contract — callers reach it directly
+// on the singleton:
+smellModality.signalAt(loc);
 ```
 
 The single `PerceptionApi` is the modality-agnostic dispatch
-surface (`signalAt`, `perceiveAt`, `sensorium`, `canPerceive`).
-Per-modality state and walks live on the modality singleton; per-
-modality value types live in `lib/perception/`. See
+surface (`perceiveAt`, `sensorium`, `canPerceive`, `perceives`). The
+per-modality *walk* (`signalAt`) is the modality's own method, called on
+its singleton — the thin `PerceptionApi.signalAt` forwarder was removed
+in the 2026-07 antipattern sweep. Per-modality state and walks live on
+the modality singleton; per-modality value types live in
+`lib/perception/`. See
 [senses.md § Modality singletons + PerceptionApi](./subsystems/senses.md).
 
 ## Don't model augments by listing grants directly

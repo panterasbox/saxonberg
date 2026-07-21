@@ -363,7 +363,3 @@ export class CombatParticipantHold implements SustainedEngagement {
   }
 }
 
-// Register the participant-hold lifecycle class at module load (the HMR
-// seam, mirroring RespirationDrain / Coup — a reload re-runs this and
-// overwrites the entry). The session itself is not a scheduler activity.
-SchedulerApi.registerActivity(COMBAT_PARTICIPANT_TYPE, CombatParticipantHold);

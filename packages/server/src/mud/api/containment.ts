@@ -37,11 +37,11 @@ import type { Warren } from '../lib/location/Warren';
 import { StuffApi } from './stuff';
 import { MixinApi } from './mixin';
 import { HotReloadApi } from './hot-reload';
-import { SecurityApi } from './security';
 import { CallSecurity } from '../lib/security/decorators';
 import { SecurityPolicies } from '../lib/security/SecurityPolicies';
 import { ContainmentLogic } from '../obj/api/ContainmentLogic';
 import { fileURLToPath } from 'url';
+import { SecurityApi } from './security';
 // `TeleportController` / `GotoController` are reached lazily via
 // string module ids to avoid a value-level static-import cycle
 // (api/containment → controller → ContainmentApi).
@@ -261,25 +261,9 @@ export class ContainmentApi {
     return logic().isContainedIn(item, container);
   }
 
-  /**
-   * Get the container that holds an item
-   */
-  public static getContainer(item: ContainableStuff): ContainerStuff | null {
-    return logic().getContainer(item);
-  }
-
-  /**
-   * Get contents from a container object
-   *
-   * Usage:
-   * ```typescript
-   * const inventory = ContainmentApi.getContents(avatar);
-   * const locationContents = ContainmentApi.getContents(location);
-   * ```
-   */
-  public static getContents(container: ContainerStuff): ContainableStuff[] {
-    return logic().getContents(container);
-  }
+  // The `getContainer`/`getContents` read-wrappers were removed: those
+  // reads live on the objects themselves — call `item.getContainer()` /
+  // `container.getContents()` directly (narrow with MixinApi as needed).
 
   /**
    * Filter a contents snapshot to the **loose** (top-level) items — those
@@ -299,73 +283,13 @@ export class ContainmentApi {
     });
   }
 
-  /**
-   * Find the first reachable Stuff matching `predicate`, searched in
-   * "on your person, then the room" order: installed augmentations
-   * (slot occupants), then carried inventory, then the surrounding
-   * location's contents. Returns null when nothing matches.
-   *
-   * The reach surface mirrors the `canReach` validator's criteria
-   * (inventory + location contents), extended with slot occupants so
-   * an installed implant counts as on-person, plus two legs for the
-   * three-base capability model: the **self leg** (a capability
-   * composed directly on the actor / its species) and the
-   * **descend-into-host leg** (an incorporeal update Idea hosted on an
-   * attunement host — the actor itself, an installed implant, or a
-   * carried attuned Thing). No global index — scans only the actor and
-   * the given location.
-   *
-   * Order (on-your-person first): self → self's hosted updates → slot
-   * occupants (+ their hosted updates) → carried (+ carried hosts'
-   * hosted updates) → location contents.
-   *
-   * Generalizes the old check-inventory-and-augs scans: fast travel
-   * uses it to find a credential (card Thing, or hosted credential
-   * update) or the node you're standing at, but it is deliberately
-   * predicate-agnostic.
-   *
-   * **Guardrail — `findReachable` vs. MQL.** This answers exactly one
-   * question: *is there a reachable bearer of capability-**type** X for
-   * the engine to route behavior through?* — keyed on a mixin type,
-   * first-match, returning a type-narrowed `Stuff & T`. It is NOT a
-   * query engine. Anything keyed on identity / keywords / properties /
-   * user input — argument resolution, choosing among matches,
-   * filtering, live/subscribable results — belongs to MQL, never here.
-   * The host-descent leg is bounded to a single concept and a single
-   * level; do not teach this helper another leg.
-   */
-  public static findReachable<T>(
-    actor: Stuff,
-    location: ContainerStuff | null,
-    predicate: (s: Stuff) => s is Stuff & T,
-  ): (Stuff & T) | null {
-    return logic().findReachable(actor, location, predicate);
-  }
-
-  /**
-   * Find the first update **hosted directly on the actor's own attunement**
-   * matching `predicate` — `findReachable`'s leg 2 (self's hosted updates)
-   * in isolation, returning null when the actor hosts no match.
-   *
-   * This is the **identity-only, single-level, predicate-agnostic** resolver:
-   * it scans exactly `actor.getHostedUpdates()`, one level, and considers no
-   * slot occupants, no carried inventory, no location. It exists for **leg-2
-   * isolation** — structural identity binding, where a capability that must be
-   * bound to *who the actor is* (their born-with aether-hosted wallet) may not
-   * be satisfied by a carried, transferable instrument. Same guardrail as
-   * {@link findReachable}: **not** a query engine; keyed on a mixin type,
-   * first-match, type-narrowed `Stuff & T`. Anything keyed on identity /
-   * keywords / properties / user input belongs to MQL, never here.
-   *
-   * Actor-from-context discipline: callers pass `context.commandGiver` / the
-   * viewer, exactly as with {@link findReachable}.
-   */
-  public static findHostedUpdate<T>(
-    actor: Stuff,
-    predicate: (s: Stuff) => s is Stuff & T,
-  ): (Stuff & T) | null {
-    return logic().findHostedUpdate(actor, predicate);
-  }
+  // The old `findReachable` / `findHostedUpdate` finders were removed:
+  // the reachable walk now lives in MQL's `reachable` seed
+  // (api/mql/scope-walk.ts `candidatesForReachable` — self → own hosted
+  // updates → slot occupants → carried → location → peers, on-person
+  // first). Callers resolve the pool via `MqlApi.resolveMany('reachable',
+  // …)` and narrow locally; identity-bound (own-attunement) reads scan
+  // `actor.getHostedUpdates()` directly.
 
   /**
    * Resolve a spawn/landing reference into the live Container to place

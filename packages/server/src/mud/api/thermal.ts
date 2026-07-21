@@ -23,9 +23,9 @@
 import type { Stuff } from '../lib/stuff/Stuff';
 import { StuffApi } from './stuff';
 import { HotReloadApi } from './hot-reload';
-import { SecurityApi } from './security';
 import { ThermalLogic } from '../obj/api/ThermalLogic';
 import { fileURLToPath } from 'url';
+import { SecurityApi } from './security';
 
 const LOGIC_PATH = '/obj/api/thermal';
 const LOGIC_CLASS_FILE = fileURLToPath(

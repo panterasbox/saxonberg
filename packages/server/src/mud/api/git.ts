@@ -25,9 +25,9 @@
 
 import { StuffApi } from './stuff';
 import { HotReloadApi } from './hot-reload';
-import { SecurityApi } from './security';
 import { GitLogic } from '../obj/api/GitLogic';
 import { fileURLToPath } from 'url';
+import { SecurityApi } from './security';
 import type {
   GitStatusResult,
   GitDiffResult,

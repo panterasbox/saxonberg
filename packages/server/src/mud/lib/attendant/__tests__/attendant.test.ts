@@ -26,10 +26,6 @@ import { Idea } from "../../stuff/Idea";
 import { EngagedMixin } from "../../activity/Engaged";
 import { SensorMixin } from "../../message/Sensor";
 import {
-  AttendanceEngagement,
-  ATTENDANCE_TYPE,
-} from "../AttendanceEngagement";
-import {
   makeStuff,
   makeStuffAtPath,
   withRootContext,
@@ -77,9 +73,6 @@ beforeEach(async () => {
   StuffApi.unregister(reg);
   StuffApi.register(reg);
   EventApi._setRegistryForTesting(reg);
-  act(() =>
-    SchedulerApi.registerActivity(ATTENDANCE_TYPE, AttendanceEngagement as never),
-  );
 });
 
 describe("Attendant — instant vs durative service", () => {

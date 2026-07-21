@@ -139,6 +139,14 @@ export interface Exitable {
  * inverse for `'office'` or `'portal'`.
  */
 export interface BidirectionalExitOptions {
+  /**
+   * Pre-cloned UNBOUND exit instances (the exit-kind path —
+   * `applyExits` clones from `ExitInstruction.kind` and hands them in;
+   * `addBidirectionalExit` binds instead of constructing). Both or
+   * neither.
+   */
+  prebuiltForward?: Exit;
+  prebuiltBack?: Exit;
   opposite?: string;
   door?: Door;
   /**
@@ -187,6 +195,16 @@ export interface BidirectionalExitOptions {
  */
 export interface ExitInstruction {
   destination: string;
+  /**
+   * Exit-KIND template path (`/obj/exits/<kind>` — e.g. `archway`,
+   * `stair`). When present, the exit is **cloned from the kind**
+   * (hydrating the kind's authored traverse messages / media /
+   * concealment / wheelPassable defaults) and then bound to this edge;
+   * per-entry fields below override the kind's defaults. Absent → a
+   * plain raw `Exit` (today's behavior; a bare passage has nothing
+   * authored). The kind template's `class:` may name an Exit subclass.
+   */
+  kind?: string;
   door?: string;
   bidirectional?: boolean;
   opposite?: string;
@@ -421,7 +439,7 @@ export function ExitableMixin<TBase extends MixinConstructor<Stuff & Container>>
           `addBidirectionalExit: cannot infer the opposite of '${direction}'; pass opts.opposite explicitly.`
         );
       }
-      const forward = StuffApi.createSync(() => new Exit({
+      const forwardOpts = {
         direction,
         source: this as unknown as Stuff & Container,
         destination: other,
@@ -431,10 +449,10 @@ export function ExitableMixin<TBase extends MixinConstructor<Stuff & Container>>
         blocked: opts.blocked,
         muffled: opts.muffled,
         noFollow: opts.noFollow,
-        messageIn: opts.messageInForward ?? null,
-        messageOut: opts.messageOutForward ?? null,
-      }));
-      const back = StuffApi.createSync(() => new Exit({
+        messageIn: opts.messageInForward,
+        messageOut: opts.messageOutForward,
+      };
+      const backOpts = {
         direction: opposite,
         source: other,
         destination: this as unknown as Stuff & Container,
@@ -444,9 +462,28 @@ export function ExitableMixin<TBase extends MixinConstructor<Stuff & Container>>
         blocked: opts.blocked,
         muffled: opts.muffled,
         noFollow: opts.noFollow,
-        messageIn: opts.messageInBack ?? null,
-        messageOut: opts.messageOutBack ?? null,
-      }));
+        messageIn: opts.messageInBack,
+        messageOut: opts.messageOutBack,
+      };
+      // Exit-kind path: bind the pre-cloned instances (kind defaults
+      // hydrated; bind is delta-aware so unset per-site fields keep
+      // them). Raw path: construct as before.
+      let forward: Exit;
+      let back: Exit;
+      if (opts.prebuiltForward || opts.prebuiltBack) {
+        if (!opts.prebuiltForward || !opts.prebuiltBack) {
+          throw new Error(
+            'addBidirectionalExit: prebuiltForward and prebuiltBack must be supplied together'
+          );
+        }
+        forward = opts.prebuiltForward;
+        back = opts.prebuiltBack;
+        forward.bind(forwardOpts);
+        back.bind(backOpts);
+      } else {
+        forward = StuffApi.createSync(() => new Exit(forwardOpts));
+        back = StuffApi.createSync(() => new Exit(backOpts));
+      }
       // Wire each side's `inverse` pointer to the other so MobileMixin
       // can reach `exit.inverse?.direction` when announcing arrival
       // without a separate cross-location lookup. One-way exits (a
@@ -549,41 +586,55 @@ export function ExitableMixin<TBase extends MixinConstructor<Stuff & Container>>
       // that also installs the reciprocal (used where the two exits share one
       // physical `Door`, whose boundary anchors must be wired once — the door
       // IS the shared "both sides"). No cardinal auto-reciprocity.
+      // Exit-kind path: clone the kind template (authored defaults
+      // hydrate; `class:` may name an Exit subclass), then bind below.
+      // A bidirectional entry clones one instance per edge.
+      const kindPath = spec.kind;
       const bidirectional = spec.bidirectional ?? false;
       if (bidirectional) {
         const opts: BidirectionalExitOptions = {
+          prebuiltForward: kindPath
+            ? await StuffApi.clone<Exit>(kindPath)
+            : undefined,
+          prebuiltBack: kindPath
+            ? await StuffApi.clone<Exit>(kindPath)
+            : undefined,
           door: doorStuff,
           opposite: spec.opposite,
           hidden: spec.hidden,
           blocked: spec.blocked,
           muffled: spec.muffled,
           noFollow: spec.noFollow,
-          messageInForward: spec.messageIn ?? null,
-          messageOutForward: spec.messageOut ?? null,
+          messageInForward: spec.messageIn,
+          messageOutForward: spec.messageOut,
         };
         await this.addBidirectionalExit(destStuff, direction, opts);
         return;
       }
-      const exit = StuffApi.createSync(
-        () =>
-          new Exit({
-            direction,
-            source: this as unknown as Stuff & Container,
-            destination: destStuff,
-            door: doorStuff ?? null,
-            hidden: spec.hidden,
-            concealment: spec.concealment,
-            concealmentHint: spec.hint,
-            blocked: spec.blocked,
-            muffled: spec.muffled,
-            noFollow: spec.noFollow,
-            oneWay: spec.oneWay ?? true,
-            messageIn: spec.messageIn,
-            messageOut: spec.messageOut,
-            media: spec.media,
-            wheelPassable: spec.wheelPassable,
-          })
-      );
+      const oneWayOpts = {
+        direction,
+        source: this as unknown as Stuff & Container,
+        destination: destStuff,
+        door: doorStuff ?? null,
+        hidden: spec.hidden,
+        concealment: spec.concealment,
+        concealmentHint: spec.hint,
+        blocked: spec.blocked,
+        muffled: spec.muffled,
+        noFollow: spec.noFollow,
+        oneWay: spec.oneWay ?? true,
+        messageIn: spec.messageIn,
+        messageOut: spec.messageOut,
+        media: spec.media,
+        wheelPassable: spec.wheelPassable,
+      };
+      let exit: Exit;
+      if (kindPath) {
+        exit = await StuffApi.clone<Exit>(kindPath);
+        exit.bind(oneWayOpts);
+      } else {
+        exit = StuffApi.createSync(() => new Exit(oneWayOpts));
+      }
       await this.addExit(exit);
     }
 

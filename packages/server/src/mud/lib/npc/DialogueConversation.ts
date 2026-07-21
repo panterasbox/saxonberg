@@ -113,9 +113,9 @@ export class DialoguePartnerHold implements SustainedEngagement {
 }
 
 /**
- * The NPC-side state machine. Registered (mandatory — `SchedulerRegistry`
- * dispatches `onAbort`/`getHost` through the activity-class registry, so
- * an unregistered class would silently skip cleanup).
+ * The NPC-side state machine. `SchedulerRegistry` dispatches
+ * `onAbort`/`getHost` through the activity-class dispatch index,
+ * captured automatically at `start`.
  */
 export class DialogueConversation implements SustainedEngagement {
   engagementId = "";
@@ -452,10 +452,3 @@ function compare(
   }
 }
 
-// Register both lifecycle classes at module load (the HMR seam, mirroring
-// RespirationDrain — a reload re-runs this and overwrites the entries).
-SchedulerApi.registerActivity(
-  DIALOGUE_CONVERSATION_TYPE,
-  DialogueConversation,
-);
-SchedulerApi.registerActivity(DIALOGUE_PARTNER_TYPE, DialoguePartnerHold);

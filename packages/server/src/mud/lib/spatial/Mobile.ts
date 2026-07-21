@@ -490,7 +490,7 @@ export function MobileMixin<TBase extends MixinConstructor<Stuff & Containable>>
       };
       considerHazard(destination as unknown as Stuff);
       if (MixinApi.isContainer(destination)) {
-        for (const item of ContainmentApi.getContents(destination)) {
+        for (const item of destination.getContents()) {
           considerHazard(item as unknown as Stuff);
         }
       }

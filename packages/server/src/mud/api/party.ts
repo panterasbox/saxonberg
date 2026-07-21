@@ -18,11 +18,11 @@
 
 import type { Stuff } from "../lib/stuff/Stuff";
 import type { Party } from "../lib/party/Party";
-import { SecurityApi } from "./security";
 import { StuffApi } from "./stuff";
 import { HotReloadApi } from "./hot-reload";
 import { PartyLogic } from "../obj/api/PartyLogic";
 import { fileURLToPath } from "url";
+import { SecurityApi } from './security';
 
 export type { Party } from "../lib/party/Party";
 

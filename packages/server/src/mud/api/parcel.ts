@@ -16,7 +16,6 @@
  * self-home rule).
  */
 
-import { SecurityApi } from "./security";
 import { StuffApi } from "./stuff";
 import { HotReloadApi } from "./hot-reload";
 import { ParcelLogic } from "../obj/api/ParcelLogic";
@@ -26,6 +25,7 @@ import {
 } from "../lib/parcel/ParcelRecord";
 import type { GroupRef } from "../lib/social/GroupProvider";
 import { fileURLToPath } from "url";
+import { SecurityApi } from './security';
 
 const LOGIC_PATH = "/obj/api/parcel";
 const LOGIC_CLASS_FILE = fileURLToPath(

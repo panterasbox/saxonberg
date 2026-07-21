@@ -22,9 +22,9 @@ import type { Slotted } from '../lib/slot/Slotted';
 import type { Slottable } from '../lib/slot/Slottable';
 import { StuffApi } from './stuff';
 import { HotReloadApi } from './hot-reload';
-import { SecurityApi } from './security';
 import { SlotLogic } from '../obj/api/SlotLogic';
 import { fileURLToPath } from 'url';
+import { SecurityApi } from './security';
 
 /**
  * Discriminated input to `SlotApi.resolveSlot`.

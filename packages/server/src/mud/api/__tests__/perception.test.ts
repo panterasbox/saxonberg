@@ -224,11 +224,12 @@ describe('PerceptionApi', () => {
       // base-class default ignores its loc argument, so passing a
       // bare Thing through `unknown` cast is enough — we're testing
       // the dispatch path, not the contents traversal.
-      const loc = makeStuff(() => new Thing()) as unknown as Parameters<
-        typeof PerceptionApi.signalAt
-      >[0];
+      const loc = makeStuff(
+        () => new Thing()
+      ) as unknown as Parameters<typeof taste.signalAt>[0];
       const taste = PerceptionApi.modalityByName('taste');
-      expect(PerceptionApi.signalAt(loc, taste)).toBeNull();
+      // signalAt is the modality's own method (no thin Api wrapper).
+      expect(taste.signalAt(loc)).toBeNull();
     });
   });
 

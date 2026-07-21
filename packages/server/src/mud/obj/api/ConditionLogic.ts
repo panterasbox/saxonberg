@@ -18,7 +18,6 @@ import type { Construction } from '../../lib/material/Construction';
 import type { Grade } from '../../lib/craft/Grade';
 import type Material from '../../lib/material/Material';
 import type {
-  ActiveCondition,
   Trauma,
   TraumaType,
 } from '../../lib/vitals/Condition';
@@ -125,7 +124,7 @@ function resolveCoveringStack(
 /** Build a covering layer from an armor/shield occupant. */
 function layerOf(occ: Stuff, construction: Construction): CoveringLayer {
   return {
-    material: MaterialApi.materialOf(occ),
+    material: MixinApi.isTangible(occ) ? occ.getMaterial() : null,
     construction,
     grade: MixinApi.isGraded(occ) ? occ.getGrade() : undefined,
     condition: MixinApi.isDurable(occ) ? occ.getCondition() : 1,
@@ -213,27 +212,10 @@ export class ConditionLogic extends ApiLogic {
       ? inflictThroughStack(target, spec, spec.mechanism, inflicter)
       : inflictPassthrough(target, spec, inflicter);
   }
-
-  /** See {@link ConditionApi.afflict}. */
-  @CallSecurity(ConditionApiCallers)
-  public afflict(target: Stuff, condition: ActiveCondition): void {
-    if (!MixinApi.isVitals(target)) return;
-    target.afflict(condition);
-  }
-
-  /** See {@link ConditionApi.relieve}. */
-  @CallSecurity(ConditionApiCallers)
-  public relieve(target: Stuff, condition: ActiveCondition): boolean {
-    if (!MixinApi.isVitals(target)) return false;
-    return target.relieve(condition);
-  }
-
-  /** See {@link ConditionApi.conditionsOf}. */
-  @CallSecurity(ConditionApiCallers)
-  public conditionsOf(target: Stuff): readonly ActiveCondition[] {
-    if (!MixinApi.isVitals(target)) return [];
-    return target.getConditions();
-  }
+  // The former `afflict` / `relieve` / `conditionsOf` thin forwarders
+  // were removed (item-1 antipattern sweep): callers narrow with
+  // `MixinApi.isVitals` and call `target.afflict` / `.relieve` /
+  // `.getConditions()` directly. `inflict` (the producer above) stays.
 }
 
 /**

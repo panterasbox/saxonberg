@@ -26,7 +26,6 @@ import { MqlApi } from '../../../api/mql';
 import { MixinApi } from '../../../api/mixin';
 import { Mml } from '../../../api/mml';
 import type { Stuff } from '../../../lib/stuff/Stuff';
-import { PlayerApi } from '../../../api/player';
 
 interface BroadcastModel extends CommandModel {
   message: string;
@@ -118,6 +117,3 @@ export default class BroadcastController extends CommandController<BroadcastMode
   }
 }
 
-// Suppress unused-imports warning — PlayerApi was kept for a future
-// audience-default override path.
-void PlayerApi;

@@ -22,9 +22,9 @@
 
 import { StuffApi } from './stuff';
 import { HotReloadApi } from './hot-reload';
-import { SecurityApi } from './security';
 import { CommandLineLogic } from '../obj/api/CommandLineLogic';
 import { fileURLToPath } from 'url';
+import { SecurityApi } from './security';
 
 /**
  * Classified raw token. The matcher binds these to a YAML definition.

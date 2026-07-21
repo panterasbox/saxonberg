@@ -65,7 +65,7 @@ class DemoBoot extends Boot {
   static _mixinName = 'DemoBoot';
 }
 
-/** The steel the demo boot is soled with (registered so materialOf resolves). */
+/** The steel the demo boot is soled with (registered so getMaterial resolves). */
 function demoSteel(): Material {
   const m = makeStuff(() => new Material());
   m.setName('steel');

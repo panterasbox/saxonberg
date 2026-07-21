@@ -145,6 +145,11 @@ async function runResetSweep(): Promise<void> {
   let reset = 0;
   const sample: string[] = [];
 
+  // Deliberately NOT an MQL query (the antipattern-sweep exemption):
+  // the sweep works on RAW unwrapped targets so enumeration never
+  // counts as a residency touch, which fights MQL's proxy-mediated,
+  // recognition-relative candidate emission. Engine self-maintenance
+  // over raw proxies stays a hand walk; everything else uses MQL.
   for (const obj of StuffApi.getAllObjects()) {
     const raw = ProxyApi.unwrap(obj);
     if (!MixinApi.isResettable(raw)) continue;
@@ -217,6 +222,8 @@ async function runEvictionSweep(): Promise<void> {
   let culled = 0;
   const sample: string[] = [];
 
+  // Raw hand walk, not MQL — same exemption as the reset sweep above
+  // (enumeration over unwrapped targets must never count as a touch).
   for (const obj of StuffApi.getAllObjects()) {
     const raw = ProxyApi.unwrap(obj);
     const idleMs = now - raw.getLastTouched(); // raw: idle check must not touch

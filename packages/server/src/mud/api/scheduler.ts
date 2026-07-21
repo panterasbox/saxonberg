@@ -39,7 +39,6 @@ import { fileURLToPath } from 'url';
 // this facade rather than importing the logic singleton directly (the
 // no-import-from-*Logic rule). The load-time mechanism lives in
 // `SchedulerLogic`; this is a pure pass-through re-export.
-export { registerSchedulerRegistryClass } from '../obj/api/SchedulerLogic';
 
 /* ─────────────────────────── public surface types ─────────────────────────── */
 
@@ -105,7 +104,7 @@ export type StartResult =
       error: Error;
     };
 
-/** Lifecycle-class shape — what `registerActivity` accepts. */
+/** Lifecycle-class shape held in the dispatch index (capture-at-start). */
 export type ActivityClass = new (...args: never[]) => Engagement;
 
 // Re-export the note types so consumers don't need a second import.
@@ -114,6 +113,8 @@ export type {
   EngagementCompletedNote,
   EngagementCancelledNote,
 };
+
+export { registerSchedulerRegistryClass } from '../obj/api/SchedulerLogic';
 
 /* ─────────────────────────── logic resolution ─────────────────────────── */
 
@@ -139,11 +140,11 @@ function logic(): SchedulerLogic {
 export class SchedulerApi {
   private constructor() {}
 
-  /* ──────────────────── activity-class registry ──────────────────── */
-
-  public static registerActivity(type: string, cls: ActivityClass): void {
-    logic().registerActivity(type, cls);
-  }
+  /* ─────────────── activity-class dispatch index ───────────────
+   * There is no registration surface: `start(engagement)` captures the
+   * instance's own class into the type→class dispatch index
+   * (capture-at-start). `getActivityClass` reads it; `reloadActivity`
+   * re-points it for in-flight engagements after a hot reload. */
 
   public static getActivityClass(type: string): ActivityClass | undefined {
     return logic().getActivityClass(type);
@@ -180,20 +181,10 @@ export class SchedulerApi {
     logic().cancelByPredicate(actor, pred);
   }
 
-  /* ──────────────────── introspection ──────────────────── */
-
-  public static getEngagements(
-    actor: Stuff & Engaged
-  ): readonly Engagement[] {
-    return logic().getEngagements(actor);
-  }
-
-  public static getEngagementBySlot(
-    actor: Stuff & Engaged,
-    slot: EngagementSlot
-  ): Engagement | undefined {
-    return logic().getEngagementBySlot(actor, slot);
-  }
+  /* ─────────────────── introspection ───────────────────
+   * (Per-actor engagement reads live on the actor itself —
+   * `Engaged.getEngagements()` / `getEngagementBySlot()`; the Api keeps
+   * only the registry-keyed lookup below.) */
 
   public static getEngagementById(id: string): Engagement | undefined {
     return logic().getEngagementById(id);

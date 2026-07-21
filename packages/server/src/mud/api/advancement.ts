@@ -32,10 +32,10 @@ import type {
 } from "../lib/advancement/ActSignature";
 import { StuffApi } from "./stuff";
 import { HotReloadApi } from "./hot-reload";
-import { SecurityApi } from "./security";
 import { AdvancementLogic } from "../obj/api/AdvancementLogic";
 import type { CompetenceBandName } from "../lib/advancement/CompetenceBand";
 import { fileURLToPath } from "url";
+import { SecurityApi } from './security';
 
 /** Act-level context shared by every sub-check row of one act. */
 export interface RecordOptions {

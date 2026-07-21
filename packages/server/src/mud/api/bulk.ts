@@ -41,9 +41,9 @@ import type Material from '../lib/material/Material';
 import type { MqlQuantity } from './mql';
 import { StuffApi } from './stuff';
 import { HotReloadApi } from './hot-reload';
-import { SecurityApi } from './security';
 import { BulkableLogic } from '../obj/api/BulkableLogic';
 import { fileURLToPath } from 'url';
+import { SecurityApi } from './security';
 
 /**
  * The note kinds `transfer` ever emits — reused from glob's set.

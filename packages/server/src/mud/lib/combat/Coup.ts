@@ -23,7 +23,6 @@ import type { AbortReason } from "@saxonberg/types";
 import type { Stuff } from "../stuff/Stuff";
 import type { EngagementSlot, Engaged } from "../activity/Engaged";
 import type { DurativeActivity } from "../../api/scheduler";
-import { SchedulerApi } from "../../api/scheduler";
 
 /**
  * Combat's coup-interruption reason, colocated with the activity that
@@ -100,5 +99,3 @@ export class Coup implements DurativeActivity {
   }
 }
 
-// Register at module load (the HMR seam, mirroring ManualBuildStep).
-SchedulerApi.registerActivity(COMBAT_COUP_TYPE, Coup);

@@ -15,6 +15,7 @@ import { EmploymentApi } from '../../../../api/employment';
 import { BankingApi, Money } from '../../../../api/banking';
 import { MakerMixin } from '../../../../lib/craft/Maker';
 import { ContainerMixin } from '../../../../lib/spatial/Container';
+import type { Container } from '../../../../lib/spatial/Container';
 import { ContainableMixin } from '../../../../lib/spatial/Containable';
 import { CommandGiverMixin } from '../../../../lib/command/CommandGiver';
 import { SensorMixin } from '../../../../lib/message/Sensor';
@@ -85,7 +86,7 @@ async function asGiver<T>(giver: Stuff, fn: () => Promise<T>): Promise<T> {
 /** Total coin quantity held directly by `holder`. */
 function coinIn(holder: Stuff): number {
   let n = 0;
-  for (const c of ContainmentApi.getContents(holder as never)) {
+  for (const c of (holder as Stuff & Container).getContents()) {
     if (c instanceof Coin) n += c.getQuantity();
   }
   return n;
@@ -218,7 +219,7 @@ describe('tips — the tip jar', () => {
         makeContext(patron, loc, 'tip'),
       ),
     );
-    const contents = [...ContainmentApi.getContents(jar as never)];
+    const contents = [...(jar as Stuff & Container).getContents()];
     expect(contents.some((c) => c instanceof Coin)).toBe(true);
   });
 

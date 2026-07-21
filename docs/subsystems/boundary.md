@@ -295,6 +295,52 @@ destination isn't loaded the getter throws — async-aware
 callers (`Mobile.traverse`) `await
 exit.resolveDestination()` first.
 
+## Exit-kind templates (`/obj/exits/<kind>`)
+
+An **exit kind** is an authored template a room's `exits:` entry
+references via `kind:` — the authorable *nature of the passage*
+(traverse messages, locomotion `media`, `wheelPassable`, concealment
+defaults), distinct from a `Door` (the operable barrier object):
+
+```yaml
+exits:
+  north:
+    destination: /domain/terminus/counting-houses/circle-parlor
+    kind: /obj/exits/archway        # authored defaults for this edge
+    messageOut: "{{ mover }} ducks under the arch."   # per-site override
+```
+
+Mechanics (the identity doctrine's first consumer — see
+[ref-shapes.md § Identity, lineage, and backing](../ref-shapes.md)):
+
+- `applyExits` **clones** the kind (`StuffApi.clone`; the template's
+  `class:` may name an `Exit` subclass) — one instance per edge, two
+  for a `bidirectional` entry. The clone hydrates the kind's authored
+  fields (`Exit.persistentFields` is the hydration allowlist; exits are
+  never actually persisted — no host captures them).
+- The installing room completes identity via **`Exit.bind(opts)`** —
+  participant-gated (`FromMixin(Mixins.Exitable)` + a party-to-the-edge
+  `where`: the caller must be the bind options' source or destination),
+  `@Final @Unshadowable`, one-shot (re-bind throws). `bind` is
+  **delta-aware**: per-site entry fields override the kind's hydrated
+  defaults; unset fields keep them.
+- A bare `new Exit()` (no options) is the **unbound** state the clone
+  pipeline constructs through; `isBound()` reports it, an unbound
+  orphan is ordinary cullable clutter (no live-room residency veto),
+  and its `getDiscoveryKey()` is `undefined`.
+- **Identity payoff:** a kind-cloned exit's `templatePath` IS the kind
+  (`/obj/exits/archway`) — the population is addressable
+  (`findAllByTemplatePath`, the MQL path seed), and a CMS edit to the
+  kind re-hydrates its clones via the standard content go-live. The
+  *instance* half of an exit's identity stays the relational discovery
+  key (`<sourcePath>#exit:<dir>`).
+- Entries without `kind:` construct a raw `Exit` exactly as before — a
+  bare passage has nothing authored, so it earns no row.
+
+Seeded kinds: `/obj/exits/archway`, `/obj/exits/stair`
+(`wheelPassable: false` — the haulage residue). Demonstrator: the
+counting-houses banking-hall → circle-parlor archway.
+
 ## Doors
 
 `lib/boundary/Door.ts`. Composition:
@@ -657,7 +703,53 @@ gates the attach so a Window can't be wired to a non-Location host.
 Per `ref-shapes.md` § Pattern A — the runtime keeps the original
 string array; persist-back writes it back unchanged. No marshaller.
 
-### Doors are wired transitively, not via `attachedHosts`
+### Exit-kind templates (`/obj/exits/<kind>`)
+
+An **exit kind** is an authored template a room's `exits:` entry
+references via `kind:` — the authorable *nature of the passage*
+(traverse messages, locomotion `media`, `wheelPassable`, concealment
+defaults), distinct from a `Door` (the operable barrier object):
+
+```yaml
+exits:
+  north:
+    destination: /domain/terminus/counting-houses/circle-parlor
+    kind: /obj/exits/archway        # authored defaults for this edge
+    messageOut: "{{ mover }} ducks under the arch."   # per-site override
+```
+
+Mechanics (the identity doctrine's first consumer — see
+[ref-shapes.md § Identity, lineage, and backing](../ref-shapes.md)):
+
+- `applyExits` **clones** the kind (`StuffApi.clone`; the template's
+  `class:` may name an `Exit` subclass) — one instance per edge, two
+  for a `bidirectional` entry. The clone hydrates the kind's authored
+  fields (`Exit.persistentFields` is the hydration allowlist; exits are
+  never actually persisted — no host captures them).
+- The installing room completes identity via **`Exit.bind(opts)`** —
+  participant-gated (`FromMixin(Mixins.Exitable)` + a party-to-the-edge
+  `where`: the caller must be the bind options' source or destination),
+  `@Final @Unshadowable`, one-shot (re-bind throws). `bind` is
+  **delta-aware**: per-site entry fields override the kind's hydrated
+  defaults; unset fields keep them.
+- A bare `new Exit()` (no options) is the **unbound** state the clone
+  pipeline constructs through; `isBound()` reports it, an unbound
+  orphan is ordinary cullable clutter (no live-room residency veto),
+  and its `getDiscoveryKey()` is `undefined`.
+- **Identity payoff:** a kind-cloned exit's `templatePath` IS the kind
+  (`/obj/exits/archway`) — the population is addressable
+  (`findAllByTemplatePath`, the MQL path seed), and a CMS edit to the
+  kind re-hydrates its clones via the standard content go-live. The
+  *instance* half of an exit's identity stays the relational discovery
+  key (`<sourcePath>#exit:<dir>`).
+- Entries without `kind:` construct a raw `Exit` exactly as before — a
+  bare passage has nothing authored, so it earns no row.
+
+Seeded kinds: `/obj/exits/archway`, `/obj/exits/stair`
+(`wheelPassable: false` — the haulage residue). Demonstrator: the
+counting-houses banking-hall → circle-parlor archway.
+
+## Doors are wired transitively, not via `attachedHosts`
 
 `Door` is intentionally NOT extended with `attachedHosts`. Doors are
 wired by `Exitable.applyExits` when an exit declares `door:` — the

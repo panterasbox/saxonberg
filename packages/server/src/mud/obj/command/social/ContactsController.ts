@@ -27,7 +27,6 @@ import { GrammarApi } from '../../../api/grammar';
 import type { Stuff } from '../../../lib/stuff/Stuff';
 import type { Contacts } from '../../../lib/social/Contacts';
 import Avatar from '../../Avatar';
-import { User } from '../../../lib/identity/User';
 import { Template } from '../../../lib/stuff/Template';
 import { PlayerApi } from '../../../api/player';
 
@@ -346,6 +345,3 @@ function nameOf(tpl: Template): string | undefined {
   return typeof data?.name === 'string' ? data.name : undefined;
 }
 
-// Suppress unused warning for User type — kept for future expansion
-// of the multi-character expansion path that needs the User Document.
-void User;

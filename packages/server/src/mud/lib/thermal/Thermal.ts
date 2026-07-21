@@ -43,7 +43,6 @@ import { Quantity } from "../quantity";
 import { MixinApi } from "../../api/mixin";
 import { StuffApi } from "../../api/stuff";
 import { BiomeApi } from "../../api/biome";
-import { MaterialApi } from "../../api/material";
 import { WorldClockApi } from "../../api/worldclock";
 import { TemplatePaths } from "../paths";
 
@@ -285,7 +284,7 @@ export function ThermalMixin<TBase extends MixinConstructor>(Base: TBase) {
         // empty vessel → fall through to the wall's own heat capacity
       }
       const massKg = self.getMass().rawValue();
-      const mat = MaterialApi.materialOf(self);
+      const mat = MixinApi.isTangible(self) ? self.getMaterial() : null;
       let c = mat ? mat.getSpecificHeat().rawValue() : 0;
       if (c <= 0) c = THERMAL_DEFAULTS.DEFAULT_SPECIFIC_HEAT;
       return massKg * c;
@@ -376,7 +375,7 @@ export function ThermalMixin<TBase extends MixinConstructor>(Base: TBase) {
       const D = THERMAL_DEFAULTS;
       const self = this.thermalHost;
       const kMedium = this.mediumConductivity();
-      const mat = MaterialApi.materialOf(self);
+      const mat = MixinApi.isTangible(self) ? self.getMaterial() : null;
       const kWall =
         (mat && mat.getThermalConductivity().rawValue()) ||
         D.DEFAULT_WALL_CONDUCTIVITY;

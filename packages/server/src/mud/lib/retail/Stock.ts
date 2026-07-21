@@ -78,7 +78,7 @@ export default class Stock extends StockBase {
 
   /** The buyable goods currently on the shelf. */
   offeredItems(): (Stuff & Containable)[] {
-    return ContainmentApi.getContents(this as unknown as Stuff & Container);
+    return (this as unknown as Stuff & Container).getContents();
   }
 
   /** Resolve a shelf good by keyword, or null. */

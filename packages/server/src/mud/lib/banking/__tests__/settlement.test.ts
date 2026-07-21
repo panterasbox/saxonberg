@@ -14,6 +14,7 @@ import PaymentCard from "../PaymentCard";
 import Coin from "../../../obj/Coin";
 import { Idea } from "../../stuff/Idea";
 import { ContainerMixin } from "../../spatial/Container";
+import type { Container } from "../../spatial/Container";
 import { ContainableMixin } from "../../spatial/Containable";
 import { ContainmentApi } from "../../../api/containment";
 import { StuffApi } from "../../../api/stuff";
@@ -110,7 +111,7 @@ describe("Settlement — cash (off-ledger) vs credential (on-ledger)", () => {
     );
     expect(receipt.method).toBe("cash");
 
-    const bobCoins = ContainmentApi.getContents(bob as never).filter(
+    const bobCoins = (bob as Stuff & Container).getContents().filter(
       (s) => s instanceof Coin
     ) as Coin[];
     expect(bobCoins.reduce((n, c) => n + c.getQuantity(), 0)).toBe(40);
@@ -185,7 +186,7 @@ describe("Settlement — cash (off-ledger) vs credential (on-ledger)", () => {
       )
     );
     expect(BankingApi.balanceOf(bobAcct).minor).toBe(150); // unchanged by cash
-    const bobCoins = ContainmentApi.getContents(bob as never).filter(
+    const bobCoins = (bob as Stuff & Container).getContents().filter(
       (s) => s instanceof Coin
     ) as Coin[];
     expect(bobCoins.reduce((n, c) => n + c.getQuantity(), 0)).toBe(30);

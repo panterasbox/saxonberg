@@ -17,7 +17,6 @@
  */
 
 import { MixinApi } from '../../api/mixin';
-import { ContainmentApi } from '../../api/containment';
 import { EmploymentApi } from '../../api/employment';
 import type { BrainContext, BrainStatics } from './brain';
 
@@ -34,12 +33,12 @@ export const brain = class {
     const business = EmploymentApi.businessOfProprietor(self);
     if (!business) return;
 
-    const loc = ContainmentApi.getContainer(self);
+    const loc = self.getContainer();
     if (!loc || !MixinApi.isContainer(loc)) return;
 
     // Is the maintain clause held — another active (on-shift) maker present?
     let otherMakerPresent = false;
-    for (const c of ContainmentApi.getContents(loc)) {
+    for (const c of loc.getContents()) {
       if (c !== self && MixinApi.isMaker(c)) {
         otherMakerPresent = true;
         break;
@@ -48,7 +47,8 @@ export const brain = class {
 
     const businessPath = business.getTemplatePath() ?? '';
     const covering =
-      EmploymentApi.employmentOf(self, businessPath)?.status === 'on-shift';
+      MixinApi.isEmployed(self) &&
+      self.getEmployment(businessPath)?.status === 'on-shift';
 
     if (!otherMakerPresent && !covering) {
       EmploymentApi.beginCover(self, business);

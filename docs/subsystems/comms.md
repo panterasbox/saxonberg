@@ -101,7 +101,7 @@ Each controller is a thin shell. The acoustic ones narrow on
 `MixinApi.isVocal` and report `mixin-missing` + "You cannot speak." The
 `dm` / `reply` controllers resolve the operator's hosted comms update —
 preferring `context.commandSource` (the update that afforded the verb),
-else `ContainmentApi.findReachable(speaker, null, isComms)` — then invoke
+else the MQL `reachable` pool filtered on `isComms` — then invoke
 `tell` on it; if no comms update is found (attuned but update-less) they
 fire the `mixin-missing` "no way to send a thought" refusal. **This
 absent-comms gate lives in the controller, not the validator**:
@@ -160,7 +160,8 @@ DM **cohort state** (`getLastInboundCohort` / `getLastOutboundCohort`)
 lives on the **comms update** (`CommsMixin`), stamped automatically by
 `tell` — runtime-only, never persisted, dies with the host. On send,
 `tell` records the recipient's inbound cohort on the *recipient's own*
-comms update (found via `findReachable`, null-guarded — an attuned
+comms update (found via the recipient's own MQL `reachable` pool,
+null-guarded — an attuned
 recipient with no comms update receives the dm but has nowhere to record
 a cohort, which is fine: they can't reply anyway). `reply` / `dm .`
 read the cohort off the operator's comms update for reply-all. The `dm

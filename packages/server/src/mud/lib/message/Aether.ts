@@ -68,10 +68,11 @@ export interface Aether extends AetherHost {}
  * collection populated but `AetherMixin` inactive (no implant, not
  * born-attuned) hosts nothing usable.
  *
- * Finding a hosted update is NOT a bespoke method here — it rides
- * `ContainmentApi.findReachable` (the self + host-descent legs). A
- * caller that needs "this actor's comms update" uses
- * `ContainmentApi.findReachable(actor, null, MixinApi.isComms)`.
+ * Finding a hosted update is NOT a bespoke method here — it rides the
+ * MQL `reachable` seed (self + own hosted updates + slot occupants +
+ * carried + location legs). A caller that needs "this actor's comms
+ * update" filters that pool on `MixinApi.isComms`; identity-bound reads
+ * scan `actor.getHostedUpdates()` directly.
  */
 export interface AetherHost {
   /** The updates currently hosted on this attunement (live-ref). */

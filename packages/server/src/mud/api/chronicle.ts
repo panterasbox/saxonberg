@@ -46,9 +46,9 @@ import type {
 } from '../lib/chronicle/ChronicleEntry';
 import { StuffApi } from './stuff';
 import { HotReloadApi } from './hot-reload';
-import { SecurityApi } from './security';
 import { ChronicleLogic } from '../obj/api/ChronicleLogic';
 import { fileURLToPath } from 'url';
+import { SecurityApi } from './security';
 
 export type { ChronicleEntryFields, ChronicleClaimSeed };
 

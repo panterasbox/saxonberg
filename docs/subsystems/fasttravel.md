@@ -57,19 +57,18 @@ actor's own **aether-hosted wallet** only, never a carried, transferable
 card. The split is deliberate:
 
 - **Instrument gate** ("do you have the means to use the TPA at all?") —
-  `ContainmentApi.findReachable(actor, here, isCredentialWallet + travel)`.
-  A carried `TravelCard` **or** the born-with implant satisfies it, so
-  onboarding and the un-implanted are never stranded.
-- **Clearance** ("are you cleared for *this* destination?") —
-  `ContainmentApi.findHostedUpdate(actor, isCredentialWallet + travel)`, a
-  **leg-2-only** resolver that scans exactly `actor.getHostedUpdates()`
-  (one level), so clearance is bound to *who the actor is*. `register`
+  the MQL `reachable` pool filtered on `isCredentialWallet` + a `travel`
+  record. A carried `TravelCard` **or** the born-with implant satisfies
+  it, so onboarding and the un-implanted are never stranded.
+- **Clearance** ("are you cleared for *this* destination?") — a direct
+  single-object read over the actor's own `getHostedUpdates()` (one
+  level), so clearance is bound to *who the actor is*. `register`
   writes here; the `teleport` fork's `isRegistered` check and
   `renderDepartures`' "not yet registered" annotation read here.
 
-`findHostedUpdate` (`api/containment.ts`) is `findReachable`'s self-hosted
-leg in isolation — same guardrail (identity-only, single-level,
-predicate-agnostic, **not** a query engine). The security property is
+The identity read is the reachable walk's self-hosted leg in isolation —
+identity-only, single-level, a plain read on one object (project
+doctrine: single-object reads are direct). The security property is
 **structural, not scan-order**: handing a loaded card to another player
 confers no clearance they didn't already hold on their own identity (the
 card's own registered set is never consulted for authorization). The
@@ -141,11 +140,12 @@ the fork so it never blocks the privileged path:
   the old object-relocation `teleport` and `goto`. Reuses `Mobile.teleport`
   with a raw-move / `forceMove` fallback and the `canTeleport` witness veto.
 - **TPA ride** (unprivileged): rides the network from the node the actor
-  can reach (`ContainmentApi.findReachable` for the node). Checks the
+  can reach (the MQL `reachable` pool for the node). Checks the
   **instrument gate** (any reachable travel holder) → departure-capable →
   **out-of-service** (`getStatus() !== "operational"` → refuse) → keyword
-  selection → **clearance** (`findHostedUpdate` identity holder's
-  `isRegistered`) → **fare settlement** (paid routes only, below) → travels
+  selection → **clearance** (the identity holder's `isRegistered`, read
+  off the actor's own `getHostedUpdates()`) → **fare settlement** (paid
+  routes only, below) → travels
   to the destination node's `getArrivalRoom()` via `Mobile.teleport`. The
   instrument gate and the clearance read are **two separate resolvers** (see
   **Identity-bound clearance** above), never one scan.

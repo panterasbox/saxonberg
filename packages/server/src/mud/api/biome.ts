@@ -40,9 +40,9 @@ import type Biome from '../lib/biome/Biome';
 import type { Quantity } from '../lib/quantity';
 import { StuffApi } from './stuff';
 import { HotReloadApi } from './hot-reload';
-import { SecurityApi } from './security';
 import { BiomeLogic } from '../obj/api/BiomeLogic';
 import { fileURLToPath } from 'url';
+import { SecurityApi } from './security';
 
 /**
  * Provenance for a single resolved atmospheric field. Returned by

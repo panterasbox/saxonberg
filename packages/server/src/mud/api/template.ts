@@ -25,10 +25,10 @@
 
 import { StuffApi } from './stuff';
 import { HotReloadApi } from './hot-reload';
-import { SecurityApi } from './security';
 import type { Stuff } from '../lib/stuff/Stuff';
 import { TemplateLogic } from '../obj/api/TemplateLogic';
 import { fileURLToPath } from 'url';
+import { SecurityApi } from './security';
 
 export { TemplateError } from '../lib/stuff/TemplateError';
 
@@ -179,6 +179,5 @@ export class TemplateApi {
     return logic().restoreFromTemplate(stuff);
   }
 }
-
 
 SecurityApi.decorateApiClass(TemplateApi);

@@ -16,7 +16,6 @@
  */
 
 import type { Stuff } from '../../lib/stuff/Stuff';
-import { ContainmentApi } from '../containment';
 import { MixinApi } from '../mixin';
 import { RecognitionApi } from '../recognition';
 import { PerceptionApi } from '../perception';
@@ -109,7 +108,7 @@ export function candidatesForInventory(
 ): ScopeCandidate[] {
   if (!MixinApi.isContainer(giver)) return [];
   const out: ScopeCandidate[] = [];
-  for (const item of ContainmentApi.getContents(giver)) {
+  for (const item of giver.getContents()) {
     pushDirect(out, item, giver, attention);
   }
   return out;
@@ -128,7 +127,7 @@ export function candidatesForPeers(
   const env = giver.getContainer();
   if (!env || !MixinApi.isContainer(env)) return [];
   const out: ScopeCandidate[] = [];
-  for (const item of ContainmentApi.getContents(env)) {
+  for (const item of env.getContents()) {
     if (item.stuffId === giver.stuffId) continue;
     pushDirect(out, item, giver, attention);
     pushDetails(out, item);
@@ -153,12 +152,50 @@ export function candidatesForPeers(
  * Duplicates across the sub-pools are tolerated; the resolver's
  * `finalize` step dedupes by stuffId before reporting matches.
  */
-export function candidatesForReachable(
+/**
+ * The **on-person** pool — everything the giver carries *as* their
+ * person, and nothing of the room's: self → own attunement-hosted
+ * updates → installed slot occupants (+ each attuned occupant's
+ * hosted updates) → carried inventory (+ each carried attuned host's
+ * hosted updates). The `person` seed's pool, and the on-person half
+ * of `reachable`. Bearer-semantics consumers (a presented key, a
+ * payment credential, a hosted comms/forums app) anchor here so a
+ * matching item lying on the floor never counts as "presented".
+ */
+export function candidatesForPerson(
   giver: Stuff,
   attention?: number,
 ): ScopeCandidate[] {
   const out: ScopeCandidate[] = [];
   pushDirect(out, giver, giver, attention);
+  pushHostedUpdates(out, giver, giver, attention);
+  if (MixinApi.isSlotted(giver)) {
+    for (const occupants of giver.getAllOccupants().values()) {
+      for (const occ of occupants) {
+        pushDirect(out, occ, giver, attention);
+        pushHostedUpdates(out, occ, giver, attention);
+      }
+    }
+  }
+  for (const c of candidatesForInventory(giver, attention)) out.push(c);
+  if (MixinApi.isContainer(giver)) {
+    for (const item of giver.getContents()) {
+      pushHostedUpdates(out, item, giver, attention);
+    }
+  }
+  return out;
+}
+
+export function candidatesForReachable(
+  giver: Stuff,
+  attention?: number,
+): ScopeCandidate[] {
+  // ON-PERSON-FIRST emission order (the former `findReachable`
+  // contract, now the seed's): the whole `person` pool, then the
+  // surrounding location, then peers. First-match consumers (`.find`
+  // over the pool) and tie-broken keyword targeting both prefer your
+  // own gear over the floor's.
+  const out = candidatesForPerson(giver, attention);
   if (MixinApi.isContainable(giver)) {
     const env = giver.getContainer();
     if (env) {
@@ -166,8 +203,25 @@ export function candidatesForReachable(
     }
   }
   for (const c of candidatesForPeers(giver, attention)) out.push(c);
-  for (const c of candidatesForInventory(giver, attention)) out.push(c);
   return out;
+}
+
+/**
+ * Emit `host`'s attunement-hosted updates (the aether apps plugged
+ * into an `AetherMixin` host) as reachable candidates for `viewer`.
+ * Skips the viewer itself (defensive — no self-recursion).
+ */
+function pushHostedUpdates(
+  out: ScopeCandidate[],
+  host: Stuff,
+  viewer: Stuff | null,
+  attention?: number,
+): void {
+  if (!MixinApi.isAether(host)) return;
+  for (const u of host.getHostedUpdates()) {
+    if (u === viewer) continue;
+    pushDirect(out, u, viewer, attention);
+  }
 }
 
 /**
@@ -177,7 +231,7 @@ export function candidatesForReachable(
  */
 export function candidatesForFlat(
   items: ReadonlyArray<Stuff>,
-  viewer: Stuff,
+  viewer: Stuff | null,
   attention?: number,
 ): ScopeCandidate[] {
   const out: ScopeCandidate[] = [];
@@ -188,9 +242,22 @@ export function candidatesForFlat(
 function pushDirect(
   out: ScopeCandidate[],
   stuff: Stuff,
-  viewer: Stuff,
+  viewer: Stuff | null,
   attention?: number,
 ): void {
+  // System mode (viewer === null — see MqlContext.commandGiver): a
+  // viewer-blind engine enumeration. No perception gate, baseline
+  // presentation instead of recognition-relative naming. Unreachable
+  // from player-typed MQL (the dispatcher always sets a giver).
+  if (viewer === null) {
+    out.push({
+      stuff,
+      name: stuff.getPresentation(),
+      keywords: MixinApi.isPerceptible(stuff) ? stuff.getKeywords() : [],
+    });
+    pushBulkMaterials(out, stuff);
+    return;
+  }
   // Honest fog: a concealed thing the viewer hasn't discovered / can't yet
   // perceive isn't a targetable candidate (it isn't in the viewer's world).
   // `perceives` short-circuits true for un-concealed things, so the common

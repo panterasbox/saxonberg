@@ -9,12 +9,12 @@
  *
  * Method-only contract per the inter-stuff rule: outsiders read via
  * `getEngagement*`, never via field access. The privileged mutators
- * `_setEngagement` / `_clearEngagement` are decorated `@CallSecurity
- * (SecurityPolicies.ApiOnly)` + `@Final @Unshadowable` — only
- * `SchedulerApi` may invoke them, and no subclass / shadow can replace
- * or bypass them. This preserves the invariant that every entry in
- * the map corresponds to a live timer-and-subscription registration
- * the scheduler owns.
+ * `_setEngagement` / `_clearEngagement` carry a **participant contract**
+ * — only the `SchedulerRegistry` singleton (the machinery that owns the
+ * matching timer-and-subscription registration) may invoke them — plus
+ * `@Final @Unshadowable` so no subclass / shadow can replace or bypass
+ * them. This preserves the invariant that every entry in the map
+ * corresponds to a live registration the scheduler owns.
  *
  * Default aliases: ships `stop → cancel` so the player verb `stop`
  * resolves to the `cancel` controller. Picked up by `AliasMixin` via
@@ -28,6 +28,18 @@ import type { DefaultAliasEntry } from '../shell/Alias';
 import type { CommandContributions } from '../../api/command';
 import { CallSecurity, Final, Unshadowable } from '../security/decorators';
 import { SecurityPolicies } from '../security/SecurityPolicies';
+import { TemplatePaths } from '../paths';
+
+/**
+ * The participant contract on the engagement-slot map: the writer is the
+ * `SchedulerRegistry` singleton itself — the machinery whose timer set
+ * must stay in sync with this map. Identified by its stable singleton
+ * template path (no class import; `obj/` stays out of `lib/`'s import
+ * graph).
+ */
+const BySchedulerRegistry = SecurityPolicies.FromTemplate(
+  TemplatePaths.schedulerRegistry,
+);
 
 /**
  * Framework-intrinsic `AbortReasonRegistry` augmentations — the five
@@ -63,7 +75,7 @@ export const ENGAGEMENT_SLOTS: readonly EngagementSlot[] = [
 /**
  * Public method surface for EngagedMixin. Read methods are open; the
  * `_setEngagement` / `_clearEngagement` mutators reject every caller
- * outside `SchedulerApi` at runtime (call-security `ApiOnly`).
+ * except the `SchedulerRegistry` singleton (the participant contract).
  */
 export interface Engaged {
   /** Snapshot of distinct engagements occupying any slot on this actor. */
@@ -76,8 +88,8 @@ export interface Engaged {
   hasEngagement(slot: EngagementSlot): boolean;
 
   /**
-   * Privileged mutator — only `SchedulerApi` may call. Runtime-rejected
-   * outside `api/` by the call-security gate.
+   * Privileged mutator — participant-gated: only the `SchedulerRegistry`
+   * singleton may call; runtime-rejected for every other caller.
    */
   _setEngagement(slot: EngagementSlot, engagement: Engagement): void;
   /** Privileged mutator — same gating as `_setEngagement`. */
@@ -147,15 +159,15 @@ export function EngagedMixin<TBase extends MixinConstructor>(Base: TBase) {
     }
 
     /**
-     * Set the engagement for `slot`. Locked down by
-     * `@CallSecurity(SecurityPolicies.ApiOnly)` — only callers under
-     * `mud/api/` (in practice, `SchedulerApi`) may invoke. `@Final
+     * Set the engagement for `slot`. Participant-gated — only the
+     * `SchedulerRegistry` singleton (the machinery owning the matching
+     * timer registration) may invoke. `@Final
      * @Unshadowable` because the engagement map is a framework
      * invariant — a subclass override or shadow that lied about the
      * write would leave the scheduler's timer set out of sync with the
      * map.
      */
-    @CallSecurity(SecurityPolicies.ApiOnly)
+    @CallSecurity(BySchedulerRegistry)
     @Final
     @Unshadowable
     public _setEngagement(
@@ -169,7 +181,7 @@ export function EngagedMixin<TBase extends MixinConstructor>(Base: TBase) {
      * Clear `slot`'s engagement. Same lockdown as `_setEngagement`.
      * Idempotent on absent slots.
      */
-    @CallSecurity(SecurityPolicies.ApiOnly)
+    @CallSecurity(BySchedulerRegistry)
     @Final
     @Unshadowable
     public _clearEngagement(slot: EngagementSlot): void {

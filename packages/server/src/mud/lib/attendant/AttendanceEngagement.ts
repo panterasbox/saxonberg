@@ -20,8 +20,7 @@
  * (a formal counter, a loan talk) holds the attention.
  */
 
-import { SchedulerApi } from "../../api/scheduler";
-import type { Engagement, SustainedEngagement } from "../../api/scheduler";
+import type { SustainedEngagement } from "../../api/scheduler";
 import type { EngagementSlot } from "../activity/Engaged";
 import type { Engaged } from "../activity/Engaged";
 import type { AbortReason } from "@saxonberg/types";
@@ -101,7 +100,3 @@ export class AttendanceEngagement implements SustainedEngagement {
   }
 }
 
-SchedulerApi.registerActivity(
-  ATTENDANCE_TYPE,
-  AttendanceEngagement as unknown as new (...args: never[]) => Engagement,
-);
