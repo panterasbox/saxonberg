@@ -30,8 +30,8 @@ The substrate is in place. Major shipped surfaces:
   doors, windows, the Boundary substrate (Adornable +
   Adornment + Conduit), Sealable.
 - **Light & Boundary subsystem** — Light value object,
-  propagation walk via `VisionModality.signalAt` (dispatched through
-  `PerceptionApi.signalAt`), per-viewer perception
+  propagation walk via `VisionModality.signalAt` (called directly on the
+  vision singleton), per-viewer perception
   (`VisionModality.canSee`, `perceivedBand`), the Boundary
   substrate's channel-keyed transmissivity (one of five conduit
   kinds shipped with the perception substrate).

@@ -15,8 +15,9 @@ biologically. It splits cleanly into:
 - **OrganismMixin** — runtime composition that says "this Stuff is a
   member of a Species."
 - **SexedMixin** — biological sex (orthogonal to `GenderedMixin`).
-- **SpeciesApi** — kingdom resolution, lifecycle predicates, the
-  `isAnimate` predicate that gates command dispatch.
+- **SpeciesApi** — kingdom resolution and the `isAnimate` predicate that
+  gates command dispatch (plain lifecycle-state reads live on
+  `OrganismMixin`).
 
 Three things are *deferred* — the design context lives here for the
 follow-on builds:
@@ -511,11 +512,16 @@ The single entry point for "what is this Organism, biologically?":
 
 - `getKingdom(o)` — walks the species' templatePath ancestors to
   find the rank-`'kingdom'` Clade.
-- `isInKingdom(o, name)` — convenience wrapper.
-- `isAlive(o)` / `isDead(o)` / `isUndead(o)` / `isPowered(o)` /
-  `isDestroyed(o)` — lifecycle predicates.
 - `isAnimate(o)` — the load-bearing predicate. Composes kingdom +
   lifecycle state per the slate's table:
+
+(The plain lifecycle-state reads — `isAlive()` / `isDead()` /
+`isUndead()` / `isPowered()` — are the Organism's own answer and live on
+`OrganismMixin` as no-arg instance methods; callers narrow with
+`MixinApi.isOrganism` and call `organism.isAlive()` directly. The
+2026-07 antipattern sweep removed the thin `SpeciesApi.isAlive(o)`-style
+forwarders — a lifecycle-state read belongs to the one object, not an Api
+hop. `isInKingdom` went the same way; use `getKingdom(o)` and compare.)
 
 | Kingdom | Animate when |
 |---|---|

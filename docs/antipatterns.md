@@ -1737,14 +1737,18 @@ class SmellApi {
 class SmellModality extends Modality {
   signalAt(loc) { ... }
 }
-// Outside callers go through PerceptionApi:
-PerceptionApi.signalAt(loc, smellModality);
+// signalAt is one modality's own contract — callers reach it directly
+// on the singleton:
+smellModality.signalAt(loc);
 ```
 
 The single `PerceptionApi` is the modality-agnostic dispatch
-surface (`signalAt`, `perceiveAt`, `sensorium`, `canPerceive`).
-Per-modality state and walks live on the modality singleton; per-
-modality value types live in `lib/perception/`. See
+surface (`perceiveAt`, `sensorium`, `canPerceive`, `perceives`). The
+per-modality *walk* (`signalAt`) is the modality's own method, called on
+its singleton — the thin `PerceptionApi.signalAt` forwarder was removed
+in the 2026-07 antipattern sweep. Per-modality state and walks live on
+the modality singleton; per-modality value types live in
+`lib/perception/`. See
 [senses.md § Modality singletons + PerceptionApi](./subsystems/senses.md).
 
 ## Don't model augments by listing grants directly
