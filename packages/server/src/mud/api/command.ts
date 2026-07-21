@@ -26,6 +26,7 @@ import type { MqlManyResult, MqlOneResult } from './mql';
 import type { ParsedCommand } from './command-line';
 import type { Script } from '../lib/script/ast';
 import { CommandLogic } from '../obj/api/CommandLogic';
+import { SecurityApi } from './security';
 
 /**
  * Optional ingress carry-throughs `executeCommand` accepts from the
@@ -1719,4 +1720,4 @@ export class CommandApi {
   }
 }
 
-
+SecurityApi.decorateApiClass(CommandApi);

@@ -41,6 +41,7 @@ import { CallSecurity } from '../lib/security/decorators';
 import { SecurityPolicies } from '../lib/security/SecurityPolicies';
 import { ContainmentLogic } from '../obj/api/ContainmentLogic';
 import { fileURLToPath } from 'url';
+import { SecurityApi } from './security';
 // `TeleportController` / `GotoController` are reached lazily via
 // string module ids to avoid a value-level static-import cycle
 // (api/containment → controller → ContainmentApi).
@@ -314,3 +315,5 @@ export class ContainmentApi {
     return logic().resolveLanding(ref);
   }
 }
+
+SecurityApi.decorateApiClass(ContainmentApi);

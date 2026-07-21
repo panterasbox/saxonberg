@@ -7,6 +7,7 @@ import { StuffApi } from './stuff';
 import { HotReloadApi } from './hot-reload';
 import { ResidencyLogic } from '../obj/api/ResidencyLogic';
 import { fileURLToPath } from 'url';
+import { SecurityApi } from './security';
 
 const LOGIC_PATH = '/obj/api/residency';
 const LOGIC_CLASS_FILE = fileURLToPath(
@@ -55,3 +56,5 @@ export class ResidencyApi {
     return logic().resetNow();
   }
 }
+
+SecurityApi.decorateApiClass(ResidencyApi);

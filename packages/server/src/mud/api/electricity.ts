@@ -34,6 +34,7 @@ import { StuffApi } from './stuff';
 import { HotReloadApi } from './hot-reload';
 import { ElectricityLogic } from '../obj/api/ElectricityLogic';
 import { fileURLToPath } from 'url';
+import { SecurityApi } from './security';
 
 /** One body reached by a conduction event: who, and the current through it. */
 export interface ConductionOutcome {
@@ -119,3 +120,5 @@ export class ElectricityApi {
     return logic().groundNodeFor(node);
   }
 }
+
+SecurityApi.decorateApiClass(ElectricityApi);

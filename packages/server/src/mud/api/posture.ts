@@ -28,6 +28,7 @@ import { StuffApi } from './stuff';
 import { HotReloadApi } from './hot-reload';
 import { PostureLogic } from '../obj/api/PostureLogic';
 import { fileURLToPath } from 'url';
+import { SecurityApi } from './security';
 
 /**
  * Outcome of `transferPosture`. On success the controller emits its
@@ -114,3 +115,5 @@ export class PostureApi {
     return logic().findCurrentPostureBearingSlot(candidate);
   }
 }
+
+SecurityApi.decorateApiClass(PostureApi);

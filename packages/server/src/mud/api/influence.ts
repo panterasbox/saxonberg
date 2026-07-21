@@ -21,6 +21,7 @@ import { ProducerApi } from './producer';
 import { InfluenceStanding } from '../lib/standing/InfluenceStanding';
 import type { Stock } from '../lib/standing/InfluenceStanding';
 import type { Band } from '../lib/standing/Band';
+import { SecurityApi } from './security';
 
 export type { Stock };
 
@@ -42,3 +43,5 @@ export class InfluenceApi {
     return InfluenceApi.standingOf(subjectId, stock).band;
   }
 }
+
+SecurityApi.decorateApiClass(InfluenceApi);

@@ -47,6 +47,7 @@ import {
   type SubscribeContext,
 } from '../lib/diagnostics/DiagnosticChannel';
 import { fileURLToPath } from 'url';
+import { SecurityApi } from './security';
 
 const LOGIC_PATH = '/obj/api/diagnostics';
 const LOGIC_CLASS_FILE = fileURLToPath(
@@ -157,3 +158,5 @@ export class DiagnosticApi {
     return DiagnosticChannel.matches(channel, expanded);
   }
 }
+
+SecurityApi.decorateApiClass(DiagnosticApi);

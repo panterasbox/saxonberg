@@ -555,3 +555,4 @@ export class ShadowApi {
   }
 }
 
+SecurityApi.decorateApiClass(ShadowApi);

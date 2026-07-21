@@ -1,3 +1,4 @@
+import { SecurityApi } from './security';
 /**
  * PathPatternApi - generic glob matcher for path-shaped strings.
  *
@@ -84,3 +85,5 @@ export class PathPatternApi {
  * importers should import it from `lib/collections/PathTrie` directly.
  */
 export { PathTrie } from '../lib/collections/PathTrie';
+
+SecurityApi.decorateApiClass(PathPatternApi);

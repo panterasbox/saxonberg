@@ -27,6 +27,7 @@ import { StuffApi } from './stuff';
 import { HotReloadApi } from './hot-reload';
 import { GitLogic } from '../obj/api/GitLogic';
 import { fileURLToPath } from 'url';
+import { SecurityApi } from './security';
 import type {
   GitStatusResult,
   GitDiffResult,
@@ -142,3 +143,5 @@ export class GitApi {
     return logic().revert(sha);
   }
 }
+
+SecurityApi.decorateApiClass(GitApi);

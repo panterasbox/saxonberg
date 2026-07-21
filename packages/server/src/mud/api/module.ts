@@ -142,36 +142,12 @@ export class ModuleApi {
       // never finishes loading.
       ModuleApi.#validateNoFinalOverrides(value);
 
-      // Api-facade decoration rides the stamp: module registration IS
-      // the lifecycle an Api class joins the world through, so its
-      // static-method security wrapping happens here — no per-file
-      // `decorateApiClass` tail-calls (the no-module-scope-statements
-      // rule). Hot reload re-stamps the fresh class binding, which
-      // re-decorates it, preserving the old per-file re-decoration.
-      ModuleApi.#maybeDecorateApi(value, id);
+      // Api-facade security decoration is NOT done here. An `*Api` class
+      // is a thin, non-HMR-able interface, so it decorates itself at
+      // module scope with a `SecurityApi.decorateApiClass(FooApi)` tail
+      // — the one sanctioned module-scope exception (see the
+      // no-module-scope-statements rule + check-module-scope's allowlist).
     }
-  }
-
-  /* ───────────── stamp-time Api-facade decoration ───────────── */
-
-  /**
-   * Matches a named `*Api` export of a DIRECT child of `api/` (never
-   * the sealed pipeline subdirs `api/mql/**` / `api/mml/**`, whose
-   * exported functions are not facades).
-   */
-  static #API_FACADE_ID = /^\/api\/[^/]+#[A-Za-z0-9_]*Api$/;
-
-  /**
-   * Hand a freshly-stamped Api-facade class to the security wrapper.
-   * A direct deferred call into `SecurityApi` — the module↔security
-   * import cycle is safe here because stamps only run at module tails,
-   * by which point both classes have finished evaluating (unlike an
-   * eager static-block handshake, which TDZ-faults when module.ts is
-   * the entry edge of the cycle).
-   */
-  static #maybeDecorateApi(value: object, id: string): void {
-    if (!ModuleApi.#API_FACADE_ID.test(id)) return;
-    SecurityApi._decorateApiFacade(value, id);
   }
 
   /**

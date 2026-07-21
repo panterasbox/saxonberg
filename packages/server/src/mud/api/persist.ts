@@ -26,6 +26,7 @@
  */
 
 import { PersistenceManager } from '../../backend/PersistenceManager';
+import { SecurityApi } from './security';
 
 export class PersistApi {
   /** Whether the Mongo connection is live (the no-op-when-offline guard). */
@@ -62,3 +63,5 @@ export class PersistApi {
     return PersistenceManager.get().delete(collection, id);
   }
 }
+
+SecurityApi.decorateApiClass(PersistApi);

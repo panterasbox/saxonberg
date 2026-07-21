@@ -25,6 +25,7 @@ import { StuffApi } from './stuff';
 import { HotReloadApi } from './hot-reload';
 import { CmsLogic } from '../obj/api/CmsLogic';
 import { fileURLToPath } from 'url';
+import { SecurityApi } from './security';
 import type {
   CmsBackend,
   CmsTreeListing,
@@ -140,3 +141,5 @@ export class CmsApi {
     return logic().write(backend, path, body);
   }
 }
+
+SecurityApi.decorateApiClass(CmsApi);

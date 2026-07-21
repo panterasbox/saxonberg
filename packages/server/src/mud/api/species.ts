@@ -27,6 +27,7 @@ import { StuffApi } from './stuff';
 import { HotReloadApi } from './hot-reload';
 import { SpeciesLogic } from '../obj/api/SpeciesLogic';
 import { fileURLToPath } from 'url';
+import { SecurityApi } from './security';
 
 const LOGIC_PATH = '/obj/api/species';
 const LOGIC_CLASS_FILE = fileURLToPath(
@@ -154,3 +155,5 @@ export class SpeciesApi {
     return logic().buildDossier(species, speciesPath);
   }
 }
+
+SecurityApi.decorateApiClass(SpeciesApi);

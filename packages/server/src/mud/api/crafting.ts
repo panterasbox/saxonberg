@@ -29,6 +29,7 @@ import { StuffApi } from './stuff';
 import { HotReloadApi } from './hot-reload';
 import { CraftingLogic } from '../obj/api/CraftingLogic';
 import { fileURLToPath } from 'url';
+import { SecurityApi } from './security';
 
 /**
  * How the output's maker is resolved — an enum, never a principal:
@@ -172,3 +173,5 @@ export class CraftingApi {
     return logic().offeredRecipes(menu);
   }
 }
+
+SecurityApi.decorateApiClass(CraftingApi);

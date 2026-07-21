@@ -28,6 +28,7 @@ import { StuffApi } from './stuff';
 import { HotReloadApi } from './hot-reload';
 import { ConsumerLogic } from '../obj/api/ConsumerLogic';
 import { fileURLToPath } from 'url';
+import { SecurityApi } from './security';
 
 export type { ParticipationEventFields };
 
@@ -104,3 +105,5 @@ export class ConsumerApi {
     return logic().eventsFor(subjectId);
   }
 }
+
+SecurityApi.decorateApiClass(ConsumerApi);

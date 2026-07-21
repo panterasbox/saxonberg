@@ -26,6 +26,7 @@ import type { Container } from '../lib/spatial/Container';
 import type Locality from '../lib/address/Locality';
 import { AddressLogic } from '../obj/api/AddressLogic';
 import { fileURLToPath } from 'url';
+import { SecurityApi } from './security';
 
 const LOGIC_PATH = '/obj/api/address';
 const LOGIC_CLASS_FILE = fileURLToPath(
@@ -146,3 +147,5 @@ export class AddressApi {
     logic()._resetRegistryRefForReload();
   }
 }
+
+SecurityApi.decorateApiClass(AddressApi);

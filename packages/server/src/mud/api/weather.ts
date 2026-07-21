@@ -262,3 +262,5 @@ export class WeatherApi {
     logic()._forceStrikeRollForTesting(roll);
   }
 }
+
+SecurityApi.decorateApiClass(WeatherApi);

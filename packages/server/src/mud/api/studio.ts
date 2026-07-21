@@ -24,6 +24,7 @@ import { StuffApi } from './stuff';
 import { HotReloadApi } from './hot-reload';
 import { StudioLogic } from '../obj/api/StudioLogic';
 import { fileURLToPath } from 'url';
+import { SecurityApi } from './security';
 import type {
   BlueprintDetail,
   BlueprintSummary,
@@ -240,3 +241,5 @@ export class StudioApi {
     return logic().commitClass(input);
   }
 }
+
+SecurityApi.decorateApiClass(StudioApi);

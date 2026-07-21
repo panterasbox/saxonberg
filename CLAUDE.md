@@ -327,9 +327,12 @@ No free-standing executable statements at module scope in
 `src/mud/**` — imports/exports, class/function/type declarations, and
 `const`/`let` declarations (pure value construction included) only.
 Initialization goes through a runtime lifecycle: capture-at-use,
-`ModuleApi.stamp` (Api-facade decoration), `postRegister`,
-`BootstrapManager.installFrameworkWiring()`, or a lazy first-use
-initializer. Enforced by `pnpm lint:module-scope` (CI-gating). Pattern
+`postRegister`, `BootstrapManager.installFrameworkWiring()`, or a lazy
+first-use initializer. **Two sanctioned module-scope exceptions** (in the
+lint allowlist): the five branch files' `Stuff._registerTopLevelBranch`,
+and an `*Api` facade's trailing `SecurityApi.decorateApiClass(FooApi)`
+(an Api class is a non-HMR-able interface — the module tail is its
+registration). Enforced by `pnpm lint:module-scope` (CI-gating). Pattern
 table: [architecture.md § Module scope declares; lifecycles
 initialize](./docs/architecture.md).
 

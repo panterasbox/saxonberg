@@ -9,6 +9,7 @@ import { StuffApi } from "./stuff";
 import { HotReloadApi } from "./hot-reload";
 import { AttendantLogic } from "../obj/api/AttendantLogic";
 import { fileURLToPath } from "url";
+import { SecurityApi } from './security';
 
 export type { AttendResult } from "../lib/attendant/Attendant";
 
@@ -45,3 +46,5 @@ export class AttendantApi {
     logic().disconnectForTesting(playerId);
   }
 }
+
+SecurityApi.decorateApiClass(AttendantApi);

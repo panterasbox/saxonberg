@@ -682,34 +682,14 @@ export class SecurityApi {
    * `SecurityApi` — `StuffApi`, `ShadowApi`, `ProxyApi` consumers,
    * the test seam — implicitly triggers this. No side-effect imports
    * required at the call sites.
+   *
+   * `SecurityApi` itself, and the other three bootstrap-special Apis
+   * (`ModuleApi`, `ProxyApi`, `ExecutionContextApi`), are never
+   * self-decorated — wrapping them recurses or pollutes the stack (see
+   * call-security.md § Why Some Api Files Don't Self-Decorate). Every
+   * other `*Api` facade decorates itself with a module-scope
+   * `SecurityApi.decorateApiClass(FooApi)` tail.
    */
-  /**
-   * The four bootstrap-special Apis that are never security-wrapped —
-   * wrapping them recurses or pollutes the stack (see call-security.md
-   * § Why Some Api Files Don't Self-Decorate).
-   */
-  static #UNDECORATED_APIS: ReadonlySet<string> = new Set([
-    '/api/security#SecurityApi',
-    '/api/module#ModuleApi',
-    '/api/proxy#ProxyApi',
-    '/api/execution-context#ExecutionContextApi',
-  ]);
-
-  /**
-   * Api-facade decoration, invoked by `ModuleApi.stamp` for every
-   * direct-child `/api/* # *Api` export — decoration rides the
-   * module-registration lifecycle, replacing the per-file
-   * `decorateApiClass` tail-calls (the no-module-scope-statements
-   * rule). The stamp call sits at each module's tail, so timing is
-   * identical to the old tail-calls; hot reload re-stamps the fresh
-   * class binding, which re-decorates it.
-   * @internal
-   */
-  public static _decorateApiFacade(cls: object, moduleId: string): void {
-    if (SecurityApi.#UNDECORATED_APIS.has(moduleId)) return;
-    SecurityApi.decorateApiClass(cls);
-  }
-
   static {
     SecurityApi.installInterceptor();
   }

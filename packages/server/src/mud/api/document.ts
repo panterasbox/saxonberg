@@ -27,6 +27,7 @@ import { StuffApi } from "./stuff";
 import { HotReloadApi } from "./hot-reload";
 import { DocumentLogic } from "../obj/api/DocumentLogic";
 import { fileURLToPath } from "url";
+import { SecurityApi } from './security';
 
 const LOGIC_PATH = "/obj/api/document";
 const LOGIC_CLASS_FILE = fileURLToPath(
@@ -77,3 +78,5 @@ export class DocumentApi {
     return logic().save(path, kind, data);
   }
 }
+
+SecurityApi.decorateApiClass(DocumentApi);

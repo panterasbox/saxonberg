@@ -37,6 +37,7 @@ import { HotReloadApi } from './hot-reload';
 import { MessageLogic } from '../obj/api/MessageLogic';
 import type { Scene } from '../lib/message/Scene';
 import { fileURLToPath } from 'url';
+import { SecurityApi } from './security';
 
 export { Scene } from '../lib/message/Scene';
 
@@ -191,3 +192,5 @@ export class MessageApi {
     return logic().isCommunicative(topic);
   }
 }
+
+SecurityApi.decorateApiClass(MessageApi);

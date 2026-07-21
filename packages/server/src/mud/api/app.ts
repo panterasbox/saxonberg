@@ -31,6 +31,7 @@ import { StuffApi } from "./stuff";
 import { HotReloadApi } from "./hot-reload";
 import { AppLogic } from "../obj/api/AppLogic";
 import { fileURLToPath } from "url";
+import { SecurityApi } from './security';
 
 const LOGIC_PATH = "/obj/api/app";
 const LOGIC_CLASS_FILE = fileURLToPath(
@@ -79,3 +80,5 @@ export class AppApi {
     return logic().setSetting(key, value);
   }
 }
+
+SecurityApi.decorateApiClass(AppApi);

@@ -143,6 +143,7 @@ import type { Employed } from '../lib/employment/Employed';
 import type { Combatant } from '../lib/combat/Combatant';
 import type { PartyMember } from '../lib/party/PartyMember';
 import { ShadowApi } from './shadow';
+import { SecurityApi } from './security';
 
 // Re-export Mixins constants for convenience
 export { Mixins } from '../lib/mixin';
@@ -1433,3 +1434,5 @@ function collectAugmentConferralNames(stuff: Stuff): Set<string> {
   }
   return out;
 }
+
+SecurityApi.decorateApiClass(MixinApi);

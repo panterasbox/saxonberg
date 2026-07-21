@@ -40,6 +40,7 @@ import { StuffApi } from './stuff';
 import { HotReloadApi } from './hot-reload';
 import { ConvictionLogic } from '../obj/api/ConvictionLogic';
 import { fileURLToPath } from 'url';
+import { SecurityApi } from './security';
 
 export type { ConvictionPosition };
 export { ConvictionTally };
@@ -152,3 +153,5 @@ export class ConvictionApi {
     return logic().quorumWeight(stock, target);
   }
 }
+
+SecurityApi.decorateApiClass(ConvictionApi);

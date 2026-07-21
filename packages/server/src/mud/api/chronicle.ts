@@ -48,6 +48,7 @@ import { StuffApi } from './stuff';
 import { HotReloadApi } from './hot-reload';
 import { ChronicleLogic } from '../obj/api/ChronicleLogic';
 import { fileURLToPath } from 'url';
+import { SecurityApi } from './security';
 
 export type { ChronicleEntryFields, ChronicleClaimSeed };
 
@@ -129,3 +130,5 @@ export class ChronicleApi {
     return logic().seedClaims(owner, seeds);
   }
 }
+
+SecurityApi.decorateApiClass(ChronicleApi);

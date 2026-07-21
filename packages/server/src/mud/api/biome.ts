@@ -42,6 +42,7 @@ import { StuffApi } from './stuff';
 import { HotReloadApi } from './hot-reload';
 import { BiomeLogic } from '../obj/api/BiomeLogic';
 import { fileURLToPath } from 'url';
+import { SecurityApi } from './security';
 
 /**
  * Provenance for a single resolved atmospheric field. Returned by
@@ -287,3 +288,5 @@ export class BiomeApi {
     logic().restampThermalContentsOf(room);
   }
 }
+
+SecurityApi.decorateApiClass(BiomeApi);

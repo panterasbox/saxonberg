@@ -28,6 +28,7 @@ import { StuffApi } from "./stuff";
 import { HotReloadApi } from "./hot-reload";
 import { PersistableLogic } from "../obj/api/PersistableLogic";
 import { fileURLToPath } from "url";
+import { SecurityApi } from './security';
 
 const LOGIC_PATH = "/obj/api/persistable";
 const LOGIC_CLASS_FILE = fileURLToPath(
@@ -98,3 +99,5 @@ export class PersistableApi {
     return logic().deleteAllFor(owner);
   }
 }
+
+SecurityApi.decorateApiClass(PersistableApi);

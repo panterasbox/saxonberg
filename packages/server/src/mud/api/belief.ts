@@ -49,6 +49,7 @@ import { StuffApi } from './stuff';
 import { HotReloadApi } from './hot-reload';
 import { BeliefStoreLogic } from '../obj/api/BeliefStoreLogic';
 import { fileURLToPath } from 'url';
+import { SecurityApi } from './security';
 
 const LOGIC_PATH = '/obj/api/belief';
 const LOGIC_CLASS_FILE = fileURLToPath(
@@ -108,3 +109,5 @@ export class BeliefStoreApi {
     return logic().evictAndFlush(viewer);
   }
 }
+
+SecurityApi.decorateApiClass(BeliefStoreApi);

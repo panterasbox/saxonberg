@@ -43,6 +43,7 @@ import { StuffApi } from './stuff';
 import { HotReloadApi } from './hot-reload';
 import { BulkableLogic } from '../obj/api/BulkableLogic';
 import { fileURLToPath } from 'url';
+import { SecurityApi } from './security';
 
 /**
  * The note kinds `transfer` ever emits — reused from glob's set.
@@ -228,3 +229,5 @@ export class BulkableApi {
     return logic().floorSurfaceNear(near);
   }
 }
+
+SecurityApi.decorateApiClass(BulkableApi);

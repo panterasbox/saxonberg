@@ -29,6 +29,7 @@ import type {
 import { StuffApi } from "./stuff";
 import { TemplatePaths } from "../lib/paths";
 import type HelpCatalogue from "../obj/HelpCatalogue";
+import { SecurityApi } from './security';
 
 /**
  * The viewer's capability tier. `anonymous` is the floor — sees
@@ -167,3 +168,5 @@ export class HelpApi {
     return items.filter((it) => !spoilerOf(it));
   }
 }
+
+SecurityApi.decorateApiClass(HelpApi);

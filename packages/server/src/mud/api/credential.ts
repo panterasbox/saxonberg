@@ -31,6 +31,7 @@ import type { CommandGiver } from "../lib/command/CommandGiver";
 import type { Container } from "../lib/spatial/Container";
 import type { Containable } from "../lib/spatial/Containable";
 import type { CredentialWallet } from "../lib/credential/CredentialWallet";
+import { SecurityApi } from './security';
 
 export class CredentialApi {
   /**
@@ -132,3 +133,5 @@ export class CredentialApi {
     );
   }
 }
+
+SecurityApi.decorateApiClass(CredentialApi);

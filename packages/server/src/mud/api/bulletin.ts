@@ -25,6 +25,7 @@ import {
 } from '../lib/bulletin/Bulletin';
 import type { BulletinRow } from '@saxonberg/types';
 import { fileURLToPath } from 'url';
+import { SecurityApi } from './security';
 
 export { Bulletin };
 export type { BulletinRealm, BulletinKind };
@@ -160,3 +161,5 @@ export class BulletinApi {
     };
   }
 }
+
+SecurityApi.decorateApiClass(BulletinApi);

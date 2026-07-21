@@ -26,6 +26,7 @@ import { StuffApi } from './stuff';
 import { HotReloadApi } from './hot-reload';
 import { RegardLogic } from '../obj/api/RegardLogic';
 import { fileURLToPath } from 'url';
+import { SecurityApi } from './security';
 
 const LOGIC_PATH = '/obj/api/regard';
 const LOGIC_CLASS_FILE = fileURLToPath(
@@ -93,3 +94,5 @@ export class RegardApi {
     return logic().regardsHeldBy(viewer);
   }
 }
+
+SecurityApi.decorateApiClass(RegardApi);

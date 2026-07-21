@@ -52,6 +52,7 @@ import { GlobbableLogic } from '../obj/api/GlobbableLogic';
 import { fileURLToPath } from 'url';
 import { CallSecurity } from '../lib/security/decorators';
 import { SecurityPolicies } from '../lib/security/SecurityPolicies';
+import { SecurityApi } from './security';
 
 /**
  * Status flag the helper returns when the outcome diverged from
@@ -275,3 +276,5 @@ export class GlobbableApi {
     });
   }
 }
+
+SecurityApi.decorateApiClass(GlobbableApi);

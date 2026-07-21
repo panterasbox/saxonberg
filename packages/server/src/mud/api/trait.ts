@@ -37,6 +37,7 @@ import { StuffApi } from "./stuff";
 import { HotReloadApi } from "./hot-reload";
 import { TraitLogic } from "../obj/api/TraitLogic";
 import { fileURLToPath } from "url";
+import { SecurityApi } from './security';
 
 /** Act-level context shared by every disposition row of one act. */
 export interface RecordOptions {
@@ -174,3 +175,5 @@ export class TraitApi {
     return logic().seedClaims(owner, seeds);
   }
 }
+
+SecurityApi.decorateApiClass(TraitApi);

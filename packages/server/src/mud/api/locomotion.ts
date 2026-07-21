@@ -31,6 +31,7 @@ import { StuffApi } from './stuff';
 import { HotReloadApi } from './hot-reload';
 import { LocomotionLogic } from '../obj/api/LocomotionLogic';
 import { fileURLToPath } from 'url';
+import { SecurityApi } from './security';
 
 // Author-surface types ride this face (type-only re-exports — weightless).
 export type {
@@ -364,3 +365,5 @@ export class LocomotionApi {
     return logic().traverseWithDefault(actor, exit);
   }
 }
+
+SecurityApi.decorateApiClass(LocomotionApi);

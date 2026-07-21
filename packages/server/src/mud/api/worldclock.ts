@@ -259,3 +259,5 @@ export class WorldClockApi {
     logic()._advanceForTesting(realMs);
   }
 }
+
+SecurityApi.decorateApiClass(WorldClockApi);

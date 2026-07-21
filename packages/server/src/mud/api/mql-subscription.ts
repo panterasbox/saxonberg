@@ -311,3 +311,5 @@ export class MqlSubscriptionApi {
     logic()._clearAll();
   }
 }
+
+SecurityApi.decorateApiClass(MqlSubscriptionApi);

@@ -37,6 +37,7 @@ export type { Business } from '../lib/employment/Business';
 export type { Employed } from '../lib/employment/Employed';
 
 import type { Employment } from '../lib/employment/Employment';
+import { SecurityApi } from './security';
 
 const LOGIC_PATH = '/obj/api/employment';
 const LOGIC_CLASS_FILE = fileURLToPath(
@@ -178,3 +179,5 @@ export class EmploymentApi {
     return logic().boot();
   }
 }
+
+SecurityApi.decorateApiClass(EmploymentApi);

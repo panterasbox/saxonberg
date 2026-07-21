@@ -47,6 +47,7 @@ import {
   CAMPUS_LONGITUDE,
 } from '../obj/api/CelestialLogic';
 import { fileURLToPath } from 'url';
+import { SecurityApi } from './security';
 
 const LOGIC_PATH = '/obj/api/celestial';
 const LOGIC_CLASS_FILE = fileURLToPath(
@@ -375,3 +376,5 @@ export class CelestialApi {
     return logic().moonAzimuthDeg(profile, latitudeDegrees, synodicPeriodDays, t);
   }
 }
+
+SecurityApi.decorateApiClass(CelestialApi);

@@ -342,3 +342,5 @@ export function buildPromptContext(
     focus: MixinApi.isFocused(giver) ? giver.getFocus() : '',
   };
 }
+
+SecurityApi.decorateApiClass(PromptApi);

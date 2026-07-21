@@ -36,6 +36,7 @@ import { StuffApi } from './stuff';
 import { HotReloadApi } from './hot-reload';
 import { BoundaryLogic } from '../obj/api/BoundaryLogic';
 import { fileURLToPath } from 'url';
+import { SecurityApi } from './security';
 
 export interface AttachExistingBoundaryOptions<T extends Boundary = Boundary> {
   boundary: T;
@@ -106,3 +107,5 @@ export class BoundaryApi {
     logic().destruct(boundary);
   }
 }
+
+SecurityApi.decorateApiClass(BoundaryApi);

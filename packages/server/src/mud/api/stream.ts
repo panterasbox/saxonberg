@@ -23,6 +23,7 @@ import type Avatar from '../obj/Avatar';
 import type { MessageFrame } from '@saxonberg/types';
 import type { StreamerTarget, ParsedTarget } from '../lib/streaming/StreamerTarget';
 import type { RelayChannelRef } from '../obj/StreamRelay';
+import { SecurityApi } from './security';
 
 const LOGIC_PATH = '/obj/api/stream';
 const LOGIC_CLASS_FILE = fileURLToPath(
@@ -209,3 +210,5 @@ export class StreamApi {
     return logic().setOverlayReading(on);
   }
 }
+
+SecurityApi.decorateApiClass(StreamApi);

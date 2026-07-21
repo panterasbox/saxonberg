@@ -484,16 +484,17 @@ and wraps each one via `_wrapStaticDescriptor`. The wrapper:
    methodName, undefined, () => original.apply(this, args))`.
 4. On deny, throws `SecurityError`.
 
-Decoration rides the **module-registration lifecycle** (the
-no-module-scope-statements rule — see
-[architecture.md § Module scope declares](../architecture.md)): the
-loader-injected `ModuleApi.stamp` at every module's tail hands each
-direct-child `/api/* # *Api` export to
-`SecurityApi._decorateApiFacade`, which calls `decorateApiClass` for
-everything outside the four bootstrap-special Apis. No per-file
-tail-calls; timing is identical (the stamp is the last thing a module
-runs), and a hot reload re-stamps the fresh class binding, which
-re-decorates it.
+Decoration is a **module-scope tail** — each `api/*.ts` facade ends with
+`SecurityApi.decorateApiClass(FooApi)`. This is one of the two sanctioned
+exceptions to the no-module-scope-statements rule (see
+[architecture.md § Module scope declares](../architecture.md)): an `*Api`
+class is a thin, non-HMR-able *interface* imported directly, so the
+module tail IS its registration — there is no lifecycle for it to join
+the world through. The four bootstrap-special Apis
+(`execution-context`/`module`/`security`/`proxy`) omit the tail (see
+§ Why Some Api Files Don't Self-Decorate below). (The 2026-07 sweep
+briefly routed decoration through a `ModuleApi.stamp` hook to avoid the
+module-scope call; that was reverted.)
 
 Wrappers carry a `_callSecWrapped` marker so re-decoration is a no-op.
 The class-form `@CallSecurity` decorator does the same thing under the

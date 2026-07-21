@@ -23,6 +23,7 @@ import { HotReloadApi } from "./hot-reload";
 import { ExecutionContextApi } from "./execution-context";
 import { ScriptLogic } from "../obj/api/ScriptLogic";
 import { fileURLToPath } from "url";
+import { SecurityApi } from './security';
 
 const LOGIC_PATH = "/obj/api/script";
 const LOGIC_CLASS_FILE = fileURLToPath(
@@ -153,3 +154,5 @@ export class ScriptApi {
     return logic().captureManualBuild(recipeId, name, sources);
   }
 }
+
+SecurityApi.decorateApiClass(ScriptApi);

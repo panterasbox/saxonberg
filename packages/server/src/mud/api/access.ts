@@ -28,6 +28,7 @@ import { SecurityPolicies } from '../lib/security/SecurityPolicies';
 import type { Stuff } from '../lib/stuff/Stuff';
 import { AccessLogic } from '../obj/api/AccessLogic';
 import { fileURLToPath } from 'url';
+import { SecurityApi } from './security';
 
 const LOGIC_PATH = '/obj/api/access';
 const LOGIC_CLASS_FILE = fileURLToPath(
@@ -163,3 +164,5 @@ export class AccessApi {
     logic()._resetRegistryRefForReload();
   }
 }
+
+SecurityApi.decorateApiClass(AccessApi);

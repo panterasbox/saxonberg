@@ -24,6 +24,7 @@ import type {
 import type Avatar from '../obj/Avatar';
 import { SubjectLogic } from '../obj/api/SubjectLogic';
 import { fileURLToPath } from 'url';
+import { SecurityApi } from './security';
 
 const LOGIC_PATH = '/obj/api/subject';
 const LOGIC_CLASS_FILE = fileURLToPath(
@@ -150,3 +151,5 @@ export class SubjectApi {
     return logic().catalogue();
   }
 }
+
+SecurityApi.decorateApiClass(SubjectApi);

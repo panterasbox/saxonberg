@@ -202,3 +202,5 @@ export class SchedulerApi {
     logic()._unregisterActivityForTesting(type);
   }
 }
+
+SecurityApi.decorateApiClass(SchedulerApi);

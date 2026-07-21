@@ -34,6 +34,7 @@ import { StuffApi } from './stuff';
 import { HotReloadApi } from './hot-reload';
 import { MaterialLogic } from '../obj/api/MaterialLogic';
 import { fileURLToPath } from 'url';
+import { SecurityApi } from './security';
 
 // kg + kg/m³ tag tables live in `mud/config/quantity-tags.yaml`
 // and load at boot via `QuantityApi.loadTagTables`. Material doesn't
@@ -312,3 +313,5 @@ export class MaterialApi {
     return logic().resolveShock(current);
   }
 }
+
+SecurityApi.decorateApiClass(MaterialApi);

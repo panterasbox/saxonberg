@@ -26,6 +26,7 @@ import { HotReloadApi } from './hot-reload';
 import { MqlLogic } from '../obj/api/MqlLogic';
 import { fileURLToPath } from 'url';
 
+import { SecurityApi } from './security';
 import type {
   MqlContext,
   MqlMatchVia,
@@ -144,3 +145,5 @@ export class MqlApi {
     return logic().effectiveTarget(value, predicate);
   }
 }
+
+SecurityApi.decorateApiClass(MqlApi);

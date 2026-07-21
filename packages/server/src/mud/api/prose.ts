@@ -22,6 +22,7 @@ import { StuffApi } from './stuff';
 import { HotReloadApi } from './hot-reload';
 import { ProseLogic } from '../obj/api/ProseLogic';
 import { fileURLToPath } from 'url';
+import { SecurityApi } from './security';
 
 export { Prose } from '../lib/prose/Prose';
 
@@ -62,3 +63,5 @@ export class ProseApi {
     logic().registerFilter(name, fn);
   }
 }
+
+SecurityApi.decorateApiClass(ProseApi);

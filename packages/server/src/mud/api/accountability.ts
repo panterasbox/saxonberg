@@ -30,6 +30,7 @@ import type {
 } from '../lib/accountability/AccountabilityEvent';
 import type AccountabilityEvent from '../lib/accountability/AccountabilityEvent';
 import { fileURLToPath } from 'url';
+import { SecurityApi } from './security';
 
 export type {
   AccountabilityFields,
@@ -90,3 +91,5 @@ export class AccountabilityApi {
     return logic().eventsForSession(sessionId);
   }
 }
+
+SecurityApi.decorateApiClass(AccountabilityApi);

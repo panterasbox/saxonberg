@@ -122,9 +122,20 @@ DialogueEffectRegistry.register('bank-circle', BANK_CIRCLE_EFFECT);
 
 **INSTEAD**: module scope *declares*; initialization happens through a
 runtime lifecycle — capture-at-use (the scheduler dispatch index),
-the `ModuleApi.stamp` module lifecycle (Api decoration), `postRegister`
-(instance lifecycle), `BootstrapManager.installFrameworkWiring()` (the
-boot seam), or a lazy first-use initializer. Full pattern table:
+`postRegister` (instance lifecycle),
+`BootstrapManager.installFrameworkWiring()` (the boot seam), or a lazy
+first-use initializer.
+
+**The two sanctioned module-scope exceptions** (both in the lint's
+allowlist): the five branch files' `Stuff._registerTopLevelBranch(...)`
+self-registration (a load-order-coupled root invariant), and an `*Api`
+facade's trailing `SecurityApi.decorateApiClass(FooApi)`. An Api class is
+a thin, caller-facing *interface* — imported directly, never hot-reloaded
+— so there is no lifecycle for it to join the world through; the module
+tail IS its registration. (The 2026-07 sweep briefly routed Api
+decoration through `ModuleApi.stamp` to avoid the module-scope call; that
+was reverted — the self-decorate tail is the pattern.) Full pattern
+table:
 [architecture.md § Module scope declares; lifecycles initialize](./architecture.md).
 Enforced by `pnpm lint:module-scope` (CI-gating).
 

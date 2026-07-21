@@ -21,6 +21,7 @@ import { StuffApi } from './stuff';
 import { HotReloadApi } from './hot-reload';
 import { NavigationLogic } from '../obj/api/NavigationLogic';
 import { fileURLToPath } from 'url';
+import { SecurityApi } from './security';
 
 /** Canonical direction names (long form). */
 export type CardinalDirection =
@@ -100,3 +101,5 @@ export class NavigationApi {
     return logic().cardinalDirections();
   }
 }
+
+SecurityApi.decorateApiClass(NavigationApi);

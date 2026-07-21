@@ -17,6 +17,7 @@ import { ChattelLogic } from "../obj/api/ChattelLogic";
 import type { ChattelOwner } from "../lib/chattel/ChattelRecord";
 import type { Stuff } from "../lib/stuff/Stuff";
 import { fileURLToPath } from "url";
+import { SecurityApi } from './security';
 
 const LOGIC_PATH = "/obj/api/chattel";
 const LOGIC_CLASS_FILE = fileURLToPath(
@@ -95,3 +96,5 @@ export class ChattelApi {
     logic()._resetRegistryRefForReload();
   }
 }
+
+SecurityApi.decorateApiClass(ChattelApi);

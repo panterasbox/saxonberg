@@ -38,6 +38,7 @@ import { StuffApi } from './stuff';
 import { HotReloadApi } from './hot-reload';
 import { ConditionLogic } from '../obj/api/ConditionLogic';
 import { fileURLToPath } from 'url';
+import { SecurityApi } from './security';
 
 export type { InsultKind, Channel } from '../lib/vitals/Condition';
 export { CHANNELS, Channels } from '../lib/vitals/Condition';
@@ -137,3 +138,5 @@ export class ConditionApi {
   }
 
       }
+
+SecurityApi.decorateApiClass(ConditionApi);

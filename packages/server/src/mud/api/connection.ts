@@ -20,6 +20,7 @@ import { StuffApi } from './stuff';
 import { HotReloadApi } from './hot-reload';
 import { ConnectionLogic } from '../obj/api/ConnectionLogic';
 import { fileURLToPath } from 'url';
+import { SecurityApi } from './security';
 
 const LOGIC_PATH = '/obj/api/connection';
 const LOGIC_CLASS_FILE = fileURLToPath(
@@ -166,3 +167,5 @@ export interface ConnectionOrigin {
   /** Country display name (e.g. "Germany"), or absent when unresolved. */
   country?: string;
 }
+
+SecurityApi.decorateApiClass(ConnectionApi);

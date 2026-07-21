@@ -348,3 +348,5 @@ export class HotReloadApi {
     EventApi.emit(eventName, payload);
   }
 }
+
+SecurityApi.decorateApiClass(HotReloadApi);

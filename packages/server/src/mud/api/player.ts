@@ -22,6 +22,7 @@ import { HotReloadApi } from './hot-reload';
 import type { Stuff } from '../lib/stuff/Stuff';
 import { PlayerLogic } from '../obj/api/PlayerLogic';
 import { fileURLToPath } from 'url';
+import { SecurityApi } from './security';
 
 const LOGIC_PATH = '/obj/api/player';
 const LOGIC_CLASS_FILE = fileURLToPath(
@@ -133,3 +134,5 @@ export class PlayerApi {
     return logic().clearAll();
   }
 }
+
+SecurityApi.decorateApiClass(PlayerApi);

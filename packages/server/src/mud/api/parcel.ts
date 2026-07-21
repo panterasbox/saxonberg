@@ -25,6 +25,7 @@ import {
 } from "../lib/parcel/ParcelRecord";
 import type { GroupRef } from "../lib/social/GroupProvider";
 import { fileURLToPath } from "url";
+import { SecurityApi } from './security';
 
 const LOGIC_PATH = "/obj/api/parcel";
 const LOGIC_CLASS_FILE = fileURLToPath(
@@ -193,3 +194,5 @@ export class ParcelApi {
     logic()._resetRegistryRefForReload();
   }
 }
+
+SecurityApi.decorateApiClass(ParcelApi);

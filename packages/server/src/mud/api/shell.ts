@@ -51,6 +51,7 @@ import { StuffApi } from "./stuff";
 import { HotReloadApi } from "./hot-reload";
 import { ShellLogic } from "../obj/api/ShellLogic";
 import { fileURLToPath } from "url";
+import { SecurityApi } from './security';
 
 const LOGIC_PATH = "/obj/api/shell";
 const LOGIC_CLASS_FILE = fileURLToPath(
@@ -168,3 +169,5 @@ export class ShellApi {
   }
 
 }
+
+SecurityApi.decorateApiClass(ShellApi);

@@ -95,11 +95,26 @@ const EXEMPT_CALL = /^Stuff\._registerTopLevelBranch\(/;
 const EXEMPT_FILES =
   /\/mud\/lib\/stuff\/(Thing|Location|Idea|Agent|Shadow)\.ts$/;
 
+/**
+ * The second sanctioned module-scope exception: an `*Api` facade
+ * decorating itself with a `SecurityApi.decorateApiClass(FooApi)` tail.
+ * An Api class is a thin, caller-facing interface that is imported
+ * directly (NOT hot-reloadable), so there is no lifecycle for it to join
+ * the world through — the module tail IS its registration. Restricted to
+ * direct children of `mud/api/` (the facade layer; the sealed pipeline
+ * subdirs `api/mql/**` / `api/mml/**` are excluded by the single-segment
+ * path match). See docs/antipatterns.md § Free-Standing Module-Scope
+ * Statements.
+ */
+const EXEMPT_API_DECORATE = /^SecurityApi\.decorateApiClass\(/;
+const EXEMPT_API_FILES = /\/mud\/api\/[^/]+\.ts$/;
+
 const findings: Finding[] = [];
 
 for (const file of files) {
   const source = readFileSync(file, "utf8");
   const exemptFile = EXEMPT_FILES.test(file);
+  const exemptApiFile = EXEMPT_API_FILES.test(file);
   const sf = ts.createSourceFile(
     file,
     source,
@@ -122,6 +137,15 @@ for (const file of files) {
       exemptFile &&
       ts.isExpressionStatement(stmt) &&
       EXEMPT_CALL.test(source.slice(stmt.getStart(sf), stmt.getEnd()))
+    ) {
+      continue;
+    }
+    // An `*Api` facade's `SecurityApi.decorateApiClass(FooApi)` tail
+    // (documented exception — Api classes are non-HMR interfaces).
+    if (
+      exemptApiFile &&
+      ts.isExpressionStatement(stmt) &&
+      EXEMPT_API_DECORATE.test(source.slice(stmt.getStart(sf), stmt.getEnd()))
     ) {
       continue;
     }

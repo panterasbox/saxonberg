@@ -69,6 +69,7 @@ import ForumSubscriptionRegistry, {
 import { TemplatePaths } from '../lib/paths';
 import type Interactive from '../obj/Interactive';
 import { fileURLToPath } from 'url';
+import { SecurityApi } from './security';
 
 const LOGIC_PATH = '/obj/api/forums';
 const LOGIC_CLASS_FILE = fileURLToPath(
@@ -237,3 +238,5 @@ export class ForumsApi {
     subscriptions().cancelAllForInteractive(interactive);
   }
 }
+
+SecurityApi.decorateApiClass(ForumsApi);

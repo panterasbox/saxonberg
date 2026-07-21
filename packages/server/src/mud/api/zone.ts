@@ -34,6 +34,7 @@ import type { SpatialZone } from '../lib/zone/SpatialZone';
 import { HotReloadApi } from './hot-reload';
 import { ZoneLogic } from '../obj/api/ZoneLogic';
 import { fileURLToPath } from 'url';
+import { SecurityApi } from './security';
 
 const LOGIC_PATH = '/obj/api/zone';
 const LOGIC_CLASS_FILE = fileURLToPath(
@@ -130,3 +131,5 @@ export class ZoneApi {
     return logic().resolveZoneForPath(templatePath);
   }
 }
+
+SecurityApi.decorateApiClass(ZoneApi);

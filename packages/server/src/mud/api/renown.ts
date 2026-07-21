@@ -33,6 +33,7 @@ import { StuffApi } from './stuff';
 import { HotReloadApi } from './hot-reload';
 import { RenownLogic } from '../obj/api/RenownLogic';
 import { fileURLToPath } from 'url';
+import { SecurityApi } from './security';
 
 export type { RenownEventFields, RenownScope };
 
@@ -110,3 +111,5 @@ export class RenownApi {
     return logic().renownOf(subjectId, scope ?? null);
   }
 }
+
+SecurityApi.decorateApiClass(RenownApi);

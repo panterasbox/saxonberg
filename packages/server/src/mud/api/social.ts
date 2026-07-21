@@ -33,6 +33,7 @@ import { SocialLogic } from "../obj/api/SocialLogic";
 import { PresenceLogic } from "../obj/api/PresenceLogic";
 import { ProfileLogic } from "../obj/api/ProfileLogic";
 import { fileURLToPath } from "url";
+import { SecurityApi } from './security';
 
 export type { NotifyRule, ResolvedRule, RuleForOptions, SetResult };
 
@@ -302,3 +303,5 @@ export class SocialApi {
     return logic().reorderRule(viewer, ref, anchor, where);
   }
 }
+
+SecurityApi.decorateApiClass(SocialApi);

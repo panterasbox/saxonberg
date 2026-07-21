@@ -24,6 +24,7 @@ import { StuffApi } from './stuff';
 import { HotReloadApi } from './hot-reload';
 import { SlotLogic } from '../obj/api/SlotLogic';
 import { fileURLToPath } from 'url';
+import { SecurityApi } from './security';
 
 /**
  * Discriminated input to `SlotApi.resolveSlot`.
@@ -172,3 +173,5 @@ export class SlotApi {
     logic().transferOccupancy(candidate, from, to);
   }
 }
+
+SecurityApi.decorateApiClass(SlotApi);

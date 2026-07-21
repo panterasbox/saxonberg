@@ -67,6 +67,7 @@ import {
 import { parseMarkdown } from './mml/markdown';
 import { parseToTree, type MmlNode } from './mml/tree';
 import { RecognitionApi } from './recognition';
+import { SecurityApi } from './security';
 
 // Re-export the MentionResolver interface so consumers can keep
 // `import { MentionResolver } from '../mml'`.
@@ -884,3 +885,5 @@ function serializeTree(nodes: readonly MmlNode[]): string {
   }
   return out;
 }
+
+SecurityApi.decorateApiClass(Mml);

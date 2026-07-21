@@ -29,6 +29,7 @@ import { StuffApi } from "./stuff";
 import { HotReloadApi } from "./hot-reload";
 import { CombatLogic } from "../obj/api/CombatLogic";
 import { fileURLToPath } from "url";
+import { SecurityApi } from './security';
 
 /** Result of opening a session. */
 export type OpenSessionResult =
@@ -286,3 +287,5 @@ export class CombatApi {
     return logic().drawSidearm(actor);
   }
 }
+
+SecurityApi.decorateApiClass(CombatApi);

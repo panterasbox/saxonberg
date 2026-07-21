@@ -47,6 +47,7 @@ import { StuffApi } from "./stuff";
 import { HotReloadApi } from "./hot-reload";
 import { BankingLogic } from "../obj/api/BankingLogic";
 import { fileURLToPath } from "url";
+import { SecurityApi } from './security';
 
 export { Money, Account };
 export type {
@@ -351,3 +352,5 @@ export class BankingApi {
     return logic().enrollCircle(ownerKey, corpoKey);
   }
 }
+
+SecurityApi.decorateApiClass(BankingApi);

@@ -22,6 +22,7 @@ import { StuffApi } from "./stuff";
 import { HotReloadApi } from "./hot-reload";
 import { PartyLogic } from "../obj/api/PartyLogic";
 import { fileURLToPath } from "url";
+import { SecurityApi } from './security';
 
 export type { Party } from "../lib/party/Party";
 
@@ -167,3 +168,5 @@ export class PartyApi {
     return logic().standDown(member);
   }
 }
+
+SecurityApi.decorateApiClass(PartyApi);

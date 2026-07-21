@@ -30,6 +30,7 @@ import { StuffApi } from './stuff';
 import { HotReloadApi } from './hot-reload';
 import { SourceTreeLogic } from '../obj/api/SourceTreeLogic';
 import { fileURLToPath } from 'url';
+import { SecurityApi } from './security';
 
 export { SourceTreeSandboxError } from '../lib/shell/SourceTreeSandboxError';
 
@@ -174,3 +175,5 @@ export class SourceTreeApi {
     return logic().mv(src, dst);
   }
 }
+
+SecurityApi.decorateApiClass(SourceTreeApi);

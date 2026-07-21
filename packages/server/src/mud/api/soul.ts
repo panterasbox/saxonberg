@@ -16,6 +16,7 @@ import type { Emote } from '../lib/social/Emote';
 import type { EmoteSpec } from '../obj/SoulCatalogue';
 import { SoulLogic } from '../obj/api/SoulLogic';
 import { fileURLToPath } from 'url';
+import { SecurityApi } from './security';
 
 export type { EmoteSpec } from '../obj/SoulCatalogue';
 
@@ -63,3 +64,5 @@ export class SoulApi {
     return logic().invalidateCache();
   }
 }
+
+SecurityApi.decorateApiClass(SoulApi);
