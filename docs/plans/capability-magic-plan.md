@@ -46,7 +46,29 @@ The effect substrate + casting: magic = spend a reserve → fire declarative eff
 
 ## 3. Hard spots, with recommended resolutions
 
-**H1 — mana as a Reserve without a new Unit.** Install `mana` as `%`-unit capacity-100, `theme:'arcane'`, `floorEffect:'overchannel-strain'` — the biological shape verbatim, no new `Unit`. **Depth scales cost** (effective cost% = `spell.cost / depthFactor(band)`) and **Serenity scales recovery** (`%/game-min` by band) — both derive-on-read from the profile, never stored scalars (the binding constraint). Installed idempotently by `CasterMixin` on first faculty touch, only when the faculty is active.
+**H1 — mana as an absolute avail/max Reserve (revised 2026-07-23).** The
+first cut pinned mana at `%`-capacity-100 (the biological shape), which
+forced Depth to scale *effective cost* — a conceptual inversion (a deep
+mage got discounts, not a bigger pool) and it collapsed the Depth×Serenity
+orthogonality (a fixed-size tank refills the same regardless of depth).
+Revised: `Reserve` natively stores capacity + current as real `Quantity`s,
+so mana goes **absolute** — **Depth derives capacity**
+(`capacity = magic.depthCapacity.<band>`, e.g. 80/120/180 `pt`, installed
+from the species profile), **spell costs are absolute points**, **Serenity
+scales an absolute recovery rate** (`pt`/game-min by band), and **% is
+derived** (`current/capacity`) wherever a fraction is wanted (the Composure
+`factor()`'s `manaFraction` reads it unchanged). Overchannel deficit is
+absolute points (`severityPerDeficit` scaled accordingly). All still
+derive-on-read from the profile — capacity is stamped at install (and
+re-derived on faculty reconcile), never an independent stored scalar (the
+binding constraint). `theme:'arcane'`, `floorEffect:'overchannel-strain'`,
+installed idempotently by `CasterMixin` on first faculty touch, only when
+the faculty is active. **Cost: one new dimensionless `Unit` — `'pt'`** (one
+union member + one ops-table row in `lib/quantity.ts`). Not a gamey
+intrusion: the Reserve header itself promises authored magic reserves
+("charge"/"essence") as instances, and every one of them needs a non-`%`
+unit — `'pt'` is the substrate's own missing piece, named neutrally
+because "mana" is a content word barred from the engine surface.
 
 **H2 — Composure as a live factor.** `FacultyProfile = { depth: Band, serenity: Band, composure: Band }` (a small 3-band record on `Species`, the `vitalProfile` field pattern; band vocabulary in `lib/magic/Faculty.ts`). The mental resolver reads `factor = composureBase(band) × (magic.composure.floorFactor + (1 − floorFactor) × manaFraction)` — a drained mage resists worse; a non-caster species reads a neutral authored default (Composure exists without the casting faculty). Stage = authored ascending bands on the dread condition seed (the toxin-`bands` precedent) evaluated against `intensity − mitigations`, scaled by `factor`.
 
@@ -64,7 +86,7 @@ The effect substrate + casting: magic = spend a reserve → fire declarative eff
 
 ### Phase 0 — vocabulary value-objects + AppSettings dials (foundation)
 - **Outcome.** The magic substrate's shapes exist and every authored magnitude has a dial. (Constraint "shape in code, magnitudes in `magic.*`".)
-- **Files (create).** `lib/magic/Grid.ts` (the verb/noun vocabularies — 5 verbs, **13 active nouns** incl. Lightning + Storm, frontier list; cell key helpers; `MagicProvenance` shape); `lib/magic/Effect.ts` (the closed `Effect` union — `InjectChannel | Afflict | Relieve | AdjustReserve | Move | Conjure | Sense | Cloak | EmitField | Script` — impulse/modifier family marker, `resist?: ResistSpec` field); `lib/magic/Resist.ts` (axis vocabulary `channel|mental|toxin|none`, per-axis intensity units, mitigator/substrate shapes); `lib/magic/Faculty.ts` (`FacultyProfile`, band vocabularies, depth/serenity scaling tables reading dials); `lib/magic/Suppression.ts` (H4 value + match logic, pure). **(edit).** `lib/config/AppSettings.ts` (the `magic.*` key group, ~14 dials: `castSecondsDefault`, `costDefault`, `abortCostFraction`, `depthFactor.{low,mid,high}`, `recoveryPerMinBase`, `serenityFactor.*`, `composure.floorFactor`, `composureBase.*`, `potency.competenceFactor`, `overchannel.severityPerDeficit`, `overchannel.clearThreshold`, `dread.decayPerSec`, `glowlight.lumens`, `conjure.waterLitres`); `config/app-settings.yaml` (seed); `backend/__tests__/AppSettingsSeeder.test.ts` (220 → 220+N).
+- **Files (create).** `lib/magic/Grid.ts` (the verb/noun vocabularies — 5 verbs, **13 active nouns** incl. Lightning + Storm, frontier list; cell key helpers; `MagicProvenance` shape); `lib/magic/Effect.ts` (the closed `Effect` union — `InjectChannel | Afflict | Relieve | AdjustReserve | Move | Conjure | Sense | Cloak | EmitField | Script` — impulse/modifier family marker, `resist?: ResistSpec` field); `lib/magic/Resist.ts` (axis vocabulary `channel|mental|toxin|none`, per-axis intensity units, mitigator/substrate shapes); `lib/magic/Faculty.ts` (`FacultyProfile`, band vocabularies, depth-capacity/serenity-rate tables reading dials); `lib/magic/Suppression.ts` (H4 value + match logic, pure). **(edit).** `lib/quantity.ts` (the dimensionless `'pt'` `Unit` — one union member + one ops-table row; see H1); `lib/config/AppSettings.ts` (the `magic.*` key group, ~14 dials: `castSecondsDefault`, `costDefault`, `abortCostFraction`, `depthCapacity.{low,mid,high}` (pt), `recoveryPerMinBase` (pt/game-min), `serenityFactor.*`, `composure.floorFactor`, `composureBase.*`, `potency.competenceFactor`, `overchannel.severityPerDeficit` (per pt of deficit), `overchannel.clearThreshold`, `dread.decayPerSec`, `glowlight.lumens`, `conjure.waterLitres`); `config/app-settings.yaml` (seed); `backend/__tests__/AppSettingsSeeder.test.ts` (220 → 220+N).
 - **Tests.** Pure-unit: grid/cell key round-trip, suppression match truth-table (all / noun-filtered / verb-filtered), fold arithmetic on `Resist` (mitigator returning 1 ⇒ residual 0 ⇒ immunity), band scaling monotonicity.
 - **Green.** Lint (`module-scope`, export discipline — value-objects only, no free helpers) + the seeder count passes. Zero behavior change.
 
@@ -136,7 +158,7 @@ The effect substrate + casting: magic = spend a reserve → fire declarative eff
 
 1. **DIV-1 stands**: no MaterialApi refactor; the N-axis fold is a documented shape + one new mental resolver inside `MagicLogic`, channel delegating to `ConditionApi.inflict`.
 2. **DIV-11 split**: `cast`/`spells` verbs afforded by `CasterMixin`; per-spell access = band gates vs `requiredBand` on both axes (no `conferrals` on the magic Disciplines).
-3. **H1 mana**: `%`-unit capacity-100, Depth scales effective cost, Serenity scales recovery — no new `Unit`.
+3. **H1 mana (revised 2026-07-23)**: absolute avail/max pool — a new dimensionless `'pt'` `Unit`; Depth derives **capacity** (`magic.depthCapacity.<band>`), costs are absolute points, Serenity scales an absolute recovery rate, `%` derived (`current/capacity`) for fractions/display. Replaces the first cut (`%`-capacity-100, Depth-scales-cost), which inverted the capacity concept and collapsed Depth×Serenity orthogonality.
 4. **H3 cost model**: spend-at-completion, zero on abort (`magic.abortCostFraction` dial reserved at 0); overchannel = completing past empty.
 5. **Modifier home**: the new `SustainedEffect` `ActiveCondition` kind + reconcile arm (DIV-2), with glowlight as a bound conjured emitter (DIV-8).
 6. **A 9th roster spell `arcane-sight` (Perceive·Arcana)** so the `Sense` primitive has an in-world proof — drop if scope-tightening is preferred (the primitive still ships + unit-tested).
