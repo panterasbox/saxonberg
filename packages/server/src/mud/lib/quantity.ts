@@ -96,6 +96,13 @@ export type Unit =
   // a taser reads `50 kV`, a let-go current `10 mA`, dry skin `100 kΩ`.
   | 'V' | 'A' | 'Ω' | 'S/m'
   | 'kV' | 'mV' | 'mA' | 'kΩ' | 'MΩ'
+  // Dimensionless points — the neutral unit for *authored* reserve
+  // instances (the Reserve substrate's promised magic-side pools:
+  // mana / charge / essence), where capacity is a real per-host
+  // magnitude (avail/max) rather than the biological `%`-of-100
+  // shape. Named neutrally: "mana" is a content word, never an
+  // engine surface.
+  | 'pt'
   // Vitals (rate / pressure / volume)
   | 'bpm' | 'mmHg' | 'L'
   // Acceleration (gravity)
@@ -177,6 +184,7 @@ const unitOps: Partial<Record<Unit, UnitOps>> = {
   clo: ARITHMETIC_OPS,
   'm/s': ARITHMETIC_OPS,
   '%': ARITHMETIC_OPS,
+  pt: ARITHMETIC_OPS,
   bpm: ARITHMETIC_OPS,
   mmHg: ARITHMETIC_OPS,
   L: ARITHMETIC_OPS,
