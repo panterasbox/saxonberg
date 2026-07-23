@@ -292,5 +292,34 @@ When combat reaches the design phase, this slate boils down to:
   on interception; master-apprentice routes credit to the apprentice with
   scaled rewards.
 
+### Magic interplay questions (banked 2026-07-23, from the magic build)
+
+The magic core build
+([capability-magic-requirements.md](../../requirements/capability-magic-requirements.md))
+shipped deliberately **room-scoped** — no ranged pretense — and routed
+all hostile channel-delivery through one internal **`deliverAt`** seam in
+the magic logic, documented as the ranged-integration point. When this
+slate's ranged model is designed, that seam adopts it (offensive spells
+swap one leg; spell data / resist seam / faculty untouched), and these
+questions come due:
+
+- **Bolt vs cover/dodge** — does a firebolt contest the same `Covering`
+  status an arrow does, or is the cast-time interrupt magic's whole
+  active gate even at range? (Lean: same cover contest — one delivery
+  model, the mundane-first doctrine.)
+- **Interpose / shield-facing** — the weapon build's directional shield
+  cover (`InflictSpec.shieldFacing`) vs a bolt; can a bodyguard
+  interpose on a ranged cast the way `defend <ally>` redirects a melee
+  edge?
+- **Range attenuation** — a bolt weakening with distance is both a
+  balance knob and *the inquiry substrate's flagship discoverable law*
+  (falloff-by-experiment). Attenuation should land as an honest function
+  the moment distance exists, so the inquiry build can mark it
+  discoverable. Cross-room "distance" = the conduit/transmissivity hops
+  this slate already names.
+- **Counterspell vs cover** — Arcana's counter (an in-flight-effect
+  read) and physical cover should stay *distinct* answers to a ranged
+  cast, not collapse into one dodge stat.
+
 Geometric fidelity, per-character gambits, and enemy-side tactics wait
 for their own waves — if they're ever asked for at all.

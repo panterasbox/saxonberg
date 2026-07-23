@@ -149,6 +149,13 @@ consuming this build's substrate. The effect substrate ships
 - **No new combat machinery** — no cast-vs-cast subsystem, no counterspell
   minigame; counter-shaped play arrives via Arcana effects + the
   interrupt that already exists.
+- **Ranged delivery** — no projectile/travel model, no cross-room
+  targeting, no cover/interpose/LoS contest, no range attenuation. v1
+  magic is deliberately **room-scoped** (see the surface decision below);
+  ranged combat is its own future build
+  ([combat-tactics-slate](../slates/deferred-rpg/combat-tactics-slate.md)
+  Thesis 1 — the engagement-graph ranged model), and magic adopts its
+  delivery model when it lands.
 
 ## Surface decisions
 
@@ -207,6 +214,43 @@ into a boot-time catalogue singleton, never cloned. Deliberately **not**
 a new Mongo collection (the Recipe/Document precedent) — the Atlas
 500-collection ceiling is already pinched, and spells need no per-row
 mutation. Authored seeds ride the established config/seeder path.
+
+### v1 magic is room-scoped — deliberately not ranged (2026-07-23)
+
+Ranged combat does not exist yet (deferred behind the formation/tactics
+work), and the mundane-first doctrine that governed the whole frontier
+arc applies here too: magic actuates real substrates built for their own
+sake, so the *delivery* model for an attack-at-range should be grounded
+by mundane ranged combat (thrown/bow/cover/interpose — the
+combat-tactics-slate Thesis 1 engagement-graph model) and then actuated
+by magic — never designed backwards from the fireball. Decided:
+
+- **v1 hostile delivery happens at the same envelope melee combat uses**
+  — reachable, in-scene targets; no pretense of range, so players never
+  learn an arrow-vs-bolt inconsistency that later has to be unlearned.
+  The counterplay is cast time + interruption (already the design).
+- **One named seam:** all hostile channel-delivery in the magic logic
+  routes through a single internal `deliverAt` leg, documented as the
+  ranged-integration point. When ranged combat lands its delivery model
+  (travel/dodge/cover/LoS), offensive spells adopt it by swapping that
+  one leg — spell data, resist seam, faculty, grid, provenance all
+  untouched. (The `HazardDelivery` reserved `range` seam is the
+  precedent.)
+- The magic↔ranged interplay questions (bolt-vs-cover, interpose,
+  range attenuation and its date with the inquiry falloff law,
+  counterspell-vs-cover) are **banked in combat-tactics-slate** for the
+  ranged build to answer.
+
+### Hostile casts write the accountability ledger
+
+A firebolt at a non-consenting sentient is a harm like any other. The
+[accountability](../subsystems/accountability.md) doctrine is producers,
+not one chokepoint — combat's writers and the trap's spring row are the
+precedents — so the hostile-effect executor appends a `harm` row
+(victim, terms-free `!consented && sentient` blame derivation) when a
+damaging effect lands outside a consented combat session. Magic is
+inside the consent/blame economy from day one; reputation/bounty/courts
+consumers read it for free.
 
 ### One gated Api pair fronts casting
 
@@ -284,6 +328,13 @@ security bypass; an effect can only do what its backing Api permits.
 - Spell access is conferral-banded: a novice lacks a high-band cell's
   spell until the Discipline bands rise; every cast writes an
   `ActSignature` crediting both the verb and noun Disciplines.
+- A hostile spell landed on a non-consenting sentient outside a
+  consented combat session appends an accountability `harm` row naming
+  the caster (the trap-spring precedent), and a consented-duel cast does
+  not.
+- Hostile channel-delivery is observably confined to the melee-combat
+  envelope (reachable, in-scene targets), and all of it routes through
+  the single documented `deliverAt` seam (the ranged-integration point).
 - The anti-magic zone vetoes casting inside it with a legible refusal,
   scoped by the outward walk, and grid-filtered suppression ("no
   ·Fire") blocks only matching casts.
