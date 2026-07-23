@@ -244,6 +244,54 @@ export class CombatNarration {
   }
 
   /**
+   * A formation **interception** — a protector steps into an attacker's
+   * line, taking a protected ally's incoming pressure onto themselves
+   * (the policy-triggered `defend`, run by the beat's interception pass).
+   * A murmur-tier beat: witnessed and reactable, not a roar.
+   */
+  static narrateInterception(
+    interposer: Stuff,
+    protectee: Stuff,
+    attacker: Stuff,
+  ): string {
+    const commandId = SecurityApi.uuid();
+    const I = Mml.name(interposer);
+    const P = Mml.name(protectee);
+    const A = Mml.name(attacker);
+    for (const viewer of CombatNarration.witnesses(interposer)) {
+      const isI = (viewer as Stuff) === (interposer as Stuff);
+      const isP = (viewer as Stuff) === (protectee as Stuff);
+      const isA = (viewer as Stuff) === (attacker as Stuff);
+      const tpl = isI
+        ? `You step into {{attacker}}'s line, taking the press off {{protectee}}.`
+        : isP
+          ? `{{interposer}} steps into {{attacker}}'s line — the press comes off you.`
+          : isA
+            ? `{{interposer}} steps into your line, covering {{protectee}}.`
+            : `{{interposer}} steps into {{attacker}}'s line, covering {{protectee}}.`;
+      try {
+        const body = ProseApi.format(tpl, {
+          interposer: I,
+          protectee: P,
+          attacker: A,
+        });
+        MessageApi.scene(viewer as Stuff)
+          .topic(COMBAT_EXCHANGE_TOPIC)
+          .meta({ commandId })
+          .toSelf(body)
+          .send();
+      } catch {
+        // best-effort per-viewer relay
+      }
+    }
+    const scope = ReactionApi.locationScopeFor(interposer);
+    if (scope) {
+      ReactionApi.noteReactableAct({ commandId, subject: interposer, scope });
+    }
+    return commandId;
+  }
+
+  /**
    * The coup **stayed** — the killing stroke did not land (an intervention,
    * the executioner's own second thoughts, the moment lost). The victim
    * is spared; every witness gets the line so the drama resolves cleanly.

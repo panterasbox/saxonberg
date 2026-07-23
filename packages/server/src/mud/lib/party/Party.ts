@@ -54,6 +54,17 @@ const PartySurface = SecurityPolicies.AnyOf(
   SecurityPolicies.FromTemplate("/obj/api/party"),
 );
 
+/**
+ * The bottom rung of the **total formation-resolution chain**
+ * (`PartyApi.formationPathOf`: active party's formation, else this) — a
+ * path string, never null/`''`, so the exchange loop has no null branch
+ * and "solo" is not a concept (the `sideOf` solo-rung / locomotion
+ * universe-`walk` mirror). A plain string constant: the party side speaks
+ * formation **paths** only (ref-shapes Pattern A) and never imports
+ * `lib/combat`.
+ */
+export const DEFAULT_FORMATION_PATH = "/lib/combat/CombatFormation/default";
+
 export class Party extends Idea {
   static persistentFields = [
     "name",
@@ -63,6 +74,8 @@ export class Party extends Idea {
     "combatSide",
     "durable",
     "channelRef",
+    "formationPath",
+    "roleAssignments",
   ];
 
   /** Party fields are MQL-projectable — a party is queryable by member,
@@ -73,6 +86,7 @@ export class Party extends Idea {
     { name: "captainId", read: (s) => (s as Party).getCaptainId() },
     { name: "combatSide", read: (s) => (s as Party).getCombatSide() },
     { name: "durable", read: (s) => (s as Party).isDurable() },
+    { name: "formationPath", read: (s) => (s as Party).getFormationPath() },
   ];
 
   /** @authorable */ public name: string = "";
@@ -82,6 +96,8 @@ export class Party extends Idea {
   /** @authorable */ public combatSide: string = "";
   /** @runtimeState */ public durable: boolean = false;
   /** @authorable */ public channelRef: string = "";
+  /** @authorable */ public formationPath: string = "";
+  /** @authorable */ public roleAssignments: Record<string, string> = {};
 
   /** A managed object, never residency-culled while it lives (a durable
    * dormant crew stays resident so `muster` can find it). */
@@ -127,6 +143,7 @@ export class Party extends Idea {
   @CallSecurity(PartySurface)
   release(memberId: string, member?: (Stuff & PartyMember) | null): void {
     this.removeMember(memberId);
+    delete this.roleAssignments[memberId];
     if (this.isCaptain(memberId)) {
       const heir = this.memberIds[0];
       if (heir) this.setCaptainId(heir);
@@ -234,6 +251,37 @@ export class Party extends Idea {
     this.channelRef = ref;
   }
 
+  /* ───────────────── formation + roles ───────────────── */
+
+  /** The active formation's templatePath, `''` when never chosen (the
+   * resolution chain's caller falls through to the default preset —
+   * `PartyApi.formationPathOf` owns the totality, not this read). */
+  getFormationPath(): string {
+    return this.formationPath;
+  }
+
+  @CallSecurity(PartySurface)
+  setFormationPath(path: string): void {
+    this.formationPath = path;
+  }
+
+  /** A member's assigned role, `''` when unassigned (vacant is inert,
+   * never an error). Roles are sets, not seats — any number of members
+   * may hold the same role; an assignment a formation switch orphans
+   * simply stops matching any policy clause. */
+  roleOfMember(memberId: string): string {
+    return this.roleAssignments[memberId] ?? "";
+  }
+
+  getRoleAssignments(): Readonly<Record<string, string>> {
+    return this.roleAssignments;
+  }
+
+  @CallSecurity(PartySurface)
+  assignRole(memberId: string, role: string): void {
+    this.roleAssignments[memberId] = role;
+  }
+
   /** The party's grouping/party ref token (`party:<templatePath>`). */
   partyRef(): string {
     return `party:${this.getTemplatePath() ?? ""}`;
@@ -265,6 +313,8 @@ export class Party extends Idea {
     record.memberIds = [...this.memberIds];
     record.combatSide = this.combatSide;
     record.channelRef = this.channelRef;
+    record.formationPath = this.formationPath;
+    record.roleAssignments = { ...this.roleAssignments };
     return record;
   }
 
@@ -277,6 +327,8 @@ export class Party extends Idea {
     this.memberIds = [...record.memberIds];
     this.combatSide = record.combatSide;
     this.channelRef = record.channelRef;
+    this.formationPath = record.formationPath;
+    this.roleAssignments = { ...record.roleAssignments };
     this.durable = true;
   }
 }

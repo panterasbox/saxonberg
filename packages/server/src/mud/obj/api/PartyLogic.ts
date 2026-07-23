@@ -11,7 +11,7 @@ import { GroupApi } from "../../api/group";
 import { ChatApi } from "../../api/chat";
 import { StuffApi } from "../../api/stuff";
 import { SecurityApi } from "../../api/security";
-import { Party } from "../../lib/party/Party";
+import { Party, DEFAULT_FORMATION_PATH } from "../../lib/party/Party";
 import { PartyRecord } from "../../lib/party/PartyRecord";
 import { PartyGroupProvider } from "../../lib/party/PartyGroupProvider";
 import type { PartyOpResult, PartySimpleResult } from "../../api/party";
@@ -63,6 +63,21 @@ export class PartyLogic extends ApiLogic {
   @CallSecurity(PartyApiCallers)
   public areAllied(a: Stuff, b: Stuff): boolean {
     return sideOfImpl(a) === sideOfImpl(b);
+  }
+
+  @CallSecurity(PartyApiCallers)
+  public formationPathOf(combatant: Stuff): string {
+    return formationPathOfImpl(combatant);
+  }
+
+  @CallSecurity(PartyApiCallers)
+  public roleOf(combatant: Stuff): string {
+    return roleOfImpl(combatant);
+  }
+
+  @CallSecurity(PartyApiCallers)
+  public isCaptain(combatant: Stuff): boolean {
+    return isCaptainImpl(combatant);
   }
 
   @CallSecurity(PartyApiCallers)
@@ -127,6 +142,23 @@ export class PartyLogic extends ApiLogic {
   @CallSecurity(PartyApiCallers)
   public async setSide(captain: Stuff, side: string): Promise<PartySimpleResult> {
     return setSideImpl(captain, side);
+  }
+
+  @CallSecurity(PartyApiCallers)
+  public async setFormation(
+    captain: Stuff,
+    name: string,
+  ): Promise<PartySimpleResult> {
+    return setFormationImpl(captain, name);
+  }
+
+  @CallSecurity(PartyApiCallers)
+  public async assignRole(
+    captain: Stuff,
+    role: string,
+    targetId: string,
+  ): Promise<PartySimpleResult> {
+    return assignRoleImpl(captain, role, targetId);
   }
 
   @CallSecurity(PartyApiCallers)
@@ -224,6 +256,35 @@ function activePartyOfImpl(member: Stuff): Party | null {
   if (!MixinApi.isPartyMember(member)) return null;
   const path = member.getActivePartyPath();
   return path ? partyAt(path) : null;
+}
+
+/* ───────────────────── formation resolution (sync) ───────────────────── */
+
+/** The total chain: the active party's chosen formation, else the default
+ * preset. NEVER `''`/null — the caller has no null branch. */
+function formationPathOfImpl(combatant: Stuff): string {
+  return (
+    activePartyOfImpl(combatant)?.getFormationPath() || DEFAULT_FORMATION_PATH
+  );
+}
+
+function roleOfImpl(combatant: Stuff): string {
+  const party = activePartyOfImpl(combatant);
+  return party ? party.roleOfMember(memberIdOf(combatant)) : "";
+}
+
+function isCaptainImpl(combatant: Stuff): boolean {
+  const party = activePartyOfImpl(combatant);
+  return party ? party.isCaptain(memberIdOf(combatant)) : false;
+}
+
+/** The formation Idea's role vocabulary, duck-read structurally so this
+ * module never imports `lib/combat` (the one-way combat→party dep). */
+function formationRolesAt(path: string): readonly string[] | null {
+  const idea = StuffApi.findByTemplatePath(path);
+  if (!idea) return null;
+  const withRoles = idea as unknown as { getRoles?: () => readonly string[] };
+  return typeof withRoles.getRoles === "function" ? withRoles.getRoles() : null;
 }
 
 async function partiesOfImpl(memberId: string): Promise<readonly Party[]> {
@@ -453,6 +514,56 @@ async function setSideImpl(
     return { ok: false, reason: "not-the-captain" };
   }
   party.setCombatSide(side);
+  await persistParty(party);
+  return { ok: true };
+}
+
+async function setFormationImpl(
+  captain: Stuff,
+  name: string,
+): Promise<PartySimpleResult> {
+  const party = activePartyOfImpl(captain);
+  if (!party) return { ok: false, reason: "not-in-a-party" };
+  if (!party.isCaptain(memberIdOf(captain))) {
+    return { ok: false, reason: "not-the-captain" };
+  }
+  const trimmed = name.trim().toLowerCase();
+  if (!trimmed || !/^[a-z][a-z-]*$/.test(trimmed)) {
+    return { ok: false, reason: "unknown-formation" };
+  }
+  const path = `/lib/combat/CombatFormation/${trimmed}`;
+  // Await the Idea resident BEFORE accepting, so a mid-fight switch is
+  // live by its next beat (the beat's consult is sync findByTemplatePath).
+  try {
+    await StuffApi.singleton(path);
+  } catch {
+    return { ok: false, reason: "unknown-formation" };
+  }
+  party.setFormationPath(path);
+  await persistParty(party);
+  fireChange(party);
+  return { ok: true };
+}
+
+async function assignRoleImpl(
+  captain: Stuff,
+  role: string,
+  targetId: string,
+): Promise<PartySimpleResult> {
+  const party = activePartyOfImpl(captain);
+  if (!party) return { ok: false, reason: "not-in-a-party" };
+  if (!party.isCaptain(memberIdOf(captain))) {
+    return { ok: false, reason: "not-the-captain" };
+  }
+  if (!party.isMember(targetId)) return { ok: false, reason: "not-a-member" };
+  const formationPath = party.getFormationPath();
+  if (!formationPath) return { ok: false, reason: "no-formation" };
+  const roles = formationRolesAt(formationPath);
+  const wanted = role.trim().toLowerCase();
+  if (!roles || !roles.includes(wanted)) {
+    return { ok: false, reason: "unknown-role" };
+  }
+  party.assignRole(targetId, wanted);
   await persistParty(party);
   return { ok: true };
 }

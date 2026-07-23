@@ -320,3 +320,57 @@ describe("combat-gym — weapon × allocation matrix", () => {
     expect(distinctOutcomes.size).toBeGreaterThanOrEqual(2);
   });
 });
+
+describe("combat-gym — the pinned regression (canonical outcomes)", () => {
+  // The byte-parity pin for the combat-formations build: these exact
+  // winners + beat counts are the canonical pre-formation outcomes,
+  // captured on origin/master before the formation substrate landed. A
+  // side with no chosen formation resolves to the default preset, which
+  // must byte-preserve this behavior — any drift here is a formation
+  // regression, not a rebalance. (The accountability-migration pin
+  // precedent.)
+  const PINS: Array<{
+    label: string;
+    a: () => GymSide;
+    b: () => GymSide;
+    winner: "A" | "B" | "draw";
+    beats: number;
+  }> = [
+    {
+      label: "feinter-vs-turtle@untrained",
+      a: () => side("feinter", Policies.feinter, "untrained"),
+      b: () => side("turtle", Policies.turtle, "untrained"),
+      winner: "draw",
+      beats: 201,
+    },
+    {
+      label: "brain-vs-brain@competent",
+      a: () => side("brain", Policies.brain, "competent"),
+      b: () => side("brain", Policies.brain, "competent"),
+      winner: "A",
+      beats: 21,
+    },
+    {
+      label: "spear-vs-dagger@competent",
+      a: () => side("spear", Policies.brain, "competent", Loadouts.spear!),
+      b: () => side("dagger", Policies.brain, "competent", Loadouts.dagger!),
+      winner: "draw",
+      beats: 201,
+    },
+    {
+      label: "swordshield-vs-mace@competent",
+      a: () => side("ss", Policies.brain, "competent", Loadouts.swordShield!),
+      b: () => side("mace", Policies.brain, "competent", Loadouts.mace!),
+      winner: "A",
+      beats: 21,
+    },
+  ];
+
+  for (const pin of PINS) {
+    it(`pinned: ${pin.label} → ${pin.winner} in ${pin.beats} beats`, () => {
+      const r = runMatchup(pin.a(), pin.b(), 400, resetState);
+      expect(r.winner).toBe(pin.winner);
+      expect(r.beats).toBe(pin.beats);
+    });
+  }
+});

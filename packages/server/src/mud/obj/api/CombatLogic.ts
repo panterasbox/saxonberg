@@ -42,6 +42,10 @@ import {
   type CombatantState,
   type CombatResolution,
 } from "../../lib/combat/CombatSession";
+import {
+  CombatFormation,
+  type FormationPolicy,
+} from "../../lib/combat/CombatFormation";
 import type { CombatTerms } from "../../lib/combat/CombatTerms";
 import { Poise, type PoiseConfig } from "../../lib/combat/Poise";
 import { Tempo, type TempoConfig } from "../../lib/combat/Tempo";
@@ -637,6 +641,7 @@ function openSessionImpl(
   const aState = deriveState(initiator);
   aState.side = safeSideOf(initiator);
   aState.competenceBand = bandFromOpts(initiator, opts);
+  aState.deliberateTarget = defender;
   const bState = deriveState(defender);
   bState.side = safeSideOf(defender);
   bState.competenceBand = bandFromOpts(defender, opts);
@@ -703,6 +708,7 @@ function joinImpl(
   const state = deriveState(joiner);
   state.side = safeSideOf(joiner);
   state.competenceBand = bandFromOpts(joiner, opts);
+  state.deliberateTarget = target;
   const hold = session.addParticipant(state);
   if (!SchedulerApi.start(hold).ok) {
     session.removeParticipant(joiner);
@@ -764,6 +770,7 @@ function deriveState(combatant: Stuff & Engaged): CombatantState {
     down: false,
     side: "",
     lastStruckBy: null,
+    deliberateTarget: null,
   };
 }
 
@@ -797,13 +804,135 @@ function safeSideOf(combatant: Stuff): string {
   }
 }
 
+/* ─────────────── the formation (party-strategy policy) ─────────────── */
+
 /**
- * The foe this actor presses this exchange: prefer a still-live foe the
- * actor already has an edge onto (sustained focus), else any live foe
- * (someone not on the actor's frozen side), opening an edge onto them.
- * Null when no foe remains (the fight is won / all allies).
+ * The **total** per-beat formation consult: the combatant's resolved
+ * formation policy, never null. Chain: `PartyApi.formationPathOf` (active
+ * party's formation → the default preset path) → the resident Idea's
+ * frozen `policy()`. When the party subsystem is unbooted or the Idea is
+ * not resident (bare unit tests, cold boot), falls back to the built-in
+ * `CombatFormation.DEFAULT_POLICY` — value-equal to the seeded default,
+ * so the degenerate paths byte-preserve pre-formation combat (the
+ * `safeSideOf` tolerance precedent). Deliberately NOT frozen at open
+ * (unlike `side`): the per-beat re-read is what makes a mid-fight
+ * `party adopt` land on the very next beat with no pending-state
+ * machinery.
+ */
+function resolveFormationFor(state: CombatantState): FormationPolicy {
+  let path: string;
+  try {
+    path = PartyApi.formationPathOf(state.combatant);
+  } catch {
+    return CombatFormation.DEFAULT_POLICY;
+  }
+  const idea = StuffApi.findByTemplatePath(path);
+  return idea instanceof CombatFormation
+    ? idea.policy()
+    : CombatFormation.DEFAULT_POLICY;
+}
+
+/** The combatant's assigned role, `''` when unassigned / unbooted. */
+function safeRoleOf(combatant: Stuff): string {
+  try {
+    return PartyApi.roleOf(combatant);
+  } catch {
+    return "";
+  }
+}
+
+/** Whether the combatant captains their active party (tolerant read). */
+function safeIsCaptain(combatant: Stuff): boolean {
+  try {
+    return PartyApi.isCaptain(combatant);
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * The combatant's index on its active party's roster (the deterministic
+ * plural-role tiebreak — roles are sets, not seats; wherever a policy
+ * clause needs exactly one referent, holders resolve in roster order).
+ * Non-members sort last (stable sort then keeps session join order).
+ */
+function rosterIndexOf(combatant: Stuff): number {
+  try {
+    const party = PartyApi.activePartyOf(combatant);
+    if (!party || !MixinApi.isPartyMember(combatant)) {
+      return Number.MAX_SAFE_INTEGER;
+    }
+    const idx = party.getMemberIds().indexOf(combatant.partyMemberId());
+    return idx < 0 ? Number.MAX_SAFE_INTEGER : idx;
+  } catch {
+    return Number.MAX_SAFE_INTEGER;
+  }
+}
+
+/** The anchor's side-mates in this session (anchor included), in party-
+ * roster order (stable — ties keep session join order). */
+function alliesInRosterOrder(
+  session: CombatSession,
+  anchor: CombatantState,
+): CombatantState[] {
+  return session
+    .getStates()
+    .filter((s) => s.side === anchor.side)
+    .sort(
+      (a, b) => rosterIndexOf(a.combatant) - rosterIndexOf(b.combatant),
+    );
+}
+
+/** The first **standing** holder of `role` on the anchor's side, in
+ * roster order (the plural-role one-referent rule), or null (vacant). */
+function firstStandingHolder(
+  session: CombatSession,
+  anchor: CombatantState,
+  role: string,
+): CombatantState | null {
+  if (!role) return null;
+  for (const s of alliesInRosterOrder(session, anchor)) {
+    if (!s.down && safeRoleOf(s.combatant) === role) return s;
+  }
+  return null;
+}
+
+/**
+ * The foe this actor presses this exchange, per its formation's
+ * allocation policy. `'sustain'` (the default preset — the verbatim
+ * pre-formation body): prefer a still-live foe the actor already has an
+ * edge onto, else any live foe. `'called'` (Focus Fire): the captain's
+ * called target while one lives. `'primary'` (Master-Apprentice): the
+ * primary role-holder's own sustained target. Every branch degrades to
+ * `'sustain'` when its premise is vacant (captain down, no primary
+ * standing) — vacant roles are inert, never an error. Null when no foe
+ * remains (the fight is won / all allies).
  */
 function pickTarget(
+  session: CombatSession,
+  actorState: CombatantState,
+): CombatantState | null {
+  const policy = resolveFormationFor(actorState);
+  switch (policy.allocation) {
+    case "called": {
+      const called = calledTargetFor(session, actorState);
+      if (called) return engageToward(session, actorState, called);
+      return pickSustained(session, actorState);
+    }
+    case "primary": {
+      const primary = primaryTargetFor(session, actorState, policy);
+      if (primary) return engageToward(session, actorState, primary);
+      return pickSustained(session, actorState);
+    }
+    case "sustain":
+    default:
+      return pickSustained(session, actorState);
+  }
+}
+
+/** The pre-formation targeting body, extracted verbatim (the byte-parity
+ * branch — the default preset and every degrade rung land here). */
+function pickSustained(
   session: CombatSession,
   actorState: CombatantState,
 ): CombatantState | null {
@@ -822,6 +951,150 @@ function pickTarget(
       seedRange(session, actor, s.combatant);
     }
     return s;
+  }
+  return null;
+}
+
+/** Press a specific live foe: ensure the actor's edge onto them exists
+ * (opening at the reach-derived range when fresh) and return their state. */
+function engageToward(
+  session: CombatSession,
+  actorState: CombatantState,
+  target: CombatantState,
+): CombatantState {
+  const graph = session.getGraph();
+  const actor = actorState.combatant;
+  if (!graph.edgeBetween(actor, target.combatant)) {
+    graph.addEdge(actor, target.combatant, session.getTerms());
+    if (graph.rangeBetween(actor, target.combatant) === "close") {
+      seedRange(session, actor, target.combatant);
+    }
+  }
+  return target;
+}
+
+/**
+ * Focus Fire's **called target** — derived, not verb-called: the side's
+ * captain leads by attacking. The call is the captain's `deliberateTarget`
+ * (stamped at their own open/join) while it lives in this session as a
+ * standing foe; else the captain's first sustained edge. Null when no
+ * captain stands (the degrade rung) — and a party of one is its own
+ * captain, so solo Focus Fire is target discipline for free.
+ */
+function calledTargetFor(
+  session: CombatSession,
+  actorState: CombatantState,
+): CombatantState | null {
+  let captain: CombatantState | null = null;
+  for (const s of alliesInRosterOrder(session, actorState)) {
+    if (!s.down && safeIsCaptain(s.combatant)) {
+      captain = s;
+      break;
+    }
+  }
+  if (!captain) return null;
+  const liveFoe = (target: Stuff | null): CombatantState | null => {
+    if (!target) return null;
+    const ts = session.getState(target);
+    return ts && !ts.down && ts.side !== actorState.side ? ts : null;
+  };
+  const deliberate = liveFoe(captain.deliberateTarget);
+  if (deliberate) return deliberate;
+  for (const edge of session.getGraph().targetsOf(captain.combatant)) {
+    const ts = liveFoe(edge.defender);
+    if (ts) return ts;
+  }
+  return null;
+}
+
+/**
+ * Master-Apprentice's **primary engagement**: the first standing holder
+ * of the formation's `primaryRole` (the apprentice) anchors the side's
+ * shared target — everyone else presses the apprentice's foe so the
+ * apprentice's openings and credit stay theirs. The primary itself (and
+ * a vacant primary) degrades to `'sustain'`.
+ */
+function primaryTargetFor(
+  session: CombatSession,
+  actorState: CombatantState,
+  policy: FormationPolicy,
+): CombatantState | null {
+  const primary = firstStandingHolder(session, actorState, policy.primaryRole);
+  if (!primary || primary === actorState) return null;
+  for (const edge of session.getGraph().targetsOf(primary.combatant)) {
+    const ts = session.getState(edge.defender);
+    if (ts && !ts.down && ts.side !== actorState.side) return ts;
+  }
+  return null;
+}
+
+/**
+ * The per-beat **interception pass** (the policy-triggered `defend`):
+ * walk a snapshot of the threat edges; where a defender's formation
+ * protects their role and the trigger fires (`'any'`, or `'high-threat'`
+ * at `combat.formation.ma.highThreatEdges` incoming), redirect the edge
+ * to the first eligible interceptor — walking the formation's
+ * `interceptorRoles` in priority order, holders within a role in party-
+ * roster order — standing, not the defender, and pressed by fewer than
+ * `combat.formation.intercept.maxIncoming` incoming edges. Runs at the
+ * top of the beat, so an edge opened on beat N is intercepted at the top
+ * of beat N+1 ("lands next beat" by construction). Deterministic —
+ * snapshot order, roster order, no dice. Inert under the default preset
+ * (`trigger: 'none'`).
+ */
+function runInterceptionPass(session: CombatSession): void {
+  const graph = session.getGraph();
+  for (const edge of [...graph.allEdges()]) {
+    const defState = session.getState(edge.defender);
+    if (!defState || defState.down) continue;
+    const attState = session.getState(edge.attacker);
+    if (!attState || attState.down) continue;
+    if (attState.side === defState.side) continue;
+    const policy = resolveFormationFor(defState);
+    if (policy.interceptTrigger === "none") continue;
+    const defRole = safeRoleOf(edge.defender);
+    if (!defRole || !policy.protectsRoles.includes(defRole)) continue;
+    if (
+      policy.interceptTrigger === "high-threat" &&
+      graph.edgeCount(edge.defender) <
+        Math.round(dial(AppSettingKeys.combatFormationHighThreatEdges, 2))
+    ) {
+      continue;
+    }
+    const interceptor = pickInterceptor(session, policy, defState);
+    if (!interceptor) continue;
+    graph.redirect(edge.attacker, edge.defender, interceptor.combatant);
+    CombatNarration.narrateInterception(
+      interceptor.combatant,
+      edge.defender,
+      edge.attacker,
+    );
+    mintCommandDeed(interceptor, "standard");
+  }
+}
+
+/** The first eligible interceptor for a protected defender: the
+ * formation's `interceptorRoles` in priority order, holders within a
+ * role in roster order; standing, not the defender, and under the
+ * pressure ceiling. Null when nobody can step in (the clause goes
+ * inert). */
+function pickInterceptor(
+  session: CombatSession,
+  policy: FormationPolicy,
+  defState: CombatantState,
+): CombatantState | null {
+  const maxIncoming = Math.round(
+    dial(AppSettingKeys.combatFormationInterceptMaxIncoming, 2),
+  );
+  const graph = session.getGraph();
+  const allies = alliesInRosterOrder(session, defState);
+  for (const role of policy.interceptorRoles) {
+    for (const st of allies) {
+      if (st === defState || st.down) continue;
+      if (safeRoleOf(st.combatant) !== role) continue;
+      if (graph.edgeCount(st.combatant) >= maxIncoming) continue;
+      return st;
+    }
   }
   return null;
 }
@@ -869,6 +1142,12 @@ function advanceImpl(session: CombatSession): void {
     endWith(session, "draw");
     return;
   }
+
+  // Formation interception (the policy-triggered `defend`) — at beat-top,
+  // so an edge opened on beat N is intercepted at the top of beat N+1 and
+  // a player's own mid-beat interpose is never un-done within its beat.
+  // Inert under the default preset (`trigger: 'none'`).
+  runInterceptionPass(session);
 
   // Hand-slot economy: advance any in-progress weapon switch, completing the
   // grip swap when its vulnerable window elapses (the guard was down the
@@ -1799,6 +2078,7 @@ function clamp01(n: number): number {
 /** The combat Disciplines credit accrues to (seeded as data). */
 const MELEE_DISCIPLINE = "melee-combat";
 const BLADES_DISCIPLINE = "blades";
+const COMMAND_DISCIPLINE = "command";
 
 /* ───────────────────────── blame ledger ───────────────────────── */
 
@@ -2233,6 +2513,22 @@ function outcomeToResult(outcome: OutcomeKind): Outcome {
 }
 
 /** The costed `assess` mints a modest melee-combat read credit. */
+/**
+ * Mint a `command` deed for formation policy work — an interception
+ * performed, a created opening an ally cashed, a captain's call landing.
+ * The teaching payoff: the master/captain advances the exact discipline
+ * you cannot grind solo. Fire-and-forget; player-driven actors only (the
+ * `mintExchangeSignature` parity — brains bank nothing).
+ */
+function mintCommandDeed(state: CombatantState, difficulty: Difficulty): void {
+  if (state.brainPath) return;
+  void AdvancementApi.recordDeed(state.combatant, {
+    discipline: COMMAND_DISCIPLINE,
+    difficulty,
+    outcome: "success",
+  }).catch(() => {});
+}
+
 function mintAssessSignature(actor: Stuff): void {
   void AdvancementApi.recordDeed(actor, {
     discipline: MELEE_DISCIPLINE,

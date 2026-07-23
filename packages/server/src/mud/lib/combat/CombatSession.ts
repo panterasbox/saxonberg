@@ -119,6 +119,16 @@ export interface CombatantState {
    * striker at the moment of resolution. Null until first struck.
    */
   lastStruckBy: (Stuff & Engaged) | null;
+  /**
+   * The foe this combatant's participation began against (stamped at
+   * open/join): the target they typed `attack` at — or, drawn in, the
+   * foe who pulled them into the fight. Inert under most formations;
+   * Focus Fire reads the **captain's** entry as the side's called target
+   * (the captain leads by attacking — derived, not verb-called; a
+   * drawn-in captain's "call" is the foe who came at them). Null only on
+   * bare paths that never stamped it.
+   */
+  deliberateTarget: (Stuff & Engaged) | null;
 }
 
 export class CombatSession {
