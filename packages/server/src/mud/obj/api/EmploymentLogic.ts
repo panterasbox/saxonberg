@@ -10,6 +10,7 @@ import { MixinApi } from '../../api/mixin';
 import { MqlApi } from '../../api/mql';
 import { AccessApi } from '../../api/access';
 import { BankingApi, Money } from '../../api/banking';
+import type { RemittanceSplit } from '../../api/banking';
 import { WorldClockApi } from '../../api/worldclock';
 import type { ClockHandle } from '../../api/worldclock';
 import { Quantity } from '../../lib/quantity';
@@ -151,6 +152,10 @@ async function settleShiftWageImpl(
 
   const position = business.getPosition(employment.positionKey);
   if (!position || position.wageRate <= 0) return;
+  // A non-time basis accrues no shift wage (piecework pays per attributed
+  // settlement, share-of-flow at the revenue split). With no authored
+  // non-time Position, behavior is byte-identical to before.
+  if (position.basis() !== 'time') return;
 
   const gameHours = (offTimeRaw - onSince) / ONE_GAME_HOUR_S;
   if (gameHours <= 0) return;
@@ -177,6 +182,116 @@ async function settleShiftWageImpl(
     );
   }
   await BankingApi.payWage(account, employeeKey, Money.of(amount));
+}
+
+/**
+ * Pay a per-settlement (piece-rate) employee for `units` attributed
+ * settlements: `units × rate` as a `wage`-kind posting, category
+ * `piecework` (labor income — the wage-vs-draw tax wedge stays a *kind*
+ * distinction; the P&L line is the piece-rate's own). Verifies the
+ * participant relationship first: a stored, non-terminal Employment at
+ * this business whose Position basis is `per-settlement`.
+ */
+async function settlePieceworkImpl(
+  business: BusinessStuff,
+  employeeKey: string,
+  units: number,
+): Promise<void> {
+  if (!Number.isInteger(units) || units <= 0) {
+    throw new Error('EmploymentLogic.settlePiecework: units must be positive');
+  }
+  const businessPath = business.getTemplatePath() ?? '';
+  const actor = StuffApi.findByTemplatePath(employeeKey);
+  if (!actor || !MixinApi.isEmployed(actor)) {
+    throw new Error('EmploymentLogic.settlePiecework: no such employee');
+  }
+  const employment = (actor as EmployedActor).getEmployment(businessPath);
+  if (!employment || TERMINAL.includes(employment.status)) {
+    throw new Error(
+      'EmploymentLogic.settlePiecework: no live employment at this business',
+    );
+  }
+  const position = business.getPosition(employment.positionKey);
+  if (!position || position.basis() !== 'per-settlement') {
+    throw new Error(
+      'EmploymentLogic.settlePiecework: the position is not piece-rate',
+    );
+  }
+  const rate = position.compensation?.rate ?? 0;
+  const amount = units * rate;
+  if (amount <= 0) return;
+  const accountPath = business.getAccountPath();
+  const account = await BankingApi.ensureVenueAccount(
+    accountPath,
+    BankingApi.defaultCustodianBankPath(),
+    '',
+  );
+  if ((await BankingApi.primaryAccountIdOf(employeeKey)) == null) {
+    await BankingApi.ensureVenueAccount(
+      employeeKey,
+      BankingApi.defaultCustodianBankPath(),
+      '',
+    );
+  }
+  await BankingApi.payWage(
+    account,
+    employeeKey,
+    Money.of(amount),
+    'piecework',
+    'piecework',
+  );
+}
+
+/**
+ * The share-of-flow splits for a revenue moment at `business`: one
+ * remittance split per non-terminal Employment whose Position basis is
+ * `share-of-flow` (`floor(share × amount)`, category `commission`, to the
+ * holder's primary account), capped so Σ splits < amount. Empty for all
+ * shipped content (no authored Position carries the basis) — the
+ * consignment-split trick, now nameable on an employment arrangement.
+ * Holders are enumerated viewer-blind (MQL system mode over the Employed
+ * marker — share-of-flow needs no roster slot, so the roster can't serve
+ * as the index).
+ */
+async function flowSplitsForImpl(
+  business: BusinessStuff,
+  amountMinor: number,
+): Promise<RemittanceSplit[]> {
+  if (amountMinor <= 0) return [];
+  const businessPath = business.getTemplatePath() ?? '';
+  const holders = MqlApi.resolveMany('world:[mixin.EmployedMixin]', {
+    commandGiver: null,
+    scope: 'world',
+  }).stuff.filter((s): s is EmployedActor => MixinApi.isEmployed(s));
+  const splits: RemittanceSplit[] = [];
+  let total = 0;
+  for (const holder of holders) {
+    const employment = holder.getEmployment(businessPath);
+    if (!employment || TERMINAL.includes(employment.status)) continue;
+    const position = business.getPosition(employment.positionKey);
+    if (!position || position.basis() !== 'share-of-flow') continue;
+    const share = position.compensation?.share ?? 0;
+    const cut = Math.floor(amountMinor * share);
+    if (cut <= 0) continue;
+    if (total + cut >= amountMinor) break; // Σ splits stays below the flow
+    const holderKey = holder.getTemplatePath() ?? '';
+    if (!holderKey) continue;
+    let account = await BankingApi.primaryAccountIdOf(holderKey);
+    if (!account) {
+      account = await BankingApi.ensureVenueAccount(
+        holderKey,
+        BankingApi.defaultCustodianBankPath(),
+        '',
+      );
+    }
+    splits.push({
+      accountId: account,
+      amount: Money.of(cut),
+      category: 'commission',
+    });
+    total += cut;
+  }
+  return splits;
 }
 
 /**
@@ -432,6 +547,25 @@ export class EmploymentLogic extends ApiLogic {
       (actor as EmployedActor).isOnShift()
       ? 'on-shift'
       : 'off-shift';
+  }
+
+  /** See {@link EmploymentApi.settlePiecework}. */
+  @CallSecurity(EmploymentApiCallers)
+  public settlePiecework(
+    business: BusinessStuff,
+    employeeKey: string,
+    units = 1,
+  ): Promise<void> {
+    return settlePieceworkImpl(business, employeeKey, units);
+  }
+
+  /** See {@link EmploymentApi.flowSplitsFor}. */
+  @CallSecurity(EmploymentApiCallers)
+  public flowSplitsFor(
+    business: BusinessStuff,
+    amountMinor: number,
+  ): Promise<RemittanceSplit[]> {
+    return flowSplitsForImpl(business, amountMinor);
   }
 
   /** See {@link EmploymentApi.settleShiftWage}. */

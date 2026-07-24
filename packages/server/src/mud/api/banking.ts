@@ -268,8 +268,10 @@ export class BankingApi {
     employerAccountId: string,
     workerKey: string,
     amount: Money,
+    category: PnlCategory = "wages",
+    memo = "wage",
   ): Promise<void> {
-    return logic().payWage(employerAccountId, workerKey, amount);
+    return logic().payWage(employerAccountId, workerKey, amount, category, memo);
   }
 
   /**

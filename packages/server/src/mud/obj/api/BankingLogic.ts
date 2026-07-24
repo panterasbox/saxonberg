@@ -725,6 +725,8 @@ async function payWageImpl(
   employerAccountId: string,
   workerKey: string,
   amount: Money,
+  category: PnlCategory = "wages",
+  memo = "wage",
 ): Promise<void> {
   const owned = await accountsOfImpl(workerKey);
   const workerAccount = (owned.find((a) => a.isPrimary) ?? owned[0])?.accountId;
@@ -740,8 +742,8 @@ async function payWageImpl(
       from: employerAccountId,
       to: workerAccount,
       amount: amount.minor,
-      category: "wages",
-      memo: "wage",
+      category,
+      memo,
     },
   ]);
 }
@@ -1551,8 +1553,10 @@ export class BankingLogic extends ApiLogic {
     employerAccountId: string,
     workerKey: string,
     amount: Money,
+    category: PnlCategory = "wages",
+    memo = "wage",
   ): Promise<void> {
-    return payWageImpl(employerAccountId, workerKey, amount);
+    return payWageImpl(employerAccountId, workerKey, amount, category, memo);
   }
 
   /** See {@link BankingApi.payDraw}. Business → proprietor, solvency-checked. */

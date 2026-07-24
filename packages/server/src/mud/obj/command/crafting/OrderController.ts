@@ -157,6 +157,14 @@ export default class OrderController extends CraftController<OrderModel> {
       payeeAccountId: venueAccount,
       category: 'sales',
     };
+    // Share-of-flow compensation rides the revenue settle as remittance
+    // splits (the consignment-split primitive, nameable on an employment
+    // arrangement). Empty for all shipped content — no authored Position
+    // carries the basis — so this is byte-identical today.
+    if (business) {
+      const splits = await EmploymentApi.flowSplitsFor(business, price);
+      if (splits.length > 0) charge.splits = splits;
+    }
     // Try credential first, then cash (D12) — a coin-holder pays with coin
     // (banked on-ledger via the cash bridge to the venue account), and the
     // float stays the last resort (no funds at all). Both remit the demo tax.
