@@ -78,6 +78,20 @@ export interface CombatAssessResult {
 }
 
 /**
+ * The actor's own formation standing (total — a solo actor reads the
+ * default formation, no role): the preset name, the actor's assigned
+ * role, and whether that role is a protector (interceptor) role. Powers
+ * the `fight` status lines and the combatant brain's protector bias.
+ * Deliberately says nothing about the ENEMY's formation (the fog
+ * non-goal — reading the opposing preset is a deferred `assess` face).
+ */
+export interface FormationStanding {
+  formation: string;
+  role: string;
+  protector: boolean;
+}
+
+/**
  * The actor's engagement range against its current primary foe + its reach
  * delta (positive = the actor out-reaches the foe). Drives the brain's
  * close-the-gap policy and the `fight` status read.
@@ -206,6 +220,17 @@ export class CombatApi {
   }
 
   /**
+   * The captain's execution directive (`fight finish`): release a coup
+   * **held** under a `coupCall: 'captain'` formation in the captain's
+   * room. The directive is recorded on the death row (`directedBy`) — a
+   * directed formation implies command responsibility. A held coup the
+   * captain never orders expires spared (mercy by default).
+   */
+  public static orderCoup(captain: Stuff): { ok: boolean; reason?: string } {
+    return logic().orderCoup(captain);
+  }
+
+  /**
    * `defend <ally>` — interpose: pull a foe's pressure off a pressed ally
    * onto yourself (join the fight if needed, then redirect the foe's
    * threat edge from the ally onto you).
@@ -263,6 +288,16 @@ export class CombatApi {
    */
   public static rangeStanding(actor: Stuff): RangeStanding | null {
     return logic().rangeStanding(actor);
+  }
+
+  /**
+   * The actor's own formation standing (preset + role + protector flag) —
+   * total, never null; a partyless actor reads the default formation.
+   * The `fight` status lines and the combatant brain's protector bias
+   * consume this; the enemy's formation is deliberately not readable.
+   */
+  public static formationStandingOf(actor: Stuff): FormationStanding {
+    return logic().formationStandingOf(actor);
   }
 
   /**

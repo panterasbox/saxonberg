@@ -91,9 +91,32 @@ export default class FightController extends CommandController<FightModel> {
     if (sub === "yield") return this.doYield(context);
     if (sub === "switch") return this.doSwitch(model, context);
     if (sub === "draw") return this.doDraw(context);
+    if (sub === "finish") return this.doFinish(context);
     if (sub && GAMBITS.has(sub)) return this.doGambit(sub, context);
     // Bare `fight` or `fight status` → the read.
     return this.doStatus(context);
+  }
+
+  /** `fight finish` — the captain's execution directive: release a coup
+   * held under a `coupCall: captain` formation. The directive is a
+   * recorded fact (command responsibility rides the death row). */
+  private doFinish(context: CommandContext): void {
+    const giver = context.commandGiver;
+    const result = CombatApi.orderCoup(giver);
+    if (!result.ok) {
+      const detail =
+        result.reason === "not-the-captain"
+          ? "The call is not yours to give."
+          : result.reason === "moment-passed"
+            ? "The moment has passed."
+            : "No one awaits your word.";
+      return this.fail(context, detail, result.reason ?? "no-held-coup");
+    }
+    MessageApi.scene(giver)
+      .topic(TOPIC)
+      .toSelf(Mml.fromMarkup("You give the word."))
+      .toPeers(Mml.compose`${Mml.name(giver)} gives the word.`)
+      .send();
   }
 
   /** `fight switch <weapon>` — a vulnerable armament change. */
@@ -211,6 +234,11 @@ export default class FightController extends CommandController<FightModel> {
 
     const lines: string[] = [];
     lines.push(`Poise: ${me.poise.band()}`);
+    // Your OWN side's formation + role (total — a solo fighter reads the
+    // default). The enemy's formation stays unread (the fog non-goal).
+    const standing = CombatApi.formationStandingOf(giver);
+    lines.push(`Formation: ${standing.formation}`);
+    if (standing.role) lines.push(`Role: ${standing.role}`);
     lines.push(`Flags: ${flagsWord(me)}`);
     lines.push(`Condition: ${conditionBand(giver)}`);
     const wounds = woundCount(giver);

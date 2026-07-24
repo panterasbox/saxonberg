@@ -292,6 +292,42 @@ export class CombatNarration {
   }
 
   /**
+   * A coup **held for the captain's word** (`coupCall: 'captain'`) — the
+   * victor stands over the fallen, but the formation reserves the call.
+   * Reads loudly (the intervention window is real), and telegraphs that
+   * the decision is the captain's.
+   */
+  static narrateCoupHeld(executioner: Stuff, victim: Stuff): string {
+    const commandId = SecurityApi.uuid();
+    const E = Mml.name(executioner);
+    const V = Mml.name(victim);
+    for (const viewer of CombatNarration.witnesses(executioner)) {
+      const isE = (viewer as Stuff) === (executioner as Stuff);
+      const isV = (viewer as Stuff) === (victim as Stuff);
+      const tpl = isE
+        ? `You stand over {{victim}}, fallen — the stroke is yours to give, but the call is your captain's.`
+        : isV
+          ? `{{executioner}} stands over you, fallen — awaiting the word. There is a moment.`
+          : `{{executioner}} stands over the fallen {{victim}}, awaiting the captain's word. There is a moment to stop it.`;
+      try {
+        const body = ProseApi.format(tpl, { executioner: E, victim: V });
+        MessageApi.scene(viewer as Stuff)
+          .topic(COMBAT_EXCHANGE_TOPIC)
+          .meta({ commandId })
+          .toSelf(body)
+          .send();
+      } catch {
+        // best-effort per-viewer relay
+      }
+    }
+    const scope = ReactionApi.locationScopeFor(executioner);
+    if (scope) {
+      ReactionApi.noteReactableAct({ commandId, subject: executioner, scope });
+    }
+    return commandId;
+  }
+
+  /**
    * The coup **stayed** — the killing stroke did not land (an intervention,
    * the executioner's own second thoughts, the moment lost). The victim
    * is spared; every witness gets the line so the drama resolves cleanly.

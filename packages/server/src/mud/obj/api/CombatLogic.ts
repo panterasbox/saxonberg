@@ -75,6 +75,7 @@ import type {
   CombatAssessResult,
   CombatOpenOptions,
   RangeStanding,
+  FormationStanding,
 } from "../../api/combat";
 
 const CombatApiCallers = SecurityPolicies.FromModule("/api/combat#CombatApi");
@@ -183,6 +184,11 @@ export class CombatLogic extends ApiLogic {
   }
 
   @CallSecurity(CombatApiCallers)
+  public orderCoup(captain: Stuff): { ok: boolean; reason?: string } {
+    return orderCoupImpl(captain);
+  }
+
+  @CallSecurity(CombatApiCallers)
   public defendAlly(
     interposer: Stuff,
     ally: Stuff,
@@ -213,6 +219,11 @@ export class CombatLogic extends ApiLogic {
   @CallSecurity(CombatApiCallers)
   public rangeStanding(actor: Stuff): RangeStanding | null {
     return rangeStandingImpl(actor);
+  }
+
+  @CallSecurity(CombatApiCallers)
+  public formationStandingOf(actor: Stuff): FormationStanding {
+    return formationStandingOfImpl(actor);
   }
 
   @CallSecurity(CombatApiCallers)
@@ -771,6 +782,7 @@ function deriveState(combatant: Stuff & Engaged): CombatantState {
     side: "",
     lastStruckBy: null,
     deliberateTarget: null,
+    openingArmedBy: null,
   };
 }
 
@@ -820,9 +832,15 @@ function safeSideOf(combatant: Stuff): string {
  * machinery.
  */
 function resolveFormationFor(state: CombatantState): FormationPolicy {
+  return resolvePolicyFor(state.combatant);
+}
+
+/** The combatant-keyed half of the total consult (also serves the
+ * out-of-session `formationStandingOf` read). */
+function resolvePolicyFor(combatant: Stuff): FormationPolicy {
   let path: string;
   try {
-    path = PartyApi.formationPathOf(state.combatant);
+    path = PartyApi.formationPathOf(combatant);
   } catch {
     return CombatFormation.DEFAULT_POLICY;
   }
@@ -830,6 +848,24 @@ function resolveFormationFor(state: CombatantState): FormationPolicy {
   return idea instanceof CombatFormation
     ? idea.policy()
     : CombatFormation.DEFAULT_POLICY;
+}
+
+/**
+ * The actor's own formation standing — preset name, assigned role, and
+ * whether that role is one of the formation's interceptor (protector)
+ * roles. Total (never null): a solo actor reads the default formation
+ * with no role. Powers the `fight` status lines and the combatant
+ * brain's protector bias; the ENEMY's formation stays unread (the fog
+ * non-goal).
+ */
+function formationStandingOfImpl(actor: Stuff): FormationStanding {
+  const policy = resolvePolicyFor(actor);
+  const role = safeRoleOf(actor);
+  return {
+    formation: policy.name || "default",
+    role,
+    protector: role !== "" && policy.interceptorRoles.includes(role),
+  };
 }
 
 /** The combatant's assigned role, `''` when unassigned / unbooted. */
@@ -985,13 +1021,7 @@ function calledTargetFor(
   session: CombatSession,
   actorState: CombatantState,
 ): CombatantState | null {
-  let captain: CombatantState | null = null;
-  for (const s of alliesInRosterOrder(session, actorState)) {
-    if (!s.down && safeIsCaptain(s.combatant)) {
-      captain = s;
-      break;
-    }
-  }
+  const captain = captainOf(session, actorState);
   if (!captain) return null;
   const liveFoe = (target: Stuff | null): CombatantState | null => {
     if (!target) return null;
@@ -1003,6 +1033,18 @@ function calledTargetFor(
   for (const edge of session.getGraph().targetsOf(captain.combatant)) {
     const ts = liveFoe(edge.defender);
     if (ts) return ts;
+  }
+  return null;
+}
+
+/** The first standing captain on the anchor's side in this session (the
+ * call authority), or null (the degrade rung). */
+function captainOf(
+  session: CombatSession,
+  anchor: CombatantState,
+): CombatantState | null {
+  for (const s of alliesInRosterOrder(session, anchor)) {
+    if (!s.down && safeIsCaptain(s.combatant)) return s;
   }
   return null;
 }
@@ -1187,7 +1229,14 @@ function advanceImpl(session: CombatSession): void {
     while (n-- > 0 && session.isActive() && !s.down) {
       const target = pickTarget(session, s);
       if (!target || target.down) break;
+      // Opening-credit bookkeeping: whoever's exchange crosses the target
+      // into an open window is its armer (the window itself stays
+      // ownerless — any ally cashes it; the armer banks the command deed).
+      const wasOpen = target.poise.isOpen();
       resolveExchange(session, s, target, beat);
+      if (!wasOpen && target.poise.isOpen()) {
+        target.openingArmedBy = s.combatant;
+      }
     }
   }
 
@@ -1354,6 +1403,19 @@ function resolveExchange(
       return;
     }
     case "exploit": {
+      // The created-opening credit: an armed window cashed by a DIFFERENT,
+      // allied attacker mints the armer's `command` deed (the master's
+      // openings, exploited by the apprentice — teaching pays).
+      const armer = targetState.openingArmedBy;
+      if (
+        armer &&
+        (armer as Stuff) !== (actorState.combatant as Stuff) &&
+        safeAllied(armer, actorState.combatant)
+      ) {
+        const armerState = session.getState(armer);
+        if (armerState) mintCommandDeed(armerState, "standard");
+      }
+      targetState.openingArmedBy = null;
       targetState.poise.consumeOpening();
       actorState.poise.spend(overextend, beat);
       const report = commitInflict(
@@ -1628,6 +1690,17 @@ function handleDown(
   attackerState: CombatantState,
   targetState: CombatantState,
 ): void {
+  // The captain's target call landing: under `called` allocation, the
+  // called target going down mints the CAPTAIN's command deed (the call
+  // was the leadership act; the strikers banked their own exchanges).
+  // Read BEFORE the down is stamped — the call read filters downed foes.
+  if (resolveFormationFor(attackerState).allocation === "called") {
+    const captain = captainOf(session, attackerState);
+    if (captain && calledTargetFor(session, attackerState) === targetState) {
+      mintCommandDeed(captain, "standard");
+    }
+  }
+
   targetState.down = true;
   const attacker = attackerState.combatant;
   const victim = targetState.combatant;
@@ -2150,13 +2223,23 @@ function recordOpening(
 }
 
 /** The `death` row — the terms in force ride along so the reader derives
- * lawful-vs-crime without a second lookup. */
+ * lawful-vs-crime without a second lookup. The formation FACTS ride too
+ * (the killer's side's formation + role + any directing captain), so a
+ * legitimacy consumer can derive command responsibility — recorded, never
+ * consulted by the crime rule. */
 function recordDeath(
   session: CombatSession,
   killer: Stuff,
   victim: Stuff,
+  directedBy = "",
 ): void {
   const terms = termsFor(session, killer, victim);
+  let formationPath = "";
+  try {
+    formationPath = PartyApi.formationPathOf(killer);
+  } catch {
+    /* unbooted party subsystem — no formation fact to record */
+  }
   noteAttribution({
     kind: "death",
     sessionId: session.sessionId,
@@ -2168,6 +2251,9 @@ function recordDeath(
     stopCondition: terms.stopCondition,
     consented: terms.consented,
     sentient: safeIsSentient(victim),
+    formationPath,
+    killerRole: safeRoleOf(killer),
+    directedBy,
   });
 }
 
@@ -2178,22 +2264,153 @@ function blameForImpl(victimId: string): Promise<BlameVerdict | null> {
 /* ───────────────────────── two-stage death (coup) ───────────────────────── */
 
 /**
- * Begin the stage-2 coup. Deferred one tick (`schedule(0)`) so the
- * just-resolved session finishes tearing down — freeing the executioner's
- * `body` slot — before the coup claims it.
+ * A coup **held** for the captain's directive (`coupCall: 'captain'`):
+ * the victor stands over the fallen awaiting the word. Module-level
+ * transient (the `partyProvider` precedent), victim-keyed; released by
+ * `fight finish` (the directive) or the expiry window (spared — mercy by
+ * default).
+ */
+interface PendingCoup {
+  session: CombatSession;
+  executioner: Stuff;
+  victim: Stuff;
+  expiry: ReturnType<typeof ScheduleApi.schedule>;
+}
+const pendingCoups = new Map<Stuff, PendingCoup>();
+
+/**
+ * Begin the stage-2 coup, **governed by the victor side's formation**.
+ * Deferred one tick (`schedule(0)`) so the just-resolved session finishes
+ * tearing down — freeing the executioner's `body` slot — before the coup
+ * claims it. Governance (Decision E):
+ *   - the **right** — `coupRight: 'engaged'` keeps the downing attacker;
+ *     a role name re-points the stroke to that role's first standing,
+ *     co-present holder (MA → the apprentice performs, and therefore
+ *     banks the deed; no credit transfer anywhere);
+ *   - the **call** — `coupCall: 'captain'` HOLDS the coup awaiting the
+ *     captain's `fight finish` directive, expiring spared (mercy by
+ *     default). The captain-as-executioner case needs no directive — the
+ *     performer holds the call.
  */
 function beginCoup(
   session: CombatSession,
-  executioner: Stuff,
+  engagedAttacker: Stuff,
   victim: Stuff,
 ): void {
-  ScheduleApi.schedule(0, () => startCoup(session, executioner, victim));
+  ScheduleApi.schedule(0, () => governCoup(session, engagedAttacker, victim));
+}
+
+function governCoup(
+  session: CombatSession,
+  engagedAttacker: Stuff,
+  victim: Stuff,
+): void {
+  const policy = resolvePolicyFor(engagedAttacker);
+  const executioner = resolveCoupExecutioner(engagedAttacker, victim, policy);
+  if (policy.coupCall === "captain" && !safeIsCaptain(executioner)) {
+    // Held for the word. The window is real seconds (the coup is already
+    // outside the resolved fight's beat); lapse = spared.
+    const windowMs = Math.round(
+      dial(AppSettingKeys.combatFormationCoupDirectiveWindowSeconds, 12) *
+        1000,
+    );
+    const expiry = ScheduleApi.schedule(windowMs, () => {
+      pendingCoups.delete(victim);
+      abortCoup(session, executioner, victim);
+    });
+    pendingCoups.set(victim, { session, executioner, victim, expiry });
+    CombatNarration.narrateCoupHeld(executioner, victim);
+    return;
+  }
+  startCoup(session, executioner, victim);
+}
+
+/**
+ * The formation's coup **right**: `'engaged'` = the downing attacker
+ * (byte-parity default); a role name = its first standing, co-present
+ * holder on the victor's side, walked in roster order (roles are sets —
+ * the plural rule), falling back to the engaged attacker when the role
+ * is vacant here.
+ */
+function resolveCoupExecutioner(
+  engagedAttacker: Stuff,
+  victim: Stuff,
+  policy: FormationPolicy,
+): Stuff {
+  if (policy.coupRight === "engaged") return engagedAttacker;
+  if (!MixinApi.isContainable(victim)) return engagedAttacker;
+  const room = victim.getContainer();
+  if (!room || !MixinApi.isContainer(room)) return engagedAttacker;
+  const holders = [...room.getContents()]
+    .filter((occ) => (occ as Stuff) !== (victim as Stuff))
+    .filter((occ) => MixinApi.isEngaged(occ))
+    .filter((occ) => safeRoleOf(occ) === policy.coupRight)
+    .filter((occ) => safeAllied(occ, engagedAttacker))
+    .filter(
+      (occ) =>
+        !MixinApi.isVitals(occ) || occ.getConsciousness() === "conscious",
+    )
+    .sort((a, b) => rosterIndexOf(a) - rosterIndexOf(b));
+  return holders[0] ?? engagedAttacker;
+}
+
+/** Tolerant ally read (the `safeSideOf` precedent). */
+function safeAllied(a: Stuff, b: Stuff): boolean {
+  if ((a as Stuff) === (b as Stuff)) return true;
+  try {
+    return PartyApi.areAllied(a, b);
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * The captain's execution directive (`fight finish`): release a held
+ * coup in the captain's room whose executioner is on the captain's side.
+ * The directive is a recorded FACT — it rides the death row's
+ * `directedBy`, from which a legitimacy consumer derives command
+ * responsibility. Deciding the fate of the fallen is leadership: the
+ * call mints a `command` deed.
+ */
+function orderCoupImpl(captain: Stuff): { ok: boolean; reason?: string } {
+  for (const [victim, pending] of pendingCoups) {
+    if (!sameRoom(captain, victim)) continue;
+    if (!safeAllied(captain, pending.executioner)) continue;
+    if (!safeIsCaptain(captain)) {
+      return { ok: false, reason: "not-the-captain" };
+    }
+    ScheduleApi.cancel(pending.expiry);
+    pendingCoups.delete(victim);
+    if (!coupEligible(pending.executioner, victim)) {
+      return { ok: false, reason: "moment-passed" };
+    }
+    void AdvancementApi.recordDeed(captain, {
+      discipline: COMMAND_DISCIPLINE,
+      difficulty: "standard",
+      outcome: "success",
+    }).catch(() => {});
+    startCoup(
+      pending.session,
+      pending.executioner,
+      victim,
+      durableIdOf(captain),
+    );
+    return { ok: true };
+  }
+  return { ok: false, reason: "no-held-coup" };
+}
+
+function sameRoom(a: Stuff, b: Stuff): boolean {
+  if (!MixinApi.isContainable(a) || !MixinApi.isContainable(b)) return false;
+  const room = a.getContainer();
+  return room != null && b.getContainer() === room;
 }
 
 function startCoup(
   session: CombatSession,
   executioner: Stuff,
   victim: Stuff,
+  directedBy = "",
 ): void {
   if (!MixinApi.isEngaged(executioner) || !MixinApi.isEngaged(victim)) return;
   if (!coupEligible(executioner, victim)) return;
@@ -2204,7 +2421,7 @@ function startCoup(
     executioner: executioner as Stuff & Engaged,
     victim: victim as Stuff & Engaged,
     durationMs,
-    onComplete: () => completeCoup(session, executioner, victim),
+    onComplete: () => completeCoup(session, executioner, victim, directedBy),
     onAbort: () => abortCoup(session, executioner, victim),
   });
   const started = SchedulerApi.start(coup);
@@ -2216,11 +2433,12 @@ function completeCoup(
   session: CombatSession,
   executioner: Stuff,
   victim: Stuff,
+  directedBy = "",
 ): void {
   // Re-check: the victim may have been dragged clear or already died.
   if (!coupEligible(executioner, victim)) return;
   killImpl(victim, "put to death");
-  recordDeath(session, executioner, victim);
+  recordDeath(session, executioner, victim, directedBy);
   CombatNarration.narrateResolution({
     combatants: [executioner, victim] as [Stuff, Stuff],
     outcome: "death",

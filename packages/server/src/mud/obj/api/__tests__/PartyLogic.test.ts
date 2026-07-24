@@ -20,6 +20,7 @@ import { CombatFormation } from "../../../lib/combat/CombatFormation";
 import { PartyMemberMixin } from "../../../lib/party/PartyMember";
 import { Party } from "../../../lib/party/Party";
 import { ProxyApi } from "../../../api/proxy";
+import { AdvancementApi } from "../../../api/advancement";
 import type { Stuff } from "../../../lib/stuff/Stuff";
 
 class TestMember extends PartyMemberMixin(Idea) {}
@@ -300,5 +301,39 @@ describe("PartyApi — formation resolution (the total chain)", () => {
     );
     expect(revived.roleOfMember("player-1")).toBe("front");
     expect(revived.roleOfMember("merc-2")).toBe("back");
+  });
+});
+
+describe("PartyApi — the adopt mint (leadership deed)", () => {
+  it("setFormation mints the captain's command deed; a failed mint never blocks", async () => {
+    residentFormation("vanguard", ["front", "back"]);
+    const cap = member();
+    await seedParty(cap);
+
+    const deeds: Array<Record<string, unknown>> = [];
+    const spy = vi
+      .spyOn(AdvancementApi, "recordDeed")
+      .mockImplementation(async (_owner, sub) => {
+        deeds.push(sub as unknown as Record<string, unknown>);
+      });
+    try {
+      const res = await PartyApi.setFormation(cap as Stuff, "vanguard");
+      expect(res.ok).toBe(true);
+      expect(deeds.some((d) => d.discipline === "command")).toBe(true);
+    } finally {
+      spy.mockRestore();
+    }
+
+    // A rejecting mint never blocks the switch.
+    residentFormation("focus", []);
+    const failing = vi
+      .spyOn(AdvancementApi, "recordDeed")
+      .mockRejectedValue(new Error("no transcript store in unit test"));
+    try {
+      const res2 = await PartyApi.setFormation(cap as Stuff, "focus");
+      expect(res2.ok).toBe(true);
+    } finally {
+      failing.mockRestore();
+    }
   });
 });

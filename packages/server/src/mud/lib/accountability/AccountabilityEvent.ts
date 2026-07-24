@@ -62,6 +62,16 @@ export interface BlameVerdict {
   victim: string;
   /** Unlawful — harm to a non-consenting sentient (see the kind rule). */
   crime: boolean;
+  /**
+   * Durable id of the party bearing **command responsibility** — the
+   * captain whose recorded directive began the killing act — or `''`.
+   * Derived, never stamped: a crime row carrying `directedBy` names the
+   * commander alongside the striker, so credit and blame can diverge
+   * (an unlawful directed Master-Apprentice kill: the apprentice holds
+   * the deed, the master holds the responsibility). Legitimacy consumers
+   * (guard/law/court) read this; the engine only records the facts.
+   */
+  commandResponsible: string;
 }
 
 /**
@@ -95,6 +105,20 @@ export interface AccountabilityFields {
   sentient: boolean;
   /** Address-prefix scope where it happened, or `null` = global. */
   locality?: string | null;
+  /**
+   * The killer's side's formation path in force at the terminal act
+   * (`''` when none applied) — a recorded FACT for legitimacy consumers,
+   * never consulted by the crime rule itself.
+   */
+  formationPath?: string;
+  /** The killer's assigned formation role at the terminal act (`''`). */
+  killerRole?: string;
+  /**
+   * Durable id of the captain whose recorded directive began the killing
+   * act (`''` when unbidden). A directed formation implies command
+   * responsibility — `deriveBlame` surfaces it on a crime verdict.
+   */
+  directedBy?: string;
   /** Game-time SECONDS witness. */
   at?: number;
   /** Real-time epoch MILLISECONDS — the ordering key for earliest-row. */
@@ -115,6 +139,9 @@ export default class AccountabilityEvent extends Document {
     'consented',
     'sentient',
     'locality',
+    'formationPath',
+    'killerRole',
+    'directedBy',
     'at',
     'realAt',
   ];
@@ -138,6 +165,12 @@ export default class AccountabilityEvent extends Document {
   sentient = false;
   /** Address-prefix scope, or `null` = global. */
   locality: string | null = null;
+  /** The killer's side's formation path at the terminal act, or `''`. */
+  formationPath = '';
+  /** The killer's assigned formation role at the terminal act, or `''`. */
+  killerRole = '';
+  /** Durable id of the directing captain, or `''` (unbidden). */
+  directedBy = '';
   /** Game-time SECONDS witness. */
   at = 0;
   /** Real-time epoch MILLISECONDS — earliest-row ordering key. */
@@ -161,17 +194,21 @@ export default class AccountabilityEvent extends Document {
     );
     if (terminal.length === 0) return null;
     const first = [...terminal].sort((a, b) => a.realAt - b.realAt)[0]!;
+    const crime =
+      first.kind === 'death'
+        ? first.lethality === 'lethal' && !first.consented && first.sentient
+        : !first.consented && first.sentient;
     return {
       sessionId: first.sessionId,
       killer: first.killer,
       initiator: first.initiator,
       victim: first.victim,
-      crime:
-        first.kind === 'death'
-          ? first.lethality === 'lethal' &&
-            !first.consented &&
-            first.sentient
-          : !first.consented && first.sentient,
+      crime,
+      // Command responsibility: a directed unlawful act names the
+      // commander alongside the striker (credit/blame divergence). The
+      // crime rule itself is untouched — this is an additional derived
+      // fact, not a new culpability condition.
+      commandResponsible: crime ? (first.directedBy ?? '') : '',
     };
   }
 }

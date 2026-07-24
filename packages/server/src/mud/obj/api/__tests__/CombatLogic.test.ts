@@ -17,6 +17,7 @@ import {
   beforeAll,
   beforeEach,
   afterEach,
+  vi,
 } from "vitest";
 import {
   makeStuff,
@@ -48,8 +49,12 @@ import {
   CombatSession,
 } from "../../../lib/combat/CombatSession";
 import { PartyApi } from "../../../api/party";
+import { AdvancementApi } from "../../../api/advancement";
+import { AccountabilityApi } from "../../../api/accountability";
+import { COMBAT_COUP_TYPE } from "../../../lib/combat/Coup";
 import { PartyMemberMixin } from "../../../lib/party/PartyMember";
 import { Party } from "../../../lib/party/Party";
+import { CombatFormation } from "../../../lib/combat/CombatFormation";
 import type { Channel } from "../../../lib/material/Channel";
 import EventRegistry from "../../../obj/EventRegistry";
 import { EventApi } from "../../../api/event";
@@ -1221,5 +1226,771 @@ describe("CombatLogic — ambush (surprise denies the poise contest)", () => {
     const session = openWith(a, b, nonLethal, {});
     expect(session.getState(a)!.poise.band()).toBe("steady");
     expect(session.getState(b)!.poise.band()).toBe("steady");
+  });
+});
+
+/* ───────────── formations (the party-strategy layer, this build) ───────────── */
+
+/** The four preset shapes, mirrored from seeds/lib/combat/CombatFormation/
+ * (the seeds themselves are pinned against DEFAULT_POLICY in
+ * CombatFormation.test; here the Ideas are made resident directly). */
+const PRESETS: Record<
+  string,
+  {
+    roles: string[];
+    allocation: "sustain" | "called" | "primary";
+    primaryRole?: string;
+    protects?: string[];
+    interceptors?: string[];
+    trigger?: "none" | "any" | "high-threat";
+    coupRight?: string;
+    coupCall?: "engaged" | "captain";
+  }
+> = {
+  default: { roles: [], allocation: "sustain" },
+  "focus-fire": { roles: [], allocation: "called", coupCall: "captain" },
+  vanguard: {
+    roles: ["front", "back"],
+    allocation: "sustain",
+    protects: ["back"],
+    interceptors: ["front"],
+    trigger: "any",
+  },
+  "master-apprentice": {
+    roles: ["master", "apprentice"],
+    allocation: "primary",
+    primaryRole: "apprentice",
+    protects: ["apprentice"],
+    interceptors: ["master"],
+    trigger: "high-threat",
+    coupRight: "apprentice",
+    coupCall: "captain",
+  },
+};
+
+/** Make a preset's formation Idea resident (sync findByTemplatePath is the
+ * beat's consult path — no template DB needed). */
+function residentFormation(name: string): CombatFormation {
+  const spec = PRESETS[name]!;
+  const f = makeStuff(() => new CombatFormation());
+  f.setName(name);
+  if (spec.roles.length) f.setRoles([...spec.roles]);
+  f.setAllocation(spec.allocation);
+  if (spec.primaryRole) f.setPrimaryRole(spec.primaryRole);
+  if (spec.protects?.length) f.setProtectsRoles([...spec.protects]);
+  if (spec.interceptors?.length) f.setInterceptorRoles([...spec.interceptors]);
+  if (spec.trigger) f.setInterceptTrigger(spec.trigger);
+  if (spec.coupRight) f.setCoupRight(spec.coupRight);
+  if (spec.coupCall) f.setCoupCall(spec.coupCall);
+  stampTemplatePathForTest(f, `/lib/combat/CombatFormation/${name}`);
+  return f;
+}
+
+/** Seed a rostered party with a formation + role assignments straight
+ * into the graph (party mechanics aren't under test — the sanctioned
+ * RAW_TARGET/unwrap seam, the melee seedParty precedent). `roles` maps
+ * member index → role. Roster order = the members array order. */
+function seedFormationParty(
+  members: TestPartyFighter[],
+  formation: string,
+  roles: Record<number, string> = {},
+  captainIdx = 0,
+): Party {
+  residentFormation(formation);
+  const p = makeStuff(() => new Party());
+  stampTemplatePathForTest(p, `/obj/party/formed-${seq++}`);
+  const raw = ProxyApi.unwrap(p) as Party;
+  raw.setName(`formed-${seq++}`);
+  raw.setCombatSide("faction:formed");
+  for (const m of members) raw.addMember(m.getTemplatePath()!);
+  raw.setCaptainId(members[captainIdx]!.getTemplatePath()!);
+  raw.setFormationPath(`/lib/combat/CombatFormation/${formation}`);
+  for (const [idx, role] of Object.entries(roles)) {
+    raw.assignRole(members[Number(idx)]!.getTemplatePath()!, role);
+  }
+  const path = p.getTemplatePath()!;
+  for (const m of members) {
+    (m as unknown as { activePartyPath: string }).activePartyPath = path;
+  }
+  return p;
+}
+
+/**
+ * A knife-armed fighter (the gym's dagger loadout): light blades erode
+ * poise slowly, so a multi-fighter melee survives the beats these tests
+ * inspect the live graph across (a heavier loadout can down a focused
+ * target on beat 1, resolving the session and wiping its graph —
+ * which is the mechanic working, but not what a graph assertion wants).
+ */
+function knifeFighter(room: TestRoom, party = true): TestFighter {
+  const f = makeFighter(room, {
+    ctor: party ? TestPartyFighter : TestFighter,
+    weaponForm: "bladed",
+    weaponMaterial: steel(),
+    weaponMass: 0.3,
+    weaponLength: 0.25,
+  });
+  // An AUTHORED weapon mass makes encumbrance real — and a massless test
+  // body has zero carry capacity, so the 0.3kg knife would floor the
+  // fighter's tempo at minRate (no exchanges at all). Give the bearer a
+  // real body mass so capacity derives and the knives actually swing.
+  f.setMass(Quantity.of(80, "kg"));
+  return f;
+}
+
+describe("CombatLogic — formations: totality + byte-parity", () => {
+  it("a party of 1 runs every preset clean (vacant roles inert)", () => {
+    for (const name of Object.keys(PRESETS)) {
+      StuffApi.clearAll();
+      SchedulerApi._clearAllForTesting();
+      const room = makeStuff(() => new TestRoom());
+      const cap = knifeFighter(room) as TestPartyFighter;
+      const foe = knifeFighter(room, false);
+      seedFormationParty([cap], name);
+      const session = open(cap, foe, nonLethal);
+      let beats = 0;
+      while (session.isActive() && beats < 300) {
+        CombatApi.advance(session);
+        beats++;
+      }
+      expect(session.getResolution()).not.toBeNull();
+    }
+  });
+
+  it("a resident default formation leaves a canonical duel byte-identical", async () => {
+    // Run A: the fallback path (no Idea resident — DEFAULT_POLICY).
+    const room1 = makeStuff(() => new TestRoom());
+    const a1 = makeFighter(room1, { weaponForm: "bladed", weaponMaterial: steel() });
+    const b1 = makeFighter(room1, { weaponForm: "bladed", weaponMaterial: steel() });
+    const s1 = open(a1, b1, nonLethal);
+    let beats1 = 0;
+    while (s1.isActive() && beats1 < 300) {
+      CombatApi.advance(s1);
+      beats1++;
+    }
+    const r1 = { resolution: s1.getResolution(), beats: beats1 };
+
+    // Run B: identical fighters, but the default formation Idea is
+    // RESIDENT and the initiator sits in a party that never chose (the
+    // chain resolves default either way; the trace must not move).
+    StuffApi.clearAll();
+    SchedulerApi._clearAllForTesting();
+    await bootRegistry();
+    residentFormation("default");
+    const room2 = makeStuff(() => new TestRoom());
+    const a2 = makeFighter(room2, {
+      ctor: TestPartyFighter,
+      weaponForm: "bladed",
+      weaponMaterial: steel(),
+    }) as TestPartyFighter;
+    const b2 = makeFighter(room2, { weaponForm: "bladed", weaponMaterial: steel() });
+    const p = makeStuff(() => new Party());
+    stampTemplatePathForTest(p, `/obj/party/parity-${seq++}`);
+    const rawP = ProxyApi.unwrap(p) as Party;
+    rawP.setName("parity");
+    rawP.addMember(a2.getTemplatePath()!);
+    rawP.setCaptainId(a2.getTemplatePath()!);
+    (a2 as unknown as { activePartyPath: string }).activePartyPath =
+      p.getTemplatePath()!;
+    const s2 = open(a2, b2, nonLethal);
+    let beats2 = 0;
+    while (s2.isActive() && beats2 < 300) {
+      CombatApi.advance(s2);
+      beats2++;
+    }
+    expect(s2.getResolution()).toBe(r1.resolution);
+    expect(beats2).toBe(r1.beats);
+  });
+});
+
+describe("CombatLogic — Focus Fire (the called target)", () => {
+  it("a member converges on the captain's deliberate target", () => {
+    const room = makeStuff(() => new TestRoom());
+    const cap = knifeFighter(room) as TestPartyFighter;
+    const ally = knifeFighter(room) as TestPartyFighter;
+    const foe1 = knifeFighter(room, false);
+    const foe2 = knifeFighter(room, false);
+    seedFormationParty([cap, ally], "focus-fire");
+
+    // The captain deliberately opens on foe1 (the call); foe2 piles onto
+    // the captain; the ally enters against foe2 — under `called` the
+    // ally's exchanges must still converge on the captain's target.
+    const session = open(cap, foe1, nonLethal);
+    expect(CombatApi.join(foe2 as never, cap as never, session.getTerms()).ok).toBe(true);
+    expect(CombatApi.join(ally as never, foe2 as never, session.getTerms()).ok).toBe(true);
+
+    // Exchanges are tempo-gated (a combatant may act 0 times on a given
+    // beat) — advance a few knife beats; nobody downs this early.
+    const graph = session.getGraph();
+    for (let i = 0; i < 4 && !graph.edgeBetween(ally, foe1); i++) {
+      CombatApi.advance(session);
+    }
+    expect(session.isActive()).toBe(true);
+    // The ally's exchange edge landed on the CALLED target (foe1), not
+    // only their own deliberate entry (foe2).
+    expect(graph.edgeBetween(ally, foe1)).toBeTruthy();
+    expect(graph.edgeCount(foe1)).toBeGreaterThanOrEqual(2);
+  });
+
+  it("no captain in the fight → allocation degrades to sustained", () => {
+    const room = makeStuff(() => new TestRoom());
+    const cap = knifeFighter(room) as TestPartyFighter;
+    const ally = knifeFighter(room) as TestPartyFighter;
+    const foe = knifeFighter(room, false);
+    seedFormationParty([cap, ally], "focus-fire");
+
+    // The captain never enters the session — there is no standing
+    // captain to read a call from; the ally degrades to its own
+    // sustained edge (no null branch, no error).
+    const session = open(ally, foe, nonLethal);
+    CombatApi.advance(session);
+    expect(session.isActive()).toBe(true);
+    expect(session.getGraph().edgeBetween(ally, foe)).toBeTruthy();
+  });
+});
+
+describe("CombatLogic — Vanguard (interception)", () => {
+  it("an edge onto a back-role member redirects to the front next beat", () => {
+    const room = makeStuff(() => new TestRoom());
+    const front = knifeFighter(room) as TestPartyFighter;
+    const back = knifeFighter(room) as TestPartyFighter;
+    const foe = knifeFighter(room, false);
+    seedFormationParty([front, back], "vanguard", { 0: "front", 1: "back" });
+
+    // The foe opens on the BACK member; the front joins the fight.
+    const session = open(foe, back, nonLethal);
+    expect(CombatApi.join(front as never, foe as never, session.getTerms()).ok).toBe(true);
+    const graph = session.getGraph();
+    expect(graph.edgeBetween(foe, back)).toBeTruthy();
+
+    // Top of the next beat: the interception pass moves the foe's edge
+    // off the protected back onto the standing front.
+    CombatApi.advance(session);
+    expect(session.isActive()).toBe(true);
+    expect(graph.edgeBetween(foe, back)).toBeUndefined();
+    expect(graph.edgeBetween(foe, front)).toBeTruthy();
+  });
+
+  it("two fronts, both free → the roster-first front takes the redirect", () => {
+    const room = makeStuff(() => new TestRoom());
+    const frontA = knifeFighter(room) as TestPartyFighter;
+    const frontB = knifeFighter(room) as TestPartyFighter;
+    const back = knifeFighter(room) as TestPartyFighter;
+    const foe = knifeFighter(room, false);
+    seedFormationParty(
+      [frontA, frontB, back],
+      "vanguard",
+      { 0: "front", 1: "front", 2: "back" },
+    );
+
+    const session = open(foe, back, nonLethal);
+    expect(CombatApi.join(frontB as never, foe as never, session.getTerms()).ok).toBe(true);
+    expect(CombatApi.join(frontA as never, foe as never, session.getTerms()).ok).toBe(true);
+
+    const graph = session.getGraph();
+    CombatApi.advance(session);
+    expect(session.isActive()).toBe(true);
+    // Roles are sets — two front-holders resolve in party-ROSTER order
+    // (frontA), not session join order (frontB joined first).
+    expect(graph.edgeBetween(foe, back)).toBeUndefined();
+    expect(graph.edgeBetween(foe, frontA)).toBeTruthy();
+  });
+
+  it("an over-pressed front is ineligible — the redirect walks past it", () => {
+    const room = makeStuff(() => new TestRoom());
+    const frontA = knifeFighter(room) as TestPartyFighter;
+    const frontB = knifeFighter(room) as TestPartyFighter;
+    const back = knifeFighter(room) as TestPartyFighter;
+    const foe1 = knifeFighter(room, false);
+    const foe2 = knifeFighter(room, false);
+    const foe3 = knifeFighter(room, false);
+    seedFormationParty(
+      [frontA, frontB, back],
+      "vanguard",
+      { 0: "front", 1: "front", 2: "back" },
+    );
+
+    // Two foes pin frontA (edgeCount 2 = the maxIncoming ceiling), then a
+    // third foe opens on the back member.
+    const session = open(foe1, frontA, nonLethal);
+    expect(CombatApi.join(foe2 as never, frontA as never, session.getTerms()).ok).toBe(true);
+    expect(CombatApi.join(frontB as never, foe1 as never, session.getTerms()).ok).toBe(true);
+    expect(CombatApi.join(back as never, foe1 as never, session.getTerms()).ok).toBe(true);
+    expect(CombatApi.join(foe3 as never, back as never, session.getTerms()).ok).toBe(true);
+
+    const graph = session.getGraph();
+    CombatApi.advance(session);
+    expect(session.isActive()).toBe(true);
+    // frontA (roster-first) is pinned past the pressure ceiling — the
+    // redirect walks to frontB (the next eligible holder).
+    expect(graph.edgeBetween(foe3, back)).toBeUndefined();
+    expect(graph.edgeBetween(foe3, frontB)).toBeTruthy();
+  });
+
+  it("no front standing → the clause is inert (no redirect, no error)", () => {
+    const room = makeStuff(() => new TestRoom());
+    const back = knifeFighter(room) as TestPartyFighter;
+    const foe = knifeFighter(room, false);
+    seedFormationParty([back], "vanguard", { 0: "back" });
+
+    const session = open(foe, back, nonLethal);
+    CombatApi.advance(session);
+    expect(session.isActive()).toBe(true);
+    // Nobody to intercept — the edge stays where it landed.
+    expect(session.getGraph().edgeBetween(foe, back)).toBeTruthy();
+  });
+});
+
+describe("CombatLogic — Master-Apprentice (primary + high-threat + ally-exploit)", () => {
+  it("the master presses the apprentice's target (primary allocation)", () => {
+    const room = makeStuff(() => new TestRoom());
+    const master = knifeFighter(room) as TestPartyFighter;
+    const apprentice = knifeFighter(room) as TestPartyFighter;
+    const foe1 = knifeFighter(room, false);
+    const foe2 = knifeFighter(room, false);
+    seedFormationParty(
+      [master, apprentice],
+      "master-apprentice",
+      { 0: "master", 1: "apprentice" },
+      0,
+    );
+
+    // The apprentice opens on foe1; foe2 piles onto the apprentice; the
+    // master enters against foe2 (their own sustained edge is foe2).
+    const session = open(apprentice, foe1, nonLethal);
+    expect(CombatApi.join(foe2 as never, apprentice as never, session.getTerms()).ok).toBe(true);
+    expect(CombatApi.join(master as never, foe2 as never, session.getTerms()).ok).toBe(true);
+
+    const graph = session.getGraph();
+    for (let i = 0; i < 4 && !graph.edgeBetween(master, foe1); i++) {
+      CombatApi.advance(session);
+    }
+    expect(session.isActive()).toBe(true);
+    // Under `primary`, the master's exchange lands on the APPRENTICE's
+    // target (foe1) — not the master's own sustained edge (foe2). The
+    // apprentice keeps the primary engagement (and the credit).
+    expect(graph.edgeBetween(master, foe1)).toBeTruthy();
+  });
+
+  it("two apprentices → the roster-first standing holder anchors the side", () => {
+    const room = makeStuff(() => new TestRoom());
+    const master = knifeFighter(room) as TestPartyFighter;
+    const appA = knifeFighter(room) as TestPartyFighter;
+    const appB = knifeFighter(room) as TestPartyFighter;
+    const foe1 = knifeFighter(room, false);
+    const foe2 = knifeFighter(room, false);
+    seedFormationParty(
+      [master, appA, appB],
+      "master-apprentice",
+      { 0: "master", 1: "apprentice", 2: "apprentice" },
+    );
+
+    // appA — the roster-FIRST apprentice — opens on foe1 (their sustained
+    // target); appB enters via foe2; the master enters via foe2 too, so
+    // the master's own sustained edge is foe2.
+    const session = open(appA, foe1, nonLethal);
+    expect(CombatApi.join(foe2 as never, appA as never, session.getTerms()).ok).toBe(true);
+    expect(CombatApi.join(appB as never, foe2 as never, session.getTerms()).ok).toBe(true);
+    expect(CombatApi.join(master as never, foe2 as never, session.getTerms()).ok).toBe(true);
+
+    const graph = session.getGraph();
+    for (let i = 0; i < 4 && !graph.edgeBetween(master, foe1); i++) {
+      CombatApi.advance(session);
+    }
+    expect(session.isActive()).toBe(true);
+    // The primary anchor is appA (roster order among the two standing
+    // apprentice-holders) — the master presses appA's foe (foe1), not
+    // appB's (foe2, which is also the master's own sustained edge).
+    expect(graph.edgeBetween(master, foe1)).toBeTruthy();
+  });
+
+  it("high-threat trigger: below the threshold the master stays out", () => {
+    const room = makeStuff(() => new TestRoom());
+    const master = knifeFighter(room) as TestPartyFighter;
+    const apprentice = knifeFighter(room) as TestPartyFighter;
+    const foe1 = knifeFighter(room, false);
+    seedFormationParty(
+      [master, apprentice],
+      "master-apprentice",
+      { 0: "master", 1: "apprentice" },
+    );
+
+    // One foe on the apprentice — below the high-threat threshold (2):
+    // the apprentice fights their own fight; no redirect fires.
+    const session = open(foe1, apprentice, nonLethal);
+    expect(CombatApi.join(master as never, foe1 as never, session.getTerms()).ok).toBe(true);
+    const graph = session.getGraph();
+    CombatApi.advance(session);
+    expect(session.isActive()).toBe(true);
+    expect(graph.edgeBetween(foe1, apprentice)).toBeTruthy();
+  });
+
+  it("high-threat trigger: at focus-fire pressure the master intercepts", () => {
+    const room = makeStuff(() => new TestRoom());
+    const master = knifeFighter(room) as TestPartyFighter;
+    const apprentice = knifeFighter(room) as TestPartyFighter;
+    const foe1 = knifeFighter(room, false);
+    const foe2 = knifeFighter(room, false);
+    seedFormationParty(
+      [master, apprentice],
+      "master-apprentice",
+      { 0: "master", 1: "apprentice" },
+    );
+
+    // Two foes pile onto the apprentice before the first beat — the
+    // threshold (2 incoming edges) is met at beat-top; the master
+    // intercepts the first offending edge.
+    const session = open(foe1, apprentice, nonLethal);
+    expect(CombatApi.join(master as never, foe1 as never, session.getTerms()).ok).toBe(true);
+    expect(CombatApi.join(foe2 as never, apprentice as never, session.getTerms()).ok).toBe(true);
+    const graph = session.getGraph();
+    CombatApi.advance(session);
+    expect(session.isActive()).toBe(true);
+    expect(graph.edgeCount(apprentice)).toBeLessThan(2);
+    expect(
+      graph.edgeBetween(foe1, master) ?? graph.edgeBetween(foe2, master),
+    ).toBeTruthy();
+  });
+
+  it("an opening one ally arms is cashed by the other (ally-exploitable pin)", () => {
+    const room = makeStuff(() => new TestRoom());
+    const master = knifeFighter(room) as TestPartyFighter;
+    const apprentice = knifeFighter(room) as TestPartyFighter;
+    const foe = knifeFighter(room, false);
+    seedFormationParty(
+      [master, apprentice],
+      "master-apprentice",
+      { 0: "master", 1: "apprentice" },
+    );
+
+    const session = open(master, foe, nonLethal);
+    expect(
+      CombatApi.join(apprentice as never, foe as never, session.getTerms()).ok,
+    ).toBe(true);
+    // Hold the state ref — the exploit downs the foe and resolves the
+    // session, clearing its map (the gym's held-state trick).
+    const foeState = session.getState(foe)!;
+    // An opening is armed on the foe (the broken-crossing arms the live
+    // window — the established `erode(0.85, 0)` pattern). WHO armed it is
+    // deliberately irrelevant: the window lives on the DEFENDER's poise,
+    // carrying no arming-attacker identity — that ownerlessness IS the
+    // ally-exploitability the MA economy stands on.
+    foeState.poise.erode(0.85, 0);
+    expect(foeState.poise.isOpen()).toBe(true);
+
+    // The APPRENTICE — not the arming side's other member — cashes it:
+    // the master holds (defend), the apprentice strikes into the window.
+    CombatApi.queueGambit(master, "defend");
+    CombatApi.queueGambit(apprentice, "strike");
+    for (let i = 0; i < 4 && !foeState.down; i++) {
+      CombatApi.advance(session);
+      if (!foeState.down) {
+        CombatApi.queueGambit(master, "defend");
+        CombatApi.queueGambit(apprentice, "strike");
+      }
+    }
+    // The strike resolved as an exploit: window consumed, the foe downed
+    // by the cashed opening, and a real wound landed.
+    expect(foeState.poise.isOpen()).toBe(false);
+    expect(foeState.down).toBe(true);
+    expect(foe.getConditions().some((c) => c.kind === "trauma")).toBe(true);
+  });
+});
+
+describe("CombatLogic — formations: mid-fight adopt + determinism", () => {
+  it("a formation adopted mid-fight acts on the very next beat", () => {
+    const room = makeStuff(() => new TestRoom());
+    const front = knifeFighter(room) as TestPartyFighter;
+    const back = knifeFighter(room) as TestPartyFighter;
+    const foe = knifeFighter(room, false);
+    // The party opens on the DEFAULT formation (no interception).
+    const party = seedFormationParty([front, back], "default");
+    const session = open(foe, back, nonLethal);
+    expect(CombatApi.join(front as never, foe as never, session.getTerms()).ok).toBe(true);
+    const graph = session.getGraph();
+    // Both members turtle so the lone foe isn't focus-fired down before
+    // the beat under inspection (the redirect is pass-driven, not
+    // exchange-driven — defending doesn't delay it).
+    CombatApi.queueGambit(front, "defend");
+    CombatApi.queueGambit(back, "defend");
+    CombatApi.advance(session);
+    expect(graph.edgeBetween(foe, back)).toBeTruthy(); // default: no redirect
+
+    // Mid-fight switch to vanguard + roles (raw writes stand in for the
+    // captain's `party adopt` / `party assign` — the store is the same).
+    residentFormation("vanguard");
+    const raw = ProxyApi.unwrap(party) as Party;
+    raw.setFormationPath("/lib/combat/CombatFormation/vanguard");
+    raw.assignRole(front.getTemplatePath()!, "front");
+    raw.assignRole(back.getTemplatePath()!, "back");
+
+    // The very next beat's interception pass reads the new policy.
+    CombatApi.queueGambit(front, "defend");
+    CombatApi.queueGambit(back, "defend");
+    CombatApi.advance(session);
+    expect(session.isActive()).toBe(true);
+    expect(graph.edgeBetween(foe, back)).toBeUndefined();
+    expect(graph.edgeBetween(foe, front)).toBeTruthy();
+  });
+
+  it("a multi-party formation session is deterministic (identical traces)", async () => {
+    const runOnce = (): { resolution: string | null; beats: number } => {
+      const room = makeStuff(() => new TestRoom());
+      const front = knifeFighter(room) as TestPartyFighter;
+      const back = knifeFighter(room) as TestPartyFighter;
+      const foe = makeFighter(room, { weaponForm: "bladed", weaponMaterial: steel() });
+      seedFormationParty([front, back], "vanguard", { 0: "front", 1: "back" });
+      const session = open(foe, back, nonLethal);
+      CombatApi.join(front as never, foe as never, session.getTerms());
+      let beats = 0;
+      while (session.isActive() && beats < 300) {
+        CombatApi.advance(session);
+        beats++;
+      }
+      return { resolution: session.getResolution(), beats };
+    };
+    const r1 = runOnce();
+    StuffApi.clearAll();
+    SchedulerApi._clearAllForTesting();
+    await bootRegistry();
+    const r2 = runOnce();
+    expect(r2.resolution).toBe(r1.resolution);
+    expect(r2.beats).toBe(r1.beats);
+  });
+});
+
+describe("CombatLogic — coup governance (right / call / facts)", () => {
+  /** A sentient foe — the two-stage death (down → coup) only applies to
+   * sentient victims under lethal terms. */
+  function sentientFoe(room: TestRoom): TestFighter {
+    const foe = knifeFighter(room, false);
+    foe.getSpecies()!.setSentient(true);
+    return foe;
+  }
+
+  /** Down `foe` with `striker`'s exploited opening (deterministic). */
+  function downByExploit(
+    session: CombatSession,
+    striker: TestFighter,
+    foe: TestFighter,
+  ): void {
+    session.getState(foe)!.poise.erode(0.85, 0);
+    CombatApi.queueGambit(striker, "strike");
+    CombatApi.advance(session);
+    expect(session.getState(foe)?.down ?? true).toBe(true);
+  }
+
+  it("default formation: the coup auto-begins with the downing attacker", async () => {
+    const room = makeStuff(() => new TestRoom());
+    const a = knifeFighter(room, false);
+    const foe = sentientFoe(room);
+    const session = open(a, foe, lethal, true);
+    downByExploit(session, a, foe);
+
+    // beginCoup defers one tick (schedule(0)) past session teardown.
+    await new Promise((r) => setTimeout(r, 25));
+    const coup = (a as unknown as { getEngagementByType(t: string): unknown })
+      .getEngagementByType(COMBAT_COUP_TYPE);
+    expect(coup).toBeTruthy(); // the downer delivers — byte-parity
+  });
+
+  it("MA: held for the captain; the apprentice delivers on the word; the row carries the facts", async () => {
+    const room = makeStuff(() => new TestRoom());
+    const master = knifeFighter(room) as TestPartyFighter;
+    const apprentice = knifeFighter(room) as TestPartyFighter;
+    const foe = sentientFoe(room);
+    seedFormationParty(
+      [master, apprentice],
+      "master-apprentice",
+      { 0: "master", 1: "apprentice" },
+      0, // the master captains
+    );
+
+    const session = open(master, foe, lethal, true);
+    expect(
+      CombatApi.join(apprentice as never, foe as never, session.getTerms()).ok,
+    ).toBe(true);
+    // The apprentice holds while the MASTER downs the foe — the coup
+    // right must still route the stroke to the apprentice.
+    CombatApi.queueGambit(apprentice, "defend");
+    downByExploit(session, master as TestFighter, foe);
+    await new Promise((r) => setTimeout(r, 25));
+
+    const engagementOf = (s: Stuff) =>
+      (s as unknown as { getEngagementByType(t: string): unknown })
+        .getEngagementByType(COMBAT_COUP_TYPE);
+    // Held for the word: nobody is delivering yet…
+    expect(engagementOf(master)).toBeFalsy();
+    expect(engagementOf(apprentice)).toBeFalsy();
+    // …the apprentice cannot give it (not the captain)…
+    expect(CombatApi.orderCoup(apprentice)).toEqual({
+      ok: false,
+      reason: "not-the-captain",
+    });
+    // …the captain can — and the APPRENTICE (coupRight role) delivers.
+    const recorded: Array<Record<string, unknown>> = [];
+    const spy = vi
+      .spyOn(AccountabilityApi, "record")
+      .mockImplementation((fields) => {
+        recorded.push(fields as unknown as Record<string, unknown>);
+      });
+    try {
+      expect(CombatApi.orderCoup(master)).toEqual({ ok: true });
+      const coup = engagementOf(apprentice);
+      expect(coup).toBeTruthy();
+      expect(engagementOf(master)).toBeFalsy();
+
+      // Complete the stroke (the Coup.test direct-completion seam) — the
+      // death row carries the formation FACTS: the striker (apprentice)
+      // is the killer, the directing captain (master) rides `directedBy`.
+      (coup as { onComplete(): void }).onComplete();
+      const death = recorded.find((r) => r.kind === "death");
+      expect(death).toBeTruthy();
+      expect(death!.killer).toBe(apprentice.getTemplatePath());
+      expect(death!.killerRole).toBe("apprentice");
+      expect(death!.directedBy).toBe(master.getTemplatePath());
+      expect(death!.formationPath).toBe(
+        "/lib/combat/CombatFormation/master-apprentice",
+      );
+    } finally {
+      spy.mockRestore();
+    }
+  });
+
+  it("orderCoup with nothing held is refused", () => {
+    const room = makeStuff(() => new TestRoom());
+    const a = knifeFighter(room, false);
+    expect(CombatApi.orderCoup(a).ok).toBe(false);
+  });
+});
+
+describe("CombatLogic — command mints (the teaching payoff)", () => {
+  /** Mark a combatant player-driven for mint purposes (mints skip
+   * brain-driven actors; test fighters have no live Interactive, so the
+   * state is re-marked through the raw seam). */
+  function markPlayerDriven(session: CombatSession, s: Stuff): void {
+    const st = session.getState(s);
+    (st as unknown as { brainPath: string | null }).brainPath = null;
+  }
+
+  it("an interception mints `command` for a player-driven interceptor only", () => {
+    const deeds: Array<Record<string, unknown>> = [];
+    const spy = vi
+      .spyOn(AdvancementApi, "recordDeed")
+      .mockImplementation(async (_owner, sub) => {
+        deeds.push(sub as unknown as Record<string, unknown>);
+      });
+    try {
+      // Brain-driven front: no mint.
+      {
+        const room = makeStuff(() => new TestRoom());
+        const front = knifeFighter(room) as TestPartyFighter;
+        const back = knifeFighter(room) as TestPartyFighter;
+        const foe = knifeFighter(room, false);
+        seedFormationParty([front, back], "vanguard", { 0: "front", 1: "back" });
+        const session = open(foe, back, nonLethal);
+        CombatApi.join(front as never, foe as never, session.getTerms());
+        CombatApi.advance(session);
+        expect(deeds.filter((d) => d.discipline === "command")).toHaveLength(0);
+      }
+      // Player-driven front: the interception mints.
+      {
+        StuffApi.clearAll();
+        SchedulerApi._clearAllForTesting();
+        const room = makeStuff(() => new TestRoom());
+        const front = knifeFighter(room) as TestPartyFighter;
+        const back = knifeFighter(room) as TestPartyFighter;
+        const foe = knifeFighter(room, false);
+        seedFormationParty([front, back], "vanguard", { 0: "front", 1: "back" });
+        const session = open(foe, back, nonLethal);
+        CombatApi.join(front as never, foe as never, session.getTerms());
+        markPlayerDriven(session, front);
+        CombatApi.advance(session);
+        expect(
+          deeds.filter((d) => d.discipline === "command").length,
+        ).toBeGreaterThan(0);
+      }
+    } finally {
+      spy.mockRestore();
+    }
+  });
+
+  it("an armed opening cashed by an ALLY mints the armer's command deed", () => {
+    const deeds: Array<Record<string, unknown>> = [];
+    const spy = vi
+      .spyOn(AdvancementApi, "recordDeed")
+      .mockImplementation(async (_owner, sub) => {
+        deeds.push(sub as unknown as Record<string, unknown>);
+      });
+    const sigSpy = vi
+      .spyOn(AdvancementApi, "recordSignature")
+      .mockImplementation(async () => {});
+    try {
+      const room = makeStuff(() => new TestRoom());
+      const master = knifeFighter(room) as TestPartyFighter;
+      const apprentice = knifeFighter(room) as TestPartyFighter;
+      const foe = knifeFighter(room, false);
+      seedFormationParty(
+        [master, apprentice],
+        "master-apprentice",
+        { 0: "master", 1: "apprentice" },
+      );
+      const session = open(master, foe, nonLethal);
+      CombatApi.join(apprentice as never, foe as never, session.getTerms());
+      markPlayerDriven(session, master);
+      const foeState = session.getState(foe)!;
+      foeState.sharpness = 0.2;
+
+      // The master feints; the foe bites — the master ARMED the window.
+      CombatApi.queueGambit(master, "feint");
+      CombatApi.queueGambit(apprentice, "defend");
+      for (let i = 0; i < 6 && !foeState.poise.isOpen(); i++) {
+        CombatApi.advance(session);
+        if (!foeState.poise.isOpen()) {
+          CombatApi.queueGambit(master, "feint");
+          CombatApi.queueGambit(apprentice, "defend");
+        }
+      }
+      expect(foeState.poise.isOpen()).toBe(true);
+      const before = deeds.filter((d) => d.discipline === "command").length;
+
+      // The APPRENTICE cashes it — the exploit mints the ARMER (master).
+      CombatApi.queueGambit(master, "defend");
+      CombatApi.queueGambit(apprentice, "strike");
+      for (let i = 0; i < 4 && !foeState.down; i++) {
+        CombatApi.advance(session);
+        if (!foeState.down) {
+          CombatApi.queueGambit(master, "defend");
+          CombatApi.queueGambit(apprentice, "strike");
+        }
+      }
+      expect(foeState.down).toBe(true);
+      expect(
+        deeds.filter((d) => d.discipline === "command").length,
+      ).toBeGreaterThan(before);
+    } finally {
+      spy.mockRestore();
+      sigSpy.mockRestore();
+    }
+  });
+
+  it("the default preset mints no command deeds (parity)", () => {
+    const deeds: Array<Record<string, unknown>> = [];
+    const spy = vi
+      .spyOn(AdvancementApi, "recordDeed")
+      .mockImplementation(async (_owner, sub) => {
+        deeds.push(sub as unknown as Record<string, unknown>);
+      });
+    try {
+      const room = makeStuff(() => new TestRoom());
+      const a = knifeFighter(room, false);
+      const b = knifeFighter(room, false);
+      const session = open(a, b, nonLethal);
+      markPlayerDriven(session, a);
+      for (let i = 0; i < 5; i++) CombatApi.advance(session);
+      expect(deeds.filter((d) => d.discipline === "command")).toHaveLength(0);
+    } finally {
+      spy.mockRestore();
+    }
   });
 });

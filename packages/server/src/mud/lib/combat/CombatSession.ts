@@ -129,6 +129,15 @@ export interface CombatantState {
    * bare paths that never stamped it.
    */
   deliberateTarget: (Stuff & Engaged) | null;
+  /**
+   * Who armed the live opening on THIS combatant's poise (the exchange
+   * whose crossing set the window), or null. Pure credit bookkeeping —
+   * the window itself stays ownerless and ally-exploitable; when an
+   * exploit by a *different, allied* attacker cashes it, the armer minted
+   * a `command` deed (the master's created-openings). Restamped on each
+   * fresh crossing, cleared on consumption.
+   */
+  openingArmedBy: (Stuff & Engaged) | null;
 }
 
 export class CombatSession {
