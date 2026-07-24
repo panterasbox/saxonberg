@@ -41,7 +41,7 @@ describe("AppSettingsSeeder", () => {
     pm.setFindResult([]);
     const added = await AppSettingsSeeder.run();
 
-    expect(added).toBe(221); // 146 base + 7 Attendant+Goodkin + 19 storms-and-wetness + 17 concealment/detection/hazard/movement + 12 stealth-deployables + 2 residency reset + 2 retail consignment + 15 fire (3 heat-channel + 4 combustion + 3 tick/spread + 5 chemistry) + 1 work-contracts (banking.defaultCustodianBankPath)
+    expect(added).toBe(224); // 146 base + 7 Attendant+Goodkin + 19 storms-and-wetness + 17 concealment/detection/hazard/movement + 12 stealth-deployables + 2 residency reset + 2 retail consignment + 15 fire (3 heat-channel + 4 combustion + 3 tick/spread + 5 chemistry) + 4 work-contracts (banking.defaultCustodianBankPath + 3 contract.*)
     expect(pm.saves).toHaveLength(1);
     expect(pm.saves[0]!.collection).toBe("app_settings");
     const values = savedValues(pm);
@@ -314,6 +314,9 @@ describe("AppSettingsSeeder", () => {
           [AppSettingKeys.respirationContaminantBurdenPerBreath]: "5",
           [AppSettingKeys.bankingDefaultCustodianBankPath]:
             "/domain/terminus/counting-houses/bank-counter",
+          [AppSettingKeys.contractClaimExpiryGameHours]: "48",
+          [AppSettingKeys.contractPostingExpiryDefaultGameHours]: "0",
+          [AppSettingKeys.contractBreachRegardPenalty]: "15",
         },
       },
     ]);
@@ -356,8 +359,8 @@ describe("AppSettingsSeeder", () => {
     // + 2 residency reset (mode + intervalS)
     // + 2 retail consignment (listingCap + commissionRate)
     // + 15 fire (3 heat-channel + 4 combustion + 3 tick/spread + 5 chemistry)
-    // + 1 work-contracts (banking.defaultCustodianBankPath).
-    expect(added).toBe(220); // 221 total − 1 operator-preset key
+    // + 4 work-contracts (banking.defaultCustodianBankPath + 3 contract.*).
+    expect(added).toBe(223); // 224 total − 1 operator-preset key
     expect(pm.saves).toHaveLength(1);
     const values = savedValues(pm);
     // operator value preserved, missing keys seeded

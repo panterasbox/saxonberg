@@ -67,6 +67,8 @@ export enum Collections {
   Diagnostics = 'diagnostics',
   HolderSnapshots = 'holder_snapshots',
   AccountabilityEvents = 'accountability_events',
+  Contracts = 'contracts',
+  ContractEvents = 'contract_events',
 }
 
 /**
@@ -991,6 +993,32 @@ export class PersistenceManager {
         { scope: 1, owner: 1 },
         { unique: true },
       );
+
+      // Contracts: the gig current-state rows (the chattel/parcel shape —
+      // one writer, all reads async finders, no registry Stuff). Unique on
+      // `contractId` (the escrow account + event chain key), indexed on
+      // `state` and `boardPath` (the board browse + claimant scans).
+      await this.getCollection(Collections.Contracts).createIndex(
+        { contractId: 1 },
+        { unique: true },
+      );
+      await this.getCollection(Collections.Contracts).createIndex({
+        state: 1,
+      });
+      await this.getCollection(Collections.Contracts).createIndex({
+        boardPath: 1,
+      });
+
+      // Contract events: the append-only gig event chain (nothing
+      // overwritten — the `chattel_events` shape; money legs live in
+      // `bank_ledger`, linked by txId). Indexed on `contractId` (the chain
+      // readout) and `at` (time-ordered slices).
+      await this.getCollection(Collections.ContractEvents).createIndex({
+        contractId: 1,
+      });
+      await this.getCollection(Collections.ContractEvents).createIndex({
+        at: 1,
+      });
 
       console.info('PersistenceManager: Indexes created successfully');
     } catch (error) {

@@ -200,6 +200,17 @@ settings:
   # that wants the newcomer).
   - key: banking.defaultCustodianBankPath
     value: /domain/terminus/counting-houses/bank-counter
+  # Contracts (the work/gig substrate) — claim expiry: how long an exclusive
+  # claim holds before it lapses back to open (game-hours; lazy enforcement,
+  # no sweep). Posting expiry default: 0 = a posting never lapses unless the
+  # post names a lifetime. Breach penalty: the issuer-side regard drop
+  # against a breaching claimant (breach must be felt, cheaply).
+  - key: contract.claimExpiryGameHours
+    value: "48"
+  - key: contract.postingExpiryDefaultGameHours
+    value: "0"
+  - key: contract.breachRegardPenalty
+    value: "15"
   # Attendant — the anti-grief lease sweep (real-time). Griefing is a real-time
   # act, so the watchdog is real-time (the residency pattern), not game-time.
   # The idle threshold is the venue's generosity dial: a service act resets it,

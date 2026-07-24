@@ -279,6 +279,26 @@ export const AppSettingKeys = {
   bankingDefaultCustodianBankPath: "banking.defaultCustodianBankPath",
 
   /**
+   * Contracts — how long an exclusive claim holds before it lapses back to
+   * open (game-hours). Squatting cannot block a board; enforcement is lazy
+   * (derive-on-read at every touchpoint — no sweep, no counter).
+   */
+  contractClaimExpiryGameHours: "contract.claimExpiryGameHours",
+  /**
+   * Contracts — the default posting lifetime (game-hours) when a post
+   * names none. `0` = postings never lapse unless the post specifies.
+   */
+  contractPostingExpiryDefaultGameHours:
+    "contract.postingExpiryDefaultGameHours",
+  /**
+   * Contracts — the issuer-side regard drop applied to a breaching
+   * claimant (abandon / claim expiry): breach must be felt, cheaply — a
+   * real per-viewer social consequence via the shipped `RegardApi`, no
+   * global reputation write.
+   */
+  contractBreachRegardPenalty: "contract.breachRegardPenalty",
+
+  /**
    * Attendant — the lease anti-grief sweep cadence (real-time ms). Griefing
    * is a real-time act, so the watchdog is real-time (the residency sweep
    * pattern), not game-time. See docs/subsystems/attendant.md.
