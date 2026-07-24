@@ -28,6 +28,7 @@ import type {
   LedgerEntryFields,
   ProfitAndLoss,
   ReconcileResult,
+  EscrowHoldResult,
 } from "../lib/banking/LedgerEntry";
 import type { Container } from "../lib/spatial/Container";
 import type { LedgerLeg } from "../lib/banking/Transaction";
@@ -57,6 +58,7 @@ export type {
   LedgerEntryFields,
   ProfitAndLoss,
   ReconcileResult,
+  EscrowHoldResult,
   LedgerLeg,
   Charge,
   SettlementMethod,
@@ -85,12 +87,14 @@ function logic(): BankingLogic {
 
 export class BankingApi {
   /**
-   * Boot seam (idempotent). The warm caches are loaded separately by
-   * `AccountBalance.warm()` / `SupplyAggregate.warm()` (awaited in
-   * `AppBootstrap` before this). Activation = the singleton's presence.
+   * Boot seam (idempotent). Runs the custodian restamp pass over legacy
+   * `bank_accounts` rows (the every-account-names-a-real-custodian rule —
+   * a cache-field fill, no money moves). The warm caches are loaded
+   * separately by `AccountBalance.warm()` / `SupplyAggregate.warm()`
+   * (awaited in `AppBootstrap` before this).
    */
-  public static boot(): void {
-    logic().boot();
+  public static async boot(): Promise<void> {
+    return logic().boot();
   }
 
   /**
@@ -266,6 +270,92 @@ export class BankingApi {
     amount: Money,
   ): Promise<void> {
     return logic().payWage(employerAccountId, workerKey, amount);
+  }
+
+  /**
+   * Pay the proprietor's **draw** — business account → the proprietor's
+   * primary account, kind `draw` (owner take-home is not a wage; the
+   * distinct leg kind is the future tax wedge). Solvency-checked: refuses
+   * when the business balance is short (unlike `payWage`, which pays red by
+   * design — the deficit model). The verb layer resolves the business from
+   * the acting proprietor (participant contract), never a spoofable param.
+   */
+  public static async payDraw(
+    businessAccountId: string,
+    proprietorKey: string,
+    amount: Money,
+  ): Promise<void> {
+    return logic().payDraw(businessAccountId, proprietorKey, amount);
+  }
+
+  /* ──────────────── escrow (the contract system's agent) ──────────────── */
+
+  /**
+   * Hold `amount` for a contract: issuer account → the per-contract escrow
+   * account (`escrow:contract:<id>` — a REAL row owned by the contract,
+   * custodied at the default commercial bank, so `reconcile` counts held
+   * funds throughout). Returns a refusal value on a short issuer balance
+   * (no credit); a successful hold carries the ledger `txId` the contract
+   * event chain references.
+   */
+  public static async escrowHold(
+    fromAccountId: string,
+    contractId: string,
+    amount: Money,
+  ): Promise<EscrowHoldResult> {
+    return logic().escrowHold(fromAccountId, contractId, amount);
+  }
+
+  /**
+   * Release held funds to the contractor (`escrow-release`). Throws on an
+   * over-release — the per-contract account makes the invariant breach
+   * loud instead of silently commingling another contract's stake.
+   */
+  public static async escrowRelease(
+    contractId: string,
+    toAccountId: string,
+    amount: Money,
+  ): Promise<string> {
+    return logic().escrowRelease(contractId, toAccountId, amount);
+  }
+
+  /** Revert held funds to the issuer (`escrow-revert`; breach/expiry). */
+  public static async escrowRevert(
+    contractId: string,
+    toAccountId: string,
+    amount: Money,
+  ): Promise<string> {
+    return logic().escrowRevert(contractId, toAccountId, amount);
+  }
+
+  /**
+   * The in-flight escrow balance for a contract (sync warm read) — the
+   * legibility surface: the stakes are real because the money is locked
+   * and visible.
+   */
+  public static escrowBalanceOf(contractId: string): Money {
+    return logic().escrowBalanceOf(contractId);
+  }
+
+  /**
+   * Close a contract's escrow account at a terminal transition: asserts the
+   * balance is zero, then deletes the `bank_accounts` row (the ledger legs
+   * remain the permanent record). Idempotent; live escrow rows scale with
+   * open contracts only.
+   */
+  public static async escrowClose(contractId: string): Promise<void> {
+    return logic().escrowClose(contractId);
+  }
+
+  /**
+   * The default custodian bank path (`banking.defaultCustodianBankPath`) —
+   * where accounts whose owner names no branch of their own are held
+   * (venue operating accounts, worker wage-fallbacks, escrow). Call sites
+   * pass this as `ensureVenueAccount`'s `bankPath`; an empty or non-bank
+   * custodian is refused (every account names a real custodian).
+   */
+  public static defaultCustodianBankPath(): string {
+    return logic().defaultCustodianBankPath();
   }
 
   /**

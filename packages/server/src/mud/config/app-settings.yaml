@@ -192,6 +192,14 @@ settings:
   # 0 disables.
   - key: banking.openingFloat
     value: "500"
+  # Banking — the default custodian bank (bankPath) for accounts whose owner
+  # names no branch of their own: venue operating accounts, worker
+  # wage-fallback accounts, per-contract escrow. The rule: every account
+  # names a REAL custodian — only the state (treasury) banks at the CB,
+  # everything else at a commercial bank. v1: the Goodkin branch (the bank
+  # that wants the newcomer).
+  - key: banking.defaultCustodianBankPath
+    value: /domain/terminus/counting-houses/bank-counter
   # Attendant — the anti-grief lease sweep (real-time). Griefing is a real-time
   # act, so the watchdog is real-time (the residency pattern), not game-time.
   # The idle threshold is the venue's generosity dial: a service act resets it,

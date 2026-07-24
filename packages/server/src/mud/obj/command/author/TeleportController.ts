@@ -297,7 +297,11 @@ export default class TeleportController extends CommandController<TeleportModel>
         return false;
       }
       try {
-        cityBudgetAccount = await BankingApi.ensureVenueAccount(bizPath, bizPath, "");
+        cityBudgetAccount = await BankingApi.ensureVenueAccount(
+          bizPath,
+          BankingApi.defaultCustodianBankPath(),
+          "",
+        );
       } catch {
         this.fail(context, "the fare can't be collected here", "no-operator");
         return false;
@@ -320,7 +324,11 @@ export default class TeleportController extends CommandController<TeleportModel>
         return false;
       }
       try {
-        destOperatorAccount = await BankingApi.ensureVenueAccount(destPath, destPath, "");
+        destOperatorAccount = await BankingApi.ensureVenueAccount(
+          destPath,
+          BankingApi.defaultCustodianBankPath(),
+          "",
+        );
       } catch {
         this.fail(context, "the surcharge can't be collected there", "no-operator");
         return false;

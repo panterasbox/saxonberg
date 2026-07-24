@@ -206,7 +206,11 @@ export default class BuyController extends CommandController<BuyModel> {
     const ownerPath = business?.getAccountPath() ?? venuePath;
     let account: string;
     try {
-      account = await BankingApi.ensureVenueAccount(ownerPath, ownerPath, "");
+      account = await BankingApi.ensureVenueAccount(
+        ownerPath,
+        BankingApi.defaultCustodianBankPath(),
+        "",
+      );
     } catch {
       return null;
     }

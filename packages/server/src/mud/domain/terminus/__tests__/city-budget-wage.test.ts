@@ -74,7 +74,11 @@ describe("Terminus city-budget wage loop", () => {
     makeStuffAtPath(() => new Person(), CLERK);
 
     // Fund the city-budget account as a run of fares would (a CB seed here).
-    const cityAccount = await BankingApi.ensureVenueAccount(BUDGET, BUDGET, "");
+    const cityAccount = await BankingApi.ensureVenueAccount(
+      BUDGET,
+      BankingApi.defaultCustodianBankPath(),
+      "",
+    );
     await BankingApi.mint(cityAccount, Money.of(1000), "fare income (seed)", "fare");
 
     const supplyBefore = BankingApi.moneySupply().minor;

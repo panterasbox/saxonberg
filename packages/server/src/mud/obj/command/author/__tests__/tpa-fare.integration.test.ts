@@ -204,7 +204,11 @@ describe("TPA fare settlement (integration)", () => {
     });
     vi.spyOn(AccessApi, "isWizard").mockResolvedValue(false);
     vi.spyOn(AccessApi, "isAuthor").mockResolvedValue(false);
-    cityAccount = await BankingApi.ensureVenueAccount(BIZ, BIZ, "");
+    cityAccount = await BankingApi.ensureVenueAccount(
+      BIZ,
+      BankingApi.defaultCustodianBankPath(),
+      "",
+    );
   });
   afterEach(() => {
     teardownBankingHarness();
@@ -298,7 +302,11 @@ describe("TPA fare settlement (integration)", () => {
     const t = makeWalletTraveller("frank");
     await fundAccount(t, "frank-acct", 100);
     ContainmentApi.move(t, dRoom);
-    const destAccount = await BankingApi.ensureVenueAccount(DEST_BIZ, DEST_BIZ, "");
+    const destAccount = await BankingApi.ensureVenueAccount(
+      DEST_BIZ,
+      BankingApi.defaultCustodianBankPath(),
+      "",
+    );
 
     await ride(t, dRoom);
     // total 17: departure city 12 (15−3), TPA 3 (network fee on the fee only),
@@ -332,7 +340,11 @@ describe("TPA fare settlement (integration)", () => {
     const t = makeWalletTraveller("heidi");
     await fundAccount(t, "heidi-acct", 100);
     ContainmentApi.move(t, dRoom);
-    const destAccount = await BankingApi.ensureVenueAccount(DEST_BIZ, DEST_BIZ, "");
+    const destAccount = await BankingApi.ensureVenueAccount(
+      DEST_BIZ,
+      BankingApi.defaultCustodianBankPath(),
+      "",
+    );
 
     await ride(t, dRoom);
     expect(await bal("heidi-acct")).toBe(98); // −2 (surcharge only)

@@ -81,6 +81,11 @@ export default class AccountBalance extends Document {
     AccountBalance._cache.set(accountId, balance);
   }
 
+  /** Drop a closed account from the cache (escrow close — row deleted). */
+  static removeCached(accountId: string): void {
+    AccountBalance._cache.delete(accountId);
+  }
+
   /** Test seam — drop the cache so each test warms a fresh instance. */
   static _resetForTesting(): void {
     SecurityApi.assertTestOnly("AccountBalance._resetForTesting");

@@ -10,6 +10,7 @@ import type {
   PnlCategory,
   ProfitAndLoss,
   ReconcileResult,
+  EscrowHoldResult,
 } from "../../lib/banking/LedgerEntry";
 import AccountBalance from "../../lib/banking/AccountBalance";
 import SupplyAggregate from "../../lib/banking/SupplyAggregate";
@@ -172,10 +173,48 @@ async function openAccountImpl(
 }
 
 /**
+ * The seeded-literal fallback for the default custodian bank — the Goodkin
+ * branch (the materials-response dial precedent: the AppSetting governs,
+ * the literal covers unwarmed reads in tests / pre-boot).
+ */
+const DEFAULT_CUSTODIAN_FALLBACK = "/domain/terminus/counting-houses/bank-counter";
+
+/** The default custodian bank path (AppSetting, seeded-literal fallback). */
+function defaultCustodianBankPathImpl(): string {
+  try {
+    const v = AppApi.setting(AppSettingKeys.bankingDefaultCustodianBankPath);
+    if (v) return v;
+  } catch {
+    // AppSettings not warmed (tests / pre-boot) — the seeded literal.
+  }
+  return DEFAULT_CUSTODIAN_FALLBACK;
+}
+
+/**
+ * The every-account-names-a-real-custodian rule: a `bankPath` is a valid
+ * custodian iff it is the central bank (state accounts only), the default
+ * custodian bank, or a live `BankMixin` branch. Rejects both `""` (an
+ * account held *nowhere*) and owner==bankPath self-custody at a non-bank —
+ * a non-bank "custodian" is no custodian: no Terms, no cash ops, nobody
+ * accountable if the books are disputed. (A real bank branch's own account
+ * at its own branch remains legitimate — the check is "is the custodian a
+ * bank", not "is it someone else".)
+ */
+function isRealCustodian(bankPath: string): boolean {
+  if (!bankPath) return false;
+  if (bankPath === Account.CENTRAL_BANK_PATH) return true;
+  if (bankPath === defaultCustodianBankPathImpl()) return true;
+  const live = StuffApi.findByTemplatePath(bankPath);
+  return !!live && MixinApi.isBank(live);
+}
+
+/**
  * Ensure a **venue** account exists (owner = the venue's durable path, not
  * an acting principal — a resource identity), creating a primary one if
  * absent. The bar's P&L account: lazily created on first banking interaction
  * at the venue (order / pnl / payroll), so no boot seeder is needed.
+ * `bankPath` must name a real custodian ({@link isRealCustodian}) — an
+ * account is never held nowhere.
  */
 async function ensureVenueAccountImpl(
   ownerPath: string,
@@ -184,6 +223,12 @@ async function ensureVenueAccountImpl(
 ): Promise<string> {
   if (!active()) {
     throw new Error("BankingLogic.ensureVenueAccount: no persistence");
+  }
+  if (!isRealCustodian(bankPath)) {
+    throw new Error(
+      `BankingLogic.ensureVenueAccount: '${bankPath}' is not a real ` +
+        `custodian (the CB, the default custodian bank, or a live branch)`,
+    );
   }
   const owned = await accountsOfImpl(ownerPath);
   const existing = owned.find((a) => a.bankPath === bankPath) ?? owned[0];
@@ -701,6 +746,183 @@ async function payWageImpl(
   ]);
 }
 
+/* ─────────────────── escrow · draw · custodian restamp ─────────────────── */
+
+/**
+ * Hold `amount` for a contract: issuer account → the per-contract escrow
+ * account (a REAL row — `reconcile` counts held funds throughout). Refuses
+ * (a value, not a throw) on a short issuer balance: no credit, anywhere.
+ * The escrow row is created with registry fields (owner =
+ * `contract:<contractId>`, custodian = the default commercial bank) — never
+ * `applyDelta`'s bare auto-create.
+ */
+async function escrowHoldImpl(
+  fromAccountId: string,
+  contractId: string,
+  amount: Money,
+): Promise<EscrowHoldResult> {
+  if (!active()) {
+    throw new Error("BankingLogic.escrowHold: no persistence connection");
+  }
+  if (amount.minor <= 0) {
+    throw new Error("BankingLogic.escrowHold: amount must be positive");
+  }
+  if (AccountBalance.cachedBalance(fromAccountId) < amount.minor) {
+    return { ok: false, reason: "insufficient-funds" };
+  }
+  const escrowId = Account.escrowAccountFor(contractId);
+  const existing = await accountByIdImpl(escrowId);
+  if (!existing) {
+    const row = new AccountBalance();
+    row.accountId = escrowId;
+    row.owner = `contract:${contractId}`;
+    row.bankPath = defaultCustodianBankPathImpl();
+    row.corpoKey = "";
+    row.isPrimary = false;
+    row.isActive = true;
+    row.balance = 0;
+    await row.save();
+    AccountBalance.putCached(escrowId, 0);
+  }
+  const txId = await postTransaction("escrow-hold", [
+    {
+      from: fromAccountId,
+      to: escrowId,
+      amount: amount.minor,
+      category: "escrow",
+      memo: `escrow hold ${contractId}`,
+    },
+  ]);
+  return { ok: true, txId };
+}
+
+/**
+ * Move held funds out of a contract's escrow account (`escrow-release` →
+ * the contractor / `escrow-revert` → the issuer). Throws when the escrow
+ * balance is short — an over-release is a programmatic invariant breach
+ * (the contract logic must never release more than it held), and the
+ * per-contract account makes it throw instead of silently robbing another
+ * contract's stake (why escrow is not pooled).
+ */
+async function escrowMoveImpl(
+  kind: "escrow-release" | "escrow-revert",
+  contractId: string,
+  toAccountId: string,
+  amount: Money,
+): Promise<string> {
+  const escrowId = Account.escrowAccountFor(contractId);
+  if (active() && AccountBalance.cachedBalance(escrowId) < amount.minor) {
+    throw new Error(
+      `BankingLogic.${kind}: escrow for ${contractId} holds less than ` +
+        `${amount.render()} (over-release)`,
+    );
+  }
+  return postTransaction(kind, [
+    {
+      from: escrowId,
+      to: toAccountId,
+      amount: amount.minor,
+      category: "escrow",
+      memo: `${kind} ${contractId}`,
+    },
+  ]);
+}
+
+/**
+ * Close a contract's escrow account: assert the balance is zero (every
+ * terminal transition released or reverted the full stake first), then
+ * delete the `bank_accounts` row + warm-cache entry. The append-only ledger
+ * legs remain the permanent record — the row is a rebuildable cache, and
+ * live escrow rows scale with *open* contracts only. Idempotent (a missing
+ * row is a no-op).
+ */
+async function escrowCloseImpl(contractId: string): Promise<void> {
+  if (!active()) return;
+  const escrowId = Account.escrowAccountFor(contractId);
+  const row = await accountByIdImpl(escrowId);
+  if (!row) return;
+  if (row.balance !== 0) {
+    throw new Error(
+      `BankingLogic.escrowClose: escrow for ${contractId} still holds ` +
+        `${row.balance} minor units`,
+    );
+  }
+  await row.delete();
+  AccountBalance.removeCached(escrowId);
+}
+
+/**
+ * Pay the proprietor's **draw** — business account → the proprietor's
+ * primary, kind `draw` (take-home is not a wage; the leg kind is the tax
+ * wedge's future hook). Unlike `payWage` (red-by-design — the deficit
+ * model), the draw is **solvency-checked**: a proprietor pocketing from an
+ * insolvent business is exactly what the distinct kind exists to expose.
+ */
+async function payDrawImpl(
+  businessAccountId: string,
+  proprietorKey: string,
+  amount: Money,
+): Promise<void> {
+  if (amount.minor <= 0) {
+    throw new Error("BankingLogic.payDraw: amount must be positive");
+  }
+  if (
+    active() &&
+    AccountBalance.cachedBalance(businessAccountId) < amount.minor
+  ) {
+    throw new Error(
+      `BankingLogic.payDraw: the business holds less than ${amount.render()}`,
+    );
+  }
+  const owned = await accountsOfImpl(proprietorKey);
+  const drawAccount = (owned.find((a) => a.isPrimary) ?? owned[0])?.accountId;
+  if (!drawAccount) {
+    throw new Error("BankingLogic.payDraw: the proprietor has no account");
+  }
+  await postTransaction("draw", [
+    {
+      from: businessAccountId,
+      to: drawAccount,
+      amount: amount.minor,
+      category: "draw",
+      memo: "proprietor draw",
+    },
+  ]);
+}
+
+/**
+ * The idempotent boot restamp (the custodian rule, applied to legacy rows):
+ * a cache-field fill, never a money movement — balances and conservation
+ * are untouched. The `treasury` row (the legislature's fisc, the sole state
+ * account) moves to the CB; any row with an empty `bankPath` or
+ * self-custodied at a non-bank moves to the default custodian bank.
+ * Customer accounts at real branches, corpo treasuries, and escrow rows are
+ * untouched by construction.
+ */
+async function restampCustodiansImpl(): Promise<void> {
+  if (!active()) return;
+  const treasuryId = demoTaxConfig().treasury;
+  const custodian = defaultCustodianBankPathImpl();
+  for (const row of await AccountBalance.find<AccountBalance>({})) {
+    if (Account.isEscrowAccount(row.accountId)) continue;
+    if (row.accountId === treasuryId) {
+      if (row.bankPath !== Account.CENTRAL_BANK_PATH) {
+        row.bankPath = Account.CENTRAL_BANK_PATH;
+        await row.save();
+      }
+      continue;
+    }
+    const selfCustodiedAtNonBank =
+      row.bankPath !== "" &&
+      row.bankPath === row.owner &&
+      !isRealCustodian(row.bankPath);
+    if (row.bankPath === "" || selfCustodiedAtNonBank) {
+      row.bankPath = custodian;
+      await row.save();
+    }
+  }
+}
+
 /** The authored/inert demo tax rate + treasury account, or rate 0 if absent. */
 function demoTaxConfig(): { rate: number; treasury: string } {
   try {
@@ -858,16 +1080,20 @@ async function issueCardImpl(
  * which the call-security gate would deny (the caller would be
  * `BankingLogic`, not the `BankingApi` the gate allows) — the `RenownLogic`
  * pattern.
+ *
+ * Returns the minted `txId` (empty when offline — no rows written) so a
+ * consumer's own event chain can reference its money legs (the contract
+ * events' `txId` link).
  */
 async function postTransaction(
   kind: LedgerKind,
   legs: LedgerLeg[],
   opts: { locality?: string | null } = {},
-): Promise<void> {
+): Promise<string> {
   // Conservation is asserted FIRST — a malformed posting throws with or
   // without a DB connection (the contract violation is the same offline).
   BankTransaction.assertConserving(kind, legs);
-  if (!active()) return;
+  if (!active()) return "";
 
   const at = WorldClockApi.getNow().rawValue();
   const realAt = Date.now();
@@ -896,6 +1122,7 @@ async function postTransaction(
 
   const { minted, drained } = BankTransaction.supplyDelta(kind, legs);
   if (minted !== 0 || drained !== 0) await bumpSupply(minted, drained);
+  return txId;
 }
 
 /** The default P&L category for a kind when a leg doesn't override it. */
@@ -911,6 +1138,12 @@ function defaultCategory(kind: LedgerKind): PnlCategory {
       return "wages";
     case "tax":
       return "tax";
+    case "escrow-hold":
+    case "escrow-release":
+    case "escrow-revert":
+      return "escrow";
+    case "draw":
+      return "draw";
     default:
       return "other";
   }
@@ -994,12 +1227,15 @@ async function recomputeSupplyImpl(): Promise<void> {
  */
 @Unshadowable
 export class BankingLogic extends ApiLogic {
-  /** See {@link BankingApi.boot}. Idempotent; reserved for future taps. */
+  /**
+   * See {@link BankingApi.boot}. Idempotent. Runs the custodian restamp
+   * pass (a cache-field fill over legacy `bank_accounts` rows — no money
+   * moves); the warm caches are loaded by AppBootstrap
+   * (AccountBalance.warm / SupplyAggregate.warm) before this.
+   */
   @CallSecurity(BankingApiCallers)
-  public boot(): void {
-    // No event taps in this phase; the warm caches are loaded by
-    // AppBootstrap (AccountBalance.warm / SupplyAggregate.warm). Kept as the
-    // stable activation seam so later phases install taps here.
+  public async boot(): Promise<void> {
+    await restampCustodiansImpl();
   }
 
   /** See {@link BankingApi.mint}. */
@@ -1317,6 +1553,68 @@ export class BankingLogic extends ApiLogic {
     amount: Money,
   ): Promise<void> {
     return payWageImpl(employerAccountId, workerKey, amount);
+  }
+
+  /** See {@link BankingApi.payDraw}. Business → proprietor, solvency-checked. */
+  @CallSecurity(BankingApiCallers)
+  public async payDraw(
+    businessAccountId: string,
+    proprietorKey: string,
+    amount: Money,
+  ): Promise<void> {
+    return payDrawImpl(businessAccountId, proprietorKey, amount);
+  }
+
+  /* ──────────────── escrow (the contract system's agent) ──────────────── */
+
+  /** See {@link BankingApi.escrowHold}. Issuer → the per-contract escrow. */
+  @CallSecurity(BankingApiCallers)
+  public async escrowHold(
+    fromAccountId: string,
+    contractId: string,
+    amount: Money,
+  ): Promise<EscrowHoldResult> {
+    return escrowHoldImpl(fromAccountId, contractId, amount);
+  }
+
+  /** See {@link BankingApi.escrowRelease}. Escrow → the contractor. */
+  @CallSecurity(BankingApiCallers)
+  public async escrowRelease(
+    contractId: string,
+    toAccountId: string,
+    amount: Money,
+  ): Promise<string> {
+    return escrowMoveImpl("escrow-release", contractId, toAccountId, amount);
+  }
+
+  /** See {@link BankingApi.escrowRevert}. Escrow → the issuer. */
+  @CallSecurity(BankingApiCallers)
+  public async escrowRevert(
+    contractId: string,
+    toAccountId: string,
+    amount: Money,
+  ): Promise<string> {
+    return escrowMoveImpl("escrow-revert", contractId, toAccountId, amount);
+  }
+
+  /** See {@link BankingApi.escrowBalanceOf}. The legibility read (sync). */
+  @CallSecurity(BankingApiCallers)
+  public escrowBalanceOf(contractId: string): Money {
+    return Money.of(
+      AccountBalance.cachedBalance(Account.escrowAccountFor(contractId)),
+    );
+  }
+
+  /** See {@link BankingApi.escrowClose}. Assert zero, delete the row. */
+  @CallSecurity(BankingApiCallers)
+  public async escrowClose(contractId: string): Promise<void> {
+    return escrowCloseImpl(contractId);
+  }
+
+  /** See {@link BankingApi.defaultCustodianBankPath}. The custodian default. */
+  @CallSecurity(BankingApiCallers)
+  public defaultCustodianBankPath(): string {
+    return defaultCustodianBankPathImpl();
   }
 
   /** See {@link BankingApi.profitAndLoss}. Categorized ledger read. */

@@ -268,6 +268,15 @@ export const AppSettingKeys = {
    * customer cash deposits accumulate. `0` disables. See docs/subsystems/banking.md.
    */
   bankingOpeningFloat: "banking.openingFloat",
+  /**
+   * Banking — the **default custodian bank** (`bankPath`) for accounts whose
+   * owner names no branch of their own: venue operating accounts, worker
+   * wage-fallback accounts, per-contract escrow. The
+   * every-account-names-a-real-custodian rule: only the state (`treasury`)
+   * banks at the CB; everything else banks at a commercial bank — v1 the
+   * Goodkin branch. See docs/subsystems/banking.md.
+   */
+  bankingDefaultCustodianBankPath: "banking.defaultCustodianBankPath",
 
   /**
    * Attendant — the lease anti-grief sweep cadence (real-time ms). Griefing

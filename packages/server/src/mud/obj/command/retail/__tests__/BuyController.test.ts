@@ -162,7 +162,11 @@ describe("BuyController — buy that stamps", () => {
       BankingApi.issueCash(giver as never, Money.of(300)),
     );
     await asOwner(giver, () => BankingApi.deposit(bank, cash as never));
-    const storeAcct = await BankingApi.ensureVenueAccount(STORE, STORE, "");
+    const storeAcct = await BankingApi.ensureVenueAccount(
+      STORE,
+      BankingApi.defaultCustodianBankPath(),
+      "",
+    );
 
     const { stock, torch } = makeStore({
       attendDurationMs: 0,
@@ -192,7 +196,11 @@ describe("BuyController — buy that stamps", () => {
       BankingApi.issueCash(giver as never, Money.of(20)),
     );
     void coins;
-    const storeAcct = await BankingApi.ensureVenueAccount(STORE, STORE, "");
+    const storeAcct = await BankingApi.ensureVenueAccount(
+      STORE,
+      BankingApi.defaultCustodianBankPath(),
+      "",
+    );
 
     const { stock, torch } = makeStore({
       attendDurationMs: 0,

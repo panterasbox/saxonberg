@@ -142,7 +142,11 @@ export default class OrderController extends CraftController<OrderModel> {
     const ownerPath = business?.getAccountPath() ?? venuePath;
     let venueAccount: string;
     try {
-      venueAccount = await BankingApi.ensureVenueAccount(ownerPath, ownerPath, '');
+      venueAccount = await BankingApi.ensureVenueAccount(
+        ownerPath,
+        BankingApi.defaultCustodianBankPath(),
+        '',
+      );
     } catch {
       return null;
     }

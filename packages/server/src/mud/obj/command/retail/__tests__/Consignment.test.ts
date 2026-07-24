@@ -167,7 +167,11 @@ describe("Consignment — sell loop over real ownership", () => {
     const bob = await fundedAvatar("/obj/Avatar/bob", 100);
     ContainmentApi.move(bob as never, loc as never);
     const bobAcct = (await BankingApi.primaryAccountIdOf("/obj/Avatar/bob"))!;
-    const storeAcct = await BankingApi.ensureVenueAccount(SHELF, SHELF, "");
+    const storeAcct = await BankingApi.ensureVenueAccount(
+      SHELF,
+      BankingApi.defaultCustodianBankPath(),
+      "",
+    );
 
     await asOwner(bob, () =>
       makeStuff(() => new BuyController()).execute({ thing: "torch" }, ctx(bob, loc, shelf, "buy")),

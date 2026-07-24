@@ -81,7 +81,11 @@ describe("The bar money loop (end to end)", () => {
     const worker = avatar("/obj/Avatar/wenna");
 
     // the bar's P&L account (lazily ensured)
-    const barAcct = await BankingApi.ensureVenueAccount(BAR, BAR, "");
+    const barAcct = await BankingApi.ensureVenueAccount(
+      BAR,
+      BankingApi.defaultCustodianBankPath(),
+      "",
+    );
 
     // 1. open an account + deposit cash
     const patronAcct = await asOwner(patron, () =>

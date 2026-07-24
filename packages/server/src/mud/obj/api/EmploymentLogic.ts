@@ -160,15 +160,21 @@ async function settleShiftWageImpl(
   const accountPath = business.getAccountPath();
   const account = await BankingApi.ensureVenueAccount(
     accountPath,
-    accountPath,
+    BankingApi.defaultCustodianBankPath(),
     '',
   );
   // Ensure the worker has an account to be paid into — `payWage` throws
   // otherwise. NPC workers (the terminal clerk, the bar cast) never opened
-  // one, so provision a resource-identity account keyed on their own path.
-  // Additive + general; also closes the same gap in the bar wage loop.
+  // one, so provision an account keyed on their own path, custodied at the
+  // default bank (every account names a real custodian — diegetically the
+  // bank that wants the newcomer). Additive + general; also closes the same
+  // gap in the bar wage loop.
   if ((await BankingApi.primaryAccountIdOf(employeeKey)) == null) {
-    await BankingApi.ensureVenueAccount(employeeKey, employeeKey, '');
+    await BankingApi.ensureVenueAccount(
+      employeeKey,
+      BankingApi.defaultCustodianBankPath(),
+      '',
+    );
   }
   await BankingApi.payWage(account, employeeKey, Money.of(amount));
 }

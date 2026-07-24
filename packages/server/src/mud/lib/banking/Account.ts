@@ -37,6 +37,34 @@ export class Account {
   /** The central bank's own (real) operating account id. */
   public static readonly CENTRAL_BANK = "central-bank";
 
+  /**
+   * The central bank as a **custodian** (`bankPath` of a state account). Only
+   * an organ of the polity banks at the CB — the sole current occupant is the
+   * `treasury` (the legislature's fisc); everything else is private and banks
+   * at a commercial bank (the every-account-names-a-real-custodian rule).
+   */
+  public static readonly CENTRAL_BANK_PATH = "/obj/CentralBank";
+
+  /** The escrow-account id-prefix (the contract system's agent accounts). */
+  private static readonly ESCROW_PREFIX = "escrow:contract:";
+
+  /**
+   * The per-contract escrow account id — deterministic, so the ledger legs
+   * and the contract events key on the same identity. A REAL account (it
+   * holds a balance row while the stake is in flight — `reconcile` counts
+   * it), owned by `contract:<contractId>`, custodied at the default
+   * commercial bank, and deleted at contract close ({@link BankingLogic}
+   * `escrowClose`).
+   */
+  public static escrowAccountFor(contractId: string): string {
+    return `${Account.ESCROW_PREFIX}${contractId}`;
+  }
+
+  /** True iff `accountId` is a per-contract escrow account (audit hook). */
+  public static isEscrowAccount(accountId: string): boolean {
+    return accountId.startsWith(Account.ESCROW_PREFIX);
+  }
+
   /** The non-account ledger counterparties (no {@link AccountBalance} row). */
   private static readonly SENTINELS: ReadonlySet<string> = new Set([
     Account.ISSUANCE,
