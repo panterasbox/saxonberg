@@ -1,0 +1,85 @@
+verbs: [job, jobs]
+controller: /obj/command/work/JobController
+description: "Browse, post, claim, and settle gigs on the job board"
+help: |
+  The job board — posted work with the reward held in escrow: the money
+  is locked when the gig goes up, so the stakes are real. Bare `job` (or
+  `jobs`) lists what's open on this board.
+
+  Post work with `job post <item> to <destination> for <reward>` — a
+  delivery gig, funded from your own account (or your business's with
+  `--business`). Add `--bounty` for an open bounty anyone can turn in
+  (the reward escrows immediately); otherwise the gig is exclusive — one
+  courier claims it and the escrow locks at claim. A claim lapses back
+  to open if it sits too long, so squatting can't block a board.
+
+  `job claim <id>` takes an exclusive gig; `job complete [id]` turns work
+  in at the board — the engine checks the state of the world right then
+  (or your sealed `fulfill` record), and pays out of escrow on the spot.
+  `job abandon [id]` walks away: the escrow reverts, and the issuer
+  remembers.
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresConscious
+subcommands:
+  post:
+    description: "Post a delivery gig, reward held in escrow"
+    help: |
+      Post a gig to this board: name the item, the destination with `to`,
+      and the reward with `for`. Delivery is the v1 shape — the engine
+      verifies the drop itself, so only verifiable work can be posted.
+    examples:
+      - cmd: job post crate to the bar for 25
+        note: Post an exclusive delivery gig, 25 credits on completion
+    args:
+      - name: item
+        type: object
+        required: true
+        scope: "reachable"
+        validators:
+          - /lib/command/validators/mustBeContainable
+      - name: destination
+        type: string
+        required: true
+        prepositions: [to]
+      - name: reward
+        type: number
+        required: true
+        prepositions: [for]
+        validators:
+          - /lib/command/validators/mustBeNumber
+    options:
+      bounty:
+        short: b
+        type: boolean
+        description: "Open bounty: no claim step, anyone may turn it in."
+      business:
+        type: boolean
+        description: "Post as your business (escrow from its account)."
+      expires:
+        short: e
+        type: number
+        description: "Posting lifetime in game-hours (escrow reverts after)."
+  claim:
+    description: "Claim an exclusive gig (locks it to you, escrows the reward)"
+    args:
+      - name: id
+        type: string
+        required: true
+  complete:
+    description: "Turn a gig in — the engine verifies, escrow pays out"
+    help: |
+      Redeem a gig at the board. Verification runs right now against the
+      world — or against your sealed `fulfill` record if the state has
+      drifted since the handoff. Bare `job complete` resolves your single
+      active claim; a bounty must be named by id.
+    args:
+      - name: id
+        type: string
+        required: false
+  abandon:
+    description: "Walk away from a claim (escrow reverts; it's remembered)"
+    args:
+      - name: id
+        type: string
+        required: false

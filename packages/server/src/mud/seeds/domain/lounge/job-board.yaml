@@ -1,0 +1,16 @@
+# The job board — the labor market's discovery surface at Dave's Bar: a
+# cork board by the door where posted work (reward held in escrow) waits
+# for a courier. Affords the `job` verb to the room; the travel half
+# (`fulfill`) rides the courier's own implant. Populated into the bar by
+# the Bar seed's `populates` list.
+class: /lib/employment/JobBoard
+hydratorClass: /lib/persistence/PersistentHydrator
+data:
+  shortDescription: a cork job board
+  primaryKeyword: board
+  longDescription: >
+    A cork board by the door, feathered with pinned slips — deliveries
+    wanted, rewards named, each one stamped with an escrow seal. A stub of
+    pencil hangs from a string, worn to the ferrule. Work, for whoever
+    wants it.
+  keywords: [board, job-board, jobs, cork, notices]
