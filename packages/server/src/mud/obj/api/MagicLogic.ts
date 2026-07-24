@@ -57,7 +57,7 @@ import { WorldClockApi } from '../../api/worldclock';
 import { AppApi } from '../../api/app';
 import { AppSettingKeys } from '../../lib/config/AppSettings';
 import { Quantity } from '../../lib/quantity';
-import { TemplatePaths, TemplatePathPrefixes } from '../../lib/paths';
+import { TemplatePaths } from '../../lib/paths';
 import { Postures } from '../../lib/slot/Postured';
 import { HazardActivity } from '../../lib/hazard/HazardActivity';
 import { SchedulerApi } from '../../api/scheduler';

@@ -11,7 +11,6 @@ import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import { Character } from "../../character/Character";
 import Species from "../../species/Species";
 import { Quantity } from "../../quantity";
-import { StuffApi } from "../../../api/stuff";
 import { MixinApi } from "../../../api/mixin";
 import { WorldClockApi } from "../../../api/worldclock";
 import "../../../obj/WorldClockRegistry"; // register the registry class
@@ -20,7 +19,6 @@ import {
   stampTemplatePathForTest,
 } from "../../security/__tests__/test-setup";
 import { installV1QuantityMarshallers } from "../../persistence/__tests__/quantity-marshaller-test-helpers";
-import type Interactive from "../../../obj/Interactive";
 import { Faculty, type FacultyProfile } from "../Faculty";
 import { MANA_RESERVE_KEY, OVERCHANNEL_STRAIN_PATH } from "../Caster";
 

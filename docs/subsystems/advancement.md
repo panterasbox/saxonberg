@@ -238,6 +238,17 @@ level (`PerceptionApi.hideLevelFor`) and a placed trap's concealment, where
 `awareness` grades the watcher trying to see through them. One contest, two
 competences. See [stealth.md](./stealth.md).
 
+The magic build seeds the **grid** — 18 leaves (`magic-{create,destroy,
+control,transform,perceive}` verbs × `magic-{fire,…,storm}` nouns, each
+`channel: skill`, `iscedf: "0288"`, verbs `synergizes` every noun), the
+biggest single Catalog contribution yet. Deliberately **no `conferrals`**:
+the `cast`/`spells` *verbs* ride `CasterMixin`'s instance-contribution
+seam, and per-spell access is a **band gate at cast time on BOTH of a
+cell's axes** (`requiredBand` vs `bandFor` — competence IS access), so a
+spell's floor rises with its power without a conferral row per spell.
+Every cast credits both axes as two subchecks of one `ActSignature`. See
+[magic.md](./magic.md).
+
 ## Deferred (seams left open)
 
 The loadout (capacity-not-decay, savings warm-up); guilds (venue / mentors

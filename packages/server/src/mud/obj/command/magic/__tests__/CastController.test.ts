@@ -13,7 +13,6 @@ import { dirname, join } from "path";
 import YAML from "yaml";
 import CastController from "../CastController";
 import requiresCastingFaculty from "../../../../lib/command/validators/requiresCastingFaculty";
-import { MagicApi } from "../../../../api/magic";
 import { AdvancementApi } from "../../../../api/advancement";
 import { MessageApi } from "../../../../api/message";
 import { SchedulerApi } from "../../../../api/scheduler";

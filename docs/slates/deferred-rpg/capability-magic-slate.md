@@ -270,6 +270,23 @@ taxonomy is deliberately **left open** until the build picks one.
 
 ## Part IV — The effect substrate + the magic grammar
 
+> **Status 2026-07: BUILT.** The magic core build shipped this part —
+> the effect substrate + casting (closed `Effect` union, the governing
+> invariant structurally enforced), the N-axis resist seam (channel +
+> toxin delegated to the shipped folds; mental = the one new Composure
+> resolver), the grid as 18 advancement-Discipline leaves (**lightning
+> and storm graduated from frontier** — their substrates shipped; time
+> + spirit remain), the anatomical faculty (`CasterMixin` +
+> `Species.facultyProfile`, mana = an absolute avail/max `pt` Reserve),
+> provenance + the anti-magic field (modifiers dormant, impulses
+> untouchable), the interruptible `CastActivity`, a 9-spell roster, and
+> the Practicum demonstrator. **v1 is deliberately room-scoped** (the
+> `deliverAt` ranged-integration seam waits for the ranged build) and
+> hostile casts write the accountability `harm` ledger. See
+> [docs/subsystems/magic.md](../../subsystems/magic.md). Still open
+> here: Transform/polymorph, multi-cell composition, wards, the
+> inquiry + magic-items consumers, Spirit/Time.
+
 > **Design pass 2026-07-15.** This part supersedes the loose "magic-side
 > capability mirrors the physical" sketch in Part II with a concrete
 > shape, and it explicitly **retires a wrong turn** this pass explored
