@@ -37,7 +37,13 @@ import { QuantityMarshaller } from '../persistence/QuantityMarshaller';
 import { MixinApi } from '../../api/mixin';
 import type { VitalBand, VitalProfile } from '../species/Species';
 import type { BodyPart } from '../species/BodyPlan';
-import type { ActiveCondition, Trauma, SustainedShock } from './Condition';
+import type {
+  ActiveCondition,
+  Trauma,
+  SustainedShock,
+  SustainedEffect,
+  AfflictionRecord,
+} from './Condition';
 import { HARM_DEFAULTS, TRAUMA_BEHAVIOR } from './Condition';
 import { StuffApi } from '../../api/stuff';
 import { WorldClockApi } from '../../api/worldclock';
@@ -46,6 +52,11 @@ import { AppApi } from '../../api/app';
 import { AppSettingKeys } from '../config/AppSettings';
 import type { Energized } from '../electricity/Energized';
 import { TemplatePaths } from '../paths';
+
+/** Alias for readability at the magic arm's call sites. */
+function magicDial(key: string, fallback: number): number {
+  return elecDial(key, fallback);
+}
 
 /** Numeric AppSetting read, falling back to the seeded literal (the harm /
  * electricity dial idiom). */
@@ -221,6 +232,9 @@ export interface Vitals {
   afflict(condition: ActiveCondition): void;
   /** Remove a condition by reference; true if it was present. */
   relieve(condition: ActiveCondition): boolean;
+  /** Release a sustained magical effect: un-realize, destruct any bound
+   * emitter, drop the condition. Expiry and tag-keyed dispel both land here. */
+  releaseSustained(s: SustainedEffect): void;
   /** Is the body held fast by a shock's tetany ("can't let go")? The volition
    * gate release / drop / move verbs consult. */
   isTetanized(): boolean;
@@ -590,7 +604,21 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
       const shocks = this.conditions.filter(
         (c): c is SustainedShock => c.kind === 'shock',
       );
-      if (traumas.length === 0 && shocks.length === 0) return;
+      const sustained = this.conditions.filter(
+        (c): c is SustainedEffect => c.kind === 'sustained',
+      );
+      const decayingMagic = this.conditions.filter(
+        (c): c is AfflictionRecord =>
+          c.kind === 'affliction' && c.magicOrigin !== undefined,
+      );
+      if (
+        traumas.length === 0 &&
+        shocks.length === 0 &&
+        sustained.length === 0 &&
+        decayingMagic.length === 0
+      ) {
+        return;
+      }
 
       // Linkdead freeze: the body lingers in-world but its clock is paused —
       // re-stamp so the away-gap never accumulates.
@@ -670,6 +698,51 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
           }
         }
 
+        // Sustained magical effects — the modifier half of magic's
+        // impulse/modifier split, realized BY PULL: active → the bound
+        // realization holds; dormant (a suppression field set the flag) →
+        // un-realized but not released; expired → released (bound emitter
+        // destructed). Same presence-freeze stamp idiom.
+        for (const s of sustained) {
+          if (s.tickedAt === undefined) {
+            s.tickedAt = nowS;
+            this.applySustainedRealization(s);
+            continue;
+          }
+          if (linkdead) {
+            s.tickedAt = nowS;
+            continue;
+          }
+          s.tickedAt = nowS;
+          if (s.expiresAt !== undefined && nowS >= s.expiresAt) {
+            this.releaseSustained(s);
+            continue;
+          }
+          this.applySustainedRealization(s);
+        }
+
+        // Magic-tagged afflictions decay on their authored timescale (the
+        // v1 dread evolution — a landed impulse fades; suppression never
+        // touches it, dispel relieves it early).
+        const decayPerSec = magicDial(AppSettingKeys.magicDreadDecayPerSec, 0.005);
+        for (const a of decayingMagic) {
+          if (a.tickedAt === undefined) {
+            a.tickedAt = nowS;
+            continue;
+          }
+          if (linkdead) {
+            a.tickedAt = nowS;
+            continue;
+          }
+          const elapsed = nowS - a.tickedAt;
+          a.tickedAt = nowS;
+          if (elapsed <= 0 || elapsed > HARM_DEFAULTS.MAX_REASONABLE_GAP_SEC) {
+            continue;
+          }
+          a.stage -= decayPerSec * elapsed;
+          if (a.stage <= 0) this.relieve(a);
+        }
+
         // Relieve any wound healed to (near) zero severity.
         for (const t of traumas) {
           if (t.severity <= HARM_DEFAULTS.CLEARED_SEVERITY) this.relieve(t);
@@ -716,6 +789,61 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
      * — the body may have stepped out of the pool or the source may have died.
      * Cheap: the whole graph is re-walked only when a shock is active (rare).
      */
+    /**
+     * Realize (or, dormant, un-realize) a sustained magical effect BY
+     * PULL — the modifier's whole runtime is this idempotent apply:
+     * `emit-light` drives the bound orb's flux (0 while dormant),
+     * `cloak` drives the imposed disguise. A bound emitter that no
+     * longer exists releases the effect (someone destructed the orb).
+     */
+    private applySustainedRealization(s: SustainedEffect): void {
+      const self = this as unknown as Stuff;
+      if (s.realizes === 'emit-light') {
+        const orb = s.boundStuffId
+          ? StuffApi.findById(s.boundStuffId)
+          : undefined;
+        if (!orb || !MixinApi.isLightSource(orb)) {
+          this.relieve(s);
+          return;
+        }
+        const lumens = s.dormant
+          ? 0
+          : magicDial(AppSettingKeys.magicGlowlightLumens, 500);
+        if (orb.getEmittedFlux().rawValue() !== lumens) {
+          orb.setEmittedFlux(Quantity.of(lumens, 'lumen'));
+        }
+        return;
+      }
+      if (s.realizes === 'cloak' && MixinApi.isDisguisable(self)) {
+        if (s.dormant) {
+          self.setDisguise(null);
+        } else if (s.disguise) {
+          self.setDisguise({
+            appearsAs: s.disguise,
+            covers: ['face'],
+            masksIdentity: true,
+          });
+        }
+      }
+    }
+
+    /**
+     * Release a sustained magical effect — expiry and dispel both land
+     * here: un-realize, destruct any bound emitter, drop the condition.
+     * Public: `MagicLogic`'s tag-keyed dispel is the second caller.
+     */
+    public releaseSustained(s: SustainedEffect): void {
+      const self = this as unknown as Stuff;
+      if (s.realizes === 'cloak' && MixinApi.isDisguisable(self)) {
+        self.setDisguise(null);
+      }
+      if (s.boundStuffId) {
+        const bound = StuffApi.findById(s.boundStuffId);
+        if (bound) StuffApi.destruct(bound);
+      }
+      this.relieve(s);
+    }
+
     private shockCircuitClosed(s: SustainedShock): boolean {
       if (s.tetany) return true;
       if (!s.source) return false;

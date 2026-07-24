@@ -30,6 +30,7 @@ import { Quantity } from '../quantity';
 import type { Vitals } from './Vitals';
 import type { ToxinBehavior } from '../metabolism/Metabolic';
 import type { Channel } from '../material/Channel';
+import type { MagicProvenance } from '../magic/Grid';
 
 // ---------- the active-condition vocabulary ----------
 
@@ -42,6 +43,17 @@ export interface AfflictionRecord {
   stage: number;
   /** Elapsed time in this affliction (ms). */
   elapsed: number;
+  /**
+   * The magical provenance tag ({@link MagicProvenance} — grid address +
+   * caster), present iff a magical effect installed this. Read by dispel
+   * / detect (tag-keyed, structurally unable to touch a mundane
+   * condition) and by the magic reconcile arm's authored decay. Plain
+   * scalars — persists free (the `mechanism`/`inflictedBy` precedent).
+   */
+  magicOrigin?: MagicProvenance;
+  /** The game-time (seconds) the magic decay arm last integrated this —
+   * only present on a `magicOrigin`-tagged affliction. */
+  tickedAt?: number;
 }
 
 /** The closed engine trauma vocabulary. Grow additively. */
@@ -96,6 +108,13 @@ export interface Trauma {
    * an environmental / far-cause / unattributable insult.
    */
   inflictedBy?: string;
+  /**
+   * The magical provenance tag, present iff a magical impulse delivered
+   * this wound (a firebolt's burn). The wound itself is REAL — never
+   * suppressible, never dispellable (an impulse can't un-happen); the
+   * tag serves detect + attribution only.
+   */
+  magicOrigin?: MagicProvenance;
   /**
    * The game-time (seconds) this trauma was last integrated — the
    * reconcile-on-read anchor. Stamped at `inflict` and advanced on every
@@ -175,8 +194,42 @@ export interface SustainedShock {
   tickedAt?: number;
 }
 
-/** All three kinds behind one collection element. */
-export type ActiveCondition = AfflictionRecord | Trauma | SustainedShock;
+/**
+ * Kind D — a **sustained magical effect**: the modifier half of the
+ * impulse/modifier split. The magic is *still holding this up* (a bound
+ * glowlight, a maintained veil), so the reconcile-on-read arm realizes it
+ * by pull — active → the bound realization holds; **dormant (inside a
+ * suppression field) → un-realized**; expired / dispelled → released
+ * (any bound emitter destructed). This is the ONLY suppressible kind:
+ * impulses have no suppression code path at all. The `SustainedShock`
+ * shape precedent — plain scalars, no marshaller.
+ */
+export interface SustainedEffect {
+  kind: 'sustained';
+  /** The spell that installed it. */
+  spellId: string;
+  /** Which realization this holds: 'emit-light' | 'cloak' (grows with the modifier roster). */
+  realizes: string;
+  /** Always tagged — a sustained effect IS magic. */
+  magicOrigin: MagicProvenance;
+  /** The bound emitter's live-instance stuffId (a conjured GlowlightOrb), if any. */
+  boundStuffId?: string;
+  /** The imposed disguise text (the cloak realization), if any. */
+  disguise?: string;
+  /** Absolute game-time (seconds) this effect lapses on its own. */
+  expiresAt?: number;
+  /** Inside a suppression field — un-realized but not released. */
+  dormant?: boolean;
+  /** The game-time (seconds) last integrated (the `tickedAt` idiom). */
+  tickedAt?: number;
+}
+
+/** All four kinds behind one collection element. */
+export type ActiveCondition =
+  | AfflictionRecord
+  | Trauma
+  | SustainedShock
+  | SustainedEffect;
 
 /** How a condition perturbs a vital sign (shape only — no consumer v1). */
 export interface VitalEffect {
