@@ -31,6 +31,7 @@ import type { Vitals } from './Vitals';
 import type { ToxinBehavior } from '../metabolism/Metabolic';
 import type { Channel } from '../material/Channel';
 import type { MagicProvenance } from '../magic/Grid';
+import type { ResistBand } from '../magic/Resist';
 
 // ---------- the active-condition vocabulary ----------
 
@@ -495,6 +496,15 @@ export default class Condition extends SingletonMixin(
    */
   protected toxinBehavior: ToxinBehavior | null = null;
 
+  /**
+   * Optional mental-resist bands — the ascending `{threshold, stage}`
+   * cutoffs the magic mental resolver stages a post-fold residual
+   * against, scaled by the target's live Composure factor (the
+   * `toxinBehavior.bands` authored-cutoffs precedent). Authored only on
+   * mental-axis conditions (dread); `null` for every other condition.
+   */
+  protected mentalBands: ResistBand[] | null = null;
+
   static persistentFields = [
     'name',
     'signature',
@@ -503,6 +513,7 @@ export default class Condition extends SingletonMixin(
     'observableSigns',
     'contagion',
     'toxinBehavior',
+    'mentalBands',
   ];
 
   public getName(): string {
@@ -553,5 +564,13 @@ export default class Condition extends SingletonMixin(
   }
   public setToxinBehavior(value: ToxinBehavior | null): void {
     this.toxinBehavior = value;
+  }
+
+  /** The mental-resist bands (null for non-mental conditions). */
+  public getMentalBands(): ResistBand[] | null {
+    return this.mentalBands;
+  }
+  public setMentalBands(value: ResistBand[] | null): void {
+    this.mentalBands = value;
   }
 }

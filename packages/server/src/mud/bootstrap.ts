@@ -64,6 +64,13 @@ export const bootstrapManifest: BootstrapEntry[] = [
   // as the discipline catalogue). Resolvable via `CorpoApi` after this
   // entry's postRegister fires.
   { templatePath: '/obj/CorpoCatalogue' },
+  // SpellCatalogue singleton — the authored spell roster. Warms in
+  // postRegister from the per-Spell leaf templates under `/lib/magic/Spell/`
+  // (the discipline-catalogue pattern), validating every authored effect
+  // against the closed Effect union — the structural half of "an Effect
+  // primitive exists iff a gated Api already does the work". Read by
+  // `MagicApi`/`MagicLogic` after this entry's postRegister fires.
+  { templatePath: '/obj/SpellCatalogue' },
   // HelpCatalogue singleton — the boot-warmed help index (the in-game
   // rulebook). Warms in postRegister by harvesting two projectors: every
   // loaded CommandDefinition (command preload runs in AppBootstrap.run,

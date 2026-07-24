@@ -37,9 +37,16 @@ export type EffectFamily = 'impulse' | 'modifier';
 export interface InjectChannelEffect {
   readonly kind: 'inject-channel';
   readonly channel: Channel;
-  /** Real energy, joules (channel-axis intensity) — or the shock voltage. */
+  /** The channel-axis energy token a body-target inflict folds (the
+   * materials-response magnitude the covering stack attenuates). */
   readonly energy?: number;
+  /** The shock potential (V) a spark imposes on its transient locus. */
   readonly voltage?: number;
+  /** Real thermal joules an OBJECT-target heat injection deposits
+   * (`ThermalApi.depositHeat` + `FireApi.tryAutoignite`) — authored
+   * separately from `energy` because the two branches speak different
+   * physical scales. */
+  readonly joules?: number;
   readonly site?: string;
   readonly resist?: ResistSpec;
 }
@@ -180,6 +187,7 @@ export class MagicEffects {
           channel: channel as Channel,
           energy: MagicEffects.optNumber(e.energy, 'energy'),
           voltage: MagicEffects.optNumber(e.voltage, 'voltage'),
+          joules: MagicEffects.optNumber(e.joules, 'joules'),
           site: MagicEffects.optString(e.site, 'site'),
           resist,
         };
