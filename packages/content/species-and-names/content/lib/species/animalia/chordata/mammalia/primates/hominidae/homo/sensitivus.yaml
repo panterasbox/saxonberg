@@ -14,7 +14,7 @@ data:
   _bodyPlanPath: /lib/body-plans/biped
   _parentCladePath: /lib/species/animalia
   _defaultMaterialPath: /lib/material/tissue/flesh
-  innateMixins: ["AetherMixin"]
+  innateMixins: ["AetherMixin", "CasterMixin"]
   vitalProfile:
     coreTemperature: { baseline: 310, survivableMin: 301, survivableMax: 315 }
     heartRate: { baseline: 70, survivableMin: 30, survivableMax: 220 }
@@ -39,3 +39,4 @@ data:
     stillness — as though half their attention rides a channel no one
     else can hear.
   nameBankKeys: ["common"]
+  facultyProfile: { depth: high, serenity: high, composure: low }

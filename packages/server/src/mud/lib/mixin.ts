@@ -207,6 +207,11 @@ export const Mixins = {
   // campfire): pinned hot while lit + fuelled, bellows-boosted, heats the
   // Meltables in its scope. Generalizes the Campfire pin.
   Furnace: 'FurnaceMixin',
+  // Magic — the anatomical casting faculty (mana reserve + serenity
+  // recovery + composure read + overchannel strain). Composed on
+  // Character, gated: active only when the Species intrinsically confers
+  // it (innateMixins) or an augment does. See docs/subsystems/magic.md.
+  Caster: 'CasterMixin',
 } as const;
 
 /**
