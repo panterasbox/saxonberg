@@ -20,7 +20,6 @@ import { CommandDefinition } from "../../../../lib/command/CommandDefinition";
 import { MessageApi } from "../../../../api/message";
 import { ContainmentApi } from "../../../../api/containment";
 import { ExecutionContextApi } from "../../../../api/execution-context";
-import { StuffApi } from "../../../../api/stuff";
 import { Idea } from "../../../../lib/stuff/Idea";
 import { ContainerMixin } from "../../../../lib/spatial/Container";
 import { ContainableMixin } from "../../../../lib/spatial/Containable";

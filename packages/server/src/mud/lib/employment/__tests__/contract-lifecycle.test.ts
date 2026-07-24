@@ -16,7 +16,6 @@ import { RegardApi } from "../../../api/regard";
 import { WorldClockApi } from "../../../api/worldclock";
 import { ExecutionContextApi } from "../../../api/execution-context";
 import { ContainmentApi } from "../../../api/containment";
-import { StuffApi } from "../../../api/stuff";
 import { Quantity } from "../../quantity";
 import { Idea } from "../../stuff/Idea";
 import { Creature } from "../../creature/Creature";
