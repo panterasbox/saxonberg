@@ -121,10 +121,18 @@ export function runMatchup(
    * nothing from the test harness, so the reset is supplied by the caller.
    */
   reset?: () => void,
+  /**
+   * Post-build wiring seam (the formations matrix): the caller assembles
+   * any party/formation state around the two built fighters before the
+   * session opens (raw test-seam writes are synchronous). The gym module
+   * itself stays party-agnostic.
+   */
+  setup?: (fa: Stuff & Engaged, fb: Stuff & Engaged) => void,
 ): MatchupResult {
   reset?.();
   const fa = a.make();
   const fb = b.make();
+  setup?.(fa, fb);
   const competenceBands = new Map<string, CompetenceBandName>();
   const ka = fa.getTemplatePath();
   const kb = fb.getTemplatePath();
@@ -168,6 +176,133 @@ export function runMatchup(
       ? "A"
       : "draw";
   return { winner, beats };
+}
+
+/** One fighter of a party-matchup side (the formations matrix). */
+export interface GymPartyFighter {
+  label: string;
+  make: () => Stuff & Engaged;
+  policy: GymPolicy;
+  /** Snapshotted competence band (drives sharpness → fog + recovery). */
+  band?: CompetenceBandName;
+  /**
+   * Which OPPOSING fighter (by index) this one enters the fight against
+   * (default 0). Shapes the initial engagement topology — the sustained
+   * edges a formation's allocation policy is measured against.
+   */
+  joinOnto?: number;
+}
+
+/** A party-matchup side: N fighters fighting as one side. */
+export interface GymPartySide {
+  fighters: GymPartyFighter[];
+}
+
+export interface PartyMatchupResult {
+  winner: "A" | "B" | "draw";
+  beats: number;
+  /** Which fighters (by label) ended the run downed. */
+  downs: Record<string, boolean>;
+}
+
+/**
+ * Run an N-vs-M matchup to resolution (the formations matrix). Same
+ * shape as {@link runMatchup} scaled out: A's first fighter opens on B's
+ * first, everyone else joins (A-siders onto B's first, B-siders onto A's
+ * first), and the loop queues each standing fighter's policy each beat.
+ * Party/formation wiring is the caller's `setup` (run after every
+ * fighter is built, before the session opens) — the gym module itself
+ * knows nothing about parties. Non-lethal terms: the engine resolves at
+ * the FIRST down, so `winner` = the side with nobody down, and `downs`
+ * names the fallen (the MA sustain claims read it). Deterministic per
+ * cell, like everything here.
+ */
+export function runPartyMatchup(
+  a: GymPartySide,
+  b: GymPartySide,
+  maxBeats = 400,
+  reset?: () => void,
+  setup?: (aF: (Stuff & Engaged)[], bF: (Stuff & Engaged)[]) => void,
+): PartyMatchupResult {
+  reset?.();
+  const aF = a.fighters.map((f) => f.make());
+  const bF = b.fighters.map((f) => f.make());
+  setup?.(aF, bF);
+
+  const competenceBands = new Map<string, CompetenceBandName>();
+  for (const [specs, built] of [
+    [a.fighters, aF],
+    [b.fighters, bF],
+  ] as const) {
+    specs.forEach((spec, i) => {
+      const key = built[i]!.getTemplatePath();
+      if (spec.band && key) competenceBands.set(key, spec.band);
+    });
+  }
+
+  const proposal: TermsProposal = {
+    lethality: "non-lethal",
+    stopCondition: "yield",
+    stakes: "",
+  };
+  const terms = CombatTerms.agreed(
+    aF[0]!.getTemplatePath() ?? "a",
+    proposal,
+    true,
+  );
+  const opened = CombatApi.openSession(aF[0]!, bF[0]!, terms, {
+    competenceBands,
+  });
+  if (!opened.ok) throw new Error(`gym: openSession failed (${opened.reason})`);
+  const session = opened.session;
+  // B-siders enter first (their only in-session counterpart is a0), then
+  // A-siders — whose `joinOnto` may target any B fighter, all of whom are
+  // now in the fight. The entry topology is the sustained-edge baseline a
+  // formation's allocation is measured against.
+  for (let i = 1; i < bF.length; i++) {
+    const onto = aF[Math.min(b.fighters[i]!.joinOnto ?? 0, aF.length - 1)]!;
+    const joined = CombatApi.join(bF[i]!, onto, terms, { competenceBands });
+    if (!joined.ok) throw new Error(`gym: join failed (${joined.reason})`);
+  }
+  for (let i = 1; i < aF.length; i++) {
+    const onto = bF[Math.min(a.fighters[i]!.joinOnto ?? 0, bF.length - 1)]!;
+    const joined = CombatApi.join(aF[i]!, onto, terms, { competenceBands });
+    if (!joined.ok) throw new Error(`gym: join failed (${joined.reason})`);
+  }
+
+  // Hold every state — mutated in place, readable after resolution.
+  const states = [...aF, ...bF].map(
+    (f) => session.getState(f) as CombatantState,
+  );
+
+  let beats = 0;
+  while (session.isActive() && beats < maxBeats) {
+    for (const [specs, built] of [
+      [a.fighters, aF],
+      [b.fighters, bF],
+    ] as const) {
+      specs.forEach((spec, i) => {
+        const f = built[i]!;
+        const st = session.getState(f);
+        if (!st || st.down) return;
+        const gambit = spec.policy(session, f);
+        if (gambit) CombatApi.queueGambit(f, gambit);
+      });
+    }
+    CombatApi.advance(session);
+    beats++;
+  }
+  session.dissolve();
+
+  const downs: Record<string, boolean> = {};
+  [...a.fighters, ...b.fighters].forEach((spec, i) => {
+    downs[spec.label] = states[i]!.down;
+  });
+  const aDown = a.fighters.some((s) => downs[s.label]);
+  const bDown = b.fighters.some((s) => downs[s.label]);
+  const winner: PartyMatchupResult["winner"] =
+    aDown === bDown ? "draw" : aDown ? "B" : "A";
+  return { winner, beats, downs };
 }
 
 export interface MatchupSpec extends MatchupResult {
