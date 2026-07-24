@@ -12,6 +12,7 @@ import Species from "../../species/Species";
 import Thing from "../../stuff/Thing";
 import { LightSourceMixin } from "../../perception/LightSource";
 import { StuffApi } from "../../../api/stuff";
+import { ContainmentApi } from "../../../api/containment";
 import { WorldClockApi } from "../../../api/worldclock";
 import "../../../obj/WorldClockRegistry";
 import {
@@ -67,8 +68,15 @@ describe("SustainedEffect — the modifier condition kind", () => {
     WorldClockApi._resetForTesting();
   });
 
-  it("realizes a bound light emitter by pull, and dormancy un-realizes it", () => {
+  it("realizes a bound light emitter by pull; a suppression field makes it dormant", async () => {
+    const { default: Location } = await import("../../stuff/Location");
+    class WardRoom extends Location {}
+    const plain = makeStuff(() => new WardRoom());
+    const warded = makeStuff(() => new WardRoom());
+    warded.setSuppressesMagic({ all: true });
+
     const actor = makeActor();
+    ContainmentApi.move(actor as never, plain as never);
     const orb = makeStuff(() => new TestOrb());
     const effect: SustainedEffect = {
       kind: "sustained",
@@ -81,13 +89,19 @@ describe("SustainedEffect — the modifier condition kind", () => {
     advance(actor, 1); // first touch stamps + realizes
     expect(orb.getEmittedFlux().rawValue()).toBe(500); // magic.glowlight.lumens fallback
 
-    // suppression sets the flag (P7's job); the arm un-realizes on pull
-    effect.dormant = true;
+    // walk into the ward — the next pull reads the field and un-realizes
+    ContainmentApi.move(actor as never, warded as never);
     advance(actor, 5);
     expect(orb.getEmittedFlux().rawValue()).toBe(0);
 
-    // out of the field — re-realizes
-    effect.dormant = false;
+    // walk out — re-realizes
+    ContainmentApi.move(actor as never, plain as never);
+    advance(actor, 5);
+    expect(orb.getEmittedFlux().rawValue()).toBe(500);
+
+    // a grid-filtered ward on another noun leaves it lit
+    warded.setSuppressesMagic({ nouns: ["fire"] });
+    ContainmentApi.move(actor as never, warded as never);
     advance(actor, 5);
     expect(orb.getEmittedFlux().rawValue()).toBe(500);
   });

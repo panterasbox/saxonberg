@@ -52,6 +52,7 @@ import { CombatApi } from '../../api/combat';
 import { SpeciesApi } from '../../api/species';
 import { AccessApi } from '../../api/access';
 import { CommandApi } from '../../api/command';
+import { ZoneApi } from '../../api/zone';
 import { WorldClockApi } from '../../api/worldclock';
 import { AppApi } from '../../api/app';
 import { AppSettingKeys } from '../../lib/config/AppSettings';
@@ -374,16 +375,31 @@ async function spellsViewImpl(caster: Stuff): Promise<SpellsView> {
 
 // ─────────────────── suppression (P7 wires the field) ───────────────────
 
-/** Sync room-tier walk — filled in by the suppression phase. */
-function suppressionAtImpl(_place: Stuff | null): MagicSuppression | null {
-  return null;
+/** Sync room-tier resolve — the outward containment walk. */
+function suppressionAtImpl(place: Stuff | null): MagicSuppression | null {
+  return Suppressions.fieldAt(place);
 }
 
-/** Async deep tier (sync walk + zone chain) — filled in by the suppression phase. */
+/**
+ * The deep tier: the sync walk, then the ASYNC zone chain
+ * (`Zone.lookupField('suppressesMagic')` — region-scale wards). Used at
+ * cast time; the sync tier alone is authoritative for the reconcile's
+ * dormancy read (DIV-4).
+ */
 async function suppressionAtDeepImpl(
   place: Stuff | null,
 ): Promise<MagicSuppression | null> {
-  return suppressionAtImpl(place);
+  const sync = suppressionAtImpl(place);
+  if (sync) return sync;
+  try {
+    const path = place?.getTemplatePath();
+    if (!path) return null;
+    const zone = await ZoneApi.resolveZoneForPath(path);
+    const field = await zone?.lookupField<unknown>('suppressesMagic');
+    return field ? Suppressions.validate(field) : null;
+  } catch {
+    return null;
+  }
 }
 
 // ─────────────────────────── the executors ───────────────────────────

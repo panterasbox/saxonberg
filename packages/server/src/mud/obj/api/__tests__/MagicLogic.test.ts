@@ -354,6 +354,29 @@ describe("MagicLogic — the cast pipeline", () => {
     expect(clean.reports.join(" ")).toMatch(/no workings/i);
   });
 
+  it("an anti-magic field vetoes casting at cast time, grid-filterable", async () => {
+    stubBands("competent");
+    const { default: Location } = await import("../../../lib/stuff/Location");
+    class WardRoom extends Location {}
+    const { ContainmentApi } = await import("../../../api/containment");
+    const warded = makeStuff(() => new WardRoom());
+    warded.setSuppressesMagic({ nouns: ["fire"] });
+    const caster = makeCaster();
+    ContainmentApi.move(caster as never, warded as never);
+
+    // 'no ·fire here' blocks firebolt…
+    const fire = await MagicApi.prepareCast(caster, "firebolt", caster);
+    expect(fire.ok).toBe(false);
+    expect(fire.refusal).toMatch(/suppresses/);
+    // …but admits glowlight (create·light)
+    const light = await MagicApi.prepareCast(caster, "glowlight");
+    expect(light.ok).toBe(true);
+
+    // the blanket ward blocks everything
+    warded.setSuppressesMagic({ all: true });
+    expect((await MagicApi.prepareCast(caster, "glowlight")).ok).toBe(false);
+  });
+
   it("the spells view speaks bands, never numbers", async () => {
     stubBands("novice");
     const caster = makeCaster();

@@ -22,14 +22,49 @@
 
 import type { MagicNoun, MagicVerb } from './Grid';
 import { MagicGrid } from './Grid';
+import type { Stuff } from '../stuff/Stuff';
+import { MixinApi } from '../../api/mixin';
+
+/** Containment-walk depth cap (the BiomeLogic guard). */
+const WALK_DEPTH_CAP = 32;
+
+/** The field-carrier surface (structural — importing `Location` here
+ * would cycle Location → Suppression → Location, so the walk narrows on
+ * the method the carrier declares; `Location` is the one declarer). */
+interface SuppressionCarrier {
+  getSuppressesMagic(): MagicSuppression | null;
+}
 
 /** The authored field value. */
 export type MagicSuppression =
   | { readonly all: true }
   | { readonly verbs?: readonly MagicVerb[]; readonly nouns?: readonly MagicNoun[] };
 
-/** Thin static holder — match + seed validation. */
+/** Thin static holder — match + seed validation + the sync walk. */
 export class Suppressions {
+  /**
+   * The **sync room-tier resolve**: walk outward from `place` through
+   * containment (the biome-chain shape, depth-capped) and return the
+   * first carried field, or `null`. SYNC by design — the sustained-
+   * effect dormancy check runs inside the (sync) conditions reconcile.
+   * The async zone tier folds in one layer up (`MagicApi.
+   * suppressionAtDeep`) for cast-time reads.
+   */
+  public static fieldAt(place: Stuff | null | undefined): MagicSuppression | null {
+    let cursor: Stuff | null = place ?? null;
+    let depth = WALK_DEPTH_CAP;
+    while (cursor !== null && depth-- > 0) {
+      const carrier = cursor as Partial<SuppressionCarrier>;
+      if (typeof carrier.getSuppressesMagic === 'function') {
+        const field = carrier.getSuppressesMagic();
+        if (field) return field;
+      }
+      cursor = MixinApi.isContainable(cursor)
+        ? (cursor.getContainer() ?? null)
+        : null;
+    }
+    return null;
+  }
   /** Does this field suppress a cast at the given grid address? */
   public static suppresses(
     field: MagicSuppression | null | undefined,

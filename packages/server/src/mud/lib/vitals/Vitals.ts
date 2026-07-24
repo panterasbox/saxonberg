@@ -52,6 +52,7 @@ import { AppApi } from '../../api/app';
 import { AppSettingKeys } from '../config/AppSettings';
 import type { Energized } from '../electricity/Energized';
 import { TemplatePaths } from '../paths';
+import { Suppressions } from '../magic/Suppression';
 
 /** Alias for readability at the magic arm's call sites. */
 function magicDial(key: string, fallback: number): number {
@@ -706,6 +707,7 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
         for (const s of sustained) {
           if (s.tickedAt === undefined) {
             s.tickedAt = nowS;
+            this.reconcileSuppression(s);
             this.applySustainedRealization(s);
             continue;
           }
@@ -718,6 +720,7 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
             this.releaseSustained(s);
             continue;
           }
+          this.reconcileSuppression(s);
           this.applySustainedRealization(s);
         }
 
@@ -789,6 +792,27 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
      * — the body may have stepped out of the pool or the source may have died.
      * Cheap: the whole graph is re-walked only when a shock is active (rare).
      */
+    /**
+     * The dormancy read (SYNC — this runs inside the conditions
+     * reconcile): a sustained effect inside a `suppresses-magic` field
+     * matching its grid address goes dormant (un-realized, not
+     * released); stepping out re-realizes it on the next pull. The
+     * suppressible line IS the impulse/modifier line — nothing else in
+     * this reconcile consults the field.
+     */
+    private reconcileSuppression(s: SustainedEffect): void {
+      const self = this as unknown as Stuff;
+      const place = MixinApi.isContainable(self)
+        ? (self.getContainer() ?? null)
+        : null;
+      const field = Suppressions.fieldAt(place);
+      s.dormant = Suppressions.suppresses(
+        field,
+        s.magicOrigin.verb,
+        s.magicOrigin.noun,
+      );
+    }
+
     /**
      * Realize (or, dormant, un-realize) a sustained magical effect BY
      * PULL — the modifier's whole runtime is this idempotent apply:
