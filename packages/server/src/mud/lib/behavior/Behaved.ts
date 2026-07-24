@@ -153,12 +153,24 @@ export function BehavedMixin<TBase extends MixinConstructor<Stuff>>(
      * settles on its next (re)placement.
      */
     public getInstanceContributions(): CommandContributions {
+      // Merge any inner contributor's buckets (CasterMixin sits under
+      // this on the NPC chain) — a shadowing implementation must not
+      // silently drop a sibling seam's affordances.
+      const inner =
+        (
+          Base.prototype as {
+            getInstanceContributions?: () => CommandContributions;
+          }
+        ).getInstanceContributions?.call(this) ?? {};
       const conversational = (this.behaviors ?? []).some(
         (s) => s.trigger === 'engage'
       );
-      return conversational
-        ? { environment: ['social/talk.yaml'], peers: ['social/talk.yaml'] }
-        : {};
+      if (!conversational) return inner;
+      return {
+        ...inner,
+        environment: [...(inner.environment ?? []), 'social/talk.yaml'],
+        peers: [...(inner.peers ?? []), 'social/talk.yaml'],
+      };
     }
 
     // ───────── lifecycle ─────────

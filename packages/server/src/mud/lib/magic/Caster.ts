@@ -28,6 +28,7 @@
 
 import type { MixinConstructor } from '../mixin';
 import { Mixins } from '../mixin';
+import type { CommandContributions } from '../../api/command';
 import { MixinApi } from '../../api/mixin';
 import { StuffApi } from '../../api/stuff';
 import { WorldClockApi } from '../../api/worldclock';
@@ -127,6 +128,27 @@ export function CasterMixin<TBase extends MixinConstructor>(Base: TBase) {
         this.getCasterProfile() !== null &&
         MixinApi.isActive(this as unknown as Stuff, Mixins.Caster)
       );
+    }
+
+    /**
+     * The per-instance affordance seam (the `BehavedMixin` talk
+     * precedent): `cast`/`spells` afford only when the faculty is
+     * actually conferred — static `commandContributions` would afford
+     * them to every Character (the mixin is composed universally,
+     * activated selectively). Merges any inner contributor's buckets.
+     */
+    public getInstanceContributions(): CommandContributions {
+      const inner =
+        (
+          Base.prototype as {
+            getInstanceContributions?: () => CommandContributions;
+          }
+        ).getInstanceContributions?.call(this) ?? {};
+      if (!this.isCastingCapable()) return inner;
+      return {
+        ...inner,
+        self: [...(inner.self ?? []), 'magic/cast.yaml', 'magic/spells.yaml'],
+      };
     }
 
     public getCasterProfile(): FacultyProfile | null {
