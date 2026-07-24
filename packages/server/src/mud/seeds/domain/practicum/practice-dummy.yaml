@@ -1,0 +1,20 @@
+# The practice dummy — a Combustible target (the Firewood chassis, straw
+# prose): firebolt deposits real joules, tryAutoignite fires, and real
+# combustion (spread / smoke / char) takes over. Cloned fresh each standup.
+class: /obj/Firewood
+hydratorClass: /lib/persistence/PersistentHydrator
+data:
+  shortDescription: a straw practice dummy
+  keywords: [dummy, target, straw]
+  longDescription: >
+    A man-shaped bundle of straw lashed to a post, singed in a dozen old
+    places and freshly repaired in two.
+  _materialPath: /lib/material/wood/oak
+  charMaterialPath: /lib/material/element/carbon
+  reserves:
+    fuel:
+      capacityValue: 100
+      currentValue: 100
+      unit: "%"
+      theme: combustion
+      floorEffect: null
