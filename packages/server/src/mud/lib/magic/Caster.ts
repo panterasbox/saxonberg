@@ -28,7 +28,7 @@
 
 import type { MixinConstructor } from '../mixin';
 import { Mixins } from '../mixin';
-import type { CommandContributions } from '../../api/command';
+import { CommandApi } from '../../api/command';
 import { MixinApi } from '../../api/mixin';
 import { StuffApi } from '../../api/stuff';
 import { WorldClockApi } from '../../api/worldclock';
@@ -55,6 +55,12 @@ export const MANA_RESERVE_KEY = 'mana';
 /** The overchannel-strain condition seed's templatePath. */
 export const OVERCHANNEL_STRAIN_PATH =
   TemplatePathPrefixes.magicCondition + 'overchannel-strain';
+
+/** The affording source for the dynamic `cast`/`spells` self-push. */
+const SPELL_CATALOGUE_PATH = '/obj/SpellCatalogue';
+
+/** The casting verb views the affordance push resolves. */
+const CASTING_VERB_YAMLS = ['magic/cast.yaml', 'magic/spells.yaml'] as const;
 
 /** The banded, numbers-free self-view (`spells` speaks this). */
 export interface FacultyView {
@@ -102,6 +108,9 @@ export interface Caster {
   getCasterProfile(): FacultyProfile | null;
   /** Install the mana pool from the depth band (idempotent, capable-only). */
   installArcaneReserve(): void;
+  /** Reconcile the `cast`/`spells` affordance push (pop + re-push iff
+   * the faculty is active — the `refreshConferrals` mirror). */
+  refreshCastingAffordance(): void;
   /** Reconcile-on-read: serenity-rate recovery + strain hysteresis-clear. */
   reconcileFaculty(): void;
   /**
@@ -145,24 +154,31 @@ export function CasterMixin<TBase extends MixinConstructor>(Base: TBase) {
     }
 
     /**
-     * The per-instance affordance seam (the `BehavedMixin` talk
-     * precedent): `cast`/`spells` afford only when the faculty is
-     * actually conferred — static `commandContributions` would afford
-     * them to every Character (the mixin is composed universally,
-     * activated selectively). Merges any inner contributor's buckets.
+     * Reconcile the casting affordance onto the giver's stack (the
+     * `AdvancementMixin.refreshConferrals` mirror — the shipped
+     * mechanism for per-instance SELF verbs; the `self` bucket's
+     * static collection walks classes only, so a gated mixin cannot
+     * afford selectively through `commandContributions`): pop the
+     * prior entry unconditionally, re-push `cast`/`spells` iff the
+     * faculty is active. The SpellCatalogue is the affording source
+     * (attribution: "your gift"). Called from `Avatar.enter` — the
+     * faculty is species-fixed in-session, so once per session
+     * suffices; an augment-conferred faculty re-runs it via the same
+     * call the next session.
      */
-    public getInstanceContributions(): CommandContributions {
-      const inner =
-        (
-          Base.prototype as {
-            getInstanceContributions?: () => CommandContributions;
-          }
-        ).getInstanceContributions?.call(this) ?? {};
-      if (!this.isCastingCapable()) return inner;
-      return {
-        ...inner,
-        self: [...(inner.self ?? []), 'magic/cast.yaml', 'magic/spells.yaml'],
-      };
+    public refreshCastingAffordance(): void {
+      const self = this as unknown as Stuff;
+      if (!MixinApi.isCommandGiver(self)) return;
+      const catalogue = StuffApi.findByTemplatePath(SPELL_CATALOGUE_PATH);
+      if (!catalogue) return;
+      self.popCommandSource(catalogue);
+      if (!this.isCastingCapable()) return;
+      const defs = CASTING_VERB_YAMLS.map((f) => CommandApi.getCommand(f)).filter(
+        (d): d is NonNullable<typeof d> => d != null,
+      );
+      if (defs.length > 0) {
+        self.pushCommandSource(catalogue, 'self', defs);
+      }
     }
 
     public getCasterProfile(): FacultyProfile | null {

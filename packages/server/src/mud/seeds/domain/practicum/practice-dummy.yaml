@@ -10,6 +10,9 @@ data:
     A man-shaped bundle of straw lashed to a post, singed in a dozen old
     places and freshly repaired in two.
   _materialPath: /lib/material/wood/oak
+  # Light — a bundle of straw (~1.5 kg), so one competent firebolt's
+  # deposit carries it past oak's 570 K autoignition point.
+  mass: 1.5
   charMaterialPath: /lib/material/element/carbon
   reserves:
     fuel:

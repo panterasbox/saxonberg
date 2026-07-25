@@ -170,7 +170,7 @@ describe("CastController + CastActivity", () => {
     const before = mana(caster);
     const controller = makeStuff(() => new CastController());
     await controller.execute(
-      { spell: { raw: "glowlight" } } as unknown as CommandModel,
+      { spell: "glowlight" } as unknown as CommandModel,
       ctx(caster, room),
     );
     // Dispatch schedules; nothing has been spent or installed yet.
@@ -191,7 +191,7 @@ describe("CastController + CastActivity", () => {
     const before = mana(caster);
     const controller = makeStuff(() => new CastController());
     await controller.execute(
-      { spell: { raw: "glowlight" } } as unknown as CommandModel,
+      { spell: "glowlight" } as unknown as CommandModel,
       ctx(caster, room),
     );
     SchedulerApi.cancelAll(caster as never); // the barge-in
@@ -210,7 +210,7 @@ describe("CastController + CastActivity", () => {
     vi.spyOn(AdvancementApi, "bandFor").mockResolvedValue("untrained");
     const controller = makeStuff(() => new CastController());
     await controller.execute(
-      { spell: { raw: "glowlight" } } as unknown as CommandModel,
+      { spell: "glowlight" } as unknown as CommandModel,
       ctx(caster, room),
     );
     expect(selfLines.join(" ")).toMatch(/beyond your/);

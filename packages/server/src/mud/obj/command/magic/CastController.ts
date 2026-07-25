@@ -27,14 +27,15 @@ import { CastActivity } from '../../../lib/magic/CastActivity';
 const TOPIC = 'world.magic.cast';
 
 interface CastModel extends CommandModel {
-  spell?: { raw?: string };
+  /** A `type: string` arg parses to a plain string. */
+  spell?: string;
   target?: MqlOneResult;
 }
 
 export default class CastController extends CommandController<CastModel> {
   async execute(model: CastModel, context: CommandContext): Promise<void> {
     const actor = context.commandGiver;
-    const spellId = (model.spell?.raw ?? '').trim().toLowerCase();
+    const spellId = (model.spell ?? '').trim().toLowerCase();
 
     if (!spellId) {
       MessageApi.scene(actor)
@@ -77,8 +78,12 @@ export default class CastController extends CommandController<CastModel> {
       return;
     }
 
+    // Module-private completion body — the controller instance is a
+    // per-dispatch clone destructed when execute returns, so an
+    // instance-method closure would no-op as [inert] by the time the
+    // activity completes. Free of `this` by construction.
     const onComplete = (): void => {
-      void this.resolveAndRender(actor, spellId, target);
+      void resolveAndRender(actor, spellId, target);
     };
 
     // No engagement capacity (a bare test fixture) → resolve now (the
@@ -138,31 +143,34 @@ export default class CastController extends CommandController<CastModel> {
     }
   }
 
-  /** The completion body — resolve through the Api and render. */
-  private async resolveAndRender(
-    actor: Stuff,
-    spellId: string,
-    target: Stuff | undefined,
-  ): Promise<void> {
-    const outcome = await MagicApi.resolveCast(actor, spellId, target);
-    if (!outcome.ok) {
-      MessageApi.scene(actor)
-        .topic(TOPIC)
-        .toSelf(
-          Mml.compose`${outcome.refusal ?? 'The working slips away at the last moment.'}`,
-        )
-        .send();
-      return;
-    }
-    const lines = outcome.reports.length
-      ? outcome.reports.join(' ')
-      : 'The working completes.';
+}
+
+/** The completion body — resolve through the Api and render. Module-private
+ * (NOT an instance method): it runs after the per-dispatch controller
+ * clone has been destructed. */
+async function resolveAndRender(
+  actor: Stuff,
+  spellId: string,
+  target: Stuff | undefined,
+): Promise<void> {
+  const outcome = await MagicApi.resolveCast(actor, spellId, target);
+  if (!outcome.ok) {
     MessageApi.scene(actor)
       .topic(TOPIC)
-      .toSelf(Mml.compose`${lines}`)
-      .toPeers(
-        Mml.compose`${actor.getPresentation()} completes a working — the air shivers with it.`,
+      .toSelf(
+        Mml.compose`${outcome.refusal ?? 'The working slips away at the last moment.'}`,
       )
       .send();
+    return;
   }
+  const lines = outcome.reports.length
+    ? outcome.reports.join(' ')
+    : 'The working completes.';
+  MessageApi.scene(actor)
+    .topic(TOPIC)
+    .toSelf(Mml.compose`${lines}`)
+    .toPeers(
+      Mml.compose`${actor.getPresentation()} completes a working — the air shivers with it.`,
+    )
+    .send();
 }
