@@ -79,3 +79,19 @@ describe('Creature — mass default-seeding from BodyPlan.baseMass', () => {
     expect(creature.getMass().rawValue()).toBe(70);
   });
 });
+
+describe('Creature biological reserve readers — the contract surface', () => {
+  afterEach(() => StuffApi.clearAll());
+
+  it('getEndurance/getSatiation/getHydration front the keyed reserves', () => {
+    const c = makeStuff(() => new Creature());
+    // installed at construction, full, %-unit — non-null by contract
+    for (const r of [c.getEndurance(), c.getSatiation(), c.getHydration()]) {
+      expect(r.capacity.unit).toBe('%');
+      expect(r.current.rawValue()).toBe(100);
+    }
+    c.adjustReserve('endurance', Quantity.of(-30, '%'));
+    expect(c.getEndurance().current.rawValue()).toBe(70);
+    expect(c.getEndurance().key).toBe('endurance');
+  });
+});

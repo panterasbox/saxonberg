@@ -33,9 +33,9 @@
  *
  * | key | unit | owner (installs/drives) | read it via |
  * |---|---|---|---|
- * | `endurance` | `%` | Creature + `MetabolicMixin` (recovery) | keyed reads auto-reconcile (Metabolic hooks them); drained by Vitals (limp), LoadBearing (traversal), combat (tempo) |
- * | `satiation` | `%` | Creature + `MetabolicMixin` | as above; spent by ThermalRegulation (setpoint defense) |
- * | `hydration` | `%` | Creature + `MetabolicMixin` | as above (the tighter recovery leash) |
+ * | `endurance` | `%` | Creature + `MetabolicMixin` (recovery) | `Creature.getEndurance()`; drained internally by Vitals (limp), LoadBearing (traversal) — same-host keyed writes are the body's own economy |
+ * | `satiation` | `%` | Creature + `MetabolicMixin` | `Creature.getSatiation()`; spent internally by ThermalRegulation (setpoint defense) |
+ * | `hydration` | `%` | Creature + `MetabolicMixin` | `Creature.getHydration()` (the tighter recovery leash) |
  * | `fuel` | `%` | `CombustibleMixin` / `FurnaceMixin` (theme `combustion`) | `getFuelRemaining()` |
  * | `air` | `%` | an enclosed scope's Location (fire chemistry) | `FireLogic`-internal (no external reader) |
  * | `mana` | `pt` | `CasterMixin` (theme `arcane`; capacity from the depth band) | `getMana()` / `getManaFraction()` — raw keyed reads SKIP the recovery reconcile, never use them outside `lib/magic` |
