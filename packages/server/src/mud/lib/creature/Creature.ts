@@ -47,7 +47,7 @@ import { VisibleMixin } from '../description/Visible';
 import { ContainableMixin } from '../spatial/Containable';
 import { ContainerMixin } from '../spatial/Container';
 import { VitalsMixin } from '../vitals/Vitals';
-import { ReservedMixin } from '../reserve';
+import { ReservedMixin, type Reserve } from '../reserve';
 import { LoadBearingMixin } from '../encumbrance/LoadBearing';
 import { MetabolicMixin } from '../metabolism/Metabolic';
 import { ThermalMixin } from '../thermal/Thermal';
@@ -150,6 +150,31 @@ export class Creature extends CreatureBase {
     // satiation / hydration) at full. Idempotent — hydration overwrites
     // from stored values afterward.
     this.installBiologicalReserves();
+  }
+
+  // ── biological reserve readers — the contract surface ──
+  // The convenience readers that spare consumers the reserve keys (the
+  // `Combustible.getFuelRemaining` / `Caster.getMana` pattern): a
+  // combat tempo read, an encumbrance margin, an authored brain or
+  // script checking "is this body tired/hungry/thirsty" all come here.
+  // Metabolic hooks the underlying keyed reads, so each carries the
+  // metabolism reconcile — never a stale value. Always present (the
+  // constructor installs them), hence non-null. See the reserve
+  // landscape table in `lib/reserve.ts`.
+
+  /** The endurance reserve (exertion capacity), reconciled. */
+  public getEndurance(): Reserve {
+    return this.getReserve('endurance')!;
+  }
+
+  /** The satiation reserve (food fuel), reconciled. */
+  public getSatiation(): Reserve {
+    return this.getReserve('satiation')!;
+  }
+
+  /** The hydration reserve (the tighter recovery leash), reconciled. */
+  public getHydration(): Reserve {
+    return this.getReserve('hydration')!;
   }
 
   /**

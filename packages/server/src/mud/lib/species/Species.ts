@@ -29,6 +29,8 @@ import type BodyPlan from './BodyPlan';
 import type Clade from './Clade';
 import type Material from '../material/Material';
 import type { VisionProfile } from '../perception/Light';
+import type { FacultyProfile } from '../magic/Faculty';
+import { Faculty } from '../magic/Faculty';
 import { NameBank } from './NameBank';
 
 /** A suggested character name (given + optional surname). */
@@ -202,6 +204,18 @@ export default class Species extends SingletonMixin(
   protected vitalProfile: VitalProfile | null = null;
 
   /**
+   * Per-species casting-faculty profile (the magic substrate): three
+   * banded attributes — `depth` (pool capacity), `serenity` (recovery
+   * rate), `composure` (the mental-axis resist substrate, read live
+   * against current reserve). `null` = the species has no casting
+   * faculty (composure then reads the neutral default band). Flat
+   * 3-band record; default JSON serialization handles it (the
+   * `visionProfile` precedent). A casting species pairs this with
+   * `innateMixins: ['CasterMixin']`. See docs/subsystems/magic.md.
+   */
+  protected facultyProfile: FacultyProfile | null = null;
+
+  /**
    * References to one or more `NameBank` Documents by key (e.g.
    * `['common']`, `['orcish', 'common']`). The name suggester resolves
    * these and unions the pools. NOT the name data itself — that lives
@@ -261,6 +275,7 @@ export default class Species extends SingletonMixin(
     'visionProfile',
     'olfactoryProfile',
     'vitalProfile',
+    'facultyProfile',
     'nameBankKeys',
     'innateMixins',
     'sentient',
@@ -407,6 +422,14 @@ export default class Species extends SingletonMixin(
       }
     }
     this.vitalProfile = value;
+  }
+
+  public getFacultyProfile(): FacultyProfile | null {
+    return this.facultyProfile;
+  }
+  public setFacultyProfile(value: FacultyProfile | null): void {
+    // Per-field invariant: Faculty.validateProfile throws on bad bands.
+    this.facultyProfile = Faculty.validateProfile(value);
   }
 
   public getNameBankKeys(): readonly string[] { return this.nameBankKeys; }

@@ -113,6 +113,20 @@ thresholds, and the outcome-band cutoffs. **No magic balance number ships
 as a code invariant** — every magnitude is a dial read with a seeded-literal
 fallback (safe pre-warm/test).
 
+### The boot roster warm (`MaterialApi.boot`)
+
+Every material read the engine performs (`Tangible.getMaterial`, a bulk
+slot's material, `Combustible`'s autoignition, composition expansion)
+is a **sync** `findByTemplatePath` against the live index — and nothing
+else ever stood Materials up in a running server (tests hand-construct
+theirs), so every live read was null and nothing could ignite or melt.
+`MaterialApi.boot()` (called from `AppBootstrap` after the seeders)
+stands the whole `/lib/material/**` roster up as live singletons — the
+`SpeciesApi.preloadAnatomy` tolerant-ensure made total over a small,
+hot, reference-data roster. Folder rows (`FolderZone`s) are the zone
+substrate's and are skipped. `Material.canEvict` vetoes the residency
+sweep: a culled material would be a null read until the next process.
+
 ## Armor mitigation — emergent, layered, outside-in
 
 There is **no `ArmorMixin`** (Settled-4). A piece of armor is an *emergent

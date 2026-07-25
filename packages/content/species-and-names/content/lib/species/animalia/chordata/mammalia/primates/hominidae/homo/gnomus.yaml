@@ -12,6 +12,7 @@ data:
   _bodyPlanPath: /lib/body-plans/biped
   _parentCladePath: /lib/species/animalia
   _defaultMaterialPath: /lib/material/tissue/flesh
+  innateMixins: ["CasterMixin"]
   vitalProfile:
     coreTemperature: { baseline: 310, survivableMin: 301, survivableMax: 315 }
     heartRate: { baseline: 80, survivableMin: 35, survivableMax: 230 }
@@ -38,3 +39,4 @@ data:
     with the restless, tinkering attention of someone forever halfway
     through taking something apart to see how it works.
   nameBankKeys: ["gnomish"]
+  facultyProfile: { depth: low, serenity: high, composure: mid }

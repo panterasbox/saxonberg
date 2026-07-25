@@ -135,6 +135,7 @@ import type { Durable } from '../lib/material/Durable';
 import type { Dressing } from '../lib/vitals/Dressing';
 import type { Crafted } from '../lib/craft/Crafted';
 import type { Maker } from '../lib/craft/Maker';
+import type { Caster } from '../lib/magic/Caster';
 import type { Builds } from '../lib/craft/ManualBuild';
 import type { Bank } from '../lib/banking/Bank';
 import type { Business } from '../lib/employment/Business';
@@ -1060,6 +1061,18 @@ export class MixinApi {
   /** A manual-build vessel — the shaker/mixing-glass that buffers a build. */
   public static isBuildVessel(obj: Stuff): obj is Stuff & Builds {
     return this.hasMixin(obj, Mixins.ManualBuild);
+  }
+
+  /**
+   * An actor whose **casting faculty is active** — composed AND conferred
+   * (the actor's `Species.innateMixins` or an augment names `CasterMixin`;
+   * the `isMaker` activation precedent). Every `Character` composes the
+   * mixin; only a casting species' members pass this predicate, so the
+   * `cast` pipeline and the verb affordance key on *activation*, not
+   * composition.
+   */
+  public static isCaster(obj: Stuff): obj is Stuff & Caster {
+    return this.isActive(obj, Mixins.Caster);
   }
 
   public static isBank(obj: Stuff): obj is Stuff & Bank {

@@ -916,6 +916,56 @@ export const AppSettingKeys = {
   /** Respiration — carbon-monoxide (contaminant) toxin burden a breather
    * takes on per reassess while in a contaminated (smoke) medium. */
   respirationContaminantBurdenPerBreath: "respiration.contaminantBurdenPerBreath",
+
+  /* ────────────────────────── magic (casting core) ────────────────────────── */
+  /** Magic — default cast time (game-seconds) when a spell seed omits one. */
+  magicCastSecondsDefault: "magic.castSecondsDefault",
+  /** Magic — default mana cost (pt) when a spell seed omits one. */
+  magicCostDefault: "magic.costDefault",
+  /** Magic — fraction of a spell's cost spent on an aborted cast (0 =
+   * abort is free; the tuning seam if cast-cancel spam needs teeth). */
+  magicAbortCostFraction: "magic.abortCostFraction",
+  /** Magic — mana pool capacity (pt) a `low`-depth faculty derives. */
+  magicDepthCapacityLow: "magic.depthCapacity.low",
+  /** Magic — mana pool capacity (pt) a `mid`-depth faculty derives. */
+  magicDepthCapacityMid: "magic.depthCapacity.mid",
+  /** Magic — mana pool capacity (pt) a `high`-depth faculty derives. */
+  magicDepthCapacityHigh: "magic.depthCapacity.high",
+  /** Magic — base mana recovery (pt per game-minute) at rest, before the
+   * serenity factor and the metabolism-shaped rest-quality scaling. */
+  magicRecoveryPerMinBase: "magic.recoveryPerMinBase",
+  /** Magic — recovery multiplier for a `low`-serenity faculty. */
+  magicSerenityFactorLow: "magic.serenityFactor.low",
+  /** Magic — recovery multiplier for a `mid`-serenity faculty. */
+  magicSerenityFactorMid: "magic.serenityFactor.mid",
+  /** Magic — recovery multiplier for a `high`-serenity faculty. */
+  magicSerenityFactorHigh: "magic.serenityFactor.high",
+  /** Magic — the mental-resist substrate base for a `low` composure band. */
+  magicComposureBaseLow: "magic.composureBase.low",
+  /** Magic — the mental-resist substrate base for a `mid` composure band. */
+  magicComposureBaseMid: "magic.composureBase.mid",
+  /** Magic — the mental-resist substrate base for a `high` composure band. */
+  magicComposureBaseHigh: "magic.composureBase.high",
+  /** Magic — the floor of the live composure read: factor = base ×
+   * (floor + (1−floor) × manaFraction), so a fully drained mage keeps
+   * this fraction of their composure base. */
+  magicComposureFloorFactor: "magic.composure.floorFactor",
+  /** Magic — per-competence-band potency multiplier step (how much a
+   * higher casting band scales an effect's authored intensity). */
+  magicPotencyCompetenceFactor: "magic.potency.competenceFactor",
+  /** Magic — overchannel-strain stages per pt of mana deficit when a
+   * cast completes past empty. */
+  magicOverchannelSeverityPerDeficit: "magic.overchannel.severityPerDeficit",
+  /** Magic — mana fraction (0..1) recovery must clear to relieve
+   * overchannel strain (the metabolism hysteresis-clear precedent). */
+  magicOverchannelClearThreshold: "magic.overchannel.clearThreshold",
+  /** Magic — dread's timed decay: stages lost per game-second. */
+  magicDreadDecayPerSec: "magic.dread.decayPerSec",
+  /** Magic — emitted flux (lumens) of the glowlight bound orb. */
+  magicGlowlightLumens: "magic.glowlight.lumens",
+  /** Magic — litres of water the conjure-water effect transfers when the
+   * spell seed omits an amount. */
+  magicConjureWaterLitres: "magic.conjure.waterLitres",
 } as const;
 
 export type AppSettingKey =

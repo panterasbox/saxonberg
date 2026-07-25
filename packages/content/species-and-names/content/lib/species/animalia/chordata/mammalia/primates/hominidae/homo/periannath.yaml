@@ -11,6 +11,7 @@ data:
   _bodyPlanPath: /lib/body-plans/biped
   _parentCladePath: /lib/species/animalia
   _defaultMaterialPath: /lib/material/tissue/flesh
+  innateMixins: ["CasterMixin"]
   vitalProfile:
     coreTemperature: { baseline: 310, survivableMin: 301, survivableMax: 315 }
     heartRate: { baseline: 70, survivableMin: 30, survivableMax: 220 }
@@ -37,3 +38,4 @@ data:
     quick bright eyes, nimble bare feet, and the easy, well-fed comfort
     of someone never far from a warm hearth.
   nameBankKeys: ["halfling"]
+  facultyProfile: { depth: low, serenity: mid, composure: high }

@@ -422,6 +422,12 @@ export default class Avatar extends AvatarBase {
 
     this.startAutoSave();
 
+    // Reconcile the casting affordance (the dynamic `cast`/`spells`
+    // self-push — a gated mixin can't afford selectively through static
+    // contributions; the refreshConferrals mirror). Species-fixed
+    // in-session, so once at enter suffices.
+    this.refreshCastingAffordance();
+
     // Lazy-hydrate this avatar's identity memory (recognition /
     // identification) into its in-memory belief store. Serves the naming
     // path from memory thereafter — no Mongo read on look/listing.

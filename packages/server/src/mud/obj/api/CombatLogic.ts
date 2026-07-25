@@ -5,6 +5,7 @@ import { ApiLogic } from "../../lib/stuff/ApiLogic";
 import { CallSecurity, Unshadowable } from "../../lib/security/decorators";
 import { SecurityPolicies } from "../../lib/security/SecurityPolicies";
 import type { Stuff } from "../../lib/stuff/Stuff";
+import { Creature } from "../../lib/creature/Creature";
 import type { Engaged } from "../../lib/activity/Engaged";
 import { MixinApi } from "../../api/mixin";
 import { MaterialApi } from "../../api/material";
@@ -1153,9 +1154,10 @@ function brainPathFor(combatant: Stuff): string | null {
 }
 
 function enduranceRatio(combatant: Stuff): number {
-  if (!MixinApi.isReserved(combatant)) return 1;
-  const r = combatant.getReserve("endurance");
-  if (!r) return 1;
+  // The Creature contract reader (reserve landscape, lib/reserve.ts) —
+  // the keyed reserve surface is the body's internal plumbing.
+  if (!(combatant instanceof Creature)) return 1;
+  const r = combatant.getEndurance();
   const cap = r.capacity.rawValue();
   return cap > 0 ? clamp01(r.current.rawValue() / cap) : 1;
 }
