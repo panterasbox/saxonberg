@@ -11,8 +11,7 @@ what this actually is). The formation never scripts anyone's gambits:
 moment-to-moment play (strike/feint/defend/flee) stays personal agency;
 the formation is the standing policy around it.
 
-Built by the combat-formations build
-(`docs/requirements/combat-formations-requirements.md`); seeded by
+Built by the combat-formations build; seeded by
 [combat-tactics-slate.md](../slates/deferred-rpg/combat-tactics-slate.md)
 as refined by [combat-slate.md](../slates/deferred-rpg/combat-slate.md)
 (the emergent Master-Apprentice validation + coup attribution). Rides
@@ -215,3 +214,17 @@ script) — zero new NPC content.
   (the shift + interception beats).
 - **Design surface:** [combat-tactics-slate](../slates/deferred-rpg/combat-tactics-slate.md),
   [combat-slate](../slates/deferred-rpg/combat-slate.md).
+
+## History
+
+Built as the combat-formations build (branch `feature/combat-formations`,
+`e05f0070..bc401ed9`, MR !148); requirements + plan retired at the
+pre-merge sweep. Two design shifts happened between the seeding slate and
+the build: the vocabulary moved from "tactic" to **formation** (with the
+verb `party adopt`, dodging the `party form` adjacency), and the slate's
+Master-Apprentice **reward knobs (scaled rewards / level-gap caps) were
+superseded** by the emergent no-knob economy the combat experience pass
+made possible. One as-built discovery reshaped the plan's coup section:
+the coup is engine-initiated (no coup verb exists), so "who may coup"
+landed as executioner re-pointing plus the `fight finish` captain-directive
+hold rather than a permission gate on a verb.

@@ -2282,7 +2282,7 @@ const pendingCoups = new Map<Stuff, PendingCoup>();
  * Begin the stage-2 coup, **governed by the victor side's formation**.
  * Deferred one tick (`schedule(0)`) so the just-resolved session finishes
  * tearing down — freeing the executioner's `body` slot — before the coup
- * claims it. Governance (Decision E):
+ * claims it. Governance (see docs/subsystems/combat-formations.md § Coup governance):
  *   - the **right** — `coupRight: 'engaged'` keeps the downing attacker;
  *     a role name re-points the stroke to that role's first standing,
  *     co-present holder (MA → the apprentice performs, and therefore
