@@ -14,6 +14,7 @@
 
 import { PersistenceManager } from './PersistenceManager';
 import { SeederManager } from './SeederManager';
+import { MaterialApi } from '../mud/api/material';
 import { EmoteSeeder } from './EmoteSeeder';
 import { RecipeSeeder } from './RecipeSeeder';
 import { BlueprintSeeder } from './BlueprintSeeder';
@@ -201,6 +202,11 @@ export class AppBootstrap {
     // Stuff from the manifest, and the clock state is a Document, not
     // a clonable template.)
     await WorldClockApi.boot();
+
+    // Materials — stand the authored roster up as live singletons so the
+    // sync resolve-on-read seams (getMaterial / bulk slots / autoignition)
+    // hit from the first frame (nothing else stands materials up live).
+    await MaterialApi.boot();
 
     // Renown — warm the standing read-cache from the materialized
     // aggregate, then install the reaction ingestion tap + self-register

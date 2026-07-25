@@ -39,6 +39,9 @@ async function appendRow(fields: AccountabilityFields): Promise<void> {
   ev.consented = fields.consented;
   ev.sentient = fields.sentient;
   ev.locality = fields.locality ?? null;
+  ev.formationPath = fields.formationPath ?? '';
+  ev.killerRole = fields.killerRole ?? '';
+  ev.directedBy = fields.directedBy ?? '';
   ev.at = fields.at ?? gameNow();
   ev.realAt = fields.realAt ?? Date.now();
   await ev.save();

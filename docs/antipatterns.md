@@ -2058,3 +2058,68 @@ derivable. It is an AppSetting with **no code fallback** — unwarmed
 means *no default custodian*, and consumers refuse rather than invent a
 bank. See [banking.md](./subsystems/banking.md) § Every account names a
 real custodian.
+
+## Raw keyed reserve reads outside the owning substrate
+
+**Don't:**
+
+```typescript
+// another subsystem / authored content reading a body's pool
+const pool = target.getReserve('mana');       // stale — skips the recovery reconcile
+const tired = actor.getReserve('endurance');  // key + unit are tribal knowledge
+```
+
+**Do:**
+
+```typescript
+const pool = target.getMana();          // CasterMixin — reconciled, key-free, null for a non-caster
+const tired = actor.getEndurance();     // Creature — the biological trio (satiation/hydration too)
+const fuel = log.getFuelRemaining();    // Combustible — the original exemplar
+```
+
+The keyed `Reserved` surface (`getReserve`/`adjustReserve`) is each
+owning substrate's **internal plumbing** — some owners hook it with
+their reconcile (metabolism), some don't (magic), so an outside caller
+can't know whether a raw read is fresh. The **contract surface** is the
+owner's domain reader, which bundles whatever reconcile-on-read the
+owner needs and is what the author-facing docs surface
+(`callable == visible`). The full instance → owner → reader index lives
+in the reserve landscape table at the top of `lib/reserve.ts`; a new
+authored reserve ("charge", "essence") installs in its owning mixin,
+fronts itself with a reader, and adds a row there. Same-host sibling
+drains (Vitals' limp cost, LoadBearing's traversal drain spending
+`endurance`) are the body's own internal economy and stay keyed.
+
+## Activity-completion closures that call controller instance methods
+
+**Don't:**
+
+```typescript
+// in a CommandController.execute
+const activity = new CastActivity({
+  onComplete: () => void this.resolveAndRender(actor, spellId), // [inert]!
+});
+SchedulerApi.start(activity);
+```
+
+**Do:**
+
+```typescript
+// module-private free function in the controller file — no `this`
+const activity = new CastActivity({
+  onComplete: () => void resolveAndRender(actor, spellId),
+});
+```
+
+A command controller instance is a **per-dispatch clone destructed when
+`execute` returns** — but a durative activity completes *later*. An
+`onComplete`/`onAbort` closure that calls `this.<method>()` dispatches
+through the proxy of a destroyed Stuff and silently no-ops as
+`[inert] <method>() called on destroyed Stuff` in the log; the player
+sees the begin-line and then nothing, and every unit test passes
+(tests hold the controller alive). Completion bodies must be
+**module-private free functions** (fine inside the controller module —
+module-private, not exported) closing over plain values, never over the
+controller. Found live by the magic build's browser drive
+(`CastController`, fixed); `SearchController`'s completion has the
+same latent shape.

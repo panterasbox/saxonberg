@@ -51,8 +51,21 @@ Its *durable* state is mirrored into a dumb **`PartyRecord`** document
 (`lib/party/PartyRecord.ts`, the `parties` collection, keyed on the Idea's
 `path`) — the "Idea backed by a document" shape. Membership mutations go
 through `addMember`/`removeMember`; the captain is the single source of
-leadership authority (`captainId`), so per-member tactic roles are
-deferred to combat-tactics-slate.
+leadership authority (`captainId`). The combat-formations build added the
+**formation state**: `formationPath` (the adopted
+`/lib/combat/CombatFormation/<name>` — a path string, ref-shapes Pattern
+A; the party side never imports `lib/combat`) and `roleAssignments`
+(member → role; **roles are sets, not seats** — many members may share
+one, a departing member's role is released with them), both mirrored to
+the record. The combat seam grew three pure statics beside
+`sideOf`/`areAllied`: **`formationPathOf`** (the total chain — active
+party's formation, else the default preset path, never null),
+**`roleOf`**, and **`isCaptain`**; the captain surface grew
+**`party adopt <name>`** (awaits the preset Idea resident, mints the
+captain's `command` deed, and is a witnessed formation-shift beat) and
+**`party assign <role> <member>`** (role names validated structurally
+against the adopted formation). See
+[combat-formations.md](./combat-formations.md).
 
 ## Two lifetimes over one primitive
 
@@ -164,7 +177,7 @@ handshake) · `leave` · `kick` · `disband` · `transfer` · `setSide` ·
 
 ## Deferred
 
-Party economic/reputation facets, tactic-preset roles (combat-tactics-slate),
+Party economic/reputation facets,
 party morale (Thesis 13), the client party pane, coordinated party-retreat
 (rout/rally) and pursuit (wayfaring), and an NPC-vs-NPC **crew** standup (a
 durable-party seeder so two NPCs share a side without a live player forming

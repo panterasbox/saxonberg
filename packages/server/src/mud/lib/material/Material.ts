@@ -57,6 +57,8 @@ import { PerceptibleMixin } from '../description/Perceptible';
 import { Quantity } from '../quantity';
 import { QuantityMarshaller } from '../persistence/QuantityMarshaller';
 import type { ToxinTag } from '../metabolism/Metabolic';
+import type { VetoResult } from '../errors';
+import type { EvictionContext } from '../stuff/Stuff';
 
 /**
  * One constituent in a mixture / alloy. `materialPath` is the
@@ -112,6 +114,16 @@ export interface BiologicalSource {
 export default class Material extends SingletonMixin(
   PerceptibleMixin(PropertiedMixin(Idea)),
 ) {
+  /**
+   * Residency veto — a Material is reference data resolved by SYNC
+   * reads (`Tangible.getMaterial`, bulk slots, autoignition); the only
+   * standup is the `MaterialApi.boot` roster warm, so a culled material
+   * would stay a null read until the next process. Never culled.
+   */
+  public canEvict(_context: EvictionContext): VetoResult {
+    return { ok: false, reason: 'material reference singleton; never culled' };
+  }
+
   /** Display name (e.g. `'iron'`, `'oak'`, `'fruit-flesh'`). */
   protected name: string = '';
 

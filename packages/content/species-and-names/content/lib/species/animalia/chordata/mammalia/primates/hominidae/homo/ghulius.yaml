@@ -17,6 +17,7 @@ data:
   _bodyPlanPath: /lib/body-plans/biped
   _parentCladePath: /lib/species/animalia
   _defaultMaterialPath: /lib/material/tissue/flesh
+  innateMixins: ["CasterMixin"]
   vitalProfile:
     coreTemperature: { baseline: 305, survivableMin: 296, survivableMax: 312 }
     heartRate: { baseline: 60, survivableMin: 28, survivableMax: 210 }
@@ -44,3 +45,4 @@ data:
     nothing; plainly a person, for all that strangers flinch from the
     deathly pallor as though from the dead themselves.
   nameBankKeys: ["common"]
+  facultyProfile: { depth: low, serenity: mid, composure: mid }

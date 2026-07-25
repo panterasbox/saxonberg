@@ -52,6 +52,20 @@ replays a victim's rows, takes the **earliest terminal row** (`death` or
 Re-legislating what counts as a crime re-scores history without rewriting a
 single row.
 
+The combat-formations build grew the row by three optional **formation
+facts** (`''` defaults, additive — no migration): `formationPath` (the
+killer's side's formation in force), `killerRole`, and `directedBy` (the
+captain whose recorded `fight finish` directive began the killing act).
+They are facts, never crime inputs — the crime expression above is
+untouched — but `BlameVerdict` grew the derived **`commandResponsible`**:
+a crime row carrying `directedBy` names the commander alongside the
+striker, so **credit and blame diverge** on an unlawful directed kill
+(under Master-Apprentice the apprentice performs the coup and holds the
+*deed*; the ordering master holds the *command responsibility*). A
+directed formation implies command responsibility; the guard/law/court
+consumers derive what to do about it. See
+[combat-formations.md](./combat-formations.md).
+
 ## Surface — `AccountabilityApi` / `AccountabilityLogic`
 
 The gated pair (`api/accountability.ts` forwarding shell +

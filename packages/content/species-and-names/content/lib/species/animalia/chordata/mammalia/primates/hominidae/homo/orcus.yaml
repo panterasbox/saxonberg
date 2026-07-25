@@ -12,6 +12,7 @@ data:
   _bodyPlanPath: /lib/body-plans/biped
   _parentCladePath: /lib/species/animalia
   _defaultMaterialPath: /lib/material/tissue/flesh
+  innateMixins: ["CasterMixin"]
   vitalProfile:
     coreTemperature: { baseline: 310, survivableMin: 301, survivableMax: 316 }
     heartRate: { baseline: 64, survivableMin: 28, survivableMax: 210 }
@@ -38,3 +39,4 @@ data:
     green-grey of skin with a jutting jaw and prominent tusks, fierce-eyed
     and restless, with a keen nose that reads a room before the eyes do.
   nameBankKeys: ["orcish"]
+  facultyProfile: { depth: low, serenity: mid, composure: low }

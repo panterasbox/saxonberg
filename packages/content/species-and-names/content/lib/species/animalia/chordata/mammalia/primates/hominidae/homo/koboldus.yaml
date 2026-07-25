@@ -12,6 +12,7 @@ data:
   _bodyPlanPath: /lib/body-plans/biped
   _parentCladePath: /lib/species/animalia
   _defaultMaterialPath: /lib/material/tissue/flesh
+  innateMixins: ["CasterMixin"]
   vitalProfile:
     coreTemperature: { baseline: 306, survivableMin: 297, survivableMax: 314 }
     heartRate: { baseline: 90, survivableMin: 40, survivableMax: 240 }
@@ -38,3 +39,4 @@ data:
     and quick on its feet, with bright dark-adapted eyes and a wary,
     deferent watchfulness that keeps to the edges of a room.
   nameBankKeys: ["draconic"]
+  facultyProfile: { depth: low, serenity: low, composure: mid }

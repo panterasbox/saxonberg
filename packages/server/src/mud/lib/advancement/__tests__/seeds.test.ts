@@ -111,4 +111,29 @@ describe("Discipline seed roster", () => {
       "business-administration"
     );
   });
+
+  it("carries the full magic grid — 5 verbs + 13 nouns, no conferrals", () => {
+    const byKey = loadAll();
+    const verbs = ["create", "destroy", "control", "transform", "perceive"];
+    const nouns = [
+      "fire", "water", "air", "earth", "light", "plant", "beast",
+      "body", "mind", "sense", "arcana", "lightning", "storm",
+    ];
+    for (const v of verbs) {
+      const data = byKey.get(`magic-${v}`);
+      expect(data, `magic-${v} missing`).toBeTruthy();
+      // every verb synergizes every active noun (the cross-axis grid)
+      const syn = (data?.synergizes as string[] | undefined) ?? [];
+      for (const n of nouns) expect(syn, `magic-${v} × ${n}`).toContain(`magic-${n}`);
+      // DIV-11: access is a cast-time band gate, never a conferral
+      expect(data?.conferrals ?? []).toEqual([]);
+    }
+    for (const n of nouns) {
+      expect(byKey.get(`magic-${n}`), `magic-${n} missing`).toBeTruthy();
+      expect(byKey.get(`magic-${n}`)?.conferrals ?? []).toEqual([]);
+    }
+    // the remaining frontier nouns are deliberately absent
+    expect(byKey.has("magic-time")).toBe(false);
+    expect(byKey.has("magic-spirit")).toBe(false);
+  });
 });

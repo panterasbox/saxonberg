@@ -238,6 +238,27 @@ level (`PerceptionApi.hideLevelFor`) and a placed trap's concealment, where
 `awareness` grades the watcher trying to see through them. One contest, two
 competences. See [stealth.md](./stealth.md).
 
+The magic build seeds the **grid** — 18 leaves (`magic-{create,destroy,
+control,transform,perceive}` verbs × `magic-{fire,…,storm}` nouns, each
+`channel: skill`, `iscedf: "0288"`, verbs `synergizes` every noun), the
+biggest single Catalog contribution yet. Deliberately **no `conferrals`**:
+the `cast`/`spells` *verbs* ride `CasterMixin.refreshCastingAffordance`
+(the `refreshConferrals` mirror — a dynamic self-push at `Avatar.enter`,
+since the self bucket collects class statics only), and per-spell access
+is a **band gate at cast time on BOTH of a
+cell's axes** (`requiredBand` vs `bandFor` — competence IS access), so a
+spell's floor rises with its power without a conferral row per spell.
+Every cast credits both axes as two subchecks of one `ActSignature`. See
+[magic.md](./magic.md).
+
+The combat-formations build seeds **`command`** (`channel: skill`,
+`iscedf: "0413"`, `synergizes: [melee-combat]`, no `conferrals`) — reading
+a fight and directing others through it. Its deeds mint only for
+formation policy work performed *for someone else* (an interception
+taken, an armed opening an ally cashed, a captain's call landing, the
+coup directive, the formation shift), so a master/captain advances the
+one discipline that cannot be ground solo — the teaching payoff. See
+[combat-formations.md](./combat-formations.md).
 ## Deferred (seams left open)
 
 The loadout (capacity-not-decay, savings warm-up); guilds (venue / mentors

@@ -569,6 +569,21 @@ settings:
     value: "2"
   - key: combat.dualWield.noviceGuardBonus
     value: "-0.3"
+  # Formations — the party-strategy layer (policy shape lives on the
+  # CombatFormation Ideas; these are the magnitudes).
+  # An interceptor already pressed by this many incoming edges is
+  # ineligible to take a redirect (a pinned front can't eat more).
+  - key: combat.formation.intercept.maxIncoming
+    value: "2"
+  # Master-Apprentice's `high-threat` trigger: the master steps in only
+  # when the protected apprentice's incoming edge count reaches this
+  # (below it, the apprentice fights their own fight).
+  - key: combat.formation.ma.highThreatEdges
+    value: "2"
+  # How long (real seconds) a captain-call coup is held awaiting
+  # `fight finish` before the fallen is spared (mercy by default).
+  - key: combat.formation.coup.directiveWindowSeconds
+    value: "12"
   # Concealment — effective-perception a viewer needs to notice a thing at
   # each concealed band (obvious = 0, no key). Monotone increasing. The band
   # names + ordering are code (lib/concealment/ConcealmentLevel.ts); these
@@ -742,3 +757,47 @@ settings:
     value: "40"
   - key: respiration.contaminantBurdenPerBreath
     value: "5"
+
+  # Magic (casting core) — see docs/subsystems/magic.md. SHAPE (the effect
+  # union, the impulse/modifier line, the fold) is code; these are the
+  # magnitudes. Mana is an absolute avail/max pool in `pt`.
+  - key: magic.castSecondsDefault
+    value: "3"
+  - key: magic.costDefault
+    value: "15"
+  - key: magic.abortCostFraction
+    value: "0"
+  - key: magic.depthCapacity.low
+    value: "80"
+  - key: magic.depthCapacity.mid
+    value: "120"
+  - key: magic.depthCapacity.high
+    value: "180"
+  - key: magic.recoveryPerMinBase
+    value: "1.5"
+  - key: magic.serenityFactor.low
+    value: "0.6"
+  - key: magic.serenityFactor.mid
+    value: "1"
+  - key: magic.serenityFactor.high
+    value: "1.6"
+  - key: magic.composureBase.low
+    value: "0.7"
+  - key: magic.composureBase.mid
+    value: "1"
+  - key: magic.composureBase.high
+    value: "1.4"
+  - key: magic.composure.floorFactor
+    value: "0.4"
+  - key: magic.potency.competenceFactor
+    value: "0.25"
+  - key: magic.overchannel.severityPerDeficit
+    value: "0.1"
+  - key: magic.overchannel.clearThreshold
+    value: "0.5"
+  - key: magic.dread.decayPerSec
+    value: "0.005"
+  - key: magic.glowlight.lumens
+    value: "500"
+  - key: magic.conjure.waterLitres
+    value: "1"

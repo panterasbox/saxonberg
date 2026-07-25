@@ -1,0 +1,21 @@
+# Dispel — destroy·arcana, the reflexive noun proving the provenance
+# tag: relieves ONLY magicOrigin-tagged conditions on the target
+# (releasing any bound emitter), structurally unable to touch a
+# laceration or a fever. Arcana bottoms out in a real op (Relieve).
+class: /lib/magic/Spell
+hydratorClass: /lib/persistence/PersistentHydrator
+data:
+  spellId: dispel
+  name: Dispel
+  verb: destroy
+  noun: arcana
+  requiredBand: competent
+  cost: 20
+  castSeconds: 3
+  targeting: any
+  effects:
+    - kind: relieve
+  description: >-
+    Unravels another's working — the held light gutters, the borrowed
+    face falls away. What magic no longer holds up, falls. What was
+    never magic was never yours to unmake.

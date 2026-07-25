@@ -13,6 +13,7 @@ data:
   _bodyPlanPath: /lib/body-plans/biped
   _parentCladePath: /lib/species/animalia
   _defaultMaterialPath: /lib/material/tissue/flesh
+  innateMixins: ["CasterMixin"]
   vitalProfile:
     coreTemperature: { baseline: 310, survivableMin: 299, survivableMax: 316 }
     heartRate: { baseline: 60, survivableMin: 28, survivableMax: 210 }
@@ -37,3 +38,4 @@ data:
     deep-rooted in stance, with the weathered, stone-patient look of
     someone bred to the dark and the deep.
   nameBankKeys: ["dwarvish"]
+  facultyProfile: { depth: mid, serenity: low, composure: high }

@@ -268,6 +268,405 @@ taxonomy is deliberately **left open** until the build picks one.
 
 ---
 
+## Part IV — The effect substrate + the magic grammar
+
+> **Status 2026-07: BUILT.** The magic core build shipped this part —
+> the effect substrate + casting (closed `Effect` union, the governing
+> invariant structurally enforced), the N-axis resist seam (channel +
+> toxin delegated to the shipped folds; mental = the one new Composure
+> resolver), the grid as 18 advancement-Discipline leaves (**lightning
+> and storm graduated from frontier** — their substrates shipped; time
+> + spirit remain), the anatomical faculty (`CasterMixin` +
+> `Species.facultyProfile`, mana = an absolute avail/max `pt` Reserve),
+> provenance + the anti-magic field (modifiers dormant, impulses
+> untouchable), the interruptible `CastActivity`, a 9-spell roster, and
+> the Practicum demonstrator. **v1 is deliberately room-scoped** (the
+> `deliverAt` ranged-integration seam waits for the ranged build) and
+> hostile casts write the accountability `harm` ledger. See
+> [docs/subsystems/magic.md](../../subsystems/magic.md). Still open
+> here: Transform/polymorph, multi-cell composition, wards, the
+> inquiry + magic-items consumers, Spirit/Time.
+
+> **Design pass 2026-07-15.** This part supersedes the loose "magic-side
+> capability mirrors the physical" sketch in Part II with a concrete
+> shape, and it explicitly **retires a wrong turn** this pass explored
+> and rejected: magic is **not** a parallel "mental plane" with its own
+> combat, its own death, and a full mirror of the Vitals stack. There is
+> **one** combat/interaction model — the shipped one — and magic feeds
+> **inputs** into it. Everything below is smaller and more buildable than
+> the mirror-a-whole-plane idea it replaces.
+
+### The frame, in one line
+
+**Magic = spend a reserve → fire a list of declarative effects → they
+land in the systems we already have.** Mostly physical (fire, force,
+ice), occasionally mental (fear, charm), all on one road.
+
+### 1. The effect substrate — spells as data
+
+A cast is a trigger-agnostic envelope:
+
+```
+Cast = { trigger, cost, targeting, effects: Effect[] }
+```
+
+**Trigger-agnostic is load-bearing:** the *same* `Effect` fires whether
+it came from a spell, a quaffed potion, a scroll, a rune, or a trap. So
+the gallery you get is not just spells — it's every magic item, hazard,
+and monster power, for free. This is the `Consumable`/`Effect` "Gap 0"
+substrate already named in
+[magic-items-slate.md](../builds/magic-items-slate.md) (declarative
+closed union + a `script` trapdoor); a spell is one more consumer of it.
+
+**The one governing invariant:**
+
+> An `Effect` primitive exists **iff** a gated Api already does that
+> work. Magic is a new *trigger*, never a new *mechanism*.
+
+This is what keeps magic from becoming the fudge layer Principle 4
+forbids. A fireball is legal because `ConditionApi.inflict(thermal)`
+exists and real combustion takes over; "gain 5 levels" is illegal —
+there is no Api that does it, so you do not get to fake one. No backing
+Api → the `script` trapdoor, or go build the real system first. **The
+effect catalogue is therefore a curated map of the actuator-safe Api
+surface** — magic can do exactly what the world can already do, from a
+new door.
+
+The catalogue (each primitive = a thin wrapper over a shipped Api):
+
+| Effect primitive | Backing Api (shipped) | e.g. |
+|---|---|---|
+| `InjectChannel(channel, energy, site)` | `ConditionApi.inflict` | fireball, force-bolt, ice-shard |
+| `Afflict(condition)` / `Relieve` | `Vitals.afflict/relieve` | fear, charm, slow, cure, dispel |
+| `AdjustReserve(key, Δ)` | `Reserved.adjustReserve` | restore/drain mana or stamina |
+| `Move(kind)` | `LocomotionApi` / `ContainmentApi` | shove, blink, levitate, pin-in-place |
+| `Conjure(template)` | `StuffApi.clone` | wall of stone, summon, create water |
+| `Sense(query)` | `PerceiverApi` / `PerceptionApi` | detect, scry, ESP |
+| `Cloak(belief)` | `RecognitionApi` / belief | illusion, disguise, invisibility |
+| `EmitField(light/heat/sound)` | light / thermal / `Audible` | darkness, warmth, thunderclap |
+| `Transform(...)` | *(no Api yet — polymorph's own gap)* | ⚠ trapdoor or build-first |
+| `Script(...)` | the scripting interpreter (code-trust gated) | the exotic 5% |
+
+Two families cut across it — **impulse** (fire-and-resolve: inject, move,
+mend) vs **modifier** (installs a `Condition` the reconcile-on-read
+drivers realize by *pull*). This is the shadow-vs-condition line the
+magic-items work already drew.
+
+Two payoffs this shape buys, both the actual point:
+
+- **Density.** The world can be full of magical things without a code
+  project per item — a bestiary of monster powers, a catalog of
+  wands/potions/scrolls/charms, environmental traps, and eventually
+  player-authored magic, all authored as *concept-data* (channel,
+  condition, template, energy band), never a bespoke class.
+- **Honest emergence.** Because effects ride real systems, one wand does
+  many believable things by understanding *what it is*: a wand of frost
+  freezes a puddle solid, shatters a glass, chills a fever down, or
+  punctures an unarmored throat. Fireball spreads in a wooden room and
+  only heats iron. Magic is discoverable and consistent, not arbitrary —
+  the Andy-Weir "reason from principles" payoff.
+
+### 2. The resist seam — where an effect meets combat
+
+Magic meets the one combat model at exactly **one field on an effect**:
+
+```
+Effect.resist?: { axis, intensity }   // absent = unresisted (self-buffs, utility)
+```
+
+The resolution is the **materials-response shape, generalized to N
+axes** — because materials-response already *is* a resist seam for one
+axis (a channel folds through armor, residual meets tissue). We lift that
+shape rather than inventing a save system. Two knobs, each with a
+distinct job:
+
+- **Mitigators *subtract*** — armor, wards, a resistance-buff each remove
+  a *fraction* of intensity, folded outside-in. (Physical: the covering
+  stack's `attenuate`.)
+- **The substrate *gates*** — tissue, Composure — it does not subtract;
+  it **sets the thresholds** the residual must clear for each stage, and
+  it **picks the outcome type**. (Physical: `resolveTrauma` reads tissue
+  hardness/toughness for laceration-vs-fracture *and* the cutoff.)
+
+```
+resolve(target, insult):
+  residual = fold mitigators(target, axis) outside-in    // SUBTRACT; 0 ⇒ deflected/immune
+  substrate = substrate(target, axis)                    // GATE
+  type  = substrate.typeFor(insult.quality)              // 'edge'→laceration, 'fear'→dread
+  stage = bandFor(residual, type, substrate.factor())    // authored bands, substrate-scaled
+  return stage ? { conditionTemplate: type, stage, residual } : null
+```
+
+The axis catalogue (v1) — physical is the shipped function, the others
+register a resolver of the same signature:
+
+| axis | mitigators | substrate | outcome |
+|---|---|---|---|
+| **channel** (edge/point/blunt/thermal) | armor covering stack | tissue hardness/toughness | Trauma — *shipped, `MaterialApi.attenuate`* |
+| **mental** (fear/domination/anguish) | wards *(optional)* | **Composure**, read as profile × current mana/calm | condition stage |
+| **toxin** | — | metabolism burden ÷ body mass | banded condition — *shipped* |
+| **none** | — | — | lands in full |
+
+Consequences worth locking:
+
+- **residual → stage** is the shipped toxin/severity banding, generalized:
+  ascending cutoffs authored on the **condition seed** (magnitude = dials,
+  the toxin-`bands` precedent), **scaled by a `factor()` read from target
+  state.** This is where "different inputs into one combat model" lives —
+  `Composure = profile × current mana/calm`, so **a drained, frayed mage
+  resists fear worse** and a rested one shrugs it. One function call, all
+  the immersive-sim coupling; no plane.
+- **Resist sets the *onset* stage; the condition's driver owns the
+  *evolution*.** The seam decides how hard it hits; the reconcile-on-read
+  condition decides what it does over time (a landed "despair" then bleeds
+  will exactly as a laceration bleeds blood).
+- **Two gates, cleanly separated.** A spell and a sword pass the *same*
+  two: the **active** gate = the shipped combat model (dodge / parry /
+  defend / poise / *interrupt the cast*) — whether it lands at all; the
+  **passive** gate = this seam — given it lands, how much. There is no
+  parallel resolution anywhere.
+- **Immunity is not a special case** — a `Mitigator` returning `1` drives
+  residual to `0`; hard-resist is the limit of graded resist. This closes
+  the shipped "`afflict` has no veto layer" gap named in
+  magic-items-slate.
+- **Intensity units are per-axis, not unified.** The channel axis carries
+  *real energy* (grounded in `hardness`/`toughness`, Principle 4); the
+  mental axis carries an **authored potency scalar** (`Will × competence ×
+  mana-spent`) — dimensionless and legitimate precisely because Principle
+  4 licenses magic to be authored-but-lawful. No fake unified unit.
+- **Banding-is-presentation holds:** you `analyze` your *own* resistances;
+  an enemy's Composure you only ever feel as outcome.
+
+The entire "mental" exploration of this pass collapses to **one cell of
+that table** — *mental = Composure is the substrate, a plain
+strength-vs-strength contest.* Fear is an `Afflict` with a Composure
+`resist`. That is all it was ever worth; the parallel-plane machinery was
+overbuilt and is dropped.
+
+### 3. The grammar = the skill tree = advancement Disciplines
+
+Magic's specialization layer is an **Ars-Magica-style verb × noun
+grammar**, and it is **not new machinery** — it is content in the shipped
+[advancement](../../subsystems/advancement.md) Catalog.
+
+**The locked roster (2026-07-15 — folk-named).**
+
+- **5 verbs (operations):** Create · Destroy · Control · Transform · Perceive
+- **11 nouns (domains = subsystems):** Fire · Water · Air · Earth · Light ·
+  Plant · Beast · Body · Mind · Sense · Arcana
+- **Frontier nouns (legible gaps — unbuilt subsystems, deferred):**
+  Storm/Weather · Lightning · Time · Spirit
+
+A spell is a **two-word address** — `Create·Fire`, `Control·Mind`,
+`Transform·Body` — that names *which operation, on which real system.*
+The **verbs** are the effect primitives (Create ≈ Conjure/Mend, Destroy ≈
+Inject/Afflict, Control ≈ Move/Compel, Perceive ≈ Sense, Transform ≈ the
+unbuilt one), carved by two questions so the set is complete: *does it
+exist yet?* (no → Create) and *does its essence change?* (yes → Transform;
+no → Control); Perceive is the read-only one.
+
+The **nouns each actuate one real subsystem** (the governing discipline — a
+noun that maps to no subsystem is a *frontier*, not a hole):
+
+| Noun | Actuates | Covers |
+|---|---|---|
+| **Fire** | thermal | heat, flame, cold (its absence) |
+| **Water** | bulk / fluids | liquids, flow, pressure, phase |
+| **Air** | respiration + `Audible` + biome pressure | breath, sound, pressure — *the gaseous medium* |
+| **Earth** | materials | stone, metal, mineral, solid matter |
+| **Light** | the light / vision subsystem | illumination, darkness, glare, seeing-in-dark |
+| **Plant** | Plantae / farming | wood, growth, herbs, rot |
+| **Beast** | Animalia | animals, their bodies & products |
+| **Body** | vitals / harm | flesh, wounds, healing, the mortal form |
+| **Mind** | conditions | thought, emotion, will, memory |
+| **Sense** | belief / perception | *semblance* — illusion, disguise, what one believes they perceive |
+| **Arcana** | mana `Reserve` + magic-origin conditions + in-flight casts | fuel, counter, dispel, detect, ward — *magic acting on magic* |
+
+Three nouns were pressure-tested against the physics and the carve is
+deliberate:
+
+- **Light is split *out* of Fire** — the sim **decouples** heat and light
+  (`ThermalMixin` emits no light; a hot iron doesn't glow unless it *also*
+  composes `LightSourceMixin`; the campfire composes both as *independent*
+  facts). So cold light and invisible heat are both real and playable.
+- **Air is *narrowed*** to the gaseous medium (breath + pressure + sound).
+  Its folk baggage scatters: temperature → Fire, humidity → Water, and
+  **weather/wind → a frontier** (`WeatherApi.weatherAt` is a *stateless*
+  procedural function — no state to grab — and vector wind is deferred; so
+  "call a storm" needs a stateful wind/weather sim first). Sound **stays
+  in** Air by the *same* decoupling rule Light was split by — sound
+  literally *is* air in motion (pressure waves), so it's coupled, not
+  separate. (Real thunderclap = Air; a phantom sound only-you-hear = Sense
+  — the Light/Sense physical-field-vs-belief parallel.)
+- **Arcana is reflexive** — the one noun with no external medium; its
+  "substrate" is the machinery of magic itself. It carries **two
+  asterisks** the physical nouns don't (see the provenance section below):
+  it needs magic to be *taggable*, and it is the **highest fudge-risk
+  noun** — every Arcana effect must still bottom out in a real op
+  (`AdjustReserve` / `Relieve` / cast-parameter edit / a resist
+  `Mitigator`), never a free-floating buff. This is where "Effect iff a
+  gated Api exists" does its hardest work.
+
+**Crucial clarification — the grid is a skill/classification lens, NOT an
+effect-builder.** What a spell *does* is its `effects` (real Api calls) —
+open-ended, you build anything the engine can do; you do **not** translate
+an idea into the vocabulary to build it. "Glue an item to the floor" is
+just a `Move`-veto effect; you build it directly. The grid only governs
+**who can cast it and how well** — a spell draws on *two* disciplines
+(its verb + its noun), and the tag is *derived from what it does*, applied
+after, not a hoop. Even in tabletop Ars Magica the grid computes no
+outcome; it is a skill-and-difficulty framework, and a GM adjudicates the
+effect. The consistency players love ("fire always burns") is inherited
+from the **subsystems**, never imposed by the grid.
+
+The skill-tree structure falls out of the Catalog's existing edges:
+
+- `synergizes` — pyromancy *synergizes* Create + Fire; a spell's
+  competence is a function of **both** its axes, so getting better at
+  **Fire** lifts *every* fire spell across all five verbs.
+- `requires` — prerequisites (no Transform·Mind without some Transform and
+  some Mind).
+- band-gated `conferrals` — climbing an axis unlocks new casts (the
+  `AdvancementMixin` affordance-push).
+
+### 3½. Magical provenance — a pervasive tag
+
+Everything magic produces is **stamped with its provenance**, everywhere
+we can reach — not as a dispel-helper for Arcana, but as a first-class
+cross-cutting axis. This is what makes magic **governable as a class**:
+the moment every magical thing carries a mark, an author can write *"no
+magic in this ward,"* the engine can suppress/detect/dispel it, and the
+"Effect iff a gated Api" discipline becomes auditable at runtime.
+
+**The tag is rich, not a boolean.** The natural stamp is the grid address
+we already have plus the caster: `{ verb·noun, caster }`. Because it's the
+full address, one tag unlocks a spectrum of author gates at no extra cost:
+*no magic here* (any tag), *no fire magic* (`·Fire`), *no necromancy in
+the chapel* (`·Spirit`), plus detect / dispel / attribution — all reading
+the same mark. A boolean would give only the first.
+
+**Where it rides / what reads it:**
+
+| The tag rides on… | so this content becomes writable |
+|---|---|
+| the **cast** (the attempt) | an anti-magic zone vetoes casting (a `requiresNoSuppression`-style validator, the `requiresConscious` pattern) |
+| installed **conditions** | dispel, detect, *and* zones that unravel ongoing magic |
+| **items** (enchanted) | detect / disenchant / "no magic items past this gate" |
+| in-flight **effects** | counterspell, ward `Mitigator`s keyed to the tag |
+
+**The exemplar — the anti-magic zone.** A `suppresses-magic` field on a
+Location/Zone, resolved by the **outward walk** (the biome/address
+precedent — so it scopes a room, a building, or a region), optionally
+filtered by grid-coordinate. A cast-time validator reads it and vetoes;
+ongoing magical conditions check it on their next **reconcile-on-read** and
+go dormant. All shipped patterns; no new mechanism.
+
+**The honesty boundary — and it maps onto a line we already drew.** Because
+magic *actuates real systems*, suppression must answer "does it un-happen a
+fire?" The answer is the **impulse/modifier split** from Part IV § 1:
+
+- **Modifier effects** = *sustained, magically-bound* (a conjured wall, a
+  held levitation, a maintained ward, a compulsion) → the magic is still
+  holding them up → **suppression drops them.**
+- **Impulse effects** = *fired-and-released* (heat injected, rock thrown,
+  fire lit) → **real now, not magic** → suppression can't un-happen them;
+  the torch keeps burning, a fireball lobbed in from outside still lands as
+  real heat.
+
+So **the suppressible line *is* the impulse/modifier line** — already
+drawn, and it turns out to be the honest definition of what "no magic here"
+means. (Arcana's first asterisk is exactly this tag; its second — the
+fudge-risk discipline — is enforced *because* the tag makes all magic
+auditable as a class.)
+
+### 4. Learning magic as a science
+
+Magic is learned by the **shipped Competence model, unchanged** — the
+same substrate blades, medicine, and farming ride:
+
+- get better by **doing magic at the edge of your ability** (the ZPD the
+  BKT estimator already targets),
+- evidence accrues honestly in the **Transcript** (casting deeds, an
+  `ActSignature` of `{discipline, difficulty, outcome}`),
+- competence is a **measured Bayesian estimate, surfaced as a band, never
+  a number** — "adept at Fire," not "Fire 47" (the honesty firewall).
+
+**Magic is the *best* domain for the science pedagogy**, because unlike
+blades it is a *lawful invented science* with laws you can discover: a
+student measures a spell's effect at increasing distance, hypothesizes
+inverse-square, verifies with an instrument — the **method is the
+lesson.** So the magic disciplines are where "derive it from principles"
+gets its purest University expression: you don't memorize spells, you
+learn the **laws of the grid** by experiment, and competence follows
+understanding.
+
+#### Discovery is a consumer of the inquiry substrate
+
+Magic doesn't own "learning by experiment" — that grew, this same session,
+into a platform-level substrate for how *sim-native knowledge* is
+discovered, verified, trusted, and corrupted, and was **spun out to
+[inquiry-slate.md](../builds/inquiry-slate.md).** Magic is its **first and
+most vivid consumer**, not its owner (combat, medicine, crafting, farming
+are peers). In brief, and see the slate for the full design:
+
+- **Discovery = recovering a hidden law by experiment** — laws are
+  emergent from the honest functions, never authored; the loop is
+  observe → measure → hypothesize → **predict** → verify. Two keystones:
+  the engine exposes *measurements, never the model*; and discovery is
+  gated by **prediction of a novel case** (no equation-parsing, no NLP —
+  the deduction-slate's *truth-is-shown-not-argued* spine).
+- **Banking + publishing** — a confirmed law banks as Competence and
+  becomes a teachable/publishable good (shoulders of giants).
+- **The wrong-paper mechanic** — self-defending (a false paper fails
+  verification), so misinformation is a *social/temporal* exploit gated by
+  verification cost; the insidious case is the **evidential-range
+  overreach** (right in-range, wrong beyond). All in the slate.
+- **The learning-model unification** — magic is in the *sim-native* camp
+  (answer key = the sim) alongside combat/craft, sharing one University /
+  Competence / Assessment / publishing frame with the didactic (study.com)
+  camp. **Decision: loose now, tight-seam reserved** — magic
+  self-credentials; the transferable real thing is the *scientific method
+  itself*; a null `realWorldAnalog` seam holds the future real-course
+  mapping.
+
+### 5. What this pass settled / left open
+
+**Settled:** one combat model (no mental plane, no mental death); the
+effect-substrate shape + the actuator-only invariant; the resist seam as
+generalized `attenuate` (mitigators subtract / substrate gates,
+substrate-scaled banding, per-axis intensity units, immunity-as-limit);
+the grid = advancement Disciplines and its status as a *skill lens, not a
+builder*; **the locked roster** (5 verbs × 11 nouns + the 4 frontier
+nouns, folk-named, physics-carved — Light split from Fire, Air narrowed to
+the gaseous medium with weather→frontier, Arcana reflexive); **magical
+provenance as a pervasive rich tag** (grid-address + caster, the ride/read
+surface, the anti-magic-zone exemplar, suppressible = the impulse/modifier
+line); learning = the shipped Competence model; **magic as the first
+consumer of the inquiry substrate** — the discovery loop + learning-model
+unification (loose now, tight-seam reserved) were **spun out to
+[inquiry-slate.md](../builds/inquiry-slate.md)** this session; magic keeps
+the consumer summary in § 4, the platform design lives there.
+
+**Open:** the `Transform` primitive's missing Api (polymorph is its own
+build — slot-eviction choreography, per magic-items-slate); multi-cell
+spell composition (Create·Fire + Control·Air = a steered firestorm) as a
+second combinatorial layer; whether wards are worth a mitigator layer at
+all in v1 or Composure-alone suffices for the mental axis; the frontier
+nouns' prerequisite builds (a stateful wind/weather sim for Storm, the
+electricity channel for Lightning, the presence-hollowing substrate for
+Spirit, and whatever safely bounds Time). *(The discovery/inquiry
+sub-decisions — `Law` granularity, `analyze`-upgrade, publish economics,
+misinformation — now live in inquiry-slate's open questions.)*
+
+**Supersedes/annotates prior open questions:** Q9 (reserve topology) — a
+single Focus/mana reserve is the working baseline, plural authored pools
+retained as the exotic-tradition seam; Q4 (one channel or many) — magic
+is a *trigger* over the shipped channels, not its own propagating field
+at this tier; the "affinity" of Part II folds into the noun-discipline
+competence (coupling = how good you are at that Form).
+
+---
+
 ## The one obligation on shipping work
 
 Everything here is deferred, but one negative obligation binds the

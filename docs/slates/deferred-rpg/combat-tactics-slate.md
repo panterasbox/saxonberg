@@ -1,15 +1,21 @@
 # Combat tactics & engagement model (working slate)
 
-> **Status: committed feature, design ahead.** Combat is a launch feature
-> — the game won't ship without it — but its design is still in the
-> game-design phase (RPG rules, stats, and progression aren't pinned down
-> yet). Nothing here is a build. This slate captures the intended
-> direction: two linked theses so they don't evaporate in a chat log.
-> (1) Combat is a graph of **engaged relationships**, not sub-room
-> geometry; (2) the marquee combat feature for a text/social/AI world is
-> **party-level tactical presets**, and the standout preset —
-> master-apprentice — turns an unstoppable emergent behavior
-> (power-leveling) into a ruled, on-theme mechanic.
+> **Status: both theses SHIPPED; the ranged surface is what remains.**
+> Thesis 1 (combat as an engagement graph, not geometry) shipped as the
+> multi-party combat build's `CombatGraph`; Thesis 2 (party-level
+> presets) shipped as the **combat-formations build** — renamed
+> *formations* ("tactics" is DA:O's word for the per-character gambit
+> scripting this design rejects), with the preset roster minus Skirmish,
+> Master-Apprentice's reward knobs **superseded by the emergent
+> economy** (no credit transfer, no scaling — see
+> [combat-formations.md](../../subsystems/combat-formations.md), which is
+> now the source of truth for everything party-strategy). What this slate
+> still uniquely holds is **Thesis 1's ranged-as-relationship model**
+> (kite / close / artillery over engaged-status, the `physical` conduit
+> transmissivity channel, cover-as-status) — the design surface the
+> deferred ranged-engagement build consumes. §"Thesis 2", the preset
+> table, and the integration sketch below are historical; read them as
+> the design record, not the current shape.
 
 Working slate for **combat tactics**: the party-as-a-whole meta-strategy
 layer, the abstract engagement model it rides, and why this — not
@@ -291,6 +297,35 @@ When combat reaches the design phase, this slate boils down to:
   untargetable by melee until engaged; a tactic reassigns an engagement
   on interception; master-apprentice routes credit to the apprentice with
   scaled rewards.
+
+### Magic interplay questions (banked 2026-07-23, from the magic build)
+
+The magic core build
+([magic.md](../../subsystems/magic.md))
+shipped deliberately **room-scoped** — no ranged pretense — and routed
+all hostile channel-delivery through one internal **`deliverAt`** seam in
+the magic logic, documented as the ranged-integration point. When this
+slate's ranged model is designed, that seam adopts it (offensive spells
+swap one leg; spell data / resist seam / faculty untouched), and these
+questions come due:
+
+- **Bolt vs cover/dodge** — does a firebolt contest the same `Covering`
+  status an arrow does, or is the cast-time interrupt magic's whole
+  active gate even at range? (Lean: same cover contest — one delivery
+  model, the mundane-first doctrine.)
+- **Interpose / shield-facing** — the weapon build's directional shield
+  cover (`InflictSpec.shieldFacing`) vs a bolt; can a bodyguard
+  interpose on a ranged cast the way `defend <ally>` redirects a melee
+  edge?
+- **Range attenuation** — a bolt weakening with distance is both a
+  balance knob and *the inquiry substrate's flagship discoverable law*
+  (falloff-by-experiment). Attenuation should land as an honest function
+  the moment distance exists, so the inquiry build can mark it
+  discoverable. Cross-room "distance" = the conduit/transmissivity hops
+  this slate already names.
+- **Counterspell vs cover** — Arcana's counter (an in-flight-effect
+  read) and physical cover should stay *distinct* answers to a ranged
+  cast, not collapse into one dodge stat.
 
 Geometric fidelity, per-character gambits, and enemy-side tactics wait
 for their own waves — if they're ever asked for at all.

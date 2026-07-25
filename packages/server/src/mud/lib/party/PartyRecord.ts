@@ -29,6 +29,8 @@ export class PartyRecord extends Document {
     "memberIds",
     "combatSide",
     "channelRef",
+    "formationPath",
+    "roleAssignments",
   ];
 
   /** The live Party Idea's `templatePath` — the durable join key. */
@@ -39,4 +41,6 @@ export class PartyRecord extends Document {
   memberIds: string[] = [];
   combatSide: string = "";
   channelRef: string = "";
+  formationPath: string = "";
+  roleAssignments: Record<string, string> = {};
 }
