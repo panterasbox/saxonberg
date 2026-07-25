@@ -1,15 +1,21 @@
 # Combat tactics & engagement model (working slate)
 
-> **Status: committed feature, design ahead.** Combat is a launch feature
-> — the game won't ship without it — but its design is still in the
-> game-design phase (RPG rules, stats, and progression aren't pinned down
-> yet). Nothing here is a build. This slate captures the intended
-> direction: two linked theses so they don't evaporate in a chat log.
-> (1) Combat is a graph of **engaged relationships**, not sub-room
-> geometry; (2) the marquee combat feature for a text/social/AI world is
-> **party-level tactical presets**, and the standout preset —
-> master-apprentice — turns an unstoppable emergent behavior
-> (power-leveling) into a ruled, on-theme mechanic.
+> **Status: both theses SHIPPED; the ranged surface is what remains.**
+> Thesis 1 (combat as an engagement graph, not geometry) shipped as the
+> multi-party combat build's `CombatGraph`; Thesis 2 (party-level
+> presets) shipped as the **combat-formations build** — renamed
+> *formations* ("tactics" is DA:O's word for the per-character gambit
+> scripting this design rejects), with the preset roster minus Skirmish,
+> Master-Apprentice's reward knobs **superseded by the emergent
+> economy** (no credit transfer, no scaling — see
+> [combat-formations.md](../../subsystems/combat-formations.md), which is
+> now the source of truth for everything party-strategy). What this slate
+> still uniquely holds is **Thesis 1's ranged-as-relationship model**
+> (kite / close / artillery over engaged-status, the `physical` conduit
+> transmissivity channel, cover-as-status) — the design surface the
+> deferred ranged-engagement build consumes. §"Thesis 2", the preset
+> table, and the integration sketch below are historical; read them as
+> the design record, not the current shape.
 
 Working slate for **combat tactics**: the party-as-a-whole meta-strategy
 layer, the abstract engagement model it rides, and why this — not

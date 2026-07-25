@@ -249,6 +249,14 @@ spell's floor rises with its power without a conferral row per spell.
 Every cast credits both axes as two subchecks of one `ActSignature`. See
 [magic.md](./magic.md).
 
+The combat-formations build seeds **`command`** (`channel: skill`,
+`iscedf: "0413"`, `synergizes: [melee-combat]`, no `conferrals`) — reading
+a fight and directing others through it. Its deeds mint only for
+formation policy work performed *for someone else* (an interception
+taken, an armed opening an ally cashed, a captain's call landing, the
+coup directive, the formation shift), so a master/captain advances the
+one discipline that cannot be ground solo — the teaching payoff. See
+[combat-formations.md](./combat-formations.md).
 ## Deferred (seams left open)
 
 The loadout (capacity-not-decay, savings warm-up); guilds (venue / mentors

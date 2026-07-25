@@ -649,6 +649,16 @@ export const AppSettingKeys = {
   /** Off-hand guard bonus a *below-mastery* dual-wielder actually gets
    * (a novice's off-hand hurts more than it helps). */
   combatDualWieldNoviceGuardBonus: "combat.dualWield.noviceGuardBonus",
+  /** Formations — an interceptor already pressed by this many incoming
+   * edges is ineligible to take a redirect (the pressure ceiling). */
+  combatFormationInterceptMaxIncoming: "combat.formation.intercept.maxIncoming",
+  /** Formations — Master-Apprentice's `high-threat` trigger: intercept
+   * when the protected role's incoming edge count reaches this. */
+  combatFormationHighThreatEdges: "combat.formation.ma.highThreatEdges",
+  /** Formations — real seconds a captain-call coup is held awaiting
+   * `fight finish` before the fallen is spared (mercy by default). */
+  combatFormationCoupDirectiveWindowSeconds:
+    "combat.formation.coup.directiveWindowSeconds",
 
   /* ───────────────────────── concealment ───────────────────────── */
   /**

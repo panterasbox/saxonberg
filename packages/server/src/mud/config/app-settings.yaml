@@ -550,6 +550,21 @@ settings:
     value: "2"
   - key: combat.dualWield.noviceGuardBonus
     value: "-0.3"
+  # Formations — the party-strategy layer (policy shape lives on the
+  # CombatFormation Ideas; these are the magnitudes).
+  # An interceptor already pressed by this many incoming edges is
+  # ineligible to take a redirect (a pinned front can't eat more).
+  - key: combat.formation.intercept.maxIncoming
+    value: "2"
+  # Master-Apprentice's `high-threat` trigger: the master steps in only
+  # when the protected apprentice's incoming edge count reaches this
+  # (below it, the apprentice fights their own fight).
+  - key: combat.formation.ma.highThreatEdges
+    value: "2"
+  # How long (real seconds) a captain-call coup is held awaiting
+  # `fight finish` before the fallen is spared (mercy by default).
+  - key: combat.formation.coup.directiveWindowSeconds
+    value: "12"
   # Concealment — effective-perception a viewer needs to notice a thing at
   # each concealed band (obvious = 0, no key). Monotone increasing. The band
   # names + ordering are code (lib/concealment/ConcealmentLevel.ts); these
