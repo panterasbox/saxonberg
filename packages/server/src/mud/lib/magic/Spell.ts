@@ -14,7 +14,7 @@
  * (the governing invariant; `MagicEffects.validate` makes anything else
  * unrepresentable). Access is a **band gate at cast time** on BOTH axes
  * (`requiredBand` vs `AdvancementApi.bandFor` — competence IS access;
- * conferral-of-verbs is deliberately not used, DIV-11).
+ * conferral-of-verbs is deliberately not used; see magic.md).
  *
  * Deliberately NOT a Mongo collection (the Atlas 500-collection ceiling
  * + no per-row mutation): authored seeds ride the `domain` collection as

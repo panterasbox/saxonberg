@@ -110,7 +110,7 @@ The materials-response shape generalized: **mitigators subtract**
 (folded outside-in; a mitigator returning 1 = immunity — the limit of
 graded resist, not a special case), **the substrate gates** (sets stage
 thresholds + picks outcome, scaled by live target state). The
-load-bearing build finding (plan DIV-1): the **channel axis was
+load-bearing build finding: the **channel axis was
 already fully packaged** behind `ConditionApi.inflict` (covering-stack
 fold + tissue gate + banding), and **toxin** is the shipped metabolism
 banding — so magic *delegates* those wholesale and implements exactly

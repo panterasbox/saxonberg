@@ -19,7 +19,7 @@
  *    non-consenting sentient outside a shared combat session appends one
  *    (the `HazardMixin.deliverHarm` trap-spring producer precedent).
  *
- * The **resist seam**, N-axis (DIV-1): the `channel` axis delegates
+ * The **resist seam**, N-axis: the `channel` axis delegates
  * whole to `ConditionApi.inflict` (fold + gate + banding already live
  * there); `toxin` is the shipped metabolism banding (recognized, no v1
  * spell); **`mental`** is the one new resolver here — no mitigators in
@@ -227,7 +227,8 @@ async function prepareCastImpl(
     };
   }
 
-  // The band gate on BOTH axes — competence IS access (DIV-11).
+  // The band gate on BOTH axes — competence IS access (never a
+  // per-spell conferral; see docs/subsystems/magic.md).
   const verbKey = MagicGrid.verbDisciplineKey(spell.verb);
   const nounKey = MagicGrid.nounDisciplineKey(spell.noun);
   const [verbBand, nounBand] = await Promise.all([
@@ -383,7 +384,7 @@ function suppressionAtImpl(place: Stuff | null): MagicSuppression | null {
  * The deep tier: the sync walk, then the ASYNC zone chain
  * (`Zone.lookupField('suppressesMagic')` — region-scale wards). Used at
  * cast time; the sync tier alone is authoritative for the reconcile's
- * dormancy read (DIV-4).
+ * dormancy read (the reconcile is sync by construction).
  */
 async function suppressionAtDeepImpl(
   place: Stuff | null,

@@ -295,7 +295,7 @@ When combat reaches the design phase, this slate boils down to:
 ### Magic interplay questions (banked 2026-07-23, from the magic build)
 
 The magic core build
-([capability-magic-requirements.md](../../requirements/capability-magic-requirements.md))
+([magic.md](../../subsystems/magic.md))
 shipped deliberately **room-scoped** — no ranged pretense — and routed
 all hostile channel-delivery through one internal **`deliverAt`** seam in
 the magic logic, documented as the ranged-integration point. When this

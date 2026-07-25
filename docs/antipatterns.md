@@ -2021,3 +2021,34 @@ the whole design around one overloaded English word, and don't generalize a
 `Blowable`-style per-gesture capability: "anything can be blown, only some
 respond" is a *responder*, not an object type — and the responder, if you
 ever need it, hangs off `use`, not a new gesture-verb layer.
+
+## Raw keyed reserve reads outside the owning substrate
+
+**Don't:**
+
+```typescript
+// another subsystem / authored content reading a body's pool
+const pool = target.getReserve('mana');       // stale — skips the recovery reconcile
+const tired = actor.getReserve('endurance');  // key + unit are tribal knowledge
+```
+
+**Do:**
+
+```typescript
+const pool = target.getMana();          // CasterMixin — reconciled, key-free, null for a non-caster
+const tired = actor.getEndurance();     // Creature — the biological trio (satiation/hydration too)
+const fuel = log.getFuelRemaining();    // Combustible — the original exemplar
+```
+
+The keyed `Reserved` surface (`getReserve`/`adjustReserve`) is each
+owning substrate's **internal plumbing** — some owners hook it with
+their reconcile (metabolism), some don't (magic), so an outside caller
+can't know whether a raw read is fresh. The **contract surface** is the
+owner's domain reader, which bundles whatever reconcile-on-read the
+owner needs and is what the author-facing docs surface
+(`callable == visible`). The full instance → owner → reader index lives
+in the reserve landscape table at the top of `lib/reserve.ts`; a new
+authored reserve ("charge", "essence") installs in its owning mixin,
+fronts itself with a reader, and adds a row there. Same-host sibling
+drains (Vitals' limp cost, LoadBearing's traversal drain spending
+`endurance`) are the body's own internal economy and stay keyed.
