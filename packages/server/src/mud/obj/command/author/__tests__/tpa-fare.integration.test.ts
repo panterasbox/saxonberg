@@ -215,6 +215,7 @@ describe("TPA fare settlement (integration)", () => {
       if (k === AppSettingKeys.fasttravelNetworkFeeRate) return "0.15";
       if (k === AppSettingKeys.fasttravelNetworkFeeBase) return "1";
       if (k === AppSettingKeys.fasttravelTpaBusinessPath) return TPA_BIZ;
+      if (k === AppSettingKeys.bankingDefaultCustodianBank) return "goodkin";
       return "";
     });
     vi.spyOn(AccessApi, "isWizard").mockResolvedValue(false);

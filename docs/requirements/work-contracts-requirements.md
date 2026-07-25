@@ -118,8 +118,10 @@ commitment — homeless.
 
 ### Discovery: a physical board fixture
 
-A `JobBoard` Thing placed in a locality (first placement: Dave's
-Bar's lounge), affording the verbs via `commandContributions` —
+A `JobBoard` Thing placed in a locality (first placement: the Terminus
+terminal hall — the station concourse, where newcomers arrive needing a
+living; revised in MR review from the originally-planned Dave's Bar,
+which stays uncluttered), affording the verbs via `commandContributions` —
 content affords content, no core-mixin affordance. Diegetic, Track-B
 server-first, zero client dependency. A placeless query verb/pane is
 deferred. Multiple boards can exist; a gig is posted *to a board*

@@ -177,6 +177,7 @@ describe("the boot restamp pass (legacy → institution keys)", () => {
     const TPA_BIZ = "/domain/terminus/terminal/tpa";
     vi.spyOn(AppApi, "setting").mockImplementation((k: string) => {
       if (k === AppSettingKeys.fasttravelTpaBusinessPath) return TPA_BIZ;
+      if (k === AppSettingKeys.bankingDefaultCustodianBank) return "goodkin";
       return "";
     });
     await seedRow({ accountId: "tpa", owner: "", balance: 30 });

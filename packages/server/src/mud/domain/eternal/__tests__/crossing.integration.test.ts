@@ -119,6 +119,12 @@ function docs(): Doc[] {
     // The reoriented terminal frontage across the avenue.
     seed("domain/terminus/terminal/arrival-gate.yaml", ARRIVAL_GATE),
     seed("domain/terminus/terminal/hall.yaml", HALL),
+    // The hall's populates list stands the public noticeboard up (the
+    // labor market's discovery surface — see contract.md).
+    seed(
+      "domain/terminus/terminal/job-board.yaml",
+      "/domain/terminus/terminal/job-board",
+    ),
     seed("domain/terminus/terminal/departure-gate-c.yaml", GATE_C),
   ];
   // Light stubs for the rest of the hub the cascade reaches.

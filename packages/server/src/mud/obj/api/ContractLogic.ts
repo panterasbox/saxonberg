@@ -64,10 +64,12 @@ function active(): boolean {
   return PersistApi.isConnected();
 }
 
-/** A dial read with the seeded-literal fallback (unwarmed tests). */
+/** A dial read; unwarmed/unseeded (throw or empty) → the fallback. */
 function dial(key: string, fallback: number): number {
   try {
-    const raw = Number(AppApi.setting(key));
+    const v = AppApi.setting(key);
+    if (v === "") return fallback;
+    const raw = Number(v);
     return Number.isFinite(raw) ? raw : fallback;
   } catch {
     return fallback;

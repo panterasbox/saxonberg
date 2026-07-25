@@ -6,14 +6,45 @@
  */
 
 import { vi } from "vitest";
+import { readFileSync } from "fs";
+import { fileURLToPath } from "url";
+import YAML from "yaml";
 import { PersistenceManager } from "../../../../backend/PersistenceManager";
 import AccountBalance from "../AccountBalance";
 import SupplyAggregate from "../SupplyAggregate";
 import { WorldClockApi } from "../../../api/worldclock";
 import { StuffApi } from "../../../api/stuff";
+import { AppApi } from "../../../api/app";
+import { AppSettingKeys } from "../../config/AppSettings";
 
 let stores: Map<string, Map<string, Record<string, unknown>>>;
 let idCounter = 0;
+
+/**
+ * The REAL seeded default-custodian value from `app-settings.yaml` (the
+ * yaml is the single source of the value — no code default anywhere).
+ * The harness makes just this one key ambient so fixtures read true
+ * config; a test that re-stubs `AppApi.setting` overrides the harness
+ * and must carry the keys it needs.
+ */
+let seededCustodian: string | null = null;
+function seededDefaultCustodian(): string {
+  if (seededCustodian === null) {
+    const doc = YAML.parse(
+      readFileSync(
+        fileURLToPath(
+          new URL("../../../config/app-settings.yaml", import.meta.url),
+        ),
+        "utf8",
+      ),
+    ) as { settings: Array<{ key: string; value: string }> };
+    seededCustodian =
+      doc.settings.find(
+        (e) => e.key === AppSettingKeys.bankingDefaultCustodianBank,
+      )?.value ?? "";
+  }
+  return seededCustodian;
+}
 
 export function col(name: string): Map<string, Record<string, unknown>> {
   let m = stores.get(name);
@@ -55,6 +86,21 @@ export function installBankingHarness(): void {
     col(c).delete(id);
   });
   WorldClockApi._setNowProviderForTesting(() => 4242);
+  // Custody comes ONLY from the app setting (no code default). Fall
+  // through to the REAL reader first — a test that warms/pokes the real
+  // AppSettings cache keeps its values — and only when it throws
+  // (unwarmed) supply the yaml-seeded custodian; every other key reads
+  // unset ("" — the same fallback outcomes as an unwarmed AppSettings).
+  const realSetting = AppApi.setting.bind(AppApi);
+  vi.spyOn(AppApi, "setting").mockImplementation((k: string) => {
+    try {
+      return realSetting(k);
+    } catch {
+      return k === AppSettingKeys.bankingDefaultCustodianBank
+        ? seededDefaultCustodian()
+        : "";
+    }
+  });
   AccountBalance._resetForTesting();
   SupplyAggregate._resetForTesting();
   StuffApi.clearAll();

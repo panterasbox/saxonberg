@@ -174,22 +174,19 @@ async function openAccountImpl(
 }
 
 /**
- * The seeded-literal fallback for the default custodian bank — Goodkin,
- * the retail institution (the materials-response dial precedent: the
- * AppSetting governs, the literal covers unwarmed reads in tests /
- * pre-boot).
+ * The default custodian bank (an institution key) — read from the
+ * `banking.defaultCustodianBank` AppSetting **only** (the yaml is the
+ * single source of the value; no code default, per the AppSettings
+ * doctrine). Empty when unwarmed/unseeded — every custodian consumer
+ * then refuses rather than inventing a bank; the shared banking test
+ * harness supplies the real seeded value.
  */
-const DEFAULT_CUSTODIAN_FALLBACK = "goodkin";
-
-/** The default custodian bank (an institution key; AppSetting-governed). */
 function defaultCustodianBankImpl(): string {
   try {
-    const v = AppApi.setting(AppSettingKeys.bankingDefaultCustodianBank);
-    if (v) return v;
+    return AppApi.setting(AppSettingKeys.bankingDefaultCustodianBank) || "";
   } catch {
-    // AppSettings not warmed (tests / pre-boot) — the seeded literal.
+    return "";
   }
-  return DEFAULT_CUSTODIAN_FALLBACK;
 }
 
 /**
@@ -805,6 +802,13 @@ async function escrowHoldImpl(
       funding?.bank && isRealCustodian(funding.bank)
         ? funding.bank
         : defaultCustodianBankImpl();
+    if (!custodian) {
+      throw new Error(
+        "BankingLogic.escrowHold: no custodian resolvable for the escrow " +
+          "account (the funding account names no bank and no default is " +
+          "seeded)",
+      );
+    }
     const row = new AccountBalance();
     row.accountId = escrowId;
     row.owner = `contract:${contractId}`;
@@ -985,8 +989,10 @@ async function restampCustodiansImpl(): Promise<void> {
       continue;
     }
     // Anything still custodied nowhere goes to the default — the last
-    // resort where no relationship is derivable.
-    if (!row.bank) {
+    // resort where no relationship is derivable. An unseeded default
+    // (no `banking.defaultCustodianBank`) leaves the row for a later
+    // boot rather than inventing a bank.
+    if (!row.bank && custodian) {
       row.bank = custodian;
       dirty = true;
     }

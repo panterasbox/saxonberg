@@ -50,7 +50,7 @@ class TestCrate extends ContainableMixin(Idea) {
   static _mixinName = "TestCrate";
 }
 
-const BOARD = "/domain/lounge/job-board";
+const BOARD = "/domain/terminus/terminal/job-board";
 const HERE = "/domain/test/bar-room";
 const DEST = "/domain/test/bar";
 const CRATE = "/obj/test/crate";

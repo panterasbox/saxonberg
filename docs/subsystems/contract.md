@@ -173,9 +173,12 @@ placement: multiple boards in multiple localities) is the physical
 discovery surface. A gig is posted *to a board* (its `templatePath` is
 the pool's visibility key — the board is the surface, not the pool).
 Content affords content: the board's own `commandContributions` afford
-the **`job`/`jobs`** verb (`environment`), first placed at Dave's Bar (a
-cork board, `seeds/domain/lounge/job-board.yaml` + the bar's
-`populates`).
+the **`job`/`jobs`** verb (`environment`), first placed in the
+**Terminus terminal hall** (a public noticeboard on the station
+concourse — where newcomers arrive needing a living;
+`seeds/domain/terminus/terminal/job-board.yaml` + the hall's
+`populates`; keyworded `noticeboard` — the hall's `board` detail is the
+split-flap departures board).
 
 Two verbs in the new **`work`** category (the house subcommand
 discipline — one dispatch verb per feature, never a verb per
