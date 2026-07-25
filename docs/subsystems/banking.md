@@ -114,7 +114,11 @@ feed the `environment` bucket; the `Menu` precedent). The counter's contents
 The branch ops ride **one `bank` verb** with subcommands (the
 `chat`/`alias` dispatch-on-`subcommand` precedent, not a verb-per-action):
 bare `bank` → balance; `bank open` / `deposit <coins>` / `withdraw <amount>`
-/ `transfer <amount> to <who>` / `balance`. One `BankController` dispatcher
+/ `transfer <amount> to <who>` / `balance`. `bank open` is idempotent, and
+for an existing holder it **doubles as the wallet re-link**: the payment
+credential is session-durable (a returning login's implant is
+re-provisioned bare — see [credential.md](./credential.md)), so re-opening
+re-links the held account onto the fresh credential instead of refusing. One `BankController` dispatcher
 extends `BankingControllerBase` (`resolveBank` — the affording counter, else
 the room scan; the crafting "agent performs, venue owns state" resolution).
 The branch is authored as **city content**:
