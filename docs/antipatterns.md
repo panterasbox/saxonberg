@@ -2052,3 +2052,37 @@ authored reserve ("charge", "essence") installs in its owning mixin,
 fronts itself with a reader, and adds a row there. Same-host sibling
 drains (Vitals' limp cost, LoadBearing's traversal drain spending
 `endurance`) are the body's own internal economy and stay keyed.
+
+## Activity-completion closures that call controller instance methods
+
+**Don't:**
+
+```typescript
+// in a CommandController.execute
+const activity = new CastActivity({
+  onComplete: () => void this.resolveAndRender(actor, spellId), // [inert]!
+});
+SchedulerApi.start(activity);
+```
+
+**Do:**
+
+```typescript
+// module-private free function in the controller file — no `this`
+const activity = new CastActivity({
+  onComplete: () => void resolveAndRender(actor, spellId),
+});
+```
+
+A command controller instance is a **per-dispatch clone destructed when
+`execute` returns** — but a durative activity completes *later*. An
+`onComplete`/`onAbort` closure that calls `this.<method>()` dispatches
+through the proxy of a destroyed Stuff and silently no-ops as
+`[inert] <method>() called on destroyed Stuff` in the log; the player
+sees the begin-line and then nothing, and every unit test passes
+(tests hold the controller alive). Completion bodies must be
+**module-private free functions** (fine inside the controller module —
+module-private, not exported) closing over plain values, never over the
+controller. Found live by the magic build's browser drive
+(`CastController`, fixed); `SearchController`'s completion has the
+same latent shape.

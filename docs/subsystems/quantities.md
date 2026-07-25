@@ -471,6 +471,19 @@ characters that make poor filesystem segments. The encoding maps
 Use `QuantityMarshaller.pathFor(unit)` at every declaration site
 rather than hardcoding the encoded form.
 
+**Every `pathFor(unit)` needs a seed row** at
+`seeds/lib/persistence/QuantityMarshaller/<slug>.yaml`, or cloning any
+template whose class marshals that unit dies at hydrate with
+`Template not found` — **in live play only**, because unit tests
+install marshallers by hand (`installV1QuantityMarshallers`) and so
+can't see the gap. This is exactly how the fire build's `MJ/kg`/`J/kg`
+and electricity's `A`/`Ω` left oak, water, iron, and copper
+un-clonable in a running server while the whole suite stayed green
+(found by the magic build's browser drive). The roster is now pinned
+by `lib/persistence/__tests__/quantity-marshaller-seeds.test.ts`,
+which greps every `pathFor` literal in src against the seeds dir —
+adding a unit without its seed fails CI.
+
 ### K — two registered scales (color + thermal)
 
 `K` is the canonical multi-scale unit: the same `Quantity<'K'>` can

@@ -242,8 +242,10 @@ The magic build seeds the **grid** — 18 leaves (`magic-{create,destroy,
 control,transform,perceive}` verbs × `magic-{fire,…,storm}` nouns, each
 `channel: skill`, `iscedf: "0288"`, verbs `synergizes` every noun), the
 biggest single Catalog contribution yet. Deliberately **no `conferrals`**:
-the `cast`/`spells` *verbs* ride `CasterMixin`'s instance-contribution
-seam, and per-spell access is a **band gate at cast time on BOTH of a
+the `cast`/`spells` *verbs* ride `CasterMixin.refreshCastingAffordance`
+(the `refreshConferrals` mirror — a dynamic self-push at `Avatar.enter`,
+since the self bucket collects class statics only), and per-spell access
+is a **band gate at cast time on BOTH of a
 cell's axes** (`requiredBand` vs `bandFor` — competence IS access), so a
 spell's floor rises with its power without a conferral row per spell.
 Every cast credits both axes as two subchecks of one `ActSignature`. See

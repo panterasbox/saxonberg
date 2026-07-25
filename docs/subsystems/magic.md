@@ -63,8 +63,11 @@ casting-hand impairment (`isSlotImpairedByTrauma('hands')`) → the
 **band gate on BOTH grid axes** (`requiredBand` vs
 `AdvancementApi.bandFor` on `magic-<verb>` + `magic-<noun>` —
 competence IS access; the magic Disciplines carry **no `conferrals`**,
-the `cast`/`spells` verbs ride `CasterMixin`'s instance-contribution
-seam instead) → suppression (deep tier).
+the `cast`/`spells` verbs ride the `refreshCastingAffordance` dynamic
+self-push at `Avatar.enter` — the `refreshConferrals` mirror; the
+`self` affordance bucket collects **class statics only**, so a gated
+mixin cannot afford selectively via static or instance contributions)
+→ suppression (deep tier).
 
 Every cast credits **both axes** as two subchecks of one
 `ActSignature`; potency scales by how far the caster's *limiting* axis
