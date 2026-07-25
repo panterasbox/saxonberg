@@ -40,7 +40,6 @@ import type {
 } from '@saxonberg/types';
 import { StuffApi } from './stuff';
 import { HotReloadApi } from './hot-reload';
-import { SecurityApi } from './security';
 import { DiagnosticLogic } from '../obj/api/DiagnosticLogic';
 import { ConsoleTap } from '../../backend/ConsoleTap';
 import {
@@ -48,6 +47,7 @@ import {
   type SubscribeContext,
 } from '../lib/diagnostics/DiagnosticChannel';
 import { fileURLToPath } from 'url';
+import { SecurityApi } from './security';
 
 const LOGIC_PATH = '/obj/api/diagnostics';
 const LOGIC_CLASS_FILE = fileURLToPath(

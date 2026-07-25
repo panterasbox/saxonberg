@@ -20,10 +20,10 @@ import type { ScriptAbortReason } from "../lib/script/AbortReason";
 import type { Stuff } from "../lib/stuff/Stuff";
 import { StuffApi } from "./stuff";
 import { HotReloadApi } from "./hot-reload";
-import { SecurityApi } from "./security";
 import { ExecutionContextApi } from "./execution-context";
 import { ScriptLogic } from "../obj/api/ScriptLogic";
 import { fileURLToPath } from "url";
+import { SecurityApi } from './security';
 
 const LOGIC_PATH = "/obj/api/script";
 const LOGIC_CLASS_FILE = fileURLToPath(

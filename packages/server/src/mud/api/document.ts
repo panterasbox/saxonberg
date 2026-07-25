@@ -25,9 +25,9 @@
 import type { StoredDocument } from "../lib/document/StoredDocument";
 import { StuffApi } from "./stuff";
 import { HotReloadApi } from "./hot-reload";
-import { SecurityApi } from "./security";
 import { DocumentLogic } from "../obj/api/DocumentLogic";
 import { fileURLToPath } from "url";
+import { SecurityApi } from './security';
 
 const LOGIC_PATH = "/obj/api/document";
 const LOGIC_CLASS_FILE = fileURLToPath(

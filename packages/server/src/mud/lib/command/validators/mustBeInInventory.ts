@@ -16,7 +16,6 @@
 
 import type { Stuff } from '../../stuff/Stuff';
 import type { FieldValidator } from '../../../api/command';
-import { ContainmentApi } from '../../../api/containment';
 import { MixinApi } from '../../../api/mixin';
 import { MqlApi } from '../../../api/mql';
 
@@ -30,7 +29,7 @@ const validator: FieldValidator = (value, field, context) => {
     return `you have no inventory`;
   }
   const inventoryIds = new Set(
-    ContainmentApi.getContents(giver).map((s) => s.stuffId),
+    giver.getContents().map((s) => s.stuffId),
   );
 
   for (const stuff of stuffs) {

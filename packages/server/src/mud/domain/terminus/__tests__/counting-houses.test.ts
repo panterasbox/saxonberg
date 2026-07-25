@@ -15,7 +15,6 @@ import { fileURLToPath } from "url";
 import YAML from "yaml";
 import { DialogueTreeSchema } from "../../../lib/npc/tree";
 // Registers the `bank-circle` dialogue effect so the officer tree validates.
-import "../../../lib/banking/BankDialogueEffect";
 import { BankingApi, Money } from "../../../api/banking";
 import Coin from "../../../obj/Coin";
 import BankCounter from "../../../lib/banking/BankCounter";

@@ -358,6 +358,20 @@ export const AppSettingKeys = {
   residencyEvictionIntervalMs: "residency.eviction.intervalMs",
   /** Eviction — idle grace window (ms) before an object is a candidate. */
   residencyEvictionIdleThresholdMs: "residency.eviction.idleThresholdMs",
+  /** Reset — `observe` (log only) | `enforce` (actually repop). */
+  residencyResetMode: "residency.reset.mode",
+  /** Reset — game-time sweep cadence in game-seconds. */
+  residencyResetIntervalS: "residency.reset.intervalS",
+
+  /**
+   * Retail — the general store. `listingCap` is the per-consignor active-
+   * listing cap (the withdrawal-quota sibling anti-grief guard on the shared
+   * consignment shelf; `0` disables). `commissionRate` is the store's cut of
+   * a consignment sale (0..1) — the remainder settles to the consignor's
+   * primary account. See docs/subsystems/retail.md.
+   */
+  retailConsignmentListingCap: "retail.consignment.listingCap",
+  retailConsignmentCommissionRate: "retail.consignment.commissionRate",
 
   /**
    * YouTube relay (read-only) dials. The Twitch relay's hardcoded constants
@@ -428,6 +442,18 @@ export const AppSettingKeys = {
    * biteMax → bites; ≥ → bites-deep). */
   responseBandGrazeMax: "response.band.grazeMax",
   responseBandBiteMax: "response.band.biteMax",
+  /** Response (heat channel) — the fraction a single fully-insulating layer
+   * blocks; scaled by material insulation height + layer depth. A conductive
+   * layer (metal) blocks near-zero, an insulator (leather/padding) near this. */
+  responseHeatBaseAttenuation: "response.heat.baseAttenuation",
+  /** Response (heat channel) — the reference thermal conductivity (W/(m·K))
+   * where a material is half-insulating; below it insulates hard, above it
+   * conducts. Insulation height = ref / (ref + conductivity). */
+  responseHeatInsulationRefConductivity:
+    "response.heat.insulationRefConductivity",
+  /** Response (heat channel) — extra insulation per outside-in layer depth
+   * (padded 0 … plate 3); the covering stack's depth amplifies the block. */
+  responseHeatDepthFactor: "response.heat.depthFactor",
 
   /* ────────────────────────── electricity ────────────────────────── */
   /**
@@ -514,6 +540,15 @@ export const AppSettingKeys = {
   combatPoiseRestorePerDefense: "combat.poise.restorePerDefense",
   /** Combat — extra poise a whiff/parry self-opens the actor. */
   combatPoiseWhiffPenalty: "combat.poise.whiffPenalty",
+  /**
+   * Combat — the poise an **ambush** strips from an unaware defender at the
+   * opening (a struck-from-concealment surprise). Large enough to cross
+   * `combat.poise.brokenAt` from full poise, arming the aggressor's free
+   * first exchange — surprise DENIES the opening poise contest (not a damage
+   * multiplier). Read with a seeded-literal fallback. See
+   * docs/subsystems/stealth.md.
+   */
+  combatAmbushPoisePenalty: "combat.ambush.poisePenalty",
   /** Combat — tempo rate shape. */
   combatTempoBase: "combat.tempo.base",
   combatTempoEncumbrancePenalty: "combat.tempo.encumbrancePenalty",
@@ -614,6 +649,16 @@ export const AppSettingKeys = {
   /** Off-hand guard bonus a *below-mastery* dual-wielder actually gets
    * (a novice's off-hand hurts more than it helps). */
   combatDualWieldNoviceGuardBonus: "combat.dualWield.noviceGuardBonus",
+  /** Formations — an interceptor already pressed by this many incoming
+   * edges is ineligible to take a redirect (the pressure ceiling). */
+  combatFormationInterceptMaxIncoming: "combat.formation.intercept.maxIncoming",
+  /** Formations — Master-Apprentice's `high-threat` trigger: intercept
+   * when the protected role's incoming edge count reaches this. */
+  combatFormationHighThreatEdges: "combat.formation.ma.highThreatEdges",
+  /** Formations — real seconds a captain-call coup is held awaiting
+   * `fight finish` before the fallen is spared (mercy by default). */
+  combatFormationCoupDirectiveWindowSeconds:
+    "combat.formation.coup.directiveWindowSeconds",
 
   /* ───────────────────────── concealment ───────────────────────── */
   /**
@@ -685,6 +730,36 @@ export const AppSettingKeys = {
    * `search`). Read with a seeded-literal fallback.
    */
   concealmentExamineBonus: "concealment.examineBonus",
+  /* ─────────────── stealth — the hider's derived level ─────────────── */
+  /**
+   * Stealth (hide) — perception "cover" conferred per `stealth` competence
+   * band rank (untrained 0 … expert 4) when an actor enters `hide`. The
+   * competence half of `PerceptionApi.hideLevelFor`'s derived score (the
+   * opposed sibling of {@link detectionCapacityPerBand}). Read with a
+   * seeded-literal fallback. See docs/subsystems/stealth.md.
+   */
+  stealthHideCompetencePerBand: "stealth.hide.competencePerBand",
+  /** Stealth (hide) — score per unit of available room cover (each
+   * non-creature object in the room the hider can duck behind, capped).
+   * Read with a seeded-literal fallback. */
+  stealthHideCoverWeight: "stealth.hide.coverWeight",
+  /** Stealth (hide) — score per band of darkness below neutral light (a
+   * dark corner hides better). Read with a seeded-literal fallback. */
+  stealthHideLightWeight: "stealth.hide.lightWeight",
+  /** Stealth (hide) — flat bonus for hiding from a low, still posture
+   * (crouched/sitting/lying, not standing). Read with a seeded-literal
+   * fallback. */
+  stealthHideStillnessBonus: "stealth.hide.stillnessBonus",
+  /**
+   * Stealth (hide) — the derived-score thresholds mapping to each
+   * {@link ConcealmentLevel} band the hider reaches. Monotone increasing; a
+   * score below `band.subtle` fails to conceal at all (`obvious`). Read with
+   * seeded-literal fallbacks.
+   */
+  stealthHideBandSubtle: "stealth.hide.band.subtle",
+  stealthHideBandHidden: "stealth.hide.band.hidden",
+  stealthHideBandDeep: "stealth.hide.band.deep",
+  stealthHideBandBuried: "stealth.hide.band.buried",
   /* ───────────────────────── hazards / traps ───────────────────────── */
   /**
    * Hazard — the game-time window (seconds) a `pin` traverse-consequence
@@ -723,6 +798,18 @@ export const AppSettingKeys = {
    * walk avoids). Read with a seeded-literal fallback.
    */
   movementAttentionRun: "movement.attention.run",
+  /**
+   * Movement — the **observer-side** of the care↔speed axis (the mirror of
+   * {@link movementAttentionSneak}/{@link movementAttentionRun}): the number
+   * of concealment bands a move at each mode strips from a *hiding* mover.
+   * `sneak` holds (0), `walk` degrades one band, `run` clears hiding (a
+   * large count). Read by `PerceptionApi.motionExposure`, applied at
+   * `Mobile.traverse`. Read with seeded-literal fallbacks. See
+   * docs/subsystems/stealth.md.
+   */
+  movementConcealmentSneak: "movement.concealment.sneak",
+  movementConcealmentWalk: "movement.concealment.walk",
+  movementConcealmentRun: "movement.concealment.run",
   /* ────────────────────────── wetness (weather Wave 2) ────────────────────────── */
   /**
    * Wetness — the per-object saturation gauge's magnitudes (weather
@@ -789,6 +876,46 @@ export const AppSettingKeys = {
    * saturation the cold-side wind-chill / immersion term is scaled by
    * `1 + wetHeatLossFactor`. */
   thermalWetHeatLossFactor: "thermal.wetHeatLossFactor",
+
+  /* ────────────────────────── fire (combustion) ────────────────────────── */
+  /** Fire — fuel consumed per game-minute while burning (`%`-points of the
+   * fuel `Reserve`; the Campfire precedent). */
+  fireBurnRatePerMin: "fire.burnRatePerMin",
+  /** Fire — the temperature (K) a burning object holds while aflame
+   * (complete combustion). Incomplete/starved fires run cooler — Phase 5. */
+  fireFlameTemperatureK: "fire.flameTemperatureK",
+  /** Fire — the latent heat of vaporization of water (J/kg) the ignition
+   * energy balance must out-supply to boil a fuel's held water off before it
+   * can catch (the wet-firewood term). */
+  fireIgnitionWaterLatentHeatJPerKg: "fire.ignition.waterLatentHeatJPerKg",
+  /** Fire — the maximum wetness-elevated ignition headroom (K) a deliberate
+   * hand-flame (`ignite` verb) can dry through. A fuel whose water penalty
+   * exceeds this is "too wet to catch" until it dries. */
+  fireIgnitionMaxManualDryingK: "fire.ignition.maxManualDryingK",
+  /** Fire — the presence-gated fire-tick interval, in game-seconds (the
+   * spread + advance cadence over occupied scopes). */
+  fireTickIntervalSeconds: "fire.tickIntervalSeconds",
+  /** Fire — the heat (joules) a burning object radiates into each co-located
+   * combustible per tick; thermal inertia + wetness gate whether it ignites. */
+  fireRadiantJoulesPerTick: "fire.radiantJoulesPerTick",
+  /** Fire — the fraction of radiant heat that crosses an OPEN boundary into
+   * the adjacent scope (a closed / locked door is a firebreak → 0). */
+  fireCrossBoundaryFraction: "fire.crossBoundaryFraction",
+  /** Fire — the temperature (K) an air-starved (incomplete) fire holds;
+   * cooler than complete combustion (the ventilation lesson). */
+  fireFlameTemperatureIncompleteK: "fire.flameTemperatureIncompleteK",
+  /** Fire — scope-air (`%` of the room's `'air'` Reserve) each burning object
+   * consumes per tick in an enclosed scope. */
+  fireAirConsumePerTick: "fire.air.consumePerTick",
+  /** Fire — scope-air (`%`) a VENTILATED scope (sky-exposed or an open
+   * boundary) regains per tick — the bellows / cracked-door replenishment. */
+  fireAirReplenishPerTick: "fire.air.replenishPerTick",
+  /** Fire — scope-air level (`%`) at/above which combustion is complete
+   * (hot, clean); below it starves to incomplete (cooler, soot + CO). */
+  fireAirCompleteThresholdPct: "fire.air.completeThresholdPct",
+  /** Respiration — carbon-monoxide (contaminant) toxin burden a breather
+   * takes on per reassess while in a contaminated (smoke) medium. */
+  respirationContaminantBurdenPerBreath: "respiration.contaminantBurdenPerBreath",
 } as const;
 
 export type AppSettingKey =

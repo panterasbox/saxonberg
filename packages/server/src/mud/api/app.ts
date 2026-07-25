@@ -29,9 +29,9 @@
 
 import { StuffApi } from "./stuff";
 import { HotReloadApi } from "./hot-reload";
-import { SecurityApi } from "./security";
 import { AppLogic } from "../obj/api/AppLogic";
 import { fileURLToPath } from "url";
+import { SecurityApi } from './security';
 
 const LOGIC_PATH = "/obj/api/app";
 const LOGIC_CLASS_FILE = fileURLToPath(

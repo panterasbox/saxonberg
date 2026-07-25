@@ -20,9 +20,9 @@ import type { Mml } from './mml';
 import type { FilterFn } from '../lib/prose/Prose';
 import { StuffApi } from './stuff';
 import { HotReloadApi } from './hot-reload';
-import { SecurityApi } from './security';
 import { ProseLogic } from '../obj/api/ProseLogic';
 import { fileURLToPath } from 'url';
+import { SecurityApi } from './security';
 
 export { Prose } from '../lib/prose/Prose';
 

@@ -141,6 +141,12 @@ export class ModuleApi {
       // ancestor's @Final method, this throws — the bad module
       // never finishes loading.
       ModuleApi.#validateNoFinalOverrides(value);
+
+      // Api-facade security decoration is NOT done here. An `*Api` class
+      // is a thin, non-HMR-able interface, so it decorates itself at
+      // module scope with a `SecurityApi.decorateApiClass(FooApi)` tail
+      // — the one sanctioned module-scope exception (see the
+      // no-module-scope-statements rule + check-module-scope's allowlist).
     }
   }
 

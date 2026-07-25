@@ -237,9 +237,24 @@ export class StuffApi {
    * const avatar = await StuffApi.clone<Avatar>('/obj/Avatar/abc', { user });
    * const room = await StuffApi.clone('/home/bobalu/workroom');
    */
+  /**
+   * Options for {@link clone} — the minted-identity channel (the
+   * identity doctrine, ref-shapes.md § Identity, lineage, and backing):
+   *
+   * - `dataOverlay` — per-instance data merged over the template's
+   *   authored `data` at hydration (`{...template.data, ...overlay}`).
+   *   The channel that lets a caller clone a shared seed with
+   *   instance-specific fields instead of forking a throwaway
+   *   per-instance template row (the retired Avatar/guest pattern).
+   * - `asTemplatePath` — the minted identity path stamped on the clone
+   *   instead of the source template's path. Registration indexes and
+   *   zone resolution see the identity path from birth. The SOURCE
+   *   template stays the hydration lineage only.
+   */
   public static async clone<T extends Stuff>(
     templatePath: string,
-    context?: unknown
+    context?: unknown,
+    opts?: { dataOverlay?: Record<string, unknown>; asTemplatePath?: string }
   ): Promise<T> {
     // Per-clone-tree cycle guard (see `#cloneStackALS`). Catches a
     // template whose `hydratorClass` resolves (transitively) back to
@@ -263,7 +278,7 @@ export class StuffApi {
     const run = async (): Promise<T> => {
       stack.add(templatePath);
       try {
-        return await this.#cloneInner<T>(templatePath, context);
+        return await this.#cloneInner<T>(templatePath, context, opts);
       } finally {
         stack.delete(templatePath);
       }
@@ -276,7 +291,8 @@ export class StuffApi {
 
   static async #cloneInner<T extends Stuff>(
     templatePath: string,
-    context?: unknown
+    context?: unknown,
+    opts?: { dataOverlay?: Record<string, unknown>; asTemplatePath?: string }
   ): Promise<T> {
     // 1. Load Template from domain collection. Lazy-import to avoid the
     //    Template module-load cycle at init time.
@@ -338,9 +354,13 @@ export class StuffApi {
     //     allow at most one live instance per templatePath. Use
     //     `singleton(path)` to get-or-create; bare `clone()` on an
     //     already-instantiated singleton path throws.
+    // The clone's identity path — the minted `asTemplatePath` when the
+    // caller supplies one (the identity-doctrine channel), else the
+    // source template's own path.
+    const identityPath = opts?.asTemplatePath ?? templatePath;
     if (
       MixinApi.hasMixin(ClassConstructor, Mixins.Singleton) &&
-      this.#indexes.byTemplatePath.exact(templatePath).length > 0
+      this.#indexes.byTemplatePath.exact(identityPath).length > 0
     ) {
       throw new Error(
         `StuffApi.clone('${templatePath}'): class ${className} composes ` +
@@ -356,7 +376,7 @@ export class StuffApi {
     //    Lazy-loaded to break the StuffApi ↔ ZoneApi cycle (ZoneApi
     //    statically imports StuffApi for singleton + class-loading).
     const { ZoneApi } = await import('./zone');
-    const zone = await ZoneApi.resolveZoneForPath(templatePath);
+    const zone = await ZoneApi.resolveZoneForPath(identityPath);
 
     // 6. Resolve the hydrator. When `hydratorClass` is omitted, no
     //    hydration step runs at all — `data` is ignored. Otherwise
@@ -398,10 +418,13 @@ export class StuffApi {
     // object isn't registered yet). The seam is caller-gated:
     // only this file (`mud/api/stuff.ts`) and the test-setup
     // helper may invoke it; any other caller throws.
-    Stuff._stampTemplatePath(obj, templatePath);
+    Stuff._stampTemplatePath(obj, identityPath);
+    const data = opts?.dataOverlay
+      ? { ...(template.data ?? {}), ...opts.dataOverlay }
+      : (template.data ?? {});
     return this.#registerAndInit(
       obj,
-      hydrator ? (o) => hydrator.hydrate(o, template.data ?? {}) : null,
+      hydrator ? (o) => hydrator.hydrate(o, data) : null,
       context
     );
   }

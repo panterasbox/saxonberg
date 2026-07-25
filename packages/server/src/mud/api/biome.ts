@@ -40,9 +40,9 @@ import type Biome from '../lib/biome/Biome';
 import type { Quantity } from '../lib/quantity';
 import { StuffApi } from './stuff';
 import { HotReloadApi } from './hot-reload';
-import { SecurityApi } from './security';
 import { BiomeLogic } from '../obj/api/BiomeLogic';
 import { fileURLToPath } from 'url';
+import { SecurityApi } from './security';
 
 /**
  * Provenance for a single resolved atmospheric field. Returned by
@@ -128,6 +128,16 @@ export class BiomeApi {
    */
   public static breathableOf(tag: string): boolean {
     return logic().breathableOf(tag);
+  }
+
+  /**
+   * The inhaled contaminant an atmosphere tag carries (`'carbonMonoxide'` for
+   * `smoke`), or `null` for a clean medium. The breathable≠safe axis — the
+   * fire driver's first consumer (`RespirationMixin` folds it into the
+   * breather's metabolism toxin burden). Unknown tags read clean (no throw).
+   */
+  public static contaminantOf(tag: string): string | null {
+    return logic().contaminantOf(tag);
   }
 
   /**

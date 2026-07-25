@@ -43,7 +43,6 @@ import { Quantity } from "../quantity";
 import { MixinApi } from "../../api/mixin";
 import { StuffApi } from "../../api/stuff";
 import { BiomeApi } from "../../api/biome";
-import { MaterialApi } from "../../api/material";
 import { WorldClockApi } from "../../api/worldclock";
 import { TemplatePaths } from "../paths";
 
@@ -154,6 +153,8 @@ export interface Thermal {
   getContentsTemperature(): Quantity<"K">;
   /** Set the fluid temperature directly + re-anchor (bulk coupling). */
   setContentsTemperature(k: number): void;
+  /** Deposit `joules` of heat, raising temperature by ΔT = Q / C + re-anchor. */
+  depositHeat(joules: number): void;
   /** Time constant τ = R·C. */
   getTau(): Quantity<"s">;
   /** Lazy reconcile — drift the stamped temperature over elapsed game-time. */
@@ -283,7 +284,7 @@ export function ThermalMixin<TBase extends MixinConstructor>(Base: TBase) {
         // empty vessel → fall through to the wall's own heat capacity
       }
       const massKg = self.getMass().rawValue();
-      const mat = MaterialApi.materialOf(self);
+      const mat = MixinApi.isTangible(self) ? self.getMaterial() : null;
       let c = mat ? mat.getSpecificHeat().rawValue() : 0;
       if (c <= 0) c = THERMAL_DEFAULTS.DEFAULT_SPECIFIC_HEAT;
       return massKg * c;
@@ -311,6 +312,36 @@ export function ThermalMixin<TBase extends MixinConstructor>(Base: TBase) {
       assertFiniteNonNeg(k, "ThermalMixin.setContentsTemperature");
       if (!this._thermalReconciling) this.reconcileThermal();
       this.stampedTemperatureK = k;
+      const nowS = this.thermalNowSeconds();
+      if (nowS !== null) this.thermalClockStamp = nowS;
+    }
+
+    /**
+     * Deposit `joules` of heat into the object, raising its temperature by
+     * `ΔT = Q / C` (C = heat capacity, `mass × specificHeat`) and re-anchoring
+     * the drift clock — the single heat-DELIVERY primitive the sync model
+     * lacked (the shipped reconcile only cools *toward* ambient; nothing
+     * *added* heat). **Thermal inertia gates it**: the same joules barely move
+     * a heavy, high-`C` log but shove a match's flame temperature up sharply,
+     * so ignition ("did the delivered heat cross autoignition?") becomes a
+     * real, derivable energy balance. Reconciles the pending drift first, then
+     * bumps the stamped temperature — the read stays SYNC. A negative `joules`
+     * removes heat (a douse); the temperature floors at absolute zero. A host
+     * with no heat capacity (massless / material-less) re-equilibrates to
+     * ambient instantly, so a deposit is a no-op there.
+     */
+    public depositHeat(joules: number): void {
+      if (typeof joules !== "number" || !Number.isFinite(joules)) {
+        throw new RangeError(
+          `ThermalMixin.depositHeat: expected a finite number, got ${String(joules)}`,
+        );
+      }
+      if (!this._thermalReconciling) this.reconcileThermal();
+      const capacity = this.thermalCapacity(); // J/K
+      if (capacity > 0) {
+        const deltaT = joules / capacity;
+        this.stampedTemperatureK = Math.max(0, this.stampedTemperatureK + deltaT);
+      }
       const nowS = this.thermalNowSeconds();
       if (nowS !== null) this.thermalClockStamp = nowS;
     }
@@ -344,7 +375,7 @@ export function ThermalMixin<TBase extends MixinConstructor>(Base: TBase) {
       const D = THERMAL_DEFAULTS;
       const self = this.thermalHost;
       const kMedium = this.mediumConductivity();
-      const mat = MaterialApi.materialOf(self);
+      const mat = MixinApi.isTangible(self) ? self.getMaterial() : null;
       const kWall =
         (mat && mat.getThermalConductivity().rawValue()) ||
         D.DEFAULT_WALL_CONDUCTIVITY;

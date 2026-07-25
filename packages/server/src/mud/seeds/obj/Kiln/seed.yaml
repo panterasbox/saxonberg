@@ -1,0 +1,23 @@
+# Kiln — a ceramics / lime firing furnace. A steady pottery heat (1200 K),
+# with a modest bellows boost. Lit with `ignite`.
+class: /obj/Kiln
+hydratorClass: /lib/persistence/PersistentHydrator
+data:
+  shortDescription: a brick kiln
+  longDescription: >
+    A domed brick kiln with a low stoking door, its inner walls glazed by
+    countless firings.
+  keywords: [kiln, furnace, oven]
+  burnTemperatureK: 1200
+  bellowsMultiplier: 1.25
+  fuelBurnRatePerMin: 0.25
+  lit: false
+  reserves:
+    fuel:
+      capacityValue: 100
+      currentValue: 100
+      unit: "%"
+      theme: combustion
+      floorEffect: null
+  emittedIntensity: 60
+  emittedColorTemperature: 2000

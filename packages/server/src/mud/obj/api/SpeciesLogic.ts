@@ -37,8 +37,8 @@ const SpeciesApiCallers = SecurityPolicies.FromModule('/api/species#SpeciesApi'
  * calls a method other than through the Api gets `SecurityError`.
  *
  * Stateless by construction (no `PostRegistrationMixin`). The kingdom
- * resolution shared by `getKingdom`, `isInKingdom`, and `isAnimate`
- * lives in the module-private `resolveKingdom` free function (off-class,
+ * resolution shared by `getKingdom` and `isAnimate` lives in the
+ * module-private `resolveKingdom` free function (off-class,
  * ungated, un-callable from outside), so the predicates don't make
  * intra-singleton `this.getKingdom()` self-calls that the gate would
  * deny. The dossier-derivation helpers stay module-private too.
@@ -54,50 +54,6 @@ export class SpeciesLogic extends ApiLogic {
   @CallSecurity(SpeciesApiCallers)
   public getKingdom(o: Stuff & Organism): Clade | null {
     return resolveKingdom(o);
-  }
-
-  /** See {@link SpeciesApi.isInKingdom}. */
-  @CallSecurity(SpeciesApiCallers)
-  public isInKingdom(o: Stuff & Organism, kingdomName: string): boolean {
-    const k = resolveKingdom(o);
-    if (!k) return false;
-    return k.getName() === kingdomName;
-  }
-
-  /** See {@link SpeciesApi.isAlive}. */
-  @CallSecurity(SpeciesApiCallers)
-  public isAlive(o: Stuff & Organism): boolean {
-    return o.getLifecycleState() === 'alive';
-  }
-
-  /** See {@link SpeciesApi.isDead}. */
-  @CallSecurity(SpeciesApiCallers)
-  public isDead(o: Stuff & Organism): boolean {
-    return o.getLifecycleState() === 'dead';
-  }
-
-  /** See {@link SpeciesApi.isUndead}. */
-  @CallSecurity(SpeciesApiCallers)
-  public isUndead(o: Stuff & Organism): boolean {
-    return o.getLifecycleState() === 'undead';
-  }
-
-  /** See {@link SpeciesApi.isPowered}. */
-  @CallSecurity(SpeciesApiCallers)
-  public isPowered(o: Stuff & Organism): boolean {
-    return o.getLifecycleState() === 'powered';
-  }
-
-  /**
-   * See {@link SpeciesApi.isDestroyed}. Named `isDestroyedState` on the
-   * logic to avoid colliding with the inherited `Stuff.isDestroyed()`
-   * lifecycle method (the Api facade keeps the public `isDestroyed`
-   * name); this checks the *Organism* lifecycleState, not whether the
-   * logic singleton itself was destroyed.
-   */
-  @CallSecurity(SpeciesApiCallers)
-  public isDestroyedState(o: Stuff & Organism): boolean {
-    return o.getLifecycleState() === 'destroyed';
   }
 
   /** See {@link SpeciesApi.tryGetBodyPlanPath}. */
@@ -245,8 +201,7 @@ export class SpeciesLogic extends ApiLogic {
  * Walk the species' template-path ancestors and return the first Clade
  * whose `rank === 'kingdom'`. Returns `null` if no kingdom Clade is
  * found in the chain. Module-private — shared by `getKingdom`,
- * `isInKingdom`, and `isAnimate` so there are no intra-singleton
- * self-calls.
+ * and `isAnimate` so there are no intra-singleton self-calls.
  */
 function resolveKingdom(o: Stuff & Organism): Clade | null {
   const species = o.getSpecies();

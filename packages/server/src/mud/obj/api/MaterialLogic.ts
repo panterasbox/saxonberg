@@ -13,12 +13,11 @@ import type {
   TraumaResolution,
   OutcomeBand,
 } from '../../api/material';
-import { MixinApi } from '../../api/mixin';
 import { StuffApi } from '../../api/stuff';
 import { AppApi } from '../../api/app';
 import { AppSettingKeys } from '../../lib/config/AppSettings';
 import { Channels } from '../../lib/material/Channel';
-import type { Channel, MechanicalChannel } from '../../lib/material/Channel';
+import type { Channel } from '../../lib/material/Channel';
 import type {
   Construction,
   ResistToken,
@@ -58,13 +57,6 @@ const MaterialApiCallers = SecurityPolicies.FromModule('/api/material#MaterialAp
  */
 @Unshadowable
 export class MaterialLogic extends ApiLogic {
-  /** See {@link MaterialApi.materialOf}. */
-  @CallSecurity(MaterialApiCallers)
-  public materialOf(stuff: Stuff, detailKey?: string): Material | null {
-    if (!MixinApi.isTangible(stuff)) return null;
-    return stuff.getMaterial(detailKey);
-  }
-
   /** See {@link MaterialApi.compositionOf}. */
   @CallSecurity(MaterialApiCallers)
   public compositionOf(material: Material): MaterialComposition {
@@ -139,18 +131,10 @@ export class MaterialLogic extends ApiLogic {
   public severityToBand(severity: number | null): OutcomeBand {
     return severityToBand(severity);
   }
-
-  /** See {@link MaterialApi.deliverableChannels}. */
-  @CallSecurity(MaterialApiCallers)
-  public deliverableChannels(construction: Construction): MechanicalChannel[] {
-    return construction.deliveredChannels();
-  }
-
-  /** See {@link MaterialApi.primaryChannel}. */
-  @CallSecurity(MaterialApiCallers)
-  public primaryChannel(construction: Construction): MechanicalChannel | null {
-    return construction.primaryChannel();
-  }
+  // The former `deliverableChannels` / `primaryChannel` thin forwarders
+  // were removed (item-1 antipattern sweep): callers hold a
+  // `Construction` and call `.deliveredChannels()` / `.primaryChannel()`
+  // directly.
 
   // ---------- electricity: the Ohm's-law circuit primitives ----------
 
@@ -317,6 +301,41 @@ function gradeConditionScale(grade?: Grade, condition?: number): number {
   return gradeFactor * conditionFactor;
 }
 
+/**
+ * The heat *insulation* one covering layer contributes — the fraction of
+ * incident heat it blocks. Reads the layer material's `thermalConductivity`
+ * (inverted: a low-conductivity insulator like leather/wool blocks hard, a
+ * high-conductivity conductor like steel/iron barely blocks) and the
+ * construction's outside-in layer depth (a deeper stack blocks more). This is
+ * the heat sibling of the mechanical `baseAttenuationFor × materialHeight`
+ * fold — same shape (base × height × depth × quality), thermal-property
+ * driven. The armor inversion is emergent: no `isThermal` special case, just
+ * conductivity. Returns a 0..1 blocked fraction.
+ */
+function heatAttenuationFraction(
+  material: Material | null,
+  construction: Construction,
+  grade?: Grade,
+  condition?: number,
+): number {
+  const base = dial(AppSettingKeys.responseHeatBaseAttenuation, 0.9);
+  const refCond = dial(
+    AppSettingKeys.responseHeatInsulationRefConductivity,
+    2.0,
+  );
+  // A materialless / unknown covering conducts freely (no insulation).
+  const cond = material
+    ? material.getThermalConductivity().rawValue()
+    : Number.POSITIVE_INFINITY;
+  // insulation height: ref / (ref + conductivity) — 1 at zero conductivity,
+  // →0 for a good conductor. leather (~0.14) → ~0.78, iron (~80) → ~0.006.
+  const insulation = refCond / (refCond + Math.max(0, cond));
+  const depth = construction.getLayerDepth();
+  const depthBonus = 1 + depth * dial(AppSettingKeys.responseHeatDepthFactor, 0.1);
+  const scale = gradeConditionScale(grade, condition);
+  return clamp01(base * insulation * depthBonus * scale);
+}
+
 function attenuateImpl(
   channel: Channel,
   energy: number,
@@ -330,8 +349,19 @@ function attenuateImpl(
   if (!construction.isArmor()) {
     return { residualEnergy: e, channel };
   }
-  // A non-mechanical channel (shock) doesn't fold through the covering
-  // stack — it resolves by circuit upstream. Passes through untouched.
+  // The thermal channel (heat) folds through the covering stack by
+  // *insulation*, not the hardness/toughness mechanical fold.
+  if (Channels.isThermalChannel(channel)) {
+    const blocked = heatAttenuationFraction(
+      material,
+      construction,
+      grade,
+      condition,
+    );
+    return { residualEnergy: e * (1 - blocked), channel };
+  }
+  // A remaining non-mechanical channel (shock) doesn't fold through the
+  // covering stack — it resolves by circuit upstream. Passes through untouched.
   if (!Channels.isMechanicalChannel(channel)) {
     return { residualEnergy: e, channel };
   }
@@ -349,10 +379,21 @@ function resolveTraumaImpl(
   _tissueMaterial: Material | null,
   partHasBone: boolean,
 ): TraumaResolution | null {
-  // A non-mechanical channel (shock) has no mechanical-fold trauma — its
-  // trauma is resolved by the circuit path (`resolveShock`), not here.
-  if (!Channels.isMechanicalChannel(channel)) return null;
   const e = Math.max(0, energy);
+  // The thermal channel (heat): residual heat that survived the insulation
+  // stack meets tissue as a `burn`, severity linear in the residual (the
+  // same residual→severity tail the mechanical channels use). Below the
+  // no-wound floor the heat was fully insulated → no burn.
+  if (Channels.isThermalChannel(channel)) {
+    if (e < dial(AppSettingKeys.responseNoWoundThreshold, 0.25)) return null;
+    return {
+      type: 'burn',
+      severity: e * dial(AppSettingKeys.responseSeverityPerResidual, 1),
+    };
+  }
+  // A remaining non-mechanical channel (shock) has no mechanical-fold trauma —
+  // its trauma is resolved by the circuit path (`resolveShock`), not here.
+  if (!Channels.isMechanicalChannel(channel)) return null;
   if (e < dial(AppSettingKeys.responseNoWoundThreshold, 0.25)) {
     return null; // turned — no meaningful wound reached tissue
   }

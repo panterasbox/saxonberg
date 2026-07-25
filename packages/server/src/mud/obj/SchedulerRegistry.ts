@@ -54,7 +54,6 @@ import { ModuleApi } from '../api/module';
 import { WorldClockApi, type ClockHandle } from '../api/worldclock';
 import { Quantity } from '../lib/quantity';
 import { SchedulerApi } from '../api/scheduler';
-import { registerSchedulerRegistryClass } from '../api/scheduler';
 import type {
   ActivityClass,
   DurativeActivity,
@@ -121,12 +120,14 @@ export default class SchedulerRegistry extends Idea {
   private hostSubscriptions: Map<string, Subscription<unknown>> = new Map();
   private activityRegistry: Map<string, ActivityClass> = new Map();
 
-  /* ──────────────────── activity-class registry ──────────────────── */
-
-  @CallSecurity(SchedulerApiCallers)
-  public registerActivity(type: string, cls: ActivityClass): void {
-    this.activityRegistry.set(type, cls);
-  }
+  /* ─────────────── activity-class dispatch index ───────────────
+   *
+   * type → class, populated by **capture-at-start** (see `start`) —
+   * there is NO registration step. The index exists so lifecycle
+   * dispatch (`dispatchOnComplete`/`dispatchOnAbort`/`dispatchGetHost`)
+   * calls the freshest class's prototype methods on in-flight
+   * engagement instances — the HMR re-point seam.
+   */
 
   @CallSecurity(SchedulerApiCallers)
   public getActivityClass(type: string): ActivityClass | undefined {
@@ -138,7 +139,9 @@ export default class SchedulerRegistry extends Idea {
     const cls = this.activityRegistry.get(type);
     if (!cls) {
       throw new Error(
-        `SchedulerApi.reloadActivity: activity type '${type}' is not registered`,
+        `SchedulerApi.reloadActivity: activity type '${type}' has not been ` +
+          `started this session (capture-at-start), so there is nothing ` +
+          `to re-point — the next start picks up the fresh class anyway`,
       );
     }
     const moduleId = ModuleApi.lookup(cls);
@@ -147,8 +150,16 @@ export default class SchedulerRegistry extends Idea {
         `SchedulerApi.reloadActivity: activity class for '${type}' has no module record`,
       );
     }
-    const path = moduleId.split('#')[0] ?? moduleId;
+    const [path, exportName] = moduleId.includes('#')
+      ? (moduleId.split('#') as [string, string])
+      : [moduleId, cls.name];
     await HotReloadApi.reload(path);
+    // Re-point the dispatch index explicitly — module re-eval no longer
+    // self-registers (capture-at-start replaced module-scope
+    // registration), so in-flight engagements of this type only see the
+    // fresh class if we swap it in here.
+    const next = HotReloadApi.getCurrentExport(path, exportName);
+    if (next) this.activityRegistry.set(type, next as ActivityClass);
   }
 
   /* ──────────────────── lifecycle: start ──────────────────── */
@@ -166,6 +177,15 @@ export default class SchedulerRegistry extends Idea {
         'SchedulerApi.start: engagement declares an empty slots set',
       );
     }
+
+    // Capture-at-start: the instance carries its class, so starting IS
+    // what populates the type→class dispatch index. Latest start wins —
+    // after a hot reload, the next start of a type re-points dispatch
+    // for every in-flight engagement of that type.
+    this.activityRegistry.set(
+      engagement.type,
+      engagement.constructor as ActivityClass,
+    );
 
     const actor = engagement.actor;
     const conflicts: Engagement[] = [];
@@ -323,14 +343,12 @@ export default class SchedulerRegistry extends Idea {
 
   private register(e: Engagement): void {
     const actor = e.actor;
-    // Plant SchedulerApi as the synthetic root so `_setEngagement`'s
-    // ApiOnly check passes. The Registry isn't in mud/api/**, so a
-    // raw call from this scope would be denied.
-    ExecutionContextApi.runRoot(SchedulerApi, 'register', () => {
-      for (const slot of e.slots) {
-        actor._setEngagement(slot, e);
-      }
-    });
+    // Direct participant call: `_setEngagement` is gated on THIS
+    // registry (`FromTemplate('/obj/SchedulerRegistry')`), so the
+    // registry calls as itself — no synthetic SchedulerApi root needed.
+    for (const slot of e.slots) {
+      actor._setEngagement(slot, e);
+    }
     this.engagementsById.set(e.engagementId, e);
 
     const host = this.dispatchGetHost(e);
@@ -537,14 +555,13 @@ export default class SchedulerRegistry extends Idea {
 
   private deregister(e: Engagement): void {
     const actor = e.actor;
-    ExecutionContextApi.runRoot(SchedulerApi, 'deregister', () => {
-      for (const slot of ENGAGEMENT_SLOTS) {
-        const occupant = actor.getEngagementBySlot(slot);
-        if (occupant && occupant.engagementId === e.engagementId) {
-          actor._clearEngagement(slot);
-        }
+    // Direct participant call — see `register` for the gating note.
+    for (const slot of ENGAGEMENT_SLOTS) {
+      const occupant = actor.getEngagementBySlot(slot);
+      if (occupant && occupant.engagementId === e.engagementId) {
+        actor._clearEngagement(slot);
       }
-    });
+    }
     this.engagementsById.delete(e.engagementId);
   }
 
@@ -574,5 +591,3 @@ export default class SchedulerRegistry extends Idea {
   }
 }
 
-// Side-effect: hand the class to SchedulerLogic for its lazy-create path.
-registerSchedulerRegistryClass(SchedulerRegistry);

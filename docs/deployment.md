@@ -298,6 +298,32 @@ drop the private-registry/`NPM_TOKEN` dance (`@saxonberg/types` is a
 workspace package, no private deps), port `2050` → `2010`, and run the
 server via `tsx` rather than a built artifact.
 
+## Pending live-data migration: legacy per-avatar template rows
+
+The avatar-row retirement (the identity doctrine, Jul 2026) stopped
+creating and reading per-player `/obj/Avatar/<playerId>` rows in the
+`domain` collection — characters are snapshot-backed
+(`holder_snapshots`) with a minted identity path. **Legacy rows on the
+live box are handled automatically**: a character whose snapshot
+doesn't exist yet falls back to its row ONCE at next login
+(`PlayerLogic.materializeAvatar` case 2), which captures the first
+snapshot; from then on the row is dead weight.
+
+Operator cleanup (optional, any time after the deploy has been live
+long enough for active players to have logged in): delete `domain`
+rows matching `path: /^\/obj\/Avatar\//` EXCEPT the seed
+(`/obj/Avatar/seed`). A row deleted before its player ever logs back
+in loses that character's pre-spine base data (name/species picks), so
+prefer waiting or checking `holder_snapshots` coverage first:
+
+```js
+// mongo shell — rows whose character has no snapshot yet (do NOT delete these)
+db.domain.find({ path: /^\/obj\/Avatar\// }).forEach(t => {
+  if (t.path !== '/obj/Avatar/seed' &&
+      !db.holder_snapshots.findOne({ scope: t.path })) print(t.path);
+});
+```
+
 ## Standup runbook — dev box (one-time, interactive)
 
 The native, mutable instance. Done by hand; afterwards `deploy-dev`

@@ -14,7 +14,7 @@ import {
 } from '../../lib/security/__tests__/test-setup';
 import type { Stuff } from '../../lib/stuff/Stuff';
 
-describe('MaterialApi.materialOf', () => {
+describe('Tangible.getMaterial (direct object read)', () => {
   beforeEach(() => {
     StuffApi.clearAll();
   });
@@ -25,12 +25,16 @@ describe('MaterialApi.materialOf', () => {
 
   it('returns null for non-Tangible Stuff', () => {
     const idea = makeStuff(() => new Idea());
-    expect(MaterialApi.materialOf(idea)).toBeNull();
+    expect(
+      MixinApi.isTangible(idea) ? idea.getMaterial() : null
+    ).toBeNull();
   });
 
   it('returns null for Tangible Stuff with no material set', () => {
     const thing = makeStuff(() => new Thing());
-    expect(MaterialApi.materialOf(thing)).toBeNull();
+    expect(
+      MixinApi.isTangible(thing) ? thing.getMaterial() : null
+    ).toBeNull();
   });
 
   it('returns the Material singleton for a Tangible Stuff with a path set', () => {
@@ -42,7 +46,7 @@ describe('MaterialApi.materialOf', () => {
     if (!MixinApi.isTangible(log)) throw new Error('expected tangible');
     log.setMaterial(oak);
 
-    expect(MaterialApi.materialOf(log)).toBe(oak);
+    expect(log.getMaterial()).toBe(oak);
   });
 
   it('reads per-Detail overrides when detailKey is supplied', () => {
@@ -56,10 +60,10 @@ describe('MaterialApi.materialOf', () => {
     axe.setMaterial(oak);
     axe.setMaterial(iron, 'head');
 
-    expect(MaterialApi.materialOf(axe)).toBe(oak);
-    expect(MaterialApi.materialOf(axe, 'head')).toBe(iron);
+    expect(axe.getMaterial()).toBe(oak);
+    expect(axe.getMaterial('head')).toBe(iron);
     // Unknown key falls through to bulk default.
-    expect(MaterialApi.materialOf(axe, 'haft')).toBe(oak);
+    expect(axe.getMaterial('haft')).toBe(oak);
   });
 });
 

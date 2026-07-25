@@ -61,7 +61,10 @@ export default class EvalController extends CommandController<EvalModel> {
 
     let evalStuff: EvalScript;
     if (model.expr) {
-      // New code → replace singleton.
+      // New code → replace singleton. `create` (not clone): the eval
+      // scratch is a per-player dynamic unique (identity path
+      // `/home/<key>/_eval`, destruct-and-replace on each new code
+      // body) — the Party-Idea shape, not authorable content.
       if (existing) StuffApi.destruct(existing);
       evalStuff = await StuffApi.create(() => new EvalScript());
       // Stamp templatePath so MQL path-atom can address it. The

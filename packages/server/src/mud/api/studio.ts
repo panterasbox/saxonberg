@@ -22,9 +22,9 @@
 
 import { StuffApi } from './stuff';
 import { HotReloadApi } from './hot-reload';
-import { SecurityApi } from './security';
 import { StudioLogic } from '../obj/api/StudioLogic';
 import { fileURLToPath } from 'url';
+import { SecurityApi } from './security';
 import type {
   BlueprintDetail,
   BlueprintSummary,

@@ -19,7 +19,6 @@
  * its own read path) then does covering lookups synchronously.
  */
 
-import { SecurityApi } from './security';
 import { StuffApi } from './stuff';
 import { HotReloadApi } from './hot-reload';
 import type { Stuff } from '../lib/stuff/Stuff';
@@ -27,6 +26,7 @@ import type { Container } from '../lib/spatial/Container';
 import type Locality from '../lib/address/Locality';
 import { AddressLogic } from '../obj/api/AddressLogic';
 import { fileURLToPath } from 'url';
+import { SecurityApi } from './security';
 
 const LOGIC_PATH = '/obj/api/address';
 const LOGIC_CLASS_FILE = fileURLToPath(

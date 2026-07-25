@@ -165,7 +165,7 @@ afterEach(() => {
 
 describe('CraftingLogic.craft', () => {
   it('crafts a stamped, graded drink and consumes inputs (conservation)', async () => {
-    const gin = ContainmentApi.getContents(room).find(
+    const gin = room.getContents().find(
       (c) => MixinApi.isGraded(c) && BulkableApi.slotFor(c, undefined)?.getMaterialPath() === GIN,
     )!;
     const outcome = await craftAs(bartender, {
@@ -195,7 +195,7 @@ describe('CraftingLogic.craft', () => {
 
   it('declines with missing-tool when no shaker/mixing-glass is present', async () => {
     // Remove the mixing glass.
-    for (const c of ContainmentApi.getContents(room)) {
+    for (const c of room.getContents()) {
       if (MixinApi.isTool(c)) ContainmentApi.move(c, null);
     }
     const outcome = await craftAs(bartender, {
@@ -206,7 +206,7 @@ describe('CraftingLogic.craft', () => {
   });
 
   it('declines with insufficient-input when a category is missing', async () => {
-    for (const c of ContainmentApi.getContents(room)) {
+    for (const c of room.getContents()) {
       if (MixinApi.isGraded(c) && BulkableApi.slotFor(c, undefined)?.getMaterialPath() === GIN) {
         ContainmentApi.move(c, null);
       }

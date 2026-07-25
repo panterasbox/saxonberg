@@ -7,9 +7,9 @@
 
 import { StuffApi } from "./stuff";
 import { HotReloadApi } from "./hot-reload";
-import { SecurityApi } from "./security";
 import { AttendantLogic } from "../obj/api/AttendantLogic";
 import { fileURLToPath } from "url";
+import { SecurityApi } from './security';
 
 export type { AttendResult } from "../lib/attendant/Attendant";
 

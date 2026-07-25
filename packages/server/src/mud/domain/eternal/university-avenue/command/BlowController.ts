@@ -17,7 +17,6 @@ import type { Slotted } from '../../../../lib/slot/Slotted';
 import type { Audible } from '../../../../lib/perception/Audible';
 import type { MqlOneResult } from '../../../../api/mql';
 import { MixinApi } from '../../../../api/mixin';
-import { ContainmentApi } from '../../../../api/containment';
 import { SlotApi } from '../../../../api/slot';
 import { MessageApi } from '../../../../api/message';
 import { Mml } from '../../../../api/mml';
@@ -91,7 +90,7 @@ function resolveWhistle(
 function carriedAndWorn(giver: Stuff): Stuff[] {
   const out: Stuff[] = [];
   if (MixinApi.isContainer(giver)) {
-    out.push(...(ContainmentApi.getContents(giver as Stuff & Container) as Stuff[]));
+    out.push(...((giver as Stuff & Container).getContents() as Stuff[]));
   }
   if (MixinApi.isSlotted(giver)) {
     SlotApi.walkOccupants(giver as Stuff & Slotted, (_h, _s, occupant) => {

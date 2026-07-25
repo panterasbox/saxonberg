@@ -14,7 +14,7 @@
  * construction; keep them code-only-edit-friendly).
  *
  * Lifecycle dispatch (`onAbort`, `getHost`) routes through the
- * activity-class registry, so both register themselves at module load.
+ * activity-class dispatch index (captured at start).
  */
 
 import type { Stuff } from '../stuff/Stuff';
@@ -23,7 +23,6 @@ import type {
   ScheduledEmission,
   SustainedEngagement,
 } from '../../api/scheduler';
-import { SchedulerApi } from '../../api/scheduler';
 import type { AbortReason } from '@saxonberg/types';
 import { WorldClockApi } from '../../api/worldclock';
 import { RESPIRATION_DEFAULTS } from './Respiration';
@@ -138,8 +137,3 @@ export class RespirationRecovery implements SustainedEngagement {
   }
 }
 
-// Register both lifecycle classes at module load (the HMR seam — a
-// `HotReloadApi.reload` re-runs this side-effect and overwrites the
-// entries; the next lifecycle fire uses the latest class).
-SchedulerApi.registerActivity('respiration-drain', RespirationDrain);
-SchedulerApi.registerActivity('respiration-recovery', RespirationRecovery);

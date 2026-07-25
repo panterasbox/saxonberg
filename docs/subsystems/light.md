@@ -9,8 +9,11 @@ threads through the cross-cutting perception pattern.
 
 **Build state:** the 2026-06 perception substrate retired
 `LightApi`. The propagation walk relocated into
-`VisionModality.signalAt` and outside consumers route via
-`PerceptionApi.signalAt(loc, VisionModality)`. Vision-modality
+`VisionModality.signalAt`, which outside consumers call directly on the
+modality singleton (`vision().signalAt(loc)`; the thin
+`PerceptionApi.signalAt` forwarder was removed in the 2026-07 antipattern
+sweep — a `Modality.signalAt` is one object's own contract, so callers
+narrow to the modality and call it). Vision-modality
 domain helpers (`bandFor`, `applyBandShift`, `compareBand`,
 `REQUIRED_BAND_FOR_DETAIL`, the `ShadowQuality` type) live in
 `Light.ts` next to the `LightBand` vocabulary. Per-viewer queries
@@ -27,8 +30,8 @@ The subsystem ships:
 - `VisionModality.signalAt(loc)` (sync substrate contract) —
   propagation walk; static convenience helpers `VisionModality.lightAt`,
   `bandAt`, `perceivedBand`, `canSee`, `shadowsAt`,
-  `viewerVisionProfile`. (Outside-modality dispatch goes through
-  `PerceptionApi.signalAt(loc, VisionModality)`.)
+  `viewerVisionProfile`. (Callers reach it directly on the modality
+  singleton, `vision().signalAt(loc)`.)
 - `AmbientLitMixin` and `LightSourceMixin` for inherent ambient and
   for emitter-side contributions.
 - `Boundary`, `BoundaryAnchor`, and the `Conduit` interfaces — the
@@ -65,7 +68,7 @@ Sibling docs cover related ground without overlap:
 | `AmbientLitMixin` | mixin | Inherent ambient light a Container exposes. Persistent: `ambientIntensity` (lumens), `ambientColorTemperature` (Kelvin). Runtime API surfaces `Quantity` values via `getAmbientFlux` / `getAmbientColorTemperature`. |
 | `LightSourceMixin` | mixin | Marks a Stuff as emitting light. Persistent: `emittedIntensity` (lumens), `emittedColorTemperature` (Kelvin). Runtime: `getEmittedFlux` / `getEmittedColorTemperature`. Fires `onLightSourceChanged` Witness hook (contract in `lib/perception/LightSource.ts`) on the immediate environment when emission changes. |
 | `LightSourceObserver` | TypeScript interface | The Witness hook contract that `LightSourceMixin` fires. Lives in `lib/perception/LightSource.ts` next to `LightSourceMixin`, so consumer Containers (the receiver side) implement it from the same module. |
-| `VisionModality` | `Modality` singleton | `signalAt(loc)` (the walk), `lightAt(loc)`, `bandAt(loc)`, `shadowsAt(loc)`, `perceivedBand(viewer, loc)`, `canSee(viewer, target, detail?)`, `viewerVisionProfile(viewer)`, `singleton()`. Outside callers route through `PerceptionApi.signalAt(loc, VisionModality)`. |
+| `VisionModality` | `Modality` singleton | `signalAt(loc)` (the walk), `lightAt(loc)`, `bandAt(loc)`, `shadowsAt(loc)`, `perceivedBand(viewer, loc)`, `canSee(viewer, target, detail?)`, `viewerVisionProfile(viewer)`, `singleton()`. Outside callers reach these directly on the singleton (`vision().signalAt(loc)`). |
 | `bandFor(lux)` | helper in `Light.ts` | Map a lux numeric to a `LightBand` via the registered tag-table. Sits next to `LIGHT_BANDS`. |
 | `Adornable` | mixin | Container-side surface for non-portable attached Stuff (sconces, anchors). Composed onto `Location` and `Vessel`. `addFixture` / `removeFixture` / `getFixtures` plus typed walks `getFixtureBoundaries()` / `getFixtureLightSources()`. |
 | `Adornment` | mixin | Host-side back-reference (`adornedTo`) and not-portable invariant. Concrete users: `BoundaryAnchor`, future fixtures. |
@@ -235,15 +238,14 @@ Sample math:
 ## Propagation: `VisionModality.signalAt`
 
 The single recursive walk. `VisionModality.signalAt(loc)` is the
-substrate entry point — the `Modality.signalAt` override that
-`PerceptionApi.signalAt(loc, VisionModality)` dispatches to.
+substrate entry point — the `Modality.signalAt` override callers reach
+directly on the vision singleton (`vision().signalAt(loc)`).
 Internally it accumulates **flux** (lumens) plus per-source
 attribution via `walkFluxAt`, then divides by the receiving
 Container's `getSizeScale()` (m²) and wraps the result as a Light
 with `Quantity<'lux'>` intensity. The static `VisionModality.lightAt(loc)`
-is a thin convenience read — it resolves the vision singleton through
-`PerceptionApi` and calls `signalAt` — so callers with a `loc` in hand
-get a `Light` without threading the modality argument.
+is a thin convenience read — it resolves the vision singleton and calls
+`signalAt` — so callers with a `loc` in hand get a `Light` directly.
 
 ```
 walkFluxAt(loc, depth, visited) -> { flux, sources }:
@@ -292,7 +294,7 @@ signalAt(loc):                                          // the Modality override
                       colorTemperature, sources })
 
 lightAt(loc):                                           // static convenience read
-  return vision().signalAt(loc)                         // singleton via PerceptionApi
+  return vision().signalAt(loc)                         // the vision singleton
 
 bandAt(loc):
   return bandFor(lightAt(loc).intensity.rawValue())

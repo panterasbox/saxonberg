@@ -11,7 +11,7 @@ import type { Sensor } from '../../lib/message/Sensor';
 import type { Organism } from '../../lib/species/Organism';
 import type { Perception } from '../../lib/perception/Perception';
 import { Modality } from '../../lib/perception/Modality';
-import type { Signal, Percept } from '../../lib/perception/Modality';
+import type { Percept } from '../../lib/perception/Modality';
 import { MixinApi } from '../../api/mixin';
 import { StuffApi } from '../../api/stuff';
 import { SpeciesApi } from '../../api/species';
@@ -20,7 +20,11 @@ import { AppApi } from '../../api/app';
 import { AppSettingKeys } from '../../lib/config/AppSettings';
 import { TemplatePathPrefixes } from '../../lib/paths';
 import { DISCOVERY } from '../../lib/belief/BeliefStore';
-import { ConcealmentLevels } from '../../lib/concealment/ConcealmentLevel';
+import {
+  ConcealmentLevels,
+  type ConcealmentLevel,
+} from '../../lib/concealment/ConcealmentLevel';
+import { Postures } from '../../lib/slot/Postured';
 import {
   CompetenceBand,
   type CompetenceBandName,
@@ -64,6 +68,23 @@ const DEFAULT_EXAMINE_BONUS = 2;
 const DEFAULT_MOVEMENT_ATTENTION_SNEAK = 2;
 /** `movement.attention.run` fallback (Phase 5, careless → notices less). */
 const DEFAULT_MOVEMENT_ATTENTION_RUN = -2;
+/** `stealth.hide.*` fallbacks (the hider's derived level — kept in sync
+ * with `config/app-settings.yaml`). */
+const DEFAULT_HIDE_COMPETENCE_PER_BAND = 2;
+const DEFAULT_HIDE_COVER_WEIGHT = 1;
+const DEFAULT_HIDE_LIGHT_WEIGHT = 1;
+const DEFAULT_HIDE_STILLNESS_BONUS = 1;
+const DEFAULT_HIDE_BAND_SUBTLE = 0;
+const DEFAULT_HIDE_BAND_HIDDEN = 4;
+const DEFAULT_HIDE_BAND_DEEP = 7;
+const DEFAULT_HIDE_BAND_BURIED = 10;
+/** Max room-cover objects folded into the hide score (bounds the term). */
+const HIDE_COVER_CAP = 6;
+/** `movement.concealment.*` fallbacks (observer-side motion-degrade — bands
+ * of concealment a move at each mode strips from a hiding mover). */
+const DEFAULT_MOVEMENT_CONCEALMENT_SNEAK = 0;
+const DEFAULT_MOVEMENT_CONCEALMENT_WALK = 1;
+const DEFAULT_MOVEMENT_CONCEALMENT_RUN = 99;
 
 /**
  * Per-actor `awareness` competence-band snapshot, warmed by the async
@@ -135,12 +156,6 @@ export class PerceptionLogic extends ApiLogic {
   @CallSecurity(PerceptionApiCallers)
   public modalityByOrganKey(organKey: string): Modality | null {
     return resolveByOrganKey(organKey);
-  }
-
-  /** See {@link PerceptionApi.signalAt}. */
-  @CallSecurity(PerceptionApiCallers)
-  public signalAt(loc: Stuff & Container, modality: Modality): Signal | null {
-    return modality.signalAt(loc);
   }
 
   /** See {@link PerceptionApi.perceiveAt}. */
@@ -238,6 +253,21 @@ export class PerceptionLogic extends ApiLogic {
   @CallSecurity(PerceptionApiCallers)
   public modeAttention(mode: string): number {
     return modeAttentionImpl(mode);
+  }
+
+  /** See {@link PerceptionApi.motionExposure}. */
+  @CallSecurity(PerceptionApiCallers)
+  public motionExposure(mode: string): number {
+    return motionExposureImpl(mode);
+  }
+
+  /** See {@link PerceptionApi.hideLevelFor}. */
+  @CallSecurity(PerceptionApiCallers)
+  public hideLevelFor(
+    actor: Stuff,
+    stealthBand: CompetenceBandName,
+  ): ConcealmentLevel {
+    return hideLevelForImpl(actor, stealthBand);
   }
 
   /** See {@link PerceptionApi.resolveSearch}. */
@@ -445,6 +475,36 @@ function modeAttentionImpl(mode: string): number {
   return passiveBaseline() + modeModifier(mode);
 }
 
+/**
+ * The observer-side motion-degrade (the mirror of {@link modeAttentionImpl}):
+ * how many concealment bands a move at the given mode strips from a hiding
+ * mover — `sneak` holds (0), `walk` degrades one band, `run` clears hiding
+ * (a large count). `Mobile.traverse` passes this to `HidingMixin.degradeHide`
+ * after a move. Accepts a short mode name or a full templatePath.
+ */
+function motionExposureImpl(mode: string): number {
+  const name = mode.startsWith('/')
+    ? mode.slice(mode.lastIndexOf('/') + 1)
+    : mode;
+  switch (name) {
+    case 'sneak':
+      return dialNumber(
+        AppSettingKeys.movementConcealmentSneak,
+        DEFAULT_MOVEMENT_CONCEALMENT_SNEAK,
+      );
+    case 'run':
+      return dialNumber(
+        AppSettingKeys.movementConcealmentRun,
+        DEFAULT_MOVEMENT_CONCEALMENT_RUN,
+      );
+    default:
+      return dialNumber(
+        AppSettingKeys.movementConcealmentWalk,
+        DEFAULT_MOVEMENT_CONCEALMENT_WALK,
+      );
+  }
+}
+
 /** The per-mode attention delta (0 for walk / any non-care↔speed mode). */
 function modeModifier(mode: string): number {
   const name = mode.startsWith('/') ? mode.slice(mode.lastIndexOf('/') + 1) : mode;
@@ -462,6 +522,97 @@ function modeModifier(mode: string): number {
     default:
       return 0;
   }
+}
+
+/**
+ * The stillness bonus a hider earns from a low, held posture (crouched /
+ * sitting / lying) — you hide better when you aren't standing. `0` for a
+ * standing actor or one with no posture surface.
+ */
+function stillnessBonusFor(actor: Stuff): number {
+  if (!MixinApi.isPosed(actor)) return 0;
+  if (actor.getPosture() === Postures.Stand) return 0;
+  return dialNumber(
+    AppSettingKeys.stealthHideStillnessBonus,
+    DEFAULT_HIDE_STILLNESS_BONUS,
+  );
+}
+
+/**
+ * The available room cover — the count of non-creature objects in the
+ * hider's environment they could duck behind (each mover/creature is not
+ * cover), capped at {@link HIDE_COVER_CAP}. `0` outside a container.
+ */
+function coverScoreOf(actor: Stuff): number {
+  if (!MixinApi.isContainable(actor)) return 0;
+  const env = actor.getContainer();
+  if (!env || !MixinApi.isContainer(env)) return 0;
+  let n = 0;
+  for (const c of env.getContents()) {
+    if (c === actor) continue;
+    if (MixinApi.isMobile(c)) continue; // creatures/movers aren't cover
+    n += 1;
+    if (n >= HIDE_COVER_CAP) break;
+  }
+  return n;
+}
+
+/**
+ * See {@link PerceptionApi.hideLevelFor}. The pure, deterministic hide-level
+ * derivation (the opposed sibling of the detection side): a weighted score
+ * of competence × cover × darkness × stillness, mapped to a
+ * {@link ConcealmentLevel} band by the `stealth.hide.band.*` thresholds. The
+ * `stealthBand` is resolved by the caller (`AdvancementApi.bandFor(actor,
+ * 'stealth')`, awaited at command time) and snapshotted into `hiddenLevel`,
+ * so the sync perceive gate never reaches here. A score below `band.subtle`
+ * fails to conceal (`obvious`).
+ */
+function hideLevelForImpl(
+  actor: Stuff,
+  stealthBand: CompetenceBandName,
+): ConcealmentLevel {
+  // Darkness = how many bands below neutral light the room is (the negated
+  // observer-side light penalty, reusing the same vision read).
+  const darkness = Math.max(0, -lightConditionsFor(actor, actor));
+  const score =
+    CompetenceBand.rank(stealthBand) *
+      dialNumber(
+        AppSettingKeys.stealthHideCompetencePerBand,
+        DEFAULT_HIDE_COMPETENCE_PER_BAND,
+      ) +
+    coverScoreOf(actor) *
+      dialNumber(
+        AppSettingKeys.stealthHideCoverWeight,
+        DEFAULT_HIDE_COVER_WEIGHT,
+      ) +
+    darkness *
+      dialNumber(
+        AppSettingKeys.stealthHideLightWeight,
+        DEFAULT_HIDE_LIGHT_WEIGHT,
+      ) +
+    stillnessBonusFor(actor);
+
+  const buried = dialNumber(
+    AppSettingKeys.stealthHideBandBuried,
+    DEFAULT_HIDE_BAND_BURIED,
+  );
+  const deep = dialNumber(
+    AppSettingKeys.stealthHideBandDeep,
+    DEFAULT_HIDE_BAND_DEEP,
+  );
+  const hidden = dialNumber(
+    AppSettingKeys.stealthHideBandHidden,
+    DEFAULT_HIDE_BAND_HIDDEN,
+  );
+  const subtle = dialNumber(
+    AppSettingKeys.stealthHideBandSubtle,
+    DEFAULT_HIDE_BAND_SUBTLE,
+  );
+  if (score >= buried) return 'buried';
+  if (score >= deep) return 'deep';
+  if (score >= hidden) return 'hidden';
+  if (score >= subtle) return 'subtle';
+  return 'obvious'; // the hide failed — no concealment gained
 }
 
 /**

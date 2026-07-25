@@ -27,6 +27,9 @@ data:
       destination: /domain/terminus/counting-houses/avenue-block
     north:
       destination: /domain/terminus/counting-houses/circle-parlor
+      # Exit-kind demonstrator: the parlor sits behind a broad archway
+      # (kind defaults: ground media + archway traverse messages).
+      kind: /obj/exits/archway
   details:
     vault:
       keywords: [vault, grille, door, sunrise, till]

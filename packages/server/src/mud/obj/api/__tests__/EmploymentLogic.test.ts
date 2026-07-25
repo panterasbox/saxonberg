@@ -51,7 +51,7 @@ describe('EmploymentApi / EmploymentLogic', () => {
     const emp = EmploymentApi.hire(biz, mara, 'bartender');
     expect(emp?.positionKey).toBe('bartender');
     expect(emp?.status).toBe('employed');
-    const stored = EmploymentApi.employmentOf(mara, BUSINESS);
+    const stored = mara.getEmployment(BUSINESS);
     expect(stored?.businessPath).toBe(BUSINESS);
     expect(stored?.status).toBe('employed');
   });
@@ -62,10 +62,10 @@ describe('EmploymentApi / EmploymentLogic', () => {
     EmploymentApi.hire(biz, mara, 'bartender');
 
     EmploymentApi.fire(biz, mara);
-    expect(EmploymentApi.employmentOf(mara, BUSINESS)?.status).toBe('fired');
+    expect(mara.getEmployment(BUSINESS)?.status).toBe('fired');
 
     EmploymentApi.quit(mara, BUSINESS);
-    expect(EmploymentApi.employmentOf(mara, BUSINESS)?.status).toBe('quit');
+    expect(mara.getEmployment(BUSINESS)?.status).toBe('quit');
   });
 
   it('finds the business operating at a location', () => {

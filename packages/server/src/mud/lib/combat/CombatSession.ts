@@ -119,6 +119,25 @@ export interface CombatantState {
    * striker at the moment of resolution. Null until first struck.
    */
   lastStruckBy: (Stuff & Engaged) | null;
+  /**
+   * The foe this combatant's participation began against (stamped at
+   * open/join): the target they typed `attack` at — or, drawn in, the
+   * foe who pulled them into the fight. Inert under most formations;
+   * Focus Fire reads the **captain's** entry as the side's called target
+   * (the captain leads by attacking — derived, not verb-called; a
+   * drawn-in captain's "call" is the foe who came at them). Null only on
+   * bare paths that never stamped it.
+   */
+  deliberateTarget: (Stuff & Engaged) | null;
+  /**
+   * Who armed the live opening on THIS combatant's poise (the exchange
+   * whose crossing set the window), or null. Pure credit bookkeeping —
+   * the window itself stays ownerless and ally-exploitable; when an
+   * exploit by a *different, allied* attacker cashes it, the armer minted
+   * a `command` deed (the master's created-openings). Restamped on each
+   * fresh crossing, cleared on consumption.
+   */
+  openingArmedBy: (Stuff & Engaged) | null;
 }
 
 export class CombatSession {
@@ -363,7 +382,3 @@ export class CombatParticipantHold implements SustainedEngagement {
   }
 }
 
-// Register the participant-hold lifecycle class at module load (the HMR
-// seam, mirroring RespirationDrain / Coup — a reload re-runs this and
-// overwrites the entry). The session itself is not a scheduler activity.
-SchedulerApi.registerActivity(COMBAT_PARTICIPANT_TYPE, CombatParticipantHold);

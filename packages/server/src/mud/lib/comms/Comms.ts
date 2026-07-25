@@ -35,7 +35,8 @@ import { Mml } from "../../api/mml";
 import type { CommandContributions } from "../../api/command";
 import { InactiveCapabilityError } from "../security/RequiresActive";
 import { MixinApi } from "../../api/mixin";
-import { ContainmentApi } from "../../api/containment";
+import { MqlApi } from "../../api/mql";
+import type { CommandGiver } from "../command/CommandGiver";
 import type { AetherHosted } from "../augmentation/AetherHosted";
 
 export interface Comms {
@@ -211,15 +212,19 @@ export function CommsMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
           )
           .send();
         // Stamp the recipient's inbound cohort on the recipient's own
-        // comms update (host-descent via findReachable). A recipient
-        // who is attuned but has no comms update receives the dm but
-        // has nowhere to record the cohort — null-guard, don't throw
-        // (they can't reply anyway).
-        const recipientComms = ContainmentApi.findReachable(
-          t,
-          null,
-          (s: Stuff): s is Stuff & Comms => MixinApi.isComms(s),
-        );
+        // comms update (the recipient's OWN reachable scan — the MQL
+        // `reachable` pool anchored on the recipient, not the sender).
+        // A recipient who is attuned but has no comms update receives
+        // the dm but has nowhere to record the cohort — null-guard,
+        // don't throw (they can't reply anyway).
+        const recipientComms =
+          MqlApi.resolveMany("person", {
+            // Recipients here are Characters (CommandGivers); the
+            // static type at this seam is only `Stuff`.
+            commandGiver: t as unknown as Stuff & CommandGiver,
+            scope: "person",
+          }).stuff.find((s): s is Stuff & Comms => MixinApi.isComms(s)) ??
+          null;
         if (recipientComms) {
           const inbound = isMulti
             ? [operator, ...targets.filter((o) => o !== t)]

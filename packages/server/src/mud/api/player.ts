@@ -19,10 +19,10 @@ import type Avatar from '../obj/Avatar';
 import type { User } from '../lib/identity/User';
 import { StuffApi } from './stuff';
 import { HotReloadApi } from './hot-reload';
-import { SecurityApi } from './security';
 import type { Stuff } from '../lib/stuff/Stuff';
 import { PlayerLogic } from '../obj/api/PlayerLogic';
 import { fileURLToPath } from 'url';
+import { SecurityApi } from './security';
 
 const LOGIC_PATH = '/obj/api/player';
 const LOGIC_CLASS_FILE = fileURLToPath(

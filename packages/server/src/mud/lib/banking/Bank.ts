@@ -30,7 +30,6 @@ import type { Containable } from "../spatial/Containable";
 import type { CommandContributions } from "../../api/command";
 import { CorpoApi } from "../../api/corpo";
 import type { CorpoDescriptor } from "../corpo/Corpo";
-import { ContainmentApi } from "../../api/containment";
 import { CallSecurity, Final, Unshadowable } from "../security/decorators";
 import { SecurityPolicies } from "../security/SecurityPolicies";
 import type { VetoResult } from "../errors";
@@ -146,9 +145,7 @@ export function BankMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
 
     public getTillLiquidity(): Money {
       let total = 0;
-      for (const item of ContainmentApi.getContents(
-        this as unknown as Stuff & Container
-      )) {
+      for (const item of (this as unknown as Stuff & Container).getContents()) {
         if (isCashLike(item)) total += stackValue(item);
       }
       return Money.of(total);

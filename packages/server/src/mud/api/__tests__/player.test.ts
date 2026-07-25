@@ -245,13 +245,17 @@ describe('PlayerApi', () => {
       return user;
     }
 
-    beforeEach(() => {
+    beforeEach(async () => {
       mockAvatar1 = makeStuff(() => new Avatar());
       mockAvatar1.setPlayerId('player1');
       mockAvatar1.setName('Alice');
       mockAvatar2 = makeStuff(() => new Avatar());
       mockAvatar2.setPlayerId('player2');
       mockAvatar2.setName('Bob');
+      // The retirement's materialize path consults the persistence
+      // spine before cloning (snapshot present → seed-overlay clone).
+      const { PersistableApi } = await import('../persistable');
+      vi.spyOn(PersistableApi, 'hasRecord').mockResolvedValue(true);
     });
 
     afterEach(() => {
@@ -279,10 +283,13 @@ describe('PlayerApi', () => {
 
       await PlayerApi.loadAvatarsForUser(user);
 
-      expect(cloneSpy).toHaveBeenCalledWith(Avatar.getTemplatePath('player1'), {
-        user,
-        playerId: 'player1',
-      });
+      // Snapshot-backed identity: the clone SOURCE is the shared seed;
+      // the minted identity path rides `asTemplatePath`.
+      expect(cloneSpy).toHaveBeenCalledWith(
+        Avatar.SEED_TEMPLATE_PATH,
+        { user, playerId: 'player1' },
+        { asTemplatePath: Avatar.getTemplatePath('player1') },
+      );
     });
 
     it('reuses Avatars already registered (multiplexing)', async () => {

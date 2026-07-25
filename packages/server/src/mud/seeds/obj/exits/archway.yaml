@@ -1,0 +1,14 @@
+# Exit-kind: a broad open archway. The first authored EXIT KIND — a
+# template a room's `exits:` entry references via `kind:`, cloned per
+# edge and then bound to its source/destination by the installing room
+# (`Exit.bind`, participant-gated). The kind's authored fields are the
+# per-edge defaults; the room's entry may override any of them.
+# Identity note (ref-shapes.md § Identity, lineage, and backing): the
+# clone's templatePath IS this path — every archway in the world is
+# addressable as a population (`/obj/exits/archway` MQL path seed).
+class: /lib/boundary/Exit
+hydratorClass: /lib/persistence/PersistentHydrator
+data:
+  media: [ground]
+  messageOut: "{{ mover }} passes through the archway."
+  messageIn: "{{ mover }} steps in through the archway."

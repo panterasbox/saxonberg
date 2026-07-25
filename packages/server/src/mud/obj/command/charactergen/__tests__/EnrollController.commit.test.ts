@@ -20,7 +20,6 @@ import { ContainableMixin } from '../../../../lib/spatial/Containable';
 import { Idea } from '../../../../lib/stuff/Idea';
 import { StuffApi } from '../../../../api/stuff';
 import { AppApi } from '../../../../api/app';
-import { TemplateApi } from '../../../../api/template';
 import { Template } from '../../../../lib/stuff/Template';
 import { ConnectionApi } from '../../../../api/connection';
 import { ContainmentApi } from '../../../../api/containment';
@@ -103,15 +102,13 @@ describe('EnrollController.commit', () => {
       data: { startLocation: '/domain/lounge/warren' },
       hydratorClass: '/lib/persistence/PersistentHydrator',
     } as never);
+    // No per-player template row is written anymore (the identity
+    // doctrine): the picks ride the clone's `dataOverlay` and the
+    // identity path is minted via `asTemplatePath`. Capture both off
+    // the seed-clone call for the overlay assertions.
     savedTemplate = null;
-    vi.spyOn(TemplateApi, 'saveTemplate').mockImplementation(
-      async (path: string, _cls, data) => {
-        savedTemplate = { path, data: data as Record<string, unknown> };
-        return path;
-      },
-    );
 
-    // Clone: avatar for the Avatar path, a real Wearable garment for
+    // Clone: avatar for the seed path, a real Wearable garment for
     // everything else (claims a torso slot on the biped body plan).
     avatar = {
       setSex: vi.fn(),
@@ -121,11 +118,26 @@ describe('EnrollController.commit', () => {
     dressed = [];
     const garment = makeStuff(() => new TestGarment());
     garment.setSlotClaim(BIPED, ['torso']);
-    vi.spyOn(StuffApi, 'clone').mockImplementation(async (path: string) => {
-      if (path.startsWith('/obj/Avatar/')) return avatar as never;
-      dressed.push(path);
-      return garment as never;
-    });
+    vi.spyOn(StuffApi, 'clone').mockImplementation(
+      async (
+        path: string,
+        _context?: unknown,
+        opts?: {
+          dataOverlay?: Record<string, unknown>;
+          asTemplatePath?: string;
+        },
+      ) => {
+        if (path === Avatar.SEED_TEMPLATE_PATH) {
+          savedTemplate = {
+            path: opts?.asTemplatePath ?? path,
+            data: opts?.dataOverlay ?? {},
+          };
+          return avatar as never;
+        }
+        dressed.push(path);
+        return garment as never;
+      },
+    );
     vi.spyOn(ContainmentApi, 'move').mockReturnValue(undefined as never);
     vi.spyOn(SlotApi, 'occupyAll').mockReturnValue(undefined as never);
     transfer = vi.spyOn(ConnectionApi, 'transfer').mockReturnValue(undefined as never) as never;
@@ -157,7 +169,7 @@ describe('EnrollController.commit', () => {
     return ctrl.execute({ rest: 'confirm' } as CommandModel & { rest?: string }, ctx);
   }
 
-  it('forks the per-character template with the picks overlaid', async () => {
+  it('mints the identity path with the picks as the clone overlay (no row)', async () => {
     await confirm();
     expect(savedTemplate).not.toBeNull();
     expect(savedTemplate!.path).toMatch(/^\/obj\/Avatar\//);

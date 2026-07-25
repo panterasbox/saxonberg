@@ -50,7 +50,9 @@ export default class AnalyzeElectricalController extends CommandController<Analy
     let anything = false;
 
     // Material conductivity — band + raw S/m (the multimeter's headline).
-    const material = MaterialApi.materialOf(stuff);
+    const material = MixinApi.isTangible(stuff)
+      ? stuff.getMaterial()
+      : null;
     if (material) {
       const sigma = material.getElectricalConductivity();
       lines.push(

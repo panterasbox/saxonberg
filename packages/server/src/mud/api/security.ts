@@ -41,10 +41,11 @@ import { SecurityError } from '../lib/security/errors';
  * module-bottom, which would crash mid-cycle if `security.ts` were
  * ALSO depending on `shadow.ts` to load first.
  *
- * Instead, ShadowApi calls `SecurityApi._registerShadowApi(ShadowApi)`
- * once at its own module-load time (see the bottom of `shadow.ts`).
- * The interceptor dereferences this slot at runtime only, by which
- * point all imports have resolved.
+ * Instead, `BootstrapManager.installFrameworkWiring()` calls
+ * `SecurityApi._registerShadowApi(ShadowApi)` at boot (and the vitest
+ * setup file does the same before every suite). The interceptor
+ * dereferences this slot at runtime only, by which point the wiring
+ * pass has run.
  */
 interface ShadowApiLike {
   _consumeBypass(): boolean;
@@ -377,7 +378,7 @@ export class SecurityApi {
     const wrapped = function (this: unknown, ...args: unknown[]): unknown {
       const policy = SecurityApi.resolveStaticCallPolicy(cls, methodName);
       const caller = ExecutionContextApi.getCurrentTarget();
-      const allowed = policy.allows(caller, cls, methodName);
+      const allowed = policy.allows(caller, cls, methodName, args);
       const deny = (): never => {
         throw new SecurityError(
           `Policy ${policy.name} denied ${(cls as { name?: string }).name ?? '<class>'}.${methodName}()`,
@@ -508,16 +509,16 @@ export class SecurityApi {
   static #interceptorInstalled = false;
 
   /**
-   * Late-bound ShadowApi reference. ShadowApi calls
-   * `SecurityApi._registerShadowApi(ShadowApi)` at its module-bottom.
+   * Late-bound ShadowApi reference, installed by
+   * `BootstrapManager.installFrameworkWiring()` (boot + test setup).
    * The interceptor reads this slot at runtime only, so the
    * security-shadow load cycle stays acyclic at module-eval time.
    */
   static #shadowApi: ShadowApiLike | null = null;
 
   /**
-   * Slot for `ShadowApi` to register itself with the security gate.
-   * Called once at `shadow.ts`'s module-bottom; idempotent.
+   * Slot for the boot wiring to hand `ShadowApi` to the security gate
+   * (`BootstrapManager.installFrameworkWiring`); idempotent.
    * @internal
    */
   public static _registerShadowApi(impl: ShadowApiLike): void {
@@ -602,7 +603,7 @@ export class SecurityApi {
     // 2. entry policy
     const policy = SecurityApi.resolveCallPolicy(ctx.target, ctx.prop);
     const caller = ExecutionContextApi.getCurrentTarget();
-    const allowedOrPromise = policy.allows(caller, ctx.proxy, ctx.prop);
+    const allowedOrPromise = policy.allows(caller, ctx.proxy, ctx.prop, ctx.args);
     const deny = (): never => {
       throw new SecurityError(
         `Policy ${policy.name} denied ${ctx.prop}() on Stuff ${ctx.target.stuffId}`,
@@ -681,6 +682,13 @@ export class SecurityApi {
    * `SecurityApi` — `StuffApi`, `ShadowApi`, `ProxyApi` consumers,
    * the test seam — implicitly triggers this. No side-effect imports
    * required at the call sites.
+   *
+   * `SecurityApi` itself, and the other three bootstrap-special Apis
+   * (`ModuleApi`, `ProxyApi`, `ExecutionContextApi`), are never
+   * self-decorated — wrapping them recurses or pollutes the stack (see
+   * call-security.md § Why Some Api Files Don't Self-Decorate). Every
+   * other `*Api` facade decorates itself with a module-scope
+   * `SecurityApi.decorateApiClass(FooApi)` tail.
    */
   static {
     SecurityApi.installInterceptor();

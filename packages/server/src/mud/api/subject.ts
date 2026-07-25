@@ -13,7 +13,6 @@
 
 import { StuffApi } from './stuff';
 import { HotReloadApi } from './hot-reload';
-import { SecurityApi } from './security';
 import type { Stuff } from '../lib/stuff/Stuff';
 import type Subject from '../lib/forum/Subject';
 import type { SubjectSurface } from '../lib/forum/Subject';
@@ -25,6 +24,7 @@ import type {
 import type Avatar from '../obj/Avatar';
 import { SubjectLogic } from '../obj/api/SubjectLogic';
 import { fileURLToPath } from 'url';
+import { SecurityApi } from './security';
 
 const LOGIC_PATH = '/obj/api/subject';
 const LOGIC_CLASS_FILE = fileURLToPath(

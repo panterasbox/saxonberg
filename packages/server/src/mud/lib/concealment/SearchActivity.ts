@@ -26,7 +26,6 @@ import type { AbortReason } from '@saxonberg/types';
 import type { Stuff } from '../stuff/Stuff';
 import type { EngagementSlot, Engaged } from '../activity/Engaged';
 import type { DurativeActivity } from '../../api/scheduler';
-import { SchedulerApi } from '../../api/scheduler';
 
 export const SEARCH_ACTIVITY_TYPE = 'search-activity' as const;
 
@@ -86,5 +85,3 @@ export class SearchActivity implements DurativeActivity {
   }
 }
 
-// Register at module load (the HMR seam, mirroring ManualBuildStep).
-SchedulerApi.registerActivity(SEARCH_ACTIVITY_TYPE, SearchActivity);

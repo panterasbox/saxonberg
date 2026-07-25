@@ -1,0 +1,13 @@
+# A trap kit — the thin, carried acquisition of the player-trapper loop
+# (docs/subsystems/stealth.md). Obtained ready-made (no recipe/component
+# economy in v1); `arm the trap kit` clones its `trapTemplate` (the
+# step-dart), conceals the deployed trap at the placer's own stealth level,
+# stamps who set it, and spends the kit. One kit → one trap.
+class: /lib/hazard/TrapKit
+hydratorClass: /lib/persistence/PersistentHydrator
+data:
+  shortDescription: a folded trap kit
+  primaryKeyword: kit
+  longDescription: |
+    A roll of oilcloth tied with a thong: inside, a flat spring plate, a slotted needle, and a stoppered vial of something old and dark. Set it where a careless foot will find it, work it into the ground, and walk away. It makes one trap, and only one.
+  trapTemplate: /obj/traps/step-dart

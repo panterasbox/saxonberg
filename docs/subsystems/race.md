@@ -15,8 +15,9 @@ biologically. It splits cleanly into:
 - **OrganismMixin** — runtime composition that says "this Stuff is a
   member of a Species."
 - **SexedMixin** — biological sex (orthogonal to `GenderedMixin`).
-- **SpeciesApi** — kingdom resolution, lifecycle predicates, the
-  `isAnimate` predicate that gates command dispatch.
+- **SpeciesApi** — kingdom resolution and the `isAnimate` predicate that
+  gates command dispatch (plain lifecycle-state reads live on
+  `OrganismMixin`).
 
 Three things are *deferred* — the design context lives here for the
 follow-on builds:
@@ -70,7 +71,13 @@ response), `electricalConductivity` (electricity), and
 ASTM-D570 figure for the water a material holds at saturation, as a percent
 of dry mass: wool ≈ 33 %, wood ≈ 28 %, flesh ≈ 25 %, metals / glass ≈ 0.
 The `WetMixin` gauge reads it to derive the dry rate from evaporation
-physics; see [weather.md](./weather.md)).
+physics; see [weather.md](./weather.md)). The **fire build** adds six more:
+`autoignitionTemperature` (`Quantity<'K'>`) + `heatOfCombustion`
+(`Quantity<'MJ/kg'>`) drive the combustion driver, and `meltingPoint` /
+`latentHeatOfFusion` (`J/kg`) + `boilingPoint` / `latentHeatOfVaporization`
+(`J/kg`) drive the phase-change layer — real figures (wood 570 K / 16 MJ/kg,
+iron mp 1811 K, water mp 273 / bp 373), `0`-until-authored (an unauthored
+material never ignites, never melts); see [fire.md](./fire.md).
 
 - **Tags** (`tags: string[]`) — free-form classification strings
   (`'metal'`, `'alloy'`, `'igneous'`, `'organic'`, `'fantasy'`).
@@ -165,9 +172,9 @@ it's state, not identity. Iron is solid at room temp, liquid at
 `getMaterial()` resolves on each call via
 `StuffApi.findByTemplatePath` — HMR-safe.
 
-`MaterialApi.materialOf(stuff, detailKey?)` is the single dispatch
-point for "what is this made of?" — returns the singleton if
-Tangible, `null` otherwise.
+`stuff.getMaterial(detailKey?)` is the direct read for "what is this
+made of?" — callers narrow with `MixinApi.isTangible(stuff)` first
+(a non-Tangible has no material).
 
 `getMaterial(detailKey)` walks **longest dotted prefix first** down
 to the bulk default — so a sub-detail without its own override
@@ -505,11 +512,16 @@ The single entry point for "what is this Organism, biologically?":
 
 - `getKingdom(o)` — walks the species' templatePath ancestors to
   find the rank-`'kingdom'` Clade.
-- `isInKingdom(o, name)` — convenience wrapper.
-- `isAlive(o)` / `isDead(o)` / `isUndead(o)` / `isPowered(o)` /
-  `isDestroyed(o)` — lifecycle predicates.
 - `isAnimate(o)` — the load-bearing predicate. Composes kingdom +
   lifecycle state per the slate's table:
+
+(The plain lifecycle-state reads — `isAlive()` / `isDead()` /
+`isUndead()` / `isPowered()` — are the Organism's own answer and live on
+`OrganismMixin` as no-arg instance methods; callers narrow with
+`MixinApi.isOrganism` and call `organism.isAlive()` directly. The
+2026-07 antipattern sweep removed the thin `SpeciesApi.isAlive(o)`-style
+forwarders — a lifecycle-state read belongs to the one object, not an Api
+hop. `isInKingdom` went the same way; use `getKingdom(o)` and compare.)
 
 | Kingdom | Animate when |
 |---|---|

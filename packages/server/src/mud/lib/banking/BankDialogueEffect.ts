@@ -8,11 +8,11 @@
  * It enrols the interlocutor into a bank's Circle — the Goodkin enrollment beat
  * (the officer's tree reaches its `circle` node). A no-op (the officer's
  * dialogue nudges instead) if the player hasn't yet opened an account at that
- * corpo's bank; the write is idempotent. Loaded for its registration side
- * effect at boot (`AppBootstrap`).
+ * corpo's bank; the write is idempotent. Registered by
+ * `BankCounter.postRegister` — a live bank fixture is the object lifecycle
+ * that makes the verb real (no module-scope registration, no boot import).
  */
 
-import { DialogueEffectRegistry } from "../npc/DialogueEffects";
 import type { DialogueEffectHandler } from "../npc/DialogueEffects";
 import { BankingApi } from "../../api/banking";
 
@@ -27,5 +27,3 @@ export const BANK_CIRCLE_EFFECT: DialogueEffectHandler = {
     if (key) await BankingApi.enrollCircle(key, String(effect.corpo));
   },
 };
-
-DialogueEffectRegistry.register("bank-circle", BANK_CIRCLE_EFFECT);

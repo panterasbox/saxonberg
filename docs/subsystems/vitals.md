@@ -306,7 +306,7 @@ loop / playstyle, the tissue-vulnerability term, other channels
   limp + coverage, the medic vertical
 - [reserve.md](./reserve.md) — the `Reserve` substrate
 - [race.md](./race.md) — `OrganismMixin`, `Species`, `BodyPlan`,
-  `SpeciesApi.isAlive/isAnimate`
+  `OrganismMixin.isAlive` + `SpeciesApi.isAnimate`
 - [quantities.md](./quantities.md) — `Quantity`, the new vital units
 - [activity.md](./activity.md) — `ScheduleApi.recurring` cadence
 - [lifecycle.md](./lifecycle.md) — death ≠ destruction

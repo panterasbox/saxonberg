@@ -7,17 +7,18 @@
  */
 
 import type { CommandValidator } from '../../../api/command';
-import { ContainmentApi } from '../../../api/containment';
+import { MqlApi } from '../../../api/mql';
 import { MixinApi } from '../../../api/mixin';
 import type { Dressing } from '../../vitals/Dressing';
 import type { Stuff } from '../../stuff/Stuff';
 
 const validator: CommandValidator = (context) => {
-  const dressing = ContainmentApi.findReachable(
-    context.commandGiver,
-    context.location,
-    (s: Stuff): s is Stuff & Dressing => MixinApi.isDressing(s)
-  );
+  const dressing =
+    MqlApi.resolveMany('reachable', {
+      commandGiver: context.commandGiver,
+      scope: 'reachable',
+    }).stuff.find((s): s is Stuff & Dressing => MixinApi.isDressing(s)) ??
+    null;
   if (dressing) return undefined;
   return 'you have nothing to dress the wound with';
 };

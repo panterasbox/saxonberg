@@ -140,8 +140,8 @@ describe('DmController', () => {
     const bob = makeActor('Bob', true);
 
     const controller = makeStuff(() => new DmController());
-    // commandSource is the speaker (not a comms update); findReachable
-    // finds no comms update on the attuned-but-update-less actor.
+    // commandSource is the speaker (not a comms update); the reachable
+    // pool holds no comms update on the attuned-but-update-less actor.
     const ctx = context(alice as unknown as Stuff, alice as unknown as Stuff);
     await controller.execute(dmModel(bob as unknown as Stuff) as never, ctx);
 

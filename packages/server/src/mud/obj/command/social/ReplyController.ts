@@ -3,7 +3,8 @@
  *
  * Pronoun verb: no first-arg target. Cohort comes from the operator's
  * hosted comms update (`Comms.getLastInboundCohort()`), reached via the
- * `commandSource` that afforded the verb or a `findReachable` fallback.
+ * `commandSource` that afforded the verb or an MQL `reachable`-pool
+ * fallback.
  * For a 1:1 inbound the cohort is just the original speaker; for a
  * multi-party inbound it's everyone on the conversation.
  *
@@ -18,7 +19,7 @@ import type {
 } from '../../../api/command';
 import { MessageApi } from '../../../api/message';
 import { MixinApi } from '../../../api/mixin';
-import { ContainmentApi } from '../../../api/containment';
+import { MqlApi } from '../../../api/mql';
 import { Mml } from '../../../api/mml';
 import { ChatApi } from '../../../api/chat';
 import type { Stuff } from '../../../lib/stuff/Stuff';
@@ -59,14 +60,16 @@ export default class ReplyController extends CommandController<ReplyModel> {
     comms.tell(targets, model.message, { channelId: ad.handle });
   }
 
-  /** Resolve the operator's hosted comms update (commandSource, else findReachable). */
+  /** Resolve the operator's hosted comms update (commandSource, else the
+   *  MQL `reachable` pool). */
   private resolveComms(context: CommandContext): (Stuff & Comms) | null {
     const source = context.commandSource;
     if (source && MixinApi.isComms(source)) return source;
-    return ContainmentApi.findReachable(
-      context.commandGiver,
-      null,
-      (s: Stuff): s is Stuff & Comms => MixinApi.isComms(s),
+    return (
+      MqlApi.resolveMany('person', {
+        commandGiver: context.commandGiver,
+        scope: 'person',
+      }).stuff.find((s): s is Stuff & Comms => MixinApi.isComms(s)) ?? null
     );
   }
 

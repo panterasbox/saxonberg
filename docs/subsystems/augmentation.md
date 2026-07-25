@@ -215,7 +215,7 @@ framework change, only:
 > manifestable around three bases** — a corporeal **`Thing`** (carried),
 > an incorporeal **`Idea`** (an *update* hosted on aether attunement),
 > or **intrinsically** on a Creature / species — and **one reachability
-> scan (`ContainmentApi.findReachable`) finds it in any form.**
+> scan (the MQL `reachable` seed) finds it in any form.**
 
 `AetherMixin` is no longer a comms-carrying mixin: it is the aether
 **host**. *Attunement* is the conferred (implant) or intrinsic (species)
@@ -240,15 +240,17 @@ into. Comms and the credential wallet are hosted updates; the physical
   (Biome / Zone / Controller) composes no `AetherHostedMixin` and is
   unaffected — it stays free-standing-capable. There is **no hosting
   Api**: the relation is orchestrated by the host mixin methods plus
-  `findReachable` for lookups (a narrow `IdeaHost` mixin would graduate
-  only if a *second* incorporeal-host concept appears).
+  the MQL `reachable` seed for lookups (a narrow `IdeaHost` mixin would
+  graduate only if a *second* incorporeal-host concept appears).
 - **Lifecycle** — a hosted update is host-bound: `AetherMixin`'s
   `cleanupOnDestruct` destroys every hosted update when the host dies
   (Avatar logout), mirroring how the implant clone died with the avatar.
 
 ### Reachability: the self + host-descent legs
 
-`ContainmentApi.findReachable` gained two legs on top of the slot →
+The MQL `reachable` seed (`api/mql/scope-walk.ts`
+`candidatesForReachable` — it absorbed the walk of the retired
+`ContainmentApi.findReachable`) carries two legs on top of the slot →
 inventory → location walk, preserving on-your-person-first order:
 
 1. **Self leg** — `predicate(actor)` (a capability composed directly on
@@ -257,12 +259,12 @@ inventory → location walk, preserving on-your-person-first order:
    slotted attuned host, also test its hosted updates (the implant-hosted
    comms / credential on self; the future carried radio's comms).
 
-One scan finds the capability whether it is a carried `Thing`, a hosted
-update, or composed intrinsically. The helper stays a thin
-first-match-by-type scan — **not** a query engine; anything keyed on
-identity / keywords / filtering / live results belongs to MQL. The
-host-descent leg is bounded to a single concept and a single level; do
-not teach `findReachable` another leg.
+One pool finds the capability whether it is a carried `Thing`, a hosted
+update, or composed intrinsically: consumers resolve
+`MqlApi.resolveMany('reachable', …)` and narrow locally with
+`MixinApi.isX` — `.find` over the on-person-first pool keeps the old
+first-match contract. The host-descent leg is bounded to a single
+concept and a single level; do not teach the seed another leg.
 
 ### The contribution walks generalize (no parallel path)
 
@@ -398,7 +400,8 @@ became a `TravelCredentialUpdate` (the implant stopped carrying it), and
 `Species.innateMixins` added the intrinsic conferral leg. The plan
 proposed a possible `AetherHostApi`; implementation rejected it — the
 relation is orchestrated entirely by the `AetherMixin` host methods plus
-`ContainmentApi.findReachable`, per the no-new-Apis rule. See the
+the reachable scan (today MQL's `reachable` seed), per the no-new-Apis
+rule. See the
 `feat(augmentation): capability hosting` commit and its review-cleanup
 follow-up.
 

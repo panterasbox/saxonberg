@@ -17,10 +17,8 @@
 
 import type { Stuff } from '../lib/stuff/Stuff';
 import type { Business } from '../lib/employment/Business';
-import type { Employed } from '../lib/employment/Employed';
 import { StuffApi } from './stuff';
 import { HotReloadApi } from './hot-reload';
-import { SecurityApi } from './security';
 import { EmploymentLogic } from '../obj/api/EmploymentLogic';
 import { fileURLToPath } from 'url';
 
@@ -39,6 +37,7 @@ export type { Business } from '../lib/employment/Business';
 export type { Employed } from '../lib/employment/Employed';
 
 import type { Employment } from '../lib/employment/Employment';
+import { SecurityApi } from './security';
 
 const LOGIC_PATH = '/obj/api/employment';
 const LOGIC_CLASS_FILE = fileURLToPath(
@@ -61,14 +60,6 @@ function logic(): EmploymentLogic {
 }
 
 export class EmploymentApi {
-  /** The actor's employment at `businessPath`, or undefined. */
-  public static employmentOf(
-    actor: Stuff,
-    businessPath: string,
-  ): Employment | undefined {
-    return logic().employmentOf(actor, businessPath);
-  }
-
   /**
    * Whether `subject` may act as the proprietor of `business` — the direct
    * `proprietorPath` edge, or the `AccessApi.isAuthor` operator override.

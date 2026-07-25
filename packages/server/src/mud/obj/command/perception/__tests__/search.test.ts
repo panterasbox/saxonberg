@@ -44,10 +44,6 @@ import { EngagedMixin } from '../../../../lib/activity/Engaged';
 import { CommandGiverMixin } from '../../../../lib/command/CommandGiver';
 import { BeliefStoreMixin } from '../../../../lib/belief/BeliefStore';
 import {
-  SearchActivity,
-  SEARCH_ACTIVITY_TYPE,
-} from '../../../../lib/concealment/SearchActivity';
-import {
   makeStuff,
   makeStuffAtPath,
 } from '../../../../lib/security/__tests__/test-setup';
@@ -169,8 +165,6 @@ describe('SearchController + SearchActivity — costed & interruptible', () => {
     WorldClockApi.setScale(1);
     WorldClockApi._setNowProviderForTesting(() => 1000);
     SchedulerApi._clearAllForTesting();
-    // _clearAllForTesting wipes the activity registry; re-register the type.
-    SchedulerApi.registerActivity(SEARCH_ACTIVITY_TYPE, SearchActivity as never);
     StuffApi.clearAll();
     // The scheduler subscribes to StuffDestructed on start → EventRegistry.
     const reg = await StuffApi.create(() => {

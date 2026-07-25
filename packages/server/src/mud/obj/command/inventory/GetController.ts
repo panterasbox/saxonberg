@@ -22,6 +22,7 @@ import { GlobbableApi, type ApplyQuantityResult } from '../../../api/glob';
 import { MessageApi } from '../../../api/message';
 import { MixinApi } from '../../../api/mixin';
 import { Mml } from '../../../api/mml';
+import { ConditionApi } from '../../../api/condition';
 import { Touch } from '../../../lib/perception/Touch';
 
 interface GetModel extends CommandModel {
@@ -48,11 +49,11 @@ export default class GetController extends CommandController<GetModel> {
 
     // `giver` is narrowed to `Stuff & Container`; carry the inventory
     // / location snapshots into both paths so neither has to re-cast.
-    const inventory = ContainmentApi.getContents(giver);
+    const inventory = giver.getContents();
     // Defensive: placeless avatars are blocked at the inbound gate, so a
     // real `get` always has a location by the time the controller runs.
     if (!context.location) return;
-    const here = ContainmentApi.getContents(context.location);
+    const here = context.location.getContents();
 
     if (!quantity) {
       return this.executeWholeSet(stuff, inventory, here, raw, context);
@@ -196,6 +197,31 @@ export default class GetController extends CommandController<GetModel> {
       );
     }
 
+    // Pick-up-your-own-trap: a placed, still-armed trap can only be lifted
+    // by the one who set it — you can't pocket someone else's rigged snare
+    // (and a concealed one a stranger can't perceive never resolves here
+    // anyway). An authored/environmental hazard (no `placedBy`) isn't
+    // player-pocketable through this path.
+    if (
+      MixinApi.isHazard(operand) &&
+      operand.isArmed() &&
+      operand.getPlacedBy() &&
+      operand.getPlacedBy() !== giver.getTemplatePath()
+    ) {
+      context.note({
+        kind: 'controller-rejected',
+        reason: 'not-your-trap',
+        detail: `${operand.getPresentation()} isn't yours to take`,
+      });
+      MessageApi.scene(giver)
+        .topic('world.perception.inventory')
+        .toSelf(
+          Mml.compose`You'd rather not lay a hand on ${Mml.item(operand)} — it isn't yours, and it's live.`,
+        )
+        .send();
+      return false;
+    }
+
     // Hands-occupied while hauling: you can't pick a thing up into your
     // hands while gripping a cart's handle. Keyed on the giver being the
     // hauler (a mounted rider whose horse hauls keeps their hands free).
@@ -246,15 +272,24 @@ export default class GetController extends CommandController<GetModel> {
   /**
    * The scalding-band burn hook applied to a bare-handed grab. Any
    * Thermal object whose surface scalds afflicts a `burn` trauma on the
-   * grabber — the rule itself lives in `Touch.contactBurn` (shared with
-   * `feel`), so this is just the `get`-side application + prose. No-op
+   * grabber via the `heat` channel — the scalding-band rule itself lives in
+   * `Touch.contactBurnEnergy` (shared with `feel`), so this is just the
+   * `get`-side application + prose. No-op
    * below the band or on a giver with no vitals.
    */
   private burnOnGrab(operand: Stuff, giver: Stuff): void {
     if (!MixinApi.isThermal(operand)) return;
-    const trauma = Touch.contactBurn(operand.getSurfaceTemperature().rawValue());
-    if (!trauma || !MixinApi.isVitals(giver)) return;
-    giver.afflict(trauma);
+    const energy = Touch.contactBurnEnergy(
+      operand.getSurfaceTemperature().rawValue(),
+    );
+    if (energy === null || !MixinApi.isVitals(giver)) return;
+    // Route through the `heat` materials-response channel so a glove / gauntlet
+    // insulates the hand before the residual burns tissue.
+    ConditionApi.inflict(giver, {
+      mechanism: 'heat',
+      site: 'body.hand',
+      energy,
+    });
     MessageApi.scene(giver)
       .topic('world.perception.inventory')
       .toSelf(Mml.compose`It scalds your hand!`)

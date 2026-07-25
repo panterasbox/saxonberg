@@ -24,7 +24,6 @@ import type { AbortReason } from '@saxonberg/types';
 import type { SearchDepth } from '../../../api/perception';
 import { MixinApi } from '../../../api/mixin';
 import { MessageApi } from '../../../api/message';
-import { ContainmentApi } from '../../../api/containment';
 import { PerceptionApi } from '../../../api/perception';
 import { SchedulerApi } from '../../../api/scheduler';
 import { AppApi } from '../../../api/app';
@@ -144,7 +143,7 @@ export default class SearchController extends CommandController<SearchModel> {
   ): { scope: Stuff[]; depth: SearchDepth; subject: Mml } {
     if (target && MixinApi.isContainer(target)) {
       return {
-        scope: [...ContainmentApi.getContents(target)],
+        scope: [...target.getContents()],
         depth: 'narrow',
         subject: Mml.item(target),
       };
@@ -155,11 +154,11 @@ export default class SearchController extends CommandController<SearchModel> {
       return { scope: [], depth: 'narrow', subject: Mml.item(target) };
     }
     const location = MixinApi.isContainable(actor)
-      ? ContainmentApi.getContainer(actor)
+      ? actor.getContainer()
       : null;
     const scope: Stuff[] = [];
     if (location && MixinApi.isContainer(location)) {
-      scope.push(...ContainmentApi.getContents(location));
+      scope.push(...location.getContents());
     }
     if (location && MixinApi.isExitable(location)) {
       for (const exit of location.getExits().values()) {

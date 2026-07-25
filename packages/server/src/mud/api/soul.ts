@@ -12,11 +12,11 @@
 
 import { StuffApi } from './stuff';
 import { HotReloadApi } from './hot-reload';
-import { SecurityApi } from './security';
 import type { Emote } from '../lib/social/Emote';
 import type { EmoteSpec } from '../obj/SoulCatalogue';
 import { SoulLogic } from '../obj/api/SoulLogic';
 import { fileURLToPath } from 'url';
+import { SecurityApi } from './security';
 
 export type { EmoteSpec } from '../obj/SoulCatalogue';
 

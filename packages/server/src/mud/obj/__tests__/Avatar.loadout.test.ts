@@ -19,7 +19,8 @@ import ForumsUpdate from "../../lib/forum/ForumsUpdate";
 import { StuffApi } from "../../api/stuff";
 import { SpeciesApi } from "../../api/species";
 import { MixinApi } from "../../api/mixin";
-import { ContainmentApi } from "../../api/containment";
+import { MqlApi } from "../../api/mql";
+import type { CommandGiver } from "../../lib/command/CommandGiver";
 import type { AetherHost } from "../../lib/message/Aether";
 import type { Comms } from "../../lib/comms/Comms";
 import type { CredentialWallet } from "../../lib/credential/CredentialWallet";
@@ -143,33 +144,40 @@ describe("Avatar.installDefaultLoadout", () => {
     expect(hostedForums(avatar)).toHaveLength(1);
   });
 
+  // The reachable pool anchored on the avatar (the MQL `reachable` seed —
+  // Avatar IS a CommandGiver; the cast just recovers that from the
+  // fixture's erased type).
+  function reachableFrom(avatar: Avatar): Stuff[] {
+    return MqlApi.resolveMany("reachable", {
+      commandGiver: avatar as unknown as Stuff & CommandGiver,
+      scope: "reachable",
+    }).stuff;
+  }
+
   it("the hosted comms update is reachable for dm dispatch", async () => {
     const avatar = makeAvatarOfSpecies(["AetherMixin"]);
     await runLoadout(avatar);
-    const comms = ContainmentApi.findReachable(
-      avatar as unknown as Stuff,
-      null,
-      (s: Stuff): s is Stuff & Comms => MixinApi.isComms(s),
-    );
+    const comms =
+      reachableFrom(avatar).find(
+        (s): s is Stuff & Comms => MixinApi.isComms(s),
+      ) ?? null;
     expect(comms).not.toBeNull();
   });
 
   it("the hosted forum update is reachable for forum dispatch; absent when never loaded", async () => {
     const avatar = makeAvatarOfSpecies(["AetherMixin"]);
     // Before the loadout runs, no forum update is reachable.
-    const before = ContainmentApi.findReachable(
-      avatar as unknown as Stuff,
-      null,
-      (s: Stuff): s is Stuff & Forums => MixinApi.isForums(s),
-    );
+    const before =
+      reachableFrom(avatar).find(
+        (s): s is Stuff & Forums => MixinApi.isForums(s),
+      ) ?? null;
     expect(before).toBeNull();
 
     await runLoadout(avatar);
-    const after = ContainmentApi.findReachable(
-      avatar as unknown as Stuff,
-      null,
-      (s: Stuff): s is Stuff & Forums => MixinApi.isForums(s),
-    );
+    const after =
+      reachableFrom(avatar).find(
+        (s): s is Stuff & Forums => MixinApi.isForums(s),
+      ) ?? null;
     expect(after).not.toBeNull();
   });
 

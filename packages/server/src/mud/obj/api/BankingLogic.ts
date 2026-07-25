@@ -36,10 +36,12 @@ import { ExecutionContextApi } from "../../api/execution-context";
 import { ContainmentApi } from "../../api/containment";
 import { GlobbableApi } from "../../api/glob";
 import { MixinApi } from "../../api/mixin";
+import { MqlApi } from "../../api/mql";
 import { StuffApi } from "../../api/stuff";
 import { TemplatePaths } from "../../lib/paths";
 import { Property } from "../../lib/stuff/Propertied";
 import type { Stuff } from "../../lib/stuff/Stuff";
+import type { CommandGiver } from "../../lib/command/CommandGiver";
 import type { Container } from "../../lib/spatial/Container";
 import type { Containable } from "../../lib/spatial/Containable";
 import type { Globbable } from "../../lib/stuff/Globbable";
@@ -202,7 +204,7 @@ async function ensureVenueAccountImpl(
 /** The cash-like contents of a container, grouped by denomination (per-stack). */
 function cashSupply(holder: Stuff & Container): CoinSupply[] {
   const supply: CoinSupply[] = [];
-  for (const item of ContainmentApi.getContents(holder)) {
+  for (const item of holder.getContents()) {
     if (isCashLike(item)) {
       supply.push({
         denomination: item.getDenomination(),
@@ -226,7 +228,7 @@ async function takeCoins(
 ): Promise<boolean> {
   for (const line of plan) {
     let need = line.count;
-    for (const item of [...ContainmentApi.getContents(from)]) {
+    for (const item of [...from.getContents()]) {
       if (need <= 0) break;
       if (!isCashLike(item) || item.getDenomination() !== line.denomination) {
         continue;
@@ -266,7 +268,7 @@ async function moveCoins(
 /** Total cash-like value on hand in a container (Σ face-value × quantity). */
 function cashOnHand(holder: Stuff & Container): number {
   let total = 0;
-  for (const item of ContainmentApi.getContents(holder)) {
+  for (const item of holder.getContents()) {
     if (isCashLike(item)) total += stackValue(item);
   }
   return total;
@@ -506,21 +508,24 @@ async function transferFeeFor(
 }
 
 /**
- * The actor's routing payment credential (implant-first via findReachable's
- * self-hosted leg, then carried cards). A **frozen** credential is skipped —
- * a revoked card is not a usable routing credential, so a reissued card is
- * found in its place even while the dead one is still carried.
+ * The actor's routing payment credential (implant-first via the MQL
+ * `reachable` pool's on-person-first ordering — self-hosted wallet, then
+ * carried cards). A **frozen** credential is skipped — a revoked card is
+ * not a usable routing credential, so a reissued card is found in its
+ * place even while the dead one is still carried.
  */
 function reachableCredential(actor: Stuff): PaymentCredential | null {
-  const holder = ContainmentApi.findReachable(
-    actor,
-    null,
-    (s: Stuff): s is Stuff & CredentialWallet => {
+  const holder =
+    MqlApi.resolveMany("person", {
+      // The settling actor is a Character (a CommandGiver); the static
+      // type at this seam is only `Stuff`.
+      commandGiver: actor as Stuff & CommandGiver,
+      scope: "person",
+    }).stuff.find((s): s is Stuff & CredentialWallet => {
       if (!MixinApi.isCredentialWallet(s)) return false;
       const pay = s.getCredential("payment");
       return !!pay && !pay.isFrozen();
-    },
-  );
+    }) ?? null;
   return holder?.getCredential("payment") ?? null;
 }
 

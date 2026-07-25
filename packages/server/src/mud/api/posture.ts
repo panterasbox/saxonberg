@@ -26,9 +26,9 @@ import type { Postured } from '../lib/slot/Postured';
 import type { Posed } from '../lib/character/Posed';
 import { StuffApi } from './stuff';
 import { HotReloadApi } from './hot-reload';
-import { SecurityApi } from './security';
 import { PostureLogic } from '../obj/api/PostureLogic';
 import { fileURLToPath } from 'url';
+import { SecurityApi } from './security';
 
 /**
  * Outcome of `transferPosture`. On success the controller emits its

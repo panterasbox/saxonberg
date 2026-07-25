@@ -30,26 +30,25 @@
 
 import type { Stuff } from '../lib/stuff/Stuff';
 import type {
-  ActiveCondition,
   InsultKind,
   Trauma,
 } from '../lib/vitals/Condition';
 import type { Quantity } from '../lib/quantity';
 import { StuffApi } from './stuff';
 import { HotReloadApi } from './hot-reload';
-import { SecurityApi } from './security';
 import { ConditionLogic } from '../obj/api/ConditionLogic';
 import { fileURLToPath } from 'url';
+import { SecurityApi } from './security';
 
 export type { InsultKind, Channel } from '../lib/vitals/Condition';
 export { CHANNELS, Channels } from '../lib/vitals/Condition';
 
 /**
- * An **energy** insult — a mechanical materials-response `Channel`
- * (edge / point / blunt), resolved outside-in through the covering stack
- * into the tissue (yielding BOTH the trauma type and its severity), or a
- * `'thermal'` / `'tearing'` passthrough (magnitude-only → burn / avulsion).
- * The magnitude is an `energy` scalar.
+ * An **energy** insult — a materials-response `Channel` (edge / point /
+ * blunt through the mechanical fold, or `heat` through the insulation fold),
+ * resolved outside-in through the covering stack into the tissue (yielding
+ * BOTH the trauma type and its severity), or the `'tearing'` passthrough
+ * (magnitude-only → avulsion). The magnitude is an `energy` scalar.
  */
 export interface EnergyInflictSpec {
   /** The insult kind — any non-`shock` {@link InsultKind}. Recorded raw. */
@@ -126,10 +125,10 @@ export class ConditionApi {
    * insult, resolves the covering stack at `spec.site` (armor occupants
    * outside-in), attenuates the energy through each layer, and lets the
    * residual meet the site's tissue — yielding BOTH the {@link Trauma}
-   * *type* (edge→laceration, point→puncture, blunt→fracture/contusion) AND
-   * its *severity*; a fully-attenuated blow lands no wound (`afflicted:
-   * false`, a truthful "deflected"). For a `'thermal'`/`'tearing'`
-   * passthrough, maps magnitude straight to a burn / avulsion. Stamps the
+   * *type* (edge→laceration, point→puncture, blunt→fracture/contusion,
+   * heat→burn) AND its *severity*; a fully-attenuated blow lands no wound
+   * (`afflicted: false`, a truthful "deflected"). For the `'tearing'`
+   * passthrough, maps magnitude straight to an avulsion. Stamps the
    * context-derived inflicter, runs the trauma's `onset`, and stamps the
    * reconcile-on-read `tickedAt` anchor. No-op-afflict when `target` is not
    * a wound-able body.
@@ -138,34 +137,6 @@ export class ConditionApi {
     return logic().inflict(target, spec);
   }
 
-  /**
-   * Add a condition to `target` — a `Trauma` value or an
-   * `AfflictionRecord` — through the `VitalsMixin.afflict()` door. A no-op
-   * for a non-wound-able (non-`Vitals`) target. The bounded gated facade
-   * over the body's own condition mutator (internal drivers — metabolism,
-   * respiration — keep calling the body method directly).
-   */
-  public static afflict(target: Stuff, condition: ActiveCondition): void {
-    logic().afflict(target, condition);
-  }
-
-  /**
-   * Remove a condition from `target` by reference; returns true iff it was
-   * present. A no-op (`false`) for a non-`Vitals` target. The facade over
-   * the body's own `relieve`.
-   */
-  public static relieve(target: Stuff, condition: ActiveCondition): boolean {
-    return logic().relieve(target, condition);
-  }
-
-  /**
-   * Read `target`'s active conditions (both kinds, one collection). Returns
-   * an empty array for a non-`Vitals` target. Reconcile-on-read applies —
-   * a just-healed wound is already gone from the returned list.
-   */
-  public static conditionsOf(target: Stuff): readonly ActiveCondition[] {
-    return logic().conditionsOf(target);
-  }
-}
+      }
 
 SecurityApi.decorateApiClass(ConditionApi);

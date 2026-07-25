@@ -21,7 +21,7 @@
  */
 
 import type { Stuff } from '../../lib/stuff/Stuff';
-import { ContainmentApi } from '../containment';
+import type { CommandGiver } from '../../lib/command/CommandGiver';
 import { MixinApi } from '../mixin';
 import { PathPatternApi } from '../path-pattern';
 import { StuffApi } from '../stuff';
@@ -35,6 +35,7 @@ import {
   candidatesForHere,
   candidatesForInventory,
   candidatesForPeers,
+  candidatesForPerson,
   candidatesForReachable,
   scoreCandidate,
   scoreCandidates,
@@ -256,13 +257,33 @@ function resolveSeed(node: ChainElement, ctx: MqlContext): MqlMatch[] {
   }
 }
 
+/**
+ * The giver for a viewer-anchored resolution step. Under the code-only
+ * system mode (`ctx.commandGiver === null` — see MqlContext) the
+ * giver-anchored seeds/predicates have no meaning; throw a clear
+ * resolver error naming what was attempted.
+ */
+function requireGiver(
+  ctx: MqlContext,
+  what: string,
+): Stuff & CommandGiver {
+  if (ctx.commandGiver === null) {
+    throw new MqlResolveError(
+      `${what} requires a viewer; a system (giver-less) query may only ` +
+        `use the viewer-free seeds (world, /path globs, #id, online)`,
+    );
+  }
+  return ctx.commandGiver;
+}
+
 function resolvePronoun(node: PronounNode, ctx: MqlContext): MqlMatch[] {
   switch (node.name) {
     case 'me':
-      return matchesFromStuff([ctx.commandGiver]);
+      return matchesFromStuff([requireGiver(ctx, "'me'")]);
     case 'here': {
-      const env = MixinApi.isContainable(ctx.commandGiver)
-        ? ctx.commandGiver.getContainer()
+      const giver = requireGiver(ctx, "'here'");
+      const env = MixinApi.isContainable(giver)
+        ? giver.getContainer()
         : null;
       return env ? matchesFromStuff([env]) : [];
     }
@@ -281,6 +302,7 @@ function matchesFromStash(
   // Gate on FocusedMixin — non-Focused givers (scripted NPCs without
   // pronoun memory) see an empty stash, so dynamic pronouns and `$$`
   // resolve to no matches rather than throwing.
+  if (ctx.commandGiver === null) return [];
   if (!MixinApi.isFocused(ctx.commandGiver)) return [];
   const stash = ctx.commandGiver.getPronounMemory();
   const stored = stash.read(slot);
@@ -303,7 +325,7 @@ function resolveKeywordSeed(node: KeywordsNode, ctx: MqlContext): MqlMatch[] {
   if (node.words.length === 1) {
     const w = node.words[0]!;
     if (w === 'inventory') {
-      return matchesFromStuff([ctx.commandGiver]);
+      return matchesFromStuff([requireGiver(ctx, "'inventory'")]);
     }
     if (w === 'online') {
       // `online` is ungated — listing who's playing is normal MUD
@@ -317,10 +339,19 @@ function resolveKeywordSeed(node: KeywordsNode, ctx: MqlContext): MqlMatch[] {
       return matchesFromStuff(StuffApi.getAllObjects());
     }
     if (w === 'peers') {
-      return candidatesToMatches(candidatesForPeers(ctx.commandGiver));
+      return candidatesToMatches(
+        candidatesForPeers(requireGiver(ctx, "'peers'"), ctx.attention),
+      );
     }
     if (w === 'reachable') {
-      return candidatesToMatches(candidatesForReachable(ctx.commandGiver));
+      return candidatesToMatches(
+        candidatesForReachable(requireGiver(ctx, "'reachable'"), ctx.attention),
+      );
+    }
+    if (w === 'person') {
+      return candidatesToMatches(
+        candidatesForPerson(requireGiver(ctx, "'person'"), ctx.attention),
+      );
     }
   }
   // Otherwise: keyword search against the field's scope.
@@ -390,7 +421,12 @@ export function candidatesForScope(
   ctx: MqlContext
 ): ScopeCandidate[] {
   const trimmed = scope.trim();
-  if (!trimmed) return candidatesForReachable(ctx.commandGiver);
+  if (!trimmed) {
+    return candidatesForReachable(
+      requireGiver(ctx, "the default 'reachable' scope"),
+      ctx.attention,
+    );
+  }
 
   // Fast path: comma-union of recognized seed names. Every part has
   // to be recognized; a single unrecognized part bumps the whole
@@ -412,7 +448,10 @@ export function candidatesForScope(
   // neighborhood. Reachable backstops on miss.
   const slow = candidatesFromQuery(trimmed, ctx);
   if (slow.length > 0) return slow;
-  return candidatesForReachable(ctx.commandGiver);
+  return candidatesForReachable(
+    requireGiver(ctx, "the 'reachable' scope backstop"),
+    ctx.attention,
+  );
 }
 
 /**
@@ -505,7 +544,7 @@ function candidatesForAnchor(
   // Stuff containment context only when not inside a detail tree.
   if (!insideDetail) {
     if (MixinApi.isContainer(stuff)) {
-      for (const item of ContainmentApi.getContents(stuff)) {
+      for (const item of stuff.getContents()) {
         out.push({
           stuff: item,
           name: nameOf(item),
@@ -570,13 +609,31 @@ function candidatesForScopePart(
 ): ScopeCandidate[] | null {
   const lower = part.toLowerCase();
   if (lower === 'here' || lower === '') return candidatesForHereScope(ctx);
-  if (lower === 'inventory') return candidatesForInventory(ctx.commandGiver);
-  if (lower === 'peers') return candidatesForPeers(ctx.commandGiver);
-  if (lower === 'reachable') return candidatesForReachable(ctx.commandGiver);
+  if (lower === 'inventory') {
+    return candidatesForInventory(
+      requireGiver(ctx, "the 'inventory' scope"),
+      ctx.attention,
+    );
+  }
+  if (lower === 'peers') {
+    return candidatesForPeers(requireGiver(ctx, "the 'peers' scope"), ctx.attention);
+  }
+  if (lower === 'reachable') {
+    return candidatesForReachable(
+      requireGiver(ctx, "the 'reachable' scope"),
+      ctx.attention,
+    );
+  }
+  if (lower === 'person') {
+    return candidatesForPerson(
+      requireGiver(ctx, "the 'person' scope"),
+      ctx.attention,
+    );
+  }
   if (lower === 'online') {
     // Ungated for the same reason as the seed promotion above —
     // who's online is normal social fabric, not privacy-tier info.
-    return candidatesForFlat(allOnlineCommandGivers(), ctx.commandGiver);
+    return candidatesForFlat(allOnlineCommandGivers(), ctx.commandGiver, ctx.attention);
   }
   if (lower === 'world') {
     try {
@@ -584,12 +641,12 @@ function candidatesForScopePart(
     } catch {
       return [];
     }
-    return candidatesForFlat(StuffApi.getAllObjects(), ctx.commandGiver);
+    return candidatesForFlat(StuffApi.getAllObjects(), ctx.commandGiver, ctx.attention);
   }
   if (lower === 'me') {
     return [
       {
-        stuff: ctx.commandGiver,
+        stuff: requireGiver(ctx, "the 'me' scope"),
         name: 'me',
         keywords: ['me'],
       },
@@ -601,7 +658,7 @@ function candidatesForScopePart(
     } catch {
       return [];
     }
-    return candidatesForFlat(StuffApi.findByPathGlob(part), ctx.commandGiver);
+    return candidatesForFlat(StuffApi.findByPathGlob(part), ctx.commandGiver, ctx.attention);
   }
   if (part.startsWith('#') && part.length > 1) {
     try {
@@ -610,16 +667,17 @@ function candidatesForScopePart(
       return [];
     }
     const found = StuffApi.findById(part.slice(1));
-    return found ? candidatesForFlat([found], ctx.commandGiver) : [];
+    return found ? candidatesForFlat([found], ctx.commandGiver, ctx.attention) : [];
   }
   return null;
 }
 
 function candidatesForHereScope(ctx: MqlContext): ScopeCandidate[] {
-  if (!MixinApi.isContainable(ctx.commandGiver)) return [];
-  const env = ctx.commandGiver.getContainer();
+  const giver = requireGiver(ctx, "the 'here' scope");
+  if (!MixinApi.isContainable(giver)) return [];
+  const env = giver.getContainer();
   if (!env) return [];
-  return candidatesForHere(env, ctx.commandGiver);
+  return candidatesForHere(env, giver, ctx.attention);
 }
 
 function scopeKeywordSearch(words: string[], ctx: MqlContext): MqlMatch[] {
@@ -655,6 +713,7 @@ const NAMED_SEED_KEYWORDS: ReadonlySet<string> = new Set([
   'world',
   'peers',
   'reachable',
+  'person',
 ]);
 
 /**
@@ -676,6 +735,7 @@ const NAMED_SEED_KEYWORDS: ReadonlySet<string> = new Set([
 const ELEMENT_DERIVABLE_SEEDS: ReadonlySet<string> = new Set([
   'peers',
   'reachable',
+  'person',
   'inventory',
 ]);
 
@@ -691,7 +751,7 @@ function applyColon(
       if (el.words.length === 1) {
         const name = el.words[0]!;
         if (ELEMENT_DERIVABLE_SEEDS.has(name)) {
-          return flatMapBySeed(input, name);
+          return flatMapBySeed(input, name, ctx.attention);
         }
         if (NAMED_SEED_KEYWORDS.has(name)) {
           return intersectWithSeed(input, el, ctx);
@@ -776,7 +836,8 @@ function intersectWithSeed(
  */
 function flatMapBySeed(
   input: MqlMatch[],
-  seedName: string
+  seedName: string,
+  attention?: number
 ): MqlMatch[] {
   if (input.length === 0) return [];
   const excludePriorSet = SEEDS_EXCLUDING_PRIOR.has(seedName);
@@ -786,7 +847,11 @@ function flatMapBySeed(
   const out: MqlMatch[] = [];
   const seen = new Set<string>();
   for (const m of input) {
-    const candidates = candidatesForElementDerivable(seedName, m.stuff);
+    const candidates = candidatesForElementDerivable(
+      seedName,
+      m.stuff,
+      attention,
+    );
     for (const c of candidates) {
       if (priorIds && priorIds.has(c.stuff.stuffId)) continue;
       const key = c.stuff.stuffId + '|' + (c.via ? JSON.stringify(c.via) : '');
@@ -818,15 +883,18 @@ const SEEDS_EXCLUDING_PRIOR: ReadonlySet<string> = new Set([
 
 function candidatesForElementDerivable(
   seedName: string,
-  anchor: Stuff
+  anchor: Stuff,
+  attention?: number
 ): ScopeCandidate[] {
   switch (seedName) {
     case 'peers':
-      return candidatesForPeers(anchor);
+      return candidatesForPeers(anchor, attention);
     case 'inventory':
-      return candidatesForInventory(anchor);
+      return candidatesForInventory(anchor, attention);
     case 'reachable':
-      return candidatesForReachable(anchor);
+      return candidatesForReachable(anchor, attention);
+    case 'person':
+      return candidatesForPerson(anchor, attention);
     default:
       return [];
   }
@@ -895,7 +963,7 @@ function applyTransform(
         }
       } else {
         if (!MixinApi.isContainer(m.stuff)) continue;
-        for (const item of ContainmentApi.getContents(m.stuff)) {
+        for (const item of m.stuff.getContents()) {
           out.push({ stuff: item, score: m.score });
         }
       }
@@ -1019,9 +1087,14 @@ function filterByKeywordsOrPredicate(
     if (predicate.tier !== 'public') {
       gateAuthor(name, predicate.tier, ctx);
     }
+    // Bareword predicates are viewer-shaped (`visible`, `mine`,
+    // `admin` all read the giver) — a system query filters by the
+    // viewer-free namespaces (`mixin.` / `class.` / `template.`)
+    // instead.
+    const giver = requireGiver(ctx, `the '${name}' predicate`);
     const out: MqlMatch[] = [];
     for (const m of input) {
-      if (predicate.check(m.stuff, ctx.commandGiver, ctx)) out.push(m);
+      if (predicate.check(m.stuff, giver, ctx)) out.push(m);
     }
     return out;
   }

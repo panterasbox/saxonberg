@@ -18,7 +18,6 @@ import type { Construction } from '../../lib/material/Construction';
 import type { Grade } from '../../lib/craft/Grade';
 import type Material from '../../lib/material/Material';
 import type {
-  ActiveCondition,
   Trauma,
   TraumaType,
 } from '../../lib/vitals/Condition';
@@ -51,14 +50,17 @@ function channelDefaultType(channel: Channel): TraumaType {
       // A shock's local wound is a contact burn (the whole-body
       // let-go/tetany/fibrillation outcomes are the vitals coupling).
       return 'burn';
+    case 'heat':
+      // Heat that survives the insulation stack burns the tissue.
+      return 'burn';
   }
 }
 
 /**
  * The legacy magnitude-only severity — `energy → severity`, linear via a
- * single dial. Used ONLY by the `'thermal'` / `'tearing'` passthrough (burn
- * / avulsion) until those fold into a `heat` / tearing channel. Channel
- * insults derive severity from the materials-response function instead.
+ * single dial. Used ONLY by the `'tearing'` passthrough (avulsion) until it
+ * folds into a tearing channel. Channel insults (including `heat`) derive
+ * severity from the materials-response function instead.
  */
 function severityFromEnergy(energy: number): number {
   return Math.max(0, energy) * HARM_DEFAULTS.SEVERITY_PER_ENERGY;
@@ -122,7 +124,7 @@ function resolveCoveringStack(
 /** Build a covering layer from an armor/shield occupant. */
 function layerOf(occ: Stuff, construction: Construction): CoveringLayer {
   return {
-    material: MaterialApi.materialOf(occ),
+    material: MixinApi.isTangible(occ) ? occ.getMaterial() : null,
     construction,
     grade: MixinApi.isGraded(occ) ? occ.getGrade() : undefined,
     condition: MixinApi.isDurable(occ) ? occ.getCondition() : 1,
@@ -210,27 +212,10 @@ export class ConditionLogic extends ApiLogic {
       ? inflictThroughStack(target, spec, spec.mechanism, inflicter)
       : inflictPassthrough(target, spec, inflicter);
   }
-
-  /** See {@link ConditionApi.afflict}. */
-  @CallSecurity(ConditionApiCallers)
-  public afflict(target: Stuff, condition: ActiveCondition): void {
-    if (!MixinApi.isVitals(target)) return;
-    target.afflict(condition);
-  }
-
-  /** See {@link ConditionApi.relieve}. */
-  @CallSecurity(ConditionApiCallers)
-  public relieve(target: Stuff, condition: ActiveCondition): boolean {
-    if (!MixinApi.isVitals(target)) return false;
-    return target.relieve(condition);
-  }
-
-  /** See {@link ConditionApi.conditionsOf}. */
-  @CallSecurity(ConditionApiCallers)
-  public conditionsOf(target: Stuff): readonly ActiveCondition[] {
-    if (!MixinApi.isVitals(target)) return [];
-    return target.getConditions();
-  }
+  // The former `afflict` / `relieve` / `conditionsOf` thin forwarders
+  // were removed (item-1 antipattern sweep): callers narrow with
+  // `MixinApi.isVitals` and call `target.afflict` / `.relieve` /
+  // `.getConditions()` directly. `inflict` (the producer above) stays.
 }
 
 /**
@@ -302,9 +287,10 @@ function inflictThroughStack(
 }
 
 /**
- * The legacy magnitude-only passthrough — `'thermal'` → burn, `'tearing'`
- * → avulsion — byte-preserving harm's shipped burn/avulsion math until
- * those fold into a `heat` / tearing channel. See
+ * The magnitude-only passthrough — the sole remaining token is `'tearing'`
+ * → avulsion, byte-preserving harm's shipped avulsion math until tearing
+ * folds into its own channel. (`'thermal'` was retired — heat now resolves
+ * through the `heat` {@link Channel} + the insulation fold.) See
  * docs/subsystems/materials-response.md.
  */
 function inflictPassthrough(
@@ -312,7 +298,8 @@ function inflictPassthrough(
   spec: EnergyInflictSpec,
   inflicter: string | undefined,
 ): InflictOutcome {
-  const type: TraumaType = spec.mechanism === 'thermal' ? 'burn' : 'avulsion';
+  // Only `'tearing'` reaches here (every Channel routes through the stack).
+  const type: TraumaType = 'avulsion';
   const trauma: Trauma = {
     kind: 'trauma',
     type,

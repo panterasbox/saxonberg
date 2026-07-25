@@ -18,6 +18,10 @@ data:
   electricalConductivity: 1.0e-4
   # Water absorption capacity (% of dry mass, ASTM D570): wood at its fibre-saturation point.
   waterAbsorptionCapacity: 28
+  # Fire (combustion driver): wood ignites at ~570 K and releases ~16 MJ/kg.
+  # Wood chars rather than melts — no melting/boiling point.
+  autoignitionTemperature: 570
+  heatOfCombustion: 16
   edibility: false
   nutrients: ["cellulose"]
   toxicity: []

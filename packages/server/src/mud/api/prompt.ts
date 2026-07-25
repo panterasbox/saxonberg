@@ -321,8 +321,6 @@ export class PromptApi {
   }
 }
 
-SecurityApi.decorateApiClass(PromptApi);
-
 /* ─────────────────── Base-prompt rendering ─────────────────── */
 
 /**
@@ -344,3 +342,5 @@ export function buildPromptContext(
     focus: MixinApi.isFocused(giver) ? giver.getFocus() : '',
   };
 }
+
+SecurityApi.decorateApiClass(PromptApi);

@@ -526,6 +526,9 @@ describe('Application', () => {
         save: vi.fn().mockResolvedValue(undefined),
       };
       vi.spyOn(User, 'findById').mockResolvedValue(user as never);
+      // Test seam writes a LEGACY-style template row (migrated to a
+      // snapshot on first login by `materializeAvatar` — see the
+      // method doc). Mock the seed read + the row write.
       vi.spyOn(Template, 'findByPath').mockResolvedValue({
         path: Avatar.SEED_TEMPLATE_PATH,
         class: '/obj/Avatar',
@@ -540,9 +543,14 @@ describe('Application', () => {
       expect(user.playerIds).toHaveLength(1);
       expect(user.save).toHaveBeenCalledTimes(1);
       expect(tmplSave).toHaveBeenCalledTimes(1);
+      const [path, , data] = tmplSave.mock.calls[0]! as [
+        string,
+        unknown,
+        Record<string, unknown>,
+      ];
+      expect(path).toMatch(/^\/obj\/Avatar\//);
       // Spawn home injected from app config (defaultStartLocation).
-      const savedData = tmplSave.mock.calls[0]![2] as Record<string, unknown>;
-      expect(savedData.startLocation).toBe('/domain/lounge/warren');
+      expect(data.startLocation).toBe('/domain/lounge/warren');
     });
 
     it('honors a startLocation override (spawn-room pin for co-location E2E)', async () => {
@@ -566,8 +574,8 @@ describe('Application', () => {
       await app.provisionTestCharacter('u1', 'Tester', '/domain/lounge/bar');
       // The override wins over the app-config default — the avatar is
       // pinned to the named singleton room rather than the lounge Warren.
-      const savedData = tmplSave.mock.calls[0]![2] as Record<string, unknown>;
-      expect(savedData.startLocation).toBe('/domain/lounge/bar');
+      const data = tmplSave.mock.calls[0]![2] as Record<string, unknown>;
+      expect(data.startLocation).toBe('/domain/lounge/bar');
     });
 
     it('is idempotent — no-op when the user already has a character', async () => {

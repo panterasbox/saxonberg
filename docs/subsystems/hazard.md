@@ -149,6 +149,18 @@ interrupted disarm defuses nothing). The semantics differ only in slot +
 completion, so a single configurable activity avoids two near-identical
 files.
 
+**Player-placed traps + accountability (stealth & deployables build).** A
+`HazardMixin` carries a durable `placedBy` field — empty (`''`) for an
+authored/environmental hazard (a dungeon pit — no culpable placer), the
+placer's `templatePath` when a player deployed it via `arm` (see
+[stealth.md](./stealth.md)). When set, `deliverHarm` appends a single
+`harm` row to the unified accountability ledger (`AccountabilityApi.record`,
+co-located with the `inflict` chokepoint — the producer that knows the
+consent: a snare is never agreed to), from which `crime` derives on a
+non-consenting sentient. An authored trap (`placedBy === ''`) appends
+nothing — an unlucky pit is not a crime. See
+[accountability.md](./accountability.md).
+
 ## `disarm` — verb machinery on the controller, interaction on the object
 
 `disarm <trap>` (`cmd/device/disarm.yaml` + `DisarmController`, the

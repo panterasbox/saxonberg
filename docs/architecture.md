@@ -543,16 +543,22 @@ a corpse) is valid. `Character` has two leaf subclasses: `Avatar`
 `Character` + `BehavedMixin`) for authored, automation-driven characters —
 which keeps `Behaved` off players. See [behavior.md](./subsystems/behavior.md).
 
-Each branch lives in `lib/stuff/` and registers itself with `Stuff` at
-module load via `Stuff._registerTopLevelBranch(BranchClass)`. The
-registration is gated by a URL allowlist on `Stuff` — only those six
-files may register, so the branch set can't be silently extended from
-a subclass or a third-party file.
+The five branch constructors are registered with `Stuff` **by class
+identity** through `Stuff.registerTopLevelBranches([...])`, called once
+from `BootstrapManager.installFrameworkWiring` (production boot's
+first step, and the vitest setup file) — a lifecycle call, not a
+module-scope statement (the no-module-scope-statements rule). Identity,
+not module id: the vite-plugin, tsx, and the production node-hook stamp
+default exports differently, so a module-id check that passes under one
+loader silently fails under another — an identity comparison is loader-
+agnostic and a foreign same-named class (a different constructor
+object) never matches. The call is caller-gated to the framework wiring
+layer, so the branch set can't be silently extended from content.
 
 `Stuff`'s constructor walks the prototype chain at instance-creation
 time and throws if no registered branch is found. Class-time work is
 done once per class (cached); the per-instance cost is a single
-WeakSet lookup. The error message lists the six branches and
+WeakSet lookup. The error message lists the five branches and
 points readers here.
 
 > **Not a branch: `Document`.** Plain MongoDB-backed records (`User`,
@@ -633,6 +639,20 @@ buys nothing. Both are the "an Api is earned by a *powerful primitive*, not
 by every feature" rule read the other way — a capability with nothing new to
 protect stays a mixin. See [concealment.md](./subsystems/concealment.md) /
 [hazard.md](./subsystems/hazard.md).
+
+The **stealth & deployables** build (the actor-face of concealment) adds
+`HidingMixin` (`lib/concealment/`, a `Character`'s dynamic `hide` state,
+composed *outside* `Creature`'s `ConcealableMixin` so it overrides
+`getConcealment()`) and the `TrapKit` class (`lib/hazard/`, the carried
+deployable), and — earning an Api by the *powerful-primitive* rule — the
+gated `AccountabilityApi`/`AccountabilityLogic` pair (`lib/accountability/`,
+the unified harm-consent ledger combat migrated onto and the trap feeds).
+The hide-*level* rule and the observer-side `motionExposure` fold onto the
+existing `PerceptionApi` (no `StealthApi` — mirroring "no `DetectionApi`"),
+and MQL's scope-walk gained a code-only `MqlContext.attention` term so a
+detection consumer resolves `peers` at an active attention. See
+[stealth.md](./subsystems/stealth.md) /
+[accountability.md](./subsystems/accountability.md).
 
 ## Mixin Organization
 
@@ -717,6 +737,9 @@ registry) lives in `lib/mixin.ts`.
 | `lib/thermal/` | `ThermalMixin` | the generic heat-exchange capability: lazy Newton's-cooling-on-read (mirrors `Metabolic`) with a **sync** `getTemperature()` via a cached ambient refreshed at re-stamp events (`onMoved` / ambient-shift fan-out / seal toggle / bulk transfer); τ = R·C from `Tangible` mass × `Material` specific heat + the medium/wall conductivity series; a sealed `Sealable` host → vacuum barrier. Composed by any Tangible+Containable Stuff (`Receptacle`/`Flask`/`Campfire`) and by `Creature` (corpse algor mortis). No Api. See [thermal.md](./subsystems/thermal.md). |
 | `lib/thermal/` | `ThermalRegulationMixin` | the Option-C body driver: overrides `getVitalSign` (sync, cached effective ambient) to **drive** `coreTemperature` — pin at setpoint within the thermoneutral band, else spend satiation (cold) / hydration (hot, wet-bulb-capped) to defend it, fail into passive `Thermal` drift; endo/ecto split (`BodyPlan.thermalStrategy`) + Q10; the hypothermia/hyperthermia/torpor cascade → death seam. Composed over `ThermalMixin`/`Metabolic`, inner of `LoadBearing`, by `Creature`. No Api. See [thermal.md](./subsystems/thermal.md). |
 | `lib/wetness/` | `WetMixin` | the cross-cutting wetness gauge (weather Wave 2): a per-object stored, decaying `0..1` saturation (decomposed-scalar persistence, reconcile-on-read drainage presence-frozen, pushed accrual, banded `dry/damp/wet/soaked`). Drives electricity (wet skin) + thermal (wet heat-loss); dry rate from real `Material.waterAbsorptionCapacity` via evaporation physics. Rides the **matter seam** — composed on `Thing` + `Agent` (so all matter, incl. `Vessel` via `Thing`, is wettable; `Location` is space, not matter). No Api. See [weather.md](./subsystems/weather.md). |
+| `lib/thermal/` | `MeltableMixin` | the phase-change capability (fire build): a solid + a latent-heat accumulator; `ThermalApi.reconcilePhase` holds a latent-heat plateau then melts it to a molten `Bulkable` pool in the scope `Floor` (the reverse boils / solidifies a liquid). Reads its material's `meltingPoint`/`latentHeatOfFusion`; gated `ThermalLogic` is the single writer. Composed by `Ingot`/`Casting`/`Candle`. See [fire.md](./subsystems/fire.md). |
+| `lib/fire/` | `CombustibleMixin` | the combustion capability: a `'fuel'` `Reserve` + a `Burning` value-object active state; reads its material's `autoignitionTemperature`/`heatOfCombustion`, pins the flame temperature while aflame (generalized Campfire pin), reconcile-on-read fuel drain → char / structural burn-through. Gated `FireLogic` is the single Burning writer. Composed by `Firewood`/`Candle`. See [fire.md](./subsystems/fire.md). |
+| `lib/fire/` | `FurnaceMixin` | the sustained-heat-source capability: a `Combustible`-fuelled appliance pinned hot (`burnTemperatureK × bellows`) while lit + fuelled, heating the Meltables in its scope (`heatContents`). Generalizes the Campfire pin (`Campfire` refactored onto it byte-identically); composed by `Forge`/`Kiln`/`Oven`/`Candle`. See [fire.md](./subsystems/fire.md). |
 | `lib/forums/` | `ForumsMixin` | the forums transmission capability (post / reply / vote / subscribe verb family), composed on a hosted update (`ForumsUpdate`). Born-with: the `ForumsUpdate` is an `AetherHosted` implant conferring this mixin, granted at intake. Acts on behalf of its host via `getHost()`. See [forums.md](./subsystems/forums.md). |
 | `lib/forums/` | `SubjectSubscriberMixin` | per-Avatar forum-subscription storage: the keyed set of subscribed `Subject`s feeding the `ForumSubscriptionRegistry` fan-out. Composed by `Avatar`. See [forums.md](./subsystems/forums.md). |
 | `lib/behavior/` | `BehavedMixin` | the NPC automation layer (first behavior consumer of the activity substrate): runs a declarative `behaviors:` data-spec list, path-resolving + re-resolving "brain" code modules per fire (HMR), wiring cadence (jittered, presence-gated) + `handleMessage`-witness triggers, with slot contention over `EngagedMixin`. Branch-agnostic; composed by the thin `NPC` class. See [behavior.md](./subsystems/behavior.md). |
@@ -732,7 +755,7 @@ registry) lives in `lib/mixin.ts`.
 | `lib/attendant/` | `AttendantMixin` | the **storefront-attention** service-point capability (on a `Thing` fixture, the `BankMixin`-on-a-fixture precedent): owns the queue + leases **and the behavior over them** (`requestAttention`/`release`/`serveNext`/`evictIdleLeases`/`dropCustomer` are mixin methods called directly — no Api hop) + per-venue config (`discipline`/`serverPositionKeys`/`staffingPolicy`/`attendDurationMs`/`skin`). Being-attended = an `AttendanceEngagement` on the **server's** attention slot (one-at-a-time falls out of the slot; waiting is free). The lease's idle-eviction sweep is the one Api-shaped piece (`AttendantApi`/`AttendantLogic`, the `ResidencyLogic` "engine informs, object decides" shape). Composed by `AttendancePoint` (and `BankCounter`). `MixinApi.isAttendant`. See [attendant.md](./subsystems/attendant.md). |
 | `lib/persistence/` | `PersistableMixin` | the self-persistence-spine **host** capability: marks a `Stuff` as a singleton persistence host (keyed by `templatePath`) whose runtime state captures into a `PersistedRecord` (`holder_snapshots`) and restores on materialize. Drives materialize-on-`postRegister` / seed-then-persist, the capture-on-`cleanupOnDestruct` backstop, the persistable `canEvict` fall-through, and the `shouldPersist()` opt-out hook (Avatar → `!isGuest`). Composed **outermost** by `Avatar` (and by authored persistable rooms / host chests). Logic in `PersistableApi`/`PersistableLogic`. See [persistence.md](./subsystems/persistence.md). |
 | `lib/combat/` | `CombatantMixin` | the "I can fight" capability: the `attack` + `fight` + `intervene` command affordances, the species-declared innate-attack hook (`naturalAttackChannel` → `getNaturalAttackChannel`), a banded `look` augmenter (the combat-state line while a fight is live), and (Build 2) the **standing combat posture** the consent handshake reads — the player-side `combat.lethality`/`combat.stopCondition` settings schema **plus** the authored `standingLethality`/`standingStopCondition` fields NPCs carry (NPCs aren't `Environment`s, so they can't hold settings). Carries **no** transient fight state — poise/tempo/flags all live on the `CombatSession`, never on the `Creature`. Composed by `Character`. Cycle 2 adds the canonical `defend` verb affordance. See [combat.md](./subsystems/combat.md). |
-| `lib/party/` | `PartyMemberMixin` | "I can belong to a party": a sparse `activePartyPath` pointer (+ transient `pendingInvitePartyPath`) with `ApiOnly`-gated setters (the `Employed` precedent), the `party` verb affordance, and the read surface combat's `PartyApi.sideOf` seam consumes. Composed by **`Avatar`** and by the hireable **`Mercenary`** (`= PartyMemberMixin(NPC)`) — never the base `Character`, so a plain NPC/beast is `solo`. See [party.md](./subsystems/party.md). |
+| `lib/party/` | `PartyMemberMixin` | "I can belong to a party": a sparse `activePartyPath` pointer (+ transient `pendingInvitePartyPath`) with `ApiOnly`-gated setters (the `Employed` precedent), the `party` verb affordance, and the read surface combat's `PartyApi` seam consumes — `sideOf`/`areAllied` plus (combat-formations) the total `formationPathOf`/`roleOf`/`isCaptain` chain. Composed by **`Avatar`** and by the hireable **`Mercenary`** (`= PartyMemberMixin(NPC)`) — never the base `Character`, so a plain NPC/beast is `solo`. See [party.md](./subsystems/party.md) + [combat-formations.md](./subsystems/combat-formations.md). |
 
 ### Mixin Composition Constraints
 
@@ -973,6 +996,42 @@ bypass it.
 | `creature.move(loc)` (raw containment) | `creature.travel(loc, 'walk')` (locomotion) |
 
 See [antipatterns.md](./antipatterns.md) for the full rule with examples.
+
+## Module scope declares; lifecycles initialize
+
+Module evaluation in `src/mud/**` may only **declare**: imports/exports,
+classes, functions, interfaces/types/enums, `declare module`
+augmentations, and `const`/`let` declarations (initializers included —
+pure value construction is a declaration). It must not contain
+**free-standing executable statements**: bare calls, registrations into
+other modules' state, loops, conditionals, assignments. Enforced by
+`pnpm lint:module-scope` (`scripts/check-module-scope.ts`, CI-gating —
+a real TS-parser statement scan, not a regex).
+
+Why: import-time side effects couple correctness to import order, make
+HMR re-evaluation a semantic event ("what re-runs when this module
+reloads?" had per-site answers), and hide initialization from every
+lifecycle you can reason about. The 2026-07 antipattern sweep removed
+the whole population (~130 statements) and replaced each family with a
+runtime lifecycle:
+
+| Was (module-scope statement) | Now (lifecycle) |
+|---|---|
+| `SchedulerApi.registerActivity(type, cls)` in every activity module | **Capture-at-start** — `SchedulerRegistry.start(engagement)` captures `engagement.constructor` into the type→class dispatch index; `reloadActivity` re-points it after a hot reload. Registration doesn't exist as a concept. |
+| ~~`SecurityApi.decorateApiClass(XApi)` tail in every `api/*.ts`~~ | **Kept as a sanctioned module-scope exception.** An `*Api` class is a thin, non-HMR-able interface imported directly, so the module tail IS its registration — there is no lifecycle to route it through. The sweep briefly moved this to `ModuleApi.stamp`; it was reverted. The tail lives in `check-module-scope`'s allowlist (`EXEMPT_API_DECORATE` on `mud/api/*.ts`). The four bootstrap-special Apis (`security`/`module`/`proxy`/`execution-context`) still self-decorate not at all. |
+| `DialogueEffectRegistry.register('bank-circle', …)` at module scope + a boot side-effect import | **Instance lifecycle** — `BankCounter.postRegister` registers it: a live bank fixture is exactly when the verb becomes real. |
+| `Stuff._registerTopLevelBranch(Thing)` in each of the five branch files | **Identity registration via the boot lifecycle** — `Stuff.registerTopLevelBranches([...])` from `BootstrapManager.installFrameworkWiring` (boot + vitest setup), compared by class identity (loader-agnostic, unlike a module-id check). |
+| Registry-class handoffs (`register<X>RegistryClass`), the security↔shadow slot, the shadow↔command bridge, the glob merge-on-arrival ripple | **`BootstrapManager.installFrameworkWiring()`** — one idempotent boot call, invoked by `BootstrapManager.run()` in production and by the vitest setup file (`src/test-setup-registries.ts`) before every suite. |
+| `installOnlineHoldersProvider()` auto-install on import | Called explicitly from `AppBootstrap.run()`. |
+| `engine.registerFilter(…)` ×14 (Prose), `registerConverter(…)` ×23 (Quantity), `validator.preload = …` (validators) | **Lazy first-use initializers** (memoized builder functions) / folded into the `const` initializer (`Object.assign`). |
+
+Entry-point scripts are exempt by nature — `main()`, `AppBootstrap`,
+seeders, and the vitest setup file are *where lifecycle calls live*,
+not modules someone imports for their exports. The loader-injected
+`ModuleApi.stamp` tail is machine-generated framework lifecycle, not
+authored code. When new initialization is needed, pick the matching
+lifecycle above; do not add a module-scope statement (the lint will
+refuse it).
 
 ## Phase Numbering Note
 

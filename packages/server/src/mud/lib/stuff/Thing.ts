@@ -36,15 +36,21 @@ import { PerceptibleMixin } from '../description/Perceptible';
 import { VisibleMixin } from '../description/Visible';
 import { ConcealableMixin } from '../concealment/Concealable';
 import { WetMixin } from '../wetness/Wet';
+import { ChattelMixin } from '../chattel/Chattel';
 
+// ChattelMixin composes at the movable-good tier so every Thing carries a
+// durable per-instance identity its unspoofable ownership can be keyed
+// against (empty until stamped; fungible stacks stay owned-by-possession).
 // ConcealableMixin (default `obvious`) lets any Thing carry a concealment
-// level — a hidden cache, a dropped-and-buried item — resolved per-viewer
-// by the detection gate. Inert until authored (see concealment subsystem).
-// WetMixin gives every Thing a material-driven wetness gauge (inert until
-// wetted). Both are additive attribute mixins; composition order is moot.
-const ThingBase = ConcealableMixin(
-  WetMixin(
-    VisibleMixin(PerceptibleMixin(TangibleMixin(ContainableMixin(Stuff)))),
+// level — a hidden cache, a dropped-and-buried item — resolved per-viewer by
+// the detection gate (inert until authored). WetMixin gives every Thing a
+// material-driven wetness gauge (inert until wetted). All three are additive
+// attribute mixins; composition order is moot.
+const ThingBase = ChattelMixin(
+  ConcealableMixin(
+    WetMixin(
+      VisibleMixin(PerceptibleMixin(TangibleMixin(ContainableMixin(Stuff)))),
+    ),
   ),
 );
 
@@ -56,4 +62,9 @@ export default class Thing extends ThingBase {
   }
 }
 
+
+// Self-register as a top-level branch (the one sanctioned module-scope
+// self-registration — see `Stuff._registerTopLevelBranch` for why the
+// hierarchy's root invariant must populate at branch-module load, and
+// `scripts/check-module-scope.ts`'s allowlist).
 Stuff._registerTopLevelBranch(Thing);

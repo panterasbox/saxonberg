@@ -17,7 +17,6 @@
 
 import { StuffApi } from './stuff';
 import { HotReloadApi } from './hot-reload';
-import { SecurityApi } from './security';
 import { BulletinLogic } from '../obj/api/BulletinLogic';
 import {
   Bulletin,
@@ -26,6 +25,7 @@ import {
 } from '../lib/bulletin/Bulletin';
 import type { BulletinRow } from '@saxonberg/types';
 import { fileURLToPath } from 'url';
+import { SecurityApi } from './security';
 
 export { Bulletin };
 export type { BulletinRealm, BulletinKind };

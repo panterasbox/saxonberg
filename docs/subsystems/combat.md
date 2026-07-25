@@ -309,23 +309,33 @@ the room — matched by **victim or executioner**, so a bystander can stop the
 killer, a friend can shield the fallen, and the victor can stay their *own*
 hand (mercy). This is the moral crux: not-killing is a move you can play.
 
-### The blame ledger (derive-on-read)
+### The blame ledger (derive-on-read) — now the shared accountability ledger
 
-`lib/combat/CombatAttributionEvent.ts` — an append-only `Document` in the
-`combat_attribution_events` collection (the `RenownEvent`/`AuthoringEvent`
-shape; durable ids are `templatePath`s). Combat never stamps a "murderer"
-flag; it records the objective facts and **derives** culpability on read.
-Three writers, no others: `opened` (initiator + terms + consent +
-sentience, at `openSession`), `violated` (the standalone crime marker,
-written at initiation when lethal terms are *imposed* on a non-consenting
-sentient), and `death` (victim + killer + the terms in force). The pure
-reader `CombatAttributionEvent.deriveBlame(rows)` takes the **earliest**
-death row (the `ProvenanceApi.authorOf` rule) and returns the killer plus
-`crime` — **true iff a sentient was killed under lethal terms they did not
-consent to**. Surfaced by `CombatApi.blameFor(victimId)` /
-`attributionFor(sessionId)`. Re-legislating what counts as a crime
-re-scores history without rewriting a row. Writers are fire-and-forget
-(the ledger never blocks a beat).
+> **History (stealth & deployables build).** This ledger was **extracted
+> out of combat** into a harm-agnostic substrate — `lib/accountability/`,
+> collection renamed `combat_attribution_events` → `accountability_events`,
+> `CombatAttributionEvent` → `AccountabilityEvent` — so ambush, sprung
+> traps, and combat all feed *one* crime derivation. Combat migrated onto
+> it **byte-identically** (a pinned regression pins every combat verdict
+> unchanged) and is now the ledger's first *consumer*, not its owner. The
+> `death`-row rule below is verbatim; the substrate adds a `harm` kind for
+> non-combat producers. See [accountability.md](./accountability.md).
+
+An append-only `Document` (the `RenownEvent`/`AuthoringEvent` shape; durable
+ids are `templatePath`s). Combat never stamps a "murderer" flag; it records
+the objective facts and **derives** culpability on read. Combat's three
+writers, no others: `opened` (initiator + terms + consent + sentience, at
+`openSession`), `violated` (the standalone crime marker, written at
+initiation when lethal terms are *imposed* on a non-consenting sentient),
+and `death` (victim + killer + the terms in force) — each now delegating to
+`AccountabilityApi.record`. The pure reader `deriveBlame(rows)` takes the
+**earliest** terminal row (the `ProvenanceApi.authorOf` rule) and returns
+the killer plus `crime` — for a `death` row, **true iff a sentient was
+killed under lethal terms they did not consent to**. Surfaced by
+`CombatApi.blameFor(victimId)` / `attributionFor(sessionId)`, both thin
+delegations to `AccountabilityApi`. Re-legislating what counts as a crime
+re-scores history without rewriting a row. Writers are fire-and-forget (the
+ledger never blocks a beat).
 
 ### Consent posture — the handshake made real
 
@@ -626,10 +636,14 @@ Named at their sites; nothing inherited:
   own), the deep grapple/choke control game, spatial formation/geometry, a
   weapon crafting/repair economy, full morale / de-escalation, stealth,
   pursuit / the chase (wayfaring) and coordinated party-retreat (rout/rally),
-  non-humanoid bestiary, death/recovery + moderation, the client `CombatPane`
-  (and the contextual gambit affordances — terse verbs afforded only in a
-  fight — that supersede the static ones), and party tactic-roles
-  (combat-tactics-slate).
+  non-humanoid bestiary, death/recovery + moderation, and the client
+  `CombatPane` (and the contextual gambit affordances — terse verbs afforded
+  only in a fight — that supersede the static ones). Party formation-roles
+  **landed** — the combat-formations build (see
+  [combat-formations.md](./combat-formations.md)): `CombatFormation` Idea
+  presets over a total party-face resolution chain, the three hooks
+  (allocation / interception / coup governance), the `command` Discipline,
+  and the `party adopt` / `fight finish` surface.
 - **The composure/luck axis itself** (`traits-stress`) — the bidirectional
   stress ↔ inspiration emotional reserve that fills `Sharpness`'s
   `g(composure)`. The experience pass leaves only the inert modulation seam;

@@ -85,7 +85,7 @@ describe("ProcureCardController", () => {
       c,
     );
 
-    const carried = ContainmentApi.getContents(giver).filter((s) =>
+    const carried = giver.getContents().filter((s) =>
       MixinApi.isCredentialWallet(s),
     );
     expect(carried).toHaveLength(1);

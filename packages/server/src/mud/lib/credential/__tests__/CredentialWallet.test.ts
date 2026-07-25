@@ -5,14 +5,16 @@
  *     / hasCredential;
  *   - the `credentials` persistence accessor round-trips the held records
  *     (travel re-floors);
- *   - one scan (`findReachable` keyed on `isCredentialWallet`) finds the
- *     holder whether it's a hosted CredentialWalletUpdate or a carried card
- *     (the Thing/Idea symmetry the consumers share).
+ *   - one scan (the MQL `reachable` pool filtered on `isCredentialWallet`)
+ *     finds the holder whether it's a hosted CredentialWalletUpdate or a
+ *     carried card (the Thing/Idea symmetry the consumers share).
  */
 
 import { describe, it, expect } from "vitest";
 import { ContainmentApi } from "../../../api/containment";
 import { MixinApi } from "../../../api/mixin";
+import { MqlApi } from "../../../api/mql";
+import type { CommandGiver } from "../../command/CommandGiver";
 import { AetherMixin } from "../../message/Aether";
 import { ContainerMixin } from "../../spatial/Container";
 import { ContainableMixin } from "../../spatial/Containable";
@@ -37,6 +39,15 @@ class Traveller extends AetherMixin(ContainerMixin(ContainableMixin(Idea))) {}
 
 const isWallet = (s: Stuff): s is Stuff & CredentialWallet =>
   MixinApi.isCredentialWallet(s);
+
+/** The MQL `reachable` pool anchored on `actor` (the fixture actor isn't a
+ *  real CommandGiver — the cast satisfies the seed's giver anchor). */
+function reachableFrom(actor: Stuff): Stuff[] {
+  return MqlApi.resolveMany("reachable", {
+    commandGiver: actor as Stuff & CommandGiver,
+    scope: "reachable",
+  }).stuff;
+}
 
 describe("CredentialWalletMixin holder", () => {
   it("holds many kinds; ensureCredential mints lazily", () => {
@@ -85,11 +96,8 @@ describe("either-base resolution (one scan finds the holder)", () => {
       wallet,
     );
 
-    const resolved = ContainmentApi.findReachable(
-      actor as unknown as Stuff,
-      null,
-      isWallet,
-    );
+    const resolved =
+      reachableFrom(actor as unknown as Stuff).find(isWallet) ?? null;
     expect(resolved).toBe(wallet);
     // Born-with three-node floor (interchange + lounge + paid destination).
     for (const node of BORN_WITH_TRAVEL_NODES) {
@@ -108,11 +116,8 @@ describe("either-base resolution (one scan finds the holder)", () => {
     card.ensureCredential("travel");
     ContainmentApi.move(card, actor as never);
 
-    const resolved = ContainmentApi.findReachable(
-      actor as unknown as Stuff,
-      null,
-      isWallet,
-    );
+    const resolved =
+      reachableFrom(actor as unknown as Stuff).find(isWallet) ?? null;
     expect(resolved).toBe(card);
     for (const node of BORN_WITH_TRAVEL_NODES) {
       expect(resolved?.getCredential("travel")!.isRegistered(node)).toBe(true);

@@ -13,7 +13,6 @@
 
 import { StuffApi } from './stuff';
 import { HotReloadApi } from './hot-reload';
-import { SecurityApi } from './security';
 import type { Stuff } from '../lib/stuff/Stuff';
 import type {
   GroupRef,
@@ -24,6 +23,7 @@ import type { GroupRole } from '../lib/social/Group';
 import type GroupRegistry from '../obj/GroupRegistry';
 import { GroupLogic } from '../obj/api/GroupLogic';
 import { fileURLToPath } from 'url';
+import { SecurityApi } from './security';
 
 const LOGIC_PATH = '/obj/api/group';
 const LOGIC_CLASS_FILE = fileURLToPath(

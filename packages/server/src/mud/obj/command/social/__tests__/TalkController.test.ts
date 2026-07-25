@@ -47,10 +47,7 @@ import { CommandDefinition } from "../../../../lib/command/CommandDefinition";
 import { makeStuff } from "../../../../lib/security/__tests__/test-setup";
 import type { MqlOneResult } from "../../../../api/mql";
 import {
-  DialogueConversation,
-  DialoguePartnerHold,
   DIALOGUE_CONVERSATION_TYPE,
-  DIALOGUE_PARTNER_TYPE,
 } from "../../../../lib/npc/DialogueConversation";
 import type { DialogueTree } from "../../../../lib/npc/tree";
 
@@ -144,11 +141,6 @@ beforeAll(async () => {
 beforeEach(async () => {
   StuffApi.clearAll();
   SchedulerApi._clearAllForTesting();
-  SchedulerApi.registerActivity(
-    DIALOGUE_CONVERSATION_TYPE,
-    DialogueConversation,
-  );
-  SchedulerApi.registerActivity(DIALOGUE_PARTNER_TYPE, DialoguePartnerHold);
   await bootRegistry();
   // Park every opened conversation on its first (never-resolved) wheel.
   vi.spyOn(PromptApi, "choice").mockImplementation(

@@ -42,6 +42,8 @@ import { Postures } from '../../slot/Postured';
 import { MessageApi } from '../../../api/message';
 import { ContainmentApi } from '../../../api/containment';
 import { PerceptionApi } from '../../../api/perception';
+import { AccountabilityApi } from '../../../api/accountability';
+import { SpeciesApi } from '../../../api/species';
 import { LocomotionApi } from '../../../api/locomotion';
 import { BiomeApi } from '../../../api/biome';
 import { WorldClockApi } from '../../../api/worldclock';
@@ -322,7 +324,7 @@ describe('HazardMixin — veto / redirect consequences', () => {
       { traverseConsequence: 'drop', dropDestination: belowPath },
     );
     await walkInto(m, trap);
-    expect(ContainmentApi.getContainer(m)).toBe(below);
+    expect(m.getContainer()).toBe(below);
     // The pit still sprang exactly once (reentrancy guard).
     expect(trap.getHazardState()).toBe('sprung');
   });
@@ -368,7 +370,7 @@ describe('disarm — found-gated', () => {
     const m = plainMover('/obj/Avatar/hz-blind');
     ContainmentApi.move(m, makeStuff(() => new Location()));
     const trap = makeTrap({ channel: 'edge', energy: 2, siteSelector: FEET });
-    const context = ctx(m, ContainmentApi.getContainer(m));
+    const context = ctx(m, m.getContainer());
     await makeStuff(() => new DisarmController()).execute({ target: target(trap) }, context);
     expect(trap.isArmed()).toBe(true); // still live — you can't defuse what you can't see
   });
@@ -378,8 +380,80 @@ describe('disarm — found-gated', () => {
     ContainmentApi.move(m, makeStuff(() => new Location()));
     const trap = makeTrap({ channel: 'edge', energy: 2, siteSelector: FEET });
     PerceptionApi.recordDiscovery(m, trap as unknown as Thing);
-    const context = ctx(m, ContainmentApi.getContainer(m));
+    const context = ctx(m, m.getContainer());
     await makeStuff(() => new DisarmController()).execute({ target: target(trap) }, context);
     expect(trap.getHazardState()).toBe('disarmed');
+  });
+});
+
+describe('HazardMixin — player-placed accountability (the trap producer)', () => {
+  const benign: HazardDeliveryOptions = {
+    channel: 'blunt',
+    energy: 0,
+    siteSelector: [],
+  };
+
+  /** A Map-backed ledger store so `AccountabilityApi.blameFor` reads back
+   * the `harm` row the spring appends (the shared beforeEach discards saves). */
+  function installLedgerStore(): void {
+    const store: Record<string, unknown>[] = [];
+    const pm = PersistenceManager.get();
+    let id = 0;
+    vi.spyOn(pm, 'save').mockImplementation(
+      async (_col: string, doc: Record<string, unknown>) => {
+        const _id = (doc._id as string | undefined) ?? `led-${id++}`;
+        store.push({ ...doc, _id });
+        return _id as never;
+      },
+    );
+    vi.spyOn(pm, 'find').mockImplementation(
+      async (_col: string, query: Record<string, unknown>) =>
+        store.filter((d) =>
+          Object.entries(query).every(([k, v]) => d[k] === v),
+        ) as never,
+    );
+  }
+
+  /** Flush the fire-and-forget `record` → append → save microtask chain. */
+  async function flush(): Promise<void> {
+    for (let i = 0; i < 6; i++) await Promise.resolve();
+  }
+
+  it('a placed trap that springs on a non-consenting sentient derives a crime', async () => {
+    installLedgerStore();
+    vi.spyOn(SpeciesApi, 'isSentient').mockReturnValue(true);
+    const trap = makeTrap(benign, { trigger: 'traversal' });
+    trap.setPlacedBy('/obj/Avatar/trapper');
+    const victim = plainMover('/obj/Avatar/victim');
+
+    await walkInto(victim, trap);
+    await flush();
+
+    expect(await AccountabilityApi.crimeFor('/obj/Avatar/victim')).toBe(true);
+    const verdict = await AccountabilityApi.blameFor('/obj/Avatar/victim');
+    expect(verdict!.killer).toBe('/obj/Avatar/trapper');
+  });
+
+  it('a placed trap that springs on a beast is not a crime', async () => {
+    installLedgerStore();
+    vi.spyOn(SpeciesApi, 'isSentient').mockReturnValue(false);
+    const trap = makeTrap(benign, { trigger: 'traversal' });
+    trap.setPlacedBy('/obj/Avatar/trapper');
+    const victim = plainMover('/obj/beast/boar');
+
+    await walkInto(victim, trap);
+    await flush();
+
+    expect(await AccountabilityApi.crimeFor('/obj/beast/boar')).toBe(false);
+  });
+
+  it('an authored (unplaced) trap appends NO accountability row', async () => {
+    const record = vi.spyOn(AccountabilityApi, 'record');
+    const trap = makeTrap(benign, { trigger: 'traversal' }); // placedBy === ''
+    const victim = plainMover('/obj/Avatar/passerby');
+
+    await walkInto(victim, trap);
+
+    expect(record).not.toHaveBeenCalled();
   });
 });

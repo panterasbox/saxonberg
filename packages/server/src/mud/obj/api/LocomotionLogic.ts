@@ -14,12 +14,12 @@ import { LocomotionMode } from '../../lib/locomotion/LocomotionMode';
 import type { Enablement } from '../../lib/locomotion/Enablement';
 import { StuffApi } from '../../api/stuff';
 import { MixinApi } from '../../api/mixin';
+import { MqlApi } from '../../api/mql';
 import { SpeciesApi } from '../../api/species';
 import { SlotApi } from '../../api/slot';
 import type { MixinName } from '../../lib/mixin';
 import { LOAD_BEARING_DEFAULTS } from '../../lib/encumbrance/LoadBearing';
 import { Postures } from '../../lib/slot/Postured';
-import { ShellApi } from '../../api/shell';
 import type { EmissionData } from '../../api/locomotion';
 
 /** Hard depth cap for the passthrough chain walk; matches the conveyance ripple. */
@@ -137,11 +137,15 @@ export class LocomotionLogic extends ApiLogic {
   /** See {@link LocomotionApi.allModes}. */
   @CallSecurity(LocomotionApiCallers)
   public allModes(): readonly LocomotionMode[] {
-    const out: LocomotionMode[] = [];
-    for (const obj of StuffApi.getAllObjects()) {
-      if (obj instanceof LocomotionMode) out.push(obj);
-    }
-    return out;
+    // MQL system enumeration (null giver — the mode roster is engine
+    // vocabulary, not a viewer's perception).
+    const matches = MqlApi.resolveMany('world:[class.LocomotionMode]', {
+      commandGiver: null,
+      scope: 'world',
+    });
+    return matches.stuff.filter(
+      (s): s is LocomotionMode => s instanceof LocomotionMode,
+    );
   }
 
   /** See {@link LocomotionApi.resolveHostMode}. */
@@ -372,13 +376,6 @@ export class LocomotionLogic extends ApiLogic {
 
   // ── engaged-mode introspection (untyped-safe) ────────────────────
 
-  /** See {@link LocomotionApi.engagedMode}. */
-  @CallSecurity(LocomotionApiCallers)
-  public engagedMode(actor: Stuff): LocomotionMode | null {
-    if (!MixinApi.isMobile(actor)) return null;
-    return actor.getEngagedMode();
-  }
-
   // ── engagement lifecycle ─────────────────────────────────────────
 
   /** See {@link LocomotionApi.engageAround}. */
@@ -446,7 +443,9 @@ export class LocomotionLogic extends ApiLogic {
     // `movement.defaultMode sneak`/`run` for a standing pace, exactly as
     // they'd default to any locomotion mode. No separate `movement.pace`
     // knob — it was redundant with this one.
-    const explicit = ShellApi.ownSetting<string>(actor, 'movement.defaultMode');
+    const explicit = MixinApi.isEnvironment(actor)
+      ? actor.getOwnSetting<string>('movement.defaultMode')
+      : undefined;
     if (explicit) return explicit;
     if (MixinApi.isOrganism(actor)) {
       const planDefault =

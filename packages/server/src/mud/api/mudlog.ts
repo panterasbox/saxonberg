@@ -27,10 +27,10 @@ import type { Sensor } from '../lib/message/Sensor';
 import type { LogLevel } from '@saxonberg/types';
 import { StuffApi } from './stuff';
 import { HotReloadApi } from './hot-reload';
-import { SecurityApi } from './security';
 import { MudlogLogic } from '../obj/api/MudlogLogic';
 import { Mml } from './mml';
 import { fileURLToPath } from 'url';
+import { SecurityApi } from './security';
 
 type SensorStuff = Stuff & Sensor;
 

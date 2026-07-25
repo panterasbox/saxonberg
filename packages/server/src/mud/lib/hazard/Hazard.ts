@@ -36,6 +36,8 @@ import { MixinApi } from '../../api/mixin';
 import { MessageApi } from '../../api/message';
 import { Mml } from '../../api/mml';
 import { ConditionApi } from '../../api/condition';
+import { AccountabilityApi } from '../../api/accountability';
+import { SpeciesApi } from '../../api/species';
 import { PerceptionApi } from '../../api/perception';
 import { LocomotionApi } from '../../api/locomotion';
 import { ContainmentApi } from '../../api/containment';
@@ -77,6 +79,10 @@ const DROP_FALL_ENERGY_FALLBACK = 4;
 export interface Hazard {
   isArmed(): boolean;
   getHazardState(): HazardState;
+  /** The durable id of the player who placed this hazard (`''` = authored). */
+  getPlacedBy(): string;
+  /** Stamp the placer's durable id (set by `arm` at deploy). */
+  setPlacedBy(placer: string): void;
   getDelivery(): HazardDelivery;
   setDelivery(value: HazardDelivery | HazardDeliveryOptions): void;
   getTrigger(): HazardTrigger;
@@ -113,6 +119,7 @@ export function HazardMixin<TBase extends MixinConstructor>(Base: TBase) {
       'groundTriggered',
       'dropDestination',
       'springMessage',
+      'placedBy',
     ];
 
     /**
@@ -163,6 +170,18 @@ export function HazardMixin<TBase extends MixinConstructor>(Base: TBase) {
      */
     public springMessage = '';
 
+    /**
+     * The durable id (`templatePath`) of the actor who **placed** this
+     * hazard, when a player deployed it via `arm`. Empty (`''`) for an
+     * authored/environmental hazard (a dungeon pit — no culpable placer).
+     * When set, a spring appends an `AccountabilityApi` `harm` row against
+     * this placer, from which `crime` derives (harm to a non-consenting
+     * sentient). Stamped at deploy; survives the placed clone's persistence
+     * so the absent placer is still on the hook when the victim springs it.
+     * @authorable
+     */
+    public placedBy = '';
+
     // ---------------------------------------------------------------
     // Accessors + state
     // ---------------------------------------------------------------
@@ -173,6 +192,14 @@ export function HazardMixin<TBase extends MixinConstructor>(Base: TBase) {
 
     public getHazardState(): HazardState {
       return this.hazardState;
+    }
+
+    public getPlacedBy(): string {
+      return this.placedBy;
+    }
+
+    public setPlacedBy(placer: string): void {
+      this.placedBy = placer;
     }
 
     public setHazardState(value: HazardState): void {
@@ -334,6 +361,40 @@ export function HazardMixin<TBase extends MixinConstructor>(Base: TBase) {
         const toxin = this.delivery.getToxin();
         if (toxin) mover.introduceToxin(toxin.type, toxin.amount);
       }
+      this.noteHarmAccountability(mover);
+    }
+
+    /**
+     * A **player-placed** trap that harms a mover appends one `harm` row to
+     * the unified accountability ledger — co-located with the `inflict`
+     * chokepoint (the producer that knows the consent: a snare is never
+     * consented to). `crime` derives from it iff the victim was a
+     * non-consenting sentient. An authored/environmental hazard (`placedBy
+     * === ''`) has no culpable placer and appends nothing — an unlucky
+     * dungeon pit is not a crime.
+     */
+    private noteHarmAccountability(mover: Stuff): void {
+      const placer = this.placedBy;
+      if (!placer) return;
+      const victimId = mover.getTemplatePath();
+      if (!victimId) return;
+      const self = this as unknown as Stuff;
+      let sentient = false;
+      try {
+        sentient = SpeciesApi.isSentient(mover);
+      } catch {
+        sentient = false;
+      }
+      AccountabilityApi.record({
+        kind: 'harm',
+        sessionId: `trap:${self.stuffId}`,
+        initiator: placer,
+        opponent: victimId,
+        victim: victimId,
+        killer: placer,
+        consented: false,
+        sentient,
+      });
     }
 
     private applyTraverseConsequence(mover: Stuff): void {

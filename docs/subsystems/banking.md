@@ -135,10 +135,11 @@ BOTH a `PaymentCard` (`= CredentialWalletMixin(Thing)`, a 1:1 bearer
 instrument you can lose) and the born-with `CredentialWalletUpdate`
 (`= CredentialWalletMixin(AetherHostedMixin(Idea))`, the one wallet app holding
 every credential kind — installed once by `Avatar.installDefaultLoadout`,
-body-bound). Reached via `ContainmentApi.findReachable` keyed on
+body-bound). Reached via the MQL `reachable` pool filtered on
 `MixinApi.isCredentialWallet` + a **non-frozen** `payment` record
-(implant-first — the self-hosted leg precedes carried cards), so a reissued
-card is found in place of a revoked one. `openAccount` auto-links each new
+(implant-first — the seed's on-person-first ordering puts the self-hosted
+leg before carried cards), so a reissued card is found in place of a
+revoked one. `openAccount` auto-links each new
 account to the owner's wallet (first opened → active). `BankingApi`'s
 credential surface (`activeCredential` / `setActiveAccount` /
 `freezeCredential`) traffics in the `PaymentCredential` record; `issueCard`
@@ -195,7 +196,12 @@ reissue).
   not governed — the corpo-affiliation-edge precedent), so the tax shows in
   the *seller's* P&L (a `tax` line) and the treasury merely accumulates (no
   appropriation path). (The general payer-side remittance-split seam from
-  Phase 3 stays for tips/fees.)
+  Phase 3 stays for tips/fees.) The **general store's consignment sale**
+  (see [retail.md](./retail.md)) is a second split consumer: one `settle`
+  routes the ask's remainder to the consignor's primary account (a
+  `consignment` `PnlCategory` leg) while the store keeps the commission as
+  its taxable revenue (`remitDemoTax` on the commission only) — the store
+  fronts no coin, conservation holds.
 - **The P&L** — `BankingApi.profitAndLoss(account)`: a derive-on-read
   categorized read (per-category signed net + running balance) — the
   deficit-as-target instrument, red by design. `house pnl` (operator-gated)

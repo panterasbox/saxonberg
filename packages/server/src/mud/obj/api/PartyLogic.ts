@@ -10,8 +10,9 @@ import { PlayerApi } from "../../api/player";
 import { GroupApi } from "../../api/group";
 import { ChatApi } from "../../api/chat";
 import { StuffApi } from "../../api/stuff";
+import { AdvancementApi } from "../../api/advancement";
 import { SecurityApi } from "../../api/security";
-import { Party } from "../../lib/party/Party";
+import { Party, DEFAULT_FORMATION_PATH } from "../../lib/party/Party";
 import { PartyRecord } from "../../lib/party/PartyRecord";
 import { PartyGroupProvider } from "../../lib/party/PartyGroupProvider";
 import type { PartyOpResult, PartySimpleResult } from "../../api/party";
@@ -63,6 +64,21 @@ export class PartyLogic extends ApiLogic {
   @CallSecurity(PartyApiCallers)
   public areAllied(a: Stuff, b: Stuff): boolean {
     return sideOfImpl(a) === sideOfImpl(b);
+  }
+
+  @CallSecurity(PartyApiCallers)
+  public formationPathOf(combatant: Stuff): string {
+    return formationPathOfImpl(combatant);
+  }
+
+  @CallSecurity(PartyApiCallers)
+  public roleOf(combatant: Stuff): string {
+    return roleOfImpl(combatant);
+  }
+
+  @CallSecurity(PartyApiCallers)
+  public isCaptain(combatant: Stuff): boolean {
+    return isCaptainImpl(combatant);
   }
 
   @CallSecurity(PartyApiCallers)
@@ -130,6 +146,23 @@ export class PartyLogic extends ApiLogic {
   }
 
   @CallSecurity(PartyApiCallers)
+  public async setFormation(
+    captain: Stuff,
+    name: string,
+  ): Promise<PartySimpleResult> {
+    return setFormationImpl(captain, name);
+  }
+
+  @CallSecurity(PartyApiCallers)
+  public async assignRole(
+    captain: Stuff,
+    role: string,
+    targetId: string,
+  ): Promise<PartySimpleResult> {
+    return assignRoleImpl(captain, role, targetId);
+  }
+
+  @CallSecurity(PartyApiCallers)
   public async muster(member: Stuff, name: string): Promise<PartyOpResult> {
     return musterImpl(member, name);
   }
@@ -179,8 +212,11 @@ function fireChange(party: Party): void {
 /* ───────────────────────── member identity ───────────────────────── */
 
 /** A combatant's durable member ref: an Avatar's playerId, else its
- * templatePath (a Mercenary NPC). */
+ * templatePath. Party members answer for themselves
+ * (`PartyMember.partyMemberId`); the fallback covers the non-member
+ * combatants `sideOf` keys (rung 3). */
 function memberIdOf(s: Stuff): string {
+  if (MixinApi.isPartyMember(s)) return s.partyMemberId();
   if (PlayerApi.isAvatarStuff(s)) return s.getPlayerId() ?? "";
   return s.getTemplatePath() ?? "";
 }
@@ -223,6 +259,35 @@ function activePartyOfImpl(member: Stuff): Party | null {
   return path ? partyAt(path) : null;
 }
 
+/* ───────────────────── formation resolution (sync) ───────────────────── */
+
+/** The total chain: the active party's chosen formation, else the default
+ * preset. NEVER `''`/null — the caller has no null branch. */
+function formationPathOfImpl(combatant: Stuff): string {
+  return (
+    activePartyOfImpl(combatant)?.getFormationPath() || DEFAULT_FORMATION_PATH
+  );
+}
+
+function roleOfImpl(combatant: Stuff): string {
+  const party = activePartyOfImpl(combatant);
+  return party ? party.roleOfMember(memberIdOf(combatant)) : "";
+}
+
+function isCaptainImpl(combatant: Stuff): boolean {
+  const party = activePartyOfImpl(combatant);
+  return party ? party.isCaptain(memberIdOf(combatant)) : false;
+}
+
+/** The formation Idea's role vocabulary, duck-read structurally so this
+ * module never imports `lib/combat` (the one-way combat→party dep). */
+function formationRolesAt(path: string): readonly string[] | null {
+  const idea = StuffApi.findByTemplatePath(path);
+  if (!idea) return null;
+  const withRoles = idea as unknown as { getRoles?: () => readonly string[] };
+  return typeof withRoles.getRoles === "function" ? withRoles.getRoles() : null;
+}
+
 async function partiesOfImpl(memberId: string): Promise<readonly Party[]> {
   const records = await PartyRecord.find<PartyRecord>({ memberIds: memberId });
   const out: Party[] = [];
@@ -259,9 +324,8 @@ async function formImpl(
   party.setFounderId(founderId);
   party.setCaptainId(founderId);
   party.setDurable(durable);
-  party.addMember(founderId);
+  party.admit(founder);
   await persistParty(party);
-  founder._setActivePartyPath(party.getTemplatePath()!);
 
   // Party chat: a channel bound to the party's own roster ref (chat is a
   // consumer of the grouping facade — no managed group minted). Best-
@@ -291,7 +355,7 @@ async function inviteImpl(
   if (invitee.getActivePartyPath()) {
     return { ok: false, reason: "target-already-in-a-party" };
   }
-  invitee._setPendingInvitePartyPath(party.getTemplatePath()!);
+  party.extendInvite(invitee);
   return { ok: true, party };
 }
 
@@ -307,9 +371,7 @@ async function acceptImpl(invitee: Stuff): Promise<PartyOpResult> {
   const party = partyAt(path);
   if (!party) return { ok: false, reason: "invite-expired" };
 
-  party.addMember(memberIdOf(invitee));
-  invitee._setActivePartyPath(path);
-  invitee._setPendingInvitePartyPath("");
+  party.admit(invitee);
   await persistParty(party);
   fireChange(party);
   return { ok: true, party };
@@ -331,8 +393,7 @@ async function enlistImpl(
   if (hiree.getActivePartyPath()) {
     return { ok: false, reason: "target-already-in-a-party" };
   }
-  party.addMember(memberIdOf(hiree));
-  hiree._setActivePartyPath(party.getTemplatePath()!);
+  party.admit(hiree);
   await persistParty(party);
   fireChange(party);
   return { ok: true };
@@ -344,8 +405,8 @@ async function leaveImpl(member: Stuff): Promise<PartySimpleResult> {
   }
   const party = activePartyOfImpl(member);
   if (!party) return { ok: false, reason: "not-in-a-party" };
-  await departFromParty(party, memberIdOf(member));
-  member._setActivePartyPath("");
+  party.release(memberIdOf(member), member);
+  await settleAfterDeparture(party);
   return { ok: true };
 }
 
@@ -362,26 +423,23 @@ async function kickImpl(
     return { ok: false, reason: "cannot-kick-self" };
   }
   if (!party.isMember(targetId)) return { ok: false, reason: "not-a-member" };
-  const path = party.getTemplatePath();
-  await departFromParty(party, targetId);
   const target = resolveMember(targetId);
-  if (target && MixinApi.isPartyMember(target)) {
-    if (target.getActivePartyPath() === path) target._setActivePartyPath("");
-  }
+  party.release(
+    targetId,
+    target && MixinApi.isPartyMember(target) ? target : null,
+  );
+  await settleAfterDeparture(party);
   return { ok: true };
 }
 
 /**
- * Remove `memberId` from `party`, handling captain succession and the
- * empty-party terminus (ad-hoc → destructed; durable → dormant). Shared by
- * leave / kick.
+ * Settle a party after `Party.release` ran a departure: the empty-party
+ * terminus (ad-hoc → destructed; durable → dormant) + persist + change
+ * fan-out. Shared by leave / kick / stand-down. The roster removal and
+ * captain succession are the party's own transition (`release`), not
+ * repeated here.
  */
-async function departFromParty(party: Party, memberId: string): Promise<void> {
-  party.removeMember(memberId);
-  if (party.isCaptain(memberId)) {
-    const heir = party.getMemberIds()[0];
-    if (heir) party.setCaptainId(heir);
-  }
+async function settleAfterDeparture(party: Party): Promise<void> {
   if (party.size() === 0) {
     if (party.isDurable()) {
       party.setCaptainId(""); // persists dormant + empty
@@ -404,12 +462,10 @@ async function disbandImpl(captain: Stuff): Promise<PartySimpleResult> {
     return { ok: false, reason: "not-the-captain" };
   }
   const path = party.getTemplatePath();
-  // Clear every online member's active pointer.
+  // Stand every online member down (their pointer, the party acting).
   for (const id of [...party.getMemberIds()]) {
     const m = resolveMember(id);
-    if (m && MixinApi.isPartyMember(m) && m.getActivePartyPath() === path) {
-      m._setActivePartyPath("");
-    }
+    if (m && MixinApi.isPartyMember(m)) party.dismiss(m);
   }
   if (party.getChannelRef()) {
     try {
@@ -463,6 +519,64 @@ async function setSideImpl(
   return { ok: true };
 }
 
+async function setFormationImpl(
+  captain: Stuff,
+  name: string,
+): Promise<PartySimpleResult> {
+  const party = activePartyOfImpl(captain);
+  if (!party) return { ok: false, reason: "not-in-a-party" };
+  if (!party.isCaptain(memberIdOf(captain))) {
+    return { ok: false, reason: "not-the-captain" };
+  }
+  const trimmed = name.trim().toLowerCase();
+  if (!trimmed || !/^[a-z][a-z-]*$/.test(trimmed)) {
+    return { ok: false, reason: "unknown-formation" };
+  }
+  const path = `/lib/combat/CombatFormation/${trimmed}`;
+  // Await the Idea resident BEFORE accepting, so a mid-fight switch is
+  // live by its next beat (the beat's consult is sync findByTemplatePath).
+  try {
+    await StuffApi.singleton(path);
+  } catch {
+    return { ok: false, reason: "unknown-formation" };
+  }
+  party.setFormationPath(path);
+  await persistParty(party);
+  fireChange(party);
+  // The formation shift is a leadership act — the captain banks a
+  // `command` deed (fire-and-forget; a failed mint never blocks the
+  // switch). Advancement never imports party — the dep is one-way.
+  void AdvancementApi.recordDeed(captain, {
+    discipline: "command",
+    difficulty: "standard",
+    outcome: "success",
+  }).catch(() => {});
+  return { ok: true };
+}
+
+async function assignRoleImpl(
+  captain: Stuff,
+  role: string,
+  targetId: string,
+): Promise<PartySimpleResult> {
+  const party = activePartyOfImpl(captain);
+  if (!party) return { ok: false, reason: "not-in-a-party" };
+  if (!party.isCaptain(memberIdOf(captain))) {
+    return { ok: false, reason: "not-the-captain" };
+  }
+  if (!party.isMember(targetId)) return { ok: false, reason: "not-a-member" };
+  const formationPath = party.getFormationPath();
+  if (!formationPath) return { ok: false, reason: "no-formation" };
+  const roles = formationRolesAt(formationPath);
+  const wanted = role.trim().toLowerCase();
+  if (!roles || !roles.includes(wanted)) {
+    return { ok: false, reason: "unknown-role" };
+  }
+  party.assignRole(targetId, wanted);
+  await persistParty(party);
+  return { ok: true };
+}
+
 async function musterImpl(
   member: Stuff,
   name: string,
@@ -479,11 +593,10 @@ async function musterImpl(
   if (!rec) return { ok: false, reason: "no-such-crew" };
   const party = partyAt(rec.path) ?? (await materializeParty(rec));
 
-  // Stand down the current active party first (one-active-party).
-  if (member.getActivePartyPath() && member.getActivePartyPath() !== rec.path) {
-    member._setActivePartyPath("");
-  }
-  member._setActivePartyPath(rec.path);
+  // Recall overwrites the current active pointer — the one-active-party
+  // rule is the overwrite (a durable crew keeps you on its roster, so
+  // the prior party needs no roster-side settling here).
+  party.recall(member);
   return { ok: true, party };
 }
 
@@ -492,12 +605,20 @@ async function standDownImpl(member: Stuff): Promise<PartySimpleResult> {
     return { ok: false, reason: "not-in-a-party" };
   }
   const party = activePartyOfImpl(member);
-  member._setActivePartyPath("");
   // Stand-down semantics differ by lifetime: a **durable** crew keeps you
   // on its roster (dormant — `muster` re-activates), while an **ad-hoc**
   // party has no dormant state, so standing down is simply leaving it.
-  if (party && !party.isDurable()) {
-    await departFromParty(party, memberIdOf(member));
+  if (party) {
+    if (party.isDurable()) {
+      party.dismiss(member);
+    } else {
+      party.release(memberIdOf(member), member);
+      await settleAfterDeparture(party);
+    }
+  } else {
+    // Janitorial: a stale pointer with no live Party Idea to act — the
+    // logic's own arm on the member contract covers this.
+    member._setActivePartyPath("");
   }
   return { ok: true };
 }

@@ -103,7 +103,7 @@ function responsePipsAugmenter(
   if (!MixinApi.isConstructed(host)) return text;
   const construction = host.getConstruction();
   if (!construction) return text;
-  const material = MaterialApi.materialOf(host);
+  const material = MixinApi.isTangible(host) ? host.getMaterial() : null;
   // isGraded / isDurable are type predicates — they narrow `host` directly.
   const grade = MixinApi.isGraded(host) ? host.getGrade() : undefined;
   const condition = MixinApi.isDurable(host)

@@ -21,12 +21,15 @@ import type { CommandContext, CommandModel } from "../../../api/command";
 import type { MqlOneResult } from "../../../api/mql";
 import { MessageApi } from "../../../api/message";
 import { MixinApi } from "../../../api/mixin";
+import { PerceptionApi } from "../../../api/perception";
 import { ShellApi } from "../../../api/shell";
 import { PromptApi, PromptCancelledError } from "../../../api/prompt";
 import { Mml } from "../../../api/mml";
 import type { Stuff } from "../../../lib/stuff/Stuff";
 import type { Engaged } from "../../../lib/activity/Engaged";
 import { CombatApi, type CombatOpenOptions } from "../../../api/combat";
+import { StuffApi } from "../../../api/stuff";
+import { PartyApi } from "../../../api/party";
 import { AdvancementApi } from "../../../api/advancement";
 import type { CompetenceBandName } from "../../../lib/advancement/CompetenceBand";
 import {
@@ -152,6 +155,17 @@ export default class AttackController extends CommandController<AttackModel> {
     // deterministic). Absent/unresolved bands default to `untrained`.
     const opts = await this.snapshotBands([giver, target]);
 
+    // Warm both sides' formation Ideas resident BEFORE opening — the
+    // beat's per-consult read is sync (`findByTemplatePath`), so the warm
+    // is the controller's job (the `snapshotBands` pre-open precedent).
+    await this.warmFormations([giver, target]);
+
+    // Ambush: opening from concealment the defender doesn't perceive denies
+    // their opening poise contest (consumed only by a *fresh* openSession).
+    // Read the attacker's hidden state FIRST, then reveal them — striking
+    // gives you away, ambush or not.
+    opts.ambush = await this.resolveAmbush(giver, target);
+
     // The handshake: attacking someone already fighting *joins* their
     // melee; attacking from mid-fight *draws the target in*; two separate
     // fights colliding *merge*; otherwise a fresh session opens.
@@ -239,6 +253,38 @@ export default class AttackController extends CommandController<AttackModel> {
   /** Resolve each combatant's melee competence band into the open-options
    * map (keyed by durable `templatePath`), best-effort — a failed read just
    * leaves the fighter at the `untrained` default. */
+  /**
+   * Ambush read — is the attacker striking from concealment the defender
+   * does not perceive? Reads the attacker's hidden state FIRST (warming the
+   * defender's `awareness` so `perceives` uses their real capacity), then
+   * clears the attacker's hide (striking reveals you, ambush or not).
+   * Returns whether a fresh session should deny the defender's poise
+   * contest.
+   */
+  private async resolveAmbush(
+    attacker: Stuff,
+    defender: Stuff,
+  ): Promise<boolean> {
+    if (!MixinApi.isHiding(attacker) || !attacker.isHiding()) return false;
+    await PerceptionApi.preloadForSenseGate(defender);
+    const unseen = !PerceptionApi.perceives(defender, attacker);
+    attacker.breakHide();
+    return unseen;
+  }
+
+  /** Load each side's resolved formation Idea into residency (best-effort
+   * — an unbooted party subsystem or missing seed just leaves the beat on
+   * the built-in default policy). */
+  private async warmFormations(combatants: Stuff[]): Promise<void> {
+    for (const c of combatants) {
+      try {
+        await StuffApi.singleton(PartyApi.formationPathOf(c));
+      } catch {
+        // Falls back to CombatFormation.DEFAULT_POLICY at consult time.
+      }
+    }
+  }
+
   private async snapshotBands(
     combatants: Stuff[],
   ): Promise<CombatOpenOptions> {

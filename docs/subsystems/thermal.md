@@ -173,3 +173,26 @@ The Wave-2 indoor convection room-bump and a standalone
 radiant-from-nearby-Thermals helper (Steps 2.1 / 2.4 indoor) are partial:
 the outdoor warming-slot `warmth` path is wired end to end; the indoor
 room-ambient bump is a follow-on.
+
+## Phase change (the fire build)
+
+`ThermalApi.depositHeat` + `ThermalApi.reconcilePhase` (the gated
+`api/thermal.ts` + `obj/api/ThermalLogic.ts` pair — the heat-delivery /
+phase-change surface `ThermalMixin` deliberately keeps off its own class).
+**`depositHeat(joules)`** is the heat-DELIVERY primitive the sync model lacked
+(the reconcile only *cools toward ambient*): `ΔT = Q / C`, thermal inertia
+gating the rise — the same joules barely warm a heavy log but shove a shaving
+hot, which is what makes ignition a derivable energy balance. **`MeltableMixin`**
+(`lib/thermal/Meltable.ts`) + **`reconcilePhase`** is the bidirectional
+transition engine, driven by *any* heat source (hearth / sun / fire, not
+fire-specific): a solid past its material's `meltingPoint` holds a **latent-heat
+plateau** (clamp temperature to the melting point, absorb the overshoot into the
+accumulator until `mass × latentHeatOfFusion`) then **melts** — destructing and
+flowing its mass to a molten `Bulkable` pool in the scope's `Floor`; a
+liquid-holding vessel **boils** to gas above its boiling point and **solidifies**
+to a cast `Thing` below its melting point. Bidirectional — **ice → water → steam
+falls out of the shipped water material**. The **furnace family** (`FurnaceMixin`,
+generalizing the `Campfire` pin — see [fire.md](./fire.md)) heats the Meltables
+in its scope toward its held temperature; `ThermalApi.reachableHeatFor` reads the
+hottest reachable furnace (the inert crafting-control seam). See
+[fire.md](./fire.md) for the combustion driver + the full high-heat physics.

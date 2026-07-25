@@ -22,9 +22,9 @@
 
 import { StuffApi } from './stuff';
 import { HotReloadApi } from './hot-reload';
-import { SecurityApi } from './security';
 import { ArrayLogic } from '../obj/api/ArrayLogic';
 import { fileURLToPath } from 'url';
+import { SecurityApi } from './security';
 
 const LOGIC_PATH = '/obj/api/array';
 const LOGIC_CLASS_FILE = fileURLToPath(

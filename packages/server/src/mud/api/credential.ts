@@ -20,33 +20,40 @@
  * this Api (today they live in `BankingLogic` / the TPA controllers).
  */
 
-import { SecurityApi } from "./security";
 import { StuffApi } from "./stuff";
 import { ContainmentApi } from "./containment";
 import { MixinApi } from "./mixin";
+import { MqlApi } from "./mql";
 import { TemplatePaths } from "../lib/paths";
 import { Lock, type LockType } from "../lib/lock/Lock";
 import type { Stuff } from "../lib/stuff/Stuff";
+import type { CommandGiver } from "../lib/command/CommandGiver";
 import type { Container } from "../lib/spatial/Container";
 import type { Containable } from "../lib/spatial/Containable";
 import type { CredentialWallet } from "../lib/credential/CredentialWallet";
+import { SecurityApi } from './security';
 
 export class CredentialApi {
   /**
    * Whether `mover` presents a key that opens `lock` — a **synchronous**
-   * reachable-wallet scan (implant keychain first, then a carried physical
-   * `Key`), so it is safe from a door's `canTraverse`. No matching key (or an
-   * unkeyed lock with an empty keyway) → false.
+   * wallet scan over the MQL `person` pool (bearer semantics: implant
+   * keychain first, then a carried physical `Key` — never a key lying
+   * in the room), so it is safe from a door's `canTraverse`. No
+   * matching key (or an unkeyed lock with an empty keyway) → false.
    */
   static presentsKey(mover: Stuff, lock: Lock): boolean {
     if (!lock.keyway) return false;
-    const holder = ContainmentApi.findReachable(
-      mover,
-      null,
-      (s: Stuff): s is Stuff & CredentialWallet =>
-        MixinApi.isCredentialWallet(s) &&
-        !!s.getCredential("key")?.authorize(lock.keyway, lock.technology),
-    );
+    const holder =
+      MqlApi.resolveMany("person", {
+        // The mover at a lock is a Character (a CommandGiver); the
+        // static type at this seam is only `Stuff`.
+        commandGiver: mover as Stuff & CommandGiver,
+        scope: "person",
+      }).stuff.find(
+        (s): s is Stuff & CredentialWallet =>
+          MixinApi.isCredentialWallet(s) &&
+          !!s.getCredential("key")?.authorize(lock.keyway, lock.technology),
+      ) ?? null;
     return holder !== null;
   }
 
@@ -86,12 +93,16 @@ export class CredentialApi {
     technology: LockType,
     master: boolean,
   ): void {
-    const wallet = ContainmentApi.findReachable(
-      holder,
-      null,
-      (s: Stuff): s is Stuff & CredentialWallet =>
-        MixinApi.isCredentialWallet(s) && s.hasCredential("key"),
-    );
+    const wallet =
+      MqlApi.resolveMany("person", {
+        // Key holders are Characters (CommandGivers); the static type
+        // at this seam is only `Stuff`.
+        commandGiver: holder as Stuff & CommandGiver,
+        scope: "person",
+      }).stuff.find(
+        (s): s is Stuff & CredentialWallet =>
+          MixinApi.isCredentialWallet(s) && s.hasCredential("key"),
+      ) ?? null;
     if (!wallet) return;
     const cred = wallet.ensureCredential("key");
     if (master) cred.addMaster(technology);

@@ -334,6 +334,3 @@ function noteEmoteReactable(actor: Stuff): void {
   }
 }
 
-// Suppress unused-imports / no-unused-vars for symbols the runtime
-// path uses behind narrowing predicates the linter doesn't see.
-void Mml;

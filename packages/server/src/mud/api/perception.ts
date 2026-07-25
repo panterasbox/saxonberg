@@ -27,10 +27,12 @@
  */
 
 import type { Stuff } from '../lib/stuff/Stuff';
+import type { CompetenceBandName } from '../lib/advancement/CompetenceBand';
+import type { ConcealmentLevel } from '../lib/concealment/ConcealmentLevel';
 import type { Container } from '../lib/spatial/Container';
 import type { Sensor } from '../lib/message/Sensor';
 import { Modality } from '../lib/perception/Modality';
-import type { Signal, Percept } from '../lib/perception/Modality';
+import type { Percept } from '../lib/perception/Modality';
 import { StuffApi } from './stuff';
 import { HotReloadApi } from './hot-reload';
 import { SecurityApi } from './security';
@@ -89,20 +91,7 @@ export class PerceptionApi {
     return logic().modalityByOrganKey(organKey);
   }
 
-  /**
-   * Compute the modality's signal at `loc`. Dispatch is on the
-   * modality singleton's `signalAt` — vision walks light, smell
-   * walks odor, sound walks dB, touch reads ambient temperature.
-   * Contact + network modalities (taste, ESP) return null.
-   */
-  public static signalAt(
-    loc: Stuff & Container,
-    modality: Modality,
-  ): Signal | null {
-    return logic().signalAt(loc, modality);
-  }
-
-  /**
+    /**
    * Compute the viewer's percept at `loc` for `modality`. Walks
    * `signalAt` then `perceiveFor`. Returns null when the signal is
    * null OR the modality's `perceiveFor` returns null (the default).
@@ -266,6 +255,38 @@ export class PerceptionApi {
    */
   public static modeAttention(mode: string): number {
     return logic().modeAttention(mode);
+  }
+
+  /**
+   * The **hider's** derived concealment level (the actor-side, opposed
+   * sibling of the detection engine). A pure, deterministic score of the
+   * hider's `stealth` competence × available room cover × darkness ×
+   * stillness (a low posture), mapped to a {@link ConcealmentLevel} band by
+   * the `stealth.hide.band.*` thresholds. `stealthBand` is resolved by the
+   * caller (`AdvancementApi.bandFor(actor, 'stealth')`, awaited at command
+   * time) and the result snapshotted into `HidingMixin.hiddenLevel`, so the
+   * sync perceive gate reads only the stored band — never this. A score
+   * below `band.subtle` returns `'obvious'` (the hide failed). See
+   * docs/subsystems/stealth.md.
+   */
+  public static hideLevelFor(
+    actor: Stuff,
+    stealthBand: CompetenceBandName,
+  ): ConcealmentLevel {
+    return logic().hideLevelFor(actor, stealthBand);
+  }
+
+  /**
+   * The **observer-side** motion-degrade (the mirror of
+   * {@link modeAttention}) — how many concealment bands a move at `mode`
+   * strips from a hiding mover: `sneak` holds (0), `walk` degrades one band,
+   * `run` clears hiding (a large count). `Mobile.traverse` feeds this to
+   * `HidingMixin.degradeHide` after a move, lighting the observer-side of
+   * the care↔speed axis (a runner can't stay hidden). Dial-backed
+   * (`movement.concealment.*`). See docs/subsystems/stealth.md.
+   */
+  public static motionExposure(mode: string): number {
+    return logic().motionExposure(mode);
   }
 
   /**

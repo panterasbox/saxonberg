@@ -66,7 +66,7 @@ describe('EmploymentLogic.tickRoster', () => {
     atClock(2, 20); // Wednesday 20:00 — off shift
     EmploymentApi.tickRoster();
 
-    const emp = EmploymentApi.employmentOf(mara, BUSINESS);
+    const emp = mara.getEmployment(BUSINESS);
     expect(emp?.positionKey).toBe('bartender');
     expect(emp?.status).toBe('off-shift');
     expect(emp?.onShiftSince).toBeNull();
@@ -78,7 +78,7 @@ describe('EmploymentLogic.tickRoster', () => {
     const now = atClock(2, 10); // Wednesday 10:00 — on shift
     EmploymentApi.tickRoster();
 
-    const emp = EmploymentApi.employmentOf(mara, BUSINESS);
+    const emp = mara.getEmployment(BUSINESS);
     expect(emp?.status).toBe('on-shift');
     expect(emp?.onShiftSince).toBe(now);
     expect(EmploymentApi.shiftStateOf(mara)).toBe('on-shift');
@@ -90,11 +90,11 @@ describe('EmploymentLogic.tickRoster', () => {
 
     atClock(2, 10); // on
     EmploymentApi.tickRoster();
-    expect(EmploymentApi.employmentOf(mara, BUSINESS)?.status).toBe('on-shift');
+    expect(mara.getEmployment(BUSINESS)?.status).toBe('on-shift');
 
     atClock(2, 20); // later — off
     EmploymentApi.tickRoster();
-    const emp = EmploymentApi.employmentOf(mara, BUSINESS);
+    const emp = mara.getEmployment(BUSINESS);
     expect(emp?.status).toBe('off-shift');
     expect(emp?.onShiftSince).toBeNull();
     expect(EmploymentApi.shiftStateOf(mara)).toBe('off-shift');
@@ -107,12 +107,12 @@ describe('EmploymentLogic.tickRoster', () => {
     atClock(2, 20);
     EmploymentApi.tickRoster();
     EmploymentApi.fire(biz, mara);
-    expect(EmploymentApi.employmentOf(mara, BUSINESS)?.status).toBe('fired');
+    expect(mara.getEmployment(BUSINESS)?.status).toBe('fired');
 
     // A tick during the on-shift window leaves the terminal status alone.
     atClock(2, 10);
     EmploymentApi.tickRoster();
-    expect(EmploymentApi.employmentOf(mara, BUSINESS)?.status).toBe('fired');
+    expect(mara.getEmployment(BUSINESS)?.status).toBe('fired');
   });
 
   it('is a no-op for an assignee that is not present', () => {

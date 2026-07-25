@@ -267,7 +267,10 @@ settings:
   # it ships in observe mode (logs what it WOULD cull, destructs nothing)
   # so the go-live memory profile can be measured before enforcement —
   # flip mode to `enforce` (re-read each sweep, no restart) to cull for
-  # real. The deferred game-time reset sweep will add `residency.reset.*`.
+  # real. The game-time reset (repop) sweep (`residency.reset.*`) is the
+  # eviction sibling — restorative-of-self over ResettableMixin, on the
+  # game clock; it ships in observe mode too (flip to enforce to repop for
+  # real). Only the general store's stock is wired today.
   # See docs/subsystems/residency.md.
   - key: residency.eviction.mode
     value: observe
@@ -275,6 +278,19 @@ settings:
     value: "60000"
   - key: residency.eviction.idleThresholdMs
     value: "1800000"
+  - key: residency.reset.mode
+    value: enforce
+  - key: residency.reset.intervalS
+    value: "3600"
+
+  # Retail — the general store. The per-consignor listing cap guards the
+  # shared consignment shelf (anti-grief, the withdrawal-quota sibling); the
+  # commission rate is the store's cut of a consignment sale (the remainder
+  # settles to the consignor). See docs/subsystems/retail.md.
+  - key: retail.consignment.listingCap
+    value: "5"
+  - key: retail.consignment.commissionRate
+    value: "0.15"
 
   # Materials-response — the response function's magnitudes (the "shape"
   # lives in code on `Construction`; these are the coefficients each
@@ -330,6 +346,15 @@ settings:
     value: "0.5"
   - key: response.band.biteMax
     value: "1.5"
+  # Heat channel (fire) — a covering attenuates heat by insulation:
+  # leather/padding turns a burn, plate conducts it. See docs/subsystems/
+  # materials-response.md + fire.md.
+  - key: response.heat.baseAttenuation
+    value: "0.9"
+  - key: response.heat.insulationRefConductivity
+    value: "2.0"
+  - key: response.heat.depthFactor
+    value: "0.1"
   # Electricity (the shock channel + conduction) — see
   # docs/subsystems/electricity.md. Real-world-grounded magnitudes: the
   # multimeter should read what coursework predicts. SHAPE (I=V/R, the
@@ -386,6 +411,12 @@ settings:
     value: "0.15"
   - key: combat.poise.whiffPenalty
     value: "0.25"
+  # Ambush (stealth build): the poise an unaware defender loses at the
+  # opening when struck from concealment. Poise starts at 1.0 and breaks at
+  # combat.poise.brokenAt (0.25); 0.85 drops it to 0.15 < 0.25, arming the
+  # opening — surprise denies the poise contest. See docs/subsystems/stealth.md.
+  - key: combat.ambush.poisePenalty
+    value: "0.85"
   - key: combat.tempo.base
     value: "1"
   - key: combat.tempo.encumbrancePenalty
@@ -519,6 +550,21 @@ settings:
     value: "2"
   - key: combat.dualWield.noviceGuardBonus
     value: "-0.3"
+  # Formations — the party-strategy layer (policy shape lives on the
+  # CombatFormation Ideas; these are the magnitudes).
+  # An interceptor already pressed by this many incoming edges is
+  # ineligible to take a redirect (a pinned front can't eat more).
+  - key: combat.formation.intercept.maxIncoming
+    value: "2"
+  # Master-Apprentice's `high-threat` trigger: the master steps in only
+  # when the protected apprentice's incoming edge count reaches this
+  # (below it, the apprentice fights their own fight).
+  - key: combat.formation.ma.highThreatEdges
+    value: "2"
+  # How long (real seconds) a captain-call coup is held awaiting
+  # `fight finish` before the fallen is spared (mercy by default).
+  - key: combat.formation.coup.directiveWindowSeconds
+    value: "12"
   # Concealment — effective-perception a viewer needs to notice a thing at
   # each concealed band (obvious = 0, no key). Monotone increasing. The band
   # names + ordering are code (lib/concealment/ConcealmentLevel.ts); these
@@ -560,6 +606,31 @@ settings:
     value: "4"
   - key: concealment.examineBonus
     value: "2"
+  # Stealth (hide) — the hider's derived concealment level (the actor-face,
+  # the opposed sibling of awareness/detection). score = stealth-rank ×
+  # competencePerBand + cover × coverWeight + darkness × lightWeight +
+  # stillnessBonus(low posture); mapped to a ConcealmentLevel band by the
+  # thresholds below. With competencePerBand=2 and band.hidden=4, a
+  # `competent`(rank 2) hider in a lit empty room reaches `hidden`(req 4):
+  # a competent-awareness watcher (capacity 6) perceives, a novice (3) does
+  # not. A score below band.subtle fails to conceal (obvious). See
+  # docs/subsystems/stealth.md.
+  - key: stealth.hide.competencePerBand
+    value: "2"
+  - key: stealth.hide.coverWeight
+    value: "1"
+  - key: stealth.hide.lightWeight
+    value: "1"
+  - key: stealth.hide.stillnessBonus
+    value: "1"
+  - key: stealth.hide.band.subtle
+    value: "0"
+  - key: stealth.hide.band.hidden
+    value: "4"
+  - key: stealth.hide.band.deep
+    value: "7"
+  - key: stealth.hide.band.buried
+    value: "10"
   # Hazards / traps (Phase 4). pinSeconds: a snare holds the body slot.
   # dropFallEnergy: the blunt a pit-fall adds on landing. disarmSeconds:
   # the hands-slot window to defuse a found trap. Per-trap wound energies
@@ -582,6 +653,19 @@ settings:
     value: "2"
   - key: movement.attention.run
     value: "-2"
+  # Motion-degrades (observer-side, the care↔speed sibling above): the
+  # concealment bands a move at each mode strips from a HIDING mover. sneak
+  # holds (0 — a careful crossing keeps cover); walk degrades one band
+  # (you're gradually exposed as you cross); run clears hiding outright (99
+  # → falls to obvious — you can't sprint and stay unseen). Applied at
+  # Mobile.traverse via PerceptionApi.motionExposure. See
+  # docs/subsystems/stealth.md.
+  - key: movement.concealment.sneak
+    value: "0"
+  - key: movement.concealment.walk
+    value: "1"
+  - key: movement.concealment.run
+    value: "99"
   # Wetness (weather Wave 2) — the per-object saturation gauge (0..1).
   # Drainage is reconcile-on-read (presence-frozen); accrual is pushed by
   # rain exposure / immersion. See docs/subsystems/weather.md.
@@ -628,3 +712,29 @@ settings:
   # Thermal (Wave 2 wet coupling) — a wet body loses heat faster.
   - key: thermal.wetHeatLossFactor
     value: "1.5"
+  # Fire (combustion driver) — see docs/subsystems/fire.md. SHAPE (the fire
+  # triangle, the energy balance) is code; these are the magnitudes.
+  - key: fire.burnRatePerMin
+    value: "0.5"
+  - key: fire.flameTemperatureK
+    value: "1000"
+  - key: fire.ignition.waterLatentHeatJPerKg
+    value: "2260000"
+  - key: fire.ignition.maxManualDryingK
+    value: "150"
+  - key: fire.tickIntervalSeconds
+    value: "30"
+  - key: fire.radiantJoulesPerTick
+    value: "700000"
+  - key: fire.crossBoundaryFraction
+    value: "0.4"
+  - key: fire.flameTemperatureIncompleteK
+    value: "750"
+  - key: fire.air.consumePerTick
+    value: "8"
+  - key: fire.air.replenishPerTick
+    value: "30"
+  - key: fire.air.completeThresholdPct
+    value: "40"
+  - key: respiration.contaminantBurdenPerBreath
+    value: "5"

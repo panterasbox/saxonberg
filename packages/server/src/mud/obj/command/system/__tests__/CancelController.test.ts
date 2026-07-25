@@ -99,7 +99,6 @@ class TestEngagement {
 }
 
 function makeEngagement(actor: TestActor, type: string): TestEngagement {
-  SchedulerApi.registerActivity(type, TestEngagement as never);
   return new TestEngagement(actor, type);
 }
 
@@ -125,7 +124,7 @@ describe('CancelController', () => {
     const b = makeEngagement(actor, 'reading');
     SchedulerApi.start(a as never);
     SchedulerApi.start(b as never);
-    expect(SchedulerApi.getEngagements(actor).length).toBe(2);
+    expect(actor.getEngagements().length).toBe(2);
 
     const controller = makeStuff(() => new CancelController());
     const ctx = makeContext(actor, loc);
@@ -134,7 +133,7 @@ describe('CancelController', () => {
       ctx,
     );
 
-    expect(SchedulerApi.getEngagements(actor).length).toBe(0);
+    expect(actor.getEngagements().length).toBe(0);
     expect(ctx.getStatus()).toBe('ok');
   });
 
@@ -155,8 +154,8 @@ describe('CancelController', () => {
       ctx,
     );
 
-    expect(SchedulerApi.getEngagementBySlot(actor, 'body')).toBeUndefined();
-    expect(SchedulerApi.getEngagementBySlot(actor, 'attention')).toBe(
+    expect(actor.getEngagementBySlot('body')).toBeUndefined();
+    expect(actor.getEngagementBySlot('attention')).toBe(
       b as never,
     );
   });

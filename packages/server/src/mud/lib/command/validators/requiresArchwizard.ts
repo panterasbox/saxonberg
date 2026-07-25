@@ -12,11 +12,19 @@
 import type { CommandValidator } from '../../../api/command';
 import { AccessApi } from '../../../api/access';
 
-const validator: CommandValidator<boolean> = (context, allowed) => {
+// Split declaration: the annotated body const gives the arrow its
+// contextual typing; `Object.assign` in the initializer keeps the
+// whole thing a pure declaration (no free-standing module-scope
+// statement). The preload rides the validator function as a
+// property, same shape as before.
+const body: CommandValidator<boolean> = (context, allowed) => {
   if (allowed) return undefined;
   return `you don't have permission to ${context.verb}`;
 };
-
-validator.preload = (context) => AccessApi.isArchwizard(context.commandGiver);
+const preload: NonNullable<CommandValidator<boolean>['preload']> =
+  (context) => AccessApi.isArchwizard(context.commandGiver);
+const validator: CommandValidator<boolean> = Object.assign(body, {
+  preload,
+});
 
 export default validator;

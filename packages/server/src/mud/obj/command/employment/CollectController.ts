@@ -58,7 +58,7 @@ export default class CollectController extends CommandController<CollectModel> {
     }
 
     let took = 0;
-    for (const c of [...ContainmentApi.getContents(jar)]) {
+    for (const c of [...jar.getContents()]) {
       if (c instanceof Coin) {
         took += c.getQuantity();
         ContainmentApi.move(c, giver as Stuff & Container);

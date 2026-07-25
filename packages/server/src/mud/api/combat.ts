@@ -18,18 +18,18 @@ import type { Stuff } from "../lib/stuff/Stuff";
 import type { Engaged } from "../lib/activity/Engaged";
 import type { CombatSession } from "../lib/combat/CombatSession";
 import type { CombatTerms } from "../lib/combat/CombatTerms";
-import type CombatAttributionEvent from "../lib/combat/CombatAttributionEvent";
-import type { BlameVerdict } from "../lib/combat/CombatAttributionEvent";
+import type AccountabilityEvent from "../lib/accountability/AccountabilityEvent";
+import type { BlameVerdict } from "../lib/accountability/AccountabilityEvent";
 import type { CompetenceBandName } from "../lib/advancement/CompetenceBand";
 import type { WeaponProfile } from "../lib/combat/WeaponProfile";
 import type { RangeState } from "../lib/combat/CombatGraph";
 
-export type { BlameVerdict } from "../lib/combat/CombatAttributionEvent";
-import { SecurityApi } from "./security";
+export type { BlameVerdict } from "../lib/accountability/AccountabilityEvent";
 import { StuffApi } from "./stuff";
 import { HotReloadApi } from "./hot-reload";
 import { CombatLogic } from "../obj/api/CombatLogic";
 import { fileURLToPath } from "url";
+import { SecurityApi } from './security';
 
 /** Result of opening a session. */
 export type OpenSessionResult =
@@ -45,6 +45,17 @@ export type OpenSessionResult =
  */
 export interface CombatOpenOptions {
   competenceBands?: Map<string, CompetenceBandName>;
+  /**
+   * The opening was an **ambush** — struck from concealment the defender
+   * did not perceive. Surprise **denies the opening poise contest**: the
+   * defender starts broken/open (a `combat.ambush.poisePenalty` drop that
+   * arms the aggressor's free first exchange). Resolved by the attacker's
+   * controller (`hiding && !perceives(defender, attacker)`); consumed only
+   * when a *fresh* session opens (a target already fighting isn't
+   * ambushed). Not a damage multiplier — the exchange still routes through
+   * `ConditionApi.inflict`; the "crit" is the earned open window.
+   */
+  ambush?: boolean;
 }
 
 /** The tactical read `assess` returns while a fight is live. */
@@ -64,6 +75,20 @@ export interface CombatAssessResult {
   armed?: boolean;
   /** The opponent's condition band, competence-gated. */
   conditionBand?: string;
+}
+
+/**
+ * The actor's own formation standing (total — a solo actor reads the
+ * default formation, no role): the preset name, the actor's assigned
+ * role, and whether that role is a protector (interceptor) role. Powers
+ * the `fight` status lines and the combatant brain's protector bias.
+ * Deliberately says nothing about the ENEMY's formation (the fog
+ * non-goal — reading the opposing preset is a deferred `assess` face).
+ */
+export interface FormationStanding {
+  formation: string;
+  role: string;
+  protector: boolean;
 }
 
 /**
@@ -181,7 +206,7 @@ export class CombatApi {
   /** Every attribution row for a fight (read/analytics; ordered by realAt). */
   public static attributionFor(
     sessionId: string,
-  ): Promise<CombatAttributionEvent[]> {
+  ): Promise<AccountabilityEvent[]> {
     return logic().attributionFor(sessionId);
   }
 
@@ -192,6 +217,17 @@ export class CombatApi {
    */
   public static intervene(actor: Stuff, target: Stuff): boolean {
     return logic().intervene(actor, target);
+  }
+
+  /**
+   * The captain's execution directive (`fight finish`): release a coup
+   * **held** under a `coupCall: 'captain'` formation in the captain's
+   * room. The directive is recorded on the death row (`directedBy`) — a
+   * directed formation implies command responsibility. A held coup the
+   * captain never orders expires spared (mercy by default).
+   */
+  public static orderCoup(captain: Stuff): { ok: boolean; reason?: string } {
+    return logic().orderCoup(captain);
   }
 
   /**
@@ -252,6 +288,16 @@ export class CombatApi {
    */
   public static rangeStanding(actor: Stuff): RangeStanding | null {
     return logic().rangeStanding(actor);
+  }
+
+  /**
+   * The actor's own formation standing (preset + role + protector flag) —
+   * total, never null; a partyless actor reads the default formation.
+   * The `fight` status lines and the combatant brain's protector bias
+   * consume this; the enemy's formation is deliberately not readable.
+   */
+  public static formationStandingOf(actor: Stuff): FormationStanding {
+    return logic().formationStandingOf(actor);
   }
 
   /**

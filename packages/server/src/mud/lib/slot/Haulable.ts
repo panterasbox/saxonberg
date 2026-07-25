@@ -36,7 +36,6 @@ import type { LocomotionMode } from '../locomotion/LocomotionMode';
 import type { Hauler } from './Hauler';
 import { LocomotionApi } from '../../api/locomotion';
 import { MixinApi } from '../../api/mixin';
-import { ContainmentApi } from '../../api/containment';
 
 /** Recursion guard for the contents weigh (matches the burden walk). */
 const HAUL_MAX_DEPTH = 16;
@@ -66,7 +65,7 @@ function weighSubtree(
     const childTransmission =
       transmission *
       (item instanceof Vessel ? item.getTransmissionFactor() : 1.0);
-    for (const child of ContainmentApi.getContents(item)) {
+    for (const child of item.getContents()) {
       contribution += weighSubtree(child, childTransmission, depth + 1, visited);
     }
   }
@@ -77,7 +76,7 @@ function weighSubtree(
 function weighContents(container: Stuff & Container): number {
   const visited = new Set<string>();
   let total = 0;
-  for (const child of ContainmentApi.getContents(container)) {
+  for (const child of container.getContents()) {
     total += weighSubtree(child, 1.0, 0, visited);
   }
   return total;

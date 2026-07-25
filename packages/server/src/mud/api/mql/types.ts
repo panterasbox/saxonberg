@@ -39,7 +39,21 @@ import type { Unit } from '../../lib/quantity';
  *   details, environment, exits) to score query candidates.
  */
 export interface MqlContext {
-  commandGiver: Stuff & CommandGiver;
+  /**
+   * The viewer the query resolves for — perception (honest fog),
+   * recognition-relative naming, and the giver-anchored seeds
+   * (`me`/`here`/`peers`/`reachable`/`inventory`) all key off it.
+   *
+   * `null` is the **code-only system mode** (the `attention`
+   * precedent — the command dispatcher always sets a giver, so
+   * player-typed MQL can never reach it): a viewer-blind enumeration
+   * for engine mechanics (registry sweeps, fixture indexes). Under a
+   * null giver only the viewer-free seeds resolve (`world`, path
+   * globs, `#id`, `online`); giver-anchored seeds and bareword
+   * predicates throw, candidates emit with baseline names and no
+   * perception gate.
+   */
+  commandGiver: (Stuff & CommandGiver) | null;
   scope: string;
   /**
    * Precomputed permission snapshot stamped by the command dispatcher
@@ -58,6 +72,20 @@ export interface MqlContext {
     isAuthor: boolean;
     coreMemberIds?: ReadonlySet<string>;
   };
+  /**
+   * The perception attention the scope-walk resolves concealed candidates
+   * at — the `PerceptionApi.perceives` gate's attention term. A **code-only**
+   * field: the command dispatcher never sets it, so player-typed MQL always
+   * resolves at the passive baseline and honest fog is unchanged. Only
+   * in-code callers opt in — a detection consumer (the `wary` sentry brain)
+   * passes its active `alertness` so `peers:living` enumerates the creatures
+   * it perceives *when actively watching*, not merely what a passing glance
+   * would catch. Absent → the passive baseline (byte-identical to prior
+   * behavior). Applies to direct-seed resolution (`peers` / `reachable` /
+   * `here` / `inventory` / `online` / `world`) and their mid-chain
+   * element-derived forms.
+   */
+  attention?: number;
 }
 
 /**

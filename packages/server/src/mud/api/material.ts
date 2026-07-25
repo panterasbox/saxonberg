@@ -2,10 +2,8 @@
  * MaterialApi — facade for material-world queries on any Stuff.
  *
  * The "material world" counterpart to ZoneApi/ContainmentApi on the
- * spatial side. Today the API houses two clusters:
+ * spatial side. Today the API houses one cluster:
  *
- *   - **Per-Stuff lookup** (`materialOf`) — bulk + per-Detail material
- *     resolution with `Tangible` narrowing.
  *   - **Per-Material classification queries** (`compositionOf`,
  *     `containsElement`, `findByTag`, `findByElement`) — educational
  *     surfaces that walk a material's tags / composition / chemistry
@@ -25,19 +23,18 @@
  * `StuffApi.singletonSync`. `dest /obj/api/material` reloads it.
  */
 
-import type { Stuff } from '../lib/stuff/Stuff';
 import type Material from '../lib/material/Material';
 import type { CompositionEntry } from '../lib/material/Material';
-import type { Channel, MechanicalChannel } from '../lib/material/Channel';
+import type { Channel } from '../lib/material/Channel';
 import type { Construction } from '../lib/material/Construction';
 import type { Grade } from '../lib/craft/Grade';
 import type { TraumaType } from '../lib/vitals/Condition';
 import type { Quantity } from '../lib/quantity';
 import { StuffApi } from './stuff';
 import { HotReloadApi } from './hot-reload';
-import { SecurityApi } from './security';
 import { MaterialLogic } from '../obj/api/MaterialLogic';
 import { fileURLToPath } from 'url';
+import { SecurityApi } from './security';
 
 // kg + kg/m³ tag tables live in `mud/config/quantity-tags.yaml`
 // and load at boot via `QuantityApi.loadTagTables`. Material doesn't
@@ -114,21 +111,9 @@ export interface TraumaResolution {
 }
 
 export class MaterialApi {
-  /**
-   * Resolve the Material at `detailKey`, falling through to the bulk
-   * default when no per-Detail override is set. Omit `detailKey` to
-   * read the bulk default directly. Returns `null` when `stuff` is
-   * not Tangible (or is Tangible but unset).
-   *
-   * Sync; threads through `Tangible.getMaterial`, which uses
-   * `findByTemplatePath` for HMR safety.
-   */
-  public static materialOf(
-    stuff: Stuff,
-    detailKey?: string
-  ): Material | null {
-    return logic().materialOf(stuff, detailKey);
-  }
+  // The `materialOf` read-wrapper was removed: the read lives on the
+  // object itself — narrow with `MixinApi.isTangible(stuff)` and call
+  // `stuff.getMaterial(detailKey)` directly.
 
   /**
    * Recursively expand `material`'s composition. `direct` is one
@@ -252,24 +237,7 @@ export class MaterialApi {
     return logic().severityToBand(severity);
   }
 
-  /** The channels a weapon-delivery construction can present (primary first);
-   * empty for an armor form. Only mechanical channels — shock delivery is a
-   * source capability, never a weapon form. */
-  public static deliverableChannels(
-    construction: Construction,
-  ): MechanicalChannel[] {
-    return logic().deliverableChannels(construction);
-  }
-
-  /** The single primary channel a weapon-delivery construction delivers, or
-   * `null`. Mechanical only. */
-  public static primaryChannel(
-    construction: Construction,
-  ): MechanicalChannel | null {
-    return logic().primaryChannel(construction);
-  }
-
-  // ---------- electricity (the Ohm's-law circuit primitives) ----------
+      // ---------- electricity (the Ohm's-law circuit primitives) ----------
 
   /**
    * `I = V/R` — the current through a path. The honest, scale-invariant

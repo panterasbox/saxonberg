@@ -20,7 +20,6 @@ import type { Builds } from "../../../lib/craft/ManualBuild";
 import { MixinApi } from "../../../api/mixin";
 import { MessageApi } from "../../../api/message";
 import { Mml } from "../../../api/mml";
-import { ContainmentApi } from "../../../api/containment";
 import { SchedulerApi } from "../../../api/scheduler";
 import { ManualBuildStep } from "../../../lib/craft/ManualBuildStep";
 
@@ -109,12 +108,12 @@ export abstract class ManualBuildController<
   protected findBuildVessel(giver: Stuff): (Stuff & Builds) | null {
     const candidates: Stuff[] = [];
     if (MixinApi.isContainer(giver)) {
-      candidates.push(...ContainmentApi.getContents(giver));
+      candidates.push(...giver.getContents());
     }
     if (MixinApi.isContainable(giver)) {
-      const loc = ContainmentApi.getContainer(giver);
+      const loc = giver.getContainer();
       if (loc && MixinApi.isContainer(loc)) {
-        candidates.push(...ContainmentApi.getContents(loc));
+        candidates.push(...loc.getContents());
       }
     }
     for (const c of candidates) {

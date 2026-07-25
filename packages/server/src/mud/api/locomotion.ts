@@ -29,9 +29,9 @@ import type {
 import type { Enablement } from '../lib/locomotion/Enablement';
 import { StuffApi } from './stuff';
 import { HotReloadApi } from './hot-reload';
-import { SecurityApi } from './security';
 import { LocomotionLogic } from '../obj/api/LocomotionLogic';
 import { fileURLToPath } from 'url';
+import { SecurityApi } from './security';
 
 // Author-surface types ride this face (type-only re-exports — weightless).
 export type {
@@ -284,16 +284,6 @@ export class LocomotionApi {
     return logic().eligibleModes(actor);
   }
 
-  // ── engaged-mode introspection (untyped-safe) ────────────────────
-
-  /**
-   * Type-safe convenience for non-Mobile callers ("what mode is X
-   * engaged in, if any?"). Returns `null` for non-Mobile Stuff.
-   */
-  public static engagedMode(actor: Stuff): LocomotionMode | null {
-    return logic().engagedMode(actor);
-  }
-
   // ── engagement lifecycle ─────────────────────────────────────────
 
   /**
@@ -348,7 +338,8 @@ export class LocomotionApi {
    *
    * `ShellApi.resolveSetting('movement.defaultMode')` is deliberately
    * NOT used — its built-in schema-default fallback to `'walk'` would
-   * short-circuit the bodyplan layer. `ShellApi.ownSetting` returns the
+   * short-circuit the bodyplan layer. the giver's own explicit `movement.defaultMode` override (via
+   * `Environment.getOwnSetting`) returns the
    * explicit override only.
    */
   public static defaultModeFor(actor: Stuff): string {

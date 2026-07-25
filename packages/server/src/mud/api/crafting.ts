@@ -27,9 +27,9 @@ import type { Grade } from '../lib/craft/Grade';
 import type { BuildContribution, BuildMethod } from '../lib/craft/ManualBuild';
 import { StuffApi } from './stuff';
 import { HotReloadApi } from './hot-reload';
-import { SecurityApi } from './security';
 import { CraftingLogic } from '../obj/api/CraftingLogic';
 import { fileURLToPath } from 'url';
+import { SecurityApi } from './security';
 
 /**
  * How the output's maker is resolved — an enum, never a principal:

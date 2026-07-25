@@ -36,18 +36,20 @@ import { Quantity } from "../../src/mud/lib/quantity";
 import type { Stuff } from "../../src/mud/lib/stuff/Stuff";
 import type { Engaged } from "../../src/mud/lib/activity/Engaged";
 import type { CompetenceBandName } from "../../src/mud/lib/advancement/CompetenceBand";
-import {
-  COMBAT_PARTICIPANT_TYPE,
-  CombatParticipantHold,
-} from "../../src/mud/lib/combat/CombatSession";
 import EventRegistry from "../../src/mud/obj/EventRegistry";
 import { EventApi } from "../../src/mud/api/event";
 import {
   runMatchup,
   runMatrix,
+  runPartyMatchup,
   Policies,
   type GymSide,
+  type GymPartyFighter,
 } from "../combat-gym";
+import { PartyMemberMixin } from "../../src/mud/lib/party/PartyMember";
+import { Party } from "../../src/mud/lib/party/Party";
+import { CombatFormation } from "../../src/mud/lib/combat/CombatFormation";
+import { ProxyApi } from "../../src/mud/api/proxy";
 
 class TestRoom extends ContainerMixin(Idea) {}
 class GymFighter extends Character {}
@@ -86,6 +88,7 @@ export const Loadouts: Record<string, GymLoadout> = {
 function makeFighter(
   room: TestRoom,
   loadout: GymLoadout = Loadouts.sword!,
+  ctor: new () => GymFighter = GymFighter,
 ): Stuff & Engaged {
   const id = seq++;
   const plan = makeStuff(() => new BodyPlan());
@@ -120,7 +123,7 @@ function makeFighter(
   species.setBodyPlan(plan);
   stampTemplatePathForTest(species, `/lib/species/test/gym-${id}`);
 
-  const f = makeStuff(() => new GymFighter());
+  const f = makeStuff(() => new ctor());
   stampTemplatePathForTest(f, `/test/gym-fighter-${id}`);
   f.setSpecies(species);
   ContainmentApi.move(f as never, room as never);
@@ -167,7 +170,6 @@ function side(
 function resetState(): void {
   StuffApi.clearAll();
   SchedulerApi._clearAllForTesting();
-  SchedulerApi.registerActivity(COMBAT_PARTICIPANT_TYPE, CombatParticipantHold);
   const reg = makeStuff(() => new EventRegistry());
   stampTemplatePathForTest(reg, "/obj/EventRegistry");
   StuffApi.unregister(reg);
@@ -194,7 +196,6 @@ beforeEach(async () => {
   installV1QuantityMarshallers();
   StuffApi.clearAll();
   SchedulerApi._clearAllForTesting();
-  SchedulerApi.registerActivity(COMBAT_PARTICIPANT_TYPE, CombatParticipantHold);
   await bootRegistry();
 });
 
@@ -324,5 +325,335 @@ describe("combat-gym — weapon × allocation matrix", () => {
     // result) — no strictly-dominant weapon.
     const distinctOutcomes = new Set(results.map((r) => r.winner));
     expect(distinctOutcomes.size).toBeGreaterThanOrEqual(2);
+  });
+});
+
+describe("combat-gym — the pinned regression (canonical outcomes)", () => {
+  // The byte-parity pin for the combat-formations build: these exact
+  // winners + beat counts are the canonical pre-formation outcomes,
+  // captured on origin/master before the formation substrate landed. A
+  // side with no chosen formation resolves to the default preset, which
+  // must byte-preserve this behavior — any drift here is a formation
+  // regression, not a rebalance. (The accountability-migration pin
+  // precedent.)
+  const PINS: Array<{
+    label: string;
+    a: () => GymSide;
+    b: () => GymSide;
+    winner: "A" | "B" | "draw";
+    beats: number;
+  }> = [
+    {
+      label: "feinter-vs-turtle@untrained",
+      a: () => side("feinter", Policies.feinter, "untrained"),
+      b: () => side("turtle", Policies.turtle, "untrained"),
+      winner: "draw",
+      beats: 201,
+    },
+    {
+      label: "brain-vs-brain@competent",
+      a: () => side("brain", Policies.brain, "competent"),
+      b: () => side("brain", Policies.brain, "competent"),
+      winner: "A",
+      beats: 21,
+    },
+    {
+      label: "spear-vs-dagger@competent",
+      a: () => side("spear", Policies.brain, "competent", Loadouts.spear!),
+      b: () => side("dagger", Policies.brain, "competent", Loadouts.dagger!),
+      winner: "draw",
+      beats: 201,
+    },
+    {
+      label: "swordshield-vs-mace@competent",
+      a: () => side("ss", Policies.brain, "competent", Loadouts.swordShield!),
+      b: () => side("mace", Policies.brain, "competent", Loadouts.mace!),
+      winner: "A",
+      beats: 21,
+    },
+  ];
+
+  for (const pin of PINS) {
+    it(`pinned: ${pin.label} → ${pin.winner} in ${pin.beats} beats`, () => {
+      const r = runMatchup(pin.a(), pin.b(), 400, resetState);
+      expect(r.winner).toBe(pin.winner);
+      expect(r.beats).toBe(pin.beats);
+    });
+  }
+});
+
+/* ─────────────── the formations matrix (combat-formations build) ─────────────── */
+
+class GymCrewFighter extends PartyMemberMixin(GymFighter) {}
+
+/** The preset shapes the cells wire resident (mirrored from
+ * seeds/lib/combat/CombatFormation/ — the seed↔DEFAULT_POLICY pin lives
+ * in CombatFormation.test). */
+const FORMATION_SHAPES: Record<
+  string,
+  Partial<{
+    roles: string[];
+    allocation: "sustain" | "called" | "primary";
+    primaryRole: string;
+    protects: string[];
+    interceptors: string[];
+    trigger: "none" | "any" | "high-threat";
+    coupRight: string;
+    coupCall: "engaged" | "captain";
+  }>
+> = {
+  default: {},
+  "focus-fire": { allocation: "called", coupCall: "captain" },
+  vanguard: {
+    roles: ["front", "back"],
+    protects: ["back"],
+    interceptors: ["front"],
+    trigger: "any",
+  },
+  "master-apprentice": {
+    roles: ["master", "apprentice"],
+    allocation: "primary",
+    primaryRole: "apprentice",
+    protects: ["apprentice"],
+    interceptors: ["master"],
+    trigger: "high-threat",
+    coupRight: "apprentice",
+    coupCall: "captain",
+  },
+};
+
+let crewSeq = 0;
+
+/** Make a formation preset resident + wire `members` into a raw party
+ * running it (`roles` maps member index → role; captain = index 0). The
+ * sanctioned raw test seam — party mechanics live in PartyLogic.test. */
+function wireFormation(
+  members: (Stuff & Engaged)[],
+  formation: string,
+  roles: Record<number, string> = {},
+): void {
+  const shape = FORMATION_SHAPES[formation]!;
+  const path = `/lib/combat/CombatFormation/${formation}`;
+  // Reuse a preset already resident this cell (two wired parties may
+  // share one — a second stamp would break the singleton index).
+  let resident: unknown;
+  try {
+    resident = StuffApi.findByTemplatePath(path);
+  } catch {
+    resident = undefined;
+  }
+  if (!resident) {
+    const f = makeStuff(() => new CombatFormation());
+    f.setName(formation);
+    if (shape.roles?.length) f.setRoles([...shape.roles]);
+    if (shape.allocation) f.setAllocation(shape.allocation);
+    if (shape.primaryRole) f.setPrimaryRole(shape.primaryRole);
+    if (shape.protects?.length) f.setProtectsRoles([...shape.protects]);
+    if (shape.interceptors?.length) {
+      f.setInterceptorRoles([...shape.interceptors]);
+    }
+    if (shape.trigger) f.setInterceptTrigger(shape.trigger);
+    if (shape.coupRight) f.setCoupRight(shape.coupRight);
+    if (shape.coupCall) f.setCoupCall(shape.coupCall);
+    stampTemplatePathForTest(f, path);
+  }
+
+  const p = makeStuff(() => new Party());
+  stampTemplatePathForTest(p, `/obj/party/gym-crew-${crewSeq++}`);
+  const raw = ProxyApi.unwrap(p) as Party;
+  raw.setName(`gym-crew-${crewSeq++}`);
+  // A distinct side per party — two wired parties must stay foes.
+  raw.setCombatSide(`faction:gym-crew-${crewSeq++}`);
+  for (const m of members) raw.addMember(m.getTemplatePath()!);
+  raw.setCaptainId(members[0]!.getTemplatePath()!);
+  raw.setFormationPath(path);
+  for (const [idx, role] of Object.entries(roles)) {
+    raw.assignRole(members[Number(idx)]!.getTemplatePath()!, role);
+  }
+  for (const m of members) {
+    (m as unknown as { activePartyPath: string }).activePartyPath =
+      p.getTemplatePath()!;
+  }
+}
+
+/** A crew-capable gym fighter with a real body mass (an authored weapon
+ * mass against a massless body floors tempo at minRate — nobody swings).
+ * Each cell's fighters share one room (built lazily after the reset). */
+let crewRoom: TestRoom | null = null;
+function crew(
+  label: string,
+  band?: CompetenceBandName,
+  joinOnto?: number,
+): GymPartyFighter {
+  return {
+    label,
+    policy: Policies.brain,
+    band,
+    joinOnto,
+    make: () => {
+      crewRoom ??= makeStuff(() => new TestRoom());
+      const f = makeFighter(
+        crewRoom,
+        Loadouts.sword!,
+        GymCrewFighter,
+      ) as unknown as { setMass(q: unknown): void };
+      f.setMass(Quantity.of(80, "kg"));
+      return f as unknown as ReturnType<GymPartyFighter["make"]>;
+    },
+  };
+}
+
+function resetCrewCell(): void {
+  resetState();
+  crewRoom = null;
+}
+
+describe("combat-gym — the formations matrix", () => {
+  it("a party that never chose fights byte-identically to no party at all", () => {
+    // Same crew-class fighters; the only variable is a party (with no
+    // chosen formation) around side A — the default rung of the total
+    // chain must not move the trace.
+    const cell = (withParty: boolean) =>
+      runPartyMatchup(
+        { fighters: [crew("a", "competent")] },
+        { fighters: [crew("b", "competent")] },
+        400,
+        resetCrewCell,
+        (aF) => {
+          if (withParty) wireFormation(aF, "default");
+        },
+      );
+    const bare = cell(false);
+    const partied = cell(true);
+    expect(partied.winner).toBe(bare.winner);
+    expect(partied.beats).toBe(bare.beats);
+  });
+
+  it("focus-fire convergence: the called side bursts the called target faster than default", () => {
+    // 2v2, split entry topology (the ally enters against foe2) — under
+    // `called` the ally converges on the captain's target anyway.
+    const cell = (formation: string) =>
+      runPartyMatchup(
+        {
+          fighters: [crew("cap", "competent"), crew("ally", "competent", 1)],
+        },
+        {
+          fighters: [crew("foe1", "competent"), crew("foe2", "competent")],
+        },
+        400,
+        resetCrewCell,
+        (aF, bF) => {
+          wireFormation(aF, formation);
+          wireFormation(bF, "default");
+        },
+      );
+    const focus = cell("focus-fire");
+    const dflt = cell("default");
+    // The called target (the captain's opening engagement) is the one
+    // burst down, and strictly sooner than the split-pressure default.
+    expect(focus.winner).toBe("A");
+    expect(focus.downs["foe1"]).toBe(true);
+    expect(focus.beats).toBeLessThan(dflt.beats);
+  });
+
+  it("vanguard: the back line is never the one who falls", () => {
+    const r = runPartyMatchup(
+      {
+        fighters: [crew("back", "competent"), crew("front", "competent")],
+      },
+      {
+        fighters: [crew("foe1", "competent"), crew("foe2", "competent")],
+      },
+      400,
+      resetCrewCell,
+      (aF, bF) => {
+        wireFormation(aF, "vanguard", { 0: "back", 1: "front" });
+        wireFormation(bF, "default");
+      },
+    );
+    // Every edge that lands on the back is intercepted to the front — the
+    // back cannot be the first down, whoever wins.
+    expect(r.downs["back"]).toBe(false);
+  });
+
+  it("MA emergent: with the master, the apprentice survives a foe they cannot beat alone", () => {
+    // The canonical mentorship hunt: an outclassing foe TAKES the fight
+    // to the apprentice (initiative held constant across this pair of
+    // cells); the master alongside creates ally-exploitable openings —
+    // sustainable purely because competence sets the exchange rate. No
+    // reward knobs anywhere.
+    const r = runPartyMatchup(
+      { fighters: [crew("foe", "expert")] },
+      {
+        fighters: [
+          crew("apprentice", "untrained"),
+          crew("master", "expert"),
+        ],
+      },
+      400,
+      resetCrewCell,
+      (_aF, bF) =>
+        wireFormation(bF, "master-apprentice", {
+          0: "apprentice",
+          1: "master",
+        }),
+    );
+    expect(r.winner).toBe("B");
+    expect(r.downs["apprentice"]).toBe(false);
+  });
+
+  it("MA emergent: the same apprentice UNASSISTED falls to that foe", () => {
+    // The contrast cell: mentorship is access to a fight you cannot yet
+    // survive alone — remove the master and the same apprentice falls.
+    const r = runPartyMatchup(
+      { fighters: [crew("foe", "expert")] },
+      { fighters: [crew("apprentice", "untrained")] },
+      400,
+      resetCrewCell,
+      (_aF, bF) =>
+        wireFormation(bF, "master-apprentice", { 0: "apprentice" }),
+    );
+    expect(r.winner).toBe("A");
+    expect(r.downs["apprentice"]).toBe(true);
+  });
+
+  it("MA emergent: solo-under-MA (vacant roles) is just a losing 1v2", () => {
+    const r = runPartyMatchup(
+      { fighters: [crew("solo", "untrained")] },
+      {
+        fighters: [crew("foe1", "competent"), crew("foe2", "competent")],
+      },
+      400,
+      resetCrewCell,
+      (aF, bF) => {
+        wireFormation(aF, "master-apprentice");
+        wireFormation(bF, "default");
+      },
+    );
+    expect(r.winner).toBe("B");
+    expect(r.downs["solo"]).toBe(true);
+  });
+
+  it("a formation cell is bit-for-bit reproducible", () => {
+    const cell = () =>
+      runPartyMatchup(
+        {
+          fighters: [crew("back", "competent"), crew("front", "competent")],
+        },
+        {
+          fighters: [crew("foe1", "competent"), crew("foe2", "competent")],
+        },
+        400,
+        resetCrewCell,
+        (aF, bF) => {
+          wireFormation(aF, "vanguard", { 0: "back", 1: "front" });
+          wireFormation(bF, "default");
+        },
+      );
+    const r1 = cell();
+    const r2 = cell();
+    expect(r2.winner).toBe(r1.winner);
+    expect(r2.beats).toBe(r1.beats);
+    expect(r2.downs).toEqual(r1.downs);
   });
 });

@@ -8,7 +8,6 @@ import type { Stuff } from '../../lib/stuff/Stuff';
 import { MixinApi } from '../../api/mixin';
 import { MaterialApi } from '../../api/material';
 import { ConditionApi } from '../../api/condition';
-import { ContainmentApi } from '../../api/containment';
 import { AppApi } from '../../api/app';
 import { AppSettingKeys } from '../../lib/config/AppSettings';
 import { Quantity } from '../../lib/quantity';
@@ -116,7 +115,7 @@ function zeroAmps(): Quantity<'A'> {
 /** The location a conduction event resolves within — the node's container. */
 function roomForConduction(node: Stuff): Stuff | null {
   if (!MixinApi.isContainable(node)) return null;
-  return (ContainmentApi.getContainer(node) as Stuff | null) ?? null;
+  return (node.getContainer() as Stuff | null) ?? null;
 }
 
 /**
@@ -138,7 +137,8 @@ interface ConductiveGraph {
 function buildConductiveGraph(room: Stuff): ConductiveGraph {
   const floor = findFloor(room);
   const poolMat = floor ? conductivePoolOf(floor) : null;
-  const floorMat = floor ? MaterialApi.materialOf(floor) : null;
+  const floorMat =
+    floor && MixinApi.isTangible(floor) ? floor.getMaterial() : null;
   const poolMin = dial(AppSettingKeys.electricityPoolMinConductivity, 0.005);
   const sources: Array<Stuff & Energized> = [];
   for (const occ of contentsOf(room)) {
@@ -159,7 +159,7 @@ function buildConductiveGraph(room: Stuff): ConductiveGraph {
 
 function contentsOf(room: Stuff): Stuff[] {
   if (!MixinApi.isContainer(room)) return [];
-  return ContainmentApi.getContents(room) as unknown as Stuff[];
+  return room.getContents() as unknown as Stuff[];
 }
 
 /** The room's ground node — a fixture (or content) carrying a surface bulk
@@ -226,7 +226,7 @@ function groundContactInsulated(body: Stuff): boolean {
     for (const spec of plan.getSlotsCovering(part)) {
       for (const occ of body.getOccupants(spec.name)) {
         if (!MixinApi.isWearable(occ)) continue;
-        const mat = MaterialApi.materialOf(occ);
+        const mat = MixinApi.isTangible(occ) ? occ.getMaterial() : null;
         if (
           mat &&
           mat.getElectricalConductivity().rawValue() <= insulatorMax
@@ -254,7 +254,7 @@ function restsOnRaised(body: Stuff, graph: ConductiveGraph): boolean {
  * conductively-shod, not on a raised surface)? */
 function immersedInFloorMedium(body: Stuff, graph: ConductiveGraph): boolean {
   if (!MixinApi.isContainable(body)) return false;
-  if ((ContainmentApi.getContainer(body) as Stuff | null) !== graph.room) {
+  if ((body.getContainer() as Stuff | null) !== graph.room) {
     return false;
   }
   if (restsOnRaised(body, graph)) return false;
@@ -265,7 +265,7 @@ function immersedInFloorMedium(body: Stuff, graph: ConductiveGraph): boolean {
 /** Is a source lying in the room's floor medium (the wire in the water)? */
 function sourceInFloorMedium(source: Stuff, graph: ConductiveGraph): boolean {
   if (!MixinApi.isContainable(source)) return false;
-  return (ContainmentApi.getContainer(source) as Stuff | null) === graph.room;
+  return (source.getContainer() as Stuff | null) === graph.room;
 }
 
 /**
@@ -301,8 +301,8 @@ function touchesDirectly(body: Stuff, source: Stuff): boolean {
   if (!MixinApi.isContainable(body) || !MixinApi.isContainable(source)) {
     return false;
   }
-  const bodyContainer = ContainmentApi.getContainer(body) as Stuff | null;
-  const sourceContainer = ContainmentApi.getContainer(source) as Stuff | null;
+  const bodyContainer = body.getContainer() as Stuff | null;
+  const sourceContainer = source.getContainer() as Stuff | null;
   return bodyContainer === source || sourceContainer === body;
 }
 
@@ -312,7 +312,7 @@ function groundPath(body: Stuff, graph: ConductiveGraph): boolean {
   if (!MixinApi.isContainable(body)) return false;
   if (groundContactInsulated(body)) return false;
   if (restsOnRaised(body, graph)) return false;
-  if ((ContainmentApi.getContainer(body) as Stuff | null) !== graph.room) {
+  if ((body.getContainer() as Stuff | null) !== graph.room) {
     return false;
   }
   return graph.poolConducts || graph.floorConducts;
@@ -389,7 +389,7 @@ function wornConstructedMaterials(body: Stuff): Array<Material | null> {
   for (const slot of plan.getSlots()) {
     for (const occ of body.getOccupants(slot.name)) {
       if (!MixinApi.isConstructed(occ) || !MixinApi.isWearable(occ)) continue;
-      mats.push(MaterialApi.materialOf(occ));
+      mats.push(MixinApi.isTangible(occ) ? occ.getMaterial() : null);
     }
   }
   return mats;
@@ -416,7 +416,7 @@ function divideCurrent(
 
   const wet = isWet(victim, graph);
   const bodyR = MaterialApi.bodyResistance(
-    MaterialApi.materialOf(victim),
+    MixinApi.isTangible(victim) ? victim.getMaterial() : null,
     wet,
   ).rawValue();
   const rPath = Quantity.of(pathResistance(bodyR, victim), 'Ω');
@@ -476,7 +476,7 @@ function shockContactImpl(
   const v = effectiveVoltage(source);
   if (v.rawValue() <= 0) return [];
   const bodyR = MaterialApi.bodyResistance(
-    MaterialApi.materialOf(victim),
+    MixinApi.isTangible(victim) ? victim.getMaterial() : null,
     false,
   ).rawValue();
   const rPath = Quantity.of(pathResistance(bodyR, victim), 'Ω');
@@ -505,10 +505,11 @@ function maybeSustain(
   if (!sourcePath) return;
   const letGo = dial(AppSettingKeys.electricityLetGoAmps, 0.01);
   if (amps < letGo) return;
+  if (!MixinApi.isVitals(victim)) return;
   const tetanic = dial(AppSettingKeys.electricityTetanicAmps, 0.02);
   const tetany = amps >= tetanic;
 
-  const existing = ConditionApi.conditionsOf(victim).find(
+  const existing = victim.getConditions().find(
     (c): c is SustainedShock =>
       c.kind === 'shock' && c.source === sourcePath,
   );
@@ -525,5 +526,5 @@ function maybeSustain(
     sites: [site],
   };
   if (tetany) record.tetany = true;
-  ConditionApi.afflict(victim, record);
+  victim.afflict(record);
 }

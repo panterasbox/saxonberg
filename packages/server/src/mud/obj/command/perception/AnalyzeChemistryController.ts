@@ -16,10 +16,10 @@ import type {
   } from '../../../api/command';
 import type { MqlOneResult } from '../../../api/mql';
 import type { Stuff } from '../../../lib/stuff/Stuff';
+import type { Tangible } from '../../../lib/material/Tangible';
 import { MixinApi } from '../../../api/mixin';
 import { MessageApi } from '../../../api/message';
 import { Mml } from '../../../api/mml';
-import { MaterialApi } from '../../../api/material';
 
 interface AnalyzeChemistryModel extends CommandModel {
   target?: MqlOneResult;
@@ -54,7 +54,8 @@ export default class AnalyzeChemistryController extends CommandController<Analyz
       });
       return;
     }
-    const material = MaterialApi.materialOf(target.stuff as Stuff);
+    // The isTangible gate above makes non-Tangible impossible here.
+    const material = (target.stuff as Stuff & Tangible).getMaterial();
     if (!material) {
       const detail = `there's no material data for ${target.stuff.getPresentation()}`;
       MessageApi.scene(giver)

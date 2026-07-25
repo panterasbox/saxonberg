@@ -1,0 +1,9 @@
+# Casting — the template a frozen molten pool clones into (a cast lump of
+# whatever solidified). Material / mass / prose are stamped per freeze by
+# ThermalApi.reconcilePhase; the seed is deliberately generic (no default
+# material). Re-meltable (Meltable + Thermal).
+class: /obj/Casting
+hydratorClass: /lib/persistence/PersistentHydrator
+data:
+  shortDescription: a cast lump
+  keywords: [casting, lump, cast]

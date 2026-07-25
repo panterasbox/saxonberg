@@ -28,13 +28,19 @@ test('bare `help` prints the rulebook masthead', async ({ browser }) => {
 test('`help <verb>` shows that command\'s topic', async ({ browser }) => {
   const { page, close } = await openWorldAs(browser, 'help-verb');
   try {
-    // `help look` resolves to the look command topic: heading + usage.
+    // `help look` resolves to the look command topic: heading + the
+    // synthesized Syntax line. The optional `target` arg carries the
+    // `at|in|inside` prepositions (the concealment build added `in`/
+    // `inside` for container peeking), so the usage renders
+    // `look [at|in|inside] [target]`.
     await sendUntil(
       page,
       'help look',
       page.getByText(/LOOK: Examine your surroundings or an object/i).first()
     );
-    await expect(page.getByText(/look \[at\] \[target\]/i).first()).toBeVisible();
+    await expect(
+      page.getByText(/look \[at\|in\|inside\] \[target\]/i).first()
+    ).toBeVisible();
   } finally {
     await close();
   }

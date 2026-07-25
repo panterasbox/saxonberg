@@ -29,7 +29,6 @@
  * player.
  */
 
-import { SecurityApi } from './security';
 import { StuffApi } from './stuff';
 import { HotReloadApi } from './hot-reload';
 import { CallSecurity } from '../lib/security/decorators';
@@ -42,6 +41,7 @@ import type {
 } from '../lib/governance/Office';
 import { OfficeLogic } from '../obj/api/OfficeLogic';
 import { fileURLToPath } from 'url';
+import { SecurityApi } from './security';
 
 const LOGIC_PATH = '/obj/api/office';
 const LOGIC_CLASS_FILE = fileURLToPath(

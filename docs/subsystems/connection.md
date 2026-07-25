@@ -28,13 +28,14 @@ this is the operational summary.
 | `User` | auth identity | yes (`users` collection) | account |
 | `GoogleProfile` | OAuth cache (identity only) | yes (`google_profiles`) | account |
 | `TwitchProfile` | OAuth cache + **credentials** | yes (`twitch_profiles`) | per provider link |
-| `Avatar` | game-world character | template (`/obj/Avatar/<playerId>`) | from first connection until explicit destruct |
+| `Avatar` | game-world character | minted identity path (`/obj/Avatar/<playerId>`), snapshot-backed — no per-player template row | from first connection until explicit destruct |
 | `Interactive` | live connection | **no** | one WebSocket session |
 | `Login` | entry-procedure scratch object | **no** | one entry — destructed when `enter()` finishes |
 
 **`User`** owns a `playerIds: string[]` — the authoritative "which
 characters does this user own?" list (`User.ts`). Each id is a
-character slot; the matching template lives at `/obj/Avatar/<playerId>`.
+character slot; the matching identity path is `/obj/Avatar/<playerId>`
+(minted, snapshot-backed — no per-player template row).
 
 **Providers are co-equal.** `User` carries two optional FK fields —
 `googleProfileId?` and `twitchProfileId?` — with an **at-least-one**
@@ -209,10 +210,12 @@ upserts:
    computed key `User.find({ [User.profileFieldFor(provider)]: id })`.
    If new, constructs a `User` via `await StuffApi.create(() => new
    User())`, sets the right `*ProfileId`, saves, then calls
-   `createDefaultAvatarTemplate` (seeding the default name via the
-   provider-agnostic `Application.defaultAvatarNameFor`) and pushes the
-   new `playerId` onto `user.playerIds`. **Avatar templates are seeded
-   at account creation; they are NOT lazy.**
+   the character-mint path when applicable (test-auth provisioning uses
+   `Application.createDefaultCharacter` — a seed-overlay clone that
+   captures a first persistence-spine snapshot and destructs the
+   transient instance; NO per-player template row) and pushes the new
+   `playerId` onto `user.playerIds`. In production, characters are
+   minted by char-gen's `commit`, not at account creation.
 
 **Linking & unlinking.** `Application.linkProvider(userId, provider,
 profile)` upserts the profile, then: attaches it if unowned

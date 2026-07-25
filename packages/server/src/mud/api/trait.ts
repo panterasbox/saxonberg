@@ -35,9 +35,9 @@ import type { AxisEstimate } from "../lib/trait/TraitPosition";
 import type { TraitBandName } from "../lib/trait/TraitBand";
 import { StuffApi } from "./stuff";
 import { HotReloadApi } from "./hot-reload";
-import { SecurityApi } from "./security";
 import { TraitLogic } from "../obj/api/TraitLogic";
 import { fileURLToPath } from "url";
+import { SecurityApi } from './security';
 
 /** Act-level context shared by every disposition row of one act. */
 export interface RecordOptions {

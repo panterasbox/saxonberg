@@ -1,7 +1,7 @@
 /**
  * MeasureLightController — handler for `measure light [<location>]`.
  *
- * Reads `PerceptionApi.signalAt(loc, VisionModality).intensity` (a
+ * Reads `vision.signalAt(loc).intensity` (a
  * `Quantity<'lux'>`) and emits a single self-frame at
  * `world.perception.measurement.measure-light` with a canonical
  * readout. Photometer hosts the verb on its `inventory` bucket — the
@@ -54,7 +54,7 @@ export default class MeasureLightController extends CommandController<MeasureLig
     }
     const loc = target.stuff as Stuff & Container;
     const vision = PerceptionApi.modalityByName('vision');
-    const light = (PerceptionApi.signalAt(loc, vision) as Light | null) ?? Light.ZERO;
+    const light = (vision.signalAt(loc) as Light | null) ?? Light.ZERO;
     const intensity = light.intensity;
 
     const body = Mml.compose`light at ${Mml.location(loc)}: ${intensity.formatMml()}\n`;

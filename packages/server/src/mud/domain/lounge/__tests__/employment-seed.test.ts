@@ -108,8 +108,8 @@ describe("Dave's Bar — Business seed drives the engine", () => {
     atClock(2, 10); // Wednesday 10:00 — Mara's window, not Remy's
     EmploymentApi.tickRoster();
 
-    expect(EmploymentApi.employmentOf(mara, BUSINESS)?.status).toBe('on-shift');
-    expect(EmploymentApi.employmentOf(remy, BUSINESS)?.status).toBe(
+    expect(mara.getEmployment(BUSINESS)?.status).toBe('on-shift');
+    expect(remy.getEmployment(BUSINESS)?.status).toBe(
       'off-shift',
     );
     // The order-fulfilment selection: only the on-shift bartender is a maker.
@@ -125,10 +125,10 @@ describe("Dave's Bar — Business seed drives the engine", () => {
     EmploymentApi.beginCover(dave, biz);
     expect(MixinApi.isMaker(dave)).toBe(true); // covering → a valid maker
     // The cover is proprietor-held, so it is unpaid + never rostered.
-    expect(EmploymentApi.employmentOf(dave, BUSINESS)?.status).toBe('on-shift');
+    expect(dave.getEmployment(BUSINESS)?.status).toBe('on-shift');
 
     EmploymentApi.endCover(dave, biz);
     expect(MixinApi.isMaker(dave)).toBe(false); // stood down
-    expect(EmploymentApi.employmentOf(dave, BUSINESS)).toBeUndefined();
+    expect(dave.getEmployment(BUSINESS)).toBeUndefined();
   });
 });

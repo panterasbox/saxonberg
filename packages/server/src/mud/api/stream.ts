@@ -16,7 +16,6 @@
 
 import { StuffApi } from './stuff';
 import { HotReloadApi } from './hot-reload';
-import { SecurityApi } from './security';
 import { StreamLogic } from '../obj/api/StreamLogic';
 import { fileURLToPath } from 'url';
 import type { Stuff } from '../lib/stuff/Stuff';
@@ -24,6 +23,7 @@ import type Avatar from '../obj/Avatar';
 import type { MessageFrame } from '@saxonberg/types';
 import type { StreamerTarget, ParsedTarget } from '../lib/streaming/StreamerTarget';
 import type { RelayChannelRef } from '../obj/StreamRelay';
+import { SecurityApi } from './security';
 
 const LOGIC_PATH = '/obj/api/stream';
 const LOGIC_CLASS_FILE = fileURLToPath(

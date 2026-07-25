@@ -26,9 +26,9 @@
 import type { Stuff } from "../lib/stuff/Stuff";
 import { StuffApi } from "./stuff";
 import { HotReloadApi } from "./hot-reload";
-import { SecurityApi } from "./security";
 import { PersistableLogic } from "../obj/api/PersistableLogic";
 import { fileURLToPath } from "url";
+import { SecurityApi } from './security';
 
 const LOGIC_PATH = "/obj/api/persistable";
 const LOGIC_CLASS_FILE = fileURLToPath(
