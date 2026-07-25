@@ -59,7 +59,7 @@ async function makeStoreBusiness(): Promise<string> {
   biz.proprietorPath = "";
   biz.positions = [];
   biz.operatingLocations = [STORE, SHELF];
-  biz.banksAt = BankingApi.defaultCustodianBankPath();
+  biz.banksAt = BankingApi.defaultCustodianBank();
   return EmploymentApi.operatingAccountOf(biz);
 }
 const TORCH = "/obj/test/Torch";
@@ -173,7 +173,7 @@ describe("BuyController — buy that stamps", () => {
     }, BANK);
 
     // Fund the patron.
-    await asOwner(giver, () => BankingApi.openAccount(BANK, "goodkin"));
+    await asOwner(giver, () => BankingApi.openAccount("goodkin", "goodkin"));
     const cash = await asOwner(giver, () =>
       BankingApi.issueCash(giver as never, Money.of(300)),
     );

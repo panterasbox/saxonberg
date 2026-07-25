@@ -63,7 +63,7 @@ async function makeStoreBusiness(): Promise<string> {
   biz.proprietorPath = "";
   biz.positions = [];
   biz.operatingLocations = [SHELF];
-  biz.banksAt = BankingApi.defaultCustodianBankPath();
+  biz.banksAt = BankingApi.defaultCustodianBank();
   return EmploymentApi.operatingAccountOf(biz);
 }
 const TORCH = "/obj/test/Torch";
@@ -111,7 +111,7 @@ async function fundedAvatar(path: string, minor: number): Promise<TestGiver> {
   const av = makeStuffAtPath(() => new TestGiver(), path);
   const card = makeStuff(() => new PaymentCard());
   ContainmentApi.move(card as never, av as never);
-  await asOwner(av, () => BankingApi.openAccount(BANK, "goodkin"));
+  await asOwner(av, () => BankingApi.openAccount("goodkin", "goodkin"));
   if (minor > 0) {
     const bank = StuffApi.findByTemplatePath<BankCounter>(BANK)!;
     const cash = await asOwner(av, () =>

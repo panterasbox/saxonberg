@@ -50,12 +50,12 @@ export interface Charge {
 
 /**
  * How a charge clears — the method is the parameter. `credential` may carry
- * a `fromBankPath` to route this one payment from a specific linked account
+ * a `fromBank` to route this one payment from a specific linked account
  * (the `pay --from <bank>` override) without disturbing the active setting.
  */
 export type SettlementMethod =
   | { kind: "cash" }
-  | { kind: "credential"; fromBankPath?: string };
+  | { kind: "credential"; fromBank?: string };
 
 /** A receipt the settlement scene reads to name what cleared (and how). */
 export interface SettlementReceipt {

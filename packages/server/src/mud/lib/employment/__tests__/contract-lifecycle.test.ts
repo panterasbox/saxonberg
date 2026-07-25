@@ -111,7 +111,7 @@ describe("contract lifecycle", () => {
     issuerAcct = await as(issuer, () =>
       BankingApi.ensureVenueAccount(
         ISSUER,
-        BankingApi.defaultCustodianBankPath(),
+        BankingApi.defaultCustodianBank(),
         "",
       ),
     );
@@ -122,7 +122,7 @@ describe("contract lifecycle", () => {
     for (const key of [COURIER, RIVAL]) {
       await BankingApi.ensureVenueAccount(
         key,
-        BankingApi.defaultCustodianBankPath(),
+        BankingApi.defaultCustodianBank(),
         "",
       );
     }
@@ -429,11 +429,11 @@ describe("contract lifecycle", () => {
     const { default: BusinessEntity } = await import("../Business");
     const biz = makeStuffAtPath(() => new BusinessEntity(), BUSINESS);
     (biz as unknown as { proprietorPath: string }).proprietorPath = DAVE;
-    biz.banksAt = BankingApi.defaultCustodianBankPath();
+    biz.banksAt = BankingApi.defaultCustodianBank();
     const dave = makeStuffAtPath(() => new TestIssuer(), DAVE);
     const bizAcct = await BankingApi.ensureVenueAccount(
       biz.getAccountPath(),
-      BankingApi.defaultCustodianBankPath(),
+      BankingApi.defaultCustodianBank(),
       "",
     );
     await BankingApi.mint(bizAcct, Money.of(100));
@@ -482,7 +482,7 @@ describe("contract lifecycle", () => {
     expect(BankingApi.escrowBalanceOf(id).minor).toBe(REWARD);
     await BankingApi.ensureVenueAccount(
       "/obj/Avatar/walkin",
-      BankingApi.defaultCustodianBankPath(),
+      BankingApi.defaultCustodianBank(),
       "",
     );
     expect(await as(walkin, () => ContractApi.complete(id))).toEqual({

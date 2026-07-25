@@ -83,13 +83,13 @@ describe("The bar money loop (end to end)", () => {
     // the bar's P&L account (lazily ensured)
     const barAcct = await BankingApi.ensureVenueAccount(
       BAR,
-      BankingApi.defaultCustodianBankPath(),
+      BankingApi.defaultCustodianBank(),
       "",
     );
 
     // 1. open an account + deposit cash
     const patronAcct = await asOwner(patron, () =>
-      BankingApi.openAccount(BANK, "goodkin")
+      BankingApi.openAccount("goodkin", "goodkin")
     );
     const cash = (await asOwner(patron, () =>
       BankingApi.issueCash(patron as never, Money.of(300))
@@ -110,7 +110,7 @@ describe("The bar money loop (end to end)", () => {
     expect(BankingApi.balanceOf(barAcct).minor).toBe(60);
 
     // 3. the bar pays a wage that exceeds its takings → it runs RED
-    await asOwner(worker, () => BankingApi.openAccount(BANK, "goodkin"));
+    await asOwner(worker, () => BankingApi.openAccount("goodkin", "goodkin"));
     await BankingApi.payWage(barAcct, "/obj/Avatar/wenna", Money.of(150));
     expect(BankingApi.balanceOf(barAcct).minor).toBe(-90); // red by design
 

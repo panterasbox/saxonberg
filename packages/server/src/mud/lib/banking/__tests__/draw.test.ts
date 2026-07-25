@@ -45,7 +45,7 @@ describe("BankingApi.payDraw", () => {
     const primary = await asActor(DAVE, () =>
       BankingApi.ensureVenueAccount(
         DAVE,
-        BankingApi.defaultCustodianBankPath(),
+        BankingApi.defaultCustodianBank(),
         "",
       ),
     );
@@ -64,7 +64,7 @@ describe("BankingApi.payDraw", () => {
     await asActor(DAVE, () =>
       BankingApi.ensureVenueAccount(
         DAVE,
-        BankingApi.defaultCustodianBankPath(),
+        BankingApi.defaultCustodianBank(),
         "",
       ),
     );
@@ -85,7 +85,7 @@ describe("BankingApi.payDraw", () => {
     const worker = "/obj/Avatar/wenna";
     const workerAcct = await BankingApi.ensureVenueAccount(
       worker,
-      BankingApi.defaultCustodianBankPath(),
+      BankingApi.defaultCustodianBank(),
       "",
     );
     // Business holds nothing — the wage is owed regardless (CB subsidizes).

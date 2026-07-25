@@ -26,7 +26,7 @@ class Worker extends EmployedMixin(Idea) {
 function seedBusiness(): BusinessEntity {
   const b = makeStuffAtPath(() => new BusinessEntity(), BUSINESS);
   b.proprietorPath = DAVE;
-  b.banksAt = BankingApi.defaultCustodianBankPath();
+  b.banksAt = BankingApi.defaultCustodianBank();
   b.positions = [
     { key: 'bartender', label: 'tending bar', wageRate: 12, confers: ['MakerMixin'] },
   ];

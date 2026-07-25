@@ -117,7 +117,7 @@ describe("work verbs", () => {
     const acct = await asGiver(poster, () =>
       BankingApi.ensureVenueAccount(
         POSTER,
-        BankingApi.defaultCustodianBankPath(),
+        BankingApi.defaultCustodianBank(),
         "",
       ),
     );
@@ -126,7 +126,7 @@ describe("work verbs", () => {
     // their own accounts (never silently signed up at settle).
     await BankingApi.ensureVenueAccount(
       COURIER,
-      BankingApi.defaultCustodianBankPath(),
+      BankingApi.defaultCustodianBank(),
       "",
     );
   });

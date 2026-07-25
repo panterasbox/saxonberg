@@ -146,7 +146,7 @@ function seedNetwork(
   biz.proprietorPath = "";
   biz.positions = [];
   biz.operatingLocations = [DEPART];
-  biz.banksAt = BankingApi.defaultCustodianBankPath();
+  biz.banksAt = BankingApi.defaultCustodianBank();
   // Optional: the destination operator collecting the arrival surcharge — keyed
   // on the destination terminal fixture.
   // The Teleport Authority Business — the network-fee payee, resolved by
@@ -155,13 +155,13 @@ function seedNetwork(
   tpa.proprietorPath = "";
   tpa.positions = [];
   tpa.operatingLocations = [];
-  tpa.banksAt = BankingApi.defaultCustodianBankPath();
+  tpa.banksAt = BankingApi.defaultCustodianBank();
   if (opts.destOperator) {
     const dest = makeStuffAtPath(() => new BusinessEntity(), DEST_BIZ);
     dest.proprietorPath = "";
     dest.positions = [];
     dest.operatingLocations = [ARRIVE];
-    dest.banksAt = BankingApi.defaultCustodianBankPath();
+    dest.banksAt = BankingApi.defaultCustodianBank();
   }
   return { dRoom };
 }
@@ -221,7 +221,7 @@ describe("TPA fare settlement (integration)", () => {
     vi.spyOn(AccessApi, "isAuthor").mockResolvedValue(false);
     cityAccount = await BankingApi.ensureVenueAccount(
       BIZ,
-      BankingApi.defaultCustodianBankPath(),
+      BankingApi.defaultCustodianBank(),
       "",
     );
   });
@@ -319,7 +319,7 @@ describe("TPA fare settlement (integration)", () => {
     ContainmentApi.move(t, dRoom);
     const destAccount = await BankingApi.ensureVenueAccount(
       DEST_BIZ,
-      BankingApi.defaultCustodianBankPath(),
+      BankingApi.defaultCustodianBank(),
       "",
     );
 
@@ -357,7 +357,7 @@ describe("TPA fare settlement (integration)", () => {
     ContainmentApi.move(t, dRoom);
     const destAccount = await BankingApi.ensureVenueAccount(
       DEST_BIZ,
-      BankingApi.defaultCustodianBankPath(),
+      BankingApi.defaultCustodianBank(),
       "",
     );
 

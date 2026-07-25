@@ -162,22 +162,24 @@ export class BankingApi {
   /* ───────────────────────── custodial bank ops ───────────────────────── */
 
   /**
-   * Open the acting owner's account at a branch (idempotent). The first
-   * account an owner opens becomes their primary (receive-by-identity
-   * default); the bank's `corpoKey` affiliation is recorded on the row. The
-   * owner is the context-derived author, never a parameter. Returns the
-   * durable account id.
+   * Open the acting owner's account at a **bank** (an institution key,
+   * e.g. `goodkin` — your account exists at the bank and is serviceable
+   * at every branch of it; the verb layer passes the branch's
+   * `getBank()`). Idempotent; the first account an owner opens becomes
+   * their primary (receive-by-identity default); the bank's `corpoKey`
+   * affiliation is recorded on the row. The owner is the context-derived
+   * author, never a parameter. Returns the durable account id.
    */
   public static async openAccount(
-    bankPath: string,
+    bank: string,
     corpoKey: string,
   ): Promise<string> {
-    return logic().openAccount(bankPath, corpoKey);
+    return logic().openAccount(bank, corpoKey);
   }
 
-  /** The acting owner's account id at `bankPath` (no number typed). */
-  public static async myAccountAt(bankPath: string): Promise<string | null> {
-    return logic().myAccountAt(bankPath);
+  /** The acting owner's account id at the `bank` institution. */
+  public static async myAccountAt(bank: string): Promise<string | null> {
+    return logic().myAccountAt(bank);
   }
 
   /** Every account the acting owner holds (the multi-account read). */
@@ -350,23 +352,24 @@ export class BankingApi {
   }
 
   /**
-   * The default custodian bank path (`banking.defaultCustodianBankPath`).
-   * **The legacy-restamp last resort, not a default to build on**: custody
-   * is a relationship — a business banks where its authored `banksAt`
-   * says, a worker's first account opens at the payer's bank, escrow at
-   * the issuer's bank. This value exists for the boot restamp of orphaned
-   * legacy rows (no relationship derivable) and as a person-tier retail
-   * anchor in tests. Never pass it as a business's custodian.
+   * The default custodian bank (`banking.defaultCustodianBank`, an
+   * institution key — `goodkin`). **The legacy-restamp last resort, not a
+   * default to build on**: custody is a relationship — a business banks
+   * where its authored `banksAt` says, a worker's first account opens at
+   * the payer's bank, escrow at the issuer's bank. This value exists for
+   * the boot restamp of orphaned legacy rows (no relationship derivable)
+   * and as a person-tier retail anchor in tests. Never pass it as a
+   * business's custodian.
    */
-  public static defaultCustodianBankPath(): string {
-    return logic().defaultCustodianBankPath();
+  public static defaultCustodianBank(): string {
+    return logic().defaultCustodianBank();
   }
 
   /**
-   * The custodian (`bankPath`) recorded on an account, or null for an
-   * unknown/uncustodied row — the relationship read a payer derives a
-   * payee's new account from (e.g. a contract payout opens where the
-   * escrow is custodied).
+   * The custodian bank (an institution key) recorded on an account, or
+   * null for an unknown/uncustodied row — the relationship read a payer
+   * derives a payee's new account from (e.g. a contract payout opens
+   * where the escrow is custodied).
    */
   public static async custodianOf(accountId: string): Promise<string | null> {
     return logic().custodianOf(accountId);
@@ -419,16 +422,17 @@ export class BankingApi {
   }
 
   /**
-   * Ensure a venue's P&L account exists (owner = the venue's durable path),
-   * creating a primary one if absent — lazily, on first banking interaction
-   * at the venue. The bar's account the order/pnl/payroll flows resolve.
+   * Ensure a venue's P&L account exists (owner = the venue's durable
+   * path, custodied at the `bank` institution), creating a primary one if
+   * absent — lazily, on first banking interaction at the venue. The bar's
+   * account the order/pnl/payroll flows resolve.
    */
   public static async ensureVenueAccount(
     ownerPath: string,
-    bankPath: string,
+    bank: string,
     corpoKey: string,
   ): Promise<string> {
-    return logic().ensureVenueAccount(ownerPath, bankPath, corpoKey);
+    return logic().ensureVenueAccount(ownerPath, bank, corpoKey);
   }
 
   /**
@@ -438,9 +442,9 @@ export class BankingApi {
    */
   public static async ensureCorpoTreasury(
     corpoKey: string,
-    bankPath: string,
+    bank: string,
   ): Promise<string> {
-    return logic().ensureCorpoTreasury(corpoKey, bankPath);
+    return logic().ensureCorpoTreasury(corpoKey, bank);
   }
 
   /**

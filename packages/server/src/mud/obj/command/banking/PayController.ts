@@ -59,11 +59,11 @@ export default class PayController extends BankingControllerBase<PayModel> {
 
     // Resolve a --from override (a corpo/bank name) to one of the payer's
     // own accounts, routing this payment from it.
-    let fromBankPath: string | undefined;
+    let fromBank: string | undefined;
     if (model.from) {
       const mine = await BankingApi.accountsOf();
       const match = mine.find(
-        (a) => a.corpoKey === model.from || a.bankPath.includes(model.from!)
+        (a) => a.corpoKey === model.from || a.bank === model.from
       );
       if (!match) {
         MessageApi.scene(giver)
@@ -73,12 +73,12 @@ export default class PayController extends BankingControllerBase<PayModel> {
         context.note({ kind: "controller-rejected", reason: "no-such-account", detail: model.from });
         return;
       }
-      fromBankPath = match.bankPath;
+      fromBank = match.bank;
     }
 
     const method: SettlementMethod = model.cash
       ? { kind: "cash" }
-      : { kind: "credential", ...(fromBankPath ? { fromBankPath } : {}) };
+      : { kind: "credential", ...(fromBank ? { fromBank } : {}) };
 
     if (method.kind === "credential" && !payeeAccountId) {
       MessageApi.scene(giver)

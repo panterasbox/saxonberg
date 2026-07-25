@@ -35,6 +35,6 @@ data:
   # Where the municipality banks: city governance is CONTENT, not the
   # state (only the treasury banks at the CB) — Terminus keeps its budget
   # at a commercial bank like any private account. An authored civic fact.
-  banksAt: /domain/terminus/counting-houses/bank-counter
+  banksAt: goodkin
   operatingLocations:
     - /domain/terminus/terminal/departure-terminal-a

@@ -93,9 +93,10 @@ describe("BankingApi escrow — hold / release / revert / close", () => {
   });
 
   it("the escrow row is custodied at the ISSUER'S bank (owner = the contract)", async () => {
-    // The issuer's funding account lives at a live branch — the escrow
-    // must follow it (your bank holds your stake), never the default.
-    const issuerBank = makeStuffAtPath(() => {
+    // The issuer's funding account is custodied at Veshko (a live branch
+    // makes the institution real) — the escrow must follow it (your bank
+    // holds your stake), never the default.
+    makeStuffAtPath(() => {
       const b = new BankCounter();
       b.setCorpoKey("veshko");
       return b;
@@ -103,7 +104,7 @@ describe("BankingApi escrow — hold / release / revert / close", () => {
     const funded = new AccountBalance();
     funded.accountId = ISSUER;
     funded.owner = "/obj/Avatar/issuer";
-    funded.bankPath = issuerBank.getTemplatePath() ?? "";
+    funded.bank = "veshko";
     funded.isPrimary = true;
     funded.isActive = true;
     funded.balance = 0;
@@ -116,16 +117,16 @@ describe("BankingApi escrow — hold / release / revert / close", () => {
     );
     expect(row).toBeDefined();
     expect(row?.owner).toBe(`contract:${CONTRACT}`);
-    expect(row?.bankPath).toBe("/domain/test/veshko-bank");
+    expect(row?.bank).toBe("veshko");
   });
 
   it("a bare (legacy) funding account falls back to the default custodian", async () => {
-    await fund(ISSUER, 100); // applyDelta bare auto-create — no bankPath
+    await fund(ISSUER, 100); // applyDelta bare auto-create — no custodian
     await BankingApi.escrowHold(ISSUER, CONTRACT, Money.of(60));
     const row = [...col(Collections.BankAccounts).values()].find(
       (d) => d.accountId === Account.escrowAccountFor(CONTRACT),
     );
-    expect(row?.bankPath).toBe(BankingApi.defaultCustodianBankPath());
+    expect(row?.bank).toBe(BankingApi.defaultCustodianBank());
   });
 
   it("escrowClose removes the zero-balance row and refuses a non-zero one", async () => {

@@ -192,14 +192,14 @@ settings:
   # 0 disables.
   - key: banking.openingFloat
     value: "500"
-  # Banking — the default custodian bank (bankPath) for accounts whose owner
-  # names no branch of their own: venue operating accounts, worker
-  # wage-fallback accounts, per-contract escrow. The rule: every account
-  # names a REAL custodian — only the state (treasury) banks at the CB,
-  # everything else at a commercial bank. v1: the Goodkin branch (the bank
-  # that wants the newcomer).
-  - key: banking.defaultCustodianBankPath
-    value: /domain/terminus/counting-houses/bank-counter
+  # Banking — the default custodian bank (an INSTITUTION key: your account
+  # exists at the bank; branches are service points). The boot restamp's
+  # last resort for legacy rows with no derivable relationship — a business
+  # banks at its authored banksAt, a worker at the payer's bank, escrow at
+  # the issuer's. Only the state (treasury) banks at the CB. v1: goodkin
+  # (the bank that wants the newcomer).
+  - key: banking.defaultCustodianBank
+    value: goodkin
   # Contracts (the work/gig substrate) — claim expiry: how long an exclusive
   # claim holds before it lapses back to open (game-hours; lazy enforcement,
   # no sweep). Posting expiry default: 0 = a posting never lapses unless the

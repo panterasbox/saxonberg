@@ -108,7 +108,7 @@ describe("Banking controllers — verb wiring", () => {
 
     // open
     await runBank({ subcommand: "open" }, "bank");
-    const accountId = await asGiver(giver, () => BankingApi.myAccountAt(BANK_PATH));
+    const accountId = await asGiver(giver, () => BankingApi.myAccountAt("goodkin"));
     expect(accountId).not.toBeNull();
 
     // balance — bare `bank` (no subcommand)

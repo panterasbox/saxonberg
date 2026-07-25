@@ -59,6 +59,8 @@ export interface Bank {
   getCorpo(): CorpoDescriptor | null;
   /** The durable account-resolution key for this branch (its templatePath). */
   getBankPath(): string;
+  /** The institution key this counter is a branch OF (e.g. `goodkin`). */
+  getBank(): string;
   /** The branch's physical cash on hand (Σ vault coin face-values). */
   getTillLiquidity(): Money;
   /** The authored fee/minimum schedule read at each verb. */
@@ -96,7 +98,7 @@ export function BankMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
   class BankMixin extends Base implements Bank {
     static _mixinName = "BankMixin";
 
-    static persistentFields = ["corpoKey", "terms"];
+    static persistentFields = ["corpoKey", "terms", "bank"];
 
     /**
      * The banking verb surface lights up wherever this counter is present in
@@ -114,6 +116,19 @@ export function BankMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
      * @authorable ref:Corpo
      */
     public corpoKey = "";
+
+    /**
+     * The **bank institution** this counter is a branch of — the durable
+     * key an account's custody records (`AccountBalance.bank`,
+     * `banksAt`). The five corpo banks are their corpos' finance arms, so
+     * the key defaults to `corpoKey` (goodkin/hollis/vionne/aevex/veshko);
+     * an **independent** bank authors its own key here (a key with no
+     * corpo behind it — the `Brand.owner === ''` precedent). Your account
+     * exists at the BANK; a branch is a service point of it (till physics
+     * stay per-branch).
+     * @authorable
+     */
+    public bank = "";
 
     public getCorpoKey(): string {
       return this.corpoKey;
@@ -141,6 +156,10 @@ export function BankMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
 
     public getBankPath(): string {
       return (this as unknown as Stuff).getTemplatePath() ?? "";
+    }
+
+    public getBank(): string {
+      return this.bank || this.corpoKey;
     }
 
     public getTillLiquidity(): Money {

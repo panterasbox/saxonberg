@@ -85,12 +85,22 @@ feed the `environment` bucket; the `Menu` precedent). The counter's contents
 - **Affiliation** rides a plain `corpoKey` resolved on read via `CorpoApi`
   (a bank is *affiliated to* a corpo, not a branded product). `openAccount`
   records that key on the account row — the readable affiliation edge.
-- **Resolution by identity** — accounts key on `{owner, bankPath}` (owner =
-  the context-derived `templatePath`, bankPath = the counter's templatePath).
-  No number is ever typed: `myAccountAt(bankPath)` resolves "your account
-  here"; `primaryAccountIdOf(ownerKey)` is the receive-by-identity target;
-  the first account an owner opens is their **primary**. Multi-account is
-  native (per `{owner, bankPath}`); per-branch context selects.
+- **Resolution by identity** — accounts key on `{owner, bank}` (owner =
+  the context-derived `templatePath`, bank = the **institution key**).
+  **The bank is an institution; a branch is a service point of it**: the
+  five corpo banks are their corpos' finance arms, so a branch's key
+  defaults to its `corpoKey` (`goodkin`/`hollis`/`vionne`/`aevex`/
+  `veshko`; `BankMixin.getBank()`), and an independent bank authors its
+  own key (a key with no corpo behind it — the `Brand.owner === ''`
+  precedent). Your account **exists at the bank and is serviceable at
+  every branch of it** — deposit/withdraw resolve the account by the
+  branch's institution, while the **till stays per-branch** (the vault is
+  physically here; liquidity≠solvency is a branch fact). No number is
+  ever typed: `myAccountAt(bank)` resolves "your account at this bank";
+  `primaryAccountIdOf(ownerKey)` is the receive-by-identity target; the
+  first account an owner opens is their **primary**. Multi-account is
+  native (per `{owner, bank}` — one account per institution, an account
+  at each bank if you want).
 - **deposit** moves the coin into the vault and credits the balance 1:1
   (`deposit` row, supply-neutral cash bridge). **withdraw** debits and hands
   out coin (split from the vault), bounded by **both** the balance (solvency)
@@ -516,20 +526,20 @@ with the constitutional line:
 **WHICH custodian is a relationship, never a code default.** The
 custodian of each account class is derived from who the account is for:
 
-- **A business banks where its authored `banksAt` says** — a field on
-  the Business seed (next to `proprietorPath`/`positions`), resolved
-  through the ONE seam `EmploymentApi.operatingAccountOf(business)`. A
-  business with no `banksAt` cannot open an operating account (an
-  authoring error, refused loudly — the no-operator-to-collect-the-fare
-  precedent). This is what makes the custodian choice *matter* when the
-  other corpo banks land: your bank's Terms price your fees, and every
-  fee routes a royalty to your bank's corpo. All seven former call-site
-  defaults (bar/store income, the TPA fare operators, wage + piecework
-  payers, the draw, `job post --business`) route through this seam. The
-  five shipped Business seeds author `banksAt` (Goodkin today — one
-  edit each to defect); the counting-houses Business banks at itself
-  (a branch's own account at its own counter is the legitimate
-  self-custody — the check is "is the custodian a bank").
+- **A business banks where its authored `banksAt` says** — an
+  **institution key** (`banksAt: goodkin`) on the Business seed (next to
+  `proprietorPath`/`positions`), resolved through the ONE seam
+  `EmploymentApi.operatingAccountOf(business)`. A business with no
+  `banksAt` cannot open an operating account (an authoring error,
+  refused loudly — the no-operator-to-collect-the-fare precedent). This
+  is what makes the custodian choice *matter* when the other corpo
+  banks land: your bank's Terms price your fees, and every fee routes a
+  royalty to your bank's corpo. All seven former call-site defaults
+  (bar/store income, the TPA fare operators, wage + piecework payers,
+  the draw, `job post --business`) route through this seam. The six
+  shipped Business seeds author `banksAt: goodkin` (one edit each to
+  defect); the counting-houses Business banks at Goodkin — itself (the
+  legitimate self-custody: the custodian IS a bank).
 - **A worker's first account opens at the payer's bank** — the
   employer's `banksAt` (`ensurePayableWorker`): an **NPC** with no
   account is set up where its money first comes from. A **player is
@@ -547,17 +557,18 @@ custodian of each account class is derived from who the account is for:
   authored `banksAt`; the legacy raw `tpa` accumulator row is re-owned
   to it at boot.
 
-Mechanically: `ensureVenueAccount` **refuses** a `bankPath` that names
-no real custodian (accepted: the CB path, the default-custodian
-setting, or a live `BankMixin` branch), and an idempotent **boot
-restamp** (`BankingApi.boot`) moves legacy rows — empty or
-self-custodied-at-a-non-bank `bankPath` → the default custodian (the
-last resort where no relationship is derivable), the `treasury` row →
-the CB, the bare `tpa` row → the TPA Business — a **cache-field fill,
-never a money movement** (balances and conservation untouched;
-customer-at-branch and corpo-treasury rows untouched by construction).
-`banking.defaultCustodianBankPath` is therefore **the restamp's last
-resort, not a default to build on** — nothing else should pass it.
-Behavior-preserving: these accounts move money by transfer only (never
-the till), and liquidity≠solvency is already the shipped branch-book
-property, so Goodkin's cash physics are unchanged.
+Mechanically: `ensureVenueAccount` **refuses** a custodian that names
+no real institution (accepted: `central-bank`
+(`Account.CENTRAL_BANK_INSTITUTION`), the default-custodian setting, or
+an institution with a live `BankMixin` branch), and an idempotent
+**boot restamp** (`BankingApi.boot`) migrates legacy rows — the
+pre-institution `bankPath` branch paths map to institution keys (a live
+branch's path → its `getBank()`, the CB path → `central-bank`, else the
+default), the `treasury` row → the CB, the bare `tpa` row → the TPA
+Business, anything still custodied nowhere → the default — a
+**cache-field fill, never a money movement** (balances and conservation
+untouched). `banking.defaultCustodianBank` (`goodkin`) is therefore
+**the restamp's last resort, not a default to build on** — nothing else
+should pass it. Behavior-preserving: these accounts move money by
+transfer only (never the till), and liquidity≠solvency is already the
+shipped branch-book property, so Goodkin's cash physics are unchanged.

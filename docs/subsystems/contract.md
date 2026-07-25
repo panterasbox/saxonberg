@@ -199,7 +199,7 @@ every actor is context-derived inside the gated logic.
 
 `contract.claimExpiryGameHours` (48) · `contract.postingExpiryDefaultGameHours`
 (0 = never) · `contract.breachRegardPenalty` (15) — plus banking's
-`banking.defaultCustodianBankPath`.
+`banking.defaultCustodianBank`.
 
 ## Deferred seams (named, not built)
 

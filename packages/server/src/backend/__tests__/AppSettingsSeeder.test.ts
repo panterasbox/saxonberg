@@ -313,8 +313,7 @@ describe("AppSettingsSeeder", () => {
           [AppSettingKeys.fireAirReplenishPerTick]: "30",
           [AppSettingKeys.fireAirCompleteThresholdPct]: "40",
           [AppSettingKeys.respirationContaminantBurdenPerBreath]: "5",
-          [AppSettingKeys.bankingDefaultCustodianBankPath]:
-            "/domain/terminus/counting-houses/bank-counter",
+          [AppSettingKeys.bankingDefaultCustodianBank]: "goodkin",
           [AppSettingKeys.contractClaimExpiryGameHours]: "48",
           [AppSettingKeys.contractPostingExpiryDefaultGameHours]: "0",
           [AppSettingKeys.contractBreachRegardPenalty]: "15",

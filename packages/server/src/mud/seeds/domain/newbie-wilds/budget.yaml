@@ -19,6 +19,6 @@ data:
   positions: []
   # Where this budget banks (authored custody; city governance is
   # content, not the state).
-  banksAt: /domain/terminus/counting-houses/bank-counter
+  banksAt: goodkin
   operatingLocations:
     - /domain/newbie-wilds/crossroads/terminal

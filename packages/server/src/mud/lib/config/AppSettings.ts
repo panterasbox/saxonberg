@@ -269,14 +269,14 @@ export const AppSettingKeys = {
    */
   bankingOpeningFloat: "banking.openingFloat",
   /**
-   * Banking — the **default custodian bank** (`bankPath`) for accounts whose
-   * owner names no branch of their own: venue operating accounts, worker
-   * wage-fallback accounts, per-contract escrow. The
-   * every-account-names-a-real-custodian rule: only the state (`treasury`)
-   * banks at the CB; everything else banks at a commercial bank — v1 the
-   * Goodkin branch. See docs/subsystems/banking.md.
+   * Banking — the **default custodian bank** (an institution key, e.g.
+   * `goodkin`) — the boot restamp's LAST RESORT for legacy rows with no
+   * derivable custodian relationship (a business banks at its authored
+   * `banksAt`; a worker at the payer's bank; escrow at the issuer's).
+   * Only the state (`treasury`) banks at the CB. See
+   * docs/subsystems/banking.md.
    */
-  bankingDefaultCustodianBankPath: "banking.defaultCustodianBankPath",
+  bankingDefaultCustodianBank: "banking.defaultCustodianBank",
 
   /**
    * Contracts — how long an exclusive claim holds before it lapses back to

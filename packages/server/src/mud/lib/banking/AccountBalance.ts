@@ -25,6 +25,7 @@ export default class AccountBalance extends Document {
   static persistentFields = [
     "accountId",
     "owner",
+    "bank",
     "bankPath",
     "corpoKey",
     "isPrimary",
@@ -36,7 +37,19 @@ export default class AccountBalance extends Document {
   accountId = "";
   /** Durable key of the account owner (a `templatePath`). */
   owner = "";
-  /** The bank branch's `templatePath` this account lives at. */
+  /**
+   * The **bank institution** custodying this account (`goodkin`,
+   * `central-bank`, …) — your account exists at the BANK and is
+   * serviceable at every branch of it; a branch is a service point, not
+   * the account's identity.
+   */
+  bank = "";
+  /**
+   * LEGACY (pre-institution-keying): the branch counter's templatePath.
+   * Hydrates old rows so the boot restamp can migrate them into `bank`;
+   * cleared on migration, empty on every new row. Remove with the
+   * terminus-banking build.
+   */
   bankPath = "";
   /** The bank's corpo affiliation (resolved at open; readable via corpo). */
   corpoKey = "";

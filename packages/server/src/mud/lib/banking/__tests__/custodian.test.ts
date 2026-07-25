@@ -1,10 +1,12 @@
 /**
- * The custodian rule (Decision L): every account names a REAL custodian —
- * `ensureVenueAccount` refuses an empty or non-bank `bankPath` (the retired
- * self-custody shape) and accepts the CB, the default custodian bank, or a
- * live branch. The boot restamp pass moves legacy rows idempotently (a
- * cache-field fill — balances untouched, conservation green) with the
- * `treasury` row going to the central bank.
+ * The custodian rule (Decision L, institution-keyed): every account names
+ * a REAL custodian **bank** — an institution key (`goodkin`,
+ * `central-bank`, a live branch's key), never `""`, never a path, never a
+ * non-bank. The boot restamp migrates legacy rows idempotently (a
+ * cache-field fill — balances untouched): pre-institution `bankPath`
+ * branch paths map to institution keys, the `treasury` row goes to the
+ * central bank, the raw `tpa` accumulator is re-owned to the TPA
+ * Business.
  */
 
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
@@ -23,29 +25,31 @@ import {
 } from "./banking-test-harness";
 import { Collections } from "../../../../backend/PersistenceManager";
 
-const LIVE_BANK = "/domain/test/goodkin-bank";
+const LIVE_BANK_PATH = "/domain/test/goodkin-bank";
 const VENUE = "/domain/lounge/business";
 
-function makeBank(path: string): void {
+function makeBank(path: string, corpoKey = "goodkin"): void {
   makeStuffAtPath(() => {
     const b = new BankCounter();
-    b.setCorpoKey("goodkin");
+    b.setCorpoKey(corpoKey);
     return b;
   }, path);
 }
 
-/** Seed a legacy AccountBalance row directly (pre-rule data). */
+/** Seed an AccountBalance row directly (legacy / pre-rule data). */
 async function seedRow(fields: {
   accountId: string;
   owner: string;
-  bankPath: string;
+  bank?: string;
+  bankPath?: string;
   balance?: number;
   corpoKey?: string;
 }): Promise<void> {
   const row = new AccountBalance();
   row.accountId = fields.accountId;
   row.owner = fields.owner;
-  row.bankPath = fields.bankPath;
+  row.bank = fields.bank ?? "";
+  row.bankPath = fields.bankPath ?? "";
   row.corpoKey = fields.corpoKey ?? "";
   row.isPrimary = true;
   row.isActive = true;
@@ -60,46 +64,61 @@ function storedRow(accountId: string): Record<string, unknown> | undefined {
   );
 }
 
-describe("ensureVenueAccount — the custodian gate", () => {
+describe("ensureVenueAccount — the custodian gate (institution keys)", () => {
   beforeEach(() => installBankingHarness());
-  afterEach(() => teardownBankingHarness());
+  afterEach(() => {
+    vi.restoreAllMocks();
+    teardownBankingHarness();
+  });
 
-  it("throws on an empty bankPath (an account held nowhere)", async () => {
+  it("throws on an empty custodian (an account held nowhere)", async () => {
     await expect(
       BankingApi.ensureVenueAccount(VENUE, "", ""),
     ).rejects.toThrow(/not a real custodian/);
   });
 
-  it("throws on self-custody at a non-bank (the retired shape)", async () => {
+  it("throws on a non-institution string (the retired self-custody shape)", async () => {
+    // The old shape passed the owner's own path as the custodian — a path
+    // is not an institution, and no branch of any such bank is live.
     await expect(
       BankingApi.ensureVenueAccount(VENUE, VENUE, ""),
     ).rejects.toThrow(/not a real custodian/);
   });
 
-  it("accepts the CB path, the default custodian, and a live branch", async () => {
-    makeBank(LIVE_BANK);
-    await expect(
-      BankingApi.ensureVenueAccount("treasury-owner", Account.CENTRAL_BANK_PATH, ""),
-    ).resolves.toBeTruthy();
+  it("accepts the CB, the default custodian, and a live branch's institution", async () => {
     await expect(
       BankingApi.ensureVenueAccount(
-        VENUE,
-        BankingApi.defaultCustodianBankPath(),
+        "treasury-owner",
+        Account.CENTRAL_BANK_INSTITUTION,
         "",
       ),
     ).resolves.toBeTruthy();
     await expect(
-      BankingApi.ensureVenueAccount("/domain/test/other", LIVE_BANK, "goodkin"),
+      BankingApi.ensureVenueAccount(
+        VENUE,
+        BankingApi.defaultCustodianBank(),
+        "",
+      ),
     ).resolves.toBeTruthy();
+    // An institution beyond the default is real iff one of its branches
+    // is live (veshko's counter stands → veshko custody accepted).
+    makeBank("/domain/test/veshko-bank", "veshko");
+    await expect(
+      BankingApi.ensureVenueAccount("/domain/test/other", "veshko", "veshko"),
+    ).resolves.toBeTruthy();
+    // …and an institution with no live branch is refused.
+    await expect(
+      BankingApi.ensureVenueAccount("/domain/test/other2", "hollis", ""),
+    ).rejects.toThrow(/not a real custodian/);
   });
 
   it("a re-pointed call site finds its existing account (no duplicate row)", async () => {
     // A legacy self-custodied row exists; the re-pointed call passes the
-    // custodian path and must land on the same account via `?? owned[0]`.
+    // institution key and must land on the same account via `?? owned[0]`.
     await seedRow({ accountId: "acct-legacy", owner: VENUE, bankPath: VENUE });
     const found = await BankingApi.ensureVenueAccount(
       VENUE,
-      BankingApi.defaultCustodianBankPath(),
+      BankingApi.defaultCustodianBank(),
       "",
     );
     expect(found).toBe("acct-legacy");
@@ -110,33 +129,38 @@ describe("ensureVenueAccount — the custodian gate", () => {
   });
 });
 
-describe("the boot restamp pass", () => {
+describe("the boot restamp pass (legacy → institution keys)", () => {
   beforeEach(() => installBankingHarness());
-  afterEach(() => teardownBankingHarness());
+  afterEach(() => {
+    vi.restoreAllMocks();
+    teardownBankingHarness();
+  });
 
-  it("moves empty + self-custodied rows to the default custodian and treasury to the CB, idempotently", async () => {
-    makeBank(LIVE_BANK);
-    const custodian = BankingApi.defaultCustodianBankPath();
+  it("migrates legacy bankPath rows to institutions, treasury to the CB, idempotently", async () => {
+    makeBank(LIVE_BANK_PATH);
+    const custodian = BankingApi.defaultCustodianBank();
     // Legacy shapes: the bare treasury, a self-custodied venue, an
-    // empty-bankPath worker — plus rows the pass must NOT touch: a customer
-    // at a live branch, a corpo treasury at its own bank.
+    // empty-bankPath worker, a customer whose bankPath names a LIVE branch
+    // (maps to its institution), a corpo treasury likewise.
     await seedRow({ accountId: "treasury", owner: "", bankPath: "", balance: 80 });
     await seedRow({ accountId: "acct-venue", owner: VENUE, bankPath: VENUE, balance: 500 });
     await seedRow({ accountId: "acct-worker", owner: "/obj/Avatar/wenna", bankPath: "", balance: 25 });
-    await seedRow({ accountId: "acct-cust", owner: "/obj/Avatar/alice", bankPath: LIVE_BANK, balance: 90, corpoKey: "goodkin" });
-    await seedRow({ accountId: "acct-corpo", owner: "corpo:goodkin", bankPath: LIVE_BANK, balance: 40, corpoKey: "goodkin" });
-    // Back the balances with supply so the audit means something.
+    await seedRow({ accountId: "acct-cust", owner: "/obj/Avatar/alice", bankPath: LIVE_BANK_PATH, balance: 90, corpoKey: "goodkin" });
+    await seedRow({ accountId: "acct-corpo", owner: "corpo:goodkin", bankPath: LIVE_BANK_PATH, balance: 40, corpoKey: "goodkin" });
     await BankingApi.mint("acct-sink", Money.of(735));
     await BankingApi.drain("acct-sink", Money.of(735));
     const supplyBefore = BankingApi.moneySupply().minor;
 
     await BankingApi.boot();
 
-    expect(storedRow("treasury")?.bankPath).toBe(Account.CENTRAL_BANK_PATH);
-    expect(storedRow("acct-venue")?.bankPath).toBe(custodian);
-    expect(storedRow("acct-worker")?.bankPath).toBe(custodian);
-    expect(storedRow("acct-cust")?.bankPath).toBe(LIVE_BANK);
-    expect(storedRow("acct-corpo")?.bankPath).toBe(LIVE_BANK);
+    expect(storedRow("treasury")?.bank).toBe(Account.CENTRAL_BANK_INSTITUTION);
+    expect(storedRow("acct-venue")?.bank).toBe(custodian);
+    expect(storedRow("acct-worker")?.bank).toBe(custodian);
+    // The live branch's path mapped to its institution key.
+    expect(storedRow("acct-cust")?.bank).toBe("goodkin");
+    expect(storedRow("acct-corpo")?.bank).toBe("goodkin");
+    // The legacy carrier is cleared on migration.
+    expect(storedRow("acct-cust")?.bankPath).toBe("");
     // A cache-field fill, never a money movement.
     expect(storedRow("treasury")?.balance).toBe(80);
     expect(storedRow("acct-venue")?.balance).toBe(500);
@@ -145,8 +169,8 @@ describe("the boot restamp pass", () => {
 
     // Idempotent — a second boot changes nothing.
     await BankingApi.boot();
-    expect(storedRow("treasury")?.bankPath).toBe(Account.CENTRAL_BANK_PATH);
-    expect(storedRow("acct-venue")?.bankPath).toBe(custodian);
+    expect(storedRow("treasury")?.bank).toBe(Account.CENTRAL_BANK_INSTITUTION);
+    expect(storedRow("acct-venue")?.bank).toBe(custodian);
   });
 
   it("re-owns the legacy raw `tpa` accumulator to the TPA Business", async () => {
@@ -155,11 +179,11 @@ describe("the boot restamp pass", () => {
       if (k === AppSettingKeys.fasttravelTpaBusinessPath) return TPA_BIZ;
       return "";
     });
-    await seedRow({ accountId: "tpa", owner: "", bankPath: "", balance: 30 });
+    await seedRow({ accountId: "tpa", owner: "", balance: 30 });
     await BankingApi.boot();
     const row = storedRow("tpa");
     expect(row?.owner).toBe(TPA_BIZ);
-    expect(row?.bankPath).toBe(BankingApi.defaultCustodianBankPath());
+    expect(row?.bank).toBe(BankingApi.defaultCustodianBank());
     expect(row?.balance).toBe(30); // a cache-field fill, never a movement
     // The Business's account resolution now finds the accumulated fees.
     expect(await BankingApi.primaryAccountIdOf(TPA_BIZ)).toBe("tpa");

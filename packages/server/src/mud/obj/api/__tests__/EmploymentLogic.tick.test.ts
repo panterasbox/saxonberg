@@ -37,7 +37,7 @@ function atClock(weekday: number, hour: number): number {
 
 function seedBusiness(): BusinessEntity {
   const b = makeStuffAtPath(() => new BusinessEntity(), BUSINESS);
-  b.banksAt = BankingApi.defaultCustodianBankPath();
+  b.banksAt = BankingApi.defaultCustodianBank();
   b.positions = [
     { key: 'bartender', label: 'tending bar', wageRate: 12, confers: ['MakerMixin'] },
   ];

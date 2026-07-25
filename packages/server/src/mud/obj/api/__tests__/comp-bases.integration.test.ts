@@ -37,7 +37,7 @@ class Worker extends EmployedMixin(Idea) {
 function seedBusiness(): BusinessEntity {
   const b = makeStuffAtPath(() => new BusinessEntity(), BUSINESS);
   b.proprietorPath = DAVE;
-  b.banksAt = BankingApi.defaultCustodianBankPath();
+  b.banksAt = BankingApi.defaultCustodianBank();
   b.positions = [
     {
       key: "bartender",
@@ -68,7 +68,7 @@ function seedBusiness(): BusinessEntity {
 async function bizAccount(b: BusinessEntity): Promise<string> {
   const acct = await BankingApi.ensureVenueAccount(
     b.getAccountPath(),
-    BankingApi.defaultCustodianBankPath(),
+    BankingApi.defaultCustodianBank(),
     "",
   );
   return acct;

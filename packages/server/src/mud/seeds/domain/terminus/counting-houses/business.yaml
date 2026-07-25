@@ -34,8 +34,9 @@ data:
       assignee: /domain/terminus/counting-houses/npc/officer
       schedule:
         - { days: [0, 1, 2, 3, 4, 5, 6], hours: [8, 18] }
-  # The bank banks at itself — a branch's own operating account at its
-  # own counter is the legitimate self-custody (the custodian IS a bank).
-  banksAt: /domain/terminus/counting-houses/bank-counter
+  # The bank banks at itself — Goodkin's own operating account is
+  # custodied at Goodkin (the legitimate self-custody: the custodian IS
+  # a bank).
+  banksAt: goodkin
   operatingLocations:
     - /domain/terminus/counting-houses/bank-counter

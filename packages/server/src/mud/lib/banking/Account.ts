@@ -38,12 +38,16 @@ export class Account {
   public static readonly CENTRAL_BANK = "central-bank";
 
   /**
-   * The central bank as a **custodian** (`bankPath` of a state account). Only
-   * an organ of the polity banks at the CB — the sole current occupant is the
-   * `treasury` (the legislature's fisc); everything else is private and banks
-   * at a commercial bank (the every-account-names-a-real-custodian rule).
+   * The central bank as a **custodian institution** (an
+   * `AccountBalance.bank` value). Only an organ of the polity banks at
+   * the CB — the sole current occupant is the `treasury` (the
+   * legislature's fisc); everything else is private and banks at a
+   * commercial bank (the every-account-names-a-real-custodian rule).
+   * (Same string as {@link Account.CENTRAL_BANK}, deliberately — one is
+   * an accountId, the other an institution key; different columns read
+   * them.)
    */
-  public static readonly CENTRAL_BANK_PATH = "/obj/CentralBank";
+  public static readonly CENTRAL_BANK_INSTITUTION = "central-bank";
 
   /** The escrow-account id-prefix (the contract system's agent accounts). */
   private static readonly ESCROW_PREFIX = "escrow:contract:";

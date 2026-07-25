@@ -68,17 +68,17 @@ describe("DrawController", () => {
     muteScenes();
     biz = makeStuffAtPath(() => new BusinessEntity(), BUSINESS);
     biz.proprietorPath = DAVE;
-    biz.banksAt = BankingApi.defaultCustodianBankPath();
+    biz.banksAt = BankingApi.defaultCustodianBank();
     dave = makeStuffAtPath(() => new Person(), DAVE);
     mara = makeStuffAtPath(() => new Person(), MARA);
     bizAcct = await BankingApi.ensureVenueAccount(
       biz.getAccountPath(),
-      BankingApi.defaultCustodianBankPath(),
+      BankingApi.defaultCustodianBank(),
       "",
     );
     daveAcct = await BankingApi.ensureVenueAccount(
       DAVE,
-      BankingApi.defaultCustodianBankPath(),
+      BankingApi.defaultCustodianBank(),
       "",
     );
     await BankingApi.mint(bizAcct, Money.of(200));
