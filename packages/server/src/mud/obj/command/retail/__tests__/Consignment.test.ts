@@ -19,6 +19,8 @@ import Thing from "../../../../lib/stuff/Thing";
 import BankCounter from "../../../../lib/banking/BankCounter";
 import PaymentCard from "../../../../lib/banking/PaymentCard";
 import ChattelRegistry from "../../../ChattelRegistry";
+import { EmploymentApi } from "../../../../api/employment";
+import BusinessEntity from "../../../../lib/employment/Business";
 import { ChattelApi } from "../../../../api/chattel";
 import { BankingApi, Money } from "../../../../api/banking";
 import { ContainmentApi } from "../../../../api/containment";
@@ -51,6 +53,19 @@ import {
 
 const BANK = "/domain/terminus/counting-houses/bank-counter";
 const SHELF = "/domain/terminus/general-store/consignment-shelf";
+
+/** The store's Business (operates the shelf; authored custody). */
+async function makeStoreBusiness(): Promise<string> {
+  const biz = makeStuffAtPath(
+    () => new BusinessEntity(),
+    "/domain/terminus/general-store/business",
+  );
+  biz.proprietorPath = "";
+  biz.positions = [];
+  biz.operatingLocations = [SHELF];
+  biz.banksAt = BankingApi.defaultCustodianBankPath();
+  return EmploymentApi.operatingAccountOf(biz);
+}
 const TORCH = "/obj/test/Torch";
 
 class TestGiver extends SensorMixin(
@@ -167,11 +182,7 @@ describe("Consignment — sell loop over real ownership", () => {
     const bob = await fundedAvatar("/obj/Avatar/bob", 100);
     ContainmentApi.move(bob as never, loc as never);
     const bobAcct = (await BankingApi.primaryAccountIdOf("/obj/Avatar/bob"))!;
-    const storeAcct = await BankingApi.ensureVenueAccount(
-      SHELF,
-      BankingApi.defaultCustodianBankPath(),
-      "",
-    );
+    const storeAcct = await makeStoreBusiness();
 
     await asOwner(bob, () =>
       makeStuff(() => new BuyController()).execute({ thing: "torch" }, ctx(bob, loc, shelf, "buy")),

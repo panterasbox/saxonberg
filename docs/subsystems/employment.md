@@ -51,8 +51,8 @@ Four value objects + two mixins + the concrete entity:
   name differs from the `Business` **interface** + `BusinessMixin` on purpose
   (the `Bank`→`BankCounter` convention — a same-named class+interface+mixin
   triad recurses as a base type). Persistent fields `['proprietorPath',
-  'positions', 'rosterSlots', 'operatingLocations']` are stored as the raw
-  seed shapes; the accessors (`getPositions`/`getRoster`/…) wrap them in the
+  'positions', 'rosterSlots', 'operatingLocations', 'banksAt']` are stored
+  as the raw seed shapes; the accessors (`getPositions`/`getRoster`/…) wrap them in the
   value objects on read (the `Biome` field-plus-getter precedent).
   `canDestruct()` refuses (seeded singleton-style).
 - **`EmployedMixin`** — on `Character` (actor-agnostic; sparse null-default
@@ -283,7 +283,8 @@ model:
    units)` verifies the participant relationship (a live Employment at
    the business whose Position basis is `per-settlement`) and pays
    `units × rate` as a **`wage`/`piecework`** posting from the Business
-   account (the worker-account guard reused). No shipped venue consumes
+   account (payer-derived payability: an NPC's account opens at the
+   employer's `banksAt`; an unbanked player is refused — see below). No shipped venue consumes
    it yet — the mine is the named future consumer; it is exercised
    against a test Business (the systems-over-content stance: no fake
    venue authored to demo it).
@@ -303,6 +304,18 @@ model:
    the acting proprietor via `businessOfProprietor`, nothing to spoof).
    A distinct, **solvency-checked** `draw` leg kind — never silently a
    wage; see [banking.md](./banking.md) § The leg-kind vocabulary.
+
+**Custody is authored + derived, never defaulted.** A Business carries
+`banksAt` (where it banks — a term of its arrangement; missing =
+refused), and every account touchpoint routes through
+`EmploymentApi.operatingAccountOf(business)`. Worker payability is
+**payer-derived** (`ensurePayableWorker`): an NPC with no account gets
+one opened at the employer's bank ("your first account opens where
+your first money comes from"); a **player is never silently signed
+up** — an unbanked player's shift wage is skipped with a warning, a
+piecework settle refuses, a flow-split doesn't fire, until they open
+their own account at a branch. See [banking.md](./banking.md) § Every
+account names a real custodian.
 
 The gig half of the work system (clauses, escrow, the job board, the
 two-beat turn-in) lives in [contract.md](./contract.md).

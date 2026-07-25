@@ -41,11 +41,17 @@ export default class DrawController extends CommandController<DrawModel> {
       );
     }
     const giverKey = giver.getTemplatePath() ?? "";
-    const account = await BankingApi.ensureVenueAccount(
-      business.getAccountPath(),
-      BankingApi.defaultCustodianBankPath(),
-      "",
-    );
+    let account: string;
+    try {
+      // Custody is the business's authored banksAt (never a default).
+      account = await EmploymentApi.operatingAccountOf(business);
+    } catch {
+      return this.fail(
+        context,
+        "The business banks nowhere — author its banksAt.",
+        "no-bank",
+      );
+    }
     try {
       await BankingApi.payDraw(account, giverKey, Money.of(minor));
     } catch (err) {

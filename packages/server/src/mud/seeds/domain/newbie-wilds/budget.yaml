@@ -17,5 +17,8 @@ hydratorClass: /lib/persistence/PersistentHydrator
 data:
   proprietorPath: ''
   positions: []
+  # Where this budget banks (authored custody; city governance is
+  # content, not the state).
+  banksAt: /domain/terminus/counting-houses/bank-counter
   operatingLocations:
     - /domain/newbie-wilds/crossroads/terminal

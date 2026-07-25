@@ -25,9 +25,9 @@ import {
 
 const BUSINESS = "/domain/test/business";
 const DAVE = "/domain/test/npc/dave";
-const HEWER = "/obj/Avatar/hewer";
-const BARKER = "/obj/Avatar/barker";
-const WENNA = "/obj/Avatar/wenna";
+const HEWER = "/domain/test/npc/hewer";
+const BARKER = "/domain/test/npc/barker";
+const WENNA = "/domain/test/npc/wenna";
 const HOUR = 3_600;
 
 class Worker extends EmployedMixin(Idea) {
@@ -37,6 +37,7 @@ class Worker extends EmployedMixin(Idea) {
 function seedBusiness(): BusinessEntity {
   const b = makeStuffAtPath(() => new BusinessEntity(), BUSINESS);
   b.proprietorPath = DAVE;
+  b.banksAt = BankingApi.defaultCustodianBankPath();
   b.positions = [
     {
       key: "bartender",
@@ -85,6 +86,17 @@ describe("compensation bases", () => {
     teardownBankingHarness();
   });
 
+  it("a business with no authored banksAt cannot open an operating account", async () => {
+    const bare = makeStuffAtPath(
+      () => new BusinessEntity(),
+      "/domain/test/bankless",
+    );
+    bare.positions = [];
+    await expect(EmploymentApi.operatingAccountOf(bare)).rejects.toThrow(
+      /banksAt/,
+    );
+  });
+
   it("per-settlement: settlePiecework pays units × rate as wage/piecework", async () => {
     const biz = seedBusiness();
     const hewer = makeStuffAtPath(() => new Worker(), HEWER);
@@ -108,7 +120,7 @@ describe("compensation bases", () => {
     const wenna = makeStuffAtPath(() => new Worker(), WENNA);
     EmploymentApi.hire(biz, wenna, "bartender");
     await expect(
-      EmploymentApi.settlePiecework(biz, "/obj/Avatar/stranger", 1),
+      EmploymentApi.settlePiecework(biz, "/domain/test/npc/stranger", 1),
     ).rejects.toThrow(/no such employee/);
     await expect(
       EmploymentApi.settlePiecework(biz, WENNA, 1),

@@ -350,14 +350,26 @@ export class BankingApi {
   }
 
   /**
-   * The default custodian bank path (`banking.defaultCustodianBankPath`) —
-   * where accounts whose owner names no branch of their own are held
-   * (venue operating accounts, worker wage-fallbacks, escrow). Call sites
-   * pass this as `ensureVenueAccount`'s `bankPath`; an empty or non-bank
-   * custodian is refused (every account names a real custodian).
+   * The default custodian bank path (`banking.defaultCustodianBankPath`).
+   * **The legacy-restamp last resort, not a default to build on**: custody
+   * is a relationship — a business banks where its authored `banksAt`
+   * says, a worker's first account opens at the payer's bank, escrow at
+   * the issuer's bank. This value exists for the boot restamp of orphaned
+   * legacy rows (no relationship derivable) and as a person-tier retail
+   * anchor in tests. Never pass it as a business's custodian.
    */
   public static defaultCustodianBankPath(): string {
     return logic().defaultCustodianBankPath();
+  }
+
+  /**
+   * The custodian (`bankPath`) recorded on an account, or null for an
+   * unknown/uncustodied row — the relationship read a payer derives a
+   * payee's new account from (e.g. a contract payout opens where the
+   * escrow is custodied).
+   */
+  public static async custodianOf(accountId: string): Promise<string | null> {
+    return logic().custodianOf(accountId);
   }
 
   /**

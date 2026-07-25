@@ -231,10 +231,10 @@ settings:
     value: "0.15"
   - key: fasttravel.networkFeeBase
     value: "1"
-  # Fast-travel — the TPA operating-budget account id (the network fee
-  # accrues here), named like banking.treasuryAccount.
-  - key: fasttravel.tpaAccount
-    value: tpa
+  # Fast-travel — the Teleport Authority Business (the network fee accrues
+  # to its operating account, custodied at its authored banksAt).
+  - key: fasttravel.tpaBusinessPath
+    value: /domain/terminus/terminal/tpa
   # YouTube relay (read-only) dials — operator knobs for the second chat
   # transport. pollIntervalMs: the `list`-poll read cadence + overlay
   # live-status poll floor (the API's pollingIntervalMillis wins when

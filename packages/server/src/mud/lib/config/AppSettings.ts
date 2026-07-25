@@ -333,10 +333,13 @@ export const AppSettingKeys = {
    */
   fasttravelNetworkFeeBase: "fasttravel.networkFeeBase",
   /**
-   * Fast-travel — the TPA operating-budget account id (the well-known
-   * account the network fee accrues to), named like `banking.treasuryAccount`.
+   * Fast-travel — the Teleport Authority **Business** (templatePath): the
+   * network operator the per-ride network fee accrues to, resolved as a
+   * Business (its operating account, custodied at its authored `banksAt`)
+   * — never a bare well-known account id (every account names a real
+   * custodian, and the TPA is a business, not the state).
    */
-  fasttravelTpaAccount: "fasttravel.tpaAccount",
+  fasttravelTpaBusinessPath: "fasttravel.tpaBusinessPath",
 
   /**
    * Social-graph (attention management) — the reserved-baseline notify

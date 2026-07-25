@@ -775,10 +775,20 @@ async function escrowHoldImpl(
   const escrowId = Account.escrowAccountFor(contractId);
   const existing = await accountByIdImpl(escrowId);
   if (!existing) {
+    // Custody follows the issuer: the escrow account lives at the bank
+    // custodying the FUNDING account — *your* bank holds *your* stake (and
+    // is pre-positioned as a party for the future escrow-as-a-bank-product
+    // seam on Terms). The default is the last resort for a legacy funding
+    // row with no recorded custodian.
+    const funding = await accountByIdImpl(fromAccountId);
+    const custodian =
+      funding?.bankPath && isRealCustodian(funding.bankPath)
+        ? funding.bankPath
+        : defaultCustodianBankPathImpl();
     const row = new AccountBalance();
     row.accountId = escrowId;
     row.owner = `contract:${contractId}`;
-    row.bankPath = defaultCustodianBankPathImpl();
+    row.bankPath = custodian;
     row.corpoKey = "";
     row.isPrimary = false;
     row.isActive = true;
@@ -905,6 +915,15 @@ async function restampCustodiansImpl(): Promise<void> {
   if (!active()) return;
   const treasuryId = demoTaxConfig().treasury;
   const custodian = defaultCustodianBankPathImpl();
+  // The Teleport Authority Business path (for the legacy `tpa` row
+  // migration) — a string read, no content import.
+  let tpaBusinessPath = "";
+  try {
+    tpaBusinessPath =
+      AppApi.setting(AppSettingKeys.fasttravelTpaBusinessPath) || "";
+  } catch {
+    /* unwarmed — the row falls through to the generic rules */
+  }
   for (const row of await AccountBalance.find<AccountBalance>({})) {
     if (Account.isEscrowAccount(row.accountId)) continue;
     if (row.accountId === treasuryId) {
@@ -912,6 +931,17 @@ async function restampCustodiansImpl(): Promise<void> {
         row.bankPath = Account.CENTRAL_BANK_PATH;
         await row.save();
       }
+      continue;
+    }
+    // The legacy raw `tpa` accumulator (pre-TPA-Business): re-own it to
+    // the Teleport Authority Business so its account resolution finds the
+    // accumulated network fees instead of minting a fresh row — a
+    // cache-field fill (owner + custodian), never a money movement.
+    if (row.accountId === "tpa" && !row.owner && tpaBusinessPath) {
+      row.owner = tpaBusinessPath;
+      row.bankPath = custodian;
+      row.isPrimary = true;
+      await row.save();
       continue;
     }
     const selfCustodiedAtNonBank =
@@ -1619,6 +1649,13 @@ export class BankingLogic extends ApiLogic {
   @CallSecurity(BankingApiCallers)
   public defaultCustodianBankPath(): string {
     return defaultCustodianBankPathImpl();
+  }
+
+  /** See {@link BankingApi.custodianOf}. An account's custodian bankPath. */
+  @CallSecurity(BankingApiCallers)
+  public async custodianOf(accountId: string): Promise<string | null> {
+    const row = await accountByIdImpl(accountId);
+    return row?.bankPath || null;
   }
 
   /** See {@link BankingApi.profitAndLoss}. Categorized ledger read. */

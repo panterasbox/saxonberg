@@ -52,5 +52,8 @@ data:
       assignee: /domain/lounge/npc/augie
       schedule:
         - { days: [5, 6], hours: [10, 24] }
+  # Where the house banks (an authored fact — Terms/fees follow it).
+  # v1: Goodkin, the one real branch; a rival bank is one edit away.
+  banksAt: /domain/terminus/counting-houses/bank-counter
   operatingLocations:
     - /domain/lounge/bar

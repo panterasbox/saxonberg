@@ -116,6 +116,16 @@ describe("contract lifecycle", () => {
       ),
     );
     await BankingApi.mint(issuerAcct, Money.of(100));
+    // The couriers live under /obj/Avatar/ — the PLAYER namespace — so per
+    // the players-hold-their-own-accounts rule they arrive banked (the
+    // no-account refusal has its own test below).
+    for (const key of [COURIER, RIVAL]) {
+      await BankingApi.ensureVenueAccount(
+        key,
+        BankingApi.defaultCustodianBankPath(),
+        "",
+      );
+    }
   });
   afterEach(() => {
     vi.restoreAllMocks();
@@ -419,6 +429,7 @@ describe("contract lifecycle", () => {
     const { default: BusinessEntity } = await import("../Business");
     const biz = makeStuffAtPath(() => new BusinessEntity(), BUSINESS);
     (biz as unknown as { proprietorPath: string }).proprietorPath = DAVE;
+    biz.banksAt = BankingApi.defaultCustodianBankPath();
     const dave = makeStuffAtPath(() => new TestIssuer(), DAVE);
     const bizAcct = await BankingApi.ensureVenueAccount(
       biz.getAccountPath(),
@@ -449,6 +460,35 @@ describe("contract lifecycle", () => {
     });
     expect(await balanceOfKey(COURIER)).toBe(REWARD);
     expect(BankingApi.reconcile().balanced).toBe(true);
+  });
+
+  it("an unbanked player completer is refused before the terminal flip", async () => {
+    // A walk-in under /obj/Avatar/ (the player namespace) with NO account:
+    // players are never silently signed up for a bank — the refusal is the
+    // nudge to open one (coin settlement is a named deferred seam). The
+    // record must NOT settle (payee resolves before the CAS flip) and the
+    // stake stays held; opening an account unblocks the payout.
+    const walkin = makeStuffAtPath(() => new Creature(), "/obj/Avatar/walkin");
+    const posted = await as(issuer, () =>
+      ContractApi.post(spec({ claimMode: "open-bounty" })),
+    );
+    const id = posted.ok ? posted.contractId : "";
+    deliver();
+    expect(await as(walkin, () => ContractApi.complete(id))).toMatchObject({
+      ok: false,
+      reason: expect.stringMatching(/no account/),
+    });
+    expect((await ContractApi.contractById(id))?.state).toBe("open");
+    expect(BankingApi.escrowBalanceOf(id).minor).toBe(REWARD);
+    await BankingApi.ensureVenueAccount(
+      "/obj/Avatar/walkin",
+      BankingApi.defaultCustodianBankPath(),
+      "",
+    );
+    expect(await as(walkin, () => ContractApi.complete(id))).toEqual({
+      ok: true,
+      paidMinor: REWARD,
+    });
   });
 
   it("conservation sweep: every ledger row's kind is in the vocabulary; reconcile green", async () => {

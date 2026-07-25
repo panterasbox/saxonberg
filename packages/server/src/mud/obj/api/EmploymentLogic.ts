@@ -9,6 +9,7 @@ import { StuffApi } from '../../api/stuff';
 import { MixinApi } from '../../api/mixin';
 import { MqlApi } from '../../api/mql';
 import { AccessApi } from '../../api/access';
+import { PlayerApi } from '../../api/player';
 import { BankingApi, Money } from '../../api/banking';
 import type { RemittanceSplit } from '../../api/banking';
 import { WorldClockApi } from '../../api/worldclock';
@@ -126,6 +127,53 @@ function tipRecipientForImpl(patron: Stuff): Stuff | null {
 }
 
 /**
+ * The one resolution seam for a Business's operating account: custody is
+ * the business's **authored** `banksAt` — where a business banks is a fact
+ * about the business (a term of its arrangement), never a call-site
+ * default. A business that authors no `banksAt` cannot open an operating
+ * account: an authoring error, refused loudly (the
+ * no-operator-to-collect-the-fare precedent).
+ */
+async function operatingAccountOfImpl(
+  business: BusinessStuff,
+): Promise<string> {
+  const banksAt = business.getBanksAt();
+  if (!banksAt) {
+    throw new Error(
+      `EmploymentLogic.operatingAccountOf: ${business.getTemplatePath()} ` +
+        `authors no banksAt — a business must name the bank that custodies ` +
+        `its operating account`,
+    );
+  }
+  return BankingApi.ensureVenueAccount(
+    business.getAccountPath(),
+    banksAt,
+    '',
+  );
+}
+
+/**
+ * Ensure a worker can be paid into an account, **payer-derived**: an NPC
+ * with no account gets one opened at the *employer's* bank (your first
+ * account opens where your first money comes from — the business's
+ * authored `banksAt`). A **player** is never silently signed up for a
+ * bank: no primary account → not payable (false); they open their own at
+ * a branch.
+ */
+async function ensurePayableWorker(
+  employeeKey: string,
+  business: BusinessStuff,
+): Promise<boolean> {
+  if ((await BankingApi.primaryAccountIdOf(employeeKey)) != null) return true;
+  const live = StuffApi.findByTemplatePath(employeeKey);
+  if (live && PlayerApi.isAvatarStuff(live)) return false;
+  const banksAt = business.getBanksAt();
+  if (!banksAt) return false;
+  await BankingApi.ensureVenueAccount(employeeKey, banksAt, '');
+  return true;
+}
+
+/**
  * Settle the wage for a completed shift — the shift-end (on→off transition)
  * is the pay milestone: a **lump of `rate × shift-hours`, once, at the
  * boundary** (not a continuous sweep). `employment` carries the
@@ -162,24 +210,16 @@ async function settleShiftWageImpl(
   const amount = Math.round(position.wageRate * gameHours);
   if (amount <= 0) return;
 
-  const accountPath = business.getAccountPath();
-  const account = await BankingApi.ensureVenueAccount(
-    accountPath,
-    BankingApi.defaultCustodianBankPath(),
-    '',
-  );
-  // Ensure the worker has an account to be paid into — `payWage` throws
-  // otherwise. NPC workers (the terminal clerk, the bar cast) never opened
-  // one, so provision an account keyed on their own path, custodied at the
-  // default bank (every account names a real custodian — diegetically the
-  // bank that wants the newcomer). Additive + general; also closes the same
-  // gap in the bar wage loop.
-  if ((await BankingApi.primaryAccountIdOf(employeeKey)) == null) {
-    await BankingApi.ensureVenueAccount(
-      employeeKey,
-      BankingApi.defaultCustodianBankPath(),
-      '',
+  const account = await operatingAccountOfImpl(business);
+  // Payer-derived payability: an NPC worker (the terminal clerk, the bar
+  // cast) gets an account opened at the employer's own bank; a player who
+  // hasn't opened one forfeits until they do (never silently signed up).
+  if (!(await ensurePayableWorker(employeeKey, business))) {
+    console.warn(
+      `EmploymentLogic: ${employeeKey} has no account to be paid into ` +
+        `(players open their own at a branch) — shift wage skipped`,
     );
+    return;
   }
   await BankingApi.payWage(account, employeeKey, Money.of(amount));
 }
@@ -220,17 +260,11 @@ async function settlePieceworkImpl(
   const rate = position.compensation?.rate ?? 0;
   const amount = units * rate;
   if (amount <= 0) return;
-  const accountPath = business.getAccountPath();
-  const account = await BankingApi.ensureVenueAccount(
-    accountPath,
-    BankingApi.defaultCustodianBankPath(),
-    '',
-  );
-  if ((await BankingApi.primaryAccountIdOf(employeeKey)) == null) {
-    await BankingApi.ensureVenueAccount(
-      employeeKey,
-      BankingApi.defaultCustodianBankPath(),
-      '',
+  const account = await operatingAccountOfImpl(business);
+  if (!(await ensurePayableWorker(employeeKey, business))) {
+    throw new Error(
+      'EmploymentLogic.settlePiecework: the employee has no account to be ' +
+        'paid into (players open their own at a branch)',
     );
   }
   await BankingApi.payWage(
@@ -276,14 +310,12 @@ async function flowSplitsForImpl(
     if (total + cut >= amountMinor) break; // Σ splits stays below the flow
     const holderKey = holder.getTemplatePath() ?? '';
     if (!holderKey) continue;
-    let account = await BankingApi.primaryAccountIdOf(holderKey);
-    if (!account) {
-      account = await BankingApi.ensureVenueAccount(
-        holderKey,
-        BankingApi.defaultCustodianBankPath(),
-        '',
-      );
-    }
+    // Payer-derived: an NPC holder gets an account at the business's own
+    // bank; a player with none is skipped (never silently signed up — the
+    // split simply doesn't fire until they open an account).
+    if (!(await ensurePayableWorker(holderKey, business))) continue;
+    const account = await BankingApi.primaryAccountIdOf(holderKey);
+    if (!account) continue;
     splits.push({
       accountId: account,
       amount: Money.of(cut),
@@ -547,6 +579,12 @@ export class EmploymentLogic extends ApiLogic {
       (actor as EmployedActor).isOnShift()
       ? 'on-shift'
       : 'off-shift';
+  }
+
+  /** See {@link EmploymentApi.operatingAccountOf}. */
+  @CallSecurity(EmploymentApiCallers)
+  public operatingAccountOf(business: BusinessStuff): Promise<string> {
+    return operatingAccountOfImpl(business);
   }
 
   /** See {@link EmploymentApi.settlePiecework}. */

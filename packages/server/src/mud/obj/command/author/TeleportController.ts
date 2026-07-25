@@ -290,18 +290,14 @@ export default class TeleportController extends CommandController<TeleportModel>
     let cityBudgetAccount: string | null = null;
     if (fee > 0) {
       const here = (node as unknown as Stuff).getTemplatePath();
-      const bizPath = (here ? await EmploymentApi.ensureOperatorAt(here) : null)
-        ?.getAccountPath();
-      if (!bizPath) {
+      const operator = here ? await EmploymentApi.ensureOperatorAt(here) : null;
+      if (!operator) {
         this.fail(context, "this gate has no operator to collect the fare", "no-operator");
         return false;
       }
       try {
-        cityBudgetAccount = await BankingApi.ensureVenueAccount(
-          bizPath,
-          BankingApi.defaultCustodianBankPath(),
-          "",
-        );
+        // Custody is the operator Business's authored banksAt.
+        cityBudgetAccount = await EmploymentApi.operatingAccountOf(operator);
       } catch {
         this.fail(context, "the fare can't be collected here", "no-operator");
         return false;
@@ -313,9 +309,10 @@ export default class TeleportController extends CommandController<TeleportModel>
     let destOperatorAccount: string | null = null;
     if (surcharge > 0) {
       const destHere = (destNode as unknown as Stuff).getTemplatePath();
-      const destPath = (destHere ? await EmploymentApi.ensureOperatorAt(destHere) : null)
-        ?.getAccountPath();
-      if (!destPath) {
+      const destOperator = destHere
+        ? await EmploymentApi.ensureOperatorAt(destHere)
+        : null;
+      if (!destOperator) {
         this.fail(
           context,
           "this destination has no operator to collect its surcharge",
@@ -324,11 +321,8 @@ export default class TeleportController extends CommandController<TeleportModel>
         return false;
       }
       try {
-        destOperatorAccount = await BankingApi.ensureVenueAccount(
-          destPath,
-          BankingApi.defaultCustodianBankPath(),
-          "",
-        );
+        destOperatorAccount =
+          await EmploymentApi.operatingAccountOf(destOperator);
       } catch {
         this.fail(context, "the surcharge can't be collected there", "no-operator");
         return false;
@@ -339,9 +333,21 @@ export default class TeleportController extends CommandController<TeleportModel>
       Number(AppApi.setting(AppSettingKeys.fasttravelNetworkFeeRate)) || 0;
     const base =
       Number(AppApi.setting(AppSettingKeys.fasttravelNetworkFeeBase)) || 0;
-    const networkFee = fee > 0 ? Math.min(fee, base + Math.floor(fee * rate)) : 0;
-    const tpaAccount =
-      AppApi.setting(AppSettingKeys.fasttravelTpaAccount) || "tpa";
+    let networkFee = fee > 0 ? Math.min(fee, base + Math.floor(fee * rate)) : 0;
+    // The network fee accrues to the Teleport Authority — a Business (its
+    // operating account, custodied at its authored banksAt), never a bare
+    // well-known account id. An unresolvable TPA (unseeded world) forfeits
+    // the levy to the departure operator rather than blocking the ride.
+    let tpaAccount: string | null = null;
+    if (networkFee > 0) {
+      tpaAccount = await this.resolveTpaAccount();
+      if (!tpaAccount) {
+        console.warn(
+          "TeleportController: no Teleport Authority Business resolvable — network fee waived",
+        );
+        networkFee = 0;
+      }
+    }
     const total = fee + surcharge;
 
     // Build the split. When there's a base fare, the departure city budget is
@@ -352,7 +358,7 @@ export default class TeleportController extends CommandController<TeleportModel>
     let payeeAccountId: string;
     if (cityBudgetAccount) {
       payeeAccountId = cityBudgetAccount;
-      if (networkFee > 0) {
+      if (networkFee > 0 && tpaAccount) {
         splits.push({ accountId: tpaAccount, amount: Money.of(networkFee), category: "networkFee" });
       }
       if (destOperatorAccount && surcharge > 0) {
@@ -396,6 +402,31 @@ export default class TeleportController extends CommandController<TeleportModel>
   }
 
   /* ── helpers ────────────────────────────────────────────────────── */
+
+  /**
+   * The Teleport Authority's operating account: resolve the TPA Business
+   * (`fasttravel.tpaBusinessPath`, stood up on demand) and open/find its
+   * account at its authored `banksAt`. Null when unseeded/unresolvable —
+   * the caller waives the levy rather than blocking the ride.
+   */
+  private async resolveTpaAccount(): Promise<string | null> {
+    let path = "";
+    try {
+      path = AppApi.setting(AppSettingKeys.fasttravelTpaBusinessPath) || "";
+    } catch {
+      return null; // settings unwarmed (tests) — no TPA to levy for
+    }
+    if (!path) return null;
+    try {
+      const tpa =
+        StuffApi.findByTemplatePath(path) ??
+        (await StuffApi.singletonOrClone<Stuff>(path));
+      if (!tpa || !MixinApi.isBusiness(tpa)) return null;
+      return await EmploymentApi.operatingAccountOf(tpa);
+    } catch {
+      return null;
+    }
+  }
 
   private tell(context: CommandContext, text: string): void {
     MessageApi.scene(context.commandGiver)

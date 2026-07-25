@@ -16,6 +16,8 @@ import Coin from "../../../../obj/Coin";
 import BankCounter from "../../../../lib/banking/BankCounter";
 import PaymentCard from "../../../../lib/banking/PaymentCard";
 import ChattelRegistry from "../../../ChattelRegistry";
+import { EmploymentApi } from "../../../../api/employment";
+import BusinessEntity from "../../../../lib/employment/Business";
 import { ChattelApi } from "../../../../api/chattel";
 import { BankingApi, Money } from "../../../../api/banking";
 import { ContainmentApi } from "../../../../api/containment";
@@ -46,6 +48,20 @@ import {
 
 const BANK = "/domain/terminus/counting-houses/bank-counter";
 const STORE = "/domain/terminus/general-store/counter";
+const SHELF = "/domain/terminus/general-store/consignment-shelf";
+
+/** The store's Business (operates the counter + shelf; authored custody). */
+async function makeStoreBusiness(): Promise<string> {
+  const biz = makeStuffAtPath(
+    () => new BusinessEntity(),
+    "/domain/terminus/general-store/business",
+  );
+  biz.proprietorPath = "";
+  biz.positions = [];
+  biz.operatingLocations = [STORE, SHELF];
+  biz.banksAt = BankingApi.defaultCustodianBankPath();
+  return EmploymentApi.operatingAccountOf(biz);
+}
 const TORCH = "/obj/test/Torch";
 
 class TestGiver extends SensorMixin(
@@ -162,11 +178,7 @@ describe("BuyController — buy that stamps", () => {
       BankingApi.issueCash(giver as never, Money.of(300)),
     );
     await asOwner(giver, () => BankingApi.deposit(bank, cash as never));
-    const storeAcct = await BankingApi.ensureVenueAccount(
-      STORE,
-      BankingApi.defaultCustodianBankPath(),
-      "",
-    );
+    const storeAcct = await makeStoreBusiness();
 
     const { stock, torch } = makeStore({
       attendDurationMs: 0,
@@ -196,11 +208,7 @@ describe("BuyController — buy that stamps", () => {
       BankingApi.issueCash(giver as never, Money.of(20)),
     );
     void coins;
-    const storeAcct = await BankingApi.ensureVenueAccount(
-      STORE,
-      BankingApi.defaultCustodianBankPath(),
-      "",
-    );
+    const storeAcct = await makeStoreBusiness();
 
     const { stock, torch } = makeStore({
       attendDurationMs: 0,

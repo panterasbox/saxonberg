@@ -7,13 +7,15 @@
  * `treasury` row going to the central bank.
  */
 
-import { describe, it, expect, beforeEach, afterEach } from "vitest";
+import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { BankingApi } from "../../../api/banking";
 import { Money } from "../Money";
 import { Account } from "../Account";
 import AccountBalance from "../AccountBalance";
 import BankCounter from "../BankCounter";
 import { makeStuffAtPath } from "../../security/__tests__/test-setup";
+import { AppApi } from "../../../api/app";
+import { AppSettingKeys } from "../../config/AppSettings";
 import {
   installBankingHarness,
   teardownBankingHarness,
@@ -145,5 +147,21 @@ describe("the boot restamp pass", () => {
     await BankingApi.boot();
     expect(storedRow("treasury")?.bankPath).toBe(Account.CENTRAL_BANK_PATH);
     expect(storedRow("acct-venue")?.bankPath).toBe(custodian);
+  });
+
+  it("re-owns the legacy raw `tpa` accumulator to the TPA Business", async () => {
+    const TPA_BIZ = "/domain/terminus/terminal/tpa";
+    vi.spyOn(AppApi, "setting").mockImplementation((k: string) => {
+      if (k === AppSettingKeys.fasttravelTpaBusinessPath) return TPA_BIZ;
+      return "";
+    });
+    await seedRow({ accountId: "tpa", owner: "", bankPath: "", balance: 30 });
+    await BankingApi.boot();
+    const row = storedRow("tpa");
+    expect(row?.owner).toBe(TPA_BIZ);
+    expect(row?.bankPath).toBe(BankingApi.defaultCustodianBankPath());
+    expect(row?.balance).toBe(30); // a cache-field fill, never a movement
+    // The Business's account resolution now finds the accumulated fees.
+    expect(await BankingApi.primaryAccountIdOf(TPA_BIZ)).toBe("tpa");
   });
 });

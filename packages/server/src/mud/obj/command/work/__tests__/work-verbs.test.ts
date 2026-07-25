@@ -122,6 +122,13 @@ describe("work verbs", () => {
       ),
     );
     await BankingApi.mint(acct, Money.of(100));
+    // The courier is a player (the /obj/Avatar/ namespace): players hold
+    // their own accounts (never silently signed up at settle).
+    await BankingApi.ensureVenueAccount(
+      COURIER,
+      BankingApi.defaultCustodianBankPath(),
+      "",
+    );
   });
   afterEach(() => {
     vi.restoreAllMocks();

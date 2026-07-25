@@ -109,7 +109,8 @@ describe("AppSettingsSeeder", () => {
           [AppSettingKeys.bankingOnboardingStipend]: "20",
           [AppSettingKeys.fasttravelNetworkFeeRate]: "0.15",
           [AppSettingKeys.fasttravelNetworkFeeBase]: "1",
-          [AppSettingKeys.fasttravelTpaAccount]: "tpa",
+          [AppSettingKeys.fasttravelTpaBusinessPath]:
+            "/domain/terminus/terminal/tpa",
           // The two social-graph baseline keys (Phase 1 additions).
           [AppSettingKeys.socialBaselineRules]: "{}",
           [AppSettingKeys.socialDefaultColor]: "neutral",

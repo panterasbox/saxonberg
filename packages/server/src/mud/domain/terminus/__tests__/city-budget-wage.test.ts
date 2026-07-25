@@ -40,6 +40,7 @@ function setGameClock(gameSeconds: number): void {
 function seedBudget(): BusinessEntity {
   const b = makeStuffAtPath(() => new BusinessEntity(), BUDGET);
   b.proprietorPath = ""; // municipal
+  b.banksAt = BankingApi.defaultCustodianBankPath();
   b.positions = [{ key: "clerk", label: "staffing the ticket office", wageRate: 4, confers: [] }];
   // Fixture-keyed: the budget operates the departure TERMINAL, not the room.
   b.operatingLocations = ["/domain/terminus/terminal/departure-terminal-a"];

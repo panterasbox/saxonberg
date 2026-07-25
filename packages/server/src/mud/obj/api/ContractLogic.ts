@@ -18,7 +18,8 @@ import { CallSecurity, Unshadowable } from "../../lib/security/decorators";
 import { SecurityPolicies } from "../../lib/security/SecurityPolicies";
 import { StuffApi } from "../../api/stuff";
 import { MixinApi } from "../../api/mixin";
-import { BankingApi, Money } from "../../api/banking";
+import { BankingApi, Money, Account } from "../../api/banking";
+import { PlayerApi } from "../../api/player";
 import { EmploymentApi } from "../../api/employment";
 import { ExecutionContextApi } from "../../api/execution-context";
 import { WorldClockApi } from "../../api/worldclock";
@@ -297,11 +298,13 @@ async function resolveIssuer(
     if (!business) {
       return { ok: false, reason: "you don't run a business" };
     }
-    const accountId = await BankingApi.ensureVenueAccount(
-      business.getAccountPath(),
-      BankingApi.defaultCustodianBankPath(),
-      "",
-    );
+    let accountId: string;
+    try {
+      // Custody is the business's authored banksAt (never a default).
+      accountId = await EmploymentApi.operatingAccountOf(business);
+    } catch {
+      return { ok: false, reason: "the business banks nowhere" };
+    }
     return {
       ok: true,
       party: {
@@ -549,6 +552,30 @@ async function completeImpl(contractId: string): Promise<CompleteResult> {
     return { ok: false, reason: "the stake isn't held" };
   }
 
+  // Resolve where the payout lands BEFORE the terminal flip (a settled-but-
+  // unpaid record must be unreachable). Payer-derived, never a default: a
+  // **player** must already hold an account — no silent sign-up; the
+  // refusal is the nudge to open one (gig settlement in coin is a named
+  // deferred seam). An NPC payee gets an account opened at the bank
+  // custodying the escrow (your first account opens where your first
+  // money comes from).
+  let payee = await BankingApi.primaryAccountIdOf(key);
+  if (!payee) {
+    if (PlayerApi.isAvatarStuff(completer)) {
+      return {
+        ok: false,
+        reason: "you have no account to be paid into — open one at a bank",
+      };
+    }
+    const custodian = await BankingApi.custodianOf(
+      Account.escrowAccountFor(contractId),
+    );
+    if (!custodian) {
+      return { ok: false, reason: "the stake's bank can't be resolved" };
+    }
+    payee = await BankingApi.ensureVenueAccount(key, custodian, "");
+  }
+
   // The compare-and-set state guard: re-read, flip terminal, save — a
   // concurrent second `complete` sees the terminal state and is refused.
   const fresh = await ContractRecord.findByContractId(contractId);
@@ -559,17 +586,6 @@ async function completeImpl(contractId: string): Promise<CompleteResult> {
   fresh.settledBy = key;
   fresh.closedAt = WorldClockApi.getNow().rawValue();
   await saveRecord(fresh);
-
-  // The worker-account guard (the wage precedent): ensure the completer
-  // can be paid, at the default custodian (every account names a bank).
-  let payee = await BankingApi.primaryAccountIdOf(key);
-  if (!payee) {
-    payee = await BankingApi.ensureVenueAccount(
-      key,
-      BankingApi.defaultCustodianBankPath(),
-      "",
-    );
-  }
   const txId = await BankingApi.escrowRelease(
     contractId,
     payee,

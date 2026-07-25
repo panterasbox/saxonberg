@@ -139,16 +139,13 @@ export default class OrderController extends CraftController<OrderModel> {
     // venue's Business up lazily (derived from its `operatingLocations`) on
     // this first order; falls back to the venue path when none operates here.
     const business = await EmploymentApi.ensureOperatorAt(venuePath);
-    const ownerPath = business?.getAccountPath() ?? venuePath;
+    if (!business) return null; // no operator → served on the house
     let venueAccount: string;
     try {
-      venueAccount = await BankingApi.ensureVenueAccount(
-        ownerPath,
-        BankingApi.defaultCustodianBankPath(),
-        '',
-      );
+      // Custody is the business's authored banksAt (never a default).
+      venueAccount = await EmploymentApi.operatingAccountOf(business);
     } catch {
-      return null;
+      return null; // no authored bank → the venue can't take payment
     }
     const charge: Charge = {
       amount: Money.of(price),

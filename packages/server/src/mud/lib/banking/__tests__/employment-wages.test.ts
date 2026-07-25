@@ -56,6 +56,7 @@ async function asOwner<T>(owner: Stuff, fn: () => Promise<T>): Promise<T> {
 function seedBusiness(): BusinessEntity {
   const b = makeStuffAtPath(() => new BusinessEntity(), BUSINESS);
   b.proprietorPath = DAVE;
+  b.banksAt = BANK;
   b.positions = [
     { key: 'bartender', label: 'tending bar', wageRate: 12, confers: ['MakerMixin'] },
   ];

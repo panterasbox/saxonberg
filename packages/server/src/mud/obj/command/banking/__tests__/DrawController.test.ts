@@ -68,6 +68,7 @@ describe("DrawController", () => {
     muteScenes();
     biz = makeStuffAtPath(() => new BusinessEntity(), BUSINESS);
     biz.proprietorPath = DAVE;
+    biz.banksAt = BankingApi.defaultCustodianBankPath();
     dave = makeStuffAtPath(() => new Person(), DAVE);
     mara = makeStuffAtPath(() => new Person(), MARA);
     bizAcct = await BankingApi.ensureVenueAccount(

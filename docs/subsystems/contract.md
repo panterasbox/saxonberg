@@ -82,8 +82,9 @@ The reward is a **real held balance** moved only by the sealed
 (open-bounty), `escrow-release` to the completer at settle,
 `escrow-revert` to the issuer on breach/expiry — held in the
 **per-contract real account** `escrow:contract:<id>` (owner = the
-contract, custodied at the default commercial bank per the custodian
-rule). Why not a sentinel, not a pooled account, and not a per-contract
+contract, **custodied at the issuer's own bank** — wherever the funding
+account lives, *your* bank holds *your* stake; the future
+escrow-as-a-bank-product seam on Terms). Why not a sentinel, not a pooled account, and not a per-contract
 Stuff — and why `reconcile` stays green with escrow in flight with zero
 audit changes — is argued in [banking.md](./banking.md) § The leg-kind
 vocabulary. Posting fails if the issuer can't fund it; **no credit,
@@ -135,10 +136,14 @@ the crate into the destination and asserts *nothing settles*.)
    on **either** live `holdsFor` **or** a valid post-claim `fulfilled`
    row whose actor is the completer — the payout survives later state
    drift (the recipient taking the crate inside is the *point* of
-   delivering it). On verification: CAS state flip, escrow released to
-   the completer's primary (the wage worker-account guard, at the
-   default custodian), `settled` records attribution both ways,
-   `escrowClose`.
+   delivering it). On verification: the payee resolves **before** the
+   terminal flip (a settled-but-unpaid record is unreachable) — a
+   **player must already hold a primary account** (never silently
+   signed up for a bank; the refusal is the nudge to open one — *gig
+   settlement in coin* is a named deferred seam), while an NPC payee
+   gets an account opened at the bank custodying the escrow
+   (payer-derived) — then the CAS state flip, escrow release, `settled`
+   recording attribution both ways, `escrowClose`.
 
 ## Expiry is lazy (observe-first)
 
@@ -208,4 +213,7 @@ gates; demand/difficulty pricing; entity forms + differential tax rates
 `accountability_events`; the client board pane; the game-time expiry
 safety-net sweep; NPC claiming brains; the mine as the first real
 piecework venue; the general trusted-recording instrument (the
-`fulfilled` row is its narrowest shipped instance).
+`fulfilled` row is its narrowest shipped instance); **gig settlement in
+coin** (an unbanked completer paid in physical cash over a counter —
+needs an escrow→till bridge at a branch; today the refusal nudges the
+player to open an account).

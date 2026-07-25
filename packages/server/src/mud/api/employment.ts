@@ -158,6 +158,18 @@ export class EmploymentApi {
   }
 
   /**
+   * The one resolution seam for a Business's operating account — custody
+   * is the business's **authored `banksAt`** (where a business banks is a
+   * fact about the business, a term of its arrangement: the branch's Terms
+   * price its fees, the fees route a royalty to that bank's corpo — never
+   * a call-site default). Throws when the Business authors no `banksAt`
+   * (an authoring error, loud). Idempotent (finds the existing account).
+   */
+  public static operatingAccountOf(business: BusinessStuff): Promise<string> {
+    return logic().operatingAccountOf(business);
+  }
+
+  /**
    * Pay a per-settlement (piece-rate) employee for `units` attributed
    * settlements — `units × rate` from the Business account as a
    * `wage`/`piecework` posting. Verifies the participant relationship (a

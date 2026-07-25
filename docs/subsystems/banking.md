@@ -513,17 +513,51 @@ with the constitutional line:
   per-contract accounts are custodied at the default commercial bank (a
   future seam: escrow custody as a competitive bank product on Terms).
 
+**WHICH custodian is a relationship, never a code default.** The
+custodian of each account class is derived from who the account is for:
+
+- **A business banks where its authored `banksAt` says** — a field on
+  the Business seed (next to `proprietorPath`/`positions`), resolved
+  through the ONE seam `EmploymentApi.operatingAccountOf(business)`. A
+  business with no `banksAt` cannot open an operating account (an
+  authoring error, refused loudly — the no-operator-to-collect-the-fare
+  precedent). This is what makes the custodian choice *matter* when the
+  other corpo banks land: your bank's Terms price your fees, and every
+  fee routes a royalty to your bank's corpo. All seven former call-site
+  defaults (bar/store income, the TPA fare operators, wage + piecework
+  payers, the draw, `job post --business`) route through this seam. The
+  five shipped Business seeds author `banksAt` (Goodkin today — one
+  edit each to defect); the counting-houses Business banks at itself
+  (a branch's own account at its own counter is the legitimate
+  self-custody — the check is "is the custodian a bank").
+- **A worker's first account opens at the payer's bank** — the
+  employer's `banksAt` (`ensurePayableWorker`): an **NPC** with no
+  account is set up where its money first comes from. A **player is
+  never silently signed up for a bank**: no primary account → the wage
+  is skipped with a warning / the piecework settle refuses / the
+  flow-split doesn't fire — they open their own at a branch.
+- **Escrow is custodied at the ISSUER'S bank** — the per-contract
+  account opens wherever the funding account is custodied (*your* bank
+  holds *your* stake), pre-positioning escrow-as-a-bank-product on
+  Terms. The default is only the last resort for a legacy funding row
+  with no recorded custodian.
+- **The Teleport Authority banks as a Business** — see the TPA note in
+  [fasttravel.md](./fasttravel.md): a minimal TPA Business
+  (`fasttravel.tpaBusinessPath`) owns the network-fee income at its
+  authored `banksAt`; the legacy raw `tpa` accumulator row is re-owned
+  to it at boot.
+
 Mechanically: `ensureVenueAccount` **refuses** a `bankPath` that names
 no real custodian (accepted: the CB path, the default-custodian
-setting, or a live `BankMixin` branch — the check is "is the custodian
-a bank", not "is it someone else", so a branch's own operating account
-at its own branch stays legitimate). The call sites pass the resolved
-custodian (`BankingApi.defaultCustodianBankPath()`), and an idempotent
-**boot restamp** (`BankingApi.boot`) moves legacy rows — empty or
-self-custodied-at-a-non-bank `bankPath` → the default custodian, the
-`treasury` row → the CB — a **cache-field fill, never a money
-movement** (balances and conservation untouched; customer-at-branch and
-corpo-treasury rows untouched by construction). Behavior-preserving:
-these accounts move money by transfer only (never the till), and
-liquidity≠solvency is already the shipped branch-book property, so
-Goodkin's cash physics are unchanged.
+setting, or a live `BankMixin` branch), and an idempotent **boot
+restamp** (`BankingApi.boot`) moves legacy rows — empty or
+self-custodied-at-a-non-bank `bankPath` → the default custodian (the
+last resort where no relationship is derivable), the `treasury` row →
+the CB, the bare `tpa` row → the TPA Business — a **cache-field fill,
+never a money movement** (balances and conservation untouched;
+customer-at-branch and corpo-treasury rows untouched by construction).
+`banking.defaultCustodianBankPath` is therefore **the restamp's last
+resort, not a default to build on** — nothing else should pass it.
+Behavior-preserving: these accounts move money by transfer only (never
+the till), and liquidity≠solvency is already the shipped branch-book
+property, so Goodkin's cash physics are unchanged.
