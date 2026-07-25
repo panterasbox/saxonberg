@@ -1,0 +1,19 @@
+# The default formation — the bottom rung of the total resolution chain
+# (PartyApi.formationPathOf: active party's formation, else THIS). Every
+# side that never chose a formation — a partyless wanderer, a fresh party,
+# a party of one — fights under it, and it byte-preserves pre-formation
+# combat: sustained targeting, no interception, the engaged attacker's
+# coup. "Solo" is not a concept; this preset is what solo resolves to.
+# Value-equal to CombatFormation.DEFAULT_POLICY (a test pins it).
+class: /lib/combat/CombatFormation
+hydratorClass: /lib/persistence/PersistentHydrator
+data:
+  name: default
+  roles: []
+  allocation: sustain
+  primaryRole: ""
+  protectsRoles: []
+  interceptorRoles: []
+  interceptTrigger: none
+  coupRight: engaged
+  coupCall: engaged

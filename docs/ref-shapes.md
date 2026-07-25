@@ -156,6 +156,7 @@ semantics across all singleton refs.
 | `BodyPlan` | `defaultLocomotionMode` (short-name variant; no `_xxxPath`, no leading slash) | `getDefaultLocomotionMode()` / `setDefaultLocomotionMode(value)` |
 | `Atmospheric` | `_biomePath` | `getBiome()` / `setBiome(value)` ([biome.md](./subsystems/biome.md)) |
 | `Biome` | `_extendsBiomePath` | `getExtendsBiome()` / `setExtendsBiome(value)` / `getExtendsBiomePath()` (raw — consumed by `BiomeApi`'s ancestry walker) |
+| `Party` | `formationPath` (raw-path variant — the holder **never resolves**: the party side stores/returns the string only and never imports `lib/combat`; the consumer (combat) resolves path → `CombatFormation` Idea on its own side of the one-way dep, via the total `PartyApi.formationPathOf` chain) | `getFormationPath()` / `setFormationPath(value)` |
 
 ---
 

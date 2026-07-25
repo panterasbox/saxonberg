@@ -17,6 +17,7 @@ import { MessageApi } from "../../../api/message";
 import { MixinApi } from "../../../api/mixin";
 import { PlayerApi } from "../../../api/player";
 import { PartyApi } from "../../../api/party";
+import { ReactionApi } from "../../../api/reaction";
 import { Mml } from "../../../api/mml";
 import type { Stuff } from "../../../lib/stuff/Stuff";
 
@@ -61,6 +62,10 @@ export default class PartyController extends CommandController<PartyModel> {
         return this.executeTransfer(giver, model, context);
       case "side":
         return this.executeSide(giver, model, context);
+      case "adopt":
+        return this.executeAdopt(giver, model, context);
+      case "assign":
+        return this.executeAssign(giver, model, context);
       case "muster":
         return this.executeMuster(giver, model, context);
       case "standdown":
@@ -191,6 +196,54 @@ export default class PartyController extends CommandController<PartyModel> {
     this.send(context, Mml.compose`Your party stands with ${Mml.escape(side)}.`);
   }
 
+  private async executeAdopt(
+    giver: Stuff,
+    model: PartyModel,
+    context: CommandContext,
+  ): Promise<void> {
+    const name = (model.name ?? "").trim().toLowerCase();
+    if (!name) return this.fail(context, "Adopt which formation?", "name-required");
+    const res = await PartyApi.setFormation(giver, name);
+    if (!res.ok) return this.fail(context, this.reasonText(res.reason), res.reason);
+    // The witnessed formation-shift beat: adopting is a room-visible,
+    // reactable act (a mid-fight switch lands on the very next beat, and
+    // everyone present sees the line reform).
+    const commandId = context.commandId;
+    MessageApi.scene(giver)
+      .topic("world.party.formation")
+      .meta(commandId ? { commandId } : {})
+      .toSelf(
+        Mml.compose`Your party adopts the ${Mml.escape(name)} formation.`,
+      )
+      .toPeers(
+        Mml.compose`The line reforms around ${Mml.name(giver)} — their party adopts the ${Mml.escape(name)} formation.`,
+      )
+      .send();
+    if (commandId) {
+      const scope = ReactionApi.locationScopeFor(giver);
+      if (scope) {
+        ReactionApi.noteReactableAct({ commandId, subject: giver, scope });
+      }
+    }
+  }
+
+  private async executeAssign(
+    giver: Stuff,
+    model: PartyModel,
+    context: CommandContext,
+  ): Promise<void> {
+    const role = (model.name ?? "").trim().toLowerCase();
+    if (!role) return this.fail(context, "Assign which role?", "name-required");
+    const target = model.target?.stuff;
+    if (!target) return this.fail(context, "Assign whom?", "empty-result");
+    const res = await PartyApi.assignRole(giver, role, refOf(target));
+    if (!res.ok) return this.fail(context, this.reasonText(res.reason), res.reason);
+    this.send(
+      context,
+      Mml.compose`${Mml.name(target)} takes the ${Mml.escape(role)} role.`,
+    );
+  }
+
   private async executeMuster(
     giver: Stuff,
     model: PartyModel,
@@ -263,6 +316,12 @@ export default class PartyController extends CommandController<PartyModel> {
         return "You have no durable crew by that name.";
       case "not-a-member":
         return "They're not in your party.";
+      case "unknown-formation":
+        return "No such formation. Try: default, focus-fire, vanguard, master-apprentice.";
+      case "no-formation":
+        return "Adopt a formation first (`party adopt <name>`).";
+      case "unknown-role":
+        return "Your formation has no such role.";
       default:
         return "That party command can't be completed.";
     }

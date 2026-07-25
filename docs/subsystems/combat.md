@@ -636,10 +636,14 @@ Named at their sites; nothing inherited:
   own), the deep grapple/choke control game, spatial formation/geometry, a
   weapon crafting/repair economy, full morale / de-escalation, stealth,
   pursuit / the chase (wayfaring) and coordinated party-retreat (rout/rally),
-  non-humanoid bestiary, death/recovery + moderation, the client `CombatPane`
-  (and the contextual gambit affordances — terse verbs afforded only in a
-  fight — that supersede the static ones), and party tactic-roles
-  (combat-tactics-slate).
+  non-humanoid bestiary, death/recovery + moderation, and the client
+  `CombatPane` (and the contextual gambit affordances — terse verbs afforded
+  only in a fight — that supersede the static ones). Party formation-roles
+  **landed** — the combat-formations build (see
+  [combat-formations.md](./combat-formations.md)): `CombatFormation` Idea
+  presets over a total party-face resolution chain, the three hooks
+  (allocation / interception / coup governance), the `command` Discipline,
+  and the `party adopt` / `fight finish` surface.
 - **The composure/luck axis itself** (`traits-stress`) — the bidirectional
   stress ↔ inspiration emotional reserve that fills `Sharpness`'s
   `g(composure)`. The experience pass leaves only the inert modulation seam;

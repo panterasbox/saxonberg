@@ -17,7 +17,9 @@ See also:
   party-level policy, the party-vs-combat-side layering, master-apprentice,
   coup attribution (tactic governs right/credit/decision).
 - [combat-tactics-slate.md](./combat-tactics-slate.md) — the party-level
-  tactic presets + the engagement graph a tactic is a policy over.
+  presets + the engagement graph a preset is a policy over (both
+  **shipped** — the combat-formations build; see
+  [../../subsystems/combat-formations.md](../../subsystems/combat-formations.md)).
 - [../../subsystems/grouping.md](../../subsystems/grouping.md) — `GroupApi`'s
   managed provider + `GroupRef`; a party's *membership* rides this.
 - [../../subsystems/banking.md](../../subsystems/banking.md) — the

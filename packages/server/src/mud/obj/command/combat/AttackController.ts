@@ -28,6 +28,8 @@ import { Mml } from "../../../api/mml";
 import type { Stuff } from "../../../lib/stuff/Stuff";
 import type { Engaged } from "../../../lib/activity/Engaged";
 import { CombatApi, type CombatOpenOptions } from "../../../api/combat";
+import { StuffApi } from "../../../api/stuff";
+import { PartyApi } from "../../../api/party";
 import { AdvancementApi } from "../../../api/advancement";
 import type { CompetenceBandName } from "../../../lib/advancement/CompetenceBand";
 import {
@@ -153,6 +155,11 @@ export default class AttackController extends CommandController<AttackModel> {
     // deterministic). Absent/unresolved bands default to `untrained`.
     const opts = await this.snapshotBands([giver, target]);
 
+    // Warm both sides' formation Ideas resident BEFORE opening — the
+    // beat's per-consult read is sync (`findByTemplatePath`), so the warm
+    // is the controller's job (the `snapshotBands` pre-open precedent).
+    await this.warmFormations([giver, target]);
+
     // Ambush: opening from concealment the defender doesn't perceive denies
     // their opening poise contest (consumed only by a *fresh* openSession).
     // Read the attacker's hidden state FIRST, then reveal them — striking
@@ -263,6 +270,19 @@ export default class AttackController extends CommandController<AttackModel> {
     const unseen = !PerceptionApi.perceives(defender, attacker);
     attacker.breakHide();
     return unseen;
+  }
+
+  /** Load each side's resolved formation Idea into residency (best-effort
+   * — an unbooted party subsystem or missing seed just leaves the beat on
+   * the built-in default policy). */
+  private async warmFormations(combatants: Stuff[]): Promise<void> {
+    for (const c of combatants) {
+      try {
+        await StuffApi.singleton(PartyApi.formationPathOf(c));
+      } catch {
+        // Falls back to CombatFormation.DEFAULT_POLICY at consult time.
+      }
+    }
   }
 
   private async snapshotBands(

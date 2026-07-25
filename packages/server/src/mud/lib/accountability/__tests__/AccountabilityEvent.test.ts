@@ -178,3 +178,50 @@ describe('AccountabilityEvent.deriveBlame — harm rows (the trap producer)', ()
     expect(v!.crime).toBe(true);
   });
 });
+
+describe("deriveBlame — command responsibility (the formation facts)", () => {
+  function deathRow(overrides: Partial<AccountabilityEvent>): AccountabilityEvent {
+    const ev = new AccountabilityEvent();
+    ev.kind = "death";
+    ev.sessionId = "s-cmd";
+    ev.initiator = "/obj/Avatar/master";
+    ev.opponent = "/obj/Avatar/apprentice";
+    ev.victim = "/obj/Avatar/victim";
+    ev.killer = "/obj/Avatar/apprentice";
+    ev.lethality = "lethal";
+    ev.stopCondition = "death";
+    ev.consented = false;
+    ev.sentient = true;
+    ev.realAt = 1000;
+    Object.assign(ev, overrides);
+    return ev;
+  }
+
+  it("an unlawful DIRECTED kill: the striker holds the deed, the commander the responsibility", () => {
+    const v = AccountabilityEvent.deriveBlame([
+      deathRow({
+        formationPath: "/lib/combat/CombatFormation/master-apprentice",
+        killerRole: "apprentice",
+        directedBy: "/obj/Avatar/master",
+      }),
+    ]);
+    expect(v).not.toBeNull();
+    expect(v!.crime).toBe(true);
+    expect(v!.killer).toBe("/obj/Avatar/apprentice"); // the deed
+    expect(v!.commandResponsible).toBe("/obj/Avatar/master"); // the blame
+  });
+
+  it("an undirected kill carries no command responsibility", () => {
+    const v = AccountabilityEvent.deriveBlame([deathRow({})]);
+    expect(v!.crime).toBe(true);
+    expect(v!.commandResponsible).toBe("");
+  });
+
+  it("a LAWFUL directed kill carries no command responsibility (no crime, no commander)", () => {
+    const v = AccountabilityEvent.deriveBlame([
+      deathRow({ consented: true, directedBy: "/obj/Avatar/master" }),
+    ]);
+    expect(v!.crime).toBe(false);
+    expect(v!.commandResponsible).toBe("");
+  });
+});

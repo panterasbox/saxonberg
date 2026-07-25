@@ -25,6 +25,7 @@ import { fileURLToPath } from "url";
 import { SecurityApi } from './security';
 
 export type { Party } from "../lib/party/Party";
+export { DEFAULT_FORMATION_PATH } from "../lib/party/Party";
 
 /**
  * The per-fight alignment key. Equality means allied. Never null: a
@@ -81,6 +82,34 @@ export class PartyApi {
   /** True iff `a` and `b` resolve to the same side. */
   public static areAllied(a: Stuff, b: Stuff): boolean {
     return logic().areAllied(a, b);
+  }
+
+  /**
+   * The combatant's formation path — the **total resolution chain**
+   * (NEVER null/`''`): the active party's chosen formation, else
+   * {@link DEFAULT_FORMATION_PATH}. A partyless wanderer, a party that
+   * never chose, and a party of one all resolve through this one read —
+   * the exchange loop has no null branch and "solo" is not a concept
+   * (the `sideOf` mirror). Combat resolves the path to its Idea on its
+   * own side; the party face speaks strings only.
+   */
+  public static formationPathOf(combatant: Stuff): string {
+    return logic().formationPathOf(combatant);
+  }
+
+  /**
+   * The combatant's assigned role under its active party's formation,
+   * `''` when unassigned or partyless. Roles are sets, not seats — many
+   * members may share one role; vacant is inert, never an error.
+   */
+  public static roleOf(combatant: Stuff): string {
+    return logic().roleOf(combatant);
+  }
+
+  /** Whether the combatant captains their active party (the called-target
+   * + coup-directive authority read). False when partyless. */
+  public static isCaptain(combatant: Stuff): boolean {
+    return logic().isCaptain(combatant);
   }
 
   /** The combatant's active party, or null. */
@@ -154,6 +183,28 @@ export class PartyApi {
     side: string,
   ): Promise<PartySimpleResult> {
     return logic().setSide(captain, side);
+  }
+
+  /**
+   * Captain adopts a formation by short name (`party adopt vanguard`).
+   * Awaits the formation Idea resident before accepting, so a mid-fight
+   * switch is live by its next beat.
+   */
+  public static setFormation(
+    captain: Stuff,
+    name: string,
+  ): Promise<PartySimpleResult> {
+    return logic().setFormation(captain, name);
+  }
+
+  /** Captain assigns a member a role from the adopted formation's
+   * vocabulary (`party assign front <member>`). */
+  public static assignRole(
+    captain: Stuff,
+    role: string,
+    targetId: string,
+  ): Promise<PartySimpleResult> {
+    return logic().assignRole(captain, role, targetId);
   }
 
   /** Re-activate a dormant durable crew by name (one-active — stands down

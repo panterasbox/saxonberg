@@ -88,13 +88,22 @@ export const brain = class {
     // strike) is exactly who the feint punishes. Alternate feint/strike by
     // beat parity so a reader can't trap us in a wasted-feint loop, and so
     // the beat after a successful feint we strike the opening it cracked.
+    //
+    // Formation bias (NPC≈PC — the same chain a player's formation
+    // resolves through): a **protector**-role holder (a Vanguard front, an
+    // MA master) leans into the opening-CREATION line — it feints a steady
+    // armed foe on every beat, not just parity beats, because the window
+    // it arms is cashed by the ally it protects (openings live on the
+    // defender's poise, ally-exploitable), so a wasted-feint loop costs
+    // the protector little and feeds the ward much.
     const foe = foes[0];
     const foeSteady = (foe && session.getState(foe)?.poise.band()) === "steady";
     const foeArmed = CombatApi.eligibilityFor(host, "disarm").ok;
+    const protector = CombatApi.formationStandingOf(host).protector;
     if (
       foeSteady &&
       foeArmed &&
-      session.getBeat() % 2 === 0 &&
+      (protector || session.getBeat() % 2 === 0) &&
       CombatApi.eligibilityFor(host, "feint").ok
     ) {
       CombatApi.queueGambit(host, "feint");
