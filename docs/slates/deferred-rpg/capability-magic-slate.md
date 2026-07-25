@@ -14,6 +14,14 @@
 > the magic-side reserve (mana) already has its mechanism built ahead
 > of RPG. What's parked is the magic *content* riding it, not the
 > reserve substrate. See Part II's reserve note + the obligation.
+>
+> **Update (2026-07):** a focused design pass pinned the *baseline
+> shipping* model — a single **Focus** reserve (mental, coupled to the
+> body via a magical metabolism), capacity and recovery as **separate**
+> knobs, a discipline taxonomy carved by **engine-domain**, and an
+> orders-vs-guilds access split. Captured in **Part IV**, which resolves
+> Open Qs 1 / 3 / 9 and, on two points (single pool; mana coupled to the
+> body), **supersedes earlier leans** in Parts II and the Open Questions.
 
 Two halves, deliberately **symmetric**:
 
@@ -268,6 +276,207 @@ taxonomy is deliberately **left open** until the build picks one.
 
 ---
 
+## Part IV — 2026-07 design pass (the shipping baseline model)
+
+A focused pass fixed the concrete baseline the shipping arts will use. It
+**resolves** several Open Questions below and, on two points, **overrides
+earlier leans** (single pool; mana coupled to the body). The earlier Parts
+remain the fuller design space; this Part is what the build starts from.
+
+### 1. What magic *is*, mechanically
+
+**Effect without apparatus.** Casting is a *new trigger* for effects the
+engine already simulates — never a parallel spell-damage system. A fire
+spell hands off to thermal + materials-response; a force spell delivers the
+same blunt mechanism as a club plus knockback (movement/spatial); a mend
+spell runs the same condition-relief as a bandage. This is Part III's
+"schools actuate real channels," generalized past the elemental four.
+Magic-vs-technology is a **skin** (function over form) — the aether is
+magic-as-technology; "pyromancy" and a "heat-implant" are mechanically
+identical, only costumed differently.
+
+### 2. The reserve: one pool, and it is *Focus*
+
+*(Overrides the plural-reserve lean for the baseline; Open Q 9.)* The
+shipping baseline is a **single reserve per caster**, representing
+**Focus** — sustained mental concentration — **not** bodily energy (that is
+endurance, which already exists; a second body-energy reserve is
+redundant). One instance of the shipped `Reserve` axis. Focus represents
+capacity-to-exert-*now*, nothing cosmic. **No special magic fuel** at
+baseline. Part II's per-tradition authored-reserve seam (charge / essence /
+favor) is **retained for exotic traditions** — but the default arcane
+caster runs on one Focus pool.
+
+### 3. Two layers: Focus over a magical metabolism
+
+*(Resolves Open Q 3 toward coupling.)* Focus is the fast, spendable
+**combat-layer** reserve (spend per cast, refills in minutes of calm).
+Beneath it a **magical metabolism** rebuilds Focus on a slower **bodily**
+timescale — mirroring endurance riding on metabolism (coupled recovery).
+It runs on the **ordinary body** — calm, sleep, food ("not eating drains
+you mentally" — true), no special fuel. The magical faculty is
+**anatomical** (lives in the `BodyPlan`): **trainable** (advancement),
+**fatigable** (metabolism coupled-recovery), **injurable** (harm — a called
+shot on a caster), and **species-gated**. Two timescales: *Focus handles
+the fight; the magical metabolism handles the week.*
+
+### 4. Capacity and recovery are separate knobs — the mental statline
+
+The physical → mental interrogation: our physical capacities are derived
+(Part I); their mental correlaries are the **mental half of the
+species/`BodyPlan` profile** — a baseline per species, trained within a
+species range, modulated by current state, **shown as bands, never
+numbers**. Three **locked, load-bearing** attributes:
+
+| Mental attribute | Physical correlary | Governs | Knob |
+|---|---|---|---|
+| **Depth** | stamina *ceiling* (fitness) | Focus pool **size** | **capacity** |
+| **Serenity** | metabolic recovery (rest/food) | Focus **refill rate** (calm + rest + nutrition) | **recovery** |
+| **Composure** | toughness / shock-resistance | resisting **disruption** (pain, fear, interrupt) | defense |
+
+Capacity (Depth) and recovery (Serenity) have **different inputs**, so the
+two knobs never collapse into one. **Will** (potency; physical: strength)
+and **Acuity** (cast speed/precision; physical: agility) are *folded into
+competence*, not stored — a better mage of any species hits harder and
+faster.
+
+*Tension w/ Part II:* this reframes Part II's loose "reserve/capacity"
+axes and does **not** use a distinct per-school **affinity**. Whether
+per-school affinity survives alongside the three general attributes +
+per-art competence is left open — *lean: fold per-school talent into
+competence + order-access, drop a separate affinity stat.* (See Open Q.)
+
+### 5. Discipline taxonomy = the slice of engine physics an art reaches into
+
+*(Advances Open Q 1 past the elemental framing.)* Not one "Magic" skill,
+not arbitrary schools — **each art is named for the subsystem it
+actuates**, which is what makes the taxonomy non-arbitrary:
+
+| Art | Reaches into | Sample spells |
+|---|---|---|
+| **Evocation** | thermal + materials-response | firebolt, frost, shock |
+| **Force** | movement + spatial (blunt) | push, pull, levitate, force-wall |
+| **Biomancy** | harm + vitals + metabolism | mend, wither, venom, vigor |
+| **Glamour** | belief + shadow + light + senses | invisibility, illusion, darkness |
+| **Dominion** | behavior + belief | fear, sleep, compel |
+| *(later)* **Shaping** | materials + species + boundary | shape stone, transmute, passwall |
+
+Ship **2–3 first** — Evocation + Force + Biomancy is a complete kit
+(attack / control / heal). Depth comes from the **advancement graph**:
+within an art, competence unlocks tiers (band-gated `conferrals`:
+candle → firebolt → firestorm); across arts, `synergizes` gives combos
+(Force + Evocation = a blast wave); `requires` gates the advanced spells.
+Single pool: **per-art competence sets cost + access**; pool *size* grows
+with overall magical competence. The classical-four / wu-xing framing
+survives only as an optional content sub-flavor inside an Evocation-type
+art, not as the top-level taxonomy.
+
+### 6. Access — orders vs. guilds (magic's place in the guild tapestry)
+
+A craft **guild** is an open union shop: a **learn-rate buff** on a
+universally-learnable discipline. A magic **order** is **gated** and grants
+a **channel/capability** you cannot otherwise have — mechanically an
+**attunement/augment conferral** (the augment-confers-mixin substrate).
+*A guild teaches you faster; an order lends you power — an order is the
+key.* Three layers, each on a system we have:
+
+- **Access** = order membership → a gated conferral (augment/attunement).
+- **Skill** = advancement competence within the art.
+- **Power** = the Focus reserve.
+
+### 7. Casting pipeline + counterplay
+
+Invoke the spell verb → an **engaged action** (interruptible, takes a beat
+— the activity substrate) → spend Focus → competence check
+(difficulty-modulated; mints an `ActSignature`, feeds advancement) → on
+success, call the real effect API (materials-response / thermal / harm /
+spatial / belief) with the caster as source. You beat a mage by **breaking
+Focus** — hurt, frighten, blind, or exhaust them; interrupting a cast *is*
+breaking concentration. This is exactly why the mental-reserve (not
+body-energy) choice matters: it gives magic three attack surfaces.
+
+### 8. Species mental profiles (sketch)
+
+The mental statline sits beside the physical one on `Species`/`BodyPlan`;
+it's most characterful when the two echo or contradict:
+
+| Species | Physical thumbnail | Depth | Serenity | Composure | Playstyle |
+|---|---|---|---|---|---|
+| **Human** | balanced, omnivore | moderate | steady | steady | generalist baseline — no edge, no hole |
+| **Troll** | massive, regenerating, slow | shallow | sluggish | **unshakable** | few casts, un-interruptible; one big unstoppable spell; loses to attrition |
+| **Ghoul** | gaunt, cold, carrion-fed | **deep** | glacial | moderate | reservoir — burst a torrent then long spent; recovery gated on its carrion diet |
+| **Sylph** * | slight, quick, warm | moderate | **quick** | brittle | nimble, fast-refilling, precise — shatters when hurt or frightened |
+
+<sub>* illustrative, to show the far corner.</sub> The **ghoul is where the
+system pays off**: Serenity is fed by *nutrition*, and a ghoul's metabolism
+runs on carrion, not bread — so its mental recovery is gated on its diet,
+an **emergent** detail that falls out of the metabolism tag-system, not one
+we designed.
+
+### 9. Deferred / still open (this pass)
+
+- **The interaction stack** (counterspell / reflect / dispel — the Wiz-War
+  probe). Is magic interruptible-via-Focus only, or is there a reaction
+  stack? *Not decided.*
+- **Per-school affinity** — subsumed into competence + access, or a
+  distinct axis? (See §4 tension.)
+- **Tier ladders per art** (novice → master spell lists) — content, unwritten.
+- **How training moves the three attributes** within a species range.
+- **Mind-attack spells** (Dominion: fear/charm) reading/writing Composure —
+  the concrete read/write contract.
+- **Divine / belief-powered ("American Gods") magic** — raised as a
+  possible *additional* tradition (power = a patron's aggregate worship via
+  renown/belief); explicitly **not** the baseline model; parked.
+- **Design probe:** the model was interrogated against **Wiz-War** (Tom
+  Jolly) — energy-as-cards, the interactive stack, board/maze manipulation,
+  transformation, theft-objectives.
+
+### 10. Wiz-War mining pass (2026-07) — inspiration, not import
+
+The real 5th-edition deck (`docs/WizWarALLCardsAndBacksCombined.pdf`,
+~150 cards) was read in full. It's a source of **effect ideas, not a
+balance model** — worth writing down:
+
+- **Mine, don't port.** Wiz-War is chaos-and-fast because of its *format*
+  (symmetric shared deck · random draw · elimination · 20-min filler), not
+  its spells. Saxonberg is the opposite on every axis (gated/asymmetric
+  access · learned-not-drawn · death = long recovery · persistent). So **we
+  don't balance spells; the economy balances them** — access-gating +
+  competence-scaled power + real-physics consequence + the Focus reserve +
+  non-lethal-default stakes. A spell can be genuinely deadly and still fine.
+  Treat the deck as a bestiary (the NetHack-items precedent).
+
+- **Revised stack lean** (updates §7 / §9's open stack question). 5th ed is
+  *saturated* with counteractions — Reflection / Blunt / Absorb / Full
+  Shield / Reverse / Anti-Anti / Empathy, plus out-of-turn Interrupt /
+  Opportunity Fire. The reactive counter-war is Wiz-War's *soul*, far more
+  than 8th's. So: **readied instants** (held Shield/Reflect/Absorb/Dispel,
+  Focus-triggered when targeted — on the reactions + activity substrates)
+  are the **baseline, not optional**. Full priority-war (Interrupt) stays
+  resisted for real-time-text pacing.
+
+- **Cards that *sing* in our engine** (emergent where the board hand-fakes
+  it — the content-mining seed for a future magic build):
+  - **Per-viewer belief** — Illusion Wall ("real to believers; a believer
+    who breaks it breaks it only for themselves"), Sucker (your treasure was
+    a fake), Decoy, Illusionary Attack → belief/shadow, native.
+  - **The Warren** — Create/Destroy Wall, Create Door, Pit, Rotate/Relocate/
+    Swap Sectors, Alter Reality, Door-to-Door, Permawarp → the elastic
+    room-graph. Wiz-War is a Warren with wizards.
+  - **Conditions (dormant→fire)** — Slow Death, Walking Dead, Hotfoot, Ward
+    (treasure-trap), It (tag), **Disease** (contagion-on-contact — a shape
+    we lack).
+  - **Thermal/bulk chemistry** — Waterbolt / Wall of Fire / Waterwall /
+    Stone-to-Water / Flame On (fire↔water emergent, not authored).
+  - **Organ-strip** — Mundane / Lock in Place / No Spell → damage/suppress
+    the magical faculty, not a status flag.
+  - **Self-transforms** — Vampire / Werewolf / Ghost / Mist / Shrink / Big
+    Man, each disabling casting (confirms "the form lacks the organ").
+  - **Governance-adjacent oddballs** — Public Funds (all treasure → commons,
+    ties parcel/ownership), Democratic Monster (shared-control NPC).
+
+---
+
 ## The one obligation on shipping work
 
 Everything here is deferred, but one negative obligation binds the
@@ -292,12 +501,17 @@ Everything here is deferred, but one negative obligation binds the
 
 1. **Elemental taxonomy** — classical four / wu-xing cycles /
    invented. *Held open per user; architecture doesn't care.*
+   **→ Advanced in Part IV §5:** top-level taxonomy is by **engine-domain**
+   (Evocation/Force/Biomancy/…); the elemental sets survive only as content
+   sub-flavor inside an Evocation-type art.
 2. **Affinity shape** — per-school vector vs. single scalar; innate-
    fixed vs. marginally trainable. *Lean: per-school + marginally
    trainable, to preserve symmetry with conditioning.*
 3. **Mana recovery** — does it interact with bodily fatigue/vitals at
    all (e.g., exhaustion slows mana regen), or is it a fully separate
    curve? *Lean: separate curve, with an optional condition coupling.*
+   **→ Resolved in Part IV §3:** coupled — Focus rides a magical metabolism
+   fed by ordinary calm / rest / nutrition; pain and fear disrupt it.
 4. **One channel or many** — is magic a single thaumic field, or one
    propagating channel per school/element? *Affects the PhysicsChannel
    shape; lean single field + school as a property of casts.*
@@ -317,7 +531,10 @@ Everything here is deferred, but one negative obligation binds the
    (charge / essence / favor) on the shared `Reserve` axis? *Lean:
    plural + authored — the capacitor-guild "charge" precedent; one MP
    pool flattens flavor and re-introduces a stored scalar by the back
-   door.*
+   door.* **→ Part IV §2 overrides this lean for the baseline:** a single
+   **Focus** pool, with the plural-authored seam retained only for exotic
+   traditions. (The "flattening" worry is answered by carving *disciplines*
+   by engine-domain and by the mental statline, not by splitting the pool.)
 
 ---
 
