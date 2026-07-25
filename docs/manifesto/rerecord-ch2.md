@@ -56,7 +56,11 @@ and fast enough to watch play out. That makes it a laboratory: not a model *of* 
 government, a place to *run* one — take an idea about how people should decide
 together, build it into a working world, and watch how it holds up. Real politics
 rarely lets you do that; you get one shot, at enormous scale, no rewind. Here you can
-try it, watch it break, and try again.
+try it, watch it break, and try again. And nothing here is specific to games — a game is
+just a community whose life is already, entirely, data, which is exactly what lets you run
+this at all. Whatever part of a community can be turned into data, this can govern — in
+the open, every rule readable by the people it binds. And that part only grows as the
+technology does: it never leaves the digital, the digital just keeps taking in more.
 
 That's the case for the game. What it doesn't answer is how the governing itself works —
 starting with the simplest question of all: who even gets a say? That's next.
@@ -64,7 +68,9 @@ starting with the simplest question of all: who even gets a say? That's next.
 **Kickers:** "in civic life, taking part is a cost; in a game, it's the reward" ·
 "they had the voting and not the participation" · "a polity made of words is one you
 can inspect, verify, and carry off." · "not a model *of* a government — a place to
-*run* one" · "try it, watch it break, and try again."
+*run* one" · "try it, watch it break, and try again." · "whatever a community can turn
+into data, it can govern — in the open" · "it never leaves the digital; the digital just
+keeps taking in more."
 
 ## Notes
 

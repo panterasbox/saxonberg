@@ -25,9 +25,12 @@ and keeps its own order. They have tools for it — mod powers, bans, roles — 
 all work one way: one person, or a handful, decides everything. That works when a place is
 small; it breaks as it grows, and it leaves almost everyone with no real say. This is an
 idea for something different — a way to govern that scales, and that balances a
-community's forces instead of concentrating all the power in whoever runs it. It's built
-as a **game**, because a game is the one thing that reliably gets people to show up and
-care enough to run the place. Here's the whole thing, end to end.
+community's forces instead of concentrating all the power in whoever runs it. And what it
+can govern isn't fixed: whatever a community can turn into data, this can govern — out in
+the open, every rule visible to the people it binds — and that only grows as the
+technology does. It's built as a **game**, because a game is the one thing that reliably
+gets people to show up and care enough to run the place. Here's the whole thing, end to
+end.
 
 **[① what it is]**
 It's a game — and, at its heart, a **government**. Games have grown real ones before: in

@@ -31,7 +31,7 @@ def T(x,y,s,size=32,fill=WHITE,anchor="start",weight="normal",op=1.0,mono=False)
     fam="DejaVu Sans Mono" if mono else "DejaVu Sans"
     return (f'<text x="{x}" y="{y}" fill="{fill}" font-size="{size}" font-family="{fam}" '
             f'font-weight="{weight}" text-anchor="{anchor}" opacity="{op}">{html.escape(s)}</text>')
-def CT(cx,y,s,size=32,fill=WHITE,weight="normal",op=1.0): return T(cx,y,s,size,fill,"middle",weight,op)
+def CT(cx,y,s,size=32,fill=WHITE,weight="normal",op=1.0,mono=False): return T(cx,y,s,size,fill,"middle",weight,op,mono)
 def C(cx,cy,r,stroke=WHITE,sw=3,fill="none",op=1.0):
     return f'<circle cx="{cx}" cy="{cy}" r="{r}" fill="{fill}" stroke="{stroke}" stroke-width="{sw}" stroke-opacity="{op}"/>'
 def L(x1,y1,x2,y2,stroke=WHITE,sw=3,op=1.0,dash=None):
@@ -260,6 +260,28 @@ def f_laboratory(stage=2):  # builds: real politics one-shot → the try/break/r
         g+=[CT(960,760,"build the idea into a working world — watch how it holds up",28,SOFT),CT(960,900,"try it.  watch it break.  try again.",34,WHITE)]
     return g
 
+def f_reach():  # 5  the reach: always digital, the data-frontier only grows outward, all in the open
+    g=[CT(960,105,"whatever a community can turn into data, it governs — in the open",34,SOFT)]
+    cx,cy=640,520
+    g+=[C(cx,cy,300,AMBER,3,op=0.9)]                 # current frontier
+    g+=[C(cx,cy,210,STEEL,3)]                        # more of community life
+    g+=[C(cx,cy,120,GREEN,4,DARK)]                   # the game — a life already all data
+    g+=[CT(cx,cy-6,"a game",24,GREEN,weight="bold"),CT(cx,cy+26,"a life already",17,SOFT),CT(cx,cy+48,"all data",17,SOFT)]
+    for a in range(0,360,45):
+        th=math.radians(a); x0=cx+300*math.cos(th); y0=cy+300*math.sin(th); x1=cx+352*math.cos(th); y1=cy+352*math.sin(th)
+        g+=ARR(x0,y0,x1,y1,AMBER,3,0.9)
+    lx=1120
+    g+=[CT(lx,250,"the boundary only moves ONE way — outward",24,WHITE,weight="bold")]
+    rows=[(GREEN,"where it runs today","a game: a community already all data"),
+          (STEEL,"then more of what a community does","as each part becomes data"),
+          (AMBER,"the frontier keeps moving out","as the technology turns more into data")]
+    for i,(col,a,b) in enumerate(rows):
+        y=360+i*130
+        g+=[C(lx+16,y,15,col,3,DARK)]
+        g+=[T(lx+50,y-4,a,24,WHITE),T(lx+50,y+30,b,20,SOFT)]
+    g+=[CT(940,930,"it never leaves the digital — the digital just takes in more",28,WHITE,weight="bold")]
+    return g
+
 CH2=[
  ("ch2-01-opener-game",   f_opener(1)),   # 1  the game gets your hours  [Ch2 hero build]
  ("ch2-02-opener-govern", f_opener(2)),   # 1  …governing gets none
@@ -274,6 +296,7 @@ CH2=[
  ("ch2-11-honest-questions", f_honest(2)),        # 5  …so the real questions rise
  ("ch2-12-lab-oneshot",   f_laboratory(1)),       # 5  real politics: one shot, no rewind
  ("ch2-13-lab-loop",      f_laboratory(2)),       # 5  …here: try, break, try again
+ ("ch2-14-reach",         f_reach()),              # 5  …and if it holds, the form generalizes as digitization widens
 ]
 
 # ── Ch 3 frames (chambers & currency; hero = the three rings) ──
@@ -556,7 +579,368 @@ CH5=[
  ("ch5-14-sortition-checks", f_sortition(2)),   # 5  checks both — code review + appeal
 ]
 
+# ================= CH 6 — DON'T TRUST, VERIFY =================
+def f_pen():  # 1  executive writes code, code writes the record — what stops it lying?
+    g=[CT(960,110,"the executive writes the code — and the code writes the record",36,SOFT)]
+    g+=[R(220,320,220,120,WHITE,3),CT(330,388,"EXECUTIVE",26,WHITE,weight="bold")]
+    g+=ARR(450,380,560,380,SOFT,4)+[CT(505,345,"writes",20,SOFT)]
+    g+=[R(570,320,200,120,STEEL,3),CT(670,388,"the code",26,STEEL)]
+    g+=ARR(780,380,890,380,SOFT,4)+[CT(835,345,"writes",20,SOFT)]
+    for i,lab in enumerate(["vote","law","verdict"]):
+        x=910+i*180; g+=[R(x,340,150,80,WHITE,3),CT(x+75,388,lab,22,WHITE)]
+        if i<2: g+=[L(x+150,380,x+180,380,SOFT,3)]
+    g+=[CT(1200,300,"the record",22,SOFT)]
+    g+=[CT(960,540,"the branch that builds the world also holds the pen that writes its history",28,WHITE)]
+    g+=[CT(960,660,"— so what stops them writing code that LIES? —",26,CORAL)]
+    for i,lab in enumerate(["cook a vote count","log a rule nobody passed","edit a verdict after"]):
+        g+=[CT(500+i*470,730,lab,22,CORAL)]
+    return g
+
+def f_record_reality():  # 2  a digital world has no outside — the record IS reality
+    g=[CT(960,110,"a digital world has no outside",40,SOFT)]
+    g+=[CT(500,220,"the physical world",26,SOFT)]
+    g+=[R(300,320,180,120,WHITE,3),CT(390,388,"a record",22,WHITE)]
+    g+=ARR(490,380,620,380,SOFT,4)+[CT(555,345,"describes",20,SOFT)]
+    g+=[R(640,300,260,160,STEEL,3),CT(770,340,"the real world",22,SOFT),CT(770,382,"witnesses · a building",18,DIM),CT(770,414,"footage · paper",18,DIM)]
+    g+=[CT(500,520,"records point AT a reality that exists apart",22,SOFT)]
+    g+=[CT(1430,220,"here",26,GREEN)]
+    g+=[R(1280,300,300,160,GREEN,4)]
+    for i in range(4): g+=[T(1310,340+i*30,"01101 10010 0110 …",22,STEEL,mono=True)]
+    g+=[CT(1430,520,"a stream of 1s and 0s is all there is",22,GREEN)]
+    g+=[CT(960,780,"the writing-down IS the vote — control the record, and you control what happened",30,WHITE)]
+    g+=[CT(960,850,"hand it to one authority, and you've handed them the power to rewrite reality",26,SOFT)]
+    return g
+
+def f_tamper_chain(stage=2):  # 3  hero — the tamper-evident chain
+    g=[CT(960,110,"the record is built so it can't be faked in secret",38,SOFT)]
+    labels=["proposal","the vote","the code","a ruling"]; hashes=["#a1b2c3","#7d4e91","#c05f2a","#3b8f6d"]; x0=360; bw=270
+    broken = stage>=2; edit_i=1
+    for i,lab in enumerate(labels):
+        x=x0+i*(bw+40); bad=broken and i>=edit_i
+        col = CORAL if bad else GREEN
+        g+=[R(x,420,bw,120,col,4),CT(x+bw/2,478,lab,26,WHITE)]
+        g+=[CT(x+bw/2,516,("#X8f2!7" if bad else hashes[i]),18,col,mono=True)]
+        if i<3: g+=[L(x+bw,480,x+bw+40,480,(CORAL if bad else GREEN),4)]
+    if broken:
+        ex=x0+edit_i*(bw+40)
+        g+=[L(ex-10,400,ex+bw+10,560,CORAL,4),L(ex+bw+10,400,ex-10,560,CORAL,4)]
+        g+=[CT(960,640,"change ONE past entry — the hashes stop matching, and the whole chain visibly breaks",28,CORAL)]
+        g+=[CT(960,860,"anyone can check it — including against the people running the place",30,WHITE)]
+    else:
+        g+=[CT(960,640,"each entry is sealed by the one before it",26,SOFT)]
+    return g
+
+def f_selfref():  # 3  the writer is inside the written
+    g=[CT(960,110,"the code that writes the record is itself an entry in it",38,SOFT)]
+    labels=["the vote","THE CODE\nthat writes this","a ruling","code edited (v2)"]; cols=[WHITE,AMBER,WHITE,AMBER]
+    x0=280; bw=250; y0=440
+    xs=[x0+i*(bw+50) for i in range(4)]
+    for i,(x,lab,col) in enumerate(zip(xs,labels,cols)):
+        g+=[R(x,y0,bw,110,col,4)]
+        for j,ln in enumerate(lab.split("\n")): g+=[CT(x+bw/2,y0+(48 if len(lab.split('\n'))==1 else 40)+j*30,ln,22,col,weight="bold" if col==AMBER else "normal")]
+        if i<3: g+=[L(x+bw,y0+55,xs[i+1],y0+55,SOFT,3)]
+    g+=[PATH(f"M {xs[1]+bw/2} {y0} C {xs[1]+bw/2} {y0-150}, {xs[0]+bw/2} {y0-150}, {xs[0]+bw/2} {y0-6}",AMBER,4),CT(xs[0]+150,y0-165,"it writes the chain…",24,AMBER)]
+    g+=[PATH(f"M {xs[3]+bw/2} {y0+110} C {xs[3]+bw/2} {y0+250}, {xs[1]+bw/2} {y0+250}, {xs[1]+bw/2} {y0+116}",AMBER,4,dash="10 8"),CT(xs[2]+40,y0+290,"…so changing it is itself a logged entry",26,AMBER)]
+    g+=[CT(960,900,"there is no editing the history from outside — because there is no outside",30,WHITE)]
+    return g
+
+def f_verify():  # 3  check it yourself
+    g=[CT(960,110,"don't take their word — check it yourself",38,SOFT)]
+    g+=[R(230,340,420,180,CORAL,4),CT(440,414,"“the vote was 60–40”",30,CORAL),CT(440,470,"— trust us",24,CORAL,op=0.9)]
+    g+=ARR(680,430,820,430,SOFT,4)
+    gx0,gy0=880,330; cols=10; rows=5
+    for i in range(50):
+        r=i//cols; c=i%cols; col=GREEN if i<30 else CORAL
+        g+=[f'<rect x="{gx0+c*46}" y="{gy0+r*40}" width="30" height="26" rx="4" fill="{col}"/>']
+    g+=[CT(gx0+cols*46/2-8,gy0-16,"the raw record — every entry, open to read",22,SOFT)]
+    g+=ARR(gx0+cols*46/2-8,gy0+rows*40+10,gx0+cols*46/2-8,gy0+rows*40+70,GREEN,4)
+    g+=[CT(gx0+cols*46/2-8,gy0+rows*40+120,"count them yourself → 60–40 ✓  (or catch that it isn't)",28,GREEN)]
+    g+=[CT(960,900,"don't trust; verify",34,WHITE,weight="bold")]
+    return g
+
+def f_blockchain():  # 4  a blockchain, minus the cryptocurrency
+    g=[CT(960,110,"this already has a name: a blockchain",40,SOFT)]
+    g+=[CT(960,235,"the cryptocurrency bolted on top —",24,CORAL)]
+    for i,lab in enumerate(["coins","a token","a price chart","something to trade"]):
+        x=470+i*260; g+=[R(x-110,270,220,80,CORAL,2,op=0.55),CT(x,318,lab,22,CORAL,op=0.7)]
+    g+=[CT(960,405,"…lifts away — we take none of it",22,CORAL)]
+    g+=ARR(960,430,960,470,DIM,3)
+    hashes=["#a1b2","#7d4e","#c05f","#3b8f","#e21c"]; x0=430; bw=180
+    for i,lab in enumerate(["entry"]*5):
+        x=x0+i*(bw+30); g+=[R(x,540,bw,110,GREEN,4),CT(x+bw/2,590,lab,22,WHITE),CT(x+bw/2,624,hashes[i],16,GREEN,mono=True)]
+        if i<4: g+=[L(x+bw,595,x+bw+30,595,GREEN,4)]
+    g+=[CT(960,710,"we keep the one property that matters:",26,WHITE)]
+    g+=[CT(960,752,"an append-only record no one can secretly rewrite, that anyone can check",26,GREEN)]
+    g+=[CT(960,900,"just the verifiability — doing the one thing it's genuinely good at:",28,SOFT)]
+    g+=[CT(960,946,"making trust unnecessary",30,WHITE,weight="bold")]
+    return g
+
+def f_from_math():  # 5  honesty from math, not trust; the unforgivable crime
+    g=[CT(960,120,"its honesty doesn't rest on trusting anyone — it rests on math",38,SOFT)]
+    g+=[R(300,300,460,150,CORAL,3),CT(530,368,"“trust the keeper”",30,CORAL),CT(530,414,"— what every system asks",22,CORAL,op=0.85)]
+    g+=[L(320,315,740,435,CORAL,4)]
+    g+=ARR(790,375,900,375,SOFT,4)
+    g+=[R(940,300,600,150,GREEN,4),CT(1240,360,"the math",30,GREEN,weight="bold")]
+    g+=[CT(1240,406,"even the branch holding the pen",22,SOFT),CT(1240,436,"can't quietly change what it wrote",22,SOFT)]
+    g+=[CT(960,590,"— which makes faking the record the one unforgivable crime —",28,AMBER)]
+    for i,lab in enumerate(["no vote","no verdict","no law"]):
+        x=560+i*400; g+=[R(x-150,660,300,90,DIMB,2),CT(x,715,lab,26,SOFT)]
+    g+=ARR(960,760,960,820,CORAL,4)
+    g+=[CT(960,880,"nothing can stand on a faked record",30,WHITE,weight="bold")]
+    return g
+
+def f_detectable():  # 6  the operator outside the box — detectable, not impossible
+    g=[CT(960,105,"one honest limit: this binds the executive INSIDE the system",34,SOFT)]
+    g+=[R(300,240,900,560,STEEL,3),CT(750,285,"THE SYSTEM",24,STEEL)]
+    for i,lab in enumerate(["the record","the chambers","the courts","the code"]):
+        x=380+(i%2)*430; y=360+(i//2)*180
+        g+=[R(x,y,360,120,SOFT,2),CT(x+180,y+70,lab,24,SOFT)]
+    g+=[CT(750,780,"the executive can't cheat the record it keeps",22,GREEN)]
+    g+=[person(1560,360,34,AMBER),CT(1560,430,"the operator",24,AMBER),CT(1560,464,"owns the machine",20,SOFT)]
+    g+=[R(1500,540,120,70,CORAL,3),CT(1560,584,"the plug",22,CORAL)]
+    g+=ARR(1420,470,1215,470,CORAL,4)+[CT(1315,445,"outside it",20,CORAL)]
+    g+=[CT(960,880,"they could delete it, hide it, or fork their own copy —",28,WHITE)]
+    g+=[CT(960,926,"but not in SECRET. tampering is always visible.",28,AMBER,weight="bold")]
+    return g
+
+def f_floor():  # 6  the guarantee + the floor (fork off)
+    g=[CT(960,130,"so the guarantee isn't “they can't” —",34,SOFT)]
+    g+=[CT(960,186,"it's “they can't get away with it”",38,WHITE,weight="bold")]
+    g+=[person(360,470,30,STEEL),CT(360,545,"you",22,SOFT)]
+    g+=[R(300,600,120,70,GREEN,3),CT(360,644,"see it",22,GREEN)]
+    g+=ARR(430,470,600,470,SOFT,4)+[CT(515,432,"caught",20,AMBER)]
+    g+=[R(640,380,300,190,CORAL,3),CT(790,360,"a liar caught",22,CORAL)]
+    g+=[person(720,470,16,STEEL),person(790,500,16,STEEL),person(860,460,16,STEEL)]
+    g+=ARR(960,470,1140,470,GREEN,5)+[CT(1050,432,"fork off",24,GREEN,weight="bold"),CT(1050,510,"take your things",20,SOFT)]
+    g+=[R(1180,380,320,190,GREEN,3),CT(1340,360,"somewhere honest",22,GREEN)]
+    g+=[person(1270,470,16,GREEN),person(1340,500,16,GREEN),person(1410,460,16,GREEN)]
+    g+=[CT(960,760,"a liar gets caught; a caught liar gets abandoned",32,WHITE,weight="bold")]
+    g+=[CT(960,820,"that's the floor under everything",26,AMBER)]
+    return g
+
+def f_handoff():  # 7  hand forward to Ch7 (the dial)
+    g=[CT(960,150,"you don't have to trust whoever runs this —",34,SOFT)]
+    g+=[CT(960,206,"check every number yourself, and walk if they cheat",30,WHITE)]
+    g+=[CT(500,340,"that covers the community",24,SOFT)]
+    for i in range(9):
+        a=math.radians(i*40); g+=[person(500+120*math.cos(a),470+120*math.sin(a)*0.9,14,STEEL)]
+    g+=[CT(500,640,"the people who live here",22,SOFT)]
+    g+=ARR(680,470,1180,470,AMBER,6)+[CT(930,430,"the last chapter flips sides",24,AMBER)]
+    g+=[person(1420,470,30,AMBER),CT(1420,545,"the organizer",24,AMBER)]
+    g+=[C(1420,360,44,WHITE,4),L(1420,360,1452,332,WHITE,4)]
+    g+=[CT(960,820,"how do you switch on a whole constitution —",28,WHITE)]
+    g+=[CT(960,866,"before the crowd to run it even exists?",28,SOFT)]
+    return g
+
+CH6=[
+ ("ch6-01-pen", f_pen()),                       # 1  code writes the record — what stops it lying?
+ ("ch6-02-reality", f_record_reality()),        # 2  a digital world has no outside
+ ("ch6-03-tamper", f_tamper_chain(2)),          # 3  the tamper-evident chain [hero]
+ ("ch6-04-selfref", f_selfref()),               # 3  the writer is inside the written
+ ("ch6-05-verify", f_verify()),                 # 3  check it yourself
+ ("ch6-06-blockchain", f_blockchain()),         # 4  a blockchain, minus the cryptocurrency
+ ("ch6-07-frommath", f_from_math()),            # 5  honesty from math — the unforgivable crime
+ ("ch6-08-detectable", f_detectable()),         # 6  the operator outside the box
+ ("ch6-09-floor", f_floor()),                   # 6  they can't get away with it — fork off
+ ("ch6-10-handoff", f_handoff()),               # 7  hand forward to Ch7
+]
+
+# ================= CH 7 — A DIAL ON AN HONEST FLOOR =================
+def f_organizer():  # 1  this one's for the organizer; the dial from 1 to 1,000,000
+    g=[CT(960,110,"every other chapter spoke to a community — this one is for the person starting one",32,SOFT)]
+    g+=[CT(520,220,"chapters 1–6",24,DIM)]
+    for i in range(24):
+        a=math.radians(i*15); r=90+(i%3)*16; g+=[person(520+r*math.cos(a),340+r*math.sin(a)*0.85,9,DIMB,0.8)]
+    g+=[CT(520,490,"a crowd",22,DIM)]
+    g+=ARR(700,340,860,340,SOFT,4)+[CT(780,300,"flip",20,SOFT)]
+    g+=[person(1040,340,40,AMBER),CT(1040,430,"one organizer",26,AMBER),CT(1040,490,"standing a world up",22,SOFT)]
+    ax0,ax1,ay=360,1560,680; g+=[L(ax0,ay,ax1,ay,WHITE,5)]
+    for xx in (ax0,ax1): g+=[L(xx,ay-16,xx,ay+16,WHITE,5)]
+    g+=[CT(ax0,ay+58,"a population of 1",24,SOFT),CT(ax1,ay+58,"a population of 1,000,000",24,SOFT)]
+    g+=[CT(960,ay-46,"the SAME process runs at every setting",24,GREEN)]
+    g+=[CT(960,850,"you don't switch it all on at once — you turn a dial, on your own schedule",30,WHITE)]
+    g+=[CT(960,910,"from “you decide everything” to “the community decides everything”",26,SOFT)]
+    return g
+
+def f_bedrock():  # 2  the honest floor: three bedrock slabs [hero]
+    g=[CT(960,110,"start with the part that doesn't move — the floor the dial sits on",34,SOFT)]
+    slabs=[("MONEY CAN'T\nBUY POWER","the firewall — a vote,\nnever a payout"),
+           ("THE RECORD\nCAN'T BE FAKED","anyone can check\nwhat really happened"),
+           ("ANYONE CAN\nALWAYS LEAVE","walk out with your account,\nstanding, everything you built")]
+    x0=210; bw=480; gap=30; y=280; bh=300
+    for i,(t,d) in enumerate(slabs):
+        x=x0+i*(bw+gap)
+        g+=[R(x,y,bw,bh,GREEN,5,fill=DARK)]
+        for j,ln in enumerate(t.split("\n")): g+=[CT(x+bw/2,y+80+j*46,ln,34,WHITE,weight="bold")]
+        for j,ln in enumerate(d.split("\n")): g+=[CT(x+bw/2,y+210+j*38,ln,23,SOFT)]
+    for xx in range(x0,x0+3*bw+2*gap,60): g+=[L(xx,y+bh+8,xx+40,y+bh+48,GREEN,3,0.5)]
+    g+=[CT(960,720,"identical at every dial setting — and not even you can switch them off",30,WHITE)]
+    g+=[CT(960,790,"three slabs. bedrock.",30,GREEN,weight="bold")]
+    return g
+
+def f_moderation():  # 3  you already run a government — you just call it moderation
+    g=[CT(960,110,"you already run a government — you just call it moderation",36,SOFT)]
+    rows=[("the operator","the executive"),("the mods","the police"),
+          ("the unwritten rules","the law"),("the ban appeals","the courts"),("the mod-log","the record")]
+    y0=230; rh=88
+    for i,(a,b) in enumerate(rows):
+        y=y0+i*rh
+        g+=[R(360,y,440,64,STEEL,3),CT(580,y+42,a,26,SOFT)]
+        g+=ARR(810,y+32,900,y+32,GREEN,4)
+        g+=[R(910,y,440,64,WHITE,3),CT(1130,y+42,b,26,WHITE)]
+    g+=[R(1420,300,420,220,AMBER,3),CT(1630,270,"rule-of-law: a gift to you",22,AMBER)]
+    g+=[CT(1630,350,"“you broke rule 4,",22,SOFT),CT(1630,386,"here's the log,",22,SOFT),CT(1630,422,"you can appeal”",22,SOFT)]
+    g+=[CT(1630,482,"the rules take the heat, not you",20,GREEN)]
+    g+=[CT(960,780,"this doesn't drop a government on a blank slate —",28,WHITE)]
+    g+=[CT(960,822,"it formalizes the one every community already has",28,WHITE)]
+    return g
+
+def f_cap_equity():  # 4  capital chamber: an equity award (a vote, never cash)
+    g=[CT(960,110,"how much does the founder start with? it FALLS OUT of the same machine",34,SOFT)]
+    g+=[CT(960,168,"authority follows the work — and early on, the founder does all of it",24,SOFT)]
+    g+=[CT(960,255,"the CAPITAL chamber — the funders' count",26,AMBER,weight="bold")]
+    g+=[C(360,400,42,AMBER,3,DARK),CT(360,412,"$1",28,AMBER)]
+    g+=[CT(360,480,"a dollar of pay",22,SOFT)]
+    g+=ARR(420,400,600,400,GREEN,5)+[CT(510,360,"plowed",22,GREEN),CT(510,462,"straight back in",20,SOFT)]
+    g+=[R(650,340,320,120,GREEN,4),CT(810,392,"minted as",22,SOFT),CT(810,428,"STANDING",26,GREEN,weight="bold")]
+    g+=[L(810,470,810,540,CORAL,3,dash="7 7"),CT(810,585,"never reaches a pocket",20,CORAL)]
+    g+=ARR(985,400,1120,400,SOFT,4)
+    g+=[R(1160,320,620,170,WHITE,3),CT(1470,300,"sized to the community's own funding",22,SOFT)]
+    g+=[CT(1470,375,"matched dollar-for-dollar  +  1 unit",26,WHITE)]
+    g+=[CT(1470,435,"→ a hair past half: a bare majority of the funders",23,GREEN)]
+    g+=[CT(960,700,"the ordinary startup move — founder equity for the work put in",26,SOFT)]
+    g+=[CT(960,830,"the pool never grows, only the standing does —",28,WHITE)]
+    g+=[CT(960,880,"which is exactly why it's a VOTE, not cash",30,AMBER,weight="bold")]
+    return g
+
+def f_labor_consumer():  # 4  labor dilutes; consumer ~zero; 2 of 3 = control
+    g=[CT(960,110,"the other two chambers — and why two is enough",34,SOFT)]
+    g+=[CT(470,220,"LABOR — the makers' count",24,GREEN,weight="bold")]
+    cx,cy,r=470,440,120
+    def _sector(a0,a1,col):  # clean pie sector, correct large-arc flag
+        x0=cx+r*math.cos(math.radians(a0)); y0=cy+r*math.sin(math.radians(a0))
+        x1=cx+r*math.cos(math.radians(a1)); y1=cy+r*math.sin(math.radians(a1))
+        large=1 if (a1-a0)>180 else 0
+        return f'<path d="M {cx} {cy} L {x0} {y0} A {r} {r} 0 {large} 1 {x1} {y1} Z" fill="{col}" stroke="{DARK}" stroke-width="3"/>'
+    # founder still a majority (~58%), from top clockwise; the rest = other makers' slices
+    fa0,fa1=-90,-90+0.58*360
+    g+=[_sector(fa0,fa1,GREEN)]                      # founder wedge, solid
+    g+=[C(cx,cy,r,GREEN,4)]                          # rim
+    for ang in [fa1, fa1+50, fa1+100, 270]:         # radial dividers across the remaining slices
+        g+=[L(cx,cy,cx+r*math.cos(math.radians(ang)),cy+r*math.sin(math.radians(ang)),STEEL,2,0.8)]
+    g+=[CT(cx+34,cy+18,"founder",20,DARK,weight="bold")]
+    g+=[CT(cx,cy+r+48,"100% at first — then dilutes",22,SOFT)]
+    g+=ARR(cx+r+30,cy-40,cx+r+150,cy-40,SOFT,4)+[CT(cx+r+230,cy-70,"as others",22,SOFT),CT(cx+r+230,cy-34,"build alongside",22,SOFT)]
+    g+=[CT(cx+r+230,cy+40,"the grip loosens by",20,SOFT),CT(cx+r+230,cy+72,"the same crediting rule",20,SOFT)]
+    g+=[CT(1300,220,"CONSUMER — the players' count",24,DIM,weight="bold")]
+    g+=[C(1300,430,110,DIMB,3,DARK),CT(1300,442,"~0",44,DIM)]
+    g+=[CT(1300,590,"nothing automatic — earned by playing, or not at all",20,SOFT)]
+    g+=[CT(1300,626,"— and they don't need it",20,SOFT)]
+    g+=[CT(960,780,"a decision takes two of three chambers —",28,WHITE)]
+    g+=[CT(960,830,"capital + labor are already two",30,GREEN,weight="bold")]
+    g+=[CT(960,888,"consumer is the one the founder can let go from day one",24,SOFT)]
+    return g
+
+def f_branches():  # 5  chambers -> branches: PM (executive) + judiciary pool collapses to one
+    g=[CT(960,100,"holding two of three chambers hands you the other two branches",34,SOFT)]
+    g+=[CT(430,190,"EXECUTIVE — comes free",24,GREEN,weight="bold")]
+    r,_=rings(310,360,72,(AMBER,AMBER,WHITE)); g+=r+[CT(310,485,"2 of 3 chambers",21,SOFT)]
+    g+=ARR(430,340,560,340,GREEN,5)+[CT(495,302,"elect",20,GREEN)]
+    g+=[C(680,340,48,WHITE,4),CT(680,352,"PM",26,WHITE,weight="bold"),CT(680,428,"the chambers ARE",20,SOFT),CT(680,458,"the executive",20,SOFT)]
+    g+=[CT(1360,190,"JUDICIARY — no seat, a jury drawn by lot",24,SOFT,weight="bold")]
+    ax0,ax1,ay=1050,1720,400; g+=[L(ax0,ay,ax1,ay,WHITE,3)]
+    g+=[CT(ax0,ay+40,"day one",18,SOFT),CT(ax1,ay+40,"most senior",18,SOFT)]
+    g+=[L(ax0+30,ay-140,ax0+30,ay+20,AMBER,4),CT(ax0+30,ay-160,"seniority bar",20,AMBER)]
+    g+=[person(ax0+95,ay-70,24,AMBER),CT(ax0+95,ay-110,"the founder",18,AMBER)]
+    for i in range(6): g+=[person(ax0+220+i*70,ay-60,12,DIMB,0.7)]
+    g+=[CT(1385,ay+95,"the founder is the most senior citizen there is, by construction",20,SOFT)]
+    g+=[CT(1385,ay+130,"→ set the bar at day one and the whole pool is you",20,SOFT)]
+    g+=[CT(960,650,"the founder holds the judiciary only by keeping the pool small —",26,WHITE)]
+    g+=[CT(960,696,"lower the bar and the courts pass to real citizens on their own",26,WHITE)]
+    g+=[CT(960,800,"a clock you can't fake — the first branch to leave your hands as you open up",26,AMBER)]
+    return g
+
+def f_budget():  # 5  the budget coda: legislature writes the budget -> income keeps flowing
+    g=[CT(960,120,"the same control has a plainer payoff, too",34,SOFT)]
+    chain=[("the chambers",WHITE),("ARE the legislature",WHITE),("write the budget",GREEN),("your income:\na line you control",AMBER)]
+    x0=250; bw=360; y=340; bh=150
+    for i,(lab,col) in enumerate(chain):
+        x=x0+i*(bw+30)
+        g+=[R(x,y,bw,bh,col,4)]
+        for j,ln in enumerate(lab.split("\n")): g+=[CT(x+bw/2,y+(88 if len(lab.split('\n'))==1 else 66)+j*38,ln,26,col,weight="bold" if col in (GREEN,AMBER) else "normal")]
+        if i<3: g+=ARR(x+bw,y+bh/2,x+bw+30,y+bh/2,SOFT,4)
+    g+=[CT(960,640,"an operator who was already making a living keeps making it —",28,WHITE)]
+    g+=[CT(960,686,"paid out the way a salary is: the same revenue, a couple extra steps",26,SOFT)]
+    g+=[CT(960,800,"a DRAW from one operating budget — not profit pocketed, not a lever on outcomes",24,DIM)]
+    return g
+
+def f_abstain():  # 6  graduated participation: abstention
+    g=[CT(960,110,"holding all of it doesn't mean wielding all of it",36,SOFT)]
+    g+=[CT(960,166,"hand specific decisions to the community — one at a time — by ABSTAINING",26,GREEN)]
+    ox,oy=380,470
+    g+=[R(ox-110,oy-90,220,180,DIMB,3,fill=DARK),CT(ox,oy-6,"the operator's",22,DIM),CT(ox,oy+30,"heavy weight",22,DIM)]
+    g+=[L(ox-110,oy-90,ox+110,oy+90,DIMB,3),L(ox+110,oy-90,ox-110,oy+90,DIMB,3)]
+    g+=[CT(ox,oy+150,"held OFF the scale",24,AMBER),CT(ox,oy+186,"(abstains)",20,SOFT)]
+    g+=ARR(ox+140,oy,ox+300,oy,SOFT,4)
+    bx,by,bw,bh=880,300,520,360
+    g+=[R(bx,by,bw,bh,SOFT,2)]
+    fillh=240; ql=by+bh-140
+    g+=[f'<rect x="{bx+3}" y="{by+bh-3-fillh}" width="{bw-6}" height="{fillh}" rx="6" fill="{GREEN}" opacity="0.5"/>']
+    g+=[CT(bx-70,ql+8,"quorum",22,AMBER),L(bx,ql,bx+bw,ql,AMBER,3,dash="10 8")]
+    g+=[CT(bx+bw/2,by+bh-70,"the community's votes",24,WHITE)]
+    g+=[CT(bx+bw/2,by+bh-fillh-24,"the tally still CLEARS the line",22,GREEN)]
+    g+=[CT(960,760,"the vote reaches quorum and resolves on everyone else's — the community decides",26,WHITE)]
+    g+=[CT(960,820,"defer the calls you want to, hold the ones you don't — nobody carries the whole load",24,SOFT)]
+    return g
+
+def f_ratify():  # 7  ratification: the amendment roster, welded above ordinary law [final frame]
+    g=[CT(960,105,"none of it is permanent yet — until RATIFICATION",36,SOFT)]
+    g+=[CT(960,160,"the point the community locks in what it wants to keep",24,SOFT)]
+    cards=["due process","free expression","term limits","…and the rest"]
+    x0=250; cw=340; y=250; ch=130
+    for i,c in enumerate(cards):
+        x=x0+i*(cw+30); col=GREEN if i<3 else STEEL
+        g+=[R(x,y,cw,ch,col,3),CT(x+cw/2,y+76,c,26,col if i==3 else WHITE)]
+    g+=[CT(960,440,"a roster of ready-made amendments — picked à la carte and bolted in",24,SOFT)]
+    g+=[CT(960,478,"each amendment is a notch on the dial; ratification sets it and welds it",24,SOFT)]
+    g+=[R(600,560,720,70,DIMB,2),CT(960,604,"ordinary law — a simple majority can change it next week",22,SOFT)]
+    g+=[R(600,650,720,80,AMBER,4),CT(960,690,"an amendment — supermajority of every chamber to enact OR repeal",22,WHITE)]
+    g+=[CT(1400,690,"the weld",22,AMBER)]
+    g+=[CT(960,830,"nothing forces you to install any — top-down, locked in, is a legit constitution too",24,SOFT)]
+    g+=[CT(960,910,"the structure doesn't force you to become a democrat. it just makes it SAFE to.",30,WHITE,weight="bold")]
+    return g
+
+CH7=[
+ ("ch7-01-organizer", f_organizer()),       # 1  this one's for the organizer; the dial 1→1,000,000
+ ("ch7-02-floor", f_bedrock()),             # 2  the honest floor — three bedrock slabs [hero]
+ ("ch7-03-moderation", f_moderation()),     # 3  you already run a government
+ ("ch7-04-dial", f_continuum()),            # 3  the dial on the floor [hero]
+ ("ch7-05-cap-equity", f_cap_equity()),     # 4  capital — an equity award (a vote, not cash)
+ ("ch7-06-labor-consumer", f_labor_consumer()),  # 4  labor dilutes · consumer ~0 · 2-of-3 = control
+ ("ch7-07-branches", f_branches()),         # 5  chambers → executive + judiciary (seniority bar)
+ ("ch7-08-budget", f_budget()),             # 5  the budget/income coda
+ ("ch7-09-abstain", f_abstain()),           # 6  graduated participation — abstention
+ ("ch7-10-delegation", f_delegation()),     # 6  …and delegation (callback to Ch 3)
+ ("ch7-11-ratify", f_ratify()),             # 7  ratification — makes it safe to [final frame]
+]
+
 # ================= CH 1 — THE HERO MONTAGE =================
+def f_next():  # end card: keep watching — chapters 2-7 teaser grid (labels = placeholder, sync to final titles)
+    g=[CT(960,110,"that was the whole machine, end to end",38,WHITE,weight="bold")]
+    g+=[CT(960,166,"the next six videos take it one piece at a time — keep watching:",28,SOFT)]
+    chapters=[("2","Why a Game"),("3","The Three Chambers"),("4","The Argument, Not the Crowd"),
+              ("5","Governing Is Shipping Software"),("6","Don't Trust, Verify"),("7","A Dial on an Honest Floor")]
+    cw,chh=580,150; gx=[230,830]; gy=[230,405,580]
+    for i,(num,title) in enumerate(chapters):
+        col=i%2; row=i//2; x=gx[col]; y=gy[row]; nextup=(i==0); bcol=GREEN if nextup else STEEL
+        g+=[R(x,y,cw,chh,bcol,3,fill=DARK)]
+        pcx,pcy=x+72,y+chh/2
+        g+=[C(pcx,pcy,34,bcol,3,DARK), f'<polygon points="{pcx-9},{pcy-15} {pcx-9},{pcy+15} {pcx+17},{pcy}" fill="{bcol}"/>']
+        g+=[T(x+132,y+60,f"CHAPTER {num}"+("   ·  up next" if nextup else ""),20,AMBER if nextup else DIM,weight="bold")]
+        g+=[T(x+132,y+104,title,26,WHITE)]
+    g+=[CT(960,900,"six short deep-dives — one per piece of the machine",26,SOFT)]
+    return g
+
 CH1=[
  ("ch1-01-hub", f_hub()),                                              # 0  tools route through one point
  ("ch1-02-whyagame", f_opener()),                                     # 0/① why a game  [Ch2 hero]
@@ -578,6 +962,7 @@ CH1=[
  ("ch1-17-fill", master(level=5, pop="one", title="the same model, whatever the population",
                         cap="one founder can hold every seat", sub="the model doesn't change — only who fills it")),  # close
  ("ch1-18-dial", f_continuum(safe_line="it opens up as far as the founder chooses — it just makes it safe to")),  # close [Ch7 hero]
+ ("ch1-19-next", f_next()),                                            # end card: keep watching → chapters 2-7
 ]
 
 def emit(name,parts):
@@ -588,7 +973,7 @@ def emit(name,parts):
         subprocess.run(["convert","-background","none","-density","96",sp,"-resize","3840x2160",pp],check=False)
     print("  ",name)
 
-ALL=CH1+CH2+CH3+CH4+CH5
+ALL=CH1+CH2+CH3+CH4+CH5+CH6+CH7
 if __name__=="__main__":
     print(f"{len(ALL)} frames -> {OUT_PNG}")
     for n,p in ALL: emit(n,p)
