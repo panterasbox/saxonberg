@@ -16,9 +16,22 @@
 > built §5's standing slice; this pass generalizes it — the arrangement
 > schema (§6), the four constituency walks (§7), and the macro + the
 > two-tier public-works program (§8).
-> **Retire when:** the arrangement/contract kernel promotes to formal
-> requirements, and the death/contract halves either fold into the
-> combat build or split to their own deferred-rpg slate.
+> **Built (2026-07-25, the work-contracts build):** the §5 gig kernel +
+> the §6 arrangement generalization SHIPPED →
+> [contract.md](../../subsystems/contract.md) (clause/condition
+> templates, the five-state gig over conserved escrow, the two-beat
+> turn-in, the job board + `work` verbs),
+> [banking.md](../../subsystems/banking.md) (the closed leg-kind
+> vocabulary incl. escrow + `draw`; the custodian rule — custody is a
+> relationship; institution-keyed accounts), and
+> [employment.md](../../subsystems/employment.md) (compensation bases on
+> `Position`, `banksAt`, the draw verb). Remaining design surface: §1
+> (death), §2's adjudication stack, §3's systemic generator + NPC
+> claiming, §4's macro, §6.3–§6.5 (schedule/perks/liability), §7 (the
+> constituency walks), §8 (the Circulation Reserve + public works).
+> **Retire when:** the remaining halves fold into their consuming builds
+> (death → the deferred-rpg combat line; macro/public-works → the
+> cooperative/economy build) or split to their own slates.
 
 Markers used below: **[DECIDED]** locked in the conversation ·
 **[LEAN]** a recommendation the user delegated or tentatively accepted ·
@@ -298,6 +311,14 @@ resorting to "the agent just magically knows."
 
 ### 5.3 The gig (an achieve clause that settles)
 
+> **[NOW]** Shipped by the work-contracts build — the five-state gig
+> over conserved per-contract escrow, exclusive + open-bounty claim
+> modes, the two-beat turn-in (`fulfill`/`job complete`), lazy expiry,
+> breach-with-regard-nudge, and the terminal-hall job board. See
+> [contract.md](../../subsystems/contract.md). The systemic generator
+> ("Dave's stock is genuinely low → a gig posts itself") and NPC
+> claiming remain open here.
+
 **[DECIDED] Task-agnostic five-state lifecycle.** Modeled on **delivery**
 (buildable today; crisp engine-verifiable completion) — "cull the lion" is
 the identical machine once combat exists; the task only fills the "work"
@@ -416,6 +437,13 @@ the model it demands):
   employment already points the way.
 
 ### 6.1 The four compensation bases
+
+> **[NOW]** Shipped — `Position.compensation` (`time` /
+> `per-settlement` / `share-of-flow` as data; residual = the
+> solvency-checked `draw` leg + verb). See
+> [employment.md](../../subsystems/employment.md) § Compensation bases
+> and [banking.md](../../subsystems/banking.md) § The leg-kind
+> vocabulary (the wage-vs-draw tax wedge).
 
 - **[DECIDED] Every compensation model is a mix of four bases** —
   the first two fall straight out of the clause shapes, and the

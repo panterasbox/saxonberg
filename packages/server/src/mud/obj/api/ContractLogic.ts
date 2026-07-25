@@ -115,7 +115,7 @@ async function saveRecord(record: ContractRecord): Promise<void> {
 /**
  * Resolve the destination — live instance first, else the residency
  * re-clone path (`singletonOrClone`: an evicted room re-materializes on
- * demand — the R2 note). Null when the path names nothing buildable.
+ * demand). Null when the path names nothing buildable.
  */
 async function resolveDestination(path: string): Promise<Stuff | null> {
   const live = StuffApi.findByTemplatePath(path);
@@ -287,7 +287,9 @@ async function expireStale(record: ContractRecord): Promise<ContractRecord> {
   return record;
 }
 
-/** Resolve the issuer party + funding account for a post (Decision I). */
+/** Resolve the issuer party + funding account for a post (a player's
+ * primary account, or the proprietor's Business account with `asBusiness`;
+ * bounty escrows now, exclusive funds-checks now and holds at claim). */
 async function resolveIssuer(
   poster: Stuff,
   asBusiness: boolean,

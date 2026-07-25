@@ -922,7 +922,9 @@ export class PersistenceManager {
 
       // Bank accounts: the materialized account registry + balance (a
       // rebuildable cache). Unique on `accountId` (the ledger key + warm()
-      // load), indexed on `owner` / `bankPath` (identity resolution).
+      // load), indexed on `owner` / `bank` (identity resolution — the
+      // {owner, bank} institution key; the legacy `bankPath` index is
+      // retired with the field).
       await this.getCollection(Collections.BankAccounts).createIndex(
         { accountId: 1 },
         { unique: true }
@@ -931,7 +933,7 @@ export class PersistenceManager {
         owner: 1,
       });
       await this.getCollection(Collections.BankAccounts).createIndex({
-        bankPath: 1,
+        bank: 1,
       });
 
       // Bank supply: the single-row running money-supply headline

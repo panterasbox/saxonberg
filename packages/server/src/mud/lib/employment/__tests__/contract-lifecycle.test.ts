@@ -428,7 +428,7 @@ describe("contract lifecycle", () => {
     const DAVE = "/domain/test/npc/dave";
     const { default: BusinessEntity } = await import("../Business");
     const biz = makeStuffAtPath(() => new BusinessEntity(), BUSINESS);
-    (biz as unknown as { proprietorPath: string }).proprietorPath = DAVE;
+    biz.proprietorPath = DAVE;
     biz.banksAt = BankingApi.defaultCustodianBank();
     const dave = makeStuffAtPath(() => new TestIssuer(), DAVE);
     const bizAcct = await BankingApi.ensureVenueAccount(

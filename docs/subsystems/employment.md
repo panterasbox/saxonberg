@@ -353,3 +353,11 @@ plan. Notable design→implementation shifts:
   `postRegister` clone, and fixture resolution moved to MQL `peers` + type
   filter (both from MR review; the lazy standup finalized in the Terminus
   build).
+
+> **Work-contracts build (`3969a34e..d8389518`).** Added the
+> compensation-bases section above (the `compensation` term on
+> `Position`, `settlePiecework`/`flowSplitsFor`, the draw), the authored
+> **`banksAt`** custody term + `operatingAccountOf` seam, and the
+> payer-derived `ensurePayableWorker` rule (NPCs open at the employer's
+> bank; players are never silently signed up). The gig half lives in
+> [contract.md](./contract.md).

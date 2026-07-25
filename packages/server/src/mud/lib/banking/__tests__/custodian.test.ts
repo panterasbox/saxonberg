@@ -1,5 +1,5 @@
 /**
- * The custodian rule (Decision L, institution-keyed): every account names
+ * The custodian rule (institution-keyed): every account names
  * a REAL custodian **bank** — an institution key (`goodkin`,
  * `central-bank`, a live branch's key), never `""`, never a path, never a
  * non-bank. The boot restamp migrates legacy rows idempotently (a

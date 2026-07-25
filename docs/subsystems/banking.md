@@ -308,7 +308,7 @@ sealed `postTransaction` chokepoint lives here as a module-private fn.
 
 Collections (`backend/PersistenceManager.ts`): `bank_ledger` (indexed
 `fromAccount`/`toAccount`/`kind`/`at`), `bank_accounts` (unique `accountId`,
-indexed `owner`/`bankPath`), `bank_supply` (single row). Warm wiring in
+indexed `owner`/`bank`), `bank_supply` (single row). Warm wiring in
 `AppBootstrap` (`AccountBalance.warm` + `SupplyAggregate.warm` +
 `BankingApi.boot`); the `/obj/CentralBank` singleton is in the bootstrap
 manifest.
@@ -499,7 +499,7 @@ economically distinct movement must carry a distinct, named leg.
 consumer's own event chain can reference its money legs — the contract
 events' `txId` link.
 
-## Every account names a real custodian (Decision L)
+## Every account names a real custodian
 
 No account is held *nowhere*. Before this build, venue/city/worker
 accounts were self-custodied (`bankPath` = the owner's own non-bank
@@ -572,3 +572,16 @@ untouched). `banking.defaultCustodianBank` (`goodkin`) is therefore
 should pass it. Behavior-preserving: these accounts move money by
 transfer only (never the till), and liquidity≠solvency is already the
 shipped branch-book property, so Goodkin's cash physics are unchanged.
+
+> **History (work-contracts build, `3969a34e..d8389518`).** This build
+> added the closed `LEDGER_KINDS` vocabulary + the escrow family +
+> `draw` (the leg-kind sections above), then two review rounds reshaped
+> custody: **custody is a relationship, never a default** (`banksAt` /
+> payer-derived / escrow-at-the-issuer's-bank; the default became the
+> restamp's last resort, read from `banking.defaultCustodianBank` with
+> NO code fallback), and **the bank became an institution** — accounts
+> re-keyed from `{owner, bankPath}` (a branch counter's templatePath) to
+> `{owner, bank}` (an institution key; `BankMixin.getBank() = authored
+> ?? corpoKey`). `AccountBalance.bankPath` survives only as a legacy
+> hydration carrier the boot restamp migrates and clears — remove with
+> the terminus-banking build.
