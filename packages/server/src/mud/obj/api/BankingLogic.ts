@@ -144,7 +144,13 @@ async function openAccountImpl(
   const owner = actingActorKey();
   const owned = await accountsOfImpl(owner);
   const already = owned.find((a) => a.bank === bank);
-  if (already) return already.accountId;
+  if (already) {
+    // Re-open by an existing holder: the wallet credential is
+    // session-durable, so a returning player's implant carries an
+    // unlinked payment record — `bank open` doubles as the re-link.
+    autoLinkToWallet(actingPrincipal(), already.accountId);
+    return already.accountId;
+  }
 
   const row = new AccountBalance();
   row.accountId = Account.newId();

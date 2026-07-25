@@ -42,12 +42,12 @@ subcommands:
         type: string
         required: true
         prepositions: [to]
+      # A string, coerced in the controller (the tip/pay amount precedent
+      # — positional args don't coerce type:number).
       - name: reward
-        type: number
+        type: string
         required: true
         prepositions: [for]
-        validators:
-          - /lib/command/validators/mustBeNumber
     options:
       bounty:
         short: b

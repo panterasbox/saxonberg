@@ -38,8 +38,8 @@ interface JobModel extends CommandModel {
   item?: MqlOneResult;
   /** `post`: the destination (name reachable-first, else a path). */
   destination?: string;
-  /** `post`: the reward, minor units. */
-  reward?: number;
+  /** `post`: the reward, minor units (a string arg; coerced here). */
+  reward?: string;
   bounty?: boolean;
   business?: boolean;
   expires?: number;

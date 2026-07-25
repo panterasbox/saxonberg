@@ -6,6 +6,7 @@ import { ApiLogic } from "../../lib/stuff/ApiLogic";
 import { CallSecurity, Unshadowable } from "../../lib/security/decorators";
 import { SecurityPolicies } from "../../lib/security/SecurityPolicies";
 import { MixinApi, type AnyConstructor } from "../../api/mixin";
+import { SpeciesApi } from "../../api/species";
 import { StuffApi } from "../../api/stuff";
 import { ContainmentApi } from "../../api/containment";
 import { SlotApi } from "../../api/slot";
@@ -172,7 +173,24 @@ async function restorePlacement(
     return;
   }
   if (place.container) {
-    const target = StuffApi.findByTemplatePath(place.container);
+    // Live instance first, else MATERIALIZE the room — after a server
+    // restart the captured location isn't stood up yet (rooms are lazy),
+    // and a live-only lookup would silently leave the host containerless
+    // (a returning avatar then fails `Avatar.enter`). The residency
+    // re-clone path is the same one an exit traversal would take.
+    let target: Stuff | null =
+      StuffApi.findByTemplatePath(place.container) ?? null;
+    if (!target) {
+      try {
+        target = await StuffApi.singletonOrClone<Stuff>(place.container);
+      } catch (err) {
+        console.warn(
+          `PersistableLogic.restorePlacement: captured container ` +
+            `'${place.container}' unresolvable — host left where cloned:`,
+          err,
+        );
+      }
+    }
     if (target && MixinApi.isContainer(target)) {
       ContainmentApi.move(
         host as Stuff & Containable,
@@ -367,7 +385,23 @@ async function restoreState(
 
   // (3) Slotted occupancy — re-wear each worn item into its slots via the
   // gated multi-slot chokepoint, resolved by content index (no instance id).
+  // An organism's slots are DEFINED by its body plan, and the species that
+  // names the plan was itself just restored by the field hydrate above —
+  // so the anatomy must be preloaded here, between fields and occupancy
+  // (a fresh mint gets this from installDefaultLoadout; a restoring host
+  // runs the loadout only AFTER materialize, so it can't cover this).
   if (slottedSlice && MixinApi.isSlotted(target)) {
+    if (MixinApi.isOrganism(target)) {
+      try {
+        await SpeciesApi.preloadAnatomy(target);
+      } catch (err) {
+        console.warn(
+          `PersistableLogic: anatomy preload failed for ` +
+            `${target.getTemplatePath()}:`,
+          err,
+        );
+      }
+    }
     for (const { index, slots } of slottedSlice.worn) {
       const item = restored[index];
       if (item && MixinApi.isSlottable(item)) {

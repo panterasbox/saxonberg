@@ -297,9 +297,14 @@ export function PerceptibleMixin<TBase extends MixinConstructor>(Base: TBase) {
      *
      * Passing `undefined` clears the explicit override; subsequent
      * `getPrimaryKeyword()` calls fall back to the derived-pool head.
+     * `null` is normalized to the same clear: a captured `undefined`
+     * round-trips through Mongo as `null` (the persistence-spine
+     * snapshot of an avatar that never authored a primary keyword), so
+     * the restore path hands the setter `null` — treating it as a value
+     * would crash every returning avatar at connect.
      */
     setPrimaryKeyword(value: string | undefined): void {
-      if (value !== undefined) {
+      if (value !== undefined && value !== null) {
         const normalized = value.toLowerCase().trim();
         if (normalized.length === 0) {
           console.warn(
